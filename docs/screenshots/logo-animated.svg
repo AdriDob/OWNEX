@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" font-family="'JetBrains Mono','Fira Code',monospace">
+  <defs>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#863bff"/>
+      <stop offset="50%" stop-color="#00ff41"/>
+      <stop offset="100%" stop-color="#00b8ff"/>
+    </linearGradient>
+    <linearGradient id="eyeGlow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#863bff"/>
+    </linearGradient>
+    <linearGradient id="textGlow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#863bff"/>
+      <stop offset="50%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#00ff41"/>
+    </linearGradient>
+    <filter id="neon">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glowStrong">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="800" height="200" fill="#0a0a0a" rx="12"/>
+  <rect x="2" y="2" width="796" height="196" fill="none" stroke="rgba(134,59,255,0.15)" stroke-width="1" rx="10"/>
+
+  <!-- Scanline overlay -->
+  <pattern id="scanlines" patternUnits="userSpaceOnUse" width="800" height="4">
+    <line x1="0" y1="0" x2="800" y2="0" stroke="rgba(0,255,65,0.03)" stroke-width="1"/>
+  </pattern>
+  <rect width="800" height="200" fill="url(#scanlines)" opacity="0.5"/>
+
+  <!-- Eye/Logo icon -->
+  <g transform="translate(60, 100)" filter="url(#glowStrong)">
+    <animateTransform attributeName="transform" type="translate" values="60,100;60,98;60,100" dur="3s" repeatCount="indefinite"/>
+
+    <!-- Outer glow pulsing -->
+    <ellipse cx="40" cy="0" rx="42" ry="42" fill="none" stroke="#863bff" stroke-width="2" opacity="0.3">
+      <animate attributeName="r" values="42;48;42" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.3;0.1;0.3" dur="3s" repeatCount="indefinite"/>
+    </ellipse>
+
+    <!-- Diamond/eye shape -->
+    <path d="M40,-35 L75,0 L40,35 L5,0 Z" fill="none" stroke="url(#eyeGlow)" stroke-width="3" filter="url(#neon)">
+      <animate attributeName="stroke-opacity" values="1;0.6;1" dur="2s" repeatCount="indefinite"/>
+    </path>
+
+    <!-- Inner pupil -->
+    <circle cx="40" cy="0" r="8" fill="#863bff" opacity="0.8">
+      <animate attributeName="r" values="8;10;8" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Center dot -->
+    <circle cx="40" cy="0" r="3" fill="#00ff41">
+      <animate attributeName="r" values="3;4;3" dur="1.5s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Corner accents -->
+    <circle cx="4" cy="0" r="2" fill="#00ff41" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="76" cy="0" r="2" fill="#00b8ff" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite" begin="0.5s"/>
+    </circle>
+    <circle cx="40" cy="-33" r="2" fill="#a855f7" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite" begin="1s"/>
+    </circle>
+    <circle cx="40" cy="33" r="2" fill="#00ff41" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite" begin="0.3s"/>
+    </circle>
+  </g>
+
+  <!-- Vertical separator -->
+  <line x1="130" y1="40" x2="130" y2="160" stroke="rgba(134,59,255,0.2)" stroke-width="1"/>
+
+  <!-- Title: Rastro -->
+  <text x="155" y="92" font-size="48" font-weight="bold" fill="url(#textGlow)" filter="url(#neon)">
+    Rastro
+    <animate attributeName="opacity" values="1;0.85;1" dur="3s" repeatCount="indefinite"/>
+  </text>
+
+  <!-- Subtitle: / ORION -->
+  <text x="155" y="135" font-size="28" fill="#00ff41" font-weight="300" opacity="0.9">
+    <tspan fill="#a855f7">/</tspan>
+    <tspan> ORION</tspan>
+    <animate attributeName="opacity" values="0.9;0.6;0.9" dur="4s" repeatCount="indefinite"/>
+  </text>
+
+  <!-- Tagline -->
+  <text x="155" y="160" font-size="12" fill="rgba(255,255,255,0.4)" font-weight="300" letter-spacing="4">
+    AI-POWERED BUG BOUNTY INTELLIGENCE OS
+    <animate attributeName="opacity" values="0.4;0.7;0.4" dur="5s" repeatCount="indefinite"/>
+  </text>
+
+  <!-- Status dots -->
+  <g transform="translate(680, 50)">
+    <circle cx="0" cy="0" r="4" fill="#00ff41" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.5s" repeatCount="indefinite"/>
+    </circle>
+    <text x="10" y="4" font-size="10" fill="rgba(255,255,255,0.3)" letter-spacing="1">SYSTEM</text>
+  </g>
+
+  <g transform="translate(680, 75)">
+    <circle cx="0" cy="0" r="4" fill="#00b8ff" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.5s" repeatCount="indefinite" begin="0.5s"/>
+    </circle>
+    <text x="10" y="4" font-size="10" fill="rgba(255,255,255,0.3)" letter-spacing="1">AI CORE</text>
+  </g>
+
+  <g transform="translate(680, 100)">
+    <circle cx="0" cy="0" r="4" fill="#a855f7" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.5s" repeatCount="indefinite" begin="1s"/>
+    </circle>
+    <text x="10" y="4" font-size="10" fill="rgba(255,255,255,0.3)" letter-spacing="1">AGENTS</text>
+  </g>
+
+  <g transform="translate(680, 125)">
+    <circle cx="0" cy="0" r="4" fill="#00ff41" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.5s" repeatCount="indefinite" begin="0.2s"/>
+    </circle>
+    <text x="10" y="4" font-size="10" fill="rgba(255,255,255,0.3)" letter-spacing="1">READY</text>
+  </g>
+
+  <!-- Bottom bar -->
+  <rect x="0" y="190" width="800" height="10" fill="url(#glow)" opacity="0.1" rx="0">
+    <animate attributeName="opacity" values="0.1;0.2;0.1" dur="4s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Version -->
+  <text x="680" y="172" font-size="9" fill="rgba(255,255,255,0.15)" letter-spacing="2">v1.6.0</text>
+</svg>
