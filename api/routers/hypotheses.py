@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException
 
 from api.schemas.models import HypothesisEngineOutputOut
 from api.services.data_service import _get_session, _score_endpoint
-from core_engines.engine.hypothesis import HypothesisEngine
+from cores.engine.hypothesis import HypothesisEngine
 from database import models
 
 router = APIRouter(prefix="/api/hypotheses", tags=["hypotheses"])

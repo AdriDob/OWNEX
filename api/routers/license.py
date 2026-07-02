@@ -6,9 +6,9 @@ import logging
 
 from fastapi import APIRouter
 
-from core_engines.gateway.schemas import error, ok
-from core_engines.license import is_license_valid, validate_license
-from core_engines.license.store import get_license_store
+from cores.gateway.schemas import error, ok
+from cores.license import is_license_valid, validate_license
+from cores.license.store import get_license_store
 
 logger = logging.getLogger("rastro.api.license")
 

@@ -28,21 +28,21 @@ follow_imports = "skip"
 module = [
     "desktop.main_desktop",
     "desktop.updater",
-    "core_engines.license.hardware",
-    "core_engines.platform.system",
+    "cores.license.hardware",
+    "cores.platform.system",
 ]
 ignore_errors = true
 
 # Known false positives in agent system
 [[tool.mypy.overrides]]
 module = [
-    "core_engines.agents.financial",
-    "core_engines.agents.memory",
-    "core_engines.agents.coordinator",
-    "core_engines.agents.exploit",
-    "core_engines.agents.documentation",
-    "core_engines.agents.research",
-    "core_engines.agents.base",
+    "cores.agents.financial",
+    "cores.agents.memory",
+    "cores.agents.coordinator",
+    "cores.agents.exploit",
+    "cores.agents.documentation",
+    "cores.agents.research",
+    "cores.agents.base",
 ]
 ignore_errors = true
 

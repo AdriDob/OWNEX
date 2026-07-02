@@ -9,7 +9,7 @@ def attack_decision(
     target_id: int | None = Query(None),
     limit: int = Query(500, ge=1, le=2000),
 ):
-    from core_engines.attack import AttackDecisionEngine
+    from cores.attack import AttackDecisionEngine
     from database import db, models
 
     engine = AttackDecisionEngine()

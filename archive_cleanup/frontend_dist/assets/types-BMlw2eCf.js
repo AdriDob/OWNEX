@@ -1,1 +1,0 @@
-var e=[`draft`,`ready`,`submitted`,`need_more_info`,`triaged`,`resolved`,`paid`,`duplicate`,`informative`,`na`];export{e as t};

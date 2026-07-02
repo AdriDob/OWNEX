@@ -1,0 +1,519 @@
+"""
+AI Provider abstraction layer.
+
+Supports multiple backends without breaking the system.
+Local fallback when AI is unavailable.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import os
+from abc import ABC, abstractmethod
+from collections.abc import Generator
+from dataclasses import dataclass, field
+
+logger = logging.getLogger("rastro.ai.provider")
+
+
+@dataclass
+class ProviderSpec:
+    """Describes an available provider type."""
+    id: str
+    label: str
+    models: list[str] = field(default_factory=list)
+    env_host: str = ""
+    env_model: str = ""
+    env_key: str = ""
+    default_host: str = ""
+    default_model: str = ""
+
+
+PROVIDER_CATALOG: list[ProviderSpec] = [
+    ProviderSpec(
+        id="ollama",
+        label="Ollama (Local)",
+        models=["qwen3:14b", "qwen2.5-coder:7b", "codellama:7b", "llama3.1:8b", "mistral:7b"],
+        env_host="OLLAMA_HOST",
+        env_model="OLLAMA_MODEL",
+        default_host="http://localhost:11434",
+        default_model="qwen3:14b",
+    ),
+    ProviderSpec(
+        id="openai",
+        label="OpenAI Compatible",
+        models=["gpt-4o-mini", "gpt-4o", "gpt-4", "gpt-3.5-turbo"],
+        env_host="OPENAI_BASE_URL",
+        env_model="LLM_MODEL",
+        env_key="OPENAI_API_KEY",
+        default_host="https://api.openai.com/v1",
+        default_model="gpt-4o-mini",
+    ),
+    ProviderSpec(
+        id="gemini",
+        label="Google Gemini AI Studio",
+        models=["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-pro", "gemini-1.5-flash"],
+        env_host="",
+        env_model="GEMINI_MODEL",
+        env_key="GEMINI_API_KEY",
+        default_host="",
+        default_model="gemini-2.0-flash",
+    ),
+    ProviderSpec(
+        id="local",
+        label="Local Rule-Based (No LLM)",
+        models=[],
+        default_host="",
+        default_model="",
+    ),
+]
+
+
+class AIProvider(ABC):
+    @abstractmethod
+    def chat(self, messages: list[dict[str, str]], max_tokens: int = 512) -> str:
+        ...
+
+    def chat_stream(self, messages: list[dict[str, str]], max_tokens: int = 512) -> Generator[str, None, None]:
+        """Override for SSE streaming. Default yields the full response."""
+        yield self.chat(messages, max_tokens=max_tokens)
+
+    @abstractmethod
+    def is_available(self) -> bool:
+        ...
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        ...
+
+    def get_config(self) -> dict:
+        return {"provider": self.name, "available": self.is_available()}
+
+
+class OllamaProvider(AIProvider):
+    def __init__(self, host: str | None = None, model: str | None = None):
+        self.host = host or os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+        self.model = model or os.environ.get("OLLAMA_MODEL", "qwen3:14b")
+        self._available: bool | None = None
+
+    def _check(self) -> bool:
+        try:
+            import urllib.request
+            req = urllib.request.Request(f"{self.host}/api/tags", method="GET")
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                return resp.status == 200
+        except Exception:
+            return False
+
+    def is_available(self) -> bool:
+        if self._available is None:
+            self._available = self._check()
+        return self._available
+
+    @property
+    def name(self) -> str:
+        return f"ollama/{self.model}"
+
+    def chat(self, messages: list[dict[str, str]], max_tokens: int = 512) -> str:
+        prompt = self._format_prompt(messages)
+        try:
+            import urllib.request
+            payload = json.dumps({
+                "model": self.model,
+                "prompt": prompt,
+                "stream": False,
+                "options": {"num_predict": max_tokens, "temperature": 0.3},
+            }).encode()
+            req = urllib.request.Request(
+                f"{self.host}/api/generate",
+                data=payload,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                result = json.loads(resp.read().decode())
+                return result.get("response", "").strip()
+        except Exception as e:
+            logger.warning(f"Ollama call failed: {e}")
+            self._available = False
+            return ""
+
+    def _format_prompt(self, messages: list[dict[str, str]]) -> str:
+        parts = []
+        for msg in messages:
+            role = msg.get("role", "user")
+            content = msg.get("content", "")
+            if role == "system":
+                parts.append(f"System: {content}")
+            elif role == "user":
+                parts.append(f"User: {content}")
+            elif role == "assistant":
+                parts.append(f"Assistant: {content}")
+        parts.append("Assistant: ")
+        return "\n".join(parts)
+
+    def chat_stream(self, messages: list[dict[str, str]], max_tokens: int = 512) -> Generator[str, None, None]:
+        try:
+            import urllib.request
+            prompt = self._format_prompt(messages)
+            payload = json.dumps({
+                "model": self.model,
+                "prompt": prompt,
+                "stream": True,
+                "options": {"num_predict": max_tokens, "temperature": 0.3},
+            }).encode()
+            req = urllib.request.Request(
+                f"{self.host}/api/generate",
+                data=payload,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                for line in resp:
+                    if not line.strip():
+                        continue
+                    chunk = json.loads(line.decode())
+                    token = chunk.get("response", "")
+                    if token:
+                        yield token
+                    if chunk.get("done", False):
+                        break
+        except Exception as e:
+            logger.warning(f"Ollama stream failed: {e}")
+            self._available = False
+
+
+class OpenAICompatibleProvider(AIProvider):
+    def __init__(self, api_key: str | None = None, base_url: str | None = None, model: str | None = None):
+        self.api_key = api_key or os.environ.get("OPENAI_API_KEY", "")
+        self.base_url = (base_url or os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
+        self.model = model or os.environ.get("LLM_MODEL", "gpt-4o-mini")
+        self._available: bool | None = None
+
+    def is_available(self) -> bool:
+        if self._available is None:
+            self._available = bool(self.api_key)
+        return self._available
+
+    @property
+    def name(self) -> str:
+        return f"openai/{self.model}"
+
+    def chat(self, messages: list[dict[str, str]], max_tokens: int = 512) -> str:
+        if not self.api_key:
+            return ""
+        try:
+            import urllib.request
+            payload = json.dumps({
+                "model": self.model,
+                "messages": messages,
+                "max_tokens": max_tokens,
+                "temperature": 0.3,
+            }).encode()
+            req = urllib.request.Request(
+                f"{self.base_url}/chat/completions",
+                data=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {self.api_key}",
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                result = json.loads(resp.read().decode())
+                return result["choices"][0]["message"]["content"].strip()
+        except Exception as e:
+            logger.warning(f"OpenAI-compatible call failed: {e}")
+            return ""
+
+    def chat_stream(self, messages: list[dict[str, str]], max_tokens: int = 512) -> Generator[str, None, None]:
+        if not self.api_key:
+            return
+        try:
+            import urllib.request
+            payload = json.dumps({
+                "model": self.model,
+                "messages": messages,
+                "max_tokens": max_tokens,
+                "temperature": 0.3,
+                "stream": True,
+            }).encode()
+            req = urllib.request.Request(
+                f"{self.base_url}/chat/completions",
+                data=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {self.api_key}",
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                for line in resp:
+                    line = line.decode().strip()
+                    if not line or line == "data: [DONE]":
+                        continue
+                    if line.startswith("data: "):
+                        chunk = json.loads(line[6:])
+                        delta = chunk.get("choices", [{}])[0].get("delta", {})
+                        token = delta.get("content", "")
+                        if token:
+                            yield token
+        except Exception as e:
+            logger.warning(f"OpenAI-compatible stream failed: {e}")
+
+    def get_config(self) -> dict:
+        return {
+            "provider": self.name,
+            "available": self.is_available(),
+            "model": self.model,
+            "base_url": self.base_url,
+        }
+
+
+class GeminiProvider(AIProvider):
+    """Google Gemini via AI Studio API (free tier available)."""
+
+    def __init__(self, api_key: str | None = None, model: str | None = None):
+        self.api_key = api_key or os.environ.get("GEMINI_API_KEY", "")
+        self.model = model or os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+        self._available: bool | None = None
+
+    def is_available(self) -> bool:
+        if self._available is None:
+            self._available = bool(self.api_key)
+        return self._available
+
+    @property
+    def name(self) -> str:
+        return f"gemini/{self.model}"
+
+    def _build_contents(self, messages: list[dict[str, str]]) -> list[dict]:
+        contents = []
+        for msg in messages:
+            role = msg.get("role", "user")
+            if role == "system":
+                contents.append({"role": "user", "parts": [{"text": f"[System instruction]: {msg['content']}"}]})
+            elif role == "assistant":
+                contents.append({"role": "model", "parts": [{"text": msg["content"]}]})
+            else:
+                contents.append({"role": "user", "parts": [{"text": msg["content"]}]})
+        return contents
+
+    def chat(self, messages: list[dict[str, str]], max_tokens: int = 512) -> str:
+        if not self.api_key:
+            return ""
+        try:
+            import urllib.request
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
+            payload = json.dumps({
+                "contents": self._build_contents(messages),
+                "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.3},
+            }).encode()
+            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                result = json.loads(resp.read().decode())
+                candidates = result.get("candidates", [])
+                if candidates:
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    return "".join(p.get("text", "") for p in parts).strip()
+                return ""
+        except Exception as e:
+            logger.warning(f"Gemini call failed: {e}")
+            return ""
+
+    def chat_stream(self, messages: list[dict[str, str]], max_tokens: int = 512) -> Generator[str, None, None]:
+        if not self.api_key:
+            return
+        try:
+            import urllib.request
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:streamGenerateContent?key={self.api_key}&alt=sse"
+            payload = json.dumps({
+                "contents": self._build_contents(messages),
+                "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.3},
+            }).encode()
+            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                for line in resp:
+                    line = line.decode().strip()
+                    if not line or line == "data: [DONE]":
+                        continue
+                    if line.startswith("data: "):
+                        chunk = json.loads(line[6:])
+                        candidates = chunk.get("candidates", [])
+                        if candidates:
+                            parts = candidates[0].get("content", {}).get("parts", [])
+                            token = "".join(p.get("text", "") for p in parts)
+                            if token:
+                                yield token
+        except Exception as e:
+            logger.warning(f"Gemini stream failed: {e}")
+
+
+class LocalFallbackProvider(AIProvider):
+    """Rule-based fallback that works without any LLM."""
+
+    @property
+    def name(self) -> str:
+        return "local/rule-based"
+
+    def is_available(self) -> bool:
+        return True
+
+    def chat(self, messages: list[dict[str, str]], max_tokens: int = 512) -> str:
+        last = messages[-1]["content"] if messages else ""
+        last_lower = last.lower()
+
+        if "hola" in last_lower or "hello" in last_lower or "qué tal" in last_lower:
+            return "Estoy listo para analizar tu ecosistema. Pregúntame sobre targets, oportunidades, o qué hacer ahora."
+        if "quiénes soy" in last_lower or "qué eres" in last_lower:
+            return (
+                "Soy Rastro AI, el analista principal del sistema. "
+                "Analizo datos reales de targets, endpoints, findings, "
+                "veredictos y programas para darte recomendaciones accionables."
+            )
+        return (
+            "No tengo conexión con un modelo de lenguaje en este momento. "
+            "Mis recomendaciones basadas en reglas internas siguen disponibles "
+            "en la sección Insights y Recommendations del panel."
+        )
+
+    def get_config(self) -> dict:
+        return {"provider": self.name, "available": True}
+
+
+class ProviderRegistry:
+    """Manages provider lifecycle with DB-persisted config and env fallback."""
+
+    def __init__(self):
+        self._current: AIProvider | None = None
+        self._loaded = False
+
+    def _load_config(self) -> dict:
+        """Load config from DB; fall back to env vars."""
+        config = {}
+        try:
+            from database import db, models
+            session = db.SessionLocal()
+            try:
+                rows = session.query(models.AIProviderConfig).all()
+                for row in rows:
+                    config[row.key] = row.value
+            finally:
+                session.close()
+        except Exception as exc:
+            logger.warning("Failed to load AI provider config from DB: %s", exc)
+        config.setdefault("provider_type", os.environ.get("AI_PROVIDER", "gemini"))
+        config.setdefault("host", os.environ.get("OLLAMA_HOST", "http://localhost:11434"))
+        config.setdefault("model", os.environ.get("GEMINI_MODEL", "gemini-2.0-flash"))
+        config.setdefault("api_key", os.environ.get("GEMINI_API_KEY", ""))
+        config.setdefault("gemini_api_key", os.environ.get("GEMINI_API_KEY", ""))
+        config.setdefault("gemini_model", os.environ.get("GEMINI_MODEL", "gemini-2.0-flash"))
+        config.setdefault("api_base", os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"))
+        config.setdefault("llm_model", os.environ.get("LLM_MODEL", "gpt-4o-mini"))
+        config.setdefault("ollama_host", os.environ.get("OLLAMA_HOST", "http://localhost:11434"))
+        config.setdefault("ollama_model", os.environ.get("OLLAMA_MODEL", "qwen3:14b"))
+        return config
+
+    def _save_config(self, cfg: dict):
+        try:
+            from database import db, models
+            session = db.SessionLocal()
+            try:
+                for key, value in cfg.items():
+                    existing = session.query(models.AIProviderConfig).filter(
+                        models.AIProviderConfig.key == key
+                    ).first()
+                    if existing:
+                        existing.value = str(value)
+                    else:
+                        session.add(models.AIProviderConfig(key=key, value=str(value)))
+                session.commit()
+            finally:
+                session.close()
+        except Exception as e:
+            logger.warning(f"Failed to save AI config: {e}")
+
+    def build_provider(self, cfg: dict) -> AIProvider:
+        ptype = cfg.get("provider_type", "gemini")
+        # 1. Try Gemini first (free, fast)
+        if ptype in ("gemini",):
+            p = GeminiProvider(
+                api_key=cfg.get("gemini_api_key", cfg.get("api_key", "")),
+                model=cfg.get("gemini_model", "gemini-2.0-flash"),
+            )
+            if p.is_available():
+                return p
+            logger.info("Gemini provider unavailable, trying alternatives")
+        # 2. Try Ollama (local)
+        if ptype in ("ollama", "gemini"):
+            p = OllamaProvider(
+                host=cfg.get("ollama_host", "http://localhost:11434"),
+                model=cfg.get("ollama_model", "qwen3:14b"),
+            )
+            if p.is_available():
+                return p
+            logger.info("Ollama provider unavailable, trying alternatives")
+        # 3. Try OpenAI-compatible
+        p = OpenAICompatibleProvider(
+            api_key=cfg.get("api_key", ""),
+            base_url=cfg.get("api_base", "https://api.openai.com/v1"),
+            model=cfg.get("llm_model", "gpt-4o-mini"),
+        )
+        if p.is_available():
+            return p
+        # 4. Final fallback: rule-based
+        logger.info("No LLM provider available — using local rule-based fallback")
+        return LocalFallbackProvider()
+
+    def get_provider(self) -> AIProvider:
+        if not self._loaded or self._current is None:
+            cfg = self._load_config()
+            self._current = self.build_provider(cfg)
+            self._loaded = True
+        return self._current
+
+    def set_config(self, updates: dict) -> AIProvider:
+        cfg = self._load_config()
+        cfg.update(updates)
+        self._save_config(updates)
+        self._current = self.build_provider(cfg)
+        return self._current
+
+    def list_providers(self) -> list[dict]:
+        result = []
+        for spec in PROVIDER_CATALOG:
+            current = self.get_provider()
+            available = True if spec.id == "local" else None
+            if spec.id != "local":
+                if spec.id == "ollama":
+                    p = OllamaProvider(
+                        host=os.environ.get(spec.env_host, spec.default_host),
+                    )
+                    available = p.is_available()
+                elif spec.id == "openai":
+                    available = bool(os.environ.get("OPENAI_API_KEY") or
+                                     self._load_config().get("api_key"))
+            result.append({
+                "id": spec.id,
+                "label": spec.label,
+                "models": spec.models,
+                "available": available,
+                "active": current.name.startswith(spec.id),
+            })
+        return result
+
+
+_registry: ProviderRegistry | None = None
+
+
+def get_registry() -> ProviderRegistry:
+    global _registry
+    if _registry is None:
+        _registry = ProviderRegistry()
+    return _registry
+
+
+def get_provider() -> AIProvider:
+    return get_registry().get_provider()

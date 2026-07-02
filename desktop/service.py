@@ -95,7 +95,7 @@ if _HAS_PYWIN32:
             _lifecycle("[SERVICE]", "ORION Service — PID: %d", os.getpid())
 
             os.environ["ORION_DESKTOP"] = "1"
-            from core_engines.platform.system import get_db_path
+            from cores.platform.system import get_db_path
             db_path = get_db_path()
             db_path.parent.mkdir(parents=True, exist_ok=True)
             os.environ["DATABASE_URL"] = f"sqlite:///{db_path}"
@@ -121,7 +121,7 @@ if _HAS_PYWIN32:
             self._watchdog.start()
             _lifecycle("[SERVICE]", "Watchdog started")
 
-            from core_engines.agents import start_all_agents
+            from cores.agents import start_all_agents
             start_all_agents()
             _lifecycle("[SERVICE]", "Agents started")
 

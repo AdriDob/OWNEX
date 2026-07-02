@@ -13,10 +13,11 @@ Phases:
   1. Clean build (frontend + PyInstaller)
   2. Import audit (0 issues required)
   3. Asset validation (all checks pass)
-  4. Smoke test (Windows only — validates EXE)
-  5. Portable test (Windows only — temp isolation)
-  6. Installer test (Windows only — install/uninstall)
-  7. Generate RELEASE_REPORT.md
+  4. Smoke test (HTTP — validates backend + static frontend)
+  5. Smoke test (Playwright — validates JS execution, detects React Query errors)
+  6. Portable test (Windows only — temp isolation)
+  7. Installer test (Windows only — install/uninstall)
+  8. Generate RELEASE_REPORT.md
 
 Exit code: 0 = all pass, 1 = any failure
 """
@@ -141,7 +142,17 @@ def phase_smoke_test() -> bool:
     return run_cmd([sys.executable, str(SCRIPT_DIR / "smoke_test.py")], timeout=120)
 
 
-# ── Phase 5: Portable test ──────────────────────────────────────────
+# ── Phase 5: Playwright smoke test ──────────────────────────────────
+
+def phase_smoke_test_playwright() -> bool:
+    log("  Running smoke_test_playwright.py...")
+    return run_cmd(
+        [sys.executable, str(SCRIPT_DIR / "smoke_test_playwright.py"), "--install-playwright"],
+        timeout=180,
+    )
+
+
+# ── Phase 6: Portable test ──────────────────────────────────────────
 
 def phase_portable_test() -> bool:
     log("  Running test_portable.py...")
@@ -197,18 +208,21 @@ def main() -> None:
     # ── Phase 3: Asset validation ──
     step("Asset validation", phase_asset_validation)
 
-    # ── Phase 4-6: Windows-only tests ──
+    # ── Phase 4-7: Windows-only tests ──
     if not args.skip_smoke and IS_WINDOWS:
-        step("Smoke test", phase_smoke_test)
+        step("Smoke test (HTTP)", phase_smoke_test)
+        step("Smoke test (Playwright)", phase_smoke_test_playwright)
         step("Portable test", phase_portable_test)
         step("Installer test", phase_installer_test)
     elif not args.skip_smoke:
-        log("  ⚠ Smoke/portable/installer tests skipped — requires Windows")
-        RESULTS.append({"step": "Smoke test", "status": "SKIP (not Windows)"})
+        log("  \u26a0 Smoke/portable/installer tests skipped \u2014 requires Windows")
+        RESULTS.append({"step": "Smoke test (HTTP)", "status": "SKIP (not Windows)"})
+        RESULTS.append({"step": "Smoke test (Playwright)", "status": "SKIP (not Windows)"})
         RESULTS.append({"step": "Portable test", "status": "SKIP (not Windows)"})
         RESULTS.append({"step": "Installer test", "status": "SKIP (not Windows)"})
     else:
-        RESULTS.append({"step": "Smoke test", "status": "SKIP (--skip-smoke)"})
+        RESULTS.append({"step": "Smoke test (HTTP)", "status": "SKIP (--skip-smoke)"})
+        RESULTS.append({"step": "Smoke test (Playwright)", "status": "SKIP (--skip-smoke)"})
         RESULTS.append({"step": "Portable test", "status": "SKIP (--skip-smoke)"})
         RESULTS.append({"step": "Installer test", "status": "SKIP (--skip-smoke)"})
 

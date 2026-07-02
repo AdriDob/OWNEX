@@ -166,7 +166,7 @@ def main() -> None:
 *Report auto-generated on {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}*
 """
 
-    REPORT_PATH.write_text(report)
+    REPORT_PATH.write_text(report, encoding="utf-8")
     print(f"RELEASE_REPORT.md written to {REPORT_PATH}")
     print(f"  Version: v{version}")
     print(f"  Build:   {build_date}")

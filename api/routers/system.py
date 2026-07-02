@@ -1,10 +1,10 @@
 
 from fastapi import APIRouter, HTTPException, Query
 
-from core_engines.confidence import audit_findings, audit_single, audit_verdicts
-from core_engines.replay import build_replay, list_replay_targets
-from core_engines.review_queue import build_review_queue
-from core_engines.timeline import build_timeline
+from cores.confidence import audit_findings, audit_single, audit_verdicts
+from cores.replay import build_replay, list_replay_targets
+from cores.review_queue import build_review_queue
+from cores.timeline import build_timeline
 
 router = APIRouter(prefix="/api/system", tags=["system"])
 
@@ -68,7 +68,7 @@ def get_review_queue(limit: int = Query(100, ge=1, le=500)):
 @router.get("/state")
 def get_system_state():
     """Full system state summary with service health details."""
-    from core_engines.system_state import get_system_state as _get_state
+    from cores.system_state import get_system_state as _get_state
     state = _get_state()
     return {
         "state": state.get_summary(),
@@ -82,7 +82,7 @@ def get_system_state_events(
     limit: int = Query(50, ge=1, le=200),
 ):
     """Recent event bus history."""
-    from core_engines.events.event_bus import get_event_bus
+    from cores.events.event_bus import get_event_bus
     bus = get_event_bus()
     events = bus.get_history(event_type=event_type, limit=limit)
     return {

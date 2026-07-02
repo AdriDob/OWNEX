@@ -156,7 +156,7 @@ def _state_browser_mode() -> LaunchState:
     _log("BROWSER", "Starting backend + browser...")
     try:
         os.environ["ORION_DESKTOP"] = "1"
-        from core_engines.platform.system import get_db_path
+        from cores.platform.system import get_db_path
         db_path = get_db_path()
         db_path.parent.mkdir(parents=True, exist_ok=True)
         os.environ["DATABASE_URL"] = f"sqlite:///{db_path}"
@@ -265,7 +265,7 @@ def _handle_install() -> None:
 
     # Create essential paths
     try:
-        from core.utils.paths import get_data_path, get_db_path, get_log_path
+        from cores.utils.paths import get_data_path, get_db_path, get_log_path
         for p in [get_data_path(), get_log_path(), get_db_path().parent]:
             p.mkdir(parents=True, exist_ok=True)
             _log("INSTALL", "Created: %s", p)
@@ -335,13 +335,8 @@ def _handle_build() -> None:
 
 
 def _handle_tray() -> None:
-    _log("TRAY", "Tray-only mode...")
-    try:
-        from desktop.tray import run_tray_only
-        run_tray_only(port=8000, host="127.0.0.1")
-    except Exception as exc:
-        _log("TRAY", "Tray error: %s", exc)
-        sys.exit(1)
+    _log("TRAY", "Starting backend with tray...")
+    _run_state_machine(LaunchMode.BROWSER)
 
 
 def _handle_browser() -> None:

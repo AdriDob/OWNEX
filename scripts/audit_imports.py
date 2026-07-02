@@ -27,10 +27,9 @@ PROJECT_ROOT = SCRIPT_DIR.parent
 
 INCLUDE_DIRS = [
     "api",
-    "core_engines",
+    "cores",
     "database",
     "desktop",
-    "core",
 ]
 
 EXCLUDE_DIRS = [

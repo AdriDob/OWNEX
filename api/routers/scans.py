@@ -16,7 +16,7 @@ class ScanRequest(BaseModel):
 
 @router.post("")
 async def launch_scan(request: ScanRequest):
-    from core_engines.orchestrator.scan_service import launch_scan as service_launch_scan
+    from cores.orchestrator.scan_service import launch_scan as service_launch_scan
     from database import db
     session = db.SessionLocal()
     try:
@@ -47,11 +47,32 @@ def get_scan_run_detail(scan_id: int):
     return run
 
 
+class UnifiedScanRequest(BaseModel):
+    domain: str
+    scan_vulns: bool = True
+    severity: str = "medium"
+
+
 class NucleiScanRequest(BaseModel):
     urls: list[str]
     severity: str = "medium,high,critical"
     tags: list[str] | None = None
     exclude_tags: list[str] | None = None
+
+
+@router.post("/unified")
+async def run_unified_scan(request: UnifiedScanRequest):
+    import asyncio
+    from cores.tools.pipeline import UnifiedScanner
+
+    scanner = UnifiedScanner()
+    result = await asyncio.to_thread(
+        scanner.scan_domain,
+        request.domain,
+        request.scan_vulns,
+        request.severity,
+    )
+    return result
 
 
 @router.post("/nuclei")
@@ -60,7 +81,7 @@ async def run_nuclei_scan(request: NucleiScanRequest):
     import tempfile
     from pathlib import Path
 
-    from core_engines.recon.nuclei_runner import NucleiRunner
+    from cores.recon.nuclei_runner import NucleiRunner
 
     tmp = Path(tempfile.mkdtemp(prefix="rastro_nuclei_"))
     try:

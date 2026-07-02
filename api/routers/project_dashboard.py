@@ -215,12 +215,12 @@ def get_architecture_tree() -> dict[str, Any]:
             f.stem for f in (PROJECT_ROOT / "api" / "routers").iterdir()
             if f.suffix == ".py" and not f.name.startswith("_")
         ]),
-        "core_engines": sorted([
-            d.name for d in (PROJECT_ROOT / "core_engines").iterdir()
-            if d.is_dir() and not d.name.startswith("_")
+        "cores_modules": sorted([
+            d.name for d in (PROJECT_ROOT / "cores").iterdir()
+            if d.is_dir() and not d.name.startswith("_") and d.name != "__pycache__"
         ]),
         "frontend_pages": sorted([
             f.stem for f in (PROJECT_ROOT / "frontend" / "src" / "pages").iterdir()
-            if f.suffix in (".tsx", ".ts") and not f.name.startswith("_")
+            if f.suffix in (".vue", ".ts") and not f.name.startswith("_")
         ]),
     }

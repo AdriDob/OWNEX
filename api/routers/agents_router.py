@@ -10,7 +10,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
-from core_engines.agents import (
+from cores.agents import (
     AgentEvent,
     EventType,
     get_agent_bus,

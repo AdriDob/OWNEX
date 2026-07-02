@@ -7,20 +7,20 @@ from pathlib import Path
 
 class TestSecListsProfiles:
     def test_wordlist_registry(self):
-        from core_engines.recon.seclists_profiles import WORDLISTS, get_wordlist
+        from cores.recon.seclists_profiles import WORDLISTS, get_wordlist
         assert len(WORDLISTS) >= 10
         common = get_wordlist("common")
         assert common is not None
         assert common.category == "web_content"
 
     def test_get_wordlists_by_category(self):
-        from core_engines.recon.seclists_profiles import get_wordlists_by_category
+        from cores.recon.seclists_profiles import get_wordlists_by_category
         api_wl = get_wordlists_by_category("api")
         assert len(api_wl) >= 3
         assert all(wl.category == "api" for wl in api_wl)
 
     def test_get_recommended_profiles(self):
-        from core_engines.recon.seclists_profiles import get_recommended_profiles
+        from cores.recon.seclists_profiles import get_recommended_profiles
         fast = get_recommended_profiles("FAST")
         assert len(fast) == 2
         deep = get_recommended_profiles("DEEP")
@@ -31,7 +31,7 @@ class TestSecListsProfiles:
 
 class TestCorrelationEngine:
     def test_ingest_and_count(self):
-        from core_engines.engine.correlation import CorrelationEngine
+        from cores.engine.correlation import CorrelationEngine
         engine = CorrelationEngine()
         items = [
             {"title": "XSS", "severity": "high", "url": "https://example.com/xss"},
@@ -42,7 +42,7 @@ class TestCorrelationEngine:
         assert engine.get_source_summary() == {"test_source": 2}
 
     def test_dedup(self):
-        from core_engines.engine.correlation import CorrelationEngine
+        from cores.engine.correlation import CorrelationEngine
         engine = CorrelationEngine()
         items = [
             {"title": "XSS", "severity": "high", "url": "https://example.com/xss"},
@@ -52,7 +52,7 @@ class TestCorrelationEngine:
         assert len(engine.findings) == 1
 
     def test_severity_summary(self):
-        from core_engines.engine.correlation import CorrelationEngine
+        from cores.engine.correlation import CorrelationEngine
         engine = CorrelationEngine()
         items = [
             {"title": "A", "severity": "critical", "url": "https://a.com"},
@@ -70,7 +70,7 @@ class TestCorrelationEngine:
         assert summary.get("info") == 1
 
     def test_get_priority_findings(self):
-        from core_engines.engine.correlation import CorrelationEngine
+        from cores.engine.correlation import CorrelationEngine
         engine = CorrelationEngine()
         items = [
             {"title": "Critical", "severity": "critical", "url": "https://a.com"},
@@ -82,12 +82,12 @@ class TestCorrelationEngine:
         assert priority[0].title == "Critical"
 
     def test_host_extraction(self):
-        from core_engines.engine.correlation import extract_host
+        from cores.engine.correlation import extract_host
         assert extract_host("https://example.com/path") == "example.com"
         assert extract_host("") == ""
 
     def test_clear(self):
-        from core_engines.engine.correlation import CorrelationEngine
+        from cores.engine.correlation import CorrelationEngine
         engine = CorrelationEngine()
         engine.ingest("test", [{"title": "A", "url": "https://a.com"}])
         assert len(engine.findings) == 1
@@ -99,13 +99,13 @@ class TestCorrelationEngine:
 
 class TestGauRunner:
     def test_gau_initialization(self, tmp_path):
-        from core_engines.recon.gau_runner import GauRunner
+        from cores.recon.gau_runner import GauRunner
         runner = GauRunner(tmp_path)
         assert runner.output_dir == tmp_path
         assert runner.timeout == 120
 
     def test_gau_load_urls(self, tmp_path):
-        from core_engines.recon.gau_runner import GauRunner
+        from cores.recon.gau_runner import GauRunner
         runner = GauRunner(tmp_path)
         url_file = tmp_path / "gau.txt"
         url_file.write_text("https://example.com/a\nhttps://example.com/b\n")
@@ -114,7 +114,7 @@ class TestGauRunner:
         assert "https://example.com/a" in urls
 
     def test_gau_load_urls_dedup(self, tmp_path):
-        from core_engines.recon.gau_runner import GauRunner
+        from cores.recon.gau_runner import GauRunner
         runner = GauRunner(tmp_path)
         url_file = tmp_path / "gau_dedup.txt"
         url_file.write_text("https://example.com/a\nhttps://example.com/a\n")
@@ -122,13 +122,13 @@ class TestGauRunner:
         assert len(urls) == 1
 
     def test_gau_load_urls_missing_file(self, tmp_path):
-        from core_engines.recon.gau_runner import GauRunner
+        from cores.recon.gau_runner import GauRunner
         runner = GauRunner(tmp_path)
         urls = runner.load_urls(tmp_path / "nonexistent.txt")
         assert urls == []
 
     def test_gau_timeout_output(self, tmp_path):
-        from core_engines.recon.gau_runner import GauRunner
+        from cores.recon.gau_runner import GauRunner
         GauRunner(tmp_path)
         # Simulate a timeout by writing the timeout marker
         timeout_file = tmp_path / "gau_timeout.txt"
@@ -140,14 +140,14 @@ class TestGauRunner:
 
 class TestFfufRunner:
     def test_ffuf_initialization(self, tmp_path):
-        from core_engines.recon.ffuf_runner import FfufRunner
+        from cores.recon.ffuf_runner import FfufRunner
         runner = FfufRunner(tmp_path)
         assert runner.output_dir == tmp_path
         assert "fast" in runner.PROFILES
         assert "deep" in runner.PROFILES
 
     def test_ffuf_profiles_exist(self):
-        from core_engines.recon.ffuf_runner import FfufRunner
+        from cores.recon.ffuf_runner import FfufRunner
         runner = FfufRunner(Path("/tmp"))
         profile_names = list(runner.PROFILES.keys())
         assert "fast" in profile_names
@@ -157,7 +157,7 @@ class TestFfufRunner:
         assert "subdomains" in profile_names
 
     def test_categorize_findings(self, tmp_path):
-        from core_engines.recon.ffuf_runner import FfufRunner
+        from cores.recon.ffuf_runner import FfufRunner
         runner = FfufRunner(tmp_path)
         results = [
             {"url": "https://example.com/admin", "status": 200},
@@ -174,7 +174,7 @@ class TestFfufRunner:
         assert len(cats["info"]) >= 1
 
     def test_parse_results_json(self, tmp_path):
-        from core_engines.recon.ffuf_runner import FfufRunner
+        from cores.recon.ffuf_runner import FfufRunner
         runner = FfufRunner(tmp_path)
         json_path = tmp_path / "ffuf_results.json"
         data = {
@@ -192,7 +192,7 @@ class TestFfufRunner:
 
 class TestBurpImport:
     def test_parse_burp_xml(self, tmp_path):
-        from core_engines.recon.burp_import import import_burp
+        from cores.recon.burp_import import import_burp
         xml_path = tmp_path / "burp.xml"
         xml_content = """<?xml version="1.0"?>
 <items>
@@ -216,7 +216,7 @@ class TestBurpImport:
         assert "admin_panel" in items[0].findings.get("flags", [])
 
     def test_parse_burp_json(self, tmp_path):
-        from core_engines.recon.burp_import import import_burp
+        from cores.recon.burp_import import import_burp
         json_path = tmp_path / "burp.json"
         data = [{
             "url": "https://example.com/api/users",
@@ -234,14 +234,14 @@ class TestBurpImport:
         assert items[0].url == "https://example.com/api/users"
 
     def test_parse_burp_xml_empty(self, tmp_path):
-        from core_engines.recon.burp_import import import_burp
+        from cores.recon.burp_import import import_burp
         xml_path = tmp_path / "empty.xml"
         xml_path.write_text("<?xml version=\"1.0\"?><items/>")
         items = import_burp(xml_path)
         assert items == []
 
     def test_import_nonexistent(self, tmp_path):
-        from core_engines.recon.burp_import import import_burp
+        from cores.recon.burp_import import import_burp
         items = import_burp(tmp_path / "nope.xml")
         assert items == []
 
@@ -250,7 +250,7 @@ class TestBurpImport:
 
 class TestZapImport:
     def test_parse_zap_xml(self, tmp_path):
-        from core_engines.recon.zap_import import import_zap
+        from cores.recon.zap_import import import_zap
         xml_path = tmp_path / "zap.xml"
         xml_content = """<?xml version="1.0"?>
 <OWASPZAPReport>
@@ -278,7 +278,7 @@ class TestZapImport:
         assert alerts[0].risk == "High"
 
     def test_risk_score(self):
-        from core_engines.recon.zap_import import risk_score
+        from cores.recon.zap_import import risk_score
         assert risk_score("High") == 3
         assert risk_score("Medium") == 2
         assert risk_score("Low") == 1
@@ -287,7 +287,7 @@ class TestZapImport:
         assert risk_score("Unknown") == 0
 
     def test_filter_high_risk(self, tmp_path):
-        from core_engines.recon.zap_import import (
+        from cores.recon.zap_import import (
             ZapAlert,
             ZapSite,
             filter_high_risk,
@@ -307,7 +307,7 @@ class TestZapImport:
             assert all(a.risk == "High" for a in filtered[0].alerts)
 
     def test_parse_zap_empty_json(self, tmp_path):
-        from core_engines.recon.zap_import import import_zap
+        from cores.recon.zap_import import import_zap
         json_path = tmp_path / "zap.json"
         json_path.write_text("[]")
         sites = import_zap(json_path)
@@ -318,7 +318,7 @@ class TestZapImport:
 
 class TestRunnerIntegration:
     def test_recon_init_exports(self):
-        from core_engines.recon import FfufRunner, GauRunner
+        from cores.recon import FfufRunner, GauRunner
         assert FfufRunner is not None
         assert GauRunner is not None
 
@@ -327,7 +327,7 @@ class TestRunnerIntegration:
 
 class TestBountyIntelligence:
     def test_bounty_intel_empty_report(self):
-        from core_engines.intelligence.bounty_intel import BountyIntelligence
+        from cores.intelligence.bounty_intel import BountyIntelligence
         # With no programs in DB, expect empty but valid report
         bi = BountyIntelligence()
         report = bi.generate_report()
@@ -335,7 +335,7 @@ class TestBountyIntelligence:
         assert report.total_programs >= 0
 
     def test_bounty_intel_summary_generation(self):
-        from core_engines.intelligence.bounty_intel import (
+        from cores.intelligence.bounty_intel import (
             BountyIntelReport,
             ProgramMetrics,
         )
@@ -351,7 +351,7 @@ class TestBountyIntelligence:
             avg_quality=55.0, avg_roi=45.0,
         )
 
-        from core_engines.intelligence.bounty_intel import BountyIntelligence
+        from cores.intelligence.bounty_intel import BountyIntelligence
         summary = BountyIntelligence._generate_summary(report)
         assert "Total programs" in summary
         assert "hackerone" in summary or "bugcrowd" in summary
@@ -360,7 +360,7 @@ class TestBountyIntelligence:
 
 class TestHypothesisTechnologyGenerators:
     def test_generate_from_technology_wordpress(self):
-        from core_engines.engine.hypothesis.generators import generate_from_technology
+        from cores.engine.hypothesis.generators import generate_from_technology
         technologies = [{"name": "WordPress", "version": "6.4"}]
         hypotheses = generate_from_technology(technologies, target_id=1, target_name="test")
         assert len(hypotheses) >= 2
@@ -372,53 +372,53 @@ class TestHypothesisTechnologyGenerators:
             assert h.source.value == "rule"
 
     def test_generate_from_technology_unknown(self):
-        from core_engines.engine.hypothesis.generators import generate_from_technology
+        from cores.engine.hypothesis.generators import generate_from_technology
         technologies = [{"name": "UnknownFramework", "version": "1.0"}]
         hypotheses = generate_from_technology(technologies, target_id=1, target_name="test")
         assert len(hypotheses) == 0
 
     def test_generate_from_technology_nginx(self):
-        from core_engines.engine.hypothesis.generators import generate_from_technology
+        from cores.engine.hypothesis.generators import generate_from_technology
         technologies = [{"name": "nginx", "version": "1.24"}]
         hypotheses = generate_from_technology(technologies, target_id=1, target_name="test")
         assert len(hypotheses) >= 1
         assert any("alias" in h.vector or "traversal" in h.reasoning for h in hypotheses)
 
     def test_generate_from_technology_aws(self):
-        from core_engines.engine.hypothesis.generators import generate_from_technology
+        from cores.engine.hypothesis.generators import generate_from_technology
         technologies = [{"name": "amazonaws", "version": ""}]
         hypotheses = generate_from_technology(technologies, target_id=1, target_name="test")
         assert len(hypotheses) >= 1
         assert any("s3" in h.vector or "bucket" in h.reasoning for h in hypotheses)
 
     def test_generate_from_discovered_paths_git(self):
-        from core_engines.engine.hypothesis.generators import generate_from_discovered_paths
+        from cores.engine.hypothesis.generators import generate_from_discovered_paths
         paths = ["https://target.com/.git/config"]
         hypotheses = generate_from_discovered_paths(paths, target_id=1, target_name="test")
         assert len(hypotheses) >= 1
         assert any("git_exposure" in h.vector or "git" in h.vector for h in hypotheses)
 
     def test_generate_from_discovered_paths_env(self):
-        from core_engines.engine.hypothesis.generators import generate_from_discovered_paths
+        from cores.engine.hypothesis.generators import generate_from_discovered_paths
         paths = ["https://target.com/.env"]
         hypotheses = generate_from_discovered_paths(paths, target_id=1, target_name="test")
         assert len(hypotheses) >= 1
         assert any("env_exposure" in h.vector or "env" in h.vector for h in hypotheses)
 
     def test_generate_from_discovered_paths_actuator(self):
-        from core_engines.engine.hypothesis.generators import generate_from_discovered_paths
+        from cores.engine.hypothesis.generators import generate_from_discovered_paths
         paths = ["https://target.com/actuator/health", "https://target.com/actuator/env"]
         hypotheses = generate_from_discovered_paths(paths, target_id=1, target_name="test")
         assert len(hypotheses) >= 2
 
     def test_generate_from_discovered_paths_dedup(self):
-        from core_engines.engine.hypothesis.generators import generate_from_discovered_paths
+        from cores.engine.hypothesis.generators import generate_from_discovered_paths
         paths = ["https://target.com/.git/config", "https://target.com/.git/config"]
         hypotheses = generate_from_discovered_paths(paths, target_id=1, target_name="test")
         assert len(hypotheses) == 1
 
     def test_generate_hypotheses_with_technologies(self):
-        from core_engines.engine.hypothesis.generators import generate_hypotheses
+        from cores.engine.hypothesis.generators import generate_hypotheses
         endpoints = [{"id": 1, "path": "/api/user/1", "method": "GET", "risk_score": 50,
                        "signals": ["uuid"], "potential_idor": True}]
         technologies = [{"name": "WordPress", "version": "6.4"}]
@@ -430,7 +430,7 @@ class TestHypothesisTechnologyGenerators:
         assert len(hypotheses) >= 3
 
     def test_new_vulnerability_types(self):
-        from core_engines.engine.hypothesis.models import VulnerabilityType
+        from cores.engine.hypothesis.models import VulnerabilityType
         assert VulnerabilityType.MISCONFIGURATION.value == "misconfiguration"
         assert VulnerabilityType.KNOWN_VULNERABILITY.value == "known_vulnerability"
         assert VulnerabilityType.INFO_LEAK.value == "info_leak"
@@ -439,14 +439,14 @@ class TestHypothesisTechnologyGenerators:
 
 class TestRewardLearning:
     def test_reward_learner_empty_db(self):
-        from core_engines.intelligence.reward_learning import RewardLearner
+        from cores.intelligence.reward_learning import RewardLearner
         learner = RewardLearner()
         report = learner.analyze()
         assert report.generated_at != ""
         assert report.total_reports >= 0
 
     def test_reward_learner_analyze(self):
-        from core_engines.intelligence.reward_learning import RewardLearner
+        from cores.intelligence.reward_learning import RewardLearner
         learner = RewardLearner()
         report = learner.analyze()
         assert hasattr(report, "by_type")
@@ -456,20 +456,20 @@ class TestRewardLearning:
         assert isinstance(report.summary, str)
 
     def test_reward_learner_adjustments(self):
-        from core_engines.intelligence.reward_learning import RewardLearner
+        from cores.intelligence.reward_learning import RewardLearner
         learner = RewardLearner()
         learner.analyze()
         adj = learner.get_adjustments()
         assert isinstance(adj, dict)
 
     def test_reward_learner_vt_adjustment_default(self):
-        from core_engines.intelligence.reward_learning import RewardLearner
+        from cores.intelligence.reward_learning import RewardLearner
         learner = RewardLearner()
         adj = learner.get_adjustment("nonexistent_type")
         assert adj == 1.0
 
     def test_reward_learner_report_fields(self):
-        from core_engines.intelligence.reward_learning import RewardLearner
+        from cores.intelligence.reward_learning import RewardLearner
         learner = RewardLearner()
         report = learner.analyze()
         assert isinstance(report.top_programs_by_payout, list)
@@ -477,7 +477,7 @@ class TestRewardLearning:
         assert isinstance(report.prediction_accuracy, float)
 
     def test_reward_learning_dataclasses(self):
-        from core_engines.intelligence.reward_learning import (
+        from cores.intelligence.reward_learning import (
             ProgramRewardMetrics,
             RewardLearningReport,
             VulnTypeStats,

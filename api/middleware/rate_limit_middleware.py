@@ -2,7 +2,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from core_engines.gateway.rate_limit import get_rate_limiter
+from cores.gateway.rate_limit import get_rate_limiter
 
 # Paths excluded from rate limiting
 NO_LIMIT_PREFIXES = {"/api/health", "/api/version", "/api/docs", "/api/openapi.json", "/api/redoc"}

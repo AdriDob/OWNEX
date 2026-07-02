@@ -50,7 +50,7 @@ pg_session = sessionmaker(bind=pg_engine, autoflush=False)()
 
 # ── Import all models to ensure they're registered ────────────────────────
 
-from core_engines.targets.models import Scope, TargetIntel  # noqa: F401, E402
+from cores.targets.models import Scope, TargetIntel  # noqa: F401, E402
 from database import models  # noqa: F401, E402
 from database.db import Base  # noqa: E402
 

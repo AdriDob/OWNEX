@@ -14,14 +14,14 @@ from __future__ import annotations
 
 import pytest
 
-from core_engines.accountability.outcome_tracker import OutcomeEntry, get_outcome_tracker
-from core_engines.accountability.system_scorecard import get_system_scorecard
-from core_engines.actions.action_engine import get_action_engine
-from core_engines.actions.execution_tracker import get_execution_tracker
-from core_engines.explainability.explanation_engine import get_explanation_engine
-from core_engines.intelligence.priority_engine import get_priority_engine
-from core_engines.memory.decision_memory import Decision, get_decision_memory
-from core_engines.memory.insight_archive import Insight, get_insight_archive
+from cores.accountability.outcome_tracker import OutcomeEntry, get_outcome_tracker
+from cores.accountability.system_scorecard import get_system_scorecard
+from cores.actions.action_engine import get_action_engine
+from cores.actions.execution_tracker import get_execution_tracker
+from cores.explainability.explanation_engine import get_explanation_engine
+from cores.intelligence.priority_engine import get_priority_engine
+from cores.memory.decision_memory import Decision, get_decision_memory
+from cores.memory.insight_archive import Insight, get_insight_archive
 
 
 @pytest.fixture(autouse=True)

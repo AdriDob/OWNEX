@@ -4,16 +4,16 @@ from fastapi.responses import PlainTextResponse, Response
 
 from api.schemas.models import ReportCreate, ReportFullOut, ReportOut, ReportUpdate
 from api.services.data_service import generate_report
-from core_engines.export.service import export_report, get_report_versions, save_report_version
-from core_engines.intelligence.reward_learning import RewardLearner
-from core_engines.pipeline.report_service import (
+from cores.export.service import export_report, get_report_versions, save_report_version
+from cores.intelligence.reward_learning import RewardLearner
+from cores.pipeline.report_service import (
     create_report_from_findings,
     get_report,
     list_reports,
     report_stats,
     update_report,
 )
-from core_engines.tracking.service import get_submission_status, submit_report_to_platform
+from cores.tracking.service import get_submission_status, submit_report_to_platform
 
 router = APIRouter(prefix="/api/reports", tags=["reports"])
 
@@ -31,6 +31,34 @@ def get_report_statistics():
     try:
         stats = report_stats(session)
         return stats
+    finally:
+        session.close()
+
+
+@router.get("/submissions")
+def list_all_submissions(limit: int = Query(50, ge=1, le=500)):
+    """List all submission records across all reports."""
+    from database import db
+    from database.models import SubmissionRecord
+
+    session = db.SessionLocal()
+    try:
+        rows = session.query(SubmissionRecord).order_by(SubmissionRecord.submitted_at.desc()).limit(limit).all()
+        submissions = []
+        for s in rows:
+            submissions.append({
+                "id": s.id,
+                "report_id": s.report_id,
+                "platform": s.platform,
+                "external_id": s.external_id,
+                "status": s.status,
+                "reward": None,
+                "submitted_at": s.submitted_at.isoformat() if s.submitted_at else None,
+                "last_update": s.last_update.isoformat() if s.last_update else None,
+            })
+        return {"submissions": submissions, "total": len(submissions)}
+    except Exception:
+        return {"submissions": [], "total": 0}
     finally:
         session.close()
 

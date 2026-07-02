@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 
 from api.middleware.auth_middleware import AuthMiddleware
+from api.middleware.error_handling import ErrorHandlingMiddleware
 from api.middleware.rate_limit_middleware import RateLimitMiddleware
 from api.routers import (
     agents_router,
@@ -19,11 +20,12 @@ from api.routers import (
     auth,
     auth_users,
     canonical,
+    connections,
     contracts,
     daily,
     differential_intelligence,
     digest,
-    discovery,
+    economic,
     endpoints,
     evidence,
     execution,
@@ -41,8 +43,10 @@ from api.routers import (
     opportunities,
     opportunity_intelligence,
     orchestrator,
+    orion,
     overview,
     pipeline,
+    platforms,
     project_dashboard,
     quick_wins,
     reports,
@@ -60,11 +64,12 @@ from api.routers import (
     verdicts,
     webhooks,
     ws,
+    zap,
 )
-from core_engines.intelligence.adaptive_memory import get_memory
-from core_engines.learning.router import router as learning_router
-from core_engines.log_config import setup_logging
-from core_engines.observability import get_metrics
+from cores.intelligence.adaptive_memory import get_memory
+from cores.learning.router import router as learning_router
+from cores.log_config import setup_logging
+from cores.observability import get_metrics
 from database import db
 
 setup_logging()
@@ -73,12 +78,15 @@ logger = logging.getLogger("rastro.api")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Import all models before init_db() so SQLAlchemy metadata registers all tables
+    from cores.learning import profile as _learning_models  # noqa: F401 — registers InvestigatorProfile, LearningEvent
+    from cores.targets import models as _targets_models  # noqa: F401 — registers TargetIntel, Scope
     db.init_db()
     logger.info("Database initialized")
 
     # Initialize event bus and system state
-    from core_engines.events.event_bus import get_event_bus
-    from core_engines.system_state import get_system_state
+    from cores.events.event_bus import get_event_bus
+    from cores.system_state import get_system_state
     bus = get_event_bus()
     state = get_system_state()
     state.register_service("backend")
@@ -91,65 +99,65 @@ async def lifespan(app: FastAPI):
     logger.info("Event bus and system state initialized")
 
     # Check product behavior rules
-    from core_engines.product_rules import enforce_on_startup
+    from cores.product_rules import enforce_on_startup
     enforce_on_startup()
     logger.info("Product behavior rules checked")
 
     # Initialize identity system
-    from core_engines.identity.identity_manager import get_identity_manager
+    from cores.identity.identity_manager import get_identity_manager
     identity = get_identity_manager()
     identity.ensure_identity()
     logger.info("Identity system initialized: %s", identity.get_identity().user_id)
 
     # Initialize orchestrator
-    from core_engines.orchestrator.assistant_orchestrator import get_orchestrator
+    from cores.orchestrator.assistant_orchestrator import get_orchestrator
     orchestrator = get_orchestrator()
     orchestrator.suppress_noise_items(threshold=0.15)
     logger.info("Assistant orchestrator initialized")
 
     # Initialize execution layer
-    from core_engines.actions.execution_tracker import get_execution_tracker
+    from cores.actions.execution_tracker import get_execution_tracker
     get_execution_tracker()
     logger.info("Execution tracker initialized")
 
-    from core_engines.accountability.outcome_tracker import get_outcome_tracker
+    from cores.accountability.outcome_tracker import get_outcome_tracker
     get_outcome_tracker()
     logger.info("Outcome tracker initialized")
 
-    from core_engines.accountability.system_scorecard import get_system_scorecard
+    from cores.accountability.system_scorecard import get_system_scorecard
     scorecard = get_system_scorecard()
     scorecard.generate()
     logger.info("System scorecard initialized")
 
-    from core_engines.explainability.explanation_engine import get_explanation_engine
+    from cores.explainability.explanation_engine import get_explanation_engine
     get_explanation_engine()
     logger.info("Explanation engine initialized")
 
-    from core_engines.explainability.decision_trace import get_decision_trace
+    from cores.explainability.decision_trace import get_decision_trace
     get_decision_trace()
     logger.info("Decision trace collector initialized")
 
-    from core_engines.memory.memory_store import get_memory_store
+    from cores.memory.memory_store import get_memory_store
     get_memory_store()
     logger.info("Memory store initialized")
 
-    from core_engines.memory.decision_memory import get_decision_memory
+    from cores.memory.decision_memory import get_decision_memory
     get_decision_memory()
     logger.info("Decision memory initialized")
 
-    from core_engines.memory.insight_archive import get_insight_archive
+    from cores.memory.insight_archive import get_insight_archive
     get_insight_archive()
     logger.info("Insight archive initialized")
 
     # Consume memory into priority engine
-    from core_engines.intelligence.priority_engine import get_priority_engine
+    from cores.intelligence.priority_engine import get_priority_engine
     pe = get_priority_engine()
     result = pe.consume_memory()
     logger.info("Priority engine memory consumption: %s", result.get("status", "unknown"))
 
     # Discover opportunities on startup
     try:
-        from core_engines.opportunity import get_engine
+        from cores.opportunity import get_engine
         opp_engine = get_engine()
         opp_count = len(opp_engine.discover_all())
         logger.info("Opportunity engine initialized with %d opportunities", opp_count)
@@ -178,7 +186,7 @@ async def lifespan(app: FastAPI):
 
     # Start WebSocket event bus bridge
     try:
-        from core_engines.ws.bridge import start_event_bridge
+        from cores.ws.bridge import start_event_bridge
         start_event_bridge()
         logger.info("WS event bridge started")
     except Exception as exc:
@@ -186,7 +194,7 @@ async def lifespan(app: FastAPI):
 
     # Register notification bridges
     try:
-        from core_engines.notifications.bridges import (
+        from cores.notifications.bridges import (
             register_db_bridge,
             register_desktop_channel,
             register_email_channel,
@@ -212,7 +220,7 @@ async def lifespan(app: FastAPI):
 
     # Start Multi-Agent system
     try:
-        from core_engines.agents import start_all_agents
+        from cores.agents import start_all_agents
         agents = start_all_agents()
         logger.info("[BOOT] %d agents started", len(agents))
     except Exception as exc:
@@ -220,7 +228,7 @@ async def lifespan(app: FastAPI):
 
     # Start Recovery Engine and Health Monitor
     try:
-        from core_engines.recovery import get_health_monitor, get_recovery_engine
+        from cores.recovery import get_health_monitor, get_recovery_engine
         recovery = get_recovery_engine()
         recovery.start()
         monitor = get_health_monitor()
@@ -231,7 +239,7 @@ async def lifespan(app: FastAPI):
 
     # Start RC7 Autonomous Intelligence Layer
     try:
-        from core_engines.health import get_system_health_engine
+        from cores.health import get_system_health_engine
         health_engine = get_system_health_engine()
         health_engine.start()
         logger.info("[BOOT] System health engine started")
@@ -239,7 +247,7 @@ async def lifespan(app: FastAPI):
         logger.warning("System health engine failed to start (non-fatal): %s", exc)
 
     try:
-        from core_engines.optimization import get_optimization_engine
+        from cores.optimization import get_optimization_engine
         opt_engine = get_optimization_engine()
         opt_engine.start()
         logger.info("[BOOT] Auto-optimization engine started")
@@ -247,7 +255,7 @@ async def lifespan(app: FastAPI):
         logger.warning("Auto-optimization engine failed to start (non-fatal): %s", exc)
 
     try:
-        from core_engines.autonomous import get_autonomous_engine
+        from cores.autonomous import get_autonomous_engine
         auto_engine = get_autonomous_engine()
         auto_engine.start()
         auto_engine.enable()
@@ -259,7 +267,7 @@ async def lifespan(app: FastAPI):
 
     # Stop RC7 Autonomous Intelligence Layer
     try:
-        from core_engines.autonomous import get_autonomous_engine
+        from cores.autonomous import get_autonomous_engine
         auto_engine = get_autonomous_engine()
         auto_engine.disable()
         auto_engine.stop()
@@ -268,7 +276,7 @@ async def lifespan(app: FastAPI):
         logger.warning("AUTONOMOUS+ engine stop error: %s", exc)
 
     try:
-        from core_engines.health import get_system_health_engine
+        from cores.health import get_system_health_engine
         health_engine = get_system_health_engine()
         health_engine.stop()
         logger.info("[BOOT] System health engine stopped")
@@ -276,7 +284,7 @@ async def lifespan(app: FastAPI):
         logger.warning("System health engine stop error: %s", exc)
 
     try:
-        from core_engines.optimization import get_optimization_engine
+        from cores.optimization import get_optimization_engine
         opt_engine = get_optimization_engine()
         opt_engine.stop()
         logger.info("[BOOT] Auto-optimization engine stopped")
@@ -285,7 +293,7 @@ async def lifespan(app: FastAPI):
 
     # Stop Recovery Engine and Health Monitor
     try:
-        from core_engines.recovery import get_health_monitor, get_recovery_engine
+        from cores.recovery import get_health_monitor, get_recovery_engine
         monitor = get_health_monitor()
         monitor.stop()
         engine = get_recovery_engine()
@@ -296,7 +304,7 @@ async def lifespan(app: FastAPI):
 
     # Stop Multi-Agent system
     try:
-        from core_engines.agents import stop_all_agents
+        from cores.agents import stop_all_agents
         stop_all_agents()
         logger.info("[BOOT] All agents stopped")
     except Exception as exc:
@@ -333,6 +341,7 @@ app.add_middleware(
 
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(AuthMiddleware)
+app.add_middleware(ErrorHandlingMiddleware)
 
 app.include_router(targets.router)
 app.include_router(endpoints.router)
@@ -381,21 +390,26 @@ app.include_router(investigations.router)
 app.include_router(settings_ai.router)
 app.include_router(settings_runtime.router)
 app.include_router(webhooks.router)
-app.include_router(discovery.router)
+app.include_router(orion.router)
+app.include_router(economic.router)
 app.include_router(agents_router.router)
+app.include_router(zap.router)
+app.include_router(connections.router)
+app.include_router(platforms.router)
 
 
 APP_VERSION = _APP_VERSION
 
 
-@app.exception_handler(Exception)
-async def global_exception_handler(request, exc):
-    logger.error("Unhandled error on %s: %s", request.url.path, exc)
-    from fastapi.responses import JSONResponse
-    return JSONResponse(
-        status_code=500,
-        content={"error": str(exc), "detail": "Internal server error"},
-    )
+# Se ha eliminado el manejador de excepciones global porque el ErrorHandlingMiddleware ahora se encarga de esto.
+# @app.exception_handler(Exception)
+# async def global_exception_handler(request, exc):
+#     logger.error("Unhandled error on %s: %s", request.url.path, exc)
+#     from fastapi.responses import JSONResponse
+#     return JSONResponse(
+#         status_code=500,
+#         content={"error": str(exc), "detail": "Internal server error"},
+#     )
 
 
 @app.get("/api/health")
@@ -408,8 +422,8 @@ async def system_status():
     """Enhanced system health dashboard — includes watchdog, pipeline, agents."""
     import psutil
 
-    from core_engines.system_health import collect_health
-    from core_engines.system_state import get_system_state
+    from cores.system_health import collect_health
+    from cores.system_state import get_system_state
     from desktop.watchdog import get_watchdog
 
     state = get_system_state()
@@ -446,7 +460,7 @@ async def system_status():
 
 def _get_db_size_mb() -> float:
     try:
-        from core_engines.platform.system import get_db_path
+        from cores.platform.system import get_db_path
         p = get_db_path()
         if p.exists():
             return p.stat().st_size / 1024 / 1024
@@ -505,10 +519,10 @@ async def metrics():
     lines.append(f'rastro_intelligence{{stat="snapshots_created"}} {state.get("total_snapshots_created", 0)}')
     lines.append(f'rastro_intelligence{{stat="analysis_time_ms"}} {state.get("total_analysis_time_ms", 0.0)}')
 
-    from core_engines.confidence import audit_verdicts
-    from core_engines.replay import list_replay_targets
-    from core_engines.review_queue import build_review_queue
-    from core_engines.timeline import build_timeline
+    from cores.confidence import audit_verdicts
+    from cores.replay import list_replay_targets
+    from cores.review_queue import build_review_queue
+    from cores.timeline import build_timeline
     try:
         tl = build_timeline(limit=1)
         timeline_count = tl.to_dict().get("total_events", 0)
@@ -529,7 +543,7 @@ async def metrics():
 
     # ── Opportunity Intelligence metrics ────────────────────────────
     try:
-        from core_engines.opportunity import get_engine
+        from cores.opportunity import get_engine
         engine = get_engine()
         opp_metrics = engine.get_metrics()
         lines.append('# HELP rastro_opportunity Opportunity intelligence layer metrics')
@@ -546,7 +560,7 @@ async def metrics():
 
     # ── Execution Layer metrics ─────────────────────────────────────
     try:
-        from core_engines.actions.execution_tracker import get_execution_tracker
+        from cores.actions.execution_tracker import get_execution_tracker
         et = get_execution_tracker()
         estats = et.get_stats()
         lines.append('# HELP rastro_execution Execution layer metrics')
@@ -558,7 +572,7 @@ async def metrics():
             lines.append(f'rastro_execution{{stat="avg_duration_ms",type="{safe_t}"}} {astats.get("avg_duration", 0)}')
             lines.append(f'rastro_execution{{stat="errors",type="{safe_t}"}} {astats.get("errors", 0)}')
 
-        from core_engines.accountability.system_scorecard import get_system_scorecard
+        from cores.accountability.system_scorecard import get_system_scorecard
         sc = get_system_scorecard()
         latest = sc.get_latest()
         if latest:
@@ -567,15 +581,15 @@ async def metrics():
             lines.append(f'rastro_execution{{stat="active_decisions"}} {latest.get("active_decisions", 0)}')
             lines.append(f'rastro_execution{{stat="memory_usage"}} {latest.get("memory_usage", 0)}')
 
-        from core_engines.memory.insight_archive import get_insight_archive
+        from cores.memory.insight_archive import get_insight_archive
         ia = get_insight_archive()
         lines.append(f'rastro_execution{{stat="insights_total"}} {ia.total_count()}')
 
-        from core_engines.explainability.explanation_engine import get_explanation_engine
+        from cores.explainability.explanation_engine import get_explanation_engine
         ee = get_explanation_engine()
         lines.append(f'rastro_execution{{stat="explanations"}} {ee.count()}')
 
-        from core_engines.explainability.decision_trace import get_decision_trace
+        from cores.explainability.decision_trace import get_decision_trace
         dt = get_decision_trace()
         lines.append(f'rastro_execution{{stat="decision_traces"}} {dt.count()}')
     except Exception as exc:

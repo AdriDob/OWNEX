@@ -19,7 +19,7 @@ logging.disable(logging.CRITICAL)
 from fastapi.testclient import TestClient  # noqa: E402
 
 from api.main import app  # noqa: E402
-from core_engines.license.validator import generate_license  # noqa: E402
+from cores.license.validator import generate_license  # noqa: E402
 
 client = TestClient(app)
 lic = generate_license(expiry_days=365)

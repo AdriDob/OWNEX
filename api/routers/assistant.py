@@ -11,15 +11,26 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from core_engines.ai.assistant import get_assistant
-from core_engines.ai.provider import get_provider
-from core_engines.assistant.ai_assistant import get_narrator
+from cores.ai.assistant import get_assistant
+from cores.ai.provider import get_provider
+from cores.assistant.ai_assistant import get_narrator
 
 router = APIRouter(prefix="/api/assistant", tags=["assistant"])
 
 
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+
 class ChatRequest(BaseModel):
     message: str
+    history: list[ChatMessage] = []
+
+
+class OrionChatRequest(BaseModel):
+    message: str
+    history: list[ChatMessage] = []
 
 
 @router.get("/context")
@@ -60,6 +71,16 @@ def chat(body: ChatRequest):
         raise HTTPException(status_code=400, detail="Message cannot be empty")
     assistant = get_assistant()
     return assistant.chat(body.message)
+
+
+@router.post("/orion-chat")
+async def orion_chat(body: OrionChatRequest):
+    if not body.message.strip():
+        raise HTTPException(status_code=400, detail="Message cannot be empty")
+    from cores.ai.orion_agent import OrionAgent
+    agent = OrionAgent()
+    history = [{"role": m.role, "content": m.content} for m in body.history]
+    return await agent.chat(body.message, history)
 
 
 @router.post("/chat/stream")

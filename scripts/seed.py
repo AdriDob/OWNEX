@@ -105,7 +105,7 @@ def main():
 
     # Re-seed: clean old data
     try:
-        from core_engines.targets.models import TargetIntel
+        from cores.targets.models import TargetIntel
         session.query(TargetIntel).delete()
     except Exception:
         pass
@@ -163,7 +163,7 @@ def main():
         {"target": "StarkNet", "reward_score": 88, "opportunity_score": 82, "competition_score": 45, "freshness_score": 95, "attack_surface_score": 45, "evidence_potential_score": 65},
     ]
     try:
-        from core_engines.targets.models import TargetIntel
+        from cores.targets.models import TargetIntel
         for idata in intel_data:
             target = target_map[idata["target"]]
             existing = session.query(TargetIntel).filter(TargetIntel.id == target.id).first()

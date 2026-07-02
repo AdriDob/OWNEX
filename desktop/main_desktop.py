@@ -76,7 +76,7 @@ def _show_error(title: str, message: str) -> None:
 
 def _setup_logging(dev: bool) -> str:
     if getattr(sys, "frozen", False) and os.name == "nt":
-        from core_engines.platform.system import get_log_dir as _get_log_dir
+        from cores.platform.system import get_log_dir as _get_log_dir
         log_dir = _get_log_dir()
     else:
         log_dir = Path.cwd() / "logs"
@@ -197,7 +197,7 @@ def _mount_frontend(app) -> bool:
 
     from fastapi.responses import FileResponse, JSONResponse
 
-    from core_engines.platform.system import get_frontend_dist_dir
+    from cores.platform.system import get_frontend_dist_dir
 
     mimetypes.add_type("application/javascript", ".js")
     mimetypes.add_type("text/css", ".css")
@@ -249,7 +249,7 @@ def _create_desktop_session(port: int) -> None:
     to the frontend via query param in the dashboard URL. This avoids
     requiring manual login on a local desktop installation.
     """
-    from core_engines.auth.auth_manager import get_auth_manager
+    from cores.auth.auth_manager import get_auth_manager
     from desktop.settings import get_settings
 
     settings = get_settings()
@@ -447,7 +447,7 @@ def main() -> None:
     else:
         base_dir = str(Path(__file__).resolve().parent.parent)
 
-    from core_engines.platform.system import get_db_path
+    from cores.platform.system import get_db_path
     db_path = get_db_path()
 
     db_path.parent.mkdir(parents=True, exist_ok=True)

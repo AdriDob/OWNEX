@@ -11,7 +11,7 @@ def client():
     from fastapi.testclient import TestClient
 
     from api.main import app
-    from core_engines.license.validator import generate_license
+    from cores.license.validator import generate_license
 
     c = TestClient(app)
     lic = generate_license(expiry_days=365)
@@ -40,10 +40,10 @@ def client():
 def clean_ple_data(request):
     """Clean up PLE data after each test."""
     yield
-    from core_engines.learning import get_profile_service
+    from cores.learning import get_profile_service
     # Get the actual user_id from the module-scoped client fixture
     client = request.getfixturevalue("client")
-    from core_engines.auth.auth import verify_token
+    from cores.auth.auth import verify_token
     tok = client.headers.get("Authorization", "").removeprefix("Bearer ")
     data = verify_token(tok)
     if data:
@@ -51,7 +51,7 @@ def clean_ple_data(request):
         svc = get_profile_service()
         svc.reset(uid)
         # Also clean up learning events
-        from core_engines.learning.profile import LearningEvent
+        from cores.learning.profile import LearningEvent
         from database.db import SessionLocal
         s = SessionLocal()
         s.query(LearningEvent).filter(LearningEvent.user_id == uid).delete()

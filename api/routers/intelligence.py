@@ -2,8 +2,8 @@
 from fastapi import APIRouter, Query
 from fastapi.responses import PlainTextResponse
 
-from core_engines.intelligence.adaptive_memory import get_memory
-from core_engines.intelligence.export import (
+from cores.intelligence.adaptive_memory import get_memory
+from cores.intelligence.export import (
     export_history,
     export_recommendations,
     export_snapshots,
