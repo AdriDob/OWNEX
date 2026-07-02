@@ -1,8 +1,8 @@
 
 from fastapi import APIRouter, Query, Request
 
-from core_engines.gateway.schemas import error, ok
-from core_engines.notifications.hub import NOTIFICATION_TYPES, get_hub
+from cores.gateway.schemas import error, ok
+from cores.notifications.hub import NOTIFICATION_TYPES, get_hub
 from database import db
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
@@ -57,14 +57,14 @@ async def set_notification_preferences(request: Request):
         return error(f"Invalid channel: {channel}. Valid: {', '.join(valid_channels)}", version="1.0")
 
     try:
-        from core_engines.learning.profile import get_profile_service
+        from cores.learning.profile import get_profile_service
         profile = get_profile_service()
         prefs = profile.get_stats().get("notification_preferences", {})
         prefs[f"channel_{channel}"] = enabled
 
         session = db.SessionLocal()
         try:
-            from core_engines.learning.profile import InvestigatorProfile
+            from cores.learning.profile import InvestigatorProfile
             row = session.query(InvestigatorProfile).first()
             if row:
                 row.notification_preferences = prefs
@@ -81,7 +81,7 @@ async def set_notification_preferences(request: Request):
 async def get_notification_preferences():
     """Get current notification channel preferences."""
     try:
-        from core_engines.learning.profile import get_profile_service
+        from cores.learning.profile import get_profile_service
         profile = get_profile_service()
         prefs = profile.get_stats().get("notification_preferences", {})
         return ok({"preferences": prefs})

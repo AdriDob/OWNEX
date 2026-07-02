@@ -16,8 +16,9 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 
-from core_engines.identity_vault import get_identity_vault
-from core_engines.opportunity import get_engine
+from cores.identity_vault import get_identity_vault
+from cores.opportunity import get_engine
+from cores.targets.hunter import Hunter
 
 logger = logging.getLogger("rastro.opportunity.api")
 
@@ -203,6 +204,46 @@ def evh_rankings(limit: int = Query(20, ge=1, le=100)):
         "rankings": [_opp_to_dict(o) for o in ranked],
         "summary": engine.get_evh_summary(),
         "count": len(ranked),
+    }
+
+
+@router.get("/catalog")
+def opportunity_catalog(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=200),
+    search: str = Query("", max_length=200),
+    technology: str = Query("", max_length=100),
+    platform: str = Query("", max_length=100),
+    sort_by: str = Query("name"),
+    sort_order: str = Query("asc", pattern="^(asc|desc)$"),
+):
+    """Browse the persistent public program catalog.
+
+    This is the canonical catalog endpoint for frontend consumption.
+    Prefer this route over legacy discovery listing endpoints.
+    """
+    skip = (page - 1) * page_size
+    h = Hunter()
+    items, total = h.list_programs(
+        skip=skip,
+        limit=page_size,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        search=search,
+        technology=technology,
+        platform=platform,
+    )
+    for item in items:
+        item["platform"] = item.pop("source", None)
+        item["cms"] = item.pop("cms_detected", None)
+        item["framework"] = item.pop("framework_detected", None)
+        item["technologies"] = item.pop("technology_tags", [])
+    return {
+        "items": items,
+        "total": total,
+        "skip": skip,
+        "limit": page_size,
+        "page": page,
     }
 
 

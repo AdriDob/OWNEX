@@ -10,7 +10,7 @@ def client():
     from fastapi.testclient import TestClient
 
     from api.main import app
-    from core_engines.license.validator import generate_license
+    from cores.license.validator import generate_license
     c = TestClient(app)
     # Activate license
     lic = generate_license(expiry_days=365)
@@ -20,7 +20,7 @@ def client():
 
 @pytest.fixture(autouse=True)
 def reset_limiter():
-    from core_engines.gateway.rate_limit import reset_rate_limiter
+    from cores.gateway.rate_limit import reset_rate_limiter
     reset_rate_limiter()
 
 

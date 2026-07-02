@@ -28,13 +28,13 @@ if ROUTERS_DIR.is_dir():
         if f.suffix == ".py" and f.stem != "__init__":
             router_modules.append(f"api.routers.{f.stem}")
 
-# ── Collect all core_engines subpackages for hidden imports ──────────
-CORE_DIR = PROJECT_ROOT / "core_engines"
+# ── Collect all cores subpackages for hidden imports ──────────
+CORE_DIR = PROJECT_ROOT / "cores"
 core_packages = []
 if CORE_DIR.is_dir():
     for d in sorted(CORE_DIR.iterdir()):
         if d.is_dir() and (d / "__init__.py").exists() and d.stem != "__pycache__":
-            core_packages.append(f"core_engines.{d.stem}")
+            core_packages.append(f"cores.{d.stem}")
 
 # ── Common hidden imports shared across platforms ────────────────────
 BASE_HIDDEN = [
@@ -52,9 +52,9 @@ BASE_HIDDEN = [
     # Database
     'database', 'database.db', 'database.models',
     # Core engines
-    'core_engines', 'core_engines.config', 'core_engines.env', 'core_engines.env.config',
-    'core_engines.platform', 'core_engines.platform.system',
-    'core_engines.log_config', 'core_engines.observability',
+    'cores', 'cores.config', 'cores.env', 'cores.env.config',
+    'cores.platform', 'cores.platform.system',
+    'cores.log_config', 'cores.observability',
     *core_packages,
     # Web server
     'uvicorn', 'uvicorn.logging', 'uvicorn.loops', 'uvicorn.loops.auto',

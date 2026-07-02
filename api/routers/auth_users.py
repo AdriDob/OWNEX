@@ -10,7 +10,7 @@ import os
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
-from core_engines.auth.auth import (
+from cores.auth.auth import (
     create_refresh_token,
     create_session_token,
     verify_token,

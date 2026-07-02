@@ -1,10 +1,10 @@
 
 from fastapi import APIRouter, Header, Query, Request
 
-from core_engines.auth.auth_manager import get_auth_manager
-from core_engines.auth.session_validator import get_session_validator
-from core_engines.gateway.rate_limit import get_rate_limiter
-from core_engines.gateway.schemas import error, ok
+from cores.auth.auth_manager import get_auth_manager
+from cores.auth.session_validator import get_session_validator
+from cores.gateway.rate_limit import get_rate_limiter
+from cores.gateway.schemas import error, ok
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 limiter = get_rate_limiter()
@@ -15,6 +15,8 @@ async def login(request: Request):
     body = await request.json()
     device_id = body.get("device_id", "unknown")
     device_info = body.get("device_info", {})
+    if not isinstance(device_info, dict):
+        device_info = {"raw": str(device_info)}
 
     manager = get_auth_manager()
     result = manager.authenticate(device_id, device_info)

@@ -1,880 +1,671 @@
-import type {
-  PaginatedResult, PaginationFilters,
-  SystemHealth, OverviewData,
-  QuickWinsReport,
-  AssistantInsight, AssistantSummary, AssistantContext,
-  AssistantRecommendation, AssistantNextAction,
-  TimelineData, ReplayTarget, ReplayData,
-  ConfidenceReport, ReviewQueue,
-  IntelligenceHistory, IntelligenceTrends,
-  IntelligenceRecommendations, IntelligenceState,
-  DifferentialData,
-  ScreenshotBundle,
-  ActivityFeed, DigestData,
-  BountyPotential, DailyBriefing as AssistantDailyBriefing,
-} from '../types';
+import type { OrionContext } from '@/types'
 
-const BASE = '/api';
+const BASE = '/api'
 
-// Callback for auth errors — set by React to navigate without full page reload
-let onAuthRedirect: ((path: string) => void) | null = null;
+// ── Auth ──
 
-export function setOnAuthRedirect(fn: (path: string) => void) {
-  onAuthRedirect = fn;
-}
+const AUTH_KEY = 'rastro-token'
+const SESSION_EXPIRES_KEY = 'rastro-session-expires'
 
-function getAuthHeaders(): Record<string, string> {
-  const token = sessionStorage.getItem('rastro-token');
-  console.log('[api] getAuthHeaders rastro-token:', token ? `present (${token.slice(0, 8)}...)` : 'null');
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
-}
-
-export async function fetchJson<T>(path: string, opts?: RequestInit): Promise<T> {
-  const headers = { ...getAuthHeaders(), ...(opts?.headers || {}) } as Record<string, string>;
-  const res = await fetch(`${BASE}${path}`, { ...opts, headers });
-
-  if (res.status === 401) {
-    sessionStorage.removeItem('rastro-token');
-    throw new Error('Session expired');
+export function getToken(): string | null {
+  try {
+    return localStorage.getItem(AUTH_KEY)
+  } catch {
+    return null
   }
+}
 
-  if (res.status === 403) {
-    const skipRedirect = (opts as any)?.__skipAuthRedirect;
-    console.log('[api] 403 received — skipRedirect:', skipRedirect);
-    if (!skipRedirect) {
-      if (onAuthRedirect) {
-        onAuthRedirect('/activate');
-      } else {
-        window.location.href = '/activate';
-      }
+export function setToken(token: string) {
+  localStorage.setItem(AUTH_KEY, token)
+}
+
+export function clearToken() {
+  localStorage.removeItem(AUTH_KEY)
+}
+
+export function setSessionExpiry(expiresAt: string) {
+  localStorage.setItem(SESSION_EXPIRES_KEY, expiresAt)
+}
+
+export function getSessionExpiry(): string | null {
+  try {
+    return localStorage.getItem(SESSION_EXPIRES_KEY)
+  } catch {
+    return null
+  }
+}
+
+export function clearSessionExpiry() {
+  localStorage.removeItem(SESSION_EXPIRES_KEY)
+}
+
+export function clearSession() {
+  clearToken()
+  clearSessionExpiry()
+}
+
+export function isSessionExpired(): boolean {
+  const expiresAt = getSessionExpiry()
+  if (!expiresAt) return false
+  const timestamp = new Date(expiresAt).getTime()
+  if (Number.isNaN(timestamp)) return false
+  return Date.now() >= timestamp
+}
+
+export function isSessionValid(): boolean {
+  return !!getToken() && !isSessionExpired()
+}
+
+// ── Error class ──
+
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
+// ── Loading tracker (simple ref counter) ──
+
+type LoadingListener = (loading: boolean) => void
+const loadingListeners: LoadingListener[] = []
+
+let _activeRequests = 0
+
+function notifyLoading() {
+  const loading = _activeRequests > 0
+  for (const fn of loadingListeners) fn(loading)
+}
+
+export function onLoadingChange(fn: LoadingListener) {
+  loadingListeners.push(fn)
+  return () => {
+    const idx = loadingListeners.indexOf(fn)
+    if (idx >= 0) loadingListeners.splice(idx, 1)
+  }
+}
+
+// ── Core request ──
+
+export interface RequestOptions {
+  method?: string
+  body?: unknown
+  params?: Record<string, string | number | boolean | undefined | null>
+  skipAuth?: boolean
+}
+
+async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
+  const { method = 'GET', body, params, skipAuth } = opts
+
+  let url = `${BASE}${path}`
+  if (params) {
+    const search = new URLSearchParams()
+    for (const [k, v] of Object.entries(params)) {
+      if (v !== undefined && v !== null) search.set(k, String(v))
     }
-    throw new Error('License required');
+    const qs = search.toString()
+    if (qs) url += `?${qs}`
   }
 
-  if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
-  return res.json();
-}
+  const headers: Record<string, string> = {}
+  if (body) headers['Content-Type'] = 'application/json'
 
-export function setAuthToken(token: string | null) {
-  if (token) {
-    sessionStorage.setItem('rastro-token', token);
-  } else {
-    sessionStorage.removeItem('rastro-token');
+  const token = getToken()
+  if (token && !skipAuth) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  _activeRequests++
+  notifyLoading()
+
+  try {
+    const res = await fetch(url, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    })
+
+    if (res.status === 401) {
+      clearSession()
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'))
+      throw new ApiError(401, 'Sesión expirada. Reautenticación requerida.')
+    }
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => '')
+      throw new ApiError(res.status, text || `HTTP ${res.status}`)
+    }
+
+    // Handle 204 No Content
+    if (res.status === 204) return undefined as T
+
+    return res.json()
+  } catch (e) {
+    if (e instanceof ApiError) throw e
+    if (e instanceof TypeError && (e as Error).message === 'Failed to fetch') {
+      throw new ApiError(0, 'No se pudo conectar con el servidor')
+    }
+    throw e
+  } finally {
+    _activeRequests--
+    notifyLoading()
   }
 }
 
+// ── Public API helpers ──
 
-function toQuery(filters?: PaginationFilters): string {
-  if (!filters) return '';
-  const p = new URLSearchParams();
-  if (filters.skip !== undefined) p.set('skip', String(filters.skip));
-  if (filters.limit !== undefined) p.set('limit', String(filters.limit));
-  if (filters.sort_by) p.set('sort_by', filters.sort_by);
-  if (filters.sort_order) p.set('sort_order', filters.sort_order);
-  if (filters.search) p.set('search', filters.search);
-  const s = p.toString();
-  return s ? `?${s}` : '';
-}
-
-export function getTargets(filters?: PaginationFilters) {
-  return fetchJson<PaginatedResult<import('../types').Target>>(`/targets${toQuery(filters)}`);
-}
-
-export function getTarget(id: number) {
-  return fetchJson<import('../types').TargetSummary>(`/targets/${id}`);
-}
-
-export function getEndpoints(targetId?: number, filters?: PaginationFilters) {
-  const p = new URLSearchParams();
-  if (targetId) p.set('target_id', String(targetId));
-  if (filters?.skip !== undefined) p.set('skip', String(filters.skip));
-  if (filters?.limit !== undefined) p.set('limit', String(filters.limit));
-  if (filters?.sort_by) p.set('sort_by', filters.sort_by);
-  if (filters?.sort_order) p.set('sort_order', filters.sort_order);
-  if (filters?.search) p.set('search', filters.search);
-  const q = p.toString() ? `?${p}` : '';
-  return fetchJson<PaginatedResult<import('../types').Endpoint>>(`/endpoints${q}`);
-}
-
-export function getEndpoint(id: number) {
-  return fetchJson<import('../types').Endpoint>(`/endpoints/${id}`);
-}
-
-export function getFindings(targetId?: number, endpointId?: number, filters?: PaginationFilters) {
-  const p = new URLSearchParams();
-  if (targetId) p.set('target_id', String(targetId));
-  if (endpointId) p.set('endpoint_id', String(endpointId));
-  if (filters?.skip !== undefined) p.set('skip', String(filters.skip));
-  if (filters?.limit !== undefined) p.set('limit', String(filters.limit));
-  if (filters?.sort_by) p.set('sort_by', filters.sort_by);
-  if (filters?.sort_order) p.set('sort_order', filters.sort_order);
-  if (filters?.search) p.set('search', filters.search);
-  const q = p.toString() ? `?${p}` : '';
-  return fetchJson<PaginatedResult<import('../types').Finding>>(`/findings${q}`);
-}
-
-export function getEvidence(verdictId?: number, filters?: PaginationFilters) {
-  const p = new URLSearchParams();
-  if (verdictId) p.set('verdict_id', String(verdictId));
-  if (filters?.skip !== undefined) p.set('skip', String(filters.skip));
-  if (filters?.limit !== undefined) p.set('limit', String(filters.limit));
-  if (filters?.sort_by) p.set('sort_by', filters.sort_by);
-  if (filters?.sort_order) p.set('sort_order', filters.sort_order);
-  if (filters?.search) p.set('search', filters.search);
-  const q = p.toString() ? `?${p}` : '';
-  return fetchJson<PaginatedResult<import('../types').Evidence>>(`/evidence${q}`);
-}
-
-export function getOpportunities(filters?: PaginationFilters) {
-  return fetchJson<PaginatedResult<import('../types').Opportunity>>(`/opportunities${toQuery(filters)}`);
-}
-
-export function getTargetROI(targetId: number) {
-  return fetchJson<import('../types').TargetROI>(`/roi/${targetId}`);
-}
-
-export function getAttackSurfaces() {
-  return fetchJson<import('../types').AttackSurfaceMap>('/attack-surface');
-}
-
-export function getPipeline() {
-  return fetchJson<import('../types').PipelineStages>('/pipeline');
-}
-
-export function runHypotheses(targetId: number) {
-  return fetchJson<import('../types').HypothesisEngineOutput>(`/hypotheses/${targetId}`, { method: 'POST' });
-}
-
-export function getReport() {
-  return fetchJson<import('../types').Report>('/reports/generate');
-}
-
-// --- System & Overview ---
-export function getSystemHealth() {
-  return fetchJson<SystemHealth>('/system/health');
-}
-
-export function getOverview() {
-  return fetchJson<OverviewData>('/overview');
-}
-
-/** Preload variant — silently fails on 403 (used during Zustand rehydration before React renders) */
-export function getOverviewPreload() {
-  return fetchJson<OverviewData>('/overview', { __skipAuthRedirect: true } as any);
-}
-
-// --- Quick Wins ---
-export function evaluateQuickWins(targetId?: number) {
-  const body = targetId ? { target_id: targetId } : {};
-  return fetchJson<{ report: QuickWinsReport; snapshot_status: string }>('/quick-wins/evaluate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-}
-
-// --- AI Assistant ---
-export function getAssistantInsights() {
-  return fetchJson<{ insights: AssistantInsight[]; count: number }>('/assistant/insights');
-}
-
-export function getAssistantTopInsight() {
-  return fetchJson<AssistantInsight>('/assistant/insights/top');
-}
-
-export function getAssistantSummary() {
-  return fetchJson<AssistantSummary>('/assistant/summary');
-}
-
-export function getAssistantContext() {
-  return fetchJson<AssistantContext>('/assistant/context');
-}
-
-export function getAssistantRecommendations() {
-  return fetchJson<{ recommendations: AssistantRecommendation[] }>('/assistant/recommendations');
-}
-
-export function getAssistantNextAction() {
-  return fetchJson<AssistantNextAction>('/assistant/recommendations/best');
-}
-
-export function getBountyPotential(targetId: number) {
-  return fetchJson<BountyPotential>(`/assistant/bounty/${targetId}`);
-}
+export const api = {
+  get: <T>(path: string, params?: Record<string, string | number | boolean | undefined | null>) =>
+    request<T>(path, { params }),
 
-export function getAssistantDailyBriefing() {
-  return fetchJson<AssistantDailyBriefing>('/assistant/briefing');
-}
-
-// --- Timeline ---
-export function getTimeline(targetId?: number, limit?: number, eventType?: string) {
-  const p = new URLSearchParams();
-  if (targetId) p.set('target_id', String(targetId));
-  if (limit) p.set('limit', String(limit));
-  if (eventType) p.set('event_type', eventType);
-  const q = p.toString() ? `?${p}` : '';
-  return fetchJson<TimelineData>(`/system/timeline${q}`);
-}
-
-// --- Replay ---
-export function getReplayTargets() {
-  return fetchJson<{ targets: ReplayTarget[]; total: number }>('/system/replay');
-}
-
-export function getReplay(targetId: number) {
-  return fetchJson<ReplayData>(`/system/replay/${targetId}`);
-}
-
-// --- Confidence ---
-export function getConfidenceAudit(itemType?: string, limit?: number) {
-  const p = new URLSearchParams();
-  if (itemType) p.set('item_type', itemType);
-  if (limit) p.set('limit', String(limit));
-  const q = p.toString() ? `?${p}` : '';
-  return fetchJson<ConfidenceReport>(`/system/confidence${q}`);
-}
-
-// --- Review Queue ---
-export function getReviewQueue(limit?: number) {
-  const p = limit ? `?limit=${limit}` : '';
-  return fetchJson<ReviewQueue>(`/system/review${p}`);
-}
-
-// --- Intelligence ---
-export function getIntelligenceHistory() {
-  return fetchJson<IntelligenceHistory>('/intelligence/history');
-}
-
-export function getIntelligenceTrends() {
-  return fetchJson<IntelligenceTrends>('/intelligence/trends');
-}
-
-export function getIntelligenceRecommendations() {
-  return fetchJson<IntelligenceRecommendations>('/intelligence/recommendations');
-}
-
-export function getIntelligenceState() {
-  return fetchJson<IntelligenceState>('/intelligence/state');
-}
-
-// --- Differential Intelligence ---
-export function getDifferentialAnalysis(targetId?: number) {
-  const p = targetId ? `?target_id=${targetId}` : '';
-  return fetchJson<DifferentialData>(`/differential-intelligence/analyze${p}`);
-}
-
-// --- Screenshots ---
-export function getScreenshots(targetId?: number) {
-  const p = targetId ? `?target_id=${targetId}` : '';
-  return fetchJson<ScreenshotBundle>(`/screenshots${p}`);
-}
-
-// --- Activity ---
-export function getActivity(limit?: number, hours?: number) {
-  const p = new URLSearchParams();
-  if (limit) p.set('limit', String(limit));
-  if (hours) p.set('hours', String(hours));
-  const q = p.toString() ? `?${p}` : '';
-  return fetchJson<ActivityFeed>(`/activity${q}`);
-}
-
-// --- Digest ---
-export function getDigest() {
-  return fetchJson<DigestData>('/digest');
-}
+  post: <T>(path: string, body?: unknown, skipAuth?: boolean) =>
+    request<T>(path, { method: 'POST', body, skipAuth }),
 
-// ─── Operations Layer ───────────────────────────────────────────────
+  put: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: 'PUT', body }),
 
-export function getMorningBrief() {
-  return fetchJson<import('../types').MorningBrief>('/operations/briefing/morning');
-}
-
-export function getEveningSummary() {
-  return fetchJson<import('../types').EveningSummary>('/operations/briefing/evening');
-}
+  patch: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: 'PATCH', body }),
 
-export function getUnifiedTimeline(limit?: number, hours?: number, eventType?: string) {
-  const p = new URLSearchParams();
-  if (limit) p.set('limit', String(limit));
-  if (hours) p.set('hours', String(hours));
-  if (eventType) p.set('event_type', eventType);
-  return fetchJson<import('../types').UnifiedTimeline>(`/operations/timeline?${p}`);
+  delete: <T>(path: string) =>
+    request<T>(path, { method: 'DELETE' }),
 }
 
-export function getFavorites(itemType?: string) {
-  const p = itemType ? `?item_type=${itemType}` : '';
-  return fetchJson<import('../types').FavoriteList>(`/operations/favorites${p}`);
-}
+// ── Auth API (no token needed) ──
 
-export function addFavorite(itemType: string, itemId: number, label?: string) {
-  return fetchJson<{ id: number; status: string }>('/operations/favorites', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ item_type: itemType, item_id: itemId, label }),
-  });
+export async function login(deviceId: string, deviceInfo?: string) {
+  return api.post<{ session: any }>('/auth/login', { device_id: deviceId, device_info: deviceInfo }, true)
 }
 
-export function removeFavorite(favoriteId: number) {
-  return fetchJson<{ status: string }>(`/operations/favorites/${favoriteId}`, { method: 'DELETE' });
+export async function checkLicense() {
+  return api.get<{ valid: boolean; reason?: string }>('/license/status', undefined)
 }
 
-export function getTasks(status?: string, priority?: string) {
-  const p = new URLSearchParams();
-  if (status) p.set('status', status);
-  if (priority) p.set('priority', priority);
-  return fetchJson<import('../types').TaskList>(`/operations/tasks?${p}`);
+export async function activateLicense(key: string) {
+  return api.post<{ status: string; key: string }>('/license/activate', { key }, true)
 }
 
-export function createTask(title: string, description?: string, status?: string, priority?: string, linkedType?: string, linkedId?: number) {
-  return fetchJson<{ id: number; status: string }>('/operations/tasks', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, description, status, priority, linked_type: linkedType, linked_id: linkedId }),
-  });
-}
+// ── Platform Connections / Identity ──
 
-export function updateTask(taskId: number, updates: Record<string, unknown>) {
-  return fetchJson<{ id: number; status: string }>(`/operations/tasks/${taskId}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(updates),
-  });
+export interface PlatformAccount {
+  provider: string
+  connected: boolean
+  username?: string
+  email?: string
+  earnings?: number
+  pending?: number
+  last_sync?: string
+  created_at?: string
+  has_credentials?: boolean
+  last_checked?: string
+  session_state?: string
+  health_status?: string
 }
 
-export function deleteTask(taskId: number) {
-  return fetchJson<{ status: string }>(`/operations/tasks/${taskId}`, { method: 'DELETE' });
+export async function getPlatformAccounts() {
+  return api.get<{ accounts: PlatformAccount[] }>('/opportunity_intelligence/identity/accounts')
 }
 
-export function updateSession(data: Record<string, unknown>) {
-  return fetchJson<{ id: number | null; status: string }>('/operations/session', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
+export async function storePlatformCredentials(provider: string, email: string, token: string) {
+  return api.post('/opportunity_intelligence/identity/store', { provider, email, token })
 }
 
-export function getOperationalMetrics() {
-  return fetchJson<import('../types').OperationalMetrics>('/operations/metrics');
+export async function removePlatformAccount(provider: string) {
+  return api.post(`/opportunity_intelligence/identity/remove/${provider}`, {})
 }
 
-export function runSelfTest() {
-  return fetchJson<import('../types').SelfTestReport>('/operations/self-test', { method: 'POST' });
+export async function getPlatformStatus(provider: string) {
+  return api.get(`/opportunity_intelligence/identity/status/${provider}`)
 }
 
-export function getNotifications(unreadOnly?: boolean) {
-  const p = unreadOnly ? '?unread_only=true' : '';
-  return fetchJson<import('../types').NotificationList>(`/operations/notifications${p}`);
-}
+// ── Bank / Payout Accounts ──
 
-export function markNotificationRead(notificationId: number) {
-  return fetchJson<{ status: string }>(`/operations/notifications/${notificationId}/read`, { method: 'PATCH' });
+export interface PayoutAccount {
+  id: string
+  connected: boolean
+  bank_name?: string
+  account_type?: string
+  last_four?: string
+  currency?: string
+  country?: string
+  withdrawable?: number
+  pending?: number
+  total_withdrawn?: number
+  type?: string
+  label?: string
+  is_default?: boolean
+  network?: string
 }
 
-export function markAllNotificationsRead() {
-  return fetchJson<{ status: string }>('/operations/notifications/mark-all-read', { method: 'POST' });
+export async function getPayoutAccounts() {
+  return api.get<{ accounts: PayoutAccount[] }>('/connections/payout-accounts')
 }
 
-// ─── Opportunity Intelligence ───────────────────────────────────────
-
-export function getOpportunityOverview() {
-  return fetchJson<import('../types').OpportunityOverview>('/opportunity/overview');
+export async function getWithdrawalHistory() {
+  return api.get<{ withdrawals: Withdrawal[] }>('/connections/withdrawals')
 }
 
-export function getOpportunityTop(limit?: number) {
-  const p = limit ? `?limit=${limit}` : '';
-  return fetchJson<{ opportunities: import('../types').OpportunityItem[]; count: number }>(`/opportunity/top${p}`);
+export interface Withdrawal {
+  id: string
+  amount: number
+  currency: string
+  status: 'pending' | 'processing' | 'completed' | 'failed'
+  destination: string
+  created_at: string
+  completed_at?: string
 }
 
-export function getOpportunityRecommendations() {
-  return fetchJson<import('../types').OpportunityRecommendations>('/opportunity/recommendations');
-}
+// ── Submission History ──
 
-export function getOpportunityEVHRankings(limit?: number) {
-  const p = limit ? `?limit=${limit}` : '';
-  return fetchJson<import('../types').EVHRanking>(`/opportunity/evh${p}`);
+export interface SubmissionRecord {
+  id: number
+  report_id: number
+  platform: string
+  external_id?: string
+  status: string
+  reward?: number
+  submitted_at: string
+  last_update?: string
 }
-
 
-// ─── Identity Vault ─────────────────────────────────────────────────
-
-export function getIdentityAccounts() {
-  return fetchJson<import('../types').IdentityAccounts>('/opportunity/identity/accounts');
+export async function getSubmissionHistory(params?: { limit?: number; platform?: string; status?: string }) {
+  return api.get<{ submissions: SubmissionRecord[]; total: number }>('/reports/submissions', params as any)
 }
-
-
-// ─── Identity Center ───────────────────────────────────────────────
 
-export interface IdentityCenterData {
-  platforms: Array<{
-    provider: string;
-    connected: boolean;
-    has_token: boolean;
-    last_sync: string;
-    mode: string;
-    email: string;
-  }>;
-  email: { primary: string; secondary: string };
-  wallets: Record<string, string>;
-  never_submit_without_approval: boolean;
-}
+// ── System Timeline Calendar ──
 
-export function getIdentityCenter() {
-  return fetchJson<any>('/identity-center').then(r => r.data as IdentityCenterData);
+export interface TimelineEvent {
+  event_type: string
+  timestamp: string
+  source: string
+  description: string
+  target_id?: number
+  target_name?: string
+  report_title?: string
+  finding_id?: number
+  confidence?: number
+  metadata?: Record<string, any>
 }
 
-export function connectPlatform(provider: string, token: string, email: string, password?: string) {
-  return fetchJson<any>(`/identity-center/platform/${provider}/connect`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token, email, password }),
-  });
+export interface TimelineResponse {
+  events: TimelineEvent[]
+  total_events: number
+  generated_at: string
 }
 
-export function disconnectPlatform(provider: string) {
-  return fetchJson<any>(`/identity-center/platform/${provider}/disconnect`, { method: 'POST' });
+export async function getTimeline(params?: { target_id?: number; limit?: number; offset?: number; event_type?: string }) {
+  return api.get<TimelineResponse>('/system/timeline', params as any)
 }
 
-export function setPlatformMode(provider: string, mode: string) {
-  return fetchJson<any>(`/identity-center/platform/${provider}/mode`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mode }),
-  });
-}
+// ── Platform Sync ──
 
-export function removePlatform(provider: string) {
-  return fetchJson<any>(`/identity-center/platform/${provider}/remove`, { method: 'POST' });
+export interface PlatformStatus {
+  name: string
+  connected: boolean
+  username?: string
+  earnings?: number
+  pending?: number
+  last_sync?: string
 }
 
-export function setEmail(primary: string, secondary: string) {
-  return fetchJson<any>('/identity-center/email', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ primary, secondary }),
-  });
+export async function getPlatformsStatus() {
+  return api.get<{ platforms: PlatformStatus[] }>('/platforms/status')
 }
 
-export function setWallets(wallets: Record<string, string>) {
-  return fetchJson<any>('/identity-center/wallets', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(wallets),
-  });
-}
+// ── Bank Account ──
 
-export function setNeverSubmit(enabled: boolean) {
-  return fetchJson<any>('/identity-center/never-submit', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ enabled }),
-  });
+export interface BankAccount {
+  connected: boolean
+  bank_name?: string
+  last_four?: string
+  currency?: string
+  withdrawable?: number
+  pending?: number
 }
 
-
-// ─── Execution Layer ─────────────────────────────────────────────────
-
-export function getExecutionTrackerStats() {
-  return fetchJson<import('../types').ExecutionStats>('/execution/tracker');
+export async function getBankAccount() {
+  return api.get<BankAccount>('/economic/bank-account')
 }
 
-export function getExecutionScorecard() {
-  return fetchJson<import('../types').ScorecardData>('/execution/scorecard');
-}
+// ── Orion Context ──
 
-export function getExecutionOutcomes(limit?: number) {
-  const p = limit ? `?limit=${limit}` : '';
-  return fetchJson<{ recent: import('../types').ExecutionRecord[]; summary: import('../types').OutcomeSummary }>(`/execution/outcomes${p}`);
+export async function getOrionContext(refresh = false) {
+  return api.get<OrionContext>('/orion/context', { refresh: refresh || undefined })
 }
 
-export function getExecutionExplanations(limit?: number) {
-  const p = limit ? `?limit=${limit}` : '';
-  return fetchJson<{ explanations: import('../types').ExplanationData[]; count: number }>(`/execution/explain${p}`);
-}
+// ── Targets ──
 
-export function getExecutionTraces(limit?: number) {
-  const p = limit ? `?limit=${limit}` : '';
-  return fetchJson<{ traces: import('../types').DecisionTraceData[]; count: number }>(`/execution/traces${p}`);
+export interface TargetItem {
+  id: number
+  name: string
+  domain: string
+  endpoint_count: number
+  finding_count: number
+  confirmed_findings: number
+  estimated_payout: number
+  roi: number
+  risk_score: number
+  opportunity_score: number
+  competition_score: number
+  freshness_score: number
+  created_at: string | null
 }
 
-export function getExecutionDecisions(limit?: number) {
-  const p = limit ? `?limit=${limit}` : '';
-  return fetchJson<{ decisions: import('../types').DecisionMemoryEntry[]; count: number }>(`/execution/decisions${p}`);
+export async function getTargets(params?: {
+  skip?: number; limit?: number; sort_by?: string; sort_order?: string; search?: string
+}) {
+  return api.get<{ items: TargetItem[]; total: number }>('/targets', params as any)
 }
 
-export function getExecutionInsights(limit?: number) {
-  const p = limit ? `?limit=${limit}` : '';
-  return fetchJson<{ insights: import('../types').InsightArchiveEntry[]; count: number; by_type: Record<string, number>; by_severity: Record<string, number> }>(`/execution/insights${p}`);
+export async function getTarget(targetId: number) {
+  return api.get<any>(`/targets/${targetId}`)
 }
 
-export function listActions() {
-  return fetchJson<{ actions: import('../types').ActionDTO[]; count: number }>('/execution/actions');
-}
+// ── Findings ──
 
-export function getActionHistory(limit?: number) {
-  const p = limit ? `?limit=${limit}` : '';
-  return fetchJson<{ history: import('../types').ExecutionRecord[] }>(`/execution/actions/history${p}`);
+export interface FindingItem {
+  id: number
+  target_id: number
+  endpoint_id: number | null
+  title: string
+  severity: string
+  description: string | null
+  payout: number
+  target_name: string
+  endpoint_path: string
+  created_at: string | null
 }
 
-export function getActionStats() {
-  return fetchJson<import('../types').ExecutionStats>('/execution/actions/stats');
+export async function getFindings(params?: {
+  target_id?: number; endpoint_id?: number; skip?: number; limit?: number
+  sort_by?: string; sort_order?: string; search?: string
+}) {
+  return api.get<{ items: FindingItem[]; total: number }>('/findings', params as any)
 }
 
-export interface DailyBriefing {
-  opportunities: Array<{ id: number; name: string; category: string; score: number; estimated_payout: number; priority: string }>;
-  critical_risk: { id: number; title: string; severity: string; description: string } | null;
-  quick_win: { id: number; title: string; category: string; estimated_payout: number; confidence: number } | null;
-  recommended_action: { action: string; label: string; reason: string; confidence: number; payload: { route?: string } } | null;
-  system_health: { status: string; services_healthy: number; services_total: number };
-  assistant_insight: { focus: string; reason: string; system_state: string };
-}
+// ── Pipeline ──
 
-export function getDailyBriefing(): Promise<{ briefing: DailyBriefing; cached: boolean }> {
-  return fetchJson<any>('/daily/briefing').then(r => {
-    const data = 'data' in r ? (r as any).data : r;
-    return { briefing: data.briefing, cached: data.cached };
-  });
+export interface PipelineResponse {
+  detected: FindingItem[]
+  validated: FindingItem[]
+  confirmed: FindingItem[]
+  reported: FindingItem[]
 }
 
-export function getDailyMinimal() {
-  return fetchJson<any>('/daily/minimal').then(r => {
-    const data = 'data' in r ? (r as any).data : r;
-    return data;
-  });
+export async function getPipeline() {
+  return api.get<PipelineResponse>('/pipeline')
 }
 
 // ── Reports ──
 
-export function getReportsList(params?: {
-  limit?: number;
-  offset?: number;
-  status?: string;
-  search?: string;
-  sort_by?: string;
-  sort_order?: string;
-  date_from?: string;
-  date_to?: string;
+export interface ReportItem {
+  id: number
+  program: string
+  target: string
+  vulnerability: string
+  severity: string
+  status: string
+  estimated_reward: number
+  confirmed_reward: number
+  currency: string
+  evidence_count: number
+  summary: string
+  created_at: string | null
+  updated_at: string | null
+}
+
+export async function getReports(params?: {
+  limit?: number; offset?: number; status?: string; search?: string
+  sort_by?: string; sort_order?: string
 }) {
-  const p = new URLSearchParams();
-  if (params) {
-    if (params.limit) p.set('limit', String(params.limit));
-    if (params.offset) p.set('offset', String(params.offset));
-    if (params.status) p.set('status', params.status);
-    if (params.search) p.set('search', params.search);
-    if (params.sort_by) p.set('sort_by', params.sort_by);
-    if (params.sort_order) p.set('sort_order', params.sort_order);
-    if (params.date_from) p.set('date_from', params.date_from);
-    if (params.date_to) p.set('date_to', params.date_to);
+  return api.get<{ items: ReportItem[]; total: number }>('/reports', params as any)
+}
+
+export async function getReportStats() {
+  return api.get<{ total: number; status_counts: Record<string, number>; paid_count: number; total_rewards: number; estimated_rewards: number }>('/reports/stats')
+}
+
+// ── Attack / Hot Paths ──
+
+export interface HotPathItem {
+  path: string
+  method: string
+  target_id: number | null
+  risk_score: number
+  vector: string
+  ownership_risk: boolean
+  reason: string
+  suggestions: string[]
+}
+
+export interface AttackDecisionResponse {
+  summary: string
+  high_value_targets: HotPathItem[]
+  attack_vectors: Array<{ vector: string; endpoints: string[]; count: number }>
+  ownership_risks: HotPathItem[]
+  manual_test_suggestions: string[]
+}
+
+export async function getAttackDecision(params?: { target_id?: number; limit?: number }) {
+  return api.get<AttackDecisionResponse>('/attack/decision', params as any)
+}
+
+// ── Verdicts ──
+
+export interface VerdictItem {
+  id: number
+  hot_path_id: string | null
+  status: string
+  confidence: number
+  reproducibility_score: number
+  reason: string | null
+  created_at: string | null
+}
+
+export async function getVerdicts(params?: { status?: string; limit?: number; target_id?: number; confidence_min?: number }) {
+  return api.get<VerdictItem[]>('/verdicts', params as any)
+}
+
+// ── System ──
+
+export async function getSystemHealth() {
+  return api.get<any>('/system/health')
+}
+
+export async function getOverview() {
+  return api.get<any>('/overview')
+}
+
+// ── Findings Actions ──
+
+export async function updateFindingStatus(id: number, status: string) {
+  return api.put<any>(`/findings/${id}/status`, { status })
+}
+
+export async function regenerateNarrative(id: number) {
+  return api.post<{ narrative: string }>(`/findings/${id}/regen-narrative`)
+}
+
+// ── Report Submission ──
+
+export async function submitReport(reportId: number, platform: string) {
+  return api.post<{ success: boolean; external_id?: string; url?: string }>(
+    `/reports/${reportId}/submit`, { platform }
+  )
+}
+
+export async function getRewardLearning() {
+  return api.get<any>('/reports/reward-learning')
+}
+
+// ── Evidence ──
+
+export async function uploadEvidence(findingId: number, file: File) {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('finding_id', String(findingId))
+  const token = getToken()
+  const res = await fetch(`/api/evidence/upload`, {
+    method: 'POST',
+    headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+    body: form,
+  })
+  if (!res.ok) throw new ApiError(res.status, 'Error al subir evidencia')
+  return res.json()
+}
+
+// ── Scans ──
+
+export async function triggerScan(targetId: number, mode: string = 'quick') {
+  return api.post<{ scan_id: number; status: string }>(`/targets/${targetId}/scan`, { mode })
+}
+
+// ── Assistant / Copilot ──
+
+export async function getAssistantChat(message: string, history?: { role: string; content: string }[]) {
+  return api.post<{ response: string; engine: string }>('/assistant/orion-chat', { message, history })
+}
+
+// ── ZAP Integration ──
+
+export interface ZapAlertItem {
+  alert: string
+  risk: string
+  risk_score: number
+  confidence: string
+  url: string
+  param: string
+  description: string
+  solution: string
+  cwe_id: string
+  plugin_id: string
+  evidence: string
+  is_passive: boolean
+}
+
+export interface ZapHypothesisItem {
+  id: string
+  vulnerability_type: string
+  target_id: number
+  target_name: string
+  endpoint: Record<string, any>
+  likelihood: number
+  impact: number
+  confidence: number
+  priority_score: number
+  evidence: string[]
+  reasoning: string
+  suggested_actions: string[]
+  source: string
+  vector: string
+  what_is_this: string
+  why_suspected: string
+  real_world_impact: string
+  how_to_verify: string[]
+  estimated_difficulty: string
+  estimated_time_minutes: number
+  estimated_reward_range: string
+}
+
+export async function zapHealth() {
+  return api.get<{ running: boolean; version?: string; error?: string }>('/zap/health')
+}
+
+export async function zapSpider(targetUrl: string, maxChildren = 10) {
+  return api.post<{ status: string; urls_found: string[]; url_count: number; scan_id: string }>(
+    '/zap/spider', { target_url: targetUrl, max_children: maxChildren }
+  )
+}
+
+export async function zapPassiveScan(targetUrl: string) {
+  return api.post<{ status: string; target_url: string; alerts: ZapAlertItem[]; alert_count: number }>(
+    '/zap/passive-scan', { target_url: targetUrl }
+  )
+}
+
+export async function zapGetAlerts(targetUrl: string, riskLevel?: string) {
+  const params = riskLevel ? `?risk_level=${riskLevel}` : ''
+  return api.post<{ target_url: string; alerts: ZapAlertItem[]; alert_count: number }>(
+    `/zap/alerts${params}`, { target_url: targetUrl }
+  )
+}
+
+export async function zapGetTechnologies(targetUrl: string) {
+  return api.post<{ target_url: string; technologies: string[] }>(
+    '/zap/technologies', { target_url: targetUrl }
+  )
+}
+
+export async function zapGenerateHypotheses(targetId: number, targetUrl: string) {
+  return api.post<{ status: string; target_url: string; hypotheses: ZapHypothesisItem[]; total: number }>(
+    `/zap/hypotheses/${targetId}`, { target_url: targetUrl }
+  )
+}
+
+// ── Verification Guide ──
+
+export interface VerificationStepItem {
+  id: string
+  label: string
+  description: string
+  status: 'pending' | 'in_progress' | 'completed' | 'failed'
+  type: 'check' | 'command' | 'screenshot' | 'note'
+}
+
+export async function saveVerificationResult(
+  hypothesisId: string,
+  result: 'confirmed' | 'rejected' | 'inconclusive',
+  notes: string,
+  stepStatuses: Record<string, string>,
+) {
+  return api.post<{ success: boolean; message: string }>('/validation/record', {
+    hypothesis_id: hypothesisId,
+    result,
+    notes,
+    step_statuses: stepStatuses,
+  })
+}
+
+export async function assistantStreamChat(
+  message: string,
+  history: { role: string; content: string }[],
+  onToken: (token: string) => void,
+  context?: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  const token = getToken()
+  const res = await fetch('/api/assistant/chat/stream', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ message, history, context }),
+    signal,
+  })
+  if (!res.ok) throw new ApiError(res.status, 'Error al conectar con el asistente')
+  const reader = res.body?.getReader()
+  if (!reader) throw new Error('No se pudo leer el stream')
+  const decoder = new TextDecoder()
+  let buffer = ''
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split('\n')
+    buffer = lines.pop() || ''
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const data = line.slice(6).trim()
+        if (data === '[DONE]') return
+        try {
+          const parsed = JSON.parse(data)
+          if (parsed.token) onToken(parsed.token)
+        } catch { /* ignore partial */ }
+      }
+    }
   }
-  const qs = p.toString();
-  return fetchJson<{ items: import('../types').ReportItem[]; total: number }>(`/reports${qs ? '?' + qs : ''}`);
-}
-
-export function getReportById(id: number) {
-  return fetchJson<import('../types').ReportFull>(`/reports/${id}`);
-}
-
-export function updateReport(id: number, data: Partial<import('../types').ReportFull>) {
-  return fetchJson<import('../types').ReportFull>(`/reports/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-}
-
-export function createReport(data: { finding_ids: number[]; program?: string; target?: string; vulnerability?: string; severity?: string; notes?: string }) {
-  return fetchJson<import('../types').ReportFull>('/reports', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-}
-
-export function getReportStats() {
-  return fetchJson<import('../types').ReportStats>('/reports/stats');
-}
-
-// ── Investigations ──
-
-export function getInvestigations(targetId?: number, status?: string, limit = 20, offset = 0) {
-  const p = new URLSearchParams();
-  if (targetId) p.set('target_id', String(targetId));
-  if (status) p.set('status', status);
-  p.set('limit', String(limit));
-  p.set('offset', String(offset));
-  return fetchJson<{ items: import('../types').Investigation[]; total: number }>(`/investigations?${p}`);
-}
-
-export function getInvestigation(id: number) {
-  return fetchJson<import('../types').Investigation>(`/investigations/${id}`);
-}
-
-export function getInvestigationDashboard(id: number) {
-  return fetchJson<import('../types').InvestigationDashboard>(`/investigations/${id}/dashboard`);
-}
-
-export function createInvestigation(payload: import('../types').InvestigationCreatePayload) {
-  return fetchJson<import('../types').Investigation>('/investigations', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-}
-
-export function updateInvestigation(id: number, payload: import('../types').InvestigationUpdatePayload) {
-  return fetchJson<import('../types').Investigation>(`/investigations/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-}
-
-export function deleteInvestigation(id: number) {
-  return fetchJson<{ deleted: boolean }>(`/investigations/${id}`, { method: 'DELETE' });
-}
-
-// ── Validation ─────────────────────────────────────────────────────
-
-export interface ValidateEndpointPayload {
-  hot_path_id: string;
-  endpoint_id: number;
-  target_id: number;
-  url: string;
-  method: string;
-  headers?: Record<string, string>;
-  params?: Record<string, unknown>;
-  body?: string;
-  identity_baseline_id?: number;
-  identity_probe_id?: number;
-  mutations?: Record<string, unknown>;
-  min_attempts?: number;
-}
-
-export function validateEndpoint(payload: ValidateEndpointPayload) {
-  return fetchJson<import('../types').ValidationResult>('/validation/validate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-}
-
-export interface IDORScanPayload {
-  target_id: number;
-  endpoint_id: number;
-  url: string;
-  method: string;
-  headers?: Record<string, string>;
-  params?: Record<string, string>;
-  body?: string;
-  identity_baseline_id: number;
-  identity_probe_id?: number;
-}
-
-export function scanIDOR(payload: IDORScanPayload) {
-  return fetchJson<import('../types').IDORScanResponse>('/validation/idor', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-}
-
-// ── Personal Learning Engine ────────────────────────────────────────
-
-export function getLearningProfile() {
-  return fetchJson<any>('/learning/profile');
-}
-
-export function resetLearningProfile() {
-  return fetchJson<{ ok: boolean }>('/learning/profile/reset', { method: 'POST' });
-}
-
-export function updateLearningPreferences(body: { adaptive_mode?: boolean }) {
-  return fetchJson<{ ok: boolean }>('/learning/preferences', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-}
-
-export function trackLearningEvent(event_type: string, data: Record<string, any> = {}) {
-  return fetchJson<{ ok: boolean }>('/learning/events', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ event_type, data }),
-  });
-}
-
-export function getLearningEvents(event_type?: string, limit = 50) {
-  const params = new URLSearchParams();
-  if (event_type) params.set('event_type', event_type);
-  params.set('limit', String(limit));
-  return fetchJson<any[]>(`/learning/events?${params}`);
-}
-
-export function prioritizeTargets(targets: any[]) {
-  return fetchJson<any[]>('/learning/prioritize/targets', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ targets }),
-  });
-}
-
-export function prioritizeFindings(findings: any[]) {
-  return fetchJson<any[]>('/learning/prioritize/findings', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ findings }),
-  });
-}
-
-export function getDailyRecommendations() {
-  return fetchJson<any[]>('/learning/recommendations/daily');
-}
-
-export function getMemoryContext(target: any) {
-  return fetchJson<{ context: string; tip: string | null }>('/learning/memory/context', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ target }),
-  });
-}
-
-export function exportLearningProfile(fmt: 'json' | 'markdown' = 'json') {
-  return fetchJson<any>(`/learning/export?fmt=${fmt}`);
-}
-
-// ── Program Discovery ────────────────────────────────────────────────
-
-export function getPrograms(filters?: PaginationFilters & { technology?: string }) {
-  const p = new URLSearchParams();
-  if (filters?.skip !== undefined) p.set('skip', String(filters.skip));
-  if (filters?.limit !== undefined) p.set('limit', String(filters.limit));
-  if (filters?.sort_by) p.set('sort_by', filters.sort_by);
-  if (filters?.sort_order) p.set('sort_order', filters.sort_order);
-  if (filters?.search) p.set('search', filters.search);
-  if (filters?.technology) p.set('technology', filters.technology);
-  const q = p.toString() ? `?${p}` : '';
-  return fetchJson<import('../types').PaginatedResult<import('../types').ProgramItem>>(`/discovery/programs${q}`);
-}
-
-export function getProgram(id: number) {
-  return fetchJson<import('../types').ProgramItem>(`/discovery/programs/${id}`);
-}
-
-export function getTechnologyDistribution() {
-  return fetchJson<import('../types').TechnologyDistribution[]>('/discovery/technologies');
-}
-
-export function fetchPublicPrograms(platforms?: string[]) {
-  return fetchJson<import('../types').FetchResult[]>('/discovery/fetch', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ platforms }),
-  });
-}
-
-// ── Runtime Settings (Mode + Platforms) ───────────────────────────
-
-export interface RastroSettings {
-  mode: 'manual' | 'automatic';
-  platforms: Record<string, PlatformConfig>;
-}
-
-export interface PlatformConfig {
-  enabled: boolean;
-  action: 'prepare_only' | 'prepare_and_open' | 'prepare_and_fill' | 'auto_submit';
-  username: string;
-  api_key: string;
-}
-
-export function getRuntimeSettings() {
-  return fetchJson<RastroSettings>('/settings/runtime');
-}
-
-export function getMode() {
-  return fetchJson<{ mode: string }>('/settings/runtime/mode');
-}
-
-export function setMode(mode: 'manual' | 'automatic') {
-  return fetchJson<{ mode: string; status: string }>('/settings/runtime/mode', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mode }),
-  });
-}
-
-export function getPlatformConfigs() {
-  return fetchJson<Record<string, PlatformConfig>>('/settings/runtime/platforms');
-}
-
-export function getPlatformConfig(platformId: string) {
-  return fetchJson<PlatformConfig>(`/settings/runtime/platforms/${platformId}`);
-}
-
-export function updatePlatformConfig(platformId: string, config: Partial<PlatformConfig>) {
-  return fetchJson<PlatformConfig & { status: string }>(`/settings/runtime/platforms/${platformId}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(config),
-  });
-}
-
-// ── Report Export & Versions ──────────────────────────────────────
-
-export function exportReport(reportId: number, format: 'markdown' | 'html' | 'pdf' | 'txt') {
-  const token = sessionStorage.getItem('rastro-token');
-  return fetch(`${BASE}/reports/${reportId}/export?format=${format}`, {
-    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-  });
-}
-
-export function getReportVersions(reportId: number) {
-  return fetchJson<{ versions: any[]; total: number }>(`/reports/${reportId}/versions`);
-}
-
-export function createReportVersion(reportId: number, summary?: string) {
-  return fetchJson<any>(`/reports/${reportId}/versions`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ summary: summary || '' }),
-  });
-}
-
-// ── AI Settings ─────────────────────────────────────────────────────
-
-export interface AIProviderInfo {
-  id: string;
-  label: string;
-  models: string[];
-  available: boolean | null;
-  active: boolean;
-}
-
-export interface AIConfig {
-  provider_type: string;
-  host: string;
-  model: string;
-  api_base: string;
-  active_provider: string;
-  available: boolean;
-}
-
-export function getAIProviders() {
-  return fetchJson<{ providers: AIProviderInfo[] }>('/settings/ai/providers');
-}
-
-export function getAIConfig() {
-  return fetchJson<AIConfig>('/settings/ai/config');
-}
-
-export function updateAIConfig(body: {
-  provider_type: string;
-  host?: string;
-  model?: string;
-  api_key?: string;
-  api_base?: string;
-}) {
-  return fetchJson<{ status: string; active_provider: string; available: boolean }>(
-    '/settings/ai/config',
-    { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) },
-  );
 }

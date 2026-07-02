@@ -159,7 +159,7 @@ class Watchdog:
 
     def _check_eventbus(self) -> bool:
         try:
-            from core_engines.agents.bus import get_agent_bus
+            from cores.agents.bus import get_agent_bus
             bus = get_agent_bus()
             alive = bus is not None
             if not alive:
@@ -202,7 +202,7 @@ class Watchdog:
 
         # Level 1: Try the dedicated recovery engine (if available)
         try:
-            from core_engines.recovery.engine import get_recovery_engine
+            from cores.recovery.engine import get_recovery_engine
             engine = get_recovery_engine()
             error_map = {
                 "api": "API server unresponsive",
@@ -216,7 +216,7 @@ class Watchdog:
                 "scheduler": "scheduler_dead",
                 "eventbus": "eventbus_stuck",
             }
-            from core_engines.recovery.healing_rules import FailureType
+            from cores.recovery.healing_rules import FailureType
             ft = FailureType(failure_type_map.get(service_name, "unknown"))
             initiated = engine.report_failure(
                 component=service_name,
@@ -253,7 +253,7 @@ class Watchdog:
         # Level 3: For eventbus, try reinitializing the bus
         if service_name == "eventbus":
             try:
-                from core_engines.agents.bus import get_agent_bus
+                from cores.agents.bus import get_agent_bus
                 bus = get_agent_bus()
                 if bus is not None:
                     logger.info("[WATCHDOG] Reinitializing EventBus for %s", service_name)

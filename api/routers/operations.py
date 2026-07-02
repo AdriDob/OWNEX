@@ -39,7 +39,7 @@ def _build_morning_brief() -> dict[str, Any]:
         top_targets = session.query(models.Target).order_by(models.Target.created_at.desc()).limit(5).all()
         top_roi_target = None
         if top_targets:
-            from core_engines.engine.unified_scoring import score_target as unified_score_target
+            from cores.engine.unified_scoring import score_target as unified_score_target
             scored = []
             for t in top_targets:
                 ep_count = session.query(models.Endpoint).filter(models.Endpoint.target_id == t.id).count()
@@ -55,8 +55,8 @@ def _build_morning_brief() -> dict[str, Any]:
         pending_reports = session.query(models.Finding).count()
         quick_wins_count = 0
         try:
-            from core_engines.engine.snapshot import PipelineSnapshot
-            from core_engines.quick_wins.quick_wins_engine import QuickWinsEngine
+            from cores.engine.snapshot import PipelineSnapshot
+            from cores.quick_wins.quick_wins_engine import QuickWinsEngine
             engine = QuickWinsEngine()
             report = engine.evaluate(PipelineSnapshot(status="completed", target=None, endpoints=[], hot_paths=[], verdicts=[], reports=[], coverage_score=0.0, timestamp=now.isoformat()))
             quick_wins_count = report.total_opportunities
@@ -404,7 +404,7 @@ def operational_metrics():
         avg_time = 0.0
         avg_report_time = 0.0
         try:
-            from core_engines.confidence import audit_verdicts
+            from cores.confidence import audit_verdicts
             conf_report = audit_verdicts(limit=200)
 
             confidence_dist = {
@@ -481,7 +481,7 @@ def system_self_test():
         results.append({"component": "reports", "status": "error", "detail": str(e)})
 
     try:
-        from core_engines.ai.assistant import get_assistant
+        from cores.ai.assistant import get_assistant
         get_assistant()
         results.append({"component": "ai_assistant", "status": "ok", "detail": "AI Assistant loaded"})
     except Exception as e:
@@ -507,7 +507,7 @@ def system_self_test():
         results.append({"component": "screenshot", "status": "error", "detail": str(e)})
 
     try:
-        from core_engines.intelligence.adaptive_memory import get_memory
+        from cores.intelligence.adaptive_memory import get_memory
         get_memory()
         results.append({"component": "adaptive_intelligence", "status": "ok", "detail": "Adaptive intelligence loaded"})
     except Exception as e:
@@ -515,7 +515,7 @@ def system_self_test():
         results.append({"component": "adaptive_intelligence", "status": "error", "detail": str(e)})
 
     try:
-        from core_engines.timeline import build_timeline
+        from cores.timeline import build_timeline
         tl = build_timeline(limit=1)
         results.append({"component": "timeline", "status": "ok", "detail": f"Timeline built ({tl.total_events} events)"})
     except Exception as e:

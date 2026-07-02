@@ -160,6 +160,15 @@ class HypothesisOut(BaseModel):
     past_pattern_id: str | None = None
     score: HypothesisScoreOut = Field(default_factory=HypothesisScoreOut)
 
+    # ── Didactic fields for guided validation ──────────────────────────
+    what_is_this: str = ""
+    why_suspected: str = ""
+    real_world_impact: str = ""
+    how_to_verify: list[str] = []
+    estimated_difficulty: str = "media"
+    estimated_time_minutes: int = 15
+    estimated_reward_range: str = ""
+
 
 class HypothesisEngineOutputOut(BaseModel):
     attack_queue: list[HypothesisOut] = []

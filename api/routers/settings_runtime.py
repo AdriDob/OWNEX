@@ -4,7 +4,7 @@ from typing import Any
 
 from fastapi import APIRouter
 
-from core_engines.settings.service import (
+from cores.settings.service import (
     RastroMode,
     get_all_settings,
     get_mode,
@@ -39,7 +39,7 @@ def set_mode_setting(body: dict[str, str]) -> dict[str, str]:
 
 @router.get("/platforms")
 def get_platform_settings() -> dict[str, dict[str, Any]]:
-    from core_engines.settings.service import get_all_platform_configs
+    from cores.settings.service import get_all_platform_configs
     return get_all_platform_configs()
 
 

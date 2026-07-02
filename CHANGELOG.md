@@ -4,6 +4,7 @@
 
 ### 🚀 Release
 - ORION v1.6.0 Stable — primer release instalable profesional
+- Expansión del pipeline de recon con Katana, Gau, LinkFinder, ffuf, Dalfox y sqlmap antes de Nuclei
 - Build pipeline reproducible con un solo comando
 - NSIS installer con instalación en Program Files, accesos directos, Add/Remove Programs
 - PyInstaller single-directory executable

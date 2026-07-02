@@ -59,10 +59,10 @@ def check_ollama():
         if r.returncode == 0:
             models = r.stdout.lower()
             log("Ollama detected")
-            if "qwen2.5-coder" in models or "qwen2.5" in models:
-                log("qwen2.5-coder model available")
+            if "qwen3" in models:
+                log("qwen3 model available")
             else:
-                warn("qwen2.5-coder model not found — AI features disabled")
+                warn("qwen3 model not found — AI features may be limited")
         else:
             warn("Ollama not running — AI features disabled")
     except FileNotFoundError:

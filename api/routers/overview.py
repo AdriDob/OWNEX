@@ -9,10 +9,10 @@ from typing import Any
 from fastapi import APIRouter, Query
 from sqlalchemy import func as sa_func
 
-from core_engines.engine.unified_scoring import score as unified_score
-from core_engines.engine.unified_scoring import score_target as unified_score_target
-from core_engines.gateway.schemas import safe_response
-from core_engines.targets.models import TargetIntel
+from cores.engine.unified_scoring import score as unified_score
+from cores.engine.unified_scoring import score_target as unified_score_target
+from cores.gateway.schemas import safe_response
+from cores.targets.models import TargetIntel
 from database import db, models
 
 logger = logging.getLogger(__name__)
@@ -305,7 +305,7 @@ def get_system_health():
             },
         }
 
-        from core_engines.system_health import collect_health
+        from cores.system_health import collect_health
         try:
             detailed = collect_health()
             result["detailed"] = detailed.to_dict()

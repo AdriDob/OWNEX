@@ -10,14 +10,14 @@ from typing import Any
 
 from fastapi import APIRouter
 
-from core_engines.contracts.normalizers import (
+from cores.contracts.normalizers import (
     normalize_endpoint,
     normalize_evidence,
     normalize_finding,
     normalize_opportunity,
     normalize_target,
 )
-from core_engines.contracts.validator import (
+from cores.contracts.validator import (
     build_debug_report,
     validate_paginated_response,
 )

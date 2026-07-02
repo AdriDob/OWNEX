@@ -4,7 +4,7 @@ import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from core_engines.ws.manager import get_ws_manager
+from cores.ws.manager import get_ws_manager
 
 logger = logging.getLogger("rastro.api.ws")
 
@@ -19,17 +19,10 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
         await websocket.close(code=4001, reason="Missing token")
         return
 
-    from core_engines.auth.auth import verify_token
+    from cores.auth.auth import verify_token
     payload = verify_token(token)
     if not payload:
         await websocket.close(code=4001, reason="Invalid token")
-        return
-
-    from core_engines.license import is_license_valid
-    valid_license, _ = is_license_valid()
-    if not valid_license:
-        logger.warning("WS rejected: license required (token valid but no active license)")
-        await websocket.close(code=4001, reason="License required")
         return
 
     user_id = payload.get("sub") or payload.get("user_id")

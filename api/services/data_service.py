@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from core_engines.engine.unified_scoring import score as unified_score
-from core_engines.engine.unified_scoring import score_target as unified_score_target
-from core_engines.targets.models import TargetIntel
+from cores.engine.unified_scoring import score as unified_score
+from cores.engine.unified_scoring import score_target as unified_score_target
+from cores.targets.models import TargetIntel
 from database import db, models
 
 SEVERITY_PAYOUT = {
@@ -429,7 +429,6 @@ def get_pipeline_stages() -> dict[str, list[dict[str, Any]]]:
     session = _get_session()
     try:
         stages = {"detected": [], "validated": [], "confirmed": [], "reported": []}
-        endpoints = session.query(models.Endpoint).all()
         findings = session.query(models.Finding).all()
         verdicts = session.query(models.Verdict).all()
 
@@ -444,7 +443,12 @@ def get_pipeline_stages() -> dict[str, list[dict[str, Any]]]:
         for intel in session.query(TargetIntel).filter(TargetIntel.id.in_(target_ids)).all():
             intel_map[intel.id] = intel
 
-        endpoint_map = {e.id: e for e in endpoints}
+        # Only load endpoints referenced by findings
+        endpoint_ids = list({f.endpoint_id for f in findings if f.endpoint_id})
+        endpoint_map = {}
+        if endpoint_ids:
+            for e in session.query(models.Endpoint).filter(models.Endpoint.id.in_(endpoint_ids)).all():
+                endpoint_map[e.id] = e
         endpoint_verdicts = {}
         for v in verdicts:
             if v.endpoint_id:

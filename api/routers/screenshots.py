@@ -6,13 +6,13 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
-from core_engines.engine.snapshot import (
+from cores.engine.snapshot import (
     EndpointSnapshot,
     PipelineSnapshot,
     TargetSnapshot,
 )
-from core_engines.engine.unified_scoring import score as unified_score
-from core_engines.screenshot.engine import ScreenshotEngine
+from cores.engine.unified_scoring import score as unified_score
+from cores.screenshot.engine import ScreenshotEngine
 from database import db, models
 
 router = APIRouter(prefix="/api/screenshots", tags=["screenshots"])

@@ -15,7 +15,7 @@ def client():
     from fastapi.testclient import TestClient
 
     from api.main import app
-    from core_engines.license.validator import generate_license
+    from cores.license.validator import generate_license
     c = TestClient(app)
     lic = generate_license(expiry_days=365)
     c.post("/api/license/activate", json={"key": lic})

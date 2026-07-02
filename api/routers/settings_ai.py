@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from core_engines.ai.provider import PROVIDER_CATALOG, get_registry
+from cores.ai.provider import PROVIDER_CATALOG, get_registry
 
 router = APIRouter(prefix="/api/settings/ai", tags=["settings-ai"])
 
@@ -44,7 +44,7 @@ def update_config(body: AIConfigUpdate):
     updates = {"provider_type": body.provider_type}
     if body.provider_type == "ollama":
         updates["host"] = body.host or "http://localhost:11434"
-        updates["model"] = body.model or "qwen2.5-coder:7b"
+        updates["model"] = body.model or "qwen3:14b"
     elif body.provider_type == "openai":
         updates["api_base"] = body.api_base or "https://api.openai.com/v1"
         updates["llm_model"] = body.model or "gpt-4o-mini"

@@ -50,7 +50,7 @@ class Endpoint(Base):
 
     target_id = Column(
         Integer,
-        ForeignKey("targets.id"),
+        ForeignKey("targets.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -101,14 +101,14 @@ class Finding(Base):
 
     target_id = Column(
         Integer,
-        ForeignKey("targets.id"),
+        ForeignKey("targets.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
 
     endpoint_id = Column(
         Integer,
-        ForeignKey("endpoints.id"),
+        ForeignKey("endpoints.id", ondelete="SET NULL"),
         nullable=True,
     )
 
@@ -172,7 +172,7 @@ class Verdict(Base):
 
     endpoint_id = Column(
         Integer,
-        ForeignKey("endpoints.id"),
+        ForeignKey("endpoints.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
     )
@@ -218,14 +218,14 @@ class Evidence(Base):
 
     verdict_id = Column(
         Integer,
-        ForeignKey("verdicts.id"),
+        ForeignKey("verdicts.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
 
     endpoint_id = Column(
         Integer,
-        ForeignKey("endpoints.id"),
+        ForeignKey("endpoints.id", ondelete="SET NULL"),
         nullable=True,
     )
 
@@ -269,7 +269,7 @@ class ValidationResult(Base):
 
     verdict_id = Column(
         Integer,
-        ForeignKey("verdicts.id"),
+        ForeignKey("verdicts.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -303,7 +303,7 @@ class ScanRun(Base):
 
     target_id = Column(
         Integer,
-        ForeignKey("targets.id"),
+        ForeignKey("targets.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -421,7 +421,7 @@ class DeliveryRecord(Base):
     __tablename__ = "delivery_records"
 
     id = Column(Integer, primary_key=True, index=True)
-    notification_id = Column(Integer, ForeignKey("notifications.id"), nullable=False, index=True)
+    notification_id = Column(Integer, ForeignKey("notifications.id", ondelete="CASCADE"), nullable=False, index=True)
     channel = Column(String, nullable=False)  # desktop, web, mobile, email, fcm
     status = Column(String, nullable=False, default="pending")  # pending, sent, failed
     error = Column(Text, nullable=True)
@@ -437,7 +437,7 @@ class QuickWin(Base):
 
     target_id = Column(
         Integer,
-        ForeignKey("targets.id"),
+        ForeignKey("targets.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -460,7 +460,7 @@ class TargetIdentity(Base):
 
     target_id = Column(
         Integer,
-        ForeignKey("targets.id"),
+        ForeignKey("targets.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -505,7 +505,7 @@ class TargetSession(Base):
 
     identity_id = Column(
         Integer,
-        ForeignKey("target_identities.id"),
+        ForeignKey("target_identities.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
         unique=True,
@@ -545,7 +545,7 @@ class Investigation(Base):
 
     target_id = Column(
         Integer,
-        ForeignKey("targets.id"),
+        ForeignKey("targets.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -583,27 +583,27 @@ class ValidationRun(Base):
 
     investigation_id = Column(
         Integer,
-        ForeignKey("investigations.id"),
+        ForeignKey("investigations.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
     )
 
     endpoint_id = Column(
         Integer,
-        ForeignKey("endpoints.id"),
+        ForeignKey("endpoints.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
 
     identity_baseline_id = Column(
         Integer,
-        ForeignKey("target_identities.id"),
+        ForeignKey("target_identities.id", ondelete="SET NULL"),
         nullable=True,
     )
 
     identity_probe_id = Column(
         Integer,
-        ForeignKey("target_identities.id"),
+        ForeignKey("target_identities.id", ondelete="SET NULL"),
         nullable=True,
     )
 
@@ -612,7 +612,7 @@ class ValidationRun(Base):
 
     verdict_id = Column(
         Integer,
-        ForeignKey("verdicts.id"),
+        ForeignKey("verdicts.id", ondelete="SET NULL"),
         nullable=True,
     )
 
@@ -632,7 +632,7 @@ class Report(Base):
 
     investigation_id = Column(
         Integer,
-        ForeignKey("investigations.id"),
+        ForeignKey("investigations.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
     )
@@ -678,7 +678,7 @@ class SubmissionRecord(Base):
     __tablename__ = "submission_records"
 
     id = Column(Integer, primary_key=True, index=True)
-    report_id = Column(Integer, ForeignKey("reports.id"), nullable=False, index=True)
+    report_id = Column(Integer, ForeignKey("reports.id", ondelete="CASCADE"), nullable=False, index=True)
     platform = Column(String, nullable=False, index=True)
     external_id = Column(String, nullable=True, index=True)
     status = Column(String, nullable=False, default="submitted", index=True)
@@ -692,7 +692,7 @@ class ReportVersion(Base):
     __tablename__ = "report_versions"
 
     id = Column(Integer, primary_key=True, index=True)
-    report_id = Column(Integer, ForeignKey("reports.id"), nullable=False, index=True)
+    report_id = Column(Integer, ForeignKey("reports.id", ondelete="CASCADE"), nullable=False, index=True)
     version = Column(Integer, nullable=False, default=1)
     content = Column(Text, nullable=True)
     summary = Column(String, nullable=True, default="")
@@ -707,7 +707,7 @@ class PipelineRun(Base):
 
     target_id = Column(
         Integer,
-        ForeignKey("targets.id"),
+        ForeignKey("targets.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )

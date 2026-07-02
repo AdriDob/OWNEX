@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+
+from cores.execution.request_mutator import RequestMutator
+
+logger = logging.getLogger("rastro.api.validation")
 
 router = APIRouter(prefix="/api/validation", tags=["validation"])
 
@@ -44,7 +49,7 @@ def _resolve_auth(
     Returns AuthContext-compatible dict or None.
     """
     if identity_id is not None:
-        from core_engines.target_auth.session_resolver import get_session_resolver
+        from cores.target_auth.session_resolver import get_session_resolver
         ctx = get_session_resolver().resolve(identity_id)
         if ctx:
             ctx["label"] = fallback_label
@@ -56,15 +61,12 @@ def _resolve_auth(
 
 @router.post("/validate")
 def validate_and_report(request: ValidateHotPathRequest):
-    import logging
-
-    from core_engines.pipeline.report_service import generate_and_save_report
-    from core_engines.validation.evidence_builder import EvidenceBuilder
-    from core_engines.validation.loop_engine import ValidationLoopEngine
-    from core_engines.validation.replayer import AuthContext, RequestSpec
-    from core_engines.validation.verdict_handler import VerdictHandler
+    from cores.pipeline.report_service import generate_and_save_report
+    from cores.validation.evidence_builder import EvidenceBuilder
+    from cores.validation.loop_engine import ValidationLoopEngine
+    from cores.validation.replayer import AuthContext, RequestSpec
+    from cores.validation.verdict_handler import VerdictHandler
     from database import db, models
-    logger = logging.getLogger("rastro.api.validation")
 
     session = db.SessionLocal()
     try:
@@ -76,8 +78,28 @@ def validate_and_report(request: ValidateHotPathRequest):
         if not endpoint:
             raise HTTPException(status_code=404, detail="Endpoint not found")
 
+        # Use LLM to plan contextual mutations when none provided
+        mutations = request.mutations or {}
+        if not mutations:
+            try:
+                mutator = RequestMutator()
+                attack_vector, llm_mutations = mutator.plan_mutations(
+                    url=request.url,
+                    method=request.method,
+                    params=request.params or {},
+                    headers=request.headers or {},
+                )
+                if llm_mutations:
+                    mutations = llm_mutations
+                    logger.info(
+                        "LLM mutation plan: %s -> %s",
+                        attack_vector, json.dumps(mutations)[:200],
+                    )
+            except Exception as e:
+                logger.warning("LLM mutation planning failed, using defaults: %s", e)
+
         validation_engine = ValidationLoopEngine()
-        RequestSpec(
+        request_spec = RequestSpec(
             url=request.url,
             method=request.method,
             headers=request.headers or {},
@@ -170,7 +192,7 @@ def validate_and_report(request: ValidateHotPathRequest):
 
         report_id = None
         if verdict.status == "confirmed" and verdict.confidence >= 0.6:
-            from core_engines.pipeline.stages import PipelineContext
+            from cores.pipeline.stages import PipelineContext
             ctx = PipelineContext(
                 hot_path_id=request.hot_path_id,
                 endpoint_id=request.endpoint_id,
@@ -222,11 +244,11 @@ def batch_validate(request: BatchValidateRequest):
     """
     import logging
 
-    from core_engines.engine.unified_scoring import score as unified_score
-    from core_engines.target_auth.session_resolver import get_session_resolver
-    from core_engines.validation.loop_engine import ValidationLoopEngine
-    from core_engines.validation.replayer import AuthContext
-    from core_engines.validation.verdict_handler import VerdictHandler
+    from cores.engine.unified_scoring import score as unified_score
+    from cores.target_auth.session_resolver import get_session_resolver
+    from cores.validation.loop_engine import ValidationLoopEngine
+    from cores.validation.replayer import AuthContext
+    from cores.validation.verdict_handler import VerdictHandler
     from database import db, models
     logger = logging.getLogger("rastro.api.validation.batch")
     session_db = db.SessionLocal()
@@ -310,3 +332,76 @@ def batch_validate(request: BatchValidateRequest):
         raise HTTPException(status_code=500, detail=f"Batch validation failed: {str(e)}") from e
     finally:
         session_db.close()
+
+
+class RecordVerificationRequest(BaseModel):
+    hypothesis_id: str
+    result: str  # confirmed | rejected | inconclusive
+    notes: str = ""
+    step_statuses: dict[str, str] = {}
+
+
+@router.post("/record")
+def record_verification(request: RecordVerificationRequest):
+    """Record the result of a manual verification session.
+
+    Stores the outcome so the learning loop can improve future
+    hypothesis scoring based on what was confirmed/rejected.
+    """
+    import logging
+
+    from cores.intelligence.learning_loop import FeedbackEvent, get_learning_loop
+    from cores.validation.llm_analyzer import FeedbackLearner
+    logger = logging.getLogger("rastro.api.validation.record")
+
+    valid_results = {"confirmed", "rejected", "inconclusive"}
+    if request.result not in valid_results:
+        raise HTTPException(status_code=400, detail=f"Invalid result: {request.result}. Must be one of {valid_results}")
+
+    try:
+        loop = get_learning_loop()
+        event = FeedbackEvent(
+            action_id=request.hypothesis_id,
+            action_type=f"verification_{request.result}",
+            outcome=request.result,
+            metadata={
+                "hypothesis_id": request.hypothesis_id,
+                "notes": request.notes,
+                "step_statuses": request.step_statuses,
+            },
+        )
+        loop.record_feedback(event)
+
+        # Run LLM feedback analysis periodically (every 10 events)
+        total_events = len(loop._feedback_history)
+        if total_events > 0 and total_events % 10 == 0:
+            try:
+                learner = FeedbackLearner()
+                recent = [
+                    {
+                        "hypothesis_id": e.action_id,
+                        "pipeline_verdict": e.action_type.replace("verification_", ""),
+                        "human_verdict": e.outcome,
+                        "notes": e.metadata.get("notes", ""),
+                    }
+                    for e in loop._feedback_history[-20:]
+                ]
+                insights = learner.analyze_verdict_patterns(recent)
+                if insights:
+                    for ins in insights:
+                        logger.info(
+                            "Feedback insight: %s (conf_adj=%.2f, sources=%d)",
+                            ins.pattern[:80], ins.confidence_adjustment, ins.source_count,
+                        )
+            except Exception as e:
+                logger.warning("Feedback analysis failed: %s", e)
+
+        logger.info("Verification recorded: hypothesis=%s result=%s", request.hypothesis_id, request.result)
+
+        return {
+            "success": True,
+            "message": f"Verificación registrada como '{request.result}'. El sistema usará este resultado para mejorar futuras hipótesis.",
+        }
+    except Exception as e:
+        logger.error(f"Failed to record verification: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to record verification: {str(e)}") from e

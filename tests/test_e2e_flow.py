@@ -17,7 +17,7 @@ from database.db import SessionLocal, init_db
 def client():
     init_db()
     from api.main import app
-    from core_engines.license.validator import generate_license
+    from cores.license.validator import generate_license
     c = TestClient(app)
     lic = generate_license(expiry_days=365)
     c.post("/api/license/activate", json={"key": lic})
@@ -167,6 +167,8 @@ class TestE2EFlow:
     def test_10_reports_list(self, client):
         """Verify reports are listed via API."""
         resp = client.get("/api/reports")
+        if resp.status_code != 200:
+            print(f"REPORTS LIST ERROR: {resp.status_code} {resp.text[:500]}")
         assert resp.status_code == 200
         data = resp.json()
         assert isinstance(data, dict) or isinstance(data, list)

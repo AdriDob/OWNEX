@@ -8,15 +8,15 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from core_engines.differential_intelligence import DifferentialIntelligenceEngine
-from core_engines.engine.snapshot import (
+from cores.differential_intelligence import DifferentialIntelligenceEngine
+from cores.engine.snapshot import (
     AttackSurfaceSnapshot,
     EndpointSnapshot,
     PipelineSnapshot,
     TargetSnapshot,
 )
-from core_engines.engine.unified_scoring import score as unified_score
-from core_engines.evidence.graph import EvidenceGraph
+from cores.engine.unified_scoring import score as unified_score
+from cores.evidence.graph import EvidenceGraph
 from database import db, models
 
 router = APIRouter(prefix="/api/differential-intelligence", tags=["differential_intelligence"])

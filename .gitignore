@@ -22,6 +22,9 @@ frontend/dist-ssr/
 node_modules/
 /package.json
 
+# Coverage
+.coverage
+
 # Build artifacts
 dist/
 build/
@@ -40,6 +43,12 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Archive / cleanup
+archive_cleanup/
 
 # Work docs / session artifacts
 OPENCODE_PLAN.md

@@ -8,7 +8,7 @@ from dataclasses import asdict
 
 from fastapi import APIRouter, HTTPException
 
-from core_engines.engine.snapshot import (
+from cores.engine.snapshot import (
     EndpointSnapshot,
     HotPathSnapshot,
     PipelineSnapshot,
@@ -16,9 +16,9 @@ from core_engines.engine.snapshot import (
     TargetSnapshot,
     VerdictSnapshot,
 )
-from core_engines.engine.unified_scoring import score as unified_score
-from core_engines.evidence.graph import EvidenceGraph
-from core_engines.quick_wins.quick_wins_engine import QuickWinsEngine
+from cores.engine.unified_scoring import score as unified_score
+from cores.evidence.graph import EvidenceGraph
+from cores.quick_wins.quick_wins_engine import QuickWinsEngine
 from database import db, models
 
 router = APIRouter(prefix="/api/quick-wins", tags=["quick_wins"])

@@ -35,10 +35,10 @@ lint: ## Run ruff linter
 	python -m ruff check .
 
 typecheck: ## Run mypy type checker
-	python -m mypy core_engines/ api/ database/ desktop/
+	python -m mypy cores/ api/ database/ desktop/
 
 test: ## Run test suite with coverage
-	python -m pytest tests/ -v --tb=short --cov=core_engines --cov-report=term-missing:skip-covered
+	python -m pytest tests/ -v --tb=short --cov=cores --cov-report=term-missing:skip-covered
 
 prebuild: ## Run pre-build validation
 	python scripts/prebuild.py

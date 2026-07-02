@@ -46,7 +46,7 @@ def main():
 
     # === Phase 2: Recon tools ===
     print("\n── Recon tools ──")
-    from core_engines.recon.tools import _resolve_tool
+    from cores.recon.tools import _resolve_tool
 
     for tool in ["subfinder", "katana", "httpx"]:
         resolved = _resolve_tool(tool)
@@ -129,7 +129,7 @@ def main():
     print("\n── Type checking (mypy) ──")
     try:
         result = subprocess.run(
-            [sys.executable, "-m", "mypy", "core_engines/", "api/", "database/", "desktop/"],
+            [sys.executable, "-m", "mypy", "cores/", "api/", "database/", "desktop/"],
             cwd=str(ROOT),
             capture_output=True, text=True, timeout=60,
         )
@@ -147,7 +147,7 @@ def main():
     print("\n── Test suite ──")
     try:
         result = subprocess.run(
-            [sys.executable, "-m", "pytest", "tests/", "--tb=short", "-q", "--cov=core_engines", "--cov-report=term-missing:skip-covered"],
+            [sys.executable, "-m", "pytest", "tests/", "--tb=short", "-q", "--cov=cores", "--cov-report=term-missing:skip-covered"],
             cwd=str(ROOT),
             capture_output=True, text=True, timeout=120,
         )

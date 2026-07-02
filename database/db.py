@@ -4,12 +4,12 @@ import re
 from pathlib import Path
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./database/orion.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./database/rastro.db")
 IS_SQLITE = DATABASE_URL.startswith("sqlite")
 
 _engine_args: dict = {}
@@ -19,6 +19,15 @@ if IS_SQLITE:
 engine = create_engine(DATABASE_URL, **_engine_args)
 
 if IS_SQLITE:
+    @event.listens_for(engine, "connect")
+    def _set_sqlite_pragma(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("PRAGMA synchronous=NORMAL")
+        cursor.execute("PRAGMA busy_timeout=5000")
+        cursor.close()
+
     with engine.connect() as conn:
         for pragma in ("PRAGMA journal_mode=WAL", "PRAGMA synchronous=NORMAL", "PRAGMA busy_timeout=5000"):
             with contextlib.suppress(Exception):
@@ -26,6 +35,9 @@ if IS_SQLITE:
         conn.commit()
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
+
+# Register knowledge models with SQLAlchemy metadata before init_db() runs.
+import cores.knowledge.store  # noqa: F401
 
 
 def _ensure_db_dir() -> None:
@@ -37,18 +49,45 @@ def _ensure_db_dir() -> None:
         db_path.parent.mkdir(parents=True, exist_ok=True)
 
 
+logger = __import__('logging').getLogger('rastro.db')
+
+
+def _get_existing_columns(session, table_name: str) -> set[str]:
+    """Get column names for a table using PRAGMA (SQLite) or information_schema."""
+    if IS_SQLITE:
+        rows = session.execute(text(f"PRAGMA table_info({table_name})")).fetchall()
+        return {row[1] for row in rows}  # row[1] = column name
+    return set()
+
+
+def _migrate_columns(session, table: str, columns: list[tuple[str, str]]) -> None:
+    """Add columns to a table only if they don't already exist."""
+    existing = _get_existing_columns(session, table)
+    if not existing:
+        logger.info("Table %s does not exist yet — skipping migration", table)
+        return
+    for col_name, col_type in columns:
+        if col_name in existing:
+            continue
+        try:
+            session.execute(text(f"ALTER TABLE {table} ADD COLUMN {col_name} {col_type};"))
+            logger.info("Migrated %s.%s", table, col_name)
+        except Exception as exc:
+            logger.warning("Migration failed (%s.%s): %s", table, col_name, exc)
+
+
 def init_db():
 
     _ensure_db_dir()
     Base.metadata.create_all(bind=engine)
 
-    # Auto-migration for targets_intel (SQLite only)
+    # Auto-migration for tables that may have been created before model updates
     if IS_SQLITE:
         session = None
         try:
-            from sqlalchemy import text
             session = SessionLocal()
-            columns_to_add = [
+
+            _migrate_columns(session, "targets_intel", [
                 ("freshness_score", "FLOAT DEFAULT 0.0"),
                 ("competition_score", "FLOAT DEFAULT 0.0"),
                 ("opportunity_score", "FLOAT DEFAULT 0.0"),
@@ -60,16 +99,9 @@ def init_db():
                 ("cms_detected", "VARCHAR"),
                 ("framework_detected", "VARCHAR"),
                 ("wordpress_plugins_detected", "VARCHAR"),
-            ]
-            for col_name, col_type in columns_to_add:
-                try:
-                    session.execute(text(f"ALTER TABLE targets_intel ADD COLUMN {col_name} {col_type};"))
-                except Exception as exc:
-                    logger = __import__('logging').getLogger('orion.db')
-                    logger.warning("Migration skip (targets_intel.%s): %s", col_name, exc)
+            ])
 
-            # Auto-migration for reports table
-            report_columns = [
+            _migrate_columns(session, "reports", [
                 ("program", "VARCHAR DEFAULT ''"),
                 ("target", "VARCHAR DEFAULT ''"),
                 ("vulnerability", "VARCHAR DEFAULT ''"),
@@ -83,29 +115,18 @@ def init_db():
                 ("timeline", "TEXT DEFAULT '[]'"),
                 ("attachments", "TEXT DEFAULT '[]'"),
                 ("updated_at", "DATETIME"),
-            ]
-            for col_name, col_type in report_columns:
-                try:
-                    session.execute(text(f"ALTER TABLE reports ADD COLUMN {col_name} {col_type};"))
-                except Exception as exc:
-                    logger = __import__('logging').getLogger('orion.db')
-                    logger.warning("Migration skip (reports.%s): %s", col_name, exc)
+            ])
 
-            # Auto-migration for notifications table
-            notification_columns = [
+            _migrate_columns(session, "notifications", [
                 ("title", "VARCHAR"),
                 ("severity", "VARCHAR DEFAULT 'info'"),
                 ("priority", "VARCHAR DEFAULT 'medium'"),
                 ("dedup_key", "VARCHAR"),
                 ("delivered_via", "VARCHAR"),
-            ]
-            for col_name, col_type in notification_columns:
-                with contextlib.suppress(Exception):
-                    session.execute(text(f"ALTER TABLE notifications ADD COLUMN {col_name} {col_type};"))
+            ])
 
             session.commit()
         except Exception as exc:
-            logger = __import__('logging').getLogger('orion.db')
             logger.warning("Migration block failed: %s", exc)
         finally:
             if session is not None:

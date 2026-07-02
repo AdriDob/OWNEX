@@ -43,9 +43,9 @@ class IDORScanResponse(BaseModel):
 
 @router.post("/idor", response_model=IDORScanResponse)
 def idor_scan(request: IDORScanRequest):
-    from core_engines.target_auth.idor_tester import IDORTester
-    from core_engines.target_auth.session_resolver import get_session_resolver
-    from core_engines.validation.replayer import AuthContext
+    from cores.target_auth.idor_tester import IDORTester
+    from cores.target_auth.session_resolver import get_session_resolver
+    from cores.validation.replayer import AuthContext
     from database import db, models
 
     logger = logging.getLogger("rastro.api.idor")

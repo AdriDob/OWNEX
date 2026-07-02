@@ -26,7 +26,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from core_engines.platform.system import get_frontend_dist_dir
+from cores.platform.system import get_frontend_dist_dir
 
 logger = logging.getLogger("orion.frontend_server")
 

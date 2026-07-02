@@ -45,7 +45,7 @@ def _has_snake_case(key: str) -> bool:
 
 
 def test_target_dto_contract():
-    from core_engines.contracts.normalizers import normalize_target
+    from cores.contracts.normalizers import normalize_target
 
     # Test with empty input
     result = normalize_target(None)
@@ -86,7 +86,7 @@ def test_target_dto_contract():
 
 
 def test_opportunity_dto_contract():
-    from core_engines.contracts.normalizers import normalize_opportunity
+    from cores.contracts.normalizers import normalize_opportunity
 
     result = normalize_opportunity(None)
     assert result["payout"] == 0
@@ -115,7 +115,7 @@ def test_opportunity_dto_contract():
 
 
 def test_endpoint_dto_contract():
-    from core_engines.contracts.normalizers import normalize_endpoint
+    from cores.contracts.normalizers import normalize_endpoint
 
     result = normalize_endpoint(None)
     assert result["risk"] == 0.0
@@ -141,7 +141,7 @@ def test_endpoint_dto_contract():
 
 
 def test_finding_dto_contract():
-    from core_engines.contracts.normalizers import normalize_finding
+    from cores.contracts.normalizers import normalize_finding
 
     result = normalize_finding(None)
     assert result["payout"] == 0
@@ -167,7 +167,7 @@ def test_finding_dto_contract():
 
 
 def test_evidence_dto_contract():
-    from core_engines.contracts.normalizers import normalize_evidence
+    from cores.contracts.normalizers import normalize_evidence
 
     result = normalize_evidence(None)
     assert result["consistent"] is False
@@ -191,7 +191,7 @@ def test_evidence_dto_contract():
 
 
 def test_paginated_wrapper():
-    from core_engines.contracts.wrapper import unwrap_items, unwrap_meta, wrap_paginated
+    from cores.contracts.wrapper import unwrap_items, unwrap_meta, wrap_paginated
 
     wrapped = wrap_paginated([{"id": 1}], 1, 0, 10)
     assert wrapped == {"items": [{"id": 1}], "meta": {"total": 1, "skip": 0, "limit": 10}}
@@ -204,7 +204,7 @@ def test_paginated_wrapper():
 
 
 def test_validation_contract():
-    from core_engines.contracts.validator import EXPECTED_FIELDS, validate_contract
+    from cores.contracts.validator import EXPECTED_FIELDS, validate_contract
 
     assert "target" in EXPECTED_FIELDS
     assert "opportunity" in EXPECTED_FIELDS
@@ -226,7 +226,7 @@ def test_validation_contract():
 
 
 def test_normalized_paginated():
-    from core_engines.contracts.normalizers import normalize_paginated, normalize_target
+    from cores.contracts.normalizers import normalize_paginated, normalize_target
 
     raw = {
         "items": [

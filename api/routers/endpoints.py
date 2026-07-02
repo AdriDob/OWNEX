@@ -39,10 +39,10 @@ def create_endpoint(body: EndpointCreate):
 
 @router.post("/analyze")
 def analyze_endpoint(body: EndpointAnalysisRequest):
-    from core_engines.engine.unified_classifier import classify as unified_classify
+    from cores.engine.unified_classifier import classify as unified_classify
     result = {"local": unified_classify(body.path, body.method, body.params or {})}
     try:
-        from core_engines.ai.analyzer import AIAnalyzer
+        from cores.ai.analyzer import AIAnalyzer
         ai = AIAnalyzer()
         result["ai"] = ai.analyze_endpoint(body.path, body.method, body.params or {})
     except Exception as exc:

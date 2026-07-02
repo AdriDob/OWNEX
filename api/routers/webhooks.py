@@ -4,7 +4,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException, Request
 
-from core_engines.tracking.service import handle_webhook_callback
+from cores.tracking.service import handle_webhook_callback
 
 logger = logging.getLogger("rastro.webhooks")
 

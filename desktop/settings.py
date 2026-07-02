@@ -57,7 +57,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
 
 
 def _get_config_path() -> Path:
-    from core_engines.platform.system import get_config_dir
+    from cores.platform.system import get_config_dir
     return get_config_dir()
 
 

@@ -17,7 +17,7 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-from core_engines.agents import (
+from cores.agents import (
     AgentEvent,
     AgentId,
     EventType,
@@ -30,19 +30,19 @@ from core_engines.agents import (
     start_all_agents,
     stop_all_agents,
 )
-from core_engines.agents.base import BaseAgent
-from core_engines.agents.documentation import DocumentationAgent
-from core_engines.agents.exploit import ExploitAgent
-from core_engines.agents.financial import FinancialAgent
-from core_engines.agents.research import ResearchAgent
-from core_engines.agents.validator import ValidatorAgent
+from cores.agents.base import BaseAgent
+from cores.agents.documentation import DocumentationAgent
+from cores.agents.exploit import ExploitAgent
+from cores.agents.financial import FinancialAgent
+from cores.agents.research import ResearchAgent
+from cores.agents.validator import ValidatorAgent
 
 # ─── Fixtures ─────────────────────────────────────────────────────
 
 
 @pytest.fixture(autouse=True)
 def _reset_bus():
-    from core_engines.agents import reset_all_agents
+    from cores.agents import reset_all_agents
     reset_all_agents()
     yield
     reset_all_agents()
@@ -419,7 +419,7 @@ class TestFinancialAgent:
     def test_record_payout(self):
         reset_agent_bus()
         # Fresh agent instance to avoid state accumulation
-        from core_engines.agents.financial import _FINANCIAL
+        from cores.agents.financial import _FINANCIAL
         _FINANCIAL = None  # noqa
         import os
         import tempfile
@@ -454,7 +454,7 @@ class TestFinancialAgent:
 def api_client():
     reset_agent_bus()
     from api.main import app
-    from core_engines.license.validator import generate_license
+    from cores.license.validator import generate_license
     c = TestClient(app)
     lic = generate_license(expiry_days=365)
     c.post("/api/license/activate", json={"key": lic})

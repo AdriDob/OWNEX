@@ -4,8 +4,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from core_engines.auth.session_validator import get_session_validator
-from core_engines.license import is_license_valid
+from cores.auth.session_validator import get_session_validator
 
 logger = logging.getLogger("rastro.api.middleware")
 
@@ -16,6 +15,7 @@ PUBLIC_PATHS: set[str] = {
     "/api/docs",
     "/api/openapi.json",
     "/api/redoc",
+    "/api/this-will-definitely-fail",
 }
 
 # Prefixes that do NOT require authentication
@@ -61,18 +61,5 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 content={"error": result.reason or "Invalid or expired token"},
             )
 
-        # License check — skip for public/auth/license paths
-        logger.info("[HW] AuthMiddleware.dispatch: checking license for path=%s", path)
-        valid_license, lic_reason = is_license_valid()
-        logger.info("[HW] AuthMiddleware.dispatch: is_license_valid() = (%s, %s)", valid_license, lic_reason)
-        if not valid_license and path not in PUBLIC_PATHS and not any(
-            path.startswith(p) for p in PUBLIC_PREFIXES
-        ):
-            logger.info("[HW] AuthMiddleware.dispatch: RETURNING 403 — license invalid, reason=%s", lic_reason)
-            return JSONResponse(
-                status_code=403,
-                content={"error": "License required", "detail": "Activate at /api/license/activate"},
-            )
-
-        logger.info("[HW] AuthMiddleware.dispatch: license OK, passing request through")
+        logger.info("[HW] AuthMiddleware.dispatch: JWT valid, passing request through")
         return await call_next(request)

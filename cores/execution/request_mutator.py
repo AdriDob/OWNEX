@@ -1,0 +1,160 @@
+import json
+import logging
+import re
+
+from cores.validation.replayer import AuthContext, RequestSpec
+from cores.validation.llm_analyzer import LLMRequestMutator
+
+logger = logging.getLogger("rastro.execution.mutator")
+
+PARAM_PATTERN = re.compile(r"\{(\w+)\}")
+
+
+class RequestMutator:
+    def __init__(self, llm_mutator: LLMRequestMutator | None = None):
+        self._llm = llm_mutator or LLMRequestMutator()
+
+    def plan_mutations(
+        self,
+        url: str,
+        method: str,
+        params: dict[str, str],
+        body: str | None = None,
+        headers: dict[str, str] | None = None,
+        auth_label: str = "authenticated",
+        prefer_llm: bool = True,
+    ) -> tuple[str, dict[str, str]]:
+        """Plan mutations using LLM when available, fall back to rule-based.
+
+        Returns (attack_vector, mutations_dict).
+        The LLM generates contextual payloads (SQLi, XSS, SSRF, etc.)
+        instead of just swapping IDs.
+        """
+        if prefer_llm and self._llm._provider.is_available():
+            try:
+                plan = self._llm.plan_mutations(
+                    url=url,
+                    method=method,
+                    params=params,
+                    body=body,
+                    headers=headers or {},
+                    auth_label=auth_label,
+                )
+                if plan.mutations:
+                    logger.info(
+                        "LLM mutation plan for %s %s: %s — %s",
+                        method, url, plan.attack_vector, plan.reasoning[:100],
+                    )
+                    return plan.attack_vector, plan.mutations
+            except Exception as e:
+                logger.warning("LLM mutation planning failed: %s", e)
+
+        return "rule_based", {}
+
+    def build_mutations(
+        self, attack_vector: str, path: str, params: dict[str, str]
+    ) -> dict[str, str]:
+        if attack_vector == "IDOR":
+            return self._idor_mutations(params)
+        if attack_vector in ("Auth bypass", "Privilege escalation"):
+            return self._auth_bypass_mutations()
+        if attack_vector == "Data exposure":
+            return self._data_exposure_mutations(params)
+        if attack_vector == "GraphQL logic":
+            return self._graphql_mutations()
+        if attack_vector == "Business logic":
+            return self._business_logic_mutations(params)
+        return {}
+
+    def build_auth_contexts(
+        self,
+        attack_vector: str,
+        baseline_token: str | None = None,
+        probe_token: str | None = None,
+    ) -> tuple[AuthContext, AuthContext]:
+        if attack_vector == "Auth bypass":
+            return (
+                AuthContext(token=baseline_token, label="authenticated"),
+                AuthContext(label="anonymous"),
+            )
+        return (
+            AuthContext(token=baseline_token, label="user_a"),
+            AuthContext(token=probe_token or baseline_token, label="user_b"),
+        )
+
+    def mutate_request_spec(
+        self,
+        spec: RequestSpec,
+        mutations: dict[str, str],
+    ) -> RequestSpec:
+        mutated = RequestSpec(
+            url=self._mutate_url(spec.url, mutations),
+            method=spec.method,
+            headers=dict(spec.headers),
+            params=dict(spec.params),
+            body=spec.body,
+        )
+        for key, val in mutations.items():
+            if key in spec.params:
+                mutated.params[key] = val
+        return mutated
+
+    def build_curl(self, spec: RequestSpec, auth: AuthContext) -> str:
+        parts = ["curl"]
+        if spec.method != "GET":
+            parts.append(f"-X {spec.method}")
+        if auth.token:
+            parts.append(f"-H 'Authorization: Bearer {auth.token}'")
+        for k, v in spec.headers.items():
+            parts.append(f"-H '{k}: {v}'")
+        for k, v in spec.params.items():
+            parts.append(f"-d '{k}={v}'" if spec.method in ("POST", "PUT", "PATCH") else "")
+        parts.append(f"'{spec.url}'")
+        return " \\\n  ".join(parts)
+
+    def _idor_mutations(self, params: dict[str, str]) -> dict[str, str]:
+        mutations: dict[str, str] = {}
+        for key in params:
+            lower = key.lower()
+            if any(tok in lower for tok in ["id", "uid", "user", "account", "order", "org", "tenant", "team"]):
+                mutations[key] = self._swap_id(params[key])
+        return mutations
+
+    def _auth_bypass_mutations(self) -> dict[str, str]:
+        return {}
+
+    def _data_exposure_mutations(self, params: dict[str, str]) -> dict[str, str]:
+        mutations: dict[str, str] = {}
+        for key in params:
+            if any(tok in key.lower() for tok in ["limit", "offset", "page", "export", "format"]):
+                mutations[key] = "all" if "format" in key.lower() else "9999"
+        return mutations
+
+    def _graphql_mutations(self) -> dict[str, str]:
+        return {}
+
+    def _business_logic_mutations(self, params: dict[str, str]) -> dict[str, str]:
+        mutations: dict[str, str] = {}
+        for key in params:
+            lower = key.lower()
+            if any(tok in lower for tok in ["role", "admin", "type", "level", "access"]):
+                mutations[key] = "admin"
+            if any(tok in lower for tok in ["amount", "price", "quantity", "total"]):
+                mutations[key] = "0"
+            if any(tok in lower for tok in ["approved", "status", "state"]):
+                mutations[key] = "approved"
+        return mutations
+
+    def _mutate_url(self, url: str, mutations: dict[str, str]) -> str:
+        result = url
+        for key, val in mutations.items():
+            result = result.replace(f"{{{key}}}", val)
+        return result
+
+    @staticmethod
+    def _swap_id(current: str) -> str:
+        try:
+            n = int(current)
+            return str(n + 1)
+        except ValueError:
+            return current[::-1]
