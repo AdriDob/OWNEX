@@ -2,7 +2,7 @@
 import { ref, computed, nextTick, watch, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { assistantStreamChat } from '@/lib/api'
-import { X, Send, Bot, User, Loader2, Sparkles, FileText, Activity } from '@lucide/vue'
+import { X, Send, Bot, User, Loader2, Sparkles, FileText, Activity, Eye } from '@lucide/vue'
 import ScrollArea from '@/components/ui/ScrollArea.vue'
 import Button from '@/components/ui/Button.vue'
 
@@ -22,7 +22,7 @@ const isMissionControl = computed(() => route.path.startsWith('/mission-control'
 const systemContext = computed(() => {
   if (isFindingsRoute.value) return 'Eres un asistente de redacción de reportes de seguridad. Ayuda al operador a redactar reportes claros y profesionales para plataformas de bug bounty.'
   if (isMissionControl.value) return 'Eres un analista de operaciones de seguridad. Ayuda al operador a entender el estado del sistema, priorizar objetivos y optimizar el pipeline.'
-  return 'Eres ORION Copilot, un asistente de operaciones de bug bounty. Responde preguntas sobre el sistema, hallazgos y recomendaciones.'
+  return 'Eres CATEYE Copilot, un asistente de operaciones de bug bounty. Responde preguntas sobre el sistema, hallazgos y recomendaciones.'
 })
 
 const suggestions = computed(() => {
@@ -31,9 +31,15 @@ const suggestions = computed(() => {
   return ['¿Cómo va el pipeline?', 'Mostrame las métricas', '¿Qué hay de nuevo?']
 })
 
+const modeLabel = computed(() => {
+  if (isFindingsRoute.value) return 'Reportes'
+  if (isMissionControl.value) return 'Ops'
+  return 'General'
+})
+
 watch(() => props.open, (o) => {
   if (o && messages.value.length === 0) {
-    messages.value = [{ role: 'assistant', content: `Soy ORION Copilot (${isFindingsRoute.value ? 'reportes' : isMissionControl.value ? 'operaciones' : 'general'}). ¿En qué puedo ayudarte?` }]
+    messages.value = [{ role: 'assistant', content: `Soy CATEYE Copilot (${modeLabel.value}). ¿En qué puedo ayudarte?` }]
   }
 })
 
@@ -65,7 +71,7 @@ async function send() {
     )
   } catch (e: any) {
     if (e?.name === 'AbortError') return
-    messages.value.push({ role: 'assistant', content: 'Error al conectar con ORION. Intentá de nuevo.' })
+    messages.value.push({ role: 'assistant', content: 'Error al conectar con CATEYE. Intentá de nuevo.' })
   } finally {
     loading.value = false
     abortController.value = null
@@ -96,12 +102,14 @@ watch(() => messages.value.length, async () => {
 <template>
   <Transition name="panel">
     <aside v-if="open" class="fixed right-0 top-0 z-40 flex h-full w-80 flex-col border-l border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl">
-      <div class="flex items-center justify-between border-b border-border/40 px-4 py-3">
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-border/40 px-4 py-3 scanline">
         <div class="flex items-center gap-2">
-          <Bot class="h-4 w-4 text-primary" />
-          <span class="text-sm font-semibold text-foreground">ORION Copilot</span>
-          <span v-if="isFindingsRoute" class="text-[10px] text-accent">(reportes)</span>
-          <span v-else-if="isMissionControl" class="text-[10px] text-accent">(ops)</span>
+          <div class="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 ring-1 ring-primary/20">
+            <Eye class="h-3.5 w-3.5 text-primary" />
+          </div>
+          <span class="font-mono text-sm font-bold tracking-wide text-foreground">CATEYE</span>
+          <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-accent/10 text-accent">{{ modeLabel }}</span>
         </div>
         <button @click="emit('close')" class="flex h-7 w-7 items-center justify-center rounded text-muted-foreground hover:bg-surface transition-colors">
           <X class="h-3.5 w-3.5" />
@@ -110,10 +118,10 @@ watch(() => messages.value.length, async () => {
 
       <!-- Suggestions -->
       <div v-if="messages.length <= 1" class="px-4 pt-3 space-y-1.5">
-        <p class="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Sugerencias</p>
+        <p class="font-mono text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Sugerencias</p>
         <button v-for="(s, i) in suggestions" :key="i"
           @click="sendSuggestion(s)"
-          class="w-full text-left rounded-lg border border-border/30 px-3 py-2 text-xs text-muted-foreground hover:bg-surface hover:text-foreground transition-colors"
+          class="w-full text-left rounded-lg border border-border/30 px-3 py-2 font-mono text-xs text-muted-foreground hover:bg-surface hover:text-foreground transition-colors"
         >{{ s }}</button>
       </div>
 
@@ -122,14 +130,14 @@ watch(() => messages.value.length, async () => {
           <div v-for="(msg, i) in messages" :key="i"
             :class="['flex gap-3 animate-in', msg.role === 'user' ? 'justify-end' : 'justify-start']"
           >
-            <div :class="['max-w-[85%] rounded-xl px-3.5 py-2.5 text-sm leading-relaxed', msg.role === 'user' ? 'bg-primary/15 text-foreground' : 'glass text-muted-foreground']">
-              <p class="whitespace-pre-wrap">{{ msg.content }}</p>
+            <div :class="['max-w-[85%] rounded-xl px-3.5 py-2.5 text-sm leading-relaxed', msg.role === 'user' ? 'bg-primary/15 text-foreground' : 'glass-terminal text-muted-foreground']">
+              <p class="whitespace-pre-wrap font-mono text-xs leading-relaxed">{{ msg.content }}</p>
             </div>
           </div>
 
           <div v-if="loading" class="flex items-center gap-2 text-muted-foreground text-sm animate-in">
             <Loader2 class="h-3.5 w-3.5 animate-spin" />
-            <span>Generando...</span>
+            <span class="font-mono text-xs">Procesando...</span>
           </div>
 
           <div ref="chatEnd" />
@@ -141,8 +149,8 @@ watch(() => messages.value.length, async () => {
           <input
             v-model="input"
             @keydown="handleKeydown"
-            placeholder="Preguntale a ORION..."
-            class="flex-1 rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/30 focus:outline-none focus:ring-1 focus:ring-primary/20"
+            placeholder="Consultar a CATEYE..."
+            class="flex-1 rounded-lg border border-border/60 bg-surface/50 px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/30 focus:outline-none focus:ring-1 focus:ring-primary/20"
             :disabled="loading"
           />
           <Button v-if="!loading" size="icon" @click="send" :disabled="!input.trim()">
@@ -152,7 +160,7 @@ watch(() => messages.value.length, async () => {
             <X class="h-4 w-4" />
           </Button>
         </div>
-        <p class="mt-1.5 text-[10px] text-muted-foreground/50 text-center">Ctrl+B toggle · Esc parar</p>
+        <p class="mt-1.5 font-mono text-[10px] text-muted-foreground/50 text-center">Ctrl+B toggle · Esc parar</p>
       </div>
     </aside>
   </Transition>

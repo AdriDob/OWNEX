@@ -12,7 +12,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-logger = logging.getLogger("rastro.product_rules")
+logger = logging.getLogger("catseye.product_rules")
 
 RuleCheck = Callable[[], str | None]
 

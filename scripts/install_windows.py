@@ -140,7 +140,7 @@ def _try_nsis_installer(version: str, bundle: Path) -> Path | None:
         f"""!define PRODUCT_NAME "Rastro"
 !define PRODUCT_VERSION "{version}"
 !define PRODUCT_PUBLISHER "Rastro AI"
-!define PRODUCT_WEB_SITE "https://rastro.ai"
+!define PRODUCT_WEB_SITE "https://CATEYE.ai"
 
 Name "${{PRODUCT_NAME}} ${{PRODUCT_VERSION}}"
 OutFile "Rastro-{version}-setup-win64.exe"

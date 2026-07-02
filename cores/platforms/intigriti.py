@@ -5,7 +5,7 @@ from typing import Any
 
 from cores.platforms.base import BugBountyPlatform, SubmissionResult
 
-logger = logging.getLogger("rastro.platforms.intigriti")
+logger = logging.getLogger("catseye.platforms.intigriti")
 
 
 class Intigriti(BugBountyPlatform):
@@ -62,12 +62,12 @@ class Intigriti(BugBountyPlatform):
         except Exception as exc:
             return SubmissionResult(success=False, error=str(exc))
 
-    def check_status(self, external_id: str) -> str:
+    def check_status(self, external_id: str, api_key: str = "") -> str:
         try:
             import requests
             resp = requests.get(
                 f"https://api.intigriti.com/v1/submissions/{external_id}",
-                headers={"Authorization": "Bearer placeholder"},
+                headers={"Authorization": f"Bearer {api_key}"},
                 timeout=15,
             )
             if resp.status_code == 200:

@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-LOG = logging.getLogger("rastro.hypothesis.memory")
+LOG = logging.getLogger("catseye.hypothesis.memory")
 
 from cores.engine.hypothesis.models import Hypothesis, VulnerabilityType
 from cores.memory.memory import MemoryPatternLibrary

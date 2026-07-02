@@ -28,7 +28,7 @@ from cores.opportunity.scoring2 import (
     compute_layered_score,
 )
 
-logger = logging.getLogger("rastro.opportunity.engine")
+logger = logging.getLogger("catseye.opportunity.engine")
 
 _GLOBAL_ENGINE: OpportunityEngine | None = None
 

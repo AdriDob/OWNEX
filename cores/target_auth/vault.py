@@ -7,7 +7,7 @@ import os
 
 from cryptography.fernet import Fernet
 
-logger = logging.getLogger("rastro.target_auth.vault")
+logger = logging.getLogger("catseye.target_auth.vault")
 
 _MASTER_KEY: bytes | None = None
 
@@ -29,7 +29,7 @@ def _get_machine_id() -> str:
         except Exception:
             logger.warning("Failed to read /var/lib/dbus/machine-id", exc_info=True)
     if not raw:
-        raw.append(os.environ.get("HOSTNAME", "rastro-default"))
+        raw.append(os.environ.get("HOSTNAME", "CATEYE-default"))
 
     seen: set[str] = set()
     deduped: list[str] = []

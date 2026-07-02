@@ -18,7 +18,7 @@ from typing import Any
 
 from cores.recovery.engine import RecoveryEngine, get_recovery_engine
 
-logger = logging.getLogger("rastro.recovery.health_monitor")
+logger = logging.getLogger("catseye.recovery.health_monitor")
 
 DEFAULT_INTERVAL = 8.0
 MAX_HISTORY = 200
@@ -54,7 +54,7 @@ class HealthMonitor:
             return
         self._running = True
         self._thread = threading.Thread(
-            target=self._run_loop, daemon=True, name="rastro-health-monitor",
+            target=self._run_loop, daemon=True, name="CATEYE-health-monitor",
         )
         self._thread.start()
         logger.info("[HEALTH] Monitor started (interval=%ss)", self._interval)

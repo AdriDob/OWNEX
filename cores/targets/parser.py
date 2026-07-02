@@ -2,7 +2,7 @@ import logging
 import re
 from urllib.parse import urlparse
 
-logger = logging.getLogger("rastro.targets.parser")
+logger = logging.getLogger("catseye.targets.parser")
 
 DOMAIN_RE = re.compile(r"(?:\*\.)?([A-Za-z0-9.-]+\.[A-Za-z]{2,})")
 

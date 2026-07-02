@@ -6,7 +6,7 @@ Current: 1.0
 from __future__ import annotations
 
 API_VERSION = "1.0"
-API_SCHEMA = "rastro/v1"
+API_SCHEMA = "CATEYE/v1"
 
 VERSIONS: dict[str, int] = {
     "1.0": 1,

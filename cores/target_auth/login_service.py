@@ -5,7 +5,7 @@ import json
 import logging
 from typing import Any
 
-logger = logging.getLogger("rastro.target_auth.login")
+logger = logging.getLogger("catseye.target_auth.login")
 
 
 class TargetLoginService:

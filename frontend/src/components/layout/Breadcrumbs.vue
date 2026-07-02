@@ -39,7 +39,7 @@ const breadcrumbs = computed(() => {
 </script>
 
 <template>
-  <nav v-if="breadcrumbs.length > 1" class="flex items-center gap-1 text-[10px] text-muted-foreground/60 mb-4 animate-in">
+  <nav v-if="breadcrumbs.length > 1" class="flex items-center gap-1 text-[10px] text-muted-foreground/60 mb-4 animate-in font-mono">
     <button
       v-for="(crumb, i) in breadcrumbs"
       :key="i"

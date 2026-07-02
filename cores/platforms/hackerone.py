@@ -6,7 +6,7 @@ from typing import Any
 
 from cores.platforms.base import BugBountyPlatform, SubmissionResult
 
-logger = logging.getLogger("rastro.platforms.hackerone")
+logger = logging.getLogger("catseye.platforms.hackerone")
 
 H1_SUBMIT_URL = "https://hackerone.com/reports/new"
 
@@ -35,7 +35,7 @@ class HackerOne(BugBountyPlatform):
             "title": report_data.get("vulnerability", content.get("title", "Security Report")),
             "vulnerability": content,
             "severity_rating": report_data.get("severity", "medium"),
-            "source": "rastro",
+            "source": "CATEYE",
         }
 
     def _get_submit_url(self, report_data: dict[str, Any]) -> str:
@@ -55,7 +55,7 @@ class HackerOne(BugBountyPlatform):
                             "title": formatted["title"],
                             "vulnerability": formatted["vulnerability"],
                             "severity_rating": formatted["severity_rating"],
-                            "source": "rastro",
+                            "source": "CATEYE",
                         },
                     }
                 },
@@ -86,7 +86,7 @@ class HackerOne(BugBountyPlatform):
                 error=str(exc),
             )
 
-    def check_status(self, external_id: str) -> str:
+    def check_status(self, external_id: str, api_key: str = "") -> str:
         try:
             import requests
             resp = requests.get(

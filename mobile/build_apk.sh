@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build Rastro Android APK via Capacitor
+# Build CATEYE Android APK via Capacitor
 #
 # Usage:
 #   ./mobile/build_apk.sh                  # Debug APK
@@ -88,7 +88,7 @@ echo "✓ Android SDK: $ANDROID_HOME"
 echo "sdk.dir=$ANDROID_HOME" > "$ANDROID_DIR/local.properties"
 
 echo ""
-echo "=== Rastro Android APK Build ($MODE) ==="
+echo "=== CATEYE Android APK Build ($MODE) ==="
 
 # Step 1: Build frontend
 echo ""
@@ -139,7 +139,7 @@ echo "=== Build complete ==="
 if [ -f "$APK_PATH" ]; then
   APK_SIZE=$(du -h "$APK_PATH" | cut -f1)
   echo "APK: $APK_PATH ($APK_SIZE)"
-  cp "$APK_PATH" "$PROJECT_DIR/dist/rastro-android-debug.apk" 2>/dev/null || true
+  cp "$APK_PATH" "$PROJECT_DIR/dist/CATEYE-android-debug.apk" 2>/dev/null || true
 else
   echo "APK not found at expected path: $APK_PATH"
   echo "Check android/app/build/outputs/apk/"

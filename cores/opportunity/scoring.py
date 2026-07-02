@@ -10,7 +10,7 @@ import logging
 
 from cores.opportunity.models import Opportunity, OpportunityScore
 
-logger = logging.getLogger("rastro.opportunity.scoring")
+logger = logging.getLogger("catseye.opportunity.scoring")
 
 # Known high-value technology keywords
 _HIGH_VALUE_TAGS: set[str] = {

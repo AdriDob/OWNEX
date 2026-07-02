@@ -10,7 +10,7 @@ from database import db
 if TYPE_CHECKING:
     from cores.notifications.hub import Notification
 
-logger = logging.getLogger("rastro.notifications.db_bridge")
+logger = logging.getLogger("catseye.notifications.db_bridge")
 
 
 def persist_notification(notif: Notification) -> None:

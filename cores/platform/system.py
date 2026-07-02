@@ -18,7 +18,7 @@ import platform
 import sys
 from pathlib import Path
 
-logger = logging.getLogger("rastro.platform.system")
+logger = logging.getLogger("catseye.platform.system")
 
 
 class Platform:

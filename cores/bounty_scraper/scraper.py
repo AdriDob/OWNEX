@@ -17,7 +17,7 @@ from typing import Any
 
 from cores.scope_reader import read_program_scope, extract_assets
 
-logger = logging.getLogger("rastro.bounty_scraper")
+logger = logging.getLogger("catseye.bounty_scraper")
 
 REQUEST_HEADERS = {
     "User-Agent": (

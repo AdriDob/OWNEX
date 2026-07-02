@@ -11,11 +11,11 @@ import os
 import time
 from typing import Any
 
-logger = logging.getLogger("rastro.identity.session")
+logger = logging.getLogger("catseye.identity.session")
 
 DATA_DIR = os.path.join(
     os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")),
-    "rastro",
+    "CATEYE",
     "identity",
 )
 

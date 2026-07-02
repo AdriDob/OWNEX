@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-LOG = logging.getLogger("rastro.intelligence.event_system")
+LOG = logging.getLogger("catseye.intelligence.event_system")
 
 # Canonical event types
 EVENT_TYPES = {

@@ -84,7 +84,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function tryGetDeviceId(): string | null {
-    try { return localStorage.getItem('rastro-device-id') } catch { return null }
+    try { return localStorage.getItem('CATEYE-device-id') } catch { return null }
   }
 
   return { user, token, loading, error, isAuthenticated, loginWithCredentials, register, autoLogin, logout }

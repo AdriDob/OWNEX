@@ -11,7 +11,7 @@ import httpx
 
 from database import db
 
-logger = logging.getLogger("rastro.notifications.fcm")
+logger = logging.getLogger("catseye.notifications.fcm")
 
 FCM_SEND_URL = "https://fcm.googleapis.com/v1/projects/{project}/messages:send"
 

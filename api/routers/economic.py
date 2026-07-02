@@ -37,7 +37,7 @@ from database.db import SessionLocal
 from database.models_economic import BountyTier, MemoryPattern, Program, ProgramIntel, ReportPriority, ScopeDocument
 from database.models import Report
 
-logger = logging.getLogger("rastro.api.economic")
+logger = logging.getLogger("catseye.api.economic")
 
 router = APIRouter(prefix="/api/economic", tags=["economic"])
 
@@ -1225,3 +1225,48 @@ class BankAccountOut:
         self.currency = kwargs.get("currency", "USD")
         self.withdrawable = kwargs.get("withdrawable", 0)
         self.pending = kwargs.get("pending", 0)
+
+
+@router.get("/monthly-revenue")
+def get_monthly_revenue():
+    """Return real monthly revenue data aggregated from report table."""
+    from database.db import SessionLocal
+    from database.models import Report
+    from sqlalchemy import extract
+
+    session = SessionLocal()
+    try:
+        rows = (
+            session.query(
+                extract("year", Report.created_at).label("year"),
+                extract("month", Report.created_at).label("month"),
+                sa_func.coalesce(sa_func.sum(Report.confirmed_reward), 0).label("paid"),
+                sa_func.coalesce(sa_func.sum(Report.estimated_reward), 0).label("estimated"),
+                sa_func.count(Report.id).label("count"),
+            )
+            .filter(Report.created_at.isnot(None))
+            .group_by("year", "month")
+            .order_by(extract("year", Report.created_at), extract("month", Report.created_at))
+            .all()
+        )
+
+        months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+        result = []
+        for r in rows:
+            label = f"{months[int(r.month) - 1]}" if r.month and 1 <= int(r.month) <= 12 else str(r.month)
+            if r.year:
+                label += f" {int(r.year)}"
+            result.append({
+                "month": label,
+                "amount": float(r.estimated or 0),
+                "paid": float(r.paid or 0),
+                "count": int(r.count or 0),
+                "year": int(r.year) if r.year else None,
+            })
+
+        return {"months": result, "total": len(result)}
+    except Exception as exc:
+        logger.warning("Failed to aggregate monthly revenue: %s", exc)
+        return {"months": [], "total": 0}
+    finally:
+        session.close()

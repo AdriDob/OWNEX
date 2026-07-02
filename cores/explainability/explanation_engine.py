@@ -15,7 +15,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-logger = logging.getLogger("rastro.explainability.engine")
+logger = logging.getLogger("catseye.explainability.engine")
 
 EXPLANATION_CATEGORY = "explanation"
 

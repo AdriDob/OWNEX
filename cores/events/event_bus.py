@@ -15,7 +15,7 @@ from collections.abc import Callable
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("rastro.events")
+logger = logging.getLogger("catseye.events")
 
 EventHandler = Callable[..., Any]
 

@@ -17,13 +17,13 @@ import time
 from cores.license.hardware import get_hardware_id
 from cores.license.store import get_license_store
 
-logger = logging.getLogger("rastro.license.validator")
+logger = logging.getLogger("catseye.license.validator")
 
 # Signing secret embedded in the binary.
 # In production, rotate this per-release and use asymmetric crypto instead.
 _LICENSE_SECRET = os.environ.get(
     "RASTRO_LICENSE_SECRET",
-    hashlib.sha256(b"rastro-license-secret-v1").hexdigest(),
+    hashlib.sha256(b"CATEYE-license-secret-v1").hexdigest(),
 )
 
 KEY_PATTERN = re.compile(r"^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$")

@@ -12,7 +12,7 @@ import {
   BarChart3, History, Sun,
   Target, Zap, Search, Lightbulb, GitCompare, BrainCircuit,
   UserCircle, Shield, PlayCircle, Camera, RotateCcw,
-  GraduationCap, Bell, Clock,
+  GraduationCap, Bell, Clock, Eye,
 } from '@lucide/vue'
 
 const hunt = useHuntStore()
@@ -29,7 +29,7 @@ const loading = ref(true)
 
 const navItems = [
   { section: 'Inteligencia', items: [
-    { name: 'Panel Económico', path: '/', icon: LayoutDashboard },
+    { name: 'Panel Inteligente', path: '/', icon: Eye },
     { name: 'Money Radar', path: '/money-radar', icon: DollarSign },
     { name: 'Radar de Oportunidades', path: '/radar', icon: Radar },
     { name: 'Dashboard Principal', path: '/dashboard', icon: LayoutDashboard },
@@ -100,7 +100,7 @@ onMounted(async () => {
       totalPending.value = (ctxRes.value as any).total_pending || 0
     }
   } catch {
-    // graceful degradation — platforms/bank are optional
+    // graceful degradation
   }
   loading.value = false
 })
@@ -119,13 +119,13 @@ function formatCompact(n: number) {
       collapsed ? 'w-16' : 'w-60',
     ]"
   >
-    <!-- Logo -->
-    <div class="flex h-14 items-center gap-3 border-b border-border/40 px-4">
-      <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/20">
-        <span class="font-display text-sm font-bold">O</span>
+    <!-- Logo CATEYE -->
+    <div class="flex h-14 items-center gap-3 border-b border-border/40 px-4 scanline">
+      <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/30">
+        <Eye class="h-4 w-4" />
       </div>
       <Transition name="fade">
-        <span v-if="!collapsed" class="font-display text-sm font-semibold tracking-wide text-foreground">ORION</span>
+        <span v-if="!collapsed" class="font-mono text-sm font-bold tracking-[0.15em] text-foreground">CATEYE</span>
       </Transition>
       <div v-if="!collapsed" class="ml-auto flex items-center gap-1">
         <span
@@ -141,17 +141,17 @@ function formatCompact(n: number) {
           <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-40" />
           <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
         </span>
-        <span class="text-[9px] text-muted-foreground">{{ hunt.status === 'running' ? 'VIVO' : hunt.status === 'paused' ? 'PAUSA' : 'OFF' }}</span>
+        <span class="font-mono text-[9px] text-muted-foreground">{{ hunt.status === 'running' ? 'ACTIVE' : hunt.status === 'paused' ? 'PAUSED' : 'IDLE' }}</span>
       </div>
     </div>
 
     <!-- Balance summary -->
     <Transition name="fade">
       <div v-if="!collapsed && !loading" class="border-b border-border/30 px-4 py-3">
-        <div class="rounded-lg bg-gradient-to-br from-primary/5 via-transparent to-transparent px-3 py-2.5 ring-1 ring-primary/10">
-          <p class="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">Balance</p>
-          <p class="mt-0.5 text-base font-bold tabular-nums text-foreground">{{ formatCompact(totalEarned) }}</p>
-          <div class="mt-1 flex items-center justify-between text-[10px]">
+        <div class="rounded-lg cyber-card px-3 py-2.5">
+          <p class="font-mono text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Balance</p>
+          <p class="mt-0.5 font-mono text-base font-bold tabular-nums text-primary">{{ formatCompact(totalEarned) }}</p>
+          <div class="mt-1 flex items-center justify-between font-mono text-[10px]">
             <span class="text-muted-foreground">Pendiente</span>
             <span class="font-medium text-warning">{{ formatCompact(totalPending) }}</span>
           </div>
@@ -163,8 +163,8 @@ function formatCompact(n: number) {
     <Transition name="fade">
       <div v-if="!collapsed" class="border-b border-border/30 px-3 py-2.5">
         <div class="mb-1.5 flex items-center justify-between px-1">
-          <span class="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">Plataformas</span>
-          <span class="text-[8px] text-muted-foreground">{{ connectedCount }}/{{ platforms.length || 4 }}</span>
+          <span class="font-mono text-[8px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Plataformas</span>
+          <span class="font-mono text-[8px] text-muted-foreground">{{ connectedCount }}/{{ platforms.length || 4 }}</span>
         </div>
         <div class="space-y-1">
           <div
@@ -190,8 +190,8 @@ function formatCompact(n: number) {
                 ]"
               />
             </div>
-            <span class="flex-1 text-[11px] font-medium text-foreground">{{ p.name }}</span>
-            <span v-if="p.connected && p.earnings !== undefined" class="text-[9px] tabular-nums text-primary">{{ formatCompact(p.earnings) }}</span>
+            <span class="flex-1 font-mono text-[11px] font-medium text-foreground">{{ p.name }}</span>
+            <span v-if="p.connected && p.earnings !== undefined" class="font-mono text-[9px] tabular-nums text-primary">{{ formatCompact(p.earnings) }}</span>
             <Unlink v-else class="h-2.5 w-2.5 text-muted-foreground" />
           </div>
         </div>
@@ -208,8 +208,8 @@ function formatCompact(n: number) {
             <Banknote class="h-3 w-3" />
           </div>
           <div class="flex-1 text-left">
-            <p class="text-[10px] text-muted-foreground">Cuenta bancaria</p>
-            <p class="text-xs font-medium" :class="bank?.connected ? 'text-foreground' : 'text-muted-foreground'">
+            <p class="font-mono text-[10px] text-muted-foreground">Cuenta bancaria</p>
+            <p class="font-mono text-xs font-medium" :class="bank?.connected ? 'text-foreground' : 'text-muted-foreground'">
               {{ bank?.connected ? bank.bank_name + ' ••' + bank.last_four : 'Conectar cuenta' }}
             </p>
           </div>
@@ -223,7 +223,7 @@ function formatCompact(n: number) {
     <nav class="flex-1 overflow-y-auto px-2 py-3 scrollbar-none">
       <div v-for="(group, gi) in navItems" :key="gi" class="mb-3">
         <Transition name="fade">
-          <p v-if="!collapsed" class="mb-1 px-2 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+          <p v-if="!collapsed" class="mb-1 px-2 font-mono text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
             {{ group.section }}
           </p>
         </Transition>
@@ -240,7 +240,7 @@ function formatCompact(n: number) {
         >
           <component :is="item.icon" class="h-4 w-4 shrink-0" />
           <Transition name="fade">
-            <span v-if="!collapsed">{{ item.name }}</span>
+            <span v-if="!collapsed" class="font-mono text-xs">{{ item.name }}</span>
           </Transition>
         </button>
       </div>
@@ -256,7 +256,7 @@ function formatCompact(n: number) {
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
         <Transition name="fade">
-          <span v-if="!collapsed">Copiloto</span>
+          <span v-if="!collapsed" class="font-mono text-xs">Copiloto</span>
         </Transition>
       </button>
       <button

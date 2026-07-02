@@ -16,7 +16,7 @@ from typing import Any
 
 from cores.ai.provider import AIProvider, get_provider
 
-logger = logging.getLogger("rastro.validation.llm_analyzer")
+logger = logging.getLogger("catseye.validation.llm_analyzer")
 
 MAX_BODY_CHARS = 3000  # Truncate to avoid token overflow
 

@@ -14,7 +14,7 @@ from cores.health.scoring import (
     classify_health,
 )
 
-logger = logging.getLogger("rastro.health.engine")
+logger = logging.getLogger("catseye.health.engine")
 
 DEFAULT_INTERVAL = 10.0
 
@@ -43,7 +43,7 @@ class SystemHealthEngine:
             return
         self._running = True
         self._thread = threading.Thread(
-            target=self._run_loop, daemon=True, name="rastro-health-engine",
+            target=self._run_loop, daemon=True, name="CATEYE-health-engine",
         )
         self._thread.start()
         logger.info("[HEALTH] Engine started (interval=%ss)", self._interval)

@@ -13,7 +13,7 @@ from html.parser import HTMLParser
 from typing import Any
 from urllib.parse import urlparse
 
-logger = logging.getLogger("rastro.scope_reader")
+logger = logging.getLogger("catseye.scope_reader")
 
 
 class _HTMLTextExtractor(HTMLParser):

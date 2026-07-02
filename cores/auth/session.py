@@ -12,7 +12,7 @@ import os
 import time
 from typing import Any
 
-logger = logging.getLogger("rastro.auth.session")
+logger = logging.getLogger("catseye.auth.session")
 
 from .auth import (
     create_refresh_token,
@@ -22,7 +22,7 @@ from .auth import (
 
 SESSION_DIR = os.path.join(
     os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")),
-    "rastro",
+    "CATEYE",
     "sessions",
 )
 

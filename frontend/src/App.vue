@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationsStore } from '@/stores/notifications'
+import { useSettingsStore } from '@/stores/settings'
 import { onLoadingChange } from '@/lib/api'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import CopilotPanel from '@/components/copilot/CopilotPanel.vue'
@@ -17,12 +18,27 @@ declare global {
 
 const auth = useAuthStore()
 const notifications = useNotificationsStore()
+const settings = useSettingsStore()
 const router = useRouter()
 const route = useRoute()
 const copilotOpen = ref(false)
 const globalLoading = ref(false)
 const showGlobalLoading = ref(false)
 let loadingTimeout: ReturnType<typeof setTimeout> | null = null
+
+// Apply theme/colors from settings to DOM
+watch(() => [settings.data.appearance.theme, settings.data.appearance.colors], ([theme, colors]) => {
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', theme || 'cyber')
+    document.documentElement.setAttribute('data-colors', colors || 'default')
+  }
+}, { immediate: true })
+
+watch(() => settings.data.appearance.density, (density) => {
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-density', density || 'normal')
+  }
+}, { immediate: true })
 
 // Listen for 401 events
 if (typeof window !== 'undefined') {
@@ -66,7 +82,7 @@ onMounted(async () => {
   // Desktop integration
   if (typeof window.__PYWEBVIEW__ !== 'undefined') {
     try {
-      window.__PYWEBVIEW__.setTitle('ORION — Bug Bounty OS')
+      window.__PYWEBVIEW__.setTitle('CATEYE — Security Intelligence OS')
     } catch { /* not in pywebview */ }
   }
   window.addEventListener('beforeunload', () => {
@@ -82,7 +98,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex h-screen w-screen overflow-hidden bg-background">
+    <div class="flex h-screen w-screen overflow-hidden bg-background">
+    <!-- Scanline overlay -->
+    <div class="pointer-events-none fixed inset-0 z-[60] opacity-[0.03]" style="background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 65, 0.08) 2px, rgba(0, 255, 65, 0.08) 4px);" />
+
     <!-- Global loading bar -->
     <div v-if="showGlobalLoading" class="fixed top-0 left-0 right-0 z-[100] h-0.5">
       <div class="h-full bg-primary animate-pulse" style="width: 30%; animation: loadingSlide 1.5s ease-in-out infinite" />

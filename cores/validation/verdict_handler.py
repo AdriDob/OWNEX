@@ -8,7 +8,7 @@ from cores.reporting.severity import risk_to_severity
 from cores.validation.gate import Verdict
 from database import models
 
-LOG = logging.getLogger("rastro.validation.verdict_handler")
+LOG = logging.getLogger("catseye.validation.verdict_handler")
 
 
 class VerdictHandler:

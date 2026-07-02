@@ -5,7 +5,7 @@ from typing import Any
 
 from cores.platforms.base import BugBountyPlatform, SubmissionResult
 
-logger = logging.getLogger("rastro.platforms.yeswehack")
+logger = logging.getLogger("catseye.platforms.yeswehack")
 
 
 class YesWeHack(BugBountyPlatform):
@@ -63,12 +63,12 @@ class YesWeHack(BugBountyPlatform):
         except Exception as exc:
             return SubmissionResult(success=False, error=str(exc))
 
-    def check_status(self, external_id: str) -> str:
+    def check_status(self, external_id: str, api_key: str = "") -> str:
         try:
             import requests
             resp = requests.get(
                 f"https://api.yeswehack.com/v1/reports/{external_id}",
-                headers={"Authorization": "Bearer placeholder"},
+                headers={"Authorization": f"Bearer {api_key}"},
                 timeout=15,
             )
             if resp.status_code == 200:

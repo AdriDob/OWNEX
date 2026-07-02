@@ -5,7 +5,7 @@ import re
 from cores.validation.replayer import AuthContext, RequestSpec
 from cores.validation.llm_analyzer import LLMRequestMutator
 
-logger = logging.getLogger("rastro.execution.mutator")
+logger = logging.getLogger("catseye.execution.mutator")
 
 PARAM_PATTERN = re.compile(r"\{(\w+)\}")
 

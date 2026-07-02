@@ -6,7 +6,7 @@ import logging
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("rastro.health.scoring")
+logger = logging.getLogger("catseye.health.scoring")
 
 BASE_SCORE = 100.0
 

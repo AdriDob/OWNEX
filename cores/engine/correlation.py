@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-LOG = logging.getLogger("rastro.engine.correlation")
+LOG = logging.getLogger("catseye.engine.correlation")
 
 # Source priority (higher = more authoritative)
 SOURCE_PRIORITY = {

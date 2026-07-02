@@ -1,6 +1,6 @@
-const CACHE_STATIC = 'rastro-static-v3';
-const CACHE_API = 'rastro-api-v3';
-const CACHE_INTEL = 'rastro-intel-v3';
+const CACHE_STATIC = 'CATEYE-static-v3';
+const CACHE_API = 'CATEYE-api-v3';
+const CACHE_INTEL = 'CATEYE-intel-v3';
 
 const STATIC_ASSETS = [
   '/',
@@ -139,7 +139,7 @@ self.addEventListener('push', (event) => {
   if (!event.data) return;
   try {
     const data = event.data.json();
-    const title = data.title || 'Rastro';
+    const title = data.title || 'CATEYE';
     const options = {
       body: data.message || data.body || '',
       icon: '/icon-192.png',
@@ -151,7 +151,7 @@ self.addEventListener('push', (event) => {
     event.waitUntil(self.registration.showNotification(title, options));
   } catch {
     event.waitUntil(
-      self.registration.showNotification('Rastro', {
+      self.registration.showNotification('CATEYE', {
         body: event.data.text(),
         icon: '/icon-192.png',
       })

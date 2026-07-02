@@ -9,7 +9,7 @@ from typing import Any
 from cores.auth.auth import verify_session
 from cores.auth.session import get_session_store
 
-logger = logging.getLogger("rastro.auth.session_validator")
+logger = logging.getLogger("catseye.auth.session_validator")
 
 
 class SessionValidationResult:

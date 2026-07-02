@@ -20,7 +20,7 @@ from typing import Any
 
 from cores.engine.hypothesis.models import Hypothesis
 
-LOG = logging.getLogger("rastro.hypothesis.llm")
+LOG = logging.getLogger("catseye.hypothesis.llm")
 
 
 REASONING_PROMPT = """You are a senior bug bounty hunter reviewing automated vulnerability hypotheses.
@@ -95,7 +95,7 @@ def _build_ollama_payload(model: str, prompt: str, max_tokens: int = 512) -> dic
     }
 
 
-def _call_ollama(prompt: str, host: str = "http://localhost:11434", model: str = "qwen3:14b") -> str | None:
+def _call_ollama(prompt: str, host: str = "http://localhost:11434", model: str = "freehuntx/qwen3-coder:8b") -> str | None:
     import urllib.error
     import urllib.request
 
@@ -141,7 +141,7 @@ def _parse_json_response(text: str | None) -> Any | None:
 def enrich_reasoning(
     hypotheses: list[Hypothesis],
     ollama_host: str = "http://localhost:11434",
-    model: str = "qwen3:14b",
+    model: str = "freehuntx/qwen3-coder:8b",
 ) -> list[Hypothesis]:
     if not hypotheses:
         return hypotheses
@@ -221,7 +221,7 @@ def detect_gaps(
     all_endpoints: list[dict[str, Any]],
     hypotheses: list[Hypothesis],
     ollama_host: str = "http://localhost:11434",
-    model: str = "qwen3:14b",
+    model: str = "freehuntx/qwen3-coder:8b",
 ) -> list[dict[str, Any]]:
     hypothesis_endpoint_ids = {h.endpoint.get("id") for h in hypotheses if h.endpoint.get("id")}
     missed = [ep for ep in all_endpoints if ep.get("id") not in hypothesis_endpoint_ids]
@@ -253,7 +253,7 @@ def detect_gaps(
 def refine_priority(
     hypotheses: list[Hypothesis],
     ollama_host: str = "http://localhost:11434",
-    model: str = "qwen3:14b",
+    model: str = "freehuntx/qwen3-coder:8b",
 ) -> list[str] | None:
     if len(hypotheses) < 3:
         return None

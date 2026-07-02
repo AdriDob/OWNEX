@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
-logger = logging.getLogger("rastro.tools")
+logger = logging.getLogger("catseye.tools")
 
 
 @dataclass

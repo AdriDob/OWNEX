@@ -6,7 +6,7 @@ from cores.gateway.schemas import error, ok
 from cores.identity_vault import get_identity_vault
 from cores.settings.service import get_setting, set_setting
 
-logger = logging.getLogger("rastro.identity_center")
+logger = logging.getLogger("catseye.identity_center")
 router = APIRouter(prefix="/api/identity-center", tags=["identity_center"])
 
 PLATFORMS = ["hackerone", "bugcrowd", "intigriti", "yeswehack", "synack"]
@@ -36,7 +36,7 @@ async def get_identity_center():
     platforms = [_platform_status(p) for p in PLATFORMS]
     email = get_setting("identity.email", {"primary": "", "secondary": ""})
     wallets = get_setting("identity.wallets", {k: "" for k in WALLET_KEYS})
-    never_submit = get_setting("rastro.never_submit_without_approval", True)
+    never_submit = get_setting("CATEYE.never_submit_without_approval", True)
     return ok({
         "platforms": platforms,
         "email": email,
@@ -126,6 +126,6 @@ async def set_wallets(request: Request):
 async def set_never_submit(request: Request):
     body = await request.json()
     enabled = body.get("enabled", True)
-    set_setting("rastro.never_submit_without_approval", enabled)
+    set_setting("CATEYE.never_submit_without_approval", enabled)
     logger.info("[IDENTITY] never_submit_without_approval set to %s", enabled)
     return ok({"status": "updated", "never_submit_without_approval": enabled})

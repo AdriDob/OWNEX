@@ -16,7 +16,7 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
 
     from cores.recon.tools import validate_mode_compatibility, verify_recon_tools
 
-    logger = logging.getLogger("rastro.main")
+    logger = logging.getLogger("catseye.main")
 
     # Validate inputs
     if not target_name or not target_name.strip():

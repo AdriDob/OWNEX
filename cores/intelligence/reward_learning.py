@@ -22,7 +22,7 @@ from cores.engine.roi_model import BASE_HOURS, BASE_PAYOUT
 from database.db import SessionLocal
 from database.models import Report
 
-LOG = logging.getLogger("rastro.intelligence.reward")
+LOG = logging.getLogger("catseye.intelligence.reward")
 
 
 @dataclass

@@ -22,7 +22,7 @@ from cores.pipeline.state_machine import (
 )
 from cores.settings.service import RastroMode, get_mode, get_setting
 
-logger = logging.getLogger("rastro.agents.coordinator")
+logger = logging.getLogger("catseye.agents.coordinator")
 
 # ── Stage -> Agent/Event mapping (updated for 11 states) ────────────
 
@@ -495,7 +495,7 @@ class CoordinatorAgent(BaseAgent):
             return
 
         # Global safety check
-        if get_setting("rastro.never_submit_without_approval", True):
+        if get_setting("CATEYE.never_submit_without_approval", True):
             logger.info("[COORD] Blocked auto-submit pipeline %s (approval required)", pipeline_id[:8])
             self.emit(
                 EventType.SYSTEM_ALERT,

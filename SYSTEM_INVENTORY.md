@@ -547,8 +547,8 @@ Nunca se llaman directamente. Los eventos son inmutables, serializables y trazab
 | Asset | Ubicación | Propósito |
 |---|---|---|
 | `orion.ico` | `installer/icons/` | Icono de aplicación Windows |
-| `rastro.ico` | `desktop/build/icons/` | Icono alternativo |
-| `rastro.png` | `desktop/build/icons/` | Icono PNG |
+| `CATEYE.ico` | `desktop/build/icons/` | Icono alternativo |
+| `CATEYE.png` | `desktop/build/icons/` | Icono PNG |
 
 ## Template Assets
 
@@ -985,8 +985,8 @@ Comandos Makefile:
 | `frontend/public/icon.png` | ✅ Existe |
 | `frontend/public/icon-192.png` | ✅ Existe |
 | `frontend/public/icon-512.png` | ✅ Existe |
-| `desktop/build/icons/rastro.ico` | ✅ Existe |
-| `desktop/build/icons/rastro.png` | ✅ Existe |
+| `desktop/build/icons/CATEYE.ico` | ✅ Existe |
+| `desktop/build/icons/CATEYE.png` | ✅ Existe |
 | `frontend/dist/` | ❌ No existe (generado por build) |
 | `installer/uninstall_windows.ps1` | ✅ Existe |
 | `VERSION` | ✅ Existe |
@@ -1007,7 +1007,7 @@ Comandos Makefile:
 | `desktop/build/Rastro.spec` | Spec desactualizado, solo `Orion.spec` se usa activamente |
 | `targets/Airbyte/` | Directorio con datos de ejecución, no debería estar en VCS |
 | `logs/orion.log` | Archivos de log en VCS |
-| `logs/rastro.log` | Archivos de log en VCS |
+| `logs/CATEYE.log` | Archivos de log en VCS |
 | `logs/lifecycle.log` | Archivos de log en VCS |
 | `archive_cleanup/orion_20260630.db` | Base de datos antigua en VCS |
 

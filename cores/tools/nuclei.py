@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 from cores.tools.base import BaseTool, UnifiedResult
 
-logger = logging.getLogger("rastro.tools.nuclei")
+logger = logging.getLogger("catseye.tools.nuclei")
 
 
 class NucleiTool(BaseTool):

@@ -26,7 +26,7 @@ from cores.engine.hypothesis.models import (
 from cores.engine.hypothesis.scorer import reorder_attack_queue, score_hypothesis
 from cores.engine.hypothesis.zap_generator import generate_from_zap_alerts
 
-LOG = logging.getLogger("rastro.hypothesis")
+LOG = logging.getLogger("catseye.hypothesis")
 
 
 class HypothesisEngine:
@@ -34,7 +34,7 @@ class HypothesisEngine:
         self,
         memory: HypothesisMemory | None = None,
         ollama_host: str = "http://localhost:11434",
-        llm_model: str = "qwen3:14b",
+        llm_model: str = "freehuntx/qwen3-coder:8b",
         enable_llm: bool = False,
     ):
         self.memory = memory or HypothesisMemory()

@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" font-family="'JetBrains Mono','Fira Code',monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#050505"/>
+      <stop offset="100%" stop-color="#0a0f0a"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="rgba(17,17,17,0.8)"/>
+      <stop offset="100%" stop-color="rgba(5,15,5,0.6)"/>
+    </linearGradient>
+    <linearGradient id="topGlow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="transparent"/>
+      <stop offset="50%" stop-color="rgba(0,255,65,0.3)"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="rgba(0,0,0,0.4)"/>
+    </filter>
+    <clipPath id="codeClip">
+      <rect x="40" y="300" width="1120" height="280" rx="6"/>
+    </clipPath>
+  </defs>
+  <rect width="1200" height="750" fill="url(#bg)"/>
+  <rect width="1200" height="750" fill="none" stroke="rgba(0,255,65,0.03)" stroke-width="0.5" stroke-dasharray="32 32"/>
+
+  <!-- Top bar -->
+  <rect x="0" y="0" width="1200" height="48" fill="rgba(5,5,5,0.95)" stroke="rgba(0,255,65,0.1)" stroke-width="1"/>
+  <rect x="16" y="12" width="80" height="24" rx="4" fill="rgba(0,255,65,0.1)" stroke="rgba(0,255,65,0.2)" stroke-width="1"/>
+  <text x="36" y="28" fill="#00ff41" font-size="11" font-weight="bold" letter-spacing="3">CATEYE</text>
+  <text x="120" y="28" fill="rgba(255,255,255,0.3)" font-size="10">Centro de Reportes</text>
+
+  <!-- Header -->
+  <text x="24" y="82" fill="#e0f0e0" font-size="20" font-weight="bold">Centro de Reportes</text>
+  <text x="24" y="104" fill="rgba(255,255,255,0.35)" font-size="12">Reportes generados por IA con un clic</text>
+
+  <!-- Main Content: Split view -->
+  <!-- Left: Report List -->
+  <rect x="24" y="120" width="380" height="590" rx="8" fill="url(#card)" stroke="rgba(0,255,65,0.08)" stroke-width="1" filter="url(#shadow)"/>
+  <rect x="24" y="120" width="380" height="1" fill="url(#topGlow)"/>
+  <text x="40" y="145" fill="#e0f0e0" font-size="11" font-weight="bold">Reportes recientes</text>
+  <rect x="180" y="133" width="60" height="18" rx="9" fill="rgba(0,230,118,0.15)"/>
+  <text x="190" y="145" fill="#00e676" font-size="9" font-weight="bold">15 activos</text>
+
+  <!-- Report list items -->
+  <rect x="36" y="160" width="356" height="52" rx="6" fill="rgba(0,255,65,0.04)" stroke="rgba(0,255,65,0.1)" stroke-width="1"/>
+  <text x="48" y="180" fill="#e0f0e0" font-size="10" font-weight="bold">SSRF en /api/forward</text>
+  <text x="48" y="196" fill="rgba(255,255,255,0.3)" font-size="9">shopify.com — #RP-1024</text>
+  <rect x="280" y="168" width="60" height="16" rx="4" fill="rgba(0,184,255,0.15)"/>
+  <text x="286" y="180" fill="#00b8ff" font-size="8" font-weight="bold">BORRADOR</text>
+  <text x="286" y="192" fill="rgba(255,255,255,0.3)" font-size="8">$3,500</text>
+
+  <rect x="36" y="220" width="356" height="52" rx="6" fill="rgba(255,255,255,0.02)"/>
+  <text x="48" y="240" fill="#e0f0e0" font-size="10" font-weight="bold">IDOR en /api/users/{id}</text>
+  <text x="48" y="256" fill="rgba(255,255,255,0.3)" font-size="9">meta.com — #RP-1023</text>
+  <rect x="280" y="228" width="50" height="16" rx="4" fill="rgba(0,255,65,0.15)"/>
+  <text x="286" y="240" fill="#00ff41" font-size="8" font-weight="bold">LISTO</text>
+  <text x="286" y="252" fill="rgba(255,255,255,0.3)" font-size="8">$2,500</text>
+
+  <rect x="36" y="280" width="356" height="52" rx="6" fill="rgba(255,255,255,0.02)"/>
+  <text x="48" y="300" fill="#e0f0e0" font-size="10" font-weight="bold">XSS en /search?q=</text>
+  <text x="48" y="316" fill="rgba(255,255,255,0.3)" font-size="9">starbucks.com — #RP-1022</text>
+  <rect x="280" y="288" width="50" height="16" rx="4" fill="rgba(255,171,0,0.15)"/>
+  <text x="286" y="300" fill="#ffab00" font-size="8" font-weight="bold">REVISIÓN</text>
+  <text x="286" y="312" fill="rgba(255,255,255,0.3)" font-size="8">$1,500</text>
+
+  <rect x="36" y="340" width="356" height="52" rx="6" fill="rgba(255,255,255,0.02)"/>
+  <text x="48" y="360" fill="#e0f0e0" font-size="10" font-weight="bold">SQL Injection en /api/login</text>
+  <text x="48" y="376" fill="rgba(255,255,255,0.3)" font-size="9">starbucks.com — #RP-1021</text>
+  <rect x="280" y="348" width="50" height="16" rx="4" fill="rgba(0,184,255,0.15)"/>
+  <text x="286" y="360" fill="#00b8ff" font-size="8" font-weight="bold">BORRADOR</text>
+  <text x="286" y="372" fill="rgba(255,255,255,0.3)" font-size="8">$5,000</text>
+
+  <rect x="36" y="400" width="356" height="52" rx="6" fill="rgba(255,255,255,0.02)"/>
+  <text x="48" y="420" fill="#e0f0e0" font-size="10" font-weight="bold">RCE en /upload</text>
+  <text x="48" y="436" fill="rgba(255,255,255,0.3)" font-size="9">starbucks.com — #RP-1020</text>
+  <rect x="280" y="408" width="50" height="16" rx="4" fill="rgba(0,184,255,0.15)"/>
+  <text x="286" y="420" fill="#00b8ff" font-size="8" font-weight="bold">BORRADOR</text>
+  <text x="286" y="432" fill="rgba(255,255,255,0.3)" font-size="8">$10,000</text>
+
+  <!-- Stats summary -->
+  <line x1="36" y1="470" x2="392" y2="470" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <text x="48" y="492" fill="rgba(255,255,255,0.3)" font-size="9" letter-spacing="2">TOTAL ESTIMADO</text>
+  <text x="48" y="516" fill="#00ff41" font-size="24" font-weight="bold" filter="url(#glow)">$22,500</text>
+  <text x="48" y="536" fill="rgba(255,255,255,0.3)" font-size="9">Pendiente de pago: $8,200</text>
+
+  <rect x="280" y="480" width="100" height="32" rx="6" fill="rgba(0,255,65,0.1)" stroke="rgba(0,255,65,0.2)" stroke-width="1"/>
+  <text x="330" y="500" fill="#00ff41" font-size="10" font-weight="bold" text-anchor="middle">+ Nuevo</text>
+
+  <!-- Right: Report Detail -->
+  <rect x="420" y="120" width="756" height="590" rx="8" fill="url(#card)" stroke="rgba(0,255,65,0.08)" stroke-width="1" filter="url(#shadow)"/>
+  <rect x="420" y="120" width="756" height="1" fill="url(#topGlow)"/>
+
+  <!-- Report header -->
+  <text x="440" y="145" fill="#e0f0e0" font-size="13" font-weight="bold">SSRF en /api/forward</text>
+  <rect x="700" y="132" width="70" height="18" rx="4" fill="rgba(0,184,255,0.15)"/>
+  <text x="706" y="145" fill="#00b8ff" font-size="9" font-weight="bold">BORRADOR</text>
+  <text x="440" y="168" fill="rgba(255,255,255,0.35)" font-size="10">shopify.com · Reporte #RP-1024</text>
+
+  <!-- Action buttons -->
+  <rect x="440" y="184" width="70" height="26" rx="5" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="475" y="200" fill="rgba(255,255,255,0.6)" font-size="9" text-anchor="middle">✏️ Editar</text>
+  <rect x="520" y="184" width="80" height="26" rx="5" fill="rgba(0,255,65,0.1)" stroke="rgba(0,255,65,0.2)" stroke-width="1"/>
+  <text x="560" y="200" fill="#00ff41" font-size="9" font-weight="bold" text-anchor="middle">📄 Exportar</text>
+  <rect x="610" y="184" width="70" height="26" rx="5" fill="rgba(0,184,255,0.15)"/>
+  <text x="645" y="200" fill="#00b8ff" font-size="9" font-weight="bold" text-anchor="middle">🚀 Enviar</text>
+
+  <line x1="440" y1="222" x2="1156" y2="222" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+  <!-- AI Generated content marker -->
+  <rect x="440" y="235" width="200" height="22" rx="4" fill="rgba(0,255,65,0.05)" stroke="rgba(0,255,65,0.1)" stroke-width="1"/>
+  <text x="452" y="250" fill="#00ff41" font-size="9">🤖 Generado por IA · qwen3:14b</text>
+
+  <!-- Report Content -->
+  <text x="440" y="285" fill="#e0f0e0" font-size="12" font-weight="bold">Resumen</text>
+  <text x="440" y="305" fill="rgba(255,255,255,0.6)" font-size="10" line-height="1.5">Se identificó una vulnerabilidad de Server-Side Request Forgery (SSRF) en el endpoint /api/forward de shopify.com. El parámetro url no valida correctamente el destino, permitiendo al atacante forzar al servidor a realizar peticiones a recursos internos.</text>
+
+  <text x="440" y="345" fill="#e0f0e0" font-size="12" font-weight="bold">Impacto</text>
+  <text x="440" y="365" fill="rgba(255,255,255,0.6)" font-size="10">• Acceso a metadatos internos (AWS / GCP)</text>
+  <text x="440" y="383" fill="rgba(255,255,255,0.6)" font-size="10">• Escaneo de puertos internos</text>
+  <text x="440" y="401" fill="rgba(255,255,255,0.6)" font-size="10">• Lectura de archivos internos del servidor</text>
+
+  <text x="440" y="430" fill="#e0f0e0" font-size="12" font-weight="bold">PoC (Proof of Concept)</text>
+
+  <!-- Code block -->
+  <rect x="440" y="444" width="720" height="130" rx="6" fill="rgba(0,0,0,0.4)" stroke="rgba(0,255,65,0.08)" stroke-width="1"/>
+  <text x="452" y="462" fill="#00ff41" font-size="9" font-family="monospace"># PoC: Server-Side Request Forgery</text>
+  <text x="452" y="478" fill="#ffab00" font-size="9" font-family="monospace">$ curl -X POST https://shopify.com/api/forward \</text>
+  <text x="452" y="494" fill="#ffab00" font-size="9" font-family="monospace">  -H "Content-Type: application/json" \</text>
+  <text x="452" y="510" fill="#ffab00" font-size="9" font-family="monospace">  -d '{"url":"http://169.254.169.254/latest/meta-data/"}'</text>
+  <text x="452" y="534" fill="#00e676" font-size="9" font-family="monospace"># Respuesta: 200 OK — metadatos AWS obtenidos</text>
+  <text x="452" y="550" fill="rgba(255,255,255,0.3)" font-size="9" font-family="monospace"># { "ami-id": "ami-12345678", "instance-type": "t3.medium", ... }</text>
+
+  <text x="440" y="595" fill="#e0f0e0" font-size="12" font-weight="bold">Remediación</text>
+  <text x="440" y="615" fill="rgba(255,255,255,0.6)" font-size="10">• Validar el parámetro url contra una lista blanca de dominios permitidos</text>
+  <text x="440" y="633" fill="rgba(255,255,255,0.6)" font-size="10">• Bloquear direcciones IP privadas y de metadatos cloud</text>
+  <text x="440" y="651" fill="rgba(255,255,255,0.6)" font-size="10">• Usar una lista de bloqueo de rangos IP internos</text>
+
+  <!-- Severity and CVSS -->
+  <rect x="440" y="670" width="120" height="28" rx="6" fill="rgba(255,102,0,0.15)"/>
+  <text x="445" y="682" fill="#ff6600" font-size="9" font-weight="bold">ALTO · CVSS 7.5</text>
+  <rect x="575" y="670" width="100" height="28" rx="6" fill="rgba(0,255,65,0.1)"/>
+  <text x="580" y="682" fill="#00ff41" font-size="9" font-weight="bold">💰 $3,500 estimado</text>
+</svg>

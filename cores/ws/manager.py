@@ -9,7 +9,7 @@ from typing import Any
 
 from fastapi import WebSocket
 
-logger = logging.getLogger("rastro.ws")
+logger = logging.getLogger("catseye.ws")
 
 CLIENT_EVENT_SUBSCRIBE = "subscribe"
 CLIENT_EVENT_UNSUBSCRIBE = "unsubscribe"

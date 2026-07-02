@@ -12,7 +12,7 @@ from typing import Any
 from cores.opportunity import get_engine as get_opp_engine
 from cores.opportunity.models import Opportunity
 
-logger = logging.getLogger("rastro.orion.next_action")
+logger = logging.getLogger("catseye.orion.next_action")
 
 
 def _score_action(opp: Opportunity) -> float:

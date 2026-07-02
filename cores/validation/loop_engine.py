@@ -9,7 +9,7 @@ from cores.validation.llm_analyzer import LLMResponseAnalyzer
 from cores.validation.replayer import AuthContext, RequestReplayer, RequestSpec
 from cores.validation.rules import ValidationRuleSet
 
-logger = logging.getLogger("rastro.validation.loop")
+logger = logging.getLogger("catseye.validation.loop")
 
 DEFAULT_CONCURRENCY = 5
 

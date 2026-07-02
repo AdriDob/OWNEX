@@ -7,7 +7,7 @@ import logging
 from cores.agents.base import BaseAgent
 from cores.agents.types import AgentEvent, AgentId, EventType
 
-logger = logging.getLogger("rastro.agents.validator")
+logger = logging.getLogger("catseye.agents.validator")
 
 
 class ValidatorAgent(BaseAgent):

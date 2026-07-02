@@ -96,7 +96,7 @@ def test_path_resolution() -> None:
     config_dir = get_config_dir()
     check("get_config_dir() returns Path", isinstance(config_dir, Path))
     check("get_config_dir() does not contain XDG (no Linux fallback)",
-          "xdg" not in str(config_dir).lower() and ".config/rastro" not in str(config_dir))
+          "xdg" not in str(config_dir).lower() and ".config/CATEYE" not in str(config_dir))
 
     # Simulate frozen path
     orig_frozen = getattr(sys, "frozen", False)

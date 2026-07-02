@@ -19,11 +19,11 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-logger = logging.getLogger("rastro.intelligence.noise")
+logger = logging.getLogger("catseye.intelligence.noise")
 
 DATA_DIR = os.path.join(
     os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")),
-    "rastro",
+    "CATEYE",
     "intel",
 )
 

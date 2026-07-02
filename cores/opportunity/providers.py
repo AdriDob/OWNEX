@@ -15,7 +15,7 @@ from typing import Any
 
 from cores.opportunity.models import Opportunity, OpportunityProviderInfo, OpportunitySource
 
-logger = logging.getLogger("rastro.opportunity.providers")
+logger = logging.getLogger("catseye.opportunity.providers")
 
 _GLOBAL_PROVIDERS: list[BaseProvider] = []
 

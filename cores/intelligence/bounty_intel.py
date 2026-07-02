@@ -13,7 +13,7 @@ from typing import Any
 from cores.targets.models import TargetIntel
 from database.db import SessionLocal
 
-LOG = logging.getLogger("rastro.intelligence.bounty")
+LOG = logging.getLogger("catseye.intelligence.bounty")
 
 
 @dataclass

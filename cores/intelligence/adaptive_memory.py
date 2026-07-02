@@ -21,7 +21,7 @@ from cores.intelligence.recommendation_engine import (
 from cores.intelligence.trend_detector import TrendReport, detect_trends
 from database.db import SessionLocal
 
-LOG = logging.getLogger("rastro.intelligence.memory")
+LOG = logging.getLogger("catseye.intelligence.memory")
 
 
 @dataclass

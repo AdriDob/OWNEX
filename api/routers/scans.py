@@ -83,7 +83,7 @@ async def run_nuclei_scan(request: NucleiScanRequest):
 
     from cores.recon.nuclei_runner import NucleiRunner
 
-    tmp = Path(tempfile.mkdtemp(prefix="rastro_nuclei_"))
+    tmp = Path(tempfile.mkdtemp(prefix="CATEYE_nuclei_"))
     try:
         target_file = tmp / "targets.txt"
         target_file.write_text("\n".join(request.urls))

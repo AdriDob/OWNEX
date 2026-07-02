@@ -31,6 +31,51 @@ def get_replay_list():
     return {"targets": targets, "total": len(targets)}
 
 
+@router.get("/definitions")
+def get_definitions():
+    """Return system definitions: platforms, tools, OSINT services — consumed by frontend Settings, Connections, Identity."""
+    return {
+        "platforms": [
+            {"id": "hackerone", "name": "HackerOne", "color": "#00d46a", "url": "https://hackerone.com"},
+            {"id": "bugcrowd", "name": "Bugcrowd", "color": "#f56e2f", "url": "https://bugcrowd.com"},
+            {"id": "intigriti", "name": "Intigriti", "color": "#6935d3", "url": "https://intigriti.com"},
+            {"id": "synack", "name": "Synack", "color": "#1e88e5", "url": "https://synack.com"},
+            {"id": "yeswehack", "name": "YesWeHack", "color": "#ff6b6b", "url": "https://yeswehack.com"},
+            {"id": "immunefi", "name": "Immunefi", "color": "#8b5cf6", "url": "https://immunefi.com"},
+            {"id": "code4rena", "name": "Code4rena", "color": "#e11d48", "url": "https://code4rena.com"},
+        ],
+        "tools": [
+            {"id": "nuclei", "name": "Nuclei", "desc": "Template-based scanner"},
+            {"id": "amass", "name": "Amass", "desc": "Subdomain enumeration"},
+            {"id": "subfinder", "name": "Subfinder", "desc": "Passive subdomain discovery"},
+            {"id": "httpx", "name": "Httpx", "desc": "HTTP probe & analysis"},
+            {"id": "katana", "name": "Katana", "desc": "Crawler & spider"},
+            {"id": "ffuf", "name": "Ffuf", "desc": "Fuzzing framework"},
+            {"id": "gau", "name": "Gau", "desc": "URL gathering"},
+            {"id": "naabu", "name": "Naabu", "desc": "Port scanner"},
+            {"id": "assetfinder", "name": "Assetfinder", "desc": "Asset discovery"},
+            {"id": "dnsx", "name": "Dnsx", "desc": "DNS resolver"},
+        ],
+        "osint_services": [
+            {"id": "shodan", "name": "Shodan", "free": True, "url": "https://account.shodan.io"},
+            {"id": "censys", "name": "Censys", "free": True, "url": "https://search.censys.io/account/api"},
+            {"id": "virustotal", "name": "VirusTotal", "free": True, "url": "https://virustotal.com/gui/my-apikey"},
+            {"id": "securitytrails", "name": "SecurityTrails", "free": False, "url": "https://securitytrails.com/app/account/credentials"},
+            {"id": "alienvault", "name": "AlienVault OTX", "free": True, "url": "https://otx.alienvault.com/settings"},
+            {"id": "urlscan", "name": "URLScan.io", "free": True, "url": "https://urlscan.io/user/api/"},
+            {"id": "hunter", "name": "Hunter.io", "free": True, "url": "https://hunter.io/api-keys"},
+            {"id": "builtwith", "name": "BuiltWith", "free": False, "url": "https://api.builtwith.com/register"},
+            {"id": "hibp", "name": "Have I Been Pwned", "free": False, "url": "https://haveibeenpwned.com/API/Key"},
+            {"id": "greynoise", "name": "GreyNoise", "free": True, "url": "https://www.greynoise.io/account"},
+            {"id": "intelx", "name": "Intelligence X", "free": False, "url": "https://intelx.io/account"},
+            {"id": "pulsedive", "name": "Pulsedive", "free": True, "url": "https://pulsedive.com/account/"},
+            {"id": "ipinfo", "name": "IPInfo", "free": True, "url": "https://ipinfo.io/account"},
+        ],
+        "languages": [{"id": "es", "name": "Español"}, {"id": "en", "name": "English"}, {"id": "pt", "name": "Português"}],
+        "event_types": ["scan", "finding", "report", "verdict", "sync", "system"],
+    }
+
+
 @router.get("/replay/{target_id}")
 def get_replay(target_id: int):
     try:
