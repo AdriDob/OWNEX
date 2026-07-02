@@ -10,7 +10,7 @@ from cores.identity_vault import get_identity_vault
 from database.db import SessionLocal
 from database.models import RastroConfig
 
-logger = logging.getLogger("rastro.platforms.api")
+logger = logging.getLogger("catseye.platforms.api")
 
 router = APIRouter(prefix="/api/platforms", tags=["platforms"])
 

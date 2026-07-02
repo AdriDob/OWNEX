@@ -18,7 +18,7 @@ from typing import Any
 
 from fastapi import APIRouter
 
-logger = logging.getLogger("rastro.api.daily")
+logger = logging.getLogger("catseye.api.daily")
 
 router = APIRouter(prefix="/api/daily", tags=["daily"])
 

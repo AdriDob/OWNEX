@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("rastro.predictor.engine")
+logger = logging.getLogger("catseye.predictor.engine")
 
 PREDICTION_WINDOW = 300
 

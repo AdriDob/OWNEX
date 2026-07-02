@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { getReports, getReportStats, getRewardLearning, getFindings } from '@/lib/api'
+import { api, getReports, getReportStats, getRewardLearning, getFindings } from '@/lib/api'
 import type { ReportItem, FindingItem } from '@/lib/api'
 import { useReportStore } from '@/stores/report'
 import Card from '@/components/ui/Card.vue'
@@ -33,13 +33,14 @@ onMounted(async () => {
       getReports({ limit: 50, sort_by: 'created_at', sort_order: 'desc' }),
       getReportStats().catch(() => null),
       getRewardLearning().catch(() => null),
+      fetchMonthlyRevenue().catch(() => {}),
     ])
     reports.value = r.items || []
     stats.value = s
     rewardLearning.value = rl
+    loading.value = false
   } catch (e: any) {
     error.value = e?.message || 'Error al cargar reportes'
-  } finally {
     loading.value = false
   }
 })
@@ -119,7 +120,7 @@ const financialStats = computed(() => {
   const pending = Math.max(0, estimated - totalRewards)
   let hoursTracked = 0
   try {
-    const sessions = JSON.parse(localStorage.getItem('rastro-sessions') || '{}')
+    const sessions = JSON.parse(localStorage.getItem('CATEYE-sessions') || '{}')
     for (const day of Object.values(sessions) as any) {
       for (const s of day) {
         if (s.end) hoursTracked += (s.end - s.start) / 3600000
@@ -136,26 +137,26 @@ const financialStats = computed(() => {
   }
 })
 
-const monthlyData = computed(() => {
-  if (!rewardLearning.value) return []
-  const data: { month: string; amount: number; paid: number }[] = []
-  if (stats.value?.total_rewards) {
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-    for (let i = 0; i < 6; i++) {
-      data.push({
-        month: months[i],
-        amount: Math.round(stats.value.total_rewards / 6 * (i + 1)),
-        paid: Math.round((stats.value.total_rewards || 0) / 6 * (i + 0.5)),
-      })
-    }
+const monthlyRevenue = ref<{ month: string; amount: number; paid: number; count: number }[]>([])
+const monthlyLoading = ref(true)
+
+async function fetchMonthlyRevenue() {
+  monthlyLoading.value = true
+  try {
+    const res = await api.get<{ months: typeof monthlyRevenue.value; total: number }>('/economic/monthly-revenue')
+    monthlyRevenue.value = res.months || []
+  } catch {
+    monthlyRevenue.value = []
+  } finally {
+    monthlyLoading.value = false
   }
-  return data
-})
+}
 
 const maxMonthlyAmount = computed(() => {
-  if (monthlyData.value.length === 0) return 1
-  return Math.max(...monthlyData.value.map(d => d.amount), 1)
+  if (monthlyRevenue.value.length === 0) return 1
+  return Math.max(...monthlyRevenue.value.map(d => d.amount), 1)
 })
+
 </script>
 
 <template>
@@ -345,14 +346,17 @@ const maxMonthlyAmount = computed(() => {
             <TrendingUp class="h-3 w-3" />
             <span>Ingresos Acumulados</span>
           </div>
-          <div class="flex items-end gap-2 h-32">
-            <div v-for="(d, i) in monthlyData" :key="i" class="flex-1 flex flex-col items-center gap-1">
+          <div v-if="monthlyRevenue.length > 0" class="flex items-end gap-2 h-32">
+            <div v-for="(d, i) in monthlyRevenue" :key="i" class="flex-1 flex flex-col items-center gap-1">
               <div class="w-full rounded-t-md relative" style="min-height: 4px;">
                 <div class="w-full rounded-t-md bg-success/30 transition-all duration-500" :style="{ height: `${(d.amount / maxMonthlyAmount) * 100}%`, minHeight: '4px' }" />
                 <div class="absolute bottom-0 w-full rounded-t-md bg-success/60 transition-all duration-500" :style="{ height: `${(d.paid / maxMonthlyAmount) * 100}%`, minHeight: '2px' }" />
               </div>
               <span class="text-[10px] text-muted-foreground">{{ d.month }}</span>
             </div>
+          </div>
+          <div v-else class="flex items-center justify-center h-32 text-center">
+            <p class="font-mono text-[10px] text-muted-foreground">Sin datos mensuales disponibles</p>
           </div>
         </Card>
       </div>

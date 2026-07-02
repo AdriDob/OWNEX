@@ -31,7 +31,7 @@ from cores.artifacts import (
 from cores.intelligence.event_system import get_event_system
 from cores.intelligence.unified_orchestrator import get_orchestrator
 
-LOG = logging.getLogger("rastro.intelligence.integration")
+LOG = logging.getLogger("catseye.intelligence.integration")
 
 
 class PipelineIntegration:

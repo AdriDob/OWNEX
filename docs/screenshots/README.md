@@ -1,49 +1,42 @@
-# ORION — Screenshots
+# CATEYE — Screenshots
 
-This directory contains screenshots of the ORION Vue 3 frontend for documentation and marketing.
+Imágenes del sistema CATEYE. Todos los screenshots son SVGs generados con la estética cyber/terminal del sistema (verde `#00ff41` sobre negro `#050505`).
 
-## Available Screenshots
+## Pantallas principales
 
-| File | Resolution | Content |
-|---|---|---|
-| `dashboard-main.png` | 1920×1080 | Economic Intelligence Dashboard — KPIs, platform earnings, top opportunities |
-| `pipeline-monitor.png` | 1920×1080 | Findings Pipeline — full pipeline with stage transitions |
-| `report-detail.png` | 1920×1080 | Report Center — AI report generation with Markdown/PDF export |
-| `identity-center.png` | 1920×1080 | Identity Vault — encrypted multi-platform credential management |
-| `system-health.png` | 1920×1080 | System Health — real-time component monitoring |
-
-## Required Screenshots (TODO)
-
-The following screenshots need to be captured:
-
-| File | Content |
+| Screenshot | Descripción |
 |---|---|
-| `01-mission-control.png` | Mission Control with KPIs, pipeline, autonomous hunt status |
-| `02-opportunity-radar.png` | Opportunity Radar with ORION Score, filters, and data table |
-| `03-hot-paths.png` | Hot Paths with attack vectors and high-value targets |
-| `04-findings-pipeline.png` | Findings Pipeline with stages and detail drawer |
-| `05-report-center.png` | Report Center with AI draft generation |
-| `06-copilot-panel.png` | Copilot Panel open with contextual chat |
-| `07-command-palette.png` | Command Palette (Ctrl+K) with actions and target search |
-| `08-sidebar-collapsed.png` | Sidebar collapsed showing autonomous hunt status |
+| [![Dashboard](screenshots/dashboard-main.svg)](screenshots/dashboard-main.svg) | **Economic Dashboard** — KPIs en tiempo real, gráficos de severidad y veredictos, oportunidades prioritarias. La pantalla principal que responde a: ¿cuánto dinero tengo? ¿qué debo hacer ahora? |
+| [![Pipeline](screenshots/pipeline-monitor.svg)](screenshots/pipeline-monitor.svg) | **Findings Pipeline** — Flujo completo desde detección hasta reporte pagado. Visualiza las 5 etapas (Detectado → Validado → Confirmado → Reportado → Pagado) con conteo y acciones por hallazgo. |
+| [![Report Center](screenshots/report-detail.svg)](screenshots/report-detail.svg) | **Report Center** — Generación de reportes profesionales con IA. PoC, impacto, remediación y CVSS en un solo clic. Exportación a Markdown/PDF. |
+| [![Identity Vault](screenshots/identity-center.svg)](screenshots/identity-center.svg) | **Identity Vault** — Bóveda de credenciales cifradas con AES-256-GCM para HackerOne, Bugcrowd, Intigriti y más. Gestión de cuentas de cobro (USDT, BTC, PayPal). |
+| [![System Health](screenshots/system-health.svg)](screenshots/system-health.svg) | **System Health** — Monitoreo en tiempo real de todos los componentes: backend, base de datos, IA local, herramientas de recon, WebSocket, integraciones y recursos del sistema. |
 
-## How to Generate New Screenshots
+## Navegación adicional
 
-1. Start backend: `python run.py`
-2. Start frontend: `cd frontend && npm run dev`
-3. Open `http://localhost:5173` (dev) or `http://127.0.0.1:8000` (build)
-4. Use Playwright, ShareX, or Snipping Tool to capture
+| Página | Ruta | Descripción |
+|---|---|---|
+| **Money Radar** | `/money-radar` | Programas rankeados por ORION Score con búsqueda y filtros |
+| **Opportunity Radar** | `/radar` | Tabla de oportunidades ordenable y paginada |
+| **Hot Paths** | `/hot-paths` | Vectores de ataque priorizados con scoring de riesgo |
+| **Program Intel** | `/programs/:id` | Inteligencia profunda por programa: scope, tech stack, tiers |
+| **Memory Patterns** | `/memory-patterns` | Patrones aprendidos del historial de cacería |
+| **AI Copilot** | `Ctrl+B` | Asistente contextual con conocimiento completo del sistema |
+| **Settings** | `/settings` | Configuración general, IA, herramientas, API keys y apariencia |
+| **Connections** | `/connections` | Gestión de conexiones a plataformas y cuentas de cobro |
 
-### Using Playwright
+## Convenciones visuales
 
-```bash
-python scripts/smoke_test_playwright.py --install-playwright
-python scripts/screenshot_all.py
-```
+- **Fondo**: `#050505` con grid subtle y scanline overlay
+- **Verde**: `#00ff41` — primario, éxito, activo
+- **Cian**: `#00b8ff` — acento informativo
+- **Rojo**: `#ff1744` — crítico, destructivo, desconectado
+- **Naranja**: `#ffab00` / `#ff6600` — warning, medio-alto
+- **Tipografía**: JetBrains Mono (mono), Inter (sans)
+- **Tarjetas**: Glass effect con borde sutil `rgba(0,255,65,0.08)` y glow superior
 
-## Requirements
+## Notas
 
-- UI must show "ORION" as product name (no "Rastro" in interface)
-- Dark glassmorphism theme (default)
-- No devtools, no console windows
-- Representative test data (minimum 10 targets, 50+ findings)
+- Los SVGs son generados y no requieren conexión a backend para visualizarse
+- Representan el estado del sistema con datos de ejemplo realistas
+- El diseño es responsivo y se adapta al theme del README (claro/oscuro)

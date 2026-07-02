@@ -110,7 +110,7 @@ async function createTask() {
 
 async function updateTaskStatus(id: string, status: Task['status']) {
   try {
-    await api.put(`/system/tasks/${id}`, { status })
+    await api.patch(`/system/tasks/${id}`, { status })
     const task = tasks.value.find(t => t.id === id)
     if (task) task.status = status
   } catch { /* ignore */ }
@@ -118,7 +118,7 @@ async function updateTaskStatus(id: string, status: Task['status']) {
 
 async function updateTaskPriority(id: string, priority: Task['priority']) {
   try {
-    await api.put(`/system/tasks/${id}`, { priority })
+    await api.patch(`/system/tasks/${id}`, { priority })
     const task = tasks.value.find(t => t.id === id)
     if (task) task.priority = priority
   } catch { /* ignore */ }

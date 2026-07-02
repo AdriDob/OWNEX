@@ -44,7 +44,7 @@ def update_config(body: AIConfigUpdate):
     updates = {"provider_type": body.provider_type}
     if body.provider_type == "ollama":
         updates["host"] = body.host or "http://localhost:11434"
-        updates["model"] = body.model or "qwen3:14b"
+        updates["model"] = body.model or "freehuntx/qwen3-coder:8b"
     elif body.provider_type == "openai":
         updates["api_base"] = body.api_base or "https://api.openai.com/v1"
         updates["llm_model"] = body.model or "gpt-4o-mini"

@@ -5,7 +5,7 @@ from cores.execution.poc_generator import PoCGenerator
 from cores.validation.gate import Verdict
 from cores.validation.loop_engine import ValidationLoopEngine
 
-LOG = logging.getLogger("rastro.execution.differential")
+LOG = logging.getLogger("catseye.execution.differential")
 
 
 class DifferentialEngine:

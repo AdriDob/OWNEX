@@ -6,7 +6,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from cores.auth.session_validator import get_session_validator
 
-logger = logging.getLogger("rastro.api.middleware")
+logger = logging.getLogger("catseye.api.middleware")
 
 # Paths that do NOT require authentication
 PUBLIC_PATHS: set[str] = {

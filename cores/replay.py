@@ -6,7 +6,7 @@ from typing import Any
 
 from database.db import SessionLocal
 
-LOG = logging.getLogger("rastro.replay")
+LOG = logging.getLogger("catseye.replay")
 
 
 @dataclass(frozen=True)

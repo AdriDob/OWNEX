@@ -13,7 +13,7 @@ from typing import Any
 
 from cores.contracts import ArtifactProtocol, InvalidationPolicy
 
-LOG = logging.getLogger("rastro.intelligence.cache")
+LOG = logging.getLogger("catseye.intelligence.cache")
 
 AFFECTED_BY_CHANGE: dict[str, list[str]] = {
     "PipelineArtifact": [

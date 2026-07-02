@@ -7,7 +7,7 @@ import time
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("rastro.recovery.circuit_breaker")
+logger = logging.getLogger("catseye.recovery.circuit_breaker")
 
 MAX_FAILURES = 3
 COOLDOWN_SECONDS = 60.0

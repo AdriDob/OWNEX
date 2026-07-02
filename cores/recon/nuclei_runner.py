@@ -5,7 +5,7 @@ from pathlib import Path
 
 from .tools import _resolve_tool
 
-logger = logging.getLogger("rastro.recon.nuclei")
+logger = logging.getLogger("catseye.recon.nuclei")
 
 
 class NucleiRunner:

@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 from cores.opportunity.models import Opportunity, OpportunityRecommendations
 
-logger = logging.getLogger("rastro.opportunity.recommendations")
+logger = logging.getLogger("catseye.opportunity.recommendations")
 
 
 def generate_recommendations(opportunities: list[Opportunity]) -> OpportunityRecommendations:

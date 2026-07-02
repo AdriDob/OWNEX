@@ -25,7 +25,7 @@ from cores.validation.gate import Verdict
 from cores.validation.rules import ValidationReport
 from database import db, models
 
-logger = logging.getLogger("rastro.assistant.narrator")
+logger = logging.getLogger("catseye.assistant.narrator")
 
 
 class InvestigationNarrator:

@@ -9,7 +9,7 @@ import httpx
 
 from cores.ai.tools import AVAILABLE_TOOLS, execute_tool
 
-logger = logging.getLogger("orion.ai.agent")
+logger = logging.getLogger("catseye.ai.agent")
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -24,14 +24,14 @@ GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
-OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen3:14b")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "freehuntx/qwen3-coder:8b")
 
 MAX_TOOL_ITERATIONS = 3
 
 
 def _build_system_prompt() -> str:
     return (
-        "Sos el copiloto de ORION, una plataforma de inteligencia para bug bounty. "
+        "Sos el copiloto de CATEYE, una plataforma de inteligencia para bug bounty. "
         "Respondés con datos reales del sistema, nunca inventás cifras de dinero ni de bounties. "
         "Si no sabés algo, usá las herramientas disponibles para consultarlo. "
         "Sé directo y breve, como un analista senior, no como un chatbot genérico. "
@@ -154,7 +154,7 @@ class OrionAgent:
 
     async def _try_ollama(self, messages: list[dict]) -> str | None:
         try:
-            async with httpx.AsyncClient(timeout=8) as client:
+            async with httpx.AsyncClient(timeout=180) as client:
                 resp = await client.post(
                     f"{OLLAMA_HOST}/api/chat",
                     json={
@@ -247,7 +247,7 @@ class OrionAgent:
                     break
             else:
                 try:
-                    async with httpx.AsyncClient(timeout=8) as client:
+                    async with httpx.AsyncClient(timeout=180) as client:
                         resp = await client.post(
                             f"{OLLAMA_HOST}/api/chat",
                             json={

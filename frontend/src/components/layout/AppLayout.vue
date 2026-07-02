@@ -4,6 +4,7 @@ import Breadcrumbs from './Breadcrumbs.vue'
 import NotificationPanel from '@/components/notifications/NotificationPanel.vue'
 import ErrorBoundary from '@/components/ErrorBoundary.vue'
 import { useRoute } from 'vue-router'
+import { Eye } from '@lucide/vue'
 
 defineProps<{
   copilotOpen: boolean
@@ -30,8 +31,14 @@ const showNotifications = !route.meta?.public
     >
       <!-- Top bar -->
       <div v-if="!route.meta?.public" class="sticky top-0 z-20 flex items-center justify-between border-b border-border/20 bg-background/80 px-6 py-2 backdrop-blur-xl">
-        <Breadcrumbs />
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-3">
+          <Breadcrumbs />
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1.5 rounded-md border border-border/30 px-2 py-1">
+            <Eye class="h-3 w-3 text-primary" />
+            <span class="font-mono text-[9px] text-muted-foreground tracking-wider">CATEYE</span>
+          </div>
           <NotificationPanel />
         </div>
       </div>

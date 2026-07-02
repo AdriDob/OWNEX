@@ -5,7 +5,7 @@ from typing import Any
 
 from database.db import SessionLocal
 
-LOG = logging.getLogger("rastro.timeline")
+LOG = logging.getLogger("catseye.timeline")
 
 EVENT_TYPES = frozenset({
     "recon",

@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from threading import Lock
 from typing import Any
 
-LOG = logging.getLogger("rastro.intelligence.patterns")
+LOG = logging.getLogger("catseye.intelligence.patterns")
 
 
 @dataclass(frozen=True)

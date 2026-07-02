@@ -39,7 +39,7 @@ from cores.tools.extra import (
 )
 
 
-logger = logging.getLogger("rastro.pipeline.unified")
+logger = logging.getLogger("catseye.pipeline.unified")
 
 
 class CorrelationEngine:

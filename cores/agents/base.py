@@ -12,7 +12,7 @@ from typing import Any
 from cores.agents.bus import IEventBus, get_agent_bus
 from cores.agents.types import AgentEvent, AgentId, AgentStatus, EventType
 
-logger = logging.getLogger("rastro.agents.base")
+logger = logging.getLogger("catseye.agents.base")
 
 
 class BaseAgent(ABC):

@@ -39,7 +39,7 @@ if hasattr(sys.stderr, "reconfigure"):
 # Set DATABASE_URL before any import that touches database/db.py
 # (core_engines.intelligence imports it at module level)
 if not os.environ.get("DATABASE_URL"):
-    _db_path = Path.home() / "AppData" / "Local" / "rastro" / "database" / "orion.db"
+    _db_path = Path.home() / "AppData" / "Local" / "CATEYE" / "database" / "orion.db"
     _db_path.parent.mkdir(parents=True, exist_ok=True)
     os.environ["DATABASE_URL"] = f"sqlite:///{_db_path}"
 
@@ -321,8 +321,6 @@ def _handle_legacy_service(args: set[str]) -> bool:
 def _handle_build() -> None:
     _log("BUILD", "PyInstaller build...")
     spec = _BASE_DIR / "Orion.spec"
-    if not spec.exists():
-        spec = _BASE_DIR / "Rastro.spec"
     if not spec.exists():
         _log("BUILD", "No spec file found")
         sys.exit(1)

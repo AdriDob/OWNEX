@@ -8,7 +8,7 @@ import smtplib
 from email.mime.text import MIMEText
 from typing import Any
 
-logger = logging.getLogger("rastro.notifications.email")
+logger = logging.getLogger("catseye.notifications.email")
 
 
 class EmailAdapter:
@@ -17,7 +17,7 @@ class EmailAdapter:
         self._port = int(os.environ.get("RASTRO_SMTP_PORT", "587"))
         self._user = os.environ.get("RASTRO_SMTP_USER", "")
         self._password = os.environ.get("RASTRO_SMTP_PASSWORD", "")
-        self._from = os.environ.get("RASTRO_SMTP_FROM", "rastro@localhost")
+        self._from = os.environ.get("RASTRO_SMTP_FROM", "CATEYE@localhost")
         self._to = os.environ.get("RASTRO_NOTIFICATION_EMAIL", "")
         self._enabled = bool(self._host and self._to)
 

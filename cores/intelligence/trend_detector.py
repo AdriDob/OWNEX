@@ -5,7 +5,7 @@ from typing import Any
 
 from database.db import SessionLocal
 
-LOG = logging.getLogger("rastro.intelligence.trends")
+LOG = logging.getLogger("catseye.intelligence.trends")
 
 
 @dataclass

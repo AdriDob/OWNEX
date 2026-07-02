@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from cores.knowledge.abstracts import KnowledgeSourceInfo, KnowledgeStore
 from database.db import Base
 
-logger = logging.getLogger("rastro.knowledge.store")
+logger = logging.getLogger("catseye.knowledge.store")
 
 
 class KnowledgeSourceModel(Base):

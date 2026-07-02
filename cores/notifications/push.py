@@ -11,7 +11,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-logger = logging.getLogger("rastro.notifications.push")
+logger = logging.getLogger("catseye.notifications.push")
 
 EVENT_PUSH_MAP: dict[str, dict[str, Any]] = {
     "opportunity:found": {

@@ -70,5 +70,5 @@ class BugBountyPlatform(ABC):
     def submit(self, report_data: dict[str, Any], api_key: str) -> SubmissionResult:
         raise NotImplementedError(f"{self.platform_id} does not support API submission")
 
-    def check_status(self, external_id: str) -> str:
+    def check_status(self, external_id: str, api_key: str = "") -> str:
         raise NotImplementedError(f"{self.platform_id} does not support status checking")

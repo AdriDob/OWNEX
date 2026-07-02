@@ -26,7 +26,7 @@ from cores.recovery.healing_rules import (
 )
 from cores.recovery.persistence import get_recovery_store
 
-logger = logging.getLogger("rastro.recovery.engine")
+logger = logging.getLogger("catseye.recovery.engine")
 
 # Maximum duration (seconds) for a single recovery action before considered hung
 RECOVERY_TIMEOUT = 30.0
@@ -267,7 +267,7 @@ class RecoveryEngine:
             import httpx
 
             from cores.settings.service import get_setting
-            base = get_setting("rastro.api_url", "http://127.0.0.1:8000")
+            base = get_setting("CATEYE.api_url", "http://127.0.0.1:8000")
             r = httpx.post(f"{base}/api/scheduler/restart", timeout=5.0)
             if r.status_code == 200:
                 return True, "Scheduler restart requested via API"

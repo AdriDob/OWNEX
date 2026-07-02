@@ -4,8 +4,8 @@ const BASE = '/api'
 
 // ── Auth ──
 
-const AUTH_KEY = 'rastro-token'
-const SESSION_EXPIRES_KEY = 'rastro-session-expires'
+const AUTH_KEY = 'CATEYE-token'
+const SESSION_EXPIRES_KEY = 'CATEYE-session-expires'
 
 export function getToken(): string | null {
   try {
@@ -333,7 +333,7 @@ export async function getBankAccount() {
 // ── Orion Context ──
 
 export async function getOrionContext(refresh = false) {
-  return api.get<OrionContext>('/orion/context', { refresh: refresh || undefined })
+  return api.get<OrionContext>('/orion/context/system', { refresh: refresh || undefined })
 }
 
 // ── Targets ──
@@ -473,6 +473,16 @@ export async function getVerdicts(params?: { status?: string; limit?: number; ta
 
 export async function getSystemHealth() {
   return api.get<any>('/system/health')
+}
+
+export async function getSystemDefinitions() {
+  return api.get<{
+    platforms: { id: string; name: string; color: string; url: string }[]
+    tools: { id: string; name: string; desc: string }[]
+    osint_services: { id: string; name: string; free: boolean; url: string }[]
+    languages: { id: string; name: string }[]
+    event_types: string[]
+  }>('/system/definitions')
 }
 
 export async function getOverview() {

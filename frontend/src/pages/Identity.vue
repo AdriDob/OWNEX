@@ -54,7 +54,8 @@ const connectToken = ref('')
 const connecting = ref(false)
 const connectError = ref('')
 
-const platformList = ['HackerOne', 'Bugcrowd', 'Intigriti', 'YesWeHack', 'Synack']
+const definitions = ref<{ platforms: { id: string; name: string }[] }>({ platforms: [] })
+const platformList = computed(() => definitions.value.platforms.map(p => p.name))
 
 async function syncAll() {
   syncing.value = true
@@ -93,12 +94,14 @@ async function loadData() {
   loading.value = true
   error.value = ''
   try {
-    const [accRes, setRes] = await Promise.allSettled([
+    const [accRes, setRes, defRes] = await Promise.allSettled([
       api.get<{ accounts: PlatformAccount[] }>('/opportunity_intelligence/identity/accounts'),
       api.get<IdentitySettings>('/identity-center/settings'),
+      api.get<{ platforms: { id: string; name: string }[] }>('/system/definitions'),
     ])
     if (accRes.status === 'fulfilled') accounts.value = accRes.value.accounts || []
     if (setRes.status === 'fulfilled') settings.value = setRes.value
+    if (defRes.status === 'fulfilled') definitions.value = defRes.value
   } catch (e: any) {
     error.value = e.message || 'Failed to load identity data'
   } finally {

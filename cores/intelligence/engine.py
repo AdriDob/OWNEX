@@ -16,7 +16,7 @@ from typing import Any
 
 from cores.ai.assistant import ScanAssistant
 
-LOG = logging.getLogger("rastro.intelligence")
+LOG = logging.getLogger("catseye.intelligence")
 
 
 @dataclass

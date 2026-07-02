@@ -10,7 +10,7 @@ from typing import Any
 from database.db import SessionLocal
 from database.models import MemoryRecord
 
-logger = logging.getLogger("rastro.memory.store")
+logger = logging.getLogger("catseye.memory.store")
 
 RETENTION_DAYS = 90
 

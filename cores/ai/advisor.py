@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-logger = logging.getLogger("rastro.ai.advisor")
+logger = logging.getLogger("catseye.ai.advisor")
 
 from cores.ai.context_builder import build_full_context
 from cores.ai.provider import get_provider

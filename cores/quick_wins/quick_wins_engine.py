@@ -28,7 +28,7 @@ from cores.quick_wins.models import (
     QuickWinsReport,
 )
 
-LOG = logging.getLogger("rastro.quick_wins")
+LOG = logging.getLogger("catseye.quick_wins")
 
 
 class QuickWinsEngine:

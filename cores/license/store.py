@@ -8,7 +8,7 @@ from pathlib import Path
 
 from cores.license.hardware import get_hardware_id
 
-logger = logging.getLogger("rastro.license.store")
+logger = logging.getLogger("catseye.license.store")
 
 
 def _get_license_file() -> Path:

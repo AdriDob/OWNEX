@@ -21,7 +21,7 @@ from cores.agents import (
     get_strategy_agent,
 )
 
-logger = logging.getLogger("rastro.api.agents")
+logger = logging.getLogger("catseye.api.agents")
 router = APIRouter(prefix="/api/agents", tags=["agents"])
 
 

@@ -22,9 +22,9 @@ export const routes: RouteRecordRaw[] = [
   },
   {
     path: '/',
-    name: 'economic-dashboard',
-    component: () => import('@/pages/EconomicDashboard.vue'),
-    meta: { title: 'Panel Económico' },
+    name: 'home',
+    component: () => import('@/pages/Dashboard.vue'),
+    meta: { title: 'Centro de Inteligencia CATEYE' },
   },
   {
     path: '/legacy',

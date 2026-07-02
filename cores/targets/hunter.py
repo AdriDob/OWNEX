@@ -13,7 +13,7 @@ from cores.targets.technology import (
 )
 from database.db import SessionLocal, init_db
 
-LOG = logging.getLogger("rastro.targets.hunter")
+LOG = logging.getLogger("catseye.targets.hunter")
 
 
 class Hunter:
@@ -63,7 +63,7 @@ class Hunter:
                     resp = requests.get(
                         url,
                         timeout=15,
-                        headers={"User-Agent": "rastro/1.0 (+https://rastro.local)"},
+                        headers={"User-Agent": "CATEYE/1.0 (+https://CATEYE.local)"},
                     )
                     if resp.status_code == 200:
                         data = resp.json()

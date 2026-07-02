@@ -88,7 +88,7 @@ class Endpoint(Base):
             try:
                 return ast.literal_eval(self.params)
             except (ValueError, SyntaxError):
-                logging.getLogger("rastro.models").warning(
+                logging.getLogger("catseye.models").warning(
                     f"Could not parse params for endpoint {self.id}"
                 )
                 return {}
@@ -774,7 +774,7 @@ class PipelineRun(Base):
 
 class RastroConfig(Base):
     """Persistent key-value configuration store."""
-    __tablename__ = "rastro_config"
+    __tablename__ = "CATEYE_config"
 
     id = Column(Integer, primary_key=True, index=True)
     key = Column(String, unique=True, nullable=False, index=True)

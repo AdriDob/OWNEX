@@ -14,7 +14,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/zap", tags=["zap"])
-LOG = logging.getLogger("rastro.api.zap")
+LOG = logging.getLogger("catseye.api.zap")
 
 
 class ZapScanRequest(BaseModel):

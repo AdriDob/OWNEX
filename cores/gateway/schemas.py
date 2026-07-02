@@ -18,7 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class APIEnvelope(BaseModel):
     """Standard API response wrapper. Every endpoint returns this shape."""
     version: str = "1.0"
-    schema_: str = Field("rastro/v1", alias="schema")
+    schema_: str = Field("CATEYE/v1", alias="schema")
     data: Any = None
     error: str | None = None
     timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
@@ -32,7 +32,7 @@ class APIEnvelope(BaseModel):
 class PaginatedEnvelope(BaseModel):
     """Paginated response wrapper."""
     version: str = "1.0"
-    schema_: str = Field("rastro/v1", alias="schema")
+    schema_: str = Field("CATEYE/v1", alias="schema")
     items: list[Any] = []
     total: int = 0
     skip: int = 0

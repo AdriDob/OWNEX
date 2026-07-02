@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from cores.execution.request_mutator import RequestMutator
 
-logger = logging.getLogger("rastro.api.validation")
+logger = logging.getLogger("catseye.api.validation")
 
 router = APIRouter(prefix="/api/validation", tags=["validation"])
 
@@ -250,7 +250,7 @@ def batch_validate(request: BatchValidateRequest):
     from cores.validation.replayer import AuthContext
     from cores.validation.verdict_handler import VerdictHandler
     from database import db, models
-    logger = logging.getLogger("rastro.api.validation.batch")
+    logger = logging.getLogger("catseye.api.validation.batch")
     session_db = db.SessionLocal()
 
     try:
@@ -352,7 +352,7 @@ def record_verification(request: RecordVerificationRequest):
 
     from cores.intelligence.learning_loop import FeedbackEvent, get_learning_loop
     from cores.validation.llm_analyzer import FeedbackLearner
-    logger = logging.getLogger("rastro.api.validation.record")
+    logger = logging.getLogger("catseye.api.validation.record")
 
     valid_results = {"confirmed", "rejected", "inconclusive"}
     if request.result not in valid_results:

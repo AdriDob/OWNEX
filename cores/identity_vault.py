@@ -18,7 +18,7 @@ from typing import Any
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-logger = logging.getLogger("rastro.identity_vault")
+logger = logging.getLogger("catseye.identity_vault")
 
 _VAULT_PATH: str | None = None
 _VAULT_KEY: bytes | None = None
@@ -54,7 +54,7 @@ def _get_machine_id() -> str:
         except Exception:
             logger.warning("Failed to read /etc/machine-id", exc_info=True)
     if not raw:
-        raw.append(os.environ.get("HOSTNAME", "rastro-default"))
+        raw.append(os.environ.get("HOSTNAME", "CATEYE-default"))
 
     seen: set[str] = set()
     deduped: list[str] = []

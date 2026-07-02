@@ -9,7 +9,7 @@ from cores.knowledge.graph import KnowledgeGraphManager, KnowledgeGraphNode, Kno
 from cores.knowledge.pipeline import KnowledgeIngestPipeline, KnowledgePipelineConfig
 from cores.knowledge.trust import ConfidenceScorer
 
-logger = logging.getLogger("rastro.knowledge.manager")
+logger = logging.getLogger("catseye.knowledge.manager")
 
 
 class KnowledgeManager(ABC):

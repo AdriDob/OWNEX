@@ -1,10 +1,20 @@
 
+from __future__ import annotations
+
+import json
+import logging
+from typing import Any
+
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import Response
 from pydantic import BaseModel
 
 from api.schemas.models import PaginatedResponse
 from api.services.data_service import create_finding as svc_create_finding
 from api.services.data_service import list_findings
+from database import db, models
+
+logger = logging.getLogger("catseye.api.findings")
 
 router = APIRouter(prefix="/api/findings", tags=["findings"])
 
@@ -15,6 +25,23 @@ class FindingCreate(BaseModel):
     title: str
     severity: str | None = "medium"
     description: str | None = None
+
+
+class StatusUpdate(BaseModel):
+    status: str
+
+
+def _finding_to_dict(f) -> dict[str, Any]:
+    return {
+        "id": f.id,
+        "target_id": f.target_id,
+        "endpoint_id": f.endpoint_id,
+        "title": f.title or f"Finding #{f.id}",
+        "severity": f.severity or "medium",
+        "description": f.description,
+        "status": getattr(f, "status", "open"),
+        "created_at": f.created_at.isoformat() if f.created_at else None,
+    }
 
 
 @router.post("")
@@ -43,3 +70,195 @@ def get_findings(
 ):
     items, total = list_findings(target_id=target_id, endpoint_id=endpoint_id, skip=skip, limit=limit, sort_by=sort_by, sort_order=sort_order, search=search)
     return {"items": items, "total": total, "skip": skip, "limit": limit}
+
+
+@router.get("/stats")
+def get_findings_stats():
+    """Return aggregate statistics for findings."""
+    db.init_db()
+    session = db.SessionLocal()
+    try:
+        total = session.query(models.Finding).count()
+        severity_counts = {}
+        for row in session.query(models.Finding.severity, db.func.count()).group_by(models.Finding.severity).all():
+            severity_counts[row[0] or "unknown"] = row[1]
+        new_24h = session.query(models.Finding).filter(
+            models.Finding.created_at >= db.func.now() - db.text("INTERVAL '24 hours'")
+        ).count()
+        return {
+            "total": total,
+            "by_severity": severity_counts,
+            "new_24h": new_24h,
+        }
+    finally:
+        session.close()
+
+
+@router.get("/{finding_id}")
+def get_finding(finding_id: int):
+    """Return a single finding by ID."""
+    db.init_db()
+    session = db.SessionLocal()
+    try:
+        f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
+        if not f:
+            raise HTTPException(status_code=404, detail="Finding not found")
+        return _finding_to_dict(f)
+    finally:
+        session.close()
+
+
+@router.put("/{finding_id}/status")
+def update_finding_status(finding_id: int, body: StatusUpdate):
+    """Update finding status (open/confirmed/rejected/in_progress)."""
+    db.init_db()
+    session = db.SessionLocal()
+    try:
+        f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
+        if not f:
+            raise HTTPException(status_code=404, detail="Finding not found")
+        f.status = body.status
+        session.commit()
+        return _finding_to_dict(f)
+    finally:
+        session.close()
+
+
+@router.post("/{finding_id}/classification")
+def classify_finding(finding_id: int) -> dict[str, Any]:
+    """Run automated classification on a finding (simple rule-based)."""
+    db.init_db()
+    session = db.SessionLocal()
+    try:
+        f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
+        if not f:
+            raise HTTPException(status_code=404, detail="Finding not found")
+        desc = (f.description or "").lower()
+        if any(kw in desc for kw in ["sql", "injection", "sqli"]):
+            classification = "sqli"
+        elif any(kw in desc for kw in ["xss", "cross-site", "script"]):
+            classification = "xss"
+        elif any(kw in desc for kw in ["csrf", "cross-site request"]):
+            classification = "csrf"
+        elif any(kw in desc for kw in ["rce", "remote code", "command injection"]):
+            classification = "rce"
+        elif any(kw in desc for kw in ["ssrf", "server-side request"]):
+            classification = "ssrf"
+        elif any(kw in desc for kw in ["idor", "insecure direct"]):
+            classification = "idor"
+        elif any(kw in desc for kw in ["open redirect", "redirect"]):
+            classification = "open-redirect"
+        else:
+            classification = "other"
+        return {"finding_id": finding_id, "classification": classification}
+    finally:
+        session.close()
+
+
+@router.get("/{finding_id}/evidence")
+def get_finding_evidence(finding_id: int):
+    """Return evidence items associated with a finding."""
+    db.init_db()
+    session = db.SessionLocal()
+    try:
+        f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
+        if not f:
+            raise HTTPException(status_code=404, detail="Finding not found")
+        evidence = session.query(models.Evidence).filter(
+            models.Evidence.finding_id == finding_id
+        ).all() if hasattr(models.Evidence, 'finding_id') else []
+        return {"items": [{
+            "id": e.id,
+            "response_status": getattr(e, "response_status", None),
+            "consistent": getattr(e, "consistent", None),
+            "created_at": e.created_at.isoformat() if e.created_at else None,
+        } for e in evidence], "total": len(evidence)}
+    finally:
+        session.close()
+
+
+@router.post("/{finding_id}/regen-narrative")
+def regen_narrative(finding_id: int) -> dict[str, Any]:
+    """Regenerate narrative for a finding (placeholder — returns current data)."""
+    db.init_db()
+    session = db.SessionLocal()
+    try:
+        f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
+        if not f:
+            raise HTTPException(status_code=404, detail="Finding not found")
+        return _finding_to_dict(f)
+    finally:
+        session.close()
+
+
+@router.post("/{finding_id}/generate-report")
+def generate_report(finding_id: int) -> dict[str, Any]:
+    """Generate a draft report from a finding."""
+    db.init_db()
+    session = db.SessionLocal()
+    try:
+        f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
+        if not f:
+            raise HTTPException(status_code=404, detail="Finding not found")
+        return {
+            "finding_id": finding_id,
+            "title": f.title or f"Finding #{f.id}",
+            "severity": f.severity or "medium",
+            "description": f.description or "",
+            "remediation": "No se especificó remediación.",
+        }
+    finally:
+        session.close()
+
+
+@router.get("/{finding_id}/export-markdown")
+def export_finding_markdown(finding_id: int):
+    """Export finding as Markdown."""
+    db.init_db()
+    session = db.SessionLocal()
+    try:
+        f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
+        if not f:
+            raise HTTPException(status_code=404, detail="Finding not found")
+        md = f"""# {f.title or f'Finding #{f.id}'}
+
+**Severidad:** {f.severity or 'medium'}
+**Target ID:** {f.target_id}
+**Endpoint ID:** {f.endpoint_id or 'N/A'}
+
+## Descripción
+
+{f.description or 'Sin descripción.'}
+
+---
+*Generado por CATEYE — {__import__('datetime').datetime.now().isoformat()}*
+"""
+        return Response(content=md, media_type="text/markdown", headers={"Content-Disposition": f"attachment; filename=finding_{finding_id}.md"})
+    finally:
+        session.close()
+
+
+@router.get("/{finding_id}/export-pdf")
+def export_finding_pdf(finding_id: int):
+    """Export finding as PDF (returns a simple HTML version for now)."""
+    db.init_db()
+    session = db.SessionLocal()
+    try:
+        f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
+        if not f:
+            raise HTTPException(status_code=404, detail="Finding not found")
+        html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>{f.title}</title></head>
+<body style="font-family: monospace; background: #050505; color: #e0f0e0; padding: 2rem;">
+<h1 style="color: #00ff41;">{f.title or f'Finding #{f.id}'}</h1>
+<p><strong>Severidad:</strong> {f.severity or 'medium'}</p>
+<p><strong>Target:</strong> {f.target_id}</p>
+<p><strong>Endpoint:</strong> {f.endpoint_id or 'N/A'}</p>
+<h2>Descripción</h2>
+<p>{f.description or 'Sin descripción.'}</p>
+<hr>
+<small>Generado por CATEYE</small>
+</body></html>"""
+        return Response(content=html, media_type="text/html", headers={"Content-Disposition": f"attachment; filename=finding_{finding_id}.html"})
+    finally:
+        session.close()

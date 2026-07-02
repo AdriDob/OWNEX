@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from threading import Lock
 from typing import Any
 
-LOG = logging.getLogger("rastro.observability")
+LOG = logging.getLogger("catseye.observability")
 
 _metrics: dict[str, list[float]] = defaultdict(list)
 _metrics_lock = Lock()

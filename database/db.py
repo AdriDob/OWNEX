@@ -9,7 +9,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./database/rastro.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./database/catseye.db")
 IS_SQLITE = DATABASE_URL.startswith("sqlite")
 
 _engine_args: dict = {}
@@ -49,7 +49,7 @@ def _ensure_db_dir() -> None:
         db_path.parent.mkdir(parents=True, exist_ok=True)
 
 
-logger = __import__('logging').getLogger('rastro.db')
+logger = __import__('logging').getLogger('catseye.db')
 
 
 def _get_existing_columns(session, table_name: str) -> set[str]:

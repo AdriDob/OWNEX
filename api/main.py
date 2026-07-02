@@ -30,6 +30,7 @@ from api.routers import (
     evidence,
     execution,
     findings,
+    hunt,
     hypotheses,
     identity,
     identity_center,
@@ -44,6 +45,7 @@ from api.routers import (
     opportunity_intelligence,
     orchestrator,
     orion,
+    osint,
     overview,
     pipeline,
     platforms,
@@ -55,6 +57,7 @@ from api.routers import (
     screenshots,
     settings_ai,
     settings_runtime,
+    settings_unified,
     sync,
     system,
     system_state,
@@ -74,7 +77,8 @@ from database import db
 
 setup_logging()
 
-logger = logging.getLogger("rastro.api")
+logger = logging.getLogger("catseye.api")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -389,6 +393,7 @@ app.include_router(idor.router)
 app.include_router(investigations.router)
 app.include_router(settings_ai.router)
 app.include_router(settings_runtime.router)
+app.include_router(settings_unified.router)
 app.include_router(webhooks.router)
 app.include_router(orion.router)
 app.include_router(economic.router)
@@ -396,20 +401,13 @@ app.include_router(agents_router.router)
 app.include_router(zap.router)
 app.include_router(connections.router)
 app.include_router(platforms.router)
+app.include_router(osint.router)
+app.include_router(hunt.router)
 
 
 APP_VERSION = _APP_VERSION
 
 
-# Se ha eliminado el manejador de excepciones global porque el ErrorHandlingMiddleware ahora se encarga de esto.
-# @app.exception_handler(Exception)
-# async def global_exception_handler(request, exc):
-#     logger.error("Unhandled error on %s: %s", request.url.path, exc)
-#     from fastapi.responses import JSONResponse
-#     return JSONResponse(
-#         status_code=500,
-#         content={"error": str(exc), "detail": "Internal server error"},
-#     )
 
 
 @app.get("/api/health")
@@ -503,21 +501,23 @@ async def stats():
 @app.get("/api/metrics", response_class=PlainTextResponse)
 async def metrics():
     """Prometheus-style metrics endpoint."""
-    lines = ["# HELP rastro_pipeline_timing Pipeline stage timing in ms", "# TYPE rastro_pipeline_timing gauge"]
+    lines = ["# HELP CATEYE_pipeline_timing Pipeline stage timing in ms", "# TYPE CATEYE_pipeline_timing gauge"]
     for name, stats in get_metrics().items():
         safe = name.replace(".", "_").replace(" ", "_")
-        lines.append(f'rastro_{safe}{{stat="avg_ms"}} {stats["avg_ms"]}')
-        lines.append(f'rastro_{safe}{{stat="count"}} {stats["count"]}')
-        lines.append(f'rastro_{safe}{{stat="total_ms"}} {stats["total_ms"]}')
+        lines.append(f'CATEYE_{safe}{{stat="avg_ms"}} {stats["avg_ms"]}')
+        lines.append(f'CATEYE_{safe}{{stat="count"}} {stats["count"]}')
+        lines.append(f'CATEYE_{safe}{{stat="total_ms"}} {stats["total_ms"]}')
 
     memory = get_memory()
     state = memory.get_state()
-    lines.append('# HELP rastro_intelligence Intelligence layer metrics')
-    lines.append('# TYPE rastro_intelligence gauge')
-    lines.append(f'rastro_intelligence{{stat="patterns_learned"}} {state.get("total_patterns_learned", 0)}')
-    lines.append(f'rastro_intelligence{{stat="recommendations_generated"}} {state.get("total_recommendations_generated", 0)}')
-    lines.append(f'rastro_intelligence{{stat="snapshots_created"}} {state.get("total_snapshots_created", 0)}')
-    lines.append(f'rastro_intelligence{{stat="analysis_time_ms"}} {state.get("total_analysis_time_ms", 0.0)}')
+    lines.append('# HELP CATEYE_intelligence Intelligence layer metrics')
+    lines.append('# TYPE CATEYE_intelligence gauge')
+    lines.append(f'CATEYE_intelligence{{stat="patterns_learned"}} {state.get("total_patterns_learned", 0)}')
+    lines.append(
+        f'CATEYE_intelligence{{stat="recommendations_generated"}} {state.get("total_recommendations_generated", 0)}'
+    )
+    lines.append(f'CATEYE_intelligence{{stat="snapshots_created"}} {state.get("total_snapshots_created", 0)}')
+    lines.append(f'CATEYE_intelligence{{stat="analysis_time_ms"}} {state.get("total_analysis_time_ms", 0.0)}')
 
     from cores.confidence import audit_verdicts
     from cores.replay import list_replay_targets
@@ -534,27 +534,27 @@ async def metrics():
     except Exception:
         timeline_count = replay_targets = confidence_count = review_count = 0
 
-    lines.append('# HELP rastro_system System hardening layer metrics')
-    lines.append('# TYPE rastro_system gauge')
-    lines.append(f'rastro_system{{stat="timeline_events"}} {timeline_count}')
-    lines.append(f'rastro_system{{stat="replays_generated"}} {replay_targets}')
-    lines.append(f'rastro_system{{stat="confidence_audits"}} {confidence_count}')
-    lines.append(f'rastro_system{{stat="review_queue_items"}} {review_count}')
+    lines.append('# HELP CATEYE_system System hardening layer metrics')
+    lines.append('# TYPE CATEYE_system gauge')
+    lines.append(f'CATEYE_system{{stat="timeline_events"}} {timeline_count}')
+    lines.append(f'CATEYE_system{{stat="replays_generated"}} {replay_targets}')
+    lines.append(f'CATEYE_system{{stat="confidence_audits"}} {confidence_count}')
+    lines.append(f'CATEYE_system{{stat="review_queue_items"}} {review_count}')
 
     # ── Opportunity Intelligence metrics ────────────────────────────
     try:
         from cores.opportunity import get_engine
         engine = get_engine()
         opp_metrics = engine.get_metrics()
-        lines.append('# HELP rastro_opportunity Opportunity intelligence layer metrics')
-        lines.append('# TYPE rastro_opportunity gauge')
-        lines.append(f'rastro_opportunity{{stat="total"}} {opp_metrics.get("opportunities_total", 0)}')
-        lines.append(f'rastro_opportunity{{stat="providers_active"}} {opp_metrics.get("providers_active", 0)}')
-        lines.append(f'rastro_opportunity{{stat="average_score"}} {opp_metrics.get("average_score", 0)}')
+        lines.append('# HELP CATEYE_opportunity Opportunity intelligence layer metrics')
+        lines.append('# TYPE CATEYE_opportunity gauge')
+        lines.append(f'CATEYE_opportunity{{stat="total"}} {opp_metrics.get("opportunities_total", 0)}')
+        lines.append(f'CATEYE_opportunity{{stat="providers_active"}} {opp_metrics.get("providers_active", 0)}')
+        lines.append(f'CATEYE_opportunity{{stat="average_score"}} {opp_metrics.get("average_score", 0)}')
         for prio, count in opp_metrics.get("by_priority", {}).items():
-            lines.append(f'rastro_opportunity{{stat="priority",category="{prio}"}} {count}')
+            lines.append(f'CATEYE_opportunity{{stat="priority",category="{prio}"}} {count}')
         for cat, count in opp_metrics.get("by_category", {}).items():
-            lines.append(f'rastro_opportunity{{stat="category",category="{cat}"}} {count}')
+            lines.append(f'CATEYE_opportunity{{stat="category",category="{cat}"}} {count}')
     except Exception as exc:
         logger.warning("Failed to collect opportunity metrics: %s", exc)
 
@@ -563,35 +563,35 @@ async def metrics():
         from cores.actions.execution_tracker import get_execution_tracker
         et = get_execution_tracker()
         estats = et.get_stats()
-        lines.append('# HELP rastro_execution Execution layer metrics')
-        lines.append('# TYPE rastro_execution gauge')
-        lines.append(f'rastro_execution{{stat="total"}} {estats.get("total_executions", 0)}')
+        lines.append('# HELP CATEYE_execution Execution layer metrics')
+        lines.append('# TYPE CATEYE_execution gauge')
+        lines.append(f'CATEYE_execution{{stat="total"}} {estats.get("total_executions", 0)}')
         for atype, astats in estats.get("by_type", {}).items():
             safe_t = atype.replace(" ", "_").replace("-", "_")
-            lines.append(f'rastro_execution{{stat="avg_score",type="{safe_t}"}} {astats.get("avg_score", 0)}')
-            lines.append(f'rastro_execution{{stat="avg_duration_ms",type="{safe_t}"}} {astats.get("avg_duration", 0)}')
-            lines.append(f'rastro_execution{{stat="errors",type="{safe_t}"}} {astats.get("errors", 0)}')
+            lines.append(f'CATEYE_execution{{stat="avg_score",type="{safe_t}"}} {astats.get("avg_score", 0)}')
+            lines.append(f'CATEYE_execution{{stat="avg_duration_ms",type="{safe_t}"}} {astats.get("avg_duration", 0)}')
+            lines.append(f'CATEYE_execution{{stat="errors",type="{safe_t}"}} {astats.get("errors", 0)}')
 
         from cores.accountability.system_scorecard import get_system_scorecard
         sc = get_system_scorecard()
         latest = sc.get_latest()
         if latest:
-            lines.append(f'rastro_execution{{stat="success_rate"}} {latest.get("success_rate", 0)}')
-            lines.append(f'rastro_execution{{stat="avg_outcome_score"}} {latest.get("avg_outcome_score", 0)}')
-            lines.append(f'rastro_execution{{stat="active_decisions"}} {latest.get("active_decisions", 0)}')
-            lines.append(f'rastro_execution{{stat="memory_usage"}} {latest.get("memory_usage", 0)}')
+            lines.append(f'CATEYE_execution{{stat="success_rate"}} {latest.get("success_rate", 0)}')
+            lines.append(f'CATEYE_execution{{stat="avg_outcome_score"}} {latest.get("avg_outcome_score", 0)}')
+            lines.append(f'CATEYE_execution{{stat="active_decisions"}} {latest.get("active_decisions", 0)}')
+            lines.append(f'CATEYE_execution{{stat="memory_usage"}} {latest.get("memory_usage", 0)}')
 
         from cores.memory.insight_archive import get_insight_archive
         ia = get_insight_archive()
-        lines.append(f'rastro_execution{{stat="insights_total"}} {ia.total_count()}')
+        lines.append(f'CATEYE_execution{{stat="insights_total"}} {ia.total_count()}')
 
         from cores.explainability.explanation_engine import get_explanation_engine
         ee = get_explanation_engine()
-        lines.append(f'rastro_execution{{stat="explanations"}} {ee.count()}')
+        lines.append(f'CATEYE_execution{{stat="explanations"}} {ee.count()}')
 
         from cores.explainability.decision_trace import get_decision_trace
         dt = get_decision_trace()
-        lines.append(f'rastro_execution{{stat="decision_traces"}} {dt.count()}')
+        lines.append(f'CATEYE_execution{{stat="decision_traces"}} {dt.count()}')
     except Exception as exc:
         logger.warning("Failed to collect execution metrics: %s", exc)
 

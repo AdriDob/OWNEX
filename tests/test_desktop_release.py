@@ -177,7 +177,7 @@ class TestFirstRun:
         from desktop.settings import DEFAULT_SETTINGS, DesktopSettings
 
         with tempfile.TemporaryDirectory() as td:
-            settings_path = os.path.join(td, "rastro", "settings.json")
+            settings_path = os.path.join(td, "CATEYE", "settings.json")
             os.makedirs(os.path.dirname(settings_path), exist_ok=True)
             data = dict(DEFAULT_SETTINGS)
             data["first_run"] = True
@@ -220,12 +220,12 @@ class TestCoreEnvConfig:
     def test_config_dir_default(self):
         from cores.env.config import EnvConfig
         cfg = EnvConfig()
-        assert "rastro" in str(cfg.config_dir)
+        assert "CATEYE" in str(cfg.config_dir)
 
     def test_data_dir_default(self):
         from cores.env.config import EnvConfig
         cfg = EnvConfig()
-        assert "rastro" in str(cfg.data_dir)
+        assert "CATEYE" in str(cfg.data_dir)
 
 
 # ── Capacitor config exists (mobile) ─────────────────────────────────
@@ -235,8 +235,8 @@ class TestCapacitorConfig:
         path = PROJECT_DIR / "capacitor.config.json"
         assert path.is_file(), f"capacitor.config.json not found at {path}"
         content = path.read_text()
-        assert "ai.rastro.app" in content
-        assert "Rastro" in content
+        assert "ai.CATEYE.app" in content
+        assert "CATEYE" in content
         assert "frontend/dist" in content
 
     def test_capacitor_config_is_valid_json(self):
@@ -245,8 +245,8 @@ class TestCapacitorConfig:
         path = PROJECT_DIR / "capacitor.config.json"
         content = path.read_text()
         cfg = json.loads(content)
-        assert cfg["appId"] == "ai.rastro.app"
-        assert cfg["appName"] == "Rastro"
+        assert cfg["appId"] == "ai.CATEYE.app"
+        assert cfg["appName"] == "CATEYE"
         assert cfg["webDir"] == "frontend/dist"
 
 

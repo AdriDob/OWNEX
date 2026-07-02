@@ -22,7 +22,7 @@ from typing import Any
 
 from database import db, models
 
-logger = logging.getLogger("rastro.scheduler")
+logger = logging.getLogger("catseye.scheduler")
 
 STAGE_INTERVALS = {
     "discover": 3600,       # every hour

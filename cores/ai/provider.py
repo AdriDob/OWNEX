@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Generator
 from dataclasses import dataclass, field
 
-logger = logging.getLogger("rastro.ai.provider")
+logger = logging.getLogger("catseye.ai.provider")
 
 
 @dataclass
@@ -34,11 +34,11 @@ PROVIDER_CATALOG: list[ProviderSpec] = [
     ProviderSpec(
         id="ollama",
         label="Ollama (Local)",
-        models=["qwen3:14b", "qwen2.5-coder:7b", "codellama:7b", "llama3.1:8b", "mistral:7b"],
+        models=["freehuntx/qwen3-coder:8b", "qwen3:14b", "qwen2.5-coder:7b", "codellama:7b", "llama3.1:8b", "mistral:7b"],
         env_host="OLLAMA_HOST",
         env_model="OLLAMA_MODEL",
         default_host="http://localhost:11434",
-        default_model="qwen3:14b",
+        default_model="freehuntx/qwen3-coder:8b",
     ),
     ProviderSpec(
         id="openai",
@@ -95,7 +95,7 @@ class AIProvider(ABC):
 class OllamaProvider(AIProvider):
     def __init__(self, host: str | None = None, model: str | None = None):
         self.host = host or os.environ.get("OLLAMA_HOST", "http://localhost:11434")
-        self.model = model or os.environ.get("OLLAMA_MODEL", "qwen3:14b")
+        self.model = model or os.environ.get("OLLAMA_MODEL", "freehuntx/qwen3-coder:8b")
         self._available: bool | None = None
 
     def _check(self) -> bool:
@@ -413,7 +413,7 @@ class ProviderRegistry:
         config.setdefault("api_base", os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"))
         config.setdefault("llm_model", os.environ.get("LLM_MODEL", "gpt-4o-mini"))
         config.setdefault("ollama_host", os.environ.get("OLLAMA_HOST", "http://localhost:11434"))
-        config.setdefault("ollama_model", os.environ.get("OLLAMA_MODEL", "qwen3:14b"))
+        config.setdefault("ollama_model", os.environ.get("OLLAMA_MODEL", "freehuntx/qwen3-coder:8b"))
         return config
 
     def _save_config(self, cfg: dict):
@@ -450,7 +450,7 @@ class ProviderRegistry:
         if ptype in ("ollama", "gemini"):
             p = OllamaProvider(
                 host=cfg.get("ollama_host", "http://localhost:11434"),
-                model=cfg.get("ollama_model", "qwen3:14b"),
+                model=cfg.get("ollama_model", "freehuntx/qwen3-coder:8b"),
             )
             if p.is_available():
                 return p

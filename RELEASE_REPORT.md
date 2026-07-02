@@ -20,7 +20,7 @@
 
 **Causa raíz:** En el código original, `App.tsx` renderizaba `BootScreen` con un `return` anticipado (línea 249) ANTES de que `QueryClientProvider` estuviera montado en el árbol de React (línea 305). `BootScreen` llama a `useSystemState()` → `useQuery()` → `useQueryClient()` → `useContext(QueryClientContext)`. Como el contexto tiene valor `undefined` (ningún Provider por encima), React Query lanza `Error("No QueryClient set")`.
 
-**Por qué se manifiesta solo en producción:** El desarrollador tenía `sessionStorage` con `rastro-boot-complete='true'` de sesiones previas, por lo que nunca disparaba el early return de BootScreen en dev. En una instalación Windows limpia, `sessionStorage` está vacío → `bootComplete=false` → BootScreen se renderiza → crash.
+**Por qué se manifiesta solo en producción:** El desarrollador tenía `sessionStorage` con `CATEYE-boot-complete='true'` de sesiones previas, por lo que nunca disparaba el early return de BootScreen en dev. En una instalación Windows limpia, `sessionStorage` está vacío → `bootComplete=false` → BootScreen se renderiza → crash.
 
 **Por qué el smoke test HTTP no lo detectó:** Solo verifica respuestas HTTP (backend API + HTML estático). No ejecuta JavaScript en un navegador. No usa headless browser.
 

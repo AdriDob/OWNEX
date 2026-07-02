@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { api } from '@/lib/api'
+import { api, getToken } from '@/lib/api'
 import Card from '@/components/ui/Card.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
@@ -63,11 +63,16 @@ async function updateStatus(status: string) {
   finally { saving.value = false }
 }
 
-async function handleExport(format: 'json' | 'markdown') {
+async function handleExport(format: 'markdown' | 'json') {
   exporting.value = format
   try {
-    const blob = await api.post<Blob>(`/reports/${reportId.value}/export?format=${format}`)
-    const url = URL.createObjectURL(blob as any)
+    const token = getToken()
+    const res = await fetch(`/api/reports/${reportId.value}/export?format=${format}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+    if (!res.ok) throw new Error()
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
     a.download = `report-${reportId.value}.${format === 'markdown' ? 'md' : 'json'}`

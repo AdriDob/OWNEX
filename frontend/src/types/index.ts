@@ -179,7 +179,7 @@ export interface OrionContext {
   scans: { active: number; recent: Array<{ id: number; target_id: number; mode: string; status: string; endpoints: number; started: string }> }
   activity_24h: { total: number; events: Array<{ type: string; id: number; severity?: string; timestamp: string }> }
   pipeline: { detected: number; validated: number; confirmed: number; reported: number }
-  _meta: { cached_at: number; ttl_seconds: number; error?: string }
+  _meta: { cached_at: number; ttl_seconds: number; version?: string; error?: string }
 }
 
 // ── Pipeline ──

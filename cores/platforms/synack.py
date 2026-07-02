@@ -5,7 +5,7 @@ from typing import Any
 
 from cores.platforms.base import BugBountyPlatform
 
-logger = logging.getLogger("rastro.platforms.synack")
+logger = logging.getLogger("catseye.platforms.synack")
 
 
 class Synack(BugBountyPlatform):

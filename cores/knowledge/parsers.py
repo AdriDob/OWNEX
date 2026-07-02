@@ -5,7 +5,7 @@ from typing import Any
 
 from cores.knowledge.abstracts import KnowledgeParser
 
-logger = logging.getLogger("rastro.knowledge.parsers")
+logger = logging.getLogger("catseye.knowledge.parsers")
 
 
 class GenericKnowledgeParser(KnowledgeParser):

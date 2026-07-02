@@ -5,9 +5,9 @@ import logging
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("rastro.settings")
+logger = logging.getLogger("catseye.settings")
 
-RASTRO_NS = "rastro"
+RASTRO_NS = "CATEYE"
 PLATFORM_NS = "platform"
 
 

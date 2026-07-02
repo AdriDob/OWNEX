@@ -181,7 +181,7 @@ def _write_docs(output_dir: Path, version: str) -> None:
         f"═══════════════════════════════════════════\n"
         f"\n"
         f"• Dashboard:      http://127.0.0.1:8000\n"
-        f"• Documentación:  https://github.com/AdriDob/rastrohunteralpha\n"
+        f"• Documentación:  https://github.com/AdriDob/CATEYEhunteralpha\n"
         f"• Licencia:       LICENSE.txt\n"
         f"\n"
         f"─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═\n"

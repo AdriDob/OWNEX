@@ -6,7 +6,7 @@ from typing import Any
 
 from database import db, models
 
-logger = logging.getLogger("orion.ai.tools")
+logger = logging.getLogger("catseye.ai.tools")
 
 AVAILABLE_TOOLS = [
     {

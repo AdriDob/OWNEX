@@ -19,7 +19,7 @@ try:
 except ImportError:
     aiohttp = None  # type: ignore[assignment]
 
-LOG = logging.getLogger("rastro.recon.zap")
+LOG = logging.getLogger("catseye.recon.zap")
 
 
 @dataclass
@@ -281,7 +281,7 @@ class ZapRunner:
                 "error": str(e),
             }
 
-    async def new_session(self, name: str = "rastro-scan", overwrite: bool = True) -> dict:
+    async def new_session(self, name: str = "CATEYE-scan", overwrite: bool = True) -> dict:
         """Create a new ZAP session for isolated scanning."""
         return await self._post("core/action/newSession", {
             "name": name,

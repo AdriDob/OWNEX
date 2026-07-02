@@ -8,7 +8,7 @@ from typing import Any
 from cores.agents.base import BaseAgent
 from cores.agents.types import AgentEvent, AgentId, EventType
 
-logger = logging.getLogger("rastro.agents.documentation")
+logger = logging.getLogger("catseye.agents.documentation")
 
 
 class DocumentationAgent(BaseAgent):

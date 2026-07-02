@@ -27,7 +27,7 @@ class EnvConfig:
         default_factory=lambda: Path(
             os.environ.get(
                 "RASTRO_DATA_DIR",
-                Path.home() / ".local" / "share" / "rastro",
+                Path.home() / ".local" / "share" / "CATEYE",
             )
         )
     )
@@ -40,7 +40,7 @@ class EnvConfig:
                         "XDG_CONFIG_HOME",
                         Path.home() / ".config",
                     )
-                ) / "rastro",
+                ) / "CATEYE",
             )
         )
     )

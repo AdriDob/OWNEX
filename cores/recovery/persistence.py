@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("rastro.recovery.persistence")
+logger = logging.getLogger("catseye.recovery.persistence")
 
 
 class RecoveryStore:

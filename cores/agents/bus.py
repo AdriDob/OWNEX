@@ -17,7 +17,7 @@ from typing import Any
 
 from cores.agents.types import AgentEvent, AgentId, EventType
 
-logger = logging.getLogger("rastro.agents.bus")
+logger = logging.getLogger("catseye.agents.bus")
 
 EventHandler = Callable[[AgentEvent], Any]
 LoggingHook = Callable[[AgentEvent], None]

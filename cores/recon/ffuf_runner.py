@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 from .tools import _resolve_tool
 
-LOG = logging.getLogger("rastro.recon.ffuf")
+LOG = logging.getLogger("catseye.recon.ffuf")
 
 
 class FfufRunner:

@@ -14,7 +14,7 @@ from .httpx import HttpxTool
 from .nuclei import NucleiTool
 from .subfinder import SubfinderTool
 
-logger = logging.getLogger("rastro.tools.extra")
+logger = logging.getLogger("catseye.tools.extra")
 
 DEFAULT_SECLISTS_PATH = os.environ.get("SECLISTS_PATH", "/usr/share/seclists")
 DEFAULT_FFUF_PROFILES = {

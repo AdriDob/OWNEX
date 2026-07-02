@@ -2,7 +2,7 @@
 
 Usage:
     # Set target PostgreSQL URL
-    export DATABASE_URL=postgresql://user:pass@localhost:5432/rastro
+    export DATABASE_URL=postgresql://user:pass@localhost:5432/CATEYE
 
     # Run migration (copies all data from SQLite to PostgreSQL)
     python scripts/migrate_to_postgres.py
@@ -29,16 +29,16 @@ from sqlalchemy.orm import sessionmaker
 PG_URL = os.environ.get("DATABASE_URL", "")
 if not PG_URL or not PG_URL.startswith("postgresql"):
     print("ERROR: Set DATABASE_URL to a PostgreSQL connection string")
-    print("  export DATABASE_URL=postgresql://user:pass@localhost:5432/rastro")
+    print("  export DATABASE_URL=postgresql://user:pass@localhost:5432/CATEYE")
     sys.exit(1)
 
 SQLITE_PATH = os.environ.get(
     "SQLITE_DB_PATH",
-    str(Path.home() / ".rastro" / "database" / "rastro.db"),
+    str(Path.home() / ".CATEYE" / "database" / "catseye.db"),
 )
 # Fallback: try project default
 if not Path(SQLITE_PATH).exists():
-    SQLITE_PATH = "database/rastro.db"
+    SQLITE_PATH = "database/catseye.db"
 
 # ── Connect ────────────────────────────────────────────────────────────────
 

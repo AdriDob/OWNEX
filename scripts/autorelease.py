@@ -50,7 +50,7 @@ ARTIFACT_NAMES = [
     "RELEASE_REPORT.md",
 ]
 REQUIRED_ARTIFACTS = ["OrionInstaller.exe", "Orion-1.6.0.zip"]
-GITHUB_REPO = "AdriDob/rastrohunteralpha"
+GITHUB_REPO = "AdriDob/CATEYEhunteralpha"
 
 PASS = True
 FAILURES: list[str] = []
@@ -253,7 +253,7 @@ def create_or_update_release(tag: str, artifact_dir: Path, dry_run: bool, force:
     if dry_run:
         log("SKIP", f"[dry-run] Would create release:")
         log("SKIP", f"  gh release create {tag} --title 'ORION v{version} — Stable Release'")
-        return "https://github.com/AdriDob/rastrohunteralpha/releases/tag/" + tag
+        return "https://github.com/AdriDob/CATEYEhunteralpha/releases/tag/" + tag
 
     r = gh(["release", "create", tag,
             "--title", f"ORION v{version} — Stable Release",

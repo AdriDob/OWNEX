@@ -22,7 +22,7 @@ from cores.reporting.report_engine import ProgramData, ReportEngine
 from cores.targets.technology import fingerprint_program
 from cores.validation.gate import Verdict
 
-LOG = logging.getLogger("rastro.pipeline")
+LOG = logging.getLogger("catseye.pipeline")
 
 
 class Pipeline:

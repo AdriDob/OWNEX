@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
-logger = logging.getLogger("rastro.autonomous.engine")
+logger = logging.getLogger("catseye.autonomous.engine")
 
 AUTONOMOUS_INTERVAL = 15.0
 
@@ -57,7 +57,7 @@ class AutonomousModeEngine:
             return
         self._running = True
         self._thread = threading.Thread(
-            target=self._run_cycle, daemon=True, name="rastro-autonomous",
+            target=self._run_cycle, daemon=True, name="CATEYE-autonomous",
         )
         self._thread.start()
         logger.info("[AUTO+] Engine started (interval=%ss, enabled=%s)", self._interval, self._enabled)

@@ -10,7 +10,7 @@ import {
   Globe, Unlink, Link, Banknote, Wallet, History, CheckCircle2,
   XCircle, Clock, DollarSign, ExternalLink, RefreshCw, Plus,
   ArrowRight, Building2, CreditCard, AlertTriangle, Trash2,
-  Coins, ChevronDown, ChevronUp, Loader2, Info,
+  Coins, ChevronDown, ChevronUp, Loader2, Info, Scan, Settings,
 } from '@lucide/vue'
 
 const loading = ref(true)
@@ -109,7 +109,8 @@ const statusColor = (s: string) => {
   return 'default'
 }
 
-const allPlatforms = ['HackerOne', 'Bugcrowd', 'Intigriti', 'Synack', 'YesWeHack', 'Immunefi', 'Code4rena']
+const definitions = ref<{ platforms: { id: string; name: string }[]; osint_services: { id: string; name: string }[] }>({ platforms: [], osint_services: [] })
+const allPlatforms = computed(() => definitions.value.platforms.map(p => p.name))
 
 const connectedProvs = computed(() => accounts.value.map(a => a.provider.toLowerCase()))
 
@@ -121,16 +122,18 @@ async function loadData() {
   loading.value = true
   error.value = null
   try {
-    const [acctRes, payoutRes, subRes, wdRes] = await Promise.allSettled([
+    const [acctRes, payoutRes, subRes, wdRes, defRes] = await Promise.allSettled([
       api.get<{ accounts: PlatformAccount[] }>('/opportunity_intelligence/identity/accounts'),
       api.get<{ accounts: PayoutAccount[] }>('/connections/payout-accounts'),
       api.get<{ submissions: SubmissionRecord[]; total: number }>('/reports/submissions', { limit: 20 }),
       api.get<{ withdrawals: Withdrawal[] }>('/connections/withdrawals'),
+      api.get<{ platforms: { id: string; name: string }[]; osint_services: { id: string; name: string }[] }>('/system/definitions'),
     ])
     if (acctRes.status === 'fulfilled') accounts.value = acctRes.value.accounts || []
     if (payoutRes.status === 'fulfilled') payoutAccounts.value = payoutRes.value.accounts || []
     if (subRes.status === 'fulfilled') submissions.value = subRes.value.submissions || []
     if (wdRes.status === 'fulfilled') withdrawals.value = wdRes.value.withdrawals || []
+    if (defRes.status === 'fulfilled') definitions.value = defRes.value
   } catch (e: any) { error.value = e?.message || 'Error al cargar conexiones' }
   finally { loading.value = false }
 }
@@ -816,5 +819,30 @@ function formatMoney(n: number | null | undefined) {
         </div>
       </div>
     </Teleport>
+
+    <!-- ═══ OSINT INTELLIGENCE ═══ -->
+    <div class="cyber-card rounded-xl p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <Scan class="h-4 w-4 text-warning" />
+          <h3 class="font-mono text-xs font-semibold text-foreground">Inteligencia OSINT</h3>
+        </div>
+        <Button size="sm" variant="outline" @click="$router.push('/settings')">
+          <Settings class="h-3.5 w-3.5" /> Configurar
+        </Button>
+      </div>
+      <p class="text-xs text-muted-foreground mb-4">
+        Las API keys de servicios OSINT (Shodan, Censys, VirusTotal, etc.) se configuran desde
+        <span class="text-primary cursor-pointer hover:underline" @click="$router.push('/settings')">Configuración → OSINT</span>.
+      </p>
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+        <div v-for="svc in definitions.osint_services" :key="svc.id"
+          class="flex items-center gap-1.5 rounded-lg bg-surface/20 px-2 py-1.5"
+        >
+          <div class="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
+          <span class="font-mono text-[9px] text-muted-foreground">{{ svc.name }}</span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

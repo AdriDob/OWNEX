@@ -17,6 +17,7 @@ import time
 from datetime import datetime, timedelta
 from typing import Any
 
+from pathlib import Path
 from database import db, models
 
 logger = logging.getLogger("orion.context")
@@ -27,6 +28,14 @@ _cache: dict[str, Any] | None = None
 _cache_ts: float = 0
 _cache_lock = threading.Lock()
 _cache_ttl: float = _DEFAULT_TTL
+
+
+def _read_version() -> str:
+    try:
+        p = Path(__file__).resolve().parent.parent.parent.parent / "VERSION"
+        return p.read_text().strip()
+    except Exception:
+        return "0.0.0"
 
 
 def configure(ttl: float = 30) -> None:
@@ -280,6 +289,7 @@ def _build_context() -> dict[str, Any]:
             "_meta": {
                 "cached_at": _cache_ts if _cache_ts else time.time(),
                 "ttl_seconds": _cache_ttl,
+                "version": _read_version(),
             },
         }
 

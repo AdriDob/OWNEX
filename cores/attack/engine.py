@@ -3,7 +3,7 @@ import re
 from collections.abc import Iterable
 from typing import Any
 
-logger = logging.getLogger("rastro.attack.engine")
+logger = logging.getLogger("catseye.attack.engine")
 
 from cores.engine.unified_scoring import generate_suggestions as unified_suggestions
 from cores.engine.unified_scoring import score as unified_score

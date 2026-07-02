@@ -22,7 +22,7 @@ from cores.agents.types import (
 )
 from cores.agents.validator import ValidatorAgent
 
-logger = logging.getLogger("rastro.agents")
+logger = logging.getLogger("catseye.agents")
 
 __all__ = [
     "IEventBus", "LocalEventBus", "get_agent_bus", "reset_agent_bus",
