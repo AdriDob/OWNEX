@@ -2,7 +2,7 @@
 
 # CATEYE — Sistema de Inteligencia para Bug Bounty Automático
 
-> **Versión:** Alpha 1.0
+> **Versión:** 1.6.0
 > **Arquitectura:** Monolito modular con frontend SPA
 > **Backend:** Python + FastAPI + SQLAlchemy + SQLite/PostgreSQL
 > **Frontend:** Vue 3 + TypeScript + Tailwind CSS v4 + Vite
@@ -235,7 +235,7 @@ SCAN_TIMEOUT=600
 
 | Ruta | Página | Descripción |
 |---|---|---|
-| `/` | EconomicDashboard | Panel económico principal |
+| `/mission-control` | MissionControl | Control de Misión (home principal) |
 | `/money-radar` | MoneyRadar | Programas rankeados por ORION Score |
 | `/radar` | OpportunityRadar | Radar de oportunidades |
 | `/hot-paths` | HotPaths | Rutas críticas de ataque |
@@ -245,11 +245,11 @@ SCAN_TIMEOUT=600
 | `/memory-patterns` | MemoryPatterns | Patrones aprendidos |
 | `/programs/:id` | ProgramIntel | Inteligencia de programa individual |
 | `/programs/:id/plan` | OpportunityPlanner | Plan de cacería |
+| `/bounties` | Bounties | Bounties activos |
+| `/investigations` | InvestigationCenter | Centro de investigaciones |
 | `/verify` | VerificationGuide | Guía de validación manual |
 | `/settings` | Settings | Configuración del sistema |
 | `/connections` | Connections | Conexiones con plataformas y bancos |
-| `/timeline` | Timeline | Línea de tiempo y calendario de actividad |
-| `/legacy` | MissionControl | Dashboard legacy (control de misión) |
 
 ### 4.3 Sidebar
 
@@ -258,8 +258,9 @@ La barra lateral muestra:
 - Balance total (cobrado + pendiente)
 - Estado de conexión de plataformas (HackerOne, Bugcrowd, Intigriti, Synack)
 - Cuenta bancaria vinculada
-- Navegación por secciones (Inteligencia, Operaciones, Sistema)
-- Botón Copiloto (panel de chat IA)
+- Navegación por secciones (Inteligencia, Operaciones, Sistema) — **13 items** (podado de 36 originales tras auditoría UX)
+- Botón Copiloto (panel de chat IA, atajo `⌘B`)
+- Atajo `⌘K` para Command Palette
 
 ### 4.4 API Layer
 
@@ -507,9 +508,11 @@ Las credenciales se almacenan en una **bóveda encriptada** (`cores/identity_vau
 
 | Modo | Comando | Descripción |
 |---|---|---|
-| Full stack | `python run.py` | Backend + frontend + browser |
+| Full stack | `python launcher/start.py` | Backend + frontend + browser |
 | Backend only | `python launcher/start.py --backend` | API sola |
-| Desktop | `python run.py --tray` | System tray icon |
+| Demo mode | `python launcher/start.py --demo` | Fake dataset para pruebas |
+| Dashboard (react) | `python launcher/start.py --dashboard react` | Frontend Vue dev server |
+| Desktop | `python run.py --tray` | System tray icon (PyInstaller) |
 | Service | `python run.py --service` | Windows service |
 | Safe mode | `python run.py --safe-mode` | Degradado, browser only |
 | Build | `python run.py --build` | PyInstaller bundle |
@@ -553,6 +556,31 @@ Queue: SQLite-based (no Redis requerido)
 
 ---
 
+## 13. Auditoría UX (Julio 2026)
+
+Se realizó una auditoría de fricciones con perspectiva de **bug bounty hunter profesional**. Resultados:
+
+| Categoría | Issues | Resueltos |
+|---|---|---|
+| 🔴 Críticos | 5 | 5 |
+| 🟠 Altos | 6 | 6 |
+| 🟡 Medios | 8 | 8 |
+| 🟢 Bajos | 5 | 5 |
+| **Total** | **24** | **24 (100%)** |
+
+### Mejoras clave aplicadas
+
+- **Sidebar**: 36 → 13 items (secciones compactas Inteligencia/Operaciones/Sistema)
+- **Onboarding**: 9 → 5 pasos, skip con confirmación, tool check eliminado
+- **Rutas**: eliminado `/dashboard` duplicado, `/legacy` → `/mission-control`
+- **Branding**: banner `R A S T R O` → `C A T E Y E`, env vars `RASTRO_*` → `CATEYE_*`
+- **Feedback**: auto-save con indicador visual, Tools con loading spinner, WS status en topbar
+- **Seguridad**: import config validado, reset con doble confirmación
+- **Shortcuts**: `⌘B` Copilot y `⌘K` Command Palette visibles en topbar
+- **TypeScript**: 0 errores
+
+---
+
 ## 14. Progreso de Producción
 
 ### Código Total
@@ -574,23 +602,22 @@ Queue: SQLite-based (no Redis requerido)
 |---|---|---|
 | **Backend `cores/`** | **95%** | 57 módulos, ~45K líneas. Núcleo completo con todos los subsistemas implementados. Pendientes: unificación de config (EnvConfig + RastroConfig), migraciones Alembic. |
 | **API REST** | **94%** | 56 routers registrados y funcionales (economic, orion, zap, connections, platforms, etc). Cobertura completa de endpoints del sistema. |
-| **Frontend Vue 3** | **82%** | 50 páginas, 21 componentes, 6 stores Pinia, API client con ~100+ endpoints. Mucho más extenso que lo documentado originalmente. Pendientes: tests unitarios (0%), páginas de detalle (target/:id, finding/:id, report/:id). |
-| **Desktop / Launcher** | **82%** | Multi-modo (browser, tray, service, safe-mode), build PyInstaller, system tray, boot guard. Legacy `launcher/start.py` aún presente. |
+| **Frontend Vue 3** | **87%** | 50 páginas, 21 componentes, 6 stores, navegación podada (36→13 items), onboarding reducido (9→5 pasos), auto-save global, shortcuts visibles. Pendientes: tests unitarios (0%), detalle de target/finding/report. |
+| **Desktop / Launcher** | **85%** | Multi-modo (browser, tray, service, safe-mode), build PyInstaller, system tray, boot guard. Launcher unificado con branding corregido. |
 | **Plataformas Bug Bounty** | **68%** | 5 integraciones (HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack), bóveda encriptada Fernet, scraping infraestructura presente. Pendientes: battle-testing, manejo de errores de API. |
 | **Tests** | **28%** | 15 suites backend, 4.5K líneas. Tests de API, agents, scoring, E2E. **Frontend tests en 0%** — sin Vitest ni Vue Test Utils configurados. |
 | **Mobile** | **0%** | Planificado para v1.4 (Capacitor Android + Tauri desktop). |
 
-### Total General: **~85%**
+### Total General: **~88%** (+3% por auditoría UX completada)
 
-### 15% Restante (Priorizado)
+### 12% Restante (Priorizado)
 
 | Prioridad | Item | Esfuerzo |
 |---|---|---|
-| 1 | Páginas de detalle (target/:id, finding/:id, report/:id) | 2-3 días |
-| 2 | Tests unitarios frontend (Vitest + Vue Test Utils) | 3-4 días |
-| 3 | Skeleton loading states globales y error handling | 1-2 días |
-| 4 | Unificación de config (EnvConfig + RastroConfig → CATEYE Config) | 1 día |
+| 1 | Tests unitarios frontend (Vitest + Vue Test Utils) | 3-4 días |
+| 2 | Páginas de detalle (target/:id, finding/:id, report/:id) | 2-3 días |
+| 3 | Unificación de paths (`get_data_path()` como único resolver) | 0.5 días |
+| 4 | Unificación de config (RastroConfig → CATEYE Config) | 1 día |
 | 5 | Alembic para migraciones versionadas | 1 día |
-| 6 | Limpieza de archivos legacy (launcher/start.py, archive_cleanup/) | 0.5 días |
-| 7 | Responsive design + PWA | 2-3 días |
-| 8 | Mobile (Capacitor/Tauri) | 1-2 semanas |
+| 6 | Responsive design + PWA | 2-3 días |
+| 7 | Mobile (Capacitor/Tauri) | 1-2 semanas |
