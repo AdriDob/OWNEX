@@ -578,7 +578,7 @@ Se realizó una auditoría de fricciones con perspectiva de **bug bounty hunter 
 - **Seguridad**: import config validado, reset con doble confirmación
 - **Shortcuts**: `⌘B` Copilot y `⌘K` Command Palette visibles en topbar
 - **Paths**: `tray.py` y `updater.py` ahora usan `cores/utils/paths.py:get_data_path()` como único resolver
-- **Config**: `cache_size` migrado de `cores/config.py:RastroConfig` a `cores/env/config.py:EnvConfig`, `RastroConfig` deprecated
+- **Config**: `cache_size` migrado de `cores/config.py:RastroConfig` a `cores/env/config.py:EnvConfig`, `RastroConfig` eliminado
 - **Env vars**: todos los `RASTRO_*` en `EnvConfig` renombrados a `CATEYE_*`
 - **TypeScript**: 0 errores
 
