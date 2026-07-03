@@ -52,7 +52,7 @@ BASE_HIDDEN = [
     # Database
     'database', 'database.db', 'database.models',
     # Core engines
-    'cores', 'cores.config', 'cores.env', 'cores.env.config',
+    'cores', 'cores.env', 'cores.env.config',
     'cores.platform', 'cores.platform.system',
     'cores.log_config', 'cores.observability',
     *core_packages,
