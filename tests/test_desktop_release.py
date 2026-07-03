@@ -42,9 +42,9 @@ class TestEnvConfig:
         assert cfg.is_production is True
 
     def test_env_override(self, monkeypatch):
-        monkeypatch.setenv("RASTRO_PORT", "9090")
-        monkeypatch.setenv("RASTRO_DESKTOP", "1")
-        monkeypatch.setenv("RASTRO_DEBUG", "1")
+        monkeypatch.setenv("CATEYE_PORT", "9090")
+        monkeypatch.setenv("CATEYE_DESKTOP", "1")
+        monkeypatch.setenv("CATEYE_DEBUG", "1")
         # Reload by re-importing (reset module state)
         import importlib
 
@@ -372,7 +372,7 @@ class TestPortConsistency:
     """Validate that all components use the same backend port.
 
     The single source of truth is:
-      core_engines.env.config.EnvConfig.port  (env var RASTRO_PORT, default 8000)
+      core_engines.env.config.EnvConfig.port  (env var CATEYE_PORT, default 8000)
       desktop.settings.DEFAULT_SETTINGS.backend_port  (default 8000)
 
     Every URL builder, tray action, health check, and browser opener

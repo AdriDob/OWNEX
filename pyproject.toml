@@ -11,6 +11,8 @@ ignore = ["E501", "E731"]
 "__init__.py" = ["F401"]
 "tests/*" = ["SIM"]
 "desktop/service.py" = ["N802"]
+"alembic/*" = ["E402", "UP035", "UP007", "W291", "I001"]
+"database/db.py" = ["E402"]
 
 [tool.mypy]
 python_version = "3.10"

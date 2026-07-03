@@ -4,6 +4,7 @@ uvicorn[standard]>=0.22.0
 # streamlit>=1.30.0  -- removed: no Streamlit dashboard, uses React frontend
 httpx>=0.24.0
 sqlalchemy>=2.0.0
+alembic>=1.13.0
 pydantic>=2.2.0
 requests>=2.31.0
 

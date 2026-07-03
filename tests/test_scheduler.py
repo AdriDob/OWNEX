@@ -29,9 +29,9 @@ class TestScheduler:
         asyncio.run(run())
 
     def test_scheduler_interval_env(self, monkeypatch):
-        monkeypatch.setenv("RASTRO_SCAN_INTERVAL", "60")
+        monkeypatch.setenv("CATEYE_SCAN_INTERVAL", "60")
         from api.scheduler import ScanScheduler
-        sched = ScanScheduler(interval_minutes=int(__import__("os").environ.get("RASTRO_SCAN_INTERVAL", "30")))
+        sched = ScanScheduler(interval_minutes=int(__import__("os").environ.get("CATEYE_SCAN_INTERVAL", "30")))
         assert sched.interval == 60 * 60
 
     def test_scheduler_default_interval(self):

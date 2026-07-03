@@ -60,6 +60,10 @@ def _get_existing_columns(session, table_name: str) -> set[str]:
     return set()
 
 
+# NOTE: Schema migrations are now managed via Alembic (alembic/ directory).
+# The _migrate_columns() function below is legacy and will be removed once
+# all deployments have run `alembic upgrade head`.
+
 def _migrate_columns(session, table: str, columns: list[tuple[str, str]]) -> None:
     """Add columns to a table only if they don't already exist."""
     existing = _get_existing_columns(session, table)

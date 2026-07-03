@@ -7,6 +7,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 from fastapi.responses import PlainTextResponse
 
 from api.middleware.auth_middleware import AuthMiddleware
@@ -174,7 +175,7 @@ async def lifespan(app: FastAPI):
     scheduler = None
     try:
         from api.scheduler import ScanScheduler
-        scheduler = ScanScheduler(interval_minutes=int(os.environ.get("RASTRO_SCAN_INTERVAL", "30")))
+        scheduler = ScanScheduler(interval_minutes=int(os.environ.get("CATEYE_SCAN_INTERVAL", "30")))
         asyncio.create_task(scheduler.start())
         logger.info("Scan scheduler started")
     except Exception as exc:
@@ -326,11 +327,19 @@ async def lifespan(app: FastAPI):
 _VERSION_FILE = Path(__file__).resolve().parent.parent / "VERSION"
 _APP_VERSION = _VERSION_FILE.read_text().strip() if _VERSION_FILE.is_file() else "0.0.0"
 
-app = FastAPI(title="CATEYE API", version=_APP_VERSION, lifespan=lifespan)
+app = FastAPI(
+    title="CATEYE API",
+    description="Bug Bounty Intelligence Platform — automated reconnaissance, analysis, and reporting.",
+    version=_APP_VERSION,
+    lifespan=lifespan,
+    contact={"name": "CATEYE Team", "url": "https://github.com/AdriDob/rastrohunteralpha"},
+    license_info={"name": "Proprietary"},
+    swagger_ui_parameters={"deepLinking": True, "displayRequestDuration": True},
+)
 
 # Production: restrict to local origins + pywebview app:// protocol.
-# Dev mode (RASTRO_DESKTOP not set) also keeps * for hot-reload.
-_allow_all = os.environ.get("RASTRO_DESKTOP") != "1"
+# Dev mode (CATEYE_DESKTOP not set) also keeps * for hot-reload.
+_allow_all = os.environ.get("CATEYE_DESKTOP") != "1"
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"] if _allow_all else [
@@ -346,6 +355,35 @@ app.add_middleware(
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(AuthMiddleware)
 app.add_middleware(ErrorHandlingMiddleware)
+
+
+def _custom_openapi() -> dict:
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+        contact=app.contact,
+        license_info=app.license_info,
+    )
+    openapi_schema.setdefault("components", {})["securitySchemes"] = {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+            "description": "JWT token obtained from POST /api/auth/login or /api/auth/register",
+        }
+    }
+    for path in openapi_schema.get("paths", {}).values():
+        for method in path.values():
+            if method.get("operationId") != "login_register" and "/api/auth" not in (method.get("tags") or []):
+                method.setdefault("security", [{"BearerAuth": []}])
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = _custom_openapi
 
 app.include_router(targets.router)
 app.include_router(endpoints.router)
