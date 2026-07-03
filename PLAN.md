@@ -1,9 +1,12 @@
-# PLAN — ORION Vue Frontend
+# PLAN — CATEYE Frontend (Historical)
+
+> **Este plan corresponde a la migración de React a Vue 3 (completada en vAlpha 1.0).**
+> Se mantiene como referencia histórica.
 
 ## Filosofía (vigente desde 2026-06-30)
 
-ORION NO es un SaaS comercial.
-ORION es un SaaS PRIVADO.
+CATEYE NO es un SaaS comercial.
+CATEYE es un SaaS PRIVADO.
 
 Cada componente debe responder: **¿Esto ayuda a ganar más dinero?**
 

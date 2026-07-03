@@ -1,6 +1,6 @@
 # SYSTEM_INVENTORY.md
 
-> Inventario técnico completo del sistema Rastro / ORION.
+> Inventario técnico completo del sistema CATEYE.
 > Mantener actualizado ante cualquier cambio significativo.
 
 ---
@@ -9,7 +9,7 @@
 
 | Campo | Valor |
 |---|---|
-| **Nombre del proyecto** | Rastro / ORION |
+| **Nombre del proyecto** | CATEYE (formerly ORION / Rastro) |
 | **Objetivo principal** | Sistema de inteligencia artificial para automatizar el ciclo completo de bug bounty: descubrimiento, análisis de alcance, reconocimiento, generación de hipótesis, validación, generación de reportes y envío a plataformas (HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack) |
 | **Estado actual** | Producción (Stable) |
 | **Versión** | 1.6.0 |
@@ -90,7 +90,7 @@
 - **Agentes:** Coordinator, Research, Validator, Exploit, Documentation, Strategy, Memory, Financial
 - **Comunicación:** Event bus (`cores/agents/bus.py`) con eventos inmutables tipados
 - **Pipeline de 11 estados:** pending → discovery → validation → evidence → ai_review → ready → submitted → triaged → paid → closed → failed/cancelled
-- **Agente principal chat:** `cores/ai/orion_agent.py` — OrionAgent con tool calling (Gemini → OpenRouter → Ollama)
+- **Agente principal chat:** `cores/ai/orion_agent.py` — CATEYE Agent con tool calling (Gemini → OpenRouter → Ollama)
 
 ## Workers
 
@@ -135,7 +135,7 @@ Lista completa de submódulos en `cores/`:
 
 | Módulo | Responsabilidad |
 |---|---|
-| `ai/` | Proveedores IA (Ollama, OpenAI, Gemini, OpenRouter), agente Orion, tools, advisor, assistant, analyzer, insights, memory, recommendations, summary, context engine |
+| `ai/` | Proveedores IA (Ollama, OpenAI, Gemini, OpenRouter), agente CATEYE, tools, advisor, assistant, analyzer, insights, memory, recommendations, summary, context engine |
 | `recon/` | Wrappers para herramientas externas: subfinder, amass, httpx, katana, nuclei, ffuf, gau, waybackurls, crt.sh, burp_import, zap_runner, whois, parser |
 | `engine/` | Motores de inteligencia: hypothesis (generación de hipótesis vía LLM+ZAP), unified_scoring, roi_model, correlation, extraction, guardrails, risk_model, priority_rebalancer, snapshot, unified_classifier |
 | `intelligence/` | Bucle de inteligencia: learning_loop, adaptive_memory, reward_learning, bounty_intel, noise_filter, trend_detector, priority_engine, recommendation_engine, unified_orchestrator, pattern_registry, historical_analyzer, dependency_graph, event_system, caching, export, observability, anti_drift |
@@ -204,7 +204,7 @@ API REST (FastAPI en puerto 8000)
     │       │
     │       ├──► Agent System (8 agentes vía IEventBus)
     │       ├──► Watchdog (monitoreo y recuperación)
-    │       └──► OrionAgent (chat IA con tool calling)
+    │       └──► CATEYE Agent (chat IA con tool calling)
     ├──► Recon Tools (subprocess a binarios Go/CLI)
     ├──► Identity Vault (AES-256-GCM encryptado)
     ├──► WebSocket Bridge (eventos en tiempo real)
@@ -314,15 +314,15 @@ Desktop Layer (PyInstaller bundle)
 
 # 5. Agentes IA
 
-## 5.1 Agente Principal: OrionAgent (`cores/ai/orion_agent.py`)
+## 5.1 Agente Principal: CATEYE Agent (`cores/ai/orion_agent.py`)
 
 | Campo | Descripción |
 |---|---|
-| **Nombre** | OrionAgent |
+| **Nombre** | CATEYE Agent |
 | **Objetivo** | Copiloto de inteligencia para bug bounty. Responde con datos reales del sistema, nunca inventa cifras. |
 | **Entradas** | Mensaje del usuario, historial de conversación opcional |
 | **Salidas** | `{"response": str, "engine": "gemini"|"cloud"|"local"|"none"}` |
-| **Prompt principal** | "Sos el copiloto de ORION, una plataforma de inteligencia para bug bounty. Respondés con datos reales del sistema, nunca inventás cifras de dinero ni de bounties. Si no sabés algo, usá las herramientas disponibles para consultarlo. Sé directo y breve, como un analista senior, no como un chatbot genérico. Respondé en el mismo idioma en que te pregunten." |
+| **Prompt principal** | "Sos el copiloto de CATEYE, una plataforma de inteligencia para bug bounty. Respondés con datos reales del sistema, nunca inventás cifras de dinero ni de bounties. Si no sabés algo, usá las herramientas disponibles para consultarlo. Sé directo y breve, como un analista senior, no como un chatbot genérico. Respondé en el mismo idioma en que te pregunten." |
 | **Herramientas** | `get_top_bounties`, `get_earnings_summary`, `get_report_status`, `get_target_details`, `web_search` |
 | **Dependencias** | httpx, cores.ai.tools |
 | **Proveedores (orden)** | 1. Gemini API → 2. OpenRouter → 3. Ollama local |
@@ -972,7 +972,7 @@ Comandos Makefile:
 |---|---|
 | `EnvConfig` vs `RastroConfig` | Dos sistemas de configuración (`cores/env/config.py` y `cores/config.py`) con diferente estructura |
 | Paths de core | `SYSTEM.md` refiere `cores/` pero algunos imports usan `core_engines.*` y `core.*` |
-| Nombre del proyecto | ORION (interno) vs Rastro (repositorio) vs RastroConfig (código) |
+| Nombre del proyecto | CATEYE (formerly ORION, interno) vs Rastro (repositorio) vs RastroConfig (código) |
 
 ## Assets faltantes
 

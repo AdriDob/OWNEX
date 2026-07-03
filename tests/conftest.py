@@ -1,4 +1,4 @@
-"""Shared fixtures for Rastro test suite."""
+"""Shared fixtures for CATEYE test suite."""
 
 from __future__ import annotations
 

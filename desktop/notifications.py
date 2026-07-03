@@ -1,4 +1,4 @@
-"""ORION Desktop Notifications — cross-platform system notifications via plyer.
+"""CATEYE Desktop Notifications — cross-platform system notifications via plyer.
 
 On Windows uses native Windows toast notifications (plyer -> winrt).
 On other platforms falls through to plyer's platform implementation.
@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 
-logger = logging.getLogger("orion.desktop.notifications")
+logger = logging.getLogger("catseye.desktop.notifications")
 
 _HAS_PLYER = False
 try:
@@ -34,7 +34,7 @@ def _notify_plyer(title: str, message: str, urgency: str = "normal") -> bool:
         plyer_notification.notify(
             title=title,
             message=message,
-            app_name="ORION",
+            app_name="CATEYE",
             timeout=5000,
             urgency=urgency,
         )
@@ -60,20 +60,20 @@ def send_notification(title: str, message: str, urgency: str = "normal") -> None
 
 
 def notify_backend_started(port: int) -> None:
-    send_notification("ORION", "Backend server started", "normal")
+    send_notification("CATEYE", "Backend server started", "normal")
 
 
 def notify_dashboard_ready() -> None:
-    send_notification("ORION", "Dashboard ready — opening browser", "normal")
+    send_notification("CATEYE", "Dashboard ready — opening browser", "normal")
 
 
 def notify_system_warning(message: str) -> None:
-    send_notification("ORION", message, "critical")
+    send_notification("CATEYE", message, "critical")
 
 
 def notify_backend_restored() -> None:
-    send_notification("ORION", "Backend recovered after failure", "normal")
+    send_notification("CATEYE", "Backend recovered after failure", "normal")
 
 
 def notify_frontend_restored() -> None:
-    send_notification("ORION", "Frontend recovered after failure", "normal")
+    send_notification("CATEYE", "Frontend recovered after failure", "normal")

@@ -8,12 +8,12 @@
 
 $ErrorActionPreference = "Stop"
 
-$SOURCE = Join-Path $PSScriptRoot ".." "dist" "Orion"
-$DEST = Join-Path $env:LOCALAPPDATA "ORION"
-$EXE = Join-Path $DEST "Orion.exe"
-$SHORTCUT_NAME = "ORION.lnk"
+$SOURCE = Join-Path $PSScriptRoot ".." "dist" "CATEYE"
+$DEST = Join-Path $env:LOCALAPPDATA "CATEYE"
+$EXE = Join-Path $DEST "CATEYE.exe"
+$SHORTCUT_NAME = "CATEYE.lnk"
 
-Write-Host "=== ORION Windows Installer ===" -ForegroundColor Cyan
+Write-Host "=== CATEYE Windows Installer ===" -ForegroundColor Cyan
 
 # ── Validate source ──────────────────────────────────────────────────
 if (-not (Test-Path $SOURCE)) {
@@ -21,8 +21,8 @@ if (-not (Test-Path $SOURCE)) {
     Write-Host "  Build first: scripts\build_windows.ps1"
     exit 1
 }
-if (-not (Test-Path (Join-Path $SOURCE "Orion.exe"))) {
-    Write-Host "✗ Orion.exe not found in $SOURCE" -ForegroundColor Red
+if (-not (Test-Path (Join-Path $SOURCE "CATEYE.exe"))) {
+        Write-Host "✗ CATEYE.exe not found in $SOURCE" -ForegroundColor Red
     exit 1
 }
 
@@ -40,7 +40,7 @@ if (-not (Test-Path $EXE)) {
     exit 1
 }
 $size = (Get-Item $EXE).Length / 1MB
-Write-Host "  ✓ Orion.exe ($([math]::Round($size, 1)) MB)" -ForegroundColor Green
+Write-Host "  ✓ CATEYE.exe ($([math]::Round($size, 1)) MB)" -ForegroundColor Green
 
 # ── Create Start Menu shortcut ──────────────────────────────────────
 $WScriptShell = New-Object -ComObject WScript.Shell
@@ -51,7 +51,7 @@ $shortcut = $WScriptShell.CreateShortcut($ShortcutPath)
 $shortcut.TargetPath = $EXE
 $shortcut.Arguments = "--tray"
 $shortcut.WorkingDirectory = $DEST
-$shortcut.Description = "ORION — Automated Security Investigation OS"
+$shortcut.Description = "CATEYE — Automated Security Investigation OS"
 $shortcut.Save()
 
 Write-Host "  ✓ Start Menu shortcut created" -ForegroundColor Green
@@ -64,7 +64,7 @@ if (-not (Test-Path $DesktopShortcut)) {
     $shortcut2.TargetPath = $EXE
     $shortcut2.Arguments = "--tray"
     $shortcut2.WorkingDirectory = $DEST
-    $shortcut2.Description = "ORION — Automated Security Investigation OS"
+    $shortcut2.Description = "CATEYE — Automated Security Investigation OS"
     $shortcut2.Save()
     Write-Host "  ✓ Desktop shortcut created" -ForegroundColor Green
 }
@@ -72,25 +72,25 @@ if (-not (Test-Path $DesktopShortcut)) {
 # ── Optional: Autostart ─────────────────────────────────────────────
 $Startup = [Environment]::GetFolderPath("CommonStartup")
 $StartupShortcut = Join-Path $Startup $SHORTCUT_NAME
-$choice = Read-Host "Add ORION to startup? (y/N)"
+$choice = Read-Host "Add CATEYE to startup? (y/N)"
 if ($choice -eq "y" -or $choice -eq "Y") {
     $shortcut3 = $WScriptShell.CreateShortcut($StartupShortcut)
     $shortcut3.TargetPath = $EXE
     $shortcut3.Arguments = "--tray"
     $shortcut3.WorkingDirectory = $DEST
-    $shortcut3.Description = "ORION — Automated Security Investigation OS"
+    $shortcut3.Description = "CATEYE — Automated Security Investigation OS"
     $shortcut3.Save()
     Write-Host "  ✓ Autostart shortcut created" -ForegroundColor Green
 }
 
 # ── Add/Remove Programs entry ──────────────────────────────────────
-$uninstallKey = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\ORION"
+$uninstallKey = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\CATEYE"
 $uninstallScript = Join-Path $DEST "uninstall_windows.ps1"
 
 New-Item -Path $uninstallKey -Force | Out-Null
 Set-ItemProperty -Path $uninstallKey -Name "DisplayName" -Value "ORION"
 Set-ItemProperty -Path $uninstallKey -Name "DisplayVersion" -Value "1.6.0"
-Set-ItemProperty -Path $uninstallKey -Name "Publisher" -Value "ORION Labs"
+Set-ItemProperty -Path $uninstallKey -Name "Publisher" -Value "CATEYE Labs"
 Set-ItemProperty -Path $uninstallKey -Name "UninstallString" -Value "powershell -ExecutionPolicy Bypass `"$uninstallScript`""
 Set-ItemProperty -Path $uninstallKey -Name "DisplayIcon" -Value "`"$EXE`""
 Set-ItemProperty -Path $uninstallKey -Name "InstallLocation" -Value "`"$DEST`""

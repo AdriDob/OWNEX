@@ -1,5 +1,5 @@
 """
-core.engine.hypothesis — Rastro's Hypothesis Engine.
+core.engine.hypothesis — CATEYE's Hypothesis Engine.
 
 Converts attack surface data into actionable vulnerability hypotheses
 organized in a prioritized attack queue.

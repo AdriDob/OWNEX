@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ORION Release Isolation Pipeline — one command to validate a clean release.
+"""CATEYE Release Isolation Pipeline — one command to validate a clean release.
 
 Usage:
     python scripts/release_isolation.py                    # Full pipeline
@@ -178,7 +178,7 @@ def generate_report(version: str, artifacts: dict[str, str] | None = None) -> bo
 
 def main() -> None:
     global PASS
-    parser = argparse.ArgumentParser(description="ORION Release Isolation Pipeline")
+    parser = argparse.ArgumentParser(description="CATEYE Release Isolation Pipeline")
     parser.add_argument("--skip-build", action="store_true", help="Skip build, test existing")
     parser.add_argument("--skip-smoke", action="store_true", help="Skip smoke/portable/installer tests")
     parser.add_argument("--skip-installer", action="store_true", help="Skip NSIS installer build")
@@ -187,7 +187,7 @@ def main() -> None:
     args = parser.parse_args()
 
     version = read_version()
-    log(f"ORION Release Isolation Pipeline v{version}")
+    log(f"CATEYE Release Isolation Pipeline v{version}")
     log(f"Platform: {sys.platform}")
     log(f"Windows: {IS_WINDOWS}")
     log("")

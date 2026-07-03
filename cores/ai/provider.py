@@ -369,7 +369,7 @@ class LocalFallbackProvider(AIProvider):
             return "Estoy listo para analizar tu ecosistema. Pregúntame sobre targets, oportunidades, o qué hacer ahora."
         if "quiénes soy" in last_lower or "qué eres" in last_lower:
             return (
-                "Soy Rastro AI, el analista principal del sistema. "
+                "Soy CATEYE AI, el analista principal del sistema. "
                 "Analizo datos reales de targets, endpoints, findings, "
                 "veredictos y programas para darte recomendaciones accionables."
             )

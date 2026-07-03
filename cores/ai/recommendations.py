@@ -1,5 +1,5 @@
 """
-Recommendation Engine — Rastro
+Recommendation Engine — CATEYE
 
 Generates actionable recommendations from real system data.
 Each recommendation answers: what to do, why, and what's the expected value.

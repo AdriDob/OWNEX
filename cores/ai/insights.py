@@ -1,5 +1,5 @@
 """
-Rastro Insights — automatically generated from real system data.
+CATEYE Insights — automatically generated from real system data.
 
 Every insight is computed from live database queries and engine outputs.
 No mock data. No placeholders.

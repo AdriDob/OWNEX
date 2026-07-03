@@ -179,7 +179,7 @@ def test_serve_frontend() -> None:
 
     app = mod.create_app("/nonexistent")
     check("create_app() returns app", app is not None)
-    check("App has FastAPI title", app.title == "Rastro Frontend")
+    check("App has FastAPI title", app.title == "CATEYE Frontend")
 
     log.info("")
 
@@ -272,7 +272,7 @@ def main() -> None:
 
     log.info("")
     log.info("╔══════════════════════════════════════════════════════╗")
-    log.info("║     Rastro Desktop — Boot Validation Test          ║")
+    log.info("║     CATEYE Desktop — Boot Validation Test          ║")
     log.info("╚══════════════════════════════════════════════════════╝")
     log.info("")
     log.info("  Python:   %s", sys.version.split()[0])

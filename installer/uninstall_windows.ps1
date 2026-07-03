@@ -1,4 +1,4 @@
-# ORION — Windows Uninstaller Script
+# CATEYE — Windows Uninstaller Script
 # Run from the installed directory.
 #
 # Usage:
@@ -6,11 +6,11 @@
 
 $ErrorActionPreference = "Stop"
 
-$DEST = Join-Path $env:LOCALAPPDATA "ORION"
-$SHORTCUT_NAME = "ORION.lnk"
-$UNINSTALL_KEY = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\ORION"
+$DEST = Join-Path $env:LOCALAPPDATA "CATEYE"
+$SHORTCUT_NAME = "CATEYE.lnk"
+$UNINSTALL_KEY = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\CATEYE"
 
-Write-Host "=== ORION Uninstaller ===" -ForegroundColor Cyan
+Write-Host "=== CATEYE Uninstaller ===" -ForegroundColor Cyan
 
 # ── Remove program files ────────────────────────────────────────────
 if (Test-Path $DEST) {
@@ -53,4 +53,4 @@ if (Test-Path $userData) {
     }
 }
 
-Write-Host "=== ORION uninstalled ===" -ForegroundColor Cyan
+Write-Host "=== CATEYE uninstalled ===" -ForegroundColor Cyan

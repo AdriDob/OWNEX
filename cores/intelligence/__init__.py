@@ -1,5 +1,5 @@
 """
-Core intelligence modules for Rastro.
+Core intelligence modules for CATEYE.
 
 Sub-packages:
   Unification layer: dependency_graph, event_system, cache, anti_drift

@@ -72,7 +72,7 @@ onMounted(async () => {
         <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20 pulse-ring">
           <span class="font-display text-2xl font-bold text-primary">O</span>
         </div>
-        <h1 class="font-display text-xl font-bold tracking-tight text-foreground">ORION</h1>
+        <h1 class="font-display text-xl font-bold tracking-tight text-foreground">CATEYE</h1>
         <p class="mt-1 text-xs text-muted-foreground">Investigación de bug bounty automatizada</p>
       </div>
 

@@ -66,7 +66,7 @@ def _run_pyinstaller() -> Path:
     _banner("Running PyInstaller bundler")
     _run([sys.executable, str(BUILD_SCRIPT), "--onedir", "--rebuild-frontend"])
     build_dist = ROOT / "desktop" / "build" / "dist"
-    exe = build_dist / "Rastro" / "Rastro.exe"
+    exe = build_dist / "CATEYE" / "CATEYE.exe"
     if not exe.exists():
         print(f"  ERROR: expected executable not found at {exe}")
         print("  Check desktop/build/dist/ for the build output")
@@ -79,10 +79,10 @@ def _assemble_portable(version: str, build_dist: Path) -> Path:
     _banner("Assembling portable folder")
     if OUTPUT.exists():
         shutil.rmtree(OUTPUT)
-    bundle = OUTPUT / f"Rastro-{version}-win64"
+    bundle = OUTPUT / f"CATEYE-{version}-win64"
     bundle.mkdir(parents=True, exist_ok=True)
 
-    pyinstaller_out = build_dist / "Rastro"
+    pyinstaller_out = build_dist / "CATEYE"
     for item in pyinstaller_out.iterdir():
         dest = bundle / item.name
         if item.is_dir():
@@ -96,21 +96,21 @@ def _assemble_portable(version: str, build_dist: Path) -> Path:
 
     readme = bundle / "README.txt"
     readme.write_text(
-        f"""Rastro v{version} — Windows Portable Edition
+        f"""CATEYE v{version} — Windows Portable Edition
 {'=' * 50}
 
-Run:  Rastro.exe
+Run:  CATEYE.exe
 
 First launch will:
-  - Initialize the database in %APPDATA%\\Rastro\\database\\
-  - Create logs in %APPDATA%\\Rastro\\logs\\
+  - Initialize the database in %APPDATA%\\CATEYE\\database\\
+  - Create logs in %APPDATA%\\CATEYE\\logs\\
   - Open the web interface in your default browser
 
 System Requirements:
   - Windows 10 or later (64-bit)
   - No Python or Node.js required
 
-To uninstall, delete this folder and %APPDATA%\\Rastro\\
+To uninstall, delete this folder and %APPDATA%\\CATEYE\\
 """
     )
 
@@ -137,23 +137,23 @@ def _try_nsis_installer(version: str, bundle: Path) -> Path | None:
     _banner("Creating NSIS installer")
     nsis_script = OUTPUT / "installer.nsi"
     nsis_script.write_text(
-        f"""!define PRODUCT_NAME "Rastro"
+        f"""!define PRODUCT_NAME "CATEYE"
 !define PRODUCT_VERSION "{version}"
-!define PRODUCT_PUBLISHER "Rastro AI"
+!define PRODUCT_PUBLISHER "CATEYE AI"
 !define PRODUCT_WEB_SITE "https://CATEYE.ai"
 
 Name "${{PRODUCT_NAME}} ${{PRODUCT_VERSION}}"
-OutFile "Rastro-{version}-setup-win64.exe"
+OutFile "CATEYE-{version}-setup-win64.exe"
 InstallDir "$PROGRAMFILES64\\${{PRODUCT_NAME}}"
 RequestExecutionLevel admin
 
 Section "Install"
   SetOutPath "$INSTDIR"
   File /r "{bundle}\\*.*"
-  CreateShortCut "$DESKTOP\\Rastro.lnk" "$INSTDIR\\Rastro.exe"
-  CreateDirectory "$SMPROGRAMS\\Rastro"
-  CreateShortCut "$SMPROGRAMS\\Rastro\\Rastro.lnk" "$INSTDIR\\Rastro.exe"
-  CreateShortCut "$SMPROGRAMS\\Rastro\\Uninstall.lnk" "$INSTDIR\\uninstall.exe"
+  CreateShortCut "$DESKTOP\\CATEYE.lnk" "$INSTDIR\\CATEYE.exe"
+  CreateDirectory "$SMPROGRAMS\\CATEYE"
+  CreateShortCut "$SMPROGRAMS\\CATEYE\\CATEYE.lnk" "$INSTDIR\\CATEYE.exe"
+  CreateShortCut "$SMPROGRAMS\\CATEYE\\Uninstall.lnk" "$INSTDIR\\uninstall.exe"
   WriteUninstaller "$INSTDIR\\uninstall.exe"
   WriteRegStr HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${{PRODUCT_NAME}}" \\
                    "DisplayName" "${{PRODUCT_NAME}}"
@@ -167,14 +167,14 @@ SectionEnd
 
 Section "Uninstall"
   RMDir /r "$INSTDIR"
-  Delete "$DESKTOP\\Rastro.lnk"
-  RMDir /r "$SMPROGRAMS\\Rastro"
+  Delete "$DESKTOP\\CATEYE.lnk"
+  RMDir /r "$SMPROGRAMS\\CATEYE"
   DeleteRegKey HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${{PRODUCT_NAME}}"
 SectionEnd
 """
     )
     _run(["makensis", str(nsis_script)], cwd=OUTPUT)
-    installer = OUTPUT / f"Rastro-{version}-setup-win64.exe"
+    installer = OUTPUT / f"CATEYE-{version}-setup-win64.exe"
     if installer.exists():
         print(f"  ✓ NSIS installer: {installer} ({installer.stat().st_size / 1024 / 1024:.1f} MB)")
         return installer
@@ -183,13 +183,13 @@ SectionEnd
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Build Windows installer for Rastro")
+    parser = argparse.ArgumentParser(description="Build Windows installer for CATEYE")
     parser.add_argument("--version", default=_get_version(), help="Release version string")
     parser.add_argument("--installer", action="store_true", help="Attempt NSIS installer creation")
     args = parser.parse_args()
 
     version = args.version
-    print(f"Building Rastro v{version} for Windows")
+    print(f"Building CATEYE v{version} for Windows")
     print(f"Output: {OUTPUT}")
 
     _ensure_frontend_built()
@@ -206,8 +206,8 @@ def main() -> None:
     print(f"  Release zip:       {zip_path}")
     if installer_path:
         print(f"  Installer:         {installer_path}")
-    print("\nRun 'Rastro.exe' to start the desktop application.")
-    print("Logs and data will be stored in %APPDATA%\\Rastro\\")
+    print("\nRun 'CATEYE.exe' to start the desktop application.")
+    print("Logs and data will be stored in %APPDATA%\\CATEYE\\")
 
 
 if __name__ == "__main__":

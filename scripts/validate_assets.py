@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""ORION Asset Validation — verifies all required files exist in the release.
+"""CATEYE Asset Validation — verifies all required files exist in the release.
 
 Usage:
-    python scripts/validate_assets.py                              # Checks dist/Orion/
-    python scripts/validate_assets.py --build-dir path/to/Orion    # Custom build
+    python scripts/validate_assets.py                              # Checks dist/CATEYE/
+    python scripts/validate_assets.py --build-dir path/to/CATEYE    # Custom build
     python scripts/validate_assets.py --release                    # Checks build/release/
     python scripts/validate_assets.py --ci                         # CI mode (json output)
 """
@@ -48,7 +48,7 @@ def check_build(build_dir: Path, release_mode: bool = False) -> bool:
     PASS = FAIL = WARN = 0
 
     print(f"\n{'=' * 60}")
-    print("  ORION ASSET VALIDATION")
+    print("  CATEYE ASSET VALIDATION")
     print(f"  Directory: {build_dir}")
     print(f"{'=' * 60}\n")
 
@@ -56,23 +56,23 @@ def check_build(build_dir: Path, release_mode: bool = False) -> bool:
         # Release mode: check build/release/ structure
         check("Directory exists", build_dir.is_dir())
 
-        installer = build_dir / "OrionInstaller.exe"
-        check("OrionInstaller.exe exists", installer.is_file())
+        installer = build_dir / "CATEYEInstaller.exe"
+        check("CATEYEInstaller.exe exists", installer.is_file())
 
-        zip_file = list(build_dir.glob("Orion-*.zip"))
-        check("Orion-*.zip exists", len(zip_file) > 0)
+        zip_file = list(build_dir.glob("CATEYE-*.zip"))
+        check("CATEYE-*.zip exists", len(zip_file) > 0)
 
         docs = ["README.txt", "CHANGELOG.md", "VERSION.txt", "LICENSE.txt", "build_info.json"]
         for doc in docs:
             check(f"{doc} exists", (build_dir / doc).is_file())
 
-        orion_dir = build_dir / "Orion"
-        check("Orion/ subdirectory exists", orion_dir.is_dir())
+        orion_dir = build_dir / "CATEYE"
+        check("CATEYE/ subdirectory exists", orion_dir.is_dir())
 
         if orion_dir.is_dir():
             check_orion_bundle(orion_dir)
     else:
-        # Build mode: check dist/Orion/
+        # Build mode: check dist/CATEYE/
         check("Directory exists", build_dir.is_dir())
         check_orion_bundle(build_dir)
 
@@ -85,7 +85,7 @@ def check_build(build_dir: Path, release_mode: bool = False) -> bool:
 
 def check_orion_bundle(orion_dir: Path) -> None:
     is_win = sys.platform.startswith("win")
-    exe_name = "Orion.exe" if is_win else "Orion"
+    exe_name = "CATEYE.exe" if is_win else "CATEYE"
 
     # Core executable
     exe = orion_dir / exe_name
@@ -163,8 +163,8 @@ def check_orion_bundle(orion_dir: Path) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="ORION Asset Validation")
-    parser.add_argument("--build-dir", type=Path, default=None, help="Path to Orion build directory")
+    parser = argparse.ArgumentParser(description="CATEYE Asset Validation")
+    parser.add_argument("--build-dir", type=Path, default=None, help="Path to CATEYE build directory")
     parser.add_argument("--release", action="store_true", help="Check release output (build/release/)")
     parser.add_argument("--ci", action="store_true", help="CI mode")
     parser.add_argument("--json", action="store_true", help="Output as JSON")
@@ -177,7 +177,7 @@ def main() -> None:
     elif args.release:
         build_dir = project_root / "build" / "release"
     else:
-        build_dir = project_root / "dist" / "Orion"
+        build_dir = project_root / "dist" / "CATEYE"
 
     success = check_build(build_dir, release_mode=args.release)
 

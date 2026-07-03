@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ORION AutoRelease — deterministic, safe, professional GitHub Releases automation.
+"""CATEYE AutoRelease — deterministic, safe, professional GitHub Releases automation.
 
 Usage:
     python scripts/autorelease.py                              # Auto-release from artifacts
@@ -44,12 +44,12 @@ VERSION_FILE = PROJECT_ROOT / "VERSION"
 
 SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+$")
 ARTIFACT_NAMES = [
-    "OrionInstaller.exe",
-    "Orion-1.6.0.zip",
+    "CATEYEInstaller.exe",
+    "CATEYE-1.6.0.zip",
     "build_info.json",
     "RELEASE_REPORT.md",
 ]
-REQUIRED_ARTIFACTS = ["OrionInstaller.exe", "Orion-1.6.0.zip"]
+REQUIRED_ARTIFACTS = ["CATEYEInstaller.exe", "CATEYE-1.6.0.zip"]
 GITHUB_REPO = "AdriDob/CATEYEhunteralpha"
 
 PASS = True
@@ -113,7 +113,7 @@ def validate_artifacts(artifact_dir: Path, build_info: dict | None) -> bool:
 
     if build_info:
         stored = build_info.get("sha256", {})
-        for name in ("Orion.exe", "OrionInstaller.exe", "Orion-1.6.0.zip"):
+        for name in ("CATEYE.exe", "CATEYEInstaller.exe", "CATEYE-1.6.0.zip"):
             path = artifact_dir / name
             if not path.exists():
                 continue
@@ -248,15 +248,15 @@ def create_or_update_release(tag: str, artifact_dir: Path, dry_run: bool, force:
     if notes_path.exists():
         notes_arg = [f"--notes-file={notes_path}"]
     else:
-        notes_arg = ["--notes", f"ORION v{version} — Stable Release (automated)"]
+        notes_arg = ["--notes", f"CATEYE v{version} — Stable Release (automated)"]
 
     if dry_run:
         log("SKIP", f"[dry-run] Would create release:")
-        log("SKIP", f"  gh release create {tag} --title 'ORION v{version} — Stable Release'")
+        log("SKIP", f"  gh release create {tag} --title 'CATEYE v{version} — Stable Release'")
         return "https://github.com/AdriDob/CATEYEhunteralpha/releases/tag/" + tag
 
     r = gh(["release", "create", tag,
-            "--title", f"ORION v{version} — Stable Release",
+            "--title", f"CATEYE v{version} — Stable Release",
             "--draft=false",
             "--prerelease=false",
             "--latest"] + notes_arg)
@@ -334,15 +334,15 @@ def verify_release(tag: str, artifact_dir: Path, dry_run: bool) -> bool:
         else:
             fail(f"Asset missing from release: {name}")
 
-    exe_asset = next((a for a in rel.get("assets", []) if a["name"] == "OrionInstaller.exe"), None)
+    exe_asset = next((a for a in rel.get("assets", []) if a["name"] == "CATEYEInstaller.exe"), None)
     if exe_asset:
-        log("INFO", f"Downloading OrionInstaller.exe from GitHub to verify SHA256...")
+        log("INFO", f"Downloading CATEYEInstaller.exe from GitHub to verify SHA256...")
         tmp = Path(tempfile.mkstemp(suffix=".exe")[1])
         try:
-            r = gh(["release", "download", tag, "--pattern", "OrionInstaller.exe",
+            r = gh(["release", "download", tag, "--pattern", "CATEYEInstaller.exe",
                     "--output", str(tmp)], timeout=120)
             if r.returncode == 0:
-                local_hash = sha256(artifact_dir / "OrionInstaller.exe")
+                local_hash = sha256(artifact_dir / "CATEYEInstaller.exe")
                 remote_hash = sha256(tmp)
                 if local_hash == remote_hash:
                     log("OK", f"SHA256 match: {local_hash[:16]}... (upload integrity verified)")
@@ -372,14 +372,14 @@ def build_confidence_score() -> int:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="ORION AutoRelease — deterministic GitHub Releases automation",
+        description="CATEYE AutoRelease — deterministic GitHub Releases automation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
     parser.add_argument("--dir", type=Path,
-                        default=Path(os.environ.get("HOME", "/tmp")) / "Orion" if sys.platform != "win32"
-                        else Path(os.environ.get("USERPROFILE", "C:/")) / "OneDrive" / "Desktop" / "Yo" / "privado" / "Orion",
-                        help="Artifact directory (default: Orion final output)")
+                        default=Path(os.environ.get("HOME", "/tmp")) / "CATEYE" if sys.platform != "win32"
+                        else Path(os.environ.get("USERPROFILE", "C:/")) / "OneDrive" / "Desktop" / "Yo" / "privado" / "CATEYE",
+                        help="Artifact directory (default: CATEYE final output)")
     parser.add_argument("--dry-run", action="store_true", help="Preview only, no changes")
     parser.add_argument("--force", action="store_true", help="Override safety checks")
     parser.add_argument("--version", default=None, help="Override version (semver)")
@@ -390,7 +390,7 @@ def main() -> None:
     force = args.force
 
     print("=" * 64)
-    print("  ORION AutoRelease v1.0")
+    print("  CATEYE AutoRelease v1.0")
     print(f"  {datetime.now(timezone.utc).isoformat()}")
     print("=" * 64)
     print(f"  Artifact dir: {artifact_dir}")

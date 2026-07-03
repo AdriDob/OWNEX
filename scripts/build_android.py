@@ -130,20 +130,20 @@ def _copy_artifact(apk: Path, release: bool) -> Path:
     _banner("Copying APK to dist/")
     OUTPUT.mkdir(parents=True, exist_ok=True)
     flavor = "release" if release else "debug"
-    dest = OUTPUT / f"Rastro-{flavor}.apk"
+    dest = OUTPUT / f"CATEYE-{flavor}.apk"
     shutil.copy2(apk, dest)
     print(f"  ✓ APK copied: {dest} ({dest.stat().st_size / 1024 / 1024:.1f} MB)")
     return dest
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Build Rastro Android APK")
+    parser = argparse.ArgumentParser(description="Build CATEYE Android APK")
     parser.add_argument("--release", action="store_true", help="Build release APK (requires keystore)")
     parser.add_argument("--clean", action="store_true", help="Clean build artifacts before building")
     parser.add_argument("--skip-prereqs", action="store_true", help="Skip prerequisite checks")
     args = parser.parse_args()
 
-    print("Building Rastro Android APK")
+    print("Building CATEYE Android APK")
     if args.release:
         print("  Mode: release")
     else:

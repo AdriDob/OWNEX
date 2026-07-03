@@ -27,7 +27,7 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'Centro de Inteligencia CATEYE' },
   },
   {
-    path: '/legacy',
+    path: '/mission-control',
     name: 'mission-control',
     component: () => import('@/pages/MissionControl.vue'),
     meta: { title: 'Control de Misión' },
@@ -157,13 +157,6 @@ export const routes: RouteRecordRaw[] = [
     name: 'attack-surface',
     component: () => import('@/pages/AttackSurface.vue'),
     meta: { title: 'Superficie de Ataque' },
-  },
-  // ── New pages from React porting ──
-  {
-    path: '/dashboard',
-    name: 'dashboard',
-    component: () => import('@/pages/Dashboard.vue'),
-    meta: { title: 'Dashboard Principal' },
   },
   {
     path: '/opportunities',

@@ -1,4 +1,4 @@
-# Configuración de Cline para Orion
+# Configuración de Cline para CATEYE
 
 ## 📦 Modelos
 

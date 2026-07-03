@@ -1,5 +1,5 @@
 """
-core.engine — Rastro's unified intelligence engine.
+core.engine — CATEYE's unified intelligence engine.
 
 Single source of truth for all scoring, classification, and risk modeling.
 

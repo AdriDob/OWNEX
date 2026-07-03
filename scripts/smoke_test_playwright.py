@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""ORION Playwright Smoke Test — validates frontend JS execution in a headless browser.
+"""CATEYE Playwright Smoke Test — validates frontend JS execution in a headless browser.
 
 Detects JavaScript runtime errors (e.g. "No QueryClient set") that HTTP-only
 smoke tests cannot catch, because they never execute JS.
 
 Usage:
-    python scripts/smoke_test_playwright.py                        # Uses dist/Orion/Orion.exe
-    python scripts/smoke_test_playwright.py --exe path/to/Orion.exe
+    python scripts/smoke_test_playwright.py                        # Uses dist/CATEYE/CATEYE.exe
+    python scripts/smoke_test_playwright.py --exe path/to/CATEYE.exe
     python scripts/smoke_test_playwright.py --install-playwright   # Auto-install playwright + chromium
 
 Requires:
@@ -97,8 +97,8 @@ def install_playwright() -> bool:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="ORION Playwright Smoke Test")
-    parser.add_argument("--exe", type=Path, default=None, help="Path to Orion.exe")
+    parser = argparse.ArgumentParser(description="CATEYE Playwright Smoke Test")
+    parser.add_argument("--exe", type=Path, default=None, help="Path to CATEYE.exe")
     parser.add_argument("--host", default="127.0.0.1", help="Backend host")
     parser.add_argument("--port", type=int, default=8000, help="Backend port")
     parser.add_argument("--ci", action="store_true", help="CI mode")
@@ -108,11 +108,11 @@ def main() -> None:
     if args.exe:
         exe_path = args.exe.resolve()
     else:
-        exe_path = Path(__file__).resolve().parent.parent / "dist" / "Orion" / "Orion.exe"
+        exe_path = Path(__file__).resolve().parent.parent / "dist" / "CATEYE" / "CATEYE.exe"
 
     if not exe_path.exists():
-        print(f"\n\u2717 Orion.exe not found at: {exe_path}")
-        print("  Build first: pyinstaller Orion.spec -y")
+        print(f"\n\u2717 CATEYE.exe not found at: {exe_path}")
+        print("  Build first: pyinstaller CATEYE.spec -y")
         sys.exit(1)
 
     host = args.host
@@ -121,7 +121,7 @@ def main() -> None:
     health_url = f"{base_url}/api/health"
 
     print(f"\n{'=' * 60}")
-    print("  ORION PLAYWRIGHT SMOKE TEST")
+    print("  CATEYE PLAYWRIGHT SMOKE TEST")
     print(f"  {TIMESTAMP}")
     print(f"  Executable: {exe_path}")
     print(f"{'=' * 60}\n")
@@ -147,10 +147,10 @@ def main() -> None:
             sys.exit(0)
 
     # ── 1. Start the backend ───────────────────────────────────────
-    log(f"Starting Orion.exe --browser --no-tray ...")
+    log(f"Starting CATEYE.exe --browser --no-tray ...")
     env = os.environ.copy()
-    env["ORION_DESKTOP"] = "1"
-    env["ORION_SMOKE_TEST"] = "1"
+    env["CATEYE_DESKTOP"] = "1"
+    env["CATEYE_SMOKE_TEST"] = "1"
 
     proc = subprocess.Popen(
         [str(exe_path), "--browser", "--no-tray"],
@@ -309,7 +309,7 @@ def main() -> None:
             raise
 
     # ── 7. Clean shutdown ─────────────────────────────────────────
-    log("\nShutting down Orion...")
+    log("\nShutting down CATEYE...")
     proc.terminate()
     try:
         proc.wait(timeout=10.0)

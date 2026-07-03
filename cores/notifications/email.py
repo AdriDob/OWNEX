@@ -34,11 +34,11 @@ class EmailAdapter:
             html = f"""<html><body style="font-family:sans-serif;padding:20px">
 <h2 style="color:#7c3aed;">{title}</h2>
 <p>{message}</p>
-<hr><p style="color:#999;font-size:11px;">Rastro Notification · Priority: {priority}</p>
+<hr><p style="color:#999;font-size:11px;">CATEYE Notification · Priority: {priority}</p>
 </body></html>"""
 
             msg = MIMEText(html, "html")
-            msg["Subject"] = f"[Rastro] {title}"
+            msg["Subject"] = f"[CATEYE] {title}"
             msg["From"] = self._from
             msg["To"] = self._to
 

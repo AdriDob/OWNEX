@@ -1,4 +1,4 @@
-"""Product behavior rules — executable invariants for Rastro.
+"""Product behavior rules — executable invariants for CATEYE.
 
 Every rule below is an enforceable contract between backend and user experience.
 They are checked at system boundaries (boot, API response, notification routing)

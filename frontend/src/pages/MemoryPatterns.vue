@@ -97,7 +97,7 @@ function confidenceColor(c: number) {
       <p class="text-xs font-bold uppercase tracking-widest text-primary">Memory & Pattern Engine</p>
       <h1 class="font-display text-2xl font-bold text-foreground">Patrones Aprendidos</h1>
       <p class="text-sm text-muted-foreground">
-        ORION aprende de tus resultados — cada patrón se fortalece con evidencia real
+        CATEYE aprende de tus resultados — cada patrón se fortalece con evidencia real
       </p>
     </div>
 

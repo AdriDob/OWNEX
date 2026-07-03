@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Rastro — attack surface intelligence system.
+CATEYE — bug bounty intelligence system.
 
 Single-command launcher.
 
@@ -129,7 +129,7 @@ def start_backend(demo: bool = False) -> subprocess.Popen:
     port = DEMO_PORT if demo else BACKEND_PORT
     env = os.environ.copy()
     if demo:
-        env["RASTRO_DEMO"] = "1"
+        env["CATEYE_DEMO"] = "1"
     log(f"Starting backend on http://127.0.0.1:{port}")
     proc = subprocess.Popen(
         [sys.executable, "-m", "uvicorn", "api.main:app", "--host", "127.0.0.1", "--port", str(port)],
@@ -147,7 +147,7 @@ def start_backend(demo: bool = False) -> subprocess.Popen:
 def start_dashboard(demo: bool = False) -> subprocess.Popen:
     backend_port = DEMO_PORT if demo else BACKEND_PORT
     env = os.environ.copy()
-    env["RASTRO_BACKEND"] = f"http://127.0.0.1:{backend_port}"
+    env["CATEYE_BACKEND"] = f"http://127.0.0.1:{backend_port}"
     log(f"Starting Streamlit dashboard on http://localhost:{DASHBOARD_PORT}")
     proc = subprocess.Popen(
         [sys.executable, "-m", "streamlit", "run", "dashboard/app.py",
@@ -306,7 +306,7 @@ def check_process_health() -> bool:
 
 
 def cleanup(signum=None, frame=None):
-    print("\n  Shutting down Rastro...")
+    print("\n  Shutting down CATEYE...")
     for p in processes:
         p.terminate()
     for p in processes:
@@ -321,7 +321,7 @@ def main():
     signal.signal(signal.SIGINT, cleanup)
     signal.signal(signal.SIGTERM, cleanup)
 
-    parser = argparse.ArgumentParser(description="Rastro — attack surface intelligence")
+    parser = argparse.ArgumentParser(description="CATEYE — bug bounty intelligence")
     parser.add_argument("--backend", action="store_true", help="Start backend only")
     parser.add_argument("--dashboard", nargs="?", const="streamlit", default=None,
                         choices=["streamlit", "react"],
@@ -331,8 +331,8 @@ def main():
 
     print()
     print("  \033[1m╔═══════════════════════════╗")
-    print("  \033[1m║      R A S T R O         ║")
-    print("  \033[1m║  Attack Surface Intel    ║")
+    print("  \033[1m║      C A T E Y E         ║")
+    print("  \033[1m║  Bug Bounty Intelligence ║")
     print("  \033[1m╚═══════════════════════════╝")
     print()
 
@@ -342,7 +342,8 @@ def main():
     mode = "demo" if args.demo else "production"
 
     if args.demo:
-        log("Demo mode — loading fake dataset")
+        warn("Demo mode — data loads into the same database as production")
+        warn("Remove demo targets in Settings before going live")
         seed_demo_data()
 
     only_dashboard = bool(args.dashboard) and not args.backend
@@ -363,7 +364,7 @@ def main():
         processes.append(p)
 
     print()
-    print(f"  \033[1m{R'Urls' if mode != 'demo' else 'Demo URLs'}:\033[0m")
+    print(f"  \033[1m{'URLs' if mode != 'demo' else 'Demo URLs'}:\033[0m")
     if both or args.backend:
         port = DEMO_PORT if args.demo else BACKEND_PORT
         print(f"    \033[94mAPI\033[0m       http://127.0.0.1:{port}")

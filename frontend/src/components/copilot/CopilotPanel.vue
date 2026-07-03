@@ -17,7 +17,7 @@ const abortController = ref<AbortController | null>(null)
 const chatEnd = ref<HTMLDivElement | null>(null)
 
 const isFindingsRoute = computed(() => route.path.startsWith('/findings'))
-const isMissionControl = computed(() => route.path.startsWith('/mission-control'))
+const isMissionControl = computed(() => route.path.startsWith('/mission-control') || route.path.startsWith('/legacy'))
 
 const systemContext = computed(() => {
   if (isFindingsRoute.value) return 'Eres un asistente de redacción de reportes de seguridad. Ayuda al operador a redactar reportes claros y profesionales para plataformas de bug bounty.'

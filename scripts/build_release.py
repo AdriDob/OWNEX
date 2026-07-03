@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ORION Release Builder — one command to build the final production output.
+"""CATEYE Release Builder — one command to build the final production output.
 
 Usage:
     python scripts/build_release.py                    # Full release build
@@ -10,7 +10,7 @@ Usage:
 
 Builds:
   - Frontend (Vite production build)
-  - Backend (PyInstaller EXE from Orion.spec)
+  - Backend (PyInstaller EXE from CATEYE.spec)
   - Installer (NSIS .exe from installer/orion.nsi)
   - Smoke test (validates built EXE)
   - Documentation (README, CHANGELOG, LICENSE, VERSION, build_info.json)
@@ -18,12 +18,12 @@ Builds:
 
 Output:
   build/release/
-    Orion/
-      Orion.exe
+    CATEYE/
+      CATEYE.exe
       _internal/
       frontend_dist/
-    OrionInstaller.exe
-    Orion.zip
+    CATEYEInstaller.exe
+    CATEYE.zip
     README.txt
     CHANGELOG.md
     VERSION.txt
@@ -54,13 +54,13 @@ VERSION_FILE = PROJECT_ROOT / "VERSION"
 DIST_DIR = PROJECT_ROOT / "dist"
 BUILD_DIR = PROJECT_ROOT / "build"
 
-_OUTPUT_ENV = os.environ.get("ORION_OUTPUT_DIR")
+_OUTPUT_ENV = os.environ.get("CATEYE_OUTPUT_DIR")
 if _OUTPUT_ENV:
     DEFAULT_OUTPUT = Path(_OUTPUT_ENV)
 elif sys.platform == "win32":
     DEFAULT_OUTPUT = Path(os.environ.get("USERPROFILE", "C:/")) / "OneDrive" / "Desktop" / "Yo" / "privado"
 else:
-    DEFAULT_OUTPUT = Path.home() / "Orion"
+    DEFAULT_OUTPUT = Path.home() / "CATEYE"
 
 IS_WINDOWS = sys.platform == "win32"
 
@@ -119,21 +119,21 @@ def build_frontend() -> bool:
 
 
 def build_pyinstaller() -> bool:
-    log("PYINSTALLER", "Building EXE (pyinstaller Orion.spec)...")
-    spec = PROJECT_ROOT / "Orion.spec"
+    log("PYINSTALLER", "Building EXE (pyinstaller CATEYE.spec)...")
+    spec = PROJECT_ROOT / "CATEYE.spec"
     if not spec.exists():
-        log("PYINSTALLER", "SKIP — no Orion.spec found")
+        log("PYINSTALLER", "SKIP — no CATEYE.spec found")
         return False
 
     if not shutil.which("pyinstaller"):
         log("PYINSTALLER", "SKIP — PyInstaller not installed")
         return False
 
-    if not run_cmd(["pyinstaller", "Orion.spec", "-y"], timeout=600):
+    if not run_cmd(["pyinstaller", "CATEYE.spec", "-y"], timeout=600):
         log("PYINSTALLER", "FAILED")
         return False
 
-    exe = DIST_DIR / "Orion" / ("Orion.exe" if IS_WINDOWS else "Orion")
+    exe = DIST_DIR / "CATEYE" / ("CATEYE.exe" if IS_WINDOWS else "CATEYE")
     if not exe.exists():
         log("PYINSTALLER", f"FAILED — {exe} not found")
         return False
@@ -160,9 +160,9 @@ def build_installer(version: str) -> bool:
         log("INSTALLER", "FAILED")
         return False
 
-    installer = DIST_DIR / "OrionInstaller.exe"
+    installer = DIST_DIR / "CATEYEInstaller.exe"
     if not installer.exists():
-        log("INSTALLER", "FAILED — OrionInstaller.exe not found in dist/")
+        log("INSTALLER", "FAILED — CATEYEInstaller.exe not found in dist/")
         return False
 
     log("INSTALLER", f"OK — {installer.name} ({installer.stat().st_size / 1024 / 1024:.1f} MB)")
@@ -175,7 +175,7 @@ def create_docs(output_dir: Path, version: str) -> None:
     readme = output_dir / "README.txt"
     readme.write_text(
         f"{'=' * 40}\n"
-        f"         ORION v{version.ljust(6)}          \n"
+        f"         CATEYE v{version.ljust(6)}          \n"
         f"   Automated Security Investigation OS    \n"
         f"{'=' * 40}\n"
         f"\n"
@@ -183,12 +183,12 @@ def create_docs(output_dir: Path, version: str) -> None:
         f"\n"
         f"--  Getting Started  --\n"
         f"\n"
-        f"  1. Install using OrionInstaller.exe (recommended)\n"
-        f"     OR extract Portable/Orion.zip and run Orion\\Orion.exe --tray\n"
+        f"  1. Install using CATEYEInstaller.exe (recommended)\n"
+        f"     OR extract Portable/CATEYE.zip and run CATEYE\\CATEYE.exe --tray\n"
         f"\n"
         f"  2. Open http://127.0.0.1:8000 in your browser\n"
         f"\n"
-        f"  3. The ORION icon appears in the system tray\n"
+        f"  3. The CATEYE icon appears in the system tray\n"
         f"     Right-click for: Open Dashboard, Stop, View Logs\n"
         f"\n"
         f"--  System Requirements  --\n"
@@ -206,7 +206,7 @@ def create_docs(output_dir: Path, version: str) -> None:
         f"# Changelog\n\n"
         f"## v{version} ({datetime.now().strftime('%Y-%m-%d')})\n\n"
         f"### Release\n"
-        f"- ORION v{version} Stable\n"
+        f"- CATEYE v{version} Stable\n"
         f"- Build pipeline reproducible\n"
         f"- NSIS installer with Windows 11 support\n"
         f"- PyInstaller single-directory executable\n"
@@ -230,8 +230,8 @@ def create_docs(output_dir: Path, version: str) -> None:
     current_year = datetime.now().year
     license_file = output_dir / "LICENSE.txt"
     license_file.write_text(
-        f"ORION v{version}\n"
-        f"Copyright (c) {current_year} ORION Labs\n\n"
+        f"CATEYE v{version}\n"
+        f"Copyright (c) {current_year} CATEYE Labs\n\n"
         f"All rights reserved.\n\n"
         f"This software is protected by intellectual property laws.\n"
         f"Unauthorized distribution, modification, or use is prohibited.\n\n"
@@ -262,7 +262,7 @@ def get_git_commit() -> str:
         return "unknown"
 
 
-KEY_ARTIFACTS = ["Orion.exe", "Orion", "OrionInstaller.exe"]
+KEY_ARTIFACTS = ["CATEYE.exe", "CATEYE", "CATEYEInstaller.exe"]
 
 
 def artifact_sha256(output_dir: Path) -> dict[str, str]:
@@ -270,7 +270,7 @@ def artifact_sha256(output_dir: Path) -> dict[str, str]:
     for f in output_dir.rglob("*"):
         if f.is_file() and f.name in KEY_ARTIFACTS:
             hashes[f.name] = sha256(f)
-    orion_dir = output_dir / "Orion"
+    orion_dir = output_dir / "CATEYE"
     if orion_dir.exists():
         for f in orion_dir.rglob("*"):
             if f.is_file() and f.name in KEY_ARTIFACTS:
@@ -281,9 +281,9 @@ def artifact_sha256(output_dir: Path) -> dict[str, str]:
 def create_build_info(output_dir: Path, version: str, components: dict[str, bool]) -> None:
     total_size = sum(f.stat().st_size for f in output_dir.rglob("*") if f.is_file())
     info = {
-        "app": "ORION",
+        "app": "CATEYE",
         "version": version,
-        "build_id": f"ORION-v{version}-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+        "build_id": f"CATEYE-v{version}-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
         "build_date": datetime.now(timezone.utc).isoformat(),
         "commit": get_git_commit(),
         "python": sys.version.split()[0],
@@ -313,8 +313,8 @@ def create_build_info(output_dir: Path, version: str, components: dict[str, bool
 
 
 def create_zip(output_dir: Path, version: str) -> Path | None:
-    log("ZIP", f"Creating Orion-{version}.zip from {output_dir}...")
-    zip_path = output_dir / f"Orion-{version}.zip"
+    log("ZIP", f"Creating CATEYE-{version}.zip from {output_dir}...")
+    zip_path = output_dir / f"CATEYE-{version}.zip"
 
     if zip_path.exists():
         zip_path.unlink()
@@ -337,17 +337,17 @@ def create_zip(output_dir: Path, version: str) -> Path | None:
 
 
 def copy_to_output(output_dir: Path) -> bool:
-    target = DEFAULT_OUTPUT / "Orion"
+    target = DEFAULT_OUTPUT / "CATEYE"
     if target.exists():
         shutil.rmtree(target)
     target.mkdir(parents=True, exist_ok=True)
     for f in output_dir.iterdir():
         if f.is_file():
             shutil.copy2(f, target / f.name)
-    # Also copy Orion/ subdir
-    orion_dir = output_dir / "Orion"
+    # Also copy CATEYE/ subdir
+    orion_dir = output_dir / "CATEYE"
     if orion_dir.exists():
-        dest = target / "Orion"
+        dest = target / "CATEYE"
         if dest.exists():
             shutil.rmtree(dest)
         shutil.copytree(orion_dir, dest)
@@ -375,12 +375,12 @@ def verify_output(output_dir: Path) -> bool:
         if not exists:
             all_ok = False
 
-    orion_dir = output_dir / "Orion"
-    orion_exe = orion_dir / ("Orion.exe" if IS_WINDOWS else "Orion")
+    orion_dir = output_dir / "CATEYE"
+    orion_exe = orion_dir / ("CATEYE.exe" if IS_WINDOWS else "CATEYE")
     if orion_exe.exists():
-        log("VERIFY", f"  [OK] Orion/{orion_exe.name} ({orion_exe.stat().st_size / 1024 / 1024:.1f} MB)")
+        log("VERIFY", f"  [OK] CATEYE/{orion_exe.name} ({orion_exe.stat().st_size / 1024 / 1024:.1f} MB)")
     else:
-        log("VERIFY", "  [--] Orion/ binary not found (PyInstaller not run)")
+        log("VERIFY", "  [--] CATEYE/ binary not found (PyInstaller not run)")
 
     # PyInstaller 6.x places data files inside _internal/
     frontend_candidates = [
@@ -389,27 +389,27 @@ def verify_output(output_dir: Path) -> bool:
     ]
     frontend_found = any(p.exists() for p in frontend_candidates)
     if frontend_found:
-        log("VERIFY", "  [OK] Orion/_internal/frontend_dist/index.html")
+        log("VERIFY", "  [OK] CATEYE/_internal/frontend_dist/index.html")
     else:
-        log("VERIFY", "  [--] Orion/frontend_dist not found")
+        log("VERIFY", "  [--] CATEYE/frontend_dist not found")
 
-    installer = output_dir / "OrionInstaller.exe"
+    installer = output_dir / "CATEYEInstaller.exe"
     if installer.exists():
-        log("VERIFY", f"  [OK] OrionInstaller.exe ({installer.stat().st_size / 1024 / 1024:.1f} MB)")
+        log("VERIFY", f"  [OK] CATEYEInstaller.exe ({installer.stat().st_size / 1024 / 1024:.1f} MB)")
     else:
-        log("VERIFY", "  [--] OrionInstaller.exe not found")
+        log("VERIFY", "  [--] CATEYEInstaller.exe not found")
 
-    zip_file = output_dir / f"Orion-{read_version()}.zip"
+    zip_file = output_dir / f"CATEYE-{read_version()}.zip"
     if zip_file.exists():
         log("VERIFY", f"  [OK] {zip_file.name} ({zip_file.stat().st_size / 1024 / 1024:.1f} MB)")
     else:
-        log("VERIFY", "  [--] Orion.zip not found")
+        log("VERIFY", "  [--] CATEYE.zip not found")
 
     return all_ok
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="ORION Release Builder")
+    parser = argparse.ArgumentParser(description="CATEYE Release Builder")
     parser.add_argument("--version", default=None, help="Version override")
     parser.add_argument("--no-frontend", action="store_true", help="Skip frontend build")
     parser.add_argument("--no-nsis", action="store_true", help="Skip NSIS installer")
@@ -418,7 +418,7 @@ def main() -> None:
     args = parser.parse_args()
 
     version = args.version or read_version()
-    log("BUILD", f"ORION Release Builder v{version}")
+    log("BUILD", f"CATEYE Release Builder v{version}")
     log("BUILD", f"Platform: {sys.platform}")
     log("BUILD", f"Project: {PROJECT_ROOT}")
     log("BUILD", f"Dry run: {args.dry_run}")
@@ -426,7 +426,7 @@ def main() -> None:
     output_dir = BUILD_DIR / "release"
     if args.dry_run:
         log("BUILD", f"Output would be: {output_dir}")
-        log("BUILD", f"Final target: {DEFAULT_OUTPUT / 'Orion'}")
+        log("BUILD", f"Final target: {DEFAULT_OUTPUT / 'CATEYE'}")
         log("BUILD", "Dry run complete")
         return
 
@@ -450,18 +450,18 @@ def main() -> None:
     create_docs(output_dir, version)
 
     if components.get("pyinstaller"):
-        src = DIST_DIR / "Orion"
+        src = DIST_DIR / "CATEYE"
         if src.exists():
             log("BUILD", "Copying PyInstaller build to output...")
-            dest = output_dir / "Orion"
+            dest = output_dir / "CATEYE"
             if dest.exists():
                 shutil.rmtree(dest)
             shutil.copytree(src, dest)
 
     # Copy installer to output
-    installer_src = DIST_DIR / "OrionInstaller.exe"
+    installer_src = DIST_DIR / "CATEYEInstaller.exe"
     if installer_src.exists():
-        shutil.copy2(installer_src, output_dir / "OrionInstaller.exe")
+        shutil.copy2(installer_src, output_dir / "CATEYEInstaller.exe")
 
     create_build_info(output_dir, version, components)
     create_zip(output_dir, version)
@@ -478,7 +478,7 @@ def main() -> None:
     log("BUILD", "\u2500" * 50)
     log("BUILD", "Build complete.")
     log("BUILD", f"  Output:  {output_dir}")
-    log("BUILD", f"  Target:  {DEFAULT_OUTPUT / 'Orion'}")
+    log("BUILD", f"  Target:  {DEFAULT_OUTPUT / 'CATEYE'}")
     log("BUILD", "DONE")
 
 

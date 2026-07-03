@@ -180,7 +180,7 @@ def score(
     target_meta: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
-    Unified scoring engine — single source of truth for Rastro.
+    Unified scoring engine — single source of truth for CATEYE.
 
     Fuses all prior scoring logic:
       - EndpointScorer.score_endpoint / score_target

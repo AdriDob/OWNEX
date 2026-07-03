@@ -1,5 +1,5 @@
 """
-Core modules for Rastro.
+Core modules for CATEYE.
 
 Sub-packages:
   contracts/  — Canonical interfaces and base classes

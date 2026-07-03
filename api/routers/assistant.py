@@ -1,5 +1,5 @@
 """
-Rastro AI Assistant API endpoints.
+CATEYE AI Assistant API endpoints.
 
 All endpoints consume real system data through the Assistant module.
 No mock data. No placeholders.

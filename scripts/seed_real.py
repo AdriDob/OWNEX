@@ -1,5 +1,5 @@
 """
-seed_real.py — ORION demo seed with REAL program references & REAL CWE findings.
+seed_real.py — CATEYE demo seed with REAL program references & REAL CWE findings.
 
 Every program name, bounty tier range, and CWE vulnerability description
 refers to REAL entities. NO fabricated rewards. All bounties are listed as
@@ -545,8 +545,8 @@ NOTIFICATIONS = [
     },
     {
         "notification_type": "system",
-        "title": "Bienvenido a Rastro",
-        "message": "ORION está operativo. Se cargaron 6 programas, 60 endpoints, y 24 hallazgos potenciales.",
+        "title": "Bienvenido a CATEYE",
+        "message": "CATEYE está operativo. Se cargaron 6 programas, 60 endpoints, y 24 hallazgos potenciales.",
         "severity": "info",
         "priority": "low",
         "linked_type": None,
@@ -776,7 +776,7 @@ def seed():
                 probability_of_success=0.35,
                 recommended_approach=f"Focus on {pdata['name']}'s API endpoints. GraphQL introspection and SSRF via webhooks are common high-value findings.",
                 last_analyzed_at=NOW - timedelta(days=2),
-                notes="Program analyzed by ORION AI. No manual verification performed.",
+                notes="Program analyzed by CATEYE AI. No manual verification performed.",
             )
             session.add(intel)
 
@@ -974,7 +974,7 @@ def seed():
 Potencial de {est_reward:.0f} USD según tabla de recompensas publicada.
 
 ## Estado
-Reporte generado automáticamente por ORION pipeline. No enviado.
+Reporte generado automáticamente por CATEYE pipeline. No enviado.
 """,
                 finding_ids=json.dumps([finding.id]),
                 program=pname,
@@ -988,7 +988,7 @@ Reporte generado automáticamente por ORION pipeline. No enviado.
                 evidence_count=2,
                 notes="Reporte demo · preloaded. Referencia a programa real, contenido generado.",
                 timeline=json.dumps([
-                    {"date": (NOW - timedelta(days=2)).isoformat(), "event": "Report created by ORION pipeline"},
+                    {"date": (NOW - timedelta(days=2)).isoformat(), "event": "Report created by CATEYE pipeline"},
                     {"date": (NOW - timedelta(days=1)).isoformat(), "event": "Finding validated"},
                 ]),
                 attachments="[]",

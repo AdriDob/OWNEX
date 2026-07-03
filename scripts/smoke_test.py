@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""ORION Smoke Test — validates built executable in production mode.
+"""CATEYE Smoke Test — validates built executable in production mode.
 
 Usage:
-    python scripts/smoke_test.py                           # Uses dist/Orion/Orion.exe
-    python scripts/smoke_test.py --exe path/to/Orion.exe  # Custom executable
+    python scripts/smoke_test.py                           # Uses dist/CATEYE/CATEYE.exe
+    python scripts/smoke_test.py --exe path/to/CATEYE.exe  # Custom executable
     python scripts/smoke_test.py --ci                      # CI mode (no browser/tray)
 
 Verifies:
@@ -79,8 +79,8 @@ def wait_for_health(url: str, timeout: float = 30.0) -> bool:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="ORION Smoke Test")
-    parser.add_argument("--exe", type=Path, default=None, help="Path to Orion.exe")
+    parser = argparse.ArgumentParser(description="CATEYE Smoke Test")
+    parser.add_argument("--exe", type=Path, default=None, help="Path to CATEYE.exe")
     parser.add_argument("--ci", action="store_true", help="CI mode (no browser/tray)")
     parser.add_argument("--host", default="127.0.0.1", help="Backend host")
     parser.add_argument("--port", type=int, default=8000, help="Backend port")
@@ -89,11 +89,11 @@ def main() -> None:
     if args.exe:
         exe_path = args.exe.resolve()
     else:
-        exe_path = Path(__file__).resolve().parent.parent / "dist" / "Orion" / "Orion.exe"
+        exe_path = Path(__file__).resolve().parent.parent / "dist" / "CATEYE" / "CATEYE.exe"
 
     if not exe_path.exists():
-        print(f"\n\u2717 Orion.exe not found at: {exe_path}")
-        print("  Build first: pyinstaller Orion.spec -y")
+        print(f"\n\u2717 CATEYE.exe not found at: {exe_path}")
+        print("  Build first: pyinstaller CATEYE.spec -y")
         sys.exit(1)
 
     host = args.host
@@ -102,17 +102,17 @@ def main() -> None:
     health_url = f"{base_url}/api/health"
 
     print(f"\n{'=' * 60}")
-    print("  ORION SMOKE TEST")
+    print("  CATEYE SMOKE TEST")
     print(f"  {TIMESTAMP}")
     print(f"  Executable: {exe_path}")
     print(f"{'=' * 60}\n")
 
     # ── 1. Start the backend ────────────────────────────────────────
     mode = "--browser"  # --tray only shows tray (no backend); --browser starts full stack
-    log(f"Starting Orion.exe {mode} --no-tray ...")
+    log(f"Starting CATEYE.exe {mode} --no-tray ...")
     env = os.environ.copy()
-    env["ORION_DESKTOP"] = "1"
-    env["ORION_SMOKE_TEST"] = "1"
+    env["CATEYE_DESKTOP"] = "1"
+    env["CATEYE_SMOKE_TEST"] = "1"
 
     proc = subprocess.Popen(
         [str(exe_path), mode, "--no-tray"],
@@ -215,7 +215,7 @@ def main() -> None:
         skip(f"API /api/overview (HTTP {status})")
 
     # ── 9. Clean shutdown ─────────────────────────────────────────
-    log("\nShutting down Orion...")
+    log("\nShutting down CATEYE...")
     proc.terminate()
     try:
         proc.wait(timeout=10.0)

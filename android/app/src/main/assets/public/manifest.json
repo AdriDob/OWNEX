@@ -1,6 +1,6 @@
 {
-  "name": "Rastro",
-  "short_name": "Rastro",
+  "name": "CATEYE",
+  "short_name": "CATEYE",
   "description": "Bug bounty intelligence companion — real-time opportunity detection, offline-capable",
   "start_url": "/",
   "display": "standalone",

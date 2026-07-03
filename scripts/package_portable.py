@@ -1,8 +1,8 @@
-"""Package Rastro Desktop as a portable ZIP archive.
+"""Package CATEYE Desktop as a portable ZIP archive.
 
 Usage:
-    python scripts/package_portable.py                    # Uses existing dist/Rastro/
-    python scripts/package_portable.py --source path/to/Rastro  # Custom source
+    python scripts/package_portable.py                    # Uses existing dist/CATEYE/
+    python scripts/package_portable.py --source path/to/CATEYE  # Custom source
 """
 
 from __future__ import annotations
@@ -16,14 +16,14 @@ from pathlib import Path
 
 
 def create_portable_zip(source_dir: Path, output_dir: Path, version: str = "1.0.0") -> Path:
-    """Create a portable ZIP of the Rastro Desktop build."""
+    """Create a portable ZIP of the CATEYE Desktop build."""
     if not source_dir.is_dir():
         print(f"Error: Source directory not found: {source_dir}")
-        print("Run 'pyinstaller Rastro.spec --clean -y' first.")
+        print("Run 'pyinstaller CATEYE.spec --clean -y' first.")
         sys.exit(1)
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    zip_path = output_dir / f"Rastro-Portable-{version}.zip"
+    zip_path = output_dir / f"CATEYE-Portable-{version}.zip"
 
     if zip_path.exists():
         zip_path.unlink()
@@ -59,9 +59,9 @@ def format_size(size_bytes: int) -> str:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Package Rastro Desktop as portable ZIP")
-    parser.add_argument("--source", type=Path, default=Path("dist/Rastro"),
-                        help="Path to PyInstaller build output (default: dist/Rastro)")
+    parser = argparse.ArgumentParser(description="Package CATEYE Desktop as portable ZIP")
+    parser.add_argument("--source", type=Path, default=Path("dist/CATEYE"),
+                        help="Path to PyInstaller build output (default: dist/CATEYE)")
     parser.add_argument("--output", type=Path, default=Path("dist"),
                         help="Output directory (default: dist)")
     parser.add_argument("--version", default="1.0.0", help="Version string")

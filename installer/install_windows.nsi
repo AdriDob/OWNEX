@@ -1,8 +1,8 @@
-; ORION — Professional Windows 11 Installer
-; Canonical spec: installer\orion.nsi (this file is a symlink for backwards compat)
-; Build: makensis installer\orion.nsi
+; CATEYE — Professional Windows 11 Installer
+; Canonical spec: installer\cateye.nsi
+; Build: makensis installer\cateye.nsi
 ;
-; Installs to C:\Program Files\Orion\
+; Installs to C:\Program Files\CATEYE\
 ; NO Python execution — pure file copy + registry + shortcuts.
 
-!include "orion.nsi"
+!include "cateye.nsi"

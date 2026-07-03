@@ -100,7 +100,7 @@ onUnmounted(() => {
 <template>
     <div class="flex h-screen w-screen overflow-hidden bg-background">
     <!-- Scanline overlay -->
-    <div class="pointer-events-none fixed inset-0 z-[60] opacity-[0.03]" style="background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 65, 0.08) 2px, rgba(0, 255, 65, 0.08) 4px);" />
+    <div class="pointer-events-none fixed inset-0 z-[60] opacity-[0.03]" style="background: repeating-linear-gradient(0deg, transparent, transparent 2px, color-mix(in srgb, var(--primary) 8%, transparent) 2px, color-mix(in srgb, var(--primary) 8%, transparent) 4px);" />
 
     <!-- Global loading bar -->
     <div v-if="showGlobalLoading" class="fixed top-0 left-0 right-0 z-[100] h-0.5">

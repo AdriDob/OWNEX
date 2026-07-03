@@ -1,5 +1,5 @@
 """
-Rastro Opportunity Intelligence Layer — /api/opportunity/
+CATEYE Opportunity Intelligence Layer — /api/opportunity/
 
 All endpoints are read-only. Never modifies pipeline data.
 Supports advanced layered scoring, EVH rankings, identity vault.

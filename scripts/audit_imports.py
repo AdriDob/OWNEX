@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ORION Runtime Import Audit — detects forbidden dependencies in UI mode.
+"""CATEYE Runtime Import Audit — detects forbidden dependencies in UI mode.
 
 Scans all Python files in the project for:
   - WSL/Linux-specific paths (/mnt/, /proc/version)
@@ -233,7 +233,7 @@ def scan_file(path: Path) -> list[dict]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="ORION Import Audit")
+    parser = argparse.ArgumentParser(description="CATEYE Import Audit")
     parser.add_argument("--json", action="store_true", help="JSON output")
     parser.add_argument("--ci", action="store_true", help="CI mode (exit code)")
     parser.add_argument("--fix", action="store_true", help="Fix mode (not implemented)")
@@ -282,7 +282,7 @@ def main() -> None:
         print(json.dumps(result, indent=2))
     else:
         print(f"\n{'=' * 60}")
-        print("  ORION IMPORT AUDIT")
+        print("  CATEYE IMPORT AUDIT")
         print(f"  Files scanned: {files_scanned}")
         print(f"{'=' * 60}")
 

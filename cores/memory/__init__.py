@@ -1,4 +1,4 @@
-"""Memory engine for Rastro."""
+"""Memory engine for CATEYE."""
 
 from cores.memory.decision_memory import Decision, DecisionMemory, get_decision_memory
 from cores.memory.identity_graph import IdentityGraph, IdentityLink, IdentityToken

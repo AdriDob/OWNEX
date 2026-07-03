@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""ORION Portable Test — validates that the portable build runs outside the repo.
+"""CATEYE Portable Test — validates that the portable build runs outside the repo.
 
-Copies the Portable folder (dist/Orion/) to a temp directory outside the repo,
+Copies the Portable folder (dist/CATEYE/) to a temp directory outside the repo,
 then runs smoke test against it.
 
 Usage:
     python scripts/test_portable.py
-    python scripts/test_portable.py --source path/to/Orion
+    python scripts/test_portable.py --source path/to/CATEYE
     python scripts/test_portable.py --keep-temp
 """
 
@@ -64,34 +64,34 @@ def wait_for_health(url: str, timeout: float = 30.0) -> bool:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="ORION Portable Test")
-    parser.add_argument("--source", type=Path, default=None, help="Path to Orion directory")
+    parser = argparse.ArgumentParser(description="CATEYE Portable Test")
+    parser.add_argument("--source", type=Path, default=None, help="Path to CATEYE directory")
     parser.add_argument("--keep-temp", action="store_true", help="Keep temp directory after test")
     args = parser.parse_args()
 
     if args.source:
         orion_dir = args.source.resolve()
     else:
-        orion_dir = Path(__file__).resolve().parent.parent / "dist" / "Orion"
+        orion_dir = Path(__file__).resolve().parent.parent / "dist" / "CATEYE"
 
     if not orion_dir.is_dir():
-        print(f"\n\u2717 Orion directory not found at: {orion_dir}")
-        print("  Build first: pyinstaller Orion.spec -y")
+        print(f"\n\u2717 CATEYE directory not found at: {orion_dir}")
+        print("  Build first: pyinstaller CATEYE.spec -y")
         sys.exit(1)
 
-    orion_exe = orion_dir / "Orion.exe"
+    orion_exe = orion_dir / "CATEYE.exe"
     if not orion_exe.exists():
-        print(f"\n\u2717 Orion.exe not found in {orion_dir}")
+        print(f"\n\u2717 CATEYE.exe not found in {orion_dir}")
         sys.exit(1)
 
     print(f"\n{'=' * 60}")
-    print("  ORION PORTABLE TEST")
+    print("  CATEYE PORTABLE TEST")
     print(f"  Source: {orion_dir}")
     print(f"{'=' * 60}\n")
 
     log("Checking critical files...")
     required_files = [
-        "Orion.exe",
+        "CATEYE.exe",
         "_internal/frontend_dist/index.html",
     ]
     for f in required_files:
@@ -102,9 +102,9 @@ def main() -> None:
 
     # Create temp directory OUTSIDE the repo
     temp_dir = Path(tempfile.mkdtemp(prefix="orion_portable_"))
-    portable_dir = temp_dir / "Orion"
+    portable_dir = temp_dir / "CATEYE"
     log(f"Copying to temp location: {portable_dir}")
-    log("  (simulating user extracting Portable/Orion.zip to Desktop)")
+    log("  (simulating user extracting Portable/CATEYE.zip to Desktop)")
 
     try:
         shutil.copytree(orion_dir, portable_dir)
@@ -113,11 +113,11 @@ def main() -> None:
         shutil.rmtree(temp_dir)
         sys.exit(1)
 
-    portable_exe = portable_dir / "Orion.exe"
+    portable_exe = portable_dir / "CATEYE.exe"
     if portable_exe.exists():
         ok(f"Copied to {portable_dir}")
     else:
-        fail("Copy failed — Orion.exe not found in destination")
+        fail("Copy failed — CATEYE.exe not found in destination")
         shutil.rmtree(temp_dir)
         sys.exit(1)
 
@@ -131,11 +131,11 @@ def main() -> None:
     except ValueError:
         ok("Portable directory is OUTSIDE the repo — isolation confirmed")
 
-    # Start portable Orion
-    log("\nStarting portable Orion.exe...")
+    # Start portable CATEYE
+    log("\nStarting portable CATEYE.exe...")
     env = os.environ.copy()
-    env["ORION_DESKTOP"] = "1"
-    env["ORION_PORTABLE_TEST"] = "1"
+    env["CATEYE_DESKTOP"] = "1"
+    env["CATEYE_PORTABLE_TEST"] = "1"
 
     proc = subprocess.Popen(
         [str(portable_exe), "--browser", "--no-tray"],
@@ -173,7 +173,7 @@ def main() -> None:
         fail(f"Portable health endpoint HTTP {status}")
 
     # Clean shutdown
-    log("\nShutting down portable Orion...")
+    log("\nShutting down portable CATEYE...")
     proc.terminate()
     try:
         proc.wait(timeout=10.0)

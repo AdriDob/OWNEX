@@ -1,4 +1,4 @@
-"""Reporting assistant modules for Rastro."""
+"""Reporting assistant modules for CATEYE."""
 
 from cores.reporting.export_formats import ExportFormats
 from cores.reporting.report_engine import FinalReport, ProgramData, ReportEngine

@@ -25,7 +25,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("orion.watchdog")
+logger = logging.getLogger("catseye.watchdog")
 
 
 class HealthStatus(Enum):
@@ -377,7 +377,7 @@ class Watchdog:
         if self._running:
             return
         self._running = True
-        self._thread = threading.Thread(target=self._run_loop, daemon=True, name="orion-watchdog")
+        self._thread = threading.Thread(target=self._run_loop, daemon=True, name="catseye-watchdog")
         self._thread.start()
         logger.info("[WATCHDOG] Started (interval=%ss, max_attempts=%d)", self._interval, self._max_attempts)
 

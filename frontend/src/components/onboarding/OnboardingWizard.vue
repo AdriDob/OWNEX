@@ -6,10 +6,9 @@ import Button from '@/components/ui/Button.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Tooltip from '@/components/ui/Tooltip.vue'
 import {
-  Eye, Globe, Crosshair, Zap, ShieldCheck, Sparkles, Key, CheckCircle2,
-  ArrowRight, ArrowLeft, Play, Target, Cpu, Scan, DollarSign, AlertTriangle,
-  Loader2, ExternalLink, Bug, ChevronRight, Star, User, Palette, Languages,
-  Bell, Server, Wrench, Wallet, Cog, SkipForward, Monitor,
+  Eye, Globe, Sparkles, Key, CheckCircle2,
+  ArrowRight, ArrowLeft, Cpu, AlertTriangle,
+  Star, SkipForward,
 } from '@lucide/vue'
 
 const props = defineProps<{ open: boolean }>()
@@ -21,23 +20,18 @@ const settings = useSettingsStore()
 const step = ref(0)
 const steps = [
   { id: 'welcome', icon: Eye, label: 'Bienvenido' },
-  { id: 'user', icon: User, label: 'Usuario' },
   { id: 'ai', icon: Cpu, label: 'IA' },
-  { id: 'tools', icon: Wrench, label: 'Herramientas' },
   { id: 'keys', icon: Key, label: 'API Keys' },
   { id: 'platforms', icon: Globe, label: 'Plataformas' },
-  { id: 'wallet', icon: Wallet, label: 'Wallet' },
-  { id: 'notifications', icon: Bell, label: 'Notificaciones' },
   { id: 'finish', icon: Star, label: 'Listo' },
 ]
 const totalSteps = steps.length
 
 const saving = ref(false)
 const errorMsg = ref('')
+const skipConfirm = ref(false)
 
 const userName = ref(settings.data.general.userName)
-const language = ref(settings.data.general.language)
-const animations = ref(settings.data.general.animations)
 
 const aiProvider = ref(settings.data.ai.provider)
 const ollamaHost = ref(settings.data.ai.ollamaHost)
@@ -45,9 +39,6 @@ const ollamaModel = ref(settings.data.ai.ollamaModel)
 const openaiKey = ref(settings.data.ai.openaiKey)
 const geminiKey = ref(settings.data.ai.geminiKey)
 const temp = ref(settings.data.ai.temperature)
-
-const workDir = ref('')
-const toolChecks = ref<Record<string, boolean>>({})
 
 const apiKeys = ref({ ...settings.data.apiKeys })
 
@@ -57,11 +48,6 @@ const platformKeys = ref({
   intigriti: settings.data.apiKeys.intigriti,
 })
 
-const walletAddress = ref(settings.data.apiKeys.wallet)
-const bankInfo = ref(settings.data.apiKeys.bank)
-
-const notificationsEnabled = ref(true)
-
 const progress = computed(() => Math.round(((step.value + 1) / totalSteps) * 100))
 
 function close() {
@@ -69,16 +55,21 @@ function close() {
 }
 
 function skip() {
+  if (!skipConfirm.value) {
+    skipConfirm.value = true
+    setTimeout(() => skipConfirm.value = false, 3000)
+    return
+  }
   settings.completeOnboarding(true)
   close()
-  router.push('/legacy')
+  router.push('/mission-control')
 }
 
-async function finish() {
+  async function finish() {
   saving.value = true
   errorMsg.value = ''
   try {
-    settings.updateGeneral({ userName: userName.value, language: language.value, animations: animations.value })
+    settings.updateGeneral({ userName: userName.value })
     settings.updateAI({
       provider: aiProvider.value as any,
       ollamaHost: ollamaHost.value,
@@ -91,12 +82,10 @@ async function finish() {
       bugcrowd: platformKeys.value.bugcrowd,
       hackerone: platformKeys.value.hackerone,
       intigriti: platformKeys.value.intigriti,
-      wallet: walletAddress.value,
-      bank: bankInfo.value,
     })
     settings.completeOnboarding(false)
     close()
-    router.push('/legacy')
+    router.push('/mission-control')
   } catch (e: any) {
     errorMsg.value = e?.message || 'Error al guardar configuración'
   } finally {
@@ -160,60 +149,28 @@ watch(() => props.open, (v) => {
             <!-- Body -->
             <div class="px-6 py-6 min-h-[320px]">
               <!-- ═══ WELCOME ═══ -->
-              <div v-if="step === 0" class="text-center">
-                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 mb-5">
-                  <Eye class="h-8 w-8 text-primary" />
-                </div>
-                <h2 class="font-display text-2xl font-bold text-foreground">Bienvenido a CATEYE</h2>
-                <p class="mt-2 text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
-                  Sistema de Inteligencia de Seguridad para bug bounty. Completá esta configuración inicial en pocos pasos.
-                </p>
-                <div class="mt-6 grid grid-cols-4 gap-2 max-w-sm mx-auto">
-                  <div v-for="s in steps.slice(0, 8)" :key="s.id" class="rounded-lg bg-surface/20 p-2.5 text-center">
-                    <component :is="s.icon" class="mx-auto h-4 w-4 text-primary" />
-                    <p class="mt-1 font-mono text-[8px] text-muted-foreground uppercase">{{ s.label }}</p>
+              <div v-if="step === 0" class="max-w-md mx-auto space-y-5">
+                <div class="text-center mb-2">
+                  <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 mb-5">
+                    <Eye class="h-8 w-8 text-primary" />
                   </div>
+                  <h2 class="font-display text-2xl font-bold text-foreground">Bienvenido a CATEYE</h2>
+                  <p class="mt-2 text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+                    Sistema de Inteligencia de Seguridad para bug bounty. Configuración rápida en 4 pasos.
+                  </p>
                 </div>
-              </div>
-
-              <!-- ═══ USER ═══ -->
-              <div v-if="step === 1" class="max-w-md mx-auto space-y-5">
-                <h2 class="font-display text-lg font-bold text-foreground text-center">Tu perfil</h2>
                 <div>
-                  <label class="mb-1.5 block font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Nombre</label>
+                  <label class="mb-1.5 block font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Tu nombre</label>
                   <input
                     v-model="userName"
                     class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2.5 font-mono text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50 transition-colors"
                     placeholder="Operador"
                   />
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label class="mb-1.5 block font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Idioma</label>
-                    <select v-model="language" class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2.5 font-mono text-sm text-foreground focus:outline-none focus:border-primary/50">
-                      <option value="es">Español</option>
-                      <option value="en">English</option>
-                      <option value="pt">Português</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="mb-1.5 block font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Tema</label>
-                    <select v-model="settings.data.appearance.theme" class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2.5 font-mono text-sm text-foreground focus:outline-none focus:border-primary/50">
-                      <option value="cyber">Cyber (default)</option>
-                      <option value="dark">Dark</option>
-                      <option value="light">Light</option>
-                    </select>
-                  </div>
-                </div>
-                <label class="flex items-center gap-3 cursor-pointer">
-                  <input v-model="animations" type="checkbox" class="h-4 w-4 rounded border-border/60 accent-primary" />
-                  <span class="font-mono text-xs text-muted-foreground">Animaciones</span>
-                  <Tooltip text="Activar animaciones de interfaz y transiciones" position="right"><span class="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-muted-foreground/20 text-[8px] text-muted-foreground cursor-help">?</span></Tooltip>
-                </label>
               </div>
 
               <!-- ═══ AI ═══ -->
-              <div v-if="step === 2" class="max-w-md mx-auto space-y-4">
+              <div v-if="step === 1" class="max-w-md mx-auto space-y-4">
                 <h2 class="font-display text-lg font-bold text-foreground text-center">Inteligencia Artificial</h2>
                 <div>
                   <label class="mb-1.5 block font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Proveedor</label>
@@ -255,26 +212,8 @@ watch(() => props.open, (v) => {
                 </div>
               </div>
 
-              <!-- ═══ TOOLS ═══ -->
-              <div v-if="step === 3" class="max-w-lg mx-auto space-y-4">
-                <h2 class="font-display text-lg font-bold text-foreground text-center">Herramientas instaladas</h2>
-                <div class="grid grid-cols-2 gap-2">
-                  <div v-for="t in ['nuclei','amass','subfinder','httpx','katana','ffuf','gau','naabu','assetfinder','dnsx']" :key="t"
-                    class="flex items-center gap-2 rounded-lg border border-border/20 px-3 py-2"
-                  >
-                    <div v-if="toolChecks[t]" class="h-2 w-2 rounded-full bg-success shadow-[0_0_6px_rgba(0,230,118,0.5)]" />
-                    <div v-else class="h-2 w-2 rounded-full bg-muted-foreground/30" />
-                    <span class="font-mono text-xs text-muted-foreground">{{ t }}</span>
-                  </div>
-                </div>
-                <div>
-                  <label class="mb-1.5 block font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Directorio de trabajo</label>
-                  <input v-model="workDir" class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2.5 font-mono text-sm text-foreground focus:outline-none focus:border-primary/50" placeholder="/home/user/CATEYE" />
-                </div>
-              </div>
-
               <!-- ═══ API KEYS ═══ -->
-              <div v-if="step === 4" class="max-w-lg mx-auto space-y-3">
+              <div v-if="step === 2" class="max-w-lg mx-auto space-y-3">
                 <h2 class="font-display text-lg font-bold text-foreground text-center">API Keys</h2>
                 <p class="text-center text-xs text-muted-foreground -mt-2">Configurá tus claves de plataformas y OSINT</p>
                 <div v-for="svc in [
@@ -296,7 +235,7 @@ watch(() => props.open, (v) => {
               </div>
 
               <!-- ═══ PLATFORMS ═══ -->
-              <div v-if="step === 5" class="max-w-lg mx-auto space-y-4">
+              <div v-if="step === 3" class="max-w-lg mx-auto space-y-4">
                 <h2 class="font-display text-lg font-bold text-foreground text-center">Plataformas Bug Bounty</h2>
                 <div v-for="p in [
                   { key: 'bugcrowd', label: 'Bugcrowd' },
@@ -313,39 +252,8 @@ watch(() => props.open, (v) => {
                 </div>
               </div>
 
-              <!-- ═══ WALLET ═══ -->
-              <div v-if="step === 6" class="max-w-md mx-auto space-y-5">
-                <h2 class="font-display text-lg font-bold text-foreground text-center">Wallet y Banco</h2>
-                <div>
-                  <label class="mb-1.5 block font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Dirección de wallet (cripto)</label>
-                  <input v-model="walletAddress" class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2.5 font-mono text-sm text-foreground focus:outline-none focus:border-primary/50" placeholder="0x... o dirección SOL" />
-                </div>
-                <div>
-                  <label class="mb-1.5 block font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Información bancaria</label>
-                  <input v-model="bankInfo" class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2.5 font-mono text-sm text-foreground focus:outline-none focus:border-primary/50" placeholder="CBU / Alias / IBAN" />
-                </div>
-              </div>
-
-              <!-- ═══ NOTIFICATIONS ═══ -->
-              <div v-if="step === 7" class="max-w-md mx-auto space-y-5">
-                <h2 class="font-display text-lg font-bold text-foreground text-center">Notificaciones</h2>
-                <label class="flex items-center justify-between cursor-pointer">
-                  <div class="flex items-center gap-3">
-                    <Bell class="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p class="font-mono text-xs text-foreground">Notificaciones push</p>
-                      <p class="font-mono text-[9px] text-muted-foreground">Alertas de hallazgos, reportes y pagos</p>
-                    </div>
-                  </div>
-                  <input v-model="notificationsEnabled" type="checkbox" class="h-4 w-4 rounded border-border/60 accent-primary" />
-                </label>
-                <div class="rounded-lg bg-surface/20 p-4 text-center">
-                  <p class="font-mono text-xs text-muted-foreground">Configuración adicional disponible en <strong class="text-primary">Settings → General</strong></p>
-                </div>
-              </div>
-
               <!-- ═══ FINISH ═══ -->
-              <div v-if="step === 8" class="text-center">
+              <div v-if="step === 4" class="text-center">
                 <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-success/10 mb-5">
                   <Star class="h-8 w-8 text-success" />
                 </div>
@@ -374,7 +282,7 @@ watch(() => props.open, (v) => {
               </div>
               <div class="flex items-center gap-2">
                 <Button variant="ghost" size="sm" class="text-muted-foreground" @click="skip">
-                  <SkipForward class="mr-1 h-3.5 w-3.5" /> Skip
+                  <SkipForward class="mr-1 h-3.5 w-3.5" /> {{ skipConfirm ? '¿Saltar config?' : 'Skip' }}
                 </Button>
                 <Button v-if="step < totalSteps - 1" size="sm" @click="next">
                   Siguiente <ArrowRight class="ml-1 h-3.5 w-3.5" />

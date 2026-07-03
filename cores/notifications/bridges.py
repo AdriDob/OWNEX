@@ -28,7 +28,7 @@ def register_desktop_channel() -> None:
             priority = payload.get("priority", "medium")
             urgency = "critical" if priority == "critical" else "normal"
             send_notification(
-                title=payload.get("title", "Rastro"),
+                title=payload.get("title", "CATEYE"),
                 message=payload.get("message", ""),
                 urgency=urgency,
             )

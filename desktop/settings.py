@@ -1,4 +1,4 @@
-"""ORION Desktop Settings — persistent JSON configuration for the launcher.
+"""CATEYE Desktop Settings — persistent JSON configuration for the launcher.
 
 Stores: backend port, auto-start, theme, language, last URL, window state,
 uptime history, crash/recovery counts, diagnostic data.
@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("orion.desktop.settings")
+logger = logging.getLogger("catseye.desktop.settings")
 
 SETTINGS_VERSION = 1
 
