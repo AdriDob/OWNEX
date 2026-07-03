@@ -772,7 +772,7 @@ class PipelineRun(Base):
     )
 
 
-class RastroConfig(Base):
+class CATEYEConfig(Base):
     """Persistent key-value configuration store."""
     __tablename__ = "CATEYE_config"
 
@@ -798,3 +798,7 @@ class AIProviderConfig(Base):
         server_default=func.now(),
         onupdate=func.now(),
     )
+
+
+# Backward-compatible alias — import as CATEYEConfig or RastroConfig
+RastroConfig = CATEYEConfig

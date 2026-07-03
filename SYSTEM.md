@@ -2,7 +2,7 @@
 
 # CATEYE — Sistema de Inteligencia para Bug Bounty Automático
 
-> **Versión:** 1.6.1
+> **Versión:** 1.7.0
 > **Arquitectura:** Monolito modular con frontend SPA
 > **Backend:** Python + FastAPI + SQLAlchemy + SQLite/PostgreSQL
 > **Frontend:** Vue 3 + TypeScript + Tailwind CSS v4 + Vite
@@ -531,7 +531,7 @@ Queue: SQLite-based (no Redis requerido)
 
 ## 12. Evolución y Roadmap
 
-### Estado actual (v1.6.1)
+### Estado actual (v1.7.0)
 
 | Feature | Estado |
 |---|---|
@@ -603,22 +603,27 @@ Se realizó una auditoría de fricciones con perspectiva de **bug bounty hunter 
 
 | Área | % | Detalle |
 |---|---|---|
-| **Backend `cores/`** | **96%** | 57 módulos, ~45K líneas. Núcleo completo con todos los subsistemas implementados. `cache_size` migrado a EnvConfig, todos los env vars en `CATEYE_*`. Pendientes: migraciones Alembic. |
-| **API REST** | **94%** | 56 routers registrados y funcionales (economic, orion, zap, connections, platforms, etc). Cobertura completa de endpoints del sistema. |
-| **Frontend Vue 3** | **91%** | 50 páginas, 21 componentes, 6 stores, navegación podada (36→13 items), onboarding reducido (9→5 pasos), auto-save global, shortcuts visibles, todas las páginas de detalle implementadas. Pendientes: tests unitarios (0%). |
+| **Backend `cores/`** | **100%** | 57 módulos, ~45K líneas. Alembic configurado con migration inicial, `cache_size` migrado a EnvConfig, `RastroConfig` → `CATEYEConfig`, todos los env vars en `CATEYE_*`. |
+| **API REST** | **96%** | 56 routers registrados y funcionales. OpenAPI con security scheme Bearer JWT, description, contact, license info. Pendientes: normalización de formato de respuesta. |
+| **Frontend Vue 3** | **93%** | 50 páginas, 21 componentes, 6 stores, navegación podada (36→13 items), onboarding reducido (9→5 pasos), auto-save global, shortcuts visibles, todas las páginas de detalle implementadas. Vitest + Vue Test Utils configurados, 30 tests unitarios (Button, Badge, Card, utils). |
 | **Desktop / Launcher** | **87%** | Multi-modo (browser, tray, service, safe-mode), build PyInstaller, system tray, boot guard. Launcher unificado con branding corregido, paths de datos unificados. |
 | **Plataformas Bug Bounty** | **68%** | 5 integraciones (HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack), bóveda encriptada Fernet, scraping infraestructura presente. Pendientes: battle-testing, manejo de errores de API. |
-| **Tests** | **28%** | 15 suites backend, 4.5K líneas. Tests de API, agents, scoring, E2E. **Frontend tests en 0%** — sin Vitest ni Vue Test Utils configurados. |
+| **Tests** | **30%** | 15 suites backend, 4.5K líneas. Tests de API, agents, scoring, E2E. **Frontend**: Vitest + Vue Test Utils configurados, 30 tests (Button, Badge, Card, utils). |
 | **Mobile** | **0%** | Planificado para v1.4 (Capacitor Android + Tauri desktop). |
 
-### Total General: **~91%** (+3% ronda final de pulido)
+### Total General: **~93%**
 
-### 9% Restante (Priorizado)
+### 7% Restante (Priorizado)
 
 | Prioridad | Item | Esfuerzo |
 |---|---|---|
-| 1 | Tests unitarios frontend (Vitest + Vue Test Utils) | 3-4 días |
-| 2 | Rebuild Android compiled assets | 1 día |
-| 3 | Alembic para migraciones versionadas | 1 día |
-| 4 | Responsive design + PWA | 2-3 días |
-| 5 | Mobile (Capacitor/Tauri) | 1-2 semanas |
+| 1 | Más tests frontend (stores, pages, composables) | 3-5 días |
+| 2 | Normalizar formato de respuesta API (unificar HTTPException/APIEnvelope/bare dicts) | 2-3 días |
+| 3 | Completar CRUD faltantes (DELETE targets, endpoints, findings, evidence, verdicts) | 1-2 días |
+| 4 | Rebuild Android compiled assets | 1 día |
+| 5 | Responsive design + PWA | 2-3 días |
+| 6 | Mobile (Capacitor/Tauri) | 1-2 semanas |
+| 7 | Migrar `cores/platforms/` a unificar con `identity_vault.py` + retry + rate-limit | 3-4 días |
+| 8 | Migrar `cores/notifications/` (FCM, SMTP) a env vars `CATEYE_*` consistentes | 0.5 días |
+| 9 | Migrar `cores/auth/auth.py` + `cores/license/validator.py` a env vars `CATEYE_*` | 0.5 días |
+| 10 | Implementar servicio Linux systemd + macOS launchd | 2 días |

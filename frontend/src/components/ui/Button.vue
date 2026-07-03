@@ -37,10 +37,13 @@ interface Props {
   size?: ButtonVariants['size']
   disabled?: boolean
   loading?: boolean
+  asChild?: boolean
   class?: string
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  asChild: false,
+})
 const ripples = ref<{ id: number; x: number; y: number }[]>([])
 let rippleId = 0
 
@@ -58,6 +61,7 @@ function onClick(e: MouseEvent) {
 
 <template>
   <button
+    v-if="!asChild"
     :class="cn(buttonVariants({ variant, size }), props.class)"
     :disabled="disabled || loading"
     @click="onClick"
@@ -70,6 +74,7 @@ function onClick(e: MouseEvent) {
       :style="{ left: r.x + 'px', top: r.y + 'px', width: '8px', height: '8px', marginLeft: '-4px', marginTop: '-4px' }"
     />
   </button>
+  <slot v-else />
 </template>
 
 <style scoped>

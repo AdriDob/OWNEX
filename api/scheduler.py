@@ -18,7 +18,6 @@ import asyncio
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Any
 
 from database import db, models
 
@@ -146,7 +145,7 @@ class ScanScheduler:
                 logger.debug("[RECON] No targets to scan")
                 return
 
-            mode = os.environ.get("RASTRO_SCAN_MODE", "DEEP")
+            mode = os.environ.get("CATEYE_SCAN_MODE", "DEEP")
 
             for target in targets:
                 if not self._running:
@@ -219,7 +218,6 @@ class ScanScheduler:
         """Run the Hypothesis Engine on a target's data."""
         from cores.engine.hypothesis import HypothesisEngine
         from cores.platform.system import get_data_dir
-        from pathlib import Path
 
         # Load endpoints from last recon
         target_dir = get_data_dir() / "targets" / target.name
@@ -293,8 +291,8 @@ class ScanScheduler:
             return
 
         # Run nuclei with passive templates only
-        from cores.recon.nuclei_runner import NucleiRunner
         from cores.platform.system import get_data_dir
+        from cores.recon.nuclei_runner import NucleiRunner
 
         target_dir = get_data_dir() / "targets" / target.name
         targets_file = target_dir / "recon" / "nuclei_targets.txt"
@@ -333,7 +331,7 @@ class ScanScheduler:
                 if not self._running:
                     break
                 try:
-                    report = generate_and_save_report(
+                    generate_and_save_report(
                         session=session,
                         finding_id=finding.id,
                     )
