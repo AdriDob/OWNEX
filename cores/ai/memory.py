@@ -1,5 +1,5 @@
 """
-Short-term conversation memory for Rastro AI Assistant.
+Short-term conversation memory for CATEYE AI Assistant.
 
 Keeps recent exchanges in memory. Persists important context
 in the MemoryRecord database model for cross-session reference.

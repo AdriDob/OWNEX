@@ -1,4 +1,4 @@
-"""Daily Mode — primary entry point for Rastro.
+"""Daily Mode — primary entry point for CATEYE.
 
 Returns a curated briefing of what matters most right now.
 Cached aggressively for <200ms response time.

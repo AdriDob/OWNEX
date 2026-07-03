@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""ORION Installer Integrity Test.
+"""CATEYE Installer Integrity Test.
 
 Verifies that the NSIS installer produces a working installation.
 
 Usage:
-    python scripts/test_installer.py                          # Uses dist/OrionInstaller.exe
-    python scripts/test_installer.py --installer path/to/OrionInstaller.exe
-    python scripts/test_installer.py --installed-dir "C:\\Program Files\\ORION"
+    python scripts/test_installer.py                          # Uses dist/CATEYEInstaller.exe
+    python scripts/test_installer.py --installer path/to/CATEYEInstaller.exe
+    python scripts/test_installer.py --installed-dir "C:\\Program Files\\CATEYE"
 
 Steps:
   1. Run installer silently (/S)
   2. Verify installed files exist
-  3. Start Orion.exe from installed location
+  3. Start CATEYE.exe from installed location
   4. Verify health endpoint
   5. Verify frontend
   6. Clean shutdown
@@ -70,8 +70,8 @@ def wait_for_health(url: str, timeout: float = 30.0) -> bool:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="ORION Installer Integrity Test")
-    parser.add_argument("--installer", type=Path, default=None, help="Path to OrionInstaller.exe")
+    parser = argparse.ArgumentParser(description="CATEYE Installer Integrity Test")
+    parser.add_argument("--installer", type=Path, default=None, help="Path to CATEYEInstaller.exe")
     parser.add_argument("--installed-dir", default=None, help="Expected install directory")
     parser.add_argument("--no-uninstall", action="store_true", help="Skip uninstall step")
     args = parser.parse_args()
@@ -79,24 +79,24 @@ def main() -> None:
     if args.installer:
         installer = args.installer.resolve()
     else:
-        installer = Path(__file__).resolve().parent.parent / "dist" / "OrionInstaller.exe"
+        installer = Path(__file__).resolve().parent.parent / "dist" / "CATEYEInstaller.exe"
 
     if not installer.exists():
-        print(f"\n\u2717 OrionInstaller.exe not found at: {installer}")
+        print(f"\n\u2717 CATEYEInstaller.exe not found at: {installer}")
         print("  Build first: makensis installer\\orion.nsi")
         sys.exit(1)
 
-    installed_dir = Path(args.installed_dir or r"C:\Program Files\ORION")
+    installed_dir = Path(args.installed_dir or r"C:\Program Files\CATEYE")
 
     print(f"\n{'=' * 60}")
-    print("  ORION INSTALLER INTEGRITY TEST")
+    print("  CATEYE INSTALLER INTEGRITY TEST")
     print(f"  Installer: {installer}")
     print(f"  Target:    {installed_dir}")
     print(f"{'=' * 60}\n")
 
     if not sys.platform == "win32":
         log("Not on Windows — skipping NSIS installation test")
-        log("Run this test on Windows after building OrionInstaller.exe")
+        log("Run this test on Windows after building CATEYEInstaller.exe")
         print(f"\n{'=' * 60}")
         print("  TEST SKIPPED (not Windows)")
         print(f"{'=' * 60}\n")
@@ -153,7 +153,7 @@ def main() -> None:
     # ── Step 2: Verify installed files ───────────────────────────────
     log("\nVerifying installed files...")
     required = [
-        installed_dir / "Orion.exe",
+        installed_dir / "CATEYE.exe",
         installed_dir / "uninstall.exe",
         installed_dir / "LICENSE",
         installed_dir / "_internal" / "frontend_dist" / "index.html",
@@ -176,13 +176,13 @@ def main() -> None:
 
     ok("All required files installed")
 
-    # ── Step 3: Start Orion from installed location ─────────────────
-    log("\nStarting installed Orion.exe...")
+    # ── Step 3: Start CATEYE from installed location ─────────────────
+    log("\nStarting installed CATEYE.exe...")
     env = os.environ.copy()
-    env["ORION_DESKTOP"] = "1"
-    env["ORION_INSTALLER_TEST"] = "1"
+    env["CATEYE_DESKTOP"] = "1"
+    env["CATEYE_INSTALLER_TEST"] = "1"
 
-    orion_exe = installed_dir / "Orion.exe"
+    orion_exe = installed_dir / "CATEYE.exe"
     proc = subprocess.Popen(
         [str(orion_exe), "--browser", "--no-tray"],
         stdout=subprocess.DEVNULL,
@@ -197,11 +197,11 @@ def main() -> None:
     log("Waiting for backend (up to 30s)...")
     healthy = wait_for_health(health_url, timeout=30.0)
     if healthy:
-        ok("Installed Orion backend started and healthy")
+        ok("Installed CATEYE backend started and healthy")
     else:
-        fail("Installed Orion backend failed to start")
+        fail("Installed CATEYE backend failed to start")
         log("  Checking logs...")
-        logs_dir = Path(os.environ.get("APPDATA", "")) / "ORION" / "logs"
+        logs_dir = Path(os.environ.get("APPDATA", "")) / "CATEYE" / "logs"
         if logs_dir.exists():
             for lf in logs_dir.iterdir():
                 log(f"    {lf.name}: {lf.stat().st_size} bytes")
@@ -228,7 +228,7 @@ def main() -> None:
         fail(f"Installed frontend returned HTTP {status}")
 
     # ── Step 6: Clean shutdown ──────────────────────────────────────
-    log("\nShutting down installed Orion...")
+    log("\nShutting down installed CATEYE...")
     proc.terminate()
     try:
         proc.wait(timeout=10.0)

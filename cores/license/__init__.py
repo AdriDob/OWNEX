@@ -1,4 +1,4 @@
-"""License validation system for Rastro.
+"""License validation system for CATEYE.
 
 Keys are signed with HMAC-SHA256 using a shared secret embedded in the binary.
 In a production deployment, replace with asymmetric crypto (Ed25519) where the

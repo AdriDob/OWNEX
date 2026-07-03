@@ -1,5 +1,5 @@
 """
-Rastro 2.5 Operations Layer — workflow, briefings, tasks, sessions, notifications.
+CATEYE 2.5 Operations Layer — workflow, briefings, tasks, sessions, notifications.
 
 All endpoints are read-only or metadata-only. Never modifies core pipeline data.
 """

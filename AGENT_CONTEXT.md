@@ -61,12 +61,11 @@ OpenCode debe:
 
 ## Stack oficial del proyecto (no debe haber alternativas paralelas)
 
-- Backend: FastAPI + SQLAlchemy + SQLite (PostgreSQL planeado a futuro)
-- Frontend: Vue 3 + TypeScript + Vite + Tailwind v4 + Pinia +
-  ShadCN Vue + Lucide
-- IA: agente híbrido OpenRouter (cloud, free tier) con fallback a
-  Ollama local (qwen3:14b)
-- Empaquetado desktop: PyInstaller, build nativo en Windows
+- Backend: Python 3.10+ + FastAPI + SQLAlchemy + SQLite/PostgreSQL
+- Frontend: Vue 3 + TypeScript + Vite + Tailwind v4 + Pinia + Radix Vue + Lucide
+- IA: Gemini (primario), OpenRouter (fallback cloud), Ollama local (qwen3:14b)
+- Empaquetado desktop: PyInstaller + PyWebView + Pystray, build nativo en Windows
+- Marca oficial: **CATEYE** (anteriormente ORION/Rastro)
 
 ## Cómo retomar trabajo en una nueva sesión
 

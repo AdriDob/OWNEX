@@ -1,5 +1,5 @@
 """
-guardrails — Architectural enforcement for Rastro's single-source-of-truth.
+guardrails — Architectural enforcement for CATEYE's single-source-of-truth.
 
 ONLY_PIPELINE_CAN_SCORE = True
 

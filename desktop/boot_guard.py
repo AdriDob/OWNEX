@@ -1,6 +1,6 @@
 """BOOT GUARD — safe startup, environment detection, crash prevention.
 
-Ensures ORION never crashes during boot. Every failure has a fallback.
+Ensures CATEYE never crashes during boot. Every failure has a fallback.
 
 Exports:
     RuntimeMode enum: WSL_DEV, WINDOWS_EXE, WINDOWS_PORTABLE, DEV
@@ -19,7 +19,7 @@ import sys
 from enum import Enum
 from pathlib import Path
 
-logger = logging.getLogger("orion.boot_guard")
+logger = logging.getLogger("catseye.boot_guard")
 
 _SAFE_MODE = False
 _RUNTIME_MODE: RuntimeMode | None = None
@@ -136,7 +136,7 @@ def enable_safe_mode(reason: str = "") -> None:
     global _SAFE_MODE
     _SAFE_MODE = True
     logger.warning("SAFE MODE enabled%s", f": {reason}" if reason else "")
-    os.environ["ORION_SAFE_MODE"] = "1"
+    os.environ["CATEYE_SAFE_MODE"] = "1"
 
 
 # ── Validation ─────────────────────────────────────────────────────────
@@ -249,7 +249,7 @@ def should_activate_safe_mode(validation: dict[str, dict]) -> bool:
 
 def boot_summary(validation: dict[str, dict]) -> str:
     """Generate a human-readable boot summary."""
-    lines = ["ORION Boot Summary:"]
+    lines = ["CATEYE Boot Summary:"]
     for name, check in validation.items():
         if name.startswith("_"):
             continue

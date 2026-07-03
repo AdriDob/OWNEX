@@ -1,4 +1,4 @@
-"""Clustering utilities for Rastro."""
+"""Clustering utilities for CATEYE."""
 
 from cores.clustering.clusterer import Clusterer
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rastro install script — one-command install without NSIS.
+"""CATEYE install script — one-command install without NSIS.
 
 Usage:
     python scripts/install.py              # Full install (recommended)
@@ -9,10 +9,10 @@ Usage:
     python scripts/install.py --no-frontend # Skip frontend build
 
 Output (default):
-  C:\\Users\\<user>\\OneDrive\\Desktop\\Yo\\privado\\Rastro\\
-    ├── Rastro.exe              (PyInstaller binary)
+  C:\\Users\\<user>\\OneDrive\\Desktop\\Yo\\privado\\CATEYE\\
+    ├── CATEYE.exe              (PyInstaller binary)
     ├── frontend_dist/          (Vite production build)
-    ├── Rastro.zip              (Portable ZIP)
+    ├── CATEYE.zip              (Portable ZIP)
     ├── README.txt
     ├── CHANGELOG.md
     ├── VERSION.txt
@@ -57,9 +57,9 @@ def get_default_output() -> Path:
     if env:
         return Path(env)
     if sys.platform == "win32":
-        return Path(os.environ.get("LOCALAPPDATA", os.environ.get("USERPROFILE", "C:/"))) / "Rastro"
+        return Path(os.environ.get("LOCALAPPDATA", os.environ.get("USERPROFILE", "C:/"))) / "CATEYE"
     if sys.platform.startswith("linux"):
-        return Path.home() / "Rastro"
+        return Path.home() / "CATEYE"
     return PROJECT_ROOT / "dist" / "install"
 
 
@@ -114,18 +114,18 @@ def ensure_frontend_built() -> bool:
 
 def build_pyinstaller() -> bool:
     log("PYINSTALLER", "Building EXE...")
-    spec = PROJECT_ROOT / "Rastro.spec"
+    spec = PROJECT_ROOT / "CATEYE.spec"
     if not spec.exists():
-        log("PYINSTALLER", "SKIP — no Rastro.spec found")
+        log("PYINSTALLER", "SKIP — no CATEYE.spec found")
         return False
     if not shutil.which("pyinstaller"):
         log("PYINSTALLER", "SKIP — PyInstaller not installed (install with: pip install pyinstaller)")
         return False
-    if not run_cmd(["pyinstaller", "Rastro.spec", "-y"], timeout=600):
+    if not run_cmd(["pyinstaller", "CATEYE.spec", "-y"], timeout=600):
         log("PYINSTALLER", "FAILED")
         return False
-    exe_name = "Rastro.exe" if sys.platform == "win32" else "Rastro"
-    exe = DIST_DIR / "Rastro" / exe_name
+    exe_name = "CATEYE.exe" if sys.platform == "win32" else "CATEYE"
+    exe = DIST_DIR / "CATEYE" / exe_name
     if not exe.exists():
         log("PYINSTALLER", f"FAILED — {exe} not found")
         return False
@@ -140,16 +140,16 @@ def assemble_output(output_dir: Path, version: str, dev_mode: bool) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # PyInstaller build
-    pyinstaller_src = DIST_DIR / "Rastro"
+    pyinstaller_src = DIST_DIR / "CATEYE"
     if pyinstaller_src.exists() and not dev_mode:
-        dest = output_dir / "Rastro"
+        dest = output_dir / "CATEYE"
         if dest.exists():
             shutil.rmtree(dest)
         shutil.copytree(pyinstaller_src, dest)
         size_mb = sum(f.stat().st_size for f in dest.rglob("*") if f.is_file()) / 1024 / 1024
-        log("ASSEMBLE", f"  Rastro/ — {size_mb:.1f} MB")
+        log("ASSEMBLE", f"  CATEYE/ — {size_mb:.1f} MB")
     else:
-        log("ASSEMBLE", "  Rastro/ — skipped (dev mode or not built)")
+        log("ASSEMBLE", "  CATEYE/ — skipped (dev mode or not built)")
 
     # Frontend dist
     frontend_src = FRONTEND_DIR / "dist"
@@ -177,7 +177,7 @@ def _write_docs(output_dir: Path, version: str) -> None:
     readme = output_dir / "README.txt"
     readme.write_text(
         f"═══════════════════════════════════════════\n"
-        f"  Rastro v{version} — Investigación OS Profesional\n"
+        f"  CATEYE v{version} — Investigación OS Profesional\n"
         f"═══════════════════════════════════════════\n"
         f"\n"
         f"• Dashboard:      http://127.0.0.1:8000\n"
@@ -187,12 +187,12 @@ def _write_docs(output_dir: Path, version: str) -> None:
         f"─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═\n"
         f"\n"
         f"Instalación:\n"
-        f"  1. Ejecutar Rastro.exe\n"
-        f"  2. Rastro se inicia automáticamente\n"
+        f"  1. Ejecutar CATEYE.exe\n"
+        f"  2. CATEYE se inicia automáticamente\n"
         f"  3. Abrir Dashboard: http://127.0.0.1:8000\n"
         f"\n"
         f"Uso Diario:\n"
-        f"  • Rastro inicia automáticamente con Windows\n"
+        f"  • CATEYE inicia automáticamente con Windows\n"
         f"  • Icono en bandeja del sistema para control\n"
         f"  • Dashboard accesible en el navegador\n"
         f"\n"
@@ -234,7 +234,7 @@ def _write_docs(output_dir: Path, version: str) -> None:
     current_year = datetime.now().year
     license_file = output_dir / "LICENSE.txt"
     license_file.write_text(
-        f"Rastro v{version} — Investigación OS Profesional\n"
+        f"CATEYE v{version} — Investigación OS Profesional\n"
         f"Copyright © {current_year} AdriDob\n\n"
         f"Todos los derechos reservados.\n\n"
         f"Para uso personal únicamente.\n"
@@ -245,7 +245,7 @@ def _write_docs(output_dir: Path, version: str) -> None:
 
 def _write_build_info(output_dir: Path, version: str, dev_mode: bool) -> None:
     info = {
-        "app": "Rastro",
+        "app": "CATEYE",
         "version": version,
         "build_date": datetime.now(timezone.utc).isoformat(),
         "build_host": os.uname().nodename if hasattr(os, "uname") else "unknown",
@@ -269,7 +269,7 @@ def _write_build_info(output_dir: Path, version: str, dev_mode: bool) -> None:
 def _write_install_log(output_dir: Path, version: str) -> None:
     log_file = output_dir / "install_log.txt"
     lines = [
-        f"Rastro v{version} — Install Log",
+        f"CATEYE v{version} — Install Log",
         f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         f"Platform: {sys.platform}",
         f"Python: {sys.version}",
@@ -283,15 +283,15 @@ def _write_install_log(output_dir: Path, version: str) -> None:
 # ── Step 4: Portable ZIP ────────────────────────────────────────────
 
 def create_portable_zip(output_dir: Path, version: str) -> Path | None:
-    log("ZIP", "Creating Rastro.zip...")
-    zip_path = output_dir / "Rastro.zip"
+    log("ZIP", "Creating CATEYE.zip...")
+    zip_path = output_dir / "CATEYE.zip"
     if zip_path.exists():
         zip_path.unlink()
 
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
         for root, _dirs, files in os.walk(output_dir):
             for file in files:
-                if file == "Rastro.zip":
+                if file == "CATEYE.zip":
                     continue
                 full_path = Path(root) / file
                 arcname = str(full_path.relative_to(output_dir.parent))
@@ -317,7 +317,7 @@ def validate_installation(output_dir: Path) -> bool:
         ("LICENSE.txt", (output_dir / "LICENSE.txt").exists()),
         ("build_info.json", (output_dir / "build_info.json").exists()),
         ("frontend_dist/index.html", (output_dir / "frontend_dist" / "index.html").exists()),
-        ("Rastro.exe", (output_dir / "Rastro" / "Rastro.exe").exists()),
+        ("CATEYE.exe", (output_dir / "CATEYE" / "CATEYE.exe").exists()),
     ]
 
     for name, ok in checks:
@@ -336,7 +336,7 @@ def validate_installation(output_dir: Path) -> bool:
 # ── Main ─────────────────────────────────────────────────────────────
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Rastro installer — one-command setup")
+    parser = argparse.ArgumentParser(description="CATEYE installer — one-command setup")
     parser.add_argument("--dev", action="store_true", help="Dev mode (skip PyInstaller, use python run.py)")
     parser.add_argument("--portable", action="store_true", help="Portable ZIP only (no output dir assembly)")
     parser.add_argument("--output", type=Path, default=None, help="Output directory (default: RASTRO_OUTPUT_DIR or platform default)")
@@ -347,7 +347,7 @@ def main() -> None:
     version = args.version or read_version()
     output_dir = (args.output or get_default_output()).resolve()
 
-    log("INSTALL", f"Rastro v{version} — Installer")
+    log("INSTALL", f"CATEYE v{version} — Installer")
     log("INSTALL", f"Platform: {sys.platform}")
     log("INSTALL", f"Mode: {'dev' if args.dev else 'portable' if args.portable else 'production'}")
     log("INSTALL", f"Output: {output_dir}")
@@ -371,7 +371,7 @@ def main() -> None:
     # Step 3: Portable ZIP mode (exit early)
     if args.portable:
         if pyinstaller_ok:
-            create_portable_zip(DIST_DIR / "Rastro", version)
+            create_portable_zip(DIST_DIR / "CATEYE", version)
         elif DIST_DIR.exists():
             log("PORTABLE", "No PyInstaller build — creating source portable instead")
         log("INSTALL", "Portable mode complete")
@@ -391,7 +391,7 @@ def main() -> None:
     log("INSTALL", f"Install complete: {output_dir}")
     total_mb = sum(f.stat().st_size for f in output_dir.rglob("*") if f.is_file()) / 1024 / 1024
     log("INSTALL", f"Total size: {total_mb:.1f} MB")
-    log("INSTALL", f"Run: {output_dir / 'Rastro' / 'Rastro.exe'}")
+    log("INSTALL", f"Run: {output_dir / 'CATEYE' / 'CATEYE.exe'}")
     log("INSTALL", "DONE")
 
 

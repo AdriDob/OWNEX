@@ -5,14 +5,9 @@ import { useHuntStore } from '@/stores/hunt'
 import { api } from '@/lib/api'
 import type { PlatformStatus, BankAccount } from '@/lib/api'
 import {
-  LayoutDashboard, Radar, Route, Bug, FileText, Settings,
-  ChevronLeft, ChevronRight, Play, Square, DollarSign,
-  Wallet, Banknote, ExternalLink, RefreshCw, Unlink,
-  ListChecks, Brain, Globe, Link2, Activity, Cpu, FileSearch,
-  BarChart3, History, Sun,
-  Target, Zap, Search, Lightbulb, GitCompare, BrainCircuit,
-  UserCircle, Shield, PlayCircle, Camera, RotateCcw,
-  GraduationCap, Bell, Clock, Eye,
+  Bug, Camera, ChevronLeft, ChevronRight, Cpu, DollarSign,
+  ExternalLink, Eye, FileSearch, FileText, Lightbulb, Link2,
+  Banknote, MessageCircle, Search, Settings, Target, Unlink,
 } from '@lucide/vue'
 
 const hunt = useHuntStore()
@@ -29,46 +24,23 @@ const loading = ref(true)
 
 const navItems = [
   { section: 'Inteligencia', items: [
-    { name: 'Panel Inteligente', path: '/', icon: Eye },
+    { name: 'Control de Misión', path: '/mission-control', icon: Eye },
     { name: 'Money Radar', path: '/money-radar', icon: DollarSign },
-    { name: 'Radar de Oportunidades', path: '/radar', icon: Radar },
-    { name: 'Dashboard Principal', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Oportunidades', path: '/opportunities', icon: Target },
+    { name: 'Oportunidades', path: '/radar', icon: Target },
     { name: 'Bounties', path: '/bounties', icon: DollarSign },
-    { name: 'Catálogo Programas', path: '/program-catalog', icon: Globe },
-    { name: 'Próxima Acción', path: '/next-action', icon: Zap },
   ]},
   { section: 'Operaciones', items: [
-    { name: 'Rutas Críticas', path: '/hot-paths', icon: Route },
-    { name: 'Pipeline Hallazgos', path: '/findings', icon: Bug },
-    { name: 'Monitor Pipelines', path: '/pipelines', icon: Activity },
-    { name: 'Centro Reportes', path: '/reports', icon: FileText },
-    { name: 'Cola Priorizada', path: '/report-queue', icon: ListChecks },
-    { name: 'Patrones Aprendidos', path: '/memory-patterns', icon: Brain },
+    { name: 'Hallazgos', path: '/findings', icon: Bug },
+    { name: 'Reportes', path: '/reports', icon: FileText },
     { name: 'Investigaciones', path: '/investigations', icon: Search },
     { name: 'Hipótesis', path: '/hypotheses', icon: Lightbulb },
-    { name: 'Análisis Diferencial', path: '/differential', icon: GitCompare },
-    { name: 'Insights', path: '/insights', icon: BrainCircuit },
-    { name: 'Tareas', path: '/tasks', icon: ListChecks },
-    { name: 'Billeteras', path: '/wallets', icon: Wallet },
-    { name: 'Identidad', path: '/identity', icon: UserCircle },
-    { name: 'Operaciones', path: '/operations', icon: Activity },
   ]},
   { section: 'Sistema', items: [
-    { name: 'Centro Agentes', path: '/agents', icon: Cpu },
-    { name: 'Centro Evidencia', path: '/evidence', icon: FileSearch },
-    { name: 'Hoy', path: '/daily', icon: Sun },
+    { name: 'Agentes', path: '/agents', icon: Cpu },
     { name: 'Conexiones', path: '/connections', icon: Link2 },
-    { name: 'Configuración', path: '/settings', icon: Settings },
-    { name: 'Superficie Ataque', path: '/attack-surface', icon: Shield },
-    { name: 'Acciones', path: '/actions', icon: PlayCircle },
-    { name: 'Inteligencia Adaptativa', path: '/intelligence', icon: Brain },
+    { name: 'Evidencia', path: '/evidence', icon: FileSearch },
     { name: 'Capturas', path: '/screenshots', icon: Camera },
-    { name: 'Reproducir', path: '/replay', icon: RotateCcw },
-    { name: 'Perfil Aprendizaje', path: '/personal-intelligence', icon: GraduationCap },
-    { name: 'Notificaciones', path: '/notifications', icon: Bell },
-    { name: 'Dashboard Proyecto', path: '/project-dashboard', icon: BarChart3 },
-    { name: 'Historial Reportes', path: '/report-history', icon: Clock },
+    { name: 'Configuración', path: '/settings', icon: Settings },
   ]},
 ]
 
@@ -99,8 +71,8 @@ onMounted(async () => {
       totalEarned.value = (ctxRes.value as any).total_collected || 0
       totalPending.value = (ctxRes.value as any).total_pending || 0
     }
-  } catch {
-    // graceful degradation
+  } catch (e) {
+    console.warn('[Sidebar] Failed to load platforms/bank:', e)
   }
   loading.value = false
 })
@@ -220,7 +192,7 @@ function formatCompact(n: number) {
     </Transition>
 
     <!-- Navigation -->
-    <nav class="flex-1 overflow-y-auto px-2 py-3 scrollbar-none">
+    <nav class="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin">
       <div v-for="(group, gi) in navItems" :key="gi" class="mb-3">
         <Transition name="fade">
           <p v-if="!collapsed" class="mb-1 px-2 font-mono text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
@@ -252,9 +224,7 @@ function formatCompact(n: number) {
         @click="emit('toggleCopilot')"
         class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-all duration-200 hover:bg-surface/40 hover:text-foreground"
       >
-        <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
+        <MessageCircle class="h-4 w-4 shrink-0" />
         <Transition name="fade">
           <span v-if="!collapsed" class="font-mono text-xs">Copiloto</span>
         </Transition>
@@ -273,6 +243,8 @@ function formatCompact(n: number) {
 <style scoped>
 .fade-enter-active, .fade-leave-active { transition: opacity 0.15s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
-.scrollbar-none { scrollbar-width: none; }
-.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-thin { scrollbar-width: thin; }
+.scrollbar-thin::-webkit-scrollbar { width: 4px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 </style>

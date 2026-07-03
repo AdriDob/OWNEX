@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rastro release automation.
+"""CATEYE release automation.
 
 Usage:
     python scripts/release.py <version>   # e.g. "0.4.0"

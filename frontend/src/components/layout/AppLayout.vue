@@ -4,7 +4,10 @@ import Breadcrumbs from './Breadcrumbs.vue'
 import NotificationPanel from '@/components/notifications/NotificationPanel.vue'
 import ErrorBoundary from '@/components/ErrorBoundary.vue'
 import { useRoute } from 'vue-router'
+import { useNotificationsStore } from '@/stores/notifications'
 import { Eye } from '@lucide/vue'
+
+const notifications = useNotificationsStore()
 
 defineProps<{
   copilotOpen: boolean
@@ -38,6 +41,7 @@ const showNotifications = !route.meta?.public
           <div class="flex items-center gap-1.5 rounded-md border border-border/30 px-2 py-1">
             <Eye class="h-3 w-3 text-primary" />
             <span class="font-mono text-[9px] text-muted-foreground tracking-wider">CATEYE</span>
+            <span :class="['h-1.5 w-1.5 rounded-full', notifications.wsConnected ? 'bg-success' : 'bg-destructive']" />
           </div>
           <NotificationPanel />
         </div>

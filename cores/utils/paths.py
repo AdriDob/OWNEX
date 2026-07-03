@@ -1,4 +1,4 @@
-"""ORION Path Resolution — single source of truth for all file paths.
+"""CATEYE Path Resolution — single source of truth for all file paths.
 
 Resolves paths dynamically across all runtime environments:
   - Windows EXE (PyInstaller frozen)
@@ -13,7 +13,7 @@ Rules:
   - NEVER hardcode WSL or Windows paths
   - ALL paths are dynamic based on runtime environment
   - Frozen EXE: data lives next to executable (portable)
-  - Installed (Windows): data lives in %APPDATA%/ORION
+  - Installed (Windows): data lives in %APPDATA%/CATEYE
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ import os
 import sys
 from pathlib import Path
 
-logger = logging.getLogger("orion.paths")
+logger = logging.getLogger("catseye.paths")
 
 # ── Environment detection (simple, no cross-imports) ───────────────────
 
@@ -107,7 +107,7 @@ def get_app_root() -> Path:
 def get_exe_dir() -> Path:
     """Return the directory containing the executable.
 
-    Frozen:  directory of Orion.exe
+    Frozen:  directory of CATEYE.exe
     Dev:     project root
     """
     return _get_exe_dir()
@@ -117,12 +117,12 @@ def get_data_path() -> Path:
     """Return the persistent data directory.
 
     Order of precedence:
-      1. ORION_DATA_DIR env var (explicit override)
+      1. CATEYE_DATA_DIR env var (explicit override)
       2. Portable/frozen: next to executable
-      3. Windows installed: %APPDATA%/ORION
+      3. Windows installed: %APPDATA%/CATEYE
       4. WSL/Linux dev: ~/.orion
     """
-    env_dir = os.environ.get("ORION_DATA_DIR")
+    env_dir = os.environ.get("CATEYE_DATA_DIR")
     if env_dir:
         return Path(env_dir)
 
@@ -132,7 +132,7 @@ def get_data_path() -> Path:
     if _is_windows():
         base = os.environ.get("APPDATA", "")
         if base:
-            return Path(base) / "ORION"
+            return Path(base) / "CATEYE"
 
     if _is_wsl():
         return Path.home() / ".orion"
@@ -189,12 +189,12 @@ def get_icon_path() -> Path | None:
     """Return the application icon path."""
     if _is_frozen():
         candidates = [
-            _get_exe_dir() / "orion.ico",
-            _get_app_root() / "orion.ico",
+            _get_exe_dir() / "cateye.ico",
+            _get_app_root() / "cateye.ico",
         ]
     else:
         candidates = [
-            _get_app_root() / "installer" / "icons" / "orion.ico",
+            _get_app_root() / "installer" / "icons" / "cateye.ico",
         ]
     for c in candidates:
         if c.exists():

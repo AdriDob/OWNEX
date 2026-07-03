@@ -32,7 +32,7 @@ def check(description: str, condition: bool, detail: str = ""):
 
 def main():
     print(f"\n{'='*50}")
-    print("  Rastro Pre-Build Validation")
+    print("  CATEYE Pre-Build Validation")
     print(f"{'='*50}\n")
 
     # === Phase 1: Python dependencies ===

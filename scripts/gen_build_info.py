@@ -35,7 +35,7 @@ def main():
 
     hashes = {}
     for f in RELEASE_DIR.rglob("*"):
-        if f.is_file() and f.name in ("Orion.exe", "Orion", "OrionInstaller.exe"):
+        if f.is_file() and f.name in ("CATEYE.exe", "CATEYE", "CATEYEInstaller.exe"):
             hashes[f.name] = sha256(f)
 
     files = {}
@@ -47,9 +47,9 @@ def main():
             files[relp] = {"size_bytes": sz, "size_human": human}
 
     info = {
-        "app": "ORION",
+        "app": "CATEYE",
         "version": VERSION,
-        "build_id": f"ORION-v{VERSION}-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+        "build_id": f"CATEYE-v{VERSION}-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
         "build_date": datetime.now(timezone.utc).isoformat(),
         "commit": get_git_commit(),
         "python": sys.version.split()[0],

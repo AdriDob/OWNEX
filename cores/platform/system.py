@@ -1,7 +1,7 @@
 """Platform abstraction layer — OS detection, path resolution, config dirs.
 
 Provides a single source of truth for platform-specific paths and behaviors.
-All Rastro components should use this module instead of os.environ directly
+All CATEYE components should use this module instead of os.environ directly
 for config/log/data directory resolution.
 
 Usage:
@@ -115,26 +115,26 @@ def get_executable_dir() -> Path:
 def get_data_dir() -> Path:
     """Return the persistent data directory for this platform.
 
-    - Windows: %APPDATA%/Rastro
-    - macOS:   ~/Library/Application Support/Rastro
+    - Windows: %APPDATA%/CATEYE
+    - macOS:   ~/Library/Application Support/CATEYE
     - Frozen:  next to the executable (Linux only, Windows prioritizes APPDATA)
     - Default: ~/.orion
     """
     _diag_path = os.path.join(
         os.environ.get("APPDATA", os.path.expanduser("~")),
-        "ORION", "license_diagnostic.log",
+        "CATEYE", "license_diagnostic.log",
     )
 
     if is_windows():
         base = os.environ.get("APPDATA", "")
-        result = Path(base) / "ORION" if base else Path.home() / ".orion"
+        result = Path(base) / "CATEYE" if base else Path.home() / ".orion"
         logger.info("PLATFORM_DIAG: is_windows=True APPDATA=%s data_dir=%s", base, result)
         _append_diag(_diag_path, f"[PATH-DIAG] Windows: APPDATA={base} -> data_dir={result}")
         return result
 
     if is_macos():
         base = Path.home() / "Library" / "Application Support"
-        result = base / "ORION"
+        result = base / "CATEYE"
         logger.info("PLATFORM_DIAG: is_macos=True data_dir=%s", result)
         _append_diag(_diag_path, f"[PATH-DIAG] macOS: data_dir={result}")
         return result
@@ -163,18 +163,18 @@ def _append_diag(path: str, msg: str) -> None:
 def get_config_dir() -> Path:
     """Return the config directory for this platform.
 
-    - Windows: %APPDATA%/Rastro
-    - macOS:   ~/Library/Application Support/Rastro
+    - Windows: %APPDATA%/CATEYE
+    - macOS:   ~/Library/Application Support/CATEYE
     - Default: ~/.orion
     """
     if is_windows():
         base = os.environ.get("APPDATA", "")
         if base:
-            return Path(base) / "ORION"
+            return Path(base) / "CATEYE"
 
     if is_macos():
         base = Path.home() / "Library" / "Application Support"
-        return base / "ORION"
+        return base / "CATEYE"
 
     return Path.home() / ".orion"
 

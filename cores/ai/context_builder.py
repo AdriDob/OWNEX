@@ -1,5 +1,5 @@
 """
-Builds a comprehensive context snapshot from real Rastro system data.
+Builds a comprehensive context snapshot from real CATEYE system data.
 
 Every field comes from a real database query or engine computation.
 No mock data, no placeholders.

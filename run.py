@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ORION — Launcher State Machine.
+CATEYE — Launcher State Machine.
 
 Safe startup with automatic fallback. Never crashes. Always degrades.
 
@@ -55,11 +55,11 @@ def _log(state: str, msg: str, *args) -> None:
     global _log
     if _log is None:
         import logging
-        logging.basicConfig(level=logging.INFO, format="[ORION][%(state)s] %(message)s", stream=sys.stdout)
-        _log = logging.getLogger("orion.launcher")
+        logging.basicConfig(level=logging.INFO, format="[CATEYE][%(state)s] %(message)s", stream=sys.stdout)
+        _log = logging.getLogger("catseye.launcher")
     # Log via simple print if logging not ready
     text = msg % args if args else msg
-    print(f"[ORION][{state}] {text}")
+    print(f"[CATEYE][{state}] {text}")
 
 
 # ── Imports (all lazy, inside functions) ───────────────────────────────
@@ -114,7 +114,7 @@ class LaunchMode(Enum):
 
 
 def _state_init() -> LaunchState:
-    _log("INIT", "ORION Launcher")
+    _log("INIT", "CATEYE Launcher")
     return LaunchState.VALIDATING
 
 
@@ -155,7 +155,7 @@ def _state_full_mode() -> LaunchState:
 def _state_browser_mode() -> LaunchState:
     _log("BROWSER", "Starting backend + browser...")
     try:
-        os.environ["ORION_DESKTOP"] = "1"
+        os.environ["CATEYE_DESKTOP"] = "1"
         from cores.platform.system import get_db_path
         db_path = get_db_path()
         db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -170,7 +170,7 @@ def _state_browser_mode() -> LaunchState:
 
 
 def _state_service_mode() -> LaunchState:
-    _log("SERVICE", "Starting ORION Windows service...")
+    _log("SERVICE", "Starting CATEYE Windows service...")
     try:
         from desktop.service import run_service
         run_service()
@@ -245,7 +245,7 @@ def _run_state_machine(mode: LaunchMode) -> None:
             state = LaunchState.READY
 
     if state == LaunchState.READY:
-        _log("READY", "ORION ready")
+        _log("READY", "CATEYE ready")
 
     if step >= max_steps:
         _log("MACHINE", "State machine exceeded max steps — forcing ready")
@@ -255,7 +255,7 @@ def _run_state_machine(mode: LaunchMode) -> None:
 
 
 def _handle_install() -> None:
-    _log("INSTALL", "ORION installation...")
+    _log("INSTALL", "CATEYE installation...")
     try:
         from desktop.boot_guard import boot_summary, validate_environment
         validation = validate_environment()
@@ -292,13 +292,13 @@ def _handle_install() -> None:
         _log("INSTALL", "Installation error: %s", exc)
         sys.exit(1)
 
-    _log("INSTALL", "ORION installed successfully")
+    _log("INSTALL", "CATEYE installed successfully")
     _log("INSTALL", "Run '%s --start' to launch" % sys.executable)
 
 
 def _handle_legacy_service(args: set[str]) -> bool:
     if "--install-service" in args:
-        _log("SERVICE", "Installing ORION service...")
+        _log("SERVICE", "Installing CATEYE service...")
         try:
             from desktop.service import install_service
             install_service()
@@ -307,7 +307,7 @@ def _handle_legacy_service(args: set[str]) -> bool:
             sys.exit(1)
         return True
     if "--remove-service" in args:
-        _log("SERVICE", "Removing ORION service...")
+        _log("SERVICE", "Removing CATEYE service...")
         try:
             from desktop.service import remove_service
             remove_service()
@@ -320,7 +320,7 @@ def _handle_legacy_service(args: set[str]) -> bool:
 
 def _handle_build() -> None:
     _log("BUILD", "PyInstaller build...")
-    spec = _BASE_DIR / "Orion.spec"
+    spec = _BASE_DIR / "CATEYE.spec"
     if not spec.exists():
         _log("BUILD", "No spec file found")
         sys.exit(1)

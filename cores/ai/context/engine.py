@@ -20,7 +20,7 @@ from typing import Any
 from pathlib import Path
 from database import db, models
 
-logger = logging.getLogger("orion.context")
+logger = logging.getLogger("catseye.orion.context")
 
 _DEFAULT_TTL = 30  # seconds
 

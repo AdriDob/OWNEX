@@ -9,7 +9,7 @@ from database import db  # noqa: E402
 
 def main():
     db.init_db()
-    print("Rastro database initialized.")
+    print("CATEYE database initialized.")
     print("Run: uvicorn main:app --reload")
     print("Run: streamlit run dashboard/app.py")
 

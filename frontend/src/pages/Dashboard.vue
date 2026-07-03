@@ -51,6 +51,7 @@ const scanInfo = computed(() => {
   if (!c) return null
   return {
     coverage: c.targets > 0 ? Math.min(Math.round((c.endpoints / c.targets) * 100) / 100, 999) : 0,
+    // coverage: endpoints/targets (0 if no targets)
     detected: c.findings,
     confirmed: c.confirmed_findings,
     rate: c.findings > 0 ? Math.round((c.confirmed_findings / c.findings) * 100) : 0,

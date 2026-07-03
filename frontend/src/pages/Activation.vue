@@ -89,7 +89,7 @@ async function handleActivate() {
               <KeyRound class="h-10 w-10 text-primary" />
             </div>
             <p class="text-lg font-bold text-foreground">Activar Licencia</p>
-            <p class="mt-1 text-sm text-muted-foreground">Ingresá tu código de licencia para activar Rastro</p>
+            <p class="mt-1 text-sm text-muted-foreground">Ingresá tu código de licencia para activar CATEYE</p>
 
             <div class="w-full mt-6 space-y-4">
               <input

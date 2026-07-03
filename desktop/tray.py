@@ -30,7 +30,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("orion.desktop.tray")
+logger = logging.getLogger("catseye.desktop.tray")
 
 _HAS_PYSTRAY = False
 _HAS_ICON_FILE = False
@@ -41,7 +41,7 @@ try:
 except ImportError:
     pass
 
-# ORION brand colors
+# CATEYE brand colors
 BG = (10, 11, 15)       # #0a0b0f
 GOLD = (212, 175, 55)    # #d4af37
 BLUE = (59, 130, 246)    # #3b82f6
@@ -81,8 +81,8 @@ def _create_icon_image(size: int = 64) -> Image.Image:
 
 def _try_find_icon() -> Path | None:
     for candidate in [
-        Path(__file__).resolve().parent.parent / "installer" / "icons" / "orion.ico",
-        Path(sys.executable).parent / "orion.ico",
+        Path(__file__).resolve().parent.parent / "installer" / "icons" / "cateye.ico",
+        Path(sys.executable).parent / "cateye.ico",
     ]:
         if candidate.exists():
             return candidate
@@ -94,7 +94,7 @@ def _get_data_dir() -> Path:
         base = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
     else:
         base = Path.home()
-    return base / "Orion"
+    return base / "CATEYE"
 
 
 def _get_logs_dir() -> Path:
@@ -133,7 +133,7 @@ class TrayController:
     """Manages the system tray icon lifecycle.
 
     Closing the browser window does NOT stop the system.
-    The tray is the primary user-facing control for ORION.
+    The tray is the primary user-facing control for CATEYE.
     """
 
     def __init__(
@@ -176,7 +176,7 @@ class TrayController:
     def _show_status(self) -> None:
         status_text = self._on_check_status()
         if self._icon:
-            self._icon.title = f"ORION — {status_text}"
+            self._icon.title = f"CATEYE — {status_text}"
 
     def _run(self) -> None:
         if not _HAS_PYSTRAY:
@@ -186,7 +186,7 @@ class TrayController:
         icon_image = _create_icon_image()
         menu = self._create_menu()
         try:
-            self._icon = pystray.Icon("orion", icon_image, "ORION - Running", menu)
+            self._icon = pystray.Icon("catseye", icon_image, "CATEYE - Running", menu)
             self._icon.run()
         except Exception as exc:
             logger.warning("Tray icon failed to start: %s", exc)
@@ -199,7 +199,7 @@ class TrayController:
         self._thread = threading.Thread(
             target=self._run,
             daemon=True,
-            name="orion-tray",
+            name="catseye-tray",
         )
         self._thread.start()
         logger.info("System tray started (persistent)")
@@ -262,7 +262,7 @@ def run_tray_only(host: str = "127.0.0.1", port: int = 8000) -> None:
         try:
             if _is_svc_running():
                 subprocess.run(
-                    ["net", "stop", "Orion", "&&", "net", "start", "Orion"],
+                    ["net", "stop", "CATEYE", "&&", "net", "start", "CATEYE"],
                     shell=True, check=False,
                 )
         except Exception:
@@ -271,7 +271,7 @@ def run_tray_only(host: str = "127.0.0.1", port: int = 8000) -> None:
     def _stop_service():
         try:
             if _is_svc_running():
-                subprocess.run(["net", "stop", "Orion"], shell=True, check=False)
+                subprocess.run(["net", "stop", "CATEYE"], shell=True, check=False)
         except Exception:
             pass
 

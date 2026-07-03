@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Generate ORION icon (orion.ico) with gold/blue/black branding.
+"""Generate CATEYE icon (cateye.ico) with gold/blue/black branding.
 
 The icon is a stylized 'O' letter on a dark background,
-using the ORION brand colors.
+using the CATEYE brand colors.
 
 Usage:
     python scripts/generate_icon.py
@@ -86,7 +86,7 @@ def _create_ico(png_sizes: list[int]) -> bytes:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate ORION icon (.ico)")
+    parser = argparse.ArgumentParser(description="Generate CATEYE icon (.ico)")
     parser.add_argument("--output", default="installer/icons/orion.ico", help="Output path")
     parser.add_argument("--sizes", nargs="+", type=int, default=[16, 32, 48, 64, 128, 256],
                         help="Icon sizes to include")
@@ -97,7 +97,7 @@ def main() -> None:
 
     ico_data = _create_ico(args.sizes)
     output.write_bytes(ico_data)
-    print(f"  ORION icon generated: {output} ({len(ico_data)} bytes, {len(args.sizes)} sizes)")
+    print(f"  CATEYE icon generated: {output} ({len(ico_data)} bytes, {len(args.sizes)} sizes)")
     print(f"  Sizes: {', '.join(str(s) for s in args.sizes)}px")
 
 

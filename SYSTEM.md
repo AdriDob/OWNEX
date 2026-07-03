@@ -1,8 +1,8 @@
 <!-- markdownlint-disable MD041 -->
 
-# ORION — Sistema de Inteligencia para Bug Bounty Automático
+# CATEYE — Sistema de Inteligencia para Bug Bounty Automático
 
-> **Versión:** 1.6.0
+> **Versión:** Alpha 1.0
 > **Arquitectura:** Monolito modular con frontend SPA
 > **Backend:** Python + FastAPI + SQLAlchemy + SQLite/PostgreSQL
 > **Frontend:** Vue 3 + TypeScript + Tailwind CSS v4 + Vite
@@ -28,7 +28,7 @@
 
 ## 1. Visión General
 
-ORION es un sistema de inteligencia artificial diseñado para automatizar el ciclo completo de bug bounty: desde el descubrimiento de programas y análisis de alcance, hasta la generación de reportes profesionales y su envío a plataformas como HackerOne, Bugcrowd, Intigriti y Synack.
+CATEYE es un sistema de inteligencia artificial diseñado para automatizar el ciclo completo de bug bounty: desde el descubrimiento de programas y análisis de alcance, hasta la generación de reportes profesionales y su envío a plataformas como HackerOne, Bugcrowd, Intigriti y Synack.
 
 ### Principios de diseño
 
@@ -61,7 +61,7 @@ Rastro/
 │   │   ├── provider.py         ← Catálogo de proveedores: Ollama, OpenAI, OpenRouter
 │   │   ├── orion_agent.py      ← Agente principal con tool calling
 │   │   ├── tools.py            ← Herramientas del agente
-│   │   ├── context/engine.py   ← Contexto unificado de Orion
+│   │   ├── context/engine.py   ← Contexto unificado de CATEYE
 │   │   ├── advisor.py          ← Asesor de decisiones
 │   │   ├── assistant.py        ← Chat asistente
 │   │   └── ...
@@ -169,7 +169,7 @@ Rastro/
 
 | Módulo | Responsabilidad |
 |---|---|
-| `ai/` | Proveedores de IA (Ollama, OpenAI, OpenRouter), agente Orion con tool calling, contexto unificado |
+| `ai/` | Proveedores de IA (Gemini, Ollama, OpenAI, OpenRouter), agente CATEYE con tool calling, contexto unificado |
 | `recon/` | OWASP ZAP wrapper, parsing de resultados |
 | `engine/hypothesis/` | Generación de hipótesis de vulnerabilidades vía LLM + ZAP + análisis estático |
 | `intelligence/` | Bucle de inteligencia, aprendizaje por refuerzo, memoria adaptativa |
@@ -254,7 +254,7 @@ SCAN_TIMEOUT=600
 ### 4.3 Sidebar
 
 La barra lateral muestra:
-- Logo ORION + estado de la cacería (idle/running/paused)
+- Logo CATEYE + estado de la cacería (idle/running/paused)
 - Balance total (cobrado + pendiente)
 - Estado de conexión de plataformas (HackerOne, Bugcrowd, Intigriti, Synack)
 - Cuenta bancaria vinculada
@@ -434,7 +434,7 @@ Control vía API:
 | **OpenAI** | Nube | `gpt-4o-mini` | `LLM_MODEL` |
 | **OpenRouter** | Nube | `openai/gpt-4o-mini` | `OPENROUTER_MODEL` |
 
-### 8.2 Agente Orion
+### 8.2 Agente CATEYE
 
 El agente principal (`cores/ai/orion_agent.py`) usa tool calling para:
 - Consultar el contexto del sistema
@@ -559,34 +559,38 @@ Queue: SQLite-based (no Redis requerido)
 
 | Métrica | Valor |
 |---|---|
-| Líneas de Python (`cores/` + `api/`) | ~56.2K |
-| Líneas de frontend (`frontend/src/`) | ~7.1K |
+| Líneas de Python (`cores/` + `api/`) | ~59.3K |
+| Líneas de frontend (`frontend/src/`) | ~19.2K |
 | Líneas de tests | ~4.5K |
-| **Total líneas fuente** | **~68K** |
-| Archivos Python (`cores/` + `api/` + `tests/`) | 371 |
-| Archivos frontend (`.ts`/`.vue`/`.css`) | 48 |
-| **Total archivos fuente** | **419** |
+| **Total líneas fuente** | **~83K** |
+| Archivos Python (`cores/` + `api/`) | 374 |
+| Archivos frontend (`.ts`/`.vue`/`.css`) | 89 |
+| Archivos de tests | 15 |
+| **Total archivos fuente** | **~478** |
 
 ### Completitud por Área
 
 | Área | % | Detalle |
 |---|---|---|
-| **Backend `cores/`** | **95%** | 48 módulos, 290 archivos, 45K líneas. Núcleo completo con todos los subsistemas implementados. |
-| **API REST** | **95%** | 40+ routers, 66 archivos, 11K líneas. Todos los routers registrados y funcionales (incl. economic, orion, zap, connections, platforms). |
-| **Frontend Vue 3** | **90%** | 14 páginas conectadas a API real, 3 stores Pinia, 15 componentes UI, API client con ~100 endpoints. Pendientes: páginas de detalle (target/:id, finding/:id). |
-| **Desktop / Launcher** | **85%** | Multi-modo (browser, tray, service, safe-mode), build PyInstaller, system tray, boot guard. |
-| **Plataformas Bug Bounty** | **70%** | 5 integraciones (HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack), bóveda encriptada, scraping infraestructura presente. |
-| **Tests** | **40%** | 15 suites, 4.5K líneas. Tests básicos de API, agents, scoring, E2E. Falta cobertura de frontend y módulos nuevos. |
+| **Backend `cores/`** | **95%** | 57 módulos, ~45K líneas. Núcleo completo con todos los subsistemas implementados. Pendientes: unificación de config (EnvConfig + RastroConfig), migraciones Alembic. |
+| **API REST** | **94%** | 56 routers registrados y funcionales (economic, orion, zap, connections, platforms, etc). Cobertura completa de endpoints del sistema. |
+| **Frontend Vue 3** | **82%** | 50 páginas, 21 componentes, 6 stores Pinia, API client con ~100+ endpoints. Mucho más extenso que lo documentado originalmente. Pendientes: tests unitarios (0%), páginas de detalle (target/:id, finding/:id, report/:id). |
+| **Desktop / Launcher** | **82%** | Multi-modo (browser, tray, service, safe-mode), build PyInstaller, system tray, boot guard. Legacy `launcher/start.py` aún presente. |
+| **Plataformas Bug Bounty** | **68%** | 5 integraciones (HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack), bóveda encriptada Fernet, scraping infraestructura presente. Pendientes: battle-testing, manejo de errores de API. |
+| **Tests** | **28%** | 15 suites backend, 4.5K líneas. Tests de API, agents, scoring, E2E. **Frontend tests en 0%** — sin Vitest ni Vue Test Utils configurados. |
 | **Mobile** | **0%** | Planificado para v1.4 (Capacitor Android + Tauri desktop). |
 
-### Total General: **~87%**
+### Total General: **~85%**
 
-### 13% Restante (Priorizado)
+### 15% Restante (Priorizado)
 
 | Prioridad | Item | Esfuerzo |
 |---|---|---|
 | 1 | Páginas de detalle (target/:id, finding/:id, report/:id) | 2-3 días |
-| 2 | Skeleton loading states globales y error handling | 1 día |
-| 3 | Tests unitarios frontend (Vitest + Vue Test Utils) | 3-4 días |
-| 4 | Responsive design + PWA | 2-3 días |
-| 5 | Mobile (Capacitor/Tauri) | 1-2 semanas |
+| 2 | Tests unitarios frontend (Vitest + Vue Test Utils) | 3-4 días |
+| 3 | Skeleton loading states globales y error handling | 1-2 días |
+| 4 | Unificación de config (EnvConfig + RastroConfig → CATEYE Config) | 1 día |
+| 5 | Alembic para migraciones versionadas | 1 día |
+| 6 | Limpieza de archivos legacy (launcher/start.py, archive_cleanup/) | 0.5 días |
+| 7 | Responsive design + PWA | 2-3 días |
+| 8 | Mobile (Capacitor/Tauri) | 1-2 semanas |

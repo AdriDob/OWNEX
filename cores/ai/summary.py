@@ -1,5 +1,5 @@
 """
-Summary Engine — generates concise summaries of Rastro system state.
+Summary Engine — generates concise summaries of CATEYE system state.
 
 Used for daily digests, system status reports, and quick overviews.
 """

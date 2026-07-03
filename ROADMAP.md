@@ -1,4 +1,4 @@
-# ORION Roadmap
+# CATEYE Roadmap
 
 ## v1.0 — Foundation (Complete)
 - [x] Backend FastAPI con todos los routers

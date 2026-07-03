@@ -41,13 +41,13 @@ jobs:
           cd ..
 
       - name: Build executable
-        run: pyinstaller Orion.spec -y
+        run: pyinstaller CATEYE.spec -y
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Rastro-Windows-${{ github.ref_name }}
-          path: dist/Rastro/
+          name: CATEYE-Windows-${{ github.ref_name }}
+          path: dist/CATEYE/
 
   build-linux:
     runs-on: ubuntu-latest
@@ -86,13 +86,13 @@ jobs:
           cd ..
 
       - name: Build executable
-        run: pyinstaller Orion.spec -y
+        run: pyinstaller CATEYE.spec -y
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Rastro-Linux-${{ github.ref_name }}
-          path: dist/Rastro/
+          name: CATEYE-Linux-${{ github.ref_name }}
+          path: dist/CATEYE/
 
   release:
     needs: [build-windows, build-linux]
@@ -103,14 +103,14 @@ jobs:
       - name: Download Windows artifact
         uses: actions/download-artifact@v4
         with:
-          name: Rastro-Windows-${{ github.ref_name }}
-          path: release/Rastro-Windows
+          name: CATEYE-Windows-${{ github.ref_name }}
+          path: release/CATEYE-Windows
 
       - name: Download Linux artifact
         uses: actions/download-artifact@v4
         with:
-          name: Rastro-Linux-${{ github.ref_name }}
-          path: release/Rastro-Linux
+          name: CATEYE-Linux-${{ github.ref_name }}
+          path: release/CATEYE-Linux
 
       - name: Read version
         id: version
@@ -119,16 +119,16 @@ jobs:
       - name: Create ZIP archives
         run: |
           cd release
-          Compress-Archive -Path Rastro-Windows/* -DestinationPath "Rastro-${{ steps.version.outputs.tag }}-Windows.zip" 2>/dev/null || \
-            (cd Rastro-Windows && zip -r "../Rastro-${{ steps.version.outputs.tag }}-Windows.zip" .)
-          (cd Rastro-Linux && zip -r "../Rastro-${{ steps.version.outputs.tag }}-Linux.zip" .)
+          Compress-Archive -Path CATEYE-Windows/* -DestinationPath "CATEYE-${{ steps.version.outputs.tag }}-Windows.zip" 2>/dev/null || \
+            (cd CATEYE-Windows && zip -r "../CATEYE-${{ steps.version.outputs.tag }}-Windows.zip" .)
+          (cd CATEYE-Linux && zip -r "../CATEYE-${{ steps.version.outputs.tag }}-Linux.zip" .)
         shell: bash
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: Rastro ${{ github.ref_name }}
+          name: CATEYE ${{ github.ref_name }}
           body_path: CHANGELOG.md
           files: |
-            release/Rastro-${{ steps.version.outputs.tag }}-Windows.zip
-            release/Rastro-${{ steps.version.outputs.tag }}-Linux.zip
+            release/CATEYE-${{ steps.version.outputs.tag }}-Windows.zip
+            release/CATEYE-${{ steps.version.outputs.tag }}-Linux.zip

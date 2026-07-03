@@ -1,5 +1,5 @@
 """
-Rastro Investigation Narrator — interprets existing system state.
+CATEYE Investigation Narrator — interprets existing system state.
 
 Provides human-readable explanations of investigation state, attack paths,
 report narratives, unified Web2+Web3 analysis, and bounty potential.

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import type { ToolsSettings } from '@/stores/settings'
 import Badge from '@/components/ui/Badge.vue'
@@ -8,11 +8,10 @@ import Tooltip from '@/components/ui/Tooltip.vue'
 import Separator from '@/components/ui/Separator.vue'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard.vue'
 import {
-  Settings, Palette, Bell, Shield, Cpu, Globe, Eye, Key, Save, CheckCircle2,
-  AlertTriangle, Loader2, RefreshCw, ExternalLink, Plus, Trash2, Link, Unlink,
-  User, Languages, Monitor, Wrench, Server, Lock, Download, Upload, RotateCcw,
-  Play, Square, Sliders, Gauge, Box, Activity, Database, Wifi, HardDrive,
-  ChevronRight, Zap, Sparkles, Bug, Crosshair, Scan, DollarSign,
+  Settings, Palette, Shield, Cpu, Globe, Eye, Key, Save, CheckCircle2,
+  AlertTriangle, RefreshCw, ExternalLink, User, Wrench, Server, Lock, Download, Upload, RotateCcw,
+  Activity, Database, Wifi, HardDrive, Monitor, Box,
+  Sparkles, Bug, Crosshair, Scan, DollarSign,
 } from '@lucide/vue'
 
 const settings = useSettingsStore()
@@ -30,6 +29,7 @@ const saving = ref(false)
 const saveSuccess = ref('')
 const saveError = ref('')
 const showOnboarding = ref(false)
+const toolsLoading = ref(false)
 
 const tabs = [
   { id: 'general' as const, label: 'General', icon: Settings },
@@ -148,7 +148,7 @@ function exportConfig() {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `cateye-config-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `cateye-config-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -163,6 +163,11 @@ function importConfig() {
     try {
       const text = await file.text()
       const imported = JSON.parse(text)
+      if (!imported || typeof imported !== 'object') throw new Error('Invalid config')
+      const allowedKeys = ['general', 'ai', 'apiKeys', 'missionControl', 'appearance', 'security', 'tools', 'system']
+      for (const key of Object.keys(imported)) {
+        if (!allowedKeys.includes(key)) throw new Error(`Unknown key: ${key}`)
+      }
       Object.assign(settings.data, imported)
       settings.syncToBackend()
       saveSuccess.value = 'Configuración importada'
@@ -175,9 +180,25 @@ function importConfig() {
 }
 
 async function resetConfig() {
-  if (!confirm('¿Resetear toda la configuración? Esta acción no se puede deshacer.')) return
+  if (!confirm('¿Resetear toda la configuración?')) return
+  if (!confirm('¿Estás seguro? Esta acción elimina TODA la configuración. No se puede deshacer.')) return
   localStorage.removeItem('cateye_settings')
   window.location.reload()
+}
+
+async function runToolCheck() {
+  toolsLoading.value = true
+  saveSuccess.value = ''
+  saveError.value = ''
+  try {
+    await settings.checkTools()
+    saveSuccess.value = 'Verificación de herramientas completada'
+    setTimeout(() => saveSuccess.value = '', 3000)
+  } catch {
+    saveError.value = 'Error al verificar herramientas'
+  } finally {
+    toolsLoading.value = false
+  }
 }
 
 async function runToolTest(toolId: string) {
@@ -191,6 +212,15 @@ async function runToolTest(toolId: string) {
     saveError.value = `Error al probar ${toolId}`
   }
 }
+
+let autoSaveTimer: ReturnType<typeof setTimeout> | null = null
+watch(() => settings.data, () => {
+  if (autoSaveTimer) clearTimeout(autoSaveTimer)
+  autoSaveTimer = setTimeout(() => {
+    saveSuccess.value = 'Configuración guardada'
+    setTimeout(() => { if (saveSuccess.value === 'Configuración guardada') saveSuccess.value = '' }, 2000)
+  }, 300)
+}, { deep: true })
 
 onMounted(() => {
   settings.loadFromBackend()
@@ -290,13 +320,6 @@ onMounted(() => {
             <Tooltip text="Modo de alto contraste y soporte para lectores de pantalla." position="right"><span class="inline-flex h-3 w-3 items-center justify-center rounded-full bg-muted-foreground/20 text-[7px] text-muted-foreground cursor-help">?</span></Tooltip>
           </label>
         </div>
-      </div>
-
-      <div class="cyber-card rounded-xl p-5">
-        <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2 mb-3">
-          <Bell class="h-4 w-4 text-accent" /> Notificaciones
-        </h3>
-        <p class="font-mono text-[10px] text-muted-foreground">Configuración de notificaciones disponible próximamente.</p>
       </div>
 
       <div class="cyber-card rounded-xl p-5">
@@ -445,7 +468,7 @@ onMounted(() => {
             <Wrench class="h-4 w-4 text-primary" /> Herramientas del sistema
             <Tooltip text="Herramientas de reconocimiento instaladas en el sistema. CATEYE las usa para escaneo automatizado." position="right"><span class="inline-flex h-3 w-3 items-center justify-center rounded-full bg-muted-foreground/20 text-[7px] text-muted-foreground cursor-help">?</span></Tooltip>
           </h3>
-          <Button size="sm" variant="outline" @click="settings.checkTools()">
+          <Button size="sm" variant="outline" @click="runToolCheck()" :loading="toolsLoading">
             <RefreshCw class="h-3.5 w-3.5" /> Verificar
           </Button>
         </div>

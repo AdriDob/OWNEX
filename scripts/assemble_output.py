@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""ORION — Final output assembly script.
+"""CATEYE — Final output assembly script.
 
 Assembles all build artifacts into the target output directory:
     C:/Users/adrie/OneDrive/Desktop/Yo/privado/Orion
 
 Structure:
-    Orion/
-      Orion.exe
+    CATEYE/
+      CATEYE.exe
       frontend_dist/
       _internal/
-    OrionInstaller.exe
-    Orion-<version>.zip
+    CATEYEInstaller.exe
+    CATEYE-<version>.zip
     README.txt
     VERSION.txt
     build_info.json
@@ -38,7 +38,7 @@ FRONTEND_DIR = PROJECT_ROOT / "frontend"
 DIST_DIR = PROJECT_ROOT / "dist"
 VERSION_FILE = PROJECT_ROOT / "VERSION"
 
-_OUTPUT_ENV = os.environ.get("ORION_OUTPUT_DIR")
+_OUTPUT_ENV = os.environ.get("CATEYE_OUTPUT_DIR")
 
 
 def _default_output() -> Path:
@@ -65,14 +65,14 @@ def read_version() -> str:
 
 def find_pyinstaller_bundle() -> Path | None:
     candidates = [
-        DIST_DIR / "Orion",
-        PROJECT_ROOT / "desktop" / "build" / "dist" / "Orion",
+        DIST_DIR / "CATEYE",
+        PROJECT_ROOT / "desktop" / "build" / "dist" / "CATEYE",
     ]
     for c in candidates:
-        if c.is_dir() and (c / "Orion.exe").exists():
+        if c.is_dir() and (c / "CATEYE.exe").exists():
             log("PYINSTALLER", f"Found: {c}")
             return c
-    log("PYINSTALLER", "No PyInstaller bundle found. Run pyinstaller Orion.spec -y first.")
+    log("PYINSTALLER", "No PyInstaller bundle found. Run pyinstaller CATEYE.spec -y first.")
     return None
 
 
@@ -86,7 +86,7 @@ def find_frontend_dist() -> Path | None:
 
 
 def find_installer() -> Path | None:
-    installer = DIST_DIR / "OrionInstaller.exe"
+    installer = DIST_DIR / "CATEYEInstaller.exe"
     if installer.exists():
         log("INSTALLER", f"Found: {installer} ({installer.stat().st_size / 1024 / 1024:.1f} MB)")
         return installer
@@ -107,7 +107,7 @@ def assemble_output(
     output_dir.mkdir(parents=True, exist_ok=True)
     log("OUTPUT", f"Target: {output_dir}")
 
-    app_dir = output_dir / "Orion"
+    app_dir = output_dir / "CATEYE"
     app_dir.mkdir(exist_ok=True)
 
     if pyinstaller_bundle:
@@ -118,9 +118,9 @@ def assemble_output(
             else:
                 shutil.copy2(item, dest / item.name)
         size_mb = sum(f.stat().st_size for f in dest.rglob("*") if f.is_file()) / 1024 / 1024
-        log("OUTPUT", f"  Orion/ — {size_mb:.1f} MB")
+        log("OUTPUT", f"  CATEYE/ — {size_mb:.1f} MB")
     else:
-        log("OUTPUT", "  Orion/ — skipped (no PyInstaller bundle)")
+        log("OUTPUT", "  CATEYE/ — skipped (no PyInstaller bundle)")
 
     if frontend_dist:
         dest = app_dir / "frontend_dist"
@@ -128,7 +128,7 @@ def assemble_output(
             shutil.rmtree(dest)
         shutil.copytree(frontend_dist, dest)
         size_kb = sum(f.stat().st_size for f in dest.rglob("*") if f.is_file()) / 1024
-        log("OUTPUT", f"  Orion/frontend_dist/ — {size_kb:.0f} KB")
+        log("OUTPUT", f"  CATEYE/frontend_dist/ — {size_kb:.0f} KB")
 
     if installer:
         shutil.copy2(installer, output_dir / installer.name)
@@ -148,22 +148,22 @@ def _write_readme(output_dir: Path, version: str) -> None:
     readme = output_dir / "README.txt"
     readme.write_text(
         f"\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n"
-        f"\u2551         ORION v{version.ljust(6)}               \u2551\n"
+        f"\u2551         CATEYE v{version.ljust(6)}               \u2551\n"
         f"\u2551   Automated Security Investigation OS    \u2551\n"
         f"\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d\n"
         f"\n"
         f"  Dashboard:  http://127.0.0.1:8000\n"
-        f"  Website:    https://orion.security\n"
+        f"  Website:    https://cateye.security\n"
         f"\n"
         f"---  Getting Started  ---\n"
         f"\n"
-        f"  1. Run Orion\\Orion.exe --tray\n"
+        f"  1. Run CATEYE\\CATEYE.exe --tray\n"
         f"     (starts in system tray, no terminal)\n"
         f"\n"
         f"  2. Open http://127.0.0.1:8000 in your browser\n"
         f"     (or double-click the desktop shortcut)\n"
         f"\n"
-        f"  3. The ORION icon appears in the system tray\n"
+        f"  3. The CATEYE icon appears in the system tray\n"
         f"     Right-click for: Open Dashboard, Stop, View Logs\n"
         f"\n"
         f"---  System Requirements  ---\n"
@@ -185,7 +185,7 @@ def _write_version(output_dir: Path, version: str) -> None:
 
 def _write_build_info(output_dir: Path, version: str, has_bundle: bool) -> None:
     info = {
-        "app": "ORION",
+        "app": "CATEYE",
         "version": version,
         "build_date": datetime.now(timezone.utc).isoformat(),
         "python": sys.version.split()[0],
@@ -210,7 +210,7 @@ def _write_build_info(output_dir: Path, version: str, has_bundle: bool) -> None:
 
 
 def _create_zip(output_dir: Path, version: str) -> Path | None:
-    zip_path = output_dir / f"Orion-{version}.zip"
+    zip_path = output_dir / f"CATEYE-{version}.zip"
     if zip_path.exists():
         zip_path.unlink()
 
@@ -224,7 +224,7 @@ def _create_zip(output_dir: Path, version: str) -> Path | None:
                 zf.write(full_path, arcname)
 
     if zip_path.exists():
-        log("ZIP", f"  Orion-{version}.zip ({zip_path.stat().st_size / 1024 / 1024:.1f} MB)")
+        log("ZIP", f"  CATEYE-{version}.zip ({zip_path.stat().st_size / 1024 / 1024:.1f} MB)")
         return zip_path
     log("ZIP", "Failed to create ZIP")
     return None
@@ -237,8 +237,8 @@ def _print_summary(output_dir: Path) -> None:
     print(f"  Output:    {output_dir}")
     print(f"  Total:     {total_mb:.1f} MB")
     print()
-    print(f"  To run:    {output_dir / 'Orion' / 'Orion.exe'} --tray")
-    print(f"  Installer:     {output_dir / 'OrionInstaller.exe'}")
+    print(f"  To run:    {output_dir / 'CATEYE' / 'CATEYE.exe'} --tray")
+    print(f"  Installer:     {output_dir / 'CATEYEInstaller.exe'}")
     print("  Dashboard:     http://127.0.0.1:8000")
     print("  " + "\u2500" * 20)
 
@@ -247,7 +247,7 @@ def _print_summary(output_dir: Path) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="ORION — assemble final output artifacts")
+    parser = argparse.ArgumentParser(description="CATEYE — assemble final output artifacts")
     parser.add_argument("--output", type=Path, default=None, help="Output directory")
     parser.add_argument("--version", default=None, help="Version override")
     parser.add_argument("--validate", action="store_true", help="Run asset validation after assembly")
@@ -256,7 +256,7 @@ def main() -> None:
     version = args.version or read_version()
     output_dir = args.output or _default_output()
 
-    log("ASSEMBLE", f"ORION v{version} — output assembly")
+    log("ASSEMBLE", f"CATEYE v{version} — output assembly")
     log("ASSEMBLE", f"Platform: {sys.platform}")
 
     pyinstaller_bundle = find_pyinstaller_bundle()
@@ -265,7 +265,7 @@ def main() -> None:
 
     if not pyinstaller_bundle and not frontend_dist:
         log("ASSEMBLE", "WARNING: No build artifacts found.")
-        log("ASSEMBLE", "  PyInstaller: pyinstaller Orion.spec -y")
+        log("ASSEMBLE", "  PyInstaller: pyinstaller CATEYE.spec -y")
         log("ASSEMBLE", "  NSIS:        makensis installer\\orion.nsi")
 
     assemble_output(output_dir, version, pyinstaller_bundle, frontend_dist, installer)

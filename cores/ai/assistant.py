@@ -1,5 +1,5 @@
 """
-Rastro AI Assistant — main orchestrator + ScanAssistant.
+CATEYE AI Assistant — main orchestrator + ScanAssistant.
 
 ScanAssistant: original rule-based assistant for scan analysis, findings, risk narratives.
 Assistant: new unified orchestrator with context, insights, recommendations, chat.

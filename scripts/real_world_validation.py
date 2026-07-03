@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Real-world end-to-end validation of Rastro pipeline.
+"""Real-world end-to-end validation of CATEYE pipeline.
 
 Runs the full pipeline against a target and documents results.
 Uses FastAPI TestClient to avoid server/scheduler interference.

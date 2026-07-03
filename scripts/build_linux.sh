@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ── Build Rastro Linux executable via PyInstaller ──
+# ── Build CATEYE Linux executable via PyInstaller ──
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-echo "=== Building Rastro for Linux ==="
+echo "=== Building CATEYE for Linux ==="
 
 # 1. Install Python dependencies
 echo "[1/4] Installing Python dependencies..."
@@ -21,10 +21,10 @@ cd "$ROOT"
 
 # 3. PyInstaller
 echo "[3/4] Building executable..."
-pyinstaller Rastro.spec -y
+pyinstaller CATEYE.spec -y
 
 # 4. Verify
-BINARY="dist/Rastro/Rastro"
+BINARY="dist/CATEYE/CATEYE"
 if [ -f "$BINARY" ]; then
     SIZE=$(du -h "$BINARY" | cut -f1)
     echo "[4/4] ✓ Binary: $BINARY ($SIZE)"

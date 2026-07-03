@@ -81,7 +81,7 @@ class TestServeFrontend:
         from desktop.serve_frontend import create_app
         app = create_app("/nonexistent")
         assert app is not None
-        assert app.title == "ORION Frontend"
+        assert app.title == "CATEYE Frontend"
 
     def test_create_app_with_dist(self, tmp_path):
         dist = tmp_path / "frontend" / "dist"
@@ -115,7 +115,7 @@ class TestBuildScripts:
             capture_output=True, text=True, timeout=10,
         )
         assert result.returncode == 0
-        assert "Build Rastro Desktop binary" in result.stdout
+        assert "Build CATEYE Desktop binary" in result.stdout
 
     def test_build_all_help(self):
         result = subprocess.run(
@@ -160,7 +160,7 @@ class TestInstallerScripts:
         path = PROJECT_DIR / "desktop" / "build" / "install_windows.ps1"
         with open(path) as f:
             content = f.read()
-        assert "Rastro.exe" in content
+        assert "CATEYE.exe" in content
         assert "Installation complete" in content
 
 

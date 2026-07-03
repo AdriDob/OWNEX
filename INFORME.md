@@ -1,7 +1,10 @@
-# INFORME FINAL — ORION RC11
+# INFORME FINAL — Migración React → Vue 3 (Historical)
 
-**Generado:** 1 Julio 2026, ~06:00 ART
-**Estado:** ✅ COMPLETO — Listo para prueba de usuario real
+> **Documento histórico.** Corresponde a la migración de ORION RC11 (React → Vue 3).
+> El sistema actual se llama **CATEYE Alpha 1.0**. Este informe se mantiene como referencia de la migración completada.
+
+**Generado originalmente:** 1 Julio 2026, ~06:00 ART
+**Estado:** ✅ MIGRACIÓN COMPLETADA — React eliminado, Vue 3 en producción
 
 ---
 

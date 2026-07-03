@@ -1,5 +1,5 @@
 """
-Rastro Advisor — strategic responses to user queries.
+CATEYE Advisor — strategic responses to user queries.
 
 Answers questions using real system data and rule-based logic.
 Optional LLM enhancement falls back gracefully.
@@ -58,7 +58,7 @@ def _build_system_prompt(ctx: dict[str, Any]) -> str:
     qw = ctx.get("quick_wins", {})
 
     return f"""
-Eres Rastro AI, el analista principal de un sistema de bug bounty intelligence.
+Eres CATEYE AI, el analista principal de un sistema de bug bounty intelligence.
 Usa datos reales del sistema para responder. Sé breve, directo y accionable.
 
 Contexto actual del sistema:

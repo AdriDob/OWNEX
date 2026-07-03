@@ -1,4 +1,4 @@
-"""Knowledge infrastructure for ORION.
+"""Knowledge infrastructure for CATEYE.
 
 This package defines a modular, extensible knowledge ingestion and graph
 infrastructure for long-term intelligence. It is intentionally connector-agnostic
