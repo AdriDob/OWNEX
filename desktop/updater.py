@@ -12,7 +12,6 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-import os
 import shutil
 import sys
 import time
@@ -26,11 +25,8 @@ GITHUB_REPO = "AdriDob/cateye"
 
 # Production paths resolved at import time
 def _get_data_dir() -> Path:
-    if sys.platform == "win32":
-        base = os.environ.get("APPDATA", "")
-        if base:
-            return Path(base) / "CATEYE"
-    return Path.home() / ".cateye"
+    from cores.utils.paths import get_data_path
+    return get_data_path()
 
 _DATA_DIR = _get_data_dir()
 UPDATE_STAGING_DIR = _DATA_DIR / "updates"

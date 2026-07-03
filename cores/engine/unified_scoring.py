@@ -2,6 +2,8 @@ import re
 import threading
 from typing import Any
 
+from cores.env.config import get_config
+
 UUID_PATTERN = re.compile(
     r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
 )
@@ -161,11 +163,7 @@ def _rank_attack_vector(path: str, params: dict[str, Any] | None) -> str:
 _score_cache: dict[tuple[str, str, str], dict[str, Any]] = {}
 _score_cache_lock = threading.Lock()
 
-try:
-    from cores.config import get_config
-    _MAX_CACHE = get_config().cache_size
-except Exception:
-    _MAX_CACHE = 4096
+_MAX_CACHE = get_config().cache_size
 
 
 def _make_score_key(path: str, method: str, params: dict[str, Any] | None) -> tuple[str, str, str]:

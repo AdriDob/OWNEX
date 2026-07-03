@@ -90,17 +90,8 @@ def _try_find_icon() -> Path | None:
 
 
 def _get_data_dir() -> Path:
-    if sys.platform == "win32":
-        base = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
-    else:
-        base = Path.home()
-    return base / "CATEYE"
-
-
-def _get_logs_dir() -> Path:
-    if getattr(sys, "frozen", False):
-        return Path(sys.executable).parent / "logs"
-    return _get_data_dir() / "logs"
+    from cores.utils.paths import get_data_path
+    return get_data_path()
 
 
 def _open_file_explorer(path: Path) -> None:
@@ -116,7 +107,8 @@ def _open_file_explorer(path: Path) -> None:
 
 
 def _open_logs_dir() -> None:
-    logs_dir = _get_logs_dir()
+    from cores.utils.paths import get_log_path
+    logs_dir = get_log_path()
     if logs_dir.exists():
         _open_file_explorer(logs_dir)
     else:
