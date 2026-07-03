@@ -2,7 +2,7 @@
 
 # CATEYE — Sistema de Inteligencia para Bug Bounty Automático
 
-> **Versión:** 1.6.0
+> **Versión:** 1.6.1
 > **Arquitectura:** Monolito modular con frontend SPA
 > **Backend:** Python + FastAPI + SQLAlchemy + SQLite/PostgreSQL
 > **Frontend:** Vue 3 + TypeScript + Tailwind CSS v4 + Vite
@@ -531,7 +531,7 @@ Queue: SQLite-based (no Redis requerido)
 
 ## 12. Evolución y Roadmap
 
-### Estado actual (v1.6.0)
+### Estado actual (v1.6.1)
 
 | Feature | Estado |
 |---|---|
@@ -577,6 +577,9 @@ Se realizó una auditoría de fricciones con perspectiva de **bug bounty hunter 
 - **Feedback**: auto-save con indicador visual, Tools con loading spinner, WS status en topbar
 - **Seguridad**: import config validado, reset con doble confirmación
 - **Shortcuts**: `⌘B` Copilot y `⌘K` Command Palette visibles en topbar
+- **Paths**: `tray.py` y `updater.py` ahora usan `cores/utils/paths.py:get_data_path()` como único resolver
+- **Config**: `cache_size` migrado de `cores/config.py:RastroConfig` a `cores/env/config.py:EnvConfig`, `RastroConfig` deprecated
+- **Env vars**: todos los `RASTRO_*` en `EnvConfig` renombrados a `CATEYE_*`
 - **TypeScript**: 0 errores
 
 ---
@@ -600,24 +603,22 @@ Se realizó una auditoría de fricciones con perspectiva de **bug bounty hunter 
 
 | Área | % | Detalle |
 |---|---|---|
-| **Backend `cores/`** | **95%** | 57 módulos, ~45K líneas. Núcleo completo con todos los subsistemas implementados. Pendientes: unificación de config (EnvConfig + RastroConfig), migraciones Alembic. |
+| **Backend `cores/`** | **96%** | 57 módulos, ~45K líneas. Núcleo completo con todos los subsistemas implementados. `cache_size` migrado a EnvConfig, todos los env vars en `CATEYE_*`. Pendientes: migraciones Alembic. |
 | **API REST** | **94%** | 56 routers registrados y funcionales (economic, orion, zap, connections, platforms, etc). Cobertura completa de endpoints del sistema. |
-| **Frontend Vue 3** | **87%** | 50 páginas, 21 componentes, 6 stores, navegación podada (36→13 items), onboarding reducido (9→5 pasos), auto-save global, shortcuts visibles. Pendientes: tests unitarios (0%), detalle de target/finding/report. |
-| **Desktop / Launcher** | **85%** | Multi-modo (browser, tray, service, safe-mode), build PyInstaller, system tray, boot guard. Launcher unificado con branding corregido. |
+| **Frontend Vue 3** | **91%** | 50 páginas, 21 componentes, 6 stores, navegación podada (36→13 items), onboarding reducido (9→5 pasos), auto-save global, shortcuts visibles, todas las páginas de detalle implementadas. Pendientes: tests unitarios (0%). |
+| **Desktop / Launcher** | **87%** | Multi-modo (browser, tray, service, safe-mode), build PyInstaller, system tray, boot guard. Launcher unificado con branding corregido, paths de datos unificados. |
 | **Plataformas Bug Bounty** | **68%** | 5 integraciones (HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack), bóveda encriptada Fernet, scraping infraestructura presente. Pendientes: battle-testing, manejo de errores de API. |
 | **Tests** | **28%** | 15 suites backend, 4.5K líneas. Tests de API, agents, scoring, E2E. **Frontend tests en 0%** — sin Vitest ni Vue Test Utils configurados. |
 | **Mobile** | **0%** | Planificado para v1.4 (Capacitor Android + Tauri desktop). |
 
-### Total General: **~88%** (+3% por auditoría UX completada)
+### Total General: **~91%** (+3% ronda final de pulido)
 
-### 12% Restante (Priorizado)
+### 9% Restante (Priorizado)
 
 | Prioridad | Item | Esfuerzo |
 |---|---|---|
 | 1 | Tests unitarios frontend (Vitest + Vue Test Utils) | 3-4 días |
-| 2 | Páginas de detalle (target/:id, finding/:id, report/:id) | 2-3 días |
-| 3 | Unificación de paths (`get_data_path()` como único resolver) | 0.5 días |
-| 4 | Unificación de config (RastroConfig → CATEYE Config) | 1 día |
-| 5 | Alembic para migraciones versionadas | 1 día |
-| 6 | Responsive design + PWA | 2-3 días |
-| 7 | Mobile (Capacitor/Tauri) | 1-2 semanas |
+| 2 | Rebuild Android compiled assets | 1 día |
+| 3 | Alembic para migraciones versionadas | 1 día |
+| 4 | Responsive design + PWA | 2-3 días |
+| 5 | Mobile (Capacitor/Tauri) | 1-2 semanas |
