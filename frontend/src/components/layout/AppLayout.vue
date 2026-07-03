@@ -5,7 +5,6 @@ import NotificationPanel from '@/components/notifications/NotificationPanel.vue'
 import ErrorBoundary from '@/components/ErrorBoundary.vue'
 import { useRoute } from 'vue-router'
 import { useNotificationsStore } from '@/stores/notifications'
-import { Eye } from '@lucide/vue'
 
 const notifications = useNotificationsStore()
 
@@ -18,7 +17,6 @@ const emit = defineEmits<{
 }>()
 
 const route = useRoute()
-const showNotifications = !route.meta?.public
 </script>
 
 <template>
@@ -38,11 +36,13 @@ const showNotifications = !route.meta?.public
           <Breadcrumbs />
         </div>
         <div class="flex items-center gap-2">
-          <div class="flex items-center gap-1.5 rounded-md border border-border/30 px-2 py-1">
-            <Eye class="h-3 w-3 text-primary" />
-            <span class="font-mono text-[9px] text-muted-foreground tracking-wider">CATEYE</span>
-            <span :class="['h-1.5 w-1.5 rounded-full', notifications.wsConnected ? 'bg-success' : 'bg-destructive']" />
-          </div>
+          <span class="hidden sm:inline-flex items-center gap-1 rounded-md border border-border/20 px-2 py-1 font-mono text-[9px] text-muted-foreground/60">
+            <kbd class="rounded bg-surface/50 px-1 py-0.5 text-[8px]">⌘B</kbd> Copilot
+          </span>
+          <span class="hidden sm:inline-flex items-center gap-1 rounded-md border border-border/20 px-2 py-1 font-mono text-[9px] text-muted-foreground/60">
+            <kbd class="rounded bg-surface/50 px-1 py-0.5 text-[8px]">⌘K</kbd> Comandos
+          </span>
+          <span :class="['h-1.5 w-1.5 rounded-full', notifications.wsConnected ? 'bg-success' : 'bg-destructive']" />
           <NotificationPanel />
         </div>
       </div>
