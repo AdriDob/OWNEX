@@ -13,6 +13,9 @@ const breadcrumbs = computed(() => {
 
   if (segments.length === 0) return [{ label: 'Panel Económico' }]
 
+  // Only show breadcrumbs for pages with meaningful hierarchy
+  if (segments.length <= 1) return []
+
   const crumbs: { label: string; path?: string }[] = [{ label: 'Inicio', path: '/' }]
   let accumulated = ''
 
@@ -20,7 +23,7 @@ const breadcrumbs = computed(() => {
     accumulated += '/' + segments[i]
     const seg = segments[i]
 
-    // Skip numeric IDs in breadcrumbs — show meaningful parent instead
+    // Skip numeric IDs in breadcrumbs
     if (/^\d+$/.test(seg) && i > 0) continue
 
     const label = seg

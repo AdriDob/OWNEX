@@ -175,7 +175,7 @@ function formatUptime(s: number) {
             <span class="font-mono text-[10px] font-bold tracking-widest text-primary">CATEYE MISSION CONTROL</span>
             <span :class="['h-1.5 w-1.5 rounded-full', ctx.system.status === 'healthy' ? 'bg-success animate-pulse' : 'bg-warning']" />
           </div>
-          <h1 class="font-display text-2xl font-bold text-foreground">{{ greeting }}, Operador</h1>
+          <h1 class="font-display text-2xl font-bold text-foreground">{{ greeting }}, {{ settings.data.general.userName || 'Operador' }}</h1>
           <p class="text-xs text-muted-foreground">
             Score salud: {{ ctx.system.health_score }}/100
             <span v-if="ctx.findings.new_24h"> · {{ ctx.findings.new_24h }} hallazgos nuevos hoy</span>
