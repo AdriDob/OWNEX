@@ -1,16 +1,11 @@
-"""Predictor — failure prediction based on historical patterns."""
+"""CATEYE Acceptance Predictor — estimates report acceptance probability."""
 
-from __future__ import annotations
-
-from cores.predictor.engine import (
-    FailurePrediction,
-    FailurePredictionSystem,
-    RiskLevel,
-    get_failure_predictor,
-    reset_failure_predictor,
-)
+from cores.predictor.acceptance import AcceptancePredictor, PredictionResult
+from cores.predictor.scoring import ScoreWeights, compute_acceptance_score
 
 __all__ = [
-    "FailurePredictionSystem", "RiskLevel", "FailurePrediction",
-    "get_failure_predictor", "reset_failure_predictor",
+    "AcceptancePredictor",
+    "PredictionResult",
+    "ScoreWeights",
+    "compute_acceptance_score",
 ]

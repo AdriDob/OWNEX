@@ -1,4 +1,3 @@
-import json
 import logging
 from datetime import datetime, timezone
 from typing import Any
@@ -137,7 +136,7 @@ class ValidationLoopEngine:
 
         return Verdict(
             hot_path_id=hot_path_id,
-            status=status,
+            status=status,  # type: ignore[arg-type]
             confidence=confidence.score,
             reproducibility_score=reproducibility_score,
             validation=validation_report,

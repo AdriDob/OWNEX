@@ -15,7 +15,6 @@ Output:
 from __future__ import annotations
 
 import logging
-import os
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -212,7 +211,8 @@ class PriorityEngine:
 
     def consume_memory(self) -> dict[str, Any]:
         """Query decision memory and insight archive to adjust scores."""
-        enabled = os.environ.get("RASTRO_MEMORY_CONSUME", "true").lower() == "true"
+        from cores.env.config import get_config
+        enabled = get_config().memory_consume > 0
         if not enabled:
             return {"status": "skipped", "reason": "memory consumption disabled"}
         try:

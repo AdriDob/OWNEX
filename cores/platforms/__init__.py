@@ -1,4 +1,4 @@
-from cores.platforms.base import BugBountyPlatform, PlatformAction, SubmissionResult
+from cores.platforms.base import BugBountyPlatform
 from cores.platforms.bugcrowd import Bugcrowd
 from cores.platforms.hackerone import HackerOne
 from cores.platforms.intigriti import Intigriti

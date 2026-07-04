@@ -28,7 +28,7 @@ from fastapi.staticfiles import StaticFiles
 
 from cores.platform.system import get_frontend_dist_dir
 
-logger = logging.getLogger("orion.frontend_server")
+logger = logging.getLogger("cateye.frontend_server")
 
 DEFAULT_FRONTEND_DIR = str(get_frontend_dist_dir())
 

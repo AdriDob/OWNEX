@@ -33,6 +33,8 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+from cores.env.config import get_config
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
@@ -53,9 +55,9 @@ def read_version() -> str:
 
 
 def get_default_output() -> Path:
-    env = os.environ.get("RASTRO_OUTPUT_DIR")
+    env = get_config().output_dir
     if env:
-        return Path(env)
+        return env
     if sys.platform == "win32":
         return Path(os.environ.get("LOCALAPPDATA", os.environ.get("USERPROFILE", "C:/"))) / "CATEYE"
     if sys.platform.startswith("linux"):
@@ -339,7 +341,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="CATEYE installer — one-command setup")
     parser.add_argument("--dev", action="store_true", help="Dev mode (skip PyInstaller, use python run.py)")
     parser.add_argument("--portable", action="store_true", help="Portable ZIP only (no output dir assembly)")
-    parser.add_argument("--output", type=Path, default=None, help="Output directory (default: RASTRO_OUTPUT_DIR or platform default)")
+    parser.add_argument("--output", type=Path, default=None, help="Output directory (default: CATEYE_OUTPUT_DIR or platform default)")
     parser.add_argument("--no-frontend", action="store_true", help="Skip frontend build")
     parser.add_argument("--version", default=None, help="Version override")
     args = parser.parse_args()

@@ -76,7 +76,7 @@ Las reglas están en `.cline/rules/`:
 | Archivo | Propósito |
 |---|---|
 | `core.md` | Reglas de desarrollo, stack, flujo de trabajo |
-| `context.md` | Contexto del proyecto Orion (estado, módulos, URLs) |
+| `context.md` | Contexto del proyecto CATEYE (estado, módulos, URLs) |
 | `orion-rules.md` | Reglas completas con referencia rápida |
 
 Cline carga automáticamente todos los `.md` dentro de `.cline/rules/`.

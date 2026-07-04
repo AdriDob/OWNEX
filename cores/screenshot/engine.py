@@ -865,10 +865,10 @@ class ScreenshotEngine:
         total = len(specs)
         critical = sum(1 for s in specs if s.severity == "critical")
         high = sum(1 for s in specs if s.severity == "high")
-        top_types = {}
+        top_types: dict[str, int] = {}
         for s in specs:
             top_types[s.vulnerability_type] = top_types.get(s.vulnerability_type, 0) + 1
-        top_vtype = max(top_types, key=top_types.get) if top_types else ""
+        top_vtype = max(top_types, key=lambda k: top_types[k]) if top_types else ""
 
         parts = [
             f"{total} finding{'s' if total != 1 else ''}",

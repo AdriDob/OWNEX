@@ -12,7 +12,7 @@ from typing import Any
 from cores.opportunity import get_engine as get_opp_engine
 from cores.opportunity.models import Opportunity
 
-logger = logging.getLogger("catseye.orion.next_action")
+logger = logging.getLogger("catseye.cateye.next_action")
 
 
 def _score_action(opp: Opportunity) -> float:
@@ -50,8 +50,8 @@ def _estimate_reward(opp: Opportunity) -> str:
     score = opp.score
     if not score:
         return "Unknown"
-    max_r = score.reward_range_max
-    min_r = score.reward_range_min
+    max_r = score.reward_potential
+    min_r = 0
     if max_r and min_r:
         return f"${min_r}-${max_r}"
     if max_r:
@@ -74,9 +74,9 @@ def _estimate_effort(opp: Opportunity) -> str:
 
 def _generate_steps(opp: Opportunity) -> list[str]:
     """Generate step-by-step guidance for this opportunity."""
-    cat = opp.category.value if opp.category else ""
+    cat = opp.category if opp.category else ""
     base = [
-        f"Review opportunity: {opp.title or opp.name}",
+        f"Review opportunity: {opp.name}",
         "Understand the scope and target",
     ]
     if cat in ("web", "api"):
@@ -100,16 +100,16 @@ def _generate_steps(opp: Opportunity) -> list[str]:
 
 def get_next_action() -> dict[str, Any] | None:
     """Return the single best next action, or None if none available."""
-    logger.info("[Orion] get_next_action called")
+    logger.info("[CATEYE] get_next_action called")
     try:
         engine = get_opp_engine()
         all_opps = engine.get_all()
     except Exception:
-        logger.warning("[Orion] failed to get opportunities", exc_info=True)
+        logger.warning("[CATEYE] failed to get opportunities", exc_info=True)
         return None
 
     if not all_opps:
-        logger.info("[Orion] no opportunities available")
+        logger.info("[CATEYE] no opportunities available")
         return None
 
     # Score and rank
@@ -117,14 +117,14 @@ def get_next_action() -> dict[str, Any] | None:
     ranked.sort(key=lambda x: x[1], reverse=True)
 
     best_opp, best_score = ranked[0]
-    logger.info("[Orion] best action: %s (score=%.4f)", best_opp.title or best_opp.name, best_score)
+    logger.info("[CATEYE] best action: %s (score=%.4f)", best_opp.name, best_score)
 
     if best_score <= 0:
         return None
 
     return {
         "id": best_opp.id,
-        "title": f"Analyze: {best_opp.title or best_opp.name}",
+        "title": f"Analyze: {best_opp.name}",
         "type": "analyze_opportunity",
         "effort": _estimate_effort(best_opp),
         "estimated_reward": _estimate_reward(best_opp),

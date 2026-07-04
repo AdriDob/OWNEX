@@ -35,6 +35,10 @@ import threading
 import time
 from pathlib import Path
 
+import webview
+
+from cores.env.config import get_config
+
 # Reconfigure stdout/stderr for UTF-8 (Windows console defaults to cp1252)
 for _stream in (sys.stdout, sys.stderr):
     if hasattr(_stream, "reconfigure"):
@@ -42,8 +46,6 @@ for _stream in (sys.stdout, sys.stderr):
             _stream.reconfigure(encoding="utf-8")
         except Exception:
             pass
-
-import webview
 
 _BOOT = "[BOOT]"
 _API = "[API]"
@@ -137,7 +139,7 @@ class ServerThread:
 
     def start(self, app) -> None:
         self._thread = threading.Thread(
-            target=self._run, args=(app,), daemon=True, name="orion-server"
+            target=self._run, args=(app,), daemon=True, name="cateye-server"
         )
         self._thread.start()
 
@@ -530,7 +532,8 @@ def main() -> None:
     tray = None
 
     if browser_mode:
-        _headless = os.environ.get("CATEYE_SMOKE_TEST") or os.environ.get("CATEYE_PORTABLE_TEST") or os.environ.get("CATEYE_INSTALLER_TEST")
+        _cfg = get_config()
+        _headless = _cfg.smoke_test or _cfg.portable_test or _cfg.installer_test
         if not _headless:
             _open_browser(port)
         if not no_tray:

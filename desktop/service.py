@@ -54,7 +54,7 @@ SERVICE_DESCRIPTION = "Automated security investigation platform"
 
 if _HAS_PYWIN32:
 
-    class CATEYEService(_pywin32["serviceutil"].ServiceFramework):
+    class CATEYEService(_pywin32["serviceutil"].ServiceFramework):  # type: ignore[misc]
         _svc_name_ = SERVICE_NAME
         _svc_display_name_ = SERVICE_DISPLAY_NAME
         _svc_description_ = SERVICE_DESCRIPTION
@@ -133,7 +133,7 @@ if _HAS_PYWIN32:
             _lifecycle("[SERVICE]", "Service shutdown complete")
 else:
 
-    class CATEYEService:
+    class CATEYEService:  # type: ignore[no-redef]
         _svc_name_ = SERVICE_NAME
         _svc_display_name_ = SERVICE_DISPLAY_NAME
         _svc_description_ = SERVICE_DESCRIPTION

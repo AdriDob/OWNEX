@@ -175,7 +175,7 @@ class ReconRunner:
             httpx_path = await self._safe_run_tool(
                 "httpx",
                 self.httpx.run_httpx(
-                    httpx_input,
+                    Path(httpx_input),
                     "httpx.json",
                 ),
                 timeout=180,
@@ -216,7 +216,7 @@ class ReconRunner:
         normalized_path = self.endpoints_dir / "normalized_endpoints.json"
 
         parser_output = self.parser.parse_files(
-            [p for p in source_files if p],
+            [Path(p) for p in source_files if p],
             normalized_path,
         )
 

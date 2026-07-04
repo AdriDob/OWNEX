@@ -327,7 +327,7 @@ def reorder_attack_queue(
     0.3 = balanced (default)
     0.5+ = ROI-dominant
     """
-    def _composite(h: Hypothesis) -> float:
+    def _composite(h: Hypothesis) -> tuple[float, float]:
         # priority_score already includes ROI via apply_roi_to_priority in score_hypothesis
         # But for queue reordering we also consider roi_score as tiebreaker
         return (h.priority_score, h.roi_score)

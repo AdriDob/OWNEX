@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
@@ -15,7 +15,6 @@ from cores.knowledge.abstracts import (
     KnowledgePipelineStage,
     KnowledgeStore,
 )
-from cores.knowledge.models import CanonicalKnowledgeArtifact, RawKnowledgeDocument
 from cores.knowledge.trust import ConfidenceScorer
 
 
@@ -35,14 +34,18 @@ class KnowledgeIngestPipeline(KnowledgePipeline):
     def __init__(self, config: KnowledgePipelineConfig) -> None:
         self.config = config
 
-    def run(self, payloads: list[dict[str, Any]]) -> list[str]:
+    def run(self, payloads: list[dict[str, Any]]) -> list[str]:  # type: ignore[override]
         report = KnowledgePipelineReport()
         artifact_ids: list[str] = []
+
+        if report.stages is None:
+            report.stages = []
 
         for idx, payload in enumerate(payloads, start=1):
             stage = KnowledgePipelineStage(name=f"artifact_{idx}")
             stage.timestamp = datetime.utcnow().isoformat()
-            report.stages.append(stage)
+            if report.stages is not None:
+                report.stages.append(stage)
             try:
                 raw_doc = self.config.parser.parse(payload)
                 normalized = self.config.normalizer.normalize(raw_doc)
@@ -67,7 +70,8 @@ class KnowledgeIngestPipeline(KnowledgePipeline):
             except Exception as exc:
                 stage.status = "failed"
                 stage.details = {"error": str(exc)}
-                report.errors.append(str(exc))
+                if report.errors is not None:
+                    report.errors.append(str(exc))
                 continue
 
         report.artifact_ids = artifact_ids

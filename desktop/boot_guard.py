@@ -80,7 +80,7 @@ def _has_frontend_dist() -> bool:
     """Check if frontend dist exists in any expected location."""
     if _is_frozen():
         candidates = [
-            Path(sys._MEIPASS) / "frontend_dist",
+            Path(sys._MEIPASS) / "frontend_dist",  # type: ignore[attr-defined]
             Path(sys.executable).parent / "frontend_dist",
         ]
     else:

@@ -8,7 +8,6 @@ NO active scan endpoints are exposed here.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -56,7 +55,7 @@ async def spider_scan(req: ZapScanRequest):
             "scan_id": result["scan_id"],
         }
     except ZapConnectionError as e:
-        raise HTTPException(status_code=503, detail=str(e))
+        raise HTTPException(status_code=503, detail=str(e)) from e
     finally:
         await runner.close()
 
@@ -69,7 +68,7 @@ async def passive_scan(req: ZapTargetRequest):
     cookie flags, information disclosure, weak TLS, etc.
     All detected WITHOUT sending attack payloads.
     """
-    from cores.recon.zap_runner import ZapConnectionError, ZapRunner, INSTALL_HINT
+    from cores.recon.zap_runner import INSTALL_HINT, ZapConnectionError, ZapRunner
     runner = ZapRunner()
     try:
         health = await runner.health_check()
@@ -92,7 +91,7 @@ async def passive_scan(req: ZapTargetRequest):
             "alert_count": len(alerts),
         }
     except ZapConnectionError as e:
-        raise HTTPException(status_code=503, detail=str(e))
+        raise HTTPException(status_code=503, detail=str(e)) from e
     finally:
         await runner.close()
 
@@ -113,7 +112,7 @@ async def get_alerts(req: ZapTargetRequest, risk_level: str | None = None):
             "alert_count": len(alerts),
         }
     except ZapConnectionError as e:
-        raise HTTPException(status_code=503, detail=str(e))
+        raise HTTPException(status_code=503, detail=str(e)) from e
     finally:
         await runner.close()
 
@@ -130,7 +129,7 @@ async def get_technologies(req: ZapTargetRequest):
             "technologies": technologies,
         }
     except ZapConnectionError as e:
-        raise HTTPException(status_code=503, detail=str(e))
+        raise HTTPException(status_code=503, detail=str(e)) from e
     finally:
         await runner.close()
 
@@ -145,8 +144,8 @@ async def generate_zap_hypotheses(target_id: int, req: ZapTargetRequest):
       - estimated difficulty / time
       - real-world impact explanation
     """
-    from cores.recon.zap_runner import ZapConnectionError, ZapRunner
     from cores.engine.hypothesis.zap_generator import generate_from_zap_alerts
+    from cores.recon.zap_runner import ZapConnectionError, ZapRunner
 
     runner = ZapRunner()
     try:
@@ -170,7 +169,6 @@ async def generate_zap_hypotheses(target_id: int, req: ZapTargetRequest):
             zap_alerts=alerts,
         )
 
-        from cores.engine.hypothesis.models import Hypothesis
         result = []
         for h in hypotheses:
             result.append({
@@ -205,6 +203,6 @@ async def generate_zap_hypotheses(target_id: int, req: ZapTargetRequest):
         }
 
     except ZapConnectionError as e:
-        raise HTTPException(status_code=503, detail=str(e))
+        raise HTTPException(status_code=503, detail=str(e)) from e
     finally:
         await runner.close()

@@ -44,7 +44,7 @@ class AuthManager:
         result = self._store.create_session(device_id, meta=device_info)
         self._store.register_device(device_id, device_info or {})
         result["user_id"] = "local"
-        result["existing"] = False
+        result["existing"] = False  # type: ignore[assignment]
         return result
 
     def validate(self, token: str) -> tuple[bool, dict[str, Any] | None]:

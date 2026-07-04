@@ -36,12 +36,12 @@ def draw_sidebar(draw):
         logo_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 22)
         item_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
         small_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
-    except:
+    except Exception:
         logo_font = ImageFont.load_default()
         item_font = ImageFont.load_default()
         small_font = ImageFont.load_default()
 
-    draw.text((30, 28), "RASTRO", fill=ACCENT_LIGHT, font=logo_font)
+    draw.text((30, 28), "CATEYE", fill=ACCENT_LIGHT, font=logo_font)
     draw.text((30, 54), "Bug Bounty Intelligence", fill=TEXT_MUTED, font=small_font)
 
     items = [
@@ -76,7 +76,7 @@ def draw_topbar(draw):
     try:
         font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
         title_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 18)
-    except:
+    except Exception:
         font = ImageFont.load_default()
         title_font = ImageFont.load_default()
 
@@ -96,7 +96,7 @@ def draw_stat_card(draw, x, y, w, h, label, value, color=ACCENT_LIGHT, sub="", t
         val_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 28)
         lab_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
         sub_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
-    except:
+    except Exception:
         val_font = ImageFont.load_default()
         lab_font = ImageFont.load_default()
         sub_font = ImageFont.load_default()
@@ -115,7 +115,7 @@ def draw_chart(draw, x, y, w, h, title=""):
     try:
         t_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 14)
         label_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 10)
-    except:
+    except Exception:
         t_font = ImageFont.load_default()
         label_font = ImageFont.load_default()
 
@@ -169,7 +169,7 @@ def draw_table(draw, x, y, w, h, title=""):
         t_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 14)
         header_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
         row_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
-    except:
+    except Exception:
         t_font = ImageFont.load_default()
         header_font = ImageFont.load_default()
         row_font = ImageFont.load_default()
@@ -214,7 +214,7 @@ def draw_pipeline_graph(draw, x, y, w, h, title=""):
     try:
         t_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 14)
         node_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 10)
-    except:
+    except Exception:
         t_font = ImageFont.load_default()
         node_font = ImageFont.load_default()
 
@@ -265,7 +265,7 @@ def draw_health_dots(draw, x, y, w, h, title=""):
         t_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 14)
         label_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
         val_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
-    except:
+    except Exception:
         t_font = ImageFont.load_default()
         label_font = ImageFont.load_default()
         val_font = ImageFont.load_default()
@@ -302,7 +302,7 @@ def generate_screenshots():
 
     try:
         title_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 18)
-    except:
+    except Exception:
         title_font = ImageFont.load_default()
 
     # 1. Dashboard Main
@@ -336,14 +336,6 @@ def generate_screenshots():
     draw_topbar_with_title(draw2, "Pipeline Monitor")
     draw_pipeline_graph(draw2, 240, 80, 1000, 140, "Active Pipeline")
 
-    pipeline_details = [
-        ("Target", "Status", "Progress", "ETA"),
-        ("api.example.com", "VALIDATION", "78%", "2 min"),
-        ("app.test.org", "SCORING", "45%", "5 min"),
-        ("dev.internal.net", "DISCOVERY", "22%", "12 min"),
-        ("admin.dashboard.io", "REPORT", "92%", "1 min"),
-    ]
-
     draw_table(draw2, 240, 240, 1000, 200, "Pipeline Queue")
     draw_chart(draw2, 240, 460, 480, 280, "Pipeline Duration (min)")
     draw_chart(draw2, 740, 460, 500, 280, "Success Rate by Stage")
@@ -360,15 +352,14 @@ def generate_screenshots():
     draw_card(draw3, 240, 72, 1000, 60)
     try:
         rf = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
-    except:
+    except Exception:
         rf = ImageFont.load_default()
 
     draw3.text((260, 86), "SQL Injection in login endpoint", fill=TEXT_PRIMARY, font=rf)
 
-    satus_colors = {"Critical": RED, "High": (249, 115, 22), "Medium": YELLOW, "Low": GREEN}
     try:
         sf = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 12)
-    except:
+    except Exception:
         sf = ImageFont.load_default()
     draw3.rounded_rectangle((1080, 78, 1200, 98), radius=4, fill=RED)
     draw3.text((1095, 82), "CRITICAL", fill=(255, 255, 255), font=sf)
@@ -385,7 +376,7 @@ def generate_screenshots():
     try:
         df = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 12)
         dv = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
-    except:
+    except Exception:
         df = ImageFont.load_default()
         dv = ImageFont.load_default()
 
@@ -398,7 +389,7 @@ def generate_screenshots():
     draw_card(draw3, 240, 340, 1000, 160)
     try:
         pf = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
-    except:
+    except Exception:
         pf = ImageFont.load_default()
 
     proof_lines = [
@@ -443,7 +434,7 @@ def generate_screenshots():
         pf_bold = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 14)
         pf_reg = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
         pf_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 10)
-    except:
+    except Exception:
         pf_bold = ImageFont.load_default()
         pf_reg = ImageFont.load_default()
         pf_small = ImageFont.load_default()
@@ -493,7 +484,7 @@ def generate_screenshots():
         try:
             lf = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
             vf = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 18)
-        except:
+        except Exception:
             lf = ImageFont.load_default()
             vf = ImageFont.load_default()
         draw5.text((mx + 14, my + 10), label, fill=TEXT_SECONDARY, font=lf)
@@ -513,7 +504,7 @@ def generate_screenshots():
 
     try:
         wf = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 13)
-    except:
+    except Exception:
         wf = ImageFont.load_default()
 
     for i, item in enumerate(watchdog_items):
@@ -530,7 +521,7 @@ def draw_topbar_with_title(draw, title):
     try:
         font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
         title_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 18)
-    except:
+    except Exception:
         font = ImageFont.load_default()
         title_font = ImageFont.load_default()
 

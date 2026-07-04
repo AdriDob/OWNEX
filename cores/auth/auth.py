@@ -23,7 +23,7 @@ def _get_secret() -> str:
     global _SECRET_KEY
     if _SECRET_KEY is None:
         _SECRET_KEY = os.environ.get(
-            "RASTRO_AUTH_SECRET",
+            "CATEYE_AUTH_SECRET",
             hashlib.sha256(os.urandom(64)).hexdigest(),
         )
     return _SECRET_KEY

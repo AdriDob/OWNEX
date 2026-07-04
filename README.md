@@ -12,7 +12,7 @@
    <p>
       <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"/></a>
      <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.10%2B-purple.svg" alt="Python 3.10+"/></a>
-      <a href="https://github.com/AdriDob/Rastro/releases"><img src="https://img.shields.io/badge/version-Alpha_1.0--CATEYE-orange.svg" alt="Version Alpha 1.0 - CATEYE"/></a>
+      <a href="https://github.com/AdriDob/Rastro/releases"><img src="https://img.shields.io/badge/version-1.7.0--RC4-blue.svg" alt="Version 1.7.0 RC4"/></a>
      <a href="https://vuejs.org/"><img src="https://img.shields.io/badge/vue-3.5-4FC08D.svg" alt="Vue 3.5"/></a>
      <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/fastapi-0.95%2B-009688.svg" alt="FastAPI"/></a>
      <a href="https://docs.astral.sh/ruff/"><img src="https://img.shields.io/badge/code%20style-ruff-ff69b4.svg" alt="Ruff"/></a>
@@ -22,7 +22,7 @@
    <br/>
    <br/>
    <p>
-      **CATEYE Alpha Release 1.0** — un sistema de inteligencia artificial autónomo para bug bounty hunters que automatiza todo el ciclo de vida de la cacería de vulnerabilidades — desde el descubrimiento de programas y reconocimiento, hasta la generación de hipótesis, validación y redacción de informes profesionales.
+      **CATEYE v1.7.0 RC4** — un sistema de inteligencia artificial autónomo para bug bounty hunters que automatiza todo el ciclo de vida de la cacería de vulnerabilidades — desde el descubrimiento de programas y reconocimiento, hasta la generación de hipótesis, validación y redacción de informes profesionales.
      <br/>
      Cada decisión se mide en <strong>USD/hora</strong>, probabilidad de éxito y ROI esperado.
    </p>
@@ -34,7 +34,7 @@
    <br/>
 
    <p align="center">
-     <img alt="CATEYE Dashboard Preview" src="docs/screenshots/dashboard-main.png" width="90%">
+     <img alt="CATEYE Dashboard Preview" src="docs/screenshots/dashboard-main.svg" width="90%">
      <br/>
      <em>Panel principal — inteligencia económica, radar de oportunidades y decisión autónoma</em>
    </p>

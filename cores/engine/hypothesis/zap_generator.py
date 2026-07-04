@@ -278,7 +278,7 @@ def _build_verification_steps(
 
 
 def _build_suggested_actions(vt: VulnerabilityType, solution: str, url: str) -> list[str]:
-    actions = [f"Verificar manualmente esta hipótesis — sigue los pasos de 'how_to_verify'"]
+    actions = ["Verificar manualmente esta hipótesis — sigue los pasos de 'how_to_verify'"]
     if solution:
         actions.append(f"Solución sugerida por ZAP: {solution}")
     actions.append(f"Si confirmas, documenta con screenshots de las DevTools para {url}")

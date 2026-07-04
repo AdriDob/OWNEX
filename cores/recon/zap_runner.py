@@ -17,7 +17,7 @@ from typing import Any
 try:
     import aiohttp
 except ImportError:
-    aiohttp = None  # type: ignore[assignment]
+    aiohttp = None
 
 LOG = logging.getLogger("catseye.recon.zap")
 
@@ -104,9 +104,9 @@ class ZapRunner:
                     raise ZapConnectionError(f"ZAP API error {resp.status}: {await resp.text()}")
                 return await resp.json()
         except asyncio.TimeoutError:
-            raise ZapConnectionError(f"ZAP API timeout: {url}")
+            raise ZapConnectionError(f"ZAP API timeout: {url}") from None
         except aiohttp.ClientConnectorError as e:
-            raise ZapConnectionError(f"Cannot connect to ZAP daemon at {self.api_url}: {e}")
+            raise ZapConnectionError(f"Cannot connect to ZAP daemon at {self.api_url}: {e}") from e
 
     async def _post(self, endpoint: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         session = await self._ensure_session()
@@ -117,9 +117,85 @@ class ZapRunner:
                     raise ZapConnectionError(f"ZAP API error {resp.status}: {await resp.text()}")
                 return await resp.json()
         except asyncio.TimeoutError:
-            raise ZapConnectionError(f"ZAP API timeout: {url}")
+            raise ZapConnectionError(f"ZAP API timeout: {url}") from None
         except aiohttp.ClientConnectorError as e:
-            raise ZapConnectionError(f"Cannot connect to ZAP daemon at {self.api_url}: {e}")
+            raise ZapConnectionError(f"Cannot connect to ZAP daemon at {self.api_url}: {e}") from e
+
+    # ── Active Scan (ascan) ──────────────────────────────────────────
+
+    async def active_scan(
+        self,
+        target_url: str,
+        max_duration: int = 30,
+        policy: str = "Default",
+    ) -> dict:
+        """Run ZAP active scan against a target.
+
+        Sends actual attack payloads to discover vulnerabilities:
+          - SQLi, XSS, SSRF, Path Traversal, Command Injection
+          - Authentication bypass, CRLF injection
+          - Remote file inclusion, LDAP injection, etc.
+
+        WARNING: This sends attack traffic. Only use on authorized targets.
+
+        Args:
+            target_url: The URL to actively scan
+            max_duration: Maximum scan duration in minutes
+            policy: Scan policy name ("Default", "XSS", "SQL Injection", etc.)
+        """
+        LOG.warning("ZAP active scan starting: %s (policy=%s, max=%dmin)", target_url, policy, max_duration)
+
+        scan = await self._post("ascan/action/scan", {
+            "url": target_url,
+            "recurse": "true",
+            "inScopeOnly": "false",
+            "scanPolicyName": policy,
+            "method": "GET",
+            "postData": "true",
+        })
+        scan_id = scan.get("scan")
+        if not scan_id:
+            raise ZapConnectionError("ZAP active scan did not return a scan ID")
+
+        LOG.info("ZAP active scan ID: %s", scan_id)
+
+        timeout_minutes = max_duration
+        waited = 0
+        while waited < timeout_minutes * 60:
+            status = await self._get("ascan/view/status", {"scanId": str(scan_id)})
+            progress = int(status.get("status", 0))
+            LOG.debug("ZAP active scan progress: %d%%", progress)
+            if progress >= 100:
+                break
+            await asyncio.sleep(5)
+            waited += 5
+
+        alerts = await self.get_alerts(target_url=target_url)
+        LOG.info("ZAP active scan finished: %d alerts found", len(alerts))
+
+        return {
+            "scan_id": scan_id,
+            "url": target_url,
+            "policy": policy,
+            "alerts": alerts,
+            "alert_count": len(alerts),
+        }
+
+    async def active_scan_status(self, scan_id: str) -> dict:
+        """Check status of an active scan."""
+        status = await self._get("ascan/view/status", {"scanId": scan_id})
+        alerts = await self._get("ascan/view/alerts", {"scanId": scan_id})
+        return {
+            "scan_id": scan_id,
+            "progress": int(status.get("status", 0)),
+            "alert_count": len(alerts.get("alerts", [])),
+        }
+
+    async def list_scan_policies(self) -> list[str]:
+        """List available active scan policies."""
+        policies = await self._get("ascan/view/scanPolicyNames")
+        raw = policies.get("scanPolicyNames", [])
+        return raw if isinstance(raw, list) else str(raw).split(",")
 
     # ── Spider (crawling, NOT active scanning) ─────────────────────────
 

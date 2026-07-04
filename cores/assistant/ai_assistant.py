@@ -41,7 +41,7 @@ class InvestigationNarrator:
                 if val.startswith("{"):
                     parsed = json.loads(val)
                     return float(parsed.get("score", parsed.get("confidence", 0)))
-            return float(val)
+            return float(val)  # type: ignore[arg-type]
         except (ValueError, TypeError, json.JSONDecodeError):
             return 0.0
 
@@ -173,7 +173,7 @@ class InvestigationNarrator:
                 ep = ep_map.get(verdict.endpoint_id) if verdict.endpoint_id else None
                 ep_data = {
                     "path": ep.path if ep else "/unknown",
-                    "method": ep.method or "GET",
+                    "method": ep.method if ep else "GET",
                     "risk_score": unified_score(ep.path, ep.method or "GET", ep.parsed_params).get("risk_score", 50)
                     if ep else 50,
                 }
@@ -659,7 +659,7 @@ class InvestigationNarrator:
                     for s in scored:
                         for surf in s.get("attack_surface", []):
                             surfaces[surf] = surfaces.get(surf, 0) + 1
-                    top_surface = max(surfaces, key=surfaces.get) if surfaces else "none"
+                    top_surface = max(surfaces, key=lambda k: surfaces.get(k, 0)) if surfaces else "none"
                 else:
                     top_surface = "none"
 
@@ -812,7 +812,7 @@ class InvestigationNarrator:
             f"endpoints and {confirmed_count} confirmed findings."
         ]
         if surfaces:
-            top = max(surfaces, key=surfaces.get)
+            top = max(surfaces, key=lambda k: surfaces.get(k, 0))
             parts.append(f"Dominant attack surface: {top} ({surfaces[top]} endpoints).")
         if confirmed_count > 0:
             parts.append(f"Validated exploitation possible — {confirmed_count} verdicts confirmed.")

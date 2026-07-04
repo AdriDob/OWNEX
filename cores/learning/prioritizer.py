@@ -150,7 +150,7 @@ class AdaptivePrioritizer:
     def daily_summary_recommendations(self, user_id: str) -> list[dict[str, Any]]:
         """Generate personalised daily summary recommendations."""
         profile = self._profile.get(user_id)
-        recommendations = []
+        recommendations: list[Any] = []
         if not profile:
             return recommendations
 

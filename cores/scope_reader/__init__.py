@@ -8,10 +8,8 @@ import logging
 import re
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
 from html.parser import HTMLParser
 from typing import Any
-from urllib.parse import urlparse
 
 logger = logging.getLogger("catseye.scope_reader")
 
@@ -84,7 +82,7 @@ def extract_text_from_pdf(content: bytes) -> str:
     return "\n".join(printable[:100]) if printable else "(binary PDF, text extraction limited)"
 
 
-def download_url(url: str, timeout: int = 15) -> tuple[str | None, str | None]:
+def download_url(url: str, timeout: int = 15) -> tuple[bytes | None, str | None]:
     """Download content from a URL. Returns (content, content_type)."""
     try:
         req = urllib.request.Request(

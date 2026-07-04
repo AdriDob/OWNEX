@@ -1,10 +1,9 @@
 """CATEYE Auto-Start with OS — OS-level autostart integration.
 
 Target platforms:
-  - Windows (primary): Startup script in %APPDATA%\\...\\Startup\\
-  - macOS (optional): LaunchAgent plist in ~/Library/LaunchAgents/
-
-Linux support removed per product strategy (see Phase 1 migration).
+  - Linux: XDG autostart .desktop file in ~/.config/autostart/
+  - macOS: LaunchAgent plist in ~/Library/LaunchAgents/
+  - Windows: Startup script in %APPDATA%\\...\\Startup\\
 """
 
 from __future__ import annotations
@@ -50,6 +49,16 @@ STARTUP_SCRIPT = f"""@echo off
 start "" "{sys.executable}" -m desktop.main_desktop --no-tray
 """
 
+XDG_DESKTOP = f"""[Desktop Entry]
+Type=Application
+Name=CATEYE
+Comment=Autonomous Bug Bounty Intelligence Platform
+Exec={sys.executable} -m desktop.main_desktop --no-tray
+Terminal=false
+Categories=Utility;Security;
+X-GNOME-Autostart-enabled=true
+"""
+
 
 def _windows_startup_path() -> str | None:
     appdata = os.environ.get("APPDATA")
@@ -69,8 +78,20 @@ def _launchd_path() -> str | None:
     return os.path.join(home, "Library", "LaunchAgents", "com.cateye.desktop.plist")
 
 
+def _xdg_autostart_path() -> str | None:
+    xdg = os.environ.get(
+        "XDG_CONFIG_HOME",
+        os.path.join(os.environ.get("HOME", ""), ".config"),
+    )
+    if not xdg:
+        return None
+    return os.path.join(xdg, "autostart", "cateye.desktop")
+
+
 def _get_autostart_path() -> str | None:
     system = platform.system()
+    if system == "Linux":
+        return _xdg_autostart_path()
     if system == "Darwin":
         return _launchd_path()
     return _windows_startup_path()
@@ -109,6 +130,35 @@ def _enable_macos() -> bool:
         return False
 
 
+def _enable_linux() -> bool:
+    path = _xdg_autostart_path()
+    if not path:
+        return False
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    try:
+        with open(path, "w") as f:
+            f.write(XDG_DESKTOP)
+        os.chmod(path, 0o755)
+        logger.info("XDG autostart installed: %s", path)
+        return True
+    except Exception as exc:
+        logger.warning("Failed to install XDG autostart: %s", exc)
+        return False
+
+
+def _disable_linux() -> bool:
+    path = _xdg_autostart_path()
+    if path and os.path.exists(path):
+        try:
+            os.remove(path)
+            logger.info("XDG autostart removed: %s", path)
+            return True
+        except Exception as exc:
+            logger.warning("Failed to remove XDG autostart: %s", exc)
+            return False
+    return True
+
+
 def enable_autostart() -> bool:
     """Install OS-level autostart for the current platform.
 
@@ -117,9 +167,11 @@ def enable_autostart() -> bool:
     system = platform.system()
     logger.info("Enabling autostart for %s", system)
 
+    if system == "Linux":
+        return _enable_linux()
     if system == "Windows":
         return _enable_windows()
-    elif system == "Darwin":
+    if system == "Darwin":
         return _enable_macos()
 
     logger.warning("Unsupported OS for autostart: %s", system)
@@ -163,9 +215,11 @@ def disable_autostart() -> bool:
     system = platform.system()
     logger.info("Disabling autostart for %s", system)
 
+    if system == "Linux":
+        return _disable_linux()
     if system == "Windows":
         return _disable_windows()
-    elif system == "Darwin":
+    if system == "Darwin":
         return _disable_macos()
 
     logger.warning("Unsupported OS for autostart: %s", system)

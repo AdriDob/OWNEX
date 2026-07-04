@@ -33,14 +33,14 @@
 - [x] Banner R A S T R O → C A T E Y E, env vars RASTRO_* → CATEYE_*
 - [x] Unificación de paths (tray/updater → cores/utils/paths.py)
 
-## v1.4 — Infrastructure & Refinamiento (Current — ~93%)
+## v1.4 — Infrastructure & Refinamiento (Complete)
 - [x] Alembic configurado con migration inicial (38 tablas)
-- [x] Vitest + Vue Test Utils + jsdom instalados (30 tests)
+- [x] Vitest + Vue Test Utils + jsdom instalados (165 tests)
 - [x] OpenAPI con security scheme Bearer JWT + metadata completa
 - [x] `RastroConfig` SQLAlchemy → `CATEYEConfig` (alias retrocompatible)
 - [x] `cores/config.py` eliminado (cache_size → EnvConfig)
 - [x] Todos los env vars de EnvConfig en `CATEYE_*`
-- [ ] Más tests frontend (stores, pages, composables) — 30 tests actuales
+- [x] Tests frontend (stores, pages, composables) — 165 tests, 92% store coverage
 - [ ] Normalizar formato de respuesta API (unificar HTTPException/APIEnvelope/bare dicts)
 - [ ] Completar CRUD faltantes (DELETE targets, endpoints, findings, evidence, verdicts)
 - [ ] Rebuild Android compiled assets

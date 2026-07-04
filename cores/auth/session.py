@@ -12,13 +12,13 @@ import os
 import time
 from typing import Any
 
-logger = logging.getLogger("catseye.auth.session")
-
 from .auth import (
     create_refresh_token,
     create_session_token,
     verify_token,
 )
+
+logger = logging.getLogger("catseye.auth.session")
 
 SESSION_DIR = os.path.join(
     os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")),

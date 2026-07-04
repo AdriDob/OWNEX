@@ -130,7 +130,7 @@ class AutonomousModeEngine:
 
         # 3. Failure prediction
         try:
-            from cores.predictor import get_failure_predictor
+            from cores.predictor import get_failure_predictor  # type: ignore[attr-defined]
             predictor = get_failure_predictor()
             predictions = predictor.predict()
             for pred in predictions[:3]:

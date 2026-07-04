@@ -251,7 +251,7 @@ def create_or_update_release(tag: str, artifact_dir: Path, dry_run: bool, force:
         notes_arg = ["--notes", f"CATEYE v{version} — Stable Release (automated)"]
 
     if dry_run:
-        log("SKIP", f"[dry-run] Would create release:")
+        log("SKIP", "[dry-run] Would create release:")
         log("SKIP", f"  gh release create {tag} --title 'CATEYE v{version} — Stable Release'")
         return "https://github.com/AdriDob/CATEYEhunteralpha/releases/tag/" + tag
 
@@ -336,7 +336,7 @@ def verify_release(tag: str, artifact_dir: Path, dry_run: bool) -> bool:
 
     exe_asset = next((a for a in rel.get("assets", []) if a["name"] == "CATEYEInstaller.exe"), None)
     if exe_asset:
-        log("INFO", f"Downloading CATEYEInstaller.exe from GitHub to verify SHA256...")
+        log("INFO", "Downloading CATEYEInstaller.exe from GitHub to verify SHA256...")
         tmp = Path(tempfile.mkstemp(suffix=".exe")[1])
         try:
             r = gh(["release", "download", tag, "--pattern", "CATEYEInstaller.exe",
@@ -347,7 +347,7 @@ def verify_release(tag: str, artifact_dir: Path, dry_run: bool) -> bool:
                 if local_hash == remote_hash:
                     log("OK", f"SHA256 match: {local_hash[:16]}... (upload integrity verified)")
                 else:
-                    fail(f"SHA256 mismatch after upload!")
+                    fail("SHA256 mismatch after upload!")
                     log("FAIL", f"  Local:  {local_hash}")
                     log("FAIL", f"  Remote: {remote_hash}")
                     return False

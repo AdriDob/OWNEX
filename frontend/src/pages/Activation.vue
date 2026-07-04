@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import { checkLicense, activateLicense } from '@/lib/api'
 import Card from '@/components/ui/Card.vue'
 import Button from '@/components/ui/Button.vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
 import { KeyRound, CheckCircle2, AlertTriangle, Loader2 } from '@lucide/vue'
 
 const router = useRouter()
@@ -47,6 +46,9 @@ async function handleActivate() {
 <template>
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="w-full max-w-md animate-in">
+      <div class="mb-8 text-center">
+        <img src="/logo.svg" alt="CATEYE" class="mx-auto h-24 w-24" />
+      </div>
       <Card class="p-8 text-center">
         <!-- Checking state -->
         <template v-if="state === 'checking'">

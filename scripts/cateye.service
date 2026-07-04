@@ -1,0 +1,46 @@
+[Unit]
+Description=CATEYE — Autonomous Bug Bounty Intelligence Platform
+Documentation=https://github.com/anomalyco/CATEYE
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=%i
+Group=%i
+
+# Working directory — where CATEYE is installed
+WorkingDirectory=/opt/CATEYE
+
+# Main entry point
+ExecStart=/opt/CATEYE/CATEYE --service
+ExecReload=/bin/kill -HUP $MAINPID
+
+# Restart policy — always recover
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+# Environment from config file
+EnvironmentFile=-/etc/cateye/cateye.env
+EnvironmentFile=-~/.config/CATEYE/cateye.env
+
+# Security hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=no
+ProtectSystem=full
+ReadWritePaths=/opt/CATEYE/data /opt/CATEYE/logs
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# Standard logging to journald
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cateye
+
+[Install]
+WantedBy=multi-user.target

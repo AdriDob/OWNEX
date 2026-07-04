@@ -52,7 +52,7 @@ def _is_portable() -> bool:
     if not _is_frozen():
         return False
     exe_dir = Path(sys.executable).resolve().parent
-    program_files = Path(os.environ.get("ProgramFiles", "C:\\Program Files"))
+    program_files = Path(os.environ.get("PROGRAMFILES", "C:\\Program Files"))
     return not str(exe_dir).lower().startswith(str(program_files).lower())
 
 
@@ -62,7 +62,7 @@ def _is_portable() -> bool:
 def _discover_root() -> Path:
     """Discover the application root directory dynamically."""
     if _is_frozen():
-        return Path(sys._MEIPASS)
+        return Path(sys._MEIPASS)  # type: ignore[attr-defined]
     # Dev mode: this file is at core/utils/paths.py, root is ../../ (3 levels up)
     return Path(__file__).resolve().parent.parent.parent
 

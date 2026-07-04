@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any
 
@@ -64,7 +65,7 @@ def validate_and_report(request: ValidateHotPathRequest):
     from cores.pipeline.report_service import generate_and_save_report
     from cores.validation.evidence_builder import EvidenceBuilder
     from cores.validation.loop_engine import ValidationLoopEngine
-    from cores.validation.replayer import AuthContext, RequestSpec
+    from cores.validation.replayer import AuthContext
     from cores.validation.verdict_handler import VerdictHandler
     from database import db, models
 
@@ -99,13 +100,6 @@ def validate_and_report(request: ValidateHotPathRequest):
                 logger.warning("LLM mutation planning failed, using defaults: %s", e)
 
         validation_engine = ValidationLoopEngine()
-        request_spec = RequestSpec(
-            url=request.url,
-            method=request.method,
-            headers=request.headers or {},
-            params=request.params or {},
-            body=request.body,
-        )
 
         baseline = _resolve_auth(
             request.identity_baseline_id,
@@ -313,7 +307,7 @@ def batch_validate(request: BatchValidateRequest):
             )
 
             verdict_handler = VerdictHandler(session=session_db)
-            saved_verdict = verdict_handler.new(verdict)
+            saved_verdict = verdict_handler.process_verdict(verdict, endpoint_id=ep.id, target_id=0, evidence_records=[])
 
             results.append({
                 "endpoint_id": ep.id,

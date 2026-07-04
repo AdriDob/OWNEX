@@ -1019,7 +1019,7 @@ class DifferentialIntelligenceEngine:
         by_cat: dict[str, int] = {}
         for f in findings + anomalies:
             by_cat[f.category] = by_cat.get(f.category, 0) + 1
-        top_cats = sorted(by_cat, key=by_cat.get, reverse=True)[:3]
+        top_cats = sorted(by_cat, key=by_cat.__getitem__, reverse=True)[:3]
 
         high_risk = sum(
             1 for f in findings + anomalies

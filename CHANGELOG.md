@@ -1,5 +1,57 @@
 # Changelog
 
+## v1.7.0 (RC4) — 2026-07-04
+
+### 🎯 Release Candidate 4 — Finalización
+- **Config system unified**: `CATEYEConfig` reemplaza `EnvConfig` como fuente canónica única con ~45+ env vars y fallback retrocompatible `RASTRO_*`
+- **Acceptance Predictor**: nuevo módulo `cores/predictor/` con `AcceptancePredictor`, `PredictionResult`, `ScoreWeights`, `compute_acceptance_score` (9 factores de evaluación)
+- **Code audit completo**: autoflake eliminó 93 F401, 3 syntax errors críticos corregidos en `universal_api.py`
+- **165 tests frontend + 330 backend = 495 tests pasando** — 92.53% cobertura de funciones en stores
+
+### 🔄 Migración RASTRO_* → CATEYE_*
+- 8 archivos migrados de `os.environ.get()` a `get_config()`: `api/main.py`, `api/scheduler.py`, `cores/notifications/email.py`, `fcm.py`, `whatsapp.py`, `gmail.py`, `cores/intelligence/priority_engine.py`, `desktop/main_desktop.py`
+- `RASTRO_AUTH_SECRET` → `CATEYE_AUTH_SECRET`, `RASTRO_LICENSE_SECRET` → `CATEYE_LICENSE_SECRET`
+- Variables directas `os.environ.get("RASTRO_*")` en auth/license migradas a `CATEYE_*`
+
+### 🧪 Testing
+- Mock hoisting con `vi.hoisted()` en 8 test files
+- Toast singleton state leak corregido (module-level `toasts` + `setTimeout` cleanup)
+- PipelineMonitor error text test corregido
+- MissionControl hunt toggle rewrite (verifica store en vez de DOM)
+- ~40 Lucide icon stubs registrados globalmente en test-setup.ts
+
+### 📚 Documentación
+- **PLAN.md**: branding actualizado, tests marcados como completados, % coverage
+- **ROADMAP.md**: v1.4 marcado completo, conteo de tests actualizado
+- **CLINE_SETUP.md**, **orion-rules.md**: referencias Orion → CATEYE
+- **SYSTEM.md**: directorio raíz `Rastro/` → `CATEYE/`
+- **SYSTEM_INVENTORY.md**: referencias a `Orion.spec`/`Rastro.spec` eliminadas (specs ya removidos)
+- **docs/SISTEMA.md**: DB path `.orion/` → `.cateye/`
+
+### 🏷️ Branding
+- Logos SVG: versión actualizada a v1.7.0, tag "RELEASE CANDIDATE"
+- Loggers `catseye.orion.*` → `catseye.cateye.*` en cores/orion/, api/, desktop/
+- Mensajes de log `[Orion]` → `[CATEYE]` en context engine, next action, opportunity analyzer
+- `scripts/install_tools.sh`: banner "ORION" → "CATEYE"
+- `scripts/build_windows.ps1`: "ORION RELEASE ISOLATION" → "CATEYE RELEASE ISOLATION"
+- `scripts/generate_screenshots.py`: texto "RASTRO" → "CATEYE" en screenshots generados
+- `scripts/generate_icon.py`: default `orion.ico` → `cateye.ico`
+- `cores/settings/service.py`: constante `RASTRO_NS` → `CATEYE_NS`
+
+### 🖥️ Desktop & Deployment
+- systemd service (`scripts/cateye.service`) con restart policy, hardening, journald logging
+- launchd plist (`scripts/com.cateye.service.plist`) con KeepAlive, logging
+- `scripts/install_service.sh`: install/uninstall helper unificado Linux + macOS
+- Linux autostart restaurado en `desktop/autostart.py` (XDG .desktop)
+- Thread name `"orion-server"` → `"cateye-server"`
+
+### 🐛 Correcciones
+- `cores/platforms/universal_api.py`: 3 syntax errors (unterminated docstring line 1421, `__init__self` line 707, `x[.protobuf]` line 2274)
+- Re-exports `is_license_valid`/`FfufRunner` restaurados en `__init__.py` de license/recon
+- Notifications test: expectativa corregida (B at index 0 después de `unshift`)
+
+---
+
 ## vAlpha 1.0 (CATEYE) — 2026-07-02
 
 ### 🚀 Release

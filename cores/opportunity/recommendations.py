@@ -8,9 +8,15 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 
-from cores.opportunity.models import Opportunity, OpportunityRecommendations
+from cores.opportunity.models import Opportunity, OpportunityRecommendations, OpportunityScore
 
 logger = logging.getLogger("catseye.opportunity.recommendations")
+
+
+def _score(o: Opportunity) -> OpportunityScore:
+    s = o.score
+    assert s is not None
+    return s
 
 
 def generate_recommendations(opportunities: list[Opportunity]) -> OpportunityRecommendations:
@@ -31,7 +37,7 @@ def generate_recommendations(opportunities: list[Opportunity]) -> OpportunityRec
     now = datetime.now(timezone.utc).isoformat()
 
     # Sort by overall score descending
-    sorted_by_score = sorted(scored, key=lambda o: o.score.overall, reverse=True)
+    sorted_by_score = sorted(scored, key=lambda o: _score(o).overall, reverse=True)
 
     # Top 10 overall
     top_all = sorted_by_score[:10]
@@ -39,45 +45,45 @@ def generate_recommendations(opportunities: list[Opportunity]) -> OpportunityRec
     # Category filtered
     independent = sorted(
         [o for o in scored if o.category == "independent"],
-        key=lambda o: o.score.overall, reverse=True,
+        key=lambda o: _score(o).overall, reverse=True,
     )[:5]
 
     web3 = sorted(
         [o for o in scored if o.category == "web3"],
-        key=lambda o: o.score.overall, reverse=True,
+        key=lambda o: _score(o).overall, reverse=True,
     )[:5]
 
     # Fast ROI: reward > 0.5 AND tech overlap > 0.3 AND competition > 0.4
     fast_roi_candidates = [
         o for o in scored
-        if o.score.reward_potential > 0.5
-        and o.score.technology_overlap > 0.3
-        and o.score.competition_estimate > 0.4
+        if _score(o).reward_potential > 0.5
+        and _score(o).technology_overlap > 0.3
+        and _score(o).competition_estimate > 0.4
     ]
-    fast_roi = sorted(fast_roi_candidates, key=lambda o: o.score.reward_potential, reverse=True)[:5]
+    fast_roi = sorted(fast_roi_candidates, key=lambda o: _score(o).reward_potential, reverse=True)[:5]
 
     # Long term: scope > 0.4 AND freshness > 0.3 but not in top 10
     long_term_candidates = [
         o for o in scored
-        if o.score.scope_quality > 0.4
-        and o.score.freshness > 0.3
+        if _score(o).scope_quality > 0.4
+        and _score(o).freshness > 0.3
         and o not in top_all
     ]
-    long_term = sorted(long_term_candidates, key=lambda o: o.score.scope_quality, reverse=True)[:5]
+    long_term = sorted(long_term_candidates, key=lambda o: _score(o).scope_quality, reverse=True)[:5]
 
     # Low competition: competition > 0.6 AND overall > 0.3
     low_comp_candidates = [
         o for o in scored
-        if o.score.competition_estimate > 0.6
-        and o.score.overall > 0.3
+        if _score(o).competition_estimate > 0.6
+        and _score(o).overall > 0.3
     ]
-    low_competition = sorted(low_comp_candidates, key=lambda o: o.score.overall, reverse=True)[:5]
+    low_competition = sorted(low_comp_candidates, key=lambda o: _score(o).overall, reverse=True)[:5]
 
     # Summary
     total = len(scored)
     summary_parts = []
     if top_all:
-        summary_parts.append(f"Top opportunity: {top_all[0].name} (score {top_all[0].score.overall:.2f})")
+        summary_parts.append(f"Top opportunity: {top_all[0].name} (score {_score(top_all[0]).overall:.2f})")
     if fast_roi:
         summary_parts.append(f"Fast ROI: {len(fast_roi)} opportunities identified")
     if low_competition:

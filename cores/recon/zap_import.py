@@ -81,29 +81,29 @@ def parse_zap_xml(path: Path) -> list[ZapSite]:
             plugin_id = plugin_el.text if plugin_el is not None else ""
 
             alert = ZapAlert(
-                alert=alert_name,
-                risk=risk,
-                confidence=confidence,
-                url=url,
-                param=param,
-                attack=attack,
-                description=description,
-                solution=solution,
-                reference=reference,
-                cwe_id=cwe_id,
-                wasc_id=wasc_id,
-                plugin_id=plugin_id,
+                alert=alert_name or "",
+                risk=risk or "Unknown",
+                confidence=confidence or "Unknown",
+                url=url or "",
+                param=param or "",
+                attack=attack or "",
+                description=description or "",
+                solution=solution or "",
+                reference=reference or "",
+                cwe_id=cwe_id or "",
+                wasc_id=wasc_id or "",
+                plugin_id=plugin_id or "",
             )
 
             # Extract site name from URL
             from urllib.parse import urlparse
-            parsed = urlparse(url)
+            parsed = urlparse(url or "")
             site_name = f"{parsed.scheme}://{parsed.netloc}"
 
             if site_name not in sites_map:
                 sites_map[site_name] = ZapSite(name=site_name)
             sites_map[site_name].alerts.append(alert)
-            if url not in sites_map[site_name].urls:
+            if url and url not in sites_map[site_name].urls:
                 sites_map[site_name].urls.append(url)
 
         except (AttributeError, ValueError, TypeError) as e:
@@ -141,18 +141,18 @@ def parse_zap_json(path: Path) -> list[ZapSite]:
                 continue
             try:
                 alert = ZapAlert(
-                    alert=alert_item.get("alert", alert_item.get("name", "")),
-                    risk=alert_item.get("risk", alert_item.get("riskdesc", "Unknown")),
-                    confidence=alert_item.get("confidence", "Unknown"),
-                    url=alert_item.get("url", ""),
-                    param=alert_item.get("param", ""),
-                    attack=alert_item.get("attack", ""),
-                    description=alert_item.get("description", ""),
-                    solution=alert_item.get("solution", ""),
-                    reference=alert_item.get("reference", ""),
-                    cwe_id=str(alert_item.get("cweid", "")),
-                    wasc_id=str(alert_item.get("wascid", "")),
-                    plugin_id=str(alert_item.get("pluginid", "")),
+                    alert=alert_item.get("alert", alert_item.get("name", "")) or "",
+                    risk=alert_item.get("risk", alert_item.get("riskdesc", "Unknown")) or "Unknown",
+                    confidence=alert_item.get("confidence", "Unknown") or "Unknown",
+                    url=alert_item.get("url", "") or "",
+                    param=alert_item.get("param", "") or "",
+                    attack=alert_item.get("attack", "") or "",
+                    description=alert_item.get("description", "") or "",
+                    solution=alert_item.get("solution", "") or "",
+                    reference=alert_item.get("reference", "") or "",
+                    cwe_id=str(alert_item.get("cweid", "") or ""),
+                    wasc_id=str(alert_item.get("wascid", "") or ""),
+                    plugin_id=str(alert_item.get("pluginid", "") or ""),
                 )
                 site.alerts.append(alert)
                 if alert.url and alert.url not in site.urls:

@@ -1,0 +1,1123 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for pages/MissionControl.vue</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">pages</a> MissionControl.vue</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">82.31% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>135/164</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">76.92% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>140/182</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">68.29% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>28/41</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">88.57% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>124/140</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line high'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a>
+<a name='L225'></a><a href='#L225'>225</a>
+<a name='L226'></a><a href='#L226'>226</a>
+<a name='L227'></a><a href='#L227'>227</a>
+<a name='L228'></a><a href='#L228'>228</a>
+<a name='L229'></a><a href='#L229'>229</a>
+<a name='L230'></a><a href='#L230'>230</a>
+<a name='L231'></a><a href='#L231'>231</a>
+<a name='L232'></a><a href='#L232'>232</a>
+<a name='L233'></a><a href='#L233'>233</a>
+<a name='L234'></a><a href='#L234'>234</a>
+<a name='L235'></a><a href='#L235'>235</a>
+<a name='L236'></a><a href='#L236'>236</a>
+<a name='L237'></a><a href='#L237'>237</a>
+<a name='L238'></a><a href='#L238'>238</a>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a>
+<a name='L246'></a><a href='#L246'>246</a>
+<a name='L247'></a><a href='#L247'>247</a>
+<a name='L248'></a><a href='#L248'>248</a>
+<a name='L249'></a><a href='#L249'>249</a>
+<a name='L250'></a><a href='#L250'>250</a>
+<a name='L251'></a><a href='#L251'>251</a>
+<a name='L252'></a><a href='#L252'>252</a>
+<a name='L253'></a><a href='#L253'>253</a>
+<a name='L254'></a><a href='#L254'>254</a>
+<a name='L255'></a><a href='#L255'>255</a>
+<a name='L256'></a><a href='#L256'>256</a>
+<a name='L257'></a><a href='#L257'>257</a>
+<a name='L258'></a><a href='#L258'>258</a>
+<a name='L259'></a><a href='#L259'>259</a>
+<a name='L260'></a><a href='#L260'>260</a>
+<a name='L261'></a><a href='#L261'>261</a>
+<a name='L262'></a><a href='#L262'>262</a>
+<a name='L263'></a><a href='#L263'>263</a>
+<a name='L264'></a><a href='#L264'>264</a>
+<a name='L265'></a><a href='#L265'>265</a>
+<a name='L266'></a><a href='#L266'>266</a>
+<a name='L267'></a><a href='#L267'>267</a>
+<a name='L268'></a><a href='#L268'>268</a>
+<a name='L269'></a><a href='#L269'>269</a>
+<a name='L270'></a><a href='#L270'>270</a>
+<a name='L271'></a><a href='#L271'>271</a>
+<a name='L272'></a><a href='#L272'>272</a>
+<a name='L273'></a><a href='#L273'>273</a>
+<a name='L274'></a><a href='#L274'>274</a>
+<a name='L275'></a><a href='#L275'>275</a>
+<a name='L276'></a><a href='#L276'>276</a>
+<a name='L277'></a><a href='#L277'>277</a>
+<a name='L278'></a><a href='#L278'>278</a>
+<a name='L279'></a><a href='#L279'>279</a>
+<a name='L280'></a><a href='#L280'>280</a>
+<a name='L281'></a><a href='#L281'>281</a>
+<a name='L282'></a><a href='#L282'>282</a>
+<a name='L283'></a><a href='#L283'>283</a>
+<a name='L284'></a><a href='#L284'>284</a>
+<a name='L285'></a><a href='#L285'>285</a>
+<a name='L286'></a><a href='#L286'>286</a>
+<a name='L287'></a><a href='#L287'>287</a>
+<a name='L288'></a><a href='#L288'>288</a>
+<a name='L289'></a><a href='#L289'>289</a>
+<a name='L290'></a><a href='#L290'>290</a>
+<a name='L291'></a><a href='#L291'>291</a>
+<a name='L292'></a><a href='#L292'>292</a>
+<a name='L293'></a><a href='#L293'>293</a>
+<a name='L294'></a><a href='#L294'>294</a>
+<a name='L295'></a><a href='#L295'>295</a>
+<a name='L296'></a><a href='#L296'>296</a>
+<a name='L297'></a><a href='#L297'>297</a>
+<a name='L298'></a><a href='#L298'>298</a>
+<a name='L299'></a><a href='#L299'>299</a>
+<a name='L300'></a><a href='#L300'>300</a>
+<a name='L301'></a><a href='#L301'>301</a>
+<a name='L302'></a><a href='#L302'>302</a>
+<a name='L303'></a><a href='#L303'>303</a>
+<a name='L304'></a><a href='#L304'>304</a>
+<a name='L305'></a><a href='#L305'>305</a>
+<a name='L306'></a><a href='#L306'>306</a>
+<a name='L307'></a><a href='#L307'>307</a>
+<a name='L308'></a><a href='#L308'>308</a>
+<a name='L309'></a><a href='#L309'>309</a>
+<a name='L310'></a><a href='#L310'>310</a>
+<a name='L311'></a><a href='#L311'>311</a>
+<a name='L312'></a><a href='#L312'>312</a>
+<a name='L313'></a><a href='#L313'>313</a>
+<a name='L314'></a><a href='#L314'>314</a>
+<a name='L315'></a><a href='#L315'>315</a>
+<a name='L316'></a><a href='#L316'>316</a>
+<a name='L317'></a><a href='#L317'>317</a>
+<a name='L318'></a><a href='#L318'>318</a>
+<a name='L319'></a><a href='#L319'>319</a>
+<a name='L320'></a><a href='#L320'>320</a>
+<a name='L321'></a><a href='#L321'>321</a>
+<a name='L322'></a><a href='#L322'>322</a>
+<a name='L323'></a><a href='#L323'>323</a>
+<a name='L324'></a><a href='#L324'>324</a>
+<a name='L325'></a><a href='#L325'>325</a>
+<a name='L326'></a><a href='#L326'>326</a>
+<a name='L327'></a><a href='#L327'>327</a>
+<a name='L328'></a><a href='#L328'>328</a>
+<a name='L329'></a><a href='#L329'>329</a>
+<a name='L330'></a><a href='#L330'>330</a>
+<a name='L331'></a><a href='#L331'>331</a>
+<a name='L332'></a><a href='#L332'>332</a>
+<a name='L333'></a><a href='#L333'>333</a>
+<a name='L334'></a><a href='#L334'>334</a>
+<a name='L335'></a><a href='#L335'>335</a>
+<a name='L336'></a><a href='#L336'>336</a>
+<a name='L337'></a><a href='#L337'>337</a>
+<a name='L338'></a><a href='#L338'>338</a>
+<a name='L339'></a><a href='#L339'>339</a>
+<a name='L340'></a><a href='#L340'>340</a>
+<a name='L341'></a><a href='#L341'>341</a>
+<a name='L342'></a><a href='#L342'>342</a>
+<a name='L343'></a><a href='#L343'>343</a>
+<a name='L344'></a><a href='#L344'>344</a>
+<a name='L345'></a><a href='#L345'>345</a>
+<a name='L346'></a><a href='#L346'>346</a>
+<a name='L347'></a><a href='#L347'>347</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">&lt;script setup lang="ts"&gt;
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { getOrionContext } from '@/lib/api'
+import type { OrionContext } from '@/types'
+import { useHuntStore } from '@/stores/hunt'
+import { useSettingsStore } from '@/stores/settings'
+import Badge from '@/components/ui/Badge.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import Button from '@/components/ui/Button.vue'
+import Tooltip from '@/components/ui/Tooltip.vue'
+import { Activity, AlertTriangle, ArrowRight, Sparkles, Clock, DollarSign, Target, Zap, Play, Square, Pause, Eye, Crosshair, Bug, ShieldCheck, Scan, Cpu, RefreshCw, Globe } from '@lucide/vue'
+import DoughnutChart from '@/components/charts/DoughnutChart.vue'
+import OnboardingWizard from '@/components/onboarding/OnboardingWizard.vue'
+&nbsp;
+const hunt = useHuntStore()
+const settings = useSettingsStore()
+const ctx = ref&lt;OrionContext | null&gt;(null)
+const loading = ref(true)
+const error = ref&lt;string | null&gt;(null)
+const showOnboarding = ref(false)
+const onboardingAutoShown = ref(false)
+const uptime = ref(0)
+let uptimeInterval: ReturnType&lt;typeof setInterval&gt; | null = null
+&nbsp;
+onMounted(async () =&gt; {
+  try {
+    ctx.value = await getOrionContext()
+    await settings.loadFromBackend()
+  }
+  catch (e: any) { error.value = e?.message || <span class="branch-1 cbranch-no" title="branch not covered" >'Error al cargar' }</span>
+  finally { loading.value = false }
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (!onboardingAutoShown.value &amp;&amp; settings.onboardingNeeded &amp;&amp; (<span class="branch-2 cbranch-no" title="branch not covered" >!ctx.value || <span class="branch-3 cbranch-no" title="branch not covered" >c</span>tx.value.counts.targets === 0)) {</span>
+<span class="cstat-no" title="statement not covered" >    showOnboarding.value = true</span>
+<span class="cstat-no" title="statement not covered" >    onboardingAutoShown.value = true</span>
+  }
+  await hunt.fetchStatus()
+  if (hunt.isActive) {
+    uptimeInterval = setInterval(<span class="fstat-no" title="function not covered" >() =&gt; {</span> <span class="cstat-no" title="statement not covered" >uptime.value++ }</span>, 1000)
+  }
+})
+&nbsp;
+onUnmounted(<span class="fstat-no" title="function not covered" >() =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >  if (uptimeInterval) <span class="cstat-no" title="statement not covered" >clearInterval(uptimeInterval)</span></span>
+})
+&nbsp;
+const greeting = computed(() =&gt; {
+  const h = new Date().getHours()
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (h &lt; 12) <span class="cstat-no" title="statement not covered" >return 'Buenos días'</span>
+  <span class="missing-if-branch" title="else path not taken" >E</span>if (h &lt; 18) return 'Buenas tardes'
+<span class="cstat-no" title="statement not covered" >  return 'Buenas noches'</span>
+})
+&nbsp;
+const kpiItems = computed(() =&gt; {
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (!ctx.value) <span class="cstat-no" title="statement not covered" >return []</span>
+  const c = ctx.value.counts
+  return [
+    { label: 'Targets', value: String(c.targets), icon: Crosshair, color: '#00b8ff' },
+    { label: 'Endpoints', value: String(c.endpoints), icon: Scan, color: '#00ff41' },
+    { label: 'Confirmados', value: String(c.confirmed_findings), icon: ShieldCheck, color: '#00e676' },
+    { label: 'ROI Est.', value: `$${(c.total_estimated_payout || 0).toLocaleString()}`, icon: DollarSign, color: '#ffd740' },
+  ]
+})
+&nbsp;
+function severityBadge(sev?: string) {
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (!sev) <span class="cstat-no" title="statement not covered" >return 'default' as const</span>
+  const map: Record&lt;string, 'destructive' | 'warning' | 'success' | 'info' | 'default'&gt; = {
+    critical: 'destructive', high: 'warning', medium: 'info', low: 'success', info: 'default',
+  }
+  return map[sev.toLowerCase()] || <span class="branch-1 cbranch-no" title="branch not covered" >'default'</span>
+}
+&nbsp;
+const nextAction = computed(() =&gt; ctx.value?.next_action)
+const opportunities = computed(() =&gt; ctx.value?.opportunities.top || <span class="branch-1 cbranch-no" title="branch not covered" >[])</span>
+const activityEvents = computed(() =&gt; ctx.value?.activity_24h.events || <span class="branch-1 cbranch-no" title="branch not covered" >[])</span>
+&nbsp;
+const pipelineStages = computed(() =&gt; {
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (!ctx.value) <span class="cstat-no" title="statement not covered" >return []</span>
+  const p = ctx.value.pipeline
+  return [
+    { label: 'Detectados', count: p.detected, color: 'bg-muted-foreground/30' },
+    { label: 'Validados', count: p.validated, color: 'bg-accent/30' },
+    { label: 'Confirmados', count: p.confirmed, color: 'bg-primary/30' },
+    { label: 'Reportados', count: p.reported, color: 'bg-gold/30' },
+  ]
+})
+&nbsp;
+const maxPipeline = computed(() =&gt; {
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (!ctx.value) <span class="cstat-no" title="statement not covered" >return 1</span>
+  const p = ctx.value.pipeline
+  return Math.max(p.detected, p.validated, p.confirmed, p.reported, 1)
+})
+&nbsp;
+function <span class="fstat-no" title="function not covered" >handleHuntToggle() {</span>
+<span class="cstat-no" title="statement not covered" >  if (hunt.status === 'idle') <span class="cstat-no" title="statement not covered" >hunt.start(<span class="cstat-no" title="statement not covered" >)</span></span></span>
+  else if (hunt.status === 'running') <span class="cstat-no" title="statement not covered" >hunt.pause(<span class="cstat-no" title="statement not covered" >)</span></span>
+  else if (hunt.status === 'paused') <span class="cstat-no" title="statement not covered" >hunt.resume()</span>
+}
+&nbsp;
+function formatUptime(s: number) {
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (h &gt; 0) <span class="cstat-no" title="statement not covered" >return `${h}h ${m}m`</span>
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (m &gt; 0) <span class="cstat-no" title="statement not covered" >return `${m}m ${sec}s`</span>
+  return `${sec}s`
+}
+&lt;/script&gt;
+&nbsp;
+&lt;template&gt;
+  &lt;div class="space-y-6"&gt;
+    &lt;template v-if="loading"&gt;
+      &lt;div class="space-y-4 animate-in"&gt;&lt;Skeleton class="h-6 w-64" /&gt;&lt;Skeleton class="h-4 w-96" /&gt;&lt;div class="grid grid-cols-4 gap-3"&gt;&lt;Skeleton v-for="i in 4" :key="i" class="h-24 rounded-xl" /&gt;&lt;/div&gt;&lt;Skeleton class="h-32 rounded-xl" /&gt;&lt;/div&gt;
+    &lt;/template&gt;
+&nbsp;
+    &lt;template v-else-if="error"&gt;
+      &lt;div class="flex flex-col items-center justify-center py-24 text-center"&gt;
+        &lt;AlertTriangle class="h-10 w-10 text-destructive mb-4" /&gt;
+        &lt;p class="text-sm font-semibold text-foreground"&gt;Error de conexión&lt;/p&gt;
+        &lt;p class="mt-2 font-mono text-xs text-muted-foreground"&gt;{{ error }}&lt;/p&gt;
+        &lt;Button class="mt-6" @click<span class="fstat-no" title="function not covered" >="<span class="cstat-no" title="statement not covered" >$</span>router.go(0)"&gt;R</span>eintentar&lt;/Button&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+&nbsp;
+    &lt;!-- ═══════════════════ EMPTY STATE — ONBOARDING ═══════════════════ --&gt;
+    &lt;template v-else-if="!ctx || (ctx.counts.targets === 0 &amp;&amp; ctx.counts.findings === 0)"&gt;
+      &lt;div class="flex flex-col items-center py-16 text-center animate-in"&gt;
+        &lt;div class="flex h-20 w-20 items-center justify-center rounded-2xl cyber-card mb-6"&gt;
+          &lt;Eye class="h-10 w-10 text-primary" /&gt;
+        &lt;/div&gt;
+        &lt;h1 class="font-display text-2xl font-bold text-foreground"&gt;Bienvenido a CATEYE&lt;/h1&gt;
+        &lt;p class="mt-2 max-w-lg text-sm text-muted-foreground"&gt;Sistema de Inteligencia de Seguridad. Centralizá tus operaciones de bug bounty, automatizá recon y gestioná hallazgos desde un solo lugar.&lt;/p&gt;
+&nbsp;
+        &lt;div class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3 max-w-2xl"&gt;
+          &lt;div class="cyber-card rounded-xl p-4 text-left"&gt;
+            &lt;div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary mb-2"&gt;&lt;Globe class="h-4 w-4" /&gt;&lt;/div&gt;
+            &lt;p class="text-xs font-semibold text-foreground"&gt;1. Conectá plataformas&lt;/p&gt;
+            &lt;p class="mt-1 text-[10px] text-muted-foreground"&gt;Vinculá tus cuentas de HackerOne, Bugcrowd, Intigriti. Las credenciales se cifran.&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div class="cyber-card rounded-xl p-4 text-left"&gt;
+            &lt;div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary mb-2"&gt;&lt;Crosshair class="h-4 w-4" /&gt;&lt;/div&gt;
+            &lt;p class="text-xs font-semibold text-foreground"&gt;2. Agregá targets&lt;/p&gt;
+            &lt;p class="mt-1 text-[10px] text-muted-foreground"&gt;Importá programas desde las plataformas o agregá dominios manualmente para monitorear.&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div class="cyber-card rounded-xl p-4 text-left"&gt;
+            &lt;div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary mb-2"&gt;&lt;Zap class="h-4 w-4" /&gt;&lt;/div&gt;
+            &lt;p class="text-xs font-semibold text-foreground"&gt;3. Iniciá la caza&lt;/p&gt;
+            &lt;p class="mt-1 text-[10px] text-muted-foreground"&gt;Activá la caza autónoma. CATEYE descubre, reconoce, hipotetiza, valida y reporta.&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+&nbsp;
+        &lt;div class="mt-8 flex gap-3"&gt;
+          &lt;Button variant="default" @click<span class="fstat-no" title="function not covered" >="<span class="cstat-no" title="statement not covered" >s</span>howOnboarding = true"&gt;</span>
+            &lt;Sparkles class="h-4 w-4" /&gt; Configuración inicial
+          &lt;/Button&gt;
+          &lt;Button variant="outline" @click<span class="fstat-no" title="function not covered" >="<span class="cstat-no" title="statement not covered" >$</span>router.push('/connections')"&gt;</span>
+            &lt;Globe class="h-4 w-4" /&gt; Conectar plataformas
+          &lt;/Button&gt;
+          &lt;Button variant="outline" @click<span class="fstat-no" title="function not covered" >="<span class="cstat-no" title="statement not covered" >$</span>router.push('/program-catalog')"&gt;</span>
+            &lt;Target class="h-4 w-4" /&gt; Explorar programas
+          &lt;/Button&gt;
+        &lt;/div&gt;
+&nbsp;
+        &lt;div class="mt-8 rounded-lg border border-border/30 px-4 py-3 max-w-lg"&gt;
+          &lt;p class="font-mono text-[10px] text-muted-foreground"&gt;
+            &lt;span class="text-primary"&gt;$&lt;/span&gt; Configurá tus API keys en &lt;strong&gt;Configuración → OSINT&lt;/strong&gt; para habilitar inteligencia externa.
+          &lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+&nbsp;
+    &lt;!-- ═══════════════════ MISSION CONTROL ═══════════════════ --&gt;
+    &lt;template v-else-if="ctx"&gt;
+      &lt;div class="flex items-start justify-between gap-4"&gt;
+        &lt;div class="space-y-1 animate-in"&gt;
+          &lt;div class="flex items-center gap-2"&gt;
+            &lt;Eye class="h-4 w-4 text-primary" /&gt;
+            &lt;span class="font-mono text-[10px] font-bold tracking-widest text-primary"&gt;CATEYE MISSION CONTROL&lt;/span&gt;
+            &lt;span :class="['h-1.5 w-1.5 rounded-full', ctx.system.status<span class="branch-1 cbranch-no" title="branch not covered" > === 'healthy' ? 'bg-success animate-pulse' : 'bg-warning']" /&gt;</span>
+          &lt;/div&gt;
+          &lt;h1 class="font-display text-2xl font-bold text-foreground"&gt;{{ greeting }}, {{ settings.data.general.userName<span class="branch-1 cbranch-no" title="branch not covered" > || 'Operador' }}&lt;/h1&gt;</span>
+          &lt;p class="text-xs text-muted-foreground"&gt;
+            Score salud: {{ ctx.system.health_score }}/100
+            &lt;span v-if="ctx.findings.new_24h"&gt; · {{ ctx.findings.new_24h }} hallazgos nuevos hoy&lt;/span&gt;
+            &lt;span v-if="ctx.counts.reports_ready &gt; 0"&gt; · {{ ctx.counts.reports_ready }} reportes pendientes&lt;/span&gt;
+          &lt;/p&gt;
+        &lt;/div&gt;
+&nbsp;
+        &lt;!-- Hunt Control Panel --&gt;
+        &lt;div class="shrink-0 animate-in flex gap-3"&gt;
+          &lt;div class="cyber-card rounded-xl p-4 min-w-[200px]"&gt;
+            &lt;div class="flex items-center justify-between mb-2"&gt;
+              &lt;span class="font-mono text-[10px] font-bold tracking-wider text-muted-foreground"&gt;CAZA AUTÓNOMA&lt;/span&gt;
+              &lt;Badge :variant="hunt.status === 'running' ? 'success' : hunt.status<span class="branch-0 cbranch-no" title="branch not covered" > === 'paused' ? 'warning' : 'default'" c</span>lass="font-mono text-[8px]"&gt;
+                {{ hunt.status === 'running' ? 'ACTIVE' : hunt.status<span class="branch-0 cbranch-no" title="branch not covered" > === 'paused' ? 'PAUSED' : 'IDLE' }}</span>
+              &lt;/Badge&gt;
+            &lt;/div&gt;
+            &lt;div v-if="hunt.isActive" class="mb-2 flex gap-3 font-mono text-[10px] text-muted-foreground"&gt;
+              &lt;span&gt;&lt;span class="text-foreground"&gt;{{ hunt.targetsScanned }}&lt;/span&gt; targets&lt;/span&gt;
+              &lt;span&gt;&lt;span class="text-foreground"&gt;{{ hunt.findingsFound }}&lt;/span&gt; findings&lt;/span&gt;
+              &lt;span v-if="hunt.status === 'running'"&gt;&lt;span class="text-foreground"&gt;{{ formatUptime(uptime<span class="branch-1 cbranch-no" title="branch not covered" >) }}&lt;/span&gt;&lt;</span>/span&gt;
+            &lt;/div&gt;
+            &lt;div class="flex gap-1.5"&gt;
+              &lt;Tooltip v-if="hunt.status === 'idle'" text="Iniciar pipeline autónomo de 5 etapas: Discover → Recon → Hypothesis → Validate → Report"&gt;
+                &lt;Button size="sm" @click="hunt.start()" :loading="hunt.loading"&gt;
+                  &lt;Play class="h-3.5 w-3.5" /&gt; Iniciar
+                &lt;/Button&gt;
+              &lt;/Tooltip&gt;
+              &lt;Tooltip v-if="hunt.status === 'running'" text="Pausar temporalmente la caza"&gt;
+                &lt;Button size="sm" variant="secondary" @click<span class="fstat-no" title="function not covered" >="<span class="cstat-no" title="statement not covered" >h</span>unt.pause()" :l</span>oading="hunt.loading"&gt;
+                  &lt;Pause class="h-3.5 w-3.5" /&gt; Pausar
+                &lt;/Button&gt;
+              &lt;/Tooltip&gt;
+              &lt;Tooltip v-if="hunt.status<span class="branch-0 cbranch-no" title="branch not covered" > === 'paused'" text="Reanudar la caza desde donde se pausó"&gt;</span>
+<span class="fstat-no" title="function not covered" >                &lt;Button s</span>ize="sm" variant="secondary" @click<span class="fstat-no" title="function not covered" >="<span class="cstat-no" title="statement not covered" >h</span>unt.resume()" :l</span>oading="hunt.loading"&gt;
+<span class="fstat-no" title="function not covered" >                  &lt;Play c</span>lass="h-3.5 w-3.5" /&gt;<span class="cstat-no" title="statement not covered" > Reanudar</span>
+                &lt;/Button&gt;<span class="cstat-no" title="statement not covered" ></span>
+              &lt;/Tooltip&gt;
+              &lt;Tooltip v-if="hunt.isActive" text="Detener la caza por completo"&gt;
+                &lt;Button size="sm" variant="destructive" @click<span class="fstat-no" title="function not covered" >="<span class="cstat-no" title="statement not covered" >h</span>unt.stop()" :l</span>oading="hunt.loading"&gt;
+                  &lt;Square class="h-3.5 w-3.5" /&gt;
+                &lt;/Button&gt;
+              &lt;/Tooltip&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;!-- MissionConfig --&gt;
+          &lt;div v-if="settings.data.missionControl" class="cyber-card rounded-xl p-4 min-w-[180px] hidden sm:block"&gt;
+            &lt;span class="font-mono text-[10px] font-bold tracking-wider text-muted-foreground"&gt;CONFIGURACIÓN&lt;/span&gt;
+            &lt;div class="mt-2 space-y-1 font-mono text-[10px] text-muted-foreground"&gt;
+              &lt;div class="flex justify-between"&gt;&lt;span&gt;Modo&lt;/span&gt;&lt;span class="text-foreground"&gt;{{ settings.data.missionControl.autoMode<span class="branch-0 cbranch-no" title="branch not covered" > ? 'Auto' : 'Manual' }}&lt;/span&gt;&lt;</span>/div&gt;
+              &lt;div class="flex justify-between"&gt;&lt;span&gt;Paralelismo&lt;/span&gt;&lt;span class="text-foreground"&gt;{{ settings.data.missionControl.parallelism }}&lt;/span&gt;&lt;/div&gt;
+              &lt;div class="flex justify-between"&gt;&lt;span&gt;Velocidad&lt;/span&gt;&lt;span class="text-foreground"&gt;{{ settings.data.missionControl.speed }}&lt;/span&gt;&lt;/div&gt;
+              &lt;div class="flex justify-between"&gt;&lt;span&gt;Profundidad&lt;/span&gt;&lt;span class="text-foreground"&gt;{{ settings.data.missionControl.depth }}&lt;/span&gt;&lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+&nbsp;
+      &lt;!-- KPI Grid --&gt;
+      &lt;div class="grid grid-cols-2 gap-4 sm:grid-cols-4"&gt;
+        &lt;div v-for="(kpi, i) in kpiItems" :key="kpi.label" class="cyber-card rounded-xl p-4 stagger-item" :style="{ '--i': i }"&gt;
+          &lt;div class="flex items-center justify-between mb-2"&gt;
+            &lt;span class="font-mono text-[10px] text-muted-foreground tracking-wider"&gt;{{ kpi.label }}&lt;/span&gt;
+            &lt;div class="flex h-6 w-6 items-center justify-center rounded-md bg-surface/50" :style="{ color: kpi.color }"&gt;
+              &lt;component :is="kpi.icon" class="h-3.5 w-3.5" /&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;p class="font-mono text-xl font-bold tabular-nums text-foreground" :style="{ color: kpi.color }"&gt;{{ kpi.value }}&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+&nbsp;
+      &lt;!-- Next Action --&gt;
+      &lt;div v-if="nextAction" class="animate-in"&gt;
+        &lt;div class="cyber-card rounded-xl p-5 border-l-2 border-l-primary"&gt;
+          &lt;div class="flex items-start gap-4"&gt;
+            &lt;div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"&gt;&lt;Zap class="h-5 w-5" /&gt;&lt;/div&gt;
+            &lt;div class="flex-1 min-w-0"&gt;
+              &lt;div class="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wider text-primary"&gt;
+                &lt;Sparkles class="h-3 w-3" /&gt;&lt;span&gt;Próxima acción&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;h3 class="mt-1 text-base font-semibold text-foreground"&gt;{{ nextAction.title }}&lt;/h3&gt;
+              &lt;p class="mt-1 text-xs text-muted-foreground"&gt;{{ nextAction.why_now }}&lt;/p&gt;
+              &lt;div class="mt-3 flex flex-wrap gap-4"&gt;
+                &lt;span class="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground"&gt;
+                  &lt;Clock class="h-3 w-3" /&gt; Esfuerzo: &lt;span :class="nextAction.effort === 'low' ? 'text-success' : <span class="branch-1 cbranch-no" title="branch not covered" >nextAction.effort === 'medium' ? 'text-warning' : 'text-destructive'" class="</span>font-semibold"&gt;{{ nextAction.effort }}&lt;/span&gt;
+                &lt;/span&gt;
+                &lt;span class="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground"&gt;
+                  &lt;DollarSign class="h-3 w-3" /&gt; Recompensa: &lt;span class="font-semibold text-gold"&gt;{{ nextAction.estimated_reward }}&lt;/span&gt;
+                &lt;/span&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;ArrowRight class="mt-2 h-5 w-5 shrink-0 text-muted-foreground" /&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+&nbsp;
+      &lt;!-- Pipeline &amp; Charts --&gt;
+      &lt;div class="grid grid-cols-1 gap-4 lg:grid-cols-3"&gt;
+        &lt;!-- Pipeline bar --&gt;
+        &lt;div class="lg:col-span-2 cyber-card rounded-xl p-5"&gt;
+          &lt;h3 class="font-mono text-xs font-semibold text-foreground mb-4"&gt;Pipeline&lt;/h3&gt;
+          &lt;div class="flex items-end gap-2 h-24"&gt;
+            &lt;div v-for="stage in pipelineStages" :key="stage.label" class="flex-1 flex flex-col items-center gap-2"&gt;
+              &lt;div class="w-full rounded-t-md transition-all duration-500" :class="stage.color"&gt;
+                &lt;div class="w-full rounded-t-md" :style="{ height: `${(stage.count / maxPipeline) * 100}%`, minHeight: stage.count &gt; 0 ? '8px' : '0' }" /&gt;
+              &lt;/div&gt;
+              &lt;span class="font-mono text-sm font-bold tabular-nums text-foreground"&gt;{{ stage.count }}&lt;/span&gt;
+              &lt;span class="font-mono text-[9px] text-muted-foreground uppercase tracking-wider"&gt;{{ stage.label }}&lt;/span&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+&nbsp;
+        &lt;!-- Doughnut --&gt;
+        &lt;div class="cyber-card rounded-xl p-5"&gt;
+          &lt;h3 class="font-mono text-xs font-semibold text-foreground mb-3"&gt;Distribución&lt;/h3&gt;
+          &lt;DoughnutChart
+            :labels="['Detectados', 'Validados', 'Confirmados', 'Reportados']"
+            :data="[ctx.pipeline.detected, ctx.pipeline.validated, ctx.pipeline.confirmed, ctx.pipeline.reported]"
+            :height="180"
+          /&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+&nbsp;
+      &lt;!-- Activity &amp; Opportunities --&gt;
+      &lt;div class="grid grid-cols-1 gap-6 lg:grid-cols-3"&gt;
+        &lt;!-- Top Opps --&gt;
+        &lt;div class="lg:col-span-2 cyber-card rounded-xl p-5"&gt;
+          &lt;h3 class="font-mono text-xs font-semibold text-foreground mb-3"&gt;Oportunidades prioritarias&lt;/h3&gt;
+          &lt;div v-if="!opportunities.length" class="py-6 text-center font-mono text-xs text-muted-foreground"&gt;Sin oportunidades disponibles&lt;/div&gt;
+          &lt;div v-else class="space-y-1.5"&gt;
+            &lt;div v-for="(opp, i) in opportunities" :key="opp.id"
+              class="flex items-center justify-between rounded-lg bg-surface/20 px-3 py-2 transition-all hover:bg-surface/40"
+            &gt;
+              &lt;div class="flex-1 min-w-0"&gt;
+                &lt;p class="font-mono text-xs font-semibold text-foreground truncate"&gt;{{ opp.name }}&lt;/p&gt;
+                &lt;p class="font-mono text-[10px] text-muted-foreground"&gt;{{ opp.domain }} · {{ opp.endpoints }} endpoints&lt;/p&gt;
+              &lt;/div&gt;
+              &lt;div class="flex items-center gap-2 shrink-0 ml-3"&gt;
+                &lt;span class="font-mono text-[9px] text-muted-foreground"&gt;SCORE {{ opp.opportunity_score.toFixed(1) }}&lt;/span&gt;
+                &lt;div class="flex h-6 w-6 items-center justify-center rounded-md text-[10px] font-bold font-mono"
+                  :class="opp.opportunity_score &gt;= 7 ? 'bg-success/20 text-success' : <span class="branch-1 cbranch-no" title="branch not covered" >opp.opportunity_score &gt;= 4 ? 'bg-warning/20 text-warning' : 'bg-muted/20 text-muted-foreground'"</span>
+                &gt;{{ opp.opportunity_score.toFixed(0) }}&lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+&nbsp;
+        &lt;!-- Activity --&gt;
+        &lt;div class="cyber-card rounded-xl p-5"&gt;
+          &lt;h3 class="font-mono text-xs font-semibold text-foreground mb-3"&gt;Actividad 24h&lt;/h3&gt;
+          &lt;div class="space-y-2"&gt;
+            &lt;div v-for="(ev, i) in activityEvents.slice(0, 10)" :key="i" class="animate-in flex items-start gap-3" :style="{ animationDelay: `${i * 30}ms` }"&gt;
+              &lt;div :class="['mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full', ev.type<span class="branch-1 cbranch-no" title="branch not covered" > === 'finding' ? 'bg-destructive/15 text-destructive' : 'bg-accent/15 text-accent']"&gt;</span>
+                &lt;Bug v-if="ev.type === 'finding'" class=<span class="branch-1 cbranch-no" title="branch not covered" >"h-3 w-3" /&gt;</span>
+                &lt;Activity v-else class="h-3 w-3" /&gt;
+              &lt;/div&gt;
+              &lt;div class="flex-1 min-w-0"&gt;
+                &lt;p class="font-mono text-[10px] font-medium text-foreground capitalize"&gt;{{ ev.type }} #{{ ev.id }}&lt;/p&gt;
+                &lt;p v-if="ev.severity" class="mt-0.5"&gt;&lt;Badge :variant="severityBadge(ev.severity)" class="text-[8px] px-1.5 py-0"&gt;{{ ev.severity }}&lt;/Badge&gt;&lt;/p&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div v-if="activityEvents.length === 0" class="py-6 text-center font-mono text-xs text-muted-foreground"&gt;Sin actividad en 24h&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+  &lt;OnboardingWizard :open="showOnboarding" @close<span class="fstat-no" title="function not covered" >="<span class="cstat-no" title="statement not covered" >s</span>howOnboarding = false" /&gt;</span>
+&lt;/template&gt;
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-07-03T14:27:18.106Z
+            </div>
+        <script src="../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
+    </body>
+</html>
+    

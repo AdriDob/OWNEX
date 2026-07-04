@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    ORION Windows Release Pipeline — build, test, and generate release report.
+    CATEYE Windows Release Pipeline — build, test, and generate release report.
 .DESCRIPTION
     One-command release pipeline for Windows 11. Run from the repo root:
         PowerShell -ExecutionPolicy Bypass -File scripts/build_windows.ps1
@@ -10,16 +10,16 @@
       1. Clean build (frontend + PyInstaller + NSIS installer)
       2. Import audit
       3. Asset validation
-      4. Smoke test (Orion.exe)
+       4. Smoke test (CATEYE.exe)
       5. Portable test (temp isolation)
       6. Installer test (install + uninstall)
       7. Generate RELEASE_REPORT.md
 
     Outputs:
         build/release/                  # Staged release artifacts
-            Orion/Orion.exe            # PyInstaller one-dir bundle
-            OrionInstaller.exe          # NSIS installer
-            Orion-<version>.zip         # Portable ZIP
+            CATEYE/CATEYE.exe           # PyInstaller one-dir bundle
+            CATEYEInstaller.exe         # NSIS installer
+            CATEYE-<version>.zip        # Portable ZIP
             build_info.json             # Build metadata + SHA256
             README.txt, CHANGELOG.md, VERSION.txt, LICENSE.txt
 
@@ -40,7 +40,7 @@ $RED    = "Red"
 $WHITE  = "White"
 
 Write-Host "╔═══════════════════════════════════════════════╗" -ForegroundColor $GOLD
-Write-Host "║        ORION  RELEASE ISOLATION  v1.6        ║" -ForegroundColor $GOLD
+Write-Host "║        CATEYE  RELEASE ISOLATION  v1.7        ║" -ForegroundColor $GOLD
 Write-Host "╚═══════════════════════════════════════════════╝" -ForegroundColor $GOLD
 
 # ── 1. Check prerequisites ──────────────────────────────────────────
@@ -111,7 +111,7 @@ if (Test-Path $reportPath) {
 
 # ── 6. Summary ─────────────────────────────────────────────────────
 Write-Host "`n[6/6] Summary" -ForegroundColor $CYAN
-$distDir = Join-Path $ROOT "dist" "Orion"
+$distDir = Join-Path $ROOT "dist" "CATEYE"
 $distSize = if (Test-Path $distDir) {
     (Get-ChildItem $distDir -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
 } else { 0 }
@@ -127,7 +127,7 @@ Write-Host "╚═════════════════════�
 Write-Host "  EXE bundle: $distDir ($('{0:N1}' -f $distSize) MB)" -ForegroundColor $WHITE
 Write-Host "  Release:    $releaseDir ($('{0:N1}' -f $releaseSize) MB)" -ForegroundColor $WHITE
 Write-Host "  Report:     $reportPath" -ForegroundColor $WHITE
-$installerPath = Join-Path $ROOT "dist" "OrionInstaller.exe"
+$installerPath = Join-Path $ROOT "dist" "CATEYEInstaller.exe"
 if (Test-Path $installerPath) {
     $isize = (Get-Item $installerPath).Length / 1MB
     Write-Host "  Installer:  $installerPath ($('{0:N1}' -f $isize) MB)" -ForegroundColor $WHITE

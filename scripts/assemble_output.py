@@ -2,7 +2,7 @@
 """CATEYE — Final output assembly script.
 
 Assembles all build artifacts into the target output directory:
-    C:/Users/adrie/OneDrive/Desktop/Yo/privado/Orion
+    C:/Users/adrie/OneDrive/Desktop/Yo/privado/CATEYE
 
 Structure:
     CATEYE/
@@ -32,21 +32,22 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+from cores.env.config import get_config
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
 DIST_DIR = PROJECT_ROOT / "dist"
 VERSION_FILE = PROJECT_ROOT / "VERSION"
 
-_OUTPUT_ENV = os.environ.get("CATEYE_OUTPUT_DIR")
-
 
 def _default_output() -> Path:
-    if _OUTPUT_ENV:
-        return Path(_OUTPUT_ENV)
+    output = get_config().output_dir
+    if output:
+        return output
     if sys.platform == "win32":
         return Path(os.environ.get("USERPROFILE", "C:/")) / "OneDrive" / "Desktop" / "Yo" / "privado"
-    return PROJECT_ROOT / "dist" / "orion-release"
+    return PROJECT_ROOT / "dist" / "cateye-release"
 
 
 def log(step: str, msg: str) -> None:
@@ -90,7 +91,7 @@ def find_installer() -> Path | None:
     if installer.exists():
         log("INSTALLER", f"Found: {installer} ({installer.stat().st_size / 1024 / 1024:.1f} MB)")
         return installer
-    log("INSTALLER", "Not found. Run: makensis /DPRODUCT_VERSION=X.Y.Z installer\\orion.nsi")
+    log("INSTALLER", "Not found. Build NSIS installer first.")
     return None
 
 
@@ -266,7 +267,7 @@ def main() -> None:
     if not pyinstaller_bundle and not frontend_dist:
         log("ASSEMBLE", "WARNING: No build artifacts found.")
         log("ASSEMBLE", "  PyInstaller: pyinstaller CATEYE.spec -y")
-        log("ASSEMBLE", "  NSIS:        makensis installer\\orion.nsi")
+        log("ASSEMBLE", "  NSIS:        Build NSIS installer first")
 
     assemble_output(output_dir, version, pyinstaller_bundle, frontend_dist, installer)
 

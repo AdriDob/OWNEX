@@ -35,6 +35,7 @@ async def start_hunt():
     # Kick off immediate pipeline run
     try:
         import asyncio
+
         from api.scheduler import ScanScheduler
 
         sched = ScanScheduler(interval_minutes=30)

@@ -12,11 +12,11 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-LOG = logging.getLogger("catseye.hypothesis.memory")
-
 from cores.engine.hypothesis.models import Hypothesis, VulnerabilityType
 from cores.memory.memory import MemoryPatternLibrary
 from cores.memory.pattern_extractor import PatternExtractor
+
+LOG = logging.getLogger("catseye.hypothesis.memory")
 
 
 class HypothesisMemory:
@@ -30,7 +30,8 @@ class HypothesisMemory:
         if key in self._success_cache:
             return self._success_cache[key]
         try:
-            rate = self.memory.get_success_rate(str(vt.value))
+            from cores.memory.decision_memory import DecisionMemory
+            rate = DecisionMemory().get_success_rate(str(vt.value))
         except Exception:
             rate = 0.0
         self._success_cache[key] = rate
@@ -49,7 +50,7 @@ class HypothesisMemory:
         labels = h.endpoint.get("labels", [])
         signals = h.endpoint.get("signals", [])
         try:
-            patterns = self.memory.find_similar_endpoints(path, list(set(labels + signals)))
+            patterns = self.memory.find_similar_endpoints(path, None, list(set(labels + signals)))
             if patterns:
                 best = patterns[0]
                 if isinstance(best, dict) and best.get("similarity", 0) >= threshold:

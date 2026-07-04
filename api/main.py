@@ -70,6 +70,7 @@ from api.routers import (
     ws,
     zap,
 )
+from cores.env.config import get_config
 from cores.intelligence.adaptive_memory import get_memory
 from cores.learning.router import router as learning_router
 from cores.log_config import setup_logging
@@ -112,7 +113,8 @@ async def lifespan(app: FastAPI):
     from cores.identity.identity_manager import get_identity_manager
     identity = get_identity_manager()
     identity.ensure_identity()
-    logger.info("Identity system initialized: %s", identity.get_identity().user_id)
+    user_identity = identity.get_identity()
+    logger.info("Identity system initialized: %s", user_identity.user_id if user_identity else "unknown")
 
     # Initialize orchestrator
     from cores.orchestrator.assistant_orchestrator import get_orchestrator
@@ -175,7 +177,7 @@ async def lifespan(app: FastAPI):
     scheduler = None
     try:
         from api.scheduler import ScanScheduler
-        scheduler = ScanScheduler(interval_minutes=int(os.environ.get("CATEYE_SCAN_INTERVAL", "30")))
+        scheduler = ScanScheduler(interval_minutes=get_config().scan_interval)
         asyncio.create_task(scheduler.start())
         logger.info("Scan scheduler started")
     except Exception as exc:
@@ -205,12 +207,16 @@ async def lifespan(app: FastAPI):
             register_email_channel,
             register_event_bridge,
             register_fcm_channel,
+            register_gmail_channel,
+            register_whatsapp_channel,
             register_ws_forwarder,
         )
         register_db_bridge()
         register_desktop_channel()
         register_email_channel()
         register_fcm_channel()
+        register_whatsapp_channel()
+        register_gmail_channel()
         register_ws_forwarder()
         logger.info("Notification bridges registered")
     except Exception as exc:
@@ -339,7 +345,7 @@ app = FastAPI(
 
 # Production: restrict to local origins + pywebview app:// protocol.
 # Dev mode (CATEYE_DESKTOP not set) also keeps * for hot-reload.
-_allow_all = os.environ.get("CATEYE_DESKTOP") != "1"
+_allow_all = not get_config().desktop
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"] if _allow_all else [

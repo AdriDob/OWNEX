@@ -11,7 +11,7 @@ Usage:
 Builds:
   - Frontend (Vite production build)
   - Backend (PyInstaller EXE from CATEYE.spec)
-  - Installer (NSIS .exe from installer/orion.nsi)
+  - Installer (NSIS .exe from installer/cateye.nsi)
   - Smoke test (validates built EXE)
   - Documentation (README, CHANGELOG, LICENSE, VERSION, build_info.json)
   - ZIP package
@@ -31,7 +31,7 @@ Output:
     build_info.json
 
 Final target:
-  C:\\Users\\adrie\\OneDrive\\Desktop\\Yo\\privado\\Orion
+  C:\\Users\\adrie\\OneDrive\\Desktop\\Yo\\privado\\CATEYE
 """
 
 from __future__ import annotations
@@ -47,6 +47,8 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+from cores.env.config import get_config
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
@@ -54,9 +56,9 @@ VERSION_FILE = PROJECT_ROOT / "VERSION"
 DIST_DIR = PROJECT_ROOT / "dist"
 BUILD_DIR = PROJECT_ROOT / "build"
 
-_OUTPUT_ENV = os.environ.get("CATEYE_OUTPUT_DIR")
-if _OUTPUT_ENV:
-    DEFAULT_OUTPUT = Path(_OUTPUT_ENV)
+_output_cfg = get_config().output_dir
+if _output_cfg:
+    DEFAULT_OUTPUT = _output_cfg
 elif sys.platform == "win32":
     DEFAULT_OUTPUT = Path(os.environ.get("USERPROFILE", "C:/")) / "OneDrive" / "Desktop" / "Yo" / "privado"
 else:
@@ -145,9 +147,9 @@ def build_pyinstaller() -> bool:
 
 def build_installer(version: str) -> bool:
     log("INSTALLER", "Building NSIS installer...")
-    nsi = PROJECT_ROOT / "installer" / "orion.nsi"
+    nsi = PROJECT_ROOT / "installer" / "cateye.nsi"
     if not nsi.exists():
-        log("INSTALLER", "SKIP — no installer/orion.nsi found")
+        log("INSTALLER", "SKIP — no installer/cateye.nsi found")
         return False
 
     makensis = shutil.which("makensis")
@@ -270,9 +272,9 @@ def artifact_sha256(output_dir: Path) -> dict[str, str]:
     for f in output_dir.rglob("*"):
         if f.is_file() and f.name in KEY_ARTIFACTS:
             hashes[f.name] = sha256(f)
-    orion_dir = output_dir / "CATEYE"
-    if orion_dir.exists():
-        for f in orion_dir.rglob("*"):
+    cateye_dir = output_dir / "CATEYE"
+    if cateye_dir.exists():
+        for f in cateye_dir.rglob("*"):
             if f.is_file() and f.name in KEY_ARTIFACTS:
                 hashes[f.name] = sha256(f)
     return hashes
@@ -345,12 +347,12 @@ def copy_to_output(output_dir: Path) -> bool:
         if f.is_file():
             shutil.copy2(f, target / f.name)
     # Also copy CATEYE/ subdir
-    orion_dir = output_dir / "CATEYE"
-    if orion_dir.exists():
+    cateye_dir = output_dir / "CATEYE"
+    if cateye_dir.exists():
         dest = target / "CATEYE"
         if dest.exists():
             shutil.rmtree(dest)
-        shutil.copytree(orion_dir, dest)
+        shutil.copytree(cateye_dir, dest)
     log("COPY", f"Files copied to: {target}")
     return True
 
@@ -375,17 +377,17 @@ def verify_output(output_dir: Path) -> bool:
         if not exists:
             all_ok = False
 
-    orion_dir = output_dir / "CATEYE"
-    orion_exe = orion_dir / ("CATEYE.exe" if IS_WINDOWS else "CATEYE")
-    if orion_exe.exists():
-        log("VERIFY", f"  [OK] CATEYE/{orion_exe.name} ({orion_exe.stat().st_size / 1024 / 1024:.1f} MB)")
+    cateye_dir = output_dir / "CATEYE"
+    cateye_exe = cateye_dir / ("CATEYE.exe" if IS_WINDOWS else "CATEYE")
+    if cateye_exe.exists():
+        log("VERIFY", f"  [OK] CATEYE/{cateye_exe.name} ({cateye_exe.stat().st_size / 1024 / 1024:.1f} MB)")
     else:
         log("VERIFY", "  [--] CATEYE/ binary not found (PyInstaller not run)")
 
     # PyInstaller 6.x places data files inside _internal/
     frontend_candidates = [
-        orion_dir / "_internal" / "frontend_dist" / "index.html",
-        orion_dir / "frontend_dist" / "index.html",
+        cateye_dir / "_internal" / "frontend_dist" / "index.html",
+        cateye_dir / "frontend_dist" / "index.html",
     ]
     frontend_found = any(p.exists() for p in frontend_candidates)
     if frontend_found:

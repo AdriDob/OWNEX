@@ -40,7 +40,7 @@ def create_endpoint(body: EndpointCreate):
 @router.post("/analyze")
 def analyze_endpoint(body: EndpointAnalysisRequest):
     from cores.engine.unified_classifier import classify as unified_classify
-    result = {"local": unified_classify(body.path, body.method, body.params or {})}
+    result: dict[str, Any] = {"local": unified_classify(body.path, body.method, body.params or {})}
     try:
         from cores.ai.analyzer import AIAnalyzer
         ai = AIAnalyzer()

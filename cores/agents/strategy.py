@@ -40,7 +40,7 @@ class StrategyAgent(BaseAgent):
             EventType.DOCUMENTATION_COMPLETED: self._on_documentation_completed,
             EventType.STRATEGY_RECOMMENDATION: self._generate_recommendation,
         }
-        handler = handler_map.get(event.event_type)
+        handler = handler_map.get(event.event_type)  # type: ignore[call-overload]
         if handler:
             handler(event)
 

@@ -124,7 +124,10 @@ class DesktopSettings:
         val = self._data
         for k in keys:
             if isinstance(val, dict):
-                val = val.get(k)
+                v = val.get(k)
+                if v is None:
+                    return default
+                val = v
             else:
                 return default
         return val if val is not None else default

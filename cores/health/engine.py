@@ -119,9 +119,9 @@ class SystemHealthEngine:
         try:
             from cores.agents.bus import get_agent_bus
             bus = get_agent_bus()
-            history = bus.get_history(limit=30)
+            agent_history = bus.get_history(limit=30)
             metrics["pipeline_retries"] = sum(
-                1 for e in history
+                1 for e in agent_history
                 if hasattr(e, 'event_type') and 'failed' in str(e.event_type)
             )
         except Exception:

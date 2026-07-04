@@ -29,7 +29,7 @@ class DifferentialArtifact(Bundle):
             self.confidence = getattr(self.bundle, "confidence", 0.0)
             self.summary = getattr(self.bundle, "summary", "")
             self.anomaly_count = len(getattr(self.bundle, "interesting_anomalies", []))
-            all_findings = []
+            all_findings: list[Any] = []
             for field_name in (
                 "target_differences", "endpoint_differences", "historical_changes",
                 "cross_target_patterns", "web3_differences",

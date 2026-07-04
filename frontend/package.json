@@ -24,6 +24,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.6",
     "@vitejs/plugin-vue": "^5.2.4",
+    "@vitest/coverage-v8": "^4.1.9",
     "@vue/test-utils": "^2.4.11",
     "jsdom": "^29.1.1",
     "tailwindcss": "^4.1.6",

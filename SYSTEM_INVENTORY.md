@@ -12,7 +12,7 @@
 | **Nombre del proyecto** | CATEYE (formerly ORION / Rastro) |
 | **Objetivo principal** | Sistema de inteligencia artificial para automatizar el ciclo completo de bug bounty: descubrimiento, análisis de alcance, reconocimiento, generación de hipótesis, validación, generación de reportes y envío a plataformas (HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack) |
 | **Estado actual** | Producción (Stable) |
-| **Versión** | 1.6.0 |
+| **Versión** | 1.7.0 |
 | **Fecha de última actualización** | 2026-06-29 |
 | **Licencia** | MIT |
 | **Arquitectura** | Monolito modular con frontend SPA |
@@ -66,7 +66,7 @@
 - **Soporte:** SQLite (desarrollo/default) y PostgreSQL (producción)
 - **Modelos principales:** `database/models.py` (~30 modelos) + `database/models_economic.py` (~8 modelos)
 - **Migraciones:** No hay sistema de migraciones formal (esquema gestionado por código)
-- **Ubicación por defecto:** `~/.orion/database/orion.db`
+- **Ubicación por defecto:** `~/.cateye/database/cateye.db`
 - **Configuración:** `DATABASE_URL` en variable de entorno
 
 ## Event Bus
@@ -572,8 +572,10 @@ Nunca se llaman directamente. Los eventos son inmutables, serializables y trazab
 | `frontend/vite.config.ts` | Configuración Vite |
 | `frontend/components.json` | Configuración de componentes UI |
 | `capacitor.config.json` | Configuración Capacitor mobile |
-| `Orion.spec` | PyInstaller spec principal |
-| `desktop/build/Rastro.spec` | PyInstaller spec alternativo |
+| `build/` | Build output directory |
+| `scripts/cateye.service` | systemd service unit (Linux) |
+| `scripts/com.cateye.service.plist` | launchd service plist (macOS) |
+| `scripts/install_service.sh` | Unified service install/uninstall helper |
 | `pyproject.toml` | Tool config (ruff, mypy, pytest) |
 | `.github/workflows/*.yml` | Configuración CI/CD |
 | `.githooks/pre-commit` | Hook pre-commit local |
@@ -582,26 +584,19 @@ Nunca se llaman directamente. Los eventos son inmutables, serializables y trazab
 
 # 10. Build
 
-## PyInstaller
+## PyInstaller (deprecated — see `scripts/build_release.py`)
 
-- **Spec principal:** `Orion.spec`
-- **Spec alternativo:** `desktop/build/Rastro.spec`
 - **Entry point:** `run.py`
-- **Output:** `dist/Orion/` (one-dir) o `dist/Orion.exe` (onefile)
-- **Modo onefile:** `pyinstaller Orion.spec -y --onefile`
-- **Modo onedir:** `pyinstaller Orion.spec -y`
+- **Build script:** `scripts/build_release.py`
+- **Output:** `build/` directory
 
 ## Build Pipeline
 
 Build completo (producción):
 
 ```
-1. npm ci (frontend/)
-2. npm run build (frontend/)
-3. pyinstaller Orion.spec -y
-4. Assemble output (binary + frontend dist + docs)
-5. Create portable ZIP
-6. (Windows) NSIS installer
+1. python scripts/build_release.py
+   (orquestra npm ci → npm run build → pyinstaller → assemble → ZIP)
 ```
 
 Comandos Makefile:
@@ -661,27 +656,36 @@ Comandos Makefile:
 
 | Variable | Propósito | Sensible |
 |---|---|---|
-| `RASTRO_AUTH_SECRET` | Secreto de autenticación | ✅ Sí |
+| `CATEYE_AUTH_TOKEN` | Token de autenticación local | ✅ Sí |
+| `CATEYE_AUTH_SECRET` | Secreto de autenticación (antes `RASTRO_AUTH_SECRET`) | ✅ Sí |
+| `CATEYE_LICENSE_SECRET` | Secreto de licencia (antes `RASTRO_LICENSE_SECRET`) | ✅ Sí |
+| `CATEYE_SMTP_HOST` | Host SMTP para notificaciones (antes `RASTRO_SMTP_HOST`) | ❌ No |
+| `CATEYE_NOTIFICATION_EMAIL` | Email de notificaciones (antes `RASTRO_NOTIFICATION_EMAIL`) | ❌ No |
+| `CATEYE_FCM_SERVER_KEY` | FCM server key (antes `RASTRO_FCM_SERVER_KEY`) | ✅ Sí |
+| `CATEYE_FCM_PROJECT_ID` | FCM project ID (antes `RASTRO_FCM_PROJECT_ID`) | ❌ No |
+| `CATEYE_OUTPUT_DIR` | Directorio de salida (antes `RASTRO_OUTPUT_DIR`) | ❌ No |
+| `CATEYE_MEMORY_CONSUME` | Consumo de memoria (antes `RASTRO_MEMORY_CONSUME`) | ❌ No |
+| `CATEYE_DATA_DIR` | Directorio de datos | ❌ No |
+| `CATEYE_CONFIG_DIR` | Directorio de configuración | ❌ No |
 | `GEMINI_API_KEY` | API Key de Google Gemini | ✅ Sí |
 | `GEMINI_MODEL` | Modelo de Gemini | ❌ No |
 | `OLLAMA_HOST` | Host de Ollama | ❌ No |
 | `OLLAMA_MODEL` | Modelo de Ollama | ❌ No |
 | `OPENAI_API_KEY` | API Key de OpenAI | ✅ Sí |
 | `OPENAI_BASE_URL` | URL base de OpenAI | ❌ No |
-| `LLM_MODEL` | Modelo LLM | ❌ No |
 | `OPENROUTER_API_KEY` | API Key de OpenRouter | ✅ Sí |
 | `DATABASE_URL` | URL de conexión a BD | 🟡 Puede contener credenciales |
-| `RASTRO_SCAN_INTERVAL` | Intervalo de escaneo | ❌ No |
-| `RASTRO_PORT` | Puerto del servidor | ❌ No |
-| `RASTRO_HOST` | Host del servidor | ❌ No |
-| `RASTRO_DEBUG` | Modo debug | ❌ No |
-| `RASTRO_LOG_LEVEL` | Nivel de log | ❌ No |
-| `RASTRO_DATA_DIR` | Directorio de datos | ❌ No |
-| `RASTRO_CONFIG_DIR` | Directorio de configuración | ❌ No |
-| `RASTRO_FRONTEND_DIR` | Directorio del frontend | ❌ No |
-| `RASTRO_DISABLE_FRONTEND` | Deshabilitar frontend | ❌ No |
-| `RASTRO_NO_BROWSER` | No abrir navegador | ❌ No |
-| `RASTRO_BUILD_ENV` | Entorno de build | ❌ No |
+| `SCAN_INTERVAL` | Intervalo de escaneo | ❌ No |
+| `HOST` | Host del servidor | ❌ No |
+| `PORT` | Puerto del servidor | ❌ No |
+| `DEBUG` | Modo debug | ❌ No |
+| `LOG_LEVEL` | Nivel de log | ❌ No |
+| `FRONTEND_DIR` | Directorio del frontend | ❌ No |
+| `DISABLE_FRONTEND` | Deshabilitar frontend | ❌ No |
+| `NO_BROWSER` | No abrir navegador | ❌ No |
+| `BUILD_ENV` | Entorno de build | ❌ No |
+
+> **Nota:** Las variables `RASTRO_*` legacy siguen siendo aceptadas con un `DeprecationWarning`. Se recomienda migrar a `CATEYE_*`.
 
 ## Manejo de Credenciales
 
@@ -696,7 +700,7 @@ Comandos Makefile:
 | Archivo | Riesgo | Protección |
 |---|---|---|
 | `.env` | Contiene API keys | Incluido en `.gitignore` |
-| `identity_vault.json` | Credenciales cifradas | Cifrado AES-256-GCM, en `~/.orion/` |
+| `identity_vault.json` | Credenciales cifradas | Cifrado AES-256-GCM, en `~/.cateye/` |
 | `*.db` (SQLite) | Datos completos | Protección por ACL del SO |
 | `orion.ico` | Ninguno | Público |
 
@@ -886,7 +890,7 @@ Comandos Makefile:
 | Archivo `AGENT_CONTEXT.md` en `cores/` sin uso claro | Docs | Bajo |
 | Algunos módulos en `cores/` sin `__init__.py` | Core | Bajo |
 | Error "`_log` is not callable" en `cores/fallback.py` en ciertos imports | Core | Medio |
-| `desktop/build/Rastro.spec` desactualizado vs `Orion.spec` | Build | Medio |
+| ~~`desktop/build/Rastro.spec` desactualizado vs `Orion.spec`~~ | Build | Resuelto — specs eliminados |
 | Directorio `targets/Airbyte/` con archivos de ejecución (subdominios) que no deberían estar en VCS | Repo | Bajo |
 | `logs/` con datos de ejecución en VCS | Repo | Bajo |
 | `archive_cleanup/` con DB antigua en VCS | Repo | Bajo |
@@ -962,7 +966,7 @@ Comandos Makefile:
 
 | Grupo | Archivos | Nota |
 |---|---|---|
-| Spec PyInstaller | `Orion.spec` vs `desktop/build/Rastro.spec` | `Orion.spec` es el activo; `Rastro.spec` está desactualizado |
+| Spec PyInstaller | ~~`Orion.spec` vs `desktop/build/Rastro.spec`~~ | Resuelto — ambos specs eliminados, build vía `scripts/build_release.py` |
 | Seed data | `scripts/seed.py`, `scripts/seed_real.py`, `scripts/seed_v2.py` | Posible consolidación |
 | Smoke test | `scripts/smoke_test.py`, `scripts/smoke_test_playwright.py` | Complementarios (HTTP + browser) |
 
@@ -972,7 +976,7 @@ Comandos Makefile:
 |---|---|
 | `EnvConfig` vs `RastroConfig` | Dos sistemas de configuración (`cores/env/config.py` y `cores/config.py`) con diferente estructura |
 | Paths de core | `SYSTEM.md` refiere `cores/` pero algunos imports usan `core_engines.*` y `core.*` |
-| Nombre del proyecto | CATEYE (formerly ORION, interno) vs Rastro (repositorio) vs RastroConfig (código) |
+| Nombre del proyecto | CATEYE (formerly ORION/Rastro) — `RastroConfig` eliminado, código migrado a `CATEYEConfig` |
 
 ## Assets faltantes
 
@@ -995,21 +999,21 @@ Comandos Makefile:
 
 | Ruta | Archivo | Problema |
 |---|---|---|
-| `core.env.config` | `desktop/build/Rastro.spec` | Debería ser `cores.env.config` (spec desactualizado) |
-| `core.platform` | `desktop/build/Rastro.spec` | Debería ser `cores.platform` (spec desactualizado) |
-| `desktop/service_util` | `Orion.spec` | 🟡 Verificar que el import existe en runtime |
+| ~~`core.env.config`~~ | ~~`desktop/build/Rastro.spec`~~ | Resuelto — spec eliminado |
+| ~~`core.platform`~~ | ~~`desktop/build/Rastro.spec`~~ | Resuelto — spec eliminado |
+| ~~`desktop/service_util`~~ | ~~`Orion.spec`~~ | Resuelto — spec eliminado |
 
 ## Código muerto detectado
 
 | Archivo | Problema |
 |---|---|
 | `cores/tools/base.py` | Posible duplicado de `cores/recon/tools.py` |
-| `desktop/build/Rastro.spec` | Spec desactualizado, solo `Orion.spec` se usa activamente |
+| ~~`desktop/build/Rastro.spec`~~ | Resuelto — specs eliminados, build vía `scripts/build_release.py` |
 | `targets/Airbyte/` | Directorio con datos de ejecución, no debería estar en VCS |
-| `logs/orion.log` | Archivos de log en VCS |
+| `logs/cateye.log` | Archivos de log en VCS |
 | `logs/CATEYE.log` | Archivos de log en VCS |
 | `logs/lifecycle.log` | Archivos de log en VCS |
-| `archive_cleanup/orion_20260630.db` | Base de datos antigua en VCS |
+| `archive_cleanup/cateye_20260630.db` | Base de datos antigua en VCS |
 
 ## APIs no utilizadas
 

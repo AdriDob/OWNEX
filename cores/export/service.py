@@ -155,7 +155,7 @@ def export_report(report_id: int, fmt: str) -> tuple[str | bytes, str]:
         "txt": ("text/plain", ".txt"),
     }
     mime, ext = mime_map[fmt]
-    return result, mime
+    return result, mime  # type: ignore[return-value]
 
 
 def _get_report_versions(report_id: int) -> list[dict[str, Any]]:

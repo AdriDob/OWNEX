@@ -448,7 +448,7 @@ class ProviderRegistry:
             logger.info("Gemini provider unavailable, trying alternatives")
         # 2. Try Ollama (local)
         if ptype in ("ollama", "gemini"):
-            p = OllamaProvider(
+            p = OllamaProvider(  # type: ignore[assignment]
                 host=cfg.get("ollama_host", "http://localhost:11434"),
                 model=cfg.get("ollama_model", "freehuntx/qwen3-coder:8b"),
             )
@@ -456,7 +456,7 @@ class ProviderRegistry:
                 return p
             logger.info("Ollama provider unavailable, trying alternatives")
         # 3. Try OpenAI-compatible
-        p = OpenAICompatibleProvider(
+        p = OpenAICompatibleProvider(  # type: ignore[assignment]
             api_key=cfg.get("api_key", ""),
             base_url=cfg.get("api_base", "https://api.openai.com/v1"),
             model=cfg.get("llm_model", "gpt-4o-mini"),

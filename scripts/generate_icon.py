@@ -87,7 +87,7 @@ def _create_ico(png_sizes: list[int]) -> bytes:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate CATEYE icon (.ico)")
-    parser.add_argument("--output", default="installer/icons/orion.ico", help="Output path")
+    parser.add_argument("--output", default="installer/icons/cateye.ico", help="Output path")
     parser.add_argument("--sizes", nargs="+", type=int, default=[16, 32, 48, 64, 128, 256],
                         help="Icon sizes to include")
     args = parser.parse_args()

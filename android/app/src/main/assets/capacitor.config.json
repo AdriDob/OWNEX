@@ -1,5 +1,5 @@
 {
-	"appId": "co.catseye.app",
+	"appId": "ai.CATEYE.app",
 	"appName": "CATEYE",
 	"webDir": "frontend/dist",
 	"server": {

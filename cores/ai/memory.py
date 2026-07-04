@@ -68,9 +68,9 @@ def get_recent_interactions(limit: int = 10) -> list[dict[str, Any]]:
             .limit(limit)
             .all()
         )
-        result = []
+        result: list[dict[str, Any]] = []
         for r in records:
-            details = {}
+            details: dict[str, Any] = {}
             try:
                 details = json.loads(r.details) if r.details else {}
             except (json.JSONDecodeError, TypeError):

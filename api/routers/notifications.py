@@ -46,20 +46,20 @@ async def set_notification_preferences(request: Request):
     """Set per-channel notification preferences.
     Persisted to the investigator profile.
 
-    Body: { "channel": "desktop"|"web"|"mobile"|"email"|"fcm", "enabled": bool }
+    Body: { "channel": "desktop"|"web"|"mobile"|"email"|"fcm"|"whatsapp"|"gmail", "enabled": bool }
     """
     body = await request.json()
     channel = body.get("channel")
     enabled = body.get("enabled", True)
 
-    valid_channels = ["desktop", "web", "mobile", "email", "fcm"]
+    valid_channels = ["desktop", "web", "mobile", "email", "fcm", "whatsapp", "gmail"]
     if channel not in valid_channels:
         return error(f"Invalid channel: {channel}. Valid: {', '.join(valid_channels)}", version="1.0")
 
     try:
         from cores.learning.profile import get_profile_service
         profile = get_profile_service()
-        prefs = profile.get_stats().get("notification_preferences", {})
+        prefs = profile.get_stats().get("notification_preferences", {})  # type: ignore[call-arg]
         prefs[f"channel_{channel}"] = enabled
 
         session = db.SessionLocal()

@@ -64,11 +64,11 @@ def list_targets(skip: int = 0, limit: int = 100, sort_by: str = "name", sort_or
         target_ids = [t.id for t in targets]
 
         # Batch-load endpoints and findings for all targets
-        all_endpoints = {tid: [] for tid in target_ids}
+        all_endpoints: dict[int, list[Any]] = {tid: [] for tid in target_ids}
         for ep in session.query(models.Endpoint).filter(models.Endpoint.target_id.in_(target_ids)).all():
             all_endpoints.setdefault(ep.target_id, []).append(ep)
 
-        all_findings = {tid: [] for tid in target_ids}
+        all_findings: dict[int, list[Any]] = {tid: [] for tid in target_ids}
         for f in session.query(models.Finding).filter(models.Finding.target_id.in_(target_ids)).all():
             all_findings.setdefault(f.target_id, []).append(f)
 
@@ -331,10 +331,10 @@ def list_opportunities(skip: int = 0, limit: int = 200, sort_by: str = "roi", so
             return [], 0
 
         target_ids = [t.id for t in targets]
-        all_endpoints = {tid: [] for tid in target_ids}
+        all_endpoints: dict[int, list[Any]] = {tid: [] for tid in target_ids}
         for ep in session.query(models.Endpoint).filter(models.Endpoint.target_id.in_(target_ids)).all():
             all_endpoints.setdefault(ep.target_id, []).append(ep)
-        all_findings = {tid: [] for tid in target_ids}
+        all_findings: dict[int, list[Any]] = {tid: [] for tid in target_ids}
         for f in session.query(models.Finding).filter(models.Finding.target_id.in_(target_ids)).all():
             all_findings.setdefault(f.target_id, []).append(f)
         intel_map = {}
@@ -394,7 +394,7 @@ def get_attack_surfaces() -> dict[str, list[dict[str, Any]]]:
     session = _get_session()
     try:
         endpoints = session.query(models.Endpoint).all()
-        groups = {}
+        groups: dict[str, list[dict[str, Any]]] = {}
         _score_cache: dict[tuple[str, str], dict[str, Any]] = {}
         for ep in endpoints:
             cache_key = (ep.path or "/", ep.method or "GET")
@@ -428,7 +428,7 @@ def get_attack_surfaces() -> dict[str, list[dict[str, Any]]]:
 def get_pipeline_stages() -> dict[str, list[dict[str, Any]]]:
     session = _get_session()
     try:
-        stages = {"detected": [], "validated": [], "confirmed": [], "reported": []}
+        stages: dict[str, list[dict[str, Any]]] = {"detected": [], "validated": [], "confirmed": [], "reported": []}
         findings = session.query(models.Finding).all()
         verdicts = session.query(models.Verdict).all()
 
@@ -449,7 +449,7 @@ def get_pipeline_stages() -> dict[str, list[dict[str, Any]]]:
         if endpoint_ids:
             for e in session.query(models.Endpoint).filter(models.Endpoint.id.in_(endpoint_ids)).all():
                 endpoint_map[e.id] = e
-        endpoint_verdicts = {}
+        endpoint_verdicts: dict[int, list[Any]] = {}
         for v in verdicts:
             if v.endpoint_id:
                 endpoint_verdicts.setdefault(v.endpoint_id, []).append(v)

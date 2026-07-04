@@ -12,6 +12,7 @@ __pycache__/
 # Database
 /database/*.db
 test_rastro.db
+test_cateye.db
 
 # Frontend
 frontend/node_modules/

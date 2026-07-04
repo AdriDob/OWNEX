@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ──────────────────────────────────────────────────────────────────────────────
-# ORION Tool Installer — single command to install every tool in the stack.
+# CATEYE Tool Installer — single command to install every tool in the stack.
 # Detects OS, installs missing tools, updates existing ones, validates PATH.
 # ──────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
@@ -25,7 +25,7 @@ log_info(){ echo -e "  ${CYAN}→${NC} $1"; }
 
 echo -e "${CYAN}"
 echo "  ╔══════════════════════════════════════════════════╗"
-echo "  ║        ORION — Tool Installation Script          ║"
+echo "  ║        CATEYE — Tool Installation Script          ║"
 echo "  ╚══════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
@@ -169,7 +169,7 @@ done
 
 echo ""
 if [ "$FAIL" -eq 0 ] && [ "$WARN" -lt 3 ]; then
-    echo -e "  ${GREEN}ORION tool stack ready.${NC}"
+    echo -e "  ${GREEN}CATEYE tool stack ready.${NC}"
 elif [ "$FAIL" -gt 0 ]; then
     echo -e "  ${YELLOW}Some tools failed. Manual install may be needed.${NC}"
 fi

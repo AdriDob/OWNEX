@@ -70,5 +70,5 @@ def collect_evidence(
 
     session.commit()
     ctx.evidence_ids = evidence_ids
-    ctx.stage = PipelineStage.EVIDENCE_COLLECTED
+    ctx.stage = PipelineStage.EVIDENCE
     return ctx

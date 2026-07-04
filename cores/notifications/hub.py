@@ -54,7 +54,7 @@ ChannelHandler = Callable[[str, dict[str, Any]], None]
 
 @dataclass
 class Notification:
-    """A single notification event."""
+    """A single notification event with enhanced metadata for platform tracking."""
     id: str
     type: str
     title: str
@@ -65,7 +65,22 @@ class Notification:
     metadata: dict[str, Any] = field(default_factory=dict)
     channels: list[str] = field(default_factory=lambda: ["web"])
     dedup_key: str | None = None
-    db_id: int | None = None  # set after persistence
+    db_id: int | None = None
+    platform: str | None = None
+    external_id: str | None = None
+    thread_id: str | None = None
+    conversation_id: str | None = None
+    ai_response_generated: bool = False
+    manual_review_required: bool = False
+    archived: bool = False
+    starred: bool = False
+    tags: list[str] = field(default_factory=list)
+    replies: list[dict[str, Any]] = field(default_factory=list)
+    related_items: list[dict[str, Any]] = field(default_factory=list)
+    actions_taken: list[dict[str, Any]] = field(default_factory=list)
+    ai_context: dict[str, Any] = field(default_factory=dict)
+    ui_hints: dict[str, Any] = field(default_factory=dict)
+    history: list[dict[str, Any]] = field(default_factory=list)
 
 
 class NotificationHub:
