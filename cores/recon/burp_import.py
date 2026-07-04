@@ -38,41 +38,41 @@ def parse_burp_xml(path: Path) -> list[BurpItem]:
     for item in root.iter("item"):
         try:
             url_el = item.find("url")
-            url = url_el.text if url_el is not None else ""
+            url = (url_el.text or "") if url_el is not None else ""
 
             host_el = item.find("host")
-            host_text = host_el.text if host_el is not None else ""
+            host_text = (host_el.text or "") if host_el is not None else ""
             host_el.get("ip", "") if host_el is not None else ""
 
             port_el = item.find("port")
-            port = int(port_el.text) if port_el is not None else 0
+            port = int(port_el.text or "0") if port_el is not None else 0
 
             protocol_el = item.find("protocol")
-            protocol = protocol_el.text if protocol_el is not None else "http"
+            protocol = (protocol_el.text or "") if protocol_el is not None else "http"
 
             method_el = item.find("method")
-            method = method_el.text if method_el is not None else "GET"
+            method = (method_el.text or "") if method_el is not None else "GET"
 
             path_el = item.find("path")
-            path_text = path_el.text if path_el is not None else ""
+            path_text = (path_el.text or "") if path_el is not None else ""
 
             status_el = item.find("status")
-            status = int(status_el.text) if status_el is not None else 0
+            status = int(status_el.text or "0") if status_el is not None else 0
 
             length_el = item.find("length")
-            length = int(length_el.text) if length_el is not None else 0
+            length = int(length_el.text or "0") if length_el is not None else 0
 
             mime_el = item.find("mimetype")
-            mime = mime_el.text if mime_el is not None else ""
+            mime = (mime_el.text or "") if mime_el is not None else ""
 
             req_el = item.find("request")
-            request = req_el.text if req_el is not None else ""
+            request = (req_el.text or "") if req_el is not None else ""
 
             resp_el = item.find("response")
-            response = resp_el.text if resp_el is not None else ""
+            response = (resp_el.text or "") if resp_el is not None else ""
 
             comment_el = item.find("comment")
-            comment = comment_el.text if comment_el is not None else ""
+            comment = (comment_el.text or "") if comment_el is not None else ""
 
             burp_item = BurpItem(
                 url=url,

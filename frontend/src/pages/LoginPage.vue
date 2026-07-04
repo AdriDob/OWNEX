@@ -69,10 +69,9 @@ onMounted(async () => {
     <div class="relative w-full max-w-sm">
       <!-- Logo -->
       <div class="mb-8 text-center stagger-item" style="--i: 0">
-        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20 pulse-ring">
-          <span class="font-display text-2xl font-bold text-primary">O</span>
+        <div class="mx-auto mb-4 flex items-center justify-center">
+          <img src="/logo-small.svg" alt="CATEYE" class="h-12 w-auto" />
         </div>
-        <h1 class="font-display text-xl font-bold tracking-tight text-foreground">CATEYE</h1>
         <p class="mt-1 text-xs text-muted-foreground">Investigación de bug bounty automatizada</p>
       </div>
 

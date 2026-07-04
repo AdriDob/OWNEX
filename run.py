@@ -39,7 +39,7 @@ if hasattr(sys.stderr, "reconfigure"):
 # Set DATABASE_URL before any import that touches database/db.py
 # (core_engines.intelligence imports it at module level)
 if not os.environ.get("DATABASE_URL"):
-    _db_path = Path.home() / "AppData" / "Local" / "CATEYE" / "database" / "orion.db"
+    _db_path = Path.home() / "AppData" / "Local" / "CATEYE" / "database" / "cateye.db"
     _db_path.parent.mkdir(parents=True, exist_ok=True)
     os.environ["DATABASE_URL"] = f"sqlite:///{_db_path}"
 

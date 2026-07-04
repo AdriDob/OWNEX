@@ -1,7 +1,6 @@
 """Nuclei wrapper — vulnerability scanning."""
 import json
 import logging
-from datetime import datetime, timezone
 
 from cores.tools.base import BaseTool, UnifiedResult
 
@@ -67,7 +66,6 @@ class NucleiTool(BaseTool):
                 data = json.loads(line)
                 host = data.get("host", data.get("matched-at", ""))
                 template_id = data.get("template-id", "")
-                template_name = data.get("template", template_id)
                 severity = data.get("info", {}).get("severity", "info").lower()
                 name = data.get("info", {}).get("name", template_id)
                 description = data.get("info", {}).get("description", "")

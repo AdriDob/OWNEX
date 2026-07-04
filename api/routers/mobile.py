@@ -1,4 +1,5 @@
 import json
+from typing import Any
 
 from fastapi import APIRouter, Query, Request
 
@@ -33,16 +34,16 @@ async def mobile_opportunities(
 ):
     """Lightweight opportunity list for mobile."""
     opp_engine = get_engine()
-    opportunities = opp_engine.get_opportunities(limit=limit, offset=offset)
+    opportunities = opp_engine.get_all()
 
     items = [
         {
-            "id": o.get("id"),
-            "name": o.get("name"),
-            "category": o.get("category", "general"),
-            "priority": o.get("priority", "medium"),
-            "score": o.get("score", 0),
-            "estimated_payout": o.get("estimated_payout", 0),
+            "id": o.id,
+            "name": o.name,
+            "category": o.category,
+            "priority": o.priority or "medium",
+            "score": o.score.overall if o.score else 0,
+            "estimated_payout": o.estimated_payout,
         }
         for o in opportunities
     ]
@@ -103,7 +104,7 @@ async def mobile_notifications(limit: int = Query(20, ge=1, le=100)):
 @router.get("/search")
 async def mobile_search(q: str = Query("", min_length=1)):
     """Unified search across targets, opportunities, and findings."""
-    results = {"targets": [], "opportunities": [], "findings": []}
+    results: dict[str, list[dict[str, Any]]] = {"targets": [], "opportunities": [], "findings": []}
 
     # Search targets
     rows = db.query(
@@ -114,10 +115,10 @@ async def mobile_search(q: str = Query("", min_length=1)):
 
     # Search opportunities
     opp_engine = get_engine()
-    all_opps = opp_engine.get_opportunities(limit=50)
-    matched = [o for o in all_opps if q.lower() in o.get("name", "").lower()]
+    all_opps = opp_engine.get_all()
+    matched = [o for o in all_opps if q.lower() in o.name.lower()]
     results["opportunities"] = [
-        {"id": o.get("id"), "name": o.get("name"), "category": o.get("category", "general")}
+        {"id": o.id, "name": o.name, "category": o.category}
         for o in matched[:10]
     ]
 

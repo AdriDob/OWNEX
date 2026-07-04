@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 from .base import BaseTool, ToolResult, UnifiedResult
-from .httpx import HttpxTool
-from .nuclei import NucleiTool
-from .subfinder import SubfinderTool
 from .extra import (
+    TOOL_REGISTRY,
     DalfoxTool,
     FfufTool,
     GauTool,
@@ -12,8 +10,10 @@ from .extra import (
     LinkFinderTool,
     SqlmapTool,
     TruffleHogTool,
-    TOOL_REGISTRY,
 )
+from .httpx import HttpxTool
+from .nuclei import NucleiTool
+from .subfinder import SubfinderTool
 
 __all__ = [
     "BaseTool",

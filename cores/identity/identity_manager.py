@@ -83,12 +83,14 @@ class IdentityManager:
     def update_preferences(self, prefs: dict[str, Any]) -> None:
         if not self._identity:
             self.ensure_identity()
+        assert self._identity is not None
         self._identity.preferences.update(prefs)
         self._save_identity()
 
     def update_context(self, context: dict[str, Any]) -> None:
         if not self._identity:
             self.ensure_identity()
+        assert self._identity is not None
         self._identity.last_active_context.update(context)
         self._identity.last_active_context["updated_at"] = time.time()
         self._save_identity()
@@ -96,16 +98,19 @@ class IdentityManager:
     def get_context(self) -> dict[str, Any]:
         if not self._identity:
             self.ensure_identity()
+        assert self._identity is not None
         return dict(self._identity.last_active_context)
 
     def get_preferences(self) -> dict[str, Any]:
         if not self._identity:
             self.ensure_identity()
+        assert self._identity is not None
         return dict(self._identity.preferences)
 
     def set_display_name(self, name: str) -> None:
         if not self._identity:
             self.ensure_identity()
+        assert self._identity is not None
         self._identity.display_name = name
         self._save_identity()
 
@@ -113,6 +118,7 @@ class IdentityManager:
 
     def link_device(self, device_id: str, device_info: dict[str, Any]) -> None:
         self.ensure_identity(device_id)
+        assert self._identity is not None
         self._device_registry.update_device_info(device_id, device_info)
         self._identity.device_count = len(self._device_registry.get_devices(self._identity.user_id))
 

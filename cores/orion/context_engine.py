@@ -1,4 +1,4 @@
-"""OrionContextEngine — aggregates system state into a unified decision context.
+"""CATEYE Context Engine — aggregates system state into a unified decision context.
 
 Combines opportunities, assistant insights, pipeline state, and daily briefing
 into a single response that answers "What should I do next?"
@@ -13,7 +13,7 @@ from typing import Any
 from cores.opportunity import get_engine as get_opp_engine
 from cores.opportunity.models import Opportunity, OpportunityRecommendations
 
-logger = logging.getLogger("catseye.orion.context")
+logger = logging.getLogger("catseye.cateye.context")
 
 
 def _opp_to_preview(opp: Opportunity) -> dict[str, Any]:
@@ -21,12 +21,12 @@ def _opp_to_preview(opp: Opportunity) -> dict[str, Any]:
     score = opp.score
     return {
         "id": opp.id,
-        "title": opp.title or opp.name,
+        "title": opp.name,
         "source": opp.source.name if opp.source else "unknown",
         "url": opp.source.url if opp.source else "",
-        "category": opp.category.value if opp.category else "general",
+        "category": opp.category if opp.category else "general",
         "priority": opp.priority or "medium",
-        "reward": f"${score.reward_range_max}" if score and score.reward_range_max else "Unknown",
+        "reward": f"${score.reward_potential}" if score and score.reward_potential else "Unknown",
         "effort": _effort_label(opp),
         "reason": _pick_reason(opp),
         "evh": round(score.evh.value, 2) if score and score.evh else None,
@@ -53,9 +53,10 @@ def _pick_reason(opp: Opportunity) -> str:
         return "Review this opportunity"
     if score.evh and score.evh.value and score.evh.value > 50:
         return "High value per hour — efficient use of time"
-    if score.competition_score and score.competition_score > 0.7:
+    if score.competition_estimate and score.competition_estimate > 0.7:
         return "Low competition — higher chance of success"
-    if score.reward_score and score.reward_score > 0.7:
+    reward_val = score.breakdown.reward_score if score.breakdown else score.reward_potential
+    if reward_val and reward_val > 0.7:
         return "High reward potential"
     return "Promising opportunity worth reviewing"
 
@@ -137,8 +138,8 @@ def _build_summary(
 
 
 def get_context() -> dict[str, Any]:
-    """Return the unified ORION context for the frontend."""
-    logger.info("[Orion] get_context called")
+    """Return the unified CATEYE context for the frontend."""
+    logger.info("[CATEYE] get_context called")
 
     from cores.orion.next_action import get_next_action
 
@@ -150,7 +151,7 @@ def get_context() -> dict[str, Any]:
     try:
         recommendations = engine.get_recommendations()
     except Exception:
-        logger.warning("[Orion] failed to get recommendations", exc_info=True)
+        logger.warning("[CATEYE] failed to get recommendations", exc_info=True)
 
     opportunities: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
@@ -182,7 +183,7 @@ def get_context() -> dict[str, Any]:
                     if len(opportunities) >= 5:
                         break
         except Exception:
-            logger.warning("[Orion] failed to list all opportunities", exc_info=True)
+            logger.warning("[CATEYE] failed to list all opportunities", exc_info=True)
 
     summary = _build_summary(next_action, opportunities, progress)
 

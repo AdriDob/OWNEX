@@ -43,7 +43,7 @@ CATEYE es un sistema de inteligencia artificial diseñado para automatizar el ci
 ## 2. Estructura del Proyecto
 
 ```
-Rastro/
+CATEYE/
 ├── SYSTEM.md                  ← Este documento
 ├── run.py                     ← Launcher state machine (modos: browser, tray, service, safe-mode)
 ├── .env                       ← Variables de entorno (OLLAMA_HOST, API keys, etc.)
@@ -207,7 +207,7 @@ OPENROUTER_API_KEY=sk-or-...
 OPENROUTER_MODEL=openai/gpt-4o-mini
 
 # Base de datos
-DATABASE_URL=sqlite:///.orion/database/orion.db
+DATABASE_URL=sqlite:///.cateye/database/cateye.db
 
 # Escáner
 SCAN_TIMEOUT=600

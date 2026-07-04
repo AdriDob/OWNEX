@@ -382,7 +382,7 @@ class QuickWinsEngine:
                 entry_endpoint=win.endpoint_path,
                 entry_method=win.endpoint_method,
                 chain_length=len(evidence_steps),
-                vulnerability_type=win.reason.split("—")[-1].strip() if "—" in win.reason else "unknown",
+                vulnerability_type=win.reasoning.split("—")[-1].strip() if "—" in win.reasoning else "unknown",
                 payout_likelihood=win.quick_win_score,
                 evidence_steps=evidence_steps[:5],
                 impact_summary=win.reasoning,

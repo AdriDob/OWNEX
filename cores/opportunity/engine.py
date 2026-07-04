@@ -154,8 +154,8 @@ class OpportunityEngine:
     def get_evh_rankings(self, limit: int = 20) -> list[Opportunity]:
         """Return opportunities ranked by EVH descending."""
         sorted_opps = sorted(
-            [o for o in self._opportunities.values() if o.score and o.score.evh],
-            key=lambda o: o.score.evh.value if o.score.evh else 0,
+            [o for o in self._opportunities.values() if o.score is not None and o.score.evh is not None],
+            key=lambda o: o.score.evh.value if o.score and o.score.evh else 0,
             reverse=True,
         )
         return sorted_opps[:limit]
@@ -226,7 +226,7 @@ class OpportunityEngine:
     def get_metrics(self) -> dict[str, Any]:
         all_opps = self.get_all()
         scored = [o for o in all_opps if o.score is not None]
-        avg_score = sum(s.score.overall for s in scored) / max(len(scored), 1) if scored else 0.0
+        avg_score: float = sum(s.score.overall for s in scored if s.score is not None) / max(len(scored), 1) if scored else 0.0
 
         evh_rankings = self.get_evh_rankings(10)
         evh_top_avg = 0.0
@@ -268,6 +268,22 @@ class OpportunityEngine:
 
     def get_history(self, period: str | None = None, limit: int = 30) -> list[OpportunitySnapshot]:
         return self._history.get_snapshots(period, limit)
+
+    def get_trends(self) -> dict[str, Any]:
+        return self._history.get_trends()
+
+    def get_top_opportunities(self, limit: int = 10) -> list[dict[str, Any]]:
+        return [
+            {
+                "id": o.id,
+                "name": o.name,
+                "platform": o.source.name,
+                "payout": o.estimated_payout,
+                "evh": o.score.evh.value if o.score and o.score.evh else 0,
+                "priority": o.priority or "medium",
+            }
+            for o in self.get_all()[:limit]
+        ]
 
 
 def get_engine() -> OpportunityEngine:

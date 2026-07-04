@@ -66,7 +66,7 @@ def save_settings_batch(body: SettingsBatch) -> dict[str, Any]:
     except Exception as exc:
         session.rollback()
         logger.error("Failed to save settings batch: %s", exc)
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
     finally:
         session.close()
 

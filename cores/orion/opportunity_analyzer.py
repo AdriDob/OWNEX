@@ -12,7 +12,7 @@ from typing import Any
 from cores.opportunity import get_engine as get_opp_engine
 from cores.opportunity.models import Opportunity
 
-logger = logging.getLogger("catseye.orion.analyzer")
+logger = logging.getLogger("catseye.cateye.analyzer")
 
 
 def _category_guide(cat: str) -> list[dict[str, str]]:
@@ -44,10 +44,10 @@ def _category_guide(cat: str) -> list[dict[str, str]]:
 def _generate_analysis(opp: Opportunity) -> dict[str, Any]:
     """Generate a full analysis report for a single opportunity."""
     score = opp.score
-    cat = opp.category.value if opp.category else "general"
+    cat = opp.category if opp.category else "general"
 
-    max_r = score.reward_range_max if score else None
-    min_r = score.reward_range_min if score else None
+    max_r = score.reward_potential if score else None
+    min_r = 0 if score else None
     if max_r and min_r:
         reward_str = f"${min_r} - ${max_r}"
     elif max_r:
@@ -67,14 +67,14 @@ def _generate_analysis(opp: Opportunity) -> dict[str, Any]:
 
     return {
         "opportunity_id": opp.id,
-        "title": opp.title or opp.name,
+        "title": opp.name,
         "source_url": opp.source.url if opp.source else "",
         "category": cat,
         "priority": opp.priority or "medium",
         "reward_estimate": reward_str,
         "effort": effort_str,
         "evh": round(evh_val, 2) if evh_val else None,
-        "summary": f"{opp.title or opp.name} — a {cat} opportunity from {opp.source.name if opp.source else 'unknown source'}.",
+        "summary": f"{opp.name} — a {cat} opportunity from {opp.source.name if opp.source else 'unknown source'}.",
         "why_it_matters": _generate_why_matters(opp),
         "steps": _generate_steps(opp, cat),
         "learning_resources": _category_guide(cat),
@@ -86,9 +86,9 @@ def _generate_why_matters(opp: Opportunity) -> str:
     """Explain why this opportunity matters in plain language."""
     score = opp.score
     parts = []
-    if score and score.reward_range_max:
-        parts.append(f"Potential reward up to ${score.reward_range_max}.")
-    cat = opp.category.value if opp.category else "general"
+    if score and score.reward_potential:
+        parts.append(f"Potential reward up to ${score.reward_potential}.")
+    cat = opp.category if opp.category else "general"
     parts.append(f"This is a {cat}-based opportunity.")
     if score and getattr(score, "competition_score", 0) > 0.6:
         parts.append("Competition is low, increasing your chances.")
@@ -98,10 +98,10 @@ def _generate_why_matters(opp: Opportunity) -> str:
     return " ".join(parts)
 
 
-def _generate_steps(opp: Opportunity, cat: str) -> list[dict[str, str]]:
+def _generate_steps(opp: Opportunity, cat: str) -> list[dict[str, object]]:
     """Generate actionable steps for this opportunity."""
     steps = [
-        {"step": 1, "title": "Review opportunity scope", "description": f"Read the full scope and rules for {opp.title or opp.name}. Understand what is in and out of scope."},
+        {"step": 1, "title": "Review opportunity scope", "description": f"Read the full scope and rules for {opp.name}. Understand what is in and out of scope."},
         {"step": 2, "title": "Set up your environment", "description": "Prepare your tools: browser, proxies, and any required accounts."},
     ]
     if cat in ("web", "api"):
@@ -136,18 +136,18 @@ def analyze_opportunity(opportunity_id: str) -> dict[str, Any] | None:
 
     Returns a dict with analysis report, or None if not found.
     """
-    logger.info("[Orion] analyze_opportunity: %s", opportunity_id)
+    logger.info("[CATEYE] analyze_opportunity: %s", opportunity_id)
     try:
         engine = get_opp_engine()
         opp = engine.get_by_id(opportunity_id)
     except Exception as exc:
-        logger.warning("[Orion] failed to get opportunity %s: %s", opportunity_id, exc)
+        logger.warning("[CATEYE] failed to get opportunity %s: %s", opportunity_id, exc)
         return None
 
     if not opp:
-        logger.warning("[Orion] opportunity not found: %s", opportunity_id)
+        logger.warning("[CATEYE] opportunity not found: %s", opportunity_id)
         return None
 
     analysis = _generate_analysis(opp)
-    logger.info("[Orion] analysis generated for %s", opportunity_id)
+    logger.info("[CATEYE] analysis generated for %s", opportunity_id)
     return analysis

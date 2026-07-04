@@ -49,6 +49,10 @@ def fail(msg: str) -> None:
     print(f"  \u2717 {msg}")
 
 
+def skip(msg: str) -> None:
+    print(f"  \u2192 {msg}")
+
+
 def http_get(url: str, timeout: float = 5.0) -> tuple[int, str]:
     try:
         resp = urllib.request.urlopen(url, timeout=timeout)

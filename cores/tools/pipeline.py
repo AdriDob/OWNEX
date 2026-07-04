@@ -1,34 +1,34 @@
 """Unified scan pipeline — chains tools together with LLM correlation.
 
 Flow:
-  1. Subfinder  → subdomain enumeration
-  2. httpx      → live endpoint probing
-  3. Katana     → endpoint crawling
-  4. Gau        → historical URL discovery
-  5. LinkFinder → JS endpoint extraction
-  6. ffuf       → fuzz path discovery
-  7. Dalfox     → XSS candidate scanning
-  8. Sqlmap     → SQLi candidate scanning
-  9. Nuclei     → vulnerability scanning
- 10. LLM        → correlation + intelligence
- 11. Validation → differential testing
- 12. Report     → generation
+   1. Subfinder  → subdomain enumeration
+   2. httpx      → live endpoint probing
+   3. Katana     → endpoint crawling
+   4. Gau        → historical URL discovery
+   5. LinkFinder → JS endpoint extraction
+   6. ffuf       → fuzz path discovery (deep: raft-large + api + subdomain profiles)
+   7. Mutation   → smart mutation engine (encoding bypass, HPP, type confusion, WAF bypass)
+   8. Dalfox     → XSS deep scanning (DOM + mining + follow-redirects) + mutated payloads
+   9. Sqlmap     → SQLi aggressive (level 3, risk 2, time-based, custom tamper scripts)
+  10. Nuclei     → vulnerability scanning (all templates)
+  11. ZAP        → active scan (SQLi, XSS, SSRF, path traversal, etc.)
+  12. Headless   → Playwright DOM XSS + SPA crawling
+  13. LLM        → correlation + intelligence
+  14. Validation → differential testing
+  15. Report     → generation
 
 Each step feeds into the next. Results are correlated across tools.
 """
 
 from __future__ import annotations
 
-import json
+import asyncio
 import logging
 from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any
 
-from cores.tools.base import BaseTool, UnifiedResult
-from cores.tools.httpx import HttpxTool
-from cores.tools.nuclei import NucleiTool
-from cores.tools.subfinder import SubfinderTool
+from cores.tools.base import UnifiedResult
 from cores.tools.extra import (
     DalfoxTool,
     FfufTool,
@@ -37,6 +37,16 @@ from cores.tools.extra import (
     LinkFinderTool,
     SqlmapTool,
 )
+from cores.tools.httpx import HttpxTool
+from cores.tools.nuclei import NucleiTool
+from cores.tools.subfinder import SubfinderTool
+
+try:
+    from cores.execution.mutation_engine import SmartMutationEngine
+    HAS_MUTATION_ENGINE = True
+except ImportError:
+    HAS_MUTATION_ENGINE = False
+    SmartMutationEngine = None  # type: ignore
 
 
 logger = logging.getLogger("catseye.pipeline.unified")
@@ -156,7 +166,9 @@ class UnifiedScanner:
         dalfox: DalfoxTool | None = None,
         sqlmap: SqlmapTool | None = None,
         linkfinder: LinkFinderTool | None = None,
+        mutation: Any | None = None,
         correlation: CorrelationEngine | None = None,
+        deep_scan: bool = True,
     ):
         self._subfinder = subfinder or SubfinderTool()
         self._httpx = httpx or HttpxTool()
@@ -167,7 +179,9 @@ class UnifiedScanner:
         self._dalfox = dalfox or DalfoxTool()
         self._sqlmap = sqlmap or SqlmapTool()
         self._linkfinder = linkfinder or LinkFinderTool()
+        self._mutation = mutation or (SmartMutationEngine() if HAS_MUTATION_ENGINE else None)
         self._correlation = correlation or CorrelationEngine()
+        self._deep_scan = deep_scan
 
     def scan_domain(
         self,
@@ -253,20 +267,48 @@ class UnifiedScanner:
         ffuf_results = []
         if self._ffuf.is_available() and live_endpoints:
             fuzz_target = live_endpoints[0].target
-            logger.info("Phase 6: ffuf — fuzzing %s", fuzz_target)
-            ffuf_results = self._ffuf.discover_paths(fuzz_target, profile="fast")
+            profile = "balanced" if self._deep_scan else "fast"
+            logger.info("Phase 6: ffuf — fuzzing %s (profile=%s)", fuzz_target, profile)
+            ffuf_results = self._ffuf.discover_paths(fuzz_target, profile=profile)
             all_results.extend(ffuf_results)
-            logger.info("  ffuf returned %d fuzz discoveries", len(ffuf_results))
+            logger.info("  ffuf returned %d fuzz discoveries (deep=%s)", len(ffuf_results), self._deep_scan)
         else:
             logger.warning("  ffuf not available or no live endpoints")
 
-        # Phase 7: XSS scanning with Dalfox
+        # Phase 7: Mutation engine — generate encoded / type-confused / HPP variants
+        mutation_plan = None
+        if self._mutation and self._deep_scan:
+            logger.info("Phase 7: Mutation — generating mutation variants")
+            try:
+                candidate_urls = [r.target for r in live_endpoints + linkfinder_results + ffuf_results if "?" in r.target]
+                mutation_plan = self._mutation.plan(url=candidate_urls[0] if candidate_urls else domain)
+                mutation_metadata = self._mutation.enrich_evidence(mutation_plan)
+                all_results.append(UnifiedResult(
+                    source="mutation_engine",
+                    target=domain,
+                    result_type="mutation_metadata",
+                    confidence=1.0,
+                    name=f"Mutation plan: {mutation_plan.attack_vector} ({len(mutation_plan.variants)} variants)",
+                    evidence=mutation_metadata,
+                    tags=["mutation", mutation_plan.attack_vector],
+                ))
+                logger.info("  Mutation engine: %s vector, %d variants (%s)",
+                            mutation_plan.attack_vector, len(mutation_plan.variants),
+                            ", ".join(mutation_metadata.get("strategies", {})))
+            except Exception as exc:
+                logger.warning("  Mutation engine failed: %s", exc)
+        else:
+            logger.info("  Mutation engine skipped (deep=%s or not available)", self._deep_scan)
+
+        # Phase 8: XSS deep scanning with Dalfox (with mutation plan)
         dalfox_results = []
         if self._dalfox.is_available():
-            xss_candidates = [r.target for r in live_endpoints + linkfinder_results if "?" in r.target][:20]
+            xss_candidates = [r.target for r in live_endpoints + linkfinder_results + ffuf_results if "?" in r.target]
+            limit = 100 if self._deep_scan else 20
+            xss_candidates = xss_candidates[:limit]
             if xss_candidates:
-                logger.info("Phase 7: Dalfox — scanning %d URL candidates", len(xss_candidates))
-                dalfox_results = self._dalfox.scan_urls(xss_candidates)
+                logger.info("Phase 8: Dalfox — deep scanning %d URL candidates (deep=%s)", len(xss_candidates), self._deep_scan)
+                dalfox_results = self._dalfox.scan_urls(xss_candidates, deep=self._deep_scan, mutation_plan=mutation_plan)
                 all_results.extend(dalfox_results)
                 logger.info("  Dalfox returned %d findings", len(dalfox_results))
             else:
@@ -274,14 +316,23 @@ class UnifiedScanner:
         else:
             logger.warning("  dalfox not available")
 
-        # Phase 8: SQLi scanning with sqlmap
+        # Phase 9: SQLi aggressive scanning with sqlmap (with custom tamper from mutation engine)
         sqlmap_results = []
         if self._sqlmap.is_available():
-            sqli_candidates = [r.target for r in live_endpoints + linkfinder_results if "?" in r.target][:10]
+            sqli_candidates = [r.target for r in live_endpoints + linkfinder_results + ffuf_results if "?" in r.target]
+            limit = 50 if self._deep_scan else 10
+            sqli_candidates = sqli_candidates[:limit]
             if sqli_candidates:
-                logger.info("Phase 8: sqlmap — scanning %d query endpoints", len(sqli_candidates))
-                for target_url in sqli_candidates:
-                    sqlmap_results.extend(self._sqlmap.scan_url(target_url))
+                tamper = None
+                if mutation_plan and self._mutation:
+                    tamper = self._mutation.encode_tamper_command(mutation_plan)
+                logger.info("Phase 9: sqlmap — aggressive scanning %d endpoints (deep=%s, tamper=%s)",
+                            len(sqli_candidates), self._deep_scan, tamper or "default")
+                if self._deep_scan:
+                    sqlmap_results = self._sqlmap.scan_urls_batch(sqli_candidates, tamper_scripts=tamper)
+                else:
+                    for target_url in sqli_candidates:
+                        sqlmap_results.extend(self._sqlmap.scan_url(target_url, aggressive=False))
                 all_results.extend(sqlmap_results)
                 logger.info("  sqlmap returned %d findings", len(sqlmap_results))
             else:
@@ -289,7 +340,7 @@ class UnifiedScanner:
         else:
             logger.warning("  sqlmap not available")
 
-        # Phase 9: Vulnerability scanning
+        # Phase 10: Vulnerability scanning
         vulns = []
         if scan_vulns and live_endpoints:
             live_urls = [r.target for r in live_endpoints if r.target.startswith("http")]
@@ -302,8 +353,56 @@ class UnifiedScanner:
                 errors.append("nuclei not available or no live URLs")
                 logger.warning("  nuclei not available or no live URLs")
 
-        # Phase 10: Correlation
-        logger.info("Phase 10: Correlation — cross-referencing %d results", len(all_results))
+        # Phase 11: ZAP active scan (deep mode only)
+        zap_results = []
+        if self._deep_scan and live_endpoints:
+            try:
+                from cores.recon.zap_runner import ZapRunner
+                zap = ZapRunner()
+                health = asyncio.run(zap.health_check())
+                if health.get("running"):
+                    target = live_endpoints[0].target
+                    logger.info("Phase 11: ZAP — active scanning %s", target)
+                    result = asyncio.run(zap.active_scan(target, max_duration=15))
+                    for alert in result.get("alerts", []):
+                        zap_results.append(UnifiedResult(
+                            source="zap_active",
+                            target=alert.get("url", target),
+                            result_type="vulnerability",
+                            severity=alert.get("risk", "medium").lower(),
+                            confidence=0.65,
+                            name=f"ZAP: {alert.get('alert', 'finding')}",
+                            description=alert.get("description", ""),
+                            evidence={"solution": alert.get("solution", ""), "cwe": alert.get("cwe_id", "")},
+                            tags=["zap", "active_scan", alert.get("risk", "").lower()],
+                        ))
+                    all_results.extend(zap_results)
+                    logger.info("  ZAP active scan returned %d alerts", len(zap_results))
+                    asyncio.run(zap.close())
+            except Exception as exc:
+                logger.warning("  ZAP active scan skipped: %s", exc)
+        else:
+            logger.info("  ZAP active scan skipped (deep=%s or no endpoints)", self._deep_scan)
+
+        # Phase 12: Headless DOM scanning (deep mode only)
+        dom_results = []
+        if self._deep_scan and live_endpoints:
+            try:
+                from cores.tools.headless import HeadlessScanner
+                headless = HeadlessScanner()
+                live_urls_list = [r.target for r in live_endpoints[:5] if r.target.startswith("http")]
+                if live_urls_list:
+                    logger.info("Phase 12: Headless — DOM scanning %d URLs", len(live_urls_list))
+                    dom_results = headless.scan_urls(live_urls_list)
+                    all_results.extend(dom_results)
+                    logger.info("  Headless returned %d DOM findings", len(dom_results))
+            except Exception as exc:
+                logger.warning("  Headless DOM scan skipped: %s", exc)
+        else:
+            logger.info("  Headless DOM scan skipped (deep=%s or no endpoints)", self._deep_scan)
+
+        # Phase 13: Correlation
+        logger.info("Phase 13: Correlation — cross-referencing %d results", len(all_results))
         correlated = self._correlation.correlate(all_results)
         logger.info("  Correlated into %d findings", len(correlated))
 

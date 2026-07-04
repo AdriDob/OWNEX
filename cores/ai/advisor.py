@@ -10,10 +10,10 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-logger = logging.getLogger("catseye.ai.advisor")
-
 from cores.ai.context_builder import build_full_context
 from cores.ai.provider import get_provider
+
+logger = logging.getLogger("catseye.ai.advisor")
 
 
 def answer_query(query: str) -> dict[str, Any]:

@@ -10,7 +10,6 @@ Correlation layer later cross-references results across tools.
 
 from __future__ import annotations
 
-import json
 import logging
 import subprocess
 from dataclasses import dataclass, field

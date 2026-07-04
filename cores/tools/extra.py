@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import re
-import shutil
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -13,6 +12,13 @@ from .base import BaseTool, UnifiedResult
 from .httpx import HttpxTool
 from .nuclei import NucleiTool
 from .subfinder import SubfinderTool
+
+try:
+    from cores.execution.mutation_engine import SmartMutationEngine
+    HAS_MUTATION_ENGINE = True
+except ImportError:
+    HAS_MUTATION_ENGINE = False
+    SmartMutationEngine = None  # type: ignore
 
 logger = logging.getLogger("catseye.tools.extra")
 
@@ -265,14 +271,35 @@ class DalfoxTool(BaseTool):
     def scan_urls(
         self,
         urls: list[str],
-        timeout: int = 240,
+        timeout: int = 600,
+        deep: bool = True,
+        mutation_plan: Any = None,
     ) -> list[UnifiedResult]:
         results: list[UnifiedResult] = []
         for url in urls:
-            result = self.run(["-u", url, "--batch", "--json"], timeout=timeout)
+            args = ["-u", url, "--batch", "--json"]
+            if deep:
+                args.extend(["--deep", "--dom", "--mining-dict", "--follow-redirects"])
+            result = self.run(args, timeout=timeout)
             if result.success:
-                results.extend(self._parse_output(result.stdout, url))
+                parsed = self._parse_output(result.stdout, url)
+                # Enrich with mutation metadata
+                if mutation_plan and parsed:
+                    for p in parsed:
+                        p.tags.append("mutated")
+                        p.evidence["mutation"] = str(mutation_plan)
+                results.extend(parsed)
         return results
+
+    def scan_dom(self, url: str, timeout: int = 300) -> list[UnifiedResult]:
+        """DOM-only XSS scanning via Playwright/headless.
+        Dalfox supports --dom flag for DOM-based XSS analysis.
+        """
+        result = self.run(
+            ["-u", url, "--batch", "--json", "--dom", "--deep", "--mining-dict"],
+            timeout=timeout,
+        )
+        return self._parse_output(result.stdout, url)
 
     def _parse_output(self, stdout: str, url: str) -> list[UnifiedResult]:
         findings: list[UnifiedResult] = []
@@ -324,17 +351,67 @@ class SqlmapTool(BaseTool):
     def scan_url(
         self,
         url: str,
-        timeout: int = 300,
+        timeout: int = 600,
+        aggressive: bool = True,
+        tamper_scripts: str | None = None,
     ) -> list[UnifiedResult]:
-        result = self.run(
-            ["-u", url, "--batch", "--level", "1", "--risk", "1"],
-            timeout=timeout,
-        )
+        args = ["-u", url, "--batch"]
+        if aggressive:
+            tamper = tamper_scripts or "between,randomcase,space2comment"
+            args.extend([
+                "--level", "3", "--risk", "2",
+                "--technique", "BEUSTQ",
+                "--time-sec", "3",
+                "--random-agent",
+                "--tamper", tamper,
+            ])
+        else:
+            args.extend(["--level", "1", "--risk", "1"])
+        result = self.run(args, timeout=timeout)
         return self._parse_output(result.stdout, url)
+
+    def scan_urls_batch(
+        self,
+        urls: list[str],
+        timeout: int = 900,
+        tamper_scripts: str | None = None,
+    ) -> list[UnifiedResult]:
+        if not urls:
+            return []
+        tamper = tamper_scripts or "between,randomcase,space2comment"
+        with tempfile.TemporaryDirectory(prefix="sqlmap_") as tmpdir:
+            input_file = Path(tmpdir) / "urls.txt"
+            input_file.write_text("\n".join(urls))
+            output_dir = Path(tmpdir) / "output"
+            result = self.run([
+                "-m", str(input_file),
+                "--batch", "--level", "3", "--risk", "2",
+                "--technique", "BEUSTQ",
+                "--random-agent",
+                "--tamper", tamper,
+                "--output-dir", str(output_dir),
+            ], timeout=timeout)
+            return self._parse_output(result.stdout, urls[0] if urls else "")
 
     def _parse_output(self, stdout: str, url: str) -> list[UnifiedResult]:
         findings: list[UnifiedResult] = []
-        if "is vulnerable" in stdout.lower() or re.search(r"payload.*success", stdout, re.IGNORECASE):
+        if not stdout:
+            return findings
+        lower = stdout.lower()
+        detected = False
+        vuln_type = "SQL Injection"
+        if re.search(r"is vulnerable", lower):
+            detected = True
+        if re.search(r"payload.*success", lower):
+            detected = True
+            vuln_type = "SQL Injection (time-based)"
+        if re.search(r"blind.*sqli|time.*based|blind.*sql", lower):
+            detected = True
+            vuln_type = "SQL Injection (blind)"
+        if re.search(r"error.*based|sql.*error|ora|mysql.*error|postgres.*error", lower):
+            detected = True
+            vuln_type = "SQL Injection (error-based)"
+        if detected:
             findings.append(
                 UnifiedResult(
                     source="sqlmap",
@@ -342,9 +419,9 @@ class SqlmapTool(BaseTool):
                     result_type="vulnerability",
                     severity="high",
                     confidence=0.8,
-                    name=f"SQL Injection: {url}",
-                    evidence={"raw_output": stdout[:1000]},
-                    tags=["sqli", "sqlmap"],
+                    name=f"{vuln_type}: {url}",
+                    evidence={"raw_output": stdout[:1500]},
+                    tags=["sqli", "sqlmap", vuln_type.lower().replace(" ", "_")],
                 )
             )
         return findings
@@ -363,7 +440,6 @@ class TruffleHogTool(BaseTool):
         path: str,
         timeout: int = 240,
     ) -> list[UnifiedResult]:
-        output_file = Path(tempfile.mkdtemp(prefix="trufflehog_")) / "trufflehog.json"
         result = self.run(
             ["filesystem", "--json", path, "--no-update"],
             timeout=timeout,
@@ -389,7 +465,7 @@ class TruffleHogTool(BaseTool):
                     result_type="secret",
                     severity="medium",
                     confidence=0.6,
-                    name=f"TruffleHog secret finding",
+                    name="TruffleHog secret finding",
                     evidence=data,
                     tags=["secrets", "trufflehog"],
                 )

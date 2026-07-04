@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import contextlib
 import logging
-import os
 from typing import Any
 
 import httpx
 
+from cores.env.config import get_config
 from database import db
 
 logger = logging.getLogger("catseye.notifications.fcm")
@@ -18,8 +18,9 @@ FCM_SEND_URL = "https://fcm.googleapis.com/v1/projects/{project}/messages:send"
 
 class FCMAdapter:
     def __init__(self) -> None:
-        self._server_key = os.environ.get("RASTRO_FCM_SERVER_KEY", "")
-        self._project_id = os.environ.get("RASTRO_FCM_PROJECT_ID", "")
+        cfg = get_config()
+        self._server_key = cfg.fcm_server_key
+        self._project_id = cfg.fcm_project_id
         self._enabled = bool(self._server_key and self._project_id)
 
     @property
@@ -36,7 +37,7 @@ class FCMAdapter:
     def send(self, title: str, message: str, priority: str = "medium", metadata: dict[str, Any] | None = None) -> int:
         """Send to all registered FCM devices. Returns count of successful sends."""
         if not self._enabled:
-            logger.debug("FCM disabled — set RASTRO_FCM_SERVER_KEY and RASTRO_FCM_PROJECT_ID")
+            logger.debug("FCM disabled — set CATEYE_FCM_SERVER_KEY and CATEYE_FCM_PROJECT_ID")
             return 0
 
         tokens = self._get_device_tokens()

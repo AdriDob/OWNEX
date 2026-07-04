@@ -22,7 +22,7 @@ logger = logging.getLogger("catseye.license.validator")
 # Signing secret embedded in the binary.
 # In production, rotate this per-release and use asymmetric crypto instead.
 _LICENSE_SECRET = os.environ.get(
-    "RASTRO_LICENSE_SECRET",
+    "CATEYE_LICENSE_SECRET",
     hashlib.sha256(b"CATEYE-license-secret-v1").hexdigest(),
 )
 

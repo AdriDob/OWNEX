@@ -7,7 +7,7 @@ from typing import Any
 
 logger = logging.getLogger("catseye.settings")
 
-RASTRO_NS = "CATEYE"
+CATEYE_NS = "CATEYE"
 PLATFORM_NS = "platform"
 
 
@@ -77,7 +77,7 @@ def set_setting(key: str, value: Any) -> None:
 
 
 def get_mode() -> RastroMode:
-    raw = _get_setting(f"{RASTRO_NS}.mode", "manual")
+    raw = _get_setting(f"{CATEYE_NS}.mode", "manual")
     try:
         return RastroMode(raw)
     except ValueError:
@@ -87,7 +87,7 @@ def get_mode() -> RastroMode:
 def set_mode(mode: str | RastroMode) -> None:
     if isinstance(mode, str):
         mode = RastroMode(mode)
-    _set_setting(f"{RASTRO_NS}.mode", mode.value)
+    _set_setting(f"{CATEYE_NS}.mode", mode.value)
 
 
 def get_platform_config(platform_id: str) -> dict[str, Any]:

@@ -386,7 +386,7 @@ def opportunity_history(period: str | None = Query(None), limit: int = Query(30,
             }
             for s in snaps
         ],
-        "trends": engine.get_history().get_trends() if snaps else {},
+        "trends": engine.get_trends() if snaps else {},
         "count": len(snaps),
     }
 

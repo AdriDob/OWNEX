@@ -5,7 +5,7 @@ Prevents false negatives/positives from WAF, throttling, timeouts, rate limiting
 """
 import re
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 
@@ -17,12 +17,8 @@ class NetworkBehaviorMetadata:
     waf_strength: str = "none"
     has_timeout: bool = False
     has_throttle_escalation: bool = False
-    detected_patterns: list[str] = None
+    detected_patterns: list[str] = field(default_factory=list)
     recommendation: str = "continue"  # continue | backoff | abort
-
-    def __post_init__(self):
-        if self.detected_patterns is None:
-            self.detected_patterns = []
 
 
 class NetworkBehaviorDetector:

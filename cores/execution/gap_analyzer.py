@@ -59,7 +59,7 @@ class GapAnalyzer:
         missing_hot_paths = self._generate_missing_hot_paths(uncovered, endpoints)
 
         # Under-tested entities
-        under_tested = self._find_under_tested_entities(entity_endpoints, covered)
+        under_tested = self._find_under_tested_entities(entity_endpoints, set(covered))
 
         # Blind spots by auth context
         blind_spots = self._detect_blind_spots(uncovered, endpoints, auth_contexts)

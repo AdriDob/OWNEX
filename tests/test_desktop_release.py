@@ -509,7 +509,7 @@ class TestSilentRun:
 
         log_dir = Path(lifecycle_log).parent
         assert log_dir.is_dir()
-        assert (log_dir / "orion.log").exists()
+        assert (log_dir / "cateye.log").exists()
         assert (log_dir / "lifecycle.log").exists()
 
 

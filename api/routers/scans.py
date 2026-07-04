@@ -22,7 +22,7 @@ async def launch_scan(request: ScanRequest):
     try:
         result = await service_launch_scan(
             target_name=request.target_name,
-            target_domain=request.target_domain,
+            target_domain=request.target_domain or "",
             target_mode=request.mode,
             session=session,
         )
@@ -63,6 +63,7 @@ class NucleiScanRequest(BaseModel):
 @router.post("/unified")
 async def run_unified_scan(request: UnifiedScanRequest):
     import asyncio
+
     from cores.tools.pipeline import UnifiedScanner
 
     scanner = UnifiedScanner()

@@ -227,7 +227,7 @@ class IdentityVault:
 
         hours_since_check = 999
         if last_checked:
-            hours_since_check = (datetime.now(timezone.utc) - last_checked).total_seconds() / 3600
+            hours_since_check = int((datetime.now(timezone.utc) - last_checked).total_seconds() / 3600)
 
         state = data.get("session_state", "disconnected")
         has_creds = bool(data.get("encrypted_token") or data.get("encrypted_password"))

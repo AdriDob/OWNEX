@@ -1,10 +1,10 @@
-# ORION — Windows Installer Script (manual, NSIS is primary)
+# CATEYE — Windows Installer Script (manual, NSIS is primary)
 # Run as Administrator from the build output directory.
 #
 # Usage:
 #   powershell -ExecutionPolicy Bypass installer\install_windows.ps1
 #
-# Primary installer: OrionInstaller.exe (NSIS)
+# Primary installer: CATEYEInstaller.exe (NSIS)
 
 $ErrorActionPreference = "Stop"
 
@@ -88,7 +88,7 @@ $uninstallKey = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\CATEY
 $uninstallScript = Join-Path $DEST "uninstall_windows.ps1"
 
 New-Item -Path $uninstallKey -Force | Out-Null
-Set-ItemProperty -Path $uninstallKey -Name "DisplayName" -Value "ORION"
+Set-ItemProperty -Path $uninstallKey -Name "DisplayName" -Value "CATEYE"
 Set-ItemProperty -Path $uninstallKey -Name "DisplayVersion" -Value "1.6.0"
 Set-ItemProperty -Path $uninstallKey -Name "Publisher" -Value "CATEYE Labs"
 Set-ItemProperty -Path $uninstallKey -Name "UninstallString" -Value "powershell -ExecutionPolicy Bypass `"$uninstallScript`""

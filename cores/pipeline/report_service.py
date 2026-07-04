@@ -58,7 +58,7 @@ def generate_and_save_report(
     session.refresh(db_report)
 
     ctx.report_id = db_report.id
-    ctx.stage = PipelineStage.REPORT_GENERATED
+    ctx.stage = PipelineStage.READY
     ctx.metadata["report_summary"] = report_dict.get("summary", "")
     logger.info("Report %d saved for verdict %s", db_report.id, verdict.hot_path_id)
     return ctx

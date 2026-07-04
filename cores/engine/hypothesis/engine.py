@@ -160,11 +160,11 @@ class HypothesisEngine:
     def _stage_5_llm(
         self, hypotheses: list[Hypothesis], endpoints: list[dict[str, Any]],
     ) -> list[Hypothesis]:
-        enriched = enrich_reasoning(hypotheses, host=self.ollama_host, model=self.llm_model)
-        gap_hypotheses = detect_gaps(endpoints, hypotheses, host=self.ollama_host, model=self.llm_model)
+        enriched = enrich_reasoning(hypotheses, ollama_host=self.ollama_host, model=self.llm_model)
+        gap_hypotheses = detect_gaps(endpoints, hypotheses, ollama_host=self.ollama_host, model=self.llm_model)
         if gap_hypotheses:
             LOG.info("LLM gap detection: %d missed vulnerability patterns found", len(gap_hypotheses))
-        reorder_suggestion = refine_priority(enriched, host=self.ollama_host, model=self.llm_model)
+        reorder_suggestion = refine_priority(enriched, ollama_host=self.ollama_host, model=self.llm_model)
         if reorder_suggestion:
             id_order = {hid: i for i, hid in enumerate(reorder_suggestion)}
             enriched.sort(key=lambda h: id_order.get(h.id, 999))

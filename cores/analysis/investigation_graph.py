@@ -444,12 +444,12 @@ class RelationshipDetector:
                 if shared:
                     id_a = f"entity:{name_a}" if f"entity:{name_a}" in entity_nodes else f"web3_entity:{name_a}"
                     id_b = f"entity:{name_b}" if f"entity:{name_b}" in entity_nodes else f"web3_entity:{name_b}"
-                    pair = tuple(sorted([id_a, id_b]))
-                    if pair not in entity_pairs_seen:
-                        entity_pairs_seen.add(pair)
+                    ep_pair = (id_a, id_b) if id_a <= id_b else (id_b, id_a)
+                    if ep_pair not in entity_pairs_seen:
+                        entity_pairs_seen.add(ep_pair)
                         edges.append({
-                            "from": pair[0],
-                            "to": pair[1],
+                            "from": ep_pair[0],
+                            "to": ep_pair[1],
                             "relationship": "shared_context",
                         })
 
@@ -479,12 +479,12 @@ class RelationshipDetector:
                 for j in range(i + 1, len(unique_eps)):
                     eid_b = unique_eps[j]
                     if eid_a in endpoint_nodes and eid_b in endpoint_nodes:
-                        pair = tuple(sorted([eid_a, eid_b]))
-                        if pair not in ep_pairs_seen:
-                            ep_pairs_seen.add(pair)
+                        ep_pair2 = (eid_a, eid_b) if eid_a <= eid_b else (eid_b, eid_a)
+                        if ep_pair2 not in ep_pairs_seen:
+                            ep_pairs_seen.add(ep_pair2)
                             edges.append({
-                                "from": pair[0],
-                                "to": pair[1],
+                                "from": ep_pair2[0],
+                                "to": ep_pair2[1],
                                 "relationship": "shares_entity",
                             })
 

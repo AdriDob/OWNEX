@@ -6,9 +6,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlparse
 
-logger = logging.getLogger("catseye.recon.parser")
-
 from cores.engine.unified_scoring import score as unified_score
+
+logger = logging.getLogger("catseye.recon.parser")
 
 AUTH_SMELLS = [
     "org_id",

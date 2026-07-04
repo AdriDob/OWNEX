@@ -139,7 +139,7 @@ def get_feature_matrix() -> list[dict[str, str]]:
 
 @router.get("/tech-debt")
 def get_tech_debt() -> dict[str, Any]:
-    items = {"high": [], "medium": [], "low": []}
+    items: dict[str, list[dict[str, str]]] = {"high": [], "medium": [], "low": []}
     raw = _read_md(PM_DIR / "TECH_DEBT.md")
     current_priority = "medium"
     for line in raw.splitlines():

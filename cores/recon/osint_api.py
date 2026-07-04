@@ -408,7 +408,7 @@ class IPInfoClient(OSINTClient):
         return await self._get(f"/{ip}{token}")
 
     async def bulk_lookup(self, ips: list[str]) -> dict[str, Any] | None:
-        return await self._post(f"/batch?token={self.api_key}" if self.api_key else "/batch", json=ips)
+        return await self._post(f"/batch?token={self.api_key}" if self.api_key else "/batch", json={"ips": ips})
 
 
 class SpoofCheckClient(OSINTClient):

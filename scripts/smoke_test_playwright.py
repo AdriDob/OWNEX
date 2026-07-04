@@ -147,7 +147,7 @@ def main() -> None:
             sys.exit(0)
 
     # ── 1. Start the backend ───────────────────────────────────────
-    log(f"Starting CATEYE.exe --browser --no-tray ...")
+    log("Starting CATEYE.exe --browser --no-tray ...")
     env = os.environ.copy()
     env["CATEYE_DESKTOP"] = "1"
     env["CATEYE_SMOKE_TEST"] = "1"

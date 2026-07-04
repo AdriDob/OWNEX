@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
-from cores.scope_reader import read_program_scope, extract_assets
+from cores.scope_reader import read_program_scope
 
 logger = logging.getLogger("catseye.bounty_scraper")
 
@@ -89,7 +89,6 @@ class BountyScraper:
                             else None
                         )
                         payout = attrs.get("offers_bounties", False)
-                        submission_state = attrs.get("submission_state", "")
 
                         prog = ScrapedProgram(
                             name=name,

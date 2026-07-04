@@ -3,22 +3,24 @@
 from __future__ import annotations
 
 import logging
-import os
 import smtplib
 from email.mime.text import MIMEText
 from typing import Any
+
+from cores.env.config import get_config
 
 logger = logging.getLogger("catseye.notifications.email")
 
 
 class EmailAdapter:
     def __init__(self) -> None:
-        self._host = os.environ.get("RASTRO_SMTP_HOST", "")
-        self._port = int(os.environ.get("RASTRO_SMTP_PORT", "587"))
-        self._user = os.environ.get("RASTRO_SMTP_USER", "")
-        self._password = os.environ.get("RASTRO_SMTP_PASSWORD", "")
-        self._from = os.environ.get("RASTRO_SMTP_FROM", "CATEYE@localhost")
-        self._to = os.environ.get("RASTRO_NOTIFICATION_EMAIL", "")
+        cfg = get_config()
+        self._host = cfg.smtp_host
+        self._port = cfg.smtp_port
+        self._user = cfg.smtp_user
+        self._password = cfg.smtp_password
+        self._from = cfg.smtp_from
+        self._to = cfg.notification_email
         self._enabled = bool(self._host and self._to)
 
     @property
@@ -27,7 +29,7 @@ class EmailAdapter:
 
     def send(self, title: str, message: str, priority: str = "medium", metadata: dict[str, Any] | None = None) -> bool:
         if not self._enabled:
-            logger.debug("Email disabled — set RASTRO_SMTP_HOST and RASTRO_NOTIFICATION_EMAIL")
+            logger.debug("Email disabled — set CATEYE_SMTP_HOST and CATEYE_NOTIFICATION_EMAIL")
             return False
 
         try:

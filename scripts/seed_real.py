@@ -698,13 +698,14 @@ def seed():
         log.info("Base limpia.")
 
         # ── USER ──
-        import hashlib, os as _os
+        import hashlib
+        import os as _os
         salt = _os.urandom(32)
-        dk = hashlib.pbkdf2_hmac("sha256", b"orion2024", salt, 600_000)
+        dk = hashlib.pbkdf2_hmac("sha256", b"cateye2024", salt, 600_000)
         password_hash = salt.hex() + ":" + dk.hex()
         admin = models.User(
             username="admin",
-            email="admin@orion.io",
+            email="admin@cateye.local",
             password_hash=password_hash,
             is_active=True,
         )
@@ -1088,7 +1089,7 @@ Reporte generado automáticamente por CATEYE pipeline. No enviado.
                 mode=sr_data["mode"],
                 status=sr_data["status"],
                 endpoint_count=sr_data["endpoint_count"],
-                outputs=json.dumps({"scanner": "orion_scanner", "mode": sr_data["mode"]}),
+                outputs=json.dumps({"scanner": "cateye_scanner", "mode": sr_data["mode"]}),
                 finished_at=NOW if sr_data["status"] == "completed" else None,
             )
             session.add(sr_rec)
@@ -1105,7 +1106,7 @@ Reporte generado automáticamente por CATEYE pipeline. No enviado.
             pattern = models_economic.MemoryPattern(
                 category=mp["category"],
                 observation=mp["observation"],
-                context=json.dumps({"source": "orion_pattern_engine", "confidence_curve": [0.6, 0.75, 0.85, 0.92]}),
+                context=json.dumps({"source": "cateye_pattern_engine", "confidence_curve": [0.6, 0.75, 0.85, 0.92]}),
                 confidence=mp["confidence"],
                 evidence_count=mp["evidence_count"],
                 tags=mp["tags"],
@@ -1164,14 +1165,14 @@ Reporte generado automáticamente por CATEYE pipeline. No enviado.
         log.info("=" * 55)
         log.info("  SEED REAL COMPLETADO — Resumen")
         log.info("=" * 55)
-        log.info(f"  Usuarios:     1 (admin@orion.io / orion2024)")
+        log.info("  Usuarios:     1 (admin@cateye.local / cateye2024)")
         log.info(f"  Programas:    {total_programs} (reales, con bounty tiers reales)")
         log.info(f"  Targets:      {total_targets}")
         log.info(f"  Endpoints:    {total_endpoints} (desde APIs públicas documentadas)")
         log.info(f"  Hallazgos:    {total_findings} (basados en CWEs reales)")
         log.info(f"  Verdictos:    {total_verdicts}")
         log.info(f"  Reportes:     {total_reports} (todos draft, $0 earnings)")
-        log.info(f"  Earnings:     $0.00 (ninguno real — solo potencial)")
+        log.info("  Earnings:     $0.00 (ninguno real — solo potencial)")
         log.info("=" * 55)
         log.info("  Potencial estimado si validados: ~$95k-$167k")
         log.info("  (basado en bounty ranges publicados por cada programa)")

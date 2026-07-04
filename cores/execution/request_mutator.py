@@ -1,9 +1,9 @@
-import json
 import logging
 import re
 
-from cores.validation.replayer import AuthContext, RequestSpec
+from cores.execution.mutation_engine import SmartMutationEngine
 from cores.validation.llm_analyzer import LLMRequestMutator
+from cores.validation.replayer import AuthContext, RequestSpec
 
 logger = logging.getLogger("catseye.execution.mutator")
 
@@ -11,8 +11,13 @@ PARAM_PATTERN = re.compile(r"\{(\w+)\}")
 
 
 class RequestMutator:
-    def __init__(self, llm_mutator: LLMRequestMutator | None = None):
+    def __init__(
+        self,
+        llm_mutator: LLMRequestMutator | None = None,
+        smart_mutator: SmartMutationEngine | None = None,
+    ):
         self._llm = llm_mutator or LLMRequestMutator()
+        self._smart = smart_mutator or SmartMutationEngine()
 
     def plan_mutations(
         self,
@@ -24,11 +29,12 @@ class RequestMutator:
         auth_label: str = "authenticated",
         prefer_llm: bool = True,
     ) -> tuple[str, dict[str, str]]:
-        """Plan mutations using LLM when available, fall back to rule-based.
+        """Plan mutations using LLM when available, fall back to smart engine.
 
         Returns (attack_vector, mutations_dict).
         The LLM generates contextual payloads (SQLi, XSS, SSRF, etc.)
-        instead of just swapping IDs.
+        instead of just swapping IDs. Smart engine adds encoding, type
+        confusion, HPP, and WAF bypass variants.
         """
         if prefer_llm and self._llm._provider.is_available():
             try:
@@ -49,6 +55,26 @@ class RequestMutator:
             except Exception as e:
                 logger.warning("LLM mutation planning failed: %s", e)
 
+        # Fall through to Smart Mutation Engine
+        smart_plan = self._smart.plan(
+            url=url, method=method, params=params, body=body, headers=headers,
+        )
+        if smart_plan.variants:
+            # Return the first variant as the primary mutation
+            first = smart_plan.variants[0]
+            params_flat: dict[str, str] = {}
+            for k, v in first.params.items():
+                if isinstance(v, list):
+                    params_flat[k] = ",".join(str(x) for x in v)
+                else:
+                    params_flat[k] = str(v)
+            logger.info(
+                "Smart mutation plan for %s %s: %s (%d variants, strategy=%s/%s)",
+                method, url, smart_plan.attack_vector,
+                len(smart_plan.variants), first.strategy, first.sub_strategy,
+            )
+            return smart_plan.attack_vector, params_flat
+
         return "rule_based", {}
 
     def build_mutations(
@@ -64,6 +90,17 @@ class RequestMutator:
             return self._graphql_mutations()
         if attack_vector == "Business logic":
             return self._business_logic_mutations(params)
+        # Smart engine attack vectors
+        smart_plan = self._smart.plan(path, "GET", params)
+        if smart_plan.variants:
+            first = smart_plan.variants[0]
+            params_flat: dict[str, str] = {}
+            for k, v in first.params.items():
+                if isinstance(v, list):
+                    params_flat[k] = ",".join(str(x) for x in v)
+                else:
+                    params_flat[k] = str(v)
+            return params_flat
         return {}
 
     def build_auth_contexts(

@@ -6,11 +6,11 @@ and prepared to absorb diverse sources such as MITRE CWE, CVE/NVD, OWASP,
 PortSwigger Academy, Nuclei templates, payload collections, and bounty platforms.
 """
 
+from .graph import KnowledgeGraphManager
 from .manager import KnowledgeManager
 from .pipeline import KnowledgeIngestPipeline
-from .trust import ConfidenceScorer
-from .graph import KnowledgeGraphManager
 from .store import KnowledgeRepository
+from .trust import ConfidenceScorer
 
 __all__ = [
     "KnowledgeManager",

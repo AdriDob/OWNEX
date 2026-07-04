@@ -98,6 +98,60 @@ def register_fcm_channel() -> None:
     logger.info("FCM channel registered on NotificationHub")
 
 
+def register_whatsapp_channel() -> None:
+    """Register the WhatsApp notification handler on the hub."""
+    from cores.notifications.hub import get_hub
+    from cores.notifications.whatsapp import get_whatsapp_adapter
+
+    adapter = get_whatsapp_adapter()
+    if not adapter.is_enabled:
+        logger.info("WhatsApp channel skipped — not configured")
+        return
+
+    def _whatsapp_handler(type_: str, payload: dict[str, Any]) -> None:
+        ok = adapter.send(
+            title=payload.get("title", ""),
+            message=payload.get("message", ""),
+            priority=payload.get("priority", "medium"),
+            metadata=payload.get("metadata"),
+        )
+        db_id = payload.get("metadata", {}).get("db_id")
+        if db_id:
+            from cores.notifications.db_bridge import record_delivery
+            record_delivery(db_id, "whatsapp", "sent" if ok else "failed", None if ok else "send_error")
+
+    hub = get_hub()
+    hub.subscribe("whatsapp", _whatsapp_handler)
+    logger.info("WhatsApp channel registered on NotificationHub")
+
+
+def register_gmail_channel() -> None:
+    """Register the Gmail notification handler on the hub."""
+    from cores.notifications.gmail import get_gmail_adapter
+    from cores.notifications.hub import get_hub
+
+    adapter = get_gmail_adapter()
+    if not adapter.is_enabled:
+        logger.info("Gmail channel skipped — not configured")
+        return
+
+    def _gmail_handler(type_: str, payload: dict[str, Any]) -> None:
+        ok = adapter.send(
+            title=payload.get("title", ""),
+            message=payload.get("message", ""),
+            priority=payload.get("priority", "medium"),
+            metadata=payload.get("metadata"),
+        )
+        db_id = payload.get("metadata", {}).get("db_id")
+        if db_id:
+            from cores.notifications.db_bridge import record_delivery
+            record_delivery(db_id, "gmail", "sent" if ok else "failed", None if ok else "send_error")
+
+    hub = get_hub()
+    hub.subscribe("gmail", _gmail_handler)
+    logger.info("Gmail channel registered on NotificationHub")
+
+
 def register_event_bridge() -> None:
     """Subscribe to EventBus and create hub notifications from key events."""
     from cores.events.event_bus import get_event_bus

@@ -1,6 +1,6 @@
-# Cline — Configuración para Orion
+# Cline — Configuración para CATEYE
 
-Este directorio contiene la configuración de Cline para el proyecto Orion.
+Este directorio contiene la configuración de Cline para el proyecto CATEYE.
 
 ## Estructura
 ```
@@ -9,7 +9,7 @@ Este directorio contiene la configuración de Cline para el proyecto Orion.
 ├── rules/
 │   ├── core.md         ← Reglas de desarrollo (código, stack, flujo)
 │   ├── context.md      ← Contexto del proyecto (estado, módulos, URLs)
-│   └── orion-rules.md  ← Reglas completas con referencia rápida
+│   └── core.md         ← Reglas completas con referencia rápida
 └── scripts/
     └── switch-profile.sh ← Script para cambiar entre perfiles local/cloud/emergency
 ```

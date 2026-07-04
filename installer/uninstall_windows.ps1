@@ -44,7 +44,7 @@ if (Test-Path $UNINSTALL_KEY) {
 }
 
 # ── Optional: user data ────────────────────────────────────────────
-$userData = Join-Path $env:USERPROFILE ".orion"
+$userData = Join-Path $env:USERPROFILE ".cateye"
 if (Test-Path $userData) {
     $choice = Read-Host "Remove user data (config, sessions, license)? (y/N)"
     if ($choice -eq "y" -or $choice -eq "Y") {

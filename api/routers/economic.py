@@ -5,10 +5,10 @@ from __future__ import annotations
 import json
 import logging
 from datetime import datetime, timezone
-from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import asc, desc, func as sa_func
+from sqlalchemy import asc, desc
+from sqlalchemy import func as sa_func
 from sqlalchemy.orm import Session
 
 from api.schemas.economic import (
@@ -34,8 +34,8 @@ from api.schemas.economic import (
 )
 from cores.ai.provider import get_provider
 from database.db import SessionLocal
-from database.models_economic import BountyTier, MemoryPattern, Program, ProgramIntel, ReportPriority, ScopeDocument
 from database.models import Report
+from database.models_economic import BountyTier, MemoryPattern, Program, ProgramIntel, ReportPriority, ScopeDocument
 
 logger = logging.getLogger("catseye.api.economic")
 
@@ -1230,9 +1230,10 @@ class BankAccountOut:
 @router.get("/monthly-revenue")
 def get_monthly_revenue():
     """Return real monthly revenue data aggregated from report table."""
+    from sqlalchemy import extract
+
     from database.db import SessionLocal
     from database.models import Report
-    from sqlalchemy import extract
 
     session = SessionLocal()
     try:

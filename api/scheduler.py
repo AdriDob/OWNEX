@@ -16,9 +16,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
 from datetime import datetime, timezone
 
+from cores.env.config import get_config
 from database import db, models
 
 logger = logging.getLogger("catseye.scheduler")
@@ -145,7 +145,7 @@ class ScanScheduler:
                 logger.debug("[RECON] No targets to scan")
                 return
 
-            mode = os.environ.get("CATEYE_SCAN_MODE", "DEEP")
+            mode = get_config().scan_mode
 
             for target in targets:
                 if not self._running:

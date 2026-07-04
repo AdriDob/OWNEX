@@ -175,7 +175,7 @@ def list_report_versions(report_id: int):
 
 
 @router.post("/{report_id}/versions")
-def create_report_version(report_id: int, body: dict[str, str] = None):
+def create_report_version(report_id: int, body: dict[str, str] | None = None):
     from database import db
     if body is None:
         body = {}

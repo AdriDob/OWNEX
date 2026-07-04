@@ -207,5 +207,5 @@ class PatternExtractor:
                 })
 
         # Sort by similarity score
-        similar.sort(key=lambda x: x["similarity_score"], reverse=True)
+        similar.sort(key=lambda x: x["similarity_score"], reverse=True)  # type: ignore[arg-type,return-value]
         return similar

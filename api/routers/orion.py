@@ -1,4 +1,4 @@
-"""ORION Context Engine API — unified decision, action, and system-state endpoints.
+"""CATEYE Context Engine API — unified decision, action, and system-state endpoints.
 
 All endpoints aggregate existing system data. No mock data. No placeholders.
 """
@@ -11,23 +11,23 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 
 from cores.ai.context.engine import get_orion_context, invalidate
-from cores.orion import get_context, get_next_action, analyze_opportunity
+from cores.orion import analyze_opportunity, get_context, get_next_action
 
-logger = logging.getLogger("catseye.api.orion")
+logger = logging.getLogger("catseye.api.cateye")
 
-router = APIRouter(prefix="/api/orion", tags=["orion"])
+router = APIRouter(prefix="/api/orion", tags=["cateye"])
 
 
 # ── Decision context (summary, next action, opportunities, progress) ──
 
 @router.get("/context")
 def context() -> dict[str, Any]:
-    """Return unified ORION decision context: summary, next action, opportunities, progress."""
+    """Return unified CATEYE decision context: summary, next action, opportunities, progress."""
     try:
         ctx = get_context()
         return {"data": ctx}
     except Exception as exc:
-        logger.error("Failed to get orion context: %s", exc)
+        logger.error("Failed to get cateye context: %s", exc)
         raise HTTPException(status_code=500, detail="Failed to generate context") from exc
 
 

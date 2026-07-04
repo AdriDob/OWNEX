@@ -10,10 +10,12 @@ only partially installed.
 
 from __future__ import annotations
 
+from typing import Any
+
 SERVICE_NAME = "CATEYE"
 
 
-def _win32_modules() -> tuple[bool, object, object]:
+def _win32_modules() -> tuple[bool, Any, Any]:
     """Return (available, win32service, win32serviceutil)."""
     try:
         import win32service as _sv

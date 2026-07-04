@@ -101,7 +101,7 @@ class EvidenceGraph:
             }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "EvidenceGraph":
+    def from_dict(cls, data: dict[str, Any]) -> EvidenceGraph:
         g = cls()
         g._nodes = dict(data.get("nodes", {}))
         g._edges = list(data.get("edges", []))

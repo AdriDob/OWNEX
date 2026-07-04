@@ -10,7 +10,7 @@ CATEYE es un SaaS PRIVADO.
 
 Cada componente debe responder: **¿Esto ayuda a ganar más dinero?**
 
-El frontend es un **Centro de Inteligencia Económica**. El usuario abre ORION y en <20s debe entender:
+El frontend es un **Centro de Inteligencia Económica**. El usuario abre CATEYE y en <20s debe entender:
 - Cuánto dinero tiene
 - Cuánto dinero puede cobrar
 - Dónde está el mejor dinero
@@ -98,14 +98,14 @@ El frontend es un **Centro de Inteligencia Económica**. El usuario abre ORION y
 
 #### Módulo 6 — Experiencia Desktop
 - [ ] Tray icon support (pywebview)
-- [ ] Window title "Rastro — Investigation OS"
+- [x] Window title "CATEYE — Security Intelligence OS"
 - [ ] Global shortcuts
 - [ ] Manejo de ventana (minimize to tray, etc.)
 
 ### 📅 Backlog técnico
-- [ ] Página de detalle de target (/target/:id)
-- [ ] Sistema de notificaciones
-- [ ] Tests unitarios (Vitest + Vue Test Utils)
+- [x] Página de detalle de target (/target/:id)
+- [x] Sistema de notificaciones
+- [x] Tests unitarios (Vitest + Vue Test Utils) — 165 tests, 92% store coverage
 - [ ] Responsive design (mobile sidebar → bottom nav)
 - [ ] Estado offline / IndexedDB cache
 

@@ -55,7 +55,7 @@ Docs API: http://localhost:8000/docs
 | `OLLAMA_HOST` | `http://localhost:11434` | Host del servicio Ollama |
 | `OLLAMA_MODEL` | `qwen3:14b` | Modelo local por defecto |
 | `GEMINI_API_KEY` | — | API Key de Google Gemini |
-| `DATABASE_URL` | `sqlite:///.orion/database/orion.db` | Conexión a base de datos |
+| `DATABASE_URL` | `sqlite:///.cateye/database/cateye.db` | Conexión a base de datos |
 | `CATEYE_AUTH_TOKEN` | — | Token de sesión (generado automáticamente) |
 
 ## Filosofía de Diseño

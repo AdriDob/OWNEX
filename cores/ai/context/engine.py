@@ -1,5 +1,5 @@
 """
-Orion Context Engine — single source of truth for all system state.
+CATEYE Context Engine — single source of truth for all system state.
 
 Every field comes from a real database query or engine computation.
 Results are cached with configurable TTL (default 30s) to avoid
@@ -15,12 +15,12 @@ import logging
 import threading
 import time
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any
 
-from pathlib import Path
 from database import db, models
 
-logger = logging.getLogger("catseye.orion.context")
+logger = logging.getLogger("catseye.cateye.context")
 
 _DEFAULT_TTL = 30  # seconds
 

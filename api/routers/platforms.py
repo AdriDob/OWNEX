@@ -7,8 +7,6 @@ import logging
 from fastapi import APIRouter
 
 from cores.identity_vault import get_identity_vault
-from database.db import SessionLocal
-from database.models import RastroConfig
 
 logger = logging.getLogger("catseye.platforms.api")
 

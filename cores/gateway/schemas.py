@@ -67,7 +67,7 @@ def safe_response(data: dict | None = None) -> dict:
     """
     if data is None:
         return {"status": "ok", "items": [], "meta": {}, "error": None}
-    result = {"status": "ok", "items": [], "meta": {}, "error": None}
+    result: dict[str, Any] = {"status": "ok", "items": [], "meta": {}, "error": None}
     result.update(data)
     return result
 

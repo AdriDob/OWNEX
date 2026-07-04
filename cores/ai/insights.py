@@ -82,7 +82,7 @@ def generate_insights() -> list[dict[str, Any]]:
     # ── 5. Attack surface changes ──
     surfaces = ctx.get("endpoints", {}).get("attack_surfaces", {})
     if surfaces:
-        top_surface = max(surfaces, key=surfaces.get)  # type: ignore[arg-type]
+        top_surface = max(surfaces, key=surfaces.get)
         insights.append({
             "type": "attack_surface_summary",
             "severity": "medium",

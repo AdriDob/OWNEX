@@ -1,4 +1,4 @@
-"""ORION Context Engine — aggregation and decision layer.
+"""CATEYE Context Engine — aggregation and decision layer.
 
 Reads existing system data and returns unified context, next actions,
 and opportunity analysis. Never modifies pipeline data or DB.

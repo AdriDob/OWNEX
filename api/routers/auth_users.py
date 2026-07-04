@@ -128,7 +128,7 @@ def refresh_token(body: RefreshRequest):
     if data is None or data.get("type") != "refresh":
         raise HTTPException(401, "Invalid or expired refresh token")
 
-    user_id = data.get("sub")
+    user_id = data.get("sub", "")
     session = SessionLocal()
     try:
         user = session.query(User).filter(User.id == int(user_id)).first()
@@ -154,7 +154,7 @@ def get_profile(request: Request):
     data = verify_token(token)
     if data is None:
         raise HTTPException(401, "Invalid or expired token")
-    user_id = data.get("sub")
+    user_id = data.get("sub", "")
 
     session = SessionLocal()
     try:

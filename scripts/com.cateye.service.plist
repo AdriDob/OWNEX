@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+ "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>ai.CATEYE.service</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/CATEYE/CATEYE</string>
+        <string>--service</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>Crashed</key>
+        <true/>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+
+    <key>WorkingDirectory</key>
+    <string>/opt/CATEYE</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>CATEYE_DESKTOP</key>
+        <string>0</string>
+        <key>CATEYE_HOST</key>
+        <string>127.0.0.1</string>
+        <key>CATEYE_PORT</key>
+        <string>8000</string>
+        <key>CATEYE_LOG_LEVEL</key>
+        <string>INFO</string>
+        <key>CATEYE_BUILD_ENV</key>
+        <string>production</string>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/opt/CATEYE/logs/stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/opt/CATEYE/logs/stderr.log</string>
+
+    <key>Nice</key>
+    <integer>0</integer>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>

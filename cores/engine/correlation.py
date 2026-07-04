@@ -95,8 +95,8 @@ class CorrelationEngine:
                 findings.append(CorrelatedFinding(
                     id=f"{source}_{i}",
                     title=str(title),
-                    description=item.get("description", item.get("detail", "")),
-                    severity=item.get("severity", item.get("risk", "info")),
+                    description=str(item.get("description", item.get("detail", ""))),
+                    severity=str(item.get("severity", item.get("risk", "info"))),
                     source=source,
                     url=item.get("url", ""),
                     host=item.get("host", ""),
