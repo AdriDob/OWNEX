@@ -9,7 +9,7 @@
     <radialGradient id="pupilGrad" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#000000"/>
       <stop offset="100%" stop-color="#0a0a0a"/>
-    </pupilGrad>
+    </radialGradient>
     <filter id="eyeGlow">
       <feGaussianBlur stdDeviation="3" result="blur"/>
       <feMerge>
@@ -61,7 +61,7 @@
   </text>
 
   <text x="150" y="67" font-size="9" fill="rgba(255,255,255,0.3)" text-anchor="middle" letter-spacing="2">
-    RELEASE CANDIDATE · HUNTER MODE
+    v1.8.0 · HUNTER MODE
   </text>
 
   <!-- Status dots -->
