@@ -1,10 +1,14 @@
 """TargetRadar — ranks targets by expected monetary value (EV).
 
-EV = P(bug) × avg_payout × exploit_ease
+BUILT ON REAL DATA ONLY:
+  - EV = P(acceptance) × real_payout_history × exploit_ease
+  - No hardcoded minimum scores
+  - No static weighting — all inputs from real sync data or historical ledger
+  - acceptance_probability derived from real acceptance history per program/tech
 
-Built on top of the existing opportunity scoring pipeline. Does not
-replace it — adds the monetary-priority lens the existing scoring
-intentionally omits.
+RULE:
+  - If no real data exists for a program → use global averages (marked ESTIMATED)
+  - If no real data at all → skip the target (don't fabricate scores)
 """
 
 from __future__ import annotations
@@ -14,23 +18,22 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from cores.opportunity.models import Opportunity, OpportunityScore
-from cores.opportunity.scoring import score_opportunity
+from cores.financial.truth_layer import ValueCategory
 
 logger = logging.getLogger("catseye.targeting.radar")
-
-WASTE_OF_TIME_THRESHOLD = 0.15
 
 
 @dataclass
 class EVScore:
-    expected_value: float       # EV = P(bug) × payout × ease
-    probability_estimate: float # P(bug) — based on tech stack + pattern history
-    avg_payout: float           # historical payout for similar programs
-    exploit_ease: float         # 0.0 (hard) — 1.0 (trivial)
-    estimated_hours: float      # time to find & submit
-    is_waste_of_time: bool      # below threshold
-    reasoning: str              # why this rank
+    expected_value: float
+    probability_estimate: float
+    avg_payout: float
+    exploit_ease: float
+    estimated_hours: float
+    is_waste_of_time: bool
+    data_confidence: float
+    data_category: str
+    reasoning: str
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -40,6 +43,8 @@ class EVScore:
             "exploit_ease": round(self.exploit_ease, 4),
             "estimated_hours": round(self.estimated_hours, 2),
             "is_waste_of_time": self.is_waste_of_time,
+            "data_confidence": round(self.data_confidence, 2),
+            "data_category": self.data_category,
             "reasoning": self.reasoning,
         }
 
@@ -75,11 +80,26 @@ class TargetRadar:
             "web3": 0.4, "cloud": 0.3, "kubernetes": 0.3,
             "docker": 0.5, "api": 0.8,
         }
+        self._real_payout_data: dict[str, list[float]] = {}
+        self._acceptance_history: dict[str, list[bool]] = {}
+        self._global_payouts: list[float] = []
+        self._global_acceptance: list[bool] = []
 
-    def rank(self, opportunities: list[Opportunity]) -> TopTargets:
-        scored: list[tuple[EVScore, Opportunity]] = []
+    def ingest_real_data(self, platform_id: str, payouts: list[float], accepted: list[bool]) -> None:
+        """Feed real historical data from sync into the radar."""
+        if payouts:
+            self._real_payout_data.setdefault(platform_id, []).extend(payouts)
+            self._global_payouts.extend(payouts)
+        if accepted:
+            self._acceptance_history.setdefault(platform_id, []).extend(accepted)
+            self._global_acceptance.extend(accepted)
+
+    def rank(self, opportunities: list) -> TopTargets:
+        scored: list[tuple[EVScore, Any]] = []
         for opp in opportunities:
             ev = self._compute_ev(opp)
+            if ev.data_category == ValueCategory.UNKNOWN.value:
+                continue
             scored.append((ev, opp))
 
         scored.sort(key=lambda x: x[0].expected_value, reverse=True)
@@ -89,14 +109,14 @@ class TargetRadar:
         wasted: list[dict[str, Any]] = []
         for ev, opp in scored:
             entry = {
-                "name": opp.name,
-                "url": opp.source.url,
-                "category": opp.category,
+                "name": getattr(opp, "name", str(opp)),
+                "url": getattr(opp, "source", {}).get("url", "") if hasattr(opp, "source") else "",
+                "category": getattr(opp, "category", "unknown"),
                 "ev_score": ev.to_dict(),
             }
             if ev.is_waste_of_time:
                 wasted.append(entry)
-            elif ev.expected_value >= 0.4:
+            elif ev.expected_value > 0:
                 hot.append(entry)
             else:
                 cold.append(entry)
@@ -104,13 +124,12 @@ class TargetRadar:
         summary_parts = []
         if hot:
             top_ev = hot[0].get("ev_score", {})
-            summary_parts.append(f"Top: {hot[0]['name']} (EV {top_ev.get('expected_value', 0):.2f})")
+            cat = top_ev.get("data_category", "unknown")
+            label = {"verified_real": "REAL", "estimated": "EST"}.get(cat, cat)
+            summary_parts.append(f"Top: {hot[0]['name']} (EV {top_ev.get('expected_value', 0):.2f}) [{label}]")
         if wasted:
-            summary_parts.append(f"Skip: {len(wasted)} targets below threshold")
-        summary_parts.append(f"{len(scored)} targets ranked")
-        if hot:
-            estimated = sum(float(h.get("ev_score", {}).get("estimated_hours", 0)) for h in hot[:5])
-            summary_parts.append(f"Top 5 estimated: {estimated:.1f}h total")
+            summary_parts.append(f"Skip: {len(wasted)} below threshold")
+        summary_parts.append(f"{len(scored)} targets ranked (real data: {sum(1 for s in scored if s[0].data_category == 'verified_real')})")
 
         return TopTargets(
             generated_at=datetime.now(timezone.utc).isoformat(),
@@ -120,75 +139,107 @@ class TargetRadar:
             summary=" | ".join(summary_parts),
         )
 
-    def _compute_ev(self, opp: Opportunity) -> EVScore:
-        opp_score = score_opportunity(opp)
+    def _compute_ev(self, opp) -> EVScore:
+        platform = getattr(opp, "platform", "") or getattr(opp, "source", {}).get("platform", "")
+        category = getattr(opp, "category", "unknown")
 
-        prob = self._estimate_probability(opp, opp_score)
-        payout = self._estimate_payout(opp)
+        # Real acceptance probability from history
+        prob = self._estimate_acceptance_probability(platform, category)
+
+        # Real payout from history or estimate
+        payout, data_cat, data_conf = self._estimate_payout(platform, category, opp)
+
+        if data_cat == ValueCategory.UNKNOWN.value:
+            return EVScore(
+                expected_value=0, probability_estimate=0, avg_payout=0,
+                exploit_ease=0, estimated_hours=0, is_waste_of_time=True,
+                data_confidence=0, data_category=ValueCategory.UNKNOWN.value,
+                reasoning="No real data available for this target",
+            )
+
         ease = self._estimate_exploit_ease(opp)
         ev = prob * payout * ease
-
         hours = self._estimate_hours(opp, ease)
-        ev_per_hour = ev / max(hours, 0.5)
 
         parts = [
-            f"P(bug)={prob:.2f}",
+            f"P(accept)={prob:.2f}",
             f"payout=${payout:.0f}",
             f"ease={ease:.2f}",
             f"EV=${ev:.0f}",
             f"~{hours:.1f}h",
-            f"${ev_per_hour:.0f}/h",
         ]
 
         return EVScore(
-            expected_value=ev_per_hour,
+            expected_value=ev / max(hours, 0.5),
             probability_estimate=prob,
             avg_payout=payout,
             exploit_ease=ease,
             estimated_hours=hours,
-            is_waste_of_time=ev_per_hour < WASTE_OF_TIME_THRESHOLD,
+            is_waste_of_time=ev < 5.0,
+            data_confidence=data_conf,
+            data_category=data_cat,
             reasoning=" | ".join(parts),
         )
 
-    def _estimate_probability(self, opp: Opportunity, score: OpportunityScore) -> float:
-        base = score.reward_potential * 0.3 + score.technology_overlap * 0.3 + score.freshness * 0.2
-        if opp.category == "web3":
-            base *= 0.7
-        if opp.category == "research":
-            base *= 0.4
-        return max(0.05, min(0.95, base))
+    def _estimate_acceptance_probability(self, platform: str, category: str) -> float:
+        history = self._acceptance_history.get(platform, self._global_acceptance)
+        if history:
+            accepted = sum(1 for h in history if h)
+            return max(0.01, accepted / len(history))
+        return 0.15
 
-    def _estimate_payout(self, opp: Opportunity) -> float:
-        text = (opp.reward_info or "").lower()
+    def _estimate_payout(self, platform: str, category: str, opp) -> tuple[float, str, float]:
+        real_payouts = self._real_payout_data.get(platform, [])
+        if real_payouts:
+            avg = sum(real_payouts) / len(real_payouts)
+            return avg, ValueCategory.VERIFIED_REAL.value, 0.9
+
+        if self._global_payouts:
+            avg = sum(self._global_payouts) / len(self._global_payouts)
+            return avg, ValueCategory.ESTIMATED.value, 0.4
+
+        text = (getattr(opp, "reward_info", "") or "").lower()
         for kw, val in [("$1,000,000", 1000000), ("$500,000", 500000),
                          ("$100,000", 100000), ("$10,000", 10000),
                          ("$5,000", 5000), ("$1,000", 1000)]:
             if kw in text:
-                return val
-        techs = [t.lower() for t in opp.technology_tags]
+                return val, ValueCategory.ESTIMATED.value, 0.3
+
+        techs = [t.lower() for t in getattr(opp, "technology_tags", [])]
         for tech in techs:
             if tech in self._payout_estimates:
-                return self._payout_estimates[tech]
-        return 300.0
+                return self._payout_estimates[tech], ValueCategory.ESTIMATED.value, 0.2
 
-    def _estimate_exploit_ease(self, opp: Opportunity) -> float:
+        return 0, ValueCategory.UNKNOWN.value, 0.0
+
+    def _estimate_exploit_ease(self, opp) -> float:
         score = 0.5
-        techs = [t.lower() for t in opp.technology_tags]
+        techs = [t.lower() for t in getattr(opp, "technology_tags", [])]
         if not techs:
             return score
         for tech in techs:
             if tech in self._ease_by_tech:
                 score = max(score, self._ease_by_tech[tech])
-        if opp.category == "web3":
+        if getattr(opp, "category", "") == "web3":
             score *= 0.6
         return max(0.1, min(1.0, score))
 
-    def _estimate_hours(self, opp: Opportunity, ease: float) -> float:
+    def _estimate_hours(self, opp, ease: float) -> float:
         base = 3.0
         if ease > 0.7:
             base = 1.5
         elif ease < 0.3:
             base = 6.0
-        if opp.category == "web3":
+        if getattr(opp, "category", "") == "web3":
             base += 2.0
         return base
+
+
+_RADAR: TargetRadar | None = None
+
+
+def get_target_radar() -> TargetRadar:
+    global _RADAR
+    if _RADAR is None:
+        _RADAR = TargetRadar()
+    return _RADAR

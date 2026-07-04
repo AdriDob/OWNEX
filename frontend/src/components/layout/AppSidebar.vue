@@ -5,9 +5,10 @@ import { useHuntStore } from '@/stores/hunt'
 import { api } from '@/lib/api'
 import type { PlatformStatus, BankAccount } from '@/lib/api'
 import {
-  Bug, Camera, ChevronLeft, ChevronRight, Cpu, DollarSign,
+  Bug, Cable, Camera, ChevronLeft, ChevronRight, Cpu, DollarSign,
   ExternalLink, Eye, FileSearch, FileText, Lightbulb, Link2,
   Banknote, MessageCircle, Search, Settings, Target, Unlink,
+  Activity, Database,
 } from '@lucide/vue'
 
 const hunt = useHuntStore()
@@ -29,6 +30,14 @@ const navItems = [
     { name: 'Oportunidades', path: '/radar', icon: Target },
     { name: 'Bounties', path: '/bounties', icon: DollarSign },
   ]},
+  { section: 'Finanzas', items: [
+    { name: 'Financial Truth', path: '/financial-truth', icon: Banknote },
+    { name: 'Accounts Hub', path: '/accounts-hub', icon: Cable },
+    { name: 'Sync Center', path: '/sync-center', icon: Activity },
+    { name: 'Truth Inspector', path: '/truth-inspector', icon: Database },
+    { name: 'Billeteras', path: '/wallets', icon: DollarSign },
+    { name: 'Conexiones', path: '/connections', icon: Link2 },
+  ]},
   { section: 'Operaciones', items: [
     { name: 'Hallazgos', path: '/findings', icon: Bug },
     { name: 'Reportes', path: '/reports', icon: FileText },
@@ -37,7 +46,6 @@ const navItems = [
   ]},
   { section: 'Sistema', items: [
     { name: 'Agentes', path: '/agents', icon: Cpu },
-    { name: 'Conexiones', path: '/connections', icon: Link2 },
     { name: 'Evidencia', path: '/evidence', icon: FileSearch },
     { name: 'Capturas', path: '/screenshots', icon: Camera },
     { name: 'Configuración', path: '/settings', icon: Settings },
@@ -60,14 +68,18 @@ function navigate(path: string) { router.push(path) }
 onMounted(async () => {
   hunt.fetchStatus()
   try {
-    const [pRes, bRes, ctxRes] = await Promise.allSettled([
+    const [pRes, bRes, fRes, ctxRes] = await Promise.allSettled([
       api.get<{ platforms: PlatformStatus[] }>('/platforms/status'),
       api.get<BankAccount>('/economic/bank-account'),
+      api.get<{ verified: number; pending: number; effective: number }>('/financial/state/summary'),
       api.get<{ total_earned: number; total_pending: number }>('/economic/financial-summary'),
     ])
     if (pRes.status === 'fulfilled') platforms.value = pRes.value.platforms || []
     if (bRes.status === 'fulfilled') bank.value = bRes.value
-    if (ctxRes.status === 'fulfilled') {
+    if (fRes.status === 'fulfilled') {
+      totalEarned.value = (fRes.value as any).verified || 0
+      totalPending.value = (fRes.value as any).pending || 0
+    } else if (ctxRes.status === 'fulfilled') {
       totalEarned.value = (ctxRes.value as any).total_collected || 0
       totalPending.value = (ctxRes.value as any).total_pending || 0
     }
@@ -121,8 +133,8 @@ function formatCompact(n: number) {
     <Transition name="fade">
       <div v-if="!collapsed && !loading" class="border-b border-border/30 px-4 py-3">
         <div class="rounded-lg cyber-card px-3 py-2.5">
-          <p class="font-mono text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Balance</p>
-          <p class="mt-0.5 font-mono text-base font-bold tabular-nums text-primary">{{ formatCompact(totalEarned) }}</p>
+          <p class="font-mono text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Verificado</p>
+          <p class="mt-0.5 font-mono text-base font-bold tabular-nums text-success">{{ formatCompact(totalEarned) }}</p>
           <div class="mt-1 flex items-center justify-between font-mono text-[10px]">
             <span class="text-muted-foreground">Pendiente</span>
             <span class="font-medium text-warning">{{ formatCompact(totalPending) }}</span>

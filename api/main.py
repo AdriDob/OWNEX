@@ -14,6 +14,7 @@ from api.middleware.auth_middleware import AuthMiddleware
 from api.middleware.error_handling import ErrorHandlingMiddleware
 from api.middleware.rate_limit_middleware import RateLimitMiddleware
 from api.routers import (
+    accounts_hub,
     agents_router,
     assistant,
     attack,
@@ -23,6 +24,7 @@ from api.routers import (
     canonical,
     connections,
     contracts,
+    crypto,
     daily,
     differential_intelligence,
     digest,
@@ -30,6 +32,7 @@ from api.routers import (
     endpoints,
     evidence,
     execution,
+    financial_truth,
     findings,
     hunt,
     hypotheses,
@@ -228,6 +231,14 @@ async def lifespan(app: FastAPI):
         logger.info("Event -> notification bridge started")
     except Exception as exc:
         logger.warning("Event -> notification bridge failed (non-fatal): %s", exc)
+
+    # Initialize Financial Event System
+    try:
+        from cores.financial.events import init_financial_events
+        init_financial_events()
+        logger.info("[BOOT] Financial event system initialized")
+    except Exception as exc:
+        logger.warning("Financial events init failed (non-fatal): %s", exc)
 
     # Start Multi-Agent system
     try:
@@ -445,6 +456,9 @@ app.include_router(agents_router.router)
 app.include_router(zap.router)
 app.include_router(connections.router)
 app.include_router(platforms.router)
+app.include_router(financial_truth.router)
+app.include_router(crypto.router)
+app.include_router(accounts_hub.router)
 app.include_router(osint.router)
 app.include_router(hunt.router)
 

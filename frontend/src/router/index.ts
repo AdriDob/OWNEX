@@ -213,6 +213,30 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'Billeteras' },
   },
   {
+    path: '/financial-truth',
+    name: 'financial-truth',
+    component: () => import('@/pages/FinancialTruth.vue'),
+    meta: { title: 'Financial Truth' },
+  },
+  {
+    path: '/accounts-hub',
+    name: 'accounts-hub',
+    component: () => import('@/pages/AccountsHub.vue'),
+    meta: { title: 'Accounts Hub' },
+  },
+  {
+    path: '/sync-center',
+    name: 'sync-center',
+    component: () => import('@/pages/SyncCenter.vue'),
+    meta: { title: 'Sync Center' },
+  },
+  {
+    path: '/truth-inspector',
+    name: 'truth-inspector',
+    component: () => import('@/pages/TruthInspector.vue'),
+    meta: { title: 'Truth Inspector' },
+  },
+  {
     path: '/identity',
     name: 'identity',
     component: () => import('@/pages/Identity.vue'),

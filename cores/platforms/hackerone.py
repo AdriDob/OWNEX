@@ -4,11 +4,12 @@ import json
 import logging
 from typing import Any
 
-from cores.platforms.base import BugBountyPlatform, SubmissionResult
+from cores.platforms.base import BugBountyPlatform, SubmissionResult, SyncResult
 
 logger = logging.getLogger("catseye.platforms.hackerone")
 
 H1_SUBMIT_URL = "https://hackerone.com/reports/new"
+H1_API_BASE = "https://api.hackerone.com/v1"
 
 
 class HackerOne(BugBountyPlatform):
@@ -46,7 +47,7 @@ class HackerOne(BugBountyPlatform):
         try:
             import requests
             resp = requests.post(
-                "https://api.hackerone.com/v1/reports",
+                f"{H1_API_BASE}/reports",
                 auth=(api_key, ""),
                 json={
                     "data": {
@@ -90,7 +91,7 @@ class HackerOne(BugBountyPlatform):
         try:
             import requests
             resp = requests.get(
-                f"https://api.hackerone.com/v1/reports/{external_id}",
+                f"{H1_API_BASE}/reports/{external_id}",
                 timeout=15,
             )
             if resp.status_code == 200:
@@ -100,3 +101,42 @@ class HackerOne(BugBountyPlatform):
             return "unknown"
         except Exception:
             return "unknown"
+
+    def sync_earnings(self, api_key: str) -> SyncResult:
+        try:
+            import requests
+            resp = requests.get(
+                f"{H1_API_BASE}/me/bounties",
+                auth=(api_key, ""),
+                headers={"Accept": "application/json"},
+                timeout=30,
+            )
+            if resp.status_code != 200:
+                return SyncResult(success=False, error=f"API error {resp.status_code}")
+
+            data = resp.json()
+            bounties = data if isinstance(data, list) else data.get("data", [])
+            earnings = []
+            total = 0.0
+            for b in bounties:
+                attrs = b.get("attributes", {})
+                amount = float(attrs.get("amount", 0))
+                total += amount
+                earnings.append({
+                    "id": b.get("id", ""),
+                    "amount": amount,
+                    "currency": attrs.get("currency", "USD"),
+                    "program": attrs.get("team", {}).get("handle", ""),
+                    "report_id": attrs.get("report", {}).get("id", ""),
+                    "state": attrs.get("state", ""),
+                    "created_at": attrs.get("created_at", ""),
+                })
+
+            return SyncResult(
+                success=True,
+                earnings=earnings,
+                total_earned=total,
+                total_pending=0.0,
+            )
+        except Exception as exc:
+            return SyncResult(success=False, error=str(exc))
