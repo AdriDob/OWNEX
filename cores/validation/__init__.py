@@ -1,4 +1,5 @@
 from cores.validation.confidence import ConfidenceScore, ConfidenceScorer
+from cores.validation.feedback_engine import FeedbackEngine, ReportFeedback
 from cores.validation.gate import ReportGate, Verdict
 from cores.validation.loop_engine import ValidationLoopEngine
 from cores.validation.replayer import (
@@ -15,9 +16,11 @@ __all__ = [
     "ComparisonResult",
     "ConfidenceScore",
     "ConfidenceScorer",
+    "FeedbackEngine",
     "FeedbackLearner",
     "LLMRequestMutator",
     "LLMResponseAnalyzer",
+    "ReportFeedback",
     "ReportGate",
     "RequestReplayer",
     "RequestSpec",
