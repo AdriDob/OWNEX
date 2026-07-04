@@ -6,9 +6,12 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from cores.crypto.btc import BTCConnector
 from cores.crypto.evm import EVMConnector
 from cores.crypto.exchange import ExchangeConnector
+from cores.crypto.solana import SolanaConnector
 from cores.crypto.sync_manager import get_crypto_sync_manager
+from cores.crypto.tron import TronConnector
 from cores.financial.events import publish_financial_event
 from cores.ledger import LedgerEvent, record_event
 
@@ -90,10 +93,25 @@ def register_wallet(wallet_id: str, config: WalletConfig) -> dict[str, Any]:
             address=config.address,
             rpc_url=config.rpc_url,
         )
+    elif chain_lower == "bitcoin":
+        connector = BTCConnector(
+            wallet_id=wallet_id,
+            address=config.address,
+        )
     elif chain_lower == "exchange":
         connector = ExchangeConnector(
             wallet_id=wallet_id,
             exchange_name=config.exchange_name,
+        )
+    elif chain_lower == "tron":
+        connector = TronConnector(
+            wallet_id=wallet_id,
+            address=config.address,
+        )
+    elif chain_lower == "solana":
+        connector = SolanaConnector(
+            wallet_id=wallet_id,
+            address=config.address,
         )
     else:
         raise HTTPException(400, f"Unsupported chain: {config.chain}")

@@ -8,7 +8,7 @@ import {
   Bug, Cable, Camera, ChevronLeft, ChevronRight, Cpu, DollarSign,
   ExternalLink, Eye, FileSearch, FileText, Lightbulb, Link2,
   Banknote, MessageCircle, Search, Settings, Target, Unlink,
-  Activity, Database,
+  Activity, Database, RefreshCw,
 } from '@lucide/vue'
 
 const hunt = useHuntStore()
@@ -33,7 +33,8 @@ const navItems = [
   { section: 'Finanzas', items: [
     { name: 'Financial Truth', path: '/financial-truth', icon: Banknote },
     { name: 'Accounts Hub', path: '/accounts-hub', icon: Cable },
-    { name: 'Sync Center', path: '/sync-center', icon: Activity },
+    { name: 'Account Health', path: '/account-health', icon: Activity },
+    { name: 'Sync Center', path: '/sync-center', icon: RefreshCw },
     { name: 'Truth Inspector', path: '/truth-inspector', icon: Database },
     { name: 'Billeteras', path: '/wallets', icon: DollarSign },
     { name: 'Conexiones', path: '/connections', icon: Link2 },

@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from cores.platforms.base import BugBountyPlatform, SubmissionResult
+from cores.platforms.base import BugBountyPlatform, SubmissionResult, SyncResult
 
 logger = logging.getLogger("catseye.platforms.yeswehack")
 
@@ -77,3 +77,46 @@ class YesWeHack(BugBountyPlatform):
             return "unknown"
         except Exception:
             return "unknown"
+
+    def sync_earnings(self, api_key: str) -> SyncResult:
+        try:
+            import requests
+            resp = requests.get(
+                "https://api.yeswehack.com/v1/researcher/reports",
+                headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"},
+                timeout=30,
+            )
+            if resp.status_code != 200:
+                return SyncResult(success=False, error=f"API error {resp.status_code}")
+
+            data = resp.json()
+            items = data if isinstance(data, list) else []
+            earnings = []
+            total_earned = 0.0
+            total_pending = 0.0
+            for item in items:
+                bounty = item.get("bounty") or {}
+                amount = float(bounty.get("amount", 0) or 0)
+                state = item.get("status", "")
+                entry = {
+                    "id": item.get("id", ""),
+                    "amount": amount,
+                    "currency": bounty.get("currency", "EUR"),
+                    "program": item.get("program", {}).get("title", ""),
+                    "state": state,
+                    "created_at": item.get("created_at", ""),
+                }
+                earnings.append(entry)
+                if state.lower() == "paid":
+                    total_earned += amount
+                else:
+                    total_pending += amount
+
+            return SyncResult(
+                success=True,
+                earnings=earnings,
+                total_earned=total_earned,
+                total_pending=total_pending,
+            )
+        except Exception as exc:
+            return SyncResult(success=False, error=str(exc))
