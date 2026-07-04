@@ -111,5 +111,5 @@
   <!-- Status line -->
   <line x1="100" y1="360" x2="300" y2="360" stroke="rgba(0,255,65,0.1)" stroke-width="1"/>
 
-  <text x="200" y="378" font-size="9" fill="rgba(255,255,255,0.15)" text-anchor="middle" letter-spacing="2">v1.7.0 · HUNTER MODE</text>
+  <text x="200" y="378" font-size="9" fill="rgba(255,255,255,0.15)" text-anchor="middle" letter-spacing="2">v1.8.0 · HUNTER MODE</text>
 </svg>
