@@ -59,7 +59,36 @@
 - [ ] Audit logging
 - [ ] SSO integration
 
-## Ideas Futuras (Post-v1.6)
+## v1.7 — Financial Truth Layer (Complete)
+- [x] TruthLayer — derivación de estado financiero desde ledger append-only, ValueCategory, confidence scoring
+- [x] SyncPipeline — rate limiter token-bucket, cache TTL, retry backoff, delta detection
+- [x] WithdrawalTracker — ciclo completo (initiated → pending → completed/failed), confirmation methods
+- [x] ReconciliationEngine — auto-resuelve discrepancias, flaggea entradas en disputa, tracking histórico
+- [x] Financial Events — 10 eventos enrutados a NotificationHub con prioridades y push
+- [x] MoneyRadar rewrite — EV sin hardcoded floors, ingest_real_data(), data_confidence por score
+
+## v1.8 — Crypto Financial Sync System (Complete)
+- [x] EVMConnector — 5 chains (ETH/Polygon/BSC/Arbitrum/Optimism) via RPC + explorer API
+- [x] ExchangeConnector — Binance/Coinbase/Kraken/Bybit con API firmada HMAC
+- [x] CryptoSyncManager — auto-discovery desde IdentityVault, sync_all, historial por wallet
+- [x] Ledger upgrade — 9 nuevos LedgerEvent crypto (deposit/withdrawal/staking/yield/swap/gas/airdrop/trade/fee)
+- [x] API routers — /api/crypto/* (7 endpoints) + /api/accounts-hub/* (2 endpoints)
+- [x] Frontend — AccountsHub.vue, SyncCenter.vue, TruthInspector.vue
+- [x] 382 API routes, 165 tests, 0 Vue type-errors
+
+## v1.9 — Platform Sync & AuthHub (Next)
+- [ ] sync_earnings() en Intigriti, Synack, YesWeHack (actualmente stubs)
+- [ ] AuthHub: Gmail OAuth2, WhatsApp Twilio, Telegram bot
+- [ ] Auto-sync scheduler financiero (crypto + plataformas)
+- [ ] Account health dashboard con degradación visual
+
+## v2.0 — Wallet Hub & Withdrawals
+- [ ] Wallet Connect (WalletConnect protocol)
+- [ ] BTC connector via block explorer API
+- [ ] Withdrawal tracker upgrade crypto-first (reorg-safe, confirmations)
+- [ ] Bank Payout connector (Plaid API)
+
+## Ideas Futuras (Post-v2.0)
 
 ### Calidad y Robustez
 - **Rate limiting + retry + circuit breaker** en todas las integraciones con plataformas bug bounty
@@ -80,11 +109,9 @@
 - **Modo responsivo**: sidebar → bottom nav en mobile
 - **PWA**: service worker con cache de assets + offline fallback
 - **Vista calendario/timeline** completa (actualmente placeholder)
-- **Retiros bancarios** (withdrawals) con integración real
 - **Workflow humano completo**: scope → hipótesis → validación → reporte
 
 ### Infraestructura
-- **Consolidar nomenclatura**: decidir entre CATEYE vs Orion (algunos módulos usan `orion.db`, `Orion.spec`, `ORION` en headers)
 - **Consolidar build system**: unificar 6 scripts de build dispares en pipeline único (`release_isolation.py` como gold standard)
 - **pyproject.toml**: mover dependencias de `requirements.txt` a `[project.dependencies]`
 - **GitHub Actions**: CI/CD con lint + test + build automáticos
