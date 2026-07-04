@@ -75,8 +75,8 @@ class AcceptancePredictor:
         proof = finding.get("proof", {}) or {}
 
         return {
-            "technical_confidence": min(1.0, proof.get("technical_detail", "") > 200),
-            "reproducibility": min(1.0, proof.get("reproduction_steps", "") > 100),
+            "technical_confidence": 1.0 if len(proof.get("technical_detail", "") or "") > 200 else 0.0,
+            "reproducibility": 1.0 if len(proof.get("reproduction_steps", "") or "") > 100 else 0.0,
             "evidence_completeness": self._rate_evidence(proof),
             "business_impact": min(1.0, finding.get("business_impact_score", 0.0)),
             "security_impact": severity_score,
