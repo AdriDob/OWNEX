@@ -3,9 +3,11 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from cores.platforms.base import BugBountyPlatform, SubmissionResult
+from cores.platforms.base import BugBountyPlatform, SubmissionResult, SyncResult
 
 logger = logging.getLogger("catseye.platforms.bugcrowd")
+
+BC_API_BASE = "https://api.bugcrowd.com/v1"
 
 
 class Bugcrowd(BugBountyPlatform):
@@ -77,3 +79,50 @@ class Bugcrowd(BugBountyPlatform):
             return "unknown"
         except Exception:
             return "unknown"
+
+    def sync_earnings(self, api_key: str) -> SyncResult:
+        try:
+            import requests
+            resp = requests.get(
+                f"{BC_API_BASE}/researchers/me/bounties",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Accept": "application/json",
+                },
+                timeout=30,
+            )
+            if resp.status_code != 200:
+                return SyncResult(success=False, error=f"API error {resp.status_code}")
+
+            data = resp.json()
+            bounties = data if isinstance(data, list) else data.get("data", [])
+            earnings = []
+            total_earned = 0.0
+            total_pending = 0.0
+            for b in bounties:
+                attrs = b.get("attributes", {})
+                amount = float(attrs.get("amount", 0) or 0)
+                state = attrs.get("state", "")
+                entry = {
+                    "id": b.get("id", ""),
+                    "amount": amount,
+                    "currency": attrs.get("currency", "USD"),
+                    "program": attrs.get("program_name", ""),
+                    "submission_id": attrs.get("submission_id", ""),
+                    "state": state,
+                    "created_at": attrs.get("created_at", ""),
+                }
+                earnings.append(entry)
+                if state == "paid":
+                    total_earned += amount
+                else:
+                    total_pending += amount
+
+            return SyncResult(
+                success=True,
+                earnings=earnings,
+                total_earned=total_earned,
+                total_pending=total_pending,
+            )
+        except Exception as exc:
+            return SyncResult(success=False, error=str(exc))

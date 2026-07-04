@@ -679,3 +679,35 @@ export async function assistantStreamChat(
     }
   }
 }
+
+// ── Crypto API ──
+
+export async function getCryptoWallets() {
+  return api.get<{ wallets: any[]; summary: any }>('/crypto/wallets')
+}
+
+export async function getCryptoWallet(walletId: string) {
+  return api.get<any>(`/crypto/wallets/${walletId}`)
+}
+
+export async function syncCryptoWallet(walletId: string) {
+  return api.post<any>(`/crypto/wallets/${walletId}/sync`)
+}
+
+export async function syncAllCryptoWallets() {
+  return api.post<any>('/crypto/sync-all')
+}
+
+export async function getCryptoSummary() {
+  return api.get<any>('/crypto/summary')
+}
+
+// ── Accounts Hub API ──
+
+export async function getAccountsHub() {
+  return api.get<any>('/accounts-hub/status')
+}
+
+export async function getSyncHistory() {
+  return api.get<any[]>('/accounts-hub/sync-history')
+}

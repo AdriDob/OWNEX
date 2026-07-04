@@ -7,6 +7,8 @@ import Button from '@/components/ui/Button.vue'
 import Tooltip from '@/components/ui/Tooltip.vue'
 import Separator from '@/components/ui/Separator.vue'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard.vue'
+import { useAccessibilityStore } from '@/stores/accessibility'
+import type { AccessibilityState } from '@/stores/accessibility'
 import {
   Settings, Palette, Shield, Cpu, Globe, Eye, Key, Save, CheckCircle2,
   AlertTriangle, RefreshCw, ExternalLink, User, Wrench, Server, Lock, Download, Upload, RotateCcw,
@@ -15,6 +17,9 @@ import {
 } from '@lucide/vue'
 
 const settings = useSettingsStore()
+const a11y = useAccessibilityStore()
+
+const fontScaleOptions = [75, 85, 100, 115, 130, 150]
 
 const toolsWithInfo = computed(() =>
   toolsList.map(t => ({ ...t, info: (settings.data.tools as Record<string, { installed: boolean; version: string }>)[t.id] || { installed: false, version: '' } }))
@@ -24,7 +29,7 @@ type ApiKeyEntry = { key: string; label: string; link?: string }
 function hasLink(k: ApiKeyEntry): k is ApiKeyEntry & { link: string } {
   return 'link' in k && !!k.link
 }
-const activeTab = ref<'general' | 'ai' | 'tools' | 'apikeys' | 'mission' | 'system' | 'security' | 'appearance'>('general')
+const activeTab = ref<'general' | 'ai' | 'tools' | 'apikeys' | 'mission' | 'system' | 'security' | 'appearance' | 'accessibility'>('general')
 const saving = ref(false)
 const saveSuccess = ref('')
 const saveError = ref('')
@@ -40,6 +45,7 @@ const tabs = [
   { id: 'system' as const, label: 'Sistema', icon: Server },
   { id: 'security' as const, label: 'Seguridad', icon: Shield },
   { id: 'appearance' as const, label: 'Apariencia', icon: Palette },
+  { id: 'accessibility' as const, label: 'Accesibilidad', icon: Eye },
 ]
 
 const toolsList = [
@@ -781,6 +787,101 @@ onMounted(() => {
               />
               <span class="font-mono text-xs text-muted-foreground">Activadas</span>
             </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ ACCESIBILIDAD ═══════ -->
+    <div v-if="activeTab === 'accessibility'" class="space-y-4">
+      <div class="cyber-card rounded-xl p-5 space-y-5">
+        <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2">
+          <Eye class="h-4 w-4 text-primary" /> Preferencias de accesibilidad
+        </h3>
+
+        <div class="space-y-3">
+          <label class="flex items-center justify-between cursor-pointer">
+            <div>
+              <p class="font-mono text-xs text-foreground">Navegación por teclado</p>
+              <p class="font-mono text-[9px] text-muted-foreground">Atajos de teclado globales activos</p>
+            </div>
+            <input
+              :checked="a11y.state.keyboardNavigation"
+              @change="a11y.toggle('keyboardNavigation')"
+              type="checkbox" class="h-4 w-4 rounded border-border/60 accent-primary"
+            />
+          </label>
+
+          <Separator />
+
+          <label class="flex items-center justify-between cursor-pointer">
+            <div>
+              <p class="font-mono text-xs text-foreground">Alto contraste</p>
+              <p class="font-mono text-[9px] text-muted-foreground">Máximo contraste visual para legibilidad</p>
+            </div>
+            <input
+              :checked="a11y.state.highContrast"
+              @change="a11y.toggle('highContrast')"
+              type="checkbox" class="h-4 w-4 rounded border-border/60 accent-primary"
+            />
+          </label>
+
+          <Separator />
+
+          <label class="flex items-center justify-between cursor-pointer">
+            <div>
+              <p class="font-mono text-xs text-foreground">Movimiento reducido</p>
+              <p class="font-mono text-[9px] text-muted-foreground">Desactiva animaciones y transiciones</p>
+            </div>
+            <input
+              :checked="a11y.state.reducedMotion"
+              @change="a11y.toggle('reducedMotion')"
+              type="checkbox" class="h-4 w-4 rounded border-border/60 accent-primary"
+            />
+          </label>
+
+          <Separator />
+
+          <label class="flex items-center justify-between cursor-pointer">
+            <div>
+              <p class="font-mono text-xs text-foreground">Modo lector de pantalla</p>
+              <p class="font-mono text-[9px] text-muted-foreground">Atributos ARIA mejorados y semántica</p>
+            </div>
+            <input
+              :checked="a11y.state.screenReaderMode"
+              @change="a11y.toggle('screenReaderMode')"
+              type="checkbox" class="h-4 w-4 rounded border-border/60 accent-primary"
+            />
+          </label>
+
+          <Separator />
+
+          <label class="flex items-center justify-between cursor-pointer">
+            <div>
+              <p class="font-mono text-xs text-foreground">Indicador de foco</p>
+              <p class="font-mono text-[9px] text-muted-foreground">Anillo visible al navegar con teclado</p>
+            </div>
+            <input
+              :checked="a11y.state.focusIndicator"
+              @change="a11y.toggle('focusIndicator')"
+              type="checkbox" class="h-4 w-4 rounded border-border/60 accent-primary"
+            />
+          </label>
+        </div>
+
+        <Separator />
+
+        <div>
+          <label class="mb-2 font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
+            Escala de fuente ({{ a11y.state.fontScale }}%)
+          </label>
+          <div class="flex gap-2">
+            <button
+              v-for="s in fontScaleOptions" :key="s"
+              @click="a11y.patch({ fontScale: s })"
+              class="rounded-lg border px-3 py-1.5 font-mono text-xs transition-all"
+              :class="a11y.state.fontScale === s ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border/20 text-muted-foreground hover:text-foreground'"
+            >{{ s }}%</button>
           </div>
         </div>
       </div>

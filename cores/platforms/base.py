@@ -29,6 +29,17 @@ class SubmissionResult:
     data: dict[str, Any] = field(default_factory=dict)
 
 
+@dataclass
+class SyncResult:
+    success: bool
+    earnings: list[dict[str, Any]] = field(default_factory=list)
+    payouts: list[dict[str, Any]] = field(default_factory=list)
+    programs: list[dict[str, Any]] = field(default_factory=list)
+    error: str = ""
+    total_earned: float = 0.0
+    total_pending: float = 0.0
+
+
 class BugBountyPlatform(ABC):
     @property
     @abstractmethod
@@ -72,3 +83,6 @@ class BugBountyPlatform(ABC):
 
     def check_status(self, external_id: str, api_key: str = "") -> str:
         raise NotImplementedError(f"{self.platform_id} does not support status checking")
+
+    def sync_earnings(self, api_key: str) -> SyncResult:
+        return SyncResult(success=False, error=f"{self.platform_id} does not support earnings sync")

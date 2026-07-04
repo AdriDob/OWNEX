@@ -5,9 +5,11 @@ import { useAuthStore } from '@/stores/auth'
 import { useNotificationsStore } from '@/stores/notifications'
 import { useSettingsStore } from '@/stores/settings'
 import { onLoadingChange } from '@/lib/api'
+import { useGlobalShortcuts } from '@/composables/useGlobalShortcuts'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import CopilotPanel from '@/components/copilot/CopilotPanel.vue'
 import CommandPalette from '@/components/ui/CommandPalette.vue'
+import ContextMenu from '@/components/ui/ContextMenu.vue'
 import ToastContainer from '@/components/ToastContainer.vue'
 
 declare global {
@@ -22,9 +24,23 @@ const settings = useSettingsStore()
 const router = useRouter()
 const route = useRoute()
 const copilotOpen = ref(false)
+const sidebarOpen = ref(false)
 const globalLoading = ref(false)
 const showGlobalLoading = ref(false)
 let loadingTimeout: ReturnType<typeof setTimeout> | null = null
+
+const { shortcuts } = useGlobalShortcuts({
+  onCommand: () => window.dispatchEvent(new CustomEvent('toggle-command-palette')),
+  onToggleCopilot: () => copilotOpen.value = !copilotOpen.value,
+  onToggleSidebar: () => sidebarOpen.value = !sidebarOpen.value,
+  onToggleNotifications: () => window.dispatchEvent(new CustomEvent('toggle-notifications')),
+  onCloseModal: () => window.dispatchEvent(new CustomEvent('close-modal')),
+})
+
+function handleContextAction(_actionId: string, entity: any) {
+  // Forwarded from ContextMenu; actual logic handled by action callbacks in composable
+  console.debug('Context action:', _actionId, entity)
+}
 
 // Apply theme/colors from settings to DOM
 watch(() => [settings.data.appearance.theme, settings.data.appearance.colors], ([theme, colors]) => {
@@ -52,20 +68,11 @@ function toggleCopilot() {
   copilotOpen.value = !copilotOpen.value
 }
 
-function onKeydown(e: KeyboardEvent) {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
-    e.preventDefault()
-    toggleCopilot()
-  }
-  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-    e.preventDefault()
-    window.dispatchEvent(new CustomEvent('toggle-command-palette'))
-  }
+function toggleSidebar() {
+  sidebarOpen.value = !sidebarOpen.value
 }
 
 onMounted(async () => {
-  window.addEventListener('keydown', onKeydown)
-
   onLoadingChange((loading) => {
     if (loading) {
       loadingTimeout = setTimeout(() => { showGlobalLoading.value = true }, 500)
@@ -76,7 +83,6 @@ onMounted(async () => {
     globalLoading.value = loading
   })
 
-  // Connect notifications WebSocket
   notifications.connectWs()
 
   // Desktop integration
@@ -93,7 +99,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', onKeydown)
+  // cleanup handled by useGlobalShortcuts
 })
 </script>
 
@@ -111,9 +117,10 @@ onUnmounted(() => {
       <router-view />
     </template>
     <template v-else>
-    <AppLayout :copilot-open="copilotOpen" @toggle-copilot="toggleCopilot" />
+    <AppLayout :copilot-open="copilotOpen" :sidebar-open="sidebarOpen" @toggle-copilot="toggleCopilot" @toggle-sidebar="toggleSidebar" />
     <CopilotPanel :open="copilotOpen" @close="copilotOpen = false" />
     <CommandPalette />
+    <ContextMenu @action="handleContextAction" />
     <ToastContainer />
     </template>
   </div>
