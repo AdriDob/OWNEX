@@ -12,7 +12,7 @@
    <p>
       <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"/></a>
      <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.10%2B-purple.svg" alt="Python 3.10+"/></a>
-      <a href="https://github.com/AdriDob/Rastro/releases"><img src="https://img.shields.io/badge/version-1.7.0--RC4-blue.svg" alt="Version 1.7.0 RC4"/></a>
+      <a href="https://github.com/AdriDob/Rastro/releases"><img src="https://img.shields.io/badge/version-1.8.0-blue.svg" alt="Version 1.8.0"/></a>
      <a href="https://vuejs.org/"><img src="https://img.shields.io/badge/vue-3.5-4FC08D.svg" alt="Vue 3.5"/></a>
      <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/fastapi-0.95%2B-009688.svg" alt="FastAPI"/></a>
      <a href="https://docs.astral.sh/ruff/"><img src="https://img.shields.io/badge/code%20style-ruff-ff69b4.svg" alt="Ruff"/></a>
@@ -22,7 +22,7 @@
    <br/>
    <br/>
    <p>
-      **CATEYE v1.7.0 RC4** — un sistema de inteligencia artificial autónomo para bug bounty hunters que automatiza todo el ciclo de vida de la cacería de vulnerabilidades — desde el descubrimiento de programas y reconocimiento, hasta la generación de hipótesis, validación y redacción de informes profesionales.
+       **CATEYE v1.8.0** — un sistema de inteligencia artificial autónomo para bug bounty hunters que automatiza todo el ciclo de vida de la cacería de vulnerabilidades — desde el descubrimiento de programas y reconocimiento, hasta la generación de hipótesis, validación, reportes, y tracking financiero completo.
      <br/>
      Cada decisión se mide en <strong>USD/hora</strong>, probabilidad de éxito y ROI esperado.
    </p>
@@ -69,6 +69,20 @@
    </td>
    <td width="50%">
 
+   ### 💰 Financial Truth Layer
+   - Financial Truth Layer: clasifica cada valor como VERIFIED_REAL/PENDING/ESTIMATED/MANUAL/UNKNOWN
+   - SyncPipeline: rate limiter token-bucket, cache TTL, retry con backoff exponencial, detección de delta
+   - WithdrawalTracker: ciclo completo (initiated→pending→completed/failed) con tx_hash y confirmations
+   - ReconciliationEngine: compara datos externos vs ledger, auto-resuelve discrepancias con confianza ≥0.9
+   - 10 eventos financieros enlazados a NotificationHub (payout, withdrawal, sync, dispute)
+
+   ### ⛓️ Crypto Sync System
+   - EVMConnector: Ethereum, Polygon, BSC, Arbitrum, Optimism via RPC + explorer API
+   - ExchangeConnector: Binance, Coinbase, Kraken, Bybit con API firmada HMAC
+   - 9 LedgerEvent crypto (deposit, withdrawal, staking, yield, swap, gas, airdrop, trade, fee)
+   - Accounts Hub unificado (plataformas + wallets + conexiones bancarias)
+   - Sync Center con historial de sincronización y salud por fuente
+
    ### 📊 Reportes Profesionales
    - Generación de reportes con IA
    - Exportación a Markdown, PDF, HTML, TXT
@@ -110,7 +124,7 @@
                                  │
    ┌──────────────────────────────▼──────────────────────────────────────┐
    │                         API LAYER (FastAPI)                         │
-   │  55+ routers · CORS · Auth · Rate Limiting · Scheduler · WebSocket  │
+   │  60+ routers · CORS · Auth · Rate Limiting · Scheduler · WebSocket  │
    └──────┬──────────────────────────────────────────────────┬───────────┘
            │                                                  │
    ┌──────▼──────────────────┐            ┌──────────────────▼───────────┐
@@ -126,6 +140,8 @@
    │  ├─ events/    (pub/sub) │            │                           │
    │  ├─ memory/    (LTM)     │            │                           │
    │  ├─ identity_vault (AES) │            │                           │
+   │  ├─ financial/ (truth)   │            │                           │
+   │  ├─ crypto/ (wallets)    │            │                           │
    │  └─ 30+ more modules     │            │                           │
    └──────┬──────────────────┘            └──────────────────────────────┘
            │

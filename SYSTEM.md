@@ -2,7 +2,7 @@
 
 # CATEYE — Sistema de Inteligencia para Bug Bounty Automático
 
-> **Versión:** 1.7.0
+> **Versión:** 1.8.0
 > **Arquitectura:** Monolito modular con frontend SPA
 > **Backend:** Python + FastAPI + SQLAlchemy + SQLite/PostgreSQL
 > **Frontend:** Vue 3 + TypeScript + Tailwind CSS v4 + Vite
@@ -101,6 +101,19 @@ CATEYE/
 │   │   ├── synack.py
 │   │   └── yeswehack.py
 │   │
+│   ├── financial/              ← Financial Truth Layer
+│   │   ├── truth_layer.py      ← TruthLayer + FinancialState + ValueCategory
+│   │   ├── sync_pipeline.py    ← SyncPipeline con rate limiter + retry
+│   │   ├── withdrawal.py       ← WithdrawalTracker lifecycle
+│   │   ├── reconciliation.py   ← ReconciliationEngine
+│   │   └── events.py           ← 10 eventos financieros
+│   │
+│   ├── crypto/                 ← Crypto Wallet Sync
+│   │   ├── base.py             ← CryptoConnector ABC + tipos
+│   │   ├── evm.py              ← EVMConnector (5 chains)
+│   │   ├── exchange.py         ← ExchangeConnector (4 exchanges)
+│   │   └── sync_manager.py     ← CryptoSyncManager
+│   │
 │   ├── opportunity/            ← Detección de oportunidades
 │   ├── reporting/              ← Generación de reportes
 │   ├── validation/             ← Motor de validación
@@ -130,7 +143,10 @@ CATEYE/
 │       ├── sync.py             ← Sincronización multi-dispositivo
 │       ├── webhooks.py         ← Webhooks de plataformas
 │       ├── opportunity_intelligence.py ← Identidades y cuentas
-│       └── ... (40+ routers total)
+│       ├── financial_truth.py  ← Financial Truth Layer (15 endpoints)
+│       ├── crypto.py           ← Wallet sync (7 endpoints)
+│       ├── accounts_hub.py     ← Unified hub (2 endpoints)
+│       └── ... (60+ routers total)
 │
 ├── database/                   ← Modelos y migraciones
 │   ├── models.py               ← Modelos SQLAlchemy principales
@@ -300,7 +316,10 @@ La API se sirve en `http://127.0.0.1:8000/api/*` con los siguientes grupos:
 | `/api/opportunity_intelligence` | opportunity | Identidades, categorías, histórico |
 | `/api/connections` | connections | Gestión de cuentas de plataformas y bancos |
 | `/api/overview` | overview | Resumen del sistema |
-| 30+ routers más | — | Funcionalidades específicas |
+| `/api/financial` | financial | Financial Truth Layer — estado, resumen, withdraws, reconciliación |
+| `/api/crypto` | crypto | Wallets crypto — balance, sync, historial |
+| `/api/accounts-hub` | accounts_hub | Hub unificado — plataformas + wallets + KPIs |
+| 60+ routers total | — | Funcionalidades específicas |
 
 ---
 

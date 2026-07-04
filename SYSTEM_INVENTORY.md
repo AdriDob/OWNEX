@@ -12,8 +12,8 @@
 | **Nombre del proyecto** | CATEYE (formerly ORION / Rastro) |
 | **Objetivo principal** | Sistema de inteligencia artificial para automatizar el ciclo completo de bug bounty: descubrimiento, análisis de alcance, reconocimiento, generación de hipótesis, validación, generación de reportes y envío a plataformas (HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack) |
 | **Estado actual** | Producción (Stable) |
-| **Versión** | 1.7.0 |
-| **Fecha de última actualización** | 2026-06-29 |
+| **Versión** | 1.8.0 |
+| **Fecha de última actualización** | 2026-07-04 |
 | **Licencia** | MIT |
 | **Arquitectura** | Monolito modular con frontend SPA |
 | **Lenguaje principal** | Python 3.10+ |
@@ -142,6 +142,7 @@ Lista completa de submódulos en `cores/`:
 | `scope_reader/` | Descarga y parseo de documentos de alcance de programas |
 | `orchestrator/` | Orquestación de pipelines: pipeline, assistant_orchestrator, scan_service |
 | `autonomous/` | Motor de cacería autónoma 24/7 |
+| `crypto/` | Crypto Wallet Sync: base (CryptoConnector ABC + tipos), evm (EVMConnector 5 chains), exchange (ExchangeConnector 4 exchanges), sync_manager (CryptoSyncManager) |
 | `opportunity/` | Scoring de oportunidades, EVH, ORION Score, recomendaciones |
 | `platforms/` | Integraciones: hackerone, bugcrowd, intigriti, synack, yeswehack + base abstracta |
 | `agents/` | Sistema multi-agente: base, bus, coordinator, research, validator, exploit, documentation, strategy, memory, financial, types, bus |
@@ -173,7 +174,7 @@ Lista completa de submódulos en `cores/`:
 | `knowledge/` | Gestión de conocimiento: graph, store, manager, models, parsers, pipeline, enrichers, etc. |
 | `screenshot/` | Capturas de pantalla |
 | `quick_wins/` | Quick wins engine |
-| `financial/` | Financiero: payout_recommender |
+| `financial/` | Financial Truth Layer: truth_layer (estado financiero + ValueCategory), sync_pipeline (rate limiter + retry + delta), withdrawal (tracking de retiros), reconciliation (discrepancia + auto-resolución), events (10 eventos financieros) |
 | `orion/` | Context engine, next_action, opportunity_analyzer |
 | `contracts/` | Contratos: base, normalizers, validator, wrapper |
 | `attack/` | Motor de ataque |

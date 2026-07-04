@@ -2,7 +2,7 @@
 
 **Sistema de Inteligencia Económica para Bug Bounty**
 
-Versión: 1.7.2 | Stack: Python 3.10+ · FastAPI · Vue 3 · SQLite/PostgreSQL
+Versión: 1.8.0 | Stack: Python 3.10+ · FastAPI · Vue 3 · SQLite/PostgreSQL
 
 ---
 
@@ -367,36 +367,72 @@ CATEYE exporta reportes en:
 
 ## 9. Sistema Financiero
 
-### 9.1 Dashboard financiero
+### 9.1 Financial Truth Layer
 
-El sistema mantiene un registro completo de ingresos:
+El Financial Truth Layer (v1.8.0) provee una fuente única de verdad para todos los ingresos del bug bounty. Se accede via `/financial-truth` en la UI o `/api/financial/*` en la API.
 
-```
-Total earned:      $X,XXX
-Pending:           $X,XXX
-Available:         $X,XXX
-USD/hour:          $XX.XX
-```
+Clasifica cada valor en una de 5 categorías:
 
-Vista por:
-- **Programa** → cuánto pagó cada uno
-- **Plataforma** → HackerOne vs Bugcrowd vs directo
-- **Tipo de vuln** → IDOR paga más que XSS?
-- **Línea de tiempo** → earnings por mes
+| Categoría | Descripción | Confianza |
+|-----------|-------------|-----------|
+| `VERIFIED_REAL` | Pagos confirmados por API de plataforma o blockchain | 1.0 |
+| `PENDING` | Reportes aceptados no pagados aún | 0.7–1.0 |
+| `ESTIMATED` | Estimaciones basadas en promedios históricos | 0.3–0.5 |
+| `MANUAL` | Ingresos cargados manualmente por el usuario | 0.6 |
+| `UNKNOWN` | Sin fuente de datos disponible | 0.0 |
 
-### 9.2 Wallet y retiros
+**Dashboard:** 6 KPI cards (verified/pending/withdrawn/estimated/manual/disputed), barra proporcional, pestañas de Resumen, Plataformas, Retiros y Reconciliación.
 
-`/wallets` → gestioná tus métodos de cobro:
+### 9.2 Wallet y retiros (WithdrawalTracker)
 
-| Plataforma | Métodos comunes |
-|------------|-----------------|
-| HackerOne | PayPal, Bank Transfer, Crypto |
-| Bugcrowd | PayPal, Bank Transfer |
-| Intigriti | Bank Transfer |
-| Synack | PayPal, USDC |
-| YesWeHack | Bank Transfer, Crypto |
+`/financial-truth` (pestaña Retiros) gestiona el ciclo completo de retiros:
 
-### 9.3 ROI tracking
+| Estado | Descripción |
+|--------|-------------|
+| `initiated` | Retiro solicitado |
+| `pending` | En proceso de confirmación |
+| `completed` | Confirmado por API o manualmente |
+| `failed` | Rechazado o cancelado |
+
+Cada retiro puede confirmarse via:
+- `API_VERIFIED` — confirmación automática por API de plataforma
+- `MANUAL_PROOF` — confirmación manual con evidencia adjunta
+- `RECONCILIATION` — coincidencia contra ledger automática
+- `UNCONFIRMED` — sin confirmación aún
+
+### 9.3 Crypto Wallets
+
+`/accounts-hub` → monitoreo unificado de billeteras crypto:
+
+| Conector | Fuente | Soporta |
+|----------|--------|---------|
+| EVMConnector | RPC (Infura/Alchemy) + Explorer API | Ethereum, Polygon, BSC, Arbitrum, Optimism |
+| ExchangeConnector | REST API firmada HMAC | Binance, Coinbase, Kraken, Bybit |
+
+Cada wallet muestra balance en USD, último sync, y estado de conexión (CONNECTED/DEGRADED/ERROR/UNKNOWN). Los balances se obtienen on-chain, nunca se asumen.
+
+### 9.4 SyncPipeline
+
+El SyncPipeline orquesta la sincronización automática de todas las fuentes:
+- **Rate limiting** token-bucket por plataforma
+- **Cache** con TTL configurable por tipo de dato
+- **Retry** con backoff exponencial (hasta 5 intentos)
+- **Delta detection** — clasifica cada entrada como NEW / UPDATED / REMOVED
+
+### 9.5 ReconciliationEngine
+
+Compara automáticamente los datos externos (API de plataforma + blockchain) contra el ledger interno:
+
+| Discrepancia | Acción |
+|--------------|--------|
+| `MISSING_PAYOUT` | Flaggea en disputa para revisión manual |
+| `ORPHAN_ENTRY` | Entrada en ledger sin correspondencia externa |
+| `AMOUNT_MISMATCH` | Diferencia de monto entre fuente y ledger |
+| `UNKNOWN_SOURCE` | Entrada sin fuente identificable |
+
+Discrepancias con confianza ≥ 0.9 se resuelven automáticamente.
+
+### 9.6 ROI tracking
 
 Cada sesión de investigación registra:
 - Tiempo invertido
@@ -405,7 +441,7 @@ Cada sesión de investigación registra:
 - Aceptados / rechazados
 - Pago recibido
 
-Esto alimenta el **AcceptancePredictor** y mejora predicciones futuras.
+Esto alimenta el **MoneyRadar** (EV = P(acceptance) × real_payout_history × exploit_ease) y mejora predicciones futuras.
 
 ---
 
@@ -664,6 +700,9 @@ Esc    → Cerrar modal / panel
 | `/api/connections/withdrawals` | GET/POST | Retiros |
 | `/api/reports` | GET/POST | Reportes |
 | `/api/findings` | GET/POST | Hallazgos |
+| `/api/financial` | GET | Financial Truth Layer (state, summary, withdrawals, reconciliation) |
+| `/api/crypto` | GET/POST | Crypto wallets (list, sync, balance, history) |
+| `/api/accounts-hub` | GET | Hub unificado (platforms + wallets + KPIs) |
 
 ### 15.3 Comandos útiles
 
@@ -694,6 +733,7 @@ Frontend (Vue 3) ↔ API (FastAPI) ↔ Cores (Python) ↔ DB (SQLite/Postgres) �
 
 | Versión | Cambios clave |
 |---------|---------------|
+| 1.8.0   | Financial Truth Layer + Crypto Sync System: truth_layer, sync_pipeline, withdrawal, reconciliation, EVMConnector (5 chains), ExchangeConnector (4 exchanges), AccountsHub + SyncCenter + TruthInspector frontend, 382 API routes, 165 tests |
 | 1.7.2   | 5 money-impact modules: TargetRadar, LightningScanner, DuplicateDetector, FeedbackEngine, PoCEngine |
 | 1.7.1   | Hardening: mypy 0 errores, ruff 39 cosmetic, retry handler, logo fix |
 | 1.7.0   | 100% backend coverage, test infra, OpenAPI docs, modelo renombrado a CATEYE |

@@ -1,5 +1,44 @@
 # Changelog
 
+## v1.8.0 — 2026-07-04
+
+### Financial Truth Layer
+- **TruthLayer**: derive FinancialState desde el ledger append-only; ValueCategory enum (VERIFIED_REAL/PENDING/ESTIMATED/MANUAL/UNKNOWN); classify_value() + confidence_from_source()
+- **SyncPipeline**: RateLimiter token-bucket por plataforma, SyncCache con TTL, retry con backoff exponencial (hasta 5), delta detection (NEW/UPDATED/REMOVED), SyncConfig con FULL/INCREMENTAL
+- **WithdrawalTracker**: create_withdrawal() → mark_pending() → complete_withdrawal() / fail_withdrawal(); ConfirmationMethod (API_VERIFIED/MANUAL_PROOF/RECONCILIATION/UNCONFIRMED); ProofAttachment; get_summary() para KPIs
+- **ReconciliationEngine**: check_platform() compara entries externos vs ledger; clasifica DiscrepancyType; auto-resuelve con confianza ≥0.9; flaggea entradas en disputa en TruthLayer
+- **Financial Events**: 10 eventos (payout_received, report_accepted, withdrawal_completed/failed, target_detected, sync_completed/failed, reconciliation_conflict, dispute_resolved, high_value_opportunity) enrutados a NotificationHub
+- **MoneyRadar rewrite**: EV = P(acceptance) × real_payout_history × exploit_ease; sin hardcoded floors; ingest_real_data() desde sync; data_confidence y data_category en cada EVScore
+
+### Crypto Financial Sync System
+- **cores/crypto/**: módulo completo con EVMConnector (Ethereum/Polygon/BSC/Arbitrum/Optimism), ExchangeConnector (Binance/Coinbase/Kraken/Bybit), CryptoSyncManager con auto-discovery desde IdentityVault
+- **Ledger upgrade**: 9 nuevos LedgerEvent (CRYPTO_DEPOSIT, CRYPTO_WITHDRAWAL, CRYPTO_STAKING_REWARD, CRYPTO_DEFI_YIELD, CRYPTO_SWAP, CRYPTO_GAS_FEE, CRYPTO_AIRDROP, EXCHANGE_TRADE, EXCHANGE_FEE) + compute_wallet() extendido
+- **Financial Events crypto**: 7 eventos financieros crypto con prioridades y push notifications
+- **API routers**: /api/crypto/* (7 endpoints) + /api/accounts-hub/* (2 endpoints)
+- **Frontend**: AccountsHub.vue (dashboard unificado), SyncCenter.vue (timeline de sincronización), TruthInspector.vue (ledger explorer con búsqueda y detalle)
+- **382 API routes**, 165 tests pasando, 0 errores Vue type-check
+
+### Platform Sync
+- HackerOne + Bugcrowd: sync_earnings() implementados con API real
+- SyncResult dataclass extendido con payouts/programs/totals
+- Platform earnings sincronizados automáticamente
+
+### Frontend
+- FinancialTruth.vue: 6 KPI cards, barra proporcional, 4 tabs (Resumen/Plataformas/Retiros/Reconciliación), salud de sync por plataforma
+- ContextMenu.vue: menú flotante right-click con ARIA accesible y Teleport
+- MicroSection.vue: sección colapsable con badge/loading/preview
+- QuickActions.vue: toolbar por entidad con acciones contextuales
+- useGlobalShortcuts.ts: 13 shortcuts (Ctrl+K, números, flechas, escape)
+- useContextMenu.ts: estado universal de context menu + acciones
+- accessibility.ts store: 6 settings de accesibilidad (persistidos + CSS bindings)
+- Sidebar: balance "Verificado"/"Pendiente" desde /financial/state/summary; navegación Accounts Hub / Sync Center / Truth Inspector
+
+### Fixes
+- api/main.py: imports duplicados limpiados (bloque huérfano lines 77–118)
+- financial API: rutas registradas correctamente sin conflictos
+
+---
+
 ## v1.7.0 (RC4) — 2026-07-04
 
 ### 🎯 Release Candidate 4 — Finalización
