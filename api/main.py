@@ -21,6 +21,7 @@ from api.routers import (
     attack_surface,
     auth,
     auth_users,
+    authhub,
     canonical,
     connections,
     contracts,
@@ -32,6 +33,7 @@ from api.routers import (
     endpoints,
     evidence,
     execution,
+    financial_sync,
     financial_truth,
     findings,
     hunt,
@@ -118,6 +120,14 @@ async def lifespan(app: FastAPI):
     identity.ensure_identity()
     user_identity = identity.get_identity()
     logger.info("Identity system initialized: %s", user_identity.user_id if user_identity else "unknown")
+
+    # Initialize AuthHub
+    try:
+        from cores.authhub import get_authhub
+        get_authhub().init_defaults()
+        logger.info("AuthHub initialized with default providers")
+    except Exception as exc:
+        logger.warning("AuthHub init failed (non-fatal): %s", exc)
 
     # Initialize orchestrator
     from cores.orchestrator.assistant_orchestrator import get_orchestrator
@@ -248,6 +258,18 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("Multi-Agent system failed to start (non-fatal): %s", exc)
 
+    # Start Financial Auto-Sync Scheduler
+    fin_scheduler = None
+    try:
+        from cores.financial.scheduler import get_financial_sync_scheduler
+        fin_scheduler = get_financial_sync_scheduler()
+        import os
+        fin_scheduler.interval_minutes = int(os.environ.get("CATEYE_SYNC_INTERVAL", "30"))
+        asyncio.create_task(fin_scheduler.start())
+        logger.info("[BOOT] Financial auto-sync scheduler started (interval=%dmin)", fin_scheduler.interval_minutes)
+    except Exception as exc:
+        logger.warning("Financial auto-sync scheduler failed (non-fatal): %s", exc)
+
     # Start Recovery Engine and Health Monitor
     try:
         from cores.recovery import get_health_monitor, get_recovery_engine
@@ -339,6 +361,14 @@ async def lifespan(app: FastAPI):
             logger.info("Scan scheduler stopped")
         except Exception as exc:
             logger.warning("Scan scheduler stop error: %s", exc)
+
+    # Stop Financial Auto-Sync Scheduler
+    if fin_scheduler is not None:
+        try:
+            await fin_scheduler.stop()
+            logger.info("[BOOT] Financial auto-sync scheduler stopped")
+        except Exception as exc:
+            logger.warning("Financial auto-sync scheduler stop error: %s", exc)
 
 # Read version from VERSION file (single source of truth)
 _VERSION_FILE = Path(__file__).resolve().parent.parent / "VERSION"
@@ -456,9 +486,11 @@ app.include_router(agents_router.router)
 app.include_router(zap.router)
 app.include_router(connections.router)
 app.include_router(platforms.router)
+app.include_router(financial_sync.router)
 app.include_router(financial_truth.router)
 app.include_router(crypto.router)
 app.include_router(accounts_hub.router)
+app.include_router(authhub.router)
 app.include_router(osint.router)
 app.include_router(hunt.router)
 

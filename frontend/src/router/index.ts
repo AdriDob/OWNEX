@@ -231,6 +231,12 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'Sync Center' },
   },
   {
+    path: '/account-health',
+    name: 'account-health',
+    component: () => import('@/pages/AccountHealth.vue'),
+    meta: { title: 'Account Health' },
+  },
+  {
     path: '/truth-inspector',
     name: 'truth-inspector',
     component: () => import('@/pages/TruthInspector.vue'),

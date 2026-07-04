@@ -9,8 +9,11 @@ from cores.crypto.base import (
     CryptoConnector,
     SyncSnapshot,
 )
+from cores.crypto.btc import BTCConnector
 from cores.crypto.evm import EVMConnector
 from cores.crypto.exchange import ExchangeConnector
+from cores.crypto.solana import SolanaConnector
+from cores.crypto.tron import TronConnector
 from cores.financial.events import publish_financial_event
 from cores.identity_vault import get_identity_vault
 
@@ -38,11 +41,24 @@ class CryptoSyncManager:
                 wid = f"evm:{chain}"
                 if wid not in self._connectors:
                     self._connectors[wid] = EVMConnector(wallet_id=wid, chain_name=chain)
+            elif provider.startswith("btc_"):
+                wid = f"btc:{provider}"
+                if wid not in self._connectors:
+                    self._connectors[wid] = BTCConnector(wallet_id=wid)
             elif provider.startswith("exchange_"):
                 name = provider.replace("exchange_", "")
                 wid = f"exchange:{name}"
                 if wid not in self._connectors:
                     self._connectors[wid] = ExchangeConnector(wallet_id=wid, exchange_name=name)
+            elif provider.startswith("solana"):
+                suffix = provider[len("solana"):].lstrip("_") or "mainnet"
+                wid = f"solana:{suffix}"
+                if wid not in self._connectors:
+                    self._connectors[wid] = SolanaConnector(wallet_id=wid)
+            elif provider.startswith("tron"):
+                wid = f"tron:{provider}"
+                if wid not in self._connectors:
+                    self._connectors[wid] = TronConnector(wallet_id=wid)
 
     @property
     def connectors(self) -> dict[str, CryptoConnector]:
