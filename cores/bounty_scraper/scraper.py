@@ -1,13 +1,25 @@
 """
 core_engines.bounty_scraper.scraper — Scrapes public bug bounty listings
 from multiple platforms and converts them into database targets.
+
+Sources:
+  - HackerOne directory API + hacktivity
+  - Bugcrowd public programs.json
+  - Intigriti community API
+  - YesWeHack public API
+  - Immunefi explore page (Next.js __NEXT_DATA__)
+  - arkadiyt/bounty-targets-data GitHub repo (6 platforms)
+  - Web scanner (security.txt, robots.txt, disclosure paths)
+  - RFC 9116 security.txt parser
 """
 
 from __future__ import annotations
 
 import json
 import logging
+import random
 import re
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -29,12 +41,80 @@ REQUEST_HEADERS = {
 }
 
 
+def _rate_limit(min_s: float = 1.0, max_s: float = 2.0):
+    time.sleep(random.uniform(min_s, max_s))
+
+
+def _fetch_json(url: str, timeout: int = 20) -> tuple[Any | None, str | None]:
+    """Fetch a URL and parse JSON response."""
+    try:
+        req = urllib.request.Request(url, headers=REQUEST_HEADERS)
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            body = resp.read().decode("utf-8", errors="replace")
+            return json.loads(body), None
+    except urllib.error.HTTPError as e:
+        msg = f"HTTP {e.code} fetching {url}: {e.reason}"
+        logger.warning("%s", msg)
+        return None, msg
+    except urllib.error.URLError as e:
+        msg = f"URL error fetching {url}: {e.reason}"
+        logger.warning("%s", msg)
+        return None, msg
+    except (json.JSONDecodeError, TypeError) as e:
+        msg = f"JSON parse error for {url}: {e}"
+        logger.warning("%s", msg)
+        return None, msg
+    except Exception as e:
+        msg = f"Error fetching {url}: {e}"
+        logger.warning("%s", msg)
+        return None, msg
+
+
+def _fetch_text(url: str, timeout: int = 20) -> tuple[str | None, str | None]:
+    """Fetch a URL and return raw text."""
+    try:
+        req = urllib.request.Request(url, headers=REQUEST_HEADERS)
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            body = resp.read().decode("utf-8", errors="replace")
+            return body, None
+    except urllib.error.HTTPError as e:
+        return None, f"HTTP {e.code}"
+    except urllib.error.URLError as e:
+        return None, f"URL error: {e.reason}"
+    except Exception as e:
+        return None, str(e)
+
+
+def _parse_reward_range(text: str) -> tuple[str, float]:
+    """Extract max payout from reward range text like '$500 - $10,000'."""
+    if not text:
+        return "", 0.0
+    amounts = re.findall(r"\$?([\d,]+(?:\.\d+)?)", str(text).replace(",", ""))
+    parsed = []
+    for a in amounts:
+        try:
+            parsed.append(float(a.replace(",", "")))
+        except ValueError:
+            continue
+    if not parsed:
+        return str(text), 0.0
+    return str(text), max(parsed)
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
 @dataclass
 class ScrapedProgram:
-    """A program discovered from a public bug bounty listing."""
+    """A program discovered from a public bug bounty listing.
+
+    Extended with additional fields for new discovery sources.
+    """
     name: str
     platform: str
     scope_url: str | None = None
+    source: str = ""
     domains: list[str] = field(default_factory=list)
     wildcards: list[str] = field(default_factory=list)
     has_rewards: bool = True
@@ -43,6 +123,9 @@ class ScrapedProgram:
     technologies: list[str] = field(default_factory=list)
     program_url: str = ""
     is_new: bool = True
+    description: str = ""
+    confidence: float = 0.8
+    scopes: list[str] = field(default_factory=list)
     raw_data: dict[str, Any] = field(default_factory=dict)
 
 
@@ -264,10 +347,224 @@ class BountyScraper:
         logger.info("YesWeHack: %d programs scraped", len(results))
         return results
 
+    # ── Immunefi ─────────────────────────────────────────────────────
+
+    def scrape_immunefi(self) -> list[ScrapedProgram]:
+        """Scrape Immunefi smart contract bounty programs."""
+        results: list[ScrapedProgram] = []
+        body, err = _fetch_text("https://immunefi.com/explore/")
+        if not body:
+            logger.warning("Immunefi: %s", err)
+            return results
+
+        try:
+            # Try Next.js __NEXT_DATA__ embedded JSON
+            match = re.search(
+                r'<script\s+id=["\']__NEXT_DATA__["\'][^>]*type=["\']application/json["\'][^>]*>'
+                r'(.*?)</script>',
+                body, re.DOTALL,
+            )
+            if match:
+                data = json.loads(match.group(1))
+                props = data.get("props", {}).get("pageProps", {})
+                projects = props.get("projects", props.get("bounties", []))
+                for item in projects:
+                    name = item.get("name", item.get("project", item.get("title", "")))
+                    if not name:
+                        continue
+                    slug = item.get("slug", item.get("id", name.lower().replace(" ", "-")))
+                    payout_raw = item.get("maxPayout", item.get("maximum_payout", item.get("reward", 0)))
+                    if isinstance(payout_raw, (int, float)):
+                        payout = int(float(payout_raw))
+                    else:
+                        _, payout = _parse_reward_range(str(payout_raw))
+                    techs = item.get("technologies", item.get("techStack", []))
+                    if isinstance(techs, str):
+                        techs = [t.strip() for t in techs.split(",") if t.strip()]
+
+                    prog = ScrapedProgram(
+                        name=name,
+                        platform="immunefi",
+                        source="immunefi_explore",
+                        has_rewards=True,
+                        estimated_payout=payout,
+                        raw_payout_range=f"${payout:,}" if payout else "",
+                        technologies=techs if isinstance(techs, list) else [],
+                        program_url=f"https://immunefi.com/bounty/{slug}/",
+                        raw_data=item,
+                    )
+                    results.append(prog)
+        except (json.JSONDecodeError, Exception) as e:
+            logger.warning("Immunefi parse error: %s", e)
+
+        # Fallback: regex-based HTML extraction
+        if not results:
+            cards = re.findall(
+                r'<a[^>]*href=["\'](/bounty/[^"\'/]+/)["\'][^>]*>(.*?)</a>',
+                body, re.DOTALL,
+            )
+            for href, title_html in cards:
+                name = re.sub(r"<[^>]+>", "", title_html).strip()
+                if not name:
+                    continue
+                results.append(ScrapedProgram(
+                    name=name, platform="immunefi",
+                    source="immunefi_explore", has_rewards=True,
+                    program_url=f"https://immunefi.com{href}",
+                ))
+
+        logger.info("Immunefi: %d programs scraped", len(results))
+        return results
+
+    # ── BountyTargetsData (arkadiyt GitHub repo) ──────────────────────
+
+    _BOUNTY_TARGETS_DATA_URLS = {
+        "hackerone": "https://raw.githubusercontent.com/arkadiyt/bounty-targets-data/main/data/hackerone_data.json",
+        "bugcrowd": "https://raw.githubusercontent.com/arkadiyt/bounty-targets-data/main/data/bugcrowd_data.json",
+        "intigriti": "https://raw.githubusercontent.com/arkadiyt/bounty-targets-data/main/data/intigriti_data.json",
+        "yeswehack": "https://raw.githubusercontent.com/arkadiyt/bounty-targets-data/main/data/yeswehack_data.json",
+        "hackenproof": "https://raw.githubusercontent.com/arkadiyt/bounty-targets-data/main/data/hackenproof_data.json",
+        "federacy": "https://raw.githubusercontent.com/arkadiyt/bounty-targets-data/main/data/federacy_data.json",
+    }
+
+    def scrape_bounty_targets_data(self) -> list[ScrapedProgram]:
+        """Scrape curated bounty program data from arkadiyt/bounty-targets-data."""
+        results: list[ScrapedProgram] = []
+        seen: set[str] = set()
+
+        for platform, url in self._BOUNTY_TARGETS_DATA_URLS.items():
+            data, err = _fetch_json(url)
+            if not data:
+                logger.warning("BountyTargetsData %s: %s", platform, err)
+                _rate_limit(0.5, 1.0)
+                continue
+
+            items = data if isinstance(data, list) else data.get("programs", [])
+            for item in items:
+                name = item.get("name") or item.get("program_name") or item.get("title") or ""
+                if not name:
+                    continue
+                prog_url = item.get("url") or item.get("program_url") or item.get("link") or ""
+                if not prog_url or prog_url in seen:
+                    continue
+                seen.add(prog_url)
+
+                _, payout = _parse_reward_range(
+                    item.get("bounty", item.get("rewards_range", item.get("payout", "")))
+                )
+                techs = item.get("technologies", item.get("tech_stack", []))
+                if isinstance(techs, str):
+                    techs = [t.strip() for t in techs.split(",") if t.strip()]
+                scopes_raw = item.get("targets", item.get("scopes", item.get("domains", [])))
+                scopes = [s.get("asset_identifier", s) if isinstance(s, dict) else str(s) for s in scopes_raw] if isinstance(scopes_raw, list) else []
+
+                results.append(ScrapedProgram(
+                    name=name, platform=platform,
+                    source="bounty_targets_data",
+                    has_rewards=bool(item.get("offers_bounties", item.get("has_bounty", True))),
+                    estimated_payout=int(payout),
+                    raw_payout_range=item.get("bounty", ""),
+                    technologies=techs,
+                    program_url=prog_url,
+                    domains=[s for s in scopes if not s.startswith("*.") and s != prog_url],
+                    wildcards=[s[2:] for s in scopes if s.startswith("*.")],
+                    raw_data=item,
+                ))
+
+            _rate_limit(0.5, 1.0)
+
+        logger.info("BountyTargetsData: %d programs across %d platforms", len(results), len(self._BOUNTY_TARGETS_DATA_URLS))
+        return results
+
+    # ── Web Scanner: security.txt, robots.txt, disclosure paths ────────
+
+    _DISCLOSURE_PATHS = [
+        "/.well-known/security.txt", "/security.txt",
+        "/responsible-disclosure", "/bug-bounty", "/security",
+        "/report", "/vulnerability-disclosure", "/bugbounty",
+        "/security-policy", "/.well-known/security",
+    ]
+
+    def scan_domain(self, domain: str) -> ScrapedProgram | None:
+        """Scan a single domain for disclosure/bounty paths."""
+        found_paths: list[str] = []
+        for path in self._DISCLOSURE_PATHS:
+            body, _ = _fetch_text(f"https://{domain}{path}", timeout=10)
+            if body is not None:
+                found_paths.append(path)
+            _rate_limit(0.3, 0.8)
+
+        if not found_paths:
+            return None
+        return ScrapedProgram(
+            name=domain, platform="web",
+            source="web_scanner",
+            has_rewards=True,
+            program_url=f"https://{domain}",
+            description=f"Disclosure paths: {', '.join(found_paths)}",
+            scopes=[f"https://{domain}{p}" for p in found_paths],
+            confidence=0.6,
+        )
+
+    def scan_domains(self, domains: list[str]) -> list[ScrapedProgram]:
+        """Scan multiple domains for disclosure/bounty paths."""
+        results: list[ScrapedProgram] = []
+        for domain in domains:
+            prog = self.scan_domain(domain.strip().lower())
+            if prog:
+                results.append(prog)
+        logger.info("Web scanner: %d/%d domains have disclosure paths", len(results), len(domains))
+        return results
+
+    # ── Security.txt parser (RFC 9116) ────────────────────────────────
+
+    def check_security_txt(self, domain: str) -> ScrapedProgram | None:
+        """Check domain for RFC 9116 security.txt and parse it."""
+        for path in ("/.well-known/security.txt", "/security.txt"):
+            body, _ = _fetch_text(f"https://{domain}{path}", timeout=10)
+            if not body:
+                continue
+
+            fields: dict[str, list[str]] = {}
+            for line in body.splitlines():
+                line = line.strip()
+                if not line or line.startswith("#") or ":" not in line:
+                    continue
+                key, _, value = line.partition(":")
+                fields.setdefault(key.strip().lower(), []).append(value.strip())
+
+            contacts = fields.get("contact", [])
+            policies = fields.get("policy", [])
+            if not contacts:
+                return None
+
+            return ScrapedProgram(
+                name=domain, platform="web",
+                source="security_txt",
+                has_rewards=bool(policies),
+                program_url=f"https://{domain}",
+                description=f"security.txt: {len(contacts)} contact(s), {len(policies)} policy(ies)",
+                confidence=0.7,
+                scopes=contacts,
+                raw_data=fields,
+            )
+        return None
+
+    def check_security_txt_bulk(self, domains: list[str]) -> list[ScrapedProgram]:
+        """Check multiple domains for security.txt files."""
+        results: list[ScrapedProgram] = []
+        for domain in domains:
+            prog = self.check_security_txt(domain.strip().lower())
+            if prog:
+                results.append(prog)
+            _rate_limit(0.5, 1.0)
+        logger.info("Security.txt: %d/%d domains have valid security.txt", len(results), len(domains))
+        return results
+
     # ── All platforms ──────────────────────────────────────────────────
 
-    def scrape_all(self, max_pages: int = 2) -> list[ScrapedProgram]:
-        """Scrape all supported platforms."""
+    def scrape_all(self, max_pages: int = 2, domains: list[str] | None = None) -> list[ScrapedProgram]:
+        """Scrape all supported platforms + optional web scans."""
         all_programs: list[ScrapedProgram] = []
         seen_names: set[str] = set()
 
@@ -276,6 +573,8 @@ class BountyScraper:
             ("Bugcrowd", lambda: self.scrape_bugcrowd(max_pages)),
             ("Intigriti", lambda: self.scrape_intigriti(max(1, max_pages - 1))),
             ("YesWeHack", lambda: self.scrape_yeswehack(max(1, max_pages - 1))),
+            ("Immunefi", lambda: self.scrape_immunefi()),
+            ("BountyTargetsData", lambda: self.scrape_bounty_targets_data()),
         ]
 
         for platform_name, scraper_fn in scrapers:
@@ -291,10 +590,26 @@ class BountyScraper:
             except Exception as e:
                 logger.warning("Failed to scrape %s: %s", platform_name, e)
 
+        # Web scanner for provided domains
+        if domains:
+            try:
+                for prog in self.scan_domains(domains):
+                    dedup_key = f"web:{prog.name.lower().strip()}"
+                    if dedup_key not in seen_names:
+                        seen_names.add(dedup_key)
+                        all_programs.append(prog)
+                for prog in self.check_security_txt_bulk(domains):
+                    dedup_key = f"stxt:{prog.name.lower().strip()}"
+                    if dedup_key not in seen_names:
+                        seen_names.add(dedup_key)
+                        all_programs.append(prog)
+            except Exception as e:
+                logger.warning("Web scan failed: %s", e)
+
         self._programs = all_programs
         self._last_refresh = datetime.now(timezone.utc).isoformat()
         logger.info(
-            "Total: %d unique reward-offering programs scraped across all platforms",
+            "Total: %d unique reward-offering programs scraped across all sources",
             len(all_programs),
         )
         return all_programs

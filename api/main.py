@@ -30,6 +30,7 @@ from api.routers import (
     daily,
     differential_intelligence,
     digest,
+    discovery,
     economic,
     endpoints,
     evidence,
@@ -272,6 +273,16 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("Financial auto-sync scheduler failed (non-fatal): %s", exc)
 
+    # Start Discovery Monitor
+    discovery_monitor = None
+    try:
+        from cores.bounty_scraper.monitor import get_discovery_monitor
+        discovery_monitor = get_discovery_monitor()
+        await discovery_monitor.start()
+        logger.info("[BOOT] Discovery monitor started")
+    except Exception as exc:
+        logger.warning("Discovery monitor failed to start (non-fatal): %s", exc)
+
     # Start Recovery Engine and Health Monitor
     try:
         from cores.recovery import get_health_monitor, get_recovery_engine
@@ -372,6 +383,14 @@ async def lifespan(app: FastAPI):
         except Exception as exc:
             logger.warning("Financial auto-sync scheduler stop error: %s", exc)
 
+    # Stop Discovery Monitor
+    if discovery_monitor is not None:
+        try:
+            await discovery_monitor.stop()
+            logger.info("[BOOT] Discovery monitor stopped")
+        except Exception as exc:
+            logger.warning("Discovery monitor stop error: %s", exc)
+
 # Read version from VERSION file (single source of truth)
 _VERSION_FILE = Path(__file__).resolve().parent.parent / "VERSION"
 _APP_VERSION = _VERSION_FILE.read_text().strip() if _VERSION_FILE.is_file() else "0.0.0"
@@ -467,6 +486,7 @@ app.include_router(mobile.router)
 app.include_router(contracts.router)
 app.include_router(system_state.router)
 app.include_router(daily.router)
+app.include_router(discovery.router)
 app.include_router(orchestrator.router)
 app.include_router(identity.router)
 app.include_router(identity_center.router)
