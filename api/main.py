@@ -22,6 +22,7 @@ from api.routers import (
     auth,
     auth_users,
     authhub,
+    bank_payout,
     canonical,
     connections,
     contracts,
@@ -491,6 +492,7 @@ app.include_router(financial_truth.router)
 app.include_router(crypto.router)
 app.include_router(accounts_hub.router)
 app.include_router(authhub.router)
+app.include_router(bank_payout.router)
 app.include_router(osint.router)
 app.include_router(hunt.router)
 

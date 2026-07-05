@@ -14,7 +14,9 @@ from cores.crypto.evm import EVMConnector
 from cores.crypto.exchange import ExchangeConnector
 from cores.crypto.solana import SolanaConnector
 from cores.crypto.tron import TronConnector
+from cores.crypto.wallet_connect import WalletConnectConnector
 from cores.financial.events import publish_financial_event
+from cores.financial.withdrawal import auto_finalize
 from cores.identity_vault import get_identity_vault
 
 logger = logging.getLogger("catseye.crypto.sync_manager")
@@ -59,6 +61,11 @@ class CryptoSyncManager:
                 wid = f"tron:{provider}"
                 if wid not in self._connectors:
                     self._connectors[wid] = TronConnector(wallet_id=wid)
+            elif provider.startswith("wc_"):
+                wallet_id = provider[3:]
+                wid = f"wc:{wallet_id}"
+                if wid not in self._connectors:
+                    self._connectors[wid] = WalletConnectConnector(wallet_id=wallet_id)
 
     @property
     def connectors(self) -> dict[str, CryptoConnector]:
@@ -80,6 +87,12 @@ class CryptoSyncManager:
                 description=f"Crypto sync: {wallet_id} — ${snapshot.total_usd:.2f}",
                 metadata={"wallet_id": wallet_id, "balance_count": len(snapshot.balances)},
             )
+            finalized = auto_finalize(wallet_id)
+            if finalized:
+                logger.info(
+                    "Auto‑finalized %d withdrawal(s) for %s: %s",
+                    len(finalized), wallet_id, finalized,
+                )
             logger.info("Crypto sync OK: %s — %.2f USD (%d balances)", wallet_id, snapshot.total_usd, len(snapshot.balances))
         else:
             publish_financial_event(
