@@ -45,6 +45,7 @@ from api.routers import (
     intelligence,
     investigations,
     license,
+    micro,
     mobile,
     notifications,
     operations,
@@ -493,6 +494,7 @@ app.include_router(crypto.router)
 app.include_router(accounts_hub.router)
 app.include_router(authhub.router)
 app.include_router(bank_payout.router)
+app.include_router(micro.router)
 app.include_router(osint.router)
 app.include_router(hunt.router)
 

@@ -2,7 +2,7 @@
 
 # CATEYE — Sistema de Inteligencia para Bug Bounty Automático
 
-> **Versión:** 1.8.0
+> **Versión:** 2.0.0
 > **Arquitectura:** Monolito modular con frontend SPA
 > **Backend:** Python + FastAPI + SQLAlchemy + SQLite/PostgreSQL
 > **Frontend:** Vue 3 + TypeScript + Tailwind CSS v4 + Vite

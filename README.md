@@ -12,7 +12,7 @@
    <p>
       <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"/></a>
      <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.10%2B-purple.svg" alt="Python 3.10+"/></a>
-      <a href="https://github.com/AdriDob/Rastro/releases"><img src="https://img.shields.io/badge/version-1.8.0-blue.svg" alt="Version 1.8.0"/></a>
+      <a href="https://github.com/AdriDob/Rastro/releases"><img src="https://img.shields.io/badge/version-2.0.0-blue.svg" alt="Version 2.0.0"/></a>
      <a href="https://vuejs.org/"><img src="https://img.shields.io/badge/vue-3.5-4FC08D.svg" alt="Vue 3.5"/></a>
      <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/fastapi-0.95%2B-009688.svg" alt="FastAPI"/></a>
      <a href="https://docs.astral.sh/ruff/"><img src="https://img.shields.io/badge/code%20style-ruff-ff69b4.svg" alt="Ruff"/></a>
@@ -22,7 +22,7 @@
    <br/>
    <br/>
    <p>
-       **CATEYE v1.8.0** — un sistema de inteligencia artificial autónomo para bug bounty hunters que automatiza todo el ciclo de vida de la cacería de vulnerabilidades — desde el descubrimiento de programas y reconocimiento, hasta la generación de hipótesis, validación, reportes, y tracking financiero completo.
+        **CATEYE v2.0.0** — un sistema de inteligencia artificial autónomo para bug bounty hunters que automatiza todo el ciclo de vida de la cacería de vulnerabilidades — desde el descubrimiento de programas y reconocimiento, hasta la generación de hipótesis, validación, reportes, y tracking financiero completo.
      <br/>
      Cada decisión se mide en <strong>USD/hora</strong>, probabilidad de éxito y ROI esperado.
    </p>
@@ -70,18 +70,24 @@
    <td width="50%">
 
    ### 💰 Financial Truth Layer
-   - Financial Truth Layer: clasifica cada valor como VERIFIED_REAL/PENDING/ESTIMATED/MANUAL/UNKNOWN
-   - SyncPipeline: rate limiter token-bucket, cache TTL, retry con backoff exponencial, detección de delta
-   - WithdrawalTracker: ciclo completo (initiated→pending→completed/failed) con tx_hash y confirmations
-   - ReconciliationEngine: compara datos externos vs ledger, auto-resuelve discrepancias con confianza ≥0.9
-   - 10 eventos financieros enlazados a NotificationHub (payout, withdrawal, sync, dispute)
+    - Financial Truth Layer: clasifica cada valor como VERIFIED_REAL/PENDING/ESTIMATED/MANUAL/UNKNOWN
+    - SyncPipeline: rate limiter token-bucket, cache TTL, retry con backoff exponencial, detección de delta
+    - WithdrawalTracker: ciclo completo (initiated→pending→completed/failed) con confirmaciones reorg-safe por chain
+    - ReconciliationEngine: compara datos externos vs ledger, auto-resuelve discrepancias con confianza ≥0.9
+    - 10 eventos financieros enlazados a NotificationHub (payout, withdrawal, sync, dispute)
+    - BankPayoutConnector: detección automática de pagos via Plaid API + CSV import + webhooks
+    - 10 Micro-Functions: quick_sync_all, sync_source_now, get_sync_health, trace_balance_origin, detect_anomalies, compute_exposure y más
 
    ### ⛓️ Crypto Sync System
-   - EVMConnector: Ethereum, Polygon, BSC, Arbitrum, Optimism via RPC + explorer API
-   - ExchangeConnector: Binance, Coinbase, Kraken, Bybit con API firmada HMAC
-   - 9 LedgerEvent crypto (deposit, withdrawal, staking, yield, swap, gas, airdrop, trade, fee)
-   - Accounts Hub unificado (plataformas + wallets + conexiones bancarias)
-   - Sync Center con historial de sincronización y salud por fuente
+    - EVMConnector: Ethereum, Polygon, BSC, Arbitrum, Optimism via RPC + explorer API
+    - ExchangeConnector: Binance, Coinbase, Kraken, Bybit con API firmada HMAC
+    - BTCConnector: Blockstream.info API, satoshi→BTC, vin/vout parsing
+    - SolanaConnector: JSON-RPC mainnet, lamports→SOL, fee parsing
+    - TronConnector: TronGrid API, SUN→TRX, TRC20 tokens
+    - WalletConnect: pairing con wallets mobile vía QR (v2 protocol)
+    - 9 LedgerEvent crypto (deposit, withdrawal, staking, yield, swap, gas, airdrop, trade, fee)
+    - Accounts Hub unificado (plataformas + wallets + conexiones bancarias)
+    - Sync Center con historial de sincronización y salud por fuente
 
    ### 📊 Reportes Profesionales
    - Generación de reportes con IA
@@ -97,16 +103,20 @@
    - Licencia MIT — Open Source
 
    ### 🔌 Plataformas
-   - **Bug Bounty:** HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack
-   - **OSINT:** 16 APIs (Shodan, Censys, VirusTotal, etc.)
-   - **Recon Tools:** 15+ externas (Subfinder, nuclei, ffuf, etc.)
+    - **Bug Bounty:** HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack — todas con sync_earnings() funcional
+    - **AuthHub:** Gmail OAuth2, WhatsApp Twilio, Telegram Bot — token storage en Identity Vault
+    - **OSINT:** 16 APIs (Shodan, Censys, VirusTotal, etc.)
+    - **Recon Tools:** 15+ externas (Subfinder, nuclei, ffuf, etc.)
+
+   ### ⚡ Micro-Functions & Micro-Interactions
+    - **10 Micro-Functions backend**: quick_sync_all, sync_source_now, get_sync_health, trace_balance_origin, detect_sync_anomalies, get_pending_actions, compute_real_exposure, export_account_snapshot, retry_failed_syncs, get_minimal_dashboard_state
+    - **20 Micro-Interactions frontend**: ContextMenu global, Inspector lateral, MiniPreview hover, MultiSelect batch, CompareView, Timeline, CopyHelper, EmptyState, ErrorRecoveryUI, Command Palette, Search Everywhere, Keyboard Shortcuts, Status Chips, Cards Expandibles y más
 
    ### 🖥️ Escritorio
-   - Aplicación de escritorio nativa (PyWebView + system tray)
-   - Instalador Windows (NSIS)
-   - Auto-updater con rollback
-   - Watchdog interno con auto-healing (exponential backoff)
-   - App Android con Capacitor
+    - Aplicación de escritorio nativa (PyWebView + system tray)
+    - Instalador Windows (NSIS)
+    - Auto-updater con rollback
+    - Watchdog interno con auto-healing (exponential backoff)
 
    </td>
    </tr>
@@ -214,7 +224,7 @@
    | **ASGI** | Uvicorn | 0.22+ |
    | **ORM** | SQLAlchemy + Pydantic v2 | 2.0+ |
    | **Database** | SQLite (dev) / PostgreSQL (prod) | — |
-   | **Frontend** | Vue 3 + TypeScript + Vite | 3.5+ / 5.8+ / 6.3+ |
+   | **Frontend** | Vue 3 + TypeScript + Vite | 3.5+ / 5.8+ / 6.4+ |
    | **CSS** | Tailwind CSS | 4.1+ |
    | **State** | Pinia | 3.0+ |
    | **Charts** | Chart.js + vue-chartjs | 4.5+ / 5.3+ |
