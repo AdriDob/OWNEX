@@ -22,11 +22,7 @@ from cores.opportunity.models import (
 )
 from cores.opportunity.providers import get_providers
 from cores.opportunity.recommendations import generate_recommendations
-from cores.opportunity.scoring import score_opportunity as score_legacy
-from cores.opportunity.scoring2 import (
-    _score_to_priority,
-    compute_layered_score,
-)
+from cores.opportunity.scoring2 import _score_to_priority, compute_layered_score
 
 logger = logging.getLogger("catseye.opportunity.engine")
 
@@ -92,7 +88,7 @@ class OpportunityEngine:
                 try:
                     refreshed = provider.refresh()
                     for r in refreshed:
-                        s = compute_layered_score(r) if use_layered_scoring else score_legacy(r)
+                        s = compute_layered_score(r)
                         priority = _score_to_priority(s.overall)
                         r_with_score = Opportunity(
                             id=r.id, name=r.name, source=r.source,
@@ -131,7 +127,7 @@ class OpportunityEngine:
         for opp in opps:
             with timer("opportunity.score"):
                 try:
-                    s = compute_layered_score(opp) if use_layered else score_legacy(opp)
+                    s = compute_layered_score(opp)
                     priority = _score_to_priority(s.overall)
                     scored.append(Opportunity(
                         id=opp.id, name=opp.name, source=opp.source,

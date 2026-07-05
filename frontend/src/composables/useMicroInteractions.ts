@@ -104,7 +104,7 @@ export function useMicroInteractions() {
   async function quickSync(): Promise<any> {
     store.setLoading('sync', true)
     try {
-      const result = await api.post<any>('/micro/sync')
+      const result = await api.post<any>('/micro/quick-sync-all')
       toast.success('Sincronización completada')
       return result
     } catch (e: any) {
@@ -118,7 +118,7 @@ export function useMicroInteractions() {
   async function syncSource(sourceId: string): Promise<any> {
     store.setLoading('sync', true)
     try {
-      const result = await api.post<any>(`/micro/sync/${sourceId}`)
+      const result = await api.post<any>(`/micro/sync-source/${sourceId}`)
       toast.success('Fuente sincronizada')
       return result
     } catch (e: any) {
@@ -130,11 +130,11 @@ export function useMicroInteractions() {
   }
 
   async function getDashboardState(): Promise<any> {
-    return api.get<any>('/micro/dashboard')
+    return api.get<any>('/micro/dashboard-state')
   }
 
   async function getSyncHealth(): Promise<any> {
-    return api.get<any>('/micro/health')
+    return api.get<any>('/micro/sync-health')
   }
 
   async function getAnomalies(): Promise<any> {
@@ -146,7 +146,7 @@ export function useMicroInteractions() {
   }
 
   async function getRealExposure(): Promise<any> {
-    return api.get<any>('/micro/exposure')
+    return api.get<any>('/micro/real-exposure')
   }
 
   return {

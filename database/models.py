@@ -110,6 +110,7 @@ class Finding(Base):
         Integer,
         ForeignKey("endpoints.id", ondelete="SET NULL"),
         nullable=True,
+        index=True,
     )
 
     title = Column(
@@ -227,6 +228,7 @@ class Evidence(Base):
         Integer,
         ForeignKey("endpoints.id", ondelete="SET NULL"),
         nullable=True,
+        index=True,
     )
 
     # attempt_1, attempt_2, etc
@@ -599,12 +601,14 @@ class ValidationRun(Base):
         Integer,
         ForeignKey("target_identities.id", ondelete="SET NULL"),
         nullable=True,
+        index=True,
     )
 
     identity_probe_id = Column(
         Integer,
         ForeignKey("target_identities.id", ondelete="SET NULL"),
         nullable=True,
+        index=True,
     )
 
     # running | completed | failed | aborted
@@ -614,6 +618,7 @@ class ValidationRun(Base):
         Integer,
         ForeignKey("verdicts.id", ondelete="SET NULL"),
         nullable=True,
+        index=True,
     )
 
     started_at = Column(

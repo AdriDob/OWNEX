@@ -380,8 +380,8 @@ class Pipeline:
             return technologies
 
         try:
+            from cores.targets.models import TargetIntel
             from database.db import SessionLocal
-            from database.models import TargetIntel
 
             session = SessionLocal()
             try:

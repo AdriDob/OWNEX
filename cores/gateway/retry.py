@@ -5,9 +5,8 @@ from __future__ import annotations
 import asyncio
 import logging
 import random
-import time
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, TypeVar
 
 T = TypeVar("T")
@@ -55,9 +54,7 @@ def classify_error(exc: Exception, config: RetryConfig | None = None) -> bool:
     cfg = config or RetryConfig()
     if isinstance(exc, cfg.non_retryable_exceptions):
         return False
-    if isinstance(exc, cfg.retryable_exceptions):
-        return True
-    return False
+    return bool(isinstance(exc, cfg.retryable_exceptions))
 
 
 def _backoff_delay(attempt: int, config: RetryConfig) -> float:
@@ -151,7 +148,7 @@ async def retry_with_circuit_breaker(
         if circuit_breaker is not None:
             circuit_breaker.record_success()
         return result
-    except Exception as exc:
+    except Exception:
         if circuit_breaker is not None:
             circuit_breaker.record_failure()
         raise
