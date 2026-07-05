@@ -12,7 +12,7 @@
 | **Nombre del proyecto** | CATEYE (formerly ORION / Rastro) |
 | **Objetivo principal** | Sistema de inteligencia artificial para automatizar el ciclo completo de bug bounty: descubrimiento, análisis de alcance, reconocimiento, generación de hipótesis, validación, generación de reportes y envío a plataformas (HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack) |
 | **Estado actual** | Producción (Stable) |
-| **Versión** | 1.8.0 |
+| **Versión** | 2.0.0 |
 | **Fecha de última actualización** | 2026-07-04 |
 | **Licencia** | MIT |
 | **Arquitectura** | Monolito modular con frontend SPA |

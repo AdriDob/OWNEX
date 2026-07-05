@@ -75,5 +75,11 @@ export const useAccessibilityStore = defineStore('accessibility', () => {
 
   apply()
 
-  return { state, patch, toggle, apply }
+  const shortcutsVisible = ref(false)
+
+  function toggleShortcuts() {
+    shortcutsVisible.value = !shortcutsVisible.value
+  }
+
+  return { state, patch, toggle, apply, shortcutsVisible, toggleShortcuts }
 })

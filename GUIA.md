@@ -2,7 +2,7 @@
 
 **Sistema de Inteligencia Económica para Bug Bounty**
 
-Versión: 1.8.0 | Stack: Python 3.10+ · FastAPI · Vue 3 · SQLite/PostgreSQL
+Versión: 2.0.0 | Stack: Python 3.10+ · FastAPI · Vue 3 · SQLite/PostgreSQL
 
 ---
 
@@ -734,6 +734,8 @@ Frontend (Vue 3) ↔ API (FastAPI) ↔ Cores (Python) ↔ DB (SQLite/Postgres) �
 | Versión | Cambios clave |
 |---------|---------------|
 | 1.8.0   | Financial Truth Layer + Crypto Sync System: truth_layer, sync_pipeline, withdrawal, reconciliation, EVMConnector (5 chains), ExchangeConnector (4 exchanges), AccountsHub + SyncCenter + TruthInspector frontend, 382 API routes, 165 tests |
+| 1.9.0   | Platform Sync (Intigriti/Synack/YesWeHack), AuthHub (Gmail/WhatsApp/Telegram), auto-sync scheduler, Account Health Dashboard, 44 crypto tests |
+| 2.0.0   | BTC/Solana/Tron connectors, WalletConnect, reorg-safe WithdrawalTracker, BankPayout (Plaid/CSV), 10 Micro-Functions, 20 Micro-Interactions frontend |
 | 1.7.2   | 5 money-impact modules: TargetRadar, LightningScanner, DuplicateDetector, FeedbackEngine, PoCEngine |
 | 1.7.1   | Hardening: mypy 0 errores, ruff 39 cosmetic, retry handler, logo fix |
 | 1.7.0   | 100% backend coverage, test infra, OpenAPI docs, modelo renombrado a CATEYE |

@@ -11,6 +11,10 @@ import CopilotPanel from '@/components/copilot/CopilotPanel.vue'
 import CommandPalette from '@/components/ui/CommandPalette.vue'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
 import ToastContainer from '@/components/ToastContainer.vue'
+import InspectorPanel from '@/components/ui/InspectorPanel.vue'
+import MiniPreview from '@/components/ui/MiniPreview.vue'
+import MultiSelectHandler from '@/components/ui/MultiSelectHandler.vue'
+import CompareView from '@/components/ui/CompareView.vue'
 
 declare global {
   interface Window {
@@ -35,6 +39,12 @@ const { shortcuts } = useGlobalShortcuts({
   onToggleSidebar: () => sidebarOpen.value = !sidebarOpen.value,
   onToggleNotifications: () => window.dispatchEvent(new CustomEvent('toggle-notifications')),
   onCloseModal: () => window.dispatchEvent(new CustomEvent('close-modal')),
+  onCloseInspector: () => window.dispatchEvent(new CustomEvent('close-inspector')),
+  onHideMiniPreview: () => window.dispatchEvent(new CustomEvent('hide-mini-preview')),
+  onQuickSync: () => window.dispatchEvent(new CustomEvent('quick-sync')),
+  onNavigateBack: () => router.go(-1),
+  onNavigateForward: () => router.go(1),
+  onShowShortcuts: () => window.dispatchEvent(new CustomEvent('toggle-shortcuts')),
 })
 
 function handleContextAction(_actionId: string, entity: any) {
@@ -122,6 +132,10 @@ onUnmounted(() => {
     <CommandPalette />
     <ContextMenu @action="handleContextAction" />
     <ToastContainer />
+    <InspectorPanel />
+    <MiniPreview />
+    <MultiSelectHandler />
+    <CompareView />
     </template>
   </div>
 </template>

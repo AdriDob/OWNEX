@@ -30,7 +30,11 @@ const DEFAULT_SHORTCUTS: ShortcutBinding[] = [
   { key: '5', meta: true, description: 'Radar', action: { type: 'navigate', path: '/radar' } },
   { key: '6', meta: true, description: 'Billeteras', action: { type: 'navigate', path: '/wallets' } },
   { key: 'r', meta: true, shift: true, description: 'Modo daily', action: { type: 'navigate', path: '/daily' } },
-  { key: 'Escape', description: 'Cerrar modales', action: { type: 'action', action: 'close-modal' } },
+  { key: 'Escape', description: 'Cerrar modales / inspector / preview', action: { type: 'action', action: 'escape' } },
+  { key: 's', ctrl: true, shift: true, description: 'Sync rápido', action: { type: 'action', action: 'quick-sync' } },
+  { key: 'ArrowLeft', alt: true, description: 'Navegar atrás', action: { type: 'action', action: 'navigate-back' } },
+  { key: 'ArrowRight', alt: true, description: 'Navegar adelante', action: { type: 'action', action: 'navigate-forward' } },
+  { key: '/', ctrl: true, description: 'Atajos de teclado', action: { type: 'action', action: 'show-shortcuts' } },
 ]
 
 export interface Callbacks {
@@ -39,6 +43,12 @@ export interface Callbacks {
   onToggleSidebar?: () => void
   onToggleNotifications?: () => void
   onCloseModal?: () => void
+  onCloseInspector?: () => void
+  onHideMiniPreview?: () => void
+  onQuickSync?: () => void
+  onNavigateBack?: () => void
+  onNavigateForward?: () => void
+  onShowShortcuts?: () => void
   custom?: Record<string, () => void>
 }
 
@@ -78,7 +88,15 @@ export function useGlobalShortcuts(callbacks: Callbacks) {
         }
         break
       case 'action':
-        if (action.action === 'close-modal') callbacks.onCloseModal?.()
+        if (action.action === 'close-modal' || action.action === 'escape') {
+          callbacks.onCloseModal?.()
+          callbacks.onCloseInspector?.()
+          callbacks.onHideMiniPreview?.()
+        }
+        if (action.action === 'navigate-back') callbacks.onNavigateBack?.()
+        if (action.action === 'navigate-forward') callbacks.onNavigateForward?.()
+        if (action.action === 'quick-sync') callbacks.onQuickSync?.()
+        if (action.action === 'show-shortcuts') callbacks.onShowShortcuts?.()
         callbacks.custom?.[action.action]?.()
         break
     }
