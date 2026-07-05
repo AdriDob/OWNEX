@@ -123,7 +123,7 @@ async function loadData() {
   error.value = null
   try {
     const [acctRes, payoutRes, subRes, wdRes, defRes] = await Promise.allSettled([
-      api.get<{ accounts: PlatformAccount[] }>('/opportunity_intelligence/identity/accounts'),
+      api.get<{ accounts: PlatformAccount[] }>('/opportunity/identity/accounts'),
       api.get<{ accounts: PayoutAccount[] }>('/connections/payout-accounts'),
       api.get<{ submissions: SubmissionRecord[]; total: number }>('/reports/submissions', { limit: 20 }),
       api.get<{ withdrawals: Withdrawal[] }>('/connections/withdrawals'),
@@ -170,20 +170,20 @@ onMounted(() => {
 async function connectPlatform(provider: string) {
   if (!connectEmail.value || !connectToken.value) return
   try {
-    await api.post('/opportunity_intelligence/identity/store', {
+    await api.post('/opportunity/identity/store', {
       provider, email: connectEmail.value, token: connectToken.value,
     })
     showConnectForm.value = null
     connectEmail.value = ''
     connectToken.value = ''
-    const res = await api.get<{ accounts: PlatformAccount[] }>('/opportunity_intelligence/identity/accounts')
+    const res = await api.get<{ accounts: PlatformAccount[] }>('/opportunity/identity/accounts')
     accounts.value = res.accounts || []
   } catch { /* ignore */ }
 }
 
 async function disconnectPlatform(provider: string) {
   try {
-    await api.post(`/opportunity_intelligence/identity/remove/${provider}`, {})
+    await api.post(`/opportunity/identity/remove/${provider}`, {})
     accounts.value = accounts.value.filter((a: any) => a.provider !== provider)
   } catch { /* ignore */ }
 }
@@ -215,7 +215,7 @@ async function savePlatformRegistration() {
       password: p.password,
     })
     if (p.token) {
-      await api.post('/opportunity_intelligence/identity/store', {
+      await api.post('/opportunity/identity/store', {
         provider: p.provider, email: p.email, token: p.token,
       })
     }

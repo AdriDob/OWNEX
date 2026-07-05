@@ -590,8 +590,8 @@ def _get_entity_by_type(type_: str, id_: str) -> dict[str, Any]:
         return {"id": id_, "type": "transaction", "error": "not_found"}
 
     elif type_ == "program":
+        from cores.targets.models import TargetIntel
         from database.db import SessionLocal
-        from database.models import TargetIntel
 
         session = SessionLocal()
         try:

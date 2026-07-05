@@ -103,7 +103,7 @@ async function fetchWallets() {
     const [walletsRes, statsRes, platformsRes] = await Promise.all([
       api.get<{ wallets: WalletEntry[] }>('/identity-center/wallets'),
       api.get<ReportStats>('/reports/stats').catch(() => null),
-      api.get<{ accounts: PlatformWithEarnings[] }>('/opportunity_intelligence/identity/accounts').catch(() => null),
+      api.get<{ accounts: PlatformWithEarnings[] }>('/opportunity/identity/accounts').catch(() => null),
     ])
     data.value = {
       wallets: walletsRes.wallets || [],

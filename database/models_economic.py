@@ -50,7 +50,7 @@ class BountyTier(Base):
     __tablename__ = "bounty_tiers"
 
     id = Column(Integer, primary_key=True, index=True)
-    program_id = Column(Integer, ForeignKey("programs.id"), nullable=False, index=True)
+    program_id = Column(Integer, ForeignKey("programs.id", ondelete="CASCADE"), nullable=False, index=True)
 
     tier_name = Column(String, nullable=False)  # Critical, High, Medium, Low, Informational
     min_reward = Column(Float, default=0.0)
@@ -66,7 +66,7 @@ class ScopeDocument(Base):
     __tablename__ = "scope_documents"
 
     id = Column(Integer, primary_key=True, index=True)
-    program_id = Column(Integer, ForeignKey("programs.id"), nullable=False, index=True)
+    program_id = Column(Integer, ForeignKey("programs.id", ondelete="CASCADE"), nullable=False, index=True)
 
     original_url = Column(String, nullable=True)
     content_type = Column(String, nullable=True)  # html, pdf, text
@@ -85,7 +85,7 @@ class ProgramIntel(Base):
     __tablename__ = "program_intel"
 
     id = Column(Integer, primary_key=True, index=True)
-    program_id = Column(Integer, ForeignKey("programs.id"), nullable=False, unique=True, index=True)
+    program_id = Column(Integer, ForeignKey("programs.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
 
     ai_summary = Column(Text, nullable=True)  # AI-generated program summary
     technologies_list = Column(Text, nullable=True)  # JSON array
@@ -137,7 +137,7 @@ class MemoryPattern(Base):
     confidence = Column(Float, default=0.5)  # 0.0-1.0, increases with evidence
     evidence_count = Column(Integer, default=1)
     tags = Column(Text, nullable=True)  # JSON array for filtering
-    source_program_id = Column(Integer, ForeignKey("programs.id"), nullable=True)
+    source_program_id = Column(Integer, ForeignKey("programs.id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -147,7 +147,7 @@ class ReportPriority(Base):
     __tablename__ = "report_priorities"
 
     id = Column(Integer, primary_key=True, index=True)
-    report_id = Column(Integer, ForeignKey("reports.id"), nullable=False, unique=True, index=True)
+    report_id = Column(Integer, ForeignKey("reports.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
 
     estimated_reward = Column(Float, default=0.0)
     confidence_score = Column(Float, default=0.5)  # 0.0-1.0

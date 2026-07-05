@@ -95,7 +95,7 @@ async function loadData() {
   error.value = ''
   try {
     const [accRes, setRes, defRes] = await Promise.allSettled([
-      api.get<{ accounts: PlatformAccount[] }>('/opportunity_intelligence/identity/accounts'),
+      api.get<{ accounts: PlatformAccount[] }>('/opportunity/identity/accounts'),
       api.get<IdentitySettings>('/identity-center/settings'),
       api.get<{ platforms: { id: string; name: string }[] }>('/system/definitions'),
     ])

@@ -206,19 +206,19 @@ export interface PlatformAccount {
 }
 
 export async function getPlatformAccounts() {
-  return api.get<{ accounts: PlatformAccount[] }>('/opportunity_intelligence/identity/accounts')
+  return api.get<{ accounts: PlatformAccount[] }>('/opportunity/identity/accounts')
 }
 
 export async function storePlatformCredentials(provider: string, email: string, token: string) {
-  return api.post('/opportunity_intelligence/identity/store', { provider, email, token })
+  return api.post('/opportunity/identity/store', { provider, email, token })
 }
 
 export async function removePlatformAccount(provider: string) {
-  return api.post(`/opportunity_intelligence/identity/remove/${provider}`, {})
+  return api.post(`/opportunity/identity/remove/${provider}`, {})
 }
 
 export async function getPlatformStatus(provider: string) {
-  return api.get(`/opportunity_intelligence/identity/status/${provider}`)
+  return api.get(`/opportunity/identity/status/${provider}`)
 }
 
 // ── Bank / Payout Accounts ──

@@ -171,6 +171,12 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'Bounties' },
   },
   {
+    path: '/discovery',
+    name: 'discovery',
+    component: () => import('@/pages/Discovery.vue'),
+    meta: { title: 'Program Discovery' },
+  },
+  {
     path: '/next-action',
     name: 'next-action',
     component: () => import('@/pages/NextAction.vue'),

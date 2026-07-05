@@ -57,7 +57,7 @@ class Scope(Base):
     __tablename__ = "target_scopes"
 
     id = Column(Integer, primary_key=True, index=True)
-    target_id = Column(Integer, ForeignKey("targets_intel.id"), nullable=False)
+    target_id = Column(Integer, ForeignKey("targets_intel.id", ondelete="CASCADE"), nullable=False, index=True)
     scope_text = Column(String, nullable=False)
     is_wildcard = Column(Boolean, nullable=True, default=False)
     is_api = Column(Boolean, nullable=True, default=False)

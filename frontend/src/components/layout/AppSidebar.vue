@@ -29,6 +29,7 @@ const navItems = [
     { name: 'Money Radar', path: '/money-radar', icon: DollarSign },
     { name: 'Oportunidades', path: '/radar', icon: Target },
     { name: 'Bounties', path: '/bounties', icon: DollarSign },
+    { name: 'Discovery', path: '/discovery', icon: Search },
   ]},
   { section: 'Finanzas', items: [
     { name: 'Financial Truth', path: '/financial-truth', icon: Banknote },
