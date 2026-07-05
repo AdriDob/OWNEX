@@ -6,12 +6,14 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from cores.crypto.base import ConnectionStatus
 from cores.crypto.btc import BTCConnector
 from cores.crypto.evm import EVMConnector
 from cores.crypto.exchange import ExchangeConnector
 from cores.crypto.solana import SolanaConnector
 from cores.crypto.sync_manager import get_crypto_sync_manager
 from cores.crypto.tron import TronConnector
+from cores.crypto.wallet_connect import WalletConnectConnector
 from cores.financial.events import publish_financial_event
 from cores.ledger import LedgerEvent, record_event
 
@@ -35,6 +37,18 @@ class RecordCryptoEvent(BaseModel):
     platform: str = "crypto"
     description: str = ""
     tx_hash: str = ""
+
+
+class WalletConnectPairRequest(BaseModel):
+    wallet_id: str
+    chain: str = "ethereum"
+
+
+class WalletConnectConnectRequest(BaseModel):
+    wallet_id: str
+    uri: str
+    address: str = ""
+    chain: str = "ethereum"
 
 
 @router.get("/wallets")
@@ -113,10 +127,62 @@ def register_wallet(wallet_id: str, config: WalletConfig) -> dict[str, Any]:
             wallet_id=wallet_id,
             address=config.address,
         )
+    elif chain_lower == "walletconnect":
+        connector = WalletConnectConnector(
+            wallet_id=wallet_id,
+            chain_name=config.chain,
+        )
     else:
         raise HTTPException(400, f"Unsupported chain: {config.chain}")
     mgr.register_connector(connector)
     return {"registered": True, "wallet_id": wallet_id, "chain": chain_lower}
+
+
+@router.post("/wallets/walletconnect/pair")
+def walletconnect_pair(req: WalletConnectPairRequest) -> dict[str, Any]:
+    mgr = get_crypto_sync_manager()
+    wid = f"wc:{req.wallet_id}"
+    connector: WalletConnectConnector | None = mgr.connectors.get(wid)
+    if not connector:
+        connector = WalletConnectConnector(
+            wallet_id=req.wallet_id,
+            chain_name=req.chain,
+        )
+        mgr.register_connector(connector)
+    uri = connector.generate_pairing_uri()
+    return {"uri": uri, "wallet_id": req.wallet_id}
+
+
+@router.post("/wallets/walletconnect/connect")
+def walletconnect_connect(req: WalletConnectConnectRequest) -> dict[str, Any]:
+    mgr = get_crypto_sync_manager()
+    wid = f"wc:{req.wallet_id}"
+    connector: WalletConnectConnector | None = mgr.connectors.get(wid)
+    if not connector:
+        connector = WalletConnectConnector(
+            wallet_id=req.wallet_id,
+            chain_name=req.chain,
+        )
+        mgr.register_connector(connector)
+    status = connector.pair(req.uri, address=req.address)
+    return {
+        "paired": status == ConnectionStatus.CONNECTED,
+        "status": status.value,
+        "wallet_id": req.wallet_id,
+    }
+
+
+@router.post("/wallets/{wallet_id}/disconnect")
+def disconnect_wallet(wallet_id: str) -> dict[str, Any]:
+    mgr = get_crypto_sync_manager()
+    connector = mgr.connectors.get(wallet_id)
+    if not connector:
+        raise HTTPException(404, f"Wallet {wallet_id} not found")
+    if isinstance(connector, WalletConnectConnector):
+        connector.disconnect()
+    else:
+        connector._status = ConnectionStatus.DISCONNECTED
+    return {"disconnected": True, "wallet_id": wallet_id}
 
 
 @router.post("/sync-all")
