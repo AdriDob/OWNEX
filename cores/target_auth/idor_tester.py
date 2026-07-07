@@ -8,7 +8,7 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from cores.validation.replayer import AuthContext, RequestReplayer, RequestSpec
 
-logger = logging.getLogger("catseye.idor_tester")
+logger = logging.getLogger("cateye.idor_tester")
 
 IDOR_PARAM_PATTERNS = [
     re.compile(r"\b(id|uid|user_id|account_id|customer_id|profile_id|order_id|invoice_id|document_id|file_id|ticket_id|msg_id|post_id|article_id|product_id|sku|reference|token|key)\b", re.I),

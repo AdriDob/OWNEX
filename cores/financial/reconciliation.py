@@ -16,9 +16,14 @@ from enum import Enum
 from typing import Any
 
 from cores.financial.truth_layer import TruthLayer, get_truth_layer
-from cores.ledger import LedgerEvent, _entries
+from cores.ledger import LedgerEvent
 
-logger = logging.getLogger("catseye.financial.reconciliation")
+
+def _all_ledger_entries():
+    from cores.ledger import _all_entries
+    return _all_entries()
+
+logger = logging.getLogger("cateye.financial.reconciliation")
 
 
 class ConsistencyState(str, Enum):
@@ -122,7 +127,7 @@ class ReconciliationEngine:
             amount = float(e.get("amount", 0) or 0)
             external_total += amount
 
-        ledger_platform = [e for e in _entries if e.platform == platform_id]
+        ledger_platform = [e for e in _all_ledger_entries() if e.platform == platform_id]
         ledger_by_source_id: dict[str, list] = {}
         ledger_total = 0.0
 

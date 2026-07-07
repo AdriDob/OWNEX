@@ -1,6 +1,7 @@
 
 from fastapi import APIRouter, Header, Query, Request
 
+from cores.audit_log import log_event
 from cores.auth.auth_manager import get_auth_manager
 from cores.auth.session_validator import get_session_validator
 from cores.gateway.rate_limit import get_rate_limiter
@@ -21,6 +22,7 @@ async def login(request: Request):
     manager = get_auth_manager()
     result = manager.authenticate(device_id, device_info)
 
+    log_event("login", actor=device_id, detail="Device authenticated")
     return ok(result)
 
 
@@ -53,6 +55,7 @@ async def logout(request: Request):
     manager = get_auth_manager()
     manager.logout(device_id)
 
+    log_event("logout", actor=device_id, detail="Device logged out")
     return ok({"status": "logged_out", "device_id": device_id})
 
 
@@ -133,6 +136,7 @@ async def store_secure_token(request: Request):
     manager = get_auth_manager()
     manager.store_secure_token(device_id, token)
 
+    log_event("token_stored", actor=device_id, detail="Secure token stored")
     return ok({"status": "stored"})
 
 

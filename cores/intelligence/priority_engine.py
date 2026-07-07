@@ -19,7 +19,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-logger = logging.getLogger("catseye.intelligence.priority")
+logger = logging.getLogger("cateye.intelligence.priority")
 
 URGENCY_WEIGHT = 0.4
 VALUE_WEIGHT = 0.35

@@ -10,7 +10,7 @@ import urllib.request
 from cores.authhub.base import MessagingProvider
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("catseye.authhub.telegram")
+logger = logging.getLogger("cateye.authhub.telegram")
 
 TELEGRAM_API_URL = "https://api.telegram.org/bot{token}/{method}"
 PROVIDER_NAME = "telegram"

@@ -23,7 +23,7 @@ from cores.financial.truth_layer import (
 )
 from cores.platforms.base import BugBountyPlatform, SyncResult
 
-logger = logging.getLogger("catseye.financial.sync_pipeline")
+logger = logging.getLogger("cateye.financial.sync_pipeline")
 
 DEFAULT_CACHE_TTL = 300  # 5 minutes
 MAX_RETRIES = 5

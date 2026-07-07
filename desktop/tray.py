@@ -30,7 +30,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("catseye.desktop.tray")
+logger = logging.getLogger("cateye.desktop.tray")
 
 _HAS_PYSTRAY = False
 _HAS_ICON_FILE = False
@@ -60,8 +60,8 @@ def _create_icon_image(size: int = 64) -> Image.Image:
             ico = Image.open(icon_path)
             ico = ico.resize((size, size), Image.LANCZOS)
             return ico.convert("RGBA")
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Failed to load tray icon image: %s", exc)
 
     # Fallback: draw a gold 'O' ring
     outer_r = size * 0.40
@@ -178,7 +178,7 @@ class TrayController:
         icon_image = _create_icon_image()
         menu = self._create_menu()
         try:
-            self._icon = pystray.Icon("catseye", icon_image, "CATEYE - Running", menu)
+            self._icon = pystray.Icon("cateye", icon_image, "CATEYE - Running", menu)
             self._icon.run()
         except Exception as exc:
             logger.warning("Tray icon failed to start: %s", exc)
@@ -191,7 +191,7 @@ class TrayController:
         self._thread = threading.Thread(
             target=self._run,
             daemon=True,
-            name="catseye-tray",
+            name="cateye-tray",
         )
         self._thread.start()
         logger.info("System tray started (persistent)")
@@ -257,15 +257,15 @@ def run_tray_only(host: str = "127.0.0.1", port: int = 8000) -> None:
                     ["net", "stop", "CATEYE", "&&", "net", "start", "CATEYE"],
                     shell=True, check=False,
                 )
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Failed to restart service: %s", exc)
 
     def _stop_service():
         try:
             if _is_svc_running():
                 subprocess.run(["net", "stop", "CATEYE"], shell=True, check=False)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Failed to stop service: %s", exc)
 
     def _quit_tray():
         shutdown_event.set()

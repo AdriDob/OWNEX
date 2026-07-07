@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import os
-import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -11,7 +10,8 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.responses import PlainTextResponse
 
 from api.middleware.auth_middleware import AuthMiddleware
-from api.middleware.error_handling import ErrorHandlingMiddleware
+from api.middleware.csrf_middleware import CSRFMiddleware
+from api.middleware.error_handling import ErrorHandlingMiddleware, SecurityHeadersMiddleware
 from api.middleware.rate_limit_middleware import RateLimitMiddleware
 from api.routers import (
     accounts_hub,
@@ -87,7 +87,7 @@ from database import db
 
 setup_logging()
 
-logger = logging.getLogger("catseye.api")
+logger = logging.getLogger("cateye.api")
 
 
 @asynccontextmanager
@@ -253,6 +253,36 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("Financial events init failed (non-fatal): %s", exc)
 
+    # Auto-report: when a finding is confirmed, generate a report draft
+    try:
+        from cores.events.event_bus import get_event_bus
+        bus = get_event_bus()
+        def _auto_report(event_type, payload):
+            if payload.get("new_status") != "confirmed":
+                return
+            from database import db as _db
+            _db.init_db()
+            session = _db.SessionLocal()
+            try:
+                from cores.pipeline.report_service import create_report_from_findings
+                report = create_report_from_findings(
+                    session=session,
+                    finding_ids=[payload["id"]],
+                    program="", target=f"target_{payload.get('target_id')}",
+                    vulnerability=payload.get("title", ""),
+                    severity=payload.get("severity", "medium"),
+                )
+                if report:
+                    logger.info("[AUTO] Report %s auto-generated for finding %s", report.get("id"), payload.get("id"))
+            except Exception as exc:
+                logger.warning("[AUTO] Auto-report failed for finding %s: %s", payload.get("id"), exc)
+            finally:
+                session.close()
+        bus.subscribe("finding:status_changed", _auto_report)
+        logger.info("[BOOT] Auto-report subscriber registered")
+    except Exception as exc:
+        logger.warning("Auto-report subscriber failed: %s", exc)
+
     # Start Multi-Agent system
     try:
         from cores.agents import start_all_agents
@@ -272,6 +302,14 @@ async def lifespan(app: FastAPI):
         logger.info("[BOOT] Financial auto-sync scheduler started (interval=%dmin)", fin_scheduler.interval_minutes)
     except Exception as exc:
         logger.warning("Financial auto-sync scheduler failed (non-fatal): %s", exc)
+
+    # Bridge AgentBus → EventBus
+    try:
+        from cores.agents.bus import bridge_agent_bus_to_eventbus
+        bridge_agent_bus_to_eventbus()
+        logger.info("[BOOT] AgentBus → EventBus bridge started")
+    except Exception as exc:
+        logger.warning("AgentBus bridge failed (non-fatal): %s", exc)
 
     # Start Discovery Monitor
     discovery_monitor = None
@@ -406,7 +444,7 @@ app = FastAPI(
 )
 
 # Production: restrict to local origins + pywebview app:// protocol.
-# Dev mode (CATEYE_DESKTOP not set) also keeps * for hot-reload.
+# Dev mode (CATEYE_DESKTOP not set) uses * but without credentials per Fetch spec.
 _allow_all = not get_config().desktop
 app.add_middleware(
     CORSMiddleware,
@@ -415,11 +453,13 @@ app.add_middleware(
         "http://localhost:8000",
         "app://",
     ],
-    allow_credentials=True,
+    allow_credentials=not _allow_all,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(CSRFMiddleware)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(AuthMiddleware)
 app.add_middleware(ErrorHandlingMiddleware)
@@ -545,14 +585,13 @@ async def system_status():
     pid = os.getpid()
     proc = psutil.Process(pid)
     mem = proc.memory_info()
-    summary = state.get_summary() if hasattr(state, "get_summary") else None
-    boot_time_val = getattr(state, "boot_time", None) or 0.0
+    summary = state.get_summary() if hasattr(state, "get_summary") else {}
 
     return {
-        "status": summary.state if summary else "unknown",
+        "status": summary.get("system_state", "unknown") if summary else "unknown",
         "version": APP_VERSION,
         "pid": pid,
-        "uptime_seconds": time.time() - boot_time_val,
+        "uptime_seconds": state.get_uptime() if hasattr(state, "get_uptime") else 0.0,
         "watchdog": watchdog.get_status() if watchdog and watchdog.is_running else {"running": False},
         "system": {
             "memory_percent": proc.memory_percent(),
@@ -561,7 +600,7 @@ async def system_status():
             "num_threads": proc.num_threads(),
         },
         "pipeline": {
-            "total_pipelines": len(health_data.get("pipelines", [])) if health_data else 0,
+            "total_pipelines": health_data.pipeline_latency_count if health_data else 0,
         },
         "agents": state.get_agent_status() if hasattr(state, "get_agent_status") else {},
         "database": {
@@ -576,8 +615,8 @@ def _get_db_size_mb() -> float:
         p = get_db_path()
         if p.exists():
             return p.stat().st_size / 1024 / 1024
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("Failed to get database size: %s", exc)
     return 0.0
 
 

@@ -8,7 +8,7 @@ import httpx
 
 from cores.ai.tools import AVAILABLE_TOOLS, execute_tool
 
-logger = logging.getLogger("catseye.ai.agent")
+logger = logging.getLogger("cateye.ai.agent")
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -99,9 +99,12 @@ class OrionAgent:
             }
             async with httpx.AsyncClient(timeout=30) as client:
                 resp = await client.post(
-                    f"{GEMINI_URL}?key={GEMINI_API_KEY}",
+                    GEMINI_URL,
                     json=payload,
-                    headers={"Content-Type": "application/json"},
+                    headers={
+                        "Content-Type": "application/json",
+                        "X-Goog-Api-Key": GEMINI_API_KEY,
+                    },
                 )
                 if resp.status_code != 200:
                     logger.warning("Gemini returned %d: %s", resp.status_code, resp.text[:200])

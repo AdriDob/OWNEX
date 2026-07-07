@@ -159,18 +159,18 @@ const systemStatusColor = computed(() => {
     <template v-else>
       <!-- Intel Summary Bar -->
       <div v-if="scanInfo" class="cyber-card rounded-xl">
-        <div class="grid grid-cols-3 divide-x divide-border/30">
+        <div class="grid grid-cols-1 divide-y divide-border/30 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           <div class="p-4 text-center">
             <p class="font-mono text-[10px] text-muted-foreground tracking-wider">DETECTADOS</p>
-            <p class="mt-1 font-mono text-2xl font-bold text-warning tabular-nums">{{ scanInfo.detected }}</p>
+            <p class="mt-1 font-mono text-xl sm:text-2xl font-bold text-warning tabular-nums">{{ scanInfo.detected }}</p>
           </div>
           <div class="p-4 text-center">
             <p class="font-mono text-[10px] text-muted-foreground tracking-wider">CONFIRMADOS</p>
-            <p class="mt-1 font-mono text-2xl font-bold text-success tabular-nums">{{ scanInfo.confirmed }}</p>
+            <p class="mt-1 font-mono text-xl sm:text-2xl font-bold text-success tabular-nums">{{ scanInfo.confirmed }}</p>
           </div>
           <div class="p-4 text-center">
             <p class="font-mono text-[10px] text-muted-foreground tracking-wider">TASA ÉXITO</p>
-            <p class="mt-1 font-mono text-2xl font-bold text-accent tabular-nums">{{ scanInfo.rate }}%</p>
+            <p class="mt-1 font-mono text-xl sm:text-2xl font-bold text-accent tabular-nums">{{ scanInfo.rate }}%</p>
           </div>
         </div>
       </div>
@@ -256,8 +256,8 @@ const systemStatusColor = computed(() => {
       </Card>
 
       <!-- System footer -->
-      <div class="flex items-center justify-between border-t border-border/20 pt-4">
-        <div class="flex items-center gap-4 font-mono text-[9px] text-muted-foreground">
+      <div class="flex flex-col gap-2 border-t border-border/20 pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[9px] text-muted-foreground">
           <span>CATEYE {{ context?._meta?.version || '' }}</span>
           <span>●</span>
           <span>DB: {{ context?.counts.targets || 0 }} targets</span>

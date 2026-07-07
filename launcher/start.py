@@ -12,6 +12,7 @@ Usage:
 """
 
 import argparse
+import logging
 import os
 import signal
 import subprocess
@@ -30,6 +31,8 @@ DASHBOARD_PORT = 8501
 # TAIPY_PORT = 8502  -- removed: taipy dashboard does not exist
 FRONTEND_PORT = 5173
 DEMO_PORT = 8001
+
+logger = logging.getLogger("cateye.launcher")
 
 processes: list[subprocess.Popen] = []
 
@@ -83,15 +86,15 @@ def _wait_for_health(proc: subprocess.Popen, url: str, timeout: float = 15.0) ->
                 _, stderr = proc.communicate(timeout=3)
                 if stderr:
                     err(f"stderr:\n{stderr.decode('utf-8', errors='replace')[:2000]}")
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("Failed to read process stderr in _wait_for_health: %s", exc)
             return False
         try:
             resp = urllib.request.urlopen(url, timeout=2)
             if resp.status == 200:
                 return True
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Health check failed for %s: %s", url, exc)
         time.sleep(0.5)
     err(f"Health check timed out after {timeout}s — {url}")
     return False
@@ -109,8 +112,8 @@ def _wait_for_port(proc: subprocess.Popen, host: str, port: int, timeout: float 
                 _, stderr = proc.communicate(timeout=3)
                 if stderr:
                     err(f"stderr:\n{stderr.decode('utf-8', errors='replace')[:2000]}")
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("Failed to read process stderr in _wait_for_port: %s", exc)
             return False
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -118,8 +121,8 @@ def _wait_for_port(proc: subprocess.Popen, host: str, port: int, timeout: float 
             s.connect((host, port))
             s.close()
             return True
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Port check failed for %s:%d: %s", host, port, exc)
         time.sleep(0.5)
     err(f"Port {port} not reachable after {timeout}s")
     return False
@@ -276,8 +279,8 @@ def check_process_health() -> bool:
                 _, stderr = p.communicate(timeout=3)
                 if stderr:
                     err(f"{label} stderr:\n{stderr.decode('utf-8', errors='replace')[:1000]}")
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("Failed to read process stderr in check_process_health: %s", exc)
             processes.remove(p)
             all_ok = False
             continue

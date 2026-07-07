@@ -4,10 +4,13 @@ Adjusts per-vulnerability-type payout estimates, tracks per-program
 metrics (acceptance rate, avg payout, response time), and measures
 prediction accuracy over time.
 
+Adjustment factors are persisted to the learning_state table in
+RecoveryStore so they survive restarts and inform scan prioritization.
+
 Data flow:
   reports (DB) -> aggregate by type -> compare predicted vs actual
   -> compute adjustment factors -> update BASE_PAYOUT dynamically
-  -> provide per-program ROI intelligence
+  -> persist to learning_state -> inform scan prioritization
 """
 
 from __future__ import annotations
@@ -19,10 +22,11 @@ from datetime import datetime, timezone
 from typing import Any
 
 from cores.engine.roi_model import BASE_HOURS, BASE_PAYOUT
+from cores.recovery.persistence import get_recovery_store
 from database.db import SessionLocal
 from database.models import Report
 
-LOG = logging.getLogger("catseye.intelligence.reward")
+LOG = logging.getLogger("cateye.intelligence.reward")
 
 
 @dataclass
@@ -73,6 +77,7 @@ class RewardLearner:
 
     def __init__(self):
         self._adjustments: dict[str, float] = {}
+        self._load_adjustments()
 
     def analyze(self) -> RewardLearningReport:
         now = datetime.now(timezone.utc).isoformat()
@@ -143,6 +148,7 @@ class RewardLearner:
                 adjustment = 1.0
 
             self._adjustments[vt] = adjustment
+            self._save_adjustments()
 
             report.by_type[vt] = VulnTypeStats(
                 vulnerability_type=vt,
@@ -219,6 +225,24 @@ class RewardLearner:
 
     def get_adjustments(self) -> dict[str, float]:
         return dict(self._adjustments)
+
+    def _load_adjustments(self) -> None:
+        try:
+            store = get_recovery_store()
+            for vuln_type in self._adjustments:
+                row = store.get_learning_state(f"reward_adj:{vuln_type}")
+                if row is not None:
+                    self._adjustments[vuln_type] = row
+        except Exception as exc:
+            LOG.warning("Failed to load reward adjustments: %s", exc)
+
+    def _save_adjustments(self) -> None:
+        try:
+            store = get_recovery_store()
+            for vuln_type, factor in self._adjustments.items():
+                store.update_learning_state(f"reward_adj:{vuln_type}", factor)
+        except Exception as exc:
+            LOG.warning("Failed to save reward adjustments: %s", exc)
 
     def _build_summary(self, report: RewardLearningReport) -> str:
         parts = []

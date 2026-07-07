@@ -9,7 +9,7 @@ from cores.authhub.base import AuthHubEvent, MessagingProvider, OAuth2Provider
 from cores.events.event_bus import EVENT_PRIORITY_MAP, get_event_bus
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("catseye.authhub.hub")
+logger = logging.getLogger("cateye.authhub.hub")
 
 AUTHHUB_EVENT_PRIORITIES: dict[str, str] = {
     AuthHubEvent.GMAIL_AUTHENTICATED.value: "high",

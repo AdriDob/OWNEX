@@ -49,7 +49,7 @@ except ImportError:
     SmartMutationEngine = None  # type: ignore
 
 
-logger = logging.getLogger("catseye.pipeline.unified")
+logger = logging.getLogger("cateye.pipeline.unified")
 
 
 class CorrelationEngine:

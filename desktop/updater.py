@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from urllib.request import Request, urlopen
 
-logger = logging.getLogger("catseye.desktop.updater")
+logger = logging.getLogger("cateye.desktop.updater")
 
 GITHUB_REPO = "AdriDob/cateye"
 

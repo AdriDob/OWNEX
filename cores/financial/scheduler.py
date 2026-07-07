@@ -15,7 +15,7 @@ from typing import Any
 from cores.identity_vault import get_identity_vault
 from cores.platforms import PLATFORM_REGISTRY
 
-logger = logging.getLogger("catseye.financial.scheduler")
+logger = logging.getLogger("cateye.financial.scheduler")
 
 
 @dataclass

@@ -122,7 +122,7 @@ function diffColor(ratio: number) {
 
       <!-- Summary -->
       <Card class="animate-in p-4">
-        <div class="grid grid-cols-3 gap-4 text-center">
+        <div class="grid grid-cols-1 gap-4 text-center sm:grid-cols-3">
           <div>
             <p class="text-xs text-muted-foreground">Total</p>
             <p class="text-lg font-bold text-foreground">{{ total }}</p>

@@ -24,7 +24,7 @@ import urllib.parse
 from dataclasses import dataclass, field
 from typing import Any
 
-logger = logging.getLogger("catseye.execution.mutation_engine")
+logger = logging.getLogger("cateye.execution.mutation_engine")
 
 
 # ── Data classes ──────────────────────────────────────────────────────

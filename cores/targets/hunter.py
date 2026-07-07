@@ -13,7 +13,7 @@ from cores.targets.technology import (
 )
 from database.db import SessionLocal, init_db
 
-LOG = logging.getLogger("catseye.targets.hunter")
+LOG = logging.getLogger("cateye.targets.hunter")
 
 
 class Hunter:

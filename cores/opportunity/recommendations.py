@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 from cores.opportunity.models import Opportunity, OpportunityRecommendations, OpportunityScore
 
-logger = logging.getLogger("catseye.opportunity.recommendations")
+logger = logging.getLogger("cateye.opportunity.recommendations")
 
 
 def _score(o: Opportunity) -> OpportunityScore:

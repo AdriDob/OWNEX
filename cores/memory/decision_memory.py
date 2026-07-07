@@ -9,7 +9,7 @@ from typing import Any
 
 from cores.memory.memory_store import MemoryStore, get_memory_store
 
-logger = logging.getLogger("catseye.memory.decision")
+logger = logging.getLogger("cateye.memory.decision")
 
 CATEGORY = "decision"
 

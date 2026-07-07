@@ -5,13 +5,13 @@ import logging
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("catseye.settings")
+logger = logging.getLogger("cateye.settings")
 
 CATEYE_NS = "CATEYE"
 PLATFORM_NS = "platform"
 
 
-class RastroMode(str, Enum):
+class CATEYEMode(str, Enum):
     MANUAL = "manual"
     AUTOMATIC = "automatic"
 
@@ -36,10 +36,10 @@ def _get_session():
 
 
 def _get_setting(key: str, default: Any = None) -> Any:
-    from database.models import RastroConfig
+    from database.models import CATEYEConfig
     session = _get_session()
     try:
-        record = session.query(RastroConfig).filter(RastroConfig.key == key).first()
+        record = session.query(CATEYEConfig).filter(CATEYEConfig.key == key).first()
         if record:
             return json.loads(record.value)
         return default
@@ -51,14 +51,14 @@ def _get_setting(key: str, default: Any = None) -> Any:
 
 
 def _set_setting(key: str, value: Any) -> None:
-    from database.models import RastroConfig
+    from database.models import CATEYEConfig
     session = _get_session()
     try:
-        record = session.query(RastroConfig).filter(RastroConfig.key == key).first()
+        record = session.query(CATEYEConfig).filter(CATEYEConfig.key == key).first()
         if record:
             record.value = json.dumps(value, ensure_ascii=False)
         else:
-            record = RastroConfig(key=key, value=json.dumps(value, ensure_ascii=False))
+            record = CATEYEConfig(key=key, value=json.dumps(value, ensure_ascii=False))
             session.add(record)
         session.commit()
     except Exception as exc:
@@ -76,17 +76,17 @@ def set_setting(key: str, value: Any) -> None:
     _set_setting(key, value)
 
 
-def get_mode() -> RastroMode:
+def get_mode() -> CATEYEMode:
     raw = _get_setting(f"{CATEYE_NS}.mode", "manual")
     try:
-        return RastroMode(raw)
+        return CATEYEMode(raw)
     except ValueError:
-        return RastroMode.MANUAL
+        return CATEYEMode.MANUAL
 
 
-def set_mode(mode: str | RastroMode) -> None:
+def set_mode(mode: str | CATEYEMode) -> None:
     if isinstance(mode, str):
-        mode = RastroMode(mode)
+        mode = CATEYEMode(mode)
     _set_setting(f"{CATEYE_NS}.mode", mode.value)
 
 

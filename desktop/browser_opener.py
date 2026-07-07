@@ -10,7 +10,7 @@ import shutil
 import urllib.parse
 import webbrowser
 
-logger = logging.getLogger("catseye.desktop.browser_opener")
+logger = logging.getLogger("cateye.desktop.browser_opener")
 
 # Common browser executable names by priority
 BROWSER_NAMES = [

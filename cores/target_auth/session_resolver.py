@@ -5,7 +5,7 @@ from typing import Any
 
 from cores.target_auth.session_manager import get_session_manager
 
-logger = logging.getLogger("catseye.target_auth.resolver")
+logger = logging.getLogger("cateye.target_auth.resolver")
 
 
 class SessionResolver:

@@ -62,8 +62,8 @@ def clean_db(session):
     for table in CLEANUP_ORDER:
         try:
             session.execute(db.text(f"DELETE FROM {table}"))
-        except Exception:
-            pass
+        except Exception as exc:
+            log.warning("Failed to clean table %s: %s", table, exc)
     session.commit()
 
 

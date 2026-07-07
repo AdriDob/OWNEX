@@ -1,7 +1,7 @@
 """Session persistence for multi-device support.
 
 Stores active sessions, device registrations, and anonymous mode state.
-Uses in-memory dict with optional SQLite persistence.
+All data encrypted at rest via vault_crypto (AES-256-GCM).
 """
 
 from __future__ import annotations
@@ -12,13 +12,15 @@ import os
 import time
 from typing import Any
 
+from cores.vault_crypto import decrypt, encrypt
+
 from .auth import (
     create_refresh_token,
     create_session_token,
     verify_token,
 )
 
-logger = logging.getLogger("catseye.auth.session")
+logger = logging.getLogger("cateye.auth.session")
 
 SESSION_DIR = os.path.join(
     os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")),
@@ -45,8 +47,9 @@ class SessionStore:
         path = self._path("sessions.json")
         if os.path.exists(path):
             try:
-                with open(path) as f:
-                    data = json.load(f)
+                raw = decrypt(open(path).read())
+                if raw:
+                    data = json.loads(raw)
                     self._sessions = data.get("sessions", {})
                     self._devices = data.get("devices", {})
             except (json.JSONDecodeError, OSError):
@@ -56,8 +59,9 @@ class SessionStore:
         if not self._persist:
             return
         try:
+            raw = json.dumps({"sessions": self._sessions, "devices": self._devices})
             with open(self._path("sessions.json"), "w") as f:
-                json.dump({"sessions": self._sessions, "devices": self._devices}, f)
+                f.write(encrypt(raw))
         except OSError:
             logger.warning("Failed to save sessions to disk", exc_info=True)
 

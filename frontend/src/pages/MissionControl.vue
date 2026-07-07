@@ -107,7 +107,7 @@ function formatUptime(s: number) {
 <template>
   <div class="space-y-6">
     <template v-if="loading">
-      <div class="space-y-4 animate-in"><Skeleton class="h-6 w-64" /><Skeleton class="h-4 w-96" /><div class="grid grid-cols-4 gap-3"><Skeleton v-for="i in 4" :key="i" class="h-24 rounded-xl" /></div><Skeleton class="h-32 rounded-xl" /></div>
+      <div class="space-y-4 animate-in"><Skeleton class="h-6 w-64" /><Skeleton class="h-4 w-96" /><div class="grid grid-cols-2 gap-3 sm:grid-cols-4"><Skeleton v-for="i in 4" :key="i" class="h-24 rounded-xl" /></div><Skeleton class="h-32 rounded-xl" /></div>
     </template>
 
     <template v-else-if="error">
@@ -168,14 +168,14 @@ function formatUptime(s: number) {
 
     <!-- ═══════════════════ MISSION CONTROL ═══════════════════ -->
     <template v-else-if="ctx">
-      <div class="flex items-start justify-between gap-4">
-        <div class="space-y-1 animate-in">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div class="space-y-1 animate-in min-w-0">
           <div class="flex items-center gap-2">
             <Eye class="h-4 w-4 text-primary" />
             <span class="font-mono text-[10px] font-bold tracking-widest text-primary">CATEYE MISSION CONTROL</span>
             <span :class="['h-1.5 w-1.5 rounded-full', ctx.system.status === 'healthy' ? 'bg-success animate-pulse' : 'bg-warning']" />
           </div>
-          <h1 class="font-display text-2xl font-bold text-foreground">{{ greeting }}, {{ settings.data.general.userName || 'Operador' }}</h1>
+          <h1 class="font-display text-xl sm:text-2xl font-bold text-foreground">{{ greeting }}, {{ settings.data.general.userName || 'Operador' }}</h1>
           <p class="text-xs text-muted-foreground">
             Score salud: {{ ctx.system.health_score }}/100
             <span v-if="ctx.findings.new_24h"> · {{ ctx.findings.new_24h }} hallazgos nuevos hoy</span>
@@ -184,20 +184,20 @@ function formatUptime(s: number) {
         </div>
 
         <!-- Hunt Control Panel -->
-        <div class="shrink-0 animate-in flex gap-3">
-          <div class="cyber-card rounded-xl p-4 min-w-[200px]">
+        <div class="shrink-0 animate-in flex flex-col sm:flex-row gap-3">
+          <div class="cyber-card rounded-xl p-4 min-w-0 sm:min-w-[200px]">
             <div class="flex items-center justify-between mb-2">
               <span class="font-mono text-[10px] font-bold tracking-wider text-muted-foreground">CAZA AUTÓNOMA</span>
               <Badge :variant="hunt.status === 'running' ? 'success' : hunt.status === 'paused' ? 'warning' : 'default'" class="font-mono text-[8px]">
                 {{ hunt.status === 'running' ? 'ACTIVE' : hunt.status === 'paused' ? 'PAUSED' : 'IDLE' }}
               </Badge>
             </div>
-            <div v-if="hunt.isActive" class="mb-2 flex gap-3 font-mono text-[10px] text-muted-foreground">
+            <div v-if="hunt.isActive" class="mb-2 flex flex-wrap gap-3 font-mono text-[10px] text-muted-foreground">
               <span><span class="text-foreground">{{ hunt.targetsScanned }}</span> targets</span>
               <span><span class="text-foreground">{{ hunt.findingsFound }}</span> findings</span>
               <span v-if="hunt.status === 'running'"><span class="text-foreground">{{ formatUptime(uptime) }}</span></span>
             </div>
-            <div class="flex gap-1.5">
+            <div class="flex flex-wrap gap-1.5">
               <Tooltip v-if="hunt.status === 'idle'" text="Iniciar pipeline autónomo de 5 etapas: Discover → Recon → Hypothesis → Validate → Report">
                 <Button size="sm" @click="hunt.start()" :loading="hunt.loading">
                   <Play class="h-3.5 w-3.5" /> Iniciar
@@ -221,7 +221,7 @@ function formatUptime(s: number) {
             </div>
           </div>
           <!-- MissionConfig -->
-          <div v-if="settings.data.missionControl" class="cyber-card rounded-xl p-4 min-w-[180px] hidden sm:block">
+          <div v-if="settings.data.missionControl" class="cyber-card rounded-xl p-4 min-w-0 sm:min-w-[180px]">
             <span class="font-mono text-[10px] font-bold tracking-wider text-muted-foreground">CONFIGURACIÓN</span>
             <div class="mt-2 space-y-1 font-mono text-[10px] text-muted-foreground">
               <div class="flex justify-between"><span>Modo</span><span class="text-foreground">{{ settings.data.missionControl.autoMode ? 'Auto' : 'Manual' }}</span></div>

@@ -31,7 +31,7 @@ from cores.engine.extraction import (
     extract_verdict_map as _extract_verdict_map_shared,
 )
 
-LOG = logging.getLogger("catseye.differential_intelligence")
+LOG = logging.getLogger("cateye.differential_intelligence")
 
 VALID_CATEGORIES = frozenset({
     "auth", "idor", "tenant", "graphql", "api", "admin", "export",

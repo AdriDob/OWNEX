@@ -17,7 +17,7 @@ from .subfinder_runner import SubfinderRunner
 from .wayback_runner import WaybackRunner
 from .whois_runner import WhoisRunner
 
-logger = logging.getLogger("catseye.recon")
+logger = logging.getLogger("cateye.recon")
 
 
 class ReconRunner:

@@ -13,7 +13,7 @@ from typing import Any
 from cores.ai.context_builder import build_full_context
 from cores.ai.provider import get_provider
 
-logger = logging.getLogger("catseye.ai.advisor")
+logger = logging.getLogger("cateye.ai.advisor")
 
 
 def answer_query(query: str) -> dict[str, Any]:

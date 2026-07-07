@@ -1,0 +1,236 @@
+{
+  "meta": {
+    "description": "Integration registry mapping every module to its consumers, imported-by, and test files.",
+    "last_updated": "2026-07-06"
+  },
+  "modules": [
+    {
+      "path": "cores/license/validator.py",
+      "name": "LicenseValidator",
+      "imported_by": ["cores/license/store.py", "stores/license.py", "frontend/"],
+      "consumes": ["cores/vault_crypto.py"],
+      "tests": ["tests/test_desktop_release.py::TestLicenseValidator"],
+      "integration_points": ["license store", "UI license activation"],
+      "status": "stable"
+    },
+    {
+      "path": "cores/identity_vault.py",
+      "name": "IdentityVault",
+      "imported_by": ["cores/auth/*", "cores/financial/", "cores/authhub/"],
+      "consumes": ["cores/vault_crypto.py"],
+      "tests": ["tests/test_identity_vault.py"],
+      "integration_points": ["all auth providers", "financial modules", "API key storage"],
+      "status": "stable"
+    },
+    {
+      "path": "cores/vault_crypto.py",
+      "name": "VaultCrypto (AES-256-GCM)",
+      "imported_by": ["cores/identity_vault.py", "cores/auth/token_service.py", "cores/auth/session.py"],
+      "consumes": [],
+      "tests": ["tests/test_identity_vault.py"],
+      "integration_points": ["identity vault", "token storage", "session storage"],
+      "status": "stable"
+    },
+    {
+      "path": "cores/auth/token_service.py",
+      "name": "TokenService",
+      "imported_by": ["cores/auth/__init__.py", "api/routers/auth.py"],
+      "consumes": ["cores/identity_vault.py", "cores/vault_crypto.py"],
+      "tests": ["tests/test_auth_token_service.py"],
+      "integration_points": ["auth API", "session management"],
+      "status": "stable"
+    },
+    {
+      "path": "cores/auth/session.py",
+      "name": "SessionStore",
+      "imported_by": ["cores/auth/__init__.py", "api/routers/auth.py"],
+      "consumes": ["cores/identity_vault.py", "cores/vault_crypto.py"],
+      "tests": ["tests/test_auth_sessions.py"],
+      "integration_points": ["auth API", "user sessions"],
+      "status": "stable"
+    },
+    {
+      "path": "api/middleware/csrf_middleware.py",
+      "name": "CSRFMiddleware",
+      "imported_by": ["api/main.py"],
+      "consumes": [],
+      "tests": ["tests/test_security.py::TestCSRF"],
+      "integration_points": ["all POST/PUT/DELETE endpoints"],
+      "status": "stable"
+    },
+    {
+      "path": "api/middleware/error_handling.py",
+      "name": "ErrorHandlingMiddleware",
+      "imported_by": ["api/main.py"],
+      "consumes": [],
+      "tests": ["tests/test_error_handling.py"],
+      "integration_points": ["all endpoints"],
+      "status": "stable"
+    },
+    {
+      "path": "api/middleware/rate_limit_middleware.py",
+      "name": "RateLimitMiddleware",
+      "imported_by": ["api/main.py"],
+      "consumes": ["cores/gateway/rate_limit.py"],
+      "tests": ["tests/test_security.py::TestRateLimit"],
+      "integration_points": ["all endpoints"],
+      "status": "stable"
+    },
+    {
+      "path": "cores/audit_log.py",
+      "name": "AuditLog",
+      "imported_by": ["api/routers/auth.py"],
+      "consumes": [],
+      "tests": ["tests/test_audit_log.py"],
+      "integration_points": ["auth events", "token management"],
+      "status": "stable"
+    },
+    {
+      "path": "api/main.py",
+      "name": "FastAPI App",
+      "imported_by": [],
+      "consumes": ["all middlewares", "all routers"],
+      "tests": [],
+      "integration_points": ["everything — this is the entry point"],
+      "status": "stable"
+    },
+    {
+      "path": "cores/dedup.py",
+      "name": "DedupTracker",
+      "imported_by": [],
+      "consumes": [],
+      "tests": ["tests/test_dedup.py"],
+      "integration_points": ["analysis pipeline", "DuplicateDetector"],
+      "status": "partial"
+    },
+    {
+      "path": "api/scheduler.py",
+      "name": "AdaptiveScheduler",
+      "imported_by": ["api/main.py"],
+      "consumes": ["cores/intelligence/reward_learning.py"],
+      "tests": ["tests/test_scheduler.py"],
+      "integration_points": ["target API", "reward learning"],
+      "status": "partial"
+    },
+    {
+      "path": "cores/recovery/circuit_breaker.py",
+      "name": "CircuitBreaker",
+      "imported_by": ["cores/monitoring/", "desktop/"],
+      "consumes": ["cores/recovery/persistence.py"],
+      "tests": ["tests/test_desktop_release.py"],
+      "integration_points": ["health monitoring", "desktop watchdog"],
+      "status": "stable"
+    },
+    {
+      "path": "cores/recovery/persistence.py",
+      "name": "RecoveryStore",
+      "imported_by": ["cores/recovery/circuit_breaker.py", "cores/intelligence/reward_learning.py"],
+      "consumes": [],
+      "tests": ["tests/test_desktop_release.py"],
+      "integration_points": ["circuit breaker", "reward learning"],
+      "status": "stable"
+    },
+    {
+      "path": "cores/intelligence/reward_learning.py",
+      "name": "RewardLearner",
+      "imported_by": ["api/scheduler.py"],
+      "consumes": ["cores/recovery/persistence.py"],
+      "tests": [],
+      "integration_points": ["adaptive scheduler"],
+      "status": "partial"
+    },
+    {
+      "path": "frontend/src/stores/settings.ts",
+      "name": "SettingsStore",
+      "imported_by": ["frontend/src/views/*"],
+      "consumes": ["Web Crypto API (AES-GCM)"],
+      "tests": [],
+      "integration_points": ["all frontend views"],
+      "status": "stable"
+    },
+    {
+      "path": "cores/authhub/",
+      "name": "AuthHub (Gmail, etc.)",
+      "imported_by": ["api/routers/authhub.py"],
+      "consumes": ["cores/identity_vault.py"],
+      "tests": ["tests/test_gmail_service.py"],
+      "integration_points": ["OAuth flows", "email service"],
+      "status": "stable"
+    },
+    {
+      "path": "desktop/watchdog.py",
+      "name": "Watchdog",
+      "imported_by": ["desktop/"],
+      "consumes": ["cores/recovery/circuit_breaker.py"],
+      "tests": [],
+      "integration_points": ["health monitors", "circuit breaker"],
+      "status": "unknown"
+    },
+    {
+      "path": "cores/health/engine.py",
+      "name": "SystemHealthEngine",
+      "imported_by": ["api/"],
+      "consumes": ["cores/recovery/circuit_breaker.py"],
+      "tests": [],
+      "integration_points": ["health API", "monitoring"],
+      "status": "unknown"
+    },
+    {
+      "path": "cores/recovery/health_monitor.py",
+      "name": "HealthMonitor",
+      "imported_by": ["cores/monitoring/"],
+      "consumes": ["cores/recovery/circuit_breaker.py"],
+      "tests": [],
+      "integration_points": ["monitoring"],
+      "status": "unknown"
+    },
+    {
+      "path": "cores/analysis/duplicate_detector.py",
+      "name": "DuplicateDetector",
+      "imported_by": ["cores/analysis/"],
+      "consumes": [],
+      "tests": [],
+      "integration_points": ["analysis pipeline"],
+      "status": "unknown"
+    },
+    {
+      "path": "cores/ai/orion_agent.py",
+      "name": "OrionAgent",
+      "imported_by": [],
+      "consumes": ["Google Gemini API (httpx)"],
+      "tests": [],
+      "integration_points": ["AI pipeline", "provider.py"],
+      "status": "stable",
+      "notes": "CVE-9 fixed: API key moved from URL query param to X-Goog-Api-Key header."
+    },
+    {
+      "path": "cores/ai/provider.py",
+      "name": "AIProvider",
+      "imported_by": ["cores/ai/orion_agent.py", "cores/ai/assistant.py"],
+      "consumes": ["Google Gemini API (urllib)"],
+      "tests": [],
+      "integration_points": ["chat", "chat_stream"],
+      "status": "stable",
+      "notes": "CVE-10 fixed: API key moved from URL to X-Goog-Api-Key header in both chat() and chat_stream()."
+    },
+    {
+      "path": "cores/auth/auth.py",
+      "name": "TokenAuth",
+      "imported_by": ["cores/auth/*", "api/routers/auth.py"],
+      "consumes": [],
+      "tests": ["tests/test_security.py"],
+      "integration_points": ["all auth flows"],
+      "status": "stable",
+      "notes": "CVE-12 fixed: token secret persisted to .auth_secret file. Tokens survive server restarts."
+    },
+    {
+      "path": "cores/gateway/rate_limit.py",
+      "name": "TokenBucket",
+      "imported_by": ["api/middleware/rate_limit_middleware.py"],
+      "consumes": [],
+      "tests": ["tests/test_security.py::TestRateLimit"],
+      "integration_points": ["rate limit middleware"],
+      "status": "stable"
+    }
+  ]
+}

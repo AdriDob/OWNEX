@@ -19,7 +19,7 @@ import sys
 from enum import Enum
 from pathlib import Path
 
-logger = logging.getLogger("catseye.boot_guard")
+logger = logging.getLogger("cateye.boot_guard")
 
 _SAFE_MODE = False
 _RUNTIME_MODE: RuntimeMode | None = None

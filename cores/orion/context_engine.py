@@ -13,7 +13,7 @@ from typing import Any
 from cores.opportunity import get_engine as get_opp_engine
 from cores.opportunity.models import Opportunity, OpportunityRecommendations
 
-logger = logging.getLogger("catseye.cateye.context")
+logger = logging.getLogger("cateye.orion.context")
 
 
 def _opp_to_preview(opp: Opportunity) -> dict[str, Any]:

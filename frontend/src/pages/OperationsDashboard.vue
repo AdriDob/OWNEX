@@ -112,7 +112,7 @@ onMounted(loadData)
     <template v-if="loading">
       <div class="space-y-4">
         <Skeleton class="h-6 w-56" />
-        <div class="grid grid-cols-3 gap-4"><Skeleton v-for="i in 3" :key="i" class="h-24 rounded-xl" /></div>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3"><Skeleton v-for="i in 3" :key="i" class="h-24 rounded-xl" /></div>
         <Skeleton class="h-64 rounded-xl" />
       </div>
     </template>

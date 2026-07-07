@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from cores.recon.osint_api import CLIENTS, query_all
 
-logger = logging.getLogger("catseye.api.osint")
+logger = logging.getLogger("cateye.api.osint")
 router = APIRouter(prefix="/api/osint", tags=["osint"])
 
 

@@ -1,6 +1,7 @@
 """Lightweight token-based auth using HMAC-SHA256 JWT-like tokens.
 
 No external dependencies — uses stdlib hmac, hashlib, json, time.
+Secret persists to a file so tokens survive restarts.
 """
 
 from __future__ import annotations
@@ -12,7 +13,7 @@ import os
 import time
 from typing import Any
 
-# Secret key — auto-generated on first import, persisted to env variable
+# Secret key — persisted to a file so tokens survive restarts
 _SECRET_KEY: str | None = None
 
 TOKEN_TTL = 86400       # 24 hours
@@ -21,11 +22,21 @@ REFRESH_TTL = 2592000   # 30 days
 
 def _get_secret() -> str:
     global _SECRET_KEY
-    if _SECRET_KEY is None:
-        _SECRET_KEY = os.environ.get(
-            "CATEYE_AUTH_SECRET",
-            hashlib.sha256(os.urandom(64)).hexdigest(),
-        )
+    if _SECRET_KEY is not None:
+        return _SECRET_KEY
+    env_key = os.environ.get("CATEYE_AUTH_SECRET")
+    if env_key:
+        _SECRET_KEY = env_key
+        return _SECRET_KEY
+    secret_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".auth_secret"))
+    if os.path.exists(secret_path):
+        with open(secret_path) as f:
+            _SECRET_KEY = f.read().strip()
+        return _SECRET_KEY
+    _SECRET_KEY = hashlib.sha256(os.urandom(64)).hexdigest()
+    with open(secret_path, "w") as f:
+        f.write(_SECRET_KEY)
+    os.chmod(secret_path, 0o600)
     return _SECRET_KEY
 
 

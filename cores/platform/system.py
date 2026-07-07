@@ -18,7 +18,7 @@ import platform
 import sys
 from pathlib import Path
 
-logger = logging.getLogger("catseye.platform.system")
+logger = logging.getLogger("cateye.platform.system")
 
 
 class Platform:

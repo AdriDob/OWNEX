@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("catseye.desktop.settings")
+logger = logging.getLogger("cateye.desktop.settings")
 
 SETTINGS_VERSION = 1
 

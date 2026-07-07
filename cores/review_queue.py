@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-LOG = logging.getLogger("catseye.review_queue")
+LOG = logging.getLogger("cateye.review_queue")
 
 
 class ConfidenceTier(Enum):

@@ -6,7 +6,7 @@ from typing import Any
 from cores.engine.unified_scoring import generate_suggestions as unified_suggestions
 from cores.engine.unified_scoring import score as unified_score
 
-logger = logging.getLogger("catseye.attack.engine")
+logger = logging.getLogger("cateye.attack.engine")
 
 OBJECT_REFERENCE_TOKENS = [
     "user_id",

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("catseye.crypto.base")
+logger = logging.getLogger("cateye.crypto.base")
 
 
 class ChainType(str, Enum):

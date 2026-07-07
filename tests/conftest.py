@@ -2,10 +2,28 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 
 import pytest
+
+os.environ.setdefault("CATEYE_CSRF_DISABLED", "1")
+
+@pytest.fixture(scope="session", autouse=True)
+def _set_license_key() -> None:
+    """Generate a dev Ed25519 key pair at test time for license generation."""
+    if "CATEYE_LICENSE_PRIVATE_KEY" not in os.environ:
+        from base64 import b64encode
+
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+        key = Ed25519PrivateKey.generate()
+        priv_raw = key.private_bytes_raw()
+        os.environ["CATEYE_LICENSE_PRIVATE_KEY"] = b64encode(priv_raw).decode()
+        os.environ["CATEYE_LICENSE_PUBLIC_KEY"] = b64encode(
+            key.public_key().public_bytes_raw()
+        ).decode()
+
 
 # ── Path fixtures ─────────────────────────────────────────────────
 

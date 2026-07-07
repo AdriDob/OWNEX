@@ -68,13 +68,13 @@ onUnmounted(() => { if (interval) clearInterval(interval) })
 
 <template>
   <div class="space-y-6">
-    <div class="flex items-start justify-between animate-in">
-      <div>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between animate-in">
+      <div class="min-w-0">
         <p class="text-xs font-bold uppercase tracking-widest text-primary">Operations</p>
-        <h1 class="font-display text-2xl font-bold text-foreground">Pipeline Monitor</h1>
+        <h1 class="font-display text-xl sm:text-2xl font-bold text-foreground">Pipeline Monitor</h1>
         <p class="text-sm text-muted-foreground">{{ pipelines.length }} pipelines | {{ activePipelines.length }} active</p>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 flex-wrap">
         <select v-model="filter" @change="fetchPipelines"
           class="rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-xs text-foreground outline-none focus:border-primary/30"
         >

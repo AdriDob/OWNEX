@@ -207,13 +207,13 @@ onMounted(loadAll)
 <template>
   <div class="space-y-6 animate-in">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div class="space-y-1">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="space-y-1 min-w-0">
         <div class="flex items-center gap-2">
           <Database class="h-4 w-4 text-primary" />
           <span class="font-mono text-[10px] font-bold tracking-widest text-primary">FINANCIAL TRUTH</span>
         </div>
-        <h1 class="font-display text-2xl font-bold text-foreground">Financial Truth Layer</h1>
+        <h1 class="font-display text-xl sm:text-2xl font-bold text-foreground">Financial Truth Layer</h1>
         <p class="text-xs text-muted-foreground">Fuente única de verdad financiera — todo valor tiene categoría y procedencia</p>
       </div>
       <button

@@ -11,7 +11,7 @@ import httpx
 from cores.env.config import get_config
 from database import db
 
-logger = logging.getLogger("catseye.notifications.fcm")
+logger = logging.getLogger("cateye.notifications.fcm")
 
 FCM_SEND_URL = "https://fcm.googleapis.com/v1/projects/{project}/messages:send"
 

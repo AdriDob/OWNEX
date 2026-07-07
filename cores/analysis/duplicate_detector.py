@@ -5,6 +5,8 @@ Compares a candidate finding against stored findings using multiple signals:
   - vulnerability class match
   - parameter fingerprint
   - text similarity of description
+
+Uses DedupTracker from cores.dedup to prevent duplicate history entries.
 """
 
 from __future__ import annotations
@@ -15,7 +17,9 @@ from dataclasses import dataclass
 from difflib import SequenceMatcher
 from typing import Any
 
-logger = logging.getLogger("catseye.analysis.duplicate_detector")
+from cores.dedup import fingerprint_path
+
+logger = logging.getLogger("cateye.analysis.duplicate_detector")
 
 HIGH_RISK_THRESHOLD = 0.7
 MEDIUM_RISK_THRESHOLD = 0.4
@@ -62,7 +66,17 @@ class DuplicateDetector:
         self._history: list[dict[str, Any]] = []
 
     def load_history(self, findings: list[dict[str, Any]]) -> None:
-        self._history = findings
+        from cores.dedup import get_session_tracker
+
+        tracker = get_session_tracker()
+        deduped: list[dict[str, Any]] = []
+        for f in findings:
+            url = f.get("url") or f.get("endpoint") or ""
+            method = f.get("method", "")
+            fp = fingerprint_path(url, method) if url else str(f.get("id", ""))
+            if not tracker.seen(fp):
+                deduped.append(f)
+        self._history = deduped
 
     def assess(self, finding: dict[str, Any]) -> DuplicateAssessment:
         if not self._history:

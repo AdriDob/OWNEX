@@ -22,7 +22,7 @@ import os
 import sys
 from pathlib import Path
 
-logger = logging.getLogger("catseye.service")
+logger = logging.getLogger("cateye.service")
 
 _pywin32 = {}
 

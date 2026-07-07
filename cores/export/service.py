@@ -5,7 +5,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
-logger = logging.getLogger("catseye.export")
+logger = logging.getLogger("cateye.export")
 
 EXPORT_FORMATS = ["markdown", "html", "pdf", "txt"]
 

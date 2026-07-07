@@ -24,7 +24,7 @@ from cores.opportunity.providers import get_providers
 from cores.opportunity.recommendations import generate_recommendations
 from cores.opportunity.scoring2 import _score_to_priority, compute_layered_score
 
-logger = logging.getLogger("catseye.opportunity.engine")
+logger = logging.getLogger("cateye.opportunity.engine")
 
 _GLOBAL_ENGINE: OpportunityEngine | None = None
 
@@ -78,6 +78,21 @@ class OpportunityEngine:
         record("opportunity.discover.count", len(scored))
         record("opportunity.providers.active", len(get_providers()))
 
+        if scored:
+            try:
+                from cores.events.event_bus import get_event_bus
+                bus = get_event_bus()
+                for opp in scored[:5]:
+                    bus.publish("opportunity:found", {
+                        "id": opp.id,
+                        "name": opp.name,
+                        "source": opp.source.name if opp.source else "unknown",
+                        "payout": opp.estimated_payout,
+                        "priority": opp.priority or "medium",
+                    })
+            except Exception:
+                logger.debug("EventBus not available for opportunity events")
+
         return scored
 
     def refresh(self, use_layered_scoring: bool = True) -> list[Opportunity]:
@@ -120,6 +135,21 @@ class OpportunityEngine:
                     )
 
         self._last_refresh = datetime.now(timezone.utc).isoformat()
+
+        if updated:
+            try:
+                from cores.events.event_bus import get_event_bus
+                bus = get_event_bus()
+                for opp in updated:
+                    bus.publish("opportunity:updated", {
+                        "id": opp.id,
+                        "name": opp.name,
+                        "source": opp.source.name if opp.source else "unknown",
+                        "priority": opp.priority or "medium",
+                    })
+            except Exception:
+                logger.debug("EventBus not available for opportunity refresh events")
+
         return updated
 
     def _score_all(self, opps: list[Opportunity], use_layered: bool) -> list[Opportunity]:

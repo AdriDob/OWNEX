@@ -1,4 +1,4 @@
-"""Global system state manager.
+"""Global system state manager — persistent via SQLite.
 
 Tracks the health and readiness of all system services.
 Publishes state changes to the event bus for reactive UI updates.
@@ -12,6 +12,7 @@ States:
 
 from __future__ import annotations
 
+import json
 import logging
 import time
 from collections.abc import Callable
@@ -20,7 +21,7 @@ from typing import Any
 
 from cores.events.event_bus import get_event_bus
 
-logger = logging.getLogger("catseye.system_state")
+logger = logging.getLogger("cateye.system_state")
 
 SYSTEM_STATE_BOOTING = "BOOTING"
 SYSTEM_STATE_READY = "READY"
@@ -43,8 +44,62 @@ class ServiceHealth:
     last_error: str | None = None
 
 
+def _get_session():
+    from database.db import SessionLocal
+    return SessionLocal()
+
+
+def _load_state() -> dict | None:
+    try:
+        session = _get_session()
+        try:
+            from database.models import SystemStateRecord
+            row = session.query(SystemStateRecord).order_by(SystemStateRecord.id.desc()).first()
+            if row:
+                return {
+                    "state": row.state,
+                    "services": json.loads(row.services_json or "[]"),
+                    "boot_start": row.boot_start,
+                    "last_state_change": row.last_state_change,
+                }
+        except Exception as exc:
+            logger.debug("Failed to load persisted state: %s", exc)
+        finally:
+            session.close()
+    except Exception as exc:
+        logger.debug("Failed to open DB session for state load: %s", exc)
+    return None
+
+
+def _persist_state(state: str, services: list[dict[str, Any]], boot_start: float, last_state_change: float) -> None:
+    try:
+        session = _get_session()
+        try:
+            from database.models import SystemStateRecord
+            record = SystemStateRecord(
+                state=state,
+                services_json=json.dumps(services),
+                uptime_seconds=time.time() - boot_start,
+                boot_start=boot_start,
+                last_state_change=last_state_change,
+            )
+            session.add(record)
+            session.commit()
+        except Exception as exc:
+            logger.warning("Failed to persist system state: %s", exc)
+            session.rollback()
+        finally:
+            session.close()
+    except Exception as exc:
+        logger.warning("Failed to open DB session for state persist: %s", exc)
+
+
 class SystemState:
-    """Global system state — single source of truth for service health."""
+    """Global system state — single source of truth for service health.
+
+    Persists the latest state snapshot to SQLite via SystemStateRecord.
+    On restart, the last-known state is restored from the database.
+    """
 
     def __init__(self) -> None:
         self._system_state: str = SYSTEM_STATE_BOOTING
@@ -53,6 +108,23 @@ class SystemState:
         self._on_state_change_callbacks: list[Callable[[str], None]] = []
         self._boot_start: float = time.time()
         self._last_state_change: float = time.time()
+
+        saved = _load_state()
+        if saved:
+            self._system_state = saved["state"]
+            self._boot_start = saved["boot_start"]
+            self._last_state_change = saved["last_state_change"]
+            for svc_data in saved["services"]:
+                svc = ServiceHealth(
+                    name=svc_data["name"],
+                    state=svc_data.get("state", "unknown"),
+                    last_healthy=svc_data.get("last_healthy"),
+                    last_seen=svc_data.get("last_seen"),
+                    error_count=svc_data.get("error_count", 0),
+                    last_error=svc_data.get("last_error"),
+                )
+                self._services[svc.name] = svc
+            logger.info("Restored system state from DB: %s (%d services)", self._system_state, len(self._services))
 
     def register_service(self, name: str) -> None:
         """Register a service for health tracking."""
@@ -135,11 +207,11 @@ class SystemState:
         """Recompute the aggregate system state from all services."""
         services = self.get_services()
         if not services:
+            _persist_state(self._system_state, services, self._boot_start, self._last_state_change)
             return
 
         all_healthy = all(s["state"] == "healthy" for s in services)
         any_unhealthy = any(s["state"] == "unhealthy" for s in services)
-        all(s["state"] == "unknown" for s in services)
 
         new_state = self._system_state
         if self._system_state == SYSTEM_STATE_BOOTING and all_healthy:
@@ -148,6 +220,8 @@ class SystemState:
             new_state = SYSTEM_STATE_DEGRADED
         elif self._system_state == SYSTEM_STATE_DEGRADED and all_healthy:
             new_state = SYSTEM_STATE_READY
+
+        _persist_state(new_state, services, self._boot_start, self._last_state_change)
 
         if new_state != self._system_state:
             old = self._system_state

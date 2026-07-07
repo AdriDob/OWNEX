@@ -28,16 +28,18 @@
   <rect x="16" y="12" width="80" height="24" rx="4" fill="rgba(0,255,65,0.1)" stroke="rgba(0,255,65,0.2)" stroke-width="1"/>
   <text x="36" y="28" fill="#00ff41" font-size="11" font-weight="bold" letter-spacing="3">CATEYE</text>
   <text x="120" y="28" fill="rgba(255,255,255,0.3)" font-size="10">System Health — Monitoreo de componentes</text>
+  <rect x="1040" y="12" width="80" height="24" rx="4" fill="rgba(0,184,255,0.1)" stroke="rgba(0,184,255,0.2)" stroke-width="1"/>
+  <text x="1050" y="28" fill="#00b8ff" font-size="9" font-weight="bold">v2.0.0</text>
 
   <!-- Header -->
   <text x="24" y="82" fill="#e0f0e0" font-size="20" font-weight="bold">Salud del Sistema</text>
-  <text x="24" y="104" fill="rgba(255,255,255,0.35)" font-size="12">Monitoreo en tiempo real de todos los componentes del sistema</text>
+  <text x="24" y="104" fill="rgba(255,255,255,0.35)" font-size="12">Monitoreo en tiempo real — circuit breaker, audit log, rate limiting</text>
 
   <!-- Status Banner -->
   <rect x="24" y="120" width="1152" height="52" rx="8" fill="rgba(0,230,118,0.05)" stroke="rgba(0,230,118,0.2)" stroke-width="1" filter="url(#shadow)"/>
   <circle cx="50" cy="146" r="8" fill="#00e676"/>
   <text x="68" y="150" fill="#00e676" font-size="13" font-weight="bold">SISTEMA NOMINAL</text>
-  <text x="240" y="150" fill="rgba(255,255,255,0.4)" font-size="10">Todos los módulos operativos · Última actualización: hace 30 segundos</text>
+  <text x="240" y="150" fill="rgba(255,255,255,0.4)" font-size="10">Todos los módulos operativos · Seguridad: CSRF ✓ · Audit Log ✓ · Rate Limit ✓</text>
   <rect x="1020" y="132" width="80" height="24" rx="5" fill="rgba(0,184,255,0.1)" stroke="rgba(0,184,255,0.15)" stroke-width="1"/>
   <text x="1060" y="148" fill="#00b8ff" font-size="9" font-weight="bold" text-anchor="middle">🔄 Refrescar</text>
 
@@ -96,23 +98,23 @@
 
   <rect x="414" y="308" width="372" height="100" rx="8" fill="url(#card)" stroke="rgba(255,171,0,0.08)" stroke-width="1" filter="url(#shadow)"/>
   <rect x="414" y="308" width="372" height="1" fill="url(#topGlow)"/>
-  <text x="430" y="331" fill="#e0f0e0" font-size="11" font-weight="bold">🕷️ OWASP ZAP</text>
-  <text x="710" y="331" fill="#ffab00" font-size="9" font-weight="bold">Inactivo</text>
+  <text x="430" y="331" fill="#e0f0e0" font-size="11" font-weight="bold">🛡️ Seguridad</text>
+  <text x="710" y="331" fill="#00e676" font-size="9" font-weight="bold">Todos OK</text>
   <line x1="430" y1="342" x2="770" y2="342" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-  <text x="430" y="360" fill="rgba(255,255,255,0.4)" font-size="9">Host</text>
-  <text x="530" y="360" fill="rgba(255,255,255,0.6)" font-size="9">localhost:8090</text>
-  <text x="430" y="380" fill="rgba(255,255,255,0.4)" font-size="9">Estado</text>
-  <text x="530" y="380" fill="#ffab00" font-size="9">No responde (daemon requerido)</text>
+  <text x="430" y="360" fill="#00e676" font-size="9">✓</text>
+  <text x="442" y="360" fill="rgba(255,255,255,0.5)" font-size="9">CSRF Middleware</text>
+  <text x="430" y="380" fill="#00e676" font-size="9">✓</text>
+  <text x="442" y="380" fill="rgba(255,255,255,0.5)" font-size="9">Audit Log (JSONL)</text>
 
   <rect x="804" y="308" width="372" height="100" rx="8" fill="url(#card)" stroke="rgba(0,255,65,0.08)" stroke-width="1" filter="url(#shadow)"/>
   <rect x="804" y="308" width="372" height="1" fill="url(#topGlow)"/>
-  <text x="820" y="331" fill="#e0f0e0" font-size="11" font-weight="bold">📡 WebSocket</text>
-  <text x="1100" y="331" fill="#00e676" font-size="9" font-weight="bold">Conectado</text>
+  <text x="820" y="331" fill="#e0f0e0" font-size="11" font-weight="bold">⚡ Circuit Breaker</text>
+  <text x="1100" y="331" fill="#00e676" font-size="9" font-weight="bold">Nominal</text>
   <line x1="820" y1="342" x2="1160" y2="342" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-  <text x="820" y="360" fill="rgba(255,255,255,0.4)" font-size="9">Eventos en tiempo real</text>
-  <text x="1000" y="360" fill="rgba(255,255,255,0.6)" font-size="9">Activo</text>
-  <text x="820" y="380" fill="rgba(255,255,255,0.4)" font-size="9">Clientes conectados</text>
-  <text x="1000" y="380" fill="#00e676" font-size="9">1</text>
+  <text x="820" y="360" fill="rgba(255,255,255,0.4)" font-size="9">Estado persistido</text>
+  <text x="1000" y="360" fill="rgba(255,255,255,0.6)" font-size="9">Healthy</text>
+  <text x="820" y="380" fill="rgba(255,255,255,0.4)" font-size="9">RecoveryStore</text>
+  <text x="1000" y="380" fill="#00e676" font-size="9">Conectado</text>
 
   <!-- System Resources -->
   <rect x="24" y="426" width="564" height="200" rx="8" fill="url(#card)" stroke="rgba(0,255,65,0.08)" stroke-width="1" filter="url(#shadow)"/>
@@ -197,7 +199,7 @@
 
   <rect x="760" y="680" width="220" height="20" rx="4" fill="rgba(255,255,255,0.02)"/>
   <text x="772" y="694" fill="rgba(255,255,255,0.4)" font-size="9">Versión API</text>
-  <text x="900" y="694" fill="rgba(255,255,255,0.6)" font-size="9">1.6.0</text>
+  <text x="900" y="694" fill="rgba(255,255,255,0.6)" font-size="9">2.0.0</text>
 
   <rect x="1000" y="680" width="140" height="20" rx="4" fill="rgba(0,255,65,0.05)"/>
   <text x="1012" y="694" fill="#00ff41" font-size="9">✨ 100% disponibilidad</text>

@@ -11,7 +11,7 @@ import urllib.request
 from html.parser import HTMLParser
 from typing import Any
 
-logger = logging.getLogger("catseye.scope_reader")
+logger = logging.getLogger("cateye.scope_reader")
 
 
 class _HTMLTextExtractor(HTMLParser):

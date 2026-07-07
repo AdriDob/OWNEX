@@ -3,7 +3,7 @@ import logging
 import shutil
 from pathlib import Path
 
-logger = logging.getLogger("catseye.recon.whois")
+logger = logging.getLogger("cateye.recon.whois")
 
 
 class WhoisRunner:

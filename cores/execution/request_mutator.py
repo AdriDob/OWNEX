@@ -5,7 +5,7 @@ from cores.execution.mutation_engine import SmartMutationEngine
 from cores.validation.llm_analyzer import LLMRequestMutator
 from cores.validation.replayer import AuthContext, RequestSpec
 
-logger = logging.getLogger("catseye.execution.mutator")
+logger = logging.getLogger("cateye.execution.mutator")
 
 PARAM_PATTERN = re.compile(r"\{(\w+)\}")
 

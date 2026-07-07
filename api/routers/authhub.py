@@ -10,7 +10,7 @@ from cores.authhub import AuthHubEvent, get_authhub
 from cores.gateway.schemas import error, ok
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("catseye.api.authhub")
+logger = logging.getLogger("cateye.api.authhub")
 
 router = APIRouter(prefix="/api/authhub", tags=["authhub"])
 
@@ -48,6 +48,7 @@ async def gmail_authorize():
 async def gmail_callback(request: Request):
     body = await request.json()
     code = body.get("code", "")
+    state = body.get("state", "")
     if not code:
         return error("code is required", version="1.0")
 
@@ -56,7 +57,7 @@ async def gmail_callback(request: Request):
     if not provider:
         return error("Gmail provider not registered", version="1.0")
 
-    tokens = provider.exchange_code(code)
+    tokens = provider.exchange_code(code, state=state)
     if not tokens or "access_token" not in tokens:
         return error("Failed to exchange authorization code", version="1.0")
 

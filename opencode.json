@@ -1,0 +1,15 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    ".opencode/skills/agent-loop/SKILL.md",
+    ".ai/AGENT_CHARTER.md",
+    ".ai/PRODUCTION_RULES.md",
+    ".ai/CURRENT_STATE.md",
+    ".ai/TASK_QUEUE.md",
+    ".ai/KNOWN_DEBT.md",
+    ".ai/DO_NOT_TOUCH.md",
+    ".ai/SECURITY_POLICY.md",
+    ".ai/TESTING_POLICY.md",
+    ".ai/CODE_QUALITY.md"
+  ]
+}

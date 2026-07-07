@@ -6,7 +6,7 @@ import shutil
 
 from cores.tools.base import BaseTool, UnifiedResult
 
-logger = logging.getLogger("catseye.tools.httpx")
+logger = logging.getLogger("cateye.tools.httpx")
 
 
 class HttpxTool(BaseTool):

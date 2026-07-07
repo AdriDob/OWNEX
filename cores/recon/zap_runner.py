@@ -19,7 +19,7 @@ try:
 except ImportError:
     aiohttp = None
 
-LOG = logging.getLogger("catseye.recon.zap")
+LOG = logging.getLogger("cateye.recon.zap")
 
 
 @dataclass

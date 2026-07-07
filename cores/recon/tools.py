@@ -8,7 +8,7 @@ import os
 import shutil
 from pathlib import Path
 
-logger = logging.getLogger("catseye.recon.tools")
+logger = logging.getLogger("cateye.recon.tools")
 
 _GO_BIN_ENV = os.environ.get("GOPATH", str(Path.home() / "go"))
 GO_BIN = Path(_GO_BIN_ENV) / "bin"

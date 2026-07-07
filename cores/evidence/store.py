@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 from database import models
 from database.db import SessionLocal
 
-LOG = logging.getLogger("catseye.evidence.store")
+LOG = logging.getLogger("cateye.evidence.store")
 
 
 class EvidenceStore:

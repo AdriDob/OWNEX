@@ -1,0 +1,153 @@
+{
+  "features": [
+    {
+      "id": "security-sqli-mobile",
+      "description": "SQL injection fix in mobile.py _count() — table name whitelist",
+      "archives": ["api/routers/mobile.py"],
+      "tests": ["tests/test_mobile.py"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "Frozenset whitelist of allowed table names, SQLAlchemy text() with no string concatenation"
+    },
+    {
+      "id": "security-csrf-always-active",
+      "description": "CSRF middleware always active (removed CATEYE_DESKTOP gate)",
+      "archives": ["api/middleware/csrf_middleware.py"],
+      "tests": ["tests/test_csrf_middleware.py (6/6 pass)"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "Gate replaced with CATEYE_CSRF_DISABLED=1 opt-out. secure=True removed (local-only private system)"
+    },
+    {
+      "id": "security-headers-middleware",
+      "description": "Security headers middleware (CSP, HSTS, XFO, XCTO, Referrer-Policy)",
+      "archives": ["api/middleware/error_handling.py", "api/main.py"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "SecurityHeadersMiddleware registered as outermost middleware in main.py"
+    },
+    {
+      "id": "security-dev-key-removed",
+      "description": "Hardcoded Ed25519 dev key removed from conftest.py, generated at runtime",
+      "archives": ["tests/conftest.py"],
+      "tests": ["tests/test_desktop_release.py::TestHardwareIDConsistency (8/8 pass)"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "Both private and public keys generated at test time via cryptography.hazmat"
+    },
+    {
+      "id": "persistence-ledger",
+      "description": "Financial ledger migrated from in-memory list to SQLAlchemy SQLite persistence",
+      "archives": ["database/models.py", "cores/ledger/__init__.py", "cores/financial/truth_layer.py"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "LedgerEntry model. Verified restart survival"
+    },
+    {
+      "id": "persistence-event-bus",
+      "description": "Event bus history persisted to SQLite via EventBusEntry model",
+      "archives": ["database/models.py", "cores/events/event_bus.py"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "Events persisted on publish(), get_history() reads from DB + cache. Verified restart survival"
+    },
+    {
+      "id": "persistence-system-state",
+      "description": "SystemState restored from SQLite on restart, persists on every _recompute()",
+      "archives": ["database/models.py", "cores/system_state.py"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "SystemStateRecord model. Restores last-known state with service health"
+    },
+    {
+      "id": "persistence-notification-dedup",
+      "description": "Notification dedup tracker rehydrates from recent DB notifications on restart",
+      "archives": ["cores/notifications/hub.py"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "DEDUP_WINDOW=30s: recent dedup keys loaded from notifications table on NotificationHub init"
+    },
+    {
+      "id": "api-evidence-upload",
+      "description": "Evidence file upload endpoint POST /api/evidence/upload",
+      "archives": ["api/routers/evidence.py"],
+      "tests": ["359 tests pasan"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "Stores files in ~/.orion/evidence/. Fixed 404 from frontend uploadEvidence() call"
+    },
+    {
+      "id": "api-target-scan-trigger",
+      "description": "Target scan trigger endpoint POST /api/targets/{id}/scan",
+      "archives": ["api/routers/targets.py"],
+      "tests": ["359 tests pasan"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "Delegates to cores.orchestrator.scan_service.launch_scan. Fixed 404 from frontend triggerScan() call"
+    },
+    {
+      "id": "pwa-assets",
+      "description": "PWA manifest.json, icons, theme-color, apple-touch-icon, service worker registration",
+      "archives": ["frontend/public/manifest.json", "frontend/public/icon-192.png", "frontend/public/icon-512.png", "frontend/index.html", "frontend/src/main.ts"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "SW was already present but never registered. manifest.json + icons were missing. All created/configured"
+    },
+    {
+      "id": "except-pass-fix",
+      "description": "32 bare except Exception: pass converted to logger.warning()/logger.debug()",
+      "archives": ["desktop/tray.py", "desktop/main_desktop.py", "launcher/start.py", "run.py", "cores/recovery/health_monitor.py", "cores/predictor/engine.py", "api/middleware/rate_limit_middleware.py", "cores/health/engine.py", "cores/autonomous/engine.py", "api/main.py", "cores/intelligence/reward_learning.py", "cores/ai/context/engine.py", "cores/identity_vault.py", "scripts/seed_real.py", "cores/tools/headless.py"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "All 32 instances of `except Exception: pass` replaced with appropriate logging. Added `import logging` where missing"
+    },
+    {
+      "id": "eventbus-ghost-events",
+      "description": "All 8 event types from EVENT_PUSH_MAP now have real publishers",
+      "archives": ["cores/opportunity/engine.py", "api/scheduler.py", "api/routers/findings.py"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "opportunity:found, opportunity:updated, report:generated, discovery:completed, finding:created, finding:status_changed all published to EventBus"
+    },
+    {
+      "id": "scheduler-orion-score",
+      "description": "Scheduler uses ORION SCORE (Program.orion_score) + ORION next_action for target prioritization",
+      "archives": ["api/scheduler.py"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "Orion SCORE multiplier (0.5x-2.0x). Next action 1.5x boost. Auto-explain logs for prioritization decisions"
+    },
+    {
+      "id": "agentbus-eventbus-bridge",
+      "description": "AgentBus pipeline events forwarded to system-wide EventBus",
+      "archives": ["cores/agents/bus.py", "api/main.py"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "All AgentBus events forwarded as agent:* events on EventBus. Wired in main.py startup"
+    },
+    {
+      "id": "scheduler-pipeline-fixes",
+      "description": "Fixed 3 broken scheduler stages (HYPOTHESIS, VALIDATE, REPORT) — all were non-functional",
+      "archives": ["api/scheduler.py"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "HYPOTHESIS: fixed import to cores.engine.hypothesis.generators. VALIDATE: fixed import to ValidationLoopEngine. REPORT: fixed import to create_report_from_findings"
+    },
+    {
+      "id": "auto-report-on-confirmed",
+      "description": "When a finding status changes to 'confirmed', auto-generate a report draft via EventBus subscriber",
+      "archives": ["api/main.py"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "Subscribes to finding:status_changed. Calls create_report_from_findings() when new_status=confirmed"
+    },
+    {
+      "id": "api-keys-env-vars",
+      "description": "API keys read from environment variables (no hardcoded secrets in orion_agent.py)",
+      "archives": ["cores/ai/orion_agent.py"],
+      "integration": "integrado",
+      "verified": "2026-07-06",
+      "notes": "OPENROUTER_API_KEY and GEMINI_API_KEY read via os.environ.get() — no hardcoded values"
+    }
+  ]
+}

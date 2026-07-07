@@ -74,16 +74,16 @@ function formatTime(ts: number) {
 
 <template>
   <div class="space-y-6">
-    <div class="flex items-start justify-between animate-in">
-      <div>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between animate-in">
+      <div class="min-w-0">
         <p class="text-xs font-bold uppercase tracking-widest text-primary">Notifications</p>
-        <h1 class="font-display text-2xl font-bold text-foreground">Centro de Notificaciones</h1>
+        <h1 class="font-display text-xl sm:text-2xl font-bold text-foreground">Centro de Notificaciones</h1>
         <p class="text-sm text-muted-foreground">
           {{ store.unreadCount > 0 ? `${store.unreadCount} sin leer` : 'Todas leídas' }}
           · {{ store.notifications.length }} total
         </p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 flex-wrap">
         <Button v-if="store.unreadCount > 0" variant="ghost" size="sm" @click="store.markAllRead()">
           <CheckCheck class="h-3.5 w-3.5" /> Marcar todas leídas
         </Button>

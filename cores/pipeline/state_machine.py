@@ -13,7 +13,7 @@ from cores.agents.types import (  # noqa: F401
     validate_transition,
 )
 
-logger = logging.getLogger("catseye.pipeline.state_machine")
+logger = logging.getLogger("cateye.pipeline.state_machine")
 
 
 STAGE_WEIGHTS: dict[PipelineState, float] = {

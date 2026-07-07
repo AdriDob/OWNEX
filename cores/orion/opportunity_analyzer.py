@@ -12,7 +12,7 @@ from typing import Any
 from cores.opportunity import get_engine as get_opp_engine
 from cores.opportunity.models import Opportunity
 
-logger = logging.getLogger("catseye.cateye.analyzer")
+logger = logging.getLogger("cateye.orion.analyzer")
 
 
 def _category_guide(cat: str) -> list[dict[str, str]]:

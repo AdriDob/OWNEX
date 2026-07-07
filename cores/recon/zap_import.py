@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
 
-LOG = logging.getLogger("catseye.recon.zap")
+LOG = logging.getLogger("cateye.recon.zap")
 
 
 @dataclass

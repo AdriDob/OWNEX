@@ -174,7 +174,7 @@ const maxMonthlyAmount = computed(() => {
         <h2 class="text-sm font-semibold text-foreground">Generar Borrador con IA</h2>
       </div>
       <div class="flex items-center gap-3 flex-wrap">
-        <div class="relative flex-1 min-w-[200px]">
+        <div class="relative flex-1 min-w-0 sm:min-w-[200px]">
           <Input
             v-model="findingSearch"
             :placeholder="selectedFinding ? selectedFinding.title : 'Buscar finding por título o target...'"

@@ -13,7 +13,7 @@ from fastapi import APIRouter, HTTPException, Query
 from cores.ai.context.engine import get_orion_context, invalidate
 from cores.orion import analyze_opportunity, get_context, get_next_action
 
-logger = logging.getLogger("catseye.api.cateye")
+logger = logging.getLogger("cateye.api.orion")
 
 router = APIRouter(prefix="/api/orion", tags=["cateye"])
 

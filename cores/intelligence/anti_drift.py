@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-LOG = logging.getLogger("catseye.intelligence.anti_drift")
+LOG = logging.getLogger("cateye.intelligence.anti_drift")
 
 # Canonical ownership matrix
 # Each artifact is owned by exactly one engine

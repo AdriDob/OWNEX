@@ -15,7 +15,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-logger = logging.getLogger("catseye.orchestrator.assistant")
+logger = logging.getLogger("cateye.orchestrator.assistant")
 
 MIN_CONFIDENCE = 0.3
 

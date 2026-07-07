@@ -4,7 +4,7 @@ import re
 
 from cores.tools.base import BaseTool, UnifiedResult
 
-logger = logging.getLogger("catseye.tools.subfinder")
+logger = logging.getLogger("cateye.tools.subfinder")
 
 
 class SubfinderTool(BaseTool):

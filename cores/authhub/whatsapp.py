@@ -12,7 +12,7 @@ from typing import Any
 from cores.authhub.base import MessagingProvider
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("catseye.authhub.whatsapp")
+logger = logging.getLogger("cateye.authhub.whatsapp")
 
 TWILIO_API_URL = "https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json"
 PROVIDER_NAME = "twilio"

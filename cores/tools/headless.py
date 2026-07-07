@@ -19,7 +19,7 @@ from dataclasses import dataclass
 
 from cores.tools.base import UnifiedResult
 
-logger = logging.getLogger("catseye.tools.headless")
+logger = logging.getLogger("cateye.tools.headless")
 
 DOM_XSS_PATTERNS = [
     r"document\.write\s*\(",
@@ -211,8 +211,8 @@ class HeadlessScanner:
                 api_pattern = re.compile(r'["\'](/api/[^"\']+)["\']')
                 html = page.content()
                 routes = list(set(api_pattern.findall(html)))
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("Failed to extract SPA routes from %s: %s", url, exc)
             finally:
                 browser.close()
         return routes

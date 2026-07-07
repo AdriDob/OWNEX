@@ -1,8 +1,11 @@
 """Identity Vault — secure provider credential management.
 
 Stores encrypted credentials for bug bounty platforms.
-Never logs secrets. Never auto-submits reports.
-All storage is encrypted at rest using AES-256-GCM.
+Encryption at rest using AES-256-GCM with a randomly generated key
+stored in ~/.orion/identity_vault.key (chmod 600).
+
+Previously derived the AES key from /etc/machine-id (CVE-2) —
+this version auto-migrates existing vaults to a random file key.
 """
 
 from __future__ import annotations
@@ -18,79 +21,91 @@ from typing import Any
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-logger = logging.getLogger("catseye.identity_vault")
+from cores.vault_crypto import decrypt as _decrypt
+from cores.vault_crypto import encrypt as _encrypt
+from cores.vault_crypto import get_vault_key
+
+logger = logging.getLogger("cateye.identity_vault")
 
 _VAULT_PATH: str | None = None
-_VAULT_KEY: bytes | None = None
 _VAULT_DATA: dict[str, dict[str, Any]] = {}
 
-_AES_NONCE_BYTES = 12
+
+def _get_vault_dir() -> str:
+    home = os.environ.get("HOME", os.environ.get("USERPROFILE", "."))
+    return os.path.join(home, ".orion")
 
 
 def _get_vault_path() -> str:
     global _VAULT_PATH
     if _VAULT_PATH is None:
-        home = os.environ.get("HOME", os.environ.get("USERPROFILE", "."))
-        _VAULT_PATH = os.path.join(home, ".orion", "identity_vault.json")
+        _VAULT_PATH = os.path.join(_get_vault_dir(), "identity_vault.json")
     return _VAULT_PATH
 
 
-def _get_vault_key() -> bytes:
-    global _VAULT_KEY
-    if _VAULT_KEY is None:
-        machine_id = _get_machine_id()
-        _VAULT_KEY = hashlib.sha256(machine_id.encode()).digest()
-    return _VAULT_KEY
-
-
 def _get_machine_id() -> str:
-    """Derive a machine-local identifier for encryption."""
     raw: list[str] = []
     etc_machine = "/etc/machine-id"
     if os.path.exists(etc_machine):
         try:
             with open(etc_machine) as f:
                 raw.append(f.read().strip())
-        except Exception:
-            logger.warning("Failed to read /etc/machine-id", exc_info=True)
+        except Exception as exc:
+            logger.warning("Failed to read machine-id: %s", exc)
     if not raw:
         raw.append(os.environ.get("HOSTNAME", "CATEYE-default"))
-
     seen: set[str] = set()
     deduped: list[str] = []
     for v in raw:
         if v and v not in seen:
             deduped.append(v)
             seen.add(v)
-
     return "|".join(deduped)
 
 
-def _aes_encrypt(plaintext: str, key: bytes) -> str:
-    """Encrypt data with AES-256-GCM. Returns base64(nonce + ciphertext + tag)."""
-    if not plaintext:
-        return ""
-    aesgcm = AESGCM(key)
-    nonce = os.urandom(_AES_NONCE_BYTES)
-    ciphertext = aesgcm.encrypt(nonce, plaintext.encode("utf-8"), None)
-    return base64.b64encode(nonce + ciphertext).decode("ascii")
+def _get_old_machine_id_key() -> bytes:
+    return hashlib.sha256(_get_machine_id().encode()).digest()
 
 
-def _aes_decrypt(payload: str, key: bytes) -> str:
-    """Decrypt data encrypted with AES-256-GCM. Expects base64(nonce + ciphertext + tag)."""
-    if not payload:
-        return ""
+def _maybe_migrate_vault() -> None:
+    vault_path = _get_vault_path()
+    if not os.path.exists(vault_path):
+        return
     try:
-        raw = base64.b64decode(payload.encode("ascii"))
-        if len(raw) < _AES_NONCE_BYTES + 16:
-            return ""
-        nonce = raw[:_AES_NONCE_BYTES]
-        ciphertext = raw[_AES_NONCE_BYTES:]
-        aesgcm = AESGCM(key)
-        return aesgcm.decrypt(nonce, ciphertext, None).decode("utf-8")
+        with open(vault_path) as f:
+            data = json.load(f)
     except Exception:
-        logger.warning("AES-256-GCM decryption failed — key may have changed")
-        return ""
+        return
+    if data.get("_key_version") == "file":
+        return
+
+    old_key = _get_old_machine_id_key()
+    new_key = get_vault_key()
+    migrated = 0
+
+    for provider, entry in data.items():
+        if provider == "_key_version":
+            continue
+        for field in ("encrypted_token", "encrypted_password"):
+            encrypted = entry.get(field, "")
+            if not encrypted:
+                continue
+            try:
+                raw = base64.b64decode(encrypted)
+                nonce = raw[:12]
+                ciphertext = raw[12:]
+                plain = AESGCM(old_key).decrypt(nonce, ciphertext, None).decode("utf-8")
+                entry[field] = _encrypt(plain)
+                migrated += 1
+            except Exception as exc:
+                logger.warning("Failed to migrate credential for %s: %s", provider, exc)
+
+    if migrated:
+        data["_key_version"] = "file"
+        with open(vault_path, "w") as f:
+            json.dump(data, f, indent=2)
+        os.chmod(vault_path, 0o600)
+        logger.info("Migrated %d credentials from machine-id key to file key", migrated)
 
 
 class IdentityVault:
@@ -104,10 +119,7 @@ class IdentityVault:
     def __init__(self) -> None:
         self._load()
 
-    # ── Public API ─────────────────────────────────────────────────
-
     def list_accounts(self) -> list[dict[str, Any]]:
-        """List all stored accounts (without secrets)."""
         result = []
         for provider, data in _VAULT_DATA.items():
             result.append({
@@ -121,7 +133,6 @@ class IdentityVault:
         return result
 
     def get_account(self, provider: str) -> dict[str, Any] | None:
-        """Get a specific stored account (without secrets)."""
         data = _VAULT_DATA.get(provider)
         if not data:
             return None
@@ -142,18 +153,16 @@ class IdentityVault:
         password: str = "",
         metadata: dict[str, str] | None = None,
     ) -> None:
-        """Store encrypted credentials for a provider."""
         if provider not in self.SUPPORTED_PROVIDERS and provider not in _VAULT_DATA:
             logger.warning("Storing credentials for unsupported provider: %s", provider)
 
-        key = _get_vault_key()
         entry = {
             "email": email,
             "session_state": "disconnected",
             "last_checked": datetime.now(timezone.utc).isoformat(),
             "health_status": "unknown",
-            "encrypted_token": _aes_encrypt(token, key) if token else "",
-            "encrypted_password": _aes_encrypt(password, key) if password else "",
+            "encrypted_token": _encrypt(token) if token else "",
+            "encrypted_password": _encrypt(password) if password else "",
             "metadata": json.dumps(metadata or {}),
         }
 
@@ -171,14 +180,12 @@ class IdentityVault:
         logger.info("Credentials stored for provider: %s (email: %s)", provider, email)
 
     def get_credentials(self, provider: str) -> dict[str, str]:
-        """Retrieve decrypted credentials. Use sparingly — never log."""
         data = _VAULT_DATA.get(provider)
         if not data:
             return {}
 
-        key = _get_vault_key()
-        token = _aes_decrypt(data.get("encrypted_token", ""), key)
-        password = _aes_decrypt(data.get("encrypted_password", ""), key)
+        token = _decrypt(data.get("encrypted_token", ""))
+        password = _decrypt(data.get("encrypted_password", ""))
         metadata_raw = data.get("metadata", "{}")
         try:
             metadata = json.loads(metadata_raw)
@@ -193,28 +200,24 @@ class IdentityVault:
         }
 
     def remove_credentials(self, provider: str) -> None:
-        """Remove stored credentials for a provider."""
         if provider in _VAULT_DATA:
             del _VAULT_DATA[provider]
             self._save()
             logger.info("Credentials removed for provider: %s", provider)
 
     def update_session_state(self, provider: str, state: str) -> None:
-        """Update session connection state."""
         if provider in _VAULT_DATA:
             _VAULT_DATA[provider]["session_state"] = state
             _VAULT_DATA[provider]["last_checked"] = datetime.now(timezone.utc).isoformat()
             self._save()
 
     def update_health(self, provider: str, status: str) -> None:
-        """Update provider health status."""
         if provider in _VAULT_DATA:
             _VAULT_DATA[provider]["health_status"] = status
             _VAULT_DATA[provider]["last_checked"] = datetime.now(timezone.utc).isoformat()
             self._save()
 
     def check_session_health(self, provider: str) -> dict[str, Any]:
-        """Check whether a stored session is still valid."""
         data = _VAULT_DATA.get(provider)
         if not data:
             return {"connected": False, "reason": "No credentials stored"}
@@ -240,19 +243,15 @@ class IdentityVault:
             return {"connected": False, "reason": f"State: {state}"}
 
     def connected_count(self) -> int:
-        """Count of providers with active connected sessions."""
         return sum(
             1 for d in _VAULT_DATA.values()
             if d.get("session_state") == "connected"
         )
 
     def clear_all(self) -> None:
-        """Clear all stored credentials."""
         _VAULT_DATA.clear()
         self._save()
         logger.info("Identity vault cleared")
-
-    # ── Persistence ────────────────────────────────────────────────
 
     def _load(self) -> None:
         path = _get_vault_path()
@@ -261,18 +260,21 @@ class IdentityVault:
                 with open(path) as f:
                     loaded = json.load(f)
                 _VAULT_DATA.clear()
-                _VAULT_DATA.update(loaded)
+                _VAULT_DATA.update({k: v for k, v in loaded.items() if not k.startswith("_")})
                 logger.info("Loaded identity vault from %s (%d entries)", path, len(_VAULT_DATA))
             except (json.JSONDecodeError, OSError) as exc:
                 logger.warning("Failed to load identity vault: %s", exc)
+        _maybe_migrate_vault()
 
     def _save(self) -> None:
         path = _get_vault_path()
         os.makedirs(os.path.dirname(path), exist_ok=True)
         try:
+            data = dict(_VAULT_DATA)
+            data["_key_version"] = "file"
             with open(path, "w") as f:
-                json.dump(_VAULT_DATA, f, indent=2)
-            os.chmod(path, 0o600)  # owner read/write only
+                json.dump(data, f, indent=2)
+            os.chmod(path, 0o600)
         except OSError as exc:
             logger.warning("Failed to save identity vault: %s", exc)
 

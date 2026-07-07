@@ -156,7 +156,7 @@ function confidenceVariant(c: number) {
 
     <template v-else>
       <div class="flex flex-wrap items-center gap-3 animate-in">
-        <div class="relative flex-1 min-w-[200px] max-w-xs">
+        <div class="relative flex-1 min-w-0 sm:min-w-[200px] max-w-xs">
           <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input v-model="search" placeholder="Buscar bounties..."
             class="w-full rounded-lg border border-border/60 bg-surface/50 pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/30 focus:outline-none focus:ring-1 focus:ring-primary/20"

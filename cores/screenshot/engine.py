@@ -30,7 +30,7 @@ from cores.engine.extraction import (
     extract_verdict_map as _extract_verdict_map_shared,
 )
 
-LOG = logging.getLogger("catseye.screenshot")
+LOG = logging.getLogger("cateye.screenshot")
 
 BLOCK_TYPES = frozenset({
     "request", "response", "diff", "graph", "roi",

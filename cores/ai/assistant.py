@@ -21,7 +21,7 @@ from cores.evidence.graph import EvidenceGraph
 from cores.reporting.report_engine import FinalReport, ReportEngine
 from cores.reporting.severity import confidence_to_label, risk_to_severity
 
-logger = logging.getLogger("catseye.ai.assistant")
+logger = logging.getLogger("cateye.ai.assistant")
 
 
 class ScanAssistant:

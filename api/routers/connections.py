@@ -16,9 +16,9 @@ from cores.financial.payout_recommender import (
 )
 from cores.identity_vault import get_identity_vault
 from database.db import SessionLocal
-from database.models import RastroConfig
+from database.models import CATEYEConfig
 
-logger = logging.getLogger("catseye.connections.api")
+logger = logging.getLogger("cateye.connections.api")
 
 router = APIRouter(prefix="/api/connections", tags=["connections"])
 
@@ -30,7 +30,7 @@ PLATFORM_REG_KEY = "connections.registered_platforms"
 def _get_config_value(key: str, default: Any = None) -> Any:
     session = SessionLocal()
     try:
-        row = session.query(RastroConfig).filter(RastroConfig.key == key).first()
+        row = session.query(CATEYEConfig).filter(CATEYEConfig.key == key).first()
         if row:
             return json.loads(row.value)
         return default
@@ -43,12 +43,12 @@ def _get_config_value(key: str, default: Any = None) -> Any:
 def _set_config_value(key: str, value: Any) -> None:
     session = SessionLocal()
     try:
-        row = session.query(RastroConfig).filter(RastroConfig.key == key).first()
+        row = session.query(CATEYEConfig).filter(CATEYEConfig.key == key).first()
         serialized = json.dumps(value, ensure_ascii=False, default=str)
         if row:
             row.value = serialized
         else:
-            session.add(RastroConfig(key=key, value=serialized))
+            session.add(CATEYEConfig(key=key, value=serialized))
         session.commit()
     except Exception as exc:
         session.rollback()

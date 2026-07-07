@@ -20,7 +20,7 @@ from typing import Any
 
 from cores.engine.hypothesis.models import Hypothesis
 
-LOG = logging.getLogger("catseye.hypothesis.llm")
+LOG = logging.getLogger("cateye.hypothesis.llm")
 
 
 REASONING_PROMPT = """You are a senior bug bounty hunter reviewing automated vulnerability hypotheses.

@@ -20,7 +20,7 @@ from cores.crypto.base import (
 )
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("catseye.crypto.exchange")
+logger = logging.getLogger("cateye.crypto.exchange")
 
 
 SUPPORTED_EXCHANGES: dict[str, dict[str, str]] = {

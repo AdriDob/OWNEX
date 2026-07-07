@@ -1,11 +1,30 @@
+"""Rate limit middleware — per-IP + per-user-id rate limiting."""
+
+import logging
+
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from cores.auth.auth import verify_token
 from cores.gateway.rate_limit import get_rate_limiter
 
-# Paths excluded from rate limiting
+logger = logging.getLogger("cateye.api.rate_limit")
+
 NO_LIMIT_PREFIXES = {"/api/health", "/api/version", "/api/docs", "/api/openapi.json", "/api/redoc"}
+
+
+def _resolve_identity(request: Request) -> str:
+    client_ip = request.client.host if request.client else "unknown"
+    auth = request.headers.get("authorization", "")
+    if auth.startswith("Bearer "):
+        try:
+            data = verify_token(auth[7:])
+            if data:
+                return data.get("sub", client_ip)
+        except Exception as exc:
+            logger.warning("Failed to verify token for rate limit: %s", exc)
+    return client_ip
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
@@ -14,8 +33,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if path in NO_LIMIT_PREFIXES:
             return await call_next(request)
 
-        client_ip = request.client.host if request.client else "unknown"
-        key = f"{path}:{client_ip}"
+        identity = _resolve_identity(request)
+        key = f"{path}:{identity}"
         limiter = get_rate_limiter()
 
         if not limiter.consume(key):

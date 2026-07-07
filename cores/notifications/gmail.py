@@ -11,7 +11,7 @@ import httpx
 
 from cores.env.config import get_config
 
-logger = logging.getLogger("catseye.notifications.gmail")
+logger = logging.getLogger("cateye.notifications.gmail")
 
 GMAIL_SEND_URL = "https://gmail.googleapis.com/gmail/v1/users/me/messages/send"
 OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token"

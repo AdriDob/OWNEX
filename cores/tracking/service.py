@@ -8,7 +8,7 @@ from typing import Any
 from cores.platforms import get_platform
 from cores.settings.service import get_platform_config
 
-logger = logging.getLogger("catseye.tracking")
+logger = logging.getLogger("cateye.tracking")
 
 PLATFORM_STATE_MAP: dict[str, str] = {
     "new": "submitted",

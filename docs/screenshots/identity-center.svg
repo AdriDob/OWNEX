@@ -28,10 +28,12 @@
   <rect x="16" y="12" width="80" height="24" rx="4" fill="rgba(0,255,65,0.1)" stroke="rgba(0,255,65,0.2)" stroke-width="1"/>
   <text x="36" y="28" fill="#00ff41" font-size="11" font-weight="bold" letter-spacing="3">CATEYE</text>
   <text x="120" y="28" fill="rgba(255,255,255,0.3)" font-size="10">Identity Vault</text>
+  <rect x="960" y="12" width="85" height="24" rx="4" fill="rgba(0,230,118,0.1)" stroke="rgba(0,230,118,0.2)" stroke-width="1"/>
+  <text x="970" y="28" fill="#00e676" font-size="9" font-weight="bold">🔒 AES-256-GCM</text>
 
   <!-- Header -->
   <text x="24" y="82" fill="#e0f0e0" font-size="20" font-weight="bold">Bóveda de Identidad</text>
-  <text x="24" y="104" fill="rgba(255,255,255,0.35)" font-size="12">Credenciales cifradas con AES-256-GCM para todas tus plataformas</text>
+  <text x="24" y="104" fill="rgba(255,255,255,0.35)" font-size="12">Credenciales cifradas con AES-256-GCM — clave aleatoria persistente</text>
 
   <!-- Connected count -->
   <rect x="450" y="70" width="120" height="28" rx="6" fill="rgba(0,230,118,0.1)" stroke="rgba(0,230,118,0.15)" stroke-width="1"/>
@@ -103,14 +105,14 @@
 
   <text x="620" y="188" fill="rgba(255,255,255,0.5)" font-size="10">Cifrado</text>
   <text x="800" y="188" fill="#00ff41" font-size="10">AES-256-GCM</text>
-  <text x="620" y="210" fill="rgba(255,255,255,0.5)" font-size="10">Derivación de clave</text>
-  <text x="800" y="210" fill="#00ff41" font-size="10">Fernet (PBKDF2-HMAC-SHA256)</text>
-  <text x="620" y="232" fill="rgba(255,255,255,0.5)" font-size="10">Almacenamiento de tokens</text>
-  <text x="800" y="232" fill="#ffab00" font-size="10">Disco cifrado (no browser)</text>
+  <text x="620" y="210" fill="rgba(255,255,255,0.5)" font-size="10">Clave</text>
+  <text x="800" y="210" fill="#00ff41" font-size="10">Aleatoria 32 bytes (secrets.token_bytes)</text>
+  <text x="620" y="232" fill="rgba(255,255,255,0.5)" font-size="10">Almacenamiento</text>
+  <text x="800" y="232" fill="#00ff41" font-size="10">~/.orion/identity_vault.key (chmod 600)</text>
   <text x="620" y="254" fill="rgba(255,255,255,0.5)" font-size="10">Autenticación</text>
   <text x="800" y="254" fill="#00e676" font-size="10">Por dispositivo + sesión</text>
-  <text x="620" y="276" fill="rgba(255,255,255,0.5)" font-size="10">Última sincronización</text>
-  <text x="800" y="276" fill="rgba(255,255,255,0.3)" font-size="10">Hace 2 minutos</text>
+  <text x="620" y="276" fill="rgba(255,255,255,0.5)" font-size="10">Último evento auditado</text>
+  <text x="800" y="276" fill="rgba(255,255,255,0.3)" font-size="10">login — hace 2 min</text>
 
   <rect x="620" y="288" width="220" height="24" rx="5" fill="rgba(0,255,65,0.08)" stroke="rgba(0,255,65,0.12)" stroke-width="1"/>
   <text x="640" y="304" fill="#00ff41" font-size="9" font-weight="bold">🔄 Sincronizar todas</text>
@@ -153,7 +155,7 @@
   <text x="992" y="606" fill="#00e676" font-size="9">$750 USDT</text>
   <text x="1080" y="606" fill="rgba(255,255,255,0.3)" font-size="8">Hace 1 semana</text>
 
-  <!-- Sync recommendation -->
+  <!-- Audit log recommendation -->
   <rect x="604" y="640" width="572" height="30" rx="6" fill="rgba(0,184,255,0.05)" stroke="rgba(0,184,255,0.1)" stroke-width="1"/>
-  <text x="620" y="659" fill="#00b8ff" font-size="9">💡 Recomendación: Conectá YesWeHack y Synack para maximizar cobertura — tenés 3 hallazgos sin asignar</text>
+  <text x="620" y="659" fill="#00b8ff" font-size="9">🔒 Audit Log activo — todos los eventos de autenticación registrados en ~/.orion/audit.jsonl</text>
 </svg>

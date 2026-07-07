@@ -14,7 +14,7 @@ from cores.health.scoring import (
     classify_health,
 )
 
-logger = logging.getLogger("catseye.health.engine")
+logger = logging.getLogger("cateye.health.engine")
 
 DEFAULT_INTERVAL = 10.0
 
@@ -76,8 +76,8 @@ class SystemHealthEngine:
             import psutil
             metrics["memory_percent"] = psutil.Process().memory_percent()
             metrics["uptime_hours"] = (time.time() - psutil.Process().create_time()) / 3600
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Failed to collect memory/uptime metrics: %s", exc)
 
         try:
             from cores.recovery import get_recovery_engine
@@ -88,8 +88,8 @@ class SystemHealthEngine:
                 1 for s in cb_snaps.values() if s["state"] == "open"
             )
             metrics["recovery_attempts"] = len(status.get("recovery_in_progress", {}))
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Failed to collect recovery engine metrics: %s", exc)
 
         try:
             from cores.recovery import get_recovery_store
@@ -104,8 +104,8 @@ class SystemHealthEngine:
             metrics["db_lock_count"] = sum(
                 1 for h in history if "db" in h.get("component", "")
             )
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Failed to collect recovery store metrics: %s", exc)
 
         try:
             from cores.agents import get_all_agents
@@ -113,8 +113,8 @@ class SystemHealthEngine:
             metrics["agent_crashes"] += sum(
                 1 for a in agents if a.tasks_failed > 0
             )
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Failed to collect agent metrics: %s", exc)
 
         try:
             from cores.agents.bus import get_agent_bus
@@ -124,8 +124,8 @@ class SystemHealthEngine:
                 1 for e in agent_history
                 if hasattr(e, 'event_type') and 'failed' in str(e.event_type)
             )
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Failed to collect agent bus metrics: %s", exc)
 
         return metrics
 

@@ -7,7 +7,7 @@ import logging
 from cores.agents.base import BaseAgent
 from cores.agents.types import AgentEvent, AgentId, EventType
 
-logger = logging.getLogger("catseye.agents.validator")
+logger = logging.getLogger("cateye.agents.validator")
 
 
 class ValidatorAgent(BaseAgent):

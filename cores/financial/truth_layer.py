@@ -28,11 +28,15 @@ from typing import Any
 from cores.ledger import (
     LedgerEvent,
     WalletState,
-    _entries,
     compute_wallet,
 )
 
-logger = logging.getLogger("catseye.financial.truth_layer")
+
+def _all_ledger_entries():
+    from cores.ledger import _all_entries
+    return _all_entries()
+
+logger = logging.getLogger("cateye.financial.truth_layer")
 
 
 # ── Value Classification ─────────────────────────────────────────────
@@ -303,7 +307,7 @@ class TruthLayer:
 
     def get_state(self) -> FinancialState:
         """Derive complete financial state from the ledger."""
-        entries = _entries[:]
+        entries = _all_ledger_entries()
         state = FinancialState()
         platform_balances: dict[str, dict[str, float]] = {}
         category_breakdowns: dict[str, dict[str, Any]] = {}

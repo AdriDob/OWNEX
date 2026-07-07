@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-logger = logging.getLogger("catseye.contracts.validator")
+logger = logging.getLogger("cateye.contracts.validator")
 
 # ── Expected field sets for each contract ─────────────────────────────
 

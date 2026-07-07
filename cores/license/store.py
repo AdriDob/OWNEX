@@ -6,9 +6,7 @@ import json
 import logging
 from pathlib import Path
 
-from cores.license.hardware import get_hardware_id
-
-logger = logging.getLogger("catseye.license.store")
+logger = logging.getLogger("cateye.license.store")
 
 
 def _get_license_file() -> Path:
@@ -20,19 +18,15 @@ class LicenseStore:
     def __init__(self, path: Path | None = None) -> None:
         self._path = path or _get_license_file()
 
-    def save(self, license_key: str, hardware_id: str) -> None:
-        logger.info("[HW] LicenseStore.save: path = %s", self._path)
-        logger.info("[HW] LicenseStore.save: license_key (truncated) = %s...", license_key[:12] if len(license_key) > 12 else license_key)
-        logger.info("[HW] LicenseStore.save: hardware_id = %s", hardware_id)
-        logger.info("[HW] LicenseStore.save: hardware_id[:7] = %s", hardware_id[:7])
+    def save(self, license_key: str, hardware_id: str, signature_b64: str | None = None) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
         data = {
             "license_key": license_key,
             "hardware_id": hardware_id,
+            "signature_b64": signature_b64 or "",
             "activated_at": __import__("time").time(),
         }
         self._path.write_text(json.dumps(data, indent=2))
-        logger.info("[HW] LicenseStore.save: WRITTEN")
 
     def load(self) -> dict | None:
         logger.info("[HW] LicenseStore.load: path = %s", self._path)
@@ -60,11 +54,7 @@ class LicenseStore:
         data = self.load()
         if not data:
             return False
-        stored_hw = data.get("hardware_id", "")
-        current_hw = get_hardware_id()
-        if stored_hw and stored_hw != current_hw:
-            self.save(data.get("license_key", ""), current_hw)
-        return True
+        return bool(data.get("license_key"))
 
 
 _store: LicenseStore | None = None
