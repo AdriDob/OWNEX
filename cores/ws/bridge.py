@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-logger = logging.getLogger("catseye.ws.bridge")
+logger = logging.getLogger("cateye.ws.bridge")
 
 
 def start_event_bridge() -> None:

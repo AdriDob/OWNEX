@@ -23,7 +23,7 @@ import os
 import sys
 from pathlib import Path
 
-logger = logging.getLogger("catseye.paths")
+logger = logging.getLogger("cateye.paths")
 
 # ── Environment detection (simple, no cross-imports) ───────────────────
 

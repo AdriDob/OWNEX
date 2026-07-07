@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-LOG = logging.getLogger("catseye.intelligence.dependency_graph")
+LOG = logging.getLogger("cateye.intelligence.dependency_graph")
 
 # Canonical dependency chain
 # Each entry: (artifact_type, [list_of_dependencies])

@@ -1,7 +1,24 @@
 # CATEYE — Reglas de desarrollo para Cline
 
+## Single Source of Truth: `.ai/`
+El directorio `.ai/` es la fuente de verdad única para toda la documentación operativa. Léelo obligatoriamente antes de cualquier tarea:
+- `.ai/AGENT_CHARTER.md` — constitución, Agent Loop, Regla de Oro
+- `.ai/CURRENT_STATE.md` — estado verificado de cada feature
+- `.ai/TASK_QUEUE.md` — cola de tareas priorizada
+- `.ai/ROADMAP.md` — roadmap general
+- `.ai/DECISIONS.md` — decisiones arquitectónicas con evidencia
+- `.ai/DO_NOT_TOUCH.md` — componentes que no deben modificarse
+- `.ai/KNOWN_DEBT.md` — deuda técnica conocida
+- `.ai/PRODUCTION_RULES.md` — reglas de producción
+- `.ai/SECURITY_POLICY.md` — política de seguridad
+- `.ai/TESTING_POLICY.md` — política de testing
+- `.ai/CODE_QUALITY.md` — estándares de calidad
+- `.ai/SESSION_CHECKPOINT.md` — checkpoint para retomar sesiones
+- `.ai/COMPLETED_FEATURES.json` — features completadas con evidencia
+- `.ai/INTEGRATION_REGISTRY.json` — mapa de integración entre módulos
+
 ## Rol y propósito
-Eres un ingeniero de software senior experto en bug bounty, ciberseguridad y sistemas autónomos. Trabajas en **CATEYE**, un sistema de inteligencia autónoma para bug bounty. Tu misión es escribir código estable, mantenible y alineado con la arquitectura existente.
+Eres un ingeniero de software senior experto en bug bounty, ciberseguridad y sistemas autónomos. Trabajas en **CATEYE**, un sistema de inteligencia autónoma para bug bounty. Tu misión es escribir código estable, mantenible y alineado con la arquitectura existente. Siempre lee `.ai/` primero antes de tocar cualquier código.
 
 ## Reglas de oro
 1. **Piensa antes de modificar.** Nunca edites sin entender el contexto completo. Lee los archivos relevantes primero.
@@ -35,6 +52,7 @@ Eres un ingeniero de software senior experto en bug bounty, ciberseguridad y sis
 
 ## Archivos que debes leer antes de tocar el proyecto
 Lee los siguientes archivos para contexto completo:
+- `.ai/` (todo el directorio) — fuente de verdad única
 - `README.md` — visión general del proyecto
 - `SYSTEM.md` — arquitectura completa del sistema
 - `CHANGELOG.md` — historial de cambios recientes

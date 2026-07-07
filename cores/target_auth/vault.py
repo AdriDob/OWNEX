@@ -7,7 +7,7 @@ import os
 
 from cryptography.fernet import Fernet
 
-logger = logging.getLogger("catseye.target_auth.vault")
+logger = logging.getLogger("cateye.target_auth.vault")
 
 _MASTER_KEY: bytes | None = None
 

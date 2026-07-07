@@ -33,7 +33,7 @@ from cores.financial.withdrawal import (
 from cores.ledger import LedgerEvent, record_event
 from cores.ledger import get_history as get_ledger_history
 
-logger = logging.getLogger("catseye.api.financial_truth")
+logger = logging.getLogger("cateye.api.financial_truth")
 
 router = APIRouter(prefix="/api/financial", tags=["financial_truth"])
 

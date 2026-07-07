@@ -26,7 +26,7 @@ from cores.recovery.healing_rules import (
 )
 from cores.recovery.persistence import get_recovery_store
 
-logger = logging.getLogger("catseye.recovery.engine")
+logger = logging.getLogger("cateye.recovery.engine")
 
 # Maximum duration (seconds) for a single recovery action before considered hung
 RECOVERY_TIMEOUT = 30.0

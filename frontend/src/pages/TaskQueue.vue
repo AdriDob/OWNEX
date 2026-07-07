@@ -163,13 +163,13 @@ onMounted(loadTasks)
     </template>
 
     <template v-else>
-      <div class="flex items-start justify-between animate-in">
-        <div class="space-y-1">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between animate-in">
+        <div class="space-y-1 min-w-0">
           <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-primary">Operations</p>
-          <h1 class="font-display text-2xl font-bold text-foreground">Task Queue</h1>
+          <h1 class="font-display text-xl sm:text-2xl font-bold text-foreground">Task Queue</h1>
           <p class="text-xs text-muted-foreground">{{ tasks.length }} tasks</p>
         </div>
-        <Button @click="showForm = !showForm" variant="default" size="sm">
+        <Button @click="showForm = !showForm" variant="default" size="sm" class="shrink-0">
           <Plus class="h-4 w-4" /> New Task
         </Button>
       </div>

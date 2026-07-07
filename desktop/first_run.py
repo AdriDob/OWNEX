@@ -18,7 +18,7 @@ from pathlib import Path
 from desktop.autostart import enable_autostart, is_autostart_enabled
 from desktop.settings import DesktopSettings
 
-logger = logging.getLogger("catseye.desktop.first_run")
+logger = logging.getLogger("cateye.desktop.first_run")
 
 
 def run_first_time(settings: DesktopSettings) -> bool:

@@ -14,7 +14,7 @@ import platform
 import subprocess
 import sys
 
-logger = logging.getLogger("catseye.desktop.autostart")
+logger = logging.getLogger("cateye.desktop.autostart")
 
 LAUNCHER_CMD = f"{sys.executable} -m desktop.main_desktop --no-tray"
 

@@ -3,6 +3,57 @@ import { ref, watch, computed } from 'vue'
 import { api } from '@/lib/api'
 
 const STORAGE_KEY = 'cateye_settings'
+const ENCRYPTION_KEY_STORAGE = 'cateye_crypto_key'
+
+async function generateEncryptionKey(): Promise<CryptoKey> {
+  return await crypto.subtle.generateKey(
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ['encrypt', 'decrypt'],
+  )
+}
+
+async function exportKey(key: CryptoKey): Promise<JsonWebKey> {
+  return await crypto.subtle.exportKey('jwk', key)
+}
+
+async function importKey(jwk: JsonWebKey): Promise<CryptoKey> {
+  return await crypto.subtle.importKey('jwk', jwk, { name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt'])
+}
+
+async function getCryptoKey(): Promise<CryptoKey> {
+  const stored = localStorage.getItem(ENCRYPTION_KEY_STORAGE)
+  if (stored) {
+    return await importKey(JSON.parse(stored))
+  }
+  const key = await generateEncryptionKey()
+  const jwk = await exportKey(key)
+  localStorage.setItem(ENCRYPTION_KEY_STORAGE, JSON.stringify(jwk))
+  return key
+}
+
+async function encrypt(plaintext: string, key: CryptoKey): Promise<string> {
+  const iv = crypto.getRandomValues(new Uint8Array(12))
+  const encoded = new TextEncoder().encode(plaintext)
+  const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded)
+  const combined = new Uint8Array(iv.length + encrypted.byteLength)
+  combined.set(iv)
+  combined.set(new Uint8Array(encrypted), iv.length)
+  const binary = String.fromCharCode(...combined)
+  return btoa(binary)
+}
+
+async function decrypt(ciphertext: string, key: CryptoKey): Promise<string> {
+  const binary = atob(ciphertext)
+  const combined = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) {
+    combined[i] = binary.charCodeAt(i)
+  }
+  const iv = combined.slice(0, 12)
+  const data = combined.slice(12)
+  const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data)
+  return new TextDecoder().decode(decrypted)
+}
 
 export interface GeneralSettings {
   userName: string
@@ -200,32 +251,79 @@ function defaultSettings(): SettingsState {
   }
 }
 
-function loadFromStorage(): SettingsState {
+const SENSITIVE_KEYS = new Set(['wallet', 'bank', 'openai', 'openrouter', 'anthropic', 'google', 'bugcrowd', 'hackerone', 'intigriti', 'yeswehack', 'synack', 'github', 'gitlab', 'shodan', 'censys', 'securitytrails', 'virustotal'])
+const SENSITIVE_STORAGE_KEY = 'cateye_sensitive'
+
+async function loadFromStorage(): Promise<SettingsState> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      const saved = JSON.parse(raw)
-      return { ...defaultSettings(), ...saved }
+    const sensitiveRaw = sessionStorage.getItem(SENSITIVE_STORAGE_KEY)
+    const saved = raw ? JSON.parse(raw) : {}
+    if (sensitiveRaw) {
+      try {
+        const key = await getCryptoKey()
+        const decrypted = await decrypt(sensitiveRaw, key)
+        const sensitive = JSON.parse(decrypted)
+        if (sensitive.apiKeys) {
+          saved.apiKeys = { ...saved.apiKeys, ...sensitive.apiKeys }
+        }
+      } catch {
+        sessionStorage.removeItem(SENSITIVE_STORAGE_KEY)
+      }
     }
+    return { ...defaultSettings(), ...saved }
   } catch { /* ignore */ }
   return defaultSettings()
 }
 
-function saveToStorage(state: SettingsState) {
+async function saveToStorage(state: SettingsState) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    const sensitive: Record<string, any> = {}
+    const safe: Record<string, any> = {}
+    for (const [key, value] of Object.entries(state)) {
+      if (key === 'apiKeys') {
+        const safeKeys: Record<string, string> = {}
+        const secretKeys: Record<string, string> = {}
+        for (const [k, v] of Object.entries(value as Record<string, string>)) {
+          if (SENSITIVE_KEYS.has(k)) {
+            secretKeys[k] = v
+          } else {
+            safeKeys[k] = v
+          }
+        }
+        safe.apiKeys = safeKeys
+        sensitive.apiKeys = secretKeys
+      } else {
+        safe[key] = value
+      }
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(safe))
+    if (Object.keys(sensitive.apiKeys || {}).length > 0) {
+      const key = await getCryptoKey()
+      const ciphertext = await encrypt(JSON.stringify(sensitive), key)
+      sessionStorage.setItem(SENSITIVE_STORAGE_KEY, ciphertext)
+    } else {
+      sessionStorage.removeItem(SENSITIVE_STORAGE_KEY)
+    }
   } catch { /* ignore */ }
 }
 
 export const useSettingsStore = defineStore('settings', () => {
-  const data = ref<SettingsState>(loadFromStorage())
+  const data = ref<SettingsState>(defaultSettings())
   const syncing = ref(false)
   const lastSync = ref<string | null>(null)
+  const ready = ref(false)
 
   const onboardingNeeded = computed(() => !data.value.onboarding.completed && !data.value.onboarding.skipped)
 
-  function persist() {
-    saveToStorage(data.value)
+  loadFromStorage().then((s) => {
+    data.value = s
+    ready.value = true
+    saveToStorage(s)
+  })
+
+  async function persist() {
+    await saveToStorage(data.value)
   }
 
   async function syncToBackend() {
@@ -336,10 +434,8 @@ export const useSettingsStore = defineStore('settings', () => {
     persist()
   }
 
-  persist()
-
   return {
-    data, syncing, lastSync, onboardingNeeded,
+    data, syncing, lastSync, ready, onboardingNeeded,
     syncToBackend, loadFromBackend,
     completeOnboarding, resetOnboarding,
     updateGeneral, updateAI, updateApiKeys, updateMissionControl,

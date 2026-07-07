@@ -22,7 +22,7 @@ from typing import Any
 
 from cores.ledger import LedgerEvent, record_event
 
-logger = logging.getLogger("catseye.financial.withdrawal")
+logger = logging.getLogger("cateye.financial.withdrawal")
 
 
 # ── Chain confirmation defaults ──────────────────────────────────────

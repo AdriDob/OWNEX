@@ -18,7 +18,7 @@ from pydantic import BaseModel
 
 from database import db, models
 
-logger = logging.getLogger("catseye.operations")
+logger = logging.getLogger("cateye.operations")
 
 router = APIRouter(prefix="/api/operations", tags=["operations"])
 

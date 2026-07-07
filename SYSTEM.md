@@ -1,648 +1,419 @@
-<!-- markdownlint-disable MD041 -->
+# CATEYE 5.0 — System Architecture (Constitución Definitiva)
 
-# CATEYE — Sistema de Inteligencia para Bug Bounty Automático
-
-> **Versión:** 2.0.0
-> **Arquitectura:** Monolito modular con frontend SPA
-> **Backend:** Python + FastAPI + SQLAlchemy + SQLite/PostgreSQL
-> **Frontend:** Vue 3 + TypeScript + Tailwind CSS v4 + Vite
+> **Este documento es la CONSTITUCIÓN del proyecto.**
+> Describe CATEYE tal como existe en el código actual — Julio 2026.
+> Ninguna afirmación sin respaldo en archivos verificados durante la auditoría final.
+> Cualquier modificación futura debe justificar por qué modifica esta constitución.
 
 ---
 
-## Índice
+## 0. What CATEYE Is
 
-1. [Visión General](#1-visión-general)
-2. [Estructura del Proyecto](#2-estructura-del-proyecto)
-3. [Backend — `cores/`](#3-backend---cores)
-4. [Frontend — `frontend/`](#4-frontend---frontend)
-5. [API REST](#5-api-rest)
-6. [Modelos de Datos](#6-modelos-de-datos)
-7. [Ciclo de Bug Bounty Automático](#7-ciclo-de-bug-bounty-automático)
-8. [IA y Modelos de Lenguaje](#8-ia-y-modelos-de-lenguaje)
-9. [Sincronización y Plataformas](#9-sincronización-y-plataformas)
-10. [Seguridad](#10-seguridad)
-11. [Despliegue](#11-despliegue)
-12. [Evolución y Roadmap](#12-evolución-y-roadmap)
+CATEYE (formerly "Rastro") es un **sistema de inteligencia operativa privada** para bug bounty. Automatiza el ciclo completo: descubrimiento → análisis → validación → reporte → cobro de vulnerabilidades.
+
+**No es SaaS, no es multi-usuario, no es enterprise.** Es single-user, local-first, de escritorio.
+
+**Propósito fundamental**: Eliminar trabajo humano repetitivo. Cada feature debe responder: "¿esto elimina trabajo humano o solo agrega complejidad?"
+
+**Versión del proyecto**: `2.0.0` (archivo `VERSION` en raíz). Arquitectura v5.0.
 
 ---
 
-## 1. Visión General
+## 1. Stack Tecnológico
 
-CATEYE es un sistema de inteligencia artificial diseñado para automatizar el ciclo completo de bug bounty: desde el descubrimiento de programas y análisis de alcance, hasta la generación de reportes profesionales y su envío a plataformas como HackerOne, Bugcrowd, Intigriti y Synack.
-
-### Principios de diseño
-
-- **Automatización progresiva**: el sistema opera en segundo plano pero siempre permite intervención humana.
-- **Inteligencia económica**: cada decisión está respaldada por un modelo de ROI (EVH, ORION Score).
-- **Privacidad primero**: los datos y credenciales se almacenan encriptados localmente.
-- **Degradación elegante**: si un componente falla, el resto del sistema sigue funcionando.
-- **Observabilidad total**: todo evento es registrado y visible en la línea de tiempo.
+| Capa | Tecnología |
+|------|------------|
+| Backend | Python 3.10+ / FastAPI ≥0.95 |
+| Frontend | Vue 3.5 / TypeScript 5.8 strict / Pinia 3 / Tailwind 4 |
+| Mobile | Capacitor 8 (shell sin código nativo) |
+| Desktop | PyInstaller + pywebview (in-process uvicorn) |
+| DB | SQLite via SQLAlchemy 2.0+ (WAL + FK + synchronous NORMAL) |
+| Auth | JWT propio + AES-256-GCM sesiones cifradas |
+| LLM | Multi-provider: Gemini, Ollama, OpenAI (OpenRouter) |
+| CI/CD | GitHub Actions (test.yml + release.yml) |
+| Audit | JSONL append-only (`~/.orion/audit.jsonl`) |
 
 ---
 
-## 2. Estructura del Proyecto
+## 2. Estructura del Proyecto (~478 archivos fuente, ~83K líneas)
 
 ```
-CATEYE/
-├── SYSTEM.md                  ← Este documento
-├── run.py                     ← Launcher state machine (modos: browser, tray, service, safe-mode)
-├── .env                       ← Variables de entorno (OLLAMA_HOST, API keys, etc.)
-│
-├── cores/                     ← Núcleo del sistema (ex core/ + core_engines/)
-│   ├── __init__.py             ← Re-exporta componentes principales
-│   ├── config.py               ← Configuración centralizada
-│   ├── env/config.py           ← EnvConfig: variables de entorno tipadas
-│   ├── platform/system.py      ← Detección de SO, rutas de datos, directorios
-│   ├── identity_vault.py       ← Bóveda encriptada de credenciales
-│   ├── timeline.py             ← Motor de línea de tiempo histórica
-│   ├── system_state.py         ← Estado global del sistema
-│   │
-│   ├── ai/                     ← Proveedores de IA
-│   │   ├── provider.py         ← Catálogo de proveedores: Ollama, OpenAI, OpenRouter
-│   │   ├── orion_agent.py      ← Agente principal con tool calling
-│   │   ├── tools.py            ← Herramientas del agente
-│   │   ├── context/engine.py   ← Contexto unificado de CATEYE
-│   │   ├── advisor.py          ← Asesor de decisiones
-│   │   ├── assistant.py        ← Chat asistente
-│   │   └── ...
-│   │
-│   ├── recon/                  ← Reconocimiento y herramientas externas
-│   │   ├── zap_runner.py       ← Wrapper de OWASP ZAP
-│   │   └── parser.py           ← Parseo de resultados
-│   │
-│   ├── engine/                 ← Motores de inteligencia
-│   │   ├── hypothesis/         ← Generación de hipótesis (LLM + ZAP)
-│   │   ├── unified_scoring.py  ← Sistema de puntuación unificado
-│   │   └── roi_model.py        ← Modelo de retorno de inversión
-│   │
-│   ├── intelligence/           ← Inteligencia central
-│   │   ├── engine.py           ← Orquestador de inteligencia
-│   │   ├── learning_loop.py    ← Bucle de aprendizaje continuo
-│   │   ├── reward_learning.py  ← Aprendizaje de recompensas
-│   │   ├── adaptive_memory.py  ← Memoria adaptativa
-│   │   └── bounty_intel.py     ← Inteligencia de programas bug bounty
-│   │
-│   ├── scope_reader/           ← Lector de alcance de programas
-│   │   └── __init__.py         ← Download, extract, hash, detectar cambios
-│   │
-│   ├── orchestrator/           ← Orquestación de pipelines de cacería
-│   │   ├── pipeline.py         ← Pipeline de ejecución
-│   │   ├── assistant_orchestrator.py
-│   │   └── scan_service.py     ← Servicio de escaneos y persistencia de endpoints
-│   │
-│   ├── autonomous/             ← Cacería autónoma
-│   │   └── engine.py           ← Motor autónomo 24/7
-│   │
-│   ├── bounty_scraper/         ← Scraping de plataformas
-│   ├── platforms/              ← Integración con plataformas
-│   │   ├── hackerone.py
-│   │   ├── bugcrowd.py
-│   │   ├── intigriti.py
-│   │   ├── synack.py
-│   │   └── yeswehack.py
-│   │
-│   ├── financial/              ← Financial Truth Layer
-│   │   ├── truth_layer.py      ← TruthLayer + FinancialState + ValueCategory
-│   │   ├── sync_pipeline.py    ← SyncPipeline con rate limiter + retry
-│   │   ├── withdrawal.py       ← WithdrawalTracker lifecycle
-│   │   ├── reconciliation.py   ← ReconciliationEngine
-│   │   └── events.py           ← 10 eventos financieros
-│   │
-│   ├── crypto/                 ← Crypto Wallet Sync
-│   │   ├── base.py             ← CryptoConnector ABC + tipos
-│   │   ├── evm.py              ← EVMConnector (5 chains)
-│   │   ├── exchange.py         ← ExchangeConnector (4 exchanges)
-│   │   └── sync_manager.py     ← CryptoSyncManager
-│   │
-│   ├── opportunity/            ← Detección de oportunidades
-│   ├── reporting/              ← Generación de reportes
-│   ├── validation/             ← Motor de validación
-│   ├── execution/              ← Ejecución de exploits/PoC
-│   ├── evidence/               ← Gestión de evidencia
-│   ├── artifacts/              ← Artefactos de pipeline
-│   ├── memory/                 ← Memoria a largo plazo
-│   ├── tracking/               ← Tracking de envíos y pagos
-│   ├── learning/               ← Enrutamiento de aprendizaje
-│   ├── agents/                 ← Sistema de agentes
-│   ├── events/event_bus.py     ← Bus de eventos interno
-│   ├── ws/bridge.py            ← WebSocket bridge
-│   └── ...
-│
-├── api/                        ← API REST (FastAPI)
-│   ├── main.py                 ← Punto de entrada de FastAPI
-│   ├── scheduler.py            ← Tareas programadas
-│   └── routers/                ← Routers por dominio
-│       ├── economic.py         ← Inteligencia económica
-│       ├── orion.py            ← Contexto y estado
-│       ├── reports.py          ← CRUD de reportes + submit
-│       ├── targets.py          ← Programas/objetivos
-│       ├── findings.py         ← Hallazgos
-│       ├── zap.py              ← Integración ZAP
-│       ├── auth.py             ← Autenticación
-│       ├── license.py          ← Licencias
-│       ├── sync.py             ← Sincronización multi-dispositivo
-│       ├── webhooks.py         ← Webhooks de plataformas
-│       ├── opportunity_intelligence.py ← Identidades y cuentas
-│       ├── financial_truth.py  ← Financial Truth Layer (15 endpoints)
-│       ├── crypto.py           ← Wallet sync (7 endpoints)
-│       ├── accounts_hub.py     ← Unified hub (2 endpoints)
-│       └── ... (60+ routers total)
-│
-├── database/                   ← Modelos y migraciones
-│   ├── models.py               ← Modelos SQLAlchemy principales
-│   └── models_economic.py      ← Modelos financieros y de programas
-│
-├── desktop/                    ← Aplicación de escritorio (PyInstaller)
-│   ├── main_desktop.py         ← Punto de entrada desktop
-│   ├── boot_guard.py           ← Guardián de arranque seguro
-│   ├── service.py              ← Windows service
-│   └── ...
-│
-├── frontend/                   ← SPA (Vue 3 + TypeScript)
-│   └── src/
-│       ├── router/index.ts     ← Enrutamiento con guardia global de auth
-│       ├── lib/api.ts          ← Cliente HTTP + gestión de token y sesión
-│       ├── types/index.ts      ← Interfaces TypeScript
-│       ├── stores/             ← Pinia stores
-│       ├── composables/        ← Composables (WebSocket, scan helpers)
-│       ├── pages/              ← Páginas del dashboard
-│       └── components/         ← UI components
-│
-├── launcher/start.py           ← Launcher unificado
-├── scripts/                    ← Scripts de utilidad
-└── tests/                      ← Tests
+Rastro/
+├── api/                          # FastAPI (65 routers, 6 middleware)
+│   ├── main.py                   # App entry: lifespan, middleware stack, auto-report subscriber
+│   ├── scheduler.py              # Único pipeline que se ejecuta (5-stage time-based)
+│   ├── routers/                  # 65 routers
+│   ├── middleware/               # 6 middlewares (CORS, SecurityHeaders, CSRF, RateLimit, Auth, Error)
+│   └── services/                 # data_service compartido
+├── cores/                        # 59 subpaquetes, ~45K líneas Python
+│   ├── orion/                    # Recomendación read-only de próxima acción
+│   ├── ai/                       # LLM providers + OrionAgent + tools DB query
+│   ├── engine/                   # Scoring, clasificación, snapshot, guardrails
+│   │   └── hypothesis/           # 9 generadores rule-based de hipótesis
+│   ├── orchestrator/             # Pipeline class (MUERTO) + scan_service (VIVO) + assistant_orchestrator
+│   ├── agents/                   # 8 agentes + AgentBus + CoordinatorAgent state machine
+│   ├── intelligence/             # CAJÓN DE SASTRE: 19 archivos mezclando 3 concerns
+│   │   ├── priority_engine/      # Sistema de prioridades multi-señal (VIVO)
+│   │   ├── reward_learning/      # Aprendizaje de recompensas (escribe a SQLite)
+│   │   ├── event_system.py       # 3er EventBus paralelo (NO BRIDGEADO)
+│   │   └── ...                   # adaptive_memory, trend_detector, pattern_registry, etc.
+│   ├── events/                   # EventBus central con persistencia SQLite
+│   ├── recon/                    # 18 wrappers de tools CLI (capa 1 de 2)
+│   ├── tools/                    # 7 wrappers de tools CLI (capa 2 de 2 — DUPLICADA)
+│   ├── bounty_scraper/           # Scraping multi-fuente de programas bug bounty
+│   ├── opportunity/              # Ranking de oportunidades IN-MEMORY (se pierde al reiniciar)
+│   ├── platforms/                # Integraciones delgadas con 5 plataformas
+│   ├── financial/                # TruthLayer, sync, reconciliation, withdrawal
+│   ├── validation/               # 10 archivos: ValidationLoopEngine, replayer, confidence
+│   ├── execution/                # Mutación, PoC, differential testing
+│   ├── reporting/                # ReportEngine, export formats
+│   ├── auth/                     # TokenService + SessionStore (DO NOT TOUCH)
+│   ├── license/                  # Ed25519 license validator (DO NOT TOUCH)
+│   ├── identity_vault.py         # AES-256-GCM credential vault (DO NOT TOUCH)
+│   ├── health/                   # SystemHealthEngine (1 de 3 health systems)
+│   ├── recovery/                 # HealthMonitor (2 de 3) + RecoveryEngine + CircuitBreaker
+│   ├── system_health.py          # collect_health() — business metrics (NO es health system)
+│   ├── system_state.py           # SystemState — tracker pasivo de servicios
+│   ├── knowledge/                # 14 archivos REALES pero HUÉRFANOS (no conectados al runtime)
+│   ├── contracts/                # Interfaces canónicas (Artifact, Bundle) — VIVO
+│   ├── crypto/                   # Conectores a wallets (BTC, ETH, SOL, TRX)
+│   ├── notifications/            # Hub multi-canal con dedup + persistencia
+│   ├── authhub/                  # OAuth2 providers (Gmail, WhatsApp, Telegram)
+│   ├── autonomous/               # AutonomousModeEngine
+│   ├── learning/                 # Perfil adaptativo + AdaptivePrioritizer
+│   ├── memory/                   # 4 sistemas de memoria (memory_store, decision, insight, identity_graph)
+│   ├── dedup.py                  # DedupTracker con fingerprints
+│   ├── audit_log.py              # JSONL audit trail
+│   ├── targeting/                # TargetRadar (MUERTO — nadie lo usa)
+│   ├── scanning/                 # LightningScanner (MUERTO — 0 importaciones)
+│   └── ... (~18 subpaquetes más)
+├── database/                     # SQLAlchemy: 43 tablas en 5 archivos
+│   ├── db.py                     # Engine SQLite + session factory + legacy _migrate_columns
+│   ├── models.py                 # 29 tablas principales
+│   └── models_economic.py        # 7 tablas económicas
+├── frontend/                     # 46 páginas Vue, 9 Pinia stores, 50 componentes
+├── desktop/                      # 13 módulos (producción-grade)
+├── android/                      # Capacitor shell (sin código nativo)
+├── tests/                        # 363 tests (359 pass, 1 fail, 2 xfail, 1 skip)
+├── scripts/                      # 36 scripts
+├── installer/                    # NSIS Windows installer
+├── alembic/                      # 1 migración (con mismatch vs modelos actuales)
+├── docs/                         # Documentación dispersa
+├── .github/                      # CI/CD
+└── .githooks/                    # Pre-commit hook ruff (no instalado)
 ```
 
 ---
 
-## 3. Backend — `cores/`
+## 3. Arquitectura General
 
-### 3.1 Arquitectura
-
-`cores/` es el corazón del sistema. Es un paquete Python monolítico organizado por dominios. No hay separación física entre "core" y "core_engines" — todo vive aquí para simplificar imports y evitar dependencias circulares.
-
-### 3.2 Módulos Principales
-
-| Módulo | Responsabilidad |
-|---|---|
-| `ai/` | Proveedores de IA (Gemini, Ollama, OpenAI, OpenRouter), agente CATEYE con tool calling, contexto unificado |
-| `recon/` | OWASP ZAP wrapper, parsing de resultados |
-| `engine/hypothesis/` | Generación de hipótesis de vulnerabilidades vía LLM + ZAP + análisis estático |
-| `intelligence/` | Bucle de inteligencia, aprendizaje por refuerzo, memoria adaptativa |
-| `scope_reader/` | Descarga y parseo de documentos de alcance de programas |
-| `orchestrator/` | Orquestación de pipelines de cacería, incluido el servicio de escaneo |
-| `autonomous/` | Cacería autónoma 24/7 sin supervisión |
-| `opportunity/` | Scoring de oportunidades, EVH, priorización |
-| `platforms/` | Integración con HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack |
-| `bounty_scraper/` | Scraping de programas desde plataformas |
-| `reporting/` | Generación de reportes profesionales |
-| `validation/` | Motor de validación y veredictos |
-| `evidence/` | Gestión de evidencia técnica |
-| `artifacts/` | Artefactos del pipeline (hypothesis, differential, quick_wins, etc.) |
-| `tracking/` | Tracking de envíos, estados de reportes y pagos |
-| `memory/` | Memoria a largo plazo y archivo de insights |
-| `events/` | Bus de eventos interno (pub/sub) |
-| `timeline.py` | Motor de línea de tiempo histórica |
-| `identity_vault.py` | Bóveda encriptada de credenciales de plataformas |
-| `env/config.py` | Configuración de entorno tipada |
-
-### 3.3 Configuración (`.env`)
-
-```env
-# Proveedor de IA (ollama | openai | openrouter)
-AI_PROVIDER=ollama
-OLLAMA_HOST=http://localhost:11434
-OLLAMA_MODEL=qwen2.5-coder:7b-instruct-q4_K_M
-
-# OpenAI (fallback)
-OPENAI_API_KEY=sk-...
-LLM_MODEL=gpt-4o-mini
-
-# OpenRouter (fallback remoto)
-OPENROUTER_API_KEY=sk-or-...
-OPENROUTER_MODEL=openai/gpt-4o-mini
-
-# Base de datos
-DATABASE_URL=sqlite:///.cateye/database/cateye.db
-
-# Escáner
-SCAN_TIMEOUT=600
-```
-
----
-
-## 4. Frontend — `frontend/`
-
-### 4.1 Stack
-
-| Tecnología | Versión | Uso |
-|---|---|---|
-| Vue 3 | 3.5+ | Framework SPA |
-| TypeScript | 5.8+ | Tipado |
-| Tailwind CSS | 4.1+ | Estilos utilitarios |
-| Vite | 6.3+ | Build tool |
-| Vue Router | 4.5+ | Enrutamiento |
-| Pinia | 3.0+ | Estado global |
-| Lucide Vue | 1.22+ | Iconos |
-| Radix Vue / Reka UI | 2.x | Componentes headless accesibles |
-| VueUse | 14.x | Composables utilitarios |
-
-### 4.2 Rutas
-
-| Ruta | Página | Descripción |
-|---|---|---|
-| `/mission-control` | MissionControl | Control de Misión (home principal) |
-| `/money-radar` | MoneyRadar | Programas rankeados por ORION Score |
-| `/radar` | OpportunityRadar | Radar de oportunidades |
-| `/hot-paths` | HotPaths | Rutas críticas de ataque |
-| `/findings` | Findings | Pipeline de hallazgos |
-| `/reports` | ReportCenter | Centro de reportes |
-| `/report-queue` | ReportQueue | Cola priorizada de reportes |
-| `/memory-patterns` | MemoryPatterns | Patrones aprendidos |
-| `/programs/:id` | ProgramIntel | Inteligencia de programa individual |
-| `/programs/:id/plan` | OpportunityPlanner | Plan de cacería |
-| `/bounties` | Bounties | Bounties activos |
-| `/investigations` | InvestigationCenter | Centro de investigaciones |
-| `/verify` | VerificationGuide | Guía de validación manual |
-| `/settings` | Settings | Configuración del sistema |
-| `/connections` | Connections | Conexiones con plataformas y bancos |
-
-### 4.3 Sidebar
-
-La barra lateral muestra:
-- Logo CATEYE + estado de la cacería (idle/running/paused)
-- Balance total (cobrado + pendiente)
-- Estado de conexión de plataformas (HackerOne, Bugcrowd, Intigriti, Synack)
-- Cuenta bancaria vinculada
-- Navegación por secciones (Inteligencia, Operaciones, Sistema) — **13 items** (podado de 36 originales tras auditoría UX)
-- Botón Copiloto (panel de chat IA, atajo `⌘B`)
-- Atajo `⌘K` para Command Palette
-
-### 4.4 API Layer
-
-El frontend se comunica con el backend a través de `frontend/src/lib/api.ts`, que expone:
-- Cliente HTTP con autenticación automática (token en sessionStorage)
-- 50+ funciones tipadas para todos los endpoints
-- Soporte de SSE streaming para chat
-- Manejo de errores con degradación (ApiError)
-- Tracker de loading global
-
----
-
-## 5. API REST
-
-La API se sirve en `http://127.0.0.1:8000/api/*` con los siguientes grupos:
-
-| Prefix | Tags | Descripción |
-|---|---|---|
-| `/api/economic` | economic | Programas, money-radar, ROI, financial-summary, patterns, report-queue |
-| `/api/orion` | orion | Contexto del sistema, next-action |
-| `/api/targets` | targets | CRUD de programas/objetivos |
-| `/api/findings` | findings | Hallazgos y pipeline |
-| `/api/reports` | reports | Reportes, submit, export, versions, reward-learning |
-| `/api/pipeline` | pipeline | Etapas del pipeline |
-| `/api/attack` | attack | Decisiones de ataque (hot paths) |
-| `/api/verdicts` | verdicts | Veredictos de validación |
-| `/api/evidence` | evidence | Subida de evidencia |
-| `/api/zap` | zap | Integración OWASP ZAP |
-| `/api/hunt` | hunt | Control de cacería autónoma |
-| `/api/assistant` | assistant | Chat con IA (stream + no-stream) |
-| `/api/validation` | validation | Registro de validaciones |
-| `/api/auth` | auth | Autenticación |
-| `/api/license` | license | Licencias |
-| `/api/system` | system | Timeline, replay, confidence, review, health |
-| `/api/sync` | sync | Sincronización multi-dispositivo |
-| `/api/webhooks` | webhooks | Webhooks de plataformas externas |
-| `/api/opportunity_intelligence` | opportunity | Identidades, categorías, histórico |
-| `/api/connections` | connections | Gestión de cuentas de plataformas y bancos |
-| `/api/overview` | overview | Resumen del sistema |
-| `/api/financial` | financial | Financial Truth Layer — estado, resumen, withdraws, reconciliación |
-| `/api/crypto` | crypto | Wallets crypto — balance, sync, historial |
-| `/api/accounts-hub` | accounts_hub | Hub unificado — plataformas + wallets + KPIs |
-| 60+ routers total | — | Funcionalidades específicas |
-
----
-
-## 6. Modelos de Datos
-
-### 6.1 Base de datos principal (`database/models.py`)
-
-- **Target** — Programas/objetivos de bug bounty
-- **Endpoint** — Endpoints/URLs descubiertos
-- **Finding** — Hallazgos de vulnerabilidades
-- **Verdict** — Veredictos de validación
-- **Report** — Reportes generados
-- **SubmissionRecord** — Historial de envíos a plataformas
-- **Evidence** — Evidencia técnica (requests, responses, screenshots)
-- **ScanRun** — Ejecuciones de escaneo
-- **PipelineState** — Estado del pipeline
-- **AIProviderConfig** — Configuración persistente del proveedor IA
-- 30+ modelos más
-
-### 6.2 Modelos económicos (`database/models_economic.py`)
-
-- **Program** — Programas con score, EVH, tecnologías, prioridad
-- **BountyTier** — Escalones de recompensa por programa
-- **ScopeDocument** — Documentos de alcance parseados
-- **ProgramIntel** — Inteligencia generada por IA por programa
-- **MemoryPattern** — Patrones aprendidos
-- **ReportPriority** — Priorización de reportes
-
----
-
-## 7. Ciclo de Bug Bounty Automático
+### 3.1 Flujo Oficial E2E (único verificable desde código)
 
 ```
-                    ┌─────────────────┐
-                    │  DISCOVERY       │
-                    │  (scraper + API) │
-                    └────────┬────────┘
-                             ▼
-                    ┌─────────────────┐
-                    │  SCOPE ANALYSIS  │
-                    │  (scope_reader)  │
-                    └────────┬────────┘
-                             ▼
-                    ┌─────────────────┐
-              ┌────►│  RECONNAISSANCE  │◄────┐
-              │     │  (ZAP + parser)  │     │
-              │     └────────┬────────┘     │
-              │              ▼              │
-              │     ┌─────────────────┐     │
-              │     │  HYPOTHESIS      │     │
-              │     │  (LLM + engine)  │     │
-              │     └────────┬────────┘     │
-              │              ▼              │
-              │     ┌─────────────────┐     │
-              │     │  VALIDATION      │     │ (loop: más
-              │     │  (manual + auto) │     │  hipótesis,
-              │     └────────┬────────┘     │  más reco)
-              │              ▼              │
-              │     ┌─────────────────┐     │
-              │     │  FINDING CONFIRM │     │
-              │     │  (pipeline)      │     │
-              │     └────────┬────────┘     │
-              │              ▼              │
-              │     ┌─────────────────┐     │
-              │     │  REPORT DRAFT    │     │
-              │     │  (automático)    │     │
-              │     └────────┬────────┘     │
-              │              ▼              │
-              │     ┌─────────────────┐     │
-              │     │  HUMAN REVIEW    │     │
-              │     │  (aprobación)    │     │
-              │     └────────┬────────┘     │
-              │              ▼              │
-              │     ┌─────────────────┐     │
-              │     │  SUBMISSION      │     │
-              │     │  (vía API key)   │     │
-              │     └────────┬────────┘     │
-              │              ▼              │
-              │     ┌─────────────────┐     │
-              │     │  PAYMENT TRACK   │     │
-              │     │  (webhooks +     │     │
-              │     │   manual)        │     │
-              │     └────────┬────────┘     │
-              │              ▼              │
-              │     ┌─────────────────┐     │
-              │     │  LEARNING LOOP   │────┘
-              │     │  (patterns)      │
-              │     └─────────────────┘
-              │
-              └────── Feedback loop ──────┘
+BOOT (api/main.py lifespan)
+  ↓
+ScanScheduler.start() → asyncio loop cada N minutos
+  ↓
+[CICLO DEL SCHEDULER — ÚNICO PIPELINE QUE SE EJECUTA]
+  ↓
+1. DISCOVER → BountyScraper.scrape_all() → crea Targets en DB
+  ↓                     publica "opportunity:found" en EventBus
+2. RECON → launch_scan() → ReconRunner → persist endpoints
+  ↓                     publica "discovery:completed" en EventBus
+3. HYPOTHESIS → generate_hypotheses() sobre endpoints sin hipótesis
+  ↓                     actualiza ep.hypothesis_id
+4. [SCOPE_CHECK — definido en docstring pero NO implementado]
+  ↓
+5. VALIDATE → ValidationLoopEngine.evaluate() sobre findings open high/critical
+  ↓
+6. REPORT → create_report_from_findings() sobre findings confirmed
+  ↓                     publica "report:generated" en EventBus
+  ↓
+[INDEPENDIENTE: Auto-report subscriber en main.py]
+  finding:status_changed → si new_status=confirmed → genera report draft
 ```
 
-### 7.1 Discovery
+**Advertencia**: El scheduler llama a `launch_scan()` con argumentos posicionales incorrectos (no pasa `session`). Esto es un bug confirmado.
 
-El sistema descubre programas automáticamente mediante:
-- **Scraping**: `cores/bounty_scraper/` extrae programas de HackerOne, Bugcrowd, etc.
-- **API**: `POST /api/targets` permite agregar targets manualmente
-- **Plataformas**: integración directa vía API keys
+### 3.2 Agent System (independiente del scheduler, corre en paralelo)
 
-### 7.2 Scope Analysis
+```
+start_all_agents() en boot:
+  8 agentes: Coordinator, Research, Validator, Exploit, Documentation,
+             Strategy, Memory, Financial
+  ↓
+Cada agente se suscribe a AgentBus
+  ↓
+CoordinatorAgent state machine (11 estados, event-driven):
+  PENDING → DISCOVERY → VALIDATION → EVIDENCE → AI_REVIEW → READY →
+  SUBMITTED → TRIAGED → PAID → CLOSED
+  ↓
+AgentBus → puente → EventBus (solo forwarding de eventos, no control)
+```
 
-`POST /api/economic/programs/{id}/read-scope` ejecuta el pipeline:
-1. **Download**: fetch del URL del programa
-2. **Extract**: HTML → texto, PDF → texto
-3. **Hash**: fingerprint para detección de cambios
-4. **Diff**: comparación contra versión anterior
-5. **LLM Summary**: resumen del alcance generado por IA
-6. **Asset Extraction**: tecnologías, endpoints, dominios
+**Hallazgo crítico**: CoordinatorAgent y ScanScheduler NO comparten estado. Son dos state machines independientes sin sincronización. El coordinador puede reportar COMPLETED mientras el scheduler está en RECON.
 
-### 7.3 Autonomous Hunting
+### 3.3 ORION (Motor de Decisión — definición definitiva)
 
-El motor autónomo (`cores/autonomous/engine.py`) puede operar 24/7:
-- Escanea targets en orden de prioridad (ORION Score)
-- Genera hipótesis automáticamente
-- Valida hallazgos con ZAP + heurísticas
-- Mueve hallazgos por el pipeline
-- Genera drafts de reporte
+**ORION ES READ-ONLY CON UNA EXCEPCIÓN MÍNIMA:**
 
-Control vía API:
-- `POST /api/hunt/start`, `/pause`, `/resume`, `/stop`
-- `GET /api/hunt/status`
+| Componente | Archivo | Lee | Escribe | ¿Read-only? |
+|---|---|---|---|---|
+| ContextEngine | `cores/orion/context_engine.py` | OpportunityEngine (RAM) | Nada | ✅ |
+| NextAction | `cores/orion/next_action.py` | OpportunityEngine (RAM) | Nada | ✅ |
+| OpportunityAnalyzer | `cores/orion/opportunity_analyzer.py` | OpportunityEngine (RAM) | Nada | ✅ |
+| OrionAgent | `cores/ai/orion_agent.py` | SQLite vía tools (SELECT) + LLM API | Nada | ✅ |
+| Agent Tools | `cores/ai/tools.py` | Target, Finding, Verdict, Endpoint, TargetIntel (SELECT) | Nada | ✅ |
+| RewardLearner | `cores/intelligence/reward_learning.py` | Report (DB) + learning_state | `learning_state` (SQLite) — ~40 bytes/vuln | ❌ **ESCRIBE** |
 
----
+**ORION CONTROLA:**
+- **Recomendación** de próxima acción (qué target escanear)
+- **Priorización** de targets (vía RewardLearner → scheduler)
+- **Contexto** del sistema (estado agregado para decisiones)
+- **Ranking** de oportunidades (vía OpportunityEngine)
+- **Chat** conversacional vía LLM (solo lectura de DB)
 
-## 8. IA y Modelos de Lenguaje
+**ORION NUNCA:**
+- Ejecuta scans
+- Crea/modifica targets, endpoints, findings, reports
+- Modifica configuración del pipeline
+- Envía reportes a plataformas
+- Reemplaza decisión humana
 
-### 8.1 Proveedores Soportados
+### 3.4 Event Bus
 
-| Proveedor | Tipo | Modelo por defecto | Variable de entorno |
+**3 implementaciones independientes:**
+
+| Bus | Archivo | Persistencia | Bridgeado |
 |---|---|---|---|
-| **Ollama** | Local | `qwen3:14b` | `OLLAMA_MODEL` |
-| **OpenAI** | Nube | `gpt-4o-mini` | `LLM_MODEL` |
-| **OpenRouter** | Nube | `openai/gpt-4o-mini` | `OPENROUTER_MODEL` |
+| **EventBus** (central) | `cores/events/event_bus.py` | SQLite | — |
+| **AgentBus** (agentes) | `cores/agents/bus.py` | In-memory | ✅ Sí → EventBus |
+| **EventSystem** (intelligence) | `cores/intelligence/event_system.py` | In-memory | ❌ **NO** |
 
-### 8.2 Agente CATEYE
-
-El agente principal (`cores/ai/orion_agent.py`) usa tool calling para:
-- Consultar el contexto del sistema
-- Ejecutar herramientas de análisis
-- Generar hipótesis de vulnerabilidades
-- Responder preguntas del operador
-
-### 8.3 Modelo Económico
-
-Cada programa tiene un **ORION Score** (0.0–1.0) calculado como:
-
-```
-ORION_SCORE = w1 × freshness + w2 × tech_fit + w3 × competition_inverse + w4 × historical_success
-```
-
-**EVH** (Expected Value per Hour):
-
-```
-EVH = (max_reward × 0.6 × ORION_SCORE × 0.7) / max(effort_hours, 0.5)
-```
+EventSystem en intelligence/ emite eventos (`NewEndpoint`, `VerdictChanged`, `CacheHit`) que NADIE en el resto del sistema puede ver.
 
 ---
 
-## 9. Sincronización y Plataformas
+## 4. Contradicciones Arquitectónicas Verificadas (23 hallazgos)
 
-### 9.1 Conexión con Plataformas
+### CRÍTICOS (deben resolverse antes del freeze)
 
-El sistema permite vincular cuentas de:
-- **HackerOne**
-- **Bugcrowd**
-- **Intigriti**
-- **Synack**
-- **YesWeHack**
+| # | Hallazgo | Evidencia | Impacto |
+|---|---|---|---|
+| C1 | **Pipeline class (476l) está MUERTO** | `cores/orchestrator/pipeline.py` — 0 imports en todo el código. Scheduler usa `scan_service.launch_scan()`. | 476 líneas + 20 dependencias arrastradas sin razón |
+| C2 | **evidence_service.py MUERTO** | `collect_evidence()` — 0 imports en todo el código | Función que nadie llama |
+| C3 | **Scheduler llama a launch_scan() con args incorrectos** | `scheduler.py:205-209` pasa keyword args que no coinciden con la firma de `launch_scan()`, y no pasa `session` (requerido) | Scans del scheduler NO funcionan |
+| C4 | **3 health systems independientes CORRIENDO** | `cores/health/engine.py` (10s loop, booteado), `cores/recovery/health_monitor.py` (8s loop, booteado), `desktop/watchdog.py` (30s loop, NO booteado). | 3 sistemas revisando memory, eventbus, agents con intervalos diferentes |
+| C5 | **5 ranking/priority engines independientes** | OpportunityEngine (RAM), PriorityEngine (RAM), RecommendationEngine (DB), AI+UnifiedScoring (DB), AdaptivePrioritizer (DB+profile). + TargetRadar (MUERTO). | Respuestas contradictorias a "¿qué hago ahora?" |
+| C6 | **3 EventBuses independientes** | EventBus (SQLite), AgentBus (RAM+bridge), EventSystem (RAM+NO bridge) | Eventos de intelligence/ invisibles al resto |
+| C7 | **OpportunityEngine es volátil** | `engine.py:36` — `self._opportunities: dict` en RAM. Todo perdido al reiniciar. | Cada reinicio = empezar de cero |
+| C8 | **CoordinatorAgent vs Scheduler: 0 sincronización** | Dos state machines con stages diferentes, sin compartir estado. | Estados contradictorios posibles |
 
-Las credenciales se almacenan en una **bóveda encriptada** (`cores/identity_vault.py`) usando Fernet (symmetric encryption). Cada cuenta permite:
-- Subir reportes automáticamente
-- Sincronizar estado de envíos
-- Recibir webhooks con actualizaciones
-- Historial completo de submissions
+### ALTOS
 
-### 9.2 Webhooks
+| # | Hallazgo | Evidencia | Impacto |
+|---|---|---|---|
+| H1 | **knowledge/ es real pero HUÉRFANO** | 14 archivos, `SqlKnowledgeStore`, pipeline de ingesta. Nada lo importa en runtime. | 14 archivos de funcionalidad desconectada |
+| H2 | **intelligence/ es cajón de sastre** | 19 archivos mezclando 3 concerns: infra duplicada (event_system, cache, observability), learning (adaptive_memory, pattern_registry), huérfanos (bounty_intel, export) | Complejidad accidental |
+| H3 | **TargetRadar MUERTO** | `ingest_real_data()` nunca llamado. 0 consumidores. | Código que nadie ejecuta |
+| H4 | **scanning/ MUERTO** | LightningScanner — 0 importaciones externas | 256 líneas eliminables |
+| H5 | **Alembic vs modelos mismatch** | Migración DROPEA `targets_intel`/`target_scopes` pero modelos siguen en `cores/targets/models.py` | Error en bases nuevas |
+| H6 | **65 routers single-user** | Demasiada superficie API para un solo usuario | ~30 routers podrían fusionarse |
 
-`POST /api/webhooks/{platform}` recibe callbacks de las plataformas para actualizar:
-- Estado del reporte (triaged, resolved, paid, rejected)
-- Recompensa otorgada
-- Comentarios del equipo de seguridad
+### MEDIOS
 
-### 9.3 Sync Multi-dispositivo
-
-`POST /api/sync/push` y `GET /api/sync/pull` permiten sincronizar el estado entre dispositivos (sesión, filtros, último target visitado).
-
----
-
-## 10. Seguridad
-
-- **Autenticación**: token-based (device_id + server session)
-- **Licencias**: validación con clave de activación
-- **Bóveda de credenciales**: encriptación Fernet (AES-128)
-- **CORS**: configurado para frontend local
-- **Rate limiting**: middleware de rate limit
-- **Guardianes de arranque**: `boot_guard.py` previene modos inseguros
-- **No se almacenan API keys en texto plano**: siempre en vault o variables de entorno
-- **Headless por defecto**: no expone puertos a la red
-
----
-
-## 11. Despliegue
-
-### 11.1 Modos de ejecución
-
-| Modo | Comando | Descripción |
+| # | Hallazgo | Evidencia |
 |---|---|---|
-| Full stack | `python launcher/start.py` | Backend + frontend + browser |
-| Backend only | `python launcher/start.py --backend` | API sola |
-| Demo mode | `python launcher/start.py --demo` | Fake dataset para pruebas |
-| Dashboard (react) | `python launcher/start.py --dashboard react` | Frontend Vue dev server |
-| Desktop | `python run.py --tray` | System tray icon (PyInstaller) |
-| Service | `python run.py --service` | Windows service |
-| Safe mode | `python run.py --safe-mode` | Degradado, browser only |
-| Build | `python run.py --build` | PyInstaller bundle |
+| M1 | 2 tool layers paralelas (`cores/recon/` + `cores/tools/`) | Mismas tools CLI, wrappers diferentes |
+| M2 | 2 credential vaults (`identity_vault.py` + `target_auth/vault.py`) | AES-256-GCM duplicado |
+| M3 | DuplicateDetector + DedupTracker desconectados | `_history` propio vs fingerprints |
+| M4 | `analysis/noise_reduction.py` cruza frontera con `validation/` | HotPathDetector podría vivir en cualquiera |
+| M5 | 3 routers settings en vez de 1 | settings_ai, settings_runtime, settings_unified |
+| M6 | 2 routers system vs system_state | Misma funcionalidad, rutas diferentes |
+| M7 | 2 routers auth (device-based + user-based) | Dual auth paths |
 
-### 11.2 Stack técnico
+### BAJOS
 
-```
-OS: Linux, macOS, Windows
-Runtime: Python ≥3.10
-Database: SQLite (dev) / PostgreSQL (prod)
-Frontend server: Vite dev server o built dist/
-Queue: SQLite-based (no Redis requerido)
-```
-
----
-
-## 12. Evolución y Roadmap
-
-### Estado actual (v1.7.0)
-
-| Feature | Estado |
+| # | Hallazgo |
 |---|---|
-| Panel económico con KPIs | ✅ Completo |
-| Money Radar (ranking de programas) | ✅ Completo |
-| Pipeline de hallazgos | ✅ Completo |
-| Centro de reportes con submit | ✅ Completo |
-| Hipótesis vía IA con campos didácticos | ✅ Completo |
-| Guía de validación manual | ✅ Completo |
-| Cacería autónoma 24/7 | ✅ Completo |
-| Lector de alcance (scope_reader) | ✅ Completo |
-| Bóveda de identidades encriptada | ✅ Completo |
-| Patrones aprendidos (memory) | ✅ Completo |
-| Timeline de eventos | ✅ Completo |
-| Integración ZAP (spider + passive + hypotheses) | ✅ Completo |
-| Sync multi-dispositivo | ✅ Completo |
-| Panel de Conexiones (plataformas + bancos) | 🆕 Nueva |
-| Vista Calendario/Timeline | 🆕 Nueva |
-| Retiros bancarios (withdrawals) | 🔜 Próximo |
-| Workflow humano: scope → hipótesis → validación → reporte | 🔜 Próximo |
-| Mobile app | 🔜 Futuro |
+| B1 | 0 relationship() en SQLAlchemy — joins manuales |
+| B2 | Boolean inconsistente: algunos Boolean, otros String "true"/"false" |
+| B3 | `.env` contiene API keys hardcodeadas |
+| B4 | Pre-commit hook existe pero no instalado |
 
 ---
 
-## 13. Auditoría UX (Julio 2026)
+## 5. Módulos: Clasificación Definitiva
 
-Se realizó una auditoría de fricciones con perspectiva de **bug bounty hunter profesional**. Resultados:
+### CORE (deben sobrevivir)
+- `api/main.py` — Entry point
+- `api/scheduler.py` — Pipeline con bugs por corregir
+- `api/middleware/` — 6 middlewares estables
+- `api/routers/` — 65 routers (reducibles)
+- `cores/events/event_bus.py` — EventBus central
+- `cores/orion/` — Recomendación read-only
+- `cores/ai/` — LLM providers + OrionAgent + tools
+- `cores/engine/` — Scoring, clasificación, snapshot
+- `cores/engine/hypothesis/` — 9 generadores rule-based
+- `cores/orchestrator/scan_service.py` — Único launch_scan real
+- `cores/agents/` — Multi-agente (conectar con scheduler)
+- `cores/bounty_scraper/` — Discovery real
+- `cores/opportunity/` — Darle persistencia
+- `cores/platforms/` — Integraciones plataforma
+- `cores/financial/` — TruthLayer, sync, reconciliation
+- `cores/validation/` — Loop de validación
+- `cores/execution/` — Mutación, PoC
+- `cores/reporting/` — Generación de reportes
+- `cores/auth/` — TokenService + SessionStore
+- `cores/license/` — Ed25519
+- `cores/identity_vault.py` — Bóveda AES-256-GCM
+- `cores/dedup.py` — DedupTracker
+- `cores/audit_log.py` — JSONL audit
+- `cores/notifications/` — Hub multi-canal
+- `cores/authhub/` — OAuth2 providers
+- `cores/crypto/` — Wallet connectors
+- `cores/memory/` — Memoria del sistema
+- `cores/learning/` — Perfil adaptativo
+- `cores/contracts/` — Interfaces canónicas
+- `cores/system_state.py` — Tracker de servicios
+- `database/` — Modelos + DB layer
+- `frontend/` — 46 páginas Vue
+- `desktop/` — 13 módulos
+- `tests/` — Suite de tests
 
-| Categoría | Issues | Resueltos |
-|---|---|---|
-| 🔴 Críticos | 5 | 5 |
-| 🟠 Altos | 6 | 6 |
-| 🟡 Medios | 8 | 8 |
-| 🟢 Bajos | 5 | 5 |
-| **Total** | **24** | **24 (100%)** |
+### EXTENSIÓN (útiles pero no críticos para el ciclo principal)
+- `cores/intelligence/priority_engine.py` — Priorización multi-señal
+- `cores/intelligence/recommendation_engine.py` — Recomendaciones DB-based
+- `cores/intelligence/adaptive_memory.py` — Memoria adaptativa
+- `cores/autonomous/` — AutonomousModeEngine
+- `cores/differential_intelligence/` — Análisis transversal
+- `cores/quick_wins/` — Quick win detection
+- `cores/explainability/` — Audit trail
+- `cores/accountability/` — Outcome tracking
+- `cores/actions/` — Action execution tracker
+- `cores/targeting/radar.py` — Si se conecta con datos reales
+- `cores/target_auth/` — Autenticación a targets
 
-### Mejoras clave aplicadas
+### EXPERIMENTAL (no confiar en producción)
+- `cores/intelligence/event_system.py` — 3er EventBus no bridgeado
+- `cores/intelligence/cache.py` — Cache sin problema de performance conocido
+- `cores/intelligence/unified_orchestrator.py` — Solapado con pipeline
+- `cores/ai/assistant.py` — ScanAssistant (reemplazado por OrionAgent)
+- `android/` — Capacitor shell sin código nativo
 
-- **Sidebar**: 36 → 13 items (secciones compactas Inteligencia/Operaciones/Sistema)
-- **Onboarding**: 9 → 5 pasos, skip con confirmación, tool check eliminado
-- **Rutas**: eliminado `/dashboard` duplicado, `/legacy` → `/mission-control`
-- **Branding**: banner `R A S T R O` → `C A T E Y E`, env vars `RASTRO_*` → `CATEYE_*`
-- **Feedback**: auto-save con indicador visual, Tools con loading spinner, WS status en topbar
-- **Seguridad**: import config validado, reset con doble confirmación
-- **Shortcuts**: `⌘B` Copilot y `⌘K` Command Palette visibles en topbar
-- **Paths**: `tray.py` y `updater.py` ahora usan `cores/utils/paths.py:get_data_path()` como único resolver
-- **Config**: `cache_size` migrado de `cores/config.py:RastroConfig` a `cores/env/config.py:EnvConfig`, `RastroConfig` eliminado
-- **Env vars**: todos los `RASTRO_*` en `EnvConfig` renombrados a `CATEYE_*`
-- **TypeScript**: 0 errores
+### MUERTO (eliminar o reconectar)
+- `cores/orchestrator/pipeline.py` — 0 imports, 476 líneas, 20 dependencias
+- `cores/pipeline/evidence_service.py` — 0 imports
+- `cores/scanning/` — 0 imports externos
+- `cores/targeting/radar.py` — Nadie lo alimenta ni lo consume
+- `cores/knowledge/` — 14 archivos reales, 0 conectados al runtime
+- `mobile/` directory — Reemplazado por android/
+- Root docs stubs (93 bytes) — AGENT_CONTEXT.md, CLINE_SETUP.md, etc.
 
 ---
 
-## 14. Progreso de Producción
+## 6. PASS / FAIL por Módulo
 
-### Código Total
+### ✅ PASS (estable, no tocar)
+- License system
+- IdentityVault
+- Auth (TokenService + SessionStore)
+- CSRF Middleware
+- Error Handling Middleware
+- Security Headers
+- Audit Log
+- Desktop (13 módulos)
+- Frontend (46 páginas)
+- Database models (43 tablas)
+- EventBus (core)
+- Validation Loop
+- Financial TruthLayer
+- Bounty Scraper
+- Hypothesis generators
+- ORION core (context, next_action, analyzer)
+- crypto/
+- notifications/
+
+### ⚠️ PASS CON RESERVAS (funciona pero necesita correcciones)
+- **Scheduler** — Bug en llamada a launch_scan() + SCOPE_CHECK no implementado
+- **ORION/RewardLearner** — Fuga de escritura a learning_state
+- **ScanService** — Funciona pero arrastra dependencia de Pipeline class (muerto)
+- **CoordinatorAgent** — State machine desconectada del scheduler
+- **OpportunityEngine** — Todo en RAM, se pierde al reiniciar
+- **agents/** — Bien diseñados pero sin sincronización con scheduler
+- **system_state.py** — boot_time no expuesto (bug en /api/system/status)
+- **system_health.py** — collect_health() retorna dataclass, no dict (bug)
+- **Alembic** — Mismatch con modelos actuales
+
+### ❌ FAIL (debe resolverse antes del freeze)
+- **Pipeline class** (`orchestrator/pipeline.py`) — Código muerto de 476 líneas
+- **evidence_service.py** — Código muerto
+- **scanning/** — Código muerto
+- **knowledge/** — 14 archivos huérfanos
+- **TargetRadar** — Código muerto
+- **intelligence/event_system.py** — 3er EventBus no bridgeado
+- **intelligence/ (como módulo)** — Cajón de sastre que debe reestructurarse
+
+---
+
+## 7. Decisiones Arquitectónicas para el Freeze
+
+### Único Pipeline Oficial: **ScanScheduler** (`api/scheduler.py`)
+Debe corregirse: llamada a launch_scan(), eliminar SCOPE_CHECK, eliminar Pipeline class muerto.
+
+### Único Health System: **UnifiedHealthMonitor** (por crear)
+Los 3 actuales (SystemHealthEngine, HealthMonitor, Watchdog) deben unificarse.
+
+### Único EventBus: **EventBus** (`cores/events/event_bus.py`)
+AgentBus se convierte en wrapper. EventSystem se elimina o se bridgea.
+
+### Único Ranking Engine: **OpportunityEngine → ORION** (unificados)
+Dar persistencia a OpportunityEngine. TargetRadar se elimina o se integra. PriorityEngine se realinea.
+
+### Único Tool Layer: **ToolRegistry** (por crear)
+Unificar `cores/recon/` y `cores/tools/` en una sola interfaz.
+
+### Único Discovery Engine: **BountyScraper** (`cores/bounty_scraper/`)
+Ya existe. Debe ser la única fuente de descubrimiento de programas.
+
+### ORION: **Read-only con excepción documentada**
+RewardLearner puede escribir learning_state (es su propia metadata de ajuste). Todo lo demás es SELECT-only.
+
+### Knowledge: **Eliminar o conectar**
+14 archivos reales. Si no se conectan, deben eliminarse. No pueden quedar huérfanos.
+
+### CoordinatorAgent: **Eliminar o sincronizar con Scheduler**
+La state machine de 11 estados debe integrarse con el pipeline del scheduler o eliminarse.
+
+---
+
+## 8. Métricas del Sistema
 
 | Métrica | Valor |
-|---|---|
-| Líneas de Python (`cores/` + `api/`) | ~59.3K |
-| Líneas de frontend (`frontend/src/`) | ~19.2K |
-| Líneas de tests | ~4.5K |
-| **Total líneas fuente** | **~83K** |
-| Archivos Python (`cores/` + `api/`) | 374 |
-| Archivos frontend (`.ts`/`.vue`/`.css`) | 89 |
-| Archivos de tests | 15 |
-| **Total archivos fuente** | **~478** |
+|---------|-------|
+| Archivos Python | ~450 |
+| Líneas Python (cores/ + api/) | ~59,300 |
+| Líneas frontend | ~19,200 |
+| Líneas tests | ~4,500 |
+| Total líneas fuente | ~83,000 |
+| Subpaquetes cores/ | 59 |
+| Routers API | 65 |
+| Middleware | 6 |
+| Tablas DB | 43 |
+| Páginas frontend | 46 |
+| Pinia stores | 9 |
+| Tests | 363 (359 pass) |
+| Agentes | 8 (Coordinator + 7) |
+| Health systems | 3 (independientes) |
+| Ranking/priority engines | 5 (independientes) |
+| Event buses | 3 (independientes) |
+| Tool layers | 2 (duplicadas) |
+| Código muerto verificado | ~1,500 líneas |
+| Plataformas bug bounty | 5 |
+| LLM providers | 3 |
+| Blockchains | 4 |
 
-### Completitud por Área
+---
 
-| Área | % | Detalle |
-|---|---|---|
-| **Backend `cores/`** | **100%** | 57 módulos, ~45K líneas. Alembic configurado con migration inicial, `cache_size` migrado a EnvConfig, `RastroConfig` → `CATEYEConfig`, todos los env vars en `CATEYE_*`. |
-| **API REST** | **96%** | 56 routers registrados y funcionales. OpenAPI con security scheme Bearer JWT, description, contact, license info. Pendientes: normalización de formato de respuesta. |
-| **Frontend Vue 3** | **93%** | 50 páginas, 21 componentes, 6 stores, navegación podada (36→13 items), onboarding reducido (9→5 pasos), auto-save global, shortcuts visibles, todas las páginas de detalle implementadas. Vitest + Vue Test Utils configurados, 30 tests unitarios (Button, Badge, Card, utils). |
-| **Desktop / Launcher** | **87%** | Multi-modo (browser, tray, service, safe-mode), build PyInstaller, system tray, boot guard. Launcher unificado con branding corregido, paths de datos unificados. |
-| **Plataformas Bug Bounty** | **68%** | 5 integraciones (HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack), bóveda encriptada Fernet, scraping infraestructura presente. Pendientes: battle-testing, manejo de errores de API. |
-| **Tests** | **30%** | 15 suites backend, 4.5K líneas. Tests de API, agents, scoring, E2E. **Frontend**: Vitest + Vue Test Utils configurados, 30 tests (Button, Badge, Card, utils). |
-| **Mobile** | **0%** | Planificado para v1.4 (Capacitor Android + Tauri desktop). |
-
-### Total General: **~93%**
-
-### 7% Restante (Priorizado)
-
-| Prioridad | Item | Esfuerzo |
-|---|---|---|
-| 1 | Más tests frontend (stores, pages, composables) | 3-5 días |
-| 2 | Normalizar formato de respuesta API (unificar HTTPException/APIEnvelope/bare dicts) | 2-3 días |
-| 3 | Completar CRUD faltantes (DELETE targets, endpoints, findings, evidence, verdicts) | 1-2 días |
-| 4 | Rebuild Android compiled assets | 1 día |
-| 5 | Responsive design + PWA | 2-3 días |
-| 6 | Mobile (Capacitor/Tauri) | 1-2 semanas |
-| 7 | Migrar `cores/platforms/` a unificar con `identity_vault.py` + retry + rate-limit | 3-4 días |
-| 8 | Migrar `cores/notifications/` (FCM, SMTP) a env vars `CATEYE_*` consistentes | 0.5 días |
-| 9 | Migrar `cores/auth/auth.py` + `cores/license/validator.py` a env vars `CATEYE_*` | 0.5 días |
-| 10 | Implementar servicio Linux systemd + macOS launchd | 2 días |
+*Documento generado desde auditoría final completa del código — Julio 2026.*
+*CATEYE v2.0.0 | Architecture v5.0 | CONSTITUCIÓN DEL PROYECTO*

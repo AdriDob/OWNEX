@@ -9,6 +9,10 @@ from api.services.data_service import get_target, list_targets
 router = APIRouter(prefix="/api/targets", tags=["targets"])
 
 
+class ScanTriggerRequest(BaseModel):
+    mode: str = "quick"
+
+
 class TargetCreate(BaseModel):
     name: str
     domain: str | None = None
@@ -38,6 +42,26 @@ def get_target_detail(target_id: int):
     if not t:
         raise HTTPException(status_code=404, detail="Target not found")
     return t
+
+
+@router.post("/{target_id}/scan")
+async def trigger_target_scan(target_id: int, body: ScanTriggerRequest):
+    from cores.orchestrator.scan_service import launch_scan
+    from database import db
+    t = get_target(target_id)
+    if not t:
+        raise HTTPException(status_code=404, detail="Target not found")
+    session = db.SessionLocal()
+    try:
+        result = await launch_scan(
+            target_name=t["name"],
+            target_domain=t.get("domain", ""),
+            target_mode=body.mode.upper(),
+            session=session,
+        )
+        return result
+    finally:
+        session.close()
 
 
 @router.get("/{target_id}/summary")

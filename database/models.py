@@ -88,7 +88,7 @@ class Endpoint(Base):
             try:
                 return ast.literal_eval(self.params)
             except (ValueError, SyntaxError):
-                logging.getLogger("catseye.models").warning(
+                logging.getLogger("cateye.models").warning(
                     f"Could not parse params for endpoint {self.id}"
                 )
                 return {}
@@ -803,6 +803,50 @@ class AIProviderConfig(Base):
         server_default=func.now(),
         onupdate=func.now(),
     )
+
+
+class SystemStateRecord(Base):
+    """Persistent snapshot of the last-known system state — survives restart."""
+    __tablename__ = "system_state_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    state = Column(String, nullable=False, default="BOOTING")
+    services_json = Column(Text, nullable=True, default="[]")
+    uptime_seconds = Column(Float, nullable=False, default=0.0)
+    boot_start = Column(Float, nullable=False, default=0.0)
+    last_state_change = Column(Float, nullable=False, default=0.0)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class EventBusEntry(Base):
+    """Persistent event bus history — survives restarts for audit/replay."""
+    __tablename__ = "event_bus_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_type = Column(String, nullable=False, index=True)
+    priority = Column(String, nullable=False, default="medium")
+    payload_json = Column(Text, nullable=True, default="{}")
+    timestamp = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class LedgerEntry(Base):
+    """Persistent financial ledger entry — append-only, immutable transaction log."""
+    __tablename__ = "ledger_entries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    entry_id = Column(String, unique=True, nullable=False, index=True)
+    event = Column(String, nullable=False, index=True)
+    amount = Column(Float, nullable=False, default=0.0)
+    currency = Column(String, nullable=False, default="USD")
+    description = Column(String, default="")
+    source = Column(String, default="system")
+    source_id = Column(String, default="")
+    platform = Column(String, default="internal", index=True)
+    timestamp = Column(String, nullable=False)
+    metadata_json = Column(Text, default="{}")
+    reconciled = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 # Backward-compatible alias — import as CATEYEConfig or RastroConfig

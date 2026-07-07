@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-logger = logging.getLogger("catseye.optimization.engine")
+logger = logging.getLogger("cateye.optimization.engine")
 
 OPTIMIZATION_COOLDOWN = 60.0  # seconds between optimizations
 

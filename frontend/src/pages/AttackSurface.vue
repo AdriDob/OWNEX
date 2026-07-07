@@ -96,7 +96,7 @@ function formatLabel(k: string) {
         No endpoints in this category
       </Card>
 
-      <Card v-else class="animate-in overflow-hidden">
+      <Card v-else class="animate-in overflow-x-auto">
         <table class="w-full text-xs">
           <thead>
             <tr class="border-b border-border/20 text-left text-muted-foreground">

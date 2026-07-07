@@ -7,7 +7,12 @@ Validation requires identity/session setup and is tested separately.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
+
+if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
 
 
 @pytest.fixture(scope="module")
@@ -23,7 +28,17 @@ def client():
     if resp.status_code == 200:
         token = resp.json()["data"]["token"]
         c.headers.update({"Authorization": f"Bearer {token}"})
+    # Get CSRF token for subsequent state-changing requests
+    _set_csrf_token(c)
     return c
+
+
+def _set_csrf_token(c: TestClient) -> None:
+    """Make a non-exempt GET request to obtain CSRF cookie and set header on client."""
+    resp = c.get("/api/version")
+    csrf_token = resp.cookies.get("csrf-token")
+    if csrf_token:
+        c.headers.update({"X-CSRF-Token": csrf_token})
 
 
 class TestPipelineE2E:

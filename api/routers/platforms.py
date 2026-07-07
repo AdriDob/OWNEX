@@ -8,7 +8,7 @@ from fastapi import APIRouter
 
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("catseye.platforms.api")
+logger = logging.getLogger("cateye.platforms.api")
 
 router = APIRouter(prefix="/api/platforms", tags=["platforms"])
 

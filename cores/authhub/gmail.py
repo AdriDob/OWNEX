@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import secrets
 import urllib.parse
 import urllib.request
 from typing import Any
@@ -11,7 +12,7 @@ from typing import Any
 from cores.authhub.base import OAuth2Provider
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("catseye.authhub.gmail")
+logger = logging.getLogger("cateye.authhub.gmail")
 
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -28,6 +29,7 @@ class GmailOAuth2(OAuth2Provider):
         self._client_id: str = ""
         self._client_secret: str = ""
         self._redirect_uri: str = ""
+        self._oauth_state: str = ""
         self._load_credentials()
 
     def _load_credentials(self) -> None:
@@ -57,6 +59,7 @@ class GmailOAuth2(OAuth2Provider):
         self._refresh_token_val = tokens.get("refresh_token", self._refresh_token_val)
 
     def authorize_url(self) -> str:
+        self._oauth_state = secrets.token_urlsafe(32)
         params = {
             "client_id": self._client_id,
             "redirect_uri": self._redirect_uri,
@@ -64,10 +67,14 @@ class GmailOAuth2(OAuth2Provider):
             "scope": " ".join(SCOPES),
             "access_type": "offline",
             "prompt": "consent",
+            "state": self._oauth_state,
         }
         return f"{GOOGLE_AUTH_URL}?{urllib.parse.urlencode(params)}"
 
-    def exchange_code(self, code: str) -> dict[str, Any]:
+    def exchange_code(self, code: str, state: str = "") -> dict[str, Any]:
+        if state and state != self._oauth_state:
+            logger.warning("OAuth state mismatch — possible CSRF attack")
+            return {}
         data = {
             "code": code,
             "client_id": self._client_id,

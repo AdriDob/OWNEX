@@ -16,7 +16,7 @@ from typing import Any
 from cores.identity.device_registry import DeviceRegistry
 from cores.identity.session_store import SessionStore
 
-logger = logging.getLogger("catseye.identity")
+logger = logging.getLogger("cateye.identity")
 
 DATA_DIR = os.path.join(
     os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")),

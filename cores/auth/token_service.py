@@ -1,4 +1,7 @@
-"""TokenService — secure token storage with device binding and expiry."""
+"""TokenService — secure token storage with device binding and expiry.
+
+All data encrypted at rest via vault_crypto (AES-256-GCM).
+"""
 
 from __future__ import annotations
 
@@ -8,7 +11,9 @@ import os
 import time
 from typing import Any
 
-logger = logging.getLogger("catseye.auth.token")
+from cores.vault_crypto import decrypt, encrypt
+
+logger = logging.getLogger("cateye.auth.token")
 
 TOKEN_STORE_DIR = os.path.join(
     os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")),
@@ -34,8 +39,9 @@ class TokenService:
         path = self._path()
         if os.path.exists(path):
             try:
-                with open(path) as f:
-                    data = json.load(f)
+                raw = decrypt(open(path).read())
+                if raw:
+                    data = json.loads(raw)
                     self._tokens = data.get("tokens", {})
             except (json.JSONDecodeError, OSError):
                 logger.warning("Failed to load tokens from disk", exc_info=True)
@@ -44,8 +50,9 @@ class TokenService:
         if not self._persist:
             return
         try:
+            raw = json.dumps({"tokens": self._tokens})
             with open(self._path(), "w") as f:
-                json.dump({"tokens": self._tokens}, f)
+                f.write(encrypt(raw))
         except OSError:
             logger.warning("Failed to save tokens to disk", exc_info=True)
 

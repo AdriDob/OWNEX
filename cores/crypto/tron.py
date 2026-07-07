@@ -16,7 +16,7 @@ from cores.crypto.base import (
 )
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("catseye.crypto.tron")
+logger = logging.getLogger("cateye.crypto.tron")
 
 TRONGRID_API = "https://api.trongrid.io"
 

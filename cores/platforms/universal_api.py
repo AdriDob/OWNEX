@@ -32,7 +32,7 @@ except ImportError:
 from cores.events.event_bus import get_event_bus
 from cores.notifications.hub import get_hub
 
-logger = logging.getLogger("catseye.mission_inbox")
+logger = logging.getLogger("cateye.mission_inbox")
 
 
 class TimelineScope(Enum):
@@ -165,7 +165,7 @@ class AiGuidanceGenerator:
 
     def __init__(self, agent_id: str = "mission_inbox_ai"):
         self.agent_id = agent_id
-        self.logger = logging.getLogger("catseye.ai_guidance")
+        self.logger = logging.getLogger("cateye.ai_guidance")
         self.cohere_agent = None
         self.context_cache: dict[str, Any] = {}
         self.evidence_templates: dict[EvidenceType, dict[str, Any]] = self._load_evidence_templates()
@@ -704,7 +704,7 @@ class MissionInbox:
     """
 
     def __init__(self, config_file: str | None = None):
-        self.logger = logging.getLogger("catseye.mission_inbox")
+        self.logger = logging.getLogger("cateye.mission_inbox")
         self.ai_guidance = AiGuidanceGenerator()
 
         # Initialize notification hub

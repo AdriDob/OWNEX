@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .tools import _resolve_tool
 
-LOG = logging.getLogger("catseye.recon.gau")
+LOG = logging.getLogger("cateye.recon.gau")
 
 
 class GauRunner:

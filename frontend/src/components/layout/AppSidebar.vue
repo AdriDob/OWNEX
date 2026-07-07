@@ -8,11 +8,19 @@ import {
   Bug, Cable, Camera, ChevronLeft, ChevronRight, Cpu, DollarSign,
   ExternalLink, Eye, FileSearch, FileText, Lightbulb, Link2,
   Banknote, MessageCircle, Search, Settings, Target, Unlink,
-  Activity, Database, RefreshCw,
+  Activity, Database, RefreshCw, X,
 } from '@lucide/vue'
 
 const hunt = useHuntStore()
-const emit = defineEmits<{ 'toggleCopilot': [] }>()
+const emit = defineEmits<{
+  'toggleCopilot': []
+  'close': []
+}>()
+
+defineProps<{
+  open: boolean
+}>()
+
 const route = useRoute()
 const router = useRouter()
 const collapsed = ref(false)
@@ -99,12 +107,31 @@ function formatCompact(n: number) {
 </script>
 
 <template>
+  <!-- Mobile backdrop -->
+  <Transition name="backdrop">
+    <div
+      v-if="open && !collapsed"
+      class="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
+      @click="emit('close')"
+    />
+  </Transition>
+
   <aside
     :class="[
-      'flex flex-col border-r border-border/50 bg-background/80 backdrop-blur-xl transition-all duration-200 relative z-30',
+      'flex flex-col border-r border-border/50 bg-background/80 backdrop-blur-xl transition-all duration-200 z-30',
+      'fixed inset-y-0 left-0 lg:relative lg:inset-auto',
       collapsed ? 'w-16' : 'w-60',
+      open || collapsed ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
     ]"
   >
+    <!-- Mobile close button -->
+    <button
+      class="absolute right-2 top-3 z-10 flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-surface/40 hover:text-foreground lg:hidden"
+      @click="emit('close')"
+    >
+      <X class="h-4 w-4" />
+    </button>
+
     <!-- Logo CATEYE -->
     <div class="flex h-14 items-center gap-3 border-b border-border/40 px-4 scanline">
       <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/30">
@@ -216,7 +243,7 @@ function formatCompact(n: number) {
         <button
           v-for="item in group.items"
           :key="item.path"
-          @click="navigate(item.path)"
+          @click="navigate(item.path); emit('close')"
           :class="[
             'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200 hover-scale',
             isActive(item.path)
@@ -257,6 +284,8 @@ function formatCompact(n: number) {
 <style scoped>
 .fade-enter-active, .fade-leave-active { transition: opacity 0.15s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
+.backdrop-enter-active, .backdrop-leave-active { transition: opacity 0.2s ease; }
+.backdrop-enter-from, .backdrop-leave-to { opacity: 0; }
 .scrollbar-thin { scrollbar-width: thin; }
 .scrollbar-thin::-webkit-scrollbar { width: 4px; }
 .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }

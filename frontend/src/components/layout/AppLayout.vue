@@ -1,19 +1,23 @@
 <script setup lang="ts">
 import AppSidebar from './AppSidebar.vue'
+import AppFooter from './AppFooter.vue'
 import Breadcrumbs from './Breadcrumbs.vue'
 import NotificationPanel from '@/components/notifications/NotificationPanel.vue'
 import ErrorBoundary from '@/components/ErrorBoundary.vue'
 import { useRoute } from 'vue-router'
 import { useNotificationsStore } from '@/stores/notifications'
+import { Menu } from '@lucide/vue'
 
 const notifications = useNotificationsStore()
 
 defineProps<{
   copilotOpen: boolean
+  sidebarOpen: boolean
 }>()
 
 const emit = defineEmits<{
   'toggleCopilot': []
+  'toggleSidebar': []
 }>()
 
 const route = useRoute()
@@ -21,18 +25,25 @@ const route = useRoute()
 
 <template>
   <div class="flex h-full flex-1 overflow-hidden">
-    <AppSidebar @toggle-copilot="emit('toggleCopilot')" />
+    <AppSidebar :open="sidebarOpen" @toggle-copilot="emit('toggleCopilot')" @close="emit('toggleSidebar')" />
 
     <!-- Main content -->
     <main
       :class="[
-        'flex-1 overflow-y-auto transition-all duration-200',
+        'flex flex-1 flex-col overflow-y-auto transition-all duration-200',
         copilotOpen ? 'mr-80' : 'mr-0',
+        sidebarOpen ? 'lg:ml-0' : '',
       ]"
     >
       <!-- Top bar -->
-      <div v-if="!route.meta?.public" class="sticky top-0 z-20 flex items-center justify-between border-b border-border/20 bg-background/80 px-6 py-2 backdrop-blur-xl">
+      <div v-if="!route.meta?.public" class="sticky top-0 z-20 flex items-center justify-between border-b border-border/20 bg-background/80 px-3 sm:px-6 py-2 backdrop-blur-xl">
         <div class="flex items-center gap-3">
+          <button
+            class="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface/40 hover:text-foreground lg:hidden"
+            @click="emit('toggleSidebar')"
+          >
+            <Menu class="h-4 w-4" />
+          </button>
           <Breadcrumbs />
         </div>
         <div class="flex items-center gap-2">
@@ -47,7 +58,7 @@ const route = useRoute()
         </div>
       </div>
 
-      <div class="mx-auto max-w-6xl px-6 py-6">
+      <div class="mx-auto flex w-full max-w-6xl flex-1 flex-col px-3 sm:px-6 py-4 sm:py-6">
         <router-view v-slot="{ Component }">
           <Transition name="page" mode="out-in">
             <ErrorBoundary>
@@ -56,6 +67,7 @@ const route = useRoute()
           </Transition>
         </router-view>
       </div>
+      <AppFooter @toggle-copilot="emit('toggleCopilot')" />
     </main>
   </div>
 </template>

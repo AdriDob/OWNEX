@@ -26,7 +26,7 @@ from cores.engine.hypothesis.models import (
 from cores.engine.hypothesis.scorer import reorder_attack_queue, score_hypothesis
 from cores.engine.hypothesis.zap_generator import generate_from_zap_alerts
 
-LOG = logging.getLogger("catseye.hypothesis")
+LOG = logging.getLogger("cateye.hypothesis")
 
 
 class HypothesisEngine:

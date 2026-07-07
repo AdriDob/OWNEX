@@ -44,8 +44,8 @@ for _stream in (sys.stdout, sys.stderr):
     if hasattr(_stream, "reconfigure"):
         try:
             _stream.reconfigure(encoding="utf-8")
-        except Exception:
-            pass
+        except Exception as exc:
+            logging.getLogger("cateye.desktop").warning("Failed to reconfigure stdout/stderr encoding: %s", exc)
 
 _BOOT = "[BOOT]"
 _API = "[API]"
@@ -56,7 +56,7 @@ _TRAY = "[TRAY]"
 _READY = "[READY]"
 _SHUTDOWN = "[SHUTDOWN]"
 
-logger = logging.getLogger("catseye.desktop")
+logger = logging.getLogger("cateye.desktop")
 _lifecycle_logger: logging.Logger | None = None
 
 
@@ -104,7 +104,7 @@ def _setup_logging(dev: bool) -> str:
         root.addHandler(sh)
 
     global _lifecycle_logger
-    _lifecycle_logger = logging.getLogger("catseye.desktop.lifecycle")
+    _lifecycle_logger = logging.getLogger("cateye.desktop.lifecycle")
     _lifecycle_logger.setLevel(logging.INFO)
     _lifecycle_logger.propagate = False
     lh = logging.handlers.RotatingFileHandler(
@@ -211,7 +211,7 @@ def _mount_frontend(app) -> bool:
         return False
 
     index_path = dist_dir / "index.html"
-    log = logging.getLogger("catseye.frontend")
+    log = logging.getLogger("cateye.frontend")
 
     @app.get("/")
     async def serve_root():
@@ -567,8 +567,8 @@ def main() -> None:
     try:
         from database.db import engine
         engine.dispose()
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("Failed to dispose database engine: %s", exc)
 
     _lifecycle(_SHUTDOWN, "CATEYE Desktop stopped")
 

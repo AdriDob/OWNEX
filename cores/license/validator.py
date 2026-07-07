@@ -1,29 +1,37 @@
-"""License key validation using HMAC-SHA256.
+"""License key validation using Ed25519 asymmetric signatures.
 
-Key format: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX (25 chars, 5 groups of 5)
-Encodes: version(1) + year(2) + month(2) + day(2) + expiry_year(2) + expiry_month(2) + expiry_day(2) + hw_prefix(7) + base32_hmac(5)
-Data: 20 chars, Signature: 5 chars -> 25 total.
+The 25-char key (XXXXX-XXXXX-XXXXX-XXXXX-XXXXX) is a human-readable identifier.
+The real Ed25519 signature (64 bytes) is stored in license.json alongside the key.
+First activation writes both key + signature to the store; subsequent runs verify
+from the store using the embedded Ed25519 public key.
+
+Key format encodes: version(1) + year(2) + month(2) + day(2) + expiry_year(2) +
+expiry_month(2) + expiry_day(2) + hw_prefix(7) + base32_sig(5)
+Data: 20 chars, Display sig: 5 chars -> 25 total.
 """
 
 from __future__ import annotations
 
+import base64
 import hashlib
-import hmac
 import logging
 import os
 import re
 import time
 
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
 from cores.license.hardware import get_hardware_id
 from cores.license.store import get_license_store
 
-logger = logging.getLogger("catseye.license.validator")
+logger = logging.getLogger("cateye.license.validator")
 
-# Signing secret embedded in the binary.
-# In production, rotate this per-release and use asymmetric crypto instead.
-_LICENSE_SECRET = os.environ.get(
-    "CATEYE_LICENSE_SECRET",
-    hashlib.sha256(b"CATEYE-license-secret-v1").hexdigest(),
+# Ed25519 public key (safe to embed — only used for verification)
+# Override via CATEYE_LICENSE_PUBLIC_KEY env var for custom builds
+_PUBLIC_KEY_B64 = os.environ.get(
+    "CATEYE_LICENSE_PUBLIC_KEY",
+    "r2abXG9wBnkfJCbF8nKK9ElOWXB8UWnUNH2JWYRRo8Y=",
 )
 
 KEY_PATTERN = re.compile(r"^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$")
@@ -31,8 +39,12 @@ KEY_PATTERN = re.compile(r"^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z
 BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
 
 
+def _get_verifier() -> ed25519.Ed25519PublicKey:
+    raw = base64.b64decode(_PUBLIC_KEY_B64)
+    return ed25519.Ed25519PublicKey.from_public_bytes(raw)
+
+
 def _b32_encode(data: bytes) -> str:
-    """Custom base32 encoding (no padding)."""
     result = []
     buffer = 0
     bits = 0
@@ -86,15 +98,39 @@ def _format_key(data_str: str, sig: str) -> str:
 
 
 def generate_license(expiry_days: int = 365) -> str:
-    """Generate a license key for the current machine (for development/testing).
+    """Generate a license key and store the full Ed25519 signature.
 
-    NOTE: In production, this runs ONLY on the licensing server.
+    Returns the 25-char key for display.  The full base64-encoded Ed25519
+    signature is stored in license.json so that subsequent validation can
+    verify it asymmetrically.
+
+    In production, this runs ONLY on the licensing server with the private key.
+    For dev/test, set CATEYE_LICENSE_PRIVATE_KEY (raw Ed25519 private key, base64).
     """
+    priv_b64 = os.environ.get("CATEYE_LICENSE_PRIVATE_KEY")
+    if not priv_b64:
+        logger.error("Cannot sign — CATEYE_LICENSE_PRIVATE_KEY not set")
+        return ""
+
     hw_id = get_hardware_id()
     data_str, payload = _generate_key_data(hw_id, expiry_days)
-    sig_raw = hmac.new(_LICENSE_SECRET.encode(), payload, hashlib.sha256).digest()
-    sig = _b32_encode(sig_raw)[:5]
-    return _format_key(data_str, sig)
+
+    priv_raw = base64.b64decode(priv_b64)
+    private_key = ed25519.Ed25519PrivateKey.from_private_bytes(priv_raw)
+    sig_raw = private_key.sign(payload)
+    sig_b64 = base64.b64encode(sig_raw).decode()
+
+    # The 5-char key suffix is a truncated hash of the real signature (display only)
+    sig_hash = hashlib.sha256(sig_raw).digest()
+    display_sig = _b32_encode(sig_hash)[:5]
+    key = _format_key(data_str, display_sig)
+
+    # Persist the real signature alongside the key
+    store = get_license_store()
+    if store:
+        store.save(key, hw_id, signature_b64=sig_b64)
+
+    return key
 
 
 def parse_license(key: str) -> dict | None:
@@ -126,24 +162,39 @@ def parse_license(key: str) -> dict | None:
 
 
 def verify_license_key(key: str) -> tuple[bool, str]:
-    """Verify a license key's signature and expiry.
-
-    Returns (is_valid, reason).
-    """
+    """Verify a license key by Ed25519 signature from the store."""
     parsed = parse_license(key)
     if not parsed:
         return False, "Invalid key format"
 
     clean = key.replace("-", "").upper()
     data_str = clean[:20]
-    sig_str = clean[20:]
-
     payload = data_str.encode("ascii")
-    expected_sig = hmac.new(_LICENSE_SECRET.encode(), payload, hashlib.sha256).digest()
-    expected_b32 = _b32_encode(expected_sig)[:5]
 
-    if not hmac.compare_digest(sig_str, expected_b32):
+    # Load the full Ed25519 signature from the license store
+    store = get_license_store()
+    stored = store.load() if store else None
+    if not stored:
+        return False, "No license activated"
+
+    sig_b64 = stored.get("signature_b64")
+    if not sig_b64:
+        return False, "No Ed25519 signature stored — license must be re-activated"
+
+    try:
+        sig_raw = base64.b64decode(sig_b64)
+        verifier = _get_verifier()
+        verifier.verify(sig_raw, payload)
+    except InvalidSignature:
         return False, "Invalid signature"
+    except Exception as e:
+        return False, f"Verification error: {e}"
+
+    # Quick integrity: the 5-char display hash should match
+    sig_hash = hashlib.sha256(sig_raw).digest()
+    expected_display = _b32_encode(sig_hash)[:5]
+    if clean[20:] != expected_display:
+        return False, "License key does not match stored signature"
 
     exp_parts = parsed["expires"].split("-")
     exp_year = int(exp_parts[0])
@@ -160,70 +211,35 @@ def verify_license_key(key: str) -> tuple[bool, str]:
 
 
 def validate_license(license_key: str) -> tuple[bool, str]:
-    """Full license validation: signature + hardware binding + expiry.
-
-    Returns (is_valid, reason).
-    """
-    logger.info("[HW] validate_license: ENTER key (truncated) = %s...", license_key[:12] if len(license_key) > 12 else license_key)
+    """Full license validation: signature + hardware binding + expiry."""
     valid, reason = verify_license_key(license_key)
-    logger.info("[HW] validate_license: verify_license_key result = (%s, %s)", valid, reason)
     if not valid:
-        logger.info("[HW] validate_license: returning False because verify failed: %s", reason)
         return valid, reason
 
     store = get_license_store()
-    stored = store.load()
+    stored = store.load() if store else None
     hw_id = get_hardware_id()
     parsed = parse_license(license_key)
 
-    logger.info("[HW] validate_license: stored = %s", stored is not None)
-    if stored:
-        logger.info("[HW] validate_license: stored.hardware_id = %s", stored.get("hardware_id", ""))
-        logger.info("[HW] validate_license: stored.hardware_id[:7] = %s", stored.get("hardware_id", "")[:7])
-    logger.info("[HW] validate_license: current hw_id = %s", hw_id)
-    logger.info("[HW] validate_license: current hw_id[:7] = %s", hw_id[:7])
-    if parsed:
-        logger.info("[HW] validate_license: parsed.hardware_prefix = %s", parsed["hardware_prefix"])
-    else:
-        logger.info("[HW] validate_license: parsed = None (parse_license failed)")
-
-    # First activation: always accept, bind HWID
+    # First activation: already handled by generate_license via store.save
     if not stored:
-        logger.info("[HW] validate_license: FIRST ACTIVATION — saving HWID %s", hw_id)
-        store.save(license_key, hw_id)
-        logger.info("[HW] validate_license: first activation SUCCESS")
-        return True, "Valid"
+        return False, "No license activated"
 
-    # Subsequent runs: verify HW binding
+    # Verify hardware binding with full HWID
     stored_hw = stored.get("hardware_id", "")
-    logger.info("[HW] validate_license: SUBSEQUENT RUN — stored_hw = %s, current_hw = %s", stored_hw, hw_id)
-    logger.info("[HW] validate_license: SUBSEQUENT RUN — checking prefix: hw_id[:7]=%s vs parsed.hardware_prefix=%s", hw_id[:7].upper(), parsed["hardware_prefix"] if parsed else "N/A")
+    if stored_hw and stored_hw != hw_id:
+        return False, "Hardware mismatch — license bound to different machine"
 
     if parsed and not hw_id.upper().startswith(parsed["hardware_prefix"]):
-        logger.info("[HW] validate_license: HARDWARE MISMATCH — current prefix %s does not match license prefix %s", hw_id[:7].upper(), parsed["hardware_prefix"])
-        return False, "Hardware mismatch"
+        return False, "Hardware prefix mismatch"
 
-    logger.info("[HW] validate_license: prefix check PASSED")
-
-    if stored_hw != hw_id:
-        logger.info("[HW] validate_license: stored_hw differs from current — auto-updating binding to %s", hw_id)
-        store.save(license_key, hw_id)
-    else:
-        logger.info("[HW] validate_license: stored_hw == current_hw, no update needed")
-
-    logger.info("[HW] validate_license: returning VALID")
     return True, "Valid"
 
 
 def is_license_valid() -> tuple[bool, str]:
     """Check if a valid license is already activated on this machine."""
-    logger.info("[HW] is_license_valid: ENTER")
     store = get_license_store()
-    stored = store.load()
+    stored = store.load() if store else None
     if not stored:
-        logger.info("[HW] is_license_valid: returning False — no license activated")
         return False, "No license activated"
-    logger.info("[HW] is_license_valid: stored license found, delegating to validate_license")
-    result = validate_license(stored["license_key"])
-    logger.info("[HW] is_license_valid: result = (%s, %s)", result[0], result[1])
-    return result
+    return validate_license(stored["license_key"])

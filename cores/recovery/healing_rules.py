@@ -6,7 +6,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 
-logger = logging.getLogger("catseye.recovery.healing_rules")
+logger = logging.getLogger("cateye.recovery.healing_rules")
 
 
 class FailureType(str, Enum):

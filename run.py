@@ -56,7 +56,7 @@ def _log(state: str, msg: str, *args) -> None:
     if _log is None:
         import logging
         logging.basicConfig(level=logging.INFO, format="[CATEYE][%(state)s] %(message)s", stream=sys.stdout)
-        _log = logging.getLogger("catseye.launcher")
+        _log = logging.getLogger("cateye.launcher")
     # Log via simple print if logging not ready
     text = msg % args if args else msg
     print(f"[CATEYE][{state}] {text}")
@@ -397,8 +397,8 @@ def main() -> None:
         try:
             from desktop.boot_guard import enable_safe_mode
             enable_safe_mode("User request via --safe-mode")
-        except Exception:
-            pass
+        except Exception as exc:
+            _log("BOOT", "Failed to enable safe mode: %s", exc)
 
     # Detect mode
     mode, dev, no_tray = _detect_mode(args)

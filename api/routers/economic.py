@@ -37,7 +37,7 @@ from database.db import SessionLocal
 from database.models import Report
 from database.models_economic import BountyTier, MemoryPattern, Program, ProgramIntel, ReportPriority, ScopeDocument
 
-logger = logging.getLogger("catseye.api.economic")
+logger = logging.getLogger("cateye.api.economic")
 
 router = APIRouter(prefix="/api/economic", tags=["economic"])
 
@@ -1194,11 +1194,11 @@ def _intel_to_out(i: ProgramIntel) -> ProgramIntelOut:
 @router.get("/bank-account")
 def get_bank_account():
     """Get linked bank/payout account info."""
-    from database.models import RastroConfig
+    from database.models import CATEYEConfig
 
     session = SessionLocal()
     try:
-        row = session.query(RastroConfig).filter(RastroConfig.key == "connections.payout_accounts").first()
+        row = session.query(CATEYEConfig).filter(CATEYEConfig.key == "connections.payout_accounts").first()
         accounts = json.loads(row.value) if row and row.value else []
         default = next((a for a in accounts if a.get("is_default")), None) or (accounts[0] if accounts else None)
         if default:

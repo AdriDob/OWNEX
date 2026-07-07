@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
-logger = logging.getLogger("catseye.autonomous.engine")
+logger = logging.getLogger("cateye.autonomous.engine")
 
 AUTONOMOUS_INTERVAL = 15.0
 
@@ -198,8 +198,8 @@ class AutonomousModeEngine:
         try:
             import psutil
             metrics["memory_percent"] = psutil.Process().memory_percent()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Failed to collect memory metrics: %s", exc)
 
         try:
             from cores.recovery import get_recovery_engine
@@ -210,8 +210,8 @@ class AutonomousModeEngine:
             metrics["open_circuits"] = sum(
                 1 for s in cb_snaps.values() if s.get("state") == "open"
             )
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Failed to collect recovery metrics: %s", exc)
 
         try:
             from cores.agents import get_all_agents
@@ -219,8 +219,8 @@ class AutonomousModeEngine:
             metrics["agent_crashes"] = sum(
                 1 for a in agents if a.tasks_failed > 5
             )
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Failed to collect agent metrics: %s", exc)
 
         return metrics
 
@@ -289,11 +289,11 @@ class AutonomousModeEngine:
                     action=decision.action,
                     source="autonomous_engine",
                 )
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("Failed to emit decision event: %s", exc)
+
 
     # ── State ─────────────────────────────────────────────────────────
-
     def status(self) -> dict[str, Any]:
         with self._lock:
             return {

@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Request
 
 from cores.tracking.service import handle_webhook_callback
 
-logger = logging.getLogger("catseye.webhooks")
+logger = logging.getLogger("cateye.webhooks")
 
 router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
 

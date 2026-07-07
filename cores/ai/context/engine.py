@@ -20,7 +20,7 @@ from typing import Any
 
 from database import db, models
 
-logger = logging.getLogger("catseye.cateye.context")
+logger = logging.getLogger("cateye.ai.context")
 
 _DEFAULT_TTL = 30  # seconds
 
@@ -179,16 +179,16 @@ def _build_context() -> dict[str, Any]:
         try:
             from cores.identity_engine import wallet_provider
             wallets_data = wallet_provider.get_all_wallets()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Failed to load wallets for context: %s", exc)
 
         # ── Batch 10: Linked accounts ──
         linked_accounts: list[dict] = []
         try:
             from cores.identity_engine import identity_provider
             linked_accounts = identity_provider.get_connections()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Failed to load linked accounts for context: %s", exc)
 
         # ── Health score ──
         db_ok = True

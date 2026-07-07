@@ -5,7 +5,7 @@ from typing import Any
 
 from cores.platforms.base import BugBountyPlatform, SubmissionResult, SyncResult
 
-logger = logging.getLogger("catseye.platforms.intigriti")
+logger = logging.getLogger("cateye.platforms.intigriti")
 
 
 class Intigriti(BugBountyPlatform):

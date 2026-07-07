@@ -22,7 +22,7 @@ from cores.opportunity.models import (
     ScoreBreakdown,
 )
 
-logger = logging.getLogger("catseye.opportunity.scoring2")
+logger = logging.getLogger("cateye.opportunity.scoring2")
 
 # Known high-value technology keywords
 _HIGH_VALUE_TAGS: set[str] = {

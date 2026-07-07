@@ -13,7 +13,7 @@ from typing import Any
 
 from cores.opportunity.models import Opportunity, OpportunitySnapshot
 
-logger = logging.getLogger("catseye.opportunity.history")
+logger = logging.getLogger("cateye.opportunity.history")
 
 _GLOBAL_HISTORY: HistoryManager | None = None
 

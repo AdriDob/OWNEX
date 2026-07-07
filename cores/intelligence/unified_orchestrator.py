@@ -21,7 +21,7 @@ from cores.intelligence.dependency_graph import DependencyGraph
 from cores.intelligence.event_system import EventSystem, get_event_system
 from cores.intelligence.observability import ObservabilityCollector, get_observability
 
-LOG = logging.getLogger("catseye.intelligence.orchestrator")
+LOG = logging.getLogger("cateye.intelligence.orchestrator")
 
 
 class UnifiedOrchestrator:

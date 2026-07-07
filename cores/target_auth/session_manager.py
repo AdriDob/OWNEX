@@ -8,7 +8,7 @@ from cores.target_auth.login_service import TargetLoginService
 from cores.target_auth.vault import get_credential_vault
 from database import db, models
 
-logger = logging.getLogger("catseye.target_auth.session")
+logger = logging.getLogger("cateye.target_auth.session")
 
 
 class TargetSessionManager:

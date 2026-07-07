@@ -20,7 +20,7 @@ from cores.ledger import compute_wallet, get_history
 from cores.pipeline.report_service import get_report
 from cores.platforms import PLATFORM_REGISTRY
 
-logger = logging.getLogger("catseye.micro")
+logger = logging.getLogger("cateye.micro")
 
 
 # ── 1. quick_sync_all ────────────────────────────────────────────────

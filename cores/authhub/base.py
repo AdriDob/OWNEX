@@ -15,7 +15,7 @@ class OAuth2Provider(ABC):
         """Return the URL the user must visit to authorize."""
 
     @abstractmethod
-    def exchange_code(self, code: str) -> dict[str, Any]:
+    def exchange_code(self, code: str, state: str = "") -> dict[str, Any]:
         """Exchange an authorization code for tokens."""
 
     @abstractmethod

@@ -8,7 +8,7 @@ from typing import Any
 
 from cores.bounty_scraper.scraper import BountyScraper
 
-logger = logging.getLogger("catseye.bounty_scraper.monitor")
+logger = logging.getLogger("cateye.bounty_scraper.monitor")
 
 
 class DiscoveryMonitor:

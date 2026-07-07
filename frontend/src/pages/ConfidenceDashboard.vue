@@ -75,7 +75,7 @@ onMounted(fetchAudits)
     </div>
 
     <template v-if="loading">
-      <div class="grid grid-cols-3 gap-3">
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Skeleton v-for="i in 3" :key="i" class="h-24 rounded-xl" />
       </div>
       <Skeleton class="h-48 rounded-xl mt-4" />
@@ -113,7 +113,7 @@ onMounted(fetchAudits)
       </Card>
 
       <!-- Summary cards -->
-      <div class="grid grid-cols-3 gap-3 animate-in">
+      <div class="grid grid-cols-1 gap-3 animate-in sm:grid-cols-3">
         <Card class="p-4 border-success/30 bg-success/5">
           <p class="text-[10px] font-bold text-success uppercase tracking-wider">HIGH</p>
           <p class="text-2xl font-bold text-success">{{ highConf.length }}</p>

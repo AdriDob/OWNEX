@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-logger = logging.getLogger("catseye.api.settings")
+logger = logging.getLogger("cateye.api.settings")
 router = APIRouter(prefix="/api/settings", tags=["settings"])
 
 
@@ -19,10 +19,10 @@ class SettingsBatch(BaseModel):
 def get_all_settings() -> dict[str, Any]:
     """Return every stored setting as a flat key-value dict."""
     from database.db import SessionLocal
-    from database.models import RastroConfig
+    from database.models import CATEYEConfig
     session = SessionLocal()
     try:
-        rows = session.query(RastroConfig).all()
+        rows = session.query(CATEYEConfig).all()
         result = {}
         for r in rows:
             try:
@@ -49,7 +49,7 @@ def save_settings_batch(body: SettingsBatch) -> dict[str, Any]:
     """Save multiple settings at once. Keys with None value are deleted."""
     from cores.settings.service import set_setting
     from database.db import SessionLocal
-    from database.models import RastroConfig
+    from database.models import CATEYEConfig
 
     saved = 0
     deleted = 0
@@ -57,7 +57,7 @@ def save_settings_batch(body: SettingsBatch) -> dict[str, Any]:
     try:
         for key, value in body.settings.items():
             if value is None:
-                session.query(RastroConfig).filter(RastroConfig.key == key).delete()
+                session.query(CATEYEConfig).filter(CATEYEConfig.key == key).delete()
                 deleted += 1
             else:
                 set_setting(key, value)
@@ -77,10 +77,10 @@ def save_settings_batch(body: SettingsBatch) -> dict[str, Any]:
 def delete_setting(key: str) -> dict[str, str]:
     """Delete a single setting by its key path."""
     from database.db import SessionLocal
-    from database.models import RastroConfig
+    from database.models import CATEYEConfig
     session = SessionLocal()
     try:
-        rows = session.query(RastroConfig).filter(RastroConfig.key == key).delete()
+        rows = session.query(CATEYEConfig).filter(CATEYEConfig.key == key).delete()
         session.commit()
         return {"status": "deleted", "key": key, "found": rows > 0}
     finally:

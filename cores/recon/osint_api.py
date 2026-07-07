@@ -31,7 +31,7 @@ from urllib.parse import quote
 
 import httpx
 
-logger = logging.getLogger("catseye.osint")
+logger = logging.getLogger("cateye.osint")
 
 
 class OSINTClient:

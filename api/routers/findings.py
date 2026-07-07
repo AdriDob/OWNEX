@@ -13,7 +13,7 @@ from api.services.data_service import create_finding as svc_create_finding
 from api.services.data_service import list_findings
 from database import db, models
 
-logger = logging.getLogger("catseye.api.findings")
+logger = logging.getLogger("cateye.api.findings")
 
 router = APIRouter(prefix="/api/findings", tags=["findings"])
 
@@ -46,13 +46,25 @@ def _finding_to_dict(f) -> dict[str, Any]:
 @router.post("")
 def create_finding(body: FindingCreate):
     try:
-        return svc_create_finding(
+        result = svc_create_finding(
             target_id=body.target_id,
             title=body.title,
             severity=body.severity or "medium",
             description=body.description,
             endpoint_id=body.endpoint_id,
         )
+        try:
+            from cores.events.event_bus import get_event_bus
+            bus = get_event_bus()
+            bus.publish("finding:created", {
+                "id": result.get("id"),
+                "title": body.title,
+                "severity": body.severity or "medium",
+                "target_id": body.target_id,
+            })
+        except Exception:
+            pass
+        return result
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
 
@@ -116,9 +128,25 @@ def update_finding_status(finding_id: int, body: StatusUpdate):
         f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
         if not f:
             raise HTTPException(status_code=404, detail="Finding not found")
+        old_status = f.status
         f.status = body.status
         session.commit()
-        return _finding_to_dict(f)
+        result = _finding_to_dict(f)
+        if old_status != body.status:
+            try:
+                from cores.events.event_bus import get_event_bus
+                bus = get_event_bus()
+                bus.publish("finding:status_changed", {
+                    "id": finding_id,
+                    "title": f.title,
+                    "severity": f.severity,
+                    "old_status": old_status,
+                    "new_status": body.status,
+                    "target_id": f.target_id,
+                })
+            except Exception:
+                pass
+        return result
     finally:
         session.close()
 

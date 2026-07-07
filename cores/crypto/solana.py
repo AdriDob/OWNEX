@@ -16,7 +16,7 @@ from cores.crypto.base import (
 )
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("catseye.crypto.solana")
+logger = logging.getLogger("cateye.crypto.solana")
 
 SOLANA_RPC = "https://api.mainnet-beta.solana.com"
 SOL_DECIMALS = 9

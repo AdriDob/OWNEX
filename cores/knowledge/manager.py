@@ -8,7 +8,7 @@ from cores.knowledge.abstracts import KnowledgeSourceConnector, KnowledgeStore
 from cores.knowledge.graph import KnowledgeGraphEdge, KnowledgeGraphManager, KnowledgeGraphNode
 from cores.knowledge.pipeline import KnowledgeIngestPipeline
 
-logger = logging.getLogger("catseye.knowledge.manager")
+logger = logging.getLogger("cateye.knowledge.manager")
 
 
 class KnowledgeManager(ABC):

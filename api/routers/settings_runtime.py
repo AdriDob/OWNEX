@@ -5,7 +5,7 @@ from typing import Any
 from fastapi import APIRouter
 
 from cores.settings.service import (
-    RastroMode,
+    CATEYEMode,
     get_all_settings,
     get_mode,
     get_platform_config,
@@ -30,9 +30,9 @@ def get_mode_setting() -> dict[str, str]:
 def set_mode_setting(body: dict[str, str]) -> dict[str, str]:
     mode = body.get("mode", "manual")
     try:
-        validated = RastroMode(mode)
+        validated = CATEYEMode(mode)
     except ValueError:
-        validated = RastroMode.MANUAL
+        validated = CATEYEMode.MANUAL
     set_mode(validated)
     return {"mode": validated.value, "status": "ok"}
 

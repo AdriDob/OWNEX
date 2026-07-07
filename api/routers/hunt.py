@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter
 
-logger = logging.getLogger("catseye.api.hunt")
+logger = logging.getLogger("cateye.api.hunt")
 router = APIRouter(prefix="/api/hunt", tags=["hunt"])
 
 _hunt_state = {

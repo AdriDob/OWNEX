@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 
-logger = logging.getLogger("catseye.desktop.notifications")
+logger = logging.getLogger("cateye.desktop.notifications")
 
 _HAS_PLYER = False
 try:

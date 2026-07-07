@@ -7,7 +7,7 @@ import logging
 import os
 import socket
 
-logger = logging.getLogger("catseye.license.hardware")
+logger = logging.getLogger("cateye.license.hardware")
 
 
 def _get_mac() -> str:

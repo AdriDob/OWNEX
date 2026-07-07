@@ -70,7 +70,7 @@ def main() -> None:
     run(["git", "push", "origin", "main", "--tags"])
 
     print(f"Released v{new_ver}")
-    print(f"  → https://github.com/tu-usuario/catseye/releases/tag/v{new_ver}")
+    print(f"  → https://github.com/tu-usuario/cateye/releases/tag/v{new_ver}")
 
 
 if __name__ == "__main__":

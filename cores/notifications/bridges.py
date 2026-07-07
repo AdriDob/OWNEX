@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-logger = logging.getLogger("catseye.notifications.bridges")
+logger = logging.getLogger("cateye.notifications.bridges")
 
 
 def register_db_bridge() -> None:

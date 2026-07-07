@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("catseye.predictor.engine")
+logger = logging.getLogger("cateye.predictor.engine")
 
 PREDICTION_WINDOW = 300
 
@@ -111,8 +111,8 @@ class FailurePredictionSystem:
                             recency_weight += 0.15
                         elif hours_ago < 24:
                             recency_weight += 0.05
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        logger.debug("Failed to parse timestamp: %s", exc)
                 recency_factor = min(1.0, recency_weight)
 
                 # Combined probability

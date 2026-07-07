@@ -11,7 +11,7 @@ import os
 import time
 from typing import Any
 
-logger = logging.getLogger("catseye.identity.device")
+logger = logging.getLogger("cateye.identity.device")
 
 DATA_DIR = os.path.join(
     os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")),

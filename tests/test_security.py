@@ -175,21 +175,192 @@ class TestAuthMiddleware:
         assert resp.status_code != 200, "/api/secrets must not be accessible without auth"
 
 
-class TestRateLimit:
-    def test_login_rate_limit(self, client):
-        for _ in range(15):
-            client.post("/api/auth/login", json={"device_id": "rate-test"})
-        resp = client.post("/api/auth/login", json={"device_id": "rate-test"})
-        assert resp.status_code == 429
+class TestCSRF:
+    """CSRF middleware tests — dispatch tested directly."""
 
-    def test_rate_limit_headers(self, client):
+    @pytest.fixture(autouse=True)
+    def _csrf_env(self, monkeypatch):
+        monkeypatch.setenv("CATEYE_DESKTOP", "1")
+
+    def _make_request(self, method: str = "GET", path: str = "/test",
+                      cookie: str | None = None, header: str | None = None) -> Request:
+        from starlette.requests import Request
+        headers = []
+        if cookie:
+            headers.append((b"cookie", f"csrf-token={cookie}".encode()))
+        if header:
+            headers.append((b"x-csrf-token", header.encode()))
+        scope = {
+            "type": "http",
+            "method": method,
+            "path": path,
+            "headers": headers,
+            "query_string": b"",
+            "scheme": "http",
+            "client": ("127.0.0.1", 8000),
+            "server": ("test", 8000),
+            "root_path": "",
+            "asgi": {"version": "3.0"},
+        }
+        return Request(scope)
+
+    @pytest.mark.asyncio
+    async def test_csrf_cookie_set_on_get(self):
+        from starlette.responses import Response
+
+        from api.middleware.csrf_middleware import COOKIE_NAME, CSRFMiddleware
+
+        mw = CSRFMiddleware(app=None)
+        request = self._make_request("GET", "/test")
+
+        async def call_next(r):
+            return Response("ok")
+
+        response = await mw.dispatch(request, call_next)
+        cookie_header = response.headers.get("set-cookie", "")
+        assert COOKIE_NAME in cookie_header
+
+    @pytest.mark.asyncio
+    async def test_csrf_blocked_missing_header(self):
+        import secrets
+
+        from starlette.responses import Response
+
+        from api.middleware.csrf_middleware import CSRFMiddleware
+
+        mw = CSRFMiddleware(app=None)
+        token = secrets.token_hex(32)
+        request = self._make_request("POST", "/test", cookie=token)
+
+        async def call_next(r):
+            return Response("ok")
+
+        response = await mw.dispatch(request, call_next)
+        assert response.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_csrf_valid_token_passes(self):
+        import secrets
+
+        from starlette.responses import Response
+
+        from api.middleware.csrf_middleware import CSRFMiddleware
+
+        mw = CSRFMiddleware(app=None)
+        token = secrets.token_hex(32)
+        request = self._make_request("POST", "/test", cookie=token, header=token)
+
+        async def call_next(r):
+            return Response("ok")
+
+        response = await mw.dispatch(request, call_next)
+        assert response.status_code == 200
+
+    @pytest.mark.asyncio
+    async def test_csrf_token_mismatch_blocked(self):
+        from starlette.responses import Response
+
+        from api.middleware.csrf_middleware import CSRFMiddleware
+
+        mw = CSRFMiddleware(app=None)
+        request = self._make_request("POST", "/test", cookie="valid-token", header="different-token")
+
+        async def call_next(r):
+            return Response("ok")
+
+        response = await mw.dispatch(request, call_next)
+        assert response.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_csrf_exempt_paths_skip_check(self):
+        from api.middleware.csrf_middleware import CSRFMiddleware
+
+        mw = CSRFMiddleware(app=None)
+        request = self._make_request("POST", "/api/health")
+
+        async def call_next(r):
+            from starlette.responses import Response
+            return Response("ok")
+
+        response = await mw.dispatch(request, call_next)
+        assert response.status_code == 200
+
+    @pytest.mark.asyncio
+    async def test_csrf_safe_methods_skip_check(self):
+        from starlette.responses import Response
+
+        from api.middleware.csrf_middleware import CSRFMiddleware
+
+        mw = CSRFMiddleware(app=None)
+        request = self._make_request("OPTIONS", "/test")
+
+        async def call_next(r):
+            return Response("ok")
+
+        response = await mw.dispatch(request, call_next)
+        assert response.status_code == 200
+
+
+class TestRateLimit:
+    def test_rate_limiter_exhaustion(self):
+        from cores.gateway.rate_limit import TokenBucket
+        bucket = TokenBucket(rate=1000.0, burst=10)
+        for _ in range(10):
+            assert bucket.consume("test")
+        assert not bucket.consume("test")
+        assert bucket.remaining("test") < 1
+
+    def test_rate_limiter_refill(self):
+        import time
+
+        from cores.gateway.rate_limit import TokenBucket
+        bucket = TokenBucket(rate=10.0, burst=5)
+        for _ in range(5):
+            bucket.consume("test")
+        assert not bucket.consume("test")
+        time.sleep(0.6)
+        assert bucket.consume("test")
+
+    def test_rate_limiter_remaining(self):
+        from cores.gateway.rate_limit import TokenBucket
+        bucket = TokenBucket(rate=1000.0, burst=5)
+        for _ in range(3):
+            bucket.consume("test")
+        remaining = bucket.remaining("test")
+        assert 1.0 <= remaining <= 5.0
+
+    def test_rate_limiter_reset(self):
+        from cores.gateway.rate_limit import TokenBucket
+        bucket = TokenBucket(rate=1000.0, burst=10)
+        for _ in range(10):
+            bucket.consume("test")
+        assert not bucket.consume("test")
+        bucket.reset("test")
+        assert bucket.consume("test")
+
+    def test_rate_limiter_multiple_keys(self):
+        from cores.gateway.rate_limit import TokenBucket
+        bucket = TokenBucket(rate=1000.0, burst=5)
+        for _ in range(5):
+            bucket.consume("a")
+            bucket.consume("b")
+        assert not bucket.consume("a")
+        assert not bucket.consume("b")
+
+    def test_rate_limiter_custom_rules(self):
+        from cores.gateway.rate_limit import TokenBucket
+        bucket = TokenBucket(rate=1.0, burst=5)
+        bucket.add_rule(r"/api/auth/login", rate=1000.0, burst=3)
+        for _ in range(3):
+            assert bucket.consume("/api/auth/login:user")
+        assert not bucket.consume("/api/auth/login:user")
+
+    def test_rate_limit_headers_on_health(self, client):
         resp = client.get("/api/health")
-        # Health is not rate-limited, so no X-RateLimit header expected
         assert "X-RateLimit-Remaining" not in resp.headers
 
     def test_normal_request_has_remaining_header(self, client):
         token = _login(client)
         resp = client.get("/api/system/health", headers={"Authorization": f"Bearer {token}"})
         assert resp.status_code == 200
-        # Rate limited endpoints should have the header
         assert "X-RateLimit-Remaining" in resp.headers

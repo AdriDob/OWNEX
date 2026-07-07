@@ -6,7 +6,7 @@ from typing import Any
 
 from cores.platforms.base import BugBountyPlatform, SubmissionResult, SyncResult
 
-logger = logging.getLogger("catseye.platforms.hackerone")
+logger = logging.getLogger("cateye.platforms.hackerone")
 
 H1_SUBMIT_URL = "https://hackerone.com/reports/new"
 H1_API_BASE = "https://api.hackerone.com/v1"

@@ -30,7 +30,7 @@ from cores.financial.withdrawal import ConfirmationMethod, complete_withdrawal, 
 from cores.identity_vault import get_identity_vault
 from cores.ledger import LedgerEvent, record_event
 
-logger = logging.getLogger("catseye.financial.bank_payout")
+logger = logging.getLogger("cateye.financial.bank_payout")
 
 PLATFORM_PATTERNS: dict[str, list[str]] = {
     "hackerone": [r"HACKERONE", r"HackerOne\s*Inc", r"H1\s+Payout"],

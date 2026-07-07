@@ -89,7 +89,7 @@ function severityColor(sev: string) {
     </div>
 
     <template v-if="store.loading">
-      <div class="grid grid-cols-4 gap-3">
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Skeleton v-for="i in 4" :key="i" class="h-20 rounded-xl" />
       </div>
       <Skeleton class="h-40 rounded-xl" />
@@ -104,7 +104,7 @@ function severityColor(sev: string) {
 
     <template v-else>
       <!-- Pipeline summary counts -->
-      <div class="grid grid-cols-4 gap-3">
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Card v-for="(stage, i) in pipelineStages" :key="stage.key" class="p-4 text-center cursor-pointer hover:bg-surface/50 transition-colors stagger-item" :style="{ '--i': i }" @click="activeTab = 'pipeline'">
           <p class="text-2xl font-bold tabular-nums text-foreground">{{ stage.items.length }}</p>
           <p class="mt-1 text-xs text-muted-foreground capitalize">{{ stage.key }}</p>

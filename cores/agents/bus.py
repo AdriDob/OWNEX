@@ -17,7 +17,7 @@ from typing import Any
 
 from cores.agents.types import AgentEvent, AgentId, EventType
 
-logger = logging.getLogger("catseye.agents.bus")
+logger = logging.getLogger("cateye.agents.bus")
 
 EventHandler = Callable[[AgentEvent], Any]
 LoggingHook = Callable[[AgentEvent], None]
@@ -188,3 +188,29 @@ def reset_agent_bus() -> None:
     """Reset the bus (for testing)."""
     global _BUS
     _BUS = None
+
+
+def bridge_agent_bus_to_eventbus() -> None:
+    """Forward AgentBus pipeline events to the system-wide EventBus."""
+    try:
+        from cores.events.event_bus import get_event_bus
+        event_bus = get_event_bus()
+        agent_bus = get_agent_bus()
+
+        def _forward(event):
+            try:
+                etype = event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type)
+                event_bus.publish(f"agent:{etype}", {
+                    "source": str(event.source) if event.source else None,
+                    "target": str(event.target) if event.target else None,
+                    "correlation_id": event.correlation_id,
+                    "priority": event.priority,
+                    "payload": event.payload if hasattr(event, 'payload') else {},
+                })
+            except Exception:
+                logger.debug("Failed to forward agent event to EventBus")
+
+        agent_bus.subscribe("*", _forward)
+        logger.info("[EVENTS] AgentBus → EventBus bridge started")
+    except Exception:
+        logger.warning("[EVENTS] Failed to start AgentBus → EventBus bridge")

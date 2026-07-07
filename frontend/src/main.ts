@@ -6,6 +6,14 @@ import { routes, isPublicRoute } from './router'
 import { useAuthStore } from '@/stores/auth'
 import './style.css'
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').catch(() => {
+      // SW registration failed — non-critical
+    })
+  })
+}
+
 const pinia = createPinia()
 const router = createRouter({
   history: createWebHistory(),

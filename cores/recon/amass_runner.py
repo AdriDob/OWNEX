@@ -22,7 +22,7 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("catseye.recon.amass")
+logger = logging.getLogger("cateye.recon.amass")
 
 ENUM_MODES = {
     "passive": ["amass", "enum", "-passive", "-nocolor", "-json"],

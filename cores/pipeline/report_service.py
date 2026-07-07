@@ -13,7 +13,7 @@ from cores.pipeline.stages import PipelineContext, PipelineStage
 from cores.validation.gate import Verdict
 from database import models
 
-logger = logging.getLogger("catseye.pipeline.report_service")
+logger = logging.getLogger("cateye.pipeline.report_service")
 
 REPORT_STATUSES = [
     "draft", "ready", "submitted", "need_more_info",

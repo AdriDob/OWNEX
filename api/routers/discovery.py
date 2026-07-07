@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from cores.bounty_scraper.monitor import get_discovery_monitor
 from cores.bounty_scraper.scraper import BountyScraper
 
-logger = logging.getLogger("catseye.api.discovery")
+logger = logging.getLogger("cateye.api.discovery")
 router = APIRouter(prefix="/api/discovery", tags=["discovery"])
 
 _scraper = BountyScraper()

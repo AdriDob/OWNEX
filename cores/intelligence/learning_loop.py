@@ -16,7 +16,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-logger = logging.getLogger("catseye.intelligence.loop")
+logger = logging.getLogger("cateye.intelligence.loop")
 
 SignalHandler = Callable[[dict[str, Any]], None]
 

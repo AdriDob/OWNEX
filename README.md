@@ -241,18 +241,19 @@
 
    ## 📚 Documentación
 
-   | Documento | Descripción |
-   |-------------|-------------|
-    | [`SYSTEM.md`](SYSTEM.md) | Documentación completa del sistema |
-    | [`docs/SISTEMA.md`](docs/SISTEMA.md) | Visión general del sistema: arquitectura, stack, componentes |
-    | [`SYSTEM_INVENTORY.md`](SYSTEM_INVENTORY.md) | Inventario técnico exhaustivo |
-    | [`PLAN.md`](PLAN.md) | Plan histórico de migración React → Vue 3 |
-    | [`ROADMAP.md`](ROADMAP.md) | Roadmap de versiones |
-    | [`CHANGELOG.md`](CHANGELOG.md) | Historial de versiones |
-    | [`AGENT_CONTEXT.md`](AGENT_CONTEXT.md) | Protocolo de coordinación multi-AI |
-    | [`CLINE_SETUP.md`](CLINE_SETUP.md) | Configuración de Cline para desarrollo |
-    | [`docs/tutorial.md`](docs/tutorial.md) | Tutorial paso a paso de uso del sistema |
-    | [`docs/monetización.md`](docs/monetización.md) | Modelo de monetización y estrategia de ingresos |
+| Documento | Descripción |
+|-------------|-------------|
+| [`.ai/`](.ai/) | **Agent Operating System** — fuente de verdad para agentes IA (OpenCode, Cline, Copilot) |
+| [`SYSTEM.md`](SYSTEM.md) | Documentación completa del sistema |
+| [`docs/SISTEMA.md`](docs/SISTEMA.md) | Visión general del sistema: arquitectura, stack, componentes |
+| [`SYSTEM_INVENTORY.md`](SYSTEM_INVENTORY.md) | Inventario técnico exhaustivo |
+| [`PLAN.md`](PLAN.md) | Plan histórico de migración React → Vue 3 |
+| [`ROADMAP.md`](ROADMAP.md) | Roadmap de versiones |
+| [`CHANGELOG.md`](CHANGELOG.md) | Historial de versiones |
+| [`AGENT_CONTEXT.md`](AGENT_CONTEXT.md) | Protocolo de coordinación multi-AI |
+| [`CLINE_SETUP.md`](CLINE_SETUP.md) | Configuración de Cline para desarrollo |
+| [`docs/tutorial.md`](docs/tutorial.md) | Tutorial paso a paso de uso del sistema |
+| [`docs/monetización.md`](docs/monetización.md) | Modelo de monetización y estrategia de ingresos |
 
    ---
 
@@ -275,6 +276,6 @@
    ---
 
    <div align="center">
-     <sub>Built with 🧠 by bug bounty hunters, for bug bounty hunters.</sub>
+     <sub>Built with seriously by bug bounty hunters, for bug bounty hunters.</sub>
    </div>
 </div>

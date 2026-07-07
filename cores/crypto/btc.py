@@ -16,7 +16,7 @@ from cores.crypto.base import (
 )
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("catseye.crypto.btc")
+logger = logging.getLogger("cateye.crypto.btc")
 
 BLOCKSTREAM_BASE = "https://blockstream.info/api"
 

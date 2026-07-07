@@ -126,9 +126,9 @@ function difficultyColor(diff?: string) {
 <template>
   <div class="max-w-4xl mx-auto py-6 px-4 space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="min-w-0">
+        <h1 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
           <Shield class="w-6 h-6 text-cyan-400" />
           Guía de Validación
         </h1>

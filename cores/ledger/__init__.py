@@ -1,4 +1,4 @@
-"""Financial ledger — append-only, immutable transaction log.
+"""Financial ledger — append-only, immutable transaction log, persisted to DB.
 
 Every financial event is recorded as a LedgerEntry. No overwrites.
 Balances are computed by replaying the ledger, never stored directly.
@@ -13,7 +13,10 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("catseye.ledger")
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session
+
+logger = logging.getLogger("cateye.ledger")
 
 LEDGER_EVENTS = [
     "bounty_created",
@@ -65,7 +68,7 @@ class LedgerEvent(str, Enum):
 
 
 @dataclass
-class LedgerEntry:
+class LedgerEntryData:
     event: LedgerEvent
     amount: float
     currency: str
@@ -106,7 +109,25 @@ class WalletState:
         }
 
 
-_entries: list[LedgerEntry] = []
+def _get_session() -> Session:
+    from database.db import SessionLocal
+    return SessionLocal()
+
+
+def _row_to_entry(row: Any) -> LedgerEntryData:
+    return LedgerEntryData(
+        event=LedgerEvent(row.event),
+        amount=row.amount,
+        currency=row.currency,
+        description=row.description or "",
+        source=row.source or "system",
+        source_id=row.source_id or "",
+        platform=row.platform or "internal",
+        timestamp=row.timestamp,
+        entry_id=row.entry_id,
+        metadata=json.loads(row.metadata_json or "{}"),
+        reconciled=bool(row.reconciled),
+    )
 
 
 def record_event(
@@ -118,9 +139,35 @@ def record_event(
     source_id: str = "",
     platform: str = "internal",
     metadata: dict[str, Any] | None = None,
-) -> LedgerEntry:
+) -> LedgerEntryData:
     import uuid
-    entry = LedgerEntry(
+
+    from database.models import LedgerEntry as LedgerEntryModel
+
+    entry_id = str(uuid.uuid4())
+    timestamp = datetime.now(timezone.utc).isoformat()
+    metadata_json = json.dumps(metadata or {})
+
+    session = _get_session()
+    try:
+        model = LedgerEntryModel(
+            entry_id=entry_id,
+            event=event.value,
+            amount=amount,
+            currency=currency,
+            description=description,
+            source=source,
+            source_id=source_id,
+            platform=platform,
+            timestamp=timestamp,
+            metadata_json=metadata_json,
+        )
+        session.add(model)
+        session.commit()
+    finally:
+        session.close()
+
+    entry = LedgerEntryData(
         event=event,
         amount=amount,
         currency=currency,
@@ -128,18 +175,29 @@ def record_event(
         source=source,
         source_id=source_id,
         platform=platform,
-        timestamp=datetime.now(timezone.utc).isoformat(),
-        entry_id=str(uuid.uuid4()),
+        timestamp=timestamp,
+        entry_id=entry_id,
         metadata=metadata or {},
     )
-    _entries.append(entry)
     logger.info("Ledger: %s %s %.2f %s (%s)", event.value, source, amount, description, platform)
     return entry
 
 
+def _all_entries() -> list[LedgerEntryData]:
+    """Return all ledger entries sorted by timestamp descending."""
+    from database.models import LedgerEntry as LedgerEntryModel
+
+    session = _get_session()
+    try:
+        rows = session.query(LedgerEntryModel).order_by(LedgerEntryModel.id.desc()).all()
+        return [_row_to_entry(r) for r in rows]
+    finally:
+        session.close()
+
+
 def compute_wallet() -> WalletState:
     w = WalletState()
-    for e in _entries:
+    for e in _all_entries():
         if e.event in (LedgerEvent.PAYOUT_RECEIVED, LedgerEvent.ADJUSTMENT_MANUAL,
                        LedgerEvent.CRYPTO_DEPOSIT, LedgerEvent.CRYPTO_STAKING_REWARD,
                        LedgerEvent.CRYPTO_DEFI_YIELD, LedgerEvent.CRYPTO_AIRDROP):
@@ -161,22 +219,29 @@ def compute_wallet() -> WalletState:
 
 
 def get_history(limit: int = 100) -> list[dict[str, Any]]:
-    return [
-        {
-            "id": e.entry_id,
-            "event": e.event.value,
-            "amount": e.amount,
-            "currency": e.currency,
-            "description": e.description,
-            "source": e.source,
-            "source_id": e.source_id,
-            "platform": e.platform,
-            "timestamp": e.timestamp,
-            "reconciled": e.reconciled,
-            "metadata": e.metadata,
-        }
-        for e in sorted(_entries, key=lambda x: x.timestamp, reverse=True)[:limit]
-    ]
+    from database.models import LedgerEntry as LedgerEntryModel
+
+    session = _get_session()
+    try:
+        rows = session.query(LedgerEntryModel).order_by(LedgerEntryModel.id.desc()).limit(limit).all()
+        return [
+            {
+                "id": r.entry_id,
+                "event": r.event,
+                "amount": r.amount,
+                "currency": r.currency,
+                "description": r.description,
+                "source": r.source,
+                "source_id": r.source_id,
+                "platform": r.platform,
+                "timestamp": r.timestamp,
+                "reconciled": bool(r.reconciled),
+                "metadata": json.loads(r.metadata_json or "{}"),
+            }
+            for r in rows
+        ]
+    finally:
+        session.close()
 
 
 def reconcile() -> dict[str, Any]:
@@ -190,8 +255,13 @@ def reconcile() -> dict[str, Any]:
         issues.append("Negative locked balance")
     return {
         "wallet": w.to_dict(),
-        "entry_count": len(_entries),
+        "entry_count": len(_all_entries()),
         "issues": issues,
         "healthy": len(issues) == 0,
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
+
+
+# Backward-compatible alias for modules that imported _entries directly.
+# New code should call _all_entries() instead.
+_entries: list[LedgerEntryData] = []

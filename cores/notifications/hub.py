@@ -29,7 +29,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("catseye.notifications.hub")
+logger = logging.getLogger("cateye.notifications.hub")
 
 NOTIFICATION_TYPES = [
     "opportunity_detected",
@@ -97,11 +97,46 @@ class NotificationHub:
         self._max_history = 200
         self._digest_mode: bool = False
         self._digest_buffer: list[Notification] = []
-        self._dedup_tracker: dict[tuple[str, str | None], float] = {}
+        self._dedup_tracker: dict[tuple[str, str | None], float] = self._load_dedup_tracker()
         self._dedup_window: float = DEDUP_WINDOW
         self._dedup_max_entries = 10000
         self._db_bridge: Callable[[Notification], None] | None = None
         self._listeners: list[Callable[[Notification], None]] = []
+
+    @staticmethod
+    def _load_dedup_tracker() -> dict[tuple[str, str | None], float]:
+        """Rehydrate dedup tracker from recent DB notifications."""
+        tracker: dict[tuple[str, str | None], float] = {}
+        try:
+            from sqlalchemy import text
+
+            from database.db import SessionLocal
+            cutoff = time.time() - DEDUP_WINDOW
+            session = SessionLocal()
+            try:
+                rows = session.execute(
+                    text(
+                        "SELECT notification_type, dedup_key, "
+                        "strftime('%%s', created_at) AS ts "
+                        "FROM notifications "
+                        "WHERE dedup_key IS NOT NULL "
+                        "AND created_at >= datetime(:cutoff, 'unixepoch')"
+                    ),
+                    {"cutoff": cutoff},
+                ).fetchall()
+                for row in rows:
+                    key = (str(row[0]), str(row[1]))
+                    ts = float(row[2]) if row[2] else cutoff
+                    tracker[key] = ts
+                if rows:
+                    logger.info("Rehydrated %d dedup keys from DB", len(rows))
+            except Exception as exc:
+                logger.debug("Dedup rehydration skipped: %s", exc)
+            finally:
+                session.close()
+        except Exception as exc:
+            logger.debug("Failed to open DB session for dedup rehydration: %s", exc)
+        return tracker
 
     def set_digest_mode(self, enabled: bool) -> None:
         """Toggle digest mode. When on, notifications are batched instead of routed live."""

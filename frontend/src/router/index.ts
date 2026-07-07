@@ -338,6 +338,12 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/Activation.vue'),
     meta: { title: 'Activación', public: true },
   },
+  {
+    path: '/faqs',
+    name: 'faqs',
+    component: () => import('@/pages/FaqPage.vue'),
+    meta: { title: 'Preguntas Frecuentes' },
+  },
   // ── Notification / Sync pages ──
   {
     path: '/notifications',

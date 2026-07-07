@@ -20,7 +20,7 @@ from cores.identity_vault import get_identity_vault
 from cores.opportunity import get_engine
 from cores.targets.hunter import Hunter
 
-logger = logging.getLogger("catseye.opportunity.api")
+logger = logging.getLogger("cateye.opportunity.api")
 
 router = APIRouter(prefix="/api/opportunity", tags=["opportunity"])
 

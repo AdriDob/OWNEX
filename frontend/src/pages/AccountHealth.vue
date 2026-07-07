@@ -177,13 +177,13 @@ onMounted(fetchHub)
 <template>
   <div class="space-y-6 animate-in">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div class="space-y-1">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="space-y-1 min-w-0">
         <div class="flex items-center gap-2">
           <Activity class="h-4 w-4 text-primary" />
           <span class="font-mono text-[10px] font-bold tracking-widest text-primary">ACCOUNT HEALTH</span>
         </div>
-        <h1 class="font-display text-2xl font-bold text-foreground">Account Health</h1>
+        <h1 class="font-display text-xl sm:text-2xl font-bold text-foreground">Account Health</h1>
         <p class="text-xs text-muted-foreground">Estado de todas las conexiones del sistema</p>
       </div>
       <div

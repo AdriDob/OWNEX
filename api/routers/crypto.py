@@ -17,7 +17,7 @@ from cores.crypto.wallet_connect import WalletConnectConnector
 from cores.financial.events import publish_financial_event
 from cores.ledger import LedgerEvent, record_event
 
-logger = logging.getLogger("catseye.api.crypto")
+logger = logging.getLogger("cateye.api.crypto")
 
 router = APIRouter(prefix="/api/crypto", tags=["crypto"])
 

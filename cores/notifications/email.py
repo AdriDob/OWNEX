@@ -9,7 +9,7 @@ from typing import Any
 
 from cores.env.config import get_config
 
-logger = logging.getLogger("catseye.notifications.email")
+logger = logging.getLogger("cateye.notifications.email")
 
 
 class EmailAdapter:

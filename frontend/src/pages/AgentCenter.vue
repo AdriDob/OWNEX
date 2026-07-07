@@ -96,10 +96,10 @@ onUnmounted(() => {
 
 <template>
   <div class="space-y-6">
-    <div class="flex items-center justify-between animate-in">
-      <div>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-in">
+      <div class="min-w-0">
         <p class="text-xs font-bold uppercase tracking-widest text-primary">System</p>
-        <h1 class="font-display text-2xl font-bold text-foreground">Agent Center</h1>
+        <h1 class="font-display text-xl sm:text-2xl font-bold text-foreground">Agent Center</h1>
         <p class="text-sm text-muted-foreground">{{ onlineCount() }}/{{ agents.length }} agentes en línea</p>
       </div>
       <button

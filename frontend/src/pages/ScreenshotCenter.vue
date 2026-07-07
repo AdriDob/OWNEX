@@ -130,7 +130,7 @@ function closeModal() {
     </template>
 
     <template v-else>
-      <div class="flex items-center justify-between animate-in">
+      <div class="flex items-center justify-between flex-wrap gap-2 animate-in">
         <div class="relative max-w-xs">
           <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input v-model="search" placeholder="Buscar capturas..."
@@ -214,7 +214,7 @@ function closeModal() {
         <div v-if="showModal && selectedScreenshot" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click="closeModal">
           <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="closeModal" />
           <div class="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-border/40 bg-[#11131f] shadow-2xl animate-in" @click.stop>
-            <div class="sticky top-0 z-10 flex items-center justify-between border-b border-border/40 bg-[#11131f]/90 backdrop-blur-sm px-6 py-4">
+            <div class="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border/40 bg-[#11131f]/90 backdrop-blur-sm px-4 sm:px-6 py-4">
               <div class="flex items-center gap-3">
                 <h2 class="text-base font-semibold text-foreground">{{ selectedScreenshot.title }}</h2>
                 <Badge :variant="severityColor(selectedScreenshot.severity)">{{ selectedScreenshot.severity }}</Badge>

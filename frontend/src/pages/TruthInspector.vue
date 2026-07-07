@@ -98,13 +98,13 @@ onMounted(loadEntries)
 
 <template>
   <div class="space-y-6 animate-in">
-    <div class="flex items-center justify-between">
-      <div class="space-y-1">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="space-y-1 min-w-0">
         <div class="flex items-center gap-2">
           <Database class="h-4 w-4 text-primary" />
           <span class="font-mono text-[10px] font-bold tracking-widest text-primary">TRUTH INSPECTOR</span>
         </div>
-        <h1 class="font-display text-2xl font-bold text-foreground">Truth Inspector</h1>
+        <h1 class="font-display text-xl sm:text-2xl font-bold text-foreground">Truth Inspector</h1>
         <p class="text-xs text-muted-foreground">Ledger inmutable — cada entrada tiene procedencia, categoría y confianza</p>
       </div>
       <Button variant="outline" size="sm" @click="loadEntries">

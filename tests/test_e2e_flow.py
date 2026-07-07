@@ -25,7 +25,17 @@ def client():
     if resp.status_code == 200:
         token = resp.json()["data"]["token"]
         c.headers.update({"Authorization": f"Bearer {token}"})
+    # Get CSRF token for subsequent state-changing requests
+    _set_csrf_token(c)
     return c
+
+
+def _set_csrf_token(c: TestClient) -> None:
+    """Make a non-exempt GET request to obtain CSRF cookie and set header on client."""
+    resp = c.get("/api/version")
+    csrf_token = resp.cookies.get("csrf-token")
+    if csrf_token:
+        c.headers.update({"X-CSRF-Token": csrf_token})
 
 
 @pytest.fixture(scope="module")
@@ -78,7 +88,7 @@ class TestE2EFlow:
 
     def test_04_get_target_list(self, client):
         """Verify target appears in listing."""
-        resp = client.get("/api/targets?limit=300")
+        resp = client.get("/api/targets?limit=500")
         assert resp.status_code == 200
         data = resp.json()
         names = [item["name"] for item in data["items"]]

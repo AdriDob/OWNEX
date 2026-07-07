@@ -18,7 +18,7 @@ from typing import Any
 
 from cores.recovery.engine import RecoveryEngine, get_recovery_engine
 
-logger = logging.getLogger("catseye.recovery.health_monitor")
+logger = logging.getLogger("cateye.recovery.health_monitor")
 
 DEFAULT_INTERVAL = 8.0
 MAX_HISTORY = 200
@@ -186,8 +186,8 @@ class HealthMonitor:
             from cores.events.event_bus import get_event_bus
             bus = get_event_bus()
             bus.publish(event_type, severity=severity, message=message, source="health_monitor")
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("[HEALTH] Failed to emit health event: %s", exc)
 
     def get_status(self) -> dict[str, Any]:
         with self._lock:

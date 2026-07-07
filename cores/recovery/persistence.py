@@ -1,4 +1,4 @@
-"""Recovery persistence — SQLite-backed history of failures and recovery actions."""
+"""Recovery persistence — SQLite-backed history of failures, recovery actions, and learning state."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("catseye.recovery.persistence")
+logger = logging.getLogger("cateye.recovery.persistence")
 
 
 class RecoveryStore:
@@ -49,6 +49,21 @@ class RecoveryStore:
                     last_failure TEXT,
                     opened_at TEXT,
                     cooldown_until TEXT
+                )
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS learning_state (
+                    key TEXT PRIMARY KEY,
+                    value REAL NOT NULL,
+                    updated_at TEXT NOT NULL
+                )
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS health_snapshots (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT NOT NULL,
+                    source TEXT NOT NULL,
+                    data TEXT NOT NULL
                 )
             """)
             conn.commit()
@@ -106,6 +121,29 @@ class RecoveryStore:
                 "SELECT * FROM circuit_breaker_state WHERE component = ?", (component,)
             ).fetchone()
             return dict(row) if row else None
+
+    def update_learning_state(self, key: str, value: float) -> None:
+        with self._lock, sqlite3.connect(self._db_path) as conn:
+            conn.execute(
+                """INSERT OR REPLACE INTO learning_state (key, value, updated_at)
+                   VALUES (?, ?, ?)""",
+                (key, value, datetime.now(timezone.utc).isoformat()),
+            )
+            conn.commit()
+
+    def get_learning_state(self, key: str) -> float | None:
+        with self._lock, sqlite3.connect(self._db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            row = conn.execute(
+                "SELECT value FROM learning_state WHERE key = ?", (key,)
+            ).fetchone()
+            return row["value"] if row else None
+
+    def get_all_learning_state(self) -> dict[str, float]:
+        with self._lock, sqlite3.connect(self._db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute("SELECT key, value FROM learning_state").fetchall()
+            return {r["key"]: r["value"] for r in rows}
 
     def close(self) -> None:
         pass

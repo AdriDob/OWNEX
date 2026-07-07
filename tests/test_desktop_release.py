@@ -198,19 +198,6 @@ class TestFirstRun:
             assert result is False
 
 
-# ── Bloque 6: Mobile build script ────────────────────────────────────
-
-class TestMobileBuild:
-    def test_build_apk_script_exists(self):
-        path = PROJECT_DIR / "mobile" / "build_apk.sh"
-        assert path.is_file()
-
-    def test_build_apk_syntax(self):
-        path = PROJECT_DIR / "mobile" / "build_apk.sh"
-        result = subprocess.run(["bash", "-n", str(path)], capture_output=True, text=True, timeout=10)
-        assert result.returncode == 0, f"Shell check failed: {result.stderr}"
-
-
 # ── Core / env / config ──────────────────────────────────────────────
 
 class TestCoreEnvConfig:

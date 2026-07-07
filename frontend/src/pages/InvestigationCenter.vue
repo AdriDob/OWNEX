@@ -185,7 +185,7 @@ const tabs: { key: StatusTab; label: string }[] = [
       <Transition name="fade">
         <Card v-if="showCreate" class="p-4 animate-in">
           <div class="flex flex-wrap items-end gap-3">
-            <div class="flex-1 min-w-[200px]">
+            <div class="flex-1 min-w-0 sm:min-w-[200px]">
               <p class="text-[10px] font-semibold text-muted-foreground mb-1">Nombre</p>
               <input v-model="newName" placeholder="Nombre de la investigación"
                 class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/30 focus:outline-none focus:ring-1 focus:ring-primary/20"

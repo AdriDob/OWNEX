@@ -9,7 +9,7 @@ import httpx
 
 from cores.env.config import get_config
 
-logger = logging.getLogger("catseye.notifications.whatsapp")
+logger = logging.getLogger("cateye.notifications.whatsapp")
 
 TWILIO_API_URL = "https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json"
 

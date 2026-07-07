@@ -6,7 +6,7 @@ from cores.gateway.schemas import error, ok
 from cores.identity_vault import get_identity_vault
 from cores.settings.service import get_setting, set_setting
 
-logger = logging.getLogger("catseye.identity_center")
+logger = logging.getLogger("cateye.identity_center")
 router = APIRouter(prefix="/api/identity-center", tags=["identity_center"])
 
 PLATFORMS = ["hackerone", "bugcrowd", "intigriti", "yeswehack", "synack"]

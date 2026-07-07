@@ -20,9 +20,9 @@ from cores.pipeline.state_machine import (
     next_stage,
     validate_transition,
 )
-from cores.settings.service import RastroMode, get_mode, get_setting
+from cores.settings.service import CATEYEMode, get_mode, get_setting
 
-logger = logging.getLogger("catseye.agents.coordinator")
+logger = logging.getLogger("cateye.agents.coordinator")
 
 # ── Stage -> Agent/Event mapping (updated for 11 states) ────────────
 
@@ -311,7 +311,7 @@ class CoordinatorAgent(BaseAgent):
             return
 
         # ── Mode check: stop at READY in manual mode ────────────────
-        if state == PipelineState.READY and get_mode() == RastroMode.MANUAL:
+        if state == PipelineState.READY and get_mode() == CATEYEMode.MANUAL:
             info = self._active_pipelines.get(pipeline_id)
             if info:
                 info["state"] = PipelineState.READY.value
@@ -333,7 +333,7 @@ class CoordinatorAgent(BaseAgent):
             return
 
         # ── Mode check: auto-submit in automatic mode when READY ────
-        if state == PipelineState.READY and get_mode() == RastroMode.AUTOMATIC:
+        if state == PipelineState.READY and get_mode() == CATEYEMode.AUTOMATIC:
             info = self._active_pipelines.get(pipeline_id)
             if info:
                 info["state"] = PipelineState.READY.value

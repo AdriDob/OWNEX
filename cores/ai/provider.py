@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Generator
 from dataclasses import dataclass, field
 
-logger = logging.getLogger("catseye.ai.provider")
+logger = logging.getLogger("cateye.ai.provider")
 
 
 @dataclass
@@ -306,12 +306,12 @@ class GeminiProvider(AIProvider):
             return ""
         try:
             import urllib.request
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
             payload = json.dumps({
                 "contents": self._build_contents(messages),
                 "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.3},
             }).encode()
-            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json", "X-Goog-Api-Key": self.api_key}, method="POST")
             with urllib.request.urlopen(req, timeout=30) as resp:
                 result = json.loads(resp.read().decode())
                 candidates = result.get("candidates", [])
@@ -328,12 +328,12 @@ class GeminiProvider(AIProvider):
             return
         try:
             import urllib.request
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:streamGenerateContent?key={self.api_key}&alt=sse"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:streamGenerateContent?alt=sse"
             payload = json.dumps({
                 "contents": self._build_contents(messages),
                 "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.3},
             }).encode()
-            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json", "X-Goog-Api-Key": self.api_key}, method="POST")
             with urllib.request.urlopen(req, timeout=60) as resp:
                 for line in resp:
                     line = line.decode().strip()

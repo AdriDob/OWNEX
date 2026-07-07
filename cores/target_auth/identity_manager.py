@@ -6,7 +6,7 @@ from typing import Any
 from cores.target_auth.vault import get_credential_vault
 from database import db, models
 
-logger = logging.getLogger("catseye.target_auth.identity")
+logger = logging.getLogger("cateye.target_auth.identity")
 
 # Fields stored inside the encrypted credentials JSON blob
 CREDENTIAL_FIELDS = frozenset({

@@ -22,7 +22,7 @@ import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 
-logger = logging.getLogger("catseye.config")
+logger = logging.getLogger("cateye.config")
 
 
 def _env(name: str, default: str, legacy_name: str | None = None) -> str:

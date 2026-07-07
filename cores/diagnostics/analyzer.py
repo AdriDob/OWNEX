@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-logger = logging.getLogger("catseye.diagnostics.analyzer")
+logger = logging.getLogger("cateye.diagnostics.analyzer")
 
 PATTERN_WINDOW_SIZE = 200
 

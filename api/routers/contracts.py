@@ -22,7 +22,7 @@ from cores.contracts.validator import (
     validate_paginated_response,
 )
 
-logger = logging.getLogger("catseye.api.contracts")
+logger = logging.getLogger("cateye.api.contracts")
 
 router = APIRouter(prefix="/api/contracts", tags=["contracts"])
 

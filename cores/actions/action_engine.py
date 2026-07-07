@@ -10,7 +10,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-logger = logging.getLogger("catseye.actions")
+logger = logging.getLogger("cateye.actions")
 
 ActionHandler = Callable[[dict[str, Any]], dict[str, Any]]
 

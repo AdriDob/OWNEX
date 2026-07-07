@@ -14,7 +14,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-logger = logging.getLogger("catseye.accountability.outcome")
+logger = logging.getLogger("cateye.accountability.outcome")
 
 CATEGORY = "outcome"
 

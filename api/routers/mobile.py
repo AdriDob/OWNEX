@@ -185,6 +185,13 @@ def _get_system_status() -> str:
         return "UNKNOWN"
 
 
+_ALLOWED_TABLES = frozenset({"targets", "findings", "quick_wins", "pipeline", "notifications", "push_subscriptions", "assistant_messages"})
+
+
 def _count(table: str, where: str = "1=1") -> int:
-    row = db.query(f"SELECT COUNT(*) as cnt FROM {table} WHERE {where}")
-    return row[0]["cnt"] if row else 0
+    if table not in _ALLOWED_TABLES:
+        return 0
+    from sqlalchemy import text
+    with db.SessionLocal() as session:
+        row = session.execute(text(f"SELECT COUNT(*) as cnt FROM {table} WHERE {where}")).fetchone()
+        return row[0] if row else 0

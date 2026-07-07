@@ -3,7 +3,7 @@ import json
 import logging
 from pathlib import Path
 
-logger = logging.getLogger("catseye.recon.crtsh")
+logger = logging.getLogger("cateye.recon.crtsh")
 
 
 class CrtshRunner:
