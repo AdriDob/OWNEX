@@ -11,6 +11,7 @@ logger = logging.getLogger("cateye.api.middleware")
 # Paths that do NOT require authentication
 PUBLIC_PATHS: set[str] = {
     "/api/health",
+    "/api/agents/health",
     "/api/version",
     "/api/docs",
     "/api/openapi.json",

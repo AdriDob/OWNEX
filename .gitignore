@@ -11,6 +11,8 @@ __pycache__/
 
 # Database
 /database/*.db
+/database/*.db-shm
+/database/*.db-wal
 test_rastro.db
 test_cateye.db
 

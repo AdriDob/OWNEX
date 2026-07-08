@@ -121,6 +121,14 @@ def init_db():
                 ("updated_at", "DATETIME"),
             ])
 
+            _migrate_columns(session, "findings", [
+                ("status", "VARCHAR DEFAULT 'open'"),
+            ])
+
+            _migrate_columns(session, "endpoints", [
+                ("hypothesis_id", "VARCHAR"),
+            ])
+
             _migrate_columns(session, "notifications", [
                 ("title", "VARCHAR"),
                 ("severity", "VARCHAR DEFAULT 'info'"),

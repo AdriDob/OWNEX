@@ -37,9 +37,10 @@ class DiscoveryMonitor:
         logger.info("Discovery monitor stopped")
 
     async def _loop(self):
+        await asyncio.sleep(5)  # delay first run so startup completes first
         while self._running:
             try:
-                programs = self._scraper.scrape_all(domains=[])
+                programs = await asyncio.to_thread(self._scraper.scrape_all, domains=[])
                 new_count = sum(1 for p in programs if p.is_new)
                 logger.info(
                     "Discovery: %d programs found (%d new)",

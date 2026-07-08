@@ -78,6 +78,11 @@ class Endpoint(Base):
         server_default=func.now(),
     )
 
+    hypothesis_id = Column(
+        String,
+        nullable=True,
+    )
+
     @property
     def parsed_params(self) -> dict:
         if not self.params:
@@ -127,6 +132,13 @@ class Finding(Base):
     description = Column(
         Text,
         nullable=True,
+    )
+
+    status = Column(
+        String,
+        nullable=False,
+        default="open",
+        server_default="open",
     )
 
     created_at = Column(

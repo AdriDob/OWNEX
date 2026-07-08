@@ -117,7 +117,7 @@ class ScanScheduler:
         try:
             from cores.bounty_scraper import get_bounty_scraper
             scraper = get_bounty_scraper()
-            programs = scraper.scrape_all(max_pages=2)
+            programs = await asyncio.to_thread(scraper.scrape_all, max_pages=2)
             created = scraper.convert_to_targets(programs, session, models)
             logger.info(
                 "[DISCOVER] %d programs found, %d new targets created",

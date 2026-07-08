@@ -1,6 +1,6 @@
 # CATEYE — Sistema de Inteligencia para Bug Bounty Automático
 
-> **Versión:** 2.0.0 | **Arquitectura:** v5.0 | **Estado:** STABLE (Julio 2026)
+> **Versión:** 3.0.0 | **Arquitectura:** v5.0 | **Estado:** STABLE (Julio 2026)
 > **Backend:** Python + FastAPI + SQLAlchemy + SQLite/PostgreSQL
 > **Frontend:** Vue 3 + TypeScript + Tailwind CSS v4 + Vite
 > **Este documento es la CONSTITUCIÓN del proyecto.** Ninguna afirmación sin respaldo en archivos verificados.
@@ -109,7 +109,7 @@ Rastro/
 ├── frontend/                     # 46 páginas Vue, 9 Pinia stores, 50 componentes
 ├── desktop/                      # 13 módulos (producción-grade)
 ├── android/                      # Capacitor shell (sin código nativo)
-├── tests/                        # 363 tests (359 pass, 1 fail, 2 xfail, 1 skip)
+├── tests/                        # 395 tests (393 pass, 2 xfail)
 ├── scripts/                      # 36 scripts
 ├── installer/                    # NSIS Windows installer
 ├── alembic/                      # 1 migración (con mismatch vs modelos actuales)
@@ -568,4 +568,4 @@ State machine de agentes. No auto-start, solo vía API. No conflictúa con sched
 ---
 
 *Documento actualizado desde código verificado — Julio 2026. Freeze v5.0 STABLE completado.*
-*CATEYE v2.0.0 | Architecture v5.0 | CONSTITUCIÓN DEL PROYECTO*
+*CATEYE v3.0.0 | Architecture v5.0 | CONSTITUCIÓN DEL PROYECTO*
