@@ -106,10 +106,17 @@ def collect_health() -> SystemHealthSummary:
         for v in session.query(Verdict).all():
             if v.confidence:
                 try:
-                    conf_sum += float(v.confidence)
-                    conf_count += 1
+                    val = float(v.confidence)
                 except (ValueError, TypeError):
-                    LOG.warning("Failed to parse verdict confidence value", exc_info=True)
+                    try:
+                        import json
+                        parsed = json.loads(v.confidence)
+                        val = float(parsed.get("overall", parsed))
+                    except (ValueError, TypeError, json.JSONDecodeError):
+                        LOG.warning("Failed to parse verdict confidence value: %s", v.confidence)
+                        continue
+                conf_sum += val
+                conf_count += 1
         summary.verdict_confidence_samples = conf_count
         if conf_count:
             summary.avg_verdict_confidence = round(conf_sum / conf_count, 4)

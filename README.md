@@ -245,6 +245,7 @@
 |-------------|-------------|
 | [`.ai/`](.ai/) | **Agent Operating System** — fuente de verdad para agentes IA (OpenCode, Cline, Copilot) |
 | [`SYSTEM.md`](SYSTEM.md) | Documentación completa del sistema |
+| [`FUNCTIONAL_SPEC.md`](FUNCTIONAL_SPEC.md) | **Capacidades verificadas del sistema** — qué hace CATEYE, qué NO hace, y evidencia de código |
 | [`docs/SISTEMA.md`](docs/SISTEMA.md) | Visión general del sistema: arquitectura, stack, componentes |
 | [`SYSTEM_INVENTORY.md`](SYSTEM_INVENTORY.md) | Inventario técnico exhaustivo |
 | [`PLAN.md`](PLAN.md) | Plan histórico de migración React → Vue 3 |

@@ -239,4 +239,4 @@ Cuando se cumplan estos 8 criterios:
 
 ---
 
-*Julio 2026 — CATEYE v5.0 Freeze Checklist*
+*Julio 2027 — CATEYE v5.0 Freeze Checklist*

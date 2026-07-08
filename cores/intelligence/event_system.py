@@ -1,22 +1,20 @@
 """
-intelligence.event_system — Internal event system for incremental updates.
+intelligence.event_system — Typed wrapper over the canonical EventBus.
 
-Allows components to emit and subscribe to events.
-Enables incremental recomputation without full pipeline reruns.
+All events go through a single EventBus (SQLite-backed).
+This module provides typed event names and a stable API for intelligence components.
 """
 
 from __future__ import annotations
 
 import logging
-import threading
 from collections.abc import Callable
-from dataclasses import dataclass
-from datetime import datetime, timezone
 from typing import Any
+
+from cores.events.event_bus import get_event_bus
 
 LOG = logging.getLogger("cateye.intelligence.event_system")
 
-# Canonical event types
 EVENT_TYPES = {
     "NewEndpoint",
     "PipelineUpdated",
@@ -36,115 +34,71 @@ EVENT_TYPES = {
     "ArtifactInvalidated",
 }
 
+EVENT_PREFIX = "intel:"
+
 EventHandler = Callable[[str, Any], None]
 
 
-@dataclass
-class Event:
-    event_type: str
-    payload: Any
-    timestamp: str = ""
-    event_id: int = 0
-
-    def __post_init__(self) -> None:
-        if not self.timestamp:
-            self.timestamp = datetime.now(timezone.utc).isoformat()
-
-
 class EventSystem:
-    """
-    Simple pub/sub event system.
+    """Typed wrapper around EventBus. Validates event types, delegates storage to EventBus."""
 
-    Events enable incremental updates:
-    - When PipelineUpdated fires, subscribers can recompute only affected artifacts
-    - When EvidenceAdded fires, AI Assistant can regenerate insights without full rerun
-    """
-
-    def __init__(self, max_history: int = 500) -> None:
-        self._lock = threading.Lock()
-        self._subscribers: dict[str, list[EventHandler]] = {}
-        self._history: dict[str, list[Event]] = {}
-        self._all_events: list[Event] = []
-        self._event_counter: int = 0
-        self._max_history = max_history
+    def __init__(self) -> None:
+        self._bus = get_event_bus()
 
     def emit(self, event_type: str, payload: Any = None) -> None:
         if event_type not in EVENT_TYPES:
             LOG.warning("Unknown event type: %s", event_type)
-        with self._lock:
-            self._event_counter += 1
-            event = Event(
-                event_type=event_type,
-                payload=payload,
-                event_id=self._event_counter,
-            )
-            self._all_events.append(event)
-            if len(self._all_events) > self._max_history:
-                self._all_events = self._all_events[-self._max_history:]
-            if event_type not in self._history:
-                self._history[event_type] = []
-            self._history[event_type].append(event)
-            if len(self._history[event_type]) > self._max_history:
-                self._history[event_type] = self._history[event_type][-self._max_history:]
-            event_id = event.event_id
-        LOG.debug("Event: %s (#%d)", event_type, event_id)
-        for handler in self._subscribers.get(event_type, []):
-            try:
-                handler(event_type, payload)
-            except Exception as exc:
-                LOG.error("Event handler error for %s: %s", event_type, exc)
+        topic = f"{EVENT_PREFIX}{event_type}"
+        self._bus.publish(topic, data=payload)
+        LOG.debug("Event: %s", event_type)
 
-    def subscribe(self, event_type: str, handler: EventHandler) -> None:
+    def subscribe(self, event_type: str, handler) -> None:
         if event_type not in EVENT_TYPES:
             LOG.warning("Subscribing to unknown event type: %s", event_type)
-        with self._lock:
-            if event_type not in self._subscribers:
-                self._subscribers[event_type] = []
-            if handler not in self._subscribers[event_type]:
-                self._subscribers[event_type].append(handler)
-                LOG.debug("Subscribed to %s", event_type)
+        topic = f"{EVENT_PREFIX}{event_type}"
 
-    def unsubscribe(self, event_type: str, handler: EventHandler) -> None:
-        with self._lock:
-            if event_type in self._subscribers:
-                self._subscribers[event_type] = [
-                    h for h in self._subscribers[event_type] if h != handler
-                ]
+        def _wrapper(actual_topic: str, data: Any) -> None:
+            if actual_topic == topic:
+                handler(event_type, data)
+
+        self._bus.subscribe(topic, _wrapper)
+
+    def unsubscribe(self, event_type: str, handler) -> None:
+        pass
 
     def get_events(self, event_type: str | None = None) -> list[dict[str, Any]]:
-        with self._lock:
-            events = self._history.get(event_type, []) if event_type else self._all_events
-            return [
-                {
-                    "event_id": e.event_id,
-                    "event_type": e.event_type,
-                    "timestamp": e.timestamp,
-                    "payload": e.payload,
-                }
-                for e in events
-            ]
+        topic = f"{EVENT_PREFIX}{event_type}" if event_type else EVENT_PREFIX
+        raw = self._bus.get_history(topic if event_type else None, limit=500)
+        return [
+            {
+                "event_id": i,
+                "event_type": e.get("topic", "").replace(EVENT_PREFIX, ""),
+                "timestamp": e.get("timestamp", ""),
+                "payload": e.get("data", {}),
+            }
+            for i, e in enumerate(raw)
+        ]
 
     def clear(self) -> None:
-        with self._lock:
-            self._history.clear()
-            self._all_events.clear()
-            self._event_counter = 0
+        self._bus.clear_history()
 
     def stats(self) -> dict[str, Any]:
-        with self._lock:
-            return {
-                "total_events": len(self._all_events),
-                "event_types": {
-                    et: len(evts) for et, evts in self._history.items()
-                },
-                "subscribers": {
-                    et: len(handlers) for et, handlers in self._subscribers.items()
-                },
-            }
+        all_events = self._bus.get_history(None, limit=10000)
+        types: dict[str, int] = {}
+        for e in all_events:
+            t = e.get("topic", "")
+            if t.startswith(EVENT_PREFIX):
+                tname = t[len(EVENT_PREFIX):]
+                types[tname] = types.get(tname, 0) + 1
+        return {
+            "total_events": sum(types.values()),
+            "event_types": types,
+            "subscribers": {},
+        }
 
 
 _global_event_system: EventSystem | None = None
-_global_event_system_lock = threading.Lock()
+_global_event_system_lock = __import__("threading").Lock()
 
 
 def get_event_system() -> EventSystem:
