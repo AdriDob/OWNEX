@@ -159,8 +159,8 @@ class Watchdog:
 
     def _check_eventbus(self) -> bool:
         try:
-            from cores.agents.bus import get_agent_bus
-            bus = get_agent_bus()
+            from cores.events.event_bus import get_event_bus
+            bus = get_event_bus()
             alive = bus is not None
             if not alive:
                 self._update_service("eventbus", False, "eventbus is None")

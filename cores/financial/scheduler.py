@@ -162,7 +162,7 @@ class FinancialSyncScheduler:
     async def _loop(self) -> None:
         while self._running:
             try:
-                self.sync_all()
+                await asyncio.to_thread(self.sync_all)
             except Exception as exc:
                 logger.error("[SCHEDULER] Sync cycle error: %s", exc)
             await asyncio.sleep(self.interval_minutes * 60)

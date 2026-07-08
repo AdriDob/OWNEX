@@ -47,7 +47,8 @@ class SessionStore:
         path = self._path("sessions.json")
         if os.path.exists(path):
             try:
-                raw = decrypt(open(path).read())
+                with open(path) as f:
+                    raw = decrypt(f.read())
                 if raw:
                     data = json.loads(raw)
                     self._sessions = data.get("sessions", {})

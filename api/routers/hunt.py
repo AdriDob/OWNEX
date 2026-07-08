@@ -1,5 +1,6 @@
 """Hunt API router — autonomous bug bounty pipeline control."""
 
+import asyncio
 import logging
 from datetime import datetime, timezone
 
@@ -7,6 +8,9 @@ from fastapi import APIRouter
 
 logger = logging.getLogger("cateye.api.hunt")
 router = APIRouter(prefix="/api/hunt", tags=["hunt"])
+
+# Track background tasks to prevent silent leaks
+_hunt_tasks: set[asyncio.Task] = set()
 
 _hunt_state = {
     "status": "idle",
@@ -39,7 +43,9 @@ async def start_hunt():
         from api.scheduler import ScanScheduler
 
         sched = ScanScheduler(interval_minutes=30)
-        asyncio.create_task(sched._run_pipeline())
+        t = asyncio.create_task(sched._run_pipeline())
+        _hunt_tasks.add(t)
+        t.add_done_callback(_hunt_tasks.discard)
     except Exception as e:
         logger.warning("Hunt pipeline kickoff failed: %s", e)
 

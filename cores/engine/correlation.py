@@ -54,6 +54,8 @@ def _severity_score(severity: str) -> float:
 class CorrelationEngine:
     """Fuses findings from multiple sources into correlated threat models."""
 
+    MAX_DEDUP_CACHE = 10_000
+
     def __init__(self):
         self.findings: list[CorrelatedFinding] = []
         self._dedup_cache: set[str] = set()
@@ -72,6 +74,9 @@ class CorrelationEngine:
             dedup_key = f"{item.url}:{item.title}:{source}"
             if dedup_key in self._dedup_cache:
                 continue
+            if len(self._dedup_cache) >= self.MAX_DEDUP_CACHE:
+                self._dedup_cache.clear()
+                LOG.warning("Correlation: dedup cache full (%d), resetting", self.MAX_DEDUP_CACHE)
             self._dedup_cache.add(dedup_key)
             item.source_priority = SOURCE_PRIORITY.get(source, 0)
             self.findings.append(item)

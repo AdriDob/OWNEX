@@ -80,6 +80,36 @@ def _migrate_columns(session, table: str, columns: list[tuple[str, str]]) -> Non
             logger.warning("Migration failed (%s.%s): %s", table, col_name, exc)
 
 
+def _migrate_indexes(session) -> None:
+    """Create indexes that exist in ORM but may not exist in the DB yet.
+
+    SQLAlchemy's create_all() only creates indexes for NEW tables.
+    Existing tables keep their original schema even when index=True is added later.
+    """
+    indexes = [
+        "CREATE INDEX IF NOT EXISTS ix_targets_name ON targets (name);",
+        "CREATE INDEX IF NOT EXISTS ix_endpoints_target_id ON endpoints (target_id);",
+        "CREATE INDEX IF NOT EXISTS ix_findings_target_id ON findings (target_id);",
+        "CREATE INDEX IF NOT EXISTS ix_findings_endpoint_id ON findings (endpoint_id);",
+        "CREATE INDEX IF NOT EXISTS ix_memory_records_category ON memory_records (category);",
+        "CREATE INDEX IF NOT EXISTS ix_memory_records_key ON memory_records (key);",
+        "CREATE INDEX IF NOT EXISTS ix_evidence_endpoint_id ON evidence (endpoint_id);",
+        "CREATE INDEX IF NOT EXISTS ix_scan_runs_target_id ON scan_runs (target_id);",
+        "CREATE INDEX IF NOT EXISTS ix_validation_runs_identity_baseline_id ON validation_runs (identity_baseline_id);",
+        "CREATE INDEX IF NOT EXISTS ix_validation_runs_identity_probe_id ON validation_runs (identity_probe_id);",
+        "CREATE INDEX IF NOT EXISTS ix_validation_runs_verdict_id ON validation_runs (verdict_id);",
+        "CREATE INDEX IF NOT EXISTS ix_reports_program ON reports (program);",
+        "CREATE INDEX IF NOT EXISTS ix_reports_target ON reports (target);",
+        "CREATE INDEX IF NOT EXISTS ix_reports_status ON reports (status);",
+    ]
+    for sql in indexes:
+        try:
+            session.execute(text(sql))
+        except Exception as exc:
+            logger.warning("Index migration failed (%s): %s", sql, exc)
+    logger.info("[DB] Index migration complete")
+
+
 def init_db():
 
     _ensure_db_dir()
@@ -137,6 +167,8 @@ def init_db():
                 ("delivered_via", "VARCHAR"),
             ])
 
+            _migrate_indexes(session)
+            session.execute(text("PRAGMA wal_checkpoint(TRUNCATE);"))
             session.commit()
         except Exception as exc:
             logger.warning("Migration block failed: %s", exc)

@@ -120,9 +120,15 @@ class BaseAgent(ABC):
                 except RuntimeError:
                     loop = None
                 if loop and loop.is_running():
-                    asyncio.ensure_future(result)
+                    task = asyncio.ensure_future(result)
+                    task.add_done_callback(lambda t: logger.error(
+                        "[AGENT] %s async handler failed: %s",
+                        self.agent_id.value, t.exception()
+                    ) if t.exception() else None)
                 else:
-                    asyncio.run(result)
+                    # No running loop — run in background thread to avoid blocking
+                    import threading
+                    threading.Thread(target=lambda r=result: asyncio.run(r), daemon=True).start()
             self.tasks_completed += 1
             elapsed = (time.monotonic() - t0) * 1000
             self.total_time_ms += elapsed

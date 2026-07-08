@@ -79,9 +79,25 @@
 | Auto-report | `api/main.py` | ✅ Nuevo subscriber |
 | except:pass → log | 15 archivos | ✅ Fixeado |
 
+## FASE 5 — Release hardening audit y fixes (Julio 2026)
+
+| Fix | Archivos | Estado |
+|---|---|---|
+| FinancialSyncScheduler event-loop block | `cores/financial/scheduler.py` | ✅ `sync_all` → `asyncio.to_thread` |
+| NotificationPoller no detenible | `api/routers/operations.py`, `api/main.py` | ✅ Stop flag + shutdown hook |
+| Watchdog chequea bus equivocado | `desktop/watchdog.py` | ✅ `get_agent_bus()` → `get_event_bus()` |
+| research.py imports rotos | `cores/agents/research.py` | ✅ Clases runner instanciadas correctamente |
+| 14 índices DB faltantes | `database/db.py`, `database/models.py` | ✅ Migración CREATE INDEX |
+| create_task orphans (3) | `api/main.py`, `api/routers/hunt.py` | ✅ Trackeados + done_callbacks |
+| WAL checkpoint ausente | `database/db.py`, `api/scheduler.py` | ✅ PRAGMA wal_checkpoint(TRUNCATE) |
+| CorrelationEngine dedup leak | `cores/engine/correlation.py` | ✅ MAX_DEDUP_CACHE=10K |
+| ensure_future sin tracking | `cores/agents/base.py`, `cores/agents/bus.py` | ✅ Error logging en done_callbacks |
+| _target_cooldowns sin poda | `api/scheduler.py` | ✅ Purga cíclica de stale entries |
+| open() sin context manager | `cores/auth/session.py`, `cores/auth/token_service.py` | ✅ with open() |
+| audit.jsonl sin rotación | `cores/audit_log.py` | ✅ Rotación cada 10MB (3 backups) |
+
 ## Próximos Pasos (no implementados)
 
-- FASE 5: Polish final (documentación, tests adicionales, limpieza)
 - Health snapshots persistence (deuda conocida)
 - Unificar sistemas de salud (deuda conocida)
 - Frontend tests (no existen actualmente)

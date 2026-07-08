@@ -661,19 +661,23 @@ def trigger_notification_generation():
     return {"generated": c, "status": "ok"}
 
 
+_poller_stop = threading.Event()
+
+
 def _notification_poller_loop(interval: int = 120):
     """Background daemon thread that polls for new events to notify about."""
     # Wait before first poll so database has time to initialize (avoids spurious
     # warnings when the module is imported before init_db() runs).
     time.sleep(interval)
-    while True:
+    while not _poller_stop.is_set():
         try:
             c = _generate_notifications()
             if c:
                 logger.info("Generated %d notifications", c)
         except Exception as e:
             logger.warning("Notification poller error: %s", e)
-        time.sleep(interval)
+        _poller_stop.wait(timeout=interval)
+    logger.info("Notification poller stopped")
 
 
 def start_notification_poller():
@@ -682,6 +686,13 @@ def start_notification_poller():
     Call this during application startup, not at module level,
     to avoid spawning threads on import.
     """
+    _poller_stop.clear()
     t = threading.Thread(target=_notification_poller_loop, daemon=True)
     t.start()
     logger.info("Notification poller thread started")
+
+
+def stop_notification_poller():
+    """Signal the notification poller to stop."""
+    _poller_stop.set()
+    logger.info("Notification poller stop signal sent")

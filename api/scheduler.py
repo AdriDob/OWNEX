@@ -21,6 +21,8 @@ import logging
 import time
 from datetime import datetime, timezone
 
+from sqlalchemy import text
+
 from cores.env.config import get_config
 from cores.intelligence.reward_learning import RewardLearner
 from database import db, models
@@ -104,6 +106,22 @@ class ScanScheduler:
                 logger.warning("Report stage failed: %s", e)
 
         self._last_run["pipeline"] = now
+        # Checkpoint WAL to prevent unbounded growth on 24/7 systems
+        try:
+            with db.SessionLocal() as sess:
+                sess.execute(text("PRAGMA wal_checkpoint(TRUNCATE);"))
+        except Exception:
+            pass
+        # Purge stale cooldown entries (entries older than 2x TARGET_COOLDOWN)
+        stale_cooldown_threshold = now - TARGET_COOLDOWN * 2
+        old_count = len(self._target_cooldowns)
+        self._target_cooldowns = {
+            tid: ts for tid, ts in self._target_cooldowns.items()
+            if ts >= stale_cooldown_threshold
+        }
+        purged = old_count - len(self._target_cooldowns)
+        if purged:
+            logger.info("[SCHEDULER] Purged %d stale cooldown entries", purged)
         logger.info("=== Pipeline Cycle Complete ===")
 
     def _should_run(self, stage: str, now: float) -> bool:

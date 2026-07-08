@@ -39,7 +39,8 @@ class TokenService:
         path = self._path()
         if os.path.exists(path):
             try:
-                raw = decrypt(open(path).read())
+                with open(path) as f:
+                    raw = decrypt(f.read())
                 if raw:
                     data = json.loads(raw)
                     self._tokens = data.get("tokens", {})
