@@ -178,11 +178,11 @@ async def lifespan(app: FastAPI):
     result = pe.consume_memory()
     logger.info("Priority engine memory consumption: %s", result.get("status", "unknown"))
 
-    # Discover opportunities on startup
+    # Discover opportunities on startup (non-blocking)
     try:
         from cores.opportunity import get_engine
         opp_engine = get_engine()
-        opp_count = len(opp_engine.discover_all())
+        opp_count = len(await asyncio.to_thread(opp_engine.discover_all))
         logger.info("Opportunity engine initialized with %d opportunities", opp_count)
     except Exception as exc:
         logger.warning("Opportunity engine discovery failed (non-fatal): %s", exc)

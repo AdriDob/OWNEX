@@ -10,19 +10,19 @@
    <br/>
 
    <p>
-      <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"/></a>
+      <img src="https://img.shields.io/badge/license-Proprietary-red.svg" alt="License: Proprietary"/>
      <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.10%2B-purple.svg" alt="Python 3.10+"/></a>
-      <a href="https://github.com/AdriDob/Rastro/releases"><img src="https://img.shields.io/badge/version-2.0.0-blue.svg" alt="Version 2.0.0"/></a>
+      <a href="https://github.com/AdriDob/Rastro/releases"><img src="https://img.shields.io/badge/version-3.0.0-blue.svg" alt="Version 3.0.0"/></a>
      <a href="https://vuejs.org/"><img src="https://img.shields.io/badge/vue-3.5-4FC08D.svg" alt="Vue 3.5"/></a>
      <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/fastapi-0.95%2B-009688.svg" alt="FastAPI"/></a>
      <a href="https://docs.astral.sh/ruff/"><img src="https://img.shields.io/badge/code%20style-ruff-ff69b4.svg" alt="Ruff"/></a>
-     <a href="https://github.com/AdriDob/Rastro/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome"/></a>
+      <img src="https://img.shields.io/badge/status-stable-brightgreen.svg" alt="Stable"/>
    </p>
 
    <br/>
    <br/>
    <p>
-        **CATEYE v2.0.0** — un sistema de inteligencia artificial autónomo para bug bounty hunters que automatiza todo el ciclo de vida de la cacería de vulnerabilidades — desde el descubrimiento de programas y reconocimiento, hasta la generación de hipótesis, validación, reportes, y tracking financiero completo.
+        **CATEYE v3.0.0** — un sistema de inteligencia artificial autónomo para bug bounty hunters que automatiza todo el ciclo de vida de la cacería de vulnerabilidades — desde el descubrimiento de programas y reconocimiento, hasta la generación de hipótesis, validación, reportes, y tracking financiero completo.
      <br/>
      Cada decisión se mide en <strong>USD/hora</strong>, probabilidad de éxito y ROI esperado.
    </p>
@@ -246,33 +246,17 @@
 | [`.ai/`](.ai/) | **Agent Operating System** — fuente de verdad para agentes IA (OpenCode, Cline, Copilot) |
 | [`SYSTEM.md`](SYSTEM.md) | Documentación completa del sistema |
 | [`FUNCTIONAL_SPEC.md`](FUNCTIONAL_SPEC.md) | **Capacidades verificadas del sistema** — qué hace CATEYE, qué NO hace, y evidencia de código |
+| [`USER_GUIDE.md`](USER_GUIDE.md) | Manual práctico en español para uso diario |
+| [`DAILY_WORKFLOW.md`](DAILY_WORKFLOW.md) | Rutina diaria, semanal y mensual |
 | [`docs/SISTEMA.md`](docs/SISTEMA.md) | Visión general del sistema: arquitectura, stack, componentes |
-| [`SYSTEM_INVENTORY.md`](SYSTEM_INVENTORY.md) | Inventario técnico exhaustivo |
-| [`PLAN.md`](PLAN.md) | Plan histórico de migración React → Vue 3 |
-| [`ROADMAP.md`](ROADMAP.md) | Roadmap de versiones |
+| [`RELEASE_NOTES_v3.0.0.md`](RELEASE_NOTES_v3.0.0.md) | Release notes de v3.0.0 |
 | [`CHANGELOG.md`](CHANGELOG.md) | Historial de versiones |
-| [`AGENT_CONTEXT.md`](AGENT_CONTEXT.md) | Protocolo de coordinación multi-AI |
-| [`CLINE_SETUP.md`](CLINE_SETUP.md) | Configuración de Cline para desarrollo |
-| [`docs/tutorial.md`](docs/tutorial.md) | Tutorial paso a paso de uso del sistema |
-| [`docs/monetización.md`](docs/monetización.md) | Modelo de monetización y estrategia de ingresos |
-
-   ---
-
-   ## 🤝 Contribuir
-
-   Las contribuciones son bienvenidas. Por favor:
-
-   1. Haz fork del repo
-   2. Crea una rama: `git checkout -b feature/algo-increible`
-   3. Haz tus cambios
-   4. Pasa los checks: `make lint && make test`
-   5. Abre un Pull Request
 
    ---
 
    ## 📄 Licencia
 
-   MIT License — ver [LICENSE](LICENSE) para detalles.
+   Propietaria. Ver `.ai/SECURITY_POLICY.md` para detalles de seguridad.
 
    ---
 

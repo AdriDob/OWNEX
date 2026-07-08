@@ -39,7 +39,7 @@ TOOL_CHECKS = {
 }
 
 CRITICAL_TOOLS = ["subfinder", "katana", "httpx"]
-OPTIONAL_TOOLS = ["waybackurls", "nuclei", "gau", "ffuf", "whois", "amass"]
+OPTIONAL_TOOLS = ["waybackurls", "nuclei", "gau", "ffuf", "amass"]
 
 
 def check_tool_available(tool_name: str) -> bool:

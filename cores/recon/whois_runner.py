@@ -1,7 +1,8 @@
 import asyncio
 import logging
-import shutil
 from pathlib import Path
+
+import whois as whois_lib
 
 logger = logging.getLogger("cateye.recon.whois")
 
@@ -11,30 +12,21 @@ class WhoisRunner:
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.timeout = timeout
-        self._binary = shutil.which("whois")
 
     async def run_whois(self, domain: str, out_file: str = "whois.txt") -> Path:
         path = self.output_dir / out_file
-        if not self._binary:
-            path.write_text("WHOIS NOT AVAILABLE")
-            return path
-        cmd = [self._binary, domain]
         try:
-            proc = await asyncio.create_subprocess_exec(
-                *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-            )
-            try:
-                stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=self.timeout)
-            except asyncio.TimeoutError:
-                proc.kill()
-                await proc.communicate()
-                path.write_text("WHOIS TIMED OUT")
-                return path
-            if stderr:
-                path.write_text(stderr.decode(errors="ignore") + "\n" + stdout.decode(errors="ignore"))
-            else:
-                path.write_bytes(stdout or b"")
-            return path
+            w = await asyncio.to_thread(whois_lib.whois, domain)
+            lines = []
+            for key in ("domain_name", "registrar", "creation_date", "expiration_date",
+                         "updated_date", "name_servers", "status", "emails",
+                         "org", "country", "city", "address"):
+                val = w.get(key)
+                if val:
+                    if isinstance(val, list):
+                        val = ", ".join(str(v) for v in val[:3])
+                    lines.append(f"{key}: {val}")
+            path.write_text("\n".join(lines) if lines else "No WHOIS data returned")
         except Exception as e:
             path.write_text(f"WHOIS ERROR: {e}")
-            return path
+        return path

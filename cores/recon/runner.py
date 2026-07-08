@@ -59,26 +59,28 @@ class ReconRunner:
         timeout: int = 120,
     ) -> Any:
         try:
-            logger.info(f"Starting tool: {tool_name}")
-
             result = await asyncio.wait_for(
                 coroutine,
                 timeout=timeout,
             )
 
-            logger.info(f"Tool completed: {tool_name}")
+            if result is None:
+                logger.warning("Tool %s returned no result", tool_name)
+            else:
+                result_path = Path(result) if isinstance(result, (str, Path)) else None
+                if result_path and result_path.exists() and result_path.stat().st_size == 0:
+                    logger.warning("Tool %s produced empty output: %s", tool_name, result_path)
+                else:
+                    logger.info("Tool completed: %s", tool_name)
 
             return result
 
         except asyncio.TimeoutError:
-            logger.error(f"Tool timeout: {tool_name}")
+            logger.error("Tool timeout: %s", tool_name)
             return None
 
         except Exception as e:
-            logger.error(
-                f"Tool {tool_name} failed: {str(e)}",
-                exc_info=True,
-            )
+            logger.error("Tool %s failed: %s", tool_name, e)
             return None
 
     async def run_pipeline(

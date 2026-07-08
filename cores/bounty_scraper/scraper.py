@@ -9,6 +9,10 @@ Sources:
   - YesWeHack public API
   - Immunefi explore page (Next.js __NEXT_DATA__)
   - arkadiyt/bounty-targets-data GitHub repo (6 platforms)
+  - HackenProof direct scraper
+  - OpenBugBounty directory
+  - Web search dorking (DuckDuckGo)
+  - GitHub security policy search (public API)
   - Web scanner (security.txt, robots.txt, disclosure paths)
   - RFC 9116 security.txt parser
 """
@@ -17,6 +21,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import random
 import re
 import time
@@ -561,9 +566,200 @@ class BountyScraper:
         logger.info("Security.txt: %d/%d domains have valid security.txt", len(results), len(domains))
         return results
 
+    # ── HackenProof ────────────────────────────────────────────────────
+
+    def scrape_hackenproof(self) -> list[ScrapedProgram]:
+        """Scrape public HackenProof programs."""
+        results: list[ScrapedProgram] = []
+        body, err = _fetch_text("https://hackenproof.com/programs")
+        if not body:
+            logger.warning("HackenProof: %s", err)
+            return results
+        try:
+            cards = re.findall(
+                r'<a[^>]*href=["\'](/program/[^"\'/]+/)["\'][^>]*>\s*<[^>]*>\s*([^<]+)',
+                body, re.DOTALL,
+            )
+            seen: set[str] = set()
+            for href, name_html in cards:
+                name = re.sub(r"<[^>]+>", "", name_html).strip()
+                if not name or name in seen:
+                    continue
+                seen.add(name)
+                results.append(ScrapedProgram(
+                    name=name, platform="hackenproof",
+                    source="hackenproof_direct", has_rewards=True,
+                    program_url=f"https://hackenproof.com{href}",
+                    confidence=0.7,
+                ))
+        except Exception as e:
+            logger.warning("HackenProof parse error: %s", e)
+        logger.info("HackenProof: %d programs scraped", len(results))
+        return results
+
+    # ── OpenBugBounty ──────────────────────────────────────────────────
+
+    def scrape_openbugbounty(self, max_pages: int = 2) -> list[ScrapedProgram]:
+        """Scrape public OpenBugBounty programs."""
+        results: list[ScrapedProgram] = []
+        seen: set[str] = set()
+        for page in range(max_pages):
+            body, err = _fetch_text(f"https://www.openbugbounty.org/bugbounty/page/{page + 1}/")
+            if not body:
+                logger.warning("OpenBugBounty page %d: %s", page + 1, err)
+                continue
+            try:
+                for match in re.finditer(
+                    r'<a[^>]*href=["\'](/bugbounty/[^"\'/]+/)["\'][^>]*>([^<]+)</a>',
+                    body,
+                ):
+                    name = match.group(2).strip()
+                    if not name or name in seen:
+                        continue
+                    seen.add(name)
+                    results.append(ScrapedProgram(
+                        name=name, platform="openbugbounty",
+                        source="openbugbounty_direct", has_rewards=True,
+                        program_url=f"https://www.openbugbounty.org{match.group(1)}",
+                        confidence=0.7,
+                    ))
+            except Exception as e:
+                logger.warning("OpenBugBounty parse error page %d: %s", page + 1, e)
+        logger.info("OpenBugBounty: %d programs scraped", len(results))
+        return results
+
+    # ── Web search dorking (DuckDuckGo) ─────────────────────────────────
+
+    _WEB_SEARCH_QUERIES = [
+        '"bug bounty" program rewards',
+        '"security.txt" "bounty"',
+        'inurl:"/bug-bounty"',
+        'inurl:"/responsible-disclosure"',
+        '"vulnerability disclosure" program rewards',
+        '"bounty program" security researchers',
+    ]
+
+    def scrape_web_search(self) -> list[ScrapedProgram]:
+        """Search the web for bug bounty programs.
+
+        Uses DuckDuckGo (no API key). Returns empty if search fails.
+        """
+        results: list[ScrapedProgram] = []
+        seen_urls: set[str] = set()
+
+        for query in self._WEB_SEARCH_QUERIES:
+            try:
+                encoded = urllib.parse.quote(query)
+                url = f"https://html.duckduckgo.com/html/?q={encoded}"
+                body, err = _fetch_text(url, timeout=8)
+                if not body:
+                    continue
+
+                for match in re.finditer(
+                    r'<a[^>]*class=["\']result__a["\'][^>]*href=["\']([^"\']+)["\'][^>]*>([^<]+)</a>',
+                    body,
+                ):
+                    href = match.group(1)
+                    title = re.sub(r"<[^>]+>", "", match.group(2)).strip()
+                    domain = urllib.parse.urlparse(href).netloc
+                    if any(p in domain for p in [
+                        "hackerone.com", "bugcrowd.com", "intigriti.com",
+                        "yeswehack.com", "immunefi.com", "hackenproof.com",
+                        "openbugbounty.org",
+                    ]):
+                        continue
+                    if not title or href in seen_urls:
+                        continue
+                    seen_urls.add(href)
+                    results.append(ScrapedProgram(
+                        name=title[:100], platform="web_search",
+                        source="web_search_dorking", has_rewards=True,
+                        program_url=href, description=f"Found via: {query}",
+                        confidence=0.5,
+                    ))
+            except Exception:
+                pass
+
+        return results
+
+    # ── GitHub security policy search ───────────────────────────────────
+
+    _GITHUB_API_BASE = "https://api.github.com"
+
+    def scrape_github_security(self) -> list[ScrapedProgram]:
+        """Search GitHub for repos with security policies mentioning bounties.
+
+        Requires GITHUB_TOKEN env var for authenticated API access.
+        Without it, returns empty — GitHub Code Search API requires auth.
+        """
+        results: list[ScrapedProgram] = []
+        token = os.environ.get("GITHUB_TOKEN", "")
+        if not token:
+            logger.info("GitHub search: skipped (no GITHUB_TOKEN env var)")
+            return results
+
+        seen: set[str] = set()
+        headers = {**REQUEST_HEADERS, "Authorization": f"Bearer {token}", "Accept": "application/vnd.github.v3+json"}
+
+        queries = [
+            "SECURITY.md bounty",
+            "security.txt bounty",
+            "bug bounty policy in:path:docs",
+            "responsible disclosure rewards",
+        ]
+
+        def _fetch_json_auth(url: str, timeout: int = 10) -> tuple[Any | None, str | None]:
+            try:
+                req = urllib.request.Request(url, headers=headers)
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    body = resp.read().decode("utf-8", errors="replace")
+                    return json.loads(body), None
+            except urllib.error.HTTPError as e:
+                return None, f"HTTP {e.code}"
+            except Exception as e:
+                return None, str(e)
+
+        for query in queries:
+            try:
+                encoded = urllib.parse.quote(f"{query} repo:>50 stars")
+                url = f"{self._GITHUB_API_BASE}/search/code?q={encoded}&per_page=10"
+                data, err = _fetch_json_auth(url)
+                if not data:
+                    continue
+
+                items = data if isinstance(data, list) else data.get("items", [])
+                for item in items:
+                    repo_url = item.get("repository", {}).get("html_url", "")
+                    repo_name = item.get("repository", {}).get("full_name", "")
+                    if not repo_url or repo_name in seen:
+                        continue
+                    raw_url = item.get("raw_url", "")
+                    if raw_url:
+                        content, _ = _fetch_text(raw_url)
+                        if content and ("bounty" in content.lower() or "reward" in content.lower()):
+                            seen.add(repo_name)
+                            payout = 0
+                            payout_match = re.search(r"\$[\d,]+(?:\.\d+)?", content)
+                            if payout_match:
+                                payout = int(float(payout_match.group(0).replace(",", "").replace("$", "")))
+                            results.append(ScrapedProgram(
+                                name=repo_name, platform="github",
+                                source="github_security_search", has_rewards=True,
+                                estimated_payout=payout,
+                                raw_payout_range=f"${payout:,}" if payout else "Not specified",
+                                program_url=repo_url,
+                                description="GitHub repo with security policy mentioning bounties",
+                                confidence=0.5,
+                            ))
+            except Exception as e:
+                logger.warning("GitHub search '%s' failed: %s", query, e)
+
+        logger.info("GitHub: %d programs found", len(results))
+        return results
+
     # ── All platforms ──────────────────────────────────────────────────
 
-    def scrape_all(self, max_pages: int = 2, domains: list[str] | None = None) -> list[ScrapedProgram]:
+    def scrape_all(self, max_pages: int = 2, domains: list[str] | None = None, web_search: bool = True, github_search: bool = True) -> list[ScrapedProgram]:
         """Scrape all supported platforms + optional web scans."""
         all_programs: list[ScrapedProgram] = []
         seen_names: set[str] = set()
@@ -575,6 +771,10 @@ class BountyScraper:
             ("YesWeHack", lambda: self.scrape_yeswehack(max(1, max_pages - 1))),
             ("Immunefi", lambda: self.scrape_immunefi()),
             ("BountyTargetsData", lambda: self.scrape_bounty_targets_data()),
+            ("HackenProof", lambda: self.scrape_hackenproof()),
+            ("OpenBugBounty", lambda: self.scrape_openbugbounty(max(1, max_pages - 1))),
+            ("WebSearch", lambda: self.scrape_web_search() if web_search else []),
+            ("GitHub", lambda: self.scrape_github_security() if github_search else []),
         ]
 
         for platform_name, scraper_fn in scrapers:
