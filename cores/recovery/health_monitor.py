@@ -105,13 +105,13 @@ class HealthMonitor:
                 if changed:
                     self._engine.report_success(component=name)
 
-        # Overall health status
+        # Log health status (SystemHealthEngine is the sole EventBus publisher)
         if all_ok:
-            self._emit_health("system:ready", "healthy", "All components healthy")
+            logger.info("[HEALTH] All components healthy")
         elif degraded:
-            self._emit_health("system:degraded", "degraded", "Critical component failure")
+            logger.warning("[HEALTH] Critical component failure")
         else:
-            self._emit_health("system:alert", "degraded", "Non-critical component failure")
+            logger.warning("[HEALTH] Non-critical component failure")
 
         snapshot = {
             "timestamp": time.time(),
@@ -150,10 +150,7 @@ class HealthMonitor:
             if r.status_code != 200:
                 return False
             data = r.json()
-            if isinstance(data, list):
-                agents = data
-            else:
-                agents = data.get("agents", data.get("data", []))
+            agents = data if isinstance(data, list) else data.get("agents", data.get("data", []))
             return all(a.get("status") == "running" for a in agents)
         except Exception:
             return False
@@ -180,14 +177,6 @@ class HealthMonitor:
             return mem < 80.0
         except Exception:
             return True
-
-    def _emit_health(self, event_type: str, severity: str, message: str) -> None:
-        try:
-            from cores.events.event_bus import get_event_bus
-            bus = get_event_bus()
-            bus.publish(event_type, severity=severity, message=message, source="health_monitor")
-        except Exception as exc:
-            logger.warning("[HEALTH] Failed to emit health event: %s", exc)
 
     def get_status(self) -> dict[str, Any]:
         with self._lock:

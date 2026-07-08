@@ -1,14 +1,14 @@
 # Current State — Estado Real del Proyecto
 
-> Este documento refleja el estado VERIFICADO después del ciclo de estabilización y conexión (Julio 2026).
+> **v3.0.0 STABLE** — Release final. Lista para uso diario en bug bounty.
+> Julio 2026.
 
 ## Testing
 
-- **Total de tests**: 359 pasan, 1 fallo preexistente (`test_e2e_flow.py::test_04_get_target_list` — DB pagination), 2 xfailed, 1 skipped
-- **Comando**: `.venv/bin/python -m pytest --timeout=60 --ignore=tests/test_security.py`
-- **Fallo preexistente**: `test_e2e_flow.py::TestE2EFlow::test_04_get_target_list` — 300+ targets de seed, target del test fuera del límite de paginación
-- **Lint**: Ruff configurado, limpio (solo 5 pre-existing style suggestions no críticas)
-- **Cobertura**: Sin regresiones — todo el código nuevo tiene cobertura indirecta via tests existentes
+- **Total de tests**: 393 pasan, 2 xfailed, 0 fallos
+- **Comando**: `.venv/bin/python -m pytest --timeout=60`
+- `test_security.py` ahora incluido (34 tests, todos verdes — antes excluido con 3 fallos)
+- **Lint**: Ruff configurado, limpio (solo 1 pre-existing style suggestion no crítica)
 
 ## FASE 1 — Base estabilizada (Julio 2026)
 

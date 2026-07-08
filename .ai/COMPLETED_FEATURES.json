@@ -148,6 +148,27 @@
       "integration": "integrado",
       "verified": "2026-07-06",
       "notes": "OPENROUTER_API_KEY and GEMINI_API_KEY read via os.environ.get() — no hardcoded values"
+    },
+    {
+      "id": "v3.0.0-stable-release",
+      "description": "CATEYE v3.0.0 STABLE — release final lista para uso diario en bug bounty",
+      "archives": [
+        "VERSION (3.0.0)",
+        "pyproject.toml (project.version=3.0.0)",
+        "tests/test_security.py (34 pass, incluido en suite)",
+        "cores/recovery/health_monitor.py (no publica eventos)",
+        "cores/health/scoring.py (memory threshold 80%)",
+        "cores/system_health.py (confidence dict parsing fix)",
+        "USER_GUIDE.md",
+        "DAILY_WORKFLOW.md",
+        "RELEASE_NOTES_v3.0.0.md",
+        "FUNCTIONAL_SPEC.md (version 3.0.0)",
+        "desktop/build/install_linux.sh (fix one-dir build)"
+      ],
+      "tests": ["393 passed, 2 xfailed, 0 fallos (test_security.py incluido)"],
+      "integration": "produccion",
+      "verified": "2026-07-08",
+      "notes": "Ciclo completo: fix bugs bloqueantes → usability review → documentacion → build Linux → release criteria verificados. Primer version para uso diario."
     }
   ]
 }

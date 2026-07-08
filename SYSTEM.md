@@ -1,25 +1,40 @@
-# CATEYE 5.0 — System Architecture (Constitución Definitiva)
+# CATEYE — Sistema de Inteligencia para Bug Bounty Automático
 
-> **Este documento es la CONSTITUCIÓN del proyecto.**
-> Describe CATEYE tal como existe en el código actual — Julio 2026.
-> Ninguna afirmación sin respaldo en archivos verificados durante la auditoría final.
-> Cualquier modificación futura debe justificar por qué modifica esta constitución.
+> **Versión:** 2.0.0 | **Arquitectura:** v5.0 | **Estado:** STABLE (Julio 2026)
+> **Backend:** Python + FastAPI + SQLAlchemy + SQLite/PostgreSQL
+> **Frontend:** Vue 3 + TypeScript + Tailwind CSS v4 + Vite
+> **Este documento es la CONSTITUCIÓN del proyecto.** Ninguna afirmación sin respaldo en archivos verificados.
 
 ---
 
-## 0. What CATEYE Is
+## Índice
+
+| Sec | Título |
+|-----|--------|
+| 1 | Visión General |
+| 2 | Estructura del Proyecto |
+| 3 | Backend — cores/ |
+| 4 | Frontend — frontend/ |
+| 5 | API REST |
+| 6 | Modelos de Datos |
+| **7** | **Ciclo de Bug Bounty Automático** |
+| 8 | IA y Modelos de Lenguaje |
+| 9 | Sincronización y Plataformas |
+| 10 | Seguridad |
+| 11 | Despliegue |
+| 12 | Decisiones Arquitectónicas (Freeze) |
+| 13 | Métricas del Sistema |
+| **14** | **Progreso de Producción** |
+
+---
+
+## 1. Visión General
 
 CATEYE (formerly "Rastro") es un **sistema de inteligencia operativa privada** para bug bounty. Automatiza el ciclo completo: descubrimiento → análisis → validación → reporte → cobro de vulnerabilidades.
 
 **No es SaaS, no es multi-usuario, no es enterprise.** Es single-user, local-first, de escritorio.
 
 **Propósito fundamental**: Eliminar trabajo humano repetitivo. Cada feature debe responder: "¿esto elimina trabajo humano o solo agrega complejidad?"
-
-**Versión del proyecto**: `2.0.0` (archivo `VERSION` en raíz). Arquitectura v5.0.
-
----
-
-## 1. Stack Tecnológico
 
 | Capa | Tecnología |
 |------|------------|
@@ -335,85 +350,222 @@ EventSystem en intelligence/ emite eventos (`NewEndpoint`, `VerdictChanged`, `Ca
 - notifications/
 
 ### ⚠️ PASS CON RESERVAS (funciona pero necesita correcciones)
-- **Scheduler** — Bug en llamada a launch_scan() + SCOPE_CHECK no implementado
-- **ORION/RewardLearner** — Fuga de escritura a learning_state
-- **ScanService** — Funciona pero arrastra dependencia de Pipeline class (muerto)
-- **CoordinatorAgent** — State machine desconectada del scheduler
+- **ORION/RewardLearner** — Escribe a learning_state (excepción documentada)
+- **CoordinatorAgent** — State machine usada solo vía API, no auto-start
 - **OpportunityEngine** — Todo en RAM, se pierde al reiniciar
-- **agents/** — Bien diseñados pero sin sincronización con scheduler
-- **system_state.py** — boot_time no expuesto (bug en /api/system/status)
-- **system_health.py** — collect_health() retorna dataclass, no dict (bug)
-- **Alembic** — Mismatch con modelos actuales
+- **knowledge/** — 13 archivos reales, 0 conectados al runtime
 
-### ❌ FAIL (debe resolverse antes del freeze)
-- **Pipeline class** (`orchestrator/pipeline.py`) — Código muerto de 476 líneas
-- **evidence_service.py** — Código muerto
-- **scanning/** — Código muerto
-- **knowledge/** — 14 archivos huérfanos
-- **TargetRadar** — Código muerto
-- **intelligence/event_system.py** — 3er EventBus no bridgeado
-- **intelligence/ (como módulo)** — Cajón de sastre que debe reestructurarse
-
----
-
-## 7. Decisiones Arquitectónicas para el Freeze
-
-### Único Pipeline Oficial: **ScanScheduler** (`api/scheduler.py`)
-Debe corregirse: llamada a launch_scan(), eliminar SCOPE_CHECK, eliminar Pipeline class muerto.
-
-### Único Health System: **UnifiedHealthMonitor** (por crear)
-Los 3 actuales (SystemHealthEngine, HealthMonitor, Watchdog) deben unificarse.
-
-### Único EventBus: **EventBus** (`cores/events/event_bus.py`)
-AgentBus se convierte en wrapper. EventSystem se elimina o se bridgea.
-
-### Único Ranking Engine: **OpportunityEngine → ORION** (unificados)
-Dar persistencia a OpportunityEngine. TargetRadar se elimina o se integra. PriorityEngine se realinea.
-
-### Único Tool Layer: **ToolRegistry** (por crear)
-Unificar `cores/recon/` y `cores/tools/` en una sola interfaz.
-
-### Único Discovery Engine: **BountyScraper** (`cores/bounty_scraper/`)
-Ya existe. Debe ser la única fuente de descubrimiento de programas.
-
-### ORION: **Read-only con excepción documentada**
-RewardLearner puede escribir learning_state (es su propia metadata de ajuste). Todo lo demás es SELECT-only.
-
-### Knowledge: **Eliminar o conectar**
-14 archivos reales. Si no se conectan, deben eliminarse. No pueden quedar huérfanos.
-
-### CoordinatorAgent: **Eliminar o sincronizar con Scheduler**
-La state machine de 11 estados debe integrarse con el pipeline del scheduler o eliminarse.
+### ❌ FAIL (resueltos en v5.0 FREEZE)
+- ~~Pipeline class~~ → archivado en `archive_cleanup/`
+- ~~evidence_service.py~~ → archivado
+- ~~scanning/~~ → archivado
+- ~~TargetRadar~~ → archivado
+- ~~intelligence/event_system.py~~ → ahora es wrapper sobre EventBus
+- ~~system_state.py boot_time bug~~ → corregido (usa get_uptime)
+- ~~system_health.py collect_health bug~~ → corregido (acceso a dataclass)
+- ~~Scheduler launch_scan args~~ → corregido (pasa session + kwargs correctos)
+- ~~Alembic mismatch~~ → corregido (migración es no-op)
+- **knowledge/** — Pendiente para v5.1
 
 ---
 
-## 8. Métricas del Sistema
+## 7. Ciclo de Bug Bounty Automático
+
+El pipeline oficial se ejecuta en `api/scheduler.py` (ScanScheduler). Es el ÚNICO flujo que corre en runtime. No hay state machines paralelas.
+
+```
+                    ┌─────────────────────┐
+                    │  DISCOVERY           │
+                    │  BountyScraper       │
+                    │  scrape_all()        │
+                    │  → Targets en DB     │
+                    │  → opportunity:found │
+                    └─────────┬───────────┘
+                              ▼
+                    ┌─────────────────────┐
+                    │  RECONNAISSANCE      │
+                    │  launch_scan()       │
+                    │  → ReconRunner       │
+                    │  → Endpoints en DB   │
+                    │  → discovery:completed│
+                    └─────────┬───────────┘
+                              ▼
+                    ┌─────────────────────┐
+                    │  HYPOTHESIS          │
+                    │  generate_hypotheses │
+                    │  → 9 rule-based gens │
+                    │  → ep.hypothesis_id  │
+                    └─────────┬───────────┘
+                              ▼
+                    ┌─────────────────────┐
+                    │  VALIDATION          │
+                    │  ValidationLoopEng.  │
+                    │  evaluate()          │
+                    │  → findings abiertos │
+                    └─────────┬───────────┘
+                              ▼
+                    ┌─────────────────────┐
+                    │  FINDING CONFIRM     │
+                    │  pipeline → verdict  │
+                    │  → finding:created   │
+                    │  → finding:status    │
+                    └─────────┬───────────┘
+                              ▼
+                    ┌─────────────────────┐
+                    │  REPORT DRAFT        │
+                    │  create_report_from_ │
+                    │  findings()          │
+                    │  Auto-report sub:    │
+                    │  finding confirmed   │
+                    │  → report:generated  │
+                    └─────────┬───────────┘
+                              ▼
+                    ┌─────────────────────┐
+                    │  HUMAN REVIEW        │
+                    │  (UI / API manual)   │
+                    └─────────┬───────────┘
+                              ▼
+                    ┌─────────────────────┐
+                    │  SUBMISSION          │
+                    │  vía plataforma API  │
+                    │  (H1, BC, Intigriti, │
+                    │   Synack, YesWeHack) │
+                    └─────────┬───────────┘
+                              ▼
+                    ┌─────────────────────┐
+                    │  PAYMENT TRACK       │
+                    │  Financial TruthLayer│
+                    │  + webhooks manuales │
+                    └─────────┬───────────┘
+                              ▼
+                    ┌─────────────────────┐
+                    │  LEARNING LOOP       │
+                    │  RewardLearner       │
+                    │  PatternRegistry     │
+                    │  AdaptiveMemory      │
+                    └─────────┬───────────┘
+                              │
+                    ┌─────────▼───────────┐
+                    │  ORION DECIDE       │
+                    │  NextAction:        │
+                    │  "qué target sigue" │
+                    └─────────────────────┘
+```
+
+**Stack por etapa:**
+
+| Etapa | Módulo | Método | Output |
+|-------|--------|--------|--------|
+| DISCOVERY | `cores/bounty_scraper/monitor.py` | `scrape_all()` | Targets en DB |
+| RECON | `cores/orchestrator/scan_service.py` | `launch_scan()` → `ReconRunner.run_pipeline()` | Endpoints en DB |
+| HYPOTHESIS | `cores/engine/hypothesis/generators.py` | `generate_hypotheses()` | ep.hypothesis_id asignado |
+| VALIDATION | `cores/validation/loop_engine.py` | `evaluate()` | Findings + Verdicts |
+| REPORT | `cores/pipeline/report_service.py` | `create_report_from_findings()` | Reports en DB |
+| SUBMISSION | `cores/platforms/*.py` | vía API keys | Envío a plataforma |
+| PAYMENT | `cores/financial/truth_layer.py` | sync + reconciliation | Ledger actualizado |
+| LEARNING | `cores/intelligence/reward_learning.py` | `analyze()` | Ajustes de prioridad |
+
+---
+
+## 12. Decisiones Arquitectónicas (v5.0 STABLE)
+
+### Único Pipeline: **ScanScheduler** (`api/scheduler.py`) — ✅ RESUELTO
+Pipeline class archivado. launch_scan() corregido (session+kwargs). SCOPE_CHECK no implementado (por diseño).
+
+### Único EventBus: **EventBus** (`cores/events/event_bus.py`) — ✅ RESUELTO
+AgentBus mantiene `LocalEventBus` propio + bridge a EventBus. EventSystem delegado a EventBus (wrapper tipado).
+
+### Único Discovery Engine: **BountyScraper** (`cores/bounty_scraper/`) — ✅ YA ÚNICO
+
+### ORION: **Read-only con excepción documentada** — ✅ DEFINIDO
+RewardLearner escribe `learning_state` (~40 bytes/tipo). Todo lo demás es SELECT-only.
+
+### Health System: **Unificar 3 → 1** — ⏳ v5.1
+SystemHealthEngine + HealthMonitor + Watchdog. No rompe el sistema.
+
+### Ranking Engine: **Unificar 5 → 1** — ⏳ v5.1
+OpportunityEngine (RAM) + PriorityEngine + RecommendationEngine + AdaptivePrioritizer + UnifiedScoring.
+
+### Tool Layer: **Unificar recon/ + tools/** — ⏳ v5.1
+Dos capas de wrappers CLI para las mismas tools.
+
+### CoordinatorAgent — ⏳ v5.1
+State machine de agentes. No auto-start, solo vía API. No conflictúa con scheduler en runtime.
+
+### Knowledge/ — ⏳ v5.1
+13 archivos reales huérfanos. Conectar o archivar.
+
+---
+
+## 13. Métricas del Sistema
 
 | Métrica | Valor |
 |---------|-------|
-| Archivos Python | ~450 |
-| Líneas Python (cores/ + api/) | ~59,300 |
-| Líneas frontend | ~19,200 |
-| Líneas tests | ~4,500 |
-| Total líneas fuente | ~83,000 |
-| Subpaquetes cores/ | 59 |
-| Routers API | 65 |
-| Middleware | 6 |
-| Tablas DB | 43 |
-| Páginas frontend | 46 |
-| Pinia stores | 9 |
-| Tests | 363 (359 pass) |
-| Agentes | 8 (Coordinator + 7) |
-| Health systems | 3 (independientes) |
-| Ranking/priority engines | 5 (independientes) |
-| Event buses | 3 (independientes) |
-| Tool layers | 2 (duplicadas) |
-| Código muerto verificado | ~1,500 líneas |
+| Archivos Python (cores/) | 339 |
+| Archivos Python (api/) | 77 |
+| Líneas Python (cores/) | 59,330 |
+| Líneas Python (api/) | 13,162 |
+| Líneas frontend (src/) | 25,476 |
+| Líneas tests | 5,811 |
+| **Total líneas fuente** | **~103,779** |
+| Subpaquetes cores/ | 61 |
+| Routers API | 64 |
+| Middleware | 5 |
+| Tablas DB (models) | 36 |
+| Páginas frontend | 57 |
+| Componentes frontend | 39 |
+| Pinia stores | 15 |
+| Tests colectados | 361 (359 pass, 2 xfail) |
+| Agentes | 8 |
 | Plataformas bug bounty | 5 |
 | LLM providers | 3 |
-| Blockchains | 4 |
+| Blockchains | 4 (BTC, ETH, SOL, TRX) |
 
 ---
 
-*Documento generado desde auditoría final completa del código — Julio 2026.*
+## 14. Progreso de Producción
+
+### Código Total
+
+| Métrica | Valor |
+|---------|-------|
+| Líneas Python (cores/ + api/) | ~72.5K |
+| Líneas frontend (src/) | ~25.5K |
+| Líneas tests | ~5.8K |
+| **Total líneas fuente** | **~103.8K** |
+| Archivos Python (cores/ + api/) | 416 |
+| Archivos frontend (.ts/.vue/.css) | 140 |
+| Archivos de tests | 16 |
+| **Total archivos fuente** | **~572** |
+
+### Completitud por Área
+
+| Área | % | Detalle |
+|------|---|---------|
+| Backend cores/ | 98% | 61 módulos, ~59K líneas. Conectados, funcionales, pipeline E2E verificado. Alembic no-op (init_db vía create_all). |
+| API REST | 96% | 64 routers registrados. Endpoints CRUD funcionales para targets, findings, reports, evidence. Pendiente: DELETE faltantes en algunos routers. |
+| Frontend Vue 3 | 93% | 57 páginas, 39 componentes, 15 stores, 64 routers del backend cubiertos. Tailwind v4 + Vitest configurado (17 tests frontend). |
+| Desktop / Launcher | 90% | Multi-modo (browser, tray, service, safe-mode), PyInstaller, boot guard, autostart, updater. |
+| Plataformas Bug Bounty | 70% | 5 integraciones (H1, BC, Intigriti, Synack, YWH), bóveda IdentityVault. Pendiente: battle-testing, manejo de errores de API. |
+| Tests Backend | 85% | 361 tests (359 pass, 2 xfail). Cobertura: agents, API, scoring, learning, E2E, crypto, contracts. |
+| Tests Frontend | 15% | Vitest + Vue Test Utils configurados. 17 tests. Pendiente: stores, pages, composables. |
+| Mobile | 0% | Android/ es shell Capacitor sin código nativo. Planificado para v5.x. |
+| **Total General** | **~91%** | |
+
+### 9% Restante (priorizado para v5.1)
+
+| Prioridad | Item | Esfuerzo |
+|-----------|------|----------|
+| 1 | Unificar 3 health systems (SystemHealthEngine + HealthMonitor + Watchdog) | 2-3 días |
+| 2 | Unificar 5 ranking/priority engines en uno | 2-3 días |
+| 3 | Unificar tool layers (cores/recon/ + cores/tools/) | 1-2 días |
+| 4 | Conectar o archivar knowledge/ (13 archivos huérfanos) | 1 día |
+| 5 | Más tests frontend (stores, pages, composables) | 3-5 días |
+| 6 | CRUD faltantes (DELETE targets, endpoints, etc.) | 1 día |
+| 7 | Normalizar formato de respuesta API | 2-3 días |
+| 8 | Mobile (Capacitor/Tauri) | 1-2 semanas |
+
+---
+
+*Documento actualizado desde código verificado — Julio 2026. Freeze v5.0 STABLE completado.*
 *CATEYE v2.0.0 | Architecture v5.0 | CONSTITUCIÓN DEL PROYECTO*

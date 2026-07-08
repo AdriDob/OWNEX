@@ -176,129 +176,104 @@ class TestAuthMiddleware:
 
 
 class TestCSRF:
-    """CSRF middleware tests — dispatch tested directly."""
+    """CSRF middleware tests — tested via TestClient against the real app.
 
-    @pytest.fixture(autouse=True)
-    def _csrf_env(self, monkeypatch):
+    CSRF must be tested with an authenticated client because AuthMiddleware
+    (registered before CSRFMiddleware) rejects unauthenticated requests before
+    the CSRF middleware can process them.  All state-changing GET/POST requests
+    go through an authed_client that has a valid session token.
+    """
+
+    @pytest.fixture
+    def csrf_env(self, monkeypatch):
+        """Enable CSRF for this test class (conftest disables it globally)."""
+        monkeypatch.delenv("CATEYE_CSRF_DISABLED", raising=False)
         monkeypatch.setenv("CATEYE_DESKTOP", "1")
 
-    def _make_request(self, method: str = "GET", path: str = "/test",
-                      cookie: str | None = None, header: str | None = None) -> Request:
-        from starlette.requests import Request
-        headers = []
-        if cookie:
-            headers.append((b"cookie", f"csrf-token={cookie}".encode()))
-        if header:
-            headers.append((b"x-csrf-token", header.encode()))
-        scope = {
-            "type": "http",
-            "method": method,
-            "path": path,
-            "headers": headers,
-            "query_string": b"",
-            "scheme": "http",
-            "client": ("127.0.0.1", 8000),
-            "server": ("test", 8000),
-            "root_path": "",
-            "asgi": {"version": "3.0"},
-        }
-        return Request(scope)
+    @pytest.fixture
+    def live_client(self, csrf_env):
+        """Fresh TestClient (per-test, no cookie bleed between tests)."""
+        from fastapi.testclient import TestClient
 
-    @pytest.mark.asyncio
-    async def test_csrf_cookie_set_on_get(self):
-        from starlette.responses import Response
+        from api.main import app
+        from cores.license.validator import generate_license
 
-        from api.middleware.csrf_middleware import COOKIE_NAME, CSRFMiddleware
+        c = TestClient(app)
+        lic = generate_license(expiry_days=365)
+        c.post("/api/license/activate", json={"key": lic})
+        return c
 
-        mw = CSRFMiddleware(app=None)
-        request = self._make_request("GET", "/test")
+    @pytest.fixture
+    def authed_client(self, live_client):
+        """Authenticated test client with a valid session token."""
+        resp = live_client.post("/api/auth/login", json={"device_id": "csrf-test"})
+        assert resp.status_code == 200
+        token = resp.json()["data"]["token"]
+        live_client.headers = {"Authorization": f"Bearer {token}"}
+        return live_client
 
-        async def call_next(r):
-            return Response("ok")
+    def test_csrf_cookie_set_on_get(self, authed_client):
+        """GET request should set csrf-token cookie."""
+        resp = authed_client.get("/api/targets")
+        set_cookie = resp.headers.get("set-cookie", "")
+        assert "csrf-token" in set_cookie, f"Expected csrf-token in set-cookie, got: {set_cookie}"
 
-        response = await mw.dispatch(request, call_next)
-        cookie_header = response.headers.get("set-cookie", "")
-        assert COOKIE_NAME in cookie_header
+    def test_csrf_blocked_missing_header(self, authed_client):
+        """POST without X-CSRF-Token header should be blocked."""
+        # First GET to obtain CSRF cookie
+        resp = authed_client.get("/api/targets")
+        # Clear the auto-stored cookie so the POST has no CSRF header
+        authed_client.cookies.clear()
+        resp = authed_client.post("/api/targets", json={})
+        assert resp.status_code == 403
+        assert "CSRF" in resp.text
 
-    @pytest.mark.asyncio
-    async def test_csrf_blocked_missing_header(self):
-        import secrets
+    def test_csrf_valid_token_passes(self, authed_client):
+        """POST with matching cookie + header should pass CSRF."""
+        # Get CSRF token from a GET
+        resp = authed_client.get("/api/targets")
+        import re
+        match = re.search(r'csrf-token=([^;]+)', resp.headers.get("set-cookie", ""))
+        assert match, "No CSRF cookie in set-cookie"
+        token = match.group(1)
 
-        from starlette.responses import Response
+        # POST with matching cookie + header (TestClient auto-sends stored cookies)
+        resp = authed_client.post(
+            "/api/targets",
+            json={"name": "test", "domain": "test.com", "program": "test"},
+            headers={"X-CSRF-Token": token},
+        )
+        # 422 = validation error (CSRF passed, reached endpoint handler)
+        assert resp.status_code in (200, 422, 400), f"Expected CSRF to pass, got {resp.status_code}"
 
-        from api.middleware.csrf_middleware import CSRFMiddleware
+    def test_csrf_token_mismatch_blocked(self, authed_client):
+        """POST with mismatched cookie and header should be blocked."""
+        resp = authed_client.get("/api/targets")
+        import re
+        match = re.search(r'csrf-token=([^;]+)', resp.headers.get("set-cookie", ""))
+        assert match, "No CSRF cookie in set-cookie"
+        token = match.group(1)
 
-        mw = CSRFMiddleware(app=None)
-        token = secrets.token_hex(32)
-        request = self._make_request("POST", "/test", cookie=token)
+        different = "x" * 64
+        # Clear auto-stored cookies so we can override
+        authed_client.cookies.clear()
+        resp = authed_client.post(
+            "/api/targets", json={},
+            cookies={"csrf-token": token},
+            headers={"X-CSRF-Token": different},
+        )
+        assert resp.status_code == 403
+        assert "CSRF" in resp.text
 
-        async def call_next(r):
-            return Response("ok")
+    def test_csrf_exempt_paths_skip_check(self, live_client):
+        """Exempt paths should skip CSRF check entirely."""
+        resp = live_client.post("/api/auth/login", json={"device_id": "test"})
+        assert resp.status_code == 200
 
-        response = await mw.dispatch(request, call_next)
-        assert response.status_code == 403
-
-    @pytest.mark.asyncio
-    async def test_csrf_valid_token_passes(self):
-        import secrets
-
-        from starlette.responses import Response
-
-        from api.middleware.csrf_middleware import CSRFMiddleware
-
-        mw = CSRFMiddleware(app=None)
-        token = secrets.token_hex(32)
-        request = self._make_request("POST", "/test", cookie=token, header=token)
-
-        async def call_next(r):
-            return Response("ok")
-
-        response = await mw.dispatch(request, call_next)
-        assert response.status_code == 200
-
-    @pytest.mark.asyncio
-    async def test_csrf_token_mismatch_blocked(self):
-        from starlette.responses import Response
-
-        from api.middleware.csrf_middleware import CSRFMiddleware
-
-        mw = CSRFMiddleware(app=None)
-        request = self._make_request("POST", "/test", cookie="valid-token", header="different-token")
-
-        async def call_next(r):
-            return Response("ok")
-
-        response = await mw.dispatch(request, call_next)
-        assert response.status_code == 403
-
-    @pytest.mark.asyncio
-    async def test_csrf_exempt_paths_skip_check(self):
-        from api.middleware.csrf_middleware import CSRFMiddleware
-
-        mw = CSRFMiddleware(app=None)
-        request = self._make_request("POST", "/api/health")
-
-        async def call_next(r):
-            from starlette.responses import Response
-            return Response("ok")
-
-        response = await mw.dispatch(request, call_next)
-        assert response.status_code == 200
-
-    @pytest.mark.asyncio
-    async def test_csrf_safe_methods_skip_check(self):
-        from starlette.responses import Response
-
-        from api.middleware.csrf_middleware import CSRFMiddleware
-
-        mw = CSRFMiddleware(app=None)
-        request = self._make_request("OPTIONS", "/test")
-
-        async def call_next(r):
-            return Response("ok")
-
-        response = await mw.dispatch(request, call_next)
-        assert response.status_code == 200
+    def test_csrf_safe_methods_skip_check(self, authed_client):
+        """Safe methods (OPTIONS) should skip CSRF check."""
+        resp = authed_client.options("/api/targets")
+        assert resp.status_code != 403
 
 
 class TestRateLimit:
@@ -364,3 +339,28 @@ class TestRateLimit:
         resp = client.get("/api/system/health", headers={"Authorization": f"Bearer {token}"})
         assert resp.status_code == 200
         assert "X-RateLimit-Remaining" in resp.headers
+
+    def test_rate_limit_decrements_on_multiple_requests(self, client):
+        """X-RateLimit-Remaining should decrease after consecutive requests."""
+        token = _login(client)
+        headers = {"Authorization": f"Bearer {token}"}
+        r1 = client.get("/api/system/health", headers=headers)
+        r2 = client.get("/api/system/health", headers=headers)
+        remaining1 = int(r1.headers.get("X-RateLimit-Remaining", 0))
+        remaining2 = int(r2.headers.get("X-RateLimit-Remaining", 0))
+        assert remaining2 <= remaining1, "Remaining should not increase between requests"
+
+    def test_rate_limit_public_path_not_limited(self, client):
+        """Public paths (health, version, docs) should not get rate-limited."""
+        resp = client.get("/api/health")
+        assert "X-RateLimit-Remaining" not in resp.headers
+
+        resp = client.get("/api/version")
+        assert "X-RateLimit-Remaining" not in resp.headers
+
+    def test_rate_limit_exempt_paths_skip_limit(self, client):
+        """Paths in NO_LIMIT_PREFIXES should not have rate limit headers."""
+        from api.middleware.rate_limit_middleware import NO_LIMIT_PREFIXES
+        for prefix in NO_LIMIT_PREFIXES:
+            resp = client.get(prefix)
+            assert "X-RateLimit-Remaining" not in resp.headers, f"{prefix} should not be limited"

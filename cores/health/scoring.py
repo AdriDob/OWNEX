@@ -47,7 +47,7 @@ def compute_health_score(metrics: dict[str, Any]) -> float:
     score -= metrics.get("db_lock_count", 0) * PENALTY_DB_LOCK
     score -= metrics.get("pipeline_retries", 0) * PENALTY_PIPELINE_RETRY
     score -= metrics.get("recovery_attempts", 0) * PENALTY_RECOVERY_ATTEMPT
-    score -= max(0, (metrics.get("memory_percent", 0) - 60)) / 10 * PENALTY_MEMORY_HIGH
+    score -= max(0, (metrics.get("memory_percent", 0) - 80)) / 10 * PENALTY_MEMORY_HIGH
     score -= metrics.get("open_circuits", 0) * PENALTY_CIRCUIT_OPEN
 
     return max(0.0, min(100.0, score))
