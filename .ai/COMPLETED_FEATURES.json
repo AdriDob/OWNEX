@@ -169,6 +169,31 @@
       "integration": "produccion",
       "verified": "2026-07-08",
       "notes": "Ciclo completo: fix bugs bloqueantes → usability review → documentacion → build Linux → release criteria verificados. Primer version para uso diario."
+    },
+    {
+      "id": "v3.0.0-release-hardening",
+      "description": "12 fixes de release hardening: event-loop block, poller stop, watchdog bus, imports rotos, DB indexes, task orphans, WAL checkpoint, dedup leak, ensure_future tracking, cooldown purge, open() context, audit rotation",
+      "archives": [
+        "cores/financial/scheduler.py",
+        "api/routers/operations.py",
+        "api/main.py",
+        "desktop/watchdog.py",
+        "cores/agents/research.py",
+        "database/db.py",
+        "database/models.py",
+        "api/routers/hunt.py",
+        "api/scheduler.py",
+        "cores/engine/correlation.py",
+        "cores/agents/base.py",
+        "cores/agents/bus.py",
+        "cores/auth/session.py",
+        "cores/auth/token_service.py",
+        "cores/audit_log.py"
+      ],
+      "tests": ["393 passed, 2 xfailed, 0 fallos"],
+      "integration": "produccion",
+      "verified": "2026-07-08",
+      "notes": "Audit prolongado: 12 fixes aplicados, 0 regresiones. Sistema listo para 24/7 sin fugas de memoria, sin WAL infinito, sin tareas huerfanas."
     }
   ]
 }

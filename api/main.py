@@ -89,6 +89,9 @@ setup_logging()
 
 logger = logging.getLogger("cateye.api")
 
+# Track background tasks to prevent silent crashes and allow cancellation
+_background_tasks: set[asyncio.Task] = set()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -194,7 +197,9 @@ async def lifespan(app: FastAPI):
     try:
         from api.scheduler import ScanScheduler
         scheduler = ScanScheduler(interval_minutes=get_config().scan_interval)
-        asyncio.create_task(scheduler.start())
+        t = asyncio.create_task(scheduler.start())
+        t.add_done_callback(_background_tasks.discard)
+        _background_tasks.add(t)
         logger.info("Scan scheduler started")
     except Exception as exc:
         logger.warning("Scan scheduler failed to start (non-fatal): %s", exc)
@@ -298,7 +303,9 @@ async def lifespan(app: FastAPI):
         fin_scheduler = get_financial_sync_scheduler()
         import os
         fin_scheduler.interval_minutes = int(os.environ.get("CATEYE_SYNC_INTERVAL", "30"))
-        asyncio.create_task(fin_scheduler.start())
+        t = asyncio.create_task(fin_scheduler.start())
+        t.add_done_callback(_background_tasks.discard)
+        _background_tasks.add(t)
         logger.info("[BOOT] Financial auto-sync scheduler started (interval=%dmin)", fin_scheduler.interval_minutes)
     except Exception as exc:
         logger.warning("Financial auto-sync scheduler failed (non-fatal): %s", exc)
@@ -428,6 +435,21 @@ async def lifespan(app: FastAPI):
             logger.info("[BOOT] Discovery monitor stopped")
         except Exception as exc:
             logger.warning("Discovery monitor stop error: %s", exc)
+
+    # Stop Notification Poller
+    try:
+        from api.routers.operations import stop_notification_poller
+        stop_notification_poller()
+        logger.info("[BOOT] Notification poller stopped")
+    except Exception as exc:
+        logger.warning("Notification poller stop error: %s", exc)
+
+    # Cancel any remaining background tasks
+    for task in list(_background_tasks):
+        if not task.done():
+            task.cancel()
+    _background_tasks.clear()
+    logger.info("[BOOT] Background tasks cancelled")
 
 # Read version from VERSION file (single source of truth)
 _VERSION_FILE = Path(__file__).resolve().parent.parent / "VERSION"
