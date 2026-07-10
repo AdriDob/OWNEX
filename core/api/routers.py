@@ -265,3 +265,83 @@ async def record_decision_outcome(decision_id: str, body: OutcomeRequest):
     if not ok:
         return JSONResponse({"error": f"Decision '{decision_id}' not found"}, status_code=404)
     return {"decision_id": decision_id, "outcome": body.outcome, "recorded": True}
+
+
+# ── Learning / Feedback endpoints ────────────────────
+
+
+@router.get("/learning/stats")
+async def learning_stats():
+    """FeedbackLearner stats — weights, events, tuning history."""
+    try:
+        from cores.validation.feedback_tuner import FeedbackTuner
+
+        tuner = FeedbackTuner()
+        status = tuner.status()
+        status["confidence_history"] = tuner._tuning_history[-5:] if tuner._tuning_history else []
+
+        # Per-vuln-type accuracy from Decision Journal
+        from core.decision_journal import get_decisions
+
+        decisions = get_decisions(app_id="cateye", outcome="success", limit=200)
+        success_count = len(decisions)
+        decisions_fail = get_decisions(app_id="cateye", outcome="failure", limit=200)
+        fail_count = len(decisions_fail)
+        total_decisions = success_count + fail_count
+
+        return {
+            "weights": status["current_weights"],
+            "total_feedback_events": status["total_feedback_events"],
+            "total_tunings": status["total_tunings"],
+            "ready_for_analysis": status["ready_for_analysis"],
+            "last_tuning": status["last_tuning"],
+            "recent_tunings": status["confidence_history"],
+            "validation_accuracy": {
+                "success": success_count,
+                "failure": fail_count,
+                "total": total_decisions,
+                "rate": round(success_count / total_decisions, 4) if total_decisions > 0 else 0,
+            },
+        }
+    except Exception as exc:
+        return {"status": "error", "error": str(exc)}
+
+
+@router.post("/learning/trigger")
+async def trigger_learning():
+    """Manually trigger FeedbackLearner analysis and weight tuning."""
+    try:
+        from cores.validation.feedback_tuner import FeedbackTuner
+
+        tuner = FeedbackTuner()
+        result = tuner.tune_if_ready()
+        return result
+    except Exception as exc:
+        return {"status": "error", "error": str(exc)}
+
+
+@router.get("/learning/weights")
+async def learning_weights():
+    """Current ConfidenceScorer weights."""
+    try:
+        from cores.validation.confidence import get_confidence_scorer
+
+        scorer = get_confidence_scorer()
+        return {"weights": scorer.get_weights()}
+    except Exception as exc:
+        return {"status": "error", "error": str(exc)}
+
+
+@router.post("/learning/weights")
+async def update_learning_weights(body: dict):
+    """Manually adjust ConfidenceScorer weights (for testing/fine-tuning)."""
+    try:
+        from cores.validation.confidence import get_confidence_scorer
+
+        scorer = get_confidence_scorer()
+        old = scorer.get_weights()
+        adjustments = {k: v for k, v in body.items() if k in old}
+        scorer.adjust_weights(adjustments)
+        return {"old": old, "new": scorer.get_weights(), "adjustments": adjustments}
+    except Exception as exc:
+        return {"status": "error", "error": str(exc)}

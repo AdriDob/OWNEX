@@ -26,7 +26,10 @@ class ValidationLoopEngine:
     ):
         self._replayer = replayer or RequestReplayer()
         self._rules = rules or ValidationRuleSet()
-        self._scorer = scorer or ConfidenceScorer()
+        # Use shared singleton by default so FeedbackTuner weight adjustments propagate
+        from cores.validation.confidence import get_confidence_scorer
+
+        self._scorer = scorer or get_confidence_scorer()
         self._gate = gate or ReportGate()
         self._llm = llm_analyzer or LLMResponseAnalyzer()
         self._challenger = challenger or HypothesisChallenger()
@@ -86,7 +89,9 @@ class ValidationLoopEngine:
                 if sem.vulnerability_hints:
                     logger.info(
                         "LLM semantic analysis for %s: %s (confidence=%.2f)",
-                        request_spec.url, sem.explanation[:100], sem.confidence,
+                        request_spec.url,
+                        sem.explanation[:100],
+                        sem.confidence,
                     )
                 llm_insight = sem
             except Exception as e:
@@ -108,18 +113,20 @@ class ValidationLoopEngine:
         consistent_count = sum(1 for r in comparison_results if r.consistent)
         reproducibility_score = consistent_count / max(len(comparison_results), 1)
 
-        if self._gate.admit(Verdict(
-            hot_path_id=hot_path_id,
-            status="confirmed",
-            confidence=confidence.score,
-            reproducibility_score=reproducibility_score,
-            validation=validation_report,
-            confidence_details=confidence,
-            evidence_links=[],
-            reason="",
-            retry_count=len(comparison_results),
-            timestamp="",
-        )):
+        if self._gate.admit(
+            Verdict(
+                hot_path_id=hot_path_id,
+                status="confirmed",
+                confidence=confidence.score,
+                reproducibility_score=reproducibility_score,
+                validation=validation_report,
+                confidence_details=confidence,
+                evidence_links=[],
+                reason="",
+                retry_count=len(comparison_results),
+                timestamp="",
+            )
+        ):
             passed = validation_report.passed_rules
             status = "confirmed"
             reason = (
@@ -142,9 +149,7 @@ class ValidationLoopEngine:
                 f"rules passed={validation_report.passed_rules}"
             )
 
-        evidence_links = [
-            f"attempt_{r.attempt}" for r in comparison_results if r.consistent
-        ]
+        evidence_links = [f"attempt_{r.attempt}" for r in comparison_results if r.consistent]
 
         return Verdict(
             hot_path_id=hot_path_id,
