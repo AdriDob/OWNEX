@@ -102,3 +102,57 @@ class TestHealthEndpoints:
         assert resp.status_code == 200
         data = resp.json()
         assert "checks" in data
+
+
+class TestIntegrationCenterEndpoints:
+    def test_list_integrations(self):
+        resp = client.get("/api/core/integrations")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "total" in data
+        assert "by_status" in data
+        assert "by_category" in data
+        assert "categories" in data
+        assert "integrations" in data
+        assert data["total"] >= 20  # At least the built-in integrations
+
+    def test_list_categories(self):
+        resp = client.get("/api/core/integrations")
+        data = resp.json()
+        categories = data["categories"]
+        assert "platform" in categories
+        assert "ai" in categories
+        assert "exchange" in categories
+        assert "blockchain" in categories
+        assert "financial" in categories
+        assert "messaging" in categories
+        assert "infrastructure" in categories
+
+    def test_get_known_integration(self):
+        resp = client.get("/api/core/integrations/coingecko")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["name"] == "coingecko"
+        assert data["category"] == "financial"
+        assert "status" in data
+        assert "checked_at" in data
+
+    def test_get_unknown_integration(self):
+        resp = client.get("/api/core/integrations/nonexistent_xyz")
+        assert resp.status_code == 404
+        data = resp.json()
+        assert "error" in data
+
+    def test_test_integration(self):
+        resp = client.post("/api/core/integrations/coingecko/test")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["name"] == "coingecko"
+        assert "status" in data
+        assert "checked_at" in data
+
+    def test_test_unknown_integration(self):
+        resp = client.post("/api/core/integrations/nonexistent_xyz/test")
+        assert resp.status_code == 404
+        data = resp.json()
+        assert "error" in data
