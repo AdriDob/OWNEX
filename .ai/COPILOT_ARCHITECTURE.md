@@ -209,9 +209,26 @@ Exposed via:
 - `copilot.evidence_for(hypothesis_id)` → list of pro evidence
 - `copilot.evidence_against(hypothesis_id)` → list of con evidence
 
+### Unified Memory (Sprint 3 — ✅ Implemented)
+
+The Copilot stores and queries Unified Memory during analysis:
+
+```
+CopilotAgent.analyze_finding()
+    │
+    ├── remember_analysis()  → stores in memory/copilot namespace
+    │
+CopilotAgent.remember(namespace, key, content, tags, priority)
+CopilotAgent.recall(namespace, search, tags, limit)
+```
+
+Every analysis result is auto-stored in the `copilot` namespace with:
+- status, confidence, inconsistencies
+- tags for filtering
+- priority based on confidence
+
 ### Future Integrations
 
-- **Unified Memory** (Sprint 3): Store every analysis as a memory entry with question, hypothesis, alternatives, evidence, result, confidence, lesson learned
 - **Decision Journal persistence**: Move from in-memory to SQLite
 - **Copilot API endpoints**: Expose analysis, review, audit via REST
 - **Copilot webhook**: Notify on findings needing human review

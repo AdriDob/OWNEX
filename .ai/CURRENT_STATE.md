@@ -1,12 +1,12 @@
 # Current State — Estado Real del Proyecto
 
-> **v4.2.1 STABLE** — Senior Copilot Agent + Evidence Graph.
+> **v4.3.0 STABLE** — Senior Copilot Agent + Evidence Graph + Unified Memory.
 > Julio 2026.
 
 ## Testing
 
-- **Total de tests**: 634 pasan, 2 xfailed, 0 fallos
-- **Tests nuevos**: 80 (Copilot) + 28 (Evidence Graph)
+- **Total de tests**: 657 pasan, 2 xfailed, 0 fallos
+- **Tests nuevos**: 80 (Copilot) + 28 (Evidence Graph) + 23 (Unified Memory)
 - **Comando**: `.venv/bin/python -m pytest --timeout=60`
 - `test_security.py` incluido (34 tests, todos verdes)
 - **Lint**: Ruff clean — 0 errores en todo el código nuevo
@@ -177,3 +177,20 @@ Las limitaciones restantes corresponden a v3.1 (ORION Reasoning Layer) — todas
 | EventBus integration | `api/main.py` | ✅ finding:created + finding:status_changed subscribers |
 | Tests | `tests/test_copilot_agent.py` | ✅ 80 tests, todos pasan |
 | Architecture document | `.ai/COPILOT_ARCHITECTURE.md` | ✅ Responsabilities, boundaries, lifecycle, integration points |
+| Unified Memory integration | `core/memory/`, `core/copilot/agent.py` | ✅ Namespaces, search, tags, priority, expiration, embeddings-ready |
+
+## FASE 11 — Unified Memory (Julio 2026)
+
+| Feature | Archivos | Estado |
+|---|---|---|
+| SQLAlchemy model | `core/memory/models.py` | ✅ MemoryEntry with namespace, content, tags, priority, embedding, expiration |
+| CRUD operations | `core/memory/store.py` | ✅ store, get, delete, query, count |
+| Namespace isolation | `core/memory/store.py` | ✅ Filtrable por namespace (global, cateye, atlas, odyssey, hermes, copilot) |
+| Text search | `core/memory/store.py` | ✅ Búsqueda en content + key via ilike |
+| Tag filtering | `core/memory/store.py` | ✅ Filtro por tags combinados |
+| Priority sorting | `core/memory/store.py` | ✅ Priority desc + created_at desc |
+| Optional expiration | `core/memory/store.py` | ✅ expires_at + auto-prune |
+| Embedding storage | `core/memory/store.py` | ✅ store_embedding, get_without_embeddings |
+| EventBus initialization | `api/main.py` | ✅ Boot init con stats |
+| Copilot integration | `core/copilot/agent.py` | ✅ remember(), recall(), remember_analysis() |
+| Tests | `tests/test_unified_memory.py` | ✅ 23 tests, todos pasan |
