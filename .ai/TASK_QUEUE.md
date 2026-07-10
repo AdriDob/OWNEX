@@ -92,3 +92,33 @@ No hay tareas pendientes para v3.0.0. Todas las verificaciones fueron completada
 ### ✅ Fix Kraken ATLAS connector (private API)
 - **Archivos**: apps/atlas/connectors/kraken/connector.py
 - **Estado**: ✅ COMPLETED — 2026-07-10
+
+## Hermes Automation Agent v1 (COMPLETED)
+
+### ✅ Manifest + AppRegistry
+- **Archivos**: apps/hermes/manifest.py
+- **Estado**: ✅ COMPLETED — 2026-07-10
+- **Evidencia**: App "hermes" registrada con scheduler job hermes_health_check
+
+### ✅ Automation Engine
+- **Archivos**: apps/hermes/engine.py
+- **Estado**: ✅ COMPLETED — 2026-07-10
+- **Evidencia**: 6 comandos (backup, status, health, logs, doctor, help), safe mode, permission control, action logging
+
+### ✅ CLI wrapper
+- **Archivos**: run.py
+- **Estado**: ✅ COMPLETED — 2026-07-10
+- **Evidencia**: `python run.py --hermes <command>` funciona
+
+### ✅ Tests
+- **Archivos**: tests/test_hermes.py
+- **Estado**: ✅ COMPLETED — 2026-07-10
+- **Evidencia**: 15 tests pasan, Ruff clean, 0 regresiones
+
+### ✅ User Guide
+- **Archivos**: docs/HERMES_GUIDE.md
+- **Estado**: ✅ COMPLETED — 2026-07-10
+
+### ✅ Windows launcher
+- **Archivos**: scripts/hermes_shortcut.bat, scripts/hermes_silent.vbs
+- **Estado**: ✅ COMPLETED — 2026-07-10
