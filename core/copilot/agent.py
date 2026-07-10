@@ -263,19 +263,37 @@ class CopilotAgent:
 
     def _log_decision(self, action: str, data: dict[str, Any]) -> str:
         decision_id = f"{self.agent_id}-{uuid.uuid4().hex[:12]}"
+        reason = f"Copilot {action} at {datetime.now(timezone.utc).isoformat()}"
+        confidence = data.get("confidence", 0.0) if isinstance(data, dict) else 0.0
         entry = {
             "decision_id": decision_id,
             "agent_id": self.agent_id,
             "action": action,
-            "reason": f"Copilot {action} at {datetime.now(timezone.utc).isoformat()}",
+            "reason": reason,
             "data": data,
-            "confidence": 0.0,
+            "confidence": confidence,
             "authority": self._authority.value,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         self._decision_journal.append(entry)
         if len(self._decision_journal) > self.config.max_decisions_logged:
             self._decision_journal.pop(0)
+
+        # Persist to SQLite Decision Journal
+        try:
+            from core.decision_journal import log_decision as dj_log
+
+            dj_log(
+                app_id=self.app_id,
+                agent_id=self.agent_id,
+                action=action,
+                reason=reason,
+                data_snapshot={"confidence": confidence, "authority": self._authority.value, "payload": data},
+                confidence=confidence,
+            )
+        except Exception as exc:
+            logger.warning("Failed to persist decision to journal: %s", exc)
+
         logger.debug("Decision logged: %s — %s", decision_id, action)
         return decision_id
 
