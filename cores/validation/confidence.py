@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any
 
@@ -106,3 +108,17 @@ class ConfidenceScorer:
             },
             level=level,
         )
+
+
+# ── Shared singleton ──────────────────────────────────────────────
+# All consumers (FeedbackTuner, ValidationLoopEngine) share the same
+# ConfidenceScorer instance so weight adjustments propagate to live scoring.
+
+_scorer_instance: ConfidenceScorer | None = None
+
+
+def get_confidence_scorer() -> ConfidenceScorer:
+    global _scorer_instance
+    if _scorer_instance is None:
+        _scorer_instance = ConfidenceScorer()
+    return _scorer_instance

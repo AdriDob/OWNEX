@@ -51,21 +51,26 @@ def test_feedback_tuner_tunes_with_enough_events(monkeypatch) -> None:
     tuner = FeedbackTuner()
 
     for i in range(MIN_EVENTS_FOR_ANALYSIS):
-        tuner.record_feedback({
-            "id": i, "title": f"Vuln {i}",
-            "old_status": "open",
-            "new_status": "confirmed" if i % 2 == 0 else "rejected",
-        })
+        tuner.record_feedback(
+            {
+                "id": i,
+                "title": f"Vuln {i}",
+                "old_status": "open",
+                "new_status": "confirmed" if i % 2 == 0 else "rejected",
+            }
+        )
 
     mock_learner = MagicMock()
-    mock_learner.analyze_verdict_patterns.return_value = [MagicMock(
-        pattern="Test pattern",
-        confidence_adjustment=0.05,
-        rule_weight_adjustment={},
-        recommendation="Test",
-        supporting_evidence="Evidence",
-        source_count=3,
-    )]
+    mock_learner.analyze_verdict_patterns.return_value = [
+        MagicMock(
+            pattern="Test pattern",
+            confidence_adjustment=0.05,
+            rule_weight_adjustment={},
+            recommendation="Test",
+            supporting_evidence="Evidence",
+            source_count=3,
+        )
+    ]
     mock_learner.suggest_rule_tuning.return_value = {
         "confidence_weights": {"consistency": 0.05},
         "rule_thresholds": {},
@@ -86,14 +91,16 @@ def test_tuner_weights_actually_change(monkeypatch) -> None:
         tuner.record_feedback({"id": i, "title": f"V {i}", "old_status": "open", "new_status": "confirmed"})
 
     mock_learner = MagicMock()
-    mock_learner.analyze_verdict_patterns.return_value = [MagicMock(
-        pattern="Boost consistency",
-        confidence_adjustment=0.1,
-        rule_weight_adjustment={},
-        recommendation="",
-        supporting_evidence="",
-        source_count=3,
-    )]
+    mock_learner.analyze_verdict_patterns.return_value = [
+        MagicMock(
+            pattern="Boost consistency",
+            confidence_adjustment=0.1,
+            rule_weight_adjustment={},
+            recommendation="",
+            supporting_evidence="",
+            source_count=3,
+        )
+    ]
     mock_learner.suggest_rule_tuning.return_value = {
         "confidence_weights": {"consistency": 0.1, "signal": -0.05},
         "rule_thresholds": {},
@@ -149,3 +156,157 @@ def test_confidence_boost_from_positive_feedback() -> None:
     scorer.adjust_weights({"consistency": 0.1})
     w_after = scorer.get_weights()["consistency"]
     assert w_after > w_before, "Positive feedback should increase consistency weight (after normalization)"
+
+
+# ── Singleton tests ───────────────────────────────────────────────
+
+
+def test_singleton_shared_identity() -> None:
+    from cores.validation.confidence import get_confidence_scorer
+
+    s1 = get_confidence_scorer()
+    s2 = get_confidence_scorer()
+    assert s1 is s2, "get_confidence_scorer() should return the same instance"
+
+
+def test_singleton_weights_persist_across_calls() -> None:
+    from cores.validation.confidence import get_confidence_scorer
+
+    s1 = get_confidence_scorer()
+    s1.adjust_weights({"consistency": 0.1})
+    w1 = s1.get_weights()
+
+    s2 = get_confidence_scorer()
+    w2 = s2.get_weights()
+    assert w2 == w1, "Weight adjustment should persist across singleton access"
+
+
+def test_feedback_tuner_uses_singleton() -> None:
+    from cores.validation.confidence import get_confidence_scorer
+    from cores.validation.feedback_tuner import FeedbackTuner
+
+    scorer = get_confidence_scorer()
+    old_w = scorer.get_weights()
+
+    tuner = FeedbackTuner()
+    assert tuner._scorer is scorer, "FeedbackTuner should use the shared singleton"
+
+    # Tune and verify singleton was updated
+    for i in range(MIN_EVENTS_FOR_ANALYSIS):
+        tuner.record_feedback({"id": i, "title": f"V {i}", "old_status": "open", "new_status": "confirmed"})
+
+    mock_learner = MagicMock()
+    mock_learner.analyze_verdict_patterns.return_value = [
+        MagicMock(
+            pattern="Boost consistency",
+            confidence_adjustment=0.1,
+            rule_weight_adjustment={},
+            recommendation="",
+            supporting_evidence="",
+            source_count=3,
+        )
+    ]
+    mock_learner.suggest_rule_tuning.return_value = {
+        "confidence_weights": {"consistency": 0.1},
+        "rule_thresholds": {},
+        "severity_overrides": [],
+    }
+    result = tuner.tune_if_ready(learner=mock_learner)
+    assert result["status"] == "tuned"
+
+    # Verify the singleton scorer was updated, not a private copy
+    assert get_confidence_scorer().get_weights() != old_w, "Singleton weights should be updated after tuning"
+
+
+def test_validation_loop_uses_singleton() -> None:
+    from cores.validation.confidence import get_confidence_scorer
+    from cores.validation.loop_engine import ValidationLoopEngine
+
+    scorer = get_confidence_scorer()
+    engine = ValidationLoopEngine()
+    assert engine._scorer is scorer, "ValidationLoopEngine should use the shared singleton"
+
+
+# ── API endpoint tests ────────────────────────────────────────────
+
+
+def test_learning_stats_endpoint() -> None:
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from core.api.routers import router
+
+    app = FastAPI()
+    app.include_router(router)
+    client = TestClient(app)
+
+    resp = client.get("/api/core/learning/stats")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "weights" in data
+    assert "total_feedback_events" in data
+    assert "total_tunings" in data
+    assert "ready_for_analysis" in data
+    assert "validation_accuracy" in data
+    assert "consistency" in data["weights"]
+    assert "signal" in data["weights"]
+
+
+def test_learning_weights_endpoint() -> None:
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from core.api.routers import router
+
+    app = FastAPI()
+    app.include_router(router)
+    client = TestClient(app)
+
+    resp = client.get("/api/core/learning/weights")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "weights" in data
+    assert data["weights"]["consistency"] > 0
+
+
+def test_learning_trigger_endpoint() -> None:
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from core.api.routers import router
+
+    app = FastAPI()
+    app.include_router(router)
+    client = TestClient(app)
+
+    resp = client.post("/api/core/learning/trigger")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "status" in data
+
+
+def test_update_learning_weights_endpoint() -> None:
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from core.api.routers import router
+
+    app = FastAPI()
+    app.include_router(router)
+    client = TestClient(app)
+
+    from cores.validation.confidence import get_confidence_scorer
+
+    old = get_confidence_scorer().get_weights()["consistency"]
+
+    resp = client.post("/api/core/learning/weights", json={"consistency": 0.05})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "old" in data
+    assert "new" in data
+    assert "adjustments" in data
+    assert data["adjustments"]["consistency"] == 0.05
+
+    # Verify singleton was actually updated
+    new_w = get_confidence_scorer().get_weights()
+    assert new_w["consistency"] != old

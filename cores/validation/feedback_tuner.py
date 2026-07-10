@@ -27,7 +27,10 @@ class FeedbackTuner:
     """
 
     def __init__(self, confidence_scorer: ConfidenceScorer | None = None) -> None:
-        self._scorer = confidence_scorer or ConfidenceScorer()
+        # Use shared singleton by default so weight adjustments propagate to live scoring
+        from cores.validation.confidence import get_confidence_scorer
+
+        self._scorer = confidence_scorer or get_confidence_scorer()
         self._events: list[dict[str, Any]] = self._load_persisted_events()
         self._tuning_history: list[dict[str, Any]] = self._load_persisted_tunings()
 
@@ -62,6 +65,7 @@ class FeedbackTuner:
         if learner is None:
             try:
                 from cores.validation.llm_analyzer import FeedbackLearner
+
                 learner = FeedbackLearner()
             except ImportError:
                 return {"status": "error", "reason": "FeedbackLearner not available"}
