@@ -26,6 +26,7 @@ class ConfidenceScorer:
         validation: ValidationReport,
         endpoint_signals: dict[str, Any],
         llm_boost: float = 0.0,
+        uncertainty_penalty: float = 0.0,
     ) -> ConfidenceScore:
         total = len(results)
         if total == 0:
@@ -36,6 +37,7 @@ class ConfidenceScorer:
                     "signal_score": 0.0,
                     "evidence_strength": 0.0,
                     "noise_penalty": 0.0,
+                    "uncertainty_penalty": uncertainty_penalty,
                 },
                 level="none",
             )
@@ -59,6 +61,7 @@ class ConfidenceScorer:
             + (evidence_strength * WEIGHTS["evidence_strength"])
             + (noise_penalty * WEIGHTS["noise_penalty"])
             + llm_boost
+            - uncertainty_penalty
         )
         score = max(0.0, min(1.0, round(raw_score, 4)))
 
@@ -78,6 +81,7 @@ class ConfidenceScorer:
                 "signal_score": round(signal_score, 4),
                 "evidence_strength": round(evidence_strength, 4),
                 "noise_penalty": round(noise_penalty, 4),
+                "uncertainty_penalty": round(uncertainty_penalty, 4),
             },
             level=level,
         )

@@ -1,7 +1,9 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "instructions": [
+    "AGENTS.md",
     ".opencode/skills/agent-loop/SKILL.md",
+    ".opencode/skills/bee-monitor/SKILL.md",
     ".ai/AGENT_CHARTER.md",
     ".ai/PRODUCTION_RULES.md",
     ".ai/CURRENT_STATE.md",
@@ -11,5 +13,36 @@
     ".ai/SECURITY_POLICY.md",
     ".ai/TESTING_POLICY.md",
     ".ai/CODE_QUALITY.md"
-  ]
+  ],
+  "command": {
+    "test": {
+      "template": "Run the full pytest suite with timeout, excluding test_security.py. Show failures if any.",
+      "description": "Run pytest (excl. security tests)",
+      "model": "small"
+    },
+    "lint": {
+      "template": "Run ruff check on the full project and show any errors or warnings that need fixing.",
+      "description": "Run ruff linter",
+      "model": "small"
+    },
+    "backup": {
+      "template": "Create a full backup of all CATEYE data using `python run.py --backup` and report the result.",
+      "description": "Backup CATEYE data"
+    },
+    "health": {
+      "template": "Check system health via /api/health endpoint and report the status, uptime, and any issues.",
+      "description": "System health check"
+    },
+    "status": {
+      "template": "Show a full system status summary: health score, findings (total/confirmed/pending), active targets, reports this month, and background services status.",
+      "description": "Full system status"
+    }
+  },
+  "compaction": {
+    "auto": true,
+    "prune": false,
+    "reserved": 10000
+  },
+  "formatter": true,
+  "lsp": true
 }

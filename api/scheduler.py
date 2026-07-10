@@ -227,6 +227,40 @@ class ScanScheduler:
             session=session,
         )
 
+    async def _resolve_auth_pair(
+        self, session, target_id: int
+    ) -> tuple[dict | None, dict | None]:
+        from cores.target_auth.session_resolver import get_session_resolver
+
+        resolver = get_session_resolver()
+
+        baseline_id = session.query(models.TargetIdentity.id).filter(
+            models.TargetIdentity.target_id == target_id,
+            models.TargetIdentity.is_baseline.is_(True),
+            models.TargetIdentity.is_active.is_(True),
+        ).scalar()
+
+        probe_id = session.query(models.TargetIdentity.id).filter(
+            models.TargetIdentity.target_id == target_id,
+            models.TargetIdentity.is_baseline.is_(False),
+            models.TargetIdentity.is_active.is_(True),
+        ).scalar()
+
+        baseline_ctx = None
+        probe_ctx = None
+
+        if baseline_id:
+            baseline_ctx = await asyncio.to_thread(resolver.resolve, baseline_id)
+        else:
+            logger.info("[VALIDATE] Target %d: no baseline identity — anonymous", target_id)
+
+        if probe_id:
+            probe_ctx = await asyncio.to_thread(resolver.resolve, probe_id)
+        else:
+            logger.info("[VALIDATE] Target %d: no probe identity — anonymous", target_id)
+
+        return baseline_ctx, probe_ctx
+
     async def _stage_hypothesis(self):
         logger.info("[HYPOTHESIS] Generating vulnerability hypotheses...")
         session = db.SessionLocal()
@@ -276,20 +310,33 @@ class ScanScheduler:
                     ep = session.query(models.Endpoint).filter(models.Endpoint.id == f.endpoint_id).first() if f.endpoint_id else None
                     if not ep:
                         continue
+                    vt = getattr(f, "vulnerability_type", None) or "unknown"
                     endpoint_details = {
                         "url": getattr(ep, 'url', ''),
                         "method": getattr(ep, 'method', 'GET'),
                         "headers": {},
                         "params": {},
                     }
-                    auth_baseline = AuthContext(headers={}, cookies={}, token=None)
-                    auth_probe = AuthContext(headers={}, cookies={}, token=None)
+                    baseline_ctx, probe_ctx = await self._resolve_auth_pair(session, f.target_id)
+                    auth_baseline = AuthContext(
+                        token=(baseline_ctx or {}).get("token"),
+                        cookies=(baseline_ctx or {}).get("cookies", {}),
+                        headers=(baseline_ctx or {}).get("headers", {}),
+                        label="baseline",
+                    )
+                    auth_probe = AuthContext(
+                        token=(probe_ctx or {}).get("token"),
+                        cookies=(probe_ctx or {}).get("cookies", {}),
+                        headers=(probe_ctx or {}).get("headers", {}),
+                        label="probe",
+                    )
                     engine.evaluate(
                         hot_path_id=f"finding_{f.id}",
                         endpoint_details=endpoint_details,
                         endpoint_signals={},
                         auth_baseline=auth_baseline,
                         auth_probe=auth_probe,
+                        vulnerability_type=vt,
                     )
                 except Exception as e:
                     logger.debug("Validation failed for finding %d: %s", f.id, e)

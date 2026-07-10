@@ -1,266 +1,249 @@
-    <div align="center">
-    <br/>
-    <img alt="CATEYE Logo" src="docs/screenshots/cateye-logo-small.svg" width="100%">
-    <br/>
-    <br/>
-   <p>
-     <em>Autonomous · Economic-First · Privacy-Focused · Open Source</em>
-   </p>
+# CATEYE v3.0.0 — Bug Bounty Intelligence System
 
-   <br/>
+[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/AdriDob/Rastro/releases)
+[![Python](https://img.shields.io/badge/python-3.10+-purple.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/fastapi-0.95+-009688.svg)](https://fastapi.tiangolo.com/)
+[![Vue](https://img.shields.io/badge/vue-3.5-4FC08D.svg)](https://vuejs.org/)
+[![Status](https://img.shields.io/badge/status-stable-brightgreen.svg)]()
+[![License](https://img.shields.io/badge/license-Proprietary-red.svg)]()
 
-   <p>
-      <img src="https://img.shields.io/badge/license-Proprietary-red.svg" alt="License: Proprietary"/>
-     <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.10%2B-purple.svg" alt="Python 3.10+"/></a>
-      <a href="https://github.com/AdriDob/Rastro/releases"><img src="https://img.shields.io/badge/version-3.0.0-blue.svg" alt="Version 3.0.0"/></a>
-     <a href="https://vuejs.org/"><img src="https://img.shields.io/badge/vue-3.5-4FC08D.svg" alt="Vue 3.5"/></a>
-     <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/fastapi-0.95%2B-009688.svg" alt="FastAPI"/></a>
-     <a href="https://docs.astral.sh/ruff/"><img src="https://img.shields.io/badge/code%20style-ruff-ff69b4.svg" alt="Ruff"/></a>
-      <img src="https://img.shields.io/badge/status-stable-brightgreen.svg" alt="Stable"/>
-   </p>
+---
 
-   <br/>
-   <br/>
-   <p>
-        **CATEYE v3.0.0** — un sistema de inteligencia artificial autónomo para bug bounty hunters que automatiza todo el ciclo de vida de la cacería de vulnerabilidades — desde el descubrimiento de programas y reconocimiento, hasta la generación de hipótesis, validación, reportes, y tracking financiero completo.
-     <br/>
-     Cada decisión se mide en <strong>USD/hora</strong>, probabilidad de éxito y ROI esperado.
-   </p>
+## What is CATEYE?
 
-   <div align="right">
-     <sub>Hecho en 🇦🇷</sub>
-   </div>
+CATEYE is a **private operational intelligence system** for bug bounty hunters. It automates the complete vulnerability hunting lifecycle — from program discovery and reconnaissance to hypothesis generation, validation, reporting, and financial tracking.
 
-   <br/>
+It is **not** a scanner. It is **not** a framework. It is a **daily companion** that augments your hunting workflow with automation, prioritization, and learning — while keeping you in control of every decision.
 
-   <p align="center">
-     <img alt="CATEYE Dashboard Preview" src="docs/screenshots/dashboard-main.svg" width="90%">
-     <br/>
-     <em>Panel principal — inteligencia económica, radar de oportunidades y decisión autónoma</em>
-   </p>
+---
 
-   <br/>
+## Who is it for?
 
-   ---
+- **Bug bounty hunters** who manage multiple programs and need automation
+- **Security researchers** who want AI-assisted validation and reporting
+- **Anyone** who spends more time on repetitive tasks than on actual hunting
 
-   ## ✨ Características
+## Who is it NOT for?
 
-   <table>
-   <tr>
-   <td width="50%">
+- Teams or enterprises (CATEYE is single-user, local-first)
+- Pentesters needing a traditional scanner
+- Anyone looking for a cloud/SaaS solution
+- Beginners who haven't done manual bug bounty hunting
 
-   ### 🎯 Inteligencia Económica
-   - **ORION Score** (0.0–1.0) — algoritmo de ranking con 6 factores (potencial de recompensa, éxito histórico, competencia, eficiencia temporal, experiencia, diversidad tecnológica)
-   - **EVH** (Expected Value per Hour) — cálculo monetario de ROI por programa
-   - **Money Radar** — programas ordenados por valor esperado
-   - **Pattern Learning** — aprende automáticamente de patrones de earnings (ejemplo: "Los fintechs pagan mejor por IDOR")
+---
 
-   ### 🧠 Sistema Multi-Agente
-   - 8 agentes especializados: Coordinator, Research, Validator, Exploit, Documentation, Strategy, Memory, Financial
-   - Comunicación vía bus de eventos interno (pub/sub)
-   - Pipeline de 11 estados: `PENDING → DISCOVERY → VALIDATION → EVIDENCE → AI_REVIEW → READY → SUBMITTED → TRIAGED → PAID → CLOSED | FAILED | CANCELLED`
-   - Soporte multi-IA: Gemini, Ollama, OpenAI, OpenRouter
+## Philosophy
 
-   ### 🔍 Reconocimiento Autónomo
-   - Orquestación de 15+ herramientas: Subfinder, Amass, httpx, Katana, nuclei (pasivo), ffuf, gau, waybackurls, dnsx, naabu
-   - Integración OWASP ZAP (spider + escaneo pasivo)
-   - 16 clientes OSINT: Shodan, Censys, VirusTotal, SecurityTrails, AlienVault OTX, URLScan.io, Hunter.io, BuiltWith, HIBP, GreyNoise, IntelX, Pulsedive, ThreatFox, IPInfo, SpoofCheck
+1. **Eliminate repetitive human work** — Every feature must answer: "Does this remove human work or just add complexity?"
+2. **ORION decides, modules execute** — ORION is read-only (with one documented exception). It recommends, you decide.
+3. **One official pipeline** — The scheduler is the only runtime flow. No parallel state machines.
+4. **Persistence first** — Critical state survives restarts (SQLite WAL, persistent EventBus, SystemState in DB).
+5. **Security over features** — No secrets in code, CSRF on all mutating routes, AES-256-GCM encryption, JSONL audit logging.
 
-   </td>
-   <td width="50%">
+---
 
-   ### 💰 Financial Truth Layer
-    - Financial Truth Layer: clasifica cada valor como VERIFIED_REAL/PENDING/ESTIMATED/MANUAL/UNKNOWN
-    - SyncPipeline: rate limiter token-bucket, cache TTL, retry con backoff exponencial, detección de delta
-    - WithdrawalTracker: ciclo completo (initiated→pending→completed/failed) con confirmaciones reorg-safe por chain
-    - ReconciliationEngine: compara datos externos vs ledger, auto-resuelve discrepancias con confianza ≥0.9
-    - 10 eventos financieros enlazados a NotificationHub (payout, withdrawal, sync, dispute)
-    - BankPayoutConnector: detección automática de pagos via Plaid API + CSV import + webhooks
-    - 10 Micro-Functions: quick_sync_all, sync_source_now, get_sync_health, trace_balance_origin, detect_anomalies, compute_exposure y más
+## What CATEYE can do
 
-   ### ⛓️ Crypto Sync System
-    - EVMConnector: Ethereum, Polygon, BSC, Arbitrum, Optimism via RPC + explorer API
-    - ExchangeConnector: Binance, Coinbase, Kraken, Bybit con API firmada HMAC
-    - BTCConnector: Blockstream.info API, satoshi→BTC, vin/vout parsing
-    - SolanaConnector: JSON-RPC mainnet, lamports→SOL, fee parsing
-    - TronConnector: TronGrid API, SUN→TRX, TRC20 tokens
-    - WalletConnect: pairing con wallets mobile vía QR (v2 protocol)
-    - 9 LedgerEvent crypto (deposit, withdrawal, staking, yield, swap, gas, airdrop, trade, fee)
-    - Accounts Hub unificado (plataformas + wallets + conexiones bancarias)
-    - Sync Center con historial de sincronización y salud por fuente
+### 🎯 Economic Intelligence
+- **ORION Score** (0.0-1.0) — 6-factor program ranking algorithm
+- **EVH** (Expected Value per Hour) — monetary ROI per program
+- **Pattern Learning** — automatically learns from earnings patterns
+- **Auto-prioritization** — scheduler consults ORION to pick next target
 
-   ### 📊 Reportes Profesionales
-   - Generación de reportes con IA
-   - Exportación a Markdown, PDF, HTML, TXT
-   - Envío directo a plataformas via API keys
-   - Reward learning desde respuestas de plataformas
-   - Historial completo de submissions y earnings
+### 🧠 Multi-Agent System
+- 8 specialized agents (Coordinator, Research, Validator, Exploit, Documentation, Strategy, Memory, Financial)
+- Internal event bus communication (pub/sub)
+- Multi-AI support: Gemini, Ollama, OpenAI, OpenRouter
 
-   ### 🔐 Seguridad & Privacidad
-   - 100% local y privacy-first
-   - Bóveda cifrada con AES-256-GCM
-   - Nunca auto-explota ni auto-envía sin aprobación humana
-   - Licencia MIT — Open Source
+### 🔍 Autonomous Reconnaissance
+- Orchestrates 15+ tools: Subfinder, Amass, httpx, Katana, nuclei, ffuf, gau, waybackurls, dnsx, naabu
+- OWASP ZAP integration (spider + passive scan)
+- 16 OSINT clients: Shodan, Censys, VirusTotal, SecurityTrails, and more
+- 3 scan modes: FAST (~2-5 min), DEEP (~15-30 min), API (no external tools)
 
-   ### 🔌 Plataformas
-    - **Bug Bounty:** HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack — todas con sync_earnings() funcional
-    - **AuthHub:** Gmail OAuth2, WhatsApp Twilio, Telegram Bot — token storage en Identity Vault
-    - **OSINT:** 16 APIs (Shodan, Censys, VirusTotal, etc.)
-    - **Recon Tools:** 15+ externas (Subfinder, nuclei, ffuf, etc.)
+### 🔎 Hypothesis Generation & Validation
+- 8 rule-based generators (IDOR, auth bypass, SSRF, privesc, data exposure, GraphQL, business logic, file operation)
+- RequestReplayer (baseline vs probe comparison)
+- LLM semantic analysis
+- Confidence scoring and pattern memory
 
-   ### ⚡ Micro-Functions & Micro-Interactions
-    - **10 Micro-Functions backend**: quick_sync_all, sync_source_now, get_sync_health, trace_balance_origin, detect_sync_anomalies, get_pending_actions, compute_real_exposure, export_account_snapshot, retry_failed_syncs, get_minimal_dashboard_state
-    - **20 Micro-Interactions frontend**: ContextMenu global, Inspector lateral, MiniPreview hover, MultiSelect batch, CompareView, Timeline, CopyHelper, EmptyState, ErrorRecoveryUI, Command Palette, Search Everywhere, Keyboard Shortcuts, Status Chips, Cards Expandibles y más
+### 📊 Professional Reporting
+- AI-assisted report generation
+- Export: Markdown, PDF, HTML, TXT
+- Direct submission to platforms via API keys
+- Auto-report: confirmed finding → automatic draft
 
-   ### 🖥️ Escritorio
-    - Aplicación de escritorio nativa (PyWebView + system tray)
-    - Instalador Windows (NSIS)
-    - Auto-updater con rollback
-    - Watchdog interno con auto-healing (exponential backoff)
+### 💰 Financial Truth Layer
+- Single source of truth for all earnings
+- 5 value categories: VERIFIED_REAL, PENDING, ESTIMATED, MANUAL, UNKNOWN
+- 4 blockchain connectors (BTC, ETH, SOL, TRX)
+- Withdrawal tracking with reorg-safe confirmations
+- Bank payout detection (Plaid API + CSV import)
+- Exchange integrations (Binance, Coinbase, Kraken, Bybit)
 
-   </td>
-   </tr>
-   </table>
+### 🔐 Security & Privacy
+- 100% local and privacy-first
+- AES-256-GCM encrypted credential vault
+- Never auto-exploits or auto-submits without human approval
+- CSRF double-submit cookie middleware
+- JSONL audit trail with rotation
+- Rate limiting by identity + IP fallback
 
-   ---
+### 🔌 Platform Integrations
+- **Bug Bounty:** HackerOne, Bugcrowd, Intigriti, YesWeHack (scraping + earnings sync)
+- **AuthHub:** Gmail OAuth2, WhatsApp, Telegram — token storage in Identity Vault
+- **Recon Tools:** 15+ external (must be installed separately)
 
-   ## 🏗️ Arquitectura
+---
 
-   ```
-   ┌─────────────────────────────────────────────────────────────────────┐
-   │                         CAPA DE ESCRITORIO                          │
-   │  run.py (State Machine) → PyWebView + Uvicorn + System Tray         │
-   └──────────────────────────────┬──────────────────────────────────────┘
-                                 │
-   ┌──────────────────────────────▼──────────────────────────────────────┐
-   │                         API LAYER (FastAPI)                         │
-   │  60+ routers · CORS · Auth · Rate Limiting · Scheduler · WebSocket  │
-   └──────┬──────────────────────────────────────────────────┬───────────┘
-           │                                                  │
-   ┌──────▼──────────────────┐            ┌──────────────────▼───────────┐
-   │    CORE ENGINES (cores/) │            │       UI (Vue 3 SPA)           │
-   │                          │            │                           │
-   │  ├─ ai/        (LLM)     │            │  50+ páginas               │
-   │  ├─ agents/    (8 agents)│            │  Pinia stores               │
-   │  ├─ recon/     (15+tools)│            │  Cyber theme glassmorphism │
-   │  ├─ engine/    (hypoth.) │            │  Tailwind CSS + Radix UI    │
-   │  ├─ intelligence/ (ML)   │            │  Chart.js + vue-chartjs     │
-   │  ├─ platforms/ (5 sites) │            │  WebSocket bridge           │
-   │  ├─ validation/          │            │                           │
-   │  ├─ events/    (pub/sub) │            │                           │
-   │  ├─ memory/    (LTM)     │            │                           │
-   │  ├─ identity_vault (AES) │            │                           │
-   │  ├─ financial/ (truth)   │            │                           │
-   │  ├─ crypto/ (wallets)    │            │                           │
-   │  └─ 30+ more modules     │            │                           │
-   └──────┬──────────────────┘            └──────────────────────────────┘
-           │
-   ┌──────▼──────────────────────────────────────────────────────────────┐
-   │                     DATABASE (SQLAlchemy)                           │
-   │  models.py (30+ ORM) · models_economic.py (8) · SQLite/PostgreSQL   │
-   └─────────────────────────────────────────────────────────────────────┘
-   ```
+## What CATEYE does NOT do
 
-   ---
+- ❌ Submit reports automatically without approval
+- ❌ Exploit vulnerabilities outside the validation pipeline
+- ❌ Modify program scopes
+- ❌ Accept platform Terms of Service
+- ❌ Spend money (crypto/fiat) without explicit user command
+- ❌ Replace human judgment on findings and reports
+- ❌ Be multi-user or SaaS
+- ❌ Be a C2 or malware
+- ❌ Invent findings without evidence
+- ❌ Delete evidence automatically
 
-   ## 🚀 Inicio Rápido
+---
 
-   ### Prerrequisitos
+## Quick Start
 
-   - Python 3.10+
-   - Node.js 18+ (para frontend)
-   - Git
+### Prerequisites
 
-   ### Instalación
+- Python 3.10+
+- Node.js 18+ (for frontend)
+- Git
+- External recon tools (optional): subfinder, httpx, katana, nuclei, amass, etc.
 
-    ```bash
-    # Clonar el repositorio
-    git clone https://github.com/AdriDob/Rastro.git
-    cd Rastro
+### Installation
 
-   # Instalar backend
-   pip install -r requirements.txt
+```bash
+# Clone
+git clone https://github.com/AdriDob/Rastro.git
+cd Rastro
 
-   # Instalar frontend
-   cd frontend
-   npm install
-   cd ..
+# Backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 
-   # Configurar entorno
-   cp .env.example .env
-   # Editar .env con tus API keys
+# Frontend
+cd frontend && npm install && cd ..
 
-   # Inicializar base de datos
-   python run.py --setup
-   ```
+# Initialize database
+python run.py --setup
 
-   ### Desarrollo
+# Seed demo data (optional but recommended)
+python scripts/seed_real.py
+```
 
-   ```bash
-   # Iniciar backend (API en :8000)
-   python run.py --dev
+### Start
 
-   # En otra terminal — iniciar frontend (Vite dev server en :5173)
-   cd frontend && npm run dev
-   ```
+```bash
+# Development mode (browser)
+python run.py --browser
 
-   ### Build Desktop
+# Or manual: backend + frontend separately
+source .venv/bin/activate
+python run.py --dev
 
-   ```bash
-   # Build PyInstaller bundle
-   python run.py --build
+# In another terminal
+cd frontend && npm run dev
+```
 
-   # Windows installer (opcional)
-    makensis installer/cateye.nsi
-   ```
+Open `http://127.0.0.1:8000` in your browser.
 
-   ---
+---
 
-   ## 🧩 Tech Stack
+## Architecture
 
-   | Capa | Tecnología | Versión |
-   |-------|-----------|---------|
-   | **Backend** | Python + FastAPI | 3.10+ / 0.95+ |
-   | **ASGI** | Uvicorn | 0.22+ |
-   | **ORM** | SQLAlchemy + Pydantic v2 | 2.0+ |
-   | **Database** | SQLite (dev) / PostgreSQL (prod) | — |
-   | **Frontend** | Vue 3 + TypeScript + Vite | 3.5+ / 5.8+ / 6.4+ |
-   | **CSS** | Tailwind CSS | 4.1+ |
-   | **State** | Pinia | 3.0+ |
-   | **Charts** | Chart.js + vue-chartjs | 4.5+ / 5.3+ |
-   | **UI** | Radix Vue / Reka UI + Lucide Vue | — |
-   | **AI** | Gemini · OpenRouter · Ollama · OpenAI | — |
-   | **Desktop** | PyInstaller + PyWebView + Pystray + Plyer | — |
-   | **Mobile** | Capacitor (Android) | 8.x |
-   | **Security** | Cryptography (AES-256-GCM) | — |
-   | **Linting** | Ruff + mypy | — |
-   | **Testing** | pytest + pytest-cov + Playwright | — |
-   | **CI/CD** | GitHub Actions | — |
+```
+┌──────────────────────────────────────────────────────────────┐
+│                     DESKTOP LAYER                             │
+│  run.py (State Machine) → PyWebView + Uvicorn + System Tray   │
+└──────────────────────────┬───────────────────────────────────┘
+                           │
+┌──────────────────────────▼───────────────────────────────────┐
+│                     API LAYER (FastAPI)                        │
+│  60+ routers · CORS · Auth · Rate Limiting · Scheduler       │
+└──────┬───────────────────────────────────────────┬────────────┘
+       │                                           │
+┌──────▼──────────────────┐     ┌──────────────────▼────────────┐
+│    CORE ENGINES (cores/) │     │       UI (Vue 3 SPA)          │
+│                          │     │                              │
+│  ├─ orion/     (AI)      │     │  46+ pages                   │
+│  ├─ agents/    (8 agents)│     │  9 Pinia stores              │
+│  ├─ recon/     (15 tools)│     │  Cyber theme glassmorphism   │
+│  ├─ engine/    (hypoth.) │     │  Tailwind CSS + Radix UI     │
+│  ├─ validation/          │     │  WebSocket bridge            │
+│  ├─ events/    (pub/sub) │     │                              │
+│  ├─ financial/ (truth)   │     │                              │
+│  ├─ crypto/    (wallets) │     │                              │
+│  └─ 30+ more modules     │     │                              │
+└──────┬──────────────────┘     └──────────────────────────────┘
+       │
+┌──────▼───────────────────────────────────────────────────────┐
+│                     DATABASE (SQLite)                          │
+│  36+ tables · SQLAlchemy · WAL mode · FK constraints          │
+└──────────────────────────────────────────────────────────────┘
+```
 
-   ---
+---
 
-   ## 📚 Documentación
+## Documentation
 
-| Documento | Descripción |
-|-------------|-------------|
-| [`.ai/`](.ai/) | **Agent Operating System** — fuente de verdad para agentes IA (OpenCode, Cline, Copilot) |
-| [`SYSTEM.md`](SYSTEM.md) | Documentación completa del sistema |
-| [`FUNCTIONAL_SPEC.md`](FUNCTIONAL_SPEC.md) | **Capacidades verificadas del sistema** — qué hace CATEYE, qué NO hace, y evidencia de código |
-| [`USER_GUIDE.md`](USER_GUIDE.md) | Manual práctico en español para uso diario |
-| [`DAILY_WORKFLOW.md`](DAILY_WORKFLOW.md) | Rutina diaria, semanal y mensual |
-| [`docs/SISTEMA.md`](docs/SISTEMA.md) | Visión general del sistema: arquitectura, stack, componentes |
-| [`RELEASE_NOTES_v3.0.0.md`](RELEASE_NOTES_v3.0.0.md) | Release notes de v3.0.0 |
-| [`CHANGELOG.md`](CHANGELOG.md) | Historial de versiones |
+| Document | Description |
+|---|---|
+| [`SYSTEM.md`](SYSTEM.md) | Full system architecture and technical reference |
+| [`FUNCTIONAL_SPEC.md`](FUNCTIONAL_SPEC.md) | Verified capabilities — what CATEYE can and cannot do |
+| [`USER_GUIDE.md`](USER_GUIDE.md) | Practical manual for daily use (Spanish) |
+| [`DAILY_WORKFLOW.md`](DAILY_WORKFLOW.md) | Daily, weekly, and monthly routines |
+| [`RELEASE_NOTES_v3.0.0.md`](RELEASE_NOTES_v3.0.0.md) | v3.0.0 release notes |
+| [`SETUP_GUIDE.md`](SETUP_GUIDE.md) | Optimal configuration guide |
+| [`CHANGELOG.md`](CHANGELOG.md) | Version history |
 
-   ---
+---
 
-   ## 📄 Licencia
+## Tech Stack
 
-   Propietaria. Ver `.ai/SECURITY_POLICY.md` para detalles de seguridad.
+| Layer | Technology | Version |
+|---|---|---|
+| Backend | Python + FastAPI | 3.10+ / 0.95+ |
+| ASGI | Uvicorn | 0.22+ |
+| ORM | SQLAlchemy + Pydantic v2 | 2.0+ |
+| Database | SQLite (WAL) | — |
+| Frontend | Vue 3 + TypeScript + Vite | 3.5+ / 5.8+ / 6.4+ |
+| CSS | Tailwind CSS | 4.1+ |
+| State | Pinia | 3.0+ |
+| UI | Radix Vue / Reka UI + Lucide Vue | — |
+| AI | Gemini · OpenRouter · Ollama · OpenAI | — |
+| Desktop | PyInstaller + PyWebView + Pystray | — |
+| Security | Cryptography (AES-256-GCM) | — |
+| Testing | pytest + pytest-timeout + pytest-cov | — |
 
-   ---
+---
 
-   <div align="center">
-     <sub>Built with seriously by bug bounty hunters, for bug bounty hunters.</sub>
-   </div>
+## Status
+
+- **Version:** 3.0.0 STABLE
+- **Tests:** 393 pass, 2 xfailed, 0 failures
+- **Lint:** 0 errors (ruff)
+- **Pipeline:** 5-stage E2E functional
+- **License:** Proprietary (Ed25519 validation)
+
+---
+
+## License
+
+Proprietary. See [SECURITY_POLICY.md](.ai/SECURITY_POLICY.md) for security details.
+
+---
+
+<div align="center">
+  <sub>Built by bug bounty hunters, for bug bounty hunters. Hecho en 🇦🇷.</sub>
 </div>

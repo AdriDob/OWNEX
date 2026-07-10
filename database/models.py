@@ -141,6 +141,10 @@ class Finding(Base):
         server_default="open",
     )
 
+    vulnerability_type = Column(String, nullable=True, default="unknown")
+
+    notes = Column(Text, nullable=True, default="")
+
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -216,6 +220,12 @@ class Verdict(Base):
     reason = Column(Text, nullable=True)
 
     retry_count = Column(Integer, default=3)
+
+    uncertainty_level = Column(String, nullable=True, default="unknown")
+    missing_verifications = Column(Text, nullable=True)
+    alternative_explanations = Column(Text, nullable=True)
+    next_best_test = Column(Text, nullable=True)
+    vulnerability_type = Column(String, nullable=True, default="unknown")
 
     created_at = Column(
         DateTime(timezone=True),

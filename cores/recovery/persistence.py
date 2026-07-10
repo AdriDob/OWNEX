@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import json
 import logging
 import os
 import sqlite3
@@ -144,6 +146,29 @@ class RecoveryStore:
             conn.row_factory = sqlite3.Row
             rows = conn.execute("SELECT key, value FROM learning_state").fetchall()
             return {r["key"]: r["value"] for r in rows}
+
+    def save_health_snapshot(self, source: str, data: dict) -> None:
+        with self._lock, sqlite3.connect(self._db_path) as conn:
+            conn.execute(
+                """INSERT INTO health_snapshots (timestamp, source, data)
+                   VALUES (?, ?, ?)""",
+                (datetime.now(timezone.utc).isoformat(), source, json.dumps(data)),
+            )
+            conn.commit()
+
+    def get_health_snapshots(self, limit: int = 100) -> list[dict[str, Any]]:
+        with self._lock, sqlite3.connect(self._db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                "SELECT * FROM health_snapshots ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
+            result = []
+            for r in rows:
+                d = dict(r)
+                with contextlib.suppress(json.JSONDecodeError, TypeError):
+                    d["data"] = json.loads(d["data"])
+                result.append(d)
+            return result
 
     def close(self) -> None:
         pass

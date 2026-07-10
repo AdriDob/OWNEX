@@ -195,5 +195,22 @@
       "verified": "2026-07-08",
       "notes": "Audit prolongado: 12 fixes aplicados, 0 regresiones. Sistema listo para 24/7 sin fugas de memoria, sin WAL infinito, sin tareas huerfanas."
     }
+    {
+      "id": "orion-hypothesis-challenger",
+      "description": "ORION Hypothesis Challenger — capa de razonamiento entre hipótesis y validación. Genera explicaciones alternativas, contradicción tests, missing verifications y uncertainty_level.",
+      "archives": [
+        "cores/validation/challenger.py",
+        "cores/validation/gate.py",
+        "cores/validation/confidence.py",
+        "cores/validation/loop_engine.py",
+        "cores/validation/verdict_handler.py",
+        "database/models.py",
+        "database/db.py"
+      ],
+      "tests": ["393 passed, 2 xfailed, 0 fallos"],
+      "integration": "integrado",
+      "verified": "2026-07-09",
+      "notes": "AlternativeExplainer para 7 tipos de vuln + genéricos. ContradictionTestDesigner con info_gain. MissingVerificationsAnalyzer. Uncertainty penalty (-0.00 a -0.12) integrado en ConfidenceScorer. Migración DB automática."
+    }
   ]
 }

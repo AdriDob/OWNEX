@@ -5,9 +5,9 @@ import { useHuntStore } from '@/stores/hunt'
 import { api } from '@/lib/api'
 import type { PlatformStatus, BankAccount } from '@/lib/api'
 import {
-  Bug, Cable, Camera, ChevronLeft, ChevronRight, Cpu, DollarSign,
-  ExternalLink, Eye, FileSearch, FileText, Lightbulb, Link2,
-  Banknote, MessageCircle, Search, Settings, Target, Unlink,
+  Banknote, Bug, Cable, Camera, ChevronLeft, ChevronRight, Cpu, Dices,
+  DollarSign, ExternalLink, Eye, FileSearch, FileText, Lightbulb, Link2,
+  MessageCircle, Search, Settings, Target, TrendingUp, Unlink,
   Activity, Database, RefreshCw, X,
 } from '@lucide/vue'
 
@@ -53,6 +53,11 @@ const navItems = [
     { name: 'Reportes', path: '/reports', icon: FileText },
     { name: 'Investigaciones', path: '/investigations', icon: Search },
     { name: 'Hipótesis', path: '/hypotheses', icon: Lightbulb },
+  ]},
+  { section: 'Apps', items: [
+    { name: 'ORION', path: '/orion/', icon: Activity },
+    { name: 'ATLAS', path: '/atlas/', icon: TrendingUp },
+    { name: 'ODYSSEY', path: '/odyssey/', icon: Dices },
   ]},
   { section: 'Sistema', items: [
     { name: 'Agentes', path: '/agents', icon: Cpu },

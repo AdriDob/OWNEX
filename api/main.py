@@ -39,6 +39,7 @@ from api.routers import (
     financial_truth,
     findings,
     hunt,
+    hunter,
     hypotheses,
     identity,
     identity_center,
@@ -285,6 +286,20 @@ async def lifespan(app: FastAPI):
                 session.close()
         bus.subscribe("finding:status_changed", _auto_report)
         logger.info("[BOOT] Auto-report subscriber registered")
+
+        # FP Feedback Loop: when a finding is rejected, feed FeedbackLearner
+        def _fp_feedback(event_type, payload):
+            if payload.get("new_status") != "rejected":
+                return
+            try:
+                from cores.validation.llm_analyzer import FeedbackLearner
+                learner = FeedbackLearner()
+                learner.analyze_verdict_patterns()
+                logger.info("[FP] Feedback recorded for finding %s", payload.get("id"))
+            except Exception as exc:
+                logger.warning("[FP] FeedbackLearner error: %s", exc)
+        bus.subscribe("finding:status_changed", _fp_feedback)
+        logger.info("[BOOT] FP Feedback subscriber registered")
     except Exception as exc:
         logger.warning("Auto-report subscriber failed: %s", exc)
 
@@ -347,6 +362,24 @@ async def lifespan(app: FastAPI):
         logger.info("[BOOT] System health engine started")
     except Exception as exc:
         logger.warning("System health engine failed to start (non-fatal): %s", exc)
+
+    # ── ORION Platform: initialize app registry and databases ──
+    try:
+        from core.app_registry import get_app_registry
+        from core.database.manager import get_db_manager
+        registry = get_app_registry()
+        registry.discover()
+        dbm = get_db_manager()
+        for app_id, app in registry._apps.items():
+            if app.db_path:
+                dbm.register(app_id, app.db_path)
+                if app.models:
+                    from sqlalchemy.orm import declarative_base
+                    base = declarative_base()
+                    dbm.run_migrations(app_id, base)
+        logger.info("[ORION] App registry initialized: %d apps, %d databases", len(registry._apps), len(dbm.list_databases()))
+    except Exception as exc:
+        logger.warning("[ORION] App registry init failed (non-fatal): %s", exc)
 
     try:
         from cores.optimization import get_optimization_engine
@@ -579,6 +612,18 @@ app.include_router(bank_payout.router)
 app.include_router(micro.router)
 app.include_router(osint.router)
 app.include_router(hunt.router)
+app.include_router(hunter.router)
+
+# ── ORION Platform: core + app routers ──
+try:
+    from core.api.routers import router as core_router
+    app.include_router(core_router)
+    from core.app_registry import get_app_registry
+    registry = get_app_registry()
+    registry.mount_routers(app)
+    logger.info("[ORION] Core + app routers mounted")
+except Exception as exc:
+    logger.warning("[ORION] Router mounting failed (non-fatal): %s", exc)
 
 
 APP_VERSION = _APP_VERSION

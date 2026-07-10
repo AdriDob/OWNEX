@@ -249,7 +249,90 @@ Cuando registres una verificación en COMPLETED_FEATURES.json, incluye:
 - Fecha de la revisión
 - Nivel de integración (standalone / integrado / producción)
 
-## 12. SOBRE ESTE DOCUMENTO
+Cuando tengas acceso al código, toda crítica técnica debe estar respaldada por evidencia concreta del repositorio.
+
+Si no tienes acceso al código, indica claramente que la recomendación es una hipótesis basada en la información disponible y evita afirmar que existe un problema.
+
+## 12. PRINCIPIOS DE INGENIERÍA
+
+Toda propuesta debe respetar:
+
+1. El código existente es la fuente de verdad.
+2. La documentación nunca debe inventar funcionalidades.
+3. Cada cambio debe tener un beneficio medible.
+4. Toda simplificación es preferible a una nueva abstracción.
+5. Evitar dependencias innecesarias.
+6. Evitar procesos en background que no aporten valor.
+7. Mantener compatibilidad con instalaciones existentes siempre que sea posible.
+8. Preferir soluciones mantenibles antes que soluciones "inteligentes".
+9. Antes de proponer un refactor, demostrar que existe un problema real.
+10. Todo componente debe poder eliminarse si deja de aportar valor.
+
+## 13. DEFINICIÓN DE TERMINADO (PROJECT COMPLETION)
+
+CATEYE se considera terminado cuando:
+- Toda la documentación coincide con el código
+- El installer funciona desde cero
+- El onboarding es completamente guiado
+- Todos los tests críticos pasan
+- No existen bugs conocidos de severidad alta
+- El flujo diario puede realizarse sin usar la terminal
+- La aplicación puede mantenerse durante años con cambios mínimos
+
+Después de ese punto, cualquier cambio debe ser excepcional y justificarse por:
+- Un bug
+- Una mejora de seguridad
+- Una mejora importante de UX
+- Compatibilidad con cambios externos
+
+## 14. CRITERIOS PARA ACEPTAR CAMBIOS
+
+Solo aceptar un cambio si cumple al menos uno de estos criterios:
+- Elimina deuda técnica
+- Reduce complejidad
+- Mejora rendimiento medible
+- Mejora estabilidad
+- Mejora experiencia de usuario
+- Reduce tiempo del hunter
+- Mejora calidad de reportes
+
+En caso contrario: NO IMPLEMENTAR.
+
+## 15. QUÉ NO QUIERO
+
+No quiero:
+- Microservicios
+- Kubernetes
+- Plugins
+- Marketplace
+- Multiusuario
+- Cloud obligatorio
+- IA autónoma
+- Agentes que ejecuten acciones
+- Features experimentales
+- Dashboards innecesarios
+- Reescrutras completas
+- Cambios por moda tecnológica
+
+## 16. ROL ESPERADO DE LA IA
+
+La IA debe actuar como un reviewer senior.
+
+**Debe:**
+- Detectar inconsistencias
+- Encontrar bugs reales
+- Revisar arquitectura
+- Revisar UX
+- Validar documentación
+- Proponer mejoras pequeñas y justificadas
+
+**No debe:**
+- Inventar requisitos
+- Proponer sistemas completamente nuevos
+- Expandir el alcance
+- Asumir que el proyecto necesita reescribirse
+
+## 17. SOBRE ESTE DOCUMENTO
 
 - Este archivo NO debe modificarse sin consenso.
 - Cualquier cambio debe registrarse en DECISIONS.md con justificación.

@@ -115,11 +115,17 @@ def get_executable_dir() -> Path:
 def get_data_dir() -> Path:
     """Return the persistent data directory for this platform.
 
-    - Windows: %APPDATA%/CATEYE
-    - macOS:   ~/Library/Application Support/CATEYE
-    - Frozen:  next to the executable (Linux only, Windows prioritizes APPDATA)
-    - Default: ~/.orion
+    Precedence:
+    1. CATEYE_DATA_DIR env var (portable override)
+    2. Windows: %APPDATA%/CATEYE
+    3. macOS:   ~/Library/Application Support/CATEYE
+    4. Frozen:  next to the executable (Linux)
+    5. Default: ~/.orion
     """
+    env_dir = os.environ.get("CATEYE_DATA_DIR")
+    if env_dir:
+        return Path(env_dir)
+
     _diag_path = os.path.join(
         os.environ.get("APPDATA", os.path.expanduser("~")),
         "CATEYE", "license_diagnostic.log",

@@ -79,7 +79,16 @@
 | Auto-report | `api/main.py` | ✅ Nuevo subscriber |
 | except:pass → log | 15 archivos | ✅ Fixeado |
 
-## FASE 5 — Release hardening audit y fixes (Julio 2026)
+## FASE 5 — ORION Reasoning Layer (Julio 2026)
+
+| Feature | Archivos | Estado |
+|---|---|---|
+| Hypothesis Challenger | `cores/validation/challenger.py`, `gate.py`, `confidence.py`, `loop_engine.py`, `verdict_handler.py`, `models.py`, `db.py` | ✅ AlternativeExplainer (7 tipos), ContradictionTestDesigner, MissingVerificationsAnalyzer, uncertainty_penalty en scorer |
+| Evidence Graph | — | Pendiente |
+| Adaptive Report Gate | — | Pendiente |
+| FeedbackLearner pipeline | — | Pendiente |
+
+## FASE 6 — Release hardening audit y fixes (Julio 2026)
 
 | Fix | Archivos | Estado |
 |---|---|---|
@@ -102,3 +111,15 @@
 - Unificar sistemas de salud (deuda conocida)
 - Frontend tests (no existen actualmente)
 - Pre-commit hooks (no configurados)
+
+## Limitaciones Conocidas (Documentadas)
+
+Ver `docs/KNOWN_LIMITATIONS.md`:
+- ~~El motor de validación no refuta hipótesis~~ → ✅ Challenger: genera explicaciones alternativas + contrapruebas
+- ~~No evalúa explicaciones alternativas (recurso público, caché, stub)~~ → ✅ Challenger: AlternativeExplainer para 7+ tipos
+- No verifica ownership/RBAC automáticamente (los tests no se ejecutan, solo se diseñan)
+- No aprende de falsos positivos (FeedbackLearner existe pero no conectado)
+- ReportGate threshold fijo 0.6 para todos los tipos de vulnerabilidad
+- El ContradictionTestDesigner diseña tests pero no los ejecuta (pendiente para v3.2)
+
+Las limitaciones restantes corresponden a v3.1 (ORION Reasoning Layer).

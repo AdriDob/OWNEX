@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from cores.validation.challenger import HypothesisChallenger
 from cores.validation.confidence import ConfidenceScorer
 from cores.validation.gate import ReportGate, Verdict
 from cores.validation.llm_analyzer import LLMResponseAnalyzer
@@ -21,12 +22,14 @@ class ValidationLoopEngine:
         scorer: ConfidenceScorer | None = None,
         gate: ReportGate | None = None,
         llm_analyzer: LLMResponseAnalyzer | None = None,
+        challenger: HypothesisChallenger | None = None,
     ):
         self._replayer = replayer or RequestReplayer()
         self._rules = rules or ValidationRuleSet()
         self._scorer = scorer or ConfidenceScorer()
         self._gate = gate or ReportGate()
         self._llm = llm_analyzer or LLMResponseAnalyzer()
+        self._challenger = challenger or HypothesisChallenger()
 
     def evaluate(
         self,
@@ -37,6 +40,8 @@ class ValidationLoopEngine:
         auth_probe: AuthContext,
         mutations: dict[str, str] | None = None,
         min_attempts: int = 3,
+        vulnerability_type: str = "unknown",
+        vulnerability_vector: str = "",
     ) -> Verdict:
         request_spec = RequestSpec(
             url=endpoint_details.get("url", ""),
@@ -44,6 +49,12 @@ class ValidationLoopEngine:
             headers=endpoint_details.get("headers", {}),
             params=endpoint_details.get("params", {}),
             body=endpoint_details.get("body"),
+        )
+
+        enriched = self._challenger.challenge(
+            vulnerability_type=vulnerability_type,
+            vulnerability_vector=vulnerability_vector,
+            signals=endpoint_signals,
         )
 
         comparison_results = self._replayer.revalidate(
@@ -91,6 +102,7 @@ class ValidationLoopEngine:
             validation=validation_report,
             endpoint_signals=endpoint_signals,
             llm_boost=llm_boost,
+            uncertainty_penalty=enriched.uncertainty_penalty,
         )
 
         consistent_count = sum(1 for r in comparison_results if r.consistent)
@@ -136,7 +148,7 @@ class ValidationLoopEngine:
 
         return Verdict(
             hot_path_id=hot_path_id,
-            status=status,  # type: ignore[arg-type]
+            status=status,
             confidence=confidence.score,
             reproducibility_score=reproducibility_score,
             validation=validation_report,
@@ -145,6 +157,11 @@ class ValidationLoopEngine:
             reason=reason,
             retry_count=len(comparison_results),
             timestamp=datetime.now(timezone.utc).isoformat(),
+            alternative_explanations=[a.to_dict() for a in enriched.alternative_explanations],
+            missing_verifications=enriched.missing_verifications,
+            next_best_test=enriched.next_best_test.to_dict() if enriched.next_best_test else None,
+            vulnerability_type=vulnerability_type,
+            uncertainty_level=enriched.uncertainty_level,
         )
 
     def evaluate_all(

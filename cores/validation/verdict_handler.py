@@ -56,6 +56,10 @@ class VerdictHandler:
             evidence_links=json.dumps(verdict.evidence_links),
             reason=verdict.reason,
             retry_count=verdict.retry_count,
+            uncertainty_level=getattr(verdict, "uncertainty_level", "unknown"),
+            missing_verifications=json.dumps(getattr(verdict, "missing_verifications", [])),
+            alternative_explanations=json.dumps(getattr(verdict, "alternative_explanations", [])),
+            next_best_test=json.dumps(getattr(verdict, "next_best_test", None)),
         )
         self._session.add(db_verdict)
         self._session.commit()
@@ -112,12 +116,17 @@ class VerdictHandler:
         severity = risk_to_severity(verdict.confidence * 100)
 
         passed = ", ".join(verdict.validation.passed_rules) if verdict.validation.passed_rules else "none"
+        uncertainty = getattr(verdict, "uncertainty_level", "unknown")
+        missing = getattr(verdict, "missing_verifications", [])
         description = (
             f"Validation confirmed ({verdict.confidence:.0%} confidence, "
-            f"{verdict.reproducibility_score:.0%} reproducibility). "
+            f"{verdict.reproducibility_score:.0%} reproducibility, "
+            f"uncertainty={uncertainty}). "
             f"Rules passed: {passed}. "
             f"Reason: {verdict.reason}"
         )
+        if missing:
+            description += f" | Missing verifications: {'; '.join(missing)}"
 
         if verdict.validation.passed_rules:
             if "privilege_boundary_break" in verdict.validation.passed_rules:
@@ -139,6 +148,7 @@ class VerdictHandler:
             title=title,
             severity=severity,
             description=description,
+            vulnerability_type=getattr(verdict, "vulnerability_type", "unknown"),
         )
         self._session.add(finding)
         self._session.commit()

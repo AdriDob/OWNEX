@@ -94,6 +94,31 @@ export const useNotificationsStore = defineStore('notifications', () => {
               action: data.payload?.action,
             })
           }
+          // ATLAS/ODYSSEY event notifications
+          if (data.type?.startsWith('atlas:') || data.type?.startsWith('odyssey:')) {
+            const eventType = data.type as string
+            const titles: Record<string, string> = {
+              'atlas:price:sync:started': 'Sincronizando precios',
+              'atlas:price:sync:completed': 'Precios sincronizados',
+              'atlas:price:sync:failed': 'Error al sincronizar precios',
+              'atlas:rebalance:check:started': 'Verificando rebalanceo',
+              'atlas:rebalance:check:completed': 'Rebalanceo verificado',
+              'odyssey:bet:sync:started': 'Sincronizando apuestas',
+              'odyssey:bet:sync:completed': 'Apuestas sincronizadas',
+              'odyssey:bet:sync:failed': 'Error al sincronizar apuestas',
+              'odyssey:analytics:recalculated': 'Analítica recalculada',
+            }
+            const sev: Record<string, 'info' | 'success' | 'warning' | 'error'> = {
+              failed: 'error',
+              started: 'info',
+              completed: 'success',
+              recalculated: 'success',
+            }
+            const key = Object.keys(titles).find(k => eventType.includes(k.split(':').slice(1).join(':')))
+            const title = titles[eventType] || (key ? titles[key] : `Evento: ${eventType}`)
+            const severity = Object.entries(sev).find(([s]) => eventType.includes(s))?.[1] || 'info'
+            add({ type: severity, title, message: data.payload?.error || '', source: eventType.split(':')[0] })
+          }
         } catch { /* ignore */ }
       }
       ws.onclose = () => { wsConnected.value = false }

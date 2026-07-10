@@ -9,21 +9,23 @@
 - [x] Fase 2: DedupTracker unificado con fingerprints normalizados
 - [x] Fase 3: Scheduler adaptativo con priorización por reward learning
 - [x] Fase 4: Rate limit por user-id + localStorage hardening
+- [x] Fase 5: Release hardening (12 fixes: event-loop, WAL, tasks, indexes, etc.)
+- [x] Fase 6: Documentación consolidada + portable installer
 
-## Pendiente (No Verificado)
+## Pendiente (v3.1 — ORION Reasoning Layer)
 
-### Fase 5: Tests y Validación
-- [ ] Verificar cobertura de tests para todos los módulos modificados
-- [ ] Agregar tests para el nuevo CSRF middleware
-- [ ] Agregar tests para el scheduler adaptativo
-- [ ] Verificar que los tests de seguridad (test_security.py) sean estables
+### Prioridad Alta
 
-### Fase 6: Documentación
-- [ ] Completar entradas en COMPLETED_FEATURES.json con evidencia verificable
-- [ ] Revisar y consolidar los 16 archivos .md en la raíz
-- [ ] Verificar que README.md referencie .ai/
+- [ ] **Hypothesis Challenger**: Refutación activa antes de validar
+- [ ] **Evidence Graph**: Evidencia a favor y en contra en cada Verdict
+- [ ] **Adaptive Report Gate**: Threshold por tipo de vulnerabilidad
 
-### Deuda Técnica Conocida
+### Prioridad Media
+
+- [ ] **FeedbackLearner pipeline**: Pesos adaptativos del ConfidenceScorer
+
+### Deuda Técnica
+
 - [ ] Unificar 3 sistemas de salud superpuestos (SystemHealthEngine, HealthMonitor, Watchdog)
 - [ ] Agregar persistencia a health snapshots en RecoveryStore
 - [ ] Conectar DuplicateDetector con el DedupTracker unificado

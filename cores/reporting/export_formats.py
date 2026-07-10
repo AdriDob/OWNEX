@@ -1,4 +1,6 @@
 import json
+import logging
+import shutil
 from pathlib import Path
 
 try:
@@ -6,12 +8,27 @@ try:
 except ImportError:
     Environment = None
 
+logger = logging.getLogger("cateye.export_formats")
+
+USER_TEMPLATES_DIR = Path.home() / ".orion" / "templates"
+
+
+def ensure_default_templates():
+    """Copy built-in templates to user dir on first run."""
+    if not USER_TEMPLATES_DIR.exists():
+        USER_TEMPLATES_DIR.mkdir(parents=True, exist_ok=True)
+        built_in = Path(__file__).resolve().parent / "templates"
+        if built_in.is_dir():
+            shutil.copytree(built_in, USER_TEMPLATES_DIR, dirs_exist_ok=True)
+            logger.info("Copied default templates to %s", USER_TEMPLATES_DIR)
+
 
 class ExportFormats:
     def __init__(self):
         self._jinja_env = None
         if Environment is not None:
-            tmpl_dir = Path(__file__).resolve().parent / "templates"
+            ensure_default_templates()
+            tmpl_dir = USER_TEMPLATES_DIR if USER_TEMPLATES_DIR.is_dir() else Path(__file__).resolve().parent / "templates"
             if tmpl_dir.is_dir():
                 self._jinja_env = Environment(
                     loader=FileSystemLoader(str(tmpl_dir)),

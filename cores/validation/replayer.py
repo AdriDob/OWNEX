@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import random
 import re
 import time
@@ -13,6 +14,8 @@ from cores.validation.hardening import (
     AdaptiveRetryStrategy,
     NetworkBehaviorDetector,
 )
+
+logger = logging.getLogger("cateye.replayer")
 
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 DEFAULT_TIMEOUT = 15
@@ -92,6 +95,26 @@ class RequestReplayer:
         self._behavior_detector = NetworkBehaviorDetector()
         self._retry_strategy = AdaptiveRetryStrategy(base_timeout=timeout)
 
+    def _try_refresh_auth(self, auth: AuthContext) -> AuthContext | None:
+        """If auth failed with 401/403, try to refresh the session."""
+        try:
+            from cores.target_auth.session_resolver import get_session_resolver
+            resolver = get_session_resolver()
+            if auth.label and auth.label.startswith("identity_"):
+                identity_id = int(auth.label.split("_")[1])
+                ctx = resolver.resolve(identity_id)
+                if ctx:
+                    logger.info("Auth refreshed for %s", auth.label)
+                    return AuthContext(
+                        token=ctx.get("token"),
+                        cookies=ctx.get("cookies", {}),
+                        headers=ctx.get("headers", {}),
+                        label=auth.label,
+                    )
+        except Exception as e:
+            logger.warning("Auth refresh failed: %s", e)
+        return None
+
     def execute(self, request_spec: RequestSpec, auth: AuthContext) -> ResponseRecord:
         domain = urlparse(request_spec.url).netloc
         if self.is_circuit_open(domain):
@@ -122,6 +145,25 @@ class RequestReplayer:
                 timeout=self._timeout,
                 allow_redirects=False,
             )
+
+            if resp.status_code in (401, 403) and auth.token:
+                refreshed = self._try_refresh_auth(auth)
+                if refreshed:
+                    headers.update(refreshed.headers)
+                    if refreshed.token:
+                        headers["Authorization"] = f"Bearer {refreshed.token}"
+                    cookies = dict(refreshed.cookies)
+                    resp = requests.request(
+                        method=method,
+                        url=request_spec.url,
+                        headers=headers,
+                        params=request_spec.params,
+                        data=request_spec.body,
+                        cookies=cookies,
+                        timeout=self._timeout,
+                        allow_redirects=False,
+                    )
+
             elapsed = int((time.monotonic() - start) * 1000)
             body_text = resp.text[:MAX_BODY_SIZE]
             body_hash = hashlib.sha256(resp.text.encode()).hexdigest()

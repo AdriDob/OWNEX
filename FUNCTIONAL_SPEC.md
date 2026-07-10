@@ -56,7 +56,7 @@
 CATEYE es un sistema de inteligencia operativa privada para bug bounty. Automatiza el ciclo completo: descubrimiento de programas, reconocimiento, generación de hipótesis, validación, reporte y seguimiento de pagos.
 
 - **Versión:** 3.0.0
-- **Arquitectura:** v5.0 STABLE
+- **Arquitectura:** v3.0 STABLE
 - **Stack:** Python + FastAPI + SQLAlchemy + SQLite | Vue 3 + TypeScript + Tailwind v4
 - **Licencia:** Propietaria (validación Ed25519)
 - **Propósito:** Single-user, local-first, desktop
@@ -521,7 +521,7 @@ El scheduler (`api/scheduler.py`) es el **único pipeline oficial** que se ejecu
 | Cooldown | `TARGET_COOLDOWN = 3600` — no re-escanear mismo target antes de 1h |
 | Priorización | ORION `get_next_action()` + `RewardLearner.analyze()` + `orion_score` multiplier |
 | Eventos | Publica `opportunity:found`, `discovery:completed`, `report:generated` |
-| Estado | ✅ Corregido en v5.0 (launch_scan args fix + test loop_resilient fix) |
+| Estado | ✅ Corregido en v3.0 (launch_scan args fix + test loop_resilient fix) |
 
 ---
 
@@ -984,5 +984,5 @@ Actualmente no hay un "pause all" único. El usuario debe:
 ---
 
 *Documento generado desde código verificado — Julio 2026.*
-*CATEYE v3.0.0 | Architecture v5.0 STABLE*
+*CATEYE v3.0.0 | Architecture v3.0 STABLE*
 *Única fuente de verdad sobre capacidades reales del sistema.*

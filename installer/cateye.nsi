@@ -19,7 +19,7 @@ SetCompressorDictSize 32
 
 !define PRODUCT_NAME "CATEYE"
 !ifndef PRODUCT_VERSION
-!define PRODUCT_VERSION "1.6.0"
+!define PRODUCT_VERSION "3.0.0"
 !endif
 !define PRODUCT_PUBLISHER "CATEYE Labs"
 !define PRODUCT_WEB_SITE "https://cateye.security"
@@ -82,6 +82,11 @@ Section "CATEYE Application" SEC_APP
   CreateDirectory "${PRODUCT_DATA_DIR}"
   CreateDirectory "${PRODUCT_DATA_DIR}\logs"
   CreateDirectory "${PRODUCT_DATA_DIR}\database"
+  CreateDirectory "${PRODUCT_DATA_DIR}\uploads"
+  CreateDirectory "${PRODUCT_DATA_DIR}\evidence"
+  CreateDirectory "${PRODUCT_DATA_DIR}\config"
+  CreateDirectory "${PRODUCT_DATA_DIR}\backups"
+  CreateDirectory "${PRODUCT_DATA_DIR}\tools"
 
   ; ── Start Menu ────────────────────────────────────────────────
   CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"

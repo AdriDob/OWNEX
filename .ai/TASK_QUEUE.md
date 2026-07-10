@@ -3,66 +3,45 @@
 > Cada tarea DEBE tener evidencia de que no existe ya implementada antes de comenzar.
 > Cuando una tarea se completa, se ELIMINA de esta cola.
 
-## Prioridad Alta
+## CATEYE v3.0.0 STABLE
 
-### 1. Verificar cobertura de tests para cambios recientes
-- **Prioridad**: Alta
-- **Impacto**: Garantizar que no hay regresiones
-- **Dependencias**: Ninguna
-- **Estado**: COMPLETED (359 tests pasan, verificado en sesión jul 2026)
+No hay tareas pendientes para v3.0.0. Todas las verificaciones fueron completadas.
 
-### 2. Completar COMPLETED_FEATURES.json con evidencia
-- **Prioridad**: Alta
-- **Impacto**: Trazabilidad del proyecto
-- **Dependencias**: Tener acceso al código de cada módulo
-- **Estado**: COMPLETED (archivo creado con 8 features, verificado en sesión jul 2026)
+## CATEYE v3.1 — ORION Reasoning Layer
 
-### 3. Revisar y consolidar documentación dispersa
-- **Prioridad**: Alta
-- **Impacto**: Fuente de verdad única
-- **Dependencias**: .ai/ creado y funcional
-- **Estado**: COMPLETED (opencode.json estabilizado, .save eliminado, AGENT_CHARTER.md actualizado con DO-DO-OR-DIE + Verification Loop)
+### 1. ✅ Hypothesis Challenger
+- **Descripción**: Antes de validar una hipótesis, preguntar "¿qué tendría que ser cierto para que esta vulnerabilidad NO exista?" y diseñar pruebas en consecuencia.
+- **Impacto**: Reduce falsos positivos por recursos públicos, caché, stubs.
+- **Archivos**: cores/validation/challenger.py (nuevo), gate.py, confidence.py, loop_engine.py, verdict_handler.py, models.py, db.py
+- **Estado**: ✅ COMPLETED — 2026-07-09
+- **Evidencia**: 393 tests pasan. Ruff clean. El sistema evalúa explicaciones alternativas para 7+ tipos de vulnerabilidad.
 
-## Prioridad Media
-
-### 4. Unificar 3 sistemas de salud superpuestos
-- **Prioridad**: Media
-- **Impacto**: Eliminar estado contradictorio
-- **Dependencias**: Ninguna
+### 2. Evidence Graph
+- **Descripción**: Guardar evidencia a favor y en contra de cada hipótesis, no solo el confidence score final.
+- **Impacto**: Razonamiento interpretable por el humano.
+- **Dependencias**: validation/loop_engine.py, validation/gate.py
 - **Estado**: Pendiente
-- **Responsable**: Próximo agente
-- **Criterio de finalización**: SystemHealthEngine + HealthMonitor + Watchdog → UnifiedHealthMonitor
+- **Criterio de finalización**: El Verdict incluye "evidence_for", "evidence_against", "missing_verifications".
 
-### 5. Agregar persistencia a health snapshots
-- **Prioridad**: Media
-- **Impacto**: Historial de salud sobrevive reinicios
-- **Dependencias**: RecoveryStore ya tiene tabla health_snapshots
+### 3. Adaptive Report Gate
+- **Descripción**: Threshold dinámico por tipo de vulnerabilidad (IDOR necesita ownership violation; SSRF necesita interacción externa).
+- **Impacto**: Reduce falsos positivos específicos por tipo.
+- **Dependencias**: validation/gate.py
 - **Estado**: Pendiente
-- **Responsable**: Próximo agente
-- **Criterio de finalización**: Health snapshots persisten en SQLite
+- **Criterio de finalización**: IDOR, SSRF, Auth Bypass tienen distintos criterios de admisión.
 
-### 6. Conectar DuplicateDetector con DedupTracker
-- **Prioridad**: Media
-- **Impacto**: Consistencia en detección de duplicados
-- **Dependencias**: cores/dedup.py existe
+### Prioridad Media
+
+### 4. FeedbackLearner pipeline
+- **Descripción**: Conectar FeedbackLearner al ConfidenceScorer para que los pesos se ajusten con la experiencia.
+- **Impacto**: El sistema mejora con el tiempo.
+- **Dependencias**: validation/llm_analyzer.py, validation/confidence.py
 - **Estado**: Pendiente
-- **Responsable**: Próximo agente
-- **Criterio de finalización**: DuplicateDetector usa fingerprints de DedupTracker
+- **Criterio de finalización**: Los insights de FeedbackLearner modifican los pesos del ConfidenceScorer.
 
-## Prioridad Baja
-
-### 7. Mover API keys del frontend al backend
-- **Prioridad**: Baja
-- **Impacto**: Seguridad de credenciales
-- **Dependencias**: IdentityVault funcional
-- **Estado**: Pendiente
-- **Responsable**: Próximo agente
-- **Criterio de finalización**: API keys almacenadas en IdentityVault, no en sessionStorage
-
-### 8. Auditoría de dependencias no utilizadas
-- **Prioridad**: Baja
-- **Impacto**: Mantenibilidad
-- **Dependencias**: Ninguna
-- **Estado**: Pendiente
-- **Responsable**: Próximo agente
-- **Criterio de finalización**: Lista de dependencias no utilizadas identificadas y evaluadas para eliminación
+### 5. Pending debt (from v3.0)
+- Unificar 3 sistemas de salud superpuestos
+- Agregar persistencia a health snapshots
+- Conectar DuplicateDetector con DedupTracker
+- Mover API keys del frontend al backend
+- Auditoría de dependencias no utilizadas

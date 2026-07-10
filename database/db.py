@@ -167,6 +167,22 @@ def init_db():
                 ("delivered_via", "VARCHAR"),
             ])
 
+            _migrate_columns(session, "verdicts", [
+                ("uncertainty_level", "VARCHAR DEFAULT 'unknown'"),
+                ("missing_verifications", "TEXT"),
+                ("alternative_explanations", "TEXT"),
+                ("next_best_test", "TEXT"),
+                ("vulnerability_type", "VARCHAR DEFAULT 'unknown'"),
+            ])
+
+            _migrate_columns(session, "findings", [
+                ("vulnerability_type", "VARCHAR DEFAULT 'unknown'"),
+            ])
+
+            _migrate_columns(session, "findings", [
+                ("notes", "TEXT DEFAULT ''"),
+            ])
+
             _migrate_indexes(session)
             session.execute(text("PRAGMA wal_checkpoint(TRUNCATE);"))
             session.commit()

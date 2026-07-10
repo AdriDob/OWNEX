@@ -8,8 +8,10 @@ import Tooltip from '@/components/ui/Tooltip.vue'
 import {
   Eye, Globe, Sparkles, Key, CheckCircle2,
   ArrowRight, ArrowLeft, Cpu, AlertTriangle,
-  Star, SkipForward,
+  Star, SkipForward, Database, Wrench,
+  Server, Shield, Activity,
 } from '@lucide/vue'
+import { api } from '@/lib/api'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: [] }>()
@@ -20,9 +22,9 @@ const settings = useSettingsStore()
 const step = ref(0)
 const steps = [
   { id: 'welcome', icon: Eye, label: 'Bienvenido' },
+  { id: 'verify', icon: Activity, label: 'Verificación' },
   { id: 'ai', icon: Cpu, label: 'IA' },
   { id: 'keys', icon: Key, label: 'API Keys' },
-  { id: 'platforms', icon: Globe, label: 'Plataformas' },
   { id: 'finish', icon: Star, label: 'Listo' },
 ]
 const totalSteps = steps.length
@@ -48,7 +50,87 @@ const platformKeys = ref({
   intigriti: settings.data.apiKeys.intigriti,
 })
 
+// ── System verification state ──
+const verificationResults = ref<Record<string, { status: 'checking' | 'ok' | 'warn' | 'error'; message: string }>>({
+  api: { status: 'checking', message: 'Verificando...' },
+  database: { status: 'checking', message: 'Verificando...' },
+  version: { status: 'checking', message: 'Verificando...' },
+  uptime: { status: 'checking', message: 'Verificando...' },
+})
+
+const overallStatus = computed(() => {
+  const vals = Object.values(verificationResults.value)
+  if (vals.some(v => v.status === 'error')) return 'error'
+  if (vals.some(v => v.status === 'checking' || v.status === 'warn')) return 'warning'
+  return 'ok'
+})
+
 const progress = computed(() => Math.round(((step.value + 1) / totalSteps) * 100))
+
+onMounted(async () => {
+  if (props.open && step.value === 1) {
+    await runVerification()
+  }
+})
+
+watch(() => props.open, async (v) => {
+  if (v) {
+    step.value = 0
+    errorMsg.value = ''
+    // Reset verification state
+    verificationResults.value = {
+      api: { status: 'checking', message: 'Verificando...' },
+      database: { status: 'checking', message: 'Verificando...' },
+      version: { status: 'checking', message: 'Verificando...' },
+      uptime: { status: 'checking', message: 'Verificando...' },
+    }
+  }
+})
+
+async function runVerification() {
+  // API health
+  try {
+    const health: any = await api.get('/health')
+    verificationResults.value.api = { status: 'ok', message: 'Backend respondiendo' }
+  } catch {
+    verificationResults.value.api = { status: 'error', message: 'Backend no responde. ¿Está corriendo?' }
+  }
+
+  // Version
+  try {
+    const ver: any = await api.get('/version')
+    verificationResults.value.version = {
+      status: ver?.version?.startsWith('3.') ? 'ok' : 'warn',
+      message: `CATEYE ${ver?.version || 'desconocida'}`,
+    }
+  } catch {
+    verificationResults.value.version = { status: 'error', message: 'No se pudo obtener versión' }
+  }
+
+  // Database (via system/health endpoint which queries DB)
+  try {
+    const sysHealth: any = await api.get('/system/health')
+    const db = sysHealth?.database
+    verificationResults.value.database = {
+      status: 'ok',
+      message: `${db?.targets || 0} targets, ${db?.endpoints || 0} endpoints`,
+    }
+  } catch {
+    verificationResults.value.database = { status: 'warn', message: 'No se pudo consultar DB' }
+  }
+
+  // Uptime / system state (approximate via system/status or health)
+  try {
+    const state: any = await api.get('/system/state')
+    const uptime = state?.uptime || state?.uptime_hint || 'disponible'
+    verificationResults.value.uptime = {
+      status: 'ok',
+      message: `Sistema ${String(uptime)}`,
+    }
+  } catch {
+    verificationResults.value.uptime = { status: 'warn', message: 'No disponible aún' }
+  }
+}
 
 function close() {
   emit('close')
@@ -65,7 +147,7 @@ function skip() {
   router.push('/mission-control')
 }
 
-  async function finish() {
+async function finish() {
   saving.value = true
   errorMsg.value = ''
   try {
@@ -94,19 +176,17 @@ function skip() {
 }
 
 function next() {
+  if (step.value === 1 && !verifiedOnce.value) {
+    runVerification()
+  }
   if (step.value < totalSteps - 1) step.value++
 }
+
+const verifiedOnce = ref(false)
 
 function prev() {
   if (step.value > 0) step.value--
 }
-
-watch(() => props.open, (v) => {
-  if (v) {
-    step.value = 0
-    errorMsg.value = ''
-  }
-})
 </script>
 
 <template>
@@ -156,8 +236,13 @@ watch(() => props.open, (v) => {
                   </div>
                   <h2 class="font-display text-2xl font-bold text-foreground">Bienvenido a CATEYE</h2>
                   <p class="mt-2 text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
-                    Sistema de Inteligencia de Seguridad para bug bounty. Configuración rápida en 4 pasos.
+                    Sistema de Inteligencia de Seguridad para bug bounty.
                   </p>
+                </div>
+                <div class="space-y-3 text-xs text-muted-foreground bg-surface/10 rounded-lg p-4 border border-border/20">
+                  <p><strong class="text-foreground">¿Qué es?</strong> Un sistema que automatiza el ciclo completo de bug bounty: descubre programas, ejecuta reconocimiento, genera hipótesis, valida hallazgos, produce reportes y trackea pagos.</p>
+                  <p><strong class="text-foreground">¿Qué hace ORION?</strong> ORION es el sistema de priorización. Aprende de tus resultados y recomienda qué target investigar, sin reemplazar tus decisiones.</p>
+                  <p><strong class="text-foreground">¿Qué necesitás?</strong> Python 3.10+, Node.js 18+, y opcionalmente herramientas de recon externas (subfinder, httpx, katana, nuclei).</p>
                 </div>
                 <div>
                   <label class="mb-1.5 block font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Tu nombre</label>
@@ -169,13 +254,61 @@ watch(() => props.open, (v) => {
                 </div>
               </div>
 
-              <!-- ═══ AI ═══ -->
+              <!-- ═══ SYSTEM VERIFICATION ═══ -->
               <div v-if="step === 1" class="max-w-md mx-auto space-y-4">
+                <h2 class="font-display text-lg font-bold text-foreground text-center">Verificación del sistema</h2>
+                <p class="text-center text-xs text-muted-foreground -mt-2">
+                  CATEYE está verificando que todo funcione correctamente.
+                </p>
+
+                <div class="space-y-2.5 mt-4">
+                  <div
+                    v-for="(check, key) in verificationResults"
+                    :key="key"
+                    class="flex items-center justify-between rounded-lg border border-border/20 bg-surface/10 px-4 py-2.5"
+                  >
+                    <span class="font-mono text-xs capitalize text-muted-foreground">{{ key }}</span>
+                    <div class="flex items-center gap-2">
+                      <span class="font-mono text-[10px]" :class="{
+                        'text-success': check.status === 'ok',
+                        'text-warning': check.status === 'warn',
+                        'text-destructive': check.status === 'error',
+                        'text-muted-foreground': check.status === 'checking',
+                      }">{{ check.message }}</span>
+                      <span v-if="check.status === 'ok'" class="text-success"><CheckCircle2 class="h-3.5 w-3.5" /></span>
+                      <span v-else-if="check.status === 'error'" class="text-destructive"><AlertTriangle class="h-3.5 w-3.5" /></span>
+                      <span v-else-if="check.status === 'warn'" class="text-warning"><AlertTriangle class="h-3.5 w-3.5" /></span>
+                      <span v-else class="text-muted-foreground animate-pulse"><Activity class="h-3.5 w-3.5" /></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="overallStatus === 'error'" class="rounded-lg bg-destructive/10 border border-destructive/20 p-3">
+                  <p class="font-mono text-[10px] text-destructive">
+                    Hay problemas de conectividad. Verificá que el backend esté corriendo en puerto 8000.
+                  </p>
+                </div>
+                <div v-else-if="overallStatus === 'ok'" class="rounded-lg bg-success/10 border border-success/20 p-3">
+                  <p class="font-mono text-[10px] text-success flex items-center gap-1.5">
+                    <CheckCircle2 class="h-3 w-3" /> Todos los sistemas responden correctamente.
+                  </p>
+                </div>
+
+                <div class="flex justify-center">
+                  <Button size="sm" variant="ghost" @click="runVerification">
+                    <Activity class="mr-1 h-3.5 w-3.5" /> Re-verificar
+                  </Button>
+                </div>
+              </div>
+
+              <!-- ═══ AI ═══ -->
+              <div v-if="step === 2" class="max-w-md mx-auto space-y-4">
                 <h2 class="font-display text-lg font-bold text-foreground text-center">Inteligencia Artificial</h2>
+                <p class="text-center text-xs text-muted-foreground -mt-1">CATEYE usa IA para análisis semántico de validaciones y generación de reportes.</p>
                 <div>
                   <label class="mb-1.5 block font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Proveedor</label>
                   <select v-model="aiProvider" class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2.5 font-mono text-sm text-foreground focus:outline-none focus:border-primary/50">
-                    <option value="ollama">Ollama (local)</option>
+                    <option value="ollama">Ollama (local, recomendado)</option>
                     <option value="openai">OpenAI</option>
                     <option value="gemini">Google Gemini</option>
                     <option value="openrouter">OpenRouter</option>
@@ -209,22 +342,23 @@ watch(() => props.open, (v) => {
                   <label class="mb-1.5 block font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Temperatura</label>
                   <input v-model.number="temp" type="range" min="0" max="2" step="0.1" class="w-full accent-primary" />
                   <span class="font-mono text-[10px] text-muted-foreground">{{ temp }}</span>
+                  <p class="font-mono text-[9px] text-muted-foreground/60 mt-0.5">Recomendado: 0.3 para validación precisa, 0.7 para generación creativa</p>
                 </div>
               </div>
 
               <!-- ═══ API KEYS ═══ -->
-              <div v-if="step === 2" class="max-w-lg mx-auto space-y-3">
+              <div v-if="step === 3" class="max-w-lg mx-auto space-y-3">
                 <h2 class="font-display text-lg font-bold text-foreground text-center">API Keys</h2>
-                <p class="text-center text-xs text-muted-foreground -mt-2">Configurá tus claves de plataformas y OSINT</p>
+                <p class="text-center text-xs text-muted-foreground -mt-2">Opcional. Mejoran el reconocimiento pero CATEYE funciona sin ellas.</p>
                 <div v-for="svc in [
-                  { key: 'shodan', label: 'Shodan' },
-                  { key: 'censys', label: 'Censys' },
-                  { key: 'virustotal', label: 'VirusTotal' },
-                  { key: 'securitytrails', label: 'SecurityTrails' },
-                  { key: 'github', label: 'GitHub' },
-                  { key: 'gitlab', label: 'GitLab' },
+                  { key: 'shodan', label: 'Shodan', desc: 'Reconocimiento de puertos y servicios' },
+                  { key: 'censys', label: 'Censys', desc: 'Inventario de dispositivos en internet' },
+                  { key: 'virustotal', label: 'VirusTotal', desc: 'Análisis de malware y URLs' },
+                  { key: 'securitytrails', label: 'SecurityTrails', desc: 'Historial de DNS y subdominios' },
+                  { key: 'github', label: 'GitHub', desc: 'Búsqueda de credenciales expuestas' },
+                  { key: 'gitlab', label: 'GitLab', desc: 'Búsqueda de credenciales expuestas' },
                 ]" :key="svc.key" class="flex items-center gap-2">
-                  <span class="w-28 text-right font-mono text-[10px] text-muted-foreground">{{ svc.label }}</span>
+                  <span class="w-24 text-right font-mono text-[10px] text-muted-foreground">{{ svc.label }}</span>
                   <input
                     v-model="apiKeys[svc.key as keyof typeof apiKeys]"
                     type="password"
@@ -234,37 +368,30 @@ watch(() => props.open, (v) => {
                 </div>
               </div>
 
-              <!-- ═══ PLATFORMS ═══ -->
-              <div v-if="step === 3" class="max-w-lg mx-auto space-y-4">
-                <h2 class="font-display text-lg font-bold text-foreground text-center">Plataformas Bug Bounty</h2>
-                <div v-for="p in [
-                  { key: 'bugcrowd', label: 'Bugcrowd' },
-                  { key: 'hackerone', label: 'HackerOne' },
-                  { key: 'intigriti', label: 'Intigriti' },
-                ]" :key="p.key" class="space-y-1">
-                  <label class="block font-mono text-[10px] text-muted-foreground uppercase tracking-wider">{{ p.label }}</label>
-                  <input
-                    v-model="platformKeys[p.key as keyof typeof platformKeys]"
-                    type="password"
-                    placeholder="API Key"
-                    class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50"
-                  />
-                </div>
-              </div>
-
               <!-- ═══ FINISH ═══ -->
               <div v-if="step === 4" class="text-center">
                 <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-success/10 mb-5">
-                  <Star class="h-8 w-8 text-success" />
+                  <CheckCircle2 class="h-8 w-8 text-success" />
                 </div>
-                <h2 class="font-display text-2xl font-bold text-foreground">Todo listo</h2>
+                <h2 class="font-display text-2xl font-bold text-foreground">✅ CATEYE está configurado</h2>
                 <p class="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-                  Configuración inicial completa. Podés ajustar cualquier opción desde Settings en cualquier momento.
+                  El sistema está listo para uso diario. No necesitás volver a realizar esta configuración.
                 </p>
-                <div class="mt-6 flex items-center justify-center gap-2">
+                <div class="mt-6 flex flex-wrap items-center justify-center gap-2">
                   <Badge variant="success" class="font-mono text-[10px] px-3 py-1">
                     <Sparkles class="mr-1 h-3 w-3" /> Sistema configurado
                   </Badge>
+                  <Badge variant="secondary" class="font-mono text-[10px] px-3 py-1">
+                    <Server class="mr-1 h-3 w-3" /> {{ overallStatus === 'ok' ? 'Backend OK' : 'Backend con advertencias' }}
+                  </Badge>
+                </div>
+                <div class="mt-4 text-left text-xs text-muted-foreground bg-surface/10 rounded-lg p-3 border border-border/20 space-y-1">
+                  <p><strong class="text-foreground">Primeros pasos:</strong></p>
+                  <p>1. Importá programas desde Discovery o ejecutá <code>python scripts/seed_real.py</code></p>
+                  <p>2. Revisá la próxima acción recomendada por ORION en Mission Control</p>
+                  <p>3. Lanzá tu primer scan sobre un target</p>
+                  <p>4. Revisá findings y confirmá/rechazá</p>
+                  <p>5. Exportá reportes y enviá a plataformas</p>
                 </div>
                 <div v-if="errorMsg" class="mt-3 flex items-center justify-center gap-1.5 text-destructive">
                   <AlertTriangle class="h-3.5 w-3.5" />
@@ -288,7 +415,7 @@ watch(() => props.open, (v) => {
                   Siguiente <ArrowRight class="ml-1 h-3.5 w-3.5" />
                 </Button>
                 <Button v-if="step === totalSteps - 1" @click="finish" :loading="saving">
-                  <CheckCircle2 class="mr-1 h-4 w-4" /> Finalizar
+                  <CheckCircle2 class="mr-1 h-4 w-4" /> Ir al Dashboard
                 </Button>
               </div>
             </div>
