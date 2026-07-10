@@ -17,6 +17,7 @@ from core.copilot.planner import Plan, Planner
 from core.copilot.recommender import Recommendation, Recommender
 from core.copilot.review import CopilotReview, ReviewReport
 from core.evidence_graph.graph import get_evidence_graph
+from core.memory.store import get_memory_store
 
 logger = logging.getLogger("orion.core.copilot.agent")
 
@@ -52,6 +53,7 @@ class CopilotAgent:
         self._decision_journal: list[dict[str, Any]] = []
         self._context: CopilotContext | None = None
         self._evidence_graph = get_evidence_graph()
+        self._memory = get_memory_store()
 
         logger.info("CopilotAgent initialized: %s (authority=%s)", self.agent_id, self._authority.value)
 
@@ -109,6 +111,9 @@ class CopilotAgent:
 
         # Record analysis back into Evidence Graph
         self._evidence_graph.record_from_copilot(finding_id, result.to_dict())
+
+        # Store in Unified Memory for future reference
+        self.remember_analysis(finding_id, result.to_dict())
 
         return result
 
@@ -206,6 +211,46 @@ class CopilotAgent:
 
     def evidence_against(self, hypothesis_id: str) -> list[dict]:
         return self._evidence_graph.get_evidence_against(hypothesis_id)
+
+    # ── Unified Memory ────────────────────────────────────────
+
+    def remember(
+        self, namespace: str, key: str, content: str, tags: list[str] | None = None, priority: float = 0.0
+    ) -> int:
+        """Store an analysis result in Unified Memory."""
+        return self._memory.store(
+            namespace=namespace,
+            key=key,
+            content=content,
+            metadata={"agent_id": self.agent_id, "authority": self._authority.value},
+            tags=tags,
+            priority=priority,
+        )
+
+    def recall(self, namespace: str, search: str = "", tags: list[str] | None = None, limit: int = 10) -> list[dict]:
+        """Query Unified Memory for relevant past entries."""
+        return self._memory.query(
+            namespace=namespace,
+            search=search,
+            tags=tags,
+            limit=limit,
+        )
+
+    def remember_analysis(self, finding_id: str, analysis: dict[str, Any]) -> int:
+        """Store a complete analysis result in memory for future reference."""
+        return self._memory.store(
+            namespace="copilot",
+            key=f"analysis:{finding_id}",
+            content=analysis.get("status", "unknown"),
+            tags=["analysis", analysis.get("status", "unknown")],
+            priority=max(analysis.get("confidence", 0.0) * 10, 0.1),
+            metadata={
+                "finding_id": finding_id,
+                "inconsistencies": analysis.get("inconsistencies", []),
+                "recommendations": analysis.get("recommendations", []),
+                "agent_id": self.agent_id,
+            },
+        )
 
     # ── Internal ───────────────────────────────────────────────
 

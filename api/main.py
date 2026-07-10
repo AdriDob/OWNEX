@@ -346,6 +346,19 @@ async def lifespan(app: FastAPI):
         bus.subscribe("finding:status_changed", _feedback_handler)
         logger.info("[BOOT] FeedbackTuner subscriber registered")
 
+        # ── Unified Memory ────────────────────────────────────────────
+        try:
+            from core.memory.store import get_memory_store
+
+            _store = get_memory_store()
+            logger.info(
+                "[BOOT] Unified Memory initialized: %d entries across %d namespaces",
+                _store.count(),
+                len(_store.list_namespaces()),
+            )
+        except Exception as exc:
+            logger.warning("[BOOT] Unified Memory init error: %s", exc)
+
         # ── Senior Copilot Agent ───────────────────────────────────────
         _copilot = None
         try:
