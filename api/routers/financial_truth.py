@@ -6,11 +6,13 @@ Every response includes provenance, confidence, and category for every value.
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from cores.financial.dashboard import get_dashboard
 from cores.financial.events import publish_financial_event
 from cores.financial.reconciliation import get_reconciliation_engine
 from cores.financial.truth_layer import (
@@ -263,6 +265,158 @@ def fail_withdrawal_endpoint(withdrawal_id: str, req: WithdrawalFailRequest) -> 
 @router.get("/withdrawals/summary")
 def withdrawal_summary() -> dict[str, Any]:
     return get_withdrawal_summary()
+
+
+# ── Unified Dashboard ────────────────────────────────────────────────
+
+
+@router.get("/dashboard")
+def financial_dashboard() -> dict[str, Any]:
+    """Unified financial dashboard — patrimonio, crypto, ingresos, alertas."""
+    return get_dashboard()
+
+
+# ── Integrations Status ──────────────────────────────────────────────
+
+
+@router.get("/integrations/status")
+def integrations_status() -> dict[str, Any]:
+    """Status of all financial integrations (exchanges, wallets, payment platforms).
+
+    Returns green/yellow/red per integration with last sync, balance, and errors.
+    """
+    truth = get_truth_layer()
+    state = truth.get_state()
+    crypto_mgr = None
+    try:
+        from cores.crypto.sync_manager import get_crypto_sync_manager
+        crypto_mgr = get_crypto_sync_manager()
+    except Exception:
+        logger.exception("Failed to initialize crypto sync manager")
+
+    integrations: dict[str, dict] = {}
+
+    # Platform integrations
+    for pid, ps in state.by_platform.items():
+        sync = ps.sync_state
+        balance = round(ps.verified_balance + ps.pending_balance, 2)
+        status = _calc_integration_status(sync.consecutive_failures, sync.last_success)
+        integrations[pid] = {
+            "nombre": pid.capitalize(),
+            "tipo": "plataforma_bounty",
+            "balance_usd": balance,
+            "estado": status,
+            "ultima_sincronizacion": _ts_to_iso(sync.last_sync),
+            "ultimo_exito": _ts_to_iso(sync.last_success),
+            "fallos_consecutivos": sync.consecutive_failures,
+            "error": sync.last_error or "",
+        }
+
+    # Exchange / crypto wallet integrations
+    if crypto_mgr:
+        for wid, _connector in crypto_mgr.connectors.items():
+            snap = crypto_mgr.get_snapshot(wid)
+            bal = round(snap.total_usd, 2) if snap else 0.0
+            conn_status = snap.connection.value if snap else "unknown"
+            status = "green" if conn_status == "connected" else ("yellow" if conn_status == "rate_limited" else "red")
+            integrations[wid] = {
+                "nombre": wid.replace("_", " ").title(),
+                "tipo": "crypto_wallet",
+                "balance_usd": bal,
+                "estado": status,
+                "ultima_sincronizacion": snap.synced_at if snap else "",
+                "ultimo_exito": snap.synced_at if snap and conn_status == "connected" else "",
+                "fallos_consecutivos": 0,
+                "error": snap.error if snap else "",
+            }
+
+    # Takenos
+    try:
+        from cores.financial.takenos.connector import get_takenos_connector
+        tc = get_takenos_connector()
+        health = tc.health()
+        t_status = "green" if health.get("available") else "yellow"
+        integrations["takenos"] = {
+            "nombre": "Takenos",
+            "tipo": "billetera_virtual",
+            "balance_usd": health.get("balance_usd", 0.0),
+            "estado": t_status,
+            "ultima_sincronizacion": "",
+            "ultimo_exito": "",
+            "fallos_consecutivos": 0,
+            "error": "" if t_status == "green" else "Sin datos cargados — usá CSV, balance manual o vinculá wallet Solana",
+        }
+    except Exception:
+        integrations["takenos"] = {
+            "nombre": "Takenos",
+            "tipo": "billetera_virtual",
+            "balance_usd": 0.0,
+            "estado": "yellow",
+            "ultima_sincronizacion": "",
+            "ultimo_exito": "",
+            "fallos_consecutivos": 0,
+            "error": "No conectado",
+        }
+
+    # CoinGecko
+    try:
+        from cores.crypto.coingecko import get_coingecko_feed
+        cg_health = get_coingecko_feed().health()
+        integrations["coingecko"] = {
+            "nombre": "CoinGecko",
+            "tipo": "oraculo_precios",
+            "balance_usd": 0.0,
+            "estado": "green" if cg_health.get("available") else "red",
+            "ultima_sincronizacion": "",
+            "ultimo_exito": "",
+            "fallos_consecutivos": 0,
+            "error": "" if cg_health.get("available") else "API no disponible",
+        }
+    except Exception:
+        integrations["coingecko"] = {
+            "nombre": "CoinGecko",
+            "tipo": "oraculo_precios",
+            "balance_usd": 0.0,
+            "estado": "red",
+            "error": "No conectado",
+        }
+
+    # Overall health
+    estados = [i["estado"] for i in integrations.values()]
+    if "red" in estados:
+        overall = "red"
+    elif "yellow" in estados:
+        overall = "yellow"
+    else:
+        overall = "green"
+
+    return {
+        "overall": overall,
+        "total_integraciones": len(integrations),
+        "integradas": sum(1 for i in integrations.values() if i["estado"] == "green"),
+        "parciales": sum(1 for i in integrations.values() if i["estado"] == "yellow"),
+        "fallidas": sum(1 for i in integrations.values() if i["estado"] == "red"),
+        "integraciones": integrations,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+def _calc_integration_status(consecutive_failures: int, last_success: float) -> str:
+    if consecutive_failures >= 5:
+        return "red"
+    if consecutive_failures >= 3:
+        return "yellow"
+    if consecutive_failures > 0:
+        return "yellow"
+    if last_success == 0:
+        return "yellow"
+    return "green"
+
+
+def _ts_to_iso(ts: float) -> str:
+    if not ts:
+        return ""
+    return datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
 
 
 # ── Reconciliation ───────────────────────────────────────────────────

@@ -98,7 +98,7 @@ def main() -> None:
     print(f"  Target:    {installed_dir}")
     print(f"{'=' * 60}\n")
 
-    if not sys.platform == "win32":
+    if sys.platform != "win32":
         log("Not on Windows — skipping NSIS installation test")
         log("Run this test on Windows after building CATEYEInstaller.exe")
         print(f"\n{'=' * 60}")

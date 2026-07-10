@@ -69,7 +69,7 @@ def create_finding(body: FindingCreate):
                 "target_id": body.target_id,
             })
         except Exception:
-            pass
+            logger.exception("Failed to publish finding:created event")
         return result
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
@@ -151,7 +151,7 @@ def update_finding_status(finding_id: int, body: StatusUpdate):
                     "target_id": f.target_id,
                 })
             except Exception:
-                pass
+                logger.exception("Failed to publish finding:status_changed event")
         return result
     finally:
         session.close()
@@ -184,7 +184,7 @@ def update_finding(finding_id: int, body: FindingUpdate):
                         "target_id": f.target_id,
                     })
                 except Exception:
-                    pass
+                    logger.exception("Failed to publish finding:status_changed event")
         session.commit()
         return _finding_to_dict(f)
     finally:

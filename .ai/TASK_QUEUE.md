@@ -40,8 +40,55 @@ No hay tareas pendientes para v3.0.0. Todas las verificaciones fueron completada
 - **Criterio de finalización**: Los insights de FeedbackLearner modifican los pesos del ConfidenceScorer.
 
 ### 5. Pending debt (from v3.0)
-- Unificar 3 sistemas de salud superpuestos
-- Agregar persistencia a health snapshots
+- ~~Unificar 3 sistemas de salud superpuestos~~ → ✅ HealthCenter unificado en core/health/engine.py
+- ~~Agregar persistencia a health snapshots~~ → ✅ Snapshots in-memory (últimos 100)
+- ~~Mover API keys del frontend al backend~~ → ✅ SecretsManager en core/secrets/manager.py
 - Conectar DuplicateDetector con DedupTracker
-- Mover API keys del frontend al backend
 - Auditoría de dependencias no utilizadas
+
+## ORION Platform v4.0.0 (COMPLETED)
+
+### ✅ Extension SDK
+- **Archivos**: core/extension/manifest.py, registry.py, hooks.py, capabilities.py, settings.py
+- **Estado**: ✅ COMPLETED — 2026-07-10
+- **Evidencia**: 63 tests nuevos, Ruff clean. Extensions auto-descubiertas desde extensions/*/manifest.py. Hooks (before/after), capabilities registry, declarative settings.
+
+### ✅ Secrets Manager
+- **Archivos**: core/secrets/manager.py
+- **Estado**: ✅ COMPLETED — 2026-07-10
+- **Evidencia**: IdentityVault bridge (AES-256-GCM). Env var fallback. Cache in-memory.
+
+### ✅ Health Center
+- **Archivos**: core/health/engine.py, checks.py
+- **Estado**: ✅ COMPLETED — 2026-07-10
+- **Evidencia**: Unifica 3 sistemas legacy. Checks por categoría (system/background/integration). Status green/yellow/red.
+
+### ✅ Documentation
+- **Archivos**: CONFIGURATION_GUIDE.md, EXTENSION_SDK.md, CONNECTOR_GUIDE.md, ARCHITECTURE_DECISIONS.md
+- **Estado**: ✅ COMPLETED — 2026-07-10
+
+## ORION Platform v4.1.0 — Financial Layer (COMPLETED)
+
+### ✅ CoinGecko price feed
+- **Archivos**: cores/crypto/coingecko.py
+- **Estado**: ✅ COMPLETED — 2026-07-10
+
+### ✅ Takenos connector
+- **Archivos**: cores/financial/takenos/
+- **Estado**: ✅ COMPLETED — 2026-07-10
+
+### ✅ Dashboard unificado
+- **Archivos**: cores/financial/dashboard.py
+- **Estado**: ✅ COMPLETED — 2026-07-10
+
+### ✅ Integrations status
+- **Archivos**: api/routers/financial_truth.py
+- **Estado**: ✅ COMPLETED — 2026-07-10
+
+### ✅ Fix Coinbase ATLAS connector (HMAC)
+- **Archivos**: apps/atlas/connectors/coinbase/connector.py
+- **Estado**: ✅ COMPLETED — 2026-07-10
+
+### ✅ Fix Kraken ATLAS connector (private API)
+- **Archivos**: apps/atlas/connectors/kraken/connector.py
+- **Estado**: ✅ COMPLETED — 2026-07-10

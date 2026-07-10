@@ -644,7 +644,7 @@ MEMORY_RECORDS = [
 def make_financial_metrics():
     metrics = []
     periods = ["2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09"]
-    for i, period in enumerate(periods):
+    for _i, period in enumerate(periods):
         metrics.append({
             "metric_type": "usd_earned",
             "dimension": "all",

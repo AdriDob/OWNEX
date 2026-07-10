@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import importlib
 import logging
-import pkgutil
 from pathlib import Path
 from typing import Any
 
@@ -117,6 +116,30 @@ class AppRegistry:
             }
             for app in self._apps.values()
         }
+
+    # ── Extension bridge ────────────────────────────────────────────
+
+    def discover_extensions(self) -> dict[str, Any]:
+        """Bridge to ExtensionRegistry — discover and load extensions.
+
+        Returns status dict for logging.
+        """
+        try:
+            from core.extension.registry import get_extension_registry
+            er = get_extension_registry()
+            manifests = er.discover()
+            results = er.load_all()
+            loaded = sum(1 for v in results.values() if v)
+            failed = sum(1 for v in results.values() if not v)
+            return {
+                "discovered": len(manifests),
+                "loaded": loaded,
+                "failed": failed,
+                "errors": er.get_errors(),
+            }
+        except Exception as exc:
+            logger.warning("Extension discovery failed (non-fatal): %s", exc)
+            return {"discovered": 0, "loaded": 0, "failed": 0, "errors": {"bridge": str(exc)}}
 
 
 # ── Singleton ────────────────────────────────────────

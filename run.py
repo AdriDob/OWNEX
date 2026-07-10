@@ -301,7 +301,7 @@ def _handle_install() -> None:
         sys.exit(1)
 
     _log("INSTALL", "CATEYE installed successfully")
-    _log("INSTALL", "Run '%s --start' to launch" % sys.executable)
+    _log("INSTALL", f"Run '{sys.executable} --start' to launch")
 
 
 def _handle_legacy_service(args: set[str]) -> bool:

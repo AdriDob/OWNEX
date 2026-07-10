@@ -1,0 +1,220 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" font-family="'JetBrains Mono','Fira Code',monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#050505"/>
+      <stop offset="100%" stop-color="#0a0f0a"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="rgba(17,17,17,0.8)"/>
+      <stop offset="100%" stop-color="rgba(5,15,5,0.6)"/>
+    </linearGradient>
+    <linearGradient id="greenBar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00ff41"/>
+      <stop offset="100%" stop-color="#00ff4180"/>
+    </linearGradient>
+    <linearGradient id="blueBar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00b8ff"/>
+      <stop offset="100%" stop-color="#00b8ff80"/>
+    </linearGradient>
+    <linearGradient id="topGlow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="transparent"/>
+      <stop offset="50%" stop-color="rgba(0,255,65,0.3)"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </linearGradient>
+    <linearGradient id="progressGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00ff41"/>
+      <stop offset="100%" stop-color="#00b8ff"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="rgba(0,0,0,0.4)"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="750" fill="url(#bg)"/>
+  <rect width="1200" height="750" fill="none" stroke="rgba(0,255,65,0.03)" stroke-width="0.5" stroke-dasharray="32 32"/>
+
+  <!-- Top bar -->
+  <rect x="0" y="0" width="1200" height="48" fill="rgba(5,5,5,0.95)" stroke="rgba(0,255,65,0.1)" stroke-width="1"/>
+  <rect x="16" y="12" width="80" height="24" rx="4" fill="rgba(0,255,65,0.1)" stroke="rgba(0,255,65,0.2)" stroke-width="1"/>
+  <text x="36" y="28" fill="#00ff41" font-size="11" font-weight="bold" letter-spacing="3">CATEYE</text>
+  <circle cx="110" cy="24" r="4" fill="#00ff41" opacity="0.8"/>
+  <text x="120" y="28" fill="#00ff41" font-size="10" opacity="0.8">ACTIVE</text>
+  <text x="190" y="28" fill="rgba(255,255,255,0.3)" font-size="10">FINANCIAL LAYER 4.1.0</text>
+  <rect x="1040" y="12" width="85" height="24" rx="4" fill="rgba(0,230,118,0.1)" stroke="rgba(0,230,118,0.2)" stroke-width="1"/>
+  <text x="1052" y="28" fill="#00e676" font-size="9" font-weight="bold">OBJETIVO 78%</text>
+
+  <!-- Header -->
+  <text x="24" y="82" fill="#e0f0e0" font-size="22" font-weight="bold">FINANCIAL DASHBOARD</text>
+  <text x="24" y="104" fill="rgba(255,255,255,0.35)" font-size="12">Unified dashboard — patrimonio, crypto, ingresos, integraciones</text>
+
+  <!-- Top KPI Row -->
+  <rect x="24" y="120" width="276" height="100" rx="8" fill="url(#card)" stroke="rgba(0,255,65,0.08)" stroke-width="1" filter="url(#shadow)"/>
+  <rect x="24" y="120" width="276" height="1" fill="url(#topGlow)"/>
+  <text x="40" y="145" fill="rgba(255,255,255,0.35)" font-size="10" letter-spacing="2">TOTAL PORTFOLIO</text>
+  <text x="40" y="188" fill="#00ff41" font-size="30" font-weight="bold" filter="url(#glow)">$47,234</text>
+  <text x="220" y="145" fill="rgba(255,255,255,0.2)" font-size="9">USD</text>
+  <rect x="40" y="198" width="248" height="4" rx="2" fill="rgba(255,255,255,0.05)"/>
+  <rect x="40" y="198" width="186" height="4" rx="2" fill="url(#progressGrad)"/>
+
+  <rect x="316" y="120" width="276" height="100" rx="8" fill="url(#card)" stroke="rgba(0,255,65,0.08)" stroke-width="1" filter="url(#shadow)"/>
+  <rect x="316" y="120" width="276" height="1" fill="url(#topGlow)"/>
+  <text x="332" y="145" fill="rgba(255,255,255,0.35)" font-size="10" letter-spacing="2">MONTHLY INCOME</text>
+  <text x="332" y="188" fill="#00b8ff" font-size="30" font-weight="bold" filter="url(#glow)">$3,420</text>
+  <text x="540" y="145" fill="rgba(255,255,255,0.2)" font-size="9">+12.4%</text>
+
+  <rect x="608" y="120" width="276" height="100" rx="8" fill="url(#card)" stroke="rgba(0,255,65,0.08)" stroke-width="1" filter="url(#shadow)"/>
+  <rect x="608" y="120" width="276" height="1" fill="url(#topGlow)"/>
+  <text x="624" y="145" fill="rgba(255,255,255,0.35)" font-size="10" letter-spacing="2">30K GOAL</text>
+  <text x="624" y="188" fill="#ffab00" font-size="30" font-weight="bold" filter="url(#glow)">78%</text>
+  <rect x="624" y="198" width="248" height="4" rx="2" fill="rgba(255,255,255,0.05)"/>
+  <rect x="624" y="198" width="193" height="4" rx="2" fill="#ffab00"/>
+
+  <rect x="900" y="120" width="276" height="100" rx="8" fill="url(#card)" stroke="rgba(0,255,65,0.08)" stroke-width="1" filter="url(#shadow)"/>
+  <rect x="900" y="120" width="276" height="1" fill="url(#topGlow)"/>
+  <text x="916" y="145" fill="rgba(255,255,255,0.35)" font-size="10" letter-spacing="2">ACTIVE INTEGRATIONS</text>
+  <text x="916" y="188" fill="#00e676" font-size="30" font-weight="bold" filter="url(#glow)">6/8</text>
+  <text x="1100" y="145" fill="rgba(255,255,255,0.2)" font-size="9">2 offline</text>
+
+  <!-- Takenos Card -->
+  <rect x="24" y="236" width="372" height="180" rx="8" fill="url(#card)" stroke="rgba(0,255,65,0.08)" stroke-width="1" filter="url(#shadow)"/>
+  <rect x="24" y="236" width="372" height="1" fill="url(#topGlow)"/>
+  <text x="40" y="262" fill="#e0f0e0" font-size="12" font-weight="bold">Takenos — Virtual Wallet</text>
+  <circle cx="350" cy="258" r="6" fill="#ffab00"/>
+  <text x="360" y="262" fill="#ffab00" font-size="9" font-weight="bold">Manual</text>
+  <line x1="40" y1="272" x2="380" y2="272" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+  <text x="40" y="296" fill="rgba(255,255,255,0.35)" font-size="9">USD Balance</text>
+  <text x="40" y="316" fill="#00ff41" font-size="20" font-weight="bold">$1,500.00</text>
+
+  <text x="40" y="345" fill="rgba(255,255,255,0.35)" font-size="9">ARS Balance</text>
+  <text x="40" y="362" fill="rgba(255,255,255,0.6)" font-size="13">$1,350,000</text>
+
+  <text x="220" y="345" fill="rgba(255,255,255,0.35)" font-size="9">Solana USDC</text>
+  <text x="220" y="362" fill="rgba(255,255,255,0.6)" font-size="13">$250.00</text>
+
+  <rect x="40" y="378" width="120" height="24" rx="4" fill="rgba(0,255,65,0.08)" stroke="rgba(0,255,65,0.12)" stroke-width="1"/>
+  <text x="52" y="394" fill="#00ff41" font-size="9" font-weight="bold">CSV Imported</text>
+
+  <rect x="175" y="378" width="100" height="24" rx="4" fill="rgba(0,184,255,0.08)" stroke="rgba(0,184,255,0.12)" stroke-width="1"/>
+  <text x="184" y="394" fill="#00b8ff" font-size="9" font-weight="bold">Wallet Linked</text>
+
+  <!-- CoinGecko Card -->
+  <rect x="414" y="236" width="372" height="180" rx="8" fill="url(#card)" stroke="rgba(0,255,65,0.08)" stroke-width="1" filter="url(#shadow)"/>
+  <rect x="414" y="236" width="372" height="1" fill="url(#topGlow)"/>
+  <text x="430" y="262" fill="#e0f0e0" font-size="12" font-weight="bold">CoinGecko — Price Oracle</text>
+  <circle cx="740" cy="258" r="6" fill="#00e676"/>
+  <text x="750" y="262" fill="#00e676" font-size="9" font-weight="bold">Live</text>
+  <line x1="430" y1="272" x2="770" y2="272" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+  <!-- BTC -->
+  <text x="430" y="300" fill="#ffab00" font-size="11" font-weight="bold">BTC</text>
+  <text x="430" y="320" fill="#e0f0e0" font-size="18" font-weight="bold">$61,234</text>
+  <text x="640" y="320" fill="#00e676" font-size="11" font-weight="bold">+2.4%</text>
+  <rect x="690" y="310" width="60" height="16" rx="3" fill="rgba(0,230,118,0.1)"/>
+  <text x="696" y="322" fill="#00e676" font-size="8">24h</text>
+
+  <!-- ETH -->
+  <line x1="430" y1="330" x2="770" y2="330" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <text x="430" y="352" fill="#00b8ff" font-size="11" font-weight="bold">ETH</text>
+  <text x="430" y="372" fill="#e0f0e0" font-size="18" font-weight="bold">$3,456</text>
+  <text x="640" y="372" fill="#ff1744" font-size="11" font-weight="bold">-0.8%</text>
+  <rect x="690" y="362" width="60" height="16" rx="3" fill="rgba(255,23,68,0.1)"/>
+  <text x="696" y="374" fill="#ff1744" font-size="8">24h</text>
+
+  <!-- SOL -->
+  <line x1="430" y1="382" x2="770" y2="382" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <text x="430" y="404" fill="#a855f7" font-size="11" font-weight="bold">SOL</text>
+  <text x="430" y="422" fill="#e0f0e0" font-size="18" font-weight="bold">$145.20</text>
+  <text x="640" y="422" fill="#00e676" font-size="11" font-weight="bold">+5.2%</text>
+  <rect x="690" y="412" width="60" height="16" rx="3" fill="rgba(0,230,118,0.1)"/>
+  <text x="696" y="424" fill="#00e676" font-size="8">24h</text>
+
+  <!-- Portfolio Breakdown -->
+  <rect x="804" y="236" width="372" height="180" rx="8" fill="url(#card)" stroke="rgba(0,255,65,0.08)" stroke-width="1" filter="url(#shadow)"/>
+  <rect x="804" y="236" width="372" height="1" fill="url(#topGlow)"/>
+  <text x="820" y="262" fill="#e0f0e0" font-size="12" font-weight="bold">Portfolio Breakdown</text>
+  <line x1="820" y1="272" x2="1160" y2="272" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+  <text x="820" y="296" fill="rgba(255,255,255,0.6)" font-size="10">Bounty Platforms</text>
+  <text x="1060" y="296" fill="#00b8ff" font-size="10" font-weight="bold">$12,000</text>
+  <rect x="820" y="302" width="320" height="6" rx="3" fill="rgba(255,255,255,0.03)"/>
+  <rect x="820" y="302" width="81" height="6" rx="3" fill="#00b8ff"/>
+
+  <text x="820" y="326" fill="rgba(255,255,255,0.6)" font-size="10">Crypto</text>
+  <text x="1060" y="326" fill="#ffab00" font-size="10" font-weight="bold">$28,000</text>
+  <rect x="820" y="332" width="320" height="6" rx="3" fill="rgba(255,255,255,0.03)"/>
+  <rect x="820" y="332" width="190" height="6" rx="3" fill="#ffab00"/>
+
+  <text x="820" y="356" fill="rgba(255,255,255,0.6)" font-size="10">Takenos Wallet</text>
+  <text x="1060" y="356" fill="#00ff41" font-size="10" font-weight="bold">$1,500</text>
+  <rect x="820" y="362" width="320" height="6" rx="3" fill="rgba(255,255,255,0.03)"/>
+  <rect x="820" y="362" width="42" height="6" rx="3" fill="#00ff41"/>
+
+  <text x="820" y="386" fill="rgba(255,255,255,0.6)" font-size="10">ATLAS Investments</text>
+  <text x="1060" y="386" fill="#00e676" font-size="10" font-weight="bold">$5,734</text>
+  <rect x="820" y="392" width="320" height="6" rx="3" fill="rgba(255,255,255,0.03)"/>
+  <rect x="820" y="392" width="110" height="6" rx="3" fill="#00e676"/>
+
+  <!-- Integration Status Bar -->
+  <rect x="24" y="432" width="1152" height="56" rx="8" fill="url(#card)" stroke="rgba(0,255,65,0.08)" stroke-width="1" filter="url(#shadow)"/>
+  <rect x="24" y="432" width="1152" height="1" fill="url(#topGlow)"/>
+  <text x="40" y="458" fill="rgba(255,255,255,0.35)" font-size="10" letter-spacing="2">INTEGRATION STATUS</text>
+  <text x="40" y="476" fill="#e0f0e0" font-size="24" font-weight="bold">🟢🟢🟢🟢🟡🟢🔴</text>
+  <text x="280" y="476" fill="rgba(255,255,255,0.4)" font-size="10">CoinGecko  Takenos  Binance  Coinbase  Kraken  HackerOne  Bugcrowd</text>
+
+  <!-- Monthly Income Detail -->
+  <rect x="24" y="504" width="564" height="210" rx="8" fill="url(#card)" stroke="rgba(0,255,65,0.08)" stroke-width="1" filter="url(#shadow)"/>
+  <rect x="24" y="504" width="564" height="1" fill="url(#topGlow)"/>
+  <text x="40" y="530" fill="#e0f0e0" font-size="12" font-weight="bold">Monthly Income — Last 30 Days</text>
+
+  <text x="40" y="560" fill="rgba(255,255,255,0.4)" font-size="9" letter-spacing="2">PLATFORM</text>
+  <text x="320" y="560" fill="rgba(255,255,255,0.4)" font-size="9" letter-spacing="2">AMOUNT</text>
+  <text x="460" y="560" fill="rgba(255,255,255,0.4)" font-size="9" letter-spacing="2">SHARE</text>
+  <line x1="40" y1="566" x2="588" y2="566" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+  <rect x="40" y="576" width="540" height="30" rx="4" fill="rgba(255,255,255,0.02)"/>
+  <text x="52" y="596" fill="#e0f0e0" font-size="11">HackerOne</text>
+  <text x="320" y="596" fill="#00e676" font-size="11" font-weight="bold">$2,500</text>
+  <rect x="400" y="585" width="120" height="12" rx="3" fill="rgba(255,255,255,0.03)"/>
+  <rect x="400" y="585" width="87" height="12" rx="3" fill="#00e676" opacity="0.6"/>
+  <text x="525" y="596" fill="rgba(255,255,255,0.5)" font-size="10">73%</text>
+
+  <rect x="40" y="610" width="540" height="30" rx="4" fill="rgba(255,255,255,0.02)"/>
+  <text x="52" y="630" fill="#e0f0e0" font-size="11">Bugcrowd</text>
+  <text x="320" y="630" fill="#00b8ff" font-size="11" font-weight="bold">$920</text>
+  <rect x="400" y="619" width="120" height="12" rx="3" fill="rgba(255,255,255,0.03)"/>
+  <rect x="400" y="619" width="38" height="12" rx="3" fill="#00b8ff" opacity="0.6"/>
+  <text x="525" y="630" fill="rgba(255,255,255,0.5)" font-size="10">27%</text>
+
+  <!-- Alerts / Goal -->
+  <rect x="612" y="504" width="564" height="210" rx="8" fill="url(#card)" stroke="rgba(0,255,65,0.08)" stroke-width="1" filter="url(#shadow)"/>
+  <rect x="612" y="504" width="564" height="1" fill="url(#topGlow)"/>
+  <text x="628" y="530" fill="#e0f0e0" font-size="12" font-weight="bold">Objetivo Libertad — Alerts & Milestones</text>
+
+  <!-- Goal progress visual -->
+  <rect x="628" y="548" width="530" height="60" rx="6" fill="rgba(255,255,255,0.02)"/>
+  <text x="644" y="570" fill="rgba(255,255,255,0.6)" font-size="10">Goal: $30,000 USD</text>
+  <text x="644" y="590" fill="#e0f0e0" font-size="14" font-weight="bold">$47,234 / $30,000</text>
+  <text x="900" y="590" fill="#00ff41" font-size="20" font-weight="bold" filter="url(#glow)">157%</text>
+  <rect x="628" y="600" width="530" height="6" rx="3" fill="rgba(255,255,255,0.05)"/>
+  <rect x="628" y="600" width="530" height="6" rx="3" fill="url(#progressGrad)"/>
+
+  <!-- Alerts list -->
+  <rect x="628" y="620" width="530" height="28" rx="5" fill="rgba(255,171,0,0.05)" stroke="rgba(255,171,0,0.1)" stroke-width="1"/>
+  <text x="644" y="638" fill="#ffab00" font-size="10">Sync warning: Binance — 3 consecutive failures</text>
+
+  <rect x="628" y="654" width="530" height="28" rx="5" fill="rgba(0,184,255,0.05)" stroke="rgba(0,184,255,0.1)" stroke-width="1"/>
+  <text x="644" y="672" fill="#00b8ff" font-size="10">Pending withdrawal: $250 USD to Binance</text>
+
+  <rect x="628" y="688" width="530" height="22" rx="5" fill="rgba(255,255,255,0.02)"/>
+  <text x="644" y="704" fill="rgba(255,255,255,0.3)" font-size="9">Last updated: 2026-07-10T12:00:00Z</text>
+
+  <!-- Footer -->
+  <line x1="24" y1="725" x2="1176" y2="725" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <text x="24" y="742" fill="rgba(255,255,255,0.2)" font-size="9">CATEYE v4.1.0 ● Financial Layer ● Dashboard unified ● CoinGecko ● Takenos ● Crypto sync</text>
+  <circle cx="1160" cy="738" r="4" fill="#00ff41" opacity="0.8"/>
+  <text x="1170" y="742" fill="rgba(255,255,255,0.2)" font-size="9">SISTEMA NOMINAL</text>
+</svg>

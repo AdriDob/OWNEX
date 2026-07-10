@@ -678,7 +678,7 @@ class BountyScraper:
                         confidence=0.5,
                     ))
             except Exception:
-                pass
+                logger.exception("Failed to scrape web search for query: %s", query)
 
         return results
 

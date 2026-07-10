@@ -101,21 +101,20 @@ class RecoveryEngine:
                     del self._recovery_in_progress[component]
 
         cb = self._breakers.get(component)
-        if rule.requires_circuit_breaker:
-            if not cb.can_attempt_recovery():
-                snap = cb.snapshot()
-                logger.error(
-                    "[RECOVERY] Circuit breaker OPEN for %s (state=%s, failures=%d) — recovery blocked",
-                    component, snap["state"], snap["failure_count"],
-                )
-                self._store.record_recovery(
-                    component=component,
-                    failure_type=failure_type.value,
-                    recovery_action=rule.recovery_action,
-                    status="blocked",
-                    details=f"Circuit breaker {snap['state']}, {snap['failure_count']} failures",
-                )
-                return False
+        if rule.requires_circuit_breaker and not cb.can_attempt_recovery():
+            snap = cb.snapshot()
+            logger.error(
+                "[RECOVERY] Circuit breaker OPEN for %s (state=%s, failures=%d) — recovery blocked",
+                component, snap["state"], snap["failure_count"],
+            )
+            self._store.record_recovery(
+                component=component,
+                failure_type=failure_type.value,
+                recovery_action=rule.recovery_action,
+                status="blocked",
+                details=f"Circuit breaker {snap['state']}, {snap['failure_count']} failures",
+            )
+            return False
 
         self._execute_recovery(component, failure_type, rule, error_message, details)
         return True

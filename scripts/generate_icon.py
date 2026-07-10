@@ -73,7 +73,7 @@ def _create_ico(png_sizes: list[int]) -> bytes:
     ico = struct.pack("<HHH", 0, 1, count)  # reserved, type=1 (icon), count
 
     offset = 6 + count * 16
-    for i, (size, png) in enumerate(zip(png_sizes, png_data)):
+    for _i, (size, png) in enumerate(zip(png_sizes, png_data, strict=False)):
         w = size if size < 256 else 0
         h = size if size < 256 else 0
         ico += struct.pack("<BBBBHHII", w, h, 0, 0, 1, 32, len(png), offset)

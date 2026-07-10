@@ -7,9 +7,8 @@ but have independent prompts, tools, and memory namespaces.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
-from core.interfaces.agent import IAgent, Action, AgentContext, Feedback
+from core.interfaces.agent import Action, AgentContext, Feedback, IAgent
 
 logger = logging.getLogger("orion.core.ai")
 
