@@ -4,7 +4,7 @@ from typing import Any
 from cores.validation.replayer import ComparisonResult
 from cores.validation.rules import ValidationReport
 
-WEIGHTS = {
+DEFAULT_WEIGHTS: dict[str, float] = {
     "consistency": 0.40,
     "signal": 0.30,
     "evidence_strength": 0.20,
@@ -20,6 +20,27 @@ class ConfidenceScore:
 
 
 class ConfidenceScorer:
+    def __init__(self) -> None:
+        self._weights: dict[str, float] = dict(DEFAULT_WEIGHTS)
+
+    def adjust_weights(self, adjustments: dict[str, float]) -> None:
+        """Apply dynamic weight adjustments from FeedbackLearner.
+
+        values are added to current weights, then normalized so
+        positive weights sum to 1.0 and negative weights stay negative.
+        """
+        for key, adj in adjustments.items():
+            if key in self._weights:
+                self._weights[key] = round(self._weights[key] + adj, 4)
+        positive_keys = [k for k, v in self._weights.items() if v > 0]
+        pos_sum = sum(self._weights[k] for k in positive_keys)
+        if pos_sum > 0:
+            for k in positive_keys:
+                self._weights[k] = round(self._weights[k] / pos_sum, 4)
+
+    def get_weights(self) -> dict[str, float]:
+        return dict(self._weights)
+
     def calculate(
         self,
         results: list[ComparisonResult],
@@ -56,10 +77,10 @@ class ConfidenceScorer:
         noise_penalty = noise_count / total
 
         raw_score = (
-            (consistency_score * WEIGHTS["consistency"])
-            + (signal_score * WEIGHTS["signal"])
-            + (evidence_strength * WEIGHTS["evidence_strength"])
-            + (noise_penalty * WEIGHTS["noise_penalty"])
+            (consistency_score * self._weights["consistency"])
+            + (signal_score * self._weights["signal"])
+            + (evidence_strength * self._weights["evidence_strength"])
+            + (noise_penalty * self._weights["noise_penalty"])
             + llm_boost
             - uncertainty_penalty
         )

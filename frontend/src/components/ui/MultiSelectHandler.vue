@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, type Component } from 'vue'
 import { useUIStore } from '@/stores/ui'
 import { Download, RefreshCw, Trash2, Tag, X } from '@lucide/vue'
 import Separator from './Separator.vue'
@@ -12,7 +12,7 @@ const props = withDefaults(defineProps<{
 
 const store = useUIStore()
 
-const count = computed(() => store.selectedItems?.length ?? 0)
+const count = computed(() => store.selectedIds.length)
 
 interface Action {
   id: string
@@ -22,14 +22,14 @@ interface Action {
 }
 
 const actions: Action[] = [
-  { id: 'export', label: 'Export', icon: Download, handler: () => store.handleMultiSelect?.('export') },
-  { id: 'sync', label: 'Sync', icon: RefreshCw, handler: () => store.handleMultiSelect?.('sync') },
-  { id: 'delete', label: 'Delete', icon: Trash2, handler: () => store.handleMultiSelect?.('delete') },
-  { id: 'tag', label: 'Tag', icon: Tag, handler: () => store.handleMultiSelect?.('tag') },
+  { id: 'export', label: 'Export', icon: Download, handler: () => store.handleMultiSelect('export') },
+  { id: 'sync', label: 'Sync', icon: RefreshCw, handler: () => store.handleMultiSelect('sync') },
+  { id: 'delete', label: 'Delete', icon: Trash2, handler: () => store.handleMultiSelect('delete') },
+  { id: 'tag', label: 'Tag', icon: Tag, handler: () => store.handleMultiSelect('tag') },
 ]
 
 function clear() {
-  store.selectedItems = []
+  store.clearSelection()
 }
 </script>
 

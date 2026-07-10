@@ -16,7 +16,7 @@ interface MoreInfoPanel {
   type: EntityType | null
 }
 
-export const useUiStore = defineStore('ui', () => {
+export const useUIStore = defineStore('ui', () => {
   const inspectorOpen = ref(false)
   const inspectorEntity = ref<MicroEntity | null>(null)
   const inspectorType = ref<EntityType | null>(null)
@@ -36,6 +36,18 @@ export const useUiStore = defineStore('ui', () => {
   const multiSelectActive = computed(() => selectedIds.value.length > 0)
 
   const moreInfoPanel = ref<MoreInfoPanel>({ open: false, entity: null, type: null })
+
+  const inspectorTab = ref<'summary' | 'metadata' | 'json' | 'activity' | 'logs'>('summary')
+
+  interface MiniPreviewData {
+    x: number
+    y: number
+    title: string
+    subtitle?: string
+    status?: string
+    metrics?: Record<string, string | number>
+  }
+  const miniPreview = ref<MiniPreviewData | null>(null)
 
   const loading = ref<Record<string, boolean>>({})
 
@@ -157,6 +169,10 @@ export const useUiStore = defineStore('ui', () => {
     loading.value[key] = value
   }
 
+  function handleMultiSelect(action: string) {
+    console.warn(`MultiSelect action "${action}" not implemented`)
+  }
+
   return {
     inspectorOpen, inspectorEntity, inspectorType,
     miniPreviewVisible, miniPreviewEntity, miniPreviewPosition,
@@ -172,6 +188,6 @@ export const useUiStore = defineStore('ui', () => {
     openCompare, addToCompare, clearCompare,
     addToSelection, removeFromSelection, toggleSelection, clearSelection, selectAll,
     openMoreInfo, closeMoreInfo,
-    setLoading,
+    setLoading, inspectorTab, miniPreview, handleMultiSelect,
   }
 })

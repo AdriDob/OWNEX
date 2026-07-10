@@ -1,10 +1,10 @@
-import { useUiStore, type MicroEntity } from '@/stores/ui'
+import { useUIStore, type MicroEntity } from '@/stores/ui'
 import type { EntityType } from '@/composables/useContextMenu'
 import { useToast } from '@/composables/useToast'
 import { api } from '@/lib/api'
 
 export function useMicroInteractions() {
-  const store = useUiStore()
+  const store = useUIStore()
   const { toast } = useToast()
 
   function inspect(entity: MicroEntity, type: EntityType) {

@@ -45,8 +45,8 @@ describe('Findings page', () => {
   it('shows loading state initially', async () => {
     const wrapper = createWrapper()
     await wrapper.vm.$nextTick()
-    expect(wrapper.vm.store.loading).toBe(false)
-    expect(wrapper.vm.store.error).toBeNull()
+    expect(mockFindingsStore.loading).toBe(false)
+    expect(mockFindingsStore.error).toBeNull()
     expect(wrapper.text()).toContain('Findings Pipeline')
   })
 })
