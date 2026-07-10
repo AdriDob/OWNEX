@@ -1,15 +1,16 @@
 # Current State — Estado Real del Proyecto
 
-> **v4.3.0 STABLE** — Senior Copilot Agent + Evidence Graph + Unified Memory.
+> **v4.3.2 STABLE** — Senior Copilot Agent + Evidence Graph + Unified Memory + Integration Center + Pre-commit hooks.
 > Julio 2026.
 
 ## Testing
 
-- **Total de tests**: 657 pasan, 2 xfailed, 0 fallos
-- **Tests nuevos**: 80 (Copilot) + 28 (Evidence Graph) + 23 (Unified Memory)
+- **Total de tests**: 663 pasan, 2 xfailed, 0 fallos
+- **Tests nuevos**: 80 (Copilot) + 28 (Evidence Graph) + 23 (Unified Memory) + 6 (Integration Center)
 - **Comando**: `.venv/bin/python -m pytest --timeout=60`
 - `test_security.py` incluido (34 tests, todos verdes)
 - **Lint**: Ruff clean — 0 errores en todo el código nuevo
+- **Pre-commit**: Ruff + pytest hooks activos en cada commit
 
 ## FASE 1 — Base estabilizada (Julio 2026)
 
@@ -110,7 +111,6 @@
 ## Próximos Pasos (no implementados)
 
 - Frontend tests (no existen actualmente)
-- Pre-commit hooks (no configurados)
 
 ## Limitaciones Conocidas (Documentadas)
 
@@ -194,3 +194,15 @@ Las limitaciones restantes corresponden a v3.1 (ORION Reasoning Layer) — todas
 | EventBus initialization | `api/main.py` | ✅ Boot init con stats |
 | Copilot integration | `core/copilot/agent.py` | ✅ remember(), recall(), remember_analysis() |
 | Tests | `tests/test_unified_memory.py` | ✅ 23 tests, todos pasan |
+
+## FASE 12 — Integration Center (Julio 2026)
+
+| Feature | Archivos | Estado |
+|---|---|---|
+| Built-in integration definitions (23) | `core/integrations/discovery.py` | ✅ 7 categorías: platform, ai, exchange, blockchain, financial, messaging, infrastructure |
+| IntegrationRegistry | `core/integrations/registry.py` | ✅ Runtime status checks (env vars, vault, custom health callables) |
+| Singleton + init | `core/integrations/registry.py` | ✅ get_integration_registry(), init_integration_registry() |
+| API: GET /integrations | `core/api/routers.py` | ✅ Summary with totals by status + category |
+| API: GET /integrations/{name} | `core/api/routers.py` | ✅ Single integration with status, category, tags, checked_at |
+| API: POST /integrations/{name}/test | `core/api/routers.py` | ✅ Test connection for a specific integration |
+| Tests | `tests/test_core_api_routers.py` | ✅ 6 new tests (list, categories, known, unknown, test, test_unknown) |

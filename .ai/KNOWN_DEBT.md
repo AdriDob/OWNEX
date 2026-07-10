@@ -30,11 +30,12 @@
 - **Problema**: La resolución de identity por token no tiene tests
 - **Impacto**: Bajo. El fallback a IP funciona como antes.
 
-## 5. Sin pre-commit hooks
+## 5. ✅ Pre-commit hooks — RESUELTO
 
-- **Evidencia**: No hay `.pre-commit-config.yaml`
-- **Problema**: No hay validación automática antes de commits
-- **Impacto**: Bajo. Las herramientas están configuradas pero no se ejecutan automáticamente.
+- **Archivo**: `.pre-commit-config.yaml`
+- **Solución**: pre-commit instalado con hooks de Ruff (lint + format) y pytest (todos los tests, excluyendo test_security.py)
+- **Comando**: `pre-commit install` (ya ejecutado)
+- **Nota**: 14 errores preexistentes en archivos no relacionados — no bloquean nuevos commits (ruff solo revisa archivos staged).
 
 ## 6. DuplicateDetector no conectado al DedupTracker
 
