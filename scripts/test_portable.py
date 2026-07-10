@@ -69,10 +69,7 @@ def main() -> None:
     parser.add_argument("--keep-temp", action="store_true", help="Keep temp directory after test")
     args = parser.parse_args()
 
-    if args.source:
-        orion_dir = args.source.resolve()
-    else:
-        orion_dir = Path(__file__).resolve().parent.parent / "dist" / "CATEYE"
+    orion_dir = args.source.resolve() if args.source else Path(__file__).resolve().parent.parent / "dist" / "CATEYE"
 
     if not orion_dir.is_dir():
         print(f"\n\u2717 CATEYE directory not found at: {orion_dir}")

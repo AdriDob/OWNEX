@@ -154,7 +154,7 @@ class MissionEvent:
 class AiGuidanceGenerator:
     """
     AI Copilot for generating automated guidance and evidence suggestions.
-    
+
     Features:
     - Analyzes conversation context
     - Generates evidence suggestions
@@ -230,7 +230,7 @@ class AiGuidanceGenerator:
     async def analyze_conversation(self, conversation: EventConversation, event: MissionEvent, hunter_profile: dict) -> dict[str, Any]:
         """
         Analyze conversation to determine what's needed and suggest next steps.
-        
+
         Returns:
             Analysis containing needed evidence, suggestions, and guidance
         """
@@ -372,7 +372,7 @@ class AiGuidanceGenerator:
                 "detalle": True
             }
 
-            for indicator, value in action_indicators.items():
+            for indicator, _value in action_indicators.items():
                 if indicator in response.lower():
                     analysis["suggested_actions"].append(indicator)
 
@@ -397,7 +397,7 @@ class AiGuidanceGenerator:
     async def generate_evidence(self, report_id: str, evidence_request: EvidenceType, event_context: dict[str, Any]) -> EvidenceItem | None:
         """
         Generate specific evidence for a request.
-        
+
         Note: This is a template implementation. Actual evidence generation
         would require specific tools and access to the target systems.
         """
@@ -601,7 +601,7 @@ class AiGuidanceGenerator:
     def add_conversation_response(self, conversation: EventConversation, response_data: dict[str, Any]) -> None:
         """
         Add a response to a conversation thread.
-        
+
         Args:
             conversation: The conversation to respond to
             response_data: Response data containing the message
@@ -693,7 +693,7 @@ class AiGuidanceGenerator:
 class MissionInbox:
     """
     Central Mission Inbox for all bug bounty operations.
-    
+
     Provides a unified interface for:
     - Timeline-based event management
     - AI Copilot integration for automated responses
@@ -899,7 +899,7 @@ class MissionInbox:
     async def process_incoming_events(self) -> None:
         """
         Process incoming events from the event bus.
-        
+
         This is called periodically to sync new events into the Mission Inbox.
         """
         try:
@@ -969,7 +969,7 @@ class MissionInbox:
                                metadata: dict[str, Any] | None = None, dedup_key: str | None = None) -> None:
         """
         Send a notification through the Mission Inbox.
-        
+
         This creates a Mission Event and routes it through the notification system.
         """
         try:
@@ -1030,7 +1030,7 @@ class MissionInbox:
                                       response_data: dict[str, Any]) -> None:
         """
         Handle platform response and update Mission Inbox accordingly.
-        
+
         This processes responses from platforms (HackerOne, Bugcrowd, etc.)
         and updates the conversation and evidence.
         """
@@ -1154,7 +1154,7 @@ class MissionInbox:
     async def query_event(self, filters: dict[str, Any] | None = None) -> list[MissionEvent]:
         """
         Query events based on filters.
-        
+
         Supported filters:
         - types: list of event types
         - priorities: list of priorities
@@ -1321,7 +1321,7 @@ class MissionInbox:
     async def generate_ai_guidance(self, conversation_id: str) -> dict[str, Any]:
         """
         Generate AI guidance for a conversation.
-        
+
         This method can be called from the UI or by event handlers when
         a conversation needs AI assistance.
         """
@@ -1608,7 +1608,7 @@ class MissionInbox:
 
         # Search in evidence
         evidence_results = []
-        for evidence_id, evidence in self.evidences.items():
+        for _evidence_id, evidence in self.evidences.items():
             if query_lower in evidence.title.lower() or query_lower in evidence.description.lower():
                 evidence.matches = ["title", "description"]
                 evidence_results.append(evidence)

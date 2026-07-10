@@ -74,7 +74,7 @@ class SimulationEngine:
             final_values.append(value)
             all_paths.append(path)
 
-        sorted_vals = sorted(final_values)
+        sorted(final_values)
         median = float(np.median(final_values))
         worst = float(np.percentile(final_values, 5))
         best = float(np.percentile(final_values, 95))

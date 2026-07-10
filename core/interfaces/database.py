@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from sqlalchemy import Engine
-from sqlalchemy.orm import Session, declarative_base
+from sqlalchemy.orm import Session
 
 
 class IDatabase(ABC):

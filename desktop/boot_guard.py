@@ -88,10 +88,7 @@ def _has_frontend_dist() -> bool:
             Path(__file__).resolve().parent.parent / "frontend" / "dist",
             Path(__file__).resolve().parent.parent / "frontend_dist",
         ]
-    for c in candidates:
-        if c.is_dir() and (c / "index.html").is_file():
-            return True
-    return False
+    return any(c.is_dir() and (c / "index.html").is_file() for c in candidates)
 
 
 def _has_pywin32() -> bool:
@@ -113,10 +110,7 @@ def get_runtime_mode() -> RuntimeMode:
         return _RUNTIME_MODE
 
     if _is_frozen():
-        if _is_windows():
-            _RUNTIME_MODE = RuntimeMode.WINDOWS_EXE
-        else:
-            _RUNTIME_MODE = RuntimeMode.WINDOWS_PORTABLE
+        _RUNTIME_MODE = RuntimeMode.WINDOWS_EXE if _is_windows() else RuntimeMode.WINDOWS_PORTABLE
     elif _is_wsl():
         _RUNTIME_MODE = RuntimeMode.WSL_DEV
     else:

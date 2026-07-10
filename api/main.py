@@ -369,7 +369,7 @@ async def lifespan(app: FastAPI):
         from core.app_registry import get_app_registry
         from core.database.manager import get_db_manager
         from core.events.event_bus import get_core_event_bus
-        from core.scheduler.scheduler import get_core_scheduler, JobDefinition
+        from core.scheduler.scheduler import JobDefinition, get_core_scheduler
 
         registry = get_app_registry()
         registry.discover()
@@ -420,6 +420,59 @@ async def lifespan(app: FastAPI):
         logger.info("[BOOT] AUTONOMOUS+ mode engine started and enabled")
     except Exception as exc:
         logger.warning("AUTONOMOUS+ engine failed to start (non-fatal): %s", exc)
+
+    # ── ORION Platform: extensions, secrets, health ──
+    try:
+        from core.app_registry import get_app_registry
+        registry = get_app_registry()
+        ext_status = registry.discover_extensions()
+        if ext_status["discovered"] > 0:
+            logger.info("[ORION] Extensions: %d discovered, %d loaded, %d failed",
+                         ext_status["discovered"], ext_status["loaded"], ext_status["failed"])
+    except Exception as exc:
+        logger.warning("[ORION] Extension discovery failed (non-fatal): %s", exc)
+
+    try:
+        from core.secrets.manager import get_secrets_manager
+        sm = get_secrets_manager()
+        logger.info("[ORION] Secrets manager initialized (%d keys cached)", len(sm.list_keys()))
+    except Exception as exc:
+        logger.warning("[ORION] Secrets manager init failed (non-fatal): %s", exc)
+
+    try:
+        from core.health.checks import register_default_checks
+        from core.health.engine import get_health_center
+        center = get_health_center()
+        register_default_checks(center)
+        snapshot = center.run_all()
+        logger.info("[ORION] Health center initialized: %s (%d/%d checks passed)",
+                     snapshot.status.upper(),
+                     sum(1 for v in snapshot.checks.values() if v),
+                     len(snapshot.checks))
+
+        # Register ORION specific checks
+        def check_extension_health() -> bool:
+            try:
+                from core.extension.registry import get_extension_registry
+                er = get_extension_registry()
+                return er.failed_count == 0
+            except Exception:
+                return False
+
+        def check_secrets_health() -> bool:
+            try:
+                from core.secrets.manager import get_secrets_manager
+                sm = get_secrets_manager()
+                h = sm.health()
+                return h.get("vault_available", False) or h.get("cached_keys", 0) > 0
+            except Exception:
+                return False
+
+        center.register("extensions", check_extension_health, "integration")
+        center.register("secrets", check_secrets_health, "integration")
+        logger.info("[ORION] Extension + secrets health checks registered")
+    except Exception as exc:
+        logger.warning("[ORION] Health center init failed (non-fatal): %s", exc)
 
     yield
 

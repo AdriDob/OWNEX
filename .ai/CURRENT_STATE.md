@@ -1,14 +1,15 @@
 # Current State — Estado Real del Proyecto
 
-> **v3.0.0 STABLE** — Release final. Lista para uso diario en bug bounty.
+> **v4.1.0 STABLE** — ORION Financial Layer. CoinGecko, Takenos, Dashboard, Integraciones.
 > Julio 2026.
 
 ## Testing
 
-- **Total de tests**: 393 pasan, 2 xfailed, 0 fallos
+- **Total de tests**: 516 pasan, 2 xfailed, 0 fallos
+- **Tests nuevos**: 83 tests (20 nuevos: CoinGecko + Takenos + dashboard + integraciones)
 - **Comando**: `.venv/bin/python -m pytest --timeout=60`
-- `test_security.py` ahora incluido (34 tests, todos verdes — antes excluido con 3 fallos)
-- **Lint**: Ruff configurado, limpio (solo 1 pre-existing style suggestion no crítica)
+- `test_security.py` incluido (34 tests, todos verdes)
+- **Lint**: Ruff clean — 0 errores en todo el código nuevo
 
 ## FASE 1 — Base estabilizada (Julio 2026)
 
@@ -107,8 +108,6 @@
 
 ## Próximos Pasos (no implementados)
 
-- Health snapshots persistence (deuda conocida)
-- Unificar sistemas de salud (deuda conocida)
 - Frontend tests (no existen actualmente)
 - Pre-commit hooks (no configurados)
 
@@ -122,4 +121,28 @@ Ver `docs/KNOWN_LIMITATIONS.md`:
 - ReportGate threshold fijo 0.6 para todos los tipos de vulnerabilidad
 - El ContradictionTestDesigner diseña tests pero no los ejecuta (pendiente para v3.2)
 
-Las limitaciones restantes corresponden a v3.1 (ORION Reasoning Layer).
+## FASE 7 — ORION Platform v4.0.0 (Julio 2026)
+
+| Feature | Archivos | Estado |
+|---|---|---|
+| Extension SDK | `core/extension/` | ✅ Manifest, hooks (before/after), capabilities, declarative settings, hot reload, failure isolation |
+| Secrets Manager | `core/secrets/manager.py` | ✅ IdentityVault bridge (AES-256-GCM), env fallback, cache, REST API |
+| Health Center | `core/health/engine.py`, `checks.py` | ✅ Unifica 3 sistemas legacy, green/yellow/red status, snapshots, checks por categoría |
+| AppRegistry bridge | `core/app_registry.py` | ✅ discover_extensions() bridges to ExtensionRegistry |
+| API Endpoints | `core/api/routers.py` | ✅ /extensions, /secrets, /health endpoints under /api/core |
+| Documentation | `CONFIGURATION_GUIDE.md`, `EXTENSION_SDK.md`, `CONNECTOR_GUIDE.md`, `ARCHITECTURE_DECISIONS.md` | ✅ 4 complete guides |
+| Example Extension | `extensions/hello/` | ✅ Minimal working example |
+
+## FASE 8 — ORION Financial Layer (Julio 2026)
+
+| Feature | Archivos | Estado |
+|---|---|---|
+| CoinGecko price feed | `cores/crypto/coingecko.py` | ✅ 30+ crypto prices, 24h change, cache, free tier |
+| Takenos connector | `cores/financial/takenos/` | ✅ Balance manual, CSV import, Solana USDC sync |
+| Dashboard unificado | `cores/financial/dashboard.py` | ✅ Patrimonio total, breakdown, objetivo libertad 30K, ingresos del mes, alertas |
+| Integrations status | `api/routers/financial_truth.py` | ✅ /api/financial/integrations/status con 🟢🟡🔴 |
+| Dashboard endpoint | `api/routers/financial_truth.py` | ✅ GET /api/financial/dashboard |
+| Fix Coinbase (HMAC) | `apps/atlas/connectors/coinbase/` | ✅ CB-ACCESS-SIGN HMAC-SHA256 |
+| Fix Kraken (portfolio) | `apps/atlas/connectors/kraken/` | ✅ Balance + ticker vía API privada con HMAC-SHA512 |
+
+Las limitaciones restantes corresponden a v3.1 (ORION Reasoning Layer) — todas las features de v4.0.0 y v4.1.0 están completas.

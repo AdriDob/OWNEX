@@ -80,7 +80,7 @@ def _maybe_migrate_vault() -> None:
         return
 
     old_key = _get_old_machine_id_key()
-    new_key = get_vault_key()
+    get_vault_key()
     migrated = 0
 
     for provider, entry in data.items():

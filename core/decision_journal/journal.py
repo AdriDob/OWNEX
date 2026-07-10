@@ -6,12 +6,11 @@ import json
 import logging
 import uuid
 from datetime import datetime, timezone
-from typing import Any
 
 from sqlalchemy import desc
 
 from core.database.manager import get_db_manager
-from core.decision_journal.models import DecisionEntry, Base
+from core.decision_journal.models import Base, DecisionEntry
 
 logger = logging.getLogger("orion.core.decision_journal")
 

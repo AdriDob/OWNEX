@@ -248,10 +248,9 @@ def main() -> None:
     log("BUILD", f"Platform: {sys.platform}")
     log("BUILD", f"Dev mode (skip PyInstaller): {skip_pyinstaller}")
 
-    if not skip_pyinstaller:
-        if not build_frontend():
-            log("BUILD", "Frontend build failed — aborting")
-            sys.exit(1)
+    if not skip_pyinstaller and not build_frontend():
+        log("BUILD", "Frontend build failed — aborting")
+        sys.exit(1)
 
     create_portable_dist(skip_pyinstaller)
 

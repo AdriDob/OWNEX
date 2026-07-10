@@ -6,14 +6,14 @@ The Core uses ``orion.db`` for system settings, events, and scheduler state.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
-import re
 from pathlib import Path
 from typing import Any
 
 from sqlalchemy import Engine, create_engine, event, text
-from sqlalchemy.orm import Session, declarative_base, sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from core.interfaces import IDatabase
 
@@ -116,10 +116,8 @@ class DatabaseManager(IDatabase):
 
         with engine.connect() as conn:
             for pragma in ("PRAGMA journal_mode=WAL", "PRAGMA synchronous=NORMAL", "PRAGMA busy_timeout=5000"):
-                try:
+                with contextlib.suppress(Exception):
                     conn.execute(text(pragma))
-                except Exception:
-                    pass
             conn.commit()
 
     def _ensure_core_db(self) -> None:

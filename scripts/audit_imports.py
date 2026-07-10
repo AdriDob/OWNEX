@@ -123,10 +123,7 @@ def should_scan(path: Path) -> bool:
         return True
     if len(parts) == 1 and parts[0] in [f for f in EXCLUDE_FILES] + ["run.py"]:
         return True
-    if len(parts) >= 1 and parts[-1] == "run.py":
-        return True
-
-    return False
+    return bool(len(parts) >= 1 and parts[-1] == "run.py")
 
 
 def check_pattern(content: str, filepath: Path) -> list[dict]:
@@ -178,9 +175,8 @@ def check_imports(content: str, filepath: Path) -> list[dict]:
         if isinstance(node, ast.Import):
             for alias in node.names:
                 _check_import_name(alias.name, rel_path, node.lineno, findings)
-        elif isinstance(node, ast.ImportFrom):
-            if node.module:
-                _check_import_name(node.module, rel_path, node.lineno, findings)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            _check_import_name(node.module, rel_path, node.lineno, findings)
 
     return findings
 

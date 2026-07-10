@@ -1,6 +1,6 @@
-# CATEYE — Screenshots
+# ORION Platform — Screenshots
 
-Imágenes del sistema CATEYE v2.0.0. Todos los screenshots son SVGs generados con la estética cyber/terminal del sistema (verde `#00ff41` sobre negro `#050505`).
+Imágenes del sistema ORION Platform v4.1.0. Todos los screenshots son SVGs generados con la estética cyber/terminal del sistema (verde `#00ff41` sobre negro `#050505`).
 
 ## Pantallas principales
 
@@ -11,6 +11,8 @@ Imágenes del sistema CATEYE v2.0.0. Todos los screenshots son SVGs generados co
 | [![Report Center](screenshots/report-detail.svg)](screenshots/report-detail.svg) | **Report Center** — Generación de reportes profesionales con IA. PoC, impacto, remediación y CVSS en un solo clic. Exportación a Markdown/PDF. |
 | [![Identity Vault](screenshots/identity-center.svg)](screenshots/identity-center.svg) | **Identity Vault v2** — Bóveda de credenciales cifradas con AES-256-GCM (clave aleatoria, no derivada). Gestión de cuentas de cobro (USDT, BTC, PayPal). Audit log de autenticación. |
 | [![System Health](screenshots/system-health.svg)](screenshots/system-health.svg) | **System Health v2** — Monitoreo en tiempo real de todos los componentes: backend, DB, IA local, herramientas de recon, WebSocket, circuit breaker, y estado de seguridad. |
+| [![Financial Dashboard](screenshots/financial-dashboard.svg)](screenshots/financial-dashboard.svg) | **Financial Dashboard v4.1** — Patrimonio total, breakdown por activo, objetivo Libertad 30K, ingresos del mes, precios CoinGecko, estado Takenos. |
+| [![Integration Center](screenshots/integration-center.svg)](screenshots/integration-center.svg) | **Integration Center v4.1** — Estado de todas las integraciones (🟢🟡🔴), última sincronización, errores, botones Test/Sync. |
 
 ## Navegación adicional
 
@@ -22,8 +24,10 @@ Imágenes del sistema CATEYE v2.0.0. Todos los screenshots son SVGs generados co
 | **Program Intel** | `/programs/:id` | Inteligencia profunda por programa: scope, tech stack, tiers |
 | **Memory Patterns** | `/memory-patterns` | Patrones aprendidos del historial de cacería |
 | **AI Copilot** | `Ctrl+B` | Asistente contextual con conocimiento completo del sistema |
-| **Settings** | `/settings` | Configuración general, IA, herramientas, API keys (sessionStorage) y apariencia |
+| **Settings** | `/settings` | Configuración general, IA, herramientas, API keys y apariencia |
 | **Connections** | `/connections` | Gestión de conexiones a plataformas y cuentas de cobro |
+| **Financial Dashboard** | `/financial` | Dashboard financiero unificado con CoinGecko, Takenos, ATLAS |
+| **Integration Center** | `/integrations` | Estado y test de todas las integraciones del sistema |
 
 ## Convenciones visuales
 

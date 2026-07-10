@@ -111,7 +111,7 @@ class ScanScheduler:
             with db.SessionLocal() as sess:
                 sess.execute(text("PRAGMA wal_checkpoint(TRUNCATE);"))
         except Exception:
-            pass
+            logger.exception("Failed to checkpoint WAL")
         # Purge stale cooldown entries (entries older than 2x TARGET_COOLDOWN)
         stale_cooldown_threshold = now - TARGET_COOLDOWN * 2
         old_count = len(self._target_cooldowns)
@@ -151,7 +151,7 @@ class ScanScheduler:
                         "source": "discovery_scheduler",
                     })
                 except Exception:
-                    pass
+                    logger.exception("Failed to publish opportunity:found event")
             self._last_run["discover"] = datetime.now(timezone.utc).timestamp()
         finally:
             session.close()
@@ -208,7 +208,7 @@ class ScanScheduler:
                         "total": len(targets),
                     })
                 except Exception:
-                    pass
+                    logger.exception("Failed to publish discovery:completed event")
 
             self._last_run["recon"] = datetime.now(timezone.utc).timestamp()
         finally:
@@ -372,7 +372,7 @@ class ScanScheduler:
                                 "status": "draft",
                             })
                         except Exception:
-                            pass
+                            logger.exception("Failed to publish report:generated event")
                 except Exception as e:
                     logger.debug("Report generation failed for finding %d: %s", f.id, e)
             self._last_run["report"] = datetime.now(timezone.utc).timestamp()
@@ -399,7 +399,7 @@ def _compute_target_priorities(targets: list) -> dict[int, float]:
             orion_next = action
             orion_next_name = (action.get("title") or "").lower()
     except Exception:
-        pass
+        logger.exception("Failed to get ORION next action")
 
     # Pre-load ORION SCOREs for targets that have related programs
     try:

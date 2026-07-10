@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 from datetime import datetime, timezone
@@ -792,10 +793,8 @@ def generate_opportunity_plan(program_id: int, db: Session = Depends(get_db)):
     # Determine best vulnerability types
     techs = []
     if p.technologies:
-        try:
+        with contextlib.suppress(json.JSONDecodeError, TypeError):
             techs = json.loads(p.technologies)
-        except (json.JSONDecodeError, TypeError):
-            pass
 
     tech_vuln_map = {
         "graphql": ["IDOR", "Mass Assignment", "Info Disclosure"],
