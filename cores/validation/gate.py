@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Literal
+from dataclasses import dataclass, field
+from typing import Any, Literal
 
 from cores.validation.confidence import ConfidenceScore
 from cores.validation.rules import ValidationReport
@@ -17,6 +17,11 @@ class Verdict:
     reason: str
     retry_count: int
     timestamp: str
+    vulnerability_type: str = "unknown"
+    alternative_explanations: list[dict[str, Any]] = field(default_factory=list)
+    missing_verifications: list[str] = field(default_factory=list)
+    next_best_test: dict[str, Any] | None = None
+    uncertainty_level: str = "unknown"
 
 
 class ReportGate:

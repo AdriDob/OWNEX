@@ -36,10 +36,18 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
+# Portable mode: use data/ next to binary if CATEYE_DATA_DIR not set
+if getattr(sys, "frozen", False) and not os.environ.get("CATEYE_DATA_DIR"):
+    _exe_dir = Path(sys.executable).resolve().parent
+    _portable_data = _exe_dir / "data"
+    if _portable_data.is_dir():
+        os.environ["CATEYE_DATA_DIR"] = str(_portable_data)
+
 # Set DATABASE_URL before any import that touches database/db.py
 # (core_engines.intelligence imports it at module level)
 if not os.environ.get("DATABASE_URL"):
-    _db_path = Path.home() / "AppData" / "Local" / "CATEYE" / "database" / "cateye.db"
+    _data_dir = Path(os.environ.get("CATEYE_DATA_DIR", Path.home() / ".orion"))
+    _db_path = _data_dir / "database" / "cateye.db"
     _db_path.parent.mkdir(parents=True, exist_ok=True)
     os.environ["DATABASE_URL"] = f"sqlite:///{_db_path}"
 
@@ -377,17 +385,59 @@ def _handle_diagnostics() -> None:
 
 
 def main() -> None:
-    args = set(sys.argv[1:])
+    args_set = set(sys.argv[1:])
+    args_list = sys.argv[1:]
+
+    # --backup: create data backup
+    if "--backup" in args_set:
+        from cores.backup import create_backup
+        idx = args_list.index("--backup")
+        out_dir = args_list[idx + 1] if idx + 1 < len(args_list) and not args_list[idx + 1].startswith("--") else None
+        path = create_backup(out_dir)
+        if path:
+            print(f"✅ Backup created: {path}")
+        return
+
+    # --restore: restore from backup
+    if "--restore" in args_set:
+        from cores.backup import restore_backup
+        idx = args_list.index("--restore")
+        if idx + 1 < len(args_list) and not args_list[idx + 1].startswith("--"):
+            ok = restore_backup(args_list[idx + 1])
+            print("✅ Restored successfully" if ok else "❌ Restore failed")
+        else:
+            print("❌ Usage: --restore <backup_file>")
+        return
+
+    # --add-target: quick-add a target
+    if "--add-target" in args_set:
+        from database import db, models
+        idx = args_list.index("--add-target")
+        name = args_list[idx + 1] if idx + 1 < len(args_list) else "unnamed"
+        domain = ""
+        if "--domain" in args_set:
+            didx = args_list.index("--domain")
+            domain = args_list[didx + 1] if didx + 1 < len(args_list) else ""
+        db.init_db()
+        session = db.SessionLocal()
+        try:
+            target = models.Target(name=name, domain=domain)
+            session.add(target)
+            session.commit()
+            print(f"✅ Target '{name}' created (id={target.id})")
+        finally:
+            session.close()
+        return
 
     # --safe-mode forces degraded operation
-    force_safe = "--safe-mode" in args
+    force_safe = "--safe-mode" in args_set
 
     # Handle legacy service install/remove first
-    if _handle_legacy_service(args):
+    if _handle_legacy_service(args_set):
         return
 
     # Diagnostics
-    if "--check" in args:
+    if "--check" in args_set:
         _handle_diagnostics()
         return
 
@@ -401,7 +451,7 @@ def main() -> None:
             _log("BOOT", "Failed to enable safe mode: %s", exc)
 
     # Detect mode
-    mode, dev, no_tray = _detect_mode(args)
+    mode, dev, no_tray = _detect_mode(args_set)
 
     # Dispatch
     if mode == LaunchMode.INSTALL:

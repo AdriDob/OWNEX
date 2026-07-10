@@ -86,6 +86,20 @@
   - Sistema listo para evolución incremental sin corrupción de config
 - **Condiciones para reabrir**: Si OpenCode agrega soporte nativo para `references` o estructura de objetos en `instructions`.
 
+## 2026-07-09: Auditoría de validación — documentar, no implementar antes del release
+
+- **Problema**: El motor de validación no refuta hipótesis, no evalúa explicaciones alternativas, no aprende de falsos positivos.
+- **Alternativas consideradas**:
+  1. **Documentar limitaciones y posponer (elegido)** — Crear KNOWN_LIMITATIONS.md, agregar deuda a KNOWN_DEBT.md, mover mejoras a v3.1
+  2. Implementar detección de recursos públicos + campo uncertainties — Mejora parcial pero aumenta alcance del release
+  3. Reescritura del pipeline de validación — Violaría DO-NOT-TOUCH, aumenta complejidad
+- **Decisión**: Cerrar v3.0.0 con el pipeline actual. Las mejoras de razonamiento son para v3.1 (ORION Reasoning Layer).
+- **Impacto**:
+  - Los findings automatizados requieren revisión humana (ya documentado)
+  - El pipeline actual es honesto sobre sus limitaciones
+  - Los falsos positivos siguen siendo responsabilidad del humano
+- **Condiciones para reabrir**: Cuando se inicie v3.1.
+
 ## 2026-07-06: API keys del frontend separadas a sessionStorage
 
 - **Problema**: API keys (openai, gemini, wallet, bank) almacenadas en localStorage, exfiltrables via XSS.
@@ -96,3 +110,18 @@
 - **Decisión**: Mover API keys a sessionStorage como mitigación temporal. La solución permanente es almacenarlas en el backend via IdentityVault.
 - **Impacto**: Las keys sobreviven refrescos de página pero no a nuevas pestañas.
 - **Condiciones para reabrir**: Inmediatamente — esta es una solución temporal. La solución definitiva requiere endpoints de API para gestionar keys.
+
+## 2026-07-09: ORION Hypothesis Challenger — razonamiento previo a validación
+
+- **Problema**: El pipeline de validación ejecutaba hipótesis sin cuestionarlas. No consideraba explicaciones alternativas, no diseñaba contrapruebas, no explicitaba qué no se verificó. El sistema razonaba linealmente (hipótesis → validar → decidir) en vez de cíclicamente (hipótesis → cuestionar → diseñar contraprueba → validar → reinterpretar).
+- **Alternativas consideradas**:
+  1. **HypothesisChallenger como capa insertada (elegido)** — ~250 líneas nuevas, 0 regresiones, 393 tests pasan. Se inserta entre HypothesisEngine y ValidationLoopEngine. No modifica replayer, rules, ni hypothesis generators.
+  2. Refactor del pipeline completo — Violaría DO_NOT_TOUCH (replayer/rules estables). Riesgo alto.
+  3. Solo documentar — Deuda existente en KNOWN_DEBT.md, pero la implementación era directa y bajo riesgo.
+- **Decisión**: Insertar HypothesisChallenger en loop_engine.evaluate(). El challenger genera alternative_explanations, contradiction_tests con info_gain, missing_verifications, y uncertainty_level antes de la validación. El uncertainty_level se traduce a uncertainty_penalty (0.0–0.12) que descuenta del confidence score.
+- **Impacto**:
+  - Los reportes ahora incluyen "falta verificar X, considerar Y como explicación alternativa"
+  - El confidence score refleja incertidumbre no resuelta (penalización)
+  - El humano ve qué no se verificó, no solo el score final
+  - 0 regresiones: el parámetro vulnerability_type tiene default "unknown" que da genéricos
+- **Condiciones para reabrir**: Si se necesita que el Challenger ejecute los contradiction_tests automáticamente (hoy solo los diseña y recomienda). Eso requiere integrar con replayer como mutaciones adicionales.

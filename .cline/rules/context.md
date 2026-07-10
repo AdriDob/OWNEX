@@ -32,3 +32,13 @@ CATEYE es un sistema autónomo de bug bounty intelligence. Automatiza el ciclo c
 - API: `http://localhost:8000`
 - Frontend dev: `http://localhost:5173`
 - Ollama: `http://localhost:11434`
+
+## Perfiles de Cline
+Cline tiene 5 perfiles intercambiables con `.cline/scripts/switch-profile.sh`:
+- `github` — GPT-4o via GitHub Models (mejor calidad, 50 req/día, 100% gratis)
+- `google` — Gemini 2.5 Flash via Google AI Studio (500 req/día, 100% gratis)
+- `openrouter-free` — Router automático con 27+ modelos gratis
+- `local` — Ollama offline (Qwen3 Coder 32B)
+- `emergency` — Gemini 2.5 Flash pago (~$0.30/M tok)
+
+El perfil `github` es el recomendado por calidad/precio. Si el usuario se queda sin requests, sugerí cambiar de perfil.

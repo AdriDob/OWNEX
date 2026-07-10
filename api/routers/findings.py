@@ -30,6 +30,11 @@ class StatusUpdate(BaseModel):
     status: str
 
 
+class FindingUpdate(BaseModel):
+    notes: str | None = None
+    status: str | None = None
+
+
 def _finding_to_dict(f) -> dict[str, Any]:
     return {
         "id": f.id,
@@ -39,6 +44,7 @@ def _finding_to_dict(f) -> dict[str, Any]:
         "severity": f.severity or "medium",
         "description": f.description,
         "status": getattr(f, "status", "open"),
+        "notes": getattr(f, "notes", "") or "",
         "created_at": f.created_at.isoformat() if f.created_at else None,
     }
 
@@ -147,6 +153,40 @@ def update_finding_status(finding_id: int, body: StatusUpdate):
             except Exception:
                 pass
         return result
+    finally:
+        session.close()
+
+
+@router.patch("/{finding_id}")
+def update_finding(finding_id: int, body: FindingUpdate):
+    """Update finding notes and/or status."""
+    db.init_db()
+    session = db.SessionLocal()
+    try:
+        f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
+        if not f:
+            raise HTTPException(status_code=404, detail="Finding not found")
+        if body.notes is not None:
+            f.notes = body.notes
+        if body.status is not None:
+            old_status = getattr(f, "status", "")
+            f.status = body.status
+            if old_status != body.status:
+                try:
+                    from cores.events.event_bus import get_event_bus
+                    bus = get_event_bus()
+                    bus.publish("finding:status_changed", {
+                        "id": finding_id,
+                        "title": f.title,
+                        "severity": f.severity,
+                        "old_status": old_status,
+                        "new_status": body.status,
+                        "target_id": f.target_id,
+                    })
+                except Exception:
+                    pass
+        session.commit()
+        return _finding_to_dict(f)
     finally:
         session.close()
 

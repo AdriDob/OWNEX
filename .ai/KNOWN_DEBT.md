@@ -55,3 +55,13 @@
 - **Evidencia**: 16 archivos .md en la raíz + 4 en docs/
 - **Problema**: Información redundante y desactualizada en múltiples archivos
 - **Impacto**: Medio. Dificulta encontrar información precisa.
+
+## 9. ✅ Motor de validación sin refutación — PARCIALMENTE RESUELTO
+
+- **Evidencia**:
+  - `cores/validation/challenger.py` — HypothesisChallenger creado (AlternativeExplainer, ContradictionTestDesigner, MissingVerificationsAnalyzer)
+  - `cores/validation/gate.py` — Verdict con alternative_explanations, missing_verifications, uncertainty_level
+  - `cores/validation/confidence.py` — uncertainty_penalty agregado al scorer (-0.00 a -0.12)
+  - `cores/validation/loop_engine.py` — Challenger integrado antes de la validación
+- **Estado actual**: ✅ Explicaciones alternativas para 7+ tipos de vuln. ✅ Tests de contradicción con info_gain. ✅ Missing verifications explicitadas. ✅ uncertainty_penalty en confidence score. ❌ Contradiction tests no se ejecutan (solo se diseñan). ❌ FeedbackLearner no conectado. ❌ Gate threshold sigue fijo 0.6.
+- **Impacto**: Bajo. El sistema ahora explicita incertidumbre y alternativas, pero no las resuelve automáticamente.

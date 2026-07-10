@@ -127,7 +127,51 @@ class SystemHealthEngine:
         except Exception as exc:
             logger.debug("Failed to collect agent bus metrics: %s", exc)
 
+        # Honey metrics — what the system is actually producing
+        try:
+            from database import db, models
+            db.init_db()
+            session = db.SessionLocal()
+            honey = {}
+            try:
+                honey["findings_total"] = session.query(models.Finding).count()
+                honey["findings_confirmed"] = session.query(models.Finding).filter(
+                    models.Finding.status == "confirmed"
+                ).count()
+                honey["findings_pending"] = session.query(models.Finding).filter(
+                    models.Finding.status == "open"
+                ).count()
+                honey["reports_total"] = (
+                    session.query(models.Report).count()
+                    if hasattr(models, "Report") else 0
+                )
+                honey["targets_active"] = session.query(models.Target).count()
+                honey["verdicts_total"] = session.query(models.Verdict).count()
+            except Exception as exc:
+                logger.debug("Failed to collect honey metrics: %s", exc)
+            finally:
+                session.close()
+            if not any(v is None for v in honey.values()):
+                metrics.update(honey)
+        except Exception as exc:
+            logger.debug("Failed to collect DB honey metrics: %s", exc)
+
         return metrics
+
+    def _persist_snapshot(self, score: float, status: HealthStatus, metrics: dict) -> None:
+        """Save health snapshot to persistent store — the hive remembers."""
+        try:
+            from cores.recovery.persistence import get_recovery_store
+            store = get_recovery_store()
+            snapshot = {
+                "score": round(score, 1),
+                "status": status.value,
+                "trend": self._scoring.trend(),
+                "metrics": {k: v for k, v in metrics.items() if isinstance(v, (int, float, str))},
+            }
+            store.save_health_snapshot(source="system_health_engine", data=snapshot)
+        except Exception as exc:
+            logger.debug("[HEALTH] Snapshot persistence skipped: %s", exc)
 
     # ── Health evaluation loop ────────────────────────────────────────
 
@@ -150,6 +194,7 @@ class SystemHealthEngine:
                 }.get(status, "system:ready")
 
                 self._emit_health_event(event_type, status.value, score)
+                self._persist_snapshot(score, status, metrics)
 
                 if changed:
                     logger.info(

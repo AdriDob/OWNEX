@@ -1,6 +1,6 @@
 # CATEYE — Sistema de Inteligencia para Bug Bounty Automático
 
-> **Versión:** 3.0.0 | **Arquitectura:** v5.0 | **Estado:** STABLE (Julio 2026)
+> **Versión:** 3.0.0 | **Arquitectura:** v3.0 | **Estado:** STABLE (Julio 2026)
 > **Backend:** Python + FastAPI + SQLAlchemy + SQLite/PostgreSQL
 > **Frontend:** Vue 3 + TypeScript + Tailwind CSS v4 + Vite
 > **Este documento es la CONSTITUCIÓN del proyecto.** Ninguna afirmación sin respaldo en archivos verificados.
@@ -355,7 +355,7 @@ EventSystem en intelligence/ emite eventos (`NewEndpoint`, `VerdictChanged`, `Ca
 - **OpportunityEngine** — Todo en RAM, se pierde al reiniciar
 - **knowledge/** — 13 archivos reales, 0 conectados al runtime
 
-### ❌ FAIL (resueltos en v5.0 FREEZE)
+### ❌ FAIL (resueltos en v3.0 FREEZE)
 - ~~Pipeline class~~ → archivado en `archive_cleanup/`
 - ~~evidence_service.py~~ → archivado
 - ~~scanning/~~ → archivado
@@ -365,7 +365,7 @@ EventSystem en intelligence/ emite eventos (`NewEndpoint`, `VerdictChanged`, `Ca
 - ~~system_health.py collect_health bug~~ → corregido (acceso a dataclass)
 - ~~Scheduler launch_scan args~~ → corregido (pasa session + kwargs correctos)
 - ~~Alembic mismatch~~ → corregido (migración es no-op)
-- **knowledge/** — Pendiente para v5.1
+- **knowledge/** — Pendiente para v3.1
 
 ---
 
@@ -467,7 +467,7 @@ El pipeline oficial se ejecuta en `api/scheduler.py` (ScanScheduler). Es el ÚNI
 
 ---
 
-## 12. Decisiones Arquitectónicas (v5.0 STABLE)
+## 12. Decisiones Arquitectónicas (v3.0 STABLE)
 
 ### Único Pipeline: **ScanScheduler** (`api/scheduler.py`) — ✅ RESUELTO
 Pipeline class archivado. launch_scan() corregido (session+kwargs). SCOPE_CHECK no implementado (por diseño).
@@ -480,19 +480,19 @@ AgentBus mantiene `LocalEventBus` propio + bridge a EventBus. EventSystem delega
 ### ORION: **Read-only con excepción documentada** — ✅ DEFINIDO
 RewardLearner escribe `learning_state` (~40 bytes/tipo). Todo lo demás es SELECT-only.
 
-### Health System: **Unificar 3 → 1** — ⏳ v5.1
+### Health System: **Unificar 3 → 1** — ⏳ v3.1
 SystemHealthEngine + HealthMonitor + Watchdog. No rompe el sistema.
 
-### Ranking Engine: **Unificar 5 → 1** — ⏳ v5.1
+### Ranking Engine: **Unificar 5 → 1** — ⏳ v3.1
 OpportunityEngine (RAM) + PriorityEngine + RecommendationEngine + AdaptivePrioritizer + UnifiedScoring.
 
-### Tool Layer: **Unificar recon/ + tools/** — ⏳ v5.1
+### Tool Layer: **Unificar recon/ + tools/** — ⏳ v3.1
 Dos capas de wrappers CLI para las mismas tools.
 
-### CoordinatorAgent — ⏳ v5.1
+### CoordinatorAgent — ⏳ v3.1
 State machine de agentes. No auto-start, solo vía API. No conflictúa con scheduler en runtime.
 
-### Knowledge/ — ⏳ v5.1
+### Knowledge/ — ⏳ v3.1
 13 archivos reales huérfanos. Conectar o archivar.
 
 ---
@@ -552,7 +552,7 @@ State machine de agentes. No auto-start, solo vía API. No conflictúa con sched
 | Mobile | 0% | Android/ es shell Capacitor sin código nativo. Planificado para v5.x. |
 | **Total General** | **~91%** | |
 
-### 9% Restante (priorizado para v5.1)
+### 9% Restante (priorizado para v3.1)
 
 | Prioridad | Item | Esfuerzo |
 |-----------|------|----------|
@@ -567,5 +567,5 @@ State machine de agentes. No auto-start, solo vía API. No conflictúa con sched
 
 ---
 
-*Documento actualizado desde código verificado — Julio 2026. Freeze v5.0 STABLE completado.*
-*CATEYE v3.0.0 | Architecture v5.0 | CONSTITUCIÓN DEL PROYECTO*
+*Documento actualizado desde código verificado — Julio 2026. Freeze v3.0 STABLE completado.*
+*CATEYE v3.0.0 | Architecture v3.0 | CONSTITUCIÓN DEL PROYECTO*

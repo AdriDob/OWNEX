@@ -4,84 +4,46 @@
 
 ## Último Objetivo
 
-Construir el Agent Operating System (AOS): directorio `.ai/` como memoria permanente del proyecto.
+Cerrar CATEYE v3.0.0 STABLE: documentación, auditoría de validación, y preparación para v3.1.
 
-## Últimos Cambios
-
-1. **`.ai/AGENT_CHARTER.md`** — Constitución del proyecto con Agent Loop obligatorio y Regla de Oro
-2. **`.ai/PROJECT_CONTEXT.md`** — Contexto completo del proyecto
-3. **`.ai/ARCHITECTURE.md`** — Arquitectura del sistema con puntos de integración
-4. **`.ai/CURRENT_STATE.md`** — Estado verificado (solo con evidencia)
-5. **`.ai/ROADMAP.md`** — Roadmap priorizado
-6. **`.ai/TASK_QUEUE.md`** — Tareas pendientes con criterios de finalización
-7. **`.ai/PRODUCTION_RULES.md`** — Reglas de producción
-8. **`.ai/SECURITY_POLICY.md`** — Política de seguridad
-9. **`.ai/TESTING_POLICY.md`** — Política de testing
-10. **`.ai/CODE_QUALITY.md`** — Estándares de calidad
-11. **`.ai/KNOWN_DEBT.md`** — Deuda técnica con evidencia
-12. **`.ai/DECISIONS.md`** — Decisiones arquitectónicas
-13. **`.ai/DO_NOT_TOUCH.md`** — Componentes estables identificados
-14. **`.ai/COMPLETED_FEATURES.json`** — Features con evidencia (solo verificadas)
-15. **`.ai/INTEGRATION_REGISTRY.json`** — Mapa de módulos
-16. **`opencode.json`** — Configuración de OpenCode con `instructions` y `references`
-17. **`.opencode/skills/agent-loop/SKILL.md`** — Skill del Agent Loop para OpenCode
-18. **`.cline/rules/core.md`** — Actualizado para referenciar `.ai/`
-19. **`README.md`** — Actualizado para referenciar `.ai/`
-
-## Archivos Modificados en esta Sesión
+## Últimos Cambios (esta sesión)
 
 ### Nuevos:
-- `.ai/` (19 archivos)
-- `.opencode/skills/agent-loop/SKILL.md`
-- `opencode.json`
+- `docs/KNOWN_LIMITATIONS.md` — Limitaciones del motor de validación documentadas
+- `scripts/install_portable.bat` — Setup idempotente + validación para Windows portable
+- `scripts/run_portable.bat` — Launcher mínimo (sin lógica duplicada, run.py maneja detección portable)
 
-### Modificados (hardening de seguridad):
-- `cores/license/validator.py` — Ed25519
-- `cores/identity_vault.py` — Clave aleatoria + migración
-- `cores/vault_crypto.py` — Nuevo módulo compartido
-- `cores/auth/token_service.py` — Cifrado AES-256-GCM
-- `cores/auth/session.py` — Cifrado AES-256-GCM
-- `api/middleware/csrf_middleware.py` — Nuevo middleware CSRF
-- `api/middleware/error_handling.py` — Sin fuga de excepciones
-- `api/middleware/rate_limit_middleware.py` — Rate limit por user-id
-- `api/main.py` — CORS fix
-- `cores/authhub/gmail.py` — OAuth2 state token
-- `cores/authhub/base.py` — state parameter
-- `api/routers/authhub.py` — state en callback
-- `cores/audit_log.py` — Nuevo audit log
-- `api/routers/auth.py` — Audit events
-- `tests/conftest.py` — Dev private key para tests
+### Modificados:
+- `.ai/AGENT_CHARTER.md` — +6 secciones: Principios de Ingeniería, Definición de Terminado, Criterios para Aceptar Cambios, Qué No Quiero, Rol Esperado de la IA. Evidencia wording corregido.
+- `.ai/TASK_QUEUE.md` — Tasks v3.0 limpiadas; agregadas 4 tasks para v3.1 (ORION Reasoning Layer)
+- `.ai/ROADMAP.md` — Fase 6 completada; nuevo roadmap v3.1 con Hypothesis Challenger, Evidence Graph, Adaptive Report Gate
+- `.ai/KNOWN_DEBT.md` — Entry #9: Motor de validación sin refutación ni razonamiento de incertidumbre
+- `.ai/DECISIONS.md` — Decision: auditoría de validación → documentar, no implementar antes del release
+- `installer/cateye.nsi` — Version 1.6.0 → 3.0.0; +5 directorios (uploads, evidence, config, backups, tools)
+- `installer/install_windows.ps1` — Version 1.6.0 → lee VERSION
+- `scripts/package_portable.py` — Genera install.bat + run.bat; VERSION/LICENSE/README en raíz
 
-### Modificados (persistencia, dedup, scheduler):
-- `cores/recovery/circuit_breaker.py` — time.time() + persistencia
-- `cores/recovery/persistence.py` — learning_state + health_snapshots tables
-- `cores/intelligence/reward_learning.py` — Persistencia de ajustes
-- `api/scheduler.py` — Adaptativo con cooldown + priorización
-- `cores/dedup.py` — Nuevo DedupTracker
+### Verificados (sin cambios):
+- `run.py:39-44` — Detección portable ya implementada (Opción A del usuario)
 
-### Frontend:
-- `frontend/src/stores/settings.ts` — API keys a sessionStorage
+## Resumen de la Auditoría de Validación
+
+Se auditó todo el pipeline: generators → replayer → rules → confidence → gate → report.
+
+**Hallazgo principal**: CATEYE busca confirmación, no refutación. No evalúa explicaciones alternativas (recurso público, caché, stub). No aprende de falsos positivos.
+
+**Decisión**: No implementar fixes antes del release. Documentar limitaciones en KNOWN_LIMITATIONS.md. Mover mejoras a v3.1 (ORION Reasoning Layer).
+
+**Veredicto**: 🟡 Razona parcialmente. Requiere revisión humana antes de reportar.
 
 ## Siguiente Prioridad
 
-**Fase 5: Tests y validación** — Verificar cobertura de tests para todos los cambios recientes, especialmente CSRF middleware y scheduler adaptativo.
-
-## Riesgos
-
-- `test_login_rate_limit` en `tests/test_security.py` falla intermitentemente (preexistente, no relacionado con cambios)
-- Los tests no cubren el nuevo CSRF middleware ni el scheduler adaptativo
-- Cline tiene configuración separada en `.cline/rules/` que ahora referencia `.ai/`
+**CATEYE v3.1 — ORION Reasoning Layer**:
+1. Hypothesis Challenger — refutación activa
+2. Evidence Graph — evidencia a favor/en contra
+3. Adaptive Report Gate — threshold por tipo
 
 ## Bloqueadores
 
-- Ninguno actualmente
-
-## Decisiones Tomadas en esta Sesión
-
-Ver `DECISIONS.md` para el registro completo. Las más relevantes:
-
-1. Ed25519 > RSA para licencias (claves más pequeñas, sin dependencia openssl)
-2. Clave AES aleatoria en archivo > /etc/machine-id (CVE-2)
-3. Doble-submit cookie > session store para CSRF
-4. Scheduler adaptativo con cooldown > intervalos fijos
-5. `.ai/` como fuente de verdad única > documentación dispersa
+- Windows portable installer requiere PyInstaller + NSIS (ejecutar desde Windows)
+- Los cambios de v3.1 aumentan alcance — solo cuando v3.0 esté cerrado

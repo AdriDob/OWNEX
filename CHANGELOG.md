@@ -1,5 +1,48 @@
 # Changelog
 
+## v3.0.0 — 2026-07-08
+
+### 🎯 Release Final Stable
+- Marco el fin del desarrollo intensivo. CATEYE está lista para uso diario en bug bounty.
+
+### 🧪 Testing
+- **393 tests pasan** (359 + 34 tests de seguridad), 2 xfailed, 0 fallos
+- `test_security.py` ahora incluido en suite (34 tests, todos verdes)
+- CSRF middleware verificado con tests HTTP reales via TestClient
+- Rate limit middleware con tests de integración HTTP
+
+### 🛠️ Correcciones de estabilidad
+- Scheduler pipeline: 5 stages funcionales (DISCOVER→RECON→HYPOTHESIS→VALIDATE→REPORT)
+- `launch_scan()` corregido (argumentos posicionales + session)
+- `boot_time` y `collect_health()` bugs corregidos en `api/main.py`
+- 3 health systems existentes pero se unificará en v3.1
+- Sistema multi-agente: 8 agentes con AgentBus → EventBus bridge
+
+### 🔧 Hardening (prolonged-use audit)
+- `FinancialSyncScheduler`: `sync_all()` movido a `asyncio.to_thread`
+- `NotificationPoller`: stop flag + shutdown hook
+- `Watchdog`: chequea EventBus correcto (no AgentBus)
+- `research.py`: imports y clases runner corregidos
+- 14 DB indexes agregados via `_migrate_indexes()`
+- Orphaned tasks trackeados con `_background_tasks` set
+- WAL checkpoint agregado post-ciclo scheduler
+- `CorrelationEngine` dedup cache limitado (10K)
+- Non-blocking dispatch para BaseAgent/AgentBus
+- `with open()` en session.py y token_service.py
+- Audit log con rotación (10MB, 3 backups)
+
+### 📚 Documentación
+- `FUNCTIONAL_SPEC.md`: 988 líneas de capacidades verificadas contra código
+- `USER_GUIDE.md`: Manual práctico en español
+- `DAILY_WORKFLOW.md`: Rutina diaria, semanal, mensual
+- `RELEASE_NOTES_v3.0.0.md`: Release notes oficiales
+- `.ai/` actualizado: AGENT_CHARTER.md, CURRENT_STATE.md, COMPLETED_FEATURES.json
+
+### 📄 Licencia
+- Propietaria (validación Ed25519). No MIT.
+
+---
+
 ## v2.0.0 — 2026-07-05
 
 ### 🚀 WalletConnect Protocol

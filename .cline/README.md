@@ -1,34 +1,73 @@
-# Cline — Configuración para CATEYE
+# Cline — Mejor Agente Alternativo a OpenCode
 
-Este directorio contiene la configuración de Cline para el proyecto CATEYE.
-
-## Estructura
-```
-.cline/
-├── README.md           ← Esta documentación
-├── rules/
-│   ├── core.md         ← Reglas de desarrollo (código, stack, flujo)
-│   ├── context.md      ← Contexto del proyecto (estado, módulos, URLs)
-│   └── core.md         ← Reglas completas con referencia rápida
-└── scripts/
-    └── switch-profile.sh ← Script para cambiar entre perfiles local/cloud/emergency
-```
+Cline es el **agente de respaldo** para cuando OpenCode agote tokens. Está configurado con el mejor modelo gratis posible para seguir el proyecto sin poner un centavo.
 
 ## Perfiles disponibles
-| Perfil | Proveedor | Modelo | Costo |
-|---|---|---|---|
-| Local | Ollama | `freehuntx/qwen3-coder:8b` | $0 |
-| Cloud | OpenRouter | `google/gemini-2.0-flash-exp:free` | $0 |
-| Emergency | OpenRouter | `google/gemini-2.5-flash` | ~$0.30/M tok |
 
-## Quick switch
+| Perfil | Proveedor | Modelo | Costo | Límites | Rating |
+|---|---|---|---|---|---|
+| `github` | GitHub Models | **GPT-4o** | $0 | 10 RPM, 50 RPD | ⭐ Mejor calidad |
+| `google` | Google AI Studio | **Gemini 2.5 Flash** | $0 | 15 RPM, 500 RPD | ⭐ Más requests |
+| `openrouter-free` | OpenRouter | Router automático (27+ models) | $0 | 20 RPM, 50 RPD | ⭐ Más variedad |
+| `local` | Ollama | Qwen3 Coder 32B | $0 | Ilimitado (local) | ⭐ Sin internet |
+| `emergency` | OpenRouter | Gemini 2.5 Flash | ~$0.30/M tok | Según crédito | Solo si seagotaron los gratis |
+
+## Cómo activar
+
 ```bash
-.cline/scripts/switch-profile.sh local
-.cline/scripts/switch-profile.sh cloud
-.cline/scripts/switch-profile.sh emergency
+# Elegí el perfil que quieras:
+.cline/scripts/switch-profile.sh github       # GPT-4o gratis (mejor calidad)
+.cline/scripts/switch-profile.sh google        # Gemini 2.5 Flash (más requests)
+.cline/scripts/switch-profile.sh openrouter-free # 27+ modelos gratis
+.cline/scripts/switch-profile.sh local         # Offline
 ```
 
-## Reglas
-Cline carga automáticamente todos los archivos `.md` dentro de `.cline/rules/`. Las reglas actúan como system prompt: guían al agente sobre cómo comportarse, qué patrones seguir y qué evitar.
+Después de ejecutar el script, **abrí Cline → ⚙️ → pegá tu API Key** en el campo correspondiente.
 
-Ver `CLINE_SETUP.md` en la raíz del proyecto para la guía completa de configuración.
+## API Keys gratis (sin tarjeta de crédito)
+
+### GitHub Models (recomendado)
+1. Ve a https://github.com/settings/tokens
+2. Creá un token clásico con scope `read:user`
+3. En Cline → ⚙️ → pegá el token en **OpenAI API Key** (aunque sea GitHub)
+4. Modelo: `gpt-4o` — el mejor modelo de código gratis disponible
+
+### Google AI Studio
+1. Ve a https://aistudio.google.com/apikey
+2. Creá una API Key (no pide tarjeta)
+3. En Cline → ⚙️ → pegala en **Google Gemini API Key**
+4. Modelo: `gemini-2.5-flash` — 500 requests/día, 1M contexto
+
+### OpenRouter
+1. Ve a https://openrouter.ai/keys
+2. Creá una API Key (no pide tarjeta)
+3. En Cline → ⚙️ → pegala en **OpenRouter API Key**
+4. Modelo: `openrouter/free` — router automático
+
+## Recomendación
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  🏆 GitHub Models → GPT-4o (mejor calidad, 50 req/día) │
+│                                                          │
+│  ¿Se acabaron las requests? → Google (500 req/día)       │
+│  ¿No hay internet? → Ollama local                        │
+│  ¿Todo lo gratis falló? → Emergency (pago mínimo)         │
+└──────────────────────────────────────────────────────────┘
+```
+
+## Estructura
+
+```
+.cline/
+├── README.md                          ← Esta documentación
+├── rules/
+│   ├── core.md                        ← Reglas de desarrollo + Abejita
+│   └── context.md                     ← Contexto del proyecto
+└── scripts/
+    └── switch-profile.sh              ← Switch entre perfiles
+```
+
+## Reglas de desarrollo
+
+Cline carga automáticamente todos los archivos `.md` dentro de `.cline/rules/`. Las reglas incluyen la sección **La Abejita** que le indica a Cline monitorear activamente el sistema como un panal de abejas.

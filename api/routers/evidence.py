@@ -1,4 +1,3 @@
-import os
 import uuid
 from pathlib import Path
 
@@ -6,10 +5,11 @@ from fastapi import APIRouter, HTTPException, Query, UploadFile
 
 from api.schemas.models import PaginatedResponse
 from api.services.data_service import list_evidence
+from cores.platform.system import get_data_dir
 
 router = APIRouter(prefix="/api/evidence", tags=["evidence"])
 
-_EVIDENCE_DIR = Path(os.path.expanduser("~")) / ".orion" / "evidence"
+_EVIDENCE_DIR = get_data_dir() / "evidence"
 
 
 @router.get("", response_model=PaginatedResponse)

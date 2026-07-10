@@ -1,8 +1,10 @@
 # CATEYE 5.0 — Architecture Redesign & Roadmap
 
-> **Documento de diseño definitivo.**
-> Cada acción aquí descrita está respaldada por la auditoría final del código (Julio 2026).
-> Ninguna especulación. Ninguna funcionalidad futura no verificada.
+> **⚠️ DOCUMENTO ASPIRACIONAL — Este documento describe el diseño objetivo para CATEYE v5.0.**
+> **La versión actual es v3.0.0. Ninguno de los hitos descritos aquí ha sido implementado.**
+>
+> Ver `SYSTEM.md` para la arquitectura real y `RELEASE_NOTES_v3.0.0.md` para el estado actual.
+> Este documento permanece como guía de dirección futura, no como descripción del sistema.
 
 ---
 

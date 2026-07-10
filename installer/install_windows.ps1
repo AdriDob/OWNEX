@@ -89,7 +89,9 @@ $uninstallScript = Join-Path $DEST "uninstall_windows.ps1"
 
 New-Item -Path $uninstallKey -Force | Out-Null
 Set-ItemProperty -Path $uninstallKey -Name "DisplayName" -Value "CATEYE"
-Set-ItemProperty -Path $uninstallKey -Name "DisplayVersion" -Value "1.6.0"
+$versionFile = Join-Path $PSScriptRoot ".." "VERSION"
+$displayVersion = if (Test-Path $versionFile) { (Get-Content $versionFile).Trim() } else { "3.0.0" }
+Set-ItemProperty -Path $uninstallKey -Name "DisplayVersion" -Value $displayVersion
 Set-ItemProperty -Path $uninstallKey -Name "Publisher" -Value "CATEYE Labs"
 Set-ItemProperty -Path $uninstallKey -Name "UninstallString" -Value "powershell -ExecutionPolicy Bypass `"$uninstallScript`""
 Set-ItemProperty -Path $uninstallKey -Name "DisplayIcon" -Value "`"$EXE`""

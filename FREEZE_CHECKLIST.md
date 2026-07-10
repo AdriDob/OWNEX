@@ -1,8 +1,9 @@
 # CATEYE 5.0 — Freeze Checklist
 
-> **Checklist definitivo para declarar CATEYE v5.0 STABLE.**
-> Cada ítem debe estar VERIFICADO antes del freeze.
-> No avanzar al siguiente ítem si el anterior falla.
+> **⚠️ OBSOLETO — Este documento describe el plan de freeze para v5.0, que nunca fue implementado.**
+> **La versión actual es v3.0.0. Ver `SYSTEM.md` y `RELEASE_NOTES_v3.0.0.md` para el estado real.**
+>
+> Este checklist permanece como referencia histórica del diseño aspiracional. No refleja la arquitectura actual.
 
 ---
 

@@ -2,7 +2,7 @@
 
 > Fecha: Julio 2026
 > Versión: 3.0.0
-> Arquitectura: v5.0 STABLE
+> Arquitectura: v3.0 STABLE
 > Estado: ✅ LISTA PARA USO DIARIO
 
 ---

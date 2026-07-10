@@ -215,7 +215,7 @@ def create_docs(output_dir: Path, version: str) -> None:
         f"- Watchdog with auto-recovery\n"
         f"- Multi-agent architecture (exploit, research, financial, strategy, validator, coordinator)\n"
         f"- 40+ API routers for security investigation\n"
-        f"- React 19 + PrimeReact 10 frontend\n"
+        f"- Vue 3 + TypeScript frontend\n"
         f"- Service mode (optional, requires pywin32)\n"
         f"- Auto-update framework with safe rollback\n"
         f"\n"
