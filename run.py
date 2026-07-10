@@ -429,6 +429,19 @@ def main() -> None:
             session.close()
         return
 
+    # --hermes: run Hermes Automation Agent command
+    if "--hermes" in args_set:
+        idx = args_list.index("--hermes")
+        command = args_list[idx + 1] if idx + 1 < len(args_list) and not args_list[idx + 1].startswith("--") else "help"
+        from apps.hermes.engine import AutomationEngine
+        engine = AutomationEngine()
+        result = engine.execute(command)
+        print(f"[Hermes] {result.message}")
+        if result.details:
+            import json
+            print(json.dumps(result.details, indent=2, default=str))
+        return
+
     # --safe-mode forces degraded operation
     force_safe = "--safe-mode" in args_set
 

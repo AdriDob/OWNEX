@@ -5,8 +5,8 @@
 
 ## Testing
 
-- **Total de tests**: 516 pasan, 2 xfailed, 0 fallos
-- **Tests nuevos**: 83 tests (20 nuevos: CoinGecko + Takenos + dashboard + integraciones)
+- **Total de tests**: 531 pasan, 2 xfailed, 0 fallos
+- **Tests nuevos**: 83 tests (20 CoinGecko/Takenos + 15 Hermes Automation Agent)
 - **Comando**: `.venv/bin/python -m pytest --timeout=60`
 - `test_security.py` incluido (34 tests, todos verdes)
 - **Lint**: Ruff clean — 0 errores en todo el código nuevo
@@ -145,4 +145,16 @@ Ver `docs/KNOWN_LIMITATIONS.md`:
 | Fix Coinbase (HMAC) | `apps/atlas/connectors/coinbase/` | ✅ CB-ACCESS-SIGN HMAC-SHA256 |
 | Fix Kraken (portfolio) | `apps/atlas/connectors/kraken/` | ✅ Balance + ticker vía API privada con HMAC-SHA512 |
 
-Las limitaciones restantes corresponden a v3.1 (ORION Reasoning Layer) — todas las features de v4.0.0 y v4.1.0 están completas.
+## FASE 9 — Hermes Automation Agent v1 (Julio 2026)
+
+| Feature | Archivos | Estado |
+|---|---|---|
+| Manifest + AppRegistry | `apps/hermes/manifest.py` | ✅ Registrado como app "hermes" con scheduler job |
+| Automation Engine | `apps/hermes/engine.py` | ✅ Safe mode, 6 comandos (backup/status/health/logs/doctor/help) |
+| CLI via run.py | `run.py` | ✅ `python run.py --hermes <command>` |
+| Action logging | `apps/hermes/engine.py` | ✅ JSONL persistente en `~/.orion/hermes_actions.jsonl` |
+| Tests | `tests/test_hermes.py` | ✅ 15 tests, todos pasan |
+| User Guide | `docs/HERMES_GUIDE.md` | ✅ Documentación completa con ejemplos |
+| Windows shortcut | `scripts/hermes_shortcut.bat`, `scripts/hermes_silent.vbs` | ✅ Launcher para WSL |
+
+Las limitaciones restantes corresponden a v3.1 (ORION Reasoning Layer) — todas las features de v4.0.0, v4.1.0 y Hermes v0.1.0 están completas.
