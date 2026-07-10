@@ -63,6 +63,7 @@ def _log(state: str, msg: str, *args) -> None:
     global _log
     if _log is None:
         import logging
+
         logging.basicConfig(level=logging.INFO, format="[CATEYE][%(state)s] %(message)s", stream=sys.stdout)
         _log = logging.getLogger("cateye.launcher")
     # Log via simple print if logging not ready
@@ -86,14 +87,35 @@ def _import_boot_guard():
             should_activate_safe_mode,
             validate_environment,
         )
-        return RuntimeMode, get_runtime_mode, validate_environment, should_activate_safe_mode, enable_safe_mode, is_safe_mode, boot_summary, safe_import
+
+        return (
+            RuntimeMode,
+            get_runtime_mode,
+            validate_environment,
+            should_activate_safe_mode,
+            enable_safe_mode,
+            is_safe_mode,
+            boot_summary,
+            safe_import,
+        )
     except Exception as exc:
         _log("BOOT", "CRITICAL: boot_guard import failed: %s", exc)
+
         # Minimal fallback
         class _RuntimeMode(Enum):
             DEV = "dev"
             UNKNOWN = "unknown"
-        return _RuntimeMode, lambda: _RuntimeMode.UNKNOWN, lambda: {}, lambda x: False, lambda r="": None, lambda: False, lambda x: "", lambda m: None
+
+        return (
+            _RuntimeMode,
+            lambda: _RuntimeMode.UNKNOWN,
+            lambda: {},
+            lambda x: False,
+            lambda r="": None,
+            lambda: False,
+            lambda x: "",
+            lambda m: None,
+        )
 
 
 # ── State machine ──────────────────────────────────────────────────────
@@ -127,7 +149,16 @@ def _state_init() -> LaunchState:
 
 
 def _state_validating() -> LaunchState:
-    RuntimeMode, get_runtime_mode, validate_environment, should_activate_safe_mode, enable_safe_mode, is_safe_mode, boot_summary, safe_import = _import_boot_guard()
+    (
+        runtime_mode_cls,
+        get_runtime_mode,
+        validate_environment,
+        should_activate_safe_mode,
+        enable_safe_mode,
+        is_safe_mode,
+        boot_summary,
+        safe_import,
+    ) = _import_boot_guard()
 
     mode = get_runtime_mode()
     validation = validate_environment()
@@ -139,7 +170,7 @@ def _state_validating() -> LaunchState:
         enable_safe_mode("Environment validation failed")
         _log("VALIDATE", "Fatal check failed — activating SAFE MODE")
         return LaunchState.SAFE_MODE
-    if mode == RuntimeMode.UNKNOWN:
+    if mode == runtime_mode_cls.UNKNOWN:
         _log("VALIDATE", "Unknown runtime — falling back to SAFE MODE")
         enable_safe_mode("Unknown runtime environment")
         return LaunchState.SAFE_MODE
@@ -154,7 +185,7 @@ def _state_safe_mode() -> LaunchState:
 
 
 def _state_full_mode() -> LaunchState:
-    RuntimeMode, get_runtime_mode, _, _, _, _, _, _ = _import_boot_guard()
+    runtime_mode_cls, get_runtime_mode, _, _, _, _, _, _ = _import_boot_guard()
     mode = get_runtime_mode()
     _log("FULL", "Full mode available for %s", mode.value)
     return LaunchState.BROWSER_MODE
@@ -165,14 +196,17 @@ def _state_browser_mode() -> LaunchState:
     try:
         os.environ["CATEYE_DESKTOP"] = "1"
         from cores.platform.system import get_db_path
+
         db_path = get_db_path()
         db_path.parent.mkdir(parents=True, exist_ok=True)
         os.environ["DATABASE_URL"] = f"sqlite:///{db_path}"
         from desktop.main_desktop import main as desktop_main
+
         desktop_main()
     except Exception as exc:
         _log("BROWSER", "Backend error: %s", exc)
         import traceback
+
         _log("BROWSER", traceback.format_exc()[-500:])
     return LaunchState.READY
 
@@ -181,6 +215,7 @@ def _state_service_mode() -> LaunchState:
     _log("SERVICE", "Starting CATEYE Windows service...")
     try:
         from desktop.service import run_service
+
         run_service()
     except RuntimeError as exc:
         _log("SERVICE", "Service unavailable: %s", exc)
@@ -195,7 +230,7 @@ def _state_service_mode() -> LaunchState:
 
 def _state_error_recovery() -> LaunchState:
     _log("RECOVERY", "Attempting error recovery...")
-    RuntimeMode, _, _, should_activate_safe_mode, enable_safe_mode, _, _, _ = _import_boot_guard()
+    runtime_mode_cls, _, _, should_activate_safe_mode, enable_safe_mode, _, _, _ = _import_boot_guard()
     enable_safe_mode("Error recovery activated")
     _log("RECOVERY", "Safe mode enabled — system will degrade gracefully")
     return LaunchState.SAFE_MODE
@@ -226,7 +261,7 @@ def _detect_mode(args: set[str]) -> tuple[LaunchMode | None, bool, bool]:
 
 def _run_state_machine(mode: LaunchMode) -> None:
     state = LaunchState.INIT
-    _log("MACHINE", "State machine start (mode=%s)", mode.value if hasattr(mode, 'value') else "auto")
+    _log("MACHINE", "State machine start (mode=%s)", mode.value if hasattr(mode, "value") else "auto")
 
     max_steps = 20
     step = 0
@@ -266,6 +301,7 @@ def _handle_install() -> None:
     _log("INSTALL", "CATEYE installation...")
     try:
         from desktop.boot_guard import boot_summary, validate_environment
+
         validation = validate_environment()
         _log("INSTALL", boot_summary(validation))
     except Exception as exc:
@@ -274,6 +310,7 @@ def _handle_install() -> None:
     # Create essential paths
     try:
         from cores.utils.paths import get_data_path, get_db_path, get_log_path
+
         for p in [get_data_path(), get_log_path(), get_db_path().parent]:
             p.mkdir(parents=True, exist_ok=True)
             _log("INSTALL", "Created: %s", p)
@@ -293,6 +330,7 @@ def _handle_install() -> None:
     try:
         from desktop.first_run import run_first_time
         from desktop.settings import get_settings
+
         settings = get_settings()
         run_first_time(settings)
         _log("INSTALL", "First-run setup complete")
@@ -309,6 +347,7 @@ def _handle_legacy_service(args: set[str]) -> bool:
         _log("SERVICE", "Installing CATEYE service...")
         try:
             from desktop.service import install_service
+
             install_service()
         except RuntimeError as exc:
             _log("SERVICE", "Service install failed: %s", exc)
@@ -318,6 +357,7 @@ def _handle_legacy_service(args: set[str]) -> bool:
         _log("SERVICE", "Removing CATEYE service...")
         try:
             from desktop.service import remove_service
+
             remove_service()
         except RuntimeError as exc:
             _log("SERVICE", "Service removal failed: %s", exc)
@@ -357,6 +397,7 @@ def _handle_auto() -> None:
     _log("AUTO", "Auto-detecting...")
     try:
         from desktop.service_util import is_service_running
+
         if is_service_running():
             _log("AUTO", "Service detected — tray mode")
             _handle_tray()
@@ -369,7 +410,7 @@ def _handle_auto() -> None:
 
 def _handle_diagnostics() -> None:
     _log("DIAG", "Diagnostics...")
-    RuntimeMode, get_runtime_mode, validate_environment, _, _, is_safe_mode, boot_summary, _ = _import_boot_guard()
+    runtime_mode_cls, get_runtime_mode, validate_environment, _, _, is_safe_mode, boot_summary, _ = _import_boot_guard()
     validation = validate_environment()
     print()
     print(boot_summary(validation))
@@ -388,23 +429,44 @@ def main() -> None:
     args_set = set(sys.argv[1:])
     args_list = sys.argv[1:]
 
-    # --backup: create data backup
+    # --backup: create data backup (uses ORION Backup Engine)
     if "--backup" in args_set:
-        from cores.backup import create_backup
-        idx = args_list.index("--backup")
-        out_dir = args_list[idx + 1] if idx + 1 < len(args_list) and not args_list[idx + 1].startswith("--") else None
-        path = create_backup(out_dir)
-        if path:
-            print(f"✅ Backup created: {path}")
+        from core.backup.engine import create_backup
+
+        result = create_backup()
+        if result.get("status") == "ok":
+            print(f"✅ Backup created: {result['backup_path']}")
+            print(f"   Files: {result['total_files']}, Size: {result['size_mb']} MB")
+        else:
+            print(f"❌ Backup failed: {result.get('reason', 'unknown')}")
         return
 
     # --restore: restore from backup
     if "--restore" in args_set:
-        from cores.backup import restore_backup
+        from core.backup.engine import restore_backup
+
         idx = args_list.index("--restore")
         if idx + 1 < len(args_list) and not args_list[idx + 1].startswith("--"):
-            ok = restore_backup(args_list[idx + 1])
-            print("✅ Restored successfully" if ok else "❌ Restore failed")
+            # Verify backup before restoring
+            from core.backup.engine import verify_backup
+
+            verification = verify_backup(args_list[idx + 1])
+            if verification.get("status") == "error":
+                print(f"❌ Backup verification failed: {verification.get('reason')}")
+                print("   Restore aborted.")
+                return
+            if verification.get("status") == "corrupted":
+                print("⚠️  Backup is corrupted (checksum errors). Restore at your own risk.")
+                proceed = input("   Continue? [y/N]: ").strip().lower()
+                if proceed != "y":
+                    print("   Restore aborted.")
+                    return
+
+            result = restore_backup(args_list[idx + 1])
+            if result.get("status") == "ok":
+                print(f"✅ Restored {result['restored_files']} files to {result['target']}")
+            else:
+                print(f"❌ Restore failed: {result.get('reason')}")
         else:
             print("❌ Usage: --restore <backup_file>")
         return
@@ -412,6 +474,7 @@ def main() -> None:
     # --add-target: quick-add a target
     if "--add-target" in args_set:
         from database import db, models
+
         idx = args_list.index("--add-target")
         name = args_list[idx + 1] if idx + 1 < len(args_list) else "unnamed"
         domain = ""
@@ -434,11 +497,13 @@ def main() -> None:
         idx = args_list.index("--hermes")
         command = args_list[idx + 1] if idx + 1 < len(args_list) and not args_list[idx + 1].startswith("--") else "help"
         from apps.hermes.engine import AutomationEngine
+
         engine = AutomationEngine()
         result = engine.execute(command)
         print(f"[Hermes] {result.message}")
         if result.details:
             import json
+
             print(json.dumps(result.details, indent=2, default=str))
         return
 
@@ -459,6 +524,7 @@ def main() -> None:
         _log("BOOT", "Safe mode requested via --safe-mode")
         try:
             from desktop.boot_guard import enable_safe_mode
+
             enable_safe_mode("User request via --safe-mode")
         except Exception as exc:
             _log("BOOT", "Failed to enable safe mode: %s", exc)

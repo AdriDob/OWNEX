@@ -310,3 +310,166 @@ def test_update_learning_weights_endpoint() -> None:
     # Verify singleton was actually updated
     new_w = get_confidence_scorer().get_weights()
     assert new_w["consistency"] != old
+
+
+# ── Bias tests ─────────────────────────────────────────────────────
+
+
+def test_confidence_scorer_bias_default() -> None:
+    scorer = ConfidenceScorer()
+    assert scorer.get_bias() == 0.0
+
+
+def test_confidence_scorer_adjust_bias() -> None:
+    scorer = ConfidenceScorer()
+    scorer.adjust_bias(0.05)
+    assert abs(scorer.get_bias() - 0.05) < 0.001
+    scorer.adjust_bias(-0.02)
+    assert abs(scorer.get_bias() - 0.03) < 0.001
+
+
+def test_confidence_scorer_set_bias() -> None:
+    scorer = ConfidenceScorer()
+    scorer.set_bias(-0.1)
+    assert abs(scorer.get_bias() - (-0.1)) < 0.001
+
+
+def test_bias_affects_calculate(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr("cores.validation.confidence.STATE_FILE", tmp_path / "state.json")
+    scorer = ConfidenceScorer()
+    scorer.set_bias(0.1)
+
+    from cores.validation.replayer import ComparisonResult, ResponseRecord
+
+    rec = ResponseRecord(status_code=200, headers={}, body="ok", body_hash="abc", elapsed_ms=10)
+    from cores.validation.rules import ValidationReport
+
+    result = scorer.calculate(
+        results=[
+            ComparisonResult(
+                attempt=1,
+                baseline=rec,
+                probe=rec,
+                status_match=True,
+                body_diff_ratio=0.0,
+                headers_diff={},
+                sensitive_fields_detected=[],
+                has_rate_limit=False,
+                has_timeout=False,
+                consistent=True,
+                timestamp="now",
+            )
+        ],
+        validation=ValidationReport(passed=True, passed_rules=["rule1"], failed_rules=[], details={}),
+        endpoint_signals={"risk_score": 50},
+    )
+    assert result.score > 0.0
+
+
+def test_confidence_state_save_and_load(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr("cores.validation.confidence.STATE_FILE", tmp_path / "state.json")
+    scorer = ConfidenceScorer()
+    scorer.adjust_weights({"consistency": 0.2})
+    scorer.set_bias(0.15)
+    scorer.save_state()
+
+    scorer2 = ConfidenceScorer()
+    scorer2.load_state()
+    assert abs(scorer2.get_weights()["consistency"] - scorer.get_weights()["consistency"]) < 0.001
+    assert abs(scorer2.get_bias() - 0.15) < 0.001
+
+
+def test_confidence_state_restored_via_singleton(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr("cores.validation.confidence.STATE_FILE", tmp_path / "state.json")
+    # Reset singleton
+    import cores.validation.confidence as cmod
+    from cores.validation.confidence import get_confidence_scorer
+
+    cmod._scorer_instance = None
+
+    scorer = cmod.ConfidenceScorer()
+    scorer.set_bias(0.2)
+    scorer.save_state()
+
+    cmod._scorer_instance = None
+    restored = get_confidence_scorer()
+    assert abs(restored.get_bias() - 0.2) < 0.001
+
+
+def test_llm_bias_in_learning_stats_endpoint() -> None:
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from core.api.routers import router
+
+    app = FastAPI()
+    app.include_router(router)
+    client = TestClient(app)
+
+    resp = client.get("/api/core/learning/stats")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "llm_bias" in data
+
+
+# ── FeedbackLearner suggest_rule_tuning tests ──────────────────────
+
+
+def test_suggest_rule_tuning_with_component_weights() -> None:
+    from cores.validation.llm_analyzer import FeedbackLearner, LearningInsight
+
+    learner = FeedbackLearner()
+    insights = [
+        LearningInsight(
+            pattern="SQLi on login endpoints often FP",
+            confidence_adjustment=0.0,
+            rule_weight_adjustment={"signal": 0.1, "consistency": -0.05},
+            recommendation="Increase signal weight for SQLi",
+            supporting_evidence="3 false positives on login pages",
+            source_count=3,
+        )
+    ]
+    result = learner.suggest_rule_tuning(insights)
+    assert result["confidence_weights"]["signal"] == 0.1
+    assert result["confidence_weights"]["consistency"] == -0.05
+    assert "llm_bias" in result
+
+
+def test_suggest_rule_tuning_with_confidence_adjustment() -> None:
+    from cores.validation.llm_analyzer import FeedbackLearner, LearningInsight
+
+    learner = FeedbackLearner()
+    insights = [
+        LearningInsight(
+            pattern="Overall confidence too high",
+            confidence_adjustment=-0.05,
+            rule_weight_adjustment={},
+            recommendation="Reduce confidence across all vuln types",
+            supporting_evidence="General overconfidence detected",
+            source_count=5,
+        )
+    ]
+    result = learner.suggest_rule_tuning(insights)
+    assert result["llm_bias"] == -0.05
+    assert result["rule_thresholds"] == {}
+
+
+def test_suggest_rule_tuning_unknown_rules_go_to_thresholds() -> None:
+    from cores.validation.llm_analyzer import FeedbackLearner, LearningInsight
+
+    learner = FeedbackLearner()
+    insights = [
+        LearningInsight(
+            pattern="IDOR needs stricter gate",
+            confidence_adjustment=0.0,
+            rule_weight_adjustment={"idor_threshold": 0.7, "signal": 0.05},
+            recommendation="Raise IDOR threshold",
+            supporting_evidence="",
+            source_count=2,
+        )
+    ]
+    result = learner.suggest_rule_tuning(insights)
+    # "idor_threshold" is not a known weight key → goes to rule_thresholds
+    assert "idor_threshold" in result["rule_thresholds"]
+    # "signal" is a known weight key → goes to confidence_weights
+    assert result["confidence_weights"]["signal"] == 0.05

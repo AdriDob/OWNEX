@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import json
+import logging
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from cores.validation.replayer import ComparisonResult
 from cores.validation.rules import ValidationReport
+
+logger = logging.getLogger("catseye.validation.confidence")
 
 DEFAULT_WEIGHTS: dict[str, float] = {
     "consistency": 0.40,
@@ -12,6 +17,8 @@ DEFAULT_WEIGHTS: dict[str, float] = {
     "evidence_strength": 0.20,
     "noise_penalty": -0.10,
 }
+
+STATE_FILE = Path.home() / ".orion" / "confidence_state.json"
 
 
 @dataclass
@@ -24,6 +31,9 @@ class ConfidenceScore:
 class ConfidenceScorer:
     def __init__(self) -> None:
         self._weights: dict[str, float] = dict(DEFAULT_WEIGHTS)
+        self._llm_bias: float = 0.0
+
+    # ── Weight management ─────────────────────────────────────────
 
     def adjust_weights(self, adjustments: dict[str, float]) -> None:
         """Apply dynamic weight adjustments from FeedbackLearner.
@@ -42,6 +52,21 @@ class ConfidenceScorer:
 
     def get_weights(self) -> dict[str, float]:
         return dict(self._weights)
+
+    # ── LLM bias management ───────────────────────────────────────
+
+    def adjust_bias(self, delta: float) -> None:
+        """Adjust the persistent LLM-learned bias."""
+        self._llm_bias = round(self._llm_bias + delta, 4)
+
+    def set_bias(self, value: float) -> None:
+        """Set the persistent LLM-learned bias directly."""
+        self._llm_bias = round(value, 4)
+
+    def get_bias(self) -> float:
+        return self._llm_bias
+
+    # ── Scoring ───────────────────────────────────────────────────
 
     def calculate(
         self,
@@ -84,6 +109,7 @@ class ConfidenceScorer:
             + (evidence_strength * self._weights["evidence_strength"])
             + (noise_penalty * self._weights["noise_penalty"])
             + llm_boost
+            + self._llm_bias
             - uncertainty_penalty
         )
         score = max(0.0, min(1.0, round(raw_score, 4)))
@@ -109,6 +135,37 @@ class ConfidenceScorer:
             level=level,
         )
 
+    # ── Persistence ────────────────────────────────────────────────
+
+    def save_state(self) -> None:
+        """Persist weights and bias so they survive restart."""
+        try:
+            STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+            data = {
+                "weights": self._weights,
+                "llm_bias": self._llm_bias,
+            }
+            with open(STATE_FILE, "w") as f:
+                json.dump(data, f)
+        except Exception as exc:
+            logger.warning("Failed to save confidence state: %s", exc)
+
+    def load_state(self) -> None:
+        """Restore persisted weights and bias."""
+        if not STATE_FILE.exists():
+            return
+        try:
+            with open(STATE_FILE) as f:
+                data = json.load(f)
+            saved_weights = data.get("weights", {})
+            for key, value in saved_weights.items():
+                if key in self._weights:
+                    self._weights[key] = value
+            self._llm_bias = data.get("llm_bias", 0.0)
+            logger.info("Confidence state restored: weights=%s, bias=%s", self._weights, self._llm_bias)
+        except Exception as exc:
+            logger.warning("Failed to load confidence state: %s", exc)
+
 
 # ── Shared singleton ──────────────────────────────────────────────
 # All consumers (FeedbackTuner, ValidationLoopEngine) share the same
@@ -121,4 +178,5 @@ def get_confidence_scorer() -> ConfidenceScorer:
     global _scorer_instance
     if _scorer_instance is None:
         _scorer_instance = ConfidenceScorer()
+        _scorer_instance.load_state()
     return _scorer_instance

@@ -140,23 +140,28 @@ class AutomationEngine:
         try:
             result = subprocess.run(
                 [sys.executable, "run.py", "--backup"],
-                capture_output=True, text=True, timeout=300,
+                capture_output=True,
+                text=True,
+                timeout=300,
                 cwd=self._project_root,
             )
             if result.returncode == 0:
                 return ActionResult(
-                    command="backup", status="ok",
+                    command="backup",
+                    status="ok",
                     message="Backup completed successfully",
                     details={"stdout": result.stdout.strip()},
                 )
             return ActionResult(
-                command="backup", status="error",
+                command="backup",
+                status="error",
                 message=f"Backup failed (exit {result.returncode})",
                 details={"stderr": result.stderr.strip()},
             )
         except subprocess.TimeoutExpired:
             return ActionResult(
-                command="backup", status="error",
+                command="backup",
+                status="error",
                 message="Backup timed out after 5 minutes",
             )
 
@@ -164,6 +169,7 @@ class AutomationEngine:
         info: dict[str, Any] = {"python": sys.version.split()[0], "cwd": str(self._project_root)}
         try:
             import importlib
+
             for mod_name in ("cores.events.event_bus", "api.scheduler", "cores.identity_vault"):
                 try:
                     importlib.import_module(mod_name)
@@ -173,7 +179,8 @@ class AutomationEngine:
         except Exception as exc:
             info["error"] = str(exc)
         return ActionResult(
-            command="status", status="ok",
+            command="status",
+            status="ok",
             message="System status collected",
             details=info,
         )
@@ -183,6 +190,7 @@ class AutomationEngine:
         info: dict[str, Any] = {}
         try:
             from core.health.engine import get_health_center
+
             center = get_health_center()
             summary = center.summary()
             info["health_score"] = summary.get("score", "unknown")
@@ -192,7 +200,8 @@ class AutomationEngine:
         except Exception as exc:
             info["health_score"] = f"error: {exc}"
         return ActionResult(
-            command="health", status="ok",
+            command="health",
+            status="ok",
             message="Health check complete",
             details=info,
         )
@@ -222,57 +231,112 @@ class AutomationEngine:
                     except Exception as exc:
                         entries.append(f"Error reading {lf}: {exc}")
         return ActionResult(
-            command="logs", status="ok",
+            command="logs",
+            status="ok",
             message=f"Retrieved {len(entries)} log entries",
             details={"entries": entries[:lines]},
         )
 
     def _cmd_doctor(self, **kwargs: Any) -> ActionResult:
         findings: dict[str, Any] = {}
-        db_path = Path.home() / ".orion" / "catseye.db"
-        if db_path.exists():
-            size_mb = db_path.stat().st_size / (1024 * 1024)
-            findings["db_size_mb"] = round(size_mb, 2)
-            findings["db_exists"] = True
-        else:
-            findings["db_exists"] = False
+        issues: list[str] = []
 
+        # ── Disk ────────────────────────────────────────────────────
         try:
             import shutil
+
             usage = shutil.disk_usage(self._project_root)
-            findings["disk_free_gb"] = round(usage.free / (1024 ** 3), 2)
-            findings["disk_total_gb"] = round(usage.total / (1024 ** 3), 2)
+            findings["disk_free_gb"] = round(usage.free / (1024**3), 2)
+            findings["disk_total_gb"] = round(usage.total / (1024**3), 2)
             findings["disk_usage_pct"] = round(usage.used / usage.total * 100, 1)
+            if usage.free / (1024**3) < 1:
+                issues.append("Disk space critically low (< 1GB free)")
         except Exception as exc:
             findings["disk_error"] = str(exc)
 
+        # ── Databases ───────────────────────────────────────────────
+        from core.maintenance.engine import MaintenanceEngine
+
+        try:
+            summary = MaintenanceEngine().summary()
+            findings["databases"] = summary.get("databases", [])
+            findings["total_db_count"] = summary.get("total_db_count", 0)
+            findings["total_db_size_mb"] = summary.get("total_size_mb", 0)
+            for db in summary.get("databases", []):
+                if db.get("size_mb", 0) > 200:
+                    issues.append(f"{db['name']} > 200MB — consider VACUUM")
+        except Exception as exc:
+            findings["db_error"] = str(exc)
+
+        # ── Backup health ────────────────────────────────────────────
+        try:
+            from core.backup.engine import backup_status
+
+            bs = backup_status()
+            findings["total_backups"] = bs.get("total_backups", 0)
+            findings["latest_backup"] = bs.get("latest_backup")
+            latest = bs.get("latest_backup")
+            if latest:
+                from datetime import datetime, timezone
+
+                created = latest.get("created_at", "")
+                if created:
+                    try:
+                        age_h = (datetime.now(timezone.utc) - datetime.fromisoformat(created)).total_seconds() / 3600
+                        findings["backup_age_hours"] = round(age_h, 1)
+                        if age_h > 48:
+                            issues.append(f"Last backup {round(age_h, 1)}h ago — run --backup")
+                    except Exception:
+                        pass
+            else:
+                issues.append("No backups found — run --backup")
+        except Exception as exc:
+            findings["backup_error"] = str(exc)
+
+        # ── Update check ─────────────────────────────────────────────
+        try:
+            from core.update.engine import UpdateManager
+
+            up = UpdateManager().status()
+            findings["current_version"] = up.get("current_version")
+            findings["update_available"] = up.get("update_available", False)
+            if up.get("update_available"):
+                issues.append(f"Update available: {up.get('remote_version')} (current: {up.get('current_version')})")
+        except Exception as exc:
+            findings["update_error"] = str(exc)
+
+        # ── System ──────────────────────────────────────────────────
         findings["safe_mode"] = self.safe_mode
         findings["python"] = sys.version
         findings["cwd"] = str(self._project_root)
 
-        issues = []
-        if findings.get("db_exists") and findings.get("db_size_mb", 0) > 500:
-            issues.append("Database > 500MB — consider cleanup")
-        if findings.get("disk_free_gb", 100) < 1:
-            issues.append("Disk space critically low (< 1GB free)")
+        # ── Health score 0-100 ───────────────────────────────────────
+        score = 100
+        score -= len(issues) * 10
+        score = max(0, min(100, score))
+        findings["health_score"] = score
 
         return ActionResult(
-            command="doctor", status="ok",
-            message="Diagnostics complete" + (f" — issues: {'; '.join(issues)}" if issues else ""),
+            command="doctor",
+            status="ok",
+            message=f"Health score: {score}/100" + (f" — issues: {'; '.join(issues)}" if issues else ""),
             details={"findings": findings, "issues": issues},
         )
 
     def _cmd_help(self, **kwargs: Any) -> ActionResult:
         commands = []
         for name, cmd in AUTHORIZED_COMMANDS.items():
-            commands.append({
-                "name": name,
-                "description": cmd["description"],
-                "risk": cmd["risk"],
-                "destructive": cmd["destructive"],
-            })
+            commands.append(
+                {
+                    "name": name,
+                    "description": cmd["description"],
+                    "risk": cmd["risk"],
+                    "destructive": cmd["destructive"],
+                }
+            )
         return ActionResult(
-            command="help", status="ok",
+            command="help",
+            status="ok",
             message=f"Available commands ({len(commands)}): {', '.join(c['name'] for c in commands)}",
             details={"safe_mode": self.safe_mode, "commands": commands},
         )
@@ -284,14 +348,20 @@ class AutomationEngine:
             log_path = Path.home() / ".orion" / "hermes_actions.jsonl"
             log_path.parent.mkdir(parents=True, exist_ok=True)
             import json
+
             with open(log_path, "a") as f:
-                f.write(json.dumps({
-                    "command": result.command,
-                    "status": result.status,
-                    "message": result.message,
-                    "timestamp": result.timestamp,
-                    "safe_mode": self.safe_mode,
-                }) + "\n")
+                f.write(
+                    json.dumps(
+                        {
+                            "command": result.command,
+                            "status": result.status,
+                            "message": result.message,
+                            "timestamp": result.timestamp,
+                            "safe_mode": self.safe_mode,
+                        }
+                    )
+                    + "\n"
+                )
         except Exception as exc:
             logger.warning("Failed to log Hermes action: %s", exc)
 
