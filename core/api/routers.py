@@ -289,8 +289,13 @@ async def learning_stats():
         fail_count = len(decisions_fail)
         total_decisions = success_count + fail_count
 
+        from cores.validation.confidence import get_confidence_scorer
+
+        scorer = get_confidence_scorer()
+
         return {
             "weights": status["current_weights"],
+            "llm_bias": scorer.get_bias(),
             "total_feedback_events": status["total_feedback_events"],
             "total_tunings": status["total_tunings"],
             "ready_for_analysis": status["ready_for_analysis"],
@@ -345,3 +350,184 @@ async def update_learning_weights(body: dict):
         return {"old": old, "new": scorer.get_weights(), "adjustments": adjustments}
     except Exception as exc:
         return {"status": "error", "error": str(exc)}
+
+
+# ── Backup endpoints ─────────────────────────────────
+
+
+@router.post("/backup/create")
+async def backup_create():
+    """Create a full ORION system backup."""
+    from core.backup import create_backup as do_backup
+
+    return do_backup()
+
+
+@router.get("/backup/list")
+async def backup_list():
+    """List all available ORION backups."""
+    from core.backup import list_backups
+
+    return {"backups": list_backups()}
+
+
+@router.get("/backup/status")
+async def backup_st():
+    """Backup system status."""
+    from core.backup import backup_status
+
+    return backup_status()
+
+
+@router.post("/backup/verify")
+async def backup_verify(path: str):
+    """Verify integrity of a backup archive."""
+    from core.backup import verify_backup
+
+    return verify_backup(path)
+
+
+@router.post("/backup/prune")
+async def backup_prune(keep: int = 10):
+    """Remove old backups, keeping only the N most recent."""
+    from core.backup import prune_backups
+
+    return prune_backups(keep=keep)
+
+
+@router.post("/backup/restore")
+async def backup_restore(path: str, target: str | None = None):
+    """Restore ORION from a backup archive."""
+    from core.backup import restore_backup
+
+    return restore_backup(path, target_dir=target)
+
+
+# ── Maintenance endpoints ──────────────────────────────
+
+
+def _maint_to_dict(r):
+    return {
+        "operation": r.operation,
+        "db_name": r.db_name,
+        "status": r.status,
+        "message": r.message,
+        "duration_ms": r.duration_ms,
+    }
+
+
+@router.post("/maintenance/vacuum")
+async def maintenance_vacuum():
+    """Run VACUUM on all known databases."""
+    from core.maintenance.engine import MaintenanceEngine
+
+    return {"results": [_maint_to_dict(r) for r in MaintenanceEngine().vacuum()]}
+
+
+@router.post("/maintenance/analyze")
+async def maintenance_analyze():
+    """Run ANALYZE on all known databases."""
+    from core.maintenance.engine import MaintenanceEngine
+
+    return {"results": [_maint_to_dict(r) for r in MaintenanceEngine().analyze()]}
+
+
+@router.post("/maintenance/integrity")
+async def maintenance_integrity():
+    """Run integrity_check on all known databases."""
+    from core.maintenance.engine import MaintenanceEngine
+
+    return {"results": [_maint_to_dict(r) for r in MaintenanceEngine().integrity_check()]}
+
+
+@router.post("/maintenance/reindex")
+async def maintenance_reindex():
+    """Rebuild all indexes on all known databases."""
+    from core.maintenance.engine import MaintenanceEngine
+
+    return {"results": [_maint_to_dict(r) for r in MaintenanceEngine().reindex()]}
+
+
+@router.post("/maintenance/wal")
+async def maintenace_wal():
+    """WAL checkpoint (TRUNCATE) on all known databases."""
+    from core.maintenance.engine import MaintenanceEngine
+
+    return {"results": [_maint_to_dict(r) for r in MaintenanceEngine().wal_checkpoint()]}
+
+
+@router.post("/maintenance/full")
+async def maintenance_full():
+    """Run all maintenance operations on all databases."""
+    from core.maintenance.engine import run_maintenance
+
+    return run_maintenance()
+
+
+@router.get("/maintenance/summary")
+async def maintenance_summary():
+    """DB file sizes and status summary."""
+    from core.maintenance.engine import MaintenanceEngine
+
+    return MaintenanceEngine().summary()
+
+
+# ── Update endpoints ──────────────────────────────────
+
+
+@router.get("/update/status")
+async def update_status():
+    """Current version and update availability."""
+    from core.update.engine import UpdateManager
+
+    return UpdateManager().status()
+
+
+@router.post("/update/check")
+async def update_check():
+    """Check remote for updates."""
+    from core.update.engine import UpdateManager
+
+    return UpdateManager().check_remote()
+
+
+@router.post("/update/prepare")
+async def update_prepare():
+    """Prepare for update: backup + download."""
+    from core.update.engine import UpdateManager
+
+    return UpdateManager().prepare_update()
+
+
+@router.post("/update/rollback")
+async def update_rollback(backup_path: str | None = None):
+    """Rollback to the last backup."""
+    from core.update.engine import UpdateManager
+
+    return UpdateManager().rollback(backup_path)
+
+
+@router.get("/update/history")
+async def update_history(limit: int = 10):
+    """Update history log."""
+    from core.update.engine import UpdateManager
+
+    return {"history": UpdateManager().get_history(limit=limit)}
+
+
+# ── Version info ──────────────────────────────────────
+
+
+@router.get("/version")
+async def version_info():
+    """ORION Platform version and API contract versions."""
+    from core.version import DECISION_JOURNAL, EVENT_SCHEMA, MEMORY_SCHEMA, NORMALIZER_API, ORION_VERSION, PLUGIN_API
+
+    return {
+        "orion_version": ORION_VERSION,
+        "plugin_api": PLUGIN_API,
+        "event_schema": EVENT_SCHEMA,
+        "memory_schema": MEMORY_SCHEMA,
+        "decision_journal": DECISION_JOURNAL,
+        "normalizer_api": NORMALIZER_API,
+    }

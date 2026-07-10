@@ -330,7 +330,20 @@ async def lifespan(app: FastAPI):
             if _tuner is None:
                 return
             try:
-                _tuner.record_feedback(payload)
+                from database import db as _db
+                from database import models as _mdls
+
+                enriched = dict(payload)
+                if "vulnerability_type" not in enriched:
+                    _db.init_db()
+                    _session = _db.SessionLocal()
+                    try:
+                        _f = _session.query(_mdls.Finding).filter(_mdls.Finding.id == payload.get("id")).first()
+                        if _f:
+                            enriched["vulnerability_type"] = _f.vulnerability_type
+                    finally:
+                        _session.close()
+                _tuner.record_feedback(enriched)
                 result = _tuner.tune_if_ready()
                 if result.get("status") == "tuned":
                     logger.info(

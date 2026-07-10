@@ -77,31 +77,46 @@ class FeedbackTuner:
 
             tuning = learner.suggest_rule_tuning(insights)
             weight_adjustments = tuning.get("confidence_weights", {})
+            llm_bias = tuning.get("llm_bias", 0.0)
             old_weights = self._scorer.get_weights()
+            old_bias = self._scorer.get_bias()
 
             if weight_adjustments:
                 self._scorer.adjust_weights(weight_adjustments)
+            if llm_bias != 0.0:
+                self._scorer.adjust_bias(llm_bias)
 
             new_weights = self._scorer.get_weights()
+            new_bias = self._scorer.get_bias()
+
+            self._scorer.save_state()
+
             tuning_record = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "events_analyzed": len(self._events),
                 "insights_count": len(insights),
                 "old_weights": old_weights,
                 "new_weights": new_weights,
+                "old_bias": old_bias,
+                "new_bias": new_bias,
                 "adjustments_applied": weight_adjustments,
+                "llm_bias_adjustment": llm_bias,
                 "patterns": [i.pattern for i in insights],
             }
             self._tuning_history.append(tuning_record)
             self._persist_tuning(tuning_record)
 
-            logger.info("[TUNER] Weights adjusted: %s → %s", old_weights, new_weights)
+            logger.info(
+                "[TUNER] Weights adjusted: %s → %s | bias: %s → %s", old_weights, new_weights, old_bias, new_bias
+            )
             return {
                 "status": "tuned",
                 "events_analyzed": len(self._events),
                 "insights": len(insights),
                 "old_weights": old_weights,
                 "new_weights": new_weights,
+                "old_bias": old_bias,
+                "new_bias": new_bias,
                 "adjustments": weight_adjustments,
                 "patterns": tuning_record["patterns"],
             }
