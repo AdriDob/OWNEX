@@ -189,10 +189,29 @@ All via environment variables (see `CONFIGURATION_GUIDE.md`):
 | `COPILOT_ENABLE_AUTO_AUDIT` | `true` | Periodic audit flag |
 | `COPILOT_HUNTER_MODE` | `standard` | Hunter behavior mode |
 
-## 12. Future Integrations
+## 12. Integrations
+
+### Evidence Graph (Sprint 2 — ✅ Implemented)
+
+The Copilot queries the Evidence Graph during analysis:
+
+```
+CopilotAgent.analyze_finding()
+    │
+    ├── EvidenceGraph.get_evidence(finding_id)  ← existing evidence for/against
+    ├── EvidenceGraph.get_balance(finding_id)     ← net score
+    ├── FindingAnalyzer.analyze()                ← uses evidence in context
+    └── EvidenceGraph.record_from_copilot()      ← stores analysis result
+```
+
+Exposed via:
+- `copilot.evidence_balance(hypothesis_id)` → net score, counts
+- `copilot.evidence_for(hypothesis_id)` → list of pro evidence
+- `copilot.evidence_against(hypothesis_id)` → list of con evidence
+
+### Future Integrations
 
 - **Unified Memory** (Sprint 3): Store every analysis as a memory entry with question, hypothesis, alternatives, evidence, result, confidence, lesson learned
-- **Evidence Graph** (Sprint 2): Query evidence for/against during analysis
 - **Decision Journal persistence**: Move from in-memory to SQLite
 - **Copilot API endpoints**: Expose analysis, review, audit via REST
 - **Copilot webhook**: Notify on findings needing human review

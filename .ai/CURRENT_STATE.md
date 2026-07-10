@@ -1,12 +1,12 @@
 # Current State — Estado Real del Proyecto
 
-> **v4.2.0 STABLE** — Senior Copilot Agent. Reasoning, auditing, review, planning.
+> **v4.2.1 STABLE** — Senior Copilot Agent + Evidence Graph.
 > Julio 2026.
 
 ## Testing
 
-- **Total de tests**: 606 pasan, 2 xfailed, 0 fallos
-- **Tests nuevos**: 80 tests (Senior Copilot Agent)
+- **Total de tests**: 634 pasan, 2 xfailed, 0 fallos
+- **Tests nuevos**: 80 (Copilot) + 28 (Evidence Graph)
 - **Comando**: `.venv/bin/python -m pytest --timeout=60`
 - `test_security.py` incluido (34 tests, todos verdes)
 - **Lint**: Ruff clean — 0 errores en todo el código nuevo
@@ -86,7 +86,7 @@
 | Feature | Archivos | Estado |
 |---|---|---|
 | Hypothesis Challenger | `cores/validation/challenger.py`, `gate.py`, `confidence.py`, `loop_engine.py`, `verdict_handler.py`, `models.py`, `db.py` | ✅ AlternativeExplainer (7 tipos), ContradictionTestDesigner, MissingVerificationsAnalyzer, uncertainty_penalty en scorer |
-| Evidence Graph | — | Pendiente |
+| Evidence Graph | `core/evidence_graph/` | ✅ SQLite persistente, for/against/neutral, weight/confidence, edges, balance scoring, integrado con Copilot + EventBus |
 | Adaptive Report Gate | — | Pendiente |
 | FeedbackLearner pipeline | `core/validation/`, `api/main.py` | ✅ FeedbackTuner accumulates + applies weight adjustments (12 tests) |
 

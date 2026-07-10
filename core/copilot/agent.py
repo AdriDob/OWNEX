@@ -16,6 +16,7 @@ from core.copilot.permissions import AuthorityLevel, DecisionConfidence, PolicyE
 from core.copilot.planner import Plan, Planner
 from core.copilot.recommender import Recommendation, Recommender
 from core.copilot.review import CopilotReview, ReviewReport
+from core.evidence_graph.graph import get_evidence_graph
 
 logger = logging.getLogger("orion.core.copilot.agent")
 
@@ -50,6 +51,7 @@ class CopilotAgent:
 
         self._decision_journal: list[dict[str, Any]] = []
         self._context: CopilotContext | None = None
+        self._evidence_graph = get_evidence_graph()
 
         logger.info("CopilotAgent initialized: %s (authority=%s)", self.agent_id, self._authority.value)
 
@@ -79,12 +81,23 @@ class CopilotAgent:
         evidence: list[dict[str, Any]] | None = None,
         confidence_score: dict[str, Any] | None = None,
     ) -> AnalysisResult:
-        """Analyze a finding with full context."""
+        """Analyze a finding with full context, querying the Evidence Graph."""
         context = self._build_context("cateye")
+        finding_id = finding.get("id", "unknown")
         context.set_finding(finding)
         if evidence:
             for e in evidence:
                 context.add_evidence(e)
+
+        # Query Evidence Graph for existing evidence
+        graph_evidence = self._evidence_graph.get_evidence(finding_id)
+        for ev in graph_evidence.get("for", []):
+            context.add_evidence(ev)
+        for ev in graph_evidence.get("against", []):
+            context.add_evidence({**ev, "type": "against"})
+        balance = self._evidence_graph.get_balance(finding_id)
+        context.set_system_state({"evidence_balance": balance})
+
         if verdict:
             context.set_verdict(verdict)
         if confidence_score:
@@ -93,6 +106,10 @@ class CopilotAgent:
         self._context = context
         result = self.analyzer.analyze(context)
         self._log_decision("analyze_finding", result.to_dict())
+
+        # Record analysis back into Evidence Graph
+        self._evidence_graph.record_from_copilot(finding_id, result.to_dict())
+
         return result
 
     # ── Core: Plan ─────────────────────────────────────────────
@@ -177,6 +194,18 @@ class CopilotAgent:
 
     def needs_approval(self, confidence: float) -> bool:
         return DecisionConfidence.needs_approval(confidence, self._authority)
+
+    # ── Evidence Graph ─────────────────────────────────────────
+
+    def evidence_balance(self, hypothesis_id: str) -> dict:
+        """Get the evidence balance for a hypothesis from the Evidence Graph."""
+        return self._evidence_graph.get_balance(hypothesis_id)
+
+    def evidence_for(self, hypothesis_id: str) -> list[dict]:
+        return self._evidence_graph.get_evidence_for(hypothesis_id)
+
+    def evidence_against(self, hypothesis_id: str) -> list[dict]:
+        return self._evidence_graph.get_evidence_against(hypothesis_id)
 
     # ── Internal ───────────────────────────────────────────────
 
