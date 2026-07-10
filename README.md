@@ -1,129 +1,148 @@
-# CATEYE v3.0.0 — Bug Bounty Intelligence System
+# ORION Platform v4.3.2 — Sistema de Inteligencia Operativa
 
-[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/AdriDob/Rastro/releases)
+[![Version](https://img.shields.io/badge/version-4.3.2-blue.svg)](https://github.com/AdriDob/Rastro/releases)
 [![Python](https://img.shields.io/badge/python-3.10+-purple.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/fastapi-0.95+-009688.svg)](https://fastapi.tiangolo.com/)
 [![Vue](https://img.shields.io/badge/vue-3.5-4FC08D.svg)](https://vuejs.org/)
-[![Status](https://img.shields.io/badge/status-stable-brightgreen.svg)]()
-[![License](https://img.shields.io/badge/license-Proprietary-red.svg)]()
+[![Tests](https://img.shields.io/badge/tests-676%20passing-brightgreen.svg)]()
+[![License](https://img.shields.io/badge/licencia-Propietaria-red.svg)]()
 
 ---
 
-## What is CATEYE?
+## ¿Qué es ORION?
 
-CATEYE is a **private operational intelligence system** for bug bounty hunters. It automates the complete vulnerability hunting lifecycle — from program discovery and reconnaissance to hypothesis generation, validation, reporting, and financial tracking.
+ORION es una **plataforma de inteligencia operativa privada** diseñada para ejecutar aplicaciones especializadas de análisis, automatización y toma de decisiones.
 
-It is **not** a scanner. It is **not** a framework. It is a **daily companion** that augments your hunting workflow with automation, prioritization, and learning — while keeping you in control of every decision.
+No es un SaaS. No es una herramienta individual. Es un **sistema operativo personal de automatización** que corre 100% local.
 
----
-
-## Who is it for?
-
-- **Bug bounty hunters** who manage multiple programs and need automation
-- **Security researchers** who want AI-assisted validation and reporting
-- **Anyone** who spends more time on repetitive tasks than on actual hunting
-
-## Who is it NOT for?
-
-- Teams or enterprises (CATEYE is single-user, local-first)
-- Pentesters needing a traditional scanner
-- Anyone looking for a cloud/SaaS solution
-- Beginners who haven't done manual bug bounty hunting
+```
+ORION Platform
+│
+├── CATEYE     → Seguridad ofensiva (bug bounty, pentesting, OSINT)
+├── ATLAS      → Finanzas, patrimonio e inversiones
+├── ODYSSEY    → Investigación y mercados predictivos
+├── HERMES     → Automatización del sistema
+└── COPILOT    → Inteligencia transversal (parte del Core)
+```
 
 ---
 
-## Philosophy
+## Capturas del sistema
 
-1. **Eliminate repetitive human work** — Every feature must answer: "Does this remove human work or just add complexity?"
-2. **ORION decides, modules execute** — ORION is read-only (with one documented exception). It recommends, you decide.
-3. **One official pipeline** — The scheduler is the only runtime flow. No parallel state machines.
-4. **Persistence first** — Critical state survives restarts (SQLite WAL, persistent EventBus, SystemState in DB).
-5. **Security over features** — No secrets in code, CSRF on all mutating routes, AES-256-GCM encryption, JSONL audit logging.
+| Dashboard principal | Pipeline de hallazgos |
+|:---:|:---:|
+| [![Dashboard](docs/screenshots/dashboard-main.svg)](docs/screenshots/dashboard-main.svg) | [![Pipeline](docs/screenshots/pipeline-monitor.svg)](docs/screenshots/pipeline-monitor.svg) |
+
+| Centro de reportes | Dashboard financiero |
+|:---:|:---:|
+| [![Reportes](docs/screenshots/report-detail.svg)](docs/screenshots/report-detail.svg) | [![Financiero](docs/screenshots/financial-dashboard.svg)](docs/screenshots/financial-dashboard.svg) |
+
+| Centro de integraciones | Salud del sistema |
+|:---:|:---:|
+| [![Integraciones](docs/screenshots/integration-center.svg)](docs/screenshots/integration-center.svg) | [![Salud](docs/screenshots/system-health.svg)](docs/screenshots/system-health.svg) |
 
 ---
 
-## What CATEYE can do
+## Filosofía
 
-### 🎯 Economic Intelligence
-- **ORION Score** (0.0-1.0) — 6-factor program ranking algorithm
-- **EVH** (Expected Value per Hour) — monetary ROI per program
-- **Pattern Learning** — automatically learns from earnings patterns
-- **Auto-prioritization** — scheduler consults ORION to pick next target
+1. **Eliminar trabajo humano repetitivo** — Toda feature debe responder: "¿esto elimina trabajo humano o solo agrega complejidad?"
+2. **ORION decide, las apps ejecutan** — ORION es read-only. Recomienda, el humano decide.
+3. **Un pipeline oficial** — El scheduler es el único flujo de ejecución.
+4. **Persistencia primero** — Todo estado crítico sobrevive reinicios (SQLite WAL, EventBus persistente, SystemState en DB).
+5. **Seguridad sobre features** — Sin secretos en código, CSRF en todas las rutas mutantes, AES-256-GCM, audit logging JSONL.
 
-### 🧠 Multi-Agent System
-- 8 specialized agents (Coordinator, Research, Validator, Exploit, Documentation, Strategy, Memory, Financial)
-- Internal event bus communication (pub/sub)
-- Multi-AI support: Gemini, Ollama, OpenAI, OpenRouter
+---
 
-### 🔍 Autonomous Reconnaissance
-- Orchestrates 15+ tools: Subfinder, Amass, httpx, Katana, nuclei, ffuf, gau, waybackurls, dnsx, naabu
+## Arquitectura
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                        ORION CORE                                 │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────────┐  │
+│  │ EventBus  │ │  Memory  │ │  Copilot  │ │ Decision Journal  │  │
+│  │ (pub/sub) │ │ (SQLite) │ │ (AI Agent)│ │ (append-only log) │  │
+│  └──────────┘ └──────────┘ └──────────┘ └────────────────────┘  │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────────┐  │
+│  │ Scheduler │ │ Secrets  │ │  Health  │ │ Integration Center │  │
+│  │ (cron)    │ │ (vault)  │ │ (checks) │ │ (23 integraciones) │  │
+│  └──────────┘ └──────────┘ └──────────┘ └────────────────────┘  │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │
+┌──────────────────────────▼───────────────────────────────────────┐
+│                       APPS LAYER                                  │
+│                                                                   │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
+│  │  CATEYE   │  │  ATLAS   │  │ ODYSSEY  │  │  HERMES  │  ...   │
+│  │seguridad  │  │ finanzas │  │investig. │  │  autom.  │        │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘        │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │
+┌──────────────────────────▼───────────────────────────────────────┐
+│                     API LAYER (FastAPI)                           │
+│  60+ routers · CORS · Auth · Rate Limiting · Extension SDK       │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │
+┌──────────────────────────▼───────────────────────────────────────┐
+│               FRONTEND (Vue 3 SPA) + DATABASE (SQLite)            │
+│  58 páginas · 9 Pinia stores · Tailwind CSS · Radix UI            │
+│  36+ tablas · SQLAlchemy · WAL mode · FK constraints              │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Lo que ORION puede hacer
+
+### 🧠 Core Platform
+- **EventBus** persistente con SQLite — pub/sub entre todos los módulos
+- **Decision Journal** — log append-only de todas las decisiones con feedback loop
+- **Unified Memory** — 10 namespaces con búsqueda, tags, prioridad, expiración
+- **Senior Copilot Agent** — 5 niveles de autoridad, 4 bandas de confianza, 6 reglas de policy
+- **Evidence Graph** — evidencia a favor/en contra/neutral por hipótesis (SQLite persistente)
+- **Integration Center** — 23 definiciones con status checks en runtime (env vars, vault, health callables)
+- **Secrets Manager** — IdentityVault bridge (AES-256-GCM) + env var fallback
+- **Health Center** — checks unificados por categoría (system/background/integration)
+- **Extension SDK** — manifest, hooks before/after, capabilities registry, hot reload
+- **Scheduler** adaptativo con cooldown por target + priorización ORION
+
+### 🛡️ CATEYE — Seguridad ofensiva
+- **ORION Score** (0.0-1.0) — algoritmo de ranking de programas con 6 factores
+- **EVH** (Expected Value per Hour) — ROI monetario por programa
+- **Pipeline E2E**: DISCOVER → RECON → HYPOTHESIS → VALIDATE → REPORT
+- 8 generadores de hipótesis (IDOR, auth bypass, SSRF, privesc, etc.)
+- **Hypothesis Challenger** — 7+ tipos de explicaciones alternativas, tests de contradicción
+- Reportes profesionales con exportación a Markdown/PDF/HTML
+- Auto-report: finding confirmado → borrador automático vía EventBus
 - OWASP ZAP integration (spider + passive scan)
-- 16 OSINT clients: Shodan, Censys, VirusTotal, SecurityTrails, and more
-- 3 scan modes: FAST (~2-5 min), DEEP (~15-30 min), API (no external tools)
+- 16 OSINT clients: Shodan, Censys, VirusTotal, SecurityTrails, etc.
 
-### 🔎 Hypothesis Generation & Validation
-- 8 rule-based generators (IDOR, auth bypass, SSRF, privesc, data exposure, GraphQL, business logic, file operation)
-- RequestReplayer (baseline vs probe comparison)
-- LLM semantic analysis
-- Confidence scoring and pattern memory
+### 💰 ATLAS — Finanzas
+- CoinGecko price feed (30+ cryptos, 24h change, cache free tier)
+- Takenos connector (balance, CSV import, Solana USDC sync)
+- Dashboard de patrimonio total con breakdown por activo
+- Objetivo Libertad 30K con progreso tracking
+- Exchange connectors: Binance, Coinbase (HMAC), Kraken (HMAC-SHA512)
 
-### 📊 Professional Reporting
-- AI-assisted report generation
-- Export: Markdown, PDF, HTML, TXT
-- Direct submission to platforms via API keys
-- Auto-report: confirmed finding → automatic draft
+### 🤖 HERMES — Automatización
+- 6 comandos: backup, status, health, logs, doctor, help
+- Safe mode con permission control
+- Action logging JSONL persistente
+- Windows shortcuts (WSL launcher)
 
-### 💰 Financial Truth Layer
-- Single source of truth for all earnings
-- 5 value categories: VERIFIED_REAL, PENDING, ESTIMATED, MANUAL, UNKNOWN
-- 4 blockchain connectors (BTC, ETH, SOL, TRX)
-- Withdrawal tracking with reorg-safe confirmations
-- Bank payout detection (Plaid API + CSV import)
-- Exchange integrations (Binance, Coinbase, Kraken, Bybit)
-
-### 🔐 Security & Privacy
-- 100% local and privacy-first
-- AES-256-GCM encrypted credential vault
-- Never auto-exploits or auto-submits without human approval
+### 🔐 Seguridad y privacidad
+- 100% local y privacy-first
+- AES-256-GCM encrypted credential vault (clave aleatoria, no derivada)
 - CSRF double-submit cookie middleware
-- JSONL audit trail with rotation
-- Rate limiting by identity + IP fallback
-
-### 🔌 Platform Integrations
-- **Bug Bounty:** HackerOne, Bugcrowd, Intigriti, YesWeHack (scraping + earnings sync)
-- **AuthHub:** Gmail OAuth2, WhatsApp, Telegram — token storage in Identity Vault
-- **Recon Tools:** 15+ external (must be installed separately)
+- Rate limiting por identity + IP fallback
+- JSONL audit trail con rotación (10MB, 3 backups)
+- Ed25519 para validación de licencias (sin HMAC hardcodeado)
 
 ---
 
-## What CATEYE does NOT do
-
-- ❌ Submit reports automatically without approval
-- ❌ Exploit vulnerabilities outside the validation pipeline
-- ❌ Modify program scopes
-- ❌ Accept platform Terms of Service
-- ❌ Spend money (crypto/fiat) without explicit user command
-- ❌ Replace human judgment on findings and reports
-- ❌ Be multi-user or SaaS
-- ❌ Be a C2 or malware
-- ❌ Invent findings without evidence
-- ❌ Delete evidence automatically
-
----
-
-## Quick Start
-
-### Prerequisites
-
-- Python 3.10+
-- Node.js 18+ (for frontend)
-- Git
-- External recon tools (optional): subfinder, httpx, katana, nuclei, amass, etc.
-
-### Installation
+## Inicio rápido
 
 ```bash
-# Clone
+# Clonar
 git clone https://github.com/AdriDob/Rastro.git
 cd Rastro
 
@@ -135,115 +154,72 @@ pip install -r requirements.txt
 # Frontend
 cd frontend && npm install && cd ..
 
-# Initialize database
+# Inicializar base de datos
 python run.py --setup
 
-# Seed demo data (optional but recommended)
-python scripts/seed_real.py
-```
-
-### Start
-
-```bash
-# Development mode (browser)
+# Modo desarrollo (navegador)
 python run.py --browser
-
-# Or manual: backend + frontend separately
-source .venv/bin/activate
-python run.py --dev
-
-# In another terminal
-cd frontend && npm run dev
 ```
 
-Open `http://127.0.0.1:8000` in your browser.
+Abrir `http://127.0.0.1:8000` en el navegador.
 
 ---
 
-## Architecture
+## Estado actual
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                     DESKTOP LAYER                             │
-│  run.py (State Machine) → PyWebView + Uvicorn + System Tray   │
-└──────────────────────────┬───────────────────────────────────┘
-                           │
-┌──────────────────────────▼───────────────────────────────────┐
-│                     API LAYER (FastAPI)                        │
-│  60+ routers · CORS · Auth · Rate Limiting · Scheduler       │
-└──────┬───────────────────────────────────────────┬────────────┘
-       │                                           │
-┌──────▼──────────────────┐     ┌──────────────────▼────────────┐
-│    CORE ENGINES (cores/) │     │       UI (Vue 3 SPA)          │
-│                          │     │                              │
-│  ├─ orion/     (AI)      │     │  46+ pages                   │
-│  ├─ agents/    (8 agents)│     │  9 Pinia stores              │
-│  ├─ recon/     (15 tools)│     │  Cyber theme glassmorphism   │
-│  ├─ engine/    (hypoth.) │     │  Tailwind CSS + Radix UI     │
-│  ├─ validation/          │     │  WebSocket bridge            │
-│  ├─ events/    (pub/sub) │     │                              │
-│  ├─ financial/ (truth)   │     │                              │
-│  ├─ crypto/    (wallets) │     │                              │
-│  └─ 30+ more modules     │     │                              │
-└──────┬──────────────────┘     └──────────────────────────────┘
-       │
-┌──────▼───────────────────────────────────────────────────────┐
-│                     DATABASE (SQLite)                          │
-│  36+ tables · SQLAlchemy · WAL mode · FK constraints          │
-└──────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Documentation
-
-| Document | Description |
+| Indicador | Valor |
 |---|---|
-| [`SYSTEM.md`](SYSTEM.md) | Full system architecture and technical reference |
-| [`FUNCTIONAL_SPEC.md`](FUNCTIONAL_SPEC.md) | Verified capabilities — what CATEYE can and cannot do |
-| [`USER_GUIDE.md`](USER_GUIDE.md) | Practical manual for daily use (Spanish) |
-| [`DAILY_WORKFLOW.md`](DAILY_WORKFLOW.md) | Daily, weekly, and monthly routines |
-| [`RELEASE_NOTES_v3.0.0.md`](RELEASE_NOTES_v3.0.0.md) | v3.0.0 release notes |
-| [`SETUP_GUIDE.md`](SETUP_GUIDE.md) | Optimal configuration guide |
-| [`CHANGELOG.md`](CHANGELOG.md) | Version history |
+| **Versión** | 4.3.2 STABLE |
+| **Tests backend** | 676 pasan, 2 xfailed, 0 fallos |
+| **Tests frontend** | 165 tests (Vitest + jsdom) |
+| **Lint** | 0 errores (Ruff + Biome) |
+| **Pipeline** | 5-stage E2E funcional |
+| **Pre-commit** | Ruff + pytest hooks activos |
+| **Apps activas** | CATEYE, ATLAS, ODYSSEY, HERMES |
+
+---
+
+## Documentación
+
+| Documento | Descripción |
+|---|---|
+| [`SYSTEM.md`](SYSTEM.md) | Arquitectura completa del sistema |
+| [`USER_GUIDE.md`](USER_GUIDE.md) | Manual de uso diario |
+| [`CONFIGURATION_GUIDE.md`](CONFIGURATION_GUIDE.md) | Guía de configuración |
+| [`EXTENSION_SDK.md`](EXTENSION_SDK.md) | Cómo crear extensiones |
+| [`HERMES_GUIDE.md`](docs/HERMES_GUIDE.md) | Manual de Hermes |
+| [`.ai/AGENT_CHARTER.md`](.ai/AGENT_CHARTER.md) | Constitución del sistema |
+| [`CHANGELOG.md`](CHANGELOG.md) | Historial de versiones |
+| [Screenshots](docs/screenshots/README.md) | Galería de capturas |
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology | Version |
+| Capa | Tecnología | Versión |
 |---|---|---|
 | Backend | Python + FastAPI | 3.10+ / 0.95+ |
 | ASGI | Uvicorn | 0.22+ |
 | ORM | SQLAlchemy + Pydantic v2 | 2.0+ |
-| Database | SQLite (WAL) | — |
+| DB | SQLite (WAL) / PostgreSQL | — |
 | Frontend | Vue 3 + TypeScript + Vite | 3.5+ / 5.8+ / 6.4+ |
 | CSS | Tailwind CSS | 4.1+ |
 | State | Pinia | 3.0+ |
 | UI | Radix Vue / Reka UI + Lucide Vue | — |
 | AI | Gemini · OpenRouter · Ollama · OpenAI | — |
-| Desktop | PyInstaller + PyWebView + Pystray | — |
-| Security | Cryptography (AES-256-GCM) | — |
-| Testing | pytest + pytest-timeout + pytest-cov | — |
+| Desktop | PyInstaller + PyWebView | — |
+| Seguridad | Cryptography (AES-256-GCM) | — |
+| Testing | pytest + Vitest + @vue/test-utils | — |
+| Linting | Ruff (Python) + Biome (frontend) | — |
 
 ---
 
-## Status
+## Licencia
 
-- **Version:** 3.0.0 STABLE
-- **Tests:** 393 pass, 2 xfailed, 0 failures
-- **Lint:** 0 errors (ruff)
-- **Pipeline:** 5-stage E2E functional
-- **License:** Proprietary (Ed25519 validation)
-
----
-
-## License
-
-Proprietary. See [SECURITY_POLICY.md](.ai/SECURITY_POLICY.md) for security details.
+Propietaria. Ver [SECURITY_POLICY.md](.ai/SECURITY_POLICY.md) para detalles de seguridad.
 
 ---
 
 <div align="center">
-  <sub>Built by bug bounty hunters, for bug bounty hunters. Hecho en 🇦🇷.</sub>
+  <sub>Hecho en 🇦🇷. ORION no es una empresa. Es un sistema para uso personal.</sub>
 </div>
