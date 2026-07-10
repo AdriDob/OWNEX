@@ -391,8 +391,50 @@ async def lifespan(app: FastAPI):
         bus.subscribe("finding:created", _copilot_finding_handler)
         bus.subscribe("finding:status_changed", _copilot_finding_handler)
         logger.info("[BOOT] Senior Copilot Agent subscribers registered")
+
+        # ── Evidence Graph ──────────────────────────────────────────────
+        _eg = None
+        try:
+            from core.evidence_graph.graph import get_evidence_graph
+
+            _eg = get_evidence_graph()
+            stats = _eg.get_stats()
+            logger.info(
+                "[BOOT] Evidence Graph initialized: %d nodes, %d hypotheses", stats["total_nodes"], stats["hypotheses"]
+            )
+        except Exception as exc:
+            logger.warning("[BOOT] Evidence Graph init error: %s", exc)
+
+        def _evidence_graph_handler(event_type, payload):
+            if _eg is None:
+                return
+            new_status = payload.get("new_status")
+            if new_status not in ("confirmed", "rejected", "inconclusive"):
+                return
+            hypothesis_id = payload.get("id", "unknown")
+            confidence = payload.get("confidence", 0.5)
+            try:
+                _eg.record_from_verdict(
+                    hypothesis_id=hypothesis_id,
+                    verdict_status=new_status,
+                    confidence=confidence,
+                )
+                balance = _eg.get_balance(hypothesis_id)
+                logger.debug(
+                    "[EVIDENCE] Recorded %s for %s (net=%.2f, for=%d, against=%d)",
+                    new_status,
+                    hypothesis_id,
+                    balance["net_score"],
+                    balance["for_count"],
+                    balance["against_count"],
+                )
+            except Exception as exc:
+                logger.warning("[EVIDENCE] Handler error: %s", exc)
+
+        bus.subscribe("finding:status_changed", _evidence_graph_handler)
+        logger.info("[BOOT] Evidence Graph subscriber registered")
     except Exception as exc:
-        logger.warning("Auto-report/Copilot setup failed: %s", exc)
+        logger.warning("Auto-report/Copilot/Evidence Graph setup failed: %s", exc)
 
     # Start Multi-Agent system
     try:
