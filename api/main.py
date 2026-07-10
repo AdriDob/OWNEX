@@ -99,12 +99,14 @@ async def lifespan(app: FastAPI):
     # Import all models before init_db() so SQLAlchemy metadata registers all tables
     from cores.learning import profile as _learning_models  # noqa: F401 — registers InvestigatorProfile, LearningEvent
     from cores.targets import models as _targets_models  # noqa: F401 — registers TargetIntel, Scope
+
     db.init_db()
     logger.info("Database initialized")
 
     # Initialize event bus and system state
     from cores.events.event_bus import get_event_bus
     from cores.system_state import get_system_state
+
     bus = get_event_bus()
     state = get_system_state()
     state.register_service("backend")
@@ -118,11 +120,13 @@ async def lifespan(app: FastAPI):
 
     # Check product behavior rules
     from cores.product_rules import enforce_on_startup
+
     enforce_on_startup()
     logger.info("Product behavior rules checked")
 
     # Initialize identity system
     from cores.identity.identity_manager import get_identity_manager
+
     identity = get_identity_manager()
     identity.ensure_identity()
     user_identity = identity.get_identity()
@@ -131,6 +135,7 @@ async def lifespan(app: FastAPI):
     # Initialize AuthHub
     try:
         from cores.authhub import get_authhub
+
         get_authhub().init_defaults()
         logger.info("AuthHub initialized with default providers")
     except Exception as exc:
@@ -138,46 +143,56 @@ async def lifespan(app: FastAPI):
 
     # Initialize orchestrator
     from cores.orchestrator.assistant_orchestrator import get_orchestrator
+
     orchestrator = get_orchestrator()
     orchestrator.suppress_noise_items(threshold=0.15)
     logger.info("Assistant orchestrator initialized")
 
     # Initialize execution layer
     from cores.actions.execution_tracker import get_execution_tracker
+
     get_execution_tracker()
     logger.info("Execution tracker initialized")
 
     from cores.accountability.outcome_tracker import get_outcome_tracker
+
     get_outcome_tracker()
     logger.info("Outcome tracker initialized")
 
     from cores.accountability.system_scorecard import get_system_scorecard
+
     scorecard = get_system_scorecard()
     scorecard.generate()
     logger.info("System scorecard initialized")
 
     from cores.explainability.explanation_engine import get_explanation_engine
+
     get_explanation_engine()
     logger.info("Explanation engine initialized")
 
     from cores.explainability.decision_trace import get_decision_trace
+
     get_decision_trace()
     logger.info("Decision trace collector initialized")
 
     from cores.memory.memory_store import get_memory_store
+
     get_memory_store()
     logger.info("Memory store initialized")
 
     from cores.memory.decision_memory import get_decision_memory
+
     get_decision_memory()
     logger.info("Decision memory initialized")
 
     from cores.memory.insight_archive import get_insight_archive
+
     get_insight_archive()
     logger.info("Insight archive initialized")
 
     # Consume memory into priority engine
     from cores.intelligence.priority_engine import get_priority_engine
+
     pe = get_priority_engine()
     result = pe.consume_memory()
     logger.info("Priority engine memory consumption: %s", result.get("status", "unknown"))
@@ -185,6 +200,7 @@ async def lifespan(app: FastAPI):
     # Discover opportunities on startup (non-blocking)
     try:
         from cores.opportunity import get_engine
+
         opp_engine = get_engine()
         opp_count = len(await asyncio.to_thread(opp_engine.discover_all))
         logger.info("Opportunity engine initialized with %d opportunities", opp_count)
@@ -197,6 +213,7 @@ async def lifespan(app: FastAPI):
     scheduler = None
     try:
         from api.scheduler import ScanScheduler
+
         scheduler = ScanScheduler(interval_minutes=get_config().scan_interval)
         t = asyncio.create_task(scheduler.start())
         t.add_done_callback(_background_tasks.discard)
@@ -208,6 +225,7 @@ async def lifespan(app: FastAPI):
     # Start background notification poller
     try:
         from api.routers.operations import start_notification_poller
+
         start_notification_poller()
         logger.info("Notification poller started")
     except Exception as exc:
@@ -216,6 +234,7 @@ async def lifespan(app: FastAPI):
     # Start WebSocket event bus bridge
     try:
         from cores.ws.bridge import start_event_bridge
+
         start_event_bridge()
         logger.info("WS event bridge started")
     except Exception as exc:
@@ -233,6 +252,7 @@ async def lifespan(app: FastAPI):
             register_whatsapp_channel,
             register_ws_forwarder,
         )
+
         register_db_bridge()
         register_desktop_channel()
         register_email_channel()
@@ -254,6 +274,7 @@ async def lifespan(app: FastAPI):
     # Initialize Financial Event System
     try:
         from cores.financial.events import init_financial_events
+
         init_financial_events()
         logger.info("[BOOT] Financial event system initialized")
     except Exception as exc:
@@ -262,19 +283,24 @@ async def lifespan(app: FastAPI):
     # Auto-report: when a finding is confirmed, generate a report draft
     try:
         from cores.events.event_bus import get_event_bus
+
         bus = get_event_bus()
+
         def _auto_report(event_type, payload):
             if payload.get("new_status") != "confirmed":
                 return
             from database import db as _db
+
             _db.init_db()
             session = _db.SessionLocal()
             try:
                 from cores.pipeline.report_service import create_report_from_findings
+
                 report = create_report_from_findings(
                     session=session,
                     finding_ids=[payload["id"]],
-                    program="", target=f"target_{payload.get('target_id')}",
+                    program="",
+                    target=f"target_{payload.get('target_id')}",
                     vulnerability=payload.get("title", ""),
                     severity=payload.get("severity", "medium"),
                 )
@@ -284,6 +310,7 @@ async def lifespan(app: FastAPI):
                 logger.warning("[AUTO] Auto-report failed for finding %s: %s", payload.get("id"), exc)
             finally:
                 session.close()
+
         bus.subscribe("finding:status_changed", _auto_report)
         logger.info("[BOOT] Auto-report subscriber registered")
 
@@ -291,6 +318,7 @@ async def lifespan(app: FastAPI):
         _tuner = None
         try:
             from cores.validation.feedback_tuner import FeedbackTuner
+
             _tuner = FeedbackTuner()
             logger.info("[BOOT] FeedbackTuner initialized — %s persisted events", len(_tuner.get_events()))
         except Exception as exc:
@@ -305,20 +333,71 @@ async def lifespan(app: FastAPI):
                 _tuner.record_feedback(payload)
                 result = _tuner.tune_if_ready()
                 if result.get("status") == "tuned":
-                    logger.info("[FEEDBACK] ConfidenceScorer weights adjusted after %s events — weights: %s",
-                                result["events_analyzed"], result["new_weights"])
+                    logger.info(
+                        "[FEEDBACK] ConfidenceScorer weights adjusted after %s events — weights: %s",
+                        result["events_analyzed"],
+                        result["new_weights"],
+                    )
                 elif result.get("status") == "error":
                     logger.warning("[FEEDBACK] Tuning error: %s", result.get("reason"))
             except Exception as exc:
                 logger.warning("[FEEDBACK] Handler error: %s", exc)
+
         bus.subscribe("finding:status_changed", _feedback_handler)
         logger.info("[BOOT] FeedbackTuner subscriber registered")
+
+        # ── Senior Copilot Agent ───────────────────────────────────────
+        _copilot = None
+        try:
+            from core.copilot.agent import CopilotAgent
+            from core.copilot.permissions import AuthorityLevel
+
+            _copilot = CopilotAgent(authority=AuthorityLevel.SENIOR_HUNTER)
+            logger.info("[BOOT] Senior Copilot Agent initialized (authority=%s)", _copilot.authority.value)
+        except Exception as exc:
+            logger.warning("[BOOT] Copilot Agent init error: %s", exc)
+
+        def _copilot_finding_handler(event_type, payload):
+            if _copilot is None:
+                return
+            try:
+                import asyncio
+
+                finding = {
+                    "id": payload.get("id"),
+                    "vulnerability_type": payload.get("vulnerability_type") or payload.get("type", ""),
+                    "severity": payload.get("severity"),
+                    "description": payload.get("title") or payload.get("description", ""),
+                    "status": payload.get("new_status") or payload.get("status"),
+                }
+                verdict = {"confidence": payload.get("confidence", 0.0)}
+                result = asyncio.run(_copilot.analyze_finding(finding, verdict))
+                if result.needs_human:
+                    logger.info(
+                        "[COPILOT] Finding %s needs human review (%d inconsistencies)",
+                        finding["id"],
+                        len(result.inconsistencies),
+                    )
+                else:
+                    logger.info(
+                        "[COPILOT] Finding %s analyzed: status=%s confidence=%.0f%%",
+                        finding["id"],
+                        result.status,
+                        result.confidence * 100,
+                    )
+            except Exception as exc:
+                logger.warning("[COPILOT] Analysis handler error: %s", exc)
+
+        bus.subscribe("finding:created", _copilot_finding_handler)
+        bus.subscribe("finding:status_changed", _copilot_finding_handler)
+        logger.info("[BOOT] Senior Copilot Agent subscribers registered")
     except Exception as exc:
-        logger.warning("Auto-report subscriber failed: %s", exc)
+        logger.warning("Auto-report/Copilot setup failed: %s", exc)
 
     # Start Multi-Agent system
     try:
         from cores.agents import start_all_agents
+
         agents = start_all_agents()
         logger.info("[BOOT] %d agents started", len(agents))
     except Exception as exc:
@@ -328,8 +407,10 @@ async def lifespan(app: FastAPI):
     fin_scheduler = None
     try:
         from cores.financial.scheduler import get_financial_sync_scheduler
+
         fin_scheduler = get_financial_sync_scheduler()
         import os
+
         fin_scheduler.interval_minutes = int(os.environ.get("CATEYE_SYNC_INTERVAL", "30"))
         t = asyncio.create_task(fin_scheduler.start())
         t.add_done_callback(_background_tasks.discard)
@@ -341,6 +422,7 @@ async def lifespan(app: FastAPI):
     # Bridge AgentBus → EventBus
     try:
         from cores.agents.bus import bridge_agent_bus_to_eventbus
+
         bridge_agent_bus_to_eventbus()
         logger.info("[BOOT] AgentBus → EventBus bridge started")
     except Exception as exc:
@@ -350,6 +432,7 @@ async def lifespan(app: FastAPI):
     discovery_monitor = None
     try:
         from cores.bounty_scraper.monitor import get_discovery_monitor
+
         discovery_monitor = get_discovery_monitor()
         await discovery_monitor.start()
         logger.info("[BOOT] Discovery monitor started")
@@ -359,6 +442,7 @@ async def lifespan(app: FastAPI):
     # Start Recovery Engine and Health Monitor
     try:
         from cores.recovery import get_health_monitor, get_recovery_engine
+
         recovery = get_recovery_engine()
         recovery.start()
         monitor = get_health_monitor()
@@ -370,6 +454,7 @@ async def lifespan(app: FastAPI):
     # Start RC7 Autonomous Intelligence Layer
     try:
         from cores.health import get_system_health_engine
+
         health_engine = get_system_health_engine()
         health_engine.start()
         logger.info("[BOOT] System health engine started")
@@ -394,13 +479,16 @@ async def lifespan(app: FastAPI):
                 dbm.register(app_id, app.db_path)
                 if app.models:
                     from sqlalchemy.orm import declarative_base
+
                     base = declarative_base()
                     dbm.run_migrations(app_id, base)
 
         # Register and start core scheduler
         core_bus = get_core_event_bus()
         orion_scheduler = get_core_scheduler()
-        orion_scheduler.set_job_handler(lambda job: core_bus.publish("scheduler:job_due", job_id=job.job_id, app_id=job.app_id))
+        orion_scheduler.set_job_handler(
+            lambda job: core_bus.publish("scheduler:job_due", job_id=job.job_id, app_id=job.app_id)
+        )
         for job_def in registry.get_scheduler_jobs():
             jd = JobDefinition(
                 job_id=job_def["job_id"],
@@ -412,13 +500,18 @@ async def lifespan(app: FastAPI):
             orion_scheduler.add_job(jd)
         await orion_scheduler.start()
 
-        logger.info("[ORION] App registry initialized: %d apps, %d databases, %d jobs",
-                     len(registry._apps), len(dbm.list_databases()), orion_scheduler.job_count)
+        logger.info(
+            "[ORION] App registry initialized: %d apps, %d databases, %d jobs",
+            len(registry._apps),
+            len(dbm.list_databases()),
+            orion_scheduler.job_count,
+        )
     except Exception as exc:
         logger.warning("[ORION] App registry init failed (non-fatal): %s", exc)
 
     try:
         from cores.optimization import get_optimization_engine
+
         opt_engine = get_optimization_engine()
         opt_engine.start()
         logger.info("[BOOT] Auto-optimization engine started")
@@ -427,6 +520,7 @@ async def lifespan(app: FastAPI):
 
     try:
         from cores.autonomous import get_autonomous_engine
+
         auto_engine = get_autonomous_engine()
         auto_engine.start()
         auto_engine.enable()
@@ -437,16 +531,22 @@ async def lifespan(app: FastAPI):
     # ── ORION Platform: extensions, secrets, health ──
     try:
         from core.app_registry import get_app_registry
+
         registry = get_app_registry()
         ext_status = registry.discover_extensions()
         if ext_status["discovered"] > 0:
-            logger.info("[ORION] Extensions: %d discovered, %d loaded, %d failed",
-                         ext_status["discovered"], ext_status["loaded"], ext_status["failed"])
+            logger.info(
+                "[ORION] Extensions: %d discovered, %d loaded, %d failed",
+                ext_status["discovered"],
+                ext_status["loaded"],
+                ext_status["failed"],
+            )
     except Exception as exc:
         logger.warning("[ORION] Extension discovery failed (non-fatal): %s", exc)
 
     try:
         from core.secrets.manager import get_secrets_manager
+
         sm = get_secrets_manager()
         logger.info("[ORION] Secrets manager initialized (%d keys cached)", len(sm.list_keys()))
     except Exception as exc:
@@ -455,18 +555,22 @@ async def lifespan(app: FastAPI):
     try:
         from core.health.checks import register_default_checks
         from core.health.engine import get_health_center
+
         center = get_health_center()
         register_default_checks(center)
         snapshot = center.run_all()
-        logger.info("[ORION] Health center initialized: %s (%d/%d checks passed)",
-                     snapshot.status.upper(),
-                     sum(1 for v in snapshot.checks.values() if v),
-                     len(snapshot.checks))
+        logger.info(
+            "[ORION] Health center initialized: %s (%d/%d checks passed)",
+            snapshot.status.upper(),
+            sum(1 for v in snapshot.checks.values() if v),
+            len(snapshot.checks),
+        )
 
         # Register ORION specific checks
         def check_extension_health() -> bool:
             try:
                 from core.extension.registry import get_extension_registry
+
                 er = get_extension_registry()
                 return er.failed_count == 0
             except Exception:
@@ -475,6 +579,7 @@ async def lifespan(app: FastAPI):
         def check_secrets_health() -> bool:
             try:
                 from core.secrets.manager import get_secrets_manager
+
                 sm = get_secrets_manager()
                 h = sm.health()
                 return h.get("vault_available", False) or h.get("cached_keys", 0) > 0
@@ -492,6 +597,7 @@ async def lifespan(app: FastAPI):
     # Stop RC7 Autonomous Intelligence Layer
     try:
         from cores.autonomous import get_autonomous_engine
+
         auto_engine = get_autonomous_engine()
         auto_engine.disable()
         auto_engine.stop()
@@ -501,6 +607,7 @@ async def lifespan(app: FastAPI):
 
     try:
         from cores.health import get_system_health_engine
+
         health_engine = get_system_health_engine()
         health_engine.stop()
         logger.info("[BOOT] System health engine stopped")
@@ -509,6 +616,7 @@ async def lifespan(app: FastAPI):
 
     try:
         from cores.optimization import get_optimization_engine
+
         opt_engine = get_optimization_engine()
         opt_engine.stop()
         logger.info("[BOOT] Auto-optimization engine stopped")
@@ -518,6 +626,7 @@ async def lifespan(app: FastAPI):
     # Stop Recovery Engine and Health Monitor
     try:
         from cores.recovery import get_health_monitor, get_recovery_engine
+
         monitor = get_health_monitor()
         monitor.stop()
         engine = get_recovery_engine()
@@ -529,6 +638,7 @@ async def lifespan(app: FastAPI):
     # Stop Multi-Agent system
     try:
         from cores.agents import stop_all_agents
+
         stop_all_agents()
         logger.info("[BOOT] All agents stopped")
     except Exception as exc:
@@ -569,6 +679,7 @@ async def lifespan(app: FastAPI):
     # Stop Notification Poller
     try:
         from api.routers.operations import stop_notification_poller
+
         stop_notification_poller()
         logger.info("[BOOT] Notification poller stopped")
     except Exception as exc:
@@ -580,6 +691,7 @@ async def lifespan(app: FastAPI):
             task.cancel()
     _background_tasks.clear()
     logger.info("[BOOT] Background tasks cancelled")
+
 
 # Read version from VERSION file (single source of truth)
 _VERSION_FILE = Path(__file__).resolve().parent.parent / "VERSION"
@@ -600,7 +712,9 @@ app = FastAPI(
 _allow_all = not get_config().desktop
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if _allow_all else [
+    allow_origins=["*"]
+    if _allow_all
+    else [
         "http://127.0.0.1:8000",
         "http://localhost:8000",
         "app://",
@@ -642,6 +756,7 @@ def _custom_openapi() -> dict:
                 method.setdefault("security", [{"BearerAuth": []}])
     app.openapi_schema = openapi_schema
     return app.openapi_schema
+
 
 app.openapi = _custom_openapi
 
@@ -714,8 +829,10 @@ app.include_router(hunter.router)
 # ── ORION Platform: core + app routers ──
 try:
     from core.api.routers import router as core_router
+
     app.include_router(core_router)
     from core.app_registry import get_app_registry
+
     registry = get_app_registry()
     registry.mount_routers(app)
     logger.info("[ORION] Core + app routers mounted")
@@ -724,8 +841,6 @@ except Exception as exc:
 
 
 APP_VERSION = _APP_VERSION
-
-
 
 
 @app.get("/api/health")
@@ -776,6 +891,7 @@ async def system_status():
 def _get_db_size_mb() -> float:
     try:
         from cores.platform.system import get_db_path
+
         p = get_db_path()
         if p.exists():
             return p.stat().st_size / 1024 / 1024
@@ -792,6 +908,7 @@ async def version():
 @app.get("/api/stats")
 async def stats():
     from database import db, models
+
     session = db.SessionLocal()
     try:
         targets = session.query(models.Target).count()
@@ -827,8 +944,8 @@ async def metrics():
 
     memory = get_memory()
     state = memory.get_state()
-    lines.append('# HELP CATEYE_intelligence Intelligence layer metrics')
-    lines.append('# TYPE CATEYE_intelligence gauge')
+    lines.append("# HELP CATEYE_intelligence Intelligence layer metrics")
+    lines.append("# TYPE CATEYE_intelligence gauge")
     lines.append(f'CATEYE_intelligence{{stat="patterns_learned"}} {state.get("total_patterns_learned", 0)}')
     lines.append(
         f'CATEYE_intelligence{{stat="recommendations_generated"}} {state.get("total_recommendations_generated", 0)}'
@@ -840,6 +957,7 @@ async def metrics():
     from cores.replay import list_replay_targets
     from cores.review_queue import build_review_queue
     from cores.timeline import build_timeline
+
     try:
         tl = build_timeline(limit=1)
         timeline_count = tl.to_dict().get("total_events", 0)
@@ -851,8 +969,8 @@ async def metrics():
     except Exception:
         timeline_count = replay_targets = confidence_count = review_count = 0
 
-    lines.append('# HELP CATEYE_system System hardening layer metrics')
-    lines.append('# TYPE CATEYE_system gauge')
+    lines.append("# HELP CATEYE_system System hardening layer metrics")
+    lines.append("# TYPE CATEYE_system gauge")
     lines.append(f'CATEYE_system{{stat="timeline_events"}} {timeline_count}')
     lines.append(f'CATEYE_system{{stat="replays_generated"}} {replay_targets}')
     lines.append(f'CATEYE_system{{stat="confidence_audits"}} {confidence_count}')
@@ -861,10 +979,11 @@ async def metrics():
     # ── Opportunity Intelligence metrics ────────────────────────────
     try:
         from cores.opportunity import get_engine
+
         engine = get_engine()
         opp_metrics = engine.get_metrics()
-        lines.append('# HELP CATEYE_opportunity Opportunity intelligence layer metrics')
-        lines.append('# TYPE CATEYE_opportunity gauge')
+        lines.append("# HELP CATEYE_opportunity Opportunity intelligence layer metrics")
+        lines.append("# TYPE CATEYE_opportunity gauge")
         lines.append(f'CATEYE_opportunity{{stat="total"}} {opp_metrics.get("opportunities_total", 0)}')
         lines.append(f'CATEYE_opportunity{{stat="providers_active"}} {opp_metrics.get("providers_active", 0)}')
         lines.append(f'CATEYE_opportunity{{stat="average_score"}} {opp_metrics.get("average_score", 0)}')
@@ -878,10 +997,11 @@ async def metrics():
     # ── Execution Layer metrics ─────────────────────────────────────
     try:
         from cores.actions.execution_tracker import get_execution_tracker
+
         et = get_execution_tracker()
         estats = et.get_stats()
-        lines.append('# HELP CATEYE_execution Execution layer metrics')
-        lines.append('# TYPE CATEYE_execution gauge')
+        lines.append("# HELP CATEYE_execution Execution layer metrics")
+        lines.append("# TYPE CATEYE_execution gauge")
         lines.append(f'CATEYE_execution{{stat="total"}} {estats.get("total_executions", 0)}')
         for atype, astats in estats.get("by_type", {}).items():
             safe_t = atype.replace(" ", "_").replace("-", "_")
@@ -890,6 +1010,7 @@ async def metrics():
             lines.append(f'CATEYE_execution{{stat="errors",type="{safe_t}"}} {astats.get("errors", 0)}')
 
         from cores.accountability.system_scorecard import get_system_scorecard
+
         sc = get_system_scorecard()
         latest = sc.get_latest()
         if latest:
@@ -899,14 +1020,17 @@ async def metrics():
             lines.append(f'CATEYE_execution{{stat="memory_usage"}} {latest.get("memory_usage", 0)}')
 
         from cores.memory.insight_archive import get_insight_archive
+
         ia = get_insight_archive()
         lines.append(f'CATEYE_execution{{stat="insights_total"}} {ia.total_count()}')
 
         from cores.explainability.explanation_engine import get_explanation_engine
+
         ee = get_explanation_engine()
         lines.append(f'CATEYE_execution{{stat="explanations"}} {ee.count()}')
 
         from cores.explainability.decision_trace import get_decision_trace
+
         dt = get_decision_trace()
         lines.append(f'CATEYE_execution{{stat="decision_traces"}} {dt.count()}')
     except Exception as exc:

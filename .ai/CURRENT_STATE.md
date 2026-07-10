@@ -1,12 +1,12 @@
 # Current State — Estado Real del Proyecto
 
-> **v4.1.0 STABLE** — ORION Financial Layer. CoinGecko, Takenos, Dashboard, Integraciones.
+> **v4.2.0 STABLE** — Senior Copilot Agent. Reasoning, auditing, review, planning.
 > Julio 2026.
 
 ## Testing
 
-- **Total de tests**: 531 pasan, 2 xfailed, 0 fallos
-- **Tests nuevos**: 83 tests (20 CoinGecko/Takenos + 15 Hermes Automation Agent)
+- **Total de tests**: 606 pasan, 2 xfailed, 0 fallos
+- **Tests nuevos**: 80 tests (Senior Copilot Agent)
 - **Comando**: `.venv/bin/python -m pytest --timeout=60`
 - `test_security.py` incluido (34 tests, todos verdes)
 - **Lint**: Ruff clean — 0 errores en todo el código nuevo
@@ -79,6 +79,7 @@
 | AgentBus → EventBus | `cores/agents/bus.py` | ✅ Bridge |
 | Auto-report | `api/main.py` | ✅ Nuevo subscriber |
 | except:pass → log | 15 archivos | ✅ Fixeado |
+| Senior Copilot Agent | `core/copilot/` | ✅ Subsystem completo: authority, policy, context, planner, explain, analyzer, review, auditors, EventBus integration |
 
 ## FASE 5 — ORION Reasoning Layer (Julio 2026)
 
@@ -87,7 +88,7 @@
 | Hypothesis Challenger | `cores/validation/challenger.py`, `gate.py`, `confidence.py`, `loop_engine.py`, `verdict_handler.py`, `models.py`, `db.py` | ✅ AlternativeExplainer (7 tipos), ContradictionTestDesigner, MissingVerificationsAnalyzer, uncertainty_penalty en scorer |
 | Evidence Graph | — | Pendiente |
 | Adaptive Report Gate | — | Pendiente |
-| FeedbackLearner pipeline | — | Pendiente |
+| FeedbackLearner pipeline | `core/validation/`, `api/main.py` | ✅ FeedbackTuner accumulates + applies weight adjustments (12 tests) |
 
 ## FASE 6 — Release hardening audit y fixes (Julio 2026)
 
@@ -117,8 +118,8 @@ Ver `docs/KNOWN_LIMITATIONS.md`:
 - ~~El motor de validación no refuta hipótesis~~ → ✅ Challenger: genera explicaciones alternativas + contrapruebas
 - ~~No evalúa explicaciones alternativas (recurso público, caché, stub)~~ → ✅ Challenger: AlternativeExplainer para 7+ tipos
 - No verifica ownership/RBAC automáticamente (los tests no se ejecutan, solo se diseñan)
-- No aprende de falsos positivos (FeedbackLearner existe pero no conectado)
-- ReportGate threshold fijo 0.6 para todos los tipos de vulnerabilidad
+- ~~No aprende de falsos positivos~~ → ✅ FeedbackTuner conectado (pesos se ajustan con feedback humano)
+- ~~ReportGate threshold fijo 0.6~~ → ✅ Threshold adaptativo por tipo de vulnerabilidad
 - El ContradictionTestDesigner diseña tests pero no los ejecuta (pendiente para v3.2)
 
 ## FASE 7 — ORION Platform v4.0.0 (Julio 2026)
@@ -157,4 +158,22 @@ Ver `docs/KNOWN_LIMITATIONS.md`:
 | User Guide | `docs/HERMES_GUIDE.md` | ✅ Documentación completa con ejemplos |
 | Windows shortcut | `scripts/hermes_shortcut.bat`, `scripts/hermes_silent.vbs` | ✅ Launcher para WSL |
 
-Las limitaciones restantes corresponden a v3.1 (ORION Reasoning Layer) — todas las features de v4.0.0, v4.1.0 y Hermes v0.1.0 están completas.
+Las limitaciones restantes corresponden a v3.1 (ORION Reasoning Layer) — todas las features de v4.0.0, v4.1.0, Hermes v0.1.0 y Senior Copilot Agent están completas.
+
+## FASE 10 — Senior Copilot Agent (Julio 2026)
+
+| Feature | Archivos | Estado |
+|---|---|---|
+| Authority Levels (5) | `core/copilot/permissions.py` | ✅ Observer, Assistant, Operator, Senior Hunter, Administrator |
+| Decision Confidence (4 bandas) | `core/copilot/permissions.py` | ✅ no_action, request_approval, safe_execute, auto_close |
+| Policy Engine (6 reglas) | `core/copilot/permissions.py` | ✅ Centralized safety rules, add/remove at runtime |
+| Context Builder | `core/copilot/context.py` | ✅ Aggregates finding, evidence, verdict, confidence, memory |
+| Explanation Engine | `core/copilot/explain.py` | ✅ Verdict, confidence, action, changes, alternatives |
+| Planner (6 tipos vuln) | `core/copilot/planner.py` | ✅ IDOR, SSRF, XSS, SQLi, Auth Bypass, Generic |
+| Finding Analyzer | `core/copilot/analyzer.py` | ✅ Evidence quality, inconsistencies, alternatives, confidence |
+| Auditors (4 tipos) | `core/copilot/auditor.py` | ✅ Health, Configuration, Security, Architecture |
+| Pre-Report Review (9 items) | `core/copilot/review.py` | ✅ Evidence, reproducibility, CVSS, CWE, impact, remediation |
+| Recommender | `core/copilot/recommender.py` | ✅ Context-aware next-step suggestions |
+| EventBus integration | `api/main.py` | ✅ finding:created + finding:status_changed subscribers |
+| Tests | `tests/test_copilot_agent.py` | ✅ 80 tests, todos pasan |
+| Architecture document | `.ai/COPILOT_ARCHITECTURE.md` | ✅ Responsabilities, boundaries, lifecycle, integration points |
