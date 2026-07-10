@@ -17,6 +17,7 @@ from core.database.manager import get_db_manager
 from core.extension.hooks import get_hook_registry
 from core.extension.registry import get_extension_registry
 from core.health.engine import get_health_center
+from core.integrations import init_integration_registry
 from core.scheduler.scheduler import get_core_scheduler
 from core.secrets.manager import get_secrets_manager
 
@@ -39,9 +40,7 @@ async def list_apps():
             "order": app.order,
             "has_agent": app.agent_class is not None,
             "has_db": bool(app.db_path),
-            "frontend_routes": [
-                {"path": r["path"], "name": r["name"]} for r in app.frontend_routes
-            ],
+            "frontend_routes": [{"path": r["path"], "name": r["name"]} for r in app.frontend_routes],
             "widgets": app.widgets,
             "providers": app.providers,
             "requires_auth": app.requires_auth,
@@ -106,6 +105,7 @@ async def list_hooks():
 async def list_capabilities():
     """List all registered capabilities."""
     from core.extension.capabilities import get_capability_registry
+
     registry = get_capability_registry()
     return {"capabilities": registry.list_capabilities()}
 
@@ -140,6 +140,7 @@ async def get_secret(key: str):
         return {"key": key, "value": value, "found": True}
     except KeyError:
         from fastapi.responses import JSONResponse
+
         return JSONResponse({"key": key, "found": False, "error": "Secret not found"}, status_code=404)
 
 
@@ -188,3 +189,43 @@ async def list_health_checks():
     """List all registered health checks."""
     center = get_health_center()
     return {"checks": center.list_checks()}
+
+
+# ── Integration Center endpoints ─────────────────────
+
+
+@router.get("/integrations")
+async def list_integrations():
+    """List all discovered integrations with current status."""
+    registry = init_integration_registry()
+    registry.refresh()
+    return registry.summary()
+
+
+@router.get("/integrations/{name}")
+async def get_integration_status(name: str):
+    """Get status for a single integration."""
+    registry = init_integration_registry()
+    status = registry.check(name)
+    if status is None:
+        from fastapi.responses import JSONResponse
+
+        return JSONResponse({"error": f"Integration '{name}' not found"}, status_code=404)
+    return status.to_dict()
+
+
+@router.post("/integrations/{name}/test")
+async def test_integration(name: str):
+    """Test a specific integration connection."""
+    registry = init_integration_registry()
+    status = registry.check(name)
+    if status is None:
+        from fastapi.responses import JSONResponse
+
+        return JSONResponse({"error": f"Integration '{name}' not found"}, status_code=404)
+    return {
+        "name": status.name,
+        "status": status.status,
+        "error": status.error,
+        "checked_at": status.checked_at,
+    }
