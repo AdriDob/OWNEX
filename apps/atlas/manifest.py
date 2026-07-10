@@ -38,11 +38,7 @@ manifest = IAppPlugin(
     agent_class=None,
     frontend_routes=[
         {"path": "/atlas/", "name": "atlas-dashboard", "component": "DashboardAtlas"},
-        {"path": "/atlas/portfolio", "name": "atlas-portfolio", "component": "PortfolioView"},
-        {"path": "/atlas/assets", "name": "atlas-assets", "component": "AssetsView"},
-        {"path": "/atlas/transactions", "name": "atlas-transactions", "component": "TransactionsView"},
-        {"path": "/atlas/providers", "name": "atlas-providers", "component": "ProviderSettings"},
-        {"path": "/atlas/alerts", "name": "atlas-alerts", "component": "AlertSettings"},
+        {"path": "/atlas/settings", "name": "atlas-settings", "component": "SettingsAtlas"},
     ],
     widgets=[
         {"id": "atlas-portfolio-value", "label": "Portfolio Value", "icon": "DollarSign", "query": "atlas/portfolio/value"},

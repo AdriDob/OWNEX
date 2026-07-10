@@ -359,30 +359,6 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'ATLAS — Inversiones' },
   },
   {
-    path: '/atlas/portfolio',
-    name: 'atlas-portfolio',
-    component: () => import('@/apps/atlas/DashboardAtlas.vue'),
-    meta: { title: 'Portfolio' },
-  },
-  {
-    path: '/atlas/assets',
-    name: 'atlas-assets',
-    component: () => import('@/apps/atlas/DashboardAtlas.vue'),
-    meta: { title: 'Activos' },
-  },
-  {
-    path: '/atlas/transactions',
-    name: 'atlas-transactions',
-    component: () => import('@/apps/atlas/DashboardAtlas.vue'),
-    meta: { title: 'Transacciones' },
-  },
-  {
-    path: '/atlas/providers',
-    name: 'atlas-providers',
-    component: () => import('@/apps/atlas/DashboardAtlas.vue'),
-    meta: { title: 'Proveedores' },
-  },
-  {
     path: '/atlas/settings',
     name: 'atlas-settings',
     component: () => import('@/apps/atlas/SettingsAtlas.vue'),
@@ -394,30 +370,6 @@ export const routes: RouteRecordRaw[] = [
     name: 'odyssey-dashboard',
     component: () => import('@/apps/odyssey/DashboardOdyssey.vue'),
     meta: { title: 'ODYSSEY — Analítica' },
-  },
-  {
-    path: '/odyssey/bankroll',
-    name: 'odyssey-bankroll',
-    component: () => import('@/apps/odyssey/DashboardOdyssey.vue'),
-    meta: { title: 'Bankroll' },
-  },
-  {
-    path: '/odyssey/bets',
-    name: 'odyssey-bets',
-    component: () => import('@/apps/odyssey/DashboardOdyssey.vue'),
-    meta: { title: 'Apuestas' },
-  },
-  {
-    path: '/odyssey/analytics',
-    name: 'odyssey-analytics',
-    component: () => import('@/apps/odyssey/DashboardOdyssey.vue'),
-    meta: { title: 'Analítica' },
-  },
-  {
-    path: '/odyssey/providers',
-    name: 'odyssey-providers',
-    component: () => import('@/apps/odyssey/DashboardOdyssey.vue'),
-    meta: { title: 'Proveedores' },
   },
   {
     path: '/odyssey/settings',

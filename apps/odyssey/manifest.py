@@ -42,10 +42,7 @@ manifest = IAppPlugin(
     agent_class=None,
     frontend_routes=[
         {"path": "/odyssey/", "name": "odyssey-dashboard", "component": "DashboardOdyssey"},
-        {"path": "/odyssey/bankroll", "name": "odyssey-bankroll", "component": "BankrollView"},
-        {"path": "/odyssey/bets", "name": "odyssey-bets", "component": "BetsView"},
-        {"path": "/odyssey/analytics", "name": "odyssey-analytics", "component": "AnalyticsView"},
-        {"path": "/odyssey/providers", "name": "odyssey-providers", "component": "ProviderSettings"},
+        {"path": "/odyssey/settings", "name": "odyssey-settings", "component": "SettingsOdyssey"},
     ],
     widgets=[
         {"id": "odyssey-bankroll-total", "label": "Bankroll", "icon": "Wallet", "query": "odyssey/bankroll/total"},

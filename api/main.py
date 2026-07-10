@@ -363,13 +363,19 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("System health engine failed to start (non-fatal): %s", exc)
 
-    # ── ORION Platform: initialize app registry and databases ──
+    # ── ORION Platform: initialize app registry, databases, scheduler ──
+    orion_scheduler = None
     try:
         from core.app_registry import get_app_registry
         from core.database.manager import get_db_manager
+        from core.events.event_bus import get_core_event_bus
+        from core.scheduler.scheduler import get_core_scheduler, JobDefinition
+
         registry = get_app_registry()
         registry.discover()
         dbm = get_db_manager()
+
+        # Register databases for each app
         for app_id, app in registry._apps.items():
             if app.db_path:
                 dbm.register(app_id, app.db_path)
@@ -377,7 +383,24 @@ async def lifespan(app: FastAPI):
                     from sqlalchemy.orm import declarative_base
                     base = declarative_base()
                     dbm.run_migrations(app_id, base)
-        logger.info("[ORION] App registry initialized: %d apps, %d databases", len(registry._apps), len(dbm.list_databases()))
+
+        # Register and start core scheduler
+        core_bus = get_core_event_bus()
+        orion_scheduler = get_core_scheduler()
+        orion_scheduler.set_job_handler(lambda job: core_bus.publish("scheduler:job_due", job_id=job.job_id, app_id=job.app_id))
+        for job_def in registry.get_scheduler_jobs():
+            jd = JobDefinition(
+                job_id=job_def["job_id"],
+                app_id=job_def["app_id"],
+                handler=job_def["handler"],
+                trigger=job_def.get("trigger", "interval"),
+                seconds=job_def.get("seconds", 3600),
+            )
+            orion_scheduler.add_job(jd)
+        await orion_scheduler.start()
+
+        logger.info("[ORION] App registry initialized: %d apps, %d databases, %d jobs",
+                     len(registry._apps), len(dbm.list_databases()), orion_scheduler.job_count)
     except Exception as exc:
         logger.warning("[ORION] App registry init failed (non-fatal): %s", exc)
 
@@ -460,6 +483,14 @@ async def lifespan(app: FastAPI):
             logger.info("[BOOT] Financial auto-sync scheduler stopped")
         except Exception as exc:
             logger.warning("Financial auto-sync scheduler stop error: %s", exc)
+
+    # Stop ORION Core Scheduler
+    if orion_scheduler is not None:
+        try:
+            await orion_scheduler.stop()
+            logger.info("[ORION] Core scheduler stopped")
+        except Exception as exc:
+            logger.warning("[ORION] Core scheduler stop error: %s", exc)
 
     # Stop Discovery Monitor
     if discovery_monitor is not None:
