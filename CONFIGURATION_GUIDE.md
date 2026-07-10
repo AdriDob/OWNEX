@@ -10,6 +10,15 @@
 | `ORION_EXTENSIONS_DIR` | `extensions/` | Custom extension directory |
 | `ORION_CONFIG_PROFILE` | `minimal` | Active config profile |
 | `LOG_LEVEL` | `INFO` | Logging level |
+| `COPILOT_AUTHORITY` | `observer` | Senior Copilot authority level (`observer`, `assistant`, `operator`, `senior_hunter`, `admin`) |
+| `COPILOT_MIN_CONFIDENCE_AUTO` | `0.70` | Min confidence for autonomous execution |
+| `COPILOT_MIN_CONFIDENCE_REPORT` | `0.92` | Min confidence for auto-reporting |
+| `COPILOT_MAX_DECISIONS` | `1000` | Max in-memory decisions in journal |
+| `COPILOT_ENABLE_AUTO_AUDIT` | `true` | Enable periodic system auditing |
+| `COPILOT_AUDIT_INTERVAL` | `24` | Audit interval in hours |
+| `COPILOT_ENABLE_AUTO_REVIEW` | `true` | Enable pre-report Copilot Review |
+| `COPILOT_MEMORY_ENABLED` | `true` | Enable Unified Memory integration |
+| `COPILOT_HUNTER_MODE` | `standard` | Hunter mode (`beginner`, `standard`, `senior`, `elite`, `research`, `autonomous`) |
 
 ## Config Profiles
 
