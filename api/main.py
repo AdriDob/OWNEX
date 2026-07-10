@@ -287,19 +287,32 @@ async def lifespan(app: FastAPI):
         bus.subscribe("finding:status_changed", _auto_report)
         logger.info("[BOOT] Auto-report subscriber registered")
 
-        # FP Feedback Loop: when a finding is rejected, feed FeedbackLearner
-        def _fp_feedback(event_type, payload):
-            if payload.get("new_status") != "rejected":
+        # FeedbackTuner: accumulate human feedback, periodically tune ConfidenceScorer
+        _tuner = None
+        try:
+            from cores.validation.feedback_tuner import FeedbackTuner
+            _tuner = FeedbackTuner()
+            logger.info("[BOOT] FeedbackTuner initialized — %s persisted events", len(_tuner.get_events()))
+        except Exception as exc:
+            logger.warning("[BOOT] FeedbackTuner init error: %s", exc)
+
+        def _feedback_handler(event_type, payload):
+            if payload.get("new_status") not in ("confirmed", "rejected"):
+                return
+            if _tuner is None:
                 return
             try:
-                from cores.validation.llm_analyzer import FeedbackLearner
-                learner = FeedbackLearner()
-                learner.analyze_verdict_patterns()
-                logger.info("[FP] Feedback recorded for finding %s", payload.get("id"))
+                _tuner.record_feedback(payload)
+                result = _tuner.tune_if_ready()
+                if result.get("status") == "tuned":
+                    logger.info("[FEEDBACK] ConfidenceScorer weights adjusted after %s events — weights: %s",
+                                result["events_analyzed"], result["new_weights"])
+                elif result.get("status") == "error":
+                    logger.warning("[FEEDBACK] Tuning error: %s", result.get("reason"))
             except Exception as exc:
-                logger.warning("[FP] FeedbackLearner error: %s", exc)
-        bus.subscribe("finding:status_changed", _fp_feedback)
-        logger.info("[BOOT] FP Feedback subscriber registered")
+                logger.warning("[FEEDBACK] Handler error: %s", exc)
+        bus.subscribe("finding:status_changed", _feedback_handler)
+        logger.info("[BOOT] FeedbackTuner subscriber registered")
     except Exception as exc:
         logger.warning("Auto-report subscriber failed: %s", exc)
 

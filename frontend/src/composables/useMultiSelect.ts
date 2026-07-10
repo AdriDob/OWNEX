@@ -1,10 +1,10 @@
 import { computed, type Ref, type ComputedRef } from 'vue'
-import { useUiStore, type MicroEntity } from '@/stores/ui'
+import { useUIStore, type MicroEntity } from '@/stores/ui'
 import { api } from '@/lib/api'
 import { useToast } from '@/composables/useToast'
 
 export function useMultiSelect() {
-  const store = useUiStore()
+  const store = useUIStore()
   const { toast } = useToast()
 
   const selected = computed<Set<string>>(() => new Set(store.selectedIds))

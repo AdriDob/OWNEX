@@ -7,12 +7,11 @@ import Badge from './Badge.vue'
 
 const store = useUIStore()
 
-const left = computed(() => store.compareLeft)
-const right = computed(() => store.compareRight)
+const left = computed(() => store.compareEntities[0])
+const right = computed(() => store.compareEntities[1])
 
 function close() {
-  store.compareLeft = null
-  store.compareRight = null
+  store.clearCompare()
 }
 
 function diffClass(leftVal: any, rightVal: any, key: string): string {

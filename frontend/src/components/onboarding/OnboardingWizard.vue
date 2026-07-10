@@ -381,7 +381,7 @@ function prev() {
                   <Badge variant="success" class="font-mono text-[10px] px-3 py-1">
                     <Sparkles class="mr-1 h-3 w-3" /> Sistema configurado
                   </Badge>
-                  <Badge variant="secondary" class="font-mono text-[10px] px-3 py-1">
+                  <Badge variant="outline" class="font-mono text-[10px] px-3 py-1">
                     <Server class="mr-1 h-3 w-3" /> {{ overallStatus === 'ok' ? 'Backend OK' : 'Backend con advertencias' }}
                   </Badge>
                 </div>

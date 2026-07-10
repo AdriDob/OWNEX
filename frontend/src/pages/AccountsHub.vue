@@ -31,6 +31,7 @@ interface HubData {
     crypto_total_usd: number
     verified_balance: number
     pending_balance: number
+    withdrawn_total?: number
   }
 }
 

@@ -52,7 +52,7 @@ function eventColor(event: string): string {
   return 'text-muted-foreground'
 }
 
-function eventBadge(event: string): string {
+function eventBadge(event: string): 'success' | 'warning' | 'destructive' | 'outline' {
   if (event.includes('payout') || event.includes('completed') || event.includes('deposit') || event.includes('reward') || event.includes('yield')) return 'success'
   if (event.includes('pending') || event.includes('processing') || event.includes('requested')) return 'warning'
   if (event.includes('failed') || event.includes('rejected') || event.includes('error')) return 'destructive'

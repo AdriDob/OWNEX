@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch, onUnmounted } from 'vue'
+import { computed, watch, onUnmounted, type Component } from 'vue'
 import { useUIStore } from '@/stores/ui'
 import { X, FileText, Activity, Code, List, History, Grid3X3, Link, Terminal, ExternalLink } from '@lucide/vue'
 import Badge from './Badge.vue'
