@@ -54,6 +54,22 @@ def log_decision(
         db.add(entry)
         db.commit()
         logger.info("Decision logged: %s — %s (%s)", decision_id, action, app_id)
+
+        # Publish EventBus event
+        try:
+            from core.events.event_bus import get_core_event_bus
+
+            bus = get_core_event_bus()
+            bus.publish(
+                "decision:recorded",
+                decision_id=decision_id,
+                app_id=app_id,
+                agent_id=agent_id,
+                action=action,
+                confidence=confidence,
+            )
+        except Exception:
+            logger.debug("EventBus not available for decision event")
     except Exception as exc:
         db.rollback()
         logger.error("Failed to log decision: %s", exc)

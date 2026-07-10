@@ -10,10 +10,13 @@ import logging
 from datetime import datetime, timezone
 
 from fastapi import APIRouter
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from core.app_registry import get_app_registry
 from core.database.manager import get_db_manager
+from core.decision_journal import get_decisions as dj_get
+from core.decision_journal import record_outcome as dj_outcome
 from core.extension.hooks import get_hook_registry
 from core.extension.registry import get_extension_registry
 from core.health.engine import get_health_center
@@ -139,8 +142,6 @@ async def get_secret(key: str):
         value = manager.get_or_raise(key)
         return {"key": key, "value": value, "found": True}
     except KeyError:
-        from fastapi.responses import JSONResponse
-
         return JSONResponse({"key": key, "found": False, "error": "Secret not found"}, status_code=404)
 
 
@@ -208,8 +209,6 @@ async def get_integration_status(name: str):
     registry = init_integration_registry()
     status = registry.check(name)
     if status is None:
-        from fastapi.responses import JSONResponse
-
         return JSONResponse({"error": f"Integration '{name}' not found"}, status_code=404)
     return status.to_dict()
 
@@ -220,8 +219,6 @@ async def test_integration(name: str):
     registry = init_integration_registry()
     status = registry.check(name)
     if status is None:
-        from fastapi.responses import JSONResponse
-
         return JSONResponse({"error": f"Integration '{name}' not found"}, status_code=404)
     return {
         "name": status.name,
@@ -229,3 +226,42 @@ async def test_integration(name: str):
         "error": status.error,
         "checked_at": status.checked_at,
     }
+
+
+# ── Decision Journal endpoints ──────────────────────
+
+
+@router.get("/decisions")
+async def list_decisions(
+    app_id: str | None = None,
+    agent_id: str | None = None,
+    outcome: str | None = None,
+    limit: int = 100,
+):
+    """Query the decision journal with optional filters."""
+    return {"decisions": dj_get(app_id=app_id, agent_id=agent_id, outcome=outcome, limit=limit)}
+
+
+@router.get("/decisions/{decision_id}")
+async def get_decision(decision_id: str):
+    """Get a single decision by ID."""
+    decisions = dj_get(limit=1000)
+    for d in decisions:
+        if d["decision_id"] == decision_id:
+            return d
+    return JSONResponse({"error": f"Decision '{decision_id}' not found"}, status_code=404)
+
+
+class OutcomeRequest(BaseModel):
+    outcome: str
+    reward: float = 0.0
+    notes: str = ""
+
+
+@router.post("/decisions/{decision_id}/outcome")
+async def record_decision_outcome(decision_id: str, body: OutcomeRequest):
+    """Record the outcome of a previous decision."""
+    ok = dj_outcome(decision_id, outcome=body.outcome, reward=body.reward, notes=body.notes)
+    if not ok:
+        return JSONResponse({"error": f"Decision '{decision_id}' not found"}, status_code=404)
+    return {"decision_id": decision_id, "outcome": body.outcome, "recorded": True}
