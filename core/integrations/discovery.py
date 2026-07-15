@@ -119,10 +119,36 @@ BUILTIN_INTEGRATIONS: list[IntegrationDef] = [
         env_keys=["CATEYE_TWILIO_ACCOUNT_SID"],
         tags=["notification"],
     ),
+    IntegrationDef(
+        "discord",
+        "messaging",
+        "Discord webhook for push notifications",
+        env_keys=["CATEYE_DISCORD_WEBHOOK_URL"],
+        vault_provider="discord",
+        tags=["notification"],
+    ),
     # ── Infrastructure ──
     IntegrationDef("identity_vault", "infrastructure", "Encrypted credential store (AES-256-GCM)", tags=["system"]),
     IntegrationDef("event_bus", "infrastructure", "Internal pub/sub event system", tags=["system"]),
     IntegrationDef("database", "infrastructure", "SQLite / PostgreSQL database backend", tags=["system"]),
+    # ── Fiscal / Tax ──
+    IntegrationDef(
+        "arca",
+        "financial",
+        "ARCA (ex AFIP) — Argentine tax authority electronic invoicing",
+        env_keys=["ARCA_CUIT", "ARCA_CERT_PATH", "ARCA_ENVIRONMENT"],
+        vault_provider="arca",
+        tags=["tax", "argentina", "invoicing"],
+    ),
+    # ── Productivity ──
+    IntegrationDef(
+        "outlook",
+        "messaging",
+        "Microsoft Outlook / Graph API — email, calendar, contacts sync",
+        env_keys=["CATEYE_OUTLOOK_CLIENT_ID", "CATEYE_OUTLOOK_TENANT_ID"],
+        vault_provider="outlook",
+        tags=["productivity", "email", "calendar"],
+    ),
 ]
 
 

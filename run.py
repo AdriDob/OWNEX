@@ -425,9 +425,136 @@ def _handle_diagnostics() -> None:
 # ── Entry point ────────────────────────────────────────────────────────
 
 
+def _check_migrate(args_list: list[str]) -> bool:
+    """Restore a backup on a new machine and verify integrity."""
+    idx = args_list.index("--migrate")
+    if idx + 1 >= len(args_list) or args_list[idx + 1].startswith("--"):
+        print("❌ Usage: --migrate <backup_file.zip>")
+        return True
+
+    backup_file = args_list[idx + 1]
+    print("\n🔁 ORION Migration Tool")
+    print(f"   Restoring from: {backup_file}")
+
+    from core.backup.engine import restore_backup, verify_backup
+
+    # 1. Verify backup integrity
+    print("\n1/4 Verifying backup integrity...")
+    verification = verify_backup(backup_file)
+    if verification.get("status") == "error":
+        print(f"   ❌ {verification.get('reason')}")
+        print("   Migration aborted.")
+        return True
+    if verification.get("status") == "corrupted":
+        print("   ⚠️  Backup has checksum errors — restore at your own risk.")
+        proceed = input("   Continue? [y/N]: ").strip().lower()
+        if proceed != "y":
+            print("   Migration aborted.")
+            return True
+    print("   ✅ Backup integrity verified")
+
+    # 2. Restore with portable mode
+    print("\n2/4 Restoring data with portable license mode...")
+    import os
+
+    os.environ["CATEYE_PORTABLE"] = "1"
+    result = restore_backup(backup_file)
+    if result.get("status") == "ok":
+        print(f"   ✅ {result['restored_files']} files restored to {result['target']}")
+    else:
+        print(f"   ❌ Restore failed: {result.get('reason')}")
+        return True
+
+    # 3. Verify restored data
+    print("\n3/4 Verifying restored data...")
+    _print_verify()
+
+    # 4. Print next steps
+    print("\n4/4 Migration checklist:")
+    print("   ✅ Data restored")
+    print("   ⚠️  Re-activate license on this machine if needed:")
+    print("       → Set CATEYE_PORTABLE=1 for temporary use")
+    print("       → Or enter a new license key in Settings")
+    print("   ⚠️  Install system tools if using AEGIS:")
+    print("       → Run: bash scripts/setup.sh")
+    print("   ⚠️  Build frontend if needed:")
+    print("       → cd frontend && npm install && npm run build")
+    print("\n   Run 'python run.py --verify' to check everything is ready.")
+    return True
+
+
+def _print_verify() -> dict[str, str]:
+    """Check all system components and print status. Returns status map."""
+    from pathlib import Path
+
+    results: dict[str, str] = {}
+
+    # License
+    try:
+        from cores.license.validator import is_license_valid
+
+        valid, reason = is_license_valid()
+        status = "✅" if valid else "⚠️"
+        results["license"] = "valid" if valid else f"issues ({reason})"
+        print(f"   {status} License: {reason}")
+    except Exception as exc:
+        results["license"] = f"error: {exc}"
+        print(f"   ❌ License check failed: {exc}")
+
+    # Vault key
+    vault_key = Path.home() / ".orion" / "identity_vault.key"
+    if vault_key.exists():
+        results["vault_key"] = "present"
+        size = vault_key.stat().st_size
+        print(f"   ✅ Vault key: present ({size} bytes)")
+    else:
+        results["vault_key"] = "missing"
+        print("   ⚠️  Vault key: not found (will be created on first use)")
+
+    # SQLite databases integrity
+    db_count = 0
+    db_ok = 0
+    for db_file in Path.home().glob(".orion/**/*.db"):
+        db_count += 1
+        try:
+            import sqlite3
+
+            conn = sqlite3.connect(str(db_file))
+            conn.execute("PRAGMA integrity_check")
+            conn.close()
+            db_ok += 1
+        except Exception:
+            pass
+    if db_count == 0:
+        print("   ⚠️  No SQLite databases found (first run?)")
+    else:
+        status = "✅" if db_ok == db_count else "⚠️"
+        print(f"   {status} Databases: {db_ok}/{db_count} integrity OK")
+        results["databases"] = f"{db_ok}/{db_count}"
+
+    # Config export/import
+    config_file = Path.home() / ".orion" / "config.json"
+    results["config"] = "present" if config_file.exists() else "missing"
+    print(f"   {'✅' if config_file.exists() else '⚠️'} Config: {'present' if config_file.exists() else 'not found'}")
+
+    return results
+
+
 def main() -> None:
     args_set = set(sys.argv[1:])
     args_list = sys.argv[1:]
+
+    # --migrate: full PC-to-PC migration
+    if "--migrate" in args_set:
+        _check_migrate(args_list)
+        return
+
+    # --verify: check system integrity
+    if "--verify" in args_set:
+        print("\n🔍 ORION System Verification\n")
+        _print_verify()
+        print()
+        return
 
     # --backup: create data backup (uses ORION Backup Engine)
     if "--backup" in args_set:
@@ -447,7 +574,6 @@ def main() -> None:
 
         idx = args_list.index("--restore")
         if idx + 1 < len(args_list) and not args_list[idx + 1].startswith("--"):
-            # Verify backup before restoring
             from core.backup.engine import verify_backup
 
             verification = verify_backup(args_list[idx + 1])

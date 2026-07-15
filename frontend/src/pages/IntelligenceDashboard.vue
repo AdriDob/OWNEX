@@ -113,7 +113,7 @@ onMounted(async () => {
           </div>
           <div v-if="trends.length === 0" class="py-6 text-center text-xs text-muted-foreground">No trend data available yet</div>
           <div v-else class="space-y-2">
-            <div v-for="(t, i) in trends" :key="i" class="rounded-lg bg-[#1e2230] border border-[#2a2e3d] p-3">
+            <div v-for="(t, i) in trends" :key="i" class="rounded-lg bg-surface/50 border border-border/40 p-3">
               <div class="flex items-center justify-between mb-1">
                 <span class="text-xs font-semibold text-foreground">{{ t.name }}</span>
                 <Badge :variant="t.direction === 'up' ? 'success' : t.direction === 'down' ? 'destructive' : 'warning'" class="text-[10px]">{{ t.direction }}</Badge>
@@ -133,15 +133,15 @@ onMounted(async () => {
           </div>
           <div v-if="!recommendations" class="py-6 text-center text-xs text-muted-foreground">No recommendations generated yet</div>
           <div v-else class="space-y-2">
-            <div v-for="(r, i) in (recommendations.targets || []).slice(0, 3)" :key="'t-'+i" class="rounded-lg bg-[#1e2230] border border-[#2a2e3d] p-3">
+            <div v-for="(r, i) in (recommendations.targets || []).slice(0, 3)" :key="'t-'+i" class="rounded-lg bg-surface/50 border border-border/40 p-3">
               <p class="text-xs font-semibold text-foreground">🎯 {{ r.name }}</p>
               <p class="text-[11px] text-muted-foreground mt-0.5">{{ r.reason }}</p>
             </div>
-            <div v-for="(r, i) in (recommendations.surfaces || []).slice(0, 3)" :key="'s-'+i" class="rounded-lg bg-[#1e2230] border border-[#2a2e3d] p-3">
+            <div v-for="(r, i) in (recommendations.surfaces || []).slice(0, 3)" :key="'s-'+i" class="rounded-lg bg-surface/50 border border-border/40 p-3">
               <p class="text-xs font-semibold text-foreground">🔍 {{ r.surface }}</p>
               <p class="text-[11px] text-muted-foreground mt-0.5">{{ r.reason }}</p>
             </div>
-            <div v-for="(r, i) in (recommendations.quick_wins || []).slice(0, 3)" :key="'q-'+i" class="rounded-lg bg-[#1e2230] border border-[#2a2e3d] p-3">
+            <div v-for="(r, i) in (recommendations.quick_wins || []).slice(0, 3)" :key="'q-'+i" class="rounded-lg bg-surface/50 border border-border/40 p-3">
               <p class="text-xs font-semibold text-foreground">⚡ {{ r.endpoint }}</p>
               <p class="text-[11px] text-muted-foreground mt-0.5">{{ r.reason }}</p>
             </div>

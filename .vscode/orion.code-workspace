@@ -1,0 +1,24 @@
+{
+  "folders": [
+    { "name": "Rastro", "path": ".." }
+  ],
+  "settings": {
+    "files.watcherExclude": {
+      "archive_cleanup/**": true,
+      "dist/**": true,
+      "build/**": true,
+      "node_modules/**": true,
+      ".venv/**": true,
+      "android/**": true,
+      "**/__pycache__/**": true,
+      "**/.git/objects/**": true
+    },
+    "search.exclude": {
+      "archive_cleanup/": true,
+      "dist/": true,
+      "build/": true,
+      "node_modules/": true,
+      ".venv/": true
+    }
+  }
+}

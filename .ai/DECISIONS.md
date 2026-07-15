@@ -125,3 +125,17 @@
   - El humano ve qué no se verificó, no solo el score final
   - 0 regresiones: el parámetro vulnerability_type tiene default "unknown" que da genéricos
 - **Condiciones para reabrir**: Si se necesita que el Challenger ejecute los contradiction_tests automáticamente (hoy solo los diseña y recomienda). Eso requiere integrar con replayer como mutaciones adicionales.
+
+## 2026-07-11: RC1 — De construir a operar
+
+- **Problema**: ORION había acumulado 12+ dominios funcionales (Core, CATEYE, ATLAS, ODYSSEY, HERMES, AEGIS, Copilot, Companion, Workflows, Unified Memory, Health Center, Mission Control). El instinto natural era seguir agregando módulos. Sin embargo, el sistema ya cubre todo el flujo diario del usuario.
+- **Alternativas consideradas**:
+  1. **Congelar desarrollo, operar durante semanas reales (elegido)** — El mayor valor no viene de nuevas features sino de confiar en el sistema durante uso real continuo. Medir por indicadores operativos (días sin incidentes, tiempo hasta revisar MC < 1 minuto, clics reducidos).
+  2. Seguir agregando módulos — Aumenta complejidad sin cerrar loops funcionales. Infla el proyecto sin validar lo existente.
+  3. Time Machine / Sandbox / Observatorio — Ideas valiosas para RC2/RC3, no para RC1. Implementar ahora distrae de la validación operativa.
+- **Decisión**: RC1 congelado. No se escribe una línea de código nuevo que no sea corrección de bug, seguridad o rendimiento. El proyecto entra en fase operativa mínima 2-4 semanas. Después se evalúa qué mejoras (solo Time Machine, Sandbox, Observatorio) justifican RC2.
+- **Impacto**:
+  - El usuario pasa de "operador manual" a "estratega" — solo decide, prioriza, aprueba, descarta
+  - El sistema se evalúa por resultados observables (dinero generado, tiempo ahorrado, automatizaciones ejecutadas), no por cantidad de código
+  - ORION se convierte en un "sistema operativo de trabajo" que envejece bien
+- **Filosofía registrada**: ORION no crece por expansión. Crece por consolidación. Cada clic innecesario que desaparece vale más que veinte features nuevas. Dentro de 5 años ORION funciona no por sus miles de líneas sino porque tiene configuración portable, backups, export/import, plugins, mantenimiento, rollback, auditoría, Health Center, Update Manager y Mission Control.

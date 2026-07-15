@@ -7,8 +7,8 @@ import type { PlatformStatus, BankAccount } from '@/lib/api'
 import {
   Banknote, Bug, Cable, Camera, ChevronLeft, ChevronRight, Cpu, Dices,
   DollarSign, ExternalLink, Eye, FileSearch, FileText, Lightbulb, Link2,
-  MessageCircle, Search, Settings, Target, TrendingUp, Unlink,
-  Activity, Database, RefreshCw, X,
+  MessageCircle, Search, Settings, Shield, Target, TrendingUp, Unlink,
+  Activity, Database, RefreshCw, X, HeartPulse, Smartphone,
 } from '@lucide/vue'
 
 const hunt = useHuntStore()
@@ -53,16 +53,20 @@ const navItems = [
     { name: 'Reportes', path: '/reports', icon: FileText },
     { name: 'Investigaciones', path: '/investigations', icon: Search },
     { name: 'Hipótesis', path: '/hypotheses', icon: Lightbulb },
+    { name: 'Workflows', path: '/workflows', icon: Activity },
   ]},
   { section: 'Apps', items: [
     { name: 'ORION', path: '/orion/', icon: Activity },
     { name: 'ATLAS', path: '/atlas/', icon: TrendingUp },
     { name: 'ODYSSEY', path: '/odyssey/', icon: Dices },
+    { name: 'AEGIS', path: '/aegis/', icon: Shield },
   ]},
   { section: 'Sistema', items: [
     { name: 'Agentes', path: '/agents', icon: Cpu },
     { name: 'Evidencia', path: '/evidence', icon: FileSearch },
     { name: 'Capturas', path: '/screenshots', icon: Camera },
+    { name: 'Health Center', path: '/health-center', icon: HeartPulse },
+    { name: 'Companion', path: '/companion', icon: Smartphone },
     { name: 'Configuración', path: '/settings', icon: Settings },
   ]},
 ]
@@ -138,7 +142,7 @@ function formatCompact(n: number) {
     </button>
 
     <!-- Logo CATEYE -->
-    <div class="flex h-14 items-center gap-3 border-b border-border/40 px-4 scanline">
+    <div class="flex h-14 items-center gap-3 border-b border-border/40 px-4">
       <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/30">
         <Eye class="h-4 w-4" />
       </div>
@@ -166,7 +170,7 @@ function formatCompact(n: number) {
     <!-- Balance summary -->
     <Transition name="fade">
       <div v-if="!collapsed && !loading" class="border-b border-border/30 px-4 py-3">
-        <div class="rounded-lg cyber-card px-3 py-2.5">
+        <div class="rounded-lg card-base px-3 py-2.5">
           <p class="font-mono text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Verificado</p>
           <p class="mt-0.5 font-mono text-base font-bold tabular-nums text-success">{{ formatCompact(totalEarned) }}</p>
           <div class="mt-1 flex items-center justify-between font-mono text-[10px]">

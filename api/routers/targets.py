@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
@@ -21,7 +20,23 @@ class TargetCreate(BaseModel):
 
 @router.post("")
 def create_target(body: TargetCreate):
-    return svc_create_target(name=body.name, domain=body.domain)
+    result = svc_create_target(name=body.name, domain=body.domain)
+    # Notify COPILOT for engagement plan
+    try:
+        from cores.events.event_bus import get_event_bus
+
+        bus = get_event_bus()
+        bus.publish(
+            "target:created",
+            {
+                "id": result.get("id"),
+                "name": result.get("name", body.name),
+                "domain": result.get("domain", body.domain),
+            },
+        )
+    except Exception:
+        pass
+    return result
 
 
 @router.get("", response_model=PaginatedResponse)
@@ -48,6 +63,7 @@ def get_target_detail(target_id: int):
 async def trigger_target_scan(target_id: int, body: ScanTriggerRequest):
     from cores.orchestrator.scan_service import launch_scan
     from database import db
+
     t = get_target(target_id)
     if not t:
         raise HTTPException(status_code=404, detail="Target not found")
@@ -67,11 +83,13 @@ async def trigger_target_scan(target_id: int, body: ScanTriggerRequest):
 @router.get("/{target_id}/summary")
 def get_target_summary(target_id: int):
     from database import db, models
+
     t = get_target(target_id)
     if not t:
         raise HTTPException(status_code=404, detail="Target not found")
     from cores.engine.unified_classifier import classify as unified_classify
     from cores.engine.unified_scoring import score_target as unified_score_target
+
     session = db.SessionLocal()
     try:
         endpoints_raw = session.query(models.Endpoint).filter(models.Endpoint.target_id == target_id).all()
@@ -83,7 +101,7 @@ def get_target_summary(target_id: int):
     has_admin = False
     has_graphql = False
     for ep in endpoints_raw:
-        params = ep.parsed_params if hasattr(ep, 'parsed_params') else {}
+        params = ep.parsed_params if hasattr(ep, "parsed_params") else {}
         metadata = unified_classify(ep.path, ep.method, params)
         labels = metadata.get("labels", [])
         entries.append({"path": ep.path, "method": ep.method, "labels": labels})
@@ -95,11 +113,13 @@ def get_target_summary(target_id: int):
             has_admin = True
         if not has_graphql and "graphql" in labels:
             has_graphql = True
-    sc = unified_score_target({
-        "is_saas": bool(t.get("domain")),
-        "has_api": has_api,
-        "multi_tenant": multi_tenant,
-        "has_admin": has_admin,
-        "has_graphql": has_graphql,
-    })
+    sc = unified_score_target(
+        {
+            "is_saas": bool(t.get("domain")),
+            "has_api": has_api,
+            "multi_tenant": multi_tenant,
+            "has_admin": has_admin,
+            "has_graphql": has_graphql,
+        }
+    )
     return {"target": t, "endpoints": entries, "score": sc}

@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import logging
@@ -61,13 +60,17 @@ def create_finding(body: FindingCreate):
         )
         try:
             from cores.events.event_bus import get_event_bus
+
             bus = get_event_bus()
-            bus.publish("finding:created", {
-                "id": result.get("id"),
-                "title": body.title,
-                "severity": body.severity or "medium",
-                "target_id": body.target_id,
-            })
+            bus.publish(
+                "finding:created",
+                {
+                    "id": result.get("id"),
+                    "title": body.title,
+                    "severity": body.severity or "medium",
+                    "target_id": body.target_id,
+                },
+            )
         except Exception:
             logger.exception("Failed to publish finding:created event")
         return result
@@ -85,23 +88,32 @@ def get_findings(
     sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     search: str = Query("", max_length=200),
 ):
-    items, total = list_findings(target_id=target_id, endpoint_id=endpoint_id, skip=skip, limit=limit, sort_by=sort_by, sort_order=sort_order, search=search)
+    items, total = list_findings(
+        target_id=target_id,
+        endpoint_id=endpoint_id,
+        skip=skip,
+        limit=limit,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        search=search,
+    )
     return {"items": items, "total": total, "skip": skip, "limit": limit}
 
 
 @router.get("/stats")
 def get_findings_stats():
     """Return aggregate statistics for findings."""
-    db.init_db()
     session = db.SessionLocal()
     try:
         total = session.query(models.Finding).count()
         severity_counts = {}
         for row in session.query(models.Finding.severity, db.func.count()).group_by(models.Finding.severity).all():
             severity_counts[row[0] or "unknown"] = row[1]
-        new_24h = session.query(models.Finding).filter(
-            models.Finding.created_at >= db.func.now() - db.text("INTERVAL '24 hours'")
-        ).count()
+        new_24h = (
+            session.query(models.Finding)
+            .filter(models.Finding.created_at >= db.func.now() - db.text("INTERVAL '24 hours'"))
+            .count()
+        )
         return {
             "total": total,
             "by_severity": severity_counts,
@@ -114,7 +126,6 @@ def get_findings_stats():
 @router.get("/{finding_id}")
 def get_finding(finding_id: int):
     """Return a single finding by ID."""
-    db.init_db()
     session = db.SessionLocal()
     try:
         f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
@@ -128,7 +139,6 @@ def get_finding(finding_id: int):
 @router.put("/{finding_id}/status")
 def update_finding_status(finding_id: int, body: StatusUpdate):
     """Update finding status (open/confirmed/rejected/in_progress)."""
-    db.init_db()
     session = db.SessionLocal()
     try:
         f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
@@ -141,15 +151,19 @@ def update_finding_status(finding_id: int, body: StatusUpdate):
         if old_status != body.status:
             try:
                 from cores.events.event_bus import get_event_bus
+
                 bus = get_event_bus()
-                bus.publish("finding:status_changed", {
-                    "id": finding_id,
-                    "title": f.title,
-                    "severity": f.severity,
-                    "old_status": old_status,
-                    "new_status": body.status,
-                    "target_id": f.target_id,
-                })
+                bus.publish(
+                    "finding:status_changed",
+                    {
+                        "id": finding_id,
+                        "title": f.title,
+                        "severity": f.severity,
+                        "old_status": old_status,
+                        "new_status": body.status,
+                        "target_id": f.target_id,
+                    },
+                )
             except Exception:
                 logger.exception("Failed to publish finding:status_changed event")
         return result
@@ -160,7 +174,6 @@ def update_finding_status(finding_id: int, body: StatusUpdate):
 @router.patch("/{finding_id}")
 def update_finding(finding_id: int, body: FindingUpdate):
     """Update finding notes and/or status."""
-    db.init_db()
     session = db.SessionLocal()
     try:
         f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
@@ -174,15 +187,19 @@ def update_finding(finding_id: int, body: FindingUpdate):
             if old_status != body.status:
                 try:
                     from cores.events.event_bus import get_event_bus
+
                     bus = get_event_bus()
-                    bus.publish("finding:status_changed", {
-                        "id": finding_id,
-                        "title": f.title,
-                        "severity": f.severity,
-                        "old_status": old_status,
-                        "new_status": body.status,
-                        "target_id": f.target_id,
-                    })
+                    bus.publish(
+                        "finding:status_changed",
+                        {
+                            "id": finding_id,
+                            "title": f.title,
+                            "severity": f.severity,
+                            "old_status": old_status,
+                            "new_status": body.status,
+                            "target_id": f.target_id,
+                        },
+                    )
                 except Exception:
                     logger.exception("Failed to publish finding:status_changed event")
         session.commit()
@@ -194,7 +211,6 @@ def update_finding(finding_id: int, body: FindingUpdate):
 @router.post("/{finding_id}/classification")
 def classify_finding(finding_id: int) -> dict[str, Any]:
     """Run automated classification on a finding (simple rule-based)."""
-    db.init_db()
     session = db.SessionLocal()
     try:
         f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
@@ -225,21 +241,28 @@ def classify_finding(finding_id: int) -> dict[str, Any]:
 @router.get("/{finding_id}/evidence")
 def get_finding_evidence(finding_id: int):
     """Return evidence items associated with a finding."""
-    db.init_db()
     session = db.SessionLocal()
     try:
         f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
         if not f:
             raise HTTPException(status_code=404, detail="Finding not found")
-        evidence = session.query(models.Evidence).filter(
-            models.Evidence.finding_id == finding_id
-        ).all() if hasattr(models.Evidence, 'finding_id') else []
-        return {"items": [{
-            "id": e.id,
-            "response_status": getattr(e, "response_status", None),
-            "consistent": getattr(e, "consistent", None),
-            "created_at": e.created_at.isoformat() if e.created_at else None,
-        } for e in evidence], "total": len(evidence)}
+        evidence = (
+            session.query(models.Evidence).filter(models.Evidence.finding_id == finding_id).all()
+            if hasattr(models.Evidence, "finding_id")
+            else []
+        )
+        return {
+            "items": [
+                {
+                    "id": e.id,
+                    "response_status": getattr(e, "response_status", None),
+                    "consistent": getattr(e, "consistent", None),
+                    "created_at": e.created_at.isoformat() if e.created_at else None,
+                }
+                for e in evidence
+            ],
+            "total": len(evidence),
+        }
     finally:
         session.close()
 
@@ -247,7 +270,6 @@ def get_finding_evidence(finding_id: int):
 @router.post("/{finding_id}/regen-narrative")
 def regen_narrative(finding_id: int) -> dict[str, Any]:
     """Regenerate narrative for a finding (placeholder — returns current data)."""
-    db.init_db()
     session = db.SessionLocal()
     try:
         f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
@@ -261,7 +283,6 @@ def regen_narrative(finding_id: int) -> dict[str, Any]:
 @router.post("/{finding_id}/generate-report")
 def generate_report(finding_id: int) -> dict[str, Any]:
     """Generate a draft report from a finding."""
-    db.init_db()
     session = db.SessionLocal()
     try:
         f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
@@ -281,26 +302,29 @@ def generate_report(finding_id: int) -> dict[str, Any]:
 @router.get("/{finding_id}/export-markdown")
 def export_finding_markdown(finding_id: int):
     """Export finding as Markdown."""
-    db.init_db()
     session = db.SessionLocal()
     try:
         f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
         if not f:
             raise HTTPException(status_code=404, detail="Finding not found")
-        md = f"""# {f.title or f'Finding #{f.id}'}
+        md = f"""# {f.title or f"Finding #{f.id}"}
 
-**Severidad:** {f.severity or 'medium'}
+**Severidad:** {f.severity or "medium"}
 **Target ID:** {f.target_id}
-**Endpoint ID:** {f.endpoint_id or 'N/A'}
+**Endpoint ID:** {f.endpoint_id or "N/A"}
 
 ## Descripción
 
-{f.description or 'Sin descripción.'}
+{f.description or "Sin descripción."}
 
 ---
-*Generado por CATEYE — {__import__('datetime').datetime.now().isoformat()}*
+*Generado por CATEYE — {__import__("datetime").datetime.now().isoformat()}*
 """
-        return Response(content=md, media_type="text/markdown", headers={"Content-Disposition": f"attachment; filename=finding_{finding_id}.md"})
+        return Response(
+            content=md,
+            media_type="text/markdown",
+            headers={"Content-Disposition": f"attachment; filename=finding_{finding_id}.md"},
+        )
     finally:
         session.close()
 
@@ -308,7 +332,6 @@ def export_finding_markdown(finding_id: int):
 @router.get("/{finding_id}/export-pdf")
 def export_finding_pdf(finding_id: int):
     """Export finding as PDF (returns a simple HTML version for now)."""
-    db.init_db()
     session = db.SessionLocal()
     try:
         f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
@@ -317,15 +340,19 @@ def export_finding_pdf(finding_id: int):
         html = f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>{f.title}</title></head>
 <body style="font-family: monospace; background: #050505; color: #e0f0e0; padding: 2rem;">
-<h1 style="color: #00ff41;">{f.title or f'Finding #{f.id}'}</h1>
-<p><strong>Severidad:</strong> {f.severity or 'medium'}</p>
+<h1 style="color: #00ff41;">{f.title or f"Finding #{f.id}"}</h1>
+<p><strong>Severidad:</strong> {f.severity or "medium"}</p>
 <p><strong>Target:</strong> {f.target_id}</p>
-<p><strong>Endpoint:</strong> {f.endpoint_id or 'N/A'}</p>
+<p><strong>Endpoint:</strong> {f.endpoint_id or "N/A"}</p>
 <h2>Descripción</h2>
-<p>{f.description or 'Sin descripción.'}</p>
+<p>{f.description or "Sin descripción."}</p>
 <hr>
 <small>Generado por CATEYE</small>
 </body></html>"""
-        return Response(content=html, media_type="text/html", headers={"Content-Disposition": f"attachment; filename=finding_{finding_id}.html"})
+        return Response(
+            content=html,
+            media_type="text/html",
+            headers={"Content-Disposition": f"attachment; filename=finding_{finding_id}.html"},
+        )
     finally:
         session.close()

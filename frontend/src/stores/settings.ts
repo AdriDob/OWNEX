@@ -163,6 +163,13 @@ export interface OnboardingState {
   currentStep: number
 }
 
+export interface AssistantSettings {
+  enabled: boolean
+  hints: boolean
+  bubble: boolean
+  spotlight: boolean
+}
+
 export interface SettingsState {
   general: GeneralSettings
   ai: AISettings
@@ -172,6 +179,7 @@ export interface SettingsState {
   system: SystemInfo
   security: SecuritySettings
   appearance: AppearanceSettings
+  assistant: AssistantSettings
   onboarding: OnboardingState
 }
 
@@ -242,6 +250,12 @@ function defaultSettings(): SettingsState {
       animations: true,
       density: 'normal',
       layout: 'default',
+    },
+    assistant: {
+      enabled: true,
+      hints: true,
+      bubble: true,
+      spotlight: false,
     },
     onboarding: {
       completed: false,
@@ -337,6 +351,7 @@ export const useSettingsStore = defineStore('settings', () => {
       payload['appearance'] = data.value.appearance
       payload['security'] = data.value.security
       payload['onboarding'] = data.value.onboarding
+      payload['assistant'] = data.value.assistant
       await api.put('/settings/all', { settings: payload })
       lastSync.value = new Date().toISOString()
     } catch { /* backend may not be available */ }

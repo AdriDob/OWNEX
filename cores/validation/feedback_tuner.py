@@ -1,4 +1,4 @@
-"""FeedbackTuner — connects human feedback to ConfidenceScorer weight adjustments."""
+"""FeedbackTuner — connects human feedback to ConfidenceScorer weight adjustments and ReportGate threshold tuning."""
 
 from __future__ import annotations
 
@@ -77,6 +77,7 @@ class FeedbackTuner:
 
             tuning = learner.suggest_rule_tuning(insights)
             weight_adjustments = tuning.get("confidence_weights", {})
+            rule_thresholds = tuning.get("rule_thresholds", {})
             llm_bias = tuning.get("llm_bias", 0.0)
             old_weights = self._scorer.get_weights()
             old_bias = self._scorer.get_bias()
@@ -91,6 +92,17 @@ class FeedbackTuner:
 
             self._scorer.save_state()
 
+            # Tune ReportGate thresholds from feedback
+            gate_updates = 0
+            if rule_thresholds:
+                try:
+                    from cores.validation.gate import get_report_gate
+
+                    gate = get_report_gate()
+                    gate_updates = gate.tune_from_feedback(rule_thresholds)
+                except Exception as exc:
+                    logger.warning("[TUNER] Gate tuning failed: %s", exc)
+
             tuning_record = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "events_analyzed": len(self._events),
@@ -101,13 +113,20 @@ class FeedbackTuner:
                 "new_bias": new_bias,
                 "adjustments_applied": weight_adjustments,
                 "llm_bias_adjustment": llm_bias,
+                "gate_thresholds_tuned": rule_thresholds,
+                "gate_updates": gate_updates,
                 "patterns": [i.pattern for i in insights],
             }
             self._tuning_history.append(tuning_record)
             self._persist_tuning(tuning_record)
 
             logger.info(
-                "[TUNER] Weights adjusted: %s → %s | bias: %s → %s", old_weights, new_weights, old_bias, new_bias
+                "[TUNER] Weights adjusted: %s → %s | bias: %s → %s | gate: %d thresholds updated",
+                old_weights,
+                new_weights,
+                old_bias,
+                new_bias,
+                gate_updates,
             )
             return {
                 "status": "tuned",
@@ -118,6 +137,7 @@ class FeedbackTuner:
                 "old_bias": old_bias,
                 "new_bias": new_bias,
                 "adjustments": weight_adjustments,
+                "gate_updates": gate_updates,
                 "patterns": tuning_record["patterns"],
             }
         except Exception as exc:
@@ -126,11 +146,19 @@ class FeedbackTuner:
 
     def status(self) -> dict[str, Any]:
         """Return current tuner state for health/status endpoints."""
+        gate_thresholds = {}
+        try:
+            from cores.validation.gate import get_report_gate
+
+            gate_thresholds = get_report_gate().get_thresholds()
+        except Exception:
+            pass
         return {
             "total_feedback_events": len(self._events),
             "total_tunings": len(self._tuning_history),
             "ready_for_analysis": len(self._events) >= MIN_EVENTS_FOR_ANALYSIS,
             "current_weights": self._scorer.get_weights(),
+            "current_gate_thresholds": gate_thresholds,
             "last_tuning": self._tuning_history[-1] if self._tuning_history else None,
         }
 

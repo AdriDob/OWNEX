@@ -2,7 +2,7 @@ import ast
 import json
 import logging
 
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.sql import func
 
 from .db import Base
@@ -18,6 +18,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
 
 SCAN_STATUS = (
     "pending",
@@ -93,9 +94,7 @@ class Endpoint(Base):
             try:
                 return ast.literal_eval(self.params)
             except (ValueError, SyntaxError):
-                logging.getLogger("cateye.models").warning(
-                    f"Could not parse params for endpoint {self.id}"
-                )
+                logging.getLogger("cateye.models").warning(f"Could not parse params for endpoint {self.id}")
                 return {}
 
 
@@ -181,6 +180,7 @@ class MemoryRecord(Base):
 
 class Verdict(Base):
     """Stores validation loop results: confirmed/rejected/inconclusive status."""
+
     __tablename__ = "verdicts"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -235,6 +235,7 @@ class Verdict(Base):
 
 class Evidence(Base):
     """Stores captured request/response pairs and diffs from validation attempts."""
+
     __tablename__ = "evidence"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -287,6 +288,7 @@ class Evidence(Base):
 
 class ValidationResult(Base):
     """Stores detailed comparison results from each attempt."""
+
     __tablename__ = "validation_results"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -370,6 +372,7 @@ class ScanRun(Base):
 
 class Favorite(Base):
     """User workspace favorites — metadata only, never modifies core data."""
+
     __tablename__ = "favorites"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -381,6 +384,7 @@ class Favorite(Base):
 
 class Task(Base):
     """Operational task queue — organizational only, never modifies core data."""
+
     __tablename__ = "tasks"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -396,6 +400,7 @@ class Task(Base):
 
 class Session(Base):
     """Persistent working context — tracks current investigation state."""
+
     __tablename__ = "sessions"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -410,6 +415,7 @@ class Session(Base):
 
 class Notification(Base):
     """Internal operational notifications — persisted from NotificationHub."""
+
     __tablename__ = "notifications"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -428,6 +434,7 @@ class Notification(Base):
 
 class Device(Base):
     """Push notification device registrations."""
+
     __tablename__ = "devices"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -442,6 +449,7 @@ class Device(Base):
 
 class DeliveryRecord(Base):
     """Notification delivery status per channel."""
+
     __tablename__ = "delivery_records"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -455,6 +463,7 @@ class DeliveryRecord(Base):
 
 class QuickWin(Base):
     """Stores actionable quick wins associated with a target."""
+
     __tablename__ = "quick_wins"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -478,6 +487,7 @@ class QuickWin(Base):
 
 class TargetIdentity(Base):
     """An identity/persona the investigator uses when interacting with a target."""
+
     __tablename__ = "target_identities"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -523,6 +533,7 @@ class TargetIdentity(Base):
 
 class TargetSession(Base):
     """Active authenticated session for a target identity."""
+
     __tablename__ = "target_sessions"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -563,6 +574,7 @@ class TargetSession(Base):
 
 class Investigation(Base):
     """Central workspace unit — ties together target, identities, and pipeline state."""
+
     __tablename__ = "investigations"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -601,6 +613,7 @@ class Investigation(Base):
 
 class ValidationRun(Base):
     """A single execution of the validation pipeline against an endpoint."""
+
     __tablename__ = "validation_runs"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -653,6 +666,7 @@ class ValidationRun(Base):
 
 class Report(Base):
     """Generated report with full history tracking."""
+
     __tablename__ = "reports"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -702,6 +716,7 @@ class Report(Base):
 
 class SubmissionRecord(Base):
     """Tracks report submissions to external bug bounty platforms."""
+
     __tablename__ = "submission_records"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -716,6 +731,7 @@ class SubmissionRecord(Base):
 
 class ReportVersion(Base):
     """Versioned snapshots of a report before finalization."""
+
     __tablename__ = "report_versions"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -728,6 +744,7 @@ class ReportVersion(Base):
 
 class PipelineRun(Base):
     """Persistent autonomous pipeline execution record."""
+
     __tablename__ = "pipeline_runs"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -801,6 +818,7 @@ class PipelineRun(Base):
 
 class CATEYEConfig(Base):
     """Persistent key-value configuration store."""
+
     __tablename__ = "CATEYE_config"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -815,6 +833,7 @@ class CATEYEConfig(Base):
 
 class AIProviderConfig(Base):
     """Persistent AI provider configuration."""
+
     __tablename__ = "ai_provider_config"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -829,6 +848,7 @@ class AIProviderConfig(Base):
 
 class SystemStateRecord(Base):
     """Persistent snapshot of the last-known system state — survives restart."""
+
     __tablename__ = "system_state_records"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -842,6 +862,7 @@ class SystemStateRecord(Base):
 
 class EventBusEntry(Base):
     """Persistent event bus history — survives restarts for audit/replay."""
+
     __tablename__ = "event_bus_history"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -854,6 +875,7 @@ class EventBusEntry(Base):
 
 class LedgerEntry(Base):
     """Persistent financial ledger entry — append-only, immutable transaction log."""
+
     __tablename__ = "ledger_entries"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -869,6 +891,153 @@ class LedgerEntry(Base):
     metadata_json = Column(Text, default="{}")
     reconciled = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ── Evolution Engine: Metrics & Knowledge ──
+
+
+class MetricEvent(Base):
+    """Raw metric event — append-only telemetry for the Evolution Engine.
+
+    Every observable action in ORION produces one row: pipeline stages, tool
+    executions, API calls, background jobs.  The Observe layer of the Evolution
+    Engine persists these for later analysis, bottleneck detection, and ROI
+    calculation.
+    """
+
+    __tablename__ = "metric_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    timestamp = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    # Who / what produced this event
+    module = Column(String, nullable=False, index=True)  # cateye, atlas, odyssey, hermes, core
+    pipeline = Column(String, nullable=True, index=True)  # discover, recon, hypothesis, validate, report
+    tool = Column(String, nullable=True, index=True)  # katana, httpx, nuclei, dalfox, …
+    event_type = Column(String, nullable=False, index=True)  # pipeline_stage, tool_execution, api_call, background_job
+
+    # Timing & resources
+    duration_ms = Column(Float, nullable=True)
+    cpu_percent = Column(Float, nullable=True)
+    memory_mb = Column(Float, nullable=True)
+
+    # Outcome
+    status = Column(String, nullable=True, default="success")  # success, failed, timeout, skipped
+
+    # Foreign keys for correlation
+    target_id = Column(Integer, nullable=True, index=True)
+    finding_id = Column(Integer, nullable=True, index=True)
+    report_id = Column(Integer, nullable=True, index=True)
+
+    # Flexible extra data (JSON)
+    metadata_json = Column(Text, nullable=True)
+
+    # Ingestion timestamp (when the engine recorded it, not when it happened)
+    recorded_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class MetricRollup(Base):
+    """Pre-aggregated metric rollups for fast querying.
+
+    Generated periodically (hourly / daily) from MetricEvent rows so that
+    dashboards, reports, and the Analyze layer don't need to scan raw events
+    every time.
+    """
+
+    __tablename__ = "metric_rollups"
+
+    id = Column(Integer, primary_key=True, index=True)
+    granularity = Column(String, nullable=False, index=True)  # hourly, daily
+    period_start = Column(DateTime(timezone=True), nullable=False, index=True)
+
+    # Grouping keys (same as MetricEvent)
+    module = Column(String, nullable=False, index=True)
+    pipeline = Column(String, nullable=True, index=True)
+    tool = Column(String, nullable=True, index=True)
+    event_type = Column(String, nullable=True, index=True)
+    status = Column(String, nullable=True, index=True)
+
+    # Aggregated timing
+    count = Column(Integer, nullable=False, default=0)
+    avg_duration_ms = Column(Float, nullable=True)
+    p50_duration_ms = Column(Float, nullable=True)
+    p95_duration_ms = Column(Float, nullable=True)
+    min_duration_ms = Column(Float, nullable=True)
+    max_duration_ms = Column(Float, nullable=True)
+    total_duration_ms = Column(Float, nullable=True)
+
+    # Aggregated resources
+    avg_cpu_percent = Column(Float, nullable=True)
+    avg_memory_mb = Column(Float, nullable=True)
+
+    # Outcome counts
+    success_count = Column(Integer, nullable=False, default=0)
+    failure_count = Column(Integer, nullable=False, default=0)
+
+    # Human-impact estimate (set by Analyze layer)
+    total_human_hours_saved = Column(Float, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (Index("ix_metric_rollups_lookup", "granularity", "period_start", "module", "event_type"),)
+
+
+class KnowledgeAsset(Base):
+    """Persistent knowledge artifact produced by the Evolution Engine.
+
+    Every cycle of Observe → Analyze → Hypothesis → Evidence Check → Asset
+    produces one row.  Types: heuristic, pattern, rule, statistic, workflow,
+    benchmark, template, finding_pattern, report_template, optimization,
+    experiment, research, tool_config, playbook.
+
+    Lifecycle: draft → hypothesis → validated → production → deprecated.
+    """
+
+    __tablename__ = "knowledge_assets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    asset_type = Column(String, nullable=False, index=True)
+    domain = Column(String, nullable=False, index=True)
+
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+
+    # Provenance
+    source = Column(String, nullable=False)
+    source_url = Column(String, nullable=True)
+    source_confidence = Column(Float, nullable=False, default=0.0)
+
+    # Asset payload
+    content_json = Column(Text, nullable=True)
+    evidence_json = Column(Text, nullable=True)
+
+    # Impact & usage
+    impact_score = Column(Float, nullable=True)
+    hit_count = Column(Integer, nullable=False, default=0)
+    reuse_count = Column(Integer, nullable=False, default=0)
+
+    # Lifecycle: draft → hypothesis → validated → production → deprecated
+    status = Column(String, nullable=False, default="draft", index=True)
+    last_validated = Column(DateTime(timezone=True), nullable=True)
+    validation_count = Column(Integer, nullable=False, default=0)
+
+    # Evidence check fields
+    observation_count = Column(Integer, nullable=True)
+    evidence_summary = Column(Text, nullable=True)
+    opportunity_cost_hours = Column(Float, nullable=True)
+    implementation_effort = Column(String, nullable=True)
+    risk_level = Column(String, nullable=True)
+
+    # Categorization
+    tags_json = Column(Text, nullable=True)
+
+    # Versioning
+    version = Column(Integer, nullable=False, default=1)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (Index("ix_knowledge_assets_lookup", "domain", "asset_type", "status"),)
 
 
 # Backward-compatible alias — import as CATEYEConfig or RastroConfig

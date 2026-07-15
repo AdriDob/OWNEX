@@ -6,12 +6,12 @@ import json
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
+
+from core import ORION_DIR
 
 logger = logging.getLogger("orion.core.update")
 
-ORION_DIR = Path.home() / ".orion"
 UPDATE_LOG = ORION_DIR / "update_history.jsonl"
 UPDATE_REMOTE_URL = "https://api.github.com/repos/anomalyco/orion-platform/releases/latest"
 

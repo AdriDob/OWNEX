@@ -13,10 +13,19 @@ class TestSecretsManager:
         val = sm.get("NONEXISTENT_KEY", default="fallback")
         assert val == "fallback"
 
-    def test_get_env_fallback(self):
+    def test_get_no_env_bypass(self):
+        """get() does NOT fall back to env vars — only Vault."""
         sm = SecretsManager()
         os.environ["TEST_ORION_SECRET"] = "env-value"
         val = sm.get("TEST_ORION_SECRET", default="nope")
+        assert val == "nope"  # env var is ignored
+        del os.environ["TEST_ORION_SECRET"]
+
+    def test_get_with_env_fallback(self):
+        """Transitional API still supports env fallback."""
+        sm = SecretsManager()
+        os.environ["TEST_ORION_SECRET"] = "env-value"
+        val = sm.get_with_env_fallback("TEST_ORION_SECRET", default="nope")
         assert val == "env-value"
         del os.environ["TEST_ORION_SECRET"]
 
@@ -49,11 +58,8 @@ class TestSecretsManager:
 
     def test_use_cache(self):
         sm = SecretsManager()
-        # set() stores in cache regardless of vault failure
         sm.set("TEST_ORION_CACHE", "cached")
-        # Should be retrievable from cache
         assert sm.get("TEST_ORION_CACHE") == "cached"
-        # Bypass cache — should not find in vault (unsupported provider)
         assert sm.get("TEST_ORION_CACHE", use_cache=False) == ""
 
     def test_health(self):
@@ -72,3 +78,14 @@ class TestSecretsManager:
         assert "TEST_ORION_LIST_2" in keys
         sm.delete("TEST_ORION_LIST_1")
         sm.delete("TEST_ORION_LIST_2")
+
+    def test_import_env_vars(self):
+        sm = SecretsManager()
+        os.environ["TEST_ORION_IMPORT_1"] = "val1"
+        os.environ["TEST_ORION_IMPORT_2"] = "val2"
+        count = sm.import_env_vars(prefix="TEST_ORION_IMPORT_")
+        assert count == 2
+        assert sm.get("TEST_ORION_IMPORT_1") == "val1"
+        assert sm.get("TEST_ORION_IMPORT_2") == "val2"
+        del os.environ["TEST_ORION_IMPORT_1"]
+        del os.environ["TEST_ORION_IMPORT_2"]

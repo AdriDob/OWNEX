@@ -7,8 +7,8 @@ from core.interfaces.app import IAppPlugin
 manifest = IAppPlugin(
     id="hermes",
     name="Hermes",
-    version="0.1.0",
-    description="Automation Agent — backup, health, logs, status, doctor. Safe mode by default.",
+    version="0.2.0",
+    description="Automation + Desktop Agent — system monitoring, package management, process control, services, files. 13 commands, tool-calling architecture.",
     icon="Bot",
     order=4,
     db_path="",

@@ -21,6 +21,27 @@ frontend/node_modules/
 frontend/dist/
 frontend/dist-ssr/
 
+# Android
+android/.gradle/
+android/capacitor-cordova-android-plugins/
+android/.project
+android/.settings/
+android/app/.classpath
+android/app/.project
+android/app/.settings/
+android/app/build/
+android/local.properties
+
+# Mypy cache
+.mypy_cache/
+
+# OpenCode runtime
+.opencode/node_modules/
+
+# Desktop build
+desktop/build/
+desktop/installer/
+
 # Root node_modules (Capacitor native deps)
 node_modules/
 /package.json

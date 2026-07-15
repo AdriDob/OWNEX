@@ -7,6 +7,7 @@ import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import Select from '@/components/ui/Select.vue'
 import { Radar, Search, Filter, TrendingUp, DollarSign, Clock, RefreshCw, ChevronDown, ChevronUp, ExternalLink, AlertTriangle } from '@lucide/vue'
 import BarChart from '@/components/charts/BarChart.vue'
 
@@ -133,16 +134,23 @@ function openProgram(id: number) {
         <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input v-model="search" placeholder="Buscar programa..." class="pl-10" />
       </div>
-      <select v-model="platformFilter" class="rounded-lg border border-border/60 bg-[#11131f]/60 px-3 py-2 text-xs text-foreground backdrop-blur-sm">
-        <option value="">Todas las plataformas</option>
-        <option v-for="p in platforms" :key="p" :value="p">{{ p }}</option>
-      </select>
-      <select v-model="minScore" class="rounded-lg border border-border/60 bg-[#11131f]/60 px-3 py-2 text-xs text-foreground backdrop-blur-sm">
-        <option :value="0">Score ≥ 0.0</option>
-        <option :value="0.4">Score ≥ 0.4</option>
-        <option :value="0.6">Score ≥ 0.6</option>
-        <option :value="0.8">Score ≥ 0.8</option>
-      </select>
+      <Select
+        :options="[{ value: '', label: 'Todas las plataformas' }, ...platforms.map(p => ({ value: p, label: p }))]"
+        :model-value="platformFilter"
+        @update:model-value="platformFilter = $event as string"
+        class="w-40"
+      />
+      <Select
+        :options="[
+          { value: '0', label: 'Score ≥ 0.0' },
+          { value: '0.4', label: 'Score ≥ 0.4' },
+          { value: '0.6', label: 'Score ≥ 0.6' },
+          { value: '0.8', label: 'Score ≥ 0.8' },
+        ]"
+        :model-value="String(minScore)"
+        @update:model-value="minScore = Number($event)"
+        class="w-36"
+      />
       <Button variant="outline" size="sm" :disabled="refreshing" @click="refreshScores">
         <RefreshCw class="mr-1 h-3 w-3" :class="{ 'animate-spin': refreshing }" />
         {{ refreshing ? 'Calculando...' : 'Recalcular Scores' }}

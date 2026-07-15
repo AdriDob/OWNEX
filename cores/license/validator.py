@@ -86,14 +86,16 @@ def _generate_key_data(hw_id: str, expiry_days: int = 365) -> tuple[str, bytes]:
 
     version = 1
     hw_prefix = hw_id[:7].upper()
-    data_str = f"{version:01d}{year:02d}{month:02d}{day:02d}{expiry_year:02d}{expiry_month:02d}{expiry_day:02d}{hw_prefix}"
+    data_str = (
+        f"{version:01d}{year:02d}{month:02d}{day:02d}{expiry_year:02d}{expiry_month:02d}{expiry_day:02d}{hw_prefix}"
+    )
     payload = data_str.encode("ascii")
     return data_str, payload
 
 
 def _format_key(data_str: str, sig: str) -> str:
     raw = data_str + sig
-    groups = [raw[i:i + 5] for i in range(0, len(raw), 5)]
+    groups = [raw[i : i + 5] for i in range(0, len(raw), 5)]
     return "-".join(groups)
 
 
@@ -228,10 +230,16 @@ def validate_license(license_key: str) -> tuple[bool, str]:
     # Verify hardware binding with full HWID
     stored_hw = stored.get("hardware_id", "")
     if stored_hw and stored_hw != hw_id:
-        return False, "Hardware mismatch — license bound to different machine"
+        portable = os.environ.get("CATEYE_PORTABLE") == "1"
+        if not portable:
+            return False, "Hardware mismatch — license bound to different machine"
+        logger.info("Portable mode: HW mismatch ignored for migration")
 
     if parsed and not hw_id.upper().startswith(parsed["hardware_prefix"]):
-        return False, "Hardware prefix mismatch"
+        portable = os.environ.get("CATEYE_PORTABLE") == "1"
+        if not portable:
+            return False, "Hardware prefix mismatch"
+        logger.info("Portable mode: HW prefix mismatch ignored for migration")
 
     return True, "Valid"
 

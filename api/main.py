@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import os
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -34,6 +34,7 @@ from api.routers import (
     economic,
     endpoints,
     evidence,
+    evolution,
     execution,
     financial_sync,
     financial_truth,
@@ -44,10 +45,12 @@ from api.routers import (
     identity,
     identity_center,
     idor,
+    offensive,
     intelligence,
     investigations,
     license,
     micro,
+    mission,
     mobile,
     notifications,
     operations,
@@ -62,6 +65,8 @@ from api.routers import (
     project_dashboard,
     quick_wins,
     reports,
+    reports_quality,
+    revenue,
     roi,
     scans,
     screenshots,
@@ -245,18 +250,22 @@ async def lifespan(app: FastAPI):
         from cores.notifications.bridges import (
             register_db_bridge,
             register_desktop_channel,
+            register_discord_channel,
             register_email_channel,
             register_event_bridge,
             register_fcm_channel,
             register_gmail_channel,
+            register_mobile_channel,
             register_whatsapp_channel,
             register_ws_forwarder,
         )
 
         register_db_bridge()
         register_desktop_channel()
+        register_discord_channel()
         register_email_channel()
         register_fcm_channel()
+        register_mobile_channel()
         register_whatsapp_channel()
         register_gmail_channel()
         register_ws_forwarder()
@@ -383,21 +392,11 @@ async def lifespan(app: FastAPI):
         except Exception as exc:
             logger.warning("[BOOT] Copilot Agent init error: %s", exc)
 
-        def _copilot_finding_handler(event_type, payload):
+        async def _copilot_analyze(finding: dict, verdict: dict):
             if _copilot is None:
                 return
             try:
-                import asyncio
-
-                finding = {
-                    "id": payload.get("id"),
-                    "vulnerability_type": payload.get("vulnerability_type") or payload.get("type", ""),
-                    "severity": payload.get("severity"),
-                    "description": payload.get("title") or payload.get("description", ""),
-                    "status": payload.get("new_status") or payload.get("status"),
-                }
-                verdict = {"confidence": payload.get("confidence", 0.0)}
-                result = asyncio.run(_copilot.analyze_finding(finding, verdict))
+                result = await _copilot.analyze_finding(finding, verdict)
                 if result.needs_human:
                     logger.info(
                         "[COPILOT] Finding %s needs human review (%d inconsistencies)",
@@ -414,9 +413,54 @@ async def lifespan(app: FastAPI):
             except Exception as exc:
                 logger.warning("[COPILOT] Analysis handler error: %s", exc)
 
+        def _copilot_finding_handler(event_type, payload):
+            if _copilot is None:
+                return
+            try:
+                finding = {
+                    "id": payload.get("id"),
+                    "vulnerability_type": payload.get("vulnerability_type") or payload.get("type", ""),
+                    "severity": payload.get("severity"),
+                    "description": payload.get("title") or payload.get("description", ""),
+                    "status": payload.get("new_status") or payload.get("status"),
+                }
+                verdict = {"confidence": payload.get("confidence", 0.0)}
+                loop = asyncio.get_running_loop()
+                loop.create_task(_copilot_analyze(finding, verdict))
+            except RuntimeError:
+                logger.warning("[COPILOT] No running event loop for copilot analysis")
+            except Exception as exc:
+                logger.warning("[COPILOT] Analysis handler error: %s", exc)
+
         bus.subscribe("finding:created", _copilot_finding_handler)
         bus.subscribe("finding:status_changed", _copilot_finding_handler)
-        logger.info("[BOOT] Senior Copilot Agent subscribers registered")
+
+        def _copilot_target_handler(event_type, payload):
+            if _copilot is None:
+                return
+            target_name = payload.get("name", "unknown")
+            domain = payload.get("domain", "")
+            logger.info(
+                "[COPILOT] New target: %s (domain=%s) — generating engagement plan",
+                target_name,
+                domain or "none",
+            )
+            try:
+                copilot = _copilot
+                plan = copilot.create_plan(finding=None)
+                if plan:
+                    copilot.remember(
+                        namespace="cateye",
+                        key=f"plan:target:{payload.get('id', 'unknown')}",
+                        content=f"Engagement plan for {target_name}",
+                        tags=["plan", "engagement", target_name],
+                        priority=7.0,
+                    )
+            except Exception as exc:
+                logger.warning("[COPILOT] Target handler error: %s", exc)
+
+        bus.subscribe("target:created", _copilot_target_handler)
+        logger.info("[BOOT] Senior Copilot Agent subscribers registered (finding + target)")
 
         # ── Evidence Graph ──────────────────────────────────────────────
         _eg = None
@@ -459,6 +503,60 @@ async def lifespan(app: FastAPI):
 
         bus.subscribe("finding:status_changed", _evidence_graph_handler)
         logger.info("[BOOT] Evidence Graph subscriber registered")
+
+        # ── Knowledge Graph Event Bridge ───────────────────────────
+        try:
+            from core.knowledge.graph import get_knowledge_graph
+
+            _kg = get_knowledge_graph()
+            stats = _kg.get_stats()
+            logger.info(
+                "[BOOT] Knowledge Graph initialized: %d nodes, %d edges",
+                stats["total_nodes"],
+                stats["total_edges"],
+            )
+
+            def _knowledge_graph_handler(event_type: str, payload: dict) -> None:
+                try:
+                    if event_type.startswith("finding:"):
+                        finding_id = payload.get("id", "unknown")
+                        target_id = payload.get("target_id") or payload.get("target", {}).get("id")
+                        _kg.record_finding(
+                            target_id=target_id or "orphan",
+                            finding_id=finding_id,
+                            finding_name=payload.get("name", event_type),
+                            severity=payload.get("severity", "medium"),
+                        )
+                    elif event_type.startswith("target:"):
+                        target_id = payload.get("id", "unknown")
+                        _kg.add_node(
+                            "target",
+                            payload.get("name", event_type),
+                            {"domain": payload.get("domain", "")},
+                            node_id=target_id,
+                            source="scheduler",
+                        )
+                    elif event_type.startswith("copilot:") and "decision" in event_type:
+                        _kg.record_decision(payload)
+                except Exception as exc:
+                    logger.debug("[KG] Handler error: %s", exc)
+
+            for event_pattern in ("finding:created", "finding:confirmed", "finding:status_changed", "target:created"):
+                bus.subscribe(event_pattern, _knowledge_graph_handler)
+            logger.info("[BOOT] Knowledge Graph event bridge registered")
+        except Exception as exc:
+            logger.warning("[BOOT] Knowledge Graph bridge error: %s", exc)
+
+        # ── Copilot API Router ─────────────────────────────────────
+        try:
+            from api.routers.copilot import _set_copilot
+            from api.routers.copilot import router as copilot_router
+
+            _set_copilot(_copilot)
+            app.include_router(copilot_router)
+            logger.info("[BOOT] Copilot API router registered")
+        except Exception as exc:
+            logger.warning("[BOOT] Copilot API router error: %s", exc)
     except Exception as exc:
         logger.warning("Auto-report/Copilot/Evidence Graph setup failed: %s", exc)
 
@@ -601,14 +699,17 @@ async def lifespan(app: FastAPI):
         from core.app_registry import get_app_registry
 
         registry = get_app_registry()
-        ext_status = registry.discover_extensions()
-        if ext_status["discovered"] > 0:
-            logger.info(
-                "[ORION] Extensions: %d discovered, %d loaded, %d failed",
-                ext_status["discovered"],
-                ext_status["loaded"],
-                ext_status["failed"],
-            )
+        from core.extension.registry import get_extension_registry
+
+        ext_reg = get_extension_registry()
+        ext_reg.discover()
+        results = ext_reg.load_all()
+        loaded = sum(1 for v in results.values() if v)
+        logger.info(
+            "[ORION] Extensions: %d discovered, %d loaded",
+            ext_reg.count,
+            loaded,
+        )
     except Exception as exc:
         logger.warning("[ORION] Extension discovery failed (non-fatal): %s", exc)
 
@@ -625,6 +726,7 @@ async def lifespan(app: FastAPI):
         from core.health.engine import get_health_center
 
         center = get_health_center()
+        center.enable_persistence()
         register_default_checks(center)
         snapshot = center.run_all()
         logger.info(
@@ -659,6 +761,61 @@ async def lifespan(app: FastAPI):
         logger.info("[ORION] Extension + secrets health checks registered")
     except Exception as exc:
         logger.warning("[ORION] Health center init failed (non-fatal): %s", exc)
+
+    # ── Evolution Engine boot ──
+    try:
+        from core.evolution.engine import init_evolution_engine
+
+        engine = init_evolution_engine()
+        logger.info("[EVOLUTION] Engine ready — Observe layer accepting metrics")
+    except Exception as exc:
+        logger.warning("[EVOLUTION] Engine init failed (non-fatal): %s", exc)
+
+    # ── Event Store + Pipeline Subscribers ─────────────────────
+    try:
+        # 1. Init Event Store
+        from core.events.store import get_event_store
+
+        _event_store = get_event_store()
+        logger.info("[EVENT] Event Store initialized (%d events)", _event_store.count())
+
+        # 2. Register capabilities for connectors (late init for early-boot connectors)
+        from core.capabilities.registry import get_capability_registry
+
+        _creg = get_capability_registry()
+        logger.info(
+            "[CAP] Capability Registry: %d capabilities from %d modules", len(_creg.list_capabilities()), _creg.count()
+        )
+
+        # 3. Subscribers for orphan events
+        bus = get_event_bus()
+
+        def _opportunity_handler(event_type, payload):
+            """When a new opportunity is found, refresh COPILOT recommendations."""
+            if _copilot is not None:
+                with suppress(Exception):
+                    _copilot.recommend_for_system(extra_state={"new_opportunity": payload.get("id")})
+
+        bus.subscribe("opportunity:found", _opportunity_handler)
+        bus.subscribe("opportunity:updated", _opportunity_handler)
+
+        def _recovery_handler(event_type, payload):
+            """When recovery happens, log to Event Store."""
+            with suppress(Exception):
+                _event_store.store_dict(
+                    event_type=event_type,
+                    correlation_id=payload.get("correlation_id", ""),
+                    source="recovery",
+                    payload=payload,
+                )
+
+        bus.subscribe("recovery:started", _recovery_handler)
+        bus.subscribe("recovery:success", _recovery_handler)
+        bus.subscribe("recovery:failed", _recovery_handler)
+
+        logger.info("[EVENT] Event subscribers registered (opportunity, recovery)")
+    except Exception as exc:
+        logger.warning("[BOOT] Event pipeline init failed (non-fatal): %s", exc)
 
     yield
 
@@ -832,11 +989,14 @@ app.include_router(targets.router)
 app.include_router(endpoints.router)
 app.include_router(findings.router)
 app.include_router(evidence.router)
+app.include_router(evolution.router)
 app.include_router(opportunities.router)
 app.include_router(attack_surface.router)
 app.include_router(pipeline.router)
 app.include_router(quick_wins.router)
 app.include_router(reports.router)
+app.include_router(reports_quality.router)
+app.include_router(revenue.router)
 app.include_router(hypotheses.router)
 app.include_router(roi.router)
 app.include_router(overview.router)
@@ -872,6 +1032,7 @@ app.include_router(learning_router)
 app.include_router(project_dashboard.router)
 app.include_router(ws.router)
 app.include_router(idor.router)
+app.include_router(offensive.router)
 app.include_router(investigations.router)
 app.include_router(settings_ai.router)
 app.include_router(settings_runtime.router)
@@ -885,6 +1046,7 @@ app.include_router(connections.router)
 app.include_router(platforms.router)
 app.include_router(financial_sync.router)
 app.include_router(financial_truth.router)
+app.include_router(mission.router)
 app.include_router(crypto.router)
 app.include_router(accounts_hub.router)
 app.include_router(authhub.router)

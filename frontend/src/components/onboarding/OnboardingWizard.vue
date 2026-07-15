@@ -196,7 +196,7 @@ function prev() {
         <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" />
 
         <div class="relative w-full max-w-2xl animate-in">
-          <div class="cyber-card rounded-2xl border border-border/50 overflow-hidden">
+          <div class="card-base rounded-2xl border border-border/50 overflow-hidden">
             <!-- Header -->
             <div class="flex items-center justify-between border-b border-border/20 px-6 py-3.5">
               <div class="flex items-center gap-2">

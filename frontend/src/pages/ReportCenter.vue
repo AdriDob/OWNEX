@@ -168,7 +168,7 @@ const maxMonthlyAmount = computed(() => {
     </div>
 
     <!-- Draft Generator -->
-    <div class="glass-card rounded-xl p-4 animate-in">
+    <div class="card-base rounded-xl p-4 animate-in">
       <div class="flex items-center gap-2 mb-3">
         <Sparkles class="h-4 w-4 text-primary" />
         <h2 class="text-sm font-semibold text-foreground">Generar Borrador con IA</h2>

@@ -4,11 +4,14 @@ Consolidates the three legacy health systems into one:
   - SystemHealthEngine (cores/health/engine.py)
   - HealthMonitor (cores/recovery/health_monitor.py)
   - Watchdog (desktop/watchdog.py)
+
+Also bridges to SystemState for persistent snapshots.
 """
 
 from __future__ import annotations
 
 import logging
+import os
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -41,6 +44,7 @@ class HealthSnapshot:
     status: str  # green | yellow | red
     checks: dict[str, bool]  # check_name → passed
     timestamp: datetime | None = None
+    score: float = 1.0  # 0.0 – 1.0 (ratio of passed / total checks)
     extensions_loaded: int = 0
     extensions_failed: int = 0
     secrets_available: bool = False
@@ -61,6 +65,7 @@ class HealthCenter:
         self._lock = Lock()
         self._snapshots: list[HealthSnapshot] = []
         self._max_snapshots = 100
+        self._bridge_state: bool = False  # persist to SystemState
 
     # ── Check registration ───────────────────────────
 
@@ -92,19 +97,23 @@ class HealthCenter:
                     logger.warning("Health check '%s' failed: %s", name, exc)
                 check.last_run = time.time()
 
+            total = len(results)
+            passed = sum(1 for v in results.values() if v)
+            score = passed / total if total > 0 else 1.0
             status = self._calculate_status(results)
             snapshot = HealthSnapshot(
                 status=status,
+                score=score,
                 timestamp=datetime.now(timezone.utc),
                 checks=results,
                 details={"errors": errors},
             )
             self._snapshots.append(snapshot)
             if len(self._snapshots) > self._max_snapshots:
-                self._snapshots = self._snapshots[-self._max_snapshots:]
+                self._snapshots = self._snapshots[-self._max_snapshots :]
 
-        logger.info("Health: %s — %d/%d checks passed", status.upper(),
-                     sum(1 for v in results.values() if v), len(results))
+        self._persist_snapshot(snapshot)
+        logger.info("Health: %s — %d/%d checks passed", status.upper(), passed, total)
         return snapshot
 
     def run_category(self, category: str) -> HealthSnapshot:
@@ -123,14 +132,19 @@ class HealthCenter:
                     check.last_error = str(exc)
                 check.last_run = time.time()
 
+            total = len(results)
+            passed = sum(1 for v in results.values() if v)
+            score = passed / total if total > 0 else 1.0
             status = self._calculate_status(results)
             snapshot = HealthSnapshot(
                 status=status,
+                score=score,
                 timestamp=datetime.now(timezone.utc),
                 checks=results,
                 details={"category": category},
             )
             self._snapshots.append(snapshot)
+            self._persist_snapshot(snapshot)
             return snapshot
 
     # ── Queries ──────────────────────────────────────
@@ -151,11 +165,12 @@ class HealthCenter:
         passed = sum(1 for v in latest.checks.values() if v) if latest else 0
         return {
             "status": latest.status if latest else "unknown",
+            "score": latest.score if latest else 0.0,
             "checks_total": total,
             "checks_passed": passed,
             "checks_failed": total - passed,
             "categories": self._category_counts(),
-            "last_run": latest.timestamp.isoformat() if latest else None,
+            "last_run": latest.timestamp.isoformat() if latest and latest.timestamp else None,
             "extensions_loaded": latest.extensions_loaded if latest else 0,
             "extensions_failed": latest.extensions_failed if latest else 0,
             "secrets_available": latest.secrets_available if latest else False,
@@ -172,6 +187,106 @@ class HealthCenter:
             }
             for c in self._checks.values()
         ]
+
+    # ── Persistence bridge ──────────────────────────
+
+    def enable_persistence(self) -> None:
+        """Bridge to SystemState for persistent snapshots."""
+        self._bridge_state = True
+        logger.info("HealthCenter persistence enabled (bridged to SystemState)")
+
+    def _persist_snapshot(self, snapshot: HealthSnapshot) -> None:
+        if not self._bridge_state:
+            return
+        try:
+            from cores.system_state import get_system_state
+
+            state = get_system_state()
+            if snapshot.status == "green":
+                state.report_healthy("health_center")
+            elif snapshot.status == "red":
+                state.report_unhealthy(
+                    "health_center",
+                    error=f"Critical: {sum(1 for v in snapshot.checks.values() if not v)} checks failed",
+                )
+            elif snapshot.status == "yellow":
+                state.report_unhealthy(
+                    "health_center",
+                    error=f"Degraded: {sum(1 for v in snapshot.checks.values() if not v)} non-critical checks failed",
+                )
+        except Exception as exc:
+            logger.debug("Failed to persist health snapshot: %s", exc)
+
+    # ── Unified summary ─────────────────────────────
+
+    def unified_summary(self) -> dict[str, Any]:
+        """Merge HealthCenter checks + process info + DB stats into one dict."""
+        import psutil
+
+        from cores.system_state import get_system_state
+
+        # Latest health snapshot
+        snap = self.latest()
+        status = snap.status if snap else "unknown"
+        score = snap.score if snap else 0.0
+        checks_passed = sum(1 for v in snap.checks.values() if v) if snap else 0
+        checks_total = len(snap.checks) if snap else 0
+
+        # Process info
+        pid = os.getpid()
+        proc = psutil.Process(pid)
+        mem = proc.memory_info()
+
+        # SystemState
+        state = get_system_state()
+        summary = state.get_summary() if hasattr(state, "get_summary") else {}
+
+        # DB stats
+        db_targets = 0
+        db_findings = 0
+        db_verdicts = 0
+        db_confirmed = 0
+        try:
+            from database.db import SessionLocal
+            from database.models import Finding, Target, Verdict
+
+            session = SessionLocal()
+            try:
+                db_targets = session.query(Target).count()
+                db_findings = session.query(Finding).count()
+                db_verdicts = session.query(Verdict).count()
+                db_confirmed = session.query(Verdict).filter(Verdict.status == "confirmed").count()
+            finally:
+                session.close()
+        except Exception:
+            pass
+
+        return {
+            "status": status,
+            "score": score,
+            "checks": {
+                "total": checks_total,
+                "passed": checks_passed,
+                "failed": checks_total - checks_passed,
+                "details": {n: v for n, v in (snap.checks.items() if snap else [])},
+            },
+            "system_state": summary.get("system_state", "unknown"),
+            "process": {
+                "pid": pid,
+                "memory_percent": proc.memory_percent(),
+                "memory_rss_mb": round(mem.rss / 1024 / 1024, 1),
+                "cpu_percent": proc.cpu_percent(interval=0.3),
+                "num_threads": proc.num_threads(),
+                "uptime_seconds": state.get_uptime() if hasattr(state, "get_uptime") else 0.0,
+            },
+            "database": {
+                "targets": db_targets,
+                "findings": db_findings,
+                "verdicts": db_verdicts,
+                "confirmed": db_confirmed,
+            },
+            "registered_checks": self.list_checks(),
+        }
 
     # ── Internal ─────────────────────────────────────
 

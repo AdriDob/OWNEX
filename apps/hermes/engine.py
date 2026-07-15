@@ -16,6 +16,7 @@ from apps.hermes.config import (
     HERMES_LOG_ACTIONS,
     HERMES_SAFE_MODE,
 )
+from apps.hermes.tools import get_tool_registry
 
 logger = logging.getLogger("catseye.hermes.engine")
 
@@ -56,6 +57,54 @@ AUTHORIZED_COMMANDS: dict[str, dict[str, Any]] = {
         "risk": "none",
         "destructive": False,
     },
+    "tools": {
+        "label": "Desktop Tools",
+        "description": "List all available desktop tools (winget, process, system, etc.)",
+        "risk": "none",
+        "destructive": False,
+    },
+    "snapshot": {
+        "label": "System Snapshot",
+        "description": "CPU, RAM, disk, network usage snapshot",
+        "risk": "none",
+        "destructive": False,
+    },
+    "top": {
+        "label": "Top Processes",
+        "description": "List top processes by RAM usage",
+        "risk": "none",
+        "destructive": False,
+    },
+    "ps": {
+        "label": "Process List",
+        "description": "List all running processes",
+        "risk": "none",
+        "destructive": False,
+    },
+    "packages": {
+        "label": "Installed Packages",
+        "description": "List installed packages via winget/choco/scoop",
+        "risk": "none",
+        "destructive": False,
+    },
+    "disks": {
+        "label": "Disk Usage",
+        "description": "Show disk usage for all volumes",
+        "risk": "none",
+        "destructive": False,
+    },
+    "services": {
+        "label": "List Services",
+        "description": "List all system services",
+        "risk": "none",
+        "destructive": False,
+    },
+    "kill": {
+        "label": "Kill Process",
+        "description": "Terminate a process by PID",
+        "risk": "high",
+        "destructive": True,
+    },
 }
 
 
@@ -75,6 +124,7 @@ class AutomationEngine:
         self.safe_mode = HERMES_SAFE_MODE if safe_mode is None else safe_mode
         self._history: list[ActionResult] = []
         self._project_root = Path(__file__).resolve().parent.parent.parent
+        self._tools = get_tool_registry()
 
     # ── Public API ────────────────────────────────────────────────
 
@@ -193,8 +243,11 @@ class AutomationEngine:
 
             center = get_health_center()
             summary = center.summary()
-            info["health_score"] = summary.get("score", "unknown")
-            info["checks"] = summary.get("checks", [])
+            info["health_score"] = round(summary.get("score", 0) * 100)
+            info["checks_passed"] = summary.get("checks_passed", 0)
+            info["checks_failed"] = summary.get("checks_failed", 0)
+            info["categories"] = summary.get("categories", {})
+            info["last_run"] = summary.get("last_run")
         except ImportError:
             info["health_score"] = "health_center_not_available"
         except Exception as exc:
@@ -340,6 +393,88 @@ class AutomationEngine:
             message=f"Available commands ({len(commands)}): {', '.join(c['name'] for c in commands)}",
             details={"safe_mode": self.safe_mode, "commands": commands},
         )
+
+    # ── Desktop Tool Commands ────────────────────────────────────
+
+    def _cmd_tools(self, **kwargs: Any) -> ActionResult:
+        available = self._tools.list_available()
+        names = [t["name"] for t in available if t["available"]]
+        return ActionResult(
+            command="tools",
+            status="ok",
+            message=f"{len(names)} tools available: {', '.join(names)}",
+            details={"tools": available},
+        )
+
+    def _cmd_snapshot(self, **kwargs: Any) -> ActionResult:
+        mon = self._tools.get("system")
+        if mon is None:
+            return ActionResult(command="snapshot", status="error", message="System monitor not available")
+        result = mon.snapshot()
+        if result.success:
+            return ActionResult(command="snapshot", status="ok", message="System snapshot", details=result.data)
+        return ActionResult(command="snapshot", status="error", message=result.message)
+
+    def _cmd_top(self, limit: int = 10, **kwargs: Any) -> ActionResult:
+        pm = self._tools.get("process")
+        if pm is None:
+            return ActionResult(command="top", status="error", message="Process manager not available")
+        result = pm.top_memory(limit=limit)
+        if result.success:
+            return ActionResult(command="top", status="ok", message=result.message, details=result.data)
+        return ActionResult(command="top", status="error", message=result.message)
+
+    def _cmd_ps(self, **kwargs: Any) -> ActionResult:
+        pm = self._tools.get("process")
+        if pm is None:
+            return ActionResult(command="ps", status="error", message="Process manager not available")
+        result = pm.list_all()
+        if result.success:
+            return ActionResult(command="ps", status="ok", message=result.message, details=result.data)
+        return ActionResult(command="ps", status="error", message=result.message)
+
+    def _cmd_packages(self, manager: str = "winget", **kwargs: Any) -> ActionResult:
+        tool = self._tools.get(manager)
+        if tool is None:
+            return ActionResult(
+                command="packages",
+                status="error",
+                message=f"Package manager '{manager}' not available. Try: winget, choco, scoop",
+            )
+        result = tool.list_installed()
+        if result.success:
+            return ActionResult(command="packages", status="ok", message=result.message, details=result.data)
+        return ActionResult(command="packages", status="error", message=result.message)
+
+    def _cmd_disks(self, **kwargs: Any) -> ActionResult:
+        fm = self._tools.get("files")
+        if fm is None:
+            return ActionResult(command="disks", status="error", message="File manager not available")
+        result = fm.disk_usage()
+        if result.success:
+            return ActionResult(command="disks", status="ok", message=result.message, details=result.data)
+        return ActionResult(command="disks", status="error", message=result.message)
+
+    def _cmd_kill(self, pid: int, **kwargs: Any) -> ActionResult:
+        pm = self._tools.get("process")
+        if pm is None:
+            return ActionResult(command="kill", status="error", message="Process manager not available")
+        result = pm.kill(pid)
+        return ActionResult(
+            command="kill",
+            status="ok" if result.success else "error",
+            message=result.message,
+            details=result.data,
+        )
+
+    def _cmd_services(self, **kwargs: Any) -> ActionResult:
+        sm = self._tools.get("service")
+        if sm is None:
+            return ActionResult(command="services", status="error", message="Service manager not available")
+        result = sm.list_all()
+        if result.success:
+            return ActionResult(command="services", status="ok", message=result.message, details=result.data)
+        return ActionResult(command="services", status="error", message=result.message)
 
     # ── Internal ──────────────────────────────────────────────────
 

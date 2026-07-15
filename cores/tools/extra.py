@@ -8,13 +8,18 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from .amass import AmassTool
 from .base import BaseTool, UnifiedResult
 from .httpx import HttpxTool
+from .naabu import NaabuTool
 from .nuclei import NucleiTool
+from .shodan import ShodanTool
 from .subfinder import SubfinderTool
+from .uncover import UncoverTool
 
 try:
     from cores.execution.mutation_engine import SmartMutationEngine
+
     HAS_MUTATION_ENGINE = True
 except ImportError:
     HAS_MUTATION_ENGINE = False
@@ -358,13 +363,21 @@ class SqlmapTool(BaseTool):
         args = ["-u", url, "--batch"]
         if aggressive:
             tamper = tamper_scripts or "between,randomcase,space2comment"
-            args.extend([
-                "--level", "3", "--risk", "2",
-                "--technique", "BEUSTQ",
-                "--time-sec", "3",
-                "--random-agent",
-                "--tamper", tamper,
-            ])
+            args.extend(
+                [
+                    "--level",
+                    "3",
+                    "--risk",
+                    "2",
+                    "--technique",
+                    "BEUSTQ",
+                    "--time-sec",
+                    "3",
+                    "--random-agent",
+                    "--tamper",
+                    tamper,
+                ]
+            )
         else:
             args.extend(["--level", "1", "--risk", "1"])
         result = self.run(args, timeout=timeout)
@@ -383,14 +396,25 @@ class SqlmapTool(BaseTool):
             input_file = Path(tmpdir) / "urls.txt"
             input_file.write_text("\n".join(urls))
             output_dir = Path(tmpdir) / "output"
-            result = self.run([
-                "-m", str(input_file),
-                "--batch", "--level", "3", "--risk", "2",
-                "--technique", "BEUSTQ",
-                "--random-agent",
-                "--tamper", tamper,
-                "--output-dir", str(output_dir),
-            ], timeout=timeout)
+            result = self.run(
+                [
+                    "-m",
+                    str(input_file),
+                    "--batch",
+                    "--level",
+                    "3",
+                    "--risk",
+                    "2",
+                    "--technique",
+                    "BEUSTQ",
+                    "--random-agent",
+                    "--tamper",
+                    tamper,
+                    "--output-dir",
+                    str(output_dir),
+                ],
+                timeout=timeout,
+            )
             return self._parse_output(result.stdout, urls[0] if urls else "")
 
     def _parse_output(self, stdout: str, url: str) -> list[UnifiedResult]:
@@ -477,8 +501,12 @@ class TruffleHogTool(BaseTool):
 
 
 TOOL_REGISTRY: dict[str, type[BaseTool]] = {
+    "amass": AmassTool,
+    "shodan": ShodanTool,
     "subfinder": SubfinderTool,
+    "uncover": UncoverTool,
     "httpx": HttpxTool,
+    "naabu": NaabuTool,
     "nuclei": NucleiTool,
     "katana": KatanaTool,
     "gau": GauTool,

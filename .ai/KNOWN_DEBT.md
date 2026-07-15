@@ -2,15 +2,12 @@
 
 > Deuda identificada durante el audit arquitectónico. Cada entrada incluye evidencia de su existencia.
 
-## 1. Tres sistemas de salud superpuestos
+## 1. ✅ Tres sistemas de salud superpuestos — RESUELTO
 
-- **Evidencia**: 
-  - `cores/health/engine.py` — SystemHealthEngine
-  - `cores/recovery/health_monitor.py` — HealthMonitor
-  - `desktop/watchdog.py` — Watchdog
-- **Problema**: Los tres sistemas monitorean salud del sistema pero no comparten estado ni se coordinan. Pueden producir estados contradictorios.
-- **Impacto**: Alto. Un componente puede estar "saludable" para un sistema y "caído" para otro.
-- **Solución propuesta**: Unificar en un solo `UnifiedHealthMonitor`.
+- **Archivos**: `core/health/engine.py`, `core/health/checks.py`
+- **Solución**: HealthCenter es ahora el único sistema que ejecuta checks. HealthMonitor y Watchdog delegan sus checks a HealthCenter. Se agregaron 4 checks faltantes (agent_bus, agents_health, memory, cpu) para cubrir todo el espectro. HealthCenter persiste snapshots vía SystemState. Endpoint unificado `/api/core/health/summary`.
+- **Tests**: 25 tests en test_core_health.py (18 originales + 7 nuevos).
+- **Verificación**: Ruff clean, tests verdes.
 
 ## 2. Sin tests para CSRF middleware
 

@@ -364,7 +364,7 @@ function formatMoney(n: number | null | undefined) {
         <div class="grid gap-3 sm:grid-cols-2">
           <div
             v-for="platform in allPlatforms" :key="platform"
-            class="glass-fintech rounded-xl p-4"
+            class="card-base rounded-xl p-4"
           >
             <div class="flex items-start justify-between">
               <div class="flex items-center gap-3">
@@ -408,13 +408,13 @@ function formatMoney(n: number | null | undefined) {
               <input
                 v-model="connectEmail"
                 placeholder="Email en {{ platform }}"
-                class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-1.5 text-xs text-foreground"
+                class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-1.5 text-xs text-foreground"
               />
               <input
                 v-model="connectToken"
                 placeholder="API Key o token"
                 type="password"
-                class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-1.5 text-xs text-foreground"
+                class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-1.5 text-xs text-foreground"
               />
               <div class="flex gap-2">
                 <Button size="sm" @click="connectPlatform(platform.toLowerCase())">
@@ -513,7 +513,7 @@ function formatMoney(n: number | null | undefined) {
           </Button>
         </div>
 
-        <div v-if="showPayoutGuide" class="glass-fintech rounded-xl p-4">
+        <div v-if="showPayoutGuide" class="card-base rounded-xl p-4">
           <p class="text-xs text-muted-foreground mb-3">Métodos de cobro ordenados por conveniencia desde Argentina. Con DNI alcanza para la mayoría.</p>
           <div class="space-y-2">
             <div v-for="(m, i) in payoutMethods" :key="m.id" class="flex items-start gap-3 rounded-lg bg-surface/10 px-3 py-2.5">
@@ -557,7 +557,7 @@ function formatMoney(n: number | null | undefined) {
         </div>
 
         <div v-if="payoutAccounts.length" class="grid gap-3">
-          <div v-for="acct in payoutAccounts" :key="acct.id" class="glass-fintech rounded-xl p-4">
+          <div v-for="acct in payoutAccounts" :key="acct.id" class="card-base rounded-xl p-4">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div class="flex h-9 w-9 items-center justify-center rounded-lg" :class="acct.type === 'crypto' ? 'bg-amber-500/10 text-amber-400' : acct.type === 'paypal' ? 'bg-blue-500/10 text-blue-400' : 'bg-accent/10 text-accent'">
@@ -589,7 +589,7 @@ function formatMoney(n: number | null | undefined) {
             </div>
           </div>
         </div>
-        <div v-else class="glass-fintech rounded-xl p-6 text-center">
+        <div v-else class="card-base rounded-xl p-6 text-center">
           <Wallet class="mx-auto h-8 w-8 text-muted-foreground/50" />
           <p class="mt-2 text-sm text-foreground">Sin cuentas de cobro registradas</p>
           <p class="text-xs text-muted-foreground">Registrá una cuenta bancaria, dirección crypto o PayPal para recibir pagos</p>
@@ -603,7 +603,7 @@ function formatMoney(n: number | null | undefined) {
           Historial de retiros
         </h2>
 
-        <div class="glass-fintech rounded-xl overflow-hidden">
+        <div class="card-base rounded-xl overflow-hidden">
           <div class="divide-y divide-border/30">
             <div v-for="wd in withdrawals" :key="wd.id" class="flex items-center justify-between px-4 py-3 hover:bg-surface/10 transition-colors">
               <div class="flex items-center gap-2">
@@ -626,7 +626,7 @@ function formatMoney(n: number | null | undefined) {
           Historial de envíos
         </h2>
 
-        <div class="glass-fintech rounded-xl overflow-hidden">
+        <div class="card-base rounded-xl overflow-hidden">
           <div v-if="submissions.length" class="divide-y divide-border/30">
             <div v-for="s in submissions" :key="s.id" class="flex items-center gap-3 px-4 py-3 hover:bg-surface/10 transition-colors">
               <Badge :variant="statusColor(s.status)" class="text-[8px] w-16 justify-center">{{ s.status }}</Badge>
@@ -691,24 +691,24 @@ function formatMoney(n: number | null | undefined) {
             <input
               v-model="newPlatform.email"
               placeholder="Email registrado en la plataforma"
-              class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-2 text-xs text-foreground"
+              class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-xs text-foreground"
             />
             <input
               v-model="newPlatform.username"
               placeholder="Nombre de usuario (opcional)"
-              class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-2 text-xs text-foreground"
+              class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-xs text-foreground"
             />
             <input
               v-model="newPlatform.token"
               placeholder="API Key o token"
               type="password"
-              class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-2 text-xs text-foreground"
+              class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-xs text-foreground"
             />
             <input
               v-model="newPlatform.password"
               placeholder="Contraseña (opcional, para algunos servicios)"
               type="password"
-              class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-2 text-xs text-foreground"
+              class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-xs text-foreground"
             />
             <p class="text-[9px] text-muted-foreground">Las credenciales se almacenan cifradas con AES-256-GCM. Nunca se comparten.</p>
 
@@ -745,25 +745,25 @@ function formatMoney(n: number | null | undefined) {
             <input
               v-model="newPayout.label"
               :placeholder="'Nombre para esta cuenta (ej: Mi banco, Wallet principal)'"
-              class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-2 text-xs text-foreground"
+              class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-xs text-foreground"
             />
 
             <template v-if="payoutType === 'bank'">
               <input
                 v-model="newPayout.bank_name"
                 placeholder="Nombre del banco"
-                class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-2 text-xs text-foreground"
+                class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-xs text-foreground"
               />
               <input
                 v-model="newPayout.address"
                 placeholder="CBU / Alias / Número de cuenta"
-                class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-2 text-xs text-foreground"
+                class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-xs text-foreground"
               />
               <input
                 v-model="newPayout.last_four"
                 placeholder="Últimos 4 dígitos"
                 maxlength="4"
-                class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-2 text-xs text-foreground"
+                class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-xs text-foreground"
               />
             </template>
 
@@ -771,16 +771,16 @@ function formatMoney(n: number | null | undefined) {
               <input
                 v-model="newPayout.address"
                 placeholder="Dirección de wallet (0x... o bc1...)"
-                class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-2 text-xs text-foreground"
+                class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-xs text-foreground"
               />
               <input
                 v-model="newPayout.network"
                 placeholder="Red (ej: Ethereum, Solana, Polygon)"
-                class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-2 text-xs text-foreground"
+                class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-xs text-foreground"
               />
               <select
                 v-model="newPayout.currency"
-                class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-2 text-xs text-foreground"
+                class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-xs text-foreground"
               >
                 <option value="USDC">USDC</option>
                 <option value="USDT">USDT</option>
@@ -795,7 +795,7 @@ function formatMoney(n: number | null | undefined) {
                 v-model="newPayout.address"
                 placeholder="Email de PayPal"
                 type="email"
-                class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-2 text-xs text-foreground"
+                class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-xs text-foreground"
               />
             </template>
 
@@ -821,7 +821,7 @@ function formatMoney(n: number | null | undefined) {
     </Teleport>
 
     <!-- ═══ OSINT INTELLIGENCE ═══ -->
-    <div class="cyber-card rounded-xl p-5">
+    <div class="card-base rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-2">
           <Scan class="h-4 w-4 text-warning" />

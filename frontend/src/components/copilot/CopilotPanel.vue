@@ -103,7 +103,7 @@ watch(() => messages.value.length, async () => {
   <Transition name="panel">
     <aside v-if="open" class="fixed right-0 top-0 z-40 flex h-full w-80 flex-col border-l border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl">
       <!-- Header -->
-      <div class="flex items-center justify-between border-b border-border/40 px-4 py-3 scanline">
+      <div class="flex items-center justify-between border-b border-border/40 px-4 py-3">
         <div class="flex items-center gap-2">
           <div class="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 ring-1 ring-primary/20">
             <Eye class="h-3.5 w-3.5 text-primary" />

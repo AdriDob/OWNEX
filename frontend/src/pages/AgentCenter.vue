@@ -203,7 +203,7 @@ onUnmounted(() => {
             No active pipelines
           </div>
           <div v-for="(info, pid) in pipelines" :key="pid as string"
-            class="mb-2 rounded-lg bg-[#ffffff08] px-3 py-2"
+            class="mb-2 rounded-lg bg-surface/10 px-3 py-2"
           >
             <div class="flex items-center justify-between">
               <span class="text-xs font-semibold text-foreground">{{ (info as any).target_name || '?' }}</span>
@@ -226,7 +226,7 @@ onUnmounted(() => {
               No events yet
             </div>
             <div v-for="ev in events" :key="ev.event_id"
-              class="rounded bg-[#ffffff08] px-2 py-1 border-l-2"
+              class="rounded bg-surface/10 px-2 py-1 border-l-2"
               :style="{ borderLeftColor: ev.priority <= 3 ? '#3b82f6' : '#6b7280' }"
             >
               <div class="flex justify-between gap-2">
