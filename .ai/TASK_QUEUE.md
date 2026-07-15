@@ -64,6 +64,11 @@
 - **Qué**: Extension del Companion. Alertas críticas, estado del sistema, approvals rápidas.
 - **Estado**: ⏸ Pausada — pospuesta post Revenue Ready.
 
-### 10. Desktop Installer
+### 10. Command System Fase 1 ✅ COMPLETED — Julio 2026
+- **Qué**: Command Registry (107 commands, 14 categories, 5 permission levels). Permission Validator with COPILOT authority levels. EventBus publishing (command:executed/failed/rejected). Execution history. CapabilityRegistry integration. 6 API endpoints. 45 tests, Ruff clean.
+- **Archivos**: `core/commands/` (models, registry, dispatcher), `api/routers/commands.py`, `core/events/types.py`
+- **Impacto**: ORION now has a runtime operational language. COPILOT, Companion, and dashboard can execute 107 commands with permission validation.
+
+### 11. Desktop Installer
 - **Qué**: Instalador Windows con auto-update, repair, backup, diagnóstico.
 - **Estado**: ⏸ Pausada — pospuesta post Revenue Ready.
