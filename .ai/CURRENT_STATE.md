@@ -1,12 +1,12 @@
 # Current State — Estado Real del Proyecto
 
-> **v4.3.2 STABLE** — Senior Copilot Agent + Evidence Graph + Unified Memory + Integration Center + Pre-commit hooks.
+> **v4.5.0 STABLE** — Offensive Intelligence + Evidence Engine + Quality Gate + Evolution.
 > Julio 2026.
 
 ## Testing
 
-- **Total de tests**: 663 pasan, 2 xfailed, 0 fallos
-- **Tests nuevos**: 80 (Copilot) + 28 (Evidence Graph) + 23 (Unified Memory) + 6 (Integration Center)
+- **Total de tests**: 1386 pasan, 2 pre-existing, 2 xfailed, 0 fallos nuevos
+- **Tests nuevos (sesión actual)**: 142 (offensive + evidence + quality + revenue + evolution)
 - **Comando**: `.venv/bin/python -m pytest --timeout=60`
 - `test_security.py` incluido (34 tests, todos verdes)
 - **Lint**: Ruff clean — 0 errores en todo el código nuevo
@@ -128,7 +128,7 @@ Ver `docs/KNOWN_LIMITATIONS.md`:
 |---|---|---|
 | Extension SDK | `core/extension/` | ✅ Manifest, hooks (before/after), capabilities, declarative settings, hot reload, failure isolation |
 | Secrets Manager | `core/secrets/manager.py` | ✅ IdentityVault bridge (AES-256-GCM), env fallback, cache, REST API |
-| Health Center | `core/health/engine.py`, `checks.py` | ✅ Unifica 3 sistemas legacy, green/yellow/red status, snapshots, checks por categoría |
+| Health Center | `core/health/engine.py`, `checks.py` | ✅ Unifica 3 sistemas legacy, green/yellow/red status, snapshots, checks por categoría, persistence via SystemState, unified summary endpoint |
 | AppRegistry bridge | `core/app_registry.py` | ✅ discover_extensions() bridges to ExtensionRegistry |
 | API Endpoints | `core/api/routers.py` | ✅ /extensions, /secrets, /health endpoints under /api/core |
 | Documentation | `CONFIGURATION_GUIDE.md`, `EXTENSION_SDK.md`, `CONNECTOR_GUIDE.md`, `ARCHITECTURE_DECISIONS.md` | ✅ 4 complete guides |
@@ -195,6 +195,29 @@ Las limitaciones restantes corresponden a v3.1 (ORION Reasoning Layer) — todas
 | Copilot integration | `core/copilot/agent.py` | ✅ remember(), recall(), remember_analysis() |
 | Tests | `tests/test_unified_memory.py` | ✅ 23 tests, todos pasan |
 
+## FASE 13 — Event Foundation + Knowledge Graph (Julio 2026)
+
+| Feature | Archivos | Estado |
+|---|---|---|
+| Events class (40+ constants) | `core/events/types.py` | ✅ EventEnvelope, Decision, CorrelationId |
+| Correlation ID propagation | `core/events/correlation.py` | ✅ contextvar-based, with_correlation_id(), with_new_correlation_id() |
+| Event Store (SQLite) | `core/events/store.py` | ✅ Persist, replay by time/cid/type, search, stats, prune, singleton |
+| Capability Registry | `core/capabilities/registry.py` | ✅ register, find, list, has, unregister, clear, singleton |
+| CopilotEventPublisher | `core/copilot/publisher.py` | ✅ 7 event types, decouples COPILOT from EventBus |
+| COPILOT Decision Engine | `core/copilot/agent.py` | ✅ make_decision() with priority/reason/confidence/actions/eta/roi |
+| COPILOT publishes events | `core/copilot/agent.py` | ✅ 5 methods → publisher.analysis_completed() et al |
+| ARCA publishes events | `cores/integrations/arca/connector.py` | ✅ arca:cuit:validated, arca:invoice:created |
+| Outlook publishes events | `cores/integrations/outlook/connector.py` | ✅ notification:sent, outlook:email:sent |
+| Legacy ↔ CoreEventBus bridge | `api/main.py` | ✅ Bidirectional wildcard bridge |
+| Knowledge Graph models | `core/knowledge/models.py` | ✅ KGNode, KGEdge, NodeTypes, EdgeTypes |
+| Knowledge Graph engine | `core/knowledge/graph.py` | ✅ add_node/edge, get_neighbors, get_path, get_subgraph, stats, record_finding/report/decision |
+| COPILOT → KG integration | `core/copilot/agent.py` | ✅ _knowledge_context() enriches decisions, record_decision() in make_decision(), record_finding/report in analyze/pre_report_review |
+| KG API endpoints | `core/api/routers.py` | ✅ GET/POST/DELETE nodes, GET neighbors/path/subgraph/stats |
+| KG Event bridge | `api/main.py` | ✅ finding:* and target:* auto-recorded to KG |
+| Tests (event foundation) | `tests/test_event_foundation.py` | ✅ 32 tests |
+| Tests (Knowledge Graph) | `tests/test_knowledge_graph.py` | ✅ 34 tests |
+| Tests (KG API) | `tests/test_core_api_routers.py` | ✅ 9 tests |
+
 ## FASE 12 — Integration Center (Julio 2026)
 
 | Feature | Archivos | Estado |
@@ -206,3 +229,117 @@ Las limitaciones restantes corresponden a v3.1 (ORION Reasoning Layer) — todas
 | API: GET /integrations/{name} | `core/api/routers.py` | ✅ Single integration with status, category, tags, checked_at |
 | API: POST /integrations/{name}/test | `core/api/routers.py` | ✅ Test connection for a specific integration |
 | Tests | `tests/test_core_api_routers.py` | ✅ 6 new tests (list, categories, known, unknown, test, test_unknown) |
+
+## FASE 14 — EP-5 Execution Runtime (Julio 2026)
+
+| Feature | Archivos | Estado |
+|---|---|---|
+| RuntimeContext + VirtualClock | `core/execution/runtime/context.py`, `clock.py` | ✅ Thread-safe context, deterministic clock, real/simulation modes |
+| State Machine (12 node + 11 workflow states) | `core/execution/runtime/state_machine.py` | ✅ Validated transitions with TransitionError |
+| ExecutionJournal | `core/execution/runtime/journal.py` | ✅ Per-execution log, replay, to_dict |
+| ExecutionEventPublisher (26 types) | `core/execution/runtime/publisher.py` | ✅ Never calls EventBus directly, optional bind callback |
+| ExecutionKernel | `core/execution/runtime/kernel.py` | ✅ Tiny orchestrator: context lifecycle, state, journal, variables |
+| CapabilityDispatcher | `core/execution/runtime/dispatcher.py` | ✅ Permission→Secrets→RateLimit→Metrics→Execute pipeline |
+| WorkerEngine (17 bytecode instructions) | `core/execution/runtime/worker.py` | ✅ NOP through PERSIST, full state tracking |
+| CheckpointManager | `core/execution/runtime/checkpoint.py` | ✅ Snapshot save/restore every N nodes |
+| RetryEngine (6 policies) | `core/execution/runtime/retry.py` | ✅ Immediate, Linear, Exponential, Jitter, Circuit Breaker, Manual |
+| TimeoutEngine (4 types) | `core/execution/runtime/timeout.py` | ✅ Node, workflow, approval, resource timeouts via VirtualClock |
+| RollbackEngine | `core/execution/runtime/rollback.py` | ✅ Checkpoint-based rollback with verification |
+| Scheduler | `core/execution/runtime/scheduler.py` | ✅ Priority queue, dependency resolution, worker assignment |
+| MetricsEngine (13 types) | `core/execution/runtime/metrics.py` | ✅ CPU, RAM, Tokens, $, API calls, bandwidth, cache, retries |
+| ResourceManager | `core/execution/runtime/resource.py` | ✅ Named resources, acquire/release, concurrency, rate limiting |
+| ApprovalManager | `core/execution/runtime/approval.py` | ✅ Request→Notify→Approve\|Reject\|Expire lifecycle |
+| RuntimeAPI | `core/execution/runtime/api.py` | ✅ start/pause/resume/cancel + status/metrics/journal |
+| Simulation Mode | `core/execution/runtime/simulation.py` | ✅ Fake capabilities, SimulationReport, deterministic clock |
+| EventBus Bridge | `core/execution/runtime/integration.py` | ✅ Two-way bridge: execution→EventBus + EventBus→execution |
+| KG Bridge | `core/execution/runtime/kg_bridge.py` | ✅ Execution→Knowledge Graph recording |
+| COPILOT Execution Observer | `core/execution/runtime/observer.py` | ✅ COPILOT memory learning from execution outcomes |
+| Tests | `tests/test_execution_runtime.py` | ✅ 111 tests, todos pasan, Ruff clean |
+
+## FASE 15 — Configuration Wizard v2 (Julio 2026)
+
+| Feature | Archivos | Estado |
+|---|---|---|
+| WizardStepDef + WizardState models | `core/setup/models.py` | ✅ Step registry with metadata, persistence, config output |
+| Step registry + @define_step decorator | `core/setup/steps/__init__.py` | ✅ Extensible: new steps via decorator, no engine changes |
+| Identity step | `core/setup/steps/identity_step.py` | ✅ Username, email, role selection |
+| System step | `core/setup/steps/system_step.py` | ✅ Python, Node, Ollama, disk, permissions checks |
+| COPILOT step | `core/setup/steps/copilot_step.py` | ✅ Authority level, auto-execute, LLM provider/model |
+| Integrations step | `core/setup/steps/integrations_step.py` | ✅ Registry discovery, connected/disconnected status |
+| Smartwatch step | `core/setup/steps/smartwatch_step.py` | ✅ Wear OS enable/disable, notification preferences |
+| Test step | `core/setup/steps/test_step.py` | ✅ EventBus, DB, vault, COPILOT, scheduler verification |
+| Wizard engine refactored | `core/setup/wizard.py` | ✅ go_back, skip_step, reset_wizard, state persistence |
+| API endpoints | `core/api/routers.py` | ✅ Wizard CRUD + go-back/skip/reset/steps/list |
+| Tests | `tests/test_setup.py` | ✅ 14 tests, todos pasan, Ruff clean |
+
+## FASE 17 — Revenue Pipeline (Julio 2026)
+
+| Feature | Archivos | Estado |
+|---|---|---|
+| RevenuePipeline orchestrator | `core/revenue/pipeline.py` | ✅ `submit_report()`, `check_submission_status()`, `sync_platform_payouts()`, `record_payout()`, `revenue_summary()`, `list_submissions()` |
+| Revenue models | `database/models_economic.py` | ✅ PayoutRecord + RevenueEvent con FK a submission_records |
+| Revenue events | `core/events/types.py` | ✅ 6 eventos: report_submitted, submission_failed, status_changed, sync_completed, sync_failed, payout_recorded |
+| Revenue capabilities | `core/revenue/pipeline.py` | ✅ 5 capabilities registradas en CapabilityRegistry |
+| API endpoints | `api/routers/revenue.py` | ✅ 6 endpoints bajo `/api/revenue/` |
+| Router registration | `api/main.py` | ✅ Router registrado con tags ["revenue"] |
+| Tests | `tests/test_revenue_pipeline.py` | ✅ 31 tests, todos pasan, Ruff clean |
+
+## FASE 16 — Extreme Simplification (Julio 2026)
+
+| Cambio | Archivos | Estado |
+|---|---|---|
+| Shared plugin discovery | `core/plugin/discovery.py` | ✅ `discover_manifests()` unifica el scanning/loading de apps y extensions |
+| AppRegistry simplificado | `core/app_registry.py` | ✅ Sin bridge a ExtensionRegistry. Sin circular import. 75 líneas menos. |
+| ExtensionRegistry simplificado | `core/extension/registry.py` | ✅ Sin dependencia de AppRegistry. `_check_dependencies()` via CapabilityRegistry. |
+| Journal → EventStore persistencia | `core/events/types.py`, `core/execution/runtime/publisher.py`, `core/execution/runtime/worker.py`, `core/execution/runtime/api.py`, `core/events/store.py` | ✅ `execution:journal:entry` publicado al EventBus → EventStore. `RuntimeAPI.get_journal()` fallback a EventStore tras restart. |
+| SecretsManager single path | `core/secrets/manager.py` | ✅ Vault-only path. `get_with_env_fallback()` transitional. `import_env_vars()` setup migration. |
+| SecretsManager tests | `tests/test_core_secrets.py` | ✅ 11 tests (nuevo: test_get_no_env_bypass, test_get_with_env_fallback, test_import_env_vars) |
+| Tests: AppRegistry | `tests/test_orion_core.py` | ✅ 28 tests pasan |
+| Tests: ExtensionRegistry | `tests/test_core_extension.py` | ✅ 14 tests pasan |
+| Tests: Event Foundation | `tests/test_event_foundation.py` | ✅ 32 tests pasan |
+| Tests: Execution Runtime | `tests/test_execution_runtime.py` | ✅ 111 tests pasan |
+
+## FASE 18 — Offensive Intelligence + Evidence + Quality (Julio 2026)
+
+| Feature | Archivos | Estado |
+|---|---|---|
+| Offensive Intelligence Engine | `core/offensive/` | ✅ 5 reasoners (IDOR, SSRF, XSS, SQLi, Auth Bypass), Planner, Curiosity Engine, Relationship Graph, ContradictionEngine, Triager, Templates, Publisher |
+| Offensive Intelligence API | `api/routers/offensive.py` | ✅ 8 endpoints |
+| Evidence Composer | `core/evidence/composer.py` | ✅ PoC, requests, responses, curl, Python exploit, timeline, CVSS, CWE, CAPEC, OWASP, MITRE, report readiness score |
+| Report Quality Gate | `api/routers/reports_quality.py` | ✅ Acceptance optimizer, triager simulation |
+| Evolution Engine | `core/evolution/`, `api/routers/evolution.py` | ✅ Adaptive learning, analyze engine |
+| Mission Control | `api/routers/mission.py`, `frontend/src/pages/MissionControl.vue` | ✅ API + frontend |
+| Copilot API Router | `api/routers/copilot.py` | ✅ COPILOT API endpoints |
+| Workflows Engine | `core/workflows/` | ✅ Workflow definitions and execution |
+| Aegis App | `apps/aegis/`, `frontend/src/apps/aegis/` | ✅ Security app module |
+| Sync Engine | `core/sync/` | ✅ Data synchronization |
+| Finance Core | `core/finance/` | ✅ Models, engine |
+| Reports Core | `core/reports/` | ✅ Report generation module |
+| Documentation Platform | `core/documentation/` | ✅ Auto-generation, 18 modules registered |
+| Tool: Amass | `cores/tools/amass.py` | ✅ External attack surface mapping |
+| Tool: Naabu | `cores/tools/naabu.py` | ✅ Port scanning |
+| Tool: Shodan | `cores/tools/shodan.py` | ✅ Shodan REST API intelligence |
+| Tool: Uncover | `cores/tools/uncover.py` | ✅ Infrastructure discovery |
+| Discord Notifications | `cores/notifications/discord.py` | ✅ Discord webhook bridge |
+| ARCA Integration | `cores/integrations/arca/` | ✅ ARCA invoice/cuit validation |
+| Outlook Integration | `cores/integrations/outlook/` | ✅ Email sending via Outlook |
+| Tauri Desktop | `src-tauri/` | ✅ Rust+WebView desktop app |
+| Linux Setup Script | `scripts/setup.sh` | ✅ Automated Linux dev setup |
+| Windows Tools Installer | `scripts/install_desktop_tools.ps1` | ✅ 33 tools via winget |
+| Unified Settings API | `api/routers/settings_unified.py` | ✅ Unified configuration endpoints |
+| UI: DataTable, Drawer, Modal, Select | `frontend/src/components/ui/` | ✅ 4 reusable UI components |
+| Assistant Composable | `frontend/src/composables/useAssistant.ts` | ✅ Chat assistant state management |
+| Companion Composable | `frontend/src/composables/useCompanion.ts` | ✅ Mobile companion state |
+| Health Center Page | `frontend/src/pages/HealthCenter.vue` | ✅ System health visualization |
+| Mobile Companion Page | `frontend/src/pages/MobileCompanion.vue` | ✅ Companion UI for mobile |
+| Workflows Page | `frontend/src/pages/Workflows.vue` | ✅ Workflow management UI |
+| Tests: Offensive | `tests/test_offensive.py` | ✅ 101 tests |
+| Tests: Evidence | `tests/test_evidence_composer.py` | ✅ 37 tests |
+| Tests: Quality Gate | `tests/test_quality_gate.py` | ✅ New |
+| Tests: Evolution Engine | `tests/test_evolution_engine.py`, `tests/test_evolution_analyze.py` | ✅ New |
+| Tests: Execution Platform | `tests/test_execution_platform.py`, `tests/test_execution_compiler.py` | ✅ New |
+| Tests: Deep Study | `tests/test_deep_study.py` | ✅ New |
+| Tests: Copilot Everywhere | `tests/test_copilot_everywhere.py` | ✅ New |
+| Tests: ARCA+Outlook | `tests/test_arca_connector.py`, `tests/test_outlook_connector.py` | ✅ New |
+| Tests: Amass+Naabu+Shodan+Uncover | `tests/test_amass.py`, `tests/test_naabu.py`, `tests/test_shodan_uncover.py` | ✅ New |
+| Tests: Chaos Workflows | `tests/test_chaos_workflows.py` | ✅ New |

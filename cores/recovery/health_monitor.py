@@ -1,12 +1,14 @@
 """HealthMonitor — periodic health check loop that feeds the RecoveryEngine.
 
-Checks every N seconds:
+Checks every N seconds by delegating to HealthCenter:
 - EventBus alive and publishing
 - Agent bus alive
 - All agents responsive
 - Scheduler running
 - Database connectivity
 - Memory usage (leak detection)
+
+Checks live in core/health/checks.py — this is a thin polling loop.
 """
 
 from __future__ import annotations
@@ -23,9 +25,22 @@ logger = logging.getLogger("cateye.recovery.health_monitor")
 DEFAULT_INTERVAL = 8.0
 MAX_HISTORY = 200
 
+# Map HealthCenter check names → HealthMonitor legacy component names
+_CHECK_TO_COMPONENT: dict[str, str] = {
+    "event_bus": "eventbus",
+    "agent_bus": "agent_bus",
+    "agents_health": "agents",
+    "scheduler": "scheduler",
+    "database": "database",
+    "memory": "memory",
+}
+
 
 class HealthMonitor:
-    """Background thread loop that checks all system components periodically."""
+    """Background thread loop that checks all system components periodically.
+
+    Delegates actual checks to HealthCenter. Reports state changes to RecoveryEngine.
+    """
 
     def __init__(
         self,
@@ -54,7 +69,9 @@ class HealthMonitor:
             return
         self._running = True
         self._thread = threading.Thread(
-            target=self._run_loop, daemon=True, name="CATEYE-health-monitor",
+            target=self._run_loop,
+            daemon=True,
+            name="CATEYE-health-monitor",
         )
         self._thread.start()
         logger.info("[HEALTH] Monitor started (interval=%ss)", self._interval)
@@ -75,19 +92,31 @@ class HealthMonitor:
                 time.sleep(self._interval)
 
     def _check_all(self) -> None:
-        checks = [
-            ("eventbus", self._check_eventbus),
-            ("agent_bus", self._check_agent_bus),
-            ("agents", self._check_agents),
-            ("database", self._check_database),
-            ("memory", self._check_memory),
-        ]
+        """Delegate all checks to HealthCenter, then feed results to RecoveryEngine."""
+        try:
+            from core.health.engine import get_health_center
+
+            center = get_health_center()
+            snapshot = center.run_all()
+            center_checks = snapshot.checks
+        except Exception:
+            center_checks = {}
+
+        # Map HealthCenter checks -> legacy component names
+        results: dict[str, bool] = {}
+        for hc_name, comp_name in _CHECK_TO_COMPONENT.items():
+            ok = center_checks.get(hc_name, False)
+            results[comp_name] = ok
+
+        # Fallback for any component not covered by HealthCenter
+        for legacy in ("eventbus", "agent_bus", "agents", "database", "memory"):
+            if legacy not in results:
+                results[legacy] = center_checks.get(legacy, False)
 
         all_ok = True
         degraded = False
 
-        for name, check_fn in checks:
-            ok = check_fn()
+        for name, ok in results.items():
             with self._lock:
                 changed = self._last_health.get(name) != ok
                 self._last_health[name] = ok
@@ -105,7 +134,6 @@ class HealthMonitor:
                 if changed:
                     self._engine.report_success(component=name)
 
-        # Log health status (SystemHealthEngine is the sole EventBus publisher)
         if all_ok:
             logger.info("[HEALTH] All components healthy")
         elif degraded:
@@ -121,60 +149,62 @@ class HealthMonitor:
         with self._lock:
             self._history.append(snapshot)
             if len(self._history) > MAX_HISTORY:
-                self._history[:] = self._history[-MAX_HISTORY // 2:]
+                self._history[:] = self._history[-MAX_HISTORY // 2 :]
 
     def _check_eventbus(self) -> bool:
+        """Delegate to HealthCenter's 'event_bus' check."""
         try:
-            from cores.events.event_bus import get_event_bus
-            bus = get_event_bus()
-            bus.publish("system:ready", service="health_monitor")
-            return True
+            from core.health.engine import get_health_center
+
+            center = get_health_center()
+            snap = center.run_category("system")
+            return snap.checks.get("event_bus", False)
         except Exception as exc:
             logger.warning("[HEALTH] EventBus check failed: %s", exc)
             return False
 
     def _check_agent_bus(self) -> bool:
+        """Delegate to HealthCenter's 'agent_bus' check."""
         try:
-            from cores.agents.bus import get_agent_bus
-            bus = get_agent_bus()
-            return bus is not None
-        except Exception as exc:
-            logger.warning("[HEALTH] Agent bus check failed: %s", exc)
+            from core.health.engine import get_health_center
+
+            center = get_health_center()
+            snap = center.run_category("system")
+            return snap.checks.get("agent_bus", False)
+        except Exception:
             return False
 
     def _check_agents(self) -> bool:
+        """Delegate to HealthCenter's 'agents_health' check."""
         try:
-            import httpx
-            base = self._health_url.rsplit("/api/health", 1)[0]
-            r = httpx.get(f"{base}/api/agents/health", timeout=3.0)
-            if r.status_code != 200:
-                return False
-            data = r.json()
-            agents = data if isinstance(data, list) else data.get("agents", data.get("data", []))
-            return all(a.get("status") == "running" for a in agents)
+            from core.health.engine import get_health_center
+
+            center = get_health_center()
+            snap = center.run_all()
+            return snap.checks.get("agents_health", False)
         except Exception:
             return False
 
     def _check_database(self) -> bool:
+        """Delegate to HealthCenter's 'database' check."""
         try:
-            from sqlalchemy import text
+            from core.health.engine import get_health_center
 
-            from database.db import SessionLocal
-            session = SessionLocal()
-            try:
-                session.execute(text("SELECT 1"))
-                return True
-            finally:
-                session.close()
+            center = get_health_center()
+            snap = center.run_category("system")
+            return snap.checks.get("database", False)
         except Exception as exc:
             logger.warning("[HEALTH] Database check failed: %s", exc)
             return False
 
     def _check_memory(self) -> bool:
+        """Delegate to HealthCenter's 'memory' check."""
         try:
-            import psutil
-            mem = psutil.Process().memory_percent()
-            return mem < 80.0
+            from core.health.engine import get_health_center
+
+            center = get_health_center()
+            snap = center.run_all()
+            return snap.checks.get("memory", False)
         except Exception:
             return True
 

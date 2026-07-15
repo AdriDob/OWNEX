@@ -115,6 +115,7 @@ class Watchdog:
     def _check_api(self) -> bool:
         try:
             import httpx
+
             r = httpx.get(self._health_url, timeout=5.0)
             return r.status_code == 200
         except Exception as exc:
@@ -124,6 +125,7 @@ class Watchdog:
     def _check_agents(self) -> bool:
         try:
             import httpx
+
             r = httpx.get(f"{self._health_url.rsplit('/api/health', 1)[0]}/api/agents/health", timeout=5.0)
             if r.status_code != 200:
                 self._update_service("agents", False, f"HTTP {r.status_code}")
@@ -143,6 +145,7 @@ class Watchdog:
     def _check_scheduler(self) -> bool:
         try:
             import httpx
+
             base = self._health_url.rsplit("/api/health", 1)[0]
             r = httpx.get(f"{base}/api/scheduler/status", timeout=5.0)
             if r.status_code != 200:
@@ -159,11 +162,13 @@ class Watchdog:
 
     def _check_eventbus(self) -> bool:
         try:
-            from cores.events.event_bus import get_event_bus
-            bus = get_event_bus()
-            alive = bus is not None
+            from core.health.engine import get_health_center
+
+            center = get_health_center()
+            snap = center.run_all()
+            alive = snap.checks.get("event_bus", False)
             if not alive:
-                self._update_service("eventbus", False, "eventbus is None")
+                self._update_service("eventbus", False, "HealthCenter: event_bus check failed")
             else:
                 self._update_service("eventbus", True)
             return alive
@@ -174,6 +179,7 @@ class Watchdog:
     def _get_memory_percent(self) -> float:
         try:
             import psutil
+
             return psutil.Process(os.getpid()).memory_percent()
         except Exception:
             return -1.0
@@ -181,6 +187,7 @@ class Watchdog:
     def _get_cpu_percent(self) -> float:
         try:
             import psutil
+
             return psutil.Process(os.getpid()).cpu_percent(interval=0.5)
         except Exception:
             return -1.0
@@ -190,8 +197,12 @@ class Watchdog:
         if not svc:
             return False
         svc.recovery_attempts += 1
-        logger.warning("[WATCHDOG] Attempting recovery for %s (attempt %d/%d)",
-                       service_name, svc.recovery_attempts, self._max_attempts)
+        logger.warning(
+            "[WATCHDOG] Attempting recovery for %s (attempt %d/%d)",
+            service_name,
+            svc.recovery_attempts,
+            self._max_attempts,
+        )
 
         if svc.recovery_attempts > self._max_attempts:
             logger.error("[WATCHDOG] Max recovery attempts reached for %s — escalating to safe mode", service_name)
@@ -203,6 +214,7 @@ class Watchdog:
         # Level 1: Try the dedicated recovery engine (if available)
         try:
             from cores.recovery.engine import get_recovery_engine
+
             engine = get_recovery_engine()
             error_map = {
                 "api": "API server unresponsive",
@@ -217,6 +229,7 @@ class Watchdog:
                 "eventbus": "eventbus_stuck",
             }
             from cores.recovery.healing_rules import FailureType
+
             ft = FailureType(failure_type_map.get(service_name, "unknown"))
             initiated = engine.report_failure(
                 component=service_name,
@@ -239,6 +252,7 @@ class Watchdog:
         if service_name in ("api", "agents", "scheduler"):
             try:
                 import httpx
+
                 base = self._health_url.rsplit("/api/health", 1)[0]
                 r = httpx.post(f"{base}/api/system/restart/{service_name}", timeout=5.0)
                 if r.status_code == 200:
@@ -254,6 +268,7 @@ class Watchdog:
         if service_name == "eventbus":
             try:
                 from cores.agents.bus import get_agent_bus
+
                 bus = get_agent_bus()
                 if bus is not None:
                     logger.info("[WATCHDOG] Reinitializing EventBus for %s", service_name)
@@ -273,7 +288,7 @@ class Watchdog:
         recent = history[-3:]
         if all(s.overall == recent[0].overall for s in recent):
             # Check if timestamp deltas are consistent (process not truly frozen)
-            deltas = [recent[i+1].timestamp - recent[i].timestamp for i in range(len(recent)-1)]
+            deltas = [recent[i + 1].timestamp - recent[i].timestamp for i in range(len(recent) - 1)]
             if all(d < self._interval * 3 for d in deltas):
                 return False  # Normal operation, just stuck in same status
             logger.warning("[WATCHDOG] Possible freeze detected — identical status across %d checks", len(recent))
@@ -315,8 +330,12 @@ class Watchdog:
                 # Memory leak detection (sustained growth >10% between checks)
                 if prev_mem > 0 and mem_pct > 0 and (mem_pct - prev_mem) > 10.0:
                     mem_leak_warnings += 1
-                    logger.warning("[WATCHDOG] Memory leak suspected: %.1f%% → %.1f%% (warning %d/3)",
-                                   prev_mem, mem_pct, mem_leak_warnings)
+                    logger.warning(
+                        "[WATCHDOG] Memory leak suspected: %.1f%% → %.1f%% (warning %d/3)",
+                        prev_mem,
+                        mem_pct,
+                        mem_leak_warnings,
+                    )
                     if mem_leak_warnings >= 3:
                         logger.critical("[WATCHDOG] MEMORY LEAK CONFIRMED — escalating")
                         if self._on_escalate:
@@ -326,8 +345,10 @@ class Watchdog:
                 prev_mem = mem_pct
 
                 all_ok = api_ok and agents_ok and sched_ok and bus_ok and mem_ok and cpu_ok
-                overall = HealthStatus.HEALTHY if all_ok else (
-                    HealthStatus.FAILED if not (api_ok or bus_ok) else HealthStatus.DEGRADED
+                overall = (
+                    HealthStatus.HEALTHY
+                    if all_ok
+                    else (HealthStatus.FAILED if not (api_ok or bus_ok) else HealthStatus.DEGRADED)
                 )
 
                 snapshot = WatchdogSnapshot(
@@ -362,9 +383,17 @@ class Watchdog:
                     if self._on_escalate:
                         self._on_escalate("system_frozen")
 
-                logger.info("[WATCHDOG] Health: %s (mem=%.1f%% cpu=%.1f%% api=%s agents=%s sched=%s bus=%s backoff=%.0fs)",
-                             overall.value, mem_pct, cpu_pct,
-                             api_ok, agents_ok, sched_ok, bus_ok, backoff)
+                logger.info(
+                    "[WATCHDOG] Health: %s (mem=%.1f%% cpu=%.1f%% api=%s agents=%s sched=%s bus=%s backoff=%.0fs)",
+                    overall.value,
+                    mem_pct,
+                    cpu_pct,
+                    api_ok,
+                    agents_ok,
+                    sched_ok,
+                    bus_ok,
+                    backoff,
+                )
 
             except Exception as exc:
                 logger.error("[WATCHDOG] Loop error: %s", exc, exc_info=True)

@@ -175,4 +175,23 @@ self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+  if (event.data?.type === 'PERIODIC_POLL') {
+    const url = event.data.url || '/api/mobile/status';
+    event.waitUntil(
+      fetch(url)
+        .then((r) => r.json())
+        .then((data) => {
+          // Check for actionable items
+          if (data.findings_pending > 0 || !data.scheduler_running) {
+            self.registration.showNotification('CATEYE', {
+              body: `📊 ${data.findings_pending} pendientes · ${data.targets_active} targets activos`,
+              icon: '/icon-192.png',
+              tag: 'periodic-poll',
+              data: { url: '/mission-control' },
+            });
+          }
+        })
+        .catch(() => {})
+    );
+  }
 });

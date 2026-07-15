@@ -9,12 +9,29 @@ from __future__ import annotations
 import json
 import logging
 import time
+from collections import deque
 from collections.abc import Callable
 from typing import Any
+
+from sqlalchemy import Column, Float, Integer, String, Text
+from sqlalchemy.orm import declarative_base
 
 from core.interfaces.event_bus import IEventBus
 
 logger = logging.getLogger("orion.core.events")
+
+# ── Persistence model (defined once at module level) ──────────
+
+_PERSIST_BASE = declarative_base()
+
+
+class _EventRecord(_PERSIST_BASE):
+    __tablename__ = "core_event_log"
+    id = Column(Integer, primary_key=True)
+    event = Column(String(128), nullable=False, index=True)
+    app_id = Column(String(32), nullable=False, index=True)
+    payload = Column(Text, default="")
+    timestamp = Column(Float, default=time.time)
 
 
 class CoreEventBus(IEventBus):
@@ -23,8 +40,10 @@ class CoreEventBus(IEventBus):
     def __init__(self) -> None:
         self._handlers: dict[str, list[Callable[..., Any]]] = {}
         self._namespaces: dict[str, str] = {}
+        self._recent: deque[dict[str, Any]] = deque(maxlen=1000)
         self._persist = True
-        self._bridge = True
+        self._bridge = False
+        self._db_registered = False
 
     def publish(self, event: str, **data: Any) -> None:
         logger.debug("Event: %s %s", event, data)
@@ -39,14 +58,14 @@ class CoreEventBus(IEventBus):
                         logger.exception("Handler failed for %s", event)
 
         # 2. Registrar en historial en memoria
-        self._recent.append({
-            "event": event,
-            "data": data,
-            "timestamp": time.time(),
-            "app_id": event.split(":")[0] if ":" in event else "core",
-        })
-        if len(self._recent) > 1000:
-            self._recent.pop(0)
+        self._recent.append(
+            {
+                "event": event,
+                "data": data,
+                "timestamp": time.time(),
+                "app_id": event.split(":")[0] if ":" in event else "core",
+            }
+        )
 
         # 3. Persistir a SQLite
         if self._persist:
@@ -97,27 +116,16 @@ class CoreEventBus(IEventBus):
 
     def _persist_event(self, event: str, data: dict) -> None:
         try:
-            from sqlalchemy import Column, Float, Integer, String, Text
-            from sqlalchemy.orm import declarative_base
-
             from core.database.manager import get_db_manager
 
             dbm = get_db_manager()
-            dbm.register("orion_core", "orion_core.db")
-            _base = declarative_base()
-
-            class EventRecord(_base):
-                __tablename__ = "core_event_log"
-                id = Column(Integer, primary_key=True)
-                event = Column(String(128), nullable=False, index=True)
-                app_id = Column(String(32), nullable=False, index=True)
-                payload = Column(Text, default="")
-                timestamp = Column(Float, default=time.time)
-
-            _base.metadata.create_all(dbm.get_engine("orion_core"))
+            if not self._db_registered:
+                dbm.register("orion_core", "orion_core.db")
+                _PERSIST_BASE.metadata.create_all(dbm.get_engine("orion_core"))
+                self._db_registered = True
             session = dbm.get_session("orion_core")
             try:
-                record = EventRecord(
+                record = _EventRecord(
                     event=event,
                     app_id=event.split(":")[0] if ":" in event else "core",
                     payload=json.dumps({k: str(v) for k, v in data.items()}),
@@ -138,6 +146,7 @@ class CoreEventBus(IEventBus):
     def _bridge_to_legacy(event: str, **data: Any) -> None:
         try:
             from cores.events.event_bus import get_event_bus
+
             bus = get_event_bus()
             bus.publish(event, **data)
         except Exception as exc:
@@ -150,8 +159,6 @@ class CoreEventBus(IEventBus):
 
     def disable_bridge(self) -> None:
         self._bridge = False
-
-    _recent: list[dict] = []
 
 
 # ── Singleton ────────────────────────────────────────

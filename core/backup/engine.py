@@ -11,9 +11,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from core import ORION_DIR
+
 logger = logging.getLogger("orion.core.backup")
 
-ORION_DIR = Path.home() / ".orion"
 BACKUP_DIR = ORION_DIR / "backups"
 DEFAULT_KEEP = 10
 ORION_VERSION = "4.3.2"

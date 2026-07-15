@@ -156,3 +156,133 @@ class TestIntegrationCenterEndpoints:
         assert resp.status_code == 404
         data = resp.json()
         assert "error" in data
+
+
+class TestKnowledgeGraphEndpoints:
+    """Tests for /api/core/knowledge/* endpoints."""
+
+    def setup_method(self) -> None:
+        from core.knowledge.graph import reset_knowledge_graph
+
+        reset_knowledge_graph()
+
+    def test_find_nodes_by_type(self):
+        from core.knowledge.graph import reset_knowledge_graph
+
+        reset_knowledge_graph()
+
+        app = FastAPI()
+        app.include_router(core_router)
+        c = TestClient(app)
+        resp = c.get("/api/core/knowledge/nodes?node_type=finding")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "nodes" in data
+
+    def test_get_node(self):
+        from core.knowledge.graph import reset_knowledge_graph
+
+        reset_knowledge_graph()
+
+        app = FastAPI()
+        app.include_router(core_router)
+        c = TestClient(app)
+        resp = c.get("/api/core/knowledge/nodes/find-1")
+        assert resp.status_code == 404  # fresh state, no nodes
+
+    def test_add_node(self):
+        from core.knowledge.graph import reset_knowledge_graph
+
+        reset_knowledge_graph()
+
+        app = FastAPI()
+        app.include_router(core_router)
+        c = TestClient(app)
+        resp = c.post(
+            "/api/core/knowledge/nodes",
+            json={"node_type": "target", "name": "api.example.com", "properties": {"domain": "example.com"}},
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["node_type"] == "target"
+        assert data["name"] == "api.example.com"
+
+    def test_delete_node_missing(self):
+        from core.knowledge.graph import reset_knowledge_graph
+
+        reset_knowledge_graph()
+
+        app = FastAPI()
+        app.include_router(core_router)
+        c = TestClient(app)
+        resp = c.delete("/api/core/knowledge/nodes/nonexistent")
+        assert resp.status_code == 404
+
+    def test_get_neighbors_no_nodes(self):
+        from core.knowledge.graph import reset_knowledge_graph
+
+        reset_knowledge_graph()
+
+        app = FastAPI()
+        app.include_router(core_router)
+        c = TestClient(app)
+        resp = c.get("/api/core/knowledge/nodes/missing/neighbors")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["count"] == 0
+
+    def test_get_path_no_path(self):
+        from core.knowledge.graph import reset_knowledge_graph
+
+        reset_knowledge_graph()
+
+        app = FastAPI()
+        app.include_router(core_router)
+        c = TestClient(app)
+        resp = c.get("/api/core/knowledge/path?source=a&target=b")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["count"] == 0
+
+    def test_get_subgraph(self):
+        from core.knowledge.graph import reset_knowledge_graph
+
+        reset_knowledge_graph()
+
+        app = FastAPI()
+        app.include_router(core_router)
+        c = TestClient(app)
+        resp = c.get("/api/core/knowledge/subgraph")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "total_nodes" in data
+        assert "total_edges" in data
+        assert "center" in data
+
+    def test_add_edge_missing_nodes(self):
+        from core.knowledge.graph import reset_knowledge_graph
+
+        reset_knowledge_graph()
+
+        app = FastAPI()
+        app.include_router(core_router)
+        c = TestClient(app)
+        resp = c.post(
+            "/api/core/knowledge/edges",
+            json={"source_id": "missing-1", "target_id": "missing-2"},
+        )
+        assert resp.status_code == 404
+
+    def test_stats(self):
+        from core.knowledge.graph import reset_knowledge_graph
+
+        reset_knowledge_graph()
+
+        app = FastAPI()
+        app.include_router(core_router)
+        c = TestClient(app)
+        resp = c.get("/api/core/knowledge/stats")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "total_nodes" in data
+        assert "total_edges" in data

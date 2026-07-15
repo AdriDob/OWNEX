@@ -62,6 +62,60 @@ EVENT_PUSH_MAP: dict[str, dict[str, Any]] = {
         "icon": "warning",
         "ttl": 43200,
     },
+    "finding:confirmed": {
+        "title": "Finding Confirmed",
+        "priority": "high",
+        "icon": "finding",
+        "ttl": 86400,
+    },
+    "finding:high_priority": {
+        "title": "High Priority Finding",
+        "priority": "critical",
+        "icon": "finding",
+        "ttl": 86400,
+    },
+    "report:ready": {
+        "title": "Report Ready",
+        "priority": "high",
+        "icon": "report",
+        "ttl": 43200,
+    },
+    "backup:failed": {
+        "title": "Backup Failed",
+        "priority": "critical",
+        "icon": "warning",
+        "ttl": 86400,
+    },
+    "health:warning": {
+        "title": "Health Warning",
+        "priority": "high",
+        "icon": "warning",
+        "ttl": 43200,
+    },
+    "update:available": {
+        "title": "Update Available",
+        "priority": "medium",
+        "icon": "system",
+        "ttl": 86400,
+    },
+    "finding:created": {
+        "title": "Finding Created",
+        "priority": "medium",
+        "icon": "finding",
+        "ttl": 86400,
+    },
+    "finding:status_changed": {
+        "title": "Finding Status Changed",
+        "priority": "medium",
+        "icon": "finding",
+        "ttl": 43200,
+    },
+    "system:started": {
+        "title": "System Started",
+        "priority": "low",
+        "icon": "system",
+        "ttl": 3600,
+    },
 }
 
 
@@ -77,15 +131,17 @@ class PushPayload:
     data: dict[str, Any] = field(default_factory=dict)
 
     def to_json(self) -> str:
-        return json.dumps({
-            "title": self.title,
-            "message": self.message,
-            "priority": self.priority,
-            "icon": self.icon,
-            "url": self.url,
-            "tag": self.tag,
-            "data": self.data,
-        })
+        return json.dumps(
+            {
+                "title": self.title,
+                "message": self.message,
+                "priority": self.priority,
+                "icon": self.icon,
+                "url": self.url,
+                "tag": self.tag,
+                "data": self.data,
+            }
+        )
 
 
 class PushRouter:
@@ -93,6 +149,7 @@ class PushRouter:
 
     def __init__(self, hub=None):
         from cores.notifications.hub import get_hub
+
         self._hub = hub or get_hub()
         self._subscribers: dict[str, list[str]] = {}
         self._vapid_public_key: str | None = None

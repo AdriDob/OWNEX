@@ -67,9 +67,7 @@ class CATEYEConfig:
 
     # ── Logging ──
     log_level: str = field(default_factory=lambda: _env("CATEYE_LOG_LEVEL", "INFO"))
-    auth_secret: str = field(
-        default_factory=lambda: _env("CATEYE_AUTH_SECRET", "", "RASTRO_AUTH_SECRET")
-    )
+    auth_secret: str = field(default_factory=lambda: _env("CATEYE_AUTH_SECRET", "", "RASTRO_AUTH_SECRET"))
 
     # ── Paths ──
     base_dir: Path = field(
@@ -109,9 +107,7 @@ class CATEYEConfig:
             Path(__file__).resolve().parent.parent.parent / "frontend" / "dist",
         )
     )
-    disable_frontend: bool = field(
-        default_factory=lambda: _env_bool("CATEYE_DISABLE_FRONTEND")
-    )
+    disable_frontend: bool = field(default_factory=lambda: _env_bool("CATEYE_DISABLE_FRONTEND"))
     no_browser: bool = field(default_factory=lambda: _env_bool("CATEYE_NO_BROWSER"))
 
     # ── Database ──
@@ -123,18 +119,12 @@ class CATEYEConfig:
     )
 
     # ── Scanning ──
-    scan_interval: int = field(
-        default_factory=lambda: _env_int("CATEYE_SCAN_INTERVAL", 30)
-    )
+    scan_interval: int = field(default_factory=lambda: _env_int("CATEYE_SCAN_INTERVAL", 30))
     scan_mode: str = field(default_factory=lambda: _env("CATEYE_SCAN_MODE", "DEEP"))
 
     # ── Desktop / Recovery ──
-    max_restart_retries: int = field(
-        default_factory=lambda: _env_int("CATEYE_MAX_RESTART_RETRIES", 3)
-    )
-    health_check_interval: int = field(
-        default_factory=lambda: _env_int("CATEYE_HEALTH_CHECK_INTERVAL", 10)
-    )
+    max_restart_retries: int = field(default_factory=lambda: _env_int("CATEYE_MAX_RESTART_RETRIES", 3))
+    health_check_interval: int = field(default_factory=lambda: _env_int("CATEYE_HEALTH_CHECK_INTERVAL", 10))
     safe_mode: bool = field(default_factory=lambda: _env_bool("CATEYE_SAFE_MODE"))
 
     # ── Demo ──
@@ -142,90 +132,39 @@ class CATEYEConfig:
     backend: str = field(default_factory=lambda: _env("CATEYE_BACKEND", ""))
 
     # ── Performance ──
-    cache_size: int = field(
-        default_factory=lambda: _env_int("CATEYE_CACHE_SIZE", 4096)
-    )
+    cache_size: int = field(default_factory=lambda: _env_int("CATEYE_CACHE_SIZE", 4096))
 
     # ── License ──
-    license_secret: str = field(
-        default_factory=lambda: _env(
-            "CATEYE_LICENSE_SECRET", "", "RASTRO_LICENSE_SECRET"
-        )
-    )
+    license_secret: str = field(default_factory=lambda: _env("CATEYE_LICENSE_SECRET", "", "RASTRO_LICENSE_SECRET"))
 
     # ── Notifications ──
-    smtp_host: str = field(
-        default_factory=lambda: _env("CATEYE_SMTP_HOST", "", "RASTRO_SMTP_HOST")
-    )
-    smtp_port: int = field(
-        default_factory=lambda: _env_int(
-            "CATEYE_SMTP_PORT", 587, "RASTRO_SMTP_PORT"
-        )
-    )
-    smtp_user: str = field(
-        default_factory=lambda: _env("CATEYE_SMTP_USER", "", "RASTRO_SMTP_USER")
-    )
-    smtp_password: str = field(
-        default_factory=lambda: _env(
-            "CATEYE_SMTP_PASSWORD", "", "RASTRO_SMTP_PASSWORD"
-        )
-    )
-    smtp_from: str = field(
-        default_factory=lambda: _env("CATEYE_SMTP_FROM", "", "RASTRO_SMTP_FROM")
-    )
+    smtp_host: str = field(default_factory=lambda: _env("CATEYE_SMTP_HOST", "", "RASTRO_SMTP_HOST"))
+    smtp_port: int = field(default_factory=lambda: _env_int("CATEYE_SMTP_PORT", 587, "RASTRO_SMTP_PORT"))
+    smtp_user: str = field(default_factory=lambda: _env("CATEYE_SMTP_USER", "", "RASTRO_SMTP_USER"))
+    smtp_password: str = field(default_factory=lambda: _env("CATEYE_SMTP_PASSWORD", "", "RASTRO_SMTP_PASSWORD"))
+    smtp_from: str = field(default_factory=lambda: _env("CATEYE_SMTP_FROM", "", "RASTRO_SMTP_FROM"))
     notification_email: str = field(
-        default_factory=lambda: _env(
-            "CATEYE_NOTIFICATION_EMAIL", "", "RASTRO_NOTIFICATION_EMAIL"
-        )
+        default_factory=lambda: _env("CATEYE_NOTIFICATION_EMAIL", "", "RASTRO_NOTIFICATION_EMAIL")
     )
-    twilio_account_sid: str = field(
-        default_factory=lambda: _env("CATEYE_TWILIO_ACCOUNT_SID", "")
-    )
-    twilio_auth_token: str = field(
-        default_factory=lambda: _env("CATEYE_TWILIO_AUTH_TOKEN", "")
-    )
-    twilio_whatsapp_from: str = field(
-        default_factory=lambda: _env("CATEYE_TWILIO_WHATSAPP_FROM", "14155238886")
-    )
-    notification_whatsapp_to: str = field(
-        default_factory=lambda: _env("CATEYE_NOTIFICATION_WHATSAPP_TO", "")
-    )
-    gmail_client_id: str = field(
-        default_factory=lambda: _env("CATEYE_GMAIL_CLIENT_ID", "")
-    )
-    gmail_client_secret: str = field(
-        default_factory=lambda: _env("CATEYE_GMAIL_CLIENT_SECRET", "")
-    )
-    gmail_refresh_token: str = field(
-        default_factory=lambda: _env("CATEYE_GMAIL_REFRESH_TOKEN", "")
-    )
+    twilio_account_sid: str = field(default_factory=lambda: _env("CATEYE_TWILIO_ACCOUNT_SID", ""))
+    twilio_auth_token: str = field(default_factory=lambda: _env("CATEYE_TWILIO_AUTH_TOKEN", ""))
+    twilio_whatsapp_from: str = field(default_factory=lambda: _env("CATEYE_TWILIO_WHATSAPP_FROM", "14155238886"))
+    notification_whatsapp_to: str = field(default_factory=lambda: _env("CATEYE_NOTIFICATION_WHATSAPP_TO", ""))
+    gmail_client_id: str = field(default_factory=lambda: _env("CATEYE_GMAIL_CLIENT_ID", ""))
+    gmail_client_secret: str = field(default_factory=lambda: _env("CATEYE_GMAIL_CLIENT_SECRET", ""))
+    gmail_refresh_token: str = field(default_factory=lambda: _env("CATEYE_GMAIL_REFRESH_TOKEN", ""))
     gmail_from: str = field(default_factory=lambda: _env("CATEYE_GMAIL_FROM", ""))
-    fcm_server_key: str = field(
-        default_factory=lambda: _env(
-            "CATEYE_FCM_SERVER_KEY", "", "RASTRO_FCM_SERVER_KEY"
-        )
-    )
-    fcm_project_id: str = field(
-        default_factory=lambda: _env(
-            "CATEYE_FCM_PROJECT_ID", "", "RASTRO_FCM_PROJECT_ID"
-        )
-    )
+    fcm_server_key: str = field(default_factory=lambda: _env("CATEYE_FCM_SERVER_KEY", "", "RASTRO_FCM_SERVER_KEY"))
+    fcm_project_id: str = field(default_factory=lambda: _env("CATEYE_FCM_PROJECT_ID", "", "RASTRO_FCM_PROJECT_ID"))
+    discord_webhook_url: str = field(default_factory=lambda: _env("CATEYE_DISCORD_WEBHOOK_URL", ""))
 
     # ── Test flags ──
     smoke_test: bool = field(default_factory=lambda: _env_bool("CATEYE_SMOKE_TEST"))
-    portable_test: bool = field(
-        default_factory=lambda: _env_bool("CATEYE_PORTABLE_TEST")
-    )
-    installer_test: bool = field(
-        default_factory=lambda: _env_bool("CATEYE_INSTALLER_TEST")
-    )
+    portable_test: bool = field(default_factory=lambda: _env_bool("CATEYE_PORTABLE_TEST"))
+    installer_test: bool = field(default_factory=lambda: _env_bool("CATEYE_INSTALLER_TEST"))
 
     # ── Legacy ──
-    memory_consume: int = field(
-        default_factory=lambda: _env_int(
-            "CATEYE_MEMORY_CONSUME", 1, "RASTRO_MEMORY_CONSUME"
-        )
-    )
+    memory_consume: int = field(default_factory=lambda: _env_int("CATEYE_MEMORY_CONSUME", 1, "RASTRO_MEMORY_CONSUME"))
 
     @property
     def is_production(self) -> bool:

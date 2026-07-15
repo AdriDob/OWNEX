@@ -158,7 +158,7 @@ const systemStatusColor = computed(() => {
 
     <template v-else>
       <!-- Intel Summary Bar -->
-      <div v-if="scanInfo" class="cyber-card rounded-xl">
+      <div v-if="scanInfo" class="card-base rounded-xl">
         <div class="grid grid-cols-1 divide-y divide-border/30 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           <div class="p-4 text-center">
             <p class="font-mono text-[10px] text-muted-foreground tracking-wider">DETECTADOS</p>
@@ -177,7 +177,7 @@ const systemStatusColor = computed(() => {
 
       <!-- KPI Grid -->
       <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Card v-for="(kpi, i) in kpis" :key="kpi.label" class="p-4 stagger-item cyber-card" :style="{ '--i': i }">
+        <Card v-for="(kpi, i) in kpis" :key="kpi.label" class="p-4 stagger-item card-base" :style="{ '--i': i }">
           <div class="flex items-center justify-between mb-2">
             <p class="font-mono text-[10px] text-muted-foreground tracking-wider">{{ kpi.label }}</p>
             <div class="flex h-6 w-6 items-center justify-center rounded-md bg-surface/50" :style="{ color: kpi.color }">
@@ -190,7 +190,7 @@ const systemStatusColor = computed(() => {
 
       <!-- Charts -->
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 stagger-item" style="--i: 4">
-        <Card class="p-4 cyber-card">
+        <Card class="p-4 card-base">
           <div class="flex items-center gap-2 mb-3">
             <BarChart3 class="h-4 w-4 text-primary" />
             <p class="font-mono text-xs font-semibold text-foreground">Hallazgos por severidad</p>
@@ -205,7 +205,7 @@ const systemStatusColor = computed(() => {
             showLegend
           />
         </Card>
-        <Card class="p-4 cyber-card">
+        <Card class="p-4 card-base">
           <div class="flex items-center gap-2 mb-3">
             <Activity class="h-4 w-4 text-accent" />
             <p class="font-mono text-xs font-semibold text-foreground">Distribución de veredictos</p>
@@ -223,7 +223,7 @@ const systemStatusColor = computed(() => {
       </div>
 
       <!-- Top Opportunities -->
-      <Card class="p-4 stagger-item cyber-card" style="--i: 5">
+      <Card class="p-4 stagger-item card-base" style="--i: 5">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
             <Zap class="h-4 w-4 text-primary" />

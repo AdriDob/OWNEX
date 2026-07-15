@@ -20,12 +20,35 @@ import asyncio
 import logging
 import time
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import text
 
 from cores.env.config import get_config
 from cores.intelligence.reward_learning import RewardLearner
 from database import db, models
+
+if TYPE_CHECKING:
+    pass
+
+# Lazy COPILOT import — agent is optional
+_copilot_instance: Any = None
+
+
+def _get_copilot():
+    """Lazy-init singleton COPILOT instance."""
+    global _copilot_instance
+    if _copilot_instance is None:
+        try:
+            from core.copilot.agent import CopilotAgent
+            from core.copilot.permissions import AuthorityLevel
+
+            _copilot_instance = CopilotAgent(authority=AuthorityLevel.SENIOR_HUNTER)
+            logger.info("[COPILOT] Scheduler COPILOT initialized")
+        except Exception as exc:
+            logger.debug("[COPILOT] Not available in scheduler: %s", exc)
+    return _copilot_instance
+
 
 logger = logging.getLogger("cateye.scheduler")
 
@@ -40,6 +63,7 @@ STAGE_INTERVALS = {
 
 # Per-target cooldown: skip recon on a target if scanned within this window
 TARGET_COOLDOWN = 3600  # 1 hour
+
 
 class ScanScheduler:
     def __init__(self, interval_minutes: int = 30):
@@ -78,32 +102,42 @@ class ScanScheduler:
         if self._should_run("discover", now):
             try:
                 await self._stage_discover()
+                self._copilot_hook("discover", "completed")
             except Exception as e:
                 logger.warning("Discover stage failed: %s", e)
+                self._copilot_hook("discover", "failed")
 
         if self._should_run("recon", now):
             try:
                 await self._stage_recon()
+                self._copilot_hook("recon", "completed")
             except Exception as e:
                 logger.warning("Recon stage failed: %s", e)
+                self._copilot_hook("recon", "failed")
 
         if self._should_run("hypothesis", now):
             try:
                 await self._stage_hypothesis()
+                self._copilot_hook("hypothesis", "completed")
             except Exception as e:
                 logger.warning("Hypothesis stage failed: %s", e)
+                self._copilot_hook("hypothesis", "failed")
 
         if self._should_run("validate", now):
             try:
                 await self._stage_validate()
+                self._copilot_hook("validate", "completed")
             except Exception as e:
                 logger.warning("Validation stage failed: %s", e)
+                self._copilot_hook("validate", "failed")
 
         if self._should_run("report", now):
             try:
                 await self._stage_report()
+                self._copilot_hook("report", "completed")
             except Exception as e:
                 logger.warning("Report stage failed: %s", e)
+                self._copilot_hook("report", "failed")
 
         self._last_run["pipeline"] = now
         # Checkpoint WAL to prevent unbounded growth on 24/7 systems
@@ -116,13 +150,37 @@ class ScanScheduler:
         stale_cooldown_threshold = now - TARGET_COOLDOWN * 2
         old_count = len(self._target_cooldowns)
         self._target_cooldowns = {
-            tid: ts for tid, ts in self._target_cooldowns.items()
-            if ts >= stale_cooldown_threshold
+            tid: ts for tid, ts in self._target_cooldowns.items() if ts >= stale_cooldown_threshold
         }
         purged = old_count - len(self._target_cooldowns)
         if purged:
             logger.info("[SCHEDULER] Purged %d stale cooldown entries", purged)
         logger.info("=== Pipeline Cycle Complete ===")
+
+    def _copilot_hook(self, stage: str, stage_result: str = "completed") -> None:
+        """Log COPILOT recommendations after a pipeline stage."""
+        copilot = _get_copilot()
+        if copilot is None:
+            logger.debug("[COPILOT] Hook %s: skipped (no agent)", stage)
+            return
+        try:
+            actions = copilot.recommend_for_system(
+                extra_state={
+                    "stage": stage,
+                    "stage_result": stage_result,
+                    "last_run": self._last_run.get(stage, 0),
+                }
+            )
+            for a in actions[:3]:
+                logger.info(
+                    "[COPILOT] After %s: %s (prio=%d) — %s",
+                    stage,
+                    a["action"],
+                    a.get("priority", 0),
+                    a.get("reason", ""),
+                )
+        except Exception as exc:
+            logger.debug("[COPILOT] Hook %s error: %s", stage, exc)
 
     def _should_run(self, stage: str, now: float) -> bool:
         interval = STAGE_INTERVALS.get(stage, self.interval)
@@ -134,22 +192,28 @@ class ScanScheduler:
         session = db.SessionLocal()
         try:
             from cores.bounty_scraper import get_bounty_scraper
+
             scraper = get_bounty_scraper()
             programs = await asyncio.to_thread(scraper.scrape_all, max_pages=2)
             created = scraper.convert_to_targets(programs, session, models)
             logger.info(
                 "[DISCOVER] %d programs found, %d new targets created",
-                len(programs), len(created),
+                len(programs),
+                len(created),
             )
             if created:
                 try:
                     from cores.events.event_bus import get_event_bus
+
                     bus = get_event_bus()
-                    bus.publish("opportunity:found", {
-                        "count": len(created),
-                        "names": [c.name for c in created[:10]] if hasattr(created[0], 'name') else [],
-                        "source": "discovery_scheduler",
-                    })
+                    bus.publish(
+                        "opportunity:found",
+                        {
+                            "count": len(created),
+                            "names": [c.name for c in created[:10]] if hasattr(created[0], "name") else [],
+                            "source": "discovery_scheduler",
+                        },
+                    )
                 except Exception:
                     logger.exception("Failed to publish opportunity:found event")
             self._last_run["discover"] = datetime.now(timezone.utc).timestamp()
@@ -184,8 +248,11 @@ class ScanScheduler:
                 if (now - last_scan) < TARGET_COOLDOWN:
                     continue
                 if not inspected_for_log and priority_score > 1.0:
-                    logger.info("[ORION] Auto-prioritized %s (priority=%.2f) — selected by reward learning + ORION scoring",
-                                target.name, priority_score)
+                    logger.info(
+                        "[ORION] Auto-prioritized %s (priority=%.2f) — selected by reward learning + ORION scoring",
+                        target.name,
+                        priority_score,
+                    )
                     inspected_for_log = True
                 try:
                     self._target_cooldowns[target.id] = now
@@ -195,18 +262,24 @@ class ScanScheduler:
                     logger.warning("[RECON] Failed on %s: %s", target.name, e)
 
             if scanned:
-                logger.info("[RECON] Scanned %d/%d targets (cooldown filtered %d)",
-                           scanned, len(targets),
-                           sum(1 for t in targets
-                               if (now - self._target_cooldowns.get(t.id, 0)) < TARGET_COOLDOWN))
+                logger.info(
+                    "[RECON] Scanned %d/%d targets (cooldown filtered %d)",
+                    scanned,
+                    len(targets),
+                    sum(1 for t in targets if (now - self._target_cooldowns.get(t.id, 0)) < TARGET_COOLDOWN),
+                )
                 try:
                     from cores.events.event_bus import get_event_bus
+
                     bus = get_event_bus()
-                    bus.publish("discovery:completed", {
-                        "stage": "recon",
-                        "scanned": scanned,
-                        "total": len(targets),
-                    })
+                    bus.publish(
+                        "discovery:completed",
+                        {
+                            "stage": "recon",
+                            "scanned": scanned,
+                            "total": len(targets),
+                        },
+                    )
                 except Exception:
                     logger.exception("Failed to publish discovery:completed event")
 
@@ -227,24 +300,30 @@ class ScanScheduler:
             session=session,
         )
 
-    async def _resolve_auth_pair(
-        self, session, target_id: int
-    ) -> tuple[dict | None, dict | None]:
+    async def _resolve_auth_pair(self, session, target_id: int) -> tuple[dict | None, dict | None]:
         from cores.target_auth.session_resolver import get_session_resolver
 
         resolver = get_session_resolver()
 
-        baseline_id = session.query(models.TargetIdentity.id).filter(
-            models.TargetIdentity.target_id == target_id,
-            models.TargetIdentity.is_baseline.is_(True),
-            models.TargetIdentity.is_active.is_(True),
-        ).scalar()
+        baseline_id = (
+            session.query(models.TargetIdentity.id)
+            .filter(
+                models.TargetIdentity.target_id == target_id,
+                models.TargetIdentity.is_baseline.is_(True),
+                models.TargetIdentity.is_active.is_(True),
+            )
+            .scalar()
+        )
 
-        probe_id = session.query(models.TargetIdentity.id).filter(
-            models.TargetIdentity.target_id == target_id,
-            models.TargetIdentity.is_baseline.is_(False),
-            models.TargetIdentity.is_active.is_(True),
-        ).scalar()
+        probe_id = (
+            session.query(models.TargetIdentity.id)
+            .filter(
+                models.TargetIdentity.target_id == target_id,
+                models.TargetIdentity.is_baseline.is_(False),
+                models.TargetIdentity.is_active.is_(True),
+            )
+            .scalar()
+        )
 
         baseline_ctx = None
         probe_ctx = None
@@ -266,16 +345,17 @@ class ScanScheduler:
         session = db.SessionLocal()
         try:
             from cores.engine.hypothesis.generators import generate_hypotheses
-            endpoints = session.query(models.Endpoint).filter(
-                models.Endpoint.hypothesis_id.is_(None)
-            ).limit(100).all()
+
+            endpoints = session.query(models.Endpoint).filter(models.Endpoint.hypothesis_id.is_(None)).limit(100).all()
             for ep in endpoints:
                 try:
                     target = session.query(models.Target).filter(models.Target.id == ep.target_id).first()
                     if not target:
                         continue
                     ep_dict = {
-                        "id": ep.id, "path": ep.path, "method": ep.method,
+                        "id": ep.id,
+                        "path": ep.path,
+                        "method": ep.method,
                         "parsed_params": getattr(ep, "parsed_params", "{}"),
                         "risk_score": getattr(ep, "risk_score", 0.0),
                     }
@@ -299,21 +379,28 @@ class ScanScheduler:
         try:
             from cores.validation.loop_engine import ValidationLoopEngine
             from cores.validation.replayer import AuthContext
-            findings = session.query(models.Finding).filter(
-                models.Finding.status == "open"
-            ).filter(
-                models.Finding.severity.in_(["high", "critical"])
-            ).limit(20).all()
+
+            findings = (
+                session.query(models.Finding)
+                .filter(models.Finding.status == "open")
+                .filter(models.Finding.severity.in_(["high", "critical"]))
+                .limit(20)
+                .all()
+            )
             engine = ValidationLoopEngine()
             for f in findings:
                 try:
-                    ep = session.query(models.Endpoint).filter(models.Endpoint.id == f.endpoint_id).first() if f.endpoint_id else None
+                    ep = (
+                        session.query(models.Endpoint).filter(models.Endpoint.id == f.endpoint_id).first()
+                        if f.endpoint_id
+                        else None
+                    )
                     if not ep:
                         continue
                     vt = getattr(f, "vulnerability_type", None) or "unknown"
                     endpoint_details = {
-                        "url": getattr(ep, 'url', ''),
-                        "method": getattr(ep, 'method', 'GET'),
+                        "url": getattr(ep, "url", ""),
+                        "method": getattr(ep, "method", "GET"),
                         "headers": {},
                         "params": {},
                     }
@@ -349,9 +436,10 @@ class ScanScheduler:
         session = db.SessionLocal()
         try:
             from cores.pipeline.report_service import create_report_from_findings
-            confirmed_findings = session.query(models.Finding).filter(
-                models.Finding.status == "confirmed"
-            ).limit(50).all()
+
+            confirmed_findings = (
+                session.query(models.Finding).filter(models.Finding.status == "confirmed").limit(50).all()
+            )
             for f in confirmed_findings:
                 try:
                     report = create_report_from_findings(
@@ -365,12 +453,16 @@ class ScanScheduler:
                     if report:
                         try:
                             from cores.events.event_bus import get_event_bus
+
                             bus = get_event_bus()
-                            bus.publish("report:generated", {
-                                "finding_id": f.id,
-                                "report_id": report.get("id"),
-                                "status": "draft",
-                            })
+                            bus.publish(
+                                "report:generated",
+                                {
+                                    "finding_id": f.id,
+                                    "report_id": report.get("id"),
+                                    "status": "draft",
+                                },
+                            )
                         except Exception:
                             logger.exception("Failed to publish report:generated event")
                 except Exception as e:
@@ -394,6 +486,7 @@ def _compute_target_priorities(targets: list) -> dict[int, float]:
     orion_next_name = ""
     try:
         from cores.orion.next_action import get_next_action
+
         action = get_next_action()
         if action:
             orion_next = action
@@ -404,15 +497,18 @@ def _compute_target_priorities(targets: list) -> dict[int, float]:
     # Pre-load ORION SCOREs for targets that have related programs
     try:
         from database import db as _db
+
         _db.init_db()
         session = _db.SessionLocal()
         program_scores = {}
         for t in targets:
-            if hasattr(t, 'domain') and t.domain:
-                prog = session.query(_db.models_economic.Program).filter(
-                    _db.models_economic.Program.domain == t.domain
-                ).first()
-                if prog and hasattr(prog, 'orion_score'):
+            if hasattr(t, "domain") and t.domain:
+                prog = (
+                    session.query(_db.models_economic.Program)
+                    .filter(_db.models_economic.Program.domain == t.domain)
+                    .first()
+                )
+                if prog and hasattr(prog, "orion_score"):
                     program_scores[t.id] = prog.orion_score
         session.close()
     except Exception:
@@ -422,11 +518,11 @@ def _compute_target_priorities(targets: list) -> dict[int, float]:
     for t in targets:
         score = 1.0
         # Boost targets whose vulnerability types have high adjustment factors
-        if hasattr(t, 'vulnerability_type') and t.vulnerability_type:
+        if hasattr(t, "vulnerability_type") and t.vulnerability_type:
             adj = adjustments.get(t.vulnerability_type, 1.0)
             score *= adj
         # Boost targets with recent activity
-        if hasattr(t, 'last_active') and t.last_active:
+        if hasattr(t, "last_active") and t.last_active:
             days_since = (datetime.now(timezone.utc) - t.last_active).days
             score *= max(0.5, 2.0 - days_since * 0.1)
         # ORION SCORE multiplier
@@ -440,7 +536,11 @@ def _compute_target_priorities(targets: list) -> dict[int, float]:
         priorities[t.id] = round(max(0.1, min(score, 10.0)), 2)
 
     if orion_next:
-        logger.info("[ORION] Next action recommendation: %s (score=%.4f, why=%s)",
-                    orion_next.get("title"), 0.0, orion_next.get("why_now", ""))
+        logger.info(
+            "[ORION] Next action recommendation: %s (score=%.4f, why=%s)",
+            orion_next.get("title"),
+            0.0,
+            orion_next.get("why_now", ""),
+        )
 
     return priorities

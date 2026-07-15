@@ -711,3 +711,39 @@ export async function getAccountsHub() {
 export async function getSyncHistory() {
   return api.get<any[]>('/accounts-hub/sync-history')
 }
+
+// ── Integration Center ──
+
+export interface IntegrationItem {
+  name: string
+  category: string
+  status: string
+  description: string
+  icon: string
+  last_sync: string | null
+  latency_ms: number | null
+  error: string | null
+  permissions: string[]
+  tags: string[]
+  checked_at: string
+}
+
+export interface IntegrationsSummary {
+  total: number
+  by_status: Record<string, number>
+  by_category: Record<string, number>
+  categories: string[]
+  integrations: IntegrationItem[]
+}
+
+export async function getIntegrations() {
+  return api.get<IntegrationsSummary>('/core/integrations')
+}
+
+export async function testIntegration(name: string) {
+  return api.post<{ name: string; status: string; error: string | null; checked_at: string }>(`/core/integrations/${name}/test`)
+}
+
+export async function getIntegrationStatus(name: string) {
+  return api.get<IntegrationItem>(`/core/integrations/${name}`)
+}

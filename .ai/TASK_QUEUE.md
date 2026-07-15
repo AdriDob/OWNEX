@@ -1,124 +1,69 @@
 # Task Queue — Tareas Pendientes
 
-> Cada tarea DEBE tener evidencia de que no existe ya implementada antes de comenzar.
-> Cuando una tarea se completa, se ELIMINA de esta cola.
+> **FILTRO PREVIO**: toda tarea debe responder: ¿aumenta la probabilidad de encontrar una vulnerabilidad válida, demostrarla mejor o conseguir que el reporte sea aceptado? Si la respuesta es no, su prioridad es baja.
+>
+> **ESTRATEGIA**: Revenue Ready primero. Offensive Intelligence > Evidence > Acceptance > Hunting Loops > Revenue Analytics > Documentation > Companion > Installer.
+>
+> **SIMPLIFICACIONES COMPLETADAS**: AppRegistry + ExtensionRegistry unificados vía `core/plugin/discovery.py`. Journal → EventStore persistencia. SecretsManager single Vault path. Revenue Pipeline completo con 31 tests. FULL RUFF CLEAN. 1386 tests pasan.
 
-## CATEYE v3.0.0 STABLE
+## PRIORIDAD MÁXIMA — Revenue Ready (Q3 2026)
 
-No hay tareas pendientes para v3.0.0. Todas las verificaciones fueron completadas.
+### 0. Revenue Pipeline ✅ COMPLETED — Julio 2026
+- **Qué**: Finding → Evidence → Report → Platform → Payout. `RevenuePipeline` orchestrator with `submit_report()`, `check_submission_status()`, `sync_platform_payouts()`, `record_payout()`, `revenue_summary()`, `list_submissions()`. 6 API endpoints. 6 revenue events. 5 capabilities. 31 tests, Ruff clean.
+- **Archivos**: `core/revenue/pipeline.py`, `api/routers/revenue.py`, `database/models_economic.py` (2 new models), `core/events/types.py` (6 new events), `api/main.py` (router registration)
+- **Impacto**: Cierra el ciclo de revenue conectando todos los componentes existentes (platforms, models, ledger, events)
 
-## CATEYE v3.1 — ORION Reasoning Layer
+## PRIORIDAD MÁXIMA — Revenue Ready (Q3 2026)
 
-### 1. ✅ Hypothesis Challenger
-- **Descripción**: Antes de validar una hipótesis, preguntar "¿qué tendría que ser cierto para que esta vulnerabilidad NO exista?" y diseñar pruebas en consecuencia.
-- **Impacto**: Reduce falsos positivos por recursos públicos, caché, stubs.
-- **Archivos**: cores/validation/challenger.py (nuevo), gate.py, confidence.py, loop_engine.py, verdict_handler.py, models.py, db.py
-- **Estado**: ✅ COMPLETED — 2026-07-09
-- **Evidencia**: 393 tests pasan. Ruff clean. El sistema evalúa explicaciones alternativas para 7+ tipos de vulnerabilidad.
+### 1. Offensive Intelligence Engine ✅ COMPLETED — Julio 2026
+- **Qué**: IDOR, SSRF, XSS, SQLi, Auth Bypass reasoners. Planner, Curiosity Engine, Relationship Graph, ContradictionEngine, Triager, Templates, Publisher. 8 API endpoints. 101 tests.
+- **Archivos**: `core/offensive/`, `api/routers/offensive.py`
+- **Impacto**: Aumenta directamente detección de vulnerabilidades.
 
-### 2. Evidence Graph
-- **Descripción**: Guardar evidencia a favor y en contra de cada hipótesis, no solo el confidence score final.
-- **Impacto**: Razonamiento interpretable por el humano.
-- **Dependencias**: validation/loop_engine.py, validation/gate.py
-- **Estado**: Pendiente
-- **Criterio de finalización**: El Verdict incluye "evidence_for", "evidence_against", "missing_verifications".
+### 2. Evidence Engine ✅ COMPLETED — Julio 2026
+- **Qué**: PoC, requests, responses, curl, Python exploit, timeline, CVSS, CWE, CAPEC, OWASP, MITRE, report readiness score. 37 tests.
+- **Archivos**: `core/evidence/composer.py`
+- **Impacto**: Aumenta tasa de aceptación de reportes.
 
-### 3. Adaptive Report Gate
-- **Descripción**: Threshold dinámico por tipo de vulnerabilidad (IDOR necesita ownership violation; SSRF necesita interacción externa).
-- **Impacto**: Reduce falsos positivos específicos por tipo.
-- **Dependencias**: validation/gate.py
-- **Estado**: Pendiente
-- **Criterio de finalización**: IDOR, SSRF, Auth Bypass tienen distintos criterios de admisión.
+### 3. Report Acceptance Optimizer
+- **Qué**: Aprende de Hacktivity/HackerOne/Bugcrowd/Intigriti qué hace que un reporte sea aceptado vs rechazado. Adapta estilo automáticamente.
+- **Impacto**: Aumenta directamente revenue.
+- **Dependencias**: Knowledge Graph, COPILOT.
+- **Criterio**: Reportes generados tienen probabilidad de aceptación estimada + aprenden de outcomes.
+- **Estado**: Base implementada (Quality Gate), falta aprendizaje de outcomes reales.
 
-### Prioridad Media
+### 4. Recon Intelligence
+- **Qué**: Subfinder → Katana → Wayback → Knowledge Graph → COPILOT → "Este endpoint tiene patrón IDOR" → Prioridad → PoC → Evidence → Report.
+- **Impacto**: Pipeline completo de descubrimiento a reporte.
+- **Dependencias**: Execution Platform, Offensive Intelligence, Evidence Engine.
+- **Criterio**: Pipeline corre end-to-end sin intervención humana.
 
-### 4. FeedbackLearner pipeline
-- **Descripción**: Conectar FeedbackLearner al ConfidenceScorer para que los pesos se ajusten con la experiencia.
-- **Impacto**: El sistema mejora con el tiempo.
-- **Dependencias**: validation/llm_analyzer.py, validation/confidence.py
-- **Estado**: Pendiente
-- **Criterio de finalización**: Los insights de FeedbackLearner modifican los pesos del ConfidenceScorer.
+### 5. Revenue Analytics
+- **Qué**: El dinero como entidad de primer nivel. Expected Revenue por target/vuln/programa. ROI tracking. Estrategia basada en datos reales.
+- **Impacto**: Prioriza el trabajo más rentable.
+- **Dependencias**: Knowledge Graph, Financial Layer.
+- **Criterio**: ORION puede responder "¿qué estrategia generó más revenue en los últimos 6 meses?".
 
-### 5. Pending debt (from v3.0)
-- ~~Unificar 3 sistemas de salud superpuestos~~ → ✅ HealthCenter unificado en core/health/engine.py
-- ~~Agregar persistencia a health snapshots~~ → ✅ Snapshots in-memory (últimos 100)
-- ~~Mover API keys del frontend al backend~~ → ✅ SecretsManager en core/secrets/manager.py
-- Conectar DuplicateDetector con DedupTracker
-- Auditoría de dependencias no utilizadas
+## PRIORIDAD MEDIA — Platform Hardening
 
-## ORION Platform v4.0.0 (COMPLETED)
+### 6. Configuration Wizard v2 (SETUP CENTER)
+- **Estado**: ✅ COMPLETED — Julio 2026
+- **Qué**: Wizard extensible (6 pasos), persistente en disco, metadata-driven, API endpoints para go-back/skip/reset/steps. 14 tests, Ruff clean.
+- **Archivos**: `core/setup/` (refactorizado), `core/api/routers.py` (nuevos endpoints)
 
-### ✅ Extension SDK
-- **Archivos**: core/extension/manifest.py, registry.py, hooks.py, capabilities.py, settings.py
-- **Estado**: ✅ COMPLETED — 2026-07-10
-- **Evidencia**: 63 tests nuevos, Ruff clean. Extensions auto-descubiertas desde extensions/*/manifest.py. Hooks (before/after), capabilities registry, declarative settings.
+### 7. Documentation Platform
+- **Qué**: Generación automática de 13 documentos desde metadatos del sistema (introspect, wizard, capabilities, events, API).
+- **Estado**: ⏸ Pausada — pospuesta post Revenue Ready.
+- **Base existente**: `core/documentation/` con models, registrar, introspect (18 módulos auto-registrados).
 
-### ✅ Secrets Manager
-- **Archivos**: core/secrets/manager.py
-- **Estado**: ✅ COMPLETED — 2026-07-10
-- **Evidencia**: IdentityVault bridge (AES-256-GCM). Env var fallback. Cache in-memory.
+### 8. ORION Companion (Android)
+- **Qué**: App Kotlin + Jetpack Compose. Dashboard, COPILOT, approvals, notificaciones.
+- **Estado**: ⏸ Pausada — pospuesta post Revenue Ready.
 
-### ✅ Health Center
-- **Archivos**: core/health/engine.py, checks.py
-- **Estado**: ✅ COMPLETED — 2026-07-10
-- **Evidencia**: Unifica 3 sistemas legacy. Checks por categoría (system/background/integration). Status green/yellow/red.
+### 9. ORION Watch (Wear OS)
+- **Qué**: Extension del Companion. Alertas críticas, estado del sistema, approvals rápidas.
+- **Estado**: ⏸ Pausada — pospuesta post Revenue Ready.
 
-### ✅ Documentation
-- **Archivos**: CONFIGURATION_GUIDE.md, EXTENSION_SDK.md, CONNECTOR_GUIDE.md, ARCHITECTURE_DECISIONS.md
-- **Estado**: ✅ COMPLETED — 2026-07-10
-
-## ORION Platform v4.1.0 — Financial Layer (COMPLETED)
-
-### ✅ CoinGecko price feed
-- **Archivos**: cores/crypto/coingecko.py
-- **Estado**: ✅ COMPLETED — 2026-07-10
-
-### ✅ Takenos connector
-- **Archivos**: cores/financial/takenos/
-- **Estado**: ✅ COMPLETED — 2026-07-10
-
-### ✅ Dashboard unificado
-- **Archivos**: cores/financial/dashboard.py
-- **Estado**: ✅ COMPLETED — 2026-07-10
-
-### ✅ Integrations status
-- **Archivos**: api/routers/financial_truth.py
-- **Estado**: ✅ COMPLETED — 2026-07-10
-
-### ✅ Fix Coinbase ATLAS connector (HMAC)
-- **Archivos**: apps/atlas/connectors/coinbase/connector.py
-- **Estado**: ✅ COMPLETED — 2026-07-10
-
-### ✅ Fix Kraken ATLAS connector (private API)
-- **Archivos**: apps/atlas/connectors/kraken/connector.py
-- **Estado**: ✅ COMPLETED — 2026-07-10
-
-## Hermes Automation Agent v1 (COMPLETED)
-
-### ✅ Manifest + AppRegistry
-- **Archivos**: apps/hermes/manifest.py
-- **Estado**: ✅ COMPLETED — 2026-07-10
-- **Evidencia**: App "hermes" registrada con scheduler job hermes_health_check
-
-### ✅ Automation Engine
-- **Archivos**: apps/hermes/engine.py
-- **Estado**: ✅ COMPLETED — 2026-07-10
-- **Evidencia**: 6 comandos (backup, status, health, logs, doctor, help), safe mode, permission control, action logging
-
-### ✅ CLI wrapper
-- **Archivos**: run.py
-- **Estado**: ✅ COMPLETED — 2026-07-10
-- **Evidencia**: `python run.py --hermes <command>` funciona
-
-### ✅ Tests
-- **Archivos**: tests/test_hermes.py
-- **Estado**: ✅ COMPLETED — 2026-07-10
-- **Evidencia**: 15 tests pasan, Ruff clean, 0 regresiones
-
-### ✅ User Guide
-- **Archivos**: docs/HERMES_GUIDE.md
-- **Estado**: ✅ COMPLETED — 2026-07-10
-
-### ✅ Windows launcher
-- **Archivos**: scripts/hermes_shortcut.bat, scripts/hermes_silent.vbs
-- **Estado**: ✅ COMPLETED — 2026-07-10
+### 10. Desktop Installer
+- **Qué**: Instalador Windows con auto-update, repair, backup, diagnóstico.
+- **Estado**: ⏸ Pausada — pospuesta post Revenue Ready.

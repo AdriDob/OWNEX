@@ -117,12 +117,10 @@ class Policy:
         name: str,
         description: str,
         level: AuthorityLevel | None = None,
-        condition: str = "",
     ) -> None:
         self.name = name
         self.description = description
         self.level = level
-        self.condition = condition
 
     def allows(self, level: AuthorityLevel) -> bool:
         if self.level is None:
@@ -150,7 +148,6 @@ class PolicyEngine:
                 "auto_report_min_confidence",
                 "Nunca reportar automáticamente si confidence < 92%",
                 level=AuthorityLevel.SENIOR_HUNTER,
-                condition="confidence >= 0.92",
             )
         )
         self.add(
@@ -158,7 +155,6 @@ class PolicyEngine:
                 "never_delete_data",
                 "Nunca borrar datos de forma permanente",
                 level=AuthorityLevel.ADMINISTRATOR,
-                condition="action != 'delete'",
             )
         )
         self.add(
@@ -166,7 +162,6 @@ class PolicyEngine:
                 "never_touch_credentials",
                 "Nunca tocar credenciales almacenadas",
                 level=AuthorityLevel.ADMINISTRATOR,
-                condition="resource != 'credentials'",
             )
         )
         self.add(
@@ -174,7 +169,6 @@ class PolicyEngine:
                 "config_read_only",
                 "Nunca modificar configuración sin permiso Administrator",
                 level=AuthorityLevel.ADMINISTRATOR,
-                condition="category != 'configuration'",
             )
         )
         self.add(
@@ -182,7 +176,6 @@ class PolicyEngine:
                 "safe_mode_only",
                 "Nunca ejecutar herramientas fuera del Safe Mode",
                 level=AuthorityLevel.OPERATOR,
-                condition="mode == 'safe'",
             )
         )
         self.add(
@@ -190,7 +183,6 @@ class PolicyEngine:
                 "evidence_required",
                 "Todo reporte debe incluir evidencia reproducible",
                 level=AuthorityLevel.ASSISTANT,
-                condition="evidence_count >= 1",
             )
         )
 

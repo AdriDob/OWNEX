@@ -9,9 +9,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("orion.core.maintenance")
+from core import ORION_DIR
 
-ORION_DIR = Path.home() / ".orion"
+logger = logging.getLogger("orion.core.maintenance")
 
 KNOWN_DATABASES: list[Path] = [
     ORION_DIR / "cateye.db",

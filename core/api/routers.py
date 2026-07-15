@@ -28,6 +28,99 @@ logger = logging.getLogger("orion.core.api")
 router = APIRouter(prefix="/api/core", tags=["core"])
 
 
+# ── Setup / First-Run endpoints ──────────────────────
+
+
+class WizardStepRequest(BaseModel):
+    step_id: str | None = None
+    step_data: dict | None = None
+
+
+@router.get("/setup/status")
+async def setup_status():
+    """Check if first-run setup has been completed."""
+    from core.setup.first_run import setup_status as ss
+
+    return {"setup": ss()}
+
+
+@router.get("/setup/check-requirements")
+async def setup_check_requirements():
+    """Run all system requirements checks."""
+    from core.setup.requirements_check import check_all
+
+    return check_all()
+
+
+@router.get("/setup/check-security")
+async def setup_check_security():
+    """Run security-specific checks (vault, secrets)."""
+    from core.setup.requirements_check import check_secrets, check_vault
+
+    return {
+        "vault": {"name": check_vault().name, "status": check_vault().status, "message": check_vault().message},
+        "secrets": {"name": check_secrets().name, "status": check_secrets().status, "message": check_secrets().message},
+    }
+
+
+@router.post("/setup/wizard-step")
+async def setup_wizard_step(body: WizardStepRequest):
+    """Advance the setup wizard one step."""
+    from core.setup.wizard import run_step
+
+    return run_step(body.step_id, dict(body.step_data) if body.step_data else None)
+
+
+@router.get("/setup/wizard")
+async def setup_wizard():
+    """Get current wizard state."""
+    from core.setup.wizard import wizard_status
+
+    return wizard_status()
+
+
+@router.post("/setup/wizard/go-back")
+async def setup_wizard_go_back():
+    """Go back one step in the wizard."""
+    from core.setup.wizard import go_back
+
+    return go_back()
+
+
+@router.post("/setup/wizard/skip")
+async def setup_wizard_skip(body: WizardStepRequest):
+    """Skip a non-required step."""
+    from core.setup.wizard import skip_step
+
+    if not body.step_id:
+        return {"status": "error", "message": "step_id is required"}
+    return skip_step(body.step_id)
+
+
+@router.post("/setup/wizard/reset")
+async def setup_wizard_reset():
+    """Reset wizard state to beginning."""
+    from core.setup.wizard import reset_wizard
+
+    return reset_wizard()
+
+
+@router.get("/setup/wizard/steps")
+async def setup_wizard_steps():
+    """List all registered wizard steps with metadata."""
+    from core.setup.steps import get_all_steps
+
+    return [s.to_dict() for s in get_all_steps()]
+
+
+@router.post("/setup/complete")
+async def setup_complete():
+    """Finalize setup — create dirs, vault, marker."""
+    from core.setup.first_run import complete_setup
+
+    return complete_setup()
+
+
 @router.get("/apps")
 async def list_apps():
     """List all registered ORION Platform apps."""
@@ -185,11 +278,91 @@ async def run_health_check():
     }
 
 
+@router.get("/health/history")
+async def health_history(limit: int = 20):
+    """Return recent health snapshots."""
+    center = get_health_center()
+    snapshots = center._snapshots[-limit:] if hasattr(center, "_snapshots") else []
+    return {
+        "history": [
+            {
+                "status": s.status,
+                "timestamp": s.timestamp.isoformat() if s.timestamp else None,
+                "checks": s.checks,
+                "details": s.details,
+            }
+            for s in snapshots
+        ]
+    }
+
+
 @router.get("/health/checks")
 async def list_health_checks():
     """List all registered health checks."""
     center = get_health_center()
     return {"checks": center.list_checks()}
+
+
+@router.get("/health/summary")
+async def unified_health_summary():
+    """Unified health summary — merges HealthCenter checks, process info, DB stats, and system state."""
+    center = get_health_center()
+    return center.unified_summary()
+
+
+# ── Workflow endpoints ──────────────────────────────
+
+
+@router.get("/workflows/templates")
+async def list_workflow_templates():
+    from core.workflows.engine import get_workflow_engine
+
+    engine = get_workflow_engine()
+    return {"templates": engine.list_templates()}
+
+
+@router.get("/workflows/runs")
+async def list_workflow_runs():
+    from core.workflows.engine import get_workflow_engine
+
+    engine = get_workflow_engine()
+    return {"runs": engine.list_runs()}
+
+
+@router.get("/workflows/runs/{run_id}")
+async def get_workflow_run(run_id: str):
+    from core.workflows.engine import get_workflow_engine
+
+    engine = get_workflow_engine()
+    run = engine.get_run(run_id)
+    if not run:
+        return JSONResponse({"error": "Run not found"}, status_code=404)
+    return run.to_dict()
+
+
+class CreateRunRequest(BaseModel):
+    template_file: str
+    target: str = ""
+
+
+@router.post("/workflows/runs")
+async def create_workflow_run(body: CreateRunRequest):
+    from core.workflows.engine import get_workflow_engine
+
+    engine = get_workflow_engine()
+    run = engine.create_run(body.template_file, body.target)
+    if not run:
+        return JSONResponse({"error": "Template not found"}, status_code=404)
+    return run.to_dict()
+
+
+@router.post("/workflows/runs/{run_id}/execute/{step_id}")
+async def execute_workflow_step(run_id: str, step_id: str):
+    from core.workflows.engine import get_workflow_engine
+
+    engine = get_workflow_engine()
+    result = engine.execute_step(run_id, step_id)
+    return {"step_id": result.step_id, "status": result.status.value, "output": result.output, "error": result.error}
 
 
 # ── Integration Center endpoints ─────────────────────
@@ -403,6 +576,129 @@ async def backup_restore(path: str, target: str | None = None):
     return restore_backup(path, target_dir=target)
 
 
+# ── Backup Target endpoints ────────────────────────────
+
+
+class BackupTargetRequest(BaseModel):
+    name: str
+    type: str = "rclone"
+    config: dict = {}
+
+
+@router.get("/backup/targets")
+async def backup_targets_list():
+    """List all registered backup targets."""
+    from core.backup.targets import list_targets
+
+    return {"targets": list_targets()}
+
+
+@router.post("/backup/targets")
+async def backup_targets_add(body: BackupTargetRequest):
+    """Register a new backup target."""
+    from core.backup.targets import register_target
+
+    return register_target(body.name, body.type, body.config)
+
+
+@router.delete("/backup/targets/{name}")
+async def backup_targets_remove(name: str):
+    """Remove a backup target."""
+    from core.backup.targets import remove_target
+
+    return remove_target(name)
+
+
+@router.post("/backup/targets/{name}/sync")
+async def backup_targets_sync(name: str):
+    """Sync the latest backup to a specific target."""
+    from core.backup import create_backup, list_backups
+    from core.backup.targets import sync_to_target
+
+    backups = list_backups()
+    if not backups:
+        result = create_backup()
+        if result.get("status") != "ok":
+            return result
+        backup_path = result.get("backup_path", "")
+    else:
+        backup_path = backups[0]["path"]
+
+    return sync_to_target(name, backup_path)
+
+
+@router.post("/backup/sync-all")
+async def backup_sync_all():
+    """Sync the latest backup to all registered targets."""
+    from core.backup import create_backup, list_backups
+    from core.backup.targets import sync_to_all
+
+    backups = list_backups()
+    if not backups:
+        result = create_backup()
+        if result.get("status") != "ok":
+            return result
+        backup_path = result.get("backup_path", "")
+    else:
+        backup_path = backups[0]["path"]
+
+    return {"results": sync_to_all(backup_path)}
+
+
+# ── Sync endpoints ─────────────────────────────────────
+
+
+class SyncKeyRequest(BaseModel):
+    key: str
+
+
+class SyncEndpointRequest(BaseModel):
+    endpoint: str = ""
+
+
+@router.get("/sync/status")
+async def sync_status():
+    """Multi-device sync status."""
+    from core.sync.engine import get_sync_engine
+
+    return get_sync_engine().status()
+
+
+@router.post("/sync/key")
+async def sync_set_key(body: SyncKeyRequest):
+    """Set the shared encryption key for multi-device sync."""
+    from core.sync.engine import get_sync_engine
+
+    get_sync_engine().set_key(body.key)
+    return {"status": "ok"}
+
+
+@router.post("/sync/push")
+async def sync_push(body: SyncEndpointRequest):
+    """Push local state to sync targets (HTTP endpoint or file)."""
+    from core.sync.engine import get_sync_engine
+
+    eng = get_sync_engine()
+    return eng.push(endpoint=body.endpoint or None)
+
+
+@router.post("/sync/pull")
+async def sync_pull(body: SyncEndpointRequest):
+    """Pull remote state from sync targets."""
+    from core.sync.engine import get_sync_engine
+
+    eng = get_sync_engine()
+    return eng.pull(endpoint=body.endpoint or None)
+
+
+@router.get("/sync/package")
+async def sync_preview():
+    """Preview what would be synced (metadata only, no data sent)."""
+    from core.sync.engine import get_sync_engine
+
+    return get_sync_engine().prepare_sync_package()
+
+
 # ── Maintenance endpoints ──────────────────────────────
 
 
@@ -531,3 +827,156 @@ async def version_info():
         "decision_journal": DECISION_JOURNAL,
         "normalizer_api": NORMALIZER_API,
     }
+
+
+# ── Knowledge Graph endpoints ──────────────────────────
+
+
+class AddNodeRequest(BaseModel):
+    node_type: str
+    name: str
+    properties: dict = {}
+    node_id: str | None = None
+    display_label: str | None = None
+    source: str = ""
+
+
+class AddEdgeRequest(BaseModel):
+    source_id: str
+    target_id: str
+    edge_type: str = "related_to"
+    weight: float = 1.0
+    properties: dict = {}
+
+
+@router.get("/knowledge/nodes")
+async def knowledge_find_nodes(
+    node_type: str | None = None,
+    name_pattern: str | None = None,
+    limit: int = 100,
+    offset: int = 0,
+):
+    """Find nodes by type and/or name pattern."""
+    from core.knowledge.graph import get_knowledge_graph
+
+    kg = get_knowledge_graph()
+    nodes = kg.find_nodes(node_type=node_type, name_pattern=name_pattern, limit=limit, offset=offset)
+    return {"nodes": [kg._node_to_dict(n) for n in nodes], "count": len(nodes)}
+
+
+@router.get("/knowledge/nodes/{node_id}")
+async def knowledge_get_node(node_id: str):
+    """Get a single node by ID."""
+    from core.knowledge.graph import get_knowledge_graph
+
+    kg = get_knowledge_graph()
+    node = kg.get_node(node_id)
+    if not node:
+        return JSONResponse({"error": f"Node '{node_id}' not found"}, status_code=404)
+    return kg._node_to_dict(node)
+
+
+@router.post("/knowledge/nodes")
+async def knowledge_add_node(body: AddNodeRequest):
+    """Add a new node."""
+    from core.knowledge.graph import get_knowledge_graph
+
+    kg = get_knowledge_graph()
+    node = kg.add_node(
+        node_type=body.node_type,
+        name=body.name,
+        properties=body.properties,
+        node_id=body.node_id,
+        display_label=body.display_label,
+        source=body.source,
+    )
+    return kg._node_to_dict(node)
+
+
+@router.delete("/knowledge/nodes/{node_id}")
+async def knowledge_delete_node(node_id: str):
+    """Delete a node and its edges."""
+    from core.knowledge.graph import get_knowledge_graph
+
+    kg = get_knowledge_graph()
+    deleted = kg.delete_node(node_id)
+    if not deleted:
+        return JSONResponse({"error": f"Node '{node_id}' not found"}, status_code=404)
+    return {"deleted": True, "node_id": node_id}
+
+
+@router.get("/knowledge/nodes/{node_id}/neighbors")
+async def knowledge_get_neighbors(
+    node_id: str,
+    edge_type: str | None = None,
+    direction: str = "both",
+    max_depth: int = 1,
+):
+    """Get neighboring nodes up to a depth."""
+    from core.knowledge.graph import get_knowledge_graph
+
+    kg = get_knowledge_graph()
+    neighbors = kg.get_neighbors(node_id=node_id, edge_type=edge_type, direction=direction, max_depth=max_depth)
+    return {"neighbors": neighbors, "count": len(neighbors)}
+
+
+@router.get("/knowledge/path")
+async def knowledge_get_path(
+    source: str,
+    target: str,
+    max_depth: int = 6,
+):
+    """Find paths between two nodes."""
+    from core.knowledge.graph import get_knowledge_graph
+
+    kg = get_knowledge_graph()
+    paths = kg.get_path(start_id=source, end_id=target, max_depth=max_depth)
+    return {"paths": paths, "count": len(paths)}
+
+
+@router.get("/knowledge/subgraph")
+async def knowledge_get_subgraph(
+    center: str | None = None,
+    node_types: str | None = None,
+    depth: int = 2,
+):
+    """Get a subgraph centered on a node or filtered by types (comma-separated)."""
+    from core.knowledge.graph import get_knowledge_graph
+
+    kg = get_knowledge_graph()
+    types_list = node_types.split(",") if node_types else None
+    sg = kg.get_subgraph(center_id=center, node_types=types_list, depth=depth)
+    return sg
+
+
+@router.post("/knowledge/edges")
+async def knowledge_add_edge(body: AddEdgeRequest):
+    """Add a directed edge between two nodes."""
+    from core.knowledge.graph import get_knowledge_graph
+
+    kg = get_knowledge_graph()
+    edge = kg.add_edge(
+        source_id=body.source_id,
+        target_id=body.target_id,
+        edge_type=body.edge_type,
+        weight=body.weight,
+        properties=body.properties,
+    )
+    if not edge:
+        return JSONResponse({"error": "Source or target node not found"}, status_code=404)
+    return {
+        "id": edge.id,
+        "source_id": edge.source_id,
+        "target_id": edge.target_id,
+        "edge_type": edge.edge_type,
+        "weight": edge.weight,
+    }
+
+
+@router.get("/knowledge/stats")
+async def knowledge_stats():
+    """Knowledge Graph aggregate statistics."""
+    from core.knowledge.graph import get_knowledge_graph
+
+    kg = get_knowledge_graph()
+    return kg.get_stats()

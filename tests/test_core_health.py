@@ -160,3 +160,84 @@ class TestHealthSnapshot:
         assert snap.extensions_loaded == 3
         assert snap.extensions_failed == 1
         assert snap.secrets_available is True
+
+
+class TestPersistenceBridge:
+    def test_enable_persistence_does_not_crash(self):
+        center = HealthCenter()
+        center.register("ok", lambda: True, "system")
+        center.enable_persistence()
+        snapshot = center.run_all()
+        assert snapshot.status == "green"
+
+    def test_persist_yellow_does_not_crash(self):
+        center = HealthCenter()
+        center.register("ok", lambda: True, "system")
+        center.register("bg_fail", lambda: False, "background")
+        center.enable_persistence()
+        snapshot = center.run_all()
+        assert snapshot.status == "yellow"
+
+    def test_persist_red_does_not_crash(self):
+        center = HealthCenter()
+        center.register("fail", lambda: False, "system")
+        center.enable_persistence()
+        snapshot = center.run_all()
+        assert snapshot.status == "red"
+
+
+class TestDefaultChecks:
+    def test_register_default_checks_10_registered(self):
+        from core.health.checks import register_default_checks
+
+        center = HealthCenter()
+        register_default_checks(center)
+        checks = center.list_checks()
+        names = [c["name"] for c in checks]
+        assert len(checks) == 10
+        assert "event_bus" in names
+        assert "scheduler" in names
+        assert "database" in names
+        assert "identity_vault" in names
+        assert "agent_bus" in names
+        assert "agents_health" in names
+        assert "memory" in names
+        assert "cpu" in names
+        assert "hook_registry" in names
+        assert "extension_registry" in names
+
+    def test_default_checks_categories(self):
+        from core.health.checks import register_default_checks
+
+        center = HealthCenter()
+        register_default_checks(center)
+        for c in center.list_checks():
+            if c["name"] in ("event_bus", "scheduler", "database", "identity_vault", "agent_bus", "agents_health"):
+                assert c["category"] == "system", f"{c['name']} should be system"
+            if c["name"] in ("memory", "cpu", "hook_registry", "extension_registry"):
+                assert c["category"] == "background", f"{c['name']} should be background"
+
+
+class TestUnifiedSummary:
+    def test_unified_summary_structure(self):
+        center = HealthCenter()
+        center.register("ok", lambda: True, "system")
+        center.run_all()
+        result = center.unified_summary()
+        assert "status" in result
+        assert "score" in result
+        assert "checks" in result
+        assert "process" in result
+        assert "database" in result
+        assert "registered_checks" in result
+        assert result["status"] == "green"
+        assert result["checks"]["total"] == 1
+        assert result["checks"]["passed"] == 1
+        assert "pid" in result["process"]
+        assert "memory_percent" in result["process"]
+
+    def test_unified_summary_before_any_run(self):
+        center = HealthCenter()
+        result = center.unified_summary()
+        assert result["status"] == "unknown"
+        assert result["score"] == 0.0

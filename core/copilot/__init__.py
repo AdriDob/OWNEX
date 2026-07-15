@@ -24,6 +24,7 @@ from core.copilot.permissions import AuthorityLevel, DecisionConfidence, Policy,
 from core.copilot.planner import Plan, Planner, PlanStep
 from core.copilot.recommender import Recommendation, Recommender
 from core.copilot.review import CopilotReview, ReviewItem, ReviewReport
+from core.copilot.system_context import SystemContextBuilder
 
 __all__ = [
     "CopilotAgent",
@@ -42,6 +43,7 @@ __all__ = [
     "Recommendation",
     "Recommender",
     "CopilotReview",
+    "SystemContextBuilder",
     "ReviewItem",
     "ReviewReport",
     "IAuditor",

@@ -1,47 +1,48 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { getOrionContext } from '@/lib/api'
-import type { OrionContext } from '@/types'
-import { useHuntStore } from '@/stores/hunt'
-import { useSettingsStore } from '@/stores/settings'
-import Badge from '@/components/ui/Badge.vue'
+import { useRouter } from 'vue-router'
+import { api } from '@/lib/api'
+import {
+  Activity, AlertTriangle, ArrowRight, Bug, Clock, Database,
+  DollarSign, Eye, RefreshCw, Shield, ShieldCheck, Sparkles,
+  TrendingUp, Zap, Bell, Dices, Bot, Plus, FileText,
+  HeartPulse, BarChart3, Cpu, Globe,
+} from '@lucide/vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
-import Tooltip from '@/components/ui/Tooltip.vue'
-import { Activity, AlertTriangle, ArrowRight, Sparkles, Clock, DollarSign, Target, Zap, Play, Square, Pause, Eye, Crosshair, Bug, ShieldCheck, Scan, Cpu, RefreshCw, Globe } from '@lucide/vue'
-import DoughnutChart from '@/components/charts/DoughnutChart.vue'
-import OnboardingWizard from '@/components/onboarding/OnboardingWizard.vue'
+import Card from '@/components/ui/Card.vue'
+import CardHeader from '@/components/ui/CardHeader.vue'
+import CardTitle from '@/components/ui/CardTitle.vue'
+import CardContent from '@/components/ui/CardContent.vue'
+import LoadingState from '@/components/ui/LoadingState.vue'
+import ErrorState from '@/components/ui/ErrorState.vue'
 
-const hunt = useHuntStore()
-const settings = useSettingsStore()
-const ctx = ref<OrionContext | null>(null)
+interface MissionData {
+  system: { health_score: number; status: string; timestamp: string }
+  apps: Array<{ id: string; name: string; icon: string; version: string; description: string; has_db: boolean; providers: number }>
+  next_action: { title: string; why_now: string; effort: string; estimated_reward: number } | null
+  priorities: Array<{ type: string; severity: string; title: string; detail: string }>
+  ingress: { confirmed: number; pending: number; total_earned: number }
+}
+
+interface ActivityItem {
+  id: string; type: string; message: string; timestamp: string; severity?: string
+}
+
+interface SystemStatus {
+  scheduler: string; agents: number; pipelines: number; events_24h: number
+}
+
+const router = useRouter()
+const data = ref<MissionData | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
-const showOnboarding = ref(false)
-const onboardingAutoShown = ref(false)
-const uptime = ref(0)
-let uptimeInterval: ReturnType<typeof setInterval> | null = null
-
-onMounted(async () => {
-  try {
-    ctx.value = await getOrionContext()
-    await settings.loadFromBackend()
-  }
-  catch (e: any) { error.value = e?.message || 'Error al cargar' }
-  finally { loading.value = false }
-  if (!onboardingAutoShown.value && settings.onboardingNeeded && (!ctx.value || ctx.value.counts.targets === 0)) {
-    showOnboarding.value = true
-    onboardingAutoShown.value = true
-  }
-  await hunt.fetchStatus()
-  if (hunt.isActive) {
-    uptimeInterval = setInterval(() => { uptime.value++ }, 1000)
-  }
-})
-
-onUnmounted(() => {
-  if (uptimeInterval) clearInterval(uptimeInterval)
-})
+const autoRefresh = ref(true)
+const activity = ref<ActivityItem[]>([])
+const sysStatus = ref<SystemStatus | null>(null)
+const bottlenecks = ref<any[]>([])
+let refreshInterval: ReturnType<typeof setInterval> | null = null
 
 const greeting = computed(() => {
   const h = new Date().getHours()
@@ -50,297 +51,328 @@ const greeting = computed(() => {
   return 'Buenas noches'
 })
 
-const kpiItems = computed(() => {
-  if (!ctx.value) return []
-  const c = ctx.value.counts
-  return [
-    { label: 'Targets', value: String(c.targets), icon: Crosshair, color: '#00b8ff' },
-    { label: 'Endpoints', value: String(c.endpoints), icon: Scan, color: '#00ff41' },
-    { label: 'Confirmados', value: String(c.confirmed_findings), icon: ShieldCheck, color: '#00e676' },
-    { label: 'ROI Est.', value: `$${(c.total_estimated_payout || 0).toLocaleString()}`, icon: DollarSign, color: '#ffd740' },
-  ]
-})
+const appIcons: Record<string, any> = {
+  cateye: Eye, atlas: TrendingUp, odyssey: Dices, hermes: Bot, aegis: Shield,
+}
 
-function severityBadge(sev?: string) {
-  if (!sev) return 'default' as const
-  const map: Record<string, 'destructive' | 'warning' | 'success' | 'info' | 'default'> = {
-    critical: 'destructive', high: 'warning', medium: 'info', low: 'success', info: 'default',
+const severityColor = (s: string) => {
+  const map: Record<string, string> = { high: 'text-destructive', warning: 'text-warning', medium: 'text-accent', info: 'text-muted-foreground' }
+  return map[s] || 'text-muted-foreground'
+}
+
+const healthColor = (score: number) => {
+  if (score >= 90) return 'text-success'
+  if (score >= 70) return 'text-warning'
+  return 'text-destructive'
+}
+
+const effortColor = (e: string) => {
+  const map: Record<string, string> = { low: 'text-success', medium: 'text-warning', high: 'text-destructive' }
+  return map[e] || 'text-muted-foreground'
+}
+
+const quickActions = [
+  { id: 'new-target', label: 'Nuevo Target', icon: Plus, path: '/discovery' },
+  { id: 'findings', label: 'Hallazgos', icon: Bug, path: '/findings' },
+  { id: 'reports', label: 'Reportes', icon: FileText, path: '/reports' },
+  { id: 'pipeline', label: 'Pipeline', icon: BarChart3, path: '/pipelines' },
+  { id: 'health', label: 'Health Center', icon: HeartPulse, path: '/health-center' },
+  { id: 'agents', label: 'Agentes', icon: Cpu, path: '/agents' },
+]
+
+interface ActivityEvent {
+  id: string; type: string; message: string; timestamp: string; severity?: string
+}
+
+async function fetchAll() {
+  try {
+    const [missionRes, actRes, sysRes, btlRes] = await Promise.allSettled([
+      api.get<MissionData>('/mission/status'),
+      api.get<{ items: ActivityEvent[] }>('/activity'),
+      api.get<SystemStatus>('/system/status'),
+      api.get<{ bottlenecks: any[] }>('/evolution/bottlenecks?min_hours=0.1'),
+    ])
+    if (missionRes.status === 'fulfilled') {
+      data.value = missionRes.value
+    }
+    if (actRes.status === 'fulfilled') {
+      const items = actRes.value.items || []
+      activity.value = items.slice(0, 10).map((e, i) => ({
+        id: e.id || `act-${i}`,
+        type: e.type || 'event',
+        message: e.message || 'Evento registrado',
+        timestamp: e.timestamp || new Date().toISOString(),
+        severity: e.severity || 'info',
+      }))
+    }
+    if (sysRes.status === 'fulfilled') {
+      sysStatus.value = sysRes.value
+    }
+    if (btlRes.status === 'fulfilled') {
+      bottlenecks.value = btlRes.value.bottlenecks || []
+    }
+    error.value = null
+  } catch (e: any) {
+    error.value = e?.message || 'Error al cargar'
+  } finally {
+    loading.value = false
   }
-  return map[sev.toLowerCase()] || 'default'
 }
 
-const nextAction = computed(() => ctx.value?.next_action)
-const opportunities = computed(() => ctx.value?.opportunities.top || [])
-const activityEvents = computed(() => ctx.value?.activity_24h.events || [])
-
-const pipelineStages = computed(() => {
-  if (!ctx.value) return []
-  const p = ctx.value.pipeline
-  return [
-    { label: 'Detectados', count: p.detected, color: 'bg-muted-foreground/30' },
-    { label: 'Validados', count: p.validated, color: 'bg-accent/30' },
-    { label: 'Confirmados', count: p.confirmed, color: 'bg-primary/30' },
-    { label: 'Reportados', count: p.reported, color: 'bg-gold/30' },
-  ]
+onMounted(() => {
+  fetchAll()
+  refreshInterval = setInterval(() => {
+    if (autoRefresh.value) fetchAll()
+  }, 30000)
 })
 
-const maxPipeline = computed(() => {
-  if (!ctx.value) return 1
-  const p = ctx.value.pipeline
-  return Math.max(p.detected, p.validated, p.confirmed, p.reported, 1)
+onUnmounted(() => {
+  if (refreshInterval) clearInterval(refreshInterval)
 })
 
-function handleHuntToggle() {
-  if (hunt.status === 'idle') hunt.start()
-  else if (hunt.status === 'running') hunt.pause()
-  else if (hunt.status === 'paused') hunt.resume()
-}
-
-function formatUptime(s: number) {
-  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60
-  if (h > 0) return `${h}h ${m}m`
-  if (m > 0) return `${m}m ${sec}s`
-  return `${sec}s`
-}
+const systemIsOk = computed(() => data.value && data.value.system.health_score >= 70)
 </script>
 
 <template>
-  <div class="space-y-6">
-    <template v-if="loading">
-      <div class="space-y-4 animate-in"><Skeleton class="h-6 w-64" /><Skeleton class="h-4 w-96" /><div class="grid grid-cols-2 gap-3 sm:grid-cols-4"><Skeleton v-for="i in 4" :key="i" class="h-24 rounded-xl" /></div><Skeleton class="h-32 rounded-xl" /></div>
-    </template>
+  <div class="space-y-6 animate-in">
+    <LoadingState v-if="loading" />
 
-    <template v-else-if="error">
-      <div class="flex flex-col items-center justify-center py-24 text-center">
-        <AlertTriangle class="h-10 w-10 text-destructive mb-4" />
-        <p class="text-sm font-semibold text-foreground">Error de conexión</p>
-        <p class="mt-2 font-mono text-xs text-muted-foreground">{{ error }}</p>
-        <Button class="mt-6" @click="$router.go(0)">Reintentar</Button>
-      </div>
-    </template>
+    <ErrorState
+      v-else-if="error && !data"
+      title="Error al cargar Mission Control"
+      :message="error"
+      :retry="fetchAll"
+    />
 
-    <!-- ═══════════════════ EMPTY STATE — ONBOARDING ═══════════════════ -->
-    <template v-else-if="!ctx || (ctx.counts.targets === 0 && ctx.counts.findings === 0)">
-      <div class="flex flex-col items-center py-16 text-center animate-in">
-        <div class="flex h-20 w-20 items-center justify-center rounded-2xl cyber-card mb-6">
-          <Eye class="h-10 w-10 text-primary" />
-        </div>
-        <h1 class="font-display text-2xl font-bold text-foreground">Bienvenido a CATEYE</h1>
-        <p class="mt-2 max-w-lg text-sm text-muted-foreground">Sistema de Inteligencia de Seguridad. Centralizá tus operaciones de bug bounty, automatizá recon y gestioná hallazgos desde un solo lugar.</p>
-
-        <div class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3 max-w-2xl">
-          <div class="cyber-card rounded-xl p-4 text-left">
-            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary mb-2"><Globe class="h-4 w-4" /></div>
-            <p class="text-xs font-semibold text-foreground">1. Conectá plataformas</p>
-            <p class="mt-1 text-[10px] text-muted-foreground">Vinculá tus cuentas de HackerOne, Bugcrowd, Intigriti. Las credenciales se cifran.</p>
-          </div>
-          <div class="cyber-card rounded-xl p-4 text-left">
-            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary mb-2"><Crosshair class="h-4 w-4" /></div>
-            <p class="text-xs font-semibold text-foreground">2. Agregá targets</p>
-            <p class="mt-1 text-[10px] text-muted-foreground">Importá programas desde las plataformas o agregá dominios manualmente para monitorear.</p>
-          </div>
-          <div class="cyber-card rounded-xl p-4 text-left">
-            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary mb-2"><Zap class="h-4 w-4" /></div>
-            <p class="text-xs font-semibold text-foreground">3. Iniciá la caza</p>
-            <p class="mt-1 text-[10px] text-muted-foreground">Activá la caza autónoma. CATEYE descubre, reconoce, hipotetiza, valida y reporta.</p>
-          </div>
-        </div>
-
-        <div class="mt-8 flex gap-3">
-          <Button variant="default" @click="showOnboarding = true">
-            <Sparkles class="h-4 w-4" /> Configuración inicial
-          </Button>
-          <Button variant="outline" @click="$router.push('/connections')">
-            <Globe class="h-4 w-4" /> Conectar plataformas
-          </Button>
-          <Button variant="outline" @click="$router.push('/program-catalog')">
-            <Target class="h-4 w-4" /> Explorar programas
-          </Button>
-        </div>
-
-        <div class="mt-8 rounded-lg border border-border/30 px-4 py-3 max-w-lg">
-          <p class="font-mono text-[10px] text-muted-foreground">
-            <span class="text-primary">$</span> Configurá tus API keys en <strong>Configuración → OSINT</strong> para habilitar inteligencia externa.
-          </p>
-        </div>
-      </div>
-    </template>
-
-    <!-- ═══════════════════ MISSION CONTROL ═══════════════════ -->
-    <template v-else-if="ctx">
+    <template v-else-if="data">
+      <!-- Header -->
       <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div class="space-y-1 animate-in min-w-0">
+        <div class="space-y-1 min-w-0">
           <div class="flex items-center gap-2">
-            <Eye class="h-4 w-4 text-primary" />
-            <span class="font-mono text-[10px] font-bold tracking-widest text-primary">CATEYE MISSION CONTROL</span>
-            <span :class="['h-1.5 w-1.5 rounded-full', ctx.system.status === 'healthy' ? 'bg-success animate-pulse' : 'bg-warning']" />
+            <Activity class="h-4 w-4 text-primary" />
+            <span class="font-mono text-[10px] font-bold tracking-widest text-primary">ORION MISSION CONTROL</span>
+            <span :class="['h-1.5 w-1.5 rounded-full', systemIsOk ? 'bg-success animate-pulse' : 'bg-destructive']" />
           </div>
-          <h1 class="font-display text-xl sm:text-2xl font-bold text-foreground">{{ greeting }}, {{ settings.data.general.userName || 'Operador' }}</h1>
-          <p class="text-xs text-muted-foreground">
-            Score salud: {{ ctx.system.health_score }}/100
-            <span v-if="ctx.findings.new_24h"> · {{ ctx.findings.new_24h }} hallazgos nuevos hoy</span>
-            <span v-if="ctx.counts.reports_ready > 0"> · {{ ctx.counts.reports_ready }} reportes pendientes</span>
+          <h1 class="font-display text-xl sm:text-2xl font-bold text-foreground">{{ greeting }}, Operador</h1>
+          <p class="text-xs text-muted-foreground flex items-center gap-2">
+            <Clock class="h-3 w-3" />
+            {{ data.system.timestamp ? new Date(data.system.timestamp).toLocaleString() : '—' }}
+            <button @click="fetchAll" class="text-primary hover:underline flex items-center gap-1">
+              <RefreshCw class="h-3 w-3" /> Actualizar
+            </button>
           </p>
         </div>
 
-        <!-- Hunt Control Panel -->
-        <div class="shrink-0 animate-in flex flex-col sm:flex-row gap-3">
-          <div class="cyber-card rounded-xl p-4 min-w-0 sm:min-w-[200px]">
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-mono text-[10px] font-bold tracking-wider text-muted-foreground">CAZA AUTÓNOMA</span>
-              <Badge :variant="hunt.status === 'running' ? 'success' : hunt.status === 'paused' ? 'warning' : 'default'" class="font-mono text-[8px]">
-                {{ hunt.status === 'running' ? 'ACTIVE' : hunt.status === 'paused' ? 'PAUSED' : 'IDLE' }}
-              </Badge>
-            </div>
-            <div v-if="hunt.isActive" class="mb-2 flex flex-wrap gap-3 font-mono text-[10px] text-muted-foreground">
-              <span><span class="text-foreground">{{ hunt.targetsScanned }}</span> targets</span>
-              <span><span class="text-foreground">{{ hunt.findingsFound }}</span> findings</span>
-              <span v-if="hunt.status === 'running'"><span class="text-foreground">{{ formatUptime(uptime) }}</span></span>
-            </div>
-            <div class="flex flex-wrap gap-1.5">
-              <Tooltip v-if="hunt.status === 'idle'" text="Iniciar pipeline autónomo de 5 etapas: Discover → Recon → Hypothesis → Validate → Report">
-                <Button size="sm" @click="hunt.start()" :loading="hunt.loading">
-                  <Play class="h-3.5 w-3.5" /> Iniciar
-                </Button>
-              </Tooltip>
-              <Tooltip v-if="hunt.status === 'running'" text="Pausar temporalmente la caza">
-                <Button size="sm" variant="secondary" @click="hunt.pause()" :loading="hunt.loading">
-                  <Pause class="h-3.5 w-3.5" /> Pausar
-                </Button>
-              </Tooltip>
-              <Tooltip v-if="hunt.status === 'paused'" text="Reanudar la caza desde donde se pausó">
-                <Button size="sm" variant="secondary" @click="hunt.resume()" :loading="hunt.loading">
-                  <Play class="h-3.5 w-3.5" /> Reanudar
-                </Button>
-              </Tooltip>
-              <Tooltip v-if="hunt.isActive" text="Detener la caza por completo">
-                <Button size="sm" variant="destructive" @click="hunt.stop()" :loading="hunt.loading">
-                  <Square class="h-3.5 w-3.5" />
-                </Button>
-              </Tooltip>
-            </div>
-          </div>
-          <!-- MissionConfig -->
-          <div v-if="settings.data.missionControl" class="cyber-card rounded-xl p-4 min-w-0 sm:min-w-[180px]">
-            <span class="font-mono text-[10px] font-bold tracking-wider text-muted-foreground">CONFIGURACIÓN</span>
-            <div class="mt-2 space-y-1 font-mono text-[10px] text-muted-foreground">
-              <div class="flex justify-between"><span>Modo</span><span class="text-foreground">{{ settings.data.missionControl.autoMode ? 'Auto' : 'Manual' }}</span></div>
-              <div class="flex justify-between"><span>Paralelismo</span><span class="text-foreground">{{ settings.data.missionControl.parallelism }}</span></div>
-              <div class="flex justify-between"><span>Velocidad</span><span class="text-foreground">{{ settings.data.missionControl.speed }}</span></div>
-              <div class="flex justify-between"><span>Profundidad</span><span class="text-foreground">{{ settings.data.missionControl.depth }}</span></div>
-            </div>
-          </div>
+        <!-- Health Score -->
+        <div class="shrink-0 flex flex-col items-center gap-1 rounded-xl card-base px-6 py-3">
+          <span class="font-mono text-[10px] text-muted-foreground tracking-wider uppercase">Salud del sistema</span>
+          <span :class="['text-4xl font-bold font-mono', healthColor(data.system.health_score)]">{{ data.system.health_score }}</span>
+          <span class="font-mono text-[9px] text-muted-foreground uppercase">{{ data.system.status }}</span>
         </div>
       </div>
 
-      <!-- KPI Grid -->
-      <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div v-for="(kpi, i) in kpiItems" :key="kpi.label" class="cyber-card rounded-xl p-4 stagger-item" :style="{ '--i': i }">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-mono text-[10px] text-muted-foreground tracking-wider">{{ kpi.label }}</span>
-            <div class="flex h-6 w-6 items-center justify-center rounded-md bg-surface/50" :style="{ color: kpi.color }">
-              <component :is="kpi.icon" class="h-3.5 w-3.5" />
-            </div>
-          </div>
-          <p class="font-mono text-xl font-bold tabular-nums text-foreground" :style="{ color: kpi.color }">{{ kpi.value }}</p>
-        </div>
+      <!-- Quick Actions Strip -->
+      <div class="flex flex-wrap items-center gap-2 rounded-xl card-base px-4 py-3">
+        <span class="font-mono text-[9px] font-bold uppercase tracking-wider text-muted-foreground mr-1">Acciones rápidas</span>
+        <button
+          v-for="qa in quickActions" :key="qa.id"
+          @click="router.push(qa.path)"
+          class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-foreground/80 hover:text-foreground hover:bg-primary/10 border border-border/30 transition-colors"
+        >
+          <component :is="qa.icon" class="h-3.5 w-3.5" />
+          {{ qa.label }}
+        </button>
       </div>
 
-      <!-- Next Action -->
-      <div v-if="nextAction" class="animate-in">
-        <div class="cyber-card rounded-xl p-5 border-l-2 border-l-primary">
-          <div class="flex items-start gap-4">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><Zap class="h-5 w-5" /></div>
+      <!-- Priorities -->
+      <div v-if="data.priorities.length > 0" class="rounded-xl card-base card-highlight border-l-warning p-4 animate-in">
+        <div class="flex items-center gap-2 mb-3">
+          <Bell class="h-4 w-4 text-warning" />
+          <span class="font-mono text-xs font-semibold text-foreground">Cosas que requieren atención</span>
+        </div>
+        <div class="space-y-2">
+          <div v-for="(p, i) in data.priorities" :key="i" class="flex items-center gap-3 rounded-lg bg-surface/30 px-3 py-2.5">
+            <div :class="['h-2 w-2 rounded-full shrink-0', p.severity === 'high' ? 'bg-destructive' : p.severity === 'warning' ? 'bg-warning' : p.severity === 'medium' ? 'bg-accent' : 'bg-muted']" />
             <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wider text-primary">
-                <Sparkles class="h-3 w-3" /><span>Próxima acción</span>
+              <p class="text-sm font-medium text-foreground truncate">{{ p.title }}</p>
+              <p class="text-xs text-muted-foreground truncate">{{ p.detail }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ingress & Quick Stats -->
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div class="rounded-xl card-base p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-[10px] text-muted-foreground tracking-wider">Salud</span>
+            <ShieldCheck class="h-4 w-4 text-success" />
+          </div>
+          <p class="font-mono text-xl font-bold text-foreground">{{ data.system.health_score }}<span class="text-xs text-muted-foreground">/100</span></p>
+        </div>
+        <div class="rounded-xl card-base p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-[10px] text-muted-foreground tracking-wider">Confirmado</span>
+            <DollarSign class="h-4 w-4 text-gold" />
+          </div>
+          <p class="font-mono text-xl font-bold text-foreground">${{ data.ingress.confirmed.toLocaleString() }}</p>
+        </div>
+        <div class="rounded-xl card-base p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-[10px] text-muted-foreground tracking-wider">Pendiente</span>
+            <Clock class="h-4 w-4 text-warning" />
+          </div>
+          <p class="font-mono text-xl font-bold text-warning">${{ data.ingress.pending.toLocaleString() }}</p>
+        </div>
+        <div class="rounded-xl card-base p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-[10px] text-muted-foreground tracking-wider">Total</span>
+            <Database class="h-4 w-4 text-accent" />
+          </div>
+          <p class="font-mono text-xl font-bold text-accent">${{ data.ingress.total_earned.toLocaleString() }}</p>
+        </div>
+      </div>
+
+      <!-- Two-column: Next Action + System Status -->
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <!-- Next Action (spans 2 cols) -->
+        <div v-if="data.next_action" class="lg:col-span-2 rounded-xl card-base card-highlight border-l-primary p-5 animate-in">
+          <div class="flex items-start gap-4">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Zap class="h-5 w-5" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wider text-primary mb-1">
+                <Sparkles class="h-3 w-3" />
+                <span>Próxima acción recomendada</span>
               </div>
-              <h3 class="mt-1 text-base font-semibold text-foreground">{{ nextAction.title }}</h3>
-              <p class="mt-1 text-xs text-muted-foreground">{{ nextAction.why_now }}</p>
+              <h3 class="text-base font-semibold text-foreground">{{ data.next_action.title }}</h3>
+              <p class="mt-1 text-xs text-muted-foreground">{{ data.next_action.why_now }}</p>
               <div class="mt-3 flex flex-wrap gap-4">
                 <span class="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
-                  <Clock class="h-3 w-3" /> Esfuerzo: <span :class="nextAction.effort === 'low' ? 'text-success' : nextAction.effort === 'medium' ? 'text-warning' : 'text-destructive'" class="font-semibold">{{ nextAction.effort }}</span>
+                  Esfuerzo: <span :class="['font-semibold', effortColor(data.next_action.effort)]">{{ data.next_action.effort }}</span>
                 </span>
-                <span class="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
-                  <DollarSign class="h-3 w-3" /> Recompensa: <span class="font-semibold text-gold">{{ nextAction.estimated_reward }}</span>
+                <span v-if="data.next_action.estimated_reward" class="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
+                  Recompensa estimada: <span class="font-semibold text-gold">${{ data.next_action.estimated_reward }}</span>
                 </span>
               </div>
             </div>
             <ArrowRight class="mt-2 h-5 w-5 shrink-0 text-muted-foreground" />
           </div>
         </div>
-      </div>
 
-      <!-- Pipeline & Charts -->
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <!-- Pipeline bar -->
-        <div class="lg:col-span-2 cyber-card rounded-xl p-5">
-          <h3 class="font-mono text-xs font-semibold text-foreground mb-4">Pipeline</h3>
-          <div class="flex items-end gap-2 h-24">
-            <div v-for="stage in pipelineStages" :key="stage.label" class="flex-1 flex flex-col items-center gap-2">
-              <div class="w-full rounded-t-md transition-all duration-500" :class="stage.color">
-                <div class="w-full rounded-t-md" :style="{ height: `${(stage.count / maxPipeline) * 100}%`, minHeight: stage.count > 0 ? '8px' : '0' }" />
-              </div>
-              <span class="font-mono text-sm font-bold tabular-nums text-foreground">{{ stage.count }}</span>
-              <span class="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">{{ stage.label }}</span>
+        <!-- System Status Mini Panel -->
+        <div class="rounded-xl card-base p-4 space-y-3">
+          <div class="flex items-center gap-2 mb-1">
+            <Activity class="h-4 w-4 text-accent" />
+            <span class="font-mono text-xs font-semibold text-foreground">Estado del sistema</span>
+          </div>
+          <div v-if="!sysStatus" class="space-y-2">
+            <Skeleton class="h-4 w-full" />
+            <Skeleton class="h-4 w-3/4" />
+            <Skeleton class="h-4 w-1/2" />
+          </div>
+          <div v-else class="space-y-2 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-muted-foreground">Scheduler</span>
+              <span :class="['font-mono font-medium', sysStatus.scheduler === 'running' ? 'text-success' : 'text-destructive']">
+                {{ sysStatus.scheduler === 'running' ? 'Activo' : 'Detenido' }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-muted-foreground">Agentes</span>
+              <span class="font-mono font-medium text-foreground">{{ sysStatus.agents }} activos</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-muted-foreground">Pipelines</span>
+              <span class="font-mono font-medium text-foreground">{{ sysStatus.pipelines }} en curso</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-muted-foreground">Eventos 24h</span>
+              <span class="font-mono font-medium text-foreground">{{ sysStatus.events_24h }}</span>
             </div>
           </div>
-        </div>
-
-        <!-- Doughnut -->
-        <div class="cyber-card rounded-xl p-5">
-          <h3 class="font-mono text-xs font-semibold text-foreground mb-3">Distribución</h3>
-          <DoughnutChart
-            :labels="['Detectados', 'Validados', 'Confirmados', 'Reportados']"
-            :data="[ctx.pipeline.detected, ctx.pipeline.validated, ctx.pipeline.confirmed, ctx.pipeline.reported]"
-            :height="180"
-          />
+          <button @click="router.push('/health-center')" class="w-full mt-1 text-[10px] text-primary hover:underline font-mono text-center">
+            Ver health center →
+          </button>
         </div>
       </div>
 
-      <!-- Activity & Opportunities -->
-      <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <!-- Top Opps -->
-        <div class="lg:col-span-2 cyber-card rounded-xl p-5">
-          <h3 class="font-mono text-xs font-semibold text-foreground mb-3">Oportunidades prioritarias</h3>
-          <div v-if="!opportunities.length" class="py-6 text-center font-mono text-xs text-muted-foreground">Sin oportunidades disponibles</div>
-          <div v-else class="space-y-1.5">
-            <div v-for="(opp, i) in opportunities" :key="opp.id"
-              class="flex items-center justify-between rounded-lg bg-surface/20 px-3 py-2 transition-all hover:bg-surface/40"
+      <!-- Bottlenecks section -->
+      <Card v-if="bottlenecks.length > 0" class="card-base">
+        <CardHeader>
+          <div class="flex items-center gap-2">
+            <BarChart3 class="h-4 w-4 text-warning" />
+            <CardTitle class="text-xs">Cuellos de botella detectados</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div v-for="b in bottlenecks" :key="b.name"
+              class="flex items-center justify-between rounded-lg card-base px-3 py-2.5"
             >
-              <div class="flex-1 min-w-0">
-                <p class="font-mono text-xs font-semibold text-foreground truncate">{{ opp.name }}</p>
-                <p class="font-mono text-[10px] text-muted-foreground">{{ opp.domain }} · {{ opp.endpoints }} endpoints</p>
+              <div class="min-w-0 flex-1">
+                <p class="text-xs font-medium text-foreground truncate">{{ b.name }}</p>
+                <p class="font-mono text-[10px] text-muted-foreground">
+                  {{ b.runs }} ejecuciones · {{ b.total_hours.toFixed(1) }}h
+                </p>
               </div>
-              <div class="flex items-center gap-2 shrink-0 ml-3">
-                <span class="font-mono text-[9px] text-muted-foreground">SCORE {{ opp.opportunity_score.toFixed(1) }}</span>
-                <div class="flex h-6 w-6 items-center justify-center rounded-md text-[10px] font-bold font-mono"
-                  :class="opp.opportunity_score >= 7 ? 'bg-success/20 text-success' : opp.opportunity_score >= 4 ? 'bg-warning/20 text-warning' : 'bg-muted/20 text-muted-foreground'"
-                >{{ opp.opportunity_score.toFixed(0) }}</div>
-              </div>
+              <span :class="['font-mono text-[10px] px-1.5 py-0.5 rounded', b.status === 'warning' ? 'bg-warning/20 text-warning' : 'bg-muted/20 text-muted-foreground']">
+                {{ b.avg_duration_ms ? (b.avg_duration_ms / 1000).toFixed(1) + 's' : '—' }}
+              </span>
             </div>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        <!-- Activity -->
-        <div class="cyber-card rounded-xl p-5">
-          <h3 class="font-mono text-xs font-semibold text-foreground mb-3">Actividad 24h</h3>
-          <div class="space-y-2">
-            <div v-for="(ev, i) in activityEvents.slice(0, 10)" :key="i" class="animate-in flex items-start gap-3" :style="{ animationDelay: `${i * 30}ms` }">
-              <div :class="['mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full', ev.type === 'finding' ? 'bg-destructive/15 text-destructive' : 'bg-accent/15 text-accent']">
-                <Bug v-if="ev.type === 'finding'" class="h-3 w-3" />
-                <Activity v-else class="h-3 w-3" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="font-mono text-[10px] font-medium text-foreground capitalize">{{ ev.type }} #{{ ev.id }}</p>
-                <p v-if="ev.severity" class="mt-0.5"><Badge :variant="severityBadge(ev.severity)" class="text-[8px] px-1.5 py-0">{{ ev.severity }}</Badge></p>
-              </div>
+      <!-- Activity Feed -->
+      <Card class="card-base">
+        <CardHeader>
+          <div class="flex items-center gap-2">
+            <Activity class="h-4 w-4 text-primary" />
+            <CardTitle class="text-xs">Actividad reciente</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div v-if="activity.length === 0" class="py-6 text-center">
+            <p class="font-mono text-xs text-muted-foreground">Sin actividad reciente</p>
+          </div>
+          <div v-else class="space-y-1.5">
+            <div v-for="a in activity" :key="a.id"
+              class="flex items-center gap-3 rounded-lg px-3 py-2 text-xs hover:bg-surface/20 transition-colors"
+            >
+              <span class="h-1.5 w-1.5 shrink-0 rounded-full"
+                :class="a.severity === 'high' ? 'bg-destructive' : a.severity === 'warning' ? 'bg-warning' : 'bg-primary'"
+              />
+              <span class="flex-1 text-foreground truncate">{{ a.message }}</span>
+              <span class="shrink-0 font-mono text-[10px] text-muted-foreground">
+                {{ new Date(a.timestamp).toLocaleTimeString() }}
+              </span>
             </div>
-            <div v-if="activityEvents.length === 0" class="py-6 text-center font-mono text-xs text-muted-foreground">Sin actividad en 24h</div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Apps Grid -->
+      <div>
+        <h2 class="font-mono text-xs font-semibold text-foreground mb-3">Módulos del sistema</h2>
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <div v-for="app in data.apps" :key="app.id"
+            @click="router.push(`/${app.id === 'cateye' ? '' : app.id}/`)"
+            class="rounded-xl border border-border/30 bg-surface/30 p-4 hover:bg-surface/50 hover:border-primary/20 transition-all cursor-pointer"
+          >
+            <div class="flex items-center gap-2 mb-2">
+              <component :is="appIcons[app.id] || Activity" class="h-4 w-4 text-primary" />
+              <span class="text-sm font-semibold text-foreground">{{ app.name }}</span>
+            </div>
+            <p class="text-[10px] text-muted-foreground line-clamp-2">{{ app.description }}</p>
+            <div class="mt-2 flex items-center gap-2">
+              <Badge variant="outline" class="text-[8px] px-1.5 py-0">{{ app.version }}</Badge>
+              <span v-if="app.has_db" class="text-[8px] text-accent font-mono">● DB</span>
+            </div>
           </div>
         </div>
       </div>
     </template>
   </div>
-  <OnboardingWizard :open="showOnboarding" @close="showOnboarding = false" />
 </template>

@@ -20,6 +20,7 @@ def get_all_settings() -> dict[str, Any]:
     """Return every stored setting as a flat key-value dict."""
     from database.db import SessionLocal
     from database.models import CATEYEConfig
+
     session = SessionLocal()
     try:
         rows = session.query(CATEYEConfig).all()
@@ -38,6 +39,7 @@ def get_all_settings() -> dict[str, Any]:
 def get_setting_by_key(key: str) -> Any:
     """Return a single setting by its key path."""
     from cores.settings.service import get_setting
+
     value = get_setting(key)
     if value is None:
         raise HTTPException(status_code=404, detail=f"Setting '{key}' not found")
@@ -73,11 +75,65 @@ def save_settings_batch(body: SettingsBatch) -> dict[str, Any]:
     return {"status": "ok", "saved": saved, "deleted": deleted}
 
 
+@router.get("/export")
+def export_session() -> dict[str, Any]:
+    """Export all settings as a portable JSON dump for migration."""
+    from database.db import SessionLocal
+    from database.models import CATEYEConfig
+
+    session = SessionLocal()
+    try:
+        rows = session.query(CATEYEConfig).all()
+        result = {}
+        for r in rows:
+            try:
+                result[r.key] = json.loads(r.value)
+            except (json.JSONDecodeError, TypeError):
+                result[r.key] = r.value
+        return {
+            "version": "4.3.2",
+            "exported_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+            "settings": result,
+            "count": len(result),
+        }
+    finally:
+        session.close()
+
+
+class ImportRequest(BaseModel):
+    settings: dict[str, Any]
+
+
+@router.post("/import")
+def import_session(body: ImportRequest) -> dict[str, str]:
+    """Import all settings from a previous export. Overwrites existing values."""
+    from cores.settings.service import set_setting
+    from database.db import SessionLocal
+
+    session = SessionLocal()
+    imported = 0
+    try:
+        for key, value in body.settings.items():
+            if isinstance(value, (dict, list)):
+                set_setting(key, value)
+            else:
+                set_setting(key, value)
+            imported += 1
+        session.commit()
+        return {"status": "ok", "imported": str(imported)}
+    except Exception as exc:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    finally:
+        session.close()
+
+
 @router.delete("/all/{key:path}")
 def delete_setting(key: str) -> dict[str, str]:
     """Delete a single setting by its key path."""
     from database.db import SessionLocal
     from database.models import CATEYEConfig
+
     session = SessionLocal()
     try:
         rows = session.query(CATEYEConfig).filter(CATEYEConfig.key == key).delete()

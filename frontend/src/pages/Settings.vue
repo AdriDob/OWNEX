@@ -13,7 +13,7 @@ import {
   Settings, Palette, Shield, Cpu, Globe, Eye, Key, Save, CheckCircle2,
   AlertTriangle, RefreshCw, ExternalLink, User, Wrench, Server, Lock, Download, Upload, RotateCcw,
   Activity, Database, Wifi, HardDrive, Monitor, Box,
-  Sparkles, Bug, Crosshair, Scan, DollarSign,
+  Sparkles, Bug, Crosshair, Scan, DollarSign, Plug,
 } from '@lucide/vue'
 
 const settings = useSettingsStore()
@@ -29,7 +29,7 @@ type ApiKeyEntry = { key: string; label: string; link?: string }
 function hasLink(k: ApiKeyEntry): k is ApiKeyEntry & { link: string } {
   return 'link' in k && !!k.link
 }
-const activeTab = ref<'general' | 'ai' | 'tools' | 'apikeys' | 'mission' | 'system' | 'security' | 'appearance' | 'accessibility'>('general')
+const activeTab = ref<'general' | 'ai' | 'tools' | 'apikeys' | 'integrations' | 'mission' | 'system' | 'security' | 'appearance' | 'accessibility'>('general')
 const saving = ref(false)
 const saveSuccess = ref('')
 const saveError = ref('')
@@ -41,6 +41,7 @@ const tabs = [
   { id: 'ai' as const, label: 'IA', icon: Cpu },
   { id: 'tools' as const, label: 'Herramientas', icon: Wrench },
   { id: 'apikeys' as const, label: 'API Keys', icon: Key },
+  { id: 'integrations' as const, label: 'Integraciones', icon: Plug },
   { id: 'mission' as const, label: 'Mission Control', icon: Crosshair },
   { id: 'system' as const, label: 'Sistema', icon: Server },
   { id: 'security' as const, label: 'Seguridad', icon: Shield },
@@ -100,6 +101,87 @@ const apiSections = [
     ],
   },
 ]
+
+const integrationsData = ref<{ integrations: any[]; by_category: Record<string, any[]>; by_status: Record<string, number> } | null>(null)
+const integrationsLoading = ref(false)
+const integrationsError = ref('')
+const testingIntegration = ref<string | null>(null)
+const testResults = ref<Record<string, { status: string; error: string | null }>>({})
+
+const categoryLabels: Record<string, string> = {
+  platform: 'Bug Bounty',
+  ai: 'Inteligencia Artificial',
+  exchange: 'Exchanges',
+  blockchain: 'Blockchain',
+  financial: 'Finanzas',
+  messaging: 'Mensajería',
+  infrastructure: 'Infraestructura',
+}
+const categoryIcons: Record<string, any> = {
+  platform: Bug,
+  ai: Cpu,
+  exchange: DollarSign,
+  blockchain: Database,
+  financial: DollarSign,
+  messaging: Globe,
+  infrastructure: Server,
+}
+
+const statusIcon = (s: string) => {
+  if (s === 'connected') return '🟢'
+  if (s === 'disconnected') return '🟡'
+  if (s === 'error') return '🔴'
+  return '⚪'
+}
+const statusLabel = (s: string) => {
+  if (s === 'connected') return 'Conectado'
+  if (s === 'disconnected') return 'Desconectado'
+  if (s === 'error') return 'Error'
+  return 'No verificado'
+}
+
+async function loadIntegrations() {
+  integrationsLoading.value = true
+  integrationsError.value = ''
+  try {
+    const { getIntegrations } = await import('@/lib/api')
+    const data = await getIntegrations()
+    const byCat: Record<string, any[]> = {}
+    for (const int of data.integrations) {
+      ;(byCat[int.category] ||= []).push(int)
+    }
+    // Sort categories by display order
+    const order = ['ai', 'platform', 'messaging', 'exchange', 'blockchain', 'financial', 'infrastructure']
+    const sorted: Record<string, any[]> = {}
+    for (const cat of order) {
+      if (byCat[cat]) sorted[cat] = byCat[cat]
+    }
+    for (const cat of Object.keys(byCat).sort()) {
+      if (!sorted[cat]) sorted[cat] = byCat[cat]
+    }
+    integrationsData.value = { ...data, by_category: sorted }
+  } catch (e: any) {
+    integrationsError.value = e?.message || 'Error al cargar integraciones'
+  } finally {
+    integrationsLoading.value = false
+  }
+}
+
+async function testIntegration(name: string) {
+  testingIntegration.value = name
+  testResults.value[name] = { status: 'testing', error: null }
+  try {
+    const { testIntegration: ti } = await import('@/lib/api')
+    const r = await ti(name)
+    testResults.value[name] = { status: r.status, error: r.error }
+    // Refresh after brief delay
+    setTimeout(loadIntegrations, 2000)
+  } catch (e: any) {
+    testResults.value[name] = { status: 'error', error: e?.message || 'Error de conexión' }
+  } finally {
+    testingIntegration.value = null
+  }
+}
 
 const systemItems = [
   { id: 'cpu', label: 'CPU', icon: Cpu },
@@ -230,6 +312,7 @@ watch(() => settings.data, () => {
 
 onMounted(() => {
   settings.loadFromBackend()
+  loadIntegrations()
 })
 </script>
 
@@ -274,7 +357,7 @@ onMounted(() => {
 
     <!-- ═══════ GENERAL ═══════ -->
     <div v-if="activeTab === 'general'" class="space-y-4">
-      <div class="cyber-card rounded-xl p-5 space-y-5">
+      <div class="card-base rounded-xl p-5 space-y-5">
         <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2">
           <User class="h-4 w-4 text-primary" /> Perfil
         </h3>
@@ -328,7 +411,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="cyber-card rounded-xl p-5">
+      <div class="card-base rounded-xl p-5">
         <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2 mb-3">
           <Sparkles class="h-4 w-4 text-primary" /> Onboarding
         </h3>
@@ -341,7 +424,7 @@ onMounted(() => {
 
     <!-- ═══════ IA ═══════ -->
     <div v-if="activeTab === 'ai'" class="space-y-4">
-      <div class="cyber-card rounded-xl p-5 space-y-5">
+      <div class="card-base rounded-xl p-5 space-y-5">
         <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2">
           <Cpu class="h-4 w-4 text-primary" /> Proveedor activo
           <Tooltip text="Seleccioná el motor de IA que CATEYE usará para análisis, generación de hipótesis y redacción de reportes." position="right"><span class="inline-flex h-3 w-3 items-center justify-center rounded-full bg-muted-foreground/20 text-[7px] text-muted-foreground cursor-help">?</span></Tooltip>
@@ -468,7 +551,7 @@ onMounted(() => {
 
     <!-- ═══════ HERRAMIENTAS ═══════ -->
     <div v-if="activeTab === 'tools'" class="space-y-4">
-      <div class="cyber-card rounded-xl p-5">
+      <div class="card-base rounded-xl p-5">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2">
             <Wrench class="h-4 w-4 text-primary" /> Herramientas del sistema
@@ -510,7 +593,7 @@ onMounted(() => {
 
     <!-- ═══════ API KEYS ═══════ -->
     <div v-if="activeTab === 'apikeys'" class="space-y-4">
-      <div class="cyber-card rounded-xl p-5">
+      <div class="card-base rounded-xl p-5">
         <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2 mb-4">
           <Key class="h-4 w-4 text-primary" /> Central de API Keys
           <Tooltip text="Todas las claves de API en un solo lugar. Se almacenan cifradas en el servidor." position="right"><span class="inline-flex h-3 w-3 items-center justify-center rounded-full bg-muted-foreground/20 text-[7px] text-muted-foreground cursor-help">?</span></Tooltip>
@@ -542,9 +625,75 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- ═══════ INTEGRACIONES ═══════ -->
+    <div v-if="activeTab === 'integrations'" class="space-y-4">
+      <div class="card-base rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2">
+            <Plug class="h-4 w-4 text-primary" /> Centro de Integraciones
+          </h3>
+          <Button size="sm" variant="outline" @click="loadIntegrations()" :loading="integrationsLoading">
+            <RefreshCw class="h-3.5 w-3.5" /> Actualizar
+          </Button>
+        </div>
+
+        <div v-if="integrationsLoading && !integrationsData" class="py-8 text-center font-mono text-xs text-muted-foreground">
+          Cargando integraciones...
+        </div>
+        <div v-else-if="integrationsError" class="py-8 text-center font-mono text-xs text-destructive">
+          {{ integrationsError }}
+        </div>
+        <div v-else-if="integrationsData" class="space-y-6">
+          <!-- Summary bar -->
+          <div class="flex flex-wrap gap-3 text-[10px] font-mono">
+            <span class="text-muted-foreground">{{ integrationsData.integrations.length }} integraciones</span>
+            <span v-if="integrationsData.by_status.connected" class="text-success">{{ integrationsData.by_status.connected }} conectadas</span>
+            <span v-if="integrationsData.by_status.disconnected" class="text-warning">{{ integrationsData.by_status.disconnected }} desconectadas</span>
+            <span v-if="integrationsData.by_status.error" class="text-destructive">{{ integrationsData.by_status.error }} con error</span>
+            <span v-if="integrationsData.by_status.unknown" class="text-muted-foreground">{{ integrationsData.by_status.unknown }} sin verificar</span>
+          </div>
+
+          <!-- Category groups -->
+          <div v-for="(ints, cat) in integrationsData.by_category" :key="cat" class="space-y-2">
+            <div class="flex items-center gap-2 mb-1">
+              <component :is="categoryIcons[cat] || Plug" class="h-3.5 w-3.5 text-muted-foreground" />
+              <span class="font-mono text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                {{ categoryLabels[cat] || cat }}
+              </span>
+            </div>
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              <div v-for="int in ints" :key="int.name"
+                class="flex items-center justify-between rounded-lg border border-border/20 px-4 py-3"
+              >
+                <div class="flex items-center gap-3 min-w-0">
+                  <span class="text-sm" :title="statusLabel(int.status)">{{ statusIcon(int.status) }}</span>
+                  <div class="min-w-0">
+                    <p class="font-mono text-xs font-semibold text-foreground truncate">{{ int.name }}</p>
+                    <p class="font-mono text-[9px] text-muted-foreground truncate">{{ int.description || statusLabel(int.status) }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <span v-if="testResults[int.name] && testResults[int.name].status !== 'testing'"
+                    class="font-mono text-[8px] px-1 py-0.5 rounded"
+                    :class="testResults[int.name].status === 'connected' ? 'text-success bg-success/10' : 'text-destructive bg-destructive/10'"
+                  >{{ testResults[int.name].status === 'connected' ? 'OK' : 'FAIL' }}</span>
+                  <Button
+                    size="sm" variant="ghost"
+                    class="text-[10px] h-6 px-2"
+                    :loading="testingIntegration === int.name"
+                    @click="testIntegration(int.name)"
+                  >Test</Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ═══════ MISSION CONTROL ═══════ -->
     <div v-if="activeTab === 'mission'" class="space-y-4">
-      <div class="cyber-card rounded-xl p-5 space-y-5">
+      <div class="card-base rounded-xl p-5 space-y-5">
         <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2">
           <Crosshair class="h-4 w-4 text-primary" /> Configuración del agente
           <Tooltip text="Controlá cómo CATEYE ejecuta las cazas autónomas: velocidad, profundidad, paralelismo." position="right"><span class="inline-flex h-3 w-3 items-center justify-center rounded-full bg-muted-foreground/20 text-[7px] text-muted-foreground cursor-help">?</span></Tooltip>
@@ -661,7 +810,7 @@ onMounted(() => {
 
     <!-- ═══════ SISTEMA ═══════ -->
     <div v-if="activeTab === 'system'" class="space-y-4">
-      <div class="cyber-card rounded-xl p-5">
+      <div class="card-base rounded-xl p-5">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2">
             <Activity class="h-4 w-4 text-primary" /> Estado del sistema
@@ -684,7 +833,7 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div class="cyber-card rounded-xl p-5">
+      <div class="card-base rounded-xl p-5">
         <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2 mb-3">
           <Database class="h-4 w-4 text-accent" /> Health Check
         </h3>
@@ -694,7 +843,7 @@ onMounted(() => {
 
     <!-- ═══════ SEGURIDAD ═══════ -->
     <div v-if="activeTab === 'security'" class="space-y-4">
-      <div class="cyber-card rounded-xl p-5 space-y-5">
+      <div class="card-base rounded-xl p-5 space-y-5">
         <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2">
           <Shield class="h-4 w-4 text-primary" /> Seguridad y datos
         </h3>
@@ -727,7 +876,7 @@ onMounted(() => {
 
     <!-- ═══════ APARIENCIA ═══════ -->
     <div v-if="activeTab === 'appearance'" class="space-y-4">
-      <div class="cyber-card rounded-xl p-5 space-y-5">
+      <div class="card-base rounded-xl p-5 space-y-5">
         <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2">
           <Palette class="h-4 w-4 text-primary" /> Personalización visual
         </h3>
@@ -794,7 +943,7 @@ onMounted(() => {
 
     <!-- ═══════ ACCESIBILIDAD ═══════ -->
     <div v-if="activeTab === 'accessibility'" class="space-y-4">
-      <div class="cyber-card rounded-xl p-5 space-y-5">
+      <div class="card-base rounded-xl p-5 space-y-5">
         <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2">
           <Eye class="h-4 w-4 text-primary" /> Preferencias de accesibilidad
         </h3>

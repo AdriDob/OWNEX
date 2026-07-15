@@ -8,6 +8,7 @@ from .db import Base
 
 class Program(Base):
     """Bug bounty program — the core entity for economic intelligence."""
+
     __tablename__ = "programs"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -47,6 +48,7 @@ class Program(Base):
 
 class BountyTier(Base):
     """Bounty reward tiers per program."""
+
     __tablename__ = "bounty_tiers"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -63,6 +65,7 @@ class BountyTier(Base):
 
 class ScopeDocument(Base):
     """Indexed scope document — raw text + AI summary + change tracking."""
+
     __tablename__ = "scope_documents"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -82,6 +85,7 @@ class ScopeDocument(Base):
 
 class ProgramIntel(Base):
     """Per-program intelligence dossier — maintained permanently."""
+
     __tablename__ = "program_intel"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -116,6 +120,7 @@ class ProgramIntel(Base):
 
 class FinancialMetric(Base):
     """Time-series financial metrics for ROI Engine."""
+
     __tablename__ = "financial_metrics"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -128,6 +133,7 @@ class FinancialMetric(Base):
 
 class MemoryPattern(Base):
     """Learned patterns from past bug hunting experience."""
+
     __tablename__ = "memory_patterns"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -144,6 +150,7 @@ class MemoryPattern(Base):
 
 class ReportPriority(Base):
     """Intelligent report queue — prioritised by expected economic value."""
+
     __tablename__ = "report_priorities"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -161,3 +168,31 @@ class ReportPriority(Base):
     last_evaluated = Column(DateTime(timezone=True), server_default=func.now())
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class PayoutRecord(Base):
+    """Confirmed or pending payout from a bug bounty platform."""
+
+    __tablename__ = "revenue_payouts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    platform = Column(String, nullable=False, index=True)
+    amount = Column(Float, nullable=False, default=0.0)
+    currency = Column(String, nullable=False, default="USD")
+    program = Column(String, nullable=True, index=True, default="")
+    external_id = Column(String, nullable=True, index=True)
+    submission_record_id = Column(Integer, ForeignKey("submission_records.id", ondelete="SET NULL"), nullable=True)
+    status = Column(String, nullable=False, default="confirmed", index=True)  # pending, confirmed
+    paid_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class RevenueEvent(Base):
+    """Audit log for revenue pipeline events."""
+
+    __tablename__ = "revenue_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_type = Column(String, nullable=False, index=True)
+    payload = Column(Text, nullable=True, default="{}")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

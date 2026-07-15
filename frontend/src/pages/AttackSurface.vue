@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '@/lib/api'
 import Card from '@/components/ui/Card.vue'
+import Select from '@/components/ui/Select.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { Globe, PieChart, BarChart3 } from '@lucide/vue'
 import { DoughnutChart, BarChart } from '@/components/charts'
@@ -86,11 +87,12 @@ function formatLabel(k: string) {
         </Card>
       </div>
 
-      <select v-model="selected"
-        class="w-full max-w-xs rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-xs text-foreground outline-none animate-in focus:border-primary/30"
-      >
-        <option v-for="k in keys" :key="k" :value="k">{{ formatLabel(k) }}</option>
-      </select>
+      <Select
+        :options="keys.map(k => ({ value: k, label: formatLabel(k) }))"
+        :model-value="selected"
+        @update:model-value="selected = $event as string"
+        class="max-w-xs"
+      />
 
       <Card v-if="currentEndpoints.length === 0" class="p-6 text-center text-xs text-muted-foreground">
         No endpoints in this category

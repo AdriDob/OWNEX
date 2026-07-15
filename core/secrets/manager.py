@@ -1,25 +1,22 @@
-"""Secrets Manager — single point of access for all API keys and credentials.
+"""Secrets Manager — single Vault-backed path for all secrets.
 
-Backed by CATEYE's IdentityVault for AES-256-GCM encrypted storage.
-Supports env var fallback for backward compatibility.
+Every secret follows: Capability → Permission → Vault → Secrets.
+No env var bypass. No dual-path resolution.
 """
 
 from __future__ import annotations
 
 import logging
-import os
 from typing import Any
 
 logger = logging.getLogger("orion.core.secrets")
 
 
 class SecretsManager:
-    """Centralized secrets storage via IdentityVault + env fallback.
+    """Centralized secrets storage via IdentityVault.
 
-    Priority:
-      1. IdentityVault (persistent, encrypted)
-      2. Environment variable
-      3. Default value
+    Single path: get() goes ONLY to Vault. If not in Vault → default.
+    For env var migration use import_env_vars() once at setup time.
     """
 
     def __init__(self) -> None:
@@ -29,33 +26,61 @@ class SecretsManager:
     # ── Read ─────────────────────────────────────────
 
     def get(self, key: str, default: str = "", use_cache: bool = True) -> str:
-        """Get a secret by key.
-
-        Checks: IdentityVault → env var → default.
-        """
+        """Get a secret by key — Vault only, single path."""
         if use_cache and key in self._cache:
             return self._cache[key]
-
-        # 1. Try IdentityVault
         value = self._from_vault(key)
         if value:
             self._cache[key] = value
             return value
+        return default
 
-        # 2. Try env var
-        value = os.environ.get(key, "")
+    def get_with_env_fallback(self, key: str, default: str = "") -> str:
+        """Transitional API: Vault first, env var as fallback.
+
+        Only for migration. New code MUST use get() directly
+        after calling import_env_vars() during setup.
+        """
+        import os
+
+        value = self._from_vault(key)
         if value:
             self._cache[key] = value
             return value
-
+        env_val = os.environ.get(key, "")
+        if env_val:
+            self._cache[key] = env_val
+            return env_val
         return default
 
     def get_or_raise(self, key: str) -> str:
         """Like get() but raises KeyError if not found."""
         value = self.get(key, use_cache=True)
         if not value:
-            raise KeyError(f"Secret '{key}' not configured. Set it via IdentityVault or env var.")
+            raise KeyError(f"Secret '{key}' not configured. Set it via IdentityVault.")
         return value
+
+    def import_env_vars(self, prefix: str = "") -> int:
+        """Import matching env vars into Vault (setup-time migration).
+
+        Args:
+            prefix: Only import vars starting with this prefix.
+        Returns:
+            Number of secrets imported.
+        """
+        import os
+
+        count = 0
+        for env_key, env_val in os.environ.items():
+            if prefix and not env_key.startswith(prefix):
+                continue
+            if not env_val:
+                continue
+            self.set(env_key, env_val)
+            count += 1
+        if count:
+            logger.info("Imported %d secrets from env vars (prefix=%r)", count, prefix)
+        return count
 
     def _vault_provider(self, key: str) -> str:
         return f"_secret:{key}"
@@ -89,7 +114,7 @@ class SecretsManager:
             return False
 
     def list_keys(self) -> list[str]:
-        """List all known secret keys."""
+        """List all known secret keys from Vault + cache."""
         vault = self._get_vault()
         keys: set[str] = set()
         vault_prefix = "_secret:"
@@ -98,14 +123,9 @@ class SecretsManager:
                 for acct in vault.list_accounts() or []:
                     provider = acct.get("provider", "")
                     if provider.startswith(vault_prefix):
-                        keys.add(provider[len(vault_prefix):])
+                        keys.add(provider[len(vault_prefix) :])
             except Exception:
                 logger.exception("Failed to list vault accounts")
-        # Add env vars that look like secrets
-        for env_key in os.environ:
-            if any(suffix in env_key.upper() for suffix in ("API_KEY", "SECRET", "TOKEN", "PASSWORD")):
-                keys.add(env_key)
-        # Add cached keys
         keys.update(self._cache.keys())
         return sorted(keys)
 
@@ -135,6 +155,7 @@ class SecretsManager:
             return self._vault
         try:
             from cores.identity_vault import get_identity_vault
+
             self._vault = get_identity_vault()
             return self._vault
         except Exception as exc:

@@ -15,6 +15,10 @@ import InspectorPanel from '@/components/ui/InspectorPanel.vue'
 import MiniPreview from '@/components/ui/MiniPreview.vue'
 import MultiSelectHandler from '@/components/ui/MultiSelectHandler.vue'
 import CompareView from '@/components/ui/CompareView.vue'
+import OnboardingWizard from '@/components/onboarding/OnboardingWizard.vue'
+import AssistantBubble from '@/components/assistant/AssistantBubble.vue'
+import AssistantHint from '@/components/assistant/AssistantHint.vue'
+import { useAssistant } from '@/composables/useAssistant'
 
 declare global {
   interface Window {
@@ -27,8 +31,10 @@ const notifications = useNotificationsStore()
 const settings = useSettingsStore()
 const router = useRouter()
 const route = useRoute()
+const assistant = useAssistant()
 const copilotOpen = ref(false)
 const sidebarOpen = ref(false)
+const showOnboarding = ref(false)
 const globalLoading = ref(false)
 const showGlobalLoading = ref(false)
 let loadingTimeout: ReturnType<typeof setTimeout> | null = null
@@ -66,13 +72,9 @@ watch(() => settings.data.appearance.density, (density) => {
   }
 }, { immediate: true })
 
-// Listen for 401 events
-if (typeof window !== 'undefined') {
-  window.addEventListener('auth:unauthorized', () => {
-    auth.logout()
-    router.push({ name: 'login' })
-  })
-}
+let _unauthHandler: (() => void) | null = null
+let _beforeunloadHandler: (() => void) | null = null
+let _bubbleTimeout: ReturnType<typeof setTimeout> | null = null
 
 function toggleCopilot() {
   copilotOpen.value = !copilotOpen.value
@@ -83,6 +85,12 @@ function toggleSidebar() {
 }
 
 onMounted(async () => {
+  _unauthHandler = () => {
+    auth.logout()
+    router.push({ name: 'login' })
+  }
+  window.addEventListener('auth:unauthorized', _unauthHandler)
+
   onLoadingChange((loading) => {
     if (loading) {
       loadingTimeout = setTimeout(() => { showGlobalLoading.value = true }, 500)
@@ -101,23 +109,41 @@ onMounted(async () => {
       window.__PYWEBVIEW__.setTitle('CATEYE — Security Intelligence OS')
     } catch { /* not in pywebview */ }
   }
-  window.addEventListener('beforeunload', () => {
+  _beforeunloadHandler = () => {
     if (typeof window.__PYWEBVIEW__ !== 'undefined') {
       try { window.__PYWEBVIEW__.minimize() } catch { /* */ }
     }
-  })
+  }
+  window.addEventListener('beforeunload', _beforeunloadHandler)
+
+  // Init assistant
+  assistant.loadDefaults()
+  if (assistant.assistantEnabled.value) {
+    _bubbleTimeout = setTimeout(() => {
+      assistant.showBubble('💡 Presioná Ctrl+K para abrir la paleta de comandos', 6000)
+    }, 3000)
+  }
+
+  // Auto-show onboarding on first run
+  if (settings.onboardingNeeded && settings.ready) {
+    showOnboarding.value = true
+  }
+})
+
+const pageHints = computed(() => {
+  return assistant.getHintsForPage(route.name as string || '')
 })
 
 onUnmounted(() => {
-  // cleanup handled by useGlobalShortcuts
+  if (_unauthHandler) window.removeEventListener('auth:unauthorized', _unauthHandler)
+  if (_beforeunloadHandler) window.removeEventListener('beforeunload', _beforeunloadHandler)
+  if (loadingTimeout) clearTimeout(loadingTimeout)
+  if (_bubbleTimeout) clearTimeout(_bubbleTimeout)
 })
 </script>
 
 <template>
     <div class="flex h-screen w-screen overflow-hidden bg-background">
-    <!-- Scanline overlay -->
-    <div class="pointer-events-none fixed inset-0 z-[60] opacity-[0.03]" style="background: repeating-linear-gradient(0deg, transparent, transparent 2px, color-mix(in srgb, var(--primary) 8%, transparent) 2px, color-mix(in srgb, var(--primary) 8%, transparent) 4px);" />
-
     <!-- Global loading bar -->
     <div v-if="showGlobalLoading" class="fixed top-0 left-0 right-0 z-[100] h-0.5">
       <div class="h-full bg-primary animate-pulse" style="width: 30%; animation: loadingSlide 1.5s ease-in-out infinite" />
@@ -136,6 +162,21 @@ onUnmounted(() => {
     <MiniPreview />
     <MultiSelectHandler />
     <CompareView />
+    <OnboardingWizard :open="showOnboarding" @close="showOnboarding = false" />
+    </template>
+
+    <!-- Assistant Layer -->
+    <template v-if="!route.meta?.public">
+      <!-- Hints -->
+      <div v-if="assistant.hintsEnabled.value && pageHints.length" class="fixed bottom-5 right-5 z-[80] flex flex-col gap-2 max-w-sm">
+        <AssistantHint
+          v-for="h in pageHints" :key="h.id"
+          :title="h.title" :message="h.message"
+          @dismiss="assistant.dismissHint(h.id)"
+        />
+      </div>
+      <!-- Bubble -->
+      <AssistantBubble :message="assistant.bubbleMessage.value" @dismiss="assistant.showBubble(null)" />
     </template>
   </div>
 </template>

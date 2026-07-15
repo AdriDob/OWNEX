@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 
 logger = logging.getLogger("cateye.notifications.bridges")
@@ -25,6 +26,7 @@ def register_desktop_channel() -> None:
     def _desktop_handler(type_: str, payload: dict[str, Any]) -> None:
         try:
             from desktop.notifications import send_notification
+
             priority = payload.get("priority", "medium")
             urgency = "critical" if priority == "critical" else "normal"
             send_notification(
@@ -35,6 +37,7 @@ def register_desktop_channel() -> None:
             db_id = payload.get("metadata", {}).get("db_id")
             if db_id:
                 from cores.notifications.db_bridge import record_delivery
+
                 record_delivery(db_id, "desktop", "sent")
         except Exception as exc:
             logger.debug("Desktop notification handler error: %s", exc)
@@ -64,6 +67,7 @@ def register_email_channel() -> None:
         db_id = payload.get("metadata", {}).get("db_id")
         if db_id:
             from cores.notifications.db_bridge import record_delivery
+
             record_delivery(db_id, "email", "sent" if ok else "failed", None if ok else "send_error")
 
     hub = get_hub()
@@ -91,6 +95,7 @@ def register_fcm_channel() -> None:
         db_id = payload.get("metadata", {}).get("db_id")
         if db_id:
             from cores.notifications.db_bridge import record_delivery
+
             record_delivery(db_id, "fcm", "sent" if count else "failed", "no_devices" if not count else None)
 
     hub = get_hub()
@@ -118,6 +123,7 @@ def register_whatsapp_channel() -> None:
         db_id = payload.get("metadata", {}).get("db_id")
         if db_id:
             from cores.notifications.db_bridge import record_delivery
+
             record_delivery(db_id, "whatsapp", "sent" if ok else "failed", None if ok else "send_error")
 
     hub = get_hub()
@@ -145,11 +151,127 @@ def register_gmail_channel() -> None:
         db_id = payload.get("metadata", {}).get("db_id")
         if db_id:
             from cores.notifications.db_bridge import record_delivery
+
             record_delivery(db_id, "gmail", "sent" if ok else "failed", None if ok else "send_error")
 
     hub = get_hub()
     hub.subscribe("gmail", _gmail_handler)
     logger.info("Gmail channel registered on NotificationHub")
+
+
+def register_discord_channel() -> None:
+    """Register the Discord notification handler on the hub."""
+    from cores.notifications.discord import get_discord_adapter
+    from cores.notifications.hub import get_hub
+
+    adapter = get_discord_adapter()
+    if not adapter.is_enabled:
+        logger.info("Discord channel skipped — not configured")
+        return
+
+    def _discord_handler(type_: str, payload: dict[str, Any]) -> None:
+        ok = adapter.send(
+            title=payload.get("title", ""),
+            message=payload.get("message", ""),
+            priority=payload.get("priority", "medium"),
+            metadata=payload.get("metadata"),
+        )
+        db_id = payload.get("metadata", {}).get("db_id")
+        if db_id:
+            from cores.notifications.db_bridge import record_delivery
+
+            record_delivery(db_id, "discord", "sent" if ok else "failed", None if ok else "send_error")
+
+    hub = get_hub()
+    hub.subscribe("discord", _discord_handler)
+    logger.info("Discord channel registered on NotificationHub")
+
+
+def register_mobile_channel() -> None:
+    """Register the mobile push notification handler on the hub.
+
+    Dispatches to:
+    - FCM adapter for ``fcm`` devices
+    - Web Push (via pywebpush) for ``webpush`` subscriptions stored in the devices table
+    """
+    from cores.notifications.hub import get_hub
+    from database.db import SessionLocal
+
+    hub = get_hub()
+
+    def _mobile_handler(type_: str, payload: dict[str, Any]) -> None:
+        title = payload.get("title", "CATEYE")
+        message = payload.get("message", "")
+        priority = payload.get("priority", "medium")
+        metadata = payload.get("metadata", {})
+        db_id = metadata.get("db_id")
+
+        # 1. FCM devices
+        try:
+            from cores.notifications.fcm import get_fcm_adapter
+
+            fcm = get_fcm_adapter()
+            if fcm.is_enabled:
+                count = fcm.send(title=title, message=message, priority=priority, metadata=metadata)
+                if count and db_id:
+                    from cores.notifications.db_bridge import record_delivery
+
+                    record_delivery(db_id, "mobile_fcm", "sent")
+        except Exception as exc:
+            logger.debug("FCM delivery error in mobile channel: %s", exc)
+
+        # 2. Web Push devices (token column stores JSON subscription)
+        try:
+            session = SessionLocal()
+            try:
+                from sqlalchemy import text
+
+                rows = session.execute(
+                    text("SELECT token FROM devices WHERE platform = 'webpush' AND is_active = 'true'")
+                ).fetchall()
+            finally:
+                session.close()
+        except Exception as exc:
+            logger.debug("Failed to query webpush devices: %s", exc)
+            rows = []
+
+        for row in rows:
+            try:
+                import json
+
+                token_str = row[0] if isinstance(row, (list, tuple)) else row.token
+                sub = json.loads(token_str)
+                endpoint = sub.get("endpoint", "")
+                keys = sub.get("keys", {})
+                if not endpoint or not keys.get("p256dh") or not keys.get("auth"):
+                    continue
+
+                try:
+                    from pywebpush import webpush
+
+                    vapid_private = os.environ.get("CATEYE_VAPID_PRIVATE_KEY") or None
+                    admin_email = os.environ.get("CATEYE_ADMIN_EMAIL", "admin@cateye.local")
+                    vapid_claim = {"sub": f"mailto:{admin_email}"}
+
+                    webpush(
+                        subscription_info=sub,
+                        data=json.dumps({"title": title, "message": message, "priority": priority}),
+                        vapid_private_key=vapid_private,
+                        vapid_claims=vapid_claim,
+                    )
+                    if db_id:
+                        from cores.notifications.db_bridge import record_delivery
+
+                        record_delivery(db_id, "mobile_webpush", "sent")
+                except ImportError:
+                    pass
+                except Exception as exc:
+                    logger.debug("WebPush delivery error: %s", exc)
+            except Exception as exc:
+                logger.debug("Failed to process webpush subscription: %s", exc)
+
+    hub.subscribe("mobile", _mobile_handler)
+    logger.info("Mobile channel registered on NotificationHub")
 
 
 def register_event_bridge() -> None:
@@ -173,8 +295,29 @@ def register_event_bridge() -> None:
         channels = ["web"]
         if priority in ("high", "critical"):
             channels.append("desktop")
-        if event_type in ("opportunity:found", "quick_win:detected", "system:error", "system:degraded"):
+        discord_events = {
+            "finding:created",
+            "finding:confirmed",
+            "finding:high_priority",
+            "report:ready",
+            "report:generated",
+            "backup:failed",
+            "health:warning",
+            "update:available",
+            "system:started",
+            "system:error",
+        }
+        if event_type in (
+            "opportunity:found",
+            "quick_win:detected",
+            "finding:created",
+            "finding:status_changed",
+            "system:error",
+            "system:degraded",
+        ):
             channels.append("mobile")
+        if event_type in discord_events:
+            channels.append("discord")
 
         hub.notify(
             type_=event_type.replace(":", "_"),
@@ -202,22 +345,27 @@ def register_ws_forwarder() -> None:
 
     def _forward(notif: object) -> None:
         from cores.notifications.hub import Notification
+
         if not isinstance(notif, Notification):
             return
         import asyncio
+
         try:
             loop = asyncio.get_running_loop()
             asyncio.run_coroutine_threadsafe(
-                manager.broadcast("notification:new", {
-                    "id": notif.db_id or notif.id,
-                    "type": notif.type,
-                    "title": notif.title,
-                    "message": notif.message,
-                    "severity": notif.severity,
-                    "priority": notif.priority,
-                    "timestamp": notif.timestamp,
-                    "metadata": notif.metadata,
-                }),
+                manager.broadcast(
+                    "notification:new",
+                    {
+                        "id": notif.db_id or notif.id,
+                        "type": notif.type,
+                        "title": notif.title,
+                        "message": notif.message,
+                        "severity": notif.severity,
+                        "priority": notif.priority,
+                        "timestamp": notif.timestamp,
+                        "metadata": notif.metadata,
+                    },
+                ),
                 loop,
             )
         except RuntimeError:

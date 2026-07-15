@@ -5,9 +5,9 @@ import tarfile
 import time
 from pathlib import Path
 
-logger = logging.getLogger("cateye.backup")
+from core import ORION_DIR
 
-ORION_DIR = Path.home() / ".orion"
+logger = logging.getLogger("cateye.backup")
 
 BACKUP_PATHS = [
     "catseye.db",

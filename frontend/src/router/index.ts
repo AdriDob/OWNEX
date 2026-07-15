@@ -22,12 +22,6 @@ export const routes: RouteRecordRaw[] = [
   },
   {
     path: '/',
-    name: 'home',
-    component: () => import('@/pages/Dashboard.vue'),
-    meta: { title: 'Centro de Inteligencia CATEYE' },
-  },
-  {
-    path: '/mission-control',
     name: 'mission-control',
     component: () => import('@/pages/MissionControl.vue'),
     meta: { title: 'Control de Misión' },
@@ -237,6 +231,24 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'Sync Center' },
   },
   {
+    path: '/health-center',
+    name: 'health-center',
+    component: () => import('@/pages/HealthCenter.vue'),
+    meta: { title: 'Health Center' },
+  },
+  {
+    path: '/companion',
+    name: 'companion',
+    component: () => import('@/pages/MobileCompanion.vue'),
+    meta: { title: 'Companion' },
+  },
+  {
+    path: '/workflows',
+    name: 'workflows',
+    component: () => import('@/pages/Workflows.vue'),
+    meta: { title: 'Workflows' },
+  },
+  {
     path: '/account-health',
     name: 'account-health',
     component: () => import('@/pages/AccountHealth.vue'),
@@ -376,6 +388,19 @@ export const routes: RouteRecordRaw[] = [
     name: 'odyssey-settings',
     component: () => import('@/apps/odyssey/SettingsOdyssey.vue'),
     meta: { title: 'Configuración ODYSSEY' },
+  },
+  // ── AEGIS (Pentesting) ──
+  {
+    path: '/aegis/',
+    name: 'aegis-dashboard',
+    component: () => import('@/apps/aegis/DashboardAegis.vue'),
+    meta: { title: 'AEGIS — Pentesting' },
+  },
+  {
+    path: '/aegis/settings',
+    name: 'aegis-settings',
+    component: () => import('@/apps/aegis/SettingsAegis.vue'),
+    meta: { title: 'Configuración AEGIS' },
   },
   // ── Notification / Sync pages ──
   {
