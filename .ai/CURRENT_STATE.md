@@ -1,6 +1,6 @@
 # Current State — Estado Real del Proyecto
 
-> **v4.5.0 STABLE** — Offensive Intelligence + Evidence Engine + Quality Gate + Evolution.
+> **v4.5.0 STABLE** — Offensive Intelligence + Evidence Engine + Quality Gate + Evolution + Command System Fase 1.
 > Julio 2026.
 
 ## Testing
@@ -358,3 +358,15 @@ Las limitaciones restantes corresponden a v3.1 (ORION Reasoning Layer) — todas
 | Tests: Security | `tests/test_hermes_security.py` | ✅ 24 tests (PS sanitization, file paths, shell commands, PID validation, multi-violation) |
 | Existing Hermes tests | `tests/test_hermes.py` | ✅ 15 tests, all pass (no regressions) |
 | Manifest | `apps/hermes/manifest.py` | ✅ v0.3.0 |
+
+## FASE 20 — Command System Fase 1 (Julio 2026)
+
+| Feature | Archivos | Estado |
+|---------|----------|--------|
+| Models | `core/commands/models.py` | ✅ CommandDefinition, PermissionLevel (5 niveles), CommandFlag, CommandResult, CommandRecord |
+| Registry (107 commands) | `core/commands/registry.py` | ✅ Singleton, 14 categorías (architecture/bugbounty/copilot/execution/runtime/knowledge/events/testing/quality/documentation/setup/integrations/intelligence/smart), búsqueda por alias, filtro por categoría/permiso |
+| Dispatcher | `core/commands/dispatcher.py` | ✅ Permission validation (observer→PUBLIC, operator→OPERATOR, senior_hunter→ADMIN, administrator→DANGEROUS), EventBus publishing (command:executed/failed/rejected), execution history, CapabilityRegistry integration |
+| API endpoints (6) | `api/routers/commands.py` | ✅ GET /api/commands (list), GET /api/commands/categories, GET /api/commands/{name}, POST /api/commands/{name}/execute, GET /api/commands/history/all, GET /api/commands/history?status= |
+| Event types (3) | `core/events/types.py` | ✅ command:executed, command:failed, command:rejected |
+| Router registration | `api/main.py` | ✅ commands router registrado |
+| Tests | `tests/test_command_system.py` | ✅ 45 tests (registry 14, dispatcher 13, models 3, API 11, permissions 4) |
