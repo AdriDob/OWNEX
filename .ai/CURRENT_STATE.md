@@ -5,8 +5,8 @@
 
 ## Testing
 
-- **Total de tests**: 1386 pasan, 2 pre-existing, 2 xfailed, 0 fallos nuevos
-- **Tests nuevos (sesión actual)**: 142 (offensive + evidence + quality + revenue + evolution)
+- **Total de tests**: 1401 pasan, 2 pre-existing, 2 xfailed, 0 fallos nuevos
+- **Tests nuevos (sesión actual)**: 157 (offensive + evidence + quality + revenue + evolution + hermes v2)
 - **Comando**: `.venv/bin/python -m pytest --timeout=60`
 - `test_security.py` incluido (34 tests, todos verdes)
 - **Lint**: Ruff clean — 0 errores en todo el código nuevo
@@ -343,3 +343,18 @@ Las limitaciones restantes corresponden a v3.1 (ORION Reasoning Layer) — todas
 | Tests: ARCA+Outlook | `tests/test_arca_connector.py`, `tests/test_outlook_connector.py` | ✅ New |
 | Tests: Amass+Naabu+Shodan+Uncover | `tests/test_amass.py`, `tests/test_naabu.py`, `tests/test_shodan_uncover.py` | ✅ New |
 | Tests: Chaos Workflows | `tests/test_chaos_workflows.py` | ✅ New |
+
+## FASE 19 — Hermes v2: Professional Desktop Agent (Julio 2026)
+
+| Feature | Archivos | Estado |
+|---|---|---|
+| Hermes EventBus events (7 types) | `core/events/types.py` | ✅ hermes:action:requested, hermes:action:approved, hermes:action:started, hermes:action:completed, hermes:action:failed, hermes:permission:required, hermes:security:blocked |
+| HermesEventPublisher | `apps/hermes/publisher.py` | ✅ Silent-safe publisher, no-ops without EventBus, 7 publish methods |
+| Permission System | `apps/hermes/permissions.py` | ✅ Risk levels (none/low/medium/high/critical), command risk registry, evaluate_action(), needs_confirmation(), ActionHistory with JSONL persistence |
+| Security Layer | `apps/hermes/security.py` | ✅ PowerShell sanitization (13 injection patterns), file path validation (6 blocked paths), shell command validation (12 blocked commands), PID protection (PID 1, system PIDs) |
+| Engine integration | `apps/hermes/engine.py` | ✅ Permission evaluation before execution, security validation pipeline, EventBus publishing for every lifecycle event, action history tracking |
+| Tests: Events | `tests/test_hermes_events.py` | ✅ 10 tests (publisher noop, all 7 event types, event constants, ALL set registration) |
+| Tests: Permissions | `tests/test_hermes_permissions.py` | ✅ 14 tests (risk levels, command risk, confirmation logic, evaluate_action, history) |
+| Tests: Security | `tests/test_hermes_security.py` | ✅ 24 tests (PS sanitization, file paths, shell commands, PID validation, multi-violation) |
+| Existing Hermes tests | `tests/test_hermes.py` | ✅ 15 tests, all pass (no regressions) |
+| Manifest | `apps/hermes/manifest.py` | ✅ v0.3.0 |

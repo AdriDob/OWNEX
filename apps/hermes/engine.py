@@ -1,4 +1,4 @@
-"""Hermes Automation Engine — core logic with safe mode and permission control."""
+"""Hermes Automation Engine — core logic with EventBus, permission system, and security."""
 
 from __future__ import annotations
 
@@ -16,6 +16,9 @@ from apps.hermes.config import (
     HERMES_LOG_ACTIONS,
     HERMES_SAFE_MODE,
 )
+from apps.hermes.permissions import ActionHistory, ActionRecord, evaluate_action
+from apps.hermes.publisher import HermesEventPublisher
+from apps.hermes.security import validate_action
 from apps.hermes.tools import get_tool_registry
 
 logger = logging.getLogger("catseye.hermes.engine")
@@ -118,18 +121,29 @@ class ActionResult:
 
 
 class AutomationEngine:
-    """Hermes core engine. Executes (or recommends) authorized commands."""
+    """Hermes core engine. Executes (or recommends) authorized commands with EventBus + permission system."""
 
-    def __init__(self, safe_mode: bool | None = None) -> None:
+    def __init__(self, safe_mode: bool | None = None, event_bus: Any | None = None) -> None:
         self.safe_mode = HERMES_SAFE_MODE if safe_mode is None else safe_mode
         self._history: list[ActionResult] = []
         self._project_root = Path(__file__).resolve().parent.parent.parent
         self._tools = get_tool_registry()
+        self._publisher = HermesEventPublisher(event_bus)
+        self._action_history = ActionHistory()
 
     # ── Public API ────────────────────────────────────────────────
 
-    def execute(self, command: str, **kwargs: Any) -> ActionResult:
-        """Execute a command respecting safe mode and permissions."""
+    def execute(self, command: str, force: bool = False, **kwargs: Any) -> ActionResult:
+        """Execute a command respecting safe mode, permissions, and security checks.
+
+        Args:
+            command: The Hermes command name.
+            force: If True, skip permission confirmation (for pre-approved actions).
+            **kwargs: Arguments passed to the command handler.
+
+        Returns:
+            ActionResult with status and details.
+        """
         cmd_def = AUTHORIZED_COMMANDS.get(command)
         if cmd_def is None:
             return ActionResult(
@@ -138,14 +152,55 @@ class AutomationEngine:
                 message=f"Unknown command '{command}'. Use 'help' to list available commands.",
             )
 
-        if self.safe_mode and cmd_def["destructive"]:
+        # 1. Security validation
+        violations = validate_action(command, **kwargs)
+        if violations:
+            self._publisher.security_blocked(command, reason="; ".join(violations), details={"violations": violations})
+            self._record_history(
+                command,
+                "blocked",
+                risk=cmd_def["risk"],
+                destructive=cmd_def["destructive"],
+                message="; ".join(violations),
+            )
             return ActionResult(
                 command=command,
-                status="recommended",
-                message=f"[SAFE MODE] Action '{command}' was recommended but not executed. Set HERMES_SAFE_MODE=false to allow.",
-                details={"command": command, "risk": cmd_def["risk"], "destructive": True},
+                status="error",
+                message="Security check failed: " + "; ".join(violations),
+                details={"violations": violations},
             )
 
+        # 2. Permission evaluation
+        perm = evaluate_action(command, self.safe_mode, force=force)
+        self._publisher.action_requested(
+            command, risk=perm.risk, destructive=perm.destructive, reason=perm.reason or "user requested"
+        )
+
+        if not perm.allowed:
+            self._publisher.permission_required(command, risk=perm.risk, impact=perm.impact)
+            self._publisher.action_failed(
+                command, error=perm.reason or "Permission denied", details={"blocked_by": perm.blocked_by}
+            )
+            self._record_history(
+                command,
+                "denied",
+                risk=perm.risk,
+                destructive=perm.destructive,
+                message=perm.reason or "Permission denied",
+            )
+            return ActionResult(
+                command=command,
+                status="recommended" if perm.blocked_by == "safe_mode" else "error",
+                message=f"[HERMES] {perm.reason or 'Action blocked'} — use force=True to override.",
+                details={
+                    "risk": perm.risk,
+                    "destructive": perm.destructive,
+                    "reason": perm.reason,
+                    "blocked_by": perm.blocked_by,
+                },
+            )
+
+        # 3. Check handler exists
         handler = getattr(self, f"_cmd_{command}", None)
         if handler is None:
             return ActionResult(
@@ -154,21 +209,48 @@ class AutomationEngine:
                 message=f"Command '{command}' has no handler registered.",
             )
 
+        # 4. Execute
+        self._publisher.action_started(command, **kwargs)
         try:
             result = handler(**kwargs)
         except Exception as exc:
             logger.exception("Hermes command '%s' failed", command)
-            result = ActionResult(
+            self._publisher.action_failed(command, error=str(exc), details={"kwargs": kwargs})
+            self._record_history(
+                command, "failed", risk=cmd_def["risk"], destructive=cmd_def["destructive"], message=str(exc)
+            )
+            return ActionResult(
                 command=command,
                 status="error",
                 message=f"Command '{command}' failed: {exc}",
             )
 
+        # 5. Record completion
+        self._publisher.action_completed(command, status=result.status, message=result.message, details=result.details)
+        self._record_history(
+            command, result.status, risk=cmd_def["risk"], destructive=cmd_def["destructive"], message=result.message
+        )
         self._history.append(result)
         if HERMES_LOG_ACTIONS:
             self._log_action(result)
 
         return result
+
+    def _record_history(
+        self, command: str, status: str, risk: str = "none", destructive: bool = False, message: str = ""
+    ) -> None:
+        self._action_history.record(
+            ActionRecord(
+                command=command,
+                status=status,
+                risk=risk,
+                destructive=destructive,
+                message=message,
+            )
+        )
+
+    def get_action_history(self, limit: int = 20) -> list[ActionRecord]:
+        return self._action_history.recent(limit=limit)
 
     def get_history(self, limit: int = 10) -> list[ActionResult]:
         return self._history[-limit:]
