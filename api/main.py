@@ -24,6 +24,7 @@ from api.routers import (
     authhub,
     bank_payout,
     canonical,
+    commands,
     connections,
     contracts,
     crypto,
@@ -1007,6 +1008,7 @@ app.include_router(verdicts.router)
 app.include_router(attack.router)
 app.include_router(validation.router)
 app.include_router(differential_intelligence.router)
+app.include_router(commands.router)
 app.include_router(canonical.router)
 app.include_router(intelligence.router)
 app.include_router(system.router)

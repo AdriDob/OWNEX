@@ -148,6 +148,11 @@ class Events:
     REVENUE_SYNC_FAILED = "revenue:sync_failed"
     REVENUE_PAYOUT_RECORDED = "revenue:payout_recorded"
 
+    # ── Command System ─────────────────────────────────────────
+    COMMAND_EXECUTED = "command:executed"
+    COMMAND_FAILED = "command:failed"
+    COMMAND_REJECTED = "command:rejected"
+
     # ── All event types for introspection ───────────────────────
     ALL = frozenset(
         {
@@ -244,6 +249,9 @@ class Events:
             HERMES_ACTION_FAILED,
             HERMES_PERMISSION_REQUIRED,
             HERMES_SECURITY_BLOCKED,
+            COMMAND_EXECUTED,
+            COMMAND_FAILED,
+            COMMAND_REJECTED,
         }
     )
 
