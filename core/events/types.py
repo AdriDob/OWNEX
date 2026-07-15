@@ -131,6 +131,15 @@ class Events:
     EXECUTION_PLAN_CREATED = "execution:plan:created"
     EXECUTION_JOURNAL_ENTRY = "execution:journal:entry"
 
+    # ── Hermes Desktop Agent ─────────────────────────────────
+    HERMES_ACTION_REQUESTED = "hermes:action:requested"
+    HERMES_ACTION_APPROVED = "hermes:action:approved"
+    HERMES_ACTION_STARTED = "hermes:action:started"
+    HERMES_ACTION_COMPLETED = "hermes:action:completed"
+    HERMES_ACTION_FAILED = "hermes:action:failed"
+    HERMES_PERMISSION_REQUIRED = "hermes:permission:required"
+    HERMES_SECURITY_BLOCKED = "hermes:security:blocked"
+
     # ── Revenue Pipeline ──────────────────────────────────────
     REVENUE_REPORT_SUBMITTED = "revenue:report_submitted"
     REVENUE_SUBMISSION_FAILED = "revenue:submission_failed"
@@ -228,6 +237,13 @@ class Events:
             REVENUE_SYNC_COMPLETED,
             REVENUE_SYNC_FAILED,
             REVENUE_PAYOUT_RECORDED,
+            HERMES_ACTION_REQUESTED,
+            HERMES_ACTION_APPROVED,
+            HERMES_ACTION_STARTED,
+            HERMES_ACTION_COMPLETED,
+            HERMES_ACTION_FAILED,
+            HERMES_PERMISSION_REQUIRED,
+            HERMES_SECURITY_BLOCKED,
         }
     )
 
