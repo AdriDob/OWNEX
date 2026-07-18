@@ -1,4 +1,4 @@
-"""Hermes Automation Engine — core logic with EventBus, permission system, and security."""
+"""MERLIN Engine — Automation & Operations with EventBus, permission system, and security."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from apps.hermes.publisher import HermesEventPublisher
 from apps.hermes.security import validate_action
 from apps.hermes.tools import get_tool_registry
 
-logger = logging.getLogger("catseye.hermes.engine")
+logger = logging.getLogger("catseye.merlin.engine")
 
 AUTHORIZED_COMMANDS: dict[str, dict[str, Any]] = {
     "backup": {
@@ -121,7 +121,7 @@ class ActionResult:
 
 
 class AutomationEngine:
-    """Hermes core engine. Executes (or recommends) authorized commands with EventBus + permission system."""
+    """MERLIN core engine. Executes (or recommends) authorized commands with EventBus + permission system."""
 
     def __init__(self, safe_mode: bool | None = None, event_bus: Any | None = None) -> None:
         self.safe_mode = HERMES_SAFE_MODE if safe_mode is None else safe_mode
@@ -257,7 +257,7 @@ class AutomationEngine:
 
     def status_summary(self) -> dict[str, Any]:
         return {
-            "engine": "Hermes v0.1.0",
+            "engine": "MERLIN v0.4.0",
             "safe_mode": self.safe_mode,
             "auto_backup": HERMES_AUTO_BACKUP,
             "backup_interval_h": HERMES_BACKUP_INTERVAL_H,
@@ -562,7 +562,7 @@ class AutomationEngine:
 
     def _log_action(self, result: ActionResult) -> None:
         try:
-            log_path = Path.home() / ".orion" / "hermes_actions.jsonl"
+            log_path = Path.home() / ".orion" / "merlin_actions.jsonl"
             log_path.parent.mkdir(parents=True, exist_ok=True)
             import json
 
@@ -580,7 +580,7 @@ class AutomationEngine:
                     + "\n"
                 )
         except Exception as exc:
-            logger.warning("Failed to log Hermes action: %s", exc)
+            logger.warning("Failed to log MERLIN action: %s", exc)
 
 
 def _is_today(iso_ts: str) -> bool:

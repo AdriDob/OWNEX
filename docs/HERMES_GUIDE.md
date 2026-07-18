@@ -1,12 +1,13 @@
-# Hermes Agent v1 — Guía de Usuario
+# MERLIN Agent — Guía de Usuario
 
-> Automation Agent seguro para ORION Platform. v0.1.0
+> Automation & Operations Agent para ORION Platform. v0.4.0
+> (Antes conocido como **Hermes**)
 
 ---
 
-## ¿Qué es Hermes?
+## ¿Qué es MERLIN?
 
-Hermes es el agente de automatización transversal de ORION Platform. Ejecuta tareas repetitivas y de mantenimiento del sistema de forma controlada:
+MERLIN es el agente de automatización y operaciones de ORION Platform. Ejecuta tareas de mantenimiento, monitoreo y diagnóstico del sistema de forma controlada:
 
 - **Backup** automático de base de datos y configuración
 - **Health Check** de todos los servicios del sistema
@@ -23,30 +24,31 @@ Por defecto opera en **modo seguro**: solo recomienda acciones destructivas sin 
 ### Desde terminal (recomendado)
 
 ```bash
-# Ver comandos disponibles
-python run.py --hermes help
+# Ver comandos disponibles (MERLIN o Hermes son válidos)
+python run.py --merlin help
+python run.py --hermes help    # alias legacy
 
 # Health check del sistema
-python run.py --hermes health
+python run.py --merlin health
 
 # Backup (en modo seguro solo recomienda)
-python run.py --hermes backup
+python run.py --merlin backup
 
 # Backup (forzar ejecución)
-HERMES_SAFE_MODE=false python run.py --hermes backup
+MERLIN_SAFE_MODE=false python run.py --merlin backup
 
 # Diagnóstico completo
-python run.py --hermes doctor
+python run.py --merlin doctor
 
 # Últimas 30 líneas de logs
-python run.py --hermes logs
+python run.py --merlin logs
 ```
 
 ### Desde WSL Ubuntu
 
 ```bash
 # Misma sintaxis — correr desde el directorio del proyecto
-cd ~/projects/Rastro && python run.py --hermes status
+cd ~/projects/Rastro && python run.py --merlin status
 ```
 
 ---
@@ -68,10 +70,10 @@ cd ~/projects/Rastro && python run.py --hermes status
 
 | Variable | Default | Descripción |
 |---|---|---|
-| `HERMES_SAFE_MODE` | `true` | Si es true, comandos destructivos solo se recomiendan |
-| `HERMES_LOG_ACTIONS` | `true` | Persiste todas las acciones en `~/.orion/hermes_actions.jsonl` |
-| `HERMES_AUTO_BACKUP` | `false` | Backup automático programado (requiere Safe Mode = false) |
-| `HERMES_BACKUP_INTERVAL_H` | `24` | Horas entre backups automáticos |
+| `MERLIN_SAFE_MODE` (legacy: `HERMES_SAFE_MODE`) | `true` | Si es true, comandos destructivos solo se recomiendan |
+| `MERLIN_LOG_ACTIONS` (legacy: `HERMES_LOG_ACTIONS`) | `true` | Persiste todas las acciones en `~/.orion/merlin_actions.jsonl` |
+| `MERLIN_AUTO_BACKUP` (legacy: `HERMES_AUTO_BACKUP`) | `false` | Backup automático programado (requiere Safe Mode = false) |
+| `MERLIN_BACKUP_INTERVAL_H` (legacy: `HERMES_BACKUP_INTERVAL_H`) | `24` | Horas entre backups automáticos |
 
 ---
 
@@ -106,11 +108,11 @@ WshShell.Run "wsl -d Ubuntu -- cd ~/projects/Rastro && python run.py --hermes he
 
 ## Integración con EventBus
 
-Hermes publica eventos al EventBus del sistema cuando ejecuta acciones:
+MERLIN publica eventos al EventBus del sistema cuando ejecuta acciones:
 
-- `hermes:action_executed` — después de cada comando ejecutado
-- `hermes:health_completed` — después de cada health check
-- `hermes:backup_completed` — después de cada backup
+- `merlin:action_executed` — después de cada comando ejecutado
+- `merlin:health_completed` — después de cada health check
+- `merlin:backup_completed` — después de cada backup
 
 Estos eventos son visibles en el Dashboard de ORION y quedan registrados en el Decision Journal.
 
@@ -118,9 +120,9 @@ Estos eventos son visibles en el Dashboard de ORION y quedan registrados en el D
 
 ## Logs y auditoría
 
-Todas las acciones de Hermes se registran en:
+Todas las acciones de MERLIN se registran en:
 
-- **JSONL**: `~/.orion/hermes_actions.jsonl` (formato append-only, JSON por línea)
+- **JSONL**: `~/.orion/merlin_actions.jsonl` (legacy: `~/.orion/hermes_actions.jsonl`)
 - **EventBus**: Eventos publicados para consumo de otros módulos
 - **Decision Journal**: Si está disponible, las acciones se registran allí
 
@@ -130,8 +132,8 @@ Todas las acciones de Hermes se registran en:
 
 | Problema | Causa | Solución |
 |---|---|---|
-| `Unknown command` | Comando mal escrito | Usar `--hermes help` para listar |
-| `[SAFE MODE] Action was recommended but not executed` | Safe mode activo | `HERMES_SAFE_MODE=false python run.py --hermes backup` |
+| `Unknown command` | Comando mal escrito | Usar `--merlin help` para listar |
+| `[SAFE MODE] Action was recommended but not executed` | Safe mode activo | `MERLIN_SAFE_MODE=false python run.py --merlin backup` |
 | Backup timeout | Base de datos muy grande | El timeout es 5 minutos. Correr manualmente `python run.py --backup` |
 | `Health Center not available` | ORION Core Health Center no cargado | Verificar que `core/health/` esté instalado |
 | Logs vacíos | No hay archivos de log | Ejecutar alguna acción primero para generar logs |
@@ -140,26 +142,26 @@ Todas las acciones de Hermes se registran en:
 
 ## Seguridad
 
-- Hermes **nunca ejecuta** comandos destructivos sin aprobación explícita (Safe Mode)
-- Hermes **nunca modifica** datos financieros, findings o reportes
-- Hermes **nunca auto-envía** reportes a plataformas de bug bounty
-- Hermes **nunca ejecuta** comandos financieros sin supervisión humana
-- Todas las acciones quedan registradas en `hermes_actions.jsonl`
+- MERLIN **nunca ejecuta** comandos destructivos sin aprobación explícita (Safe Mode)
+- MERLIN **nunca modifica** datos financieros, findings o reportes
+- MERLIN **nunca auto-envía** reportes a plataformas de bug bounty
+- MERLIN **nunca ejecuta** comandos financieros sin supervisión humana
+- Todas las acciones quedan registradas en `merlin_actions.jsonl`
 - Los comandos disponibles están explícitamente autorizados en `AUTHORIZED_COMMANDS`
 
 Para desactivar el safe mode permanentemente:
 
 ```bash
 # En .bashrc o .env
-export HERMES_SAFE_MODE=false
+export MERLIN_SAFE_MODE=false
 ```
 
 ---
 
-## Próximos pasos (v0.2.0)
+## Próximos pasos
 
 - [ ] Frontend widget en ORION Dashboard
-- [ ] API REST endpoint (`/api/hermes/execute`)
+- [ ] API REST endpoint (`/api/merlin/execute`)
 - [ ] WebSocket para eventos en tiempo real
 - [ ] Automatizaciones programables por el usuario
 - [ ] Skills personalizados para tareas específicas

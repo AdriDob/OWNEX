@@ -131,7 +131,7 @@ class Events:
     EXECUTION_PLAN_CREATED = "execution:plan:created"
     EXECUTION_JOURNAL_ENTRY = "execution:journal:entry"
 
-    # ── Hermes Desktop Agent ─────────────────────────────────
+    # ── MERLIN Agent ────────────────────────────────────────
     HERMES_ACTION_REQUESTED = "hermes:action:requested"
     HERMES_ACTION_APPROVED = "hermes:action:approved"
     HERMES_ACTION_STARTED = "hermes:action:started"

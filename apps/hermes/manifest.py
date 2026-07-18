@@ -1,4 +1,4 @@
-"""Hermes — Automation Agent (ORION Platform app manifest)."""
+"""MERLIN — Automation & Operations Agent (ORION Platform app manifest)."""
 
 from __future__ import annotations
 
@@ -6,9 +6,9 @@ from core.interfaces.app import IAppPlugin
 
 manifest = IAppPlugin(
     id="hermes",
-    name="Hermes",
-    version="0.3.0",
-    description="Automation + Desktop Agent — system monitoring, package management, process control, services, files. EventBus integration, permission system, security layer, 14 commands, tool-calling architecture.",
+    name="MERLIN",
+    version="0.4.0",
+    description="MERLIN — Automation & Operations Agent: system monitoring, package management, process control, services, files. EventBus integration, permission system, security layer, 14 commands, tool-calling architecture.",
     icon="Bot",
     order=4,
     db_path="",
@@ -27,9 +27,9 @@ manifest = IAppPlugin(
     agent_class=None,
     frontend_routes=[],
     widgets=[
-        {"id": "hermes-status", "label": "Hermes Status", "icon": "Bot", "query": "hermes/status"},
-        {"id": "hermes-last-backup", "label": "Last Backup", "icon": "Shield", "query": "hermes/backup/last"},
-        {"id": "hermes-actions-today", "label": "Actions Today", "icon": "Activity", "query": "hermes/actions/today"},
+        {"id": "merlin-status", "label": "MERLIN Status", "icon": "Bot", "query": "hermes/status"},
+        {"id": "merlin-last-backup", "label": "Last Backup", "icon": "Shield", "query": "hermes/backup/last"},
+        {"id": "merlin-actions-today", "label": "Actions Today", "icon": "Activity", "query": "hermes/actions/today"},
     ],
     providers=[],
 )
