@@ -56,6 +56,7 @@ STAGE_INTERVALS = {
     "discover": 3600,
     "recon": 1800,
     "hypothesis": 900,
+    "promote": 600,
     "scope_check": 3600,
     "validate": 7200,
     "report": 3600,
@@ -122,6 +123,14 @@ class ScanScheduler:
             except Exception as e:
                 logger.warning("Hypothesis stage failed: %s", e)
                 self._copilot_hook("hypothesis", "failed")
+
+        if self._should_run("promote", now):
+            try:
+                await self._stage_promote()
+                self._copilot_hook("promote", "completed")
+            except Exception as e:
+                logger.warning("Promote stage failed: %s", e)
+                self._copilot_hook("promote", "failed")
 
         if self._should_run("validate", now):
             try:
@@ -340,6 +349,22 @@ class ScanScheduler:
 
         return baseline_ctx, probe_ctx
 
+    async def _stage_promote(self):
+        logger.info("[PROMOTE] Testing hypotheses against real endpoints...")
+        session = db.SessionLocal()
+        try:
+            from core.pipeline.hypothesis_bridge import run_promote
+
+            stats = await asyncio.to_thread(run_promote, session)
+            if stats["findings_created"] > 0:
+                logger.info(
+                    "[PROMOTE] %d new findings promoted from hypotheses",
+                    stats["findings_created"],
+                )
+            self._last_run["promote"] = datetime.now(timezone.utc).timestamp()
+        finally:
+            session.close()
+
     async def _stage_hypothesis(self):
         logger.info("[HYPOTHESIS] Generating vulnerability hypotheses...")
         session = db.SessionLocal()
@@ -379,6 +404,7 @@ class ScanScheduler:
         try:
             from cores.validation.loop_engine import ValidationLoopEngine
             from cores.validation.replayer import AuthContext
+            from cores.validation.verdict_handler import VerdictHandler
 
             findings = (
                 session.query(models.Finding)
@@ -388,6 +414,7 @@ class ScanScheduler:
                 .all()
             )
             engine = ValidationLoopEngine()
+            handler = VerdictHandler(session)
             for f in findings:
                 try:
                     ep = (
@@ -417,13 +444,20 @@ class ScanScheduler:
                         headers=(probe_ctx or {}).get("headers", {}),
                         label="probe",
                     )
-                    engine.evaluate(
+                    verdict = engine.evaluate(
                         hot_path_id=f"finding_{f.id}",
                         endpoint_details=endpoint_details,
                         endpoint_signals={},
                         auth_baseline=auth_baseline,
                         auth_probe=auth_probe,
                         vulnerability_type=vt,
+                    )
+                    handler.process_verdict(
+                        verdict=verdict,
+                        endpoint_id=ep.id,
+                        target_id=f.target_id,
+                        evidence_records=[],
+                        comparison_summary={"vulnerability_type": vt},
                     )
                 except Exception as e:
                     logger.debug("Validation failed for finding %d: %s", f.id, e)
@@ -445,10 +479,12 @@ class ScanScheduler:
                     report = create_report_from_findings(
                         session=session,
                         finding_ids=[f.id],
-                        program="",
-                        target=f"target_{f.target_id}",
-                        vulnerability=f.title or f"Finding #{f.id}",
-                        severity=f.severity or "medium",
+                        extra={
+                            "program": "",
+                            "target": f"target_{f.target_id}",
+                            "vulnerability": f.title or f"Finding #{f.id}",
+                            "severity": f.severity or "medium",
+                        },
                     )
                     if report:
                         try:
