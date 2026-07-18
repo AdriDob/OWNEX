@@ -1,0 +1,237 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" font-family="'Courier New', monospace">
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="headerGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="50%" stop-color="#00ffff"/>
+      <stop offset="100%" stop-color="#00ff41"/>
+    </linearGradient>
+    <linearGradient id="discGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="reconGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00ffff" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#00ffff" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="attackGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f5a623" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#f5a623" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="reportGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff3366" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#ff3366" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="learnGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00ff41" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#00ff41" stop-opacity="0.05"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="600" fill="#0a0a14"/>
+
+  <!-- Grid -->
+  <g opacity="0.04" stroke="#a855f7" stroke-width="0.5">
+    <line x1="0" y1="100" x2="800" y2="100"/><line x1="0" y1="200" x2="800" y2="200"/>
+    <line x1="0" y1="300" x2="800" y2="300"/><line x1="0" y1="400" x2="800" y2="400"/>
+    <line x1="0" y1="500" x2="800" y2="500"/>
+    <line x1="100" y1="0" x2="100" y2="600"/><line x1="200" y1="0" x2="200" y2="600"/>
+    <line x1="300" y1="0" x2="300" y2="600"/><line x1="400" y1="0" x2="400" y2="600"/>
+    <line x1="500" y1="0" x2="500" y2="600"/><line x1="600" y1="0" x2="600" y2="600"/>
+    <line x1="700" y1="0" x2="700" y2="600"/>
+  </g>
+
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" fill="url(#headerGrad)" font-size="15" font-weight="bold" filter="url(#glow)">ORION PIPELINE — END-TO-END FLOW</text>
+  <text x="400" y="48" text-anchor="middle" fill="#666" font-size="9">13 stages · Automated discovery to paid bounty · v4.6.0</text>
+
+  <!-- Phase backgrounds -->
+  <!-- DISCOVERY phase -->
+  <rect x="20" y="65" width="155" height="280" rx="6" fill="url(#discGrad)" stroke="#a855f7" stroke-width="0.5" opacity="0.6"/>
+  <text x="97" y="82" text-anchor="middle" fill="#a855f7" font-size="8" font-weight="bold">DISCOVERY</text>
+
+  <!-- RECON phase -->
+  <rect x="190" y="65" width="120" height="280" rx="6" fill="url(#reconGrad)" stroke="#00ffff" stroke-width="0.5" opacity="0.6"/>
+  <text x="250" y="82" text-anchor="middle" fill="#00ffff" font-size="8" font-weight="bold">RECON</text>
+
+  <!-- ATTACK phase -->
+  <rect x="325" y="65" width="250" height="280" rx="6" fill="url(#attackGrad)" stroke="#f5a623" stroke-width="0.5" opacity="0.6"/>
+  <text x="450" y="82" text-anchor="middle" fill="#f5a623" font-size="8" font-weight="bold">ATTACK &amp; VALIDATION</text>
+
+  <!-- REPORTING phase -->
+  <rect x="590" y="65" width="190" height="280" rx="6" fill="url(#reportGrad)" stroke="#ff3366" stroke-width="0.5" opacity="0.6"/>
+  <text x="685" y="82" text-anchor="middle" fill="#ff3366" font-size="8" font-weight="bold">REPORTING &amp; REVENUE</text>
+
+  <!-- LEARNING phase (bottom) -->
+  <rect x="20" y="360" width="760" height="60" rx="6" fill="url(#learnGrad)" stroke="#00ff41" stroke-width="0.5" opacity="0.6"/>
+  <text x="400" y="378" text-anchor="middle" fill="#00ff41" font-size="8" font-weight="bold">LEARNING &amp; ADAPTATION</text>
+
+  <!-- Stage 1: Discovery -->
+  <rect x="35" y="95" width="125" height="52" rx="6" fill="#0d1117" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="97" y="115" text-anchor="middle" fill="#a855f7" font-size="10" font-weight="bold">1. DISCOVER</text>
+  <text x="97" y="130" text-anchor="middle" fill="#888" font-size="7">Scrape · Seed · OSINT</text>
+  <text x="97" y="141" text-anchor="middle" fill="#666" font-size="7">new targets</text>
+
+  <!-- Arrow -->
+  <path d="M97,147 L97,165" stroke="#a855f7" stroke-width="1.2" fill="none" marker-end="url(#arrowPurple)"/>
+  <defs><marker id="arrowPurple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <path d="M0,0 L8,3 L0,6" fill="#a855f7"/>
+  </marker></defs>
+
+  <!-- Stage 2: Scope -->
+  <rect x="35" y="165" width="125" height="42" rx="6" fill="#0d1117" stroke="#a855f7" stroke-width="1"/>
+  <text x="97" y="183" text-anchor="middle" fill="#a855f7" font-size="9" font-weight="bold">2. SCOPE</text>
+  <text x="97" y="197" text-anchor="middle" fill="#888" font-size="7">Validate scope · Policy check</text>
+
+  <!-- Arrow -->
+  <path d="M97,207 L97,225" stroke="#00ffff" stroke-width="1.2" fill="none" marker-end="url(#arrowCyan)"/>
+  <defs><marker id="arrowCyan" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <path d="M0,0 L8,3 L0,6" fill="#00ffff"/>
+  </marker></defs>
+
+  <!-- Stage 3: Recon -->
+  <rect x="35" y="225" width="125" height="52" rx="6" fill="#0d1117" stroke="#00ffff" stroke-width="1.5"/>
+  <text x="97" y="245" text-anchor="middle" fill="#00ffff" font-size="10" font-weight="bold">3. RECON</text>
+  <text x="97" y="260" text-anchor="middle" fill="#888" font-size="7">subfinder · httpx · katana</text>
+  <text x="97" y="271" text-anchor="middle" fill="#666" font-size="7">gau · waybackurls</text>
+
+  <!-- Arrow: Recon → Hypothesis -->
+  <path d="M160,250 L195,250" stroke="#f5a623" stroke-width="1.2" fill="none" marker-end="url(#arrowGold)"/>
+  <defs><marker id="arrowGold" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <path d="M0,0 L8,3 L0,6" fill="#f5a623"/>
+  </marker></defs>
+
+  <!-- Stage 4: Hypothesis -->
+  <rect x="200" y="95" width="100" height="52" rx="6" fill="#0d1117" stroke="#f5a623" stroke-width="1.5"/>
+  <text x="250" y="115" text-anchor="middle" fill="#f5a623" font-size="10" font-weight="bold">4. HYPOTHESIS</text>
+  <text x="250" y="130" text-anchor="middle" fill="#888" font-size="7">8 generators</text>
+  <text x="250" y="141" text-anchor="middle" fill="#666" font-size="7">IDOR·SSRF·XSS·SQLi</text>
+
+  <!-- Arrow -->
+  <path d="M250,147 L250,165" stroke="#f5a623" stroke-width="1.2" fill="none" marker-end="url(#arrowGold)"/>
+
+  <!-- Stage 5: Attack Planner -->
+  <rect x="200" y="165" width="100" height="42" rx="6" fill="#0d1117" stroke="#f5a623" stroke-width="1"/>
+  <text x="250" y="183" text-anchor="middle" fill="#f5a623" font-size="9" font-weight="bold">5. ATTACK PLAN</text>
+  <text x="250" y="197" text-anchor="middle" fill="#888" font-size="7">Priority · ROI · Difficulty</text>
+
+  <!-- Arrow -->
+  <path d="M250,207 L250,225" stroke="#f5a623" stroke-width="1.2" fill="none" marker-end="url(#arrowGold)"/>
+
+  <!-- Stage 6: Validation (with HTTP Probe) -->
+  <rect x="200" y="225" width="100" height="60" rx="6" fill="#0d1117" stroke="#f5a623" stroke-width="1.5"/>
+  <text x="250" y="243" text-anchor="middle" fill="#f5a623" font-size="10" font-weight="bold">6. VALIDATE</text>
+  <text x="250" y="258" text-anchor="middle" fill="#888" font-size="7">Challenger</text>
+  <text x="250" y="269" text-anchor="middle" fill="#00ff41" font-size="7">HTTP Probe</text>
+  <text x="250" y="280" text-anchor="middle" fill="#666" font-size="7">Contradiction tests</text>
+
+  <!-- Arrow -->
+  <path d="M300,255 L335,255" stroke="#f5a623" stroke-width="1.2" fill="none" marker-end="url(#arrowGold)"/>
+
+  <!-- Stage 7: Evidence -->
+  <rect x="335" y="225" width="100" height="60" rx="6" fill="#0d1117" stroke="#00ffff" stroke-width="1.5"/>
+  <text x="385" y="243" text-anchor="middle" fill="#00ffff" font-size="10" font-weight="bold">7. EVIDENCE</text>
+  <text x="385" y="258" text-anchor="middle" fill="#888" font-size="7">Composer · Graph</text>
+  <text x="385" y="269" text-anchor="middle" fill="#666" font-size="7">PoC · CVSS · CWE</text>
+  <text x="385" y="280" text-anchor="middle" fill="#666" font-size="7">for/against/neutral</text>
+
+  <!-- Arrow -->
+  <path d="M435,255 L455,255" stroke="#ff3366" stroke-width="1.2" fill="none" marker-end="url(#arrowRed)"/>
+  <defs><marker id="arrowRed" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <path d="M0,0 L8,3 L0,6" fill="#ff3366"/>
+  </marker></defs>
+
+  <!-- Stage 8: Report -->
+  <rect x="455" y="225" width="100" height="60" rx="6" fill="#0d1117" stroke="#ff3366" stroke-width="1.5"/>
+  <text x="505" y="243" text-anchor="middle" fill="#ff3366" font-size="10" font-weight="bold">8. REPORT</text>
+  <text x="505" y="258" text-anchor="middle" fill="#888" font-size="7">Templates (H1/BC)</text>
+  <text x="505" y="269" text-anchor="middle" fill="#666" font-size="7">Markdown · HTML</text>
+  <text x="505" y="280" text-anchor="middle" fill="#666" font-size="7">Auto-draft</text>
+
+  <!-- Arrow -->
+  <path d="M505,285 L505,305" stroke="#ff3366" stroke-width="1.2" fill="none" marker-end="url(#arrowRed)"/>
+
+  <!-- Stage 9: Critic -->
+  <rect x="455" y="305" width="100" height="35" rx="6" fill="#0d1117" stroke="#ff3366" stroke-width="1"/>
+  <text x="505" y="320" text-anchor="middle" fill="#ff3366" font-size="9" font-weight="bold">9. CRITIC</text>
+  <text x="505" y="332" text-anchor="middle" fill="#888" font-size="7">Quality gate · Review</text>
+
+  <!-- Right column: Acceptance → Review → Submission → Learning -->
+  <!-- Stage 10: Acceptance Intelligence -->
+  <rect x="600" y="95" width="170" height="42" rx="6" fill="#0d1117" stroke="#ff3366" stroke-width="1.5"/>
+  <text x="685" y="113" text-anchor="middle" fill="#ff3366" font-size="9" font-weight="bold">10. ACCEPTANCE INTEL</text>
+  <text x="685" y="127" text-anchor="middle" fill="#888" font-size="7">Acceptance prob · Template optimizer</text>
+
+  <!-- Arrow -->
+  <path d="M685,137 L685,155" stroke="#ff3366" stroke-width="1" fill="none" marker-end="url(#arrowRed)"/>
+
+  <!-- Stage 11: Review -->
+  <rect x="600" y="155" width="170" height="42" rx="6" fill="#0d1117" stroke="#ff3366" stroke-width="1"/>
+  <text x="685" y="173" text-anchor="middle" fill="#ff3366" font-size="9" font-weight="bold">11. REVIEW</text>
+  <text x="685" y="187" text-anchor="middle" fill="#888" font-size="7">9-point pre-submit checklist</text>
+
+  <!-- Arrow -->
+  <path d="M685,197 L685,215" stroke="#ff3366" stroke-width="1" fill="none" marker-end="url(#arrowRed)"/>
+
+  <!-- Stage 12: Submission -->
+  <rect x="600" y="215" width="170" height="52" rx="6" fill="#0d1117" stroke="#00ff41" stroke-width="1.5"/>
+  <text x="685" y="235" text-anchor="middle" fill="#00ff41" font-size="10" font-weight="bold">12. SUBMISSION</text>
+  <text x="685" y="250" text-anchor="middle" fill="#888" font-size="7">HackerOne · Bugcrowd</text>
+  <text x="685" y="261" text-anchor="middle" fill="#666" font-size="7">Immunefi · Intigriti</text>
+
+  <!-- Arrow -->
+  <path d="M685,267 L685,290" stroke="#00ff41" stroke-width="1" fill="none" marker-end="url(#arrowGreen)"/>
+  <defs><marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <path d="M0,0 L8,3 L0,6" fill="#00ff41"/>
+  </marker></defs>
+
+  <!-- Stage 13: Learning -->
+  <rect x="600" y="290" width="170" height="50" rx="6" fill="#0d1117" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="685" y="308" text-anchor="middle" fill="#a855f7" font-size="10" font-weight="bold">13. LEARNING</text>
+  <text x="685" y="323" text-anchor="middle" fill="#888" font-size="7">FeedbackLearner</text>
+  <text x="685" y="334" text-anchor="middle" fill="#666" font-size="7">Reward adjust · EVH update</text>
+
+  <!-- LEARNING bar connections (all stages feed back) -->
+  <g stroke="#00ff41" stroke-width="0.6" opacity="0.3" stroke-dasharray="3,3">
+    <line x1="97" y1="285" x2="120" y2="360"/>
+    <line x1="250" y1="285" x2="280" y2="360"/>
+    <line x1="385" y1="285" x2="400" y2="360"/>
+    <line x1="505" y1="340" x2="500" y2="360"/>
+    <line x1="685" y1="340" x2="650" y2="360"/>
+  </g>
+
+  <!-- Learning bar content -->
+  <text x="200" y="390" text-anchor="middle" fill="#888" font-size="8">RewardLearner</text>
+  <text x="400" y="390" text-anchor="middle" fill="#888" font-size="8">EvolutionEngine</text>
+  <text x="600" y="390" text-anchor="middle" fill="#888" font-size="8">FeedbackTuner</text>
+  <text x="400" y="405" text-anchor="middle" fill="#666" font-size="7">Weight adjustments · Tool efficiency · Acceptance patterns · Priority recalibration</text>
+
+  <!-- Legend -->
+  <rect x="20" y="430" width="760" height="70" rx="6" fill="#0d1117" stroke="#333" stroke-width="0.5"/>
+  <text x="40" y="448" fill="#888" font-size="9" font-weight="bold">LEGEND</text>
+
+  <rect x="40" y="458" width="10" height="10" fill="#a855f7" rx="2"/>
+  <text x="56" y="467" fill="#888" font-size="8">Discovery</text>
+
+  <rect x="140" y="458" width="10" height="10" fill="#00ffff" rx="2"/>
+  <text x="156" y="467" fill="#888" font-size="8">Recon &amp; Evidence</text>
+
+  <rect x="290" y="458" width="10" height="10" fill="#f5a623" rx="2"/>
+  <text x="306" y="467" fill="#888" font-size="8">Attack &amp; Validation</text>
+
+  <rect x="450" y="458" width="10" height="10" fill="#ff3366" rx="2"/>
+  <text x="466" y="467" fill="#888" font-size="8">Reporting &amp; Revenue</text>
+
+  <rect x="610" y="458" width="10" height="10" fill="#00ff41" rx="2"/>
+  <text x="626" y="467" fill="#888" font-size="8">Submission &amp; Learning</text>
+
+  <text x="400" y="492" text-anchor="middle" fill="#666" font-size="8">New in v4.6.0: HTTP Probe in Validation stage · Acceptance Intelligence · Auto-report via EventBus</text>
+
+  <!-- Bottom -->
+  <line x1="100" y1="530" x2="700" y2="530" stroke="url(#headerGrad)" stroke-width="1" opacity="0.2"/>
+  <text x="400" y="555" text-anchor="middle" fill="#444" font-size="8">ORION Pipeline · v4.6.0 · 13 stages · Fully automated · Feedback loop integrated</text>
+</svg>
