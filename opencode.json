@@ -14,6 +14,7 @@
     ".ai/TESTING_POLICY.md",
     ".ai/CODE_QUALITY.md"
   ],
+  
   "command": {
     "test": {
       "template": "Run the full pytest suite with timeout, excluding test_security.py. Show failures if any.",
@@ -36,6 +37,21 @@
     "status": {
       "template": "Show a full system status summary: health score, findings (total/confirmed/pending), active targets, reports this month, and background services status.",
       "description": "Full system status"
+    },
+    "describe": {
+      "template": "Analyze and describe an image at {path}. Return a comprehensive description covering visual content, text, UI elements, and context.",
+      "description": "Describe an image using Vision Gateway (MCP)",
+      "model": "small"
+    },
+    "ocr": {
+      "template": "Extract all text from the image at {path} using OCR. Return the raw text output.",
+      "description": "OCR text from image",
+      "model": "small"
+    },
+    "analyze_image": {
+      "template": "Full analysis of image at {path}: describe visual content, extract text via OCR, and return metadata.",
+      "description": "Full image analysis (describe + OCR + metadata)",
+      "model": "small"
     }
   },
   "compaction": {
