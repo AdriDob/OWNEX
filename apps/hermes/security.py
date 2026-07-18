@@ -1,4 +1,4 @@
-"""Hermes Security — PowerShell sanitization, command validation, destructive action protection."""
+"""MERLIN Security Layer — command validation, destructive action protection."""
 
 from __future__ import annotations
 

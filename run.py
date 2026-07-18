@@ -618,15 +618,16 @@ def main() -> None:
             session.close()
         return
 
-    # --hermes: run Hermes Automation Agent command
-    if "--hermes" in args_set:
-        idx = args_list.index("--hermes")
+    # --merlin / --hermes: run MERLIN Automation Agent command (--hermes preserved for compat)
+    if "--merlin" in args_set or "--hermes" in args_set:
+        flag = "--merlin" if "--merlin" in args_set else "--hermes"
+        idx = args_list.index(flag)
         command = args_list[idx + 1] if idx + 1 < len(args_list) and not args_list[idx + 1].startswith("--") else "help"
         from apps.hermes.engine import AutomationEngine
 
         engine = AutomationEngine()
         result = engine.execute(command)
-        print(f"[Hermes] {result.message}")
+        print(f"[MERLIN] {result.message}")
         if result.details:
             import json
 

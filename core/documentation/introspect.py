@@ -452,20 +452,20 @@ def auto_register_core_modules() -> int:
         )
     )
 
-    # 17. Hermes Automation Agent
+    # 17. MERLIN Automation Agent
     register_module(
         ModuleDoc(
             id="hermes",
-            name="Hermes",
+            name="MERLIN",
             category="app",
-            description="Automation agent with safe mode — 6 commands (backup, status, health, logs, doctor, help). JSONL action logging.",
+            description="Automation & Operations agent — 7 commands (backup, status, health, logs, doctor, update, help). JSONL action logging. Formerly Hermes.",
             commands=[
-                CommandDoc(command="--hermes backup", description="Create full ORION backup"),
-                CommandDoc(command="--hermes status", description="System status overview"),
-                CommandDoc(command="--hermes health", description="Run health checks"),
-                CommandDoc(command="--hermes logs", description="View recent logs"),
-                CommandDoc(command="--hermes doctor", description="Run diagnostics"),
-                CommandDoc(command="--hermes help", description="Command reference"),
+                CommandDoc(command="--merlin backup", description="Create full ORION backup"),
+                CommandDoc(command="--merlin status", description="System status overview"),
+                CommandDoc(command="--merlin health", description="Run health checks"),
+                CommandDoc(command="--merlin logs", description="View recent logs"),
+                CommandDoc(command="--merlin doctor", description="Run diagnostics"),
+                CommandDoc(command="--merlin help", description="Command reference"),
             ],
         )
     )

@@ -1,4 +1,4 @@
-"""Hermes configuration — env-based settings."""
+"""MERLIN configuration — env-based settings for the Automation & Operations Agent."""
 
 from __future__ import annotations
 

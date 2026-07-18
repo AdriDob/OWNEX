@@ -1,4 +1,4 @@
-"""Hermes Permission System — risk classification, confirmation, audit."""
+"""MERLIN Permission System — risk classification, confirmation, audit."""
 
 from __future__ import annotations
 

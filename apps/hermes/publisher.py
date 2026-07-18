@@ -1,4 +1,4 @@
-"""HermesEventPublisher — publishes Hermes actions to EventBus."""
+"""MERLIN Event Publisher — publishes automation actions to EventBus."""
 
 from __future__ import annotations
 
@@ -8,11 +8,11 @@ from typing import Any
 
 from core.events.types import Events
 
-logger = logging.getLogger("catseye.hermes.publisher")
+logger = logging.getLogger("catseye.merlin.publisher")
 
 
 class HermesEventPublisher:
-    """Publishes Hermes lifecycle events to the EventBus.
+    """MERLIN Event Publisher — publishes lifecycle events to the EventBus.
 
     Always safe to call — silently no-ops if EventBus is unavailable.
     """
