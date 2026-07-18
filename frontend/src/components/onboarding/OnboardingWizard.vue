@@ -101,7 +101,7 @@ async function runVerification() {
     const ver: any = await api.get('/version')
     verificationResults.value.version = {
       status: ver?.version?.startsWith('3.') ? 'ok' : 'warn',
-      message: `CATEYE ${ver?.version || 'desconocida'}`,
+      message: `ORION ${ver?.version || 'desconocida'}`,
     }
   } catch {
     verificationResults.value.version = { status: 'error', message: 'No se pudo obtener versión' }
@@ -201,7 +201,7 @@ function prev() {
             <div class="flex items-center justify-between border-b border-border/20 px-6 py-3.5">
               <div class="flex items-center gap-2">
                 <Eye class="h-4 w-4 text-primary" />
-                <span class="font-mono text-[10px] font-bold tracking-widest text-primary">CATEYE SETUP</span>
+                <span class="font-mono text-[10px] font-bold tracking-widest text-primary">ORION SETUP</span>
               </div>
               <div class="flex items-center gap-3">
                 <span class="font-mono text-[10px] text-muted-foreground">{{ step + 1 }} / {{ totalSteps }}</span>
@@ -234,7 +234,7 @@ function prev() {
                   <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 mb-5">
                     <Eye class="h-8 w-8 text-primary" />
                   </div>
-                  <h2 class="font-display text-2xl font-bold text-foreground">Bienvenido a CATEYE</h2>
+                  <h2 class="font-display text-2xl font-bold text-foreground">Bienvenido a ORION</h2>
                   <p class="mt-2 text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
                     Sistema de Inteligencia de Seguridad para bug bounty.
                   </p>
@@ -258,7 +258,7 @@ function prev() {
               <div v-if="step === 1" class="max-w-md mx-auto space-y-4">
                 <h2 class="font-display text-lg font-bold text-foreground text-center">Verificación del sistema</h2>
                 <p class="text-center text-xs text-muted-foreground -mt-2">
-                  CATEYE está verificando que todo funcione correctamente.
+                  ORION está verificando que todo funcione correctamente.
                 </p>
 
                 <div class="space-y-2.5 mt-4">
@@ -304,7 +304,7 @@ function prev() {
               <!-- ═══ AI ═══ -->
               <div v-if="step === 2" class="max-w-md mx-auto space-y-4">
                 <h2 class="font-display text-lg font-bold text-foreground text-center">Inteligencia Artificial</h2>
-                <p class="text-center text-xs text-muted-foreground -mt-1">CATEYE usa IA para análisis semántico de validaciones y generación de reportes.</p>
+                <p class="text-center text-xs text-muted-foreground -mt-1">ORION usa IA para análisis semántico de validaciones y generación de reportes.</p>
                 <div>
                   <label class="mb-1.5 block font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Proveedor</label>
                   <select v-model="aiProvider" class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2.5 font-mono text-sm text-foreground focus:outline-none focus:border-primary/50">
@@ -349,7 +349,7 @@ function prev() {
               <!-- ═══ API KEYS ═══ -->
               <div v-if="step === 3" class="max-w-lg mx-auto space-y-3">
                 <h2 class="font-display text-lg font-bold text-foreground text-center">API Keys</h2>
-                <p class="text-center text-xs text-muted-foreground -mt-2">Opcional. Mejoran el reconocimiento pero CATEYE funciona sin ellas.</p>
+                <p class="text-center text-xs text-muted-foreground -mt-2">Opcional. Mejoran el reconocimiento pero ORION funciona sin ellas.</p>
                 <div v-for="svc in [
                   { key: 'shodan', label: 'Shodan', desc: 'Reconocimiento de puertos y servicios' },
                   { key: 'censys', label: 'Censys', desc: 'Inventario de dispositivos en internet' },
@@ -373,7 +373,7 @@ function prev() {
                 <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-success/10 mb-5">
                   <CheckCircle2 class="h-8 w-8 text-success" />
                 </div>
-                <h2 class="font-display text-2xl font-bold text-foreground">✅ CATEYE está configurado</h2>
+                <h2 class="font-display text-2xl font-bold text-foreground">✅ ORION está configurado</h2>
                 <p class="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
                   El sistema está listo para uso diario. No necesitás volver a realizar esta configuración.
                 </p>

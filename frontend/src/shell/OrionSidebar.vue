@@ -52,7 +52,7 @@ onMounted(async () => {
     error.value = 'No se pudieron cargar las aplicaciones'
     toast.error('Error de conexión', 'No se pudo conectar con el servidor ORION')
     apps.value = [
-      { id: 'cateye', name: 'CATEYE', description: 'Bug Bounty', icon: 'Bug', version: '', has_agent: false, hidden: false, widgets: 0 },
+      { id: 'cateye', name: 'ORION', description: 'Bug Bounty', icon: 'Bug', version: '', has_agent: false, hidden: false, widgets: 0 },
       { id: 'atlas', name: 'ATLAS', description: 'Inversiones', icon: 'TrendingUp', version: '', has_agent: false, hidden: false, widgets: 0 },
       { id: 'odyssey', name: 'ODYSSEY', description: 'Analytics', icon: 'Dices', version: '', has_agent: false, hidden: false, widgets: 0 },
     ]

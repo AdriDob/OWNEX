@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80" font-family="'JetBrains Mono','Fira Code',monospace">
+  <defs>
+    <radialGradient id="irisGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00ff41"/>
+      <stop offset="40%" stop-color="#00cc33"/>
+      <stop offset="70%" stop-color="#009922"/>
+      <stop offset="100%" stop-color="#005511"/>
+    </radialGradient>
+    <radialGradient id="pupilGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#000000"/>
+      <stop offset="100%" stop-color="#0a0a0a"/>
+    </radialGradient>
+    <filter id="eyeGlow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#050505"/>
+      <stop offset="100%" stop-color="#0a0f0a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="300" height="80" fill="url(#bgGrad)" rx="10"/>
+  <rect x="1" y="1" width="298" height="78" fill="none" stroke="rgba(0,255,65,0.15)" stroke-width="1" rx="9"/>
+
+  <!-- Eye shape (almond) -->
+  <g filter="url(#eyeGlow)">
+    <path d="M80,35 C120,35 155,50 170,65 C185,80 185,80 200,65 C215,50 250,35 290,35 C270,45 250,45 230,30 C220,20 210,35 205,35 C200,35 195,20 185,30 C175,45 155,45 135,35 C125,30 115,45 110,35 C105,35 95,20 85,30 C80,35 80,35 80,35 Z" 
+         fill="#001a00" stroke="#00ff41" stroke-width="2"/>
+  </g>
+
+  <!-- Iris (green) -->
+  <ellipse cx="120" cy="45" rx="22" ry="20" fill="url(#irisGrad)" opacity="0.95">
+    <animate attributeName="ry" values="20;18;20" dur="3s" repeatCount="indefinite"/>
+  </ellipse>
+
+  <!-- Slitted pupil (hunter mode) - vertical slit -->
+  <path d="M112,40 C112,40 114,45 114,45 C114,50 114,55 114,60 C114,65 112,70 112,70 L118,70 C118,70 116,65 116,60 C116,55 116,50 116,45 C116,45 118,40 118,40 Z" 
+        fill="url(#pupilGrad)">
+    <animate attributeName="d" 
+             values="M112,40 C112,40 114,45 114,45 C114,50 114,55 114,60 C114,65 112,70 112,70 L118,70 C118,70 116,65 116,60 C116,55 116,50 116,45 C116,45 118,40 118,40 Z;
+                     M114,42 C114,42 115,45 115,45 C115,50 115,55 115,60 C115,65 114,67 114,67 L116,67 C116,67 115,63 115,60 C115,55 115,50 115,45 C115,45 116,42 116,42 Z;
+                     M112,40 C112,40 114,45 114,45 C114,50 114,55 114,60 C114,65 112,70 112,70 L118,70 C118,70 116,65 116,60 C116,55 116,50 116,45 C116,45 118,40 118,40 Z" 
+             dur="4s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- Eye highlight -->
+  <ellipse cx="100" cy="33" rx="5" ry="3" fill="white" opacity="0.25" transform="rotate(-15,100,33)">
+    <animate attributeName="opacity" values="0.25;0.4;0.25" dur="2s" repeatCount="indefinite"/>
+  </ellipse>
+  <ellipse cx="98" cy="31" rx="2" ry="1.5" fill="white" opacity="0.5" transform="rotate(-15,98,31)"/>
+
+  <!-- Name -->
+  <text x="150" y="55" font-size="24" font-weight="bold" fill="#00ff41" text-anchor="middle" filter="url(#eyeGlow)" letter-spacing="4">
+    CATEYE
+    <animate attributeName="opacity" values="1;0.8;1" dur="3s" repeatCount="indefinite"/>
+  </text>
+
+  <text x="150" y="67" font-size="9" fill="rgba(255,255,255,0.3)" text-anchor="middle" letter-spacing="2">
+    v1.8.0 · HUNTER MODE
+  </text>
+
+  <!-- Status dots -->
+  <g transform="translate(220, 25)">
+    <circle cx="0" cy="0" r="3" fill="#00ff41" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <text x="8" y="5" font-size="8" fill="rgba(255,255,255,0.3)" letter-spacing="1">SYSTEM</text>
+  </g>
+
+  <g transform="translate(220, 40)">
+    <circle cx="0" cy="0" r="3" fill="#00b8ff" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+    </circle>
+    <text x="8" y="5" font-size="8" fill="rgba(255,255,255,0.3)" letter-spacing="1">AI CORE</text>
+  </g>
+
+  <!-- Bottom bar -->
+  <rect x="0" y="70" width="300" height="10" fill="#00ff41" opacity="0.1" rx="0">
+    <animate attributeName="opacity" values="0.1;0.15;0.1" dur="3s" repeatCount="indefinite"/>
+  </rect>
+</svg>

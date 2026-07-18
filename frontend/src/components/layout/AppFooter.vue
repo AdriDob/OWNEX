@@ -25,7 +25,7 @@ const emit = defineEmits<{ 'toggleCopilot': [] }>()
           <span class="font-mono">Asistente</span>
         </button>
       </div>
-      <span class="font-mono text-[9px] text-muted-foreground/50">CATEYE v2.0.0</span>
+      <span class="font-mono text-[9px] text-muted-foreground/50">ORION v4.7.0</span>
     </div>
   </footer>
 </template>

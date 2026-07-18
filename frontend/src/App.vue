@@ -106,7 +106,7 @@ onMounted(async () => {
   // Desktop integration
   if (typeof window.__PYWEBVIEW__ !== 'undefined') {
     try {
-      window.__PYWEBVIEW__.setTitle('CATEYE — Security Intelligence OS')
+      window.__PYWEBVIEW__.setTitle('ORION — Security Intelligence OS')
     } catch { /* not in pywebview */ }
   }
   _beforeunloadHandler = () => {

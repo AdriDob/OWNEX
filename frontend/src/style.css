@@ -1,5 +1,46 @@
 @import "tailwindcss";
 
+/* ════════════════════════════════════════════════════════════
+   ORION Design Tokens — v4.7.0
+   ════════════════════════════════════════════════════════════
+   Do NOT hardcode brand values. Use these variables instead.
+   ══════════════════════════════════════════════════════════ */
+:root {
+  --orion-bg-primary: #050508;
+  --orion-bg-secondary: #0A0A0E;
+  --orion-bg-panel: #121218;
+  --orion-bg-elevated: #191923;
+  --orion-bg-glass: rgba(10, 10, 14, 0.8);
+  --orion-bg-glass-border: rgba(109, 40, 217, 0.15);
+  --orion-purple-core: #7C3AED;
+  --orion-purple-deep: #6D28D9;
+  --orion-purple-mid: #8B5CF6;
+  --orion-purple-light: #A855F7;
+  --orion-purple-subtle: rgba(109, 40, 217, 0.1);
+  --orion-purple-glow: 0 0 20px rgba(109, 40, 217, 0.3);
+  --orion-purple-glow-strong: 0 0 30px rgba(139, 92, 246, 0.4);
+  --orion-gold-accent: #F5A623;
+  --orion-gold-light: #FFCC66;
+  --orion-gold-glow: 0 0 15px rgba(245, 166, 35, 0.2);
+  --orion-green-accent: #00FF41;
+  --orion-green-dim: #10B981;
+  --orion-danger: #EF4444;
+  --orion-blue: #60A5FA;
+  --orion-text-primary: #E0E0E0;
+  --orion-text-secondary: #8B5CF6;
+  --orion-text-muted: rgba(139, 92, 246, 0.5);
+  --orion-border: rgba(109, 40, 217, 0.2);
+  --orion-border-mid: rgba(139, 92, 246, 0.3);
+  --orion-border-strong: rgba(168, 85, 247, 0.5);
+  --orion-font-display: 'Orbitron', 'Arial Black', sans-serif;
+  --orion-font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --orion-font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+  --orion-shadow-purple: 0 4px 20px rgba(109, 40, 217, 0.25);
+  --orion-glass-bg: rgba(18, 18, 24, 0.6);
+  --orion-glass-border: 1px solid rgba(109, 40, 217, 0.12);
+  --orion-glass-blur: blur(16px);
+}
+
 @theme {
   --color-background: #050505;
   --color-surface: #111111;
