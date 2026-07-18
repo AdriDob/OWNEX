@@ -323,7 +323,7 @@ onMounted(() => {
       <div class="space-y-1">
         <div class="flex items-center gap-2">
           <Cog class="h-4 w-4 text-primary" />
-          <span class="font-mono text-[10px] font-bold tracking-widest text-primary">CATEYE CONFIG</span>
+          <span class="font-mono text-[10px] font-bold tracking-widest text-primary">ORION CONFIG</span>
         </div>
         <h1 class="font-display text-2xl font-bold text-foreground">Configuración</h1>
         <p class="text-xs text-muted-foreground">Centro de control del sistema</p>
@@ -427,7 +427,7 @@ onMounted(() => {
       <div class="card-base rounded-xl p-5 space-y-5">
         <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2">
           <Cpu class="h-4 w-4 text-primary" /> Proveedor activo
-          <Tooltip text="Seleccioná el motor de IA que CATEYE usará para análisis, generación de hipótesis y redacción de reportes." position="right"><span class="inline-flex h-3 w-3 items-center justify-center rounded-full bg-muted-foreground/20 text-[7px] text-muted-foreground cursor-help">?</span></Tooltip>
+          <Tooltip text="Seleccioná el motor de IA que ORION usará para análisis, generación de hipótesis y redacción de reportes." position="right"><span class="inline-flex h-3 w-3 items-center justify-center rounded-full bg-muted-foreground/20 text-[7px] text-muted-foreground cursor-help">?</span></Tooltip>
         </h3>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -555,7 +555,7 @@ onMounted(() => {
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2">
             <Wrench class="h-4 w-4 text-primary" /> Herramientas del sistema
-            <Tooltip text="Herramientas de reconocimiento instaladas en el sistema. CATEYE las usa para escaneo automatizado." position="right"><span class="inline-flex h-3 w-3 items-center justify-center rounded-full bg-muted-foreground/20 text-[7px] text-muted-foreground cursor-help">?</span></Tooltip>
+            <Tooltip text="Herramientas de reconocimiento instaladas en el sistema. ORION las usa para escaneo automatizado." position="right"><span class="inline-flex h-3 w-3 items-center justify-center rounded-full bg-muted-foreground/20 text-[7px] text-muted-foreground cursor-help">?</span></Tooltip>
           </h3>
           <Button size="sm" variant="outline" @click="runToolCheck()" :loading="toolsLoading">
             <RefreshCw class="h-3.5 w-3.5" /> Verificar
@@ -696,7 +696,7 @@ onMounted(() => {
       <div class="card-base rounded-xl p-5 space-y-5">
         <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2">
           <Crosshair class="h-4 w-4 text-primary" /> Configuración del agente
-          <Tooltip text="Controlá cómo CATEYE ejecuta las cazas autónomas: velocidad, profundidad, paralelismo." position="right"><span class="inline-flex h-3 w-3 items-center justify-center rounded-full bg-muted-foreground/20 text-[7px] text-muted-foreground cursor-help">?</span></Tooltip>
+          <Tooltip text="Controlá cómo ORION ejecuta las cazas autónomas: velocidad, profundidad, paralelismo." position="right"><span class="inline-flex h-3 w-3 items-center justify-center rounded-full bg-muted-foreground/20 text-[7px] text-muted-foreground cursor-help">?</span></Tooltip>
         </h3>
 
         <label class="flex items-center justify-between cursor-pointer">

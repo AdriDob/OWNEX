@@ -46,6 +46,27 @@ After every phase:
 
 If any fails → resolve before next phase.
 
+## Design Tokens Rule
+
+All visual modifications must consume centralized CSS variables (design tokens).
+
+Do NOT:
+- Hardcode colors, spacing, or typography values
+- Use inline styles for brand-related properties
+- Scatter color values across components
+
+Do:
+```css
+--orion-bg-primary: #050508;
+--orion-purple-core: #6D28D9;
+--orion-gold-accent: #F5A623;
+--orion-green-accent: #00FF41;
+--orion-glow: 0 0 20px rgba(109, 40, 217, 0.3);
+--orion-border: 1px solid rgba(109, 40, 217, 0.2);
+```
+
+Define tokens in `frontend/src/style.css` or Tailwind config before creating components.
+
 ## Vision System Rule
 
 Vision capabilities belong to the OpenCode environment.

@@ -93,7 +93,7 @@ onMounted(async () => {
         <router-link to="/cateye/"
           class="border border-border/50 rounded-lg p-4 bg-card hover:border-primary/50 transition-colors group">
           <div class="text-2xl mb-2">🐛</div>
-          <div class="font-semibold group-hover:text-primary transition-colors">CATEYE</div>
+          <div class="font-semibold group-hover:text-primary transition-colors">ORION</div>
           <div class="text-sm text-muted-foreground">Bug Bounty Intelligence</div>
         </router-link>
         <router-link to="/atlas/"

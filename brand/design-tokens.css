@@ -1,0 +1,63 @@
+/* ORION Design Tokens — v4.7.0
+   Import this in style.css before creating new components.
+   Do NOT hardcode brand values.
+*/
+
+:root {
+  /* ── Backgrounds ──────────────────────────────────── */
+  --orion-bg-primary: #050508;
+  --orion-bg-secondary: #0A0A0E;
+  --orion-bg-tertiary: #121218;
+  --orion-bg-elevated: #191923;
+  --orion-bg-glass: rgba(10, 10, 14, 0.8);
+  --orion-bg-glass-border: rgba(109, 40, 217, 0.15);
+
+  /* ── Purple Core ──────────────────────────────────── */
+  --orion-purple-deep: #6D28D9;
+  --orion-purple-core: #7C3AED;
+  --orion-purple-mid: #8B5CF6;
+  --orion-purple-light: #A855F7;
+  --orion-purple-subtle: rgba(109, 40, 217, 0.1);
+  --orion-purple-glow: 0 0 20px rgba(109, 40, 217, 0.3);
+  --orion-purple-glow-strong: 0 0 30px rgba(139, 92, 246, 0.4);
+
+  /* ── Accents ──────────────────────────────────────── */
+  --orion-gold: #F5A623;
+  --orion-gold-light: #FFCC66;
+  --orion-glow: 0 0 15px rgba(245, 166, 35, 0.2);
+  --orion-green: #00FF41;
+  --orion-green-dim: #10B981;
+  --orion-red: #EF4444;
+  --orion-blue: #60A5FA;
+
+  /* ── Typography ───────────────────────────────────── */
+  --orion-font-display: 'Orbitron', 'Arial Black', sans-serif;
+  --orion-font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --orion-font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+
+  /* ── Borders ──────────────────────────────────────── */
+  --orion-border-subtle: 1px solid rgba(109, 40, 217, 0.2);
+  --orion-border-mid: 1px solid rgba(139, 92, 246, 0.3);
+  --orion-border-strong: 1px solid rgba(168, 85, 247, 0.5);
+  --orion-border-gold: 1px solid rgba(245, 166, 35, 0.3);
+
+  /* ── Glassmorphism ────────────────────────────────── */
+  --orion-glass-bg: rgba(18, 18, 24, 0.6);
+  --orion-glass-border: 1px solid rgba(109, 40, 217, 0.12);
+  --orion-glass-blur: blur(16px);
+
+  /* ── Shadows ──────────────────────────────────────── */
+  --orion-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --orion-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
+  --orion-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.8);
+  --orion-shadow-purple: 0 4px 20px rgba(109, 40, 217, 0.25);
+
+  /* ── Spacing ──────────────────────────────────────── */
+  --orion-space-xs: 4px;
+  --orion-space-sm: 8px;
+  --orion-space-md: 16px;
+  --orion-space-lg: 24px;
+  --orion-space-xl: 32px;
+  --orion-space-2xl: 48px;
+  --orion-space-3xl: 64px;
+}

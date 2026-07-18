@@ -141,13 +141,24 @@ function formatCompact(n: number) {
       <X class="h-4 w-4" />
     </button>
 
-    <!-- Logo CATEYE -->
+    <!-- Logo ORION -->
     <div class="flex h-14 items-center gap-3 border-b border-border/40 px-4">
-      <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/30">
-        <Eye class="h-4 w-4" />
+      <div class="flex h-8 w-8 shrink-0 items-center justify-center" style="color: var(--orion-purple-core);">
+        <svg viewBox="0 0 512 512" width="32" height="32" fill="none">
+          <circle cx="256" cy="256" r="120" stroke="currentColor" stroke-width="8" opacity="0.2"/>
+          <circle cx="256" cy="256" r="80" stroke="currentColor" stroke-width="6" opacity="0.4"/>
+          <circle cx="256" cy="256" r="40" stroke="currentColor" stroke-width="4"/>
+          <circle cx="256" cy="256" r="8" fill="currentColor"/>
+          <ellipse cx="256" cy="136" rx="3" ry="3" fill="currentColor" opacity="0.6"/>
+          <ellipse cx="316" cy="196" rx="3" ry="3" fill="currentColor" opacity="0.6"/>
+          <ellipse cx="196" cy="356" rx="3" ry="3" fill="currentColor" opacity="0.4"/>
+          <ellipse cx="356" cy="316" rx="3" ry="3" fill="currentColor" opacity="0.4"/>
+          <ellipse cx="136" cy="256" rx="3" ry="3" fill="currentColor" opacity="0.5"/>
+          <circle cx="256" cy="256" r="160" stroke="currentColor" stroke-width="1" opacity="0.15" stroke-dasharray="8 8"/>
+        </svg>
       </div>
       <Transition name="fade">
-        <span v-if="!collapsed" class="font-mono text-sm font-bold tracking-[0.15em] text-foreground">CATEYE</span>
+        <span v-if="!collapsed" class="font-display text-sm font-bold tracking-[0.2em] text-foreground" style="font-family: var(--orion-font-display);">ORION</span>
       </Transition>
       <div v-if="!collapsed" class="ml-auto flex items-center gap-1">
         <span

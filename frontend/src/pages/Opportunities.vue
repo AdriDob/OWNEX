@@ -112,7 +112,7 @@ const chartData = computed(() => filtered.value.slice(0, 10).map(o => o.opportun
     <div class="animate-in space-y-1">
       <p class="text-xs font-bold uppercase tracking-widest text-primary">Discovery</p>
       <h1 class="font-display text-2xl font-bold text-foreground">Opportunities</h1>
-      <p class="text-sm text-muted-foreground">Oportunidades de investigación priorizadas por CATEYE</p>
+      <p class="text-sm text-muted-foreground">Oportunidades de investigación priorizadas por ORION</p>
     </div>
 
     <template v-if="loading">
