@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Shield, Globe, Bot, DollarSign, Compass } from '@lucide/vue'
+import { fetchCycles } from '@/services/ownexData'
 
 interface WorkCycle {
   id: string
@@ -16,69 +18,8 @@ interface WorkCycle {
 }
 
 const router = useRouter()
-
-const cycles: WorkCycle[] = [
-  {
-    id: 'security',
-    name: 'Security',
-    icon: 'Shield',
-    color: 'text-blue-400',
-    description: 'Bug bounty — Recon, validación, reportes automatizados',
-    status: 'active',
-    statusLabel: 'Activo',
-    route: '/targets',
-    badge: 'Bug Bounty',
-    badgeColor: 'bg-blue-500/20 text-blue-400',
-  },
-  {
-    id: 'forge',
-    name: 'Forge',
-    icon: 'Globe',
-    color: 'text-purple-400',
-    description: 'Dev bounties — Superteam, Opire, IssueHunt, GitHub',
-    status: 'monitoring',
-    statusLabel: 'Monitoreando',
-    route: '/integrations/platforms',
-    badge: 'Dev',
-    badgeColor: 'bg-purple-500/20 text-purple-400',
-  },
-  {
-    id: 'ai-work',
-    name: 'AI Work',
-    icon: 'Bot',
-    color: 'text-green-400',
-    description: 'AI training — DataAnnotation, Outlier, Mindrift',
-    status: 'available',
-    statusLabel: 'Disponible',
-    route: '',
-    badge: 'AI',
-    badgeColor: 'bg-green-500/20 text-green-400',
-  },
-  {
-    id: 'wealth',
-    name: 'Wealth',
-    icon: 'DollarSign',
-    color: 'text-amber-400',
-    description: 'Patrimonio — inversiones, crypto, análisis financiero',
-    status: 'tracking',
-    statusLabel: 'Tracking',
-    route: '/capital',
-    badge: 'Finanzas',
-    badgeColor: 'bg-amber-500/20 text-amber-400',
-  },
-  {
-    id: 'knowledge',
-    name: 'Knowledge',
-    icon: 'Compass',
-    color: 'text-sky-400',
-    description: 'Inteligencia — investigación, patrones, CVEs, tendencias',
-    status: 'available',
-    statusLabel: 'Disponible',
-    route: '',
-    badge: 'Intel',
-    badgeColor: 'bg-sky-500/20 text-sky-400',
-  },
-]
+const cycles = ref<WorkCycle[]>([])
+const loading = ref(false)
 
 const iconMap: Record<string, any> = { Shield, Globe, Bot, DollarSign, Compass }
 
@@ -96,9 +37,23 @@ const statusTextClass: Record<string, string> = {
   tracking: 'text-success',
 }
 
+async function loadCycles() {
+  loading.value = true
+  try {
+    const data = await fetchCycles()
+    cycles.value = data
+  } finally {
+    loading.value = false
+  }
+}
+
 function navigate(cycle: WorkCycle) {
   if (cycle.route) router.push(cycle.route)
 }
+
+onMounted(() => {
+  loadCycles()
+})
 </script>
 
 <template>

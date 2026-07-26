@@ -1,3 +1,4 @@
+from core.opportunity.adapter import adapt_opportunities
 from core.opportunity.models import (
     OWNEX_WORK_CYCLE_ORDER,
     OWNEX_WORK_CYCLES,
@@ -20,4 +21,5 @@ __all__ = [
     "OWNEX_WORK_CYCLE_ORDER",
     "OWNEX_WORK_CYCLES",
     "score_opportunity",
+    "adapt_opportunities",
 ]

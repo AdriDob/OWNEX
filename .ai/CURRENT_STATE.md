@@ -1,4 +1,4 @@
-## Sesión 2026-07-26 — OWNEX Rebranding
+## Sesión 2026-07-26 — OWNEX Rebranding + Design System
 
 ### Frontend — OWNEX Identity
 
@@ -11,6 +11,12 @@
 | **frontend/src/shell/OrionSidebar.vue** | ORION branding, section names: MISIÓN/INTELIGENCIA/REPORTES/CAPITAL/OPERACIONES/INTEGRACIONES/COPILOT/APPS | OWNEX branding, Work Cycle sections | ✅ OWNEX |
 | **frontend/src/pages/MissionControl.vue** | ORION MISSION CONTROL title, módulos apps grid | OWNEX MISSION CONTROL title, Work Cycles grid (Rastro/Forge/Pulse/Vault/Atlas) | ✅ OWNEX |
 | **Backward compat** | `phosphor`, `glass-terminal`, `tactical-panel`, `lamp` clases | Aliases agregados para compatibilidad con UI components existentes | ✅ Compatible |
+
+### Design System Documentation
+
+| Documento | Estado | Descripción |
+|-----------|--------|-------------|
+| **.ai/OWNEX_DESIGN_SYSTEM.md** | ✅ Creado | Design System v1 completo: filosofía, colores, layout, componentes, interacción, Tauri/Android, naming |
 
 ### Investigaciones Completadas
 
@@ -61,3 +67,24 @@ La navegación del sidebar ahora está organizada por Work Cycles:
 | **Hermes** | ✅ Configurado, opencode free model + fallback FCC→Ollama |
 | **OpenCode** | ✅ anthropic→FCC, ollama→local |
 | **Cline** | ✅ Via FCC proxy |
+
+### FASE 1 — Opportunity Score Engine ✅
+
+| Módulo | Archivos | Tests |
+|--------|----------|-------|
+| **Models** | `core/opportunity/models.py` | — |
+| **PersonalHistoryTracker** | `core/opportunity/personal.py` | 2 |
+| **OpportunityScorer** | `core/opportunity/scorer.py` | 7 |
+| **Top5Engine** | `core/opportunity/top5.py` | 8 |
+| **Adapter (CATEYE→OWNEX)** | `core/opportunity/adapter.py` | — |
+| **API** | `api/routers/opportunity_score.py` | — |
+| **Frontend fetch** | `frontend/src/services/ownexData.ts` | — |
+| **Total** | 7 archivos | **23 tests** |
+
+**Qué hace**: Unifica scoring entre todos los Work Cycles (Security/Forge/Pulse/Vault/Atlas).
+- `compute_ev()` de `core/priority/ev_engine.py` como base
+- `PersonalHistoryTracker` lee RevenueMetrics (acceptance_rate, avg_payout, avg_days, por plataforma/tipo)
+- `score_opportunity()` → `UnifiedScore` (EV, acceptance, difficulty, competition, personal_fit, confidence, overall)
+- `Top5Engine` → curación: max 2 por ciclo, max 1 por source, fallback sin duplicados
+- `adapt_opportunities()` → convierte 48 oportunidades CATEYE a formato OWNEX
+- Endpoint: `GET /api/opportunity-score/top5` → usado por `MissionControl.vue` → `OpportunityRadar`

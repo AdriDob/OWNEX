@@ -40,6 +40,26 @@ export interface KnowledgeItem {
   timestamp: string
 }
 
+export interface RevenueSnapshotData {
+  usdPerHour: number
+  monthlyTotal: number
+  pendingTotal: number
+  bestPlatform: string
+}
+
+export interface WorkCycleData {
+  id: string
+  name: string
+  icon: string
+  color: string
+  description: string
+  status: 'active' | 'monitoring' | 'available' | 'tracking'
+  statusLabel: string
+  route: string
+  badge: string
+  badgeColor: string
+}
+
 export interface OwnexDashboardData {
   throughputStages: ThroughputStage[]
   throughputEfficiency: number
@@ -47,6 +67,8 @@ export interface OwnexDashboardData {
   opportunities: OpportunityItem[]
   nextAction: NextActionItem | null
   knowledgeFeed: KnowledgeItem[]
+  revenue: RevenueSnapshotData | null
+  cycles: WorkCycleData[]
   systemHealth: number
   systemStatus: string
   timestamp: string
@@ -68,26 +90,21 @@ interface OverviewResponse {
   }
 }
 
-interface OpportunityTopItem {
-  id?: string
-  title?: string
-  source?: string
-  type?: string
-  estimated_payout?: number
-  score?: number
-  confidence?: number
-  priority?: string
-  effort?: string
-  platform?: string
-  reward?: number
-}
-
 interface ActivityEvent {
   id: string
   type: string
   message: string
   timestamp: string
   severity?: string
+}
+
+interface RevenueSummaryResponse {
+  success: boolean
+  total_payout?: number
+  monthly_payout?: number
+  pending_total?: number
+  best_platform?: string
+  usd_per_hour?: number
 }
 
 const DEFAULT_STAGES = [
@@ -97,6 +114,13 @@ const DEFAULT_STAGES = [
   { label: 'En ejecución', value: 0, color: 'text-primary' },
   { label: 'Completadas', value: 0, color: 'text-success' },
 ]
+
+const DEFAULT_REVENUE: RevenueSnapshotData = {
+  usdPerHour: 0,
+  monthlyTotal: 0,
+  pendingTotal: 0,
+  bestPlatform: '—',
+}
 
 // ── Fetchers ──
 
@@ -123,19 +147,50 @@ async function fetchOverview(): Promise<ThroughputStage[]> {
   }
 }
 
+interface OpportunityScoreItem {
+  id: string
+  name: string
+  cycle: string
+  source_type: string
+  source_name: string
+  reward: number
+  effort_hours: number
+  platform: string
+  url: string | null
+  score: {
+    overall: number
+    expected_value: number
+    acceptance_probability: number
+    speed_days: number
+    difficulty: number
+    competition: number
+    personal_fit: number
+    confidence: number
+    reasoning: string[]
+  }
+}
+
+interface Top5Response {
+  generated_at: string
+  total_scored: number
+  diversification_note: string
+  summary: string
+  top5: OpportunityScoreItem[]
+}
+
 async function fetchOpportunities(): Promise<OpportunityItem[]> {
   try {
-    const data = await api.get<{ opportunities?: OpportunityTopItem[]; items?: OpportunityTopItem[] }>('/opportunity/top')
-    const list = data.opportunities || data.items || []
-    return list.slice(0, 5).map((item, i) => ({
-      id: item.id || `opp-${i}`,
-      title: item.title || 'Oportunidad sin título',
-      source: item.source || item.platform || 'Desconocida',
-      type: item.type || 'General',
-      reward: item.estimated_payout || item.reward || 0,
-      confidence: Math.round((item.confidence ?? 0) * 100),
-      effort: item.effort || (item.priority === 'high' ? 'Bajo' : item.priority === 'medium' ? 'Medio' : '—'),
-      action: item.score && item.score > 0.7 ? 'Analizar' : 'Revisar',
+    const data = await api.get<Top5Response>('/opportunity-score/top5')
+    const list = data.top5 || []
+    return list.map((item) => ({
+      id: item.id,
+      title: item.name,
+      source: item.source_name,
+      type: item.cycle,
+      reward: item.reward,
+      confidence: Math.round((item.score.confidence ?? 0) * 100),
+      effort: item.effort_hours < 2 ? 'Bajo' : item.effort_hours < 5 ? 'Medio' : 'Alto',
+      action: item.score.overall > 0.7 ? 'Analizar' : item.score.overall > 0.5 ? 'Evaluar' : 'Revisar',
     }))
   } catch {
     return []
@@ -209,15 +264,156 @@ async function fetchSystemStatus(): Promise<AgentStatus[]> {
   }
 }
 
+async function fetchRevenueSnapshot(): Promise<RevenueSnapshotData | null> {
+  try {
+    const data = await api.get<RevenueSummaryResponse>('/economic/financial-summary')
+    return {
+      usdPerHour: data.usd_per_hour ?? 0,
+      monthlyTotal: data.monthly_payout ?? 0,
+      pendingTotal: data.pending_total ?? 0,
+      bestPlatform: data.best_platform ?? '—',
+    }
+  } catch {
+    return null
+  }
+}
+
+// ── Cycle fetchers ──
+
+interface CycleApiResponse {
+  cycles: Array<{
+    id: number
+    name: string
+    slug: string
+    description: string
+    category: string
+    status: string
+    enabled: boolean
+    priority: number
+    config: Record<string, any>
+    created_at: string
+    updated_at: string
+  }>
+  total: number
+}
+
+interface CycleMetricsApiResponse {
+  [slug: string]: {
+    cycle_id: number
+    slug: string
+    name: string
+    category: string
+    status: string
+    metrics: {
+      opportunities_found: number
+      tasks_active: number
+      tasks_completed: number
+      estimated_value: number
+      success_rate: number
+      last_execution: string | null
+      next_action: string | null
+      throughput_score: number
+    }
+  }
+}
+
+export async function fetchCycles(): Promise<WorkCycleData[]> {
+  try {
+    const data = await api.get<CycleApiResponse>('/cycles')
+    const metricsData = await api.get<CycleMetricsApiResponse>('/cycles/metrics').catch(() => ({})) as CycleMetricsApiResponse
+
+    const statusMap: Record<string, WorkCycleData['status']> = {
+      running: 'active',
+      idle: 'available',
+      paused: 'monitoring',
+      error: 'monitoring',
+      completed: 'tracking',
+      inactive: 'available',
+    }
+
+    const statusLabelMap: Record<string, string> = {
+      running: 'Activo',
+      idle: 'Disponible',
+      paused: 'Pausado',
+      error: 'Error',
+      completed: 'Completado',
+      inactive: 'Inactivo',
+    }
+
+    const iconMap: Record<string, string> = {
+      security: 'Shield',
+      forge: 'Globe',
+      pulse: 'Bot',
+      vault: 'DollarSign',
+      atlas: 'Compass',
+    }
+
+    const colorMap: Record<string, string> = {
+      security: 'text-blue-400',
+      forge: 'text-purple-400',
+      pulse: 'text-green-400',
+      vault: 'text-amber-400',
+      atlas: 'text-sky-400',
+    }
+
+    const badgeColorMap: Record<string, string> = {
+      security: 'bg-blue-500/20 text-blue-400',
+      forge: 'bg-purple-500/20 text-purple-400',
+      pulse: 'bg-green-500/20 text-green-400',
+      vault: 'bg-amber-500/20 text-amber-400',
+      atlas: 'bg-sky-500/20 text-sky-400',
+    }
+
+    const routeMap: Record<string, string> = {
+      security: '/targets',
+      forge: '/integrations/platforms',
+      pulse: '/pulse',
+      vault: '/capital',
+      atlas: '/copilot/memory',
+    }
+
+    const badgeMap: Record<string, string> = {
+      security: 'Bug Bounty',
+      forge: 'Dev',
+      pulse: 'AI',
+      vault: 'Finanzas',
+      atlas: 'Intel',
+    }
+
+    return data.cycles.map((cycle) => {
+      const metrics = metricsData[cycle.slug]?.metrics
+      const status = statusMap[cycle.status] || 'available'
+      const nextAction = metrics?.next_action || '—'
+
+      return {
+        id: cycle.slug,
+        name: cycle.name,
+        icon: iconMap[cycle.category] || 'Shield',
+        color: colorMap[cycle.category] || 'text-primary',
+        description: cycle.description || nextAction,
+        status,
+        statusLabel: statusLabelMap[cycle.status] || 'Disponible',
+        route: routeMap[cycle.slug] || '',
+        badge: badgeMap[cycle.slug] || cycle.category,
+        badgeColor: badgeColorMap[cycle.slug] || 'bg-primary/20 text-primary',
+      }
+    })
+  } catch {
+    return []
+  }
+}
+
 // ── Main fetch ──
 
 export async function fetchOwnexDashboard(): Promise<OwnexDashboardData> {
-  const [stages, opportunities, activity, mission, agents] = await Promise.all([
+  const [stages, opportunities, activity, mission, agents, revenue, cycles] = await Promise.all([
     fetchOverview(),
     fetchOpportunities(),
     fetchActivity(),
     fetchMissionStatus(),
     fetchSystemStatus(),
+    fetchRevenueSnapshot(),
+    fetchCycles(),
   ])
 
   const completedCount = stages.length > 0 ? stages[stages.length - 1].value : 0
@@ -231,6 +427,8 @@ export async function fetchOwnexDashboard(): Promise<OwnexDashboardData> {
     opportunities,
     nextAction: mission.nextAction,
     knowledgeFeed: activity,
+    revenue,
+    cycles,
     systemHealth: mission.health,
     systemStatus: mission.status,
     timestamp: mission.timestamp,
