@@ -143,14 +143,16 @@ def check_pattern(content: str, filepath: Path) -> list[dict]:
                 continue
 
             if rule["pattern"] in line:
-                findings.append({
-                    "file": rel_path,
-                    "line": i,
-                    "severity": rule["severity"],
-                    "id": rule["id"],
-                    "message": rule["message"],
-                    "code": stripped[:120],
-                })
+                findings.append(
+                    {
+                        "file": rel_path,
+                        "line": i,
+                        "severity": rule["severity"],
+                        "id": rule["id"],
+                        "message": rule["message"],
+                        "code": stripped[:120],
+                    }
+                )
     return findings
 
 
@@ -162,14 +164,16 @@ def check_imports(content: str, filepath: Path) -> list[dict]:
     try:
         tree = ast.parse(content)
     except SyntaxError:
-        return [{
-            "file": rel_path,
-            "line": 0,
-            "severity": "WARN",
-            "id": "SYNTAX-ERROR",
-            "message": "File could not be parsed",
-            "code": "",
-        }]
+        return [
+            {
+                "file": rel_path,
+                "line": 0,
+                "severity": "WARN",
+                "id": "SYNTAX-ERROR",
+                "message": "File could not be parsed",
+                "code": "",
+            }
+        ]
 
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
@@ -187,40 +191,48 @@ def _check_import_name(name: str, rel_path: str, lineno: int, findings: list[dic
         "desktop/service.py",
         "desktop/service_util.py",
     ]:
-        findings.append({
-            "file": rel_path,
-            "line": lineno,
-            "severity": "HIGH",
-            "id": "PYWIN32-IMPORT",
-            "message": f"win32* import ({name}) in non-service file",
-            "code": f"import {name}",
-        })
+        findings.append(
+            {
+                "file": rel_path,
+                "line": lineno,
+                "severity": "HIGH",
+                "id": "PYWIN32-IMPORT",
+                "message": f"win32* import ({name}) in non-service file",
+                "code": f"import {name}",
+            }
+        )
 
     # Check for desktop.service in non-allowed files
-    if name == "desktop.service" or name.startswith("desktop.service."):
-        if rel_path not in ["run.py", "desktop/service_util.py"]:
-            findings.append({
+    if (name == "desktop.service" or name.startswith("desktop.service.")) and rel_path not in [
+        "run.py",
+        "desktop/service_util.py",
+    ]:
+        findings.append(
+            {
                 "file": rel_path,
                 "line": lineno,
                 "severity": "HIGH",
                 "id": "SERVICE-IMPORT",
                 "message": "desktop.service imported outside allowed files",
                 "code": f"import {name}",
-            })
+            }
+        )
 
 
 def scan_file(path: Path) -> list[dict]:
     try:
         content = path.read_text(encoding="utf-8", errors="replace")
     except Exception as e:
-        return [{
-            "file": str(path),
-            "line": 0,
-            "severity": "ERROR",
-            "id": "READ-ERROR",
-            "message": f"Cannot read file: {e}",
-            "code": "",
-        }]
+        return [
+            {
+                "file": str(path),
+                "line": 0,
+                "severity": "ERROR",
+                "id": "READ-ERROR",
+                "message": f"Cannot read file: {e}",
+                "code": "",
+            }
+        ]
 
     findings = []
     findings.extend(check_pattern(content, path))
@@ -295,8 +307,10 @@ def main() -> None:
                 print(f"      Code: {f['code']}")
 
         print(f"\n{'=' * 60}")
-        print(f"  SUMMARY: {len(blockers)} blockers, {len(highs)} high, "
-              f"{len(mediums)} medium, {len(warns)} warnings, {len(errors)} errors")
+        print(
+            f"  SUMMARY: {len(blockers)} blockers, {len(highs)} high, "
+            f"{len(mediums)} medium, {len(warns)} warnings, {len(errors)} errors"
+        )
         print(f"{'=' * 60}\n")
 
     fail = len(blockers) > 0 or len(highs) > 0 or len(errors) > 0
