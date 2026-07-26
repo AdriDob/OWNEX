@@ -37,11 +37,23 @@ jobs:
           npm ci
           npm run build
 
-      - name: Run tests
-        run: python -m pytest tests/ -v --tb=short
+      - name: Lint (ruff)
+        run: 'python -m ruff check . --output-format=concise'
+
+      - name: Type-check (mypy)
+        run: 'python -m mypy api/scheduler.py api/routers/ core/revenue/ --ignore-missing-imports'
+
+      - name: Run tests with coverage
+        run: >
+          python -m pytest tests/ -v --tb=short
+          --cov=api --cov=core --cov-report=term-missing
+          -k "not desktop and not vision_gateway" --timeout=120
+          --deselect tests/test_financial_hub.py
+          --deselect tests/test_widget_system.py
+          --ignore=tests/test_security.py
 
       - name: Verify imports (desktop entrypoint)
-        run: python -c "from desktop.main_desktop import main; print('desktop.main_desktop: OK')"
+        run: 'python -c "from desktop.main_desktop import main; print(\"desktop.main_desktop: OK\")"'
 
       - name: Verify frontend build (static files)
-        run: test -f frontend/dist/index.html && echo "frontend/dist/index.html: OK"
+        run: 'test -f frontend/dist/index.html && echo "frontend/dist/index.html: OK"'

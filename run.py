@@ -540,6 +540,156 @@ def _print_verify() -> dict[str, str]:
     return results
 
 
+def _handle_validate(args: list[str]) -> None:
+    """--validate: ejecuta el Validation Engine sobre hypotheses existentes.
+
+    python run.py --validate           → valida todos los targets en DB
+    python run.py --validate --dry-run → solo plan (sin requests reales)
+    """
+    _log("VALIDATE", "=== VALIDATION ENGINE ===")
+    dry_run = "--dry-run" in args
+
+    from database import db
+
+    db.init_db()
+    session = db.SessionLocal()
+
+    try:
+        from core.validation.bridge import ValidationBridge
+
+        bridge = ValidationBridge()
+        targets = session.query(db.models.Target).limit(10).all()
+
+        if not targets:
+            _log("VALIDATE", "No hay targets. Usá --add-target primero.")
+            return
+
+        for target in targets:
+            _log("VALIDATE", "Target: %s (id=%d)", target.name, target.id)
+            endpoints = (
+                session.query(db.models.Endpoint)
+                .filter(db.models.Endpoint.target_id == target.id)
+                .limit(50)
+                .all()
+            )
+            if not endpoints:
+                _log("VALIDATE", "  Sin endpoints → skip")
+                continue
+
+            eps = [
+                {
+                    "path": getattr(ep, "path", getattr(ep, "url", "")),
+                    "method": getattr(ep, "method", "GET"),
+                    "host": getattr(target, "domain", ""),
+                    "target_id": target.id,
+                }
+                for ep in endpoints
+            ]
+            _log("VALIDATE", "  %d endpoints → validando...", len(eps))
+            results = bridge.validate_batch(eps, target_id=target.id, session=session, dry_run=dry_run)
+
+            promoted = [r for r in results if r.promoted]
+            _log("VALIDATE", "  %d candidates | %d promovidos | %s",
+                 len(results), len(promoted), "DRY" if dry_run else "REAL")
+
+            for r in results:
+                if r.candidate and r.confidence:
+                    status = "✅" if r.promoted else "—"
+                    _log("VALIDATE", "  %s %s %s → conf=%.0f%% prior=%d",
+                         status, r.candidate.method, r.candidate.endpoint_path[:55],
+                         r.confidence.score * 100,
+                         r.candidate.economic_score.priority)
+
+        _log("VALIDATE", "=== VALIDATION COMPLETE ===")
+    finally:
+        session.close()
+
+
+def _handle_report(args: list[str]) -> None:
+    """--report: genera reporte profesional desde un finding.
+
+    python run.py --report 42
+    python run.py --report 42 --output ./reports
+    """
+    _log("REPORT", "=== REPORT GENERATOR ===")
+
+    # Parse finding_id and --output
+    finding_id = None
+    output_path = None
+    for i, arg in enumerate(args):
+        if arg == "--report" and i + 1 < len(args) and not args[i + 1].startswith("--"):
+            try:
+                finding_id = int(args[i + 1])
+            except ValueError:
+                _log("REPORT", "Finding ID debe ser un número")
+                return
+        if arg == "--output" and i + 1 < len(args):
+            output_path = args[i + 1]
+
+    if finding_id is None:
+        _log("REPORT", "Uso: python run.py --report <finding_id> [--output <path>]")
+        return
+
+    from core.reporting import generate_and_save_report
+    from database import db
+
+    db.init_db()
+    session = db.SessionLocal()
+
+    try:
+        f = session.query(db.models.Finding).filter(db.models.Finding.id == finding_id).first()
+        if not f:
+            _log("REPORT", "Finding #%d no encontrado", finding_id)
+            return
+
+        # Fetch related target
+        target = session.query(db.models.Target).filter(db.models.Target.id == f.target_id).first()
+        target_name = target.name if target else f"Target #{f.target_id}"
+        target_domain = target.domain if target else ""
+
+        # Fetch endpoint if available
+        endpoint_path = "/"
+        method = "GET"
+        if f.endpoint_id:
+            ep = session.query(db.models.Endpoint).filter(db.models.Endpoint.id == f.endpoint_id).first()
+            if ep:
+                endpoint_path = getattr(ep, "path", getattr(ep, "url", "/"))
+                method = getattr(ep, "method", "GET")
+
+        # Extract vulnerability type from finding metadata or title
+        vuln_type = "generic"
+        title_lower = (f.title or "").lower()
+        for vt in ["idor", "auth_bypass", "ssrf", "xss", "sqli"]:
+            if vt in title_lower:
+                vuln_type = vt
+                break
+
+        md = generate_and_save_report(
+            finding_id=f.id,
+            finding_title=f.title or f"Finding #{f.id}",
+            severity=f.severity or "medium",
+            target_name=target_name,
+            endpoint_path=endpoint_path,
+            method=method,
+            vulnerability_type=vuln_type,
+            description=f.description or "No description available.",
+            confidence=0.7,  # default - could be enhanced with actual confidence from validation
+            poc_curl=f"curl -X {method} '{target_domain}{endpoint_path}' -H 'Authorization: Bearer ***'",
+            poc_python="# Manual verification required",
+            output_path=output_path,
+        )
+
+        _log("REPORT", "✅ Reporte generado para finding #%d", finding_id)
+        if output_path:
+            _log("REPORT", "Guardado en: %s", output_path)
+        else:
+            # Print to stdout if no output path
+            print(md)
+
+    finally:
+        session.close()
+
+
 def main() -> None:
     args_set = set(sys.argv[1:])
     args_list = sys.argv[1:]
@@ -632,6 +782,16 @@ def main() -> None:
             import json
 
             print(json.dumps(result.details, indent=2, default=str))
+        return
+
+    # --validate: run validation engine on database targets
+    if "--validate" in args_set:
+        _handle_validate(args_list)
+        return
+
+    # --report: generate report from a finding
+    if "--report" in args_set:
+        _handle_report(args_list)
         return
 
     # --safe-mode forces degraded operation

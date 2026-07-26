@@ -1,4 +1,4 @@
-# SETUP GUIDE — CATEYE v3.0.0
+# SETUP GUIDE — CATEYE v4.6.0
 
 > Guía de configuración óptima para usar CATEYE en bug bounty real.
 > Elegí el perfil que mejor se adapte a tu equipo y necesidades.
@@ -221,7 +221,7 @@ curl http://127.0.0.1:8000/api/health
 
 # 2. Versión correcta
 curl http://127.0.0.1:8000/api/version
-# → {"version":"3.0.0"}
+# → {"version":"4.6.0"}
 
 # 3. DB inicializada
 python -c "from database.db import init_db; init_db(); print('DB OK')"
@@ -295,4 +295,4 @@ kill -9 <PID>
 
 ---
 
-*Julio 2026 — CATEYE v3.0.0*
+*Julio 2026 — CATEYE v4.6.0*

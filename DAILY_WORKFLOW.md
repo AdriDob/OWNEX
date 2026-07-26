@@ -1,4 +1,4 @@
-# DAILY WORKFLOW — CATEYE v3.0.0
+# DAILY WORKFLOW — CATEYE v4.6.0
 
 > Rutina diaria, semanal y mensual para usar CATEYE en bug bounty real.
 > Este es el documento más consultado después de meses de uso.

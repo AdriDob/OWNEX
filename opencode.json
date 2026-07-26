@@ -12,7 +12,12 @@
     ".ai/DO_NOT_TOUCH.md",
     ".ai/SECURITY_POLICY.md",
     ".ai/TESTING_POLICY.md",
-    ".ai/CODE_QUALITY.md"
+    ".ai/CODE_QUALITY.md",
+    ".ai/MEMORY.md",
+    ".ai/LESSONS.md",
+    ".ai/DECISIONS.md",
+    ".ai/PROJECT_CONTEXT.md",
+    ".ai/ARCHITECTURE_FINAL.md"
   ],
   
   "command": {
