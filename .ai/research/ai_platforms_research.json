@@ -1,0 +1,884 @@
+{
+  "report_metadata": {
+    "title": "AI Training / Micro-Work Platforms Research for OWNEX Integration",
+    "date": "2026-07-26",
+    "research_source": "aggregated web research (reviews, official sites, community reports)",
+    "methodology": "Each platform evaluated across 5 dimensions (Activity, Payments, Ease of Access, Volume, Quality) scored 1-10. Quality prioritizes coding/reasoning tasks over labeling."
+  },
+  "platforms": [
+    {
+      "id": "dataannotation",
+      "name": "DataAnnotation.tech",
+      "url": "https://www.dataannotation.tech",
+      "accepting_users": true,
+      "signup_status": "Open for US, UK, Canada, Ireland, Australia, New Zealand. Others see waitlist.",
+      "countries": {
+        "accepted": ["United States", "United Kingdom", "Canada", "Ireland", "Australia", "New Zealand"],
+        "latam": false,
+        "europe": "Only Ireland and UK",
+        "notes": "Extremely limited — 6 countries only. No LATAM. Virtual waitlist for all others."
+      },
+      "payments": {
+        "reliable": true,
+        "method": "PayPal or ACH",
+        "min_payout": "None (weekly auto-payout)",
+        "speed": "Weekly, typically 1-3 days after period close",
+        "hourly_rates": {
+          "general": "$20-$25/hr",
+          "coding": "$40-$65/hr",
+          "stem": "$30-$50/hr",
+          "creative": "$20-$30/hr"
+        },
+        "notes": "Highest base rates in the industry. $20M+ paid to 100k+ contractors. D- BBB rating, class action lawsuit filed 2026 for sudden bans."
+      },
+      "entry_barrier": {
+        "difficulty": "Medium-Hard",
+        "interview_required": false,
+        "qualification_test": true,
+        "test_duration": "1-3 hours unpaid (starter + optional coding assessment)",
+        "test_description": "Starter assessment: reading comprehension, grammar, critical thinking, instruction following. Coding assessment: algorithmic challenges, code correction, debugging explanations.",
+        "pass_rate": "~40% first attempt",
+        "degree_required": false,
+        "experience_required": "Strong English writing. Coding path requires Python/JS proficiency."
+      },
+      "volume": {
+        "steady": false,
+        "description": "Inconsistent. High for top performers, but 'permanent EQ' (empty queue) is a known risk. Work volume fluctuates with client demand.",
+        "typical_weekly_hours": "10-30 when active; 0 during dry spells"
+      },
+      "quality": {
+        "task_types": ["RLHF", "Code review and evaluation", "Creative writing assessment", "Fact-checking", "Red-teaming", "Math/science reasoning"],
+        "coding_available": true,
+        "interest_level": "High — requires genuine reasoning, judgment, and expertise",
+        "tedious_tasks": "Some general writing annotation can be repetitive"
+      },
+      "api_availability": "None. No public API.",
+      "tos_automation": "Strictly prohibited. Aggressive geolocation checks. VPNs forbidden. Bots will result in permanent ban.",
+      "scores": {
+        "activity": 6,
+        "payments": 9,
+        "ease_of_access": 4,
+        "volume": 5,
+        "quality": 9,
+        "overall": 6.6
+      },
+      "best_for": "Coders and strong writers in supported countries who want premium rates. Not viable for LATAM/Europe (except UK/Ireland).",
+      "ownex_integration_notes": "No API, heavy ToS restrictions. Only feasible via browser automation with extreme caution. High risk of account loss."
+    },
+    {
+      "id": "alignerr",
+      "name": "Alignerr (by Labelbox)",
+      "url": "https://www.alignerr.com",
+      "accepting_users": true,
+      "signup_status": "Open but heavily restricted. Many regions see 'Not Available Here Yet.' US-focused.",
+      "countries": {
+        "accepted": ["United States (primary)", "Limited EU", "150+ countries via Deel for payouts"],
+        "latam": "Limited availability",
+        "europe": "Some countries, inconsistent",
+        "notes": "In practice US-only despite global claims. China, Bangladesh, many others blocked during ID verification."
+      },
+      "payments": {
+        "reliable": "Warning — 38/100 sentiment score, trend down",
+        "method": "PayPal (primary), Stripe listed but unused, Deel for international",
+        "min_payout": "None observed",
+        "speed": "Weekly, landing Wednesday-Friday",
+        "hourly_rates": {
+          "general": "$15-$25/hr",
+          "coding": "$30-$60/hr",
+          "voice": "$35-$45/hr listed but ~$9/hr real (per finished hour)",
+          "domain_expert": "$35-$50+/hr"
+        },
+        "notes": "Retroactive review failures reported (CHP CLAUDE project). Workers report pre-payout deactivations with $800-$3k+ earnings withheld. Discord vanished taking labeling history."
+      },
+      "entry_barrier": {
+        "difficulty": "High",
+        "interview_required": true,
+        "interview_type": "AI video screening (avatar asks questions)",
+        "qualification_test": true,
+        "test_duration": "2+ hours unpaid evaluation phases",
+        "test_description": "AI-driven screening → qualification assessment → Labelbox setup → project waitlist. Evaluation phases are often real work done unpaid.",
+        "pass_rate": "Not published, described as selective",
+        "degree_required": "Preferred for higher-tier projects",
+        "experience_required": "Domain expertise (CS degree, professional writing, etc.)"
+      },
+      "volume": {
+        "steady": false,
+        "description": "Major complaint — project gaps can last months after acceptance. Waitlist can be months.",
+        "typical_weekly_hours": "0-20, highly unpredictable"
+      },
+      "quality": {
+        "task_types": ["Code evaluation (WorldSim pays $90/hr)", "RLHF comparison", "Creative writing assessment", "STEM evaluation", "Audio/voice"],
+        "coding_available": true,
+        "interest_level": "High — WorldSim coding eval is genuinely interesting. Domain expert work is engaging.",
+        "tedious_tasks": "Voice work at $9/hr real rate is exploitative."
+      },
+      "api_availability": "None for contractors. Labelbox has API for enterprise clients.",
+      "tos_automation": "Standard contractor restrictions. Likely prohibits automation.",
+      "scores": {
+        "activity": 3,
+        "payments": 5,
+        "ease_of_access": 3,
+        "volume": 2,
+        "quality": 8,
+        "overall": 4.2
+      },
+      "best_for": "Credentialed experts who can survive waitlist. High risk tolerance required. Sentiment is at historic lows (May 2026).",
+      "ownex_integration_notes": "Unpaid eval phases and account deletion risk make automation ROI negative. Skip."
+    },
+    {
+      "id": "outlier",
+      "name": "Outlier (by Scale AI)",
+      "url": "https://outlier.ai",
+      "accepting_users": true,
+      "signup_status": "Open globally. 50+ countries.",
+      "countries": {
+        "accepted": ["United States", "UK", "Canada", "Australia", "Europe", "India", "Philippines", "Thailand", "50+ countries"],
+        "latam": "Some LATAM countries accepted",
+        "europe": "Widely accepted",
+        "notes": "Truly global but pay varies by country. $500M+ paid to 1M+ experts."
+      },
+      "payments": {
+        "reliable": true,
+        "method": "PayPal, ACH, AirTM, Hyperwallet",
+        "min_payout": "None",
+        "speed": "Weekly on Tuesdays",
+        "hourly_rates": {
+          "general": "$15-$25/hr",
+          "coding": "$30-$50/hr",
+          "stem": "$35-$60/hr",
+          "legal": "$50-$100/hr"
+        },
+        "notes": "Global uniform pay (same rate regardless of country). AirTM has ID verification issues. Mass deactivations April 2026 with earnings withheld."
+      },
+      "entry_barrier": {
+        "difficulty": "Medium",
+        "interview_required": false,
+        "qualification_test": true,
+        "test_duration": "30-90 minutes onboarding + project-specific assessments",
+        "test_description": "Resume + LinkedIn required. Domain selection (up to 10). Skills screening (multiple choice/coding). Project-specific qualification. Hubstaff time tracking for some projects.",
+        "pass_rate": "Not published, but described as accessible",
+        "degree_required": "Preferred (undergraduate-level expertise minimum)",
+        "experience_required": "Domain expertise in selected field. Resume + LinkedIn required."
+      },
+      "volume": {
+        "steady": false,
+        "description": "Empty queues are the signature problem. Project-based, highly variable. Aether project winding down. Whitebeard recovering.",
+        "typical_weekly_hours": "0-40, unpredictable."
+      },
+      "quality": {
+        "task_types": ["Code generation/review", "Math reasoning", "RLHF", "Creative writing", "Prompt engineering", "Domain expertise (medical, legal, finance)"],
+        "coding_available": true,
+        "interest_level": "High. Coding and STEM projects are genuinely engaging. LeetCode-style for coding.",
+        "tedious_tasks": "Basic RLHF can become repetitive."
+      },
+      "api_availability": "No public API for contractors.",
+      "tos_automation": "Standard restrictions. Hubstaff screenshots for some projects make automation impossible.",
+      "scores": {
+        "activity": 5,
+        "payments": 8,
+        "ease_of_access": 6,
+        "volume": 4,
+        "quality": 8,
+        "overall": 6.2
+      },
+      "best_for": "Global workers with domain expertise who can tolerate instability. Best overall balance of accessibility and pay for non-US workers.",
+      "ownex_integration_notes": "No API. Hubstaff screenshot monitoring blocks automation. Manual tool only."
+    },
+    {
+      "id": "surge_ai",
+      "name": "Surge AI",
+      "url": "https://www.surgehq.ai",
+      "accepting_users": "Not directly. Invite-only/curated. DataAnnotation.tech is the public entry point.",
+      "signup_status": "Closed for direct signup. Research Fellowship or direct recruitment only.",
+      "countries": {
+        "accepted": ["US", "EU (primary)", "Tier-adjusted globally"],
+        "latam": "Tier-adjusted, lower rates",
+        "europe": "Accepted",
+        "notes": "Tier-adjusted pricing: US/EU get top rates, India/Philippines 10-25% less. Specialty work converges globally."
+      },
+      "payments": {
+        "reliable": true,
+        "method": "Direct deposit (bi-weekly), PayPal in some cases",
+        "min_payout": "Not published",
+        "speed": "Bi-weekly (every two weeks)",
+        "hourly_rates": {
+          "general_annotation": "$18-$24/hr (30-40¢/min)",
+          "domain_expert": "$45-$95/hr",
+          "executive_level": "$250-$450/hr (rare)"
+        },
+        "notes": "Premium rates for experts. Medical, legal, finance specialists command highest rates. Ongoing contractor classification lawsuit."
+      },
+      "entry_barrier": {
+        "difficulty": "Extremely High",
+        "interview_required": true,
+        "interview_type": "Human interview (30 min video), 3-stage process",
+        "qualification_test": true,
+        "test_duration": "Profile → written sample (60-90 min) → human interview → 3-5 weeks total",
+        "test_description": "Three stages: 1) Profile/Resume/GitHub auto-screen. 2) Written annotation sample (score 3-5 pairs + justify). 3) 30-min video interview calibrating against rubric.",
+        "pass_rate": "Low. Highly selective.",
+        "degree_required": "Yes. Advanced degree for most roles. Board-certified for medical.",
+        "experience_required": "Elite credentials — Ivy League professors, NYT journalists, board-certified physicians."
+      },
+      "volume": {
+        "steady": "Inconsistent, project-dependent",
+        "description": "No public data on hours. Volume depends on client projects. Work can be plentiful or scarce.",
+        "typical_weekly_hours": "Unknown, varies by project."
+      },
+      "quality": {
+        "task_types": ["RLHF", "Red-teaming (Claude, others)", "Supervised fine-tuning data", "Code evaluation", "Domain expert evaluation"],
+        "coding_available": true,
+        "interest_level": "Very high. Red-teaming top LLMs, direct impact on model safety. Most intellectually engaging work in the space.",
+        "tedious_tasks": "Standard annotation at lower tiers."
+      },
+      "api_availability": "No public API.",
+      "tos_automation": "Not publicly detailed but standard restrictions apply.",
+      "scores": {
+        "activity": 4,
+        "payments": 9,
+        "ease_of_access": 1,
+        "volume": 2,
+        "quality": 10,
+        "overall": 5.2
+      },
+      "best_for": "Elite experts only. Not viable for OWNEX automation (no open access, invite-only).",
+      "ownex_integration_notes": "No open signup. Skip unless you have elite credentials and want manual work."
+    },
+    {
+      "id": "stellar_ai",
+      "name": "Stellar AI",
+      "url": "https://www.stellarai.com",
+      "accepting_users": true,
+      "signup_status": "Open. Join annotator pool → wait for project matching.",
+      "countries": {
+        "accepted": ["Global"],
+        "latam": "Yes",
+        "europe": "Yes",
+        "notes": "Open globally. No country restrictions published."
+      },
+      "payments": {
+        "reliable": true,
+        "method": "PayPal",
+        "min_payout": "None (weekly)",
+        "speed": "Weekly on Tuesdays",
+        "hourly_rates": {
+          "generalist": "$25/hr+",
+          "junior_engineer": "$35-$70/hr",
+          "senior_engineer": "$70-$100/hr",
+          "ml_engineer": "$80-$120/hr"
+        },
+        "notes": "One of the best-run platforms. Paid qualifications (rare). Guaranteed Hours Contracts for senior engineers. Empty queue hit hard Feb 2026."
+      },
+      "entry_barrier": {
+        "difficulty": "Medium",
+        "interview_required": false,
+        "qualification_test": true,
+        "test_duration": "45-90 min unpaid skill match test",
+        "test_description": "Online registration → unpaid skills assessment (research, writing, critical thinking) → enter waiting pool → project-based onboarding. AI tools prohibited during test.",
+        "pass_rate": "Not published",
+        "degree_required": false,
+        "experience_required": "Depends on track. Generalist: strong research/writing. Engineering: strong coding skills."
+      },
+      "volume": {
+        "steady": false,
+        "description": "Empty queue hit hard around Feb 2026. Projects paused without warning. Waiting pool can be months.",
+        "typical_weekly_hours": "0-30, dependent on project matching."
+      },
+      "quality": {
+        "task_types": ["AI agent task creation (prompt + automated verifier)", "Code review for AI coding agents", "AI response comparison", "Research demonstration", "Data annotation"],
+        "coding_available": true,
+        "interest_level": "Very high — creating agent tasks and verifiers is genuinely challenging engineering work.",
+        "tedious_tasks": "Standard data annotation at entry level."
+      },
+      "api_availability": "No public API for contractors.",
+      "tos_automation": "Standard restrictions.",
+      "scores": {
+        "activity": 4,
+        "payments": 8,
+        "ease_of_access": 5,
+        "volume": 3,
+        "quality": 9,
+        "overall": 5.8
+      },
+      "best_for": "Engineers who want high rates ($35-$120/hr) for interesting agent-evaluation work. Must tolerate wait pool.",
+      "ownex_integration_notes": "No API. Interesting coding tasks make it worth manual monitoring. Agent-creation tasks align well with OWNEX automation skills."
+    },
+    {
+      "id": "toloka",
+      "name": "Toloka (by Toloka AI)",
+      "url": "https://toloka.ai",
+      "accepting_users": true,
+      "signup_status": "Open globally. 100+ countries.",
+      "countries": {
+        "accepted": ["Global — 100+ countries, 40+ languages"],
+        "latam": "Yes",
+        "europe": "Yes",
+        "notes": "Best global coverage. Strong demand for less-resourced languages."
+      },
+      "payments": {
+        "reliable": true,
+        "method": "PayPal, varies by region",
+        "min_payout": "Varies by project",
+        "speed": "Varies (weekly or monthly depending on project)",
+        "hourly_rates": {
+          "general_us_eu": "$8-$25/hr",
+          "general_india_ph": "$5-$15/hr",
+          "specialty": "$30-$50/hr",
+          "multilingual_low_resource": "$30-$60/hr"
+        },
+        "notes": "Regional pricing — same task pays different rates by location. Good for multilingual. Low ceiling for English-only in high-cost markets."
+      },
+      "entry_barrier": {
+        "difficulty": "Very Easy",
+        "interview_required": false,
+        "qualification_test": true,
+        "test_duration": "~2 hours free tutorials",
+        "test_description": "Sign up (10 min) → identity verification → platform tutorials (free, ~2 hrs) → start tasks immediately. Lowest barrier of all platforms.",
+        "pass_rate": "Very high",
+        "degree_required": false,
+        "experience_required": "None. Tutorials provided."
+      },
+      "volume": {
+        "steady": "Yes — search relevance task pool is consistently large",
+        "description": "Most stable volume among global platforms. Search relevance evaluation from Yandex spillover.",
+        "typical_weekly_hours": "20-40 available for active workers."
+      },
+      "quality": {
+        "task_types": ["Search relevance evaluation", "Image annotation", "Multilingual translation evaluation", "Audio transcription", "Data collection"],
+        "coding_available": false,
+        "interest_level": "Low-Medium. Mostly labeling and evaluation. Not coding-focused. Some AI agent training data tasks but limited.",
+        "tedious_tasks": "Yes — primarily labeling and repetitive evaluation."
+      },
+      "api_availability": "Yes — Toloka has a Python SDK and REST API for requesters. Workers can interact via API indirectly.",
+      "tos_automation": "Prohibited for workers (velocity bans, spam checks). Requesters can use API to push tasks.",
+      "scores": {
+        "activity": 8,
+        "payments": 5,
+        "ease_of_access": 9,
+        "volume": 8,
+        "quality": 3,
+        "overall": 6.6
+      },
+      "best_for": "Global workers who want steady, easy-to-access work. Best multilingual platform. Not ideal for coding/reasoning.",
+      "ownex_integration_notes": "Has API (requester-side). Worker-side automation is prohibited and detected. Steady volume makes it viable for manual task execution. Coding tasks rare."
+    },
+    {
+      "id": "prolific",
+      "name": "Prolific",
+      "url": "https://www.prolific.com",
+      "accepting_users": true,
+      "signup_status": "Open with waitlist for some demographics. OECD countries primarily.",
+      "countries": {
+        "accepted": ["US", "UK", "Canada", "Australia", "NZ", "Most OECD countries", "Chile", "Mexico", "South Africa", "Israel", "Japan", "South Korea", "30+ countries"],
+        "latam": "Mexico, Chile only",
+        "europe": "Widely accepted",
+        "notes": "OECD-focused. Excludes Turkey, Lithuania, Colombia, Costa Rica. Best coverage for Europe."
+      },
+      "payments": {
+        "reliable": true,
+        "method": "PayPal (primary), bank transfer (select regions)",
+        "min_payout": "£5 (~$6.50)",
+        "speed": "Instant to 24 hours after request",
+        "hourly_rates": {
+          "typical": "$8-$15/hr",
+          "max": "$25/hr+ for longitudinal studies"
+        },
+        "notes": "Enforced minimum £6/$8/hr floor. Most studies pay above minimum. Most reliable payout in the industry."
+      },
+      "entry_barrier": {
+        "difficulty": "Very Easy",
+        "interview_required": false,
+        "qualification_test": false,
+        "test_duration": "15-30 min profile setup",
+        "test_description": "Sign up → detailed 'About You' profile (demographics, skills) → wait for approval (24-48 hrs) → studies appear on dashboard. Pre-screened by profile.",
+        "pass_rate": "High (may be waitlisted if demographic oversaturated)",
+        "degree_required": false,
+        "experience_required": "None. Demographic profile determines study matching."
+      },
+      "volume": {
+        "steady": "Moderate-high but study-dependent",
+        "description": "New study published ~every 2 minutes platform-wide. Individual matching varies. Peak during UK/US business hours.",
+        "typical_weekly_hours": "5-15 for active users in well-supported countries."
+      },
+      "quality": {
+        "task_types": ["Academic surveys", "Cognitive tasks", "Decision-making games", "AI evaluation studies", "Reaction tests"],
+        "coding_available": false,
+        "interest_level": "Medium. Academic research can be interesting but not coding-focused.",
+        "tedious_tasks": "Some surveys are repetitive."
+      },
+      "api_availability": "API for researchers only. No participant API.",
+      "tos_automation": "Strictly prohibited. Attention checks detect automated responses.",
+      "scores": {
+        "activity": 6,
+        "payments": 5,
+        "ease_of_access": 8,
+        "volume": 6,
+        "quality": 5,
+        "overall": 6.0
+      },
+      "best_for": "Europe-based workers who want reliable, easy survey income. Not coding-focused but reliable pay.",
+      "ownex_integration_notes": "No API, attention checks prevent automation. Only manual. Low hourly rate makes ROI marginal. Good for filling time between coding tasks."
+    },
+    {
+      "id": "uhrs",
+      "name": "UHRS (Universal Human Relevance System, Microsoft)",
+      "url": "https://www.uhrs.com",
+      "accepting_users": "Accessible only via partner platforms (Clickworker, Appen, OneForma, Toloka)",
+      "signup_status": "Open through partners. Qualification tests required.",
+      "countries": {
+        "accepted": ["Global through partner platforms"],
+        "latam": "Yes (through partners)",
+        "europe": "Yes (through partners)",
+        "notes": "Country availability depends on partner platform. Clickworker has best coverage."
+      },
+      "payments": {
+        "reliable": true,
+        "method": "PayPal, Payoneer (via partner platform)",
+        "min_payout": "$5 (Clickworker), varies by partner",
+        "speed": "7-31 days via partner platforms. Clickworker pays weekly (Friday).",
+        "hourly_rates": {
+          "standard_tasks": "$5-$12/hr",
+          "uhrs_proficient": "$12-$20/hr",
+          "specialized": "$20-$25/hr"
+        },
+        "notes": "Paid per HIT (task), not per hour. Speed determines effective rate. Quality bonuses on some HitApps."
+      },
+      "entry_barrier": {
+        "difficulty": "Easy-Medium",
+        "interview_required": false,
+        "qualification_test": true,
+        "test_duration": "1-2 hours (English + UHRS registration)",
+        "test_description": "Register on partner platform → English proficiency test → UHRS registration assessment → access granted. Some HitApps have additional quals.",
+        "pass_rate": "Moderate",
+        "degree_required": false,
+        "experience_required": "Basic English proficiency, attention to detail."
+      },
+      "volume": {
+        "steady": "Moderate, varies by HitApp",
+        "description": "HitApps come in batches. First come, first served. Requires regular checking. Velocity bans for rushing.",
+        "typical_weekly_hours": "10-30 depending on HitApp availability."
+      },
+      "quality": {
+        "task_types": ["Search relevance evaluation", "Ad relevance rating", "Data categorization", "Image labeling", "Transcription"],
+        "coding_available": false,
+        "interest_level": "Low. Mostly search evaluation and labeling. Highly repetitive.",
+        "tedious_tasks": "Very tedious — relevance judgments on search results, image categorization."
+      },
+      "api_availability": "No API for judges.",
+      "tos_automation": "Strictly prohibited. Velocity bans, spam HITs, hidden timers. Automation = permanent ban from all partner vendors.",
+      "scores": {
+        "activity": 5,
+        "payments": 4,
+        "ease_of_access": 7,
+        "volume": 5,
+        "quality": 2,
+        "overall": 4.6
+      },
+      "best_for": "Entry-level workers in any country. Low pay, tedious work, no coding.",
+      "ownex_integration_notes": "Heavy anti-automation (velocity bans, spam HITs). Not viable for automation. Low ROI for coding-focused system."
+    },
+    {
+      "id": "appen",
+      "name": "Appen / CrowdGen",
+      "url": "https://www.appen.com",
+      "accepting_users": true,
+      "signup_status": "Open globally via crowdgen.com. 200+ countries.",
+      "countries": {
+        "accepted": ["Global — 200+ countries"],
+        "latam": "Yes",
+        "europe": "Yes",
+        "notes": "Best country coverage. Especially strong for non-English languages."
+      },
+      "payments": {
+        "reliable": true,
+        "method": "PayPal, Payoneer, AirTM, Swift bank transfer",
+        "min_payout": "$5",
+        "speed": "Monthly — pay by 15th of following month (30-45 day wait for first payment)",
+        "hourly_rates": {
+          "basic_annotation": "$8-$14/hr",
+          "search_evaluation": "$12-$18/hr",
+          "linguistic": "$15-$25+/hr",
+          "specialized_language": "$20-$35/hr"
+        },
+        "notes": "Monthly pay cycle is slowest in the industry. Pay has decreased over time. Company had financial difficulties 2023-2024."
+      },
+      "entry_barrier": {
+        "difficulty": "Medium",
+        "interview_required": false,
+        "qualification_test": true,
+        "test_duration": "30-60 min + 2-10 hrs unpaid training per project",
+        "test_description": "Sign up → fill profile → apply to projects → qualification exam (20-50 questions, 80%+ required). Search eval exams have <30% pass rate.",
+        "pass_rate": "Low for search eval, moderate for others",
+        "degree_required": false,
+        "experience_required": "None for basic tasks. Language skills valued."
+      },
+      "volume": {
+        "steady": "Project-dependent, inconsistent",
+        "description": "Apply to projects, wait for acceptance. Projects end without notice. Can go weeks between projects.",
+        "typical_weekly_hours": "10-20 when on a project; 0 between projects."
+      },
+      "quality": {
+        "task_types": ["Search relevance evaluation", "Social media evaluation", "Image/video annotation", "Audio transcription", "Data collection", "AI response evaluation"],
+        "coding_available": false,
+        "interest_level": "Low. Mostly evaluation and annotation. Coding tasks rare.",
+        "tedious_tasks": "High — image labeling, relevance rating, transcription."
+      },
+      "api_availability": "No API for contractors.",
+      "tos_automation": "Standard restrictions. Quality audits catch inconsistencies.",
+      "scores": {
+        "activity": 4,
+        "payments": 4,
+        "ease_of_access": 6,
+        "volume": 4,
+        "quality": 2,
+        "overall": 4.0
+      },
+      "best_for": "Multilingual workers in any country. Entry-level. Low pay ceiling.",
+      "ownex_integration_notes": "Monthly pay, low rates, tedious work, no coding. Low priority for OWNEX."
+    },
+    {
+      "id": "telus",
+      "name": "Telus International AI",
+      "url": "https://www.telusinternational.com",
+      "accepting_users": true,
+      "signup_status": "Open in 50+ countries. Application waves, not rolling.",
+      "countries": {
+        "accepted": ["US", "Canada", "UK", "India", "Philippines", "Australia", "Selected EU", "~50 countries total"],
+        "latam": "Rare openings",
+        "europe": "Selected countries",
+        "notes": "More restricted than Appen. US/UK/India/Philippines have most openings."
+      },
+      "payments": {
+        "reliable": true,
+        "method": "PayPal, direct deposit, Payoneer",
+        "min_payout": "$20-$50 depending on country",
+        "speed": "Monthly (paid ~15th of following month)",
+        "hourly_rates": {
+          "us_internet_assessor": "$12-$18/hr",
+          "uk": "£9-£11/hr",
+          "europe": "€10-€12/hr",
+          "india": "$3-$5/hr",
+          "philippines": "$3-$4/hr"
+        },
+        "notes": "Reliable but slow. 20-26 hr/week cap. Above average for search eval roles."
+      },
+      "entry_barrier": {
+        "difficulty": "Very Hard",
+        "interview_required": false,
+        "qualification_test": true,
+        "test_duration": "1-3 hrs + studying 100+ page guidelines",
+        "test_description": "Multi-part exam: 100+ page Search Quality Rater Guidelines to study, then theoretical test + practical rating test. 2-3 attempts. Pass rate <30%.",
+        "pass_rate": "Low (<30% for Internet Assessor)",
+        "degree_required": false,
+        "experience_required": "Strong attention to detail, ability to follow complex guidelines."
+      },
+      "volume": {
+        "steady": "Moderate — 10-20 hrs/week consistent when on a project",
+        "description": "More stable than Appen once accepted. Fixed hour caps (20-26 hrs/week). Can drop suddenly when projects end.",
+        "typical_weekly_hours": "10-20 (capped at 20-26)."
+      },
+      "quality": {
+        "task_types": ["Search engine evaluation", "AI response evaluation", "Data annotation", "Map quality analysis", "Social media evaluation"],
+        "coding_available": false,
+        "interest_level": "Low. Repetitive search/response evaluation. AI response evaluation is newer but still rating-based.",
+        "tedious_tasks": "High — page after page of relevance judgments."
+      },
+      "api_availability": "No API for contractors.",
+      "tos_automation": "Standard restrictions. Quality audits.",
+      "scores": {
+        "activity": 5,
+        "payments": 4,
+        "ease_of_access": 2,
+        "volume": 5,
+        "quality": 3,
+        "overall": 3.8
+      },
+      "best_for": "Workers who can pass hard exams and want reliable 10-20 hrs/week. Not coding-friendly.",
+      "ownex_integration_notes": "Hard exam, tedious work, no coding, monthly pay. Low priority."
+    },
+    {
+      "id": "oneforma",
+      "name": "OneForma (by Centific, formerly Pactera EDGE)",
+      "url": "https://www.oneforma.com",
+      "accepting_users": true,
+      "signup_status": "Open globally. 200+ markets.",
+      "countries": {
+        "accepted": ["Global — 200+ markets, 300+ languages"],
+        "latam": "Yes",
+        "europe": "Yes",
+        "notes": "Excellent global coverage. Project availability varies by country/language."
+      },
+      "payments": {
+        "reliable": "Mixed — Trustpilot 1.5/5, 82% 1-star reviews",
+        "method": "PayPal ($300/yr cap), Payoneer, Tipalti",
+        "min_payout": "$10",
+        "speed": "Monthly (10th-20th). Some reports of twice-monthly.",
+        "hourly_rates": {
+          "annotation_tasks": "$3-$10/hr",
+          "transcription": "$0.50-$1.25/audio min",
+          "translation": "$0.03-$0.10/word",
+          "specialized": "$10-$20/hr",
+          "audio_studies": "$32-$40/hr (rare)"
+        },
+        "notes": "Worst payment reputation in the space. PayPal $300/yr cap is a trap. Account deactivations with earnings lost. Slow support."
+      },
+      "entry_barrier": {
+        "difficulty": "Easy",
+        "interview_required": false,
+        "qualification_test": true,
+        "test_duration": "Certification tests (varies), 1-4 week approval",
+        "test_description": "Sign up → complete profile → pass certification tests → apply to projects. Auto-apply feature can resubmit stale scores.",
+        "pass_rate": "Moderate",
+        "degree_required": false,
+        "experience_required": "Language skills for translation/transcription. None for basic annotation."
+      },
+      "volume": {
+        "steady": "Low-moderate, project-dependent",
+        "description": "Projects come and go. Some workers report weeks with nothing. UHRS access available through OneForma.",
+        "typical_weekly_hours": "0-20, highly variable."
+      },
+      "quality": {
+        "task_types": ["Data annotation", "Transcription", "Translation", "Voice recording", "UHRS tasks", "Search evaluation", "AI safety evaluation"],
+        "coding_available": false,
+        "interest_level": "Low. Mostly language/annotation work. Some AI evaluation but not coding-focused.",
+        "tedious_tasks": "High — transcription, labeling, relevance rating."
+      },
+      "api_availability": "No API for contractors.",
+      "tos_automation": "Standard restrictions.",
+      "scores": {
+        "activity": 3,
+        "payments": 2,
+        "ease_of_access": 6,
+        "volume": 3,
+        "quality": 2,
+        "overall": 3.2
+      },
+      "best_for": "Multilingual workers comfortable with risk. Avoid for coding/reasoning.",
+      "ownex_integration_notes": "Worst payment reputation. Account deactivation risk. Low rates. Skip."
+    },
+    {
+      "id": "mindrift",
+      "name": "Mindrift (by Toloka AI)",
+      "url": "https://mindrift.ai",
+      "accepting_users": true,
+      "signup_status": "Open globally. CV + assessment.",
+      "countries": {
+        "accepted": ["Global — 90+ domains, 20+ languages"],
+        "latam": "Yes",
+        "europe": "Yes",
+        "notes": "Global platform backed by Toloka AI. 20k+ experts."
+      },
+      "payments": {
+        "reliable": true,
+        "method": "Not publicly detailed (likely PayPal/Wise)",
+        "min_payout": "Not published",
+        "speed": "Bi-weekly",
+        "hourly_rates": {
+          "general": "$15-$30/hr",
+          "coding": "$32-$90/hr",
+          "domain_expert": "$40-$100+/hr"
+        },
+        "notes": "Rates visible before each task. Coding projects $32-$90/hr. Senior Python/ML engineers at top of range."
+      },
+      "entry_barrier": {
+        "difficulty": "Medium",
+        "interview_required": false,
+        "qualification_test": true,
+        "test_duration": "Technical assessment (HackerRank for coding), CV review",
+        "test_description": "Two paths: 1) All-access (no CV, instant tasks — general annotation only). 2) Specialized: CV → technical assessment (multiple choice, coding, or AI interview) → onboarding. Coding: HackerRank-style assessment.",
+        "pass_rate": "Moderate for specialized; high for all-access",
+        "degree_required": "Preferred (70% have Masters/PhD). Not required for all-access.",
+        "experience_required": "Domain expertise for specialized projects. None for all-access tasks."
+      },
+      "volume": {
+        "steady": "Moderate",
+        "description": "Project-based. Active projects in coding, STEM, creative writing. All-access tasks available consistently.",
+        "typical_weekly_hours": "5-20 for active contributors."
+      },
+      "quality": {
+        "task_types": ["Code review and evaluation", "AI response evaluation", "Prompt engineering", "Creative writing", "Domain-specific training data"],
+        "coding_available": true,
+        "interest_level": "High — coding projects involve reviewing AI-generated code, spotting bugs, evaluating architecture. Genuine senior engineer work.",
+        "tedious_tasks": "All-access tasks (labeling, basic rating) are lower quality."
+      },
+      "api_availability": "No public API for contributors.",
+      "tos_automation": "Standard restrictions.",
+      "scores": {
+        "activity": 6,
+        "payments": 8,
+        "ease_of_access": 5,
+        "volume": 5,
+        "quality": 9,
+        "overall": 6.6
+      },
+      "best_for": "Coders who want $32-$90/hr for interesting code evaluation work. Backed by Toloka AI, more stable than smaller platforms.",
+      "ownex_integration_notes": "No API. Coding tasks are high quality and align with OWNEX capabilities. Worth manual monitoring for high-value tasks."
+    },
+    {
+      "id": "mercor",
+      "name": "Mercor",
+      "url": "https://www.mercor.com/experts",
+      "accepting_users": true,
+      "signup_status": "Open. Strict screening. Global but US/EU primary.",
+      "countries": {
+        "accepted": ["US (primary)", "UK", "EU", "Global for top talent"],
+        "latam": "Limited",
+        "europe": "Yes",
+        "notes": "Highest-paying platform. Strictest screening. Top 500 university preferred."
+      },
+      "payments": {
+        "reliable": true,
+        "method": "Direct deposit, likely PayPal/Wise",
+        "min_payout": "Not published",
+        "speed": "Bi-weekly (~14 days after first task)",
+        "hourly_rates": {
+          "coding": "$70-$110/hr",
+          "domain_expert": "$100-$130+/hr",
+          "generalist": "$40-$60/hr"
+        },
+        "notes": "Highest rates in the industry. Globally uniform pay. Best for senior coders."
+      },
+      "entry_barrier": {
+        "difficulty": "Extremely High",
+        "interview_required": true,
+        "interview_type": "AI video interview (15 min, 6-8 questions, recorded + scored by model)",
+        "qualification_test": true,
+        "test_duration": "Profile → written sample (60-90 min) → AI interview → 3-6 weeks total",
+        "test_description": "Three stages: 1) Profile (GitHub, LinkedIn, vector-matched). 2) Written sample (code review or design). 3) AI video interview (model probes depth, specificity, failure cases).",
+        "pass_rate": "~40% of Outlier-qualified coders fail Mercor pre-screen",
+        "degree_required": "Preferred (top 500 globally ranked university)",
+        "experience_required": "5+ years, strong GitHub, concrete metrics."
+      },
+      "volume": {
+        "steady": "Moderate for accepted workers",
+        "description": "Project-matched. Work is project-based. Higher tier = more consistent work.",
+        "typical_weekly_hours": "10-30 for active experts."
+      },
+      "quality": {
+        "task_types": ["Code evaluation", "Domain expert review (medical, legal, finance)", "LLM output evaluation", "Model reasoning assessment"],
+        "coding_available": true,
+        "interest_level": "Very high. Senior-level code review, architecture evaluation. Most intellectually demanding platform.",
+        "tedious_tasks": "None reported at this tier."
+      },
+      "api_availability": "No API for contractors.",
+      "tos_automation": "Standard restrictions.",
+      "scores": {
+        "activity": 6,
+        "payments": 10,
+        "ease_of_access": 1,
+        "volume": 5,
+        "quality": 10,
+        "overall": 6.4
+      },
+      "best_for": "Senior engineers with strong credentials who want $70-$130/hr. Not for automation.",
+      "ownex_integration_notes": "No API. Strict AI interview screening. Only feasible manually and only for top-tier coders."
+    }
+  ],
+  "bonus_platforms": [
+    {
+      "name": "Handshake AI Fellowship",
+      "url": "https://joinhandshake.com/ai",
+      "why_interesting": "AI evaluation for college students/grads. US only. No coding required.",
+      "score_note": "US-only, education-focused. Not coding-focused."
+    },
+    {
+      "name": "Invisible Technologies (Meridium Network)",
+      "url": "https://www.invisibletech.ai",
+      "why_interesting": "AI training through Meridium Expert Network. Assessment + no interview. Generalist and specialist tracks.",
+      "score_note": "Harder to evaluate, less public data. Assessment-based entry."
+    },
+    {
+      "name": "Babel Audio",
+      "url": "https://www.babelaudio.com",
+      "why_interesting": "Audio/transcription focus only. Not coding.",
+      "score_note": "Audio only. Not relevant for coding/reasoning."
+    },
+    {
+      "name": "iSoftStone",
+      "url": "https://www.isoftstone.com",
+      "why_interesting": "Search evaluation, similar to Telus/Appen. Global.",
+      "score_note": "Search evaluation only. Low rates, tedious."
+    },
+    {
+      "name": "Clickworker (standalone, non-UHRS tasks)",
+      "url": "https://www.clickworker.com",
+      "why_interesting": "Access to UHRS + standalone microtasks. Weekly pay. Global.",
+      "score_note": "Listed under UHRS above. Standalone tasks are low-paid."
+    }
+  ],
+  "top_recommendations_for_ownex": {
+    "primary": {
+      "platform": "DataAnnotation.tech",
+      "reason": "Best coding/reasoning work ($40-$65/hr). Highest quality tasks. No interview.",
+      "limitation": "Only 6 countries. Not available in most of LATAM/Europe."
+    },
+    "primary_alternative": {
+      "platform": "Outlier",
+      "reason": "Global availability. Good coding tasks ($30-$50/hr). No interview. Most balanced.",
+      "limitation": "Inconsistent volume. Account instability."
+    },
+    "coding_specialist": [
+      {
+        "platform": "Mindrift",
+        "reason": "$32-$90/hr for code evaluation. No interview. Backed by Toloka AI. Interesting work.",
+        "limitation": "CV + assessment required. Less volume than Outlier."
+      },
+      {
+        "platform": "Stellar AI",
+        "reason": "$35-$120/hr for engineering. Agent-evaluation tasks are unique and interesting.",
+        "limitation": "Waiting pool can be months. Empty queue periods."
+      }
+    ],
+    "latam_europe_best": [
+      {
+        "platform": "Outlier",
+        "reason": "Best global coverage with uniform pay. Coding tasks available."
+      },
+      {
+        "platform": "Toloka",
+        "reason": "Best global coverage. Steady work. Multilingual specialty pays well."
+      },
+      {
+        "platform": "Mindrift",
+        "reason": "Open globally. Coding evaluation work. No interview."
+      }
+    ],
+    "automation_potential": "None of these platforms support API-based automation for workers. All prohibit bots/automation via ToS. UHRS has the strongest anti-automation measures (velocity bans, spam HITs). The only viable OWNEX integration pattern is browser-based automation with human-like behavior, which carries account loss risk on all platforms."
+  },
+  "ranking_summary": {
+    "by_overall_score": [
+      {"rank": 1, "platform": "DataAnnotation.tech", "overall": 6.6, "coding": 9, "best_quality": "Best coding work and pay, but extremely limited countries"},
+      {"rank": 2, "platform": "Toloka", "overall": 6.6, "coding": 3, "best_quality": "Best global coverage and steady work, but no coding"},
+      {"rank": 3, "platform": "Mindrift", "overall": 6.6, "coding": 9, "best_quality": "Strong coding + global reach, good balance"},
+      {"rank": 4, "platform": "Mercor", "overall": 6.4, "coding": 10, "best_quality": "Highest pay but nearly impossible entry"},
+      {"rank": 5, "platform": "Outlier", "overall": 6.2, "coding": 8, "best_quality": "Best global + coding balance, but unstable"},
+      {"rank": 6, "platform": "Prolific", "overall": 6.0, "coding": 0, "best_quality": "Best survey platform, reliable, no coding"},
+      {"rank": 7, "platform": "Stellar AI", "overall": 5.8, "coding": 9, "best_quality": "Great engineering pay, long wait pool"},
+      {"rank": 8, "platform": "Surge AI", "overall": 5.2, "coding": 10, "best_quality": "Best work quality but elite-only access"},
+      {"rank": 9, "platform": "UHRS", "overall": 4.6, "coding": 0, "best_quality": "Entry-level tedious work, no coding"},
+      {"rank": 10, "platform": "Alignerr", "overall": 4.2, "coding": 8, "best_quality": "Interesting work but broken platform"},
+      {"rank": 11, "platform": "Appen", "overall": 4.0, "coding": 0, "best_quality": "Global reach but low pay, tedious"},
+      {"rank": 12, "platform": "Telus", "overall": 3.8, "coding": 0, "best_quality": "Stable but hard entry, no coding"},
+      {"rank": 13, "platform": "OneForma", "overall": 3.2, "coding": 0, "best_quality": "Worst reputation, avoid"}
+    ],
+    "by_coding_quality": [
+      {"rank": 1, "platform": "Mercor", "coding_score": 10, "hourly": "$70-$130/hr"},
+      {"rank": 2, "platform": "Surge AI", "coding_score": 10, "hourly": "$45-$95/hr"},
+      {"rank": 3, "platform": "DataAnnotation.tech", "coding_score": 9, "hourly": "$40-$65/hr"},
+      {"rank": 4, "platform": "Stellar AI", "coding_score": 9, "hourly": "$35-$120/hr"},
+      {"rank": 5, "platform": "Mindrift", "coding_score": 9, "hourly": "$32-$90/hr"}
+    ],
+    "by_accessibility": [
+      {"rank": 1, "platform": "Toloka", "ease": 9, "global": true},
+      {"rank": 2, "platform": "Prolific", "ease": 8, "global": false},
+      {"rank": 3, "platform": "UHRS (via Clickworker)", "ease": 7, "global": true},
+      {"rank": 4, "platform": "Outlier", "ease": 6, "global": true},
+      {"rank": 5, "platform": "OneForma", "ease": 6, "global": true}
+    ]
+  },
+  "final_assessment": {
+    "best_for_ownex_automation": "No platform supports safe automation. Mindrift and Stellar AI offer the most interesting coding tasks but require manual execution.",
+    "best_for_ownex_manual_coding": "1) DataAnnotation.tech ($40-65/hr, if in supported country). 2) Mindrift ($32-90/hr, global). 3) Outlier ($30-50/hr, global).",
+    "best_for_latam_europe": "Outlier (global, coding) > Mindrift (global, coding) > Toloka (global, no coding).",
+    "recommended_priority": "Focus on Outlier + Mindrift as primary targets. Add Stellar AI for high-rate engineering tasks. Use Toloka for filler work between coding tasks."
+  }
+}

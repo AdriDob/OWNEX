@@ -1,0 +1,944 @@
+{
+  "report_metadata": {
+    "title": "OWNEX Bounty Platform Integration Research",
+    "date": "2026-07-26",
+    "purpose": "Evaluate public reward/bounty platforms for integration into OWNEX (Personal Autonomous Work Operating System)",
+    "methodology": "Web research, platform documentation review, community reports, API documentation analysis",
+    "scoring_scale": "1-10 (10 = best)"
+  },
+
+  "core_platforms": [
+    {
+      "id": "opire",
+      "name": "Opire (formerly Opyre)",
+      "url": "https://app.opire.dev",
+      "status": "active",
+      "status_detail": "Active in 2026. Growing platform. ~30 live bounties at any time, totaling ~$18K+. Has a $13,380 Godot bounty active.",
+      "payment": {
+        "reliability": "high",
+        "methods": ["Stripe (bank transfer, debit/credit)"],
+        "minimum_payout": "$20 minimum bounty creation, no minimum payout for solvers",
+        "speed": "Varies by maintainer — typically 1-7 days after PR merge",
+        "fees": "Platform fee charged to bounty creators (not solvers)"
+      },
+      "entry_barrier": {
+        "requires_interview": false,
+        "requires_portfolio": false,
+        "requires_kyc": false,
+        "description": "No signup needed to claim via GitHub comments. Signup + Stripe account needed to receive payouts. Comment /try on issue, submit PR, write /claim #N in PR body."
+      },
+      "volume": {
+        "typical_active": "~30 bounties at a time",
+        "total_available": "$15K-$20K at any time",
+        "growth_trend": "growing"
+      },
+      "quality": {
+        "work_types": ["code (feature implementation, bug fixes, integrations)"],
+        "languages": ["C++", "C", "Rust", "Python", "JavaScript/TypeScript", "PHP", "Go"],
+        "difficulty_range": "Beginner ($50 fixes) to Expert ($13K Godot engine work)"
+      },
+      "api": {
+        "available": true,
+        "public": true,
+        "auth_required": false,
+        "endpoint": "https://api.opire.dev/rewards",
+        "documentation": "https://docs.opire.dev",
+        "automation_capability": "EXCELLENT — fully public API, no auth needed, returns all active bounties with amounts, issue URLs, and claimer counts. Cross-reference with GitHub Issues API to filter closed issues."
+      },
+      "automation_potential": {
+        "auto_discover": true,
+        "auto_prioritize": true,
+        "auto_submit": "Partial — can auto-discover and prioritize. Auto-submission requires opening a PR (possible with AI coding agents).",
+        "notes": "27% of listed bounties point to already-closed issues — must cross-reference with GitHub API. /claim command in PR body triggers payout on merge."
+      },
+      "tos_considerations": "No explicit restrictions against automation found. Commands are designed for bot interaction. Tip: /try, /claim, /reward, /tip are all bot commands.",
+      "scores": {
+        "activity": 8,
+        "payments": 7,
+        "ease_of_access": 9,
+        "volume": 4,
+        "quality": 7
+      }
+    },
+    {
+      "id": "algora",
+      "name": "Algora",
+      "url": "https://algora.io",
+      "status": "active",
+      "status_detail": "Active 2026. Growing. Companies post bounties on GitHub issues. Also recruiting-focused. Bounties $50-$5,000+. Known users: Cal.com, Supabase, Twenty (YC S23), Golem ($15K challenge).",
+      "payment": {
+        "reliability": "high",
+        "methods": ["Stripe (ACH, SEPA, debit/credit)"],
+        "minimum_payout": "No minimum",
+        "speed": "1-3 business days after PR merge",
+        "fees": "19% creator fee (high). No solver fee."
+      },
+      "entry_barrier": {
+        "requires_interview": false,
+        "requires_portfolio": false,
+        "requires_kyc": true,
+        "kyc_timing": "at payout (Stripe Express onboarding requires KYC)",
+        "description": "Sign up via GitHub OAuth, set up Stripe Express, browse bounties, comment /attempt on issue, submit PR with 'Fixes #N', get paid on merge."
+      },
+      "volume": {
+        "typical_active": "50-100 bounties across orgs",
+        "total_available": "Estimates vary — Ziverge alone distributed $143K via Algora",
+        "growth_trend": "growing"
+      },
+      "quality": {
+        "work_types": ["code (features, bug fixes, integrations, docs)"],
+        "languages": ["TypeScript", "Rust", "Go", "Python", "JavaScript", "Kotlin"],
+        "difficulty_range": "$50 (quick fixes) to $5,000+ (complex features)"
+      },
+      "api": {
+        "available": true,
+        "public": true,
+        "auth_required": false,
+        "endpoint": "GET /api/orgs/{org}/bounties",
+        "documentation": "https://api.docs.algora.io",
+        "automation_capability": "GOOD — public API for listing bounties per org. MCP server available (idapixl/algora-mcp-server). No auth needed for reading. Creating bounties requires auth."
+      },
+      "automation_potential": {
+        "auto_discover": true,
+        "auto_prioritize": true,
+        "auto_submit": "Partial — can discover and rank. Claiming requires GitHub comment (/attempt). PR submission is manual (or via coding agent).",
+        "notes": "Algora MCP server exists on GitHub for AI agent integration. Public API is read-only without auth."
+      },
+      "tos_considerations": "No explicit automation restrictions. Designed for developer workflow. AI agents not explicitly banned but not officially supported either.",
+      "scores": {
+        "activity": 7,
+        "payments": 7,
+        "ease_of_access": 8,
+        "volume": 5,
+        "quality": 8
+      }
+    },
+    {
+      "id": "superteam",
+      "name": "Superteam Earn",
+      "url": "https://superteam.fun/earn",
+      "status": "active",
+      "status_detail": "Very active 2026. Web3/Solana ecosystem focus. Explicitly supports AI agents with dedicated Agent API. $50K World Cup hackathon active. 200K+ talent pool.",
+      "payment": {
+        "reliability": "high",
+        "methods": ["USDC", "SOL", "USDT (crypto)"],
+        "minimum_payout": "Varies by bounty (typically $100-$8,500+ per bounty)",
+        "speed": "Varies — crypto payouts are near-instant upon winner selection",
+        "fees": "No platform fee to earners (sponsor pays)"
+      },
+      "entry_barrier": {
+        "requires_interview": false,
+        "requires_portfolio": false,
+        "requires_kyc": false,
+        "description": "Create agent via API (POST /api/agents), get API key, discover agent-eligible listings, submit work via API. Human claims payout with claim code. No KYC for agents."
+      },
+      "volume": {
+        "typical_active": "50-100+ active listings (bounties + projects + hackathons)",
+        "total_available": "$30K-$50K+ at any time",
+        "growth_trend": "growing rapidly"
+      },
+      "quality": {
+        "work_types": ["code", "content", "design", "marketing", "research", "blockchain development"],
+        "languages": ["Rust", "TypeScript", "Python", "Solidity", "any (depends on listing)"],
+        "difficulty_range": "All levels. Content bounties ($100-$3K), dev bounties ($500-$8.5K), hackathons ($50K total)"
+      },
+      "api": {
+        "available": true,
+        "public": false,
+        "auth_required": true,
+        "endpoint": "POST /api/agents, GET /api/agents/listings/live, POST /api/agents/submissions/create",
+        "documentation": "https://superteam.fun/earn (skill.md in repo)",
+        "automation_capability": "BEST IN CLASS — dedicated Agent API. Register agent, discover listings, submit work, all programmatically. Listings have AGENT_ALLOWED or AGENT_ONLY tags. 60 req/h rate limit."
+      },
+      "automation_potential": {
+        "auto_discover": true,
+        "auto_prioritize": true,
+        "auto_submit": "Yes — full API for submission. Human still needed for final payout claim (claim code handoff). AI agent can discover, submit, and notify human.",
+        "notes": "First major platform with explicit AI agent support. No CAPTCHA, no human verification for agent registration."
+      },
+      "tos_considerations": "Explicitly supports AI agents. Dedicated agent endpoints. AGENT_ALLOWED and AGENT_ONLY listing tags. Rate limits: 60 submissions/agent/hour.",
+      "scores": {
+        "activity": 9,
+        "payments": 8,
+        "ease_of_access": 9,
+        "volume": 7,
+        "quality": 7
+      }
+    },
+    {
+      "id": "polar",
+      "name": "Polar.sh",
+      "url": "https://polar.sh",
+      "status": "active",
+      "status_detail": "Very active 2026. 17K+ developers, $10M seed. Open-source billing platform with issue funding. Bounties are pledges on GitHub issues. More maintainer-focused than hunter-focused.",
+      "payment": {
+        "reliability": "high",
+        "methods": ["Stripe Connect (bank transfer)"],
+        "minimum_payout": "No minimum",
+        "speed": "Weekly/monthly payout schedules",
+        "fees": "5% + $0.50 (Starter), lower rates on paid plans. Issue funding: 5% platform fee."
+      },
+      "entry_barrier": {
+        "requires_interview": false,
+        "requires_portfolio": false,
+        "requires_kyc": true,
+        "kyc_timing": "at Stripe Connect onboarding",
+        "description": "Connect GitHub, set up Stripe, find funded issues, close them via PR, receive payout."
+      },
+      "volume": {
+        "typical_active": "Hundreds of issues with pledges across repos",
+        "total_available": "Variable — depends on community funding of specific projects",
+        "growth_trend": "growing (10K+ devs in early 2026)"
+      },
+      "quality": {
+        "work_types": ["code (features, bug fixes) — whatever issues the community funds"],
+        "languages": "Any",
+        "difficulty_range": "Wide range — whatever issues receive pledges"
+      },
+      "api": {
+        "available": true,
+        "public": false,
+        "auth_required": true,
+        "endpoint": "https://api.polar.sh/v1 (REST API with OAuth2/API keys)",
+        "documentation": "https://polar.sh/docs/api-reference",
+        "automation_capability": "GOOD — full REST API. GitHub issue funding can be queried. Webhooks for events. Open-source codebase (Apache 2.0)."
+      },
+      "automation_potential": {
+        "auto_discover": true,
+        "auto_prioritize": true,
+        "auto_submit": "Partial — can discover funded issues via API. PR submission is external (GitHub).",
+        "notes": "Polar is open-source and self-hostable. API is comprehensive but requires OAuth2."
+      },
+      "tos_considerations": "No automation restrictions found. Open-source platform. API-first design.",
+      "scores": {
+        "activity": 8,
+        "payments": 7,
+        "ease_of_access": 7,
+        "volume": 4,
+        "quality": 7
+      }
+    },
+    {
+      "id": "taskbounty",
+      "name": "TaskBounty",
+      "url": "https://www.task-bounty.com",
+      "status": "active",
+      "status_detail": "Active 2026. Built specifically for AI agents. Real GitHub issues with crypto/USD bounties. Sandbox verification. 80% solver cut.",
+      "payment": {
+        "reliability": "high",
+        "methods": ["USDC (Base/Solana)", "ETH", "BTC", "USD bank transfer (Stripe Connect)"],
+        "minimum_payout": "No minimum for crypto. $50 threshold for monthly batch payouts (bank).",
+        "speed": "1 business day for verified fixes. Instant for crypto.",
+        "fees": "20% platform fee (80% to solver). Lower for high-volume."
+      },
+      "entry_barrier": {
+        "requires_interview": false,
+        "requires_portfolio": false,
+        "requires_kyc": false,
+        "kyc_timing": "Only for USD bank transfers",
+        "description": "Sign up, get API key, point agent at bounties. Agent clones repo (short-lived read-only token), pushes fix, opens PR. Sandbox verifies fix. Crypto payout is fully automated."
+      },
+      "volume": {
+        "typical_active": "Tens of bounties ($10-$500 range)",
+        "total_available": "Moderate — growing. Private repos included.",
+        "growth_trend": "growing (launched 2026)"
+      },
+      "quality": {
+        "work_types": ["bug fixes", "test coverage improvements", "small features", "dependency upgrades"],
+        "languages": ["Python", "TypeScript", "Rust", "Go", "JavaScript", "any"],
+        "difficulty_range": "Small-medium ($10-$500). Well-scoped issues."
+      },
+      "api": {
+        "available": true,
+        "public": false,
+        "auth_required": true,
+        "endpoint": "GET /api/v1/tasks, POST /api/v1/tasks/{id}/access, POST /api/v1/submissions",
+        "documentation": "https://www.task-bounty.com/for-agents (with OpenAPI 3.1 spec)",
+        "automation_capability": "EXCELLENT — designed for AI agents. REST API. MCP tools. Pre-baked configs for Codex Cloud, Cursor, Cline, Aider. Agent can fully complete loop: discover → access code → submit PR → get paid."
+      },
+      "automation_potential": {
+        "auto_discover": true,
+        "auto_prioritize": true,
+        "auto_submit": "YES — full agent workflow. Agent gets short-lived repo clone URL, pushes fix, submits PR URL via API. Verification is automated in sandbox.",
+        "notes": "Built for AI agents from day one. Crypto payouts can be fully automated (no human in loop). Multi-agent competitive marketplace. Regression test required for every fix."
+      },
+      "tos_considerations": "Explicitly designed for AI agents. Automated verification. Crypto payouts without KYC. 80/20 split. 1 retry per failed submission.",
+      "scores": {
+        "activity": 7,
+        "payments": 8,
+        "ease_of_access": 10,
+        "volume": 4,
+        "quality": 7
+      }
+    },
+    {
+      "id": "onlydust",
+      "name": "OnlyDust",
+      "url": "https://www.onlydust.com",
+      "status": "active",
+      "status_detail": "Active 2026. $18M distributed to 4,000+ contributors. Focused on StarkNet, Stellar, Flare Network ecosystems. Fellowship program ($300-$5K/month). More grants/project-based than per-bounty.",
+      "payment": {
+        "reliability": "high",
+        "methods": ["Crypto wallet (USDC, ETH)", "Bank transfer"],
+        "minimum_payout": "Varies by project/grant",
+        "speed": "Up to 7 business days after approval",
+        "fees": "No platform fee to contributors"
+      },
+      "entry_barrier": {
+        "requires_interview": false,
+        "requires_portfolio": true,
+        "requires_kyc": true,
+        "kyc_timing": "Mandatory before first payout",
+        "description": "Sign up with GitHub, connect wallet, complete KYC, browse projects, apply to issues, submit PRs, get rewarded. Fellowship requires application + interview."
+      },
+      "volume": {
+        "typical_active": "Dozens of projects, hundreds of issues",
+        "total_available": "Continuous (sponsor-funded waves)",
+        "growth_trend": "stable"
+      },
+      "quality": {
+        "work_types": ["code development", "full-time open source contribution"],
+        "languages": ["Rust (Cairo)", "TypeScript", "Python", "Solidity"],
+        "difficulty_range": "Medium to Expert. More sustained contribution than quick bounties."
+      },
+      "api": {
+        "available": true,
+        "public": false,
+        "auth_required": true,
+        "endpoint": "GitHub-based workflow. GitHub App + OAuth integration.",
+        "documentation": "https://docs.onlydust.com",
+        "automation_capability": "LIMITED — platform is GitHub-integrated but no public bounty API. Requires GitHub App installation for full access."
+      },
+      "automation_potential": {
+        "auto_discover": false,
+        "auto_prioritize": false,
+        "auto_submit": false,
+        "notes": "Not designed for automation. Requires human interaction (applications, KYC, invoicing). Better for sustained contribution than automated task completion."
+      },
+      "tos_considerations": "KYC required. US sanctions restrict certain countries. Invoicing required for professional entities. Requires billing profile setup.",
+      "scores": {
+        "activity": 7,
+        "payments": 8,
+        "ease_of_access": 6,
+        "volume": 5,
+        "quality": 8
+      }
+    },
+    {
+      "id": "bountyhub",
+      "name": "BountyHub",
+      "url": "https://bountyhub.dev",
+      "status": "active",
+      "status_detail": "Active 2026. Small but operational. 1-person company. Bounties on GitHub issues. 0% fee for hunters, 10% for creators. Stripe/PayPal. 120 countries.",
+      "payment": {
+        "reliability": "medium",
+        "methods": ["Stripe", "PayPal"],
+        "minimum_payout": "No minimum",
+        "speed": "3-5 business days",
+        "fees": "0% for hunters, 10% for creators"
+      },
+      "entry_barrier": {
+        "requires_interview": false,
+        "requires_portfolio": false,
+        "requires_kyc": true,
+        "kyc_timing": "at payout via Stripe",
+        "description": "Install GitHub App, browse bounties, submit PR, get paid."
+      },
+      "volume": {
+        "typical_active": "Very low (single-digit active bounties typically)",
+        "total_available": "<$10K at any time",
+        "growth_trend": "slow"
+      },
+      "quality": {
+        "work_types": ["code (bug fixes, features)"],
+        "languages": ["Various — Android, web, etc."],
+        "difficulty_range": "All levels"
+      },
+      "api": {
+        "available": false,
+        "public": false,
+        "auth_required": null,
+        "endpoint": "No public API found",
+        "documentation": "No API docs found",
+        "automation_capability": "LOW — no public API. GitHub integration only."
+      },
+      "automation_potential": {
+        "auto_discover": false,
+        "auto_prioritize": false,
+        "auto_submit": false,
+        "notes": "No API for automation. Very small platform. Unlikely to be worth integration effort."
+      },
+      "tos_considerations": "Standard. Too small to have detailed automation policies.",
+      "scores": {
+        "activity": 4,
+        "payments": 6,
+        "ease_of_access": 8,
+        "volume": 2,
+        "quality": 5
+      }
+    },
+    {
+      "id": "opencollective",
+      "name": "OpenCollective",
+      "url": "https://opencollective.com",
+      "status": "active",
+      "status_detail": "Active 2026 but as a fiscal sponsorship/funding platform, not a bounty marketplace. Some projects (JHipster, GameCI) run bounty programs through it. Bounty program paused July-August 2026.",
+      "payment": {
+        "reliability": "high",
+        "methods": ["PayPal", "Bank transfer (Wise)", "Gift cards"],
+        "minimum_payout": "$60-$1,200 (project-dependent)",
+        "speed": "Twice weekly after approval",
+        "fees": "Platform varies by fiscal host"
+      },
+      "entry_barrier": {
+        "requires_interview": false,
+        "requires_portfolio": false,
+        "requires_kyc": false,
+        "kyc_timing": "May require invoicing ability",
+        "description": "Find bounty-labeled issues, submit PR, get merged, submit expense invoice on OpenCollective, get paid. Gift card option for those who can't invoice."
+      },
+      "volume": {
+        "typical_active": "Low — only a handful of projects use bounty system",
+        "total_available": "Small ($60-$1K per bounty)",
+        "growth_trend": "stable/declining"
+      },
+      "quality": {
+        "work_types": ["code (OpenCollective's own repos or partner projects)"],
+        "languages": ["JavaScript", "TypeScript", "Python", "Shell"],
+        "difficulty_range": "Beginner to intermediate"
+      },
+      "api": {
+        "available": true,
+        "public": false,
+        "auth_required": true,
+        "endpoint": "GraphQL API (opencollective.com/api)",
+        "documentation": "docs.opencollective.com",
+        "automation_capability": "MODERATE — GraphQL API exists but bounties are not a first-class API concept. Expense system is the payout mechanism."
+      },
+      "automation_potential": {
+        "auto_discover": false,
+        "auto_prioritize": false,
+        "auto_submit": false,
+        "notes": "Not designed for bounty hunting automation. Better thought of as a payment processor for OSS."
+      },
+      "tos_considerations": "US sanctions restrict certain countries. Invoicing may be required. Gift card alternative available. Bounty program temporarily paused (summer 2026).",
+      "scores": {
+        "activity": 5,
+        "payments": 7,
+        "ease_of_access": 7,
+        "volume": 2,
+        "quality": 6
+      }
+    },
+    {
+      "id": "issuehunt",
+      "name": "IssueHunt",
+      "url": "https://issuehunt.io",
+      "status": "declining",
+      "status_detail": "Still technically online but not well maintained. Japanese bug bounty platform. Stripe payment issues reported. 10% fee. P3NFEST 2026 Spring event was held. Community considers it abandoned by maintainers.",
+      "payment": {
+        "reliability": "low",
+        "methods": ["Stripe-based"],
+        "minimum_payout": "Not specified clearly",
+        "speed": "Slow — payment processing issues reported",
+        "fees": "10% platform fee"
+      },
+      "entry_barrier": {
+        "requires_interview": false,
+        "requires_portfolio": false,
+        "requires_kyc": true,
+        "kyc_timing": "at payout",
+        "description": "Register, find vulnerability or bug, submit report, get validated, receive reward."
+      },
+      "volume": {
+        "typical_active": "Low — mostly stale bounties",
+        "total_available": "Minimal",
+        "growth_trend": "declining"
+      },
+      "quality": {
+        "work_types": ["security vulnerabilities", "code bugs"],
+        "languages": "Any (security-focused)",
+        "difficulty_range": "All levels"
+      },
+      "api": {
+        "available": false,
+        "public": false,
+        "auth_required": null,
+        "endpoint": "No public API found",
+        "documentation": "None found",
+        "automation_capability": "LOW — no API. Platform is declining."
+      },
+      "automation_potential": {
+        "auto_discover": false,
+        "auto_prioritize": false,
+        "auto_submit": false,
+        "notes": "Not worth integrating. Platform is effectively in maintenance mode. Community recommends migrating to Algora or Gitpay."
+      },
+      "tos_considerations": "Japanese company. May have Japan-specific requirements.",
+      "scores": {
+        "activity": 3,
+        "payments": 3,
+        "ease_of_access": 5,
+        "volume": 2,
+        "quality": 5
+      }
+    },
+    {
+      "id": "bountysource",
+      "name": "Bountysource",
+      "url": "https://www.bountysource.com",
+      "status": "dead",
+      "status_detail": "DEFUNCT. Filed for bankruptcy November 2023. Website shows 'temporarily down' since 2024. Parent company (Blockchain Group) stopped responding. Confirmed insolvent. Do not use.",
+      "payment": {
+        "reliability": "none",
+        "methods": ["Historically: PayPal, Bitcoin, Check"],
+        "minimum_payout": "N/A",
+        "speed": "N/A",
+        "fees": "N/A"
+      },
+      "entry_barrier": {
+        "requires_interview": false,
+        "requires_portfolio": false,
+        "requires_kyc": false,
+        "description": "N/A — platform is gone"
+      },
+      "volume": {
+        "typical_active": 0,
+        "total_available": 0,
+        "growth_trend": "dead"
+      },
+      "quality": {
+        "work_types": ["N/A"],
+        "languages": ["N/A"],
+        "difficulty_range": "N/A"
+      },
+      "api": {
+        "available": false,
+        "public": false,
+        "auth_required": null,
+        "endpoint": null,
+        "documentation": null,
+        "automation_capability": "NONE — platform is defunct"
+      },
+      "automation_potential": {
+        "auto_discover": false,
+        "auto_prioritize": false,
+        "auto_submit": false,
+        "notes": "Platform is dead. Do not integrate."
+      },
+      "tos_considerations": "N/A",
+      "scores": {
+        "activity": 0,
+        "payments": 0,
+        "ease_of_access": 0,
+        "volume": 0,
+        "quality": 0
+      }
+    },
+    {
+      "id": "devpost",
+      "name": "Devpost",
+      "url": "https://devpost.com",
+      "status": "active",
+      "status_detail": "Active 2026. Major hackathon platform. Hundreds of hackathons. Prizes from $1K to $1M+ (RevenueCat Shipaton 2026: $700K+ prizes). Not a continuous bounty platform — event-based.",
+      "payment": {
+        "reliability": "high",
+        "methods": ["Bank transfer", "Crypto", "Credits", "SWAG"],
+        "minimum_payout": "Varies by hackathon ($1K-$50K+ typical)",
+        "speed": "Weeks after judging",
+        "fees": "None to participants"
+      },
+      "entry_barrier": {
+        "requires_interview": false,
+        "requires_portfolio": false,
+        "requires_kyc": false,
+        "kyc_timing": "Only if you win (tax forms)",
+        "description": "Register, form team, build project, submit by deadline, get judged. no interview. Results-based evaluation."
+      },
+      "volume": {
+        "typical_active": "Hundreds of hackathons running at any time",
+        "total_available": "Millions in prizes annually",
+        "growth_trend": "stable"
+      },
+      "quality": {
+        "work_types": ["code (full projects)", "design", "hardware", "AI/ML models", "blockchain"],
+        "languages": "Any",
+        "difficulty_range": "All levels — beginner to expert tracks"
+      },
+      "api": {
+        "available": true,
+        "public": false,
+        "auth_required": true,
+        "endpoint": "Devpost API (partner access)",
+        "documentation": "Partner program required",
+        "automation_capability": "LOW — API requires partnership. Not designed for automated participation."
+      },
+      "automation_potential": {
+        "auto_discover": true,
+        "auto_prioritize": true,
+        "auto_submit": false,
+        "notes": "Can scrape/list hackathons. Cannot auto-participate (requires full project submission, team formation, presentations)."
+      },
+      "tos_considerations": "Standard hackathon terms. No automation restrictions found. Each hackathon has its own rules.",
+      "scores": {
+        "activity": 8,
+        "payments": 6,
+        "ease_of_access": 6,
+        "volume": 5,
+        "quality": 8
+      }
+    },
+    {
+      "id": "dorahacks",
+      "name": "DoraHacks",
+      "url": "https://dorahacks.io",
+      "status": "active",
+      "status_detail": "Active 2026. Hackathon platform with bounty challenges. Web3/crypto/blockchain focus. Prize pools from $2K to $100K. Bounty challenges, hackathons, grant programs.",
+      "payment": {
+        "reliability": "medium",
+        "methods": ["Crypto (USDC, ETH)", "Bank transfer"],
+        "minimum_payout": "Varies by event",
+        "speed": "After event conclusion + judging",
+        "fees": "None to participants"
+      },
+      "entry_barrier": {
+        "requires_interview": false,
+        "requires_portfolio": false,
+        "requires_kyc": false,
+        "kyc_timing": "Only for winners (tax)",
+        "description": "Register, form team, build project, submit demo video + GitHub repo link, get judged."
+      },
+      "volume": {
+        "typical_active": "5-15 active hackathons/bounties at a time",
+        "total_available": "$50K-$500K in active prize pools",
+        "growth_trend": "stable"
+      },
+      "quality": {
+        "work_types": ["blockchain development", "smart contracts", "dApps", "AI/ML", "infrastructure"],
+        "languages": ["Solidity", "Rust", "TypeScript", "Python", "Go"],
+        "difficulty_range": "Medium to Expert"
+      },
+      "api": {
+        "available": false,
+        "public": false,
+        "auth_required": null,
+        "endpoint": "No public API found",
+        "documentation": "None found",
+        "automation_capability": "LOW — no public API. Manual participation required."
+      },
+      "automation_potential": {
+        "auto_discover": false,
+        "auto_prioritize": false,
+        "auto_submit": false,
+        "notes": "Hackathon format doesn't lend itself to automation. Requires full project builds with demo videos."
+      },
+      "tos_considerations": "Standard hackathon terms. Individual event rules apply.",
+      "scores": {
+        "activity": 7,
+        "payments": 6,
+        "ease_of_access": 6,
+        "volume": 5,
+        "quality": 7
+      }
+    },
+    {
+      "id": "gitcoin",
+      "name": "Gitcoin",
+      "url": "https://gitcoin.co",
+      "status": "active",
+      "status_detail": "Active 2026 but pivoted to Quadratic Funding grants model. Bounties page is mostly archival. GG24 distributed $1.8M via grants. No longer a primary bounty platform.",
+      "payment": {
+        "reliability": "medium",
+        "methods": ["Crypto (ETH, stablecoins)"],
+        "minimum_payout": "Varies by grant round",
+        "speed": "After grant round concludes (monthly/quarterly)",
+        "fees": "None to participants"
+      },
+      "entry_barrier": {
+        "requires_interview": false,
+        "requires_portfolio": true,
+        "requires_kyc": false,
+        "kyc_timing": "For larger grant amounts",
+        "description": "For bounties: browse, claim, complete, submit. For grants: apply with project proposal during rounds."
+      },
+      "volume": {
+        "typical_active": "Bounties: near zero. Grants: rounds run quarterly.",
+        "total_available": "$1M-$2M per grant round",
+        "growth_trend": "declining (bounties) / stable (grants)"
+      },
+      "quality": {
+        "work_types": ["code (open source)", "web3 infrastructure", "public goods"],
+        "languages": ["Solidity", "TypeScript", "Python", "Rust"],
+        "difficulty_range": "Medium to Expert"
+      },
+      "api": {
+        "available": true,
+        "public": false,
+        "auth_required": true,
+        "endpoint": "Allo Protocol / Grants Stack API",
+        "documentation": "https://docs.gitcoin.co",
+        "automation_capability": "MODERATE — Allo protocol is on-chain. Smart contracts enable programmatic interaction but not for bounty-style work."
+      },
+      "automation_potential": {
+        "auto_discover": true,
+        "auto_prioritize": false,
+        "auto_submit": false,
+        "notes": "Bounties are no longer active. Grants require proposals, not task completion."
+      },
+      "tos_considerations": "Standard. KYC may be required for grants.",
+      "scores": {
+        "activity": 5,
+        "payments": 5,
+        "ease_of_access": 5,
+        "volume": 3,
+        "quality": 6
+      }
+    },
+    {
+      "id": "codetriage",
+      "name": "CodeTriage",
+      "url": "https://www.codetriage.com",
+      "status": "active",
+      "status_detail": "Active 2026. 100K+ developers, 10K+ repos. But NOT a bounty/payment platform. Sends open issues to your inbox for volunteer contribution. No money involved.",
+      "payment": {
+        "reliability": "none",
+        "methods": [],
+        "minimum_payout": 0,
+        "speed": "N/A",
+        "fees": "N/A"
+      },
+      "entry_barrier": {
+        "requires_interview": false,
+        "requires_portfolio": false,
+        "requires_kyc": false,
+        "description": "Subscribe to repos, receive issue suggestions in email, contribute voluntarily."
+      },
+      "volume": {
+        "typical_active": "~10K repos with active issues",
+        "total_available": 0,
+        "growth_trend": "stable"
+      },
+      "quality": {
+        "work_types": ["code (volunteer open source)"],
+        "languages": "All (Ruby/Rails project itself)",
+        "difficulty_range": "All levels"
+      },
+      "api": {
+        "available": false,
+        "public": false,
+        "auth_required": null,
+        "endpoint": null,
+        "documentation": null,
+        "automation_capability": "LOW — no API. Not a revenue platform."
+      },
+      "automation_potential": {
+        "auto_discover": false,
+        "auto_prioritize": false,
+        "auto_submit": false,
+        "notes": "Not a revenue platform. No payments involved. Skip for OWNEX integration."
+      },
+      "tos_considerations": "Volunteer platform. No payments.",
+      "scores": {
+        "activity": 7,
+        "payments": 0,
+        "ease_of_access": 9,
+        "volume": 7,
+        "quality": 6
+      }
+    },
+    {
+      "id": "layer3",
+      "name": "Layer3",
+      "url": "https://layer3.xyz",
+      "status": "active",
+      "status_detail": "Active 2026. Web3 learn-and-earn platform. Complete quests, mint CUBEs (NFT credentials), earn L3 tokens ($0.01 each). Not reliable income — gas fees may exceed rewards. More educational than professional bounty platform.",
+      "payment": {
+        "reliability": "low",
+        "methods": ["L3 tokens (value ~$0.01)", "CUBE NFTs"],
+        "minimum_payout": "Gas fees required for some tasks (~$0.27-$3.00 per mint)",
+        "speed": "Instant (on-chain)",
+        "fees": "Gas fees on Ethereum/L2 networks"
+      },
+      "entry_barrier": {
+        "requires_interview": false,
+        "requires_portfolio": false,
+        "requires_kyc": false,
+        "description": "Connect crypto wallet (MetaMask), complete quests, mint CUBEs, earn L3 tokens."
+      },
+      "volume": {
+        "typical_active": "Hundreds of quests/activations",
+        "total_available": "Low monetary value (~$0.01 per L3 token)",
+        "growth_trend": "stable but declining token value"
+      },
+      "quality": {
+        "work_types": ["on-chain tasks (swaps, bridges, mints)", "educational content", "quizzes"],
+        "languages": "No coding required for most tasks",
+        "difficulty_range": "Beginner"
+      },
+      "api": {
+        "available": true,
+        "public": false,
+        "auth_required": true,
+        "endpoint": "Smart contract-based (CUBE.sol, Factory.sol, Escrow.sol)",
+        "documentation": "https://github.com/layer3xyz/cubes",
+        "automation_capability": "MODERATE — on-chain contracts are programmable. Can automate interactions but value is very low."
+      },
+      "automation_potential": {
+        "auto_discover": true,
+        "auto_prioritize": false,
+        "auto_submit": true,
+        "notes": "Could automate on-chain quest completion but the ROI is terrible. Gas fees may exceed rewards. Token value is $0.01."
+      },
+      "tos_considerations": "On-chain platform. No traditional ToS restrictions on automation.",
+      "scores": {
+        "activity": 6,
+        "payments": 2,
+        "ease_of_access": 7,
+        "volume": 6,
+        "quality": 3
+      }
+    }
+  ],
+
+  "additional_platforms_discovered": [
+    {
+      "id": "claudelance",
+      "name": "Claudelance",
+      "url": "https://claudelance.xyz",
+      "status": "active",
+      "status_detail": "New (2026). On-chain AI agent labor marketplace on Celo. ERC-8004 agent identities. Code, research, content, audit tasks. 2% protocol fee. Permissionless.",
+      "payment": {
+        "reliability": "high (on-chain escrow)",
+        "methods": ["cUSD", "CELO", "USDC"],
+        "minimum_payout": "Gas fees + stake required (~0.3 CELO)",
+        "speed": "Instant (on-chain settlement)"
+      },
+      "automation_potential": "HIGH — full on-chain agent workflow. listBounties, claim, submit deliverable, withdraw. SDK available for Claude Code.",
+      "scores": { "activity": 4, "payments": 7, "ease_of_access": 8, "volume": 2, "quality": 6 }
+    },
+    {
+      "id": "botbounty",
+      "name": "BotBounty.ai",
+      "url": "https://www.botbounty.ai",
+      "status": "active",
+      "status_detail": "New (2026). AI agent marketplace. No signup needed — API calls only. Tasks from $1+. ETH on Base L2. 90% auto-verify. Funds held in smart contract escrow.",
+      "payment": {
+        "reliability": "high (smart contract escrow)",
+        "methods": ["ETH on Base L2"],
+        "minimum_payout": "$1",
+        "speed": "Instant"
+      },
+      "automation_potential": "EXCELLENT — API-only, no signup, get /api/agent/bounties, claim, complete, submit. Designed for agents.",
+      "scores": { "activity": 4, "payments": 6, "ease_of_access": 9, "volume": 2, "quality": 5 }
+    },
+    {
+      "id": "bountyninja",
+      "name": "Bounty.ninja",
+      "url": "https://bounty.ninja",
+      "status": "active",
+      "status_detail": "New. Nostr + Cashu (Bitcoin). Anonymous. Zero bounties posted as of research. Too early.",
+      "automation_potential": "POSSIBLE — open protocol (Nostr) but no active bounties.",
+      "scores": { "activity": 2, "payments": 5, "ease_of_access": 8, "volume": 1, "quality": 4 }
+    },
+    {
+      "id": "gitpay",
+      "name": "Gitpay.me",
+      "url": "https://gitpay.me",
+      "status": "active",
+      "status_detail": "Active but low volume. Open-source platform (211 GitHub stars). 8% fee. Bank transfer/PayPal. Supports bounties and payment requests. Small community.",
+      "automation_potential": "LOW — no public API for automation. GitHub-integrated workflow.",
+      "scores": { "activity": 4, "payments": 6, "ease_of_access": 7, "volume": 2, "quality": 6 }
+    },
+    {
+      "id": "bounty0x",
+      "name": "Bounty0x",
+      "url": "https://bounty0x.io",
+      "status": "active",
+      "status_detail": "Active. Cryptocurrency bounty platform. Marketing, dev, creative tasks. Multi-chain token payments. KYC supported. Sheriffs review submissions. Hundreds of bounties.",
+      "automation_potential": "LOW — no public API documented. Human review process.",
+      "scores": { "activity": 5, "payments": 5, "ease_of_access": 6, "volume": 4, "quality": 5 }
+    }
+  ],
+
+  "summary_ranking": {
+    "methodology": "Ranked by combined score for OWNEX integration potential. Weights: automation (30%), ease of access (20%), payments (20%), activity (15%), volume (10%), quality (5%).",
+    "top_tier_integrate_immediately": [
+      {
+        "rank": 1,
+        "name": "Superteam Earn",
+        "combined_score": 8.6,
+        "why": "Dedicated Agent API, explicit AI agent support, no KYC for agents, substantial bounty volume ($30K+), crypto payouts, AGENT_ALLOWED/AGENT_ONLY tags"
+      },
+      {
+        "rank": 2,
+        "name": "TaskBounty",
+        "combined_score": 8.2,
+        "why": "Built for AI agents, full API lifecycle (discover → access → submit → get paid), sandbox verification, crypto/USD payouts, no KYC for crypto"
+      },
+      {
+        "rank": 3,
+        "name": "Opire",
+        "combined_score": 7.8,
+        "why": "Fully public API (no auth!), /try → /claim bot commands, no platform fee to solvers, up to $13K+ bounties, cross-reference with GitHub API needed"
+      }
+    ],
+    "second_tier_high_potential": [
+      {
+        "rank": 4,
+        "name": "Algora",
+        "combined_score": 7.4,
+        "why": "Public bounty API, MCP server available, quality bounties ($50-$5K), KYC at payout (not at entry)"
+      },
+      {
+        "rank": 5,
+        "name": "Polar.sh",
+        "combined_score": 6.9,
+        "why": "Open-source, full REST API, issue funding model works well, webhooks, GitHub-native"
+      },
+      {
+        "rank": 6,
+        "name": "Claudelance",
+        "combined_score": 6.2,
+        "why": "On-chain agent marketplace, ERC-8004 identities, SDK for Claude Code, 2% fee, instant settlement"
+      }
+    ],
+    "third_tier_niche_or_limited": [
+      { "rank": 7, "name": "OnlyDust", "combined_score": 6.1, "why": "Good payments but KYC required, no automation API, requires sustained contribution" },
+      { "rank": 8, "name": "BotBounty.ai", "combined_score": 5.8, "why": "API-only, agent-friendly but very early stage, low volume" },
+      { "rank": 9, "name": "Devpost", "combined_score": 5.7, "why": "High activity but hackathon format doesn't fit automation, no API for participation" },
+      { "rank": 10, "name": "OpenCollective", "combined_score": 5.0, "why": "Not a bounty platform per se, limited volume, GraphQL API available" },
+      { "rank": 11, "name": "DoraHacks", "combined_score": 4.9, "why": "Hackathon format, no API, manual participation needed" }
+    ],
+    "fourth_tier_skip": [
+      { "rank": 12, "name": "BountyHub", "combined_score": 4.3, "why": "No API, 1-person company, very low volume" },
+      { "rank": 13, "name": "Gitcoin", "combined_score": 4.2, "why": "Bounties dead, pivoted to grants, no task-based work" },
+      { "rank": 14, "name": "Layer3", "combined_score": 3.5, "why": "Token value $0.01, gas fees may exceed rewards, educational not professional" },
+      { "rank": 15, "name": "IssueHunt", "combined_score": 3.4, "why": "Declining, payment issues, community recommends migration" },
+      { "rank": 16, "name": "CodeTriage", "combined_score": 2.8, "why": "No payments involved, volunteer only" },
+      { "rank": 17, "name": "Bounty0x", "combined_score": 4.0, "why": "Low automation potential, no API, manual review" },
+      { "rank": 18, "name": "Gitpay.me", "combined_score": 3.8, "why": "Very low volume, no API" },
+      { "rank": 19, "name": "Bounty.ninja", "combined_score": 2.5, "why": "Zero active bounties, too early" },
+      { "rank": 20, "name": "Bountysource", "combined_score": 0.0, "why": "DEAD. Bankruptcy 2023. Do not touch." }
+    ]
+  },
+
+  "integration_recommendations": {
+    "immediate_priority": [
+      "Superteam Earn — Implement Agent API integration first. Register OWNEX agent, auto-discover AGENT_ALLOWED listings, submit work, hand off payouts to human operator.",
+      "TaskBounty — Full automation pipeline. Auto-discover bounties, clone repos via short-lived tokens, generate fixes, submit PRs, receive crypto payouts. No human in loop.",
+      "Opire — Simplest to integrate (no auth API). Poll /rewards endpoint, cross-reference GitHub Issues API, auto-filter actionable bounties, attempt via /try command."
+    ],
+    "second_wave": [
+      "Algora — Public API for discovery. Submit via GitHub PR. KYC required at payout time.",
+      "Polar.sh — API for discovering funded issues. Open-source, could self-host.",
+      "Claudelance — On-chain integration. Smart contract interaction for fully automated agent participation."
+    ],
+    "monitor": [
+      "BotBounty.ai — Very early but designed for agents. Check back in 6 months.",
+      "BountyHub — Too small but 0% hunter fee is attractive. Needs API."
+    ],
+    "skip": [
+      "Bountysource (dead), IssueHunt (declining), CodeTriage (no money), Layer3 (negative ROI), Gitcoin (pivoted)"
+    ]
+  }
+}

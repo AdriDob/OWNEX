@@ -1,0 +1,43 @@
+{
+  "report_type": "platform_research",
+  "date": "2026-07-26",
+  "criteria": "Platforms where work can be obtained through skills test or project evaluation WITHOUT interview and WITHOUT portfolio",
+  "top_rankings": {
+    "best_overall_fit": ["Upwork (9)", "Fiverr (10)", "HackerOne/Bugcrowd (9)", "Freelancer.com (8)", "uTest (8)"],
+    "best_for_automation": ["HackerOne/Bugcrowd (recon/scanning automatable)", "Fiverr (Apify scraper)", "Freelancer.com (public API)", "Upwork (3rd-party scrapers)"],
+    "best_for_zero_experience": ["uTest (Academy included)", "Fiverr (no vetting)", "Upwork (beginner projects)", "UserTesting (no tech skills)"],
+    "best_for_high_earnings": ["Immunefi (up to $10M/ report)", "HackerOne/Bugcrowd ($500-$10K)", "Upwork ($15-150/hr)"]
+  },
+  "platforms": [
+    {"name": "Upwork", "score_fit": 9, "score_volume": 9, "score_automation": 5, "type": "freelance", "api": true, "interview_required": false, "notes": "No mandatory tests since 2019. Escrow-based payments. 20% fee. 205+ coding jobs."},
+    {"name": "Fiverr", "score_fit": 10, "score_volume": 9, "score_automation": 7, "type": "gig", "api": false, "interview_required": false, "notes": "Zero barrier. Buyers come to you. 20% fee. 16K+ automation results."},
+    {"name": "Freelancer.com", "score_fit": 9, "score_volume": 8, "score_automation": 8, "type": "contest", "api": true, "interview_required": false, "notes": "Contest model + bidding. Public REST API. 5K+ open projects."},
+    {"name": "HackerOne", "score_fit": 10, "score_volume": 8, "score_automation": 9, "type": "bug_bounty", "api": true, "interview_required": false, "notes": "Pure evaluation. No fee. API for automation. 2,500+ programs."},
+    {"name": "Bugcrowd", "score_fit": 10, "score_volume": 7, "score_automation": 9, "type": "bug_bounty", "api": true, "interview_required": false, "notes": "Pure evaluation. AI-assisted triage. API available."},
+    {"name": "Intigriti", "score_fit": 10, "score_volume": 6, "score_automation": 8, "type": "bug_bounty", "api": true, "interview_required": false, "notes": "EU-based. Less competition. Growing fast."},
+    {"name": "Immunefi", "score_fit": 9, "score_volume": 4, "score_automation": 8, "type": "web3", "api": false, "interview_required": false, "notes": "Up to $10M per report. Web3/Solidity required."},
+    {"name": "uTest", "score_fit": 10, "score_volume": 7, "score_automation": 2, "type": "testing", "api": false, "interview_required": false, "notes": "Free Academy. 1M+ testers. $10-$50 per bug."},
+    {"name": "Topcoder", "score_fit": 10, "score_volume": 5, "score_automation": 1, "type": "competitive", "api": false, "interview_required": false, "notes": "Cash prizes $50K+. Pure performance-based."},
+    {"name": "Codementor", "score_fit": 7, "score_volume": 5, "score_automation": 1, "type": "mentoring", "api": false, "interview_required": false, "notes": "$60-150/hr. Vetting but no formal interview."},
+    {"name": "LinkedIn Services", "score_fit": 6, "score_volume": 4, "score_automation": 5, "type": "freelance", "api": false, "interview_required": false, "notes": "0% commission. Requires Premium ($48/mo). No built-in payments."},
+    {"name": "UserTesting", "score_fit": 10, "score_volume": 5, "score_automation": 1, "type": "usability", "api": false, "interview_required": false, "notes": "$5-$120 per test. Demographic-dependent."},
+    {"name": "Toptal", "score_fit": 1, "score_volume": 3, "score_automation": 1, "type": "freelance", "api": false, "interview_required": true, "notes": "DOES NOT FIT. Multi-round interview process."},
+    {"name": "HackerEarth", "score_fit": 2, "score_volume": 2, "score_automation": 2, "type": "hiring", "api": true, "interview_required": true, "notes": "DOES NOT FIT. Leads to traditional hiring."},
+    {"name": "HackerRank", "score_fit": 2, "score_volume": 1, "score_automation": 2, "type": "hiring", "api": false, "interview_required": true, "notes": "DOES NOT FIT. Skills assessment for hiring."}
+  ],
+  "additional_platforms_found": [
+    "Code4rena (Web3 audit contests, no interview)",
+    "Sherlock (Web3 audit + insurance, contest model)",
+    "HackenProof (Web2 + Web3 bug bounty)",
+    "TryMyUI (usability testing, no interview)",
+    "TestBirds (European crowd testing)",
+    "Open Bug Bounty (learning, no payment)",
+    "YesWeHack (EU bug bounty)",
+    "Cobalt.io (pentest, requires vetting - DOES NOT FIT)"
+  ],
+  "strategic_recommendation": {
+    "primary": "Upwork + Fiverr for consistent income",
+    "automation_focus": "Bug bounty platforms (H1/BC) for highest automation ROI",
+    "entry_path": "uTest (testing) → Fiverr (micro-gigs) → Upwork (projects) → HackerOne (bounties)"
+  }
+}
