@@ -18,7 +18,7 @@ from core.copilot.permissions import AuthorityLevel, DecisionConfidence, PolicyE
 from core.copilot.planner import Plan, Planner
 from core.copilot.publisher import publish_copilot_event
 from core.copilot.recommender import Recommendation, Recommender
-from core.copilot.review import CopilotReview, ReviewReport
+from core.copilot.review import CopilotReview, ReviewItem, ReviewReport
 from core.copilot.system_context import SystemContextBuilder
 from core.events.correlation import get_or_create_correlation_id
 from core.events.types import Decision, Events
@@ -271,6 +271,45 @@ class CopilotAgent:
             )
         except Exception as exc:
             logger.debug("Failed to record report in Knowledge Graph: %s", exc)
+
+        # Add acceptance probability prediction
+        try:
+            from core.reports.acceptance.learner import AcceptanceLearner
+
+            platform = finding.get("platform", "hackerone")
+            score = finding.get("quality_score", 0.0) or 0.0
+            dimensions = finding.get("quality_dimensions", {}) or {}
+            evidence_count = finding.get("evidence_count", 0) or 0
+
+            learner = AcceptanceLearner()
+            prediction = learner.predict(platform, score, dimensions, evidence_count)
+
+            acc_item = ReviewItem(
+                "acceptance_probability",
+                f"Probabilidad de aceptación en {platform}: {prediction.probability}% "
+                f"(confianza: {prediction.confidence})",
+            )
+            if prediction.confidence in ("low", "medium") or prediction.probability >= 60:
+                acc_item.pass_(f"Aceptación estimada: {prediction.probability}% ({prediction.confidence} confianza)")
+            else:
+                notes = f"Solo {prediction.probability}% de probabilidad"
+                if prediction.recommendations:
+                    notes += ". " + "; ".join(prediction.recommendations[:3])
+                acc_item.fail(notes)
+            review.add_item(acc_item)
+
+            # Publish acceptance prediction event
+            publish_copilot_event(
+                Events.COPILOT_ANALYSIS_COMPLETED,
+                {
+                    "finding_id": finding.get("id", "unknown"),
+                    "acceptance_probability": prediction.probability,
+                    "acceptance_confidence": prediction.confidence,
+                    "weak_dimensions": prediction.weak_dimensions[:3],
+                },
+            )
+        except Exception as exc:
+            logger.debug("Acceptance prediction unavailable: %s", exc)
 
         rd = review.to_dict()
         publish_copilot_event(

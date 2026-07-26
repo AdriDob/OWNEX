@@ -21,6 +21,7 @@ class IntegrationDef:
     health_check: str = ""  # dotted path to a callable
     docs_url: str = ""
     tags: list[str] = field(default_factory=list)
+    pending_manual_note: str = ""  # shown when disconnected
 
 
 # ── Built-in integrations ────────────────────────────────────────
@@ -32,9 +33,10 @@ BUILTIN_INTEGRATIONS: list[IntegrationDef] = [
         "hackerone",
         "platform",
         "HackerOne bug bounty platform",
-        env_keys=["HACKERONE_API_KEY"],
+        env_keys=["HACKERONE_API_USERNAME", "HACKERONE_API_TOKEN"],
         vault_provider="hackerone",
         tags=["bugbounty"],
+        pending_manual_note="Setear HACKERONE_API_USERNAME y HACKERONE_API_TOKEN desde HackerOne > Settings > API",
     ),
     IntegrationDef(
         "bugcrowd",
@@ -109,7 +111,13 @@ BUILTIN_INTEGRATIONS: list[IntegrationDef] = [
         tags=["notification"],
     ),
     IntegrationDef(
-        "telegram", "messaging", "Telegram bot for push notifications", vault_provider="telegram", tags=["notification"]
+        "telegram",
+        "messaging",
+        "Telegram bot for push notifications",
+        env_keys=["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"],
+        vault_provider="telegram",
+        tags=["notification"],
+        pending_manual_note="Crear bot con @BotFather, setear TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID",
     ),
     IntegrationDef(
         "whatsapp",
@@ -148,6 +156,37 @@ BUILTIN_INTEGRATIONS: list[IntegrationDef] = [
         env_keys=["CATEYE_OUTLOOK_CLIENT_ID", "CATEYE_OUTLOOK_TENANT_ID"],
         vault_provider="outlook",
         tags=["productivity", "email", "calendar"],
+    ),
+    # ── Bug Bounty Intelligence (Open Source integrations) ──
+    IntegrationDef(
+        "claude_bug_bounty",
+        "intelligence",
+        "claude-bug-bounty (shuvonsec) — 20 vuln class autonomous hunting pipeline",
+        icon="🎯",
+        health_check="core.integrations.ext.hunter_bridge.check_hunter",
+        docs_url="https://github.com/shuvonsec/claude-bug-bounty",
+        tags=["bugbounty", "opensource", "claude-code", "hunting"],
+        pending_manual_note="git clone https://github.com/shuvonsec/claude-bug-bounty.git ~/.orion/tools/claude-bug-bounty",
+    ),
+    IntegrationDef(
+        "web3_bug_bounty_skills",
+        "intelligence",
+        "Web3 Bug Bounty Skills (freloque) — 18 smart contract classes from 2,749 Immunefi reports",
+        icon="🔗",
+        health_check="core.integrations.ext.hunter_bridge.check_web3_skills",
+        docs_url="https://github.com/freloque/web3-bug-bounty-hunting-ai-skills",
+        tags=["web3", "opensource", "claude-code", "smart-contracts"],
+        pending_manual_note="git clone https://github.com/freloque/web3-bug-bounty-hunting-ai-skills.git ~/.orion/tools/web3-bug-bounty-skills",
+    ),
+    IntegrationDef(
+        "bounty_hunter_mcp",
+        "intelligence",
+        "Bounty Hunter MCP (L-ubu) — MCP server with route extraction, SSRF callback, CVSS scoring",
+        icon="🔌",
+        health_check="core.integrations.ext.hunter_bridge.check_mcp_hunter",
+        docs_url="https://github.com/L-ubu/bounty-hunter-mcp",
+        tags=["mcp", "opensource", "claude-code", "tool"],
+        pending_manual_note="git clone https://github.com/L-ubu/bounty-hunter-mcp.git ~/.orion/tools/bounty-hunter-mcp && cd ~/.orion/tools/bounty-hunter-mcp && uv sync",
     ),
 ]
 

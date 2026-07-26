@@ -48,7 +48,7 @@ class OffensiveEngine:
             "method": "GET",
             "params": {"id": "123"},
         })
-        print(result.prioritize().to_dict())
+        logger.info(result.prioritize().to_dict())
     """
 
     def __init__(self) -> None:

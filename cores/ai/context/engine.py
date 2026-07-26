@@ -87,7 +87,13 @@ def _build_context() -> dict[str, Any]:
                 confirmed_vids.add(v.endpoint_id)
 
         # ── Batch 3: Findings ──
-        findings = session.query(models.Finding.id, models.Finding.severity, models.Finding.endpoint_id, models.Finding.created_at, models.Finding.target_id).all()
+        findings = session.query(
+            models.Finding.id,
+            models.Finding.severity,
+            models.Finding.endpoint_id,
+            models.Finding.created_at,
+            models.Finding.target_id,
+        ).all()
         sev_counts: dict[str, int] = {}
         new_findings_24h = 0
         payout_by_severity = {"critical": 25000, "high": 10000, "medium": 3000, "low": 500}
@@ -118,22 +124,33 @@ def _build_context() -> dict[str, Any]:
                 reports_ready += 1
 
         # ── Batch 5: Active scans ──
-        active_scans = session.query(models.ScanRun).filter(
-            models.ScanRun.status.in_(["pending", "running"])
-        ).count()
+        active_scans = session.query(models.ScanRun).filter(models.ScanRun.status.in_(["pending", "running"])).count()
 
         # ── Batch 6: Recent scans ──
-        recent_scans = session.query(
-            models.ScanRun.id, models.ScanRun.target_id, models.ScanRun.mode,
-            models.ScanRun.status, models.ScanRun.endpoint_count, models.ScanRun.started_at,
-        ).order_by(models.ScanRun.started_at.desc()).limit(10).all()
+        recent_scans = (
+            session.query(
+                models.ScanRun.id,
+                models.ScanRun.target_id,
+                models.ScanRun.mode,
+                models.ScanRun.status,
+                models.ScanRun.endpoint_count,
+                models.ScanRun.started_at,
+            )
+            .order_by(models.ScanRun.started_at.desc())
+            .limit(10)
+            .all()
+        )
 
         # ── Batch 7: Targets w/ intel for oportunities ──
         target_rows = session.query(
-            models.Target.id, models.Target.name, models.Target.domain, models.Target.created_at,
+            models.Target.id,
+            models.Target.name,
+            models.Target.domain,
+            models.Target.created_at,
         ).all()
         target_ids = [t.id for t in target_rows]
         from cores.targets.models import TargetIntel
+
         intel_map: dict[int, Any] = {}
         if target_ids:
             for intel in session.query(TargetIntel).filter(TargetIntel.id.in_(target_ids)).all():
@@ -150,27 +167,32 @@ def _build_context() -> dict[str, Any]:
             intel = intel_map.get(t.id)
             opp_score = round((intel.opportunity_score or 0) / 10, 1) if intel else 0
             if opp_score > 0:
-                bounties_list.append({
-                    "id": t.id,
-                    "name": t.name or f"Target #{t.id}",
-                    "domain": t.domain or "",
-                    "opportunity_score": opp_score,
-                    "endpoints": ep_counts.get(t.id, 0),
-                    "competition": int(intel.competition_score or 0) if intel else 0,
-                    "freshness": int(intel.freshness_score or 0) if intel else 50,
-                })
+                bounties_list.append(
+                    {
+                        "id": t.id,
+                        "name": t.name or f"Target #{t.id}",
+                        "domain": t.domain or "",
+                        "opportunity_score": opp_score,
+                        "endpoints": ep_counts.get(t.id, 0),
+                        "competition": int(intel.competition_score or 0) if intel else 0,
+                        "freshness": int(intel.freshness_score or 0) if intel else 50,
+                    }
+                )
         bounties_list.sort(key=lambda x: x["opportunity_score"], reverse=True)
 
         # ── Batch 8: Activity (last 24h) ──
         activity: list[dict] = []
         for f in findings:
             if f.created_at and f.created_at >= cutoff_24h:
-                activity.append({
-                    "type": "finding", "id": f.id,
-                    "severity": f.severity or "medium",
-                    "timestamp": f.created_at.isoformat(),
-                })
-        for v in verdict_rows:
+                activity.append(
+                    {
+                        "type": "finding",
+                        "id": f.id,
+                        "severity": f.severity or "medium",
+                        "timestamp": f.created_at.isoformat(),
+                    }
+                )
+        for _v in verdict_rows:
             pass  # skip individual verdict activity for perf
         activity.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
 
@@ -178,6 +200,7 @@ def _build_context() -> dict[str, Any]:
         wallets_data: dict[str, str] = {}
         try:
             from cores.identity_engine import wallet_provider
+
             wallets_data = wallet_provider.get_all_wallets()
         except Exception as exc:
             logger.debug("Failed to load wallets for context: %s", exc)
@@ -186,6 +209,7 @@ def _build_context() -> dict[str, Any]:
         linked_accounts: list[dict] = []
         try:
             from cores.identity_engine import identity_provider
+
             linked_accounts = identity_provider.get_connections()
         except Exception as exc:
             logger.debug("Failed to load linked accounts for context: %s", exc)
@@ -268,9 +292,14 @@ def _build_context() -> dict[str, Any]:
             "scans": {
                 "active": active_scans,
                 "recent": [
-                    {"id": s.id, "target_id": s.target_id, "mode": s.mode or "",
-                     "status": s.status, "endpoints": s.endpoint_count,
-                     "started": s.started_at.isoformat() if s.started_at else ""}
+                    {
+                        "id": s.id,
+                        "target_id": s.target_id,
+                        "mode": s.mode or "",
+                        "status": s.status,
+                        "endpoints": s.endpoint_count,
+                        "started": s.started_at.isoformat() if s.started_at else "",
+                    }
                     for s in recent_scans
                 ],
             },
@@ -299,9 +328,17 @@ def _build_context() -> dict[str, Any]:
             "timestamp": datetime.utcnow().isoformat(),
             "error": str(e),
             "system": {"status": "error", "health_score": 0, "details": [str(e)], "uptime_hours": 0},
-            "counts": {}, "verdicts": {}, "findings": {}, "reports": {},
-            "earnings": {}, "opportunities": {}, "next_action": None,
-            "scans": {}, "activity_24h": {}, "wallets": {}, "linked_accounts": [],
+            "counts": {},
+            "verdicts": {},
+            "findings": {},
+            "reports": {},
+            "earnings": {},
+            "opportunities": {},
+            "next_action": None,
+            "scans": {},
+            "activity_24h": {},
+            "wallets": {},
+            "linked_accounts": [],
             "pipeline": {},
             "_meta": {"error": str(e)},
         }

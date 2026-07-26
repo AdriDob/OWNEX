@@ -32,6 +32,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
+from cores.bounty_scraper.changes import DiscoveryDiff, get_change_tracker
 from cores.scope_reader import read_program_scope
 
 logger = logging.getLogger("cateye.bounty_scraper")
@@ -116,6 +117,7 @@ class ScrapedProgram:
 
     Extended with additional fields for new discovery sources.
     """
+
     name: str
     platform: str
     scope_url: str | None = None
@@ -171,11 +173,7 @@ class BountyScraper:
                         if not name:
                             continue
 
-                        scope_url = (
-                            f"https://hackerone.com{attrs.get('url', '')}"
-                            if attrs.get("url")
-                            else None
-                        )
+                        scope_url = f"https://hackerone.com{attrs.get('url', '')}" if attrs.get("url") else None
                         payout = attrs.get("offers_bounties", False)
 
                         prog = ScrapedProgram(
@@ -220,10 +218,7 @@ class BountyScraper:
         results: list[ScrapedProgram] = []
         for page in range(max_pages):
             try:
-                url = (
-                    "https://bugcrowd.com/programs.json?"
-                    f"page={page + 1}&sort=promoted&order=desc"
-                )
+                url = f"https://bugcrowd.com/programs.json?page={page + 1}&sort=promoted&order=desc"
                 req = urllib.request.Request(url, headers=REQUEST_HEADERS)
                 with urllib.request.urlopen(req, timeout=15) as resp:
                     data = json.loads(resp.read().decode("utf-8"))
@@ -366,8 +361,9 @@ class BountyScraper:
             # Try Next.js __NEXT_DATA__ embedded JSON
             match = re.search(
                 r'<script\s+id=["\']__NEXT_DATA__["\'][^>]*type=["\']application/json["\'][^>]*>'
-                r'(.*?)</script>',
-                body, re.DOTALL,
+                r"(.*?)</script>",
+                body,
+                re.DOTALL,
             )
             if match:
                 data = json.loads(match.group(1))
@@ -382,7 +378,8 @@ class BountyScraper:
                     if isinstance(payout_raw, (int, float)):
                         payout = int(float(payout_raw))
                     else:
-                        _, payout = _parse_reward_range(str(payout_raw))
+                        _, payout_raw_parsed = _parse_reward_range(str(payout_raw))
+                        payout = int(payout_raw_parsed)
                     techs = item.get("technologies", item.get("techStack", []))
                     if isinstance(techs, str):
                         techs = [t.strip() for t in techs.split(",") if t.strip()]
@@ -406,17 +403,22 @@ class BountyScraper:
         if not results:
             cards = re.findall(
                 r'<a[^>]*href=["\'](/bounty/[^"\'/]+/)["\'][^>]*>(.*?)</a>',
-                body, re.DOTALL,
+                body,
+                re.DOTALL,
             )
             for href, title_html in cards:
                 name = re.sub(r"<[^>]+>", "", title_html).strip()
                 if not name:
                     continue
-                results.append(ScrapedProgram(
-                    name=name, platform="immunefi",
-                    source="immunefi_explore", has_rewards=True,
-                    program_url=f"https://immunefi.com{href}",
-                ))
+                results.append(
+                    ScrapedProgram(
+                        name=name,
+                        platform="immunefi",
+                        source="immunefi_explore",
+                        has_rewards=True,
+                        program_url=f"https://immunefi.com{href}",
+                    )
+                )
 
         logger.info("Immunefi: %d programs scraped", len(results))
         return results
@@ -454,40 +456,53 @@ class BountyScraper:
                     continue
                 seen.add(prog_url)
 
-                _, payout = _parse_reward_range(
-                    item.get("bounty", item.get("rewards_range", item.get("payout", "")))
-                )
+                _, payout = _parse_reward_range(item.get("bounty", item.get("rewards_range", item.get("payout", ""))))
                 techs = item.get("technologies", item.get("tech_stack", []))
                 if isinstance(techs, str):
                     techs = [t.strip() for t in techs.split(",") if t.strip()]
                 scopes_raw = item.get("targets", item.get("scopes", item.get("domains", [])))
-                scopes = [s.get("asset_identifier", s) if isinstance(s, dict) else str(s) for s in scopes_raw] if isinstance(scopes_raw, list) else []
+                scopes = (
+                    [s.get("asset_identifier", s) if isinstance(s, dict) else str(s) for s in scopes_raw]
+                    if isinstance(scopes_raw, list)
+                    else []
+                )
 
-                results.append(ScrapedProgram(
-                    name=name, platform=platform,
-                    source="bounty_targets_data",
-                    has_rewards=bool(item.get("offers_bounties", item.get("has_bounty", True))),
-                    estimated_payout=int(payout),
-                    raw_payout_range=item.get("bounty", ""),
-                    technologies=techs,
-                    program_url=prog_url,
-                    domains=[s for s in scopes if not s.startswith("*.") and s != prog_url],
-                    wildcards=[s[2:] for s in scopes if s.startswith("*.")],
-                    raw_data=item,
-                ))
+                results.append(
+                    ScrapedProgram(
+                        name=name,
+                        platform=platform,
+                        source="bounty_targets_data",
+                        has_rewards=bool(item.get("offers_bounties", item.get("has_bounty", True))),
+                        estimated_payout=int(payout),
+                        raw_payout_range=item.get("bounty", ""),
+                        technologies=techs,
+                        program_url=prog_url,
+                        domains=[s for s in scopes if not s.startswith("*.") and s != prog_url],
+                        wildcards=[s[2:] for s in scopes if s.startswith("*.")],
+                        raw_data=item,
+                    )
+                )
 
             _rate_limit(0.5, 1.0)
 
-        logger.info("BountyTargetsData: %d programs across %d platforms", len(results), len(self._BOUNTY_TARGETS_DATA_URLS))
+        logger.info(
+            "BountyTargetsData: %d programs across %d platforms", len(results), len(self._BOUNTY_TARGETS_DATA_URLS)
+        )
         return results
 
     # ── Web Scanner: security.txt, robots.txt, disclosure paths ────────
 
     _DISCLOSURE_PATHS = [
-        "/.well-known/security.txt", "/security.txt",
-        "/responsible-disclosure", "/bug-bounty", "/security",
-        "/report", "/vulnerability-disclosure", "/bugbounty",
-        "/security-policy", "/.well-known/security",
+        "/.well-known/security.txt",
+        "/security.txt",
+        "/responsible-disclosure",
+        "/bug-bounty",
+        "/security",
+        "/report",
+        "/vulnerability-disclosure",
+        "/bugbounty",
+        "/security-policy",
+        "/.well-known/security",
     ]
 
     def scan_domain(self, domain: str) -> ScrapedProgram | None:
@@ -502,7 +517,8 @@ class BountyScraper:
         if not found_paths:
             return None
         return ScrapedProgram(
-            name=domain, platform="web",
+            name=domain,
+            platform="web",
             source="web_scanner",
             has_rewards=True,
             program_url=f"https://{domain}",
@@ -544,7 +560,8 @@ class BountyScraper:
                 return None
 
             return ScrapedProgram(
-                name=domain, platform="web",
+                name=domain,
+                platform="web",
                 source="security_txt",
                 has_rewards=bool(policies),
                 program_url=f"https://{domain}",
@@ -578,7 +595,8 @@ class BountyScraper:
         try:
             cards = re.findall(
                 r'<a[^>]*href=["\'](/program/[^"\'/]+/)["\'][^>]*>\s*<[^>]*>\s*([^<]+)',
-                body, re.DOTALL,
+                body,
+                re.DOTALL,
             )
             seen: set[str] = set()
             for href, name_html in cards:
@@ -586,12 +604,16 @@ class BountyScraper:
                 if not name or name in seen:
                     continue
                 seen.add(name)
-                results.append(ScrapedProgram(
-                    name=name, platform="hackenproof",
-                    source="hackenproof_direct", has_rewards=True,
-                    program_url=f"https://hackenproof.com{href}",
-                    confidence=0.7,
-                ))
+                results.append(
+                    ScrapedProgram(
+                        name=name,
+                        platform="hackenproof",
+                        source="hackenproof_direct",
+                        has_rewards=True,
+                        program_url=f"https://hackenproof.com{href}",
+                        confidence=0.7,
+                    )
+                )
         except Exception as e:
             logger.warning("HackenProof parse error: %s", e)
         logger.info("HackenProof: %d programs scraped", len(results))
@@ -617,12 +639,16 @@ class BountyScraper:
                     if not name or name in seen:
                         continue
                     seen.add(name)
-                    results.append(ScrapedProgram(
-                        name=name, platform="openbugbounty",
-                        source="openbugbounty_direct", has_rewards=True,
-                        program_url=f"https://www.openbugbounty.org{match.group(1)}",
-                        confidence=0.7,
-                    ))
+                    results.append(
+                        ScrapedProgram(
+                            name=name,
+                            platform="openbugbounty",
+                            source="openbugbounty_direct",
+                            has_rewards=True,
+                            program_url=f"https://www.openbugbounty.org{match.group(1)}",
+                            confidence=0.7,
+                        )
+                    )
             except Exception as e:
                 logger.warning("OpenBugBounty parse error page %d: %s", page + 1, e)
         logger.info("OpenBugBounty: %d programs scraped", len(results))
@@ -662,21 +688,33 @@ class BountyScraper:
                     href = match.group(1)
                     title = re.sub(r"<[^>]+>", "", match.group(2)).strip()
                     domain = urllib.parse.urlparse(href).netloc
-                    if any(p in domain for p in [
-                        "hackerone.com", "bugcrowd.com", "intigriti.com",
-                        "yeswehack.com", "immunefi.com", "hackenproof.com",
-                        "openbugbounty.org",
-                    ]):
+                    if any(
+                        p in domain
+                        for p in [
+                            "hackerone.com",
+                            "bugcrowd.com",
+                            "intigriti.com",
+                            "yeswehack.com",
+                            "immunefi.com",
+                            "hackenproof.com",
+                            "openbugbounty.org",
+                        ]
+                    ):
                         continue
                     if not title or href in seen_urls:
                         continue
                     seen_urls.add(href)
-                    results.append(ScrapedProgram(
-                        name=title[:100], platform="web_search",
-                        source="web_search_dorking", has_rewards=True,
-                        program_url=href, description=f"Found via: {query}",
-                        confidence=0.5,
-                    ))
+                    results.append(
+                        ScrapedProgram(
+                            name=title[:100],
+                            platform="web_search",
+                            source="web_search_dorking",
+                            has_rewards=True,
+                            program_url=href,
+                            description=f"Found via: {query}",
+                            confidence=0.5,
+                        )
+                    )
             except Exception:
                 logger.exception("Failed to scrape web search for query: %s", query)
 
@@ -742,15 +780,19 @@ class BountyScraper:
                             payout_match = re.search(r"\$[\d,]+(?:\.\d+)?", content)
                             if payout_match:
                                 payout = int(float(payout_match.group(0).replace(",", "").replace("$", "")))
-                            results.append(ScrapedProgram(
-                                name=repo_name, platform="github",
-                                source="github_security_search", has_rewards=True,
-                                estimated_payout=payout,
-                                raw_payout_range=f"${payout:,}" if payout else "Not specified",
-                                program_url=repo_url,
-                                description="GitHub repo with security policy mentioning bounties",
-                                confidence=0.5,
-                            ))
+                            results.append(
+                                ScrapedProgram(
+                                    name=repo_name,
+                                    platform="github",
+                                    source="github_security_search",
+                                    has_rewards=True,
+                                    estimated_payout=payout,
+                                    raw_payout_range=f"${payout:,}" if payout else "Not specified",
+                                    program_url=repo_url,
+                                    description="GitHub repo with security policy mentioning bounties",
+                                    confidence=0.5,
+                                )
+                            )
             except Exception as e:
                 logger.warning("GitHub search '%s' failed: %s", query, e)
 
@@ -759,7 +801,9 @@ class BountyScraper:
 
     # ── All platforms ──────────────────────────────────────────────────
 
-    def scrape_all(self, max_pages: int = 2, domains: list[str] | None = None, web_search: bool = True, github_search: bool = True) -> list[ScrapedProgram]:
+    def scrape_all(
+        self, max_pages: int = 2, domains: list[str] | None = None, web_search: bool = True, github_search: bool = True
+    ) -> list[ScrapedProgram]:
         """Scrape all supported platforms + optional web scans."""
         all_programs: list[ScrapedProgram] = []
         seen_names: set[str] = set()
@@ -832,17 +876,11 @@ class BountyScraper:
                 slug = re.sub(r"[^a-zA-Z0-9_-]", "_", prog.name.lower().strip())
                 platform_slug = f"{prog.platform}_{slug}"
 
-                existing = (
-                    session.query(models.Target)
-                    .filter(models.Target.name == platform_slug)
-                    .first()
-                )
+                existing = session.query(models.Target).filter(models.Target.name == platform_slug).first()
                 if existing:
                     continue
 
-                domain = prog.domains[0] if prog.domains else (
-                    prog.wildcards[0] if prog.wildcards else f"{slug}.com"
-                )
+                domain = prog.domains[0] if prog.domains else (prog.wildcards[0] if prog.wildcards else f"{slug}.com")
 
                 target = models.Target(
                     name=platform_slug,
@@ -874,18 +912,14 @@ class BountyScraper:
                             session.add(scope_doc)
 
                             # Extract domains from scope if not already set
-                            assets = json.loads(
-                                scope_result.get("assets_extracted", "{}")
-                            )
+                            assets = json.loads(scope_result.get("assets_extracted", "{}"))
                             if isinstance(assets, dict):
                                 if assets.get("wildcards") and not target.domain:
                                     target.domain = assets["wildcards"][0]
                                 if assets.get("domains") and not target.domain:
                                     target.domain = assets["domains"][0]
                     except Exception as e:
-                        logger.warning(
-                            "Failed to read scope for %s: %s", prog.name, e
-                        )
+                        logger.warning("Failed to read scope for %s: %s", prog.name, e)
 
                 session.commit()
                 created_targets.append(target)
@@ -900,14 +934,51 @@ class BountyScraper:
     # ── Prioritize ─────────────────────────────────────────────────────
 
     def prioritize(self, programs: list[ScrapedProgram]) -> list[ScrapedProgram]:
-        """Sort programs by estimated value and freshness (newest first)."""
+        """Sort programs by estimated value and freshness.
+
+        Uses a multi-factor score: payout, platform reputation,
+        confidence, and technology richness.
+        """
+        platform_bonus = {
+            "immunefi": 1.3,
+            "hackerone": 1.15,
+            "bugcrowd": 1.1,
+            "intigriti": 1.05,
+        }
+
         def sort_key(p: ScrapedProgram) -> tuple:
-            payout = p.estimated_payout if p.estimated_payout > 0 else 500
-            new_bonus = 1 if p.is_new else 0
-            reward_bonus = 1 if p.has_rewards else 0
-            return (-payout, -new_bonus, -reward_bonus)
+            payout = max(p.estimated_payout, 500)
+            plat_bonus = platform_bonus.get(p.platform, 1.0)
+            new_bonus = 3 if p.is_new else 0
+            reward_bonus = 2 if p.has_rewards else 0
+            tech_bonus = min(len(p.technologies), 5)
+            conf_bonus = int(p.confidence * 5)
+            score = payout * plat_bonus * (1 + new_bonus * 0.1 + reward_bonus * 0.1)
+            return (-score, -new_bonus, -conf_bonus, -tech_bonus)
 
         return sorted(programs, key=sort_key)
+
+    # ── Scrape with change detection ──────────────────────────────────
+
+    def scrape_with_changes(
+        self,
+        max_pages: int = 2,
+        domains: list[str] | None = None,
+        web_search: bool = True,
+        github_search: bool = True,
+        tracker: Any | None = None,
+    ) -> tuple[list[ScrapedProgram], DiscoveryDiff]:
+        """Run scrape_all() and return programs + change diff."""
+        programs = self.scrape_all(
+            max_pages=max_pages,
+            domains=domains,
+            web_search=web_search,
+            github_search=github_search,
+        )
+        if tracker is None:
+            tracker = get_change_tracker()
+        diff = tracker.compute_diff(programs)
+        return programs, diff
 
     @property
     def program_count(self) -> int:

@@ -20,6 +20,7 @@ class TargetIntel(Base):
     name = Column(String, nullable=True)
     domain = Column(String, nullable=True)
     source = Column(String, nullable=True)
+    target_id = Column(Integer, ForeignKey("targets.id", ondelete="SET NULL"), nullable=True, index=True)
     program_url = Column(String, nullable=True)
 
     quality_score = Column(Integer, nullable=True)

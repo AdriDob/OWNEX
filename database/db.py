@@ -19,6 +19,7 @@ if IS_SQLITE:
 engine = create_engine(DATABASE_URL, **_engine_args)
 
 if IS_SQLITE:
+
     @event.listens_for(engine, "connect")
     def _set_sqlite_pragma(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
@@ -49,7 +50,7 @@ def _ensure_db_dir() -> None:
         db_path.parent.mkdir(parents=True, exist_ok=True)
 
 
-logger = __import__('logging').getLogger('cateye.db')
+logger = __import__("logging").getLogger("cateye.db")
 
 
 def _get_existing_columns(session, table_name: str) -> set[str]:
@@ -63,6 +64,7 @@ def _get_existing_columns(session, table_name: str) -> set[str]:
 # NOTE: Schema migrations are now managed via Alembic (alembic/ directory).
 # The _migrate_columns() function below is legacy and will be removed once
 # all deployments have run `alembic upgrade head`.
+
 
 def _migrate_columns(session, table: str, columns: list[tuple[str, str]]) -> None:
     """Add columns to a table only if they don't already exist."""
@@ -121,67 +123,100 @@ def init_db():
         try:
             session = SessionLocal()
 
-            _migrate_columns(session, "targets_intel", [
-                ("freshness_score", "FLOAT DEFAULT 0.0"),
-                ("competition_score", "FLOAT DEFAULT 0.0"),
-                ("opportunity_score", "FLOAT DEFAULT 0.0"),
-                ("reward_score", "FLOAT DEFAULT 0.0"),
-                ("reward_confidence", "FLOAT DEFAULT 0.0"),
-                ("attack_surface_score", "FLOAT DEFAULT 0.0"),
-                ("evidence_potential_score", "FLOAT DEFAULT 0.0"),
-                ("technology_tags", "VARCHAR DEFAULT ''"),
-                ("cms_detected", "VARCHAR"),
-                ("framework_detected", "VARCHAR"),
-                ("wordpress_plugins_detected", "VARCHAR"),
-            ])
+            _migrate_columns(
+                session,
+                "targets_intel",
+                [
+                    ("target_id", "INTEGER REFERENCES targets(id) ON DELETE SET NULL"),
+                    ("freshness_score", "FLOAT DEFAULT 0.0"),
+                    ("competition_score", "FLOAT DEFAULT 0.0"),
+                    ("opportunity_score", "FLOAT DEFAULT 0.0"),
+                    ("reward_score", "FLOAT DEFAULT 0.0"),
+                    ("reward_confidence", "FLOAT DEFAULT 0.0"),
+                    ("attack_surface_score", "FLOAT DEFAULT 0.0"),
+                    ("evidence_potential_score", "FLOAT DEFAULT 0.0"),
+                    ("technology_tags", "VARCHAR DEFAULT ''"),
+                    ("cms_detected", "VARCHAR"),
+                    ("framework_detected", "VARCHAR"),
+                    ("wordpress_plugins_detected", "VARCHAR"),
+                ],
+            )
 
-            _migrate_columns(session, "reports", [
-                ("program", "VARCHAR DEFAULT ''"),
-                ("target", "VARCHAR DEFAULT ''"),
-                ("vulnerability", "VARCHAR DEFAULT ''"),
-                ("severity", "VARCHAR DEFAULT 'medium'"),
-                ("status", "VARCHAR DEFAULT 'draft'"),
-                ("estimated_reward", "FLOAT DEFAULT 0.0"),
-                ("confirmed_reward", "FLOAT DEFAULT 0.0"),
-                ("currency", "VARCHAR DEFAULT 'USD'"),
-                ("evidence_count", "INTEGER DEFAULT 0"),
-                ("notes", "TEXT DEFAULT ''"),
-                ("timeline", "TEXT DEFAULT '[]'"),
-                ("attachments", "TEXT DEFAULT '[]'"),
-                ("updated_at", "DATETIME"),
-            ])
+            _migrate_columns(
+                session,
+                "reports",
+                [
+                    ("program", "VARCHAR DEFAULT ''"),
+                    ("target", "VARCHAR DEFAULT ''"),
+                    ("vulnerability", "VARCHAR DEFAULT ''"),
+                    ("severity", "VARCHAR DEFAULT 'medium'"),
+                    ("status", "VARCHAR DEFAULT 'draft'"),
+                    ("estimated_reward", "FLOAT DEFAULT 0.0"),
+                    ("confirmed_reward", "FLOAT DEFAULT 0.0"),
+                    ("currency", "VARCHAR DEFAULT 'USD'"),
+                    ("evidence_count", "INTEGER DEFAULT 0"),
+                    ("notes", "TEXT DEFAULT ''"),
+                    ("timeline", "TEXT DEFAULT '[]'"),
+                    ("attachments", "TEXT DEFAULT '[]'"),
+                    ("updated_at", "DATETIME"),
+                ],
+            )
 
-            _migrate_columns(session, "findings", [
-                ("status", "VARCHAR DEFAULT 'open'"),
-            ])
+            _migrate_columns(
+                session,
+                "findings",
+                [
+                    ("status", "VARCHAR DEFAULT 'open'"),
+                ],
+            )
 
-            _migrate_columns(session, "endpoints", [
-                ("hypothesis_id", "VARCHAR"),
-            ])
+            _migrate_columns(
+                session,
+                "endpoints",
+                [
+                    ("hypothesis_id", "VARCHAR"),
+                ],
+            )
 
-            _migrate_columns(session, "notifications", [
-                ("title", "VARCHAR"),
-                ("severity", "VARCHAR DEFAULT 'info'"),
-                ("priority", "VARCHAR DEFAULT 'medium'"),
-                ("dedup_key", "VARCHAR"),
-                ("delivered_via", "VARCHAR"),
-            ])
+            _migrate_columns(
+                session,
+                "notifications",
+                [
+                    ("title", "VARCHAR"),
+                    ("severity", "VARCHAR DEFAULT 'info'"),
+                    ("priority", "VARCHAR DEFAULT 'medium'"),
+                    ("dedup_key", "VARCHAR"),
+                    ("delivered_via", "VARCHAR"),
+                ],
+            )
 
-            _migrate_columns(session, "verdicts", [
-                ("uncertainty_level", "VARCHAR DEFAULT 'unknown'"),
-                ("missing_verifications", "TEXT"),
-                ("alternative_explanations", "TEXT"),
-                ("next_best_test", "TEXT"),
-                ("vulnerability_type", "VARCHAR DEFAULT 'unknown'"),
-            ])
+            _migrate_columns(
+                session,
+                "verdicts",
+                [
+                    ("uncertainty_level", "VARCHAR DEFAULT 'unknown'"),
+                    ("missing_verifications", "TEXT"),
+                    ("alternative_explanations", "TEXT"),
+                    ("next_best_test", "TEXT"),
+                    ("vulnerability_type", "VARCHAR DEFAULT 'unknown'"),
+                ],
+            )
 
-            _migrate_columns(session, "findings", [
-                ("vulnerability_type", "VARCHAR DEFAULT 'unknown'"),
-            ])
+            _migrate_columns(
+                session,
+                "findings",
+                [
+                    ("vulnerability_type", "VARCHAR DEFAULT 'unknown'"),
+                ],
+            )
 
-            _migrate_columns(session, "findings", [
-                ("notes", "TEXT DEFAULT ''"),
-            ])
+            _migrate_columns(
+                session,
+                "findings",
+                [
+                    ("notes", "TEXT DEFAULT ''"),
+                ],
+            )
 
             _migrate_indexes(session)
             session.execute(text("PRAGMA wal_checkpoint(TRUNCATE);"))

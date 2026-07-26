@@ -25,6 +25,8 @@ VULN_TYPE_MAP: dict[str, str] = {
     "xss": "xss",
     "sqli": "sqli",
     "auth_bypass": "auth_bypass",
+    "file_upload": "file_upload",
+    "graphql_injection": "graphql_injection",
     "broken_access_control": "idor",
     "injection": "sqli",
     "path_traversal": "idor",
@@ -292,13 +294,28 @@ def run_promote(session: Any) -> dict[str, Any]:
 
 
 def _infer_vuln_type_from_endpoint(endpoint: Any, target: Any) -> str | None:
-    """Infer vulnerability type from endpoint characteristics."""
+    """Infer vulnerability type from endpoint characteristics.
+
+    First checks path patterns (matching _path_based_hypothesis logic),
+    then falls back to parameter-based inference.
+    """
     path = (getattr(endpoint, "path", "") or "").lower()
     params = (endpoint.parsed_params or {}) if hasattr(endpoint, "parsed_params") else {}
     method = (getattr(endpoint, "method", "GET") or "GET").upper()
 
     param_keys = list(params.keys()) if isinstance(params, dict) else []
 
+    # Path-based inference (mirrors _path_based_hypothesis from scheduler)
+    if path.endswith("/graphql") or "/graphql?" in path:
+        return "graphql_injection"
+
+    if "/upload" in path or "/file" in path or "multipart" in path:
+        return "file_upload"
+
+    if "/admin" in path or "/login" in path or "/auth" in path:
+        return "auth_bypass"
+
+    # Parameter-based inference
     id_patterns = ["id", "user_id", "account_id", "profile_id", "uid", "userId", "ID"]
     if any(k.lower() in id_patterns for k in param_keys) and method in ("GET", "DELETE"):
         return "idor"
@@ -311,11 +328,8 @@ def _infer_vuln_type_from_endpoint(endpoint: Any, target: Any) -> str | None:
     if any(k.lower() in ("q", "query", "search", "s") for k in param_keys) and method in ("GET", "POST"):
         return "xss"
 
-    if "admin" in path and method in ("GET", "POST"):
-        return "auth_bypass"
-
-    if "search" in path or method == "POST":
-        return "sqli"
+    if "search" in path:
+        return "xss"
 
     return None
 

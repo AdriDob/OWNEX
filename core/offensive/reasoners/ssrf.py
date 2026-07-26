@@ -57,8 +57,6 @@ METHOD_RISK: dict[str, float] = {
 
 IP_PATTERN = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
 URL_PATTERN = re.compile(r"https?://", re.IGNORECASE)
-
-
 class SSRFReasoner(BaseReasoner):
     @property
     def vulnerability_type(self) -> str:
@@ -140,6 +138,9 @@ class SSRFReasoner(BaseReasoner):
             why_human_would_investigate=self._build_triager_justification(
                 endpoint, params_of_interest, method, signals
             ),
+            why_triager_might_reject=self._build_triager_rejection(
+                endpoint, params_of_interest, method, signals
+            ),
             parameters_of_interest=params_of_interest,
             signals=signals,
             test_instructions=self._build_test_instructions(endpoint, params_of_interest, method),
@@ -183,6 +184,43 @@ class SSRFReasoner(BaseReasoner):
             f"The endpoint has {len(signals)} SSRF indicators."
         )
 
+    def _build_triager_rejection(
+        self, endpoint: EndpointInfo, params: list[str], method: str, signals: list[str]
+    ) -> str:
+        rejections = []
+        if not endpoint.headers:
+            rejections.append("No authentication or authorization headers present")
+        if not params:
+            rejections.append("No URL parameters detected for exploitation")
+        else:
+            rejections.append("Destination validation may be in place (allowlist/denylist)")
+        if len(signals) < 3:
+            rejections.append("Insufficient technical indicators for credible SSRF")
+        if method.upper() in ["GET", "POST"]:
+            rejections.append("Low-risk methods may not justify investigation time")
+        return ". ".join(rejections)
+
+    def _scope_check(self, endpoint: EndpointInfo) -> str:
+        return (
+            f"Verify that {endpoint.path} is within scope. "
+            f"Check if SSRF and out-of-band testing are permitted. "
+            f"Confirm no rate limits that would block multiple SSRF probe requests."
+        )
+
+    def _reproducibility_notes(self, method: str, params: list[str]) -> str:
+        param = params[0] if params else "the URL parameter"
+        return (
+            f"Use a collaborator (interact.sh, Burp Collaborator) to detect outbound requests. "
+            f"Send {method} request with {param}=http://YOUR-COLLABORATOR-DOMAIN. "
+            f"If a callback is received, SSRF is confirmed."
+        )
+
+    def _build_alternatives(self) -> list[dict[str, Any]]:
+        return [
+            {"label": alt["label"], "description": alt["description"], "how_to_rule_out": alt["how_to_rule_out"]}
+            for alt in SSRF_ALTERNATIVES
+        ]
+
     def _build_test_instructions(self, endpoint: EndpointInfo, params: list[str], method: str) -> list[str]:
         instructions = []
         for param in params[:2]:
@@ -199,24 +237,3 @@ class SSRFReasoner(BaseReasoner):
             "alternative protocols (gopher://, dict://), IPv6 variants, decimal IPs."
         )
         return instructions
-
-    def _build_alternatives(self) -> list[dict[str, Any]]:
-        return [
-            {"label": alt["label"], "description": alt["description"], "how_to_rule_out": alt["how_to_rule_out"]}
-            for alt in SSRF_ALTERNATIVES
-        ]
-
-    def _scope_check(self, endpoint: EndpointInfo) -> str:
-        return (
-            f"Verify that {endpoint.path} is within scope. "
-            f"Check if SSRF and out-of-band testing are permitted. "
-            f"Confirm no rate limits that would block multiple SSRF probe requests."
-        )
-
-    def _reproducibility_notes(self, method: str, params: list[str]) -> str:
-        param = params[0] if params else "the URL parameter"
-        return (
-            f"Use a collaborator (interact.sh, Burp Collaborator) to detect outbound requests. "
-            f"Send {method} request with {param}=http://YOUR-COLLABORATOR-DOMAIN. "
-            f"If a callback is received, SSRF is confirmed."
-        )

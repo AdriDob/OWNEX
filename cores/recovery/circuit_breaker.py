@@ -45,8 +45,7 @@ class CircuitBreaker:
     def _persist(self) -> None:
         store = get_recovery_store()
         opened_at = datetime_to_iso(self._opened_at) if self._opened_at else None
-        cooldown_until = (datetime_to_iso(self._opened_at + self.cooldown)
-                          if self._opened_at else None)
+        cooldown_until = datetime_to_iso(self._opened_at + self.cooldown) if self._opened_at else None
         store.update_circuit_breaker(
             component=self.component,
             state=self._state.value,
@@ -70,12 +69,11 @@ class CircuitBreaker:
 
     @property
     def state(self) -> CircuitState:
-        if self._state == CircuitState.OPEN:
-            if self._opened_at and (time.time() - self._opened_at) >= self.cooldown:
-                self._state = CircuitState.HALF_OPEN
-                self._half_open_attempts = 0
-                self._persist()
-                logger.info("[CB] %s circuit -> half_open (cooldown elapsed)", self.component)
+        if self._state == CircuitState.OPEN and self._opened_at and (time.time() - self._opened_at) >= self.cooldown:
+            self._state = CircuitState.HALF_OPEN
+            self._half_open_attempts = 0
+            self._persist()
+            logger.info("[CB] %s circuit -> half_open (cooldown elapsed)", self.component)
         return self._state
 
     def record_failure(self) -> bool:
@@ -114,7 +112,9 @@ class CircuitBreaker:
         self._opened_at = time.time()
         logger.error(
             "[CB] %s circuit -> OPEN (%d failures, cooldown=%.0fs)",
-            self.component, self._failure_count, self.cooldown,
+            self.component,
+            self._failure_count,
+            self.cooldown,
         )
 
     def can_attempt(self) -> bool:
@@ -165,11 +165,13 @@ class CircuitBreakerRegistry:
 
 def datetime_to_iso(t: float) -> str:
     from datetime import datetime, timezone
+
     return datetime.fromtimestamp(t, tz=timezone.utc).isoformat()
 
 
 def iso_to_datetime(s: str) -> float:
     from datetime import datetime
+
     try:
         return datetime.fromisoformat(s).timestamp()
     except Exception:

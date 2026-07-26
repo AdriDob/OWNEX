@@ -25,7 +25,6 @@ logger = logging.getLogger("cateye.recovery.health_monitor")
 DEFAULT_INTERVAL = 8.0
 MAX_HISTORY = 200
 
-# Map HealthCenter check names → HealthMonitor legacy component names
 _CHECK_TO_COMPONENT: dict[str, str] = {
     "event_bus": "eventbus",
     "agent_bus": "agent_bus",
@@ -102,13 +101,11 @@ class HealthMonitor:
         except Exception:
             center_checks = {}
 
-        # Map HealthCenter checks -> legacy component names
         results: dict[str, bool] = {}
         for hc_name, comp_name in _CHECK_TO_COMPONENT.items():
             ok = center_checks.get(hc_name, False)
             results[comp_name] = ok
 
-        # Fallback for any component not covered by HealthCenter
         for legacy in ("eventbus", "agent_bus", "agents", "database", "memory"):
             if legacy not in results:
                 results[legacy] = center_checks.get(legacy, False)
@@ -152,7 +149,6 @@ class HealthMonitor:
                 self._history[:] = self._history[-MAX_HISTORY // 2 :]
 
     def _check_eventbus(self) -> bool:
-        """Delegate to HealthCenter's 'event_bus' check."""
         try:
             from core.health.engine import get_health_center
 
@@ -164,7 +160,6 @@ class HealthMonitor:
             return False
 
     def _check_agent_bus(self) -> bool:
-        """Delegate to HealthCenter's 'agent_bus' check."""
         try:
             from core.health.engine import get_health_center
 
@@ -175,7 +170,6 @@ class HealthMonitor:
             return False
 
     def _check_agents(self) -> bool:
-        """Delegate to HealthCenter's 'agents_health' check."""
         try:
             from core.health.engine import get_health_center
 
@@ -186,7 +180,6 @@ class HealthMonitor:
             return False
 
     def _check_database(self) -> bool:
-        """Delegate to HealthCenter's 'database' check."""
         try:
             from core.health.engine import get_health_center
 
@@ -198,7 +191,6 @@ class HealthMonitor:
             return False
 
     def _check_memory(self) -> bool:
-        """Delegate to HealthCenter's 'memory' check."""
         try:
             from core.health.engine import get_health_center
 

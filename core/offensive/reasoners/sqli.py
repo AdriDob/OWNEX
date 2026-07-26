@@ -219,3 +219,27 @@ class SQLiReasoner(BaseReasoner):
             f"Then confirm with boolean/time-based techniques. "
             f"Provide exact payload and response for reproduction."
         )
+
+    def _build_triager_rejection(
+        self, endpoint: EndpointInfo, params: list[str], method: str, signals: list[str]
+    ) -> str:
+        rejections = []
+        if not endpoint.headers:
+            rejections.append("No authentication or authorization headers present")
+        if any("time-based" in s for s in signals):
+            rejections.append("Complex blind SQLi requires program approval")
+        if len(signals) < 2:
+            rejections.append("Insufficient SQL injection indicators")
+        if method.upper() in ["GET", "POST"] and not any("'" in str(s) for s in signals):
+            rejections.append("Basic SQLi blocked by simple input validation")
+        return ". ".join(rejections)
+
+    def _build_triager_justification(
+        self, endpoint: EndpointInfo, params: list[str], method: str, signals: list[str]
+    ) -> str:
+        return (
+            f"A human triager would investigate this because: "
+            f"{endpoint.method} {endpoint.path} uses parameters ({params[0] if params else 'unknown'}) "
+            f"that likely interact with a database. The endpoint has {len(signals)} SQL injection "
+            f"indicators. SQL injection is one of the highest-impact vulnerabilities."
+        )

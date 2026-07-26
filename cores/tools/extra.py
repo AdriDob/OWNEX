@@ -4,16 +4,20 @@ import json
 import logging
 import os
 import re
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any
 
 from .amass import AmassTool
-from .base import BaseTool, UnifiedResult
+from .base import BaseTool, ToolResult, UnifiedResult
+from .censys import CensysTool
 from .httpx import HttpxTool
 from .naabu import NaabuTool
 from .nuclei import NucleiTool
 from .shodan import ShodanTool
+from .slither import SlitherTool
 from .subfinder import SubfinderTool
 from .uncover import UncoverTool
 
@@ -500,6 +504,386 @@ class TruffleHogTool(BaseTool):
         return self._parse_output(stdout)
 
 
+class GitleaksTool(BaseTool):
+    """Secret scanning via Gitleaks (GitLab, industry standard).
+
+    Scans git repos or directories for hardcoded secrets, API keys,
+    tokens, and credentials. 150+ patterns across all major platforms.
+    """
+
+    name = "gitleaks"
+    install_hint = "go install -v github.com/gitleaks/gitleaks@latest"
+    min_version = "8.0.0"
+
+    def scan_path(
+        self,
+        path: str | Path,
+        report_format: str = "json",
+        verbose: bool = False,
+        timeout: int = 240,
+    ) -> list[UnifiedResult]:
+        cmd = ["detect", "--source", str(path), "--report-format", report_format, "--no-git"]
+        if verbose:
+            cmd.append("--verbose")
+        result = self.run(cmd, timeout=timeout)
+        return self._parse_output(result.stdout)
+
+    def scan_repo(
+        self,
+        repo_path: str | Path,
+        from_commit: str | None = None,
+        to_commit: str | None = None,
+        timeout: int = 300,
+    ) -> list[UnifiedResult]:
+        cmd = ["detect", "--source", str(repo_path), "--report-format", "json"]
+        if from_commit:
+            cmd.extend(["--log-opts", f"--since={from_commit}"])
+        if to_commit:
+            cmd.extend(["--log-opts", f"--until={to_commit}"])
+        result = self.run(cmd, timeout=timeout)
+        return self._parse_output(result.stdout)
+
+    def _parse_output(self, stdout: str) -> list[UnifiedResult]:
+        results: list[UnifiedResult] = []
+        if not stdout.strip():
+            return results
+        try:
+            data = json.loads(stdout)
+        except json.JSONDecodeError:
+            return results
+        if isinstance(data, dict):
+            entries = data.get("Findings", [])
+        elif isinstance(data, list):
+            entries = data
+        else:
+            return results
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            file_path = entry.get("File", entry.get("file", ""))
+            secret = entry.get("Secret", entry.get("secret", ""))[:100]
+            description = entry.get("Description", entry.get("description", "Gitleaks finding"))
+            rule = entry.get("RuleID", entry.get("rule", ""))
+            severity = "high" if entry.get("Severity", "").lower() in ("high", "critical") else "medium"
+
+            results.append(
+                UnifiedResult(
+                    source="gitleaks",
+                    target=str(file_path),
+                    result_type="secret",
+                    severity=severity,
+                    confidence=0.75,
+                    name=f"[{rule}] {description}",
+                    description=description,
+                    evidence={
+                        "rule": rule,
+                        "file": file_path,
+                        "line": entry.get("StartLine", entry.get("startLine", "")),
+                        "match": (entry.get("Match", entry.get("match", "")) or "")[:200],
+                        "secret": secret,
+                        "commit": entry.get("Commit", entry.get("commit", "")),
+                        "fingerprint": entry.get("Fingerprint", entry.get("fingerprint", "")),
+                    },
+                    tags=["secrets", "gitleaks", rule.lower()],
+                    raw=json.dumps(entry),
+                )
+            )
+        return results
+
+    def parse_output(self, stdout: str) -> list[UnifiedResult]:
+        return self._parse_output(stdout)
+
+
+class GarakTool(BaseTool):
+    """LLM vulnerability scanner (NVIDIA Garak).
+
+    Probes LLMs for prompt injection, jailbreaks, data leakage,
+    agent security, and other AI-specific vulnerabilities.
+
+    Supports 50+ probes, 23 model backends, 28 detectors.
+    """
+
+    name = "garak"
+    install_hint = "pip install garak"
+    min_version = "0.15.0"
+
+    def __init__(self, binary_path: str | None = None):
+        super().__init__(binary_path)
+        self._use_python_module = False
+
+    def is_available(self) -> bool:
+        try:
+            subprocess.run(
+                [self._binary, "--version"],
+                capture_output=True,
+                timeout=10,
+            )
+            return True
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
+        try:
+            subprocess.run(
+                [sys.executable, "-m", "garak", "--version"],
+                capture_output=True,
+                timeout=15,
+            )
+            self._use_python_module = True
+            self._binary = sys.executable
+            return True
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            return False
+
+    def run(
+        self,
+        args: list[str],
+        timeout: int = 120,
+        input_data: str | None = None,
+    ) -> ToolResult:
+        if self._use_python_module:
+            args = ["-m", "garak"] + args
+        return super().run(args, timeout=timeout, input_data=input_data)
+
+    PROBE_TYPES = {
+        "prompt_injection": ["promptinject"],
+        "jailbreak": ["jailbreak"],
+        "data_leakage": ["leakreplay", "leakrevival"],
+        "toxicity": ["toxicity", "dan", "codinggen"],
+        "encoding": ["encoding"],
+    }
+
+    def scan_model(
+        self,
+        model_type: str = "openai",
+        model_name: str = "gpt-3.5-turbo",
+        probes: list[str] | None = None,
+        timeout: int = 600,
+    ) -> list[UnifiedResult]:
+        args = [
+            "--model_type",
+            model_type,
+            "--model_name",
+            model_name,
+            "--probes",
+        ]
+        probe_str = ",".join(probes) if probes else "promptinject"
+        args.append(probe_str)
+        result = self.run(args, timeout=timeout)
+        return self._parse_output(result.stdout)
+
+    def scan_ollama(
+        self,
+        model_name: str = "qwen3-coder:8b",
+        probes: list[str] | None = None,
+        timeout: int = 600,
+    ) -> list[UnifiedResult]:
+        return self.scan_model(
+            model_type="ollama",
+            model_name=model_name,
+            probes=probes or ["promptinject", "jailbreak"],
+            timeout=timeout,
+        )
+
+    def scan_endpoint(
+        self,
+        endpoint_url: str,
+        model_name: str,
+        probes: list[str] | None = None,
+        timeout: int = 600,
+    ) -> list[UnifiedResult]:
+        args = [
+            "--model_type",
+            "rest",
+            "--model_name",
+            model_name,
+            f"--endpoint_uri={endpoint_url}",
+            "--probes",
+        ]
+        probe_str = ",".join(probes) if probes else "promptinject"
+        args.append(probe_str)
+        result = self.run(args, timeout=timeout)
+        return self._parse_output(result.stdout)
+
+    def _parse_output(self, stdout: str) -> list[UnifiedResult]:
+        results: list[UnifiedResult] = []
+        if not stdout.strip():
+            return results
+        for line in stdout.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                data = json.loads(line)
+            except json.JSONDecodeError:
+                if "PASS" in line or "FAIL" in line or "vulnerable" in line.lower():
+                    results.append(
+                        UnifiedResult(
+                            source="garak",
+                            target="",
+                            result_type="vulnerability" if "FAIL" in line or "vulnerable" in line.lower() else "info",
+                            severity="high" if "FAIL" in line else "info",
+                            confidence=0.6,
+                            name=line[:200],
+                            evidence={"raw": line},
+                            tags=["llm_security", "garak"],
+                        )
+                    )
+                continue
+            probe = data.get("probe", data.get("probe_name", data.get("entry_type", "")))
+            detected = data.get("result", data.get("detected", data.get("status", False)))
+            if isinstance(detected, str):
+                detected = detected.lower() in ("true", "yes", "fail", "vulnerable")
+
+            severity = "high" if detected else "low"
+            confidence = 0.7 if detected else 0.5
+
+            results.append(
+                UnifiedResult(
+                    source="garak",
+                    target=str(probe),
+                    result_type="vulnerability" if detected else "llm_test",
+                    severity=severity,
+                    confidence=confidence,
+                    name=f"Garak {probe}: {'DETECTED' if detected else 'PASS'}",
+                    description=data.get("output", data.get("detail", "")),
+                    evidence=data,
+                    tags=["llm_security", "garak", str(probe).lower()],
+                    raw=line,
+                )
+            )
+        return results
+
+    def parse_output(self, stdout: str) -> list[UnifiedResult]:
+        return self._parse_output(stdout)
+
+
+class BrowserUseTool(BaseTool):
+    """Autonomous AI browser agent via browser-use (105k+⭐).
+
+    NOT a subprocess binary — uses the `browser_use` Python library
+    to control a browser via LLM instructions.
+
+    Enables autonomous complex testing:
+    - Auth flow navigation
+    - Multi-step form submission
+    - JavaScript SPA deep crawling
+    - DOM interaction for complex XSS/CSRF testing
+    - Screenshot and evidence capture
+    """
+
+    name = "browser_use"
+    install_hint = "pip install browser-use"
+    min_version = "0.1.0"
+
+    def __init__(self, llm=None, headless: bool = True):
+        self._headless = headless
+        self._agent = None
+        self._llm = llm
+
+    def is_available(self) -> bool:
+        try:
+            import browser_use  # noqa
+
+            return True
+        except ImportError:
+            return False
+
+    def run_task(
+        self,
+        task: str,
+        max_steps: int = 50,
+        timeout: int = 300,
+        llm_config: dict[str, Any] | None = None,
+    ) -> ToolResult:
+        """Execute an autonomous browser task."""
+        try:
+            from browser_use import Agent  # type: ignore[import-untyped]
+            from langchain_openai import ChatOpenAI  # type: ignore[import-untyped]
+        except ImportError:
+            return ToolResult(
+                success=False,
+                results=[],
+                command=task,
+                error="browser-use not installed. pip install browser-use",
+            )
+
+        llm_kwargs = llm_config or {}
+        llm = self._llm or ChatOpenAI(
+            model=llm_kwargs.get("model", "gpt-4"),
+            temperature=0,
+        )
+
+        agent = Agent(
+            task=task,
+            llm=llm,
+            use_vision=llm_kwargs.get("use_vision", False),
+            max_actions_per_step=max_steps,
+            generate_gif=llm_kwargs.get("generate_gif", False),
+        )
+
+        import asyncio
+
+        try:
+            history = asyncio.run(agent.run(max_steps=max_steps))
+        except Exception as exc:
+            return ToolResult(
+                success=False,
+                results=[],
+                command=task,
+                error=str(exc),
+            )
+
+        results: list[UnifiedResult] = []
+        if history:
+            urls_visited = list(history.urls())
+
+            for url in urls_visited:
+                results.append(
+                    UnifiedResult(
+                        source="browser_use",
+                        target=str(url),
+                        result_type="browser_action",
+                        confidence=0.9,
+                        name=f"Browser Use visited: {url}",
+                        evidence={"task": task, "urls": urls_visited[:20]},
+                        tags=["browser_use", "autonomous"],
+                    )
+                )
+
+            # Extract any security-relevant findings from task output
+            final_result = history.final_result() or ""
+            if final_result:
+                for keyword in ("token", "api_key", "password", "secret", "captcha"):
+                    if keyword in final_result.lower():
+                        results.append(
+                            UnifiedResult(
+                                source="browser_use",
+                                target=task[:200],
+                                result_type="finding",
+                                severity="medium",
+                                confidence=0.6,
+                                name=f"Sensitive data in browser output: {keyword}",
+                                description=final_result[:500],
+                                evidence={"task": task, "output": final_result[:1000]},
+                                tags=["browser_use", keyword],
+                            )
+                        )
+
+        return ToolResult(
+            success=True,
+            results=results,
+            command=task,
+        )
+
+    def run(self, args: list[str], timeout: int = 300, input_data: str | None = None) -> ToolResult:
+        return self.run_task(
+            task=input_data or " ".join(args),
+            timeout=timeout,
+        )
+
+    def parse_output(self, stdout: str) -> list[UnifiedResult]:
+        return []
+
+
 TOOL_REGISTRY: dict[str, type[BaseTool]] = {
     "amass": AmassTool,
     "shodan": ShodanTool,
@@ -515,4 +899,9 @@ TOOL_REGISTRY: dict[str, type[BaseTool]] = {
     "dalfox": DalfoxTool,
     "sqlmap": SqlmapTool,
     "trufflehog": TruffleHogTool,
+    "gitleaks": GitleaksTool,
+    "garak": GarakTool,
+    "browser_use": BrowserUseTool,
+    "censys": CensysTool,
+    "slither": SlitherTool,
 }

@@ -61,8 +61,6 @@ SCRIPT_INDICATORS = re.compile(
     r"<script|<img|<svg|<iframe|<body|<input|<textarea|<math",
     re.IGNORECASE,
 )
-
-
 class XSSReasoner(BaseReasoner):
     @property
     def vulnerability_type(self) -> str:
@@ -143,15 +141,22 @@ class XSSReasoner(BaseReasoner):
         method = endpoint.method.upper()
         severity = self._compute_severity(confidence, method)
 
+        # Build summary with top 3 params for readability
+        summary_params = params_of_interest[:3]
+        summary = f"Potential XSS via {', '.join(summary_params)} on {endpoint.method} {endpoint.path}"
+
         hypothesis = Hypothesis(
             vulnerability_type="xss",
             endpoint=endpoint.path,
             method=endpoint.method,
             confidence=confidence,
             severity=severity,
-            summary=self._build_summary(endpoint, params_of_interest),
+            summary=summary,
             description=self._build_description(endpoint, params_of_interest, method),
             why_human_would_investigate=self._build_triager_justification(
+                endpoint, params_of_interest, method, signals
+            ),
+            why_triager_might_reject=self._build_triager_rejection(
                 endpoint, params_of_interest, method, signals
             ),
             parameters_of_interest=params_of_interest,
@@ -170,10 +175,6 @@ class XSSReasoner(BaseReasoner):
         if confidence >= 0.35:
             return "medium"
         return "low"
-
-    def _build_summary(self, endpoint: EndpointInfo, params: list[str]) -> str:
-        refs = ", ".join(params[:3])
-        return f"Potential XSS via {refs} on {endpoint.method} {endpoint.path}"
 
     def _build_description(self, endpoint: EndpointInfo, params: list[str], method: str) -> str:
         refs = ", ".join(params[:4])
@@ -195,28 +196,19 @@ class XSSReasoner(BaseReasoner):
             f"A simple test with a script payload would confirm or rule out XSS."
         )
 
-    def _build_test_instructions(self, endpoint: EndpointInfo, params: list[str], method: str) -> list[str]:
-        instructions = []
-        for param in params[:2]:
-            instructions.extend(
-                [
-                    f"Try setting {param} to <script>alert(1)</script> and check if it executes.",
-                    f"Try setting {param} to <img src=x onerror=alert(1)> for event handler XSS.",
-                    f"Try setting {param} to ';alert(1)// for JS string context XSS.",
-                    f'Try setting {param} to "><script>alert(1)</script><" for HTML attribute context.',
-                ]
-            )
-        instructions.append(
-            "If basic XSS is blocked, check: encoding bypass, polyglot payloads, "
-            "DOM-based XSS via URL fragment, and stored XSS via POST."
-        )
-        return instructions
-
-    def _build_alternatives(self) -> list[dict[str, Any]]:
-        return [
-            {"label": alt["label"], "description": alt["description"], "how_to_rule_out": alt["how_to_rule_out"]}
-            for alt in XSS_ALTERNATIVES
-        ]
+    def _build_triager_rejection(
+        self, endpoint: EndpointInfo, params: list[str], method: str, signals: list[str]
+    ) -> str:
+        rejections = []
+        if not endpoint.headers:
+            rejections.append("No authentication or authorization headers present")
+        if len(signals) < 2:
+            rejections.append("Insufficient technical indicators for credible XSS")
+        if method.upper() == "GET":
+            rejections.append("GET-only endpoints may not justify XSS investigation time")
+        else:
+            rejections.append("Output encoding or CSP likely in place preventing execution")
+        return ". ".join(rejections)
 
     def _scope_check(self, endpoint: EndpointInfo) -> str:
         return (
@@ -233,3 +225,26 @@ class XSSReasoner(BaseReasoner):
             f"If the payload executes in the browser (alert, console.log), XSS is confirmed. "
             f"Provide the exact payload and a screenshot of execution."
         )
+
+    def _build_alternatives(self) -> list[dict[str, Any]]:
+        return [
+            {"label": alt["label"], "description": alt["description"], "how_to_rule_out": alt["how_to_rule_out"]}
+            for alt in XSS_ALTERNATIVES
+        ]
+
+    def _build_test_instructions(self, endpoint: EndpointInfo, params: list[str], method: str) -> list[str]:
+        instructions = []
+        for param in params[:2]:
+            instructions.extend(
+                [
+                    f"Try setting {param} to <script>alert(1)</script> and check if it executes.",
+                    f"Try setting {param} to <img src=x onerror=alert(1)> for event handler XSS.",
+                    f"Try setting {param} to ';alert(1)// for JS string context XSS.",
+                    f'Try setting {param} to "><script>alert(1)</script><" for HTML attribute context.',
+                ]
+            )
+        instructions.append(
+            "If basic XSS is blocked, check: encoding bypass, polyglot payloads, "
+            "DOM-based XSS via URL fragment, and stored XSS via POST."
+        )
+        return instructions

@@ -84,7 +84,7 @@ class LocalEventBus(IEventBus):
         with self._lock:
             self._history.append(event)
             if len(self._history) > self._max_history:
-                self._history[:] = self._history[-self._max_history:]
+                self._history[:] = self._history[-self._max_history :]
 
         # Logging hook
         if self._logging_hook:
@@ -96,8 +96,11 @@ class LocalEventBus(IEventBus):
         # Structured log
         logger.info(
             "[EVENTS] %s -> %s: %s (corr=%s, pri=%d)",
-            event.source, event.target or "*", event.event_type,
-            event.correlation_id[:8], event.priority,
+            event.source,
+            event.target or "*",
+            event.event_type,
+            event.correlation_id[:8],
+            event.priority,
         )
 
         # Dispatch to type-specific handlers
@@ -121,12 +124,16 @@ class LocalEventBus(IEventBus):
                         loop = None
                     if loop and loop.is_running():
                         task = asyncio.ensure_future(result)
-                        task.add_done_callback(lambda t: logger.warning(
-                            "[EVENTS] Handler error for %s: %s",
-                            event.event_type, t.exception()
-                        ) if t.exception() else None)
+                        task.add_done_callback(
+                            lambda t: (
+                                logger.warning("[EVENTS] Handler error for %s: %s", event.event_type, t.exception())
+                                if t.exception()
+                                else None
+                            )
+                        )
                     else:
                         import threading
+
                         threading.Thread(target=lambda r=result: asyncio.run(r), daemon=True).start()
             except Exception as exc:
                 logger.warning("[EVENTS] Handler error for %s: %s", event.event_type, exc)
@@ -199,19 +206,21 @@ def bridge_agent_bus_to_eventbus() -> None:
     """Forward AgentBus pipeline events to the system-wide EventBus."""
     try:
         from cores.events.event_bus import get_event_bus
+
         event_bus = get_event_bus()
         agent_bus = get_agent_bus()
 
         def _forward(event):
             try:
-                etype = event.event_type.value if hasattr(event.event_type, 'value') else str(event.event_type)
-                event_bus.publish(f"agent:{etype}", {
-                    "source": str(event.source) if event.source else None,
-                    "target": str(event.target) if event.target else None,
-                    "correlation_id": event.correlation_id,
-                    "priority": event.priority,
-                    "payload": event.payload if hasattr(event, 'payload') else {},
-                })
+                etype = event.event_type.value if hasattr(event.event_type, "value") else str(event.event_type)
+                event_bus.publish(
+                    f"agent:{etype}",
+                    source=str(event.source) if event.source else None,
+                    target=str(event.target) if event.target else None,
+                    correlation_id=event.correlation_id,
+                    priority=event.priority,
+                    payload=event.payload if hasattr(event, "payload") else {},
+                )
             except Exception:
                 logger.debug("Failed to forward agent event to EventBus")
 
@@ -219,3 +228,79 @@ def bridge_agent_bus_to_eventbus() -> None:
         logger.info("[EVENTS] AgentBus → EventBus bridge started")
     except Exception:
         logger.warning("[EVENTS] Failed to start AgentBus → EventBus bridge")
+
+
+def bridge_eventbus_to_agent_bus() -> None:
+    """Forward scheduler pipeline events from EventBus to AgentBus.
+
+    The scheduler (api/scheduler.py) publishes pipeline lifecycle events
+    (pipeline.start, pipeline.stage_completed, pipeline.failed, pipeline.cancelled)
+    to the system EventBus. The CoordinatorAgent listens on the AgentBus.
+    This bridge makes those events reach the coordinator so it can track
+    pipeline state in its DB-backed state machine.
+    """
+    try:
+        from cores.events.event_bus import get_event_bus
+
+        event_bus = get_event_bus()
+        agent_bus = get_agent_bus()
+
+        pipeline_events = {
+            "pipeline.start",
+            "pipeline.stage_completed",
+            "pipeline.failed",
+            "pipeline.cancelled",
+        }
+
+        def _on_event(event_type: str, **data: Any) -> None:
+            if event_type not in pipeline_events:
+                return
+            try:
+                from cores.agents.types import EventType as AgentEventType
+
+                etype = AgentEventType(event_type)
+            except (ValueError, ImportError):
+                etype = event_type
+
+            from cores.agents.types import AgentId
+
+            source_id = data.get("source", "coordinator")
+            try:
+                source = AgentId(str(source_id))
+            except (ValueError, ImportError):
+                source = str(source_id)
+
+            target_id = data.get("target", "coordinator")
+            try:
+                target = AgentId(str(target_id))
+            except (ValueError, ImportError):
+                target = str(target_id)
+
+            correlation_id = data.get("correlation_id", "")
+            payload = data.get("payload", {})
+
+            try:
+                agent_event = AgentEvent(
+                    event_type=etype,
+                    source=source,
+                    target=target,
+                    correlation_id=correlation_id,
+                    priority=5,
+                    payload=payload,
+                )
+                agent_bus.publish(agent_event)
+                logger.debug(
+                    "[BRIDGE] EventBus → AgentBus: %s (corr=%s)",
+                    event_type,
+                    correlation_id[:8],
+                )
+            except Exception:
+                logger.debug("Failed to forward EventBus event to AgentBus: %s", event_type)
+
+        event_bus.subscribe("pipeline.start", _on_event)
+        event_bus.subscribe("pipeline.stage_completed", _on_event)
+        event_bus.subscribe("pipeline.failed", _on_event)
+        event_bus.subscribe("pipeline.cancelled", _on_event)
+        logger.info("[EVENTS] EventBus → AgentBus bridge started (4 pipeline events)")
+    except Exception:
+        logger.warning("[EVENTS] Failed to start EventBus → AgentBus bridge")

@@ -76,6 +76,9 @@ class Events:
     # ── Target / Discovery ─────────────────────────────────────
     TARGET_CREATED = "target:created"
     DISCOVERY_COMPLETED = "discovery:completed"
+    DISCOVERY_PROGRAM_NEW = "discovery:program:new"
+    DISCOVERY_PROGRAM_UPDATED = "discovery:program:updated"
+    DISCOVERY_PROGRAM_REMOVED = "discovery:program:removed"
     OPPORTUNITY_FOUND = "opportunity:found"
     OPPORTUNITY_UPDATED = "opportunity:updated"
     QUICK_WIN_DETECTED = "quick_win:detected"
@@ -140,6 +143,14 @@ class Events:
     HERMES_PERMISSION_REQUIRED = "hermes:permission:required"
     HERMES_SECURITY_BLOCKED = "hermes:security:blocked"
 
+    # ── F1 Assistant / CLI ─────────────────────────────────────
+    F1_DAILY_BRIEFING = "f1:daily_briefing"
+    F1_STATUS = "f1:status"
+    F1_ALERT = "f1:alert"
+    F1_QUESTION = "f1:question"
+    CLI_COMMAND_EXECUTED = "cli:command:executed"
+    NOTIFICATION_SMART = "notification:smart"
+
     # ── Revenue Pipeline ──────────────────────────────────────
     REVENUE_REPORT_SUBMITTED = "revenue:report_submitted"
     REVENUE_SUBMISSION_FAILED = "revenue:submission_failed"
@@ -152,6 +163,56 @@ class Events:
     COMMAND_EXECUTED = "command:executed"
     COMMAND_FAILED = "command:failed"
     COMMAND_REJECTED = "command:rejected"
+
+    # ── Market Intelligence ──────────────────────────────────────
+    INTEL_SIGNAL_DETECTED = "intel:signal:detected"
+    INTEL_OPPORTUNITY_ASSESSED = "intel:opportunity:assessed"
+    INTEL_BRIEF_GENERATED = "intel:brief:generated"
+    INTEL_SOURCE_UPDATED = "intel:source:updated"
+
+    # ── Report Acceptance Optimizer ────────────────────────────
+    ACCEPTANCE_OUTCOME_RECORDED = "acceptance:outcome:recorded"
+    ACCEPTANCE_WEIGHTS_ADAPTED = "acceptance:weights:adapted"
+    ACCEPTANCE_PREDICTION_MADE = "acceptance:prediction:made"
+
+    # ── Auto-Submit Pipeline ──────────────────────────────────
+    AUTO_SUBMIT_EXECUTED = "auto_submit:executed"
+    AUTO_SUBMIT_FAILED = "auto_submit:failed"
+    AUTO_SUBMIT_QUEUED = "auto_submit:queued"
+
+    # ── Report Optimizer ─────────────────────────────────────
+    REPORT_OPTIMIZED = "report:optimized"
+
+    # ── AI Router ──────────────────────────────────────────────────
+    AI_ROUTER_SWITCH_REQUESTED = "ai:router:switch_requested"
+    AI_ROUTER_SWITCHED = "ai:router:switched"
+    AI_ROUTER_SWITCH_FAILED = "ai:router:switch_failed"
+    AI_ROUTER_FALLBACK_TRIGGERED = "ai:router:fallback_triggered"
+    AI_ROUTER_PROVIDER_FAILED = "ai:router:provider_failed"
+
+    # ── Bug Bounty Integrations ──────────────────────────────────
+    HACKERONE_HACKTIVITY_FETCHED = "hackerone:hacktivity:fetched"
+    HACKERONE_SCOPES_FETCHED = "hackerone:scopes:fetched"
+
+    # ── AI Bounty Auto-Hunter ──────────────────────────────────
+    AI_BOUNTY_CHALLENGE_DETECTED = "ai_bounty:challenge:detected"
+    AI_BOUNTY_CHALLENGE_SCANNED = "ai_bounty:challenge:scanned"
+    AI_BOUNTY_REPORT_READY = "ai_bounty:report:ready"
+    AI_BOUNTY_OPPORTUNITY_ASSESSED = "ai_bounty:opportunity:assessed"
+
+    # ── OSINT ────────────────────────────────────────────────────
+    OSINT_DNS_RESOLVED = "osint:dns:resolved"
+    OSINT_SUBDOMAIN_DISCOVERED = "osint:subdomain:discovered"
+
+    # ── Investment / Revenue Multiplier ────────────────────────────
+    INVESTMENT_CAPITAL_DEPLOYED = "investment:capital_deployed"
+    INVESTMENT_TRADE_COMPLETED = "investment:trade_completed"
+    INVESTMENT_STRATEGY_PAUSED = "investment:strategy:paused"
+    INVESTMENT_STRATEGY_RESUMED = "investment:strategy:resumed"
+    INVESTMENT_GLOBAL_PAUSED = "investment:global:paused"
+    INVESTMENT_GLOBAL_RESUMED = "investment:global:resumed"
+    INVESTMENT_PAYOUT_ALLOCATED = "investment:payout:allocated"
+    INVESTMENT_DRAWDOWN_ALERT = "investment:drawdown:alert"
 
     # ── All event types for introspection ───────────────────────
     ALL = frozenset(
@@ -236,6 +297,12 @@ class Events:
             EXECUTION_VALIDATION_FAILED,
             EXECUTION_PLAN_CREATED,
             EXECUTION_JOURNAL_ENTRY,
+            F1_DAILY_BRIEFING,
+            F1_STATUS,
+            F1_ALERT,
+            F1_QUESTION,
+            CLI_COMMAND_EXECUTED,
+            NOTIFICATION_SMART,
             REVENUE_REPORT_SUBMITTED,
             REVENUE_SUBMISSION_FAILED,
             REVENUE_STATUS_CHANGED,
@@ -252,6 +319,34 @@ class Events:
             COMMAND_EXECUTED,
             COMMAND_FAILED,
             COMMAND_REJECTED,
+            INTEL_SIGNAL_DETECTED,
+            INTEL_OPPORTUNITY_ASSESSED,
+            INTEL_BRIEF_GENERATED,
+            INTEL_SOURCE_UPDATED,
+            INVESTMENT_CAPITAL_DEPLOYED,
+            INVESTMENT_TRADE_COMPLETED,
+            INVESTMENT_STRATEGY_PAUSED,
+            INVESTMENT_STRATEGY_RESUMED,
+            INVESTMENT_GLOBAL_PAUSED,
+            INVESTMENT_GLOBAL_RESUMED,
+            INVESTMENT_PAYOUT_ALLOCATED,
+            INVESTMENT_DRAWDOWN_ALERT,
+            ACCEPTANCE_OUTCOME_RECORDED,
+            ACCEPTANCE_WEIGHTS_ADAPTED,
+            ACCEPTANCE_PREDICTION_MADE,
+            AI_ROUTER_SWITCH_REQUESTED,
+            AI_ROUTER_SWITCHED,
+            AI_ROUTER_SWITCH_FAILED,
+            AI_ROUTER_FALLBACK_TRIGGERED,
+            AI_ROUTER_PROVIDER_FAILED,
+            HACKERONE_HACKTIVITY_FETCHED,
+            HACKERONE_SCOPES_FETCHED,
+            AI_BOUNTY_CHALLENGE_DETECTED,
+            AI_BOUNTY_CHALLENGE_SCANNED,
+            AI_BOUNTY_REPORT_READY,
+            AI_BOUNTY_OPPORTUNITY_ASSESSED,
+            OSINT_DNS_RESOLVED,
+            OSINT_SUBDOMAIN_DISCOVERED,
         }
     )
 

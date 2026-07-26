@@ -174,6 +174,11 @@ class ConfidenceScorer:
 _scorer_instance: ConfidenceScorer | None = None
 
 
+def reset_confidence_scorer() -> None:
+    global _scorer_instance
+    _scorer_instance = None
+
+
 def get_confidence_scorer() -> ConfidenceScorer:
     global _scorer_instance
     if _scorer_instance is None:

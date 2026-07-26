@@ -424,7 +424,7 @@ class EvidenceComposer:
         composer = EvidenceComposer()
         bundle = composer.compose(hypothesis)
         if bundle.is_report_ready:
-            print(bundle.curl_command)
+            logger.info(bundle.curl_command)
     """
 
     def compose(

@@ -91,9 +91,12 @@ class CoreScheduler(IScheduler):
                 last = last_run.get(job_id, 0)
                 if now - last >= job.seconds:
                     last_run[job_id] = now
-                    if self._on_job_due:
+                    handler = self._on_job_due
+                    if handler is not None:
                         try:
-                            await self._on_job_due(job)
+                            result = handler(job)
+                            if asyncio.iscoroutine(result):
+                                await result
                         except Exception:
                             logger.exception("Job %s handler failed", job_id)
             await asyncio.sleep(5)
@@ -110,10 +113,7 @@ class CoreScheduler(IScheduler):
         return {
             "running": self._running,
             "jobs": self.job_count,
-            "by_app": {
-                app_id: len(self.get_jobs(app_id))
-                for app_id in {j.app_id for j in self._jobs.values()}
-            },
+            "by_app": {app_id: len(self.get_jobs(app_id)) for app_id in {j.app_id for j in self._jobs.values()}},
         }
 
 
