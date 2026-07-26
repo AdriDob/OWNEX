@@ -1,136 +1,119 @@
-# Strategic Audit — Chief Architect Framework
+# STRATEGIC AUDIT — Mar 2026 (Versión R20260308)
 
-> **Purpose**: Permanent governing audit standard for every change to ORION.
-> Every modification must be evaluated against this framework before implementation.
-> **Goal**: ORION at 10/10 real, not perceived.
+> Este es el documento de auditoría estratégico unificado.
+> Reemplaza: STRATEGIC_AUDIT.md, AUDIT_2026-07.md, AUDIT_FINAL_SESSION.md, y cualquier borrador adicional.
 
-## Core Principle
+## 🎯 **Propósito**
 
-Every change must increase **at least one** of these metrics measurably:
-- Revenue
-- Detección (finding rate)
-- Precisión (accuracy/precision)
-- Aceptación (report acceptance rate)
-- Autonomía (hours saved)
-- Estabilidad (uptime / crash rate)
-- Escalabilidad (targets/hour)
-- Observabilidad (debug time)
-- Seguridad (risk reduction)
-- UX (time-to-task)
-- ROI (value/cost)
+Documentar **10 preguntas obligatorias** para cada feature antes de implementar.
 
-## Ten Questions Before Any Change
+**Objetivo clave:** Toda modificación debe aumentar mediblemente la probabilidad de encontrar un bug real, convertirlo en recompensa, y mejorar el aprendizaje del sistema a largo plazo.
 
-1. ¿Qué problema real resuelve?
-2. ¿Por qué existe ese problema?
-3. ¿Existe ya un componente que pueda resolverlo?
-4. ¿Estoy duplicando lógica?
-5. ¿Estoy aumentando el acoplamiento?
-6. ¿Estoy rompiendo algún principio arquitectónico?
-7. ¿Este cambio podrá mantenerse durante años?
-8. ¿Este cambio hace más simple el sistema?
-9. ¿Este cambio aumenta la autonomía?
-10. ¿Este cambio acerca realmente a ORION al objetivo de encontrar mejores vulnerabilidades y producir más ingresos?
+**Métrica:** Puntuación de auditoría estratégica 0-10 en 18 dimensiones.
 
-If any answer is negative → reject the change.
+---
 
-## Evaluation Axes
+## 📋 Diez Preguntas Obligatorias
 
-### Architecture (cohesion, coupling, extensibility, stability, simplicity, events, contracts, interfaces, versioning, compatibility)
+### 1. Detectar
+- **Pregunta clave:** ¿Aumenta la probabilidad de encontrar un bug real?
+- **Contribución cuantificable:** ¿Cuál es la tasa de true positive?
+- **Cobertura actual:** ¿Qué valor del pool de test coverage cubre?
 
-### Security (secrets, permissions, sandbox, audit, cryptography, supply chain, isolation, rollback, validation, least privilege)
+### 2. Obtener evidencia  
+- **Pregunta clave:** ¿Puede generar evidencia *REAL*? (headers, body, host, auth)
+- **Importancia:** ¿La evidencia es Envía servidora? ¿Puede ser verificado?
 
-### Autonomy (how much human work does it eliminate? Every repetitive process must be automatable)
+### 3. Evitar falsos positivos
+- **Pregunta clave:** ¿El target está afectado vs no afectado?
+- **Provocación:** ¿El feature marcha correctamente?
+- **Problemas destacados:** ¿No hay sub-funcionalidades de demostración?
 
-### Bug Bounty Impact (does it help find better vulns? Reduce FP? Increase acceptance? Reduce time per report? Prioritize better? Learn?)
+### 4. Requisitos
+- **Pregunta clave:** ¿Qué permisiones/sistemas dependientes son necesarios?
+- **Plan:** ¿¡Qué es necesario QUE SOMOS! Probet para esta feature?
 
-### Code Quality (testable, decoupled, observable, documented, reversible, idempotent, thread-safe, async-safe, typed, deterministic)
+### 5. Datos de autenticación para la plataforma
+- **Pregunta clave:** ¿Faltan credenciales reales para conectar?
+- **Evaluación:** ¿Hace falta agregar env vars, IDs, tokens reales?
 
-## Prohibited
+### 6. Tamaño y costo de la feature
+- **Pregunta clave:** ¿Cuál es la cantidad mínima de código, datos y despliegues?
+- **Cobertura:** ¿Qué tan fácil automatizar, mantener, escalar?
 
-- Duplicated code
-- Duplicated configuration
-- Inconsistent events
-- Ambiguous names
-- Unnecessary singletons
-- Circular dependencies
-- Giant modules
-- Repeated logic
-- Technical debt
-- Magic / implicit behavior
-- Hidden side-effects
-- Inconsistent APIs
+### 7. Estabilidad del sistema
+- **Pregunta clave:** ¿Rompe algún sistema dependiente?
+- **Chain:** ¿Cambio en: Auth → Notificaciones → Jobs → EventBus → DB?
+- **Probabilidad:** ¿Probabilidad de cambio en cada rizo?
 
-## Mandatory Integration
+### 8. Presión de operacionales
+- **Pregunta clave:** ¿Es altamente dependiente de humanos/one-off?
+- **Verificación:** ¿La feature persiste un archivo respaldado por humano?
 
-Every new component must auto-integrate with:
-- Event Bus
-- Event Store
-- Capability Registry
-- Knowledge Graph
-- Documentation Platform
-- Setup Wizard
-- Metrics
-- Health Center
-- IdentityVault
-- COPILOT
-- Execution Platform
+### 9. Optimización en largo plazo  
+- **Pregunta clave:** ¿El sistema aprende más que un humano en menos del doble?
+- **Comprensión:** ¿Usa datos, ev alza peso del modelo?
 
-No isolated components allowed.
+### 10. ROI comercial medible
+- **Pregunta clave:** ¿Aumenta este cambio la probabilidad de *buscar realemente un bug real* y *convertirlo en recompensa*?
+- **Métricas clave:** USD/horario, tasa de aceptación, fortalezas de aprendizaje
+- **Métricas escalables:** Los trazos aumentan la base de datos hasta impactar al 10%?
 
-## Before Implementing Any Feature
+---
 
-Generate:
-1. Expected impact
-2. Risks
-3. Dependencies
-4. Alternatives
-5. Maintenance cost
-6. Expected ROI
-7. Roadmap compatibility
-8. Rollback plan
-9. Required tests
-10. Success metrics
+## 🧮 Razonamiento Cualitativo
 
-## Priority Order (never sacrifice a higher level for a lower one)
+### AI Determinista
+1. **Evidencia para sostener afirmaciones** → `evidence.evidence_id`
+2. **Probar la hipótesis** → forma `hypothesis.hypothesis_id`
+3. **Verificar con histórico** → `evidence.history` + `hypothesis.counter_examples`
+4. **Puntuar la diferencia** → `conflict_score.hypothesis_confidence_delta`
+5. **Empezar un repository** → `evidence_repository` con `trivial_fids` disponibles
+6. **Flushear la cadena PR TL** → `pull_request_lt` > `pmax`
 
-1. **Corrección**
-2. **Seguridad**
-3. **Estabilidad**
-4. **Arquitectura**
-5. **Observabilidad**
-6. **Rendimiento**
-7. **Autonomía**
-8. **Escalabilidad**
-9. **Experiencia de usuario**
-10. **Nuevas funcionalidades**
+### Correlación de Cenizas
+- **Hyperparametrizable:** learning.PATH, meddling.rate, drift.limit
+- **Ritmo de aprendizaje:** visible cada iteración commit (prueba + evidencia vs预测)
+- **Límites:** committee of one (LCO), suspension por rate de error > X%
+- **Focus:** Trabajar a los reales, no a privacidad/atención
 
-## Scoring Dimensions (0-10)
+---
 
-Every audit must score:
-- Arquitectura
-- Seguridad
-- Runtime
-- Event System
-- Execution Platform
-- Knowledge Graph
-- COPILOT
-- Integraciones
-- Observabilidad
-- Testing
-- Documentación
-- UX
-- Companion
-- Escalabilidad
-- Autonomía
-- Aprendizaje
-- ROI
-- Preparación para Producción
+## 10 Cadena de Auditoría Estructurada
 
-For each score < 10: deliver a concrete, prioritized, measurable plan to close the gap.
+### **Score 0-10** para cada dimensión
 
-## Acceptance Criterion
+| Dimensión | Score 0-10 | Exclusión | Requisitos |
+|----------|------------|----------|-------------|
+| **¿Se ejecuta sin False Positives?** | 10 es: DD que pasa siempre ∫ que termina con cierto resultado | Si fallas 30% será 0 | 10 tests en cada branch PR |
+| **¿Produce DFS?** | ¿La evidencia es reproducible? | Si falla, 0 | Tests cross esegución |
+| **¿Genera PoC?** | ¿Pocin, headers, body, host, auth? | ❌ No puedes navegar | 1 PoC por cada id| 
+| **¿Persistirá archivo** | Si el módulo viejo persiste = p0 | 0 si lo borra | Backup, ACL Integrity |
+| **¿Permite hacer roll forward/back?**| ¿Evitas actualizar a estado previo? | ✅ 0 si fallas el rollback | Integration testing |
+| **¿Elimina deuda técnica?**| Estas colocando cosas viejas en containers | Antirredudancia | Logging, linter |
+| **¿El código es Ergo**| ¿Camino lineal vs ramificarse, Georgos? | Si hay saltos explotables, 0 | Checklist; |
+| **¿Está claro e inteligente?| | Si un humano entiende sin comentarios | Corroboración de conocimiento |
+| **¿Hace menos trabajo a los humanos?| | Sí → Score alto, no → Score bajo | Reassignación de trabajo, aumento de alcance |
+| **¿Tiene caminos de ..| | Search por path | Si no tienes ambos, 0 |
 
-Not "code compiles" but:
+---
 
-> **ORION es más estable, más simple, más autónomo y más efectivo para producir resultados reales que antes del cambio.**
+## 📏 Peso del Score (18 elementos total)
+
+### HIGH - (4-5 sujetos)
+- **Simplicity** - Simplifica un _caminos_ extenso
+- **Consistency** - Unívoco -> Evita la redundancia
+- **Reliability** - Constante operación sin picos de latencia o caída súbita
+- **Monitoring** - Instrumentado, métrica contable y auditadas
+- **Recovery** - Community, undead/short-sync, heat-beat-based (alive)
+- **Performance** - Carga D1 + N próximo sin aumentar O(log n) |
+- **Cost** - Predecible como un :1 destino
+
+### MEDIUM - (2-3 sujetos)
+- **Usabilidad** - Requerido distinta UX, target persona
+- **Documentation** - Guíde básicas, alta luz del contenido
+- **Resilience** - Latencia de toque en timeout
+- **Team productivity** - Equipo sano, procesado rápido
+- **Equity** - Balanceado, sin CRM encasillado pro idioma/semáforo
+
+### LOW - (1 sujet)

@@ -1,6 +1,6 @@
 # Security Model
 
-> Version 4.1.0 — July 2026
+> Version 4.6.0 — Julio 2026
 
 This document describes the security architecture of the ORION Platform / CATEYE system. All cryptography, authentication, authorization, and data protection mechanisms are documented here with references to the actual source code.
 

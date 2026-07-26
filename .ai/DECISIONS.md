@@ -139,3 +139,219 @@
   - El sistema se evalúa por resultados observables (dinero generado, tiempo ahorrado, automatizaciones ejecutadas), no por cantidad de código
   - ORION se convierte en un "sistema operativo de trabajo" que envejece bien
 - **Filosofía registrada**: ORION no crece por expansión. Crece por consolidación. Cada clic innecesario que desaparece vale más que veinte features nuevas. Dentro de 5 años ORION funciona no por sus miles de líneas sino porque tiene configuración portable, backups, export/import, plugins, mantenimiento, rollback, auditoría, Health Center, Update Manager y Mission Control.
+
+## 2026-07-21: Hermes CLI + FCC Proxy — Reparación de integración
+
+- **Problema**: Hermes CLI mostraba HTTP 404 al intentar usar el FCC Proxy. Causa raíz: tres errores simultáneos:
+  1. `provider: github-copilot` → Hermes usaba `api_mode = "chat_completions"` (OpenAI format). FCC Proxy sirve Anthropic Messages API. 404 inevitable.
+  2. `base_url: http://localhost:8082/v1` → El SDK Anthropic de Hermes añade `/v1/messages` al base_url, resultando en `http://localhost:8082/v1/v1/messages`.
+  3. `model: gpt-5.4` → No existe en el catálogo del proxy.
+- **Diagnóstico**:
+  - OpenCode usa `provider.anthropic.options.baseURL: "http://localhost:8082"` (sin `/v1`, provider type `anthropic`)
+  - Cline usa `base_url: http://localhost:8082`, provider `Anthropic`
+  - FCC Proxy sirve `POST /v1/messages` y `POST /messages` (alias sin prefijo) — ambos Anthropic Messages API
+  - Health endpoint `GET /health` no requiere auth (confirmado en `routes.py` línea 182)
+  - Auth vía `x-api-key` header
+- **Solución aplicada**:
+  - `~/.hermes/config.yaml`: `provider: github-copilot` → `anthropic`, `base_url: .../v1` → `http://localhost:8082`, `model: gpt-5.4` → `claude-sonnet-4.5`
+  - `~/start_proxy.sh`: Reesrito con `nohup` + health check loop + PID file. El anterior usaba `exec setsid ... & disown` que no persistía.
+  - `~/.orion/config.sh`: Agregadas funciones `orion_start_proxy()`, `orion_stop_proxy()`, `orion_health_hermes()`, `orion_hermes_chat()`
+  - `~/.local/bin/orion`: Agregados subcomandos `proxy` (start/stop/status/restart/logs) y `hermes` (status/chat/config/logs)
+- **Verificación**:
+  - `hermes chat -q "..."` → Responde correctamente vía proxy (27s primera respuesta)
+  - `orion proxy status` → Proxy ✓ en localhost:8082
+  - `orion hermes status` → Provider: Anthropic, Model: claude-sonnet-4.5
+  - `orion doctor` → API /v1/messages ✓
+- **Archivos modificados**:
+  - `~/.hermes/config.yaml` (config fix)
+  - `~/start_proxy.sh` (reliable launcher)
+  - `~/.orion/config.sh` (helper functions, +HERMES_HOME, +desktop helpers)
+  - `~/.local/bin/orion` (proxy + hermes + desktop commands)
+
+## 2026-07-21: Hermes One Desktop — Integración con FCC Proxy
+
+- **Problema**: Hermes Desktop (Electron app) necesita usar el mismo FCC Proxy que el CLI.
+- **Diagnóstico**: El Desktop app lanza `hermes serve` como subproceso, que lee `~/.hermes/config.yaml`. Como el CLI fix ya corrigió el config.yaml, el desktop hereda automáticamente la configuración del proxy. No requiere configuración separada.
+- **Verificación**:
+  - `hermes serve --status` confirma `config_path: /home/adrie/.hermes/config.yaml`
+  - `orion status` → Hermes Dsk ✓
+  - El backend serve responde en `/api/status` con versión 0.18.2
+- **Config adicional aplicada**:
+  - `~/.orion/config.sh`: `HERMES_HOME` explicitado, funciones `orion_health_desktop()`, `orion_desktop_build()`, `orion_desktop_launch()`, `orion_desktop_serve()`
+  - `~/.local/bin/orion`: Nuevo subcomando `desktop` (status|build|serve|launch|logs). Integrado en `status` y `doctor`.
+- **Arquitectura**:
+  ```
+  Hermes Desktop (Electron)
+    → spawns `hermes serve` (JSON-RPC/WS gateway)
+      → reads ~/.hermes/config.yaml
+        → provider: anthropic, base_url: http://localhost:8082
+          → FCC Proxy → OpenRouter / Claude
+  ```
+
+## 2026-07-22: Hermes Proxy Lock — Protección arquitectónica contra fugas de provider
+
+- **Problema**: Hermes escapaba del FCC Proxy. Cuando el usuario ejecutaba `/model <nombre>`, el resolver de `switch_model()` encontraba el modelo en OpenRouter y cambiaba `provider` silenciosamente, causando HTTP 402 (sin créditos) y pérdida del proxy.
+- **Causa raíz**: El sentinel `~/.orion/proxy_mode` existía como señal bash pero Hermes no lo leía. No había ninguna barrera en el código de Hermes que impidiera cambiar provider/base_url/api_key.
+- **Decisión**: Agregar `_is_proxy_locked()` que lee `~/.orion/proxy_mode`. En `switch_model()`:
+  1. Si proxy locked y `--provider` dado → error inmediato
+  2. Si proxy locked y el resolver cambió provider → forzar de vuelta a `current_provider`
+  3. Como consecuencia, `provider_changed=False` → solo persiste `model.default` en config
+- **Archivos modificados**: `~/.hermes/hermes-agent/hermes_cli/model_switch.py`
+- **Cambios**:
+  - `_is_proxy_locked()`: chequea existencia de `~/.orion/proxy_mode`
+  - Guard en PATH A: `--provider` bloqueado cuando proxy locked
+  - Guard post-resolución: fuerza `target_provider = current_provider` si proxy locked
+  - `_resolve_alias_global()`: resuelve aliases (sonnet→claude-sonnet-5) contra el catálogo nativo sin cambiar provider
+- **Modos válidos**:
+  ```
+  FCC MODE (proxy_mode presente):
+    provider: anthropic (fijo)
+    base_url: http://localhost:8082 (fijo)
+    /model cambia solo model.default
+
+  OPENCODE FREE MODE (proxy_mode ausente):
+    provider: opencode built-in
+    modelos: deepseek, nemotron, mimo
+  ```
+- **Próximo**: ~~FCC Proxy tiene un bug de shutdown espontáneo~~ **RESUELTO 2026-07-22**.
+- **Causa raíz del shutdown**: No era bug del proxy. OpenCode usa la herramienta Bash con timeout. Al expirar el timeout, el shell session completo recibe SIGTERM. `nohup` solo bloquea SIGHUP, pero uvicorn registra un handler de SIGTERM que ejecuta `server.should_exit = True` → shutdown clean. El proxy no se "caía solo": lo mataba el timeout del Bash tool.
+- **Fix**: `~/start_proxy.sh` cambió de `nohup` a `setsid -w`. `setsid` crea un nuevo session/process group completamente independiente. Cuando el shell padre muere, el proceso setsid no recibe ninguna señal. Es inmune.
+- **Verificación**: Proxy estable > 30 min (PID 132680), múltiples /health requests sin shutdown, 473 modelos disponibles vía `/v1/models`.
+
+## 2026-07-24: Revenue Intelligence — USD/hour + dynamic platform speed
+
+- **Problema**: El scheduler priorizaba targets por severidad o EV genérico, pero no sabía cuánto USD/hora real había generado cada plataforma ni cuánto tiempo tomaban los pagos.
+- **Decisión**: `RevenueMetrics.usd_per_hour()` computa USD/h desde payout history. `platform_speed_days()` extrae velocidad real por plataforma desde datos de payout. `TargetPrioritizer._estimate_speed()` usa datos dinámicos con fallback a hardcoded. `PriorityResult.usd_per_hour` expone el ratio reward/horas estimadas.
+- **Impacto**: Scheduler logea $X.XX/h en cada auto-prioritize. Targets rankeados por USD/hora real, no por CVSS.
+
+## 2026-07-24: CensysTool — REST tool siguiendo patrón ShodanTool
+
+- **Problema**: Censys existía como `CensysClient` en `cores/recon/osint_api.py` (httpx async) y vía `uncover` CLI, pero no como tool standalone registrada en `TOOL_REGISTRY`.
+- **Decisión**: Crear `CensysTool` en `cores/tools/censys.py` siguiendo el patrón exacto de `ShodanTool`: `BaseTool`/`UnifiedResult`, `urlopen` sin dependencias externas, `is_available()` chequea `CENSYS_API_KEY` + `CENSYS_API_SECRET`. `search_hosts()`, `host_view()`, `domain()`, `certificates()`.
+- **Impacto**: Aparece automáticamente en TOOL_REGISTRY, disponible para pipeline y API.
+
+## 2026-07-24: Crypto Technical Analysis desde CoinGecko
+
+- **Problema**: CoinGeckoFeed tenía precios y 24h change pero no indicadores técnicos para trading signals.
+- **Decisión**: Agregar funciones puras `compute_rsi()`, `compute_sma()`, `compute_macd()` + método `get_technical_signals()` que fetches OHLC de CoinGecko y devuelve interpretación (oversold/overbought, trend, MACD bullish/bearish).
+- **Impacto**: Sin nuevas dependencias. RSI/SMA/MACD desde datos históricos gratuitos.
+
+## 2026-07-24: Smart Notifications — IntelligentNotificationManager conectado a EventBus
+
+- **Problema**: El `IntelligentNotificationManager` existía pero no estaba conectado a los eventos del sistema.
+- **Decisión**: Suscribir 14 eventos clave (finding:*, opportunity:*, report:*, system:*, financial:* revenue:*, acceptance:*) al manager. Agregar endpoints GET `/api/notifications/smart`, GET+POST `/smart/config` para consultar estadísticas y ajustar nivel de detalle.
+- **Impacto**: Notificaciones inteligentes con prioridad automática, dedup semántico, digest, y emoji enrichment sin intervención manual.
+
+## 2026-07-25: FCC Multi-Provider 24/7 Router
+
+- **Problema**: FCC proxy dependía de un solo provider (OpenRouter). Si rate limit o outage, el agente muere.
+- **Decisión**: Configurar FCC como router multi-provider con providers gratuitos.
+- **Estado actual (2026-07-26)**: **0 API keys configuradas**. Todos los 24 providers remotos están en `missing_key`. FCC solo rutea a Ollama local. Las API keys previamente configuradas se perdieron (probablemente al sobrescribir `.env`).
+- **Fix aplicado**: Patch en `profiles.py` Groq profile — `disabled_value=None` para evitar `reasoning_effort` no soportado.
+- **Archivos modificados**:
+  - `/home/adrie/free-claude-code/.env` — routing actualizado a qwen2.5:3b-instruct
+  - `/home/adrie/free-claude-code/src/free_claude_code/providers/openai_chat/profiles.py` — Groq reasoning fix
+  - `/home/adrie/.config/opencode/config.json` — provider anthropic → FCC, ollama → qwen2.5:3b-instruct
+  - `/home/adrie/.hermes/config.yaml` — provider fcc + fallback ollama + qwen3.5:cloud
+- **Impacto**: OpenCode, Hermes y Cline usan FCC como router central. FCC rutea todo a Ollama local. Sin API keys externas, no hay acceso a Groq/SambaNova/Gemini.
+
+## 2026-07-26: Infra Stabilization — Ollama único + FCC proxy purificado
+
+- **Problema**: Múltiples modelos locales ocupaban ~8 GB, el FCC ruteaba a modelos inexistentes, y las API keys de providers externos se habían perdido.
+- **Diagnóstico**:
+  - Ollama: solo `qwen2.5:3b-instruct` (1.9 GB) + `qwen3.5:cloud` (remoto 346 bytes). Los modelos antiguos (qwen3:14b, freehuntx/qwen3-coder, hermes-orion, moondream) ya no estaban.
+  - FCC `.env`: todos los tier apuntaban a `ollama/freehuntx/qwen3-coder:8b` (inexistente)
+  - OpenCode config: provider ollama listaba modelos inexistentes
+  - Hermes: config correcta, solo agregar `qwen3.5:cloud`
+  - Cline: configurado vía FCC, sin cambios necesarios
+  - GPU AMD RX 6600: sin drivers ROCm, sin `/dev/dri/`, sin amdgpu module — CPU only
+- **Cambios realizados**:
+  - `~/.fcc/.env` + `free-claude-code/.env`: MODEL → `ollama/qwen2.5:3b-instruct` (los 5 tiers)
+  - `~/.config/opencode/config.json`: modelo ollama → `qwen2.5:3b-instruct`
+  - `~/.hermes/config.yaml`: agregado `qwen3.5:cloud` a ollama-launch models
+- **Arquitectura final**:
+
+  ```
+  ┌─ OpenCode ────┐  ┌─ Hermes ──────┐  ┌─ Cline ───────┐
+  │ anthropic:FCC │  │ opencode:free │  │ anthropic:FCC │
+  │ ollama:local  │  │ fallback:FCC  │  │               │
+  └───────────────┘  │ fallback:Oll  │  └───────────────┘
+                     └───────────────┘
+                          │
+                     ┌────▼────┐
+                     │  FCC    │  :8082
+                     │ Proxy   │  (0/24 providers)
+                     └────┬────┘
+                          │
+                     ┌────▼────┐
+                     │ Ollama  │  :11434
+                     │ qwen2.5  │  3B, CPU, 32K ctx
+                     └─────────┘
+  ```
+
+- **API keys necesarias para cobertura 24/7**:
+  | Provider | Key | URL obtener |
+  |----------|-----|-------------|
+  | Groq | `GROQ_API_KEY` | https://console.groq.com/keys |
+  | SambaNova | `SAMBANOVA_API_KEY` | https://cloud.sambanova.ai/apis |
+  | Gemini | `GEMINI_API_KEY` | https://aistudio.google.com/ |
+  | OpenRouter | `OPENROUTER_API_KEY` | https://openrouter.ai/keys |
+  | OpenCode Zen | `OPENCODE_API_KEY` | https://opencode.ai/auth |
+- **Próximo**: Configurar al menos 1 API key externa (Groq o Gemini) en la admin UI de FCC para recuperar el multi-provider.
+- **Verificación**: Los 8 tests de componentes pasan. Ollama responde. FCC health ok. OpenCode config limpio. Hermes fallback chain correcto.
+
+## 2026-07-26: OWNEX — Rebranding estratégico del ecosistema
+
+- **Problema**: El ecosistema se llamaba técnicamente "Rastro" pero con identidad visual fragmentada (CATEYE backend, ORION frontend, ATLAS/ODYSSEY/AEGIS apps). No había una identidad unificada que comunicara el propósito real del sistema: un sistema operativo personal de generación de ingresos, no un tool de bug bounty.
+- **Alternativas consideradas**:
+  1. **OWNEX (elegido)** — "Personal Autonomous Work Operating System". Comunica el propósito completo. No es un bot, no es un dashboard, no es un gestor financiero. Es un orquestador de oportunidades.
+  2. Mantener Rastro/CATEYE — No comunica la expansión a Dev Bounty, AI Work, Wealth, Intelligence.
+  3. ORION como marca única — Conflicto con ORION coordinator; ORION es el coordinador IA, no el ecosistema.
+- **Decisión**: OWNEX como identidad del ecosistema completo. Backend sigue siendo Rastro internamente (carpetas, imports). Frontend se rebrandea a OWNEX (títulos, splash, sidebar, paleta). Los módulos existentes se mapean a Work Cycles:
+  - Rastro → Security (bug bounty)
+  - Forge → Dev Bounty (nuevo)
+  - Pulse → AI Work (nuevo)
+  - Vault → Wealth (Capital existente expandido)
+  - Atlas → Intelligence (nuevo)
+  - Orion → Coordinator IA (existente)
+- **Paleta OWNEX**: Negro (#050505) 90%, Azul (#3b82f6) como primario, Blanco (#f0f0f0) texto, Dorado (#f59e0b) objetivos importantes. Solo verde/rojo/amarillo para estados.
+- **Impacto**:
+  - Frontend: 7 archivos modificados (style.css, App.vue, AppSidebar.vue, OrionSidebar.vue, SplashScreen.vue, MissionControl.vue)
+  - Backend: 0 cambios (solo branding visual)
+  - Backward compatibility: todas las rutas existentes funcionan igual
+  - Próximo: implementar adaptadores para Forge (Superteam, Opire, TaskBounty) y Pulse (Outlier, DataAnnotation, Mindrift)
+- **Condiciones para reabrir**: Si se decide renombrar también el backend (carpetas, paquetes, clases). Para eso se necesita un refactor mayor y no aporta valor inmediato.
+
+## 2026-07-25: Frontend Consolidation — 50+ páginas → 8 secciones
+
+- **Problema**: ~50 páginas Vue fragmentadas sin estructura jerárquica. Router de 483 líneas con rutas planas. 5 páginas de revenue duplicadas (RevenueDashboard, RevenueMultiplier, MoneyRadar, Capital, FinancialTruth). Sidebar con solo 3 ítems principales.
+- **Alternativas consideradas**:
+  1. **Consolidación por secciones (elegido)** — 8 secciones principales con router anidado. Redirecciones de legacy. Sidebar unificado con 40+ ítems.
+  2. Rewrite total — Riesgo alto, destruye funcionalidad existente sin beneficio inmediato.
+  3. Agregar más páginas — Infla el problema. Status quo empeora.
+- **Fases ejecutadas**:
+  - **Fase 1**: Capital.vue — 5 páginas de revenue fusionadas en 1 dashboard con tabs. APIs: capital-dashboard, summary, platform-speed, ev-ranking.
+  - **Fase 2**: Router 50→8 secciones + Sidebar con 40+ ítems organizados + 79 redirecciones legacy.
+  - **Fase 3**: Baby Mode con HUNT Button — Botón central que ejecuta POST /api/hunt/start y muestra progreso en vivo vía polling.
+- **Cambios**: `frontend/src/router/index.ts` (→495L jerárquico), `OrionSidebar.vue` (8 grupos), `Capital.vue` (700L nuevo), `BabyMode.vue` (hunt integrado con API real).
+- **Backend**: `_current_stage_name` tracking en ScanScheduler + GET /api/pipeline/stages para progreso granular.
+- **Impacto**:
+  - Navegación predecible: misión → inteligencia → targets → reportes → capital → operaciones → integraciones → copiloto
+  - Mantenibilidad: agregar ruta nueva es agregar child en sección correspondiente
+  - 0 regresiones: todas las rutas legacy redirigen a sus equivalentes nuevos
+  - `_set_stage()` en scheduler expone progreso real a frontend
+- **Condiciones para reabrir**: Si se identifica una sección que no encaja en las 8 actuales. Probable cuando crezca el ecosistema ORION.
+
+## 2026-07-26: Knowledge Engine RFC — especificar, no implementar
+
+- **Problema**: El sistema de memoria `.ai/` crece orgánicamente sin un filtro que decida qué se conserva, qué se resume, qué se promueve a permanente y qué se descarta. Sin este filtro, en 6-12 meses MEMORY.md será un archivo más en archived/.
+- **Alternativas consideradas**:
+  1. **RFC como diseño (elegido)** — Documentar la arquitectura de la Knowledge Engine como RFC. No escribir código. El RFC servirá como blueprint cuando OWNEX Fase 3 lo requiera.
+  2. Implementar ahora — Infraestructura sin consumidor. El sistema hoy procesa ~1 sesión/día. La Knowledge Engine necesita escalar a miles de entradas para justificar su existencia.
+  3. Ignorar — Deuda diferida. Se corre el riesgo de que dentro de 3 meses alguien (o una IA) implemente algo incompatible con la visión.
+- **Decisión**: Crear `.ai/RFC_KNOWLEDGE_ENGINE.md` como documento de diseño. La implementación se prioriza como Fase 6 de OWNEX, después de Work Cycles (Fase 5) y cuando el volumen de conocimiento generado supere la capacidad de lectura humana.
+- **Impacto**:
+  - La visión arquitectónica queda registrada y congelada
+  - Cualquier implementación futura debe ajustarse al RFC
+  - No se escribe código nuevo, no se añaden dependencias, no hay deuda técnica
+- **Condiciones para reabrir**: Cuando se inicie la Fase 6 de OWNEX, o antes si el sistema empieza a generar más de 10 entradas de conocimiento significativas por día.

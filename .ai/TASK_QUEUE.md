@@ -1,74 +1,113 @@
-# Task Queue — Tareas Pendientes
+# OWNEX Roadmap — Product Core
 
-> **FILTRO PREVIO**: toda tarea debe responder: ¿aumenta la probabilidad de encontrar una vulnerabilidad válida, demostrarla mejor o conseguir que el reporte sea aceptado? Si la respuesta es no, su prioridad es baja.
->
-> **ESTRATEGIA**: Revenue Ready primero. Offensive Intelligence > Evidence > Acceptance > Hunting Loops > Revenue Analytics > Documentation > Companion > Installer.
->
-> **SIMPLIFICACIONES COMPLETADAS**: AppRegistry + ExtensionRegistry unificados vía `core/plugin/discovery.py`. Journal → EventStore persistencia. SecretsManager single Vault path. Revenue Pipeline completo con 31 tests. FULL RUFF CLEAN. 1386 tests pasan.
+> **REGLAS**:
+> 1. No más infraestructura. Solo producto. Si no es visible en Mission Control, no existe.
+> 2. Cada sprint debe responder "¿qué oportunidad tengo hoy y cuál es la mejor acción?"
+> 3. Si ya hay capital técnico (Rastro), usarlo. No crear desde cero.
+> 4. Un Work Cycle funcionando > 5 a medias.
+> 5. Dashboard primero, automatización después.
 
-## PRIORIDAD MÁXIMA — Revenue Ready (Q3 2026)
+## OWNEX Architecture
 
-### 0. Revenue Pipeline ✅ COMPLETED — Julio 2026
-- **Qué**: Finding → Evidence → Report → Platform → Payout. `RevenuePipeline` orchestrator with `submit_report()`, `check_submission_status()`, `sync_platform_payouts()`, `record_payout()`, `revenue_summary()`, `list_submissions()`. 6 API endpoints. 6 revenue events. 5 capabilities. 31 tests, Ruff clean.
-- **Archivos**: `core/revenue/pipeline.py`, `api/routers/revenue.py`, `database/models_economic.py` (2 new models), `core/events/types.py` (6 new events), `api/main.py` (router registration)
-- **Impacto**: Cierra el ciclo de revenue conectando todos los componentes existentes (platforms, models, ledger, events)
+```
+                  OWNEX
+                     |
+              Mission Control
+              (Dashboard Throughput)
+                     |
+     --------------------------------
+     |              |               |
+ Security        Forge          Wealth
+ Cycle           Cycle           Cycle
+     |
+   Rastro
+     |
+ Knowledge Engine
+     |
+ Memory Layer
+```
 
-## PRIORIDAD MÁXIMA — Revenue Ready (Q3 2026)
+## PRÓXIMOS SPRINTS (orden estricto)
 
-### 1. Offensive Intelligence Engine ✅ COMPLETED — Julio 2026
-- **Qué**: IDOR, SSRF, XSS, SQLi, Auth Bypass reasoners. Planner, Curiosity Engine, Relationship Graph, ContradictionEngine, Triager, Templates, Publisher. 8 API endpoints. 101 tests.
-- **Archivos**: `core/offensive/`, `api/routers/offensive.py`
-- **Impacto**: Aumenta directamente detección de vulnerabilidades.
+### FASE 0 — OWNEX Foundation ✅
+- [x] Branding + Design System (negro/azul/blanco/dorado)
+- [x] SplashScreen, AppSidebar, OrionSidebar, MissionControl
+- [x] Infra estable: Ollama (1 modelo), FCC (router), Hermes, OpenCode, Cline
+- [x] Memoria documental en `.ai/`
 
-### 2. Evidence Engine ✅ COMPLETED — Julio 2026
-- **Qué**: PoC, requests, responses, curl, Python exploit, timeline, CVSS, CWE, CAPEC, OWASP, MITRE, report readiness score. 37 tests.
-- **Archivos**: `core/evidence/composer.py`
-- **Impacto**: Aumenta tasa de aceptación de reportes.
+### FASE 1 — Mission Control v1 ⭐⭐⭐⭐⭐ (SIGUIENTE)
 
-### 3. Report Acceptance Optimizer
-- **Qué**: Aprende de Hacktivity/HackerOne/Bugcrowd/Intigriti qué hace que un reporte sea aceptado vs rechazado. Adapta estilo automáticamente.
-- **Impacto**: Aumenta directamente revenue.
-- **Dependencias**: Knowledge Graph, COPILOT.
-- **Criterio**: Reportes generados tienen probabilidad de aceptación estimada + aprenden de outcomes.
-- **Estado**: Base implementada (Quality Gate), falta aprendizaje de outcomes reales.
+Crear la interfaz central que responda en 5 segundos: "¿Qué oportunidades hay hoy?"
 
-### 4. Recon Intelligence
-- **Qué**: Subfinder → Katana → Wayback → Knowledge Graph → COPILOT → "Este endpoint tiene patrón IDOR" → Prioridad → PoC → Evidence → Report.
-- **Impacto**: Pipeline completo de descubrimiento a reporte.
-- **Dependencias**: Execution Platform, Offensive Intelligence, Evidence Engine.
-- **Criterio**: Pipeline corre end-to-end sin intervención humana.
+- [ ] **Dashboard Throughput**: oportunidades detectadas, priorizadas, ciclos activos, tareas pendientes, acciones recomendadas, estado de agentes
+- [ ] **Agent Fleet**: vista simple del estado de cada agente (Hermes 🟢, OpenCode 🟢, Cline 🟢, Ollama 🟢, FCC 🟡)
+- [ ] **Opportunity Engine v0**: modelo de datos de oportunidad (type, source, reward, difficulty, confidence, recommended_action) sin APIs externas todavía
+- [ ] **Activity Timeline**: qué pasó, cuándo, qué falta
 
-### 5. Revenue Analytics
-- **Qué**: El dinero como entidad de primer nivel. Expected Revenue por target/vuln/programa. ROI tracking. Estrategia basada en datos reales.
-- **Impacto**: Prioriza el trabajo más rentable.
-- **Dependencias**: Knowledge Graph, Financial Layer.
-- **Criterio**: ORION puede responder "¿qué estrategia generó más revenue en los últimos 6 meses?".
+### FASE 2 — Security Cycle v1 ⭐⭐⭐⭐⭐
 
-## PRIORIDAD MEDIA — Platform Hardening
+Migrar Rastro como primer Work Cycle de OWNEX. No crear nada nuevo, convertir.
 
-### 6. Configuration Wizard v2 (SETUP CENTER)
-- **Estado**: ✅ COMPLETED — Julio 2026
-- **Qué**: Wizard extensible (6 pasos), persistente en disco, metadata-driven, API endpoints para go-back/skip/reset/steps. 14 tests, Ruff clean.
-- **Archivos**: `core/setup/` (refactorizado), `core/api/routers.py` (nuevos endpoints)
+- [ ] Recon → Attack Surface → Hypothesis → Validation → Evidence → Report → Learning
+- [ ] Executive Dashboard (CEO view, no técnico): "¿esta semana ganamos plata?"
+- [ ] Knowledge capture: cada finding deja metadata de aprendizaje
+- [ ] Pipeline E2E funcionando sin intervención
 
-### 7. Documentation Platform
-- **Qué**: Generación automática de 13 documentos desde metadatos del sistema (introspect, wizard, capabilities, events, API).
-- **Estado**: ⏸ Pausada — pospuesta post Revenue Ready.
-- **Base existente**: `core/documentation/` con models, registrar, introspect (18 módulos auto-registrados).
+### FASE 3 — Opportunity Engine v1 ⭐⭐⭐⭐
 
-### 8. ORION Companion (Android)
-- **Qué**: App Kotlin + Jetpack Compose. Dashboard, COPILOT, approvals, notificaciones.
-- **Estado**: ⏸ Pausada — pospuesta post Revenue Ready.
+- [ ] Modelo de scoring: $ esperado × (1 - dificultad) × prob. aceptación
+- [ ] Inputs: dinero, dificultad, tiempo, competencia, experiencia previa, historial
+- [ ] Output: top 5 oportunidades para hoy
+- [ ] Integrar con TargetPrioritizer existente
+- [ ] Feedback loop: lo que se aceptó/rechazó alimenta el score
+- [ ] Tests
 
-### 9. ORION Watch (Wear OS)
-- **Qué**: Extension del Companion. Alertas críticas, estado del sistema, approvals rápidas.
-- **Estado**: ⏸ Pausada — pospuesta post Revenue Ready.
+### FASE 4 — Work Cycle Expansion ⭐⭐⭐⭐
 
-### 10. Command System Fase 1 ✅ COMPLETED — Julio 2026
-- **Qué**: Command Registry (107 commands, 14 categories, 5 permission levels). Permission Validator with COPILOT authority levels. EventBus publishing (command:executed/failed/rejected). Execution history. CapabilityRegistry integration. 6 API endpoints. 45 tests, Ruff clean.
-- **Archivos**: `core/commands/` (models, registry, dispatcher), `api/routers/commands.py`, `core/events/types.py`
-- **Impacto**: ORION now has a runtime operational language. COPILOT, Companion, and dashboard can execute 107 commands with permission validation.
+Solo después de que Security Cycle funcione E2E sin intervención.
 
-### 11. Desktop Installer
-- **Qué**: Instalador Windows con auto-update, repair, backup, diagnóstico.
-- **Estado**: ⏸ Pausada — pospuesta post Revenue Ready.
+- [ ] **Forge Adapter**: Superteam Earn, Opire
+- [ ] **Pulse Adapter**: Outlier, DataAnnotation, Mindrift
+- [ ] **Wealth Consolidation**: CoinGecko + Firefly III dashboard
+
+### FASE 5 — Automatización ⭐⭐⭐⭐⭐
+
+- [ ] Decisión autónoma: ¿local vs FCC según tarea?
+- [ ] Auto-submission pipeline (Finding → Evidence → Report → Submit → Payout)
+- [ ] Agentes independientes por ciclo con coordinador multi-agente
+
+## COMPLETED (no tocar)
+
+| Feature | Estado |
+|---------|--------|
+| Revenue Pipeline | ✅ Finding → Evidence → Report → Platform → Payout |
+| Offensive Intelligence (5 reasoners) | ✅ 101 tests |
+| AI Bounty Auto-Hunter | ✅ 29 tests |
+| Recon Intelligence (TargetPrioritizer) | ✅ 22 tests |
+| Acceptance Intelligence (Learner) | ✅ 18+14 tests |
+| Revenue Intelligence (USD/h) | ✅ 70 tests |
+| Report Optimizer V2 | ✅ 23 tests |
+| Verdict Auto-Learner | ✅ 14 tests |
+| SlitherTool + Web3 reasoners | ✅ Creado |
+| AI Bounty scan real | ✅ Scheduler escanea targets |
+| Configuration Wizard v2 | ✅ 14 tests |
+| Command System Fase 1 | ✅ 45 tests |
+| Health Center unificado | ✅ 25 tests |
+| Capital Dashboard Unificado | ✅ 5→1 páginas |
+| Router 50→8 secciones | ✅ Consolidado |
+| Frontend Consolidation | ✅ 8 secciones, 79 redirecciones |
+| Hypothesis Challenger | ✅ Explicaciones alternativas + incertidumbre |
+| OWNEX Rebranding | ✅ Frontend, CSS, sidebar, splash, documentación |
+| Dev Bounty Research | ✅ Superteam, TaskBounty, Opire, IssueHunt |
+| AI Work Research | ✅ Outlier, DataAnnotation, Mindrift, Stellar |
+| Wealth Research | ✅ CoinGecko, Firefly III, Zerion, Plaid |
+| Jobs Research | ✅ Freelancer.com, LinkedIn |
+| Infra Stabilization | ✅ Ollama único, FCC purificado, Hermes/OpenCode/Cline configurados |
+
+## Principios de producto
+
+1. **Dashboard primero**: toda feature nueva debe ser visible en Mission Control.
+2. **Un ciclo a la vez**: Security Cycle completo → después expandir.
+3. **No más APIs externas sin validación interna**: el modelo de oportunidad existe antes de conectarlo a fuentes reales.
+4. **Knowledge Engine es consecuencia, no objetivo**: aprender de cada finding/reporte automáticamente.
+5. **Cero feature sin métrica**: si no se puede medir en el dashboard, no se construye.

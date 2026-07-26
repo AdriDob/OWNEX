@@ -1,7 +1,7 @@
 # Known Limitations — CATEYE Validation Engine
 
 > Documentación honesta de lo que CATEYE **no** hace.
-> v3.0.0 STABLE — Julio 2026.
+> v4.6.0 STABLE — Julio 2026.
 
 ## Validation Engine
 

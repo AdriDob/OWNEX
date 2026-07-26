@@ -1,7 +1,7 @@
 # ORION Operations Manual — Manual de Piloto
 
-> **Version**: 4.3.2 STABLE  
-> **Última actualización**: Julio 2026  
+> **Version**: v4.6.0 STABLE
+> **Última actualización**: Julio 2026
 > **Propósito**: Guía de operación diaria del sistema ORION como plataforma personal de inteligencia.
 
 ---
@@ -14,12 +14,15 @@
 4. [CATEYE / AEGIS — Operaciones de Bug Bounty](#4-cateye--aegis--operaciones-de-bug-bounty)
 5. [COPILOT — Centro de Decisiones](#5-copilot--centro-de-decisiones)
 6. [ATLAS — Centro Financiero](#6-atlas--centro-financiero)
-7. [HERMES — Automatización del Sistema](#7-hermes--automatización-del-sistema)
-8. [ODYSSEY — Investigación](#8-odyssey--investigación)
-9. [CLI y Comandos Rápidos](#9-cli-y-comandos-rápidos)
-10. [API Reference](#10-api-reference)
-11. [Mantenimiento](#11-mantenimiento)
-12. [Troubleshooting](#12-troubleshooting)
+7. [Capital Dashboard](#7-capital-dashboard)
+8. [Revenue Pipeline](#8-revenue-pipeline)
+9. [HERMES — Automatización del Sistema](#9-hermes--automatización-del-sistema)
+10. [CLI y Comandos Rápidos](#10-cli-y-comandos-rápidos)
+11. [API Reference](#11-api-reference)
+12. [Rutina Diaria Recomendada](#12-rutina-diaria-recomendada)
+13. [Mantenimiento](#13-mantenimiento)
+14. [Troubleshooting](#14-troubleshooting)
+15. [Extensions & Desktop](#15-extensions--desktop)
 
 ---
 
@@ -28,43 +31,45 @@
 ORION es un sistema monolítico modular. Todos los módulos comparten la misma base de datos y se comunican via EventBus.
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                     ORION CORE                       │
+┌──────────────────────────────────────────────────────┐
+│                      ORION CORE                       │
 │  ┌──────────┐  ┌──────────┐  ┌───────────────────┐  │
-│  │ EventBus │  │   DB     │  │  System State     │  │
+│  │ EventBus │  │    DB    │  │  System State     │  │
 │  └──────────┘  └──────────┘  └───────────────────┘  │
-├─────────────────────────────────────────────────────┤
-│  ┌───────────────────────────────────────────────┐  │
-│  │              COPILOT (cerebro)                │  │
-│  │  Planner · Executor · Analyzer · Recommender  │  │
-│  │  SystemContext · Memory · Evidence Graph      │  │
-│  └───────────────────────────────────────────────┘  │
-├──────────┬──────────┬──────────┬────────────────────┤
-│  CATEYE  │  ATLAS   │ ODYSSEY  │      HERMES        │
-│  AEGIS   │  Crypto  │ Research │  Automation        │
-│  Bounty  │  Stocks  │ Markets  │  Scheduler         │
-└──────────┴──────────┴──────────┴────────────────────┘
+├──────────────────────────────────────────────────────┤
+│  ┌────────────────────────────────────────────────┐  │
+│  │              COPILOT (cerebro)                  │  │
+│  │  Planner · Executor · Analyzer · Recommender   │  │
+│  │  SystemContext · Memory · Evidence Graph       │  │
+│  └────────────────────────────────────────────────┘  │
+├──────────┬──────────┬──────────┬─────────────────────┤
+│  CATEYE  │  ATLAS   │ ODYSSEY  │      HERMES         │
+│  AEGIS   │  Crypto  │ Research │  Automation         │
+│  Bounty  │  Stocks  │ Markets  │  Scheduler          │
+└──────────┴──────────┴──────────┴─────────────────────┘
 ```
 
 ### Stack
 
 | Capa | Tecnología |
-|---|---|
-| Backend | Python 3.11+, FastAPI, SQLAlchemy |
-| Frontend | Vue 3, TypeScript, Tailwind CSS v4, Vite, ShadCN Vue |
-| Base de datos | SQLite (dev) / PostgreSQL (prod) |
-| Desktop | Tauri (shell) |
-| Workers | asyncio + scheduler interno |
+|------|-----------|
+| Backend | Python 3.11+, FastAPI, SQLAlchemy 2.0+, Pydantic v2 |
+| Frontend | Vue 3.5+, TypeScript, Tailwind CSS v4, Vite 6.4+, ShadCN Vue |
+| Base de datos | SQLite WAL (dev) / PostgreSQL (prod) |
+| Desktop | Tauri (Rust+WebView) |
+| Seguridad | Cryptography · AES-256-GCM · Ed25519 · CSRF · Rate Limiting |
 
 ### Módulos
 
-| Módulo | Función | Puerto |
-|---|---|---|
-| **CATEYE** | Bug bounty, pentesting, OSINT | API `/api/aegis` |
-| **ATLAS** | Finanzas, trading, crypto | API `/api/financial` |
-| **ODYSSEY** | Investigación, predicción | API `/api/odyssey` |
+| Módulo | Función | API |
+|--------|---------|-----|
+| **CATEYE** | Bug bounty, pentesting, OSINT | `/api/aegis` |
+| **ATLAS** | Finanzas, trading, crypto | `/api/financial` |
+| **ODYSSEY** | Investigación, predicción | `/api/odyssey` |
 | **HERMES** | Automatización del sistema | CLI via `run.py --hermes` |
-| **COPILOT** | Inteligencia transversal | API `/api/copilot` |
+| **COPILOT** | Inteligencia transversal | `/api/copilot` |
+| **Revenue** | Pipeline de ingresos | `/api/revenue` |
+| **Financial Hub** | Payouts, KYC, rutas, impuestos | `/api/financial-hub` |
 
 ---
 
@@ -79,21 +84,26 @@ source .venv/bin/activate
 # 2. Iniciar backend (servidor API + scheduler + agentes)
 python run.py --serve
 
-# 3. (Opcional) Iniciar frontend en modo desarrollo
-cd frontend && npm run dev
+# 3. (Opcional) Modo desarrollo con hot reload
+uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 
-# 4. (Opcional) Build desktop
-python run.py --build-desktop
+# 4. (Opcional) Iniciar frontend en modo desarrollo
+cd frontend && npm run dev
 ```
 
 ### Verificar que está funcionando
 
 ```bash
-# Health check básico
 curl http://localhost:8000/api/health
 
 # Respuesta esperada:
-# {"status":"healthy","version":"4.3.2","uptime_seconds":123}
+# {"status":"healthy","version":"4.6.0","uptime_seconds":123}
+```
+
+Para un diagnóstico completo:
+
+```bash
+python run.py --hermes doctor
 ```
 
 ### Parada segura
@@ -109,19 +119,14 @@ curl http://localhost:8000/api/health
 
 ### Modos de ejecución
 
-```bash
-# Servidor completo (backend + scheduler + agentes)
-python run.py --serve
-
-# Solo backend (sin scheduler)
-python run.py --serve --no-scheduler
-
-# Solo scheduler (para debug)
-python run.py --scheduler-only
-
-# Backup y salir
-python run.py --backup
-```
+| Modo | Comando | Descripción |
+|------|---------|-------------|
+| Servidor completo | `python run.py --serve` | Backend + scheduler + agentes |
+| Solo backend | `python run.py --serve --no-scheduler` | Sin pipeline automático |
+| Solo scheduler | `python run.py --scheduler-only` | Para debug |
+| Modo caza | `python run.py --hunt` | Ejecuta pipeline completo una vez |
+| Backup | `python run.py --backup` | Backup y salir |
+| SPA (production) | `python run.py --spa` | Sirve frontend build desde FastAPI |
 
 ---
 
@@ -134,7 +139,7 @@ La interfaz principal es **Mission Control**, accesible en `http://localhost:517
 Accesible con `Ctrl+K` o `Cmd+K`. Scopos:
 
 | Prefijo | Busca | Ejemplo |
-|---|---|---|
+|---------|-------|---------|
 | `>` | Comandos del sistema | `> backup`, `> health` |
 | `/` | Navegación a páginas | `/ targets`, `/ findings` |
 | `@` | Targets | `@ fintech.com` |
@@ -146,13 +151,34 @@ Accesible con `Ctrl+K` o `Cmd+K`. Scopos:
 Sección principal al abrir ORION:
 
 ```
-┌─────────────────────────────────────────────────┐
-│  🟢 Sistema saludable    │  Activos: 14 targets │
-│  ────────────────────────│──────────────────────│
+┌──────────────────────────────────────────────────┐
+│  🟢 Sistema saludable   │  Activos: 14 targets  │
+│  ───────────────────────│───────────────────────│
 │  Findings: 8 (3 abiertos)│  Reportes: 2         │
-│  Aprendizajes: 47        │  Bounty: $4,200      │
-└─────────────────────────────────────────────────┘
+│  Aprendizajes: 47       │  Bounty: $4,200      │
+└──────────────────────────────────────────────────┘
 ```
+
+### Páginas principales
+
+| Ruta | App | Descripción |
+|------|-----|-------------|
+| `/` | Dashboard | Mission Control central |
+| `/targets` | CATEYE | Targets de bug bounty |
+| `/findings` | CATEYE | Findings generados |
+| `/reports` | CATEYE | Reportes generados |
+| `/mission-control` | CATEYE | Dashboard operativo |
+| `/revenue` | ATLAS | Dashboard de ingresos y pipeline |
+| `/revenue-multiplier` | ATLAS | Revenue Multiplier |
+| `/capital` | ATLAS | Capital Dashboard |
+| `/trading` | ATLAS | Trading y wallets |
+| `/investment` | ATLAS | Investment Hub |
+| `/wallets` | ATLAS | Gestión de wallets |
+| `/financial-hub` | ATLAS | Centro de pagos, KYC, impuestos |
+| `/intel` | ODYSSEY | Intelligence Hub |
+| `/knowledge-graph` | Sistema | Grafo de conocimiento |
+| `/logs` | Sistema | System Logs |
+| `/baby-mode` | UX | Baby Mode |
 
 ---
 
@@ -169,12 +195,24 @@ DISCOVER → RECON → HYPOTHESIS → VALIDATE → REPORT
 Cada etapa se ejecuta según su intervalo configurado:
 
 | Etapa | Intervalo | Descripción |
-|---|---|---|
+|-------|-----------|-------------|
 | DISCOVER | 1 hora | Scrapea plataformas de bug bounty |
 | RECON | 30 min | Reconocimiento pasivo de targets |
 | HYPOTHESIS | 15 min | Genera hipótesis de vulnerabilidades |
 | VALIDATE | 2 horas | Ejecuta pruebas controladas |
 | REPORT | 1 hora | Genera reportes de findings confirmados |
+
+### Attack Pipeline — De Hipótesis a Evidencia
+
+El Attack Pipeline cierra el gap crítico: convertir hipótesis en evidencia reproducible.
+
+```
+Hypothesis → AttackPlanner.plan() → TestPlan → ProbeEngine.execute_plan()
+→ Response Comparison → Detection + Confidence Scoring → Evidence Composer
+→ Finding Promotion → Report Quality Gate → Revenue Pipeline
+```
+
+**Tipos de ataque soportados**: IDOR, SSRF, XSS, SQLi, Auth Bypass (+ Web3)
 
 ### Añadir un target manualmente
 
@@ -188,6 +226,13 @@ curl -X POST http://localhost:8000/api/targets \
   -d '{"name": "EmpresaX", "domain": "empresa.com"}'
 ```
 
+### Ver findings
+
+```bash
+curl http://localhost:8000/api/findings?status=open
+curl http://localhost:8000/api/findings/stats
+```
+
 ### Deep Study Mode
 
 Análisis profundo de un target como investigador de seguridad:
@@ -197,6 +242,7 @@ curl -X POST http://localhost:8000/api/aegis/deep-study/1
 ```
 
 Respuesta:
+
 ```json
 {
   "status": "ok",
@@ -217,26 +263,25 @@ Respuesta:
 
 ### Herramientas de Reconocimiento
 
-| Herramienta | Comando CLI | Uso |
-|---|---|---|
-| **Naabu** | `naabu -host target.com` | Escaneo de puertos |
-| **Amass** | `amass enum -d target.com` | Descubrimiento de subdominios |
-| **Subfinder** | `subfinder -d target.com` | Subdominios pasivos |
-| **Httpx** | `httpx -l urls.txt` | Fingerprinting HTTP |
-| **Nuclei** | `nuclei -t templates/` | Escaneo de vulnerabilidades |
-| **Katana** | `katana -u target.com` | Crawling de URLs |
-| **FFUF** | `ffuf -u domain/FUZZ` | Fuzzing de directorios |
-| **Dalfox** | `dalfox -u target.com` | Detección de XSS |
-| **Shodan** | API (no CLI) | Inteligencia de exposición |
-| **Uncover** | `uncover -q domain` | Búsqueda multi-engine |
+| Herramienta | Uso |
+|-------------|-----|
+| **Naabu** | Escaneo de puertos |
+| **Amass** | Descubrimiento de subdominios |
+| **Subfinder** | Subdominios pasivos |
+| **Httpx** | Fingerprinting HTTP |
+| **Nuclei** | Escaneo de vulnerabilidades |
+| **Katana** | Crawling de URLs |
+| **FFUF** | Fuzzing de directorios |
+| **Dalfox** | Detección de XSS |
+| **Shodan** | Inteligencia de exposición (API) |
+| **Uncover** | Búsqueda multi-engine |
+| **Slither** | Análisis estático de Smart Contracts |
 
 ---
 
 ## 5. COPILOT — Centro de Decisiones
 
-COPILOT es la capa de inteligencia transversal. No es un chat — es un **sistema operativo de decisiones**.
-
-### Endpoints
+COPILOT es la capa de inteligencia transversal con 5 niveles de autoridad.
 
 ```bash
 # Estado del agente
@@ -247,44 +292,25 @@ curl http://localhost:8000/api/copilot/recommendations
 ```
 
 Respuesta de recomendaciones:
+
 ```json
 {
   "status": "ok",
   "recommendations": [
-    {
-      "action": "validate_findings",
-      "count": 3,
-      "priority": 5,
-      "reason": "3 findings pending validation"
-    },
-    {
-      "action": "deep_study_targets",
-      "count": 2,
-      "priority": 5,
-      "reason": "2 high-value targets ready for deep analysis"
-    }
+    {"action": "validate_findings", "count": 3, "priority": 5, "reason": "3 findings pending validation"}
   ]
 }
 ```
 
-### Cómo interpretar las recomendaciones
+### Prioridades
 
 | Prioridad | Acción | Significado |
-|---|---|---|
+|-----------|--------|-------------|
 | 5 | `validate_findings` | Findings listos para verificación humana |
 | 5 | `deep_study_targets` | Targets con alto score listos para análisis |
 | 4 | `generate_reports` | Findings confirmados listos para reporte |
 | 3 | `recon_targets` | Targets medianos que necesitan más recon |
 | 2 | `discover_targets` | Sistema necesita nuevos targets |
-
-### Integración en Scheduler
-
-Después de cada etapa del pipeline, COPILOT registra recomendaciones:
-
-```
-[COPILOT] After recon: deep_study_targets (prio=5) — 2 high-value targets ready
-[COPILOT] After validate: generate_reports (prio=4) — 1 finding ready for reporting
-```
 
 ---
 
@@ -296,17 +322,53 @@ Después de cada etapa del pipeline, COPILOT registra recomendaciones:
 curl http://localhost:8000/api/financial/dashboard
 ```
 
-### Integraciones
+### Estado de Integraciones
 
 ```bash
 curl http://localhost:8000/api/financial/integrations/status
 ```
 
 Muestra estado 🟢🟡🔴 de cada integración:
-- CoinGecko (precios crypto)
-- Takenos (USDC)
-- Coinbase (HMAC)
-- Kraken (portfolio)
+
+| Integración | Función | Estado |
+|-------------|---------|--------|
+| CoinGecko | Precios crypto (30+ monedas) | 🟢 |
+| Takenos | USDC balance, CSV import | 🟢 |
+| Coinbase | Portfolio via HMAC-SHA256 | 🟢 |
+| Kraken | Portfolio via HMAC-SHA512 | 🟢 |
+
+### Financial Hub — Centro de Pagos
+
+El Financial Hub unifica la gestión de pagos, KYC, impuestos y rutas de retiro.
+
+```bash
+# Ruta de retiro óptima para $X desde plataforma Y
+curl "http://localhost:8000/api/financial-hub/route-optimizer/optimize?amount=1000&source_platform=hackerone"
+
+# Estado de verificación KYC por plataforma
+curl http://localhost:8000/api/financial-hub/verifications/progress
+
+# Documentos pendientes
+curl http://localhost:8000/api/financial-hub/verifications/pending
+
+# Checklist de documentos
+curl http://localhost:8000/api/financial-hub/documents
+
+# Notas impositivas por país
+curl http://localhost:8000/api/financial-hub/tax-notes?country=AR
+
+# Estado de KYC por plataforma
+curl http://localhost:8000/api/financial-hub/kyc/list
+```
+
+### Financial Intelligence
+
+Sistema multi-agente (ATLAS, MIDAS, Risk, Portfolio, F1) para scoring de oportunidades financieras, riesgo y PnL.
+
+```bash
+# Estado del pipeline F1
+curl http://localhost:8000/api/financial-intelligence/status
+```
 
 ### Comandos Hermes para finanzas
 
@@ -317,7 +379,71 @@ python run.py --hermes prices
 
 ---
 
-## 7. HERMES — Automatización del Sistema
+## 7. Capital Dashboard
+
+El Capital Dashboard unifica la visión de capital generado, pipeline de findings, tipos de vulnerabilidad y ROI por programa.
+
+```bash
+curl http://localhost:8000/api/revenue/capital-dashboard
+```
+
+Respuesta incluye:
+
+**Payout Summary**: total, count, avg, pending, by-platform, by-currency
+**Monthly Revenue**: breakdown por mes, count, by-platform
+**ROI by Program**: total_payout, count, platforms, last_payout, sorted desc
+**ROI by Vuln Type**: total_payout, count, total_programs, avg_payout
+**Acceptance Rate**: by platform, acceptance_rate, pending, rejected
+**Time Metrics**: avg_days_to_acceptance, avg_days_to_payout
+**Finding Pipeline**: total, confirmed, rejected, open, confirmation_rate
+**Capital**: total_findings, recent_30d, critical/high count, critical/high rate
+**Program Ranking**: top 10 programs por ROI score
+**Hot Targets**: top 5 targets por expected value
+
+---
+
+## 8. Revenue Pipeline
+
+Pipeline completo: Finding → Evidence → Report → Platform → Payout
+
+```bash
+# Enviar finding como reporte
+curl -X POST http://localhost:8000/api/revenue/submit \
+  -H "Content-Type: application/json" \
+  -d '{"finding_id": 1, "platform": "hackerone", "program": "example"}'
+
+# Ver submissions
+curl http://localhost:8000/api/revenue/submissions
+
+# Registrar payout manual
+curl -X POST http://localhost:8000/api/revenue/payouts \
+  -H "Content-Type: application/json" \
+  -d '{"platform": "hackerone", "amount": 500, "currency": "USD"}'
+
+# Resumen de ingresos
+curl http://localhost:8000/api/revenue/summary
+
+# Capital Dashboard completo
+curl http://localhost:8000/api/revenue/capital-dashboard
+```
+
+### Economic Memory
+
+Memoria de ingresos por programa y tipo de vulnerabilidad, con ROI scoring y ranking.
+
+Actualización automática vía scheduler. Acceso programático:
+
+```python
+from core.revenue.economic_memory import EconomicMemory
+econ = EconomicMemory()
+econ.get_summary()       # Resumen global
+econ.rank_programs()     # Programas rankeados por ROI
+econ.get_program("name") # Score de un programa específico
+```
+
+---
+
+## 9. HERMES — Automatización del Sistema
 
 ### Comandos disponibles
 
@@ -327,50 +453,15 @@ python run.py --hermes status      # Estado general
 python run.py --hermes health      # Health check detallado
 python run.py --hermes logs        # Últimos logs
 python run.py --hermes doctor      # Diagnóstico del sistema
+python run.py --hermes portfolio   # Portfolio financiero
+python run.py --hermes prices      # Precios crypto
 python run.py --hermes help        # Lista de comandos
-```
-
-### Automatización programada
-
-HERMES registra un job `hermes_health_check` en el AppRegistry que ejecuta health checks periódicos.
-
----
-
-## 8. ODYSSEY — Investigación
-
-### Predicciones
-
-Cada predicción registra:
-- Hipótesis
-- Fecha
-- Probabilidad estimada
-- Resultado real
-- Aprendizaje
-
-### Uso
-
-```bash
-# Investigación de un tema
-python run.py --odyssey research "tema"
-
-# Ver predicciones activas
-python run.py --odyssey predictions
+python run.py --hunt               # Pipeline completo modo caza
 ```
 
 ---
 
-## 9. CLI y Comandos Rápidos
-
-### run.py
-
-| Flag | Descripción |
-|---|---|
-| `--serve` | Inicia backend + scheduler |
-| `--backup` | Ejecuta backup y sale |
-| `--add-target <name> --domain <d>` | Añade target manualmente |
-| `--hermes <command>` | Ejecuta comando Hermes |
-| `--build-desktop` | Build de desktop |
-| `--version` | Muestra versión |
+## 10. CLI y Comandos Rápidos
 
 ### Atajos útiles
 
@@ -392,41 +483,144 @@ curl -X POST http://localhost:8000/api/aegis/deep-study/1
 
 # Estado del scheduler
 curl http://localhost:8000/api/system/health
+
+# Capital Dashboard
+curl http://localhost:8000/api/revenue/capital-dashboard
+
+# PR des Systeme
+curl http://localhost:8000/api/system/status
 ```
+
+### run.py flags
+
+| Flag | Descripción |
+|------|-------------|
+| `--serve` | Inicia backend + scheduler |
+| `--backup` | Ejecuta backup y sale |
+| `--hunt` | Ejecuta pipeline completo una vez |
+| `--add-target <name> --domain <d>` | Añade target manualmente |
+| `--hermes <command>` | Ejecuta comando Hermes |
+| `--build-desktop` | Build de desktop |
+| `--version` | Muestra versión |
+| `--spa` | Sirve frontend build desde FastAPI |
 
 ---
 
-## 10. API Reference
+## 11. API Reference
 
 ### Endpoints principales
 
 | Método | Ruta | Descripción |
-|---|---|---|
-| GET | `/api/health` | Health check |
+|--------|------|-------------|
+| GET | `/api/health` | Health check (no auth) |
+| GET | `/api/system/status` | Estado detallado del sistema |
+| GET | `/api/system/state` | Estado completo con servicios |
 | GET | `/api/copilot/status` | Estado de COPILOT |
 | GET | `/api/copilot/recommendations` | Recomendaciones del sistema |
 | POST | `/api/targets` | Crear target |
 | GET | `/api/targets` | Listar targets |
-| GET | `/api/targets/{id}` | Detalle de target |
 | POST | `/api/targets/{id}/scan` | Iniciar scan |
-| GET | `/api/targets/{id}/summary` | Score del target |
 | POST | `/api/aegis/deep-study/{id}` | Deep study completo |
-| GET | `/api/aegis/deep-study/{id}` | Metadata de deep study |
-| GET | `/api/aegis/health` | Health de AEGIS |
-| POST | `/api/evidence/upload` | Subir evidencia |
+| GET | `/api/findings` | Listar findings |
+| GET | `/api/reports` | Listar reportes |
+| POST | `/api/reports` | Crear reporte |
+| GET | `/api/revenue/capital-dashboard` | Capital Dashboard |
+| POST | `/api/revenue/submit` | Enviar finding a plataforma |
+| GET | `/api/revenue/summary` | Resumen de ingresos |
 | GET | `/api/financial/dashboard` | Dashboard financiero |
 | GET | `/api/financial/integrations/status` | Estado de integraciones |
-| GET | `/api/system/health` | Health del sistema |
+| GET | `/api/financial-hub/kyc/list` | Estado KYC por plataforma |
+| GET | `/api/financial-hub/documents` | Checklist de documentos |
+| GET | `/api/financial-hub/route-optimizer/optimize` | Optimizar ruta de retiro |
+| GET | `/api/financial-hub/tax-notes` | Notas impositivas |
+| GET | `/api/financial/opportunities` | Oportunidades activas |
+| GET | `/api/financial-intelligence/status` | Estado F1 pipeline |
+| GET | `/api/knowledge-graph/nodes` | Nodos del grafo de conocimiento |
+| POST | `/api/knowledge-graph/query` | Query al grafo de conocimiento |
+| GET | `/api/core/extensions` | Extensiones registradas |
+| GET | `/api/core/secrets` | Secrets Manager |
+| WS | `/ws` | WebSocket Event Stream |
+
+### WebSocket Event Stream
+
+```bash
+ws://localhost:8000/ws
+```
+
+Eventos en tiempo real del EventBus:
+
+| Evento | Descripción |
+|--------|-------------|
+| `finding:created` | Nuevos findings |
+| `finding:status_changed` | Status updates |
+| `report:generated` | Reportes auto-generados |
+| `opportunity:found` | Nuevas oportunidades |
+| `system:*` | Eventos de salud del sistema |
+| `agent:*` | Eventos multi-agente |
+| `financial:*` | Eventos de sync financiero |
+| `revenue:*` | Revenue pipeline events |
+| `workflow:*` | Workflow execution events |
 
 ---
 
-## 11. Mantenimiento
+## 12. Rutina Diaria Recomendada
+
+### Mañana (5 min)
+
+```bash
+# 1. Verificar que el sistema está vivo
+curl http://localhost:8000/api/health
+
+# 2. Revisar findings pendientes
+curl http://localhost:8000/api/findings?status=open
+
+# 3. Ver Capital Dashboard
+curl http://localhost:8000/api/revenue/capital-dashboard
+
+# 4. Check Hermes
+python run.py --hermes health
+```
+
+### Tarde (10 min)
+
+```bash
+# 1. Validar findings nuevos
+curl -X PUT http://localhost:8000/api/findings/$ID/status \
+  -H "Content-Type: application/json" \
+  -d '{"status": "confirmed"}'
+
+# 2. Verificar integraciones
+curl http://localhost:8000/api/financial/integrations/status
+
+# 3. Revisar oportunidades priorizadas por ORION
+curl http://localhost:8000/api/financial/opportunities
+
+# 4. Ver KYC pendientes
+curl http://localhost:8000/api/financial-hub/verifications/pending
+```
+
+### Noche (2 min)
+
+```bash
+# Backup automático
+python run.py --backup
+
+# Resumen del día
+python run.py --hermes status
+```
+
+---
+
+## 13. Mantenimiento
 
 ### Backup
 
 ```bash
 # Backup completo (DB + config + logs)
 python run.py --backup
+
+# Restore
+python run.py --restore /path/to/backup.zip
 
 # Los backups se guardan en:
 # ~/.orion/backups/orion_backup_YYYYMMDD_HHMMSS/
@@ -435,12 +629,10 @@ python run.py --backup
 ### Logs
 
 ```
-~/.orion/logs/cateye.log
-~/.orion/audit.jsonl       (eventos de seguridad)
-~/.orion/hermes_actions.jsonl  (acciones de Hermes)
+~/.orion/logs/cateye.log          (logs de aplicación)
+~/.orion/audit.jsonl              (eventos de seguridad, 10MB rotación)
+~/.orion/hermes_actions.jsonl     (acciones de Hermes)
 ```
-
-Rotación automática de `audit.jsonl` cada 10MB (3 backups).
 
 ### Base de datos
 
@@ -449,151 +641,130 @@ Rotación automática de `audit.jsonl` cada 10MB (3 backups).
 python -c "from database import db; db.SessionLocal().execute(text('PRAGMA wal_checkpoint(TRUNCATE);'))"
 ```
 
-### Limpieza de cooldowns
-
-El scheduler purga automáticamente entradas de cooldown mayores a 2 horas.
-
 ### Health Checks automáticos
 
 Health Center ejecuta checks cada 5 minutos:
+
 - Backend: HTTP 200
 - Base de datos: query `SELECT 1`
 - Agentes: estado de cada agente
 - Integraciones: conexión con servicios externos
 - Memoria: RSS < 1GB
+- EventBus: conectividad
+
+### ORION Auto-Prioritization
+
+ORION prioriza targets usando:
+
+1. **EconomicMemory** ROI histórico por programa
+2. **TargetPrioritizer** EV-based ranking con señales económicas
+3. **RewardLearner** ajustes por historial de payout por vulnerabilidad
+4. **ORION next_action** 1.5x boost para targets recomendados
 
 ---
 
-## 12. Troubleshooting
+## 14. Troubleshooting
 
-### Problema: Backend no inicia
-
-```bash
-# Verificar que el puerto no esté ocupado
-lsof -i :8000
-
-# Verificar entorno virtual
-source .venv/bin/activate
-python -c "import cores; print('OK')"
-
-# Verificar base de datos
-python -c "from database import db; db.init_db(); print('DB OK')"
-```
-
-### Problema: Scheduler no ejecuta etapas
+### Diagnóstico rápido
 
 ```bash
-# Verificar estado
-curl http://localhost:8000/api/system/health
-
-# Verificar logs
-tail -f ~/.orion/logs/cateye.log | grep SCHEDULER
-```
-
-### Problema: COPILOT no disponible
-
-```bash
-curl http://localhost:8000/api/copilot/status
-# Si devuelve "unavailable", verificar:
-# 1. Dependencias instaladas
-# 2. Logs de inicialización
-```
-
-### Problema: Herramienta de reconocimiento no funciona
-
-```bash
-# Verificar instalación
-which naabu
-naabu --version
-
-# Verificar hint de instalación
-python -c "from cores.tools.naabu import NaabuTool; print(NaabuTool.install_hint)"
-```
-
-### Problema: Shodan no devuelve datos
-
-```bash
-# Verificar API key
-echo $SHODAN_API_KEY
-
-# Configurar si es necesario
-export SHODAN_API_KEY="tu_key_aquí"
-```
-
-### Problema: Base de datos corrupta
-
-```bash
-# Restaurar del último backup
-python run.py --backup  # primero hacer backup del estado actual
-# Luego restaurar manualmente desde ~/.orion/backups/
-```
-
-### Problema: Frontend no compila
-
-```bash
-cd frontend
-npm install
-npm run build
-# Errores comunes: tipos incorrectos, imports faltantes
-```
-
-### Logs de diagnóstico rápidos
-
-```bash
-# Últimos 50 logs del sistema
-python run.py --hermes logs
-
-# Health check detallado
 python run.py --hermes doctor
-
-# Ver procesos activos
-python run.py --hermes status
 ```
 
----
+### Tabla de problemas comunes
 
-## Apéndice A: Enlaces Útiles
+| Síntoma | Causa probable | Solución |
+|---------|----------------|----------|
+| `Connection refused` en :8000 | Backend no iniciado | `python run.py` |
+| Findings no aparecen | DB no inicializada | `python run.py` inicia automáticamente |
+| CoinGecko prices en 0 | Sin conexión a API | Verificar internet |
+| Takenos sin balance | Sin datos cargados | Usar balance manual o CSV |
+| CSRF 403 | Token faltante | Usar `fetch()` con credentials |
+| `useUIStore` error | Cache de Vite | Borrar `node_modules/.vite` |
+| Scheduler no ejecuta etapas | Cooldown activo | Verificar logs `\| grep SCHEDULER` |
+| COPILOT unavailable | Dependencias faltantes | Verificar logs de inicialización |
+| Frontend no carga | Build no generado | `cd frontend && npm run build` |
+| Hermes no ejecuta | Safe Mode activo | `HERMES_SAFE_MODE=false` |
+| Auth 401 | Token expirado | `/api/auth/login` de nuevo |
 
-- `http://localhost:8000/docs` — Documentación interactiva de la API (Swagger)
-- `http://localhost:5173` — Frontend en desarrollo
-- `~/.orion/` — Directorio de datos del sistema
-- `docs/HERMES_GUIDE.md` — Guía detallada de Hermes
-- `.ai/AGENT_CHARTER.md` — Constitución del sistema
-
----
-
-## Apéndice B: Rutina Diaria Recomendada
-
-### Mañana (30 min)
+### Reset Procedures
 
 ```bash
-# 1. Health check
-curl http://localhost:8000/api/health
+# Reset vault (regenera key, pierde credenciales)
+rm ~/.orion/identity_vault.key
 
-# 2. Recomendaciones COPILOT
-curl http://localhost:8000/api/copilot/recommendations
+# Clear sessions
+rm ~/.orion/sessions.json
 
-# 3. Revisar findings abiertos
-curl http://localhost:8000/api/findings
-```
+# Clear evidence
+rm -rf ~/.orion/evidence/*
 
-### Trabajo profundo (2-4 horas)
+# Reset DB (pierde todos los datos)
+rm ~/.orion/database/cateye.db
 
-```
-1. Priorizar targets según COPILOT
-2. Ejecutar Deep Study en targets de alto score
-3. Validar findings manualmente
-4. Generar reportes
-```
-
-### Tarde (30 min)
-
-```
-1. Registrar feedback de findings validados
-2. Revisar métricas de la semana
-3. Ejecutar backup si es necesario
+# Factory reset
+rm -rf ~/.orion
 ```
 
 ---
 
-*Este manual se actualiza con cada versión mayor de ORION. Mantenelo sincronizado con el estado real del sistema.*
+## 15. Extensions & Desktop
+
+### Extension SDK
+
+Las extensions viven en `extensions/*/manifest.py`. Auto-descubrimiento al iniciar.
+
+```bash
+# Ver extensiones registradas
+curl http://localhost:8000/api/core/extensions
+
+# Secrets Manager
+curl http://localhost:8000/api/core/secrets
+```
+
+### Desktop App
+
+```bash
+# Build distributable
+pyinstaller ORION.spec -y
+
+# Run en modo browser (sin tray)
+python run.py --browser
+
+# Run con tray
+python run.py --tray
+
+# Service mode (Windows)
+python run.py --install-service
+```
+
+### Watchdog
+
+El watchdog (`desktop/watchdog.py`) monitorea el backend + EventBus cada 10s.
+
+### Performance Tuning
+
+```bash
+# SQLite WAL tuning
+PRAGMA journal_mode=WAL;
+PRAGMA synchronous=NORMAL;
+PRAGMA cache_size=-64000;  -- 64MB cache
+```
+
+El scheduler corre `PRAGMA wal_checkpoint(TRUNCATE)` automáticamente después de cada ciclo.
+
+---
+
+## Notas de Versión
+
+**v4.6.0** (Julio 2026)
+- ✨ Financial Hub: KYC Manager, Route Optimizer, Documents Checklist, Tax Notes
+- ✨ Revenue Pipeline: Finding → Evidence → Report → Platform → Payout
+- ✨ Capital Dashboard: unified view with program ranking, hot targets, economic memory
+- ✨ EconomicMemory: ROI scoring por programa y vulnerabilidad
+- ✨ Attack Pipeline: 6 reasoners (IDOR, SSRF, XSS, SQLi, Auth, Web3)
+- ✨ AI Router: failover automático entre providers
+- ✨ Target Intelligence: EV-based prioritizer
+- ✨ Web3: Smart contract analysis + DeFi yield tracking
+- ✨ 2330+ tests, Ruff clean
+- 🔒 Security hardening: HMAC, machine-id, CSRF, OAuth2, rate limiting, audit log

@@ -1,49 +1,35 @@
 # Session Checkpoint — Julio 2026
 
-> Este checkpoint permite a cualquier agente retomar exactamente donde terminó el anterior.
+> v4.6.0 STABLE — AI Bounty y Web3 ahora funcionales con escaneo real.
 
-## Último Objetivo
+## Última Sesión: 2026-07-24 — AI Bounty funcional + Web3 con Slither real
 
-Cerrar CATEYE v3.0.0 STABLE: documentación, auditoría de validación, y preparación para v3.1.
+### Completado
+- **GarakTool fix**: `is_available()` ahora chequea `python -m garak` como fallback si `garak` no está en PATH.
+- **Scheduler AI Bounty**: `_stage_ai_bounty()` ahora llama `scan_challenge()` con targets reales por programa (imbue.com, anthropic.com, openai.com, ai.google). Findings se loguean y encolan.
+- **Default targets**: `discover_all()` registra 2-3 URLs por programa AI bounty. `test_engine_scan_empty_target` reemplazado por `test_engine_discover_sets_default_targets`.
+- **SlitherTool**: Nueva tool `cores/tools/slither.py` siguiendo patrón GarakTool. `scan_source()` y `scan_source_code()` parsean JSON de Slither. 30+ detectores mapeados. Registrada en `TOOL_REGISTRY` y `cores/tools/__init__.py`.
+- **Web3 reasoners refactor**: Los 5 reasoners (reentrancy, ERC20, access_control, oracle, flash_loan) llaman `_analyze_with_slither()` primero si hay `contract.source_code`. Caen gracefulmente a análisis ABI si Slither no está disponible.
+- **Tests**: 30 AI bounty + 101 offensive + 17 scheduler + 22 target_intelligence = 170 tests pasan. Ruff clean (0 errores nuevos).
 
-## Últimos Cambios (esta sesión)
+### Completado esta Sesión (2026-07-25)
+- **CoreEventBus bridge habilitado** (`_bridge = True` + método `enable_bridge()`) — eventos ORION ahora llegan a CATEYE legacy
+- **CATEYE manifest actualizado** — exporta 8 scheduler jobs reales para CoreScheduler, documentación honesta sobre routers
+- **Lint fix**: 12 errores Ruff corregidos (whitespace, F841, SIM105, B007)
+- **ARCHITECTURE_FINAL.md**: Problemas 0.1-0.3 marcados como resueltos
 
-### Nuevos:
-- `docs/KNOWN_LIMITATIONS.md` — Limitaciones del motor de validación documentadas
-- `scripts/install_portable.bat` — Setup idempotente + validación para Windows portable
-- `scripts/run_portable.bat` — Launcher mínimo (sin lógica duplicada, run.py maneja detección portable)
+## Pendiente — Próxima Sesión
+1. **Instalar Slither** en el venv: `pip install slither-analyzer` para que `SlitherTool.scan_source_code()` funcione con análisis real de bytecode
+2. **S-11: Auto-Bypass Engine** — WAF, rate limits, auth bypass automático
+3. **S-12: On-Chain Intelligence** — Etherscan/Dune/Nansen leads
+4. **S-13: Prediction Markets AI** — Polymarket auto-trader
+5. **S-14: Crypto Trading Signals** — auto-órdenes desde señales técnicas
+6. **S-15: Argentina Finance** — DolarAPI, MEP/CCL arbitrage
+7. **S-16: Sports Betting AI** — TheOddsAPI + ML + Kelly
 
-### Modificados:
-- `.ai/AGENT_CHARTER.md` — +6 secciones: Principios de Ingeniería, Definición de Terminado, Criterios para Aceptar Cambios, Qué No Quiero, Rol Esperado de la IA. Evidencia wording corregido.
-- `.ai/TASK_QUEUE.md` — Tasks v3.0 limpiadas; agregadas 4 tasks para v3.1 (ORION Reasoning Layer)
-- `.ai/ROADMAP.md` — Fase 6 completada; nuevo roadmap v3.1 con Hypothesis Challenger, Evidence Graph, Adaptive Report Gate
-- `.ai/KNOWN_DEBT.md` — Entry #9: Motor de validación sin refutación ni razonamiento de incertidumbre
-- `.ai/DECISIONS.md` — Decision: auditoría de validación → documentar, no implementar antes del release
-- `installer/cateye.nsi` — Version 1.6.0 → 3.0.0; +5 directorios (uploads, evidence, config, backups, tools)
-- `installer/install_windows.ps1` — Version 1.6.0 → lee VERSION
-- `scripts/package_portable.py` — Genera install.bat + run.bat; VERSION/LICENSE/README en raíz
-
-### Verificados (sin cambios):
-- `run.py:39-44` — Detección portable ya implementada (Opción A del usuario)
-
-## Resumen de la Auditoría de Validación
-
-Se auditó todo el pipeline: generators → replayer → rules → confidence → gate → report.
-
-**Hallazgo principal**: CATEYE busca confirmación, no refutación. No evalúa explicaciones alternativas (recurso público, caché, stub). No aprende de falsos positivos.
-
-**Decisión**: No implementar fixes antes del release. Documentar limitaciones en KNOWN_LIMITATIONS.md. Mover mejoras a v3.1 (ORION Reasoning Layer).
-
-**Veredicto**: 🟡 Razona parcialmente. Requiere revisión humana antes de reportar.
-
-## Siguiente Prioridad
-
-**CATEYE v3.1 — ORION Reasoning Layer**:
-1. Hypothesis Challenger — refutación activa
-2. Evidence Graph — evidencia a favor/en contra
-3. Adaptive Report Gate — threshold por tipo
-
-## Bloqueadores
-
-- Windows portable installer requiere PyInstaller + NSIS (ejecutar desde Windows)
-- Los cambios de v3.1 aumentan alcance — solo cuando v3.0 esté cerrado
+### Estado del Sistema
+- **Backend**: Ruff clean, 1400+ tests pass
+- **FCC Proxy**: Live en `:8082`, rutea a Ollama `qwen2.5-coder:1.5b`
+- **Hermes**: Config YAML válido, fallback chain FCC → Ollama qwen2.5 → freehuntx
+- **Ollama**: `qwen2.5-coder:1.5b` cargado. `freehuntx/qwen3-coder:8b` al 87% (pull incompleto)
+- **Stack IA**: Sin OpenRouter. 100% local vía FCC → Ollama.

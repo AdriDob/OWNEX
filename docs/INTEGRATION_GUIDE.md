@@ -1,7 +1,6 @@
 # CATEYE Integration Guide
 
-> Complete configuration reference for all external integrations.
-> v4.1.0 STABLE — July 2026.
+> Full integration reference for all external services in ORION v4.6.0.
 
 Every integration reads credentials from environment variables or the IdentityVault (AES-256-GCM encrypted store at `~/.orion/`). The Secrets Manager (`core/secrets/manager.py`) provides a REST API bridge with env var fallback.
 
@@ -379,7 +378,7 @@ curl http://localhost:8000/api/financial/integrations/status
 | `exchange_kraken.api_key` | Kraken API key |
 | `exchange_kraken.api_secret` | Kraken private key (HMAC-SHA512) |
 
-**Implementation**: `ExchangeConnector`. Uses `api.kraken.com`. HMAC-SHA512 signed requests. Fixed in v4.1.0 for correct portfolio balance + ticker via private API.
+**Implementation**: `ExchangeConnector`. Uses `api.kraken.com`. HMAC-SHA512 signed requests. Fixed in v4.6.0 for correct portfolio balance + ticker via private API.
 
 ### 4.4 Takenos (Virtual Wallet)
 

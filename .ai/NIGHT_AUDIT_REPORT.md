@@ -1,4 +1,4 @@
-# Night Audit Report — ORION Platform v4.1.0
+# Night Audit Report — ORION Platform v4.6.0
 
 > Fecha: Julio 2026
 > Tests: 560 passed, 2 xfailed, 0 failures

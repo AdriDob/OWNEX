@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ORION Brand Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #050508;
+      color: #e0e0e0;
+      font-family: 'Inter', sans-serif;
+      padding: 40px;
+    }
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 28px;
+      letter-spacing: 4px;
+      color: #A855F7;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #8B5CF6;
+      opacity: 0.6;
+      font-size: 14px;
+      letter-spacing: 2px;
+      margin-bottom: 40px;
+    }
+    .section {
+      margin-bottom: 60px;
+    }
+    .section h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 16px;
+      letter-spacing: 3px;
+      color: #F5A623;
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(109, 40, 217, 0.2);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      background: rgba(10, 10, 14, 0.8);
+      border: 1px solid rgba(109, 40, 217, 0.15);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 220px;
+      backdrop-filter: blur(12px);
+    }
+    .card svg, .card img {
+      max-width: 100%;
+      max-height: 180px;
+    }
+    .card-label {
+      font-size: 12px;
+      color: #8B5CF6;
+      opacity: 0.6;
+      margin-top: 16px;
+      letter-spacing: 1px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .card-small {
+      min-height: 120px;
+    }
+    .row {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(109, 40, 217, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #A855F7;
+    }
+    .desc {
+      color: #8B5CF6;
+      opacity: 0.5;
+      font-size: 13px;
+      line-height: 1.6;
+      max-width: 640px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>ORION BRAND SYSTEM</h1>
+  <div class="subtitle">PREVIEW · v4.7.0 · NO INTEGRATED YET</div>
+
+  <div class="section">
+    <h2>LOGOTIPOS</h2>
+    <div class="grid">
+      <div class="card">
+        <object data="../../brand/logo-mark.svg" type="image/svg+xml" width="180" height="180"></object>
+        <div class="card-label">logo-mark.svg · Icono principal</div>
+      </div>
+      <div class="card">
+        <object data="../../brand/logo-horizontal.svg" type="image/svg+xml" width="360" height="90"></object>
+        <div class="card-label">logo-horizontal.svg · Horizontal (sidebar/header)</div>
+      </div>
+      <div class="card">
+        <object data="../../brand/logo.svg" type="image/svg+xml" width="240" height="240"></object>
+        <div class="card-label">logo.svg · Vertical (splash/loading)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>FAVICON</h2>
+    <div class="row">
+      <div class="card card-small" style="width: 120px;">
+        <object data="../../brand/favicon.svg" type="image/svg+xml" width="48" height="48"></object>
+        <div class="card-label" style="font-size: 10px;">favicon.svg</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>PALETA</h2>
+    <div class="desc">Design tokens definidos en <code>brand/design-tokens.css</code>. No hardcodear colores.</div>
+    <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));">
+      <div class="card card-small"><div style="width: 60px; height: 60px; border-radius: 8px; background: #050508; border: 1px solid #333;"></div><div class="card-label" style="font-size: 10px;">#050508 · bg-primary</div></div>
+      <div class="card card-small"><div style="width: 60px; height: 60px; border-radius: 8px; background: #0A0A0E; border: 1px solid #333;"></div><div class="card-label" style="font-size: 10px;">#0A0A0E · bg-secondary</div></div>
+      <div class="card card-small"><div style="width: 60px; height: 60px; border-radius: 8px; background: #121218; border: 1px solid #333;"></div><div class="card-label" style="font-size: 10px;">#121218 · bg-tertiary</div></div>
+      <div class="card card-small"><div style="width: 60px; height: 60px; border-radius: 8px; background: #6D28D9;"></div><div class="card-label" style="font-size: 10px;">#6D28D9 · purple-deep</div></div>
+      <div class="card card-small"><div style="width: 60px; height: 60px; border-radius: 8px; background: #7C3AED;"></div><div class="card-label" style="font-size: 10px;">#7C3AED · purple-core</div></div>
+      <div class="card card-small"><div style="width: 60px; height: 60px; border-radius: 8px; background: #8B5CF6;"></div><div class="card-label" style="font-size: 10px;">#8B5CF6 · purple-mid</div></div>
+      <div class="card card-small"><div style="width: 60px; height: 60px; border-radius: 8px; background: #A855F7;"></div><div class="card-label" style="font-size: 10px;">#A855F7 · purple-light</div></div>
+      <div class="card card-small"><div style="width: 60px; height: 60px; border-radius: 8px; background: #F5A623;"></div><div class="card-label" style="font-size: 10px;">#F5A623 · gold</div></div>
+      <div class="card card-small"><div style="width: 60px; height: 60px; border-radius: 8px; background: #00FF41;"></div><div class="card-label" style="font-size: 10px;">#00FF41 · green</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>ARCHIVOS</h2>
+    <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+      <div class="card card-small"><span class="badge">SVG</span><div class="card-label" style="font-size: 10px; margin-top: 8px;">brand/logo-mark.svg</div></div>
+      <div class="card card-small"><span class="badge">SVG</span><div class="card-label" style="font-size: 10px; margin-top: 8px;">brand/logo-horizontal.svg</div></div>
+      <div class="card card-small"><span class="badge">SVG</span><div class="card-label" style="font-size: 10px; margin-top: 8px;">brand/logo.svg</div></div>
+      <div class="card card-small"><span class="badge">SVG</span><div class="card-label" style="font-size: 10px; margin-top: 8px;">brand/favicon.svg</div></div>
+      <div class="card card-small"><span class="badge">CSS</span><div class="card-label" style="font-size: 10px; margin-top: 8px;">brand/design-tokens.css</div></div>
+      <div class="card card-small"><span class="badge">HTML</span><div class="card-label" style="font-size: 10px; margin-top: 8px;">docs/brand-preview/index.html</div></div>
+    </div>
+  </div>
+
+  <div class="subtitle" style="margin-top: 40px;">
+    ⚠️ Vista previa únicamente. Ningún archivo ha sido reemplazado en la aplicación.
+  </div>
+</body>
+</html>
