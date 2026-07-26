@@ -73,10 +73,14 @@ def test_safe_mode_allows_non_destructive_commands() -> None:
     assert result.status == "ok"
 
 
-def test_backup_attempts_execution() -> None:
+def test_backup_attempts_execution(monkeypatch) -> None:
+    import subprocess
+
+    monkeypatch.setattr(
+        subprocess, "run", lambda *a, **kw: type("R", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+    )
     engine = AutomationEngine(safe_mode=False)
     result = engine.execute("backup")
-    # May fail if run.py --backup path is wrong, but should attempt
     assert result.status in ("ok", "error")
 
 

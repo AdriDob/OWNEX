@@ -4,8 +4,17 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+import pytest
+
+import cores.validation.confidence as cmod
 from cores.validation.confidence import ConfidenceScorer
 from cores.validation.feedback_tuner import MIN_EVENTS_FOR_ANALYSIS, FeedbackTuner
+
+
+@pytest.fixture(autouse=True)
+def _isolate_confidence(monkeypatch, tmp_path):
+    monkeypatch.setattr(cmod, "STATE_FILE", tmp_path / "state.json")
+    cmod.reset_confidence_scorer()
 
 
 def test_confidence_scorer_default_weights() -> None:

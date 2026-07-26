@@ -53,6 +53,10 @@ class TestUpdateManager:
 
     def test_prepare_update_creates_backup(self, tmp_path, monkeypatch) -> None:
         monkeypatch.setattr("core.update.engine.UPDATE_LOG", tmp_path / "history.jsonl")
+        monkeypatch.setattr("core.backup.engine.ORION_DIR", tmp_path)
+        monkeypatch.setattr("core.backup.engine.BACKUP_DIR", tmp_path / "backups")
+        (tmp_path / "database").mkdir(parents=True)
+        (tmp_path / "database" / "orion.db").write_text("fake db")
         mgr = UpdateManager()
         result = mgr.prepare_update()
         # Should work (backup ~/.orion/) or fail gracefully
