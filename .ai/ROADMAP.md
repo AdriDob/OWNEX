@@ -73,44 +73,71 @@
 - [x] **Desktop**: Tauri (Rust+WebView), Linux setup script, Windows 33-tool installer
 - [x] **UI**: HealthCenter, MobileCompanion, Workflows pages, Assistant/Companion composables, DataTable/Drawer/Modal/Select components
 
-## Current Sprint — Consolidation & Security (v4.5.0 STABLE)
+## 🔄 **Sprints v4.5.0 STABLE (Revenue Intelligence + Quick Wins)**
 
-### Revenue Cycle Completion
-- [x] Revenue Pipeline orchestrator (6 methods, 6 API endpoints, 31 tests)
-- [x] Revenue event types (report_submitted, submission_failed, status_changed, sync_completed, sync_failed, payout_recorded)
-- [x] Revenue capabilities registered in CapabilityRegistry
+### 🚀 Revenue Intelligence ✅
+- **EconomicMemory** - UnifiedMemory namespace "economic" for program-level tracking
+- **USD/hour** - Dynamic metrics from payout history  
+- **Platform Speed** - Real-time estimation from actual data
+- **TargetPrioritizer** - EV-based ranking with economic signals
+- **RevenuePipeline** - Complete journey: Finding→Evidence→Report→Platform→Payout
+- **70 tests** - All passing, Ruff clean
 
-### Platform Hardening
-- [x] COMPLETED_FEATURES.json — system of truth restored
-- [x] Git working tree stabilized
-- [ ] Documentation redesign (/docs)
-- [ ] Hermes events: hermes:action_started, hermes:action_completed, hermes:action_failed
-- [ ] ContradictionEngine: SSRF/XSS/SQLi/AuthBypass completion
+### 📊 **Expansion Quick Wins** ✅
+- **TargetPrioritizer** - 22 tests, EV engine + RevenueMetrics integration
+- **RevenuePipeline** - 31 tests, 6 API endpoints, 6 events
+- **IntegrationCenter** - 23 definitions, runtime status checks
+- **Hermes v2 Events** - 48 tests, 7 event types
+- **Command System v1** - 107 commands, 45 tests
+- **ReportAcceptanceOptimizer** - 32 tests
 
-## Next Evolution (v5.0 — ORION Evolution Program)
+## ✅ **Completed Features (v5.0)**
 
-> Basado en `.ai/ORION_EVOLUTION_PROGRAM.md`
+- **Frontend Consolidation Fase 1**: Capital Dashboard Unificado (5→1 páginas)
+- **Frontend Consolidation Fase 2**: Router 50→8 secciones + Sidebar unificado
+- **Frontend Consolidation Fase 2b**: Mission Control actualizado con nuevas rutas
 
-| Pilar | Prioridad | Dependencias |
-|---|---|---|
-| **1. Target Intelligence Engine** | Alta | Evolution Engine, Unified Memory |
-| **2. Elite Research Mode** | Alta | Challenger, Evidence Graph |
-| **3. Learning Engine** | Alta | FeedbackTuner, Knowledge Assets |
-| **4. Quality Intelligence** | Media | Gate, Copilot Review |
-| **5. Copilot Strategic Layer** | Media | Copilot, Evolution Engine |
-| **6. Evolution Engine** | Media | Ya existe loop, falta automatización |
-| **7. Statistical Command Center** | Alta | Mission Control 2.0, Activity Center |
-| **8. Human Time Optimization** | Media | Hermes, auto-report |
-| **9. External Intelligence Layer** | Baja | Integration Center, Unified Memory |
-| **10. Reliability** | Always | Checks pre-commit |
+## 🔄 **Next Evolution (v5.0)**
 
-## Definition of Done
+1. **Baby Mode (HUNT Button)** ✅ Current
+2. **Command Palette como Nav Principal**
+3. **Auto-Submission Pipeline (S-6)**
+4. **Design System Unificado**
+5. **Target Intelligence Engine**
 
-Una funcionalidad se considera completa cuando:
-1. Código implementado y funcionando en runtime real
-2. Tests existentes y pasando
-3. Integración verificada con módulos dependientes
-4. Sin vulnerabilidades de seguridad conocidas
-5. Produce output observable (UI / API / DB)
-6. Sobrevive restart del backend
-7. Estado registrado en COMPLETED_FEATURES.json
+## 📋 **Pendientes (Post-v4.5.0)**
+
+### **Sprints En Curso**
+- **S-4** AI Bounty Auto-Hunter (29 tests)
+- **S-5** Revenue Dashboard V2 (0 tests) 
+- **UX-1** Baby Mode (0 tests)
+- **S-6** Auto-Submission Pipeline (12 tests)
+- **S-7** Target Discovery Automator (25 tests)
+- **S-8** Report Optimizer V2 (23 tests)
+- **S-9** Auto-Recon Enhancement (23 tests)
+- **S-10** Verdict Auto-Learner (14 tests)
+
+### **No to Do**
+- **New reasoners** (CSRF, LFI, etc.) - More hypotheses without probes don't help
+- **Dashboard polish** - No reports to display yet
+- **Hermes desktop features** - Desktop execution needs pipeline
+- **Docker** - Premature optimization
+- **sentence-transformers** - Memory without revenue = data cemetery
+- **Financial analytics** - No money to analyze yet
+- **Memory Intelligence** - Valuable but requires outcomes to remember
+- **ROI Engine** - Depends on Acceptance Intelligence + data
+
+## 🚫 **Lo que NO hacer en el próximo sprint**
+
+| Item | Why not |
+|------|---------|
+| New reasoners (CSRF, LFI...) | More hypotheses without probe don't help |
+| Dashboard polish | No reports to display yet |
+| Hermes desktop features | Desktop execution without pipeline = no value |
+| Docker | Premature optimization |
+| sentence-transformers | Memory without revenue = data cemetery |
+| Financial analytics | No money to analyze yet |
+| Memory Intelligence | Valuable but depends on having outcomes to remember |
+| ROI Engine | Depends on Acceptance Intelligence + outcome data |
+
+---

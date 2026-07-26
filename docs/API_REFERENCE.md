@@ -1,6 +1,6 @@
 # CATEYE API Reference
 
-> Complete REST API documentation for CATEYE v4.1.0. All endpoints return JSON unless otherwise noted.
+> Complete REST API documentation for ORION v4.6.0. All endpoints return JSON unless otherwise noted.
 > Base URL: `http://localhost:8000`
 > Auth: Bearer JWT token (obtained via POST /api/auth/login)
 
@@ -15,9 +15,9 @@ System health check — no auth required.
 **Response** `200`:
 ```json
 {
-  "status": "ok",
-  "app": "CATEYE API",
-  "version": "4.1.0"
+  "status": "healthy",
+  "app": "ORION API",
+  "version": "4.6.0"
 }
 ```
 
@@ -29,7 +29,7 @@ Enhanced system health with watchdog, pipeline, agents, resource usage.
 ```json
 {
   "status": "healthy",
-  "version": "4.1.0",
+  "version": "4.6.0",
   "pid": 12345,
   "uptime_seconds": 124800.0,
   "watchdog": {"running": true, "last_check": "..."},
@@ -711,7 +711,7 @@ Check for available CATEYE updates by querying the configured update server. Ret
   "available": true,
   "version": "4.2.0",
   "download_url": "...",
-  "current_version": "4.1.0"
+  "current_version": "4.6.0"
 }
 ```
 

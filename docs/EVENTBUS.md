@@ -1,6 +1,6 @@
 # EventBus System
 
-> Version 4.1.0 — July 2026
+> Version 4.6.0 — Julio 2026
 
 ## 1. Architecture Overview
 

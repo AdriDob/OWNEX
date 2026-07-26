@@ -1,46 +1,54 @@
 # ORION Platform — Screenshots
 
-Imágenes del sistema ORION Platform v4.1.0. Todos los screenshots son SVGs generados con la estética cyber/terminal del sistema (verde `#00ff41` sobre negro `#050505`).
+Imágenes del sistema ORION Platform v4.7.0. Todos los screenshots son SVGs generados con la estética cyber/terminal del sistema (púrpura `#A855F7` / oro `#F5A623` sobre negro `#050508`).
 
-## Pantallas principales
+## Pantallas Principales
 
 | Screenshot | Descripción |
 |---|---|
-| [![Dashboard](screenshots/dashboard-main.svg)](screenshots/dashboard-main.svg) | **Economic Dashboard v2** — KPIs en tiempo real, gráficos de severidad y veredictos, oportunidades prioritarias. Seguridad: AES-256-GCM, CSRF activo, audit log operativo. |
-| [![Pipeline](screenshots/pipeline-monitor.svg)](screenshots/pipeline-monitor.svg) | **Findings Pipeline** — Flujo completo desde detección hasta reporte pagado. Visualiza las 5 etapas (Detectado → Validado → Confirmado → Reportado → Pagado) con conteo y acciones por hallazgo. |
-| [![Report Center](screenshots/report-detail.svg)](screenshots/report-detail.svg) | **Report Center** — Generación de reportes profesionales con IA. PoC, impacto, remediación y CVSS en un solo clic. Exportación a Markdown/PDF. |
-| [![Identity Vault](screenshots/identity-center.svg)](screenshots/identity-center.svg) | **Identity Vault v2** — Bóveda de credenciales cifradas con AES-256-GCM (clave aleatoria, no derivada). Gestión de cuentas de cobro (USDT, BTC, PayPal). Audit log de autenticación. |
-| [![System Health](screenshots/system-health.svg)](screenshots/system-health.svg) | **System Health v2** — Monitoreo en tiempo real de todos los componentes: backend, DB, IA local, herramientas de recon, WebSocket, circuit breaker, y estado de seguridad. |
-| [![Financial Dashboard](screenshots/financial-dashboard.svg)](screenshots/financial-dashboard.svg) | **Financial Dashboard v4.1** — Patrimonio total, breakdown por activo, objetivo Libertad 30K, ingresos del mes, precios CoinGecko, estado Takenos. |
-| [![Integration Center](screenshots/integration-center.svg)](screenshots/integration-center.svg) | **Integration Center v4.1** — Estado de todas las integraciones (🟢🟡🔴), última sincronización, errores, botones Test/Sync. |
+| [![Cover](screenshots/orion-cover.svg)](screenshots/orion-cover.svg) | **ORION Cover / Hero** — Portada del sistema con logo ORION (marca CE), versión, pilares funcionales (AEGIS, CATEYE, ATLAS, ODYSSEY, MERLIN, COPILOT, REVENUE) y estado del sistema. |
+| [![Dashboard](screenshots/orion-dashboard.svg)](screenshots/orion-dashboard.svg) | **Dashboard Principal ORION** — Centro de mando con KPIs en tiempo real (targets, endpoints, hallazgos, pagos), gráficos de severidad y veredictos, oportunidades prioritarias con EV scoring. |
+| [![Revenue Intelligence](screenshots/orion-revenue-intelligence.svg)](screenshots/orion-revenue-intelligence.svg) | **Revenue Intelligence** — Pipeline completo Finding→Evidence→Report→Platform→Payout. Desglose por plataforma (HackerOne, Bugcrowd, Intigriti, Immunefi), Target Prioritizer con EV scoring, Economic Memory (aprendizaje de pagos), Report Acceptance Optimizer. |
+| [![Offensive Intelligence](screenshots/orion-offensive-intelligence.svg)](screenshots/orion-offensive-intelligence.svg) | **Inteligencia Ofensiva (CATEYE)** — 5 Reasoners (IDOR, SSRF, XSS, SQLi, Auth Bypass) con stats, técnicas y hallazgos recientes. Contradiction Engine (7 tipos), Evidence Composer (PoC, curl, Python, CVSS, CWE, CAPEC, MITRE), HTTP Probes Pipeline en vivo. |
+| [![Knowledge Intelligence](screenshots/orion-knowledge-intelligence.svg)](screenshots/orion-knowledge-intelligence.svg) | **Inteligencia de Conocimiento** — Evidence Graph (nodo central + evidencias a favor/en contra/neutral con balance scoring), Knowledge Graph (explorador SQL de nodos/aristas), Decision Journal (append-only), integración COPILOT (consultas en lenguaje natural). |
+| [![Automation & Operations](screenshots/orion-automation-operations.svg)](screenshots/orion-automation-operations.svg) | **Automatización y Operaciones (MERLIN)** — Core Scheduler (13 etapas pipeline E2E), Hermes Automation Agent (6 comandos), Workflow Engine (definiciones declarativas), Extension SDK (hot reload, manifest, hooks), Senior Copilot Agent (5 niveles autoridad, 4 auditors, Policy Engine, Recommender). |
+| [![Architecture Overview](screenshots/orion-architecture-overview.svg)](screenshots/orion-architecture-overview.svg) | **Visión Arquitectónica** — Diagrama completo monolito modular + event-driven: ORION Core (Registry, EventBus, Scheduler, DB Manager, AI Runtime, Memory, Decision Journal, Simulation), Shared Security Layer, Apps (CATEYE/ATLAS/ODYSSEY), Frontend (Vue 3). Incluye 4 problemas críticos documentados (0.1-0.4) con fixes propuestos. |
+| [![Mobile Companion](screenshots/orion-mobile-companion.svg)](screenshots/orion-mobile-companion.svg) | **ORION Companion (Android/Wear OS)** — Centro de control móvil: health score, tabs (Home/Dashboard/Alertas/Config), quick actions (Scan, Reportar, Cobros, COPILOT), estado del sistema en un vistazo. |
+| [![Event Flow / Pipeline](screenshots/orion-event-flow.svg)](screenshots/orion-event-flow.svg) | **Flujo de Eventos y Pipeline** — 6 etapas pipeline horizontal (DISCOVER→RECON→HYPOTHESIS→VALIDATE→REPORT→AUTO-REPORT), productores/consumidores de eventos, CoreEventBus central con bridge a legacy, Correlation ID trace E2E, catálogo 40+ tipos de eventos. |
 
-## Navegación adicional
+---
 
-| Página | Ruta | Descripción |
-|---|---|---|
-| **Money Radar** | `/money-radar` | Programas rankeados por ORION Score con búsqueda y filtros |
-| **Opportunity Radar** | `/radar` | Tabla de oportunidades ordenable y paginada |
-| **Hot Paths** | `/hot-paths` | Vectores de ataque priorizados con scoring de riesgo |
-| **Program Intel** | `/programs/:id` | Inteligencia profunda por programa: scope, tech stack, tiers |
-| **Memory Patterns** | `/memory-patterns` | Patrones aprendidos del historial de cacería |
-| **AI Copilot** | `Ctrl+B` | Asistente contextual con conocimiento completo del sistema |
-| **Settings** | `/settings` | Configuración general, IA, herramientas, API keys y apariencia |
-| **Connections** | `/connections` | Gestión de conexiones a plataformas y cuentas de cobro |
-| **Financial Dashboard** | `/financial` | Dashboard financiero unificado con CoinGecko, Takenos, ATLAS |
-| **Integration Center** | `/integrations` | Estado y test de todas las integraciones del sistema |
+## Logos y Branding
 
-## Convenciones visuales
+| Asset | Descripción |
+|---|---|
+| [![Logo Mark](screenshots/orion-logo-mark.svg)](screenshots/orion-logo-mark.svg) | **Logo Mark** — Icono principal ORION (anillos orbitales, core púrpura/oro, punto cian). |
+| [![Logo Horizontal](screenshots/orion-logo-horizontal.svg)](screenshots/orion-logo-horizontal.svg) | **Logo Horizontal** — Para sidebar/header. |
+| [![Logo Vertical](screenshots/orion-logo-vertical.svg)](screenshots/orion-logo-vertical.svg) | **Logo Vertical** — Para splash/loading. |
+| [![Favicon](screenshots/orion-favicon.svg)](screenshots/orion-favicon.svg) | **Favicon** — 48×48 optimizado. |
 
-- **Fondo**: `#050505` con grid subtle y scanline overlay
-- **Verde**: `#00ff41` — primario, éxito, activo
-- **Cian**: `#00b8ff` — acento informativo
-- **Rojo**: `#ff1744` — crítico, destructivo, desconectado
-- **Naranja**: `#ffab00` / `#ff6600` — warning, medio-alto
-- **Tipografía**: JetBrains Mono (mono), Inter (sans)
-- **Tarjetas**: Glass effect con borde sutil `rgba(0,255,65,0.08)` y glow superior
+---
 
-## Notas
+## Convenciones Visuales
 
-- Los SVGs son generados y no requieren conexión a backend para visualizarse
-- Representan el estado del sistema con datos de ejemplo realistas
-- El diseño es responsivo y se adapta al theme del README (claro/oscuro)
+- **Fondo**: `#050508` con grid sutil y scanline overlay
+- **Púrpura primario**: `#A855F7` / `#7C3AED` / `#6D28D9` — marca, headers, acentos
+- **Oro acento**: `#F5A623` / `#FFCC66` — métricas económicas, warnings, highlights
+- **Verde éxito**: `#00FF41` / `#00E676` — confirmados, activo, online
+- **Cian info**: `#00FFFF` / `#00B8FF` — EventBus, COPILOT, arquitectura
+- **Naranja warning**: `#FF6600` / `#FFAB00` — medio-alto, cola
+- **Rojo crítico**: `#FF1744` / `#FF4466` — rechazados, errores, bugs críticos
+- **Tipografía**: Orbitron (display/títulos), Inter (sans), JetBrains Mono (mono/código)
+- **Tarjetas**: Glass effect `rgba(12,12,18,0.92)` + borde `rgba(109,40,217,0.15)` + glow superior
+- **Grid**: Pattern sutil 40×40px con `#6D28D9` opacity 0.12
+
+---
+
+## Regeneración
+
+```bash
+# Desde la raíz del proyecto
+python scripts/generate_screenshots.py
+```
+
+Última actualización: **Julio 2026** — ORION v4.7.0 STABLE

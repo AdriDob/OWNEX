@@ -148,7 +148,7 @@
 ## Estado Actual del Castillo
 
 ```
-ORION v4.3.2
+ORION v4.6.0
 │
 ├── 🟢 CATEYE (Seguridad Ofensiva)
 │   ├── Recon: ✅ nuclei, subfinder, httpx, katana, gau

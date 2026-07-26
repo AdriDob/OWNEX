@@ -18,7 +18,7 @@
 
 ## Cobertura Actual
 
-- **Tests**: 355 tests, 2 xfailed
+- **Tests**: 2,290 tests, 2 xfailed
 - **Fallo conocido**: `test_login_rate_limit` en `test_security.py` — fallo preexistente por timing
 - **Framework**: pytest con pytest-timeout, pytest-cov
 

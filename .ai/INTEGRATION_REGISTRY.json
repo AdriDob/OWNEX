@@ -231,6 +231,46 @@
       "tests": ["tests/test_security.py::TestRateLimit"],
       "integration_points": ["rate limit middleware"],
       "status": "stable"
+    },
+    {
+      "path": "cores/tools/censys.py",
+      "name": "CensysTool",
+      "imported_by": ["cores/tools/__init__.py", "cores/tools/extra.py"],
+      "consumes": ["CENSYS_API_KEY + CENSYS_API_SECRET env vars"],
+      "tests": [],
+      "integration_points": ["TOOL_REGISTRY", "recon pipeline"],
+      "status": "connected",
+      "notes": "Patrón ShodanTool. REST API sin dependencias externas. 2026-07-24."
+    },
+    {
+      "path": "cores/crypto/coingecko.py",
+      "name": "CoinGeckoFeed + Technical Analysis",
+      "imported_by": ["cores/crypto/", "core/financial/dashboard.py"],
+      "consumes": ["api.coingecko.com/api/v3"],
+      "tests": [],
+      "integration_points": ["price feed", "technical signals"],
+      "status": "stable",
+      "notes": "RSI/SMA/MACD agregados 2026-07-24."
+    },
+    {
+      "path": "core/notifications/intelligent.py",
+      "name": "IntelligentNotificationManager",
+      "imported_by": ["api/main.py", "api/routers/notifications.py"],
+      "consumes": ["core/events/bus.py (vía bridge en api/main.py)"],
+      "tests": [],
+      "integration_points": ["EventBus", "smart notification API"],
+      "status": "connected",
+      "notes": "Bridge 14 eventos EventBus creado 2026-07-24."
+    },
+    {
+      "path": "core/target_intelligence/prioritizer.py",
+      "name": "TargetPrioritizer",
+      "imported_by": ["api/scheduler.py"],
+      "consumes": ["core/revenue/metrics.py (RevenueMetrics)", "core/priority/ev_engine.py"],
+      "tests": ["tests/test_target_intelligence.py"],
+      "integration_points": ["scheduler recon stage", "revenue pipeline"],
+      "status": "production_ready",
+      "notes": "Dynamic platform speed + USD/hour agregado 2026-07-24."
     }
   ]
 }

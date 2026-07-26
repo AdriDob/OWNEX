@@ -250,7 +250,7 @@ v3.0.x — CATEYE standalone (bug fixes only)
 v4.0.0 — ORION Platform (current)
   - Core stabilizado
   - ATLAS beta, ODYSSEY beta
-v4.1.0 — Agentes reales + Hermes
+v4.6.0 — Agentes reales + Hermes
 v4.2.0 — Integration Center UI + feedback loop
 ```
 

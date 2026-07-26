@@ -17,7 +17,7 @@ frontend/          → Vue 3 + TypeScript + Tailwind CSS v4 + Vite
 src-tauri/         → Tauri wrapper (Rust)
   ├── main.rs      → Entry point (6 líneas)
   ├── lib.rs       → Builder con 5 plugins (shell, dialog, notification, fs, process)
-  ├── tauri.conf.json → v4.3.2, ventana 1400x900, decoraciones nativas
+  ├── tauri.conf.json → v4.6.0, ventana 1400x900, decoraciones nativas
   └── icons/       → PNG/ICO/ICNS (íconos existentes)
 
 core/              → Python: Offensive, Evidence, Execution, Knowledge Graph, etc.
@@ -31,7 +31,8 @@ api/               → FastAPI routers (60+)
 
 | Hallazgo | Detalle | Impacto |
 |----------|---------|---------|
-| **Versión inconsistente** | `tauri.conf.json` dice v4.3.2, README dice v4.6.0 | Bajo — cosmético |
+| **Versión inconsistente** | `tauri.conf.json` dice v4.6.0, README dice v4.6.0 | ✅ Resuelto |
+| **Versión inconsistente** | `tauri.conf.json` dice v4.6.0, README dice v4.6.0 | Bajo — cosmético |
 | **ARCHITECTURE.md desactualizado** | No menciona `core/` (Offensive Engine, Evidence Graph, Execution Runtime, etc.) | Alto — desorienta a nuevos agentes |
 | **Tauri mínimo** | Sin titlebar custom, sin menú, sin tray icon, sin atajos globales | Medio — experiencia desktop pobre |
 
@@ -119,8 +120,8 @@ api/               → FastAPI routers (60+)
 | Archivo | Versión actual | Versión objetivo |
 |---------|---------------|-----------------|
 | README.md | v4.6.0 | v4.7.0 |
-| tauri.conf.json | v4.3.2 | v4.7.0 |
-| `.ai/CURRENT_STATE.md` | v4.5.0 | v4.7.0 |
+| tauri.conf.json | v4.6.0 | v4.7.0 |
+| `.ai/CURRENT_STATE.md` | v4.6.0 | v4.7.0 |
 
 ---
 
