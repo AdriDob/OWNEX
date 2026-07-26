@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Core glow gradient -->
+    <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#A855F7" stop-opacity="1"/>
+      <stop offset="40%" stop-color="#7C3AED" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#6D28D9" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Ring gradients -->
+    <linearGradient id="ring1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6D28D9" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#A855F7" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#6D28D9" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="ring2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.7"/>
+      <stop offset="50%" stop-color="#F5A623" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="ring3" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.5"/>
+      <stop offset="50%" stop-color="#00FF41" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#7C3AED" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Core dot gradient -->
+    <radialGradient id="coreDot" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1"/>
+      <stop offset="30%" stop-color="#A855F7" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#6D28D9" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Gold accent -->
+    <linearGradient id="goldAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5A623" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#FFCC66" stop-opacity="0.2"/>
+    </linearGradient>
+    <!-- Filters -->
+    <filter id="glow1" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="coreFilter" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="80" fill="#050508"/>
+
+  <!-- Outer glow layer -->
+  <circle cx="256" cy="256" r="140" fill="url(#coreGlow)" opacity="0.3"/>
+
+  <!-- Orbital Ring 3 (outermost, angled) -->
+  <ellipse cx="256" cy="256" rx="180" ry="60" fill="none" stroke="url(#ring3)" stroke-width="1.5"
+           transform="rotate(-30 256 256)" opacity="0.5"/>
+
+  <!-- Orbital Ring 2 (middle, opposite angle) -->
+  <ellipse cx="256" cy="256" rx="150" ry="50" fill="none" stroke="url(#ring2)" stroke-width="2"
+           transform="rotate(25 256 256)" opacity="0.7"/>
+
+  <!-- Constellation dots on ring 2 -->
+  <circle cx="162" cy="198" r="3" fill="#F5A623" opacity="0.8"/>
+  <circle cx="350" cy="314" r="3" fill="#F5A623" opacity="0.6"/>
+  <circle cx="280" cy="315" r="2" fill="#A855F7" opacity="0.7"/>
+
+  <!-- Orbital Ring 1 (inner, steep) -->
+  <ellipse cx="256" cy="256" rx="110" ry="45" fill="none" stroke="url(#ring1)" stroke-width="3"
+           transform="rotate(-15 256 256)" filter="url(#glow1)"/>
+
+  <!-- Constellation dots on ring 1 -->
+  <circle cx="180" cy="225" r="2.5" fill="#00FF41" opacity="0.9"/>
+  <circle cx="332" cy="287" r="2.5" fill="#00FF41" opacity="0.7"/>
+
+  <!-- Gold accent arc (radar sweep) -->
+  <path d="M 256 256 L 380 180 A 160 160 0 0 1 400 240 Z"
+        fill="url(#goldAccent)" opacity="0.15"/>
+
+  <!-- Small gold arc -->
+  <path d="M 256 256 A 100 100 0 0 1 330 180"
+        fill="none" stroke="#F5A623" stroke-width="2" opacity="0.5"
+        stroke-dasharray="4 6" filter="url(#glow1)"/>
+
+  <!-- Constellation scattered dots -->
+  <circle cx="120" cy="140" r="1.5" fill="#A855F7" opacity="0.4"/>
+  <circle cx="390" cy="360" r="1.5" fill="#A855F7" opacity="0.3"/>
+  <circle cx="150" cy="370" r="1" fill="#8B5CF6" opacity="0.3"/>
+  <circle cx="370" cy="140" r="1" fill="#8B5CF6" opacity="0.3"/>
+  <circle cx="100" cy="280" r="1.2" fill="#A855F7" opacity="0.25"/>
+  <circle cx="412" cy="270" r="1.2" fill="#A855F7" opacity="0.25"/>
+
+  <!-- Tiny constellation lines -->
+  <line x1="120" y1="140" x2="162" y2="198" stroke="#A855F7" stroke-width="0.5" opacity="0.15"/>
+  <line x1="390" y1="360" x2="350" y2="314" stroke="#A855F7" stroke-width="0.5" opacity="0.15"/>
+
+  <!-- Core bright center -->
+  <circle cx="256" cy="256" r="18" fill="url(#coreDot)" filter="url(#coreFilter)"/>
+
+  <!-- Core inner highlight -->
+  <circle cx="256" cy="256" r="6" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="252" cy="252" r="2" fill="#FFFFFF" opacity="0.6"/>
+</svg>

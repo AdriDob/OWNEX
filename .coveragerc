@@ -1,0 +1,40 @@
+[run]
+source = cores
+omit = 
+    */tests/*
+    */migrations/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if DEBUG
+    if TYPE_CHECKING
+    if TYPE_CHECKING:
+ignore_errors = True
+skip_covered = False
+show_missing = True
+skip_empty = False
+precision = 2
+sort = show_missing
+
+# Fail under these thresholds (adjust per module as needed)
+fail_under = 80
+
+[report:core/revenue]
+# Revenue code is mission-critical for FASE -1 - require higher coverage
+fail_under = 90
+
+[report:core/revenue/economic_memory.py]
+# EconomicMemory is core to FASE -1 - require near-perfect coverage
+fail_under = 95
+
+[report:core/revenue/metrics.py]
+# RevenueMetrics is core to FASE -1 - require near-perfect coverage
+fail_under = 95
+
+[html]
+directory = htmlcov
