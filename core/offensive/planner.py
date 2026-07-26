@@ -381,7 +381,7 @@ class InvestigationPlanner:
 
         planner = InvestigationPlanner()
         plan = planner.plan(hypothesis)
-        print(plan.to_dict())
+        logger.info(plan.to_dict())
     """
 
     def plan(self, hypothesis: Hypothesis) -> InvestigationPlan:

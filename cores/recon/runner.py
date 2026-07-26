@@ -11,6 +11,7 @@ from .ffuf_runner import FfufRunner
 from .gau_runner import GauRunner
 from .httpx_runner import HttpxRunner
 from .katana_runner import KatanaRunner
+from .naabu_runner import NaabuRunner
 from .nuclei_runner import NucleiRunner
 from .parser import EndpointParser
 from .subfinder_runner import SubfinderRunner
@@ -41,6 +42,7 @@ class ReconRunner:
 
         self.subfinder = SubfinderRunner(self.recon_dir)
         self.amass = AmassRunner(self.recon_dir)
+        self.naabu = NaabuRunner(self.recon_dir)
         self.httpx = HttpxRunner(self.recon_dir)
         self.katana = KatanaRunner(self.recon_dir)
         self.wayback = WaybackRunner(self.recon_dir)
@@ -128,6 +130,48 @@ class ReconRunner:
                 source_files.append(str(amass_file))
                 logger.info("Amass: %d additional subdomains found", len(amass_subs))
 
+        # NAABU — port scan (DEEP/API only)
+        if mode.upper() in {"DEEP", "API"}:
+            naabu_input = self.recon_dir / "naabu_input.txt"
+            seen_hosts: set[str] = set()
+            candidates: list[str] = []
+            if subfinder_path:
+                p = Path(subfinder_path) if isinstance(subfinder_path, str) else subfinder_path
+                if p and p.exists():
+                    candidates.append(str(subfinder_path))
+            naabu_input.write_text("")
+            for sf in candidates:
+                p = Path(sf)
+                if p.exists():
+                    for line in p.read_text().splitlines():
+                        host = line.strip()
+                        if host and host not in seen_hosts:
+                            seen_hosts.add(host)
+            if seen_hosts:
+                naabu_input.write_text("\n".join(sorted(seen_hosts)))
+                naabu_path = await self._safe_run_tool(
+                    "naabu",
+                    self.naabu.run_naabu(
+                        naabu_input,
+                        "naabu.json",
+                        ports="top-1000",
+                    ),
+                    timeout=300,
+                )
+                if naabu_path:
+                    open_ports = self.naabu.load_open_ports(naabu_path)
+                    logger.info("Naabu: %d open ports found", len(open_ports))
+                    if open_ports:
+                        from .dedup import dedup_naabu_ports
+
+                        deduped = dedup_naabu_ports(open_ports)
+                        httpx_targets = self.naabu.as_httpx_targets(deduped)
+                        httpx_input_file = self.recon_dir / "naabu_httpx_input.txt"
+                        httpx_input_file.write_text("\n".join(httpx_targets))
+                        outputs["naabu"] = str(naabu_path)
+                        outputs["naabu_httpx_input"] = str(httpx_input_file)
+                        logger.info("Naabu → httpx: %d targets", len(httpx_targets))
+
         # PARALLEL TASKS
 
         crtsh_task = asyncio.create_task(
@@ -157,6 +201,31 @@ class ReconRunner:
             )
         )
 
+        # ROUTER — intelligent recon before katana
+
+        router_path = None
+        try:
+            from core.recon.router import ReconRouter
+
+            router = ReconRouter()
+            router_result = router.route(domain, output_dir=self.recon_dir)
+            if router_result.endpoints_found:
+                router_out = self.recon_dir / "router_endpoints.json"
+                with router_out.open("w", encoding="utf-8") as f:
+                    json.dump(router_result.endpoints_found, f, indent=2, ensure_ascii=False)
+                router_path = str(router_out)
+                outputs["router"] = router_path
+                source_files.append(router_path)
+                logger.info(
+                    "[ROUTER] %s: %d tech-specific endpoints found (tech=%s)",
+                    domain,
+                    len(router_result.endpoints_found),
+                    router_result.tech_summary,
+                )
+        except Exception:
+            logger.warning("[ROUTER] Failed for %s, falling back to katana", domain, exc_info=True)
+            router_path = None
+
         katana_task = asyncio.create_task(
             self._safe_run_tool(
                 "katana",
@@ -171,8 +240,8 @@ class ReconRunner:
         # HTTPX ONLY FOR DEEP/API
 
         if mode.upper() in {"DEEP", "API"}:
-
-            httpx_input = subfinder_path if subfinder_path else domain
+            naabu_httpx = outputs.get("naabu_httpx_input")
+            httpx_input = naabu_httpx if naabu_httpx else (subfinder_path if subfinder_path else domain)
 
             httpx_path = await self._safe_run_tool(
                 "httpx",
@@ -229,14 +298,12 @@ class ReconRunner:
         endpoint_entries = []
 
         if parser_output.exists():
-
             try:
                 with parser_output.open(
                     "r",
                     encoding="utf-8",
                     errors="ignore",
                 ) as file:
-
                     endpoint_entries = json.load(file)
 
                     if not isinstance(
@@ -259,9 +326,7 @@ class ReconRunner:
         if endpoint_entries and mode.upper() in {"DEEP", "API"}:
             targets_file = self.recon_dir / "nuclei_targets.txt"
             urls = [
-                f"{ep.get('url', ep.get('path', ''))}"
-                for ep in endpoint_entries
-                if ep.get("url") or ep.get("path")
+                f"{ep.get('url', ep.get('path', ''))}" for ep in endpoint_entries if ep.get("url") or ep.get("path")
             ]
             if urls:
                 targets_file.write_text("\n".join(urls))
@@ -318,11 +383,8 @@ class ReconRunner:
         target = self.target_root / out_file
 
         with target.open("wb") as writer:
-
             for path in paths:
-
                 if path.exists():
-
                     writer.write(path.read_bytes())
                     writer.write(b"\n")
 

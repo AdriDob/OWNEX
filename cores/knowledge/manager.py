@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from abc import ABC
 from typing import Any
 
 from cores.knowledge.abstracts import KnowledgeSourceConnector, KnowledgeStore
@@ -11,7 +10,7 @@ from cores.knowledge.pipeline import KnowledgeIngestPipeline
 logger = logging.getLogger("cateye.knowledge.manager")
 
 
-class KnowledgeManager(ABC):
+class KnowledgeManager:
     def __init__(
         self,
         store: KnowledgeStore,

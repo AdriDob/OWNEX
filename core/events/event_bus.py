@@ -42,7 +42,7 @@ class CoreEventBus(IEventBus):
         self._namespaces: dict[str, str] = {}
         self._recent: deque[dict[str, Any]] = deque(maxlen=1000)
         self._persist = True
-        self._bridge = False
+        self._bridge = True  # Enable legacy bridge by default
         self._db_registered = False
 
     def publish(self, event: str, **data: Any) -> None:
@@ -159,6 +159,10 @@ class CoreEventBus(IEventBus):
 
     def disable_bridge(self) -> None:
         self._bridge = False
+
+    def enable_bridge(self) -> None:
+        """Enable the legacy CATEYE EventBus bridge."""
+        self._bridge = True
 
 
 # ── Singleton ────────────────────────────────────────

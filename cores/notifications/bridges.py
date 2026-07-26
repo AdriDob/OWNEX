@@ -187,6 +187,35 @@ def register_discord_channel() -> None:
     logger.info("Discord channel registered on NotificationHub")
 
 
+def register_telegram_channel() -> None:
+    """Register the Telegram notification handler on the hub."""
+    from core.notifications.telegram.bot import get_telegram_bot
+    from cores.notifications.hub import get_hub
+
+    bot = get_telegram_bot()
+    if not bot.config.token or not bot.config.chat_id:
+        logger.info("Telegram channel skipped — not configured")
+        return
+
+    def _telegram_handler(type_: str, payload: dict[str, Any]) -> None:
+        title = payload.get("title", "CATEYE")
+        body = payload.get("message", "")
+        priority = payload.get("priority", "info")
+        result = bot.send_alert(title=title, body=body, priority=priority)
+        db_id = payload.get("metadata", {}).get("db_id")
+        if db_id:
+            from cores.notifications.db_bridge import record_delivery
+
+            ok = result.get("ok", False)
+            record_delivery(
+                db_id, "telegram", "sent" if ok else "failed", None if ok else str(result.get("error", "unknown"))
+            )
+
+    hub = get_hub()
+    hub.subscribe("telegram", _telegram_handler)
+    logger.info("Telegram channel registered on NotificationHub")
+
+
 def register_mobile_channel() -> None:
     """Register the mobile push notification handler on the hub.
 
@@ -318,6 +347,8 @@ def register_event_bridge() -> None:
             channels.append("mobile")
         if event_type in discord_events:
             channels.append("discord")
+        if priority in ("high", "critical"):
+            channels.append("telegram")
 
         hub.notify(
             type_=event_type.replace(":", "_"),

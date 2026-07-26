@@ -89,7 +89,7 @@ class SimulationRuntime:
     Usage:
         sim = SimulationRuntime()
         report = sim.run(workflow, compiled)
-        print(report.to_dict())
+        logger.info(report.to_dict())
     """
 
     def __init__(

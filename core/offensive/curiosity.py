@@ -222,7 +222,7 @@ class CuriosityEngine:
         engine = CuriosityEngine()
         result = engine.explore(hypothesis)
         for q in result.questions:
-            print(q.question)
+            logger.info(q.question)
     """
 
     def explore(self, hypothesis: Hypothesis) -> CuriosityResult:

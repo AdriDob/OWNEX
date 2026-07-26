@@ -146,6 +146,18 @@ async def list_apps():
     ]
 
 
+@router.get("/widgets")
+async def list_widgets():
+    """List all widgets across registered apps."""
+    registry = get_app_registry()
+    all_widgets = []
+    for app in registry.list_apps():
+        for w in app.widgets:
+            w["app_id"] = app.id
+            all_widgets.append(w)
+    return {"widgets": all_widgets, "total": len(all_widgets)}
+
+
 @router.get("/status")
 async def core_status():
     """Platform-wide health status."""

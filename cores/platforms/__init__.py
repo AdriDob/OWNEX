@@ -1,3 +1,10 @@
+from cores.platforms.ai_bounty import (
+    AI_BOUNTY_REGISTRY,
+    AnthropicBounty,
+    GoogleAIBounty,
+    ImbueBounty,
+    OpenAIBounty,
+)
 from cores.platforms.base import BugBountyPlatform
 from cores.platforms.bugcrowd import Bugcrowd
 from cores.platforms.hackerone import HackerOne
@@ -11,6 +18,7 @@ PLATFORM_REGISTRY: dict[str, type[BugBountyPlatform]] = {
     "intigriti": Intigriti,
     "yeswehack": YesWeHack,
     "synack": Synack,
+    **AI_BOUNTY_REGISTRY,
 }
 
 

@@ -8,6 +8,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
+from core.auth.provider import AuthConfig
 from core.capabilities.registry import get_capability_registry
 from core.http_probe.analyzer import AnalysisResult, Analyzer
 from core.http_probe.probes import (
@@ -45,9 +46,12 @@ class HTTPClient:
     Falls back to urllib if httpx is unavailable.
     """
 
-    def __init__(self, timeout: float = 10.0, follow_redirects: bool = False) -> None:
+    def __init__(
+        self, timeout: float = 10.0, follow_redirects: bool = False, auth_config: AuthConfig | None = None
+    ) -> None:
         self._timeout = timeout
         self._follow_redirects = follow_redirects
+        self._auth_config = auth_config
         self._client: Any = None
         self._init_client()
 
@@ -60,6 +64,12 @@ class HTTPClient:
                 follow_redirects=self._follow_redirects,
                 verify=False,
             )
+
+            if self._auth_config is not None:
+                from core.auth.injector import inject_into_client
+
+                inject_into_client(self._client, self._auth_config)
+
         except ImportError:
             self._client = None
 
@@ -179,8 +189,8 @@ class ProbeEngine:
         "auth_bypass": AuthBypassProbe,
     }
 
-    def __init__(self, http_client: HTTPClient | None = None) -> None:
-        self._client = http_client or HTTPClient(timeout=10.0, follow_redirects=False)
+    def __init__(self, http_client: HTTPClient | None = None, auth_config: AuthConfig | None = None) -> None:
+        self._client = http_client or HTTPClient(timeout=10.0, follow_redirects=False, auth_config=auth_config)
         self._analyzer = Analyzer()
         self._register_capabilities()
 

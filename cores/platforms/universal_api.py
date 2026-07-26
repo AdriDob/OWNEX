@@ -37,6 +37,7 @@ logger = logging.getLogger("cateye.mission_inbox")
 
 class TimelineScope(Enum):
     """Timeline filtering scopes for Mission Inbox"""
+
     TODAY = "today"
     YESTERDAY = "yesterday"
     THIS_WEEK = "this_week"
@@ -46,6 +47,7 @@ class TimelineScope(Enum):
 
 class EventPriority(Enum):
     """Priority levels for notifications in Mission Inbox"""
+
     URGENT = "urgent"
     HIGH = "high"
     NORMAL = "normal"
@@ -55,6 +57,7 @@ class EventPriority(Enum):
 
 class ConversationType(Enum):
     """Types of conversations in Mission Inbox"""
+
     HUNTER = "hunter"
     PLATFORM = "platform"
     STAFF = "staff"
@@ -65,6 +68,7 @@ class ConversationType(Enum):
 
 class EvidenceType(Enum):
     """Types of evidence that can be generated or requested"""
+
     SCREENSHOT = "screenshot"
     VIDEO = "video"
     LOG = "log"
@@ -89,6 +93,7 @@ class EvidenceType(Enum):
 @dataclass
 class EvidenceItem:
     """Digital evidence item for missions"""
+
     id: str
     type: EvidenceType
     title: str
@@ -110,6 +115,7 @@ class EvidenceItem:
 @dataclass
 class EventConversation:
     """Conversation thread for mission events"""
+
     id: str
     report_id: str | None = None
     type: ConversationType = ConversationType.PLATFORM
@@ -129,6 +135,7 @@ class EventConversation:
 @dataclass
 class MissionEvent:
     """Mission event structure for Mission Inbox"""
+
     id: str
     type: str
     priority: EventPriority
@@ -179,7 +186,7 @@ class AiGuidanceGenerator:
                 "generation_prompt": "Generate a comprehensive screenshot showing {finding_type} vulnerability evidence from {target}. Include relevant details like URL, parameters, and exploitation demonstration.",
                 "file_types": [".png", ".jpg", ".jpeg", ".webp"],
                 "tools": ["playwright", "selenium", "curl", "ffuf"],
-                "quality_check": "evidence_completeness"
+                "quality_check": "evidence_completeness",
             },
             EvidenceType.VIDEO: {
                 "title": "{report_title} - Tutorial Video",
@@ -187,7 +194,7 @@ class AiGuidanceGenerator:
                 "generation_prompt": "Create a step-by-step video demonstrating the {finding_type} vulnerability exploitation process, including setup, payload, and impact.",
                 "tools": ["playwright", "obs", "ffmpeg"],
                 "duration_limit": 300,  # 5 minutes
-                "quality_check": "evidence_quality"
+                "quality_check": "evidence_quality",
             },
             EvidenceType.LOG: {
                 "title": "{report_title} - Logs",
@@ -195,39 +202,41 @@ class AiGuidanceGenerator:
                 "generation_prompt": "Capture and format network logs showing the {finding_type} exploitation attempt, including requests and responses.",
                 "file_types": [".log", ".txt", ".json"],
                 "tools": ["httpx", "tcpdump", "wireshark"],
-                "quality_check": "log_completeness"
+                "quality_check": "log_completeness",
             },
             EvidenceType.REQUEST: {
                 "title": "{report_title} - HTTP Requests",
                 "description": "Complete HTTP request/response sequence for {finding_type}",
                 "generation_prompt": "Capture the full HTTP request/response sequence for the {finding_type} vulnerability exploitation, including all headers and bodies.",
                 "tools": ["burpsuite", "zaproxy", "curl"],
-                "quality_check": "request_completeness"
+                "quality_check": "request_completeness",
             },
             EvidenceType.RESPONSE: {
                 "title": "{report_title} - HTTP Responses",
                 "description": "Server responses demonstrating {finding_type} impact",
                 "generation_prompt": "Capture server responses that confirm the {finding_type} vulnerability impact.",
                 "tools": ["burpsuite", "zaproxy"],
-                "quality_check": "response_analysis"
+                "quality_check": "response_analysis",
             },
             EvidenceType.TIMELINE: {
                 "title": "{report_title} - Activity Timeline",
                 "description": "Chronological timeline of {finding_type} investigation",
                 "generation_prompt": "Create a comprehensive timeline of all activities, discoveries, and actions during the {finding_type} investigation.",
                 "tools": ["timeline_builder", "log_parser"],
-                "quality_check": "timeline_completeness"
+                "quality_check": "timeline_completeness",
             },
             EvidenceType.PLAYWRIGHT: {
                 "title": "{report_title} - Scripted Evidence",
                 "description": "Automated browser script generating {finding_type} evidence",
                 "generation_prompt": "Create a script that automatically demonstrates the {finding_type} vulnerability in a controlled environment.",
                 "tools": ["playwright", "selenium"],
-                "quality_check": "script_reliability"
-            }
+                "quality_check": "script_reliability",
+            },
         }
 
-    async def analyze_conversation(self, conversation: EventConversation, event: MissionEvent, hunter_profile: dict) -> dict[str, Any]:
+    async def analyze_conversation(
+        self, conversation: EventConversation, event: MissionEvent, hunter_profile: dict
+    ) -> dict[str, Any]:
         """
         Analyze conversation to determine what's needed and suggest next steps.
 
@@ -242,17 +251,17 @@ class AiGuidanceGenerator:
             "quality_score": 0.0,
             "missing_info": [],
             "risk_level": "low",
-            "next_steps": []
+            "next_steps": [],
         }
 
         try:
             # Check if Cohere agent is available
             agent = get_orion_agent() if get_orion_agent else None
-            if agent and hasattr(agent, 'chat'):
+            if agent and hasattr(agent, "chat"):
                 prompt = self._build_conversation_analysis_prompt(conversation, event, hunter_profile)
                 response = await agent.chat(prompt)
 
-                if response and hasattr(response, 'message'):
+                if response and hasattr(response, "message"):
                     analysis.update(self._parse_ai_response(response.message))
             else:
                 # Fallback to basic analysis
@@ -275,18 +284,24 @@ class AiGuidanceGenerator:
 
         return analysis
 
-    def _build_conversation_analysis_prompt(self, conversation: EventConversation, event: MissionEvent, hunter_profile: dict) -> str:
+    def _build_conversation_analysis_prompt(
+        self, conversation: EventConversation, event: MissionEvent, hunter_profile: dict
+    ) -> str:
         """Build a comprehensive prompt for conversation analysis"""
-        latest_message = conversation.messages[-1] if conversation.messages else {"content": "", "timestamp": conversation.created_at}
-        latest_ts = float(latest_message.get('timestamp', conversation.created_at))  # type: ignore[arg-type]
+        latest_message = (
+            conversation.messages[-1]
+            if conversation.messages
+            else {"content": "", "timestamp": conversation.created_at}
+        )
+        latest_ts = float(latest_message.get("timestamp", conversation.created_at))  # type: ignore[arg-type]
 
         prompt = f"""
         Analiza la siguiente conversación y evento del hunter para entender qué evidencia o información adicional se necesita para responder a su solicitud.
 
         INFORMACIÓN DE CONVERSACIÓN:
         - Tipo de conversación: {conversation.type}
-        - Participantes: {', '.join(conversation.participants)}
-        - Último mensaje: "{latest_message.get('content', '')}" (a las {datetime.fromtimestamp(latest_ts).isoformat()})
+        - Participantes: {", ".join(conversation.participants)}
+        - Último mensaje: "{latest_message.get("content", "")}" (a las {datetime.fromtimestamp(latest_ts).isoformat()})
         - Estado: {conversation.status}
         - Evidencias adjuntas: {len(conversation.evidence_ids)}
 
@@ -295,16 +310,16 @@ class AiGuidanceGenerator:
         - Título: {event.title}
         - Mensaje: {event.message}
         - Prioridad: {event.priority}
-        - Platform: {event.platforms[0] if event.platforms else 'Unknown'}
-        - Target(s): {', '.join(event.targets)}
-        - Hunter: {', '.join(event.hunters)}
-        - Report ID: {event.report_id or 'N/A'}
+        - Platform: {event.platforms[0] if event.platforms else "Unknown"}
+        - Target(s): {", ".join(event.targets)}
+        - Hunter: {", ".join(event.hunters)}
+        - Report ID: {event.report_id or "N/A"}
 
         PERFIL DEL HUNTER:
-        - Experiencia: {hunter_profile.get('experience', 'N/A')}
-        - Rol: {hunter_profile.get('role', 'N/A')}
-        - Tiempo en plataforma: {hunter_profile.get('platform_time', 'N/A')}
-        - Historial: {', '.join(hunter_profile.get('previous_reports', []))}
+        - Experiencia: {hunter_profile.get("experience", "N/A")}
+        - Rol: {hunter_profile.get("role", "N/A")}
+        - Tiempo en plataforma: {hunter_profile.get("platform_time", "N/A")}
+        - Historial: {", ".join(hunter_profile.get("previous_reports", []))}
 
         TAREAS PENDIENTES IDENTIFICADAS:
         Analiza la conversación para identificar qué información o evidencia específica se necesita para responder completamente a la solicitud del triager.
@@ -324,7 +339,7 @@ class AiGuidanceGenerator:
         """Parse AI response into structured analysis"""
         try:
             # Try to parse as JSON (if AI returns structured data)
-            if response.strip().startswith('{'):
+            if response.strip().startswith("{"):
                 return json.loads(response)
 
             # Otherwise, parse as structured text
@@ -349,13 +364,12 @@ class AiGuidanceGenerator:
                 "timeline": EvidenceType.TIMELINE,
                 "playback": EvidenceType.PLAYWRIGHT,
                 "playwright": EvidenceType.PLAYWRIGHT,
-                "script": EvidenceType.PLAYWRIGHT
+                "script": EvidenceType.PLAYWRIGHT,
             }
 
             for pattern, evidence_type in evidence_patterns.items():
-                if re.search(pattern, response, re.IGNORECASE):
-                    if evidence_type not in analysis["needed_evidence"]:
-                        analysis["needed_evidence"].append(evidence_type)
+                if re.search(pattern, response, re.IGNORECASE) and evidence_type not in analysis["needed_evidence"]:
+                    analysis["needed_evidence"].append(evidence_type)
 
             # Check for action items
             action_indicators = {
@@ -369,7 +383,7 @@ class AiGuidanceGenerator:
                 "ejemplo de": True,
                 "análisis": True,
                 "explicación": True,
-                "detalle": True
+                "detalle": True,
             }
 
             for indicator, _value in action_indicators.items():
@@ -381,7 +395,7 @@ class AiGuidanceGenerator:
                 (r"completitud\s*(\d+)%", "completeness"),
                 (r"calidad\s*(\d+)%", "quality"),
                 (r"(\d+)%\s*completo", "completeness"),
-                (r"(\d+)%\s*calidad", "quality")
+                (r"(\d+)%\s*calidad", "quality"),
             ]
 
             for pattern, key in quality_patterns:
@@ -394,7 +408,9 @@ class AiGuidanceGenerator:
 
         return analysis
 
-    async def generate_evidence(self, report_id: str, evidence_request: EvidenceType, event_context: dict[str, Any]) -> EvidenceItem | None:
+    async def generate_evidence(
+        self, report_id: str, evidence_request: EvidenceType, event_context: dict[str, Any]
+    ) -> EvidenceItem | None:
         """
         Generate specific evidence for a request.
 
@@ -424,11 +440,11 @@ class AiGuidanceGenerator:
                 type=evidence_request,
                 title=template["title"].format(
                     report_title=event_context.get("report_title", "Unknown Report"),
-                    finding_type=event_context.get("finding_type", "Unknown")
+                    finding_type=event_context.get("finding_type", "Unknown"),
                 ),
                 description=template["description"].format(
                     finding_type=event_context.get("finding_type", "Unknown"),
-                    target=event_context.get("target", "Unknown")
+                    target=event_context.get("target", "Unknown"),
                 ),
                 ai_generated=True,
                 human_reviewed=False,
@@ -437,8 +453,8 @@ class AiGuidanceGenerator:
                     "generation_time": time.time(),
                     "event_context": event_context,
                     "tools_used": template.get("tools", []),
-                    "quality_check": template.get("quality_check", "none")
-                }
+                    "quality_check": template.get("quality_check", "none"),
+                },
             )
 
             self.logger.info(f"Generated evidence placeholder: {evidence_id}")
@@ -448,7 +464,9 @@ class AiGuidanceGenerator:
             self.logger.error(f"Error generating evidence: {e}")
             return None
 
-    def _basic_conversation_analysis(self, conversation: EventConversation | None, event: MissionEvent | None, hunter_profile: dict) -> dict[str, Any]:
+    def _basic_conversation_analysis(
+        self, conversation: EventConversation | None, event: MissionEvent | None, hunter_profile: dict
+    ) -> dict[str, Any]:
         """Basic analysis without AI when needed"""
         analysis: dict[str, Any] = {
             "needed_evidence": [],
@@ -458,7 +476,7 @@ class AiGuidanceGenerator:
             "quality_score": 0.0,
             "missing_info": [],
             "risk_level": "low",
-            "next_steps": []
+            "next_steps": [],
         }
 
         if event:
@@ -484,7 +502,7 @@ class AiGuidanceGenerator:
                 "Generate evidence automatically using appropriate tools",
                 "Create human approval workflow for evidence review",
                 "Notify hunter of progress",
-                "Archive conversation for future reference"
+                "Archive conversation for future reference",
             ]
 
             # Basic AI suggestions
@@ -492,7 +510,7 @@ class AiGuidanceGenerator:
                 "Generate comprehensive screenshots documenting the vulnerability",
                 "Create a step-by-step tutorial video demonstrating the exploit",
                 "Provide detailed logs of the exploitation attempt",
-                "Include request/response history for technical analysis"
+                "Include request/response history for technical analysis",
             ]
 
         return analysis
@@ -550,38 +568,44 @@ class AiGuidanceGenerator:
 
         # Generate evidence steps based on needed evidence
         for evidence_type in analysis.get("needed_evidence", []):
-            next_steps.append({
-                "step": "generate_evidence",
-                "type": evidence_type,
-                "priority": "high",
-                "description": f"Generate {evidence_type.value} evidence to answer user request",
-                "estimated_time": self._estimate_evidence_generation_time(evidence_type),
-                "requires_human_approval": True,
-                "ai_suggested": True
-            })
+            next_steps.append(
+                {
+                    "step": "generate_evidence",
+                    "type": evidence_type,
+                    "priority": "high",
+                    "description": f"Generate {evidence_type.value} evidence to answer user request",
+                    "estimated_time": self._estimate_evidence_generation_time(evidence_type),
+                    "requires_human_approval": True,
+                    "ai_suggested": True,
+                }
+            )
 
         # Add documentation steps
         for action in analysis.get("suggested_actions", []):
-            next_steps.append({
-                "step": action,
-                "type": "documentation",
-                "priority": "medium",
-                "description": f"Complete documentation: {action}",
-                "estimated_time": "30 minutes",
-                "requires_human_approval": False,
-                "ai_suggested": True
-            })
+            next_steps.append(
+                {
+                    "step": action,
+                    "type": "documentation",
+                    "priority": "medium",
+                    "description": f"Complete documentation: {action}",
+                    "estimated_time": "30 minutes",
+                    "requires_human_approval": False,
+                    "ai_suggested": True,
+                }
+            )
 
         # Add notification steps
-        next_steps.append({
-            "step": "notify_hunter",
-            "type": "communication",
-            "priority": "medium",
-            "description": "Notify hunter of progress and next steps",
-            "estimated_time": "5 minutes",
-            "requires_human_approval": False,
-            "ai_suggested": True
-        })
+        next_steps.append(
+            {
+                "step": "notify_hunter",
+                "type": "communication",
+                "priority": "medium",
+                "description": "Notify hunter of progress and next steps",
+                "estimated_time": "5 minutes",
+                "requires_human_approval": False,
+                "ai_suggested": True,
+            }
+        )
 
         return next_steps
 
@@ -594,7 +618,7 @@ class AiGuidanceGenerator:
             EvidenceType.REQUEST: "5-10 minutes",
             EvidenceType.RESPONSE: "5-10 minutes",
             EvidenceType.TIMELINE: "20-30 minutes",
-            EvidenceType.PLAYWRIGHT: "30-45 minutes"
+            EvidenceType.PLAYWRIGHT: "30-45 minutes",
         }
         return time_estimates.get(evidence_type, "15-30 minutes")
 
@@ -613,7 +637,7 @@ class AiGuidanceGenerator:
             "timestamp": time.time(),
             "type": response_data.get("type", "text"),
             "attachments": response_data.get("attachments", []),
-            "metadata": response_data.get("metadata", {})
+            "metadata": response_data.get("metadata", {}),
         }
 
         conversation.messages.append(message)
@@ -622,7 +646,9 @@ class AiGuidanceGenerator:
         if "ai" in response_data.get("sender", ""):
             conversation.unread_count += 1
 
-    async def generate_ai_guidance_response(self, conversation: EventConversation, event: MissionEvent, hunter_profile: dict) -> dict[str, Any]:
+    async def generate_ai_guidance_response(
+        self, conversation: EventConversation, event: MissionEvent, hunter_profile: dict
+    ) -> dict[str, Any]:
         """
         Generate AI response for a conversation based on analysis.
 
@@ -643,8 +669,8 @@ class AiGuidanceGenerator:
                     "analysis": analysis,
                     "needs_human_approval": analysis.get("risk_level") in ["critical", "high"],
                     "next_steps": analysis.get("next_steps", []),
-                    "evidence_needed": analysis.get("needed_evidence", [])
-                }
+                    "evidence_needed": analysis.get("needed_evidence", []),
+                },
             }
 
             return response
@@ -655,23 +681,28 @@ class AiGuidanceGenerator:
                 "sender": "ai_assistant",
                 "type": "error",
                 "timestamp": time.time(),
-                "content": "Lo siento, tuve un problema al analizar tu solicitud. Por favor, intenta nuevamente o contacta soporte si el problema persiste."
+                "content": "Lo siento, tuve un problema al analizar tu solicitud. Por favor, intenta nuevamente o contacta soporte si el problema persiste.",
             }
 
-    def _format_guidance_response(self, analysis: dict[str, Any], conversation: EventConversation, event: MissionEvent) -> str:
+    def _format_guidance_response(
+        self, analysis: dict[str, Any], conversation: EventConversation, event: MissionEvent
+    ) -> str:
         """Format AI response in human-readable format"""
         guidance_parts = []
 
         if analysis.get("completeness_score", 0.0) < 50:
-            guidance_parts.append("📊 **Análisis de Completitud**: Tu solicitud necesita más evidencia para estar completamente documentada.")
+            guidance_parts.append(
+                "📊 **Análisis de Completitud**: Tu solicitud necesita más evidencia para estar completamente documentada."
+            )
 
         if analysis.get("risk_level") == "critical":
-            guidance_parts.append("⚠️ **Nivel de Riesgo Crítico**: Esta solicitud presenta alto riesgo de no ser aprobada por los triagers sin evidencia completa.")
+            guidance_parts.append(
+                "⚠️ **Nivel de Riesgo Crítico**: Esta solicitud presenta alto riesgo de no ser aprobada por los triagers sin evidencia completa."
+            )
 
         evidence_needs = analysis.get("needed_evidence", [])
         if evidence_needs:
-            guidance_parts.append("\n🎯 **Evidencia Requerida**:"
-                                f"\n   • {', '.join([e.value for e in evidence_needs])}")
+            guidance_parts.append(f"\n🎯 **Evidencia Requerida**:\n   • {', '.join([e.value for e in evidence_needs])}")
 
         ai_suggestions = analysis.get("ai_suggestions", [])
         if ai_suggestions:
@@ -750,19 +781,15 @@ class MissionInbox:
                 "event_types": [],
                 "platforms": [],
                 "hunters": [],
-                "date_range": {"start": None, "end": None}
+                "date_range": {"start": None, "end": None},
             },
-            "ui": {
-                "theme": "auto",
-                "refresh_interval": 30,
-                "webhooks": True
-            },
+            "ui": {"theme": "auto", "refresh_interval": 30, "webhooks": True},
             "ai_guidance": {
                 "enabled": True,
                 "auto_generate": False,
                 "approval_required": True,
-                "confidence_threshold": 0.8
-            }
+                "confidence_threshold": 0.8,
+            },
         }
 
     def _initialize_ui_components(self) -> dict[str, Any]:
@@ -773,23 +800,15 @@ class MissionInbox:
             "evidence_panel": self._create_evidence_panel(),
             "filter_panel": self._create_filter_panel(),
             "ai_guidance_panel": self._create_ai_guidance_panel(),
-            "navigation_panel": self._create_navigation_panel()
+            "navigation_panel": self._create_navigation_panel(),
         }
 
     def _create_timeline_component(self) -> dict[str, Any]:
         """Create timeline UI component"""
         return {
             "type": "timeline",
-            "props": {
-                "scope": TimelineScope.THIS_WEEK,
-                "priorities": ["high", "critical"],
-                "filters": []},
-            "state": {
-                "events": [],
-                "selections": [],
-                "zoom_level": 1,
-                "view_mode": "chronological"
-            }
+            "props": {"scope": TimelineScope.THIS_WEEK, "priorities": ["high", "critical"], "filters": []},
+            "state": {"events": [], "selections": [], "zoom_level": 1, "view_mode": "chronological"},
         }
 
     def _create_conversation_component(self) -> dict[str, Any]:
@@ -801,14 +820,9 @@ class MissionInbox:
                 "show_threads": True,
                 "show_replies": True,
                 "auto_scroll": True,
-                "typing_indicator": True
+                "typing_indicator": True,
             },
-            "state": {
-                "messages": [],
-                "participants": [],
-                "attachments": [],
-                "reactions": {}
-            }
+            "state": {"messages": [], "participants": [], "attachments": [], "reactions": {}},
         }
 
     def _create_evidence_panel(self) -> dict[str, Any]:
@@ -819,14 +833,9 @@ class MissionInbox:
                 "selected_evidence": None,
                 "filter_by_type": [],
                 "quality_threshold": 0.5,
-                "ai_generated_only": False
+                "ai_generated_only": False,
             },
-            "state": {
-                "evidence_list": [],
-                "quality_scores": {},
-                "preview_urls": {},
-                "download_status": {}
-            }
+            "state": {"evidence_list": [], "quality_scores": {}, "preview_urls": {}, "download_status": {}},
         }
 
     def _create_filter_panel(self) -> dict[str, Any]:
@@ -838,13 +847,9 @@ class MissionInbox:
                 "available_priorities": ["high", "critical", "medium", "low"],
                 "available_platforms": [],
                 "available_event_types": [],
-                "search_placeholder": "Search events, conversations, evidence..."
+                "search_placeholder": "Search events, conversations, evidence...",
             },
-            "state": {
-                "active_filters": {},
-                "search_query": "",
-                "show_advanced": False
-            }
+            "state": {"active_filters": {}, "search_query": "", "show_advanced": False},
         }
 
     def _create_ai_guidance_panel(self) -> dict[str, Any]:
@@ -855,14 +860,9 @@ class MissionInbox:
                 "auto_expand_confidence": True,
                 "show_human_approval_requests": True,
                 "evidence_generation_enabled": False,
-                "preview_ai_suggestions": True
+                "preview_ai_suggestions": True,
             },
-            "state": {
-                "current_guidance": {},
-                "approval_requests": [],
-                "ai_suggestions": [],
-                "confidence_scores": {}
-            }
+            "state": {"current_guidance": {}, "approval_requests": [], "ai_suggestions": [], "confidence_scores": {}},
         }
 
     def _create_navigation_panel(self) -> dict[str, Any]:
@@ -878,17 +878,17 @@ class MissionInbox:
                 "quick_filters": [
                     {"label": "All Critical", "filter": {"priority": "critical"}},
                     {"label": "Platform Conversations", "filter": {"type": "platform"}},
-                    {"label": "Need Evidence", "filter": {"missing_evidence": True}}
+                    {"label": "Need Evidence", "filter": {"missing_evidence": True}},
                 ],
                 "starred_only": False,
-                "archived_only": False
+                "archived_only": False,
             },
             "state": {
                 "current_view": TimelineScope.THIS_WEEK,
                 "selected_tags": [],
                 "starred_events": [],
-                "archived_events": []
-            }
+                "archived_events": [],
+            },
         }
 
     def _setup_event_listeners(self) -> None:
@@ -932,7 +932,7 @@ class MissionInbox:
                         related_events=event_data.get("related_events", []),
                         status=event_data.get("status", "active"),
                         channel=event_data.get("channel", "web"),
-                        ui_hints=event_data.get("ui_hints", {})
+                        ui_hints=event_data.get("ui_hints", {}),
                     )
 
                     self.events[mission_event.id] = mission_event
@@ -961,12 +961,19 @@ class MissionInbox:
             starred=False,
             tags=[event.type, event.platforms[0] if event.platforms else "unknown"],
             evidence_ids=event.evidence_generated,
-            status="active"
+            status="active",
         )
 
-    async def send_notification(self, event_type: str, title: str, message: str,
-                               priority: str = "medium", platforms: list[str] | None = None,
-                               metadata: dict[str, Any] | None = None, dedup_key: str | None = None) -> None:
+    async def send_notification(
+        self,
+        event_type: str,
+        title: str,
+        message: str,
+        priority: str = "medium",
+        platforms: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
+        dedup_key: str | None = None,
+    ) -> None:
         """
         Send a notification through the Mission Inbox.
 
@@ -992,7 +999,7 @@ class MissionInbox:
                 metadata=metadata or {},
                 related_events=[],
                 status="active",
-                channel="web"
+                channel="web",
             )
 
             # Send to notification hub
@@ -1004,7 +1011,7 @@ class MissionInbox:
                 priority=priority,
                 channels=platforms,
                 metadata=metadata,
-                dedup_key=dedup_key
+                dedup_key=dedup_key,
             )
 
             if notif:
@@ -1017,17 +1024,14 @@ class MissionInbox:
                 self.conversations[conversation.id] = conversation
 
                 # Emit event for other components
-                self.event_bus.publish(
-                    "mission_event:created",
-                    mission_event=mission_event,
-                    notification=notif
-                )
+                self.event_bus.publish("mission_event:created", mission_event=mission_event, notification=notif)
 
         except Exception as e:
             self.logger.error(f"Error sending notification through Mission Inbox: {e}")
 
-    async def handle_platform_response(self, event_type: str, conversation_id: str,
-                                      response_data: dict[str, Any]) -> None:
+    async def handle_platform_response(
+        self, event_type: str, conversation_id: str, response_data: dict[str, Any]
+    ) -> None:
         """
         Handle platform response and update Mission Inbox accordingly.
 
@@ -1061,8 +1065,7 @@ class MissionInbox:
         except Exception as e:
             self.logger.error(f"Error handling platform response: {e}")
 
-    async def _generate_rejection_evidence(self, event: MissionEvent,
-                                           conversation: EventConversation) -> None:
+    async def _generate_rejection_evidence(self, event: MissionEvent, conversation: EventConversation) -> None:
         """Generate evidence for event rejection"""
         try:
             # Create evidence for rejection
@@ -1074,11 +1077,7 @@ class MissionInbox:
                 description="Evidence supporting the rejection of the report",
                 ai_generated=True,
                 human_reviewed=False,
-                metadata={
-                    "event_id": event.id,
-                    "conversation_id": conversation.id,
-                    "type": "rejection_evidence"
-                }
+                metadata={"event_id": event.id, "conversation_id": conversation.id, "type": "rejection_evidence"},
             )
 
             self.evidences[evidence_id] = evidence
@@ -1086,16 +1085,15 @@ class MissionInbox:
 
             # Emit event for UI updates
             self.event_bus.publish(
-                "evidence:generated",
-                evidence=evidence,
-                conversation_id=conversation.id,
-                event_id=event.id
+                "evidence:generated", evidence=evidence, conversation_id=conversation.id, event_id=event.id
             )
 
         except Exception as e:
             self.logger.error(f"Error generating rejection evidence: {e}")
 
-    async def _process_evidence_requests(self, event: MissionEvent, conversation: EventConversation, response_data: dict[str, Any]) -> None:
+    async def _process_evidence_requests(
+        self, event: MissionEvent, conversation: EventConversation, response_data: dict[str, Any]
+    ) -> None:
         """Process evidence requests from platform responses"""
         try:
             # Extract evidence request types from the response
@@ -1111,8 +1109,8 @@ class MissionInbox:
                         "report_title": event.title,
                         "finding_type": response_data.get("finding_type", ""),
                         "target": response_data.get("target", ""),
-                        "platform": event.platforms[0] if event.platforms else ""
-                    }
+                        "platform": event.platforms[0] if event.platforms else "",
+                    },
                 )
 
                 if evidence:
@@ -1142,7 +1140,7 @@ class MissionInbox:
             EvidenceType.RESPONSE: ["response", "request", "http response", "http request"],
             EvidenceType.TIMELINE: ["timeline", "cronología", "historial", "actividad", "sequence"],
             EvidenceType.PLAYWRIGHT: ["playwright", "script", "automation"],
-            EvidenceType.ADDITIONAL: ["additional", "extra", "more", "another", "further"]
+            EvidenceType.ADDITIONAL: ["additional", "extra", "more", "another", "further"],
         }
 
         for evidence_type, keywords in evidence_keywords.items():
@@ -1258,8 +1256,8 @@ class MissionInbox:
                 "conversation_id": payload.get("conversation_id"),
                 "report_id": payload.get("report_id"),
                 "platform_response": True,
-                "ai_guidance": True
-            }
+                "ai_guidance": True,
+            },
         )
 
     async def process_hunt_event(self, payload: dict[str, Any]) -> None:
@@ -1280,8 +1278,8 @@ class MissionInbox:
                 "event_type": event_type,
                 "hunt_id": payload.get("hunt_id"),
                 "hunter_id": payload.get("hunter_id"),
-                "ai_guidance": True
-            }
+                "ai_guidance": True,
+            },
         )
 
     async def process_report_event(self, payload: dict[str, Any]) -> None:
@@ -1302,8 +1300,8 @@ class MissionInbox:
                 "event_type": event_type,
                 "report_id": payload.get("report_id"),
                 "hunter_id": payload.get("hunter_id"),
-                "ai_guidance": True
-            }
+                "ai_guidance": True,
+            },
         )
 
     async def get_event_by_id(self, event_id: str) -> MissionEvent | None:
@@ -1363,9 +1361,7 @@ class MissionInbox:
                 evidence_type = parameters.get("evidence_type")
                 if evidence_type:
                     evidence = await self.ai_guidance.generate_evidence(
-                        report_id=report_id,
-                        evidence_request=evidence_type,
-                        event_context={"report_title": event.title}
+                        report_id=report_id, evidence_request=evidence_type, event_context={"report_title": event.title}
                     )
                     if evidence:
                         self.evidences[evidence.id] = evidence
@@ -1376,9 +1372,11 @@ class MissionInbox:
                         return True
             elif action_type == "send_communication":
                 # Send a message to the platform via conversation
-                await self._send_conversation_message(conversation_id=event.conversation_id or "",
-                                                      message=parameters.get("message", ""),
-                                                      sender=parameters.get("sender", "hunter"))
+                await self._send_conversation_message(
+                    conversation_id=event.conversation_id or "",
+                    message=parameters.get("message", ""),
+                    sender=parameters.get("sender", "hunter"),
+                )
             elif action_type == "approve_report":
                 # Approve the report
                 event.status = "approved"
@@ -1398,16 +1396,12 @@ class MissionInbox:
         """Send a message to a conversation thread"""
         conversation = self.conversations.get(conversation_id)
         if conversation:
-            response_data = {
-                "sender": sender,
-                "content": message,
-                "timestamp": time.time(),
-                "type": "text"
-            }
+            response_data = {"sender": sender, "content": message, "timestamp": time.time(), "type": "text"}
             self.ai_guidance.add_conversation_response(conversation, response_data)
 
-    async def get_timeline(self, scope: TimelineScope = TimelineScope.THIS_WEEK,
-                          filters: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    async def get_timeline(
+        self, scope: TimelineScope = TimelineScope.THIS_WEEK, filters: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
         """
         Get the mission timeline with the specified scope and filters.
 
@@ -1443,22 +1437,24 @@ class MissionInbox:
         # Convert to timeline format with additional metadata
         timeline = []
         for event in events:
-            timeline.append({
-                "id": event.id,
-                "type": event.type,
-                "priority": event.priority.value,
-                "title": event.title,
-                "message": event.message,
-                "timestamp": event.timestamp,
-                "platforms": event.platforms,
-                "targets": event.targets,
-                "hunters": event.hunters,
-                "report_id": event.report_id,
-                "status": event.status,
-                "ai_suggestions": event.ai_suggestions,
-                "manual_guidance": event.manual_guidance,
-                "conversation_id": event.conversation_id
-            })
+            timeline.append(
+                {
+                    "id": event.id,
+                    "type": event.type,
+                    "priority": event.priority.value,
+                    "title": event.title,
+                    "message": event.message,
+                    "timestamp": event.timestamp,
+                    "platforms": event.platforms,
+                    "targets": event.targets,
+                    "hunters": event.hunters,
+                    "report_id": event.report_id,
+                    "status": event.status,
+                    "ai_suggestions": event.ai_suggestions,
+                    "manual_guidance": event.manual_guidance,
+                    "conversation_id": event.conversation_id,
+                }
+            )
 
         return timeline
 
@@ -1488,25 +1484,25 @@ class MissionInbox:
             "yesterday_count": len(yesterday_events),
             "this_week_count": len(this_week_events),
             "this_month_count": len(this_month_events),
-            "older_count": len(older_events)
+            "older_count": len(older_events),
         }
 
     def _is_today(self, timestamp: float) -> bool:
         """Check if a timestamp is from today"""
         event_time = datetime.fromtimestamp(timestamp)
         now = datetime.now()
-        return (event_time.date() == now.date() and
-                event_time.hour == now.hour and
-                event_time.minute == now.minute)
+        return event_time.date() == now.date() and event_time.hour == now.hour and event_time.minute == now.minute
 
     def _is_yesterday(self, timestamp: float) -> bool:
         """Check if a timestamp is from yesterday"""
         event_time = datetime.fromtimestamp(timestamp)
         now = datetime.now()
         yesterday = now - timedelta(days=1)
-        return (event_time.date() == yesterday.date() and
-                event_time.hour == yesterday.hour and
-                event_time.minute == yesterday.minute)
+        return (
+            event_time.date() == yesterday.date()
+            and event_time.hour == yesterday.hour
+            and event_time.minute == yesterday.minute
+        )
 
     def _is_this_week(self, timestamp: float) -> bool:
         """Check if a timestamp is from this week"""
@@ -1519,7 +1515,7 @@ class MissionInbox:
         """Check if a timestamp is from this month"""
         event_time = datetime.fromtimestamp(timestamp)
         now = datetime.now()
-        return (event_time.year == now.year and event_time.month == now.month)
+        return event_time.year == now.year and event_time.month == now.month
 
     async def get_platform_responses(self, report_id: str) -> list[dict[str, Any]]:
         """
@@ -1538,15 +1534,17 @@ class MissionInbox:
         # Format conversation messages
         messages = []
         for message in conversation.messages:
-            messages.append({
-                "id": message["id"],
-                "sender": message["sender"],
-                "content": message["content"],
-                "timestamp": message["timestamp"],
-                "type": message["type"],
-                "attachments": message.get("attachments", []),
-                "metadata": message.get("metadata", {})
-            })
+            messages.append(
+                {
+                    "id": message["id"],
+                    "sender": message["sender"],
+                    "content": message["content"],
+                    "timestamp": message["timestamp"],
+                    "type": message["type"],
+                    "attachments": message.get("attachments", []),
+                    "metadata": message.get("metadata", {}),
+                }
+            )
 
         return messages
 
@@ -1602,7 +1600,7 @@ class MissionInbox:
                     "type": conversation.type,
                     "last_activity": conversation.last_activity,
                     "messages": message_matches,
-                    "matches": ["messages"]
+                    "matches": ["messages"],
                 }
                 conversation_results.append(conversation_events)
 
@@ -1617,7 +1615,7 @@ class MissionInbox:
             "events": event_results,
             "conversations": conversation_results,
             "evidence": evidence_results,
-            "total_results": len(event_results) + len(conversation_results) + len(evidence_results)
+            "total_results": len(event_results) + len(conversation_results) + len(evidence_results),
         }
 
     async def get_next_steps_for_report(self, report_id: str) -> list[dict[str, Any]]:
@@ -1639,45 +1637,52 @@ class MissionInbox:
 
         # Check if evidence is needed
         if conversation and conversation.evidence_ids:
-            evidence_types = [self.evidences[eid].type for eid in conversation.evidence_ids
-                            if eid in self.evidences]
-            next_steps.append({
-                "step": "review_existing_evidence",
-                "type": "review",
-                "priority": "normal",
-                "description": f"Review {len(evidence_types)} existing evidence items",
-                "completed": True
-            })
+            evidence_types = [self.evidences[eid].type for eid in conversation.evidence_ids if eid in self.evidences]
+            next_steps.append(
+                {
+                    "step": "review_existing_evidence",
+                    "type": "review",
+                    "priority": "normal",
+                    "description": f"Review {len(evidence_types)} existing evidence items",
+                    "completed": True,
+                }
+            )
 
         # Check if conversation has unread messages
         if conversation and conversation.unread_count > 0:
-            next_steps.append({
-                "step": "read_platform_responses",
-                "type": "communication",
-                "priority": "high",
-                "description": f"Read {conversation.unread_count} unread platform responses",
-                "completed": False
-            })
+            next_steps.append(
+                {
+                    "step": "read_platform_responses",
+                    "type": "communication",
+                    "priority": "high",
+                    "description": f"Read {conversation.unread_count} unread platform responses",
+                    "completed": False,
+                }
+            )
 
         # Check if AI guidance available
         if event.ai_suggestions:
-            next_steps.append({
-                "step": "generate_ai_guidance",
-                "type": "ai_guidance",
-                "priority": "medium",
-                "description": "Generate AI guidance for next steps",
-                "completed": False
-            })
+            next_steps.append(
+                {
+                    "step": "generate_ai_guidance",
+                    "type": "ai_guidance",
+                    "priority": "medium",
+                    "description": "Generate AI guidance for next steps",
+                    "completed": False,
+                }
+            )
 
         # Check if manual approval needed for AI-generated evidence
         if any(e.ai_generated and not e.human_reviewed for e in self.evidences.values()):
-            next_steps.append({
-                "step": "approve_ai_evidence",
-                "type": "approval",
-                "priority": "high",
-                "description": "Review and approve AI-generated evidence",
-                "completed": False
-            })
+            next_steps.append(
+                {
+                    "step": "approve_ai_evidence",
+                    "type": "approval",
+                    "priority": "high",
+                    "description": "Review and approve AI-generated evidence",
+                    "completed": False,
+                }
+            )
 
         return next_steps
 
@@ -1709,7 +1714,7 @@ class MissionInbox:
             "past_24h_events": len([e for e in self.timeline if time.time() - e.timestamp < 86400]),
             "top_priorities": self._get_top_priorities(),
             "platform_distribution": self._get_platform_distribution(),
-            "event_type_distribution": self._get_event_type_distribution()
+            "event_type_distribution": self._get_event_type_distribution(),
         }
 
     def _get_top_priorities(self) -> dict[str, int]:
@@ -1803,9 +1808,12 @@ class MissionInbox:
             event.metadata["tags"].append(tag)
 
         # Tag associated conversation
-        if event.conversation_id and event.conversation_id in self.conversations:
-            if tag not in self.conversations[event.conversation_id].tags:
-                self.conversations[event.conversation_id].tags.append(tag)
+        if (
+            event.conversation_id
+            and event.conversation_id in self.conversations
+            and tag not in self.conversations[event.conversation_id].tags
+        ):
+            self.conversations[event.conversation_id].tags.append(tag)
 
         return True
 
@@ -1824,9 +1832,12 @@ class MissionInbox:
             event.metadata["tags"].remove(tag)
 
         # Remove tag from associated conversation
-        if event.conversation_id and event.conversation_id in self.conversations:
-            if tag in self.conversations[event.conversation_id].tags:
-                self.conversations[event.conversation_id].tags.remove(tag)
+        if (
+            event.conversation_id
+            and event.conversation_id in self.conversations
+            and tag in self.conversations[event.conversation_id].tags
+        ):
+            self.conversations[event.conversation_id].tags.remove(tag)
 
         return True
 
@@ -1867,7 +1878,7 @@ class MissionInbox:
                 "status": event.get("status", "active"),
                 "conversation_id": event.get("conversation_id"),
                 "ai_suggestions": event.get("ai_suggestions", []),
-                "metadata": event.get("metadata", {})
+                "metadata": event.get("metadata", {}),
             }
 
             grouped_events[date_str].append(event_details)
@@ -1881,8 +1892,8 @@ class MissionInbox:
             "grouped_events": {date: grouped_events[date] for date in sorted_dates},
             "date_range": {
                 "start": min([e["timestamp"] for e in events]) if events else None,
-                "end": max([e["timestamp"] for e in events]) if events else None
-            }
+                "end": max([e["timestamp"] for e in events]) if events else None,
+            },
         }
 
     async def get_events_by_date_range(self, start_timestamp: float, end_timestamp: float) -> list[MissionEvent]:
@@ -1932,19 +1943,21 @@ class MissionInbox:
         conversations = []
         for conv_id, conversation in self.conversations.items():
             if not conversation.archived:
-                conversations.append({
-                    "id": conv_id,
-                    "report_id": conversation.report_id,
-                    "type": conversation.type,
-                    "participants": conversation.participants,
-                    "last_activity": conversation.last_activity,
-                    "unread_count": conversation.unread_count,
-                    "starred": conversation.starred,
-                    "tags": conversation.tags,
-                    "message_count": len(conversation.messages),
-                    "evidence_ids": conversation.evidence_ids,
-                    "status": conversation.status
-                })
+                conversations.append(
+                    {
+                        "id": conv_id,
+                        "report_id": conversation.report_id,
+                        "type": conversation.type,
+                        "participants": conversation.participants,
+                        "last_activity": conversation.last_activity,
+                        "unread_count": conversation.unread_count,
+                        "starred": conversation.starred,
+                        "tags": conversation.tags,
+                        "message_count": len(conversation.messages),
+                        "evidence_ids": conversation.evidence_ids,
+                        "status": conversation.status,
+                    }
+                )
 
         return conversations
 
@@ -1958,19 +1971,21 @@ class MissionInbox:
         conversations = []
         for conv_id, conversation in self.conversations.items():
             if conversation.archived:
-                conversations.append({
-                    "id": conv_id,
-                    "report_id": conversation.report_id,
-                    "type": conversation.type,
-                    "participants": conversation.participants,
-                    "last_activity": conversation.last_activity,
-                    "unread_count": conversation.unread_count,
-                    "starred": conversation.starred,
-                    "tags": conversation.tags,
-                    "message_count": len(conversation.messages),
-                    "evidence_ids": conversation.evidence_ids,
-                    "resolved_at": conversation.resolved_at
-                })
+                conversations.append(
+                    {
+                        "id": conv_id,
+                        "report_id": conversation.report_id,
+                        "type": conversation.type,
+                        "participants": conversation.participants,
+                        "last_activity": conversation.last_activity,
+                        "unread_count": conversation.unread_count,
+                        "starred": conversation.starred,
+                        "tags": conversation.tags,
+                        "message_count": len(conversation.messages),
+                        "evidence_ids": conversation.evidence_ids,
+                        "resolved_at": conversation.resolved_at,
+                    }
+                )
 
         return conversations
 
@@ -2093,8 +2108,9 @@ class MissionInbox:
             True if successful, False otherwise
         """
         if conversation_id in self.conversations:
-            self.conversations[conversation_id].unread_count = max(0,
-                self.conversations[conversation_id].unread_count - 1)
+            self.conversations[conversation_id].unread_count = max(
+                0, self.conversations[conversation_id].unread_count - 1
+            )
             return True
         return False
 
@@ -2115,15 +2131,17 @@ class MissionInbox:
 
         messages = []
         for message in conversation.messages:
-            messages.append({
-                "id": message["id"],
-                "sender": message["sender"],
-                "content": message["content"],
-                "timestamp": message["timestamp"],
-                "type": message["type"],
-                "attachments": message.get("attachments", []),
-                "metadata": message.get("metadata", {})
-            })
+            messages.append(
+                {
+                    "id": message["id"],
+                    "sender": message["sender"],
+                    "content": message["content"],
+                    "timestamp": message["timestamp"],
+                    "type": message["type"],
+                    "attachments": message.get("attachments", []),
+                    "metadata": message.get("metadata", {}),
+                }
+            )
 
         return messages
 
@@ -2148,7 +2166,7 @@ class MissionInbox:
             "timestamp": time.time(),
             "type": message_data.get("type", "text"),
             "attachments": message_data.get("attachments", []),
-            "metadata": message_data.get("metadata", {})
+            "metadata": message_data.get("metadata", {}),
         }
 
         self.conversations[conversation_id].messages.append(message)
@@ -2158,11 +2176,7 @@ class MissionInbox:
             self.conversations[conversation_id].unread_count += 1
 
         # Emit event for new message
-        self.event_bus.publish(
-            "conversation:message_added",
-            conversation_id=conversation_id,
-            message=message
-        )
+        self.event_bus.publish("conversation:message_added", conversation_id=conversation_id, message=message)
 
         return True
 
@@ -2176,19 +2190,21 @@ class MissionInbox:
         conversations = []
         for conv_id, conversation in self.conversations.items():
             if conversation.unread_count > 0:
-                conversations.append({
-                    "id": conv_id,
-                    "report_id": conversation.report_id,
-                    "type": conversation.type,
-                    "participants": conversation.participants,
-                    "last_activity": conversation.last_activity,
-                    "unread_count": conversation.unread_count,
-                    "starred": conversation.starred,
-                    "tags": conversation.tags,
-                    "message_count": len(conversation.messages),
-                    "evidence_ids": conversation.evidence_ids,
-                    "status": conversation.status
-                })
+                conversations.append(
+                    {
+                        "id": conv_id,
+                        "report_id": conversation.report_id,
+                        "type": conversation.type,
+                        "participants": conversation.participants,
+                        "last_activity": conversation.last_activity,
+                        "unread_count": conversation.unread_count,
+                        "starred": conversation.starred,
+                        "tags": conversation.tags,
+                        "message_count": len(conversation.messages),
+                        "evidence_ids": conversation.evidence_ids,
+                        "status": conversation.status,
+                    }
+                )
 
         return conversations
 
@@ -2210,33 +2226,39 @@ class MissionInbox:
 
         # Check if there are unread messages
         if conversation.unread_count > 0:
-            next_steps.append({
-                "step": "read_messages",
-                "type": "communication",
-                "priority": "medium",
-                "description": f"Read {conversation.unread_count} unread messages",
-                "completed": False
-            })
+            next_steps.append(
+                {
+                    "step": "read_messages",
+                    "type": "communication",
+                    "priority": "medium",
+                    "description": f"Read {conversation.unread_count} unread messages",
+                    "completed": False,
+                }
+            )
 
         # Check if there are evidence items
         if conversation.evidence_ids:
-            next_steps.append({
-                "step": "review_evidence",
-                "type": "evidence_review",
-                "priority": "high",
-                "description": f"Review {len(conversation.evidence_ids)} evidence items",
-                "completed": False
-            })
+            next_steps.append(
+                {
+                    "step": "review_evidence",
+                    "type": "evidence_review",
+                    "priority": "high",
+                    "description": f"Review {len(conversation.evidence_ids)} evidence items",
+                    "completed": False,
+                }
+            )
 
         # Check if conversation needs AI guidance
         if not conversation.evidence_ids:
-            next_steps.append({
-                "step": "generate_ai_guidance",
-                "type": "ai_guidance",
-                "priority": "low",
-                "description": "Generate AI guidance for next steps",
-                "completed": False
-            })
+            next_steps.append(
+                {
+                    "step": "generate_ai_guidance",
+                    "type": "ai_guidance",
+                    "priority": "low",
+                    "description": "Generate AI guidance for next steps",
+                    "completed": False,
+                }
+            )
 
         return next_steps
 
@@ -2270,8 +2292,18 @@ class MissionInbox:
             "priority_breakdown": priority_counts,
             "type_breakdown": type_counts,
             "platform_breakdown": platform_counts,
-            "top_priorities": sorted(priority_counts.items(), key=lambda x: [EventPriority.URGENT.value, EventPriority.HIGH.value, EventPriority.NORMAL.value, EventPriority.LOW.value].index(x[1])) if "protobuf" in str(priority_counts) else priority_counts,
-            "recent_activity": self._calculate_recent_activity(timeline)
+            "top_priorities": sorted(
+                priority_counts.items(),
+                key=lambda x: [
+                    EventPriority.URGENT.value,
+                    EventPriority.HIGH.value,
+                    EventPriority.NORMAL.value,
+                    EventPriority.LOW.value,
+                ].index(x[1]),
+            )
+            if "protobuf" in str(priority_counts)
+            else priority_counts,
+            "recent_activity": self._calculate_recent_activity(timeline),
         }
 
     def _calculate_recent_activity(self, timeline: list[dict[str, Any]]) -> dict[str, Any]:
@@ -2287,7 +2319,7 @@ class MissionInbox:
             "last_24h_count": len(recent_events),
             "last_24h_by_priority": self._get_activity_by_priority(recent_events),
             "last_24h_by_type": self._get_activity_by_type(recent_events),
-            "most_active_hour": self._find_most_active_hour(recent_events)
+            "most_active_hour": self._find_most_active_hour(recent_events),
         }
 
     def _get_activity_by_priority(self, events: list[dict[str, Any]]) -> dict[str, int]:
@@ -2317,10 +2349,7 @@ class MissionInbox:
             return {"hour": None, "count": 0}
 
         most_active_hour = max(hour_counts.items(), key=lambda x: x[1])
-        return {
-            "hour": most_active_hour[0],
-            "count": most_active_hour[1]
-        }
+        return {"hour": most_active_hour[0], "count": most_active_hour[1]}
 
     async def search_timeline_advanced(self, query: str, filters: dict[str, Any] | None = None) -> dict[str, Any]:
         """
@@ -2353,7 +2382,7 @@ class MissionInbox:
             "timeline_results": timeline_results,
             "conversation_results": conversation_results,
             "evidence_results": evidence_results,
-            "total_results": len(timeline_results) + len(conversation_results) + len(evidence_results)
+            "total_results": len(timeline_results) + len(conversation_results) + len(evidence_results),
         }
 
     def _search_in_timeline(self, timeline: list[dict[str, Any]], query: str) -> list[dict[str, Any]]:
@@ -2446,20 +2475,22 @@ class MissionInbox:
         """
         evidence_list = []
         for evidence_id, evidence in self.evidences.items():
-            evidence_list.append({
-                "id": evidence_id,
-                "type": evidence.type.value,
-                "title": evidence.title,
-                "description": evidence.description,
-                "ai_generated": evidence.ai_generated,
-                "human_reviewed": evidence.human_reviewed,
-                "uploaded_by": evidence.uploaded_by,
-                "uploaded_at": evidence.uploaded_at,
-                "priority": evidence.priority,
-                "completeness_score": evidence.completeness_score,
-                "quality_score": evidence.quality_score,
-                "metadata": evidence.metadata
-            })
+            evidence_list.append(
+                {
+                    "id": evidence_id,
+                    "type": evidence.type.value,
+                    "title": evidence.title,
+                    "description": evidence.description,
+                    "ai_generated": evidence.ai_generated,
+                    "human_reviewed": evidence.human_reviewed,
+                    "uploaded_by": evidence.uploaded_by,
+                    "uploaded_at": evidence.uploaded_at,
+                    "priority": evidence.priority,
+                    "completeness_score": evidence.completeness_score,
+                    "quality_score": evidence.quality_score,
+                    "metadata": evidence.metadata,
+                }
+            )
 
         return evidence_list
 
@@ -2482,7 +2513,7 @@ class MissionInbox:
             "unread_messages": sum(c.unread_count for c in self.conversations.values()),
             "ai_guidance_requests": sum(1 for c in self.conversations.values() if c.messages),
             "evidence_generated": len([e for e in self.evidences.values() if e.ai_generated]),
-            "human_reviewed_evidence": len([e for e in self.evidences.values() if e.human_reviewed])
+            "human_reviewed_evidence": len([e for e in self.evidences.values() if e.human_reviewed]),
         }
 
         # Add distribution statistics
@@ -2525,13 +2556,14 @@ class MissionInbox:
         ai_guidance = await self.ai_guidance.generate_ai_guidance_response(
             None,  # type: ignore[arg-type]  # No conversation for this
             event,
-            {"role": "researcher", "experience": "10+ years"}
+            {"role": "researcher", "experience": "10+ years"},
         )
 
         return ai_guidance
 
-    async def start_evidence_generation(self, report_id: str, evidence_type: EvidenceType,
-                                       human_approval_needed: bool = True) -> dict[str, Any]:
+    async def start_evidence_generation(
+        self, report_id: str, evidence_type: EvidenceType, human_approval_needed: bool = True
+    ) -> dict[str, Any]:
         """
         Start evidence generation for a specific report.
 
@@ -2551,11 +2583,7 @@ class MissionInbox:
         evidence = await self.ai_guidance.generate_evidence(
             report_id=report_id,
             evidence_request=evidence_type,
-            event_context={
-                "report_title": event.title,
-                "finding_type": "unknown",
-                "target": "unknown"
-            }
+            event_context={"report_title": event.title, "finding_type": "unknown", "target": "unknown"},
         )
 
         if evidence:
@@ -2574,20 +2602,21 @@ class MissionInbox:
                 evidence_type=evidence.type,
                 report_id=report_id,
                 human_approval_needed=human_approval_needed,
-                event_id=event.id
+                event_id=event.id,
             )
 
             return {
                 "evidence_id": evidence.id,
                 "status": "started",
                 "human_approval_needed": human_approval_needed,
-                "estimated_completion_time": "15-30 minutes"
+                "estimated_completion_time": "15-30 minutes",
             }
 
         return {"error": "Failed to start evidence generation"}
 
-    async def complete_evidence_generation(self, evidence_id: str, human_approval: str,
-                                          quality_score: float | None = None) -> bool:
+    async def complete_evidence_generation(
+        self, evidence_id: str, human_approval: str, quality_score: float | None = None
+    ) -> bool:
         """
         Complete evidence generation with human approval.
 
@@ -2622,7 +2651,7 @@ class MissionInbox:
             evidence_id=evidence_id,
             human_approval=human_approval,
             quality_score=quality_score,
-            ai_generated=evidence.ai_generated
+            ai_generated=evidence.ai_generated,
         )
 
         return True
@@ -2649,18 +2678,14 @@ class MissionInbox:
             "content": response_data.get("content", ""),
             "timestamp": time.time(),
             "type": response_data.get("type", "text"),
-            "metadata": response_data.get("metadata", {})
+            "metadata": response_data.get("metadata", {}),
         }
 
         conversation.messages.append(message)
         conversation.last_activity = time.time()
 
         # Emit event
-        self.event_bus.publish(
-            "ai_guidance:response_added",
-            conversation_id=conversation_id,
-            message=message
-        )
+        self.event_bus.publish("ai_guidance:response_added", conversation_id=conversation_id, message=message)
 
         return True
 
@@ -2692,18 +2717,20 @@ class MissionInbox:
             "priority_summary": {},
             "top_events": [],
             "recent_activity": [],
-            "recommendations": self._generate_timeline_recommendations(timeline)
+            "recommendations": self._generate_timeline_recommendations(timeline),
         }
 
         # Populate priority summary
         for priority, events in priority_groups.items():
             digest["priority_summary"][priority] = {
                 "count": len(events),
-                "percentage": (len(events) / len(timeline) * 100) if timeline else 0
+                "percentage": (len(events) / len(timeline) * 100) if timeline else 0,
             }
 
         # Add top events (highest priority)
-        sorted_events = sorted(timeline, key=lambda e: ["critical", "high", "medium", "low"].index(e["priority"]), reverse=True)
+        sorted_events = sorted(
+            timeline, key=lambda e: ["critical", "high", "medium", "low"].index(e["priority"]), reverse=True
+        )
         digest["top_events"] = [
             {
                 "id": event["id"],
@@ -2713,7 +2740,7 @@ class MissionInbox:
                 "message": event["message"],
                 "timestamp": event["timestamp"],
                 "platforms": event.get("platforms", []),
-                "hunters": event.get("hunters", [])
+                "hunters": event.get("hunters", []),
             }
             for event in sorted_events[:5]
         ]
@@ -2725,7 +2752,14 @@ class MissionInbox:
         digest["recent_activity"] = [
             {
                 "date": datetime.fromtimestamp(e["timestamp"]).strftime("%Y-%m-%d"),
-                "count": len([re for re in recent if datetime.fromtimestamp(re["timestamp"]).date().isoformat() == datetime.fromtimestamp(e["timestamp"]).date().isoformat()])
+                "count": len(
+                    [
+                        re
+                        for re in recent
+                        if datetime.fromtimestamp(re["timestamp"]).date().isoformat()
+                        == datetime.fromtimestamp(e["timestamp"]).date().isoformat()
+                    ]
+                ),
             }
             for e in set([e["timestamp"] for e in recent])
         ]
@@ -2740,50 +2774,59 @@ class MissionInbox:
         event_types = [e["type"] for e in timeline]
 
         if "platform:need:poc" in event_types:
-            recommendations.append({
-                "type": "evidence_generation",
-                "priority": "high",
-                "description": "Generate screen capture evidence for platform requests",
-                "action": "generate_evidence"
-            })
+            recommendations.append(
+                {
+                    "type": "evidence_generation",
+                    "priority": "high",
+                    "description": "Generate screen capture evidence for platform requests",
+                    "action": "generate_evidence",
+                }
+            )
 
         if "platform:need:video" in event_types:
-            recommendations.append({
-                "type": "video_generation",
-                "priority": "high",
-                "description": "Create tutorial video demonstrating exploit",
-                "action": "generate_evidence"
-            })
+            recommendations.append(
+                {
+                    "type": "video_generation",
+                    "priority": "high",
+                    "description": "Create tutorial video demonstrating exploit",
+                    "action": "generate_evidence",
+                }
+            )
 
         if "platform:need:logs" in event_types:
-            recommendations.append({
-                "type": "log_collection",
-                "priority": "medium",
-                "description": "Collect network logs for investigation",
-                "action": "generate_evidence"
-            })
+            recommendations.append(
+                {
+                    "type": "log_collection",
+                    "priority": "medium",
+                    "description": "Collect network logs for investigation",
+                    "action": "generate_evidence",
+                }
+            )
 
         if "platform:need:reproduction" in event_types:
-            recommendations.append({
-                "type": "reproduction_setup",
-                "priority": "critical",
-                "description": "Set up reproduction environment",
-                "action": "setup_environment"
-            })
+            recommendations.append(
+                {
+                    "type": "reproduction_setup",
+                    "priority": "critical",
+                    "description": "Set up reproduction environment",
+                    "action": "setup_environment",
+                }
+            )
 
         # Add AI guidance recommendations
         if any("ai_guidance" in e.get("metadata", {}) for e in timeline):
-            recommendations.append({
-                "type": "ai_guidance_review",
-                "priority": "medium",
-                "description": "Review AI guidance suggestions",
-                "action": "review_ai_guidance"
-            })
+            recommendations.append(
+                {
+                    "type": "ai_guidance_review",
+                    "priority": "medium",
+                    "description": "Review AI guidance suggestions",
+                    "action": "review_ai_guidance",
+                }
+            )
 
         return recommendations
 
-    async def export_timeline_data(self, scope: TimelineScope = TimelineScope.THIS_WEEK,
-                                 format: str = "json") -> str:
+    async def export_timeline_data(self, scope: TimelineScope = TimelineScope.THIS_WEEK, format: str = "json") -> str:
         """
         Export timeline data in specified format.
 
@@ -2798,6 +2841,7 @@ class MissionInbox:
 
         if format.lower() == "json":
             import json
+
             return json.dumps(timeline, indent=2, default=str)
         elif format.lower() == "csv":
             import csv
@@ -2813,13 +2857,16 @@ class MissionInbox:
         elif format.lower() == "yaml":
             try:
                 import yaml
+
                 return yaml.dump(timeline, default_flow_style=False)
             except ImportError:
                 return "# YAML export requires PyYAML. Install with: pip install PyYAML"
         else:
             return f"Unsupported format: {format}"
 
-    async def bulk_action_on_events(self, event_ids: list[str], action: str, parameters: dict[str, Any] | None = None) -> dict[str, Any]:
+    async def bulk_action_on_events(
+        self, event_ids: list[str], action: str, parameters: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Take bulk actions on multiple events.
 
@@ -2834,11 +2881,7 @@ class MissionInbox:
         if parameters is None:
             parameters = {}
 
-        results: dict[str, Any] = {
-            "success_count": 0,
-            "failure_count": 0,
-            "results": []
-        }
+        results: dict[str, Any] = {"success_count": 0, "failure_count": 0, "results": []}
 
         for event_id in event_ids:
             try:
@@ -2855,11 +2898,7 @@ class MissionInbox:
                 else:
                     success = False
 
-                results["results"].append({
-                    "event_id": event_id,
-                    "action": action,
-                    "success": success
-                })
+                results["results"].append({"event_id": event_id, "action": action, "success": success})
 
                 if success:
                     results["success_count"] += 1
@@ -2867,18 +2906,14 @@ class MissionInbox:
                     results["failure_count"] += 1
 
             except Exception as e:
-                results["results"].append({
-                    "event_id": event_id,
-                    "action": action,
-                    "success": False,
-                    "error": str(e)
-                })
+                results["results"].append({"event_id": event_id, "action": action, "success": False, "error": str(e)})
                 results["failure_count"] += 1
 
         return results
 
-    async def bulk_action_on_conversations(self, conversation_ids: list[str], action: str,
-                                         parameters: dict[str, Any] | None = None) -> dict[str, Any]:
+    async def bulk_action_on_conversations(
+        self, conversation_ids: list[str], action: str, parameters: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Take bulk actions on multiple conversations.
 
@@ -2893,11 +2928,7 @@ class MissionInbox:
         if parameters is None:
             parameters = {}
 
-        results: dict[str, Any] = {
-            "success_count": 0,
-            "failure_count": 0,
-            "results": []
-        }
+        results: dict[str, Any] = {"success_count": 0, "failure_count": 0, "results": []}
 
         for conv_id in conversation_ids:
             try:
@@ -2916,11 +2947,7 @@ class MissionInbox:
                 else:
                     success = False
 
-                results["results"].append({
-                    "conversation_id": conv_id,
-                    "action": action,
-                    "success": success
-                })
+                results["results"].append({"conversation_id": conv_id, "action": action, "success": success})
 
                 if success:
                     results["success_count"] += 1
@@ -2928,12 +2955,9 @@ class MissionInbox:
                     results["failure_count"] += 1
 
             except Exception as e:
-                results["results"].append({
-                    "conversation_id": conv_id,
-                    "action": action,
-                    "success": False,
-                    "error": str(e)
-                })
+                results["results"].append(
+                    {"conversation_id": conv_id, "action": action, "success": False, "error": str(e)}
+                )
                 results["failure_count"] += 1
 
         return results
@@ -2959,11 +2983,13 @@ class MissionInbox:
             # Check if AI guidance is working
             try:
                 if self.ai_guidance:
-                    asyncio.create_task(self.ai_guidance.generate_ai_guidance_response(
-                        None,  # type: ignore[arg-type]  # No conversation for test
-                        None,  # type: ignore[arg-type]  # No event for test
-                        {"role": "test", "experience": "test"}
-                    ))
+                    asyncio.create_task(
+                        self.ai_guidance.generate_ai_guidance_response(
+                            None,  # type: ignore[arg-type]  # No conversation for test
+                            None,  # type: ignore[arg-type]  # No event for test
+                            {"role": "test", "experience": "test"},
+                        )
+                    )
             except Exception:
                 return False
 

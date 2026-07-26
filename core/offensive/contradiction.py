@@ -97,6 +97,150 @@ class ContradictionEngine:
             ),
         ]
 
+    # ── SSRF contradictions ──────────────────────────────────────
+
+    def _attack_ssrf(self, hypothesis: Hypothesis) -> list[Contradiction]:
+        return [
+            Contradiction(
+                label="Destination validation at application level",
+                description="The application may validate URL destinations (allowlist/denylist) before making requests, preventing SSRF to internal services.",
+                confidence_reduction=0.3,
+                how_to_rule_out="Try accessing internal services only known to the application. If blocked, validation is likely in place.",
+            ),
+            Contradiction(
+                label="Network restrictions prevent SSRF",
+                description="The server may run in a restricted network environment with no access to internal IPs (private ranges, localhost).",
+                confidence_reduction=0.25,
+                how_to_rule_out="Attempt requests to common SSRF targets (169.254.169.254, 127.0.0.1, 192.168.*). If all fail, network restrictions may be in place.",
+            ),
+            Contradiction(
+                label="Authentication middleware blocks SSRF",
+                description="The endpoint may have authentication middleware that blocks requests from unauthorized services or domains.",
+                confidence_reduction=0.2,
+                how_to_rule_out="Try adding authorization headers or using a domain in the allowlist. If successful, auth middleware may be filtering.",
+            ),
+            Contradiction(
+                label="SSH tunnel usage blocks SSRF attempts",
+                description="The application may be behind a bastion host or SSH tunnel that only allows specific traffic patterns.",
+                confidence_reduction=0.15,
+                how_to_rule_out="Check network topology or firewall rules. Attempt different protocols (UDP vs TCP) or ports.",
+            ),
+            Contradiction(
+                label="Destination may be public resource",
+                description="The referenced endpoint might be a public service (e.g., google.com) rather than an internal vulnerability.",
+                confidence_reduction=0.2,
+                how_to_rule_out="Verify if the target is a legitimate business need. If not, it might be SSRF or misconfiguration.",
+            ),
+        ]
+
+    # ── XSS contradictions ─────────────────────────────────────
+
+    def _attack_xss(self, hypothesis: Hypothesis) -> list[Contradiction]:
+        return [
+            Contradiction(
+                label="Output encoding implemented",
+                description="The application may be encoding user input before rendering, preventing script execution even if input is reflected.",
+                confidence_reduction=0.4,
+                how_to_rule_out="Observe the response HTML. If all < and > characters are encoded as &lt; and &gt;, encoding is likely in place.",
+            ),
+            Contradiction(
+                label="Content Security Policy (CSP) in place",
+                description="The application may have CSP headers that block inline scripts and external script execution.",
+                confidence_reduction=0.3,
+                how_to_rule_out="Check response headers for Content-Security-Policy. If CSP blocks script execution, XSS may be prevented.",
+            ),
+            Contradiction(
+                label="Request origin validation",
+                description="The application may validate the source of requests and reject those from unauthorized origins.",
+                confidence_reduction=0.25,
+                how_to_rule_out="Try sending requests with Origin/Referer headers set to a legitimate domain. If rejected, origin validation exists.",
+            ),
+            Contradiction(
+                label="Input sanitization middleware",
+                description="The application may have input sanitization middleware that strips script tags before processing.",
+                confidence_reduction=0.3,
+                how_to_rule_out="Try various payload encodings (URL encoding, HTML entities). If all stripped, sanitization is likely active.",
+            ),
+            Contradiction(
+                label="Cross-origin restrictions",
+                description="The response may be subject to CORS policies that prevent script execution in attacker contexts.",
+                confidence_reduction=0.2,
+                how_to_rule_out="Check Access-Control-Allow-Origin headers. If restrictive, cross-origin XSS execution may be blocked.",
+            ),
+        ]
+
+    # ── SQLi contradictions ─────────────────────────────────────
+
+    def _attack_sqli(self, hypothesis: Hypothesis) -> list[Contradiction]:
+        return [
+            Contradiction(
+                label="Parameterized queries used",
+                description="The application may be using parameterized queries or prepared statements, which prevent SQL injection even if input is malicious.",
+                confidence_reduction=0.5,
+                how_to_rule_out="Attempt to break the query with complex SQL. If queries are properly escaped, parameterized queries are likely in use.",
+            ),
+            Contradiction(
+                label="Input validation rejects SQL patterns",
+                description="The application may reject SQL keywords (SELECT, UNION, etc.) or injection characters before query execution.",
+                confidence_reduction=0.35,
+                how_to_rule_out="Try injection with encoded keywords (encoded as %xx) or obfuscated patterns. If blocked, validation exists.",
+            ),
+            Contradiction(
+                label="Least privilege database access",
+                description="The database user may have limited permissions that prevent dangerous operations like UNION SELECT or data exfiltration.",
+                confidence_reduction=0.3,
+                how_to_rule_out="Attempt to extract system information, database list, or file read. If limited, least privilege may be in place.",
+            ),
+            Contradiction(
+                label="Query timeout protection",
+                description="The application may have query timeout or rate limiting that would block abusive SQL patterns.",
+                confidence_reduction=0.2,
+                how_to_rule_out="Observe response times or error patterns. Slow requests or specific error messages may indicate timeout protection.",
+            ),
+            Contradiction(
+                label="Database WAF rules",
+                description="The application may have database-level WAF rules that detect and block SQL injection patterns.",
+                confidence_reduction=0.25,
+                how_to_rule_out="Check database logs or error messages for WAF-related blocks. If detected, WAF protection likely exists.",
+            ),
+        ]
+
+    # ── Auth bypass contradictions ─────────────────────────────────
+
+    def _attack_auth_bypass(self, hypothesis: Hypothesis) -> list[Contradiction]:
+        return [
+            Contradiction(
+                label="Session validation active",
+                description="The application may validate session state, tokens, or cookies beyond simple authentication headers.",
+                confidence_reduction=0.4,
+                how_to_rule_out="Test with valid session tokens or cookies. If authentication succeeds, session validation may be robust.",
+            ),
+            Contradiction(
+                label="Rate limiting blocks unauthorized access",
+                description="The application may limit requests from unauthorized IPs or without proper credentials, preventing brute force attempts.",
+                confidence_reduction=0.25,
+                how_to_rule_out="Observe rate limit headers or error responses. If blocked after certain attempts, rate limiting may be in place.",
+            ),
+            Contradiction(
+                label="Multi-factor authentication required",
+                description="The application may require additional authentication factors beyond simple token-based auth.",
+                confidence_reduction=0.3,
+                how_to_rule_out="Try accessing sensitive endpoints with just a token. If rejected, additional auth factors may be required.",
+            ),
+            Contradiction(
+                label="Role-based access control (RBAC)",
+                description="The application may enforce RBAC rules that restrict access regardless of authentication status.",
+                confidence_reduction=0.25,
+                how_to_rule_out="Test with authenticated but unauthorized roles. If access denied, RBAC may be the cause.",
+            ),
+            Contradiction(
+                label="Complex authentication flow",
+                description="The application may require a complex multi-step authentication flow (OTP, 2FA, etc.) beyond simple token validation.",
+                confidence_reduction=0.2,
+                how_to_rule_out="Observe authentication challenges or additional verification steps. If detected, complex flow may exist.",
+            ),
+        ]
+
     # ── Generic contradictions ───────────────────────────────────
 
     @staticmethod

@@ -17,6 +17,60 @@ logger = logging.getLogger("cateye.crypto.coingecko")
 
 BASE_URL = "https://api.coingecko.com/api/v3"
 
+
+def compute_rsi(prices: list[float], period: int = 14) -> float:
+    if len(prices) < period + 1:
+        return 50.0
+    gains, losses = 0.0, 0.0
+    for i in range(1, period + 1):
+        diff = prices[-i] - prices[-i - 1]
+        if diff >= 0:
+            gains += diff
+        else:
+            losses -= diff
+    avg_gain = gains / period
+    avg_loss = losses / period
+    if avg_loss == 0:
+        return 100.0
+    rs = avg_gain / avg_loss
+    return round(100.0 - (100.0 / (1.0 + rs)), 1)
+
+
+def compute_sma(prices: list[float], period: int = 20) -> float:
+    if len(prices) < period:
+        return prices[-1] if prices else 0.0
+    return round(sum(prices[-period:]) / period, 2)
+
+
+def compute_macd(prices: list[float]) -> tuple[float, float, float]:
+    fast = 12
+    slow = 26
+    signal = 9
+    if len(prices) < slow + signal:
+        return (0.0, 0.0, 0.0)
+    ema12 = _ema(prices, fast)
+    ema26 = _ema(prices, slow)
+    macd_line = ema12 - ema26
+    macd_hist = [
+        _ema([p for p in prices[: i + 1] if p], fast) - _ema([p for p in prices[: i + 1] if p], slow)
+        for i in range(len(prices))
+    ]
+    macd_hist = [x for x in macd_hist if x != 0.0]
+    signal_line = _ema(macd_hist[-signal:] if len(macd_hist) >= signal else macd_hist, min(signal, len(macd_hist)))
+    histogram = macd_line - signal_line
+    return (round(macd_line, 2), round(signal_line, 2), round(histogram, 2))
+
+
+def _ema(prices: list[float], period: int) -> float:
+    if len(prices) < period:
+        return sum(prices) / len(prices)
+    k = 2.0 / (period + 1)
+    ema = sum(prices[:period]) / period
+    for price in prices[period:]:
+        ema = price * k + ema * (1 - k)
+    return ema
+
+
 # CoinGecko IDs for common assets
 COINGECKO_IDS: dict[str, str] = {
     "BTC": "bitcoin",
@@ -138,6 +192,68 @@ class CoinGeckoFeed:
         except Exception as exc:
             logger.warning("CoinGecko price fetch failed for %s: %s", symbol, exc)
             return None
+
+    def get_ohlc(self, symbol: str, days: int = 30, vs_currency: str = "usd") -> list[float]:
+        """Fetch daily closing prices for technical analysis."""
+        coin_id = COINGECKO_IDS.get(symbol.upper())
+        if not coin_id:
+            return []
+        url = f"{BASE_URL}/coins/{coin_id}/ohlc?vs_currency={vs_currency}&days={days}"
+        try:
+            req = urllib.request.Request(url, method="GET")
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode())
+            return [candle[4] for candle in data]
+        except Exception as exc:
+            logger.warning("CoinGecko OHLC failed for %s: %s", symbol, exc)
+            return []
+
+    def get_technical_signals(self, symbol: str) -> dict:
+        """Compute RSI, SMA, MACD for a symbol. Returns dict with signal and interpretation."""
+        closes = self.get_ohlc(symbol, days=30)
+        if len(closes) < 15:
+            return {
+                "symbol": symbol,
+                "error": "insufficient data",
+                "rsi": 50.0,
+                "sma_20": 0.0,
+                "sma_50": 0.0,
+                "macd": (0.0, 0.0, 0.0),
+                "signal": "neutral",
+                "price": self.get_price(symbol),
+            }
+        price = closes[-1]
+        rsi = compute_rsi(closes, 14)
+        sma_20 = compute_sma(closes, 20)
+        sma_50 = compute_sma(closes, min(50, len(closes)))
+        macd_line, signal_line, histogram = compute_macd(closes)
+
+        signals = []
+        if rsi > 70:
+            signals.append("overbought")
+        elif rsi < 30:
+            signals.append("oversold")
+        if sma_20 > sma_50:
+            signals.append("uptrend")
+        else:
+            signals.append("downtrend")
+        if histogram > 0:
+            signals.append("macd_bullish")
+        else:
+            signals.append("macd_bearish")
+
+        return {
+            "symbol": symbol,
+            "price": price,
+            "rsi": rsi,
+            "sma_20": sma_20,
+            "sma_50": sma_50,
+            "macd_line": macd_line,
+            "macd_signal": signal_line,
+            "macd_histogram": histogram,
+            "signals": signals,
+            "samples": len(closes),
+        }
 
     def _fetch_simple_price(self, coin_ids: list[str], vs_currency: str = "usd") -> dict:
         ids_param = ",".join(coin_ids)

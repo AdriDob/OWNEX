@@ -30,9 +30,12 @@ from typing import Any
 
 from cores.tools.base import UnifiedResult
 from cores.tools.extra import (
+    BrowserUseTool,
     DalfoxTool,
     FfufTool,
+    GarakTool,
     GauTool,
+    GitleaksTool,
     KatanaTool,
     LinkFinderTool,
     SqlmapTool,
@@ -43,6 +46,7 @@ from cores.tools.subfinder import SubfinderTool
 
 try:
     from cores.execution.mutation_engine import SmartMutationEngine
+
     HAS_MUTATION_ENGINE = True
 except ImportError:
     HAS_MUTATION_ENGINE = False
@@ -67,6 +71,7 @@ class CorrelationEngine:
             self._llm = llm
         else:
             from cores.validation.llm_analyzer import LLMResponseAnalyzer
+
             self._llm = LLMResponseAnalyzer()
 
     def correlate(self, results: list[UnifiedResult]) -> list[UnifiedResult]:
@@ -102,8 +107,8 @@ class CorrelationEngine:
 
             # Determine result type
             types = set(r.result_type for r in target_results)
-            result_type = "vulnerability" if "vulnerability" in types else (
-                "endpoint" if "endpoint" in types else "subdomain"
+            result_type = (
+                "vulnerability" if "vulnerability" in types else ("endpoint" if "endpoint" in types else "subdomain")
             )
 
             # Build evidence chain
@@ -114,17 +119,19 @@ class CorrelationEngine:
                 "details": all_evidence,
             }
 
-            correlated.append(UnifiedResult(
-                source="correlation",
-                target=target,
-                result_type=result_type,
-                severity=max_severity,
-                confidence=max_confidence,
-                name=best_name,
-                description=f"Correlated from {source_count} tools: {', '.join(all_evidence.keys())}",
-                evidence=evidence_chain,
-                tags=sorted(all_tags),
-            ))
+            correlated.append(
+                UnifiedResult(
+                    source="correlation",
+                    target=target,
+                    result_type=result_type,
+                    severity=max_severity,
+                    confidence=max_confidence,
+                    name=best_name,
+                    description=f"Correlated from {source_count} tools: {', '.join(all_evidence.keys())}",
+                    evidence=evidence_chain,
+                    tags=sorted(all_tags),
+                )
+            )
 
         return correlated
 
@@ -166,6 +173,9 @@ class UnifiedScanner:
         dalfox: DalfoxTool | None = None,
         sqlmap: SqlmapTool | None = None,
         linkfinder: LinkFinderTool | None = None,
+        gitleaks: GitleaksTool | None = None,
+        garak: GarakTool | None = None,
+        browser_use: BrowserUseTool | None = None,
         mutation: Any | None = None,
         correlation: CorrelationEngine | None = None,
         deep_scan: bool = True,
@@ -179,6 +189,9 @@ class UnifiedScanner:
         self._dalfox = dalfox or DalfoxTool()
         self._sqlmap = sqlmap or SqlmapTool()
         self._linkfinder = linkfinder or LinkFinderTool()
+        self._gitleaks = gitleaks or GitleaksTool()
+        self._garak = garak or GarakTool()
+        self._browser_use = browser_use or BrowserUseTool()
         self._mutation = mutation or (SmartMutationEngine() if HAS_MUTATION_ENGINE else None)
         self._correlation = correlation or CorrelationEngine()
         self._deep_scan = deep_scan
@@ -280,21 +293,28 @@ class UnifiedScanner:
         if self._mutation and self._deep_scan:
             logger.info("Phase 7: Mutation — generating mutation variants")
             try:
-                candidate_urls = [r.target for r in live_endpoints + linkfinder_results + ffuf_results if "?" in r.target]
+                candidate_urls = [
+                    r.target for r in live_endpoints + linkfinder_results + ffuf_results if "?" in r.target
+                ]
                 mutation_plan = self._mutation.plan(url=candidate_urls[0] if candidate_urls else domain)
                 mutation_metadata = self._mutation.enrich_evidence(mutation_plan)
-                all_results.append(UnifiedResult(
-                    source="mutation_engine",
-                    target=domain,
-                    result_type="mutation_metadata",
-                    confidence=1.0,
-                    name=f"Mutation plan: {mutation_plan.attack_vector} ({len(mutation_plan.variants)} variants)",
-                    evidence=mutation_metadata,
-                    tags=["mutation", mutation_plan.attack_vector],
-                ))
-                logger.info("  Mutation engine: %s vector, %d variants (%s)",
-                            mutation_plan.attack_vector, len(mutation_plan.variants),
-                            ", ".join(mutation_metadata.get("strategies", {})))
+                all_results.append(
+                    UnifiedResult(
+                        source="mutation_engine",
+                        target=domain,
+                        result_type="mutation_metadata",
+                        confidence=1.0,
+                        name=f"Mutation plan: {mutation_plan.attack_vector} ({len(mutation_plan.variants)} variants)",
+                        evidence=mutation_metadata,
+                        tags=["mutation", mutation_plan.attack_vector],
+                    )
+                )
+                logger.info(
+                    "  Mutation engine: %s vector, %d variants (%s)",
+                    mutation_plan.attack_vector,
+                    len(mutation_plan.variants),
+                    ", ".join(mutation_metadata.get("strategies", {})),
+                )
             except Exception as exc:
                 logger.warning("  Mutation engine failed: %s", exc)
         else:
@@ -307,8 +327,12 @@ class UnifiedScanner:
             limit = 100 if self._deep_scan else 20
             xss_candidates = xss_candidates[:limit]
             if xss_candidates:
-                logger.info("Phase 8: Dalfox — deep scanning %d URL candidates (deep=%s)", len(xss_candidates), self._deep_scan)
-                dalfox_results = self._dalfox.scan_urls(xss_candidates, deep=self._deep_scan, mutation_plan=mutation_plan)
+                logger.info(
+                    "Phase 8: Dalfox — deep scanning %d URL candidates (deep=%s)", len(xss_candidates), self._deep_scan
+                )
+                dalfox_results = self._dalfox.scan_urls(
+                    xss_candidates, deep=self._deep_scan, mutation_plan=mutation_plan
+                )
                 all_results.extend(dalfox_results)
                 logger.info("  Dalfox returned %d findings", len(dalfox_results))
             else:
@@ -326,8 +350,12 @@ class UnifiedScanner:
                 tamper = None
                 if mutation_plan and self._mutation:
                     tamper = self._mutation.encode_tamper_command(mutation_plan)
-                logger.info("Phase 9: sqlmap — aggressive scanning %d endpoints (deep=%s, tamper=%s)",
-                            len(sqli_candidates), self._deep_scan, tamper or "default")
+                logger.info(
+                    "Phase 9: sqlmap — aggressive scanning %d endpoints (deep=%s, tamper=%s)",
+                    len(sqli_candidates),
+                    self._deep_scan,
+                    tamper or "default",
+                )
                 if self._deep_scan:
                     sqlmap_results = self._sqlmap.scan_urls_batch(sqli_candidates, tamper_scripts=tamper)
                 else:
@@ -358,6 +386,7 @@ class UnifiedScanner:
         if self._deep_scan and live_endpoints:
             try:
                 from cores.recon.zap_runner import ZapRunner
+
                 zap = ZapRunner()
                 health = asyncio.run(zap.health_check())
                 if health.get("running"):
@@ -365,17 +394,19 @@ class UnifiedScanner:
                     logger.info("Phase 11: ZAP — active scanning %s", target)
                     result = asyncio.run(zap.active_scan(target, max_duration=15))
                     for alert in result.get("alerts", []):
-                        zap_results.append(UnifiedResult(
-                            source="zap_active",
-                            target=alert.get("url", target),
-                            result_type="vulnerability",
-                            severity=alert.get("risk", "medium").lower(),
-                            confidence=0.65,
-                            name=f"ZAP: {alert.get('alert', 'finding')}",
-                            description=alert.get("description", ""),
-                            evidence={"solution": alert.get("solution", ""), "cwe": alert.get("cwe_id", "")},
-                            tags=["zap", "active_scan", alert.get("risk", "").lower()],
-                        ))
+                        zap_results.append(
+                            UnifiedResult(
+                                source="zap_active",
+                                target=alert.get("url", target),
+                                result_type="vulnerability",
+                                severity=alert.get("risk", "medium").lower(),
+                                confidence=0.65,
+                                name=f"ZAP: {alert.get('alert', 'finding')}",
+                                description=alert.get("description", ""),
+                                evidence={"solution": alert.get("solution", ""), "cwe": alert.get("cwe_id", "")},
+                                tags=["zap", "active_scan", alert.get("risk", "").lower()],
+                            )
+                        )
                     all_results.extend(zap_results)
                     logger.info("  ZAP active scan returned %d alerts", len(zap_results))
                     asyncio.run(zap.close())
@@ -389,6 +420,7 @@ class UnifiedScanner:
         if self._deep_scan and live_endpoints:
             try:
                 from cores.tools.headless import HeadlessScanner
+
                 headless = HeadlessScanner()
                 live_urls_list = [r.target for r in live_endpoints[:5] if r.target.startswith("http")]
                 if live_urls_list:
@@ -401,8 +433,63 @@ class UnifiedScanner:
         else:
             logger.info("  Headless DOM scan skipped (deep=%s or no endpoints)", self._deep_scan)
 
-        # Phase 13: Correlation
-        logger.info("Phase 13: Correlation — cross-referencing %d results", len(all_results))
+        # Phase 13: Gitleaks — secret scanning (deep mode only, scan target directory)
+        gitleaks_results = []
+        if self._gitleaks.is_available() and self._deep_scan:
+            logger.info("Phase 13: Gitleaks — secret scanning %s", domain)
+            try:
+                import tempfile
+                from pathlib import Path
+
+                scan_dir = Path(tempfile.mkdtemp(prefix="gitleaks_"))
+                gitleaks_results = self._gitleaks.scan_path(scan_dir)
+                all_results.extend(gitleaks_results)
+                import shutil
+
+                shutil.rmtree(scan_dir, ignore_errors=True)
+            except Exception as exc:
+                logger.warning("  Gitleaks scan skipped: %s", exc)
+            logger.info("  Gitleaks returned %d findings", len(gitleaks_results))
+        else:
+            logger.info("  Gitleaks skipped (deep=%s or not available)", self._deep_scan)
+
+        # Phase 14: Browser Use — autonomous browser agent (deep mode only)
+        browser_results = []
+        if self._browser_use.is_available() and self._deep_scan and live_endpoints:
+            target_url = live_endpoints[0].target
+            logger.info("Phase 14: Browser Use — autonomous browsing %s", target_url)
+            try:
+                task = f"Navigate to {target_url}, explore the application, identify forms and authentication mechanisms. Report all pages visited and any security-relevant findings."
+                br_result = self._browser_use.run_task(task, max_steps=20, timeout=180)
+                if br_result.success:
+                    browser_results = br_result.results
+                    all_results.extend(browser_results)
+                    logger.info("  Browser Use returned %d results", len(browser_results))
+            except Exception as exc:
+                logger.warning("  Browser Use skipped: %s", exc)
+        else:
+            logger.info(
+                "  Browser Use skipped (deep=%s, available=%s)", self._deep_scan, self._browser_use.is_available()
+            )
+
+        # Phase 15: Garak — LLM security testing (deep mode only, if LLM endpoint is present)
+        garak_results = []
+        if self._garak.is_available() and self._deep_scan:
+            logger.info("Phase 15: Garak — LLM security testing")
+            try:
+                garak_results = self._garak.scan_ollama(
+                    model_name="qwen3-coder:8b",
+                    probes=["promptinject", "jailbreak"],
+                )
+                all_results.extend(garak_results)
+                logger.info("  Garak returned %d findings", len(garak_results))
+            except Exception as exc:
+                logger.warning("  Garak scan skipped: %s", exc)
+        else:
+            logger.info("  Garak skipped (deep=%s or not available)", self._deep_scan)
+
+        # Phase 16: Correlation
+        logger.info("Phase 16: Correlation — cross-referencing %d results", len(all_results))
         correlated = self._correlation.correlate(all_results)
         logger.info("  Correlated into %d findings", len(correlated))
 
@@ -410,10 +497,10 @@ class UnifiedScanner:
 
         return {
             "domain": domain,
-            "subdomains": [r.to_dict() if hasattr(r, 'to_dict') else r.__dict__ for r in subdomains],
-            "live_endpoints": [r.to_dict() if hasattr(r, 'to_dict') else r.__dict__ for r in live_endpoints],
-            "vulnerabilities": [r.to_dict() if hasattr(r, 'to_dict') else r.__dict__ for r in vulns],
-            "correlated": [r.to_dict() if hasattr(r, 'to_dict') else r.__dict__ for r in correlated],
+            "subdomains": [r.to_dict() if hasattr(r, "to_dict") else r.__dict__ for r in subdomains],
+            "live_endpoints": [r.to_dict() if hasattr(r, "to_dict") else r.__dict__ for r in live_endpoints],
+            "vulnerabilities": [r.to_dict() if hasattr(r, "to_dict") else r.__dict__ for r in vulns],
+            "correlated": [r.to_dict() if hasattr(r, "to_dict") else r.__dict__ for r in correlated],
             "summary": self._correlation.summarize_for_llm(correlated),
             "duration_ms": duration,
             "errors": errors,
