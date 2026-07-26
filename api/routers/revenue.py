@@ -130,3 +130,11 @@ def record_payout(body: RecordPayoutRequest):
 def revenue_summary():
     """Aggregate revenue statistics across all platforms."""
     return _pipeline.revenue_summary()
+
+
+@router.get("/capital-dashboard")
+def capital_dashboard():
+    """Unified Capital Dashboard — capital, pipeline, targets, hot targets, program ranking."""
+    from core.revenue.metrics import RevenueMetrics
+
+    return RevenueMetrics().capital_dashboard()

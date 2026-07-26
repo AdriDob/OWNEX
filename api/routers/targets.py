@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
@@ -6,6 +8,49 @@ from api.services.data_service import create_target as svc_create_target
 from api.services.data_service import get_target, list_targets
 
 router = APIRouter(prefix="/api/targets", tags=["targets"])
+
+
+@router.get("/ev-ranking")
+def ev_ranking(limit: int = Query(20, ge=1, le=100)):
+    """Return targets ranked by Expected Value (USD/hour)."""
+    from core.target_intelligence.prioritizer import TargetPrioritizer
+    from database import db, models
+
+    session = db.SessionLocal()
+    try:
+        targets = session.query(models.Target).all()
+        intel_map: dict[int, Any] = {}
+        for t in targets:
+            from cores.targets.models import TargetIntel
+
+            intel = session.query(TargetIntel).filter(TargetIntel.target_id == t.id).first()
+            if intel:
+                intel_map[t.id] = intel
+
+        prioritizer = TargetPrioritizer()
+        _, results = prioritizer.prioritize(targets, intel_map)
+
+        ranked = []
+        for r in results[:limit]:
+            ranked.append(
+                {
+                    "target_id": r.target_id,
+                    "target_name": r.target_name,
+                    "expected_value": round(r.expected_value, 2),
+                    "estimated_reward": round(r.estimated_reward, 2),
+                    "acceptance_probability": round(r.acceptance_probability, 2),
+                    "confidence": round(r.confidence, 2),
+                    "priority_score": round(r.priority_score, 2),
+                    "attack_plan": r.attack_plan.to_dict() if r.attack_plan else None,
+                }
+            )
+
+        return {
+            "ranked": ranked,
+            "total_targets": len(targets),
+        }
+    finally:
+        session.close()
 
 
 class ScanTriggerRequest(BaseModel):
