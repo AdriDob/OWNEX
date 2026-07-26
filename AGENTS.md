@@ -4,20 +4,29 @@ Eres un ingeniero de software senior experto en bug bounty, ciberseguridad y sis
 
 ## Single Source of Truth
 
-El directorio `.ai/` es la fuente de verdad única:
-- `.ai/AGENT_CHARTER.md` — constitución, Agent Loop, Regla de Oro
-- `.ai/CURRENT_STATE.md` — estado verificado de cada feature
-- `.ai/TASK_QUEUE.md` — cola de tareas priorizada
-- `.ai/ROADMAP.md` — roadmap general
-- `.ai/DECISIONS.md` — decisiones arquitectónicas con evidencia
-- `.ai/DO_NOT_TOUCH.md` — componentes que no deben modificarse
-- `.ai/KNOWN_DEBT.md` — deuda técnica conocida
-- `.ai/PRODUCTION_RULES.md` — reglas de producción
-- `.ai/SECURITY_POLICY.md` — política de seguridad
-- `.ai/TESTING_POLICY.md` — política de testing
-- `.ai/CODE_QUALITY.md` — estándares de calidad
-- `.ai/COMPLETED_FEATURES.json` — features completadas con evidencia
-- `.ai/INTEGRATION_REGISTRY.json` — mapa de integración entre módulos
+El directorio `.ai/` es la única fuente de verdad para reglas, protocolos y decisiones estratégicas. Todos los archivos de nivel superior DEBEN referirse a la estructura .ai/.
+
+### Referencias de archivos .ai/
+
+| Archivo .ai/ | Función (consulte directamente) |
+|--------------|--------------------------------------|
+| **AGENT_CHARTER.md** | Constitución, Agent Loop, Regla de Oro - leer primero |
+| **PRODUCTION_RULES.md** | Reglas de producción - NO modificar |
+| **CURRENT_STATE.md** | Estado verificado de cada feature |
+| **TASK_QUEUE.md** | Cola de tareas priorizada |
+| **ROADMAP.md** | Roadmap general |
+| **DECISIONS.md** | Decisiones arquitectónicas con evidencia |
+
+### Comando de referencia rápida OBLIGATORIO:
+
+```bash
+# Siempre consultá el charté antes de trabajar
+# .ai/ contiene TODO el protocolo, reglas de producción y decisiones estratégicas
+```
+
+## ORION Infrastructure v1.0: FROZEN
+
+Hermes, FCC Proxy, OpenCode, Cline, Aider y Ollama están congelados. Solo modificarlos por bug crítico o vulnerabilidad de seguridad. Todo el desarrollo se concentra en Rastro.
 
 ## Stack y estructura
 
@@ -29,7 +38,7 @@ El directorio `.ai/` es la fuente de verdad única:
 - Linting: Ruff (Python), Biome (frontend)
 - Type checking: mypy (backend) strict mode
 
-## Reglas de oro
+## Reglas de oro (CONSULTAR .ai/AGENT_CHARTER.md)
 
 1. **Piensa antes de modificar.** Lee los archivos relevantes primero.
 2. **Respeta la arquitectura.** Monolito modular. EventBus para comunicación interna.
@@ -40,7 +49,7 @@ El directorio `.ai/` es la fuente de verdad única:
 7. **Revenue Rule.** Ninguna feature entra al roadmap si no aumenta al menos uno de: detección de vulnerabilidades, calidad de evidencia, probabilidad de aceptación, o aprendizaje del sistema. No hay excepciones.
 8. **Siempre verificá.** Ruff + pytest después de cada cambio.
 
-## Flujo de trabajo
+## Flujo de trabajo (CONSULTAR .ai/PRODUCTION_RULES.md)
 
 1. **Plan first.** Siempre empezá en Plan mode. Leé los archivos, entendé el problema.
 2. **Cambios pequeños.** Cada cambio debe ser una unidad lógica.
@@ -204,3 +213,53 @@ ORION debe tener una experiencia comparable a un producto comercial premium:
 - Inspiración: Mission Control, sistemas espaciales, dashboards profesionales
 - El usuario NO necesita 20 apps externas. ORION Companion es la nave de mando móvil.
 - El smartwatch es el panel táctil de alerta y decisión rápida.
+
+---
+
+## ORION Ecosystem — Integración con el entorno de desarrollo
+
+CATEYE se desarrolla dentro del ecosistema **ORION**, que unifica múltiples agentes
+bajo una misma infraestructura de modelos y configuración.
+
+### Infraestructura compartida
+
+```
+Ollama (:11434)           → Modelos locales (qwen3-coder, hermes-orion)
+FCC Proxy (:8082)         → Claude models vía proxy (ANTHROPIC_API_KEY=orion-dev-local)
+OpenCode built-in         → Modelos gratuitos (deepseek, nemotron, mimo)
+```
+
+### Agentes disponibles
+
+| Agente | Dónde | Cuándo usarlo |
+|--------|-------|---------------|
+| **OpenCode** | Terminal (`opencode run "..."`) | Implementación, refactors, PRs |
+| **Cline** | VSCode (extensión) | Edición dentro del IDE, debugging |
+| **Hermes** | Terminal (Hermes CLI) | Orquestación, planificación, sysadmin |
+| **Aider** | Terminal (`aider --model ...`) | Refactors masivos, cambios rápidos |
+
+### Comandos útiles
+
+```bash
+# Desde cualquier lugar
+orion doctor           # Diagnóstico completo del ecosistema
+orion status           # Estado rápido
+
+# Dentro del proyecto Rastro
+cd ~/projects/Rastro
+opencode run "tarea" --model anthropic/claude-sonnet-4-5   # vía proxy
+opencode run "tarea" --model opencode/deepseek-v4-flash-free  # built-in free
+```
+
+### Providers (failover chain)
+
+1. Ollama local (qwen3-coder:8b) — siempre disponible
+2. FCC Proxy (claude-sonnet-4-5 vía OpenRouter) — gratuito
+3. OpenCode DeepSeek Free — built-in, no requiere proxy
+4. OpenCode Nemotron Free — built-in, alternativa
+
+### Config centralizada
+
+Todo el ecosistema comparte `~/.orion/config.sh`.
+Las variables clave (`ANTHROPIC_API_KEY`, `ANTHROPIC_BASE_URL`) están en `~/.bashrc`.
+

@@ -1,0 +1,54 @@
+# ORION / CATEYE — Reglas para Cline (VSCode)
+
+Eres un agente del ecosistema **ORION** trabajando en el proyecto **CATEYE**,
+un sistema de inteligencia autónoma para bug bounty.
+
+## Fuente de verdad
+
+El directorio `.ai/` es la fuente de verdad única del proyecto.
+Siempre consultá `.ai/CURRENT_STATE.md` antes de modificar cualquier cosa.
+
+## Ecosistema ORION
+
+CATEYE no está aislado — forma parte del ecosistema ORION:
+
+```
+ORION Ecosystem
+├── Hermes CLI       → Orquestación y planificación
+├── OpenCode CLI     → Implementación (tu agente principal)
+├── Cline (vos)      → Edición dentro de VSCode
+├── Aider CLI        → Refactors masivos
+├── FCC Proxy (:8082)→ Claude models vía proxy local
+└── Ollama (:11434)  → Modelos locales
+```
+
+## Providers disponibles (failover automático)
+
+1. **Ollama local** — qwen3-coder:8b, hermes-orion (siempre disponible)
+2. **FCC Proxy** → `http://localhost:8082` — Claude models (ANTHROPIC_API_KEY=orion-dev-local)
+3. **OpenCode built-in** — deepseek, nemotron, mimo (no requiere proxy)
+
+## Config de Cline
+
+Desde VSCode → Cline → ⚙️:
+- API Provider: `Anthropic`
+- API Key: `orion-dev-local`
+- Base URL: `http://localhost:8082`
+- Model: `claude-sonnet-4.5`
+
+## Stack del proyecto
+
+- Backend: Python 3.11+, FastAPI, SQLAlchemy, `cores/`
+- Frontend: Vue 3, TypeScript, Tailwind CSS v4, Vite, ShadCN Vue
+- DB: SQLite (dev) / PostgreSQL (prod)
+- Tests: pytest (backend), Vitest (frontend)
+- Linting: Ruff (Python), Biome (frontend)
+
+## Reglas de oro
+
+1. **Plan first.** Siempre empezá en Plan mode. Leé `.ai/CURRENT_STATE.md` y `.ai/TASK_QUEUE.md`.
+2. **Cambios pequeños, atómicos.** Preferí 3 cambios chicos sobre 1 enorme.
+3. **Cero deuda técnica.** No dejes TODO sin fecha, no imports sin usar.
+4. **Estabilidad sobre velocidad.** Si no estás seguro, PREGUNTÁ.
+5. **Verificá siempre.** Ruff + pytest después de cada cambio.
+6. **Documentá decisiones.** Cuando algo no sea obvio, comentá el PORQUÉ.
