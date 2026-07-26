@@ -5,7 +5,7 @@ import type { VariantProps } from 'class-variance-authority'
 import { cva } from 'class-variance-authority'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium font-mono transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden btn-press',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium font-mono transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden btn-press tracking-wide uppercase',
   {
     variants: {
       variant: {
@@ -15,6 +15,8 @@ const buttonVariants = cva(
         secondary: 'bg-surface text-foreground hover:bg-surface-hover',
         ghost: 'hover:bg-surface text-muted hover:text-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
+        phosphor: 'bg-transparent border border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/60 shadow-sm shadow-primary/5 phosphor',
+        tactical: 'bg-transparent border-2 border-border-light text-foreground hover:border-primary/40 hover:text-primary tactical-border',
       },
       size: {
         default: 'h-9 px-4 py-2',
