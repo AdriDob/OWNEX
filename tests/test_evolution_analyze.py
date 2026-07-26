@@ -8,7 +8,7 @@ from core.evolution.analyze import AnalyzeEngine
 from core.evolution.rollup import RollupEngine
 from database import db
 from database.db import init_db
-from database.models import KnowledgeAsset, MetricEvent, MetricRollup
+from database.models import Finding, KnowledgeAsset, MetricEvent, MetricRollup, Verdict
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -24,6 +24,8 @@ def _clean_db():
         session.query(MetricRollup).delete()
         session.query(MetricEvent).delete()
         session.query(KnowledgeAsset).delete()
+        session.query(Finding).delete()
+        session.query(Verdict).delete()
         session.commit()
     finally:
         session.close()
@@ -33,6 +35,8 @@ def _clean_db():
         session.query(MetricRollup).delete()
         session.query(MetricEvent).delete()
         session.query(KnowledgeAsset).delete()
+        session.query(Finding).delete()
+        session.query(Verdict).delete()
         session.commit()
     finally:
         session.close()

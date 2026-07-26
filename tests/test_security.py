@@ -11,6 +11,7 @@ def client():
 
     from api.main import app
     from cores.license.validator import generate_license
+
     c = TestClient(app)
     # Activate license
     lic = generate_license(expiry_days=365)
@@ -21,6 +22,7 @@ def client():
 @pytest.fixture(autouse=True)
 def reset_limiter():
     from cores.gateway.rate_limit import reset_rate_limiter
+
     reset_rate_limiter()
 
 
@@ -233,7 +235,8 @@ class TestCSRF:
         # Get CSRF token from a GET
         resp = authed_client.get("/api/targets")
         import re
-        match = re.search(r'csrf-token=([^;]+)', resp.headers.get("set-cookie", ""))
+
+        match = re.search(r"csrf-token=([^;]+)", resp.headers.get("set-cookie", ""))
         assert match, "No CSRF cookie in set-cookie"
         token = match.group(1)
 
@@ -250,7 +253,8 @@ class TestCSRF:
         """POST with mismatched cookie and header should be blocked."""
         resp = authed_client.get("/api/targets")
         import re
-        match = re.search(r'csrf-token=([^;]+)', resp.headers.get("set-cookie", ""))
+
+        match = re.search(r"csrf-token=([^;]+)", resp.headers.get("set-cookie", ""))
         assert match, "No CSRF cookie in set-cookie"
         token = match.group(1)
 
@@ -258,7 +262,8 @@ class TestCSRF:
         # Clear auto-stored cookies so we can override
         authed_client.cookies.clear()
         resp = authed_client.post(
-            "/api/targets", json={},
+            "/api/targets",
+            json={},
             cookies={"csrf-token": token},
             headers={"X-CSRF-Token": different},
         )
@@ -275,10 +280,70 @@ class TestCSRF:
         resp = authed_client.options("/api/targets")
         assert resp.status_code != 403
 
+    def test_csrf_put_method_blocked(self, authed_client):
+        """PUT without X-CSRF-Token should be blocked."""
+        resp = authed_client.get("/api/targets")
+        authed_client.cookies.clear()
+        resp = authed_client.put("/api/targets", json={})
+        assert resp.status_code == 403
+        assert "CSRF" in resp.text
+
+    def test_csrf_delete_method_blocked(self, authed_client):
+        """DELETE without X-CSRF-Token should be blocked."""
+        resp = authed_client.get("/api/targets")
+        authed_client.cookies.clear()
+        resp = authed_client.delete("/api/targets")
+        assert resp.status_code == 403
+        assert "CSRF" in resp.text
+
+    def test_csrf_patch_method_blocked(self, authed_client):
+        """PATCH without X-CSRF-Token should be blocked."""
+        resp = authed_client.get("/api/targets")
+        authed_client.cookies.clear()
+        resp = authed_client.patch("/api/targets", json={})
+        assert resp.status_code == 403
+        assert "CSRF" in resp.text
+
+    def test_csrf_disabled_env_var(self, csrf_env, monkeypatch, live_client):
+        """CATEYE_CSRF_DISABLED bypasses CSRF check entirely."""
+        monkeypatch.setenv("CATEYE_CSRF_DISABLED", "1")
+        resp = live_client.post("/api/auth/login", json={"device_id": "test"})
+        assert resp.status_code == 200
+
+    def test_csrf_cookie_not_reset_on_second_get(self, authed_client):
+        """Second GET should not set a new csrf-token cookie."""
+        resp1 = authed_client.get("/api/targets")
+        cookie1 = resp1.headers.get("set-cookie", "")
+        assert "csrf-token" in cookie1
+        resp2 = authed_client.get("/api/targets")
+        cookie2 = resp2.headers.get("set-cookie", "")
+        # The token should not change — second GET has no Set-Cookie
+        assert "csrf-token" not in cookie2 or cookie2 == cookie1
+
+    def test_csrf_empty_cookie_blocked(self, authed_client):
+        """Empty csrf cookie with header should be blocked."""
+        resp = authed_client.get("/api/targets")
+        import re
+
+        match = re.search(r"csrf-token=([^;]+)", resp.headers.get("set-cookie", ""))
+        assert match, "No CSRF cookie in set-cookie"
+        token = match.group(1)
+        # Override cookie with empty value
+        authed_client.cookies.clear()
+        resp = authed_client.post(
+            "/api/targets",
+            json={},
+            cookies={"csrf-token": ""},
+            headers={"X-CSRF-Token": token},
+        )
+        assert resp.status_code == 403
+        assert "CSRF" in resp.text
+
 
 class TestRateLimit:
     def test_rate_limiter_exhaustion(self):
         from cores.gateway.rate_limit import TokenBucket
+
         bucket = TokenBucket(rate=1000.0, burst=10)
         for _ in range(10):
             assert bucket.consume("test")
@@ -289,6 +354,7 @@ class TestRateLimit:
         import time
 
         from cores.gateway.rate_limit import TokenBucket
+
         bucket = TokenBucket(rate=10.0, burst=5)
         for _ in range(5):
             bucket.consume("test")
@@ -298,6 +364,7 @@ class TestRateLimit:
 
     def test_rate_limiter_remaining(self):
         from cores.gateway.rate_limit import TokenBucket
+
         bucket = TokenBucket(rate=1000.0, burst=5)
         for _ in range(3):
             bucket.consume("test")
@@ -306,6 +373,7 @@ class TestRateLimit:
 
     def test_rate_limiter_reset(self):
         from cores.gateway.rate_limit import TokenBucket
+
         bucket = TokenBucket(rate=1000.0, burst=10)
         for _ in range(10):
             bucket.consume("test")
@@ -315,6 +383,7 @@ class TestRateLimit:
 
     def test_rate_limiter_multiple_keys(self):
         from cores.gateway.rate_limit import TokenBucket
+
         bucket = TokenBucket(rate=1000.0, burst=5)
         for _ in range(5):
             bucket.consume("a")
@@ -324,6 +393,7 @@ class TestRateLimit:
 
     def test_rate_limiter_custom_rules(self):
         from cores.gateway.rate_limit import TokenBucket
+
         bucket = TokenBucket(rate=1.0, burst=5)
         bucket.add_rule(r"/api/auth/login", rate=1000.0, burst=3)
         for _ in range(3):
@@ -361,6 +431,7 @@ class TestRateLimit:
     def test_rate_limit_exempt_paths_skip_limit(self, client):
         """Paths in NO_LIMIT_PREFIXES should not have rate limit headers."""
         from api.middleware.rate_limit_middleware import NO_LIMIT_PREFIXES
+
         for prefix in NO_LIMIT_PREFIXES:
             resp = client.get(prefix)
             assert "X-RateLimit-Remaining" not in resp.headers, f"{prefix} should not be limited"

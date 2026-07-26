@@ -176,7 +176,7 @@ class TestRestoreBackup:
 
 
 class TestAPIEndpoints:
-    def test_backup_create_endpoint(self) -> None:
+    def test_backup_create_endpoint(self, _backup_env: Path) -> None:
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
 

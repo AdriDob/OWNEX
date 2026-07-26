@@ -633,6 +633,9 @@ class TestCopilotAgent:
         assert agent.explain("nonexistent") is None
 
     def test_pre_report_review(self, agent: CopilotAgent, sample_finding: dict[str, Any]) -> None:
+        from core.reports.acceptance.learner import AcceptanceLearner
+
+        AcceptanceLearner().reset()
         review = agent.pre_report_review(sample_finding)
         assert isinstance(review, ReviewReport)
         assert review.passed
