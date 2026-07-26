@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { api } from '@/lib/api'
 import {
   Activity, Clock, RefreshCw, Shield,
   DollarSign, FileText, BarChart3, HeartPulse,
-  Zap,
+  Zap, AlertTriangle,
 } from '@lucide/vue'
 import ThroughputCore from '@/components/dashboard/ThroughputCore.vue'
 import WorkCyclesGrid from '@/components/dashboard/WorkCyclesGrid.vue'
@@ -15,12 +14,14 @@ import OpportunityRadar from '@/components/dashboard/OpportunityRadar.vue'
 import KnowledgeFeed from '@/components/dashboard/KnowledgeFeed.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import ErrorState from '@/components/ui/ErrorState.vue'
+import { fetchOwnexDashboard } from '@/services/ownexData'
+import type { OwnexDashboardData } from '@/services/ownexData'
 
 const router = useRouter()
-const data = ref<any>(null)
+const dashboard = ref<OwnexDashboardData | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
-const autoRefresh = ref(true)
+const degraded = ref(false)
 let refreshInterval: ReturnType<typeof setInterval> | null = null
 
 const greeting = computed(() => {
@@ -30,11 +31,7 @@ const greeting = computed(() => {
   return 'Buenas noches'
 })
 
-const healthColor = (score: number) => {
-  if (score >= 90) return 'text-success'
-  if (score >= 70) return 'text-warning'
-  return 'text-destructive'
-}
+const systemOk = computed(() => (dashboard.value?.systemHealth ?? 0) >= 70)
 
 const quickActions = [
   { id: 'hunt', label: 'HUNT', icon: Zap, path: '/baby-mode' },
@@ -46,23 +43,26 @@ const quickActions = [
   { id: 'health', label: 'Health', icon: HeartPulse, path: '/operations/health' },
 ]
 
-async function fetchAll() {
+async function load() {
   try {
-    const res = await api.get<any>('/mission/status')
-    data.value = res
+    const data = await fetchOwnexDashboard()
+    dashboard.value = data
+    degraded.value = false
     error.value = null
   } catch (e: any) {
-    error.value = e?.message || 'Error al cargar'
+    if (!dashboard.value) {
+      error.value = e?.message || 'Error al cargar'
+    } else {
+      degraded.value = true
+    }
   } finally {
     loading.value = false
   }
 }
 
 onMounted(() => {
-  fetchAll()
-  refreshInterval = setInterval(() => {
-    if (autoRefresh.value) fetchAll()
-  }, 30000)
+  load()
+  refreshInterval = setInterval(() => load(), 30000)
 })
 
 onUnmounted(() => {
@@ -75,35 +75,48 @@ onUnmounted(() => {
     <LoadingState v-if="loading" />
 
     <ErrorState
-      v-else-if="error && !data"
+      v-else-if="error && !dashboard"
       title="Error al cargar Mission Control"
       :message="error"
-      :retry="fetchAll"
+      :retry="load"
     />
 
     <template v-else>
+      <!-- Degraded banner -->
+      <div
+        v-if="degraded"
+        class="flex items-center gap-2 rounded-lg bg-warning/10 border border-warning/30 px-4 py-2 text-xs text-warning"
+      >
+        <AlertTriangle class="h-3.5 w-3.5 shrink-0" />
+        <span>Datos parciales — algunos servicios no responden</span>
+      </div>
+
       <!-- Header -->
       <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div class="space-y-1 min-w-0">
           <div class="flex items-center gap-2">
             <Activity class="h-4 w-4 text-primary" />
             <span class="font-mono text-[10px] font-bold tracking-widest text-primary">OWNEX MISSION CONTROL</span>
-            <span v-if="data" class="status-dot" :class="data.system?.health_score >= 70 ? 'status-dot-green' : 'status-dot-red'" />
+            <span class="status-dot" :class="systemOk ? 'status-dot-green' : 'status-dot-red'" />
           </div>
           <h1 class="font-display text-xl sm:text-2xl font-bold text-foreground">{{ greeting }}, Operador</h1>
           <p class="text-[9px] font-mono text-muted-foreground tracking-[0.2em] uppercase">OWNEX ● Personal Autonomous Work OS</p>
           <p class="text-xs text-muted-foreground flex items-center gap-2">
             <Clock class="h-3 w-3" />
-            {{ data?.system?.timestamp ? new Date(data.system.timestamp).toLocaleString() : '—' }}
-            <button @click="fetchAll" class="text-primary hover:underline flex items-center gap-1">
+            {{ dashboard?.timestamp ? new Date(dashboard.timestamp).toLocaleString() : '—' }}
+            <button @click="load" class="text-primary hover:underline flex items-center gap-1">
               <RefreshCw class="h-3 w-3" /> Actualizar
             </button>
           </p>
         </div>
-        <div v-if="data" class="panel shrink-0 flex flex-col items-center gap-1 rounded-xl px-6 py-3">
+        <div class="panel shrink-0 flex flex-col items-center gap-1 rounded-xl px-6 py-3">
           <span class="font-mono text-[10px] text-muted-foreground tracking-wider uppercase">Salud del sistema</span>
-          <span :class="['text-4xl font-bold font-mono', healthColor(data.system?.health_score || 0)]">{{ data.system?.health_score || '—' }}</span>
-          <span class="font-mono text-[9px] text-muted-foreground uppercase">{{ data.system?.status || '—' }}</span>
+          <span
+            :class="['text-4xl font-bold font-mono', dashboard && dashboard.systemHealth >= 90 ? 'text-success' : dashboard && dashboard.systemHealth >= 70 ? 'text-warning' : 'text-destructive']"
+          >
+            {{ dashboard?.systemHealth ?? '—' }}
+          </span>
+          <span class="font-mono text-[9px] text-muted-foreground uppercase">{{ dashboard?.systemStatus || '—' }}</span>
         </div>
       </div>
 
@@ -122,21 +135,38 @@ onUnmounted(() => {
 
       <!-- Row 1: Throughput + Agent Fleet -->
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <ThroughputCore class="lg:col-span-2" />
-        <AgentFleet />
+        <ThroughputCore
+          v-if="dashboard"
+          :stages="dashboard.throughputStages"
+          :efficiency="dashboard.throughputEfficiency"
+          class="lg:col-span-2"
+        />
+        <ThroughputCore v-else class="lg:col-span-2" />
+        <AgentFleet v-if="dashboard" :agents="dashboard.agents" />
+        <AgentFleet v-else />
       </div>
 
       <!-- Row 2: Opportunity Radar + Next Best Action -->
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <OpportunityRadar class="lg:col-span-2" />
-        <NextBestAction />
+        <OpportunityRadar
+          v-if="dashboard && dashboard.opportunities.length > 0"
+          :opportunities="dashboard.opportunities"
+          class="lg:col-span-2"
+        />
+        <OpportunityRadar v-else class="lg:col-span-2" />
+        <NextBestAction v-if="dashboard" :action="dashboard.nextAction" />
+        <NextBestAction v-else />
       </div>
 
       <!-- Row 3: Work Cycles -->
       <WorkCyclesGrid />
 
       <!-- Row 4: Knowledge Feed -->
-      <KnowledgeFeed />
+      <KnowledgeFeed
+        v-if="dashboard && dashboard.knowledgeFeed.length > 0"
+        :items="dashboard.knowledgeFeed"
+      />
+      <KnowledgeFeed v-else />
     </template>
   </div>
 </template>
