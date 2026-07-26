@@ -13,7 +13,22 @@ export function canAccessRoute(to: Pick<RouteLocationNormalized, 'name' | 'meta'
   return isSessionValid()
 }
 
+// ─────────────────────────────────────────────────────────────────
+// CONSOLIDATED ROUTES — 8 Main Sections
+// ─────────────────────────────────────────────────────────────────
+//
+// 1. MISSION CONTROL      → /                    (Dashboard ejecutivo + HUNT button)
+// 2. INTELLIGENCE         → /intelligence        (Findings, Hypotheses, Evidence, Investigations)
+// 3. TARGETS              → /targets             (Targets, Discovery, Attack Surface, Prioritization)
+// 4. REPORTS              → /reports             (Report Queue, Report Center, History, Submission)
+// 5. CAPITAL              → /capital             (Revenue, Payouts, EV Targets, Platform Speed, Economics)
+// 6. OPERATIONS           → /operations          (Scheduler, Pipelines, Tools, Health, Settings)
+// 7. INTEGRATIONS         → /integrations        (Connections, Wallets, Accounts, Platforms)
+// 8. COPILOT              → /copilot             (Assistant, Memory, Learning, Recommendations)
+// ─────────────────────────────────────────────────────────────────
+
 export const routes: RouteRecordRaw[] = [
+  // ── AUTH ──
   {
     path: '/login',
     name: 'login',
@@ -21,349 +36,393 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'Iniciar Sesión', public: true },
   },
   {
-    path: '/',
-    name: 'mission-control',
-    component: () => import('@/pages/MissionControl.vue'),
-    meta: { title: 'Control de Misión' },
-  },
-  {
-    path: '/radar',
-    name: 'radar',
-    component: () => import('@/pages/OpportunityRadar.vue'),
-    meta: { title: 'Radar de Oportunidades' },
-  },
-  {
-    path: '/hot-paths',
-    name: 'hot-paths',
-    component: () => import('@/pages/HotPaths.vue'),
-    meta: { title: 'Rutas Críticas' },
-  },
-  {
-    path: '/findings',
-    name: 'findings',
-    component: () => import('@/pages/Findings.vue'),
-    meta: { title: 'Pipeline de Hallazgos' },
-  },
-  {
-    path: '/reports',
-    name: 'reports',
-    component: () => import('@/pages/ReportCenter.vue'),
-    meta: { title: 'Centro de Reportes' },
-  },
-  {
-    path: '/settings',
-    name: 'settings',
-    component: () => import('@/pages/Settings.vue'),
-    meta: { title: 'Configuración' },
-  },
-  {
-    path: '/money-radar',
-    name: 'money-radar',
-    component: () => import('@/pages/MoneyRadar.vue'),
-    meta: { title: 'Money Radar' },
-  },
-  {
-    path: '/programs/:id',
-    name: 'program-intel',
-    component: () => import('@/pages/ProgramIntel.vue'),
-    meta: { title: 'Inteligencia de Programa' },
-  },
-  {
-    path: '/programs/:id/plan',
-    name: 'opportunity-planner',
-    component: () => import('@/pages/OpportunityPlanner.vue'),
-    meta: { title: 'Plan de Cacería' },
-  },
-  {
-    path: '/verify',
-    name: 'verification-guide',
-    component: () => import('@/pages/VerificationGuide.vue'),
-    meta: { title: 'Guía de Validación' },
-  },
-  {
-    path: '/report-queue',
-    name: 'report-queue',
-    component: () => import('@/pages/ReportQueue.vue'),
-    meta: { title: 'Cola Priorizada' },
-  },
-  {
-    path: '/memory-patterns',
-    name: 'memory-patterns',
-    component: () => import('@/pages/MemoryPatterns.vue'),
-    meta: { title: 'Patrones Aprendidos' },
-  },
-  {
-    path: '/connections',
-    name: 'connections',
-    component: () => import('@/pages/Connections.vue'),
-    meta: { title: 'Conexiones' },
-  },
-  {
-    path: '/agents',
-    name: 'agent-center',
-    component: () => import('@/pages/AgentCenter.vue'),
-    meta: { title: 'Centro de Agentes' },
-  },
-  {
-    path: '/pipelines',
-    name: 'pipeline-monitor',
-    component: () => import('@/pages/PipelineMonitor.vue'),
-    meta: { title: 'Monitor de Pipelines' },
-  },
-  {
-    path: '/evidence',
-    name: 'evidence-center',
-    component: () => import('@/pages/EvidenceCenter.vue'),
-    meta: { title: 'Centro de Evidencia' },
-  },
-  {
-    path: '/confidence',
-    name: 'confidence-dashboard',
-    component: () => import('@/pages/ConfidenceDashboard.vue'),
-    meta: { title: 'Confianza' },
-  },
-  {
-    path: '/history',
-    name: 'history-view',
-    component: () => import('@/pages/HistoryView.vue'),
-    meta: { title: 'Historial' },
-  },
-  {
-    path: '/daily',
-    name: 'daily-mode',
-    component: () => import('@/pages/DailyMode.vue'),
-    meta: { title: 'Hoy' },
-  },
-  {
-    path: '/actions',
-    name: 'actions-view',
-    component: () => import('@/pages/ActionsView.vue'),
-    meta: { title: 'Acciones' },
-  },
-  {
-    path: '/intelligence',
-    name: 'intelligence-dashboard',
-    component: () => import('@/pages/IntelligenceDashboard.vue'),
-    meta: { title: 'Inteligencia Adaptativa' },
-  },
-  {
-    path: '/attack-surface',
-    name: 'attack-surface',
-    component: () => import('@/pages/AttackSurface.vue'),
-    meta: { title: 'Superficie de Ataque' },
-  },
-  {
-    path: '/opportunities',
-    name: 'opportunities',
-    component: () => import('@/pages/Opportunities.vue'),
-    meta: { title: 'Oportunidades' },
-  },
-  {
-    path: '/bounties',
-    name: 'bounties',
-    component: () => import('@/pages/Bounties.vue'),
-    meta: { title: 'Bounties' },
-  },
-  {
-    path: '/discovery',
-    name: 'discovery',
-    component: () => import('@/pages/Discovery.vue'),
-    meta: { title: 'Program Discovery' },
-  },
-  {
-    path: '/next-action',
-    name: 'next-action',
-    component: () => import('@/pages/NextAction.vue'),
-    meta: { title: 'Próxima Acción' },
-  },
-  {
-    path: '/investigations',
-    name: 'investigations',
-    component: () => import('@/pages/InvestigationCenter.vue'),
-    meta: { title: 'Investigaciones' },
-  },
-  {
-    path: '/investigations/:id',
-    name: 'investigation-detail',
-    component: () => import('@/pages/InvestigationDetail.vue'),
-    meta: { title: 'Detalle de Investigación' },
-  },
-  {
-    path: '/hypotheses',
-    name: 'hypothesis-queue',
-    component: () => import('@/pages/HypothesisQueue.vue'),
-    meta: { title: 'Hipótesis' },
-  },
-  {
-    path: '/differential',
-    name: 'differential-engine',
-    component: () => import('@/pages/DifferentialEngine.vue'),
-    meta: { title: 'Análisis Diferencial' },
-  },
-  {
-    path: '/insights',
-    name: 'insights-view',
-    component: () => import('@/pages/InsightsView.vue'),
-    meta: { title: 'Insights del Sistema' },
-  },
-  {
-    path: '/wallets',
-    name: 'wallets',
-    component: () => import('@/pages/Wallets.vue'),
-    meta: { title: 'Billeteras' },
-  },
-  {
-    path: '/financial-truth',
-    name: 'financial-truth',
-    component: () => import('@/pages/FinancialTruth.vue'),
-    meta: { title: 'Financial Truth' },
-  },
-  {
-    path: '/accounts-hub',
-    name: 'accounts-hub',
-    component: () => import('@/pages/AccountsHub.vue'),
-    meta: { title: 'Accounts Hub' },
-  },
-  {
-    path: '/sync-center',
-    name: 'sync-center',
-    component: () => import('@/pages/SyncCenter.vue'),
-    meta: { title: 'Sync Center' },
-  },
-  {
-    path: '/health-center',
-    name: 'health-center',
-    component: () => import('@/pages/HealthCenter.vue'),
-    meta: { title: 'Health Center' },
-  },
-  {
-    path: '/companion',
-    name: 'companion',
-    component: () => import('@/pages/MobileCompanion.vue'),
-    meta: { title: 'Companion' },
-  },
-  {
-    path: '/workflows',
-    name: 'workflows',
-    component: () => import('@/pages/Workflows.vue'),
-    meta: { title: 'Workflows' },
-  },
-  {
-    path: '/account-health',
-    name: 'account-health',
-    component: () => import('@/pages/AccountHealth.vue'),
-    meta: { title: 'Account Health' },
-  },
-  {
-    path: '/truth-inspector',
-    name: 'truth-inspector',
-    component: () => import('@/pages/TruthInspector.vue'),
-    meta: { title: 'Truth Inspector' },
-  },
-  {
-    path: '/identity',
-    name: 'identity',
-    component: () => import('@/pages/Identity.vue'),
-    meta: { title: 'Identidad' },
-  },
-  {
-    path: '/operations',
-    name: 'operations-dashboard',
-    component: () => import('@/pages/OperationsDashboard.vue'),
-    meta: { title: 'Panel de Operaciones' },
-  },
-  {
-    path: '/tasks',
-    name: 'task-queue',
-    component: () => import('@/pages/TaskQueue.vue'),
-    meta: { title: 'Tareas' },
-  },
-  {
-    path: '/program-catalog',
-    name: 'program-catalog',
-    component: () => import('@/pages/ProgramCatalog.vue'),
-    meta: { title: 'Catálogo de Programas' },
-  },
-  {
-    path: '/replay',
-    name: 'replay-center',
-    component: () => import('@/pages/ReplayCenter.vue'),
-    meta: { title: 'Reproducir' },
-  },
-  {
-    path: '/personal-intelligence',
-    name: 'personal-intelligence',
-    component: () => import('@/pages/PersonalIntelligence.vue'),
-    meta: { title: 'Perfil de Aprendizaje' },
-  },
-  {
-    path: '/screenshots',
-    name: 'screenshot-center',
-    component: () => import('@/pages/ScreenshotCenter.vue'),
-    meta: { title: 'Capturas' },
-  },
-  {
-    path: '/project-dashboard',
-    name: 'project-dashboard',
-    component: () => import('@/pages/ProjectDashboard.vue'),
-    meta: { title: 'Proyecto' },
-  },
-  {
-    path: '/report-history',
-    name: 'report-history',
-    component: () => import('@/pages/ReportHistory.vue'),
-    meta: { title: 'Historial de Reportes' },
-  },
-  {
-    path: '/targets/:id',
-    name: 'target-detail',
-    component: () => import('@/pages/TargetDetail.vue'),
-    meta: { title: 'Detalle de Target' },
-  },
-  {
-    path: '/endpoints/:id',
-    name: 'endpoint-detail',
-    component: () => import('@/pages/EndpointDetail.vue'),
-    meta: { title: 'Detalle de Endpoint' },
-  },
-  {
-    path: '/findings/:id',
-    name: 'finding-detail',
-    component: () => import('@/pages/FindingDetail.vue'),
-    meta: { title: 'Detalle de Hallazgo' },
-  },
-  {
-    path: '/reports/:id',
-    name: 'report-detail',
-    component: () => import('@/pages/ReportDetail.vue'),
-    meta: { title: 'Editor de Reporte' },
-  },
-  {
-    path: '/pipelines/:id',
-    name: 'pipeline-detail',
-    component: () => import('@/pages/PipelineDetail.vue'),
-    meta: { title: 'Detalle de Pipeline' },
-  },
-  {
     path: '/activation',
     name: 'activation',
     component: () => import('@/pages/Activation.vue'),
     meta: { title: 'Activación', public: true },
   },
+
+  // ── 1. MISSION CONTROL ──
   {
-    path: '/faqs',
-    name: 'faqs',
-    component: () => import('@/pages/FaqPage.vue'),
-    meta: { title: 'Preguntas Frecuentes' },
+    path: '/',
+    name: 'mission-control',
+    component: () => import('@/pages/MissionControl.vue'),
+    meta: { title: 'Control de Misión' },
   },
-  // ── ORION Platform ──
+
+  // ── 2. INTELLIGENCE ──
+  {
+    path: '/intelligence',
+    name: 'intelligence',
+    component: () => import('@/pages/IntelligenceDashboard.vue'),
+    meta: { title: 'Inteligencia' },
+    children: [
+      { path: '', redirect: { name: 'intelligence-findings' } },
+      {
+        path: 'findings',
+        name: 'intelligence-findings',
+        component: () => import('@/pages/Findings.vue'),
+        meta: { title: 'Hallazgos' },
+      },
+      {
+        path: 'hypotheses',
+        name: 'intelligence-hypotheses',
+        component: () => import('@/pages/HypothesisQueue.vue'),
+        meta: { title: 'Hipótesis' },
+      },
+      {
+        path: 'evidence',
+        name: 'intelligence-evidence',
+        component: () => import('@/pages/EvidenceCenter.vue'),
+        meta: { title: 'Evidencia' },
+      },
+      {
+        path: 'investigations',
+        name: 'intelligence-investigations',
+        component: () => import('@/pages/InvestigationCenter.vue'),
+        meta: { title: 'Investigaciones' },
+      },
+      {
+        path: 'investigations/:id',
+        name: 'investigation-detail',
+        component: () => import('@/pages/InvestigationDetail.vue'),
+        meta: { title: 'Detalle Investigación' },
+      },
+      {
+        path: 'confidence',
+        name: 'intelligence-confidence',
+        component: () => import('@/pages/ConfidenceDashboard.vue'),
+        meta: { title: 'Confianza' },
+      },
+      {
+        path: 'differential',
+        name: 'intelligence-differential',
+        component: () => import('@/pages/DifferentialEngine.vue'),
+        meta: { title: 'Análisis Diferencial' },
+      },
+    ],
+  },
+
+  // ── 3. TARGETS ──
+  {
+    path: '/targets',
+    name: 'targets',
+    component: () => import('@/pages/TargetsPage.vue'),
+    meta: { title: 'Targets' },
+    children: [
+      { path: '', redirect: { name: 'targets-list' } },
+      {
+        path: 'list',
+        name: 'targets-list',
+        component: () => import('@/pages/TargetsPage.vue'),
+        meta: { title: 'Lista de Targets' },
+      },
+      {
+        path: 'discovery',
+        name: 'targets-discovery',
+        component: () => import('@/pages/Discovery.vue'),
+        meta: { title: 'Discovery' },
+      },
+      {
+        path: 'attack-surface',
+        name: 'targets-attack-surface',
+        component: () => import('@/pages/AttackSurface.vue'),
+        meta: { title: 'Superficie de Ataque' },
+      },
+      {
+        path: 'prioritization',
+        name: 'targets-prioritization',
+        component: () => import('@/pages/OpportunityRadar.vue'),
+        meta: { title: 'Priorización EV' },
+      },
+      {
+        path: ':id',
+        name: 'target-detail',
+        component: () => import('@/pages/TargetDetail.vue'),
+        meta: { title: 'Detalle Target' },
+      },
+      {
+        path: 'endpoints/:id',
+        name: 'endpoint-detail',
+        component: () => import('@/pages/EndpointDetail.vue'),
+        meta: { title: 'Detalle Endpoint' },
+      },
+    ],
+  },
+
+  // ── 4. REPORTS ──
+  {
+    path: '/reports',
+    name: 'reports',
+    component: () => import('@/pages/ReportCenter.vue'),
+    meta: { title: 'Reportes' },
+    children: [
+      { path: '', redirect: { name: 'reports-queue' } },
+      {
+        path: 'queue',
+        name: 'reports-queue',
+        component: () => import('@/pages/ReportQueue.vue'),
+        meta: { title: 'Cola Priorizada' },
+      },
+      {
+        path: 'center',
+        name: 'reports-center',
+        component: () => import('@/pages/ReportCenter.vue'),
+        meta: { title: 'Centro de Reportes' },
+      },
+      {
+        path: 'history',
+        name: 'reports-history',
+        component: () => import('@/pages/ReportHistory.vue'),
+        meta: { title: 'Historial' },
+      },
+      {
+        path: ':id',
+        name: 'report-detail',
+        component: () => import('@/pages/ReportDetail.vue'),
+        meta: { title: 'Editor de Reporte' },
+      },
+      {
+        path: 'verification',
+        name: 'reports-verification',
+        component: () => import('@/pages/VerificationGuide.vue'),
+        meta: { title: 'Guía de Validación' },
+      },
+    ],
+  },
+
+  // ── 5. CAPITAL ──
+  {
+    path: '/capital',
+    name: 'capital',
+    component: () => import('@/pages/Capital.vue'),
+    meta: { title: 'Capital' },
+  },
+
+  // ── 6. OPERATIONS ──
+  {
+    path: '/operations',
+    name: 'operations',
+    component: () => import('@/pages/OperationsDashboard.vue'),
+    meta: { title: 'Operaciones' },
+    children: [
+      { path: '', redirect: { name: 'operations-dashboard' } },
+      {
+        path: 'dashboard',
+        name: 'operations-dashboard',
+        component: () => import('@/pages/OperationsDashboard.vue'),
+        meta: { title: 'Panel de Operaciones' },
+      },
+      {
+        path: 'pipelines',
+        name: 'operations-pipelines',
+        component: () => import('@/pages/PipelineMonitor.vue'),
+        meta: { title: 'Pipelines' },
+      },
+      {
+        path: 'pipelines/:id',
+        name: 'pipeline-detail',
+        component: () => import('@/pages/PipelineDetail.vue'),
+        meta: { title: 'Detalle Pipeline' },
+      },
+      {
+        path: 'scheduler',
+        name: 'operations-scheduler',
+        component: () => import('@/pages/ActionsView.vue'),
+        meta: { title: 'Scheduler / Acciones' },
+      },
+      {
+        path: 'tools',
+        name: 'operations-tools',
+        component: () => import('@/pages/OpportunityPlanner.vue'),
+        meta: { title: 'Herramientas' },
+      },
+      {
+        path: 'health',
+        name: 'operations-health',
+        component: () => import('@/pages/HealthCenter.vue'),
+        meta: { title: 'Health Center' },
+      },
+      {
+        path: 'settings',
+        name: 'operations-settings',
+        component: () => import('@/pages/Settings.vue'),
+        meta: { title: 'Configuración' },
+      },
+      {
+        path: 'workflows',
+        name: 'operations-workflows',
+        component: () => import('@/pages/Workflows.vue'),
+        meta: { title: 'Workflows' },
+      },
+      {
+        path: 'replay',
+        name: 'operations-replay',
+        component: () => import('@/pages/ReplayCenter.vue'),
+        meta: { title: 'Replay Center' },
+      },
+      { path: 'logs', redirect: '/operations/health' },
+    ],
+  },
+
+  // ── 7. INTEGRATIONS ──
+  {
+    path: '/integrations',
+    name: 'integrations',
+    component: () => import('@/pages/Connections.vue'),
+    meta: { title: 'Integraciones' },
+    children: [
+      { path: '', redirect: { name: 'integrations-connections' } },
+      {
+        path: 'connections',
+        name: 'integrations-connections',
+        component: () => import('@/pages/Connections.vue'),
+        meta: { title: 'Conexiones' },
+      },
+      {
+        path: 'wallets',
+        name: 'integrations-wallets',
+        component: () => import('@/pages/Wallets.vue'),
+        meta: { title: 'Billeteras' },
+      },
+      {
+        path: 'accounts',
+        name: 'integrations-accounts',
+        component: () => import('@/pages/AccountsHub.vue'),
+        meta: { title: 'Cuentas' },
+      },
+      {
+        path: 'platforms',
+        name: 'integrations-platforms',
+        component: () => import('@/pages/ProgramCatalog.vue'),
+        meta: { title: 'Plataformas / Programas' },
+      },
+      {
+        path: 'sync',
+        name: 'integrations-sync',
+        component: () => import('@/pages/SyncCenter.vue'),
+        meta: { title: 'Sync Center' },
+      },
+      {
+        path: 'identity',
+        name: 'integrations-identity',
+        component: () => import('@/pages/Identity.vue'),
+        meta: { title: 'Identidad' },
+      },
+    ],
+  },
+
+  // ── 8. COPILOT ──
+  {
+    path: '/copilot',
+    name: 'copilot',
+    component: () => import('@/pages/AgentCenter.vue'),
+    meta: { title: 'Copilot' },
+    children: [
+      { path: '', redirect: { name: 'copilot-assistant' } },
+      {
+        path: 'assistant',
+        name: 'copilot-assistant',
+        component: () => import('@/pages/AgentCenter.vue'),
+        meta: { title: 'Asistente' },
+      },
+      {
+        path: 'memory',
+        name: 'copilot-memory',
+        component: () => import('@/pages/MemoryPatterns.vue'),
+        meta: { title: 'Memoria / Patrones' },
+      },
+      {
+        path: 'learning',
+        name: 'copilot-learning',
+        component: () => import('@/pages/PersonalIntelligence.vue'),
+        meta: { title: 'Aprendizaje' },
+      },
+      {
+        path: 'recommendations',
+        name: 'copilot-recommendations',
+        component: () => import('@/pages/InsightsView.vue'),
+        meta: { title: 'Recomendaciones' },
+      },
+      {
+        path: 'notifications',
+        name: 'copilot-notifications',
+        component: () => import('@/pages/NotificationsPage.vue'),
+        meta: { title: 'Notificaciones' },
+      },
+    ],
+  },
+
+  // ── LEGACY REDIRECTS (mantener compatibilidad) ──
+  // Revenue pages → Capital
+  { path: '/revenue', redirect: '/capital' },
+  { path: '/revenue-multiplier', redirect: '/capital' },
+  { path: '/money-radar', redirect: '/capital?tab=targets' },
+  { path: '/financial-truth', redirect: '/capital' },
+  { path: '/finance-intel', redirect: '/capital' },
+
+  // Findings/Reports legacy
+  { path: '/findings', redirect: '/intelligence/findings' },
+  { path: '/hypotheses', redirect: '/intelligence/hypotheses' },
+  { path: '/evidence', redirect: '/intelligence/evidence' },
+  { path: '/investigations', redirect: '/intelligence/investigations' },
+  { path: '/confidence', redirect: '/intelligence/confidence' },
+  { path: '/differential', redirect: '/intelligence/differential' },
+
+  // Targets legacy
+  { path: '/radar', redirect: '/targets/prioritization' },
+  { path: '/hot-paths', redirect: '/targets/prioritization' },
+  { path: '/attack-surface', redirect: '/targets/attack-surface' },
+  { path: '/discovery', redirect: '/targets/discovery' },
+  { path: '/opportunities', redirect: '/targets/prioritization' },
+  { path: '/bounties', redirect: '/integrations/platforms' },
+  { path: '/program-catalog', redirect: '/integrations/platforms' },
+
+  // Reports legacy
+  { path: '/report-queue', redirect: '/reports/queue' },
+  { path: '/verify', redirect: '/reports/verification' },
+
+  // Operations legacy
+  { path: '/pipelines', redirect: '/operations/pipelines' },
+  { path: '/actions', redirect: '/operations/scheduler' },
+  { path: '/daily', redirect: '/operations/dashboard' },
+  { path: '/next-action', redirect: '/operations/scheduler' },
+  { path: '/tasks', redirect: '/operations/scheduler' },
+  { path: '/project-dashboard', redirect: '/operations/dashboard' },
+  { path: '/account-health', redirect: '/operations/health' },
+  { path: '/health-center', redirect: '/operations/health' },
+  { path: '/workflows', redirect: '/operations/workflows' },
+  { path: '/replay', redirect: '/operations/replay' },
+
+  // Integrations legacy
+  { path: '/connections', redirect: '/integrations/connections' },
+  { path: '/wallets', redirect: '/integrations/wallets' },
+  { path: '/accounts-hub', redirect: '/integrations/accounts' },
+  { path: '/sync-center', redirect: '/integrations/sync' },
+  { path: '/identity', redirect: '/integrations/identity' },
+
+  // Copilot legacy
+  { path: '/agents', redirect: '/copilot/assistant' },
+  { path: '/intelligence', redirect: '/intelligence' },
+  { path: '/insights', redirect: '/copilot/recommendations' },
+  { path: '/personal-intelligence', redirect: '/copilot/learning' },
+  { path: '/memory-patterns', redirect: '/copilot/memory' },
+  { path: '/notifications', redirect: '/copilot/notifications' },
+  { path: '/truth-inspector', redirect: '/intelligence/confidence' },
+
+  // Apps (mantener separados - son micro-apps completas)
   {
     path: '/orion/',
     name: 'orion-home',
     component: () => import('@/shell/OrionHome.vue'),
     meta: { title: 'ORION Platform' },
   },
-  // ── ATLAS (Inversiones) ──
+  {
+    path: '/investments',
+    name: 'investment-hub',
+    component: () => import('@/pages/InvestmentHub.vue'),
+    meta: { title: 'Investment Hub' },
+  },
   {
     path: '/atlas/',
     name: 'atlas-dashboard',
@@ -376,7 +435,6 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/apps/atlas/SettingsAtlas.vue'),
     meta: { title: 'Configuración ATLAS' },
   },
-  // ── ODYSSEY (Analítica de Apuestas) ──
   {
     path: '/odyssey/',
     name: 'odyssey-dashboard',
@@ -389,7 +447,6 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/apps/odyssey/SettingsOdyssey.vue'),
     meta: { title: 'Configuración ODYSSEY' },
   },
-  // ── AEGIS (Pentesting) ──
   {
     path: '/aegis/',
     name: 'aegis-dashboard',
@@ -402,13 +459,33 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/apps/aegis/SettingsAegis.vue'),
     meta: { title: 'Configuración AEGIS' },
   },
-  // ── Notification / Sync pages ──
   {
-    path: '/notifications',
-    name: 'notifications',
-    component: () => import('@/pages/NotificationsPage.vue'),
-    meta: { title: 'Notificaciones' },
+    path: '/polymarket',
+    name: 'polymarket-trading',
+    component: () => import('@/pages/PolymarketTrading.vue'),
+    meta: { title: 'Polymarket Trading' },
   },
+  {
+    path: '/trading',
+    name: 'trading',
+    component: () => import('@/pages/Trading.vue'),
+    meta: { title: 'Trading' },
+  },
+
+  // ── Special pages ──
+  {
+    path: '/baby-mode',
+    name: 'baby-mode',
+    component: () => import('@/pages/BabyMode.vue'),
+    meta: { title: 'Baby Mode' },
+  },
+  {
+    path: '/faqs',
+    name: 'faqs',
+    component: () => import('@/pages/FaqPage.vue'),
+    meta: { title: 'Preguntas Frecuentes' },
+  },
+
   // ── Catch-all ──
   {
     path: '/:pathMatch(.*)*',

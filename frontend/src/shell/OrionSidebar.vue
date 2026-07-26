@@ -1,69 +1,124 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from '@/composables/useToast'
 import {
-  Activity, Bug, ChevronLeft, ChevronRight, Dices, LayoutDashboard,
-  Bell, Settings, TrendingUp, X,
+  LayoutDashboard, Target, Search, Bug, Shield, BarChart3,
+  FileText, ClipboardList, DollarSign, Wallet, Coins, Link2,
+  Settings, Cpu, Zap, Bell, ChevronLeft, ChevronRight,
+  Brain, MessageSquare, Database, HardDrive, Globe, Activity,
+  Users, Key, RefreshCw, Terminal, BookOpen, Sparkles, TrendingUp
 } from '@lucide/vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-
-interface AppInfo {
-  id: string
-  name: string
-  description: string
-  icon: string
-  version: string
-  has_agent: boolean
-  hidden: boolean
-  widgets: number
-}
 
 const route = useRoute()
 const router = useRouter()
 const { toast } = useToast()
 const collapsed = ref(false)
-const apps = ref<AppInfo[]>([])
-const loading = ref(true)
-const error = ref('')
 
-const coreNav = [
-  { section: 'Sistema', items: [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { name: 'Notificaciones', path: '/notifications', icon: Bell },
-    { name: 'Configuración', path: '/settings', icon: Settings },
-  ]},
+const navSections = [
+  {
+    section: 'MISIÓN',
+    items: [
+      { name: 'Mission Control', path: '/', icon: LayoutDashboard, exact: true },
+    ],
+  },
+  {
+    section: 'SEGURIDAD ● Rastro',
+    items: [
+      { name: 'Targets', path: '/targets', icon: Target },
+      { name: 'Findings', path: '/intelligence/findings', icon: Bug },
+      { name: 'Hipótesis', path: '/intelligence/hypotheses', icon: Brain },
+      { name: 'Evidencia', path: '/intelligence/evidence', icon: Shield },
+      { name: 'Investigaciones', path: '/intelligence/investigations', icon: Search },
+      { name: 'Confianza', path: '/intelligence/confidence', icon: BarChart3 },
+    ],
+  },
+  {
+    section: 'REPORTES',
+    items: [
+      { name: 'Cola Priorizada', path: '/reports/queue', icon: ClipboardList },
+      { name: 'Centro de Reportes', path: '/reports/center', icon: FileText },
+      { name: 'Historial', path: '/reports/history', icon: Database },
+      { name: 'Validación', path: '/reports/verification', icon: Shield },
+    ],
+  },
+  {
+    section: 'VAULT ● Wealth',
+    items: [
+      { name: 'Capital Dashboard', path: '/capital', icon: DollarSign },
+      { name: 'Investment Hub', path: '/investments', icon: Coins },
+      { name: 'ATLAS Inversiones', path: '/atlas/', icon: TrendingUp },
+      { name: 'Trading', path: '/trading', icon: Activity },
+    ],
+  },
+  {
+    section: 'OPERACIONES',
+    items: [
+      { name: 'Dashboard', path: '/operations/dashboard', icon: Activity },
+      { name: 'Pipelines', path: '/operations/pipelines', icon: Cpu },
+      { name: 'Scheduler', path: '/operations/scheduler', icon: Zap },
+      { name: 'Herramientas', path: '/operations/tools', icon: Terminal },
+      { name: 'Health Center', path: '/operations/health', icon: Activity },
+      { name: 'Configuración', path: '/operations/settings', icon: Settings },
+      { name: 'Workflows', path: '/operations/workflows', icon: RefreshCw },
+      { name: 'Replay', path: '/operations/replay', icon: BookOpen },
+      { name: 'Logs', path: '/operations/logs', icon: HardDrive },
+    ],
+  },
+  {
+    section: 'INTEGRACIONES',
+    items: [
+      { name: 'Conexiones', path: '/integrations/connections', icon: Link2 },
+      { name: 'Billeteras', path: '/integrations/wallets', icon: Wallet },
+      { name: 'Cuentas', path: '/integrations/accounts', icon: Users },
+      { name: 'Plataformas', path: '/integrations/platforms', icon: Globe },
+      { name: 'Sync Center', path: '/integrations/sync', icon: RefreshCw },
+      { name: 'Identidad', path: '/integrations/identity', icon: Key },
+    ],
+  },
+  {
+    section: 'COPILOT',
+    items: [
+      { name: 'Asistente', path: '/copilot/assistant', icon: MessageSquare },
+      { name: 'Memoria', path: '/copilot/memory', icon: Database },
+      { name: 'Aprendizaje', path: '/copilot/learning', icon: Brain },
+      { name: 'Recomendaciones', path: '/copilot/recommendations', icon: Sparkles },
+      { name: 'Notificaciones', path: '/copilot/notifications', icon: Bell },
+    ],
+  },
+  {
+    section: 'APPS',
+    items: [
+      { name: 'OWNEX Platform', path: '/orion/', icon: LayoutDashboard },
+      { name: 'ODYSSEY (Analytics)', path: '/odyssey/', icon: Activity },
+      { name: 'AEGIS (Pentesting)', path: '/aegis/', icon: Shield },
+      { name: 'Polymarket', path: '/polymarket', icon: DollarSign },
+    ],
+  },
 ]
 
-const appIcons: Record<string, string> = {
-  cateye: '🐛',
-  atlas: '📈',
-  odyssey: '🎲',
+interface NavItem {
+  name: string
+  path: string
+  icon: any
+  exact?: boolean
+  children?: string[]
 }
 
-onMounted(async () => {
-  loading.value = true
-  error.value = ''
-  try {
-    const res = await fetch('/api/core/apps')
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    apps.value = await res.json()
-  } catch (e) {
-    error.value = 'No se pudieron cargar las aplicaciones'
-    toast.error('Error de conexión', 'No se pudo conectar con el servidor ORION')
-    apps.value = [
-      { id: 'cateye', name: 'ORION', description: 'Bug Bounty', icon: 'Bug', version: '', has_agent: false, hidden: false, widgets: 0 },
-      { id: 'atlas', name: 'ATLAS', description: 'Inversiones', icon: 'TrendingUp', version: '', has_agent: false, hidden: false, widgets: 0 },
-      { id: 'odyssey', name: 'ODYSSEY', description: 'Analytics', icon: 'Dices', version: '', has_agent: false, hidden: false, widgets: 0 },
-    ]
-  } finally {
-    loading.value = false
+function isActive(item: NavItem): boolean {
+  if (item.exact) {
+    return route.path === item.path
   }
-})
+  if (item.children) {
+    return item.children.some(child => route.path === child || route.path.startsWith(child + '/'))
+  }
+  return route.path === item.path || route.path.startsWith(item.path + '/')
+}
 
-function navigate(path: string) { router.push(path) }
-function isActive(path: string) { return route.path === path || route.path.startsWith(path + '/') }
-function appPath(id: string) { return `/${id}/` }
+function navigate(path: string) {
+  router.push(path)
+}
 </script>
 
 <template>
@@ -74,10 +129,13 @@ function appPath(id: string) { return `/${id}/` }
     <!-- Logo -->
     <div class="flex items-center gap-2 px-4 h-14 border-b border-border/40">
       <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/30">
-        <Activity class="h-4 w-4" />
+        <svg viewBox="0 0 512 512" width="20" height="20" fill="none">
+          <polygon points="256,96 376,156 376,356 256,416 136,356 136,156" stroke="currentColor" stroke-width="6" fill="rgba(59,130,246,0.08)" />
+          <circle cx="256" cy="256" r="24" fill="currentColor" opacity="0.8" />
+        </svg>
       </div>
       <Transition name="fade">
-        <span v-if="!collapsed" class="font-mono text-sm font-bold tracking-[0.15em] text-foreground">ORION</span>
+        <span v-if="!collapsed" class="font-mono text-sm font-bold tracking-[0.15em] text-foreground">OWNEX</span>
       </Transition>
       <button v-if="!collapsed" class="ml-auto text-muted-foreground hover:text-foreground" @click="collapsed = !collapsed">
         <ChevronLeft class="h-4 w-4" />
@@ -88,26 +146,8 @@ function appPath(id: string) { return `/${id}/` }
     </div>
 
     <!-- Navigation -->
-    <div class="flex-1 overflow-y-auto p-2 space-y-4 scrollbar-thin">
-      <!-- Skeleton loading -->
-      <div v-if="loading" class="space-y-2 px-2">
-        <Skeleton class="h-4 w-20 rounded" />
-        <Skeleton class="h-8 w-full rounded-lg" />
-        <Skeleton class="h-8 w-full rounded-lg" />
-        <div class="border-t border-border/30 my-3" />
-        <Skeleton class="h-4 w-16 rounded" />
-        <Skeleton class="h-8 w-full rounded-lg" />
-        <Skeleton class="h-8 w-full rounded-lg" />
-      </div>
-
-      <!-- Error state -->
-      <div v-if="error && !loading" class="px-2 py-4 text-center">
-        <p class="text-xs text-destructive">{{ error }}</p>
-        <button @click="onMounted" class="mt-2 text-xs text-primary hover:underline">Reintentar</button>
-      </div>
-
-      <!-- System nav -->
-      <div v-for="section in coreNav" :key="section.section">
+    <div class="flex-1 overflow-y-auto p-2 space-y-3 scrollbar-thin">
+      <div v-for="section in navSections" :key="section.section">
         <div v-if="!collapsed" class="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
           {{ section.section }}
         </div>
@@ -115,35 +155,11 @@ function appPath(id: string) { return `/${id}/` }
           v-for="item in section.items"
           :key="item.path"
           class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors"
-          :class="isActive(item.path) ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'"
+          :class="isActive(item) ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-surface/30'"
           @click="navigate(item.path)"
         >
           <component :is="item.icon" class="h-4 w-4 shrink-0" />
           <span v-if="!collapsed">{{ item.name }}</span>
-        </button>
-      </div>
-
-      <!-- Separator -->
-      <div v-if="apps.length > 0 && !collapsed" class="border-t border-border/30" />
-
-      <!-- Apps section -->
-      <div v-if="apps.length > 0 && !loading">
-        <div v-if="!collapsed" class="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-          Apps
-        </div>
-        <button
-          v-for="app in apps"
-          :key="app.id"
-          v-show="!app.hidden"
-          class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors"
-          :class="isActive(appPath(app.id)) ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'"
-          @click="navigate(appPath(app.id))"
-        >
-          <span class="text-lg">{{ appIcons[app.id] || '📦' }}</span>
-          <div v-if="!collapsed" class="flex flex-col items-start">
-            <span>{{ app.name }}</span>
-            <span class="text-xs text-muted-foreground/60">{{ app.description }}</span>
-          </div>
         </button>
       </div>
     </div>

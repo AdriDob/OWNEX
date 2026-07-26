@@ -275,6 +275,103 @@ export async function getSubmissionHistory(params?: { limit?: number; platform?:
   return api.get<{ submissions: SubmissionRecord[]; total: number }>('/reports/submissions', params as any)
 }
 
+// ── Revenue Metrics ──
+
+export interface RevenueMetricsData {
+  payout_summary: {
+    total_payout: number
+    pending_total: number
+    avg_payout: number
+    by_platform: Record<string, number>
+    by_currency: Record<string, number>
+  }
+  monthly_revenue: { month: string; total: number; count: number }[]
+  roi_by_program: { program: string; platforms: string[]; total_payout: number; count: number }[]
+  roi_by_vuln_type: { vuln_type: string; total_programs: number; total_payout: number; count: number; avg_payout: number }[]
+  finding_pipeline: {
+    findings: { total: number; confirmed: number; rejected: number; open: number; confirmation_rate: number }
+    submissions: { total: number; accepted: number; rejected: number; pending: number; acceptance_rate: number }
+  }
+  findings_by_type: { vuln_type: string; total: number; confirmed: number; rejected: number; confirmation_rate: number }[]
+  acceptance_rate: Record<string, { accepted: number; total: number; acceptance_rate: number }>
+  time_metrics: { avg_days_to_acceptance: number | null; acceptance_samples: number; avg_days_to_payout: number | null; payout_samples: number }
+}
+
+export async function getRevenueMetrics(): Promise<RevenueMetricsData> {
+  // Aggregate from multiple endpoints
+  const [summaryRes, submissionRes, findingRes] = await Promise.allSettled([
+    api.get<{ success: boolean; total_payout?: number }>('/revenue/summary'),
+    api.get<{ submissions: SubmissionRecord[]; total: number }>('/reports/submissions'),
+    api.get<{ items: FindingItem[]; total: number }>('/findings'),
+  ])
+  const summary: any = summaryRes.status === 'fulfilled' ? summaryRes.value : {}
+  const subs = submissionRes.status === 'fulfilled' ? submissionRes.value : { submissions: [], total: 0 }
+  const finds = findingRes.status === 'fulfilled' ? findingRes.value : { items: [], total: 0 }
+  const submissions = subs.submissions || []
+  const findings = finds.items || []
+
+  const accepted = submissions.filter(s => s.status === 'accepted')
+  const rejected = submissions.filter(s => s.status === 'rejected')
+  const pending = submissions.filter(s => s.status === 'pending' || s.status === 'submitted')
+  const totalPayout = summary.total_payout || 0
+
+  const byPlatform: Record<string, number> = {}
+  submitted_total: for (const s of submissions) {
+    if (s.reward) {
+      byPlatform[s.platform] = (byPlatform[s.platform] || 0) + s.reward
+    }
+  }
+
+  const platformAcceptance: Record<string, { accepted: number; total: number }> = {}
+  for (const s of submissions) {
+    if (!platformAcceptance[s.platform]) platformAcceptance[s.platform] = { accepted: 0, total: 0 }
+    platformAcceptance[s.platform].total++
+    if (s.status === 'accepted') platformAcceptance[s.platform].accepted++
+  }
+
+  const acceptanceRate: Record<string, { accepted: number; total: number; acceptance_rate: number }> = {}
+  for (const [p, v] of Object.entries(platformAcceptance)) {
+    acceptanceRate[p] = { ...v, acceptance_rate: v.total > 0 ? v.accepted / v.total : 0 }
+  }
+
+  return {
+    payout_summary: {
+      total_payout: totalPayout,
+      pending_total: pending.reduce((s, p) => s + (p.reward || 0), 0),
+      avg_payout: accepted.length > 0 ? accepted.reduce((s, a) => s + (a.reward || 0), 0) / accepted.length : 0,
+      by_platform: byPlatform,
+      by_currency: { USD: totalPayout },
+    },
+    monthly_revenue: [],
+    roi_by_program: [],
+    roi_by_vuln_type: [],
+    finding_pipeline: {
+      findings: {
+        total: finds.total,
+        confirmed: findings.filter(f => (f as any).status === 'confirmed').length,
+        rejected: findings.filter(f => (f as any).status === 'rejected').length,
+        open: findings.filter(f => (f as any).status === 'open' || (f as any).status === 'pending').length,
+        confirmation_rate: finds.total > 0 ? findings.filter(f => (f as any).status === 'confirmed').length / finds.total : 0,
+      },
+      submissions: {
+        total: submissions.length,
+        accepted: accepted.length,
+        rejected: rejected.length,
+        pending: pending.length,
+        acceptance_rate: submissions.length > 0 ? accepted.length / submissions.length : 0,
+      },
+    },
+    findings_by_type: [],
+    acceptance_rate: acceptanceRate,
+    time_metrics: {
+      avg_days_to_acceptance: null,
+      acceptance_samples: accepted.length,
+      avg_days_to_payout: null,
+      payout_samples: accepted.length,
+    },
+  }
+}
+
 // ── System Timeline Calendar ──
 
 export interface TimelineEvent {
@@ -362,6 +459,21 @@ export async function getTargets(params?: {
 
 export async function getTarget(targetId: number) {
   return api.get<any>(`/targets/${targetId}`)
+}
+
+export interface EVTarget {
+  target_id: number
+  target_name: string
+  expected_value: number
+  estimated_reward: number
+  acceptance_probability: number
+  confidence: number
+  priority_score: number
+  attack_plan: { phases: string[]; estimated_hours: number } | null
+}
+
+export async function getEVRankedTargets(limit = 20): Promise<{ ranked: EVTarget[]; total_targets: number }> {
+  return api.get<{ ranked: EVTarget[]; total_targets: number }>(`/targets/ev-ranking?limit=${limit}`)
 }
 
 // ── Findings ──
@@ -746,4 +858,203 @@ export async function testIntegration(name: string) {
 
 export async function getIntegrationStatus(name: string) {
   return api.get<IntegrationItem>(`/core/integrations/${name}`)
+}
+
+// ── Investment API ──
+
+export interface InvestmentStatus {
+  total_capital: number
+  deployed: number
+  available: number
+  paused: boolean
+  drawdown_protection: boolean
+  active_strategies: number
+  strategies: Record<string, {
+    id: string
+    paused: boolean
+    total_deployed: number
+    risk_level: string
+  }>
+  summary: {
+    total_trades: number
+    win_rate: number
+    sharpe: number
+    max_drawdown_pct: number
+    total_pnl: number
+    total_pnl_pct: number
+    in_drawdown: boolean
+  }
+}
+
+export interface StrategyAllocation {
+  strategy_id: string
+  allocated_usd: number
+  deployed_usd: number
+  available_usd: number
+  pnl_usd: number
+  pnl_pct: number
+  roi_pct: number
+}
+
+export interface StrategyDetail {
+  profile: {
+    id: string
+    name: string
+    type: string
+    risk_level: string
+    max_allocation_pct: number
+    expected_roi_pct: number
+    description: string
+    tags: string[]
+  }
+  allocation: StrategyAllocation
+  risk_metrics: {
+    sharpe_ratio: number
+    win_rate: number
+    profit_factor: number
+    total_trades: number
+    winning_trades: number
+    losing_trades: number
+    current_drawdown_pct: number
+    max_drawdown_pct: number
+    avg_win_pct: number
+    avg_loss_pct: number
+    is_drawdown: boolean
+    should_pause: boolean
+    is_healthy: boolean
+    consecutive_losses: number
+  }
+  paused: boolean
+}
+
+export interface ConsolidateMetrics {
+  total_trades: number
+  winning_trades: number
+  total_pnl: number
+  win_rate: number
+  strategies: Record<string, Record<string, number | boolean>>
+  snapshots_count: number
+}
+
+export interface PnLPoint {
+  date: string
+  pnl: number
+}
+
+export async function getInvestmentStatus() {
+  return api.get<{ success: boolean; status: InvestmentStatus }>('/investment/status')
+}
+
+export async function getInvestmentSnapshot() {
+  return api.get<{ success: boolean; snapshot: any }>('/investment/snapshot')
+}
+
+export async function getInvestmentStrategies() {
+  return api.get<{ success: boolean; strategies: any[]; total: number }>('/investment/strategies')
+}
+
+export async function getStrategyDetail(id: string) {
+  return api.get<{ success: boolean; strategy: StrategyDetail }>(`/investment/strategies/${id}`)
+}
+
+export async function deployStrategy(id: string, amount: number) {
+  return api.post<{ success: boolean; result: any }>(`/investment/strategies/${id}/deploy`, { amount })
+}
+
+export async function pauseStrategy(id: string) {
+  return api.post<{ success: boolean }>(`/investment/strategies/${id}/pause`)
+}
+
+export async function resumeStrategy(id: string) {
+  return api.post<{ success: boolean }>(`/investment/strategies/${id}/resume`)
+}
+
+export async function getInvestmentMetrics() {
+  return api.get<{ success: boolean; metrics: ConsolidateMetrics; pnl_chart: PnLPoint[] }>('/investment/metrics')
+}
+
+export async function getAllocation() {
+  return api.get<{ success: boolean; allocation: any; config: any }>('/investment/allocation')
+}
+
+export async function getExposure() {
+  return api.get<{ success: boolean; exposure: any }>('/investment/exposure')
+}
+
+export async function getInvestmentEvents(limit = 50) {
+  return api.get<{ success: boolean; events: any[] }>(`/investment/events?limit=${limit}`)
+}
+
+export async function allocatePayout(amount: number, source = '') {
+  return api.post<{ success: boolean; allocation: any }>('/investment/allocation/allocate-payout', { amount, source })
+}
+
+export async function updateInvestmentCapital(total_usd: number) {
+  return api.post<{ success: boolean }>('/investment/allocation/update-capital', { total_usd })
+}
+
+export async function pauseAllInvestments() {
+  return api.post<{ success: boolean }>('/investment/pause')
+}
+
+export async function resumeAllInvestments() {
+  return api.post<{ success: boolean }>('/investment/resume')
+}
+
+export async function activateMaxRevenue() {
+  return api.post<{ success: boolean; result: any }>('/investment/max-revenue')
+}
+
+export async function updateInvestmentConfig(config: Record<string, any>) {
+  return api.post<{ success: boolean; config: any }>('/investment/config', config)
+}
+
+export async function getCcxtInfo(exchange = 'binance') {
+  return api.get<{ success: boolean; exchange: string; info: any }>(`/investment/ccxt/info?exchange=${exchange}`)
+}
+
+export async function connectCcxt(exchange: string, api_key: string, api_secret: string) {
+  return api.post<{ success: boolean; connected: boolean }>('/investment/ccxt/connect', { exchange, api_key, api_secret })
+}
+
+export async function getCcxtBalance(exchange = 'binance') {
+  return api.get<{ success: boolean; balance: any }>(`/investment/ccxt/balance?exchange=${exchange}`)
+}
+
+export async function getAcceptanceSummary() {
+  return api.get<{
+    total_observations: number; accepted: number; rejected: number; acceptance_rate: number
+    platforms: string[]; adapted_weights: Record<string, number>; profiles: Record<string, any>
+    weight_deltas: Record<string, number>
+  }>('/reports/acceptance/summary')
+}
+
+export async function predictAcceptance(findingId: number, platform = 'hackerone') {
+  return api.get<{
+    finding_id: number; prediction: {
+      probability: number; platform: string; confidence: string
+      weak_dimensions: { dimension: string; current: number; accepted_avg: number; gap: number }[]
+      recommendations: string[]; score: number; min_accepted_score: number
+    }; quality_score: any
+  }>(`/reports/acceptance/predict?finding_id=${findingId}&platform=${platform}`)
+}
+
+export async function recordAcceptanceOutcome(submissionId: number) {
+  return api.post<any>(`/reports/acceptance/record-outcome?submission_id=${submissionId}`)
+}
+
+export async function getAcceptanceProfiles() {
+  return api.get<{ profiles: Record<string, any>; total_platforms: number }>('/reports/acceptance/profiles')
+}
+
+export async function getAcceptancePlatformProfile(platform: string) {
+  return api.get<any>(`/reports/acceptance/profiles/${platform}`)
+}
+
+export async function getAcceptanceObservations(limit = 50) {
+  return api.get<{ observations: any[]; total: number }>(`/reports/acceptance/observations?limit=${limit}`)
+}
+
+export async function syncAcceptanceFromDb() {
+  return api.post<{ synced: number; summary: any }>('/reports/acceptance/sync')
 }

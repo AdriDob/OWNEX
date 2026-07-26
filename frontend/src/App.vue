@@ -18,6 +18,7 @@ import CompareView from '@/components/ui/CompareView.vue'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard.vue'
 import AssistantBubble from '@/components/assistant/AssistantBubble.vue'
 import AssistantHint from '@/components/assistant/AssistantHint.vue'
+import SplashScreen from '@/components/layout/SplashScreen.vue'
 import { useAssistant } from '@/composables/useAssistant'
 
 declare global {
@@ -34,6 +35,7 @@ const route = useRoute()
 const assistant = useAssistant()
 const copilotOpen = ref(false)
 const sidebarOpen = ref(false)
+const splashVisible = ref(true)
 const showOnboarding = ref(false)
 const globalLoading = ref(false)
 const showGlobalLoading = ref(false)
@@ -106,7 +108,7 @@ onMounted(async () => {
   // Desktop integration
   if (typeof window.__PYWEBVIEW__ !== 'undefined') {
     try {
-      window.__PYWEBVIEW__.setTitle('ORION — Security Intelligence OS')
+      window.__PYWEBVIEW__.setTitle('OWNEX — Personal Autonomous Work OS')
     } catch { /* not in pywebview */ }
   }
   _beforeunloadHandler = () => {
@@ -144,6 +146,9 @@ onUnmounted(() => {
 
 <template>
     <div class="flex h-screen w-screen overflow-hidden bg-background">
+    <!-- Splash screen -->
+    <SplashScreen :visible="splashVisible" @done="splashVisible = false" />
+
     <!-- Global loading bar -->
     <div v-if="showGlobalLoading" class="fixed top-0 left-0 right-0 z-[100] h-0.5">
       <div class="h-full bg-primary animate-pulse" style="width: 30%; animation: loadingSlide 1.5s ease-in-out infinite" />

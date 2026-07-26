@@ -3,12 +3,24 @@ import { cn } from '@/lib/utils'
 
 interface Props {
   class?: string
+  variant?: 'default' | 'tactical' | 'glass'
+  highlight?: boolean
 }
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  variant: 'default',
+  highlight: false,
+})
 </script>
 
 <template>
-  <div :class="cn('card-base rounded-xl', props.class)">
+  <div
+    :class="cn(
+      variant === 'tactical' ? 'tactical-panel' : variant === 'glass' ? 'glass-terminal' : 'card-base',
+      'rounded-xl',
+      highlight && 'card-highlight',
+      props.class,
+    )"
+  >
     <slot />
   </div>
 </template>

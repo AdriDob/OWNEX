@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { api, getReports, getReportStats, getRewardLearning, getFindings } from '@/lib/api'
+import { api, getReports, getReportStats, getRewardLearning, getFindings, getAcceptanceSummary } from '@/lib/api'
 import type { ReportItem, FindingItem } from '@/lib/api'
 import { useReportStore } from '@/stores/report'
 import Card from '@/components/ui/Card.vue'
@@ -15,6 +15,7 @@ const reportStore = useReportStore()
 const reports = ref<ReportItem[]>([])
 const stats = ref<{ total: number; estimated_rewards: number; paid_count: number; status_counts: Record<string, number>; total_rewards: number } | null>(null)
 const rewardLearning = ref<any>(null)
+const acceptanceSummary = ref<any>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 const sessionStart = ref(Date.now())
@@ -29,15 +30,17 @@ const showDraftPreview = ref(false)
 
 onMounted(async () => {
   try {
-    const [r, s, rl] = await Promise.all([
+    const [r, s, rl, acc] = await Promise.all([
       getReports({ limit: 50, sort_by: 'created_at', sort_order: 'desc' }),
       getReportStats().catch(() => null),
       getRewardLearning().catch(() => null),
+      getAcceptanceSummary().catch(() => null),
       fetchMonthlyRevenue().catch(() => {}),
     ])
     reports.value = r.items || []
     stats.value = s
     rewardLearning.value = rl
+    acceptanceSummary.value = acc
     loading.value = false
   } catch (e: any) {
     error.value = e?.message || 'Error al cargar reportes'
@@ -360,6 +363,34 @@ const maxMonthlyAmount = computed(() => {
           </div>
         </Card>
       </div>
+
+      <Card v-if="acceptanceSummary" class="p-4 space-y-3">
+        <div class="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          <TrendingUp class="h-3 w-3" />
+          <span>Acceptance Optimizer</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+          <div>
+            <p class="text-xs text-muted-foreground">Observaciones</p>
+            <p class="font-semibold text-foreground">{{ acceptanceSummary.total_observations }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-muted-foreground">Aceptados</p>
+            <p class="font-semibold text-success">{{ acceptanceSummary.accepted }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-muted-foreground">Rechazados</p>
+            <p class="font-semibold text-destructive">{{ acceptanceSummary.rejected }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-muted-foreground">Tasa de Aceptación</p>
+            <p class="font-semibold text-foreground">{{ acceptanceSummary.acceptance_rate }}%</p>
+          </div>
+        </div>
+        <div v-if="acceptanceSummary.platforms?.length" class="flex flex-wrap gap-2">
+          <Badge v-for="p in acceptanceSummary.platforms" :key="p" variant="info">{{ p }}</Badge>
+        </div>
+      </Card>
 
       <Card v-if="rewardLearning" class="p-4 space-y-3">
         <div class="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">

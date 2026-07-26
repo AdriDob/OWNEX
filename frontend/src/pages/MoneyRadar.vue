@@ -119,12 +119,16 @@ function openProgram(id: number) {
 
 <template>
   <div class="space-y-6">
-    <!-- Header -->
-    <div class="animate-in space-y-1">
-      <p class="text-xs font-bold uppercase tracking-widest text-primary">Economic Intelligence</p>
-      <h1 class="font-display text-2xl font-bold text-foreground">Money Radar</h1>
-      <p class="text-sm text-muted-foreground">
-        Todos los programas rankeados por ORION SCORE — el mejor retorno primero
+    <!-- ═══ HEADER ═══ -->
+    <div class="space-y-1 animate-in">
+      <div class="flex items-center gap-2">
+        <Radar class="h-4 w-4 text-primary" />
+        <span class="font-mono text-[10px] font-bold tracking-widest text-primary">MONEY RADAR</span>
+        <span class="lamp" :class="items.length ? 'lamp-green' : 'lamp-off'" />
+      </div>
+      <h1 class="font-display text-xl sm:text-2xl font-bold text-foreground">Money Radar</h1>
+      <p class="text-xs text-muted-foreground">
+        Todos los programas rankeados por ORION SCORE — el mejor retorno económico primero
       </p>
     </div>
 
@@ -158,26 +162,36 @@ function openProgram(id: number) {
     </div>
 
     <!-- Summary bar -->
-    <Card v-if="!loading && items.length" class="animate-in p-4">
-      <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div>
-          <p class="text-xs text-muted-foreground">Programas</p>
-          <p class="text-lg font-bold text-foreground">{{ items.length }}</p>
+    <div v-if="!loading && items.length" class="grid grid-cols-2 gap-4 sm:grid-cols-4 animate-in">
+      <div class="tactical-panel rounded-xl p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-mono text-[10px] text-muted-foreground tracking-wider">PROGRAMAS</span>
+          <Filter class="h-4 w-4 text-primary" />
         </div>
-        <div>
-          <p class="text-xs text-muted-foreground">Mejor Score</p>
-          <p class="text-lg font-bold text-success">{{ Math.max(...items.map(i => i.orion_score)).toFixed(3) }}</p>
-        </div>
-        <div>
-          <p class="text-xs text-muted-foreground">Mejor EVH</p>
-          <p class="text-lg font-bold text-foreground">${{ Math.max(...items.map(i => i.evh)).toFixed(0) }}/h</p>
-        </div>
-        <div>
-          <p class="text-xs text-muted-foreground">Máx Recompensa</p>
-          <p class="text-lg font-bold text-foreground">{{ formatMoney(Math.max(...items.map(i => i.max_reward || 0))) }}</p>
-        </div>
+        <p class="font-mono text-xl font-bold text-primary">{{ items.length }}</p>
       </div>
-    </Card>
+      <div class="tactical-panel rounded-xl p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-mono text-[10px] text-muted-foreground tracking-wider">MEJOR SCORE</span>
+          <TrendingUp class="h-4 w-4 text-success" />
+        </div>
+        <p class="font-mono text-xl font-bold text-success">{{ bestScore }}</p>
+      </div>
+      <div class="tactical-panel rounded-xl p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-mono text-[10px] text-muted-foreground tracking-wider">MEJOR EVH</span>
+          <DollarSign class="h-4 w-4 text-warning" />
+        </div>
+        <p class="font-mono text-xl font-bold text-warning">{{ bestEVH }}</p>
+      </div>
+      <div class="tactical-panel rounded-xl p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-mono text-[10px] text-muted-foreground tracking-wider">REWARD MÁX</span>
+          <Clock class="h-4 w-4 text-gold" />
+        </div>
+        <p class="font-mono text-xl font-bold text-gold">{{ maxReward }}</p>
+      </div>
+    </div>
 
     <!-- Loading -->
     <div v-if="loading" class="space-y-3">
@@ -277,5 +291,44 @@ function openProgram(id: number) {
       <p class="text-sm text-muted-foreground">No hay programas disponibles</p>
       <p class="mt-1 text-xs text-muted-foreground">Agregá programas desde Settings o esperá el primer escaneo</p>
     </div>
+
+    <!-- ═══ HOW-TO FOOTER ═══ -->
+    <Card class="animate-in">
+      <div class="p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <Radar class="h-4 w-4 text-primary" />
+          <h3 class="text-sm font-semibold">Cómo usar Money Radar</h3>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-[11px]">
+          <div class="space-y-1.5 p-3 rounded-lg bg-accent/20">
+            <p class="font-semibold text-foreground flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">1</span>
+              Filtrame
+            </p>
+            <p class="text-muted-foreground leading-relaxed">
+              Usá los filtros de búsqueda, plataforma y score mínimo para encontrar los programas con mejor relación retorno/esfuerzo.
+            </p>
+          </div>
+          <div class="space-y-1.5 p-3 rounded-lg bg-accent/20">
+            <p class="font-semibold text-foreground flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">2</span>
+              Clasificá
+            </p>
+            <p class="text-muted-foreground leading-relaxed">
+              El ORION SCORE rankea programas por Expected Value. EVH ($/h) muestra el retorno estimado por hora invertida.
+            </p>
+          </div>
+          <div class="space-y-1.5 p-3 rounded-lg bg-accent/20">
+            <p class="font-semibold text-foreground flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">3</span>
+              Accioná
+            </p>
+            <p class="text-muted-foreground leading-relaxed">
+              Hacé click en un programa para ver inteligencia detallada, targets activos y plan de ataque personalizado.
+            </p>
+          </div>
+        </div>
+      </div>
+    </Card>
   </div>
 </template>

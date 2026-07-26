@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import DoughnutChart from '@/components/charts/DoughnutChart.vue'
-import { AlertTriangle, BarChart3, CreditCard, DollarSign, PiggyBank, Plus, RotateCw, Save, TrendingUp, Wallet } from '@lucide/vue'
+import { AlertTriangle, BarChart3, CreditCard, DollarSign, PiggyBank, Plus, RotateCw, RefreshCw, Save, TrendingUp, Wallet } from '@lucide/vue'
 
 interface PlatformWithEarnings {
   provider: string
@@ -131,10 +131,21 @@ onMounted(fetchWallets)
 
 <template>
   <div class="space-y-6">
-    <div class="animate-in space-y-1">
-      <p class="text-xs font-bold uppercase tracking-widest text-primary">Finanzas</p>
-      <h1 class="font-display text-2xl font-bold text-foreground">Wallets</h1>
-      <p class="text-sm text-muted-foreground">Gestión de billeteras y pagos</p>
+    <!-- ═══ HEADER ═══ -->
+    <div class="flex items-start justify-between gap-4 animate-in">
+      <div class="space-y-1 min-w-0">
+        <div class="flex items-center gap-2">
+          <Wallet class="h-4 w-4 text-primary" />
+          <span class="font-mono text-[10px] font-bold tracking-widest text-primary">WALLETS</span>
+          <span class="lamp" :class="data?.wallets?.length ? 'lamp-green' : 'lamp-off'" />
+        </div>
+        <h1 class="font-display text-xl sm:text-2xl font-bold text-foreground">Billeteras</h1>
+        <p class="text-xs text-muted-foreground">Gestión de billeteras, pagos y plataformas de earnings</p>
+      </div>
+      <Button variant="outline" size="sm" @click="fetchWallets" :disabled="loading">
+        <RefreshCw class="h-3.5 w-3.5 mr-1" :class="{ 'animate-spin': loading }" />
+        Refresh
+      </Button>
     </div>
 
     <!-- Loading -->
@@ -180,34 +191,34 @@ onMounted(fetchWallets)
     <template v-else>
       <!-- KPI Cards -->
       <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 animate-in">
-        <Card class="p-4">
-          <div class="flex items-center gap-2 mb-1">
+        <div class="tactical-panel rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-[10px] text-muted-foreground tracking-wider">TOTAL REPORTES</span>
             <DollarSign class="h-4 w-4 text-primary" />
-            <span class="text-[10px] text-muted-foreground">Total Reportes</span>
           </div>
-          <p class="text-xl font-bold text-foreground">{{ data.stats?.total || 0 }}</p>
-        </Card>
-        <Card class="p-4">
-          <div class="flex items-center gap-2 mb-1">
+          <p class="font-mono text-xl font-bold text-foreground">{{ data.stats?.total || 0 }}</p>
+        </div>
+        <div class="tactical-panel rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-[10px] text-muted-foreground tracking-wider">PAGADOS</span>
             <CreditCard class="h-4 w-4 text-success" />
-            <span class="text-[10px] text-muted-foreground">Pagados</span>
           </div>
-          <p class="text-xl font-bold text-foreground">{{ data.stats?.paid_count || 0 }}</p>
-        </Card>
-        <Card class="p-4">
-          <div class="flex items-center gap-2 mb-1">
+          <p class="font-mono text-xl font-bold text-success">{{ data.stats?.paid_count || 0 }}</p>
+        </div>
+        <div class="tactical-panel rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-[10px] text-muted-foreground tracking-wider">TOTAL EARNED</span>
             <TrendingUp class="h-4 w-4 text-warning" />
-            <span class="text-[10px] text-muted-foreground">Total Earned</span>
           </div>
-          <p class="text-xl font-bold text-foreground">{{ formatCurrency(data.stats?.total_rewards || 0) }}</p>
-        </Card>
-        <Card class="p-4">
-          <div class="flex items-center gap-2 mb-1">
+          <p class="font-mono text-xl font-bold text-warning">{{ formatCurrency(data.stats?.total_rewards || 0) }}</p>
+        </div>
+        <div class="tactical-panel rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-[10px] text-muted-foreground tracking-wider">ESTIMATED</span>
             <PiggyBank class="h-4 w-4 text-accent" />
-            <span class="text-[10px] text-muted-foreground">Estimated</span>
           </div>
-          <p class="text-xl font-bold text-foreground">{{ formatCurrency(data.stats?.estimated_rewards || 0) }}</p>
-        </Card>
+          <p class="font-mono text-xl font-bold text-accent">{{ formatCurrency(data.stats?.estimated_rewards || 0) }}</p>
+        </div>
       </div>
 
       <!-- Charts -->
@@ -278,6 +289,43 @@ onMounted(fetchWallets)
               </Button>
             </div>
           </Card>
+        </div>
+      </div>
+
+      <!-- ═══ HOW-TO FOOTER ═══ -->
+      <div class="border border-border/30 rounded-xl p-4 card-base animate-in">
+        <div class="flex items-center gap-2 mb-3">
+          <Wallet class="h-4 w-4 text-primary" />
+          <h3 class="text-sm font-semibold">Cómo usar Billeteras</h3>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-[11px]">
+          <div class="space-y-1.5 p-3 rounded-lg bg-accent/20">
+            <p class="font-semibold text-foreground flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">1</span>
+              Vinculá billeteras
+            </p>
+            <p class="text-muted-foreground leading-relaxed">
+              Cada plataforma de bug bounty necesita una billetera configurada para recibir pagos. Usá "Add" para vincular una dirección.
+            </p>
+          </div>
+          <div class="space-y-1.5 p-3 rounded-lg bg-accent/20">
+            <p class="font-semibold text-foreground flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">2</span>
+              Revisá earnings
+            </p>
+            <p class="text-muted-foreground leading-relaxed">
+              Las KPI cards muestran total de reportes, pagos recibidos, total earned y estimated rewards. Los charts desglosan por plataforma.
+            </p>
+          </div>
+          <div class="space-y-1.5 p-3 rounded-lg bg-accent/20">
+            <p class="font-semibold text-foreground flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">3</span>
+              Configurá defaults
+            </p>
+            <p class="text-muted-foreground leading-relaxed">
+              Marcá una billetera como default para recibir pagos automáticamente. Editá direcciones si necesitas cambiarlas.
+            </p>
+          </div>
         </div>
       </div>
     </template>
