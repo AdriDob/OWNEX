@@ -1,6 +1,6 @@
-
 from fastapi import APIRouter, Query, Request
 
+from core.notifications.intelligent import DetailLevel, get_intelligent_notifier
 from cores.gateway.schemas import error, ok
 from cores.notifications.hub import NOTIFICATION_TYPES, get_hub
 from database import db
@@ -58,6 +58,7 @@ async def set_notification_preferences(request: Request):
 
     try:
         from cores.learning.profile import get_profile_service
+
         profile = get_profile_service()
         prefs = profile.get_stats().get("notification_preferences", {})  # type: ignore[call-arg]
         prefs[f"channel_{channel}"] = enabled
@@ -65,6 +66,7 @@ async def set_notification_preferences(request: Request):
         session = db.SessionLocal()
         try:
             from cores.learning.profile import InvestigatorProfile
+
             row = session.query(InvestigatorProfile).first()
             if row:
                 row.notification_preferences = prefs
@@ -82,6 +84,7 @@ async def get_notification_preferences():
     """Get current notification channel preferences."""
     try:
         from cores.learning.profile import get_profile_service
+
         profile = get_profile_service()
         prefs = profile.get_stats().get("notification_preferences", {})
         return ok({"preferences": prefs})
@@ -202,10 +205,38 @@ async def toggle_digest(request: Request):
 async def get_dedup_config():
     """Return current dedup window configuration."""
     hub = get_hub()
-    return ok({
-        "dedup_window_seconds": hub.get_dedup_window(),
-        "digest_buffer_size": hub.get_digest_buffer_size(),
-    })
+    return ok(
+        {
+            "dedup_window_seconds": hub.get_dedup_window(),
+            "digest_buffer_size": hub.get_digest_buffer_size(),
+        }
+    )
+
+
+@router.get("/smart")
+async def get_smart_notifications():
+    """Get smart notification manager stats and recent history."""
+    notifier = get_intelligent_notifier()
+    stats = notifier.get_stats()
+    return ok(stats)
+
+
+@router.get("/smart/config")
+async def get_smart_config():
+    """Get or set smart notification detail level."""
+    notifier = get_intelligent_notifier()
+    return ok({"detail_level": notifier._user_level.name, "levels": [lev.name for lev in DetailLevel]})
+
+
+@router.post("/smart/config")
+async def set_smart_config(level: str = "NORMAL"):
+    """Set user detail level (ESSENTIAL / NORMAL / DEBUG)."""
+    notifier = get_intelligent_notifier()
+    try:
+        notifier._user_level = DetailLevel[level.upper()]
+        return ok({"detail_level": level.upper()})
+    except KeyError:
+        return error(f"Invalid level: {level}. Valid: {[lev.name for lev in DetailLevel]}")
 
 
 @router.post("/dedup/clear")

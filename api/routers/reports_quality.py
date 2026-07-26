@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from core.reports.quality.classifier import QualityClassifier
 from core.reports.quality.scorer import QualityScorer
@@ -43,3 +43,41 @@ def get_finding_quality(finding_id: int):
     except Exception:
         logger.exception("Quality gate error for finding %s", finding_id)
         raise HTTPException(status_code=500, detail="Internal quality evaluation error") from None
+
+
+@router.post("/optimize/{finding_id}")
+def optimize_report(
+    finding_id: int,
+    platform: str = Query("hackerone", description="Target platform (hackerone, bugcrowd, intigriti, immunefi)"),
+):
+    """Generate an optimized report for a finding with auto-remediation, CVSS, CWE, and quality analysis."""
+    from core.reports.optimizer import ReportOptimizer
+
+    try:
+        optimizer = ReportOptimizer()
+        result = optimizer.optimize(finding_id, platform=platform)
+        if result is None:
+            raise HTTPException(status_code=404, detail="Finding not found")
+        return result
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Report optimization error for finding %s", finding_id)
+        raise HTTPException(status_code=500, detail="Internal optimization error") from None
+
+
+@router.post("/optimize/batch")
+def batch_optimize(
+    finding_ids: list[int],
+    platform: str = Query("hackerone", description="Target platform"),
+):
+    """Batch optimize multiple findings."""
+    from core.reports.optimizer import ReportOptimizer
+
+    try:
+        optimizer = ReportOptimizer()
+        results = optimizer.batch_optimize(finding_ids, platform=platform)
+        return {"results": results, "count": len(results)}
+    except Exception:
+        logger.exception("Batch optimization error")
+        raise HTTPException(status_code=500, detail="Internal optimization error") from None

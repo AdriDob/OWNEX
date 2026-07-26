@@ -276,6 +276,28 @@ def financial_dashboard() -> dict[str, Any]:
     return get_dashboard()
 
 
+@router.post("/refresh")
+def refresh_prices() -> dict[str, Any]:
+    """Clear price cache and force fresh data on next request."""
+    cleared = {"coingecko_cache": False, "price_cache": False}
+    try:
+        from cores.crypto.coingecko import get_coingecko_feed
+
+        feed = get_coingecko_feed()
+        feed._cache.clear()
+        cleared["coingecko_cache"] = True
+    except Exception:
+        pass
+    try:
+        from cores.crypto.base import _PRICE_CACHE
+
+        _PRICE_CACHE.clear()
+        cleared["price_cache"] = True
+    except Exception:
+        pass
+    return {"status": "ok", "cleared": cleared, "timestamp": datetime.now(timezone.utc).isoformat()}
+
+
 # ── Integrations Status ──────────────────────────────────────────────
 
 
@@ -290,6 +312,7 @@ def integrations_status() -> dict[str, Any]:
     crypto_mgr = None
     try:
         from cores.crypto.sync_manager import get_crypto_sync_manager
+
         crypto_mgr = get_crypto_sync_manager()
     except Exception:
         logger.exception("Failed to initialize crypto sync manager")
@@ -333,6 +356,7 @@ def integrations_status() -> dict[str, Any]:
     # Takenos
     try:
         from cores.financial.takenos.connector import get_takenos_connector
+
         tc = get_takenos_connector()
         health = tc.health()
         t_status = "green" if health.get("available") else "yellow"
@@ -344,7 +368,9 @@ def integrations_status() -> dict[str, Any]:
             "ultima_sincronizacion": "",
             "ultimo_exito": "",
             "fallos_consecutivos": 0,
-            "error": "" if t_status == "green" else "Sin datos cargados — usá CSV, balance manual o vinculá wallet Solana",
+            "error": ""
+            if t_status == "green"
+            else "Sin datos cargados — usá CSV, balance manual o vinculá wallet Solana",
         }
     except Exception:
         integrations["takenos"] = {
@@ -361,6 +387,7 @@ def integrations_status() -> dict[str, Any]:
     # CoinGecko
     try:
         from cores.crypto.coingecko import get_coingecko_feed
+
         cg_health = get_coingecko_feed().health()
         integrations["coingecko"] = {
             "nombre": "CoinGecko",

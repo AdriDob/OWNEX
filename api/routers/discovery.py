@@ -1,4 +1,5 @@
 """Discovery router — bounty program discovery endpoints."""
+
 from __future__ import annotations
 
 import logging
@@ -6,6 +7,7 @@ import logging
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
+from cores.bounty_scraper.changes import get_change_tracker
 from cores.bounty_scraper.monitor import get_discovery_monitor
 from cores.bounty_scraper.scraper import BountyScraper
 
@@ -18,8 +20,10 @@ _scraper = BountyScraper()
 class ImportRequest(BaseModel):
     auto_recon: bool = False
 
+
 class ImportAllRequest(BaseModel):
     platform: str | None = None
+
 
 class ScanDomainsRequest(BaseModel):
     domains: list[str] = []
@@ -53,7 +57,7 @@ def list_programs(
                 "is_new": p.is_new,
                 "domains": p.domains,
             }
-            for p in filtered[offset:offset + limit]
+            for p in filtered[offset : offset + limit]
         ],
         "total": total,
         "offset": offset,
@@ -84,13 +88,60 @@ def discovery_stats():
 
 @router.post("/scan")
 async def run_discovery(body: ScanDomainsRequest | None = None):
-    """Run all discovery sources now."""
+    """Run all discovery sources now with change detection."""
     domains = body.domains if body else []
-    programs = _scraper.scrape_all(domains=domains)
+    programs, diff = _scraper.scrape_with_changes(domains=domains)
     return {
         "total": len(programs),
         "programs": [p.name for p in programs],
-        "new_programs": sum(1 for p in programs if p.is_new),
+        "new_programs": len(diff.new_programs),
+        "removed_programs": len(diff.removed_programs),
+        "updated_programs": len(diff.updated_programs),
+        "changes": {
+            "new": [
+                {"name": p.name, "platform": p.platform, "payout": p.estimated_payout} for p in diff.new_programs[:20]
+            ],
+            "updated": diff.updated_programs[:20],
+        },
+    }
+
+
+@router.get("/changes")
+def get_changes():
+    """Get the latest discovery change diff."""
+    tracker = get_change_tracker()
+    return {
+        "tracked_programs": tracker.get_known_count(),
+        "tracker": tracker.to_dict(),
+    }
+
+
+@router.get("/programs/ranked")
+def list_ranked_programs(
+    platform: str | None = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+):
+    """List discovered programs ranked by estimated value."""
+    programs = getattr(_scraper, "_programs", [])
+    if platform:
+        programs = [p for p in programs if p.platform == platform]
+    ranked = _scraper.prioritize(programs)
+    return {
+        "ranked": [
+            {
+                "name": p.name,
+                "platform": p.platform,
+                "program_url": p.program_url,
+                "estimated_payout": p.estimated_payout,
+                "average_payout": p.estimated_payout,
+                "is_new": p.is_new,
+                "has_rewards": p.has_rewards,
+                "technologies": p.technologies,
+                "confidence": p.confidence,
+            }
+            for p in ranked[:limit]
+        ],
+        "total": len(ranked),
     }
 
 
@@ -101,9 +152,7 @@ async def import_program(program_url: str, body: ImportRequest | None = None):
 
     session = db.SessionLocal()
     try:
-        existing = session.query(models.Target).filter(
-            models.Target.name == program_url
-        ).first()
+        existing = session.query(models.Target).filter(models.Target.name == program_url).first()
         if existing:
             return {"success": True, "message": "Already imported"}
         target = models.Target(
@@ -127,13 +176,12 @@ async def import_all_programs(body: ImportAllRequest | None = None):
     if body and body.platform:
         programs = [p for p in programs if p.platform == body.platform]
     from database import db, models
+
     session = db.SessionLocal()
     imported = 0
     try:
         for prog in programs:
-            existing = session.query(models.Target).filter(
-                models.Target.name == prog.program_url
-            ).first()
+            existing = session.query(models.Target).filter(models.Target.name == prog.program_url).first()
             if not existing:
                 target = models.Target(name=prog.program_url, in_scope=True)
                 session.add(target)

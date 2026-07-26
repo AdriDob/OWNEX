@@ -104,10 +104,14 @@ def get_program(program_id: int, db: Session = Depends(get_db)):
 
 @router.post("/programs", response_model=ProgramOut, status_code=201)
 def create_program(body: ProgramCreate, db: Session = Depends(get_db)):
-    existing = db.query(Program).filter(
-        Program.name == body.name,
-        Program.platform == body.platform,
-    ).first()
+    existing = (
+        db.query(Program)
+        .filter(
+            Program.name == body.name,
+            Program.platform == body.platform,
+        )
+        .first()
+    )
     if existing:
         raise HTTPException(status_code=409, detail="Program already exists for this platform")
 
@@ -173,7 +177,12 @@ def create_tier(program_id: int, body: BountyTierCreate, db: Session = Depends(g
 
 @router.get("/programs/{program_id}/scopes", response_model=list[ScopeDocumentOut])
 def list_scopes(program_id: int, db: Session = Depends(get_db)):
-    docs = db.query(ScopeDocument).filter(ScopeDocument.program_id == program_id).order_by(desc(ScopeDocument.fetched_at)).all()
+    docs = (
+        db.query(ScopeDocument)
+        .filter(ScopeDocument.program_id == program_id)
+        .order_by(desc(ScopeDocument.fetched_at))
+        .all()
+    )
     return [_scope_to_out(d) for d in docs]
 
 
@@ -219,10 +228,16 @@ def analyze_program(program_id: int, db: Session = Depends(get_db)):
     prompt = _build_analysis_prompt(p, tiers)
     try:
         provider = get_provider()
-        ai_resp = provider.chat([
-            {"role": "system", "content": "You are an elite bug bounty intelligence analyst. Be concise and actionable."},
-            {"role": "user", "content": prompt},
-        ], max_tokens=1024)
+        ai_resp = provider.chat(
+            [
+                {
+                    "role": "system",
+                    "content": "You are an elite bug bounty intelligence analyst. Be concise and actionable.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=1024,
+        )
         analysis_text = ai_resp or f"Analysis pending. Program: {p.name}, Platform: {p.platform}"
     except Exception as exc:
         logger.warning("AI analysis failed for program %s: %s", p.name, exc)
@@ -258,9 +273,14 @@ def read_program_scope(program_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Program has no URL configured")
 
     # Get previous scope document for change detection
-    prev_doc = db.query(ScopeDocument).filter(
-        ScopeDocument.program_id == program_id,
-    ).order_by(desc(ScopeDocument.fetched_at)).first()
+    prev_doc = (
+        db.query(ScopeDocument)
+        .filter(
+            ScopeDocument.program_id == program_id,
+        )
+        .order_by(desc(ScopeDocument.fetched_at))
+        .first()
+    )
 
     result = _read_scope(
         url=p.program_url,
@@ -293,7 +313,11 @@ def read_program_scope(program_id: int, db: Session = Depends(get_db)):
 
     # Also update assets from extracted results
     try:
-        assets_data = json.loads(result.get("assets_extracted", "[]")) if isinstance(result.get("assets_extracted"), str) else result.get("assets_extracted", {})
+        assets_data = (
+            json.loads(result.get("assets_extracted", "[]"))
+            if isinstance(result.get("assets_extracted"), str)
+            else result.get("assets_extracted", {})
+        )
         if isinstance(assets_data, dict):
             # Update technologies
             techs = assets_data.get("technologies", [])
@@ -371,10 +395,15 @@ def money_radar(
     out = []
     for p in items:
         # Get best reward tier
-        top_tier = db.query(BountyTier).filter(
-            BountyTier.program_id == p.id,
-            BountyTier.max_reward.isnot(None),
-        ).order_by(desc(BountyTier.max_reward)).first()
+        top_tier = (
+            db.query(BountyTier)
+            .filter(
+                BountyTier.program_id == p.id,
+                BountyTier.max_reward.isnot(None),
+            )
+            .order_by(desc(BountyTier.max_reward))
+            .first()
+        )
 
         tiers = db.query(BountyTier).filter(BountyTier.program_id == p.id).all()
 
@@ -401,26 +430,28 @@ def money_radar(
             except (json.JSONDecodeError, TypeError):
                 tech_summary = p.technologies[:100] if p.technologies else ""
 
-        out.append(MoneyRadarProgramOut(
-            id=p.id,
-            name=p.name,
-            platform=p.platform,
-            program_url=p.program_url,
-            private=p.private,
-            status=p.status,
-            orion_score=p.orion_score,
-            priority=p.priority,
-            max_reward=max_reward,
-            min_reward=min_reward,
-            reward_currency=reward_currency,
-            total_reports=p.total_reports,
-            confirmed_reports=p.confirmed_reports,
-            total_earned=p.total_earned,
-            competition=competition,
-            effort_hours=effort,
-            evh=round(evh_val, 2),
-            technologies_summary=tech_summary,
-        ))
+        out.append(
+            MoneyRadarProgramOut(
+                id=p.id,
+                name=p.name,
+                platform=p.platform,
+                program_url=p.program_url,
+                private=p.private,
+                status=p.status,
+                orion_score=p.orion_score,
+                priority=p.priority,
+                max_reward=max_reward,
+                min_reward=min_reward,
+                reward_currency=reward_currency,
+                total_reports=p.total_reports,
+                confirmed_reports=p.confirmed_reports,
+                total_earned=p.total_earned,
+                competition=competition,
+                effort_hours=effort,
+                evh=round(evh_val, 2),
+                technologies_summary=tech_summary,
+            )
+        )
 
     return MoneyRadarOut(
         items=out,
@@ -490,6 +521,7 @@ def financial_summary(db: Session = Depends(get_db)):
     next_action = None
     try:
         from cores.orion import get_next_action
+
         action = get_next_action()
         if action:
             next_action = action.get("title", action.get("type", "Review opportunities"))
@@ -604,33 +636,48 @@ def list_patterns(
     total = q.count()
     items = q.order_by(desc(MemoryPattern.confidence)).offset(skip).limit(limit).all()
     return MemoryPatternListOut(
-        items=[MemoryPatternOut(
-            id=m.id, category=m.category, observation=m.observation,
-            context=m.context, confidence=m.confidence,
-            evidence_count=m.evidence_count, tags=m.tags,
-            source_program_id=m.source_program_id,
-            created_at=m.created_at.isoformat() if m.created_at else None,
-        ) for m in items],
+        items=[
+            MemoryPatternOut(
+                id=m.id,
+                category=m.category,
+                observation=m.observation,
+                context=m.context,
+                confidence=m.confidence,
+                evidence_count=m.evidence_count,
+                tags=m.tags,
+                source_program_id=m.source_program_id,
+                created_at=m.created_at.isoformat() if m.created_at else None,
+            )
+            for m in items
+        ],
         total=total,
     )
 
 
 @router.post("/patterns", response_model=MemoryPatternOut, status_code=201)
 def create_pattern(body: MemoryPatternCreate, db: Session = Depends(get_db)):
-    existing = db.query(MemoryPattern).filter(
-        MemoryPattern.observation == body.observation,
-        MemoryPattern.category == body.category,
-    ).first()
+    existing = (
+        db.query(MemoryPattern)
+        .filter(
+            MemoryPattern.observation == body.observation,
+            MemoryPattern.category == body.category,
+        )
+        .first()
+    )
     if existing:
         existing.evidence_count += 1
         existing.confidence = min(1.0, existing.confidence + 0.05)
         db.commit()
         db.refresh(existing)
         return MemoryPatternOut(
-            id=existing.id, category=existing.category,
-            observation=existing.observation, context=existing.context,
-            confidence=existing.confidence, evidence_count=existing.evidence_count,
-            tags=existing.tags, source_program_id=existing.source_program_id,
+            id=existing.id,
+            category=existing.category,
+            observation=existing.observation,
+            context=existing.context,
+            confidence=existing.confidence,
+            evidence_count=existing.evidence_count,
+            tags=existing.tags,
+            source_program_id=existing.source_program_id,
             created_at=existing.created_at.isoformat() if existing.created_at else None,
         )
 
@@ -640,9 +687,14 @@ def create_pattern(body: MemoryPatternCreate, db: Session = Depends(get_db)):
     db.refresh(m)
     logger.info("Memory pattern created: [%s] %s", m.category, m.observation[:60])
     return MemoryPatternOut(
-        id=m.id, category=m.category, observation=m.observation,
-        context=m.context, confidence=m.confidence, evidence_count=m.evidence_count,
-        tags=m.tags, source_program_id=m.source_program_id,
+        id=m.id,
+        category=m.category,
+        observation=m.observation,
+        context=m.context,
+        confidence=m.confidence,
+        evidence_count=m.evidence_count,
+        tags=m.tags,
+        source_program_id=m.source_program_id,
         created_at=m.created_at.isoformat() if m.created_at else None,
     )
 
@@ -686,22 +738,25 @@ def report_queue(
     out = []
     for rp in items:
         report = db.query(Report).filter(Report.id == rp.report_id).first()
-        out.append(ReportPriorityOut(
-            id=rp.id, report_id=rp.report_id,
-            report_title=(report.summary or report.vulnerability or "Report")[:80] if report else "Unknown",
-            report_status=report.status if report else "draft",
-            program=report.program if report else "",
-            vulnerability=report.vulnerability if report else "",
-            estimated_reward=rp.estimated_reward,
-            confidence_score=rp.confidence_score,
-            acceptance_probability=rp.acceptance_probability,
-            expected_value=rp.expected_value,
-            priority_score=rp.priority_score,
-            priority_rank=rp.priority_rank,
-            time_to_submit=rp.time_to_submit,
-            reasoning=rp.reasoning,
-            last_evaluated=rp.last_evaluated.isoformat() if rp.last_evaluated else None,
-        ))
+        out.append(
+            ReportPriorityOut(
+                id=rp.id,
+                report_id=rp.report_id,
+                report_title=(report.summary or report.vulnerability or "Report")[:80] if report else "Unknown",
+                report_status=report.status if report else "draft",
+                program=report.program if report else "",
+                vulnerability=report.vulnerability if report else "",
+                estimated_reward=rp.estimated_reward,
+                confidence_score=rp.confidence_score,
+                acceptance_probability=rp.acceptance_probability,
+                expected_value=rp.expected_value,
+                priority_score=rp.priority_score,
+                priority_rank=rp.priority_rank,
+                time_to_submit=rp.time_to_submit,
+                reasoning=rp.reasoning,
+                last_evaluated=rp.last_evaluated.isoformat() if rp.last_evaluated else None,
+            )
+        )
 
     return ReportPriorityListOut(items=out, total=total)
 
@@ -756,10 +811,14 @@ def recompute_report_queue(db: Session = Depends(get_db)):
             existing.last_evaluated = datetime.now(timezone.utc)
         else:
             rp = ReportPriority(
-                report_id=report.id, estimated_reward=reward,
-                confidence_score=confidence, acceptance_probability=acceptance_prob,
-                expected_value=expected_value, priority_score=priority_score,
-                time_to_submit=time_to_submit, reasoning=reasoning,
+                report_id=report.id,
+                estimated_reward=reward,
+                confidence_score=confidence,
+                acceptance_probability=acceptance_prob,
+                expected_value=expected_value,
+                priority_score=priority_score,
+                time_to_submit=time_to_submit,
+                reasoning=reasoning,
             )
             db.add(rp)
 
@@ -955,10 +1014,7 @@ def _compute_orion_score(p: Program, tiers: list[BountyTier]) -> float:
     time_score = max(0.0, 1.0 - (effort - 1) / 20)  # 1h=1.0, 10h=0.55, 20h=0.05
 
     # 5. Experience (0.10)
-    if p.total_earned and p.total_earned > 0:
-        exp_score = min(p.total_earned / 10000, 1.0)  # $10k = 1.0
-    else:
-        exp_score = 0.2
+    exp_score = min(p.total_earned / 10000, 1.0) if p.total_earned and p.total_earned > 0 else 0.2
 
     # 6. Technologies (0.10)
     tech_score = 0.5
@@ -975,12 +1031,12 @@ def _compute_orion_score(p: Program, tiers: list[BountyTier]) -> float:
             pass
 
     score = (
-        reward_score * 0.30 +
-        hist_score * 0.20 +
-        comp_score * 0.15 +
-        time_score * 0.15 +
-        exp_score * 0.10 +
-        tech_score * 0.10
+        reward_score * 0.30
+        + hist_score * 0.20
+        + comp_score * 0.15
+        + time_score * 0.15
+        + exp_score * 0.10
+        + tech_score * 0.10
     )
 
     return max(0.0, min(1.0, score))
@@ -1039,11 +1095,12 @@ def _score_to_priority(score: float) -> str:
 def _period_earnings(reports, days: int) -> float:
     """Sum confirmed rewards from reports within the last N days."""
     from datetime import timedelta
+
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     total = 0.0
     for r in reports:
         if r.confirmed_reward and r.created_at:
-            if hasattr(r.created_at, 'tzinfo') and r.created_at.tzinfo is not None:
+            if hasattr(r.created_at, "tzinfo") and r.created_at.tzinfo is not None:
                 r_created = r.created_at
             else:
                 r_created = r.created_at.replace(tzinfo=timezone.utc) if r.created_at else None
@@ -1054,10 +1111,11 @@ def _period_earnings(reports, days: int) -> float:
 
 def _build_analysis_prompt(p: Program, tiers: list[BountyTier]) -> str:
     """Build AI analysis prompt for a program."""
-    tier_info = "\n".join(
-        f"  - {t.tier_name}: ${t.min_reward} – ${t.max_reward or 'N/A'} ({t.currency})"
-        for t in tiers
-    ) if tiers else "  (no tier data)"
+    tier_info = (
+        "\n".join(f"  - {t.tier_name}: ${t.min_reward} – ${t.max_reward or 'N/A'} ({t.currency})" for t in tiers)
+        if tiers
+        else "  (no tier data)"
+    )
 
     tech_info = ""
     if p.technologies:
@@ -1076,7 +1134,7 @@ Program: {p.name}
 Platform: {p.platform}
 Status: {p.status}
 Private: {p.private}
-URL: {p.program_url or 'N/A'}
+URL: {p.program_url or "N/A"}
 
 {tech_info}
 
@@ -1256,13 +1314,15 @@ def get_monthly_revenue():
             label = f"{months[int(r.month) - 1]}" if r.month and 1 <= int(r.month) <= 12 else str(r.month)
             if r.year:
                 label += f" {int(r.year)}"
-            result.append({
-                "month": label,
-                "amount": float(r.estimated or 0),
-                "paid": float(r.paid or 0),
-                "count": int(r.count or 0),
-                "year": int(r.year) if r.year else None,
-            })
+            result.append(
+                {
+                    "month": label,
+                    "amount": float(r.estimated or 0),
+                    "paid": float(r.paid or 0),
+                    "count": int(r.count or 0),
+                    "year": int(r.year) if r.year else None,
+                }
+            )
 
         return {"months": result, "total": len(result)}
     except Exception as exc:

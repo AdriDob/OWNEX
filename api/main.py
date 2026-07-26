@@ -16,6 +16,7 @@ from api.middleware.rate_limit_middleware import RateLimitMiddleware
 from api.routers import (
     accounts_hub,
     agents_router,
+    ai_security,
     assistant,
     attack,
     attack_surface,
@@ -46,28 +47,38 @@ from api.routers import (
     identity,
     identity_center,
     idor,
+    intel,
     intelligence,
     investigations,
+    investment,
     license,
+    market_intelligence,
+    merlin,
     micro,
     mission,
     mobile,
     notifications,
     offensive,
+    offensive_web3,
     operations,
     opportunities,
     opportunity_intelligence,
+    opportunity_score,
     orchestrator,
     orion,
+    orion_cli,
     osint,
     overview,
     pipeline,
     platforms,
     project_dashboard,
     quick_wins,
+    recon,
     reports,
+    reports_acceptance,
     reports_quality,
     revenue,
+    revenue_multiplier,
     roi,
     scans,
     screenshots,
@@ -79,12 +90,14 @@ from api.routers import (
     system_state,
     target_identity,
     targets,
+    telegram_bot,
     validation,
     verdicts,
     webhooks,
     ws,
     zap,
 )
+from api.routers.investment import register_investment_capabilities as _reg_inv_caps
 from cores.env.config import get_config
 from cores.intelligence.adaptive_memory import get_memory
 from cores.learning.router import router as learning_router
@@ -218,9 +231,11 @@ async def lifespan(app: FastAPI):
     # Start background scan scheduler
     scheduler = None
     try:
+        import api.scheduler as sched_mod
         from api.scheduler import ScanScheduler
 
         scheduler = ScanScheduler(interval_minutes=get_config().scan_interval)
+        sched_mod.scheduler_instance = scheduler
         t = asyncio.create_task(scheduler.start())
         t.add_done_callback(_background_tasks.discard)
         _background_tasks.add(t)
@@ -257,6 +272,7 @@ async def lifespan(app: FastAPI):
             register_fcm_channel,
             register_gmail_channel,
             register_mobile_channel,
+            register_telegram_channel,
             register_whatsapp_channel,
             register_ws_forwarder,
         )
@@ -267,6 +283,7 @@ async def lifespan(app: FastAPI):
         register_email_channel()
         register_fcm_channel()
         register_mobile_channel()
+        register_telegram_channel()
         register_whatsapp_channel()
         register_gmail_channel()
         register_ws_forwarder()
@@ -280,6 +297,40 @@ async def lifespan(app: FastAPI):
         logger.info("Event -> notification bridge started")
     except Exception as exc:
         logger.warning("Event -> notification bridge failed (non-fatal): %s", exc)
+
+    # Wire IntelligentNotificationManager -> EventBus
+    try:
+        from core.events.bus import get_event_bus
+
+        from core.notifications.intelligent import get_intelligent_notifier
+
+        bus = get_event_bus()
+        notifier = get_intelligent_notifier()
+
+        def _smart_notify(event_type: str, data: dict | None = None) -> None:
+            notifier.route_to_user(event_type, data or {})
+
+        key_events = [
+            "finding:created",
+            "finding:confirmed",
+            "finding:status_changed",
+            "opportunity:found",
+            "report:generated",
+            "report:accepted",
+            "report:rejected",
+            "system:error",
+            "system:degraded",
+            "system:alert",
+            "financial:payout_received",
+            "financial:payout_confirmed",
+            "revenue:payout_recorded",
+            "acceptance:outcome:recorded",
+        ]
+        for evt in key_events:
+            bus.subscribe(evt, _smart_notify)
+        logger.info("Smart notification bridge started (%d events)", len(key_events))
+    except Exception as exc:
+        logger.warning("Smart notification bridge failed (non-fatal): %s", exc)
 
     # Initialize Financial Event System
     try:
@@ -299,27 +350,15 @@ async def lifespan(app: FastAPI):
         def _auto_report(event_type, payload):
             if payload.get("new_status") != "confirmed":
                 return
-            from database import db as _db
-
-            _db.init_db()
-            session = _db.SessionLocal()
             try:
-                from cores.pipeline.report_service import create_report_from_findings
+                from core.auto_submit.pipeline import get_auto_submit_pipeline
 
-                report = create_report_from_findings(
-                    session=session,
-                    finding_ids=[payload["id"]],
-                    program="",
-                    target=f"target_{payload.get('target_id')}",
-                    vulnerability=payload.get("title", ""),
-                    severity=payload.get("severity", "medium"),
-                )
-                if report:
-                    logger.info("[AUTO] Report %s auto-generated for finding %s", report.get("id"), payload.get("id"))
+                pipeline = get_auto_submit_pipeline()
+                result = pipeline.process_finding(payload["id"])
+                action = result.get("action", "unknown")
+                logger.info("[AUTO-SUBMIT] Finding %s → %s (score=%.1f)", payload["id"], action, result.get("score", 0))
             except Exception as exc:
-                logger.warning("[AUTO] Auto-report failed for finding %s: %s", payload.get("id"), exc)
-            finally:
-                session.close()
+                logger.warning("[AUTO-SUBMIT] Pipeline failed for finding %s: %s", payload.get("id"), exc)
 
         bus.subscribe("finding:status_changed", _auto_report)
         logger.info("[BOOT] Auto-report subscriber registered")
@@ -368,6 +407,20 @@ async def lifespan(app: FastAPI):
 
         bus.subscribe("finding:status_changed", _feedback_handler)
         logger.info("[BOOT] FeedbackTuner subscriber registered")
+
+        # VerdictAutoLearner: bridge FeedbackTuner -> AcceptanceLearner
+        try:
+            from core.learning.verdict_learner import get_verdict_learner
+
+            _vl = get_verdict_learner()
+
+            def _verdict_handler(event_type, payload):
+                _vl.handle_finding_status_changed(payload)
+
+            bus.subscribe("finding:status_changed", _verdict_handler)
+            logger.info("[BOOT] VerdictAutoLearner subscriber registered")
+        except Exception as exc:
+            logger.warning("[BOOT] VerdictAutoLearner init error: %s", exc)
 
         # ── Unified Memory ────────────────────────────────────────────
         try:
@@ -552,10 +605,14 @@ async def lifespan(app: FastAPI):
         try:
             from api.routers.copilot import _set_copilot
             from api.routers.copilot import router as copilot_router
+            from core.copilot.orion_context import get_orion_context
 
             _set_copilot(_copilot)
+            from database import db as _db
+
+            get_orion_context(db_factory=_db.SessionLocal)
             app.include_router(copilot_router)
-            logger.info("[BOOT] Copilot API router registered")
+            logger.info("[BOOT] Copilot API router + OrionContext registered")
         except Exception as exc:
             logger.warning("[BOOT] Copilot API router error: %s", exc)
     except Exception as exc:
@@ -594,6 +651,15 @@ async def lifespan(app: FastAPI):
         logger.info("[BOOT] AgentBus → EventBus bridge started")
     except Exception as exc:
         logger.warning("AgentBus bridge failed (non-fatal): %s", exc)
+
+    # Bridge EventBus → AgentBus (scheduler pipeline → coordinator)
+    try:
+        from cores.agents.bus import bridge_eventbus_to_agent_bus
+
+        bridge_eventbus_to_agent_bus()
+        logger.info("[BOOT] EventBus → AgentBus bridge started")
+    except Exception as exc:
+        logger.warning("EventBus → AgentBus bridge failed (non-fatal): %s", exc)
 
     # Start Discovery Monitor
     discovery_monitor = None
@@ -653,9 +719,11 @@ async def lifespan(app: FastAPI):
         # Register and start core scheduler
         core_bus = get_core_event_bus()
         orion_scheduler = get_core_scheduler()
-        orion_scheduler.set_job_handler(
-            lambda job: core_bus.publish("scheduler:job_due", job_id=job.job_id, app_id=job.app_id)
-        )
+
+        def _on_job_due(job: JobDefinition) -> None:
+            core_bus.publish("scheduler:job_due", job_id=job.job_id, app_id=job.app_id)
+
+        orion_scheduler.set_job_handler(_on_job_due)
         for job_def in registry.get_scheduler_jobs():
             jd = JobDefinition(
                 job_id=job_def["job_id"],
@@ -788,6 +856,41 @@ async def lifespan(app: FastAPI):
             "[CAP] Capability Registry: %d capabilities from %d modules", len(_creg.list_capabilities()), _creg.count()
         )
 
+        # 2b. Register hunter bridge capabilities (claude-bug-bounty, web3, MCP)
+        try:
+            from core.integrations.ext.hunter_bridge import HUNTER_TO_RASTRO_VULN, WEB3_VULN_CLASSES, status_summary
+
+            _hunter_status = status_summary()
+            for name, info in _hunter_status.items():
+                if name == "checked_at":
+                    continue
+                _creg.register(
+                    "hunt_vulnerability",
+                    f"core.integrations.ext.hunter_bridge.{name}",
+                    {
+                        "vuln_classes": len(HUNTER_TO_RASTRO_VULN) if "claude" in name else len(WEB3_VULN_CLASSES),
+                        "installed": info.get("installed", False),
+                    },
+                    description=f"{name}: bug bounty hunting bridge",
+                )
+                logger.info(
+                    "[HUNTER] Registered capability: hunt_vulnerability from %s (installed=%s)",
+                    name,
+                    info.get("installed", False),
+                )
+            _creg.register(
+                "scan_web3_contracts",
+                "core.integrations.ext.hunter_bridge.web3_bug_bounty_skills",
+                {"vuln_classes": WEB3_VULN_CLASSES},
+                description="Web3 smart contract vulnerability scanning via Immunefi-derived skills",
+            )
+            logger.info(
+                "[HUNTER] Hunter bridge initialized: %d integrations",
+                sum(1 for k, v in _hunter_status.items() if k != "checked_at"),
+            )
+        except Exception as exc:
+            logger.warning("[HUNTER] Hunter bridge init error: %s", exc)
+
         # 3. Subscribers for orphan events
         bus = get_event_bus()
 
@@ -814,7 +917,51 @@ async def lifespan(app: FastAPI):
         bus.subscribe("recovery:success", _recovery_handler)
         bus.subscribe("recovery:failed", _recovery_handler)
 
-        logger.info("[EVENT] Event subscribers registered (opportunity, recovery)")
+        # ── Telegram Bridge ──────────────────────────────────────────
+        def _telegram_handler(event_type, payload):
+            from core.notifications.telegram.bridge import handle_event
+
+            handle_event(event_type, **payload)
+
+        for _ev in (
+            "finding:created",
+            "finding:confirmed",
+            "finding:status_changed",
+            "report:generated",
+            "report:accepted",
+            "report:rejected",
+            "revenue:payout_recorded",
+            "revenue:report_submitted",
+            "revenue:status_changed",
+            "revenue:sync_completed",
+            "system:error",
+            "system:degraded",
+            "system:alert",
+            "opportunity:found",
+            "opportunity:updated",
+            "quick_win:detected",
+            "execution:approval:requested",
+            "execution:workflow:completed",
+            "execution:workflow:failed",
+            "hermes:security:blocked",
+            "hermes:permission:required",
+            "hermes:action:completed",
+            "hermes:action:failed",
+            "recovery:started",
+            "recovery:success",
+            "recovery:failed",
+            "anomaly:detected",
+            "f1:alert",
+            "f1:question",
+            "financial:payout_received",
+            "intel:signal:detected",
+            "intel:opportunity:assessed",
+            "intel:brief:generated",
+        ):
+            bus.subscribe(_ev, _telegram_handler)
+        logger.info("[TELEGRAM] Bridge subscriber registered for %d event types", 33)
+
+        logger.info("[EVENT] Event subscribers registered (opportunity, recovery, telegram)")
     except Exception as exc:
         logger.warning("[BOOT] Event pipeline init failed (non-fatal): %s", exc)
 
@@ -997,6 +1144,7 @@ app.include_router(pipeline.router)
 app.include_router(quick_wins.router)
 app.include_router(reports.router)
 app.include_router(reports_quality.router)
+app.include_router(reports_acceptance.router)
 app.include_router(revenue.router)
 app.include_router(hypotheses.router)
 app.include_router(roi.router)
@@ -1011,6 +1159,7 @@ app.include_router(differential_intelligence.router)
 app.include_router(commands.router)
 app.include_router(canonical.router)
 app.include_router(intelligence.router)
+app.include_router(market_intelligence.router)
 app.include_router(system.router)
 app.include_router(screenshots.router)
 app.include_router(operations.router)
@@ -1035,12 +1184,14 @@ app.include_router(project_dashboard.router)
 app.include_router(ws.router)
 app.include_router(idor.router)
 app.include_router(offensive.router)
+app.include_router(offensive_web3.router)
 app.include_router(investigations.router)
 app.include_router(settings_ai.router)
 app.include_router(settings_runtime.router)
 app.include_router(settings_unified.router)
 app.include_router(webhooks.router)
 app.include_router(orion.router)
+app.include_router(orion_cli.router)
 app.include_router(economic.router)
 app.include_router(agents_router.router)
 app.include_router(zap.router)
@@ -1054,9 +1205,18 @@ app.include_router(accounts_hub.router)
 app.include_router(authhub.router)
 app.include_router(bank_payout.router)
 app.include_router(micro.router)
+app.include_router(merlin.router)
+app.include_router(revenue_multiplier.router)
+app.include_router(investment.router)
+_reg_inv_caps()
 app.include_router(osint.router)
 app.include_router(hunt.router)
 app.include_router(hunter.router)
+app.include_router(recon.router)
+app.include_router(telegram_bot.router)
+app.include_router(intel.router)
+app.include_router(ai_security.router)
+app.include_router(opportunity_score.router)
 
 # ── ORION Platform: core + app routers ──
 try:
