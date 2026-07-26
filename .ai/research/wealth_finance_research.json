@@ -1,0 +1,23 @@
+{
+  "report_type": "wealth_research",
+  "date": "2026-07-26",
+  "opportunities": [
+    {"rank": 1, "name": "CoinGecko Portfolio", "score": 9.6, "status": "already_integrated", "api": true, "cost": 0, "type": "crypto_tracking", "notes": "30+ crypto prices, 24h change, OHLC for TA. Already exists in backend."},
+    {"rank": 2, "name": "Firefly III Budgeting", "score": 9.0, "status": "not_integrated", "api": true, "cost": 0, "type": "budgeting", "notes": "Self-hosted. Complete REST API. $0 software. Best ROI for effort."},
+    {"rank": 3, "name": "Zerion Portfolio", "score": 8.4, "status": "not_integrated", "api": true, "cost": "free_tier", "type": "crypto_portfolio", "notes": "Multi-chain crypto portfolio. Zapper shutting down Aug 2026, Zerion is replacement."},
+    {"rank": 4, "name": "Plaid", "score": 8.0, "status": "not_integrated", "api": true, "cost": "sales_led", "type": "aggregation", "notes": "Gold standard for bank/broker aggregation. Sandbox free, production requires sales call."},
+    {"rank": 5, "name": "Staking (Lido/RocketPool)", "score": 7.6, "status": "not_integrated", "api": true, "cost": 0, "type": "defi", "notes": "Public APIs, low risk, variable APY."},
+    {"rank": 6, "name": "BusinessQuant", "score": 8.2, "status": "not_integrated", "api": true, "cost": 0, "type": "stock_screener", "notes": "Stock screening FREE. Simple REST API."},
+    {"rank": 7, "name": "DataMaxi+ Arbitrage", "score": 6.8, "status": "not_integrated", "api": true, "cost": "paid", "type": "arbitrage", "notes": "Crypto CEX/DEX arbitrage. Sub-100ms latency."},
+    {"rank": 8, "name": "DeFiLlama Yields", "score": 5.8, "status": "not_integrated", "api": true, "cost": 0, "type": "defi", "notes": "Best yield tracking. APYs are volatile."},
+    {"rank": 9, "name": "SharpAPI Sports Arbitrage", "score": 6.6, "status": "not_integrated", "api": true, "cost": "paid", "type": "arbitrage", "notes": "High ROI. Risk of account bans on betting platforms."},
+    {"rank": 10, "name": "Teller.io", "score": 0, "status": "discontinued", "api": false, "cost": null, "type": "aggregation", "notes": "DISCONTINUED July 2026. Migrate plans to Plaid."},
+    {"rank": 11, "name": "Zapper", "score": 0, "status": "shutting_down", "api": false, "cost": null, "type": "crypto_portfolio", "notes": "SHUTTING DOWN August 2026. Use Zerion instead."}
+  ],
+  "key_findings": [
+    "No public APIs for Rakuten/TopCashback, credit card optimization, or casino bonuses",
+    "Plaid is sales-led — sandbox free but production requires enterprise call",
+    "Firefly III is best ROI: self-hosted, REST API, $0 software, complete control",
+    "CoinGecko portfolio tracking already integrated — just needs frontend polish"
+  ]
+}
