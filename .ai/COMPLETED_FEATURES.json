@@ -2119,6 +2119,29 @@
         "integration_level": "production_ready",
         "date": "2026-07-24"
       }
+    ],
+    "FASE_29": [
+      {
+        "feature": "Opportunity Score Engine (OWNEX Phase 1)",
+        "description": "Unified scorer across all Work Cycles (Security, Forge, Pulse, Vault, Atlas). Computes expected value, acceptance probability, difficulty, competition, personal fit, and confidence. Integrates personal history from RevenueMetrics. Top5Engine curates exactly 5 diversified recommendations per cycle/source. 23 tests.",
+        "files": [
+          "core/opportunity/models.py",
+          "core/opportunity/personal.py",
+          "core/opportunity/scorer.py",
+          "core/opportunity/top5.py",
+          "core/opportunity/__init__.py",
+          "api/routers/opportunity_score.py",
+          "tests/test_opportunity_core.py"
+        ],
+        "tests": "23 (test_opportunity_core.py)",
+        "dependencies": [
+          "core/priority/ev_engine.py (compute_ev)",
+          "core/revenue/metrics.py (RevenueMetrics)",
+          "cores/opportunity/models.py (Opportunity)"
+        ],
+        "integration_level": "production_ready",
+        "date": "2026-07-26"
+      }
     ]
   }
 }

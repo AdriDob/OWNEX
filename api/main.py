@@ -29,6 +29,7 @@ from api.routers import (
     connections,
     contracts,
     crypto,
+    cycles,
     daily,
     differential_intelligence,
     digest,
@@ -74,6 +75,7 @@ from api.routers import (
     project_dashboard,
     quick_wins,
     recon,
+    report_pipeline,
     reports,
     reports_acceptance,
     reports_quality,
@@ -1170,6 +1172,7 @@ app.include_router(sync.router)
 app.include_router(notifications.router)
 app.include_router(mobile.router)
 app.include_router(contracts.router)
+app.include_router(cycles.router)
 app.include_router(system_state.router)
 app.include_router(daily.router)
 app.include_router(discovery.router)
@@ -1217,6 +1220,7 @@ app.include_router(telegram_bot.router)
 app.include_router(intel.router)
 app.include_router(ai_security.router)
 app.include_router(opportunity_score.router)
+app.include_router(report_pipeline.router)
 
 # ── ORION Platform: core + app routers ──
 try:

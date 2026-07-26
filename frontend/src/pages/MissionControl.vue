@@ -12,6 +12,7 @@ import NextBestAction from '@/components/dashboard/NextBestAction.vue'
 import AgentFleet from '@/components/dashboard/AgentFleet.vue'
 import OpportunityRadar from '@/components/dashboard/OpportunityRadar.vue'
 import KnowledgeFeed from '@/components/dashboard/KnowledgeFeed.vue'
+import ReportPipeline from '@/components/dashboard/ReportPipeline.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import ErrorState from '@/components/ui/ErrorState.vue'
 import { fetchOwnexDashboard } from '@/services/ownexData'
@@ -158,10 +159,13 @@ onUnmounted(() => {
         <NextBestAction v-else />
       </div>
 
-      <!-- Row 3: Work Cycles -->
+      <!-- Row 3: Report Pipeline (Daily/Weekly Top -->
+      <ReportPipeline />
+
+      <!-- Row 4: Work Cycles -->
       <WorkCyclesGrid />
 
-      <!-- Row 4: Knowledge Feed -->
+      <!-- Row 5: Knowledge Feed -->
       <KnowledgeFeed
         v-if="dashboard && dashboard.knowledgeFeed.length > 0"
         :items="dashboard.knowledgeFeed"

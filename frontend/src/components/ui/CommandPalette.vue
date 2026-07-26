@@ -1,497 +1,238 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useHuntStore } from '@/stores/hunt'
-import { getTargets, getFindings, getReports } from '@/lib/api'
-import { cn } from '@/lib/utils'
-import {
-  LayoutDashboard,
-  Radar,
-  Route,
-  Bug,
-  FileText,
-  Settings,
-  Search,
-  Command,
-  Play,
-  Download,
-  FileDown,
-  Globe,
-  Zap,
-  Target,
-  DollarSign,
-  BookOpen,
-  Shield,
-  Activity,
-  Link,
-  Workflow,
-  AlertTriangle,
-  ChevronRight,
-  Scan,
-  Trophy,
-  BarChart3,
-  ShieldCheck,
-  Layers,
-  TrendingUp,
-  Briefcase,
-  LineChart,
-  Map,
-  Eye,
-  Box,
-  UserCheck,
-  ListTodo,
-  RefreshCw,
-  CheckCircle,
-  Camera,
-  Bell,
-  HelpCircle,
-  AppWindow,
-  Sliders,
-  Stars,
-  Bot,
-  Lightbulb,
-  Square,
-  Trash2,
-} from '@lucide/vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { Search, ChevronRight, ExternalLink, type Component } from '@lucide/vue'
+
+interface CommandItem {
+  id: string
+  label: string
+  description?: string
+  icon?: Component
+  section: string
+  action: () => void
+  keywords: string[]
+  shortcut?: string
+}
 
 const router = useRouter()
-const route = useRoute()
-const hunt = useHuntStore()
-
-const open = ref(false)
-const search = ref('')
+const isOpen = ref(false)
+const query = ref('')
 const selectedIndex = ref(0)
-const inputRef = ref<HTMLInputElement | null>(null)
+const items = ref<CommandItem[]>([])
 
-type Scope = 'all' | 'nav' | 'action' | 'target' | 'finding' | 'report'
+const NAV_ITEMS: CommandItem[] = [
+  // Mission
+  { id: 'mc', label: 'Mission Control', description: 'Dashboard principal', icon: Search, section: 'Misión', action: () => router.push('/'), keywords: ['mission', 'control', 'dashboard', 'home', 'inicio'] },
+  { id: 'hunt', label: 'HUNT', description: 'Modo caza automático', icon: ExternalLink, section: 'Misión', action: () => router.push('/baby-mode'), keywords: ['hunt', 'caza', 'auto', 'automático'] },
 
-const scopeMap: Record<string, { scope: Scope; label: string }> = {
-  '>': { scope: 'action', label: 'Acciones' },
-  '/': { scope: 'nav', label: 'Páginas' },
-  '@': { scope: 'target', label: 'Targets' },
-  '#': { scope: 'finding', label: 'Hallazgos' },
-  $: { scope: 'report', label: 'Reportes' },
-}
+  // Security / Rastro
+  { id: 'targets', label: 'Targets', description: 'Gestión de objetivos', icon: ExternalLink, section: 'Seguridad', action: () => router.push('/targets'), keywords: ['targets', 'objetivos', 'scope'] },
+  { id: 'findings', label: 'Findings', description: 'Hallazgos detectados', icon: ExternalLink, section: 'Seguridad', action: () => router.push('/intelligence/findings'), keywords: ['findings', 'hallazgos', 'vulnerabilidades'] },
+  { id: 'hypotheses', label: 'Hipótesis', description: 'Hipótesis de ataque', icon: ExternalLink, section: 'Seguridad', action: () => router.push('/intelligence/hypotheses'), keywords: ['hipotesis', 'hipótesis', 'ataque'] },
+  { id: 'evidence', label: 'Evidencia', description: 'Centro de evidencias', icon: ExternalLink, section: 'Seguridad', action: () => router.push('/intelligence/evidence'), keywords: ['evidencia', 'evidence', 'pruebas'] },
+  { id: 'investigations', label: 'Investigaciones', description: 'Investigaciones activas', icon: ExternalLink, section: 'Seguridad', action: () => router.push('/intelligence/investigations'), keywords: ['investigaciones', 'investigations'] },
+  { id: 'confidence', label: 'Confianza', description: 'Scores de confianza', icon: ExternalLink, section: 'Seguridad', action: () => router.push('/intelligence/confidence'), keywords: ['confianza', 'confidence', 'score'] },
 
-const currentScope = computed<{ scope: Scope; label: string }>(() => {
-  const first = search.value[0]
-  return scopeMap[first] || { scope: 'all', label: 'Todos' }
-})
+  // Reports
+  { id: 'queue', label: 'Cola Priorizada', description: 'Reportes listos para enviar', icon: ExternalLink, section: 'Reportes', action: () => router.push('/reports/queue'), keywords: ['cola', 'queue', 'priorizada', 'reportes'] },
+  { id: 'reports-center', label: 'Centro de Reportes', description: 'Gestión completa de reportes', icon: ExternalLink, section: 'Reportes', action: () => router.push('/reports/center'), keywords: ['centro', 'reports', 'reportes'] },
+  { id: 'history', label: 'Historial', description: 'Historial de reportes', icon: ExternalLink, section: 'Reportes', action: () => router.push('/reports/history'), keywords: ['historial', 'history'] },
+  { id: 'verification', label: 'Validación', description: 'Verificación de reportes', icon: ExternalLink, section: 'Reportes', action: () => router.push('/reports/verification'), keywords: ['validacion', 'validación', 'verificación'] },
 
-const query = computed(() => {
-  const s = search.value
-  if (s && s[0] in scopeMap) return s.slice(1).trim()
-  return s.trim()
-})
+  // Forge / Dev Bounty
+  { id: 'prioritization', label: 'Priorización', description: 'Priorización de objetivos', icon: ExternalLink, section: 'Forja', action: () => router.push('/targets/prioritization'), keywords: ['priorizacion', 'priorización'] },
+  { id: 'bounties', label: 'Bounties', description: 'Plataformas de bounties', icon: ExternalLink, section: 'Forja', action: () => router.push('/integrations/platforms'), keywords: ['bounties', 'plataformas', 'dev'] },
 
-const navItems = computed(() => {
-  const core: Array<{ name: string; path: string; icon: any; category: string }> = [
-    { name: 'Mission Control', path: '/', icon: LayoutDashboard, category: 'core' },
-    { name: 'Baby Mode (HUNT)', path: '/baby', icon: Play, category: 'core' },
-    { name: 'Intelligence Dashboard', path: '/intelligence', icon: TrendingUp, category: 'core' },
-    { name: 'Findings Pipeline', path: '/intelligence/findings', icon: Bug, category: 'core' },
-    { name: 'Hypothesis Queue', path: '/intelligence/hypotheses', icon: Lightbulb, category: 'core' },
-    { name: 'Evidence Center', path: '/intelligence/evidence', icon: Scan, category: 'core' },
-    { name: 'Investigations', path: '/intelligence/investigations', icon: Search, category: 'core' },
-    { name: 'Confidence Dashboard', path: '/intelligence/confidence', icon: ShieldCheck, category: 'core' },
-    { name: 'Oportunity Radar', path: '/targets/prioritization', icon: Radar, category: 'targets' },
-    { name: 'Targets List', path: '/targets/list', icon: Target, category: 'targets' },
-    { name: 'Discovery', path: '/targets/discovery', icon: Globe, category: 'targets' },
-    { name: 'Attack Surface', path: '/targets/attack-surface', icon: Map, category: 'targets' },
-    { name: 'Report Center', path: '/reports', icon: FileText, category: 'reports' },
-    { name: 'Report Queue', path: '/reports/queue', icon: ListTodo, category: 'reports' },
-    { name: 'Report History', path: '/reports/history', icon: FileText, category: 'reports' },
-    { name: 'Verification Guide', path: '/reports/verification', icon: CheckCircle, category: 'reports' },
-    { name: 'Capital Dashboard', path: '/capital', icon: DollarSign, category: 'capital' },
-    { name: 'Operations Dashboard', path: '/operations/dashboard', icon: Activity, category: 'operations' },
-    { name: 'Pipeline Monitor', path: '/operations/pipelines', icon: Workflow, category: 'operations' },
-    { name: 'Scheduler', path: '/operations/scheduler', icon: RefreshCw, category: 'operations' },
-    { name: 'Health Center', path: '/operations/health', icon: Activity, category: 'operations' },
-    { name: 'Settings', path: '/operations/settings', icon: Settings, category: 'operations' },
-    { name: 'Integrations', path: '/integrations', icon: Link, category: 'integrations' },
-    { name: 'Wallets', path: '/integrations/wallets', icon: Briefcase, category: 'integrations' },
-    { name: 'Platforms', path: '/integrations/platforms', icon: Globe, category: 'integrations' },
-    { name: 'Copilot', path: '/copilot', icon: Bot, category: 'copilot' },
-    { name: 'Copilot Memory', path: '/copilot/memory', icon: BookOpen, category: 'copilot' },
-    { name: 'Copilot Learning', path: '/copilot/learning', icon: TrendingUp, category: 'copilot' },
-    { name: 'Copilot Recommendations', path: '/copilot/recommendations', icon: Stars, category: 'copilot' },
-  ]
-  if (!query.value) return core
-  const q = query.value.toLowerCase()
-  return core.filter(i => i.name.toLowerCase().includes(q) || i.path.toLowerCase().includes(q))
-})
+  // Vault / Wealth
+  { id: 'capital', label: 'Capital Dashboard', description: 'Dashboard de capital', icon: ExternalLink, section: 'Vault', action: () => router.push('/capital'), keywords: ['capital', 'wealth', 'patrimonio'] },
+  { id: 'investments', label: 'Investment Hub', description: 'Hub de inversiones', icon: ExternalLink, section: 'Vault', action: () => router.push('/investments'), keywords: ['inversiones', 'investments'] },
+  { id: 'atlas-inv', label: 'ATLAS Inversiones', description: 'ATLAS de inversiones', icon: ExternalLink, section: 'Vault', action: () => router.push('/atlas/'), keywords: ['atlas'] },
+  { id: 'trading', label: 'Trading', description: 'Trading y markets', icon: ExternalLink, section: 'Vault', action: () => router.push('/trading'), keywords: ['trading', 'markets'] },
+  { id: 'polymarket', label: 'Polymarket', description: 'Predicciones Polymarket', icon: ExternalLink, section: 'Vault', action: () => router.push('/polymarket'), keywords: ['polymarket', 'predicciones'] },
+  { id: 'wallets', label: 'Billeteras', description: 'Gestión de wallets', icon: ExternalLink, section: 'Vault', action: () => router.push('/integrations/wallets'), keywords: ['wallets', 'billeteras', 'crypto'] },
 
-const actionItems = [
-  { name: 'Iniciar Caza Autónoma', action: 'start-hunt', icon: Play, category: 'hunt' },
-  { name: 'Detener Caza', action: 'stop-hunt', icon: Square, category: 'hunt' },
-  { name: 'Exportar Findings', action: 'export-findings', icon: Download, category: 'report' },
-  { name: 'Generar Reporte', action: 'generate-report', icon: FileDown, category: 'report' },
-  { name: 'Análisis Rápido', action: 'quick-analysis', icon: Zap, category: 'analysis' },
-  { name: 'Verificar Hallazgos', action: 'verify-findings', icon: CheckCircle, category: 'analysis' },
-  { name: 'Sincronizar Billeteras', action: 'sync-wallets', icon: RefreshCw, category: 'finance' },
-  { name: 'Limpiar Caché', action: 'clear-cache', icon: Trash2, category: 'system' },
+  // Atlas / Intelligence
+  { id: 'knowledge', label: 'Knowledge Graph', description: 'Grafo de conocimiento', icon: ExternalLink, section: 'Atlas', action: () => router.push('/copilot/memory'), keywords: ['knowledge', 'grafo', 'memoria'] },
+  { id: 'learning', label: 'Aprendizaje', description: 'Aprendizaje del sistema', icon: ExternalLink, section: 'Atlas', action: () => router.push('/copilot/learning'), keywords: ['aprendizaje', 'learning'] },
+  { id: 'recommendations', label: 'Recomendaciones', description: 'Recomendaciones del copilot', icon: ExternalLink, section: 'Atlas', action: () => router.push('/copilot/recommendations'), keywords: ['recomendaciones', 'recommendations'] },
+
+  // System
+  { id: 'operations', label: 'Operaciones', description: 'Dashboard de operaciones', icon: ExternalLink, section: 'Sistema', action: () => router.push('/operations/dashboard'), keywords: ['operaciones', 'operations'] },
+  { id: 'pipelines', label: 'Pipelines', description: 'Gestión de pipelines', icon: ExternalLink, section: 'Sistema', action: () => router.push('/operations/pipelines'), keywords: ['pipelines'] },
+  { id: 'scheduler', label: 'Scheduler', description: 'Programador de tareas', icon: ExternalLink, section: 'Sistema', action: () => router.push('/operations/scheduler'), keywords: ['scheduler', 'programador'] },
+  { id: 'health', label: 'Health Center', description: 'Salud del sistema', icon: ExternalLink, section: 'Sistema', action: () => router.push('/operations/health'), keywords: ['health', 'salud'] },
+  { id: 'settings', label: 'Configuración', description: 'Ajustes del sistema', icon: ExternalLink, section: 'Sistema', action: () => router.push('/operations/settings'), keywords: ['configuracion', 'configuración', 'settings'] },
+  { id: 'workflows', label: 'Workflows', description: 'Gestión de workflows', icon: ExternalLink, section: 'Sistema', action: () => router.push('/operations/workflows'), keywords: ['workflows'] },
+  { id: 'connections', label: 'Conexiones', description: 'Conexiones e integraciones', icon: ExternalLink, section: 'Sistema', action: () => router.push('/integrations/connections'), keywords: ['conexiones', 'conexiones', 'integraciones'] },
 ]
 
-const targetResults = ref<Array<{ id: number; name: string; domain: string; score: number }>>([])
-const findingResults = ref<Array<{ id: number; title: string; severity: string; status: string }>>([])
-const reportResults = ref<Array<{ id: number; title: string; status: string }>>([])
-const searching = ref(false)
-
-interface PalNav { type: 'nav'; name: string; path: string; icon: any; category: string }
-interface PalAction { type: 'action'; name: string; action: string; icon: any; category: string }
-interface PalTarget { type: 'target'; name: string; target: { id: number; domain: string; score: number }; icon: any }
-interface PalFinding { type: 'finding'; name: string; finding: { id: number; title: string; severity: string; status: string }; icon: any }
-interface PalReport { type: 'report'; name: string; report: { id: number; title: string; status: string }; icon: any }
-
-type PalItem = PalNav | PalAction | PalTarget | PalFinding | PalReport
-
-const filteredNav = computed<PalNav[]>(() => {
-  if (currentScope.value.scope !== 'all' && currentScope.value.scope !== 'nav') return []
-  return navItems.value as PalNav[]
-})
-
-const filteredActions = computed<PalAction[]>(() => {
-  if (currentScope.value.scope !== 'all' && currentScope.value.scope !== 'action') return []
+const filteredItems = computed(() => {
+  if (!query.value.trim()) {
+    return items.value
+  }
   const q = query.value.toLowerCase()
-  if (!q) return actionItems as PalAction[]
-  return actionItems.filter(a => a.name.toLowerCase().includes(q)) as PalAction[]
+  return items.value.filter(item =>
+    item.label.toLowerCase().includes(q) ||
+    item.description?.toLowerCase().includes(q) ||
+    item.keywords.some(k => k.toLowerCase().includes(q)) ||
+    item.section.toLowerCase().includes(q)
+  )
 })
 
-const filteredTargets = computed<PalTarget[]>(() => {
-  if (currentScope.value.scope !== 'all' && currentScope.value.scope !== 'target') return []
-  return targetResults.value.map(t => ({ type: 'target' as const, name: t.name, target: t, icon: Globe }))
-})
-
-const filteredFindings = computed<PalFinding[]>(() => {
-  if (currentScope.value.scope !== 'all' && currentScope.value.scope !== 'finding') return []
-  return findingResults.value.map(f => ({ type: 'finding' as const, name: f.title, finding: f, icon: Bug }))
-})
-
-const filteredReports = computed<PalReport[]>(() => {
-  if (currentScope.value.scope !== 'all' && currentScope.value.scope !== 'report') return []
-  return reportResults.value.map(r => ({ type: 'report' as const, name: r.title, report: r, icon: FileText }))
-})
-
-const flatItems = computed<(PalNav | PalAction | PalTarget | PalFinding | PalReport)[]>(() => {
-  return [...filteredNav.value, ...filteredActions.value, ...filteredTargets.value, ...filteredFindings.value, ...filteredReports.value]
-})
-
-function onToggle() {
-  open.value = !open.value
-  if (open.value) {
-    search.value = ''
-    selectedIndex.value = 0
-    targetResults.value = []
-    findingResults.value = []
-    reportResults.value = []
-    nextTick(() => inputRef.value?.focus())
+const groupedItems = computed(() => {
+  const groups: Record<string, CommandItem[]> = {}
+  for (const item of filteredItems.value) {
+    if (!groups[item.section]) groups[item.section] = []
+    groups[item.section].push(item)
   }
-}
+  return groups
+})
 
-function execute(item: PalItem) {
-  open.value = false
-  if (item.type === 'nav') {
-    router.push(item.path)
-  } else if (item.type === 'action') {
-    handleAction(item.action)
-  } else if (item.type === 'target') {
-    router.push(`/target/${item.target.id}`)
-  } else if (item.type === 'finding') {
-    router.push(`/findings/${item.finding.id}`)
-  } else if (item.type === 'report') {
-    router.push(`/reports/${item.report.id}`)
-  }
-}
-
-function handleAction(action: string) {
-  switch (action) {
-    case 'start-hunt':
-      hunt.start()
-      router.push('/')
-      break
-    case 'stop-hunt':
-      hunt.stop()
-      break
-    case 'export-findings':
-      window.dispatchEvent(new CustomEvent('export-findings'))
-      router.push('/findings')
-      break
-    case 'generate-report':
-      router.push('/reports')
-      break
-    case 'quick-analysis':
-      router.push('/radar')
-      break
-    case 'verify-findings':
-      router.push('/verify')
-      break
-    case 'sync-wallets':
-      router.push('/wallets')
-      break
-    case 'clear-cache':
-      window.dispatchEvent(new CustomEvent('clear-cache'))
-      break
-  }
-}
-
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
-
-function onSearchInput() {
-  if (searchTimeout) clearTimeout(searchTimeout)
+function openPalette() {
+  isOpen.value = true
+  query.value = ''
   selectedIndex.value = 0
-  const scope = currentScope.value.scope
-  if (scope === 'all' || scope === 'target' || scope === 'finding' || scope === 'report') {
-    searchTimeout = setTimeout(doSearch, 300)
+  items.value = [...NAV_ITEMS]
+  nextTick(() => {
+    const input = document.getElementById('command-input')
+    input?.focus()
+  })
+}
+
+function closePalette() {
+  isOpen.value = false
+  query.value = ''
+  selectedIndex.value = 0
+}
+
+function selectItem(item: CommandItem) {
+  item.action()
+  closePalette()
+}
+
+function handleKeydown(e: KeyboardEvent) {
+  const visible = Object.values(groupedItems.value).flat()
+  if (!visible.length) return
+
+  switch (e.key) {
+    case 'ArrowDown':
+      e.preventDefault()
+      selectedIndex.value = Math.min(selectedIndex.value + 1, visible.length - 1)
+      break
+    case 'ArrowUp':
+      e.preventDefault()
+      selectedIndex.value = Math.max(selectedIndex.value - 1, 0)
+      break
+    case 'Enter':
+      e.preventDefault()
+      if (visible[selectedIndex.value]) selectItem(visible[selectedIndex.value])
+      break
+    case 'Escape':
+      closePalette()
+      break
   }
 }
-
-async function doSearch() {
-  const q = query.value
-  const scope = currentScope.value.scope
-  if (!q && scope === 'all') return
-
-  searching.value = true
-  const promises: Promise<void>[] = []
-
-  if (scope === 'all' || scope === 'target') {
-    promises.push((async () => {
-      try {
-        const res = await getTargets({ search: q, limit: 5, sort_by: 'opportunity_score', sort_order: 'desc' })
-        targetResults.value = (res.items || []).map(t => ({
-          id: t.id, name: t.name, domain: t.domain, score: t.opportunity_score || 0,
-        }))
-      } catch { targetResults.value = [] }
-    })())
-  } else { targetResults.value = [] }
-
-  if (scope === 'all' || scope === 'finding') {
-    promises.push((async () => {
-      try {
-        const res = await getFindings({ search: q, limit: 5 })
-        findingResults.value = (res.items || []).map(f => ({
-          id: f.id, title: f.title, severity: f.severity, status: f.severity,
-        }))
-      } catch { findingResults.value = [] }
-    })())
-  } else { findingResults.value = [] }
-
-  if (scope === 'all' || scope === 'report') {
-    promises.push((async () => {
-      try {
-        const res = await getReports({ search: q, limit: 5 })
-        reportResults.value = (res.items || []).map(r => ({
-          id: r.id, title: r.vulnerability || r.program, status: r.status,
-        }))
-      } catch { reportResults.value = [] }
-    })())
-  } else { reportResults.value = [] }
-
-  await Promise.all(promises)
-  searching.value = false
-}
-
-function onKeydown(e: KeyboardEvent) {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-    e.preventDefault()
-    onToggle()
-  }
-  if (!open.value) return
-  if (e.key === 'Escape') { open.value = false; return }
-  if (e.key === 'ArrowDown') { e.preventDefault(); selectedIndex.value = (selectedIndex.value + 1) % Math.max(flatItems.value.length, 1) }
-  if (e.key === 'ArrowUp') { e.preventDefault(); selectedIndex.value = (selectedIndex.value - 1 + flatItems.value.length) % Math.max(flatItems.value.length, 1) }
-  if (e.key === 'Enter' && flatItems.value[selectedIndex.value]) execute(flatItems.value[selectedIndex.value])
-}
-
-function severityColor(s: string) {
-  const map: Record<string, string> = { critical: 'text-red-400', high: 'text-orange-400', medium: 'text-yellow-400', low: 'text-blue-400', info: 'text-muted-foreground' }
-  return map[s?.toLowerCase()] || 'text-muted-foreground'
-}
-
-function scopeHint(s: Scope) {
-  const hints: Record<string, string> = { all: 'Escribí para buscar en todos los datos', nav: 'Buscá páginas...', action: 'Buscá acciones...', target: 'Buscá targets...', finding: 'Buscá hallazgos...', report: 'Buscá reportes...' }
-  return hints[s] || ''
-}
-
-watch(() => route.fullPath, () => { open.value = false })
 
 onMounted(() => {
-  window.addEventListener('keydown', onKeydown)
-  window.addEventListener('toggle-command-palette', onToggle as EventListener)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', onKeydown)
-  window.removeEventListener('toggle-command-palette', onToggle as EventListener)
-  if (searchTimeout) clearTimeout(searchTimeout)
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault()
+      openPalette()
+    }
+    if (e.key === 'Escape' && isOpen.value) {
+      closePalette()
+    }
+  })
 })
 </script>
 
 <template>
-  <Teleport to="body">
-    <Transition name="overlay">
-      <div
-        v-if="open"
-        class="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
-        @click="open = false"
-      >
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-        <div class="relative w-full max-w-lg animate-in fade-in-0 zoom-in-95" @click.stop>
-          <div class="card-base rounded-xl overflow-hidden shadow-2xl shadow-black/40 border border-border/30">
-            <!-- Search input -->
-            <div class="flex items-center gap-3 border-b border-border/40 px-4 py-3">
-              <Search class="h-4 w-4 text-muted-foreground shrink-0" />
-              <input
-                v-model="search"
-                @input="onSearchInput"
-                :placeholder="scopeHint(currentScope.scope)"
-                class="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/40 outline-none font-mono"
-                ref="inputRef"
-              />
-              <div v-if="currentScope.scope !== 'all'" class="rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                {{ currentScope.label }}
-              </div>
-              <kbd class="hidden sm:inline-flex items-center gap-1 rounded border border-border/50 bg-surface/50 px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                <Command class="h-2.5 w-2.5" /> K
-              </kbd>
+  <Transition name="command-fade">
+    <div v-if="isOpen" class="fixed inset-0 z-50 flex items-start justify-center pt-16">
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="closePalette" />
+      
+      <div class="relative w-full max-w-2xl mx-4 bg-background/95 backdrop-blur-xl border border-border/30 rounded-xl shadow-2xl overflow-hidden animate-in">
+        <!-- Input -->
+        <div class="relative p-4 border-b border-border/30">
+          <Search class="absolute left-10 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            id="command-input"
+            type="text"
+            v-model="query"
+            @keydown="handleKeydown"
+            placeholder="Buscar comandos... (⌘K para abrir)"
+            class="w-full pl-10 pr-4 py-3 bg-surface/50 border border-border/30 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 font-mono text-sm"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <kbd class="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-mono text-muted-foreground bg-surface/50 rounded border border-border/30">⌘K</kbd>
+        </div>
+
+        <!-- Results -->
+        <div class="max-h-[50vh] overflow-y-auto">
+          <template v-if="Object.keys(groupedItems).length === 0">
+            <div class="p-8 text-center">
+              <Search class="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+              <p class="text-muted-foreground font-mono text-sm">No hay resultados para "{{ query }}"</p>
             </div>
+          </template>
 
-            <!-- Scope hints -->
-            <div v-if="!query && currentScope.scope === 'all'" class="border-b border-border/20 px-4 py-2">
-              <div class="flex flex-wrap gap-2 text-[10px] text-muted-foreground">
-                <span><kbd class="rounded border border-border/30 bg-surface/30 px-1">&gt;</kbd> Acciones</span>
-                <span><kbd class="rounded border border-border/30 bg-surface/30 px-1">/</kbd> Páginas</span>
-                <span><kbd class="rounded border border-border/30 bg-surface/30 px-1">@</kbd> Targets</span>
-                <span><kbd class="rounded border border-border/30 bg-surface/30 px-1">#</kbd> Hallazgos</span>
-                <span><kbd class="rounded border border-border/30 bg-surface/30 px-1">$</kbd> Reportes</span>
+          <template v-else>
+            <div v-for="(sectionItems, section) in groupedItems" :key="section" class="py-1">
+              <div class="px-4 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-t border-border/30 first:border-t-0">
+                {{ section }}
               </div>
-            </div>
-
-            <!-- Results -->
-            <div class="max-h-80 overflow-y-auto p-2">
-              <!-- Searching indicator -->
-              <div v-if="searching" class="py-8 text-center text-xs text-muted-foreground">
-                Buscando...
-              </div>
-
-              <!-- Navigation group -->
-              <div v-else-if="filteredNav.length > 0">
-                <p class="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Navegación</p>
-                <div v-for="item in filteredNav" :key="'nav-'+item.path">
-                  <button
-                    @click="execute(item)"
-                    @mouseenter="selectedIndex = flatItems.indexOf(item)"
-                    :class="cn(
-                      'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors text-left',
-                      flatItems.indexOf(item) === selectedIndex ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-surface/50',
-                    )"
-                  >
-                    <component :is="item.icon" class="h-4 w-4 shrink-0" :class="flatItems.indexOf(item) === selectedIndex ? 'text-primary' : 'text-muted-foreground'" />
-                    <span class="flex-1">{{ item.name }}</span>
-                    <span class="text-[10px] text-muted-foreground/50">{{ item.path }}</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Actions group -->
-              <div v-if="filteredActions.length > 0" class="mt-1">
-                <p class="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Acciones</p>
+              <div class="px-2 pb-1 space-y-0.5">
                 <button
-                  v-for="item in filteredActions" :key="'act-'+item.action"
-                  @click="execute(item)"
-                  @mouseenter="selectedIndex = flatItems.indexOf(item)"
-                  :class="cn(
-                    'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors text-left',
-                    flatItems.indexOf(item) === selectedIndex ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-surface/50',
-                  )"
+                  v-for="(item, idx) in sectionItems"
+                  :key="item.id"
+                  @click="selectItem(item)"
+                  @mousemove="selectedIndex = Object.values(groupedItems).flat().indexOf(item)"
+                  :class="[
+                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors',
+                    Object.values(groupedItems).flat()[selectedIndex] === item
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-surface/30 hover:text-foreground'
+                  ]"
                 >
-                  <component :is="item.icon" class="h-4 w-4 shrink-0" :class="flatItems.indexOf(item) === selectedIndex ? 'text-primary' : 'text-muted-foreground'" />
-                  <span>{{ item.name }}</span>
-                  <span class="ml-auto text-[10px] text-muted-foreground/50">{{ item.category }}</span>
-                </button>
-              </div>
-
-              <!-- Targets group -->
-              <div v-if="filteredTargets.length > 0" class="mt-1">
-                <p class="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Targets</p>
-                <button
-                  v-for="item in filteredTargets" :key="'tgt-'+item.target.id"
-                  @click="execute(item)"
-                  @mouseenter="selectedIndex = flatItems.indexOf(item)"
-                  :class="cn(
-                    'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors text-left',
-                    flatItems.indexOf(item) === selectedIndex ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-surface/50',
-                  )"
-                >
-                  <Globe class="h-4 w-4 shrink-0" :class="flatItems.indexOf(item) === selectedIndex ? 'text-primary' : 'text-muted-foreground'" />
+                  <component v-if="item.icon" :is="item.icon" class="h-4 w-4 shrink-0" />
                   <div class="flex-1 min-w-0">
-                    <span class="truncate">{{ item.name }}</span>
-                    <span v-if="item.target.domain" class="ml-2 text-[10px] text-muted-foreground/60">{{ item.target.domain }}</span>
+                    <span class="font-mono text-sm font-medium truncate block">{{ item.label }}</span>
+                    <span v-if="item.description" class="text-[11px] text-muted-foreground truncate block">{{ item.description }}</span>
                   </div>
-                  <span v-if="item.target.score" class="text-[10px] font-semibold text-gold shrink-0">{{ item.target.score.toFixed(1) }}</span>
+                  <ChevronRight class="h-4 w-4 text-muted-foreground/50 shrink-0" />
                 </button>
-              </div>
-
-              <!-- Findings group -->
-              <div v-if="filteredFindings.length > 0" class="mt-1">
-                <p class="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Hallazgos</p>
-                <button
-                  v-for="item in filteredFindings" :key="'fnd-'+item.finding.id"
-                  @click="execute(item)"
-                  @mouseenter="selectedIndex = flatItems.indexOf(item)"
-                  :class="cn(
-                    'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors text-left',
-                    flatItems.indexOf(item) === selectedIndex ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-surface/50',
-                  )"
-                >
-                  <Bug class="h-4 w-4 shrink-0" :class="flatItems.indexOf(item) === selectedIndex ? 'text-primary' : 'text-muted-foreground'" />
-                  <div class="flex-1 min-w-0">
-                    <span class="truncate">{{ item.name }}</span>
-                  </div>
-                  <span :class="['text-[10px] font-medium shrink-0 capitalize', severityColor(item.finding.severity)]">{{ item.finding.severity }}</span>
-                </button>
-              </div>
-
-              <!-- Reports group -->
-              <div v-if="filteredReports.length > 0" class="mt-1">
-                <p class="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Reportes</p>
-                <button
-                  v-for="item in filteredReports" :key="'rpt-'+item.report.id"
-                  @click="execute(item)"
-                  @mouseenter="selectedIndex = flatItems.indexOf(item)"
-                  :class="cn(
-                    'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors text-left',
-                    flatItems.indexOf(item) === selectedIndex ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-surface/50',
-                  )"
-                >
-                  <FileText class="h-4 w-4 shrink-0" :class="flatItems.indexOf(item) === selectedIndex ? 'text-primary' : 'text-muted-foreground'" />
-                  <div class="flex-1 min-w-0">
-                    <span class="truncate">{{ item.name }}</span>
-                  </div>
-                  <span class="text-[10px] capitalize text-muted-foreground/60 shrink-0">{{ item.report.status }}</span>
-                </button>
-              </div>
-
-              <!-- Empty -->
-              <div v-if="!searching && flatItems.length === 0 && (query || currentScope.scope !== 'all')" class="py-8 text-center text-sm text-muted-foreground">
-                Sin resultados para "{{ query || search }}"
               </div>
             </div>
+          </template>
+        </div>
 
-            <!-- Footer -->
-            <div class="border-t border-border/40 px-4 py-2 flex items-center gap-4 text-[10px] text-muted-foreground">
-              <span><kbd class="rounded border border-border/50 bg-surface/50 px-1 py-0.5 text-[9px]">↑↓</kbd> Navegar</span>
-              <span><kbd class="rounded border border-border/50 bg-surface/50 px-1 py-0.5 text-[9px]">↵</kbd> Abrir</span>
-              <span><kbd class="rounded border border-border/50 bg-surface/50 px-1 py-0.5 text-[9px]">Esc</kbd> Cerrar</span>
-              <span class="ml-auto"><kbd class="rounded border border-border/50 bg-surface/50 px-1 py-0.5 text-[9px]">></kbd><kbd class="rounded border border-border/50 bg-surface/50 px-1 py-0.5 text-[9px] ms-0.5">/</kbd><kbd class="rounded border border-border/50 bg-surface/50 px-1 py-0.5 text-[9px] ms-0.5">@</kbd> Scopes</span>
-            </div>
+        <!-- Footer hint -->
+        <div class="px-4 py-2 border-t border-border/30 bg-surface/30">
+          <div class="flex items-center gap-4 text-[10px] font-mono text-muted-foreground">
+            <kbd class="px-1.5 py-0.5 bg-background border border-border rounded">↑</kbd>
+            <kbd class="px-1.5 py-0.5 bg-background border border-border rounded">↓</kbd>
+            Navegar
+            <span class="mx-1">|</span>
+            <kbd class="px-1.5 py-0.5 bg-background border border-border rounded">⏎</kbd>
+            Seleccionar
+            <span class="mx-1">|</span>
+            <kbd class="px-1.5 py-0.5 bg-background border border-border rounded">Esc</kbd>
+            Cerrar
           </div>
         </div>
       </div>
-    </Transition>
-  </Teleport>
+    </div>
+  </Transition>
 </template>
 
 <style scoped>
-.overlay-enter-active, .overlay-leave-active { transition: opacity 0.15s ease; }
-.overlay-enter-from, .overlay-leave-to { opacity: 0; }
+.command-fade-enter-active,
+.command-fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+.command-fade-enter-from,
+.command-fade-leave-to {
+  opacity: 0;
+}
 </style>
