@@ -13,8 +13,10 @@ __pycache__/
 /database/*.db
 /database/*.db-shm
 /database/*.db-wal
-test_rastro.db
-test_cateye.db
+test_*.db
+test_*.db-shm
+test_*.db-wal
+test_*.db-journal
 
 # Frontend
 frontend/node_modules/
