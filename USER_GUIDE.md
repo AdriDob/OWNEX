@@ -1,4 +1,4 @@
-# USER GUIDE — CATEYE v3.0.0
+# USER GUIDE — CATEYE v4.6.0
 
 > Manual práctico para usar CATEYE en bug bounty todos los días.
 
@@ -407,7 +407,7 @@ Si no hay datos, primero necesitás targets y findings. ORION necesita contexto 
 
 ```bash
 pytest --timeout=60 --ignore=tests/test_security.py
-# 393 tests deben pasar (v3.0.0)
+# 2290 tests deben pasar (v4.6.0)
 ```
 
 ---

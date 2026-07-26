@@ -55,7 +55,7 @@ orion/
 │       ├── components/      # UI components (GlassCard, KPIBlock, etc.)
 │       └── lib/             # API client, utils
 ├── database/                # SQLAlchemy models + migrations
-├── tests/                   # pytest suite (1401 tests)
+├── tests/                   # pytest suite (2,290 tests)
 └── desktop/                 # Tauri desktop shell
 ```
 

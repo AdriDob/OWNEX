@@ -1,5 +1,115 @@
 # Changelog
 
+## v4.6.0 — 2026-07-25
+
+### 🎯 HTTP Probe Module + Widget Dashboard + Retro UI + MERLIN
+- **HTTP Probe Engine**: protocol-agnostic probe core with HTTP/HTTPS adapter, economic scoring before requests, strategic minimal probes
+- **Widget Dashboard**: modular widget system with 12 widget types (system health, financial, targets, findings, pipeline status)
+- **Retro UI Theme**: retro CRT aesthetic with scanlines, phosphor glow, terminal fonts
+- **F1 MERLIN rebrand**: MERLIN agent unified under ORION identity, logo overhaul, README refresh
+- **PROMOTE Stage Bridge**: pipeline promotion stage for findings → evidence → report handoff
+- **Vision Gateway MCP**: MCP server for vision model integration in the probe/evidence pipeline
+- **ORION Identity Docs**: centralized identity and branding documentation
+
+### 🧪 Testing
+- **2330 tests**, 100% pass rate, Ruff clean
+- `test_revenue_pipeline.py`: 52 passed
+- `test_financial_hub.py`: KYC, verification tracker, documents checklist
+- `test_target_intelligence.py`: EV-based prioritizer tests
+- `test_ai_router.py`: provider failover tests
+
+### 🔧 System
+- Command System Fase 1: runtime registry + dispatcher
+- Session continuity audit + Command System docs
+- Hermes Agent v2: EventBus integration, permission system, security layer
+
+---
+
+## v4.5.0 — 2026-07-20
+
+### 🎯 Offensive Intelligence + Revenue Pipeline
+- **Attack Pipeline**: 6 reasoners (IDOR, SSRF, XSS, SQLi, Auth, Web3) con ProbeEngine y Evidence Composer
+- **Revenue Pipeline**: pipeline completo Finding → Evidence → Report → Platform → Payout
+- **Knowledge Graph**: grafo persistente con nodos/edges, query API, integración COPILOT
+- **Execution Runtime**: simulation sandbox + task scheduler con rate limiting por plataforma
+- **Platform Hardening**: audit log, rate limiting, CSRF, OAuth2 multi-provider
+
+### 🧠 COPILOT v2
+- Senior Copilot Agent: reasoning layer con planner/executor/analyzer/recommender
+- Evidence Graph: for/against evidence scoring por hypothesis con persistencia
+- Unified Memory: namespaces, tags, expiration, cross-session recall
+- Decision Journal: decisiones con contexto + resultado + learning feedback loop
+- ConfidenceScorer singleton: aprendizaje propaga al scoring en vivo
+
+### 💰 Financial Expansion
+- Capital Dashboard: payout summary, ROI por programa/tipo, acceptance rate, time metrics, program ranking, hot targets
+- Economic Memory: ROI scoring histórico por programa y tipo de vulnerabilidad
+- ATLAS Financial Intelligence: multi-agent scoring (ATLAS, MIDAS, Risk, Portfolio, F1)
+- Investment Hub: gestión de inversiones con portfolio tracking
+
+### 🛠️ Infrastructure
+- Pre-commit hooks: Ruff (lint+format) + pytest on every commit
+- Integration Center: unified view of all external integrations
+- Maintenance Engine: auto-repair de servicios caídos
+- Update Manager: actualización automática de pipelines
+- Plugin SDK: extensión vía `extensions/` auto-descubrimiento
+- Hermes Doctor: diagnóstico completo del sistema
+
+---
+
+## v4.1.0 — 2026-07-12
+
+### 🎯 ORION Financial Layer
+- **Financial Hub**: KYC Manager, Route Optimizer, Documents Checklist, Tax Notes, Payouts
+- **Takenos integration**: USDC balance + CSV import
+- **Coinbase/Kraken**: portfolio via HMAC auth
+- **Financial Intelligence**: F1 multi-agent pipeline (scoring, riesgo, PnL)
+- Economic dashboard con 30+ cryptos vía CoinGecko
+
+### 🤖 Hermes Agent v1
+- Automation Agent para ORION Platform
+- Comandos: backup, status, health, logs, portfolio, prices, doctor
+- EventBus integration with 3 permission levels
+- Safe Mode para operaciones de mantenimiento
+
+### 📚 Documentation & Audit
+- Informe final del multisistema v4.1.0
+- Documentación en español del README
+- Night Finalization Sprint: feedback pipeline, adaptive gate, auditoría
+- 3 CRITICAL bugs corregidos de seguridad y consistencia
+
+---
+
+## v4.0.0 — 2026-07-10
+
+### 🏗️ ORION Platform — Arquitectura Definitiva
+- **Monolito modular**: EventBus para comunicación interna, arquitectura unificada
+- **CATEYE/AEGIS**: bug bounty pipeline con Discovery → Recon → Hypothesis → Validate → Report
+- **ATLAS**: financial hub + crypto sync + portfolio tracking
+- **ODYSSEY**: research engine + predictive intelligence
+- **COPILOT**: capa de inteligencia transversal con 5 niveles de autoridad
+- **3 operation modes**: serve (full), hunt (one-shot pipeline), SPA (frontend-only)
+- **AI Router**: failover chain Ollama → FCC Proxy → OpenCode Free
+- **Target Intelligence**: EV-based prioritizer con TargetPrioritizer + RewardLearner
+
+### 🖥️ Frontend Overhaul
+- Vue 3.5+ con Composition API, TypeScript strict mode
+- Tailwind CSS v4 + ShadCN Vue components
+- Mission Control: dashboard central con estado en vivo
+- Command Center: Ctrl+K / Cmd+K con scopes `>`, `/`, `@`, `#`, `$`
+- Baby Mode: interfaz simplificada para no-técnicos
+- 20+ páginas: Revenue, Capital Dashboard, Financial Hub, Trading, Wallets, Intel, Knowledge Graph, Logs
+
+### 🛡️ Security Hardening
+- HMAC machine-id validation
+- AES-256-GCM Identity Vault (~/.orion/)
+- CSRF middleware con tests HTTP reales
+- Rate limiting con config por endpoint
+- OAuth2 multi-provider login
+- Audit log rotativo (10MB, 3 backups)
+
+---
+
 ## v3.0.0 — 2026-07-08
 
 ### 🎯 Release Final Stable
@@ -35,7 +145,7 @@
 - `FUNCTIONAL_SPEC.md`: 988 líneas de capacidades verificadas contra código
 - `USER_GUIDE.md`: Manual práctico en español
 - `DAILY_WORKFLOW.md`: Rutina diaria, semanal, mensual
-- `RELEASE_NOTES_v3.0.0.md`: Release notes oficiales
+- `RELEASE_NOTES_v3.0.0.md`: Archivo eliminado en limpieza de docs redundantes
 - `.ai/` actualizado: AGENT_CHARTER.md, CURRENT_STATE.md, COMPLETED_FEATURES.json
 
 ### 📄 Licencia
