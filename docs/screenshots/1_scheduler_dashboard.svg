@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 700" style="background:#0b1120;font-family:system-ui,-apple-system,sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0b1120"/><stop offset="100%" stop-color="#111827"/></linearGradient>
+    <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0L0 0 0 30" fill="none" stroke="#1e293b" stroke-width="0.5"/></pattern>
+  </defs>
+  <rect width="1100" height="700" fill="url(#bg)"/>
+  <rect width="1100" height="700" fill="url(#grid)"/>
+
+  <!-- Header -->
+  <text x="30" y="40" fill="#e2e8f0" font-size="22" font-weight="bold">⏰ Scheduler Dashboard</text>
+  <text x="30" y="65" fill="#64748b" font-size="13">4 Cycles · 23 Jobs · Running 24/7</text>
+
+  <!-- Status Bar -->
+  <rect x="880" y="25" width="90" height="28" rx="14" fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="1.5"/>
+  <circle cx="895" cy="39" r="4" fill="#34d399"/>
+  <text x="905" y="44" fill="#34d399" font-size="12" font-weight="bold">RUNNING</text>
+
+  <rect x="980" y="25" width="90" height="28" rx="14" fill="rgba(148,163,184,0.15)" stroke="#64748b" stroke-width="1"/>
+  <text x="1025" y="44" text-anchor="middle" fill="#94a3b8" font-size="12">Uptime 72h</text>
+
+  <!-- FORGE CYCLE -->
+  <rect x="30" y="90" width="500" height="140" rx="10" fill="rgba(8,51,68,0.3)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="50" y="115" fill="#22d3ee" font-size="14" font-weight="bold">🔄 FORGE CYCLE — Bounty Discovery</text>
+  <text x="50" y="135" fill="#64748b" font-size="11">cron: every 30m · next: 2026-07-27 14:30 UTC</text>
+
+  <rect x="50" y="150" width="145" height="55" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1"/>
+  <text x="122" y="173" text-anchor="middle" fill="#22d3ee" font-size="12">Superteam</text>
+  <text x="122" y="191" text-anchor="middle" fill="#64748b" font-size="10">7 bounties · ✅ OK</text>
+
+  <rect x="210" y="150" width="145" height="55" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1"/>
+  <text x="282" y="173" text-anchor="middle" fill="#22d3ee" font-size="12">Opire</text>
+  <text x="282" y="191" text-anchor="middle" fill="#64748b" font-size="10">12 issues · ✅ OK</text>
+
+  <rect x="370" y="150" width="145" height="55" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1"/>
+  <text x="442" y="173" text-anchor="middle" fill="#22d3ee" font-size="12">Algora</text>
+  <text x="442" y="191" text-anchor="middle" fill="#64748b" font-size="10">4 bounties · ⏸️ IDLE</text>
+
+  <!-- PULSE CYCLE -->
+  <rect x="550" y="90" width="520" height="140" rx="10" fill="rgba(6,78,59,0.3)" stroke="#34d399" stroke-width="1.5"/>
+  <text x="570" y="115" fill="#34d399" font-size="14" font-weight="bold">⚡ PULSE CYCLE — Work Execution</text>
+  <text x="570" y="135" fill="#64748b" font-size="11">cron: every 2h · next: 2026-07-27 16:00 UTC</text>
+
+  <rect x="570" y="150" width="145" height="55" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1"/>
+  <text x="642" y="173" text-anchor="middle" fill="#34d399" font-size="12">Outlier</text>
+  <text x="642" y="191" text-anchor="middle" fill="#64748b" font-size="10">3 tasks · ✅ OK</text>
+
+  <rect x="730" y="150" width="145" height="55" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1"/>
+  <text x="802" y="173" text-anchor="middle" fill="#34d399" font-size="12">Mindrift</text>
+  <text x="802" y="191" text-anchor="middle" fill="#64748b" font-size="10">1 tasks · ✅ OK</text>
+
+  <rect x="890" y="150" width="155" height="55" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1"/>
+  <text x="967" y="173" text-anchor="middle" fill="#34d399" font-size="12">GitHub EasyApply</text>
+  <text x="967" y="191" text-anchor="middle" fill="#64748b" font-size="10">0 tasks · ✅ OK</text>
+
+  <!-- VAULT CYCLE -->
+  <rect x="30" y="250" width="500" height="140" rx="10" fill="rgba(76,29,149,0.3)" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="50" y="275" fill="#a78bfa" font-size="14" font-weight="bold">💰 VAULT CYCLE — Wealth Management</text>
+  <text x="50" y="295" fill="#64748b" font-size="11">interval: every 6h · next: 2026-07-27 18:00 UTC</text>
+
+  <rect x="50" y="310" width="145" height="55" rx="6" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1"/>
+  <text x="122" y="333" text-anchor="middle" fill="#a78bfa" font-size="12">Backup</text>
+  <text x="122" y="351" text-anchor="middle" fill="#64748b" font-size="10">vault.tar.gz · ✅ OK</text>
+
+  <rect x="210" y="310" width="145" height="55" rx="6" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1"/>
+  <text x="282" y="333" text-anchor="middle" fill="#a78bfa" font-size="12">Revenue Sync</text>
+  <text x="282" y="351" text-anchor="middle" fill="#64748b" font-size="10">$1,240 tracked · ✅ OK</text>
+
+  <rect x="370" y="310" width="145" height="55" rx="6" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1"/>
+  <text x="442" y="333" text-anchor="middle" fill="#a78bfa" font-size="12">Health Check</text>
+  <text x="442" y="351" text-anchor="middle" fill="#64748b" font-size="10">24 platforms · ✅ OK</text>
+
+  <!-- ATLAS CYCLE -->
+  <rect x="550" y="250" width="520" height="140" rx="10" fill="rgba(136,19,55,0.3)" stroke="#fb7185" stroke-width="1.5"/>
+  <text x="570" y="275" fill="#fb7185" font-size="14" font-weight="bold">🛡️ ATLAS CYCLE — System Monitor</text>
+  <text x="570" y="295" fill="#64748b" font-size="11">interval: every 1h · next: 2026-07-27 15:00 UTC</text>
+
+  <rect x="570" y="310" width="145" height="55" rx="6" fill="rgba(136,19,55,0.4)" stroke="#fb7185" stroke-width="1"/>
+  <text x="642" y="333" text-anchor="middle" fill="#fb7185" font-size="12">Model Check</text>
+  <text x="642" y="351" text-anchor="middle" fill="#64748b" font-size="10">Ollama · FCC · ✅ OK</text>
+
+  <rect x="730" y="310" width="145" height="55" rx="6" fill="rgba(136,19,55,0.4)" stroke="#fb7185" stroke-width="1"/>
+  <text x="802" y="333" text-anchor="middle" fill="#fb7185" font-size="12">Disk Usage</text>
+  <text x="802" y="351" text-anchor="middle" fill="#64748b" font-size="10">234/512 GB · 🟢 OK</text>
+
+  <rect x="890" y="310" width="155" height="55" rx="6" fill="rgba(136,19,55,0.4)" stroke="#fb7185" stroke-width="1"/>
+  <text x="967" y="333" text-anchor="middle" fill="#fb7185" font-size="12">Scheduler</text>
+  <text x="967" y="351" text-anchor="middle" fill="#64748b" font-size="10">23 jobs · ✅ OK</text>
+
+  <!-- Active Jobs Table -->
+  <rect x="30" y="410" width="1040" height="270" rx="10" fill="rgba(15,23,42,0.6)" stroke="#1e293b" stroke-width="1.5"/>
+  <text x="50" y="440" fill="#e2e8f0" font-size="14" font-weight="bold">📋 All Registered Jobs (23 total)</text>
+
+  <!-- Table Header -->
+  <text x="50" y="475" fill="#64748b" font-size="11" font-weight="bold">JOB ID</text>
+  <text x="250" y="475" fill="#64748b" font-size="11" font-weight="bold">CYCLE</text>
+  <text x="400" y="475" fill="#64748b" font-size="11" font-weight="bold">TRIGGER</text>
+  <text x="550" y="475" fill="#64748b" font-size="11" font-weight="bold">HANDLER</text>
+  <text x="750" y="475" fill="#64748b" font-size="11" font-weight="bold">STATUS</text>
+  <text x="900" y="475" fill="#64748b" font-size="11" font-weight="bold">NEXT RUN</text>
+
+  <line x1="50" y1="485" x2="1050" y2="485" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Job rows -->
+  <g font-size="11">
+    <text x="50" y="508" fill="#94a3b8">forge.superteam</text>
+    <text x="250" y="508" fill="#22d3ee">forge</text>
+    <text x="400" y="508" fill="#64748b">cron (30m)</text>
+    <text x="550" y="508" fill="#94a3b8">SuperteamAdapter.fetch</text>
+    <circle cx="760" cy="506" r="3" fill="#34d399"/>
+    <text x="770" y="508" fill="#34d399">OK</text>
+    <text x="900" y="508" fill="#64748b">14:30</text>
+
+    <text x="50" y="533" fill="#94a3b8">forge.opire</text>
+    <text x="250" y="533" fill="#22d3ee">forge</text>
+    <text x="400" y="533" fill="#64748b">cron (30m)</text>
+    <text x="550" y="533" fill="#94a3b8">OpireAdapter.fetch</text>
+    <circle cx="760" cy="531" r="3" fill="#34d399"/>
+    <text x="770" y="533" fill="#34d399">OK</text>
+    <text x="900" y="533" fill="#64748b">14:30</text>
+
+    <text x="50" y="558" fill="#94a3b8">forge.algora</text>
+    <text x="250" y="558" fill="#22d3ee">forge</text>
+    <text x="400" y="558" fill="#64748b">cron (30m)</text>
+    <text x="550" y="558" fill="#94a3b8">AlgoraAdapter.fetch</text>
+    <circle cx="760" cy="556" r="3" fill="#fbbf24"/>
+    <text x="770" y="558" fill="#fbbf24">SLEEP</text>
+    <text x="900" y="558" fill="#64748b">14:30</text>
+
+    <text x="50" y="583" fill="#94a3b8">pulse.outlier</text>
+    <text x="250" y="583" fill="#34d399">pulse</text>
+    <text x="400" y="583" fill="#64748b">cron (2h)</text>
+    <text x="550" y="583" fill="#94a3b8">OutlierExecutor.work</text>
+    <circle cx="760" cy="581" r="3" fill="#34d399"/>
+    <text x="770" y="583" fill="#34d399">OK</text>
+    <text x="900" y="583" fill="#64748b">16:00</text>
+
+    <text x="50" y="608" fill="#94a3b8">vault.backup</text>
+    <text x="250" y="608" fill="#a78bfa">vault</text>
+    <text x="400" y="608" fill="#64748b">interval (6h)</text>
+    <text x="550" y="608" fill="#94a3b8">VaultBackup.run</text>
+    <circle cx="760" cy="606" r="3" fill="#34d399"/>
+    <text x="770" y="608" fill="#34d399">OK</text>
+    <text x="900" y="608" fill="#64748b">18:00</text>
+
+    <text x="50" y="633" fill="#94a3b8">atlas.health</text>
+    <text x="250" y="633" fill="#fb7185">atlas</text>
+    <text x="400" y="633" fill="#64748b">interval (1h)</text>
+    <text x="550" y="633" fill="#94a3b8">AtlasHealth.check</text>
+    <circle cx="760" cy="631" r="3" fill="#34d399"/>
+    <text x="770" y="633" fill="#34d399">OK</text>
+    <text x="900" y="633" fill="#64748b">15:00</text>
+
+    <text x="50" y="658" fill="#94a3b8">... +17 more</text>
+    <text x="250" y="658" fill="#64748b">—</text>
+    <text x="400" y="658" fill="#64748b">—</text>
+    <text x="550" y="658" fill="#64748b">—</text>
+    <text x="770" y="658" fill="#64748b">12 OK · 5 SLEEP</text>
+    <text x="900" y="658" fill="#64748b">—</text>
+  </g>
+</svg>
