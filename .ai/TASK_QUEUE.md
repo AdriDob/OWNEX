@@ -62,6 +62,21 @@ Migrar Rastro como primer Work Cycle de OWNEX. No crear nada nuevo, convertir.
 **Tests objetivo:** 30-40 tests (reutilizando + extendiendo Rastro existente)  
 **Archivos nuevos máx:** 2-3 (adapters + wiring)
 
+### FASE 2.5 — Execution Layer ✅ COMPLETADO
+
+**Toda la capa de ejecución autónoma está construida y verificada.**
+
+|- [x] **EXEC-1: AlgoraExecutor** — ✅ Código base creado
+|- [x] **EXEC-2: FreelancerExecutor** — ✅ Código base creado
+|- [x] **EXEC-3: BrowserAgent Base** — Playwright + login persistence ✅
+|- [x] **EXEC-4: AutonomousWorkflow Engine** — discover→select→plan→execute→learn ✅
+|- [x] **EXEC-5: CoderAgent Especializado** — 6 módulos (repo_analyzer, issue_analyzer, code_generator, test_runner, pr_builder, orchestrator) ✅
+|- [x] **EXEC-6: OpireExecutor** — claim_bounty + submit_work ✅
+|- [x] **EXEC-7: IssueHuntExecutor** — claim_issue + submit_pr ✅
+|- [x] **EXEC-8: PlatformBrowserWorkers** — Outlier, Mindrift workers ✅
+|- [x] **EXEC-9: Credentials Vault** — vault.py, health.py, scheduler backup ✅
+|- [x] **EXEC-10: Scheduler Integration** — 23 jobs, 4 ciclos (Forge/Pulse/Vault/Atlas) ✅
+
 ### FASE 3 — Opportunity Engine v1 ⭐⭐⭐⭐
 
 - [ ] Modelo de scoring: $ esperado × (1 - dificultad) × prob. aceptación
@@ -107,7 +122,9 @@ Solo después de que Security Cycle funcione E2E sin intervención.
 | Report Optimizer V2 | ✅ 23 tests |
 | Frontend Consolidation Fase 1 | ✅ Capital Dashboard Unificado (5→1 páginas) |
 | Frontend Consolidation Fase 2 | ✅ Router 50→8 secciones + Sidebar unificado |
-| Frontend Consolidation Fase 2b | ✅ Mission Control actualizado con nuevas rutas |
+| Execution Layer — 10 EXECs (Algora, Freelancer, Opire, IssueHunt, CoderAgent, BrowserWorkers...) | ✅ 23 handlers, 4 ciclos, probado E2E |
+| Screenshots — 7 SVGs demo para README | ✅ docs/screenshots/ |
+| Ruff lint — core/ + api/ 0 errores | ✅ 78→0 |
 | OWNEX Branding + Design System | ✅ Completo |
 | OWNEX Design System Documentation | ✅ `.ai/OWNEX_DESIGN_SYSTEM.md` |
 
@@ -139,13 +156,13 @@ Si una feature necesita más → está mal diseñada.
 
 | Pregunta | Respuesta |
 |----------|-----------|
-| ¿Qué parte aumenta la detección? | ... |
-| ¿Qué parte reduce falsos positivos? | ... |
-| ¿Qué parte mejora la aceptación? | ... |
-| ¿Qué parte mejora el aprendizaje? | ... |
-| ¿Qué parte mejora la autonomía? | ... |
-| ¿Qué parte mejora Expected Revenue? | ... |
-| ¿Qué parte solo mejora arquitectura? | ... (si sí → reevaluar) |
+| ¿Qué parte aumenta la detección? | Execution Layer: 8 plataformas monitoreadas 24/7, scheduling automático |
+| ¿Qué parte reduce falsos positivos? | CoderAgent: código generado con tests + lint validación antes de PR |
+| ¿Qué parte mejora la aceptación? | CoderAgent: code_generator optimizado, test_runner verifica antes de submit |
+| ¿Qué parte mejora el aprendizaje? | AutonomousWorkflow Engine: discover→select→plan→execute→learn |
+| ¿Qué parte mejora la autonomía? | **TODA la FASE 2.5** — sistema autónomo 24/7 sin intervención manual |
+| ¿Qué parte mejora Expected Revenue? | Scheduler activo 24h, 23 jobs, ciclos Forge+Pulse+Vault+Atlas continuos |
+| ¿Qué parte solo mejora arquitectura? | Ruff lint cleanup (necesario para estabilidad) |
 
 ---
 

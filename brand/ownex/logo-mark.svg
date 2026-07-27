@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Deep background -->
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0A0A0E" stop-opacity="1"/>
+      <stop offset="60%" stop-color="#050505" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#020202" stop-opacity="1"/>
+    </radialGradient>
+    
+    <!-- Blue core gradient -->
+    <radialGradient id="blueCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#60A5FA" stop-opacity="1"/>
+      <stop offset="35%" stop-color="#3B82F6" stop-opacity="0.9"/>
+      <stop offset="70%" stop-color="#2563EB" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#1E40AF" stop-opacity="0"/>
+    </radialGradient>
+    
+    <!-- Gold accent gradient -->
+    <linearGradient id="goldAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B" stop-opacity="1"/>
+      <stop offset="50%" stop-color="#FBBF24" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#F59E0B" stop-opacity="0"/>
+    </linearGradient>
+    
+    <!-- Ring 1 gradient (blue) -->
+    <linearGradient id="ring1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#60A5FA" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
+    </linearGradient>
+    
+    <!-- Ring 2 gradient (blue-gold) -->
+    <linearGradient id="ring2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#F59E0B" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#60A5FA" stop-opacity="0"/>
+    </linearGradient>
+    
+    <!-- Ring 3 gradient (subtle) -->
+    <linearGradient id="ring3" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2563EB" stop-opacity="0.4"/>
+      <stop offset="50%" stop-color="#3B82F6" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#2563EB" stop-opacity="0"/>
+    </linearGradient>
+    
+    <!-- Center dot -->
+    <radialGradient id="centerDot" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1"/>
+      <stop offset="40%" stop-color="#60A5FA" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
+    </radialGradient>
+    
+    <!-- Glow filters -->
+    <filter id="glowSoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <filter id="glowStrong" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <filter id="coreGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="20" result="blur"/>
+      <feComposite in="blur" in2="SourceGraphic" operator="over"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background with subtle vignette -->
+  <rect width="512" height="512" rx="80" fill="url(#bgGlow)"/>
+  <rect width="512" height="512" rx="80" fill="radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.4) 100%)"/>
+  
+  <!-- Deep ambient glow -->
+  <circle cx="256" cy="256" r="200" fill="url(#blueCore)" opacity="0.08"/>
+  
+  <!-- Orbital Ring 3 (outermost, subtle, wide) -->
+  <ellipse cx="256" cy="256" rx="200" ry="45" fill="none" stroke="url(#ring3)" stroke-width="1" 
+           transform="rotate(-20 256 256)" opacity="0.4" filter="url(#glowSoft)"/>
+  
+  <!-- Orbital Ring 2 (middle, blue-gold) -->
+  <ellipse cx="256" cy="256" rx="165" ry="55" fill="none" stroke="url(#ring2)" stroke-width="1.5" 
+           transform="rotate(15 256 256)" opacity="0.6" filter="url(#glowSoft)"/>
+  
+  <!-- Gold accent markers on ring 2 -->
+  <circle cx="135" cy="205" r="2.5" fill="#F59E0B" opacity="0.7" filter="url(#glowSoft)"/>
+  <circle cx="377" cy="307" r="2.5" fill="#F59E0B" opacity="0.5" filter="url(#glowSoft)"/>
+  <circle cx="300" cy="320" r="1.5" fill="#FBBF24" opacity="0.4"/>
+  
+  <!-- Orbital Ring 1 (inner, primary blue) -->
+  <ellipse cx="256" cy="256" rx="120" ry="40" fill="none" stroke="url(#ring1)" stroke-width="2.5" 
+           transform="rotate(-10 256 256)" filter="url(#glowSoft)"/>
+  
+  <!-- Blue accent markers on ring 1 -->
+  <circle cx="175" cy="230" r="2" fill="#60A5FA" opacity="0.9" filter="url(#glowSoft)"/>
+  <circle cx="337" cy="282" r="2" fill="#60A5FA" opacity="0.7" filter="url(#glowSoft)"/>
+  
+  <!-- Gold radar sweep arc -->
+  <path d="M 256 256 L 400 150 A 180 180 0 0 1 420 220 Z" 
+        fill="url(#goldAccent)" opacity="0.1" filter="url(#glowSoft)"/>
+  <path d="M 256 256 A 110 110 0 0 1 350 170" 
+        fill="none" stroke="#F59E0B" stroke-width="1.5" opacity="0.4" 
+        stroke-dasharray="6 8" filter="url(#glowSoft)"/>
+  
+  <!-- Scattered constellation dots (subtle) -->
+  <circle cx="105" cy="130" r="1.2" fill="#3B82F6" opacity="0.25"/>
+  <circle cx="407" cy="382" r="1.2" fill="#3B82F6" opacity="0_2"/>
+  <circle cx="140" cy="380" r="0.8" fill="#60A5FA" opacity="0.2"/>
+  <circle cx="372" cy="128" r="0.8" fill="#60A5FA" opacity="0.2"/>
+  <circle cx="90" cy="270" r="1" fill="#3B82F6" opacity="0.18"/>
+  <circle cx="422" cy="242" r="1" fill="#3B82F6" opacity="0.18"/>
+  <circle cx="180" cy="110" r="0.7" fill="#F59E0B" opacity="0.15"/>
+  <circle cx="332" cy="392" r="0.7" fill="#F59E0B" opacity="0.12"/>
+  
+  <!-- Constellation connection lines (barely visible) -->
+  <line x1="105" y1="130" x2="135" y2="205" stroke="#3B82F6" stroke-width="0.4" opacity="0.08"/>
+  <line x1="407" y1="382" x2="377" y2="307" stroke="#3B82F6" stroke-width="0.4" opacity="0.08"/>
+  <line x1="180" y1="110" x2="175" y2="230" stroke="#F59E0B" stroke-width="0.3" opacity="0.06"/>
+  <line x1="332" y1="392" x2="337" y2="282" stroke="#F59E0B" stroke-width="0.3" opacity="0.06"/>
+  
+  <!-- Core bright center -->
+  <circle cx="256" cy="256" r="28" fill="url(#blueCore)" filter="url(#coreGlow)" opacity="0.6"/>
+  <circle cx="256" cy="256" r="22" fill="url(#centerDot)" filter="url(#glowStrong)"/>
+  <circle cx="256" cy="256" r="14" fill="#FFFFFF" opacity="0.95"/>
+  <circle cx="253" cy="253" r="5" fill="#FFFFFF" opacity="0.7"/>
+  <circle cx="251" cy="251" r="2" fill="#60A5FA" opacity="1"/>
+</svg>

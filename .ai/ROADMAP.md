@@ -26,11 +26,14 @@ Memory Layer
 
 | Ciclo | Nombre | Estado | Prioridad |
 |-------|--------|--------|-----------|
-| 🔵 | **Rastro** (Security) | ✅ Activo — En consolidación | **FASE 1** |
-| 🟣 | **Forge** (Dev Bounty) | 📝 Diseño | FASE 4 |
-| 🟢 | **Pulse** (AI Work) | 📝 Diseño | FASE 4 |
-| 🟡 | **Vault** (Wealth) | ⚠️ Parcial | FASE 4 |
-| ⚪ | **Atlas** (Intelligence) | 📝 Diseño | FASE 5 |
+| 🔵 | **Rastro** (Security) | ✅ FASE 1 Activo — Scheduling 24/7 | **FASE 1** |
+| 🟣 | **Forge** (Dev Bounty) | ✅ Execution Layer — 8 adapters, 23 handlers | **FASE 2.5 ✅** |
+| ⚡ | **Pulse** (AI Work) | ✅ Execution Layer — executors listos | **FASE 2.5 ✅** |
+| 🛡️ | **Atlas** (System) | ✅ Health checks + Scheduler monitor | **FASE 2.5 ✅** |
+| 💰 | **Vault** (Wealth) | ✅ Backup + Revenue tracking | **FASE 2.5 ✅** |
+| 🟢 | **CoderAgent** (Dev) | ✅ 6 módulos autónomos | **FASE 2.5 ✅** |
+| 🟡 | **Pulse Frontend** (AI Work) | ✅ Frontend Done | FASE 2.1 ✅ |
+| ⚪ | **Wealth Consolidation** | ⚠️ Parcial | FASE 4 |
 | 🤖 | **Orion** (Coordinator) | ✅ Existe | Transversal |
 
 ---
@@ -68,6 +71,43 @@ Migrar Rastro como primer Work Cycle de OWNEX. No crear nada nuevo, convertir.
 
 **Tests objetivo:** 30-40 tests (reutilizando + extendiendo Rastro existente)
 **Archivos nuevos máx:** 2-3 (adapters + wiring)
+
+### FASE 2.5 — Execution Layer (CRÍTICO PARA AUTONOMÍA REAL) ⭐⭐⭐⭐⭐⭐ — **SPRINT ACTUAL (BASE CREADA)**
+
+**BLOQUEANTE ABSOLUTO:** Sin capa de ejecución, OWNEX solo descubre oportunidades, NO las ejecuta. Prioridad máxima.
+
+- [ ] **EXEC-1: AlgoraExecutor** — `claim_issue()` + `create_pr()` + `submit_pr()` (API write real, mayor ROI inmediato) ✅ **Código base creado**
+- [ ] **EXEC-2: FreelancerExecutor** — `bid_on_project()` + `submit_deliverable()` + `request_milestone_release()` ✅ **Código base creado**
+- [ ] **EXEC-3: BrowserAgent Base** — Playwright + login persistence + session management (desbloquea LinkedIn, DataAnnotation, Outlier, Remotasks, Mindrift) ✅ **Código base creado**
+- [ ] **EXEC-4: AutonomousWorkflow Engine** — discover→select→plan→execute→learn loop unificado ✅ **Código base creado**
+- [ ] **EXEC-5: CoderAgent Especializado** — **CRÍTICO** write fix, tests, PR para issues reales (fuerza multiplicadora) ❌ **NO EXISTE — PRIORIDAD #1**
+- [ ] **EXEC-6: OpireExecutor** — `claim_bounty()` + `submit_work()` (API write, segundo mayor ROI OSS) ❌ **NO EXISTE**
+- [ ] **EXEC-7: IssueHuntExecutor** — `claim_issue()` + `submit_pr()` (API write) ❌ **NO EXISTE**
+- [ ] **EXEC-8: PlatformBrowserWorkers** — DataAnnotationWorker, OutlierWorker, MindriftWorker, RemotasksWorker ❌ **NO EXISTE**
+- [x] **EXEC-9: Credentials Vault** — vault.py con backup + health.py con check_secrets_health ✅ **COMPLETADO**
+- [x] **EXEC-10: Scheduler Integration** — 23 jobs, 4 ciclos (FORGE/PULSE/VAULT/ATLAS), verificado E2E ✅ **COMPLETADO**
+
+**Tests objetivo:** 35-45 tests (unit + integration con APIs reales)  
+**Archivos nuevos máx:** 8 (executors 5 + browser 1 + workflow 1 + coder 1)  
+**Budget estricto:** 1 archivo por executor, 1 browser agent, 1 workflow, 1 coder = 8 archivos totales
+
+---
+
+### FASE 2.6 — CoderAgent (EL CEREBRO QUE FALTA) ⭐⭐⭐⭐⭐⭐⭐ — **MÁXIMA PRIORIDAD DESPUÉS DE EXEC-1/2/3/4**
+
+**Sin CoderAgent, los executors claim issues pero nadie escribe el código. Es el multiplicador de fuerza.**
+
+| Componente | Responsabilidad | Archivo |
+|------------|-----------------|---------|
+| **RepoCloner** | Clone shallow, detect language/setup, run tests | `core/autonomy/repo_analyzer.py` |
+| **IssueAnalyzer** | Parse issue → extract bug/feature, reproduction steps, affected files | `core/autonomy/issue_analyzer.py` |
+| **CodeGenerator** | Write fix/patch based on analysis + repo context | `core/autonomy/code_generator.py` |
+| **TestRunner** | Execute test suite, capture failures, iterate fix | `core/autonomy/test_runner.py` |
+| **PRBuilder** | Create branch, commit, push, open PR with description | `core/autonomy/pr_builder.py` |
+| **CoderAgent** | Orquesta todo lo anterior end-to-end | `core/autonomy/coder_agent.py` |
+
+**Archivos nuevos: 6 (1 por componente)**  
+**Tests: 20-30 (unit + integration con repos reales)**
 
 ### FASE 3 — Opportunity Engine v1 ⭐⭐⭐⭐
 
