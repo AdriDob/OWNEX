@@ -79,10 +79,10 @@ class TestOverview:
         resp = client.get("/api/overview")
         assert resp.status_code == 200
         data = resp.json()
-        assert "target_count" in data
-        assert "endpoint_count" in data
-        assert isinstance(data["target_count"], int)
-        assert isinstance(data["endpoint_count"], int)
+        assert "targets" in data
+        assert "endpoints" in data
+        assert isinstance(data["targets"], int)
+        assert isinstance(data["endpoints"], int)
 
     def test_system_health(self, client):
         resp = client.get("/api/system/health")

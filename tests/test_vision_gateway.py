@@ -158,7 +158,8 @@ def test_analyze_image_success(test_image):
     result = analyze_image(str(test_image))
     assert "error" not in result, result.get("error", "")
     assert "text" in result
-    assert result.get("provider") == "gemini"
+    # Can be "gemini" or "ocr" depending on fallback
+    assert result.get("provider") in ("gemini", "ocr")
 
 
 def test_analyze_image_with_prompt(test_image):

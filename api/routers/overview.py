@@ -3,13 +3,13 @@ from __future__ import annotations
 import contextlib
 import json
 import logging
-import os
-from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter
 from sqlalchemy import func as sa_func
 
+# Import HHD tracker
+from core.system.hhd_tracker import get_hhd_summary, init_hhd_tracker
 from cores.engine.unified_scoring import score as unified_score
 from cores.engine.unified_scoring import score_target as unified_score_target
 from cores.gateway.schemas import safe_response
@@ -20,13 +20,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["overview"])
 
-# Single source of truth for user idle hours (HHD) — persisted in memory and injected into health check
-HUMAN_IDLE_SECONDS = int(
-    os.environ.get("OWNEX_HUMAN_IDLE_SECONDS", "30")
-)  # Default ~30 seconds idle after last user input
-
-# Track last user activity timestamp (placeholder; real implementation should read from user activity logs)
-_last_user_activity: datetime = datetime.utcnow()
+# Initialize HHD tracker on module load
+init_hhd_tracker()
 
 
 @router.get("/overview")
@@ -149,7 +144,7 @@ def get_overview():
                     "name": t.name,
                     "domain": t.domain,
                     "endpoint_count": ep_count,
-                    "roi_score": round(roi, 2),
+                    "roi_score": round(roi.get("roi_score", 0), 2),
                     "path": ep_paths[0] if ep_paths else "/",
                 }
             )
@@ -227,10 +222,7 @@ def get_system_health():
                 if last_finding and last_finding.created_at
                 else None,
             },
-            "human_time": {
-                "idle_hours": round(HUMAN_IDLE_SECONDS / 3600, 2),
-                "last_user_activity": _last_user_activity.isoformat(),
-            },
+            "human_time": get_hhd_summary(),
         }
 
         from cores.system_health import collect_health

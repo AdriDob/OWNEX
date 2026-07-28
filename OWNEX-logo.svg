@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0D1117;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#161B22;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00FF88;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="innerGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  
+  <!-- Background circle (for avatar cropping) -->
+  <circle cx="256" cy="256" r="256" fill="url(#shieldGrad)"/>
+  
+  <!-- Hexagonal shield shape -->
+  <path d="M256 32 L448 106.5 L448 305.5 L256 384 L64 305.5 L64 106.5 Z" 
+        fill="url(#shieldGrad)" 
+        stroke="url(#accentGrad)" 
+        stroke-width="3"
+        filter="url(#glow)"/>
+  
+  <!-- Inner hexagon accent -->
+  <path d="M256 64 L416 122 L416 290 L256 348 L96 290 L96 122 Z" 
+        fill="none" 
+        stroke="#00D4FF" 
+        stroke-width="1.5"
+        stroke-opacity="0.6"/>
+  
+  <!-- Circuit pattern lines -->
+  <g stroke="#00D4FF" stroke-width="1.2" stroke-opacity="0.4" fill="none">
+    <path d="M160 180 L220 180"/>
+    <path d="M180 160 L180 200"/>
+    <path d="M292 180 L352 180"/>
+    <path d="M332 160 L332 200"/>
+    <path d="M160 300 L220 300"/>
+    <path d="M180 280 L180 320"/>
+    <path d="M292 300 L352 300"/>
+    <path d="M332 280 L332 320"/>
+  </g>
+  
+  <!-- Central "OX" monogram -->
+  <g filter="url(#glow)">
+    <!-- O -->
+    <text x="256" y="268" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" 
+          font-size="140" font-weight="700" fill="url(#accentGrad)" 
+          letter-spacing="-8">O</text>
+    <!-- X -->
+    <text x="256" y="268" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" 
+          font-size="140" font-weight="700" fill="url(#accentGrad)" 
+          letter-spacing="-8" opacity="0">X</text>
+  </g>
+  
+  <!-- OX combined as single centered element -->
+  <g transform="translate(256, 272)">
+    <!-- O shape -->
+    <ellipse cx="-38" cy="0" rx="32" ry="40" fill="none" stroke="url(#accentGrad)" stroke-width="5"/>
+    <!-- X shape -->
+    <path d="M10,-30 L50,30 M50,-30 L10,30" fill="none" stroke="url(#accentGrad)" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Data flow accent line -->
+  <path d="M80 256 Q160 256 256 256 Q352 256 432 256" 
+        fill="none" 
+        stroke="url(#accentGrad)" 
+        stroke-width="2.5" 
+        stroke-dasharray="8 4"
+        stroke-opacity="0.8"
+        filter="url(#glow)">
+    <animate attributeName="stroke-dashoffset" from="0" to="24" dur="2s" repeatCount="indefinite"/>
+  </path>
+  
+  <!-- Small indicator dots -->
+  <g fill="#00FF88">
+    <circle cx="160" cy="256" r="4" opacity="0.8">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" begin="0s"/>
+    </circle>
+    <circle cx="256" cy="256" r="4" opacity="0.8">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" begin="0.5s"/>
+    </circle>
+    <circle cx="352" cy="256" r="4" opacity="0.8">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" begin="1s"/>
+    </circle>
+  </g>
+</svg>
