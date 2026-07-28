@@ -1,0 +1,3 @@
+{
+  "/api/session-pools/[provider]/route": "app/api/session-pools/[provider]/route.js"
+}

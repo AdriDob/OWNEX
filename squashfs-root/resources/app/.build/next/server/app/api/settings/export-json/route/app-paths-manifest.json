@@ -1,0 +1,3 @@
+{
+  "/api/settings/export-json/route": "app/api/settings/export-json/route.js"
+}

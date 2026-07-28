@@ -10,13 +10,13 @@ import json
 import logging
 import os
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
 from database import db
-from database.models import Finding, Report, Target, Verdict, Evidence
-from database.models_economic import Program, BountyTier
+from database.models import Evidence, Finding, Report, Target, Verdict
+from database.models_economic import BountyTier, Program
 
 logger = logging.getLogger("cateye.report_pipeline")
 
@@ -38,6 +38,7 @@ PLATFORM_URLS = {
 @dataclass
 class ReportCandidate:
     """A finding eligible for reporting."""
+
     finding_id: int
     title: str
     severity: str
@@ -65,6 +66,7 @@ class ReportCandidate:
 @dataclass
 class GeneratedReport:
     """A complete report ready for submission."""
+
     candidate: ReportCandidate
     stage: str  # draft, ready, submitted
     file_path: str
@@ -86,20 +88,13 @@ class ReportPipeline:
         try:
             # Get findings with confirmed verdicts that have evidence
             findings = (
-                session.query(Finding)
-                .filter(Finding.status == "confirmed")
-                .order_by(Finding.created_at.desc())
-                .all()
+                session.query(Finding).filter(Finding.status == "confirmed").order_by(Finding.created_at.desc()).all()
             )
 
             candidates = []
             for f in findings:
                 # Check if already has a report
-                existing_report = (
-                    session.query(Report)
-                    .filter(Report.finding_ids.contains(str(f.id)))
-                    .first()
-                )
+                existing_report = session.query(Report).filter(Report.finding_ids.contains(str(f.id))).first()
                 if existing_report:
                     continue
 
@@ -119,7 +114,9 @@ class ReportPipeline:
                 for v in verdicts:
                     if v.evidence_links:
                         try:
-                            ev_ids = json.loads(v.evidence_links) if isinstance(v.evidence_links, str) else v.evidence_links
+                            ev_ids = (
+                                json.loads(v.evidence_links) if isinstance(v.evidence_links, str) else v.evidence_links
+                            )
                             for ev_id in ev_ids:
                                 ev = session.query(Evidence).filter(Evidence.id == ev_id).first()
                                 if ev:
@@ -183,10 +180,7 @@ class ReportPipeline:
         """Top N eligible findings from last 24h, ranked by score * EVH."""
         candidates = self.get_eligible_findings()
         cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
-        daily = [
-            c for c in candidates
-            if datetime.fromisoformat(c.discovered_at.replace("Z", "+00:00")) > cutoff
-        ]
+        daily = [c for c in candidates if datetime.fromisoformat(c.discovered_at.replace("Z", "+00:00")) > cutoff]
         daily.sort(key=lambda c: c.score * max(c.evh, 1), reverse=True)
         return daily[:limit]
 
@@ -194,10 +188,7 @@ class ReportPipeline:
         """Top N eligible findings from last 168h."""
         candidates = self.get_eligible_findings()
         cutoff = datetime.now(timezone.utc) - timedelta(hours=168)
-        weekly = [
-            c for c in candidates
-            if datetime.fromisoformat(c.discovered_at.replace("Z", "+00:00")) > cutoff
-        ]
+        weekly = [c for c in candidates if datetime.fromisoformat(c.discovered_at.replace("Z", "+00:00")) > cutoff]
         weekly.sort(key=lambda c: c.score * max(c.evh, 1), reverse=True)
         return weekly[:limit]
 
@@ -298,6 +289,7 @@ class ReportPipeline:
     def _get_endpoints(self, finding: Finding, session) -> list[dict[str, Any]]:
         """Get related endpoints."""
         from database.models import Endpoint
+
         endpoints = session.query(Endpoint).filter(Endpoint.id == finding.endpoint_id).all()
         return [{"url": e.url, "method": e.method, "params": e.params} for e in endpoints]
 
@@ -353,39 +345,45 @@ class ReportPipeline:
         for i, step in enumerate(c.steps_to_reproduce, 1):
             lines.append(f"{i}. {step}")
 
-        lines.extend([
-            "",
-            "### Proof of Concept",
-            "",
-            "```",
-            c.evidence.get("poc", "See evidence attachments"),
-            "```",
-            "",
-        ])
+        lines.extend(
+            [
+                "",
+                "### Proof of Concept",
+                "",
+                "```",
+                c.evidence.get("poc", "See evidence attachments"),
+                "```",
+                "",
+            ]
+        )
 
         if c.endpoints:
             lines.extend(["### Affected Endpoints", ""])
             for ep in c.endpoints:
-                lines.append(f"- **{ep.get('method', 'GET')}** `{ep.get('url', '')}` — Params: {ep.get('params', '{}')}")
+                lines.append(
+                    f"- **{ep.get('method', 'GET')}** `{ep.get('url', '')}` — Params: {ep.get('params', '{}')}"
+                )
 
         if c.screenshots:
             lines.extend(["", "### Screenshots", ""])
             for ss in c.screenshots:
                 lines.append(f"![Evidence]({ss})")
 
-        lines.extend([
-            "",
-            "---",
-            "",
-            "## 🔧 Remediation",
-            "",
-            c.remediation,
-            "",
-            "---",
-            "",
-            "## 📚 References",
-            "",
-        ])
+        lines.extend(
+            [
+                "",
+                "---",
+                "",
+                "## 🔧 Remediation",
+                "",
+                c.remediation,
+                "",
+                "---",
+                "",
+                "## 📚 References",
+                "",
+            ]
+        )
 
         for ref in c.references:
             lines.append(f"- {ref}")
@@ -393,22 +391,24 @@ class ReportPipeline:
         if not c.references:
             lines.append("- No additional references provided.")
 
-        lines.extend([
-            "",
-            "---",
-            "",
-            "## 📊 Evidence Package (JSON)",
-            "",
-            "```json",
-            json.dumps(self._to_json(c), indent=2),
-            "```",
-            "",
-            "---",
-            "",
-            f"*Report generated by ORION Report Pipeline — Finding #{c.finding_id}*",
-            f"*Platform: {c.platform} | Program: {c.program_name}*",
-            f"*Submit manually at: {self.get_submission_url(c.platform, c.platform_url)}*",
-        ])
+        lines.extend(
+            [
+                "",
+                "---",
+                "",
+                "## 📊 Evidence Package (JSON)",
+                "",
+                "```json",
+                json.dumps(self._to_json(c), indent=2),
+                "```",
+                "",
+                "---",
+                "",
+                f"*Report generated by ORION Report Pipeline — Finding #{c.finding_id}*",
+                f"*Platform: {c.platform} | Program: {c.program_name}*",
+                f"*Submit manually at: {self.get_submission_url(c.platform, c.platform_url)}*",
+            ]
+        )
 
         return "\n".join(lines)
 

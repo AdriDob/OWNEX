@@ -538,7 +538,90 @@ OWNEX Companion (Android)
 
 ---
 
-## 9. Referencia Rápida: Tokens CSS
+## 11. Estética de Bienvenida — PS5 × Steam Big Picture
+
+> La pantalla de bienvenida es la primera impresión del sistema.
+> Debe transmitir: potencia silenciosa, precisión, y un centro de mando que respira.
+
+### 11.1 Inspiración
+
+| Fuente | Elementos tomados |
+|--------|-------------------|
+| **PS5 UI** | Glow azul sutil, partículas ambientales, tipografía bold, gradientes radiales oscuros, animaciones elásticas |
+| **Steam Big Picture** | Layout centrado y limpio, alto contraste blanco/negro, progreso visual, tiles grandes, tipografía sans-serif |
+| **Linear** | Espaciado generoso, bordes casi invisibles, transiciones spring |
+
+### 11.2 Splash Screen Layout
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                                                              │
+│                    ░░░░░░░░░░░░░░░░░░░░░░░                  │
+│                  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░            │
+│               ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░         │
+│                 ░░░░░░░░░░░░░░░░░░░░░░░░░▶                  │
+│                    ░░░░░░░░░░░░░░░░░░░░░                  │
+│                                                              │
+│                          ╔══════╗                           │
+│                          ║  ●   ║  ← Hex glow              │
+│                          ║      ║     (PS5 ambient glow)   │
+│                          ║ OWNEX║                           │
+│                          ╚══════╝                           │
+│                         ════════════                       │
+│                     Personal Autonomous                    │
+│                       Work OS v4.6.0                       │
+│                                                              │
+│                    ● Inicializando sistemas...              │
+│                     ████████████░░░░  92%                 │
+│                                                              │
+│                    ░░░░░░░░░░░░░░░░░░░░░░░                  │
+│                 ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░           │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### 11.3 Design Tokens (Splash)
+
+```css
+/* Splash-specific tokens */
+--splash-bg: #030303;
+--splash-glow-color: rgba(59, 130, 246, 0.15);
+--splash-glow-radius: 400px;
+--splash-logo-size: 80px;
+--splash-title-size: 2.5rem;
+--splash-subtitle-size: 0.75rem;
+--splash-title-weight: 700;
+--splash-title-tracking: 0.35em;
+--splash-progress-bar: #3b82f6;
+--splash-progress-bg: rgba(59, 130, 246, 0.1);
+--splash-text: #f0f0f0;
+--splash-text-muted: #6b7280;
+--splash-particle-color: rgba(59, 130, 246, 0.3);
+```
+
+### 11.4 Animation Profile
+
+| Element | Animation | Duration | Easing |
+|---------|-----------|----------|--------|
+| Background particles | drift | continuous | n/a |
+| Logo hex | scale 0.8→1 + fade in | 600ms | cubic-bezier(0.34, 1.56, 0.64, 1) |
+| Orbit rings | rotate | 8s/12s | linear infinite |
+| Title text | slideUp + fade | 500ms | ease-out |
+| Subtitle | fade in (delayed) | 400ms | ease-out |
+| Progress bar | width grow | 800ms | ease-out |
+| Status text | pulse opacity | 1.5s | ease-in-out infinite |
+
+### 11.5 Reduced Motion
+
+When `prefers-reduced-motion` is active:
+- Disable particle field entirely
+- Show static logo with no animation
+- Skip loading sequence → show immediately → fade to app
+- No pulsing, no rotating orbit rings
+
+---
+
+## 12. Referencia Rápida: Tokens CSS
 
 ```css
 :root {
@@ -623,7 +706,7 @@ OWNEX Companion (Android)
 
 | Versión | Foco | Estado |
 |---------|------|--------|
-| **v1.0** | Core tokens, Mission Control, Work Cycles, Agent Fleet, Opportunity Radar, Knowledge Feed, Command Palette, Tauri desktop | 🔄 En desarrollo (FASE 1) |
+| **v1.0** | Core tokens, Mission Control, Work Cycles, Agent Fleet, Opportunity Radar, Knowledge Feed, Command Palette, Tauri desktop, **Splash PS5×Steam** | 🔄 En desarrollo (FASE 1) |
 | **v1.1** | Android Companion, Offline sync, Biometric auth | 📝 Planificado (FASE 6) |
 | **v1.2** | Advanced theming (user colors), Plugin UI components, Accessibility audit (WCAG AA) | 📝 Futuro |
 | **v2.0** | Multi-window, Workspaces, Team collaboration, Enterprise SSO | 📝 Post-revenue |

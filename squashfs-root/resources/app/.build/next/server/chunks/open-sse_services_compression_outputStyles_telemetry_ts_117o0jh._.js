@@ -1,0 +1,3 @@
+module.exports=[105032,e=>{"use strict";let t=new Set(["disabled","no_styles","no_messages","already_applied"]);e.s(["buildOutputStyleTelemetry",0,function(e){let s=e.tokensBefore>0?e.tokensAfter/e.tokensBefore:0,o={requestId:e.requestId,model:e.model,provider:e.provider,source:e.source,tokensBefore:e.tokensBefore,tokensAfter:e.tokensAfter,ratio:s};return e.applied&&e.appliedStyles&&e.appliedStyles.length>0&&(o.outputStyles=e.appliedStyles),e.applied||!e.skippedReason||t.has(e.skippedReason)||(o.outputStyleBypass=e.skippedReason),"number"==typeof e.outputTokens&&(o.outputTokens=e.outputTokens),o}])}];
+
+//# sourceMappingURL=open-sse_services_compression_outputStyles_telemetry_ts_117o0jh._.js.map

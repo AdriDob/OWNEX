@@ -1,0 +1,3 @@
+{
+  "/api/tunnels/cloudflared/route": "app/api/tunnels/cloudflared/route.js"
+}

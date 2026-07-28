@@ -1,0 +1,3 @@
+{
+  "/api/codex/connect/[token]/route": "app/api/codex/connect/[token]/route.js"
+}

@@ -1,0 +1,3 @@
+{
+  "/api/settings/qdrant/search/route": "app/api/settings/qdrant/search/route.js"
+}

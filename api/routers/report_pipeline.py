@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import logging
 from typing import Any
 
@@ -10,6 +9,7 @@ from fastapi import APIRouter, Body, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 
 from core.report_pipeline import get_pipeline
+from database.db import SessionLocal
 
 logger = logging.getLogger("cateye.api.report_pipeline")
 
@@ -155,12 +155,10 @@ def mark_submitted(finding_id: int, body: dict[str, Any] = Body(...)):
     """Mark report as manually submitted (after user clicks platform link and submits)."""
     external_id = body.get("external_id", "")
     platform = body.get("platform", "")
-    program = body.get("program", "")
 
     db = SessionLocal()
     try:
         from database.models import Report, SubmissionRecord
-        from datetime import datetime, timezone
 
         # Find the report
         report = db.query(Report).filter(Report.finding_ids.contains(str(finding_id))).first()
@@ -184,7 +182,7 @@ def mark_submitted(finding_id: int, body: dict[str, Any] = Body(...)):
     except Exception as exc:
         db.rollback()
         logger.exception("mark_submitted failed")
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
     finally:
         db.close()
 

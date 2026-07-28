@@ -1,0 +1,23 @@
+#!/usr/bin/env python3
+"""OWNEX Version Engine — CLI entry point.
+
+Usage:
+    ownex-version                  # get current version
+    ownex-version bump patch       # bump patch → 4.6.1
+    ownex-version sync              # sync to pyproject, frontend, manifests
+    ownex-version tag -m "Release" # create git tag v4.6.0
+    ownex-version info              # detailed version info
+"""
+
+import sys
+from pathlib import Path
+
+# Ensure project root is on sys.path when called directly
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from core.system.version_engine import cli
+
+if __name__ == "__main__":
+    cli()

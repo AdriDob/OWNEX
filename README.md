@@ -1,40 +1,51 @@
-# OWNEX — Autonomous Work Operating Interface
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="brand/ownex/hero-cover.svg">
+    <img src="brand/ownex/hero-cover.svg" alt="OWNEX — Autonomous Work OS" width="100%">
+  </picture>
+</p>
 
-> **"Tengo un sistema operativo personal que trabaja conmigo."**  
-> *Not: "Estoy hackeando una nave espacial de 1998."*
+<p align="center">
+  <a href="#"><img src="https://img.shields.io/badge/status-alpha-3B82F6?style=flat-square&labelColor=0A0C12" alt="Status"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-4.7.0-10B981?style=flat-square&labelColor=0A0C12" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/coverage-98%25-34D399?style=flat-square&labelColor=0A0C12" alt="Coverage"></a>
+  <a href="#"><img src="https://img.shields.io/badge/stack-Tauri%20%7C%20Vue%203%20%7C%20FastAPI-2563EB?style=flat-square&labelColor=0A0C12" alt="Stack"></a>
+  <a href="#"><img src="https://img.shields.io/badge/license-proprietary-F59E0B?style=flat-square&labelColor=0A0C12" alt="License"></a>
+</p>
+
+<br>
+
+<p align="center">
+  <b>Un sistema operativo personal que trabaja con vos.</b><br>
+  <i>No otra herramienta de productividad. Tu centro de comando autónomo.</i>
+</p>
+
+<br>
 
 ---
 
-## ✅ Requirements — What You Need (and Don't)
+## 🚀 What Is OWNEX?
 
-### You need:
-| Requirement | Purpose |
+**OWNEX** is an **Autonomous Work Operating System** — a personal command center that converts scattered opportunities into executable work cycles. It's not a dashboard. Not a SaaS panel. An **OS for autonomous work**.
+
+Built for bug bounty hunters, security researchers, and autonomous agents who need *outcomes over activity*, *action over information*, *cycles over pages*.
+
+| Capability | What It Means |
 |---|---|
-| **Email** | Daily management, notifications, platform contact |
-| **Platform accounts** | Where you execute the work (HackerOne, Bugcrowd, freelancer, etc.) — register directly on each platform |
-| **DNI / tax ID** | Only for withdrawals and KYC on each platform. OWNEX **does not** store identity documents. |
+| **🔨 Forge** | Bug bounty operations across 8+ platforms — discovery, scoring, execution |
+| **📡 Pulse** | AI work & microtasks — Outlier, DataAnnotation, Mindrift, Remotasks |
+| **🏦 Vault** | Wealth management — crypto, DeFi, portfolio tracking |
+| **🗺️ Atlas** | Reconnaissance & intelligence — opportunity discovery |
+| **🔐 Security** | Full security research pipeline — Recon → Attack Surface → Hypothesis → Validation → Evidence → Report → Learning |
 
-### You do **NOT** need:
-❌ **Portfolio** — Public programs accept any researcher. Your valid findings are your portfolio.  
-❌ **Interview** — No selection process. Results over credentials.  
-❌ **Prior experience** — Programs have different difficulty levels; OWNEX scoring (EVH, personal factor) guides you to the right opportunities.
-
-> **Model:** Direct public rewarded work. OWNEX connects your accounts, ranks opportunities by expected value, and helps you execute. No gatekeeping.
-
----
-
-## 🎯 What is OWNEX?
-
-OWNEX is an **Autonomous Work Operating System** — a personal command center that converts scattered opportunities into executable work cycles. It's not a dashboard. It's not a SaaS panel. It's an OS for autonomous work.
-
-Built for bug bounty hunters, security researchers, and autonomous agents who need **outcomes over activity**, **action over information**, **cycles over pages**.
+Each cycle is a **self-contained app** with its own adapters, scoring engine, scheduler, and execution pipeline.
 
 ---
 
 ## ✨ Core Philosophy
 
 | Principle | OWNEX Approach |
-|-----------|----------------|
+|---|---|
 | **Clarity over Complexity** | One concept = one name. No User/Client/Customer confusion. |
 | **Action over Information** | Every screen answers: *"What should I do now?"* |
 | **Cycles over Pages** | Work Cycles = apps. Not menu navigation. |
@@ -44,19 +55,19 @@ Built for bug bounty hunters, security researchers, and autonomous agents who ne
 
 ---
 
-## 🎨 Design System: "Dark Command Center"
+## 🎨 Design System
 
-```
-Backgrounds:     #050505  #080808  #0F1117     (Near-black depth)
-Primary Blue:    #3B82F6                       (Intelligence, action, nav)
-White:           #FFFFFF                       (Important info, results)
-Gold:            #F59E0B                       (Money, rewards, premium ops)
-States:          🟢 #10B981  🔴 #EF4444  🟡 #FBBF24  (Only these 3)
+```yaml
+Backgrounds:     #050505  #080808  #0F1117     Near-black depth
+Primary Blue:    #3B82F6                       Intelligence, action
+Gold:            #F59E0B                       Money, rewards, premium
+White:           #FFFFFF                       Important info, results
+States:          🟢 #10B981  🔴 #EF4444  🟡 #FBBF24
 ```
 
-**Typography:** Space Grotesk (Display) + Inter (Body) + JetBrains Mono (Code)  
-**Materials:** Glassmorphism + Mica + Acrylic (Fluent-inspired)  
-**Motion:** 120-350ms spring transitions, respect `prefers-reduced-motion`
+- **Typography:** Space Grotesk (Display) · Inter (Body) · JetBrains Mono (Code)
+- **Materials:** Glassmorphism · Mica · Acrylic — Fluent-inspired
+- **Motion:** 120-350ms spring transitions · respects `prefers-reduced-motion`
 
 ---
 
@@ -65,197 +76,148 @@ States:          🟢 #10B981  🔴 #EF4444  🟡 #FBBF24  (Only these 3)
 ```
 OWNEX.app / OWNEX.exe
 ├── Vue 3 + TypeScript + Tailwind CSS v4
-├── Rust shell (Tauri v2) — native, low RAM
+├── Rust shell (Tauri v2) — native, ~15MB, low RAM
 ├── Python sidecar (FastAPI) — business logic, agents
 ├── SQLite / PostgreSQL — local-first data
 ├── Ollama integration — local LLMs
 └── System tray + global shortcuts (⌘K, ⌘Space)
 ```
 
-**Why Tauri?** Native performance, small bundle (~15MB), uses system WebView, better security than Electron.
-
 ---
 
-## 📱 Android: OWNEX Companion
+## 📱 OWNEX Companion (Android)
 
-Not a reduced clone. A **tactile companion** for rapid decisions:
+Tactile companion for rapid decisions — not a reduced clone:
 
 - 🔔 Critical notifications (findings, approvals, errors)
-- ✅ One-tap approvals ("Start cycle", "Submit report", "Accept risk")
+- ✅ One-tap approvals ("Start cycle", "Submit report")
 - 🎯 Mobile Opportunity Radar (top 5, swipe actions)
 - 🤖 Compact Agent Fleet status
-- 💰 Vault/Wallet: balance, pending payouts
+- 💰 Vault: balance, pending payouts
 - 📊 System health at a glance
 
 ---
 
-## ⌚ Wear OS: OWNEX Watch
+## ⌚ OWNEX Watch (Wear OS)
 
 Command center on your wrist:
 
 - 🟢 ORION Online / 🔴 Offline at a glance
 - ⚡ Quick actions: approve, escalate, snooze
 - 📈 N workflows active, M approvals pending
-- 🔔 Silent critical alerts (vibration pattern)
+- 🔔 Silent critical alerts (vibration patterns)
 - 🔗 Syncs with Companion via Bluetooth
 
 ---
 
-## 📦 Core Work Cycles (Built-in Apps)
+## 📸 System Preview
 
-| Cycle | What It Does | Revenue |
+| Dashboard | Scheduler | Discovery |
 |---|---|---|
-| **🔨 Forge** | Bug bounty operations on 8+ platforms | Findings → Bounties |
-| **📡 Pulse** | Survey platforms (Outlier, DataAnnotation, etc.) | Task payouts |
-| **🏦 Vault** | Crypto, DeFi, portfolio management | Yield, trading |
-| **🗺️ Atlas** | Recon, intelligence, opportunity discovery | Data value |
-| **🏢 Enterprise** | Freelancer, LinkedIn, Upwork (coming) | Service income |
+| ![Mission Control](docs/screenshots/3_mission_control.svg) | ![Scheduler](docs/screenshots/1_scheduler_dashboard.svg) | ![Forge](docs/screenshots/2_forge_bounty_discovery.svg) |
 
-Each cycle is a self-contained app with its own adapters, scoring, and scheduling.
+| Security Cycle | Wealth & Health | AI Coder |
+|---|---|---|
+| ![Security Cycle](docs/screenshots/4_security_cycle.svg) | ![Vault Atlas](docs/screenshots/5_vault_atlas_health.svg) | ![CoderAgent](docs/screenshots/6_coder_agent_pipeline.svg) |
 
 ---
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Requirements
 
-- **Node.js 20+**, **Rust 1.75+**, **Python 3.11+**
-- **Ollama** (for local LLMs): `curl -fsSL https://ollama.ai/install.sh | sh`
+| Requirement | Purpose |
+|---|---|
+| **Email** | Daily management, notifications |
+| **Platform accounts** | Where you execute work (register directly) |
+| **DNI / Tax ID** | Only for withdrawals & KYC on each platform |
+| **Python 3.11+** | Backend runtime |
+| **Node.js 20+** | Frontend development |
+| **Ollama** (optional) | Local LLMs: `curl -fsSL https://ollama.ai/install.sh \| sh` |
 
-### Development
+### One-Command Install
+
+```bash
+bash <(curl -sSf https://raw.githubusercontent.com/yourusername/ownex/main/install.sh)
+```
+
+### Manual Setup
 
 ```bash
 # Clone
 git clone https://github.com/yourusername/ownex.git
 cd ownex
 
+# Backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python run.py --scheduler
+
 # Frontend
 cd frontend
 npm install
-npm run dev          # http://localhost:5173
+npm run dev           # → http://localhost:5173
 
-# Tauri (in another terminal)
-cd src-tauri
-cargo tauri dev
-
-# Python backend
-cd python
-pip install -r requirements.txt
-python main.py       # http://localhost:8000
+# API Server
+uvicorn api.main:app --reload --port 8000
 ```
 
-### Build Release
+### Verify Installation
 
 ```bash
-# Frontend build
-cd frontend && npm run build
-
-# Tauri build (all platforms)
-cd src-tauri && cargo tauri build
-
-# Output: src-tauri/target/release/bundle/
+python -m core.scripts.verify_system --verbose
 ```
 
 ---
 
-## 📸 Screenshots
-
-### System Architecture
-![ORION Architecture](docs/screenshots/system-architecture.svg)
-
-### Scheduler Dashboard
-![Scheduler Dashboard](docs/screenshots/1_scheduler_dashboard.svg)
-
-### Forge — Bounty Discovery
-![Forge Bounty Discovery](docs/screenshots/2_forge_bounty_discovery.svg)
-
-### Mission Control
-![Mission Control](docs/screenshots/3_mission_control.svg)
-
-### Security Cycle
-![Security Cycle](docs/screenshots/4_security_cycle.svg)
-
-### Vault & Atlas — Wealth & Health
-![Vault Atlas Health](docs/screenshots/5_vault_atlas_health.svg)
-
-### CoderAgent — AI Autonomous Developer
-![CoderAgent Pipeline](docs/screenshots/6_coder_agent_pipeline.svg)
-
----
-
-## 📁 Project Structure
+## 🏗️ Architecture
 
 ```
 ownex/
-├── .github/                    # CI/CD, workflows
-├── brand/ownex/                # Design system assets
-│   ├── design-tokens.css       # CSS variables (source of truth)
-│   ├── logo-mark.svg           # Isotipo
-│   ├── logo-horizontal.svg     # Logotipo
-│   └── favicon.svg             # 64x64
-├── docs/
-│   ├── OWNEX_DESIGN_SYSTEM.md  # Complete design spec
-│   └── screenshots/            # Screenshots & demo GIFs
-├── frontend/                   # Vue 3 app
-│   ├── src/
-│   │   ├── components/         # UI primitives + compound
-│   │   ├── pages/              # MissionControl, Security, Forge...
-│   │   ├── stores/             # Pinia (cycles, agents, vault...)
-│   │   ├── services/           # API, Tauri IPC, WebSocket
-│   │   ├── composables/        # useAgents, useCycles, useCmd
-│   │   └── styles/             # ownex-tokens.css + tailwind
-│   ├── index.html
-│   ├── vite.config.ts
-│   └── package.json
-├── python/                     # FastAPI backend
-│   ├── main.py                 # Entry point + lifespan
-│   ├── api/                    # Routers
-│   ├── core/                   # Domain logic (cycles, agents...)
-│   │   ├── cycles/             # Forge, Pulse, Vault, Atlas
-│   │   ├── agents/             # Agent definitions + executors
-│   │   ├── marketplace/        # Opportunity discovery + scoring
-│   │   └── scheduler/          # Job scheduling
-│   ├── cores/                  # Shared infrastructure (events, config...)
-│   └── tests/
-├── src-tauri/                  # Tauri shell (Rust)
-│   ├── src/main.rs             # System tray, IPC, updater
-│   ├── Cargo.toml
-│   └── tauri.conf.json
-├── .ai/                        # Single source of truth (rules, decisions, state)
-├── AGENTS.md                   # Agent rules (for AI coding agents)
-├── brand/                      # Brand assets (logos, favicon)
-├── docs/                       # Documentation
-├── CHANGELOG.md
-├── ROADMAP.md
-└── README.md                   # ← You are here
+├── api/                       # FastAPI routers (80+ endpoints)
+│   ├── routers/               # Mission Control, Security, Forge...
+│   └── scheduler.py           # 23 jobs, 4 cycles
+├── core/                      # Domain logic
+│   ├── cycles/                # Forge, Pulse, Vault, Atlas, Security
+│   ├── autonomy/              # Workflow engine, coder agent
+│   ├── opportunity/           # Adapters, scoring, executors
+│   └── credentials/           # Vault (api keys, secrets)
+├── frontend/                  # Vue 3 + TypeScript + Tailwind
+│   ├── src/pages/             # MissionControl, Pulse, Dashboard...
+│   └── src/components/        # UI primitives + compound
+├── brand/ownex/               # Logos, design tokens, assets
+├── tests/                     # 2000+ tests
+└── .ai/                       # Single source of truth (rules, decisions, state)
 ```
 
 ---
 
 ## 🤖 AI Integration
 
-OWNEX is designed for **human + AI collaboration**. The system includes:
+OWNEX is designed for **human + AI collaboration**:
 
 - **24/7 autonomous agents** — Forge, Pulse, Vault, Atlas run on schedule
 - **COPILOT** — Context-aware assistant that recommends next actions
 - **Local LLMs** — Ollama integration for privacy-sensitive tasks
-- **Multi-provider** — Fallback chain: Ollama → FCC Proxy → OpenCode free models
+- **Multi-provider failover** — Ollama → FCC Proxy → OpenCode free models
 - **Agent Fleet** — Monitor and direct AI agents from the dashboard
 
 AI agents follow the same work cycles as humans. They discover, score, execute, and report — you approve and collect.
 
 ---
 
-## 🧠 Philosophy: Why OWNEX Exists
+## 📋 Test Suite
 
-Most "productivity tools" are **information graveyards** — they collect data but don't produce outcomes. OWNEX exists because:
+```bash
+# Core tests
+pytest tests/test_executors.py tests/test_coder_agent.py tests/test_workflow_engine.py -q
+→ 111 passed
 
-1. **Bug bounty is fragmented** — 50+ platforms, each with its own UI, notifications, payout schedule. No unified command center.
-2. **Autonomous agents need a home** — AI can work 24/7, but it needs infrastructure: accounts, targets, scopes, reporting.
-3. **Work should be measurable** — Revenue per hour, acceptance rate, EVH per session. Not "lines of code" or "hours logged."
-4. **Barriers should be low** — No portfolio, no interview, no experience gatekeeping. Direct public rewarded work.
-
-OWNEX is the operating system for this new way of working: **autonomous, measured, and outcome-driven**.
+# Full test suite
+pytest tests/ --ignore=tests/test_security.py -q
+→ 2006 passed
+```
 
 ---
 
@@ -265,5 +227,9 @@ Proprietary — All Rights Reserved.
 
 ---
 
-> **OWNEX v4.7.0** — *Autonomous Work Operating Interface*  
-> Built with 🔥 by CATEYE Research
+<p align="center">
+  <img src="brand/ownex/logo-mark.svg" alt="OWNEX" width="64">
+  <br>
+  <b>OWNEX v4.7.0</b> — <i>Autonomous Work Operating Interface</i><br>
+  Built with 🔥 by CATEYE Research
+</p>

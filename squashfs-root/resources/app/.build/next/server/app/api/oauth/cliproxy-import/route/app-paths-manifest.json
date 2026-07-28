@@ -1,0 +1,3 @@
+{
+  "/api/oauth/cliproxy-import/route": "app/api/oauth/cliproxy-import/route.js"
+}

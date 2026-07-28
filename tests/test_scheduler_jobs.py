@@ -1,0 +1,176 @@
+"""Tests for scheduler job definitions — all 4 cycles (Forge, Pulse, Vault, Atlas)."""
+
+from __future__ import annotations
+
+from core.interfaces.scheduler import JobDefinition
+from core.scheduler.jobs import (
+    get_all_jobs,
+    get_atlas_jobs,
+    get_forge_jobs,
+    get_pulse_jobs,
+    get_vault_jobs,
+)
+
+
+def _check_job_structure(job: JobDefinition) -> None:
+    """Verify a job has all required fields."""
+    assert isinstance(job.job_id, str)
+    assert len(job.job_id) > 0
+    assert isinstance(job.app_id, str)
+    assert len(job.app_id) > 0
+    assert isinstance(job.handler, str)
+    assert len(job.handler) > 0
+    assert job.trigger in ("interval", "cron")
+    if job.trigger == "interval":
+        assert isinstance(job.seconds, int)
+        assert job.seconds > 0
+
+
+class TestForgeJobs:
+    def test_returns_list(self):
+        jobs = get_forge_jobs()
+        assert isinstance(jobs, list)
+
+    def test_all_have_valid_structure(self):
+        for job in get_forge_jobs():
+            _check_job_structure(job)
+
+    def test_all_have_forge_app_id(self):
+        for job in get_forge_jobs():
+            assert job.app_id == "forge"
+
+    def test_has_opencollective_discovery(self):
+        ids = [j.job_id for j in get_forge_jobs()]
+        assert "forge_opencollective_discover" in ids
+
+    def test_has_sync_scores_job(self):
+        ids = [j.job_id for j in get_forge_jobs()]
+        assert "forge_sync_scores" in ids
+
+    def test_has_cycle_metadata(self):
+        for job in get_forge_jobs():
+            assert job.metadata.get("cycle") == "forge"
+
+    def test_cron_jobs_have_cron_kwarg(self):
+        for job in get_forge_jobs():
+            if job.trigger == "cron":
+                assert "cron" in job.kwargs.get("kwargs", job.kwargs)
+
+
+class TestPulseJobs:
+    def test_returns_list(self):
+        jobs = get_pulse_jobs()
+        assert isinstance(jobs, list)
+
+    def test_all_have_valid_structure(self):
+        for job in get_pulse_jobs():
+            _check_job_structure(job)
+
+    def test_all_have_pulse_app_id(self):
+        for job in get_pulse_jobs():
+            assert job.app_id == "pulse"
+
+    def test_has_mindrift_fast_job(self):
+        ids = [j.job_id for j in get_pulse_jobs()]
+        assert "pulse_mindrift_fast" in ids
+
+    def test_has_sync_scores_job(self):
+        ids = [j.job_id for j in get_pulse_jobs()]
+        assert "pulse_sync_scores" in ids
+
+    def test_has_orchestrator(self):
+        ids = [j.job_id for j in get_pulse_jobs()]
+        assert "pulse_execute_orchestrator" in ids
+
+    def test_staggered_platforms_have_different_cron(self):
+        jobs = get_pulse_jobs()
+        crons = []
+        for job in jobs:
+            if "discover" in job.job_id:
+                kws = job.kwargs.get("kwargs", job.kwargs)
+                crons.append(kws.get("cron"))
+        crons = [c for c in crons if c is not None]
+        assert len(set(crons)) > 1
+
+
+class TestVaultJobs:
+    def test_returns_list(self):
+        jobs = get_vault_jobs()
+        assert isinstance(jobs, list)
+
+    def test_all_have_valid_structure(self):
+        for job in get_vault_jobs():
+            _check_job_structure(job)
+
+    def test_all_have_vault_app_id(self):
+        for job in get_vault_jobs():
+            assert job.app_id == "vault"
+
+    def test_has_backup_job(self):
+        ids = [j.job_id for j in get_vault_jobs()]
+        assert "vault_backup_2h" in ids
+
+    def test_has_health_job(self):
+        ids = [j.job_id for j in get_vault_jobs()]
+        assert "vault_health_4h" in ids
+
+    def test_backup_handler(self):
+        for job in get_vault_jobs():
+            if job.job_id == "vault_backup_2h":
+                handler_str = str(job.handler)
+                assert "backup_vault" in handler_str
+
+    def test_health_handler(self):
+        for job in get_vault_jobs():
+            if job.job_id == "vault_health_4h":
+                handler_str = str(job.handler)
+                assert "check_secrets_health" in handler_str
+
+
+class TestAtlasJobs:
+    def test_returns_list(self):
+        jobs = get_atlas_jobs()
+        assert isinstance(jobs, list)
+
+    def test_all_have_valid_structure(self):
+        for job in get_atlas_jobs():
+            _check_job_structure(job)
+
+    def test_all_have_atlas_app_id(self):
+        for job in get_atlas_jobs():
+            assert job.app_id == "atlas"
+
+    def test_has_health_job(self):
+        ids = [j.job_id for j in get_atlas_jobs()]
+        assert "atlas_health_5min" in ids
+
+    def test_has_intel_job(self):
+        ids = [j.job_id for j in get_atlas_jobs()]
+        assert "atlas_intel_30min" in ids
+
+
+class TestGetAllJobs:
+    def test_returns_dict_with_four_cycles(self):
+        all_jobs = get_all_jobs()
+        assert set(all_jobs.keys()) == {"forge", "pulse", "vault", "atlas"}
+
+    def test_all_cycles_have_lists(self):
+        for _cycle, jobs in get_all_jobs().items():
+            assert isinstance(jobs, list)
+            assert len(jobs) > 0
+
+    def test_total_jobs_count(self):
+        total = sum(len(jobs) for jobs in get_all_jobs().values())
+        assert total == 23
+
+    def test_all_jobs_have_unique_ids(self):
+        all_ids = []
+        for jobs in get_all_jobs().values():
+            for job in jobs:
+                all_ids.append(job.job_id)
+        assert len(all_ids) == len(set(all_ids))
+
+    def test_all_jobs_have_valid_structure(self):
+        for jobs in get_all_jobs().values():
+            for job in jobs:
+                _check_job_structure(job)

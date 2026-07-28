@@ -1,0 +1,3 @@
+{
+  "/api/tunnels/tailscale/install/route": "app/api/tunnels/tailscale/install/route.js"
+}

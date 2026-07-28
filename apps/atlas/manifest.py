@@ -11,7 +11,7 @@ from .providers import PROVIDERS
 manifest = IAppPlugin(
     id="atlas",
     name="ATLAS",
-    version="0.1.0",
+    version="5.0.0",
     description="Personal Investment Dashboard — stocks, crypto, ETFs, bonds, and DeFi",
     icon="TrendingUp",
     order=2,
@@ -41,7 +41,12 @@ manifest = IAppPlugin(
         {"path": "/atlas/settings", "name": "atlas-settings", "component": "SettingsAtlas"},
     ],
     widgets=[
-        {"id": "atlas-portfolio-value", "label": "Portfolio Value", "icon": "DollarSign", "query": "atlas/portfolio/value"},
+        {
+            "id": "atlas-portfolio-value",
+            "label": "Portfolio Value",
+            "icon": "DollarSign",
+            "query": "atlas/portfolio/value",
+        },
         {"id": "atlas-daily-pnl", "label": "Daily P&L", "icon": "TrendingUp", "query": "atlas/performance/daily"},
         {"id": "atlas-asset-count", "label": "Assets Tracked", "icon": "PieChart", "query": "atlas/assets/count"},
     ],

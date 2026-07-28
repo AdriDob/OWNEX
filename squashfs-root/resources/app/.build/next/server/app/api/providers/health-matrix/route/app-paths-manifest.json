@@ -1,0 +1,3 @@
+{
+  "/api/providers/health-matrix/route": "app/api/providers/health-matrix/route.js"
+}

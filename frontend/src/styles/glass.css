@@ -1,0 +1,117 @@
+/* ════════════════════════════════════════════════════════════
+   GLASS SYSTEM — OWNEX
+   Glassmorphism, backdrop blur, depth layers
+   ══════════════════════════════════════════════════════════ */
+
+:root {
+  --glass-bg: rgba(10, 10, 15, 0.7);
+  --glass-border: rgba(26, 26, 46, 0.6);
+  --glass-blur: 16px;
+  --glass-blur-strong: 24px;
+  --glass-blur-light: 8px;
+
+  --depth-0:  var(--glass-bg);
+  --depth-1:  rgba(5, 5, 5, 0.92);
+  --depth-2:  rgba(10, 10, 15, 0.85);
+  --depth-3:  rgba(5, 5, 5, 0.95);
+
+  --depth-shadow-0: none;
+  --depth-shadow-1: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --depth-shadow-2: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --depth-shadow-3: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Glass Panel Levels ── */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+}
+
+.glass-panel-strong {
+  background: rgba(5, 5, 5, 0.92);
+  backdrop-filter: blur(var(--glass-blur-strong));
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong));
+  border: 1px solid rgba(26, 26, 46, 0.8);
+}
+
+.glass-panel-light {
+  background: rgba(10, 10, 15, 0.5);
+  backdrop-filter: blur(var(--glass-blur-light));
+  -webkit-backdrop-filter: blur(var(--glass-blur-light));
+  border: 1px solid rgba(26, 26, 46, 0.3);
+}
+
+/* ── Depth Layer Mapping ── */
+.depth-layer {
+  position: relative;
+}
+
+.depth-0  { background: transparent; }
+.depth-1  { background: var(--depth-1); }
+.depth-2  { background: var(--depth-2); }
+.depth-3  { background: var(--depth-3); }
+
+/* Elevation shadows */
+.shadow-depth-1 { box-shadow: var(--depth-shadow-1); }
+.shadow-depth-2 { box-shadow: var(--depth-shadow-2); }
+.shadow-depth-3 { box-shadow: var(--depth-shadow-3); }
+
+/* ── Startup Layer (fullscreen, temporary) ── */
+.splash-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: opacity;
+  transform: translateZ(0);
+}
+
+/* ── Dashboard Layer (behind splash until transition) ── */
+.dashboard-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  overflow-y: auto;
+  opacity: 0;
+  transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
+  transform: translateZ(0);
+}
+
+.dashboard-layer.visible {
+  opacity: 1;
+}
+
+/* ── Status bar (persistent overlay) ── */
+.status-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(5, 5, 5, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
+  height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+/* ── Reduce blur on low-performance devices ── */
+@media (prefers-reduced-motion: reduce) {
+  .glass-panel,
+  .glass-panel-strong,
+  .glass-panel-light,
+  .splash-layer,
+  .status-bar {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

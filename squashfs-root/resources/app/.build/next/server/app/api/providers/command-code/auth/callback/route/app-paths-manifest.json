@@ -1,0 +1,3 @@
+{
+  "/api/providers/command-code/auth/callback/route": "app/api/providers/command-code/auth/callback/route.js"
+}

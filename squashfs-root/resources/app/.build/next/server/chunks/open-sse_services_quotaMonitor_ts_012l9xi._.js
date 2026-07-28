@@ -1,0 +1,3 @@
+module.exports=[203198,t=>{"use strict";var o=t.i(95360),r=t.i(190134);t.s(["clearQuotaMonitors",()=>o.clearQuotaMonitors,"getActiveMonitorCount",()=>o.getActiveMonitorCount,"getQuotaMonitorSnapshot",()=>o.getQuotaMonitorSnapshot,"getQuotaMonitorSnapshots",()=>o.getQuotaMonitorSnapshots,"getQuotaMonitorSummary",()=>o.getQuotaMonitorSummary,"isQuotaMonitorEnabled",()=>o.isQuotaMonitorEnabled,"registerMonitorFetcher",()=>o.registerMonitorFetcher,"registerQuotaFetcher",()=>r.registerQuotaFetcher,"startQuotaMonitor",()=>o.startQuotaMonitor,"stopQuotaMonitor",()=>o.stopQuotaMonitor])}];
+
+//# sourceMappingURL=open-sse_services_quotaMonitor_ts_012l9xi._.js.map

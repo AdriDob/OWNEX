@@ -1,0 +1,3 @@
+{
+  "/api/settings/purge-quota-snapshots/route": "app/api/settings/purge-quota-snapshots/route.js"
+}

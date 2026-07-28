@@ -1,0 +1,3 @@
+{
+  "/api/oauth/[provider]/paste-credentials/route": "app/api/oauth/[provider]/paste-credentials/route.js"
+}

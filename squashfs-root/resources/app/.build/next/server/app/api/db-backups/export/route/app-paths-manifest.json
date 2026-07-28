@@ -1,0 +1,3 @@
+{
+  "/api/db-backups/export/route": "app/api/db-backups/export/route.js"
+}

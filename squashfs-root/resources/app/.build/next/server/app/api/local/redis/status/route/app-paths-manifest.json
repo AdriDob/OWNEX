@@ -1,0 +1,3 @@
+{
+  "/api/local/redis/status/route": "app/api/local/redis/status/route.js"
+}

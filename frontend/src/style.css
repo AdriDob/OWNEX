@@ -15,10 +15,10 @@
   --color-muted: #52525b;
   --color-muted-foreground: #8b8b95;
   --color-foreground: #f0f0f0;
-  --color-primary: #3b82f6;
+  --color-primary: #0070d1;
   --color-primary-foreground: #eff6ff;
-  --color-accent: #60a5fa;
-  --color-accent-foreground: #1e3a5f;
+  --color-accent: #0070d1;
+  --color-accent-foreground: #e0f0ff;
   --color-destructive: #ef4444;
   --color-warning: #f59e0b;
   --color-success: #22c55e;
@@ -30,11 +30,12 @@
   --color-synack: #1e88e5;
   --color-yeswehack: #ff6b6b;
 
-  --color-cycle-security: #3b82f6;
+  --color-cycle-security: #0070d1;
   --color-cycle-forge: #a855f7;
   --color-cycle-pulse: #22c55e;
   --color-cycle-vault: #f59e0b;
   --color-cycle-atlas: #e2e8f0;
+  --color-cycle-odyssey: #f97316;
 
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
@@ -47,6 +48,7 @@
 [data-cycle="pulse"] { --cycle-color: var(--color-cycle-pulse); }
 [data-cycle="vault"] { --cycle-color: var(--color-cycle-vault); }
 [data-cycle="atlas"] { --cycle-color: var(--color-cycle-atlas); }
+[data-cycle="odyssey"] { --cycle-color: var(--color-cycle-odyssey); }
 
 [data-accent="default"] { }
 [data-accent="gold"] {
@@ -97,8 +99,23 @@
 }
 
 /* ════════════════════════════════════════════════════════════
-   UTILITY LAYER — OWNEX Design Language
-   ══════════════════════════════════════════════════════════ */
+   PS5 × STEAM BIG PICTURE — Splash Screen Tokens
+   ════════════════════════════════════════════════════════════ */
+.splash-bg {
+  --splash-bg: #030303;
+  --splash-glow-color: rgba(59, 130, 246, 0.15);
+  --splash-glow-radius: 400px;
+  --splash-logo-size: 80px;
+  --splash-title-size: 2.5rem;
+  --splash-subtitle-size: 0.75rem;
+  --splash-title-weight: 700;
+  --splash-title-tracking: 0.35em;
+  --splash-progress-bar: #3b82f6;
+  --splash-progress-bg: rgba(59, 130, 246, 0.1);
+  --splash-text: #f0f0f0;
+  --splash-text-muted: #6b7280;
+  --splash-particle-color: rgba(59, 130, 246, 0.3);
+}
 @layer utilities {
   /* ── Card base (clean, minimal) ── */
   .card-base {
@@ -106,6 +123,7 @@
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--color-border);
+    border-radius: 16px;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
   .card-base:hover {
@@ -277,6 +295,10 @@
   .cycle-badge-atlas {
     background: rgba(226, 232, 240, 0.1);
     color: #cbd5e1;
+  }
+  .cycle-badge-odyssey {
+    background: rgba(249, 115, 22, 0.15);
+    color: #fb923c;
   }
 
   /* ── Staggered list ── */

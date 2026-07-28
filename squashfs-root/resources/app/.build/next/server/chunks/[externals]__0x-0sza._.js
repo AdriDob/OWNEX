@@ -1,0 +1,3 @@
+module.exports=[59639,(e,r,s)=>{r.exports=e.x("node:process",()=>require("node:process"))},449719,(e,r,s)=>{r.exports=e.x("assert",()=>require("assert"))},870722,(e,r,s)=>{r.exports=e.x("tty",()=>require("tty"))},509656,(e,r,s)=>{r.exports=e.x("node:tty",()=>require("node:tty"))},679594,(e,r,s)=>{r.exports=e.x("dns",()=>require("dns"))},755004,(e,r,s)=>{r.exports=e.x("tls",()=>require("tls"))},99348,(e,r,s)=>{r.exports=e.x("string_decoder",()=>require("string_decoder"))}];
+
+//# sourceMappingURL=%5Bexternals%5D__0x-0sza._.js.map

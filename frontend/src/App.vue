@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationsStore } from '@/stores/notifications'
@@ -181,7 +181,7 @@ onUnmounted(() => {
         />
       </div>
       <!-- Bubble -->
-      <AssistantBubble :message="assistant.bubbleMessage.value" @dismiss="assistant.showBubble(null)" />
+      <AssistantBubble :message="assistant.bubbleMessage.value" @dismiss="assistant.showBubble(null as unknown as string)" />
     </template>
   </div>
 </template>

@@ -1,0 +1,3 @@
+{
+  "/api/tools/traffic-inspector/hosts/[host]/route": "app/api/tools/traffic-inspector/hosts/[host]/route.js"
+}

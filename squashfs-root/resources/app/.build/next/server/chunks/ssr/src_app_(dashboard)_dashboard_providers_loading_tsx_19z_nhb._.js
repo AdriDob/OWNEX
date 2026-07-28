@@ -1,0 +1,3 @@
+module.exports=[361234,a=>{"use strict";var b=a.i(187924),c=a.i(831097);a.s(["default",0,function(){return(0,b.jsxs)("div",{className:"space-y-6",role:"status","aria-live":"polite","aria-busy":"true",children:[(0,b.jsx)(c.Skeleton,{className:"h-8 w-48"}),(0,b.jsx)("div",{className:"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4",children:[0,1,2].map(a=>(0,b.jsx)(c.CardSkeleton,{},a))})]})}])}];
+
+//# sourceMappingURL=src_app_%28dashboard%29_dashboard_providers_loading_tsx_19z_nhb._.js.map

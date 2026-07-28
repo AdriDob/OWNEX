@@ -1,0 +1,3 @@
+{
+  "/api/plugins/[name]/deactivate/route": "app/api/plugins/[name]/deactivate/route.js"
+}

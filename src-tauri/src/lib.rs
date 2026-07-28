@@ -30,7 +30,7 @@ pub fn run() {
             {
                 use tauri::menu::PredefinedMenuItem;
 
-                let show = MenuItem::with_id(app, "show", "Mostrar ORION", true, None::<&str>)?;
+                let show = MenuItem::with_id(app, "show", "Mostrar OWNEX", true, None::<&str>)?;
                 let separator = PredefinedMenuItem::separator(app)?;
                 let quit = MenuItem::with_id(app, "quit", "Salir", true, Some("CmdOrCtrl+Q"))?;
 
@@ -39,7 +39,7 @@ pub fn run() {
                 let _tray = TrayIconBuilder::new()
                     .icon(app.default_window_icon().unwrap().clone())
                     .menu(&menu)
-                    .tooltip("ORION — Security Intelligence OS")
+                    .tooltip("OWNEX — Security Intelligence OS")
                     .on_menu_event(move |app, event| match event.id.as_ref() {
                         "show" => {
                             if let Some(window) = app.get_webview_window("main") {

@@ -7,7 +7,7 @@ from core.interfaces.app import IAppPlugin
 manifest = IAppPlugin(
     id="hermes",
     name="MERLIN",
-    version="0.4.0",
+    version="5.0.0",
     description="MERLIN — Automation & Operations Agent: system monitoring, package management, process control, services, files. EventBus integration, permission system, security layer, 14 commands, tool-calling architecture.",
     icon="Bot",
     order=4,

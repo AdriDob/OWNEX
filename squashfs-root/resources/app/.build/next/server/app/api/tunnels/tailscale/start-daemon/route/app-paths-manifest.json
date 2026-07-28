@@ -1,0 +1,3 @@
+{
+  "/api/tunnels/tailscale/start-daemon/route": "app/api/tunnels/tailscale/start-daemon/route.js"
+}

@@ -84,6 +84,7 @@ from api.routers import (
     roi,
     scans,
     screenshots,
+    security_cycle,
     settings_ai,
     settings_runtime,
     settings_unified,
@@ -95,6 +96,7 @@ from api.routers import (
     telegram_bot,
     validation,
     verdicts,
+    version,
     webhooks,
     ws,
     zap,
@@ -152,6 +154,15 @@ async def lifespan(app: FastAPI):
     identity.ensure_identity()
     user_identity = identity.get_identity()
     logger.info("Identity system initialized: %s", user_identity.user_id if user_identity else "unknown")
+
+    # Initialize TempManager
+    try:
+        from core.system.temp_manager import get_temp_manager
+
+        get_temp_manager()
+        logger.info("TempManager initialized")
+    except Exception as exc:
+        logger.warning("TempManager init failed (non-fatal): %s", exc)
 
     # Initialize AuthHub
     try:
@@ -244,6 +255,19 @@ async def lifespan(app: FastAPI):
         logger.info("Scan scheduler started")
     except Exception as exc:
         logger.warning("Scan scheduler failed to start (non-fatal): %s", exc)
+
+    # ── Initialize loop engines ──
+    try:
+        from core.loop.startup import init_loop_engines
+
+        result = init_loop_engines(scheduler=scheduler, event_bus=bus)
+        logger.info(
+            "Loop engines: %d registered, %d errors",
+            len(result["registered"]),
+            len(result["errors"]),
+        )
+    except Exception as exc:
+        logger.warning("Loop engines init failed (non-fatal): %s", exc)
 
     # Start background notification poller
     try:
@@ -1217,10 +1241,14 @@ app.include_router(hunt.router)
 app.include_router(hunter.router)
 app.include_router(recon.router)
 app.include_router(telegram_bot.router)
+app.include_router(version.router)
 app.include_router(intel.router)
 app.include_router(ai_security.router)
 app.include_router(opportunity_score.router)
 app.include_router(report_pipeline.router)
+
+# Security Cycle router
+app.include_router(security_cycle.router)
 
 # ── ORION Platform: core + app routers ──
 try:
@@ -1298,7 +1326,7 @@ def _get_db_size_mb() -> float:
 
 @app.get("/api/version")
 async def version():
-    return {"version": APP_VERSION, "app": "CATEYE API", "build": None}
+    return {"version": APP_VERSION, "app": "OWNEX API", "build": "4.6.0"}
 
 
 @app.get("/api/stats")
