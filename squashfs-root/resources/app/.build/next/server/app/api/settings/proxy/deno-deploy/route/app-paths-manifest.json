@@ -1,0 +1,3 @@
+{
+  "/api/settings/proxy/deno-deploy/route": "app/api/settings/proxy/deno-deploy/route.js"
+}

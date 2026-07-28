@@ -1,0 +1,148 @@
+/* ════════════════════════════════════════════════════════════
+   MOTION SYSTEM — OWNEX
+   Physics-based animations, GPU compositing, accessibility
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Motion-safe / reduce guard ── */
+@media (prefers-reduced-motion: reduce) {
+  .motion-safe {
+    animation: none !important;
+    transition: none !important;
+  }
+  .motion-reduce-instant {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .motion-reduce-hidden {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ── GPU acceleration hints (apply to animated containers) ── */
+.gpu-layer {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ── Spring presets (used by Motion One composables) ── */
+:root {
+  --spring-snappy:    stiffness 200 damping 20 mass 0.5;
+  --spring-gentle:    stiffness 120 damping 14 mass 1;
+  --spring-bouncy:    stiffness 100 damping 8  mass 1;
+  --spring-liquid:    stiffness 80  damping 12 mass 1.2;
+  --spring-stiff:     stiffness 300 damping 30 mass 0.8;
+  --spring-loading:   stiffness 150 damping 18 mass 1;
+}
+
+/* ── Startup sequence timings (CSS reference only; JS controls) ── */
+@keyframes splash-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes splash-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes logo-draw {
+  from { stroke-dashoffset: 200; }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes particle-drift {
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(-120px) translateX(40px) scale(0.3); opacity: 0; }
+}
+
+/* ── Dashboard reveal ── */
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.card-enter {
+  animation: card-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Count-up entrance ── */
+@keyframes count-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.count-in {
+  animation: count-in 0.4s ease-out both;
+}
+
+/* ── Counter digit scroll effect ── */
+.digit-roll-enter {
+  transform: translateY(100%);
+  opacity: 0;
+}
+.digit-roll-enter-active {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.2s ease;
+}
+.digit-roll-leave-active {
+  transition: transform 0.3s ease-in, opacity 0.2s ease;
+  position: absolute;
+}
+.digit-roll-leave-to {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+/* ── Service check success swipe ── */
+@keyframes check-swipe {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.check-swipe {
+  animation: check-swipe 0.3s ease-out both;
+}
+
+/* ── Readiness progress ring fill ── */
+@keyframes ring-fill {
+  from { stroke-dashoffset: var(--ring-circumference); }
+  to   { stroke-dashoffset: var(--ring-offset, 0); }
+}
+
+.ring-fill {
+  animation: ring-fill 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Prepare OWNEX button pulse ── */
+@keyframes prepare-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(59, 130, 246, 0);
+  }
+}
+
+.prepare-pulse {
+  animation: prepare-pulse 2s ease-out infinite;
+}

@@ -1,0 +1,3 @@
+{
+  "/api/providers/[id]/param-filters/route": "app/api/providers/[id]/param-filters/route.js"
+}

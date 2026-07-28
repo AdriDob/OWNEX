@@ -1,0 +1,3 @@
+{
+  "/api/settings/proxies/bulk-import/route": "app/api/settings/proxies/bulk-import/route.js"
+}

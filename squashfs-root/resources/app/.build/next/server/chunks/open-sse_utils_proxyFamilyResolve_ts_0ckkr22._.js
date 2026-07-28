@@ -1,0 +1,3 @@
+module.exports=[144480,r=>{"use strict";var e=r.i(300794),o=r.i(345899);let s=r=>e.default.lookup(r,{all:!0});async function t(r,e,a=s){let i;if(null===(0,o.detectIpLiteralFamily)(r)){try{i=await a((0,o.stripIpv6Brackets)(r))}catch(e){throw Error(`[ProxyFamily] DNS resolution failed for ${r}; refusing to egress (fail-closed): ${e instanceof Error?e.message:String(e)}`)}if(!i.some(r=>r.family===e))throw Error(`[ProxyFamily] Proxy host ${r} has no ${6===e?"IPv6 (AAAA)":"IPv4 (A)"} record; refusing ${6===e?"IPv6":"IPv4"}-only egress (fail-closed)`)}}r.s(["assertHostnameSupportsFamily",0,t])}];
+
+//# sourceMappingURL=open-sse_utils_proxyFamilyResolve_ts_0ckkr22._.js.map

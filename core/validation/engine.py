@@ -162,25 +162,23 @@ class ValidationEngine:
         """Ejecuta un ValidationPlan y devuelve el ValidationResult."""
         self._get_adapter()
 
-        all_probes: list[ProbeResult] = []
-        baseline_result: ProbeResult | None = None
-        total_signals: list[str] = []
         evidence_data: dict[str, Any] = {}
 
         # Ejecutar cada probe del plan
         use_probe_engine = self._probe_engine is not None and candidate.original_hypothesis_id
 
         if use_probe_engine:
-            result = self._execute_with_probe_engine(candidate, plan)
-            poc_curl = result.poc_curl
-            poc_python = result.poc_python
+            vr = self._execute_with_probe_engine(candidate, plan)
         else:
-            result = self._execute_with_adapter(candidate, plan)
-            poc_curl = self._generate_poc_curl(candidate, plan)
-            poc_python = self._generate_poc_python(candidate, plan)
-            self._generate_poc_httpie(candidate, plan)
-            self._generate_poc_javascript(candidate, plan)
-            self._generate_poc_burp(candidate, plan)
+            vr = self._execute_with_adapter(candidate, plan)
+
+        all_probes = vr.probes
+        baseline_result = vr.baseline
+        total_signals = vr.total_signals
+
+        # Generate PoC snippets
+        poc_curl = self._generate_poc_curl(candidate, plan)
+        poc_python = self._generate_poc_python(candidate, plan)
 
         # Resumen de evidencia
         evidence_summary = self._build_evidence_summary(candidate, baseline_result, all_probes, total_signals)
@@ -205,6 +203,62 @@ class ValidationEngine:
             poc_httpie="",
             evidence_data=evidence_data,
         )
+
+    def _execute_with_adapter(self, candidate: AttackCandidate, plan: ValidationPlan) -> ValidationResult:
+        """Execute probes using the HTTP adapter and return a ValidationResult."""
+        adapter = self._get_adapter()
+        base_url = candidate.base_url
+        path = candidate.endpoint_path
+        method = candidate.method.upper()
+        url = adapter.build_url(base_url, path)
+
+        probes: list[ProbeResult] = []
+        total_signals: list[str] = []
+        baseline_result: ProbeResult | None = None
+
+        for instruction in plan.probes:
+            headers = instruction.headers or {}
+            params = instruction.params or {}
+            body = instruction.body
+
+            resp = adapter.fire(method, url, headers=headers, params=params, body=body)
+
+            pr = ProbeResult(
+                probe_type=instruction.probe_type,
+                success=resp.success,
+                status_code=resp.status_code,
+                response_time_ms=resp.elapsed_ms,
+                response_size=resp.body_bytes,
+                response_preview=resp.body[:500],
+                headers=dict(resp.headers) if resp.headers else {},
+                error=resp.error,
+            )
+
+            # Detect signals
+            if resp.success and resp.has_data_leak:
+                pr.data_leaked = True
+                total_signals.append(f"Data leak in {instruction.probe_type.value}")
+
+            if not resp.success and resp.error:
+                total_signals.append(f"Connection error in {instruction.probe_type.value}: {resp.error[:100]}")
+
+            probes.append(pr)
+            if instruction.probe_type == ProbeType.BASELINE:
+                baseline_result = pr
+
+        return ValidationResult(
+            attack_candidate_id=candidate.id,
+            validation_plan_id=plan.id,
+            baseline=baseline_result,
+            probes=probes,
+            total_signals=total_signals,
+        )
+
+    def _execute_with_probe_engine(self, candidate: AttackCandidate, plan: ValidationPlan) -> ValidationResult:
+        """Execute probes using the probe engine if available, else fall back to adapter."""
+        if self._probe_engine and hasattr(self._probe_engine, "execute"):
+            return self._probe_engine.execute(candidate, plan)
+        return self._execute_with_adapter(candidate, plan)
 
     # ── Analysis helpers ───────────────────────────────────────
 

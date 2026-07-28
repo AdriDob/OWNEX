@@ -1,0 +1,3 @@
+module.exports=[135192,e=>{"use strict";var t=e.i(254799);async function n(n,r,s){let a=t.default.randomUUID(),c=t.default.pbkdf2Sync(s,"omniroute-federation-salt",12e4,32,"sha256").toString("hex"),{connectServer:o}=await e.A(129271);return o(a,n,r,c),{id:a,name:n,url:r,status:"connected",lastSyncAt:null,errorMessage:null}}async function r(t){let{disconnectServer:n}=await e.A(129271);n(t)}async function s(){let{listServers:t}=await e.A(129271);return t()}e.s(["connectServer",0,n,"disconnectServer",0,r,"listServers",0,s])}];
+
+//# sourceMappingURL=src_lib_gamification_servers_ts_1lzwj9_._.js.map

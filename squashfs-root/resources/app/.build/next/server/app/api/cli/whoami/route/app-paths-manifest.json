@@ -1,0 +1,3 @@
+{
+  "/api/cli/whoami/route": "app/api/cli/whoami/route.js"
+}

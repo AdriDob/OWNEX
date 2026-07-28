@@ -1,0 +1,497 @@
+{
+  "adapters": {
+    "summary": {
+      "total": 20,
+      "passed": 20,
+      "failed": 0,
+      "success_rate": 100.0
+    },
+    "results": {
+      "rastro": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "rastro",
+        "cycle": "security",
+        "error": null,
+        "execution_time_ms": 25
+      },
+      "aegis": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "rastro",
+        "cycle": "security",
+        "error": null,
+        "execution_time_ms": 25
+      },
+      "superteam": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "superteam",
+        "cycle": "forge",
+        "error": null,
+        "execution_time_ms": 222
+      },
+      "opire": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "opire",
+        "cycle": "forge",
+        "error": null,
+        "execution_time_ms": 740
+      },
+      "algora": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "algora",
+        "cycle": "forge",
+        "error": null,
+        "execution_time_ms": 1173
+      },
+      "forge": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "forge",
+        "cycle": "forge",
+        "error": null,
+        "execution_time_ms": 1173
+      },
+      "issuehunt": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "issuehunt",
+        "cycle": "forge",
+        "error": null,
+        "execution_time_ms": 2255
+      },
+      "issuehand": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "issuehand",
+        "cycle": "forge",
+        "error": null,
+        "execution_time_ms": 2436
+      },
+      "opyre": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "opyre",
+        "cycle": "forge",
+        "error": null,
+        "execution_time_ms": 2762
+      },
+      "linkedin": {
+        "status": "PASS",
+        "opportunities_found": 3,
+        "platform": "linkedin",
+        "cycle": "forge",
+        "error": null,
+        "execution_time_ms": 2762
+      },
+      "linkedin_easyapply": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "linkedin_easyapply",
+        "cycle": "pulse",
+        "error": null,
+        "execution_time_ms": 3504
+      },
+      "freelancer": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "freelancer",
+        "cycle": "forge",
+        "error": null,
+        "execution_time_ms": 3889
+      },
+      "freelancer_microtask": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "freelancer_microtask",
+        "cycle": "pulse",
+        "error": null,
+        "execution_time_ms": 4212
+      },
+      "opencollective": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "opencollective",
+        "cycle": "forge",
+        "error": null,
+        "execution_time_ms": 6453
+      },
+      "opencollective_projects": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "opencollective_projects",
+        "cycle": "forge",
+        "error": null,
+        "execution_time_ms": 8465
+      },
+      "outlier": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "outlier",
+        "cycle": "pulse",
+        "error": null,
+        "execution_time_ms": 8556
+      },
+      "dataannotation": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "dataannotation",
+        "cycle": "pulse",
+        "error": null,
+        "execution_time_ms": 8615
+      },
+      "mindrift": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "mindrift",
+        "cycle": "pulse",
+        "error": null,
+        "execution_time_ms": 9171
+      },
+      "remotasks": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "remotasks",
+        "cycle": "pulse",
+        "error": null,
+        "execution_time_ms": 9220
+      },
+      "opyre_microtask": {
+        "status": "PASS",
+        "opportunities_found": 0,
+        "platform": "opyre_microtask",
+        "cycle": "pulse",
+        "error": null,
+        "execution_time_ms": 9276
+      }
+    },
+    "took_seconds": 9.276768922805786
+  },
+  "executors": {
+    "summary": {
+      "total": 5,
+      "passed": 3,
+      "failed": 2,
+      "skipped": 0,
+      "success_rate": 60.0
+    },
+    "results": {
+      "freelancer": {
+        "status": "PASS",
+        "platform": "freelancer",
+        "health_details": {
+          "success": true,
+          "action": "health_check",
+          "target": "freelancer",
+          "message": "freelancer executor healthy",
+          "error": null,
+          "data": null,
+          "created_at": "2026-07-27T20:20:38.819612+00:00"
+        },
+        "execution_time_ms": 9276,
+        "error": null
+      },
+      "algora": {
+        "status": "PASS",
+        "platform": "algora",
+        "health_details": {
+          "success": true,
+          "action": "health_check",
+          "target": "algora",
+          "message": "algora executor healthy",
+          "error": null,
+          "data": null,
+          "created_at": "2026-07-27T20:20:38.819639+00:00"
+        },
+        "execution_time_ms": 9276,
+        "error": null
+      },
+      "mindrift": {
+        "status": "FAIL",
+        "platform": "mindrift",
+        "health_details": {
+          "success": false,
+          "action": "health_check",
+          "target": "https://api.mindrift.io/v1",
+          "message": "",
+          "error": "[Errno -2] Name or service not known",
+          "data": null,
+          "created_at": "2026-07-27T20:20:38.905309+00:00"
+        },
+        "execution_time_ms": 9363,
+        "error": "[Errno -2] Name or service not known"
+      },
+      "opire": {
+        "status": "FAIL",
+        "platform": "opire",
+        "health_details": {
+          "success": false,
+          "action": "health_check",
+          "target": "https://api.opire.dev/v1",
+          "message": "",
+          "error": null,
+          "data": null,
+          "created_at": "2026-07-27T20:20:39.294119+00:00"
+        },
+        "execution_time_ms": 9751,
+        "error": null
+      },
+      "issuehunt": {
+        "status": "PASS",
+        "platform": "issuehunt",
+        "health_details": {
+          "success": true,
+          "action": "health_check",
+          "target": "issuehunt",
+          "message": "issuehunt executor healthy",
+          "error": null,
+          "data": null,
+          "created_at": "2026-07-27T20:20:39.294246+00:00"
+        },
+        "execution_time_ms": 9751,
+        "error": null
+      }
+    },
+    "took_seconds": 9.751532077789307
+  },
+  "engine": {
+    "summary": {
+      "test_performed": "health_check",
+      "result": "PASS"
+    },
+    "results": {
+      "engine_type": "OpportunityOrchestrator",
+      "status": "PASS",
+      "health_details": {
+        "status": "healthy",
+        "components": [
+          {
+            "type": "executor",
+            "platform": "freelancer",
+            "status": "error",
+            "details": "'ExecutionResult' object has no attribute 'get'"
+          },
+          {
+            "type": "executor",
+            "platform": "algora",
+            "status": "error",
+            "details": "'ExecutionResult' object has no attribute 'get'"
+          },
+          {
+            "type": "executor",
+            "platform": "opire",
+            "status": "error",
+            "details": "'ExecutionResult' object has no attribute 'get'"
+          },
+          {
+            "type": "executor",
+            "platform": "issuehunt",
+            "status": "error",
+            "details": "'ExecutionResult' object has no attribute 'get'"
+          },
+          {
+            "type": "executor",
+            "platform": "mindrift",
+            "status": "error",
+            "details": "'ExecutionResult' object has no attribute 'get'"
+          }
+        ]
+      },
+      "forge_adapters_count": 4,
+      "pulse_adapters_count": 5,
+      "forge_executors_count": 4,
+      "pulse_executors_count": 1,
+      "execution_time_ms": 10294,
+      "error": null
+    },
+    "took_seconds": 10.294235706329346
+  },
+  "scheduler": {
+    "summary": {
+      "test_performed": "job_generation",
+      "result": "PASS",
+      "total_jobs": 23,
+      "cycles_match": true
+    },
+    "results": {
+      "forge": {
+        "total_jobs": 9,
+        "jobs": [
+          {
+            "job_id": "forge_opencollective_discover",
+            "app_id": "forge",
+            "trigger": "interval",
+            "handler": "core.opportunity.adapters.forge.opencollective:fetch_opportunities"
+          },
+          {
+            "job_id": "forge_opencollective_projects_discover",
+            "app_id": "forge",
+            "trigger": "interval",
+            "handler": "core.opportunity.adapters.forge.opencollective_projects:fetch_opportunities"
+          },
+          {
+            "job_id": "forge_algora_discover",
+            "app_id": "forge",
+            "trigger": "interval",
+            "handler": "core.opportunity.adapters.forge.algora:fetch_opportunities"
+          },
+          {
+            "job_id": "forge_superteam_discover",
+            "app_id": "forge",
+            "trigger": "interval",
+            "handler": "core.opportunity.adapters.forge.superteam:fetch_opportunities"
+          },
+          {
+            "job_id": "forge_github_sponsors_discover",
+            "app_id": "forge",
+            "trigger": "interval",
+            "handler": "core.opportunity.adapters.forge.github_sponsors:fetch_opportunities"
+          },
+          {
+            "job_id": "forge_freelancer_discover",
+            "app_id": "forge",
+            "trigger": "interval",
+            "handler": "core.opportunity.adapters.forge.freelancer:fetch_opportunities"
+          },
+          {
+            "job_id": "forge_issuehunt_discover",
+            "app_id": "forge",
+            "trigger": "interval",
+            "handler": "core.opportunity.adapters.forge.issuehunt:fetch_opportunities"
+          },
+          {
+            "job_id": "forge_opire_discover",
+            "app_id": "forge",
+            "trigger": "interval",
+            "handler": "core.opportunity.adapters.forge.opire:fetch_opportunities"
+          },
+          {
+            "job_id": "forge_sync_scores",
+            "app_id": "forge",
+            "trigger": "cron",
+            "handler": "core.opportunity.tasks:sync_cycle_scores"
+          }
+        ]
+      },
+      "pulse": {
+        "total_jobs": 10,
+        "jobs": [
+          {
+            "job_id": "pulse_outlier_discover",
+            "app_id": "pulse",
+            "trigger": "cron",
+            "handler": "core.opportunity.engine:OpportunityOrchestrator.execute_cycle"
+          },
+          {
+            "job_id": "pulse_mindrift_discover",
+            "app_id": "pulse",
+            "trigger": "cron",
+            "handler": "core.opportunity.engine:OpportunityOrchestrator.execute_cycle"
+          },
+          {
+            "job_id": "pulse_dataannotation_discover",
+            "app_id": "pulse",
+            "trigger": "cron",
+            "handler": "core.opportunity.engine:OpportunityOrchestrator.execute_cycle"
+          },
+          {
+            "job_id": "pulse_remotasks_discover",
+            "app_id": "pulse",
+            "trigger": "cron",
+            "handler": "core.opportunity.engine:OpportunityOrchestrator.execute_cycle"
+          },
+          {
+            "job_id": "pulse_freelancer_micro_discover",
+            "app_id": "pulse",
+            "trigger": "cron",
+            "handler": "core.opportunity.engine:OpportunityOrchestrator.execute_cycle"
+          },
+          {
+            "job_id": "pulse_linkedin_discover",
+            "app_id": "pulse",
+            "trigger": "cron",
+            "handler": "core.opportunity.engine:OpportunityOrchestrator.execute_cycle"
+          },
+          {
+            "job_id": "pulse_opyre_discover",
+            "app_id": "pulse",
+            "trigger": "cron",
+            "handler": "core.opportunity.engine:OpportunityOrchestrator.execute_cycle"
+          },
+          {
+            "job_id": "pulse_sync_scores",
+            "app_id": "pulse",
+            "trigger": "cron",
+            "handler": "core.opportunity.tasks:sync_cycle_scores"
+          },
+          {
+            "job_id": "pulse_execute_orchestrator",
+            "app_id": "pulse",
+            "trigger": "cron",
+            "handler": "core.opportunity.engine:OpportunityOrchestrator.execute_cycle"
+          },
+          {
+            "job_id": "pulse_mindrift_fast",
+            "app_id": "pulse",
+            "trigger": "cron",
+            "handler": "core.opportunity.executors.mindrift_executor:claim"
+          }
+        ]
+      },
+      "vault": {
+        "total_jobs": 2,
+        "jobs": [
+          {
+            "job_id": "vault_backup_2h",
+            "app_id": "vault",
+            "trigger": "cron",
+            "handler": "core.credentials.vault.backup_vault"
+          },
+          {
+            "job_id": "vault_health_4h",
+            "app_id": "vault",
+            "trigger": "cron",
+            "handler": "core.credentials.health:check_secrets_health"
+          }
+        ]
+      },
+      "atlas": {
+        "total_jobs": 2,
+        "jobs": [
+          {
+            "job_id": "atlas_health_5min",
+            "app_id": "atlas",
+            "trigger": "cron",
+            "handler": "core.orion.health.checker:collect_health_metrics"
+          },
+          {
+            "job_id": "atlas_intel_30min",
+            "app_id": "atlas",
+            "trigger": "cron",
+            "handler": "core.orion.intelligence.collector:collect_intel"
+          }
+        ]
+      },
+      "summary_validation": {
+        "cycles_match": true,
+        "missing_cycles": [],
+        "extra_cycles": [],
+        "total_jobs": 23
+      }
+    },
+    "took_seconds": 10.294376134872437
+  },
+  "summary": {
+    "test_suite": "OWNEX Opportunity Pipeline",
+    "total_tests": 25,
+    "passed_tests": 23,
+    "failed_tests": 2,
+    "skipped_tests": 0,
+    "overall_success_rate": 92.0,
+    "execution_time_seconds": 10.294384002685547,
+    "timestamp": 1785183639.837117
+  }
+}

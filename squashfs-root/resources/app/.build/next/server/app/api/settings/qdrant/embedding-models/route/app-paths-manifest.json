@@ -1,0 +1,3 @@
+{
+  "/api/settings/qdrant/embedding-models/route": "app/api/settings/qdrant/embedding-models/route.js"
+}

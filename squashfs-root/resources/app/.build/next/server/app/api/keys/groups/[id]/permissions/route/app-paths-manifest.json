@@ -1,0 +1,3 @@
+{
+  "/api/keys/groups/[id]/permissions/route": "app/api/keys/groups/[id]/permissions/route.js"
+}

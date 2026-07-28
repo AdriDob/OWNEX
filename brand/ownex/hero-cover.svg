@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600">
+  <defs>
+    <!-- Dark gradient background -->
+    <linearGradient id="heroBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#05060A"/>
+      <stop offset="40%" stop-color="#080B15"/>
+      <stop offset="100%" stop-color="#0A0C18"/>
+    </linearGradient>
+
+    <!-- Grid overlay -->
+    <pattern id="heroGrid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0L0 0 0 32" fill="none" stroke="#1E293B" stroke-width="0.3" opacity="0.4"/>
+    </pattern>
+
+    <!-- Blue glow -->
+    <radialGradient id="heroBlue" cx="30%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.08"/>
+      <stop offset="60%" stop-color="#2563EB" stop-opacity="0.03"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Gold glow -->
+    <radialGradient id="heroGold" cx="70%" cy="50%" r="40%">
+      <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- O letter gradient -->
+    <linearGradient id="heroOGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="50%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+
+    <!-- Gold accent -->
+    <linearGradient id="heroGoldAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#FBBF24"/>
+    </linearGradient>
+
+    <!-- Glow filters -->
+    <filter id="heroGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="heroGlowStrong" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="20" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="600" fill="url(#heroBg)"/>
+  <rect width="1200" height="600" fill="url(#heroGrid)"/>
+  <rect width="1200" height="600" fill="url(#heroBlue)"/>
+  <rect width="1200" height="600" fill="url(#heroGold)"/>
+
+  <!-- Orbital rings -->
+  <ellipse cx="300" cy="300" rx="240" ry="80" fill="none" stroke="#3B82F6" stroke-width="0.6" 
+           transform="rotate(-15 300 300)" opacity="0.15"/>
+  <ellipse cx="300" cy="300" rx="200" ry="65" fill="none" stroke="#60A5FA" stroke-width="0.8"
+           transform="rotate(8 300 300)" opacity="0.2"/>
+  <ellipse cx="300" cy="300" rx="160" ry="52" fill="none" stroke="#93C5FD" stroke-width="1"
+           transform="rotate(-5 300 300)" opacity="0.25"/>
+
+  <!-- Gold accent dots on orbits -->
+  <circle cx="200" cy="220" r="2.5" fill="#F59E0B" opacity="0.5"/>
+  <circle cx="420" cy="360" r="2" fill="#F59E0B" opacity="0.4"/>
+  <circle cx="160" cy="340" r="1.5" fill="#60A5FA" opacity="0.4"/>
+  <circle cx="440" cy="250" r="1.5" fill="#60A5FA" opacity="0.3"/>
+
+  <!-- Radar sweep -->
+  <path d="M300 300 L520 180 A 220 220 0 0 1 540 260 Z" fill="url(#heroGoldAccent)" opacity="0.04"/>
+
+  <!-- Constellation dots -->
+  <g fill="#60A5FA" opacity="0.15">
+    <circle cx="100" cy="130" r="1.2"/>
+    <circle cx="520" cy="460" r="1.2"/>
+    <circle cx="160" cy="470" r="0.8"/>
+    <circle cx="480" cy="120" r="0.8"/>
+    <circle cx="80" cy="340" r="0.7"/>
+    <circle cx="540" cy="280" r="0.7"/>
+  </g>
+  <line x1="100" y1="130" x2="200" y2="220" stroke="#3B82F6" stroke-width="0.3" opacity="0.06"/>
+  <line x1="520" y1="460" x2="420" y2="360" stroke="#3B82F6" stroke-width="0.3" opacity="0.06"/>
+
+  <!-- ═══ MAIN LOGO AREA ═══ -->
+
+  <!-- O letter mark (large) -->
+  <g transform="translate(300,300)" filter="url(#heroGlowStrong)">
+    <circle cx="0" cy="0" r="70" fill="none" stroke="url(#heroOGrad)" stroke-width="6" opacity="0.85"/>
+    <circle cx="0" cy="0" r="70" fill="none" stroke="#FFFFFF" stroke-width="1.5" opacity="0.08"/>
+    <circle cx="0" cy="0" r="42" fill="none" stroke="#60A5FA" stroke-width="1" opacity="0.2"/>
+    <circle cx="50" cy="-50" r="5" fill="url(#heroGoldAccent)" opacity="0.7"/>
+    <circle cx="0" cy="0" r="8" fill="#3B82F6" opacity="0.12"/>
+    <circle cx="0" cy="0" r="4" fill="#60A5FA" opacity="0.5"/>
+    <circle cx="0" cy="0" r="2" fill="#FFFFFF" opacity="0.95"/>
+  </g>
+
+  <!-- OWNEX text -->
+  <text x="700" y="280" 
+        font-family="'Space Grotesk', 'Inter', sans-serif" 
+        font-size="72" 
+        font-weight="700" 
+        fill="#FFFFFF" 
+        letter-spacing="4"
+        filter="url(#heroGlow)">OWNEX</text>
+
+  <!-- Gold underline -->
+  <rect x="700" y="300" width="280" height="3" rx="1.5" fill="url(#heroGoldAccent)" opacity="0.6"/>
+
+  <!-- Subtitle -->
+  <text x="700" y="330" 
+        font-family="'Inter', sans-serif" 
+        font-size="16" 
+        font-weight="500" 
+        fill="#64748B" 
+        letter-spacing="6">AUTONOMOUS WORK OS</text>
+
+  <!-- Tagline -->
+  <text x="700" y="365" 
+        font-family="'Inter', sans-serif" 
+        font-size="14" 
+        fill="#475569"
+        letter-spacing="1">
+    Command center for autonomous income
+  </text>
+
+  <!-- Bottom bar - pill tags -->
+  <g transform="translate(700,420)">
+    <rect x="0" y="0" width="100" height="28" rx="14" fill="rgba(59,130,246,0.12)" stroke="#3B82F6" stroke-width="0.8"/>
+    <text x="50" y="19" text-anchor="middle" fill="#60A5FA" font-family="'Inter',sans-serif" font-size="11" font-weight="600">Forge • Pulse</text>
+
+    <rect x="110" y="0" width="100" height="28" rx="14" fill="rgba(245,158,11,0.12)" stroke="#F59E0B" stroke-width="0.8"/>
+    <text x="160" y="19" text-anchor="middle" fill="#FBBF24" font-family="'Inter',sans-serif" font-size="11" font-weight="600">Vault • Atlas</text>
+
+    <rect x="220" y="0" width="90" height="28" rx="14" fill="rgba(16,185,129,0.12)" stroke="#10B981" stroke-width="0.8"/>
+    <text x="265" y="19" text-anchor="middle" fill="#34D399" font-family="'Inter',sans-serif" font-size="11" font-weight="600">Security</text>
+  </g>
+
+  <!-- Version badge bottom-right -->
+  <rect x="1040" y="555" width="130" height="26" rx="13" fill="rgba(148,163,184,0.08)" stroke="#475569" stroke-width="0.5"/>
+  <text x="1105" y="573" text-anchor="middle" fill="#64748B" font-family="'Inter',sans-serif" font-size="10" letter-spacing="2">v4.7.0 • ALPHA</text>
+
+  <!-- Bottom decorative line -->
+  <line x1="50" y1="570" x2="1020" y2="570" stroke="#1E293B" stroke-width="0.5" opacity="0.5"/>
+</svg>

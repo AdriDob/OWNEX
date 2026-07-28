@@ -1,0 +1,3 @@
+module.exports=[836571,t=>{"use strict";t.s(["formatCost",0,function(t){let e=Number(t||0);return Number.isFinite(e)&&0!==e?e<.01?`$${e.toFixed(6)}`:e<1?`$${e.toFixed(4)}`:`$${e.toFixed(2)}`:"$0.00"},"formatResetCountdown",0,function(t){if(!t)return null;let e="number"==typeof t?t:new Date(t).getTime();if(isNaN(e))return null;let o=e-Date.now();if(o<=0)return null;let r=Math.floor(o/1e3),n=Math.floor(r/3600),u=Math.floor(r%3600/60),i=r%60;return n>0?`${n}h ${u}m`:u>0?`${u}m ${i}s`:`${i}s`}])}];
+
+//# sourceMappingURL=src_shared_utils_formatting_ts_04d7a0m._.js.map

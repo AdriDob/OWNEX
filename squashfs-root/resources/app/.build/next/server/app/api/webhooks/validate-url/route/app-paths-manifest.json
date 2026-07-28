@@ -1,0 +1,3 @@
+{
+  "/api/webhooks/validate-url/route": "app/api/webhooks/validate-url/route.js"
+}

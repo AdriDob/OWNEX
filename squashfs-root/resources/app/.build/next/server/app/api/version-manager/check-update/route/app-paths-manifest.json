@@ -1,0 +1,3 @@
+{
+  "/api/version-manager/check-update/route": "app/api/version-manager/check-update/route.js"
+}

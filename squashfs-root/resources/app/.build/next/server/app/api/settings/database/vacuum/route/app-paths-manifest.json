@@ -1,0 +1,3 @@
+{
+  "/api/settings/database/vacuum/route": "app/api/settings/database/vacuum/route.js"
+}

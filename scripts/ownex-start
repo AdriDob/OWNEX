@@ -1,0 +1,195 @@
+#!/usr/bin/env python3
+"""OWNEX Autonomous Startup — boot all subsystems.
+
+Usage:
+    ./scripts/ownex-start              # Full boot
+    ./scripts/ownex-start --api-only   # Only backend API
+    ./scripts/ownex-start --no-scheduler  # API without background scheduler
+
+Performs:
+  1. Check prerequisites (DB, config files)
+  2. Start backend API
+  3. Start scheduler
+  4. Initialize loop engines
+  5. Verify health
+  6. Print dashboard URL
+"""
+
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+API_BASE = os.environ.get("OWNEX_API_BASE", "http://localhost:8000")
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+RED = "\033[91m"
+CYAN = "\033[96m"
+BOLD = "\033[1m"
+RESET = "\033[0m"
+
+PASS = f"{GREEN}✅{RESET}"
+WARN = f"{YELLOW}⚠️ {RESET}"
+FAIL = f"{RED}❌{RESET}"
+INFO = f"{CYAN}ℹ️ {RESET}"
+
+
+def step(name: str) -> None:
+    print(f"\n  {INFO} {BOLD}{name}{RESET}")
+
+
+def ok(msg: str) -> None:
+    print(f"    {PASS} {msg}")
+
+
+def warn(msg: str) -> None:
+    print(f"    {WARN} {msg}")
+
+
+def fail(msg: str) -> None:
+    print(f"    {FAIL} {msg}")
+
+
+def check_prerequisites() -> bool:
+    """Check all prerequisites before starting."""
+    step("Checking prerequisites...")
+
+    # Python
+    py = sys.executable
+    py_ver = f"{sys.version_info.major}.{sys.version_info.minor}"
+    if sys.version_info >= (3, 11):
+        ok(f"Python {py_ver} at {py}")
+    else:
+        fail(f"Python {py_ver} < 3.11 required")
+        return False
+
+    # Virtualenv
+    if hasattr(sys, "real_prefix") or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix):
+        ok("Virtualenv active")
+    else:
+        warn("No virtualenv active")
+
+    # Config directory
+    config_dir = Path.home() / ".config" / "ownex"
+    if config_dir.exists():
+        ok(f"Config dir: {config_dir}")
+    else:
+        warn(f"Config dir not found: {config_dir}")
+
+    # VERSION.txt
+    version_file = PROJECT_DIR / "VERSION.txt"
+    if version_file.exists():
+        version = version_file.read_text().strip()
+        ok(f"Version: {version}")
+    else:
+        fail("VERSION.txt not found!")
+        return False
+
+    # Check for credentials files (don't read content)
+    creds = Path.home() / ".config" / "ownex" / "opportunity.env"
+    if creds.exists():
+        ok(f"Credentials: {creds}")
+    else:
+        warn(f"Credentials not found at {creds}")
+
+    return True
+
+
+def start_backend(no_scheduler: bool = False) -> subprocess.Popen | None:
+    """Start the backend API server."""
+    step("Starting backend API...")
+
+    cmd = [
+        sys.executable,
+        str(PROJECT_DIR / "run.py"),
+    ]
+    if no_scheduler:
+        cmd.append("--no-scheduler")
+
+    try:
+        proc = subprocess.Popen(
+            cmd,
+            cwd=str(PROJECT_DIR),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        ok(f"Backend PID {proc.pid}")
+        return proc
+    except Exception as e:
+        fail(f"Backend failed: {e}")
+        return None
+
+
+def wait_for_api(timeout: int = 30) -> bool:
+    """Wait until API responds."""
+    import json
+    from urllib.request import Request, urlopen
+
+    step(f"Waiting for API at {API_BASE} (timeout={timeout}s)...")
+
+    for i in range(timeout):
+        try:
+            req = Request(f"{API_BASE}/api/health")
+            with urlopen(req, timeout=2) as resp:
+                data = json.loads(resp.read().decode())
+                ok(f"API healthy (attempt {i + 1})")
+                return True
+        except Exception:
+            time.sleep(1)
+
+    fail(f"API not reachable after {timeout}s")
+    return False
+
+
+def print_dashboard() -> None:
+    """Print dashboard URLs."""
+    print(f"\n{BOLD}── Dashboard ────────────────────────────{RESET}")
+    print(f"  🌐 API:         {API_BASE}/docs")
+    print(f"  🖥️  Dashboard:   {API_BASE}/")
+    print(f"  ❤️  Health:      {API_BASE}/api/health")
+    print(f"  📋 Version:     {API_BASE}/api/version")
+    print(f"  🔄 Scheduler:   {API_BASE}/api/scheduler/jobs")
+    print(f"  📊 System:      {API_BASE}/api/system/health")
+    print()
+
+
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="OWNEX Autonomous Startup")
+    parser.add_argument("--api-only", action="store_true", help="Only start backend API")
+    parser.add_argument("--no-scheduler", action="store_true", help="Start API without scheduler")
+    args = parser.parse_args()
+
+    print(f"\n{BOLD}═══ OWNEX Autonomous Startup ═══{RESET}\n")
+
+    # Phase 1: Prerequisites
+    if not check_prerequisites():
+        sys.exit(1)
+
+    # Phase 2: Start backend
+    if args.api_only:
+        proc = start_backend(no_scheduler=True)
+    else:
+        proc = start_backend(no_scheduler=args.no_scheduler)
+
+    if proc is None:
+        sys.exit(1)
+
+    # Phase 3: Wait for API
+    if not wait_for_api():
+        sys.exit(1)
+
+    # Phase 4: Dashboard
+    print_dashboard()
+
+    print(f"  {BOLD}To stop:{RESET} kill {proc.pid} (or Ctrl+C)\n")
+
+
+if __name__ == "__main__":
+    main()

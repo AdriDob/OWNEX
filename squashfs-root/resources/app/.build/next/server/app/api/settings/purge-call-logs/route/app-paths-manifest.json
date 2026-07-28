@@ -1,0 +1,3 @@
+{
+  "/api/settings/purge-call-logs/route": "app/api/settings/purge-call-logs/route.js"
+}

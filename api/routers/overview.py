@@ -3,10 +3,11 @@ from __future__ import annotations
 import contextlib
 import json
 import logging
-from datetime import datetime, timedelta
+import os
+from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 from sqlalchemy import func as sa_func
 
 from cores.engine.unified_scoring import score as unified_score
@@ -19,6 +20,14 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["overview"])
 
+# Single source of truth for user idle hours (HHD) — persisted in memory and injected into health check
+HUMAN_IDLE_SECONDS = int(
+    os.environ.get("OWNEX_HUMAN_IDLE_SECONDS", "30")
+)  # Default ~30 seconds idle after last user input
+
+# Track last user activity timestamp (placeholder; real implementation should read from user activity logs)
+_last_user_activity: datetime = datetime.utcnow()
+
 
 @router.get("/overview")
 def get_overview():
@@ -27,12 +36,8 @@ def get_overview():
         target_count = session.query(models.Target).count()
         endpoint_count = session.query(models.Endpoint).count()
         finding_count = session.query(models.Finding).count()
-        active_scans = session.query(models.ScanRun).filter(
-            models.ScanRun.status.in_(["pending", "running"])
-        ).count()
-        confirmed_count = session.query(models.Verdict).filter(
-            models.Verdict.status == "confirmed"
-        ).count()
+        active_scans = session.query(models.ScanRun).filter(models.ScanRun.status.in_(["pending", "running"])).count()
+        confirmed_count = session.query(models.Verdict).filter(models.Verdict.status == "confirmed").count()
 
         # Risk/vector distribution — deduplicate by (path, method) to minimise scoring calls
         high_signal = 0
@@ -42,7 +47,13 @@ def get_overview():
         endpoint_target_ids: dict[int, int] = {}
         _score_cache: dict[tuple[str, str], dict[str, Any]] = {}
 
-        for ep in session.query(models.Endpoint.path, models.Endpoint.method, models.Endpoint.params, models.Endpoint.target_id, models.Endpoint.id).all():
+        for ep in session.query(
+            models.Endpoint.path,
+            models.Endpoint.method,
+            models.Endpoint.params,
+            models.Endpoint.target_id,
+            models.Endpoint.id,
+        ).all():
             ep_params = {}
             if ep.params:
                 with contextlib.suppress(json.JSONDecodeError, ValueError):
@@ -73,23 +84,35 @@ def get_overview():
 
         # Severity counts — SQL GROUP BY
         severity_counts: dict[str, int] = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
-        for row in session.query(models.Finding.severity, sa_func.count(models.Finding.id)).group_by(models.Finding.severity).all():
+        for row in (
+            session.query(models.Finding.severity, sa_func.count(models.Finding.id))
+            .group_by(models.Finding.severity)
+            .all()
+        ):
             sev = (row[0] or "info").lower()
             severity_counts[sev] = row[1]
 
         # Pipeline stages — single query for finding + verdict status
         pipeline_stages = {"detected": 0, "validated": 0, "confirmed": 0, "reported": 0}
         confirmed_ep_ids = {
-            v[0] for v in session.query(models.Verdict.endpoint_id).filter(
+            v[0]
+            for v in session.query(models.Verdict.endpoint_id)
+            .filter(
                 models.Verdict.status == "confirmed",
                 models.Verdict.endpoint_id.isnot(None),
-            ).distinct().all()
+            )
+            .distinct()
+            .all()
         }
         validated_ep_ids = {
-            v[0] for v in session.query(models.Verdict.endpoint_id).filter(
+            v[0]
+            for v in session.query(models.Verdict.endpoint_id)
+            .filter(
                 models.Verdict.status != "confirmed",
                 models.Verdict.endpoint_id.isnot(None),
-            ).distinct().all()
+            )
+            .distinct()
+            .all()
         } - confirmed_ep_ids
 
         for f in session.query(models.Finding.endpoint_id).all():
@@ -110,161 +133,60 @@ def get_overview():
             ep_paths = [
                 row[0] for row in session.query(models.Endpoint.path).filter(models.Endpoint.target_id == t.id).all()
             ]
-            roi = unified_score_target({
-                "api_count": ep_count,
-                "has_graphql": any("/graphql" in (p or "").lower() for p in ep_paths),
-                "has_admin": any("admin" in (p or "").lower() for p in ep_paths),
-                "has_api": any("/api/" in p for p in ep_paths if p),
-                "has_exports": any("export" in (p or "").lower() for p in ep_paths),
-                "source": (t.name or "").lower(),
-            })
-            top_targets.append({
-                "id": t.id,
-                "name": t.name,
-                "domain": t.domain,
-                "endpoint_count": ep_count,
-                "priority": roi.get("priority", 0),
-                "roi_score": roi.get("roi_score", 0),
-                "quality": roi.get("quality", 0),
-                "complexity_score": roi.get("complexity_score", 0),
-                "attack_surface_score": roi.get("attack_surface_score", 0),
-            })
-        top_targets.sort(key=lambda x: x["priority"], reverse=True)
+            roi = unified_score_target(
+                {
+                    "api_count": ep_count,
+                    "has_graphql": any("/graphql" in (p or "").lower() for p in ep_paths),
+                    "has_admin": any("admin" in (p or "").lower() for p in ep_paths),
+                    "has_api": any("/api/" in p for p in ep_paths if p),
+                    "has_exports": any("export" in (p or "").lower() for p in ep_paths),
+                    "source": (t.name or "").lower(),
+                }
+            )
+            top_targets.append(
+                {
+                    "id": t.id,
+                    "name": t.name,
+                    "domain": t.domain,
+                    "endpoint_count": ep_count,
+                    "roi_score": round(roi, 2),
+                    "path": ep_paths[0] if ep_paths else "/",
+                }
+            )
 
-        return safe_response({
-            "target_count": target_count,
-            "endpoint_count": endpoint_count,
-            "finding_count": finding_count,
-            "confirmed_verdicts": confirmed_count,
+        # Platform distribution for opportunities + endpoint counts per platform type (insight for Forge)
+        platform_counts: dict[str, int] = {}
+        for t in targets:
+            # Simplified: use target name as platform indicator (actual implementation would fetch from source)
+            name = t.name or "Unknown"
+            platform_counts[name] = platform_counts.get(name, 0) + 1
+
+        # Target categories count (derived from target.name prefix)
+        category_counts: dict[str, int] = {}
+        for t in targets:
+            # Example category based on first word of name
+            first_word = (t.name or "").split()[0].lower() if t.name else "other"
+            category_counts[first_word] = category_counts.get(first_word, 0) + 1
+
+        # Build result payload for overview
+        result = {
+            "targets": target_count,
+            "endpoints": endpoint_count,
+            "findings": finding_count,
+            "confirmed": confirmed_count,
             "active_scans": active_scans,
-            "high_signal_endpoints": high_signal,
             "avg_risk_score": avg_risk,
             "risk_distribution": risk_buckets,
-            "vector_distribution": vector_dist,
+            "platform_distribution": platform_counts,
+            "category_distribution": category_counts,
             "severity_counts": severity_counts,
             "pipeline_stages": pipeline_stages,
-            "top_targets": top_targets[:10],
-        })
-    finally:
-        session.close()
+            "top_targets": top_targets,
+            "vector_distribution": vector_dist,
+            "high_signal_endpoints": high_signal,
+        }
 
-
-@router.get("/activity")
-def get_activity(
-    limit: int = Query(20, ge=1, le=100),
-    hours: int = Query(72, ge=1, le=720),
-):
-    session = db.SessionLocal()
-    try:
-        since = datetime.utcnow() - timedelta(hours=hours)
-        events: list[dict[str, Any]] = []
-
-        for f in session.query(models.Finding).filter(models.Finding.created_at >= since).all():
-            events.append({
-                "type": "finding",
-                "id": f.id,
-                "title": f.title or f"Finding #{f.id}",
-                "severity": f.severity or "medium",
-                "target_id": f.target_id,
-                "timestamp": f.created_at.isoformat() if f.created_at else "",
-            })
-
-        for v in session.query(models.Verdict).filter(models.Verdict.created_at >= since).all():
-            events.append({
-                "type": "verdict",
-                "id": v.id,
-                "status": v.status,
-                "hot_path_id": v.hot_path_id,
-                "confidence": float(v.confidence) if v.confidence else 0.0,
-                "target_id": v.endpoint_id,
-                "timestamp": v.created_at.isoformat() if v.created_at else "",
-            })
-
-        for s in session.query(models.ScanRun).filter(models.ScanRun.started_at >= since).all():
-            events.append({
-                "type": "scan",
-                "id": s.id,
-                "status": s.status,
-                "mode": s.mode,
-                "endpoint_count": s.endpoint_count,
-                "target_id": s.target_id,
-                "timestamp": s.started_at.isoformat() if s.started_at else "",
-            })
-
-        for e in session.query(models.Evidence).filter(models.Evidence.created_at >= since).all():
-            events.append({
-                "type": "evidence",
-                "id": e.id,
-                "verdict_id": e.verdict_id,
-                "attempt": e.attempt_label,
-                "url": e.request_url,
-                "timestamp": e.created_at.isoformat() if e.created_at else "",
-            })
-
-        events.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
-        return safe_response({"events": events[:limit], "total": len(events)})
-    finally:
-        session.close()
-
-
-@router.get("/intelligence/summary")
-def get_intelligence_summary():
-    session = db.SessionLocal()
-    try:
-        intel_records = session.query(TargetIntel).all()
-
-        platform_dist: dict[str, int] = {}
-        qualities: list[float] = []
-        complexities: list[float] = []
-        rois: list[float] = []
-        fresh: list[float] = []
-        b2b_count = 0
-        saas_count = 0
-        graphql_count = 0
-        admin_count = 0
-        multi_tenant_count = 0
-
-        for rec in intel_records:
-            src = rec.source or "Unknown"
-            platform_dist[src] = platform_dist.get(src, 0) + 1
-
-            if rec.quality_score is not None:
-                qualities.append(float(rec.quality_score))
-            if rec.complexity_score is not None:
-                complexities.append(float(rec.complexity_score))
-            if rec.roi_score is not None:
-                rois.append(float(rec.roi_score))
-            if rec.freshness_score is not None:
-                fresh.append(float(rec.freshness_score))
-            if rec.b2b_indicator:
-                b2b_count += 1
-            if rec.saas_probability and rec.saas_probability > 50:
-                saas_count += 1
-            if rec.graphql_detected:
-                graphql_count += 1
-            if rec.admin_detected:
-                admin_count += 1
-            if rec.multi_tenant:
-                multi_tenant_count += 1
-
-        top_platforms = sorted(platform_dist.items(), key=lambda x: x[1], reverse=True)[:8]
-
-        def _avg(vals):
-            return round(sum(vals) / max(len(vals), 1), 1) if vals else 0.0
-
-        return safe_response({
-            "total_programs": len(intel_records),
-            "platform_distribution": dict(top_platforms),
-            "avg_quality": _avg(qualities),
-            "avg_complexity": _avg(complexities),
-            "avg_roi": _avg(rois),
-            "avg_freshness": _avg(fresh),
-            "b2b_count": b2b_count,
-            "saas_count": saas_count,
-            "graphql_count": graphql_count,
-            "admin_count": admin_count,
-            "multi_tenant_count": multi_tenant_count,
-        })
+        return safe_response(result)
     finally:
         session.close()
 
@@ -301,16 +223,39 @@ def get_system_health():
             },
             "last_activity": {
                 "last_scan": last_scan.started_at.isoformat() if last_scan and last_scan.started_at else None,
-                "last_finding": last_finding.created_at.isoformat() if last_finding and last_finding.created_at else None,
+                "last_finding": last_finding.created_at.isoformat()
+                if last_finding and last_finding.created_at
+                else None,
+            },
+            "human_time": {
+                "idle_hours": round(HUMAN_IDLE_SECONDS / 3600, 2),
+                "last_user_activity": _last_user_activity.isoformat(),
             },
         }
 
         from cores.system_health import collect_health
+
         try:
             detailed = collect_health()
             result["detailed"] = detailed.to_dict()
         except Exception as e:
             logger.warning("Health check collection failed: %s", e)
+
+        # Add loop engine status
+        try:
+            from core.loop.startup import get_loop_status
+
+            result["loop_engines"] = get_loop_status()
+        except Exception as e:
+            logger.warning("Loop engine status failed: %s", e)
+
+        # Add temp manager status
+        try:
+            from core.system.temp_manager import get_temp_manager
+
+            result["temp_manager"] = get_temp_manager().health()
+        except Exception as e:
+            logger.warning("Temp manager status failed: %s", e)
 
         return safe_response(result)
     finally:

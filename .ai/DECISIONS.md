@@ -355,3 +355,30 @@
   - Cualquier implementación futura debe ajustarse al RFC
   - No se escribe código nuevo, no se añaden dependencias, no hay deuda técnica
 - **Condiciones para reabrir**: Cuando se inicie la Fase 6 de OWNEX, o antes si el sistema empieza a generar más de 10 entradas de conocimiento significativas por día.
+
+## 2026-07-28: Loop Engineering — patrones autónomos como infraestructura de Work Cycles
+
+- **Problema**: Los OWNEX Work Cycles (Security, Forge, Pulse, Vault, Atlas, Odyssey) se ejecutan vía Scheduler pero sin un framework estandarizado de fases, estados, skills, ni OODA loop. Cada ciclo implementa su propia lógica ad-hoc, impidiendo reutilización, auditoría y aprendizaje transversal.
+
+- **Alternativas consideradas**:
+  1. **Integrar loop-engineering como framework de patrones (elegido)** — Adoptar la taxonomía de patrones, fases, skills, y OODA loop del ecosistema https://github.com/cobusgreyling/loop-engineering. Crear un adaptador Python (`core/loop/`) que mapea conceptos de loop-engineering a componentes OWNEX.
+  2. Framework propio desde cero — Duplica trabajo. loop-engineering ya tiene patrones validados (daily-triage, pr-babysitter, ci-sweeper) + CLI tools (loop-init, loop-audit, loop-cost, loop-doctor).
+  3. Sin framework — Status quo. Cada Work Cycle sigue siendo ad-hoc, sin fases comunes, sin OODA loop, sin scoring transversal.
+
+- **Decisión**: Integrar loop-engineering como capa de patrones autónomos. Crear `core/loop/` con:
+  - `models.py`: LoopPattern, Phase, PatternRisk, LoopState, LoopRunResult — dataclasses que modelan patrones de loop-engineering
+  - `engine.py`: LoopEngine — runner con Scheduler + EventBus, ejecuta fases en orden, publica eventos en cada transición
+  - `registry.py`: PatternRegistry + 6 patrones OWNEX (ownex:security, ownex:forge, ownex:pulse, ownex:vault, ownex:atlas, ownex:odyssey)
+  - `startup.py`: init_loop_engines() — wired en api/main.py lifespan, get_loop_status() — expuesto en GET /system/health
+  - 7 SKILL.md: loop-triage + 6 Work Cycles específicos
+
+- **Impacto**:
+  - Cada Work Cycle tiene un LoopPattern con fases definidas, cadencia, risk level, human gates, y budget
+  - El scheduler ejecuta LoopEngine.run() en cada tick del patrón
+  - El EventBus recibe eventos `loop:{pattern}:{phase}` en cada transición
+  - El Health API expone `loop_engines` con estado, score 0-100, última ejecución
+  - Skills OWNEX en `skills/` listos para OpenCode/agentes
+  - 0 regresiones: core/loop/ es aditivo, no modifica nada existente
+  - 650+ líneas Python nuevas, todas lint clean
+
+- **Condiciones para reabrir**: Si loop-engineering publica breaking changes en su CLI/format, o si los patrones existentes requieren nuevas fases (ejecución paralela, sub-loops anidados, triggers externos).

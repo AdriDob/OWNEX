@@ -1,0 +1,3 @@
+{
+  "/api/settings/qdrant/cleanup/route": "app/api/settings/qdrant/cleanup/route.js"
+}

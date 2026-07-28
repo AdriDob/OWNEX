@@ -1,0 +1,3 @@
+{
+  "/api/providers/[id]/claude-auth/apply-local/route": "app/api/providers/[id]/claude-auth/apply-local/route.js"
+}

@@ -1,0 +1,3 @@
+module.exports=[208896,e=>{"use strict";function t(e,r=""){for(let t of e){let e=function(e,t=3){if(!e)return"";let r=e.trim();return r?r.includes("@")?function(e,t=3){if(!e)return"";if(!e.includes("@"))return e;let r=e.lastIndexOf("@"),n=e.slice(0,r),i=e.slice(r+1);if(n.length<=t)return e;let l=n.slice(0,t)+"*".repeat(n.length-t);if(i.length<=t)return`${l}@${i}`;let u="*".repeat(i.length-t)+i.slice(i.length-t);return`${l}@${u}`}(r,t):r:""}(t);if(e)return e}return r}e.s(["pickDisplayValue",0,function(e,r,n=""){if(r){for(let t of e)if(t?.trim())return t.trim();return n}return t(e,n)},"pickMaskedDisplayValue",0,t])}];
+
+//# sourceMappingURL=src_shared_utils_maskEmail_ts_0d_vz2f._.js.map

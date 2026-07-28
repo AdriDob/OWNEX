@@ -1,0 +1,3 @@
+{
+  "/api/tunnels/tailscale/enable/route": "app/api/tunnels/tailscale/enable/route.js"
+}

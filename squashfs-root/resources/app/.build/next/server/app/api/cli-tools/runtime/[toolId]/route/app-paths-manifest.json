@@ -1,0 +1,3 @@
+{
+  "/api/cli-tools/runtime/[toolId]/route": "app/api/cli-tools/runtime/[toolId]/route.js"
+}

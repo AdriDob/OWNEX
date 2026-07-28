@@ -127,6 +127,12 @@ Solo después de que Security Cycle funcione E2E sin intervención.
 | Ruff lint — core/ + api/ 0 errores | ✅ 78→0 |
 | OWNEX Branding + Design System | ✅ Completo |
 | OWNEX Design System Documentation | ✅ `.ai/OWNEX_DESIGN_SYSTEM.md` |
+| **Version Engine** — VERSION.txt 4.6.0 SSOT, ownex-version CLI, /api/version | ✅ 11 fuentes sincronizadas |
+| **Loop Engineering** — core/loop/ (models, engine, registry, startup) | ✅ 6 patrones OWNEX, wiring lifespan+health, 7 SKILL.md |
+| **Temp Manager** — core/system/temp_manager.py | ✅ 5GB quota, per-component cleanup, health API |
+| **Full Automation** — scripts/ownex-health, ownex-start | ✅ E2E health check, autonomous startup |
+| **PS5 Desktop** — Tauri v2 config + PS5 theme | ✅ src-tauri/ actualizado, #0070d1 accent, card-radius 16px |
+| **Code Quality** — ruff core/api/scripts/ | ✅ 0 errores en código nuevo |
 
 ---
 

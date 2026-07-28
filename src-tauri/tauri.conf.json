@@ -1,18 +1,18 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicehash/tauri/dev/crates/tauri-config-schema/schema.json",
-  "productName": "ORION",
-  "version": "4.3.2",
+  "productName": "OWNEX",
+  "version": "4.6.0",
   "identifier": "ai.orion.desktop",
   "build": {
-    "beforeDevCommand": "npm run dev",
+    "beforeDevCommand": "cd frontend && npm run dev",
     "devUrl": "http://localhost:5173",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "cd frontend && npm run build",
     "frontendDist": "../frontend/dist"
   },
   "app": {
     "windows": [
       {
-        "title": "ORION — Security Intelligence OS",
+        "title": "OWNEX — Security Intelligence OS",
         "width": 1400,
         "height": 900,
         "minWidth": 900,
@@ -20,8 +20,9 @@
         "resizable": true,
         "fullscreen": false,
         "center": true,
-        "decorations": false,
-        "transparent": false
+        "decorations": true,
+        "transparent": false,
+        "backgroundColor": "#050505"
       }
     ],
     "security": {

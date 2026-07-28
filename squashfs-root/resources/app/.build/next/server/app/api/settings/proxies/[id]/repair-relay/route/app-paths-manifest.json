@@ -1,0 +1,3 @@
+{
+  "/api/settings/proxies/[id]/repair-relay/route": "app/api/settings/proxies/[id]/repair-relay/route.js"
+}

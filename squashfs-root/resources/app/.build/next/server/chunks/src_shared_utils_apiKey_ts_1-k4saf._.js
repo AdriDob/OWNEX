@@ -1,0 +1,3 @@
+module.exports=[65448,e=>{"use strict";var t=e.i(254799);process.env.API_KEY_SECRET||console.error("[SECURITY] API_KEY_SECRET is not set. API key CRC validation is disabled."),e.s(["generateApiKeyWithMachine",0,function(e){let r,i=t.default.randomBytes(3).toString("hex"),s=(r=function(){let e=process.env.API_KEY_SECRET;if(!e||""===e.trim())throw Error("API_KEY_SECRET is required for API key CRC operations. The startup validator (instrumentation-node.ts) should have set this automatically.");return e}(),t.default.pbkdf2Sync(e+i,r,1e3,32,"sha256").toString("hex").slice(0,8));return{key:`sk-${e}-${i}-${s}`,keyId:i}}])}];
+
+//# sourceMappingURL=src_shared_utils_apiKey_ts_1-k4saf._.js.map

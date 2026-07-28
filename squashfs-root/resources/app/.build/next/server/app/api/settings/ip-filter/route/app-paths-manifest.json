@@ -1,0 +1,3 @@
+{
+  "/api/settings/ip-filter/route": "app/api/settings/ip-filter/route.js"
+}

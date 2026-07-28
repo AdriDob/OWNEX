@@ -2,13 +2,9 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
-
-from core.opportunity.models import PersonalHistory, ScoredOpportunity
-from core.opportunity.scorer import score_opportunity
 
 
 @dataclass
@@ -30,23 +26,24 @@ class RawOpportunity:
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
-class OpportunityAdapter(ABC):
-    """Base class for platform-specific opportunity adapters."""
+class OpportunityAdapter:
+    """Base class for all opportunity adapters."""
 
     platform: str = "unknown"
     cycle: str = "security"
 
-    def __init__(self, config: dict[str, Any] | None = None):
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         self.config = config or {}
         self.enabled = self.config.get("enabled", True)
 
-    @abstractmethod
-    async def fetch_opportunities(self, personal: PersonalHistory | None = None) -> list[RawOpportunity]:
+    async def fetch_opportunities(self, personal: Any | None = None) -> list[RawOpportunity]:
         """Fetch raw opportunities from the platform."""
-        pass
+        raise NotImplementedError(f"{self.platform} adapter not implemented")
 
-    def to_scored(self, raw: RawOpportunity, personal: PersonalHistory | None = None) -> ScoredOpportunity:
+    def to_scored(self, raw: RawOpportunity, personal: Any | None = None) -> ScoredOpportunity:
         """Convert raw opportunity to scored OWNEX opportunity."""
+        from core.opportunity.scorer import score_opportunity
+
         return score_opportunity(
             opp_id=raw.id,
             name=raw.name,
@@ -102,6 +99,7 @@ def get_adapter_registry() -> AdapterRegistry:
 
 def _seed_defaults(registry: AdapterRegistry) -> None:
     """Register built-in adapters (lazy import to avoid circular deps)."""
+    # Security adapters (Rastro)
     try:
         from core.opportunity.adapters.security import SecurityAdapter
 
@@ -109,6 +107,8 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
         registry.register("aegis", SecurityAdapter)
     except ImportError:
         pass
+
+    # Forge adapters (Dev Bounty)
     try:
         from core.opportunity.adapters.forge import (
             AlgoraAdapter,
@@ -120,9 +120,11 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
         registry.register("superteam", SuperteamAdapter)
         registry.register("opire", OpireAdapter)
         registry.register("algora", AlgoraAdapter)
-        registry.register("forge", ForgeAdapter)  # Base adapter
+        registry.register("forge", ForgeAdapter)
     except ImportError:
         pass
+
+    # IssueHunt
     try:
         from core.opportunity.adapters.issuehunt import IssueHandAdapter, IssueHuntAdapter
 
@@ -130,6 +132,8 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
         registry.register("issuehand", IssueHandAdapter)
     except ImportError:
         pass
+
+    # Opire/Opyre
     try:
         from core.opportunity.adapters.opire import OpireAdapter as OpireAdapterNew
         from core.opportunity.adapters.opire import OpyreAdapter
@@ -138,6 +142,8 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
         registry.register("opyre", OpyreAdapter)
     except ImportError:
         pass
+
+    # LinkedIn
     try:
         from core.opportunity.adapters.linkedin import LinkedInEasyApplyAdapter, LinkedInJobsAdapter
 
@@ -145,6 +151,8 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
         registry.register("linkedin_easyapply", LinkedInEasyApplyAdapter)
     except ImportError:
         pass
+
+    # Freelancer
     try:
         from core.opportunity.adapters.freelancer import (
             FreelancerAdapter,
@@ -155,6 +163,8 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
         registry.register("freelancer_microtask", FreelancerMicrotaskAdapter)
     except ImportError:
         pass
+
+    # OpenCollective
     try:
         from core.opportunity.adapters.opencollective import (
             OpenCollectiveAdapter,
@@ -165,36 +175,30 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
         registry.register("opencollective_projects", OpenCollectiveProjectsAdapter)
     except ImportError:
         pass
+
+    # Pulse adapters
     try:
         from core.opportunity.adapters.pulse import (
             DataAnnotationAdapter,
+            FreelancerMicrotaskAdapter,
+            LinkedInEasyApplyAdapter,
             MindriftAdapter,
+            OpyreMicrotaskAdapter,
             OutlierAdapter,
             RemotasksAdapter,
         )
-        from core.opportunity.adapters.pulse import (
-            FreelancerMicrotaskAdapter as FreelancerMicrotaskAdapterPulse,
-        )
-        from core.opportunity.adapters.pulse import (
-            LinkedInEasyApplyAdapter as LinkedInEasyApplyAdapterPulse,
-        )
-        from core.opportunity.executors.mindrift_executor import MindriftExecutor
 
         registry.register("outlier", OutlierAdapter)
         registry.register("dataannotation", DataAnnotationAdapter)
         registry.register("mindrift", MindriftAdapter)
         registry.register("remotasks", RemotasksAdapter)
-        registry.register("freelancer_microtask", FreelancerMicrotaskAdapterPulse)
-        registry.register("linkedin_easyapply", LinkedInEasyApplyAdapterPulse)
-    except ImportError:
-        pass
-    try:
-        from core.opportunity.adapters.opyre import OpyreAdapter, OpyreMicrotaskAdapter
-
-        registry.register("opyre", OpyreAdapter)
+        registry.register("freelancer_microtask", FreelancerMicrotaskAdapter)
+        registry.register("linkedin_easyapply", LinkedInEasyApplyAdapter)
         registry.register("opyre_microtask", OpyreMicrotaskAdapter)
     except ImportError:
         pass
+
+    # Vault adapters
     try:
         from core.opportunity.adapters.vault import VaultAdapter
 
@@ -202,6 +206,8 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
         registry.register("firefly", VaultAdapter)
     except ImportError:
         pass
+
+    # Atlas adapters
     try:
         from core.opportunity.adapters.atlas import AtlasAdapter
 
@@ -228,14 +234,17 @@ def get_adapters() -> dict[str, OpportunityAdapter]:
 
 
 async def fetch_all_opportunities(
-    personal: PersonalHistory | None = None,
+    personal: Any | None = None,
     enabled_only: bool = True,
 ) -> list[ScoredOpportunity]:
     """Fetch opportunities from all enabled adapters."""
+    from core.opportunity.models import ScoredOpportunity
+
     registry = get_adapter_registry()
     all_opportunities: list[ScoredOpportunity] = []
 
-    for platform, adapter_class in registry.enabled() if enabled_only else registry.all().items():
+    items = registry.enabled() if enabled_only else registry.all()
+    for platform, adapter_class in items.items():
         try:
             adapter = adapter_class(config={"enabled": True})
             if not adapter.is_enabled():
@@ -249,3 +258,17 @@ async def fetch_all_opportunities(
             getLogger("ownex.opportunity.adapters").warning("Adapter %s failed: %s", platform, e)
 
     return all_opportunities
+
+
+# Import here to avoid circular imports
+from core.opportunity.models import ScoredOpportunity
+
+__all__ = [
+    "RawOpportunity",
+    "OpportunityAdapter",
+    "AdapterRegistry",
+    "get_adapter_registry",
+    "get_adapters",
+    "fetch_all_opportunities",
+    "ScoredOpportunity",
+]

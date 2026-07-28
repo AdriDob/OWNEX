@@ -1,0 +1,3 @@
+module.exports=[617489,a=>{"use strict";a.s(["getProviderDisplayName",0,function(a,b){if(b?.name?.trim())return b.name.trim();if(b?.prefix?.trim())return b.prefix.trim();if(!a)return"Unknown Provider";let c=a.match(/^(openai|anthropic)-compatible-(?:chat|responses)-[0-9a-f-]{10,}$/i);return c?`Compatible (${c[1]})`:/^anthropic-compatible-cc-[0-9a-f-]{10,}$/i.test(a)?"CC Compatible":a}])}];
+
+//# sourceMappingURL=src_lib_display_names_ts_0we038v._.js.map

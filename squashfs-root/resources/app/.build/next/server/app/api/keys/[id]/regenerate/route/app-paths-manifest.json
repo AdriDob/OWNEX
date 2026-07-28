@@ -1,0 +1,3 @@
+{
+  "/api/keys/[id]/regenerate/route": "app/api/keys/[id]/regenerate/route.js"
+}

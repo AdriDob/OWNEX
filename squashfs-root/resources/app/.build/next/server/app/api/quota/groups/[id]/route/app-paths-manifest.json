@@ -1,0 +1,3 @@
+{
+  "/api/quota/groups/[id]/route": "app/api/quota/groups/[id]/route.js"
+}

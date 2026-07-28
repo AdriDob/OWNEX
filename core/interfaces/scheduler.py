@@ -15,6 +15,7 @@ class JobDefinition:
         handler: Callable[..., Any],
         trigger: str = "interval",
         seconds: int = 3600,
+        metadata: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> None:
         self.job_id = job_id
@@ -23,35 +24,30 @@ class JobDefinition:
         self.trigger = trigger
         self.seconds = seconds
         self.kwargs = kwargs
+        self.metadata = metadata or {}
 
 
 class IScheduler(ABC):
     """Pluggable scheduler — Core orchestrates, apps execute via events."""
 
     @abstractmethod
-    async def start(self) -> None:
-        ...
+    async def start(self) -> None: ...
 
     @abstractmethod
-    async def stop(self) -> None:
-        ...
+    async def stop(self) -> None: ...
 
     @abstractmethod
     def add_job(self, job: JobDefinition) -> str:
         """Register a job. Returns job_id."""
 
     @abstractmethod
-    def remove_job(self, job_id: str) -> bool:
-        ...
+    def remove_job(self, job_id: str) -> bool: ...
 
     @abstractmethod
-    def get_jobs(self, app_id: str | None = None) -> list[JobDefinition]:
-        ...
+    def get_jobs(self, app_id: str | None = None) -> list[JobDefinition]: ...
 
     @abstractmethod
-    def pause_job(self, job_id: str) -> bool:
-        ...
+    def pause_job(self, job_id: str) -> bool: ...
 
     @abstractmethod
-    def resume_job(self, job_id: str) -> bool:
-        ...
+    def resume_job(self, job_id: str) -> bool: ...

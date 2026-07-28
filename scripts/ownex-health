@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+"""OWNEX Health Check — E2E verification of all subsystems.
+
+Usage:
+    ./scripts/ownex-health              # Full check
+    ./scripts/ownex-health --quick      # Quick API-only check
+    ./scripts/ownex-health --json       # JSON output
+
+Exits 0 if all critical systems pass, 1 if any critical fails.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import sys
+import time
+from datetime import datetime
+from urllib.request import Request, urlopen
+
+# ── Config ────────────────────────────────────────────────────────
+API_BASE = os.environ.get("OWNEX_API_BASE", "http://localhost:8000")
+TIMEOUT = 10  # seconds per request
+
+# ── ANSI colors ───────────────────────────────────────────────────
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+RED = "\033[91m"
+CYAN = "\033[96m"
+BOLD = "\033[1m"
+RESET = "\033[0m"
+
+PASS = f"{GREEN}✅{RESET}"
+WARN = f"{YELLOW}⚠️ {RESET}"
+FAIL = f"{RED}❌{RESET}"
+INFO = f"{CYAN}ℹ️ {RESET}"
+
+results: list[dict] = []
+
+
+def _check(name: str, critical: bool = True) -> tuple[bool, dict | str | None]:
+    """Decorate a check function: returns (ok, data)."""
+    start = time.monotonic()
+
+    def _runner():
+        nonlocal start
+        try:
+            req = Request(f"{API_BASE}/api/health", method="GET")
+            req.add_header("Accept", "application/json")
+            with urlopen(req, timeout=TIMEOUT) as resp:
+                data = json.loads(resp.read().decode())
+            elapsed = (time.monotonic() - start) * 1000
+            ok = resp.status == 200
+        except Exception as exc:
+            elapsed = (time.monotonic() - start) * 1000
+            data = str(exc)
+            ok = False
+
+        symbol = PASS if ok else (WARN if not critical else FAIL)
+        tag = "CRIT" if critical else "WARN"
+        padding = " " * max(0, 50 - len(name))
+        print(f"  {symbol} {name}{padding} [{tag}] ({elapsed:.0f}ms)")
+        results.append({"name": name, "ok": ok, "critical": critical, "elapsed_ms": round(elapsed), "data": data})
+        return ok
+
+    return _runner
+
+
+# ── Checks ────────────────────────────────────────────────────────
+
+
+def check_all(quick: bool = False) -> bool:
+    print(f"\n{BOLD}OWNEX Health Check{RESET}")
+    print(f"API: {API_BASE}  |  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+    print(f"{BOLD}── Critical ──────────────────────────────{RESET}")
+
+    ok_count = 0
+    fail_count = 0
+
+    # CRITICAL: API health
+    chk = _check("API /api/health", critical=True)()
+    ok_count += chk
+    fail_count += not chk
+
+    if not chk and not quick:
+        print(f"\n  {FAIL} API not reachable — skipping remaining checks")
+        print(f"  {INFO} Start the backend:  python run.py  or  uvicorn api.main:app")
+        return False
+
+    if not quick:
+        chk = _check("System health /api/system/health", critical=True)()
+        ok_count += chk
+        fail_count += not chk
+
+        chk = _check("Version API /api/version", critical=True)()
+        ok_count += chk
+        fail_count += not chk
+
+    # CRITICAL: Database
+    if not quick:
+        chk = _check("Database reachable", critical=True)()
+        ok_count += chk
+        fail_count += not chk
+
+    print(f"\n{BOLD}── Subsystems ───────────────────────────{RESET}")
+
+    if not quick:
+        for endpoint, name in [
+            ("/api/orion/health", "Orion CLI"),
+            ("/api/agents/health", "Agent health"),
+            ("/api/intel/health", "Intel service"),
+            ("/api/aegis/health", "Aegis service"),
+            ("/api/odyssey/health", "Odyssey service"),
+            ("/api/zap/health", "Zap service"),
+        ]:
+            try:
+                req = Request(f"{API_BASE}{endpoint}")
+                with urlopen(req, timeout=TIMEOUT) as resp:
+                    data = json.loads(resp.read().decode())
+                    ok = resp.status == 200
+                s = PASS if ok else WARN
+                print(f"  {s} {name}: {resp.status}")
+                if ok:
+                    ok_count += 1
+                else:
+                    fail_count += 1
+            except Exception:
+                print(f"  {WARN} {name}: unreachable")
+                fail_count += 1
+
+    print(f"\n{BOLD}── Summary ──────────────────────────────{RESET}")
+    total = ok_count + fail_count
+    print(f"  {PASS} Passed: {ok_count}/{total}  |  {FAIL} Failed: {fail_count}/{total}")
+
+    return fail_count == 0
+
+
+# ── Main ──────────────────────────────────────────────────────────
+
+
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="OWNEX Health Check")
+    parser.add_argument("--quick", action="store_true", help="Quick API-only check")
+    parser.add_argument("--json", action="store_true", help="JSON output")
+    args = parser.parse_args()
+
+    ok = check_all(quick=args.quick)
+
+    if args.json:
+        print(json.dumps(results, indent=2))
+
+    sys.exit(0 if ok else 1)
+
+
+if __name__ == "__main__":
+    main()

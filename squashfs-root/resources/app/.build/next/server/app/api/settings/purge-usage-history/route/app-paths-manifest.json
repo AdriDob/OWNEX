@@ -1,0 +1,3 @@
+{
+  "/api/settings/purge-usage-history/route": "app/api/settings/purge-usage-history/route.js"
+}

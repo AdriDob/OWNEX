@@ -1,0 +1,3 @@
+module.exports=[498309,r=>{"use strict";let t=["coding","fast","cheap","offline","smart","lkgp"];r.s(["VALID_VARIANTS",0,t,"parseAutoPrefix",0,function(r){if("string"!=typeof r||!r.startsWith("auto"))return{valid:!1,error:"Not an auto-prefixed model"};let a=r.split("/");if(1===a.length)if("auto"===a[0])return{valid:!0,variant:void 0};else return{valid:!1,error:"Invalid auto prefix format"};if(2===a.length){if("auto"!==a[0])return{valid:!1,error:"Invalid auto prefix format"};let r=a[1];return""===r||t.includes(r)?{valid:!0,variant:""===r?void 0:r}:{valid:!1,error:`Invalid auto variant: ${r}`}}return{valid:!1,error:"Invalid auto prefix format"}}])}];
+
+//# sourceMappingURL=open-sse_services_autoCombo_autoPrefix_ts_1zobmvp._.js.map

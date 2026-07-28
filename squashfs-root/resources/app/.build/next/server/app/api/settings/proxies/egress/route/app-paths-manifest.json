@@ -1,0 +1,3 @@
+{
+  "/api/settings/proxies/egress/route": "app/api/settings/proxies/egress/route.js"
+}

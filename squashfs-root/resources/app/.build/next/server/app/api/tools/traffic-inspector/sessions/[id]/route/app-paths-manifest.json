@@ -1,0 +1,3 @@
+{
+  "/api/tools/traffic-inspector/sessions/[id]/route": "app/api/tools/traffic-inspector/sessions/[id]/route.js"
+}

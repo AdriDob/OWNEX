@@ -1,0 +1,3 @@
+{
+  "/api/memory/embedding-providers/route": "app/api/memory/embedding-providers/route.js"
+}
