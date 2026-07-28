@@ -70,6 +70,6 @@ class TestUnifiedScoring:
         from api.routers.overview import get_overview
         result = get_overview()
         assert isinstance(result, dict)
-        assert "target_count" in result
-        assert "endpoint_count" in result
+        assert "targets" in result
+        assert "endpoints" in result
         assert "risk_distribution" in result

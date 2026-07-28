@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- OWNEX Logo Mark - Autonomous Work Operating System -->
+  <!-- Concept: Convergence + Navigation Star + Intelligent Core -->
+  <!-- Deep black background -->
+  <rect width="200" height="200" fill="#0B0B0B"/>
+
+  <!-- Outer glow ring (subtle) -->
+  <circle cx="100" cy="100" r="84" fill="none" stroke="url(#outerGlow)" stroke-width="1"/>
+
+  <!-- Core convergence rings -->
+  <circle cx="100" cy="100" r="72" fill="none" stroke="#1A1A2E" stroke-width="1.5"/>
+  <circle cx="100" cy="100" r="56" fill="none" stroke="#1A1A2E" stroke-width="1.5"/>
+
+  <!-- Navigation star / compass rose - 8 points representing 8 directions of opportunity -->
+  <g stroke="#2D7FF9" stroke-width="1.5" fill="none">
+    <!-- Cardinal points -->
+    <path d="M100 28 L100 44"/>
+    <path d="M100 156 L100 172"/>
+    <path d="M28 100 L44 100"/>
+    <path d="M156 100 L172 100"/>
+    <!-- Ordinal points -->
+    <path d="M42 42 L53 53"/>
+    <path d="M147 47 L158 58"/>
+    <path d="M42 158 L53 147"/>
+    <path d="M147 153 L158 142"/>
+  </g>
+
+  <!-- Inner intelligent core - hexagon representing the central node -->
+  <g transform="translate(100, 100)">
+    <polygon points="0,-24 20.8,-12 20.8,12 0,24 -20.8,12 -20.8,-12"
+             fill="none" stroke="#2D7FF9" stroke-width="2"/>
+    <!-- Core center dot -->
+    <circle cx="0" cy="0" r="4" fill="#2D7FF9"/>
+    <!-- Micro convergence lines -->
+    <g stroke="#2D7FF9" stroke-width="1" opacity="0.6">
+      <path d="M0,0 L0,-18"/>
+      <path d="M0,0 L15.6,-9"/>
+      <path d="M0,0 L15.6,9"/>
+      <path d="M0,0 L0,18"/>
+      <path d="M0,0 L-15.6,9"/>
+      <path d="M0,0 L-15.6,-9"/>
+    </g>
+  </g>
+
+  <!-- Golden accent - reward/opportunity indicator -->
+  <circle cx="100" cy="100" r="18" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-dasharray="8 4"/>
+
+  <!-- Top accent marker (gold) -->
+  <circle cx="100" cy="28" r="3" fill="#D4AF37"/>
+
+  <!-- Subtle electric blue accent ring -->
+  <circle cx="100" cy="100" r="88" fill="none" stroke="url(#blueGlow)" stroke-width="0.5" opacity="0.4"/>
+
+  <defs>
+    <!-- Outer glow gradient -->
+    <radialGradient id="outerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2D7FF9" stop-opacity="0"/>
+      <stop offset="70%" stop-color="#2D7FF9" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#2D7FF9" stop-opacity="0.15"/>
+    </radialGradient>
+
+    <!-- Blue glow for accent ring -->
+    <radialGradient id="blueGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2D7FF9" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#2D7FF9" stop-opacity="0.3"/>
+    </radialGradient>
+  </defs>
+</svg>

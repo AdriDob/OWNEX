@@ -164,7 +164,6 @@ async def check_credentials():
         "OPENAI_API_KEY": ("OpenAI", "Model Router tier 1 — GPT-4o, embeddings"),
         "ANTHROPIC_API_KEY": ("Anthropic", "Model Router fallback — Claude Sonnet/Haiku"),
         "OMNIROUTE_API_KEY": ("OmniRoute", "Model Router primary — all providers"),
-
         # ── Tier 2: FORGE — Dev Bounties (unlock Forge Cycle) ──
         "GITHUB_TOKEN": ("GitHub API", "Forge: discover bounties from GitHub issues"),
         "ALGORA_API_KEY": ("Algora.xyz", "Forge: Algora bounties"),
@@ -173,7 +172,6 @@ async def check_credentials():
         "FREELANCER_API_KEY": ("Freelancer.com", "Forge: Freelancer contests"),
         "SUPERTEAM_API_KEY": ("Superteam.fun", "Forge: Superteam bounties"),
         "OPENCOLLECTIVE_API_KEY": ("OpenCollective", "Forge: OpenCollective grants"),
-
         # ── Tier 3: PULSE — AI Work (unlock Pulse Cycle) ──
         "OUTLIER_API_KEY": ("Outlier.ai", "Pulse: AI training tasks"),
         "MINDRIFT_API_KEY": ("Mindrift.io", "Pulse: AI training tasks"),
@@ -181,7 +179,6 @@ async def check_credentials():
         "REMOTASKS_API_KEY": ("Remotasks.com", "Pulse: data tasks"),
         "LINKEDIN_CLIENT_ID": ("LinkedIn", "Pulse: Easy Apply jobs"),
         "LINKEDIN_CLIENT_SECRET": ("LinkedIn", "Pulse: Easy Apply auth"),
-
         # ── Tier 4: VAULT — Bug Bounties (unlock Security Cycle) ──
         "HACKERONE_API_KEY": ("HackerOne", "Security: bug bounty platform"),
         "BUGCROWD_API_KEY": ("Bugcrowd", "Security: bug bounty platform"),
@@ -189,7 +186,6 @@ async def check_credentials():
         "SYNACK_API_KEY": ("Synack", "Security: bug bounty platform"),
         "YESWEHACK_API_KEY": ("YesWeHack", "Security: bug bounty platform"),
         "IMMUNEFI_API_KEY": ("Immunefi", "Security: web3 bug bounty"),
-
         # ── Tier 5: ATLAS — Audits (unlock Atlas Cycle) ──
         "CODE4RENA_API_KEY": ("Code4rena", "Atlas: audit competitions"),
         "CANTINA_API_KEY": ("Cantina.xyz", "Atlas: audit competitions"),
@@ -220,16 +216,55 @@ async def check_credentials():
     # ── Tier-based recommendation ──────────────────────────────────
     print()
     print(f"  {BOLD}Tier-based key setup (add in this order):{RESET}")
-    print(f"  {DIM}┌──────────────────────┬──────────────────────────────────────────────────────────────────────────────┐{RESET}")
+    print(
+        f"  {DIM}┌──────────────────────┬──────────────────────────────────────────────────────────────────────────────┐{RESET}"
+    )
     for tier_name, tier_keys in [
         ("🟢 TIER 1  Model Router", ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "OMNIROUTE_API_KEY"]),
-        ("🔵 TIER 2  Forge Cycle", ["GITHUB_TOKEN", "ALGORA_API_KEY", "OPIRE_API_KEY", "ISSUEHUNT_API_KEY", "FREELANCER_API_KEY", "SUPERTEAM_API_KEY", "OPENCOLLECTIVE_API_KEY"]),
-        ("🟡 TIER 3  Pulse Cycle", ["OUTLIER_API_KEY", "MINDRIFT_API_KEY", "DATAANNOTATION_API_KEY", "REMOTASKS_API_KEY", "LINKEDIN_CLIENT_ID", "LINKEDIN_CLIENT_SECRET"]),
-        ("🔴 TIER 4  Security Cycle", ["HACKERONE_API_KEY", "BUGCROWD_API_KEY", "INTIGRITI_API_KEY", "SYNACK_API_KEY", "YESWEHACK_API_KEY", "IMMUNEFI_API_KEY"]),
+        (
+            "🔵 TIER 2  Forge Cycle",
+            [
+                "GITHUB_TOKEN",
+                "ALGORA_API_KEY",
+                "OPIRE_API_KEY",
+                "ISSUEHUNT_API_KEY",
+                "FREELANCER_API_KEY",
+                "SUPERTEAM_API_KEY",
+                "OPENCOLLECTIVE_API_KEY",
+            ],
+        ),
+        (
+            "🟡 TIER 3  Pulse Cycle",
+            [
+                "OUTLIER_API_KEY",
+                "MINDRIFT_API_KEY",
+                "DATAANNOTATION_API_KEY",
+                "REMOTASKS_API_KEY",
+                "LINKEDIN_CLIENT_ID",
+                "LINKEDIN_CLIENT_SECRET",
+            ],
+        ),
+        (
+            "🔴 TIER 4  Security Cycle",
+            [
+                "HACKERONE_API_KEY",
+                "BUGCROWD_API_KEY",
+                "INTIGRITI_API_KEY",
+                "SYNACK_API_KEY",
+                "YESWEHACK_API_KEY",
+                "IMMUNEFI_API_KEY",
+            ],
+        ),
         ("🟣 TIER 5  Atlas Cycle", ["CODE4RENA_API_KEY", "CANTINA_API_KEY", "SHERLOCK_API_KEY", "CODEHAWKS_API_KEY"]),
     ]:
-        tier_configured = sum(1 for k in tier_keys if k in [v for v in []] or os.environ.get(k) or (_from_env_file(vault_path, k) if vault_path else ""))
-        tier_configured = sum(1 for k in tier_keys if os.environ.get(k) or (_from_env_file(vault_path, k) if vault_path else ""))
+        tier_configured = sum(
+            1
+            for k in tier_keys
+            if k in [v for v in []] or os.environ.get(k) or (_from_env_file(vault_path, k) if vault_path else "")
+        )
+        tier_configured = sum(
+            1 for k in tier_keys if os.environ.get(k) or (_from_env_file(vault_path, k) if vault_path else "")
+        )
         status_icon = "✅" if tier_configured == len(tier_keys) else "🔶" if tier_configured > 0 else "⬜"
         print(f"  │ {status_icon} {tier_name:<30s} │ {tier_configured}/{len(tier_keys)} keys configured{' ' * 50}|")
     print(f"  {DIM}└──────────────────────────────────────────────────────────────────────────────────────┘{RESET}")

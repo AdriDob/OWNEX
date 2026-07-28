@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Import OWNEX Design Tokens - Single Source of Truth */
+@import "./design/tokens.css";
+
 /* ════════════════════════════════════════════════════════════
    OWNEX — Design System
    Premium · Minimalist · Dark Blue

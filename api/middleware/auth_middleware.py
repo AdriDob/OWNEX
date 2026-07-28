@@ -13,6 +13,7 @@ PUBLIC_PATHS: set[str] = {
     "/api/health",
     "/api/agents/health",
     "/api/version",
+    "/api/system/health",
     "/api/docs",
     "/api/openapi.json",
     "/api/redoc",
