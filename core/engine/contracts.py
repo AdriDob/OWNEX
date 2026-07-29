@@ -2,6 +2,7 @@
 
 All engines share these definitions. No ambiguity about types.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -14,6 +15,7 @@ from typing import Any
 @dataclass
 class EngineRegistration:
     """Registered engine in the system."""
+
     name: str
     instance: Any  # Engine instance
     status: str = "created"  # created | initialized | running | stopped | failed

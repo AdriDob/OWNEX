@@ -13,6 +13,7 @@ from typing import Any
 
 from core import OWNEX_DIR
 from core.version import OWNEX_VERSION
+
 logger = logging.getLogger("ownex.core.backup")
 
 BACKUP_DIR = OWNEX_DIR / "backups"

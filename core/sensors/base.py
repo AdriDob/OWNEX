@@ -2,6 +2,7 @@
 
 Every sensor in the Universal Sensor Network inherits from Sensor.
 """
+
 from __future__ import annotations
 
 import logging

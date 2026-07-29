@@ -29,13 +29,15 @@ COOKIE_NAME = "csrf-token"
 HEADER_NAME = "X-CSRF-Token"
 TOKEN_BYTES = 32
 
-EXEMPT_PATHS = frozenset({
-    "/api/health",
-    "/api/license/activate",
-    "/api/auth/login",
-    "/api/auth/register",
-    "/api/auth/desktop-session",
-})
+EXEMPT_PATHS = frozenset(
+    {
+        "/api/health",
+        "/api/license/activate",
+        "/api/auth/login",
+        "/api/auth/register",
+        "/api/auth/desktop-session",
+    }
+)
 
 
 class CSRFMiddleware(BaseHTTPMiddleware):

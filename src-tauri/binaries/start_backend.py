@@ -15,13 +15,13 @@ import sys
 def main():
     """Start the OWNEX API server as a subprocess."""
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.abspath(os.path.join(script_dir, '..', '..'))
+    project_root = os.path.abspath(os.path.join(script_dir, "..", ".."))
 
-    venv_python = os.path.join(project_root, '.venv', 'Scripts' if sys.platform == 'win32' else 'bin', 'python')
-    api_entry = os.path.join(project_root, 'api', 'main.py')
+    venv_python = os.path.join(project_root, ".venv", "Scripts" if sys.platform == "win32" else "bin", "python")
+    api_entry = os.path.join(project_root, "api", "main.py")
 
     if not os.path.exists(api_entry):
-        api_entry = os.path.join(project_root, '_internal', 'api', 'main.py')
+        api_entry = os.path.join(project_root, "_internal", "api", "main.py")
 
     python_exe = venv_python if os.path.exists(venv_python) else sys.executable
 
@@ -52,5 +52,6 @@ def main():
 
     return proc.returncode
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main())

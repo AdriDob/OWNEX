@@ -4,6 +4,7 @@ Multiple observations from different sensors may refer to the same real-world
 entity (bug bounty program, GitHub repo, freelance task, etc.). This engine
 resolves identities across sensors using strategies from exact match → fuzzy match.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -37,12 +38,8 @@ class Entity:
     platform: str = ""
 
     # First and last seen
-    first_observed: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
-    last_observed: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    first_observed: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    last_observed: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     # Statistics
     observation_count: int = 1
@@ -273,12 +270,19 @@ class IdentityEngine(Engine):
                 aliases, tags, estimated_value, entity_status)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
-                entity.id, entity.name, entity.entity_type, entity.canonical_url,
-                entity.platform, entity.first_observed, entity.last_observed,
-                entity.observation_count, entity.confidence,
+                entity.id,
+                entity.name,
+                entity.entity_type,
+                entity.canonical_url,
+                entity.platform,
+                entity.first_observed,
+                entity.last_observed,
+                entity.observation_count,
+                entity.confidence,
                 json.dumps(list(entity.aliases)),
                 json.dumps(list(entity.tags)),
-                entity.estimated_value, entity.entity_status,
+                entity.estimated_value,
+                entity.entity_status,
             ),
         )
 
@@ -288,8 +292,12 @@ class IdentityEngine(Engine):
                (entity_id, observation_id, sensor_id, external_id, fingerprint, observed_at)
                VALUES (?, ?, ?, ?, ?, ?)""",
             (
-                entity.id, observation.id, observation.sensor_id,
-                observation.external_id, fingerprint, observation.observed_at,
+                entity.id,
+                observation.id,
+                observation.sensor_id,
+                observation.external_id,
+                fingerprint,
+                observation.observed_at,
             ),
         )
         self._conn.commit()
@@ -321,11 +329,13 @@ class IdentityEngine(Engine):
                tags = ?, aliases = ?, estimated_value = ?, entity_status = ?
                WHERE id = ?""",
             (
-                entity.last_observed, entity.observation_count,
+                entity.last_observed,
+                entity.observation_count,
                 min(1.0, entity.confidence + 0.05),  # confidence increases with more observations
                 json.dumps(list(entity.tags)),
                 json.dumps(list(entity.aliases)),
-                entity.estimated_value, entity.entity_status,
+                entity.estimated_value,
+                entity.entity_status,
                 entity.id,
             ),
         )
@@ -336,8 +346,12 @@ class IdentityEngine(Engine):
                (entity_id, observation_id, sensor_id, external_id, fingerprint, observed_at)
                VALUES (?, ?, ?, ?, ?, ?)""",
             (
-                entity.id, observation.id, observation.sensor_id,
-                observation.external_id, fingerprint, observation.observed_at,
+                entity.id,
+                observation.id,
+                observation.sensor_id,
+                observation.external_id,
+                fingerprint,
+                observation.observed_at,
             ),
         )
         self._conn.commit()
@@ -386,9 +400,7 @@ class IdentityEngine(Engine):
 
     def get_entity(self, entity_id: str) -> Entity | None:
         """Get entity by ID."""
-        cursor = self._conn.execute(
-            "SELECT * FROM entities WHERE id = ?", (entity_id,)
-        )
+        cursor = self._conn.execute("SELECT * FROM entities WHERE id = ?", (entity_id,))
         return self._row_to_entity(cursor.fetchone())
 
     def get_observations(self, entity_id: str) -> list[Observation]:
@@ -416,12 +428,8 @@ class IdentityEngine(Engine):
 
     def get_statistics(self) -> dict[str, Any]:
         """Get identity resolution statistics."""
-        total_entities = self._conn.execute(
-            "SELECT COUNT(*) FROM entities"
-        ).fetchone()[0]
-        total_observations = self._conn.execute(
-            "SELECT COUNT(*) FROM entity_observations"
-        ).fetchone()[0]
+        total_entities = self._conn.execute("SELECT COUNT(*) FROM entities").fetchone()[0]
+        total_observations = self._conn.execute("SELECT COUNT(*) FROM entity_observations").fetchone()[0]
 
         # Entities with more than 1 observation (resolved pairs)
         resolved = self._conn.execute(

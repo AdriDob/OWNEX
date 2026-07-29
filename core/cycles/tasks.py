@@ -49,18 +49,12 @@ def advance_security_pipeline(*args: Any, **kwargs: Any) -> dict[str, Any]:
 
         if not pending_tasks:
             # All tasks complete or running — check if any running
-            running = (
-                db.query(Task)
-                .filter(Task.cycle_id == cycle.id, Task.status == TaskStatus.RUNNING.value)
-                .first()
-            )
+            running = db.query(Task).filter(Task.cycle_id == cycle.id, Task.status == TaskStatus.RUNNING.value).first()
             if running:
                 return {"status": "in_progress", "current": running.name}
             # Cycle might be done
             completed_count = (
-                db.query(Task)
-                .filter(Task.cycle_id == cycle.id, Task.status == TaskStatus.COMPLETED.value)
-                .count()
+                db.query(Task).filter(Task.cycle_id == cycle.id, Task.status == TaskStatus.COMPLETED.value).count()
             )
             total_count = db.query(Task).filter(Task.cycle_id == cycle.id).count()
             if completed_count == total_count and total_count > 0:
