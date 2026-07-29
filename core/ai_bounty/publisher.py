@@ -22,7 +22,7 @@ class AIBountyEventPublisher:
     def _get_bus(self):
         if self._bus is None:
             try:
-                from core.events.event_bus import get_event_bus
+                from cores.events.event_bus import get_event_bus
 
                 self._bus = get_event_bus()
             except Exception:

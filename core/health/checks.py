@@ -17,7 +17,7 @@ def register_default_checks(center: HealthCenter) -> None:  # noqa: F821
 
     def check_event_bus() -> bool:
         try:
-            from core.events.event_bus import get_event_bus
+            from cores.events.event_bus import get_event_bus
 
             bus = get_event_bus()
             return bus is not None

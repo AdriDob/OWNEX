@@ -5,7 +5,7 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
-from core.events.event_bus import CoreEventBus
+from cores.events.event_bus import CoreEventBus
 from cores.notifications.discord import get_discord_adapter
 
 logger = logging.getLogger("cateye.notifications.event_bridge")

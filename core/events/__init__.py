@@ -12,7 +12,7 @@ from cores.events.correlation import (
     with_correlation_id,
     with_new_correlation_id,
 )
-from core.events.event_bus import CoreEventBus, get_core_event_bus
+from cores.events.event_bus import CoreEventBus, get_core_event_bus
 from cores.events.store import EventStore, get_event_store, reset_event_store
 from cores.events.types import CorrelationId, Decision, EventEnvelope, Events
 
