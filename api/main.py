@@ -100,6 +100,7 @@ from api.routers import (
     terminal_ws,
     validation,
     vault_app,
+    revenue_app,
     verdicts,
     version,
     webhooks,
@@ -134,10 +135,11 @@ async def lifespan(app: FastAPI):
     # Initialize event bus and system state
     # ── Initialize Event Bus (persistent core) ─────────────────────────────────
     from cores.events.event_bus import get_event_bus
+
     bus = get_event_bus()
 
     # Legacy bridge: disable for unified EventBus (CoreEventBus is deprecated)
-    if hasattr(bus, 'disable_bridge'):
+    if hasattr(bus, "disable_bridge"):
         bus.disable_bridge()
 
     # Check product behavior rules
@@ -357,10 +359,12 @@ async def lifespan(app: FastAPI):
 
     # Wire IntelligentNotificationManager -> EventBus
     try:
-        from cores.events.event_bus import get_event_bus
         from core.notifications.intelligent import get_intelligent_notifier
+        from cores.events.event_bus import get_event_bus
+
         bus = get_event_bus()
         notifier = get_intelligent_notifier()
+
         def _smart_notify(event_type: str, data: dict | None = None) -> None:
             notifier.route_to_user(event_type, data or {})
 
@@ -753,8 +757,8 @@ async def lifespan(app: FastAPI):
     try:
         from core.app_registry import get_app_registry
         from core.database.manager import get_db_manager
-        from cores.events.event_bus import get_event_bus
         from core.scheduler.scheduler import JobDefinition, get_core_scheduler
+        from cores.events.event_bus import get_event_bus
 
         registry = get_app_registry()
         registry.discover()
@@ -767,6 +771,15 @@ async def lifespan(app: FastAPI):
             logger.info("[BOOT] Registered %d capability entries", registered)
         except Exception as exc:
             logger.warning("Capability registration failed (non-fatal): %s", exc)
+
+        # ── OWNEX Revenue Engine: startup ──
+        try:
+            from core.revenue.engine import RevenueEngine
+
+            revenue_engine = RevenueEngine()
+            logger.info("[BOOT] Revenue Engine ready")
+        except Exception as exc:
+            logger.warning("Revenue Engine init failed (non-fatal): %s", exc)
 
         dbm = get_db_manager()
 
@@ -1242,6 +1255,7 @@ app.include_router(forge_app.router)
 app.include_router(pulse_app.router)
 app.include_router(vault_app.router)
 app.include_router(atlas_app.router)
+app.include_router(revenue_app.router)
 app.include_router(system_state.router)
 app.include_router(daily.router)
 app.include_router(discovery.router)
