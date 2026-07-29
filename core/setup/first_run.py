@@ -4,11 +4,11 @@ import logging
 import time
 from typing import Any
 
-from core import ORION_DIR
+from core import OWNEX_DIR
 
-logger = logging.getLogger("orion.core.setup.first_run")
+logger = logging.getLogger("ownex.core.setup.first_run")
 
-SETUP_MARKER = ORION_DIR / ".setup_complete"
+SETUP_MARKER = OWNEX_DIR / ".setup_complete"
 
 
 def is_setup_complete() -> bool:
@@ -35,7 +35,7 @@ def complete_setup() -> dict[str, Any]:
     errors: list[str] = []
 
     try:
-        ORION_DIR.mkdir(parents=True, exist_ok=True)
+        OWNEX_DIR.mkdir(parents=True, exist_ok=True)
         results["directories"] = "ok"
     except OSError as exc:
         errors.append(f"directories: {exc}")
@@ -85,9 +85,9 @@ def init_vault() -> None:
 
 
 def init_config() -> None:
-    config_dir = ORION_DIR / "config"
+    config_dir = OWNEX_DIR / "config"
     config_dir.mkdir(parents=True, exist_ok=True)
-    log_dir = ORION_DIR / "logs"
+    log_dir = OWNEX_DIR / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
-    backups_dir = ORION_DIR / "backups"
+    backups_dir = OWNEX_DIR / "backups"
     backups_dir.mkdir(parents=True, exist_ok=True)

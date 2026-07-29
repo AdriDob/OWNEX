@@ -41,7 +41,7 @@ async function fetchAll() {
     if (s.status === 'fulfilled') status.value = s.value
     if (t.status === 'fulfilled') tools.value = t.value
     if (m.status === 'fulfilled') metrics.value = m.value
-    if (e.status === 'fulfilled') events.value = e.value?.events ?? []
+    if (e.status === 'fulfilled') events.value = (e.value as any)?.events ?? []
     if (c.status === 'fulfilled') config.value = c.value
   } catch (e: any) {
     error.value = e?.message || 'Failed to load revenue multiplier data'
@@ -53,7 +53,7 @@ async function fetchAll() {
 async function activateMaxRevenue() {
   activating.value = true
   try {
-    const r = await api.post('/revenue-multiplier/activate', { mode: 'dry_run' })
+    const r = await api.post('/revenue-multiplier/activate', { mode: 'dry_run' }) as any
     alert(`MAX REVENUE MODE complete\nSession: ${r.result?.session_id}\nTargets: ${r.result?.bounty?.targets?.length || 0}`)
     await fetchAll()
   } catch (e: any) {
@@ -196,7 +196,7 @@ onMounted(fetchAll)
           <CardContent>
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div v-for="(val, key) in runtimeConfig" :key="key" class="p-2 rounded bg-accent/30">
-                <p class="text-[10px] text-muted-foreground uppercase tracking-wider">{{ key.replace(/_/g, ' ') }}</p>
+                <p class="text-[10px] text-muted-foreground uppercase tracking-wider">{{ String(key).replace(/_/g, ' ') }}</p>
                 <p class="text-xs font-semibold mt-0.5 font-mono">{{ typeof val === 'object' ? JSON.stringify(val) : String(val) }}</p>
               </div>
             </div>
@@ -222,7 +222,7 @@ onMounted(fetchAll)
                 <span class="text-[10px] text-muted-foreground shrink-0 ml-2">{{ t.description }}</span>
               </div>
             </div>
-            <EmptyState v-else icon="Wrench" title="No tools registered" description="" class="py-6" />
+            <EmptyState v-else :icon="Wrench" title="No tools registered" description="" class="py-6" />
           </CardContent>
         </Card>
       </div>
@@ -237,11 +237,11 @@ onMounted(fetchAll)
             <div v-if="metrics?.metrics?.bounty" class="space-y-3">
               <div v-for="(val, key) in metrics.metrics.bounty" :key="key"
                 class="flex justify-between py-1.5 border-b border-border/30 last:border-0">
-                <span class="text-xs text-muted-foreground">{{ key.replace(/_/g, ' ') }}</span>
+                <span class="text-xs text-muted-foreground">{{ String(key).replace(/_/g, ' ') }}</span>
                 <span class="text-xs font-semibold font-mono">{{ typeof val === 'object' ? JSON.stringify(val) : val }}</span>
               </div>
             </div>
-            <EmptyState v-else icon="Target" title="No bounty metrics" description="" class="py-6" />
+            <EmptyState v-else :icon="Target" title="No bounty metrics" description="" class="py-6" />
           </CardContent>
         </Card>
         <Card class="card-base">
@@ -252,11 +252,11 @@ onMounted(fetchAll)
             <div v-if="metrics?.metrics?.trading" class="space-y-3">
               <div v-for="(val, key) in metrics.metrics.trading" :key="key"
                 class="flex justify-between py-1.5 border-b border-border/30 last:border-0">
-                <span class="text-xs text-muted-foreground">{{ key.replace(/_/g, ' ') }}</span>
+                <span class="text-xs text-muted-foreground">{{ String(key).replace(/_/g, ' ') }}</span>
                 <span class="text-xs font-semibold font-mono">{{ val }}</span>
               </div>
             </div>
-            <EmptyState v-else icon="TrendingUp" title="No trading metrics" description="" class="py-6" />
+            <EmptyState v-else :icon="TrendingUp" title="No trading metrics" description="" class="py-6" />
           </CardContent>
         </Card>
         <Card class="card-base lg:col-span-2">
@@ -271,7 +271,7 @@ onMounted(fetchAll)
                 <p class="text-sm font-bold font-mono mt-1">${{ (parseFloat(val) || 0).toFixed(2) }}</p>
               </div>
             </div>
-            <EmptyState v-else icon="DollarSign" title="No revenue data" description="" class="py-6" />
+            <EmptyState v-else :icon="DollarSign" title="No revenue data" description="" class="py-6" />
           </CardContent>
         </Card>
       </div>
@@ -299,7 +299,7 @@ onMounted(fetchAll)
                 <span class="text-[10px] text-muted-foreground shrink-0 font-mono">{{ new Date(ev.timestamp).toLocaleString() }}</span>
               </div>
             </div>
-            <EmptyState v-else icon="Clock" title="No events yet" description="Events appear when MAX REVENUE MODE is activated." class="py-6" />
+            <EmptyState v-else :icon="Clock" title="No events yet" description="Events appear when MAX REVENUE MODE is activated." class="py-6" />
           </CardContent>
         </Card>
       </div>

@@ -10,9 +10,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from core import ORION_DIR
+from core import OWNEX_DIR
 
-logger = logging.getLogger("orion.core.setup.requirements")
+logger = logging.getLogger("ownex.core.setup.requirements")
 
 
 @dataclass
@@ -104,7 +104,7 @@ def check_ollama_models() -> CheckResult:
 
 def check_disk() -> CheckResult:
     try:
-        stat = shutil.disk_usage(ORION_DIR if ORION_DIR.exists() else Path.home())
+        stat = shutil.disk_usage(OWNEX_DIR if OWNEX_DIR.exists() else Path.home())
         free_mb = stat.free // (1024 * 1024)
         ok = free_mb >= MIN_DISK_MB
         return CheckResult(
@@ -120,14 +120,14 @@ def check_disk() -> CheckResult:
 
 def check_permissions() -> CheckResult:
     try:
-        ORION_DIR.mkdir(parents=True, exist_ok=True)
-        test_file = ORION_DIR / ".setup_test"
+        OWNEX_DIR.mkdir(parents=True, exist_ok=True)
+        test_file = OWNEX_DIR / ".setup_test"
         test_file.touch()
         test_file.unlink()
         return CheckResult("permissions", "ok", "Permisos de escritura correctos", category="system")
     except OSError as exc:
         return CheckResult(
-            "permissions", "error", f"Sin permisos de escritura en {ORION_DIR}: {exc}", category="system"
+            "permissions", "error", f"Sin permisos de escritura en {OWNEX_DIR}: {exc}", category="system"
         )
 
 

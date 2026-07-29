@@ -36,7 +36,7 @@ const systemOk = computed(() => (dashboard.value?.systemHealth ?? 0) >= 70)
 
 const quickActions = [
   { id: 'hunt', label: 'HUNT', icon: Zap, path: '/baby-mode' },
-  { id: 'targets', label: 'Security', icon: Shield, path: '/targets' },
+  { id: 'targets', label: 'Security', icon: Shield, path: '/security' },
   { id: 'bounties', label: 'Forge', icon: Activity, path: '/integrations/platforms' },
   { id: 'capital', label: 'Wealth', icon: DollarSign, path: '/capital' },
   { id: 'reports', label: 'Reportes', icon: FileText, path: '/reports/center' },

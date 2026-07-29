@@ -85,8 +85,8 @@ async function createRun(templateFile: string) {
   }
 }
 
-function statusBadgeVariant(s: string) {
-  const m: Record<string, string> = { completed: 'success', running: 'warning', pending: 'secondary', failed: 'destructive', cancelled: 'outline' }
+function statusBadgeVariant(s: string): 'success' | 'warning' | 'info' | 'destructive' | 'outline' {
+  const m: Record<string, 'success' | 'warning' | 'info' | 'destructive' | 'outline'> = { completed: 'success', running: 'warning', pending: 'info', failed: 'destructive', cancelled: 'outline' }
   return m[s] || 'outline'
 }
 
@@ -154,7 +154,7 @@ onMounted(fetchAll)
           </div>
           <p class="text-xs text-muted-foreground mb-3 line-clamp-2">{{ t.description }}</p>
           <div class="flex flex-wrap gap-1 mb-3">
-            <Badge v-for="s in t.steps" :key="s.id" variant="secondary" class="font-mono text-[8px]">{{ s.type }}</Badge>
+            <Badge v-for="s in t.steps" :key="s.id" variant="info" class="font-mono text-[8px]">{{ s.type }}</Badge>
           </div>
           <Button size="sm" variant="outline" class="w-full text-xs" @click="selectedTemplate = t.file; targetInput = ''; showNewDialog = true">
             <Play class="h-3 w-3 mr-1" /> Ejecutar

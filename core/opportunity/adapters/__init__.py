@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from core.opportunity.models import ScoredOpportunity
 
 
 @dataclass
@@ -259,9 +262,6 @@ async def fetch_all_opportunities(
 
     return all_opportunities
 
-
-# Import here to avoid circular imports
-from core.opportunity.models import ScoredOpportunity
 
 __all__ = [
     "RawOpportunity",

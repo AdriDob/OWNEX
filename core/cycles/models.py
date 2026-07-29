@@ -50,6 +50,76 @@ class ExecutionStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
+# Default cycles for seeding database - needs to match registry.py
+DEFAULT_CYCLES = [
+    {
+        "name": "Security",
+        "slug": "security",
+        "description": "Bug bounty, vulnerability research, Rastro pipeline",
+        "category": "offensive",
+        "status": "idle",
+        "enabled": True,
+        "priority": 10,
+        "config": {
+            "source_apps": ["rastro", "aegis"],
+            "auto_priority": True,
+        },
+    },
+    {
+        "name": "Forge",
+        "slug": "forge",
+        "description": "Dev bounties, OSS contributions, code review rewards",
+        "category": "development",
+        "status": "idle",
+        "enabled": True,
+        "priority": 8,
+        "config": {
+            "platforms": ["superteam", "opire", "algora", "issuehunt"],
+            "auto_discover": True,
+        },
+    },
+    {
+        "name": "Pulse",
+        "slug": "pulse",
+        "description": "AI training, data annotation, microtask platforms",
+        "category": "ai_work",
+        "status": "idle",
+        "enabled": True,
+        "priority": 6,
+        "config": {
+            "platforms": ["outlier", "dataannotation", "mindrift", "remotasks"],
+            "skill_match": True,
+        },
+    },
+    {
+        "name": "Vault",
+        "slug": "vault",
+        "description": "Portfolio management, crypto, DeFi, arbitrage, financial analysis",
+        "category": "finance",
+        "status": "idle",
+        "enabled": True,
+        "priority": 7,
+        "config": {
+            "data_sources": ["coingecko", "defillama", "coingecko"],
+            "auto_rebalance": False,
+        },
+    },
+    {
+        "name": "Atlas",
+        "slug": "atlas",
+        "description": "Research, OSINT, trend analysis, CVE tracking, market intelligence",
+        "category": "intelligence",
+        "status": "idle",
+        "enabled": True,
+        "priority": 5,
+        "config": {
+            "sources": ["cve", "github", "twitter", "rss"],
+            "alert_threshold": "high",
+        },
+    },
+]
+
+
 class Cycle(Base):
     """Work Cycle entity — persistent, measurable, actionable."""
 
@@ -176,73 +246,3 @@ class ExecutionState(Base):
 
     # Relationships
     task = relationship("Task", back_populates="executions")
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "id": self.id,
-            "task_id": self.task_id,
-            "status": self.status,
-            "progress": self.progress,
-            "current_step": self.current_step,
-            "total_steps": self.total_steps,
-            "completed_steps": self.completed_steps,
-            "logs": json.loads(self.logs or "[]"),
-            "metrics": json.loads(self.metrics or "{}"),
-            "started_at": self.started_at.isoformat() if self.started_at else None,
-            "finished_at": self.finished_at.isoformat() if self.finished_at else None,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-        }
-
-
-DEFAULT_CYCLES = [
-    {
-        "name": "Security",
-        "slug": "security",
-        "description": "Bug bounty, Rastro, vulnerability research",
-        "category": CycleCategory.SECURITY.value,
-        "status": CycleStatus.IDLE.value,
-        "enabled": True,
-        "priority": 100,
-        "config": json.dumps({"rastro_integration": True}),
-    },
-    {
-        "name": "Forge",
-        "slug": "forge",
-        "description": "Dev bounty, open source development",
-        "category": CycleCategory.FORGE.value,
-        "status": CycleStatus.INACTIVE.value,
-        "enabled": True,
-        "priority": 80,
-        "config": json.dumps({"platforms": ["superteam", "opire", "algora"]}),
-    },
-    {
-        "name": "Pulse",
-        "slug": "pulse",
-        "description": "AI work, microtasks, data annotation",
-        "category": CycleCategory.PULSE.value,
-        "status": CycleStatus.INACTIVE.value,
-        "enabled": True,
-        "priority": 70,
-        "config": json.dumps({"platforms": ["outlier", "mindrift", "dataannotation"]}),
-    },
-    {
-        "name": "Vault",
-        "slug": "vault",
-        "description": "Wealth, investments, financial analysis",
-        "category": CycleCategory.VAULT.value,
-        "status": CycleStatus.IDLE.value,
-        "enabled": True,
-        "priority": 60,
-        "config": json.dumps({"integrations": ["coingecko", "firefly"]}),
-    },
-    {
-        "name": "Atlas",
-        "slug": "atlas",
-        "description": "Research, intelligence, trend analysis",
-        "category": CycleCategory.ATLAS.value,
-        "status": CycleStatus.INACTIVE.value,
-        "enabled": True,
-        "priority": 50,
-        "config": json.dumps({"sources": ["intel", "osint"]}),
-    },
-]

@@ -197,13 +197,13 @@ Un sistema es autónomo solo si:
 - Puede proponer mejoras
 - No puede forzar cambios destructivos
 
-### ORION (núcleo lógico del sistema)
+### OWNEX (núcleo lógico del sistema)
 - Prioriza acciones
 - Evalúa impacto
 - Detecta redundancia
 - Recomienda siguiente acción óptima
 - Aprende de outcomes
-- ORION NO escribe código directamente sin validación del contexto existente
+- OWNEX NO escribe código directamente sin validación del contexto existente
 
 ## 7. SISTEMA DE VERDAD
 

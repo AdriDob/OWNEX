@@ -8,12 +8,12 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from core import ORION_DIR
+from core import OWNEX_DIR
 
-logger = logging.getLogger("orion.core.update")
+logger = logging.getLogger("ownex.core.update")
 
-UPDATE_LOG = ORION_DIR / "update_history.jsonl"
-UPDATE_REMOTE_URL = "https://api.github.com/repos/anomalyco/orion-platform/releases/latest"
+UPDATE_LOG = OWNEX_DIR / "update_history.jsonl"
+UPDATE_REMOTE_URL = "https://api.github.com/repos/anomalyco/ownex/releases/latest"
 
 
 @dataclass
@@ -47,9 +47,9 @@ class UpdateManager:
     """Manages version checks, update download, and rollback."""
 
     def __init__(self) -> None:
-        from core.version import ORION_VERSION
+        from core.version import OWNEX_VERSION
 
-        self._current_version = ORION_VERSION
+        self._current_version = OWNEX_VERSION
         self._remote_version: str | None = None
         self._manifest: UpdateManifest | None = None
         self._last_checked: str | None = None

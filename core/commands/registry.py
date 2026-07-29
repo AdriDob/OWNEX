@@ -1,4 +1,4 @@
-"""Command Registry — singleton catalog of all 107 ORION commands.
+"""Command Registry — singleton catalog of all 107 OWNEX commands.
 
 Registered in Capability Registry as ``command:<name>`` for COPILOT discovery.
 """
@@ -16,7 +16,7 @@ from core.commands.models import (
     PermissionLevel,
 )
 
-logger = logging.getLogger("orion.core.commands.registry")
+logger = logging.getLogger("ownex.core.commands.registry")
 
 
 def _cmd(

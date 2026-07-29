@@ -9,12 +9,12 @@ import subprocess  # noqa: S404 — intentional CLI invocation
 from dataclasses import dataclass
 from typing import Any
 
-from core import ORION_DIR
+from core import OWNEX_DIR
 
-logger = logging.getLogger("orion.core.backup.targets")
+logger = logging.getLogger("ownex.core.backup.targets")
 
-BACKUP_DIR = ORION_DIR / "backups"
-TARGETS_CONFIG = ORION_DIR / "backup_targets.json"
+BACKUP_DIR = OWNEX_DIR / "backups"
+TARGETS_CONFIG = OWNEX_DIR / "backup_targets.json"
 
 BACKUP_TARGETS: dict[str, dict[str, Any]] = {}
 

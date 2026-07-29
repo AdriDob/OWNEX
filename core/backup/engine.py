@@ -1,4 +1,4 @@
-"""ORION Backup Engine — full system backup with manifest, SHA256, and rotation."""
+"""OWNEX Backup Engine — full system backup with manifest, SHA256, and rotation."""
 
 from __future__ import annotations
 
@@ -11,13 +11,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from core import ORION_DIR
+from core import OWNEX_DIR
+from core.version import OWNEX_VERSION
+logger = logging.getLogger("ownex.core.backup")
 
-logger = logging.getLogger("orion.core.backup")
-
-BACKUP_DIR = ORION_DIR / "backups"
+BACKUP_DIR = OWNEX_DIR / "backups"
 DEFAULT_KEEP = 10
-ORION_VERSION = "4.3.2"
+OWNEX_VERSION = "5.0.0"
 
 
 def _default_exclude(name: str) -> bool:
@@ -67,7 +67,7 @@ def _build_manifest(files: list[dict[str, Any]]) -> dict[str, Any]:
     total_size = sum(f["size"] for f in files)
     manifest_checksum = hashlib.sha256(json.dumps(files, sort_keys=True).encode()).hexdigest()
     return {
-        "version": ORION_VERSION,
+        "version": OWNEX_VERSION,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "total_files": len(files),
         "total_size": total_size,
@@ -80,13 +80,13 @@ def _build_manifest(files: list[dict[str, Any]]) -> dict[str, Any]:
 def _checkpoint_wal() -> None:
     """Run WAL checkpoint on all known SQLite databases for consistency."""
     known_dbs = [
-        ORION_DIR / "cateye.db",
-        ORION_DIR / "database" / "orion.db",
-        ORION_DIR / "database" / "orion_core.db",
-        ORION_DIR / "database" / "memory.db",
-        ORION_DIR / "database" / "evidence_graph.db",
-        ORION_DIR / "database" / "atlas.db",
-        ORION_DIR / "database" / "odyssey.db",
+        OWNEX_DIR / "cateye.db",
+        OWNEX_DIR / "database" / "ownex.db",
+        OWNEX_DIR / "database" / "ownex_core.db",
+        OWNEX_DIR / "database" / "memory.db",
+        OWNEX_DIR / "database" / "evidence_graph.db",
+        OWNEX_DIR / "database" / "atlas.db",
+        OWNEX_DIR / "database" / "odyssey.db",
     ]
     for db_path in known_dbs:
         if not db_path.exists():
@@ -106,11 +106,11 @@ def create_backup() -> dict[str, Any]:
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H%M%S%f")
-    archive_path = BACKUP_DIR / f"ORION_BACKUP_{timestamp}.zip"
+    archive_path = BACKUP_DIR / f"OWNEX_BACKUP_{timestamp}.zip"
 
-    files = _scan_files(ORION_DIR)
+    files = _scan_files(OWNEX_DIR)
     if not files:
-        return {"status": "error", "reason": "No files found in ORION_DIR"}
+        return {"status": "error", "reason": "No files found in OWNEX_DIR"}
 
     manifest = _build_manifest(files)
     backup_path = str(archive_path)
@@ -122,7 +122,7 @@ def create_backup() -> dict[str, Any]:
             # Write manifest first
             zf.writestr("manifest.json", json.dumps(manifest, indent=2))
             for entry in files:
-                full = ORION_DIR / entry["path"]
+                full = OWNEX_DIR / entry["path"]
                 try:
                     zf.write(full, arcname=entry["path"])
                 except Exception as exc:
@@ -246,7 +246,7 @@ def restore_backup(archive_path: str, target_dir: str | None = None) -> dict[str
     if not path.exists():
         return {"status": "error", "reason": f"Backup not found: {archive_path}"}
 
-    dest = Path(target_dir) if target_dir else ORION_DIR
+    dest = Path(target_dir) if target_dir else OWNEX_DIR
     try:
         import zipfile
 
@@ -273,6 +273,6 @@ def backup_status() -> dict[str, Any]:
         "latest_backup": backups[0] if backups else None,
         "total_backup_size_mb": round(sum(b["size_mb"] for b in backups), 2),
         "backup_dir": str(BACKUP_DIR),
-        "orion_dir": str(ORION_DIR),
+        "ownex_dir": str(OWNEX_DIR),
         "prune_keep": DEFAULT_KEEP,
     }

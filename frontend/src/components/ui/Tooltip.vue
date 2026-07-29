@@ -31,11 +31,11 @@ onUnmounted(() => {
   <div ref="el" class="relative inline-flex" @mouseenter="show" @mouseleave="hide" @focus="show" @blur="hide">
     <slot />
     <Transition name="tooltip">
-      <div v-if="visible"
+      <div
+        v-if="visible"
         :class="[
-          'absolute z-50 px-2.5 py-1.5 rounded-md bg-background/95 border border-primary/20 shadow-lg backdrop-blur-xl pointer-events-none',
-          'font-mono text-[10px] text-foreground whitespace-nowrap',
-          position === 'top' && 'bottom-full left-1/2 -translate-x-1/2 mb-2',
+          'absolute z-50 px-2.5 py-1.5 rounded-md bg-[rgb(5,5,5)]/95 border border-[rgb(0,112,209)]/20 shadow-lg backdrop-blur-xl pointer-events-none',
+          'font-mono text-[10px] text-[rgb(240,240,240)] whitespace-nowrap',
           position === 'bottom' && 'top-full left-1/2 -translate-x-1/2 mt-2',
           position === 'left' && 'right-full top-1/2 -translate-y-1/2 mr-2',
           position === 'right' && 'left-full top-1/2 -translate-y-1/2 ml-2',
@@ -44,7 +44,7 @@ onUnmounted(() => {
         {{ text }}
         <div
           :class="[
-            'absolute h-1.5 w-1.5 rotate-45 bg-background/95 border-primary/20',
+            'absolute h-1.5 w-1.5 rotate-45 bg-[rgb(5,5,5)]/95 border-[rgb(0,112,209)]/20',
             position === 'top' && 'top-full left-1/2 -translate-x-1/2 -mt-0.5 border-b border-r',
             position === 'bottom' && 'bottom-full left-1/2 -translate-x-1/2 -mb-0.5 border-t border-l',
             position === 'left' && 'left-full top-1/2 -translate-y-1/2 -ml-0.5 border-t border-r',

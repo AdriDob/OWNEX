@@ -1,8 +1,8 @@
-"""ORION version constants — single source of truth for app version and API contracts."""
+"""OWNEX version constants — single source of truth for app version and API contracts."""
 
 from __future__ import annotations
 
-ORION_VERSION = "4.3.2"
+OWNEX_VERSION = "5.0.0"
 PLUGIN_API = "1.0"
 EVENT_SCHEMA = "2.0"
 MEMORY_SCHEMA = "1.1"

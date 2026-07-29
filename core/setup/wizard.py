@@ -5,14 +5,14 @@ import logging
 import time
 from typing import Any
 
-from core import ORION_DIR
+from core import OWNEX_DIR
 from core.setup.models import STEP_STATUS_COMPLETED, STEP_STATUS_FAILED, WizardState
 from core.setup.steps import get_all_steps, get_step
 
-logger = logging.getLogger("orion.core.setup.wizard")
+logger = logging.getLogger("ownex.core.setup.wizard")
 
-WIZARD_STATE_PATH = ORION_DIR / "config" / "wizard_state.json"
-WIZARD_CONFIG_PATH = ORION_DIR / "config" / "wizard.json"
+WIZARD_STATE_PATH = OWNEX_DIR / "config" / "wizard_state.json"
+WIZARD_CONFIG_PATH = OWNEX_DIR / "config" / "wizard.json"
 
 
 def _load_state() -> WizardState:
@@ -35,8 +35,8 @@ def _load_state() -> WizardState:
 
 def _save_state(state: WizardState) -> None:
     try:
-        ORION_DIR.mkdir(parents=True, exist_ok=True)
-        (ORION_DIR / "config").mkdir(parents=True, exist_ok=True)
+        OWNEX_DIR.mkdir(parents=True, exist_ok=True)
+        (OWNEX_DIR / "config").mkdir(parents=True, exist_ok=True)
         WIZARD_STATE_PATH.write_text(
             json.dumps(
                 {
@@ -57,8 +57,8 @@ def _save_state(state: WizardState) -> None:
 
 def _save_config(state: WizardState) -> None:
     try:
-        ORION_DIR.mkdir(parents=True, exist_ok=True)
-        (ORION_DIR / "config").mkdir(parents=True, exist_ok=True)
+        OWNEX_DIR.mkdir(parents=True, exist_ok=True)
+        (OWNEX_DIR / "config").mkdir(parents=True, exist_ok=True)
         WIZARD_CONFIG_PATH.write_text(json.dumps(state.get_config(), indent=2))
     except OSError as exc:
         logger.error("Failed to save wizard config: %s", exc)
@@ -197,8 +197,8 @@ def _complete_wizard(state: WizardState, steps: list) -> dict[str, Any]:
     config["summary"] = _build_summary(state, steps)
 
     try:
-        ORION_DIR.mkdir(parents=True, exist_ok=True)
-        (ORION_DIR / "config").mkdir(parents=True, exist_ok=True)
+        OWNEX_DIR.mkdir(parents=True, exist_ok=True)
+        (OWNEX_DIR / "config").mkdir(parents=True, exist_ok=True)
         WIZARD_CONFIG_PATH.write_text(json.dumps(config, indent=2))
     except OSError as exc:
         logger.error("Failed to save wizard config: %s", exc)

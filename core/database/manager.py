@@ -1,7 +1,7 @@
 """Database Manager — multi-SQLite engine pool.
 
 Each application registers its own database path.
-The Core uses ``orion.db`` for system settings, events, and scheduler state.
+The Core uses ``ownex.db`` for system settings, events, and scheduler state.
 """
 
 from __future__ import annotations
@@ -17,9 +17,9 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from core.interfaces import IDatabase
 
-logger = logging.getLogger("orion.core.database")
+logger = logging.getLogger("ownex.core.database")
 
-DATA_DIR = Path(os.environ.get("CATEYE_DATA_DIR", Path.home() / ".orion"))
+DATA_DIR = Path(os.environ.get("OWNEX_DATA_DIR", Path.home() / ".ownex"))
 DB_DIR = DATA_DIR / "database"
 
 
@@ -121,9 +121,9 @@ class DatabaseManager(IDatabase):
             conn.commit()
 
     def _ensure_core_db(self) -> None:
-        """Create orion.db for core state if not registered."""
-        if "orion" not in self._engines:
-            self.register("orion", "orion.db")
+        """Create ownex.db for core state if not registered."""
+        if "ownex" not in self._engines:
+            self.register("ownex", "ownex.db")
 
 
 # ── Singleton ────────────────────────────────────────

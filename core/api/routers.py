@@ -1,9 +1,9 @@
-"""ORION Core — platform-level FastAPI routers.
+"""OWNEX Core — platform-level FastAPI routers.
 
-These endpoints are mounted by the ORION Platform shell and
-are independent of any specific app.
+These endpoints are mounted by the OWNEX Platform shell and
+provide platform-wide functionality: app registry, scheduler,
+extensions, backup, update, knowledge graph, and health.
 """
-
 from __future__ import annotations
 
 import logging
@@ -24,7 +24,7 @@ from core.integrations import init_integration_registry
 from core.scheduler.scheduler import get_core_scheduler
 from core.secrets.manager import get_secrets_manager
 
-logger = logging.getLogger("orion.core.api")
+logger = logging.getLogger("ownex.core.api")
 router = APIRouter(prefix="/api/core", tags=["core"])
 
 
@@ -828,11 +828,11 @@ async def update_history(limit: int = 10):
 
 @router.get("/version")
 async def version_info():
-    """ORION Platform version and API contract versions."""
-    from core.version import DECISION_JOURNAL, EVENT_SCHEMA, MEMORY_SCHEMA, NORMALIZER_API, ORION_VERSION, PLUGIN_API
+    """OWNEX Platform version and API contract versions."""
+    from core.version import DECISION_JOURNAL, EVENT_SCHEMA, MEMORY_SCHEMA, NORMALIZER_API, OWNEX_VERSION, PLUGIN_API
 
     return {
-        "orion_version": ORION_VERSION,
+        "ownex_version": OWNEX_VERSION,
         "plugin_api": PLUGIN_API,
         "event_schema": EVENT_SCHEMA,
         "memory_schema": MEMORY_SCHEMA,

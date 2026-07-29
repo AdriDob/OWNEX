@@ -79,8 +79,8 @@ function scoreColor(s: number) {
   return 'text-muted-foreground'
 }
 
-function priorityBadge(p: string) {
-  const map: Record<string, string> = { critical: 'destructive', high: 'warning', medium: 'default', low: 'default' }
+function priorityBadge(p: string): 'destructive' | 'warning' | 'default' {
+  const map: Record<string, 'destructive' | 'warning' | 'default'> = { critical: 'destructive', high: 'warning', medium: 'default', low: 'default' }
   return map[p?.toLowerCase()] || 'default'
 }
 </script>

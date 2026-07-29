@@ -1,4 +1,4 @@
-# ORION Development Rules
+# OWNEX Development Rules
 
 ## Stability First
 
@@ -29,7 +29,7 @@ Do NOT:
 - Replace existing capabilities unnecessarily
 - Migrate frameworks without evidence
 - Modify unrelated modules
-- Mix ORION with Hermes Desktop responsibilities
+- Mix OWNEX with Hermes Desktop responsibilities
 
 Prefer:
 - Incremental changes
@@ -57,12 +57,12 @@ Do NOT:
 
 Do:
 ```css
---orion-bg-primary: #050508;
---orion-purple-core: #6D28D9;
---orion-gold-accent: #F5A623;
---orion-green-accent: #00FF41;
---orion-glow: 0 0 20px rgba(109, 40, 217, 0.3);
---orion-border: 1px solid rgba(109, 40, 217, 0.2);
+--ownex-bg-primary: #050508;
+--ownex-blue-core: #3B82F6;
+--ownex-gold-accent: #F59E0B;
+--ownex-green-accent: #10B981;
+--ownex-glow: 0 0 20px rgba(59, 130, 246, 0.3);
+--ownex-border: 1px solid rgba(59, 130, 246, 0.2);
 ```
 
 Define tokens in `frontend/src/style.css` or Tailwind config before creating components.
@@ -70,5 +70,5 @@ Define tokens in `frontend/src/style.css` or Tailwind config before creating com
 ## Vision System Rule
 
 Vision capabilities belong to the OpenCode environment.
-They must not modify ORION codebase or architecture.
+They must not modify OWNEX codebase or architecture.
 Use CapabilityRegistry (`vision:analyze`) for integration.

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- OWNEX Favicon - 32x32 -->
+  <rect width="32" height="32" rx="6" fill="#0B0B0B"/>
+  <!-- Compass/star mark -->
+  <g transform="translate(16, 16)" stroke="#2D7FF9" stroke-width="1.2" fill="none">
+    <path d="M0 -10 L0 -6"/>
+    <path d="M0 6 L0 10"/>
+    <path d="M-10 0 L-6 0"/>
+    <path d="M6 0 L10 0"/>
+    <path d="M-7 -7 L-4.2 -4.2"/>
+    <path d="M4.2 -7 L7 -4.2"/>
+    <path d="M-7 7 L-4.2 4.2"/>
+    <path d="M4.2 7 L7 4.2"/>
+  </g>
+  <!-- Inner hexagon core -->
+  <polygon points="16,6 24.8,10.4 24.8,21.6 16,26 7.2,21.6 7.2,10.4"
+           fill="none" stroke="#2D7FF9" stroke-width="1.5"/>
+  <circle cx="16" cy="16" r="3" fill="#2D7FF9"/>
+  <!-- Gold accent dot -->
+  <circle cx="16" cy="6" r="1.5" fill="#D4AF37"/>
+</svg>

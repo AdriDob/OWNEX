@@ -94,6 +94,7 @@ from api.routers import (
     target_identity,
     targets,
     telegram_bot,
+    terminal_ws,
     validation,
     verdicts,
     version,
@@ -1209,6 +1210,7 @@ app.include_router(license.router)
 app.include_router(learning_router)
 app.include_router(project_dashboard.router)
 app.include_router(ws.router)
+app.include_router(terminal_ws.router)
 app.include_router(idor.router)
 app.include_router(offensive.router)
 app.include_router(offensive_web3.router)
