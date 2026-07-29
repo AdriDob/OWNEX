@@ -9,6 +9,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
+from core.extension.capabilities import Capability
+
 logger = logging.getLogger("orion.core.integrations.registry")
 
 StatusValue = str  # "connected" | "disconnected" | "error" | "unknown"
@@ -110,19 +112,30 @@ class IntegrationRegistry:
 
     # ── Status checks ───────────────────────────────────────────────
 
-    def load_all(self, integrations: list[Any]) -> None:
-        """Register all built-in integrations, then check status."""
-        for idef in integrations:
-            self.register(
-                IntegrationStatus(
-                    name=idef.name,
-                    category=idef.category,
-                    description=idef.description,
-                    icon=idef.icon,
-                    tags=list(idef.tags),
-                )
+    # ── Extension bridge ─────────────────────────────────────
+
+    def load_extensions(self, extension_registry: Any) -> None:
+        """Register all discovered extensions as integrations."""
+        for ext_manifest in extension_registry.list_extensions():
+            ext_id = ext_manifest.id
+            tags = [c.id if isinstance(c, Capability) else c for c in ext_manifest.capabilities]
+            status = IntegrationStatus(
+                name=ext_id,
+                category="plugin",
+                description=ext_manifest.description,
+                icon=ext_manifest.icon,
+                tags=tags,
+                permissions=["read"] if ext_manifest.hot_reloadable else ["read", "write"],
             )
+            self.register(status)
         self._loaded = True
+
+    def refresh_with_extensions(self, extension_registry: Any) -> dict[str, IntegrationStatus]:
+        """Refresh all integrations including plugin extensions."""
+        self.load_extensions(extension_registry)
+        for status in self._status_cache.values():
+            self._check_one(status)
+        return dict(self._status_cache)
 
     def refresh(self) -> dict[str, IntegrationStatus]:
         """Re-check status for all integrations."""
@@ -224,10 +237,16 @@ def get_integration_registry() -> IntegrationRegistry:
     return _registry
 
 
-def init_integration_registry() -> IntegrationRegistry:
-    """Initialize the registry with all built-in integrations."""
+def init_integration_registry(extension_registry: Any = None) -> IntegrationRegistry:
+    """Initialize the registry with all built-in integrations.
+
+    If ``extension_registry`` is provided, also registers all
+    discovered extensions as plugin integrations.
+    """
     registry = get_integration_registry()
     from core.integrations.discovery import get_builtin_integrations
 
     registry.load_all(get_builtin_integrations())
+    if extension_registry is not None:
+        registry.load_extensions(extension_registry)
     return registry
