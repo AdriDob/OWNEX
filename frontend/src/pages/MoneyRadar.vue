@@ -128,7 +128,7 @@ function openProgram(id: number) {
       </div>
       <h1 class="font-display text-xl sm:text-2xl font-bold text-foreground">Money Radar</h1>
       <p class="text-xs text-muted-foreground">
-        Todos los programas rankeados por ORION SCORE — el mejor retorno económico primero
+        Todos los programas rankeados por OWNEX SCORE — el mejor retorno económico primero
       </p>
     </div>
 
@@ -315,7 +315,7 @@ function openProgram(id: number) {
               Clasificá
             </p>
             <p class="text-muted-foreground leading-relaxed">
-              El ORION SCORE rankea programas por Expected Value. EVH ($/h) muestra el retorno estimado por hora invertida.
+              El OWNEX SCORE rankea programas por Expected Value. EVH ($/h) muestra el retorno estimado por hora invertida.
             </p>
           </div>
           <div class="space-y-1.5 p-3 rounded-lg bg-accent/20">

@@ -13,7 +13,7 @@ export const assistants: AssistantCharacter[] = [
   {
     id: 'merlin',
     name: 'Merlin',
-    title: 'ORION Architect',
+    title: 'OWNEX Architect',
     color: 'text-purple-400',
     bgGradient: 'from-purple-900/30 to-transparent',
     borderColor: 'border-purple-500/30',
@@ -47,7 +47,7 @@ export const assistants: AssistantCharacter[] = [
     borderColor: 'border-amber-500/30',
     messages: [
       '🐾 ¡Woof! Sistema seguro. No se detectaron anomalías en los últimos 60 minutos.',
-      'ORION está protegiendo tu identidad. Todos los secrets están en la bóveda cifrada.',
+      'OWNEX está protegiendo tu identidad. Todos los secrets están en la bóveda cifrada.',
       'Revisé los logs de acceso. Todo en orden, jefe. 🐕',
     ],
     context: ['security', 'health-center', 'settings'],

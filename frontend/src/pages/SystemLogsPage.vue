@@ -70,7 +70,7 @@ const eventTypes = computed(() => {
       <div class="space-y-1">
         <p class="text-xs font-bold uppercase tracking-widest text-primary">System Intelligence</p>
         <h1 class="font-display text-2xl font-bold text-foreground">Activity Log</h1>
-        <p class="text-sm text-muted-foreground">Everything ORION is doing — events, tasks, learning, and errors</p>
+        <p class="text-sm text-muted-foreground">Everything OWNEX is doing — events, tasks, learning, and errors</p>
       </div>
     </div>
 
@@ -110,7 +110,7 @@ const eventTypes = computed(() => {
       <div class="flex flex-col items-center py-20 text-center">
         <Activity class="mb-4 h-10 w-10 text-muted-foreground/50" />
         <p class="text-sm font-semibold text-foreground">No activity recorded</p>
-        <p class="mt-1 text-xs text-muted-foreground">Events will appear here as ORION works</p>
+        <p class="mt-1 text-xs text-muted-foreground">Events will appear here as OWNEX works</p>
       </div>
     </template>
 

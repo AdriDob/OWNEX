@@ -23,7 +23,7 @@ export function useAssistant() {
     if (loaded.value) return
     loaded.value = true
     const defaultHints: AssistantHint[] = [
-      { id: 'hint-mission', title: 'Mission Control', message: 'Acá están tus prioridades del día. ORION recomienda la próxima acción según los datos disponibles.', page: 'mission-control' },
+      { id: 'hint-mission', title: 'Mission Control', message: 'Acá están tus prioridades del día. OWNEX recomienda la próxima acción según los datos disponibles.', page: 'mission-control' },
       { id: 'hint-aegis', title: 'AEGIS', message: 'Los scans se ejecutan secuencialmente. Revisá los findings después de cada ejecución.', page: 'aegis' },
       { id: 'hint-health', title: 'Health Center', message: 'El score de salud se calcula sobre checks de sistema, integraciones y extensiones.', page: 'health-center' },
       { id: 'hint-workflows', title: 'Workflows', message: 'Las plantillas YAML definen pipelines automatizados. Podés ejecutarlas con un solo clic.', page: 'workflows' },

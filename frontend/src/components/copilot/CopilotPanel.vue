@@ -39,7 +39,7 @@ const modeLabel = computed(() => {
 
 watch(() => props.open, (o) => {
   if (o && messages.value.length === 0) {
-    messages.value = [{ role: 'assistant', content: `Soy ORION Copilot (${modeLabel.value}). ¿En qué puedo ayudarte?` }]
+    messages.value = [{ role: 'assistant', content: `Soy OWNEX Copilot (${modeLabel.value}). ¿En qué puedo ayudarte?` }]
   }
 })
 
@@ -71,7 +71,7 @@ async function send() {
     )
   } catch (e: any) {
     if (e?.name === 'AbortError') return
-    messages.value.push({ role: 'assistant', content: 'Error al conectar con ORION. Intentá de nuevo.' })
+    messages.value.push({ role: 'assistant', content: 'Error al conectar con OWNEX. Intentá de nuevo.' })
   } finally {
     loading.value = false
     abortController.value = null
@@ -108,7 +108,7 @@ watch(() => messages.value.length, async () => {
           <div class="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 ring-1 ring-primary/20">
             <Eye class="h-3.5 w-3.5 text-primary" />
           </div>
-          <span class="font-mono text-sm font-bold tracking-wide text-foreground">ORION</span>
+          <span class="font-mono text-sm font-bold tracking-wide text-foreground">OWNEX</span>
           <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-accent/10 text-accent">{{ modeLabel }}</span>
         </div>
         <button @click="emit('close')" class="flex h-7 w-7 items-center justify-center rounded text-muted-foreground hover:bg-surface transition-colors">
@@ -149,7 +149,7 @@ watch(() => messages.value.length, async () => {
           <input
             v-model="input"
             @keydown="handleKeydown"
-            placeholder="Consultar a ORION..."
+            placeholder="Consultar a OWNEX..."
             class="flex-1 rounded-lg border border-border/60 bg-surface/50 px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/30 focus:outline-none focus:ring-1 focus:ring-primary/20"
             :disabled="loading"
           />

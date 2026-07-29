@@ -76,9 +76,9 @@ const typeIcon = computed(() => {
 <template>
   <div class="space-y-6">
     <div class="animate-in space-y-1">
-      <p class="text-xs font-bold uppercase tracking-widest text-primary">ORION</p>
+      <p class="text-xs font-bold uppercase tracking-widest text-primary">OWNEX</p>
       <h1 class="font-display text-2xl font-bold text-foreground">Next Action</h1>
-      <p class="text-sm text-muted-foreground">Próxima acción recomendada por ORION</p>
+      <p class="text-sm text-muted-foreground">Próxima acción recomendada por OWNEX</p>
     </div>
 
     <template v-if="loading">
@@ -103,7 +103,7 @@ const typeIcon = computed(() => {
           <Target class="h-8 w-8 text-muted-foreground/50" />
         </div>
         <p class="text-sm font-semibold text-foreground">No hay próxima acción</p>
-        <p class="mt-1 text-xs text-muted-foreground">ORION no tiene recomendaciones en este momento</p>
+        <p class="mt-1 text-xs text-muted-foreground">OWNEX no tiene recomendaciones en este momento</p>
         <Button variant="outline" size="sm" class="mt-4 gap-2" @click="fetchData">
           <RefreshCw class="h-3.5 w-3.5" /> Actualizar
         </Button>

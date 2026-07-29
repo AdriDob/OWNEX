@@ -51,8 +51,8 @@ onMounted(async () => {
 <template>
   <div class="p-6 space-y-6">
     <div>
-      <h1 class="text-2xl font-bold">ORION Platform</h1>
-      <p class="text-muted-foreground">Sistema de inteligencia operativa privada</p>
+      <h1 class="text-2xl font-bold">OWNEX Platform</h1>
+      <p class="text-muted-foreground">Sistema autónomo de bug bounty</p>
     </div>
 
     <!-- Loading skeleton -->
@@ -93,7 +93,7 @@ onMounted(async () => {
         <router-link to="/cateye/"
           class="border border-border/50 rounded-lg p-4 bg-card hover:border-primary/50 transition-colors group">
           <div class="text-2xl mb-2">🐛</div>
-          <div class="font-semibold group-hover:text-primary transition-colors">ORION</div>
+          <div class="font-semibold group-hover:text-primary transition-colors">OWNEX</div>
           <div class="text-sm text-muted-foreground">Bug Bounty Intelligence</div>
         </router-link>
         <router-link to="/atlas/"

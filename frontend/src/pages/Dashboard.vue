@@ -105,12 +105,12 @@ const systemStatusColor = computed(() => {
 
 <template>
   <div class="space-y-6">
-    <!-- Header with ORION branding -->
+    <!-- Header with OWNEX branding -->
     <div class="animate-in space-y-1">
       <div class="flex items-center gap-3">
         <div class="flex h-7 items-center gap-2 rounded-md bg-primary/10 px-2.5 py-1 ring-1 ring-primary/20">
           <Eye class="h-3.5 w-3.5 text-primary" />
-          <span class="font-mono text-[10px] font-bold tracking-widest text-primary">ORION</span>
+          <span class="font-mono text-[10px] font-bold tracking-widest text-primary">OWNEX</span>
         </div>
         <span class="font-mono text-[10px]" :class="systemStatusColor">
           ● {{ systemStatusText }}
@@ -120,7 +120,7 @@ const systemStatusColor = computed(() => {
         </span>
       </div>
       <h1 class="font-display text-2xl font-bold text-foreground">{{ greeting }}</h1>
-      <p class="text-sm text-muted-foreground">Centro de Inteligencia de Seguridad ORION</p>
+      <p class="text-sm text-muted-foreground">Centro de Inteligencia OWNEX</p>
     </div>
 
     <template v-if="loading">
@@ -258,7 +258,7 @@ const systemStatusColor = computed(() => {
       <!-- System footer -->
       <div class="flex flex-col gap-2 border-t border-border/20 pt-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[9px] text-muted-foreground">
-          <span>ORION {{ context?._meta?.version || '' }}</span>
+          <span>OWNEX {{ context?._meta?.version || '' }}</span>
           <span>●</span>
           <span>DB: {{ context?.counts.targets || 0 }} targets</span>
           <span>●</span>

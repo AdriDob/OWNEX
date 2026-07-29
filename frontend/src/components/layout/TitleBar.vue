@@ -95,7 +95,7 @@ onMounted(() => {
             <linearGradient id="orbital" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7C3AED"/><stop offset="100%" stop-color="#A855F7"/></linearGradient>
           </defs>
         </svg>
-        <span class="font-display text-[11px] font-semibold tracking-widest text-orion-text-secondary uppercase">ORION</span>
+        <span class="font-display text-[11px] font-semibold tracking-widest text-orion-text-secondary uppercase">OWNEX</span>
       </div>
 
       <nav v-if="!route.meta?.public && breadcrumbs.length > 0" class="hidden sm:flex items-center gap-0.5 ml-2 text-[10px] text-muted-foreground/60 font-mono">
