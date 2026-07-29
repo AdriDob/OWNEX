@@ -102,7 +102,7 @@ class PlaywrightSensor(Sensor):
 
             # Publicar evento de sensor
             try:
-                from core.events.event_bus import get_event_bus
+                from cores.events.event_bus import get_event_bus
 
                 bus = get_event_bus()
                 bus.publish(

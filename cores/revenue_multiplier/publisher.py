@@ -49,7 +49,7 @@ class RevenuePublisher:
 
     def _publish_to_eventbus(self, event: RevenueEvent) -> None:
         try:
-            from core.events.event_bus import get_core_event_bus
+            from cores.events.event_bus import get_core_event_bus
 
             bus = get_core_event_bus()
             bus.publish(

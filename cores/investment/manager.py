@@ -303,7 +303,7 @@ class InvestmentManager:
         self, event_type: str, strategy_id: str, amount: float, description: str, metadata: dict[str, Any] | None = None
     ) -> None:
         try:
-            from core.events.event_bus import get_core_event_bus
+            from cores.events.event_bus import get_core_event_bus
 
             bus = get_core_event_bus()
             bus.publish(

@@ -627,7 +627,7 @@ class EvidenceComposer:
 def publish_evidence_event(event_type: str, bundle: EvidenceBundle) -> None:
     """Publish an evidence event to the EventBus."""
     try:
-        from core.events.event_bus import get_core_event_bus
+        from cores.events.event_bus import get_core_event_bus
 
         envelope = EventEnvelope.create(
             event_type=f"evidence:{event_type}",

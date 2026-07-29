@@ -67,7 +67,7 @@ class RevenuePipeline:
 
     def _get_event_bus(self) -> Any:
         if self._event_bus is None:
-            from core.events.event_bus import get_core_event_bus
+            from cores.events.event_bus import get_core_event_bus
 
             self._event_bus = get_core_event_bus()
         return self._event_bus

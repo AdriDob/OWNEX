@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from core.events.event_bus import get_core_event_bus
+from cores.events.event_bus import get_core_event_bus
 
 logger = logging.getLogger("orion.atlas.scheduler")
 

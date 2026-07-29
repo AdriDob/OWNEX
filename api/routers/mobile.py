@@ -93,7 +93,7 @@ async def mobile_subscribe(body: dict[str, Any]):
 @router.post("/notify")
 async def mobile_notify(body: dict[str, Any]):
     """Trigger a push notification for the companion."""
-    from core.events.event_bus import get_event_bus
+    from cores.events.event_bus import get_event_bus
 
     event_bus = get_event_bus()
     event_bus.publish(

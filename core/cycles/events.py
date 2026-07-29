@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.events.event_bus import get_core_event_bus
+from cores.events.event_bus import get_core_event_bus
 
 # Event names
 CYCLE_CREATED = "cycle.created"

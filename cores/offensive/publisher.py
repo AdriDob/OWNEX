@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.events.event_bus import get_core_event_bus
+from cores.events.event_bus import get_core_event_bus
 from cores.events.types import EventEnvelope
 
 logger = logging.getLogger("orion.core.offensive.publisher")

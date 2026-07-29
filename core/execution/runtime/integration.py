@@ -25,7 +25,7 @@ class ExecutionEventBusBridge:
 
     def wire(self) -> None:
         """Connect the execution runtime to the event system."""
-        from core.events.event_bus import get_core_event_bus
+        from cores.events.event_bus import get_core_event_bus
 
         self._core_bus = get_core_event_bus()
         logger.info("[Integration] ExecutionEventBusBridge wired to CoreEventBus")

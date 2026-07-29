@@ -22,7 +22,7 @@ _bus: Any = None
 def _get_bus() -> Any:
     global _bus
     if _bus is None:
-        from core.events.event_bus import get_core_event_bus
+        from cores.events.event_bus import get_core_event_bus
 
         _bus = get_core_event_bus()
     return _bus

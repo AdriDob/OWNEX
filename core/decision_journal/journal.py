@@ -57,7 +57,7 @@ def log_decision(
 
         # Publish EventBus event
         try:
-            from core.events.event_bus import get_core_event_bus
+            from cores.events.event_bus import get_core_event_bus
 
             bus = get_core_event_bus()
             bus.publish(
