@@ -1,3 +1,0 @@
-{
-  "/api/providers/[id]/claude-auth/export/route": "app/api/providers/[id]/claude-auth/export/route.js"
-}

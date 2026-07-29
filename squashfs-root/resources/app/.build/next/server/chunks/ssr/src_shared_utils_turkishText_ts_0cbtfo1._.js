@@ -1,3 +1,0 @@
-module.exports=[326497,a=>{"use strict";let b={ı:"i",ş:"s",ğ:"g",ü:"u",ö:"o",ç:"c"};function c(a){if(!a)return"";let c=a.toLocaleLowerCase("tr");return(c=(c=c.replace(/[ışğüöç]/g,a=>b[a]??a)).normalize("NFD").replace(/[̀-ͯ]/g,"")).trim()}let d=new Intl.Collator("tr",{sensitivity:"base",numeric:!0});a.s(["compareTr",0,function(a,b){return d.compare(a??"",b??"")},"matchesSearch",0,function(a,b){let d=c(b);return!d||c(a).includes(d)}])}];
-
-//# sourceMappingURL=src_shared_utils_turkishText_ts_0cbtfo1._.js.map

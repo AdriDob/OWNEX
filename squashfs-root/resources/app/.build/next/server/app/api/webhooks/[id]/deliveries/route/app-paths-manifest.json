@@ -1,3 +1,0 @@
-{
-  "/api/webhooks/[id]/deliveries/route": "app/api/webhooks/[id]/deliveries/route.js"
-}

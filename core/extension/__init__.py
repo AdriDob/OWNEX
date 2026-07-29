@@ -1,8 +1,6 @@
 """ORION Extension SDK — second-party and third-party extensions.
-
 Extensions live in ``extensions/<name>/``, declare a ``manifest.py``,
 and are auto-discovered by the ExtensionRegistry.
-
 An extension CAN be as simple as a single hook, and as complex as a full app.
 """
 
@@ -16,7 +14,16 @@ __all__ = [
     "ExtensionManifest",
     "ExtensionRegistry",
     "get_extension_registry",
-    "Hook", "HookRegistry", "get_hook_registry",
-    "SettingsField", "TextField", "ApiKeyField", "SwitchField", "NumberField", "SelectField",
-    "Capability", "CapabilityRegistry", "get_capability_registry",
+    "Hook",
+    "HookRegistry",
+    "get_hook_registry",
+    "SettingsField",
+    "TextField",
+    "ApiKeyField",
+    "SwitchField",
+    "NumberField",
+    "SelectField",
+    "Capability",
+    "CapabilityRegistry",
+    "get_capability_registry",
 ]

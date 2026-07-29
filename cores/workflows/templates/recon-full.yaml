@@ -1,0 +1,36 @@
+name: "Reconocimiento Completo"
+description: "Descubrimiento + subdominios + barrido HTTP + captura tecnológica"
+steps:
+  - id: discover_targets
+    type: discover
+    params:
+      scope: "{{ target }}"
+      sources: [hackerone, bugcrowd]
+  - id: subdomain_enum
+    type: recon
+    params:
+      tool: subfinder
+      targets: ["{{ steps.discover_targets.result }}"]
+  - id: http_probe
+    type: recon
+    params:
+      tool: httpx
+      targets: ["{{ steps.subdomain_enum.result }}"]
+      ports: [80, 443, 8080, 8443]
+  - id: tech_detect
+    type: recon
+    params:
+      tool: httpx
+      targets: ["{{ steps.http_probe.result }}"]
+      tech_detect: true
+  - id: collect_urls
+    type: recon
+    params:
+      tool: katana
+      targets: ["{{ steps.http_probe.result }}"]
+      depth: 2
+  - id: generate_hypotheses
+    type: hypothesis
+    params:
+      targets: ["{{ steps.http_probe.result }}"]
+      urls: ["{{ steps.collect_urls.result }}"]

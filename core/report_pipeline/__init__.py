@@ -1,11 +1,9 @@
-"""Report Pipeline — finding → evidence → report → manual submit.
+from __future__ import annotations
 
+"""Report Pipeline — finding → evidence → report → manual submit.
 Generates complete markdown reports with evidence, ready for manual platform submission.
 Top 7 daily, top 15 weekly. Always manual submit with edit/download option.
 """
-
-from __future__ import annotations
-
 import json
 import logging
 import os
@@ -19,10 +17,8 @@ from database.models import Evidence, Finding, Report, Target, Verdict
 from database.models_economic import BountyTier, Program
 
 logger = logging.getLogger("cateye.report_pipeline")
-
 REPORTS_DIR = Path("reports/generated")
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
-
 PLATFORM_URLS = {
     "hackerone": "https://hackerone.com/reports/new",
     "bugcrowd": "https://bugcrowd.com/submissions/new",
@@ -90,14 +86,12 @@ class ReportPipeline:
             findings = (
                 session.query(Finding).filter(Finding.status == "confirmed").order_by(Finding.created_at.desc()).all()
             )
-
             candidates = []
             for f in findings:
                 # Check if already has a report
                 existing_report = session.query(Report).filter(Report.finding_ids.contains(str(f.id))).first()
                 if existing_report:
                     continue
-
                 # Get evidence via verdicts
                 verdicts = (
                     session.query(Verdict)
@@ -105,10 +99,8 @@ class ReportPipeline:
                     .filter(Verdict.status == "confirmed")
                     .all()
                 )
-
                 if not verdicts:
                     continue
-
                 # Collect evidence
                 evidence_data = {}
                 for v in verdicts:
@@ -129,7 +121,6 @@ class ReportPipeline:
                                     }
                         except Exception:
                             pass
-
                     if v.validation_report:
                         try:
                             vr = json.loads(v.validation_report)
@@ -138,14 +129,11 @@ class ReportPipeline:
                             evidence_data["details"] = vr.get("details", "")
                         except Exception:
                             pass
-
                 if not evidence_data:
                     continue
-
                 # Get target and program info
                 target = session.query(Target).filter(Target.id == f.target_id).first()
                 program = session.query(Program).filter(Program.id == target.program_id).first() if target else None
-
                 candidate = ReportCandidate(
                     finding_id=f.id,
                     title=f.title or f"Finding #{f.id}",
@@ -171,7 +159,6 @@ class ReportPipeline:
                     references=evidence_data.get("references", []),
                 )
                 candidates.append(candidate)
-
             return candidates
         finally:
             session.close()
@@ -195,15 +182,12 @@ class ReportPipeline:
     def generate_report(self, candidate: ReportCandidate) -> GeneratedReport:
         """Generate complete markdown + JSON report for a candidate."""
         now = datetime.now(timezone.utc).isoformat()
-
         markdown = self._render_markdown(candidate)
         json_data = self._to_json(candidate)
-
         # Save to file
         filename = f"report_{candidate.finding_id}_{now[:10]}.md"
         filepath = REPORTS_DIR / filename
         filepath.write_text(markdown, encoding="utf-8")
-
         report = GeneratedReport(
             candidate=candidate,
             stage="draft",
@@ -220,13 +204,11 @@ class ReportPipeline:
         report = self._reports.get(finding_id)
         if not report:
             return None
-
         if edited_markdown is not None:
             report.markdown = edited_markdown
             report.file_path = str(REPORTS_DIR / f"report_{finding_id}_edited.md")
             Path(report.file_path).write_text(edited_markdown, encoding="utf-8")
             report.edited_at = datetime.now(timezone.utc).isoformat()
-
         report.stage = "ready"
         return report
 
@@ -244,7 +226,6 @@ class ReportPipeline:
         return "https://hackerone.com/reports/new"
 
     # ── Helpers ─────────────────────────────────────────────────────────
-
     def _calc_evh(self, finding: Finding, program: Program | None) -> float:
         """Expected Value per Hour: (reward * probability) / effort."""
         reward = self._estimate_reward(finding, program)
@@ -257,7 +238,6 @@ class ReportPipeline:
         if not program:
             base = {"critical": 5000, "high": 2000, "medium": 500, "low": 100, "info": 50}
             return base.get(finding.severity, 100)
-
         session = db.SessionLocal()
         try:
             tiers = session.query(BountyTier).filter(BountyTier.program_id == program.id).all()
@@ -267,7 +247,6 @@ class ReportPipeline:
                 return round((max_tier.max_reward or 0) * sev_mult.get(finding.severity, 0.1), 2)
         finally:
             session.close()
-
         return 0.0
 
     def _get_confidence(self, finding: Finding, verdicts: list[Verdict]) -> float:
@@ -306,7 +285,6 @@ class ReportPipeline:
         """Render complete bug bounty report markdown."""
         sev_emoji = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢", "info": "🔵"}
         emoji = sev_emoji.get(c.severity.lower(), "⚪")
-
         lines = [
             f"# {emoji} {c.title}",
             "",
@@ -341,10 +319,8 @@ class ReportPipeline:
             "### Steps to Reproduce",
             "",
         ]
-
         for i, step in enumerate(c.steps_to_reproduce, 1):
             lines.append(f"{i}. {step}")
-
         lines.extend(
             [
                 "",
@@ -356,19 +332,16 @@ class ReportPipeline:
                 "",
             ]
         )
-
         if c.endpoints:
             lines.extend(["### Affected Endpoints", ""])
             for ep in c.endpoints:
                 lines.append(
                     f"- **{ep.get('method', 'GET')}** `{ep.get('url', '')}` — Params: {ep.get('params', '{}')}"
                 )
-
         if c.screenshots:
             lines.extend(["", "### Screenshots", ""])
             for ss in c.screenshots:
                 lines.append(f"![Evidence]({ss})")
-
         lines.extend(
             [
                 "",
@@ -384,13 +357,10 @@ class ReportPipeline:
                 "",
             ]
         )
-
         for ref in c.references:
             lines.append(f"- {ref}")
-
         if not c.references:
             lines.append("- No additional references provided.")
-
         lines.extend(
             [
                 "",
@@ -409,7 +379,6 @@ class ReportPipeline:
                 f"*Submit manually at: {self.get_submission_url(c.platform, c.platform_url)}*",
             ]
         )
-
         return "\n".join(lines)
 
     def _to_json(self, c: ReportCandidate) -> dict[str, Any]:

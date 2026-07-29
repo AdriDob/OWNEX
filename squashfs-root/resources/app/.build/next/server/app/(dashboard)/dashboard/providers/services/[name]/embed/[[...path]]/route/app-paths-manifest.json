@@ -1,3 +1,0 @@
-{
-  "/(dashboard)/dashboard/providers/services/[name]/embed/[[...path]]/route": "app/(dashboard)/dashboard/providers/services/[name]/embed/[[...path]]/route.js"
-}

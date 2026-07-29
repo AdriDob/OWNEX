@@ -1,11 +1,9 @@
-"""Senior Copilot Agent — transversal reasoning, quality, and control center for ORION.
+from __future__ import annotations
 
+"""Senior Copilot Agent — transversal reasoning, quality, and control center for ORION.
 The Copilot consumes Core Services (EventBus, Decision Journal, Memory, System State)
 through their public interfaces. It never accesses apps directly.
 """
-
-from __future__ import annotations
-
 from core.copilot.agent import CopilotAgent
 from core.copilot.analyzer import AnalysisResult, FindingAnalyzer
 from core.copilot.auditor import (

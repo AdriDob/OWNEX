@@ -1,3 +1,0 @@
-module.exports=[735710,t=>{"use strict";let o=new Map;t.s(["getToolLatencyByProvider",0,function(){let t={};for(let[e,u]of o)t[e]={avgTtftAfterToolMs:u.ttftCount>0?Math.round(u.ttftAfterToolSum/u.ttftCount):0,avgGapAfterToolMs:u.gapCount>0?Math.round(u.gapAfterToolSum/u.gapCount):0,measurementCount:u.totalRequests};return t},"recordToolLatency",0,function(t,e,u){if(!t)return;o.has(t)||o.set(t,{totalRequests:0,ttftAfterToolSum:0,gapAfterToolSum:0,ttftCount:0,gapCount:0});let n=o.get(t);n.totalRequests++,null!=e&&e>=0&&(n.ttftAfterToolSum+=e,n.ttftCount++),null!=u&&u>=0&&(n.gapAfterToolSum+=u,n.gapCount++)}])}];
-
-//# sourceMappingURL=open-sse_services_toolLatencyTracker_ts_0a9hjqy._.js.map

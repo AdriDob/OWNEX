@@ -1,7 +1,6 @@
-"""Financial Hub — payout intelligence, KYC tracking, route optimization."""
-
 from __future__ import annotations
 
+"""Financial Hub — payout intelligence, KYC tracking, route optimization."""
 from core.financial_hub.documents_checklist import DocumentsChecklist
 from core.financial_hub.emergency_routes import EmergencyRoutes
 from core.financial_hub.fees_calculator import FeesCalculator

@@ -422,6 +422,11 @@ class ScanScheduler:
                 logger.exception("Failed to publish pipeline stage event to EventBus")
 
             try:
+                copilot = _get_copilot()
+                if copilot is None:
+                    logger.debug("[COPILOT] Not available, skipping hook for %s", stage)
+                    return
+
                 actions = copilot.recommend_for_system(
                     extra_state={
                         "stage": stage,

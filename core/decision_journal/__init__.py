@@ -1,5 +1,6 @@
-"""Decision Journal — every agent decision is logged for audit and learning.
+from __future__ import annotations
 
+"""Decision Journal — every agent decision is logged for audit and learning.
 Each entry records:
 - What was decided
 - Why (data + reasoning)
@@ -7,9 +8,6 @@ Each entry records:
 - Outcome (after feedback)
 - Feedback loop
 """
-
-from __future__ import annotations
-
 from core.decision_journal.journal import (
     get_decisions,
     log_decision,

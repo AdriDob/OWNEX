@@ -1,23 +1,39 @@
-"""Auth — JWT-based identity, session management, device binding."""
+from __future__ import annotations
 
-from cores.auth.auth import (
-    create_refresh_token,
-    create_session_token,
-    create_token,
-    decode_token,
-    verify_session,
-    verify_token,
+from core.auth.credentials import CredentialStore
+from core.auth.injector import apply_auth_to_request_kwargs, create_auth_for_provider, inject_into_client
+from core.auth.manager import AuthManager, AuthTarget, get_auth_manager
+from core.auth.provider import (
+    APIKeyHeaderProvider,
+    APIKeyQueryProvider,
+    AuthConfig,
+    AuthProvider,
+    AuthType,
+    BasicAuthProvider,
+    BearerTokenProvider,
+    CookieProvider,
+    JWTProvider,
+    get_provider,
+    list_providers,
 )
-from cores.auth.auth_manager import AuthManager, get_auth_manager
-from cores.auth.session import SessionStore, get_session_store
-from cores.auth.session_validator import SessionValidator, get_session_validator
-from cores.auth.token_service import TokenService, get_token_service
 
 __all__ = [
-    "create_token", "verify_token", "decode_token",
-    "create_session_token", "create_refresh_token", "verify_session",
-    "SessionStore", "get_session_store",
-    "AuthManager", "get_auth_manager",
-    "TokenService", "get_token_service",
-    "SessionValidator", "get_session_validator",
+    "APIKeyHeaderProvider",
+    "APIKeyQueryProvider",
+    "AuthConfig",
+    "AuthManager",
+    "AuthProvider",
+    "AuthTarget",
+    "AuthType",
+    "BearerTokenProvider",
+    "BasicAuthProvider",
+    "CookieProvider",
+    "CredentialStore",
+    "JWTProvider",
+    "apply_auth_to_request_kwargs",
+    "create_auth_for_provider",
+    "get_auth_manager",
+    "get_provider",
+    "inject_into_client",
+    "list_providers",
 ]

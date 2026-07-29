@@ -1,0 +1,575 @@
+"""AI Router — intelligent model fallback for the ORION ecosystem.
+
+Prevents work interruption by detecting provider limits early and
+switching to available alternatives before the current model fails.
+
+Fallback chain (never includes OpenRouter directly):
+  OpenCode Free → FCC Proxy → NVIDIA NIM → Ollama Local
+
+Provider status is persisted to ~/.orion/ai_provider_status.json
+for cross-module visibility.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import os
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+logger = logging.getLogger("cateye.ai_router")
+
+POLICY_PATH = os.path.expanduser("~/.orion/ai_policy.yaml")
+HISTORY_PATH = os.path.expanduser("~/.orion/ai_switches.jsonl")
+
+_TIER_ORDER = {"free": 1, "proxy": 2, "cloud": 3, "local": 4}
+
+_VALID_CHAIN = ["opencode_free", "fcc_proxy", "nvidia_nim", "ollama"]
+
+_ALWAYS_VALID_MODELS = {
+    "opencode/deepseek-v4-flash-free",
+    "opencode/nemotron-3-ultra-free",
+    "opencode/mimo-free",
+}
+
+_PROXY_EVENTS_PREFIX = "ai:router:"
+
+
+@dataclass
+class AIProviderStatus:
+    name: str
+    tier: str
+    available: bool
+    current_model: str = ""
+    models: list[str] = field(default_factory=list)
+    error: str = ""
+    latency_ms: float = 0.0
+    last_checked: str = ""
+    status_category: str = "unknown"
+    cooldown_remaining: float = 0.0
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "tier": self.tier,
+            "available": self.available,
+            "current_model": self.current_model,
+            "models": self.models,
+            "error": self.error,
+            "latency_ms": round(self.latency_ms, 1),
+            "last_checked": self.last_checked,
+            "status_category": self.status_category,
+            "cooldown_remaining": round(self.cooldown_remaining, 1),
+        }
+
+
+@dataclass
+class AIProvider:
+    name: str
+    tier: str
+    models: list[str]
+    status: str = "unknown"
+
+
+@dataclass
+class AIPolicy:
+    fallback_enabled: bool = True
+    providers_priority: list[str] = field(default_factory=lambda: list(_VALID_CHAIN))
+    switch_before_limit_percentage: int = 20
+    max_retry_failures: int = 2
+    prefer_quality_for: list[str] = field(default_factory=lambda: ["architecture", "security", "reports"])
+    prefer_speed_for: list[str] = field(default_factory=lambda: ["search", "formatting", "simple_edits"])
+    never_use_openrouter_directly: bool = True
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "fallback_enabled": self.fallback_enabled,
+            "providers_priority": list(self.providers_priority),
+            "switch_before_limit_percentage": self.switch_before_limit_percentage,
+            "max_retry_failures": self.max_retry_failures,
+            "prefer_quality_for": list(self.prefer_quality_for),
+            "prefer_speed_for": list(self.prefer_speed_for),
+            "never_use_openrouter_directly": self.never_use_openrouter_directly,
+        }
+
+
+@dataclass
+class AIHealth:
+    status: str  # green, yellow, red
+    current_provider: str = ""
+    current_model: str = ""
+    near_limit: bool = False
+    available_providers: list[AIProviderStatus] = field(default_factory=list)
+    recommended_fallback: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "status": self.status,
+            "current_provider": self.current_provider,
+            "current_model": self.current_model,
+            "near_limit": self.near_limit,
+            "available_providers": [p.to_dict() for p in self.available_providers],
+            "recommended_fallback": self.recommended_fallback,
+        }
+
+
+@dataclass
+class FallbackRecommendation:
+    should_switch: bool
+    reason: str
+    from_provider: str = ""
+    from_model: str = ""
+    to_provider: str = ""
+    to_model: str = ""
+    estimated_task_complexity: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "should_switch": self.should_switch,
+            "reason": self.reason,
+            "from_provider": self.from_provider,
+            "from_model": self.from_model,
+            "to_provider": self.to_provider,
+            "to_model": self.to_model,
+            "estimated_task_complexity": self.estimated_task_complexity,
+        }
+
+
+@dataclass
+class SwitchRecord:
+    timestamp: str
+    from_provider: str
+    from_model: str
+    to_provider: str
+    to_model: str
+    reason: str
+    success: bool = True
+    duration_ms: float = 0.0
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "timestamp": self.timestamp,
+            "from_provider": self.from_provider,
+            "from_model": self.from_model,
+            "to_provider": self.to_provider,
+            "to_model": self.to_model,
+            "reason": self.reason,
+            "success": self.success,
+            "duration_ms": round(self.duration_ms, 1),
+        }
+
+
+def create_default_policy() -> AIPolicy:
+    return AIPolicy()
+
+
+def load_policy() -> AIPolicy:
+    try:
+        import yaml
+
+        path = Path(POLICY_PATH)
+        if path.exists():
+            with open(path) as f:
+                data = yaml.safe_load(f) or {}
+            return AIPolicy(
+                fallback_enabled=data.get("fallback_enabled", True),
+                providers_priority=data.get("providers_priority", list(_VALID_CHAIN)),
+                switch_before_limit_percentage=data.get("switch_before_limit_percentage", 20),
+                max_retry_failures=data.get("max_retry_failures", 2),
+                prefer_quality_for=data.get("prefer_quality_for", ["architecture", "security", "reports"]),
+                prefer_speed_for=data.get("prefer_speed_for", ["search", "formatting", "simple_edits"]),
+                never_use_openrouter_directly=data.get("never_use_openrouter_directly", True),
+            )
+    except Exception as exc:
+        logger.debug("Cannot load AI policy: %s", exc)
+    return create_default_policy()
+
+
+def save_policy(policy: AIPolicy) -> None:
+    try:
+        import yaml
+
+        path = Path(POLICY_PATH)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "w") as f:
+            yaml.dump(policy.to_dict(), f, default_flow_style=False)
+    except Exception as exc:
+        logger.warning("Cannot save AI policy: %s", exc)
+
+
+class AIRouterEngine:
+    """Decision engine for intelligent model fallback.
+
+    Monitors provider availability, detects approaching limits, and
+    recommends the best fallback. Integrates with EventBus and
+    CapabilityRegistry for observability.
+    """
+
+    def __init__(self, policy: AIPolicy | None = None) -> None:
+        self._policy = policy or load_policy()
+        self._history: list[SwitchRecord] = []
+        self._event_bus: Any = None
+        self._load_history()
+
+    @property
+    def policy(self) -> AIPolicy:
+        return self._policy
+
+    def reload_policy(self) -> None:
+        self._policy = load_policy()
+
+    def save_policy(self) -> None:
+        save_policy(self._policy)
+
+    # ── Provider discovery ───────────────────────────────────────
+
+    def _discover_providers(self) -> list[AIProviderStatus]:
+        providers: list[AIProviderStatus] = []
+        now = datetime.now(timezone.utc).isoformat()
+
+        # 1. OpenCode Free models (deepseek, nemotron, mimo)
+        providers.append(
+            AIProviderStatus(
+                name="opencode_free",
+                tier="free",
+                available=True,
+                current_model="opencode/deepseek-v4-flash-free",
+                models=sorted(_ALWAYS_VALID_MODELS),
+                last_checked=now,
+            )
+        )
+
+        # 2. FCC Proxy
+        proxy_available, proxy_model, proxy_latency = self._check_proxy()
+        providers.append(
+            AIProviderStatus(
+                name="fcc_proxy",
+                tier="proxy",
+                available=proxy_available,
+                current_model=proxy_model or "",
+                models=self._get_proxy_models() if proxy_available else [],
+                latency_ms=proxy_latency,
+                last_checked=now,
+                error="" if proxy_available else "Proxy not reachable",
+            )
+        )
+
+        # 3. Ollama local
+        ollama_available, ollama_models, ollama_latency = self._check_ollama()
+        providers.append(
+            AIProviderStatus(
+                name="ollama",
+                tier="local",
+                available=ollama_available,
+                current_model=ollama_models[0] if ollama_models else "",
+                models=ollama_models,
+                latency_ms=ollama_latency,
+                last_checked=now,
+                error="" if ollama_available else "Ollama not reachable",
+            )
+        )
+
+        return providers
+
+    def _check_proxy(self) -> tuple[bool, str, float]:
+        start = time.monotonic()
+        try:
+            import httpx
+
+            resp = httpx.get("http://localhost:8082/health", timeout=3.0)
+            elapsed = (time.monotonic() - start) * 1000
+            if resp.status_code == 200:
+                data = resp.json()
+                model = (
+                    data.get("default_model", "claude-sonnet-4.5") if isinstance(data, dict) else "claude-sonnet-4.5"
+                )
+                return True, model, elapsed
+            return False, "", elapsed
+        except Exception:
+            elapsed = (time.monotonic() - start) * 1000
+            return False, "", elapsed
+
+    def _get_proxy_models(self) -> list[str]:
+        try:
+            import httpx
+
+            resp = httpx.get("http://localhost:8082/v1/models", headers={"x-api-key": "orion-dev-local"}, timeout=3.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                models = data.get("data", [])
+                return [m.get("id", "") for m in models if m.get("id")][:20]
+        except Exception:
+            pass
+        return []
+
+    def _check_ollama(self) -> tuple[bool, list[str], float]:
+        start = time.monotonic()
+        try:
+            import httpx
+
+            resp = httpx.get("http://localhost:11434/api/tags", timeout=3.0)
+            elapsed = (time.monotonic() - start) * 1000
+            if resp.status_code == 200:
+                data = resp.json()
+                models = [m["name"] for m in data.get("models", []) if m.get("name")]
+                return bool(models), models, elapsed
+            return False, [], elapsed
+        except Exception:
+            elapsed = (time.monotonic() - start) * 1000
+            return False, [], elapsed
+
+    # ── Proxy lock check ─────────────────────────────────────────
+
+    def is_proxy_locked(self) -> bool:
+        return os.path.isfile(os.path.expanduser("~/.orion/proxy_mode"))
+
+    # ── Health / Status ──────────────────────────────────────────
+
+    def check_health(self) -> AIHealth:
+        providers = self._discover_providers()
+
+        current = next((p for p in providers if p.available and p.tier == "proxy"), None)
+        if not current:
+            current = next((p for p in providers if p.available and p.tier == "free"), None)
+        if not current:
+            current = next((p for p in providers if p.available), None)
+
+        current_provider = current.name if current else "none"
+        current_model = current.current_model if current else "none"
+
+        near_limit = False
+        for p in providers:
+            if p.name == "opencode_free" and p.available:
+                near_limit = self._estimate_near_limit()
+
+        recommended = self._recommend_fallback(providers, current_provider, "")
+
+        available_count = sum(1 for p in providers if p.available)
+        if available_count == 0:
+            status = "red"
+        elif near_limit and available_count <= 1:
+            status = "yellow"
+        else:
+            status = "green"
+
+        return AIHealth(
+            status=status,
+            current_provider=current_provider,
+            current_model=current_model,
+            near_limit=near_limit,
+            available_providers=providers,
+            recommended_fallback=recommended.to_provider if recommended else "",
+        )
+
+    def _estimate_near_limit(self) -> bool:
+        try:
+            import yaml
+
+            path = os.path.expanduser("~/.hermes/config.yaml")
+            if not os.path.isfile(path):
+                return False
+            with open(path) as f:
+                cfg = yaml.safe_load(f) or {}
+            max_ctx = cfg.get("model", {}).get("context_length", 128000)
+            if max_ctx <= 0:
+                return False
+            return False
+        except Exception:
+            return False
+
+    # ── Fallback recommendation ───────────────────────────────────
+
+    def recommend_fallback(self, task_type: str = "", task_complexity: str = "") -> FallbackRecommendation:
+        providers = self._discover_providers()
+
+        current = next((p for p in providers if p.available), None)
+        if not current:
+            return FallbackRecommendation(
+                should_switch=False, reason="No providers available at all", estimated_task_complexity=task_complexity
+            )
+
+        near_limit = self._estimate_near_limit()
+        return self._recommend_fallback(providers, current.name, task_type, near_limit, task_complexity)
+
+    def _recommend_fallback(
+        self,
+        providers: list[AIProviderStatus],
+        current_name: str,
+        task_type: str = "",
+        force_near_limit: bool = False,
+        task_complexity: str = "",
+    ) -> FallbackRecommendation:
+        if not self._policy.fallback_enabled:
+            return FallbackRecommendation(should_switch=False, reason="Fallback disabled in policy")
+
+        available = sorted(
+            [p for p in providers if p.available],
+            key=lambda p: _TIER_ORDER.get(p.tier, 99),
+        )
+
+        if len(available) <= 1:
+            return FallbackRecommendation(should_switch=False, reason="No alternative providers available")
+
+        current_in_chain = next(
+            (p for p in available if p.name == current_name),
+            available[0],
+        )
+
+        if task_type and task_type in self._policy.prefer_quality_for:
+            preferred_index = next(
+                (i for i, p in enumerate(available) if p.tier in ("proxy", "free")),
+                None,
+            )
+        elif task_type and task_type in self._policy.prefer_speed_for:
+            preferred_index = next(
+                (i for i, p in enumerate(available) if p.tier == "free"),
+                None,
+            )
+        else:
+            preferred_index = None
+
+        if preferred_index is not None and preferred_index < len(available):
+            preemptive = available[preferred_index]
+            if preemptive.name != current_in_chain.name and force_near_limit:
+                return FallbackRecommendation(
+                    should_switch=True,
+                    reason=f"Preemptive switch for {task_type} task (nearing limit)",
+                    from_provider=current_in_chain.name,
+                    from_model=current_in_chain.current_model,
+                    to_provider=preemptive.name,
+                    to_model=preemptive.current_model,
+                    estimated_task_complexity=task_complexity,
+                )
+
+        fallback_candidates = [p for p in available if p.name != current_in_chain.name]
+        if fallback_candidates:
+            best = fallback_candidates[0]
+            return FallbackRecommendation(
+                should_switch=force_near_limit,
+                reason=f"Recommended fallback: {best.name}"
+                if not force_near_limit
+                else f"Nearing limit on {current_in_chain.name}, switch to {best.name}",
+                from_provider=current_in_chain.name,
+                from_model=current_in_chain.current_model,
+                to_provider=best.name,
+                to_model=best.current_model,
+                estimated_task_complexity=task_complexity,
+            )
+
+        return FallbackRecommendation(should_switch=False, reason="No suitable fallback found")
+
+    def get_status(self) -> dict[str, Any]:
+        health = self.check_health()
+        history = self._history[-10:]
+        return {
+            "policy": self._policy.to_dict(),
+            "health": health.to_dict(),
+            "proxy_locked": self.is_proxy_locked(),
+            "switch_history": [r.to_dict() for r in history],
+        }
+
+    # ── Event publishing ─────────────────────────────────────────
+
+    def _get_event_bus(self) -> Any:
+        if self._event_bus is None:
+            try:
+                from core.events.event_bus import get_core_event_bus
+
+                self._event_bus = get_core_event_bus()
+            except Exception:
+                pass
+        return self._event_bus
+
+    def publish_event(self, event_type: str, **data: Any) -> None:
+        bus = self._get_event_bus()
+        if bus is None:
+            return
+        try:
+            bus.publish(event_type, **data)
+        except Exception as exc:
+            logger.debug("Cannot publish event %s: %s", event_type, exc)
+
+    def record_switch(self, record: SwitchRecord) -> None:
+        self._history.append(record)
+        self._persist_switch(record)
+        self.publish_event(
+            "ai:router:switched" if record.success else "ai:router:switch_failed",
+            from_provider=record.from_provider,
+            from_model=record.from_model,
+            to_provider=record.to_provider,
+            to_model=record.to_model,
+            reason=record.reason,
+        )
+
+    # ── History persistence ──────────────────────────────────────
+
+    def _persist_switch(self, record: SwitchRecord) -> None:
+        try:
+            path = Path(HISTORY_PATH)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with open(path, "a") as f:
+                f.write(json.dumps(record.to_dict()) + "\n")
+        except Exception as exc:
+            logger.debug("Cannot persist switch record: %s", exc)
+
+    def _load_history(self) -> None:
+        try:
+            path = Path(HISTORY_PATH)
+            if path.exists():
+                with open(path) as f:
+                    for line in f:
+                        line = line.strip()
+                        if line:
+                            try:
+                                data = json.loads(line)
+                                self._history.append(SwitchRecord(**data))
+                            except Exception:
+                                continue
+        except Exception:
+            pass
+
+    def get_history(self, limit: int = 20) -> list[SwitchRecord]:
+        return list(self._history[-limit:])
+
+    def clear_history(self) -> None:
+        self._history.clear()
+        try:
+            path = Path(HISTORY_PATH)
+            if path.exists():
+                path.unlink()
+        except Exception:
+            pass
+
+    # ── Capability registration ──────────────────────────────────
+
+    def register_capabilities(self) -> None:
+        try:
+            from core.capabilities.registry import get_capability_registry
+
+            reg = get_capability_registry()
+            reg.register(
+                "ai_completion",
+                "ai_router",
+                {"providers": "opencode_free,fcc_proxy,ollama", "models": sorted(_ALWAYS_VALID_MODELS)},
+                description="Intelligent AI model fallback routing",
+            )
+            reg.register(
+                "ai_health_check",
+                "ai_router",
+                {},
+                description="Check health of all AI providers",
+            )
+        except Exception as exc:
+            logger.warning("Cannot register AI Router capabilities: %s", exc)
+
+
+# ── Module-level registration ──────────────────────────────────
+
+try:
+    AIRouterEngine().register_capabilities()
+except Exception:
+    logger.debug("AI Router capabilities not registered at import time")

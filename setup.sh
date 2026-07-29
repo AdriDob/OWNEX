@@ -1,102 +1,104 @@
 #!/bin/bash
-# 🎯 CI/CD Setup Script - Quick Linux/WSL2/WSL Deployment
+# Rastro Setup — Install daily use dependencies
+set -euo pipefail
 
-# 🛡️ SAFETY: Execute with caution, use error handling
-# ⚡ SPEED: Fast deployment under 15 minutes
-# 🔧 PURPOSE: Quick CI/CD setup for ORION Dashboard
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "=== Rastro Setup ===  $(date)"
+echo "Project: $PROJECT_DIR"
 
-# 🚨 WARNING: This setup script configures HERMES/ORION environment
-# ❓ CONFIRMATION: Script requires user confirmation before execution
+# ── 1. Python virtual environment ──────────────────────────────────────────
+if [ ! -f "$PROJECT_DIR/.venv/bin/python" ]; then
+    echo "[1/6] Creating virtual environment..."
+    python3 -m venv "$PROJECT_DIR/.venv"
+else
+    echo "[1/6] Virtual environment exists"
+fi
+source "$PROJECT_DIR/.venv/bin/activate"
 
-# 🌍 Environment Loading
-if [ -f "./hermes/.bashrc" ]; then
-    source "./hermes/.bashrc"
+# ── 2. Install Python deps ─────────────────────────────────────────────────
+echo "[2/6] Installing Python dependencies..."
+cd "$PROJECT_DIR"
+pip install --quiet --upgrade pip setuptools wheel
+pip install --quiet -e .
+if [ -f requirements.txt ]; then
+    pip install --quiet -r requirements.txt
 fi
 
-# 🌍 Logging System
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🚀 $1"
-}
+# ── 3. Frontend (optional) ──────────────────────────────────────────────────
+echo "[3/6] Checking frontend..."
+if [ -d frontend/node_modules ]; then
+    echo "      Frontend node_modules exists"
+elif command -v npm &>/dev/null && [ -f frontend/package.json ]; then
+    echo "      Installing frontend..."
+    cd "$PROJECT_DIR/frontend"
+    npm ci --quiet || npm install --quiet
+    cd "$PROJECT_DIR"
+else
+    echo "      Skipping frontend (npm not found or no package.json)"
+fi
 
-# 🐛 Error Handling
-error_handler() {
-    log "❌ ERROR: $1"
-    log "💡 SUGGESTION: Check system configuration"
-    exit 1
-}
-
-# 📊 System Validation
-validate_ci_setup() {
-    log "🔍 Validating CI/CD setup..."
-    
-    # Check Python availability
-    if ! command -v python3 &> /dev/null; then
-        error_handler "python3 not found - install Python 3.11+"
-    fi
-    
-    # Check pip availability
-    if ! command -v pip3 &> /dev/null; then
-        error_handler "pip3 not found - install pip"
-    fi
-    
-    # Check Git availability
-    if ! command -v git &> /dev/null; then
-        error_handler "git not found - install Git"
-    fi
-    
-    log "✅ CI/CD environment validated"
-}
-
-# 🏗️ Main Setup Function
-main_setup() {
-    log "🚀 Starting CI/CD setup for ORION Dashboard..."
-    
-    # 🎛 STEP 1: Validate environment
-    validate_ci_setup
-    
-    # 📁 STEP 2: Setup virtual environment
-    if [ ! -d ".venv" ]; then
-        log "📦 Creating virtual environment .venv..."
-        python3 -m venv .venv
-        log "✅ Virtual environment created"
+# ── 4. Environment file ────────────────────────────────────────────────────
+echo "[4/6] Configuring environment..."
+if [ ! -f .env ]; then
+    if [ -f .env.example ]; then
+        cp .env.example .env
+        echo "      Created .env from .env.example — review and edit as needed"
     else
-        log "✅ Virtual environment already exists"
+        echo "      WARNING: No .env.example found; creating minimal .env"
+        cat > .env << 'ENVEOF'
+DATABASE_URL=sqlite:///rastro.db
+LOG_LEVEL=INFO
+ENVEOF
     fi
-    
-    # 🔐 STEP 3: Activate virtual environment
-    if ! source .venv/bin/activate >/dev/null 2>&1; then
-        error_handler ".venv/bin/activate not found"
-    fi
-    
-    # 📦 STEP 4: Install project dependencies
-    if [ -f "pyproject.toml" ]; then
-        log "📥 Installing dependencies from pyproject.toml..."
-        pip3 install -r <(grep -A 20 '\[project\]' pyproject.toml | grep -E "^\s*[^#]" | sed 's/  //')
-        log "✅ Dependencies installed"
-    elif [ -f "requirements.txt" ]; then
-        log "📥 Installing dependencies from requirements.txt..."
-        pip3 install -r requirements.txt
-        log "✅ Dependencies installed"
-    else
-        log "⚠️ Warning: No pyproject.toml or requirements.txt found"
-        log "💡 Suggestion: Use hermes setup for complete configuration"
-    fi
-    
-    # 🧹 STEP 5: Install CI/CD tools
-    log "🛠️ Installing CI/CD tools..."
-    pip3 install pytest pytest-cov pytest-timeout ruff security-cli
-    log "✅ CI/CD tools installed"
-    
-    # 🚀 STEP 6: Show helpful commands
-    log "📋 Available commands:"
-    echo "  👉 ./setup.sh           # Repeat setup"
-    echo "  👉 ./scripts/ci_complete.sh  # Full CI/CD pipeline"
-    echo "  👉 .venv/bin/python -m pytest tests/ --timeout=180"
-    echo "  👉 curl http://localhost:8000/api/health"
-    
-    log "🎉 CI/CD setup completed successfully!"
-    log "⏰ Setup time: $(date '+%Y-%m-%d %H:%M:%S')"
-}
+fi
 
-# 🔧 Execute the setup
-main_setup
+# ── 5. Start script ────────────────────────────────────────────────────────
+echo "[5/6] Creating start script..."
+cat > "$PROJECT_DIR/start.sh" << 'STARTEOF'
+#!/bin/bash
+set -euo pipefail
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$DIR/.venv/bin/activate"
+export PYTHONPATH="${PYTHONPATH:-}:$DIR"
+cd "$DIR"
+echo "Starting Rastro API..."
+python -m api.main
+STARTEOF
+chmod +x "$PROJECT_DIR/start.sh"
+
+# ── 6. Verify ──────────────────────────────────────────────────────────────
+echo "[6/6] Verifying installation..."
+cd "$PROJECT_DIR"
+source .venv/bin/activate
+export PYTHONPATH="${PYTHONPATH:-}:$PROJECT_DIR"
+
+echo "  • Python: $(python3 --version)"
+echo "  • Ruff: $(python3 -m ruff --version 2>/dev/null || echo 'not installed')"
+
+# Test critical imports
+python3 -c "
+import sys
+mods = [
+    'api',
+    'api.scheduler',
+    'core.sensors.base',
+    'core.sensors.observation',
+    'core.sensors.observation_engine',
+    'core.engine.base',
+    'core.capabilities.registry',
+    'extensions.playwright.playwright_sensor',
+]
+for mod in mods:
+    try:
+        __import__(mod)
+        print(f'  ✓ {mod}')
+    except Exception as e:
+        print(f'  ✗ {mod}: {e}')
+        sys.exit(1)
+print('All imports OK')
+"
+
+echo ""
+echo "=== Setup complete! ==="
+echo "Start the API:  ./start.sh"
+echo ""
