@@ -42,7 +42,7 @@ def introspect_capability_registry() -> list[CapabilityDoc]:
 def introspect_event_types() -> list[EventDoc]:
     """Read all event type constants and return as EventDoc list."""
     try:
-        from core.events.types import Events
+        from cores.events.types import Events
 
         events: list[EventDoc] = []
         for attr_name in dir(Events):

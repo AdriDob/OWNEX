@@ -2,7 +2,7 @@
 
 Usage:
 
-    from core.events.correlation import get_or_create_correlation_id, with_correlation_id
+    from cores.events.correlation import get_or_create_correlation_id, with_correlation_id
 
     # Auto-generate if none exists
     cid = get_or_create_correlation_id()

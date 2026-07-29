@@ -118,7 +118,7 @@ class OrionContext:
 
     def _get_recent_events(self) -> list[dict[str, Any]]:
         try:
-            from core.events.store import get_event_store
+            from cores.events.store import get_event_store
 
             store = get_event_store()
             events = store.query(limit=10)

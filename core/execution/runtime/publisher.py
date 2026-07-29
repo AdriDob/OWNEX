@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.events.types import EventEnvelope, Events
+from cores.events.types import EventEnvelope, Events
 
 logger = logging.getLogger("cateye.execution.publisher")
 

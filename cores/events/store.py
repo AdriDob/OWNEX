@@ -17,7 +17,7 @@ Schema:
 
 Usage:
 
-    from core.events.store import get_event_store
+    from cores.events.store import get_event_store
 
     store = get_event_store()
     store.store(envelope)
@@ -38,7 +38,7 @@ import threading
 from pathlib import Path
 from typing import Any
 
-from core.events.types import EventEnvelope
+from cores.events.types import EventEnvelope
 
 logger = logging.getLogger("orion.core.events.store")
 

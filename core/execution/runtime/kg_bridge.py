@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.events.types import Events
+from cores.events.types import Events
 from core.execution.runtime.integration import ExecutionEventBusBridge
 
 logger = logging.getLogger("cateye.execution.kg_bridge")

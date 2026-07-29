@@ -21,8 +21,8 @@ from typing import Any
 import httpx
 
 from core.capabilities.registry import get_capability_registry
-from core.events.correlation import get_or_create_correlation_id
-from core.events.types import Events
+from cores.events.correlation import get_or_create_correlation_id
+from cores.events.types import Events
 
 logger = logging.getLogger("orion.integrations.outlook")
 

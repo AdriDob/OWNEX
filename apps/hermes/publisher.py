@@ -6,7 +6,7 @@ import logging
 import time
 from typing import Any
 
-from core.events.types import Events
+from cores.events.types import Events
 
 logger = logging.getLogger("catseye.merlin.publisher")
 
