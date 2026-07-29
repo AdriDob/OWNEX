@@ -1,3 +1,0 @@
-module.exports=[999027,t=>{"use strict";async function e(e,a,n){let{updateScore:c}=await t.A(129271);c(e,a,n)}async function a(e,a){let{getRank:n}=await t.A(129271);return n(e,a)}async function n(e,a=50,c=0){let{getTopN:o}=await t.A(129271);return o(e,a,c)}async function c(e,a,n=5){let{getLeaderboardNeighbors:o}=await t.A(129271);return o(e,a,n)}async function o(e){let{rotateLeaderboardScope:a}=await t.A(129271);a(e)}t.s(["getNeighbors",0,c,"getRank",0,a,"getTopN",0,n,"rotateScope",0,o,"updateScore",0,e])}];
-
-//# sourceMappingURL=src_lib_gamification_leaderboard_ts_1-_134n._.js.map

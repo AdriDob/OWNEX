@@ -1,7 +1,6 @@
-"""ORION Integration Center — unified view of all external integrations."""
-
 from __future__ import annotations
 
+"""ORION Integration Center — unified view of all external integrations."""
 from core.integrations.discovery import (
     BUILTIN_INTEGRATIONS,
     IntegrationDef,

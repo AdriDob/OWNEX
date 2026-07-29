@@ -1,3 +1,0 @@
-module.exports=[634277,e=>{"use strict";let t=new Map;e.s(["recordBadgeUnlock",0,function(e,l){t.has(e)||t.set(e,[]);let d=t.get(e);d.push({event:l,addedAt:Date.now()});let n=Date.now()-6e4;for(;d.length>0&&d[0].addedAt<n;)d.shift();d.length>50&&d.splice(0,d.length-50);let o=Date.now()-12e4;for(let[e,l]of t){let d=l.filter(e=>e.addedAt>=o);0===d.length?t.delete(e):d.length!==l.length&&t.set(e,d)}}])}];
-
-//# sourceMappingURL=src_lib_gamification_notifications_ts_0q8r6_0._.js.map

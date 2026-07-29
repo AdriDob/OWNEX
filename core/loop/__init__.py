@@ -1,17 +1,14 @@
-"""OWNEX Loop Engineering — autonomous agent loop patterns.
+from __future__ import annotations
 
+"""OWNEX Loop Engineering — autonomous agent loop patterns.
 Bridges loop-engineering (https://github.com/cobusgreyling/loop-engineering)
 to OWNEX Work Cycles.
-
 Provides:
   - LoopPattern, LoopState, LoopRun dataclasses
   - LoopEngine — runs patterns via scheduler + event bus
   - Pattern registry (YAML-based)
   - OWNEX-specific patterns for Security, Forge, Pulse, Vault, Atlas
 """
-
-from __future__ import annotations
-
 from core.loop.engine import LoopEngine
 from core.loop.models import (
     LoopPattern,

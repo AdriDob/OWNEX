@@ -18,6 +18,7 @@ from api.routers import (
     agents_router,
     ai_security,
     assistant,
+    atlas_app,
     attack,
     attack_surface,
     auth,
@@ -42,6 +43,7 @@ from api.routers import (
     financial_sync,
     financial_truth,
     findings,
+    forge_app,
     hunt,
     hunter,
     hypotheses,
@@ -73,6 +75,7 @@ from api.routers import (
     pipeline,
     platforms,
     project_dashboard,
+    pulse_app,
     quick_wins,
     recon,
     report_pipeline,
@@ -96,6 +99,7 @@ from api.routers import (
     telegram_bot,
     terminal_ws,
     validation,
+    vault_app,
     verdicts,
     version,
     webhooks,
@@ -128,19 +132,13 @@ async def lifespan(app: FastAPI):
     logger.info("Database initialized")
 
     # Initialize event bus and system state
+    # ── Initialize Event Bus (persistent core) ─────────────────────────────────
     from cores.events.event_bus import get_event_bus
-    from cores.system_state import get_system_state
-
     bus = get_event_bus()
-    state = get_system_state()
-    state.register_service("backend")
-    state.register_service("frontend")
-    state.register_service("intelligence")
-    state.register_service("assistant")
-    state.register_service("discovery")
-    state.report_healthy("backend")
-    bus.publish("system:boot:complete", service="backend")
-    logger.info("Event bus and system state initialized")
+
+    # Legacy bridge: disable for unified EventBus (CoreEventBus is deprecated)
+    if hasattr(bus, 'disable_bridge'):
+        bus.disable_bridge()
 
     # Check product behavior rules
     from cores.product_rules import enforce_on_startup
@@ -270,6 +268,38 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("Loop engines init failed (non-fatal): %s", exc)
 
+    # ── Initialize Universal Sensor Network ──
+    try:
+        from core.sensors.observation_engine import ObservationEngine
+
+        obs_engine = ObservationEngine(event_bus=bus)
+        await obs_engine.initialize()
+
+        # Register PlaywrightSensor
+        try:
+            from extensions.playwright.playwright_sensor import PlaywrightSensor
+
+            pw_sensor = PlaywrightSensor()
+            await pw_sensor.initialize()
+            obs_engine.register(pw_sensor)
+            logger.info("[SENSORS] PlaywrightSensor registered")
+        except Exception as exc:
+            logger.warning("[SENSORS] PlaywrightSensor registration failed (non-fatal): %s", exc)
+
+        # Register other extensions as sensors
+        for ext in ("ai_assist", "mcp", "git_connector", "aider_connector"):
+            try:
+                mod = __import__(f"extensions.{ext}", fromlist=["register_sensors"])
+                if hasattr(mod, "register_sensors"):
+                    mod.register_sensors(obs_engine)
+            except Exception:
+                pass
+
+        app.state.observation_engine = obs_engine
+        logger.info("[SENSORS] ObservationEngine initialized with %d sensors", len(obs_engine.sensors))
+    except Exception as exc:
+        logger.warning("[SENSORS] ObservationEngine init failed (non-fatal): %s", exc)
+
     # Start background notification poller
     try:
         from api.routers.operations import start_notification_poller
@@ -327,13 +357,10 @@ async def lifespan(app: FastAPI):
 
     # Wire IntelligentNotificationManager -> EventBus
     try:
-        from core.events.bus import get_event_bus
-
+        from cores.events.event_bus import get_event_bus
         from core.notifications.intelligent import get_intelligent_notifier
-
         bus = get_event_bus()
         notifier = get_intelligent_notifier()
-
         def _smart_notify(event_type: str, data: dict | None = None) -> None:
             notifier.route_to_user(event_type, data or {})
 
@@ -726,11 +753,21 @@ async def lifespan(app: FastAPI):
     try:
         from core.app_registry import get_app_registry
         from core.database.manager import get_db_manager
-        from core.events.event_bus import get_core_event_bus
+        from cores.events.event_bus import get_event_bus
         from core.scheduler.scheduler import JobDefinition, get_core_scheduler
 
         registry = get_app_registry()
         registry.discover()
+
+        # Register built-in capabilities so COPILOT and agents can discover them
+        try:
+            from core.capabilities.registration import register_all_capabilities
+
+            registered = register_all_capabilities()
+            logger.info("[BOOT] Registered %d capability entries", registered)
+        except Exception as exc:
+            logger.warning("Capability registration failed (non-fatal): %s", exc)
+
         dbm = get_db_manager()
 
         # Register databases for each app
@@ -744,7 +781,7 @@ async def lifespan(app: FastAPI):
                     dbm.run_migrations(app_id, base)
 
         # Register and start core scheduler
-        core_bus = get_core_event_bus()
+        core_bus = get_event_bus()
         orion_scheduler = get_core_scheduler()
 
         def _on_job_due(job: JobDefinition) -> None:
@@ -873,7 +910,7 @@ async def lifespan(app: FastAPI):
     # ── Event Store + Pipeline Subscribers ─────────────────────
     try:
         # 1. Init Event Store
-        from core.events.store import get_event_store
+        from cores.events.store import get_event_store
 
         _event_store = get_event_store()
         logger.info("[EVENT] Event Store initialized (%d events)", _event_store.count())
@@ -1201,6 +1238,10 @@ app.include_router(notifications.router)
 app.include_router(mobile.router)
 app.include_router(contracts.router)
 app.include_router(cycles.router)
+app.include_router(forge_app.router)
+app.include_router(pulse_app.router)
+app.include_router(vault_app.router)
+app.include_router(atlas_app.router)
 app.include_router(system_state.router)
 app.include_router(daily.router)
 app.include_router(discovery.router)

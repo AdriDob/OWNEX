@@ -1,8 +1,6 @@
 """Report generation for the Validation Engine pipeline.
-
 Transforms a promoted Finding (from ValidationPromoter) into a professional
 bug bounty report with executive summary, CVSS, PoC, evidence, and remediation.
-
 Pipeline:
   PromoteDecision + AttackCandidate + ValidationResult
     → ValidatorReport
@@ -33,7 +31,6 @@ def generate_and_save_report(
     output_path: str | None = None,
 ) -> str:
     """One-shot: generate a report from raw data and optionally save it.
-
     Returns the markdown string.
     """
     report = ValidatorReport(

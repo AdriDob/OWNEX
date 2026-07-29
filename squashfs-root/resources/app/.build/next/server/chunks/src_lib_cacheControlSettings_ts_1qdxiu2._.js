@@ -1,3 +1,0 @@
-module.exports=[593404,t=>t.a(async(e,a)=>{try{var n=t.i(238521),l=e([n]);[n]=l.then?(await l)():l;let c=null;async function i(){return null!==c?c:c=(await (0,n.getSettings)()).alwaysPreserveClientCache||"auto"}t.s(["getCacheControlSettings",0,i,"invalidateCacheControlSettingsCache",0,function(){c=null}]),a()}catch(t){a(t)}},!1)];
-
-//# sourceMappingURL=src_lib_cacheControlSettings_ts_1qdxiu2._.js.map

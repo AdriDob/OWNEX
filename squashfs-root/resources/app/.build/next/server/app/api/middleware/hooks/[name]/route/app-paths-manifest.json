@@ -1,3 +1,0 @@
-{
-  "/api/middleware/hooks/[name]/route": "app/api/middleware/hooks/[name]/route.js"
-}

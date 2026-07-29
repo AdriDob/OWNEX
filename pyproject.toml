@@ -1,8 +1,12 @@
 [project]
 name = "cateye"
-version = "5.0.0"
+version = "5.1.0"
 description = "Private intelligence system for bug bounty"
 requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+include = ["core*", "cores*", "api*", "database*", "extensions*"]
+exclude = ["extensions.*.*"]
 
 [tool.ruff]
 target-version = "py310"

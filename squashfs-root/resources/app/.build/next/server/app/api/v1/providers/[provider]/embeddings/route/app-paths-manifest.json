@@ -1,3 +1,0 @@
-{
-  "/api/v1/providers/[provider]/embeddings/route": "app/api/v1/providers/[provider]/embeddings/route.js"
-}

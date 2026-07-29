@@ -1,11 +1,9 @@
-"""Core EventBus — namespace-aware event bus with SQLite persistence.
+from __future__ import annotations
 
+"""Core EventBus — namespace-aware event bus with SQLite persistence.
 Bridges events to CATEYE's legacy EventBus so app events reach
 legacy subscribers.
 """
-
-from __future__ import annotations
-
 from core.events.correlation import (
     get_correlation_id,
     get_or_create_correlation_id,

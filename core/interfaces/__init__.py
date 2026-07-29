@@ -1,5 +1,4 @@
 """Abstract interfaces for OWNEX Core modules.
-
 Every implementation in core/ MUST inherit from these interfaces.
 Apps depend on contracts, not concrete implementations.
 """

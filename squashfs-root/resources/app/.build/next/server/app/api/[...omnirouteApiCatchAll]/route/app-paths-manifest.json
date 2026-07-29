@@ -1,3 +1,0 @@
-{
-  "/api/[...omnirouteApiCatchAll]/route": "app/api/[...omnirouteApiCatchAll]/route.js"
-}

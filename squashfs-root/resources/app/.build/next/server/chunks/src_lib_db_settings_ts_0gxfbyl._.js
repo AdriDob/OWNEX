@@ -1,3 +1,0 @@
-module.exports=[850063,e=>e.a(async(t,i)=>{try{var g=e.i(298422),r=e.i(141833),n=e.i(463602);e.i(46391);var o=t([g]);[g]=o.then?(await o)():o,e.s(["bumpProxyConfigGeneration",()=>g.bumpProxyConfigGeneration,"getLKGP",()=>n.getLKGP,"getPricing",()=>r.getPricing,"getProxyForLevel",()=>g.getProxyForLevel,"getSettings",()=>g.getSettings,"setLKGP",()=>n.setLKGP]),i()}catch(e){i(e)}},!1)];
-
-//# sourceMappingURL=src_lib_db_settings_ts_0gxfbyl._.js.map

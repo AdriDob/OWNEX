@@ -1,3 +1,0 @@
-module.exports=[640138,e=>{"use strict";Object.freeze({"Access-Control-Allow-Methods":"GET, POST, PUT, DELETE, PATCH, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization, x-api-key, anthropic-version, x-omniroute-connection, x-internal-test, accept"}),e.s(["setRuntimeAllowedOrigins",0,function(e){!function(e){let t=new Set;if(e)for(let o of e.split(",")){let e=o.trim();e&&t.add(function(e){let t=e.toLowerCase();for(;t.endsWith("/");)t=t.slice(0,-1);return t}(e))}}(e)}])}];
-
-//# sourceMappingURL=src_server_cors_origins_ts_0uy6arr._.js.map

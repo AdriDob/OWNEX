@@ -1,3 +1,0 @@
-module.exports=[838470,a=>{"use strict";var b=a.i(907997);a.i(158513);var c=a.i(407353);a.s(["default",0,function(){return(0,b.jsxs)("div",{className:"space-y-4 p-6",children:[(0,b.jsxs)("div",{className:"flex items-center justify-between",children:[(0,b.jsx)("div",{className:"h-8 w-48 animate-pulse rounded bg-surface"}),(0,b.jsx)("div",{className:"h-8 w-32 animate-pulse rounded bg-surface"})]}),(0,b.jsx)(c.CardSkeleton,{}),(0,b.jsx)(c.CardSkeleton,{}),(0,b.jsx)(c.CardSkeleton,{})]})}])},881632,a=>{a.n(a.i(838470))}];
-
-//# sourceMappingURL=src_app_%28dashboard%29_dashboard_combos_loading_tsx_093oxle._.js.map

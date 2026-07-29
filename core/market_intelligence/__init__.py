@@ -1,7 +1,6 @@
-"""ORION Market Intelligence — análisis de fuentes externas, señales y oportunidades."""
-
 from __future__ import annotations
 
+"""ORION Market Intelligence — análisis de fuentes externas, señales y oportunidades."""
 from core.market_intelligence.anti_hype import get_anti_hype
 from core.market_intelligence.brief import generate_brief
 from core.market_intelligence.memory import get_intel_memory

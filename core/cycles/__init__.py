@@ -1,5 +1,6 @@
-"""Cycle Engine — Work Cycles domain for OWNEX.
+from __future__ import annotations
 
+"""Cycle Engine — Work Cycles domain for OWNEX.
 Exports:
 - Cycle model and enums
 - CycleService for lifecycle management
@@ -7,9 +8,6 @@ Exports:
 - CycleMetricsEngine for metrics computation
 - Event publishing helpers
 """
-
-from __future__ import annotations
-
 from core.cycles.events import (
     publish_cycle_activated,
     publish_cycle_created,

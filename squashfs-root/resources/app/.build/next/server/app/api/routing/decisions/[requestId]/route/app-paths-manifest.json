@@ -1,3 +1,0 @@
-{
-  "/api/routing/decisions/[requestId]/route": "app/api/routing/decisions/[requestId]/route.js"
-}

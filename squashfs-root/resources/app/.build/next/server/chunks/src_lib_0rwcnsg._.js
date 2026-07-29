@@ -1,3 +1,0 @@
-module.exports=[999027,t=>{"use strict";async function e(e,n,a){let{updateScore:o}=await t.A(129271);o(e,n,a)}async function n(e,n){let{getRank:a}=await t.A(129271);return a(e,n)}async function a(e,n=50,o=0){let{getTopN:c}=await t.A(129271);return c(e,n,o)}async function o(e,n,a=5){let{getLeaderboardNeighbors:c}=await t.A(129271);return c(e,n,a)}async function c(e){let{rotateLeaderboardScope:n}=await t.A(129271);n(e)}t.s(["getNeighbors",0,o,"getRank",0,n,"getTopN",0,a,"rotateScope",0,c,"updateScore",0,e])},129271,t=>{t.v(t=>Promise.resolve().then(()=>t(850803)))}];
-
-//# sourceMappingURL=src_lib_0rwcnsg._.js.map

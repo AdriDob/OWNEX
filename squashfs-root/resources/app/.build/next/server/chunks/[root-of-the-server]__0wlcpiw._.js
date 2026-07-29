@@ -1,3 +1,0 @@
-module.exports=[300794,(r,e,s)=>{e.exports=r.x("node:dns/promises",()=>require("node:dns/promises"))},144480,r=>{"use strict";var e=r.i(300794),s=r.i(345899);let o=r=>e.default.lookup(r,{all:!0});async function t(r,e,i=o){let a;if(null===(0,s.detectIpLiteralFamily)(r)){try{a=await i((0,s.stripIpv6Brackets)(r))}catch(e){throw Error(`[ProxyFamily] DNS resolution failed for ${r}; refusing to egress (fail-closed): ${e instanceof Error?e.message:String(e)}`)}if(!a.some(r=>r.family===e))throw Error(`[ProxyFamily] Proxy host ${r} has no ${6===e?"IPv6 (AAAA)":"IPv4 (A)"} record; refusing ${6===e?"IPv6":"IPv4"}-only egress (fail-closed)`)}}r.s(["assertHostnameSupportsFamily",0,t])}];
-
-//# sourceMappingURL=%5Broot-of-the-server%5D__0wlcpiw._.js.map

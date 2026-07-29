@@ -1,3 +1,0 @@
-module.exports=[182611,e=>{"use strict";e.s(["formatCost",0,function(e){let t=Number(e||0);return Number.isFinite(t)&&0!==t?t<.01?`$${t.toFixed(6)}`:t<1?`$${t.toFixed(4)}`:`$${t.toFixed(2)}`:"$0.00"},"formatResetCountdown",0,function(e){if(!e)return null;let t="number"==typeof e?e:new Date(e).getTime();if(isNaN(t))return null;let n=t-Date.now();if(n<=0)return null;let r=Math.floor(n/1e3),o=Math.floor(r/3600),i=Math.floor(r%3600/60),u=r%60;return o>0?`${o}h ${i}m`:i>0?`${i}m ${u}s`:`${u}s`},"safePercentage",0,function(e){return"number"==typeof e&&isFinite(e)?e:void 0}])}];
-
-//# sourceMappingURL=src_shared_utils_formatting_ts_08xkgb0._.js.map

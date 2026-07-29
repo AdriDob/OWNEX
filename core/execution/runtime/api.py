@@ -86,7 +86,7 @@ class RuntimeAPI:
             return journal.to_dict()
         # Fall back to EventStore for persisted entries (survives restart)
         try:
-            from core.events.store import get_event_store
+            from cores.events.store import get_event_store
 
             entries = get_event_store().get_journal_entries(execution_id)
             return entries if entries else None
