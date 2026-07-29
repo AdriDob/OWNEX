@@ -1,6 +1,13 @@
 # Changelog
 
-## v4.6.0 — 2026-07-25
+## v5.1.0 — 2026-07-29
+
+### 🔧 Integration Registry
+- **init_integration_registry** wired into FastAPI lifespan — integrates extension registry with integration status tracking
+- **Import cleanup** across all extension modules (aider, git, mcp, playwright, qdrant)
+
+### 🔧 Infrastructure
+- Import ordering and formatting consistency improvements across extension connectors and manifests
 
 ### 🎯 HTTP Probe Module + Widget Dashboard + Retro UI + MERLIN
 - **HTTP Probe Engine**: protocol-agnostic probe core with HTTP/HTTPS adapter, economic scoring before requests, strategic minimal probes
