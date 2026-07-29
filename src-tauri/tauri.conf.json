@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicehash/tauri/dev/crates/tauri-config-schema/schema.json",
   "productName": "OWNEX",
-  "version": "5.1.0",
+  "version": "5.3.0",
   "identifier": "ai.orion.desktop",
   "build": {
     "beforeDevCommand": "cd frontend && npm run dev",

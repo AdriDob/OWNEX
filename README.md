@@ -297,6 +297,6 @@ Proprietary — All Rights Reserved.
 <p align="center">
   <img src="brand/ownex/logo-mark.svg" alt="OWNEX" width="64">
   <br>
-  <b>OWNEX v5.1.0</b> — <i>Autonomous Work Operating Interface</i><br>
+  <b>OWNEX v5.3.0</b> — <i>Autonomous Work Operating Interface</i><br>
   Built with 🔥 by CATEYE Research
 </p>
