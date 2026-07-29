@@ -1,5 +1,37 @@
 # Changelog
 
+## v5.3.0 — 2026-07-29
+
+### 🚀 Revenue Engine
+- Full revenue pipeline: Discovery → Scoring → Preparation → Execution → Delivery → Validation → Payment → Learning
+- Payment tracking with Argentina-specific methods (Wise, PayPal, Payoneer, Cripto, Transferencia)
+- USD → ARS conversion with exchange rate support
+- Revenue statistics, win rates, and average payout tracking
+
+### 🪟 Windows 11 Installer
+- `setup_windows.ps1` — full PowerShell installer
+- `start.bat` / `start.ps1` — one-click launchers
+- `README_INSTALL_WIN11.md` — complete installation guide
+- `.env.example` — environment configuration template
+
+### 🔧 Diagnostic & Operations
+- `scripts/ownex_doctor.py` — system health diagnostic
+- `/api/revenue/*` — REST endpoints for revenue management
+- `/api/merlin/*`, `/api/cli/*`, `/api/ai-security/*` — stabilized API routers
+
+### ⚡ EventBus Unification
+- Complete migration: `core.events.*` → `cores.events.*`
+- Backward-compatible `get_core_event_bus` alias added
+- 29 files migrated in one pass
+
+### ✅ General
+- 75/75 tests passing (63 original + 12 new revenue tests)
+- All import errors resolved
+- API starts cleanly, no import failures
+- Documentation updated for v5.3.0
+
+---
+
 ## v5.1.0 — 2026-07-29
 
 ### 🔧 Integration Registry
