@@ -47,7 +47,7 @@ async function handleActivate() {
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="w-full max-w-md animate-in">
       <div class="mb-8 text-center">
-        <img src="/logo.svg" alt="ORION" class="mx-auto h-24 w-24" />
+        <img src="/logo.svg" alt="OWNEX" class="mx-auto h-24 w-24" />
       </div>
       <Card class="p-8 text-center">
         <!-- Checking state -->
@@ -91,7 +91,7 @@ async function handleActivate() {
               <KeyRound class="h-10 w-10 text-primary" />
             </div>
             <p class="text-lg font-bold text-foreground">Activar Licencia</p>
-            <p class="mt-1 text-sm text-muted-foreground">Ingresá tu código de licencia para activar ORION</p>
+            <p class="mt-1 text-sm text-muted-foreground">Ingresá tu código de licencia para activar OWNEX</p>
 
             <div class="w-full mt-6 space-y-4">
               <input

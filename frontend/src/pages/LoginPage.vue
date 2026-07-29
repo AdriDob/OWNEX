@@ -70,7 +70,7 @@ onMounted(async () => {
       <!-- Logo -->
       <div class="mb-8 text-center stagger-item" style="--i: 0">
         <div class="mx-auto mb-4 flex items-center justify-center">
-          <img src="/logo-small.svg" alt="ORION" class="h-12 w-auto" />
+          <img src="/logo-small.svg" alt="OWNEX" class="h-12 w-auto" />
         </div>
         <p class="mt-1 text-xs text-muted-foreground">Investigación de bug bounty automatizada</p>
       </div>

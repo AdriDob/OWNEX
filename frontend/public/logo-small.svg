@@ -48,16 +48,16 @@
     <circle cx="80" cy="100" r="4" fill="#FFFFFF" opacity="0.9"/>
   </g>
 
-  <!-- ORION text -->
+  <!-- OWNEX text -->
   <text x="170" y="115" font-family="'Orbitron', 'Arial Black', sans-serif" font-size="64"
         font-weight="900" letter-spacing="6" fill="url(#txtGrad)">
-    ORION
+    OWNEX
   </text>
 
   <!-- Tagline -->
-  <text x="178" y="155" font-family="'Inter', 'Segoe UI', sans-serif" font-size="14"
+  <text x="178" y="155" font-family="'Inter', 'Segoe UI', sans-serif" font-size="13"
         font-weight="400" letter-spacing="8" fill="url(#subGrad)">
-    SECURITY INTELLIGENCE OS
+    AUTONOMOUS WORK OS
   </text>
 
   <!-- Small decorative line -->

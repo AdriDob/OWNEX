@@ -111,7 +111,7 @@ const kevCount = computed(() =>
             <Brain class="w-6 h-6 text-blue-400" />
           </div>
           <div>
-            <h1 class="text-2xl font-bold tracking-tight">ORION Intelligence</h1>
+            <h1 class="text-2xl font-bold tracking-tight">OWNEX Intelligence</h1>
             <p class="text-sm text-muted-foreground">LLM security scanning + CVE threat prioritization</p>
           </div>
         </div>
@@ -518,7 +518,7 @@ const kevCount = computed(() =>
 
     <!-- ═══ FOOTER ═══ -->
     <p class="text-center text-[11px] text-muted-foreground pt-4 border-t">
-      ORION Intelligence · Data from NVD, FIRST EPSS, CISA KEV, OWASP LLM Top 10, PyRIT, Garak
+      OWNEX Intelligence · Data from NVD, FIRST EPSS, CISA KEV, OWASP LLM Top 10, PyRIT, Garak
     </p>
   </div>
 </template>

@@ -91,7 +91,7 @@ const pixelAvatarStyle = (char: AssistantCharacter) => {
         class="absolute bottom-full mb-2 left-0 w-72 rounded-xl border border-border/30 bg-surface/95 backdrop-blur-xl shadow-2xl overflow-hidden"
       >
         <div class="px-3 py-2 border-b border-border/20 flex items-center justify-between">
-          <span class="font-mono text-[10px] font-bold tracking-wider text-muted-foreground">ORION ASSISTANTS</span>
+          <span class="font-mono text-[10px] font-bold tracking-wider text-muted-foreground">OWNEX ASSISTANTS</span>
           <button @click="expanded = false" class="text-muted-foreground hover:text-foreground">
             <X class="h-3.5 w-3.5" />
           </button>
