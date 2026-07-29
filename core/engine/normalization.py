@@ -3,6 +3,7 @@
 Each platform expresses data differently. This engine parses reward strings,
 effort estimates, tag names, and confidence into OWNEX canonical fields.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -43,9 +44,15 @@ def parse_reward_range(text: str) -> tuple[float, float, str]:
     # Detect currency
     currency = "USD"
     for sym, code in [
-        ("$", "USD"), ("€", "EUR"), ("£", "GBP"), ("¥", "JPY"),
-        ("ETH", "ETH"), ("BTC", "BTC"), ("SOL", "SOL"),
-        ("usd", "USD"), ("eur", "EUR"),
+        ("$", "USD"),
+        ("€", "EUR"),
+        ("£", "GBP"),
+        ("¥", "JPY"),
+        ("ETH", "ETH"),
+        ("BTC", "BTC"),
+        ("SOL", "SOL"),
+        ("usd", "USD"),
+        ("eur", "EUR"),
     ]:
         if sym.lower() in text.lower():
             currency = code
@@ -232,6 +239,7 @@ class NormalizationEngine(Engine):
             "name": self.name,
             "normalizers": list(self._normalizers.keys()),
         }
+
     def normalize(self, observation: Observation) -> Observation:
         """Normalize a single observation.
 
@@ -260,8 +268,17 @@ class NormalizationEngine(Engine):
         raw = obs.raw_data
 
         # Try common reward field names
-        for field in ("reward", "bounty", "payout", "prize", "max_payout",
-                       "maximum_payout", "pay", "pay_rate", "price"):
+        for field in (
+            "reward",
+            "bounty",
+            "payout",
+            "prize",
+            "max_payout",
+            "maximum_payout",
+            "pay",
+            "pay_rate",
+            "price",
+        ):
             value = raw.get(field)
             if value is not None:
                 if isinstance(value, str):
@@ -276,8 +293,7 @@ class NormalizationEngine(Engine):
                 break
 
         # Try common effort field names
-        for field in ("hours", "time", "effort", "estimated_hours",
-                       "estimated_time", "time_estimate", "duration"):
+        for field in ("hours", "time", "effort", "estimated_hours", "estimated_time", "time_estimate", "duration"):
             value = raw.get(field)
             if value is not None:
                 obs.estimated_effort_hours = parse_effort_hours(value)

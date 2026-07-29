@@ -27,7 +27,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import text
 
 from core.target_intelligence import TargetPrioritizer
-from cores.agents.types import AgentId, EventType  # AÑADIR PipelineState
+from cores.agents.types import EventType  # AÑADIR PipelineState
 from cores.env.config import get_config
 from cores.events.event_bus import get_event_bus  # AÑADIR
 from cores.intelligence.reward_learning import RewardLearner
@@ -377,65 +377,68 @@ class ScanScheduler:
         self, stage: str, stage_result: str = "completed", pipeline_id: str | None = None, error_message: str = ""
     ) -> None:  # MODIFICAR
         """Log COPILOT recommendations and emit pipeline stage events for a specific pipeline_id."""  # MODIFICAR docstring
-        def _copilot_hook(self, stage: str, stage_result: str, pipeline_id: str, error_message: str | None = None) -> None:
-                """Emit pipeline stage event to EventBus + COPILOT hook."""
-                from cores.events.event_bus import get_event_bus
-                from cores.events.event_types import EventType
-                from cores.agents.types import AgentId
 
-                event_bus = get_event_bus()
+        def _copilot_hook(
+            self, stage: str, stage_result: str, pipeline_id: str, error_message: str | None = None
+        ) -> None:
+            """Emit pipeline stage event to EventBus + COPILOT hook."""
+            from cores.events.event_types import EventType
 
-                event_type = EventType.PIPELINE_STAGE_COMPLETED
-                payload = {
-                    "stage": stage,
-                    "stage_result": stage_result,
-                    "pipeline_id": pipeline_id,
-                }
+            from cores.events.event_bus import get_event_bus
+
+            event_bus = get_event_bus()
+
+            event_type = EventType.PIPELINE_STAGE_COMPLETED
+            payload = {
+                "stage": stage,
+                "stage_result": stage_result,
+                "pipeline_id": pipeline_id,
+            }
+            if error_message:
+                event_type = EventType.PIPELINE_FAILED
+                payload["error"] = error_message
+
+            try:
+                event_bus.publish(
+                    event_type.value,
+                    stage=stage,
+                    stage_result=stage_result,
+                    pipeline_id=pipeline_id,
+                )
                 if error_message:
-                    event_type = EventType.PIPELINE_FAILED
-                    payload["error"] = error_message
-
-                try:
                     event_bus.publish(
-                        event_type.value,
-                        stage=stage,
-                        stage_result=stage_result,
+                        EventType.PIPELINE_FAILED.value,
+                        error=error_message,
                         pipeline_id=pipeline_id,
                     )
-                    if error_message:
-                        event_bus.publish(
-                            EventType.PIPELINE_FAILED.value,
-                            error=error_message,
-                            pipeline_id=pipeline_id,
-                        )
-                    logger.info(
-                        "[SCHEDULER->EVENTBUS] Emitted %s for pipeline %s, stage %s: %s",
-                        event_type.value,
-                        pipeline_id[:8],
-                        stage,
-                        stage_result,
-                    )
-                except Exception:
-                    logger.exception("Failed to publish pipeline stage event to EventBus")
+                logger.info(
+                    "[SCHEDULER->EVENTBUS] Emitted %s for pipeline %s, stage %s: %s",
+                    event_type.value,
+                    pipeline_id[:8],
+                    stage,
+                    stage_result,
+                )
+            except Exception:
+                logger.exception("Failed to publish pipeline stage event to EventBus")
 
-                try:
-                    actions = copilot.recommend_for_system(
-                        extra_state={
-                            "stage": stage,
-                            "stage_result": stage_result,
-                            "last_run": self._last_run.get(stage, 0),
-                        }
+            try:
+                actions = copilot.recommend_for_system(
+                    extra_state={
+                        "stage": stage,
+                        "stage_result": stage_result,
+                        "last_run": self._last_run.get(stage, 0),
+                    }
+                )
+                for a in actions[:3]:
+                    logger.info(
+                        "[COPILOT] After %s: %s (prio=%d) — %s",
+                        stage,
+                        a["action"],
+                        a.get("priority", 0),
+                        a.get("reason", ""),
                     )
-                    for a in actions[:3]:
-                        logger.info(
-                            "[COPILOT] After %s: %s (prio=%d) — %s",
-                            stage,
-                            a["action"],
-                            a.get("priority", 0),
-                            a.get("reason", ""),
-                        )
-                except Exception as exc:
-                    logger.debug("[COPILOT] Hook %s error: %s", stage, exc)
+            except Exception as exc:
+                logger.debug("[COPILOT] Hook %s error: %s", stage, exc)
 
     def _set_stage(self, stage: str) -> None:
         """Track current pipeline stage for frontend progress display."""
@@ -804,24 +807,21 @@ class ScanScheduler:
             bridge = ValidationBridge()
 
             # Endpoints con hypothesis pero sin validation ejecutada
-            endpoints = (
-                session.query(models.Endpoint)
-                .filter(models.Endpoint.hypothesis_id.isnot(None))
-                .limit(50)
-                .all()
-            )
+            endpoints = session.query(models.Endpoint).filter(models.Endpoint.hypothesis_id.isnot(None)).limit(50).all()
             if not endpoints:
                 logger.info("[AUTO_VALIDATE] No endpoints with hypotheses to validate")
                 return
 
             eps_by_target: dict[int, list[dict]] = {}
             for ep in endpoints:
-                eps_by_target.setdefault(ep.target_id or 0, []).append({
-                    "path": ep.path,
-                    "method": ep.method or "GET",
-                    "host": "",
-                    "target_id": ep.target_id or 0,
-                })
+                eps_by_target.setdefault(ep.target_id or 0, []).append(
+                    {
+                        "path": ep.path,
+                        "method": ep.method or "GET",
+                        "host": "",
+                        "target_id": ep.target_id or 0,
+                    }
+                )
 
             for target_id, eps in eps_by_target.items():
                 target = session.query(models.Target).filter(models.Target.id == target_id).first()
@@ -831,9 +831,7 @@ class ScanScheduler:
                     ep["host"] = host
 
                 logger.info("[AUTO_VALIDATE] Target %d: %d endpoints → validating...", target_id, len(eps))
-                results = bridge.validate_batch(
-                    eps, target_id=target_id, session=session, dry_run=False
-                )
+                results = bridge.validate_batch(eps, target_id=target_id, session=session, dry_run=False)
 
                 promoted = sum(1 for r in results if r.promoted)
                 for r in results:
@@ -847,7 +845,9 @@ class ScanScheduler:
 
                 logger.info(
                     "[AUTO_VALIDATE] Target %d: %d validated, %d promoted to Finding",
-                    target_id, len(results), promoted,
+                    target_id,
+                    len(results),
+                    promoted,
                 )
 
             self._last_run["auto_validate"] = datetime.now(timezone.utc).timestamp()

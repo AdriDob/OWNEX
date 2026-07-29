@@ -150,16 +150,12 @@ async def terminal_websocket(websocket: WebSocket) -> None:
 
     except FileNotFoundError:
         logger.error("Shell not found: %s", shell_cmd[0])
-        await websocket.send_bytes(
-            f"\\r\\n\\x1b[31mERROR: Shell '{shell_cmd[0]}' not found.\\x1b[0m\\r\\n".encode()
-        )
+        await websocket.send_bytes(f"\\r\\n\\x1b[31mERROR: Shell '{shell_cmd[0]}' not found.\\x1b[0m\\r\\n".encode())
         await websocket.close(code=1011)
         return
     except Exception as exc:
         logger.error("Terminal error: %s", exc)
-        await websocket.send_bytes(
-            f"\\r\\n\\x1b[31mERROR: {exc}\\x1b[0m\\r\\n".encode()
-        )
+        await websocket.send_bytes(f"\\r\\n\\x1b[31mERROR: {exc}\\x1b[0m\\r\\n".encode())
         await websocket.close(code=1011)
         return
     finally:

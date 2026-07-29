@@ -3,6 +3,7 @@
 No modifications to the legacy scraper.
 Just wraps its output as ownObservations.
 """
+
 from __future__ import annotations
 
 import logging

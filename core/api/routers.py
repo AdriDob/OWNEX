@@ -4,6 +4,7 @@ These endpoints are mounted by the OWNEX Platform shell and
 provide platform-wide functionality: app registry, scheduler,
 extensions, backup, update, knowledge graph, and health.
 """
+
 from __future__ import annotations
 
 import logging

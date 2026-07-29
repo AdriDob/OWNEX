@@ -1,4 +1,5 @@
 """EngineRegistry — singleton that tracks all registered engines."""
+
 from __future__ import annotations
 
 import logging

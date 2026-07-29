@@ -3,6 +3,7 @@
 An Observation is a raw signal from a Sensor before any classification.
 It is NOT an opportunity — just evidence that something exists.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
