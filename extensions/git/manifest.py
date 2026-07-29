@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from core.extension.manifest import ExtensionManifest
 from core.extension.capabilities import Capability
+from core.extension.manifest import ExtensionManifest
 
 manifest = ExtensionManifest(
     id="git",
     name="Git Automation",
     version="1.0.0",
     description="Git integration for OWNEX. "
-                "Enables automatic commit, diff review, branch management, "
-                "and PR creation for code changes made during autonomous workflows.",
+    "Enables automatic commit, diff review, branch management, "
+    "and PR creation for code changes made during autonomous workflows.",
     author="OWNEX",
     icon="GitBranch",
     capabilities=[

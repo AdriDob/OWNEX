@@ -801,6 +801,9 @@ async def lifespan(app: FastAPI):
         ext_reg.discover()
         results = ext_reg.load_all()
         loaded = sum(1 for v in results.values() if v)
+        from core.integrations.registry import init_integration_registry
+
+        init_integration_registry(ext_reg)
         logger.info(
             "[ORION] Extensions: %d discovered, %d loaded",
             ext_reg.count,

@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from core.extension.manifest import ExtensionManifest
 from core.extension.capabilities import Capability
+from core.extension.manifest import ExtensionManifest
 
 manifest = ExtensionManifest(
     id="qdrant",
     name="Qdrant Vector Memory",
     version="1.0.0",
     description="Vector-based memory and semantic search plugin. "
-                "Replaces SQLite-based memory with persistent vector storage "
-                "for semantic recall of projects, solutions, and documentation.",
+    "Replaces SQLite-based memory with persistent vector storage "
+    "for semantic recall of projects, solutions, and documentation.",
     author="OWNEX",
     icon="Database",
     capabilities=[

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from core.interfaces.connector import IConnector, ConnectorHealth
+from core.interfaces.connector import ConnectorHealth, IConnector
 
 logger = logging.getLogger("ownex.playwright.connector")
 

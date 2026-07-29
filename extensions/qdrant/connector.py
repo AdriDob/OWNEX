@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from core.interfaces.connector import IConnector, ConnectorHealth
+from core.interfaces.connector import ConnectorHealth, IConnector
 
 
 class QdrantConnector(IConnector):
