@@ -6,8 +6,8 @@
 </p>
 
 <p align="center">
-  <a href="#"><img src="https://img.shields.io/badge/status-alpha-3B82F6?style=flat-square&labelColor=0A0C12" alt="Status"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-4.7.0-10B981?style=flat-square&labelColor=0A0C12" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/status-rc%20v5.1.0-10B981?style=flat-square&labelColor=0A0C12" alt="Status"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-5.1.0-10B981?style=flat-square&labelColor=0A0C12" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/coverage-98%25-34D399?style=flat-square&labelColor=0A0C12" alt="Coverage"></a>
   <a href="#"><img src="https://img.shields.io/badge/stack-Tauri%20%7C%20Vue%203%20%7C%20FastAPI-2563EB?style=flat-square&labelColor=0A0C12" alt="Stack"></a>
   <a href="#"><img src="https://img.shields.io/badge/license-proprietary-F59E0B?style=flat-square&labelColor=0A0C12" alt="License"></a>
@@ -222,6 +222,72 @@ pytest tests/ --ignore=tests/test_security.py -q
 
 ---
 
+## 📦 v5.1.0 — Daily Running Release
+
+> **RC release** — installs, starts, opens API, maintains state, registers errors, can restart.
+> All daily operational features are present. Advanced features continue in v5.2.
+
+### ✅ What's Included
+
+| Feature | Status |
+|---|---|
+| **Instalación limpia** | ✓ `setup.sh` / `setup_windows.ps1` |
+| **API arrancando** | ✓ FastAPI on port 8000 |
+| **EventBus unificado** | ✓ `core.events` → `cores.events` |
+| **Capability Registry** | ✓ 10 capabilities registered at boot |
+| **Revenue Engine** | ✓ Discovery, scoring, tracking, payments |
+| **Métodos de pago AR** | ✓ PayPal, Payoneer, Wise, Cripto, Transferencia |
+| **USD → ARS conversion** | ✓ Built-in converter |
+| **ownex doctor** | ✓ System diagnostic (`scripts/ownex_doctor.py`) |
+| **Windows 11 installer** | ✓ `start.bat`, `start.ps1`, `setup_windows.ps1` |
+| **Windows 11 guide** | ✓ `README_INSTALL_WIN11.md` |
+| **75 tests passing** | ✓ 63 original + 12 new revenue tests |
+| **API docs** | ✓ `http://localhost:8000/docs` |
+
+### Revenue Engine (NEW)
+
+```text
+Discovery → Scoring → Preparation → Execution → Delivery → Validation → Payment → Learning
+```
+
+- **RevenueEngine** — daily discovery, EV scoring, payment processing
+- **PaymentTracker** — tracking by platform, status, and period
+- **USD/ARS converter** — with exchange rate support
+- **5 Argentina payment methods** — Wise, PayPal, Payoneer, Cripto, Transferencia
+
+### Windows 11 Quick Start
+
+```powershell
+git clone <repo>
+cd rastro
+.\setup_windows.ps1
+python -m api.main
+```
+
+Then open **http://localhost:8000/docs**
+
+### Diagnostics
+
+```bash
+python scripts/ownex_doctor.py
+```
+
+Output:
+```text
+OWNEX Doctor
+  ✓ Python
+  ✓ Dependencies
+  ✓ API
+  ✓ Capabilities
+  ✓ EventBus
+  ✓ Sensors
+  ✓ Revenue
+
+System ready
+```
+
+---
+
 ## 📜 License
 
 Proprietary — All Rights Reserved.
@@ -231,6 +297,6 @@ Proprietary — All Rights Reserved.
 <p align="center">
   <img src="brand/ownex/logo-mark.svg" alt="OWNEX" width="64">
   <br>
-  <b>OWNEX v4.7.0</b> — <i>Autonomous Work Operating Interface</i><br>
+  <b>OWNEX v5.1.0</b> — <i>Autonomous Work Operating Interface</i><br>
   Built with 🔥 by CATEYE Research
 </p>
