@@ -1,4 +1,4 @@
-"""Command System — ORION's operational language runtime.
+"""Command System — OWNEX's operational language runtime.
 
 Fase 1 implementation: Command Registry + Dispatcher + Permission Validation.
 """

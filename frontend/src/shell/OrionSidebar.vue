@@ -60,6 +60,7 @@ const navSections = [
       { name: 'Scheduler', path: '/operations/scheduler', icon: Zap },
       { name: 'Herramientas', path: '/operations/tools', icon: Terminal },
       { name: 'Health Center', path: '/operations/health', icon: Activity },
+      { name: 'Terminal', path: '/terminal', icon: Terminal },
       { name: 'Configuración', path: '/operations/settings', icon: Settings },
       { name: 'Workflows', path: '/operations/workflows', icon: RefreshCw },
       { name: 'Replay', path: '/operations/replay', icon: BookOpen },

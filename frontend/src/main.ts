@@ -5,6 +5,7 @@ import App from './App.vue'
 import { routes, isPublicRoute } from './router'
 import { useAuthStore } from '@/stores/auth'
 import './style.css'
+import 'xterm/css/xterm.css'
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

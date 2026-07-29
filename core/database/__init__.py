@@ -1,1 +1,1 @@
-"""Database management for ORION Platform — each app gets its own SQLite."""
+"""Database management for OWNEX Platform — each app gets its own SQLite."""

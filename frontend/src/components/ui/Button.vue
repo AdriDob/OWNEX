@@ -9,14 +9,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm shadow-primary/10',
-        destructive: 'bg-destructive text-white hover:bg-destructive/90 shadow-sm shadow-destructive/10',
-        outline: 'border border-border bg-transparent hover:bg-surface hover:text-foreground',
-        secondary: 'bg-surface text-foreground hover:bg-surface-hover',
-        ghost: 'hover:bg-surface text-muted hover:text-foreground',
-        link: 'text-primary underline-offset-4 hover:underline',
-        phosphor: 'bg-transparent border border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/60 shadow-sm shadow-primary/5 phosphor',
-        tactical: 'bg-transparent border-2 border-border-light text-foreground hover:border-primary/40 hover:text-primary tactical-border',
+        default: 'bg-[rgb(0,112,209)] text-[rgb(239,246,255)] hover:bg-[rgb(0,112,209)]/90 shadow-sm shadow-[rgb(0,112,209)]/10',
+        destructive: 'bg-[rgb(239,68,68)] text-white hover:bg-[rgb(239,68,68)]/90 shadow-sm shadow-[rgb(239,68,68)]/10',
+        outline: 'border border-[rgb(26,26,46)] bg-transparent hover:bg-[rgb(15,17,23)] hover:text-[rgb(240,240,240)]',
+        secondary: 'bg-[rgb(15,17,23)] text-[rgb(240,240,240)] hover:bg-[rgb(16,16,24)]',
+        ghost: 'hover:bg-[rgb(15,17,23)] text-[rgb(100,116,139)] hover:text-[rgb(240,240,240)]',
+        link: 'text-[rgb(0,112,209)] underline-offset-4 hover:underline',
+        phosphor: 'bg-transparent border border-[rgb(0,112,209)]/30 text-[rgb(0,112,209)] hover:bg-[rgb(0,112,209)]/10 hover:border-[rgb(0,112,209)]/60 shadow-sm shadow-[rgb(0,112,209)]/5 phosphor',
+        tactical: 'bg-transparent border-2 border-[rgb(37,37,64)] text-[rgb(240,240,240)] hover:border-[rgb(0,112,209)]/40 hover:text-[rgb(0,112,209)] tactical-border',
       },
       size: {
         default: 'h-9 px-4 py-2',

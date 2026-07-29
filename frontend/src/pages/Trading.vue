@@ -26,7 +26,7 @@ onMounted(loadStatus)
 async function loadStatus() {
   loading.value = true
   try {
-    const res = await api.get('/investment/status')
+    const res = await api.get('/investment/status') as any
     if (res.success) status.value = res.status
   } catch { /* silent */ }
   finally { loading.value = false }
@@ -42,7 +42,7 @@ async function runBacktest() {
       short_ma: shortMa.value,
       long_ma: longMa.value,
       initial_capital: initialCapital.value,
-    })
+    }) as any
     if (res.success) backtestResult.value = res.result
     else backtestError.value = res.error || 'Error en backtest'
   } catch (e: any) {

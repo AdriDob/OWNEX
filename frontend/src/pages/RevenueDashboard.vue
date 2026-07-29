@@ -522,8 +522,8 @@ onMounted(() => {
               searchable
               :pageSize="10"
             >
-              <template #cell-rank="{ value, item, index }">
-                <span class="text-lg font-bold text-primary">{{ index + 1 }}</span>
+              <template #cell-rank="{ value, item }">
+                <span class="text-lg font-bold text-primary">{{ value }}</span>
               </template>
               <template #cell-ev="{ value, item }">
                 <span class="text-sm font-semibold text-green-400">{{ fmtCurrency(item.ev) }}/h</span>

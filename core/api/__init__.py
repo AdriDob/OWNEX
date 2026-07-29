@@ -1,1 +1,1 @@
-"""ORION Core API — platform-level endpoints."""
+"""OWNEX Core API — platform-level endpoints."""

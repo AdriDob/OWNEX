@@ -46,8 +46,14 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'mission-control',
-    component: () => import('@/pages/MissionControl.vue'),
+    component: () => import('@/pages/GamingConsole.vue'),
     meta: { title: 'Control de Misión' },
+  },
+  {
+    path: '/classic',
+    name: 'classic-mission-control',
+    component: () => import('@/pages/MissionControl.vue'),
+    meta: { title: 'Classic Mission Control' },
   },
 
   // ── 2. INTELLIGENCE ──
@@ -197,6 +203,14 @@ export const routes: RouteRecordRaw[] = [
     name: 'capital',
     component: () => import('@/pages/Capital.vue'),
     meta: { title: 'Capital' },
+  },
+
+  // ── 5.5 SECURITY ──
+  {
+    path: '/security',
+    name: 'security',
+    component: () => import('@/pages/SecurityCycle.vue'),
+    meta: { title: 'Security Cycle' },
   },
 
   // ── 6. OPERATIONS ──
@@ -473,6 +487,12 @@ export const routes: RouteRecordRaw[] = [
   },
 
   // ── Special pages ──
+  {
+    path: '/terminal',
+    name: 'terminal',
+    component: () => import('@/pages/TerminalView.vue'),
+    meta: { title: 'Terminal' },
+  },
   {
     path: '/baby-mode',
     name: 'baby-mode',

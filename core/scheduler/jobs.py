@@ -263,9 +263,58 @@ def get_atlas_jobs() -> list[JobDefinition]:
     return jobs
 
 
+def get_security_jobs() -> list[JobDefinition]:
+    """SECURITY cycle jobs — run Rastro pipeline automatically.
+
+    Jobs:
+    - security_cycle_start: auto-start cycle every 2h (if idle)
+    - security_cycle_advance: advance pipeline every 30min
+    - security_cycle_sync: sync scores/knowledge hourly
+    """
+    jobs = []
+
+    # Auto-start cycle every 2 hours (if idle/not running)
+    jobs.append(
+        _cron_job(
+            job_id="security_cycle_start",
+            app_id="security",
+            handler="core.cycles.security:get_security_cycle",
+            cron="0 */2 * * *",
+            args=[],
+            metadata={"cycle": "security", "type": "auto_start"},
+        )
+    )
+
+    # Advance pipeline stages every 30 minutes
+    jobs.append(
+        _cron_job(
+            job_id="security_cycle_advance",
+            app_id="security",
+            handler="core.cycles.tasks:advance_security_pipeline",
+            cron="30 * * * *",
+            metadata={"cycle": "security", "type": "advance"},
+        )
+    )
+
+    # Sync scores and knowledge hourly
+    jobs.append(
+        _cron_job(
+            job_id="security_cycle_sync",
+            app_id="security",
+            handler="core.opportunity.tasks:sync_cycle_scores",
+            cron="15 * * * *",
+            args=["security"],
+            metadata={"cycle": "security", "type": "sync"},
+        )
+    )
+
+    return jobs
+
+
 def get_all_jobs() -> dict[str, list[JobDefinition]]:
     """Return all cycle jobs."""
     return {
+        "security": get_security_jobs(),
         "forge": get_forge_jobs(),
         "pulse": get_pulse_jobs(),
         "vault": get_vault_jobs(),

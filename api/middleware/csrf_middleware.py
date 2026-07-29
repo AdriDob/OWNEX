@@ -47,6 +47,10 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         request: Request,
         call_next: Callable[[Request], Awaitable[Response]],
     ) -> Response:
+        # WebSocket connections bypass CSRF (token in query param or handled separately)
+        if request.scope["type"] == "websocket":
+            return await call_next(request)
+
         # Disabled only when explicitly opted out
         if os.environ.get("CATEYE_CSRF_DISABLED"):
             return await call_next(request)

@@ -202,7 +202,7 @@ onMounted(() => {
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts">
 // Child components defined inline for simplicity
 import { defineComponent, h } from 'vue'
 import { FileText, Download, Edit, ExternalLink, DollarSign, TrendingUp, Clock, AlertTriangle } from '@lucide/vue'
@@ -315,15 +315,26 @@ const sevBadge = (sev: string) => {
 
 <style scoped>
 .panel {
-  @apply bg-surface/20 border border-border/30;
+  background: rgba(24, 24, 27, 0.3);
+  border: 1px solid rgba(39, 39, 42, 0.8);
 }
 .btn-primary {
-  @apply bg-primary text-primary-foreground hover:bg-primary/90 border-none;
+  background: #2563eb;
+  color: white;
+}
+.btn-primary:hover {
+  background: #3b82f6;
 }
 .btn-ghost {
-  @apply bg-transparent hover:bg-white/5 border border-border/30;
+  background: transparent;
+  border: 1px solid rgba(39, 39, 42, 0.8);
+}
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 .btn-xs {
-  @apply px-2 py-1 text-[10px] font-mono;
+  padding: 0.25rem 0.5rem;
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
 }
 </style>

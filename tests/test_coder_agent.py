@@ -348,8 +348,6 @@ class TestPlatformEntryPoints:
     async def test_algora_solve_extracts_repo(self):
         from core.autonomy.coder_agent import solve_algora_issue
 
-        issue = {"repository": {"html_url": "https://github.com/o/r"}, "title": "Fix"}
-
         # We just verify it doesn't crash and routes correctly
         # The actual solve requires network, but we can verify the structure
         assert callable(solve_algora_issue)

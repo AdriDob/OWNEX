@@ -1,3 +1,4 @@
+use std::process::{Command, Stdio};
 use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
@@ -15,6 +16,31 @@ fn get_platform() -> String {
     }
 }
 
+#[tauri::command]
+fn start_backend(app_handle: tauri::AppHandle) -> Result<String, String> {
+    // Locate the project root relative to the Tauri binary
+    let resource_dir = app_handle
+        .path()
+        .resource_dir()
+        .map_err(|e| e.to_string())?;
+
+    let backend_script = resource_dir.join("binaries").join("start_backend.py");
+    let python = if cfg!(target_os = "windows") {
+        "python.exe"
+    } else {
+        "python3"
+    };
+
+    let child = Command::new(python)
+        .arg(&backend_script)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("Failed to start backend: {e}"))?;
+
+    Ok(format!("Backend started (PID: {})", child.id()))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -23,7 +49,7 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
-        .invoke_handler(tauri::generate_handler![get_platform])
+        .invoke_handler(tauri::generate_handler![get_platform, start_backend])
         .setup(|app| {
             // Tray icon
             #[cfg(desktop)]
@@ -53,6 +79,16 @@ pub fn run() {
                         _ => {}
                     })
                     .build(app)?;
+            }
+
+            // Auto-start the Python backend on app launch
+            #[cfg(not(debug_assertions))]
+            {
+                let app_handle = app.handle().clone();
+                std::thread::spawn(move || {
+                    std::thread::sleep(std::time::Duration::from_secs(2));
+                    let _ = start_backend(app_handle);
+                });
             }
 
             Ok(())

@@ -21,13 +21,12 @@ import time
 from pathlib import Path
 from typing import Any
 
-from core import ORION_DIR
+from core import OWNEX_DIR
 
-logger = logging.getLogger("orion.core.sync")
-
-SYNC_CACHE = ORION_DIR / "sync_cache.json"
-SYNC_KEY_FILE = ORION_DIR / "sync_key"
-SYNC_CONFIG = ORION_DIR / "sync_config.json"
+logger = logging.getLogger("ownex.core.sync")
+SYNC_CACHE = OWNEX_DIR / "sync_cache.json"
+SYNC_KEY_FILE = OWNEX_DIR / "sync_key"
+SYNC_CONFIG = OWNEX_DIR / "sync_config.json"
 
 # Fields that are safe to sync (no secrets)
 SYNCABLE_CONFIG_KEYS = [
@@ -240,18 +239,18 @@ class SyncEngine:
             return {"status": "error", "reason": str(exc)[:200]}
 
     def _file_push(self, raw: bytes, encrypted: bytes) -> dict[str, Any]:
-        ORION_DIR.mkdir(parents=True, exist_ok=True)
-        export_path = ORION_DIR / f"orion_sync_{int(time.time())}.enc"
-        export_path.write_bytes(encrypted)
+        OWNEX_DIR.mkdir(parents=True, exist_ok=True)
+        export_path = OWNEX_DIR / f"ownex_sync_{int(time.time())}.enc"
         # Also save a human-readable version for manual review (no secrets)
-        plain_path = ORION_DIR / f"orion_sync_{int(time.time())}.json"
+        plain_path = OWNEX_DIR / f"ownex_sync_{int(time.time())}.json"
+        export_path.write_bytes(encrypted)
         plain_path.write_bytes(raw)
         logger.info("Sync package saved: %s", export_path)
         return {"status": "ok", "path": str(export_path), "plain_path": str(plain_path), "size": len(encrypted)}
 
     def _file_pull(self, path: str | None = None) -> dict[str, Any]:
         if path is None:
-            enc_files = sorted(ORION_DIR.glob("orion_sync_*.enc"), reverse=True)
+            enc_files = sorted(OWNEX_DIR.glob("ownex_sync_*.enc"), reverse=True)
             if not enc_files:
                 return {"status": "error", "reason": "No sync packages found"}
             path = str(enc_files[0])

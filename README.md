@@ -32,11 +32,12 @@ Built for bug bounty hunters, security researchers, and autonomous agents who ne
 
 | Capability | What It Means |
 |---|---|
-| **🔨 Forge** | Bug bounty operations across 8+ platforms — discovery, scoring, execution |
+| **🔨 Forge** | Dev bounty operations — Superteam Earn, TaskBounty, Opire, Freelancer.com |
 | **📡 Pulse** | AI work & microtasks — Outlier, DataAnnotation, Mindrift, Remotasks |
 | **🏦 Vault** | Wealth management — crypto, DeFi, portfolio tracking |
 | **🗺️ Atlas** | Reconnaissance & intelligence — opportunity discovery |
-| **🔐 Security** | Full security research pipeline — Recon → Attack Surface → Hypothesis → Validation → Evidence → Report → Learning |
+| **🔵 Rastro** | Full security research pipeline — Recon → Attack Surface → Hypothesis → Validation → Evidence → Report → Learning |
+| **🤖 OWNEX** | Coordinator OS — orchestration, scheduling, learning, cross-cycle intelligence |
 
 Each cycle is a **self-contained app** with its own adapters, scoring engine, scheduler, and execution pipeline.
 

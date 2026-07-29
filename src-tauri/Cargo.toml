@@ -13,7 +13,6 @@ tauri = { version = "2", features = [
     "tray-icon",
     "dialog",
     "notification",
-    "protocol-asset",
 ] }
 tauri-plugin-shell = "2"
 tauri-plugin-dialog = "2"

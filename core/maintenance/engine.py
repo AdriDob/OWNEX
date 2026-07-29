@@ -1,4 +1,4 @@
-"""ORION Maintenance Engine — DB longevity, VACUUM, ANALYZE, integrity checks."""
+"""OWNEX Maintenance Engine — DB longevity, VACUUM, ANALYZE, integrity checks."""
 
 from __future__ import annotations
 
@@ -9,18 +9,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from core import ORION_DIR
+from core import OWNEX_DIR
 
-logger = logging.getLogger("orion.core.maintenance")
+logger = logging.getLogger("ownex.core.maintenance")
 
 KNOWN_DATABASES: list[Path] = [
-    ORION_DIR / "cateye.db",
-    ORION_DIR / "database" / "orion.db",
-    ORION_DIR / "database" / "orion_core.db",
-    ORION_DIR / "database" / "memory.db",
-    ORION_DIR / "database" / "evidence_graph.db",
-    ORION_DIR / "database" / "atlas.db",
-    ORION_DIR / "database" / "odyssey.db",
+    OWNEX_DIR / "cateye.db",
+    OWNEX_DIR / "database" / "ownex.db",
+    OWNEX_DIR / "database" / "ownex_core.db",
+    OWNEX_DIR / "database" / "memory.db",
+    OWNEX_DIR / "database" / "evidence_graph.db",
+    OWNEX_DIR / "database" / "atlas.db",
+    OWNEX_DIR / "database" / "odyssey.db",
 ]
 
 

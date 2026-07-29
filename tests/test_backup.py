@@ -1,4 +1,4 @@
-"""Tests for ORION Backup System."""
+"""Tests for OWNEX Backup System."""
 
 from __future__ import annotations
 
@@ -11,14 +11,14 @@ import pytest
 
 @pytest.fixture
 def _backup_env(monkeypatch: pytest.MonkeyPatch) -> Path:
-    """Create a temp ORION_DIR with some test files and point backup at it."""
+    """Create a temp OWNEX_DIR with some test files and point backup at it."""
     tmp = Path(tempfile.mkdtemp())
-    monkeypatch.setattr("core.backup.engine.ORION_DIR", tmp)
+    monkeypatch.setattr("core.backup.engine.OWNEX_DIR", tmp)
     monkeypatch.setattr("core.backup.engine.BACKUP_DIR", tmp / "backups")
 
     # Create some test files
     (tmp / "database").mkdir(parents=True)
-    (tmp / "database" / "orion.db").write_text("fake db content")
+    (tmp / "database" / "ownex.db").write_text("fake db content")
     (tmp / "database" / "memory.db").write_text("fake memory content")
     (tmp / "config.json").write_text('{"key": "value"}')
     (tmp / "identity_vault.key").write_text("fake-key-content-32bytes!!")
@@ -41,7 +41,7 @@ class TestCreateBackup:
 
         path = Path(result["backup_path"])
         assert path.exists()
-        assert path.name.startswith("ORION_BACKUP_")
+        assert path.name.startswith("OWNEX_BACKUP_")
         assert path.suffix == ".zip"
 
     def test_backup_contains_manifest(self, _backup_env: Path) -> None:
@@ -55,11 +55,11 @@ class TestCreateBackup:
         with zipfile.ZipFile(result["backup_path"]) as zf:
             assert "manifest.json" in zf.namelist()
             manifest = json.loads(zf.read("manifest.json"))
-            assert manifest["version"] == "4.3.2"
+            assert manifest["version"] == "5.0.0"
             assert "created_at" in manifest
             assert manifest["total_files"] >= 4
             assert "files" in manifest
-            assert any(f["path"] == "database/orion.db" for f in manifest["files"])
+            assert any(f["path"] == "database/ownex.db" for f in manifest["files"])
 
     def test_backup_manifest_checksum(self, _backup_env: Path) -> None:
         from core.backup import create_backup
@@ -92,7 +92,7 @@ class TestListBackups:
         create_backup()
         backups = list_backups()
         assert len(backups) == 1
-        assert backups[0]["filename"].startswith("ORION_BACKUP_")
+        assert backups[0]["filename"].startswith("OWNEX_BACKUP_")
         assert backups[0]["size"] > 0
 
     def test_list_multiple_backups(self, _backup_env: Path) -> None:
@@ -150,7 +150,7 @@ class TestBackupStatus:
         status = backup_status()
         assert "total_backups" in status
         assert "backup_dir" in status
-        assert "orion_dir" in status
+        assert "ownex_dir" in status
         assert status["total_backups"] == 0
 
         from core.backup import create_backup
@@ -171,7 +171,7 @@ class TestRestoreBackup:
         r = restore_backup(result["backup_path"], target_dir=str(restore_dir))
         assert r["status"] == "ok"
         assert r["restored_files"] >= 4
-        assert (restore_dir / "database" / "orion.db").exists()
+        assert (restore_dir / "database" / "ownex.db").exists()
         assert (restore_dir / "config.json").exists()
 
 
