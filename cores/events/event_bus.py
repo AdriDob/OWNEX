@@ -60,6 +60,7 @@ def classify_event(event_type: str) -> str:
 
 def _get_session():
     from database.db import SessionLocal
+
     return SessionLocal()
 
 
@@ -68,6 +69,7 @@ def _persist_event(event_type: str, priority: str, payload: dict[str, Any]) -> N
         session = _get_session()
         try:
             from database.models import EventBusEntry
+
             ts = str(time.time())
             pj = {}
             for k, v in payload.items():
@@ -145,19 +147,22 @@ class EventBus:
 
         try:
             from cores.intelligence.priority_engine import get_priority_engine
+
             engine = get_priority_engine()
             if event_type.startswith("opportunity"):
                 engine.ingest_opportunity({"source": "opportunity", **payload})
             elif event_type.startswith("quick_win"):
                 engine.ingest_quick_win({"source": "quick_win", **payload})
             elif event_type in ("system:error", "system:degraded", "system:ready"):
-                engine.ingest_system_alert({
-                    "source": "alert",
-                    "severity": priority,
-                    "title": event_type,
-                    "message": payload.get("message", str(payload)),
-                    **payload,
-                })
+                engine.ingest_system_alert(
+                    {
+                        "source": "alert",
+                        "severity": priority,
+                        "title": event_type,
+                        "message": payload.get("message", str(payload)),
+                        **payload,
+                    }
+                )
         except Exception as exc:
             logger.debug("Priority routing skipped: %s", exc)
 
@@ -179,11 +184,15 @@ class EventBus:
                 for handler in async_handlers:
                     try:
                         fut = asyncio.run_coroutine_threadsafe(
-                            handler(event_type=event_type, priority=priority, **payload), loop,
+                            handler(event_type=event_type, priority=priority, **payload),
+                            loop,
                         )
                         fut.add_done_callback(
-                            lambda f: logger.warning("Async handler error on %s: %s", event_type, f.exception())
-                            if f.exception() else None
+                            lambda f: (
+                                logger.warning("Async handler error on %s: %s", event_type, f.exception())
+                                if f.exception()
+                                else None
+                            )
                         )
                     except Exception as exc:
                         logger.warning("Async event handler error on %s: %s", event_type, exc)
@@ -195,6 +204,7 @@ class EventBus:
             session = _get_session()
             try:
                 from database.models import EventBusEntry
+
                 q = session.query(EventBusEntry)
                 if event_type:
                     q = q.filter(EventBusEntry.event_type == event_type)
@@ -204,13 +214,15 @@ class EventBus:
                         pj = json.loads(row.payload_json or "{}")
                     except (json.JSONDecodeError, TypeError):
                         pj = {}
-                    db_events.append({
-                        "type": row.event_type,
-                        "priority": row.priority,
-                        "timestamp": float(row.timestamp) if row.timestamp else 0.0,
-                        "payload": pj,
-                        "_persisted": True,
-                    })
+                    db_events.append(
+                        {
+                            "type": row.event_type,
+                            "priority": row.priority,
+                            "timestamp": float(row.timestamp) if row.timestamp else 0.0,
+                            "payload": pj,
+                            "_persisted": True,
+                        }
+                    )
             except Exception as exc:
                 logger.debug("DB history query failed: %s", exc)
             finally:
@@ -247,6 +259,7 @@ class EventBus:
             session = _get_session()
             try:
                 from database.models import EventBusEntry
+
                 session.query(EventBusEntry).delete()
                 session.commit()
             except Exception as exc:
@@ -264,13 +277,17 @@ class EventBus:
             return sum(len(v) for v in self._handlers.values()) + sum(len(v) for v in self._async_handlers.values())
 
 
-def _record_event(history: list[dict[str, Any]], max_history: int, event_type: str, priority: str, payload: dict[str, Any]) -> None:
-    history.append({
-        "type": event_type,
-        "priority": priority,
-        "timestamp": time.time(),
-        "payload": payload,
-    })
+def _record_event(
+    history: list[dict[str, Any]], max_history: int, event_type: str, priority: str, payload: dict[str, Any]
+) -> None:
+    history.append(
+        {
+            "type": event_type,
+            "priority": priority,
+            "timestamp": time.time(),
+            "payload": payload,
+        }
+    )
     if len(history) > max_history:
         history[:] = history[-max_history:]
 
@@ -291,3 +308,6 @@ def get_event_bus() -> EventBus:
         _BUS = EventBus()
         logger.info("Event bus initialized (persistent)")
     return _BUS
+
+
+get_core_event_bus = get_event_bus
