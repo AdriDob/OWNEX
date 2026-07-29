@@ -6,6 +6,7 @@ logger = logging.getLogger("ownex.qdrant")
 
 try:
     from qdrant_client import QdrantClient
+
     _QDRANT_AVAILABLE = True
 except ImportError:
     _QDRANT_AVAILABLE = False

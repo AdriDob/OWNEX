@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from core.extension.manifest import ExtensionManifest
 from core.extension.capabilities import Capability
+from core.extension.manifest import ExtensionManifest
 
 manifest = ExtensionManifest(
     id="mcp",
     name="MCP Bridge",
     version="1.0.0",
     description="Model Context Protocol bridge. "
-                "Connects OWNEX to any MCP-compatible server for tool access, "
-                "file operations, web search, and external data sources.",
+    "Connects OWNEX to any MCP-compatible server for tool access, "
+    "file operations, web search, and external data sources.",
     author="OWNEX",
     icon="Plug",
     capabilities=[
