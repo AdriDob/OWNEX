@@ -18,7 +18,7 @@ async def merlin_brief():
     try:
         from cores.capabilities.registration import register_builtin_capabilities
 
-        from core.events.event_bus import get_core_event_bus
+        from cores.events.event_bus import get_core_event_bus
 
         bus = get_core_event_bus()
         bus.publish("merlin:brief_requested")
@@ -38,7 +38,7 @@ async def merlin_brief():
 async def merlin_decisions(limit: int = 10):
     """List recent strategic decisions."""
     try:
-        from core.events.event_bus import get_core_event_bus
+        from cores.events.event_bus import get_core_event_bus
 
         bus = get_core_event_bus()
         bus.publish("merlin:decisions_requested")
@@ -58,7 +58,7 @@ async def merlin_decisions(limit: int = 10):
 async def record_decision(decision: dict[str, Any]):
     """Record a new strategic decision."""
     try:
-        from core.events.event_bus import get_core_event_bus
+        from cores.events.event_bus import get_core_event_bus
 
         bus = get_core_event_bus()
         bus.publish("merlin:decision_recorded", decision_id=decision.get("id"))
@@ -72,7 +72,7 @@ async def record_decision(decision: dict[str, Any]):
 async def merlin_memory():
     """Get MERLIN's strategic context."""
     try:
-        from core.events.event_bus import get_core_event_bus
+        from cores.events.event_bus import get_core_event_bus
 
         bus = get_core_event_bus()
         bus.publish("merlin:memory_requested")
@@ -90,7 +90,7 @@ async def merlin_memory():
 async def set_goals(goals: dict[str, Any]):
     """Set strategic goals."""
     try:
-        from core.events.event_bus import get_core_event_bus
+        from cores.events.event_bus import get_core_event_bus
 
         bus = get_core_event_bus()
         bus.publish("merlin:goals_set", goals=goals)

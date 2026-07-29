@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.events.types import Events
+from cores.events.types import Events
 from core.reports.quality.classifier import QualityClassifier
 from core.reports.quality.scorer import QualityScorer
 from database import db, models

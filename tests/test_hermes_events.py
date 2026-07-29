@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from apps.hermes.publisher import HermesEventPublisher
-from core.events.types import Events
+from cores.events.types import Events
 
 
 class FakeEventBus:

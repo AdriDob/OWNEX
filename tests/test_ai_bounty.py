@@ -5,7 +5,7 @@ from __future__ import annotations
 from core.ai_bounty.engine import AIBountyEngine
 from core.ai_bounty.monitor import AIBountyChallenge, AIBountyMonitor
 from core.ai_bounty.publisher import AIBountyEventPublisher
-from core.events.types import Events
+from cores.events.types import Events
 from cores.platforms.ai_bounty import (
     AI_BOUNTY_REGISTRY,
     AnthropicBounty,

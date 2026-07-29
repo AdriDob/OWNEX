@@ -12,7 +12,7 @@ from core.capabilities.registry import (
     get_capability_registry,
     reset_capability_registry,
 )
-from core.events.correlation import (
+from cores.events.correlation import (
     get_correlation_id,
     get_or_create_correlation_id,
     new_correlation_id,
@@ -20,8 +20,8 @@ from core.events.correlation import (
     with_correlation_id,
     with_new_correlation_id,
 )
-from core.events.store import EventStore, get_event_store, reset_event_store
-from core.events.types import CorrelationId, Decision, EventEnvelope, Events
+from cores.events.store import EventStore, get_event_store, reset_event_store
+from cores.events.types import CorrelationId, Decision, EventEnvelope, Events
 
 # ── Event Types ────────────────────────────────────────────────
 

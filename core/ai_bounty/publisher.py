@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.events.types import Events
+from cores.events.types import Events
 
 logger = logging.getLogger("orion.ai_bounty.publisher")
 
