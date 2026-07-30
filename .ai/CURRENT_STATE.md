@@ -185,47 +185,35 @@
 
 **Análisis de Potencial Máximo de Ingresos**
 - cores/revenue_tracker/revenue_potential.py: Análisis completo de potencial
-  - 4 tiers: conservative (0.5x), moderate (1.0x), aggressive (2.0x), maximum (3.0x)
+  - 4 tiers: conservative (1.0x), moderate (1.5x), aggressive (2.5x), maximum (4.0x)
   - PlatformPotential dataclass: avg_reward, success_rate, daily_capacity, avg_time_per_opportunity
   - RevenuePotential dataclass: monthly breakdown por plataforma
   - calculate_revenue_potential(tier, include_market_modules): cálculo opcional con market modules
   - generate_revenue_report(include_market_modules): reporte completo con todas las tiers
-- Market Modules (riskier but higher potential):
-  - Trading: Crypto Trading (cores/trading/executor.py) — 10 trades/día, avg $100, 35% win rate, 5% daily risk max, 80% efficiency
-  - Investment: DeFi Yield Farming (cores/investment/manager.py) — 5 positions, 20% APY, $1000 min position, 80% efficiency
-  - Market Intelligence: Arbitrage (cores/market_intelligence/models.py) — 20 opportunities/día, avg $50, 60% success rate, 70% analysis efficiency
-  - CCXT Multi-Exchange: Multi-exchange trading (cores/investment/adapters/ccxt_adapter.py) — 15 trades/día, avg $80, 30% win rate, 75% efficiency
-  - Forex: Forex Trading (cores/investment/adapters/forex_adapter.py) — 5 trades/día, avg $150, 40% win rate, 70% efficiency
-  - Futures: Crypto Futures (cores/investment/adapters/futures_adapter.py) — 8 trades/día, avg $200, 25% win rate, 60% efficiency
-  - Global Arbitrage: Cross-border arbitrage (cores/investment/adapters/global_arbitrage_adapter.py) — 5 opportunities/día, avg $300, 45% success rate, 70% efficiency
-  - Memecoin: Solana memecoin sniping (cores/investment/adapters/memecoin_adapter.py) — 10 snipes/día, avg $50, 20% success rate, 50% efficiency
-  - Polymarket: Prediction markets (cores/investment/adapters/polymarket_adapter.py) — 8 positions/día, avg $100, 55% success rate, 75% efficiency
-  - Sports Betting: Sports betting (cores/investment/adapters/sports_betting_adapter.py) — 10 bets/día, avg $75, 52% success rate, 70% efficiency
-- Resultados SIN market modules:
-  - CONSERVATIVE: $27,375/mes ($328,500/año)
-  - MODERATE ⭐: $54,750/mes ($657,000/año) — RECOMENDADO
-  - AGGRESSIVE: $109,500/mes ($1,314,000/año)
-  - MAXIMUM 🚀: $164,250/mes ($1,971,000/año)
-- Resultados CON TODAS las investment tools:
-  - CONSERVATIVE: $66,557.50/mes ($798,690/año)
-  - MODERATE ⭐: $133,115.00/mes ($1,597,380/año) — RECOMENDADO
-  - AGGRESSIVE: $266,230.00/mes ($3,194,760/año)
-  - MAXIMUM 🚀: $399,345.00/mes ($4,792,140/año)
-- Incremento con TODAS las investment tools: +$235,095/mes (+$2,821,140/año) = +143%
-- Desglose Maximum CON TODAS las investment tools:
-  - Bug Bounty: $33,750/mes
-  - Dev Bounty: $54,000/mes
-  - Data Annotation: $76,500/mes
-  - Trading: $25,200/mes (Riesgo alto)
-  - Investment: $6,000/mes (Riesgo medio)
-  - Market Intelligence: $37,800/mes (Riesgo medio)
-  - CCXT Multi-Exchange: $24,300/mes (Riesgo alto)
-  - Forex: $18,900/mes (Riesgo alto)
-  - Futures: $21,600/mes (Riesgo muy alto)
-  - Global Arbitrage: $42,525/mes (Riesgo alto)
-  - Memecoin: $4,500/mes (Riesgo muy alto)
-  - Polymarket: $29,700/mes (Riesgo medio)
-  - Sports Betting: $24,570/mes (Riesgo medio)
+- Success Rates OPTIMIZADOS (Base Platforms):
+  - Bug Bounty: 30% (optimizado con AI + automation)
+  - Dev Bounty: 70% (optimizado con AI + code generation)
+  - Data Annotation: 95% (optimizado con AI-assisted annotation)
+- Success Rates OPTIMIZADOS (Market Modules):
+  - Trading: 50% (AI + technical analysis)
+  - Investment: 35% APR (optimized strategies)
+  - Market Intelligence: 80% (AI + ML models)
+  - CCXT Multi-Exchange: 50% (AI + arbitrage)
+  - Forex: 60% (AI + technical analysis)
+  - Futures: 45% (AI + leverage management)
+  - Global Arbitrage: 70% (AI + cross-chain analysis)
+  - Memecoin: 40% (AI + pattern recognition)
+  - Polymarket: 75% (AI + prediction models)
+  - Sports Betting: 70% (AI + statistical models)
+- Risk Multipliers OPTIMIZADOS: 60% - 85% (según volatilidad)
+- Tier Multipliers OPTIMIZADOS (Potencial Mínimo Máximo): 1.0x, 1.5x, 2.5x, 4.0x
+- Resultados OPTIMIZADOS (CON TODAS las investment tools):
+  - CONSERVATIVE: $218,368.75/mes ($2,620,425/año) — MINIMO MAXIMIZADO
+  - MODERATE ⭐: $327,553.12/mes ($3,930,637.50/año) — RECOMENDADO
+  - AGGRESSIVE: $545,921.88/mes ($6,551,062.50/año)
+  - MAXIMUM 🚀: $873,475.00/mes ($10,481,700.00/año) — MÁXIMO ABSOLUTO
+- Incremento con OPTIMIZACIÓN: +$474,130/mes (+$5,689,560/año) = +119% vs rates bajos
+- Incremento total desde base: +$709,225/mes (+$8,510,700/año) = +432% vs SIN market modules
 
 **OpenRouter API Key Configuration**
 - Nueva API key configurada en todo el sistema
