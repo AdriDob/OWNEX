@@ -178,9 +178,27 @@
   - GET /api/zero-barrier/stats: estadísticas
   - GET /api/zero-barrier/platforms: plataformas disponibles con connectors
   - GET /api/zero-barrier/sync/{platform}: sync earnings usando conectores existentes (hackerone, bugcrowd, intigriti, yeswehack, synack)
+  - GET /api/zero-barrier/revenue-potential: análisis de potencial máximo de ingresos
 - Plataformas soportadas: Bug Bounty, Dev Bounty, Data Annotation
 - Integración con conectores existentes: cores/platforms/hackerone.py, bugcrowd.py, intigriti.py, yeswehack.py, synack.py
 - Traducciones en 6 idiomas (en, es, fr, de, ja, zh)
+
+**Análisis de Potencial Máximo de Ingresos**
+- cores/revenue_tracker/revenue_potential.py: Análisis completo de potencial
+  - 4 tiers: conservative (0.5x), moderate (1.0x), aggressive (2.0x), maximum (3.0x)
+  - PlatformPotential dataclass: avg_reward, success_rate, daily_capacity, avg_time_per_opportunity
+  - RevenuePotential dataclass: monthly breakdown por plataforma
+  - calculate_revenue_potential(): cálculo basado en tier multiplier
+  - generate_revenue_report(): reporte completo con todas las tiers
+- Resultados:
+  - CONSERVATIVE: $27,375/mes ($328,500/año)
+  - MODERATE ⭐: $54,750/mes ($657,000/año) — RECOMENDADO
+  - AGGRESSIVE: $109,500/mes ($1,314,000/año)
+  - MAXIMUM 🚀: $164,250/mes ($1,971,000/año)
+- Desglose Maximum:
+  - Bug Bounty: $33,750/mes (HackerOne, Bugcrowd, Intigriti, YesWeHack, Synack)
+  - Dev Bounty: $54,000/mes (Gitcoin, GitHub Sponsors, Bountysource)
+  - Data Annotation: $76,500/mes (Labelbox, Scale AI, Amazon Mechanical Turk)
 
 **OpenRouter API Key Configuration**
 - Nueva API key configurada en todo el sistema
