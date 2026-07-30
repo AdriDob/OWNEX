@@ -1,4 +1,10 @@
-"""Recovery persistence — SQLite-backed history of failures, recovery actions, and learning state."""
+"""Recovery persistence — SQLite-backed history of failures, recovery actions, and learning state.
+
+INTEGRATED WITH VERSION BACKUP SYSTEM:
+- Shared SQLite storage for recovery history and version backups
+- Version backup metadata stored in recovery_history.db
+- Unified local storage for both systems
+"""
 
 from __future__ import annotations
 
@@ -67,6 +73,30 @@ class RecoveryStore:
                     source TEXT NOT NULL,
                     data TEXT NOT NULL
                 )
+            """)
+            # ⚡ INTEGRATED WITH VERSION BACKUP SYSTEM
+            # Add version backup tables to shared storage
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS version_backups (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    version TEXT NOT NULL,
+                    git_commit TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    state TEXT NOT NULL DEFAULT 'backup',
+                    backup_path TEXT NOT NULL,
+                    manifest TEXT NOT NULL,
+                    checksum TEXT NOT NULL,
+                    size INTEGER NOT NULL,
+                    notes TEXT DEFAULT ''
+                )
+            """)
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_version_backups_created_at 
+                ON version_backups(created_at DESC)
+            """)
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_version_backups_version 
+                ON version_backups(version)
             """)
             conn.commit()
 
@@ -166,6 +196,108 @@ class RecoveryStore:
                     d["data"] = json.loads(d["data"])
                 result.append(d)
             return result
+
+    # ⚡ INTEGRATED WITH VERSION BACKUP SYSTEM
+    # Version backup methods using shared SQLite storage
+
+    def save_version_backup(
+        self,
+        version: str,
+        git_commit: str,
+        backup_path: str,
+        manifest: dict[str, Any],
+        checksum: str,
+        size: int,
+        notes: str = "",
+        state: str = "backup",
+    ) -> None:
+        """Save version backup metadata to shared storage."""
+        with self._lock, sqlite3.connect(self._db_path) as conn:
+            conn.execute(
+                """INSERT INTO version_backups
+                   (version, git_commit, created_at, state, backup_path, manifest, checksum, size, notes)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    version,
+                    git_commit,
+                    datetime.now(UTC).isoformat(),
+                    state,
+                    backup_path,
+                    json.dumps(manifest),
+                    checksum,
+                    size,
+                    notes[:500],
+                ),
+            )
+            conn.commit()
+            logger.info(f"[RECOVERY STORE] Saved version backup: {version} at {backup_path}")
+
+    def get_version_backups(self, limit: int = 50) -> list[dict[str, Any]]:
+        """Get all version backups from shared storage."""
+        with self._lock, sqlite3.connect(self._db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute("SELECT * FROM version_backups ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
+            result = []
+            for r in rows:
+                d = dict(r)
+                with contextlib.suppress(json.JSONDecodeError, TypeError):
+                    d["manifest"] = json.loads(d["manifest"])
+                result.append(d)
+            return result
+
+    def get_version_backup(self, version: str | None = None, git_commit: str | None = None) -> dict[str, Any] | None:
+        """Get a specific version backup from shared storage."""
+        with self._lock, sqlite3.connect(self._db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            if version:
+                row = conn.execute("SELECT * FROM version_backups WHERE version = ? ORDER BY created_at DESC LIMIT 1", (version,)).fetchone()
+            elif git_commit:
+                row = conn.execute("SELECT * FROM version_backups WHERE git_commit = ? ORDER BY created_at DESC LIMIT 1", (git_commit,)).fetchone()
+            else:
+                return None
+
+            if row:
+                d = dict(row)
+                with contextlib.suppress(json.JSONDecodeError, TypeError):
+                    d["manifest"] = json.loads(d["manifest"])
+                return d
+            return None
+
+    def update_version_backup_state(self, version: str, state: str) -> None:
+        """Update version backup state in shared storage."""
+        with self._lock, sqlite3.connect(self._db_path) as conn:
+            conn.execute(
+                "UPDATE version_backups SET state = ? WHERE version = ?",
+                (state, version),
+            )
+            conn.commit()
+            logger.info(f"[RECOVERY STORE] Updated version backup state: {version} -> {state}")
+
+    def delete_version_backup(self, version: str) -> None:
+        """Delete version backup from shared storage."""
+        with self._lock, sqlite3.connect(self._db_path) as conn:
+            conn.execute("DELETE FROM version_backups WHERE version = ?", (version,))
+            conn.commit()
+            logger.info(f"[RECOVERY STORE] Deleted version backup: {version}")
+
+    def cleanup_old_version_backups(self, max_count: int = 10) -> int:
+        """Clean up old version backups, keeping only max_count."""
+        with self._lock, sqlite3.connect(self._db_path) as conn:
+            # Get total count
+            count_result = conn.execute("SELECT COUNT(*) as count FROM version_backups").fetchone()
+            total_count = count_result["count"] if count_result else 0
+
+            if total_count <= max_count:
+                return 0
+
+            # Delete oldest backups beyond max_count
+            to_delete = total_count - max_count
+            conn.execute(
+                f"DELETE FROM version_backups WHERE id IN (SELECT id FROM version_backups ORDER BY created_at ASC LIMIT {to_delete})"
+            )
+            conn.commit()
+            logger.info(f"[RECOVERY STORE] Cleaned up {to_delete} old version backups")
+            return to_delete
 
     def close(self) -> None:
         pass
