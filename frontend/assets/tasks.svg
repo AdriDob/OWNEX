@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="400" height="200">
+  <defs>
+    <linearGradient id="taskBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#161b22;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="200" fill="url(#taskBg)" rx="16"/>
+  
+  <!-- Platform Icons -->
+  <circle cx="60" cy="60" r="24" fill="#0d1117" stroke="#0070d1" stroke-width="2"/>
+  <text x="60" y="65" text-anchor="middle" font-family="Arial" font-size="14" fill="#0070d1">A</text>
+  
+  <circle cx="140" cy="60" r="24" fill="#0d1117" stroke="#00ff88" stroke-width="2"/>
+  <text x="140" y="65" text-anchor="middle" font-family="Arial" font-size="14" fill="#00ff88">F</text>
+  
+  <circle cx="220" cy="60" r="24" fill="#0d1117" stroke="#ffd700" stroke-width="2"/>
+  <text x="220" y="65" text-anchor="middle" font-family="Arial" font-size="14" fill="#ffd700">G</text>
+  
+  <circle cx="300" cy="60" r="24" fill="#0d1117" stroke="#0070d1" stroke-width="2"/>
+  <text x="300" y="65" text-anchor="middle" font-family="Arial" font-size="14" fill="#0070d1">O</text>
+  
+  <!-- Connection to Task Hub -->
+  <path d="M60 84 L60 100" stroke="#0070d1" stroke-width="1" stroke-dasharray="4"/>
+  <path d="M140 84 L140 100" stroke="#00ff88" stroke-width="1" stroke-dasharray="4"/>
+  <path d="M220 84 L220 100" stroke="#ffd700" stroke-width="1" stroke-dasharray="4"/>
+  <path d="M300 84 L300 100" stroke="#0070d1" stroke-width="1" stroke-dasharray="4"/>
+  
+  <!-- Task Hub -->
+  <rect x="20" y="100" width="360" height="60" fill="#0d1117" stroke="#0070d1" stroke-width="2" rx="12"/>
+  <text x="200" y="125" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="white">TASK HUB</text>
+  <text x="200" y="145" text-anchor="middle" font-family="Arial" font-size="12" fill="#0070d1">Unified Task Management</text>
+  
+  <!-- Tasks -->
+  <rect x="30" y="170" width="80" height="24" fill="#0070d1" opacity="0.3" rx="4"/>
+  <text x="70" y="186" text-anchor="middle" font-family="Arial" font-size="10" fill="white">12 Pending</text>
+  
+  <rect x="120" y="170" width="80" height="24" fill="#00ff88" opacity="0.3" rx="4"/>
+  <text x="160" y="186" text-anchor="middle" font-family="Arial" font-size="10" fill="white">5 In Progress</text>
+  
+  <rect x="210" y="170" width="80" height="24" fill="#ffd700" opacity="0.3" rx="4"/>
+  <text x="250" y="186" text-anchor="middle" font-family="Arial" font-size="10" fill="white">8 Submitted</text>
+  
+  <rect x="300" y="170" width="80" height="24" fill="#0070d1" opacity="0.3" rx="4"/>
+  <text x="340" y="186" text-anchor="middle" font-family="Arial" font-size="10" fill="white">3 Approved</text>
+</svg>

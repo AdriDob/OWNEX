@@ -72,26 +72,30 @@ class AttackSurfaceExecutor(BaseStageExecutor):
             port = self._guess_port_from_url(url)
             if port and port not in seen_ports:
                 seen_ports.add(port)
-                open_ports.append({
-                    "port": port,
-                    "protocol": "tcp",
-                    "state": "open",
-                    "source": "endpoint_analysis",
-                    "confidence": "medium",
-                })
+                open_ports.append(
+                    {
+                        "port": port,
+                        "protocol": "tcp",
+                        "state": "open",
+                        "source": "endpoint_analysis",
+                        "confidence": "medium",
+                    }
+                )
 
         # Add default web ports if not already present
         default_ports = [80, 443, 8080, 8443]
         for p in default_ports:
             if p not in seen_ports:
                 seen_ports.add(p)
-                open_ports.append({
-                    "port": p,
-                    "protocol": "tcp",
-                    "state": "open" if p in (80, 443) else "filtered",
-                    "source": "default_guess",
-                    "confidence": "low" if p not in (80, 443) else "high",
-                })
+                open_ports.append(
+                    {
+                        "port": p,
+                        "protocol": "tcp",
+                        "state": "open" if p in (80, 443) else "filtered",
+                        "source": "default_guess",
+                        "confidence": "low" if p not in (80, 443) else "high",
+                    }
+                )
 
         open_ports.sort(key=lambda x: x["port"])
         return open_ports
@@ -113,13 +117,15 @@ class AttackSurfaceExecutor(BaseStageExecutor):
         services = []
         for p in ports:
             info = service_map.get(p["port"], {"name": "unknown", "product": "unknown"})
-            services.append({
-                "port": p["port"],
-                "protocol": p.get("protocol", "tcp"),
-                "service": info["name"],
-                "product": info["product"],
-                "confidence": p.get("confidence", "low"),
-            })
+            services.append(
+                {
+                    "port": p["port"],
+                    "protocol": p.get("protocol", "tcp"),
+                    "service": info["name"],
+                    "product": info["product"],
+                    "confidence": p.get("confidence", "low"),
+                }
+            )
         return services
 
     def _detect_technologies(self, target: str, endpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -183,5 +189,9 @@ class AttackSurfaceExecutor(BaseStageExecutor):
     def _log_results(self, target: str, ports: list, services: list, tech_stack: list, scan_type: str) -> None:
         self.logger.info(
             "Attack surface: %s | %d ports | %d services | %d technologies | %s",
-            target, len(ports), len(services), len(tech_stack), scan_type,
+            target,
+            len(ports),
+            len(services),
+            len(tech_stack),
+            scan_type,
         )

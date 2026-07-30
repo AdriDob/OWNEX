@@ -34,11 +34,10 @@ class EvidenceExecutor(BaseStageExecutor):
         target = context.get("target", "")
         scope = context.get("scope", {})
 
-# Also check for hypotheses + validated combo
+        # Also check for hypotheses + validated combo
         if not confirmed:
-            confirmed = (
-                context.get("confirmed_hypotheses", [])
-                or context.get("details", {}).get("confirmed_hypotheses", [])
+            confirmed = context.get("confirmed_hypotheses", []) or context.get("details", {}).get(
+                "confirmed_hypotheses", []
             )
 
         if not confirmed:
@@ -62,9 +61,7 @@ class EvidenceExecutor(BaseStageExecutor):
                     gap_count += 1
 
             summary = (
-                f"Collected evidence for {len(bundles)} findings: "
-                f"{ready_count} ready for report, "
-                f"{gap_count} with gaps"
+                f"Collected evidence for {len(bundles)} findings: {ready_count} ready for report, {gap_count} with gaps"
             )
 
             details: dict[str, Any] = {
@@ -87,9 +84,7 @@ class EvidenceExecutor(BaseStageExecutor):
             self.logger.error("Evidence collection failed: %s", exc)
             return self._wrap_result("failed", f"Evidence collection failed: {exc}", error=str(exc))
 
-    def _collect_evidence(
-        self, finding: dict[str, Any], target: str, scope: dict[str, Any]
-    ) -> dict[str, Any]:
+    def _collect_evidence(self, finding: dict[str, Any], target: str, scope: dict[str, Any]) -> dict[str, Any]:
         """Collect and compose evidence for a single finding.
 
         Uses the EvidenceComposer from cores.evidence when available.
@@ -109,7 +104,10 @@ class EvidenceExecutor(BaseStageExecutor):
                 vulnerability_type=vuln_type,
                 endpoint=endpoint,
                 method=method,
-                parameters_of_interest=finding.get("parameters_of_interest", []) or finding.get("executed_steps", [{}])[0].get("params", {}).keys() if finding.get("executed_steps") else [],
+                parameters_of_interest=finding.get("parameters_of_interest", [])
+                or finding.get("executed_steps", [{}])[0].get("params", {}).keys()
+                if finding.get("executed_steps")
+                else [],
                 summary=finding.get("summary", f"{vuln_type} on {method} {endpoint}"),
                 description=finding.get("description", ""),
                 confidence=finding.get("confidence", 0.5),
@@ -130,9 +128,7 @@ class EvidenceExecutor(BaseStageExecutor):
         # Fallback: build evidence manually
         return self._build_evidence_bundle(finding, target, vuln_type)
 
-    def _build_evidence_bundle(
-        self, finding: dict[str, Any], target: str, vuln_type: str
-    ) -> dict[str, Any]:
+    def _build_evidence_bundle(self, finding: dict[str, Any], target: str, vuln_type: str) -> dict[str, Any]:
         """Build a representative evidence bundle when the composer is unavailable."""
         endpoint = finding.get("endpoint", "/")
         method = finding.get("method", "GET")
@@ -151,10 +147,12 @@ class EvidenceExecutor(BaseStageExecutor):
         cwe_id, cwe_name, capec_id = cwe_map.get(vuln_type, cwe_map["generic"])
 
         # CVSS scoring
-        severity_scores = {"critical": (9.5, "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"),
-                           "high": (7.5, "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:N"),
-                           "medium": (5.5, "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N"),
-                           "low": (3.5, "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N")}
+        severity_scores = {
+            "critical": (9.5, "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"),
+            "high": (7.5, "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:N"),
+            "medium": (5.5, "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N"),
+            "low": (3.5, "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N"),
+        }
         cvss_score, cvss_vector = severity_scores.get(severity, (5.0, ""))
         adjusted_score = round(cvss_score * (0.7 + 0.3 * confidence), 1)
 
@@ -203,7 +201,10 @@ class EvidenceExecutor(BaseStageExecutor):
                 "javascript": f"fetch('{target}{endpoint}', {{method: '{method}'}}).then(r => r.text()).then(console.log)",
                 "httpie": f"http {method} '{target}{endpoint}'",
                 "burp_sequence": [
-                    {"request": f"{method} {endpoint} HTTP/1.1", "headers": {"Host": target.replace("https://", "").replace("http://", "")}},
+                    {
+                        "request": f"{method} {endpoint} HTTP/1.1",
+                        "headers": {"Host": target.replace("https://", "").replace("http://", "")},
+                    },
                 ],
             },
             "scoring": {
@@ -215,8 +216,10 @@ class EvidenceExecutor(BaseStageExecutor):
             },
             "report_body": {
                 "reproduction_steps": repro_steps,
-                "preconditions": ["Ensure you have an active session/token for the target",
-                                  "The target must be in-scope for the program"],
+                "preconditions": [
+                    "Ensure you have an active session/token for the target",
+                    "The target must be in-scope for the program",
+                ],
                 "expected_result": "403 Forbidden or empty response for unauthenticated access",
                 "actual_result": "200 OK with sensitive data returned",
                 "business_impact": "Unauthorized access to sensitive user data",
@@ -261,16 +264,13 @@ class EvidenceExecutor(BaseStageExecutor):
 
             session = db.SessionLocal()
             try:
-                db_target = (
-                    session.query(TargetModel)
-                    .filter(TargetModel.name == target)
-                    .first()
-                )
+                db_target = session.query(TargetModel).filter(TargetModel.name == target).first()
 
                 for bundle in bundles:
                     # Try the evidence table if it exists
                     try:
                         from database.models import Evidence
+
                         ev = Evidence(
                             target_id=db_target.id if db_target else None,
                             vulnerability_type=bundle.get("vulnerability_type", "unknown"),

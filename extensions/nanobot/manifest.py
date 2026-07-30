@@ -15,19 +15,23 @@ manifest = ExtensionManifest(
     author="OWNEX",
     icon="MessageSquare",
     capabilities=[
-        Capability(domain="chat_interface",
+        Capability(
+            domain="chat_interface",
             name="Chat Interface",
             description="Web UI for multi-model, multi-agent conversations",
         ),
-        Capability(domain="file_upload",
+        Capability(
+            domain="file_upload",
             name="File Upload",
             description="Upload images, code, PDFs, and archives to conversations",
         ),
-        Capability(domain="agent_switching",
+        Capability(
+            domain="agent_switching",
             name="Agent Switching",
             description="Switch between specialized OWNEX agents mid-conversation",
         ),
-        Capability(domain="mcp_integration",
+        Capability(
+            domain="mcp_integration",
             name="MCP Integration",
             description="Expose OWNEX capabilities as MCP tools to Nanobot",
         ),

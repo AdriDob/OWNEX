@@ -70,9 +70,7 @@ class ReconExecutor(BaseStageExecutor):
             self.logger.error("Recon stage failed: %s", exc)
             return self._wrap_result("failed", f"Recon failed: {exc}", error=str(exc))
 
-    def _discover_endpoints(
-        self, target: str, scope: dict[str, Any], depth: str
-    ) -> list[EndpointInfo]:
+    def _discover_endpoints(self, target: str, scope: dict[str, Any], depth: str) -> list[EndpointInfo]:
         """Discover API endpoints for the target.
 
         Uses cores.offensive endpoint detection infrastructure when available,
@@ -94,21 +92,16 @@ class ReconExecutor(BaseStageExecutor):
         # Check for direct endpoint sources
         try:
             from database import db
+
             session = db.SessionLocal()
             try:
                 from database.models import Target as TargetModel
-                db_target = (
-                    session.query(TargetModel)
-                    .filter(TargetModel.name == target)
-                    .first()
-                )
+
+                db_target = session.query(TargetModel).filter(TargetModel.name == target).first()
                 if db_target:
                     from database.models import Endpoint
-                    db_endpoints = (
-                        session.query(Endpoint)
-                        .filter(Endpoint.target_id == db_target.id)
-                        .all()
-                    )
+
+                    db_endpoints = session.query(Endpoint).filter(Endpoint.target_id == db_target.id).all()
                     for ep in db_endpoints:
                         params = {}
                         if ep.params:
@@ -185,9 +178,12 @@ class ReconExecutor(BaseStageExecutor):
         # Try subdomain discovery via external tools
         try:
             import subprocess
+
             result = subprocess.run(
                 ["which", "subfinder", "amass", "assetfinder"],
-                capture_output=True, text=True, timeout=5,
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
             if result.returncode == 0 and result.stdout.strip():
                 self.logger.info("Subdomain tools available: %s", result.stdout.strip())
@@ -196,8 +192,7 @@ class ReconExecutor(BaseStageExecutor):
 
         # Representative subdomains based on target
         base_parts = target.replace("https://", "").replace("http://", "").split("/")[0]
-        common = ["www", "api", "dev", "staging", "admin", "mail", "cdn",
-                   "blog", "docs", "support", "status", "app"]
+        common = ["www", "api", "dev", "staging", "admin", "mail", "cdn", "blog", "docs", "support", "status", "app"]
         count = {"shallow": 3, "standard": 8, "deep": 12}.get(depth, 8)
         for prefix in common[:count]:
             subdomains.append(f"{prefix}.{base_parts}")
@@ -221,6 +216,7 @@ class ReconExecutor(BaseStageExecutor):
         # Try real tech detection
         try:
             from cores.offensive.engine import OffensiveEngine
+
             engine = OffensiveEngine()
             if hasattr(engine, "_cached_endpoints") and engine._cached_endpoints:
                 tech["frameworks"].append("detected-by-engine")
@@ -252,11 +248,7 @@ class ReconExecutor(BaseStageExecutor):
             session = db.SessionLocal()
             try:
                 # Find or create target record
-                db_target = (
-                    session.query(TargetModel)
-                    .filter(TargetModel.name == target)
-                    .first()
-                )
+                db_target = session.query(TargetModel).filter(TargetModel.name == target).first()
                 if not db_target:
                     db_target = TargetModel(name=target, domain=target)
                     session.add(db_target)
@@ -264,11 +256,9 @@ class ReconExecutor(BaseStageExecutor):
 
                 # Persist endpoints
                 from database.models import Endpoint as EndpointModel
+
                 existing_paths = {
-                    e.path for e in
-                    session.query(EndpointModel)
-                    .filter(EndpointModel.target_id == db_target.id)
-                    .all()
+                    e.path for e in session.query(EndpointModel).filter(EndpointModel.target_id == db_target.id).all()
                 }
 
                 for ep in endpoints:

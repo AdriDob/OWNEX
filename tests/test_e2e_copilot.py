@@ -12,8 +12,6 @@ Tests the real end-to-end flow without HTTP mocks:
 
 from __future__ import annotations
 
-import asyncio
-
 import pytest
 
 # ── 1. COPILOT COMMANDER E2E ─────────────────────────────────────────
@@ -286,7 +284,7 @@ class TestExecutionLayerE2E:
 
     def test_1_coder_agent_imports(self):
         """Real: CoderAgent can be imported and used."""
-        from core.autonomy.coder_agent import CoderAgent, CoderAgentConfig
+        from core.autonomy.coder_agent import CoderAgentConfig
 
         config = CoderAgentConfig()
         assert config is not None

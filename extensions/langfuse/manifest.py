@@ -14,19 +14,23 @@ manifest = ExtensionManifest(
     author="OWNEX",
     icon="Activity",
     capabilities=[
-        Capability(domain="llm_tracing",
+        Capability(
+            domain="llm_tracing",
             name="LLM Tracing",
             description="Full trace of every LLM call: prompt, response, latency, cost",
         ),
-        Capability(domain="prompt_management",
+        Capability(
+            domain="prompt_management",
             name="Prompt Management",
             description="Versioned prompt templates with playground testing",
         ),
-        Capability(domain="evaluation",
+        Capability(
+            domain="evaluation",
             name="Evaluation & Scoring",
             description="Score agent outputs, track quality metrics over time",
         ),
-        Capability(domain="cost_tracking",
+        Capability(
+            domain="cost_tracking",
             name="Cost Tracking",
             description="Track LLM costs per agent, per session, per workflow",
         ),

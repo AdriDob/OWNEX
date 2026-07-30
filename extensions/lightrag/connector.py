@@ -33,8 +33,22 @@ class LightRAGConnector(IConnector):
     display_name = "LightRAG Memory"
 
     capabilities = [
-        {"key": "lightrag_dir", "label": "LightRAG data directory", "type": "text", "required": True, "default": "~/.ownex/memory/lightrag", "description": "Where LightRAG stores its graph data"},
-        {"key": "collection_name", "label": "Collection name", "type": "text", "required": False, "default": "ownex_memory", "description": "Name of the collection to use"},
+        {
+            "key": "lightrag_dir",
+            "label": "LightRAG data directory",
+            "type": "text",
+            "required": True,
+            "default": "~/.ownex/memory/lightrag",
+            "description": "Where LightRAG stores its graph data",
+        },
+        {
+            "key": "collection_name",
+            "label": "Collection name",
+            "type": "text",
+            "required": False,
+            "default": "ownex_memory",
+            "description": "Name of the collection to use",
+        },
     ]
 
     def get_config_fields(self) -> list[dict]:
@@ -101,18 +115,18 @@ class LightRAGConnector(IConnector):
             # Query LightRAG with the embedding
             # Note: This assumes LightRAGClient has a method to query with embeddings
             # In a real implementation, we would call the actual LightRAG API
-            results = await self._query_lightrag_with_embedding(
-                embedding, top_k=top_k, min_similarity=min_similarity
-            )
+            results = await self._query_lightrag_with_embedding(embedding, top_k=top_k, min_similarity=min_similarity)
 
             # Format results for compatibility with the memory system
             formatted_results = []
             for result in results:
-                formatted_results.append({
-                    "text": result.get("text", ""),
-                    "score": result.get("score", 0.0),
-                    "metadata": result.get("metadata", {}),
-                })
+                formatted_results.append(
+                    {
+                        "text": result.get("text", ""),
+                        "score": result.get("score", 0.0),
+                        "metadata": result.get("metadata", {}),
+                    }
+                )
 
             return {
                 "query": query_text,

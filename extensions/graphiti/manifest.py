@@ -13,11 +13,13 @@ manifest = ExtensionManifest(
     author="OWNEX",
     icon="GitGraph",
     capabilities=[
-        Capability(domain="realtime_kg",
+        Capability(
+            domain="realtime_kg",
             name="Real-Time Knowledge Graph",
             description="Dynamic entity and relationship detection from data streams",
         ),
-        Capability(domain="temporal_patterns",
+        Capability(
+            domain="temporal_patterns",
             name="Temporal Pattern Detection",
             description="Discover time-based patterns and trends in observations",
         ),

@@ -14,19 +14,23 @@ manifest = ExtensionManifest(
     author="OWNEX",
     icon="ShieldCheck",
     capabilities=[
-        Capability(domain="prompt_testing",
+        Capability(
+            domain="prompt_testing",
             name="Prompt Testing",
             description="Run automated test suites against agent prompts",
         ),
-        Capability(domain="regression_detection",
+        Capability(
+            domain="regression_detection",
             name="Regression Detection",
             description="Automatically detect quality regressions in prompts",
         ),
-        Capability(domain="eval_reporting",
+        Capability(
+            domain="eval_reporting",
             name="Evaluation Reports",
             description="Generate human-readable quality evaluation reports",
         ),
-        Capability(domain="red_teaming",
+        Capability(
+            domain="red_teaming",
             name="Red Teaming",
             description="Automated adversarial testing of LLM outputs",
         ),

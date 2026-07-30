@@ -9,6 +9,7 @@ Date: 2026-07-30
 This file implements the MERLIN system integration for OWNEX, following Windows Office era
 design principles with professional, knowledge-work aesthetics.
 """
+
 import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -16,9 +17,12 @@ from typing import Any
 
 # Configure logging for MERLIN system
 logger = logging.getLogger("merlin.system")
+
+
 @dataclass
 class MerlinSession:
     """MERLIN session state tracking"""
+
     session_id: str
     user_id: str
     expertise_level: int = 1
@@ -33,9 +37,12 @@ class MerlinSession:
             self.recent_interactions = []
         if self.session_start is None:
             self.session_start = datetime.now(UTC)
+
+
 @dataclass
 class MerlinInterfaceConfig:
     """Windows Office Era Interface Configuration"""
+
     # Visual Design - Windows Office Era Aesthetics
     color_scheme: dict[str, str] = None
     typography: dict[str, str] = None
@@ -55,7 +62,7 @@ class MerlinInterfaceConfig:
                 "success": "#70AD47",
                 "warning": "#FFC000",
                 "error": "#FF0000",
-                "info": "#4472C4"
+                "info": "#4472C4",
             }
         if self.typography is None:
             self.typography = {
@@ -64,7 +71,7 @@ class MerlinInterfaceConfig:
                 "code_font": "'Consolas', 'Courier New', monospace",
                 "size_base": "12px",
                 "size_heading": "18px",
-                "size_subheading": "14px"
+                "size_subheading": "14px",
             }
         if self.layout is None:
             self.layout = {
@@ -72,15 +79,17 @@ class MerlinInterfaceConfig:
                 "sidebar_width": "240px",
                 "content_max_width": "1200px",
                 "spacing_unit": "4px",
-                "border_style": "3px solid #E0E0E0"
+                "border_style": "3px solid #E0E0E0",
             }
         if self.interaction_patterns is None:
             self.interaction_patterns = {
                 "button_style": "Office-style soft bevel",
                 "menu_style": "Classic dropdown with separators",
                 "dialog_style": "Modal with title bar and buttons",
-                "feedback_style": "Modal with title bar and buttons"
+                "feedback_style": "Modal with title bar and buttons",
             }
+
+
 class MerlinSystem:
     """
     MERLIN - OWNEX Copilot Integration System
@@ -127,33 +136,29 @@ class MerlinSystem:
             "timestamp": datetime.now(UTC),
             "query": query,
             "response": processed.get("response", ""),
-            "context": context
+            "context": context,
         }
         session.recent_interactions.append(interaction)
         # Generate Windows Office era response
-        response = self.visual_renderer.generate_office_styled_response(
-            processed, session.expertise_level
-        )
+        response = self.visual_renderer.generate_office_styled_response(processed, session.expertise_level)
         return {
             "session_id": session_id,
             "response": response,
             "processed_data": processed,
             "ui_style": "windows_office",
-            "timestamp": datetime.now(UTC).isoformat()
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     async def integrate_with_cycle(self, cycle_type: str, payload: dict) -> dict:
         """Integrate with existing OWNEX cycles using Windows Office patterns"""
         integration_result = await self.integration_hub.establish_office_integration(cycle_type, payload)
         # Render results in Windows Office era style
-        rendered_result = self.visual_renderer.render_cycle_integration(
-            integration_result, cycle_type
-        )
+        rendered_result = self.visual_renderer.render_cycle_integration(integration_result, cycle_type)
         return {
             "cycle": cycle_type,
             "integration": rendered_result,
             "windows_office_style": True,
-            "timestamp": datetime.now(UTC).isoformat()
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     def get_session_info(self, session_id: str) -> dict:
@@ -168,8 +173,10 @@ class MerlinSystem:
             "knowledge_domains": session.knowledge_domains,
             "interaction_count": len(session.recent_interactions),
             "session_start": session.session_start.isoformat(),
-            "windows_office_style": True
+            "windows_office_style": True,
         }
+
+
 class IntegrationHub:
     """Integration hub for connecting with OWNEX cycles"""
 
@@ -179,7 +186,7 @@ class IntegrationHub:
             "forge": self._forge_integration_template,
             "wealth": self._wealth_integration_template,
             "pulse": self._pulse_integration_template,
-            "rastro": self._rastro_integration_template
+            "rastro": self._rastro_integration_template,
         }
 
     async def establish_office_integration(self, cycle_type: str, payload: dict) -> dict:
@@ -197,7 +204,7 @@ class IntegrationHub:
             "windows_office_style": "professional_knowledge_work",
             "formatting": "Office-style report generation",
             "expertise_level": 3,
-            "processing": "automated with knowledge graph"
+            "processing": "automated with knowledge graph",
         }
 
     async def _wealth_integration_template(self, payload: dict) -> dict:
@@ -208,7 +215,7 @@ class IntegrationHub:
             "windows_office_style": "financial_analysis",
             "formatting": "Professional financial dashboards",
             "expertise_level": 2,
-            "processing": "data-driven with evidence validation"
+            "processing": "data-driven with evidence validation",
         }
 
     async def _pulse_integration_template(self, payload: dict) -> dict:
@@ -219,7 +226,7 @@ class IntegrationHub:
             "windows_office_style": "productivity_optimization",
             "formatting": "Performance metrics and analytics",
             "expertise_level": 1,
-            "processing": "real-time monitoring"
+            "processing": "real-time monitoring",
         }
 
     async def _rastro_integration_template(self, payload: dict) -> dict:
@@ -230,8 +237,10 @@ class IntegrationHub:
             "windows_office_style": "security_operations",
             "formatting": "Technical documentation and compliance",
             "expertise_level": 2,
-            "processing": "structured research with validation"
+            "processing": "structured research with validation",
         }
+
+
 class WindowsOfficeRenderer:
     """Windows Office era visual rendering"""
 
@@ -243,7 +252,7 @@ class WindowsOfficeRenderer:
             "layout": "split_screen",
             "components": ["menu_bar", "toolbar", "workspace", "status_bar"],
             "style": "professional_knowledge_work",
-            "windows_office_style": True
+            "windows_office_style": True,
         }
 
     def generate_office_styled_response(self, processed: dict, expertise_level: int) -> str:
@@ -280,16 +289,13 @@ This response follows Windows Office era guidelines with professional knowledge-
             "cycle_type": cycle_type,
             "windows_office_style": True,
             "formatting": "Professional Windows Office era interface",
-            "components": [
-                "office_dashboard",
-                "professional_charts",
-                "structured_reports",
-                "compliance_monitoring"
-            ],
+            "components": ["office_dashboard", "professional_charts", "structured_reports", "compliance_monitoring"],
             "color_scheme": "Office Blue Theme",
             "typography": "Segoe UI Professional",
-            "interaction": "Professional user experience"
+            "interaction": "Professional user experience",
         }
+
+
 class WindowsOfficeKnowledgeProcessor:
     """Windows Office era knowledge processing"""
 
@@ -301,9 +307,7 @@ class WindowsOfficeKnowledgeProcessor:
         # Apply Windows Office era processing rules
         processed_query = self._apply_office_query_processing(query, context)
         # Generate structured response in Office style
-        structured_response = await self._generate_office_style_response(
-            processed_query, domains
-        )
+        structured_response = await self._generate_office_style_response(processed_query, domains)
         return {
             "original_query": query,
             "processed_query": processed_query,
@@ -311,7 +315,7 @@ class WindowsOfficeKnowledgeProcessor:
             "knowledge_domains": domains,
             "windows_office_style": True,
             "processing_method": "Office Era Knowledge Processing",
-            "expertise_level_required": 2 if len(domains) > 2 else 1
+            "expertise_level_required": 2 if len(domains) > 2 else 1,
         }
 
     def _initialize_office_knowledge_patterns(self) -> dict:
@@ -321,7 +325,7 @@ class WindowsOfficeKnowledgeProcessor:
             "office_standard_2": "Professional interaction patterns",
             "office_standard_3": "Structured data processing",
             "office_standard_4": "Compliance-focused analysis",
-            "office_standard_5": "Cross-cycle integration protocols"
+            "office_standard_5": "Cross-cycle integration protocols",
         }
 
     def _apply_office_query_processing(self, query: str, context: dict) -> dict:
@@ -333,10 +337,10 @@ class WindowsOfficeKnowledgeProcessor:
                 "Apply formal Windows Office formatting",
                 "Use professional terminology",
                 "Maintain structured approach",
-                "Follow established protocols"
+                "Follow established protocols",
             ],
             "compatibility_level": "Windows Office Era",
-            "processing_timestamp": datetime.now(UTC).isoformat()
+            "processing_timestamp": datetime.now(UTC).isoformat(),
         }
 
     async def _generate_office_style_response(self, processed: dict, domains: list[str]) -> dict:
@@ -353,7 +357,7 @@ class WindowsOfficeKnowledgeProcessor:
             "recommendations": recommendations,
             "office_style": "Windows Office Era",
             "formatting": "Professional Windows Office Interface",
-            "validation": "Office Standard Compliance"
+            "validation": "Office Standard Compliance",
         }
 
     def _generate_office_title(self, processed: dict, domains: list[str]) -> str:
@@ -366,20 +370,17 @@ class WindowsOfficeKnowledgeProcessor:
         return [
             {
                 "title": "Executive Summary",
-                "content": [f"Analysis completed with Windows Office era methodology for domain: {domain}"]
+                "content": [f"Analysis completed with Windows Office era methodology for domain: {domain}"],
             },
-            {
-                "title": "Key Insights",
-                "content": ["Analysis completed using platform-integrated capabilities"]
-            },
+            {"title": "Key Insights", "content": ["Analysis completed using platform-integrated capabilities"]},
             {
                 "title": "Technical Details",
-                "content": ["Applied Windows Office era processing standards and protocols"]
+                "content": ["Applied Windows Office era processing standards and protocols"],
             },
             {
                 "title": "Recommendations",
-                "content": ["Follow established MERLIN integration procedures for deployment"]
-            }
+                "content": ["Follow established MERLIN integration procedures for deployment"],
+            },
         ]
 
     def _generate_office_insights(self, processed: dict, domains: list[str]) -> list[str]:
@@ -388,7 +389,7 @@ class WindowsOfficeKnowledgeProcessor:
             "Results processed using Windows Office era methodologies",
             "All professional standards and protocols maintained",
             "Integration with autonomous work cycles completed successfully",
-            "Documentation follows Office Standard formatting"
+            "Documentation follows Office Standard formatting",
         ]
 
     def _generate_office_recommendations(self, processed: dict, domains: list[str]) -> list[str]:
@@ -397,9 +398,12 @@ class WindowsOfficeKnowledgeProcessor:
             "Apply findings using Windows Office era integration",
             "Maintain professional documentation standards",
             "Follow established MERLIN performance metrics",
-            "Integration with ALL cycles completed successfully"
+            "Integration with ALL cycles completed successfully",
         ]
+
+
 # Factory function to create MERLIN Office integration
+
 
 def create_merlin_office_integration() -> dict:
     """
@@ -417,12 +421,14 @@ def create_merlin_office_integration() -> dict:
             "cross_cycle_integration",
             "office_style_interface",
             "strategic_memory_processing",
-            "knowledge_base_management"
-        ]
+            "knowledge_base_management",
+        ],
     }
+
 
 # Global MERLIN system instance
 _merlin_instance = create_merlin_office_integration()
+
 
 async def process_merlin_windows_office_query(query: str, session_id: str, context: dict = None) -> dict:
     """
@@ -433,6 +439,8 @@ async def process_merlin_windows_office_query(query: str, session_id: str, conte
     if context is None:
         context = {}
     return await merlin_system.process_query(session_id, query, context)
+
+
 # Version information
 VERSION = "1.0.0"
 AUTHOR = "OWNEX Development Team"
@@ -449,5 +457,5 @@ __all__ = [
     "process_merlin_windows_office_query",
     "VERSION",
     "AUTHOR",
-    "DESCRIPTION"
+    "DESCRIPTION",
 ]

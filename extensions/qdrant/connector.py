@@ -5,6 +5,7 @@ from __future__ import annotations
 # Soft import guard
 try:
     from qdrant_client import QdrantClient  # noqa: F401
+
     _QDRANT_AVAILABLE = True
 except ImportError:
     _QDRANT_AVAILABLE = False

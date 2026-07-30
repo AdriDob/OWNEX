@@ -5,6 +5,7 @@ from __future__ import annotations
 # Soft import guard
 try:
     import git  # noqa: F401
+
     _GIT_AVAILABLE = True
 except ImportError:
     _GIT_AVAILABLE = False

@@ -87,9 +87,7 @@ class ValidationExecutor(BaseStageExecutor):
             self.logger.error("Validation stage failed: %s", exc)
             return self._wrap_result("failed", f"Validation failed: {exc}", error=str(exc))
 
-    def _validate_hypothesis(
-        self, hypothesis: dict[str, Any], target: str, scope: dict[str, Any]
-    ) -> dict[str, Any]:
+    def _validate_hypothesis(self, hypothesis: dict[str, Any], target: str, scope: dict[str, Any]) -> dict[str, Any]:
         """Validate a single hypothesis by executing a test plan.
 
         Returns a dict with status, evidence, and verdict details.
@@ -199,9 +197,7 @@ class ValidationExecutor(BaseStageExecutor):
                 "success": False,
             }
 
-    def _determine_verdict(
-        self, executed_steps: list[dict[str, Any]], vuln_type: str
-    ) -> dict[str, Any]:
+    def _determine_verdict(self, executed_steps: list[dict[str, Any]], vuln_type: str) -> dict[str, Any]:
         """Analyse step results to produce a verdict."""
         success_count = sum(1 for s in executed_steps if s.get("success"))
         total = len(executed_steps)
@@ -244,16 +240,18 @@ class ValidationExecutor(BaseStageExecutor):
         test_status = {"idor": 200, "ssrf": 502, "xss": 200, "sqli": 500, "auth_bypass": 200}.get(vuln_type, 200)
 
         # Baseline step
-        steps.append({
-            "purpose": "baseline",
-            "url": f"{target}{endpoint}",
-            "method": method,
-            "status_code": baseline_status,
-            "response_size": 2048,
-            "response_time_ms": round(120 + time_mod.time() % 50, 1),
-            "body_preview": '{"data": "valid_response","status":"ok"}',
-            "success": True,
-        })
+        steps.append(
+            {
+                "purpose": "baseline",
+                "url": f"{target}{endpoint}",
+                "method": method,
+                "status_code": baseline_status,
+                "response_size": 2048,
+                "response_time_ms": round(120 + time_mod.time() % 50, 1),
+                "body_preview": '{"data": "valid_response","status":"ok"}',
+                "success": True,
+            }
+        )
 
         # Test steps with payload
         payloads = {
@@ -265,16 +263,20 @@ class ValidationExecutor(BaseStageExecutor):
         }
         payload = payloads.get(vuln_type, "test")
 
-        steps.append({
-            "purpose": "test",
-            "url": f"{target}{endpoint}?{params[0] if params else 'id'}={payload}",
-            "method": method,
-            "status_code": test_status,
-            "response_size": 4096 if vuln_type == "sqli" else 1536,
-            "response_time_ms": round(500 + time_mod.time() % 100, 1) if vuln_type == "ssrf" else round(150 + time_mod.time() % 50, 1),
-            "body_preview": self._mock_body(vuln_type),
-            "success": True,
-        })
+        steps.append(
+            {
+                "purpose": "test",
+                "url": f"{target}{endpoint}?{params[0] if params else 'id'}={payload}",
+                "method": method,
+                "status_code": test_status,
+                "response_size": 4096 if vuln_type == "sqli" else 1536,
+                "response_time_ms": round(500 + time_mod.time() % 100, 1)
+                if vuln_type == "ssrf"
+                else round(150 + time_mod.time() % 50, 1),
+                "body_preview": self._mock_body(vuln_type),
+                "success": True,
+            }
+        )
 
         return steps
 
@@ -282,7 +284,7 @@ class ValidationExecutor(BaseStageExecutor):
         bodies = {
             "idor": '{"id":999999,"email":"admin@target.com","role":"admin","name":"Administrator"}',
             "ssrf": "<html><body><h1>Internal Server Error</h1><p>Connection refused</p></body></html>",
-            "xss": '<html><body><script>alert(1)</script><p>User input reflected</p></body></html>',
+            "xss": "<html><body><script>alert(1)</script><p>User input reflected</p></body></html>",
             "sqli": '<html><body><h1>Database Error</h1><p>SQLSTATE[42000]: Syntax error near "OR 1=1"</p></body></html>',
             "auth_bypass": '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.admin","access":"granted"}',
         }
@@ -291,8 +293,11 @@ class ValidationExecutor(BaseStageExecutor):
     def _mock_verdict(self, vuln_type: str, steps: list[dict]) -> dict[str, Any]:
         confidence_map = {"idor": 0.85, "ssrf": 0.65, "xss": 0.75, "sqli": 0.90, "auth_bypass": 0.80}
         status_map = {
-            "idor": "confirmed", "ssrf": "inconclusive",
-            "xss": "confirmed", "sqli": "confirmed", "auth_bypass": "confirmed",
+            "idor": "confirmed",
+            "ssrf": "inconclusive",
+            "xss": "confirmed",
+            "sqli": "confirmed",
+            "auth_bypass": "confirmed",
         }
         confidence = confidence_map.get(vuln_type, 0.5)
         return {
@@ -310,11 +315,7 @@ class ValidationExecutor(BaseStageExecutor):
 
             session = db.SessionLocal()
             try:
-                db_target = (
-                    session.query(TargetModel)
-                    .filter(TargetModel.name == target)
-                    .first()
-                )
+                db_target = session.query(TargetModel).filter(TargetModel.name == target).first()
 
                 for v in validated:
                     if v.get("status") == "confirmed":
@@ -328,7 +329,9 @@ class ValidationExecutor(BaseStageExecutor):
                         session.add(finding)
 
                 session.commit()
-                self.logger.info("Persisted %d confirmed findings", sum(1 for v in validated if v.get("status") == "confirmed"))
+                self.logger.info(
+                    "Persisted %d confirmed findings", sum(1 for v in validated if v.get("status") == "confirmed")
+                )
             except Exception:
                 session.rollback()
                 raise

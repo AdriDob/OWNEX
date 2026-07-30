@@ -59,6 +59,7 @@ class BaseStageExecutor(StageExecutor):
     def _get_session(self):
         """Get a fresh DB session for this stage execution."""
         from database import db
+
         return db.SessionLocal()
 
     def _wrap_result(
@@ -103,9 +104,7 @@ def get_executor(name: str) -> StageExecutor:
     """
     if name not in _STAGE_EXECUTORS:
         available = ", ".join(sorted(_STAGE_EXECUTORS))
-        raise KeyError(
-            f"Unknown stage executor: '{name}'. Available: {available}"
-        )
+        raise KeyError(f"Unknown stage executor: '{name}'. Available: {available}")
     return _STAGE_EXECUTORS[name]()
 
 
