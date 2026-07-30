@@ -40,7 +40,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/merlin',
     name: 'merlin',
-    component: () => import(/* webpackChunkName: "merlin" */ '@/components/merlin/MerlinInterface.vue'),
+    component: () => import(/* webpackChunkName: "merlin" */ '@/components/merlin/MerlinJarvis.vue'),
     meta: { title: 'MERLIN' },
   },
 
@@ -62,7 +62,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'welcome',
-    component: () => import(/* webpackChunkName: "welcome" */ '@/pages/WelcomePage.vue'),
+    component: () => import(/* webpackChunkName: "welcome" */ '@/pages/JarvisWelcome.vue'),
     meta: { title: 'Bienvenido' },
   },
   {
