@@ -40,6 +40,13 @@ class RevenuePotential:
     trading_monthly: float
     investment_monthly: float
     market_intelligence_monthly: float
+    ccxt_multi_exchange_monthly: float
+    forex_monthly: float
+    futures_monthly: float
+    global_arbitrage_monthly: float
+    memecoin_monthly: float
+    polymarket_monthly: float
+    sports_betting_monthly: float
     total_monthly: float
     yearly_projection: float
     assumptions: dict[str, Any]
@@ -97,6 +104,55 @@ def calculate_revenue_potential(tier: RevenueTier, include_market_modules: bool 
             "success_rate": 0.60,  # 60% success rate
             "analysis_efficiency": 0.7,  # 70% analysis efficiency
         },
+        "ccxt_multi_exchange": {
+            "name": "CCXT Multi-Exchange Trading",
+            "daily_capacity": 15,  # trades per day across exchanges
+            "avg_profit_per_trade": 80.0,  # avg profit per trade
+            "success_rate": 0.30,  # 30% win rate
+            "risk_multiplier": 0.75,  # 75% efficiency after fees/slippage
+        },
+        "forex": {
+            "name": "Forex Trading",
+            "daily_capacity": 5,  # trades per day
+            "avg_profit_per_trade": 150.0,  # avg profit per trade
+            "success_rate": 0.40,  # 40% win rate
+            "risk_multiplier": 0.7,  # 70% efficiency after fees/slippage
+        },
+        "futures": {
+            "name": "Crypto Futures Trading",
+            "daily_capacity": 8,  # trades per day
+            "avg_profit_per_trade": 200.0,  # avg profit per trade
+            "success_rate": 0.25,  # 25% win rate
+            "risk_multiplier": 0.6,  # 60% efficiency after fees/slippage
+        },
+        "global_arbitrage": {
+            "name": "Global Arbitrage",
+            "daily_capacity": 5,  # arbitrage opportunities per day
+            "avg_profit_per_opportunity": 300.0,  # avg profit per arbitrage
+            "success_rate": 0.45,  # 45% success rate
+            "risk_multiplier": 0.7,  # 70% efficiency after fees/slippage
+        },
+        "memecoin": {
+            "name": "Solana Memecoin Sniping",
+            "daily_capacity": 10,  # snipes per day
+            "avg_profit_per_snipe": 50.0,  # avg profit per snipe
+            "success_rate": 0.20,  # 20% success rate (high volatility)
+            "risk_multiplier": 0.5,  # 50% efficiency after fees/slippage
+        },
+        "polymarket": {
+            "name": "Polymarket Prediction Markets",
+            "daily_capacity": 8,  # positions per day
+            "avg_profit_per_position": 100.0,  # avg profit per position
+            "success_rate": 0.55,  # 55% success rate
+            "risk_multiplier": 0.75,  # 75% efficiency after fees
+        },
+        "sports_betting": {
+            "name": "Sports Betting",
+            "daily_capacity": 10,  # bets per day
+            "avg_profit_per_bet": 75.0,  # avg profit per bet
+            "success_rate": 0.52,  # 52% success rate (slightly above breakeven)
+            "risk_multiplier": 0.7,  # 70% efficiency after fees
+        },
     }
 
     # Tier multipliers
@@ -138,6 +194,13 @@ def calculate_revenue_potential(tier: RevenueTier, include_market_modules: bool 
     trading_monthly = 0.0
     investment_monthly = 0.0
     market_intelligence_monthly = 0.0
+    ccxt_multi_exchange_monthly = 0.0
+    forex_monthly = 0.0
+    futures_monthly = 0.0
+    global_arbitrage_monthly = 0.0
+    memecoin_monthly = 0.0
+    polymarket_monthly = 0.0
+    sports_betting_monthly = 0.0
 
     if include_market_modules:
         # Trading (crypto trading with execution engine)
@@ -170,6 +233,76 @@ def calculate_revenue_potential(tier: RevenueTier, include_market_modules: bool 
             * multiplier
         )
 
+        # CCXT Multi-Exchange Trading
+        ccxt_multi_exchange_monthly = (
+            market_modules["ccxt_multi_exchange"]["daily_capacity"]
+            * 30
+            * market_modules["ccxt_multi_exchange"]["avg_profit_per_trade"]
+            * market_modules["ccxt_multi_exchange"]["success_rate"]
+            * multiplier
+            * market_modules["ccxt_multi_exchange"]["risk_multiplier"]
+        )
+
+        # Forex Trading
+        forex_monthly = (
+            market_modules["forex"]["daily_capacity"]
+            * 30
+            * market_modules["forex"]["avg_profit_per_trade"]
+            * market_modules["forex"]["success_rate"]
+            * multiplier
+            * market_modules["forex"]["risk_multiplier"]
+        )
+
+        # Crypto Futures Trading
+        futures_monthly = (
+            market_modules["futures"]["daily_capacity"]
+            * 30
+            * market_modules["futures"]["avg_profit_per_trade"]
+            * market_modules["futures"]["success_rate"]
+            * multiplier
+            * market_modules["futures"]["risk_multiplier"]
+        )
+
+        # Global Arbitrage
+        global_arbitrage_monthly = (
+            market_modules["global_arbitrage"]["daily_capacity"]
+            * 30
+            * market_modules["global_arbitrage"]["avg_profit_per_opportunity"]
+            * market_modules["global_arbitrage"]["success_rate"]
+            * multiplier
+            * market_modules["global_arbitrage"]["risk_multiplier"]
+        )
+
+        # Solana Memecoin Sniping
+        memecoin_monthly = (
+            market_modules["memecoin"]["daily_capacity"]
+            * 30
+            * market_modules["memecoin"]["avg_profit_per_snipe"]
+            * market_modules["memecoin"]["success_rate"]
+            * multiplier
+            * market_modules["memecoin"]["risk_multiplier"]
+        )
+
+        # Polymarket Prediction Markets
+        polymarket_monthly = (
+            market_modules["polymarket"]["daily_capacity"]
+            * 30
+            * market_modules["polymarket"]["avg_profit_per_position"]
+            * market_modules["polymarket"]["success_rate"]
+            * multiplier
+            * market_modules["polymarket"]["risk_multiplier"]
+        )
+
+        # Sports Betting
+        sports_betting_monthly = (
+            market_modules["sports_betting"]["daily_capacity"]
+            * 30
+            * market_modules["sports_betting"]["avg_profit_per_bet"]
+            * market_modules["sports_betting"]["success_rate"]
+            * multiplier
+            * market_modules["sports_betting"]["risk_multiplier"]
+        )
+
     total_monthly = (
         bug_bounty_monthly
         + dev_bounty_monthly
@@ -177,6 +310,13 @@ def calculate_revenue_potential(tier: RevenueTier, include_market_modules: bool 
         + trading_monthly
         + investment_monthly
         + market_intelligence_monthly
+        + ccxt_multi_exchange_monthly
+        + forex_monthly
+        + futures_monthly
+        + global_arbitrage_monthly
+        + memecoin_monthly
+        + polymarket_monthly
+        + sports_betting_monthly
     )
     yearly_projection = total_monthly * 12
 
@@ -241,6 +381,13 @@ def calculate_revenue_potential(tier: RevenueTier, include_market_modules: bool 
         trading_monthly=trading_monthly,
         investment_monthly=investment_monthly,
         market_intelligence_monthly=market_intelligence_monthly,
+        ccxt_multi_exchange_monthly=ccxt_multi_exchange_monthly,
+        forex_monthly=forex_monthly,
+        futures_monthly=futures_monthly,
+        global_arbitrage_monthly=global_arbitrage_monthly,
+        memecoin_monthly=memecoin_monthly,
+        polymarket_monthly=polymarket_monthly,
+        sports_betting_monthly=sports_betting_monthly,
         total_monthly=total_monthly,
         yearly_projection=yearly_projection,
         assumptions=assumptions,
@@ -300,6 +447,48 @@ def generate_revenue_report(include_market_modules: bool = True) -> dict[str, An
                 "risk_level": "medium",
                 "modules": ["cores/market_intelligence/models.py", "cores/market_intelligence/signal_classifier.py"],
             },
+            "ccxt_multi_exchange": {
+                "name": "CCXT Multi-Exchange Trading",
+                "description": "Multi-exchange trading via CCXT adapter",
+                "risk_level": "high",
+                "modules": ["cores/investment/adapters/ccxt_adapter.py"],
+            },
+            "forex": {
+                "name": "Forex Trading",
+                "description": "Forex trading via OANDA or MetaTrader APIs",
+                "risk_level": "high",
+                "modules": ["cores/investment/adapters/forex_adapter.py"],
+            },
+            "futures": {
+                "name": "Crypto Futures Trading",
+                "description": "Crypto futures trading via CCXT",
+                "risk_level": "very_high",
+                "modules": ["cores/investment/adapters/futures_adapter.py"],
+            },
+            "global_arbitrage": {
+                "name": "Global Arbitrage",
+                "description": "Cross-border arbitrage detection and execution",
+                "risk_level": "high",
+                "modules": ["cores/investment/adapters/global_arbitrage_adapter.py"],
+            },
+            "memecoin": {
+                "name": "Solana Memecoin Sniping",
+                "description": "Solana memecoin sniping on PumpFun and Raydium",
+                "risk_level": "very_high",
+                "modules": ["cores/investment/adapters/memecoin_adapter.py"],
+            },
+            "polymarket": {
+                "name": "Polymarket Prediction Markets",
+                "description": "Prediction market trading via Polymarket CLOB API",
+                "risk_level": "medium",
+                "modules": ["cores/investment/adapters/polymarket_adapter.py"],
+            },
+            "sports_betting": {
+                "name": "Sports Betting",
+                "description": "Sports betting automated strategies",
+                "risk_level": "medium",
+                "modules": ["cores/investment/adapters/sports_betting_adapter.py"],
+            },
         },
         "tiers": {},
     }
@@ -313,6 +502,13 @@ def generate_revenue_report(include_market_modules: bool = True) -> dict[str, An
             "trading_monthly": round(potential.trading_monthly, 2),
             "investment_monthly": round(potential.investment_monthly, 2),
             "market_intelligence_monthly": round(potential.market_intelligence_monthly, 2),
+            "ccxt_multi_exchange_monthly": round(potential.ccxt_multi_exchange_monthly, 2),
+            "forex_monthly": round(potential.forex_monthly, 2),
+            "futures_monthly": round(potential.futures_monthly, 2),
+            "global_arbitrage_monthly": round(potential.global_arbitrage_monthly, 2),
+            "memecoin_monthly": round(potential.memecoin_monthly, 2),
+            "polymarket_monthly": round(potential.polymarket_monthly, 2),
+            "sports_betting_monthly": round(potential.sports_betting_monthly, 2),
             "total_monthly": round(potential.total_monthly, 2),
             "yearly_projection": round(potential.yearly_projection, 2),
             "assumptions": potential.assumptions,
@@ -346,7 +542,7 @@ if __name__ == "__main__":
         print(f"    Modules: {', '.join(module_data['modules'])}")
         print()
 
-    print("REVENUE TIERS (WITH MARKET MODULES):")
+    print("REVENUE TIERS (WITH ALL MARKET MODULES):")
     for tier_value, tier_data in report["tiers"].items():
         print(f"  {tier_value.upper()}:")
         print(f"    Bug Bounty: ${tier_data['bug_bounty_monthly']:,.2f}/mes")
@@ -355,11 +551,18 @@ if __name__ == "__main__":
         print(f"    Trading: ${tier_data['trading_monthly']:,.2f}/mes")
         print(f"    Investment: ${tier_data['investment_monthly']:,.2f}/mes")
         print(f"    Market Intelligence: ${tier_data['market_intelligence_monthly']:,.2f}/mes")
+        print(f"    CCXT Multi-Exchange: ${tier_data['ccxt_multi_exchange_monthly']:,.2f}/mes")
+        print(f"    Forex: ${tier_data['forex_monthly']:,.2f}/mes")
+        print(f"    Futures: ${tier_data['futures_monthly']:,.2f}/mes")
+        print(f"    Global Arbitrage: ${tier_data['global_arbitrage_monthly']:,.2f}/mes")
+        print(f"    Memecoin: ${tier_data['memecoin_monthly']:,.2f}/mes")
+        print(f"    Polymarket: ${tier_data['polymarket_monthly']:,.2f}/mes")
+        print(f"    Sports Betting: ${tier_data['sports_betting_monthly']:,.2f}/mes")
         print(f"    TOTAL: ${tier_data['total_monthly']:,.2f}/mes")
         print(f"    YEARLY: ${tier_data['yearly_projection']:,.2f}")
         print()
 
     print("=" * 80)
     print("RECOMMENDATION: MODERATE tier for sustainable operations")
-    print("MAXIMUM tier ($276,750/mes) includes higher risk trading/investment")
+    print("MAXIMUM tier ($399,345/mes) includes ALL investment tools with HIGHER RISK")
     print("=" * 80)
