@@ -215,7 +215,61 @@
 - Incremento con OPTIMIZACIÓN: +$474,130/mes (+$5,689,560/año) = +119% vs rates bajos
 - Incremento total desde base: +$709,225/mes (+$8,510,700/año) = +432% vs SIN market modules
 
-**Sistema de Backup y Recuperación de Versiones**
+**Sistema de Personalización Universal para OWNEX OMEGA**
+- install.py: Instalador universal para cualquier computadora
+  - OwnexInstaller: Clase instaladora universal
+  - check_requirements(): Verifica requisitos del sistema (Python 3.11+, memoria, disco)
+  - install_dependencies(): Instala dependencias Python (venv + pip)
+  - setup_directories(): Configura directorios necesarios
+  - run_personalization_wizard(): Ejecuta wizard CLI interactivo
+  - apply_configuration(): Aplica configuración personalizada (.env + config)
+  - initialize_database(): Inicializa base de datos SQLite
+  - create_startup_script(): Crea script de inicio (start.sh/start.bat)
+  - run_post_installation_tests(): Ejecuta pruebas post-instalación
+  - print_summary(): Imprime resumen de instalación
+  - Soporte: Windows, Linux, macOS
+  - Modos: --dev, --minimal
+- cores/setup/steps/personalization_step.py: Paso del wizard de personalización
+  - personalization_step(): Ejecuta personalización según preferencias
+  - _get_default_modules_for_use_case(): Módulos recomendados por caso de uso
+  - _build_personalized_config(): Configuración personalizada completa
+  - _get_ui_customization(): Personalización de UI (tema, colores, layout)
+  - _get_feature_flags(): Feature flags según nivel de experiencia
+  - _get_platform_config(): Configuración de plataformas
+  - _get_automation_level(): Nivel de automatización
+  - _get_notification_settings(): Configuración de notificaciones
+  - _get_analytics_settings(): Configuración de analytics
+  - _get_report_settings(): Configuración de reportes
+- frontend/src/pages/PersonalizationWizard.vue: Wizard frontend estilo Steam
+  - Wizard de 6 pasos con animaciones y styling Steam
+  - Paso 1: Caso de uso (9 opciones con cards)
+  - Paso 2: Módulos (10 módulos, selección múltiple)
+  - Paso 3: Nivel de experiencia (4 niveles con features)
+  - Paso 4: Plataformas (5 plataformas)
+  - Paso 5: Nombre personalizado (opcional)
+  - Paso 6: Resumen de configuración
+  - Progress bar animado
+  - Botones de navegación (Anterior/Siguiente/Completar)
+  - Módulos recomendados por caso de uso
+  - Integración con API /api/setup/personalization
+- api/routers/setup.py: API router para personalización
+  - POST /api/setup/personalization: Ejecuta personalización
+  - GET /api/setup/personalization/default-modules/{use_case}: Módulos por caso
+  - GET /api/setup/personalization/use-cases: Casos de uso disponibles
+  - GET /api/setup/personalization/modules: Módulos disponibles
+  - GET /api/setup/personalization/platforms: Plataformas disponibles
+- Casos de uso: Bug Bounty Researcher, Bug Bounty Company, Cybersecurity Consultant, Penetration Tester, Security Analyst, Developer, Researcher, Hobbyist, Otro
+- Módulos: Forge, Pulse, Vault, Atlas, Security, Copilot, Analytics, Reports, Targets, Integrations
+- Niveles: Beginner (Manual), Intermediate (Asistido), Advanced (Semi-automatizado), Expert (Completamente automatizado)
+- Características:
+  - Pregunta al usuario para qué quiere usar OWNEX OMEGA
+  - Adapta configuración automáticamente según preferencias
+  - Ofrece TODO el programa (módulos opcionales, no eliminados)
+  - Instalador universal para cualquier computadora
+  - Wizard CLI interactivo
+  - Wizard frontend estilo Steam
+  - Configuración personalizada persistente
+  - Fiel al diseño OWNEX OMEGA
 - cores/version_backup/backup_system.py: Sistema completo de backup y rollback
   - VersionBackupSystem: coordinador central de backups de versiones
   - create_backup(): crear backup de versión actual con notas
