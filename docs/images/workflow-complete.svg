@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600">
+  <defs>
+    <linearGradient id="workflowBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#161b22;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="discoverGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0070d1;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#0070d1;stop-opacity:0.5" />
+    </linearGradient>
+    <linearGradient id="executeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ff88;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#00ff88;stop-opacity:0.5" />
+    </linearGradient>
+    <linearGradient id="learnGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#ffd700;stop-opacity:0.5" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="900" height="600" fill="url(#workflowBg)" rx="16"/>
+  
+  <!-- Header -->
+  <rect x="20" y="20" width="860" height="45" fill="#0d1117" rx="10" stroke="#0070d1" stroke-width="2"/>
+  <circle cx="50" cy="42" r="12" fill="#0070d1"/>
+  <text x="70" y="48" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white">OWNEX COMPLETE WORKFLOW — Autonomous Work Cycle</text>
+  
+  <!-- Main Flow -->
+  <text x="450" y="90" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#888">AUTONOMOUS WORK CYCLE</text>
+  
+  <!-- Phase 1: Discover -->
+  <rect x="30" y="110" width="260" height="120" fill="url(#discoverGradient)" stroke="#0070d1" stroke-width="2" rx="12"/>
+  <text x="160" y="130" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#0070d1">PHASE 1: DISCOVER</text>
+  <rect x="45" y="145" width="100" height="30" fill="#0d1117" stroke="#0070d1" stroke-width="1" rx="4"/>
+  <text x="95" y="165" text-anchor="middle" font-family="Arial" font-size="10" fill="#0070d1">Opportunity Engine</text>
+  <rect x="155" y="145" width="120" height="30" fill="#0d1117" stroke="#0070d1" stroke-width="1" rx="4"/>
+  <text x="215" y="165" text-anchor="middle" font-family="Arial" font-size="10" fill="#0070d1">Task Hub Sync</text>
+  <rect x="45" y="180" width="100" height="30" fill="#0d1117" stroke="#0070d1" stroke-width="1" rx="4"/>
+  <text x="95" y="200" text-anchor="middle" font-family="Arial" font-size="10" fill="#0070d1">Platform Scan</text>
+  <rect x="155" y="180" width="120" height="30" fill="#0d1117" stroke="#0070d1" stroke-width="1" rx="4"/>
+  <text x="215" y="200" text-anchor="middle" font-family="Arial" font-size="10" fill="#0070d1">Target Prioritize</text>
+  
+  <!-- Arrow -->
+  <path d="M290 170 L320 170" stroke="#0070d1" stroke-width="3" marker-end="url(#arrowhead)"/>
+  
+  <!-- Phase 2: Plan -->
+  <rect x="320" y="110" width="260" height="120" fill="url(#discoverGradient)" stroke="#0070d1" stroke-width="2" rx="12"/>
+  <text x="450" y="130" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#0070d1">PHASE 2: PLAN</text>
+  <rect x="335" y="145" width="100" height="30" fill="#0d1117" stroke="#0070d1" stroke-width="1" rx="4"/>
+  <text x="385" y="165" text-anchor="middle" font-family="Arial" font-size="10" fill="#0070d1">AI Analysis</text>
+  <rect x="445" y="145" width="120" height="30" fill="#0d1117" stroke="#0070d1" stroke-width="1" rx="4"/>
+  <text x="505" y="165" text-anchor="middle" font-family="Arial" font-size="10" fill="#0070d1">Strategy Gen</text>
+  <rect x="335" y="180" width="100" height="30" fill="#0d1117" stroke="#0070d1" stroke-width="1" rx="4"/>
+  <text x="385" y="200" text-anchor="middle" font-family="Arial" font-size="10" fill="#0070d1">Resource Alloc</text>
+  <rect x="445" y="180" width="120" height="30" fill="#0d1117" stroke="#0070d1" stroke-width="1" rx="4"/>
+  <text x="505" y="200" text-anchor="middle" font-family="Arial" font-size="10" fill="#0070d1">Risk Assess</text>
+  
+  <!-- Arrow -->
+  <path d="M580 170 L610 170" stroke="#0070d1" stroke-width="3"/>
+  
+  <!-- Phase 3: Execute -->
+  <rect x="610" y="110" width="260" height="120" fill="url(#executeGradient)" stroke="#00ff88" stroke-width="2" rx="12"/>
+  <text x="740" y="130" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#00ff88">PHASE 3: EXECUTE</text>
+  <rect x="625" y="145" width="100" height="30" fill="#0d1117" stroke="#00ff88" stroke-width="1" rx="4"/>
+  <text x="675" y="165" text-anchor="middle" font-family="Arial" font-size="10" fill="#00ff88">Work Execution</text>
+  <rect x="735" y="145" width="120" height="30" fill="#0d1117" stroke="#00ff88" stroke-width="1" rx="4"/>
+  <text x="795" y="165" text-anchor="middle" font-family="Arial" font-size="10" fill="#00ff88">Quality Check</text>
+  <rect x="625" y="180" width="100" height="30" fill="#0d1117" stroke="#00ff88" stroke-width="1" rx="4"/>
+  <text x="675" y="200" text-anchor="middle" font-family="Arial" font-size="10" fill="#00ff88">Auto-Submit</text>
+  <rect x="735" y="180" width="120" height="30" fill="#0d1117" stroke="#00ff88" stroke-width="1" rx="4"/>
+  <text x="795" y="200" text-anchor="middle" font-family="Arial" font-size="10" fill="#00ff88">Human Approval</text>
+  
+  <!-- Curved arrow down -->
+  <path d="M740 230 Q740 280 450 280 Q160 280 160 330" stroke="#ffd700" stroke-width="3" stroke-dasharray="5" fill="none"/>
+  
+  <!-- Phase 4: Learn -->
+  <rect x="30" y="330" width="260" height="120" fill="url(#learnGradient)" stroke="#ffd700" stroke-width="2" rx="12"/>
+  <text x="160" y="350" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#ffd700">PHASE 4: LEARN</text>
+  <rect x="45" y="365" width="100" height="30" fill="#0d1117" stroke="#ffd700" stroke-width="1" rx="4"/>
+  <text x="95" y="385" text-anchor="middle" font-family="Arial" font-size="10" fill="#ffd700">Result Capture</text>
+  <rect x="155" y="365" width="120" height="30" fill="#0d1117" stroke="#ffd700" stroke-width="1" rx="4"/>
+  <text x="215" y="385" text-anchor="middle" font-family="Arial" font-size="10" fill="#ffd700">Knowledge Update</text>
+  <rect x="45" y="400" width="100" height="30" fill="#0d1117" stroke="#ffd700" stroke-width="1" rx="4"/>
+  <text x="95" y="420" text-anchor="middle" font-family="Arial" font-size="10" fill="#ffd700">Model Refine</text>
+  <rect x="155" y="400" width="120" height="30" fill="#0d1117" stroke="#ffd700" stroke-width="1" rx="4"/>
+  <text x="215" y="420" text-anchor="middle" font-family="Arial" font-size="10" fill="#ffd700">Self-Improve</text>
+  
+  <!-- Support Systems -->
+  <text x="450" y="480" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#888">SUPPORT SYSTEMS</text>
+  
+  <!-- Support 1 -->
+  <rect x="30" y="495" width="170" height="80" fill="#0d1117" stroke="#0070d1" stroke-width="1" rx="8"/>
+  <text x="115" y="515" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#0070d1">MODEL ROUTER</text>
+  <text x="115" y="535" text-anchor="middle" font-family="Arial" font-size="9" fill="#888">Ollama • FCC • OpenCode</text>
+  <text x="115" y="550" text-anchor="middle" font-family="Arial" font-size="9" fill="#888">OmniRoute • Failover</text>
+  <text x="115" y="565" text-anchor="middle" font-family="Arial" font-size="9" fill="#00ff88">● Active</text>
+  
+  <!-- Support 2 -->
+  <rect x="210" y="495" width="170" height="80" fill="#0d1117" stroke="#00ff88" stroke-width="1" rx="8"/>
+  <text x="295" y="515" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#00ff88">EVENT BUS</text>
+  <text x="295" y="535" text-anchor="middle" font-family="Arial" font-size="9" fill="#888">Real-time events</text>
+  <text x="295" y="550" text-anchor="middle" font-family="Arial" font-size="9" fill="#888">Pub/Sub pattern</text>
+  <text x="295" y="565" text-anchor="middle" font-family="Arial" font-size="9" fill="#00ff88">● 14 publishers</text>
+  
+  <!-- Support 3 -->
+  <rect x="390" y="495" width="170" height="80" fill="#0d1117" stroke="#ffd700" stroke-width="1" rx="8"/>
+  <text x="475" y="515" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#ffd700">KNOWLEDGE GRAPH</text>
+  <text x="475" y="535" text-anchor="middle" font-family="Arial" font-size="9" fill="#888">Structured memory</text>
+  <text x="475" y="550" text-anchor="middle" font-family="Arial" font-size="9" fill="#888">Entity relationships</text>
+  <text x="475" y="565" text-anchor="middle" font-family="Arial" font-size="9" fill="#00ff88">● 2.3M nodes</text>
+  
+  <!-- Support 4 -->
+  <rect x="570" y="495" width="170" height="80" fill="#0d1117" stroke="#0070d1" stroke-width="1" rx="8"/>
+  <text x="655" y="515" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#0070d1">CREDENTIALS VAULT</text>
+  <text x="655" y="535" text-anchor="middle" font-family="Arial" font-size="9" fill="#888">Fernet encryption</text>
+  <text x="655" y="550" text-anchor="middle" font-family="Arial" font-size="9" fill="#888">Audit trail 1000+</text>
+  <text x="655" y="565" text-anchor="middle" font-family="Arial" font-size="9" fill="#00ff88">● Secure</text>
+  
+  <!-- Support 5 -->
+  <rect x="750" y="495" width="120" height="80" fill="#0d1117" stroke="#00ff88" stroke-width="1" rx="8"/>
+  <text x="810" y="515" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#00ff88">SCHEDULER</text>
+  <text x="810" y="535" text-anchor="middle" font-family="Arial" font-size="9" fill="#888">23 jobs</text>
+  <text x="810" y="550" text-anchor="middle" font-family="Arial" font-size="9" fill="#888">4 cycles</text>
+  <text x="810" y="565" text-anchor="middle" font-family="Arial" font-size="9" fill="#00ff88">● Running</text>
+  
+  <!-- Center Info -->
+  <rect x="320" y="330" width="260" height="120" fill="#0d1117" stroke="#888" stroke-width="1" rx="12"/>
+  <text x="450" y="355" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="white">WORKFLOW STATS</text>
+  <text x="450" y="380" text-anchor="middle" font-family="Arial" font-size="10" fill="#888">Avg Cycle Time: 2.5 hours</text>
+  <text x="450" y="400" text-anchor="middle" font-family="Arial" font-size="10" fill="#888">Success Rate: 87%</text>
+  <text x="450" y="420" text-anchor="middle" font-family="Arial" font-size="10" fill="#888">Autonomy Level: 92%</text>
+  <text x="450" y="440" text-anchor="middle" font-family="Arial" font-size="10" fill="#00ff88">● 24/7 Operation</text>
+</svg>
