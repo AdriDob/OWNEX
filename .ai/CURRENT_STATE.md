@@ -215,7 +215,100 @@
 - Incremento con OPTIMIZACIÓN: +$474,130/mes (+$5,689,560/año) = +119% vs rates bajos
 - Incremento total desde base: +$709,225/mes (+$8,510,700/año) = +432% vs SIN market modules
 
-**Sistema de Personalización Universal para OWNEX OMEGA**
+**MERLIN — Office Retro Modernized Assistant (antes COPILOT)**
+- cores/merlin/config.py: Configuración de MERLIN
+  - MerlinConfig: Clase de configuración completa
+  - DetailLevel: Niveles de detalle (concise, normal, detailed)
+  - ResponseTone: Tonos de respuesta (professional, friendly, casual, formal)
+  - Theme: Temas retro (classic_97, modern_retro, cyber_retro)
+  - Office Retro Personality (office_retro_mode, retro_animations, retro_typing_effect)
+  - Integraciones (ownex, retrieval, pulse, forge)
+  - Memory (memory_limit, memory_retention_days)
+  - Performance (max_concurrent_requests, request_timeout, streaming_enabled)
+- cores/merlin/personality.py: Personalidad de MERLIN
+  - MerlinPersonality: Clase de personalidad Office Retro
+  - RetroStyle: Estilos retro (office_97, office_2000, office_xp, modern_retro)
+  - Greetings, sign-offs, thinking phrases, error phrases, success phrases
+  - Retro reactions (disquete virtual, monitores CRT, teclas mecánicas)
+  - format_response(): Formateo según detail_level y response_tone
+  - get_typing_effect(): Efecto de typing animado
+  - get_emotion(): Emojis según sentimiento
+  - get_retro_border_color(): Colores de bordes retro
+  - get_retro_background(): Fondos retro con gradientes
+- cores/merlin/memory.py: Sistema de memoria de MERLIN
+  - MemoryType: Tipos de memoria (conversation, pattern, workflow, strategy, knowledge, note)
+  - MemoryEntry: Entrada de memoria con metadata
+  - MerlinMemory: Sistema de memoria con persistencia JSON
+  - save_conversation(): Guardar conversaciones
+  - save_pattern(): Guardar patrones
+  - save_workflow(): Guardar workflows
+  - save_note(): Guardar notas
+  - get_memory(): Obtener memoria específica
+  - get_recent_memories(): Obtener memorias recientes
+  - search_memories(): Buscar memorias
+  - cleanup_old_memories(): Limpiar memorias antiguas
+  - get_memories_by_tag(): Obtener por tag
+  - get_memories_by_type(): Obtener por tipo
+  - update_memory(): Actualizar memoria
+  - delete_memory(): Eliminar memoria
+  - get_memory_stats(): Estadísticas de memoria
+- cores/merlin/system.py: Sistema MERLIN
+  - MerlinSystem: Sistema principal de MERLIN
+  - process_message(): Procesar mensajes y generar respuestas
+  - _analyze_intent(): Analizar intención del mensaje
+  - _generate_response(): Generar respuesta según intención
+  - Intent analysis (target_analysis, report_generation, workflow_optimization, data_analysis, strategic_planning, technical_assistance, greeting, general)
+  - _track_analytics(): Tracking de analytics
+  - get_capabilities(): Obtener capacidades
+  - get_status(): Obtener estado actual
+  - clear_chat(): Limpiar chat
+  - update_config(): Actualizar configuración
+- api/routers/merlin.py: API router para MERLIN
+  - POST /api/merlin/chat: Chat con MERLIN
+  - POST /api/merlin/settings: Guardar configuración
+  - GET /api/merlin/settings: Obtener configuración
+  - POST /api/merlin/memory: Guardar conversación en memoria
+  - GET /api/merlin/memory: Obtener memorias recientes
+  - GET /api/merlin/capabilities: Obtener capacidades
+  - GET /api/merlin/status: Obtener estado
+  - POST /api/merlin/clear: Limpiar chat
+  - GET /api/merlin/notes: Obtener notas
+  - POST /api/merlin/notes: Guardar nota
+- frontend/src/components/merlin/MerlinInterface.vue: Frontend MERLIN
+  - Office Retro Modernized Interface completo
+  - Header con avatar animado (pulseGlow, retroBorder, glowPulse)
+  - Avatar con emoji 🧙 y gradientes
+  - Status indicator (online/offline con animación)
+  - Retro controls (theme, clear, settings)
+  - Chat area scrollable con scrollbar estilizado
+  - Messages con animación messageSlide
+  - Typing indicator (typingBounce)
+  - Input area con retro border y textarea
+  - Sidebar colapsable con notes, memory, quick actions
+  - Settings modal con personalización, comportamiento, analytics
+  - Animaciones: slideDown, pulseGlow, retroBorder, glowPulse, titleGlow, statusPulse, messageSlide, typingBounce, sectionFade, modalFadeIn, modalSlide
+  - Styling Office Retro (Courier New, Consolas, gradients, borders, backdrop-filter, shadows)
+  - Responsive: Sidebar colapsable, responsive design
+- Características:
+  - Nombre: MERLIN (antes COPILOT)
+  - Avatar: 🧙 (mago)
+  - Personalidad: Office Retro Modernized
+  - Estilo: Office 97/2000/XP modernizado con animaciones
+  - Animaciones: pulse, glow, border, typing, slide, fade
+  - Colores: Gradients retro modernizados
+  - Font: Monospace (Courier New, Consolas)
+  - Scrollable: Chat area con scrollbar estilizado
+  - Sidebar: Colapsable con notes, memory, quick actions
+  - Settings: Personalización completa
+  - Memory: Sistema de memoria persistente
+  - Analytics: Tracking de conversaciones
+  - Learning: Aprendizaje continuo
+  - Intent Analysis: Detección de intención
+  - Response Formatting: Según detalle y tono
+  - Retro Reactions: Frases retro (disquete, CRT, teclas mecánicas)
+  - Typing Effect: Efecto de typing animado
+  - Emotion Detection: Emojis según sentimiento
+  - Theme Variations: Classic 97, Modern Retro, Cyber Retro
 - install.py: Instalador universal para cualquier computadora
   - OwnexInstaller: Clase instaladora universal
   - check_requirements(): Verifica requisitos del sistema (Python 3.11+, memoria, disco)
