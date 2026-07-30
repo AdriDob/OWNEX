@@ -109,6 +109,7 @@ from api.routers import (
     zap,
     opensource,
     zero_barrier,
+    version_backup,
 )
 from api.routers.investment import register_investment_capabilities as _reg_inv_caps
 from cores.env.config import get_config
@@ -1420,6 +1421,7 @@ app.include_router(report_pipeline.router)
 app.include_router(voice.router)
 app.include_router(opensource.router)
 app.include_router(zero_barrier.router)
+app.include_router(version_backup.router)
 
 # Security Cycle router
 app.include_router(security_cycle.router)

@@ -11,7 +11,10 @@
     "findings": "Ergebnisse",
     "reports": "Berichte",
     "settings": "Einstellungen",
-    "terminal": "Terminal"
+    "terminal": "Terminal",
+    "opensource": "Open Source",
+    "zero_barrier": "Einkommen Ohne Barrieren",
+    "version_backup": "Versionsbackup"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -122,6 +125,24 @@
     "total_opportunities": "Gesamte Möglichkeiten",
     "total_potential_earnings": "Potenzielle Einnahmen gesamt",
     "by_platform": "Nach Plattform"
+  },
+  "version_backup": {
+    "title": "Versionsbackup",
+    "subtitle": "Versionsbackup und Rollback-System",
+    "backup": "Backup",
+    "restore": "Wiederherstellen",
+    "rollback": "Rollback",
+    "list_backups": "Backups auflisten",
+    "verify": "Verifizieren",
+    "current_version": "Aktuelle Version",
+    "backup_notes": "Backup-Notizen",
+    "create_backup": "Backup erstellen",
+    "rollback_to_version": "Rollback zu Version",
+    "restore_latest": "Letztes wiederherstellen",
+    "version_history": "Versionshistorie",
+    "integrity": "Integrität",
+    "pre_rollback": "Pre-rollback Backup",
+    "emergency_recovery": "Notfallwiederherstellung"
   },
   "common": {
     "save": "Speichern",

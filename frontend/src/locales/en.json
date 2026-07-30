@@ -13,7 +13,8 @@
     "settings": "Settings",
     "terminal": "Terminal",
     "opensource": "Open Source",
-    "zero_barrier": "Zero-Barrier Income"
+    "zero_barrier": "Zero-Barrier Income",
+    "version_backup": "Version Backup"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -180,6 +181,24 @@
     "total_opportunities": "Total Opportunities",
     "total_potential_earnings": "Total Potential Earnings",
     "by_platform": "By Platform"
+  },
+  "version_backup": {
+    "title": "Version Backup",
+    "subtitle": "Version backup and rollback system",
+    "backup": "Backup",
+    "restore": "Restore",
+    "rollback": "Rollback",
+    "list_backups": "List Backups",
+    "verify": "Verify",
+    "current_version": "Current Version",
+    "backup_notes": "Backup Notes",
+    "create_backup": "Create Backup",
+    "rollback_to_version": "Rollback to Version",
+    "restore_latest": "Restore Latest",
+    "version_history": "Version History",
+    "integrity": "Integrity",
+    "pre_rollback": "Pre-rollback Backup",
+    "emergency_recovery": "Emergency Recovery"
   },
   "notifications": {
     "title": "Notifications",
