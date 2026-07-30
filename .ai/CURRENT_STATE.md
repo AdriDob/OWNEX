@@ -194,24 +194,38 @@
   - Trading: Crypto Trading (cores/trading/executor.py) — 10 trades/día, avg $100, 35% win rate, 5% daily risk max, 80% efficiency
   - Investment: DeFi Yield Farming (cores/investment/manager.py) — 5 positions, 20% APY, $1000 min position, 80% efficiency
   - Market Intelligence: Arbitrage (cores/market_intelligence/models.py) — 20 opportunities/día, avg $50, 60% success rate, 70% analysis efficiency
+  - CCXT Multi-Exchange: Multi-exchange trading (cores/investment/adapters/ccxt_adapter.py) — 15 trades/día, avg $80, 30% win rate, 75% efficiency
+  - Forex: Forex Trading (cores/investment/adapters/forex_adapter.py) — 5 trades/día, avg $150, 40% win rate, 70% efficiency
+  - Futures: Crypto Futures (cores/investment/adapters/futures_adapter.py) — 8 trades/día, avg $200, 25% win rate, 60% efficiency
+  - Global Arbitrage: Cross-border arbitrage (cores/investment/adapters/global_arbitrage_adapter.py) — 5 opportunities/día, avg $300, 45% success rate, 70% efficiency
+  - Memecoin: Solana memecoin sniping (cores/investment/adapters/memecoin_adapter.py) — 10 snipes/día, avg $50, 20% success rate, 50% efficiency
+  - Polymarket: Prediction markets (cores/investment/adapters/polymarket_adapter.py) — 8 positions/día, avg $100, 55% success rate, 75% efficiency
+  - Sports Betting: Sports betting (cores/investment/adapters/sports_betting_adapter.py) — 10 bets/día, avg $75, 52% success rate, 70% efficiency
 - Resultados SIN market modules:
   - CONSERVATIVE: $27,375/mes ($328,500/año)
   - MODERATE ⭐: $54,750/mes ($657,000/año) — RECOMENDADO
   - AGGRESSIVE: $109,500/mes ($1,314,000/año)
   - MAXIMUM 🚀: $164,250/mes ($1,971,000/año)
-- Resultados CON market modules:
-  - CONSERVATIVE: $38,875/mes ($466,500/año)
-  - MODERATE ⭐: $77,750/mes ($933,000/año) — RECOMENDADO
-  - AGGRESSIVE: $155,500/mes ($1,866,000/año)
-  - MAXIMUM 🚀: $233,250/mes ($2,799,000/año)
-- Incremento con market modules: +$69,000/mes (+$828,000/año) = +42%
-- Desglose Maximum CON market modules:
+- Resultados CON TODAS las investment tools:
+  - CONSERVATIVE: $66,557.50/mes ($798,690/año)
+  - MODERATE ⭐: $133,115.00/mes ($1,597,380/año) — RECOMENDADO
+  - AGGRESSIVE: $266,230.00/mes ($3,194,760/año)
+  - MAXIMUM 🚀: $399,345.00/mes ($4,792,140/año)
+- Incremento con TODAS las investment tools: +$235,095/mes (+$2,821,140/año) = +143%
+- Desglose Maximum CON TODAS las investment tools:
   - Bug Bounty: $33,750/mes
   - Dev Bounty: $54,000/mes
   - Data Annotation: $76,500/mes
   - Trading: $25,200/mes (Riesgo alto)
   - Investment: $6,000/mes (Riesgo medio)
   - Market Intelligence: $37,800/mes (Riesgo medio)
+  - CCXT Multi-Exchange: $24,300/mes (Riesgo alto)
+  - Forex: $18,900/mes (Riesgo alto)
+  - Futures: $21,600/mes (Riesgo muy alto)
+  - Global Arbitrage: $42,525/mes (Riesgo alto)
+  - Memecoin: $4,500/mes (Riesgo muy alto)
+  - Polymarket: $29,700/mes (Riesgo medio)
+  - Sports Betting: $24,570/mes (Riesgo medio)
 
 **OpenRouter API Key Configuration**
 - Nueva API key configurada en todo el sistema
