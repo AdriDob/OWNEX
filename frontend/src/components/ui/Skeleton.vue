@@ -13,7 +13,7 @@ const props = withDefaults(defineProps<Props>(), {
 <template>
   <div
     :class="cn(
-      'relative overflow-hidden rounded-md',
+      'relative overflow-hidden rounded-md ownex-skeleton',
       variant === 'crt' ? 'bg-surface/60 border border-border/30' : 'bg-surface/50',
       props.class,
     )"
@@ -33,7 +33,7 @@ const props = withDefaults(defineProps<Props>(), {
     <!-- Pulse variant -->
     <div
       v-if="variant === 'pulse'"
-      class="absolute inset-0 skeleton-pulse"
+      class="absolute inset-0 ownex-pulse-subtle"
     />
   </div>
 </template>
