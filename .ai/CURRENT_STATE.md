@@ -1,6 +1,45 @@
-## Sesión 2026-07-28 — OWNEX OMEGA: Empresa de Departamentos + OpenRouter Integration
+## Sesión 2026-07-28 — OWNEX OMEGA: Empresa de Departamentos + Workflow Engine
 
 ### Completed
+
+**OWNEX OMEGA Redesign**
+- Filosofía: No división por herramientas, división por departamentos
+- Escalable: Agregar departamentos, no refactor
+- `cores/agents/specialists/`: 12 agentes departamentales creados
+- `.ai/OWNEX_OMEGA_ARCHITECTURE.md`: Documentación completa
+
+**OWNEX OMEGA Workflow Engine**
+- `cores/workflow/engine.py`: Motor de ejecución de workflows
+  - WorkflowStatus, TaskStatus enums
+  - Workflow, WorkflowTask dataclasses
+  - WorkflowEngine: create, start, assign, complete, fail tasks
+- `cores/workflow/handoff.py`: Sistema de handoffs departamentales
+  - HandoffStatus, HandoffCondition, Handoff dataclasses
+  - HandoffManager: 12 condiciones de handoff por defecto
+  - trigger_handoff, accept/reject/complete/fail
+- `cores/workflow/orchestrator.py`: Coordinador de workflows
+  - Combina WorkflowEngine y HandoffManager
+  - Event-driven coordination con callbacks
+  - complete_task con trigger automático de handoffs
+- `cores/workflow/mvp_workflows.py`: Workflows MVP de ejemplo
+  - create_feature_development_workflow
+  - create_bug_fix_workflow
+  - create_revenue_opportunity_workflow
+- `tests/test_workflow_engine.py`: 6/6 tests passed ✅
+
+**Departmental Handoffs Configured**
+- Architecture → Coding (architecture_ready)
+- Coding → QA (code_review_needed)
+- Coding → Debug (error_detected)
+- QA → Coding (test_failed)
+- QA → Orchestrator (approval_granted)
+- Research → Architecture (research_completed)
+- Documentation → Orchestrator (documentation_completed)
+- Product → Coding (feature_defined)
+- Revenue → Orchestrator (opportunity_found, requires approval)
+- Automation → Infrastructure (workflow_ready)
+- Infrastructure → Orchestrator (infrastructure_updated)
+- Evolution → Orchestrator (improvement_suggested, requires approval)
 
 **OpenRouter API Key Configuration**
 - Nueva API key configurada en todo el sistema
@@ -26,13 +65,6 @@
 - Método `list_models()` para descubrir modelos dinámicamente
 - Lista completa de 16 modelos disponibles
 - Verificación de status code antes de procesar respuesta
-
-**OWNEX OMEGA Redesign**
-- Filosofía: No división por herramientas, división por departamentos
-- Escalable: Agregar departamentos, no refactor
-- `cores/agents/types.py`: AgentId y EventType actualizados (12 agentes)
-- `cores/agents/specialists/`: 12 agentes departamentales creados
-- `.ai/OWNEX_OMEGA_ARCHITECTURE.md`: Documentación completa
 
 **Departmental Agents Created** (12 agentes)
 - **Orchestrator** (CEO) — Coordinación superior, nunca ejecuta directamente
@@ -68,6 +100,7 @@
 
 **Testing & Toolchain**
 - Scheduler Tests: 17/17 passed ✅
+- Workflow Engine Tests: 6/6 passed ✅
 - Rust Toolchain: `rustc 1.97.0` ready
 
 **Security System**
