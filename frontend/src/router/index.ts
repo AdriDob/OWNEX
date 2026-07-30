@@ -61,6 +61,12 @@ export const routes: RouteRecordRaw[] = [
   // ── 1. MISSION CONTROL ──
   {
     path: '/',
+    name: 'welcome',
+    component: () => import(/* webpackChunkName: "welcome" */ '@/pages/WelcomePage.vue'),
+    meta: { title: 'Bienvenido' },
+  },
+  {
+    path: '/dashboard',
     name: 'mission-control',
     component: () => import(/* webpackChunkName: "mission-control" */ '@/pages/GamingConsole.vue'),
     meta: { title: 'Control de Misión' },
@@ -390,6 +396,9 @@ export const routes: RouteRecordRaw[] = [
   },
 
   // ── LEGACY REDIRECTS (mantener compatibilidad) ──
+  // Home redirect
+  { path: '/home', redirect: '/dashboard' },
+
   // Revenue pages → Capital
   { path: '/revenue', redirect: '/capital' },
   { path: '/revenue-multiplier', redirect: '/capital' },

@@ -39,7 +39,8 @@ const navSections = [
     section: 'MISIÓN',
     cycle: 'mission',
     items: [
-      { name: 'Mission Control', path: '/', icon: LayoutDashboard, exact: true },
+      { name: 'Bienvenido', path: '/', icon: LayoutDashboard, exact: true },
+      { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
       { name: 'HUNT', path: '/baby-mode', icon: Zap },
     ],
   },
@@ -77,7 +78,8 @@ const navSections = [
     section: 'PULSO ● AI Work',
     cycle: 'pulse',
     items: [
-      { name: 'Próximamente', path: '/faqs', icon: Bot },
+      { name: 'MERLIN', path: '/merlin', icon: Bot },
+      { name: 'Próximamente', path: '/faqs', icon: Sparkles },
     ],
   },
   {
