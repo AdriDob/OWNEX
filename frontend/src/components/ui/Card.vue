@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
   <div
     :class="cn(
       variant === 'tactical' ? 'tactical-panel' : variant === 'glass' ? 'glass-terminal' : 'card-base',
-      'rounded-xl',
+      'rounded-xl ownex-hover-lift',
       highlight && 'card-highlight',
       props.class,
     )"
