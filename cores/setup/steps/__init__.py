@@ -56,6 +56,7 @@ def count_steps() -> int:
 from core.setup.steps.copilot_step import *  # noqa: E402, F401, F403
 from core.setup.steps.identity_step import *  # noqa: E402, F401, F403
 from core.setup.steps.integrations_step import *  # noqa: E402, F401, F403
+from core.setup.steps.personalization_step import *  # noqa: E402, F401, F403
 from core.setup.steps.smartwatch_step import *  # noqa: E402, F401, F403
 from core.setup.steps.system_step import *  # noqa: E402, F401, F403
 from core.setup.steps.test_step import *  # noqa: E402, F401, F403
