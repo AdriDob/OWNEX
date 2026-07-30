@@ -11,7 +11,8 @@
     "findings": "Findings",
     "reports": "Reports",
     "settings": "Settings",
-    "terminal": "Terminal"
+    "terminal": "Terminal",
+    "opensource": "Open Source"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -136,6 +137,27 @@
     "pause": "Pause Workflow",
     "resume": "Resume Workflow",
     "cancel": "Cancel Workflow"
+  },
+  "opensource": {
+    "title": "Open Source",
+    "subtitle": "Open Source Work Categories",
+    "categories": "Categories",
+    "bug_bounty": "Bug Bounty",
+    "security_audit": "Security Audit",
+    "code_review": "Code Review",
+    "testing": "Testing",
+    "documentation": "Documentation",
+    "infrastructure": "Infrastructure",
+    "performance": "Performance",
+    "accessibility": "Accessibility",
+    "localization": "Localization",
+    "tooling": "Tooling",
+    "recommendations": "Recommendations",
+    "contributions": "Contributions",
+    "stats": "Statistics",
+    "total_contributions": "Total Contributions",
+    "by_category": "By Category",
+    "by_project": "By Project"
   },
   "notifications": {
     "title": "Notifications",
