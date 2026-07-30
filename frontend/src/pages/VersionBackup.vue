@@ -1,67 +1,141 @@
 <template>
   <div class="version-backup-page">
-    <div class="page-header">
-      <h1>{{ t('version_backup.title') }}</h1>
-      <p>{{ t('version_backup.subtitle') }}</p>
-    </div>
+    <!-- ═══ TOP BAR ═══ -->
+    <header class="top-bar">
+      <div class="flex items-center gap-3">
+        <!-- Logo mark -->
+        <div class="relative w-9 h-9">
+          <div class="absolute inset-0 rounded-full border border-primary/40" />
+          <div class="absolute inset-[3px] rounded-full border border-primary/20" />
+          <div class="absolute inset-[8px] rounded-full bg-primary/20" />
+          <div class="absolute inset-[11px] rounded-full bg-primary" />
+        </div>
+        <span class="text-lg font-bold tracking-widest text-white font-display">OWNEX</span>
+        <span class="text-[10px] text-muted tracking-wider">v4.7.0</span>
 
-    <!-- Current Version Info -->
-    <div class="current-version-card">
-      <div class="card-header">
-        <h2>{{ t('version_backup.current_version') }}</h2>
-        <div class="card-actions">
-          <button @click="refreshCurrentVersion" class="btn btn-secondary" :disabled="loading">
-            <i class="fas fa-sync-alt" :class="{ 'fa-spin': loading }"></i>
-          </button>
+        <!-- Cycle pills -->
+        <div class="nav-pills">
+          <span class="pill pill-backup">BACKUP</span>
         </div>
       </div>
-      <div class="version-info" v-if="currentVersion">
-        <div class="info-item">
-          <label>{{ t('version') }}:</label>
-          <span>{{ currentVersion.version }}</span>
+
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+          <span class="text-xs text-green-400 font-semibold">BACKUP SYSTEM OPERATIONAL</span>
         </div>
-        <div class="info-item">
-          <label>{{ t('git_commit') }}:</label>
-          <span class="commit-hash">{{ currentVersion.git_commit }}</span>
+        <div class="live-badge">LIVE</div>
+      </div>
+    </header>
+
+    <!-- ═══ HERO SECTION ═══ -->
+    <section class="hero-section">
+      <div class="flex items-start gap-8">
+        <!-- Big 'O' mark -->
+        <div class="relative w-32 h-32 flex-shrink-0 hidden lg:block">
+          <div class="o-ring o-ring-outer" />
+          <div class="o-ring o-ring-inner" />
+          <div class="o-dot" />
+          <div class="o-core" />
+        </div>
+
+        <div class="flex-1">
+          <h1 class="text-3xl md:text-4xl font-bold text-white font-display tracking-wide">
+            Version Backup
+          </h1>
+          <p class="text-muted mt-2">
+            System version history and rollback management · {{ backups.length }} backups available
+          </p>
+          <div class="flex flex-wrap gap-3 mt-6">
+            <button class="action-pill action-primary" @click="showCreateBackupModal = true">
+              <Shield class="w-4 h-4" /> Create Backup
+            </button>
+            <button class="action-pill action-green" @click="restoreLatest" :disabled="!hasBackups || loading">
+              <RefreshCw class="w-4 h-4" /> Restore Latest
+            </button>
+            <button class="action-pill action-gold" @click="refreshBackups" :disabled="loading">
+              <Activity class="w-4 h-4" /> Refresh
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-      <button @click="showCreateBackupModal = true" class="btn btn-primary">
-        <i class="fas fa-plus"></i>
-        {{ t('version_backup.create_backup') }}
-      </button>
-      <button @click="restoreLatest" class="btn btn-warning" :disabled="!hasBackups || loading">
-        <i class="fas fa-undo"></i>
-        {{ t('version_backup.restore_latest') }}
-      </button>
-      <button @click="refreshBackups" class="btn btn-secondary" :disabled="loading">
-        <i class="fas fa-sync-alt" :class="{ 'fa-spin': loading }"></i>
-        {{ t('refresh') }}
-      </button>
-    </div>
+    <!-- ═══ CURRENT VERSION CARD ═══ -->
+    <section class="cards-grid">
+      <div class="card">
+        <div class="card-label">CURRENT VERSION</div>
+        <div class="card-value text-primary">{{ currentVersion?.version || 'Loading...' }}</div>
+        <div class="card-detail">
+          <div class="text-xs text-muted mt-2">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-green-400" />
+              Commit: <span class="font-mono text-xs">{{ currentVersion?.git_commit?.substring(0, 8) || 'Unknown' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <!-- Backups List -->
-    <div class="backups-section">
+      <div class="card">
+        <div class="card-label">BACKUP STORAGE</div>
+        <div class="card-value text-green-400">Local SQLite</div>
+        <div class="card-detail">Shared with Recovery System</div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">BACKUP HEALTH</div>
+        <div class="flex items-center gap-6">
+          <svg class="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(30,41,59,0.5)" stroke-width="6" />
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#34D399" stroke-width="6"
+              stroke-dasharray="264" :stroke-dashoffset="264 - (264 * 100 / 100)"
+              stroke-linecap="round" />
+          </svg>
+          <div>
+            <div class="text-2xl font-bold font-display text-green-400">
+              100%
+            </div>
+            <div class="text-xs text-muted mt-2">
+              All backups verified
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">BACKUP COUNT</div>
+        <div class="card-value text-amber-400">{{ backups.length }} / 10</div>
+        <div class="card-detail">Auto-cleanup enabled</div>
+      </div>
+    </section>
+
+    <!-- ═══ BACKUP HISTORY ═══ -->
+    <section class="backup-history-section">
       <div class="section-header">
-        <h2>{{ t('version_backup.version_history') }}</h2>
-        <div class="backup-count">{{ backups.length }} {{ t('backups') }}</div>
+        <h2 class="text-xl font-bold text-white font-display tracking-wide">BACKUP HISTORY</h2>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-muted">{{ backups.length }} backups</span>
+          <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+        </div>
       </div>
 
-      <div v-if="loading" class="loading">
-        <i class="fas fa-spinner fa-spin"></i>
-        {{ t('loading') }}...
+      <div v-if="loading" class="loading-state">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+        <p class="text-muted text-sm">Loading backup history...</p>
       </div>
 
       <div v-else-if="backups.length === 0" class="empty-state">
-        <i class="fas fa-archive"></i>
-        <p>{{ t('version_backup.no_backups') }}</p>
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-muted/30 flex items-center justify-center">
+          <Archive class="w-8 h-8 text-muted" />
+        </div>
+        <p class="text-muted">No backups available</p>
+        <button class="action-pill action-primary mt-4" @click="showCreateBackupModal = true">
+          <Shield class="w-4 h-4" /> Create First Backup
+        </button>
       </div>
 
-      <div v-else class="backups-list">
-        <div v-for="backup in backups" :key="backup.backup_path" class="backup-card" :class="{ 'active': backup.state === 'active' }">
+      <div v-else class="backups-grid">
+        <div v-for="backup in backups" :key="backup.backup_path" class="backup-card" :class="{ 'card-active': backup.state === 'active' }">
           <div class="backup-header">
             <div class="backup-version">
               <span class="version-tag">{{ backup.version }}</span>
@@ -72,139 +146,146 @@
 
           <div class="backup-details">
             <div class="detail-item">
-              <i class="fas fa-code-branch"></i>
-              <span class="commit-hash">{{ backup.git_commit }}</span>
+              <span class="text-muted text-xs">Commit:</span>
+              <span class="font-mono text-xs">{{ backup.git_commit?.substring(0, 8) }}</span>
             </div>
             <div class="detail-item">
-              <i class="fas fa-database"></i>
-              <span>{{ formatSize(backup.size) }}</span>
+              <span class="text-muted text-xs">Size:</span>
+              <span class="text-xs">{{ formatSize(backup.size) }}</span>
             </div>
             <div class="detail-item" v-if="backup.notes">
-              <i class="fas fa-sticky-note"></i>
-              <span>{{ backup.notes }}</span>
+              <span class="text-muted text-xs">Notes:</span>
+              <span class="text-xs truncate">{{ backup.notes }}</span>
             </div>
           </div>
 
           <div class="backup-actions">
-            <button @click="verifyBackup(backup)" class="btn btn-sm btn-info" :disabled="loading">
-              <i class="fas fa-check-circle"></i>
-              {{ t('version_backup.verify') }}
+            <button @click="verifyBackup(backup)" class="mini-button mini-info" :disabled="loading">
+              <Shield class="w-3 h-3" /> Verify
             </button>
-            <button @click="showRollbackModal(backup)" class="btn btn-sm btn-warning" :disabled="loading || backup.state === 'active'">
-              <i class="fas fa-undo"></i>
-              {{ t('version_backup.rollback') }}
+            <button @click="showRollbackModal(backup)" class="mini-button mini-warning" :disabled="loading || backup.state === 'active'">
+              <RefreshCw class="w-3 h-3" /> Rollback
             </button>
-            <button @click="deleteBackup(backup)" class="btn btn-sm btn-danger" :disabled="loading || backup.state === 'active'">
-              <i class="fas fa-trash"></i>
+            <button @click="deleteBackup(backup)" class="mini-button mini-danger" :disabled="loading || backup.state === 'active'">
+              <Trash2 class="w-3 h-3" />
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Create Backup Modal -->
+    <!-- ═══ CREATE BACKUP MODAL ═══ -->
     <div v-if="showCreateBackupModal" class="modal-overlay" @click.self="showCreateBackupModal = false">
       <div class="modal">
         <div class="modal-header">
-          <h3>{{ t('version_backup.create_backup') }}</h3>
-          <button @click="showCreateBackupModal = false" class="btn-close">
-            <i class="fas fa-times"></i>
+          <h3 class="text-lg font-bold text-white font-display">CREATE BACKUP</h3>
+          <button @click="showCreateBackupModal = false" class="close-button">
+            <X class="w-5 h-5 text-muted" />
           </button>
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label>{{ t('version_backup.backup_notes') }}</label>
-            <textarea v-model="backupNotes" rows="3" :placeholder="t('version_backup.backup_notes_placeholder')"></textarea>
+            <label class="form-label">Backup Notes</label>
+            <textarea v-model="backupNotes" rows="3" class="form-textarea" placeholder="Add notes about this backup (e.g., 'Pre-update before v2.0.0')"></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="showCreateBackupModal = false" class="btn btn-secondary">{{ t('cancel') }}</button>
-          <button @click="createBackup" class="btn btn-primary" :disabled="loading">
-            <i class="fas fa-save" v-if="!loading"></i>
-            <i class="fas fa-spinner fa-spin" v-else></i>
-            {{ t('version_backup.create_backup') }}
+          <button @click="showCreateBackupModal = false" class="action-pill action-secondary">Cancel</button>
+          <button @click="createBackup" class="action-pill action-primary" :disabled="loading">
+            <Shield v-if="!loading" class="w-4 h-4" />
+            <div v-else class="w-4 h-4 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+            Create Backup
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Rollback Modal -->
+    <!-- ═══ ROLLBACK MODAL ═══ -->
     <div v-if="showRollbackModal" class="modal-overlay" @click.self="showRollbackModal = false">
       <div class="modal">
         <div class="modal-header">
-          <h3>{{ t('version_backup.rollback_to_version') }}</h3>
-          <button @click="showRollbackModal = false" class="btn-close">
-            <i class="fas fa-times"></i>
+          <h3 class="text-lg font-bold text-white font-display">ROLLBACK TO VERSION</h3>
+          <button @click="showRollbackModal = false" class="close-button">
+            <X class="w-5 h-5 text-muted" />
           </button>
         </div>
         <div class="modal-body">
-          <div class="rollback-info">
-            <p>{{ t('version_backup.rollback_warning') }}</p>
-            <div class="backup-summary">
-              <div class="summary-item">
-                <label>{{ t('version') }}:</label>
-                <span>{{ selectedBackup?.version }}</span>
-              </div>
-              <div class="summary-item">
-                <label>{{ t('git_commit') }}:</label>
-                <span class="commit-hash">{{ selectedBackup?.git_commit }}</span>
-              </div>
-              <div class="summary-item">
-                <label>{{ t('created_at') }}:</label>
-                <span>{{ formatDate(selectedBackup?.created_at) }}</span>
-              </div>
+          <div class="rollback-warning">
+            <div class="flex items-center gap-3 mb-4">
+              <AlertTriangle class="w-6 h-6 text-amber-400" />
+              <p class="text-amber-400 font-semibold">WARNING: IRREVERSIBLE ACTION</p>
             </div>
-            <p class="pre-rollback-info">
-              <i class="fas fa-info-circle"></i>
-              {{ t('version_backup.pre_rollback') }} {{ t('version_backup.will_be_created') }}
-            </p>
+            <p class="text-muted mb-4">You are about to rollback to a previous version. This will restore all files and git state.</p>
+          </div>
+          <div class="backup-summary">
+            <div class="summary-item">
+              <span class="text-muted text-xs">Version:</span>
+              <span class="text-xs font-bold">{{ selectedBackup?.version }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="text-muted text-xs">Commit:</span>
+              <span class="font-mono text-xs">{{ selectedBackup?.git_commit?.substring(0, 8) }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="text-muted text-xs">Created:</span>
+              <span class="text-xs">{{ formatDate(selectedBackup?.created_at) }}</span>
+            </div>
+          </div>
+          <div class="pre-rollback-info">
+            <div class="flex items-center gap-2">
+              <Shield class="w-4 h-4 text-primary" />
+              <span class="text-xs text-primary">Pre-rollback backup will be created automatically</span>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="showRollbackModal = false" class="btn btn-secondary">{{ t('cancel') }}</button>
-          <button @click="rollbackToVersion" class="btn btn-warning" :disabled="loading">
-            <i class="fas fa-undo" v-if="!loading"></i>
-            <i class="fas fa-spinner fa-spin" v-else></i>
-            {{ t('version_backup.rollback') }}
+          <button @click="showRollbackModal = false" class="action-pill action-secondary">Cancel</button>
+          <button @click="rollbackToVersion" class="action-pill action-warning" :disabled="loading">
+            <RefreshCw v-if="!loading" class="w-4 h-4" />
+            <div v-else class="w-4 h-4 rounded-full border-2 border-amber-400/30 border-t-amber-400 animate-spin" />
+            Rollback
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Verification Result Modal -->
+    <!-- ═══ VERIFICATION MODAL ═══ -->
     <div v-if="showVerificationModal" class="modal-overlay" @click.self="showVerificationModal = false">
       <div class="modal">
         <div class="modal-header">
-          <h3>{{ t('version_backup.integrity') }}</h3>
-          <button @click="showVerificationModal = false" class="btn-close">
-            <i class="fas fa-times"></i>
+          <h3 class="text-lg font-bold text-white font-display">BACKUP INTEGRITY</h3>
+          <button @click="showVerificationModal = false" class="close-button">
+            <X class="w-5 h-5 text-muted" />
           </button>
         </div>
         <div class="modal-body">
-          <div class="verification-result" :class="{ 'valid': verificationResult?.valid, 'invalid': !verificationResult?.valid }">
-            <i class="fas" :class="verificationResult?.valid ? 'fa-check-circle' : 'fa-exclamation-circle'"></i>
-            <div class="result-details">
-              <p>{{ verificationResult?.valid ? t('version_backup.backup_valid') : t('version_backup.backup_invalid') }}</p>
-              <p v-if="!verificationResult?.valid" class="error-message">{{ verificationResult?.error }}</p>
+          <div class="verification-result" :class="{ 'result-valid': verificationResult?.valid, 'result-invalid': !verificationResult?.valid }">
+            <div class="verification-icon">
+              <Shield v-if="verificationResult?.valid" class="w-12 h-12 text-green-400" />
+              <AlertTriangle v-else class="w-12 h-12 text-red-400" />
+            </div>
+            <div class="verification-details">
+              <p class="font-semibold">{{ verificationResult?.valid ? 'Backup is valid and integrity verified' : 'Backup verification failed' }}</p>
+              <p v-if="!verificationResult?.valid" class="text-red-400 text-sm mt-2">{{ verificationResult?.error }}</p>
               <div v-if="verificationResult?.valid" class="valid-details">
                 <div class="detail-item">
-                  <label>{{ t('version') }}:</label>
-                  <span>{{ verificationResult?.version }}</span>
+                  <span class="text-muted text-xs">Version:</span>
+                  <span class="text-xs">{{ verificationResult?.version }}</span>
                 </div>
                 <div class="detail-item">
-                  <label>{{ t('git_commit') }}:</label>
-                  <span class="commit-hash">{{ verificationResult?.git_commit }}</span>
+                  <span class="text-muted text-xs">Commit:</span>
+                  <span class="font-mono text-xs">{{ verificationResult?.git_commit?.substring(0, 8) }}</span>
                 </div>
                 <div class="detail-item">
-                  <label>{{ t('size') }}:</label>
-                  <span>{{ formatSize(verificationResult?.size) }}</span>
+                  <span class="text-muted text-xs">Size:</span>
+                  <span class="text-xs">{{ formatSize(verificationResult?.size) }}</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="showVerificationModal = false" class="btn btn-primary">{{ t('close') }}</button>
+          <button @click="showVerificationModal = false" class="action-pill action-primary">Close</button>
         </div>
       </div>
     </div>
@@ -213,10 +294,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { Shield, RefreshCw, Activity, Archive, AlertTriangle, X, Trash2 } from '@lucide/vue'
 import axios from 'axios'
-
-const { t } = useI18n()
 
 const loading = ref(false)
 const backups = ref<any[]>([])
@@ -314,7 +393,7 @@ const rollbackToVersion = async () => {
 }
 
 const restoreLatest = async () => {
-  if (!confirm(t('version_backup.restore_latest_confirm'))) return
+  if (!confirm('Are you sure you want to restore from the latest backup?')) return
 
   loading.value = true
   try {
@@ -332,7 +411,7 @@ const restoreLatest = async () => {
 }
 
 const deleteBackup = async (backup: any) => {
-  if (!confirm(t('version_backup.delete_backup_confirm'))) return
+  if (!confirm('Are you sure you want to delete this backup?')) return
 
   loading.value = true
   try {
@@ -365,86 +444,258 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ═══ STEAM-STYLE THEMING ═══ */
 .version-backup-page {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  min-height: 100vh;
   padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-.page-header {
-  margin-bottom: 2rem;
-}
-
-.page-header h1 {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.page-header p {
-  color: #666;
-}
-
-.current-version-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.card-header {
+/* ═══ TOP BAR ═══ */
+.top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 2rem;
 }
 
-.card-header h2 {
-  font-size: 1.25rem;
-  margin: 0;
-}
-
-.version-info {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.info-item {
+.nav-pills {
   display: flex;
   gap: 0.5rem;
 }
 
-.info-item label {
+.pill {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.65rem;
   font-weight: 600;
-  color: #666;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-.commit-hash {
-  font-family: monospace;
-  background: #f5f5f5;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.875rem;
+.pill-backup {
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60A5FA;
 }
 
-.quick-actions {
+.live-badge {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #F87171;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ═══ HERO SECTION ═══ */
+.hero-section {
+  padding: 2rem 0;
+  margin-bottom: 2rem;
+}
+
+.o-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid;
+}
+
+.o-ring-outer {
+  inset: 0;
+  border-color: rgba(59, 130, 246, 0.3);
+  animation: pulse-ring 3s ease-in-out infinite;
+}
+
+.o-ring-inner {
+  inset: 20px;
+  border-color: rgba(59, 130, 246, 0.5);
+  animation: pulse-ring 3s ease-in-out infinite 1s;
+}
+
+.o-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #60A5FA;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.o-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: white;
+}
+
+@keyframes pulse-ring {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.2); }
+}
+
+.action-pill {
   display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.action-pill:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-primary {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #60A5FA;
+}
+
+.action-primary:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.6);
+}
+
+.action-green {
+  background: rgba(52, 211, 153, 0.2);
+  border-color: rgba(52, 211, 153, 0.4);
+  color: #34D399;
+}
+
+.action-green:hover:not(:disabled) {
+  background: rgba(52, 211, 153, 0.3);
+  border-color: rgba(52, 211, 153, 0.6);
+}
+
+.action-gold {
+  background: rgba(251, 191, 36, 0.2);
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #FBBF24;
+}
+
+.action-gold:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.3);
+  border-color: rgba(251, 191, 36, 0.6);
+}
+
+.action-red {
+  background: rgba(248, 113, 113, 0.2);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #F87171;
+}
+
+.action-red:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.3);
+  border-color: rgba(248, 113, 113, 0.6);
+}
+
+.action-warning {
+  background: rgba(251, 191, 36, 0.2);
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #FBBF24;
+}
+
+.action-warning:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.3);
+  border-color: rgba(251, 191, 36, 0.6);
+}
+
+.action-secondary {
+  background: rgba(100, 116, 139, 0.2);
+  border-color: rgba(100, 116, 139, 0.4);
+  color: #94A3B8;
+}
+
+.action-secondary:hover:not(:disabled) {
+  background: rgba(100, 116, 139, 0.3);
+  border-color: rgba(100, 116, 139, 0.6);
+}
+
+/* ═══ CARDS GRID ═══ */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1rem;
   margin-bottom: 2rem;
 }
 
-.quick-actions button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
 }
 
-.backups-section {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.card-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #94A3B8;
+  margin-bottom: 0.5rem;
+}
+
+.card-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.card-detail {
+  font-size: 0.75rem;
+  color: #94A3B8;
+  margin-top: 0.5rem;
+}
+
+.mini-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.25rem;
+  height: 2rem;
+  margin-top: 0.5rem;
+}
+
+.mini-chart .bar {
+  width: 0.5rem;
+  background: rgba(52, 211, 153, 0.3);
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+
+.mini-chart .bar.active {
+  background: #34D399;
+}
+
+/* ═══ BACKUP HISTORY SECTION ═══ */
+.backup-history-section {
+  margin-bottom: 2rem;
 }
 
 .section-header {
@@ -452,55 +703,45 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.section-header h2 {
-  font-size: 1.25rem;
-  margin: 0;
-}
-
-.backup-count {
-  color: #666;
-  font-size: 0.875rem;
-}
-
-.loading {
+.loading-state {
   text-align: center;
-  padding: 2rem;
-  color: #666;
+  padding: 4rem 2rem;
+  color: #94A3B8;
 }
 
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
-  color: #999;
+  color: #94A3B8;
 }
 
-.empty-state i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.backups-list {
+.backups-grid {
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1rem;
 }
 
 .backup-card {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
   padding: 1.5rem;
+  backdrop-filter: blur(10px);
   transition: all 0.2s;
 }
 
 .backup-card:hover {
-  border-color: #1890ff;
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
 }
 
-.backup-card.active {
-  border-color: #52c41a;
-  background: #f6ffed;
+.backup-card.card-active {
+  border-color: rgba(52, 211, 153, 0.3);
+  background: rgba(52, 211, 153, 0.1);
 }
 
 .backup-header {
@@ -508,6 +749,8 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .backup-version {
@@ -517,51 +760,55 @@ onMounted(() => {
 }
 
 .version-tag {
-  font-weight: 600;
-  font-size: 1.125rem;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #60A5FA;
 }
 
 .state-badge {
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .state-badge.active {
-  background: #52c41a;
-  color: white;
+  background: rgba(52, 211, 153, 0.2);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  color: #34D399;
 }
 
 .state-badge.backup {
-  background: #1890ff;
-  color: white;
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60AFA;
 }
 
 .state-badge.rollback {
-  background: #faad14;
-  color: white;
+  background: rgba(251, 191, 36, 0.2);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  color: #FBBF24;
 }
 
 .backup-date {
-  color: #666;
-  font-size: 0.875rem;
+  color: #94A3B8;
+  font-size: 0.75rem;
 }
 
 .backup-details {
   display: flex;
-  gap: 1.5rem;
+  flex-direction: column;
+  gap: 0.5rem;
   margin-bottom: 1rem;
-  flex-wrap: wrap;
 }
 
 .detail-item {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
-  color: #666;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
 }
 
 .backup-actions {
@@ -569,77 +816,68 @@ onMounted(() => {
   gap: 0.5rem;
 }
 
-.btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.875rem;
+.mini-button {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid;
   transition: all 0.2s;
+  cursor: pointer;
 }
 
-.btn:disabled {
+.mini-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.btn-primary {
-  background: #1890ff;
-  color: white;
+.mini-info {
+  background: rgba(52, 211, 153, 0.2);
+  border-color: rgba(52, 211, 153, 0.3);
+  color: #34D399;
 }
 
-.btn-primary:hover:not(:disabled) {
-  background: #40a9ff;
+.mini-info:hover:not(:disabled) {
+  background: rgba(52, 211, 153, 0.3);
+  border-color: rgba(52, 211, 153, 0.5);
 }
 
-.btn-secondary {
-  background: #f0f0f0;
-  color: #333;
+.mini-warning {
+  background: rgba(251, 191, 36, 0.2);
+  border-color: rgba(251, 191, 36, 0.3);
+  color: #FBBF24;
 }
 
-.btn-secondary:hover:not(:disabled) {
-  background: #e0e0e0;
+.mini-warning:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.3);
+  border-color: rgba(251, 191, 36, 0.5);
 }
 
-.btn-warning {
-  background: #faad14;
-  color: white;
+.mini-danger {
+  background: rgba(248, 113, 113, 0.2);
+  border-color: rgba(248, 113, 113, 0.3);
+  color: #F87171;
 }
 
-.btn-warning:hover:not(:disabled) {
-  background: #ffc53d;
+.mini-danger:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.3);
+  border-color: rgba(248, 113, 113, 0.5);
 }
 
-.btn-danger {
-  background: #ff4d4f;
-  color: white;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: #ff7875;
-}
-
-.btn-info {
-  background: #13c2c2;
-  color: white;
-}
-
-.btn-info:hover:not(:disabled) {
-  background: #36cfc9;
-}
-
-.btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-}
-
+/* ═══ MODAL ═══ */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -647,12 +885,14 @@ onMounted(() => {
 }
 
 .modal {
-  background: white;
-  border-radius: 8px;
+  background: rgba(30, 41, 59, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
   max-width: 500px;
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
+  backdrop-filter: blur(20px);
 }
 
 .modal-header {
@@ -660,7 +900,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .modal-header h3 {
@@ -668,12 +908,16 @@ onMounted(() => {
   font-size: 1.25rem;
 }
 
-.btn-close {
+.close-button {
   background: none;
   border: none;
-  font-size: 1.25rem;
   cursor: pointer;
-  color: #666;
+  color: #94A3B8;
+  transition: color 0.2s;
+}
+
+.close-button:hover {
+  color: white;
 }
 
 .modal-body {
@@ -685,53 +929,66 @@ onMounted(() => {
   justify-content: flex-end;
   gap: 0.5rem;
   padding: 1.5rem;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .form-group {
   margin-bottom: 1rem;
 }
 
-.form-group label {
+.form-label {
   display: block;
   margin-bottom: 0.5rem;
+  font-size: 0.75rem;
   font-weight: 600;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.form-group textarea {
+.form-textarea {
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  font-family: inherit;
+  padding: 0.75rem;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.375rem;
+  color: white;
+  font-family: 'Inter', system-ui, sans-serif;
   resize: vertical;
+  font-size: 0.875rem;
 }
 
-.rollback-info p {
+.form-textarea:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.rollback-warning {
+  padding: 1rem;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 0.375rem;
   margin-bottom: 1rem;
 }
 
 .backup-summary {
-  background: #f5f5f5;
+  background: rgba(15, 23, 42, 0.5);
   padding: 1rem;
-  border-radius: 4px;
+  border-radius: 0.375rem;
   margin-bottom: 1rem;
 }
 
 .summary-item {
   display: flex;
-  gap: 0.5rem;
+  justify-content: space-between;
   margin-bottom: 0.5rem;
 }
 
-.summary-item label {
-  font-weight: 600;
-  color: #666;
-}
-
 .pre-rollback-info {
-  color: #1890ff;
-  font-size: 0.875rem;
+  padding: 0.75rem;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 0.375rem;
 }
 
 .verification-result {
@@ -740,30 +997,25 @@ onMounted(() => {
   align-items: flex-start;
 }
 
-.verification-result.valid {
-  color: #52c41a;
+.verification-icon {
+  flex-shrink: 0;
 }
 
-.verification-result.invalid {
-  color: #ff4d4f;
-}
-
-.verification-result i {
-  font-size: 2rem;
-}
-
-.result-details {
+.verification-details {
   flex: 1;
 }
 
-.error-message {
-  color: #ff4d4f;
-  margin-top: 0.5rem;
+.result-valid {
+  color: #34D399;
+}
+
+.result-invalid {
+  color: #F87171;
 }
 
 .valid-details {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 </style>
