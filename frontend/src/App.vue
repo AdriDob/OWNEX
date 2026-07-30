@@ -19,6 +19,7 @@ import OnboardingWizard from '@/components/onboarding/OnboardingWizard.vue'
 import AssistantBubble from '@/components/assistant/AssistantBubble.vue'
 import AssistantHint from '@/components/assistant/AssistantHint.vue'
 import SteamBigPictureSplash from '@/components/layout/SteamBigPictureSplash.vue'
+import VoiceCommandPanel from '@/components/voice/VoiceCommandPanel.vue'
 import { useAssistant } from '@/composables/useAssistant'
 
 declare global {
@@ -168,6 +169,7 @@ onUnmounted(() => {
     <MultiSelectHandler />
     <CompareView />
     <OnboardingWizard :open="showOnboarding" @close="showOnboarding = false" />
+    <VoiceCommandPanel />
     </template>
 
     <!-- Assistant Layer -->
