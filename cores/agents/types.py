@@ -12,14 +12,31 @@ from uuid import uuid4
 
 
 class AgentId(str, Enum):
-    COORDINATOR = "coordinator"
+    # Core Leadership
+    COMMANDER = "commander"
+    PLANNER = "planner"
+    
+    # Technical Specialists
     RESEARCH = "research"
-    VALIDATOR = "validator"
-    EXPLOIT = "exploit"
+    CODER = "coder"
+    REVIEWER = "reviewer"
+    BROWSER = "browser"
+    SECURITY = "security"
+    
+    # Knowledge & Documentation
     DOCUMENTATION = "documentation"
-    STRATEGY = "strategy"
-    MEMORY = "memory"
-    FINANCIAL = "financial"
+    LEARNING = "learning"
+    
+    # Business & Strategy
+    FINANCE = "finance"
+    EVOLUTION = "evolution"
+    
+    # Legacy Support (mapped to new specialists)
+    COORDINATOR = "commander"  # Legacy: maps to Commander
+    VALIDATOR = "reviewer"     # Legacy: maps to Reviewer
+    EXPLOIT = "security"      # Legacy: maps to Security
+    STRATEGY = "planner"       # Legacy: maps to Planner
+    MEMORY = "learning"        # Legacy: maps to Learning
 
 
 class AgentStatus(str, Enum):
@@ -31,68 +48,119 @@ class AgentStatus(str, Enum):
 
 
 class EventType(str, Enum):
-    # Coordination
-    PIPELINE_START = "pipeline.start"
-    PIPELINE_STAGE_COMPLETED = "pipeline.stage_completed"
-    PIPELINE_FAILED = "pipeline.failed"
-    PIPELINE_CANCELLED = "pipeline.cancelled"
-
-    # Research
+    # Commander Events
+    TASK_ASSIGNED = "task.assigned"
+    TASK_DELEGATED = "task.delegated"
+    TASK_COMPLETED = "task.completed"
+    TASK_FAILED = "task.failed"
+    TASK_PRIORITY_CHANGED = "task.priority_changed"
+    WORKFLOW_STARTED = "workflow.started"
+    WORKFLOW_COMPLETED = "workflow.completed"
+    AGENT_STATUS_REQUEST = "agent.status_request"
+    
+    # Planner Events
+    PLAN_REQUESTED = "plan.requested"
+    PLAN_GENERATED = "plan.generated"
+    PLAN_UPDATED = "plan.updated"
+    RESOURCE_ALLOCATED = "resource.allocated"
+    DEPENDENCY_RESOLVED = "dependency.resolved"
+    
+    # Research Events
     RESEARCH_START = "research.start"
     RESEARCH_COMPLETED = "research.completed"
     RESEARCH_FAILED = "research.failed"
     TARGET_DISCOVERED = "target.discovered"
     ENDPOINT_DISCOVERED = "endpoint.discovered"
-
-    # Validation
-    VALIDATION_REQUESTED = "validation.requested"
-    VALIDATION_COMPLETED = "validation.completed"
-    VALIDATION_FAILED = "validation.failed"
-
-    # Exploit
-    EXPLOIT_REQUESTED = "exploit.requested"
-    EXPLOIT_COMPLETED = "exploit.completed"
-    EXPLOIT_FAILED = "exploit.failed"
+    VULNERABILITY_SCANNED = "vulnerability.scanned"
+    INTELLIGENCE_GATHERED = "intelligence.gathered"
+    
+    # Coder Events
+    CODE_REQUESTED = "code.requested"
+    CODE_GENERATED = "code.generated"
+    CODE_REFACTORED = "code.refactored"
+    CODE_REVIEWED = "code.reviewed"
+    PR_CREATED = "pr.created"
+    FIX_APPLIED = "fix.applied"
+    
+    # Reviewer Events
+    REVIEW_REQUESTED = "review.requested"
+    REVIEW_COMPLETED = "review.completed"
+    REVIEW_FAILED = "review.failed"
+    QUALITY_CHECK = "quality.check"
+    APPROVAL_GRANTED = "approval.granted"
+    APPROVAL_DENIED = "approval.denied"
+    
+    # Browser Events
+    BROWSER_NAVIGATE = "browser.navigate"
+    BROWSER_INTERACT = "browser.interact"
+    BROWSER_SCRAPE = "browser.scrape"
+    FORM_SUBMITTED = "form.submitted"
+    ELEMENT_CLICKED = "element.clicked"
+    
+    # Security Events
+    SECURITY_SCAN = "security.scan"
+    VULNERABILITY_FOUND = "vulnerability.found"
+    EXPLOIT_ATTEMPT = "exploit.attempt"
     EXPLOIT_CONFIRMED = "exploit.confirmed"
-
-    # Evidence
     EVIDENCE_COLLECTED = "evidence.collected"
     EVIDENCE_FAILED = "evidence.failed"
-
-    # Documentation
+    
+    # Documentation Events
     DOCUMENTATION_REQUESTED = "documentation.requested"
     DOCUMENTATION_COMPLETED = "documentation.completed"
     DOCUMENTATION_FAILED = "documentation.failed"
-
-    # AI Review
-    AI_REVIEW_REQUESTED = "ai_review.requested"
-    AI_REVIEW_COMPLETED = "ai_review.completed"
-    AI_REVIEW_FAILED = "ai_review.failed"
-
-    # Submission
-    SUBMISSION_REQUESTED = "submission.requested"
-    SUBMISSION_COMPLETED = "submission.completed"
-    SUBMISSION_FAILED = "submission.failed"
-
-    # Strategy
-    STRATEGY_RECOMMENDATION = "strategy.recommendation"
-    STRATEGY_PRIORITY_UPDATED = "strategy.priority_updated"
-
-    # Memory
-    MEMORY_STORE = "memory.store"
-    MEMORY_RETRIEVED = "memory.retrieved"
-    MEMORY_LEARNED = "memory.learned"
-
-    # Financial
+    GUIDE_GENERATED = "guide.generated"
+    API_DOCS_UPDATED = "api_docs.updated"
+    
+    # Learning Events
+    KNOWLEDGE_STORED = "knowledge.stored"
+    KNOWLEDGE_RETRIEVED = "knowledge.retrieved"
+    PATTERN_LEARNED = "pattern.learned"
+    ERROR_ANALYZED = "error.analyzed"
+    FEEDBACK_PROCESSED = "feedback.processed"
+    
+    # Finance Events
     FINANCIAL_UPDATED = "financial.updated"
     FINANCIAL_PAYOUT_RECORDED = "financial.payout_recorded"
     FINANCIAL_GOAL_UPDATED = "financial.goal_updated"
-
+    REVENUE_CALCULATED = "revenue.calculated"
+    COST_TRACKED = "cost.tracked"
+    
+    # Evolution Events
+    SYSTEM_AUDIT = "system.audit"
+    IMPROVEMENT_SUGGESTED = "improvement.suggested"
+    SELF_TEST_COMPLETED = "self_test.completed"
+    TECHNOLOGY_WATCHED = "technology.watched"
+    INFRASTRUCTURE_EVOLVED = "infrastructure.evolved"
+    
+    # Legacy Events (for compatibility)
+    PIPELINE_START = "pipeline.start"
+    PIPELINE_STAGE_COMPLETED = "pipeline.stage_completed"
+    PIPELINE_FAILED = "pipeline.failed"
+    PIPELINE_CANCELLED = "pipeline.cancelled"
+    VALIDATION_REQUESTED = "validation.requested"
+    VALIDATION_COMPLETED = "validation.completed"
+    VALIDATION_FAILED = "validation.failed"
+    EXPLOIT_REQUESTED = "exploit.requested"
+    EXPLOIT_COMPLETED = "exploit.completed"
+    EXPLOIT_FAILED = "exploit.failed"
+    AI_REVIEW_REQUESTED = "ai_review.requested"
+    AI_REVIEW_COMPLETED = "ai_review.completed"
+    AI_REVIEW_FAILED = "ai_review.failed"
+    SUBMISSION_REQUESTED = "submission.requested"
+    SUBMISSION_COMPLETED = "submission.completed"
+    SUBMISSION_FAILED = "submission.failed"
+    STRATEGY_RECOMMENDATION = "strategy.recommendation"
+    STRATEGY_PRIORITY_UPDATED = "strategy.priority_updated"
+    MEMORY_STORE = "memory.store"
+    MEMORY_RETRIEVED = "memory.retrieved"
+    MEMORY_LEARNED = "memory.learned"
+    
     # Agent lifecycle
     AGENT_HEALTH_CHANGED = "agent.health_changed"
     AGENT_REGISTERED = "agent.registered"
     AGENT_TASK_COMPLETED = "agent.task_completed"
-
+    
     # System
     SYSTEM_ALERT = "system.alert"
     SYSTEM_ERROR = "system.error"
