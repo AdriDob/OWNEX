@@ -36,10 +36,6 @@ class PaymentPlatform(Enum):
     BUG_BOUNTY = "bug_bounty"
     DEV_BOUNTY = "dev_bounty"
     DATA_ANNOTATION = "data_annotation"
-    MICRO_TASK = "micro_task"
-    OPEN_SOURCE_BOUNTY = "open_source_bounty"
-    AFFILIATE = "affiliate"
-    GAMIFICATION = "gamification"
 
 
 class BarrierType(Enum):
