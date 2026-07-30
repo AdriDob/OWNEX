@@ -91,11 +91,11 @@ class RecoveryStore:
                 )
             """)
             conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_version_backups_created_at 
+                CREATE INDEX IF NOT EXISTS idx_version_backups_created_at
                 ON version_backups(created_at DESC)
             """)
             conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_version_backups_version 
+                CREATE INDEX IF NOT EXISTS idx_version_backups_version
                 ON version_backups(version)
             """)
             conn.commit()
