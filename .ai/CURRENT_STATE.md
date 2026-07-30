@@ -139,6 +139,29 @@
 - Envelope ADSR para todos los sonidos
 - useAudio() hook: play(), setVolume(), setEnabled(), isSupported
 
+**Categorías de Trabajo Open Source**
+- cores/opensource/categories.py: Sistema de categorización completo
+  - OpenSourceCategory enum (10 categorías: bug_bounty, security_audit, code_review, testing, documentation, infrastructure, performance, accessibility, localization, tooling)
+  - DifficultyLevel enum (beginner, intermediate, advanced, expert)
+  - OpenSourceProject dataclass (metadata de proyectos)
+  - OpenSourceOpportunity dataclass (oportunidades de trabajo)
+  - OpenSourceCategoryManager: gestión de categorías y recomendaciones
+  - OpenSourceContributionTracker: tracking de contribuciones
+- api/routers/opensource.py: API router para open source
+  - GET /api/opensource/categories: listar categorías
+  - POST /api/opensource/recommendations: obtener recomendaciones
+  - GET /api/opensource/contributions: obtener contribuciones
+  - POST /api/opensource/contributions: agregar contribución
+  - GET /api/opensource/stats: estadísticas
+
+**Traducciones Completas**
+- frontend/src/locales/en.json: Inglés completo (incluye open source)
+- frontend/src/locales/es.json: Español completo (incluye open source)
+- frontend/src/locales/fr.json: Francés completo (incluye open source)
+- frontend/src/locales/de.json: Alemán completo (incluye open source)
+- frontend/src/locales/ja.json: Japonés completo (incluye open source)
+- frontend/src/locales/zh.json: Chino completo (incluye open source)
+
 **OpenRouter API Key Configuration**
 - Nueva API key configurada en todo el sistema
 - `cores/ai/provider.py`: OpenRouter agregado como provider (opcional premium)
