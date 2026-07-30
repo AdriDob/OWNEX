@@ -116,8 +116,8 @@ def parse_source_opportunities(source: SourceDefinition) -> list[DiscoveryRecord
             url=source.url,
             description=source.description,
             requirements=f"Experience: {'Required' if source.requires_experience else 'Not Required'} | "
-                         f"Interview: {'Required' if source.requires_interview else 'Not Required'} | "
-                         f"Portfolio: {'Required' if source.requires_portfolio else 'Not Required'}",
+            f"Interview: {'Required' if source.requires_interview else 'Not Required'} | "
+            f"Portfolio: {'Required' if source.requires_portfolio else 'Not Required'}",
             payout=source.estimated_payout_range,
             date_found=_now(),
             requires_experience=source.requires_experience,
@@ -187,15 +187,20 @@ def run_scan(deep: bool = False) -> DiscoveryReport:
     save_path = DATA_DIR / f"discovery_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     try:
         with open(save_path, "w") as f:
-            json.dump({
-                "timestamp": report.timestamp,
-                "total_sources": report.sources_scanned,
-                "opportunities_found": report.opportunities_found,
-                "qualifying": report.qualifying,
-                "by_category": report.by_category,
-                "favorites": report.favorites,
-                "errors": report.errors,
-            }, f, indent=2, default=str)
+            json.dump(
+                {
+                    "timestamp": report.timestamp,
+                    "total_sources": report.sources_scanned,
+                    "opportunities_found": report.opportunities_found,
+                    "qualifying": report.qualifying,
+                    "by_category": report.by_category,
+                    "favorites": report.favorites,
+                    "errors": report.errors,
+                },
+                f,
+                indent=2,
+                default=str,
+            )
     except OSError as exc:
         report.errors.append(f"Failed to save discoveries: {exc}")
 
@@ -231,10 +236,12 @@ def generate_summary(report: DiscoveryReport | None = None) -> str:
         label = cat_name.replace("_", " ").title()
         lines.append(f"    - {label}: {count}")
 
-    lines.extend([
-        "",
-        "  Top 10 Favorites Per Category:",
-    ])
+    lines.extend(
+        [
+            "",
+            "  Top 10 Favorites Per Category:",
+        ]
+    )
 
     favorites = data.get("favorites", {})
     for cat_name in ["bug_bounty", "dev_bounty", "data_entry"]:
@@ -253,19 +260,22 @@ def generate_summary(report: DiscoveryReport | None = None) -> str:
         if len(errors) > 5:
             lines.append(f"    ... and {len(errors) - 5} more")
 
-    lines.extend([
-        "",
-        "════════════════════════════════════════════════",
-        "  System Status: ALL SYSTEMS OPERATIONAL",
-        f"  Total tracked sources: {get_total_source_count()}",
-        "  Next scan: daily (automatic)",
-        "════════════════════════════════════════════════",
-    ])
+    lines.extend(
+        [
+            "",
+            "════════════════════════════════════════════════",
+            "  System Status: ALL SYSTEMS OPERATIONAL",
+            f"  Total tracked sources: {get_total_source_count()}",
+            "  Next scan: daily (automatic)",
+            "════════════════════════════════════════════════",
+        ]
+    )
 
     return "\n".join(lines)
 
 
 # ── CLI entry points ──
+
 
 def cmd_scan():
     """Quick scan (no deep checks)."""
@@ -303,8 +313,10 @@ def cmd_status():
         print("Opportunity Discovery System: ACTIVE")
         print(f"Total sources: {total}")
         for cat, count in counts.items():
-            print(f"  {cat.replace('_', ' ').title()}: {count} sources, "
-                  f"{len(get_favorites(OpportunityCategory(cat)))} favorites")
+            print(
+                f"  {cat.replace('_', ' ').title()}: {count} sources, "
+                f"{len(get_favorites(OpportunityCategory(cat)))} favorites"
+            )
         latest = sorted(DATA_DIR.glob("discovery_*.json"), reverse=True)
         if latest:
             print(f"Last scan: {latest[0].stat().st_mtime}")

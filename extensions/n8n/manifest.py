@@ -14,15 +14,18 @@ manifest = ExtensionManifest(
     author="OWNEX",
     icon="Workflow",
     capabilities=[
-        Capability(domain="workflow_trigger",
+        Capability(
+            domain="workflow_trigger",
             name="Workflow Trigger",
             description="Trigger n8n workflows from OWNEX events",
         ),
-        Capability(domain="workflow_execution",
+        Capability(
+            domain="workflow_execution",
             name="Workflow Execution",
             description="Execute n8n workflows with custom payloads",
         ),
-        Capability(domain="webhook_bridge",
+        Capability(
+            domain="webhook_bridge",
             name="Webhook Bridge",
             description="Bridge OWNEX EventBus events to n8n webhooks",
         ),

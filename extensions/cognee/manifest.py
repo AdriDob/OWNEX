@@ -14,15 +14,18 @@ manifest = ExtensionManifest(
     author="OWNEX",
     icon="Memory",
     capabilities=[
-        Capability(domain="cognitive_memory",
+        Capability(
+            domain="cognitive_memory",
             name="Cognitive Memory",
             description="Persistent long-term memory with graph + vector hybrid storage",
         ),
-        Capability(domain="relationship_discovery",
+        Capability(
+            domain="relationship_discovery",
             name="Relationship Discovery",
             description="Automatic detection of connections between stored knowledge",
         ),
-        Capability(domain="memory_consolidation",
+        Capability(
+            domain="memory_consolidation",
             name="Memory Consolidation",
             description="Summarize and compress old memories while preserving key facts",
         ),

@@ -32,6 +32,16 @@ class ProviderSpec:
 
 PROVIDER_CATALOG: list[ProviderSpec] = [
     ProviderSpec(
+        id="openrouter",
+        label="OpenRouter (Premium)",
+        models=["openai/gpt-4o-mini", "openai/gpt-4o", "google/gemini-flash-1.5", "google/gemini-pro-1.5", "meta-llama/llama-3.1-70b-instruct", "qwen/qwen-2.5-72b-instruct"],
+        env_host="OPENROUTER_BASE_URL",
+        env_model="OPENROUTER_MODEL",
+        env_key="OPENROUTER_API_KEY",
+        default_host="https://openrouter.ai/api/v1",
+        default_model="openai/gpt-4o-mini",
+    ),
+    ProviderSpec(
         id="ollama",
         label="Ollama (Local)",
         models=["freehuntx/qwen3-coder:8b", "qwen3:14b", "qwen2.5-coder:7b", "codellama:7b", "llama3.1:8b", "mistral:7b"],
@@ -446,8 +456,18 @@ class ProviderRegistry:
             logger.warning(f"Failed to save AI config: {e}")
 
     def build_provider(self, cfg: dict) -> AIProvider:
-        ptype = cfg.get("provider_type", "gemini")
-        # 1. Try Devin first (free, agent with tools)
+        ptype = cfg.get("provider_type", "openrouter")
+        # 1. Try OpenRouter first (premium models)
+        if ptype in ("openrouter",):
+            from .providers.openrouter_provider import OpenRouterProvider
+            p = OpenRouterProvider(
+                api_key=cfg.get("openrouter_api_key", cfg.get("api_key", "")),
+                model=cfg.get("openrouter_model", "openai/gpt-4o-mini"),
+            )
+            if p.is_available():
+                return p
+            logger.info("OpenRouter provider unavailable, trying alternatives")
+        # 2. Try Devin (free, agent with tools)
         if ptype in ("devin",):
             from .providers.devin_provider import DevinProvider
             p = DevinProvider(
@@ -457,7 +477,7 @@ class ProviderRegistry:
             if p.is_available():
                 return p
             logger.info("Devin provider unavailable, trying alternatives")
-        # 2. Try Gemini (free, fast)
+        # 3. Try Gemini (free, fast)
         if ptype in ("gemini",):
             p = GeminiProvider(
                 api_key=cfg.get("gemini_api_key", cfg.get("api_key", "")),
@@ -466,7 +486,7 @@ class ProviderRegistry:
             if p.is_available():
                 return p
             logger.info("Gemini provider unavailable, trying alternatives")
-        # 3. Try Ollama (local)
+        # 4. Try Ollama (local)
         if ptype in ("ollama", "gemini"):
             p = OllamaProvider(  # type: ignore[assignment]
                 host=cfg.get("ollama_host", "http://localhost:11434"),
@@ -475,7 +495,7 @@ class ProviderRegistry:
             if p.is_available():
                 return p
             logger.info("Ollama provider unavailable, trying alternatives")
-        # 4. Try OpenAI-compatible
+        # 5. Try OpenAI-compatible
         p = OpenAICompatibleProvider(  # type: ignore[assignment]
             api_key=cfg.get("api_key", ""),
             base_url=cfg.get("api_base", "https://api.openai.com/v1"),
@@ -483,7 +503,7 @@ class ProviderRegistry:
         )
         if p.is_available():
             return p
-        # 5. Final fallback: rule-based
+        # 6. Final fallback: rule-based
         logger.info("No LLM provider available — using local rule-based fallback")
         return LocalFallbackProvider()
 
@@ -507,7 +527,13 @@ class ProviderRegistry:
             current = self.get_provider()
             available = True if spec.id == "local" else None
             if spec.id != "local":
-                if spec.id == "ollama":
+                if spec.id == "openrouter":
+                    from .providers.openrouter_provider import OpenRouterProvider
+                    p = OpenRouterProvider(
+                        api_key=os.environ.get(spec.env_key, ""),
+                    )
+                    available = p.is_available()
+                elif spec.id == "ollama":
                     p = OllamaProvider(
                         host=os.environ.get(spec.env_host, spec.default_host),
                     )

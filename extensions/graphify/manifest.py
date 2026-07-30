@@ -14,15 +14,18 @@ manifest = ExtensionManifest(
     author="OWNEX",
     icon="FileCode",
     capabilities=[
-        Capability(domain="code_graph",
+        Capability(
+            domain="code_graph",
             name="Code Knowledge Graph",
             description="Build a queryable graph from any codebase",
         ),
-        Capability(domain="dependency_analysis",
+        Capability(
+            domain="dependency_analysis",
             name="Dependency Analysis",
             description="Map module dependencies, imports, and call graphs",
         ),
-        Capability(domain="code_search",
+        Capability(
+            domain="code_search",
             name="Semantic Code Search",
             description="Search code by intent, not just text matching",
         ),

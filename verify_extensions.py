@@ -18,9 +18,19 @@ def main():
 
     # Check that all 13 extensions exist
     expected_extensions = [
-        'lightrag', 'cognee', 'graphiti', 'skyvern', 'crawl4ai',
-        'composio', 'n8n', 'kestra', 'langfuse', 'graphify',
-        'skill_seekers', 'promptfoo', 'nanobot'
+        "lightrag",
+        "cognee",
+        "graphiti",
+        "skyvern",
+        "crawl4ai",
+        "composio",
+        "n8n",
+        "kestra",
+        "langfuse",
+        "graphify",
+        "skill_seekers",
+        "promptfoo",
+        "nanobot",
     ]
 
     print("1. Extension Directory Structure:")
@@ -29,9 +39,9 @@ def main():
 
     for ext_dir in extensions_dir.iterdir():
         if ext_dir.is_dir():
-            init_file = ext_dir / '__init__.py'
-            manifest_file = ext_dir / 'manifest.py'
-            connector_file = ext_dir / 'connector.py'
+            init_file = ext_dir / "__init__.py"
+            manifest_file = ext_dir / "manifest.py"
+            connector_file = ext_dir / "connector.py"
 
             has_init = init_file.exists()
             has_manifest = manifest_file.exists()
@@ -39,7 +49,7 @@ def main():
 
             if has_init and has_manifest and has_connector:
                 found_extensions.append(ext_dir.name)
-                status = '✅' if ext_dir.name in expected_extensions else '?'
+                status = "✅" if ext_dir.name in expected_extensions else "?"
                 print(f"  {status} {ext_dir.name:20} init:{has_init} manifest:{has_manifest} connector:{has_connector}")
 
     print(f"\n2. Extension Count: {len(found_extensions)}/{len(expected_extensions)} extensions properly structured")
@@ -47,11 +57,11 @@ def main():
     # Check manifest files
     print("\n3. Manifest Files:")
     for ext_name in sorted(found_extensions):
-        manifest_path = extensions_dir / ext_name / 'manifest.py'
+        manifest_path = extensions_dir / ext_name / "manifest.py"
         try:
             with open(manifest_path) as f:
                 content = f.read()
-                if 'Capability(domain' in content:
+                if "Capability(domain" in content:
                     print(f"  ✅ {ext_name:20} Manifest structure OK with domain capability")
                 else:
                     print(f"  ⚠ {ext_name:20} Manifest missing domain capability")
@@ -60,8 +70,7 @@ def main():
 
     # Check service configurations
     print("\n4. Service Configurations:")
-    if (Path("docker-compose.ownex.yml").exists() and
-        Path("config/kestra.yml").exists()):
+    if Path("docker-compose.ownex.yml").exists() and Path("config/kestra.yml").exists():
         print("  ✅ docker-compose.ownex.yml created")
         print("  ✅ config/kestra.yml created")
     else:
@@ -106,6 +115,7 @@ def main():
     print("\n🎯 MISSION COMPLETE: Extension infrastructure ready for OWNEX core integration!")
 
     return True
+
 
 if __name__ == "__main__":
     success = main()

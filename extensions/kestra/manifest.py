@@ -14,15 +14,18 @@ manifest = ExtensionManifest(
     author="OWNEX",
     icon="Timer",
     capabilities=[
-        Capability(domain="flow_execution",
+        Capability(
+            domain="flow_execution",
             name="Flow Execution",
             description="Execute Kestra flows from OWNEX events",
         ),
-        Capability(domain="flow_scheduling",
+        Capability(
+            domain="flow_scheduling",
             name="Flow Scheduling",
             description="Schedule recurring OWNEX tasks via Kestra",
         ),
-        Capability(domain="event_trigger",
+        Capability(
+            domain="event_trigger",
             name="Event Trigger",
             description="Trigger Kestra flows from EventBus events",
         ),

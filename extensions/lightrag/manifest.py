@@ -14,15 +14,18 @@ manifest = ExtensionManifest(
     author="OWNEX",
     icon="BrainCircuit",
     capabilities=[
-        Capability(domain="graph_rag_retrieval",
+        Capability(
+            domain="graph_rag_retrieval",
             name="Graph RAG Retrieval",
             description="Retrieve entities and relationships with graph-aware context",
         ),
-        Capability(domain="memory_insert",
+        Capability(
+            domain="memory_insert",
             name="Memory Insert",
             description="Insert observations, facts, and learnings into the graph memory",
         ),
-        Capability(domain="semantic_search",
+        Capability(
+            domain="semantic_search",
             name="Semantic Search",
             description="Cross-entity semantic search over all stored knowledge",
         ),

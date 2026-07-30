@@ -9,6 +9,7 @@ Quick health check of all core systems:
 - Agent status
 - Revenue engine status
 """
+
 import json
 import subprocess
 import sys
@@ -20,6 +21,7 @@ def run_cmd(cmd):
         return result.returncode == 0, result.stdout.strip(), result.stderr.strip()
     except Exception as e:
         return False, "", str(e)
+
 
 def main():
     print("=" * 60)
@@ -49,7 +51,7 @@ def main():
     if ok and "3 / 3 checks passed" in out:
         print("   ✅ Validation script passed (3/3 checks)")
         # Extract summary
-        for line in out.split('\n'):
+        for line in out.split("\n"):
             if "Summary:" in line:
                 print(f"   📊 {line.strip()}")
     else:
@@ -58,10 +60,10 @@ def main():
     # 4. Check System Services
     print("4. Checking system services...")
     services = [
-        ("Scheduler", "ps aux | grep -i scheduler | grep -v grep || echo \"Not found\""),
-        ("EventBridge", "ps aux | grep -i eventbridge | grep -v grep || echo \"Not found\""),
-        ("Revenue Engine", "ps aux | grep -i revenue | grep -v grep || echo \"Not found\""),
-        ("Agent Coordinator", "ps aux | grep -i coordinator | grep -v grep || echo \"Not found\"")
+        ("Scheduler", 'ps aux | grep -i scheduler | grep -v grep || echo "Not found"'),
+        ("EventBridge", 'ps aux | grep -i eventbridge | grep -v grep || echo "Not found"'),
+        ("Revenue Engine", 'ps aux | grep -i revenue | grep -v grep || echo "Not found"'),
+        ("Agent Coordinator", 'ps aux | grep -i coordinator | grep -v grep || echo "Not found"'),
     ]
 
     for name, cmd in services:
@@ -84,7 +86,7 @@ def main():
         ("✅ EventBridge Notifications", "12 Discord event types"),
         ("✅ Evidence Learning", "Continuous improvement engine"),
         ("✅ Self-Healing", "Recovery + Monitoring + Backup"),
-        ("✅ Production Ready", "All validation checks passing")
+        ("✅ Production Ready", "All validation checks passing"),
     ]
 
     for capability, description in capabilities:
@@ -104,7 +106,7 @@ def main():
         ("Active Pipelines", "7 continuous workflows"),
         ("System Health", ">99.9% uptime"),
         ("Notification Types", "12 for Discord integration"),
-        ("Learning Rate", "Continuous evidence collection")
+        ("Learning Rate", "Continuous evidence collection"),
     ]
 
     for metric, value in metrics:
@@ -117,6 +119,7 @@ def main():
     print("Autonomous operations generating measurable revenue.")
     print("Self-healing and continuous improvement active.")
     print("\nReady for immediate deployment.")
+
 
 if __name__ == "__main__":
     sys.exit(main())
