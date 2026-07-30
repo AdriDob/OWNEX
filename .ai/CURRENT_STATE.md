@@ -255,6 +255,60 @@
   - Essential files backup (database, config, .env, identity_vault, targets, .ai, cores, api, frontend, scripts, requirements, pyproject.toml, package.json, package-lock.json)
 - Traducciones en 6 idiomas (en, es, fr, de, ja, zh)
 
+**Frontend UI/UX para Version Backup**
+- frontend/src/pages/VersionBackup.vue: Página completa de gestión de backups
+  - Información de versión actual (version, git commit)
+  - Acciones rápidas: crear backup, restaurar último, refrescar
+  - Lista de backups con detalles (version, estado, fecha, tamaño, notas)
+  - Modal de creación de backup con notas
+  - Modal de rollback con confirmación y advertencias
+  - Modal de verificación de integridad con resultados
+  - Cards de backup con estado visual (active, backup, rollback)
+  - Integración con API endpoints (/api/version-backup/*)
+  - Formateo de fechas y tamaños
+  - Estados de carga y manejo de errores
+- frontend/src/router/index.ts: Ruta /operations/version-backup agregada
+
+**Integración Auto-Update + Version Backup**
+- self_update.py: Integración con cores/version_backup
+  - Import de get_version_backup_system
+  - _apply_evolution_action(): backup automático antes de aplicar evolución
+  - Pre-update backup con notas específicas de la evolución
+  - Registro de backup en evolution_record (pre_update_backup)
+  - Manejo de errores en backup (continúa aunque falle)
+  - Logging de resultados de backup (version, size, path)
+
+**Testing + Validación para Version Backup**
+- tests/test_version_backup.py: Suite completa de tests pytest
+  - TestVersionBackupSystem: 15 tests del sistema de backup
+  - TestVersionSnapshot: tests del dataclass
+  - TestBackupResult: tests del dataclass
+  - Cobertura: inicialización, backup, rollback, verificación, cleanup, singleton
+
+**Cloud Backup + Automatización (S3, GCS)**
+- cores/cloud_backup/cloud_backup.py: Sistema completo de cloud backup
+  - CloudBackupProvider: clase abstracta base
+  - CloudProvider: enum de proveedores (AWS_S3, GOOGLE_CLOUD_STORAGE, AZURE_BLOB, MINIO)
+  - CloudBackupConfig: configuración de cloud backup
+  - S3BackupProvider: implementación AWS S3 (boto3)
+  - GCSBackupProvider: implementación Google Cloud Storage (google-cloud-storage)
+  - CloudBackupManager: coordinador de operaciones cloud
+- cores/cloud_backup/scheduler.py: Scheduler automático de cloud backups
+  - CloudBackupScheduler: scheduler de backups automáticos
+  - schedule_daily_backup(): programar backup diario (cron)
+  - execute_scheduled_backup(): ejecutar backup programado (local + cloud)
+  - schedule_weekly_backup(): programar backup semanal
+  - cleanup_old_cloud_backups(): limpiar backups antiguos
+- Características Cloud Backup:
+  - Soporte para AWS S3 y Google Cloud Storage
+  - Compresión automática (ZIP)
+  - Encriptación server-side (AES256 / GCS encryption)
+  - Presigned/signed URLs para descarga segura
+  - Scheduling automático (daily/weekly)
+  - Política de retención configurable
+  - Cleanup automático de backups antiguos
+  - MinIO y S3-compatible support
+
 **OpenRouter API Key Configuration**
 - Nueva API key configurada en todo el sistema
 - `cores/ai/provider.py`: OpenRouter agregado como provider (opcional premium)
