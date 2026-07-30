@@ -4,7 +4,7 @@ import logging
 
 from cores.tools.base import BaseTool, UnifiedResult
 
-logger = logging.getLogger("cateye.tools.nuclei")
+logger = logging.getLogger("ownex.tools.nuclei")
 
 
 class NucleiTool(BaseTool):

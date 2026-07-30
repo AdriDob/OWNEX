@@ -4,7 +4,7 @@ import json
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.reports.quality.scorer import QualityScorer
@@ -46,7 +46,7 @@ class OutcomeObservation:
             "score": self.score,
             "severity": self.severity,
             "evidence_count": self.evidence_count,
-            "timestamp": self.timestamp or datetime.now(timezone.utc).timestamp(),
+            "timestamp": self.timestamp or datetime.now(UTC).timestamp(),
         }
 
 
@@ -192,7 +192,7 @@ class AcceptanceLearner:
                 score=quality_score,
                 severity=report.severity or "medium",
                 evidence_count=evidence_count,
-                timestamp=datetime.now(timezone.utc).timestamp(),
+                timestamp=datetime.now(UTC).timestamp(),
             )
 
             self._observations.append(obs)
@@ -227,7 +227,7 @@ class AcceptanceLearner:
             score=score,
             severity=severity,
             evidence_count=evidence_count,
-            timestamp=datetime.now(timezone.utc).timestamp(),
+            timestamp=datetime.now(UTC).timestamp(),
         )
         self._observations.append(obs)
         self._recompute_profiles()

@@ -7,13 +7,13 @@ Integrates with existing Hunter + Opportunity infrastructure.
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.targets.models import TargetIntel
 from database.db import SessionLocal
 
-LOG = logging.getLogger("cateye.intelligence.bounty")
+LOG = logging.getLogger("ownex.intelligence.bounty")
 
 
 @dataclass
@@ -46,7 +46,7 @@ class BountyIntelligence:
 
     def generate_report(self) -> BountyIntelReport:
         """Generate a comprehensive bug bounty intelligence report."""
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         report = BountyIntelReport(generated_at=now)
 
         session = SessionLocal()

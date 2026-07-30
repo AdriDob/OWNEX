@@ -16,7 +16,7 @@ from cores.engine.hypothesis.models import Hypothesis, VulnerabilityType
 from cores.memory.memory import MemoryPatternLibrary
 from cores.memory.pattern_extractor import PatternExtractor
 
-LOG = logging.getLogger("cateye.hypothesis.memory")
+LOG = logging.getLogger("ownex.hypothesis.memory")
 
 
 class HypothesisMemory:

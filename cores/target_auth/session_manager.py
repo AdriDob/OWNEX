@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from cores.target_auth.identity_manager import get_identity_manager
 from cores.target_auth.login_service import TargetLoginService
 from cores.target_auth.vault import get_credential_vault
 from database import db, models
 
-logger = logging.getLogger("cateye.target_auth.session")
+logger = logging.getLogger("ownex.target_auth.session")
 
 
 class TargetSessionManager:
@@ -34,7 +34,7 @@ class TargetSessionManager:
         if existing and existing.get("is_valid"):
             # Check expiry
             expires_at = existing.get("expires_at")
-            if expires_at and expires_at > datetime.now(timezone.utc):
+            if expires_at and expires_at > datetime.now(UTC):
                 return self._session_to_auth_context(existing)
             if expires_at is None:
                 return self._session_to_auth_context(existing)
@@ -139,7 +139,7 @@ class TargetSessionManager:
         self._save_session(identity_id, token, cookies, expires_at)
         return self._session_to_auth_context({
             "is_valid": True,
-            "expires_at": datetime.fromtimestamp(expires_at, tz=timezone.utc) if expires_at else None,
+            "expires_at": datetime.fromtimestamp(expires_at, tz=UTC) if expires_at else None,
             "token": token,
             "cookies": cookies,
         })
@@ -159,8 +159,8 @@ class TargetSessionManager:
 
             token_encrypted = self._vault.encrypt(token) if token else ""
             cookies_encrypted = self._vault.encrypt_json(cookies) if cookies else ""
-            expires_dt = datetime.fromtimestamp(expires_at, tz=timezone.utc) if expires_at else None
-            now = datetime.now(timezone.utc)
+            expires_dt = datetime.fromtimestamp(expires_at, tz=UTC) if expires_at else None
+            now = datetime.now(UTC)
 
             if existing:
                 existing.token_encrypted = token_encrypted

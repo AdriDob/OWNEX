@@ -10,7 +10,7 @@ import json
 import logging
 import threading
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
@@ -29,7 +29,7 @@ TASK_STATUSES = ("pending", "in_progress", "waiting", "completed")
 def _build_morning_brief() -> dict[str, Any]:
     session = db.SessionLocal()
     try:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         since = now - timedelta(hours=24)
 
         new_targets = session.query(models.Target).filter(models.Target.created_at >= since).count()
@@ -81,7 +81,7 @@ def _build_morning_brief() -> dict[str, Any]:
 def _build_evening_summary() -> dict[str, Any]:
     session = db.SessionLocal()
     try:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         since = now - timedelta(hours=24)
 
         scans = session.query(models.ScanRun).filter(models.ScanRun.started_at >= since).count()
@@ -391,7 +391,7 @@ def update_session(body: SessionUpdate):
 def operational_metrics():
     session = db.SessionLocal()
     try:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         week_ago = now - timedelta(days=7)
 
         total_verdicts = session.query(models.Verdict).count()
@@ -523,7 +523,7 @@ def system_self_test():
         results.append({"component": "timeline", "status": "error", "detail": str(e)})
 
     return {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "overall_status": "healthy" if all_ok else "degraded",
         "all_ok": all_ok,
         "components": results,
@@ -607,7 +607,7 @@ def _generate_notifications() -> int:
     for events that haven't been notified yet.
     """
     global _last_notification_check
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     with _notification_check_lock:
         since = _last_notification_check or (now - timedelta(hours=24))
         _last_notification_check = now

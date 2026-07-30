@@ -16,7 +16,7 @@ from cores.crypto.base import (
 from cores.crypto.evm import EVMConnector
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("cateye.crypto.wallet_connect")
+logger = logging.getLogger("ownex.crypto.wallet_connect")
 
 WC_RELAY_URL = "https://bridge.walletconnect.org"
 WC_PROTOCOL = "wc"

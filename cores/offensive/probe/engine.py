@@ -21,7 +21,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urlparse
 
@@ -65,7 +65,7 @@ class ProbeEngine:
         Returns:
             ProbeResult with evidence and confirmation status.
         """
-        started_at = datetime.now(timezone.utc).isoformat()
+        started_at = datetime.now(UTC).isoformat()
         result = ProbeResult(
             hypothesis_id=hypothesis.id,
             vulnerability_type=hypothesis.vulnerability_type,
@@ -81,7 +81,7 @@ class ProbeEngine:
 
             if not vuln_param:
                 result.error = "No parameters of interest to test"
-                result.completed_at = datetime.now(timezone.utc).isoformat()
+                result.completed_at = datetime.now(UTC).isoformat()
                 return result
 
             method = hypothesis.method.upper()
@@ -164,7 +164,7 @@ class ProbeEngine:
             logger.warning("[PROBE] Error probing %s: %s", hypothesis.endpoint, exc)
             result.error = str(exc)[:200]
 
-        result.completed_at = datetime.now(timezone.utc).isoformat()
+        result.completed_at = datetime.now(UTC).isoformat()
         return result
 
     def probe_raw(
@@ -219,7 +219,7 @@ class ProbeEngine:
         Sends baseline, then iterates over all attack steps with multiple payloads,
         compares responses, and scores confidence.
         """
-        started_at = datetime.now(timezone.utc).isoformat()
+        started_at = datetime.now(UTC).isoformat()
         base_url = plan.target
         result = ProbeResult(
             hypothesis_id=plan.hypothesis_id,
@@ -231,7 +231,7 @@ class ProbeEngine:
 
         if not plan.steps:
             result.error = "No attack steps in plan"
-            result.completed_at = datetime.now(timezone.utc).isoformat()
+            result.completed_at = datetime.now(UTC).isoformat()
             return result
 
         all_headers = dict(extra_headers or {})
@@ -258,7 +258,7 @@ class ProbeEngine:
 
         if not all_responses:
             result.error = "No responses collected"
-            result.completed_at = datetime.now(timezone.utc).isoformat()
+            result.completed_at = datetime.now(UTC).isoformat()
             return result
 
         baseline_resp = all_responses[0][1]
@@ -304,7 +304,7 @@ class ProbeEngine:
                 except Exception:
                     pass
 
-        result.completed_at = datetime.now(timezone.utc).isoformat()
+        result.completed_at = datetime.now(UTC).isoformat()
         return result
 
     def _send_request(

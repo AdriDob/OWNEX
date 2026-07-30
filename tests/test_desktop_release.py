@@ -45,11 +45,9 @@ class TestEnvConfig:
         monkeypatch.setenv("CATEYE_PORT", "9090")
         monkeypatch.setenv("CATEYE_DESKTOP", "1")
         monkeypatch.setenv("CATEYE_DEBUG", "1")
-        # Reload by re-importing (reset module state)
-        import importlib
-
-        from cores import env as env_module
-        importlib.reload(env_module.config)
+        # Clear the cached config instance and re-import
+        import cores.env.config as config_module
+        config_module._CONFIG_INSTANCE = None
         from cores.env.config import get_config
         cfg = get_config()
         assert cfg.port == 9090
@@ -207,12 +205,12 @@ class TestCoreEnvConfig:
     def test_config_dir_default(self):
         from cores.env.config import EnvConfig
         cfg = EnvConfig()
-        assert "CATEYE" in str(cfg.config_dir)
+        assert "OWNEX" in str(cfg.config_dir)
 
     def test_data_dir_default(self):
         from cores.env.config import EnvConfig
         cfg = EnvConfig()
-        assert "CATEYE" in str(cfg.data_dir)
+        assert "OWNEX" in str(cfg.data_dir)
 
 
 # ── Capacitor config exists (mobile) ─────────────────────────────────

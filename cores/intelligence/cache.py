@@ -8,12 +8,12 @@ Each artifact declares its dependencies, version, and source_ids for invalidatio
 from __future__ import annotations
 
 import logging
-from datetime import timezone
+from datetime import UTC
 from typing import Any
 
 from cores.contracts import ArtifactProtocol, InvalidationPolicy
 
-LOG = logging.getLogger("cateye.intelligence.cache")
+LOG = logging.getLogger("ownex.intelligence.cache")
 
 AFFECTED_BY_CHANGE: dict[str, list[str]] = {
     "PipelineArtifact": [
@@ -135,7 +135,7 @@ class ArtifactCache:
         if policy.max_age_seconds is not None:
             from datetime import datetime
             try:
-                age = (datetime.now(timezone.utc) - datetime.fromisoformat(artifact.timestamp)).total_seconds()
+                age = (datetime.now(UTC) - datetime.fromisoformat(artifact.timestamp)).total_seconds()
                 if age > policy.max_age_seconds:
                     self.invalidate(artifact_type)
                     return True

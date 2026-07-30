@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 import sqlite3
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -74,7 +74,7 @@ class ResourceManager:
             "logs_rotated": self._rotate_logs(),
         }
         results["total_freed_mb"] = self._estimate_freed(results)
-        results["timestamp"] = datetime.now(timezone.utc).isoformat()
+        results["timestamp"] = datetime.now(UTC).isoformat()
         self._last_cleanup = time.time()
         logger.info("Resource cleanup: %s", results)
         return results
@@ -140,14 +140,14 @@ class ResourceManager:
         """Remove old temporary files."""
         removed = 0
         max_age = timedelta(hours=self._config["temp_max_age_hours"])
-        cutoff = datetime.now(timezone.utc) - max_age
+        cutoff = datetime.now(UTC) - max_age
         max_size = self._config["temp_max_size_mb"] * 1024 * 1024
         total_size = 0
 
         for f in TEMP_DIR.glob("*"):
             if f.is_file():
                 total_size += f.stat().st_size
-                mtime = datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc)
+                mtime = datetime.fromtimestamp(f.stat().st_mtime, tz=UTC)
                 if mtime < cutoff:
                     f.unlink()
                     removed += 1
@@ -168,11 +168,11 @@ class ResourceManager:
         """Remove expired cache items."""
         removed = 0
         max_age = timedelta(days=self._config["cache_max_age_days"])
-        cutoff = datetime.now(timezone.utc) - max_age
+        cutoff = datetime.now(UTC) - max_age
 
         for f in CACHE_DIR.glob("*"):
             if f.is_file():
-                mtime = datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc)
+                mtime = datetime.fromtimestamp(f.stat().st_mtime, tz=UTC)
                 if mtime < cutoff:
                     f.unlink()
                     removed += 1

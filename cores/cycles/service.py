@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -94,7 +94,7 @@ class CycleService:
             for key, value in data.items():
                 if hasattr(cycle, key) and key not in ("id", "slug", "created_at"):
                     setattr(cycle, key, value)
-            cycle.updated_at = datetime.now(timezone.utc)
+            cycle.updated_at = datetime.now(UTC)
             db.commit()
             db.refresh(cycle)
             logger.info("Updated cycle: %s", cycle.name)
@@ -131,7 +131,7 @@ class CycleService:
             if not cycle:
                 return None
             cycle.status = CycleStatus.RUNNING.value
-            cycle.updated_at = datetime.now(timezone.utc)
+            cycle.updated_at = datetime.now(UTC)
             if next_action:
                 config = cycle.config_dict
                 config["next_action"] = next_action
@@ -164,9 +164,9 @@ class CycleService:
             cycle.status = CycleStatus.ERROR.value
             config = cycle.config_dict
             config["last_error"] = error_msg
-            config["error_at"] = datetime.now(timezone.utc).isoformat()
+            config["error_at"] = datetime.now(UTC).isoformat()
             cycle.config = json.dumps(config)
-            cycle.updated_at = datetime.now(timezone.utc)
+            cycle.updated_at = datetime.now(UTC)
             db.commit()
             db.refresh(cycle)
             return cycle
@@ -202,7 +202,7 @@ class CycleService:
         config = cycle.config_dict
         config.update(metrics)
         cycle.config = json.dumps(config)
-        cycle.updated_at = datetime.now(timezone.utc)
+        cycle.updated_at = datetime.now(UTC)
         db = _ensure_db()
         db.commit()
         db.refresh(cycle)

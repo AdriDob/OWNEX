@@ -16,7 +16,7 @@ from pydantic import BaseModel
 from api.routers.economic import get_db
 from core.discovery.importer import bulk_import, import_program
 
-logger = logging.getLogger("cateye.api.discovery_universal")
+logger = logging.getLogger("ownex.api.discovery_universal")
 
 router = APIRouter(prefix="/api/discovery", tags=["discovery_universal"])
 

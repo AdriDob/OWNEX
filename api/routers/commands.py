@@ -13,7 +13,7 @@ from core.commands import (
 )
 from core.commands.dispatcher import CommandDispatcher
 
-logger = logging.getLogger("cateye.api.commands")
+logger = logging.getLogger("ownex.api.commands")
 
 router = APIRouter(prefix="/api/commands", tags=["commands"])
 

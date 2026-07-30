@@ -7,12 +7,13 @@ from __future__ import annotations
 
 import logging
 import time
+from datetime import UTC
 from enum import Enum
 from typing import Any
 
 from cores.recovery.persistence import get_recovery_store
 
-logger = logging.getLogger("cateye.recovery.circuit_breaker")
+logger = logging.getLogger("ownex.recovery.circuit_breaker")
 
 MAX_FAILURES = 3
 COOLDOWN_SECONDS = 60.0
@@ -164,9 +165,9 @@ class CircuitBreakerRegistry:
 
 
 def datetime_to_iso(t: float) -> str:
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    return datetime.fromtimestamp(t, tz=timezone.utc).isoformat()
+    return datetime.fromtimestamp(t, tz=UTC).isoformat()
 
 
 def iso_to_datetime(s: str) -> float:

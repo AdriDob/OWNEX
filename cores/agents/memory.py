@@ -5,13 +5,13 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.agents.base import BaseAgent
 from cores.agents.types import AgentEvent, AgentId, EventType
 
-logger = logging.getLogger("cateye.agents.memory")
+logger = logging.getLogger("ownex.agents.memory")
 
 
 class MemoryAgent(BaseAgent):
@@ -72,7 +72,7 @@ class MemoryAgent(BaseAgent):
             self._memory[namespace] = {}
         self._memory[namespace][key] = {
             "value": value,
-            "stored_at": datetime.now(timezone.utc).isoformat(),
+            "stored_at": datetime.now(UTC).isoformat(),
             "source": event.source,
         }
         self._save()
@@ -102,7 +102,7 @@ class MemoryAgent(BaseAgent):
                 "confirmed": confirmed,
                 "total": total,
                 "ratio": round(confirmed / max(total, 1), 2),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             })
             self._save()
 
@@ -115,7 +115,7 @@ class MemoryAgent(BaseAgent):
                     "path": data.get("path", ""),
                     "method": data.get("method", ""),
                     "confidence": data.get("confidence", 0),
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 }
                 self._memory.setdefault("successful_techniques", []).append(technique)
         self._save()
@@ -128,7 +128,7 @@ class MemoryAgent(BaseAgent):
                 "title": r.get("title", ""),
                 "severity": r.get("severity", ""),
                 "bounty_estimate": r.get("bounty_estimate", 0),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             })
         self._save()
 

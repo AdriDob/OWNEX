@@ -6,7 +6,7 @@ from typing import Any
 from core.execution.runtime.context import RuntimeContext
 from core.execution.runtime.publisher import ExecutionEventPublisher
 
-logger = logging.getLogger("cateye.execution.metrics")
+logger = logging.getLogger("ownex.execution.metrics")
 
 
 class MetricsEngine:

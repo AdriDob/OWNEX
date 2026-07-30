@@ -3,13 +3,13 @@ from __future__ import annotations
 import json
 import logging
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.memory.store import UnifiedMemoryStore
 from database import db, models
 
-logger = logging.getLogger("cateye.revenue.economic_memory")
+logger = logging.getLogger("ownex.revenue.economic_memory")
 
 NS = "economic"
 
@@ -155,7 +155,7 @@ class EconomicMemory:
             )
             data["roi_score"] = round(score, 1)
 
-            data["last_updated"] = datetime.now(timezone.utc).isoformat()
+            data["last_updated"] = datetime.now(UTC).isoformat()
             self._store.store(NS, key, content=prog_name, metadata=data, tags=["program"])
             updated_keys.append(key)
 
@@ -163,7 +163,7 @@ class EconomicMemory:
         for vt, data in sorted(vulns.items()):
             key = f"vuln:{vt}"
             data["avg_payout"] = round(data["total_payout"] / max(data["count"], 1), 2)
-            data["last_updated"] = datetime.now(timezone.utc).isoformat()
+            data["last_updated"] = datetime.now(UTC).isoformat()
             self._store.store(NS, key, content=vt, metadata=data, tags=["vuln"])
             vuln_keys.append(key)
 
@@ -182,7 +182,7 @@ class EconomicMemory:
             "overall_accepted_rate": round(
                 total_accepted / max(total_accepted + total_rejected + total_duplicate, 1), 3
             ),
-            "last_updated": datetime.now(timezone.utc).isoformat(),
+            "last_updated": datetime.now(UTC).isoformat(),
         }
         self._store.store(NS, "summary:overall", content="economic_summary", metadata=summary, tags=["summary"])
         logger.info(

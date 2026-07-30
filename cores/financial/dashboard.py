@@ -14,7 +14,7 @@ Consolidates:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.crypto.coingecko import get_coingecko_feed
@@ -23,7 +23,7 @@ from cores.financial.truth_layer import get_truth_layer
 from cores.financial.withdrawal import get_summary as get_withdrawal_summary
 from cores.ledger import compute_wallet, get_history
 
-logger = logging.getLogger("cateye.financial.dashboard")
+logger = logging.getLogger("ownex.financial.dashboard")
 
 # Objetivo Libertad — meta personal
 LIBERTAD_GOAL_USD = 30_000.0
@@ -106,7 +106,7 @@ def get_dashboard() -> dict:
         "ingresos": ingresos_mes,
         "precios": prices,
         "alertas": alerts,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -168,7 +168,7 @@ def _get_exchange_prices() -> dict[str, float]:
 
 
 def _compute_monthly_income(state: Any) -> dict:
-    thirty_days_ago = datetime.now(timezone.utc).timestamp() - 30 * 86400
+    thirty_days_ago = datetime.now(UTC).timestamp() - 30 * 86400
     entries = get_history(limit=5000)
     monthly = []
     total = 0.0

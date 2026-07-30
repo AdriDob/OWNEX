@@ -18,7 +18,7 @@ from __future__ import annotations
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.engine.roi_model import BASE_HOURS, BASE_PAYOUT
@@ -26,7 +26,7 @@ from cores.recovery.persistence import get_recovery_store
 from database.db import SessionLocal
 from database.models import Report
 
-LOG = logging.getLogger("cateye.intelligence.reward")
+LOG = logging.getLogger("ownex.intelligence.reward")
 
 
 @dataclass
@@ -80,7 +80,7 @@ class RewardLearner:
         self._load_adjustments()
 
     def analyze(self) -> RewardLearningReport:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         report = RewardLearningReport(generated_at=now)
 
         session = SessionLocal()

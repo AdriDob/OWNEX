@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC
 from pathlib import Path
 from typing import Any
 
@@ -235,11 +236,10 @@ async def backup_vault() -> dict[str, Any]:
     backup_path = backup_dir / f"credentials_{timestamp}.json"
     backup_path.write_text(json.dumps(snapshot, indent=2))
 
-    from datetime import timezone
 
     return {
         "success": True,
         "path": str(backup_path),
         "fields": len(snapshot),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }

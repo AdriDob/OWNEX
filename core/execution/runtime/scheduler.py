@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from core.execution.runtime.kernel import ExecutionKernel
 from core.execution.runtime.state_machine import WorkflowState
 
-logger = logging.getLogger("cateye.execution.scheduler")
+logger = logging.getLogger("ownex.execution.scheduler")
 
 
 @dataclass(order=True)

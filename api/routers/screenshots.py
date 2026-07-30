@@ -4,6 +4,8 @@ Screenshot Engine API — expose visual evidence representations.
 
 from __future__ import annotations
 
+from datetime import UTC
+
 from fastapi import APIRouter, HTTPException
 
 from cores.engine.snapshot import (
@@ -58,7 +60,7 @@ def get_screenshots(target_id: int | None = None):
             risk_score=float(max((ep.risk_score for ep in ep_snapshots), default=0)),
         )
 
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         snapshot = PipelineSnapshot(
             status="completed",
@@ -68,7 +70,7 @@ def get_screenshots(target_id: int | None = None):
             verdicts=[],
             reports=[],
             coverage_score=0.0,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
         )
 
         engine = ScreenshotEngine()

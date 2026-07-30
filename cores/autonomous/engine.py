@@ -10,7 +10,7 @@ import logging
 import threading
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger("cateye.autonomous.engine")
@@ -177,7 +177,7 @@ class AutonomousModeEngine:
         if decisions:
             with self._lock:
                 for d in decisions:
-                    d.timestamp = datetime.now(timezone.utc).isoformat()
+                    d.timestamp = datetime.now(UTC).isoformat()
                 self._decisions.extend(decisions)
                 if len(self._decisions) > self._max_history:
                     self._decisions[:] = self._decisions[-self._max_history:]

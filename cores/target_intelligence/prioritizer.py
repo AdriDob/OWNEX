@@ -12,7 +12,7 @@ from typing import Any
 
 from core.priority.ev_engine import EVResult, compute_ev
 
-logger = logging.getLogger("cateye.target_intelligence.prioritizer")
+logger = logging.getLogger("ownex.target_intelligence.prioritizer")
 
 TECH_TO_VULN: dict[str, list[str]] = {
     "api": ["idor", "auth_bypass"],

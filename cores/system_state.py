@@ -21,7 +21,7 @@ from typing import Any
 
 from cores.events.event_bus import get_event_bus
 
-logger = logging.getLogger("cateye.system_state")
+logger = logging.getLogger("ownex.system_state")
 
 SYSTEM_STATE_BOOTING = "BOOTING"
 SYSTEM_STATE_READY = "READY"

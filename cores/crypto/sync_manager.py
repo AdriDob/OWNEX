@@ -19,7 +19,7 @@ from cores.financial.events import publish_financial_event
 from cores.financial.withdrawal import auto_finalize
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("cateye.crypto.sync_manager")
+logger = logging.getLogger("ownex.crypto.sync_manager")
 
 
 _SYNC_HISTORY: dict[str, list[SyncSnapshot]] = {}

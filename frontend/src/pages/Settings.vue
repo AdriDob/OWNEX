@@ -236,7 +236,7 @@ function exportConfig() {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-    a.download = `cateye-config-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
+    a.download = `ownex-config-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -270,7 +270,7 @@ function importConfig() {
 async function resetConfig() {
   if (!confirm('¿Resetear toda la configuración?')) return
   if (!confirm('¿Estás seguro? Esta acción elimina TODA la configuración. No se puede deshacer.')) return
-  localStorage.removeItem('cateye_settings')
+  localStorage.removeItem('ownex_settings')
   window.location.reload()
 }
 

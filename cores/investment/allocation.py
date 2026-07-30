@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from threading import Lock
 from typing import Any
@@ -144,7 +144,7 @@ class RevenueAllocationController:
                     "allocation": allocation,
                     "reserve": reserve,
                     "unallocated": unallocated,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 }
             )
             self._save_state()
@@ -186,7 +186,7 @@ class RevenueAllocationController:
                 return False
             sa.deployed_usd += amount
             sa.available_usd -= amount
-            sa.last_rebalanced = datetime.now(timezone.utc).isoformat()
+            sa.last_rebalanced = datetime.now(UTC).isoformat()
             self._save_state()
             return True
 
@@ -248,7 +248,7 @@ class RevenueAllocationController:
                         "total_capital_usd": self._config.total_capital_usd,
                         "strategies": {k: v.__dict__ for k, v in self._strategies.items()},
                         "events": self._event_history[-500:],
-                        "updated_at": datetime.now(timezone.utc).isoformat(),
+                        "updated_at": datetime.now(UTC).isoformat(),
                     },
                     indent=2,
                     default=str,

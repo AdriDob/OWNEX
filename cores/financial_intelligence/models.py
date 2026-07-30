@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -30,7 +30,7 @@ class Opportunity:
     reasoning: str = ""
     rejected_reasons: list[str] = field(default_factory=list)
     agent_votes: dict[str, float] = field(default_factory=dict)
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -70,7 +70,7 @@ class RiskPolicy:
     correlation_limit: float = 0.70
     emergency_stop: bool = False
     circuit_breaker_active: bool = False
-    last_updated: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    last_updated: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -98,7 +98,7 @@ class F1Message:
     requires_action: bool = False
     action_label: str = ""
     action_payload: dict[str, Any] = field(default_factory=dict)
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {

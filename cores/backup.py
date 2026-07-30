@@ -7,7 +7,7 @@ from pathlib import Path
 
 from core import ORION_DIR
 
-logger = logging.getLogger("cateye.backup")
+logger = logging.getLogger("ownex.backup")
 
 BACKUP_PATHS = [
     "catseye.db",

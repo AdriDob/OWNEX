@@ -1,12 +1,12 @@
 import logging
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from database.db import SessionLocal
 
-LOG = logging.getLogger("cateye.intelligence.history")
+LOG = logging.getLogger("ownex.intelligence.history")
 
 
 @dataclass
@@ -84,7 +84,7 @@ class HistoricalSummary:
     top_targets: list[TargetEfficiency] = field(default_factory=list)
     top_platforms: list[PlatformEfficiency] = field(default_factory=list)
     common_exploit_chains: list[ExploitChain] = field(default_factory=list)
-    analyzed_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    analyzed_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {

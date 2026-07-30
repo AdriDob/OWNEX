@@ -1,11 +1,11 @@
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from database.db import SessionLocal
 
-LOG = logging.getLogger("cateye.intelligence.snapshots")
+LOG = logging.getLogger("ownex.intelligence.snapshots")
 
 
 @dataclass(frozen=True)
@@ -13,7 +13,7 @@ class LearningSnapshot:
     snapshot_type: str
     period_start: str
     period_end: str
-    generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    generated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     total_targets: int = 0
     total_endpoints: int = 0
@@ -82,7 +82,7 @@ def generate_snapshot(snapshot_type: str = "daily") -> LearningSnapshot:
 
         from database.models import Endpoint, Finding, Target, Verdict
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         if snapshot_type == "daily":
             delta = timedelta(days=1)

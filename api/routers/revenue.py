@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from core.revenue.pipeline import RevenuePipeline, register_revenue_capabilities
 
-logger = logging.getLogger("cateye.api.revenue")
+logger = logging.getLogger("ownex.api.revenue")
 
 router = APIRouter(prefix="/api/revenue", tags=["revenue"])
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -55,7 +55,7 @@ class InvestmentMetrics:
             "fee": fee,
             "duration_hours": duration_hours,
             "won": pnl > 0,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "metadata": metadata or {},
         }
         self._trade_history.append(trade)
@@ -64,7 +64,7 @@ class InvestmentMetrics:
 
     def record_daily_snapshot(self, snapshot: InvestmentSnapshot) -> None:
         entry = {
-            "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "date": datetime.now(UTC).strftime("%Y-%m-%d"),
             "total_capital": snapshot.total_capital,
             "deployed": snapshot.deployed,
             "available": snapshot.available,
@@ -186,7 +186,7 @@ class InvestmentMetrics:
         }
 
     def pnl_chart_data(self, days: int = 30) -> list[dict[str, Any]]:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         recent = [t for t in self._trade_history if t.get("timestamp", "") >= cutoff.isoformat()]
         daily: dict[str, float] = defaultdict(float)
         for t in recent:

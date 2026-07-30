@@ -5,7 +5,7 @@ from __future__ import annotations
 import contextlib
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import asc, desc
@@ -209,7 +209,7 @@ def update_program_intel(program_id: int, body: ProgramIntelUpdate, db: Session 
     for key, val in body.model_dump(exclude_unset=True).items():
         setattr(intel, key, val)
 
-    intel.last_analyzed_at = datetime.now(timezone.utc)
+    intel.last_analyzed_at = datetime.now(UTC)
     db.commit()
     db.refresh(intel)
     return _intel_to_out(intel)
@@ -249,7 +249,7 @@ def analyze_program(program_id: int, db: Session = Depends(get_db)):
         db.add(intel)
 
     intel.ai_summary = analysis_text
-    intel.last_analyzed_at = datetime.now(timezone.utc)
+    intel.last_analyzed_at = datetime.now(UTC)
     db.commit()
     db.refresh(intel)
     logger.info("Program analyzed: %s", p.name)
@@ -306,7 +306,7 @@ def read_program_scope(program_id: int, db: Session = Depends(get_db)):
     db.add(doc)
 
     # Update program scope data
-    p.last_scope_fetch = datetime.now(timezone.utc)
+    p.last_scope_fetch = datetime.now(UTC)
     p.last_scope_hash = result.get("hash", "")
     if result.get("summary"):
         p.scope_summary = result["summary"]
@@ -456,7 +456,7 @@ def money_radar(
     return MoneyRadarOut(
         items=out,
         total=total,
-        generated_at=datetime.now(timezone.utc).isoformat(),
+        generated_at=datetime.now(UTC).isoformat(),
     )
 
 
@@ -472,7 +472,7 @@ def refresh_money_radar(db: Session = Depends(get_db)):
         p.priority = _score_to_priority(score)
         updated += 1
     db.commit()
-    return {"status": "ok", "programs_scored": updated, "generated_at": datetime.now(timezone.utc).isoformat()}
+    return {"status": "ok", "programs_scored": updated, "generated_at": datetime.now(UTC).isoformat()}
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -808,7 +808,7 @@ def recompute_report_queue(db: Session = Depends(get_db)):
             existing.priority_score = priority_score
             existing.time_to_submit = time_to_submit
             existing.reasoning = reasoning
-            existing.last_evaluated = datetime.now(timezone.utc)
+            existing.last_evaluated = datetime.now(UTC)
         else:
             rp = ReportPriority(
                 report_id=report.id,
@@ -958,7 +958,7 @@ def generate_opportunity_plan(program_id: int, db: Session = Depends(get_db)):
         expected_return_max=round(exp_return_max, 2),
         expected_value_per_hour=round(ev_per_hour, 2),
         checklist=checklist,
-        generated_at=datetime.now(timezone.utc).isoformat(),
+        generated_at=datetime.now(UTC).isoformat(),
     )
 
 
@@ -1096,14 +1096,14 @@ def _period_earnings(reports, days: int) -> float:
     """Sum confirmed rewards from reports within the last N days."""
     from datetime import timedelta
 
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    cutoff = datetime.now(UTC) - timedelta(days=days)
     total = 0.0
     for r in reports:
         if r.confirmed_reward and r.created_at:
             if hasattr(r.created_at, "tzinfo") and r.created_at.tzinfo is not None:
                 r_created = r.created_at
             else:
-                r_created = r.created_at.replace(tzinfo=timezone.utc) if r.created_at else None
+                r_created = r.created_at.replace(tzinfo=UTC) if r.created_at else None
             if r_created and r_created >= cutoff:
                 total += r.confirmed_reward
     return round(total, 2)

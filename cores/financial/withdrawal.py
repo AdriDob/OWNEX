@@ -16,13 +16,13 @@ from __future__ import annotations
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
 from cores.ledger import LedgerEvent, record_event
 
-logger = logging.getLogger("cateye.financial.withdrawal")
+logger = logging.getLogger("ownex.financial.withdrawal")
 
 
 # ── Chain confirmation defaults ──────────────────────────────────────
@@ -211,7 +211,7 @@ def create_withdrawal(
     block_hash: str = "",
     confirmations: int = 0,
 ) -> WithdrawalEntry:
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     wid = str(uuid.uuid4())
     net = amount - fee
     is_crypto = bool(chain or tx_hash or method == "crypto")
@@ -284,7 +284,7 @@ def mark_pending(withdrawal_id: str) -> WithdrawalEntry | None:
         return None
 
     w.status = WithdrawalStatus.PENDING
-    w.updated_at = datetime.now(timezone.utc).isoformat()
+    w.updated_at = datetime.now(UTC).isoformat()
     record_event(
         event=LedgerEvent.WITHDRAWAL_PROCESSING,
         amount=w.amount,
@@ -318,7 +318,7 @@ def complete_withdrawal(
             )
             return None
 
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     w.status = WithdrawalStatus.COMPLETED
     w.confirmation = confirmation
     w.confidence = _compute_confidence(confirmation, w.confirmations, w.confirmations_required)
@@ -367,7 +367,7 @@ def fail_withdrawal(
 
     w.status = WithdrawalStatus.FAILED
     w.error = error
-    w.updated_at = datetime.now(timezone.utc).isoformat()
+    w.updated_at = datetime.now(UTC).isoformat()
 
     record_event(
         event=LedgerEvent.WITHDRAWAL_FAILED,
@@ -462,7 +462,7 @@ def track_onchain(withdrawal_id: str, wallet_id: str) -> WithdrawalEntry | None:
         return None
 
     check_confirmations(wallet_id, w.tx_hash)
-    w.updated_at = datetime.now(timezone.utc).isoformat()
+    w.updated_at = datetime.now(UTC).isoformat()
     logger.info("Tracking on‑chain: %s — tx %s", withdrawal_id[:8], w.tx_hash[:16])
     return w
 
@@ -492,7 +492,7 @@ def check_confirmations(wallet_id: str, tx_hash: str) -> tuple[int, int, int]:
                 w.confirmations = wi.confirmations
                 w.confirmations_required = wi.confirmations_required
                 w.last_checked_block = w.confirmations
-                w.updated_at = datetime.now(timezone.utc).isoformat()
+                w.updated_at = datetime.now(UTC).isoformat()
 
                 if w.confirmations < w.confirmations_required:
                     w.reorg_risk = max(
@@ -536,7 +536,7 @@ def update_confirmations(wallet_id: str) -> int:
             w.confirmations_required = wi.confirmations_required
             w.block_number = wi.block_number if hasattr(wi, 'block_number') else w.block_number
             w.last_checked_block = w.confirmations
-            w.updated_at = datetime.now(timezone.utc).isoformat()
+            w.updated_at = datetime.now(UTC).isoformat()
 
             if wi.is_finalized():
                 w.reorg_risk = 0.0
@@ -581,7 +581,7 @@ def detect_reorg(wallet_id: str) -> list[str]:
                 w.reorg_depth = 0
                 w.confirmations = wi.confirmations
                 w.block_hash = ""
-                w.fork_id = f"reorg:{wallet_id}:{datetime.now(timezone.utc).isoformat()}"
+                w.fork_id = f"reorg:{wallet_id}:{datetime.now(UTC).isoformat()}"
                 affected.append(wi.tx_hash)
                 logger.warning(
                     "Reorg detected for tx %s — confirmations dropped from %d to %d",

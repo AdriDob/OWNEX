@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from urllib.request import urlopen
 
@@ -343,7 +343,7 @@ async def get_finance_intel() -> FinanceIntel:
     health = max(0, health - deductions)
 
     return FinanceIntel(
-        timestamp=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        timestamp=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         patrimonio_total=round(patrimonio_total, 2),
         patrimonio_usd=round(patrimonio_total, 2),
         ingresos_mes=round(ingresos_mes, 2),

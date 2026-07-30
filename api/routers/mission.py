@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter
 
@@ -27,7 +27,7 @@ async def mission_status():
         "system": {
             "health_score": health.get("score", 0),
             "status": health.get("status", "unknown"),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         },
         "apps": apps_status,
         "next_action": next_action,
@@ -105,7 +105,7 @@ def _get_priorities(registry) -> list[dict]:
         if backups:
             latest = backups[0]
             created_at = datetime.fromisoformat(latest["created_at"])
-            age = (datetime.now(timezone.utc) - created_at).total_seconds() / 3600
+            age = (datetime.now(UTC) - created_at).total_seconds() / 3600
             if age > 48:
                 priorities.append(
                     {

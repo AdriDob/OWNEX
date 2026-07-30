@@ -6,6 +6,7 @@ No recomputation of scores or classification is allowed downstream.
 """
 
 from dataclasses import dataclass, field
+from datetime import UTC
 from typing import Any
 
 
@@ -155,7 +156,7 @@ def from_pipeline_output(pipeline_result: dict[str, Any], target_info: dict[str,
             risk_score=float(max(ep.risk_score for ep in endpoints)) if endpoints else 0.0,
         )
 
-    from datetime import datetime, timezone
+    from datetime import datetime
     return PipelineSnapshot(
         status=pipeline_result.get("status", "unknown"),
         target=target,
@@ -171,6 +172,6 @@ def from_pipeline_output(pipeline_result: dict[str, Any], target_info: dict[str,
             reasoning={},
         ) if "noise_ratio" in pipeline_result else None,
         coverage_score=float(pipeline_result.get("coverage_score", 0)),
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         summary=pipeline_result.get("assistant_summary", pipeline_result.get("summary", "")),
     )

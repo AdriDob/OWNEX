@@ -8,7 +8,7 @@ from core.execution.runtime.kernel import ExecutionKernel
 from core.execution.runtime.publisher import ExecutionEventPublisher
 from core.execution.runtime.state_machine import NodeState
 
-logger = logging.getLogger("cateye.execution.checkpoint")
+logger = logging.getLogger("ownex.execution.checkpoint")
 
 
 class CheckpointManager:

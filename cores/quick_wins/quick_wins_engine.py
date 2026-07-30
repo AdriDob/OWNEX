@@ -17,7 +17,7 @@ Anti-drift governance (HARD CONSTRAINTS):
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.quick_wins.models import (
@@ -28,7 +28,7 @@ from cores.quick_wins.models import (
     QuickWinsReport,
 )
 
-LOG = logging.getLogger("cateye.quick_wins")
+LOG = logging.getLogger("ownex.quick_wins")
 
 
 class QuickWinsEngine:
@@ -103,7 +103,7 @@ class QuickWinsEngine:
         )
 
         return QuickWinsReport(
-            generated_at=datetime.now(timezone.utc).isoformat(),
+            generated_at=datetime.now(UTC).isoformat(),
             target_name=target_name,
             top_quick_wins=top_10,
             fast_exploit_paths=fast_paths,

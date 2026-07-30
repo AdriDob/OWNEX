@@ -7,7 +7,7 @@ Read-only. Never modifies pipeline data.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.observability import record, timer
@@ -24,7 +24,7 @@ from cores.opportunity.providers import get_providers
 from cores.opportunity.recommendations import generate_recommendations
 from cores.opportunity.scoring2 import _score_to_priority, compute_layered_score
 
-logger = logging.getLogger("cateye.opportunity.engine")
+logger = logging.getLogger("ownex.opportunity.engine")
 
 _GLOBAL_ENGINE: OpportunityEngine | None = None
 
@@ -73,7 +73,7 @@ class OpportunityEngine:
         scored = self._score_all(all_opps, use_layered_scoring)
 
         self._opportunities = {o.id: o for o in scored}
-        self._last_refresh = datetime.now(timezone.utc).isoformat()
+        self._last_refresh = datetime.now(UTC).isoformat()
 
         record("opportunity.discover.count", len(scored))
         record("opportunity.providers.active", len(get_providers()))
@@ -134,7 +134,7 @@ class OpportunityEngine:
                         health_status="degraded",
                     )
 
-        self._last_refresh = datetime.now(timezone.utc).isoformat()
+        self._last_refresh = datetime.now(UTC).isoformat()
 
         if updated:
             try:

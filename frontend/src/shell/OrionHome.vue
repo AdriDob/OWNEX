@@ -90,7 +90,7 @@ onMounted(async () => {
     <div>
       <h2 class="text-lg font-semibold mb-3">Aplicaciones</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <router-link to="/cateye/"
+        <router-link to="/ownex/"
           class="border border-border/50 rounded-lg p-4 bg-card hover:border-primary/50 transition-colors group">
           <div class="text-2xl mb-2">🐛</div>
           <div class="font-semibold group-hover:text-primary transition-colors">OWNEX</div>

@@ -29,7 +29,7 @@ except ImportError:
     HAS_MUTATION_ENGINE = False
     SmartMutationEngine = None  # type: ignore
 
-logger = logging.getLogger("cateye.tools.extra")
+logger = logging.getLogger("ownex.tools.extra")
 
 DEFAULT_SECLISTS_PATH = os.environ.get("SECLISTS_PATH", "/usr/share/seclists")
 DEFAULT_FFUF_PROFILES = {

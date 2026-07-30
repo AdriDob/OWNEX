@@ -5,13 +5,13 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.agents.base import BaseAgent
 from cores.agents.types import AgentEvent, AgentId, EventType
 
-logger = logging.getLogger("cateye.agents.financial")
+logger = logging.getLogger("ownex.agents.financial")
 
 
 class FinancialAgent(BaseAgent):
@@ -63,7 +63,7 @@ class FinancialAgent(BaseAgent):
                        "paid_rewards", "accepted_reports", "submitted_reports"):
                 self._data.setdefault("metrics", {})[key] = value
 
-        self._data["last_updated"] = datetime.now(timezone.utc).isoformat()
+        self._data["last_updated"] = datetime.now(UTC).isoformat()
         self._save()
 
     def _on_payout(self, event: AgentEvent) -> None:
@@ -74,7 +74,7 @@ class FinancialAgent(BaseAgent):
             "program": event.payload.get("program", ""),
             "vulnerability": event.payload.get("vulnerability", ""),
             "severity": event.payload.get("severity", ""),
-            "date": event.payload.get("date", datetime.now(timezone.utc).isoformat()),
+            "date": event.payload.get("date", datetime.now(UTC).isoformat()),
             "report_id": event.payload.get("report_id", ""),
         }
         self._data.setdefault("payouts", []).append(payout)
@@ -93,7 +93,7 @@ class FinancialAgent(BaseAgent):
             "currency": event.payload.get("currency", "USD"),
             "priority": event.payload.get("priority", "medium"),
             "deadline": event.payload.get("deadline", ""),
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
         }
         goals = self._data.setdefault("goals", [])
         existing = [g for g in goals if g.get("id") == goal["id"]]
@@ -113,7 +113,7 @@ class FinancialAgent(BaseAgent):
                     "title": r.get("title", ""),
                     "severity": r.get("severity", ""),
                     "estimate": estimate,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 })
         self._recalculate_metrics()
         self._save()
@@ -138,7 +138,7 @@ class FinancialAgent(BaseAgent):
             "payout_count": len(payouts),
             "estimate_count": len(estimates),
             "by_program": by_program,
-            "last_updated": datetime.now(timezone.utc).isoformat(),
+            "last_updated": datetime.now(UTC).isoformat(),
         }
 
     def get_summary(self) -> dict[str, Any]:

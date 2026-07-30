@@ -11,7 +11,7 @@ from cores.bounty_scraper.changes import get_change_tracker
 from cores.bounty_scraper.monitor import get_discovery_monitor
 from cores.bounty_scraper.scraper import BountyScraper
 
-logger = logging.getLogger("cateye.api.discovery")
+logger = logging.getLogger("ownex.api.discovery")
 router = APIRouter(prefix="/api/discovery", tags=["discovery"])
 
 _scraper = BountyScraper()

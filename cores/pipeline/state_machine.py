@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.agents.types import (  # noqa: F401
@@ -13,7 +13,7 @@ from cores.agents.types import (  # noqa: F401
     validate_transition,
 )
 
-logger = logging.getLogger("cateye.pipeline.state_machine")
+logger = logging.getLogger("ownex.pipeline.state_machine")
 
 
 STAGE_WEIGHTS: dict[PipelineState, float] = {
@@ -98,7 +98,7 @@ def build_transition(
         "to_state": to_state,
         "agent_id": agent_id,
         "status": status,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "metadata": metadata or {},
     }
 

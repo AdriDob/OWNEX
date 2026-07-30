@@ -5,7 +5,7 @@ from typing import Any
 
 from cores.platforms.base import BugBountyPlatform, SyncResult
 
-logger = logging.getLogger("cateye.platforms.synack")
+logger = logging.getLogger("ownex.platforms.synack")
 
 
 class Synack(BugBountyPlatform):

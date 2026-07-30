@@ -15,7 +15,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-logger = logging.getLogger("cateye.explainability.engine")
+logger = logging.getLogger("ownex.explainability.engine")
 
 EXPLANATION_CATEGORY = "explanation"
 

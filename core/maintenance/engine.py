@@ -14,7 +14,7 @@ from core import OWNEX_DIR
 logger = logging.getLogger("ownex.core.maintenance")
 
 KNOWN_DATABASES: list[Path] = [
-    OWNEX_DIR / "cateye.db",
+    OWNEX_DIR / "ownex.db",
     OWNEX_DIR / "database" / "ownex.db",
     OWNEX_DIR / "database" / "ownex_core.db",
     OWNEX_DIR / "database" / "memory.db",

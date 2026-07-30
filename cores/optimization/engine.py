@@ -13,10 +13,10 @@ from __future__ import annotations
 import logging
 import threading
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-logger = logging.getLogger("cateye.optimization.engine")
+logger = logging.getLogger("ownex.optimization.engine")
 
 OPTIMIZATION_COOLDOWN = 60.0  # seconds between optimizations
 
@@ -186,7 +186,7 @@ class AutoOptimizationEngine:
         if actions:
             self._last_optimization = now
             for action in actions:
-                action.applied_at = datetime.now(timezone.utc).isoformat()
+                action.applied_at = datetime.now(UTC).isoformat()
                 logger.info(
                     "[OPTIMIZE] %s: %s -> %s (%s)",
                     action.parameter, action.old_value, action.new_value, action.reason,

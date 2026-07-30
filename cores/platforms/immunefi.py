@@ -8,7 +8,7 @@ from typing import Any
 
 from cores.platforms.base import BugBountyPlatform, SubmissionResult, SyncResult
 
-logger = logging.getLogger("cateye.platforms.immunefi")
+logger = logging.getLogger("ownex.platforms.immunefi")
 
 IMMUNEFI_API_BASE = "https://api.immunefi.com/v1"
 IMMUNEFI_SUBMIT_URL = "https://immunefi.com/submit/"

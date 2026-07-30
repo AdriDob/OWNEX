@@ -12,13 +12,13 @@ import json
 import logging
 import os
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from cores.bounty_scraper.scraper import ScrapedProgram
 
-logger = logging.getLogger("cateye.bounty_scraper.changes")
+logger = logging.getLogger("ownex.bounty_scraper.changes")
 
 KNOWN_PROGRAMS_PATH = os.path.expanduser("~/.orion/known_programs.json")
 
@@ -92,14 +92,14 @@ class ProgramChangeTracker:
     def _save(self) -> None:
         os.makedirs(os.path.dirname(self._path), exist_ok=True)
         data = {
-            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(UTC).isoformat(),
             "programs": [asdict(snap) for snap in self._known.values()],
         }
         with open(self._path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
     def compute_diff(self, programs: list[ScrapedProgram]) -> DiscoveryDiff:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         current_keys: set[str] = set()
         current_snapshots: dict[str, ProgramSnapshot] = {}
 

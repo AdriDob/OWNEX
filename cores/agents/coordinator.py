@@ -6,7 +6,7 @@ import contextlib
 import json
 import logging
 import threading
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.agents.base import BaseAgent
@@ -20,7 +20,7 @@ from cores.pipeline.state_machine import (
     next_stage,
     validate_transition,
 )
-from cores.settings.service import CATEYEMode, get_mode, get_setting
+from cores.settings.service import OWNEXMode as CATEYEMode, get_mode, get_setting
 
 logger = logging.getLogger("cateye.agents.coordinator")
 
@@ -299,7 +299,7 @@ class CoordinatorAgent(BaseAgent):
             # Pipeline complete
             info["state"] = PipelineState.CLOSED.value
             info["quality_score"] = compute_quality_score(stages)
-            info["completed_at"] = datetime.now(timezone.utc)
+            info["completed_at"] = datetime.now(UTC)
             self._save_pipeline(pipeline_id, info)
             logger.info("[COORD] Pipeline %s completed (final score=%.2f)",
                         pipeline_id[:8], info["quality_score"])
@@ -423,7 +423,7 @@ class CoordinatorAgent(BaseAgent):
                 logger.error("[COORD] Pipeline %s exhausted retries", pipeline_id[:8])
                 info["state"] = PipelineState.FAILED.value
                 info["quality_score"] = compute_quality_score(stages)
-                info["completed_at"] = datetime.now(timezone.utc)
+                info["completed_at"] = datetime.now(UTC)
                 self._save_pipeline(pipeline_id, info)
 
     def _on_pipeline_cancelled(self, event: AgentEvent) -> None:
@@ -433,7 +433,7 @@ class CoordinatorAgent(BaseAgent):
             return
         info["state"] = PipelineState.CANCELLED.value
         info["quality_score"] = compute_quality_score(info.get("stages", []))
-        info["completed_at"] = datetime.now(timezone.utc)
+        info["completed_at"] = datetime.now(UTC)
         stages = info.setdefault("stages", [])
         stages.append(build_transition(
             info.get("state", ""), PipelineState.CANCELLED.value,

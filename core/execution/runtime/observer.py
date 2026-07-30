@@ -5,7 +5,7 @@ from typing import Any
 
 from core.execution.runtime.integration import ExecutionEventBusBridge
 
-logger = logging.getLogger("cateye.execution.observer")
+logger = logging.getLogger("ownex.execution.observer")
 
 
 class CopilotExecutionObserver:

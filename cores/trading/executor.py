@@ -4,7 +4,7 @@ import abc
 import logging
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from enum import Enum, auto
 from typing import Any, Protocol
@@ -229,7 +229,7 @@ class RealExecutor(ExecutionEngine):
                 fee=Decimal("0"),
                 fee_asset=quote,
                 total=Decimal(str(quote_result.in_amount)) / Decimal(10 ** self._decimals(input_mint)),
-                executed_at=datetime.now(timezone.utc),
+                executed_at=datetime.now(UTC),
                 exchange="jupiter",
             )
 
@@ -339,7 +339,7 @@ class DryRunExecutor(ExecutionEngine):
                 fee=simulated_fee,
                 fee_asset=order.pair.split("/")[1],
                 total=order.quantity * order.avg_fill_price + simulated_fee,
-                executed_at=datetime.now(timezone.utc),
+                executed_at=datetime.now(UTC),
                 exchange="dry_run",
             )
         ]
@@ -491,7 +491,7 @@ class PaperTradingExecutor(ExecutionEngine):
             fee=fee_amount,
             fee_asset=fee_asset,
             total=fill_price * order.quantity + fee_amount,
-            executed_at=datetime.now(timezone.utc),
+            executed_at=datetime.now(UTC),
             exchange="paper",
         )
 

@@ -424,13 +424,13 @@ export const routes: RouteRecordRaw[] = [
   { path: '/notifications', redirect: '/copilot/notifications' },
   { path: '/truth-inspector', redirect: '/intelligence/confidence' },
 
-  // Apps (mantener separados - son micro-apps completas)
-  {
-    path: '/orion/',
-    name: 'orion-home',
-    component: () => import('@/shell/OrionHome.vue'),
-    meta: { title: 'OWNEX Platform' },
-  },
+  // Apps (mantener separadas - son micro-apps completas)
+    {
+      path: '/ownex/',
+      name: 'ownex-home',
+      component: () => import('@/shell/OrionHome.vue'),
+      meta: { title: 'OWNEX OMEGA Platform' },
+    },
   {
     path: '/investments',
     name: 'investment-hub',

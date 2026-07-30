@@ -8,7 +8,7 @@ Every DTO follows:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -21,7 +21,7 @@ class APIEnvelope(BaseModel):
     schema_: str = Field("CATEYE/v1", alias="schema")
     data: Any = None
     error: str | None = None
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat().replace("+00:00", "Z"))
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -38,7 +38,7 @@ class PaginatedEnvelope(BaseModel):
     skip: int = 0
     limit: int = 100
     error: str | None = None
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat().replace("+00:00", "Z"))
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -141,7 +141,7 @@ class AssistantMessageDTO(BaseModel):
     role: str = "assistant"
     content: str
     actions: list[str] = []
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat().replace("+00:00", "Z"))
 
 
 class SyncStateDTO(BaseModel):

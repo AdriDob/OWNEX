@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx  # AÑADIR
@@ -279,7 +279,7 @@ class SystemHealthEngine:
                 "status": status.value,
                 "trend": self._scoring.trend(),
                 "metrics": {k: v for k, v in metrics.items() if isinstance(v, (int, float, str))},
-                "timestamp": datetime.now(timezone.utc).timestamp(),  # Añadir timestamp
+                "timestamp": datetime.now(UTC).timestamp(),  # Añadir timestamp
                 "overall_status": status.value,  # Para la detección de freeze
             }
             self._snapshot_history.append(snapshot)  # Almacenar en la historia local
@@ -391,7 +391,7 @@ class SystemHealthEngine:
                 severity=severity,
                 health_score=round(score, 1),
                 trend=self._scoring.trend(),
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
             )
         except Exception as exc:
             logger.debug("[HEALTH] Event emission skipped: %s", exc)

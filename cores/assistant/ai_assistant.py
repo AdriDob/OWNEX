@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from cores.engine.unified_scoring import score as unified_score
@@ -693,7 +693,7 @@ class InvestigationNarrator:
             total_payout_high = sum(t["confirmed_verdicts"] * 10000 + t["high_risk_endpoints"] * 5000 for t in top_targets)
 
             return {
-                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "generated_at": datetime.now(UTC).isoformat(),
                 "scope": "full_system",
                 "coverage": {
                     "total_targets": len(targets),

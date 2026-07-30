@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import asc, desc
@@ -13,7 +13,7 @@ from cores.pipeline.stages import PipelineContext, PipelineStage
 from cores.validation.gate import Verdict
 from database import models
 
-logger = logging.getLogger("cateye.pipeline.report_service")
+logger = logging.getLogger("ownex.pipeline.report_service")
 
 REPORT_STATUSES = [
     "draft", "ready", "submitted", "need_more_info",
@@ -245,7 +245,7 @@ def update_report(
         elif key in json_fields and isinstance(value, (list, dict)):
             setattr(db_report, key, json.dumps(value, ensure_ascii=False))
 
-    db_report.updated_at = datetime.now(timezone.utc)
+    db_report.updated_at = datetime.now(UTC)
     session.commit()
     session.refresh(db_report)
 

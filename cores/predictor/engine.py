@@ -10,11 +10,11 @@ import logging
 import threading
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("cateye.predictor.engine")
+logger = logging.getLogger("ownex.predictor.engine")
 
 PREDICTION_WINDOW = 300
 
@@ -62,7 +62,7 @@ class FailurePredictionSystem:
                 "component": component,
                 "failure_type": failure_type,
                 "error_message": error_message[:200],
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
             self._error_history.append(entry)
 
@@ -84,7 +84,7 @@ class FailurePredictionSystem:
                 return []
 
             predictions: list[FailurePrediction] = []
-            now = datetime.now(timezone.utc).timestamp()
+            now = datetime.now(UTC).timestamp()
 
             components = [component] if component else list(set(e["component"] for e in self._error_history))
 
@@ -157,7 +157,7 @@ class FailurePredictionSystem:
                     probability=round(probability, 2),
                     predicted_failure_type=predicted_type,
                     evidence=evidence,
-                    generated_at=datetime.now(timezone.utc).isoformat(),
+                    generated_at=datetime.now(UTC).isoformat(),
                     recommended_action=action,
                 ))
 

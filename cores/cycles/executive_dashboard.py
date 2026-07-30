@@ -6,7 +6,7 @@ Aggregates revenue, pipeline health, and cycle performance into a single view.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from core.revenue.metrics import RevenueMetrics
@@ -22,7 +22,7 @@ class ExecutiveDashboard:
 
     def get_ceo_view(self) -> dict[str, Any]:
         """Main CEO view — single screen summary."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         week_ago = now - timedelta(days=7)
         month_ago = now - timedelta(days=30)
 
@@ -166,7 +166,7 @@ class ExecutiveDashboard:
 
         session = SessionLocal()
         try:
-            cutoff = datetime.now(timezone.utc) - timedelta(weeks=weeks)
+            cutoff = datetime.now(UTC) - timedelta(weeks=weeks)
             results = (
                 session.query(
                     func.date_trunc("week", PayoutRecord.paid_at).label("week"),

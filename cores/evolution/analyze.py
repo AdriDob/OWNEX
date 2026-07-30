@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections import Counter, defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from database import db
@@ -36,10 +36,10 @@ class AnalyzeEngine:
     def run_full_cycle(self) -> dict[str, Any]:
         """Execute all four analysis levels in sequence."""
         self.results = {}
-        self.results["run_at"] = datetime.now(timezone.utc).isoformat()
+        self.results["run_at"] = datetime.now(UTC).isoformat()
         self.results["window_days"] = _RECENT_DAYS
 
-        cutoff = datetime.now(timezone.utc) - timedelta(days=_RECENT_DAYS)
+        cutoff = datetime.now(UTC) - timedelta(days=_RECENT_DAYS)
         self._cutoff = cutoff
 
         self.results["level_1"] = self._level_1_descriptive_stats(cutoff)

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -23,7 +23,7 @@ def _all_ledger_entries():
     from cores.ledger import _all_entries
     return _all_entries()
 
-logger = logging.getLogger("cateye.financial.reconciliation")
+logger = logging.getLogger("ownex.financial.reconciliation")
 
 
 class ConsistencyState(str, Enum):
@@ -106,7 +106,7 @@ class ReconciliationEngine:
         external_entries: list[dict[str, Any]] | None = None,
     ) -> ReconciliationResult:
         discrepancies: list[Discrepancy] = []
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         if not external_entries:
             return ReconciliationResult(

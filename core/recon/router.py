@@ -9,7 +9,7 @@ from typing import Any
 from core.recon.fingerprint import Fingerprinter, FingerprintResult
 from core.recon.strategies import ReconStrategy, select_strategies
 
-logger = logging.getLogger("cateye.recon.router")
+logger = logging.getLogger("ownex.recon.router")
 
 
 @dataclass

@@ -5,7 +5,7 @@ from collections.abc import Callable
 
 from core.execution.runtime.clock import VirtualClock
 
-logger = logging.getLogger("cateye.execution.timeout")
+logger = logging.getLogger("ownex.execution.timeout")
 
 
 class TimeoutEngine:

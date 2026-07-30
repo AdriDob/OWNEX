@@ -16,7 +16,7 @@ from typing import Any
 
 from cores.platforms.base import BugBountyPlatform, SubmissionResult, SyncResult
 
-logger = logging.getLogger("cateye.platforms.code4rena")
+logger = logging.getLogger("ownex.platforms.code4rena")
 
 C4_API_BASE = "https://api.code4rena.com/api"
 C4_SUBMIT_URL = "https://github.com/code-423n4"

@@ -8,7 +8,7 @@ from fastapi import APIRouter
 from cores.intelligence.reward_learning import RewardLearner
 from database import db, models
 
-logger = logging.getLogger("cateye.api.hunter")
+logger = logging.getLogger("ownex.api.hunter")
 
 router = APIRouter(prefix="/api/hunter", tags=["hunter"])
 

@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-LOG = logging.getLogger("cateye.recon.burp")
+LOG = logging.getLogger("ownex.recon.burp")
 
 
 @dataclass

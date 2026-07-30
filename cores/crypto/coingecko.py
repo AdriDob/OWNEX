@@ -13,7 +13,7 @@ import urllib.request
 
 from cores.crypto.base import cache_usd_price
 
-logger = logging.getLogger("cateye.crypto.coingecko")
+logger = logging.getLogger("ownex.crypto.coingecko")
 
 BASE_URL = "https://api.coingecko.com/api/v3"
 

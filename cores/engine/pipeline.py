@@ -12,7 +12,7 @@ import subprocess
 import sys
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.engine.base import Engine
@@ -53,8 +53,8 @@ class ExecutionPlan:
     id: str
     opportunity_id: str
     steps: list[PlanStep] = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     total_estimated_minutes: int = 0
     context_hash: str = ""
     status: str = "created"  # created | running | completed | failed
@@ -73,7 +73,7 @@ class ExecutionResult:
     plan: ExecutionPlan | None = None
     completed_steps: list[PlanStep] = field(default_factory=list)
     failed_step: PlanStep | None = None
-    started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime | None = None
 
 
@@ -394,7 +394,7 @@ class ExecutionPipeline(Engine):
         context_hash: str = "",
     ) -> ExecutionResult:
         """Execute an opportunity from plan to completion."""
-        started = datetime.now(timezone.utc)
+        started = datetime.now(UTC)
 
         if plan is None:
             plan = await self.planner.create_plan(opportunity, context_hash)
@@ -412,7 +412,7 @@ class ExecutionPipeline(Engine):
 
         # Execute each step
         for step in plan.steps:
-            step.started_at = datetime.now(timezone.utc)
+            step.started_at = datetime.now(UTC)
             step.status = "running"
 
             logger.info("Step %d/%d: %s (%s)", step.order, len(plan.steps), step.name, step.capability)
@@ -422,7 +422,7 @@ class ExecutionPipeline(Engine):
 
             if success:
                 step.status = "completed"
-                step.completed_at = datetime.now(timezone.utc)
+                step.completed_at = datetime.now(UTC)
             else:
                 step.status = "failed"
                 error = result.get("error", "Unknown error")
@@ -435,7 +435,7 @@ class ExecutionPipeline(Engine):
                     completed_steps=[s for s in plan.steps if s.status == "completed"],
                     failed_step=step,
                     started_at=started,
-                    completed_at=datetime.now(timezone.utc),
+                    completed_at=datetime.now(UTC),
                 )
 
         plan.status = "completed"
@@ -445,7 +445,7 @@ class ExecutionPipeline(Engine):
             plan=plan,
             completed_steps=plan.steps,
             started_at=started,
-            completed_at=datetime.now(timezone.utc),
+            completed_at=datetime.now(UTC),
         )
 
     async def _execute_step(

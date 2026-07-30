@@ -10,7 +10,7 @@ from __future__ import annotations
 import csv
 import io
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
@@ -138,7 +138,7 @@ def refresh_opportunities():
     try:
         engine.discover_all(use_layered_scoring=True)
         engine.take_snapshot("daily")
-        return {"status": "ok", "count": len(engine.get_all()), "refreshed_at": datetime.now(timezone.utc).isoformat()}
+        return {"status": "ok", "count": len(engine.get_all()), "refreshed_at": datetime.now(UTC).isoformat()}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 

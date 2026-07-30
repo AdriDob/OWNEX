@@ -12,6 +12,14 @@ from collections import OrderedDict
 from typing import Any
 
 from core.sensors.observation import Observation
+from cores.prometheus_metrics import (
+    record_sensor_fetch,
+    SENSOR_FETCH_TOTAL,
+    SENSOR_OBSERVATIONS_COLLECTED,
+    SENSOR_FETCH_DURATION_SECONDS,
+    SENSOR_HEALTH_STATUS,
+    SENSOR_ACTIVE_COUNT,
+)
 
 logger = logging.getLogger("ownex.sensors")
 
@@ -46,6 +54,50 @@ class Sensor(ABC):
         Classification happens downstream.
         """
         raise NotImplementedError
+
+    async def _record_fetch(self, duration: float, success: bool, obs_count: int) -> None:
+        """Record sensor fetch metrics."""
+        record_sensor_fetch(
+            sensor_id=self.id,
+            source_type=self.source_type,
+            source_name=self.source_name,
+            duration=duration,
+            success=success,
+            obs_count=obs_count,
+        )
+        SENSOR_FETCH_TOTAL.labels(
+            sensor_id=self.id,
+            source_type=self.source_type,
+            source_name=self.source_name,
+            status="success" if success else "error"
+        ).inc()
+        SENSOR_FETCH_DURATION_SECONDS.labels(
+            sensor_id=self.id,
+            source_type=self.source_type
+        ).observe(duration)
+        if success and obs_count > 0:
+            SENSOR_OBSERVATIONS_COLLECTED.labels(
+                sensor_id=self.id,
+                source_type=self.source_type,
+                source_name=self.source_name
+            ).inc(obs_count)
+        SENSOR_HEALTH_STATUS.labels(
+            sensor_id=self.id,
+            source_type=self.source_type,
+            source_name=self.source_name
+        ).set(1 if success else -1)
+
+    async def fetch_with_metrics(self) -> list[Observation]:
+        """Fetch with metrics recording - wrapper for sensors to use."""
+        import time
+        start = time.time()
+        try:
+            observations = await self.fetch()
+            await self._record_fetch(time.time() - start, True, len(observations))
+            return observations
+        except Exception as e:
+            await self._record_fetch(time.time() - start, False, 0)
+            raise
 
     async def health(self) -> dict[str, Any]:
         """Return sensor health."""

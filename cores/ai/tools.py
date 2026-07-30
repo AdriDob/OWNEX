@@ -5,7 +5,7 @@ from typing import Any
 
 from database import db, models
 
-logger = logging.getLogger("cateye.ai.tools")
+logger = logging.getLogger("ownex.ai.tools")
 
 AVAILABLE_TOOLS = [
     {

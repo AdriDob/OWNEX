@@ -8,7 +8,7 @@ import logging
 import os
 import sqlite3
 import threading
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -84,7 +84,7 @@ class RecoveryStore:
                 """INSERT INTO recovery_events
                    (timestamp, component, failure_type, recovery_action, status, details, duration_ms)
                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                (datetime.now(timezone.utc).isoformat(), component, failure_type,
+                (datetime.now(UTC).isoformat(), component, failure_type,
                  recovery_action, status, details[:500], duration_ms),
             )
             conn.commit()
@@ -111,7 +111,7 @@ class RecoveryStore:
                    (component, state, failure_count, last_failure, opened_at, cooldown_until)
                    VALUES (?, ?, ?, ?, ?, ?)""",
                 (component, state, failure_count,
-                 datetime.now(timezone.utc).isoformat(),
+                 datetime.now(UTC).isoformat(),
                  opened_at, cooldown_until),
             )
             conn.commit()
@@ -129,7 +129,7 @@ class RecoveryStore:
             conn.execute(
                 """INSERT OR REPLACE INTO learning_state (key, value, updated_at)
                    VALUES (?, ?, ?)""",
-                (key, value, datetime.now(timezone.utc).isoformat()),
+                (key, value, datetime.now(UTC).isoformat()),
             )
             conn.commit()
 
@@ -152,7 +152,7 @@ class RecoveryStore:
             conn.execute(
                 """INSERT INTO health_snapshots (timestamp, source, data)
                    VALUES (?, ?, ?)""",
-                (datetime.now(timezone.utc).isoformat(), source, json.dumps(data)),
+                (datetime.now(UTC).isoformat(), source, json.dumps(data)),
             )
             conn.commit()
 

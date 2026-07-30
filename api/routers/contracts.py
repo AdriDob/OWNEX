@@ -22,7 +22,7 @@ from cores.contracts.validator import (
     validate_paginated_response,
 )
 
-logger = logging.getLogger("cateye.api.contracts")
+logger = logging.getLogger("ownex.api.contracts")
 
 router = APIRouter(prefix="/api/contracts", tags=["contracts"])
 

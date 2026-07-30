@@ -7,7 +7,7 @@ in the Universal Sensor Network without modification.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from core.opportunity.adapters import OpportunityAdapter
 from core.sensors.base import Sensor
@@ -47,7 +47,7 @@ class GenericAdapterSensor(Sensor):
             return []
 
         observations = []
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         for raw in raw_opportunities:
             obs = Observation(
                 id=f"{raw.platform}:{raw.id}",
@@ -67,6 +67,6 @@ class GenericAdapterSensor(Sensor):
             observations.append(obs)
 
         self._fetch_count += 1
-        self._last_fetch = datetime.now(timezone.utc).timestamp()
+        self._last_fetch = datetime.now(UTC).timestamp()
         logger.info("GenericSensor %s: %d observations", self.id, len(observations))
         return observations

@@ -16,7 +16,7 @@ from database import db
 from database.models import Evidence, Finding, Report, Target, Verdict
 from database.models_economic import BountyTier, Program
 
-logger = logging.getLogger("cateye.report_pipeline")
+logger = logging.getLogger("ownex.report_pipeline")
 REPORTS_DIR = Path("reports/generated")
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 PLATFORM_URLS = {

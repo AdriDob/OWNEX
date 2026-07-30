@@ -7,7 +7,7 @@ import logging
 
 from cores.tools.base import BaseTool, UnifiedResult
 
-logger = logging.getLogger("cateye.tools.naabu")
+logger = logging.getLogger("ownex.tools.naabu")
 
 
 class NaabuTool(BaseTool):

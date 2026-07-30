@@ -7,7 +7,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-logger = logging.getLogger("cateye.actions.tracker")
+logger = logging.getLogger("ownex.actions.tracker")
 
 
 @dataclass

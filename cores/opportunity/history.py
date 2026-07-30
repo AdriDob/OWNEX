@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.opportunity.models import Opportunity, OpportunitySnapshot
 
-logger = logging.getLogger("cateye.opportunity.history")
+logger = logging.getLogger("ownex.opportunity.history")
 
 _GLOBAL_HISTORY: HistoryManager | None = None
 
@@ -37,7 +37,7 @@ class HistoryManager:
 
         Period: daily, weekly, or monthly.
         """
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         snapshot = OpportunitySnapshot(
             id=str(uuid.uuid4())[:12],
             timestamp=now,

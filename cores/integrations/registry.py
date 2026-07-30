@@ -6,7 +6,7 @@ import importlib
 import logging
 import os
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.extension.capabilities import Capability
@@ -30,7 +30,7 @@ class IntegrationStatus:
     error: str | None = None
     permissions: list[str] = field(default_factory=lambda: ["read"])
     tags: list[str] = field(default_factory=list)
-    checked_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    checked_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -153,7 +153,7 @@ class IntegrationRegistry:
 
     def _check_one(self, status: IntegrationStatus) -> None:
         """Run heuristics to determine integration status."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         status.checked_at = now.isoformat()
 
         try:

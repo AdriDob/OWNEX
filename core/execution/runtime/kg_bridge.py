@@ -6,7 +6,7 @@ from typing import Any
 from cores.events.types import Events
 from core.execution.runtime.integration import ExecutionEventBusBridge
 
-logger = logging.getLogger("cateye.execution.kg_bridge")
+logger = logging.getLogger("ownex.execution.kg_bridge")
 
 
 class ExecutionKGSubscriber:

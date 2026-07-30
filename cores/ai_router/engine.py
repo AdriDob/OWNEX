@@ -17,11 +17,11 @@ import logging
 import os
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("cateye.ai_router")
+logger = logging.getLogger("ownex.ai_router")
 
 POLICY_PATH = os.path.expanduser("~/.orion/ai_policy.yaml")
 HISTORY_PATH = os.path.expanduser("~/.orion/ai_switches.jsonl")
@@ -229,7 +229,7 @@ class AIRouterEngine:
 
     def _discover_providers(self) -> list[AIProviderStatus]:
         providers: list[AIProviderStatus] = []
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         # 1. OpenCode Free models (deepseek, nemotron, mimo)
         providers.append(
