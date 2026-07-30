@@ -13,6 +13,95 @@
     "settings": "Einstellungen",
     "terminal": "Terminal"
   },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Systemübersicht",
+    "status": "Systemstatus",
+    "active_agents": "Aktive Agenten",
+    "workflows": "Workflows",
+    "throughput": "Durchsatz",
+    "revenue": "Einnahmen",
+    "knowledge": "Wissen"
+  },
+  "mission_control": {
+    "title": "Mission Control",
+    "subtitle": "Agent-Flottenstatus",
+    "agents": "Agenten",
+    "tasks": "Aufgaben",
+    "learning": "Lernen",
+    "performance": "Leistung"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "subtitle": "Konfiguration",
+    "appearance": "Erscheinung",
+    "language": "Sprache",
+    "voice": "Sprachsteuerung",
+    "integrations": "Integrationen",
+    "security": "Sicherheit",
+    "about": "Über"
+  },
+  "appearance": {
+    "theme": "Thema",
+    "theme_cyber": "Cyber",
+    "theme_ps5": "PS5",
+    "theme_minimal": "Minimal",
+    "theme_dark": "Dunkel",
+    "colors": "Farben",
+    "density": "Dichte",
+    "density_comfortable": "Komfortabel",
+    "density_normal": "Normal",
+    "density_compact": "Kompakt"
+  },
+  "language": {
+    "title": "Sprache",
+    "select": "Sprache auswählen",
+    "english": "Englisch",
+    "spanish": "Spanisch",
+    "french": "Französisch",
+    "german": "Deutsch",
+    "japanese": "Japanisch",
+    "chinese": "Chinesisch"
+  },
+  "voice": {
+    "title": "Sprachsteuerung",
+    "enabled": "Sprachsteuerung aktivieren",
+    "wake_word": "Wake Word",
+    "continuous": "Kontinuierliches Zuhören",
+    "language": "Sprache",
+    "test_microphone": "Mikrofon testen",
+    "commands": "Sprachbefehle"
+  },
+  "workflows": {
+    "feature_development": "Feature Entwicklung",
+    "bug_fix": "Bug Behebung",
+    "revenue_opportunity": "Umsatzmöglichkeit",
+    "start": "Workflow starten",
+    "pause": "Workflow pausieren",
+    "resume": "Workflow fortsetzen",
+    "cancel": "Workflow abbrechen"
+  },
+  "opensource": {
+    "title": "Open Source",
+    "subtitle": "Open Source Arbeitskategorien",
+    "categories": "Kategorien",
+    "bug_bounty": "Bug Bounty",
+    "security_audit": "Sicherheitsaudit",
+    "code_review": "Code Review",
+    "testing": "Testing",
+    "documentation": "Dokumentation",
+    "infrastructure": "Infrastruktur",
+    "performance": "Leistung",
+    "accessibility": "Barrierefreiheit",
+    "localization": "Lokalisierung",
+    "tooling": "Tools",
+    "recommendations": "Empfehlungen",
+    "contributions": "Beiträge",
+    "stats": "Statistiken",
+    "total_contributions": "Gesamte Beiträge",
+    "by_category": "Nach Kategorie",
+    "by_project": "Nach Projekt"
+  },
   "common": {
     "save": "Speichern",
     "cancel": "Abbrechen",
@@ -21,8 +110,65 @@
     "create": "Erstellen",
     "update": "Aktualisieren",
     "search": "Suchen",
+    "filter": "Filtern",
+    "sort": "Sortieren",
+    "export": "Exportieren",
+    "import": "Importieren",
     "loading": "Laden...",
     "error": "Fehler",
-    "success": "Erfolg"
+    "success": "Erfolg",
+    "warning": "Warnung",
+    "info": "Information",
+    "confirm": "Bestätigen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "close": "Schließen",
+    "open": "Öffnen",
+    "view": "Anzeigen",
+    "actions": "Aktionen",
+    "details": "Details",
+    "status": "Status",
+    "date": "Datum",
+    "time": "Zeit",
+    "all": "Alle",
+    "none": "Keine"
+  },
+  "status": {
+    "online": "Online",
+    "offline": "Offline",
+    "pending": "Ausstehend",
+    "in_progress": "In Bearbeitung",
+    "completed": "Abgeschlossen",
+    "failed": "Fehlgeschlagen",
+    "cancelled": "Abgebrochen"
+  },
+  "agents": {
+    "orchestrator": "Orchestrier",
+    "architecture": "Architektur",
+    "coding": "Codierung",
+    "debug": "Debug",
+    "qa": "QA",
+    "security": "Sicherheit",
+    "documentation": "Dokumentation",
+    "research": "Forschung",
+    "product": "Produkt",
+    "revenue": "Einnahmen",
+    "automation": "Automatisierung",
+    "infrastructure": "Infrastruktur",
+    "evolution": "Evolution"
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "no_notifications": "Keine Benachrichtigungen",
+    "mark_all_read": "Alle als gelesen markieren",
+    "clear_all": "Alle löschen"
+  },
+  "terminal": {
+    "title": "Terminal",
+    "connected": "Verbunden",
+    "disconnected": "Getrennt",
+    "shell": "Shell",
+    "command": "Befehl"
   }
 }

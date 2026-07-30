@@ -13,6 +13,95 @@
     "settings": "設定",
     "terminal": "ターミナル"
   },
+  "dashboard": {
+    "title": "ダッシュボード",
+    "subtitle": "システム概要",
+    "status": "システムステータス",
+    "active_agents": "アクティブエージェント",
+    "workflows": "ワークフロー",
+    "throughput": "スループット",
+    "revenue": "収益",
+    "knowledge": "知識"
+  },
+  "mission_control": {
+    "title": "ミッションコントロール",
+    "subtitle": "エージェントフリートステータス",
+    "agents": "エージェント",
+    "tasks": "タスク",
+    "learning": "学習",
+    "performance": "パフォーマンス"
+  },
+  "settings": {
+    "title": "設定",
+    "subtitle": "設定",
+    "appearance": "外観",
+    "language": "言語",
+    "voice": "音声制御",
+    "integrations": "統合",
+    "security": "セキュリティ",
+    "about": "について"
+  },
+  "appearance": {
+    "theme": "テーマ",
+    "theme_cyber": "Cyber",
+    "theme_ps5": "PS5",
+    "theme_minimal": "Minimal",
+    "theme_dark": "ダーク",
+    "colors": "カラー",
+    "density": "密度",
+    "density_comfortable": "快適",
+    "density_normal": "ノーマル",
+    "density_compact": "コンパクト"
+  },
+  "language": {
+    "title": "言語",
+    "select": "言語を選択",
+    "english": "英語",
+    "spanish": "スペイン語",
+    "french": "フランス語",
+    "german": "ドイツ語",
+    "japanese": "日本語",
+    "chinese": "中国語"
+  },
+  "voice": {
+    "title": "音声制御",
+    "enabled": "音声制御を有効にする",
+    "wake_word": "ウェイクワード",
+    "continuous": "継続的リスニング",
+    "language": "音声言語",
+    "test_microphone": "マイクテスト",
+    "commands": "音声コマンド"
+  },
+  "workflows": {
+    "feature_development": "機能開発",
+    "bug_fix": "バグ修正",
+    "revenue_opportunity": "収益機会",
+    "start": "ワークフロー開始",
+    "pause": "ワークフロー一時停止",
+    "resume": "ワークフロー再開",
+    "cancel": "ワークフロー中止"
+  },
+  "opensource": {
+    "title": "Open Source",
+    "subtitle": "オープンソース作業カテゴリ",
+    "categories": "カテゴリ",
+    "bug_bounty": "Bug Bounty",
+    "security_audit": "セキュリティ監査",
+    "code_review": "コードレビュー",
+    "testing": "テスト",
+    "documentation": "ドキュメント",
+    "infrastructure": "インフラ",
+    "performance": "パフォーマンス",
+    "accessibility": "アクセシビリティ",
+    "localization": "ローカライゼーション",
+    "tooling": "ツール",
+    "recommendations": "推奨",
+    "contributions": "貢献",
+    "stats": "統計",
+    "total_contributions": "総貢献数",
+    "by_category": "カテゴリ別",
+    "by_project": "プロジェクト別"
+  },
   "common": {
     "save": "保存",
     "cancel": "キャンセル",
@@ -21,8 +110,65 @@
     "create": "作成",
     "update": "更新",
     "search": "検索",
+    "filter": "フィルター",
+    "sort": "ソート",
+    "export": "エクスポート",
+    "import": "インポート",
     "loading": "読み込み中...",
     "error": "エラー",
-    "success": "成功"
+    "success": "成功",
+    "warning": "警告",
+    "info": "情報",
+    "confirm": "確認",
+    "back": "戻る",
+    "next": "次",
+    "previous": "前",
+    "close": "閉じる",
+    "open": "開く",
+    "view": "表示",
+    "actions": "アクション",
+    "details": "詳細",
+    "status": "ステータス",
+    "date": "日付",
+    "time": "時間",
+    "all": "すべて",
+    "none": "なし"
+  },
+  "status": {
+    "online": "オンライン",
+    "offline": "オフライン",
+    "pending": "保留中",
+    "in_progress": "進行中",
+    "completed": "完了",
+    "failed": "失敗",
+    "cancelled": "キャンセル"
+  },
+  "agents": {
+    "orchestrator": "オーケストレーター",
+    "architecture": "アーキテクチャ",
+    "coding": "コーディング",
+    "debug": "デバッグ",
+    "qa": "QA",
+    "security": "セキュリティ",
+    "documentation": "ドキュメント",
+    "research": "リサーチ",
+    "product": "プロダクト",
+    "revenue": "収益",
+    "automation": "自動化",
+    "infrastructure": "インフラ",
+    "evolution": "エボリューション"
+  },
+  "notifications": {
+    "title": "通知",
+    "no_notifications": "通知なし",
+    "mark_all_read": "すべて既読にする",
+    "clear_all": "すべてクリア"
+  },
+  "terminal": {
+    "title": "ターミナル",
+    "connected": "接続済み",
+    "disconnected": "切断",
+    "shell": "シェル",
+    "command": "コマンド"
   }
 }

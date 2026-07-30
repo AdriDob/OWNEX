@@ -107,6 +107,7 @@ from api.routers import (
     webhooks,
     ws,
     zap,
+    opensource,
 )
 from api.routers.investment import register_investment_capabilities as _reg_inv_caps
 from cores.env.config import get_config
@@ -1416,6 +1417,7 @@ app.include_router(ai_security.router)
 app.include_router(opportunity_score.router)
 app.include_router(report_pipeline.router)
 app.include_router(voice.router)
+app.include_router(opensource.router)
 
 # Security Cycle router
 app.include_router(security_cycle.router)

@@ -13,6 +13,95 @@
     "settings": "设置",
     "terminal": "终端"
   },
+  "dashboard": {
+    "title": "仪表板",
+    "subtitle": "系统概览",
+    "status": "系统状态",
+    "active_agents": "活跃代理",
+    "workflows": "工作流",
+    "throughput": "吞吐量",
+    "revenue": "收入",
+    "knowledge": "知识"
+  },
+  "mission_control": {
+    "title": "任务控制",
+    "subtitle": "代理舰队状态",
+    "agents": "代理",
+    "tasks": "任务",
+    "learning": "学习",
+    "performance": "性能"
+  },
+  "settings": {
+    "title": "设置",
+    "subtitle": "配置",
+    "appearance": "外观",
+    "language": "语言",
+    "voice": "语音控制",
+    "integrations": "集成",
+    "security": "安全",
+    "about": "关于"
+  },
+  "appearance": {
+    "theme": "主题",
+    "theme_cyber": "Cyber",
+    "theme_ps5": "PS5",
+    "theme_minimal": "Minimal",
+    "theme_dark": "深色",
+    "colors": "颜色",
+    "density": "密度",
+    "density_comfortable": "舒适",
+    "density_normal": "正常",
+    "density_compact": "紧凑"
+  },
+  "language": {
+    "title": "语言",
+    "select": "选择语言",
+    "english": "英语",
+    "spanish": "西班牙语",
+    "french": "法语",
+    "german": "德语",
+    "japanese": "日语",
+    "chinese": "中文"
+  },
+  "voice": {
+    "title": "语音控制",
+    "enabled": "启用语音控制",
+    "wake_word": "唤醒词",
+    "continuous": "持续监听",
+    "language": "语音语言",
+    "test_microphone": "测试麦克风",
+    "commands": "语音命令"
+  },
+  "workflows": {
+    "feature_development": "功能开发",
+    "bug_fix": "Bug修复",
+    "revenue_opportunity": "收入机会",
+    "start": "启动工作流",
+    "pause": "暂停工作流",
+    "resume": "恢复工作流",
+    "cancel": "取消工作流"
+  },
+  "opensource": {
+    "title": "Open Source",
+    "subtitle": "开源工作类别",
+    "categories": "类别",
+    "bug_bounty": "Bug Bounty",
+    "security_audit": "安全审计",
+    "code_review": "代码审查",
+    "testing": "测试",
+    "documentation": "文档",
+    "infrastructure": "基础设施",
+    "performance": "性能",
+    "accessibility": "无障碍",
+    "localization": "本地化",
+    "tooling": "工具",
+    "recommendations": "推荐",
+    "contributions": "贡献",
+    "stats": "统计",
+    "total_contributions": "总贡献数",
+    "by_category": "按类别",
+    "by_project": "按项目"
+  },
   "common": {
     "save": "保存",
     "cancel": "取消",
@@ -21,8 +110,65 @@
     "create": "创建",
     "update": "更新",
     "search": "搜索",
+    "filter": "筛选",
+    "sort": "排序",
+    "export": "导出",
+    "import": "导入",
     "loading": "加载中...",
     "error": "错误",
-    "success": "成功"
+    "success": "成功",
+    "warning": "警告",
+    "info": "信息",
+    "confirm": "确认",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "close": "关闭",
+    "open": "打开",
+    "view": "查看",
+    "actions": "操作",
+    "details": "详情",
+    "status": "状态",
+    "date": "日期",
+    "time": "时间",
+    "all": "全部",
+    "none": "无"
+  },
+  "status": {
+    "online": "在线",
+    "offline": "离线",
+    "pending": "待处理",
+    "in_progress": "进行中",
+    "completed": "已完成",
+    "failed": "失败",
+    "cancelled": "已取消"
+  },
+  "agents": {
+    "orchestrator": "协调器",
+    "architecture": "架构",
+    "coding": "编码",
+    "debug": "调试",
+    "qa": "质量保证",
+    "security": "安全",
+    "documentation": "文档",
+    "research": "研究",
+    "product": "产品",
+    "revenue": "收入",
+    "automation": "自动化",
+    "infrastructure": "基础设施",
+    "evolution": "演进"
+  },
+  "notifications": {
+    "title": "通知",
+    "no_notifications": "无通知",
+    "mark_all_read": "全部标记为已读",
+    "clear_all": "全部清除"
+  },
+  "terminal": {
+    "title": "终端",
+    "connected": "已连接",
+    "disconnected": "已断开",
+    "shell": "Shell",
+    "command": "命令"
   }
 }
