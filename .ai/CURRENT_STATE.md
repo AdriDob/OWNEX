@@ -123,6 +123,22 @@
 - Lazy loading de rutas
 - Mejora de tiempo de carga inicial
 
+**Boot Sequence Cinemográfico**
+- frontend/src/components/layout/SteamBigPictureSplash.vue mejorado
+- System checks agregados (Backend, Providers, Scheduler, Voice, Database, Mission Control, Memory, Agents)
+- runSystemChecks(): comprobación secuencial de sistemas con visualización
+- Estados: pending, checking, complete, error
+- Visualización de system checks en boot sequence (● ◉ ✓ ✗)
+- Comprobación integrada en startSequence() antes de loading progress
+
+**Sistema de Sonidos Premium**
+- frontend/src/composables/useAudio.ts: Sistema de audio completo con Web Audio API
+- Categorías de sonido: startup, shutdown, success, error, warning, hover, click, toggle, agent_thinking, mission_completed, new_opportunity
+- Configuración de volumen: Silent, Minimal, Normal, Immersive
+- Generación de tonos con Web Audio API (sin archivos externos)
+- Envelope ADSR para todos los sonidos
+- useAudio() hook: play(), setVolume(), setEnabled(), isSupported
+
 **OpenRouter API Key Configuration**
 - Nueva API key configurada en todo el sistema
 - `cores/ai/provider.py`: OpenRouter agregado como provider (opcional premium)
