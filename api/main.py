@@ -92,6 +92,7 @@ from api.routers import (
     settings_ai,
     settings_runtime,
     settings_unified,
+    setup,
     sync,
     system,
     system_state,
@@ -1422,6 +1423,9 @@ app.include_router(voice.router)
 app.include_router(opensource.router)
 app.include_router(zero_barrier.router)
 app.include_router(version_backup.router)
+
+# Setup router
+app.include_router(setup.router)
 
 # Security Cycle router
 app.include_router(security_cycle.router)
