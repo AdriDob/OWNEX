@@ -28,6 +28,14 @@ export function canAccessRoute(to: Pick<RouteLocationNormalized, 'name' | 'meta'
 // ─────────────────────────────────────────────────────────────────
 
 export const routes: RouteRecordRaw[] = [
+  // ── PERSONALIZATION WIZARD (público, para primer uso) ──
+  {
+    path: '/setup/personalization',
+    name: 'personalization',
+    component: () => import(/* webpackChunkName: "setup" */ '@/pages/PersonalizationWizard.vue'),
+    meta: { title: 'Personalización', public: true },
+  },
+
   // ── AUTH ──
   {
     path: '/login',
