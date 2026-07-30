@@ -12,7 +12,8 @@
     "reports": "Reports",
     "settings": "Settings",
     "terminal": "Terminal",
-    "opensource": "Open Source"
+    "opensource": "Open Source",
+    "zero_barrier": "Zero-Barrier Income"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -158,6 +159,29 @@
     "total_contributions": "Total Contributions",
     "by_category": "By Category",
     "by_project": "By Project"
+  },
+  "zero_barrier": {
+    "title": "Zero-Barrier Income",
+    "subtitle": "No Interview, Portfolio, or Experience Required",
+    "opportunities": "Opportunities",
+    "bug_bounty": "Bug Bounty",
+    "open_source_bounty": "Open Source Bounties",
+    "micro_task": "Micro Tasks",
+    "affiliate": "Affiliate Marketing",
+    "gamification": "Gamification",
+    "difficulty": "Difficulty",
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced",
+    "expert": "Expert",
+    "success_rate": "Success Rate",
+    "potential_earnings": "Potential Earnings",
+    "time_estimate": "Time Estimate",
+    "skills_required": "Skills Required",
+    "stats": "Statistics",
+    "total_opportunities": "Total Opportunities",
+    "total_potential_earnings": "Total Potential Earnings",
+    "by_platform": "By Platform"
   },
   "notifications": {
     "title": "Notifications",
