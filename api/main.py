@@ -103,6 +103,7 @@ from api.routers import (
     vault_app,
     verdicts,
     version,
+    voice,
     webhooks,
     ws,
     zap,
@@ -1414,6 +1415,7 @@ app.include_router(intel.router)
 app.include_router(ai_security.router)
 app.include_router(opportunity_score.router)
 app.include_router(report_pipeline.router)
+app.include_router(voice.router)
 
 # Security Cycle router
 app.include_router(security_cycle.router)
