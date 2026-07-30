@@ -754,3 +754,89 @@ OpenCode Config:
 - Welcome Page actualizada:
   - Integración de ModernNavbar
   - Navbar incluido en la página de bienvenida
+
+**JARVIS Design — Interfaz Futurista High-Tech HUD Style**
+- frontend/src/pages/JarvisWelcome.vue: Página de bienvenida estilo JARVIS
+  - HUD Layer con:
+    - Scan lines animados (scan-move)
+    - Grid overlay con pulse (grid-pulse)
+    - Particles container con 50 partículas flotantes (particle-float)
+    - Hexagon grid con 20 hexágonos rotativos (hex-rotate)
+  - Hero Section con:
+    - Central rings animados (outer, middle, inner rings)
+    - Ring segments con pulse animation (segment-pulse)
+    - Core dot con glow effect (core-pulse)
+    - Core pulse con expand animation (core-expand)
+    - OWNEX OMEGA title con letter animations (letter-appear)
+    - Status indicators (CORE ONLINE, MERLIN READY, SYSTEM ACTIVE)
+  - Side Panels:
+    - Left panel: Data stream con packets
+    - Right panel: System metrics (CPU, MEMORY, NETWORK, STORAGE)
+  - Command Grid con 6 command cards:
+    - MERLIN, DISCOVERY, INTEL, REPORTS, CAPITAL, BACKUP
+    - Cards con hover effects y decoration
+  - Voice Wave con 20 wave bars animadas (wave-animation)
+  - Timeline con system activity log
+  - Animaciones: scan-move, grid-pulse, particle-float, hex-rotate, ring-rotate, segment-pulse, core-pulse, core-expand, letter-appear, divider-pulse, subtitle-fade, status-fade, metric-pulse, wave-animation
+  - Styling JARVIS:
+    - Colors: #0a0e27, #1a1f3a, #0d1b2a (dark backgrounds)
+    - Accent: #00f0ff (cyan), #00ff88 (green), #ff6b35 (orange)
+    - Fonts: Rajdhani, Orbitron (futuristic)
+    - Text shadows y glow effects
+    - Grid patterns
+    - Scan lines
+- frontend/src/components/merlin/MerlinJarvis.vue: Interfaz MERLIN estilo JARVIS
+  - HUD Layer con scan lines, grid overlay, particles
+  - Header con:
+    - Merlin core animado (outer, middle, inner rings)
+    - Core segments con pulse
+    - Core dot con glow
+    - Core pulse con expand
+    - Title MERLIN con glow
+    - Status indicator (SYSTEM ONLINE)
+    - Header metrics (CPU, MEM, NET)
+  - Chat Area con:
+    - Messages con slide animation (message-slide)
+    - Merlin messages con cyan styling
+    - User messages con green styling
+    - Typing indicator con bounce (typing-bounce)
+    - Avatar rings animados
+  - Input Area con:
+    - Input frame con glow effect
+    - Send button con hover effect
+    - Futuristic placeholder text
+  - Sidebar colapsable con:
+    - Data logs list
+    - Memory list
+    - Quick commands (ANALYZE, REPORT, OPTIMIZE)
+  - Animaciones: ring-rotate, segment-pulse, core-pulse, core-expand, particle-float, message-slide, typing-bounce, section-fade
+  - Styling JARVIS:
+    - Colors: #0a0e27, #1a1f3a, #0d1b2a (dark backgrounds)
+    - Accent: #00f0ff (cyan), #00ff88 (green)
+    - Fonts: Rajdhani, Orbitron, monospace
+    - Letter spacing aumentado
+    - Text shadows y glow effects
+    - Grid patterns
+    - Scan lines
+    - Backdrop-filter blur
+- frontend/src/router/index.ts: Router actualizado
+  - Ruta '/' ahora apunta a JarvisWelcome (JARVIS style)
+  - Ruta '/merlin' ahora apunta a MerlinJarvis (JARVIS style)
+- Características del Diseño JARVIS:
+  - Futurista high-tech HUD style
+  - Efectos holográficos (glow, shadows, blur)
+  - Animaciones de partículas flotantes
+  - Grid overlay con scan lines
+  - Hexagon patterns rotativos
+  - Central rings animados
+  - Voice wave visualizer
+  - System metrics en tiempo real
+  - Data stream visualization
+  - Timeline de actividad
+  - Command cards con decoration
+  - Color scheme: Cyan (#00f0ff), Green (#00ff88), Orange (#ff6b35)
+  - Fonts: Rajdhani, Orbitron (futuristic)
+  - Letter spacing aumentado
+  - Text shadows y glow effects
+  - Backdrop-filter blur effects
+  - Responsive design
