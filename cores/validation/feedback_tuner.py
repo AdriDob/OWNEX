@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -43,7 +43,7 @@ class FeedbackTuner:
             "title": event.get("title", ""),
             "old_status": event.get("old_status", ""),
             "new_status": event.get("new_status", ""),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         self._events.append(feedback)
         self._persist_event(feedback)
@@ -104,7 +104,7 @@ class FeedbackTuner:
                     logger.warning("[TUNER] Gate tuning failed: %s", exc)
 
             tuning_record = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "events_analyzed": len(self._events),
                 "insights_count": len(insights),
                 "old_weights": old_weights,

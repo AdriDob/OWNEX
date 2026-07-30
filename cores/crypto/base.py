@@ -3,11 +3,11 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("cateye.crypto.base")
+logger = logging.getLogger("ownex.crypto.base")
 
 
 class ChainType(str, Enum):
@@ -187,7 +187,7 @@ class CryptoConnector(ABC):
         ...
 
     def sync(self) -> SyncSnapshot:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         try:
             status = self.connect()
             if status != ConnectionStatus.CONNECTED:
@@ -219,7 +219,7 @@ class CryptoConnector(ABC):
                 chain=self.chain,
                 connection=ConnectionStatus.ERROR,
                 error=str(exc),
-                synced_at=datetime.now(timezone.utc).isoformat(),
+                synced_at=datetime.now(UTC).isoformat(),
             )
 
 
@@ -227,7 +227,7 @@ _PRICE_CACHE: dict[str, tuple[float, float]] = {}
 
 
 def get_usd_price(symbol: str, max_age_seconds: int = 300) -> float:
-    now = datetime.now(timezone.utc).timestamp()
+    now = datetime.now(UTC).timestamp()
     cached = _PRICE_CACHE.get(symbol)
     if cached and (now - cached[1]) < max_age_seconds:
         return cached[0]
@@ -235,4 +235,4 @@ def get_usd_price(symbol: str, max_age_seconds: int = 300) -> float:
 
 
 def cache_usd_price(symbol: str, price: float) -> None:
-    _PRICE_CACHE[symbol] = (price, datetime.now(timezone.utc).timestamp())
+    _PRICE_CACHE[symbol] = (price, datetime.now(UTC).timestamp())

@@ -101,6 +101,11 @@ class CapabilityRegistry:
         with self._lock:
             return list({e.module for e in self._entries})
 
+    def list_by_module(self, module: str) -> list[CapabilityEntry]:
+        """List all capabilities registered by a specific module."""
+        with self._lock:
+            return [e for e in self._entries if e.module == module]
+
     def get_entry(self, capability: str, module: str) -> CapabilityEntry | None:
         """Get a specific capability registration."""
         with self._lock:
@@ -115,6 +120,11 @@ class CapabilityRegistry:
             self._entries.clear()
             self._index.clear()
         logger.debug("Capability registry cleared")
+
+    def count(self) -> int:
+        """Return total number of registered capability entries."""
+        with self._lock:
+            return len(self._entries)
 
 
 # ── Singleton API ───────────────────────────────────────────────────

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.cycles.knowledge_capture import KnowledgeCapture, LearningType
@@ -122,7 +122,7 @@ class TestResult:
         self.error_message = error_message
         self.duration_ms = duration_ms
         self.evidence_paths = evidence_paths or []
-        self.executed_at = executed_at or datetime.now(timezone.utc).isoformat()
+        self.executed_at = executed_at or datetime.now(UTC).isoformat()
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -194,7 +194,7 @@ class QAReport:
         self.failures = failures or []
         self.evidence_count = evidence_count
         self.summary = summary
-        self.generated_at = generated_at or datetime.now(timezone.utc).isoformat()
+        self.generated_at = generated_at or datetime.now(UTC).isoformat()
 
     @property
     def pass_rate(self) -> float:
@@ -346,11 +346,11 @@ class QATestCycle:
 
             current_task.status = TaskStatus.COMPLETED.value
             current_task.result = json.dumps(result or {})
-            current_task.completed_at = datetime.now(timezone.utc)
+            current_task.completed_at = datetime.now(UTC)
 
             if next_task:
                 next_task.status = TaskStatus.RUNNING.value
-                next_task.started_at = datetime.now(timezone.utc)
+                next_task.started_at = datetime.now(UTC)
                 cycle = self._cycle_service.get(cycle_id)
                 if cycle:
                     cycle.config_dict.update({"next_action": next_task.name.lower().replace(" ", "_")})
@@ -384,7 +384,7 @@ class QATestCycle:
         then produces structured TestCase objects for each.
         """
         suite = QATestSuite(
-            name=f"QA Auto-Suite {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')}",
+            name=f"QA Auto-Suite {datetime.now(UTC).strftime('%Y-%m-%d %H:%M')}",
             description="Auto-generated test suite from targets, endpoints, and findings",
             tags=["auto-generated", "regression"],
         )
@@ -572,7 +572,7 @@ class QATestCycle:
                     response_headers=resp_headers,
                     error_message=error_msg,
                     duration_ms=round(duration, 2),
-                    executed_at=datetime.now(timezone.utc).isoformat(),
+                    executed_at=datetime.now(UTC).isoformat(),
                 )
                 results.append(result)
 
@@ -589,7 +589,7 @@ class QATestCycle:
                         actual_status=None,
                         error_message=f"Unhandled execution error: {e}",
                         duration_ms=round(duration, 2),
-                        executed_at=datetime.now(timezone.utc).isoformat(),
+                        executed_at=datetime.now(UTC).isoformat(),
                     )
                 )
 
@@ -627,7 +627,7 @@ class QATestCycle:
         config = self._get_cycle_config(cycle_id)
         base_dir = evidence_dir or config.get("evidence_dir", "data/qa_evidence")
         run_id = str(uuid.uuid4())[:8]
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         run_dir = Path(base_dir) / f"run_{timestamp}_{run_id}"
 
         if not run_dir.exists():
@@ -729,7 +729,7 @@ class QATestCycle:
 
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         # Placeholder: write a metadata stub
-        stub = {"url": url, "timestamp": datetime.now(timezone.utc).isoformat(), "simulated": True}
+        stub = {"url": url, "timestamp": datetime.now(UTC).isoformat(), "simulated": True}
         with open(output_path + ".json", "w") as f:
             json.dump(stub, f)
         return output_path
@@ -798,7 +798,7 @@ class QATestCycle:
         pass_rate = (len(passed) / len(results) * 100) if results else 0
         summary_lines = [
             f"QA Report for '{suite_name}'",
-            f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}",
+            f"Generated: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S UTC')}",
             "",
             f"Results: {len(passed)} passed / {len(failed)} failed / {len(results)} total",
             f"Pass rate: {pass_rate:.1f}%",
@@ -830,7 +830,7 @@ class QATestCycle:
         # Write report to file
         report_dir = Path("data/qa_reports")
         report_dir.mkdir(parents=True, exist_ok=True)
-        report_path = report_dir / f"qa_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+        report_path = report_dir / f"qa_report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
         report_path.write_text(json.dumps(report.to_dict(), indent=2, default=str), encoding="utf-8")
 
         logger.info(
@@ -889,7 +889,7 @@ class QATestCycle:
                 "retest_attempts": 0,
                 "max_attempts": max_attempts,
                 "resolved": False,
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
                 "last_retest_at": None,
             }
             follow_ups.append(follow_up_entry)
@@ -958,7 +958,7 @@ class QATestCycle:
 
         # Update follow-up record
         follow_up["retest_attempts"] = follow_up.get("retest_attempts", 0) + 1
-        follow_up["last_retest_at"] = datetime.now(timezone.utc).isoformat()
+        follow_up["last_retest_at"] = datetime.now(UTC).isoformat()
         if result.passed:
             follow_up["resolved"] = True
             self._capture_qa_learning(

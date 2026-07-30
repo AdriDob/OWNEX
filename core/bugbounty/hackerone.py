@@ -9,7 +9,7 @@ from typing import Any
 
 import httpx
 
-logger = logging.getLogger("cateye.bugbounty.hackerone")
+logger = logging.getLogger("ownex.bugbounty.hackerone")
 
 HACKERONE_API = "https://api.hackerone.com/v1"
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -36,7 +36,7 @@ class DiscordAdapter:
             "description": str(message)[:2048],
             "color": color,
             "footer": {"text": f"ORION · {priority}"},
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         payload = {

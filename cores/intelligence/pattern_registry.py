@@ -1,11 +1,11 @@
 import logging
 from collections import defaultdict
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 from typing import Any
 
-LOG = logging.getLogger("cateye.intelligence.patterns")
+LOG = logging.getLogger("ownex.intelligence.patterns")
 
 
 @dataclass(frozen=True)
@@ -72,7 +72,7 @@ class PatternRegistry:
         report_hours: float = 0.0,
         confidence: float = 0.0,
     ) -> None:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         with self._lock:
             stats = self._patterns[dimension][value]
             stats.count += 1

@@ -83,6 +83,7 @@ from api.routers import (
     reports_acceptance,
     reports_quality,
     revenue,
+    revenue_app,
     revenue_multiplier,
     roi,
     scans,
@@ -100,7 +101,6 @@ from api.routers import (
     terminal_ws,
     validation,
     vault_app,
-    revenue_app,
     verdicts,
     version,
     webhooks,
@@ -109,15 +109,13 @@ from api.routers import (
 )
 from api.routers.investment import register_investment_capabilities as _reg_inv_caps
 from cores.env.config import get_config
-from cores.intelligence.adaptive_memory import get_memory
 from cores.learning.router import router as learning_router
 from cores.log_config import setup_logging
-from cores.observability import get_metrics
 from database import db
 
 setup_logging()
 
-logger = logging.getLogger("cateye.api")
+logger = logging.getLogger("ownex.api")
 
 # Track background tasks to prevent silent crashes and allow cancellation
 _background_tasks: set[asyncio.Task] = set()
@@ -223,6 +221,35 @@ async def lifespan(app: FastAPI):
     get_insight_archive()
     logger.info("Insight archive initialized")
 
+    # Initialize Self-Healing System
+    try:
+        from core.self_healing.system import get_self_healing_system
+
+        healing_system = get_self_healing_system()
+        results = healing_system.validate_system()
+        logger.info("Self-healing system initialized: %s", results["overall_status"])
+    except Exception as exc:
+        logger.warning("Self-healing system init failed (non-fatal): %s", exc)
+
+    # Initialize Self-Update System
+    try:
+        from core.self_healing.update import SelfUpdateSystem
+
+        update_system = SelfUpdateSystem()
+        update_available, update_msg = update_system.check_for_updates()
+        logger.info("Self-update check: %s", update_msg)
+        if update_available and os.getenv("AUTO_UPDATE_ENABLED", "false").lower() == "true":
+            logger.info("Auto-update enabled, performing update...")
+            success, msg, logs = update_system.perform_update()
+            for log in logs:
+                logger.info("[UPDATE] %s", log)
+            if success:
+                logger.info("Auto-update completed: %s", msg)
+            else:
+                logger.warning("Auto-update failed: %s", msg)
+    except Exception as exc:
+        logger.warning("Self-update system init failed (non-fatal): %s", exc)
+
     # Consume memory into priority engine
     from cores.intelligence.priority_engine import get_priority_engine
 
@@ -256,6 +283,15 @@ async def lifespan(app: FastAPI):
         logger.info("Scan scheduler started")
     except Exception as exc:
         logger.warning("Scan scheduler failed to start (non-fatal): %s", exc)
+
+    # Initialize Operations System (24/7 watchdog, recovery, backups, cleanup, doctor)
+    try:
+        from cores.operations import initialize_operations
+        
+        ops = await initialize_operations()
+        logger.info("Operations system initialized (watchdog, recovery, backups, cleanup, doctor)")
+    except Exception as exc:
+        logger.warning("Operations system init failed (non-fatal): %s", exc)
 
     # ── Initialize loop engines ──
     try:
@@ -781,6 +817,56 @@ async def lifespan(app: FastAPI):
         except Exception as exc:
             logger.warning("Revenue Engine init failed (non-fatal): %s", exc)
 
+        # ── OWNEX Self-Heal: validate and repair ──
+        try:
+            from core.self_heal.engine import SelfHealEngine
+
+            healer = SelfHealEngine()
+            heal_report = healer.heal()
+            if heal_report.fixed > 0:
+                logger.info("[BOOT] Self-heal applied %d fixes", heal_report.fixed)
+        except Exception as exc:
+            logger.warning("Self-heal init failed (non-fatal): %s", exc)
+
+        # ── OWNEX Self-Update: check for updates ──
+        try:
+            from core.self_update.engine import SelfUpdateEngine
+
+            updater = SelfUpdateEngine()
+            update_info = updater.check_for_update()
+            if update_info.has_update:
+                logger.info("[BOOT] Update available: %d commits behind", update_info.commits_behind)
+        except Exception as exc:
+            logger.warning("Self-update check failed (non-fatal): %s", exc)
+
+        # ── OWNEX Self-Healing System (comprehensive validation) ──
+        try:
+            from core.self_healing.system import get_self_healing_system
+
+            self_healing = get_self_healing_system()
+            heal_results = self_healing.validate_system()
+            if heal_results["overall_status"] == "degraded":
+                logger.warning("[BOOT] Self-healing: system degraded, %d repairs attempted",
+                              heal_results.get("repairs_attempted", 0))
+            else:
+                logger.info("[BOOT] Self-healing: system healthy")
+        except Exception as exc:
+            logger.warning("Self-healing system init failed (non-fatal): %s", exc)
+
+        # ── OWNEX Self-Update System (auto-update on startup if enabled) ──
+        try:
+            from core.self_update.system import get_self_update_system
+
+            self_update = get_self_update_system()
+            update_check = self_update.check_for_updates()
+            if update_check.get("update_available"):
+                logger.info("[BOOT] Self-update: %s", "Updates available")
+                if update_check.get("auto_update", False):
+                    update_result = self_update.perform_full_update()
+                    logger.info("[BOOT] Self-update result: %s", update_result.get("success"))
+        except Exception as exc:
+            logger.warning("Self-update system init failed (non-fatal): %s", exc)
+
         dbm = get_db_manager()
 
         # Register databases for each app
@@ -1045,6 +1131,16 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("[BOOT] Event pipeline init failed (non-fatal): %s", exc)
 
+    # ── Initialize 24/7 Operations System ──
+    try:
+        from cores.operations import initialize_operations
+
+        ops_manager = await initialize_operations()
+        app.state.operations_manager = ops_manager
+        logger.info("[OPS] Operations system initialized (watchdog, backups, cleanup, doctor)")
+    except Exception as exc:
+        logger.warning("[OPS] Operations system init failed (non-fatal): %s", exc)
+
     yield
 
     # Stop RC7 Autonomous Intelligence Layer
@@ -1096,6 +1192,16 @@ async def lifespan(app: FastAPI):
         logger.info("[BOOT] All agents stopped")
     except Exception as exc:
         logger.warning("Multi-Agent system stop error: %s", exc)
+
+    # Stop 24/7 Operations System
+    try:
+        from cores.operations import get_operations_manager
+
+        ops_manager = get_operations_manager()
+        await ops_manager.stop()
+        logger.info("[OPS] Operations system stopped")
+    except Exception as exc:
+        logger.warning("[OPS] Operations system stop error: %s", exc)
 
     # Graceful shutdown of background tasks
     if scheduler is not None:
@@ -1418,106 +1524,9 @@ async def stats():
 
 @app.get("/api/metrics", response_class=PlainTextResponse)
 async def metrics():
-    """Prometheus-style metrics endpoint."""
-    lines = ["# HELP CATEYE_pipeline_timing Pipeline stage timing in ms", "# TYPE CATEYE_pipeline_timing gauge"]
-    for name, stats in get_metrics().items():
-        safe = name.replace(".", "_").replace(" ", "_")
-        lines.append(f'CATEYE_{safe}{{stat="avg_ms"}} {stats["avg_ms"]}')
-        lines.append(f'CATEYE_{safe}{{stat="count"}} {stats["count"]}')
-        lines.append(f'CATEYE_{safe}{{stat="total_ms"}} {stats["total_ms"]}')
+    """Prometheus-style metrics endpoint using prometheus-client."""
+    from prometheus_client import generate_latest
 
-    memory = get_memory()
-    state = memory.get_state()
-    lines.append("# HELP CATEYE_intelligence Intelligence layer metrics")
-    lines.append("# TYPE CATEYE_intelligence gauge")
-    lines.append(f'CATEYE_intelligence{{stat="patterns_learned"}} {state.get("total_patterns_learned", 0)}')
-    lines.append(
-        f'CATEYE_intelligence{{stat="recommendations_generated"}} {state.get("total_recommendations_generated", 0)}'
-    )
-    lines.append(f'CATEYE_intelligence{{stat="snapshots_created"}} {state.get("total_snapshots_created", 0)}')
-    lines.append(f'CATEYE_intelligence{{stat="analysis_time_ms"}} {state.get("total_analysis_time_ms", 0.0)}')
+    from cores.prometheus_registry import get_registry
 
-    from cores.confidence import audit_verdicts
-    from cores.replay import list_replay_targets
-    from cores.review_queue import build_review_queue
-    from cores.timeline import build_timeline
-
-    try:
-        tl = build_timeline(limit=1)
-        timeline_count = tl.to_dict().get("total_events", 0)
-        replay_targets = len(list_replay_targets())
-        conf = audit_verdicts(limit=1)
-        confidence_count = conf.total_audited
-        rq = build_review_queue(limit=1)
-        review_count = rq.total_items
-    except Exception:
-        timeline_count = replay_targets = confidence_count = review_count = 0
-
-    lines.append("# HELP CATEYE_system System hardening layer metrics")
-    lines.append("# TYPE CATEYE_system gauge")
-    lines.append(f'CATEYE_system{{stat="timeline_events"}} {timeline_count}')
-    lines.append(f'CATEYE_system{{stat="replays_generated"}} {replay_targets}')
-    lines.append(f'CATEYE_system{{stat="confidence_audits"}} {confidence_count}')
-    lines.append(f'CATEYE_system{{stat="review_queue_items"}} {review_count}')
-
-    # ── Opportunity Intelligence metrics ────────────────────────────
-    try:
-        from cores.opportunity import get_engine
-
-        engine = get_engine()
-        opp_metrics = engine.get_metrics()
-        lines.append("# HELP CATEYE_opportunity Opportunity intelligence layer metrics")
-        lines.append("# TYPE CATEYE_opportunity gauge")
-        lines.append(f'CATEYE_opportunity{{stat="total"}} {opp_metrics.get("opportunities_total", 0)}')
-        lines.append(f'CATEYE_opportunity{{stat="providers_active"}} {opp_metrics.get("providers_active", 0)}')
-        lines.append(f'CATEYE_opportunity{{stat="average_score"}} {opp_metrics.get("average_score", 0)}')
-        for prio, count in opp_metrics.get("by_priority", {}).items():
-            lines.append(f'CATEYE_opportunity{{stat="priority",category="{prio}"}} {count}')
-        for cat, count in opp_metrics.get("by_category", {}).items():
-            lines.append(f'CATEYE_opportunity{{stat="category",category="{cat}"}} {count}')
-    except Exception as exc:
-        logger.warning("Failed to collect opportunity metrics: %s", exc)
-
-    # ── Execution Layer metrics ─────────────────────────────────────
-    try:
-        from cores.actions.execution_tracker import get_execution_tracker
-
-        et = get_execution_tracker()
-        estats = et.get_stats()
-        lines.append("# HELP CATEYE_execution Execution layer metrics")
-        lines.append("# TYPE CATEYE_execution gauge")
-        lines.append(f'CATEYE_execution{{stat="total"}} {estats.get("total_executions", 0)}')
-        for atype, astats in estats.get("by_type", {}).items():
-            safe_t = atype.replace(" ", "_").replace("-", "_")
-            lines.append(f'CATEYE_execution{{stat="avg_score",type="{safe_t}"}} {astats.get("avg_score", 0)}')
-            lines.append(f'CATEYE_execution{{stat="avg_duration_ms",type="{safe_t}"}} {astats.get("avg_duration", 0)}')
-            lines.append(f'CATEYE_execution{{stat="errors",type="{safe_t}"}} {astats.get("errors", 0)}')
-
-        from cores.accountability.system_scorecard import get_system_scorecard
-
-        sc = get_system_scorecard()
-        latest = sc.get_latest()
-        if latest:
-            lines.append(f'CATEYE_execution{{stat="success_rate"}} {latest.get("success_rate", 0)}')
-            lines.append(f'CATEYE_execution{{stat="avg_outcome_score"}} {latest.get("avg_outcome_score", 0)}')
-            lines.append(f'CATEYE_execution{{stat="active_decisions"}} {latest.get("active_decisions", 0)}')
-            lines.append(f'CATEYE_execution{{stat="memory_usage"}} {latest.get("memory_usage", 0)}')
-
-        from cores.memory.insight_archive import get_insight_archive
-
-        ia = get_insight_archive()
-        lines.append(f'CATEYE_execution{{stat="insights_total"}} {ia.total_count()}')
-
-        from cores.explainability.explanation_engine import get_explanation_engine
-
-        ee = get_explanation_engine()
-        lines.append(f'CATEYE_execution{{stat="explanations"}} {ee.count()}')
-
-        from cores.explainability.decision_trace import get_decision_trace
-
-        dt = get_decision_trace()
-        lines.append(f'CATEYE_execution{{stat="decision_traces"}} {dt.count()}')
-    except Exception as exc:
-        logger.warning("Failed to collect execution metrics: %s", exc)
-
-    return "\n".join(lines) + "\n"
+    return generate_latest(get_registry())

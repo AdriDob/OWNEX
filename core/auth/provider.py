@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-logger = logging.getLogger("cateye.auth.provider")
+logger = logging.getLogger("ownex.auth.provider")
 
 
 class AuthType(str, enum.Enum):

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.crypto.base import (
@@ -16,7 +16,7 @@ from cores.crypto.base import (
 )
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("cateye.crypto.btc")
+logger = logging.getLogger("ownex.crypto.btc")
 
 BLOCKSTREAM_BASE = "https://blockstream.info/api"
 
@@ -103,7 +103,7 @@ class BTCConnector(CryptoConnector):
             usd_value=balance_btc * usd_price,
             decimals=8,
             chain="bitcoin",
-            last_updated=datetime.now(timezone.utc).isoformat(),
+            last_updated=datetime.now(UTC).isoformat(),
         ))
         return balances
 
@@ -130,7 +130,7 @@ class BTCConnector(CryptoConnector):
         txid = tx_data.get("txid", "")
         status = tx_data.get("status", {})
         block_time = status.get("block_time", 0)
-        timestamp = datetime.fromtimestamp(block_time, tz=timezone.utc).isoformat() if block_time else ""
+        timestamp = datetime.fromtimestamp(block_time, tz=UTC).isoformat() if block_time else ""
 
         our_vin_sum = 0
         our_vout_sum = 0
@@ -224,7 +224,7 @@ class BTCConnector(CryptoConnector):
                 txid = tx_data.get("txid", "")
                 status = tx_data.get("status", {})
                 block_time = status.get("block_time", 0)
-                timestamp = datetime.fromtimestamp(block_time, tz=timezone.utc).isoformat() if block_time else ""
+                timestamp = datetime.fromtimestamp(block_time, tz=UTC).isoformat() if block_time else ""
                 block_height = status.get("block_height", 0)
                 confirmations = tip_height - block_height + 1 if block_height > 0 else 0
 

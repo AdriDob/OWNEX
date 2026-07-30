@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import UTC
 from typing import TYPE_CHECKING
 
 from database import db
@@ -10,7 +11,7 @@ from database import db
 if TYPE_CHECKING:
     from cores.notifications.hub import Notification
 
-logger = logging.getLogger("cateye.notifications.db_bridge")
+logger = logging.getLogger("ownex.notifications.db_bridge")
 
 
 def persist_notification(notif: Notification) -> None:
@@ -42,7 +43,7 @@ def persist_notification(notif: Notification) -> None:
 
 def record_delivery(notification_id: int, channel: str, status: str = "sent", error: str | None = None) -> None:
     """Record delivery status for a notification channel."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     session = db.SessionLocal()
     try:
@@ -53,7 +54,7 @@ def record_delivery(notification_id: int, channel: str, status: str = "sent", er
             channel=channel,
             status=status,
             error=error,
-            delivered_at=datetime.now(timezone.utc) if status == "sent" else None,
+            delivered_at=datetime.now(UTC) if status == "sent" else None,
         )
         session.add(record)
         session.commit()

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -95,12 +95,12 @@ class MetricsTracker:
             {
                 "amount": amount,
                 "category": category,
-                "timestamp": (timestamp or datetime.now(timezone.utc)).isoformat(),
+                "timestamp": (timestamp or datetime.now(UTC)).isoformat(),
             }
         )
 
     def get_combined(self) -> CombinedMetrics:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         revenue_24h = Decimal("0")
         revenue_7d = Decimal("0")
         revenue_30d = Decimal("0")

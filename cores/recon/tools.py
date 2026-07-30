@@ -8,7 +8,7 @@ import os
 import shutil
 from pathlib import Path
 
-logger = logging.getLogger("cateye.recon.tools")
+logger = logging.getLogger("ownex.recon.tools")
 
 _GO_BIN_ENV = os.environ.get("GOPATH", str(Path.home() / "go"))
 GO_BIN = Path(_GO_BIN_ENV) / "bin"
@@ -64,7 +64,7 @@ async def check_tool_async(
             stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
             # Tool exists if it responds without crashing
             return True
-        except asyncio.TimeoutError:
+        except TimeoutError:
             proc.kill()
             await proc.communicate()
             return False

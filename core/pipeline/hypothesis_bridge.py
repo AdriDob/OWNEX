@@ -17,7 +17,7 @@ from typing import Any
 
 from database import models
 
-logger = logging.getLogger("cateye.pipeline.hypothesis_bridge")
+logger = logging.getLogger("ownex.pipeline.hypothesis_bridge")
 
 VULN_TYPE_MAP: dict[str, str] = {
     "idor": "idor",

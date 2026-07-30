@@ -9,7 +9,7 @@ from pathlib import Path
 
 from cores.tools.base import BaseTool, ToolResult, UnifiedResult
 
-logger = logging.getLogger("cateye.tools.slither")
+logger = logging.getLogger("ownex.tools.slither")
 
 SLITHER_DETECTOR_MAP: dict[str, dict[str, str]] = {
     "reentrancy-eth": {"vuln_type": "reentrancy", "severity": "high"},

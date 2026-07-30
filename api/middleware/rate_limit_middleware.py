@@ -9,7 +9,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from cores.auth.auth import verify_token
 from cores.gateway.rate_limit import get_rate_limiter
 
-logger = logging.getLogger("cateye.api.rate_limit")
+logger = logging.getLogger("ownex.api.rate_limit")
 
 NO_LIMIT_PREFIXES = {"/api/health", "/api/version", "/api/docs", "/api/openapi.json", "/api/redoc"}
 

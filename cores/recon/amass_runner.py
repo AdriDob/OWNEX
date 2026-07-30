@@ -22,7 +22,7 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("cateye.recon.amass")
+logger = logging.getLogger("ownex.recon.amass")
 
 ENUM_MODES = {
     "passive": ["amass", "enum", "-passive", "-nocolor", "-json"],
@@ -93,7 +93,7 @@ class AmassRunner:
                 if proc.returncode != 0:
                     stderr_text = stderr.decode("utf-8", errors="replace")[:500]
                     logger.warning("Amass %s returned %d: %s", mode, proc.returncode, stderr_text)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 proc.kill()
                 await proc.communicate()
                 logger.warning("Amass %s timed out after %ds", mode, timeout)
@@ -160,7 +160,7 @@ class AmassRunner:
                 stdout, stderr = await asyncio.wait_for(
                     proc.communicate(), timeout=timeout
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 proc.kill()
                 await proc.communicate()
         except Exception as e:

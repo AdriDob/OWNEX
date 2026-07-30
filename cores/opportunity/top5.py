@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from core.opportunity.models import OWNEX_WORK_CYCLE_ORDER, ScoredOpportunity, Top5Recommendation
 
@@ -21,7 +21,7 @@ class Top5Engine:
         if not opportunities:
             return Top5Recommendation(
                 ranked=[],
-                generated_at=now or datetime.now(timezone.utc).isoformat(),
+                generated_at=now or datetime.now(UTC).isoformat(),
                 total_scored=0,
                 diversification_note="No opportunities to score.",
                 summary="No opportunities available.",
@@ -36,7 +36,7 @@ class Top5Engine:
 
         return Top5Recommendation(
             ranked=selected,
-            generated_at=now or datetime.now(timezone.utc).isoformat(),
+            generated_at=now or datetime.now(UTC).isoformat(),
             total_scored=total_scored,
             diversification_note=note,
             summary=summary,

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from core.market_intelligence.memory import get_intel_memory
 from core.market_intelligence.models import (
@@ -81,7 +81,7 @@ def generate_brief(
         top_actions.append(f"{opp.title} — {opp.recommended_action}")
 
     brief = IntelligenceBrief(
-        date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        date=datetime.now(UTC).strftime("%Y-%m-%d"),
         summary=summary,
         top_opportunities=sorted_opps[:10],
         risks=risks,

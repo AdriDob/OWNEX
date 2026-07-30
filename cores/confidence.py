@@ -1,10 +1,10 @@
 import contextlib
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-LOG = logging.getLogger("cateye.confidence")
+LOG = logging.getLogger("ownex.confidence")
 
 SEVERITY_WEIGHTS = {"critical": 1.0, "high": 0.8, "medium": 0.5, "low": 0.3, "info": 0.1}
 
@@ -41,7 +41,7 @@ class ConfidenceAudit:
     evidence_influence: float = 0.0
     roi_influence: float = 0.0
     reasoning_summary: str = ""
-    audited_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    audited_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -63,7 +63,7 @@ class ConfidenceReport:
     audits: list[ConfidenceAudit] = field(default_factory=list)
     average_confidence: float = 0.0
     total_audited: int = 0
-    generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    generated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {

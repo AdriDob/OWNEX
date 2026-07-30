@@ -4,7 +4,7 @@ from pathlib import Path
 
 import whois as whois_lib
 
-logger = logging.getLogger("cateye.recon.whois")
+logger = logging.getLogger("ownex.recon.whois")
 
 
 class WhoisRunner:

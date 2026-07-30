@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
@@ -90,7 +90,7 @@ def create_payout_account(data: dict[str, Any]):
         "is_default": data.get("is_default", len(accounts) == 0),
         "connected": True,
         "withdrawable": data.get("withdrawable", 0),
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
     }
     accounts.append(entry)
     _set_config_value(PAYOUT_KEY, accounts)
@@ -140,7 +140,7 @@ def request_withdrawal(data: dict[str, Any]):
         "currency": data.get("currency", account.get("currency", "USD")),
         "destination": account.get("label", account.get("address", "")),
         "status": "pending",
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
     }
     withdrawals.append(entry)
     _set_config_value(WITHDRAWAL_KEY, withdrawals)
@@ -201,7 +201,7 @@ def register_platform(data: dict[str, Any]):
             "provider": provider,
             "email": data.get("email", ""),
             "username": data.get("username", ""),
-            "registered_at": datetime.now(timezone.utc).isoformat(),
+            "registered_at": datetime.now(UTC).isoformat(),
         })
 
     _set_config_value(PLATFORM_REG_KEY, registered)

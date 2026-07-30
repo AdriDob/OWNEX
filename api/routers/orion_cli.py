@@ -11,6 +11,26 @@ logger = logging.getLogger("orion.cli.api")
 router = APIRouter(prefix="/api/cli", tags=["orion_cli"])
 
 
+@router.get("/doctor")
+async def cli_doctor(
+    component: str = Query("all", description="Component to check: all, database, api, pipeline, evidence, verdicts, reports, ai, quick_wins, replay, screenshot, adaptive, timeline, memory, operations"),
+    fix: bool = Query(False, description="Attempt auto-fix if issues found"),
+):
+    """Run system doctor diagnostics (equivalent to 'orion doctor')."""
+    from datetime import UTC, datetime
+    from cores.operations import get_operations_manager
+    
+    ops = get_operations_manager()
+    result = await ops.run_doctor(component=component, fix=fix)
+    
+    return {
+        "success": True,
+        "command": "doctor",
+        "summary": result.get("summary", "Doctor check completed"),
+        "details": result,
+    }
+
+
 @router.get("/help")
 async def cli_help(command: str = ""):
     """Lista de comandos disponibles."""
@@ -66,6 +86,43 @@ async def cli_max():
 async def cli_health(detalles: bool = Query(False), debug: bool = Query(False)):
     """Salud del sistema y servicios."""
     return {"success": True, "command": "health", "summary": "OWNEX healthy"}
+
+
+@router.get("/doctor")
+async def cli_doctor(verbose: bool = Query(False)):
+    """Run system diagnostics (ownex doctor)."""
+    from cores.operations import get_operations_manager
+    
+    ops = get_operations_manager()
+    report = await ops.run_doctor(verbose=verbose)
+    
+    return {
+        "success": report.overall_healthy,
+        "command": "doctor",
+        "summary": report.summary,
+        "healthy": report.overall_healthy,
+        "checks": [
+            {
+                "name": c.name,
+                "passed": c.passed,
+                "message": c.message,
+                "severity": c.severity,
+                "details": c.details,
+            }
+            for c in report.checks
+        ],
+        "recommendations": report.recommendations,
+        "timestamp": report.timestamp.isoformat(),
+    }
+
+
+@router.get("/dashboard")
+async def cli_dashboard():
+    """Get dashboard data."""
+    from cores.dashboard import get_dashboard_api
+    
+    api = get_dashboard_api()
+    return await api.get_dashboard_data()
 
 
 @router.get("/f1/history")

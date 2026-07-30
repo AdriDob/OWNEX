@@ -20,7 +20,7 @@ import re
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from urllib.error import URLError
 from urllib.request import Request, urlopen
@@ -30,7 +30,7 @@ from cores.financial.withdrawal import ConfirmationMethod, complete_withdrawal, 
 from cores.identity_vault import get_identity_vault
 from cores.ledger import LedgerEvent, record_event
 
-logger = logging.getLogger("cateye.financial.bank_payout")
+logger = logging.getLogger("ownex.financial.bank_payout")
 
 PLATFORM_PATTERNS: dict[str, list[str]] = {
     "hackerone": [r"HACKERONE", r"HackerOne\s*Inc", r"H1\s+Payout"],
@@ -269,7 +269,7 @@ class WebhookHandler:
         txn_id = data.get("transaction_id", "") or str(uuid.uuid4())
         amount = float(data.get("amount", 0))
         currency = data.get("currency", "USD")
-        date_val = data.get("date", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+        date_val = data.get("date", datetime.now(UTC).strftime("%Y-%m-%d"))
         description = data.get("description", "")
         account_name = data.get("account_name", "webhook")
 
@@ -563,7 +563,7 @@ class BankPayoutConnector:
             "plaid_accounts": len(plaid_accounts),
             "plaid_env": self._plaid_provider.env if self._plaid_provider else None,
             "last_sync": self._last_sync,
-            "last_sync_iso": datetime.fromtimestamp(self._last_sync, tz=timezone.utc).isoformat() if self._last_sync else "",
+            "last_sync_iso": datetime.fromtimestamp(self._last_sync, tz=UTC).isoformat() if self._last_sync else "",
             "sync_status": self._sync_status,
             "detected_payouts": len(self._detected_payouts),
             "wallet_id": self.wallet_id,

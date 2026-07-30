@@ -8,7 +8,7 @@ Protocols define expected interfaces for infrastructure components.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Protocol, runtime_checkable
 
 
@@ -32,11 +32,11 @@ class Artifact:
 
     def __post_init__(self) -> None:
         if not self.timestamp:
-            self.timestamp = datetime.now(timezone.utc).isoformat()
+            self.timestamp = datetime.now(UTC).isoformat()
 
     def bump(self) -> None:
         self.version += 1
-        self.timestamp = datetime.now(timezone.utc).isoformat()
+        self.timestamp = datetime.now(UTC).isoformat()
 
     def depends_on(self, *artifact_types: str) -> None:
         for at in artifact_types:

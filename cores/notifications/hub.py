@@ -29,7 +29,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("cateye.notifications.hub")
+logger = logging.getLogger("ownex.notifications.hub")
 
 NOTIFICATION_TYPES = [
     "opportunity_detected",

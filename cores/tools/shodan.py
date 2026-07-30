@@ -14,7 +14,7 @@ from urllib.request import urlopen
 
 from cores.tools.base import BaseTool, UnifiedResult
 
-logger = logging.getLogger("cateye.tools.shodan")
+logger = logging.getLogger("ownex.tools.shodan")
 
 SHODAN_API_BASE = "https://api.shodan.io"
 

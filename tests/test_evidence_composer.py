@@ -356,7 +356,7 @@ class TestPublishEvidenceEvent:
             cwe_id="CWE-639",
             acceptance_probability=0.8,
         )
-        with patch("core.events.event_bus.get_core_event_bus") as mock_get_bus:
+        with patch("cores.events.event_bus.get_core_event_bus") as mock_get_bus:
             mock_bus = mock_get_bus.return_value
             publish_evidence_event("composed", bundle)
             mock_bus.publish.assert_called_once()

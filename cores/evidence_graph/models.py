@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import declarative_base, relationship
@@ -27,7 +27,7 @@ class EvidenceNode(Base):
     confidence = Column(Float, default=0.0)
     origin = Column(String(64), default="core.evidence_graph")
     metadata_json = Column(Text, default="{}")
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
     edges_from = relationship(
         "EvidenceEdge",
@@ -53,7 +53,7 @@ class EvidenceEdge(Base):
     to_node_id = Column(Integer, ForeignKey("evidence_graph_nodes.id"), nullable=False)
     edge_type = Column(String(32), default="related_to")
     weight = Column(Float, default=0.5)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
     from_node = relationship(
         "EvidenceNode",

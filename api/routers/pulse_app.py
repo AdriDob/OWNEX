@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import asc, desc
@@ -104,6 +104,6 @@ def update_opportunity_status(
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
     opp.status = status
-    opp.updated_at = datetime.now(timezone.utc)
+    opp.updated_at = datetime.now(UTC)
     db.commit()
     return {"success": True, "status": opp.status}

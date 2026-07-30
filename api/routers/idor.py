@@ -48,7 +48,7 @@ def idor_scan(request: IDORScanRequest):
     from cores.validation.replayer import AuthContext
     from database import db, models
 
-    logger = logging.getLogger("cateye.api.idor")
+    logger = logging.getLogger("ownex.api.idor")
     session = db.SessionLocal()
     try:
         endpoint = (

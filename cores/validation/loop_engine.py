@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.validation.challenger import HypothesisChallenger
@@ -9,7 +9,7 @@ from cores.validation.llm_analyzer import LLMResponseAnalyzer
 from cores.validation.replayer import AuthContext, RequestReplayer, RequestSpec
 from cores.validation.rules import ValidationRuleSet
 
-logger = logging.getLogger("cateye.validation.loop")
+logger = logging.getLogger("ownex.validation.loop")
 
 DEFAULT_CONCURRENCY = 5
 
@@ -161,7 +161,7 @@ class ValidationLoopEngine:
             evidence_links=evidence_links,
             reason=reason,
             retry_count=len(comparison_results),
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             alternative_explanations=[a.to_dict() for a in enriched.alternative_explanations],
             missing_verifications=enriched.missing_verifications,
             next_best_test=enriched.next_best_test.to_dict() if enriched.next_best_test else None,

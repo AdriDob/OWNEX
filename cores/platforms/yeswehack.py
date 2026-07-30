@@ -5,7 +5,7 @@ from typing import Any
 
 from cores.platforms.base import BugBountyPlatform, SubmissionResult, SyncResult
 
-logger = logging.getLogger("cateye.platforms.yeswehack")
+logger = logging.getLogger("ownex.platforms.yeswehack")
 
 
 class YesWeHack(BugBountyPlatform):

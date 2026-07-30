@@ -23,7 +23,7 @@ from cores.events.event_bus import EVENT_PRIORITY_MAP, get_event_bus
 from cores.notifications.hub import get_hub
 from cores.notifications.push import EVENT_PUSH_MAP
 
-logger = logging.getLogger("cateye.financial.events")
+logger = logging.getLogger("ownex.financial.events")
 
 FINANCIAL_EVENT_TYPES = [
     "financial:payout_received",

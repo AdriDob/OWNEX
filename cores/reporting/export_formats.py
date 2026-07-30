@@ -8,7 +8,7 @@ try:
 except ImportError:
     Environment = None
 
-logger = logging.getLogger("cateye.export_formats")
+logger = logging.getLogger("ownex.export_formats")
 
 USER_TEMPLATES_DIR = Path.home() / ".orion" / "templates"
 

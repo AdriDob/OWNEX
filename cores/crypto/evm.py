@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.crypto.base import (
@@ -16,7 +16,7 @@ from cores.crypto.base import (
 )
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("cateye.crypto.evm")
+logger = logging.getLogger("ownex.crypto.evm")
 
 ERC20_ABI = [
     {"constant": True, "inputs": [], "name": "name", "outputs": [{"name": "", "type": "string"}], "type": "function"},
@@ -298,7 +298,7 @@ class EVMConnector(CryptoConnector):
             usd_value=balance * usd_price,
             decimals=decimals,
             chain=self._chain_name,
-            last_updated=datetime.now(timezone.utc).isoformat(),
+            last_updated=datetime.now(UTC).isoformat(),
         )
 
     def _get_erc20_balance(self, contract_address: str, symbol: str) -> CryptoBalance | None:
@@ -321,7 +321,7 @@ class EVMConnector(CryptoConnector):
             decimals=18,
             chain=self._chain_name,
             contract_address=contract_address,
-            last_updated=datetime.now(timezone.utc).isoformat(),
+            last_updated=datetime.now(UTC).isoformat(),
         )
 
     def get_transactions(self, limit: int = 50) -> list[CryptoTransaction]:
@@ -348,7 +348,7 @@ class EVMConnector(CryptoConnector):
                         tx_hash=tx_data.get("hash", ""),
                         chain=self._chain_name,
                         block_number=int(tx_data.get("blockNumber", "0"), 16) if tx_data.get("blockNumber", "0").startswith("0x") else int(tx_data.get("blockNumber", 0)),
-                        timestamp=datetime.fromtimestamp(int(tx_data.get("timeStamp", "0"), 16) if tx_data.get("timeStamp", "0").startswith("0x") else int(tx_data.get("timeStamp", 0)), tz=timezone.utc).isoformat(),
+                        timestamp=datetime.fromtimestamp(int(tx_data.get("timeStamp", "0"), 16) if tx_data.get("timeStamp", "0").startswith("0x") else int(tx_data.get("timeStamp", 0)), tz=UTC).isoformat(),
                         from_address=tx_data.get("from", ""),
                         to_address=tx_data.get("to", ""),
                         asset=self._chain_info["currency"],
@@ -371,7 +371,7 @@ class EVMConnector(CryptoConnector):
                         tx_hash=tx_data.get("hash", ""),
                         chain=self._chain_name,
                         block_number=int(tx_data.get("blockNumber", "0")),
-                        timestamp=datetime.fromtimestamp(int(tx_data.get("timeStamp", "0")), tz=timezone.utc).isoformat(),
+                        timestamp=datetime.fromtimestamp(int(tx_data.get("timeStamp", "0")), tz=UTC).isoformat(),
                         from_address=tx_data.get("from", ""),
                         to_address=tx_data.get("to", ""),
                         asset=tx_data.get("tokenSymbol", "UNKNOWN"),
@@ -419,7 +419,7 @@ class EVMConnector(CryptoConnector):
                         status="confirmed" if tx_data.get("isError") == "0" else "failed",
                         confirmations=int(tx_data.get("confirmations", "0")),
                         confirmations_required=12,
-                        timestamp=datetime.fromtimestamp(int(tx_data.get("timeStamp", "0"), 16) if tx_data.get("timeStamp", "0").startswith("0x") else int(tx_data.get("timeStamp", 0)), tz=timezone.utc).isoformat(),
+                        timestamp=datetime.fromtimestamp(int(tx_data.get("timeStamp", "0"), 16) if tx_data.get("timeStamp", "0").startswith("0x") else int(tx_data.get("timeStamp", 0)), tz=UTC).isoformat(),
                     )
                     withdrawals.append(wd)
                 except Exception as exc:

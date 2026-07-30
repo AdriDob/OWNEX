@@ -7,7 +7,7 @@ from typing import Any
 from core.execution.runtime.context import RuntimeContext
 from core.execution.runtime.publisher import ExecutionEventPublisher
 
-logger = logging.getLogger("cateye.execution.dispatcher")
+logger = logging.getLogger("ownex.execution.dispatcher")
 
 
 class CapabilityDispatcher:

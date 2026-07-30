@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from database.db import SessionLocal
@@ -62,15 +62,15 @@ def import_program(
         if existing:
             program = existing
             is_new = False
-            program.updated_at = datetime.now(timezone.utc)
+            program.updated_at = datetime.now(UTC)
         else:
             program = Program(
                 name=name,
                 platform=platform,
                 program_url=program_url,
                 status="active",
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
+                updated_at=datetime.now(UTC),
             )
             session.add(program)
             session.flush()
@@ -158,7 +158,7 @@ def _import_assets(
     Returns count of new assets created.
     """
     created = 0
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     for domain in domains:
         domain = domain.strip().lower()

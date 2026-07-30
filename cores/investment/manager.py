@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from threading import Lock
 from typing import Any
@@ -137,7 +137,7 @@ class InvestmentManager:
             if strategy_id not in self._active_strategies:
                 self._active_strategies[strategy_id] = {
                     "strategy_id": strategy_id,
-                    "deployed_at": datetime.now(timezone.utc).isoformat(),
+                    "deployed_at": datetime.now(UTC).isoformat(),
                     "total_deployed": 0.0,
                     "total_withdrawn": 0.0,
                 }
@@ -342,7 +342,7 @@ class InvestmentManager:
                         "drawdown_protection": self._drawdown_protection,
                         "max_consecutive_losses": self._max_consecutive_losses,
                         "pause_on_drawdown_pct": self._pause_on_drawdown_pct,
-                        "updated_at": datetime.now(timezone.utc).isoformat(),
+                        "updated_at": datetime.now(UTC).isoformat(),
                     },
                     indent=2,
                 )

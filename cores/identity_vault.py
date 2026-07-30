@@ -16,7 +16,7 @@ import hashlib
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -159,7 +159,7 @@ class IdentityVault:
         entry = {
             "email": email,
             "session_state": "disconnected",
-            "last_checked": datetime.now(timezone.utc).isoformat(),
+            "last_checked": datetime.now(UTC).isoformat(),
             "health_status": "unknown",
             "encrypted_token": _encrypt(token) if token else "",
             "encrypted_password": _encrypt(password) if password else "",
@@ -208,13 +208,13 @@ class IdentityVault:
     def update_session_state(self, provider: str, state: str) -> None:
         if provider in _VAULT_DATA:
             _VAULT_DATA[provider]["session_state"] = state
-            _VAULT_DATA[provider]["last_checked"] = datetime.now(timezone.utc).isoformat()
+            _VAULT_DATA[provider]["last_checked"] = datetime.now(UTC).isoformat()
             self._save()
 
     def update_health(self, provider: str, status: str) -> None:
         if provider in _VAULT_DATA:
             _VAULT_DATA[provider]["health_status"] = status
-            _VAULT_DATA[provider]["last_checked"] = datetime.now(timezone.utc).isoformat()
+            _VAULT_DATA[provider]["last_checked"] = datetime.now(UTC).isoformat()
             self._save()
 
     def check_session_health(self, provider: str) -> dict[str, Any]:
@@ -230,7 +230,7 @@ class IdentityVault:
 
         hours_since_check = 999
         if last_checked:
-            hours_since_check = int((datetime.now(timezone.utc) - last_checked).total_seconds() / 3600)
+            hours_since_check = int((datetime.now(UTC) - last_checked).total_seconds() / 3600)
 
         state = data.get("session_state", "disconnected")
         has_creds = bool(data.get("encrypted_token") or data.get("encrypted_password"))

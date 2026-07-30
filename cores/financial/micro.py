@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.crypto.sync_manager import get_crypto_sync_manager
@@ -124,7 +124,7 @@ def get_sync_health() -> dict[str, Any]:
         success_rate = round(sync.successful_syncs / sync_count, 3) if sync_count else 0.0
         error_rate = round(1 - success_rate, 3)
         integrations[pid] = {
-            "last_sync_time": datetime.fromtimestamp(sync.last_sync, tz=timezone.utc).isoformat() if sync.last_sync else "",
+            "last_sync_time": datetime.fromtimestamp(sync.last_sync, tz=UTC).isoformat() if sync.last_sync else "",
             "success_rate": success_rate,
             "error_rate": error_rate,
             "avg_latency_ms": 0.0,
@@ -251,7 +251,7 @@ def detect_sync_anomalies() -> list[dict[str, Any]]:
                 "type": "stale_data",
                 "severity": "medium",
                 "source": pid,
-                "description": f"Data for {pid} is stale (last sync: {datetime.fromtimestamp(sync.last_success, tz=timezone.utc).isoformat()})",
+                "description": f"Data for {pid} is stale (last sync: {datetime.fromtimestamp(sync.last_success, tz=UTC).isoformat()})",
                 "details": {"last_success": sync.last_success, "stale_threshold_seconds": 3600},
             })
 
@@ -318,7 +318,7 @@ def get_pending_actions() -> list[dict[str, Any]]:
                 "source": pid,
                 "description": f"Retry failed sync for {pid} ({sync.consecutive_failures} failures)",
                 "action_url": f"/api/micro/sync-source/{pid}",
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
             })
 
     vault_actions = _check_disconnected_accounts()
@@ -333,7 +333,7 @@ def get_pending_actions() -> list[dict[str, Any]]:
             "source": "reconciliation",
             "description": f"{reconn_state['unresolved']} unresolved reconciliation discrepancies",
             "action_url": "/api/financial/reconciliation",
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
         })
 
     actions.sort(key=lambda a: a["priority"], reverse=True)
@@ -435,7 +435,7 @@ def export_account_snapshot(account_id: str) -> dict[str, Any]:
         "balance": round(balance, 2),
         "recent_transactions": account_txns[:20],
         "sync_state": sync_state,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "metadata": {
             "platform_registered": account_id in PLATFORM_REGISTRY,
             "crypto_wallet": account_id in get_crypto_sync_manager().connectors,

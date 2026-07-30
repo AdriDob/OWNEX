@@ -12,7 +12,7 @@ from __future__ import annotations
 import contextlib
 import logging
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from cores.opportunity.models import (
     EVHCalculation,
@@ -22,7 +22,7 @@ from cores.opportunity.models import (
     ScoreBreakdown,
 )
 
-logger = logging.getLogger("cateye.opportunity.scoring2")
+logger = logging.getLogger("ownex.opportunity.scoring2")
 
 # Known high-value technology keywords
 _HIGH_VALUE_TAGS: set[str] = {
@@ -242,7 +242,7 @@ def _compute_competition_score(opp: Opportunity) -> tuple[float, str]:
     if opp.last_update:
         try:
             dt = datetime.fromisoformat(opp.last_update)
-            days = (datetime.now(timezone.utc) - dt).days
+            days = (datetime.now(UTC) - dt).days
             if days < 30:
                 age_text = "Recently updated — active"
             elif days < 180:
@@ -414,7 +414,7 @@ def _compute_freshness(opp: Opportunity) -> float:
         return 0.5
     try:
         dt = datetime.fromisoformat(opp.last_update)
-        days = (datetime.now(timezone.utc) - dt).days
+        days = (datetime.now(UTC) - dt).days
         if days < 7:
             return 0.95
         if days < 30:

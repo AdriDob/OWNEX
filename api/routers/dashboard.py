@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 from cores.ai.provider import get_provider, get_registry
 
-logger = logging.getLogger("cateye.api.dashboard")
+logger = logging.getLogger("ownex.api.dashboard")
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -108,7 +108,7 @@ async def check_provider_health(provider_id: str, provider: any) -> HealthStatus
             models_count=models,
             last_check=datetime.utcnow().isoformat() + "Z",
         )
-    except asyncio.TimeoutError:
+    except TimeoutError:
         return HealthStatus(
             provider=provider_id,
             status="degraded",

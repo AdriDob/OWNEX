@@ -25,7 +25,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.tools.base import UnifiedResult
@@ -53,7 +53,7 @@ except ImportError:
     SmartMutationEngine = None  # type: ignore
 
 
-logger = logging.getLogger("cateye.pipeline.unified")
+logger = logging.getLogger("ownex.pipeline.unified")
 
 
 class CorrelationEngine:
@@ -216,7 +216,7 @@ class UnifiedScanner:
             "errors": [str]
         }
         """
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
         all_results: list[UnifiedResult] = []
         errors: list[str] = []
 
@@ -493,7 +493,7 @@ class UnifiedScanner:
         correlated = self._correlation.correlate(all_results)
         logger.info("  Correlated into %d findings", len(correlated))
 
-        duration = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
+        duration = int((datetime.now(UTC) - start).total_seconds() * 1000)
 
         return {
             "domain": domain,

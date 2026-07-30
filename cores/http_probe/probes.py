@@ -10,7 +10,7 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from core.http_probe.templates import ProbeTemplate
 
-logger = logging.getLogger("cateye.http_probe.probes")
+logger = logging.getLogger("ownex.http_probe.probes")
 
 # ── HTTP response data ───────────────────────────────────────
 

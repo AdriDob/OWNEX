@@ -31,7 +31,7 @@ from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.capabilities.registry import get_capability_registry
@@ -187,8 +187,8 @@ class ArcaConnector:
 
             invoice.invoice_number = random.randint(10000000, 99999999)
             invoice.cae = str(random.randint(10000000000000, 99999999999999))
-            invoice.cae_expires = datetime.now(timezone.utc).isoformat()
-            invoice.emitted_at = datetime.now(timezone.utc).isoformat()
+            invoice.cae_expires = datetime.now(UTC).isoformat()
+            invoice.emitted_at = datetime.now(UTC).isoformat()
             invoice.status = "emitted"
             invoice.id = f"ARCA-{invoice.invoice_type}-{invoice.cae[-8:]}"
             logger.info("[ARCA] TEST invoice %s created: $%.2f total (IVA: $%.2f)", invoice.id, total, vat_amount)
@@ -200,7 +200,7 @@ class ArcaConnector:
                     invoice.cae = cae_data.get("cae", "")
                     invoice.cae_expires = cae_data.get("cae_expires", "")
                     invoice.invoice_number = cae_data.get("invoice_number", 0)
-                    invoice.emitted_at = datetime.now(timezone.utc).isoformat()
+                    invoice.emitted_at = datetime.now(UTC).isoformat()
                     invoice.status = "emitted"
                     invoice.id = f"ARCA-{invoice.invoice_type}-{invoice.cae[-8:]}"
                     logger.info("[ARCA] Invoice %s emitted: CAE %s", invoice.id, invoice.cae)

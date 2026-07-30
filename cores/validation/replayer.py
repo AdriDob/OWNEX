@@ -4,7 +4,7 @@ import random
 import re
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urlparse
 
@@ -15,7 +15,7 @@ from cores.validation.hardening import (
     NetworkBehaviorDetector,
 )
 
-logger = logging.getLogger("cateye.replayer")
+logger = logging.getLogger("ownex.replayer")
 
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 DEFAULT_TIMEOUT = 15
@@ -347,7 +347,7 @@ class RequestReplayer:
             has_rate_limit=has_rate_limit,
             has_timeout=has_timeout,
             consistent=True,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
         )
 
     def _detect_sensitive_fields(self, body: str) -> list[str]:

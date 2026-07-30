@@ -8,7 +8,7 @@ from typing import Any
 
 from core.execution.runtime.clock import VirtualClock
 
-logger = logging.getLogger("cateye.execution.retry")
+logger = logging.getLogger("ownex.execution.retry")
 
 
 class RetryPolicy(str, Enum):

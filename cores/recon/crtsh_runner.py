@@ -1,9 +1,8 @@
-import asyncio
 import json
 import logging
 from pathlib import Path
 
-logger = logging.getLogger("cateye.recon.crtsh")
+logger = logging.getLogger("ownex.recon.crtsh")
 
 
 class CrtshRunner:
@@ -33,7 +32,7 @@ class CrtshRunner:
                     path.write_text("\n".join(result) if result else "NO RESULTS")
                     logger.info("crt.sh: %d subdomains for %s", len(result), domain)
                     return path
-        except asyncio.TimeoutError:
+        except TimeoutError:
             path.write_text("CRTSH TIMED OUT")
             return path
         except Exception as e:

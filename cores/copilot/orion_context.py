@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger("orion.copilot.orion_context")
@@ -31,7 +31,7 @@ class OrionContext:
 
     def _build(self) -> dict[str, Any]:
         ctx: dict[str, Any] = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "system": self._get_system_state(),
             "targets": self._get_active_targets(),
             "findings": self._get_findings_summary(),

@@ -13,7 +13,7 @@ import secrets
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-logger = logging.getLogger("cateye.vault_crypto")
+logger = logging.getLogger("ownex.vault_crypto")
 
 _AES_NONCE_BYTES = 12
 _VAULT_KEY: bytes | None = None

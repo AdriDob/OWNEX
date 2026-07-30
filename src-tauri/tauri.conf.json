@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicehash/tauri/dev/crates/tauri-config-schema/schema.json",
-  "productName": "OWNEX",
-  "version": "5.3.0",
-  "identifier": "ai.orion.desktop",
+  "productName": "OWNEX OMEGA",
+  "version": "7.0.0",
+  "identifier": "ai.ownex.omega.desktop",
   "build": {
     "beforeDevCommand": "cd frontend && npm run dev",
     "devUrl": "http://localhost:5173",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "OWNEX — Security Intelligence OS",
+        "title": "OWNEX OMEGA — Autonomous Work Operating Platform",
         "width": 1400,
         "height": 900,
         "minWidth": 900,
@@ -55,7 +55,7 @@
     "shell": {
       "sidecar": [
         {
-          "name": "ownex-backend",
+          "name": "ownex-omega-backend",
           "args": true
         }
       ]

@@ -18,7 +18,7 @@ from contextlib import suppress
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-logger = logging.getLogger("cateye.api.terminal")
+logger = logging.getLogger("ownex.api.terminal")
 
 router = APIRouter()
 
@@ -164,7 +164,7 @@ async def terminal_websocket(websocket: WebSocket) -> None:
                 process.send_signal(signal.SIGTERM)
             try:
                 await asyncio.wait_for(process.wait(), timeout=5)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 try:
                     process.kill()
                     await process.wait()

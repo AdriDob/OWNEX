@@ -22,7 +22,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp
 
-logger = logging.getLogger("cateye.csrf")
+logger = logging.getLogger("ownex.csrf")
 
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS", "TRACE"})
 COOKIE_NAME = "csrf-token"

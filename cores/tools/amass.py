@@ -7,7 +7,7 @@ import logging
 
 from cores.tools.base import BaseTool, UnifiedResult
 
-logger = logging.getLogger("cateye.tools.amass")
+logger = logging.getLogger("ownex.tools.amass")
 
 
 class AmassTool(BaseTool):

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-""""""
+"""Capability registry module."""
 from core.capabilities.registry import (
     CapabilityEntry,
     CapabilityRegistry,

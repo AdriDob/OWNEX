@@ -18,7 +18,7 @@ from .subfinder_runner import SubfinderRunner
 from .wayback_runner import WaybackRunner
 from .whois_runner import WhoisRunner
 
-logger = logging.getLogger("cateye.recon")
+logger = logging.getLogger("ownex.recon")
 
 
 class ReconRunner:
@@ -77,7 +77,7 @@ class ReconRunner:
 
             return result
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error("Tool timeout: %s", tool_name)
             return None
 

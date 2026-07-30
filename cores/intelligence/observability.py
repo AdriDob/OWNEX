@@ -14,10 +14,10 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-LOG = logging.getLogger("cateye.intelligence.observability")
+LOG = logging.getLogger("ownex.intelligence.observability")
 
 
 @dataclass
@@ -103,7 +103,7 @@ class ObservabilityCollector:
         m.recompute_time_ms = round(elapsed_ms, 2)
         m.total_recompute_time_ms += elapsed_ms
         m.version = version
-        m.last_updated = datetime.now(timezone.utc).isoformat()
+        m.last_updated = datetime.now(UTC).isoformat()
 
     def record_cache_hit(self, artifact_type: str) -> None:
         if artifact_type not in self._metrics:

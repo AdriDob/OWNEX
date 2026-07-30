@@ -11,7 +11,7 @@ from fastapi.responses import PlainTextResponse
 from core.report_pipeline import get_pipeline
 from database.db import SessionLocal
 
-logger = logging.getLogger("cateye.api.report_pipeline")
+logger = logging.getLogger("ownex.api.report_pipeline")
 
 router = APIRouter(prefix="/api/reports", tags=["reports"])
 

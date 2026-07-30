@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.crypto.base import (
@@ -16,7 +16,7 @@ from cores.crypto.base import (
 )
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("cateye.crypto.tron")
+logger = logging.getLogger("ownex.crypto.tron")
 
 TRONGRID_API = "https://api.trongrid.io"
 
@@ -101,7 +101,7 @@ class TronConnector(CryptoConnector):
             usd_value=trx_balance * trx_usd,
             decimals=SUN_DECIMALS,
             chain="tron",
-            last_updated=datetime.now(timezone.utc).isoformat(),
+            last_updated=datetime.now(UTC).isoformat(),
         ))
 
         trc20_list = account.get("trc20", [])
@@ -123,7 +123,7 @@ class TronConnector(CryptoConnector):
                     decimals=6,
                     chain="tron",
                     contract_address=contract_addr,
-                    last_updated=datetime.now(timezone.utc).isoformat(),
+                    last_updated=datetime.now(UTC).isoformat(),
                 ))
 
         return balances
@@ -166,7 +166,7 @@ class TronConnector(CryptoConnector):
         timestamp = ""
         if block_timestamp_ms:
             timestamp = datetime.fromtimestamp(
-                block_timestamp_ms / 1000, tz=timezone.utc
+                block_timestamp_ms / 1000, tz=UTC
             ).isoformat()
 
         from_addr = tx_data.get("from", "") or tx_data.get("ownerAddress", "")

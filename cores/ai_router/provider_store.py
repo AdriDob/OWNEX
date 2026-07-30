@@ -5,7 +5,7 @@ import os
 import time
 from dataclasses import dataclass
 
-logger = logging.getLogger("cateye.ai_router.provider_store")
+logger = logging.getLogger("ownex.ai_router.provider_store")
 
 STATUS_PATH = os.path.expanduser("~/.orion/ai_provider_status.json")
 

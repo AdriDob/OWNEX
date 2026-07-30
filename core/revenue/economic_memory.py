@@ -9,7 +9,7 @@ from typing import Any
 from core.memory.store import UnifiedMemoryStore
 from database import db, models
 
-logger = logging.getLogger("cateye.revenue.economic_memory")
+logger = logging.getLogger("ownex.revenue.economic_memory")
 
 NS = "economic"
 

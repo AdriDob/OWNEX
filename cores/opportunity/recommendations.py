@@ -6,11 +6,11 @@ All recommendations are advisory only. Never modifies pipeline data.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from cores.opportunity.models import Opportunity, OpportunityRecommendations, OpportunityScore
 
-logger = logging.getLogger("cateye.opportunity.recommendations")
+logger = logging.getLogger("ownex.opportunity.recommendations")
 
 
 def _score(o: Opportunity) -> OpportunityScore:
@@ -34,7 +34,7 @@ def generate_recommendations(opportunities: list[Opportunity]) -> OpportunityRec
     if not scored:
         return OpportunityRecommendations(generated_at="", summary="No scored opportunities available.")
 
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     # Sort by overall score descending
     sorted_by_score = sorted(scored, key=lambda o: _score(o).overall, reverse=True)

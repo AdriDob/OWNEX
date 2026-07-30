@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 from cores.engine.unified_scoring import score as unified_score
 
-logger = logging.getLogger("cateye.recon.parser")
+logger = logging.getLogger("ownex.recon.parser")
 
 AUTH_SMELLS = [
     "org_id",

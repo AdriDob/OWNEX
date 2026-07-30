@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -79,7 +79,7 @@ class IntelligenceSource:
     signals_correct: int = 0
     reliability: float = 0.5  # 0.0 - 1.0, starts neutral
     last_analyzed: str = ""
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -110,7 +110,7 @@ class SourceSignal:
     risk_score: float = 0.5  # 0.0 - 1.0
     manipulation_flags: list[str] = field(default_factory=list)
     posted_at: str = ""
-    collected_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    collected_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     source_tier: SourceTier = SourceTier.B
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -161,7 +161,7 @@ class OpportunityAssessment:
     estimated_effort: str = ""  # minutes, hours, days
     estimated_value_usd: float = 0.0
     confidence: Confidence = Confidence.LOW
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     tags: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -187,7 +187,7 @@ class OpportunityAssessment:
 class IntelligenceBrief:
     """Daily intelligence briefing."""
 
-    date: str = field(default_factory=lambda: datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+    date: str = field(default_factory=lambda: datetime.now(UTC).strftime("%Y-%m-%d"))
     summary: str = ""
     top_opportunities: list[OpportunityAssessment] = field(default_factory=list)
     risks: list[str] = field(default_factory=list)

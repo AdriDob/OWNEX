@@ -10,10 +10,10 @@ import json
 import logging
 import os
 import shutil
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-logger = logging.getLogger("cateye.audit")
+logger = logging.getLogger("ownex.audit")
 
 _AUDIT_LOG: str | None = None
 _MAX_BYTES = 10 * 1024 * 1024  # 10 MB
@@ -50,7 +50,7 @@ def log_event(event: str, actor: str = "", detail: str = "", metadata: dict[str,
         shutil.move(path, f"{path}.1")
 
     entry = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "event": event,
         "actor": actor,
         "detail": detail,

@@ -6,7 +6,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from cores.ws.manager import get_ws_manager
 
-logger = logging.getLogger("cateye.api.ws")
+logger = logging.getLogger("ownex.api.ws")
 
 router = APIRouter()
 

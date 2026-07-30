@@ -14,7 +14,7 @@ from core.execution.runtime.state_machine import (
     enforce_workflow_transition,
 )
 
-logger = logging.getLogger("cateye.execution.kernel")
+logger = logging.getLogger("ownex.execution.kernel")
 
 
 class ExecutionKernel:

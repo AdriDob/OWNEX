@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter
@@ -27,7 +27,7 @@ async def merlin_brief():
             "success": True,
             "brief": "OWNEX System Brief: Capabilities registered, platform operational.",
             "data": {"capabilities": 10, "status": "operational"},
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
         }
     except Exception as e:
         logger.exception("Failed to generate MERLIN brief")

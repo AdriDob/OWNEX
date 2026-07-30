@@ -6,7 +6,7 @@ from typing import Any
 
 from core.recon.fingerprint import FingerprintResult
 
-logger = logging.getLogger("cateye.recon.strategies")
+logger = logging.getLogger("ownex.recon.strategies")
 
 
 @dataclass

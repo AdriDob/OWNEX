@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.engine.base import Engine
@@ -31,7 +31,7 @@ class ValidationResult:
     score: float = 0.0  # 0.0 to 1.0 quality score
     issues: list[str] = field(default_factory=list)
     suggestions: list[str] = field(default_factory=list)
-    validated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    validated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     validator: str = "rules"  # "rules", "heuristics", "llm", "platform"
 
 

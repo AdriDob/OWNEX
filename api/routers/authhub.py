@@ -10,7 +10,7 @@ from cores.authhub import AuthHubEvent, get_authhub
 from cores.gateway.schemas import error, ok
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("cateye.api.authhub")
+logger = logging.getLogger("ownex.api.authhub")
 
 router = APIRouter(prefix="/api/authhub", tags=["authhub"])
 

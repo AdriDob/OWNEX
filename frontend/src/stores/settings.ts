@@ -2,8 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, watch, computed } from 'vue'
 import { api } from '@/lib/api'
 
-const STORAGE_KEY = 'cateye_settings'
-const ENCRYPTION_KEY_STORAGE = 'cateye_crypto_key'
+const STORAGE_KEY = 'ownex_settings'
+const ENCRYPTION_KEY_STORAGE = 'ownex_crypto_key'
 
 async function generateEncryptionKey(): Promise<CryptoKey> {
   return await crypto.subtle.generateKey(
@@ -266,7 +266,7 @@ function defaultSettings(): SettingsState {
 }
 
 const SENSITIVE_KEYS = new Set(['wallet', 'bank', 'openai', 'openrouter', 'anthropic', 'google', 'bugcrowd', 'hackerone', 'intigriti', 'yeswehack', 'synack', 'github', 'gitlab', 'shodan', 'censys', 'securitytrails', 'virustotal'])
-const SENSITIVE_STORAGE_KEY = 'cateye_sensitive'
+const SENSITIVE_STORAGE_KEY = 'ownex_sensitive'
 
 async function loadFromStorage(): Promise<SettingsState> {
   try {

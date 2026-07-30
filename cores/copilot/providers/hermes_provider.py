@@ -119,7 +119,7 @@ class HermesProvider(BaseProvider):
                 yield text
             elif text:
                 yield "[Hermes session]"
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("Hermes stream timed out")
         except FileNotFoundError:
             logger.warning("Hermes binary not found")

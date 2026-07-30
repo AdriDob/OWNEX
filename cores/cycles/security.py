@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.cycles.executive_dashboard import ExecutiveDashboard
@@ -149,12 +149,12 @@ class SecurityCycle:
             # Complete current
             current_task.status = TaskStatus.COMPLETED.value
             current_task.result = json.dumps(result or {})
-            current_task.completed_at = datetime.now(timezone.utc)
+            current_task.completed_at = datetime.now(UTC)
 
             # Start next
             if next_task:
                 next_task.status = TaskStatus.RUNNING.value
-                next_task.started_at = datetime.now(timezone.utc)
+                next_task.started_at = datetime.now(UTC)
                 # Update cycle next_action
                 cycle = self._cycle_service.get(cycle_id)
                 if cycle:

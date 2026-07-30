@@ -13,7 +13,7 @@ from pathlib import Path
 
 from cores.tools.base import BaseTool, UnifiedResult
 
-logger = logging.getLogger("cateye.tools.uncover")
+logger = logging.getLogger("ownex.tools.uncover")
 
 DEFAULT_ENGINES = ["shodan", "censys", "fofa"]
 ALL_ENGINES = ["shodan", "shodan-idb", "censys", "fofa", "zoomeye", "hunter"]

@@ -6,10 +6,10 @@ import logging
 import threading
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-logger = logging.getLogger("cateye.diagnostics.analyzer")
+logger = logging.getLogger("ownex.diagnostics.analyzer")
 
 PATTERN_WINDOW_SIZE = 200
 
@@ -63,7 +63,7 @@ class DiagnosticAnalyzer:
                 "error_message": error_message,
                 "failure_type": failure_type,
                 "metadata": metadata or {},
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             })
             if len(self._error_history) > self._max_history:
                 self._error_history[:] = self._error_history[-self._max_history // 2:]
@@ -169,7 +169,7 @@ class DiagnosticAnalyzer:
                         f"First seen: {pattern.first_seen}",
                     ],
                     suggested_action="reset_event_bus",
-                    generated_at=datetime.now(timezone.utc).isoformat(),
+                    generated_at=datetime.now(UTC).isoformat(),
                 ))
             elif "agent" in comp.lower():
                 hypotheses.append(RootCauseHypothesis(
@@ -180,7 +180,7 @@ class DiagnosticAnalyzer:
                         f"{pattern.frequency} failures in agent {comp}",
                     ],
                     suggested_action=f"restart_agent:{comp}",
-                    generated_at=datetime.now(timezone.utc).isoformat(),
+                    generated_at=datetime.now(UTC).isoformat(),
                 ))
             elif "scheduler" in comp.lower():
                 hypotheses.append(RootCauseHypothesis(
@@ -191,7 +191,7 @@ class DiagnosticAnalyzer:
                         f"Scheduler failed {pattern.frequency} times",
                     ],
                     suggested_action="restart_scheduler",
-                    generated_at=datetime.now(timezone.utc).isoformat(),
+                    generated_at=datetime.now(UTC).isoformat(),
                 ))
             elif "db" in comp.lower() or "database" in comp.lower():
                 hypotheses.append(RootCauseHypothesis(
@@ -202,7 +202,7 @@ class DiagnosticAnalyzer:
                         f"Database errors: {pattern.frequency} occurrences",
                     ],
                     suggested_action="reopen_db_connection",
-                    generated_at=datetime.now(timezone.utc).isoformat(),
+                    generated_at=datetime.now(UTC).isoformat(),
                 ))
             else:
                 hypotheses.append(RootCauseHypothesis(
@@ -213,7 +213,7 @@ class DiagnosticAnalyzer:
                         f"Unknown component: {pattern.frequency} failures",
                     ],
                     suggested_action="generic_recovery",
-                    generated_at=datetime.now(timezone.utc).isoformat(),
+                    generated_at=datetime.now(UTC).isoformat(),
                 ))
 
         return hypotheses

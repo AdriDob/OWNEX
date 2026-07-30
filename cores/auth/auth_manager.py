@@ -14,7 +14,7 @@ from cores.auth.auth import (
 from cores.auth.session import SessionStore, get_session_store
 from cores.auth.token_service import TokenService, get_token_service
 
-logger = logging.getLogger("cateye.auth.manager")
+logger = logging.getLogger("ownex.auth.manager")
 
 
 class AuthManager:

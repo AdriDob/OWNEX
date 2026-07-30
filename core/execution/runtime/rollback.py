@@ -8,7 +8,7 @@ from core.execution.runtime.context import RuntimeContext
 from core.execution.runtime.kernel import ExecutionKernel
 from core.execution.runtime.publisher import ExecutionEventPublisher
 
-logger = logging.getLogger("cateye.execution.rollback")
+logger = logging.getLogger("ownex.execution.rollback")
 
 
 class RollbackEngine:

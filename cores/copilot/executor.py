@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.copilot.planner import Plan, PlanStep
@@ -29,7 +29,7 @@ class StepResult:
         self.output = output
         self.data = data or {}
         self.error = error
-        self.completed_at = datetime.now(timezone.utc)
+        self.completed_at = datetime.now(UTC)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -49,7 +49,7 @@ class ExecutionReport:
         self.id = uuid.uuid4().hex[:12]
         self.plan = plan
         self.step_results: list[StepResult] = []
-        self.started_at = datetime.now(timezone.utc)
+        self.started_at = datetime.now(UTC)
         self.completed_at: datetime | None = None
         self.status = "running"
 
@@ -58,7 +58,7 @@ class ExecutionReport:
         result.step.status = "completed" if result.success else "failed"
 
     def finalize(self) -> None:
-        self.completed_at = datetime.now(timezone.utc)
+        self.completed_at = datetime.now(UTC)
         self.status = "completed" if all(r.success for r in self.step_results) else "partial"
 
     @property

@@ -18,7 +18,7 @@ import CompareView from '@/components/ui/CompareView.vue'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard.vue'
 import AssistantBubble from '@/components/assistant/AssistantBubble.vue'
 import AssistantHint from '@/components/assistant/AssistantHint.vue'
-import SplashScreen from '@/components/layout/SplashScreen.vue'
+import SteamBigPictureSplash from '@/components/layout/SteamBigPictureSplash.vue'
 import { useAssistant } from '@/composables/useAssistant'
 
 declare global {
@@ -108,7 +108,7 @@ onMounted(async () => {
   // Desktop integration
   if (typeof window.__PYWEBVIEW__ !== 'undefined') {
     try {
-      window.__PYWEBVIEW__.setTitle('OWNEX — Personal Autonomous Work OS')
+      window.__PYWEBVIEW__.setTitle('OWNEX OMEGA — Autonomous Work Operating Platform')
     } catch { /* not in pywebview */ }
   }
   _beforeunloadHandler = () => {
@@ -147,7 +147,7 @@ onUnmounted(() => {
 <template>
     <div class="flex h-screen w-screen overflow-hidden bg-background">
     <!-- Splash screen -->
-    <SplashScreen :visible="splashVisible" @done="splashVisible = false" />
+    <SteamBigPictureSplash :visible="splashVisible" @done="splashVisible = false" />
 
     <!-- Global loading bar -->
     <div v-if="showGlobalLoading" class="fixed top-0 left-0 right-0 z-[100] h-0.5">

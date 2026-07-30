@@ -13,10 +13,10 @@ from __future__ import annotations
 import logging
 import subprocess
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-logger = logging.getLogger("cateye.tools")
+logger = logging.getLogger("ownex.tools")
 
 
 @dataclass
@@ -32,7 +32,7 @@ class UnifiedResult:
     evidence: dict[str, Any] = field(default_factory=dict)
     tags: list[str] = field(default_factory=list)
     raw: str = ""
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 @dataclass
@@ -82,7 +82,7 @@ class BaseTool:
     ) -> ToolResult:
         """Execute the tool and return structured results."""
         cmd = [self._binary] + args
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
         try:
             proc = subprocess.run(
                 cmd,
@@ -91,7 +91,7 @@ class BaseTool:
                 text=True,
                 timeout=timeout,
             )
-            elapsed = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
+            elapsed = int((datetime.now(UTC) - start).total_seconds() * 1000)
             if proc.returncode != 0:
                 return ToolResult(
                     success=False,

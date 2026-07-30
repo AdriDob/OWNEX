@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .tools import _resolve_tool
 
-logger = logging.getLogger("cateye.recon.naabu")
+logger = logging.getLogger("ownex.recon.naabu")
 
 
 class NaabuRunner:
@@ -49,7 +49,7 @@ class NaabuRunner:
         )
         try:
             stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=self.timeout)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             proc.kill()
             await proc.communicate()
             path.write_text("NAABU TIMED OUT")

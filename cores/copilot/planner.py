@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.copilot.context import CopilotContext
@@ -50,7 +50,7 @@ class Plan:
         self.id = uuid.uuid4().hex[:12]
         self.context = context
         self.steps: list[PlanStep] = []
-        self.created_at = datetime.now(timezone.utc)
+        self.created_at = datetime.now(UTC)
         self.status = "draft"
 
     def add_step(self, step: PlanStep) -> None:

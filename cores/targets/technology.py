@@ -8,7 +8,7 @@ only — no active scanning.
 import logging
 import re
 
-LOG = logging.getLogger("cateye.targets.technology")
+LOG = logging.getLogger("ownex.targets.technology")
 
 CMS_INDICATORS: dict[str, list[str]] = {
     "wordpress": [

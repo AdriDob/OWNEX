@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.capabilities.registry import get_capability_registry
@@ -20,11 +20,11 @@ from core.copilot.publisher import publish_copilot_event
 from core.copilot.recommender import Recommendation, Recommender
 from core.copilot.review import CopilotReview, ReviewItem, ReviewReport
 from core.copilot.system_context import SystemContextBuilder
-from cores.events.correlation import get_or_create_correlation_id
-from cores.events.types import Decision, Events
 from core.evidence_graph.graph import get_evidence_graph
 from core.knowledge.graph import get_knowledge_graph
 from core.memory.store import get_memory_store
+from cores.events.correlation import get_or_create_correlation_id
+from cores.events.types import Decision, Events
 
 logger = logging.getLogger("orion.core.copilot.agent")
 
@@ -771,7 +771,7 @@ class CopilotAgent:
 
     def _log_decision(self, action: str, data: dict[str, Any]) -> str:
         decision_id = f"{self.agent_id}-{uuid.uuid4().hex[:12]}"
-        reason = f"Copilot {action} at {datetime.now(timezone.utc).isoformat()}"
+        reason = f"Copilot {action} at {datetime.now(UTC).isoformat()}"
         confidence = data.get("confidence", 0.0) if isinstance(data, dict) else 0.0
         entry = {
             "decision_id": decision_id,
@@ -781,7 +781,7 @@ class CopilotAgent:
             "data": data,
             "confidence": confidence,
             "authority": self._authority.value,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         self._decision_journal.append(entry)
         if len(self._decision_journal) > self.config.max_decisions_logged:

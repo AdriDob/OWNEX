@@ -13,7 +13,7 @@ from typing import Any
 
 from cores.events.event_bus import get_event_bus
 
-LOG = logging.getLogger("cateye.intelligence.event_system")
+LOG = logging.getLogger("ownex.intelligence.event_system")
 
 EVENT_TYPES = {
     "NewEndpoint",

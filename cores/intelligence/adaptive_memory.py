@@ -1,7 +1,7 @@
 import json
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 from typing import Any
 
@@ -21,7 +21,7 @@ from cores.intelligence.recommendation_engine import (
 from cores.intelligence.trend_detector import TrendReport, detect_trends
 from database.db import SessionLocal
 
-LOG = logging.getLogger("cateye.intelligence.memory")
+LOG = logging.getLogger("ownex.intelligence.memory")
 
 
 @dataclass
@@ -61,7 +61,7 @@ class AdaptiveMemory:
         elapsed = time.monotonic() - t0
 
         with self._lock:
-            self._state.last_analysis = datetime.now(timezone.utc).isoformat()
+            self._state.last_analysis = datetime.now(UTC).isoformat()
             self._state.total_analysis_time_ms += round(elapsed * 1000, 1)
             self._history_cache = history
         return history

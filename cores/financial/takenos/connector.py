@@ -13,10 +13,10 @@ import csv
 import logging
 import os
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from io import StringIO
 
-logger = logging.getLogger("cateye.financial.takenos")
+logger = logging.getLogger("ownex.financial.takenos")
 
 
 @dataclass
@@ -75,7 +75,7 @@ class TakenosConnector:
         self._balance.ars_balance = ars
         self._balance.pending_deposits = pending
         self._balance.takecard_available = takecard
-        self._balance.last_updated = datetime.now(timezone.utc).isoformat()
+        self._balance.last_updated = datetime.now(UTC).isoformat()
         logger.info("Takenos balance updated: USD=%.2f, ARS=%.2f", usd, ars)
 
     def link_solana_wallet(self, address: str) -> None:
@@ -150,7 +150,7 @@ class TakenosConnector:
                     self._balance.usdc_solana = bal.balance
                     self._balance.usd_balance = max(self._balance.usd_balance, bal.usd_value)
 
-            self._balance.last_updated = datetime.now(timezone.utc).isoformat()
+            self._balance.last_updated = datetime.now(UTC).isoformat()
             logger.info("Takenos synced from Solana: %.2f USDC", self._balance.usdc_solana)
             return {"synced": True, "usdc_balance": self._balance.usdc_solana}
         except Exception as exc:

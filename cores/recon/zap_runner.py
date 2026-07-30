@@ -103,7 +103,7 @@ class ZapRunner:
                 if resp.status != 200:
                     raise ZapConnectionError(f"ZAP API error {resp.status}: {await resp.text()}")
                 return await resp.json()
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise ZapConnectionError(f"ZAP API timeout: {url}") from None
         except aiohttp.ClientConnectorError as e:
             raise ZapConnectionError(f"Cannot connect to ZAP daemon at {self.api_url}: {e}") from e
@@ -116,7 +116,7 @@ class ZapRunner:
                 if resp.status != 200:
                     raise ZapConnectionError(f"ZAP API error {resp.status}: {await resp.text()}")
                 return await resp.json()
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise ZapConnectionError(f"ZAP API timeout: {url}") from None
         except aiohttp.ClientConnectorError as e:
             raise ZapConnectionError(f"Cannot connect to ZAP daemon at {self.api_url}: {e}") from e
