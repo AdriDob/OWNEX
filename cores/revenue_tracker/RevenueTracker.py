@@ -36,6 +36,24 @@ class PaymentPlatform(Enum):
     BUG_BOUNTY = "bug_bounty"
     DEV_BOUNTY = "dev_bounty"
     DATA_ANNOTATION = "data_annotation"
+    MICRO_TASK = "micro_task"
+    OPEN_SOURCE_BOUNTY = "open_source_bounty"
+    AFFILIATE = "affiliate"
+    GAMIFICATION = "gamification"
+
+
+class BarrierType(Enum):
+    """Barrier types for revenue opportunities"""
+
+    INTERVIEW = "interview"
+    PORTFOLIO = "portfolio"
+    EXPERIENCE = "experience"
+    DEGREE = "degree"
+    CERTIFICATION = "certification"
+    LOCATION = "location"
+    VISA = "visa"
+    LANGUAGE = "language"
+    NONE = "none"
 
 
 @dataclass
@@ -64,6 +82,22 @@ class RevenueOpportunity:
     tracking_data: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    # Zero-barrier fields
+    barriers: list[BarrierType] = field(default_factory=list)
+    difficulty: str = "beginner"  # beginner, intermediate, advanced, expert
+    success_rate: float = 0.0
+    time_estimate: str = ""
+    tags: list[str] = field(default_factory=list)
+    skills_required: list[str] = field(default_factory=list)
+    url: str = ""
+
+    def is_zero_barrier(self) -> bool:
+        """Check if this opportunity has zero barriers (no interview, portfolio, experience required)"""
+        return all(barrier == BarrierType.NONE for barrier in self.barriers)
+
+    def get_potential_earnings(self) -> Decimal:
+        """Get potential earnings (amount * success_rate)"""
+        return self.amount * Decimal(str(self.success_rate))
 
 
 @dataclass
@@ -342,6 +376,43 @@ class RevenueTracker:
                 "total_daily": self.daily_revenue[today],
             },
         )
+
+    def get_zero_barrier_opportunities(
+        self,
+        platform: str | None = None,
+        min_amount: Decimal = Decimal("0"),
+        difficulty: str | None = None,
+    ) -> list[RevenueOpportunity]:
+        """Get zero-barrier opportunities (no interview, portfolio, experience required)"""
+        opportunities = list(self.opportunities.values())
+
+        # Filter by zero-barrier
+        opportunities = [op for op in opportunities if op.is_zero_barrier()]
+
+        # Filter by platform
+        if platform:
+            opportunities = [op for op in opportunities if op.platform == platform]
+
+        # Filter by minimum amount
+        if min_amount > Decimal("0"):
+            opportunities = [op for op in opportunities if op.amount >= min_amount]
+
+        # Filter by difficulty
+        if difficulty:
+            opportunities = [op for op in opportunities if op.difficulty == difficulty]
+
+        # Sort by potential earnings (amount * success_rate)
+        opportunities.sort(key=lambda op: op.get_potential_earnings(), reverse=True)
+
+        return opportunities
+
+    def get_opportunities_by_platform(self, platform: str) -> list[RevenueOpportunity]:
+        """Get all opportunities for a specific platform"""
+        return [op for op in self.opportunities.values() if op.platform == platform]
+
+    def get_total_potential_earnings(self) -> Decimal:
+        """Get total potential earnings from all opportunities"""
+        return sum(op.get_potential_earnings() for op in self.opportunities.values())
 
 
 class RevenueAnalytics:
