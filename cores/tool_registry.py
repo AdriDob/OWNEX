@@ -30,28 +30,31 @@ logger = logging.getLogger("ownex.tool_registry")
 
 class ToolPermission(Enum):
     """Permission levels required for tool usage."""
-    NONE = "none"                    # No special permission needed
-    READ_ONLY = "read_only"          # Read-only access to resources
-    WRITE = "write"                  # Can modify resources
-    EXECUTE = "execute"              # Can execute code/commands
-    NETWORK = "network"              # Can make network requests
-    FILESYSTEM = "filesystem"        # Can access filesystem
-    SECRETS = "secrets"              # Can access secrets/vault
-    ADMIN = "admin"                  # Administrative privileges
+
+    NONE = "none"  # No special permission needed
+    READ_ONLY = "read_only"  # Read-only access to resources
+    WRITE = "write"  # Can modify resources
+    EXECUTE = "execute"  # Can execute code/commands
+    NETWORK = "network"  # Can make network requests
+    FILESYSTEM = "filesystem"  # Can access filesystem
+    SECRETS = "secrets"  # Can access secrets/vault
+    ADMIN = "admin"  # Administrative privileges
 
 
 class ToolRisk(Enum):
     """Risk level of tool execution."""
-    NONE = 0        # Read-only, no side effects
-    LOW = 1         # Minor side effects, easily reversible
-    MEDIUM = 2      # Moderate side effects, requires approval
-    HIGH = 3        # Significant side effects, requires explicit approval
-    CRITICAL = 4    # Irreversible or high-impact actions
+
+    NONE = 0  # Read-only, no side effects
+    LOW = 1  # Minor side effects, easily reversible
+    MEDIUM = 2  # Moderate side effects, requires approval
+    HIGH = 3  # Significant side effects, requires explicit approval
+    CRITICAL = 4  # Irreversible or high-impact actions
 
 
 @dataclass
 class ToolInputSchema:
     """Input schema for a tool."""
+
     properties: dict[str, dict[str, Any]]  # JSON Schema properties
     required: list[str] = field(default_factory=list)
     additional_properties: bool = False
@@ -60,6 +63,7 @@ class ToolInputSchema:
 @dataclass
 class ToolOutputSchema:
     """Output schema for a tool."""
+
     properties: dict[str, dict[str, Any]]
     required: list[str] = field(default_factory=list)
 
@@ -67,6 +71,7 @@ class ToolOutputSchema:
 @dataclass
 class ToolValidationRule:
     """Validation rule for tool input/output."""
+
     name: str
     description: str
     validator: Callable[[Any], bool]  # Returns True if valid
@@ -77,6 +82,7 @@ class ToolValidationRule:
 @dataclass
 class ToolManifest:
     """Complete tool declaration/manifest."""
+
     name: str
     description: str
     version: str = "1.0.0"
@@ -183,10 +189,7 @@ class BaseTool(ABC):
         last_exception = None
         for attempt in range(self.manifest.max_retries + 1):
             try:
-                output = await asyncio.wait_for(
-                    self.execute(inputs),
-                    timeout=self.manifest.timeout_seconds
-                )
+                output = await asyncio.wait_for(self.execute(inputs), timeout=self.manifest.timeout_seconds)
 
                 # Validate output
                 output_errors = await self.validate_output(output)
@@ -201,10 +204,7 @@ class BaseTool(ABC):
                 self._last_error = None
 
                 record_execution_action(
-                    action_type=self.manifest.name,
-                    capability=self.manifest.category,
-                    duration=duration,
-                    success=True
+                    action_type=self.manifest.name, capability=self.manifest.category, duration=duration, success=True
                 )
 
                 return output
@@ -214,17 +214,13 @@ class BaseTool(ABC):
                 error_str = str(e)
 
                 # Check if retryable
-                is_retryable = any(
-                    retry_err in error_str
-                    for retry_err in self.manifest.retryable_errors
-                )
+                is_retryable = any(retry_err in error_str for retry_err in self.manifest.retryable_errors)
 
                 if attempt < self.manifest.max_retries and is_retryable:
                     logger.warning(
-                        "Tool %s attempt %d failed, retrying: %s",
-                        self.manifest.name, attempt + 1, error_str
+                        "Tool %s attempt %d failed, retrying: %s", self.manifest.name, attempt + 1, error_str
                     )
-                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                    await asyncio.sleep(2**attempt)  # Exponential backoff
                     continue
                 else:
                     break
@@ -234,10 +230,7 @@ class BaseTool(ABC):
         self._last_error = str(last_exception)
 
         record_execution_action(
-            action_type=self.manifest.name,
-            capability=self.manifest.category,
-            duration=duration,
-            success=False
+            action_type=self.manifest.name, capability=self.manifest.category, duration=duration, success=False
         )
 
         if last_exception:
@@ -261,7 +254,7 @@ class BaseTool(ABC):
 class ToolRegistry:
     """
     Central registry for all tools in the system.
-    
+
     Manages tool registration, discovery, execution, and access control.
     """
 
@@ -297,10 +290,10 @@ class ToolRegistry:
             if name not in self._permission_index[perm]:
                 self._permission_index[perm].append(name)
 
-        logger.info("Registered tool: %s (category=%s, risk=%s)",
-                    name, category, tool.manifest.risk_level.name)
+        logger.info("Registered tool: %s (category=%s, risk=%s)", name, category, tool.manifest.risk_level.name)
 
-        self.event_bus.publish("tool:registered",
+        self.event_bus.publish(
+            "tool:registered",
             name=name,
             category=category,
             risk=tool.manifest.risk_level.name,
@@ -356,28 +349,22 @@ class ToolRegistry:
 
     def find_by_risk(self, max_risk: ToolRisk) -> list[ToolManifest]:
         """Find tools with risk level at or below max_risk."""
-        return [
-            m for m in self._manifests.values()
-            if m.risk_level.value <= max_risk.value
-        ]
+        return [m for m in self._manifests.values() if m.risk_level.value <= max_risk.value]
 
     def find_by_tag(self, tag: str) -> list[ToolManifest]:
         """Find tools with a specific tag."""
-        return [
-            m for m in self._manifests.values()
-            if tag in m.tags
-        ]
+        return [m for m in self._manifests.values() if tag in m.tags]
 
     async def execute(
         self,
         name: str,
         inputs: dict[str, Any],
         permissions: list[ToolPermission] | None = None,
-        auto_approve: bool = False
+        auto_approve: bool = False,
     ) -> dict[str, Any]:
         """
         Execute a tool with permission checking.
-        
+
         Args:
             name: Tool name
             inputs: Input parameters
@@ -392,20 +379,13 @@ class ToolRegistry:
 
         # Check permissions
         if permissions is not None:
-            missing = [
-                p for p in manifest.required_permissions
-                if p not in permissions
-            ]
+            missing = [p for p in manifest.required_permissions if p not in permissions]
             if missing:
-                raise PermissionError(
-                    f"Missing permissions for {name}: {[p.value for p in missing]}"
-                )
+                raise PermissionError(f"Missing permissions for {name}: {[p.value for p in missing]}")
 
         # Check approval requirement
         if manifest.requires_approval and not auto_approve:
-            raise PermissionError(
-                f"Tool {name} requires approval: {manifest.approval_reason}"
-            )
+            raise PermissionError(f"Tool {name} requires approval: {manifest.approval_reason}")
 
         # Check deprecation
         if manifest.deprecated:
@@ -419,17 +399,9 @@ class ToolRegistry:
         """Get registry statistics."""
         return {
             "total_tools": len(self._tools),
-            "categories": {
-                cat: len(tools) for cat, tools in self._categories.items()
-            },
-            "by_risk": {
-                risk.name: len(self.find_by_risk(risk))
-                for risk in ToolRisk
-            },
-            "tools": {
-                name: tool.get_stats()
-                for name, tool in self._tools.items()
-            }
+            "categories": {cat: len(tools) for cat, tools in self._categories.items()},
+            "by_risk": {risk.name: len(self.find_by_risk(risk)) for risk in ToolRisk},
+            "tools": {name: tool.get_stats() for name, tool in self._tools.items()},
         }
 
     async def health_check(self) -> dict[str, Any]:
@@ -451,6 +423,7 @@ class ToolRegistry:
 # ──────────────────────────────────────────────────────────────────────────
 # BUILT-IN TOOLS
 # ──────────────────────────────────────────────────────────────────────────
+
 
 class BrowserTool(BaseTool):
     """Tool for web browsing and automation."""

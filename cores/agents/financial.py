@@ -59,8 +59,14 @@ class FinancialAgent(BaseAgent):
     def _on_update(self, event: AgentEvent) -> None:
         """Update financial metrics from payload."""
         for key, value in event.payload.items():
-            if key in ("total_revenue", "monthly_revenue", "pending_rewards",
-                       "paid_rewards", "accepted_reports", "submitted_reports"):
+            if key in (
+                "total_revenue",
+                "monthly_revenue",
+                "pending_rewards",
+                "paid_rewards",
+                "accepted_reports",
+                "submitted_reports",
+            ):
                 self._data.setdefault("metrics", {})[key] = value
 
         self._data["last_updated"] = datetime.now(UTC).isoformat()
@@ -80,8 +86,9 @@ class FinancialAgent(BaseAgent):
         self._data.setdefault("payouts", []).append(payout)
         self._recalculate_metrics()
         self._save()
-        logger.info("[FINANCE] Payout recorded: %.2f %s from %s",
-                    payout["amount"], payout["currency"], payout["program"])
+        logger.info(
+            "[FINANCE] Payout recorded: %.2f %s from %s", payout["amount"], payout["currency"], payout["program"]
+        )
 
     def _on_goal(self, event: AgentEvent) -> None:
         """Add or update a financial goal."""
@@ -109,12 +116,14 @@ class FinancialAgent(BaseAgent):
         for r in reports:
             estimate = r.get("bounty_estimate", 0)
             if estimate:
-                self._data.setdefault("report_estimates", []).append({
-                    "title": r.get("title", ""),
-                    "severity": r.get("severity", ""),
-                    "estimate": estimate,
-                    "timestamp": datetime.now(UTC).isoformat(),
-                })
+                self._data.setdefault("report_estimates", []).append(
+                    {
+                        "title": r.get("title", ""),
+                        "severity": r.get("severity", ""),
+                        "estimate": estimate,
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    }
+                )
         self._recalculate_metrics()
         self._save()
 
@@ -152,11 +161,13 @@ class FinancialAgent(BaseAgent):
             target = g.get("target_amount", 1)
             current = g.get("current_amount", 0)
             progress = min(current / max(target, 1), 1.0)
-            enriched_goals.append({
-                **g,
-                "progress_pct": round(progress * 100, 1),
-                "remaining": max(0, target - current),
-            })
+            enriched_goals.append(
+                {
+                    **g,
+                    "progress_pct": round(progress * 100, 1),
+                    "remaining": max(0, target - current),
+                }
+            )
 
         return {
             "metrics": metrics,
@@ -174,6 +185,7 @@ class FinancialAgent(BaseAgent):
         """Direct goal adder for dashboard initialization."""
         if "id" not in goal:
             from uuid import uuid4
+
             goal["id"] = uuid4().hex[:12]
         self._data.setdefault("goals", []).append(goal)
         self._save()

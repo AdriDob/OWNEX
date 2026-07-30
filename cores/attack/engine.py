@@ -69,7 +69,9 @@ LOW_VALUE_PATTERNS = [
     r"/ping",
 ]
 
-ID_PATTERN = re.compile(r"(?:user|account|order|invoice|device|file|customer|subscription|team|project|resource)_?id", re.I)
+ID_PATTERN = re.compile(
+    r"(?:user|account|order|invoice|device|file|customer|subscription|team|project|resource)_?id", re.I
+)
 NOUN_ID_PATTERN = re.compile(r"/(?:[A-Za-z]+)-?(?:id|uuid|key|token)(?:/|$)", re.I)
 PATH_PARAM_PATTERN = re.compile(r"\{?[A-Za-z0-9_]+\}?")
 
@@ -219,11 +221,11 @@ class AttackDecisionEngine:
 
         suggested_manual_tests: list[str] = []
         for item in top:
-            suggested_manual_tests.extend([
-                f"[{item['vector']}] {item['path']} -> {suggestion}" for suggestion in item["suggestions"]
-            ])
+            suggested_manual_tests.extend(
+                [f"[{item['vector']}] {item['path']} -> {suggestion}" for suggestion in item["suggestions"]]
+            )
 
-        vector_summary = ", ".join(sorted({item['vector'] for item in top})) if top else "ninguno"
+        vector_summary = ", ".join(sorted({item["vector"] for item in top})) if top else "ninguno"
         summary = (
             f"Evaluación de {len(top)} endpoints accionables. Vectores detectados: {vector_summary}."
             if top

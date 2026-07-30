@@ -35,6 +35,7 @@ class Intigriti(BugBountyPlatform):
         formatted = self._format_report(report_data)
         try:
             import requests
+
             resp = requests.post(
                 "https://api.intigriti.com/v1/submissions",
                 headers={
@@ -65,6 +66,7 @@ class Intigriti(BugBountyPlatform):
     def check_status(self, external_id: str, api_key: str = "") -> str:
         try:
             import requests
+
             resp = requests.get(
                 f"https://api.intigriti.com/v1/submissions/{external_id}",
                 headers={"Authorization": f"Bearer {api_key}"},
@@ -80,6 +82,7 @@ class Intigriti(BugBountyPlatform):
     def sync_earnings(self, api_key: str) -> SyncResult:
         try:
             import requests
+
             resp = requests.get(
                 "https://api.intigriti.com/v1/researcher/submissions",
                 headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"},

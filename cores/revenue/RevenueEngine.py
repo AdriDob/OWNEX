@@ -3,6 +3,7 @@
 Revenue Engine for OWNEX - EventBus-powered opportunity scoring and payment tracking
 EventBus workflow: DISCOVERY -> EVALUATION -> SELECTION -> PREPARATION -> EXECUTION -> DELIVERY -> VALIDATION -> PAYMENT -> LEARNING
 """
+
 import uuid
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -17,6 +18,7 @@ class PlatformType(Enum):
     DEV_BOUNTY = "dev_bounty"
     DATA_ANNOTATION = "data_annotation"
 
+
 class OpportunityStatus(Enum):
     DISCOVERED = "discovered"
     EVALUATED = "evaluated"
@@ -28,6 +30,7 @@ class OpportunityStatus(Enum):
     PAID = "paid"
     REJECTED = "rejected"
 
+
 class PaymentStatus(Enum):
     PENDING = "pending"
     REVIEWING = "reviewing"
@@ -35,12 +38,20 @@ class PaymentStatus(Enum):
     PAID = "paid"
     FAILED = "failed"
 
+
 class RevenueOpportunity:
     """Represents a revenue opportunity from any platform - EventBus compatible."""
 
-    def __init__(self, opportunity_id: str, platform: PlatformType,
-                 title: str, description: str, reward: Decimal,
-                 currency: str = "USD", estimated_time_hours: int = 0):
+    def __init__(
+        self,
+        opportunity_id: str,
+        platform: PlatformType,
+        title: str,
+        description: str,
+        reward: Decimal,
+        currency: str = "USD",
+        estimated_time_hours: int = 0,
+    ):
         self.id = opportunity_id
         self.platform = platform
         self.title = title
@@ -83,12 +94,19 @@ class RevenueOpportunity:
             return True
         return False
 
+
 class RevenuePayment:
     """Represents a payment received from a platform."""
 
-    def __init__(self, payment_id: str, opportunity_id: str,
-                 platform: PlatformType, amount: Decimal,
-                 currency: str = "USD", payment_method: str = "bank_transfer"):
+    def __init__(
+        self,
+        payment_id: str,
+        opportunity_id: str,
+        platform: PlatformType,
+        amount: Decimal,
+        currency: str = "USD",
+        payment_method: str = "bank_transfer",
+    ):
         self.id = payment_id
         self.opportunity_id = opportunity_id
         self.platform = platform
@@ -129,6 +147,7 @@ class RevenuePayment:
             self.metadata["failure_reason"] = reason
             return True
         return False
+
 
 class RevenueEngine:
     """Main revenue engine using EventBus for opportunity tracking and payments."""
@@ -174,8 +193,8 @@ class RevenueEngine:
 
     def _handle_platform_discovery(self, event_type: str, **kwargs):
         """Handle platform discovery events - Phase 1: DISCOVERY"""
-        platform = kwargs.get('platform')
-        data = kwargs.get('data', {})
+        platform = kwargs.get("platform")
+        data = kwargs.get("data", {})
 
         print(f"[RevenueEngine] 📡 DISCOVERY: Platform {platform} connecting")
         print(f"   → Found {len(data)} opportunities")
@@ -190,8 +209,8 @@ class RevenueEngine:
 
     def _handle_opportunity_evaluation(self, event_type: str, **kwargs):
         """Handle opportunity evaluation events - Phase 2: EVALUATION"""
-        opportunity_id = kwargs.get('opportunity_id')
-        confidence = kwargs.get('confidence', 0.5)
+        opportunity_id = kwargs.get("opportunity_id")
+        confidence = kwargs.get("confidence", 0.5)
 
         if opportunity_id in self.opportunities:
             opportunity = self.opportunities[opportunity_id]
@@ -203,7 +222,7 @@ class RevenueEngine:
 
     def _handle_opportunity_selection(self, event_type: str, **kwargs):
         """Handle opportunity selection events - Phase 3: SELECTION"""
-        opportunity_id = kwargs.get('opportunity_id')
+        opportunity_id = kwargs.get("opportunity_id")
 
         if opportunity_id in self.opportunities:
             opportunity = self.opportunities[opportunity_id]
@@ -218,23 +237,26 @@ class RevenueEngine:
                     platform=opportunity.platform,
                     amount=opportunity.base_reward,
                     currency=opportunity.currency,
-                    payment_method="auto_selected"
+                    payment_method="auto_selected",
                 )
                 self.payments[payment_id] = payment
 
                 # Emit payment created event
-                self.event_bus.publish("payment.created", {
-                    'payment_id': payment_id,
-                    'opportunity_id': opportunity_id,
-                    'amount': opportunity.base_reward,
-                    'currency': opportunity.currency,
-                    'platform': opportunity.platform.value
-                })
+                self.event_bus.publish(
+                    "payment.created",
+                    {
+                        "payment_id": payment_id,
+                        "opportunity_id": opportunity_id,
+                        "amount": opportunity.base_reward,
+                        "currency": opportunity.currency,
+                        "platform": opportunity.platform.value,
+                    },
+                )
 
     def _handle_opportunity_preparation(self, event_type: str, **kwargs):
         """Handle opportunity preparation events - Phase 4: PREPARATION"""
-        opportunity_id = kwargs.get('opportunity_id')
-        preparation_data = kwargs.get('data', {})
+        opportunity_id = kwargs.get("opportunity_id")
+        preparation_data = kwargs.get("data", {})
 
         if opportunity_id in self.opportunities:
             opportunity = self.opportunities[opportunity_id]
@@ -246,34 +268,34 @@ class RevenueEngine:
 
     def _handle_opportunity_execution(self, event_type: str, **kwargs):
         """Handle opportunity execution events - Phase 5: EXECUTION"""
-        opportunity_id = kwargs.get('opportunity_id')
-        agent = kwargs.get('agent', 'auto')
+        opportunity_id = kwargs.get("opportunity_id")
+        agent = kwargs.get("agent", "auto")
 
         if opportunity_id in self.opportunities:
             opportunity = self.opportunities[opportunity_id]
             opportunity.status = OpportunityStatus.EXECUTING
-            opportunity.metadata['executed_by'] = agent
+            opportunity.metadata["executed_by"] = agent
 
             print(f"[RevenueEngine] ⚡ EXECUTION: Opportunity {opportunity_id}")
             print(f"   → Executed by: {agent}")
 
     def _handle_opportunity_delivery(self, event_type: str, **kwargs):
         """Handle opportunity delivery events - Phase 6: DELIVERY"""
-        opportunity_id = kwargs.get('opportunity_id')
-        delivery_type = kwargs.get('delivery_type', 'auto')
+        opportunity_id = kwargs.get("opportunity_id")
+        delivery_type = kwargs.get("delivery_type", "auto")
 
         if opportunity_id in self.opportunities:
             opportunity = self.opportunities[opportunity_id]
             opportunity.status = OpportunityStatus.DELIVERED
-            opportunity.metadata['delivery_type'] = delivery_type
+            opportunity.metadata["delivery_type"] = delivery_type
 
             print(f"[RevenueEngine] 📦 DELIVERY: Opportunity {opportunity_id}")
             print(f"   → Delivered via: {delivery_type}")
 
     def _handle_opportunity_validation(self, event_type: str, **kwargs):
         """Handle opportunity validation events - Phase 7: VALIDATION"""
-        opportunity_id = kwargs.get('opportunity_id')
-        validation_result = kwargs.get('valid', False)
+        opportunity_id = kwargs.get("opportunity_id")
+        validation_result = kwargs.get("valid", False)
 
         if opportunity_id in self.opportunities:
             opportunity = self.opportunities[opportunity_id]
@@ -286,8 +308,8 @@ class RevenueEngine:
 
     def _handle_payment_creation(self, event_type: str, **kwargs):
         """Handle payment creation events - Phase 8: PAYMENT"""
-        payment_id = kwargs.get('payment_id')
-        opportunity_id = kwargs.get('opportunity_id')
+        payment_id = kwargs.get("payment_id")
+        opportunity_id = kwargs.get("opportunity_id")
 
         if payment_id in self.payments:
             payment = self.payments[payment_id]
@@ -297,7 +319,7 @@ class RevenueEngine:
 
     def _handle_payment_approval(self, event_type: str, **kwargs):
         """Handle payment approval events - Phase 8: PAYMENT"""
-        payment_id = kwargs.get('payment_id')
+        payment_id = kwargs.get("payment_id")
 
         if payment_id in self.payments:
             payment = self.payments[payment_id]
@@ -306,27 +328,26 @@ class RevenueEngine:
 
     def _handle_payment_completion(self, event_type: str, **kwargs):
         """Handle payment completion events - Phase 8: PAYMENT"""
-        payment_id = kwargs.get('payment_id')
+        payment_id = kwargs.get("payment_id")
 
         if payment_id in self.payments:
             payment = self.payments[payment_id]
             if payment.mark_paid():
                 print(f"[RevenueEngine] ✅ PAYMENT: Paid payment {payment_id}")
                 # Phase 9: LEARNING
-                self.event_bus.publish("opportunity.completed", {
-                    'opportunity_id': payment.opportunity_id,
-                    'status': 'success',
-                    'payment_id': payment_id
-                })
+                self.event_bus.publish(
+                    "opportunity.completed",
+                    {"opportunity_id": payment.opportunity_id, "status": "success", "payment_id": payment_id},
+                )
 
     def _handle_opportunity_learning(self, event_type: str, **kwargs):
         """Handle opportunity completion events - Phase 9: LEARNING"""
-        opportunity_id = kwargs.get('opportunity_id')
-        status = kwargs.get('status')
+        opportunity_id = kwargs.get("opportunity_id")
+        status = kwargs.get("status")
 
         if opportunity_id in self.opportunities:
             opportunity = self.opportunities[opportunity_id]
-            opportunity.status = OpportunityStatus.PAID if status == 'success' else OpportunityStatus.REJECTED
+            opportunity.status = OpportunityStatus.PAID if status == "success" else OpportunityStatus.REJECTED
             opportunity.completed_at = datetime.now(UTC)
 
             print(f"[RevenueEngine] 📚 LEARNING: Opportunity {opportunity_id} completed")
@@ -340,14 +361,14 @@ class RevenueEngine:
             opportunity = RevenueOpportunity(
                 opportunity_id=opportunity_id,
                 platform=PlatformType.BUG_BOUNTY,
-                title=item.get('title', 'Bug Bounty Opportunity'),
-                description=item.get('description', ''),
-                reward=Decimal(str(item.get('reward', 0))),
-                currency=item.get('currency', 'USD'),
-                estimated_time_hours=item.get('estimated_time_hours', 4)
+                title=item.get("title", "Bug Bounty Opportunity"),
+                description=item.get("description", ""),
+                reward=Decimal(str(item.get("reward", 0))),
+                currency=item.get("currency", "USD"),
+                estimated_time_hours=item.get("estimated_time_hours", 4),
             )
 
-            confidence = item.get('probability', 0.7)
+            confidence = item.get("probability", 0.7)
             opportunity.update_confidence(confidence)
             self.opportunities[opportunity_id] = opportunity
 
@@ -361,14 +382,14 @@ class RevenueEngine:
             opportunity = RevenueOpportunity(
                 opportunity_id=opportunity_id,
                 platform=PlatformType.DEV_BOUNTY,
-                title=item.get('title', 'Dev Bounty Opportunity'),
-                description=item.get('description', ''),
-                reward=Decimal(str(item.get('reward', 0))),
-                currency=item.get('currency', 'USD'),
-                estimated_time_hours=item.get('estimated_time_hours', 8)
+                title=item.get("title", "Dev Bounty Opportunity"),
+                description=item.get("description", ""),
+                reward=Decimal(str(item.get("reward", 0))),
+                currency=item.get("currency", "USD"),
+                estimated_time_hours=item.get("estimated_time_hours", 8),
             )
 
-            confidence = item.get('probability', 0.5)
+            confidence = item.get("probability", 0.5)
             opportunity.update_confidence(confidence)
             self.opportunities[opportunity_id] = opportunity
 
@@ -382,121 +403,111 @@ class RevenueEngine:
             opportunity = RevenueOpportunity(
                 opportunity_id=opportunity_id,
                 platform=PlatformType.DATA_ANNOTATION,
-                title=item.get('title', 'Data Annotation Task'),
-                description=item.get('description', ''),
-                reward=Decimal(str(item.get('reward', 0))),
-                currency=item.get('currency', 'USD'),
-                estimated_time_hours=item.get('estimated_time_hours', 2)
+                title=item.get("title", "Data Annotation Task"),
+                description=item.get("description", ""),
+                reward=Decimal(str(item.get("reward", 0))),
+                currency=item.get("currency", "USD"),
+                estimated_time_hours=item.get("estimated_time_hours", 2),
             )
 
-            confidence = item.get('probability', 0.6)
+            confidence = item.get("probability", 0.6)
             opportunity.update_confidence(confidence)
             self.opportunities[opportunity_id] = opportunity
 
-            print(f"[RevenueEngine] 📊 CREATED: Data Annotation opportunity {opportunity_id} - ${opportunity.base_reward}")
+            print(
+                f"[RevenueEngine] 📊 CREATED: Data Annotation opportunity {opportunity_id} - ${opportunity.base_reward}"
+            )
+
 
 # Global revenue engine instance
 _revenue_engine = RevenueEngine()
+
 
 def get_revenue_engine() -> RevenueEngine:
     """Get the global revenue engine instance."""
     return _revenue_engine
 
+
 def publish_platform_discovery(platform: PlatformType, data: list[dict[str, Any]]):
     """Publish platform discovery event - Phase 1: DISCOVERY."""
-    _revenue_engine.event_bus.publish("platform.discovered", {
-        'platform': platform.value,
-        'data': data
-    })
+    _revenue_engine.event_bus.publish("platform.discovered", {"platform": platform.value, "data": data})
+
 
 def publish_opportunity_evaluation(opportunity_id: str, confidence: float):
     """Publish opportunity evaluation event - Phase 2: EVALUATION."""
-    _revenue_engine.event_bus.publish("opportunity.evaluated", {
-        'opportunity_id': opportunity_id,
-        'confidence': confidence
-    })
+    _revenue_engine.event_bus.publish(
+        "opportunity.evaluated", {"opportunity_id": opportunity_id, "confidence": confidence}
+    )
+
 
 def publish_opportunity_selection(opportunity_id: str):
     """Publish opportunity selection event - Phase 3: SELECTION."""
-    _revenue_engine.event_bus.publish("opportunity.selected", {
-        'opportunity_id': opportunity_id
-    })
+    _revenue_engine.event_bus.publish("opportunity.selected", {"opportunity_id": opportunity_id})
+
 
 def publish_opportunity_preparation(opportunity_id: str, data: dict[str, Any]):
     """Publish opportunity preparation event - Phase 4: PREPARATION."""
-    _revenue_engine.event_bus.publish("opportunity.preparing", {
-        'opportunity_id': opportunity_id,
-        'data': data
-    })
+    _revenue_engine.event_bus.publish("opportunity.preparing", {"opportunity_id": opportunity_id, "data": data})
 
-def publish_opportunity_execution(opportunity_id: str, agent: str = 'auto'):
+
+def publish_opportunity_execution(opportunity_id: str, agent: str = "auto"):
     """Publish opportunity execution event - Phase 5: EXECUTION."""
-    _revenue_engine.event_bus.publish("opportunity.executing", {
-        'opportunity_id': opportunity_id,
-        'agent': agent
-    })
+    _revenue_engine.event_bus.publish("opportunity.executing", {"opportunity_id": opportunity_id, "agent": agent})
 
-def publish_opportunity_delivery(opportunity_id: str, delivery_type: str = 'auto'):
+
+def publish_opportunity_delivery(opportunity_id: str, delivery_type: str = "auto"):
     """Publish opportunity delivery event - Phase 6: DELIVERY."""
-    _revenue_engine.event_bus.publish("opportunity.delivered", {
-        'opportunity_id': opportunity_id,
-        'delivery_type': delivery_type
-    })
+    _revenue_engine.event_bus.publish(
+        "opportunity.delivered", {"opportunity_id": opportunity_id, "delivery_type": delivery_type}
+    )
+
 
 def publish_opportunity_validation(opportunity_id: str, valid: bool = True):
     """Publish opportunity validation event - Phase 7: VALIDATION."""
-    _revenue_engine.event_bus.publish("opportunity.validated", {
-        'opportunity_id': opportunity_id,
-        'valid': valid
-    })
+    _revenue_engine.event_bus.publish("opportunity.validated", {"opportunity_id": opportunity_id, "valid": valid})
+
 
 def publish_payment_approval(payment_id: str):
     """Publish payment approval event - Phase 8: PAYMENT."""
-    _revenue_engine.event_bus.publish("payment.approved", {
-        'payment_id': payment_id
-    })
+    _revenue_engine.event_bus.publish("payment.approved", {"payment_id": payment_id})
+
 
 def publish_payment_completion(payment_id: str):
     """Publish payment completion event - Phase 8: PAYMENT."""
-    _revenue_engine.event_bus.publish("payment.paid", {
-        'payment_id': payment_id
-    })
+    _revenue_engine.event_bus.publish("payment.paid", {"payment_id": payment_id})
+
 
 def get_dashboard_data() -> dict[str, Any]:
     """Get dashboard data for revenue analytics."""
     total_opportunities = len(_revenue_engine.opportunities)
-    evaluated_opportunities = sum(1 for opp in _revenue_engine.opportunities.values()
-                                 if opp.status in [OpportunityStatus.EVALUATED,
-                                                 OpportunityStatus.SELECTED,
-                                                 OpportunityStatus.VALIDATED])
+    evaluated_opportunities = sum(
+        1
+        for opp in _revenue_engine.opportunities.values()
+        if opp.status in [OpportunityStatus.EVALUATED, OpportunityStatus.SELECTED, OpportunityStatus.VALIDATED]
+    )
 
     total_payments = len(_revenue_engine.payments)
-    paid_payments = sum(1 for pay in _revenue_engine.payments.values()
-                       if pay.status == PaymentStatus.PAID)
+    paid_payments = sum(1 for pay in _revenue_engine.payments.values() if pay.status == PaymentStatus.PAID)
 
     by_platform = {}
     for opp in _revenue_engine.opportunities.values():
         platform = opp.platform.value
         if platform not in by_platform:
-            by_platform[platform] = {
-                'opportunities': 0,
-                'revenue': Decimal('0')
-            }
-        by_platform[platform]['opportunities'] += 1
-        by_platform[platform]['revenue'] += opp.base_reward
+            by_platform[platform] = {"opportunities": 0, "revenue": Decimal("0")}
+        by_platform[platform]["opportunities"] += 1
+        by_platform[platform]["revenue"] += opp.base_reward
 
     by_status = {}
     for status in OpportunityStatus:
-        count = sum(1 for opp in _revenue_engine.opportunities.values()
-                   if opp.status == status)
+        count = sum(1 for opp in _revenue_engine.opportunities.values() if opp.status == status)
         if count > 0:
             by_status[status.value] = count
 
     return {
-        'total_opportunities': total_opportunities,
-        'evaluated_opportunities': evaluated_opportunities,
-        'total_payments': total_payments,
-        'paid_payments': paid_payments,
-        'by_platform': by_platform,
-        'by_status': by_status
+        "total_opportunities": total_opportunities,
+        "evaluated_opportunities": evaluated_opportunities,
+        "total_payments": total_payments,
+        "paid_payments": paid_payments,
+        "by_platform": by_platform,
+        "by_status": by_status,
     }

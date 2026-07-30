@@ -544,21 +544,30 @@ RESEARCH_TOPICS_COMPLETED = Counter(
 # METRICS HELPER FUNCTIONS
 # ──────────────────────────────────────────────────────────────────────────
 
+
 def get_registry() -> CollectorRegistry:
     """Get the OWNEX Prometheus registry."""
     return OWNEX_REGISTRY
 
 
-def record_sensor_fetch(sensor_id: str, source_type: str, source_name: str, duration: float, success: bool, obs_count: int = 0) -> None:
+def record_sensor_fetch(
+    sensor_id: str, source_type: str, source_name: str, duration: float, success: bool, obs_count: int = 0
+) -> None:
     """Record sensor fetch metrics."""
     status = "success" if success else "error"
-    SENSOR_FETCH_TOTAL.labels(sensor_id=sensor_id, source_type=source_type, source_name=source_name, status=status).inc()
+    SENSOR_FETCH_TOTAL.labels(
+        sensor_id=sensor_id, source_type=source_type, source_name=source_name, status=status
+    ).inc()
     SENSOR_FETCH_DURATION_SECONDS.labels(sensor_id=sensor_id, source_type=source_type).observe(duration)
     if obs_count > 0:
-        SENSOR_OBSERVATIONS_COLLECTED.labels(sensor_id=sensor_id, source_type=source_type, source_name=source_name).inc(obs_count)
+        SENSOR_OBSERVATIONS_COLLECTED.labels(sensor_id=sensor_id, source_type=source_type, source_name=source_name).inc(
+            obs_count
+        )
 
 
-def record_agent_processing(agent_id: str, event_type: str, duration: float, success: bool, error_type: str | None = None) -> None:
+def record_agent_processing(
+    agent_id: str, event_type: str, duration: float, success: bool, error_type: str | None = None
+) -> None:
     """Record agent event processing metrics."""
     AGENT_EVENTS_RECEIVED.labels(agent_id=agent_id, event_type=event_type).inc()
     AGENT_PROCESSING_DURATION.labels(agent_id=agent_id, event_type=event_type).observe(duration)
@@ -571,7 +580,9 @@ def record_agent_processing(agent_id: str, event_type: str, duration: float, suc
 def record_revenue_payout(amount: float, currency: str, platform: str, vuln_type: str, severity: str) -> None:
     """Record revenue payout."""
     REVENUE_PAYOUT_RECEIVED.labels(platform=platform, currency=currency, vulnerability_type=vuln_type).inc(amount)
-    REVENUE_TOTAL.labels(currency=currency, platform=platform, vulnerability_type=vuln_type, severity=severity).inc(amount)
+    REVENUE_TOTAL.labels(currency=currency, platform=platform, vulnerability_type=vuln_type, severity=severity).inc(
+        amount
+    )
 
 
 def record_opportunity_discovered(source: str, category: str, score: float, evh: float | None = None) -> None:

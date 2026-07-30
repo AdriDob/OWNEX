@@ -23,6 +23,7 @@ BLOCKSTREAM_BASE = "https://blockstream.info/api"
 
 def _api_get(url: str) -> str | None:
     import urllib.request
+
     req = urllib.request.Request(url)
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
@@ -96,15 +97,17 @@ class BTCConnector(CryptoConnector):
         balance_btc = balance_sat / 1e8
 
         usd_price = get_usd_price("BTC")
-        balances.append(CryptoBalance(
-            asset="BTC",
-            symbol="BTC",
-            balance=balance_btc,
-            usd_value=balance_btc * usd_price,
-            decimals=8,
-            chain="bitcoin",
-            last_updated=datetime.now(UTC).isoformat(),
-        ))
+        balances.append(
+            CryptoBalance(
+                asset="BTC",
+                symbol="BTC",
+                balance=balance_btc,
+                usd_value=balance_btc * usd_price,
+                decimals=8,
+                chain="bitcoin",
+                last_updated=datetime.now(UTC).isoformat(),
+            )
+        )
         return balances
 
     def get_transactions(self, limit: int = 50) -> list[CryptoTransaction]:

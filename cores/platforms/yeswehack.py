@@ -36,6 +36,7 @@ class YesWeHack(BugBountyPlatform):
         formatted = self._format_report(report_data)
         try:
             import requests
+
             resp = requests.post(
                 "https://api.yeswehack.com/v1/reports",
                 headers={
@@ -66,6 +67,7 @@ class YesWeHack(BugBountyPlatform):
     def check_status(self, external_id: str, api_key: str = "") -> str:
         try:
             import requests
+
             resp = requests.get(
                 f"https://api.yeswehack.com/v1/reports/{external_id}",
                 headers={"Authorization": f"Bearer {api_key}"},
@@ -81,6 +83,7 @@ class YesWeHack(BugBountyPlatform):
     def sync_earnings(self, api_key: str) -> SyncResult:
         try:
             import requests
+
             resp = requests.get(
                 "https://api.yeswehack.com/v1/researcher/reports",
                 headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"},

@@ -40,9 +40,14 @@ class ValidatorAgent(BaseAgent):
             logger.info("[VALIDATOR] No endpoints to validate for %s", target_name)
             self.emit(
                 EventType.VALIDATION_COMPLETED,
-                payload={"target_id": target_id, "target_name": target_name,
-                         "verdicts": {}, "stage": "validation",
-                         "next_stage": "evidence", "pipeline_id": pipeline_id},
+                payload={
+                    "target_id": target_id,
+                    "target_name": target_name,
+                    "verdicts": {},
+                    "stage": "validation",
+                    "next_stage": "evidence",
+                    "pipeline_id": pipeline_id,
+                },
                 target=AgentId.COORDINATOR,
                 correlation_id=pipeline_id,
             )
@@ -52,6 +57,7 @@ class ValidatorAgent(BaseAgent):
         scored = []
         try:
             from cores.engine.unified_scoring import score as unified_score
+
             for ep in endpoints:
                 path = str(ep.get("path", "/"))
                 method = str(ep.get("method", "GET")).upper()
@@ -68,10 +74,10 @@ class ValidatorAgent(BaseAgent):
         # Run noise reduction
         try:
             from cores.analysis.noise_reduction import NoiseReductionEngine
+
             filtered = NoiseReductionEngine().analyze(scored)
             clean = filtered.clean_endpoints
-            logger.info("[VALIDATOR] Noise reduction: %d/%d clean",
-                        len(clean), len(scored))
+            logger.info("[VALIDATOR] Noise reduction: %d/%d clean", len(clean), len(scored))
         except Exception as exc:
             logger.warning("[VALIDATOR] Noise reduction failed: %s", exc)
             clean = scored
@@ -94,13 +100,16 @@ class ValidatorAgent(BaseAgent):
         self.emit(
             EventType.VALIDATION_COMPLETED,
             payload={
-                "target_id": target_id, "target_name": target_name,
-                "verdicts": verdicts, "confirmed_count": confirmed_count,
-                "stage": "validation", "next_stage": "evidence",
-                "pipeline_id": pipeline_id, "endpoints": clean,
+                "target_id": target_id,
+                "target_name": target_name,
+                "verdicts": verdicts,
+                "confirmed_count": confirmed_count,
+                "stage": "validation",
+                "next_stage": "evidence",
+                "pipeline_id": pipeline_id,
+                "endpoints": clean,
             },
             target=AgentId.COORDINATOR,
             correlation_id=pipeline_id,
         )
-        logger.info("[VALIDATOR] Validation completed: %d confirmed out of %d",
-                    confirmed_count, len(clean))
+        logger.info("[VALIDATOR] Validation completed: %d confirmed out of %d", confirmed_count, len(clean))

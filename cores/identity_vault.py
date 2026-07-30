@@ -112,8 +112,14 @@ class IdentityVault:
     """Secure credential vault for bug bounty provider accounts."""
 
     SUPPORTED_PROVIDERS = [
-        "hackerone", "bugcrowd", "huntr", "immunefi",
-        "intigriti", "yeswehack", "github", "synack",
+        "hackerone",
+        "bugcrowd",
+        "huntr",
+        "immunefi",
+        "intigriti",
+        "yeswehack",
+        "github",
+        "synack",
     ]
 
     def __init__(self) -> None:
@@ -122,14 +128,16 @@ class IdentityVault:
     def list_accounts(self) -> list[dict[str, Any]]:
         result = []
         for provider, data in _VAULT_DATA.items():
-            result.append({
-                "provider_name": provider,
-                "email": data.get("email", ""),
-                "session_state": data.get("session_state", "disconnected"),
-                "last_checked": data.get("last_checked"),
-                "health_status": data.get("health_status", "unknown"),
-                "has_credentials": bool(data.get("encrypted_token") or data.get("encrypted_password")),
-            })
+            result.append(
+                {
+                    "provider_name": provider,
+                    "email": data.get("email", ""),
+                    "session_state": data.get("session_state", "disconnected"),
+                    "last_checked": data.get("last_checked"),
+                    "health_status": data.get("health_status", "unknown"),
+                    "has_credentials": bool(data.get("encrypted_token") or data.get("encrypted_password")),
+                }
+            )
         return result
 
     def get_account(self, provider: str) -> dict[str, Any] | None:
@@ -243,10 +251,7 @@ class IdentityVault:
             return {"connected": False, "reason": f"State: {state}"}
 
     def connected_count(self) -> int:
-        return sum(
-            1 for d in _VAULT_DATA.values()
-            if d.get("session_state") == "connected"
-        )
+        return sum(1 for d in _VAULT_DATA.values() if d.get("session_state") == "connected")
 
     def clear_all(self) -> None:
         _VAULT_DATA.clear()

@@ -11,9 +11,16 @@ from cores.validation.replayer import AuthContext, RequestReplayer, RequestSpec
 logger = logging.getLogger("ownex.idor_tester")
 
 IDOR_PARAM_PATTERNS = [
-    re.compile(r"\b(id|uid|user_id|account_id|customer_id|profile_id|order_id|invoice_id|document_id|file_id|ticket_id|msg_id|post_id|article_id|product_id|sku|reference|token|key)\b", re.I),
-    re.compile(r"/api/(?:v\d+/)?(?:users|accounts|customers|profiles|orders|invoices|documents|files|tickets|messages|posts|articles|products)/(\d+)"),
-    re.compile(r"/api/(?:v\d+/)?(?:users|accounts|customers|profiles|orders|invoices|documents|files|tickets|messages|posts|articles|products)/([a-f0-9-]{36})"),
+    re.compile(
+        r"\b(id|uid|user_id|account_id|customer_id|profile_id|order_id|invoice_id|document_id|file_id|ticket_id|msg_id|post_id|article_id|product_id|sku|reference|token|key)\b",
+        re.I,
+    ),
+    re.compile(
+        r"/api/(?:v\d+/)?(?:users|accounts|customers|profiles|orders|invoices|documents|files|tickets|messages|posts|articles|products)/(\d+)"
+    ),
+    re.compile(
+        r"/api/(?:v\d+/)?(?:users|accounts|customers|profiles|orders|invoices|documents|files|tickets|messages|posts|articles|products)/([a-f0-9-]{36})"
+    ),
 ]
 
 SENSITIVE_PATTERNS: dict[str, re.Pattern] = {
@@ -62,24 +69,28 @@ class IDORTester:
         for pattern in IDOR_PARAM_PATTERNS[1:]:
             match = pattern.search(url)
             if match and len(match.groups()) > 0:
-                candidates.append({
-                    "type": "path",
-                    "name": "path_id",
-                    "original": match.group(1),
-                    "location": "path",
-                })
+                candidates.append(
+                    {
+                        "type": "path",
+                        "name": "path_id",
+                        "original": match.group(1),
+                        "location": "path",
+                    }
+                )
 
         query_params = parse_qs(parsed.query)
         for key, values in query_params.items():
             if IDOR_PARAM_PATTERNS[0].search(key):
                 for val in values:
                     if val and len(val) > 1 and val != "0":
-                        candidates.append({
-                            "type": "query",
-                            "name": key,
-                            "original": val,
-                            "location": "query",
-                        })
+                        candidates.append(
+                            {
+                                "type": "query",
+                                "name": key,
+                                "original": val,
+                                "location": "query",
+                            }
+                        )
 
         return candidates
 
@@ -96,10 +107,10 @@ class IDORTester:
         if uuid_match:
             parts = list(uuid_match.group(1))
             for i in range(len(parts) - 1, -1, -1):
-                if parts[i] != 'f' and parts[i] != 'F':
+                if parts[i] != "f" and parts[i] != "F":
                     parts[i] = hex(int(parts[i], 16) + 1)[2:]
                     break
-            return ''.join(parts)
+            return "".join(parts)
         return f"{stripped}_other"
 
     def _build_probe_spec(self, spec: RequestSpec, candidate: dict[str, str], probe_val: str) -> RequestSpec:
@@ -162,17 +173,19 @@ class IDORTester:
             probe_resp = self._replayer.execute(probe_spec, probe_auth)
 
             if baseline_resp.status_code == 0 or probe_resp.status_code == 0:
-                inconclusive.append(IDORTestResult(
-                    parameter=candidate["name"],
-                    original_value=candidate["original"],
-                    probe_value=probe_val,
-                    baseline_status=baseline_resp.status_code,
-                    probe_status=probe_resp.status_code,
-                    body_diff_ratio=0.0,
-                    sensitive_fields_leaked=[],
-                    verdict="inconclusive",
-                    reason="Request error (timeout or circuit breaker)",
-                ))
+                inconclusive.append(
+                    IDORTestResult(
+                        parameter=candidate["name"],
+                        original_value=candidate["original"],
+                        probe_value=probe_val,
+                        baseline_status=baseline_resp.status_code,
+                        probe_status=probe_resp.status_code,
+                        body_diff_ratio=0.0,
+                        sensitive_fields_leaked=[],
+                        verdict="inconclusive",
+                        reason="Request error (timeout or circuit breaker)",
+                    )
+                )
                 continue
 
             body_diff_ratio = 0.0
@@ -187,7 +200,36 @@ class IDORTester:
                     reason = f"Probe got 200 with similar body to baseline (diff={body_diff_ratio:.2f})"
                     if sensitive_leaks:
                         reason += f", leaked: {', '.join(sensitive_leaks)}"
-                    vulnerable.append(IDORTestResult(
+                    vulnerable.append(
+                        IDORTestResult(
+                            parameter=candidate["name"],
+                            original_value=candidate["original"],
+                            probe_value=probe_val,
+                            baseline_status=baseline_resp.status_code,
+                            probe_status=probe_resp.status_code,
+                            body_diff_ratio=round(body_diff_ratio, 4),
+                            sensitive_fields_leaked=sensitive_leaks,
+                            verdict="vulnerable",
+                            reason=reason,
+                        )
+                    )
+                else:
+                    inconclusive.append(
+                        IDORTestResult(
+                            parameter=candidate["name"],
+                            original_value=candidate["original"],
+                            probe_value=probe_val,
+                            baseline_status=baseline_resp.status_code,
+                            probe_status=probe_resp.status_code,
+                            body_diff_ratio=round(body_diff_ratio, 4),
+                            sensitive_fields_leaked=sensitive_leaks,
+                            verdict="inconclusive",
+                            reason=f"Probe got 200 but body differs significantly (diff={body_diff_ratio:.2f})",
+                        )
+                    )
+            elif probe_resp.status_code in (403, 401):
+                blocked.append(
+                    IDORTestResult(
                         parameter=candidate["name"],
                         original_value=candidate["original"],
                         probe_value=probe_val,
@@ -195,11 +237,13 @@ class IDORTester:
                         probe_status=probe_resp.status_code,
                         body_diff_ratio=round(body_diff_ratio, 4),
                         sensitive_fields_leaked=sensitive_leaks,
-                        verdict="vulnerable",
-                        reason=reason,
-                    ))
-                else:
-                    inconclusive.append(IDORTestResult(
+                        verdict="blocked",
+                        reason=f"Probe got {probe_resp.status_code} — access denied",
+                    )
+                )
+            else:
+                inconclusive.append(
+                    IDORTestResult(
                         parameter=candidate["name"],
                         original_value=candidate["original"],
                         probe_value=probe_val,
@@ -208,32 +252,9 @@ class IDORTester:
                         body_diff_ratio=round(body_diff_ratio, 4),
                         sensitive_fields_leaked=sensitive_leaks,
                         verdict="inconclusive",
-                        reason=f"Probe got 200 but body differs significantly (diff={body_diff_ratio:.2f})",
-                    ))
-            elif probe_resp.status_code in (403, 401):
-                blocked.append(IDORTestResult(
-                    parameter=candidate["name"],
-                    original_value=candidate["original"],
-                    probe_value=probe_val,
-                    baseline_status=baseline_resp.status_code,
-                    probe_status=probe_resp.status_code,
-                    body_diff_ratio=round(body_diff_ratio, 4),
-                    sensitive_fields_leaked=sensitive_leaks,
-                    verdict="blocked",
-                    reason=f"Probe got {probe_resp.status_code} — access denied",
-                ))
-            else:
-                inconclusive.append(IDORTestResult(
-                    parameter=candidate["name"],
-                    original_value=candidate["original"],
-                    probe_value=probe_val,
-                    baseline_status=baseline_resp.status_code,
-                    probe_status=probe_resp.status_code,
-                    body_diff_ratio=round(body_diff_ratio, 4),
-                    sensitive_fields_leaked=sensitive_leaks,
-                    verdict="inconclusive",
-                    reason=f"Unexpected status: baseline={baseline_resp.status_code}, probe={probe_resp.status_code}",
-                ))
+                        reason=f"Unexpected status: baseline={baseline_resp.status_code}, probe={probe_resp.status_code}",
+                    )
+                )
 
         elapsed = int((time.monotonic() - start) * 1000)
         return IDORScanReport(

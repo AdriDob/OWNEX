@@ -15,18 +15,14 @@ class WaybackRunner:
             *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
         try:
-            stdout, stderr = await asyncio.wait_for(
-                proc.communicate(), timeout=self.timeout
-            )
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=self.timeout)
         except TimeoutError:
             proc.kill()
             await proc.communicate()
             path.write_text("WAYBACK TIMED OUT")
             return path
         if stderr:
-            path.write_text(
-                stderr.decode(errors="ignore") + "\n" + stdout.decode(errors="ignore")
-            )
+            path.write_text(stderr.decode(errors="ignore") + "\n" + stdout.decode(errors="ignore"))
         else:
             path.write_bytes(stdout or b"")
         return path

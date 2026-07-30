@@ -26,29 +26,32 @@ logger = logging.getLogger("ownex.memory")
 
 class EvidenceLevel(Enum):
     """Evidence levels for memory entries."""
-    ASSUMED = 0      # Hypothesis, prediction, unconfirmed
-    OBSERVED = 1     # Direct observation, sensor data
-    VERIFIED = 2     # Cross-validated, confirmed fact
-    HISTORICAL = 3   # Archived decision/outcome/learning
+
+    ASSUMED = 0  # Hypothesis, prediction, unconfirmed
+    OBSERVED = 1  # Direct observation, sensor data
+    VERIFIED = 2  # Cross-validated, confirmed fact
+    HISTORICAL = 3  # Archived decision/outcome/learning
 
 
 class MemoryType(Enum):
     """Types of memory entries."""
-    FACT = "fact"                    # Discrete fact about world
-    OBSERVATION = "observation"      # Raw sensor/agent observation
-    DECISION = "decision"            # Decision made and why
-    OUTCOME = "outcome"              # Result of an action
-    LEARNING = "learning"            # Pattern discovered
-    PREFERENCE = "preference"        # User preference
-    GOAL = "goal"                    # Active goal
-    HYPOTHESIS = "hypothesis"        # Testable prediction
-    SKILL = "skill"                  # Learned capability
-    CONTEXT = "context"              # Situational context
+
+    FACT = "fact"  # Discrete fact about world
+    OBSERVATION = "observation"  # Raw sensor/agent observation
+    DECISION = "decision"  # Decision made and why
+    OUTCOME = "outcome"  # Result of an action
+    LEARNING = "learning"  # Pattern discovered
+    PREFERENCE = "preference"  # User preference
+    GOAL = "goal"  # Active goal
+    HYPOTHESIS = "hypothesis"  # Testable prediction
+    SKILL = "skill"  # Learned capability
+    CONTEXT = "context"  # Situational context
 
 
 @dataclass
 class MemoryEntry:
     """A single memory entry with evidence tracking."""
+
     id: str
     type: MemoryType
     level: EvidenceLevel
@@ -123,6 +126,7 @@ class MemoryEntry:
 @dataclass
 class MemoryQuery:
     """Query for memory retrieval."""
+
     types: set[MemoryType] | None = None
     levels: set[EvidenceLevel] | None = None
     min_confidence: float = 0.0
@@ -295,7 +299,7 @@ class InMemoryStore(MemoryStore):
         # Sort by confidence desc, then recency
         results.sort(key=lambda e: (-e.confidence, -e.created_at.timestamp()))
 
-        return results[:query.limit]
+        return results[: query.limit]
 
     async def update(self, entry: MemoryEntry) -> bool:
         if entry.id in self._entries:
@@ -324,7 +328,7 @@ class InMemoryStore(MemoryStore):
 class MemorySystem:
     """
     Central memory system for OWNEX.
-    
+
     Manages memory entries across evidence levels, handles promotion/
     contradiction, and provides querying capabilities.
     """
@@ -403,7 +407,8 @@ class MemorySystem:
         if entry.level == EvidenceLevel.ASSUMED and entry.confidence >= self.auto_promote_threshold:
             await self.promote(entry.id, EvidenceLevel.OBSERVED, "system", "auto_promote")
 
-        self.event_bus.publish("memory:stored",
+        self.event_bus.publish(
+            "memory:stored",
             id=entry.id,
             type=entry.type.value,
             level=entry.level.name,
@@ -451,7 +456,8 @@ class MemorySystem:
             await self.store.update(entry)
             self._stats["promoted"] += 1
 
-            self.event_bus.publish("memory:promoted",
+            self.event_bus.publish(
+                "memory:promoted",
                 id=entry.id,
                 old_level=entry.level.name,
                 new_level=new_level.name,
@@ -492,11 +498,12 @@ class MemorySystem:
         await self.store.update(entry)
         self._stats["contradictions"] += 1
 
-        self.event_bus.publish("memory:contradicted",
-                        entry_id=entry_id,
-                        contradiction_id=contradiction_id,
-                        new_confidence=entry.confidence,
-                    )
+        self.event_bus.publish(
+            "memory:contradicted",
+            entry_id=entry_id,
+            contradiction_id=contradiction_id,
+            new_confidence=entry.confidence,
+        )
 
         for cb in self._contradiction_callbacks:
             try:
@@ -775,9 +782,7 @@ class MemorySystem:
 
     async def archive_historical(self, older_than_days: int = 90) -> int:
         """Archive old verified facts as historical."""
-        cutoff = datetime.now(UTC).replace(
-            day=datetime.now(UTC).day - older_than_days
-        )
+        cutoff = datetime.now(UTC).replace(day=datetime.now(UTC).day - older_than_days)
 
         query = MemoryQuery(
             levels={EvidenceLevel.VERIFIED},

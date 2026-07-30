@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -12,7 +12,7 @@ class UpdateInfo:
     remote_url: str = "origin/main"
     commits_behind: int = 0
     has_update: bool = False
-    checked_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    checked_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {

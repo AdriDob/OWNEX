@@ -17,7 +17,7 @@ import logging
 import os
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -229,7 +229,7 @@ class AIRouterEngine:
 
     def _discover_providers(self) -> list[AIProviderStatus]:
         providers: list[AIProviderStatus] = []
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         # 1. OpenCode Free models (deepseek, nemotron, mimo)
         providers.append(
@@ -553,7 +553,7 @@ class AIRouterEngine:
 
     def _record_switch(self, rec: FallbackRecommendation) -> None:
         record = SwitchRecord(
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             from_provider=rec.from_provider,
             from_model=rec.from_model,
             to_provider=rec.to_provider,

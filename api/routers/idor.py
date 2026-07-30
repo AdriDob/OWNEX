@@ -51,11 +51,7 @@ def idor_scan(request: IDORScanRequest):
     logger = logging.getLogger("ownex.api.idor")
     session = db.SessionLocal()
     try:
-        endpoint = (
-            session.query(models.Endpoint)
-            .filter(models.Endpoint.id == request.endpoint_id)
-            .first()
-        )
+        endpoint = session.query(models.Endpoint).filter(models.Endpoint.id == request.endpoint_id).first()
         if not endpoint:
             raise HTTPException(status_code=404, detail="Endpoint not found")
 

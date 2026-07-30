@@ -52,21 +52,21 @@ class StrategyAgent(BaseAgent):
         roi_estimates = []
         for ep in endpoints[:20]:
             risk = ep.get("risk_score", 0.5)
-            roi_estimates.append({
-                "path": ep.get("path", "/"),
-                "method": ep.get("method", "GET"),
-                "risk_score": round(risk, 2),
-                "estimated_roi": round(risk * 100, 1),  # Simplified ROI
-            })
+            roi_estimates.append(
+                {
+                    "path": ep.get("path", "/"),
+                    "method": ep.get("method", "GET"),
+                    "risk_score": round(risk, 2),
+                    "estimated_roi": round(risk * 100, 1),  # Simplified ROI
+                }
+            )
 
-        logger.info("[STRATEGY] Estimated ROI for %d endpoints on %s",
-                    len(roi_estimates), target_name)
+        logger.info("[STRATEGY] Estimated ROI for %d endpoints on %s", len(roi_estimates), target_name)
 
     def _on_validation_completed(self, event: AgentEvent) -> None:
         confirmed = event.payload.get("confirmed_count", 0)
         if confirmed > 0:
-            logger.info("[STRATEGY] %d confirmed findings — high priority pipeline",
-                        confirmed)
+            logger.info("[STRATEGY] %d confirmed findings — high priority pipeline", confirmed)
 
     def _on_documentation_completed(self, event: AgentEvent) -> None:
         reports = event.payload.get("reports", [])
@@ -87,6 +87,7 @@ class StrategyAgent(BaseAgent):
         """Generate strategic recommendations based on system state."""
         try:
             from cores.opportunity.engine import OpportunityEngine
+
             engine = OpportunityEngine()
             opportunities = engine.get_top_opportunities(limit=5)
 

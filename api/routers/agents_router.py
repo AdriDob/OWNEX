@@ -48,17 +48,19 @@ def list_all_pipelines(status: str = "", limit: int = 50) -> dict[str, Any]:
     for pid, info in pipelines.items():
         if status and info.get("state") != status:
             continue
-        result.append({
-            "id": pid,
-            "target_id": info.get("target_id"),
-            "target_name": info.get("target_name", "unknown"),
-            "state": info.get("state", "unknown"),
-            "retries": info.get("retries", 0),
-            "quality_score": round(info.get("quality_score", 0.0), 2),
-            "stages": info.get("stages", []),
-            "error": info.get("error", ""),
-            "created_at": info.get("created_at", ""),
-        })
+        result.append(
+            {
+                "id": pid,
+                "target_id": info.get("target_id"),
+                "target_name": info.get("target_name", "unknown"),
+                "state": info.get("state", "unknown"),
+                "retries": info.get("retries", 0),
+                "quality_score": round(info.get("quality_score", 0.0), 2),
+                "stages": info.get("stages", []),
+                "error": info.get("error", ""),
+                "created_at": info.get("created_at", ""),
+            }
+        )
     return {
         "pipelines": sorted(result, key=lambda p: p["created_at"], reverse=True)[:limit],
         "total": len(result),
@@ -92,8 +94,7 @@ def start_pipeline(payload: dict[str, Any]) -> dict[str, Any]:
         payload={"target_id": target_id, "target_name": target_name},
     )
     bus.publish(event)
-    logger.info("[API] Pipeline started for target %s (corr=%s)",
-                target_name, event.correlation_id[:8])
+    logger.info("[API] Pipeline started for target %s (corr=%s)", target_name, event.correlation_id[:8])
     return {"status": "started", "correlation_id": event.correlation_id, "target": target_name}
 
 

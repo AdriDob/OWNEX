@@ -47,14 +47,23 @@ class DecisionTrace:
     started_at: float = field(default_factory=time.time)
     completed_at: float | None = None
 
-    def add_step(self, name: str, input: Any = None, output: Any = None, duration_ms: float = 0.0, metadata: dict[str, Any] | None = None) -> None:
-        self.steps.append(TraceStep(
-            name=name,
-            input=input,
-            output=output,
-            duration_ms=duration_ms,
-            metadata=metadata or {},
-        ))
+    def add_step(
+        self,
+        name: str,
+        input: Any = None,
+        output: Any = None,
+        duration_ms: float = 0.0,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        self.steps.append(
+            TraceStep(
+                name=name,
+                input=input,
+                output=output,
+                duration_ms=duration_ms,
+                metadata=metadata or {},
+            )
+        )
 
     def complete(self, outcome: str = "completed") -> None:
         self.completed_at = time.time()

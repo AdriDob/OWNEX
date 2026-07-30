@@ -64,8 +64,12 @@ class ExploitChain:
     success_rate: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
-        return {"chain": " -> ".join(self.chain), "frequency": self.frequency,
-                "avg_payout": self.avg_payout, "success_rate": self.success_rate}
+        return {
+            "chain": " -> ".join(self.chain),
+            "frequency": self.frequency,
+            "avg_payout": self.avg_payout,
+            "success_rate": self.success_rate,
+        }
 
 
 @dataclass
@@ -140,6 +144,7 @@ def analyze_historical_data(
 
         # vulnerability type analysis
         from collections import Counter
+
         type_counter: Counter = Counter()
         type_confirmed: Counter = Counter()
         type_payout: dict[str, float] = {}
@@ -154,13 +159,15 @@ def analyze_historical_data(
         for vtype, cnt in type_counter.most_common(10):
             conf = type_confirmed.get(vtype, 0)
             payout = type_payout.get(vtype, 0)
-            top_types.append(VulnerabilityTypeSummary(
-                vulnerability_type=vtype,
-                total_count=cnt,
-                confirmed_count=conf,
-                avg_payout=round(payout / conf, 2) if conf else 0.0,
-                acceptance_rate=round(conf / cnt, 4) if cnt else 0.0,
-            ))
+            top_types.append(
+                VulnerabilityTypeSummary(
+                    vulnerability_type=vtype,
+                    total_count=cnt,
+                    confirmed_count=conf,
+                    avg_payout=round(payout / conf, 2) if conf else 0.0,
+                    acceptance_rate=round(conf / cnt, 4) if cnt else 0.0,
+                )
+            )
 
         # target analysis
         targets = session.query(Target).all()
@@ -175,14 +182,17 @@ def analyze_historical_data(
             tname = t.name if t else f"target_{tid}"
             t_confirmed = sum(1 for f in tfindings if f in confirmed)
             t_payout = sum(_severity_payout(f.severity) for f in tfindings if f in confirmed)
-            top_targets_list.append(TargetEfficiency(
-                target_id=tid, target_name=tname,
-                total_findings=len(tfindings),
-                confirmed_count=t_confirmed,
-                total_payout=t_payout,
-                avg_payout=round(t_payout / t_confirmed, 2) if t_confirmed else 0.0,
-                acceptance_rate=round(t_confirmed / len(tfindings), 4) if tfindings else 0.0,
-            ))
+            top_targets_list.append(
+                TargetEfficiency(
+                    target_id=tid,
+                    target_name=tname,
+                    total_findings=len(tfindings),
+                    confirmed_count=t_confirmed,
+                    total_payout=t_payout,
+                    avg_payout=round(t_payout / t_confirmed, 2) if t_confirmed else 0.0,
+                    acceptance_rate=round(t_confirmed / len(tfindings), 4) if tfindings else 0.0,
+                )
+            )
         top_targets_list.sort(key=lambda x: x.total_payout, reverse=True)
         top_targets_list = top_targets_list[:10]
 
@@ -194,10 +204,13 @@ def analyze_historical_data(
                 chain_counter[ev.attempt_label] += 1
         chains = []
         for label, cnt in chain_counter.most_common(5):
-            chains.append(ExploitChain(
-                chain=[label], frequency=cnt,
-                success_rate=0.0,
-            ))
+            chains.append(
+                ExploitChain(
+                    chain=[label],
+                    frequency=cnt,
+                    success_rate=0.0,
+                )
+            )
 
         return HistoricalSummary(
             total_investigations=total_inv,

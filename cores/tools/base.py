@@ -22,6 +22,7 @@ logger = logging.getLogger("ownex.tools")
 @dataclass
 class UnifiedResult:
     """Every tool output converges to this format."""
+
     source: str  # subfinder, nuclei, httpx, etc.
     target: str  # domain, URL, IP
     result_type: str  # subdomain, endpoint, vulnerability, tech, etc.
@@ -38,6 +39,7 @@ class UnifiedResult:
 @dataclass
 class ToolResult:
     """Result from running a tool."""
+
     success: bool
     results: list[UnifiedResult]
     command: str
@@ -68,7 +70,8 @@ class BaseTool:
         try:
             subprocess.run(
                 [self._binary, "--version"],
-                capture_output=True, timeout=10,
+                capture_output=True,
+                timeout=10,
             )
             return True
         except (FileNotFoundError, subprocess.TimeoutExpired):

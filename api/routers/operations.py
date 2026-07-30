@@ -26,6 +26,7 @@ TASK_STATUSES = ("pending", "in_progress", "waiting", "completed")
 
 # ─── Block 1 & 2: Morning Brief / Evening Summary ───────────────────
 
+
 def _build_morning_brief() -> dict[str, Any]:
     session = db.SessionLocal()
     try:
@@ -40,13 +41,20 @@ def _build_morning_brief() -> dict[str, Any]:
         top_roi_target = None
         if top_targets:
             from cores.engine.unified_scoring import score_target as unified_score_target
+
             scored = []
             for t in top_targets:
                 ep_count = session.query(models.Endpoint).filter(models.Endpoint.target_id == t.id).count()
-                roi = unified_score_target({
-                    "api_count": ep_count, "source": (t.name or "").lower(),
-                    "has_graphql": False, "has_admin": False, "has_api": False, "has_exports": False,
-                })
+                roi = unified_score_target(
+                    {
+                        "api_count": ep_count,
+                        "source": (t.name or "").lower(),
+                        "has_graphql": False,
+                        "has_admin": False,
+                        "has_api": False,
+                        "has_exports": False,
+                    }
+                )
                 scored.append((t, roi.get("roi_score", 0)))
             scored.sort(key=lambda x: x[1], reverse=True)
             if scored:
@@ -57,8 +65,20 @@ def _build_morning_brief() -> dict[str, Any]:
         try:
             from cores.engine.snapshot import PipelineSnapshot
             from cores.quick_wins.quick_wins_engine import QuickWinsEngine
+
             engine = QuickWinsEngine()
-            report = engine.evaluate(PipelineSnapshot(status="completed", target=None, endpoints=[], hot_paths=[], verdicts=[], reports=[], coverage_score=0.0, timestamp=now.isoformat()))
+            report = engine.evaluate(
+                PipelineSnapshot(
+                    status="completed",
+                    target=None,
+                    endpoints=[],
+                    hot_paths=[],
+                    verdicts=[],
+                    reports=[],
+                    coverage_score=0.0,
+                    timestamp=now.isoformat(),
+                )
+            )
             quick_wins_count = report.total_opportunities
         except Exception as exc:
             logger.warning("Quick wins evaluation failed: %s", exc)
@@ -120,6 +140,7 @@ def evening_summary():
 
 # ─── Block 3: Unified Activity Timeline ─────────────────────────────
 
+
 @router.get("/timeline")
 def unified_timeline(
     limit: int = Query(50, ge=1, le=200),
@@ -132,47 +153,76 @@ def unified_timeline(
         events: list[dict[str, Any]] = []
 
         for f in session.query(models.Finding).filter(models.Finding.created_at >= since).all():
-            events.append({
-                "type": "finding", "id": f.id, "label": f.title or f"Finding #{f.id}",
-                "severity": f.severity or "medium", "target_id": f.target_id,
-                "timestamp": f.created_at.isoformat() if f.created_at else "",
-            })
+            events.append(
+                {
+                    "type": "finding",
+                    "id": f.id,
+                    "label": f.title or f"Finding #{f.id}",
+                    "severity": f.severity or "medium",
+                    "target_id": f.target_id,
+                    "timestamp": f.created_at.isoformat() if f.created_at else "",
+                }
+            )
 
         for v in session.query(models.Verdict).filter(models.Verdict.created_at >= since).all():
-            events.append({
-                "type": "verdict", "id": v.id, "label": f"Verdict #{v.id}",
-                "status": v.status, "confidence": float(v.confidence) if v.confidence else 0.0,
-                "timestamp": v.created_at.isoformat() if v.created_at else "",
-            })
+            events.append(
+                {
+                    "type": "verdict",
+                    "id": v.id,
+                    "label": f"Verdict #{v.id}",
+                    "status": v.status,
+                    "confidence": float(v.confidence) if v.confidence else 0.0,
+                    "timestamp": v.created_at.isoformat() if v.created_at else "",
+                }
+            )
 
         for s in session.query(models.ScanRun).filter(models.ScanRun.started_at >= since).all():
-            events.append({
-                "type": "scan", "id": s.id, "label": f"Scan #{s.id}",
-                "status": s.status, "mode": s.mode, "endpoint_count": s.endpoint_count,
-                "target_id": s.target_id,
-                "timestamp": s.started_at.isoformat() if s.started_at else "",
-            })
+            events.append(
+                {
+                    "type": "scan",
+                    "id": s.id,
+                    "label": f"Scan #{s.id}",
+                    "status": s.status,
+                    "mode": s.mode,
+                    "endpoint_count": s.endpoint_count,
+                    "target_id": s.target_id,
+                    "timestamp": s.started_at.isoformat() if s.started_at else "",
+                }
+            )
 
         for e in session.query(models.Evidence).filter(models.Evidence.created_at >= since).all():
-            events.append({
-                "type": "evidence", "id": e.id, "label": f"Evidence #{e.id}",
-                "attempt": e.attempt_label, "url": e.request_url,
-                "timestamp": e.created_at.isoformat() if e.created_at else "",
-            })
+            events.append(
+                {
+                    "type": "evidence",
+                    "id": e.id,
+                    "label": f"Evidence #{e.id}",
+                    "attempt": e.attempt_label,
+                    "url": e.request_url,
+                    "timestamp": e.created_at.isoformat() if e.created_at else "",
+                }
+            )
 
         for mr in session.query(models.MemoryRecord).filter(models.MemoryRecord.created_at >= since).all():
-            events.append({
-                "type": "intelligence", "id": mr.id, "label": mr.key or "Memory record",
-                "category": mr.category,
-                "timestamp": mr.created_at.isoformat() if mr.created_at else "",
-            })
+            events.append(
+                {
+                    "type": "intelligence",
+                    "id": mr.id,
+                    "label": mr.key or "Memory record",
+                    "category": mr.category,
+                    "timestamp": mr.created_at.isoformat() if mr.created_at else "",
+                }
+            )
 
         for n in session.query(models.Notification).filter(models.Notification.created_at >= since).all():
-            events.append({
-                "type": "notification", "id": n.id, "label": n.message,
-                "notification_type": n.notification_type,
-                "timestamp": n.created_at.isoformat() if n.created_at else "",
-            })
+            events.append(
+                {
+                    "type": "notification",
+                    "id": n.id,
+                    "label": n.message,
+                    "notification_type": n.notification_type,
+                    "timestamp": n.created_at.isoformat() if n.created_at else "",
+                }
+            )
 
         events.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
 
@@ -185,6 +235,7 @@ def unified_timeline(
 
 
 # ─── Block 4: Workspace Favorites ───────────────────────────────────
+
 
 class FavoriteCreate(BaseModel):
     item_type: str
@@ -200,8 +251,18 @@ def list_favorites(item_type: str | None = Query(None)):
         if item_type:
             q = q.filter(models.Favorite.item_type == item_type)
         items = q.order_by(models.Favorite.created_at.desc()).limit(100).all()
-        return {"items": [{"id": f.id, "item_type": f.item_type, "item_id": f.item_id,
-                           "label": f.label, "created_at": f.created_at.isoformat() if f.created_at else ""} for f in items]}
+        return {
+            "items": [
+                {
+                    "id": f.id,
+                    "item_type": f.item_type,
+                    "item_id": f.item_id,
+                    "label": f.label,
+                    "created_at": f.created_at.isoformat() if f.created_at else "",
+                }
+                for f in items
+            ]
+        }
     finally:
         session.close()
 
@@ -210,10 +271,14 @@ def list_favorites(item_type: str | None = Query(None)):
 def add_favorite(body: FavoriteCreate):
     session = db.SessionLocal()
     try:
-        existing = session.query(models.Favorite).filter(
-            models.Favorite.item_type == body.item_type,
-            models.Favorite.item_id == body.item_id,
-        ).first()
+        existing = (
+            session.query(models.Favorite)
+            .filter(
+                models.Favorite.item_type == body.item_type,
+                models.Favorite.item_id == body.item_id,
+            )
+            .first()
+        )
         if existing:
             return {"id": existing.id, "status": "already_exists"}
         fav = models.Favorite(item_type=body.item_type, item_id=body.item_id, label=body.label)
@@ -240,6 +305,7 @@ def remove_favorite(favorite_id: int):
 
 # ─── Block 5: Task Queue ────────────────────────────────────────────
 
+
 class TaskCreate(BaseModel):
     title: str
     description: str | None = None
@@ -257,7 +323,9 @@ class TaskUpdate(BaseModel):
 
 
 @router.get("/tasks")
-def list_tasks(status: str | None = Query(None), priority: str | None = Query(None), limit: int = Query(50, ge=1, le=200)):
+def list_tasks(
+    status: str | None = Query(None), priority: str | None = Query(None), limit: int = Query(50, ge=1, le=200)
+):
     session = db.SessionLocal()
     try:
         q = session.query(models.Task)
@@ -266,11 +334,22 @@ def list_tasks(status: str | None = Query(None), priority: str | None = Query(No
         if priority:
             q = q.filter(models.Task.priority == priority)
         items = q.order_by(models.Task.updated_at.desc()).limit(limit).all()
-        return {"items": [{"id": t.id, "title": t.title, "description": t.description,
-                           "status": t.status, "priority": t.priority,
-                           "linked_type": t.linked_type, "linked_id": t.linked_id,
-                           "created_at": t.created_at.isoformat() if t.created_at else "",
-                           "updated_at": t.updated_at.isoformat() if t.updated_at else ""} for t in items]}
+        return {
+            "items": [
+                {
+                    "id": t.id,
+                    "title": t.title,
+                    "description": t.description,
+                    "status": t.status,
+                    "priority": t.priority,
+                    "linked_type": t.linked_type,
+                    "linked_id": t.linked_id,
+                    "created_at": t.created_at.isoformat() if t.created_at else "",
+                    "updated_at": t.updated_at.isoformat() if t.updated_at else "",
+                }
+                for t in items
+            ]
+        }
     finally:
         session.close()
 
@@ -281,9 +360,14 @@ def create_task(body: TaskCreate):
         raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of {TASK_STATUSES}")
     session = db.SessionLocal()
     try:
-        task = models.Task(title=body.title, description=body.description,
-                           status=body.status, priority=body.priority,
-                           linked_type=body.linked_type, linked_id=body.linked_id)
+        task = models.Task(
+            title=body.title,
+            description=body.description,
+            status=body.status,
+            priority=body.priority,
+            linked_type=body.linked_type,
+            linked_id=body.linked_id,
+        )
         session.add(task)
         session.commit()
         return {"id": task.id, "status": "created"}
@@ -330,6 +414,7 @@ def delete_task(task_id: int):
 
 # ─── Block 6: Session Manager ──────────────────────────────────────
 
+
 class SessionUpdate(BaseModel):
     name: str | None = None
     current_target_id: int | None = None
@@ -347,7 +432,8 @@ def get_session():
         if not s:
             return {"id": None, "name": "No active session"}
         return {
-            "id": s.id, "name": s.name,
+            "id": s.id,
+            "name": s.name,
             "current_target_id": s.current_target_id,
             "current_investigation": json.loads(s.current_investigation) if s.current_investigation else None,
             "open_evidence_ids": json.loads(s.open_evidence_ids) if s.open_evidence_ids else [],
@@ -387,6 +473,7 @@ def update_session(body: SessionUpdate):
 
 # ─── Block 7: Operational Metrics ───────────────────────────────────
 
+
 @router.get("/metrics")
 def operational_metrics():
     session = db.SessionLocal()
@@ -405,6 +492,7 @@ def operational_metrics():
         avg_report_time = 0.0
         try:
             from cores.confidence import audit_verdicts
+
             conf_report = audit_verdicts(limit=200)
 
             confidence_dist = {
@@ -434,6 +522,7 @@ def operational_metrics():
 
 # ─── Block 8: System Self Test ──────────────────────────────────────
 
+
 @router.post("/self-test")
 def system_self_test():
     results: list[dict[str, Any]] = []
@@ -451,6 +540,7 @@ def system_self_test():
 
     try:
         from api.main import app
+
         results.append({"component": "api", "status": "ok", "detail": f"App loaded, {len(app.routes)} routes"})
     except Exception as e:
         all_ok = False
@@ -482,6 +572,7 @@ def system_self_test():
 
     try:
         from cores.ai.assistant import get_assistant
+
         get_assistant()
         results.append({"component": "ai_assistant", "status": "ok", "detail": "AI Assistant loaded"})
     except Exception as e:
@@ -508,6 +599,7 @@ def system_self_test():
 
     try:
         from cores.intelligence.adaptive_memory import get_memory
+
         get_memory()
         results.append({"component": "adaptive_intelligence", "status": "ok", "detail": "Adaptive intelligence loaded"})
     except Exception as e:
@@ -516,8 +608,11 @@ def system_self_test():
 
     try:
         from cores.timeline import build_timeline
+
         tl = build_timeline(limit=1)
-        results.append({"component": "timeline", "status": "ok", "detail": f"Timeline built ({tl.total_events} events)"})
+        results.append(
+            {"component": "timeline", "status": "ok", "detail": f"Timeline built ({tl.total_events} events)"}
+        )
     except Exception as e:
         all_ok = False
         results.append({"component": "timeline", "status": "error", "detail": str(e)})
@@ -532,6 +627,7 @@ def system_self_test():
 
 
 # ─── Block 9: Operational Notifications ─────────────────────────────
+
 
 class NotificationCreate(BaseModel):
     notification_type: str
@@ -548,10 +644,20 @@ def list_notifications(unread_only: bool = Query(False), limit: int = Query(50, 
         if unread_only:
             q = q.filter(models.Notification.is_read == "false")
         items = q.order_by(models.Notification.created_at.desc()).limit(limit).all()
-        return {"items": [{"id": n.id, "type": n.notification_type, "message": n.message,
-                           "linked_type": n.linked_type, "linked_id": n.linked_id,
-                           "is_read": n.is_read == "true",
-                           "created_at": n.created_at.isoformat() if n.created_at else ""} for n in items]}
+        return {
+            "items": [
+                {
+                    "id": n.id,
+                    "type": n.notification_type,
+                    "message": n.message,
+                    "linked_type": n.linked_type,
+                    "linked_id": n.linked_id,
+                    "is_read": n.is_read == "true",
+                    "created_at": n.created_at.isoformat() if n.created_at else "",
+                }
+                for n in items
+            ]
+        }
     finally:
         session.close()
 
@@ -560,8 +666,12 @@ def list_notifications(unread_only: bool = Query(False), limit: int = Query(50, 
 def create_notification(body: NotificationCreate):
     session = db.SessionLocal()
     try:
-        n = models.Notification(notification_type=body.notification_type, message=body.message,
-                                linked_type=body.linked_type, linked_id=body.linked_id)
+        n = models.Notification(
+            notification_type=body.notification_type,
+            message=body.message,
+            linked_type=body.linked_type,
+            linked_id=body.linked_id,
+        )
         session.add(n)
         session.commit()
         return {"id": n.id, "status": "created"}
@@ -616,33 +726,47 @@ def _generate_notifications() -> int:
     created = 0
     try:
         for f in session.query(models.Finding).filter(models.Finding.created_at >= since).all():
-            existing = session.query(models.Notification).filter(
-                models.Notification.notification_type == "finding_alert",
-                models.Notification.linked_type == "finding",
-                models.Notification.linked_id == f.id,
-            ).first()
+            existing = (
+                session.query(models.Notification)
+                .filter(
+                    models.Notification.notification_type == "finding_alert",
+                    models.Notification.linked_type == "finding",
+                    models.Notification.linked_id == f.id,
+                )
+                .first()
+            )
             if not existing:
-                session.add(models.Notification(
-                    notification_type="finding_alert",
-                    message=f"New finding: {f.title or f'Finding #{f.id}'}",
-                    linked_type="finding", linked_id=f.id,
-                ))
+                session.add(
+                    models.Notification(
+                        notification_type="finding_alert",
+                        message=f"New finding: {f.title or f'Finding #{f.id}'}",
+                        linked_type="finding",
+                        linked_id=f.id,
+                    )
+                )
                 created += 1
 
         for s in session.query(models.ScanRun).filter(models.ScanRun.started_at >= since).all():
             if s.finished_at:
-                existing = session.query(models.Notification).filter(
-                    models.Notification.notification_type == "scan_complete",
-                    models.Notification.linked_type == "scan",
-                    models.Notification.linked_id == s.id,
-                ).first()
+                existing = (
+                    session.query(models.Notification)
+                    .filter(
+                        models.Notification.notification_type == "scan_complete",
+                        models.Notification.linked_type == "scan",
+                        models.Notification.linked_id == s.id,
+                    )
+                    .first()
+                )
                 if not existing:
                     status_text = "completed" if s.status == "completed" else s.status or "finished"
-                    session.add(models.Notification(
-                        notification_type="scan_complete",
-                        message=f"Scan #{s.id} {status_text} — {s.endpoint_count or 0} endpoints",
-                        linked_type="scan", linked_id=s.id,
-                    ))
+                    session.add(
+                        models.Notification(
+                            notification_type="scan_complete",
+                            message=f"Scan #{s.id} {status_text} — {s.endpoint_count or 0} endpoints",
+                            linked_type="scan",
+                            linked_id=s.id,
+                        )
+                    )
                     created += 1
 
         if created:

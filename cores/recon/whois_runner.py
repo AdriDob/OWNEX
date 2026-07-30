@@ -18,9 +18,20 @@ class WhoisRunner:
         try:
             w = await asyncio.to_thread(whois_lib.whois, domain)
             lines = []
-            for key in ("domain_name", "registrar", "creation_date", "expiration_date",
-                         "updated_date", "name_servers", "status", "emails",
-                         "org", "country", "city", "address"):
+            for key in (
+                "domain_name",
+                "registrar",
+                "creation_date",
+                "expiration_date",
+                "updated_date",
+                "name_servers",
+                "status",
+                "emails",
+                "org",
+                "country",
+                "city",
+                "address",
+            ):
                 val = w.get(key)
                 if val:
                     if isinstance(val, list):

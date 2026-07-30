@@ -49,11 +49,15 @@ class TargetSessionManager:
     def get_session_status(self, identity_id: int) -> dict:
         session = db.SessionLocal()
         try:
-            sess = session.query(models.TargetSession).filter(
-                models.TargetSession.identity_id == identity_id
-            ).first()
+            sess = session.query(models.TargetSession).filter(models.TargetSession.identity_id == identity_id).first()
             if not sess:
-                return {"identity_id": identity_id, "is_valid": False, "expires_at": None, "last_refresh_at": None, "failure_count": 0}
+                return {
+                    "identity_id": identity_id,
+                    "is_valid": False,
+                    "expires_at": None,
+                    "last_refresh_at": None,
+                    "failure_count": 0,
+                }
             return {
                 "identity_id": identity_id,
                 "is_valid": sess.is_valid,
@@ -67,9 +71,9 @@ class TargetSessionManager:
     def invalidate_session(self, identity_id: int) -> None:
         session = db.SessionLocal()
         try:
-            session.query(models.TargetSession).filter(
-                models.TargetSession.identity_id == identity_id
-            ).update({"is_valid": False})
+            session.query(models.TargetSession).filter(models.TargetSession.identity_id == identity_id).update(
+                {"is_valid": False}
+            )
             session.commit()
         finally:
             session.close()
@@ -89,9 +93,7 @@ class TargetSessionManager:
     def _get_active_session(self, identity_id: int) -> dict | None:
         session = db.SessionLocal()
         try:
-            sess = session.query(models.TargetSession).filter(
-                models.TargetSession.identity_id == identity_id
-            ).first()
+            sess = session.query(models.TargetSession).filter(models.TargetSession.identity_id == identity_id).first()
             if not sess:
                 return None
             return {
@@ -109,15 +111,24 @@ class TargetSessionManager:
     def _login_and_create_session(self, identity_id: int) -> dict:
         creds = self._identity_manager.get_decrypted_credentials(identity_id)
         if not creds:
-            return {"token": None, "cookies": None, "expires_at": None, "error": "No credentials configured for this identity"}
+            return {
+                "token": None,
+                "cookies": None,
+                "expires_at": None,
+                "error": "No credentials configured for this identity",
+            }
 
         # Get identity info
         session = db.SessionLocal()
         try:
-            identity = session.query(models.TargetIdentity).filter(
-                models.TargetIdentity.id == identity_id,
-                models.TargetIdentity.is_active,
-            ).first()
+            identity = (
+                session.query(models.TargetIdentity)
+                .filter(
+                    models.TargetIdentity.id == identity_id,
+                    models.TargetIdentity.is_active,
+                )
+                .first()
+            )
             if not identity:
                 return {"token": None, "cookies": None, "expires_at": None, "error": "Identity not found or inactive"}
 
@@ -137,12 +148,14 @@ class TargetSessionManager:
 
         # Persist session
         self._save_session(identity_id, token, cookies, expires_at)
-        return self._session_to_auth_context({
-            "is_valid": True,
-            "expires_at": datetime.fromtimestamp(expires_at, tz=UTC) if expires_at else None,
-            "token": token,
-            "cookies": cookies,
-        })
+        return self._session_to_auth_context(
+            {
+                "is_valid": True,
+                "expires_at": datetime.fromtimestamp(expires_at, tz=UTC) if expires_at else None,
+                "token": token,
+                "cookies": cookies,
+            }
+        )
 
     def _save_session(
         self,
@@ -153,9 +166,9 @@ class TargetSessionManager:
     ) -> None:
         session = db.SessionLocal()
         try:
-            existing = session.query(models.TargetSession).filter(
-                models.TargetSession.identity_id == identity_id
-            ).first()
+            existing = (
+                session.query(models.TargetSession).filter(models.TargetSession.identity_id == identity_id).first()
+            )
 
             token_encrypted = self._vault.encrypt(token) if token else ""
             cookies_encrypted = self._vault.encrypt_json(cookies) if cookies else ""
@@ -190,9 +203,7 @@ class TargetSessionManager:
     def _record_failure(self, identity_id: int) -> None:
         session = db.SessionLocal()
         try:
-            sess = session.query(models.TargetSession).filter(
-                models.TargetSession.identity_id == identity_id
-            ).first()
+            sess = session.query(models.TargetSession).filter(models.TargetSession.identity_id == identity_id).first()
             if sess:
                 sess.failure_count = (sess.failure_count or 0) + 1
                 if sess.failure_count >= 5:

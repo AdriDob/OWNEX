@@ -39,18 +39,20 @@ def get_screenshots(target_id: int | None = None):
         ep_snapshots = []
         for ep in endpoints:
             s = unified_score(ep.path, ep.method or "GET", ep.parsed_params)
-            ep_snapshots.append(EndpointSnapshot(
-                path=ep.path,
-                method=ep.method or "GET",
-                risk_score=float(s.get("risk_score", 0)),
-                confidence=float(s.get("confidence", 0)),
-                labels=s.get("labels", []),
-                attack_surface=s.get("attack_surface", []),
-                signals=s.get("signals", []),
-                vector=s.get("vector", ""),
-                actionable=bool(s.get("actionable", False)),
-                potential_idor=bool(s.get("potential_idor", False)),
-            ))
+            ep_snapshots.append(
+                EndpointSnapshot(
+                    path=ep.path,
+                    method=ep.method or "GET",
+                    risk_score=float(s.get("risk_score", 0)),
+                    confidence=float(s.get("confidence", 0)),
+                    labels=s.get("labels", []),
+                    attack_surface=s.get("attack_surface", []),
+                    signals=s.get("signals", []),
+                    vector=s.get("vector", ""),
+                    actionable=bool(s.get("actionable", False)),
+                    potential_idor=bool(s.get("potential_idor", False)),
+                )
+            )
 
         target_snapshot = TargetSnapshot(
             target_id=first_target.id,
@@ -93,8 +95,7 @@ def get_screenshots(target_id: int | None = None):
                         for b in s.visual_blocks
                     ],
                     "annotations": [
-                        {"category": a.category, "detail": a.detail, "severity": a.severity}
-                        for a in s.annotations
+                        {"category": a.category, "detail": a.detail, "severity": a.severity} for a in s.annotations
                     ],
                     "before_state": s.before_state,
                     "after_state": s.after_state,

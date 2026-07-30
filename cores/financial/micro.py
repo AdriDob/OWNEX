@@ -176,7 +176,16 @@ def trace_balance_origin(account_id: str) -> dict[str, Any]:
 
     for entry in entries:
         eid = entry.get("id", "")
-        nodes.append({"id": eid, "event": entry.get("event", ""), "amount": entry.get("amount", 0), "source": entry.get("source", ""), "platform": entry.get("platform", ""), "timestamp": entry.get("timestamp", "")})
+        nodes.append(
+            {
+                "id": eid,
+                "event": entry.get("event", ""),
+                "amount": entry.get("amount", 0),
+                "source": entry.get("source", ""),
+                "platform": entry.get("platform", ""),
+                "timestamp": entry.get("timestamp", ""),
+            }
+        )
 
     sorted_entries = sorted(entries, key=lambda e: e.get("timestamp", ""))
     prev_id = ""
@@ -187,7 +196,15 @@ def trace_balance_origin(account_id: str) -> dict[str, Any]:
         prev_id = current_id
 
     for entry in matching:
-        source_chain.append({"entry_id": entry.get("id", ""), "event": entry.get("event", ""), "amount": entry.get("amount", 0), "source": entry.get("source", ""), "timestamp": entry.get("timestamp", "")})
+        source_chain.append(
+            {
+                "entry_id": entry.get("id", ""),
+                "event": entry.get("event", ""),
+                "amount": entry.get("amount", 0),
+                "source": entry.get("source", ""),
+                "timestamp": entry.get("timestamp", ""),
+            }
+        )
 
     truth = get_truth_layer()
     state = truth.get_state()
@@ -212,69 +229,83 @@ def detect_sync_anomalies() -> list[dict[str, Any]]:
 
     wallet = compute_wallet()
     if wallet.available_balance < -0.01:
-        anomalies.append({
-            "type": "negative_balance",
-            "severity": "critical",
-            "source": "ledger",
-            "description": f"Available balance is negative: {wallet.available_balance:.2f}",
-            "details": {"available_balance": round(wallet.available_balance, 2)},
-        })
+        anomalies.append(
+            {
+                "type": "negative_balance",
+                "severity": "critical",
+                "source": "ledger",
+                "description": f"Available balance is negative: {wallet.available_balance:.2f}",
+                "details": {"available_balance": round(wallet.available_balance, 2)},
+            }
+        )
     if wallet.pending_balance < -0.01:
-        anomalies.append({
-            "type": "negative_balance",
-            "severity": "high",
-            "source": "ledger",
-            "description": f"Pending balance is negative: {wallet.pending_balance:.2f}",
-            "details": {"pending_balance": round(wallet.pending_balance, 2)},
-        })
+        anomalies.append(
+            {
+                "type": "negative_balance",
+                "severity": "high",
+                "source": "ledger",
+                "description": f"Pending balance is negative: {wallet.pending_balance:.2f}",
+                "details": {"pending_balance": round(wallet.pending_balance, 2)},
+            }
+        )
     if wallet.locked_balance < -0.01:
-        anomalies.append({
-            "type": "negative_balance",
-            "severity": "high",
-            "source": "ledger",
-            "description": f"Locked balance is negative: {wallet.locked_balance:.2f}",
-            "details": {"locked_balance": round(wallet.locked_balance, 2)},
-        })
+        anomalies.append(
+            {
+                "type": "negative_balance",
+                "severity": "high",
+                "source": "ledger",
+                "description": f"Locked balance is negative: {wallet.locked_balance:.2f}",
+                "details": {"locked_balance": round(wallet.locked_balance, 2)},
+            }
+        )
 
     for pid, pstate in state.by_platform.items():
         sync = pstate.sync_state
         if sync.consecutive_failures >= 3:
-            anomalies.append({
-                "type": "sync_failure",
-                "severity": "high" if sync.consecutive_failures < 5 else "critical",
-                "source": pid,
-                "description": f"{sync.consecutive_failures} consecutive sync failures for {pid}",
-                "details": {"consecutive_failures": sync.consecutive_failures, "last_error": sync.last_error},
-            })
+            anomalies.append(
+                {
+                    "type": "sync_failure",
+                    "severity": "high" if sync.consecutive_failures < 5 else "critical",
+                    "source": pid,
+                    "description": f"{sync.consecutive_failures} consecutive sync failures for {pid}",
+                    "details": {"consecutive_failures": sync.consecutive_failures, "last_error": sync.last_error},
+                }
+            )
         if sync.is_stale and sync.last_success > 0:
-            anomalies.append({
-                "type": "stale_data",
-                "severity": "medium",
-                "source": pid,
-                "description": f"Data for {pid} is stale (last sync: {datetime.fromtimestamp(sync.last_success, tz=UTC).isoformat()})",
-                "details": {"last_success": sync.last_success, "stale_threshold_seconds": 3600},
-            })
+            anomalies.append(
+                {
+                    "type": "stale_data",
+                    "severity": "medium",
+                    "source": pid,
+                    "description": f"Data for {pid} is stale (last sync: {datetime.fromtimestamp(sync.last_success, tz=UTC).isoformat()})",
+                    "details": {"last_success": sync.last_success, "stale_threshold_seconds": 3600},
+                }
+            )
 
     crypto_mgr = get_crypto_sync_manager()
     for wid in crypto_mgr.connectors:
         snap = crypto_mgr.get_snapshot(wid)
         if not snap:
-            anomalies.append({
-                "type": "missing_sync",
-                "severity": "medium",
-                "source": wid,
-                "description": f"No sync snapshot found for wallet {wid}",
-                "details": {},
-            })
+            anomalies.append(
+                {
+                    "type": "missing_sync",
+                    "severity": "medium",
+                    "source": wid,
+                    "description": f"No sync snapshot found for wallet {wid}",
+                    "details": {},
+                }
+            )
             continue
         if snap.connection.value != "connected":
-            anomalies.append({
-                "type": "sync_failure",
-                "severity": "high",
-                "source": wid,
-                "description": f"Wallet {wid} sync failed: {snap.error}",
-                "details": {"error": snap.error, "connection": snap.connection.value},
-            })
+            anomalies.append(
+                {
+                    "type": "sync_failure",
+                    "severity": "high",
+                    "source": wid,
+                    "description": f"Wallet {wid} sync failed: {snap.error}",
+                    "details": {"error": snap.error, "connection": snap.connection.value},
+                }
+            )
 
     return anomalies
 
@@ -287,39 +318,45 @@ def get_pending_actions() -> list[dict[str, Any]]:
 
     pending_withdrawals = list_withdrawals(status=WithdrawalStatus.PENDING)
     for wd in pending_withdrawals:
-        actions.append({
-            "action_type": "confirm_withdrawal",
-            "priority": 7,
-            "source": wd.get("id", ""),
-            "description": f"Pending withdrawal: {wd.get('amount', 0):.2f} {wd.get('currency', 'USD')} to {wd.get('target_account', 'unknown')}",
-            "action_url": f"/api/withdrawals/{wd.get('id', '')}/confirm",
-            "created_at": wd.get("created_at", ""),
-        })
+        actions.append(
+            {
+                "action_type": "confirm_withdrawal",
+                "priority": 7,
+                "source": wd.get("id", ""),
+                "description": f"Pending withdrawal: {wd.get('amount', 0):.2f} {wd.get('currency', 'USD')} to {wd.get('target_account', 'unknown')}",
+                "action_url": f"/api/withdrawals/{wd.get('id', '')}/confirm",
+                "created_at": wd.get("created_at", ""),
+            }
+        )
 
     initiated_withdrawals = list_withdrawals(status=WithdrawalStatus.INITIATED)
     for wd in initiated_withdrawals:
-        actions.append({
-            "action_type": "process_withdrawal",
-            "priority": 6,
-            "source": wd.get("id", ""),
-            "description": f"Initiated withdrawal: {wd.get('amount', 0):.2f} {wd.get('currency', 'USD')}",
-            "action_url": f"/api/withdrawals/{wd.get('id', '')}/process",
-            "created_at": wd.get("created_at", ""),
-        })
+        actions.append(
+            {
+                "action_type": "process_withdrawal",
+                "priority": 6,
+                "source": wd.get("id", ""),
+                "description": f"Initiated withdrawal: {wd.get('amount', 0):.2f} {wd.get('currency', 'USD')}",
+                "action_url": f"/api/withdrawals/{wd.get('id', '')}/process",
+                "created_at": wd.get("created_at", ""),
+            }
+        )
 
     truth = get_truth_layer()
     state = truth.get_state()
     for pid, pstate in state.by_platform.items():
         sync = pstate.sync_state
         if sync.consecutive_failures > 0:
-            actions.append({
-                "action_type": "retry_sync",
-                "priority": min(5 + sync.consecutive_failures, 10),
-                "source": pid,
-                "description": f"Retry failed sync for {pid} ({sync.consecutive_failures} failures)",
-                "action_url": f"/api/micro/sync-source/{pid}",
-                "created_at": datetime.now(UTC).isoformat(),
-            })
+            actions.append(
+                {
+                    "action_type": "retry_sync",
+                    "priority": min(5 + sync.consecutive_failures, 10),
+                    "source": pid,
+                    "description": f"Retry failed sync for {pid} ({sync.consecutive_failures} failures)",
+                    "action_url": f"/api/micro/sync-source/{pid}",
+                    "created_at": datetime.now(UTC).isoformat(),
+                }
+            )
 
     vault_actions = _check_disconnected_accounts()
     actions.extend(vault_actions)
@@ -327,14 +364,16 @@ def get_pending_actions() -> list[dict[str, Any]]:
     reconn_engine = get_reconciliation_engine()
     reconn_state = reconn_engine.get_state()
     if reconn_state.get("unresolved", 0) > 0:
-        actions.append({
-            "action_type": "resolve_discrepancies",
-            "priority": 8,
-            "source": "reconciliation",
-            "description": f"{reconn_state['unresolved']} unresolved reconciliation discrepancies",
-            "action_url": "/api/financial/reconciliation",
-            "created_at": datetime.now(UTC).isoformat(),
-        })
+        actions.append(
+            {
+                "action_type": "resolve_discrepancies",
+                "priority": 8,
+                "source": "reconciliation",
+                "description": f"{reconn_state['unresolved']} unresolved reconciliation discrepancies",
+                "action_url": "/api/financial/reconciliation",
+                "created_at": datetime.now(UTC).isoformat(),
+            }
+        )
 
     actions.sort(key=lambda a: a["priority"], reverse=True)
     return actions
@@ -347,14 +386,16 @@ def _check_disconnected_accounts() -> list[dict[str, Any]]:
     disconnected: list[dict[str, Any]] = []
     for acct in vault.list_accounts():
         if acct.get("session_state") == "disconnected" and acct.get("has_credentials"):
-            disconnected.append({
-                "action_type": "reconnect_account",
-                "priority": 5,
-                "source": acct.get("provider_name", ""),
-                "description": f"Account {acct.get('provider_name', 'unknown')} is disconnected",
-                "action_url": f"/api/identity/{acct.get('provider_name', '')}/reconnect",
-                "created_at": acct.get("last_checked", ""),
-            })
+            disconnected.append(
+                {
+                    "action_type": "reconnect_account",
+                    "priority": 5,
+                    "source": acct.get("provider_name", ""),
+                    "description": f"Account {acct.get('provider_name', 'unknown')} is disconnected",
+                    "action_url": f"/api/identity/{acct.get('provider_name', '')}/reconnect",
+                    "created_at": acct.get("last_checked", ""),
+                }
+            )
     return disconnected
 
 
@@ -527,7 +568,8 @@ def get_minimal_dashboard_state() -> dict[str, Any]:
         "system_health": health,
         "total_wallets": crypto_summary.get("total_wallets", 0),
         "total_platforms": len(state.by_platform),
-        "unconfirmed_withdrawals": withdrawal_summary.get("total_pending", 0) + withdrawal_summary.get("total_initiated", 0),
+        "unconfirmed_withdrawals": withdrawal_summary.get("total_pending", 0)
+        + withdrawal_summary.get("total_initiated", 0),
     }
 
 
@@ -560,7 +602,10 @@ def _get_entity_by_type(type_: str, id_: str) -> dict[str, Any]:
                 "id": id_,
                 "type": "wallet",
                 "total_usd": round(snap.total_usd, 2),
-                "balances": [{"symbol": b.symbol, "amount": b.amount, "usd_value": round(b.usd_value, 2)} for b in (snap.balances or [])],
+                "balances": [
+                    {"symbol": b.symbol, "amount": b.amount, "usd_value": round(b.usd_value, 2)}
+                    for b in (snap.balances or [])
+                ],
                 "connection": snap.connection.value,
                 "synced_at": snap.synced_at,
                 "error": snap.error,

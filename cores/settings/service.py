@@ -25,18 +25,18 @@ DEFAULT_PLATFORM_CONFIG: dict[str, Any] = {
     "api_key": "",
 }
 
-DEFAULT_PLATFORMS: dict[str, dict[str, Any]] = {
-    pid: dict(DEFAULT_PLATFORM_CONFIG) for pid in PLATFORM_IDS
-}
+DEFAULT_PLATFORMS: dict[str, dict[str, Any]] = {pid: dict(DEFAULT_PLATFORM_CONFIG) for pid in PLATFORM_IDS}
 
 
 def _get_session():
     from database.db import SessionLocal
+
     return SessionLocal()
 
 
 def _get_setting(key: str, default: Any = None) -> Any:
     from database.models import OWNEXConfig
+
     session = _get_session()
     try:
         record = session.query(OWNEXConfig).filter(OWNEXConfig.key == key).first()
@@ -52,6 +52,7 @@ def _get_setting(key: str, default: Any = None) -> Any:
 
 def _set_setting(key: str, value: Any) -> None:
     from database.models import OWNEXConfig
+
     session = _get_session()
     try:
         record = session.query(OWNEXConfig).filter(OWNEXConfig.key == key).first()

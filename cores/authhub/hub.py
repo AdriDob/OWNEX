@@ -58,15 +58,18 @@ class AuthHub:
         gmail_creds = vault.get_credentials("gmail")
         if gmail_creds.get("client_id") and gmail_creds.get("client_secret"):
             from cores.authhub.gmail import GmailOAuth2
+
             gmail = GmailOAuth2()
             self.register_provider("gmail", gmail)
             logger.info("AuthHub: GmailOAuth2 auto-registered")
 
         # Twilio / WhatsApp
         twilio_creds = vault.get_credentials("twilio")
-        if twilio_creds.get("account_sid", twilio_creds.get("token")) and \
-           twilio_creds.get("auth_token", twilio_creds.get("password")):
+        if twilio_creds.get("account_sid", twilio_creds.get("token")) and twilio_creds.get(
+            "auth_token", twilio_creds.get("password")
+        ):
             from cores.authhub.whatsapp import WhatsAppTwilio
+
             whatsapp = WhatsAppTwilio()
             self.register_provider("whatsapp", whatsapp)
             logger.info("AuthHub: WhatsAppTwilio auto-registered")
@@ -75,6 +78,7 @@ class AuthHub:
         telegram_creds = vault.get_credentials("telegram")
         if telegram_creds.get("bot_token", telegram_creds.get("token")):
             from cores.authhub.telegram import TelegramBot
+
             telegram = TelegramBot()
             self.register_provider("telegram", telegram)
             logger.info("AuthHub: TelegramBot auto-registered")

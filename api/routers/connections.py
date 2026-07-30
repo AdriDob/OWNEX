@@ -168,15 +168,17 @@ def list_registered_platforms():
 
     for v in vault_accounts:
         if v["provider_name"].lower() not in seen:
-            merged.append({
-                "provider": v["provider_name"],
-                "connected": v.get("has_credentials", False),
-                "email": v.get("email", ""),
-                "username": v.get("username", ""),
-                "earnings": 0,
-                "pending": 0,
-                "last_sync": v.get("last_checked", ""),
-            })
+            merged.append(
+                {
+                    "provider": v["provider_name"],
+                    "connected": v.get("has_credentials", False),
+                    "email": v.get("email", ""),
+                    "username": v.get("username", ""),
+                    "earnings": 0,
+                    "pending": 0,
+                    "last_sync": v.get("last_checked", ""),
+                }
+            )
 
     return {"platforms": merged}
 
@@ -197,12 +199,14 @@ def register_platform(data: dict[str, Any]):
         existing["email"] = data.get("email", existing.get("email", ""))
         existing["username"] = data.get("username", existing.get("username", ""))
     else:
-        registered.append({
-            "provider": provider,
-            "email": data.get("email", ""),
-            "username": data.get("username", ""),
-            "registered_at": datetime.now(UTC).isoformat(),
-        })
+        registered.append(
+            {
+                "provider": provider,
+                "email": data.get("email", ""),
+                "username": data.get("username", ""),
+                "registered_at": datetime.now(UTC).isoformat(),
+            }
+        )
 
     _set_config_value(PLATFORM_REG_KEY, registered)
 

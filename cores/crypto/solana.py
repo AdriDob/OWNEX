@@ -25,12 +25,14 @@ SOL_DECIMALS = 9
 def _rpc_call(method: str, params: list[Any]) -> dict[str, Any] | None:
     import urllib.request
 
-    payload = json.dumps({
-        "jsonrpc": "2.0",
-        "method": method,
-        "params": params,
-        "id": 1,
-    }).encode()
+    payload = json.dumps(
+        {
+            "jsonrpc": "2.0",
+            "method": method,
+            "params": params,
+            "id": 1,
+        }
+    ).encode()
     req = urllib.request.Request(SOLANA_RPC, data=payload, headers={"Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
@@ -156,10 +158,14 @@ class SolanaConnector(CryptoConnector):
                 tx_type = "send" if is_outgoing else "receive"
 
                 if is_outgoing:
-                    to_addr = next((key for i, key in enumerate(keys) if i != addr_idx and pre_balances[i] < post_balances[i]), "")
+                    to_addr = next(
+                        (key for i, key in enumerate(keys) if i != addr_idx and pre_balances[i] < post_balances[i]), ""
+                    )
                     from_addr = self._address
                 else:
-                    from_addr = next((key for i, key in enumerate(keys) if i != addr_idx and pre_balances[i] > post_balances[i]), "")
+                    from_addr = next(
+                        (key for i, key in enumerate(keys) if i != addr_idx and pre_balances[i] > post_balances[i]), ""
+                    )
                     to_addr = self._address
 
                 tx = CryptoTransaction(

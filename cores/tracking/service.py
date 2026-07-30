@@ -25,6 +25,7 @@ PLATFORM_STATE_MAP: dict[str, str] = {
 
 def _get_session():
     from database.db import SessionLocal
+
     return SessionLocal()
 
 
@@ -36,6 +37,7 @@ def _save_submission_record(
     extra: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     from database.models import SubmissionRecord
+
     session = _get_session()
     try:
         existing = (
@@ -127,6 +129,7 @@ def handle_webhook_callback(
     extra: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     from database.models import SubmissionRecord
+
     session = _get_session()
     try:
         record = (
@@ -150,6 +153,7 @@ def handle_webhook_callback(
 
         # Also update the report status
         from database.models import Report
+
         report = session.query(Report).filter(Report.id == record.report_id).first()
         if report:
             report.status = mapped_status
@@ -175,13 +179,10 @@ def handle_webhook_callback(
 
 def get_submission_status(report_id: int) -> list[dict[str, Any]]:
     from database.models import SubmissionRecord
+
     session = _get_session()
     try:
-        records = (
-            session.query(SubmissionRecord)
-            .filter(SubmissionRecord.report_id == report_id)
-            .all()
-        )
+        records = session.query(SubmissionRecord).filter(SubmissionRecord.report_id == report_id).all()
         return [
             {
                 "id": r.id,

@@ -39,9 +39,8 @@ class ProviderEntry:
 
     @property
     def is_available(self) -> bool:
-        return (
-            self.status in (PROVIDER_READY, PROVIDER_DEGRADED)
-            or (self.status == PROVIDER_COOLDOWN and time.time() >= self.cooldown_until)
+        return self.status in (PROVIDER_READY, PROVIDER_DEGRADED) or (
+            self.status == PROVIDER_COOLDOWN and time.time() >= self.cooldown_until
         )
 
     @property

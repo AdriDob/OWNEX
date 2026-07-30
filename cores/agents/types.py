@@ -100,6 +100,7 @@ class EventType(str, Enum):
 
 class PipelineState(str, Enum):
     """Full 11-state lifecycle of a single pipeline run."""
+
     PENDING = "pending"
     DISCOVERY = "discovery"
     VALIDATION = "validation"
@@ -264,6 +265,7 @@ class AgentEvent:
     All events are frozen — once created they cannot be modified.
     Always includes event_id, timestamp, correlation_id for full traceability.
     """
+
     event_id: str = field(default_factory=lambda: uuid4().hex[:12])
     event_type: EventType | str = ""
     timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
@@ -276,8 +278,7 @@ class AgentEvent:
     def __post_init__(self):
         # Cannot mutate frozen dataclass in __post_init__
         # correlation_id is set at construction time
-        object.__setattr__(self, "correlation_id",
-                          self.correlation_id or self.event_id)
+        object.__setattr__(self, "correlation_id", self.correlation_id or self.event_id)
 
     def to_dict(self) -> dict[str, Any]:
         return {

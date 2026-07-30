@@ -19,6 +19,7 @@ logger = logging.getLogger("ownex.dashboard")
 @dataclass
 class SystemStatus:
     """Overall system health status."""
+
     healthy: bool
     components: dict[str, dict[str, Any]]
     issues: list[str]
@@ -28,6 +29,7 @@ class SystemStatus:
 @dataclass
 class DashboardMetrics:
     """Key metrics for the dashboard."""
+
     # Sensors
     active_sensors: int = 0
     total_observations: int = 0
@@ -113,9 +115,7 @@ class DashboardAggregator:
         self._metrics.total_opportunities += 1
         self._metrics.new_opportunities_24h += 1
         category = event.payload.get("category", "unknown")
-        self._metrics.opportunities_by_category[category] = (
-            self._metrics.opportunities_by_category.get(category, 0) + 1
-        )
+        self._metrics.opportunities_by_category[category] = self._metrics.opportunities_by_category.get(category, 0) + 1
 
     def _on_opportunity_scored(self, event) -> None:
         score = event.payload.get("score", 0)
@@ -142,12 +142,8 @@ class DashboardAggregator:
         self._metrics.revenue_today += amount
         self._metrics.revenue_this_month += amount
 
-        self._metrics.revenue_by_platform[platform] = (
-            self._metrics.revenue_by_platform.get(platform, 0) + amount
-        )
-        self._metrics.revenue_by_category[category] = (
-            self._metrics.revenue_by_category.get(category, 0) + amount
-        )
+        self._metrics.revenue_by_platform[platform] = self._metrics.revenue_by_platform.get(platform, 0) + amount
+        self._metrics.revenue_by_category[category] = self._metrics.revenue_by_category.get(category, 0) + amount
 
     def _on_learning(self, event) -> None:
         self._metrics.total_learnings += 1
@@ -318,7 +314,8 @@ class DashboardAPI:
 
     async def approve_task(self, approval_id: str) -> dict[str, Any]:
         """Approve a pending task."""
-        self.event_bus.publish("approval:decide",
+        self.event_bus.publish(
+            "approval:decide",
             approval_id=approval_id,
             decision="approved",
         )
@@ -326,7 +323,8 @@ class DashboardAPI:
 
     async def reject_task(self, approval_id: str, reason: str = "") -> dict[str, Any]:
         """Reject a pending task."""
-        self.event_bus.publish("approval:decide",
+        self.event_bus.publish(
+            "approval:decide",
             approval_id=approval_id,
             decision="rejected",
             reason=reason,

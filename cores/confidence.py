@@ -85,23 +85,27 @@ def _compute_verdict_confidence(v: Any) -> ConfidenceAudit:
             stored_conf = float(raw_str)
         except (ValueError, TypeError):
             stored_conf = 0.0
-    factors.append(ConfidenceFactor(
-        name="stored_confidence",
-        value=stored_conf,
-        weight=0.4,
-        description="Raw confidence score stored with verdict",
-    ))
+    factors.append(
+        ConfidenceFactor(
+            name="stored_confidence",
+            value=stored_conf,
+            weight=0.4,
+            description="Raw confidence score stored with verdict",
+        )
+    )
 
     # Status factor
     status = v.status if hasattr(v, "status") else "inconclusive"
     status_values = {"confirmed": 0.9, "inconclusive": 0.4, "rejected": 0.1}
     status_val = status_values.get(status, 0.3)
-    factors.append(ConfidenceFactor(
-        name="verdict_status",
-        value=status_val,
-        weight=0.3,
-        description=f"Verdict status: {status}",
-    ))
+    factors.append(
+        ConfidenceFactor(
+            name="verdict_status",
+            value=status_val,
+            weight=0.3,
+            description=f"Verdict status: {status}",
+        )
+    )
 
     # Reproducibility
     repro_str = v.reproducibility_score if hasattr(v, "reproducibility_score") else None
@@ -111,22 +115,26 @@ def _compute_verdict_confidence(v: Any) -> ConfidenceAudit:
             repro = float(repro_str)
         except (ValueError, TypeError):
             repro = 0.0
-    factors.append(ConfidenceFactor(
-        name="reproducibility",
-        value=repro,
-        weight=0.2,
-        description="Reproducibility score across retry attempts",
-    ))
+    factors.append(
+        ConfidenceFactor(
+            name="reproducibility",
+            value=repro,
+            weight=0.2,
+            description="Reproducibility score across retry attempts",
+        )
+    )
 
     # Retry count bonus
     retries = v.retry_count if hasattr(v, "retry_count") else 0
     retry_bonus = min(retries / 5.0, 1.0)
-    factors.append(ConfidenceFactor(
-        name="retry_thoroughness",
-        value=retry_bonus,
-        weight=0.1,
-        description=f"Based on {retries} retry attempts",
-    ))
+    factors.append(
+        ConfidenceFactor(
+            name="retry_thoroughness",
+            value=retry_bonus,
+            weight=0.1,
+            description=f"Based on {retries} retry attempts",
+        )
+    )
 
     overall = sum(f.contribution for f in factors)
 
@@ -157,15 +165,17 @@ def _compute_finding_confidence(f: Any, verdicts: list[Any]) -> ConfidenceAudit:
     factors = []
 
     severity_val = SEVERITY_WEIGHTS.get(f.severity if hasattr(f, "severity") else "medium", 0.5)
-    factors.append(ConfidenceFactor(
-        name="severity",
-        value=severity_val,
-        weight=0.35,
-        description=f"Severity: {f.severity if hasattr(f, 'severity') else 'unknown'}",
-    ))
+    factors.append(
+        ConfidenceFactor(
+            name="severity",
+            value=severity_val,
+            weight=0.35,
+            description=f"Severity: {f.severity if hasattr(f, 'severity') else 'unknown'}",
+        )
+    )
 
     # Check for related verdicts
-    related = [v for v in verdicts if v.endpoint_id == (f.endpoint_id if hasattr(f, 'endpoint_id') else None)]
+    related = [v for v in verdicts if v.endpoint_id == (f.endpoint_id if hasattr(f, "endpoint_id") else None)]
     verdict_confidence = 0.0
     if related:
         confs = []
@@ -174,37 +184,43 @@ def _compute_finding_confidence(f: Any, verdicts: list[Any]) -> ConfidenceAudit:
                 confs.append(float(v.confidence) if v.confidence else 0.0)
         verdict_confidence = sum(confs) / len(confs) if confs else 0.0
 
-    factors.append(ConfidenceFactor(
-        name="related_verdicts",
-        value=verdict_confidence,
-        weight=0.35,
-        description=f"{len(related)} related verdict(s)",
-    ))
+    factors.append(
+        ConfidenceFactor(
+            name="related_verdicts",
+            value=verdict_confidence,
+            weight=0.35,
+            description=f"{len(related)} related verdict(s)",
+        )
+    )
 
     # Endpoint presence
-    has_endpoint = 1.0 if (f.endpoint_id if hasattr(f, 'endpoint_id') else None) else 0.3
-    factors.append(ConfidenceFactor(
-        name="endpoint_attached",
-        value=has_endpoint,
-        weight=0.15,
-        description="Whether finding references a specific endpoint",
-    ))
+    has_endpoint = 1.0 if (f.endpoint_id if hasattr(f, "endpoint_id") else None) else 0.3
+    factors.append(
+        ConfidenceFactor(
+            name="endpoint_attached",
+            value=has_endpoint,
+            weight=0.15,
+            description="Whether finding references a specific endpoint",
+        )
+    )
 
     # Description presence
-    has_description = 0.8 if (f.description if hasattr(f, 'description') else None) else 0.2
-    factors.append(ConfidenceFactor(
-        name="documentation",
-        value=has_description,
-        weight=0.15,
-        description="Whether finding includes a description",
-    ))
+    has_description = 0.8 if (f.description if hasattr(f, "description") else None) else 0.2
+    factors.append(
+        ConfidenceFactor(
+            name="documentation",
+            value=has_description,
+            weight=0.15,
+            description="Whether finding includes a description",
+        )
+    )
 
     overall = sum(f.contribution for f in factors)
 
     return ConfidenceAudit(
         item_id=str(f.id),
         item_type="finding",
-        item_label=f.title if hasattr(f, 'title') else "Unknown",
+        item_label=f.title if hasattr(f, "title") else "Unknown",
         overall_score=overall,
         factors=factors,
         evidence_influence=verdict_confidence * 0.35,
@@ -216,9 +232,11 @@ def _compute_finding_confidence(f: Any, verdicts: list[Any]) -> ConfidenceAudit:
 
 def audit_verdicts(limit: int = 50) -> ConfidenceReport:
     from database.db import SessionLocal
+
     session = SessionLocal()
     try:
         from database.models import Verdict
+
         verdicts = session.query(Verdict).order_by(Verdict.created_at.desc()).limit(limit).all()
         audits = [_compute_verdict_confidence(v) for v in verdicts]
         avg = sum(a.overall_score for a in audits) / len(audits) if audits else 0.0
@@ -229,9 +247,11 @@ def audit_verdicts(limit: int = 50) -> ConfidenceReport:
 
 def audit_findings(limit: int = 50) -> ConfidenceReport:
     from database.db import SessionLocal
+
     session = SessionLocal()
     try:
         from database.models import Finding, Verdict
+
         findings = session.query(Finding).order_by(Finding.created_at.desc()).limit(limit).all()
         all_verdicts = session.query(Verdict).all()
         audits = [_compute_finding_confidence(f, all_verdicts) for f in findings]
@@ -243,16 +263,19 @@ def audit_findings(limit: int = 50) -> ConfidenceReport:
 
 def audit_single(item_type: str, item_id: int) -> ConfidenceAudit | None:
     from database.db import SessionLocal
+
     session = SessionLocal()
     try:
         if item_type == "verdict":
             from database.models import Verdict
+
             v = session.query(Verdict).filter(Verdict.id == item_id).first()
             if v is None:
                 return None
             return _compute_verdict_confidence(v)
         elif item_type == "finding":
             from database.models import Finding, Verdict
+
             f = session.query(Finding).filter(Finding.id == item_id).first()
             if f is None:
                 return None

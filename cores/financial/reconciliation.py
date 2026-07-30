@@ -21,7 +21,9 @@ from cores.ledger import LedgerEvent
 
 def _all_ledger_entries():
     from cores.ledger import _all_entries
+
     return _all_entries()
+
 
 logger = logging.getLogger("ownex.financial.reconciliation")
 
@@ -141,41 +143,47 @@ class ReconciliationEngine:
         # Check for missing external entries (in external but not in ledger)
         for eid, ext in external_by_id.items():
             if eid not in ledger_by_source_id:
-                discrepancies.append(Discrepancy(
-                    type=DiscrepancyType.MISSING_PAYOUT,
-                    platform=platform_id,
-                    description=f"Pago externo no registrado en ledger: {eid[:12]}...",
-                    external_amount=float(ext.get("amount", 0) or 0),
-                    external_id=eid,
-                ))
+                discrepancies.append(
+                    Discrepancy(
+                        type=DiscrepancyType.MISSING_PAYOUT,
+                        platform=platform_id,
+                        description=f"Pago externo no registrado en ledger: {eid[:12]}...",
+                        external_amount=float(ext.get("amount", 0) or 0),
+                        external_id=eid,
+                    )
+                )
 
         # Check for orphan ledger entries (in ledger but not in external)
         for eid in ledger_by_source_id:
             if eid not in external_ids and eid:
                 ledger_entries = ledger_by_source_id[eid]
                 total = sum(e.amount for e in ledger_entries)
-                discrepancies.append(Discrepancy(
-                    type=DiscrepancyType.ORPHAN_ENTRY,
-                    platform=platform_id,
-                    description=f"Ledger entry sin correspondencia externa: {eid[:12]}...",
-                    ledger_amount=total,
-                    ledger_entry_id=ledger_entries[0].entry_id,
-                ))
+                discrepancies.append(
+                    Discrepancy(
+                        type=DiscrepancyType.ORPHAN_ENTRY,
+                        platform=platform_id,
+                        description=f"Ledger entry sin correspondencia externa: {eid[:12]}...",
+                        ledger_amount=total,
+                        ledger_entry_id=ledger_entries[0].entry_id,
+                    )
+                )
 
         # Check amount mismatches for matching entries
         for eid in external_ids & set(ledger_by_source_id.keys()):
             ext_amount = float(external_by_id[eid].get("amount", 0) or 0)
             led_amount = sum(e.amount for e in ledger_by_source_id[eid])
             if abs(ext_amount - led_amount) > 0.01:
-                discrepancies.append(Discrepancy(
-                    type=DiscrepancyType.AMOUNT_MISMATCH,
-                    platform=platform_id,
-                    description=f"Monto不一致: externo={ext_amount}, ledger={led_amount}",
-                    external_amount=ext_amount,
-                    ledger_amount=led_amount,
-                    external_id=eid,
-                    ledger_entry_id=ledger_by_source_id[eid][0].entry_id,
-                ))
+                discrepancies.append(
+                    Discrepancy(
+                        type=DiscrepancyType.AMOUNT_MISMATCH,
+                        platform=platform_id,
+                        description=f"Monto不一致: externo={ext_amount}, ledger={led_amount}",
+                        external_amount=ext_amount,
+                        ledger_amount=led_amount,
+                        external_id=eid,
+                        ledger_entry_id=ledger_by_source_id[eid][0].entry_id,
+                    )
+                )
 
         # Auto-resolve high-confidence discrepancies
         auto_count = 0

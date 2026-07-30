@@ -43,18 +43,20 @@ def _build_snapshot(target_id: int | None = None) -> PipelineSnapshot:
         ep_snapshots = []
         for ep in target_eps:
             s = unified_score(ep.path, ep.method or "GET", ep.parsed_params)
-            ep_snapshots.append(EndpointSnapshot(
-                path=ep.path,
-                method=ep.method or "GET",
-                risk_score=float(s.get("risk_score", 0)),
-                confidence=float(s.get("confidence", 0)),
-                labels=s.get("labels", []),
-                attack_surface=s.get("attack_surface", []),
-                signals=s.get("signals", []),
-                vector=s.get("vector", ""),
-                actionable=bool(s.get("actionable", False)),
-                potential_idor=bool(s.get("potential_idor", False)),
-            ))
+            ep_snapshots.append(
+                EndpointSnapshot(
+                    path=ep.path,
+                    method=ep.method or "GET",
+                    risk_score=float(s.get("risk_score", 0)),
+                    confidence=float(s.get("confidence", 0)),
+                    labels=s.get("labels", []),
+                    attack_surface=s.get("attack_surface", []),
+                    signals=s.get("signals", []),
+                    vector=s.get("vector", ""),
+                    actionable=bool(s.get("actionable", False)),
+                    potential_idor=bool(s.get("potential_idor", False)),
+                )
+            )
 
         from datetime import datetime
 

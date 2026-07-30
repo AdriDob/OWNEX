@@ -125,12 +125,15 @@ async def register_provider(request: Request):
     hub = get_authhub()
     if provider_name == "gmail":
         from cores.authhub.gmail import GmailOAuth2
+
         hub.register_provider("gmail", GmailOAuth2())
     elif provider_name == "twilio":
         from cores.authhub.whatsapp import WhatsAppTwilio
+
         hub.register_provider("whatsapp", WhatsAppTwilio())
     elif provider_name == "telegram":
         from cores.authhub.telegram import TelegramBot
+
         hub.register_provider("telegram", TelegramBot())
 
     return ok({"status": "registered", "provider": provider_name})

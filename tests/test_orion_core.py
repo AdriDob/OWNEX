@@ -24,37 +24,67 @@ class TestNormalizedTypes:
     """All normalized data types should construct without errors."""
 
     def test_normalized_position(self):
-        p = NormalizedPosition(symbol="BTC", asset_type="crypto", quantity=1.0, avg_price=50000,
-                               current_price=55000, value=55000, pnl_percent=10.0)
+        p = NormalizedPosition(
+            symbol="BTC",
+            asset_type="crypto",
+            quantity=1.0,
+            avg_price=50000,
+            current_price=55000,
+            value=55000,
+            pnl_percent=10.0,
+        )
         assert p.symbol == "BTC"
         assert p.value == 55000
 
     def test_normalized_portfolio(self):
-        pos = NormalizedPosition(symbol="ETH", asset_type="crypto", quantity=10, avg_price=2000,
-                                 current_price=2500, value=25000)
+        pos = NormalizedPosition(
+            symbol="ETH", asset_type="crypto", quantity=10, avg_price=2000, current_price=2500, value=25000
+        )
         port = NormalizedPortfolio(total_value=25000, positions=[pos], cash=5000, provider="test")
         assert port.total_value == 25000
         assert port.cash == 5000
 
     def test_normalized_price(self):
-        p = NormalizedPrice(symbol="AAPL", price=150.0, currency="USD", change_24h=2.5,
-                            volume_24h=1000000, source="yahoo")
+        p = NormalizedPrice(
+            symbol="AAPL", price=150.0, currency="USD", change_24h=2.5, volume_24h=1000000, source="yahoo"
+        )
         assert p.price == 150.0
 
     def test_normalized_transaction(self):
-        t = NormalizedTransaction(symbol="AAPL", tx_type="buy", quantity=10, price=150.0,
-                                  total=1500.0, executed_at="2024-01-01", platform="test")
+        t = NormalizedTransaction(
+            symbol="AAPL",
+            tx_type="buy",
+            quantity=10,
+            price=150.0,
+            total=1500.0,
+            executed_at="2024-01-01",
+            platform="test",
+        )
         assert t.quantity == 10
 
     def test_normalized_market(self):
-        m = NormalizedMarket(market_id="m1", title="Test Market", platform="polymarket",
-                             outcomes=[{"name": "Yes", "price": 0.5}], volume_24h=10000.0)
+        m = NormalizedMarket(
+            market_id="m1",
+            title="Test Market",
+            platform="polymarket",
+            outcomes=[{"name": "Yes", "price": 0.5}],
+            volume_24h=10000.0,
+        )
         assert m.title == "Test Market"
         assert m.platform == "polymarket"
 
     def test_normalized_bet(self):
-        b = NormalizedBet(bet_id="b1", event="Game", market="Winner", platform="test",
-                          odds=2.0, stake=100, payout=200, outcome="win", placed_at="2024-01-01")
+        b = NormalizedBet(
+            bet_id="b1",
+            event="Game",
+            market="Winner",
+            platform="test",
+            odds=2.0,
+            stake=100,
+            payout=200,
+            outcome="win",
+            placed_at="2024-01-01",
+        )
         assert b.stake == 100
 
 
@@ -149,7 +179,8 @@ class TestSimulationEngine:
     async def test_what_if(self):
         engine = SimulationEngine()
         result = await engine.run_what_if(
-            app_id="test", title="Rebalance test",
+            app_id="test",
+            title="Rebalance test",
             current_value=10000,
             proposed_changes=[
                 {"field": "cash", "old_value": 5000, "new_value": 2000},

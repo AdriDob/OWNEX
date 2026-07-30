@@ -1,12 +1,21 @@
+"""Git connector — optional dependency guard."""
+
 from __future__ import annotations
+
+# Soft import guard
+try:
+    import git  # noqa: F401
+    _GIT_AVAILABLE = True
+except ImportError:
+    _GIT_AVAILABLE = False
 
 from core.interfaces.connector import ConnectorHealth, IConnector
 
 
 class GitConnector(IConnector):
-    connector_id = "git_adapter"
+    connector_id = "git_integration"
     app_id = "ownex"
-    display_name = "Git Automation"
+    display_name = "Git Integration"
 
     def __init__(self) -> None:
         self._connected = False
@@ -25,6 +34,7 @@ class GitConnector(IConnector):
 
     def get_config_fields(self) -> list[dict]:
         return [
-            {"key": "git_auto_commit", "label": "Auto commit", "type": "text", "default": "true"},
-            {"key": "git_branch", "label": "Working branch", "type": "text", "default": "ownex/agent"},
+            {"key": "repo_path", "label": "Repository path", "type": "text", "default": "."},
+            {"key": "auto_sync", "label": "Auto sync", "type": "text", "default": "true"},
+            {"key": "branch", "label": "Branch", "type": "text", "default": "main"},
         ]

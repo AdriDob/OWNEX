@@ -20,27 +20,22 @@ def hunter_summary():
     session = db.SessionLocal()
     try:
         target_count = session.query(models.Target).count()
-        pending = session.query(models.Finding).filter(
-            models.Finding.status == "open"
-        ).count()
-        confirmed = session.query(models.Finding).filter(
-            models.Finding.status == "confirmed"
-        ).count()
+        pending = session.query(models.Finding).filter(models.Finding.status == "open").count()
+        confirmed = session.query(models.Finding).filter(models.Finding.status == "confirmed").count()
 
         month_ago = datetime.utcnow() - timedelta(days=30)
-        monthly_reports = session.query(models.Report).filter(
-            models.Report.created_at >= month_ago
-        ).count() if hasattr(models, "Report") else 0
+        monthly_reports = (
+            session.query(models.Report).filter(models.Report.created_at >= month_ago).count()
+            if hasattr(models, "Report")
+            else 0
+        )
 
         learner = RewardLearner()
         reward_report = learner.analyze()
         total_confirmed = reward_report.total_confirmed_value if reward_report else 0.0
         total_estimated = 0.0
         if hasattr(models, "Report"):
-            total_estimated = sum(
-                float(r.estimated_reward or 0.0)
-                for r in session.query(models.Report).all()
-            )
+            total_estimated = sum(float(r.estimated_reward or 0.0) for r in session.query(models.Report).all())
 
         return {
             "active_targets": target_count,

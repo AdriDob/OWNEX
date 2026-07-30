@@ -26,11 +26,32 @@ logger = logging.getLogger("ownex.opportunity.scoring2")
 
 # Known high-value technology keywords
 _HIGH_VALUE_TAGS: set[str] = {
-    "cloud", "aws", "gcp", "azure", "kubernetes", "docker",
-    "api", "graphql", "rest", "oauth", "saml", "jwt",
-    "mobile", "ios", "android", "react-native", "flutter",
-    "web3", "solidity", "defi", "rust", "move",
-    "hardware", "firmware", "iot", "bluetooth",
+    "cloud",
+    "aws",
+    "gcp",
+    "azure",
+    "kubernetes",
+    "docker",
+    "api",
+    "graphql",
+    "rest",
+    "oauth",
+    "saml",
+    "jwt",
+    "mobile",
+    "ios",
+    "android",
+    "react-native",
+    "flutter",
+    "web3",
+    "solidity",
+    "defi",
+    "rust",
+    "move",
+    "hardware",
+    "firmware",
+    "iot",
+    "bluetooth",
 }
 
 # Attack surface diversity markers
@@ -325,7 +346,9 @@ def _compute_intelligence_score(
 ) -> tuple[float, str]:
     """Intelligence Score: pattern registry, historical analyzer, trend detector, adaptive memory."""
     base = 40.0
-    intelligence = base + (pattern_score * 100.0 * 0.25) + (historical_score * 100.0 * 0.25) + (memory_score * 100.0 * 0.25)
+    intelligence = (
+        base + (pattern_score * 100.0 * 0.25) + (historical_score * 100.0 * 0.25) + (memory_score * 100.0 * 0.25)
+    )
 
     # Category intelligence boost
     known_categories = {"web3": 5.0, "platform": 3.0, "api_ecosystem": 8.0}
@@ -333,7 +356,10 @@ def _compute_intelligence_score(
         intelligence += known_categories[opp.category]
 
     intelligence = max(0.0, min(100.0, intelligence))
-    return intelligence, f"AI signal: pattern={pattern_score:.2f}, history={historical_score:.2f}, memory={memory_score:.2f}"
+    return (
+        intelligence,
+        f"AI signal: pattern={pattern_score:.2f}, history={historical_score:.2f}, memory={memory_score:.2f}",
+    )
 
 
 def _compute_strategic_score(opp: Opportunity) -> tuple[float, str]:
@@ -431,7 +457,7 @@ def _compute_freshness(opp: Opportunity) -> float:
 def _estimate_payout_from_reward(opp: Opportunity) -> float:
     """Estimate payout amount from reward text."""
     text = (opp.reward_info or "").lower()
-    amounts = re.findall(r'\$?([0-9,]+)', text)
+    amounts = re.findall(r"\$?([0-9,]+)", text)
     parsed = []
     for a in amounts:
         with contextlib.suppress(ValueError):

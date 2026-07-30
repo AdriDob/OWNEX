@@ -55,6 +55,7 @@ ChannelHandler = Callable[[str, dict[str, Any]], None]
 @dataclass
 class Notification:
     """A single notification event with enhanced metadata for platform tracking."""
+
     id: str
     type: str
     title: str
@@ -111,6 +112,7 @@ class NotificationHub:
             from sqlalchemy import text
 
             from database.db import SessionLocal
+
             cutoff = time.time() - DEDUP_WINDOW
             session = SessionLocal()
             try:
@@ -206,7 +208,7 @@ class NotificationHub:
         with self._lock:
             self._history.append(notif)
             if len(self._history) > self._max_history:
-                self._history = self._history[-self._max_history:]
+                self._history = self._history[-self._max_history :]
 
         if self._db_bridge:
             try:
@@ -235,16 +237,19 @@ class NotificationHub:
                 handlers = list(self._channels.get(channel, []))
             for handler in handlers:
                 try:
-                    handler(notif.type, {
-                        "id": notif.id,
-                        "type": notif.type,
-                        "title": notif.title,
-                        "message": notif.message,
-                        "severity": notif.severity,
-                        "priority": notif.priority,
-                        "timestamp": notif.timestamp,
-                        "metadata": notif.metadata,
-                    })
+                    handler(
+                        notif.type,
+                        {
+                            "id": notif.id,
+                            "type": notif.type,
+                            "title": notif.title,
+                            "message": notif.message,
+                            "severity": notif.severity,
+                            "priority": notif.priority,
+                            "timestamp": notif.timestamp,
+                            "metadata": notif.metadata,
+                        },
+                    )
                 except Exception as exc:
                     logger.warning("Notification handler error on %s: %s", channel, exc)
 
@@ -263,16 +268,24 @@ class NotificationHub:
         summary = []
         for notif_type, items in groups.items():
             priorities = [n.priority for n in items]
-            highest = "critical" if "critical" in priorities else \
-                      "high" if "high" in priorities else \
-                      "medium" if "medium" in priorities else "low"
-            summary.append({
-                "type": notif_type,
-                "count": len(items),
-                "highest_priority": highest,
-                "titles": [n.title for n in items[:3]],
-                "timestamp": items[-1].timestamp,
-            })
+            highest = (
+                "critical"
+                if "critical" in priorities
+                else "high"
+                if "high" in priorities
+                else "medium"
+                if "medium" in priorities
+                else "low"
+            )
+            summary.append(
+                {
+                    "type": notif_type,
+                    "count": len(items),
+                    "highest_priority": highest,
+                    "titles": [n.title for n in items[:3]],
+                    "timestamp": items[-1].timestamp,
+                }
+            )
 
         for n in buffer:
             self._route(n)

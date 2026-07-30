@@ -55,15 +55,16 @@ class ResearchAgent(BaseAgent):
             sf = SubfinderRunner(output_dir=tmpdir)
             out = await sf.run_subfinder(target_name)
             subdomains = await sf.load_domains(out)
-            for sd in (subdomains or []):
-                endpoints.append({
-                    "path": f"https://{sd}/",
-                    "method": "GET",
-                    "params": {},
-                    "source": "subfinder",
-                })
-            logger.info("[RESEARCH] subfinder found %d subdomains for %s",
-                        len(subdomains or []), target_name)
+            for sd in subdomains or []:
+                endpoints.append(
+                    {
+                        "path": f"https://{sd}/",
+                        "method": "GET",
+                        "params": {},
+                        "source": "subfinder",
+                    }
+                )
+            logger.info("[RESEARCH] subfinder found %d subdomains for %s", len(subdomains or []), target_name)
         except Exception as exc:
             logger.warning("[RESEARCH] subfinder failed: %s", exc)
 
@@ -92,31 +93,36 @@ class ResearchAgent(BaseAgent):
                         for line in raw.splitlines():
                             line = line.strip()
                             if line and line not in {e["path"] for e in endpoints}:
-                                endpoints.append({
-                                    "path": line, "method": "GET", "params": {},
-                                    "source": "katana",
-                                })
+                                endpoints.append(
+                                    {
+                                        "path": line,
+                                        "method": "GET",
+                                        "params": {},
+                                        "source": "katana",
+                                    }
+                                )
                 logger.info("[RESEARCH] katana found additional paths")
             except Exception as exc:
                 logger.warning("[RESEARCH] katana failed: %s", exc)
 
         self._publish_results(target_id, target_name, pipeline_id, endpoints)
         self._publish_completion(target_id, target_name, len(endpoints), pipeline_id)
-        logger.info("[RESEARCH] Discovery completed: %d endpoints for %s",
-                    len(endpoints), target_name)
+        logger.info("[RESEARCH] Discovery completed: %d endpoints for %s", len(endpoints), target_name)
 
-    def _publish_results(self, target_id: int, target_name: str,
-                         pipeline_id: str, endpoints: list) -> None:
+    def _publish_results(self, target_id: int, target_name: str, pipeline_id: str, endpoints: list) -> None:
         for ep in endpoints:
             self.emit(
                 EventType.ENDPOINT_DISCOVERED,
-                payload={"target_id": target_id, "target_name": target_name,
-                         "endpoint": ep, "pipeline_id": pipeline_id},
+                payload={
+                    "target_id": target_id,
+                    "target_name": target_name,
+                    "endpoint": ep,
+                    "pipeline_id": pipeline_id,
+                },
                 correlation_id=pipeline_id,
             )
 
-    def _publish_completion(self, target_id: int, target_name: str,
-                            count: int, pipeline_id: str) -> None:
+    def _publish_completion(self, target_id: int, target_name: str, count: int, pipeline_id: str) -> None:
         self.emit(
             EventType.RESEARCH_COMPLETED,
             payload={

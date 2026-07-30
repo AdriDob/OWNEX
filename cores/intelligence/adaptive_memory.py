@@ -56,6 +56,7 @@ class AdaptiveMemory:
 
     def analyze(self) -> HistoricalSummary:
         import time
+
         t0 = time.monotonic()
         history = analyze_historical_data(registry=self._registry)
         elapsed = time.monotonic() - t0
@@ -80,12 +81,7 @@ class AdaptiveMemory:
             registry=self._registry,
         )
         with self._lock:
-            rec_count = (
-                len(recs.targets)
-                + len(recs.surfaces)
-                + len(recs.quick_wins)
-                + len(recs.reports)
-            )
+            rec_count = len(recs.targets) + len(recs.surfaces) + len(recs.quick_wins) + len(recs.reports)
             self._state.total_recommendations_generated += rec_count
         return recs
 
@@ -107,12 +103,11 @@ class AdaptiveMemory:
             return self.analyze()
         return self._history_cache
 
-    def get_snapshots(
-        self, limit: int = 10, offset: int = 0
-    ) -> list[dict[str, Any]]:
+    def get_snapshots(self, limit: int = 10, offset: int = 0) -> list[dict[str, Any]]:
         session = SessionLocal()
         try:
             from database.models import MemoryRecord
+
             records = (
                 session.query(MemoryRecord)
                 .filter(MemoryRecord.category == "learning_snapshot")
@@ -129,12 +124,14 @@ class AdaptiveMemory:
                         details = json.loads(r.details)
                     except (json.JSONDecodeError, ValueError):
                         details = {"raw": r.details}
-                results.append({
-                    "id": r.id,
-                    "key": r.key,
-                    "details": details,
-                    "created_at": r.created_at.isoformat() if r.created_at else None,
-                })
+                results.append(
+                    {
+                        "id": r.id,
+                        "key": r.key,
+                        "details": details,
+                        "created_at": r.created_at.isoformat() if r.created_at else None,
+                    }
+                )
             return results
         finally:
             session.close()
@@ -143,6 +140,7 @@ class AdaptiveMemory:
         session = SessionLocal()
         try:
             from database.models import MemoryRecord
+
             record = MemoryRecord(
                 category="learning_snapshot",
                 key=f"{snap.snapshot_type}:{snap.period_end[:10]}",

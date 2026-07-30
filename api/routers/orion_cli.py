@@ -13,16 +13,18 @@ router = APIRouter(prefix="/api/cli", tags=["orion_cli"])
 
 @router.get("/doctor")
 async def cli_doctor(
-    component: str = Query("all", description="Component to check: all, database, api, pipeline, evidence, verdicts, reports, ai, quick_wins, replay, screenshot, adaptive, timeline, memory, operations"),
+    component: str = Query(
+        "all",
+        description="Component to check: all, database, api, pipeline, evidence, verdicts, reports, ai, quick_wins, replay, screenshot, adaptive, timeline, memory, operations",
+    ),
     fix: bool = Query(False, description="Attempt auto-fix if issues found"),
 ):
     """Run system doctor diagnostics (equivalent to 'orion doctor')."""
-    from datetime import UTC, datetime
     from cores.operations import get_operations_manager
-    
+
     ops = get_operations_manager()
     result = await ops.run_doctor(component=component, fix=fix)
-    
+
     return {
         "success": True,
         "command": "doctor",
@@ -92,10 +94,10 @@ async def cli_health(detalles: bool = Query(False), debug: bool = Query(False)):
 async def cli_doctor(verbose: bool = Query(False)):
     """Run system diagnostics (ownex doctor)."""
     from cores.operations import get_operations_manager
-    
+
     ops = get_operations_manager()
     report = await ops.run_doctor(verbose=verbose)
-    
+
     return {
         "success": report.overall_healthy,
         "command": "doctor",
@@ -120,7 +122,7 @@ async def cli_doctor(verbose: bool = Query(False)):
 async def cli_dashboard():
     """Get dashboard data."""
     from cores.dashboard import get_dashboard_api
-    
+
     api = get_dashboard_api()
     return await api.get_dashboard_data()
 

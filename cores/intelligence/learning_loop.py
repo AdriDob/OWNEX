@@ -61,6 +61,7 @@ class LearningLoop:
 
     def process_through_priority(self, payload: dict[str, Any]) -> list[dict[str, Any]]:
         from cores.intelligence.priority_engine import get_priority_engine
+
         engine = get_priority_engine()
 
         source = payload.get("source", "unknown")
@@ -119,7 +120,9 @@ class LearningLoop:
             self._weight_adjustments[key] = max(-0.5, min(0.5, current + adjustment))
             logger.debug(
                 "Learned: %s rate=%.2f adj=%.3f",
-                key, rate, self._weight_adjustments[key],
+                key,
+                rate,
+                self._weight_adjustments[key],
             )
 
     def get_weight_adjustment(self, action_type: str) -> float:

@@ -136,6 +136,7 @@ class ExplanationEngine:
     def _archive(self, explanation: Explanation) -> None:
         try:
             from cores.memory.insight_archive import Insight, get_insight_archive
+
             archive = get_insight_archive()
             insight = Insight(
                 id=explanation.id,

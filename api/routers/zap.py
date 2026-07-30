@@ -29,6 +29,7 @@ class ZapTargetRequest(BaseModel):
 async def zap_health():
     """Check if the ZAP daemon is running and responsive."""
     from cores.recon.zap_runner import ZapRunner
+
     runner = ZapRunner()
     try:
         status = await runner.health_check()
@@ -45,6 +46,7 @@ async def spider_scan(req: ZapScanRequest):
     application like a browser would. Does NOT send attack payloads.
     """
     from cores.recon.zap_runner import ZapConnectionError, ZapRunner
+
     runner = ZapRunner()
     try:
         result = await runner.spider_scan(req.target_url, req.max_children)
@@ -69,6 +71,7 @@ async def passive_scan(req: ZapTargetRequest):
     All detected WITHOUT sending attack payloads.
     """
     from cores.recon.zap_runner import INSTALL_HINT, ZapConnectionError, ZapRunner
+
     runner = ZapRunner()
     try:
         health = await runner.health_check()
@@ -82,6 +85,7 @@ async def passive_scan(req: ZapTargetRequest):
 
         await runner.access_url(req.target_url)
         import asyncio
+
         await asyncio.sleep(3)
         alerts = await runner.passive_scan_results(req.target_url)
         return {
@@ -103,6 +107,7 @@ async def get_alerts(req: ZapTargetRequest, risk_level: str | None = None):
     Returns alerts normalized to the system's hypothesis format.
     """
     from cores.recon.zap_runner import ZapConnectionError, ZapRunner
+
     runner = ZapRunner()
     try:
         alerts = await runner.get_alerts(req.target_url, risk_level)
@@ -121,6 +126,7 @@ async def get_alerts(req: ZapTargetRequest, risk_level: str | None = None):
 async def get_technologies(req: ZapTargetRequest):
     """Get technologies detected by ZAP's passive fingerprinting."""
     from cores.recon.zap_runner import ZapConnectionError, ZapRunner
+
     runner = ZapRunner()
     try:
         technologies = await runner.get_technologies(req.target_url)
@@ -160,6 +166,7 @@ async def generate_zap_hypotheses(target_id: int, req: ZapTargetRequest):
 
         await runner.access_url(req.target_url)
         import asyncio
+
         await asyncio.sleep(3)
         alerts = await runner.passive_scan_results(req.target_url)
 
@@ -171,29 +178,31 @@ async def generate_zap_hypotheses(target_id: int, req: ZapTargetRequest):
 
         result = []
         for h in hypotheses:
-            result.append({
-                "id": h.id,
-                "vulnerability_type": h.vulnerability_type.value,
-                "target_id": h.target_id,
-                "target_name": h.target_name,
-                "endpoint": h.endpoint,
-                "likelihood": h.likelihood,
-                "impact": h.impact,
-                "confidence": h.confidence,
-                "priority_score": h.priority_score,
-                "evidence": h.evidence,
-                "reasoning": h.reasoning,
-                "suggested_actions": list(h.suggested_actions),
-                "source": h.source.value,
-                "vector": h.vector,
-                "what_is_this": h.what_is_this,
-                "why_suspected": h.why_suspected,
-                "real_world_impact": h.real_world_impact,
-                "how_to_verify": list(h.how_to_verify),
-                "estimated_difficulty": h.estimated_difficulty,
-                "estimated_time_minutes": h.estimated_time_minutes,
-                "estimated_reward_range": h.estimated_reward_range,
-            })
+            result.append(
+                {
+                    "id": h.id,
+                    "vulnerability_type": h.vulnerability_type.value,
+                    "target_id": h.target_id,
+                    "target_name": h.target_name,
+                    "endpoint": h.endpoint,
+                    "likelihood": h.likelihood,
+                    "impact": h.impact,
+                    "confidence": h.confidence,
+                    "priority_score": h.priority_score,
+                    "evidence": h.evidence,
+                    "reasoning": h.reasoning,
+                    "suggested_actions": list(h.suggested_actions),
+                    "source": h.source.value,
+                    "vector": h.vector,
+                    "what_is_this": h.what_is_this,
+                    "why_suspected": h.why_suspected,
+                    "real_world_impact": h.real_world_impact,
+                    "how_to_verify": list(h.how_to_verify),
+                    "estimated_difficulty": h.estimated_difficulty,
+                    "estimated_time_minutes": h.estimated_time_minutes,
+                    "estimated_reward_range": h.estimated_reward_range,
+                }
+            )
 
         return {
             "status": "completed",

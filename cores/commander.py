@@ -27,20 +27,22 @@ logger = logging.getLogger("ownex.commander")
 
 class CommanderMode(Enum):
     """Commander operating modes."""
-    OBSERVER = "observer"           # Only observes, no actions
-    PREPARER = "preparer"           # Prepares plans, drafts, proposals
-    SUPERVISOR = "supervisor"       # Executes with human approval
-    AUTONOMOUS = "autonomous"       # Executes pre-approved repetitive tasks
+
+    OBSERVER = "observer"  # Only observes, no actions
+    PREPARER = "preparer"  # Prepares plans, drafts, proposals
+    SUPERVISOR = "supervisor"  # Executes with human approval
+    AUTONOMOUS = "autonomous"  # Executes pre-approved repetitive tasks
 
 
 @dataclass
 class CommanderConfig:
     """Configuration for the Commander Agent."""
+
     mode: CommanderMode = CommanderMode.SUPERVISOR
     max_concurrent_tasks: int = 3
-    approval_required_for: list[str] = field(default_factory=lambda: [
-        "submit_report", "make_payment", "execute_code", "deploy_changes"
-    ])
+    approval_required_for: list[str] = field(
+        default_factory=lambda: ["submit_report", "make_payment", "execute_code", "deploy_changes"]
+    )
     auto_approve_threshold_evh: float = 50.0
     task_timeout_minutes: int = 60
     health_check_interval: int = 300
@@ -49,6 +51,7 @@ class CommanderConfig:
 @dataclass
 class TaskPlan:
     """A planned task with all execution details."""
+
     id: str
     opportunity_id: str
     opportunity_name: str
@@ -68,6 +71,7 @@ class TaskPlan:
 @dataclass
 class ExecutionResult:
     """Result of task execution."""
+
     task_id: str
     opportunity_id: str = ""  # Track which opportunity this was for
     success: bool = False
@@ -80,7 +84,7 @@ class ExecutionResult:
 class CommanderAgent(BaseAgent):
     """
     OWNEX Commander Agent — the central orchestrator.
-    
+
     Responsibilities:
     - Coordinate all specialized agents (Research, Coding, Browser, Review, Finance, Learning)
     - Manage the task queue from Discovery Engine
@@ -282,8 +286,7 @@ class CommanderAgent(BaseAgent):
     async def _on_opportunity_queued(self, opportunity: RankedOpportunity) -> None:
         """Callback when discovery engine queues an opportunity."""
         await self.task_queue.put(opportunity)
-        logger.debug("Queued opportunity for commander: %s (rank=%d)",
-                     opportunity.opportunity.name, opportunity.rank)
+        logger.debug("Queued opportunity for commander: %s (rank=%d)", opportunity.opportunity.name, opportunity.rank)
 
     async def _process_task_queue(self) -> None:
         """Process queued opportunities into tasks."""
@@ -313,9 +316,7 @@ class CommanderAgent(BaseAgent):
 
         # Determine required agent and tools based on category
         category = opportunity.opportunity.cycle
-        assigned_agent, required_tools, steps = self._plan_for_category(
-            category, opportunity
-        )
+        assigned_agent, required_tools, steps = self._plan_for_category(category, opportunity)
 
         # Check if approval required
         requires_approval = self._requires_approval(opportunity, category, steps)
@@ -353,7 +354,7 @@ class CommanderAgent(BaseAgent):
                     {"step": "exploit_development", "tool": "editor", "estimated_minutes": 60},
                     {"step": "report_writing", "tool": "editor", "estimated_minutes": 30},
                     {"step": "quality_review", "tool": "review", "estimated_minutes": 15},
-                ]
+                ],
             ),
             "forge": (
                 "coding",
@@ -365,7 +366,7 @@ class CommanderAgent(BaseAgent):
                     {"step": "testing", "tool": "terminal", "estimated_minutes": 30},
                     {"step": "documentation", "tool": "editor", "estimated_minutes": 15},
                     {"step": "code_review", "tool": "review", "estimated_minutes": 20},
-                ]
+                ],
             ),
             "pulse": (
                 "coding",
@@ -376,7 +377,7 @@ class CommanderAgent(BaseAgent):
                     {"step": "task_execution", "tool": "editor", "estimated_minutes": 60},
                     {"step": "quality_check", "tool": "review", "estimated_minutes": 15},
                     {"step": "submission", "tool": "browser", "estimated_minutes": 10},
-                ]
+                ],
             ),
             "freelance": (
                 "research",
@@ -386,13 +387,20 @@ class CommanderAgent(BaseAgent):
                     {"step": "prepare_proposal", "tool": "editor", "estimated_minutes": 30},
                     {"step": "portfolio_update", "tool": "editor", "estimated_minutes": 15},
                     {"step": "submit_proposal", "tool": "browser", "estimated_minutes": 10},
-                ]
+                ],
             ),
         }
 
-        return plans.get(category, ("research", ["browser"], [
-            {"step": "generic_analysis", "tool": "browser", "estimated_minutes": 30},
-        ]))
+        return plans.get(
+            category,
+            (
+                "research",
+                ["browser"],
+                [
+                    {"step": "generic_analysis", "tool": "browser", "estimated_minutes": 30},
+                ],
+            ),
+        )
 
     def _requires_approval(self, opportunity: RankedOpportunity, steps: list[dict]) -> bool:
         """Determine if task requires human approval."""
@@ -417,7 +425,7 @@ class CommanderAgent(BaseAgent):
         # Note: This is synchronous check - in async context we'd fetch more detail
         # For now, use simple heuristic
         for task_id, completed_task in self.completed_tasks.items():
-            if hasattr(completed_task, 'opportunity_id') and completed_task.opportunity_id:
+            if hasattr(completed_task, "opportunity_id") and completed_task.opportunity_id:
                 # Check if this task's platform matches
                 if completed_task.opportunity_id and platform in str(completed_task.opportunity_id):
                     completed_platforms.add(platform)
@@ -434,7 +442,9 @@ class CommanderAgent(BaseAgent):
             reasons.append(f"Mode is {self.config.mode.value}")
 
         if opportunity.evh < self.config.auto_approve_threshold_evh:
-            reasons.append(f"EVH (${opportunity.evh:.0f}/hr) below auto-approve threshold (${self.config.auto_approve_threshold_evh}/hr)")
+            reasons.append(
+                f"EVH (${opportunity.evh:.0f}/hr) below auto-approve threshold (${self.config.auto_approve_threshold_evh}/hr)"
+            )
 
         for step in steps:
             if step.get("tool") in self.config.approval_required_for:
@@ -503,11 +513,9 @@ class CommanderAgent(BaseAgent):
 
         # Emit completion event
         if result.success:
-            self.event_bus.publish("task:completed",
-                task_id=task_plan.id, result=result.__dict__)
+            self.event_bus.publish("task:completed", task_id=task_plan.id, result=result.__dict__)
         else:
-            self.event_bus.publish("task:failed",
-                task_id=task_plan.id, error=result.error)
+            self.event_bus.publish("task:failed", task_id=task_plan.id, error=result.error)
 
         # Trigger learning
         if self.thinking_system:
@@ -522,7 +530,7 @@ class CommanderAgent(BaseAgent):
                     "improvements": result.output.get("improvements", []),
                     "confidence": 0.8 if result.success else 0.5,
                     "tags": [task_plan.category, task_plan.platform],
-                }
+                },
             )
 
     async def _delegate_to_agent(self, agent: BaseAgent, task_plan: TaskPlan) -> ExecutionResult:
@@ -538,7 +546,7 @@ class CommanderAgent(BaseAgent):
             payload={
                 "task_plan": task_plan.__dict__,
                 "opportunity_id": task_plan.opportunity_id,
-            }
+            },
         )
 
         agent.handle_event(agent_event)
@@ -586,8 +594,7 @@ class CommanderAgent(BaseAgent):
             except Exception as e:
                 logger.error("Approval callback failed: %s", e)
 
-        self.event_bus.publish("approval:requested",
-            task_id=task_plan.id, plan=task_plan.__dict__)
+        self.event_bus.publish("approval:requested", task_id=task_plan.id, plan=task_plan.__dict__)
 
     async def _process_approvals(self) -> None:
         """Process pending approvals (auto-approve in autonomous mode)."""
@@ -700,15 +707,16 @@ class CommanderAgent(BaseAgent):
         status = event.payload.get("status", "unknown")
 
         if agent_id in self.agent_health:
-            self.agent_health[agent_id].update({
-                "status": status,
-                "last_seen": event.timestamp,
-            })
+            self.agent_health[agent_id].update(
+                {
+                    "status": status,
+                    "last_seen": event.timestamp,
+                }
+            )
 
     def _on_system_error(self, event: AgentEvent) -> None:
         """Handle system error."""
-        logger.warning("System error from %s: %s",
-                       event.source, event.payload.get("error", ""))
+        logger.warning("System error from %s: %s", event.source, event.payload.get("error", ""))
 
     def _on_opportunity_discovered(self, event: AgentEvent) -> None:
         """Handle new opportunity from discovery."""
@@ -718,8 +726,7 @@ class CommanderAgent(BaseAgent):
     def _on_platform_opportunities(self, event: AgentEvent) -> None:
         """Handle batch of opportunities from platform."""
         opportunities = event.payload.get("observations", [])
-        logger.info("Platform %s found %d opportunities",
-                    event.payload.get("platform_id"), len(opportunities))
+        logger.info("Platform %s found %d opportunities", event.payload.get("platform_id"), len(opportunities))
 
     def _on_discovery_cycle_complete(self, event: AgentEvent) -> None:
         """Handle discovery cycle completion."""
@@ -768,8 +775,9 @@ class CommanderAgent(BaseAgent):
 
     def _on_daily_plan_ready(self, plan: DailyPlan) -> None:
         """Callback when daily plan is ready."""
-        logger.info("Daily plan ready for %s: %d opportunities prioritized",
-                    plan.date, len(plan.prioritized_opportunities))
+        logger.info(
+            "Daily plan ready for %s: %d opportunities prioritized", plan.date, len(plan.prioritized_opportunities)
+        )
         self.event_bus.publish("commander:daily_plan_ready", plan=plan.__dict__)
 
     # ── Public API ───────────────────────────────────────────────────
@@ -796,7 +804,7 @@ class CommanderAgent(BaseAgent):
                 "discovery_engine": self.discovery_engine is not None,
                 "platform_manager": self.platform_manager is not None,
                 "thinking_system": self.thinking_system is not None,
-            }
+            },
         }
 
     def get_active_tasks(self) -> list[dict[str, Any]]:

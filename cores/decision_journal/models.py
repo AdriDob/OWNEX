@@ -26,6 +26,4 @@ class DecisionEntry(Base):
     reward = Column(Float, default=0.0)  # feedback reward
     feedback_notes = Column(Text, default="")
     executed_at = Column(DateTime, default=lambda: datetime.now(UTC))
-    updated_at = Column(
-        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
-    )
+    updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))

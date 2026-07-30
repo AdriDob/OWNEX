@@ -26,10 +26,13 @@ class NucleiRunner:
         path = self.output_dir / out_file
         cmd = [
             self._binary,
-            "-l", str(input_file),
+            "-l",
+            str(input_file),
             "-jsonl",
-            "-o", str(path),
-            "-severity", severity,
+            "-o",
+            str(path),
+            "-severity",
+            severity,
             "-silent",
         ]
         if tags:
@@ -41,9 +44,7 @@ class NucleiRunner:
             *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
         try:
-            stdout, stderr = await asyncio.wait_for(
-                proc.communicate(), timeout=self.timeout
-            )
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=self.timeout)
         except TimeoutError:
             proc.kill()
             await proc.communicate()

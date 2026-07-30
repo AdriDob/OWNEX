@@ -41,6 +41,9 @@ async def platform_webhook(platform: str, request: Request):
 
     logger.info(
         "Webhook processed: %s/%s -> %s (report %s)",
-        platform, external_id, status, result.get("report_id"),
+        platform,
+        external_id,
+        status,
+        result.get("report_id"),
     )
     return {"status": "ok", "data": result}

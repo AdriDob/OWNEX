@@ -84,7 +84,9 @@ class FinancialSyncScheduler:
                 if sync_result.success:
                     logger.info(
                         "[SCHEDULER] %s sync OK — earned=%.2f pending=%.2f",
-                        platform_id, sync_result.total_earned, sync_result.total_pending,
+                        platform_id,
+                        sync_result.total_earned,
+                        sync_result.total_pending,
                     )
                 else:
                     logger.warning("[SCHEDULER] %s sync failed: %s", platform_id, sync_result.error)
@@ -113,7 +115,9 @@ class FinancialSyncScheduler:
                 "error": snap.error,
             }
 
-        logger.info("[SCHEDULER] Crypto sync: %d/%d wallets OK", sum(1 for r in results.values() if r["success"]), len(results))
+        logger.info(
+            "[SCHEDULER] Crypto sync: %d/%d wallets OK", sum(1 for r in results.values() if r["success"]), len(results)
+        )
         return results
 
     def sync_all(self) -> SyncReport:
@@ -138,8 +142,10 @@ class FinancialSyncScheduler:
 
         logger.info(
             "[SCHEDULER] Sync complete: %d/%d platforms OK, %d/%d crypto OK",
-            report.successful_platforms, report.total_platforms,
-            report.successful_crypto, report.total_crypto,
+            report.successful_platforms,
+            report.total_platforms,
+            report.successful_crypto,
+            report.total_crypto,
         )
         return report
 

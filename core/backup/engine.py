@@ -7,7 +7,7 @@ import json
 import logging
 import os
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -69,7 +69,7 @@ def _build_manifest(files: list[dict[str, Any]]) -> dict[str, Any]:
     manifest_checksum = hashlib.sha256(json.dumps(files, sort_keys=True).encode()).hexdigest()
     return {
         "version": OWNEX_VERSION,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "total_files": len(files),
         "total_size": total_size,
         "total_size_mb": round(total_size / (1024 * 1024), 2),
@@ -106,7 +106,7 @@ def create_backup() -> dict[str, Any]:
     _checkpoint_wal()
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H%M%S%f")
+    timestamp = datetime.now(UTC).strftime("%Y-%m-%d_%H%M%S%f")
     archive_path = BACKUP_DIR / f"OWNEX_BACKUP_{timestamp}.zip"
 
     files = _scan_files(OWNEX_DIR)
@@ -211,7 +211,7 @@ def list_backups() -> list[dict[str, Any]]:
                 "filename": f.name,
                 "size": stat.st_size,
                 "size_mb": round(stat.st_size / (1024 * 1024), 2),
-                "created_at": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
+                "created_at": datetime.fromtimestamp(stat.st_mtime, tz=UTC).isoformat(),
             }
         )
     return backups

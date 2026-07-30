@@ -51,6 +51,7 @@ class AssistantOrchestrator:
 
     def recommend_next_action(self, top_n: int = 3) -> list[OrchestratorDecision]:
         from cores.intelligence.priority_engine import get_priority_engine
+
         engine = get_priority_engine()
         ranked = engine.get_ranked(limit=top_n + 5)
         decisions: list[OrchestratorDecision] = []
@@ -84,6 +85,7 @@ class AssistantOrchestrator:
 
     def highlight_ui_elements(self) -> list[dict[str, Any]]:
         from cores.intelligence.priority_engine import get_priority_engine
+
         engine = get_priority_engine()
         top = engine.get_top(3)
         return [
@@ -100,6 +102,7 @@ class AssistantOrchestrator:
 
     def suppress_noise_items(self, threshold: float = 0.15) -> int:
         from cores.intelligence.priority_engine import get_priority_engine
+
         engine = get_priority_engine()
         ranked = engine.get_ranked(limit=100)
         count = 0
@@ -113,6 +116,7 @@ class AssistantOrchestrator:
 
     def trigger_discovery_refresh(self) -> OrchestratorDecision | None:
         from cores.intelligence.learning_loop import get_learning_loop
+
         loop = get_learning_loop()
         success_rate = loop.get_success_rate("open_opportunity")
         if success_rate < 0.3:

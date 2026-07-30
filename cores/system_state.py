@@ -36,6 +36,7 @@ StateChangeHandler = Callable[[str, str], None]  # (service_name, new_state)
 @dataclass
 class ServiceHealth:
     """Health record for a single service."""
+
     name: str
     state: str = "unknown"
     last_healthy: float | None = None
@@ -46,6 +47,7 @@ class ServiceHealth:
 
 def _get_session():
     from database.db import SessionLocal
+
     return SessionLocal()
 
 
@@ -54,6 +56,7 @@ def _load_state() -> dict | None:
         session = _get_session()
         try:
             from database.models import SystemStateRecord
+
             row = session.query(SystemStateRecord).order_by(SystemStateRecord.id.desc()).first()
             if row:
                 return {
@@ -76,6 +79,7 @@ def _persist_state(state: str, services: list[dict[str, Any]], boot_start: float
         session = _get_session()
         try:
             from database.models import SystemStateRecord
+
             record = SystemStateRecord(
                 state=state,
                 services_json=json.dumps(services),
@@ -216,7 +220,12 @@ class SystemState:
         new_state = self._system_state
         if self._system_state == SYSTEM_STATE_BOOTING and all_healthy:
             new_state = SYSTEM_STATE_READY
-        elif self._system_state == SYSTEM_STATE_BOOTING and any_unhealthy or self._system_state == SYSTEM_STATE_READY and any_unhealthy:
+        elif (
+            self._system_state == SYSTEM_STATE_BOOTING
+            and any_unhealthy
+            or self._system_state == SYSTEM_STATE_READY
+            and any_unhealthy
+        ):
             new_state = SYSTEM_STATE_DEGRADED
         elif self._system_state == SYSTEM_STATE_DEGRADED and all_healthy:
             new_state = SYSTEM_STATE_READY

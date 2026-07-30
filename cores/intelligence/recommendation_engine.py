@@ -117,16 +117,18 @@ def generate_recommendations(
             if t_total >= 2 or t_high >= 1:
                 payout_est = sum(_severity_payout(f.severity) for f in t_findings)
                 score = round(acceptance * 10 + min(t_total * 0.5, 5) + min(payout_est / 10000, 3), 2)
-                bundle.targets.append(TargetRecommendation(
-                    target_id=t.id,
-                    target_name=t.name,
-                    domain=t.domain or "",
-                    priority_score=score,
-                    reason=f"{t_total} findings ({t_high} high/critical), {acceptance:.0%} acceptance",
-                    finding_count=t_total,
-                    estimated_payout=payout_est,
-                    historical_acceptance_rate=acceptance,
-                ))
+                bundle.targets.append(
+                    TargetRecommendation(
+                        target_id=t.id,
+                        target_name=t.name,
+                        domain=t.domain or "",
+                        priority_score=score,
+                        reason=f"{t_total} findings ({t_high} high/critical), {acceptance:.0%} acceptance",
+                        finding_count=t_total,
+                        estimated_payout=payout_est,
+                        historical_acceptance_rate=acceptance,
+                    )
+                )
 
         bundle.targets.sort(key=lambda x: x.priority_score, reverse=True)
         bundle.targets = bundle.targets[:10]
@@ -135,7 +137,7 @@ def generate_recommendations(
         endpoints = session.query(Endpoint).all()
         surface_map: dict[str, dict[str, Any]] = {}
         for ep in endpoints:
-            params = ep.parsed_params if hasattr(ep, 'parsed_params') else {}
+            params = ep.parsed_params if hasattr(ep, "parsed_params") else {}
             surfaces = params.get("attack_surface", []) if isinstance(params, dict) else []
             if isinstance(surfaces, list):
                 for s in surfaces:
@@ -145,44 +147,50 @@ def generate_recommendations(
                     surface_map[s]["targets"].add(ep.target_id)
 
         for surface, info in sorted(surface_map.items(), key=lambda x: x[1]["count"], reverse=True)[:8]:
-            bundle.surfaces.append(SurfaceRecommendation(
-                surface=surface,
-                priority_score=round(min(info["count"] * 0.5, 10), 2),
-                reason=f"Found across {len(info['targets'])} targets ({info['count']} endpoints)",
-                related_target_count=len(info["targets"]),
-                trend_confidence=round(min(info["count"] / 50, 0.95), 3),
-            ))
+            bundle.surfaces.append(
+                SurfaceRecommendation(
+                    surface=surface,
+                    priority_score=round(min(info["count"] * 0.5, 10), 2),
+                    reason=f"Found across {len(info['targets'])} targets ({info['count']} endpoints)",
+                    related_target_count=len(info["targets"]),
+                    trend_confidence=round(min(info["count"] / 50, 0.95), 3),
+                )
+            )
 
         # Quick Win recommendations: high-confidence findings with low effort
         for ep in endpoints[:20]:
-            params = ep.parsed_params if hasattr(ep, 'parsed_params') else {}
+            params = ep.parsed_params if hasattr(ep, "parsed_params") else {}
             signals = params.get("signals", []) if isinstance(params, dict) else []
             if signals:
-                bundle.quick_wins.append(QuickWinRecommendation(
-                    target_id=ep.target_id,
-                    target_name="",
-                    endpoint_path=ep.path or "/",
-                    endpoint_method=ep.method or "GET",
-                    quick_win_score=round(min(len(signals) * 2, 10), 2),
-                    estimated_payout=500.0,
-                    estimated_effort_minutes=30,
-                    reason=f"Signals: {', '.join(signals[:3])}",
-                    historical_similar_success_rate=0.5,
-                ))
+                bundle.quick_wins.append(
+                    QuickWinRecommendation(
+                        target_id=ep.target_id,
+                        target_name="",
+                        endpoint_path=ep.path or "/",
+                        endpoint_method=ep.method or "GET",
+                        quick_win_score=round(min(len(signals) * 2, 10), 2),
+                        estimated_payout=500.0,
+                        estimated_effort_minutes=30,
+                        reason=f"Signals: {', '.join(signals[:3])}",
+                        historical_similar_success_rate=0.5,
+                    )
+                )
 
         # Report recommendations: findings with highest acceptance probability
         for f in findings[:10]:
             prob = _estimate_acceptance(f.severity)
-            bundle.reports.append(ReportRecommendation(
-                finding_id=f.id,
-                title=f.title or "Untitled",
-                severity=f.severity or "medium",
-                target_name="",
-                acceptance_probability=prob,
-                reason=f"Based on severity ({f.severity}) and historical patterns",
-                estimated_payout=_severity_payout(f.severity),
-                similar_accepted_count=0,
-            ))
+            bundle.reports.append(
+                ReportRecommendation(
+                    finding_id=f.id,
+                    title=f.title or "Untitled",
+                    severity=f.severity or "medium",
+                    target_name="",
+                    acceptance_probability=prob,
+                    reason=f"Based on severity ({f.severity}) and historical patterns",
+                    estimated_payout=_severity_payout(f.severity),
+                    similar_accepted_count=0,
+                )
+            )
 
         bundle.reports.sort(key=lambda x: x.acceptance_probability, reverse=True)
 

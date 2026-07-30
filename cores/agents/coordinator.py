@@ -20,7 +20,8 @@ from cores.pipeline.state_machine import (
     next_stage,
     validate_transition,
 )
-from cores.settings.service import OWNEXMode as CATEYEMode, get_mode, get_setting
+from cores.settings.service import OWNEXMode as CATEYEMode
+from cores.settings.service import get_mode, get_setting
 
 logger = logging.getLogger("cateye.agents.coordinator")
 
@@ -53,6 +54,7 @@ STAGE_TO_EVENT: dict[PipelineState, EventType] = {
 
 def _get_db_session():
     from database.db import SessionLocal
+
     return SessionLocal()
 
 
@@ -61,9 +63,8 @@ def _state_history_from_db(pipeline_id: str) -> list[dict[str, Any]]:
     session = _get_db_session()
     try:
         from database.models import PipelineRun
-        record = session.query(PipelineRun).filter(
-            PipelineRun.correlation_id == pipeline_id
-        ).first()
+
+        record = session.query(PipelineRun).filter(PipelineRun.correlation_id == pipeline_id).first()
         if record and record.state_history:
             raw = json.loads(record.state_history)
             return raw if isinstance(raw, list) else []
@@ -145,9 +146,8 @@ class CoordinatorAgent(BaseAgent):
         session = _get_db_session()
         try:
             from database.models import PipelineRun
-            record = session.query(PipelineRun).filter(
-                PipelineRun.correlation_id == pipeline_id
-            ).first()
+
+            record = session.query(PipelineRun).filter(PipelineRun.correlation_id == pipeline_id).first()
             if record:
                 record.current_state = data.get("state", record.current_state)
                 record.state_history = json.dumps(data.get("stages", []))
@@ -180,9 +180,8 @@ class CoordinatorAgent(BaseAgent):
         session = _get_db_session()
         try:
             from database.models import PipelineRun
-            record = session.query(PipelineRun).filter(
-                PipelineRun.correlation_id == pipeline_id
-            ).first()
+
+            record = session.query(PipelineRun).filter(PipelineRun.correlation_id == pipeline_id).first()
             if record:
                 return {
                     "target_id": record.target_id,
@@ -212,8 +211,7 @@ class CoordinatorAgent(BaseAgent):
             existing_target = info.get("target_id")
             current_state = info.get("state", "")
             if existing_target == target_id and not is_terminal(current_state):
-                logger.warning("[COORD] Conflict: target %s already has active pipeline %s",
-                              target_name, pid[:8])
+                logger.warning("[COORD] Conflict: target %s already has active pipeline %s", target_name, pid[:8])
                 self.emit(
                     EventType.SYSTEM_ALERT,
                     payload={
@@ -226,12 +224,10 @@ class CoordinatorAgent(BaseAgent):
                 )
                 return
 
-        logger.info("[COORD] Starting pipeline %s for target %s",
-                    pipeline_id[:8], target_name)
+        logger.info("[COORD] Starting pipeline %s for target %s", pipeline_id[:8], target_name)
 
         stages: list[dict[str, Any]] = [
-            build_transition("", PipelineState.PENDING.value, "coordinator", "created",
-                             {"target_name": target_name}),
+            build_transition("", PipelineState.PENDING.value, "coordinator", "created", {"target_name": target_name}),
         ]
 
         pipeline_data = {
@@ -265,7 +261,9 @@ class CoordinatorAgent(BaseAgent):
         # Find the completed state
         current_state = PipelineState.PENDING
         with contextlib.suppress(ValueError):
-            current_state = PipelineState(completed_stage) if completed_stage else PipelineState(info.get("state", "pending"))
+            current_state = (
+                PipelineState(completed_stage) if completed_stage else PipelineState(info.get("state", "pending"))
+            )
 
         # Record transition in history
         transition = build_transition(
@@ -291,9 +289,13 @@ class CoordinatorAgent(BaseAgent):
             info["state"] = next_state.value
             info["quality_score"] = compute_quality_score(stages)
             self._save_pipeline(pipeline_id, info)
-            logger.info("[COORD] Pipeline %s: %s -> %s (score=%.2f)",
-                        pipeline_id[:8], current_state.value, next_state.value,
-                        info["quality_score"])
+            logger.info(
+                "[COORD] Pipeline %s: %s -> %s (score=%.2f)",
+                pipeline_id[:8],
+                current_state.value,
+                next_state.value,
+                info["quality_score"],
+            )
             self._advance_stage(pipeline_id, next_state, event)
         else:
             # Pipeline complete
@@ -301,13 +303,11 @@ class CoordinatorAgent(BaseAgent):
             info["quality_score"] = compute_quality_score(stages)
             info["completed_at"] = datetime.now(UTC)
             self._save_pipeline(pipeline_id, info)
-            logger.info("[COORD] Pipeline %s completed (final score=%.2f)",
-                        pipeline_id[:8], info["quality_score"])
+            logger.info("[COORD] Pipeline %s completed (final score=%.2f)", pipeline_id[:8], info["quality_score"])
 
     def _advance_stage(self, pipeline_id: str, state: PipelineState, trigger: AgentEvent) -> None:
         if is_terminal(state):
-            logger.info("[COORD] Pipeline %s reached terminal state %s",
-                        pipeline_id[:8], state.value)
+            logger.info("[COORD] Pipeline %s reached terminal state %s", pipeline_id[:8], state.value)
             return
 
         # ── Mode check: stop at READY in manual mode ────────────────
@@ -328,8 +328,7 @@ class CoordinatorAgent(BaseAgent):
                 },
                 correlation_id=pipeline_id,
             )
-            logger.info("[COORD] Pipeline %s paused at READY (manual mode)",
-                        pipeline_id[:8])
+            logger.info("[COORD] Pipeline %s paused at READY (manual mode)", pipeline_id[:8])
             return
 
         # ── Mode check: auto-submit in automatic mode when READY ────
@@ -351,8 +350,7 @@ class CoordinatorAgent(BaseAgent):
                 target=AgentId.COORDINATOR,
                 correlation_id=pipeline_id,
             )
-            logger.info("[COORD] Pipeline %s auto-advancing to submission (auto mode)",
-                        pipeline_id[:8])
+            logger.info("[COORD] Pipeline %s auto-advancing to submission (auto mode)", pipeline_id[:8])
             return
 
         target = STAGE_TO_AGENT.get(state)
@@ -378,8 +376,7 @@ class CoordinatorAgent(BaseAgent):
             target=target,
             correlation_id=pipeline_id,
         )
-        logger.info("[COORD] Advanced pipeline %s to stage %s -> %s",
-                    pipeline_id[:8], state.value, target.value)
+        logger.info("[COORD] Advanced pipeline %s to stage %s -> %s", pipeline_id[:8], state.value, target.value)
 
     def _on_pipeline_failed(self, event: AgentEvent) -> None:
         pipeline_id = event.correlation_id
@@ -399,8 +396,10 @@ class CoordinatorAgent(BaseAgent):
             # Record failure in history
             current_state_name = info.get("state", PipelineState.DISCOVERY.value)
             transition = build_transition(
-                current_state_name, current_state_name,
-                str(event.source), "failed",
+                current_state_name,
+                current_state_name,
+                str(event.source),
+                "failed",
                 {"error": error},
             )
             info.setdefault("stages", []).append(transition)
@@ -408,8 +407,13 @@ class CoordinatorAgent(BaseAgent):
             stages = info.get("stages", [])
             if can_retry(stages, self.max_retries):
                 delay = get_retry_delay(info["retries"])
-                logger.info("[COORD] Retrying pipeline %s (attempt %d/%d, delay=%ds)",
-                            pipeline_id[:8], info["retries"], self.max_retries, delay)
+                logger.info(
+                    "[COORD] Retrying pipeline %s (attempt %d/%d, delay=%ds)",
+                    pipeline_id[:8],
+                    info["retries"],
+                    self.max_retries,
+                    delay,
+                )
                 try:
                     current_state = PipelineState(current_state_name)
                 except ValueError:
@@ -435,10 +439,14 @@ class CoordinatorAgent(BaseAgent):
         info["quality_score"] = compute_quality_score(info.get("stages", []))
         info["completed_at"] = datetime.now(UTC)
         stages = info.setdefault("stages", [])
-        stages.append(build_transition(
-            info.get("state", ""), PipelineState.CANCELLED.value,
-            str(event.source), "cancelled",
-        ))
+        stages.append(
+            build_transition(
+                info.get("state", ""),
+                PipelineState.CANCELLED.value,
+                str(event.source),
+                "cancelled",
+            )
+        )
         self._save_pipeline(pipeline_id, info)
         logger.info("[COORD] Pipeline %s cancelled", pipeline_id[:8])
 
@@ -455,18 +463,18 @@ class CoordinatorAgent(BaseAgent):
         agent_id = event.payload.get("agent_id", "unknown")
         status = event.payload.get("status", "unknown")
         if agent_id in self._agent_health:
-            self._agent_health[agent_id].update({
-                "status": status,
-                "last_seen": event.timestamp,
-            })
+            self._agent_health[agent_id].update(
+                {
+                    "status": status,
+                    "last_seen": event.timestamp,
+                }
+            )
 
     def _on_system_error(self, event: AgentEvent) -> None:
-        logger.warning("[COORD] System error from %s: %s",
-                       event.source, event.payload.get("error", ""))
+        logger.warning("[COORD] System error from %s: %s", event.source, event.payload.get("error", ""))
 
     def _on_strategy(self, event: AgentEvent) -> None:
-        logger.info("[COORD] Strategy recommendation received",
-                    extra={"payload": event.payload})
+        logger.info("[COORD] Strategy recommendation received", extra={"payload": event.payload})
 
     def _on_financial_update(self, event: AgentEvent) -> None:
         pipeline_id = event.correlation_id
@@ -524,12 +532,16 @@ class CoordinatorAgent(BaseAgent):
                 return
 
             platform = (target.domain or "unknown").split(".")[-2] if target.domain else "hackerone"
-            platform_map = {"hackerone": "hackerone", "bugcrowd": "bugcrowd", "intigriti": "intigriti", "yeswehack": "yeswehack", "synack": "synack"}
+            platform_map = {
+                "hackerone": "hackerone",
+                "bugcrowd": "bugcrowd",
+                "intigriti": "intigriti",
+                "yeswehack": "yeswehack",
+                "synack": "synack",
+            }
             platform_id = platform_map.get(platform, "hackerone")
 
-            report = session.query(Report).filter(
-                Report.target == target.name
-            ).order_by(Report.id.desc()).first()
+            report = session.query(Report).filter(Report.target == target.name).order_by(Report.id.desc()).first()
 
             if not report:
                 logger.warning("[COORD] No report found for target %s", target.name)
@@ -548,8 +560,12 @@ class CoordinatorAgent(BaseAgent):
 
             result = submit_report_to_platform(report_id, platform_id)
             if result.get("success"):
-                logger.info("[COORD] Pipeline %s submitted to %s (ext_id=%s)",
-                            pipeline_id[:8], platform_id, result.get("external_id", ""))
+                logger.info(
+                    "[COORD] Pipeline %s submitted to %s (ext_id=%s)",
+                    pipeline_id[:8],
+                    platform_id,
+                    result.get("external_id", ""),
+                )
                 self._advance_stage(
                     pipeline_id,
                     PipelineState.READY,
@@ -562,8 +578,9 @@ class CoordinatorAgent(BaseAgent):
                     ),
                 )
             else:
-                logger.warning("[COORD] Submission failed for pipeline %s: %s",
-                               pipeline_id[:8], result.get("error", "unknown"))
+                logger.warning(
+                    "[COORD] Submission failed for pipeline %s: %s", pipeline_id[:8], result.get("error", "unknown")
+                )
                 self.emit(
                     EventType.PIPELINE_FAILED,
                     payload={"stage": PipelineState.SUBMITTED.value, "error": result.get("error", "submission_failed")},
@@ -592,9 +609,8 @@ class CoordinatorAgent(BaseAgent):
         session = _get_db_session()
         try:
             from database.models import PipelineRun
-            records = session.query(PipelineRun).order_by(
-                PipelineRun.created_at.desc()
-            ).limit(50).all()
+
+            records = session.query(PipelineRun).order_by(PipelineRun.created_at.desc()).limit(50).all()
             for rec in records:
                 pid = rec.correlation_id
                 if pid not in self._active_pipelines:
@@ -622,9 +638,8 @@ class CoordinatorAgent(BaseAgent):
         session = _get_db_session()
         try:
             from database.models import PipelineRun
-            record = session.query(PipelineRun).filter(
-                PipelineRun.correlation_id == pipeline_id
-            ).first()
+
+            record = session.query(PipelineRun).filter(PipelineRun.correlation_id == pipeline_id).first()
             if record:
                 session.delete(record)
                 session.commit()

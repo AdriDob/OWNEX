@@ -85,6 +85,7 @@ def _build_reason(tier: str, score: float, factors: list[dict[str, Any]]) -> str
 
 def build_review_queue(limit: int = 100) -> ReviewQueue:
     from database.db import SessionLocal
+
     session = SessionLocal()
     try:
         from database.models import Finding, Target, Verdict
@@ -105,7 +106,11 @@ def build_review_queue(limit: int = 100) -> ReviewQueue:
             adjusted = max(0.0, min(1.0, adjusted))
 
             factors = [
-                {"name": "stored_confidence", "value": round(raw_conf, 4), "description": "Raw confidence from validation"},
+                {
+                    "name": "stored_confidence",
+                    "value": round(raw_conf, 4),
+                    "description": "Raw confidence from validation",
+                },
                 {"name": "status", "value": status, "description": f"Verdict status: {status}"},
                 {"name": "retry_count", "value": v.retry_count, "description": f"Retry attempts: {v.retry_count}"},
             ]
@@ -115,28 +120,29 @@ def build_review_queue(limit: int = 100) -> ReviewQueue:
 
             target_name = ""
             if v.endpoint_id:
-                ep = session.query(type('EP', (), {'target_id': 0})()).from_statement(
-                    type('stmt', (), {})()
-                )
+                ep = session.query(type("EP", (), {"target_id": 0})()).from_statement(type("stmt", (), {})())
                 from database.models import Endpoint
+
                 ep = session.query(Endpoint).filter(Endpoint.id == v.endpoint_id).first()
                 if ep:
                     t = session.query(Target).filter(Target.id == ep.target_id).first()
                     if t:
                         target_name = t.name
 
-            queue.add(ReviewItem(
-                item_id=f"verdict_{v.id}",
-                item_type="verdict",
-                label=f"Verdict #{v.id} — {status}",
-                tier=tier,
-                confidence_score=round(adjusted, 4),
-                reason=reason,
-                factors=factors,
-                target_id=v.endpoint_id,
-                target_name=target_name,
-                created_at=v.created_at.isoformat() if v.created_at else None,
-            ))
+            queue.add(
+                ReviewItem(
+                    item_id=f"verdict_{v.id}",
+                    item_type="verdict",
+                    label=f"Verdict #{v.id} — {status}",
+                    tier=tier,
+                    confidence_score=round(adjusted, 4),
+                    reason=reason,
+                    factors=factors,
+                    target_id=v.endpoint_id,
+                    target_name=target_name,
+                    created_at=v.created_at.isoformat() if v.created_at else None,
+                )
+            )
 
         # High-severity finding review items
         findings = (
@@ -157,14 +163,13 @@ def build_review_queue(limit: int = 100) -> ReviewQueue:
 
             if f.endpoint_id:
                 from database.models import Verdict as VerdictModel
-                related = (
-                    session.query(VerdictModel)
-                    .filter(VerdictModel.endpoint_id == f.endpoint_id)
-                    .count()
-                )
+
+                related = session.query(VerdictModel).filter(VerdictModel.endpoint_id == f.endpoint_id).count()
                 if related > 0:
                     score = min(score + 0.15, 1.0)
-                    factors.append({"name": "verified", "value": related, "description": f"{related} related verdict(s)"})
+                    factors.append(
+                        {"name": "verified", "value": related, "description": f"{related} related verdict(s)"}
+                    )
 
             tier = _classify_tier(score)
             reason = _build_reason(tier, score, factors)
@@ -174,18 +179,22 @@ def build_review_queue(limit: int = 100) -> ReviewQueue:
             if t:
                 target_name = t.name
 
-            queue.add(ReviewItem(
-                item_id=f"finding_{f.id}",
-                item_type="finding",
-                label=f.finding_title if hasattr(f, 'finding_title') and f.finding_title else (f.title or "Untitled"),
-                tier=tier,
-                confidence_score=round(score, 4),
-                reason=reason,
-                factors=factors,
-                target_id=f.target_id,
-                target_name=target_name,
-                created_at=f.created_at.isoformat() if f.created_at else None,
-            ))
+            queue.add(
+                ReviewItem(
+                    item_id=f"finding_{f.id}",
+                    item_type="finding",
+                    label=f.finding_title
+                    if hasattr(f, "finding_title") and f.finding_title
+                    else (f.title or "Untitled"),
+                    tier=tier,
+                    confidence_score=round(score, 4),
+                    reason=reason,
+                    factors=factors,
+                    target_id=f.target_id,
+                    target_name=target_name,
+                    created_at=f.created_at.isoformat() if f.created_at else None,
+                )
+            )
 
         return queue
 

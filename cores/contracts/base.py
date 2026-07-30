@@ -24,6 +24,7 @@ class Artifact:
     - dependencies: list of artifact type names this depends on
     - metadata: extensible key-value store for observability
     """
+
     version: int = 1
     timestamp: str = ""
     source_ids: list[str] = field(default_factory=list)
@@ -90,6 +91,7 @@ class CacheProtocol(Protocol):
 @dataclass
 class InvalidationPolicy:
     """Policy that determines when an artifact should be invalidated."""
+
     dependencies_changed: bool = False
     max_age_seconds: float | None = None
     force_recompute: bool = False

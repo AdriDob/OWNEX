@@ -61,6 +61,7 @@ class SystemScorecard:
 
         try:
             from cores.actions.execution_tracker import get_execution_tracker
+
             tracker = get_execution_tracker()
             stats = tracker.get_stats()
             by_type = stats.get("by_type", {})
@@ -87,6 +88,7 @@ class SystemScorecard:
 
         try:
             from cores.accountability.outcome_tracker import get_outcome_tracker
+
             o_tracker = get_outcome_tracker()
             summary = o_tracker.get_summary()
             metrics.success_rate = summary.get("success_rate", 0.5)
@@ -95,6 +97,7 @@ class SystemScorecard:
 
         try:
             from cores.intelligence.priority_engine import get_priority_engine
+
             engine = get_priority_engine()
             metrics.active_decisions = engine.count()
         except Exception as exc:
@@ -102,6 +105,7 @@ class SystemScorecard:
 
         try:
             from cores.memory.insight_archive import get_insight_archive
+
             archive = get_insight_archive()
             metrics.memory_usage = archive.total_count()
         except Exception as exc:

@@ -93,14 +93,16 @@ class DuplicateDetector:
             similarity, reasons = self._compare(finding, historical)
             if similarity >= MEDIUM_RISK_THRESHOLD:
                 hist_id = historical.get("id", 0)
-                matches.append(DuplicateMatch(
-                    finding_id=hist_id,
-                    similarity=similarity,
-                    matched_on=reasons,
-                    program=historical.get("program", "") or "",
-                    title=historical.get("title", "") or "",
-                    age_days=self._age_days(historical),
-                ))
+                matches.append(
+                    DuplicateMatch(
+                        finding_id=hist_id,
+                        similarity=similarity,
+                        matched_on=reasons,
+                        program=historical.get("program", "") or "",
+                        title=historical.get("title", "") or "",
+                        age_days=self._age_days(historical),
+                    )
+                )
 
         matches.sort(key=lambda m: m.similarity, reverse=True)
         matches = matches[:5]
@@ -211,6 +213,7 @@ class DuplicateDetector:
     def _age_days(self, finding: dict[str, Any]) -> int | None:
         try:
             from datetime import datetime
+
             created = finding.get("created_at") or finding.get("created", "")
             if created:
                 dt = datetime.fromisoformat(created.replace("Z", "+00:00"))

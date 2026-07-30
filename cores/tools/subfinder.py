@@ -1,4 +1,5 @@
 """Subfinder wrapper — subdomain enumeration."""
+
 import logging
 import re
 
@@ -38,28 +39,33 @@ class SubfinderTool(BaseTool):
                 continue
             try:
                 import json
+
                 data = json.loads(line)
                 host = data.get("host", "")
                 if host:
-                    results.append(UnifiedResult(
-                        source="subfinder",
-                        target=host,
-                        result_type="subdomain",
-                        confidence=0.8,
-                        name=f"Subdomain: {host}",
-                        evidence={"source": data.get("source", ""), "input": data.get("input", "")},
-                        tags=[data.get("source", "unknown")],
-                    ))
+                    results.append(
+                        UnifiedResult(
+                            source="subfinder",
+                            target=host,
+                            result_type="subdomain",
+                            confidence=0.8,
+                            name=f"Subdomain: {host}",
+                            evidence={"source": data.get("source", ""), "input": data.get("input", "")},
+                            tags=[data.get("source", "unknown")],
+                        )
+                    )
             except json.JSONDecodeError:
                 host = line.strip()
                 if host and not host.startswith("[") and re.match(r"^[\w.-]+$", host):
-                    results.append(UnifiedResult(
-                        source="subfinder",
-                        target=host,
-                        result_type="subdomain",
-                        confidence=0.6,
-                        name=f"Subdomain: {host}",
-                    ))
+                    results.append(
+                        UnifiedResult(
+                            source="subfinder",
+                            target=host,
+                            result_type="subdomain",
+                            confidence=0.6,
+                            name=f"Subdomain: {host}",
+                        )
+                    )
         return results
 
     def parse_output(self, stdout: str) -> list[UnifiedResult]:

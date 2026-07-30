@@ -63,7 +63,10 @@ class QuickWinsEngine:
         for ep in endpoints:
             ep_verdict = verdict_map.get(ep.path)
             win = self._score_endpoint(
-                ep, ep_verdict, reported_endpoints, evidence_nodes,
+                ep,
+                ep_verdict,
+                reported_endpoints,
+                evidence_nodes,
             )
             if win is not None:
                 all_wins.append(win)
@@ -81,7 +84,9 @@ class QuickWinsEngine:
 
         # ── 3. Fast exploit paths from confirmed verdicts + evidence ──
         fast_paths = self._build_fast_exploit_paths(
-            ready, hot_paths, evidence_edges,
+            ready,
+            hot_paths,
+            evidence_edges,
         )
 
         # ── 4. Low-effort high-ROI targets ──
@@ -112,9 +117,7 @@ class QuickWinsEngine:
             confidence_ranked_opportunities=ranked[:20],
             total_opportunities=n,
             avg_quick_win_score=round(avg_score, 3),
-            exploitability_score=round(
-                sum(w.exploitability_score for w in all_wins) / max(n, 1), 3
-            ),
+            exploitability_score=round(sum(w.exploitability_score for w in all_wins) / max(n, 1), 3),
             fastest_path_minutes=getattr(fastest, "estimated_effort_minutes", 0),
             total_estimated_value=sum(w.estimated_payout for w in all_wins),
         )
@@ -157,7 +160,8 @@ class QuickWinsEngine:
             verdict_confidence_val = getattr(verdict, "confidence", 0.0)
             reproducibility = getattr(verdict, "reproducibility_score", None)
             confidence_score = self._compute_confidence(
-                verdict_status, verdict_confidence_val,
+                verdict_status,
+                verdict_confidence_val,
             )
 
         # Evidence consistency bonus
@@ -172,22 +176,23 @@ class QuickWinsEngine:
 
         # ── Complexity score ──
         complexity_score = self._compute_complexity(
-            risk_score, signals, potential_idor, evidence_count,
+            risk_score,
+            signals,
+            potential_idor,
+            evidence_count,
         )
 
         # ── Blend into quick-win score ──
-        quick_win_score = (
-            roi_score * 0.4
-            + confidence_score * 0.3
-            + exploitability_score * 0.2
-            - complexity_score * 0.3
-        )
+        quick_win_score = roi_score * 0.4 + confidence_score * 0.3 + exploitability_score * 0.2 - complexity_score * 0.3
         quick_win_score = max(0.0, min(1.0, quick_win_score))
 
         # ── Classify ──
         category, reasoning, signals_list = self._classify(
-            quick_win_score, confidence_score, verdict_status,
-            risk_score, evidence_count,
+            quick_win_score,
+            confidence_score,
+            verdict_status,
+            risk_score,
+            evidence_count,
         )
 
         # Effort estimate
@@ -246,7 +251,9 @@ class QuickWinsEngine:
         return roi
 
     def _compute_confidence(
-        self, status: str, confidence_val: float,
+        self,
+        status: str,
+        confidence_val: float,
     ) -> float:
         if status == "confirmed":
             return min(confidence_val + 0.2, 1.0)
@@ -255,7 +262,10 @@ class QuickWinsEngine:
         return 0.0
 
     def _compute_exploitability(
-        self, method: str, labels: list[str], vector: str,
+        self,
+        method: str,
+        labels: list[str],
+        vector: str,
     ) -> float:
         score = 0.0
         m = method.upper()
@@ -370,24 +380,24 @@ class QuickWinsEngine:
     ) -> list[FastExploitPath]:
         paths: list[FastExploitPath] = []
         for win in ready_wins[:5]:
-            evidence_steps = [
-                f"{win.endpoint_method} {win.endpoint_path} — confirmed verdict"
-            ]
+            evidence_steps = [f"{win.endpoint_method} {win.endpoint_path} — confirmed verdict"]
             for edge in evidence_edges[:3]:
                 if win.endpoint_path in edge.get("from", "") or win.endpoint_path in edge.get("to", ""):
                     evidence_steps.append(
                         f"evidence: {edge.get('from')} -> {edge.get('to')} ({edge.get('relationship')})"
                     )
-            paths.append(FastExploitPath(
-                entry_endpoint=win.endpoint_path,
-                entry_method=win.endpoint_method,
-                chain_length=len(evidence_steps),
-                vulnerability_type=win.reasoning.split("—")[-1].strip() if "—" in win.reasoning else "unknown",
-                payout_likelihood=win.quick_win_score,
-                evidence_steps=evidence_steps[:5],
-                impact_summary=win.reasoning,
-                path_id=f"qw_fast_{win.endpoint_path.replace('/', '_')[:40]}",
-            ))
+            paths.append(
+                FastExploitPath(
+                    entry_endpoint=win.endpoint_path,
+                    entry_method=win.endpoint_method,
+                    chain_length=len(evidence_steps),
+                    vulnerability_type=win.reasoning.split("—")[-1].strip() if "—" in win.reasoning else "unknown",
+                    payout_likelihood=win.quick_win_score,
+                    evidence_steps=evidence_steps[:5],
+                    impact_summary=win.reasoning,
+                    path_id=f"qw_fast_{win.endpoint_path.replace('/', '_')[:40]}",
+                )
+            )
         return paths
 
     def _build_low_effort_targets(
@@ -400,17 +410,19 @@ class QuickWinsEngine:
         for win in combined:
             is_partial = win.verdict_status == "inconclusive"
             is_under = win.category == "underexplored"
-            targets.append(LowEffortHighRoi(
-                target_name="",
-                endpoint_path=win.endpoint_path,
-                endpoint_method=win.endpoint_method,
-                roi_score=win.roi_score,
-                complexity_score=win.complexity_score,
-                effort_estimate_minutes=win.estimated_effort_minutes,
-                reason=win.reasoning,
-                is_partially_confirmed=is_partial,
-                is_underexplored=is_under,
-            ))
+            targets.append(
+                LowEffortHighRoi(
+                    target_name="",
+                    endpoint_path=win.endpoint_path,
+                    endpoint_method=win.endpoint_method,
+                    roi_score=win.roi_score,
+                    complexity_score=win.complexity_score,
+                    effort_estimate_minutes=win.estimated_effort_minutes,
+                    reason=win.reasoning,
+                    is_partially_confirmed=is_partial,
+                    is_underexplored=is_under,
+                )
+            )
         return targets
 
     def _build_immediate_actions(
@@ -428,16 +440,18 @@ class QuickWinsEngine:
             if win.reproducibility_score and win.reproducibility_score < 0.8:
                 steps.insert(1, f"Confirm reproducibility (current: {win.reproducibility_score:.2f})")
 
-            actions.append(ImmediateActionEndpoint(
-                path=win.endpoint_path,
-                method=win.endpoint_method,
-                action="write_report",
-                priority="high",
-                confidence=win.quick_win_score,
-                risk_score=win.roi_score,
-                reason=win.reasoning,
-                steps=steps,
-            ))
+            actions.append(
+                ImmediateActionEndpoint(
+                    path=win.endpoint_path,
+                    method=win.endpoint_method,
+                    action="write_report",
+                    priority="high",
+                    confidence=win.quick_win_score,
+                    risk_score=win.roi_score,
+                    reason=win.reasoning,
+                    steps=steps,
+                )
+            )
 
         for win in half_confirmed[:3]:
             steps = [
@@ -446,15 +460,17 @@ class QuickWinsEngine:
                 "If confirmed, proceed to report",
             ]
 
-            actions.append(ImmediateActionEndpoint(
-                path=win.endpoint_path,
-                method=win.endpoint_method,
-                action="manual_validation",
-                priority="medium",
-                confidence=win.confidence_score,
-                risk_score=win.roi_score,
-                reason=win.reasoning,
-                steps=steps,
-            ))
+            actions.append(
+                ImmediateActionEndpoint(
+                    path=win.endpoint_path,
+                    method=win.endpoint_method,
+                    action="manual_validation",
+                    priority="medium",
+                    confidence=win.confidence_score,
+                    risk_score=win.roi_score,
+                    reason=win.reasoning,
+                    steps=steps,
+                )
+            )
 
         return actions

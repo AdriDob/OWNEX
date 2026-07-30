@@ -14,6 +14,7 @@ LOG = logging.getLogger("ownex.recon.seclists")
 @dataclass
 class WordlistProfile:
     """A named wordlist profile with metadata."""
+
     name: str
     description: str
     relative_path: str
@@ -81,7 +82,6 @@ WORDLISTS: list[WordlistProfile] = [
         estimated_size=100,
         tags=["api", "swagger", "openapi"],
     ),
-
     # Admin panels
     WordlistProfile(
         name="admin-panels",
@@ -91,7 +91,6 @@ WORDLISTS: list[WordlistProfile] = [
         estimated_size=500,
         tags=["admin", "login", "dashboard"],
     ),
-
     # Backups
     WordlistProfile(
         name="backups",
@@ -101,7 +100,6 @@ WORDLISTS: list[WordlistProfile] = [
         estimated_size=300,
         tags=["backup", "sensitive"],
     ),
-
     # Subdomains
     WordlistProfile(
         name="subdomains-top1million-5000",
@@ -119,7 +117,6 @@ WORDLISTS: list[WordlistProfile] = [
         estimated_size=20000,
         tags=["subdomains", "dns", "balanced"],
     ),
-
     # Parameters
     WordlistProfile(
         name="burp-params",
@@ -129,7 +126,6 @@ WORDLISTS: list[WordlistProfile] = [
         estimated_size=2500,
         tags=["params", "fuzzing"],
     ),
-
     # Passwords (for login form testing)
     WordlistProfile(
         name="common-passwords",
@@ -158,9 +154,7 @@ def get_wordlists_by_category(category: str) -> list[WordlistProfile]:
     return _BY_CATEGORY.get(category, [])
 
 
-def resolve_path(
-    profile: WordlistProfile, seclists_dir: str = "/usr/share/seclists"
-) -> Path | None:
+def resolve_path(profile: WordlistProfile, seclists_dir: str = "/usr/share/seclists") -> Path | None:
     """Resolve the absolute path to a wordlist file."""
     candidate = Path(seclists_dir) / profile.relative_path
     if candidate.exists():

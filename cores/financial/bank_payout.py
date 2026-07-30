@@ -183,7 +183,9 @@ class CSVImporter:
         return entries
 
     @staticmethod
-    def _row_to_entry(row: dict[str, str], headers: list[str], account_name: str, source_file: str) -> PayoutEntry | None:
+    def _row_to_entry(
+        row: dict[str, str], headers: list[str], account_name: str, source_file: str
+    ) -> PayoutEntry | None:
         def _find_col(*names: str) -> str:
             for name in names:
                 for h in headers:
@@ -519,8 +521,11 @@ class BankPayoutConnector:
 
         logger.info(
             "Payout recorded: %.2f %s from %s (txn: %s, ledger: %s)",
-            entry.amount, entry.currency, entry.platform,
-            entry.transaction_id[:16], ledger_entry.entry_id[:8],
+            entry.amount,
+            entry.currency,
+            entry.platform,
+            entry.transaction_id[:16],
+            ledger_entry.entry_id[:8],
         )
 
         return {
@@ -554,10 +559,7 @@ class BankPayoutConnector:
     def get_status(self) -> dict[str, Any]:
         plaid_configured = self._plaid_provider is not None
         vault = get_identity_vault()
-        plaid_accounts = [
-            a for a in vault.list_accounts()
-            if a.get("provider_name", "").startswith("plaid_")
-        ]
+        plaid_accounts = [a for a in vault.list_accounts() if a.get("provider_name", "").startswith("plaid_")]
         return {
             "plaid_configured": plaid_configured,
             "plaid_accounts": len(plaid_accounts),

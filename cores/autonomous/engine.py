@@ -57,7 +57,9 @@ class AutonomousModeEngine:
             return
         self._running = True
         self._thread = threading.Thread(
-            target=self._run_cycle, daemon=True, name="CATEYE-autonomous",
+            target=self._run_cycle,
+            daemon=True,
+            name="CATEYE-autonomous",
         )
         self._thread.start()
         logger.info("[AUTO+] Engine started (interval=%ss, enabled=%s)", self._interval, self._enabled)
@@ -99,72 +101,84 @@ class AutonomousModeEngine:
         # 1. Health check
         try:
             from cores.health import get_system_health_engine
+
             health = get_system_health_engine()
             health_status = health.status()
             health_score = health_status.get("current_score", 100)
             if health_score < 50:
-                decisions.append(AutonomousDecision(
-                    decision_type="degrade_load",
-                    confidence=0.7,
-                    reason=f"Health score {health_score:.0f} below 50: degrading load",
-                    action="degrade_pipeline_throughput",
-                ))
+                decisions.append(
+                    AutonomousDecision(
+                        decision_type="degrade_load",
+                        confidence=0.7,
+                        reason=f"Health score {health_score:.0f} below 50: degrading load",
+                        action="degrade_pipeline_throughput",
+                    )
+                )
         except Exception as exc:
             logger.debug("[AUTO+] Health check skipped: %s", exc)
 
         # 2. Diagnostics
         try:
             from cores.diagnostics import get_diagnostic_analyzer
+
             analyzer = get_diagnostic_analyzer()
             patterns = analyzer.find_patterns()
             if patterns and patterns[0].confidence > 0.5:
-                decisions.append(AutonomousDecision(
-                    decision_type="root_cause_detected",
-                    confidence=patterns[0].confidence,
-                    reason=patterns[0].description,
-                    action="apply_recovery",
-                    parameters={"pattern_id": patterns[0].pattern_id},
-                ))
+                decisions.append(
+                    AutonomousDecision(
+                        decision_type="root_cause_detected",
+                        confidence=patterns[0].confidence,
+                        reason=patterns[0].description,
+                        action="apply_recovery",
+                        parameters={"pattern_id": patterns[0].pattern_id},
+                    )
+                )
         except Exception as exc:
             logger.debug("[AUTO+] Diagnostics skipped: %s", exc)
 
         # 3. Failure prediction
         try:
             from cores.predictor import get_failure_predictor  # type: ignore[attr-defined]
+
             predictor = get_failure_predictor()
             predictions = predictor.predict()
             for pred in predictions[:3]:
                 if pred.risk_level.value == "high_risk":
-                    decisions.append(AutonomousDecision(
-                        decision_type="preventive_action",
-                        confidence=pred.probability,
-                        reason=f"High risk failure predicted in {pred.component} ({pred.probability:.0%})",
-                        action=pred.recommended_action or "inspect_component",
-                        parameters={
-                            "component": pred.component,
-                            "predicted_type": pred.predicted_failure_type,
-                        },
-                    ))
+                    decisions.append(
+                        AutonomousDecision(
+                            decision_type="preventive_action",
+                            confidence=pred.probability,
+                            reason=f"High risk failure predicted in {pred.component} ({pred.probability:.0%})",
+                            action=pred.recommended_action or "inspect_component",
+                            parameters={
+                                "component": pred.component,
+                                "predicted_type": pred.predicted_failure_type,
+                            },
+                        )
+                    )
         except Exception as exc:
             logger.debug("[AUTO+] Prediction skipped: %s", exc)
 
         # 4. Auto-optimization
         try:
             from cores.optimization import get_optimization_engine
+
             optimizer = get_optimization_engine()
             optimizations = optimizer.evaluate(metrics)
             for opt in optimizations:
-                decisions.append(AutonomousDecision(
-                    decision_type="parameter_tuning",
-                    confidence=0.8,
-                    reason=opt.reason,
-                    action=f"adjust_{opt.parameter}",
-                    parameters={
-                        "parameter": opt.parameter,
-                        "old_value": opt.old_value,
-                        "new_value": opt.new_value,
-                    },
-                ))
+                decisions.append(
+                    AutonomousDecision(
+                        decision_type="parameter_tuning",
+                        confidence=0.8,
+                        reason=opt.reason,
+                        action=f"adjust_{opt.parameter}",
+                        parameters={
+                            "parameter": opt.parameter,
+                            "old_value": opt.old_value,
+                            "new_value": opt.new_value,
+                        },
+                    )
+                )
         except Exception as exc:
             logger.debug("[AUTO+] Optimization skipped: %s", exc)
 
@@ -180,7 +194,7 @@ class AutonomousModeEngine:
                     d.timestamp = datetime.now(UTC).isoformat()
                 self._decisions.extend(decisions)
                 if len(self._decisions) > self._max_history:
-                    self._decisions[:] = self._decisions[-self._max_history:]
+                    self._decisions[:] = self._decisions[-self._max_history :]
 
             self._emit_decision_events(decisions)
 
@@ -197,28 +211,27 @@ class AutonomousModeEngine:
 
         try:
             import psutil
+
             metrics["memory_percent"] = psutil.Process().memory_percent()
         except Exception as exc:
             logger.debug("Failed to collect memory metrics: %s", exc)
 
         try:
             from cores.recovery import get_recovery_engine
+
             engine = get_recovery_engine()
             status = engine.status()
             metrics["recovery_attempts"] = len(status.get("recovery_in_progress", {}))
             cb_snaps = status.get("circuit_breakers", {})
-            metrics["open_circuits"] = sum(
-                1 for s in cb_snaps.values() if s.get("state") == "open"
-            )
+            metrics["open_circuits"] = sum(1 for s in cb_snaps.values() if s.get("state") == "open")
         except Exception as exc:
             logger.debug("Failed to collect recovery metrics: %s", exc)
 
         try:
             from cores.agents import get_all_agents
+
             agents = get_all_agents()
-            metrics["agent_crashes"] = sum(
-                1 for a in agents if a.tasks_failed > 5
-            )
+            metrics["agent_crashes"] = sum(1 for a in agents if a.tasks_failed > 5)
         except Exception as exc:
             logger.debug("Failed to collect agent metrics: %s", exc)
 
@@ -229,7 +242,9 @@ class AutonomousModeEngine:
     def _execute_decision(self, decision: AutonomousDecision) -> None:
         logger.info(
             "[AUTO+] Executing decision: %s (confidence=%.2f, action=%s)",
-            decision.decision_type, decision.confidence, decision.action,
+            decision.decision_type,
+            decision.confidence,
+            decision.action,
         )
 
         if decision.action in ("degrade_pipeline_throughput",):
@@ -248,24 +263,28 @@ class AutonomousModeEngine:
             from cores.agents import get_all_agents
             from cores.agents.bus import get_agent_bus
             from cores.agents.types import AgentEvent, EventType
+
             bus = get_agent_bus()
             for agent in get_all_agents():
                 if agent.agent_id.value in ("research", "exploit"):
-                    bus.publish(AgentEvent(
-                        event_type=EventType.SYSTEM_ALERT,
-                        source="autonomous_engine",
-                        target=agent.agent_id,
-                        payload={
-                            "action": "pause",
-                            "reason": "System degradation: reducing load",
-                        },
-                    ))
+                    bus.publish(
+                        AgentEvent(
+                            event_type=EventType.SYSTEM_ALERT,
+                            source="autonomous_engine",
+                            target=agent.agent_id,
+                            payload={
+                                "action": "pause",
+                                "reason": "System degradation: reducing load",
+                            },
+                        )
+                    )
         except Exception as exc:
             logger.error("[AUTO+] Load degradation failed: %s", exc)
 
     def _apply_recovery(self, params: dict[str, Any]) -> None:
         try:
             from cores.recovery import get_recovery_engine
+
             engine = get_recovery_engine()
             engine.report_failure(
                 component="autonomous",
@@ -279,10 +298,10 @@ class AutonomousModeEngine:
         for decision in decisions:
             try:
                 from cores.events.event_bus import get_event_bus
+
                 bus = get_event_bus()
                 bus.publish(
-                    "auto_optimization_applied" if decision.decision_type == "parameter_tuning"
-                    else "anomaly_detected",
+                    "auto_optimization_applied" if decision.decision_type == "parameter_tuning" else "anomaly_detected",
                     decision_type=decision.decision_type,
                     confidence=decision.confidence,
                     reason=decision.reason,
@@ -291,7 +310,6 @@ class AutonomousModeEngine:
                 )
             except Exception as exc:
                 logger.warning("Failed to emit decision event: %s", exc)
-
 
     # ── State ─────────────────────────────────────────────────────────
     def status(self) -> dict[str, Any]:

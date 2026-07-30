@@ -59,7 +59,9 @@ class HypothesisEngine:
 
         technologies = (attack_surface_map or {}).get("technologies", []) if attack_surface_map else []
         discovered_paths = (attack_surface_map or {}).get("discovered_paths", []) if attack_surface_map else []
-        hypotheses = self._stage_1_generate(target_id, target_name, endpoints, nuclei_findings, technologies, discovered_paths)
+        hypotheses = self._stage_1_generate(
+            target_id, target_name, endpoints, nuclei_findings, technologies, discovered_paths
+        )
         LOG.info("Stage 1 (generate): %d hypotheses", len(hypotheses))
 
         zap_h = self._stage_zap(target_id, target_name, zap_alerts, endpoint_map)
@@ -85,7 +87,12 @@ class HypothesisEngine:
 
         max_endpoint_id = max((ep.get("id", 0) for ep in endpoints), default=0)
         graph_hypotheses = self._generate_graph_hypotheses(
-            target_id, target_name, clusters, hot_paths, endpoints, max_endpoint_id,
+            target_id,
+            target_name,
+            clusters,
+            hot_paths,
+            endpoints,
+            max_endpoint_id,
         )
         if graph_hypotheses:
             graph_hypotheses = self._stage_2_score(graph_hypotheses)
@@ -132,13 +139,18 @@ class HypothesisEngine:
         return generate_from_zap_alerts(target_id, target_name, zap_alerts, endpoint_map)
 
     def _stage_1_generate(
-        self, target_id: int, target_name: str, endpoints: list[dict[str, Any]],
+        self,
+        target_id: int,
+        target_name: str,
+        endpoints: list[dict[str, Any]],
         nuclei_findings: list[dict[str, Any]] | None = None,
         technologies: list[dict[str, Any]] | None = None,
         discovered_paths: list[str] | None = None,
     ) -> list[Hypothesis]:
         return generate_hypotheses(
-            endpoints, target_id, target_name,
+            endpoints,
+            target_id,
+            target_name,
             nuclei_findings=nuclei_findings,
             technologies=technologies,
             discovered_paths=discovered_paths,
@@ -158,7 +170,9 @@ class HypothesisEngine:
         return self._stage_2_score(hypotheses)
 
     def _stage_5_llm(
-        self, hypotheses: list[Hypothesis], endpoints: list[dict[str, Any]],
+        self,
+        hypotheses: list[Hypothesis],
+        endpoints: list[dict[str, Any]],
     ) -> list[Hypothesis]:
         enriched = enrich_reasoning(hypotheses, ollama_host=self.ollama_host, model=self.llm_model)
         gap_hypotheses = detect_gaps(endpoints, hypotheses, ollama_host=self.ollama_host, model=self.llm_model)
@@ -213,28 +227,33 @@ class HypothesisEngine:
                 if bridge:
                     evidence.append(f"Bridge entity: {bridge}")
 
-                hypotheses.append(Hypothesis(
-                    id=hyp_id,
-                    vulnerability_type=VulnerabilityType(start_type),
-                    target_id=target_id,
-                    target_name=target_name,
-                    endpoint={},
-                    likelihood=0.5,
-                    impact=0.75 if reward == "high" else 0.55,
-                    exploitability=0.5,
-                    confidence=0.0,
-                    priority_score=0.0,
-                    evidence=evidence,
-                    reasoning=template or f"Investigation path connecting {len(nodes)} endpoints — test for chained vulnerability.",
-                    suggested_actions=[
-                        f"Follow investigation path: {template}" if template else f"Test {len(nodes)} connected endpoints in sequence",
-                        "Verify each endpoint's auth independently",
-                        "Try cross-endpoint state manipulation",
-                    ],
-                    source=HypothesisSource.PATTERN,
-                    vector="Chained",
-                    attack_surface_labels=[],
-                ))
+                hypotheses.append(
+                    Hypothesis(
+                        id=hyp_id,
+                        vulnerability_type=VulnerabilityType(start_type),
+                        target_id=target_id,
+                        target_name=target_name,
+                        endpoint={},
+                        likelihood=0.5,
+                        impact=0.75 if reward == "high" else 0.55,
+                        exploitability=0.5,
+                        confidence=0.0,
+                        priority_score=0.0,
+                        evidence=evidence,
+                        reasoning=template
+                        or f"Investigation path connecting {len(nodes)} endpoints — test for chained vulnerability.",
+                        suggested_actions=[
+                            f"Follow investigation path: {template}"
+                            if template
+                            else f"Test {len(nodes)} connected endpoints in sequence",
+                            "Verify each endpoint's auth independently",
+                            "Try cross-endpoint state manipulation",
+                        ],
+                        source=HypothesisSource.PATTERN,
+                        vector="Chained",
+                        attack_surface_labels=[],
+                    )
+                )
 
         if clusters:
             for _, cluster in enumerate(clusters):
@@ -274,28 +293,30 @@ class HypothesisEngine:
                 if description:
                     evidence.append(description)
 
-                hypotheses.append(Hypothesis(
-                    id=hyp_id,
-                    vulnerability_type=vt,
-                    target_id=target_id,
-                    target_name=target_name,
-                    endpoint={},
-                    likelihood=0.65,
-                    impact=0.75,
-                    exploitability=0.6,
-                    confidence=0.0,
-                    priority_score=0.0,
-                    evidence=evidence,
-                    reasoning=f"Cluster '{name}' contains {len(endpoints_in_cluster)} related endpoints — test for cluster-wide vulnerability pattern.",
-                    suggested_actions=[
-                        f"Test all {len(endpoints_in_cluster)} endpoints in {name} cluster for {vt.value}",
-                        "Verify each endpoint enforces authorization independently",
-                        "Check for shared auth tokens or session patterns across cluster",
-                    ],
-                    source=HypothesisSource.PATTERN,
-                    vector=name,
-                    attack_surface_labels=[],
-                ))
+                hypotheses.append(
+                    Hypothesis(
+                        id=hyp_id,
+                        vulnerability_type=vt,
+                        target_id=target_id,
+                        target_name=target_name,
+                        endpoint={},
+                        likelihood=0.65,
+                        impact=0.75,
+                        exploitability=0.6,
+                        confidence=0.0,
+                        priority_score=0.0,
+                        evidence=evidence,
+                        reasoning=f"Cluster '{name}' contains {len(endpoints_in_cluster)} related endpoints — test for cluster-wide vulnerability pattern.",
+                        suggested_actions=[
+                            f"Test all {len(endpoints_in_cluster)} endpoints in {name} cluster for {vt.value}",
+                            "Verify each endpoint enforces authorization independently",
+                            "Check for shared auth tokens or session patterns across cluster",
+                        ],
+                        source=HypothesisSource.PATTERN,
+                        vector=name,
+                        attack_surface_labels=[],
+                    )
+                )
 
         return hypotheses
 

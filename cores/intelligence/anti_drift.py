@@ -45,21 +45,38 @@ READ_PERMISSIONS: dict[str, list[str]] = {
     "Hypothesis Engine": ["PipelineArtifact", "AttackSurfaceArtifact", "ROIArtifact", "HypothesisArtifact"],
     "Evidence Builder": ["PipelineArtifact", "EvidenceGraphArtifact"],
     "Quick Wins Engine": ["PipelineArtifact", "EvidenceGraphArtifact", "QuickWinsArtifact"],
-    "Execution Hardening Layer": ["PipelineArtifact", "EvidenceGraphArtifact", "QuickWinsArtifact", "ExecutionPlanArtifact"],
+    "Execution Hardening Layer": [
+        "PipelineArtifact",
+        "EvidenceGraphArtifact",
+        "QuickWinsArtifact",
+        "ExecutionPlanArtifact",
+    ],
     "Screenshot Engine": ["PipelineArtifact", "EvidenceGraphArtifact", "ScreenshotArtifact"],
     "Differential Intelligence Engine": [
-        "PipelineArtifact", "EvidenceGraphArtifact", "ScreenshotArtifact",
+        "PipelineArtifact",
+        "EvidenceGraphArtifact",
+        "ScreenshotArtifact",
         "DifferentialArtifact",
     ],
     "AI Assistant": [
-        "PipelineArtifact", "EvidenceGraphArtifact", "ScreenshotArtifact",
-        "DifferentialArtifact", "QuickWinsArtifact", "ExecutionPlanArtifact",
-        "AttackSurfaceArtifact", "ROIArtifact", "HypothesisArtifact",
+        "PipelineArtifact",
+        "EvidenceGraphArtifact",
+        "ScreenshotArtifact",
+        "DifferentialArtifact",
+        "QuickWinsArtifact",
+        "ExecutionPlanArtifact",
+        "AttackSurfaceArtifact",
+        "ROIArtifact",
+        "HypothesisArtifact",
         "AIInsightArtifact",
     ],
     "Dashboard": [
-        "PipelineArtifact", "ScreenshotArtifact", "DifferentialArtifact",
-        "QuickWinsArtifact", "AIInsightArtifact", "ExecutionPlanArtifact",
+        "PipelineArtifact",
+        "ScreenshotArtifact",
+        "DifferentialArtifact",
+        "QuickWinsArtifact",
+        "AIInsightArtifact",
+        "ExecutionPlanArtifact",
     ],
     "Report Engine": ["PipelineArtifact", "EvidenceGraphArtifact"],
 }
@@ -90,9 +107,7 @@ class AntiDriftEnforcer:
     def __init__(self) -> None:
         self._violations: list[dict[str, Any]] = []
 
-    def check_write(
-        self, engine_name: str, artifact_type: str, details: str = ""
-    ) -> bool:
+    def check_write(self, engine_name: str, artifact_type: str, details: str = "") -> bool:
         """Check if an engine is allowed to write to an artifact."""
         if not can_write(engine_name, artifact_type):
             violation = {
@@ -105,14 +120,15 @@ class AntiDriftEnforcer:
             self._violations.append(violation)
             LOG.warning(
                 "ANTI-DRIFT: %s attempted to write %s (owned by %s). %s",
-                engine_name, artifact_type, get_owner(artifact_type), details,
+                engine_name,
+                artifact_type,
+                get_owner(artifact_type),
+                details,
             )
             return False
         return True
 
-    def check_read(
-        self, engine_name: str, artifact_type: str, details: str = ""
-    ) -> bool:
+    def check_read(self, engine_name: str, artifact_type: str, details: str = "") -> bool:
         """Check if an engine is allowed to read an artifact."""
         if not can_read(engine_name, artifact_type):
             violation = {
@@ -124,14 +140,14 @@ class AntiDriftEnforcer:
             self._violations.append(violation)
             LOG.warning(
                 "ANTI-DRIFT: %s attempted to read %s (no permission). %s",
-                engine_name, artifact_type, details,
+                engine_name,
+                artifact_type,
+                details,
             )
             return False
         return True
 
-    def check_private_copy(
-        self, engine_name: str, artifact_type: str, details: str = ""
-    ) -> bool:
+    def check_private_copy(self, engine_name: str, artifact_type: str, details: str = "") -> bool:
         """
         Check if an engine is keeping a private copy of another engine's data.
         This is a soft check — we log the warning but can't prevent it at runtime.
@@ -148,7 +164,10 @@ class AntiDriftEnforcer:
             self._violations.append(violation)
             LOG.warning(
                 "ANTI-DRIFT: %s may be keeping private copy of %s (owned by %s). %s",
-                engine_name, artifact_type, owner, details,
+                engine_name,
+                artifact_type,
+                owner,
+                details,
             )
             return False
         return True
