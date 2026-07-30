@@ -1,4 +1,4 @@
-## Sesión 2026-07-28 — OWNEX OMEGA: Empresa de Departamentos + Workflow Engine
+## Sesión 2026-07-28 — OWNEX OMEGA: Empresa de Departamentos + Voz + i18n
 
 ### Completed
 
@@ -40,6 +40,45 @@
 - Automation → Infrastructure (workflow_ready)
 - Infrastructure → Orchestrator (infrastructure_updated)
 - Evolution → Orchestrator (improvement_suggested, requires approval)
+
+**Sistema de Internacionalización (i18n)**
+- Vue I18n v11 instalado
+- Estructura de locales (en, es, fr, de, ja, zh)
+- `frontend/src/composables/useI18n.ts`: Sistema de traducción dinámico
+  - setLocale() para cambiar idioma
+  - currentLocale para idioma actual
+  - supportedLocales array
+  - Detección automática de idioma del navegador
+  - Persistencia en localStorage
+- Integración en main.ts y Settings.vue
+- Locales completos (en, es, fr) + parciales (de, ja, zh)
+- Traducciones de navegación, dashboard, mission control, settings, common, status, agents, workflows, notifications, terminal
+
+**Control por Voz Estilo Jarvis**
+- `frontend/src/components/voice/VoiceCommandPanel.vue`: Panel de control por voz
+  - Web Speech API integration (STT nativo)
+  - Botón de micrófono con animaciones
+  - Control de volumen
+  - Transcript en tiempo real
+  - Feedback visual (escuchando, procesando)
+  - Indicador de processing con animación
+  - Detección de soporte de navegador
+- `api/routers/voice.py`: Router de comandos de voz
+  - POST /api/voice/command: Procesar comandos de voz
+  - GET /api/voice/status: Estado del voice interface
+  - Integración con WorkflowOrchestrator
+  - Manejo de intents OWNEX OMEGA específicos
+- `cores/voice_interface.py`: Voice command parser actualizado
+  - Nuevos patterns OWNEX OMEGA (navigate, start_workflow, pause_workflow, resume_workflow, cancel_workflow, activate_agent, pause_agent, get_status, search, set_theme)
+  - Entity extraction mejorada (destination, workflow_type, agent_id, theme, query)
+  - Soporte bilingüe (inglés + español)
+- Comandos de voz OWNEX OMEGA implementados:
+  - Navegación: "ve a dashboard", "abre terminal"
+  - Workflows: "inicia workflow de bug fix", "pausa workflow"
+  - Agentes: "activa Coding Agent", "pausa Orchestrator"
+  - Sistema: "estado del sistema", "busca findings"
+  - Configuración: "cambia tema a PS5"
+- Integración con Workflow Engine (start, pause, resume, cancel workflows)
 
 **OpenRouter API Key Configuration**
 - Nueva API key configurada en todo el sistema
