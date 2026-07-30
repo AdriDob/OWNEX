@@ -15,28 +15,28 @@ class AgentId(str, Enum):
     # Core Leadership
     COMMANDER = "commander"
     PLANNER = "planner"
-    
+
     # Technical Specialists
     RESEARCH = "research"
     CODER = "coder"
     REVIEWER = "reviewer"
     BROWSER = "browser"
     SECURITY = "security"
-    
+
     # Knowledge & Documentation
     DOCUMENTATION = "documentation"
     LEARNING = "learning"
-    
+
     # Business & Strategy
     FINANCE = "finance"
     EVOLUTION = "evolution"
-    
+
     # Legacy Support (mapped to new specialists)
-    COORDINATOR = "commander"  # Legacy: maps to Commander
-    VALIDATOR = "reviewer"     # Legacy: maps to Reviewer
-    EXPLOIT = "security"      # Legacy: maps to Security
-    STRATEGY = "planner"       # Legacy: maps to Planner
-    MEMORY = "learning"        # Legacy: maps to Learning
+    COORDINATOR = "coordinator"  # Legacy: maps to Commander
+    VALIDATOR = "reviewer"  # Legacy: maps to Reviewer
+    EXPLOIT = "security"  # Legacy: maps to Security
+    STRATEGY = "planner"  # Legacy: maps to Planner
+    MEMORY = "learning"  # Legacy: maps to Learning
 
 
 class AgentStatus(str, Enum):
@@ -57,14 +57,14 @@ class EventType(str, Enum):
     WORKFLOW_STARTED = "workflow.started"
     WORKFLOW_COMPLETED = "workflow.completed"
     AGENT_STATUS_REQUEST = "agent.status_request"
-    
+
     # Planner Events
     PLAN_REQUESTED = "plan.requested"
     PLAN_GENERATED = "plan.generated"
     PLAN_UPDATED = "plan.updated"
     RESOURCE_ALLOCATED = "resource.allocated"
     DEPENDENCY_RESOLVED = "dependency.resolved"
-    
+
     # Research Events
     RESEARCH_START = "research.start"
     RESEARCH_COMPLETED = "research.completed"
@@ -73,7 +73,7 @@ class EventType(str, Enum):
     ENDPOINT_DISCOVERED = "endpoint.discovered"
     VULNERABILITY_SCANNED = "vulnerability.scanned"
     INTELLIGENCE_GATHERED = "intelligence.gathered"
-    
+
     # Coder Events
     CODE_REQUESTED = "code.requested"
     CODE_GENERATED = "code.generated"
@@ -81,7 +81,7 @@ class EventType(str, Enum):
     CODE_REVIEWED = "code.reviewed"
     PR_CREATED = "pr.created"
     FIX_APPLIED = "fix.applied"
-    
+
     # Reviewer Events
     REVIEW_REQUESTED = "review.requested"
     REVIEW_COMPLETED = "review.completed"
@@ -89,14 +89,14 @@ class EventType(str, Enum):
     QUALITY_CHECK = "quality.check"
     APPROVAL_GRANTED = "approval.granted"
     APPROVAL_DENIED = "approval.denied"
-    
+
     # Browser Events
     BROWSER_NAVIGATE = "browser.navigate"
     BROWSER_INTERACT = "browser.interact"
     BROWSER_SCRAPE = "browser.scrape"
     FORM_SUBMITTED = "form.submitted"
     ELEMENT_CLICKED = "element.clicked"
-    
+
     # Security Events
     SECURITY_SCAN = "security.scan"
     VULNERABILITY_FOUND = "vulnerability.found"
@@ -104,35 +104,35 @@ class EventType(str, Enum):
     EXPLOIT_CONFIRMED = "exploit.confirmed"
     EVIDENCE_COLLECTED = "evidence.collected"
     EVIDENCE_FAILED = "evidence.failed"
-    
+
     # Documentation Events
     DOCUMENTATION_REQUESTED = "documentation.requested"
     DOCUMENTATION_COMPLETED = "documentation.completed"
     DOCUMENTATION_FAILED = "documentation.failed"
     GUIDE_GENERATED = "guide.generated"
     API_DOCS_UPDATED = "api_docs.updated"
-    
+
     # Learning Events
     KNOWLEDGE_STORED = "knowledge.stored"
     KNOWLEDGE_RETRIEVED = "knowledge.retrieved"
     PATTERN_LEARNED = "pattern.learned"
     ERROR_ANALYZED = "error.analyzed"
     FEEDBACK_PROCESSED = "feedback.processed"
-    
+
     # Finance Events
     FINANCIAL_UPDATED = "financial.updated"
     FINANCIAL_PAYOUT_RECORDED = "financial.payout_recorded"
     FINANCIAL_GOAL_UPDATED = "financial.goal_updated"
     REVENUE_CALCULATED = "revenue.calculated"
     COST_TRACKED = "cost.tracked"
-    
+
     # Evolution Events
     SYSTEM_AUDIT = "system.audit"
     IMPROVEMENT_SUGGESTED = "improvement.suggested"
     SELF_TEST_COMPLETED = "self_test.completed"
     TECHNOLOGY_WATCHED = "technology.watched"
     INFRASTRUCTURE_EVOLVED = "infrastructure.evolved"
-    
+
     # Legacy Events (for compatibility)
     PIPELINE_START = "pipeline.start"
     PIPELINE_STAGE_COMPLETED = "pipeline.stage_completed"
@@ -155,12 +155,12 @@ class EventType(str, Enum):
     MEMORY_STORE = "memory.store"
     MEMORY_RETRIEVED = "memory.retrieved"
     MEMORY_LEARNED = "memory.learned"
-    
+
     # Agent lifecycle
     AGENT_HEALTH_CHANGED = "agent.health_changed"
     AGENT_REGISTERED = "agent.registered"
     AGENT_TASK_COMPLETED = "agent.task_completed"
-    
+
     # System
     SYSTEM_ALERT = "system.alert"
     SYSTEM_ERROR = "system.error"
