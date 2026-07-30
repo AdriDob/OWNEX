@@ -11,7 +11,10 @@
     "findings": "发现",
     "reports": "报告",
     "settings": "设置",
-    "terminal": "终端"
+    "terminal": "终端",
+    "opensource": "Open Source",
+    "zero_barrier": "无障碍收入",
+    "version_backup": "版本备份"
   },
   "dashboard": {
     "title": "仪表板",
@@ -122,6 +125,24 @@
     "total_opportunities": "总机会数",
     "total_potential_earnings": "潜在收益总计",
     "by_platform": "按平台"
+  },
+  "version_backup": {
+    "title": "版本备份",
+    "subtitle": "版本备份和回滚系统",
+    "backup": "备份",
+    "restore": "恢复",
+    "rollback": "回滚",
+    "list_backups": "列出备份",
+    "verify": "验证",
+    "current_version": "当前版本",
+    "backup_notes": "备份备注",
+    "create_backup": "创建备份",
+    "rollback_to_version": "回滚到版本",
+    "restore_latest": "恢复最新",
+    "version_history": "版本历史",
+    "integrity": "完整性",
+    "pre_rollback": "回滚前备份",
+    "emergency_recovery": "紧急恢复"
   },
   "common": {
     "save": "保存",

@@ -11,7 +11,10 @@
     "findings": "発見",
     "reports": "レポート",
     "settings": "設定",
-    "terminal": "ターミナル"
+    "terminal": "ターミナル",
+    "opensource": "Open Source",
+    "zero_barrier": "障壁なしの収入",
+    "version_backup": "バージョンバックアップ"
   },
   "dashboard": {
     "title": "ダッシュボード",
@@ -122,6 +125,24 @@
     "total_opportunities": "総機会数",
     "total_potential_earnings": "潜在的な収益の合計",
     "by_platform": "プラットフォーム別"
+  },
+  "version_backup": {
+    "title": "バージョンバックアップ",
+    "subtitle": "バージョンバックアップとロールバックシステム",
+    "backup": "バックアップ",
+    "restore": "復元",
+    "rollback": "ロールバック",
+    "list_backups": "バックアップ一覧",
+    "verify": "検証",
+    "current_version": "現在のバージョン",
+    "backup_notes": "バックアップノート",
+    "create_backup": "バックアップ作成",
+    "rollback_to_version": "バージョンにロールバック",
+    "restore_latest": "最新を復元",
+    "version_history": "バージョン履歴",
+    "integrity": "整合性",
+    "pre_rollback": "ロールバック前バックアップ",
+    "emergency_recovery": "緊急復旧"
   },
   "common": {
     "save": "保存",
