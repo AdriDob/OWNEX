@@ -6,6 +6,7 @@ Integrates with:
 - Watchdog for periodic health monitoring
 - CircuitBreaker for protection against infinite loops
 - RecoveryStore for persistence
+- VersionBackupSystem for version rollback recovery
 """
 
 from __future__ import annotations
@@ -42,6 +43,16 @@ class RecoveryEngine:
         self._lock = threading.Lock()
         self._recovery_in_progress: dict[str, float] = {}
         self._on_recovery_callbacks: dict[str, list[Callable[[str, str], None]]] = {}
+
+        # ⚡ INTEGRATED WITH VERSION BACKUP SYSTEM
+        # Initialize version backup system for rollback recovery
+        try:
+            from cores.version_backup import get_version_backup_system
+            self._version_backup_system = get_version_backup_system()
+            logger.info("[RECOVERY ENGINE] Version backup system integrated for rollback recovery")
+        except ImportError:
+            self._version_backup_system = None
+            logger.warning("[RECOVERY ENGINE] Version backup system not available")
 
     # ── Lifecycle ─────────────────────────────────────────────────────
 
@@ -413,6 +424,104 @@ class RecoveryEngine:
 
     def circuit_breaker_snapshots(self) -> dict[str, dict[str, Any]]:
         return self._breakers.all_snapshots()
+
+    # ⚡ INTEGRATED WITH VERSION BACKUP SYSTEM
+    # Version rollback recovery methods
+
+    def attempt_version_rollback_recovery(self, component: str, failure_details: dict[str, Any]) -> bool:
+        """Attempt version rollback recovery for critical failures.
+
+        This is a last-resort recovery action when other healing rules fail.
+        It uses the version backup system to rollback to a previous stable version.
+
+        Args:
+            component: Component that failed
+            failure_details: Details about the failure
+
+        Returns:
+            True if rollback was successful, False otherwise
+        """
+        if not self._version_backup_system:
+            logger.warning("[RECOVERY] Version backup system not available for rollback recovery")
+            return False
+
+        logger.info(f"[RECOVERY] Attempting version rollback recovery for component: {component}")
+
+        try:
+            # Get the latest backup
+            backups = self._version_backup_system.list_backups()
+
+            if not backups:
+                logger.warning("[RECOVERY] No backups available for rollback recovery")
+                return False
+
+            # Restore from latest backup
+            latest_backup = backups[0]
+            result = self._version_backup_system.restore_latest()
+
+            if result.get("success"):
+                logger.info(f"[RECOVERY] Version rollback recovery successful: {latest_backup['version']}")
+                self._store.record_recovery(
+                    component=component,
+                    failure_type="critical_failure",
+                    recovery_action="version_rollback",
+                    status="success",
+                    details=f"Rolled back to version {latest_backup['version']}",
+                )
+                return True
+            else:
+                logger.error(f"[RECOVERY] Version rollback recovery failed: {result.get('error')}")
+                self._store.record_recovery(
+                    component=component,
+                    failure_type="critical_failure",
+                    recovery_action="version_rollback",
+                    status="failed",
+                    details=f"Rollback failed: {result.get('error')}",
+                )
+                return False
+
+        except Exception as e:
+            logger.error(f"[RECOVERY] Version rollback recovery error: {e}")
+            self._store.record_recovery(
+                component=component,
+                failure_type="critical_failure",
+                recovery_action="version_rollback",
+                status="error",
+                details=f"Rollback error: {str(e)}",
+            )
+            return False
+
+    def execute_version_rollback(self, component: str, failure_details: dict[str, Any]) -> bool:
+        """Execute version rollback recovery action.
+
+        This is called by the recovery engine when a healing rule specifies
+        "version_rollback" as the recovery action.
+
+        Args:
+            component: Component that failed
+            failure_details: Details about the failure
+
+        Returns:
+            True if rollback was successful, False otherwise
+        """
+        return self.attempt_version_rollback_recovery(component, failure_details)
+
+    def get_version_recovery_status(self) -> dict[str, Any]:
+        """Get version recovery status."""
+        if not self._version_backup_system:
+            return {
+                "available": False,
+                "backups_count": 0,
+                "latest_backup": None,
+            }
+
+        backups = self._version_backup_system.list_backups()
+
+        return {
+            "available": True,
+            "backups_count": len(backups),
+            "latest_backup": backups[0] if backups else None,
+        }
 
 
 _ENGINE: RecoveryEngine | None = None

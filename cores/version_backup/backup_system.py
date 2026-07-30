@@ -8,6 +8,11 @@ Supports:
 - Multiple version installations
 - Integrity verification
 - Emergency recovery
+
+INTEGRATED WITH RECOVERY SYSTEM:
+- Shared SQLite storage (recovery_history.db) for version backup metadata
+- Unified local storage for recovery and version backup systems
+- Uses RecoveryStore for persistence instead of versions.json
 """
 
 from __future__ import annotations
@@ -77,11 +82,20 @@ class VersionBackupSystem:
     def __init__(self, ownex_dir: Path | None = None, backup_dir: Path | None = None):
         self.ownex_dir = ownex_dir or Path.cwd()
         self.backup_dir = backup_dir or self.ownex_dir / ".ownex_backups"
-        self.version_file = self.backup_dir / "versions.json"
         self.current_symlink = self.backup_dir / "current"
         self.max_backups = 10  # Keep max 10 backups
 
         self._ensure_backup_dir()
+
+        # ⚡ INTEGRATED WITH RECOVERY SYSTEM
+        # Use RecoveryStore for shared SQLite storage
+        try:
+            from cores.recovery.persistence import get_recovery_store
+            self._recovery_store = get_recovery_store()
+            logger.info("[VERSION BACKUP] Using shared SQLite storage (recovery_history.db)")
+        except ImportError:
+            logger.warning("[VERSION BACKUP] RecoveryStore not available, using fallback storage")
+            self._recovery_store = None
 
     def _ensure_backup_dir(self) -> None:
         """Ensure backup directory exists."""
@@ -252,48 +266,90 @@ class VersionBackupSystem:
         return sha256_hash.hexdigest()
 
     def _save_snapshot(self, snapshot: VersionSnapshot) -> None:
-        """Save snapshot to version history."""
-        history = self._load_history()
-        history.append(snapshot)
+        """Save snapshot to version history using shared SQLite storage."""
+        if self._recovery_store:
+            # Use shared SQLite storage (RecoveryStore)
+            self._recovery_store.save_version_backup(
+                version=snapshot.version,
+                git_commit=snapshot.git_commit,
+                backup_path=snapshot.backup_path,
+                manifest=snapshot.manifest,
+                checksum=snapshot.checksum,
+                size=snapshot.size,
+                notes=snapshot.notes,
+                state=snapshot.state.value,
+            )
+        else:
+            # Fallback to JSON storage
+            logger.warning("[VERSION BACKUP] Using fallback JSON storage")
+            history = self._load_history()
+            history.append(snapshot)
 
-        # Save to JSON
-        with open(self.version_file, "w") as f:
-            json.dump([s.__dict__ for s in history], f, indent=2)
+            # Save to JSON
+            with open(self.backup_dir / "versions.json", "w") as f:
+                json.dump([s.__dict__ for s in history], f, indent=2)
 
     def _load_history(self) -> list[VersionSnapshot]:
-        """Load version history."""
-        if not self.version_file.exists():
-            return []
+        """Load version history from shared SQLite storage."""
+        if self._recovery_store:
+            # Use shared SQLite storage (RecoveryStore)
+            backups = self._recovery_store.get_version_backups(limit=100)
+            return [
+                VersionSnapshot(
+                    version=b["version"],
+                    git_commit=b["git_commit"],
+                    created_at=b["created_at"],
+                    state=VersionState(b["state"]),
+                    backup_path=b["backup_path"],
+                    manifest=b.get("manifest", {}),
+                    checksum=b["checksum"],
+                    size=b["size"],
+                    notes=b.get("notes", ""),
+                )
+                for b in backups
+            ]
+        else:
+            # Fallback to JSON storage
+            version_file = self.backup_dir / "versions.json"
+            if not version_file.exists():
+                return []
 
-        with open(self.version_file, "r") as f:
-            data = json.load(f)
+            with open(version_file, "r") as f:
+                data = json.load(f)
 
-        return [VersionSnapshot(**item) for item in data]
+            return [VersionSnapshot(**item) for item in data]
 
     def _cleanup_old_backups(self) -> None:
         """Clean up old backups, keeping only max_backups."""
-        history = self._load_history()
+        if self._recovery_store:
+            # Use shared SQLite storage (RecoveryStore)
+            deleted_count = self._recovery_store.cleanup_old_version_backups(max_count=self.max_backups)
+            if deleted_count > 0:
+                logger.info(f"[VERSION BACKUP] Cleaned up {deleted_count} old backups via RecoveryStore")
+        else:
+            # Fallback to JSON storage
+            history = self._load_history()
 
-        if len(history) <= self.max_backups:
-            return
+            if len(history) <= self.max_backups:
+                return
 
-        # Sort by created_at, oldest first
-        history.sort(key=lambda s: s.created_at)
+            # Sort by created_at, oldest first
+            history.sort(key=lambda s: s.created_at)
 
-        # Remove oldest backups
-        to_remove = history[:-self.max_backups]
+            # Remove oldest backups
+            to_remove = history[:-self.max_backups]
 
-        for snapshot in to_remove:
-            backup_path = Path(snapshot.backup_path)
-            if backup_path.exists():
-                shutil.rmtree(backup_path)
-                logger.info(f"[VERSION BACKUP] Removed old backup: {backup_path}")
+            for snapshot in to_remove:
+                backup_path = Path(snapshot.backup_path)
+                if backup_path.exists():
+                    shutil.rmtree(backup_path)
+                    logger.info(f"[VERSION BACKUP] Removed old backup: {backup_path}")
 
-        # Update history
-        history = history[-self.max_backups:]
+            # Update history
+            history = history[-self.max_backups:]
 
-        with open(self.version_file, "w") as f:
-            json.dump([s.__dict__ for s in history], f, indent=2)
+            with open(self.backup_dir / "versions.json", "w") as f:
+                json.dump([s.__dict__ for s in history], f, indent=2)
 
     def list_backups(self) -> list[dict[str, Any]]:
         """List all available backups."""
