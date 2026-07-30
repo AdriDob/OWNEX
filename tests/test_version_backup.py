@@ -9,6 +9,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from cores.recovery.persistence import get_recovery_store, reset_recovery_store
 from cores.version_backup import (
     BackupResult,
     BackupStatus,
@@ -24,7 +25,7 @@ from cores.version_backup import (
 def temp_ownex_dir():
     """Create a temporary OWNEX directory with test files."""
     tmp = Path(tempfile.mkdtemp())
-    
+
     # Create essential files
     (tmp / "database").mkdir(parents=True)
     (tmp / "database" / "ownex.db").write_text("fake db content")
@@ -47,16 +48,23 @@ def temp_ownex_dir():
     (tmp / "scripts" / "test.py").write_text("# test script")
     (tmp / "requirements.txt").write_text("requests==2.28.0")
     (tmp / "pyproject.toml").write_text("[project]")
-    
+
     return tmp
 
 
 @pytest.fixture
 def backup_system(temp_ownex_dir):
     """Create a VersionBackupSystem instance with temp directory."""
+    # Reset singletons before each test
+    reset_version_backup_system()
+    reset_recovery_store()
+
     system = VersionBackupSystem(ownex_dir=temp_ownex_dir)
     yield system
+
+    # Cleanup after test
     reset_version_backup_system()
+    reset_recovery_store()
 
 
 class TestVersionBackupSystem:
@@ -64,18 +72,21 @@ class TestVersionBackupSystem:
 
     def test_initialization(self, temp_ownex_dir):
         """Test system initialization."""
+        reset_version_backup_system()
+        reset_recovery_store()
+
         system = VersionBackupSystem(ownex_dir=temp_ownex_dir)
-        
+
         assert system.ownex_dir == temp_ownex_dir
         assert system.backup_dir == temp_ownex_dir / ".ownex_backups"
-        assert system.version_file == temp_ownex_dir / ".ownex_backups" / "versions.json"
         assert system.max_backups == 10
+        assert system._recovery_store is not None
 
     def test_get_current_version(self, backup_system, temp_ownex_dir):
         """Test getting current version."""
         # Create a VERSION file
         (temp_ownex_dir / "VERSION").write_text("1.0.0")
-        
+
         version = backup_system.get_current_version()
         assert version == "1.0.0"
 
@@ -87,7 +98,7 @@ class TestVersionBackupSystem:
     def test_create_backup(self, backup_system):
         """Test creating a backup."""
         result = backup_system.create_backup(notes="Test backup")
-        
+
         assert result.status == BackupStatus.SUCCESS
         assert result.version == "unknown"
         assert result.backup_path != ""
@@ -99,18 +110,18 @@ class TestVersionBackupSystem:
         """Test creating a backup with notes."""
         notes = "Pre-update backup before v2.0.0"
         result = backup_system.create_backup(notes=notes)
-        
+
         assert result.status == BackupStatus.SUCCESS
         assert result.manifest.get("notes") == notes
 
     def test_create_backup_creates_directory(self, backup_system):
         """Test that backup creates directory structure."""
         result = backup_system.create_backup()
-        
+
         backup_path = Path(result.backup_path)
         assert backup_path.exists()
         assert backup_path.is_dir()
-        
+
         # Check for essential files
         assert (backup_path / "manifest.json").exists()
         assert (backup_path / "database").exists()
@@ -119,13 +130,13 @@ class TestVersionBackupSystem:
     def test_create_backup_manifest(self, backup_system):
         """Test that backup creates manifest."""
         result = backup_system.create_backup()
-        
+
         manifest_path = Path(result.backup_path) / "manifest.json"
         assert manifest_path.exists()
-        
+
         with open(manifest_path, "r") as f:
             manifest = json.load(f)
-        
+
         assert "version" in manifest
         assert "git_commit" in manifest
         assert "created_at" in manifest
@@ -137,20 +148,25 @@ class TestVersionBackupSystem:
     def test_create_backup_checksum(self, backup_system):
         """Test that backup calculates checksum."""
         result = backup_system.create_backup()
-        
+
         checksum = result.manifest.get("checksum")
         assert checksum != ""
         assert len(checksum) == 64  # SHA256 hex string
 
     def test_list_backups_empty(self, backup_system):
         """Test listing backups when none exist."""
-        backups = backup_system.list_backups()
+        # Reset recovery store to ensure empty state
+        reset_recovery_store()
+        reset_version_backup_system()
+
+        system = VersionBackupSystem(ownex_dir=backup_system.ownex_dir)
+        backups = system.list_backups()
         assert backups == []
 
     def test_list_backups_after_create(self, backup_system):
         """Test listing backups after creating one."""
         backup_system.create_backup(notes="First backup")
-        
+
         backups = backup_system.list_backups()
         assert len(backups) == 1
         assert backups[0]["version"] == "unknown"
@@ -162,14 +178,14 @@ class TestVersionBackupSystem:
         backup_system.create_backup(notes="First backup")
         backup_system.create_backup(notes="Second backup")
         backup_system.create_backup(notes="Third backup")
-        
+
         backups = backup_system.list_backups()
         assert len(backups) == 3
 
     def test_verify_backup_valid(self, backup_system):
         """Test verifying a valid backup."""
         result = backup_system.create_backup()
-        
+
         verification = backup_system.verify_backup(result.backup_path)
         assert verification["valid"] == True
         assert verification["version"] == "unknown"
@@ -188,7 +204,7 @@ class TestVersionBackupSystem:
         # Create a backup directory without manifest
         backup_path = temp_ownex_dir / ".ownex_backups" / "test_backup"
         backup_path.mkdir(parents=True)
-        
+
         verification = backup_system.verify_backup(str(backup_path))
         assert verification["valid"] == False
         assert "Manifest not found" in verification["error"]
@@ -197,17 +213,17 @@ class TestVersionBackupSystem:
         """Test rollback to a specific version."""
         # Create initial backup
         backup_system.create_backup(notes="Initial state")
-        
+
         # Modify a file
         (backup_system.ownex_dir / "config.json").write_text('{"modified": true}')
-        
+
         # Get the backup to rollback to
         backups = backup_system.list_backups()
         assert len(backups) == 1
-        
+
         # Rollback
         result = backup_system.rollback_to_version(version=backups[0]["version"])
-        
+
         assert result["success"] == True
         assert result["version"] == "unknown"
         assert "Rollback completed successfully" in result["message"]
@@ -215,7 +231,7 @@ class TestVersionBackupSystem:
     def test_rollback_to_version_not_found(self, backup_system):
         """Test rollback to non-existent version."""
         result = backup_system.rollback_to_version(version="nonexistent")
-        
+
         assert result["success"] == False
         assert "not found" in result["error"].lower()
 
@@ -223,16 +239,21 @@ class TestVersionBackupSystem:
         """Test restoring from latest backup."""
         backup_system.create_backup(notes="First backup")
         backup_system.create_backup(notes="Second backup")
-        
+
         result = backup_system.restore_latest()
-        
+
         assert result["success"] == True
         assert result["version"] == "unknown"
 
     def test_restore_latest_no_backups(self, backup_system):
         """Test restoring when no backups exist."""
-        result = backup_system.restore_latest()
-        
+        # Reset to ensure no backups
+        reset_recovery_store()
+        reset_version_backup_system()
+
+        system = VersionBackupSystem(ownex_dir=backup_system.ownex_dir)
+        result = system.restore_latest()
+
         assert result["success"] == False
         assert "No backups available" in result["error"]
 
@@ -241,23 +262,30 @@ class TestVersionBackupSystem:
         # Create more than max_backups
         for i in range(15):
             backup_system.create_backup(notes=f"Backup {i}")
-        
+
         backups = backup_system.list_backups()
         assert len(backups) <= 10  # Should keep max 10
 
     def test_singleton_instance(self, temp_ownex_dir):
         """Test that get_version_backup_system returns singleton."""
+        reset_version_backup_system()
+        reset_recovery_store()
+
         system1 = get_version_backup_system()
         system2 = get_version_backup_system()
-        
+
         assert system1 is system2
 
     def test_reset_singleton(self, temp_ownex_dir):
         """Test resetting singleton instance."""
+        reset_version_backup_system()
+        reset_recovery_store()
+
         system1 = get_version_backup_system()
         reset_version_backup_system()
+        reset_recovery_store()
         system2 = get_version_backup_system()
-        
+
         assert system1 is not system2
 
 
@@ -276,7 +304,7 @@ class TestVersionSnapshot:
             size=1024,
             notes="Test backup",
         )
-        
+
         assert snapshot.version == "1.0.0"
         assert snapshot.git_commit == "abc123"
         assert snapshot.state == VersionState.BACKUP
@@ -298,7 +326,7 @@ class TestBackupResult:
             message="Backup created successfully",
             manifest={"version": "1.0.0"},
         )
-        
+
         assert result.status == BackupStatus.SUCCESS
         assert result.version == "1.0.0"
         assert result.backup_path == "/path/to/backup"
@@ -311,6 +339,6 @@ class TestBackupResult:
             version="1.0.0",
             error="Insufficient disk space",
         )
-        
+
         assert result.status == BackupStatus.FAILED
         assert result.error == "Insufficient disk space"
