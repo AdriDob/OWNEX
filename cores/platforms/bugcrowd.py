@@ -38,6 +38,7 @@ class Bugcrowd(BugBountyPlatform):
         formatted = self._format_report(report_data)
         try:
             import requests
+
             resp = requests.post(
                 "https://api.bugcrowd.com/v1/submissions",
                 headers={
@@ -68,6 +69,7 @@ class Bugcrowd(BugBountyPlatform):
     def check_status(self, external_id: str, api_key: str = "") -> str:
         try:
             import requests
+
             resp = requests.get(
                 f"https://api.bugcrowd.com/v1/submissions/{external_id}",
                 headers={"Authorization": f"Bearer {api_key}"},
@@ -83,6 +85,7 @@ class Bugcrowd(BugBountyPlatform):
     def sync_earnings(self, api_key: str) -> SyncResult:
         try:
             import requests
+
             resp = requests.get(
                 f"{BC_API_BASE}/researchers/me/bounties",
                 headers={

@@ -87,27 +87,33 @@ class ExchangeConnector(CryptoConnector):
             return []
 
         balances: list[CryptoBalance] = []
-        raw_balances = (account_data.get("balances", [])
-                        if self._exchange_name == "binance"
-                        else account_data.get("wallet_balances", account_data.get("accounts", [])))
+        raw_balances = (
+            account_data.get("balances", [])
+            if self._exchange_name == "binance"
+            else account_data.get("wallet_balances", account_data.get("accounts", []))
+        )
 
         for item in raw_balances:
             if isinstance(item, dict):
                 asset = item.get("asset") or item.get("currency") or item.get("balance", {}).get("currency", "")
-                free = float(item.get("free", 0) or item.get("available", 0) or item.get("balance", {}).get("amount", 0))
+                free = float(
+                    item.get("free", 0) or item.get("available", 0) or item.get("balance", {}).get("amount", 0)
+                )
                 locked = float(item.get("locked", 0) or item.get("hold", 0) or 0)
                 total = free + locked
                 if total <= 0:
                     continue
                 usd_price = get_usd_price(asset)
-                balances.append(CryptoBalance(
-                    asset=asset,
-                    symbol=asset,
-                    balance=total,
-                    usd_value=total * usd_price,
-                    chain=f"exchange:{self._exchange_name}",
-                    last_updated=datetime.now(UTC).isoformat(),
-                ))
+                balances.append(
+                    CryptoBalance(
+                        asset=asset,
+                        symbol=asset,
+                        balance=total,
+                        usd_value=total * usd_price,
+                        chain=f"exchange:{self._exchange_name}",
+                        last_updated=datetime.now(UTC).isoformat(),
+                    )
+                )
         return balances
 
     def get_transactions(self, limit: int = 50) -> list[CryptoTransaction]:
@@ -121,22 +127,24 @@ class ExchangeConnector(CryptoConnector):
         )
         if trade_history and isinstance(trade_history, list):
             for t in trade_history[:limit]:
-                txs.append(CryptoTransaction(
-                    tx_hash=t.get("id", str(t.get("trade_id", ""))),
-                    chain=f"exchange:{self._exchange_name}",
-                    timestamp=datetime.fromtimestamp(
-                        t.get("time", t.get("created_at", 0)) / 1000
-                        if isinstance(t.get("time"), (int, float)) and t.get("time", 0) > 1e10
-                        else t.get("time", t.get("created_at", 0)),
-                        tz=UTC,
-                    ).isoformat(),
-                    asset=t.get("symbol", t.get("product_id", "")),
-                    amount=float(t.get("qty", t.get("size", 0))),
-                    usd_value=float(t.get("quoteQty", t.get("total", 0))),
-                    fee=float(t.get("commission", t.get("fee", 0))),
-                    status="confirmed",
-                    tx_type=t.get("isBuyer", t.get("side", "buy")) == "buy" and "buy" or "sell",
-                ))
+                txs.append(
+                    CryptoTransaction(
+                        tx_hash=t.get("id", str(t.get("trade_id", ""))),
+                        chain=f"exchange:{self._exchange_name}",
+                        timestamp=datetime.fromtimestamp(
+                            t.get("time", t.get("created_at", 0)) / 1000
+                            if isinstance(t.get("time"), (int, float)) and t.get("time", 0) > 1e10
+                            else t.get("time", t.get("created_at", 0)),
+                            tz=UTC,
+                        ).isoformat(),
+                        asset=t.get("symbol", t.get("product_id", "")),
+                        amount=float(t.get("qty", t.get("size", 0))),
+                        usd_value=float(t.get("quoteQty", t.get("total", 0))),
+                        fee=float(t.get("commission", t.get("fee", 0))),
+                        status="confirmed",
+                        tx_type=t.get("isBuyer", t.get("side", "buy")) == "buy" and "buy" or "sell",
+                    )
+                )
 
         deposit_history = self._signed_get(
             "/sapi/v1/capital/deposit/hisrec" if self._exchange_name == "binance" else "/v2/deposits",
@@ -144,20 +152,22 @@ class ExchangeConnector(CryptoConnector):
         )
         if deposit_history and isinstance(deposit_history, list):
             for d in deposit_history[:limit]:
-                txs.append(CryptoTransaction(
-                    tx_hash=d.get("txId", d.get("txn_hash", "")),
-                    chain=f"exchange:{self._exchange_name}",
-                    timestamp=datetime.fromtimestamp(
-                        d.get("insertTime", d.get("created_at", 0)) / 1000
-                        if isinstance(d.get("insertTime"), (int, float)) and d.get("insertTime", 0) > 1e10
-                        else d.get("insertTime", d.get("created_at", 0)),
-                        tz=UTC,
-                    ).isoformat(),
-                    asset=d.get("coin", d.get("currency", "")),
-                    amount=float(d.get("amount", 0)),
-                    status=d.get("status", "confirmed"),
-                    tx_type="deposit",
-                ))
+                txs.append(
+                    CryptoTransaction(
+                        tx_hash=d.get("txId", d.get("txn_hash", "")),
+                        chain=f"exchange:{self._exchange_name}",
+                        timestamp=datetime.fromtimestamp(
+                            d.get("insertTime", d.get("created_at", 0)) / 1000
+                            if isinstance(d.get("insertTime"), (int, float)) and d.get("insertTime", 0) > 1e10
+                            else d.get("insertTime", d.get("created_at", 0)),
+                            tz=UTC,
+                        ).isoformat(),
+                        asset=d.get("coin", d.get("currency", "")),
+                        amount=float(d.get("amount", 0)),
+                        status=d.get("status", "confirmed"),
+                        tx_type="deposit",
+                    )
+                )
 
         return sorted(txs, key=lambda t: t.timestamp, reverse=True)[:limit]
 
@@ -173,25 +183,31 @@ class ExchangeConnector(CryptoConnector):
         if wd_data and isinstance(wd_data, list):
             for w in wd_data[:limit]:
                 status_str = w.get("status", "")
-                status = "confirmed" if status_str in (1, "1", "Completed") else \
-                         "pending" if status_str in (0, "0", "Pending", "processing") else \
-                         "failed"
-                withdrawals.append(CryptoWithdrawalInfo(
-                    tx_hash=w.get("txId", w.get("txn_hash", "")),
-                    chain=f"exchange:{self._exchange_name}",
-                    asset=w.get("coin", w.get("currency", "")),
-                    amount=float(w.get("amount", 0)),
-                    destination_address=w.get("address", w.get("destination", "")),
-                    fee=float(w.get("transactionFee", w.get("fee", 0))),
-                    status=status,
-                    confirmations=int(w.get("confirmTimes", w.get("confirmations", 0))),
-                    timestamp=datetime.fromtimestamp(
-                        w.get("applyTime", w.get("created_at", 0)) / 1000
-                        if isinstance(w.get("applyTime"), (int, float)) and w.get("applyTime", 0) > 1e10
-                        else w.get("applyTime", w.get("created_at", 0)),
-                        tz=UTC,
-                    ).isoformat(),
-                ))
+                status = (
+                    "confirmed"
+                    if status_str in (1, "1", "Completed")
+                    else "pending"
+                    if status_str in (0, "0", "Pending", "processing")
+                    else "failed"
+                )
+                withdrawals.append(
+                    CryptoWithdrawalInfo(
+                        tx_hash=w.get("txId", w.get("txn_hash", "")),
+                        chain=f"exchange:{self._exchange_name}",
+                        asset=w.get("coin", w.get("currency", "")),
+                        amount=float(w.get("amount", 0)),
+                        destination_address=w.get("address", w.get("destination", "")),
+                        fee=float(w.get("transactionFee", w.get("fee", 0))),
+                        status=status,
+                        confirmations=int(w.get("confirmTimes", w.get("confirmations", 0))),
+                        timestamp=datetime.fromtimestamp(
+                            w.get("applyTime", w.get("created_at", 0)) / 1000
+                            if isinstance(w.get("applyTime"), (int, float)) and w.get("applyTime", 0) > 1e10
+                            else w.get("applyTime", w.get("created_at", 0)),
+                            tz=UTC,
+                        ).isoformat(),
+                    )
+                )
 
         return sorted(withdrawals, key=lambda w: w.timestamp, reverse=True)[:limit]
 
@@ -225,10 +241,13 @@ class ExchangeConnector(CryptoConnector):
         if params:
             qs = "&".join(f"{k}={v}" for k, v in params.items())
             url = f"{url}?{qs}"
-        req = urllib.request.Request(url, headers={
-            "Authorization": f"Bearer {self._api_key}",
-            "Content-Type": "application/json",
-        })
+        req = urllib.request.Request(
+            url,
+            headers={
+                "Authorization": f"Bearer {self._api_key}",
+                "Content-Type": "application/json",
+            },
+        )
         try:
             with urllib.request.urlopen(req, timeout=15) as resp:
                 return json.loads(resp.read().decode())

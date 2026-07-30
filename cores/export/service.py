@@ -12,11 +12,13 @@ EXPORT_FORMATS = ["markdown", "html", "pdf", "txt"]
 
 def _get_session():
     from database.db import SessionLocal
+
     return SessionLocal()
 
 
 def _get_report(report_id: int) -> dict[str, Any] | None:
     from database.models import Report
+
     session = _get_session()
     try:
         r = session.query(Report).filter(Report.id == report_id).first()
@@ -91,10 +93,11 @@ def _render_markdown(report: dict[str, Any]) -> str:
 def _render_html(report: dict[str, Any]) -> str:
     md = _render_markdown(report)
     import html
+
     safe_md = html.escape(md)
     return f"""<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>{html.escape(report.get('vulnerability', 'Report'))}</title>
+<head><meta charset="UTF-8"><title>{html.escape(report.get("vulnerability", "Report"))}</title>
 <style>
   body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
          max-width: 800px; margin: 40px auto; padding: 0 20px;
@@ -111,6 +114,7 @@ def _render_html(report: dict[str, Any]) -> str:
 def _render_txt(report: dict[str, Any]) -> str:
     md = _render_markdown(report)
     import re
+
     text = re.sub(r"\*\*", "", md)
     text = re.sub(r"#+\s*", "", text)
     text = re.sub(r"\* ", "- ", text)
@@ -123,6 +127,7 @@ def _render_pdf(report: dict[str, Any]) -> bytes:
     html = _render_html(report)
     try:
         from weasyprint import HTML
+
         return HTML(string=html).write_pdf()
     except ImportError:
         logger.warning("weasyprint not available, falling back to HTML")
@@ -160,6 +165,7 @@ def export_report(report_id: int, fmt: str) -> tuple[str | bytes, str]:
 
 def _get_report_versions(report_id: int) -> list[dict[str, Any]]:
     from database.models import ReportVersion
+
     session = _get_session()
     try:
         versions = (
@@ -188,6 +194,7 @@ def get_report_versions(report_id: int) -> list[dict[str, Any]]:
 
 def save_report_version(report_id: int, summary: str = "") -> dict[str, Any]:
     from database.models import Report, ReportVersion
+
     session = _get_session()
     try:
         report = session.query(Report).filter(Report.id == report_id).first()

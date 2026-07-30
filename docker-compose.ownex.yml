@@ -1,0 +1,101 @@
+version: "3.9"
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: ownex-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=ownex
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:-change-me}
+      - N8N_HOST=localhost
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678
+      - N8N_PERSONALIZATION_ENABLED=false
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=168
+      - N8N_METRICS=false
+    volumes:
+      - ownex-n8n-data:/home/node/.n8n
+    networks:
+      - ownex-net
+
+  kestra:
+    image: kestra/kestra:latest
+    container_name: ownex-kestra
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - KESTRA_CONFIGURATION_PATH=/app/kestra.yml
+    volumes:
+      - ownex-kestra-data:/app/storage
+      - ./config/kestra.yml:/app/kestra.yml:ro
+    networks:
+      - ownex-net
+    command: server standalone
+
+  langfuse:
+    image: langfuse/langfuse:latest
+    container_name: ownex-langfuse
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://ownex:***@langfuse-db:5432/langfuse
+      - NEXTAUTH_SECRET=${LANGFUSE_SECRET:-change-me}
+      - SALT=${LANGFUSE_SALT:-change-me}
+      - LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES=false
+      - TELEMETRY_ENABLED=false
+    depends_on:
+      langfuse-db:
+        condition: service_healthy
+    networks:
+      - ownex-net
+
+  langfuse-db:
+    image: postgres:16-alpine
+    container_name: ownex-langfuse-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=ownex
+      - POSTGRES_PASSWORD=ownex
+      - POSTGRES_DB=langfuse
+    volumes:
+      - ownex-langfuse-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ownex -d langfuse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ownex-net
+
+  skyvern:
+    image: skyvern/skyvern:latest
+    container_name: ownex-skyvern
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - SKYVERN_API_KEY=${SKYVERN_API_KEY:-}
+      - SKYVERN_LLM_PROVIDER=openai
+      - SKYVERN_LLM_MODEL=gpt-4o-mini
+      - SKYVERN_DATABASE_URL=sqlite:///app/data/skyvern.db
+    volumes:
+      - ownex-skyvern-data:/app/data
+    networks:
+      - ownex-net
+
+volumes:
+  ownex-n8n-data:
+  ownex-kestra-data:
+  ownex-langfuse-db-data:
+  ownex-skyvern-data:
+
+networks:
+  ownex-net:
+    driver: bridge

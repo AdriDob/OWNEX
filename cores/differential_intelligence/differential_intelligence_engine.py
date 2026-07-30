@@ -33,11 +33,25 @@ from cores.engine.extraction import (
 
 LOG = logging.getLogger("ownex.differential_intelligence")
 
-VALID_CATEGORIES = frozenset({
-    "auth", "idor", "tenant", "graphql", "api", "admin", "export",
-    "storage", "web3", "oracle", "bridge", "contract", "configuration",
-    "historical", "general",
-})
+VALID_CATEGORIES = frozenset(
+    {
+        "auth",
+        "idor",
+        "tenant",
+        "graphql",
+        "api",
+        "admin",
+        "export",
+        "storage",
+        "web3",
+        "oracle",
+        "bridge",
+        "contract",
+        "configuration",
+        "historical",
+        "general",
+    }
+)
 
 ENTITY_KEYWORDS: dict[str, list[str]] = {
     "user": ["user", "profile", "member"],
@@ -141,43 +155,53 @@ class DifferentialIntelligenceEngine:
         # 1. Target differential — comparing paths with shared entity types
         if endpoints:
             target_diffs = self._analyze_target_differences(
-                endpoints, surface_data, qw_data,
+                endpoints,
+                surface_data,
+                qw_data,
             )
 
         # 2. Endpoint differential
         if endpoints:
             endpoint_diffs = self._analyze_endpoint_differences(
-                endpoints, vd_map, surface_data, roi_by_path,
+                endpoints,
+                vd_map,
+                surface_data,
+                roi_by_path,
             )
 
         # 3. Historical differential
         if historical_snapshots:
             historical_diffs = self._analyze_historical_changes(
-                snapshot, historical_snapshots,
+                snapshot,
+                historical_snapshots,
             )
 
         # 4. Cross-target patterns
         if memory_pattern_library is not None and endpoints:
             cross_target = self._analyze_cross_target_patterns(
-                endpoints, memory_pattern_library, target_name,
+                endpoints,
+                memory_pattern_library,
+                target_name,
             )
 
         # 5. Web3 differential
         if endpoints or evidence_graph is not None:
             web3_diffs = self._analyze_web3_differences(
-                endpoints, evidence_graph, snapshot,
+                endpoints,
+                evidence_graph,
+                snapshot,
             )
 
         # 6. Interesting anomalies — synthesis of noteworthy patterns
-        all_findings = (
-            target_diffs + endpoint_diffs + historical_diffs
-            + cross_target + web3_diffs
-        )
+        all_findings = target_diffs + endpoint_diffs + historical_diffs + cross_target + web3_diffs
         anomalies = self._synthesize_anomalies(all_findings, hypotheses, sb_specs)
 
         confidence = self._compute_overall_confidence(all_findings)
         summary = self._build_summary(
-            all_findings, anomalies, target_name, endpoints,
+            all_findings,
+            anomalies,
+            target_name,
+            endpoints,
         )
 
         return DifferentialBundle(
@@ -215,11 +239,11 @@ class DifferentialIntelligenceEngine:
             if len(eps) < 2:
                 continue
             auth_endpoints = [
-                ep for ep in eps
-                if any("auth" in str(s).lower() for s in ep.get("labels", []) + ep.get("signals", []))
+                ep for ep in eps if any("auth" in str(s).lower() for s in ep.get("labels", []) + ep.get("signals", []))
             ]
             no_auth_endpoints = [
-                ep for ep in eps
+                ep
+                for ep in eps
                 if not any("auth" in str(s).lower() for s in ep.get("labels", []) + ep.get("signals", []))
             ]
             if auth_endpoints and no_auth_endpoints and len(no_auth_endpoints) >= 2:
@@ -227,23 +251,25 @@ class DifferentialIntelligenceEngine:
                 key = f"auth_gap:{entity}"
                 if key not in seen:
                     seen.add(key)
-                    findings.append(DifferentialFinding(
-                        title=f"Auth gap in {entity} endpoints",
-                        category="auth",
-                        description=(
-                            f"{len(no_auth_endpoints)} {entity} endpoints lack auth signals "
-                            f"while {len(auth_endpoints)} have auth. This pattern may indicate "
-                            f"inconsistent auth enforcement."
-                        ),
-                        affected_objects=paths_no_auth,
-                        confidence=0.4,
-                        supporting_signals=["auth_gap", f"entity:{entity}"],
-                        risk_level="medium",
-                        requires_validation=True,
-                        novelty_score=0.6,
-                        confidence_score=0.4,
-                        validation_priority="medium",
-                    ))
+                    findings.append(
+                        DifferentialFinding(
+                            title=f"Auth gap in {entity} endpoints",
+                            category="auth",
+                            description=(
+                                f"{len(no_auth_endpoints)} {entity} endpoints lack auth signals "
+                                f"while {len(auth_endpoints)} have auth. This pattern may indicate "
+                                f"inconsistent auth enforcement."
+                            ),
+                            affected_objects=paths_no_auth,
+                            confidence=0.4,
+                            supporting_signals=["auth_gap", f"entity:{entity}"],
+                            risk_level="medium",
+                            requires_validation=True,
+                            novelty_score=0.6,
+                            confidence_score=0.4,
+                            validation_priority="medium",
+                        )
+                    )
 
         # Missing surface coverage
         for entity, eps in by_entity.items():
@@ -253,66 +279,72 @@ class DifferentialIntelligenceEngine:
                 key = f"no_idor:{entity}"
                 if key not in seen:
                     seen.add(key)
-                    findings.append(DifferentialFinding(
-                        title=f"Large {entity} surface with no IDOR signal",
-                        category="idor",
-                        description=(
-                            f"{total} {entity} endpoints found but none flagged as potential IDOR. "
-                            f"This may indicate incomplete coverage or a blind spot."
-                        ),
-                        affected_objects=[f"{entity} ({total} endpoints)"],
-                        confidence=0.3,
-                        supporting_signals=["no_idor_signal", f"entity:{entity}", "blind_spot"],
-                        risk_level="low",
-                        requires_validation=True,
-                        novelty_score=0.5,
-                        confidence_score=0.3,
-                        validation_priority="low",
-                    ))
+                    findings.append(
+                        DifferentialFinding(
+                            title=f"Large {entity} surface with no IDOR signal",
+                            category="idor",
+                            description=(
+                                f"{total} {entity} endpoints found but none flagged as potential IDOR. "
+                                f"This may indicate incomplete coverage or a blind spot."
+                            ),
+                            affected_objects=[f"{entity} ({total} endpoints)"],
+                            confidence=0.3,
+                            supporting_signals=["no_idor_signal", f"entity:{entity}", "blind_spot"],
+                            risk_level="low",
+                            requires_validation=True,
+                            novelty_score=0.5,
+                            confidence_score=0.3,
+                            validation_priority="low",
+                        )
+                    )
 
         # Single auth boundary for entire target
         if surface_data.get("auth_boundaries"):
             paths = [str(e.get("path", "")) for e in surface_data["auth_boundaries"][:3]]
             if paths and "auth_boundary:single" not in seen:
                 seen.add("auth_boundary:single")
-                findings.append(DifferentialFinding(
-                    title="Auth boundary detected",
-                    category="auth",
-                    description=(
-                        f"{len(surface_data['auth_boundaries'])} endpoints form an auth boundary. "
-                        f"Review for authentication enforcement consistency."
-                    ),
-                    affected_objects=paths,
-                    confidence=0.5,
-                    supporting_signals=["auth_boundary", "authentication_surface"],
-                    risk_level="medium",
-                    requires_validation=True,
-                    novelty_score=0.4,
-                    confidence_score=0.5,
-                    validation_priority="low",
-                ))
+                findings.append(
+                    DifferentialFinding(
+                        title="Auth boundary detected",
+                        category="auth",
+                        description=(
+                            f"{len(surface_data['auth_boundaries'])} endpoints form an auth boundary. "
+                            f"Review for authentication enforcement consistency."
+                        ),
+                        affected_objects=paths,
+                        confidence=0.5,
+                        supporting_signals=["auth_boundary", "authentication_surface"],
+                        risk_level="medium",
+                        requires_validation=True,
+                        novelty_score=0.4,
+                        confidence_score=0.5,
+                        validation_priority="low",
+                    )
+                )
 
         # Multi-tenant presence
         if surface_data.get("multi_tenant_zones"):
             paths = [str(e.get("path", "")) for e in surface_data["multi_tenant_zones"][:3]]
             if paths and "multi_tenant" not in seen:
                 seen.add("multi_tenant")
-                findings.append(DifferentialFinding(
-                    title="Multi-tenant zone — cross-tenant boundary risk",
-                    category="tenant",
-                    description=(
-                        f"{len(surface_data['multi_tenant_zones'])} endpoints in multi-tenant zone. "
-                        f"Cross-tenant access control should be verified."
-                    ),
-                    affected_objects=paths,
-                    confidence=0.5,
-                    supporting_signals=["multi_tenant", "tenant_boundary"],
-                    risk_level="medium",
-                    requires_validation=True,
-                    novelty_score=0.5,
-                    confidence_score=0.5,
-                    validation_priority="medium",
-                ))
+                findings.append(
+                    DifferentialFinding(
+                        title="Multi-tenant zone — cross-tenant boundary risk",
+                        category="tenant",
+                        description=(
+                            f"{len(surface_data['multi_tenant_zones'])} endpoints in multi-tenant zone. "
+                            f"Cross-tenant access control should be verified."
+                        ),
+                        affected_objects=paths,
+                        confidence=0.5,
+                        supporting_signals=["multi_tenant", "tenant_boundary"],
+                        risk_level="medium",
+                        requires_validation=True,
+                        novelty_score=0.5,
+                        confidence_score=0.5,
+                        validation_priority="medium",
+                    )
+                )
 
         return findings
 
@@ -349,103 +381,107 @@ class DifferentialIntelligenceEngine:
                     key_hi = f"score_gap:{entity}:{max(scores):.0f}"
                     if key_hi not in seen:
                         seen.add(key_hi)
-                        findings.append(DifferentialFinding(
-                            title=f"Risk score disparity in {entity} endpoints",
-                            category="general",
-                            description=(
-                                f"{entity} endpoints show wide risk score range ({min(scores):.0f}-{max(scores):.0f}). "
-                                f"High-scored endpoints may warrant deeper review."
-                            ),
-                            affected_objects=[f"{ep['method']} {ep['path']}" for ep in high[:2]],
-                            confidence=0.5,
-                            supporting_signals=[f"score_gap:{score_range:.0f}", f"entity:{entity}"],
-                            risk_level="medium" if score_range >= 60 else "low",
-                            requires_validation=True,
-                            novelty_score=0.5,
-                            confidence_score=0.5,
-                            potential_roi=roi_by_path.get(high[0]["path"], 0) if high else 0,
-                            validation_priority="medium" if score_range >= 60 else "low",
-                        ))
+                        findings.append(
+                            DifferentialFinding(
+                                title=f"Risk score disparity in {entity} endpoints",
+                                category="general",
+                                description=(
+                                    f"{entity} endpoints show wide risk score range ({min(scores):.0f}-{max(scores):.0f}). "
+                                    f"High-scored endpoints may warrant deeper review."
+                                ),
+                                affected_objects=[f"{ep['method']} {ep['path']}" for ep in high[:2]],
+                                confidence=0.5,
+                                supporting_signals=[f"score_gap:{score_range:.0f}", f"entity:{entity}"],
+                                risk_level="medium" if score_range >= 60 else "low",
+                                requires_validation=True,
+                                novelty_score=0.5,
+                                confidence_score=0.5,
+                                potential_roi=roi_by_path.get(high[0]["path"], 0) if high else 0,
+                                validation_priority="medium" if score_range >= 60 else "low",
+                            )
+                        )
 
             # Mixed auth patterns
-            has_auth = any(
-                "auth" in str(s).lower() for ep in eps
-                for s in ep.get("labels", []) + ep.get("signals", [])
-            )
+            has_auth = any("auth" in str(s).lower() for ep in eps for s in ep.get("labels", []) + ep.get("signals", []))
             no_auth = [
-                ep for ep in eps
+                ep
+                for ep in eps
                 if not any("auth" in str(s).lower() for s in ep.get("labels", []) + ep.get("signals", []))
             ]
             if has_auth and no_auth:
                 key_n = f"auth_mix:{entity}"
                 if key_n not in seen:
                     seen.add(key_n)
-                    findings.append(DifferentialFinding(
-                        title=f"Inconsistent auth signals across {entity} endpoints",
-                        category="auth",
-                        description=(
-                            f"{len(no_auth)}/{len(eps)} {entity} endpoints lack auth signals "
-                            f"while others have them. This may indicate inconsistent auth enforcement."
-                        ),
-                        affected_objects=[f"{ep['method']} {ep['path']}" for ep in no_auth[:3]],
-                        confidence=0.45,
-                        supporting_signals=["auth_mix", f"entity:{entity}"],
-                        risk_level="medium",
-                        requires_validation=True,
-                        novelty_score=0.6,
-                        confidence_score=0.45,
-                        validation_priority="medium",
-                    ))
+                    findings.append(
+                        DifferentialFinding(
+                            title=f"Inconsistent auth signals across {entity} endpoints",
+                            category="auth",
+                            description=(
+                                f"{len(no_auth)}/{len(eps)} {entity} endpoints lack auth signals "
+                                f"while others have them. This may indicate inconsistent auth enforcement."
+                            ),
+                            affected_objects=[f"{ep['method']} {ep['path']}" for ep in no_auth[:3]],
+                            confidence=0.45,
+                            supporting_signals=["auth_mix", f"entity:{entity}"],
+                            risk_level="medium",
+                            requires_validation=True,
+                            novelty_score=0.6,
+                            confidence_score=0.45,
+                            validation_priority="medium",
+                        )
+                    )
 
             # Hidden admin / export paths
             for keyword, cat in [("admin", "admin"), ("export", "export"), ("billing", "storage")]:
                 matched = [ep for ep in eps if keyword in ep.get("path", "").lower()]
                 if matched and keyword not in seen:
                     seen.add(f"{keyword}_path:{entity}")
-                    findings.append(DifferentialFinding(
-                        title=f"{keyword.title()} endpoints in {entity} surface",
-                        category=cat,
-                        description=(
-                            f"{len(matched)} {keyword} endpoint{'' if len(matched) == 1 else 's'} "
-                            f"found in {entity} context. Review access controls."
-                        ),
-                        affected_objects=[f"{ep['method']} {ep['path']}" for ep in matched[:3]],
-                        confidence=0.5,
-                        supporting_signals=[f"{keyword}_surface", f"entity:{entity}"],
-                        risk_level="medium",
-                        requires_validation=True,
-                        novelty_score=0.4,
-                        confidence_score=0.5,
-                        validation_priority="low" if cat == "export" else "medium",
-                    ))
+                    findings.append(
+                        DifferentialFinding(
+                            title=f"{keyword.title()} endpoints in {entity} surface",
+                            category=cat,
+                            description=(
+                                f"{len(matched)} {keyword} endpoint{'' if len(matched) == 1 else 's'} "
+                                f"found in {entity} context. Review access controls."
+                            ),
+                            affected_objects=[f"{ep['method']} {ep['path']}" for ep in matched[:3]],
+                            confidence=0.5,
+                            supporting_signals=[f"{keyword}_surface", f"entity:{entity}"],
+                            risk_level="medium",
+                            requires_validation=True,
+                            novelty_score=0.4,
+                            confidence_score=0.5,
+                            validation_priority="low" if cat == "export" else "medium",
+                        )
+                    )
 
         # GraphQL presence
         graphql_eps = [
-            ep for ep in endpoints
-            if "graphql" in ep.get("path", "").lower()
-            or "graphql" in ep.get("labels", [])
+            ep for ep in endpoints if "graphql" in ep.get("path", "").lower() or "graphql" in ep.get("labels", [])
         ]
         if graphql_eps:
             paths = [f"{ep['method']} {ep['path']}" for ep in graphql_eps[:3]]
             key = "graphql_presence"
             if key not in seen:
                 seen.add(key)
-                findings.append(DifferentialFinding(
-                    title="GraphQL endpoint detected",
-                    category="graphql",
-                    description=(
-                        f"{len(graphql_eps)} GraphQL entrie{'' if len(graphql_eps) == 1 else 's'} found. "
-                        f"GraphQL surfaces may expose broader attack surface through nested queries."
-                    ),
-                    affected_objects=paths,
-                    confidence=0.7,
-                    supporting_signals=["graphql", "graphql_surface"],
-                    risk_level="medium",
-                    requires_validation=True,
-                    novelty_score=0.4,
-                    confidence_score=0.7,
-                    validation_priority="low",
-                ))
+                findings.append(
+                    DifferentialFinding(
+                        title="GraphQL endpoint detected",
+                        category="graphql",
+                        description=(
+                            f"{len(graphql_eps)} GraphQL entrie{'' if len(graphql_eps) == 1 else 's'} found. "
+                            f"GraphQL surfaces may expose broader attack surface through nested queries."
+                        ),
+                        affected_objects=paths,
+                        confidence=0.7,
+                        supporting_signals=["graphql", "graphql_surface"],
+                        risk_level="medium",
+                        requires_validation=True,
+                        novelty_score=0.4,
+                        confidence_score=0.7,
+                        validation_priority="low",
+                    )
+                )
 
         return findings
 
@@ -459,10 +495,14 @@ class DifferentialIntelligenceEngine:
         findings: list[DifferentialFinding] = []
         seen: set = set()
 
-        current_eps = {
-            f"{getattr(ep, 'method', 'GET')}:{getattr(ep, 'path', '/')}": ep
-            for ep in getattr(current_snapshot, "endpoints", [])
-        } if current_snapshot else {}
+        current_eps = (
+            {
+                f"{getattr(ep, 'method', 'GET')}:{getattr(ep, 'path', '/')}": ep
+                for ep in getattr(current_snapshot, "endpoints", [])
+            }
+            if current_snapshot
+            else {}
+        )
 
         if not current_eps or not historical_snapshots:
             return findings
@@ -470,8 +510,7 @@ class DifferentialIntelligenceEngine:
         # Compare with most recent historical snapshot
         prev = historical_snapshots[-1]
         prev_eps = {
-            f"{getattr(ep, 'method', 'GET')}:{getattr(ep, 'path', '/')}": ep
-            for ep in getattr(prev, "endpoints", [])
+            f"{getattr(ep, 'method', 'GET')}:{getattr(ep, 'path', '/')}": ep for ep in getattr(prev, "endpoints", [])
         }
 
         # New endpoints
@@ -481,22 +520,24 @@ class DifferentialIntelligenceEngine:
             key = "new_endpoints"
             if key not in seen:
                 seen.add(key)
-                findings.append(DifferentialFinding(
-                    title="New endpoints detected since last snapshot",
-                    category="historical",
-                    description=(
-                        f"{len(new_keys)} new endpoint{'' if len(new_keys) == 1 else 's'} appeared "
-                        f"since the previous snapshot. Review for potential new attack surface."
-                    ),
-                    affected_objects=new_list,
-                    confidence=0.8,
-                    supporting_signals=["new_endpoint", "historical_change"],
-                    risk_level="medium",
-                    requires_validation=True,
-                    novelty_score=0.7,
-                    confidence_score=0.8,
-                    validation_priority="medium",
-                ))
+                findings.append(
+                    DifferentialFinding(
+                        title="New endpoints detected since last snapshot",
+                        category="historical",
+                        description=(
+                            f"{len(new_keys)} new endpoint{'' if len(new_keys) == 1 else 's'} appeared "
+                            f"since the previous snapshot. Review for potential new attack surface."
+                        ),
+                        affected_objects=new_list,
+                        confidence=0.8,
+                        supporting_signals=["new_endpoint", "historical_change"],
+                        risk_level="medium",
+                        requires_validation=True,
+                        novelty_score=0.7,
+                        confidence_score=0.8,
+                        validation_priority="medium",
+                    )
+                )
 
         # Removed endpoints
         removed_keys = set(prev_eps.keys()) - set(current_eps.keys())
@@ -505,22 +546,24 @@ class DifferentialIntelligenceEngine:
             key = "removed_endpoints"
             if key not in seen:
                 seen.add(key)
-                findings.append(DifferentialFinding(
-                    title="Endpoints removed since last snapshot",
-                    category="historical",
-                    description=(
-                        f"{len(removed_keys)} endpoint{'' if len(removed_keys) == 1 else 's'} "
-                        f"no longer present. May indicate infrastructure changes or rotated surface."
-                    ),
-                    affected_objects=removed_list,
-                    confidence=0.7,
-                    supporting_signals=["removed_endpoint", "historical_change"],
-                    risk_level="low",
-                    requires_validation=True,
-                    novelty_score=0.6,
-                    confidence_score=0.7,
-                    validation_priority="low",
-                ))
+                findings.append(
+                    DifferentialFinding(
+                        title="Endpoints removed since last snapshot",
+                        category="historical",
+                        description=(
+                            f"{len(removed_keys)} endpoint{'' if len(removed_keys) == 1 else 's'} "
+                            f"no longer present. May indicate infrastructure changes or rotated surface."
+                        ),
+                        affected_objects=removed_list,
+                        confidence=0.7,
+                        supporting_signals=["removed_endpoint", "historical_change"],
+                        risk_level="low",
+                        requires_validation=True,
+                        novelty_score=0.6,
+                        confidence_score=0.7,
+                        validation_priority="low",
+                    )
+                )
 
         # Risk score changes
         risk_changes: list[str] = []
@@ -534,22 +577,24 @@ class DifferentialIntelligenceEngine:
             key = "risk_changes"
             if key not in seen:
                 seen.add(key)
-                findings.append(DifferentialFinding(
-                    title="Risk score changes detected",
-                    category="historical",
-                    description=(
-                        f"{len(risk_changes)} endpoint{'' if len(risk_changes) == 1 else 's'} "
-                        f"changed risk score by >=20 points since last snapshot."
-                    ),
-                    affected_objects=risk_changes[:5],
-                    confidence=0.6,
-                    supporting_signals=["risk_change", "historical_change"],
-                    risk_level="medium",
-                    requires_validation=True,
-                    novelty_score=0.6,
-                    confidence_score=0.6,
-                    validation_priority="medium",
-                ))
+                findings.append(
+                    DifferentialFinding(
+                        title="Risk score changes detected",
+                        category="historical",
+                        description=(
+                            f"{len(risk_changes)} endpoint{'' if len(risk_changes) == 1 else 's'} "
+                            f"changed risk score by >=20 points since last snapshot."
+                        ),
+                        affected_objects=risk_changes[:5],
+                        confidence=0.6,
+                        supporting_signals=["risk_change", "historical_change"],
+                        risk_level="medium",
+                        requires_validation=True,
+                        novelty_score=0.6,
+                        confidence_score=0.6,
+                        validation_priority="medium",
+                    )
+                )
 
         # Additional historical snapshots for trend detection
         if len(historical_snapshots) >= 3:
@@ -560,30 +605,29 @@ class DifferentialIntelligenceEngine:
                     key = f"{getattr(ep, 'method', 'GET')}:{getattr(ep, 'path', '/')}"
                     endpoint_lifespan[key] = endpoint_lifespan.get(key, 0) + 1
 
-            stable = [
-                k for k, v in endpoint_lifespan.items()
-                if v == len(all_snapshots)
-            ]
+            stable = [k for k, v in endpoint_lifespan.items() if v == len(all_snapshots)]
             if stable and len(stable) >= 10:
                 skey = "stable_pattern"
                 if skey not in seen:
                     seen.add(skey)
-                    findings.append(DifferentialFinding(
-                        title=f"Stable endpoint surface ({len(stable)} persistent endpoints)",
-                        category="historical",
-                        description=(
-                            f"{len(stable)} endpoints persisted across all {len(all_snapshots)} snapshots. "
-                            f"Stable surface may indicate core API that warrants thorough review."
-                        ),
-                        affected_objects=stable[:5],
-                        confidence=0.9,
-                        supporting_signals=["persistent_endpoints", "historical_stable"],
-                        risk_level="low",
-                        requires_validation=True,
-                        novelty_score=0.3,
-                        confidence_score=0.9,
-                        validation_priority="low",
-                    ))
+                    findings.append(
+                        DifferentialFinding(
+                            title=f"Stable endpoint surface ({len(stable)} persistent endpoints)",
+                            category="historical",
+                            description=(
+                                f"{len(stable)} endpoints persisted across all {len(all_snapshots)} snapshots. "
+                                f"Stable surface may indicate core API that warrants thorough review."
+                            ),
+                            affected_objects=stable[:5],
+                            confidence=0.9,
+                            supporting_signals=["persistent_endpoints", "historical_stable"],
+                            risk_level="low",
+                            requires_validation=True,
+                            novelty_score=0.3,
+                            confidence_score=0.9,
+                            validation_priority="low",
+                        )
+                    )
 
         return findings
 
@@ -604,10 +648,7 @@ class DifferentialIntelligenceEngine:
         for ep in endpoints[:20]:
             path = ep.get("path", "/")
             entity = DifferentialIntelligenceEngine._detect_entity(path)
-            auth_smells = [
-                s for s in ep.get("signals", [])
-                if "auth" in s.lower() or "idor" in s.lower()
-            ]
+            auth_smells = [s for s in ep.get("signals", []) if "auth" in s.lower() or "idor" in s.lower()]
 
             try:
                 similar = memory_pattern_library.find_similar_endpoints(
@@ -627,23 +668,29 @@ class DifferentialIntelligenceEngine:
                     category_key = f"cross_target:{entity}:{target}"
                     if category_key not in seen_categories and sim_score >= 2:
                         seen_categories.add(category_key)
-                        findings.append(DifferentialFinding(
-                            title=f"Cross-target pattern: {entity} endpoint reused in {target}",
-                            category="general",
-                            description=(
-                                f"Endpoint pattern for '{path}' in '{current_target}' matches similar "
-                                f"endpoint in target '{target}' (similarity: {sim_score}). "
-                                f"This may indicate shared codebase or API framework."
-                            ),
-                            affected_objects=[path, profile.get("path", "unknown")],
-                            confidence=min(0.3 + sim_score * 0.15, 0.7),
-                            supporting_signals=["cross_target_pattern", f"similarity:{sim_score}", f"entity:{entity}"],
-                            risk_level="low",
-                            requires_validation=True,
-                            novelty_score=0.7,
-                            confidence_score=min(0.3 + sim_score * 0.15, 0.7),
-                            validation_priority="low",
-                        ))
+                        findings.append(
+                            DifferentialFinding(
+                                title=f"Cross-target pattern: {entity} endpoint reused in {target}",
+                                category="general",
+                                description=(
+                                    f"Endpoint pattern for '{path}' in '{current_target}' matches similar "
+                                    f"endpoint in target '{target}' (similarity: {sim_score}). "
+                                    f"This may indicate shared codebase or API framework."
+                                ),
+                                affected_objects=[path, profile.get("path", "unknown")],
+                                confidence=min(0.3 + sim_score * 0.15, 0.7),
+                                supporting_signals=[
+                                    "cross_target_pattern",
+                                    f"similarity:{sim_score}",
+                                    f"entity:{entity}",
+                                ],
+                                risk_level="low",
+                                requires_validation=True,
+                                novelty_score=0.7,
+                                confidence_score=min(0.3 + sim_score * 0.15, 0.7),
+                                validation_priority="low",
+                            )
+                        )
 
         return findings
 
@@ -659,7 +706,8 @@ class DifferentialIntelligenceEngine:
         seen: set = set()
 
         web3_endpoints = [
-            ep for ep in endpoints
+            ep
+            for ep in endpoints
             if "web3" in ep.get("signals", [])
             or any("web3" in str(lab) for lab in ep.get("labels", []))
             or "web3" in ep.get("path", "").lower()
@@ -677,97 +725,105 @@ class DifferentialIntelligenceEngine:
             key = "web3_diverse"
             if key not in seen:
                 seen.add(key)
-                findings.append(DifferentialFinding(
-                    title="Web3 surface diversity (RPC + contracts)",
-                    category="web3",
-                    description=(
-                        f"Target exposes both RPC ({rpc_count}) and contract ({contract_count}) endpoints. "
-                        f"Diverse Web3 surface may indicate multiple interaction patterns."
-                    ),
-                    affected_objects=[f"RPC: {rpc_count}", f"Contracts: {contract_count}"],
-                    confidence=0.6,
-                    supporting_signals=["web3_diverse", "rpc_surface", "contract_surface"],
-                    risk_level="medium",
-                    requires_validation=True,
-                    novelty_score=0.5,
-                    confidence_score=0.6,
-                    validation_priority="medium",
-                ))
+                findings.append(
+                    DifferentialFinding(
+                        title="Web3 surface diversity (RPC + contracts)",
+                        category="web3",
+                        description=(
+                            f"Target exposes both RPC ({rpc_count}) and contract ({contract_count}) endpoints. "
+                            f"Diverse Web3 surface may indicate multiple interaction patterns."
+                        ),
+                        affected_objects=[f"RPC: {rpc_count}", f"Contracts: {contract_count}"],
+                        confidence=0.6,
+                        supporting_signals=["web3_diverse", "rpc_surface", "contract_surface"],
+                        risk_level="medium",
+                        requires_validation=True,
+                        novelty_score=0.5,
+                        confidence_score=0.6,
+                        validation_priority="medium",
+                    )
+                )
 
         if wallet_count:
             key = "web3_wallet"
             if key not in seen:
                 seen.add(key)
-                findings.append(DifferentialFinding(
-                    title="Web3 wallet operations detected",
-                    category="web3",
-                    description=(
-                        f"{wallet_count} wallet-related endpoint{'' if wallet_count == 1 else 's'} found. "
-                        f"Review for signature validation and access controls."
-                    ),
-                    affected_objects=[ep["path"] for ep in web3_endpoints if "wallet" in ep["path"].lower()][:3],
-                    confidence=0.5,
-                    supporting_signals=["wallet_surface", "web3"],
-                    risk_level="high",
-                    requires_validation=True,
-                    novelty_score=0.6,
-                    confidence_score=0.5,
-                    validation_priority="high",
-                ))
+                findings.append(
+                    DifferentialFinding(
+                        title="Web3 wallet operations detected",
+                        category="web3",
+                        description=(
+                            f"{wallet_count} wallet-related endpoint{'' if wallet_count == 1 else 's'} found. "
+                            f"Review for signature validation and access controls."
+                        ),
+                        affected_objects=[ep["path"] for ep in web3_endpoints if "wallet" in ep["path"].lower()][:3],
+                        confidence=0.5,
+                        supporting_signals=["wallet_surface", "web3"],
+                        risk_level="high",
+                        requires_validation=True,
+                        novelty_score=0.6,
+                        confidence_score=0.5,
+                        validation_priority="high",
+                    )
+                )
 
         # Check for bridge patterns
         bridge_eps = [
-            ep for ep in web3_endpoints
-            if "bridge" in ep.get("path", "").lower()
-            or "swap" in ep.get("path", "").lower()
+            ep
+            for ep in web3_endpoints
+            if "bridge" in ep.get("path", "").lower() or "swap" in ep.get("path", "").lower()
         ]
         if bridge_eps:
             key = "web3_bridge"
             if key not in seen:
                 seen.add(key)
-                findings.append(DifferentialFinding(
-                    title="Bridge / swap operations detected",
-                    category="bridge",
-                    description=(
-                        f"{len(bridge_eps)} bridge/swap endpoint{'' if len(bridge_eps) == 1 else 's'} found. "
-                        f"Bridge operations involve cross-chain value transfer and warrant thorough review."
-                    ),
-                    affected_objects=[ep["path"] for ep in bridge_eps[:3]],
-                    confidence=0.5,
-                    supporting_signals=["bridge_surface", "web3", "cross_chain"],
-                    risk_level="high",
-                    requires_validation=True,
-                    novelty_score=0.7,
-                    confidence_score=0.5,
-                    validation_priority="high",
-                ))
+                findings.append(
+                    DifferentialFinding(
+                        title="Bridge / swap operations detected",
+                        category="bridge",
+                        description=(
+                            f"{len(bridge_eps)} bridge/swap endpoint{'' if len(bridge_eps) == 1 else 's'} found. "
+                            f"Bridge operations involve cross-chain value transfer and warrant thorough review."
+                        ),
+                        affected_objects=[ep["path"] for ep in bridge_eps[:3]],
+                        confidence=0.5,
+                        supporting_signals=["bridge_surface", "web3", "cross_chain"],
+                        risk_level="high",
+                        requires_validation=True,
+                        novelty_score=0.7,
+                        confidence_score=0.5,
+                        validation_priority="high",
+                    )
+                )
 
         # Check for oracle patterns
         oracle_eps = [
-            ep for ep in web3_endpoints
-            if "oracle" in ep.get("path", "").lower()
-            or "price" in ep.get("path", "").lower()
+            ep
+            for ep in web3_endpoints
+            if "oracle" in ep.get("path", "").lower() or "price" in ep.get("path", "").lower()
         ]
         if oracle_eps:
             key = "web3_oracle"
             if key not in seen:
                 seen.add(key)
-                findings.append(DifferentialFinding(
-                    title="Oracle / price feed endpoints detected",
-                    category="oracle",
-                    description=(
-                        f"{len(oracle_eps)} oracle/price endpoint{'' if len(oracle_eps) == 1 else 's'} found. "
-                        f"Oracle manipulation may affect contract state."
-                    ),
-                    affected_objects=[ep["path"] for ep in oracle_eps[:3]],
-                    confidence=0.5,
-                    supporting_signals=["oracle_surface", "web3", "price_feed"],
-                    risk_level="high",
-                    requires_validation=True,
-                    novelty_score=0.7,
-                    confidence_score=0.5,
-                    validation_priority="high",
-                ))
+                findings.append(
+                    DifferentialFinding(
+                        title="Oracle / price feed endpoints detected",
+                        category="oracle",
+                        description=(
+                            f"{len(oracle_eps)} oracle/price endpoint{'' if len(oracle_eps) == 1 else 's'} found. "
+                            f"Oracle manipulation may affect contract state."
+                        ),
+                        affected_objects=[ep["path"] for ep in oracle_eps[:3]],
+                        confidence=0.5,
+                        supporting_signals=["oracle_surface", "web3", "price_feed"],
+                        risk_level="high",
+                        requires_validation=True,
+                        novelty_score=0.7,
+                        confidence_score=0.5,
+                        validation_priority="high",
+                    )
+                )
 
         return findings
 
@@ -783,65 +839,60 @@ class DifferentialIntelligenceEngine:
         seen_titles: set = set()
 
         # High-novelty findings that haven't been validated
-        high_novelty = [
-            f for f in all_findings
-            if f.novelty_score >= 0.6 and f.risk_level in ("medium", "high")
-        ]
+        high_novelty = [f for f in all_findings if f.novelty_score >= 0.6 and f.risk_level in ("medium", "high")]
         for f in high_novelty[:5]:
             key = f"anomaly_novel:{f.title}"
             if key not in seen_titles:
                 seen_titles.add(key)
-                anomalies.append(DifferentialFinding(
-                    title=f"Anomaly: {f.title}",
-                    category=f.category,
-                    description=(
-                        f"{f.description} This finding has high novelty ({f.novelty_score:.1f}) "
-                        f"and moderate confidence ({f.confidence_score:.1f}) — review recommended."
-                    ),
-                    affected_objects=f.affected_objects,
-                    confidence=f.confidence,
-                    supporting_signals=f.supporting_signals + ["high_novelty"],
-                    risk_level=f.risk_level,
-                    requires_validation=True,
-                    novelty_score=f.novelty_score,
-                    confidence_score=f.confidence_score,
-                    potential_roi=f.potential_roi,
-                    validation_priority=f.validation_priority,
-                ))
+                anomalies.append(
+                    DifferentialFinding(
+                        title=f"Anomaly: {f.title}",
+                        category=f.category,
+                        description=(
+                            f"{f.description} This finding has high novelty ({f.novelty_score:.1f}) "
+                            f"and moderate confidence ({f.confidence_score:.1f}) — review recommended."
+                        ),
+                        affected_objects=f.affected_objects,
+                        confidence=f.confidence,
+                        supporting_signals=f.supporting_signals + ["high_novelty"],
+                        risk_level=f.risk_level,
+                        requires_validation=True,
+                        novelty_score=f.novelty_score,
+                        confidence_score=f.confidence_score,
+                        potential_roi=f.potential_roi,
+                        validation_priority=f.validation_priority,
+                    )
+                )
 
         # Hypothesis-driven anomalies: hypotheses not yet validated
         if hypotheses:
-            unvalidated = [
-                h for h in hypotheses
-                if h.get("priority_score", 0) >= 70
-            ]
+            unvalidated = [h for h in hypotheses if h.get("priority_score", 0) >= 70]
             if unvalidated:
                 total_hv = len(unvalidated)
                 avg_roi = sum(h.get("roi_score", 0) for h in unvalidated) / max(total_hv, 1)
                 key = "anomaly_high_value_hypotheses"
                 if key not in seen_titles:
                     seen_titles.add(key)
-                    types = list({
-                        h.get("vulnerability_type", "unknown")
-                        for h in unvalidated[:10]
-                    })
-                    anomalies.append(DifferentialFinding(
-                        title=f"{total_hv} high-priority hypotheses pending validation",
-                        category="general",
-                        description=(
-                            f"{total_hv} hypotheses scored >=70 priority remain unvalidated "
-                            f"(avg ROI: {avg_roi:.1f}). Types: {', '.join(types[:5])}."
-                        ),
-                        affected_objects=[h.get("id", "") for h in unvalidated[:5]],
-                        confidence=0.7,
-                        supporting_signals=["pending_validation", "high_priority_hypothesis", "unvalidated"],
-                        risk_level="medium",
-                        requires_validation=True,
-                        novelty_score=0.5,
-                        confidence_score=0.7,
-                        potential_roi=avg_roi,
-                        validation_priority="high",
-                    ))
+                    types = list({h.get("vulnerability_type", "unknown") for h in unvalidated[:10]})
+                    anomalies.append(
+                        DifferentialFinding(
+                            title=f"{total_hv} high-priority hypotheses pending validation",
+                            category="general",
+                            description=(
+                                f"{total_hv} hypotheses scored >=70 priority remain unvalidated "
+                                f"(avg ROI: {avg_roi:.1f}). Types: {', '.join(types[:5])}."
+                            ),
+                            affected_objects=[h.get("id", "") for h in unvalidated[:5]],
+                            confidence=0.7,
+                            supporting_signals=["pending_validation", "high_priority_hypothesis", "unvalidated"],
+                            risk_level="medium",
+                            requires_validation=True,
+                            novelty_score=0.5,
+                            confidence_score=0.7,
+                            potential_roi=avg_roi,
+                            validation_priority="high",
+                        )
+                    )
 
         return anomalies
 
@@ -853,18 +904,20 @@ class DifferentialIntelligenceEngine:
             return []
         out = []
         for ep in getattr(snapshot, "endpoints", []):
-            out.append({
-                "path": getattr(ep, "path", "/"),
-                "method": getattr(ep, "method", "GET"),
-                "risk_score": getattr(ep, "risk_score", 0.0),
-                "confidence": getattr(ep, "confidence", 0.0),
-                "labels": list(getattr(ep, "labels", [])),
-                "attack_surface": list(getattr(ep, "attack_surface", [])),
-                "signals": list(getattr(ep, "signals", [])),
-                "vector": getattr(ep, "vector", ""),
-                "potential_idor": getattr(ep, "potential_idor", False),
-                "actionable": getattr(ep, "actionable", False),
-            })
+            out.append(
+                {
+                    "path": getattr(ep, "path", "/"),
+                    "method": getattr(ep, "method", "GET"),
+                    "risk_score": getattr(ep, "risk_score", 0.0),
+                    "confidence": getattr(ep, "confidence", 0.0),
+                    "labels": list(getattr(ep, "labels", [])),
+                    "attack_surface": list(getattr(ep, "attack_surface", [])),
+                    "signals": list(getattr(ep, "signals", [])),
+                    "vector": getattr(ep, "vector", ""),
+                    "potential_idor": getattr(ep, "potential_idor", False),
+                    "actionable": getattr(ep, "actionable", False),
+                }
+            )
         return out
 
     @staticmethod
@@ -872,21 +925,25 @@ class DifferentialIntelligenceEngine:
         out = []
         if investigation_graph is not None:
             for hp in getattr(investigation_graph, "hot_paths", []):
-                out.append({
-                    "nodes": list(getattr(hp, "nodes", [])),
-                    "why_it_matters": getattr(hp, "why_it_matters", ""),
-                    "estimated_reward": getattr(hp, "estimated_reward", "medium"),
-                })
+                out.append(
+                    {
+                        "nodes": list(getattr(hp, "nodes", [])),
+                        "why_it_matters": getattr(hp, "why_it_matters", ""),
+                        "estimated_reward": getattr(hp, "estimated_reward", "medium"),
+                    }
+                )
         if not out and snapshot is not None:
             for hp in getattr(snapshot, "hot_paths", []):
-                out.append({
-                    "node_id": getattr(hp, "node_id", ""),
-                    "path": getattr(hp, "path", ""),
-                    "method": getattr(hp, "method", "GET"),
-                    "risk_score": getattr(hp, "risk_score", 0.0),
-                    "vector": getattr(hp, "vector", ""),
-                    "cluster_type": getattr(hp, "cluster_type", None),
-                })
+                out.append(
+                    {
+                        "node_id": getattr(hp, "node_id", ""),
+                        "path": getattr(hp, "path", ""),
+                        "method": getattr(hp, "method", "GET"),
+                        "risk_score": getattr(hp, "risk_score", 0.0),
+                        "vector": getattr(hp, "vector", ""),
+                        "cluster_type": getattr(hp, "cluster_type", None),
+                    }
+                )
         return out
 
     @staticmethod
@@ -920,8 +977,10 @@ class DifferentialIntelligenceEngine:
     @staticmethod
     def _extract_surface(attack_surface, snapshot) -> dict[str, list[dict[str, Any]]]:
         out: dict[str, list[dict[str, Any]]] = {
-            "idor_clusters": [], "auth_boundaries": [],
-            "multi_tenant_zones": [], "graphql_surfaces": [],
+            "idor_clusters": [],
+            "auth_boundaries": [],
+            "multi_tenant_zones": [],
+            "graphql_surfaces": [],
         }
         if attack_surface is not None:
             for attr in ("idor_clusters", "auth_boundaries", "multi_tenant_zones", "graphql_surfaces"):
@@ -940,8 +999,10 @@ class DifferentialIntelligenceEngine:
         if quick_wins is None:
             return {}
         out = {
-            "top_quick_wins": [], "fast_exploit_paths": [],
-            "low_effort_high_roi": [], "total_estimated_value": 0.0,
+            "top_quick_wins": [],
+            "fast_exploit_paths": [],
+            "low_effort_high_roi": [],
+            "total_estimated_value": 0.0,
         }
         if hasattr(quick_wins, "top_quick_wins"):
             out["top_quick_wins"] = [
@@ -961,13 +1022,15 @@ class DifferentialIntelligenceEngine:
             return []
         out = []
         for h in queue.prioritized() if hasattr(queue, "prioritized") else queue:
-            out.append({
-                "id": getattr(h, "id", ""),
-                "vulnerability_type": getattr(h, "vulnerability_type", "unknown"),
-                "priority_score": getattr(h, "priority_score", 0.0),
-                "roi_score": getattr(h, "roi_score", 0.0),
-                "confidence": getattr(h, "confidence", 0.0),
-            })
+            out.append(
+                {
+                    "id": getattr(h, "id", ""),
+                    "vulnerability_type": getattr(h, "vulnerability_type", "unknown"),
+                    "priority_score": getattr(h, "priority_score", 0.0),
+                    "roi_score": getattr(h, "roi_score", 0.0),
+                    "confidence": getattr(h, "confidence", 0.0),
+                }
+            )
         return out
 
     @staticmethod
@@ -1001,9 +1064,7 @@ class DifferentialIntelligenceEngine:
     def _compute_overall_confidence(findings: list[DifferentialFinding]) -> float:
         if not findings:
             return 0.0
-        return round(
-            sum(f.confidence_score for f in findings) / len(findings), 2
-        )
+        return round(sum(f.confidence_score for f in findings) / len(findings), 2)
 
     @staticmethod
     def _build_summary(
@@ -1021,10 +1082,7 @@ class DifferentialIntelligenceEngine:
             by_cat[f.category] = by_cat.get(f.category, 0) + 1
         top_cats = sorted(by_cat, key=by_cat.__getitem__, reverse=True)[:3]
 
-        high_risk = sum(
-            1 for f in findings + anomalies
-            if f.risk_level in ("high", "critical")
-        )
+        high_risk = sum(1 for f in findings + anomalies if f.risk_level in ("high", "critical"))
 
         parts = [
             f"Target: {target_name}" if target_name else "",

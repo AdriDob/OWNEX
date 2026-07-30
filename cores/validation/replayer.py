@@ -33,9 +33,20 @@ SENSITIVE_PATTERNS: dict[str, str] = {
 }
 
 SENSITIVE_KEYWORDS = [
-    "admin", "superuser", "staff", "moderator", "role",
-    "billing", "invoice", "payment", "subscription",
-    "secret", "token", "password", "apikey", "api_key",
+    "admin",
+    "superuser",
+    "staff",
+    "moderator",
+    "role",
+    "billing",
+    "invoice",
+    "payment",
+    "subscription",
+    "secret",
+    "token",
+    "password",
+    "apikey",
+    "api_key",
 ]
 
 
@@ -99,6 +110,7 @@ class RequestReplayer:
         """If auth failed with 401/403, try to refresh the session."""
         try:
             from cores.target_auth.session_resolver import get_session_resolver
+
             resolver = get_session_resolver()
             if auth.label and auth.label.startswith("identity_"):
                 identity_id = int(auth.label.split("_")[1])
@@ -119,8 +131,11 @@ class RequestReplayer:
         domain = urlparse(request_spec.url).netloc
         if self.is_circuit_open(domain):
             return ResponseRecord(
-                status_code=0, headers={}, body="",
-                body_hash="", elapsed_ms=0,
+                status_code=0,
+                headers={},
+                body="",
+                body_hash="",
+                elapsed_ms=0,
                 error=f"Circuit breaker open for {domain}",
             )
 
@@ -177,14 +192,20 @@ class RequestReplayer:
         except requests.exceptions.Timeout:
             self._trip_circuit(domain)
             return ResponseRecord(
-                status_code=0, headers={}, body="",
-                body_hash="", elapsed_ms=int((time.monotonic() - start) * 1000),
+                status_code=0,
+                headers={},
+                body="",
+                body_hash="",
+                elapsed_ms=int((time.monotonic() - start) * 1000),
                 error="timeout",
             )
         except requests.exceptions.RequestException as e:
             return ResponseRecord(
-                status_code=0, headers={}, body="",
-                body_hash="", elapsed_ms=int((time.monotonic() - start) * 1000),
+                status_code=0,
+                headers={},
+                body="",
+                body_hash="",
+                elapsed_ms=int((time.monotonic() - start) * 1000),
                 error=str(e)[:200],
             )
 
@@ -204,10 +225,12 @@ class RequestReplayer:
         results: list[ComparisonResult] = []
         domain = urlparse(request_spec.url).netloc
         endpoint_pattern = self._infer_endpoint_pattern(request_spec.url)
-        max_retries = self._retry_strategy.max_retries_for_endpoint({
-            "path": request_spec.url,
-            "method": request_spec.method,
-        })
+        max_retries = self._retry_strategy.max_retries_for_endpoint(
+            {
+                "path": request_spec.url,
+                "method": request_spec.method,
+            }
+        )
 
         actual_max_attempts = max(min_attempts, max_retries)
         attempt = 1
@@ -309,9 +332,7 @@ class RequestReplayer:
     def _trip_circuit(self, domain: str) -> None:
         self._circuit_breakers[domain] = time.monotonic()
 
-    def _compare(
-        self, attempt: int, baseline: ResponseRecord, probe: ResponseRecord
-    ) -> ComparisonResult:
+    def _compare(self, attempt: int, baseline: ResponseRecord, probe: ResponseRecord) -> ComparisonResult:
         status_match = baseline.status_code == probe.status_code
 
         body_diff_ratio = 0.0
@@ -330,10 +351,7 @@ class RequestReplayer:
 
         sensitive_fields_detected = self._detect_sensitive_fields(probe.body)
 
-        has_rate_limit = (
-            probe.status_code == 429
-            or any(k.lower() == "retry-after" for k in probe.headers)
-        )
+        has_rate_limit = probe.status_code == 429 or any(k.lower() == "retry-after" for k in probe.headers)
         has_timeout = probe.error == "timeout" or baseline.error == "timeout"
 
         return ComparisonResult(

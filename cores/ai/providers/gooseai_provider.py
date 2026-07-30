@@ -102,25 +102,26 @@ class GooseAIProvider(OpenAICompatibleProvider):
                 "HTTP-Referer": "OWNEX-CORTEY",
                 "X-Title": "OWNEX Autonomous Work System",
             }
-            with httpx.Client(timeout=120) as client, client.stream(
-                "POST", f"{self.base_url}/chat/completions", json=payload, headers=headers
-            ) as resp:
-                    if resp.status_code != 200:
-                        logger.warning(f"GooseAI stream error: {resp.status_code}")
-                        return
+            with (
+                httpx.Client(timeout=120) as client,
+                client.stream("POST", f"{self.base_url}/chat/completions", json=payload, headers=headers) as resp,
+            ):
+                if resp.status_code != 200:
+                    logger.warning(f"GooseAI stream error: {resp.status_code}")
+                    return
 
-                    for line in resp.iter_lines():
-                        if not line.strip() or line.startswith(":"):
+                for line in resp.iter_lines():
+                    if not line.strip() or line.startswith(":"):
+                        continue
+                    if line.strip() == "data: [DONE]":
+                        continue
+                    if line.startswith("data: "):
+                        try:
+                            data = json.loads(line[6:])
+                            delta = data.get("choices", [{}])[0].get("delta", {})
+                            if content := delta.get("content"):
+                                yield content
+                        except Exception:
                             continue
-                        if line.strip() == "data: [DONE]":
-                            continue
-                        if line.startswith("data: "):
-                            try:
-                                data = json.loads(line[6:])
-                                delta = data.get("choices", [{}])[0].get("delta", {})
-                                if content := delta.get("content"):
-                                    yield content
-                            except Exception:
-                                continue
         except Exception as e:
             logger.warning(f"GooseAI stream failed: {e}")

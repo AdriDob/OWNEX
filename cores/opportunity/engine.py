@@ -81,15 +81,19 @@ class OpportunityEngine:
         if scored:
             try:
                 from cores.events.event_bus import get_event_bus
+
                 bus = get_event_bus()
                 for opp in scored[:5]:
-                    bus.publish("opportunity:found", {
-                        "id": opp.id,
-                        "name": opp.name,
-                        "source": opp.source.name if opp.source else "unknown",
-                        "payout": opp.estimated_payout,
-                        "priority": opp.priority or "medium",
-                    })
+                    bus.publish(
+                        "opportunity:found",
+                        {
+                            "id": opp.id,
+                            "name": opp.name,
+                            "source": opp.source.name if opp.source else "unknown",
+                            "payout": opp.estimated_payout,
+                            "priority": opp.priority or "medium",
+                        },
+                    )
             except Exception:
                 logger.debug("EventBus not available for opportunity events")
 
@@ -106,13 +110,22 @@ class OpportunityEngine:
                         s = compute_layered_score(r)
                         priority = _score_to_priority(s.overall)
                         r_with_score = Opportunity(
-                            id=r.id, name=r.name, source=r.source,
-                            category=r.category, subcategory=r.subcategory,
-                            public_url=r.public_url, scope_summary=r.scope_summary,
-                            reward_info=r.reward_info, technology_tags=r.technology_tags,
-                            last_update=r.last_update, confidence=r.confidence,
-                            metadata=r.metadata, score=s, priority=priority,
-                            created_at=r.created_at, estimated_payout=r.estimated_payout,
+                            id=r.id,
+                            name=r.name,
+                            source=r.source,
+                            category=r.category,
+                            subcategory=r.subcategory,
+                            public_url=r.public_url,
+                            scope_summary=r.scope_summary,
+                            reward_info=r.reward_info,
+                            technology_tags=r.technology_tags,
+                            last_update=r.last_update,
+                            confidence=r.confidence,
+                            metadata=r.metadata,
+                            score=s,
+                            priority=priority,
+                            created_at=r.created_at,
+                            estimated_payout=r.estimated_payout,
                             estimated_effort_hours=r.estimated_effort_hours,
                             has_rewards=r.has_rewards,
                         )
@@ -120,9 +133,12 @@ class OpportunityEngine:
                         updated.append(r_with_score)
                     info = provider.info()
                     self._provider_info[provider.name] = OpportunityProviderInfo(
-                        name=info.name, category=info.category, active=True,
+                        name=info.name,
+                        category=info.category,
+                        active=True,
                         opportunity_count=info.opportunity_count,
-                        last_refresh=info.last_refresh, health_status="healthy",
+                        last_refresh=info.last_refresh,
+                        health_status="healthy",
                     )
                 except Exception as exc:
                     logger.warning("Provider %s refresh failed: %s", provider.name, exc)
@@ -139,14 +155,18 @@ class OpportunityEngine:
         if updated:
             try:
                 from cores.events.event_bus import get_event_bus
+
                 bus = get_event_bus()
                 for opp in updated:
-                    bus.publish("opportunity:updated", {
-                        "id": opp.id,
-                        "name": opp.name,
-                        "source": opp.source.name if opp.source else "unknown",
-                        "priority": opp.priority or "medium",
-                    })
+                    bus.publish(
+                        "opportunity:updated",
+                        {
+                            "id": opp.id,
+                            "name": opp.name,
+                            "source": opp.source.name if opp.source else "unknown",
+                            "priority": opp.priority or "medium",
+                        },
+                    )
             except Exception:
                 logger.debug("EventBus not available for opportunity refresh events")
 
@@ -159,17 +179,28 @@ class OpportunityEngine:
                 try:
                     s = compute_layered_score(opp)
                     priority = _score_to_priority(s.overall)
-                    scored.append(Opportunity(
-                        id=opp.id, name=opp.name, source=opp.source,
-                        category=opp.category, subcategory=opp.subcategory,
-                        public_url=opp.public_url, scope_summary=opp.scope_summary,
-                        reward_info=opp.reward_info, technology_tags=opp.technology_tags,
-                        last_update=opp.last_update, confidence=opp.confidence,
-                        metadata=opp.metadata, score=s, priority=priority,
-                        created_at=opp.created_at, estimated_payout=opp.estimated_payout,
-                        estimated_effort_hours=opp.estimated_effort_hours,
-                        has_rewards=opp.has_rewards,
-                    ))
+                    scored.append(
+                        Opportunity(
+                            id=opp.id,
+                            name=opp.name,
+                            source=opp.source,
+                            category=opp.category,
+                            subcategory=opp.subcategory,
+                            public_url=opp.public_url,
+                            scope_summary=opp.scope_summary,
+                            reward_info=opp.reward_info,
+                            technology_tags=opp.technology_tags,
+                            last_update=opp.last_update,
+                            confidence=opp.confidence,
+                            metadata=opp.metadata,
+                            score=s,
+                            priority=priority,
+                            created_at=opp.created_at,
+                            estimated_payout=opp.estimated_payout,
+                            estimated_effort_hours=opp.estimated_effort_hours,
+                            has_rewards=opp.has_rewards,
+                        )
+                    )
                 except Exception as exc:
                     logger.warning("Scoring failed for %s: %s", opp.id, exc)
                     scored.append(opp)
@@ -252,7 +283,9 @@ class OpportunityEngine:
     def get_metrics(self) -> dict[str, Any]:
         all_opps = self.get_all()
         scored = [o for o in all_opps if o.score is not None]
-        avg_score: float = sum(s.score.overall for s in scored if s.score is not None) / max(len(scored), 1) if scored else 0.0
+        avg_score: float = (
+            sum(s.score.overall for s in scored if s.score is not None) / max(len(scored), 1) if scored else 0.0
+        )
 
         evh_rankings = self.get_evh_rankings(10)
         evh_top_avg = 0.0
@@ -279,9 +312,7 @@ class OpportunityEngine:
             },
             "by_category": by_category,
             "evh_distribution": self.get_evh_summary(),
-            "providers_health": {
-                p.name: p.health_status for p in self._provider_info.values()
-            },
+            "providers_health": {p.name: p.health_status for p in self._provider_info.values()},
         }
 
     # ── History ──────────────────────────────────────────────────────

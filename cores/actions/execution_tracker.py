@@ -79,7 +79,7 @@ class ExecutionTracker:
         )
         self._records.append(record)
         if len(self._records) > self.BUFFER_SIZE:
-            self._records = self._records[-self.BUFFER_SIZE:]
+            self._records = self._records[-self.BUFFER_SIZE :]
 
         self._update_type_stats(action_type, outcome_score, duration_ms, status)
 
@@ -104,8 +104,12 @@ class ExecutionTracker:
     def _update_type_stats(self, action_type: str, outcome_score: float, duration_ms: float, status: str) -> None:
         if action_type not in self._type_stats:
             self._type_stats[action_type] = {
-                "count": 0, "total_score": 0.0, "total_duration": 0.0,
-                "errors": 0, "avg_score": 0.0, "avg_duration": 0.0,
+                "count": 0,
+                "total_score": 0.0,
+                "total_duration": 0.0,
+                "errors": 0,
+                "avg_score": 0.0,
+                "avg_duration": 0.0,
             }
         stats = self._type_stats[action_type]
         stats["count"] += 1
@@ -119,6 +123,7 @@ class ExecutionTracker:
     def _archive_to_memory(self, record: ExecutionRecord) -> None:
         try:
             from cores.memory.decision_memory import Decision, get_decision_memory
+
             memory = get_decision_memory()
             decision = Decision(
                 id=f"exec-{record.action_id}-{int(record.timestamp)}",
@@ -148,10 +153,15 @@ class ExecutionTracker:
         }
 
     def get_type_stats(self, action_type: str) -> dict[str, float]:
-        return self._type_stats.get(action_type, {
-            "count": 0, "avg_score": 0.0, "avg_duration": 0.0,
-            "errors": 0,
-        })
+        return self._type_stats.get(
+            action_type,
+            {
+                "count": 0,
+                "avg_score": 0.0,
+                "avg_duration": 0.0,
+                "errors": 0,
+            },
+        )
 
     def clear(self) -> None:
         self._records.clear()

@@ -78,9 +78,7 @@ HIGH_VALUE_KEYWORDS = {
     "tenant",
 }
 
-UUID_PATTERN = re.compile(
-    r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-)
+UUID_PATTERN = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
 
 NUMERIC_PATTERN = re.compile(r"/(?:[0-9]+)(?:/|$)")
 
@@ -166,11 +164,7 @@ class EndpointParser:
             if "?" in raw:
                 return raw.split("?", 1)[0]
 
-            parsed = (
-                urlparse(f"http://{raw}")
-                if not raw.startswith(("http", "/"))
-                else urlparse(raw)
-            )
+            parsed = urlparse(f"http://{raw}") if not raw.startswith(("http", "/")) else urlparse(raw)
 
             return parsed.path or "/"
 
@@ -254,11 +248,7 @@ class EndpointParser:
 
         score = int(unified_score(path, "GET", {})["risk_score"])
 
-        parsed = (
-            urlparse(url)
-            if url.startswith("http")
-            else urlparse("http://example.com" + path)
-        )
+        parsed = urlparse(url) if url.startswith("http") else urlparse("http://example.com" + path)
 
         return EndpointMetadata(
             raw=url,

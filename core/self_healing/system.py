@@ -2,21 +2,23 @@
 Core self-healing system for Rastro.
 Validates imports, file integrity, and automated repairs for broken components.
 """
-import ast
-import importlib
-import logging
-import sys
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
 
-from cores.events.event_bus import get_event_bus
+import ast
+import logging
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
 class ImportValidationError(Exception):
     """Raised when an import cannot be validated."""
 
+
 class SelfHealingError(Exception):
     """Raised when self-healing operations fail."""
+
+
 class ImportValidator:
     """Validates Python imports for syntax errors and missing dependencies."""
 
@@ -24,13 +26,13 @@ class ImportValidator:
         self.project_root = project_root
         self.errors_found = []
 
-    def validate_import(self, file_path: Path) -> List[str]:
+    def validate_import(self, file_path: Path) -> list[str]:
         """Validate a Python file for import issues."""
         errors = []
 
         try:
             # Parse the file with AST
-            content = file_path.read_text(encoding='utf-8')
+            content = file_path.read_text(encoding="utf-8")
             tree = ast.parse(content, str(file_path))
 
             # Check for obvious syntax errors that the parser would catch
@@ -38,14 +40,10 @@ class ImportValidator:
                 if isinstance(node, ast.Import):
                     for alias in node.names:
                         if not self._validate_import_name(alias.name):
-                            errors.append(
-                                f"Invalid import name '{alias.name}' in {file_path}"
-                            )
+                            errors.append(f"Invalid import name '{alias.name}' in {file_path}")
                 elif isinstance(node, ast.ImportFrom):
                     if node.module and not self._validate_import_name(node.module):
-                        errors.append(
-                            f"Invalid module '{node.module}' in {file_path}"
-                        )
+                        errors.append(f"Invalid module '{node.module}' in {file_path}")
 
         except SyntaxError as e:
             errors.append(f"Syntax error in {file_path}: {e}")
@@ -63,17 +61,18 @@ class ImportValidator:
 
             # Basic validation - names should contain valid identifier characters
             import re
+
             # Component names can contain dots but not start/end with them
             components = name.split(".")
             for component in components:
-                if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', component):
+                if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", component):
                     return False
 
             return True
         except Exception:
             return False
 
-    def scan_project_for_imports(self) -> Dict[str, List[str]]:
+    def scan_project_for_imports(self) -> dict[str, list[str]]:
         """Scan entire project for Python files and validate their imports."""
         import_results = {}
         py_files = self.project_root.rglob("*.py")
@@ -109,7 +108,7 @@ class ImportValidator:
             # Try to fix basic import issues
             try:
                 file_path = Path(file_path_str)
-                content = file_path.read_text(encoding='utf-8')
+                content = file_path.read_text(encoding="utf-8")
                 original_content = content
 
                 # Basic cleanup - remove problematic imports
@@ -120,7 +119,7 @@ class ImportValidator:
                         content = self._clean_syntax_errors(content)
 
                 if content != original_content:
-                    file_path.write_text(content, encoding='utf-8')
+                    file_path.write_text(content, encoding="utf-8")
                     fixed_count += 1
                     logger.info("Fixed import issues in: %s", file_path_str)
 
@@ -134,31 +133,31 @@ class ImportValidator:
 
     def _clean_import_name_errors(self, content: str) -> str:
         """Remove invalid import names from content."""
-        lines = content.split('\n')
+        lines = content.split("\n")
         cleaned_lines = []
 
         for line in lines:
-            if 'import' in line and not self._validate_line_import(line):
+            if "import" in line and not self._validate_line_import(line):
                 # Skip problematic import lines
                 continue
             cleaned_lines.append(line)
 
-        return '\n'.join(cleaned_lines)
+        return "\n".join(cleaned_lines)
 
     def _validate_line_import(self, line: str) -> bool:
         """Validate a single import line."""
         try:
             # Extract import statement
             stripped = line.strip()
-            if not stripped.startswith('import ') and not stripped.startswith('from '):
+            if not stripped.startswith("import ") and not stripped.startswith("from "):
                 return True
 
             # Simple validation - could be enhanced
-            if 'import' in stripped and 'import from' not in stripped:
-                parts = stripped.split(' import ')
+            if "import" in stripped and "import from" not in stripped:
+                parts = stripped.split(" import ")
                 if len(parts) == 2:
                     module = parts[1].strip()
-                    return bool(module.replace('.', '').replace('_', '').replace('-', ''))
+                    return bool(module.replace(".", "").replace("_", "").replace("-", ""))
 
             return True
         except Exception:
@@ -167,7 +166,7 @@ class ImportValidator:
     def _clean_syntax_errors(self, content: str) -> str:
         """Attempt to clean up basic syntax errors."""
         # Remove incomplete lines or obvious syntax issues
-        lines = content.split('\n')
+        lines = content.split("\n")
         cleaned_lines = []
 
         for line in lines:
@@ -182,9 +181,9 @@ class ImportValidator:
 
             cleaned_lines.append(line)
 
-        return '\n'.join(cleaned_lines)
+        return "\n".join(cleaned_lines)
 
-    def process_imports(self, import_results: Dict[str, List[str]]) -> None:
+    def process_imports(self, import_results: dict[str, list[str]]) -> None:
         """Process import validation results."""
         self.import_results = import_results
 
@@ -202,7 +201,7 @@ class FileIntegrityChecker:
         self.project_root = project_root
         self.issues_found = []
 
-    def validate_file_structure(self) -> Dict[str, Dict[str, Any]]:
+    def validate_file_structure(self) -> dict[str, dict[str, Any]]:
         """Validate project file structure."""
         results = {}
 
@@ -212,18 +211,18 @@ class FileIntegrityChecker:
                 results[expected_dir] = {
                     "exists": True,
                     "type": "directory",
-                    "issues": self._check_directory_integrity(dir_path)
+                    "issues": self._check_directory_integrity(dir_path),
                 }
             else:
                 results[expected_dir] = {
                     "exists": False,
                     "type": "missing",
-                    "issues": [f"Required directory {expected_dir} not found"]
+                    "issues": [f"Required directory {expected_dir} not found"],
                 }
 
         return results
 
-    def _check_directory_integrity(self, dir_path: Path) -> List[str]:
+    def _check_directory_integrity(self, dir_path: Path) -> list[str]:
         """Check for integrity issues in a directory."""
         issues = []
 
@@ -235,7 +234,7 @@ class FileIntegrityChecker:
                 if item.is_file() and item.suffix == ".py":
                     # Validate Python files
                     try:
-                        content = item.read_text(encoding='utf-8')
+                        content = item.read_text(encoding="utf-8")
                         ast.parse(content, str(item))
                     except SyntaxError as e:
                         issues.append(f"Invalid syntax in {item.name}: {e}")
@@ -252,7 +251,7 @@ class FileIntegrityChecker:
 
         return issues
 
-    def auto_fix_issues(self, results: Dict[str, Dict[str, Any]]) -> int:
+    def auto_fix_issues(self, results: dict[str, dict[str, Any]]) -> int:
         """Attempt to fix file integrity issues."""
         fixed_count = 0
 
@@ -279,7 +278,7 @@ class FileIntegrityChecker:
                     # Try to create a basic valid structure
                     content = self._create_basic_file_content(file_path)
                     if content:
-                        file_path.write_text(content, encoding='utf-8')
+                        file_path.write_text(content, encoding="utf-8")
                         logger.info("Fixed corrupted file: %s", file_path)
                         return True
         except Exception as e:
@@ -287,7 +286,7 @@ class FileIntegrityChecker:
 
         return False
 
-    def _create_basic_file_content(self, file_path: Path) -> Optional[str]:
+    def _create_basic_file_content(self, file_path: Path) -> str | None:
         """Create basic valid content for a file."""
         try:
             if "routers" in str(file_path):
@@ -326,7 +325,7 @@ class StateValidator:
         self.project_root = project_root
         self.state_issues = []
 
-    def validate_startup_config(self) -> Dict[str, Any]:
+    def validate_startup_config(self) -> dict[str, Any]:
         """Validate startup configuration."""
         issues = []
 
@@ -346,10 +345,10 @@ class StateValidator:
         for config_file in essential_files:
             if config_file.exists():
                 try:
-                    if config_file.suffix == '.toml':
-                        content = config_file.read_text(encoding='utf-8')
+                    if config_file.suffix == ".toml":
+                        content = config_file.read_text(encoding="utf-8")
                         # Basic validation for TOML
-                        if content.count('[') != content.count(']'):
+                        if content.count("[") != content.count("]"):
                             issues.append(f"Potential corruption in {config_file.name}: bracket mismatch")
                 except Exception as e:
                     issues.append(f"Error reading {config_file.name}: {e}")
@@ -357,10 +356,10 @@ class StateValidator:
         return {
             "status": "healthy" if not issues else "issues_found",
             "issues": issues,
-            "checked_files": len(essential_files)
+            "checked_files": len(essential_files),
         }
 
-    def auto_fix_state_issues(self, results: Dict[str, Any]) -> bool:
+    def auto_fix_state_issues(self, results: dict[str, Any]) -> bool:
         """Attempt to fix state validation issues."""
         issues = results.get("issues", [])
         if not issues:
@@ -397,7 +396,7 @@ SECRET_KEY=your-secret-key-here
 CORS_ORIGINS=http://localhost:3000
 DEBUG=true
 """
-                (self.project_root / ".env.example").write_text(env_content, encoding='utf-8')
+                (self.project_root / ".env.example").write_text(env_content, encoding="utf-8")
                 logger.info("Created .env.example file")
 
             elif "requirements.txt" in issue:
@@ -407,7 +406,7 @@ sqlalchemy==2.0.23
 pydantic==2.5.1
 python-multipart==0.0.14
 """
-                (self.project_root / "requirements.txt").write_text(req_content, encoding='utf-8')
+                (self.project_root / "requirements.txt").write_text(req_content, encoding="utf-8")
                 logger.info("Created requirements.txt file")
 
         except Exception as e:
@@ -431,7 +430,7 @@ uvicorn = "^0.24.0"
 sqlalchemy = "^2.0.23"
 pydantic = "^2.5.1"
 """
-                    config_file.write_text(config_content, encoding='utf-8')
+                    config_file.write_text(config_content, encoding="utf-8")
                     logger.info("Restored corrupted config file: %s", config_file.name)
                     break
 
@@ -450,7 +449,7 @@ class SelfHealingSystem:
         self.repairs_performed = []
         self.health_status = "healthy"
 
-    def validate_system(self) -> Dict[str, Any]:
+    def validate_system(self) -> dict[str, Any]:
         """Run complete system validation."""
         logger.info("Starting system validation")
 
@@ -460,14 +459,14 @@ class SelfHealingSystem:
             "state_validation": {},
             "overall_status": "healthy",
             "repairs_attempted": 0,
-            "repairs_successful": 0
+            "repairs_successful": 0,
         }
 
         # Validate imports
         import_results = self.import_validator.scan_project_for_imports()
         validation_results["import_validation"] = {
             "status": "healthy" if not self.import_validator.errors_found else "issues_found",
-            "errors_count": len(self.import_validator.errors_found)
+            "errors_count": len(self.import_validator.errors_found),
         }
         self.import_validator.process_imports(import_results)
         validation_results["repairs_attempted"] += 1 if self.import_validator.fix_import_issues() else 0
@@ -475,14 +474,12 @@ class SelfHealingSystem:
         # Validate file integrity
         file_integrity_results = self.file_integrity_checker.validate_file_structure()
         validation_results["file_integrity"] = {
-            "status": "healthy" if all(
-                not dir_info["issues"] for dir_info in file_integrity_results.values()
-            ) else "issues_found",
-            "directories": file_integrity_results
+            "status": "healthy"
+            if all(not dir_info["issues"] for dir_info in file_integrity_results.values())
+            else "issues_found",
+            "directories": file_integrity_results,
         }
-        validation_results["repairs_attempted"] += self.file_integrity_checker.auto_fix_issues(
-            file_integrity_results
-        )
+        validation_results["repairs_attempted"] += self.file_integrity_checker.auto_fix_issues(file_integrity_results)
 
         # Validate system state
         state_results = self.state_validator.validate_startup_config()
@@ -491,9 +488,9 @@ class SelfHealingSystem:
 
         # Determine overall status
         if (
-            validation_results["import_validation"]["status"] == "healthy" and
-            validation_results["file_integrity"]["status"] == "healthy" and
-            validation_results["state_validation"]["status"] == "healthy"
+            validation_results["import_validation"]["status"] == "healthy"
+            and validation_results["file_integrity"]["status"] == "healthy"
+            and validation_results["state_validation"]["status"] == "healthy"
         ):
             self.health_status = "healthy"
             validation_results["overall_status"] = "healthy"
@@ -508,7 +505,7 @@ class SelfHealingSystem:
 
         return validation_results
 
-    def _emit_health_event(self, results: Dict[str, Any]):
+    def _emit_health_event(self, results: dict[str, Any]):
         """Emit a health event to the event bus."""
         try:
             from cores.events.event_bus import get_event_bus
@@ -530,7 +527,7 @@ class SelfHealingSystem:
         """Get current system health status."""
         return self.health_status
 
-    def get_repairs_summary(self) -> List[str]:
+    def get_repairs_summary(self) -> list[str]:
         """Get summary of repairs performed."""
         return self.repairs_performed.copy()
 

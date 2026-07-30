@@ -236,7 +236,6 @@ async def backup_vault() -> dict[str, Any]:
     backup_path = backup_dir / f"credentials_{timestamp}.json"
     backup_path.write_text(json.dumps(snapshot, indent=2))
 
-
     return {
         "success": True,
         "path": str(backup_path),

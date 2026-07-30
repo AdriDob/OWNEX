@@ -44,9 +44,7 @@ class RetryConfig:
         ConnectionAbortedError,
         RetryableError,
     )
-    non_retryable_exceptions: tuple[type[Exception], ...] = (
-        NonRetryableError,
-    )
+    non_retryable_exceptions: tuple[type[Exception], ...] = (NonRetryableError,)
 
 
 def classify_error(exc: Exception, config: RetryConfig | None = None) -> bool:
@@ -58,7 +56,7 @@ def classify_error(exc: Exception, config: RetryConfig | None = None) -> bool:
 
 
 def _backoff_delay(attempt: int, config: RetryConfig) -> float:
-    delay = min(config.base_delay * (2 ** attempt), config.max_delay)
+    delay = min(config.base_delay * (2**attempt), config.max_delay)
     jitter = random.uniform(0, config.jitter * delay)
     return delay + jitter
 
@@ -91,7 +89,10 @@ async def retry_async(
                 delay = _backoff_delay(attempt - 1, cfg)
                 logger.info(
                     "[RETRY] attempt %d/%d for %s — waiting %.2fs",
-                    attempt, cfg.max_retries, getattr(fn, "__name__", str(fn)), delay,
+                    attempt,
+                    cfg.max_retries,
+                    getattr(fn, "__name__", str(fn)),
+                    delay,
                 )
                 await asyncio.sleep(delay)
 
@@ -113,12 +114,17 @@ async def retry_async(
             if attempt < cfg.max_retries:
                 logger.warning(
                     "[RETRY] attempt %d/%d failed for %s: %s",
-                    attempt + 1, cfg.max_retries, getattr(fn, "__name__", str(fn)), exc,
+                    attempt + 1,
+                    cfg.max_retries,
+                    getattr(fn, "__name__", str(fn)),
+                    exc,
                 )
             else:
                 logger.error(
                     "[RETRY] all %d attempts failed for %s: %s",
-                    cfg.max_retries + 1, getattr(fn, "__name__", str(fn)), exc,
+                    cfg.max_retries + 1,
+                    getattr(fn, "__name__", str(fn)),
+                    exc,
                 )
 
     assert last_exc is not None

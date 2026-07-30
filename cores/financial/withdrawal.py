@@ -114,10 +114,7 @@ class WithdrawalEntry:
 
     @property
     def is_reorg_safe(self) -> bool:
-        return (
-            self.confirmations >= self.confirmations_required
-            and self.reorg_risk == 0.0
-        )
+        return self.confirmations >= self.confirmations_required and self.reorg_risk == 0.0
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -147,10 +144,7 @@ class WithdrawalEntry:
             "completed_at": self.completed_at,
             "updated_at": self.updated_at,
             "error": self.error,
-            "proof": [
-                {"type": p.type, "value": p.value[:40], "timestamp": p.timestamp}
-                for p in self.proof
-            ],
+            "proof": [{"type": p.type, "value": p.value[:40], "timestamp": p.timestamp} for p in self.proof],
         }
 
 
@@ -190,6 +184,7 @@ def _compute_confidence(
 
 def _get_crypto_sync_manager():
     from cores.crypto.sync_manager import get_crypto_sync_manager
+
     return get_crypto_sync_manager()
 
 
@@ -269,7 +264,10 @@ def create_withdrawal(
 
     logger.info(
         "Withdrawal initiated: %s — %.2f %s from %s",
-        wid[:8], amount, currency, platform,
+        wid[:8],
+        amount,
+        currency,
+        platform,
     )
     return w
 
@@ -312,11 +310,14 @@ def complete_withdrawal(
         return None
 
     if confirmation == ConfirmationMethod.REORG_SAFE and w.chain and w.tx_hash and not w.is_reorg_safe:
-            logger.warning(
-                "Cannot complete via reorg_safe: %s — only %d/%d confirmations, risk=%.2f",
-                withdrawal_id[:8], w.confirmations, w.confirmations_required, w.reorg_risk,
-            )
-            return None
+        logger.warning(
+            "Cannot complete via reorg_safe: %s — only %d/%d confirmations, risk=%.2f",
+            withdrawal_id[:8],
+            w.confirmations,
+            w.confirmations_required,
+            w.reorg_risk,
+        )
+        return None
 
     now = datetime.now(UTC).isoformat()
     w.status = WithdrawalStatus.COMPLETED
@@ -442,9 +443,7 @@ def get_summary() -> dict[str, Any]:
         "completed_count": completed_count,
         "failed_count": failed_count,
         "total_withdrawals": len(_WITHDRAWALS),
-        "completion_rate": round(
-            completed_count / max(len(_WITHDRAWALS), 1) * 100, 1
-        ),
+        "completion_rate": round(completed_count / max(len(_WITHDRAWALS), 1) * 100, 1),
     }
 
 
@@ -534,7 +533,7 @@ def update_confirmations(wallet_id: str) -> int:
 
             w.confirmations = wi.confirmations
             w.confirmations_required = wi.confirmations_required
-            w.block_number = wi.block_number if hasattr(wi, 'block_number') else w.block_number
+            w.block_number = wi.block_number if hasattr(wi, "block_number") else w.block_number
             w.last_checked_block = w.confirmations
             w.updated_at = datetime.now(UTC).isoformat()
 
@@ -585,7 +584,9 @@ def detect_reorg(wallet_id: str) -> list[str]:
                 affected.append(wi.tx_hash)
                 logger.warning(
                     "Reorg detected for tx %s — confirmations dropped from %d to %d",
-                    wi.tx_hash[:16], prev_confirmations, wi.confirmations,
+                    wi.tx_hash[:16],
+                    prev_confirmations,
+                    wi.confirmations,
                 )
             else:
                 pass

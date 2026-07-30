@@ -64,7 +64,7 @@ class HealthScoringSystem:
         score = compute_health_score(metrics)
         self._snapshots.append({"score": score, **metrics})
         if len(self._snapshots) > self._window_size:
-            self._snapshots[:] = self._snapshots[-self._window_size:]
+            self._snapshots[:] = self._snapshots[-self._window_size :]
         return score
 
     def current_score(self) -> float:

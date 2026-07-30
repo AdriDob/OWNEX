@@ -51,6 +51,7 @@ def _resolve_auth(
     """
     if identity_id is not None:
         from cores.target_auth.session_resolver import get_session_resolver
+
         ctx = get_session_resolver().resolve(identity_id)
         if ctx:
             ctx["label"] = fallback_label
@@ -71,11 +72,7 @@ def validate_and_report(request: ValidateHotPathRequest):
 
     session = db.SessionLocal()
     try:
-        endpoint = (
-            session.query(models.Endpoint)
-            .filter(models.Endpoint.id == request.endpoint_id)
-            .first()
-        )
+        endpoint = session.query(models.Endpoint).filter(models.Endpoint.id == request.endpoint_id).first()
         if not endpoint:
             raise HTTPException(status_code=404, detail="Endpoint not found")
 
@@ -94,7 +91,8 @@ def validate_and_report(request: ValidateHotPathRequest):
                     mutations = llm_mutations
                     logger.info(
                         "LLM mutation plan: %s -> %s",
-                        attack_vector, json.dumps(mutations)[:200],
+                        attack_vector,
+                        json.dumps(mutations)[:200],
                     )
             except Exception as e:
                 logger.warning("LLM mutation planning failed, using defaults: %s", e)
@@ -187,6 +185,7 @@ def validate_and_report(request: ValidateHotPathRequest):
         report_id = None
         if verdict.status == "confirmed" and verdict.confidence >= 0.6:
             from cores.pipeline.stages import PipelineContext
+
             ctx = PipelineContext(
                 hot_path_id=request.hot_path_id,
                 endpoint_id=request.endpoint_id,
@@ -244,6 +243,7 @@ def batch_validate(request: BatchValidateRequest):
     from cores.validation.replayer import AuthContext
     from cores.validation.verdict_handler import VerdictHandler
     from database import db, models
+
     logger = logging.getLogger("ownex.api.validation.batch")
     session_db = db.SessionLocal()
 
@@ -307,15 +307,19 @@ def batch_validate(request: BatchValidateRequest):
             )
 
             verdict_handler = VerdictHandler(session=session_db)
-            saved_verdict = verdict_handler.process_verdict(verdict, endpoint_id=ep.id, target_id=0, evidence_records=[])
+            saved_verdict = verdict_handler.process_verdict(
+                verdict, endpoint_id=ep.id, target_id=0, evidence_records=[]
+            )
 
-            results.append({
-                "endpoint_id": ep.id,
-                "path": ep.path,
-                "method": ep.method,
-                "risk_score": risk_score,
-                "verdict": saved_verdict,
-            })
+            results.append(
+                {
+                    "endpoint_id": ep.id,
+                    "path": ep.path,
+                    "method": ep.method,
+                    "risk_score": risk_score,
+                    "verdict": saved_verdict,
+                }
+            )
 
         return {"results": results, "total": len(results)}
 
@@ -346,6 +350,7 @@ def record_verification(request: RecordVerificationRequest):
 
     from cores.intelligence.learning_loop import FeedbackEvent, get_learning_loop
     from cores.validation.llm_analyzer import FeedbackLearner
+
     logger = logging.getLogger("ownex.api.validation.record")
 
     valid_results = {"confirmed", "rejected", "inconclusive"}
@@ -385,7 +390,9 @@ def record_verification(request: RecordVerificationRequest):
                     for ins in insights:
                         logger.info(
                             "Feedback insight: %s (conf_adj=%.2f, sources=%d)",
-                            ins.pattern[:80], ins.confidence_adjustment, ins.source_count,
+                            ins.pattern[:80],
+                            ins.confidence_adjustment,
+                            ins.source_count,
                         )
             except Exception as e:
                 logger.warning("Feedback analysis failed: %s", e)

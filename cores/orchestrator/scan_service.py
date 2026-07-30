@@ -27,9 +27,7 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
 
     mode = (target_mode or "FAST").upper()
     if mode not in {"FAST", "DEEP", "API"}:
-        raise HTTPException(
-            status_code=400, detail=f"Invalid mode: {mode}. Use FAST, DEEP, or API"
-        )
+        raise HTTPException(status_code=400, detail=f"Invalid mode: {mode}. Use FAST, DEEP, or API")
 
     # Verify recon tools are available
     logger.info(f"Verifying recon tools for mode {mode}...")
@@ -37,14 +35,10 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
     is_compatible, reason = validate_mode_compatibility(mode, tool_status)
     if not is_compatible:
         logger.error(f"Recon tools incompatible: {reason}")
-        raise HTTPException(
-            status_code=412, detail=f"Recon tools not available: {reason}"
-        )
+        raise HTTPException(status_code=412, detail=f"Recon tools not available: {reason}")
 
     # Ensure target exists in DB
-    db_target = (
-        session.query(models.Target).filter(models.Target.name == target_name).first()
-    )
+    db_target = session.query(models.Target).filter(models.Target.name == target_name).first()
     if not db_target:
         db_target = models.Target(name=target_name, domain=target_domain)
         session.add(db_target)
@@ -66,9 +60,7 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
     try:
         timeout = int(__import__("os").environ.get("SCAN_TIMEOUT", "600"))
         logger.info(f"Running recon pipeline with timeout {timeout}s...")
-        outputs = await asyncio.wait_for(
-            runner.run_pipeline(target_domain, mode=mode), timeout=timeout
-        )
+        outputs = await asyncio.wait_for(runner.run_pipeline(target_domain, mode=mode), timeout=timeout)
         logger.info("Recon pipeline completed successfully")
 
         # Persist normalized endpoints into DB
@@ -76,28 +68,24 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
         if normalized_path and Path(normalized_path).exists():
             logger.info(f"Parsing normalized endpoints from {normalized_path}")
             try:
-                with open(
-                    normalized_path, encoding="utf-8", errors="ignore"
-                ) as fh:
+                with open(normalized_path, encoding="utf-8", errors="ignore") as fh:
                     entries = json.load(fh)
                 logger.info(f"Found {len(entries)} endpoint entries to persist")
 
                 seen_in_memory = set()
 
-                existing = session.query(models.Endpoint.method, models.Endpoint.path).filter(
-                    models.Endpoint.target_id == db_target.id
-                ).all()
+                existing = (
+                    session.query(models.Endpoint.method, models.Endpoint.path)
+                    .filter(models.Endpoint.target_id == db_target.id)
+                    .all()
+                )
                 db_existing_set = {f"{m}:{p}" for m, p in existing}
 
                 new_endpoints_batch = []
 
                 for entry in entries:
                     try:
-                        path = (
-                            entry.get("normalized")
-                            or entry.get("path")
-                            or entry.get("raw")
-                        )
+                        path = entry.get("normalized") or entry.get("path") or entry.get("raw")
                         if not path:
                             logger.warning(f"Skipping entry with no path: {entry}")
                             continue
@@ -145,9 +133,7 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
                 logger.error(f"Error during endpoint persistence: {persist_exc}")
                 endpoint_count = 0
         else:
-            logger.warning(
-                "Normalized endpoints file missing or empty. Skipping persistence."
-            )
+            logger.warning("Normalized endpoints file missing or empty. Skipping persistence.")
 
         # Update scan record with success
         scan.status = "completed"
@@ -191,5 +177,3 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
         "status": "completed",
         "outputs": outputs,
     }
-
-

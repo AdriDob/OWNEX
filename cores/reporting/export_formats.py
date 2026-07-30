@@ -28,7 +28,9 @@ class ExportFormats:
         self._jinja_env = None
         if Environment is not None:
             ensure_default_templates()
-            tmpl_dir = USER_TEMPLATES_DIR if USER_TEMPLATES_DIR.is_dir() else Path(__file__).resolve().parent / "templates"
+            tmpl_dir = (
+                USER_TEMPLATES_DIR if USER_TEMPLATES_DIR.is_dir() else Path(__file__).resolve().parent / "templates"
+            )
             if tmpl_dir.is_dir():
                 self._jinja_env = Environment(
                     loader=FileSystemLoader(str(tmpl_dir)),
@@ -52,23 +54,54 @@ class ExportFormats:
     ) -> dict[str, str]:
         result = {
             "hackerone_json": self.to_hackerone_json(
-                title, narrative, severity, cvss, affected_endpoint,
-                affected_method, reproduction_steps, poc_curl, remediation,
+                title,
+                narrative,
+                severity,
+                cvss,
+                affected_endpoint,
+                affected_method,
+                reproduction_steps,
+                poc_curl,
+                remediation,
             ),
             "markdown": self.to_markdown(
-                title, narrative, severity, cvss, affected_endpoint,
-                affected_method, reproduction_steps, poc_curl, remediation,
+                title,
+                narrative,
+                severity,
+                cvss,
+                affected_endpoint,
+                affected_method,
+                reproduction_steps,
+                poc_curl,
+                remediation,
             ),
             "bugcrowd_html": self.to_bugcrowd_html(
-                title, narrative, severity, cvss, affected_endpoint,
-                affected_method, reproduction_steps, poc_curl, remediation,
-                program, platform,
+                title,
+                narrative,
+                severity,
+                cvss,
+                affected_endpoint,
+                affected_method,
+                reproduction_steps,
+                poc_curl,
+                remediation,
+                program,
+                platform,
             ),
         }
         html_jinja = self.to_html_jinja(
-            title, narrative, severity, cvss, affected_endpoint,
-            affected_method, reproduction_steps, poc_curl, remediation,
-            program, platform, cvss_score=cvss_score,
+            title,
+            narrative,
+            severity,
+            cvss,
+            affected_endpoint,
+            affected_method,
+            reproduction_steps,
+            poc_curl,
+            remediation,
+            program,
+            platform,
+            cvss_score=cvss_score,
         )
         if html_jinja is not None:
             result["html_jinja"] = html_jinja

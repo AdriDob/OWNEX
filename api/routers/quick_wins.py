@@ -41,23 +41,29 @@ def _build_snapshot(target_id: int | None = None) -> PipelineSnapshot:
         first_target = targets[0] if targets else None
         target_eps = [ep for ep in endpoints if ep.target_id == first_target.id] if first_target else []
         target_findings = [f for f in findings if f.target_id == first_target.id] if first_target else []
-        target_verdicts = [v for v in verdicts if v.endpoint_id and v.endpoint_id in {ep.id for ep in target_eps}] if first_target else []
+        target_verdicts = (
+            [v for v in verdicts if v.endpoint_id and v.endpoint_id in {ep.id for ep in target_eps}]
+            if first_target
+            else []
+        )
 
         ep_snapshots = []
         for ep in target_eps:
             s = unified_score(ep.path, ep.method or "GET", ep.parsed_params)
-            ep_snapshots.append(EndpointSnapshot(
-                path=ep.path,
-                method=ep.method or "GET",
-                risk_score=float(s.get("risk_score", 0)),
-                confidence=float(s.get("confidence", 0)),
-                labels=s.get("labels", []),
-                attack_surface=s.get("attack_surface", []),
-                signals=s.get("signals", []),
-                vector=s.get("vector", ""),
-                actionable=bool(s.get("actionable", False)),
-                potential_idor=bool(s.get("potential_idor", False)),
-            ))
+            ep_snapshots.append(
+                EndpointSnapshot(
+                    path=ep.path,
+                    method=ep.method or "GET",
+                    risk_score=float(s.get("risk_score", 0)),
+                    confidence=float(s.get("confidence", 0)),
+                    labels=s.get("labels", []),
+                    attack_surface=s.get("attack_surface", []),
+                    signals=s.get("signals", []),
+                    vector=s.get("vector", ""),
+                    actionable=bool(s.get("actionable", False)),
+                    potential_idor=bool(s.get("potential_idor", False)),
+                )
+            )
 
         def _parse_confidence(raw) -> float:
             if isinstance(raw, (int, float)):
@@ -65,6 +71,7 @@ def _build_snapshot(target_id: int | None = None) -> PipelineSnapshot:
             if isinstance(raw, str):
                 try:
                     import json
+
                     return float(json.loads(raw).get("score", 0))
                 except (json.JSONDecodeError, TypeError, ValueError):
                     try:

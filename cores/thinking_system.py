@@ -32,6 +32,7 @@ logger = logging.getLogger("ownex.thinking_system")
 
 class ThinkingMode(Enum):
     """Thinking system operating modes."""
+
     DAILY_PLANNING = "daily_planning"
     RESEARCH = "research"
     IMPROVEMENT = "improvement"
@@ -41,14 +42,15 @@ class ThinkingMode(Enum):
 @dataclass
 class Goal:
     """A high-level goal for the system."""
+
     id: str
     name: str
     description: str
-    category: str                    # revenue, learning, security, growth
-    target_metric: str               # e.g., "monthly_revenue_usd"
+    category: str  # revenue, learning, security, growth
+    target_metric: str  # e.g., "monthly_revenue_usd"
     target_value: float
     current_value: float = 0.0
-    priority: int = 1                # 1=highest, 5=lowest
+    priority: int = 1  # 1=highest, 5=lowest
     deadline: datetime | None = None
     active: bool = True
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -57,6 +59,7 @@ class Goal:
 @dataclass
 class DailyPlan:
     """Daily execution plan."""
+
     date: str
     goals: list[Goal]
     prioritized_opportunities: list[RankedOpportunity]
@@ -72,12 +75,13 @@ class DailyPlan:
 @dataclass
 class ResearchTopic:
     """A research topic to investigate."""
+
     id: str
     name: str
     description: str
-    category: str                    # platform, technique, tool, market
+    category: str  # platform, technique, tool, market
     priority: int
-    status: str = "pending"          # pending, in_progress, completed, archived
+    status: str = "pending"  # pending, in_progress, completed, archived
     findings: list[str] = field(default_factory=list)
     sources: list[str] = field(default_factory=list)
     actionable_insights: list[str] = field(default_factory=list)
@@ -89,6 +93,7 @@ class ResearchTopic:
 @dataclass
 class LearningRecord:
     """A learning extracted from task execution."""
+
     id: str
     task_id: str
     task_type: str
@@ -96,8 +101,8 @@ class LearningRecord:
     what_worked: list[str]
     what_failed: list[str]
     improvements: list[str]
-    confidence: float                # 0-1
-    pattern_type: str                # success, failure, optimization, discovery
+    confidence: float  # 0-1
+    pattern_type: str  # success, failure, optimization, discovery
     tags: list[str] = field(default_factory=list)
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     applied_count: int = 0
@@ -107,8 +112,9 @@ class LearningRecord:
 @dataclass
 class ThinkingConfig:
     """Configuration for the thinking system."""
+
     # Daily Planning
-    planning_hour: int = 6           # UTC hour to run daily planning
+    planning_hour: int = 6  # UTC hour to run daily planning
     planning_enabled: bool = True
     max_opportunities_per_day: int = 20
     max_daily_hours: float = 8.0
@@ -117,10 +123,16 @@ class ThinkingConfig:
     research_enabled: bool = True
     research_interval_hours: int = 6
     max_concurrent_research: int = 3
-    research_sources: list[str] = field(default_factory=lambda: [
-        "github_trending", "hackerone_reports", "bugcrowd_writeups",
-        "dev_post_mortems", "ai_papers", "crypto_alpha"
-    ])
+    research_sources: list[str] = field(
+        default_factory=lambda: [
+            "github_trending",
+            "hackerone_reports",
+            "bugcrowd_writeups",
+            "dev_post_mortems",
+            "ai_papers",
+            "crypto_alpha",
+        ]
+    )
 
     # Improvement
     improvement_enabled: bool = True
@@ -137,6 +149,7 @@ class ThinkingConfig:
 @dataclass
 class ThinkingMetrics:
     """Runtime metrics for thinking system."""
+
     planning_cycles: int = 0
     research_cycles: int = 0
     improvement_cycles: int = 0
@@ -153,7 +166,7 @@ class ThinkingMetrics:
 class ThinkingSystem:
     """
     Continuous Thinking System for OWNEX.
-    
+
     Runs three continuous loops:
     1. Daily Planning - Plan work based on goals and opportunities
     2. Research - Continuously study platforms, techniques, trends
@@ -230,12 +243,7 @@ class ThinkingSystem:
             try:
                 # Calculate time until next planning hour
                 now = datetime.now(UTC)
-                next_planning = now.replace(
-                    hour=self.config.planning_hour,
-                    minute=0,
-                    second=0,
-                    microsecond=0
-                )
+                next_planning = now.replace(hour=self.config.planning_hour, minute=0, second=0, microsecond=0)
                 if next_planning <= now:
                     next_planning += timedelta(days=1)
 
@@ -277,10 +285,7 @@ class ThinkingSystem:
         time_allocation = self._allocate_time(prioritized, goals)
 
         # Calculate expected outcomes
-        expected_revenue = sum(
-            opp.evh * time_allocation.get(opp.opportunity.cycle, 0)
-            for opp in prioritized
-        )
+        expected_revenue = sum(opp.evh * time_allocation.get(opp.opportunity.cycle, 0) for opp in prioritized)
         expected_learning = len(prioritized) * 0.1  # Heuristic
 
         # Assess risk
@@ -290,7 +295,7 @@ class ThinkingSystem:
         plan = DailyPlan(
             date=datetime.now(UTC).date().isoformat(),
             goals=goals,
-            prioritized_opportunities=prioritized[:self.config.max_opportunities_per_day],
+            prioritized_opportunities=prioritized[: self.config.max_opportunities_per_day],
             allocated_time_hours=time_allocation,
             expected_revenue=expected_revenue,
             expected_learning=expected_learning,
@@ -307,13 +312,16 @@ class ThinkingSystem:
         THINKING_CYCLE_DURATION.labels(cycle_type="planning").observe(time.time() - cycle_start)
 
         # Emit event
-        self.event_bus.publish("thinking:plan_created", {
-            "date": plan.date,
-            "opportunities": len(plan.prioritized_opportunities),
-            "expected_revenue": plan.expected_revenue,
-            "allocated_hours": plan.allocated_time_hours,
-            "risk": plan.risk_assessment,
-        })
+        self.event_bus.publish(
+            "thinking:plan_created",
+            {
+                "date": plan.date,
+                "opportunities": len(plan.prioritized_opportunities),
+                "expected_revenue": plan.expected_revenue,
+                "allocated_hours": plan.allocated_time_hours,
+                "risk": plan.risk_assessment,
+            },
+        )
 
         # Trigger callbacks
         for callback in self._on_plan_created:
@@ -324,15 +332,15 @@ class ThinkingSystem:
 
         logger.info(
             "Daily plan created: %d opportunities, $%.2f expected, %s risk",
-            len(plan.prioritized_opportunities), plan.expected_revenue, plan.risk_assessment
+            len(plan.prioritized_opportunities),
+            plan.expected_revenue,
+            plan.risk_assessment,
         )
 
         return plan
 
     def _prioritize_for_goals(
-        self,
-        opportunities: list[RankedOpportunity],
-        goals: list[Goal]
+        self, opportunities: list[RankedOpportunity], goals: list[Goal]
     ) -> list[RankedOpportunity]:
         """Re-rank opportunities based on goal alignment."""
         if not goals:
@@ -357,11 +365,7 @@ class ThinkingSystem:
         scored.sort(key=lambda x: x[0], reverse=True)
         return [opp for _, opp in scored]
 
-    def _allocate_time(
-        self,
-        opportunities: list[RankedOpportunity],
-        goals: list[Goal]
-    ) -> dict[str, float]:
+    def _allocate_time(self, opportunities: list[RankedOpportunity], goals: list[Goal]) -> dict[str, float]:
         """Allocate time budget across opportunity categories."""
         allocation: dict[str, float] = {}
         remaining_hours = self.config.max_daily_hours
@@ -371,7 +375,7 @@ class ThinkingSystem:
                 break
 
             cycle = opp.opportunity.cycle
-            effort = getattr(opp.opportunity, 'effort_hours', 4)
+            effort = getattr(opp.opportunity, "effort_hours", 4)
             allocated = min(effort, remaining_hours)
 
             allocation[cycle] = allocation.get(cycle, 0) + allocated
@@ -384,7 +388,7 @@ class ThinkingSystem:
         if not opportunities:
             return "none"
 
-        high_effort = sum(1 for o in opportunities if getattr(o.opportunity, 'effort_hours', 4) > 8)
+        high_effort = sum(1 for o in opportunities if getattr(o.opportunity, "effort_hours", 4) > 8)
         low_score = sum(1 for o in opportunities if o.score < 0.5)
         new_platforms = len(set(o.opportunity.source_name for o in opportunities))
 
@@ -426,7 +430,7 @@ class ThinkingSystem:
         pending.sort(key=lambda t: t.priority)
 
         # Limit concurrent research
-        to_research = pending[:self.config.max_concurrent_research]
+        to_research = pending[: self.config.max_concurrent_research]
 
         completed = []
         for topic in to_research:
@@ -479,10 +483,12 @@ class ThinkingSystem:
             findings.extend(await self._research_market(topic.name))
 
         # Store sources
-        topic.sources.extend([
-            f"internal_analysis:{topic.category}",
-            f"observation_engine:{len(self.observation_engine._sensors) if self.observation_engine else 0}_sensors",
-        ])
+        topic.sources.extend(
+            [
+                f"internal_analysis:{topic.category}",
+                f"observation_engine:{len(self.observation_engine._sensors) if self.observation_engine else 0}_sensors",
+            ]
+        )
 
         return findings
 
@@ -603,12 +609,7 @@ class ThinkingSystem:
         return learnings
 
     def record_task_result(
-        self,
-        task_id: str,
-        task_type: str,
-        platform: str,
-        success: bool,
-        details: dict[str, Any]
+        self, task_id: str, task_type: str, platform: str, success: bool, details: dict[str, Any]
     ) -> None:
         """Record a task result for learning."""
         learning = LearningRecord(
@@ -711,7 +712,9 @@ class ThinkingSystem:
                 "patterns_applied": self._metrics.patterns_applied,
                 "last_planning": self._metrics.last_planning.isoformat() if self._metrics.last_planning else None,
                 "last_research": self._metrics.last_research.isoformat() if self._metrics.last_research else None,
-                "last_improvement": self._metrics.last_improvement.isoformat() if self._metrics.last_improvement else None,
+                "last_improvement": self._metrics.last_improvement.isoformat()
+                if self._metrics.last_improvement
+                else None,
             },
             "state": {
                 "active_goals": len(self.get_active_goals()),
@@ -724,7 +727,7 @@ class ThinkingSystem:
                 "planning_hour": self.config.planning_hour,
                 "research_interval_hours": self.config.research_interval_hours,
                 "improvement_interval_hours": self.config.improvement_interval_hours,
-            }
+            },
         }
 
     async def health_check(self) -> dict[str, Any]:

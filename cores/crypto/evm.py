@@ -21,9 +21,27 @@ logger = logging.getLogger("ownex.crypto.evm")
 ERC20_ABI = [
     {"constant": True, "inputs": [], "name": "name", "outputs": [{"name": "", "type": "string"}], "type": "function"},
     {"constant": True, "inputs": [], "name": "symbol", "outputs": [{"name": "", "type": "string"}], "type": "function"},
-    {"constant": True, "inputs": [], "name": "decimals", "outputs": [{"name": "", "type": "uint8"}], "type": "function"},
-    {"constant": True, "inputs": [{"name": "_owner", "type": "address"}], "name": "balanceOf", "outputs": [{"name": "balance", "type": "uint256"}], "type": "function"},
-    {"constant": True, "inputs": [], "name": "totalSupply", "outputs": [{"name": "", "type": "uint256"}], "type": "function"},
+    {
+        "constant": True,
+        "inputs": [],
+        "name": "decimals",
+        "outputs": [{"name": "", "type": "uint8"}],
+        "type": "function",
+    },
+    {
+        "constant": True,
+        "inputs": [{"name": "_owner", "type": "address"}],
+        "name": "balanceOf",
+        "outputs": [{"name": "balance", "type": "uint256"}],
+        "type": "function",
+    },
+    {
+        "constant": True,
+        "inputs": [],
+        "name": "totalSupply",
+        "outputs": [{"name": "", "type": "uint256"}],
+        "type": "function",
+    },
 ]
 
 SUPPORTED_CHAINS: dict[str, dict[str, Any]] = {
@@ -176,12 +194,15 @@ ERC20_TOKENS: dict[str, dict[str, str]] = {
 
 def _rpc_call(rpc_url: str, method: str, params: list[Any]) -> dict[str, Any] | None:
     import urllib.request
-    payload = json.dumps({
-        "jsonrpc": "2.0",
-        "method": method,
-        "params": params,
-        "id": 1,
-    }).encode()
+
+    payload = json.dumps(
+        {
+            "jsonrpc": "2.0",
+            "method": method,
+            "params": params,
+            "id": 1,
+        }
+    ).encode()
     req = urllib.request.Request(rpc_url, data=payload, headers={"Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
@@ -193,6 +214,7 @@ def _rpc_call(rpc_url: str, method: str, params: list[Any]) -> dict[str, Any] | 
 
 def _explorer_api_call(explorer_url: str, params: dict[str, str], api_key: str = "") -> dict[str, Any] | None:
     import urllib.request
+
     if api_key:
         params["apikey"] = api_key
     qs = "&".join(f"{k}={v}" for k, v in params.items())
@@ -209,7 +231,7 @@ def _explorer_api_call(explorer_url: str, params: dict[str, str], api_key: str =
 def _parse_hex_amount(hex_str: str, decimals: int) -> float:
     try:
         val = int(hex_str, 16)
-        return val / (10 ** decimals)
+        return val / (10**decimals)
     except (ValueError, TypeError):
         return 0.0
 
@@ -303,10 +325,17 @@ class EVMConnector(CryptoConnector):
 
     def _get_erc20_balance(self, contract_address: str, symbol: str) -> CryptoBalance | None:
         data = "0x70a08231" + self._address[2:].zfill(64)
-        result = _rpc_call(self._rpc_url, "eth_call", [{
-            "to": contract_address,
-            "data": data,
-        }, "latest"])
+        result = _rpc_call(
+            self._rpc_url,
+            "eth_call",
+            [
+                {
+                    "to": contract_address,
+                    "data": data,
+                },
+                "latest",
+            ],
+        )
         if not result or "result" not in result:
             return None
         balance = _parse_hex_amount(result["result"], 18)
@@ -347,13 +376,24 @@ class EVMConnector(CryptoConnector):
                     tx = CryptoTransaction(
                         tx_hash=tx_data.get("hash", ""),
                         chain=self._chain_name,
-                        block_number=int(tx_data.get("blockNumber", "0"), 16) if tx_data.get("blockNumber", "0").startswith("0x") else int(tx_data.get("blockNumber", 0)),
-                        timestamp=datetime.fromtimestamp(int(tx_data.get("timeStamp", "0"), 16) if tx_data.get("timeStamp", "0").startswith("0x") else int(tx_data.get("timeStamp", 0)), tz=UTC).isoformat(),
+                        block_number=int(tx_data.get("blockNumber", "0"), 16)
+                        if tx_data.get("blockNumber", "0").startswith("0x")
+                        else int(tx_data.get("blockNumber", 0)),
+                        timestamp=datetime.fromtimestamp(
+                            int(tx_data.get("timeStamp", "0"), 16)
+                            if tx_data.get("timeStamp", "0").startswith("0x")
+                            else int(tx_data.get("timeStamp", 0)),
+                            tz=UTC,
+                        ).isoformat(),
                         from_address=tx_data.get("from", ""),
                         to_address=tx_data.get("to", ""),
                         asset=self._chain_info["currency"],
                         amount=_parse_hex_amount(tx_data.get("value", "0x0"), self._chain_info["decimals"]),
-                        fee=_parse_hex_amount(tx_data.get("gasPrice", "0x0"), 9) * int(tx_data.get("gasUsed", "0"), 16) / 1e9 if tx_data.get("gasUsed", "0").startswith("0x") else 0,
+                        fee=_parse_hex_amount(tx_data.get("gasPrice", "0x0"), 9)
+                        * int(tx_data.get("gasUsed", "0"), 16)
+                        / 1e9
+                        if tx_data.get("gasUsed", "0").startswith("0x")
+                        else 0,
                         fee_asset=self._chain_info["currency"],
                         status="confirmed" if tx_data.get("isError") == "0" else "failed",
                         tx_type="send" if tx_data.get("from", "").lower() == self._address.lower() else "receive",
@@ -415,11 +455,20 @@ class EVMConnector(CryptoConnector):
                         asset=self._chain_info["currency"],
                         amount=_parse_hex_amount(tx_data.get("value", "0x0"), self._chain_info["decimals"]),
                         destination_address=tx_data.get("to", ""),
-                        fee=_parse_hex_amount(tx_data.get("gasPrice", "0x0"), 9) * int(tx_data.get("gasUsed", "0"), 16) / 1e9 if tx_data.get("gasUsed", "0").startswith("0x") else 0,
+                        fee=_parse_hex_amount(tx_data.get("gasPrice", "0x0"), 9)
+                        * int(tx_data.get("gasUsed", "0"), 16)
+                        / 1e9
+                        if tx_data.get("gasUsed", "0").startswith("0x")
+                        else 0,
                         status="confirmed" if tx_data.get("isError") == "0" else "failed",
                         confirmations=int(tx_data.get("confirmations", "0")),
                         confirmations_required=12,
-                        timestamp=datetime.fromtimestamp(int(tx_data.get("timeStamp", "0"), 16) if tx_data.get("timeStamp", "0").startswith("0x") else int(tx_data.get("timeStamp", 0)), tz=UTC).isoformat(),
+                        timestamp=datetime.fromtimestamp(
+                            int(tx_data.get("timeStamp", "0"), 16)
+                            if tx_data.get("timeStamp", "0").startswith("0x")
+                            else int(tx_data.get("timeStamp", 0)),
+                            tz=UTC,
+                        ).isoformat(),
                     )
                     withdrawals.append(wd)
                 except Exception as exc:

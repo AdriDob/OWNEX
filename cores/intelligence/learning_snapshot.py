@@ -35,15 +35,13 @@ class LearningSnapshot:
     top_patterns: list[dict[str, Any]] = field(default_factory=list)
     top_targets: list[dict[str, Any]] = field(default_factory=list)
 
-    roi_metrics: dict[str, float] = field(default_factory=lambda: {
-        "total_roi": 0.0, "avg_roi": 0.0, "max_roi": 0.0, "high_value_targets": 0.0
-    })
-    acceptance_metrics: dict[str, float] = field(default_factory=lambda: {
-        "overall": 0.0, "critical": 0.0, "high": 0.0, "medium": 0.0, "low": 0.0
-    })
-    duplicate_metrics: dict[str, float] = field(default_factory=lambda: {
-        "overall": 0.0, "by_severity": 0.0
-    })
+    roi_metrics: dict[str, float] = field(
+        default_factory=lambda: {"total_roi": 0.0, "avg_roi": 0.0, "max_roi": 0.0, "high_value_targets": 0.0}
+    )
+    acceptance_metrics: dict[str, float] = field(
+        default_factory=lambda: {"overall": 0.0, "critical": 0.0, "high": 0.0, "medium": 0.0, "low": 0.0}
+    )
+    duplicate_metrics: dict[str, float] = field(default_factory=lambda: {"overall": 0.0, "by_severity": 0.0})
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -101,9 +99,21 @@ def generate_snapshot(snapshot_type: str = "daily") -> LearningSnapshot:
         all_findings = session.query(Finding).all()
         all_verdicts = session.query(Verdict).all()
 
-        new_targets = [t for t in all_targets if t.created_at and (now - t.created_at).total_seconds() <= delta.total_seconds()] if all_targets else []
-        new_findings = [f for f in all_findings if f.created_at and (now - f.created_at).total_seconds() <= delta.total_seconds()] if all_findings else []
-        new_verdicts = [v for v in all_verdicts if v.created_at and (now - v.created_at).total_seconds() <= delta.total_seconds()] if all_verdicts else []
+        new_targets = (
+            [t for t in all_targets if t.created_at and (now - t.created_at).total_seconds() <= delta.total_seconds()]
+            if all_targets
+            else []
+        )
+        new_findings = (
+            [f for f in all_findings if f.created_at and (now - f.created_at).total_seconds() <= delta.total_seconds()]
+            if all_findings
+            else []
+        )
+        new_verdicts = (
+            [v for v in all_verdicts if v.created_at and (now - v.created_at).total_seconds() <= delta.total_seconds()]
+            if all_verdicts
+            else []
+        )
 
         confirmed = [v for v in all_verdicts if v.status == "confirmed"]
         rejected = [v for v in all_verdicts if v.status == "rejected"]
@@ -131,6 +141,7 @@ def generate_snapshot(snapshot_type: str = "daily") -> LearningSnapshot:
 
         # Top vulnerability types
         from collections import Counter
+
         type_counter: Counter = Counter()
         for f in all_findings:
             vtype = f.title.split(":")[0] if ":" in f.title else f.title.split()[0] if f.title else "unknown"
@@ -149,10 +160,11 @@ def generate_snapshot(snapshot_type: str = "daily") -> LearningSnapshot:
 
         # Top patterns from endpoint paths
         import re
+
         path_patterns: Counter = Counter()
         for ep in all_endpoints:
             path = ep.path or "/"
-            parts = [p for p in path.split("/") if p and not p.isdigit() and not re.match(r'^\{.*\}$', p)]
+            parts = [p for p in path.split("/") if p and not p.isdigit() and not re.match(r"^\{.*\}$", p)]
             if len(parts) >= 2:
                 pattern = "/" + "/".join(parts[:2])
                 path_patterns[pattern] += 1

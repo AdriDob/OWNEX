@@ -25,14 +25,31 @@ from cores.agents.validator import ValidatorAgent
 logger = logging.getLogger("ownex.agents")
 
 __all__ = [
-    "IEventBus", "LocalEventBus", "get_agent_bus", "reset_agent_bus",
-    "AgentEvent", "AgentId", "AgentStatus", "EventType", "PipelineState",
-    "BaseAgent", "CoordinatorAgent", "get_coordinator",
-    "ResearchAgent", "ValidatorAgent", "ExploitAgent",
-    "DocumentationAgent", "StrategyAgent", "get_strategy_agent",
-    "MemoryAgent", "get_memory_agent",
-    "FinancialAgent", "get_financial_agent",
-    "start_all_agents", "stop_all_agents", "get_all_agents",
+    "IEventBus",
+    "LocalEventBus",
+    "get_agent_bus",
+    "reset_agent_bus",
+    "AgentEvent",
+    "AgentId",
+    "AgentStatus",
+    "EventType",
+    "PipelineState",
+    "BaseAgent",
+    "CoordinatorAgent",
+    "get_coordinator",
+    "ResearchAgent",
+    "ValidatorAgent",
+    "ExploitAgent",
+    "DocumentationAgent",
+    "StrategyAgent",
+    "get_strategy_agent",
+    "MemoryAgent",
+    "get_memory_agent",
+    "FinancialAgent",
+    "get_financial_agent",
+    "start_all_agents",
+    "stop_all_agents",
+    "get_all_agents",
 ]
 
 # Track started agent instances for proper lifecycle management
@@ -97,13 +114,17 @@ def reset_all_agents() -> None:
     """Reset all agent singletons (for testing)."""
     stop_all_agents()
     import cores.agents.coordinator as _coord_mod
+
     if _coord_mod._COORDINATOR is not None:
         _coord_mod._COORDINATOR.stop()
         _coord_mod._COORDINATOR = None
     import cores.agents.strategy as _strat_mod
+
     _strat_mod._STRATEGY = None
     import cores.agents.memory as _mem_mod
+
     _mem_mod._MEMORY = None
     import cores.agents.financial as _fin_mod
+
     _fin_mod._FINANCIAL = None
     reset_agent_bus()

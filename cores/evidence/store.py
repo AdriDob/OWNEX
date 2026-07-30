@@ -23,16 +23,20 @@ class EvidenceStore:
                 status=verdict.status,
                 confidence=json.dumps({"score": verdict.confidence}),
                 reproducibility_score=str(verdict.reproducibility_score),
-                validation_report=json.dumps({
-                    "passed": verdict.validation.passed,
-                    "passed_rules": verdict.validation.passed_rules,
-                    "failed_rules": verdict.validation.failed_rules,
-                }),
-                confidence_details=json.dumps({
-                    "score": verdict.confidence_details.score,
-                    "breakdown": verdict.confidence_details.breakdown,
-                    "level": verdict.confidence_details.level,
-                }),
+                validation_report=json.dumps(
+                    {
+                        "passed": verdict.validation.passed,
+                        "passed_rules": verdict.validation.passed_rules,
+                        "failed_rules": verdict.validation.failed_rules,
+                    }
+                ),
+                confidence_details=json.dumps(
+                    {
+                        "score": verdict.confidence_details.score,
+                        "breakdown": verdict.confidence_details.breakdown,
+                        "level": verdict.confidence_details.level,
+                    }
+                ),
                 evidence_links=json.dumps(verdict.evidence_links),
                 reason=verdict.reason,
                 retry_count=verdict.retry_count,
@@ -82,22 +86,28 @@ class EvidenceStore:
             db_vr = models.ValidationResult(
                 verdict_id=verdict_id,
                 attempt=attempt,
-                baseline_response=json.dumps({
-                    "status": result.baseline.status_code,
-                    "body_hash": result.baseline.body_hash,
-                    "elapsed_ms": result.baseline.elapsed_ms,
-                }),
-                probe_response=json.dumps({
-                    "status": result.probe.status_code,
-                    "body_hash": result.probe.body_hash,
-                    "elapsed_ms": result.probe.elapsed_ms,
-                }),
-                comparison_summary=json.dumps({
-                    "status_match": result.status_match,
-                    "body_diff_ratio": result.body_diff_ratio,
-                    "headers_diff": {k: list(v) for k, v in result.headers_diff.items()},
-                    "sensitive_fields": result.sensitive_fields_detected,
-                }),
+                baseline_response=json.dumps(
+                    {
+                        "status": result.baseline.status_code,
+                        "body_hash": result.baseline.body_hash,
+                        "elapsed_ms": result.baseline.elapsed_ms,
+                    }
+                ),
+                probe_response=json.dumps(
+                    {
+                        "status": result.probe.status_code,
+                        "body_hash": result.probe.body_hash,
+                        "elapsed_ms": result.probe.elapsed_ms,
+                    }
+                ),
+                comparison_summary=json.dumps(
+                    {
+                        "status_match": result.status_match,
+                        "body_diff_ratio": result.body_diff_ratio,
+                        "headers_diff": {k: list(v) for k, v in result.headers_diff.items()},
+                        "sensitive_fields": result.sensitive_fields_detected,
+                    }
+                ),
                 has_rate_limit=str(result.has_rate_limit),
                 has_timeout=str(result.has_timeout),
             )
@@ -138,11 +148,7 @@ class EvidenceStore:
     def get_evidence_for_verdict(self, verdict_id: int) -> list[dict[str, Any]]:
         session = SessionLocal()
         try:
-            rows = (
-                session.query(models.Evidence)
-                .filter(models.Evidence.verdict_id == verdict_id)
-                .all()
-            )
+            rows = session.query(models.Evidence).filter(models.Evidence.verdict_id == verdict_id).all()
             return [
                 {
                     "id": e.id,
@@ -163,22 +169,20 @@ class EvidenceStore:
             return {}
         session = SessionLocal()
         try:
-            rows = (
-                session.query(models.Evidence)
-                .filter(models.Evidence.verdict_id.in_(verdict_ids))
-                .all()
-            )
+            rows = session.query(models.Evidence).filter(models.Evidence.verdict_id.in_(verdict_ids)).all()
             result: dict[int, list[dict[str, Any]]] = {vid: [] for vid in verdict_ids}
             for e in rows:
-                result.setdefault(e.verdict_id, []).append({
-                    "id": e.id,
-                    "attempt": e.attempt_label,
-                    "response_status": e.response_status,
-                    "body_diff_ratio": e.body_diff_ratio,
-                    "sensitive_fields": json.loads(e.sensitive_fields) if e.sensitive_fields else [],
-                    "consistent": e.consistent,
-                    "curl_command": e.curl_command,
-                })
+                result.setdefault(e.verdict_id, []).append(
+                    {
+                        "id": e.id,
+                        "attempt": e.attempt_label,
+                        "response_status": e.response_status,
+                        "body_diff_ratio": e.body_diff_ratio,
+                        "sensitive_fields": json.loads(e.sensitive_fields) if e.sensitive_fields else [],
+                        "consistent": e.consistent,
+                        "curl_command": e.curl_command,
+                    }
+                )
             return result
         finally:
             session.close()

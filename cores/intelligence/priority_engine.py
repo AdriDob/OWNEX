@@ -180,10 +180,7 @@ class PriorityEngine:
 
     def get_ranked(self, limit: int = 20, min_score: float = 0.0) -> list[PrioritizedAction]:
         now = time.time()
-        valid = [
-            a for a in self._actions.values()
-            if (now - a.timestamp) / 3600 < MAX_AGE_HOURS
-        ]
+        valid = [a for a in self._actions.values() if (now - a.timestamp) / 3600 < MAX_AGE_HOURS]
         valid.sort(key=lambda a: a.combined_score, reverse=True)
         return [a for a in valid if a.combined_score >= min_score][:limit]
 
@@ -191,10 +188,7 @@ class PriorityEngine:
         return self.get_ranked(limit=n, min_score=0.1)
 
     def get_by_category(self, category: str, limit: int = 10) -> list[PrioritizedAction]:
-        return [
-            a for a in self.get_ranked(limit=100)
-            if a.category == category
-        ][:limit]
+        return [a for a in self.get_ranked(limit=100) if a.category == category][:limit]
 
     def clear_stale(self) -> int:
         now = time.time()
@@ -212,11 +206,13 @@ class PriorityEngine:
     def consume_memory(self) -> dict[str, Any]:
         """Query decision memory and insight archive to adjust scores."""
         from cores.env.config import get_config
+
         enabled = get_config().memory_consume > 0
         if not enabled:
             return {"status": "skipped", "reason": "memory consumption disabled"}
         try:
             from cores.memory.decision_memory import get_decision_memory
+
             memory = get_decision_memory()
             successes = 0
             failures = 0
@@ -241,12 +237,12 @@ class PriorityEngine:
 
     def get_consumption_stats(self) -> dict[str, Any]:
         from cores.memory.decision_memory import get_decision_memory
+
         memory = get_decision_memory()
         return {
             "total_decisions": memory.count_decisions(),
             "success_rate_by_type": {
-                at: memory.get_success_rate(at)
-                for at in set(a.action_type for a in self._actions.values())
+                at: memory.get_success_rate(at) for at in set(a.action_type for a in self._actions.values())
             },
         }
 

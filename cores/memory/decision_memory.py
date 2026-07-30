@@ -79,10 +79,7 @@ class DecisionMemory:
 
     def get_decisions_by_action(self, action: str, limit: int = 20) -> list[dict[str, Any]]:
         results = self._store.query(CATEGORY, limit=100)
-        return [
-            r for r in results
-            if r.get("details", {}).get("action") == action
-        ][:limit]
+        return [r for r in results if r.get("details", {}).get("action") == action][:limit]
 
     def get_success_rate(self, action: str | None = None) -> float:
         results = self._store.query(CATEGORY, limit=500)
@@ -92,7 +89,9 @@ class DecisionMemory:
             if d.get("outcome") in ("success", "completed"):
                 if action is None or d.get("action") == action:
                     scored.append(1)
-            elif d.get("outcome") in ("failure", "error", "dismissed") and (action is None or d.get("action") == action):
+            elif d.get("outcome") in ("failure", "error", "dismissed") and (
+                action is None or d.get("action") == action
+            ):
                 scored.append(0)
         if not scored:
             return 0.5

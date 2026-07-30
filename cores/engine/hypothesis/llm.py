@@ -95,7 +95,9 @@ def _build_ollama_payload(model: str, prompt: str, max_tokens: int = 512) -> dic
     }
 
 
-def _call_ollama(prompt: str, host: str = "http://localhost:11434", model: str = "freehuntx/qwen3-coder:8b") -> str | None:
+def _call_ollama(
+    prompt: str, host: str = "http://localhost:11434", model: str = "freehuntx/qwen3-coder:8b"
+) -> str | None:
     import urllib.error
     import urllib.request
 
@@ -129,6 +131,7 @@ def _parse_json_response(text: str | None) -> Any | None:
     except json.JSONDecodeError:
         LOG.warning("Failed to decode JSON response from LLM", exc_info=True)
     import re
+
     match = re.search(r"(\[.*?\]|\{.*\})", text, re.DOTALL)
     if match:
         try:
@@ -190,27 +193,29 @@ def enrich_reasoning(
             if isinstance(priority_rating, (int, float)):
                 priority_boost = (priority_rating - 5) * 0.5
 
-            enriched.append(Hypothesis(
-                id=h.id,
-                vulnerability_type=h.vulnerability_type,
-                target_id=h.target_id,
-                target_name=h.target_name,
-                endpoint=h.endpoint,
-                likelihood=min(max(h.likelihood + 0.02 * (priority_boost / 2), 0.05), 0.95),
-                impact=h.impact,
-                exploitability=h.exploitability,
-                confidence=h.confidence,
-                priority_score=max(h.priority_score + priority_boost, 0),
-                evidence=h.evidence,
-                reasoning=combined_reasoning,
-                suggested_actions=h.suggested_actions + ([f"Edge case: {edge_case}"] if edge_case else []),
-                source=h.source,
-                vector=h.vector,
-                attack_surface_labels=h.attack_surface_labels,
-                similarity_to_past=h.similarity_to_past,
-                past_pattern_id=h.past_pattern_id,
-                score=h.score,
-            ))
+            enriched.append(
+                Hypothesis(
+                    id=h.id,
+                    vulnerability_type=h.vulnerability_type,
+                    target_id=h.target_id,
+                    target_name=h.target_name,
+                    endpoint=h.endpoint,
+                    likelihood=min(max(h.likelihood + 0.02 * (priority_boost / 2), 0.05), 0.95),
+                    impact=h.impact,
+                    exploitability=h.exploitability,
+                    confidence=h.confidence,
+                    priority_score=max(h.priority_score + priority_boost, 0),
+                    evidence=h.evidence,
+                    reasoning=combined_reasoning,
+                    suggested_actions=h.suggested_actions + ([f"Edge case: {edge_case}"] if edge_case else []),
+                    source=h.source,
+                    vector=h.vector,
+                    attack_surface_labels=h.attack_surface_labels,
+                    similarity_to_past=h.similarity_to_past,
+                    past_pattern_id=h.past_pattern_id,
+                    score=h.score,
+                )
+            )
         else:
             enriched.append(h)
 

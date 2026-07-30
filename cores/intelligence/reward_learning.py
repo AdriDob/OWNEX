@@ -97,9 +97,9 @@ class RewardLearner:
         confirmed = [r for r in reports if r.confirmed_reward and r.confirmed_reward > 0]
         report.total_confirmed = len(confirmed)
         report.total_confirmed_value = sum(r.confirmed_reward or 0 for r in confirmed)
-        report.overall_acceptance_rate = round(
-            report.total_confirmed / report.total_reports * 100, 2
-        ) if report.total_reports else 0.0
+        report.overall_acceptance_rate = (
+            round(report.total_confirmed / report.total_reports * 100, 2) if report.total_reports else 0.0
+        )
 
         by_type: dict[str, list[Report]] = defaultdict(list)
         by_program: dict[str, list[Report]] = defaultdict(list)
@@ -130,9 +130,11 @@ class RewardLearner:
 
             try:
                 vt_enum = next(
-                    e for e in __import__(
+                    e
+                    for e in __import__(
                         "cores.engine.hypothesis.models", fromlist=["VulnerabilityType"]
-                    ).VulnerabilityType if e.value == vt
+                    ).VulnerabilityType
+                    if e.value == vt
                 )
                 base = BASE_PAYOUT.get(vt_enum, 2000.0)
                 BASE_HOURS.get(vt_enum, 5.0)
@@ -159,17 +161,20 @@ class RewardLearner:
                 avg_estimated=avg_est,
                 avg_confirmed=avg_conf,
                 avg_prediction_error=round(
-                    sum(abs((r.confirmed_reward or 0) - (r.estimated_reward or 0))
-                        for r in confirmed_vt) / confirmed_count, 2
-                ) if confirmed_count else 0.0,
+                    sum(abs((r.confirmed_reward or 0) - (r.estimated_reward or 0)) for r in confirmed_vt)
+                    / confirmed_count,
+                    2,
+                )
+                if confirmed_count
+                else 0.0,
                 base_payout=base,
                 learned_payout=learned,
                 adjustment_factor=adjustment,
             )
 
-        report.prediction_accuracy = round(
-            (1.0 - (total_prediction_error / error_count)) * 100, 2
-        ) if error_count else 0.0
+        report.prediction_accuracy = (
+            round((1.0 - (total_prediction_error / error_count)) * 100, 2) if error_count else 0.0
+        )
 
         for program, prog_reports in by_program.items():
             confirmed_prog = [r for r in prog_reports if r.confirmed_reward and r.confirmed_reward > 0]
@@ -187,33 +192,43 @@ class RewardLearner:
                 program=program,
                 report_count=len(prog_reports),
                 confirmed_count=confirmed_count,
-                acceptance_rate=round(
-                    confirmed_count / len(prog_reports) * 100, 2
-                ) if prog_reports else 0.0,
+                acceptance_rate=round(confirmed_count / len(prog_reports) * 100, 2) if prog_reports else 0.0,
                 total_confirmed=round(total_conf, 2),
                 avg_payout=round(total_conf / confirmed_count, 2) if confirmed_count else 0.0,
-                highest_payout=round(max(r.confirmed_reward or 0 for r in confirmed_prog), 2) if confirmed_prog else 0.0,
+                highest_payout=round(max(r.confirmed_reward or 0 for r in confirmed_prog), 2)
+                if confirmed_prog
+                else 0.0,
                 avg_response_days=round(sum(response_times) / len(response_times), 1) if response_times else 0.0,
                 vulnerability_types=sorted(vtypes),
             )
 
         sorted_by_payout = sorted(
             report.by_program.values(),
-            key=lambda m: m.total_confirmed, reverse=True,
+            key=lambda m: m.total_confirmed,
+            reverse=True,
         )[:10]
         report.top_programs_by_payout = [
-            {"program": m.program, "total_confirmed": m.total_confirmed,
-             "avg_payout": m.avg_payout, "acceptance_rate": m.acceptance_rate}
+            {
+                "program": m.program,
+                "total_confirmed": m.total_confirmed,
+                "avg_payout": m.avg_payout,
+                "acceptance_rate": m.acceptance_rate,
+            }
             for m in sorted_by_payout
         ]
 
         sorted_by_acceptance = sorted(
             (m for m in report.by_program.values() if m.report_count >= 3),
-            key=lambda m: m.acceptance_rate, reverse=True,
+            key=lambda m: m.acceptance_rate,
+            reverse=True,
         )[:10]
         report.top_programs_by_acceptance = [
-            {"program": m.program, "acceptance_rate": m.acceptance_rate,
-             "confirmed_count": m.confirmed_count, "avg_payout": m.avg_payout}
+            {
+                "program": m.program,
+                "acceptance_rate": m.acceptance_rate,
+                "confirmed_count": m.confirmed_count,
+                "avg_payout": m.avg_payout,
+            }
             for m in sorted_by_acceptance
         ]
 
@@ -267,9 +282,6 @@ class RewardLearner:
 
         if report.top_programs_by_payout:
             top = report.top_programs_by_payout[0]
-            parts.append(
-                f"Top program by payout: {top['program']} "
-                f"(${top['total_confirmed']:,.2f})"
-            )
+            parts.append(f"Top program by payout: {top['program']} (${top['total_confirmed']:,.2f})")
 
         return " | ".join(parts) if parts else "No reward learning data available."

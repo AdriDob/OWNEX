@@ -49,7 +49,10 @@ class RequestMutator:
                 if plan.mutations:
                     logger.info(
                         "LLM mutation plan for %s %s: %s — %s",
-                        method, url, plan.attack_vector, plan.reasoning[:100],
+                        method,
+                        url,
+                        plan.attack_vector,
+                        plan.reasoning[:100],
                     )
                     return plan.attack_vector, plan.mutations
             except Exception as e:
@@ -57,7 +60,11 @@ class RequestMutator:
 
         # Fall through to Smart Mutation Engine
         smart_plan = self._smart.plan(
-            url=url, method=method, params=params, body=body, headers=headers,
+            url=url,
+            method=method,
+            params=params,
+            body=body,
+            headers=headers,
         )
         if smart_plan.variants:
             # Return the first variant as the primary mutation
@@ -70,16 +77,18 @@ class RequestMutator:
                     params_flat[k] = str(v)
             logger.info(
                 "Smart mutation plan for %s %s: %s (%d variants, strategy=%s/%s)",
-                method, url, smart_plan.attack_vector,
-                len(smart_plan.variants), first.strategy, first.sub_strategy,
+                method,
+                url,
+                smart_plan.attack_vector,
+                len(smart_plan.variants),
+                first.strategy,
+                first.sub_strategy,
             )
             return smart_plan.attack_vector, params_flat
 
         return "rule_based", {}
 
-    def build_mutations(
-        self, attack_vector: str, path: str, params: dict[str, str]
-    ) -> dict[str, str]:
+    def build_mutations(self, attack_vector: str, path: str, params: dict[str, str]) -> dict[str, str]:
         if attack_vector == "IDOR":
             return self._idor_mutations(params)
         if attack_vector in ("Auth bypass", "Privilege escalation"):

@@ -88,7 +88,7 @@ class EventSystem:
         for e in all_events:
             t = e.get("topic", "")
             if t.startswith(EVENT_PREFIX):
-                tname = t[len(EVENT_PREFIX):]
+                tname = t[len(EVENT_PREFIX) :]
                 types[tname] = types.get(tname, 0) + 1
         return {
             "total_events": sum(types.values()),

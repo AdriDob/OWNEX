@@ -25,9 +25,20 @@ logger = logging.getLogger("cateye.opportunity.api")
 router = APIRouter(prefix="/api/opportunity", tags=["opportunity"])
 
 _EXPORT_FIELDS = [
-    "name", "category", "priority", "score", "source_type", "source_name",
-    "public_url", "scope_summary", "reward_info", "technology_tags",
-    "confidence", "reasoning", "evh", "has_rewards",
+    "name",
+    "category",
+    "priority",
+    "score",
+    "source_type",
+    "source_name",
+    "public_url",
+    "scope_summary",
+    "reward_info",
+    "technology_tags",
+    "confidence",
+    "reasoning",
+    "evh",
+    "has_rewards",
 ]
 
 
@@ -42,20 +53,31 @@ def _format_opps(opps: list[Any], fmt: str = "json") -> Any:
         writer.writerow(_EXPORT_FIELDS)
         for o in opps:
             d = _opp_to_dict(o)
-            writer.writerow([
-                d.get("name", ""), d.get("category", ""), d.get("priority", ""),
-                d.get("score", ""), d.get("source_type", ""), d.get("source_name", ""),
-                d.get("public_url", ""), d.get("scope_summary", ""), d.get("reward_info", ""),
-                ", ".join(d.get("technology_tags", [])), d.get("confidence", ""),
-                "; ".join(d.get("reasoning", [])),
-                str(d.get("evh", {}).get("value", "")),
-                d.get("has_rewards", True),
-            ])
+            writer.writerow(
+                [
+                    d.get("name", ""),
+                    d.get("category", ""),
+                    d.get("priority", ""),
+                    d.get("score", ""),
+                    d.get("source_type", ""),
+                    d.get("source_name", ""),
+                    d.get("public_url", ""),
+                    d.get("scope_summary", ""),
+                    d.get("reward_info", ""),
+                    ", ".join(d.get("technology_tags", [])),
+                    d.get("confidence", ""),
+                    "; ".join(d.get("reasoning", [])),
+                    str(d.get("evh", {}).get("value", "")),
+                    d.get("has_rewards", True),
+                ]
+            )
         return PlainTextResponse(output.getvalue(), media_type="text/csv")
 
     if fmt == "markdown":
-        lines = ["| Name | Category | Priority | Score | EVH | Source | Rewards |",
-                 "|------|----------|----------|-------|-----|--------|---------|"]
+        lines = [
+            "| Name | Category | Priority | Score | EVH | Source | Rewards |",
+            "|------|----------|----------|-------|-----|--------|---------|",
+        ]
         for o in opps:
             d = _opp_to_dict(o)
             evh_val = d.get("evh", {}).get("value", "")
@@ -131,6 +153,7 @@ def _opp_to_dict(opp: Any) -> dict[str, Any]:
 
 # ── Endpoints ────────────────────────────────────────────────────────
 
+
 @router.post("/refresh")
 def refresh_opportunities():
     """Run discovery on all providers and re-score everything."""
@@ -152,8 +175,13 @@ def opportunity_overview():
     return {
         "metrics": engine.get_metrics(),
         "providers": [
-            {"name": p.name, "category": p.category, "opportunity_count": p.opportunity_count,
-             "health_status": p.health_status, "last_refresh": p.last_refresh}
+            {
+                "name": p.name,
+                "category": p.category,
+                "opportunity_count": p.opportunity_count,
+                "health_status": p.health_status,
+                "last_refresh": p.last_refresh,
+            }
             for p in engine.get_providers_info()
         ],
         "recommendations_summary": engine.get_recommendations().summary,
@@ -277,6 +305,7 @@ def list_categories():
 
 # ── Identity Vault Endpoints ─────────────────────────────────────────
 
+
 @router.get("/identity/accounts")
 def list_identity_accounts():
     """List all stored provider identities (no secrets)."""
@@ -326,6 +355,7 @@ def identity_status(provider: str):
 
 
 # ── Emerging / Category endpoints ────────────────────────────────────
+
 
 @router.get("/emerging")
 def emerging_opportunities(
@@ -397,8 +427,12 @@ def list_providers():
     engine = get_engine()
     return {
         "providers": [
-            {"name": p.name, "category": p.category, "opportunity_count": p.opportunity_count,
-             "health_status": p.health_status}
+            {
+                "name": p.name,
+                "category": p.category,
+                "opportunity_count": p.opportunity_count,
+                "health_status": p.health_status,
+            }
             for p in engine.get_providers_info()
         ]
     }

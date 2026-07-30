@@ -16,6 +16,7 @@ logger = logging.getLogger("ownex.scope_reader")
 
 class _HTMLTextExtractor(HTMLParser):
     """Extract text from HTML using stdlib HTMLParser."""
+
     def __init__(self):
         super().__init__()
         self._text: list[str] = []
@@ -89,7 +90,7 @@ def download_url(url: str, timeout: int = 15) -> tuple[bytes | None, str | None]
             url,
             headers={
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                              "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 "Accept": "text/html,application/xhtml+xml,application/pdf,*/*",
             },
         )
@@ -146,11 +147,12 @@ def extract_assets(text: str) -> dict[str, list[str]]:
     assets["wildcards"] = sorted(set(wildcards))
 
     # Regular domains
-    domains = re.findall(r"(?:^|\s)([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?)", text)
-    assets["domains"] = sorted(set(
-        d.lower() for d in domains
-        if not d.startswith("*") and d.count(".") >= 1 and not d.startswith("$")
-    ))
+    domains = re.findall(
+        r"(?:^|\s)([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?)", text
+    )
+    assets["domains"] = sorted(
+        set(d.lower() for d in domains if not d.startswith("*") and d.count(".") >= 1 and not d.startswith("$"))
+    )
 
     # Full URLs
     urls = re.findall(r"https?://[^\s<>\"')\]]+", text)
@@ -162,11 +164,35 @@ def extract_assets(text: str) -> dict[str, list[str]]:
 
     # Common technologies mentioned
     tech_keywords = [
-        "react", "angular", "vue", "node", "django", "flask", "rails", "laravel",
-        "graphql", "rest", "soap", "api", "websocket",
-        "aws", "gcp", "azure", "cloudflare", "docker", "kubernetes",
-        "postgresql", "mysql", "mongodb", "redis", "elasticsearch",
-        "wordpress", "joomla", "drupal", "shopify", "salesforce",
+        "react",
+        "angular",
+        "vue",
+        "node",
+        "django",
+        "flask",
+        "rails",
+        "laravel",
+        "graphql",
+        "rest",
+        "soap",
+        "api",
+        "websocket",
+        "aws",
+        "gcp",
+        "azure",
+        "cloudflare",
+        "docker",
+        "kubernetes",
+        "postgresql",
+        "mysql",
+        "mongodb",
+        "redis",
+        "elasticsearch",
+        "wordpress",
+        "joomla",
+        "drupal",
+        "shopify",
+        "salesforce",
     ]
     text_lower = text.lower()
     found_techs = [t for t in tech_keywords if re.search(rf"\b{re.escape(t)}\b", text_lower)]
@@ -241,10 +267,16 @@ Texto del scope:
 Resumen conciso:"""
 
         provider = get_provider()
-        response = provider.chat([
-            {"role": "system", "content": "Sos un analista de bug bounty. Resumí scopes de forma concisa y precisa."},
-            {"role": "user", "content": prompt},
-        ], max_tokens=512)
+        response = provider.chat(
+            [
+                {
+                    "role": "system",
+                    "content": "Sos un analista de bug bounty. Resumí scopes de forma concisa y precisa.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=512,
+        )
 
         if response and isinstance(response, str):
             return response.strip()
@@ -254,7 +286,9 @@ Resumen conciso:"""
     return "(AI summary unavailable — scope indexed)"
 
 
-def read_program_scope(url: str, program_name: str, previous_hash: str | None = None, previous_text: str | None = None) -> dict[str, Any]:
+def read_program_scope(
+    url: str, program_name: str, previous_hash: str | None = None, previous_text: str | None = None
+) -> dict[str, Any]:
     """Full scope reading pipeline for a single program URL.
 
     Returns a dict with: raw_text, summary, hash, assets_extracted, changes, content_type.

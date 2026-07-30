@@ -135,9 +135,7 @@ class Cycle(Base):
     priority = Column(Integer, nullable=False, default=0)
     config = Column(Text, default="{}")  # JSON config for cycle-specific settings
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
-    updated_at = Column(
-        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
-    )
+    updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     # Relationships
     tasks = relationship("Task", back_populates="cycle", cascade="all, delete-orphan")
@@ -194,9 +192,7 @@ class Task(Base):
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
-    updated_at = Column(
-        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
-    )
+    updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     # Relationships
     cycle = relationship("Cycle", back_populates="tasks")

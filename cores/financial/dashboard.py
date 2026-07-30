@@ -43,17 +43,14 @@ def get_dashboard() -> dict:
     takenos_balance = _get_takenos_balance()
     atlas_total = _get_atlas_total()
 
-    patrimonio_total = round(
-        total_crypto_usd + total_platform_usd + takenos_balance + atlas_total, 2
-    )
+    patrimonio_total = round(total_crypto_usd + total_platform_usd + takenos_balance + atlas_total, 2)
 
     # ── Breakdowns ───────────────────────────────────
     breakdown = {
         "plataformas_bounty": {
             "total": round(total_platform_usd, 2),
             "detalle": {
-                pid: round(ps.verified_balance + ps.pending_balance, 2)
-                for pid, ps in state.by_platform.items()
+                pid: round(ps.verified_balance + ps.pending_balance, 2) for pid, ps in state.by_platform.items()
             },
         },
         "crypto": {
@@ -70,9 +67,7 @@ def get_dashboard() -> dict:
     }
 
     # ── Liquidez ─────────────────────────────────────
-    disponible = round(
-        wallet.available_balance + total_crypto_usd * 0.9 + takenos_balance * 0.95, 2
-    )
+    disponible = round(wallet.available_balance + total_crypto_usd * 0.9 + takenos_balance * 0.95, 2)
     congelado = round(wallet.locked_balance + (total_crypto_usd * 0.1), 2)
     pendiente = round(wallet.pending_balance + state.pending_balance, 2)
 
@@ -113,6 +108,7 @@ def get_dashboard() -> dict:
 def _get_takenos_balance() -> float:
     try:
         from cores.financial.takenos.connector import get_takenos_connector
+
         summary = get_takenos_connector().get_summary()
         return summary.get("balance_usd", 0.0)
     except Exception:
@@ -122,6 +118,7 @@ def _get_takenos_balance() -> float:
 def _get_takenos_detail() -> dict:
     try:
         from cores.financial.takenos.connector import get_takenos_connector
+
         return get_takenos_connector().get_state().get("balance", {})
     except Exception:
         return {}
@@ -130,11 +127,13 @@ def _get_takenos_detail() -> dict:
 def _get_atlas_total() -> float:
     try:
         from core.app_registry import get_app_registry
+
         app = get_app_registry().get("atlas")
         if app is None:
             logger.debug("Atlas app not registered, skipping portfolio")
             return 0.0
         import importlib
+
         mod = importlib.import_module("apps.atlas.engines.portfolio")
         engine = mod.PortfolioEngine()
         portfolio = engine.get_portfolio()
@@ -162,8 +161,28 @@ def _get_crypto_breakdown(crypto_mgr: Any) -> dict[str, float]:
 
 def _get_exchange_prices() -> dict[str, float]:
     feed = get_coingecko_feed()
-    major = ["BTC", "ETH", "SOL", "USDC", "USDT", "DAI", "BNB", "ADA", "DOT", "AVAX",
-             "LINK", "UNI", "ATOM", "XRP", "DOGE", "TRX", "ARB", "OP", "APT", "SUI"]
+    major = [
+        "BTC",
+        "ETH",
+        "SOL",
+        "USDC",
+        "USDT",
+        "DAI",
+        "BNB",
+        "ADA",
+        "DOT",
+        "AVAX",
+        "LINK",
+        "UNI",
+        "ATOM",
+        "XRP",
+        "DOGE",
+        "TRX",
+        "ARB",
+        "OP",
+        "APT",
+        "SUI",
+    ]
     return feed.get_prices(major)
 
 
@@ -196,13 +215,15 @@ def _compute_monthly_income(state: Any) -> dict:
         total += amount
         by_platform[platform] = round(by_platform.get(platform, 0.0) + amount, 2)
         by_type[event] = round(by_type.get(event, 0.0) + amount, 2)
-        monthly.append({
-            "id": e.get("id", e.get("entry_id", "")),
-            "amount": round(amount, 2),
-            "platform": platform,
-            "event": event,
-            "date": ts,
-        })
+        monthly.append(
+            {
+                "id": e.get("id", e.get("entry_id", "")),
+                "amount": round(amount, 2),
+                "platform": platform,
+                "event": event,
+                "date": ts,
+            }
+        )
 
     return {
         "total_mes": round(total, 2),
@@ -217,31 +238,37 @@ def _compute_alerts(state: Any, withdrawal_summary: dict, crypto_mgr: Any) -> li
 
     pending_wd = withdrawal_summary.get("total_pending", 0) + withdrawal_summary.get("total_initiated", 0)
     if pending_wd > 0:
-        alerts.append({
-            "tipo": "retiro_pendiente",
-            "severidad": "info",
-            "mensaje": f"{pending_wd} retiro(s) pendiente(s) de confirmación",
-        })
+        alerts.append(
+            {
+                "tipo": "retiro_pendiente",
+                "severidad": "info",
+                "mensaje": f"{pending_wd} retiro(s) pendiente(s) de confirmación",
+            }
+        )
 
     for pid, ps in state.by_platform.items():
         if ps.sync_state.consecutive_failures >= 3:
-            alerts.append({
-                "tipo": "sync_fallo",
-                "severidad": "warning",
-                "plataforma": pid,
-                "mensaje": f"{pid}: {ps.sync_state.consecutive_failures} sincronizaciones fallidas consecutivas",
-            })
+            alerts.append(
+                {
+                    "tipo": "sync_fallo",
+                    "severidad": "warning",
+                    "plataforma": pid,
+                    "mensaje": f"{pid}: {ps.sync_state.consecutive_failures} sincronizaciones fallidas consecutivas",
+                }
+            )
 
     for wid in crypto_mgr.connectors:
         snap = crypto_mgr.get_snapshot(wid)
         if not snap:
             continue
         if snap.connection.value != "connected" and wid:
-            alerts.append({
-                "tipo": "wallet_desconectada",
-                "severidad": "warning",
-                "wallet": wid,
-                "mensaje": f"Wallet {wid}: {snap.error or 'desconectada'}",
-            })
+            alerts.append(
+                {
+                    "tipo": "wallet_desconectada",
+                    "severidad": "warning",
+                    "wallet": wid,
+                    "mensaje": f"Wallet {wid}: {snap.error or 'desconectada'}",
+                }
+            )
 
     return alerts

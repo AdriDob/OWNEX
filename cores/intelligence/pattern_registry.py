@@ -104,10 +104,7 @@ class PatternRegistry:
                 return asdict(s)
             if dimension:
                 return {v: asdict(s) for v, s in self._patterns.get(dimension, {}).items()}
-            return {
-                dim: {v: asdict(s) for v, s in vals.items()}
-                for dim, vals in self._patterns.items()
-            }
+            return {dim: {v: asdict(s) for v, s in vals.items()} for dim, vals in self._patterns.items()}
 
     def get_top(self, dimension: str, metric: str = "count", limit: int = 10) -> list[dict[str, Any]]:
         with self._lock:

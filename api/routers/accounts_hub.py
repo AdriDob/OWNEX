@@ -29,27 +29,31 @@ def accounts_hub_status() -> dict[str, Any]:
     for acct in accounts:
         provider = acct.get("provider_name", "")
         health = vault.check_session_health(provider)
-        platform_accounts.append({
-            "id": provider,
-            "type": "platform",
-            "label": provider.replace("_", " ").title(),
-            "connected": health.get("connected", False),
-            "health": health.get("reason", "unknown"),
-            "has_credentials": acct.get("has_credentials", False),
-            "last_checked": acct.get("last_checked", ""),
-        })
+        platform_accounts.append(
+            {
+                "id": provider,
+                "type": "platform",
+                "label": provider.replace("_", " ").title(),
+                "connected": health.get("connected", False),
+                "health": health.get("reason", "unknown"),
+                "has_credentials": acct.get("has_credentials", False),
+                "last_checked": acct.get("last_checked", ""),
+            }
+        )
 
     crypto_wallets = []
     for wid, conn in crypto_mgr.connectors.items():
         snap = crypto_mgr.get_snapshot(wid)
-        crypto_wallets.append({
-            "id": wid,
-            "type": "crypto",
-            "label": conn.chain.value,
-            "connected": snap.connection.value if snap else "unknown",
-            "total_usd": snap.total_usd if snap else 0,
-            "last_sync": snap.synced_at if snap else "",
-        })
+        crypto_wallets.append(
+            {
+                "id": wid,
+                "type": "crypto",
+                "label": conn.chain.value,
+                "connected": snap.connection.value if snap else "unknown",
+                "total_usd": snap.total_usd if snap else 0,
+                "last_sync": snap.synced_at if snap else "",
+            }
+        )
 
     return {
         "accounts": platform_accounts + crypto_wallets,
@@ -71,26 +75,30 @@ def sync_history() -> list[dict[str, Any]]:
     history: list[dict[str, Any]] = []
     for wid in crypto_mgr.connectors:
         for snap in crypto_mgr.get_history(wid, limit=5):
-            history.append({
-                "source": wid,
-                "type": "crypto",
-                "timestamp": snap.synced_at,
-                "status": snap.connection.value,
-                "total_usd": snap.total_usd,
-                "error": snap.error,
-                "balance_count": len(snap.balances),
-                "tx_count": len(snap.transactions),
-            })
+            history.append(
+                {
+                    "source": wid,
+                    "type": "crypto",
+                    "timestamp": snap.synced_at,
+                    "status": snap.connection.value,
+                    "total_usd": snap.total_usd,
+                    "error": snap.error,
+                    "balance_count": len(snap.balances),
+                    "tx_count": len(snap.transactions),
+                }
+            )
     truth = get_truth_layer()
     for pid, _ps in truth.get_state().by_platform.items():
         sync_state = truth.get_platform_sync(pid)
-        history.append({
-            "source": pid,
-            "type": "platform",
-            "timestamp": sync_state.last_sync,
-            "status": sync_state.sync_health.value,
-            "consecutive_failures": sync_state.consecutive_failures,
-            "total_syncs": sync_state.total_syncs,
-        })
+        history.append(
+            {
+                "source": pid,
+                "type": "platform",
+                "timestamp": sync_state.last_sync,
+                "status": sync_state.sync_health.value,
+                "consecutive_failures": sync_state.consecutive_failures,
+                "total_syncs": sync_state.total_syncs,
+            }
+        )
     history.sort(key=lambda h: h.get("timestamp", ""), reverse=True)
     return history[:100]

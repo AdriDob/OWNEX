@@ -54,7 +54,9 @@ class DifferentialEngine:
             verdicts[scenario.hot_path_id] = verdict
             LOG.info(
                 "Verdict %s: %s (confidence=%.2f, rules=%s)",
-                scenario.hot_path_id, verdict.status,
-                verdict.confidence, verdict.validation.passed_rules,
+                scenario.hot_path_id,
+                verdict.status,
+                verdict.confidence,
+                verdict.validation.passed_rules,
             )
         return verdicts

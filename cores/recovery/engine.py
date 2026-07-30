@@ -93,7 +93,8 @@ class RecoveryEngine:
                 if elapsed < RECOVERY_TIMEOUT:
                     logger.warning(
                         "[RECOVERY] Recovery already in progress for %s (%.0fs elapsed)",
-                        component, elapsed,
+                        component,
+                        elapsed,
                     )
                     return False
                 else:
@@ -105,7 +106,9 @@ class RecoveryEngine:
             snap = cb.snapshot()
             logger.error(
                 "[RECOVERY] Circuit breaker OPEN for %s (state=%s, failures=%d) — recovery blocked",
-                component, snap["state"], snap["failure_count"],
+                component,
+                snap["state"],
+                snap["failure_count"],
             )
             self._store.record_recovery(
                 component=component,
@@ -147,7 +150,10 @@ class RecoveryEngine:
 
         logger.warning(
             "[RECOVERY] %s on %s: %s (action=%s)",
-            failure_type.value, component, error_message[:120], rule.recovery_action,
+            failure_type.value,
+            component,
+            error_message[:120],
+            rule.recovery_action,
         )
 
         t0 = time.monotonic()
@@ -188,15 +194,18 @@ class RecoveryEngine:
                 duration_ms=elapsed,
             )
             self._emit_recovery_event("recovery:failed", component, failure_type.value, rule.recovery_action)
-            logger.error("[RECOVERY] %s recovery FAILED via %s (%.0fms): %s",
-                         component, rule.recovery_action, elapsed, error_detail)
+            logger.error(
+                "[RECOVERY] %s recovery FAILED via %s (%.0fms): %s",
+                component,
+                rule.recovery_action,
+                elapsed,
+                error_detail,
+            )
 
         with self._lock:
             self._recovery_in_progress.pop(component, None)
 
-    def _run_action(
-        self, action: str, component: str, details: dict[str, Any] | None
-    ) -> tuple[bool, str]:
+    def _run_action(self, action: str, component: str, details: dict[str, Any] | None) -> tuple[bool, str]:
         actions = {
             "reset_event_bus": self._action_reset_event_bus,
             "restart_agent_bus": self._action_restart_agent_bus,
@@ -221,6 +230,7 @@ class RecoveryEngine:
     def _action_reset_event_bus(self, component: str, details: dict | None) -> tuple[bool, str]:
         try:
             from cores.events.event_bus import get_event_bus
+
             bus = get_event_bus()
             bus.clear_history()
             bus.publish("system:boot:complete", service="recovery", component=component)
@@ -231,8 +241,10 @@ class RecoveryEngine:
     def _action_restart_agent_bus(self, component: str, details: dict | None) -> tuple[bool, str]:
         try:
             from cores.agents.bus import reset_agent_bus
+
             reset_agent_bus()
             from cores.agents.bus import get_agent_bus
+
             get_agent_bus()
             return True, "Agent bus reset and re-initialized"
         except Exception as exc:
@@ -243,6 +255,7 @@ class RecoveryEngine:
         try:
             from cores.agents import get_all_agents
             from cores.agents.types import AgentId
+
             agents = get_all_agents()
             for agent in agents:
                 if agent.agent_id.value == agent_id or agent.agent_id == AgentId(agent_id):
@@ -256,6 +269,7 @@ class RecoveryEngine:
     def _action_restart_all_agents(self, component: str, details: dict | None) -> tuple[bool, str]:
         try:
             from cores.agents import restart_all_agents
+
             agents = restart_all_agents()
             return True, f"All {len(agents)} agents restarted"
         except Exception as exc:
@@ -266,6 +280,7 @@ class RecoveryEngine:
             import httpx
 
             from cores.settings.service import get_setting
+
             base = get_setting("CATEYE.api_url", "http://127.0.0.1:8000")
             r = httpx.post(f"{base}/api/scheduler/restart", timeout=5.0)
             if r.status_code == 200:
@@ -277,6 +292,7 @@ class RecoveryEngine:
     def _action_restore_pipeline(self, component: str, details: dict | None) -> tuple[bool, str]:
         try:
             from cores.agents.coordinator import get_coordinator
+
             coord = get_coordinator()
             coord._active_pipelines.clear()
             return True, "Pipeline state cleared, will reload from DB on next access"
@@ -288,15 +304,19 @@ class RecoveryEngine:
         try:
             from cores.agents.bus import get_agent_bus
             from cores.agents.types import EventType
+
             bus = get_agent_bus()
             from cores.agents.types import AgentEvent
-            bus.publish(AgentEvent(
-                event_type=EventType.PIPELINE_START,
-                source="recovery_engine",
-                target="coordinator",
-                correlation_id=pipeline_id,
-                payload={"pipeline_id": pipeline_id, "recovered": True},
-            ))
+
+            bus.publish(
+                AgentEvent(
+                    event_type=EventType.PIPELINE_START,
+                    source="recovery_engine",
+                    target="coordinator",
+                    correlation_id=pipeline_id,
+                    payload={"pipeline_id": pipeline_id, "recovered": True},
+                )
+            )
             return True, f"Pipeline {pipeline_id[:8]} retry requested"
         except Exception as exc:
             return False, str(exc)
@@ -306,6 +326,7 @@ class RecoveryEngine:
             from sqlalchemy import text
 
             from database.db import engine
+
             with engine.connect() as conn:
                 conn.execute(text("PRAGMA journal_mode=WAL"))
                 conn.execute(text("PRAGMA busy_timeout=5000"))
@@ -318,9 +339,11 @@ class RecoveryEngine:
     def _action_trim_memory(self, component: str, details: dict | None) -> tuple[bool, str]:
         try:
             from cores.intelligence.event_system import get_event_system
+
             es = get_event_system()
             es.clear()
             from cores.events.event_bus import get_event_bus
+
             eb = get_event_bus()
             eb.clear_history()
             return True, "Event system and event bus history trimmed"
@@ -330,6 +353,7 @@ class RecoveryEngine:
     def _action_reset_memory(self, component: str, details: dict | None) -> tuple[bool, str]:
         try:
             from cores.memory.memory_store import get_memory_store
+
             store = get_memory_store()
             store.clear()
             return True, "Memory store reset"
@@ -339,6 +363,7 @@ class RecoveryEngine:
     def _action_restart_watchdog(self, component: str, details: dict | None) -> tuple[bool, str]:
         try:
             from desktop.watchdog import get_watchdog
+
             wd = get_watchdog()
             if wd:
                 wd.stop()
@@ -351,6 +376,7 @@ class RecoveryEngine:
     def _action_restart_api(self, component: str, details: dict | None) -> tuple[bool, str]:
         try:
             import httpx
+
             base = (details or {}).get("api_url", "http://127.0.0.1:8000")
             r = httpx.post(f"{base}/api/system/restart", timeout=5.0)
             if r.status_code == 200:
@@ -364,6 +390,7 @@ class RecoveryEngine:
     def _emit_recovery_event(self, event_type: str, component: str, failure: str, action: str) -> None:
         try:
             from cores.events.event_bus import get_event_bus
+
             bus = get_event_bus()
             bus.publish(
                 event_type,

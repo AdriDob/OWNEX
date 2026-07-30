@@ -111,6 +111,7 @@ class WalletState:
 
 def _get_session() -> Session:
     from database.db import SessionLocal
+
     return SessionLocal()
 
 
@@ -198,9 +199,14 @@ def _all_entries() -> list[LedgerEntryData]:
 def compute_wallet() -> WalletState:
     w = WalletState()
     for e in _all_entries():
-        if e.event in (LedgerEvent.PAYOUT_RECEIVED, LedgerEvent.ADJUSTMENT_MANUAL,
-                       LedgerEvent.CRYPTO_DEPOSIT, LedgerEvent.CRYPTO_STAKING_REWARD,
-                       LedgerEvent.CRYPTO_DEFI_YIELD, LedgerEvent.CRYPTO_AIRDROP):
+        if e.event in (
+            LedgerEvent.PAYOUT_RECEIVED,
+            LedgerEvent.ADJUSTMENT_MANUAL,
+            LedgerEvent.CRYPTO_DEPOSIT,
+            LedgerEvent.CRYPTO_STAKING_REWARD,
+            LedgerEvent.CRYPTO_DEFI_YIELD,
+            LedgerEvent.CRYPTO_AIRDROP,
+        ):
             w.available_balance += e.amount
         elif e.event in (LedgerEvent.BOUNTY_APPROVED, LedgerEvent.BOUNTY_PENDING):
             w.pending_balance += e.amount
@@ -212,8 +218,12 @@ def compute_wallet() -> WalletState:
         elif e.event in (LedgerEvent.BOUNTY_REJECTED, LedgerEvent.WITHDRAWAL_FAILED):
             w.pending_balance -= e.amount if e.event == LedgerEvent.BOUNTY_REJECTED else 0
             w.locked_balance -= e.amount if e.event == LedgerEvent.WITHDRAWAL_FAILED else 0
-        elif e.event in (LedgerEvent.FEE_DEDUCTED, LedgerEvent.CRYPTO_GAS_FEE,
-                         LedgerEvent.EXCHANGE_FEE, LedgerEvent.CRYPTO_SWAP):
+        elif e.event in (
+            LedgerEvent.FEE_DEDUCTED,
+            LedgerEvent.CRYPTO_GAS_FEE,
+            LedgerEvent.EXCHANGE_FEE,
+            LedgerEvent.CRYPTO_SWAP,
+        ):
             w.available_balance -= e.amount
     return w
 

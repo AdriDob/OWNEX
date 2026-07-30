@@ -19,6 +19,7 @@ from typing import Any
 
 logger = logging.getLogger("cortey.ai_sandbox_integration")
 
+
 @dataclass
 class AISandboxConfig:
     """Configuration for AI Code Sandbox integration."""

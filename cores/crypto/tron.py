@@ -33,6 +33,7 @@ TRC20_TOKENS: dict[str, str] = {
 
 def _tron_api_call(path: str, params: dict[str, str] | None = None) -> dict[str, Any] | None:
     import urllib.request
+
     url = f"{TRONGRID_API}{path}"
     if params:
         qs = "&".join(f"{k}={v}" for k, v in params.items())
@@ -92,39 +93,43 @@ class TronConnector(CryptoConnector):
         account = data["data"][0]
 
         sun_balance = account.get("balance", 0)
-        trx_balance = sun_balance / (10 ** SUN_DECIMALS)
+        trx_balance = sun_balance / (10**SUN_DECIMALS)
         trx_usd = get_usd_price("TRX")
-        balances.append(CryptoBalance(
-            asset="TRX",
-            symbol="TRX",
-            balance=trx_balance,
-            usd_value=trx_balance * trx_usd,
-            decimals=SUN_DECIMALS,
-            chain="tron",
-            last_updated=datetime.now(UTC).isoformat(),
-        ))
+        balances.append(
+            CryptoBalance(
+                asset="TRX",
+                symbol="TRX",
+                balance=trx_balance,
+                usd_value=trx_balance * trx_usd,
+                decimals=SUN_DECIMALS,
+                chain="tron",
+                last_updated=datetime.now(UTC).isoformat(),
+            )
+        )
 
         trc20_list = account.get("trc20", [])
         for trc20_entry in trc20_list:
             for contract_addr, raw_balance in trc20_entry.items():
                 symbol = self._get_trc20_symbol(contract_addr)
                 try:
-                    token_balance = int(raw_balance) / (10 ** 6)
+                    token_balance = int(raw_balance) / (10**6)
                 except (ValueError, TypeError):
                     continue
                 if token_balance <= 0:
                     continue
                 token_usd = get_usd_price(symbol)
-                balances.append(CryptoBalance(
-                    asset=symbol,
-                    symbol=symbol,
-                    balance=token_balance,
-                    usd_value=token_balance * token_usd,
-                    decimals=6,
-                    chain="tron",
-                    contract_address=contract_addr,
-                    last_updated=datetime.now(UTC).isoformat(),
-                ))
+                balances.append(
+                    CryptoBalance(
+                        asset=symbol,
+                        symbol=symbol,
+                        balance=token_balance,
+                        usd_value=token_balance * token_usd,
+                        decimals=6,
+                        chain="tron",
+                        contract_address=contract_addr,
+                        last_updated=datetime.now(UTC).isoformat(),
+                    )
+                )
 
         return balances
 
@@ -165,9 +170,7 @@ class TronConnector(CryptoConnector):
         block_timestamp_ms = tx_data.get("block_timestamp", 0)
         timestamp = ""
         if block_timestamp_ms:
-            timestamp = datetime.fromtimestamp(
-                block_timestamp_ms / 1000, tz=UTC
-            ).isoformat()
+            timestamp = datetime.fromtimestamp(block_timestamp_ms / 1000, tz=UTC).isoformat()
 
         from_addr = tx_data.get("from", "") or tx_data.get("ownerAddress", "")
         to_addr = tx_data.get("to", "")
@@ -185,8 +188,8 @@ class TronConnector(CryptoConnector):
             if not value:
                 value = int(param_value.get("amount", 0))
 
-        trx_amount = value / (10 ** SUN_DECIMALS)
-        fee_trx = fee / (10 ** SUN_DECIMALS)
+        trx_amount = value / (10**SUN_DECIMALS)
+        fee_trx = fee / (10**SUN_DECIMALS)
 
         tx_type = "send" if from_addr.lower() == self._address.lower() else "receive"
 

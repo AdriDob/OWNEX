@@ -18,18 +18,14 @@ class HttpxRunner:
             *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
         try:
-            stdout, stderr = await asyncio.wait_for(
-                proc.communicate(), timeout=self.timeout
-            )
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=self.timeout)
         except TimeoutError:
             proc.kill()
             await proc.communicate()
             path.write_text("HTTPX TIMED OUT")
             return path
         if stderr:
-            path.write_text(
-                stderr.decode(errors="ignore") + "\n" + stdout.decode(errors="ignore")
-            )
+            path.write_text(stderr.decode(errors="ignore") + "\n" + stdout.decode(errors="ignore"))
         return path
 
     async def load_urls(self, path: Path) -> list[str]:

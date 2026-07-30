@@ -45,54 +45,70 @@ class ActionEngine:
         self._register_builtins()
 
     def _register_builtins(self) -> None:
-        self.register(Action(
-            id="open_target",
-            label="Open Target",
-            action_type="navigation",
-            route="/target/{id}",
-        ))
-        self.register(Action(
-            id="generate_report",
-            label="Generate Report",
-            action_type="action",
-            route="/reports",
-        ))
-        self.register(Action(
-            id="run_discovery",
-            label="Run Discovery Engine",
-            action_type="action",
-            route="/pipeline",
-        ))
-        self.register(Action(
-            id="refresh_intelligence",
-            label="Refresh Intelligence",
-            action_type="action",
-            route="/intelligence",
-        ))
-        self.register(Action(
-            id="mark_reviewed",
-            label="Mark as Reviewed",
-            action_type="feedback",
-            handler=lambda p: {"status": "reviewed", "id": p.get("id")},
-        ))
-        self.register(Action(
-            id="open_opportunity",
-            label="View Opportunity",
-            action_type="navigation",
-            route="/radar",
-        ))
-        self.register(Action(
-            id="view_evidence",
-            label="Review Evidence",
-            action_type="navigation",
-            route="/evidence",
-        ))
-        self.register(Action(
-            id="view_daily_briefing",
-            label="Daily Briefing",
-            action_type="navigation",
-            route="/daily",
-        ))
+        self.register(
+            Action(
+                id="open_target",
+                label="Open Target",
+                action_type="navigation",
+                route="/target/{id}",
+            )
+        )
+        self.register(
+            Action(
+                id="generate_report",
+                label="Generate Report",
+                action_type="action",
+                route="/reports",
+            )
+        )
+        self.register(
+            Action(
+                id="run_discovery",
+                label="Run Discovery Engine",
+                action_type="action",
+                route="/pipeline",
+            )
+        )
+        self.register(
+            Action(
+                id="refresh_intelligence",
+                label="Refresh Intelligence",
+                action_type="action",
+                route="/intelligence",
+            )
+        )
+        self.register(
+            Action(
+                id="mark_reviewed",
+                label="Mark as Reviewed",
+                action_type="feedback",
+                handler=lambda p: {"status": "reviewed", "id": p.get("id")},
+            )
+        )
+        self.register(
+            Action(
+                id="open_opportunity",
+                label="View Opportunity",
+                action_type="navigation",
+                route="/radar",
+            )
+        )
+        self.register(
+            Action(
+                id="view_evidence",
+                label="Review Evidence",
+                action_type="navigation",
+                route="/evidence",
+            )
+        )
+        self.register(
+            Action(
+                id="view_daily_briefing",
+                label="Daily Briefing",
+                action_type="navigation",
+                route="/daily",
+            )
+        )
 
     def register(self, action: Action) -> None:
         self._actions[action.id] = action
@@ -105,8 +121,11 @@ class ActionEngine:
             return [a for a in self._actions.values() if a.action_type == action_type]
         return list(self._actions.values())
 
-    def execute(self, action_id: str, payload: dict[str, Any] | None = None, user_id: str | None = None) -> dict[str, Any]:
+    def execute(
+        self, action_id: str, payload: dict[str, Any] | None = None, user_id: str | None = None
+    ) -> dict[str, Any]:
         import time
+
         start = time.time()
         action = self._actions.get(action_id)
         if not action:
@@ -130,13 +149,15 @@ class ActionEngine:
 
         duration_ms = (time.time() - start) * 1000
 
-        self._history.append({
-            "action_id": action_id,
-            "payload": payload,
-            "user_id": user_id,
-            "result": result,
-            "duration_ms": round(duration_ms, 2),
-        })
+        self._history.append(
+            {
+                "action_id": action_id,
+                "payload": payload,
+                "user_id": user_id,
+                "result": result,
+                "duration_ms": round(duration_ms, 2),
+            }
+        )
         if len(self._history) > 500:
             self._history = self._history[-500:]
 
@@ -155,6 +176,7 @@ class ActionEngine:
     ) -> None:
         try:
             from cores.actions.execution_tracker import get_execution_tracker
+
             tracker = get_execution_tracker()
             tracker.record_execution(
                 action_id=action.id,
@@ -172,6 +194,7 @@ class ActionEngine:
 
     def execute_by_priority(self, action_id: str, priority_payload: dict[str, Any]) -> dict[str, Any]:
         from cores.intelligence.priority_engine import get_priority_engine
+
         engine = get_priority_engine()
 
         action = self._actions.get(action_id)
@@ -199,6 +222,7 @@ class ActionEngine:
         }
         try:
             from cores.actions.execution_tracker import get_execution_tracker
+
             tracker = get_execution_tracker()
             stats["execution_tracker"] = tracker.get_stats()
         except Exception as exc:

@@ -45,9 +45,14 @@ class DocumentationAgent(BaseAgent):
             logger.info("[DOC] No confirmed findings to document for %s", target_name)
             self.emit(
                 EventType.DOCUMENTATION_COMPLETED,
-                payload={"target_id": target_id, "target_name": target_name,
-                         "reports": [], "stage": "documentation",
-                         "next_stage": "ready", "pipeline_id": pipeline_id},
+                payload={
+                    "target_id": target_id,
+                    "target_name": target_name,
+                    "reports": [],
+                    "stage": "documentation",
+                    "next_stage": "ready",
+                    "pipeline_id": pipeline_id,
+                },
                 target=AgentId.COORDINATOR,
                 correlation_id=pipeline_id,
             )
@@ -79,6 +84,7 @@ class DocumentationAgent(BaseAgent):
                         class V:
                             passed_rules = ["differential_match"]
                             failed_rules = []
+
                         return V()
 
                 proxy = VerdictProxy(data, hp_key)
@@ -102,22 +108,26 @@ class DocumentationAgent(BaseAgent):
                 }
 
                 report = engine.build(
-                    proxy, program_data=program,
-                    endpoint_data=ep_data, evidence_list=evidence_list,
+                    proxy,
+                    program_data=program,
+                    endpoint_data=ep_data,
+                    evidence_list=evidence_list,
                 )
                 if report:
-                    reports.append({
-                        "title": report.title,
-                        "severity": report.severity,
-                        "cvss": report.cvss,
-                        "cwe": getattr(report, 'cwe', ""),
-                        "bounty_estimate": report.bounty_estimate,
-                        "formats": {
-                            "hackerone_json": getattr(report, 'hackerone_json', ""),
-                            "markdown": getattr(report, 'markdown', ""),
-                            "bugcrowd_html": getattr(report, 'bugcrowd_html', ""),
-                        },
-                    })
+                    reports.append(
+                        {
+                            "title": report.title,
+                            "severity": report.severity,
+                            "cvss": report.cvss,
+                            "cwe": getattr(report, "cwe", ""),
+                            "bounty_estimate": report.bounty_estimate,
+                            "formats": {
+                                "hackerone_json": getattr(report, "hackerone_json", ""),
+                                "markdown": getattr(report, "markdown", ""),
+                                "bugcrowd_html": getattr(report, "bugcrowd_html", ""),
+                            },
+                        }
+                    )
 
             logger.info("[DOC] Generated %d reports for %s", len(reports), target_name)
 
@@ -127,8 +137,10 @@ class DocumentationAgent(BaseAgent):
         self.emit(
             EventType.DOCUMENTATION_COMPLETED,
             payload={
-                "target_id": target_id, "target_name": target_name,
-                "reports": reports, "reports_count": len(reports),
+                "target_id": target_id,
+                "target_name": target_name,
+                "reports": reports,
+                "reports_count": len(reports),
                 "stage": "documentation",
                 "next_stage": "ready",
                 "pipeline_id": pipeline_id,

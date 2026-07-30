@@ -2,13 +2,13 @@
 Core self-update system for Rastro.
 Handles git pull, dependency installation, and automatic restart.
 """
-import asyncio
+
 import logging
 import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from cores.events.event_bus import get_event_bus
 
@@ -25,37 +25,25 @@ class GitUpdater:
     def __init__(self, project_root: Path):
         self.project_root = project_root
 
-    def check_git_status(self) -> Dict[str, Any]:
+    def check_git_status(self) -> dict[str, Any]:
         """Check current git status and available updates."""
         try:
             # Check if we're in a git repo
             result = subprocess.run(
-                ["git", "rev-parse", "--git-dir"],
-                cwd=self.project_root,
-                capture_output=True,
-                text=True,
-                timeout=10
+                ["git", "rev-parse", "--git-dir"], cwd=self.project_root, capture_output=True, text=True, timeout=10
             )
             if result.returncode != 0:
                 return {"status": "not_git_repo", "error": "Not a git repository"}
 
             # Get current branch
             result = subprocess.run(
-                ["git", "branch", "--show-current"],
-                cwd=self.project_root,
-                capture_output=True,
-                text=True,
-                timeout=10
+                ["git", "branch", "--show-current"], cwd=self.project_root, capture_output=True, text=True, timeout=10
             )
             current_branch = result.stdout.strip() if result.returncode == 0 else "unknown"
 
             # Check for uncommitted changes
             result = subprocess.run(
-                ["git", "status", "--porcelain"],
-                cwd=self.project_root,
-                capture_output=True,
-                text=True,
-                timeout=10
+                ["git", "status", "--porcelain"], cwd=self.project_root, capture_output=True, text=True, timeout=10
             )
             has_changes = bool(result.stdout.strip()) if result.returncode == 0 else False
 
@@ -65,7 +53,7 @@ class GitUpdater:
                 cwd=self.project_root,
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=30,
             )
 
             # Check if we're behind
@@ -74,23 +62,25 @@ class GitUpdater:
                 cwd=self.project_root,
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
             )
-            commits_behind = int(result.stdout.strip()) if result.returncode == 0 and result.stdout.strip().isdigit() else 0
+            commits_behind = (
+                int(result.stdout.strip()) if result.returncode == 0 and result.stdout.strip().isdigit() else 0
+            )
 
             return {
                 "status": "ok",
                 "branch": current_branch,
                 "has_uncommitted_changes": has_changes,
                 "commits_behind": commits_behind,
-                "update_available": commits_behind > 0
+                "update_available": commits_behind > 0,
             }
 
         except Exception as e:
             logger.error("Git status check failed: %s", e)
             return {"status": "error", "error": str(e)}
 
-    def pull_updates(self) -> Dict[str, Any]:
+    def pull_updates(self) -> dict[str, Any]:
         """Pull latest updates from remote."""
         try:
             result = subprocess.run(
@@ -98,14 +88,14 @@ class GitUpdater:
                 cwd=self.project_root,
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=60,
             )
 
             return {
                 "success": result.returncode == 0,
                 "stdout": result.stdout,
                 "stderr": result.stderr,
-                "returncode": result.returncode
+                "returncode": result.returncode,
             }
 
         except Exception as e:
@@ -119,7 +109,7 @@ class DependencyInstaller:
     def __init__(self, project_root: Path):
         self.project_root = project_root
 
-    def install_python_dependencies(self) -> Dict[str, Any]:
+    def install_python_dependencies(self) -> dict[str, Any]:
         """Install Python dependencies from requirements.txt or pyproject.toml."""
         try:
             # Try pip install -e first (editable install)
@@ -128,7 +118,7 @@ class DependencyInstaller:
                 cwd=self.project_root,
                 capture_output=True,
                 text=True,
-                timeout=120
+                timeout=120,
             )
 
             if result.returncode == 0:
@@ -142,12 +132,12 @@ class DependencyInstaller:
                     cwd=self.project_root,
                     capture_output=True,
                     text=True,
-                    timeout=120
+                    timeout=120,
                 )
                 return {
                     "success": result.returncode == 0,
                     "method": "requirements",
-                    "output": result.stdout if result.returncode == 0 else result.stderr
+                    "output": result.stdout if result.returncode == 0 else result.stderr,
                 }
 
             return {"success": False, "error": "No installation method succeeded"}
@@ -156,17 +146,11 @@ class DependencyInstaller:
             logger.error("Dependency installation failed: %s", e)
             return {"success": False, "error": str(e)}
 
-    def check_dependencies(self) -> Dict[str, Any]:
+    def check_dependencies(self) -> dict[str, Any]:
         """Check if dependencies are satisfied."""
         try:
             # Check if we can import core modules
-            test_imports = [
-                "fastapi",
-                "uvicorn",
-                "sqlalchemy",
-                "pydantic",
-                "cores.events.event_bus"
-            ]
+            test_imports = ["fastapi", "uvicorn", "sqlalchemy", "pydantic", "cores.events.event_bus"]
 
             missing = []
             for module in test_imports:
@@ -178,7 +162,7 @@ class DependencyInstaller:
             return {
                 "status": "ok" if not missing else "missing",
                 "missing": missing,
-                "total_checked": len(test_imports)
+                "total_checked": len(test_imports),
             }
 
         except Exception as e:
@@ -193,7 +177,7 @@ class ProcessManager:
         self.project_root = project_root
         self.python_executable = sys.executable
 
-    def get_restart_command(self) -> List[str]:
+    def get_restart_command(self) -> list[str]:
         """Get the command to restart the application."""
         # Try to find the main entry point
         entry_points = [
@@ -207,14 +191,9 @@ class ProcessManager:
                 return [self.python_executable, str(entry)]
 
         # Fallback to uvicorn
-        return [
-            self.python_executable, "-m", "uvicorn",
-            "api.main:app",
-            "--host", "0.0.0.0",
-            "--port", "8000"
-        ]
+        return [self.python_executable, "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
-    def restart_application(self) -> Dict[str, Any]:
+    def restart_application(self) -> dict[str, Any]:
         """Restart the application process."""
         try:
             cmd = self.get_restart_command()
@@ -230,26 +209,20 @@ class ProcessManager:
                 env=env,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                start_new_session=True
+                start_new_session=True,
             )
 
             # Give it a moment to start
             import time
+
             time.sleep(2)
 
             # Check if process is still alive
             if proc.poll() is None:
-                return {
-                    "success": True,
-                    "pid": proc.pid,
-                    "command": " ".join(cmd)
-                }
+                return {"success": True, "pid": proc.pid, "command": " ".join(cmd)}
             else:
                 stdout, stderr = proc.communicate()
-                return {
-                    "success": False,
-                    "error": f"Process died immediately: {stderr.decode()}"
-                }
+                return {"success": False, "error": f"Process died immediately: {stderr.decode()}"}
 
         except Exception as e:
             logger.error("Restart failed: %s", e)
@@ -266,34 +239,27 @@ class SelfUpdateSystem:
         self.process_manager = ProcessManager(self.project_root)
         self.update_history = []
 
-    def check_for_updates(self) -> Dict[str, Any]:
+    def check_for_updates(self) -> dict[str, Any]:
         """Check for available updates."""
         logger.info("Checking for updates...")
 
         git_status = self.git_updater.check_git_status()
         deps_status = self.dependency_installer.check_dependencies()
 
-        update_available = (
-            git_status.get("update_available", False) or
-            deps_status.get("status") == "missing"
-        )
+        update_available = git_status.get("update_available", False) or deps_status.get("status") == "missing"
 
         return {
             "update_available": update_available,
             "git_status": git_status,
             "dependencies": deps_status,
-            "timestamp": str(Path.home().stat().st_mtime)
+            "timestamp": str(Path.home().stat().st_mtime),
         }
 
-    def perform_full_update(self) -> Dict[str, Any]:
+    def perform_full_update(self) -> dict[str, Any]:
         """Perform a complete self-update cycle."""
         logger.info("Starting full self-update cycle")
 
-        results = {
-            "steps": [],
-            "success": True,
-            "restarted": False
-        }
+        results = {"steps": [], "success": True, "restarted": False}
 
         # Step 1: Check git status
         git_status = self.git_updater.check_git_status()
@@ -331,17 +297,14 @@ class SelfUpdateSystem:
             results["error"] = "Restart failed"
 
         # Record in history
-        self.update_history.append({
-            "timestamp": str(Path.home().stat().st_mtime),
-            "results": results
-        })
+        self.update_history.append({"timestamp": str(Path.home().stat().st_mtime), "results": results})
 
         # Emit update event
         self._emit_update_event(results)
 
         return results
 
-    def _emit_update_event(self, results: Dict[str, Any]):
+    def _emit_update_event(self, results: dict[str, Any]):
         """Emit an update event to the event bus."""
         try:
             bus = get_event_bus()
@@ -350,7 +313,7 @@ class SelfUpdateSystem:
                 "success": results.get("success", False),
                 "restarted": results.get("restarted", False),
                 "steps_completed": len(results.get("steps", [])),
-                "error": results.get("error")
+                "error": results.get("error"),
             }
             bus.publish("system:update", **event_data)
             logger.debug("Update event emitted")

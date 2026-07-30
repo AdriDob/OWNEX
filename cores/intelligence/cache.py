@@ -17,31 +17,47 @@ LOG = logging.getLogger("ownex.intelligence.cache")
 
 AFFECTED_BY_CHANGE: dict[str, list[str]] = {
     "PipelineArtifact": [
-        "AttackSurfaceArtifact", "ROIArtifact", "HypothesisArtifact",
-        "EvidenceGraphArtifact", "QuickWinsArtifact", "ExecutionPlanArtifact",
-        "ScreenshotArtifact", "DifferentialArtifact", "AIInsightArtifact",
+        "AttackSurfaceArtifact",
+        "ROIArtifact",
+        "HypothesisArtifact",
+        "EvidenceGraphArtifact",
+        "QuickWinsArtifact",
+        "ExecutionPlanArtifact",
+        "ScreenshotArtifact",
+        "DifferentialArtifact",
+        "AIInsightArtifact",
     ],
     "AttackSurfaceArtifact": [
-        "ROIArtifact", "HypothesisArtifact", "DifferentialArtifact", "AIInsightArtifact",
+        "ROIArtifact",
+        "HypothesisArtifact",
+        "DifferentialArtifact",
+        "AIInsightArtifact",
     ],
     "ROIArtifact": [
-        "HypothesisArtifact", "AIInsightArtifact",
+        "HypothesisArtifact",
+        "AIInsightArtifact",
     ],
     "HypothesisArtifact": [
-        "DifferentialArtifact", "AIInsightArtifact",
+        "DifferentialArtifact",
+        "AIInsightArtifact",
     ],
     "EvidenceGraphArtifact": [
-        "QuickWinsArtifact", "ExecutionPlanArtifact",
-        "ScreenshotArtifact", "DifferentialArtifact", "AIInsightArtifact",
+        "QuickWinsArtifact",
+        "ExecutionPlanArtifact",
+        "ScreenshotArtifact",
+        "DifferentialArtifact",
+        "AIInsightArtifact",
     ],
     "QuickWinsArtifact": [
-        "ExecutionPlanArtifact", "AIInsightArtifact",
+        "ExecutionPlanArtifact",
+        "AIInsightArtifact",
     ],
     "ExecutionPlanArtifact": [
         "AIInsightArtifact",
     ],
     "ScreenshotArtifact": [
-        "DifferentialArtifact", "AIInsightArtifact",
+        "DifferentialArtifact",
+        "AIInsightArtifact",
     ],
     "DifferentialArtifact": [
         "AIInsightArtifact",
@@ -134,6 +150,7 @@ class ArtifactCache:
 
         if policy.max_age_seconds is not None:
             from datetime import datetime
+
             try:
                 age = (datetime.now(UTC) - datetime.fromisoformat(artifact.timestamp)).total_seconds()
                 if age > policy.max_age_seconds:

@@ -38,9 +38,12 @@ CANONICAL_DEPENDENCIES: dict[str, list[str]] = {
     "ScreenshotArtifact": ["PipelineArtifact", "EvidenceGraphArtifact"],
     "DifferentialArtifact": ["PipelineArtifact", "EvidenceGraphArtifact", "ScreenshotArtifact"],
     "AIInsightArtifact": [
-        "PipelineArtifact", "EvidenceGraphArtifact",
-        "ScreenshotArtifact", "DifferentialArtifact",
-        "QuickWinsArtifact", "ExecutionPlanArtifact",
+        "PipelineArtifact",
+        "EvidenceGraphArtifact",
+        "ScreenshotArtifact",
+        "DifferentialArtifact",
+        "QuickWinsArtifact",
+        "ExecutionPlanArtifact",
     ],
 }
 
@@ -149,7 +152,9 @@ class DependencyGraph:
                 if dep not in seen:
                     LOG.error(
                         "Execution order violation: %s depends on %s but %s comes first",
-                        artifact, dep, dep,
+                        artifact,
+                        dep,
+                        dep,
                     )
                     return False
             seen.add(artifact)

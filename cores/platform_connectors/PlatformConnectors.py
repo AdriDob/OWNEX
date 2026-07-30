@@ -87,7 +87,7 @@ class PlatformConnector:
                 logger.error(f"Error in platform {self.config.name}: {e}")
                 self.config.error_count += 1
                 # Exponential backoff on errors
-                await asyncio.sleep(min(30, 2 ** self.config.error_count))
+                await asyncio.sleep(min(30, 2**self.config.error_count))
 
     async def _discover_opportunities(self):
         """Override in subclasses"""
@@ -145,7 +145,7 @@ class BugBountyConnector(PlatformConnector):
                 estimated_time=4,
                 deadline=datetime.now(UTC) + timedelta(days=7),
                 platform_url="https://hackerone.com/programs/example",
-                metadata={"severity": "critical", "category": "web"}
+                metadata={"severity": "critical", "category": "web"},
             ),
             PlatformOpportunity(
                 id=f"bug_{datetime.now().timestamp()}_2",
@@ -158,8 +158,8 @@ class BugBountyConnector(PlatformConnector):
                 estimated_time=2,
                 deadline=datetime.now(UTC) + timedelta(days=3),
                 platform_url="https://bugcrowd.com/programs/example",
-                metadata={"severity": "high", "category": "xss"}
-            )
+                metadata={"severity": "high", "category": "xss"},
+            ),
         ]
 
         # Simulate some new opportunities
@@ -186,7 +186,7 @@ class DevBountyConnector(PlatformConnector):
                 estimated_time=6,
                 deadline=datetime.now(UTC) + timedelta(days=14),
                 platform_url="https://github.com/owner/repo/issues/123",
-                metadata={"language": "python", "type": "feature"}
+                metadata={"language": "python", "type": "feature"},
             ),
             PlatformOpportunity(
                 id=f"dev_{datetime.now().timestamp()}_2",
@@ -199,8 +199,8 @@ class DevBountyConnector(PlatformConnector):
                 estimated_time=8,
                 deadline=datetime.now(UTC) + timedelta(days=21),
                 platform_url="https://bountysource.com/programs/example",
-                metadata={"language": "typescript", "type": "integration"}
-            )
+                metadata={"language": "typescript", "type": "integration"},
+            ),
         ]
 
         for opp in sample_opportunities:
@@ -226,7 +226,7 @@ class DataAnnotationConnector(PlatformConnector):
                 estimated_time=12,
                 deadline=datetime.now(UTC) + timedelta(days=30),
                 platform_url="https://labelbox.com/projects/example",
-                metadata={"type": "computer_vision", "size": "10k_items"}
+                metadata={"type": "computer_vision", "size": "10k_items"},
             ),
             PlatformOpportunity(
                 id=f"data_{datetime.now().timestamp()}_2",
@@ -239,8 +239,8 @@ class DataAnnotationConnector(PlatformConnector):
                 estimated_time=8,
                 deadline=datetime.now(UTC) + timedelta(days=20),
                 platform_url="https://scale.ai/projects/example",
-                metadata={"type": "nlp", "size": "50k_items"}
-            )
+                metadata={"type": "nlp", "size": "50k_items"},
+            ),
         ]
 
         for opp in sample_opportunities:

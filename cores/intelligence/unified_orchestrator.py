@@ -82,6 +82,7 @@ class UnifiedOrchestrator:
             self.events.emit(event_type, {"artifact_type": artifact_type, "version": artifact.version})
         if artifact_type == "PipelineArtifact":
             from datetime import datetime
+
             self._last_pipeline_run = datetime.now(UTC).isoformat()
         return artifact
 
@@ -100,10 +101,13 @@ class UnifiedOrchestrator:
         affected = self.dep_graph.affected_by(artifact_type)
         if affected:
             self.cache.invalidate_many(affected)
-        self.events.emit("ArtifactInvalidated", {
-            "artifact_type": artifact_type,
-            "affected": affected,
-        })
+        self.events.emit(
+            "ArtifactInvalidated",
+            {
+                "artifact_type": artifact_type,
+                "affected": affected,
+            },
+        )
         return affected
 
     def get_or_compute(
@@ -143,7 +147,7 @@ class UnifiedOrchestrator:
                 "valid": dep_graph_info.get("valid", False),
                 "execution_order": dep_graph_info.get("execution_order", []),
             },
-            "artifacts_available": list(self.cache._store.keys()) if hasattr(self.cache, '_store') else [],
+            "artifacts_available": list(self.cache._store.keys()) if hasattr(self.cache, "_store") else [],
         }
 
     def get_execution_order(self) -> list[str]:

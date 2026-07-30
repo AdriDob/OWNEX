@@ -35,7 +35,7 @@ class HealReport:
 
     @property
     def summary(self) -> str:
-        lines = [f"OWNEX Self-Heal Report", f"Project: {self.project_dir}", f"Actions taken: {self.total}"]
+        lines = ["OWNEX Self-Heal Report", f"Project: {self.project_dir}", f"Actions taken: {self.total}"]
         for a in self.actions:
             lines.append(f"  [{a.status.upper()}] {a.category}: {a.file} — {a.description}")
         return "\n".join(lines)

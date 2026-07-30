@@ -74,10 +74,12 @@ class WalletConnectConnector(CryptoConnector):
     def generate_pairing_uri(self) -> str:
         self._session_topic = _generate_hex()
         self._symmetric_key = _generate_hex()
-        params = urllib.parse.urlencode({
-            "relay-protocol": "irn",
-            "symKey": self._symmetric_key,
-        })
+        params = urllib.parse.urlencode(
+            {
+                "relay-protocol": "irn",
+                "symKey": self._symmetric_key,
+            }
+        )
         uri = f"wc:{self._session_topic}@2?{params}"
         self._uri = uri
         self._persist()
@@ -110,7 +112,8 @@ class WalletConnectConnector(CryptoConnector):
             self._persist()
             logger.info(
                 "WalletConnect paired: %s (peer=%s)",
-                self._wallet_id, self._peer_topic[:16],
+                self._wallet_id,
+                self._peer_topic[:16],
             )
             return self._status
         except Exception as exc:
@@ -176,11 +179,7 @@ class WalletConnectConnector(CryptoConnector):
                 method="GET",
             )
             with urllib.request.urlopen(req, timeout=10) as resp:
-                self._status = (
-                    ConnectionStatus.CONNECTED
-                    if resp.status == 200
-                    else ConnectionStatus.ERROR
-                )
+                self._status = ConnectionStatus.CONNECTED if resp.status == 200 else ConnectionStatus.ERROR
         except Exception as exc:
             logger.warning("WalletConnect relay ping failed: %s", exc)
             self._status = ConnectionStatus.ERROR

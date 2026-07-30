@@ -42,17 +42,21 @@ class VerdictHandler:
             status=verdict.status,
             confidence=json.dumps({"score": verdict.confidence}),
             reproducibility_score=str(verdict.reproducibility_score),
-            validation_report=json.dumps({
-                "passed": verdict.validation.passed,
-                "passed_rules": verdict.validation.passed_rules,
-                "failed_rules": verdict.validation.failed_rules,
-                "comparison_summary": comparison_summary or {},
-            }),
-            confidence_details=json.dumps({
-                "score": verdict.confidence_details.score,
-                "breakdown": verdict.confidence_details.breakdown,
-                "level": verdict.confidence_details.level,
-            }),
+            validation_report=json.dumps(
+                {
+                    "passed": verdict.validation.passed,
+                    "passed_rules": verdict.validation.passed_rules,
+                    "failed_rules": verdict.validation.failed_rules,
+                    "comparison_summary": comparison_summary or {},
+                }
+            ),
+            confidence_details=json.dumps(
+                {
+                    "score": verdict.confidence_details.score,
+                    "breakdown": verdict.confidence_details.breakdown,
+                    "level": verdict.confidence_details.level,
+                }
+            ),
             evidence_links=json.dumps(verdict.evidence_links),
             reason=verdict.reason,
             retry_count=verdict.retry_count,
@@ -66,9 +70,7 @@ class VerdictHandler:
         self._session.refresh(db_verdict)
         return db_verdict
 
-    def _save_evidence(
-        self, verdict_id: int, evidence_records: list[dict[str, Any]]
-    ) -> None:
+    def _save_evidence(self, verdict_id: int, evidence_records: list[dict[str, Any]]) -> None:
         for rec in evidence_records:
             db_ev = models.Evidence(
                 verdict_id=verdict_id,
@@ -97,11 +99,13 @@ class VerdictHandler:
                 attempt=int(rec.get("attempt_label", "attempt_1").split("_")[-1]),
                 baseline_response=json.dumps({}),
                 probe_response=json.dumps({}),
-                comparison_summary=json.dumps({
-                    "body_diff_ratio": rec.get("body_diff_ratio"),
-                    "sensitive_fields": rec.get("sensitive_fields"),
-                    "consistent": rec.get("consistent"),
-                }),
+                comparison_summary=json.dumps(
+                    {
+                        "body_diff_ratio": rec.get("body_diff_ratio"),
+                        "sensitive_fields": rec.get("sensitive_fields"),
+                        "consistent": rec.get("consistent"),
+                    }
+                ),
                 has_rate_limit="false",
                 has_timeout="false",
                 rule_results=json.dumps({}),
@@ -110,9 +114,7 @@ class VerdictHandler:
 
         self._session.commit()
 
-    def _create_finding(
-        self, verdict: Verdict, endpoint_id: int, target_id: int
-    ) -> models.Finding:
+    def _create_finding(self, verdict: Verdict, endpoint_id: int, target_id: int) -> models.Finding:
         severity = risk_to_severity(verdict.confidence * 100)
 
         passed = ", ".join(verdict.validation.passed_rules) if verdict.validation.passed_rules else "none"

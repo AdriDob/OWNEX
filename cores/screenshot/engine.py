@@ -32,18 +32,34 @@ from cores.engine.extraction import (
 
 LOG = logging.getLogger("ownex.screenshot")
 
-BLOCK_TYPES = frozenset({
-    "request", "response", "diff", "graph", "roi",
-    "auth", "state_change", "contract_call",
-})
+BLOCK_TYPES = frozenset(
+    {
+        "request",
+        "response",
+        "diff",
+        "graph",
+        "roi",
+        "auth",
+        "state_change",
+        "contract_call",
+    }
+)
 
 HIGHLIGHT_LEVELS = frozenset({"low", "medium", "high", "critical"})
 
-ANNOTATION_CATEGORIES = frozenset({
-    "IDOR", "auth_bypass", "sensitive_fields", "cross_tenant_exposure",
-    "financial_impact", "web3_state_changes", "contract_privilege_boundaries",
-    "oracle_dependencies", "bridge_interactions",
-})
+ANNOTATION_CATEGORIES = frozenset(
+    {
+        "IDOR",
+        "auth_bypass",
+        "sensitive_fields",
+        "cross_tenant_exposure",
+        "financial_impact",
+        "web3_state_changes",
+        "contract_privilege_boundaries",
+        "oracle_dependencies",
+        "bridge_interactions",
+    }
+)
 
 
 # ── Data Classes ────────────────────────────────────────────────────
@@ -131,12 +147,23 @@ class ScreenshotEngine:
 
         # -- Build specs --
         specs: list[ScreenshotSpec] = self._build_specs_from_hot_paths(
-            hp_list, endpoints, vd_map, comparisons, surface_data, qw_data, target_name,
+            hp_list,
+            endpoints,
+            vd_map,
+            comparisons,
+            surface_data,
+            qw_data,
+            target_name,
         )
 
         if not specs:
             specs = self._build_specs_from_endpoints(
-                endpoints, vd_map, comparisons, surface_data, qw_data, target_name,
+                endpoints,
+                vd_map,
+                comparisons,
+                surface_data,
+                qw_data,
+                target_name,
             )
 
         if not specs:
@@ -163,18 +190,20 @@ class ScreenshotEngine:
         raw = getattr(snapshot, "endpoints", [])
         out = []
         for ep in raw:
-            out.append({
-                "path": getattr(ep, "path", "/"),
-                "method": getattr(ep, "method", "GET"),
-                "risk_score": getattr(ep, "risk_score", 0.0),
-                "confidence": getattr(ep, "confidence", 0.0),
-                "labels": list(getattr(ep, "labels", [])),
-                "attack_surface": list(getattr(ep, "attack_surface", [])),
-                "signals": list(getattr(ep, "signals", [])),
-                "vector": getattr(ep, "vector", ""),
-                "potential_idor": getattr(ep, "potential_idor", False),
-                "actionable": getattr(ep, "actionable", False),
-            })
+            out.append(
+                {
+                    "path": getattr(ep, "path", "/"),
+                    "method": getattr(ep, "method", "GET"),
+                    "risk_score": getattr(ep, "risk_score", 0.0),
+                    "confidence": getattr(ep, "confidence", 0.0),
+                    "labels": list(getattr(ep, "labels", [])),
+                    "attack_surface": list(getattr(ep, "attack_surface", [])),
+                    "signals": list(getattr(ep, "signals", [])),
+                    "vector": getattr(ep, "vector", ""),
+                    "potential_idor": getattr(ep, "potential_idor", False),
+                    "actionable": getattr(ep, "actionable", False),
+                }
+            )
         return out
 
     @staticmethod
@@ -183,24 +212,28 @@ class ScreenshotEngine:
         if hot_paths:
             for hp in hot_paths:
                 if hasattr(hp, "nodes"):
-                    out.append({
-                        "nodes": list(getattr(hp, "nodes", [])),
-                        "why_it_matters": getattr(hp, "why_it_matters", ""),
-                        "estimated_reward": getattr(hp, "estimated_reward", "medium"),
-                    })
+                    out.append(
+                        {
+                            "nodes": list(getattr(hp, "nodes", [])),
+                            "why_it_matters": getattr(hp, "why_it_matters", ""),
+                            "estimated_reward": getattr(hp, "estimated_reward", "medium"),
+                        }
+                    )
                 elif isinstance(hp, dict):
                     out.append(hp)
         if not out and snapshot is not None:
             raw = getattr(snapshot, "hot_paths", [])
             for hp in raw:
-                out.append({
-                    "node_id": getattr(hp, "node_id", ""),
-                    "path": getattr(hp, "path", ""),
-                    "method": getattr(hp, "method", "GET"),
-                    "risk_score": getattr(hp, "risk_score", 0.0),
-                    "vector": getattr(hp, "vector", ""),
-                    "cluster_type": getattr(hp, "cluster_type", None),
-                })
+                out.append(
+                    {
+                        "node_id": getattr(hp, "node_id", ""),
+                        "path": getattr(hp, "path", ""),
+                        "method": getattr(hp, "method", "GET"),
+                        "risk_score": getattr(hp, "risk_score", 0.0),
+                        "vector": getattr(hp, "vector", ""),
+                        "cluster_type": getattr(hp, "cluster_type", None),
+                    }
+                )
         return out
 
     @staticmethod
@@ -386,12 +419,20 @@ class ScreenshotEngine:
 
             # Build visual blocks
             blocks = self._build_visual_blocks(
-                primary_path, primary_method, vd, comparisons, ep_data, risk_score,
+                primary_path,
+                primary_method,
+                vd,
+                comparisons,
+                ep_data,
+                risk_score,
             )
 
             # Build annotations
             annotations = self._build_annotations(
-                primary_path, vtype, ep_data, surface_data,
+                primary_path,
+                vtype,
+                ep_data,
+                surface_data,
             )
 
             # Attack path summary
@@ -448,7 +489,12 @@ class ScreenshotEngine:
             roi_score = self._find_roi_score(path, quick_wins, ep)
 
             blocks = self._build_visual_blocks(
-                path, method, vd, comparisons, ep, risk_score,
+                path,
+                method,
+                vd,
+                comparisons,
+                ep,
+                risk_score,
             )
             annotations = self._build_annotations(path, vtype, ep, surface_data)
 
@@ -485,11 +531,13 @@ class ScreenshotEngine:
         params = ep_data.get("params", {})
         if params:
             req_content += f"\nParams: {params}"
-        blocks.append(VisualBlock(
-            type="request",
-            content=req_content,
-            highlight_level=ScreenshotEngine._hl(risk_score, 40),
-        ))
+        blocks.append(
+            VisualBlock(
+                type="request",
+                content=req_content,
+                highlight_level=ScreenshotEngine._hl(risk_score, 40),
+            )
+        )
 
         # Response block — from evidence graph comparisons
         if comparisons:
@@ -503,11 +551,13 @@ class ScreenshotEngine:
                     resp_content = f"Baseline: {baseline_status} | Probe: {probe_status}"
                     if sensitive_fields:
                         resp_content += f"\nSensitive fields: {', '.join(sensitive_fields)}"
-                    blocks.append(VisualBlock(
-                        type="response",
-                        content=resp_content,
-                        highlight_level="critical" if sensitive_fields else "medium",
-                    ))
+                    blocks.append(
+                        VisualBlock(
+                            type="response",
+                            content=resp_content,
+                            highlight_level="critical" if sensitive_fields else "medium",
+                        )
+                    )
 
                     # Diff block
                     diff_ratio = comp.get("body_diff_ratio", 0.0)
@@ -516,11 +566,13 @@ class ScreenshotEngine:
                         diff_content = f"Body diff: {diff_ratio:.1%}"
                         if not status_match:
                             diff_content += f" | Status: {baseline_status} -> {probe_status}"
-                        blocks.append(VisualBlock(
-                            type="diff",
-                            content=diff_content,
-                            highlight_level=ScreenshotEngine._hl(diff_ratio * 100, 30),
-                        ))
+                        blocks.append(
+                            VisualBlock(
+                                type="diff",
+                                content=diff_content,
+                                highlight_level=ScreenshotEngine._hl(diff_ratio * 100, 30),
+                            )
+                        )
                     break
 
         # Auth block
@@ -531,32 +583,40 @@ class ScreenshotEngine:
             auth_content = "Auth context detected"
             if "auth_bypass" in signals or "authentication_surface" in labels:
                 auth_content = "Auth bypass surface — possible authentication bypass"
-            blocks.append(VisualBlock(
-                type="auth",
-                content=auth_content,
-                highlight_level="high" if "bypass" in auth_content else "medium",
-            ))
+            blocks.append(
+                VisualBlock(
+                    type="auth",
+                    content=auth_content,
+                    highlight_level="high" if "bypass" in auth_content else "medium",
+                )
+            )
 
         # Web3 blocks
         if "web3" in signals or any("web3" in str(lab) for lab in labels):
-            blocks.append(VisualBlock(
-                type="contract_call",
-                content="Web3 contract interaction detected",
-                highlight_level="high",
-            ))
-            blocks.append(VisualBlock(
-                type="state_change",
-                content="State diff analysis available",
-                highlight_level="medium",
-            ))
+            blocks.append(
+                VisualBlock(
+                    type="contract_call",
+                    content="Web3 contract interaction detected",
+                    highlight_level="high",
+                )
+            )
+            blocks.append(
+                VisualBlock(
+                    type="state_change",
+                    content="State diff analysis available",
+                    highlight_level="medium",
+                )
+            )
 
         # ROI block
         if risk_score > 0:
-            blocks.append(VisualBlock(
-                type="roi",
-                content=f"Risk score: {risk_score:.1f}",
-                highlight_level=ScreenshotEngine._hl(risk_score, 50),
-            ))
+            blocks.append(
+                VisualBlock(
+                    type="roi",
+                    content=f"Risk score: {risk_score:.1f}",
+                    highlight_level=ScreenshotEngine._hl(risk_score, 50),
+                )
+            )
 
         return blocks
 
@@ -579,89 +639,117 @@ class ScreenshotEngine:
 
         # IDOR annotation
         if (vuln_type == "IDOR" or potential_idor) and "IDOR" not in seen_categories:
-            annotations.append(AnnotationItem(
-                category="IDOR",
-                detail="Insecure Direct Object Reference — possible unauthorized data access",
-                severity="critical",
-            ))
+            annotations.append(
+                AnnotationItem(
+                    category="IDOR",
+                    detail="Insecure Direct Object Reference — possible unauthorized data access",
+                    severity="critical",
+                )
+            )
             seen_categories.add("IDOR")
 
         # Cross-tenant exposure
-        if ("multi_tenant" in labels or "cross_tenant" in attack_surface) and "cross_tenant_exposure" not in seen_categories:
-                annotations.append(AnnotationItem(
+        if (
+            "multi_tenant" in labels or "cross_tenant" in attack_surface
+        ) and "cross_tenant_exposure" not in seen_categories:
+            annotations.append(
+                AnnotationItem(
                     category="cross_tenant_exposure",
                     detail="Multi-tenant boundary — possible cross-tenant data access (BOLA)",
                     severity="high",
-                ))
-                seen_categories.add("cross_tenant_exposure")
+                )
+            )
+            seen_categories.add("cross_tenant_exposure")
 
         # Auth bypass
         if ("auth_bypass" in signals or "auth" in vuln_type.lower()) and "auth_bypass" not in seen_categories:
-            annotations.append(AnnotationItem(
-                category="auth_bypass",
-                detail="Authentication bypass surface detected",
-                severity="high",
-            ))
+            annotations.append(
+                AnnotationItem(
+                    category="auth_bypass",
+                    detail="Authentication bypass surface detected",
+                    severity="high",
+                )
+            )
             seen_categories.add("auth_bypass")
 
         # Sensitive fields
-        if ("sensitive" in labels or "data_exfiltration" in attack_surface) and "sensitive_fields" not in seen_categories:
-                annotations.append(AnnotationItem(
+        if (
+            "sensitive" in labels or "data_exfiltration" in attack_surface
+        ) and "sensitive_fields" not in seen_categories:
+            annotations.append(
+                AnnotationItem(
                     category="sensitive_fields",
                     detail="Sensitive data exposure — PII, billing, or internal data",
                     severity="high",
-                ))
-                seen_categories.add("sensitive_fields")
+                )
+            )
+            seen_categories.add("sensitive_fields")
 
         # Financial impact
         if ("billing" in signals or "export" in signals) and "financial_impact" not in seen_categories:
-            annotations.append(AnnotationItem(
-                category="financial_impact",
-                detail="Financial operation endpoint — possible monetary impact",
-                severity="critical",
-            ))
+            annotations.append(
+                AnnotationItem(
+                    category="financial_impact",
+                    detail="Financial operation endpoint — possible monetary impact",
+                    severity="critical",
+                )
+            )
             seen_categories.add("financial_impact")
 
         # Web3 annotations
         if "web3" in signals:
             if "web3_state_changes" not in seen_categories:
-                annotations.append(AnnotationItem(
-                    category="web3_state_changes",
-                    detail="Web3 state change — contract state may be mutable",
-                    severity="high",
-                ))
+                annotations.append(
+                    AnnotationItem(
+                        category="web3_state_changes",
+                        detail="Web3 state change — contract state may be mutable",
+                        severity="high",
+                    )
+                )
                 seen_categories.add("web3_state_changes")
             if "contract_privilege_boundaries" not in seen_categories:
-                annotations.append(AnnotationItem(
-                    category="contract_privilege_boundaries",
-                    detail="Smart contract privilege boundary — possible access control vulnerability",
-                    severity="critical",
-                ))
+                annotations.append(
+                    AnnotationItem(
+                        category="contract_privilege_boundaries",
+                        detail="Smart contract privilege boundary — possible access control vulnerability",
+                        severity="critical",
+                    )
+                )
                 seen_categories.add("contract_privilege_boundaries")
-            if ("rpc" in str(signals).lower() or "oracle" in str(signals).lower()) and "oracle_dependencies" not in seen_categories:
-                    annotations.append(AnnotationItem(
+            if (
+                "rpc" in str(signals).lower() or "oracle" in str(signals).lower()
+            ) and "oracle_dependencies" not in seen_categories:
+                annotations.append(
+                    AnnotationItem(
                         category="oracle_dependencies",
                         detail="Oracle dependency — possible price manipulation or data feed attack",
                         severity="high",
-                    ))
-                    seen_categories.add("oracle_dependencies")
-            if ("bridge" in str(signals).lower() or "swap" in str(signals).lower()) and "bridge_interactions" not in seen_categories:
-                    annotations.append(AnnotationItem(
+                    )
+                )
+                seen_categories.add("oracle_dependencies")
+            if (
+                "bridge" in str(signals).lower() or "swap" in str(signals).lower()
+            ) and "bridge_interactions" not in seen_categories:
+                annotations.append(
+                    AnnotationItem(
                         category="bridge_interactions",
                         detail="Bridge interaction — possible bridge exploit or signature replay",
                         severity="critical",
-                    ))
-                    seen_categories.add("bridge_interactions")
+                    )
+                )
+                seen_categories.add("bridge_interactions")
 
         # Surface-driven annotations
         for cluster_ep in surface_data.get("idor_clusters", []):
             cpath = cluster_ep.get("path", "") if isinstance(cluster_ep, dict) else ""
             if cpath and cpath in path and "IDOR" not in seen_categories:
-                annotations.append(AnnotationItem(
-                    category="IDOR",
-                    detail="Endpoint in IDOR cluster — attack surface mapping",
-                    severity="high",
-                ))
+                annotations.append(
+                    AnnotationItem(
+                        category="IDOR",
+                        detail="Endpoint in IDOR cluster — attack surface mapping",
+                        severity="high",
+                    )
+                )
                 seen_categories.add("IDOR")
 
         return annotations
@@ -835,16 +923,12 @@ class ScreenshotEngine:
             path = qw.get("endpoint_path", "")
             score = qw.get("roi_score", 0.0)
             if score > 0:
-                highlights.append(
-                    f"Low effort, high ROI — {path} (ROI {score:.1f})"
-                )
+                highlights.append(f"Low effort, high ROI — {path} (ROI {score:.1f})")
 
         if not highlights:
             for spec in specs[:5]:
                 if spec.roi_score > 0:
-                    highlights.append(
-                        f"ROI {spec.roi_score:.1f} — {spec.endpoint}"
-                    )
+                    highlights.append(f"ROI {spec.roi_score:.1f} — {spec.endpoint}")
 
         if roi_metadata:
             total = roi_metadata.get("total_estimated_value", 0)

@@ -69,7 +69,10 @@ class AmassRunner:
         return await self._run_enum(domain, mode="active", timeout=timeout)
 
     async def _run_enum(
-        self, domain: str, mode: str = "passive", timeout: int = 300,
+        self,
+        domain: str,
+        mode: str = "passive",
+        timeout: int = 300,
     ) -> list[dict[str, Any]]:
         if not self._amass_path:
             logger.warning("Amass not installed. Skipping enum for %s", domain)
@@ -87,9 +90,7 @@ class AmassRunner:
                 stderr=asyncio.subprocess.PIPE,
             )
             try:
-                stdout, stderr = await asyncio.wait_for(
-                    proc.communicate(), timeout=timeout
-                )
+                stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
                 if proc.returncode != 0:
                     stderr_text = stderr.decode("utf-8", errors="replace")[:500]
                     logger.warning("Amass %s returned %d: %s", mode, proc.returncode, stderr_text)
@@ -123,7 +124,9 @@ class AmassRunner:
 
         logger.info(
             "Amass %s enum for %s: %d subdomains found",
-            mode, domain, len(results),
+            mode,
+            domain,
+            len(results),
         )
         return results
 
@@ -157,9 +160,7 @@ class AmassRunner:
                 stderr=asyncio.subprocess.PIPE,
             )
             try:
-                stdout, stderr = await asyncio.wait_for(
-                    proc.communicate(), timeout=timeout
-                )
+                stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
             except TimeoutError:
                 proc.kill()
                 await proc.communicate()

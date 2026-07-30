@@ -33,9 +33,11 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 
 # ── Bloque 5: Env config ─────────────────────────────────────────────
 
+
 class TestEnvConfig:
     def test_import(self):
         from cores.env.config import get_config
+
         cfg = get_config()
         assert cfg.port == 8000
         assert cfg.host == "127.0.0.1"
@@ -47,8 +49,10 @@ class TestEnvConfig:
         monkeypatch.setenv("CATEYE_DEBUG", "1")
         # Clear the cached config instance and re-import
         import cores.env.config as config_module
+
         config_module._CONFIG_INSTANCE = None
         from cores.env.config import get_config
+
         cfg = get_config()
         assert cfg.port == 9090
         assert cfg.desktop is True
@@ -57,9 +61,11 @@ class TestEnvConfig:
 
 # ── Bloque 1: main_desktop.py entry point ────────────────────────────
 
+
 class TestMainDesktop:
     def test_import(self):
         import importlib
+
         mod = importlib.import_module("desktop.main_desktop")
         assert hasattr(mod, "main")
         assert hasattr(mod, "ServerThread")
@@ -68,15 +74,18 @@ class TestMainDesktop:
 
 # ── Bloque 4: Frontend server ─────────────────────────────────────────
 
+
 class TestServeFrontend:
     def test_import(self):
         import importlib
+
         mod = importlib.import_module("desktop.serve_frontend")
         assert hasattr(mod, "create_app")
         assert hasattr(mod, "main")
 
     def test_create_app_no_dist(self):
         from desktop.serve_frontend import create_app
+
         app = create_app("/nonexistent")
         assert app is not None
         assert app.title == "CATEYE Frontend"
@@ -88,29 +97,36 @@ class TestServeFrontend:
         index.write_text("<html></html>")
 
         from desktop.serve_frontend import create_app
+
         app = create_app(str(dist))
         assert app is not None
 
     def test_cli_help(self):
         result = subprocess.run(
             [sys.executable, "-m", "desktop.serve_frontend", "--help"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         assert result.returncode == 0
 
 
 # ── Bloque 2: Build scripts ──────────────────────────────────────────
 
+
 class TestBuildScripts:
     def test_build_desktop_import(self):
         import importlib
+
         mod = importlib.import_module("desktop.build.build_desktop")
         assert hasattr(mod, "build")
 
     def test_build_desktop_help(self):
         result = subprocess.run(
             [sys.executable, "-m", "desktop.build.build_desktop", "--help"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         assert result.returncode == 0
         assert "Build CATEYE Desktop binary" in result.stdout
@@ -118,28 +134,36 @@ class TestBuildScripts:
     def test_build_all_help(self):
         result = subprocess.run(
             [sys.executable, "-m", "desktop.build.build_all", "--help"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         assert result.returncode == 0
 
 
 # ── Bloque 7: Build orchestrator ─────────────────────────────────────
 
+
 class TestBuildAll:
     def test_import(self):
         import importlib
+
         mod = importlib.import_module("desktop.build.build_all")
         assert hasattr(mod, "main")
 
 
 # ── Bloque 8: Installer scripts exist ────────────────────────────────
 
+
 class TestInstallerScripts:
-    @pytest.mark.parametrize("script", [
-        "install_linux.sh",
-        "install_macos.sh",
-        "install_windows.ps1",
-    ])
+    @pytest.mark.parametrize(
+        "script",
+        [
+            "install_linux.sh",
+            "install_macos.sh",
+            "install_windows.ps1",
+        ],
+    )
     def test_installer_exists(self, script):
         path = PROJECT_DIR / "desktop" / "build" / script
         assert path.is_file(), f"{script} not found at {path}"
@@ -164,9 +188,11 @@ class TestInstallerScripts:
 
 # ── Bloque 9: First-run onboarding ──────────────────────────────────
 
+
 class TestFirstRun:
     def test_settings_has_onboarding_flag(self):
         from desktop.settings import DEFAULT_SETTINGS
+
         assert "onboarding_complete" in DEFAULT_SETTINGS
         assert DEFAULT_SETTINGS["onboarding_complete"] is False
 
@@ -198,22 +224,26 @@ class TestFirstRun:
 
 # ── Core / env / config ──────────────────────────────────────────────
 
+
 class TestCoreEnvConfig:
     def test_module_exists(self):
         assert (PROJECT_DIR / "cores" / "env" / "config.py").is_file()
 
     def test_config_dir_default(self):
         from cores.env.config import EnvConfig
+
         cfg = EnvConfig()
         assert "OWNEX" in str(cfg.config_dir)
 
     def test_data_dir_default(self):
         from cores.env.config import EnvConfig
+
         cfg = EnvConfig()
         assert "OWNEX" in str(cfg.data_dir)
 
 
 # ── Capacitor config exists (mobile) ─────────────────────────────────
+
 
 class TestCapacitorConfig:
     def test_capacitor_config_exists(self):
@@ -227,6 +257,7 @@ class TestCapacitorConfig:
     def test_capacitor_config_is_valid_json(self):
         """Validate capacitor.config.json is valid JSON with expected structure."""
         import json
+
         path = PROJECT_DIR / "capacitor.config.json"
         content = path.read_text()
         cfg = json.loads(content)
@@ -237,9 +268,11 @@ class TestCapacitorConfig:
 
 # ── New TrayController (Bloque 1) ────────────────────────────────────
 
+
 class TestTrayController:
     def test_import(self):
         from desktop.tray import TrayController
+
         tc = TrayController(
             on_open_dashboard=lambda: None,
             on_open_daily_mode=lambda: None,
@@ -252,6 +285,7 @@ class TestTrayController:
 
     def test_start_stop(self):
         from desktop.tray import TrayController
+
         tc = TrayController(
             on_open_dashboard=lambda: None,
             on_open_daily_mode=lambda: None,
@@ -268,20 +302,24 @@ class TestTrayController:
 
 # ── Autostart enable/disable/is_enabled (Bloque 3) ──────────────────
 
+
 class TestAutostart:
     def test_enable_disable_functions_exist(self):
         from desktop.autostart import disable_autostart, enable_autostart, is_autostart_enabled
+
         assert callable(enable_autostart)
         assert callable(disable_autostart)
         assert callable(is_autostart_enabled)
 
     def test_is_enabled_returns_bool(self):
         from desktop.autostart import is_autostart_enabled
+
         result = is_autostart_enabled()
         assert isinstance(result, bool)
 
 
 # ── Updater structure (Bloque 4) ─────────────────────────────────────
+
 
 class TestUpdater:
     def test_import(self):
@@ -292,6 +330,7 @@ class TestUpdater:
             rollback,
             verify_checksum,
         )
+
         assert callable(check_for_updates)
         assert callable(download_update)
         assert callable(verify_checksum)
@@ -301,12 +340,14 @@ class TestUpdater:
     @pytest.mark.xfail(strict=False, reason="Requires GitHub network access")
     def test_check_updates_finds_release(self):
         from desktop.updater import check_for_updates
+
         result = check_for_updates("0.0.0")
         assert result is not None
         assert hasattr(result, "version")
 
     def test_verify_checksum_detects_mismatch(self, tmp_path):
         from desktop.updater import verify_checksum
+
         f = tmp_path / "test.bin"
         f.write_text("hello")
         result = verify_checksum(str(f), "0000000000000000000000000000000000000000000000000000000000000000")
@@ -315,14 +356,17 @@ class TestUpdater:
 
 # ── First-run module (Bloque 6) ──────────────────────────────────────
 
+
 class TestFirstRunModule:
     def test_import(self):
         from desktop.first_run import is_first_run_complete, run_first_time
+
         assert callable(run_first_time)
         assert callable(is_first_run_complete)
 
 
 # ── Process isolation — verify no responsibility mixing ──
+
 
 class TestProcessIsolation:
     def test_main_desktop_imports_no_subprocess_launcher(self):
@@ -353,6 +397,7 @@ class TestProcessIsolation:
 
 # ── Port consistency — single source of truth ──────────────────────
 
+
 class TestPortConsistency:
     """Validate that all components use the same backend port.
 
@@ -367,12 +412,14 @@ class TestPortConsistency:
     def test_env_config_default_port(self):
         """core_engines.env.config is the canonical port source."""
         from cores.env.config import EnvConfig
+
         cfg = EnvConfig()
         assert cfg.port == 8000, f"EnvConfig.port should be 8000, got {cfg.port}"
 
     def test_settings_default_port(self):
         """Desktop settings default port matches env config."""
         from desktop.settings import DEFAULT_SETTINGS
+
         assert DEFAULT_SETTINGS["backend_port"] == 8000, (
             f"Settings backend_port should be 8000, got {DEFAULT_SETTINGS['backend_port']}"
         )
@@ -381,6 +428,7 @@ class TestPortConsistency:
         """build_dashboard_url default port matches canonical port."""
         from cores.env.config import EnvConfig
         from desktop.browser_opener import build_dashboard_url
+
         cfg = EnvConfig()
 
         url = build_dashboard_url()
@@ -390,12 +438,14 @@ class TestPortConsistency:
     def test_build_dashboard_url_explicit_port(self):
         """build_dashboard_url accepts explicit port override."""
         from desktop.browser_opener import build_dashboard_url
+
         url = build_dashboard_url(port=8000, path="/daily")
         assert url == "http://127.0.0.1:8000/daily"
 
     def test_build_dashboard_url_with_params(self):
         """build_dashboard_url includes query params correctly."""
         from desktop.browser_opener import build_dashboard_url
+
         url = build_dashboard_url(port=8000, token="abc", tab="findings")
         assert "token=abc" in url
         assert "tab=findings" in url
@@ -406,17 +456,18 @@ class TestPortConsistency:
         import inspect
 
         from desktop.browser_opener import open_dashboard
+
         sig = inspect.signature(open_dashboard)
         default_port = sig.parameters["port"].default
         from cores.env.config import EnvConfig
+
         cfg = EnvConfig()
-        assert default_port == cfg.port, (
-            f"open_dashboard default port should be {cfg.port}, got {default_port}"
-        )
+        assert default_port == cfg.port, f"open_dashboard default port should be {cfg.port}, got {default_port}"
 
     def test_server_thread_stores_port(self):
         """ServerThread stores the port and exposes it."""
         from desktop.main_desktop import ServerThread
+
         thread = ServerThread("127.0.0.1", 8000)
         assert thread.port == 8000
         assert thread.host == "127.0.0.1"
@@ -426,30 +477,24 @@ class TestPortConsistency:
         import inspect
 
         from desktop.main_desktop import _start_tray
+
         source = inspect.getsource(_start_tray)
         # Must NOT contain port=5173
-        assert "port=5173" not in source, (
-            "_start_tray still has hardcoded port=5173"
-        )
+        assert "port=5173" not in source, "_start_tray still has hardcoded port=5173"
         # Must reference server.port or api_port
-        assert "server.port" in source or "api_port" in source, (
-            "_start_tray must use server.port"
-        )
+        assert "server.port" in source or "api_port" in source, "_start_tray must use server.port"
 
     def test_open_browser_uses_port_parameter(self):
         """Verify _open_browser uses its port parameter, not hardcoded constant."""
         import inspect
 
         from desktop.main_desktop import _open_browser
+
         source = inspect.getsource(_open_browser)
         # Must NOT contain port=5173
-        assert "port=5173" not in source, (
-            "_open_browser still has hardcoded 5173"
-        )
+        assert "port=5173" not in source, "_open_browser still has hardcoded 5173"
         # first_boot branch should use 'port' variable
-        assert '"port": port' in source, (
-            "_open_browser must pass 'port' in ctx dict"
-        )
+        assert '"port": port' in source, "_open_browser must pass 'port' in ctx dict"
 
     def test_no_hardcoded_5173_in_port_paths(self):
         """No code path uses hardcoded 5173 as a port value.
@@ -476,6 +521,7 @@ class TestPortConsistency:
         import inspect
 
         from desktop.browser_opener import build_dashboard_url, open_dashboard
+
         b_sig = inspect.signature(build_dashboard_url)
         o_sig = inspect.signature(open_dashboard)
         assert b_sig.parameters["port"].default == o_sig.parameters["port"].default, (
@@ -485,11 +531,13 @@ class TestPortConsistency:
 
 # ── Silent run — file logging ─────────────────────────────────────
 
+
 class TestSilentRun:
     def test_setup_logging_creates_log_dir(self, monkeypatch, tmp_path):
         """Verify _setup_logging creates a log directory with files."""
         monkeypatch.chdir(str(tmp_path))
         from desktop.main_desktop import _setup_logging
+
         lifecycle_log = _setup_logging(dev=False)
 
         log_dir = Path(lifecycle_log).parent
@@ -500,10 +548,12 @@ class TestSilentRun:
 
 # ── Settings migration ─────────────────────────────────────────────
 
+
 class TestSettingsMigration:
     def test_legacy_port_5173_migrated(self, tmp_path):
         """legacy backend_port:5173 is auto-migrated to 8000."""
         from desktop.settings import DEFAULT_SETTINGS, DesktopSettings
+
         settings_path = tmp_path / "settings.json"
         settings_path.write_text(json.dumps({"backend_port": 5173}))
         ds = DesktopSettings.__new__(DesktopSettings)
@@ -515,6 +565,7 @@ class TestSettingsMigration:
     def test_legacy_port_5173_persisted(self, tmp_path):
         """After migration, the saved file has 8000, not 5173."""
         from desktop.settings import DEFAULT_SETTINGS, DesktopSettings
+
         settings_path = tmp_path / "settings.json"
         settings_path.write_text(json.dumps({"backend_port": 5173}))
         ds = DesktopSettings.__new__(DesktopSettings)
@@ -528,6 +579,7 @@ class TestSettingsMigration:
     def test_valid_port_not_migrated(self, tmp_path):
         """backend_port:8000 is kept as-is."""
         from desktop.settings import DEFAULT_SETTINGS, DesktopSettings
+
         settings_path = tmp_path / "settings.json"
         settings_path.write_text(json.dumps({"backend_port": 8000}))
         ds = DesktopSettings.__new__(DesktopSettings)
@@ -539,6 +591,7 @@ class TestSettingsMigration:
     def test_other_legacy_ports_not_touched(self, tmp_path):
         """Custom ports are preserved."""
         from desktop.settings import DEFAULT_SETTINGS, DesktopSettings
+
         settings_path = tmp_path / "settings.json"
         settings_path.write_text(json.dumps({"backend_port": 9090}))
         ds = DesktopSettings.__new__(DesktopSettings)
@@ -550,6 +603,7 @@ class TestSettingsMigration:
     def test_settings_version_tracked(self, tmp_path):
         """settings_version is set after migration."""
         from desktop.settings import DEFAULT_SETTINGS, SETTINGS_VERSION, DesktopSettings
+
         settings_path = tmp_path / "settings.json"
         settings_path.write_text(json.dumps({}))
         ds = DesktopSettings.__new__(DesktopSettings)
@@ -561,6 +615,7 @@ class TestSettingsMigration:
     def test_installed_version_updated(self, tmp_path):
         """installed_version is migrated from legacy to 1.6.0."""
         from desktop.settings import DEFAULT_SETTINGS, DesktopSettings
+
         settings_path = tmp_path / "settings.json"
         settings_path.write_text(json.dumps({"installed_version": "0.4.0"}))
         ds = DesktopSettings.__new__(DesktopSettings)
@@ -572,6 +627,7 @@ class TestSettingsMigration:
     def test_corrupted_settings_uses_defaults(self, tmp_path):
         """Corrupted settings file falls back to defaults."""
         from desktop.settings import DEFAULT_SETTINGS, DesktopSettings
+
         settings_path = tmp_path / "settings.json"
         settings_path.write_text("this is not json")
         ds = DesktopSettings.__new__(DesktopSettings)
@@ -584,105 +640,115 @@ class TestSettingsMigration:
 
 # ── Port validation ────────────────────────────────────────────────
 
+
 class TestPortValidation:
     def test_init_settings_valid_port(self):
         """_init_settings returns a valid port from settings."""
         from desktop.main_desktop import _init_settings
+
         port = _init_settings()
         assert isinstance(port, int)
         assert 1024 <= port <= 65535
 
     def test_negative_port_falls_back(self, tmp_path, monkeypatch):
         """Negative backend_port falls back to 8000."""
-        monkeypatch.setattr("desktop.settings._get_settings_path",
-                           lambda: tmp_path / "settings.json")
+        monkeypatch.setattr("desktop.settings._get_settings_path", lambda: tmp_path / "settings.json")
         settings_file = tmp_path / "settings.json"
         settings_file.write_text(json.dumps({"backend_port": -1}))
         import importlib
 
         import desktop.settings as s_mod
+
         importlib.reload(s_mod)
         from desktop.main_desktop import _init_settings
+
         port = _init_settings()
         assert port == 8000
 
     def test_zero_port_falls_back(self, tmp_path, monkeypatch):
         """backend_port=0 falls back to 8000."""
-        monkeypatch.setattr("desktop.settings._get_settings_path",
-                           lambda: tmp_path / "settings.json")
+        monkeypatch.setattr("desktop.settings._get_settings_path", lambda: tmp_path / "settings.json")
         settings_file = tmp_path / "settings.json"
         settings_file.write_text(json.dumps({"backend_port": 0}))
         import importlib
 
         import desktop.settings as s_mod
+
         importlib.reload(s_mod)
         from desktop.main_desktop import _init_settings
+
         port = _init_settings()
         assert port == 8000
 
     def test_out_of_range_high_falls_back(self, tmp_path, monkeypatch):
         """backend_port > 65535 falls back to 8000."""
-        monkeypatch.setattr("desktop.settings._get_settings_path",
-                           lambda: tmp_path / "settings.json")
+        monkeypatch.setattr("desktop.settings._get_settings_path", lambda: tmp_path / "settings.json")
         settings_file = tmp_path / "settings.json"
         settings_file.write_text(json.dumps({"backend_port": 99999}))
         import importlib
 
         import desktop.settings as s_mod
+
         importlib.reload(s_mod)
         from desktop.main_desktop import _init_settings
+
         port = _init_settings()
         assert port == 8000
 
     def test_string_port_falls_back(self, tmp_path, monkeypatch):
         """Non-integer backend_port falls back to 8000."""
-        monkeypatch.setattr("desktop.settings._get_settings_path",
-                           lambda: tmp_path / "settings.json")
+        monkeypatch.setattr("desktop.settings._get_settings_path", lambda: tmp_path / "settings.json")
         settings_file = tmp_path / "settings.json"
         settings_file.write_text(json.dumps({"backend_port": "abc"}))
         import importlib
 
         import desktop.settings as s_mod
+
         importlib.reload(s_mod)
         from desktop.main_desktop import _init_settings
+
         port = _init_settings()
         assert port == 8000
 
     def test_none_port_falls_back(self, tmp_path, monkeypatch):
         """None backend_port falls back to 8000."""
-        monkeypatch.setattr("desktop.settings._get_settings_path",
-                           lambda: tmp_path / "settings.json")
+        monkeypatch.setattr("desktop.settings._get_settings_path", lambda: tmp_path / "settings.json")
         settings_file = tmp_path / "settings.json"
         settings_file.write_text(json.dumps({"backend_port": None}))
         import importlib
 
         import desktop.settings as s_mod
+
         importlib.reload(s_mod)
         from desktop.main_desktop import _init_settings
+
         port = _init_settings()
         assert port == 8000
 
 
 # ── Browser opener ─────────────────────────────────────────────────
 
+
 class TestBrowserOpener:
     def test_build_dashboard_url_no_params(self):
         """build_dashboard_url with no params returns clean URL."""
         from desktop.browser_opener import build_dashboard_url
+
         url = build_dashboard_url(port=8000)
         assert url == "http://127.0.0.1:8000/"
 
     def test_build_dashboard_url_with_device_id(self):
         """build_dashboard_url includes device_id query param."""
         from desktop.browser_opener import build_dashboard_url
+
         url = build_dashboard_url(port=8000, device_id="test-1234")
         assert "device_id=test-1234" in url
 
     def test_build_dashboard_url_with_all_params(self):
         """build_dashboard_url with all optional params."""
         from desktop.browser_opener import build_dashboard_url
-        url = build_dashboard_url(port=8000, path="/daily", token="tok",
-                                  device_id="dev", tab="findings", target_id=42)
+
+        url = build_dashboard_url(port=8000, path="/daily", token="tok", device_id="dev", tab="findings", target_id=42)
         assert "port" not in url  # port is in the host, not query
         assert "http://127.0.0.1:8000/daily" in url
         assert "token=tok" in url
@@ -693,12 +759,14 @@ class TestBrowserOpener:
     def test_open_dashboard_returns_bool(self):
         """open_dashboard returns True/False (no crash)."""
         from desktop.browser_opener import open_dashboard
+
         result = open_dashboard(port=1)  # unlikely to succeed
         assert isinstance(result, bool)
 
     def test_build_dashboard_url_with_onboarding(self):
         """build_dashboard_url includes onboarding=1 when flag is True."""
         from desktop.browser_opener import build_dashboard_url
+
         url = build_dashboard_url(port=8000, onboarding=True)
         assert "onboarding=1" in url
         # Without onboarding flag, no onboarding param
@@ -708,6 +776,7 @@ class TestBrowserOpener:
     def test_open_dashboard_accepts_onboarding_kwarg(self):
         """open_dashboard accepts onboarding keyword argument without error."""
         from desktop.browser_opener import open_dashboard
+
         # This must not raise TypeError
         result = open_dashboard(port=1, onboarding=True)
         assert isinstance(result, bool)
@@ -717,28 +786,27 @@ class TestBrowserOpener:
         import inspect
 
         from desktop.browser_opener import open_dashboard
+
         sig = inspect.signature(open_dashboard)
         # Simulate the exact ctx dict built in _open_browser
         ctx_keys = {"port", "token", "device_id", "tab", "target_id", "onboarding"}
         for key in ctx_keys:
-            assert key in sig.parameters, (
-                f"ctx key {key!r} is not a valid parameter of open_dashboard()"
-            )
+            assert key in sig.parameters, f"ctx key {key!r} is not a valid parameter of open_dashboard()"
 
     def test_build_and_open_signatures_agree(self):
         """build_dashboard_url and open_dashboard accept the same parameters."""
         import inspect
 
         from desktop.browser_opener import build_dashboard_url, open_dashboard
+
         b_params = set(inspect.signature(build_dashboard_url).parameters)
         o_params = set(inspect.signature(open_dashboard).parameters)
-        assert b_params == o_params, (
-            f"Parameter mismatch: build={b_params - o_params}, open={o_params - b_params}"
-        )
+        assert b_params == o_params, f"Parameter mismatch: build={b_params - o_params}, open={o_params - b_params}"
 
     def test_default_browser_detection(self):
         """detect_default_browser returns string or None (no crash)."""
         from desktop.browser_opener import detect_default_browser
+
         result = detect_default_browser()
         # On CI/headless this may be None
         assert result is None or isinstance(result, str)
@@ -746,16 +814,19 @@ class TestBrowserOpener:
     def test_browser_info_format(self):
         """browser_info returns expected string format."""
         from desktop.browser_opener import browser_info
+
         info = browser_info()
         assert "browser" in info.lower()
 
 
 # ── WebView/desktop window fallback ────────────────────────────────
 
+
 class TestWebviewFallback:
     def test_open_desktop_window_returns_false_on_missing_webview(self):
         """_open_desktop_window returns False when WebView2 unavailable."""
         from desktop.main_desktop import _open_desktop_window
+
         # In CI/headless, webview.start() should return quickly -> False
         result = _open_desktop_window("127.0.0.1", 18000)
         assert result is False
@@ -763,27 +834,32 @@ class TestWebviewFallback:
     def test_open_desktop_window_with_invalid_port(self):
         """_open_desktop_window handles invalid port gracefully."""
         from desktop.main_desktop import _open_desktop_window
+
         result = _open_desktop_window("127.0.0.1", 99999)
         assert result is False
 
     def test_desktop_window_wrong_host(self):
         """_open_desktop_window with unreachable host returns False."""
         from desktop.main_desktop import _open_desktop_window
+
         result = _open_desktop_window("0.0.0.0", 18001)
         assert result is False
 
 
 # ── Startup/shutdown lifecycle ─────────────────────────────────────
 
+
 class TestStartupShutdown:
     def test_main_imports(self):
         """main() function imports without error."""
         from desktop.main_desktop import main
+
         assert callable(main)
 
     def test_server_thread_creation(self):
         """ServerThread creates and stores host/port."""
         from desktop.main_desktop import ServerThread
+
         st = ServerThread("127.0.0.1", 8000)
         assert st.host == "127.0.0.1"
         assert st.port == 8000
@@ -791,24 +867,28 @@ class TestStartupShutdown:
     def test_server_thread_stop_on_not_started(self):
         """ServerThread.stop() does not crash if never started."""
         from desktop.main_desktop import ServerThread
+
         st = ServerThread("127.0.0.1", 8000)
         st.stop()  # should not raise
 
     def test_health_wait_timeout(self):
         """_wait_for_health returns False on unreachable port."""
         from desktop.main_desktop import _wait_for_health
+
         result = _wait_for_health("127.0.0.1", 1, timeout=2.0)
         assert result is False
 
     def test_port_wait_timeout(self):
         """_wait_for_port returns False on unreachable port."""
         from desktop.main_desktop import _wait_for_port
+
         result = _wait_for_port("127.0.0.1", 1, timeout=2.0)
         assert result is False
 
     def test_server_thread_start_and_stop(self):
         """ServerThread starts and stops cleanly."""
         from desktop.main_desktop import ServerThread
+
         st = ServerThread("127.0.0.1", 18999)
         st._server = None  # simulate not started
         st.stop()  # should not raise
@@ -816,21 +896,25 @@ class TestStartupShutdown:
     def test_lifecycle_logger_format(self):
         """_lifecycle logs correctly through both handlers."""
         from desktop.main_desktop import _lifecycle
+
         # Should not raise
         _lifecycle("[TEST]", "Test message: %s", "ok")
 
 
 # ── Reset singleton for clean test runs ───────────────────────────
 
+
 def teardown_module():
     """Reset the settings singleton between test runs."""
     import desktop.settings
+
     desktop.settings._SETTINGS_INSTANCE = None
 
 
 # ── React Hooks Ordering Tests ──────────────────────────────────────
 
 REACT_HOOKS = {"useState", "useEffect", "useMemo", "useCallback", "useRef", "useReducer", "useContext"}
+
 
 class TestReactHooksOrder:
     """Static analysis: verify the fix for React error #310.
@@ -913,7 +997,9 @@ class TestReactHooksOrder:
         frontend_dir = PROJECT_DIR / "frontend"
         result = subprocess.run(
             ["npx", "eslint", "--format", "unix"] + components,
-            capture_output=True, text=True, timeout=120,
+            capture_output=True,
+            text=True,
+            timeout=120,
             cwd=str(frontend_dir),
         )
         stdout = result.stdout or ""
@@ -927,6 +1013,7 @@ class TestReactHooksOrder:
 
 # ── Service Worker Cache Tests ──────────────────────────────────────
 
+
 class TestServiceWorker:
     SW_PATH = PROJECT_DIR / "frontend" / "public" / "service-worker.js"
     SW_BUILD_PATH = PROJECT_DIR / "frontend" / "dist" / "service-worker.js"
@@ -935,37 +1022,28 @@ class TestServiceWorker:
         assert self.SW_PATH.is_file(), "service-worker.js not found"
 
     def test_sw_built_file_exists(self):
-        assert self.SW_BUILD_PATH.is_file(), (
-            "dist/service-worker.js not found — run 'npm run build' first"
-        )
+        assert self.SW_BUILD_PATH.is_file(), "dist/service-worker.js not found — run 'npm run build' first"
 
     def test_sw_built_matches_source(self):
         """Built service-worker.js must be identical to source."""
         src = self.SW_PATH.read_bytes()
         built = self.SW_BUILD_PATH.read_bytes()
         assert src == built, (
-            "dist/service-worker.js differs from public/service-worker.js! "
-            "Rebuild with 'npm run build'."
+            "dist/service-worker.js differs from public/service-worker.js! Rebuild with 'npm run build'."
         )
 
     def test_sw_rejects_non_get_requests(self):
         """fetch handler must return early with fetch(request) for non-GET methods."""
         code = self.SW_PATH.read_text()
-        assert "request.method !== 'GET'" in code, (
-            "Missing non-GET filter — POST requests would crash cache.put()"
-        )
-        assert "event.respondWith(fetch(request))" in code, (
-            "Missing fetch(request) fallback for non-GET requests"
-        )
+        assert "request.method !== 'GET'" in code, "Missing non-GET filter — POST requests would crash cache.put()"
+        assert "event.respondWith(fetch(request))" in code, "Missing fetch(request) fallback for non-GET requests"
 
     def test_sw_cache_put_guarded(self):
         """Every cache.put() call must be guarded by request.method === 'GET'."""
         code = self.SW_PATH.read_text()
         put_count = code.count("cache.put(")
         guard_count = code.count("request.method === 'GET'")
-        assert guard_count >= put_count, (
-            f"Found {put_count} cache.put() calls but only {guard_count} GET guards"
-        )
+        assert guard_count >= put_count, f"Found {put_count} cache.put() calls but only {guard_count} GET guards"
 
     def test_sw_cache_add_all_install_only(self):
         """cache.addAll() must only appear in the install event, not fetch."""
@@ -984,12 +1062,11 @@ class TestServiceWorker:
         install_zone = set(install_lines)
         for i, line in enumerate(lines):
             if "cache.addAll" in line:
-                assert i in install_zone, (
-                    f"cache.addAll() found outside install event at line {i+1}"
-                )
+                assert i in install_zone, f"cache.addAll() found outside install event at line {i + 1}"
 
 
 # ── Hardware ID Consistency Tests ──────────────────────────────────
+
 
 class TestHardwareIDConsistency:
     """Verify the entire HWID pipeline produces consistent fingerprints.
@@ -1004,6 +1081,7 @@ class TestHardwareIDConsistency:
     def test_hwid_deterministic(self):
         """Calling get_hardware_id() twice yields the same result."""
         from cores.license.hardware import get_hardware_id
+
         a = get_hardware_id()
         b = get_hardware_id()
         assert a == b, f"Non-deterministic HWID: {a} != {b}"
@@ -1011,11 +1089,10 @@ class TestHardwareIDConsistency:
     def test_hwid_length(self):
         """get_hardware_id() returns a 32-character hex string."""
         from cores.license.hardware import get_hardware_id
+
         hwid = get_hardware_id()
         assert len(hwid) == 32, f"HWID length should be 32, got {len(hwid)}"
-        assert all(c in "0123456789abcdef" for c in hwid), (
-            f"HWID contains non-hex characters: {hwid}"
-        )
+        assert all(c in "0123456789abcdef" for c in hwid), f"HWID contains non-hex characters: {hwid}"
 
     def test_hwid_prefix_in_license_key(self):
         """The HWID's first 7 hex chars must be embedded in the generated key."""
@@ -1030,9 +1107,7 @@ class TestHardwareIDConsistency:
         assert parsed is not None
 
         embedded = parsed["hardware_prefix"]
-        assert embedded == hw_prefix, (
-            f"HWID prefix mismatch: current={hw_prefix}, key_embedded={embedded}"
-        )
+        assert embedded == hw_prefix, f"HWID prefix mismatch: current={hw_prefix}, key_embedded={embedded}"
 
     def test_hwid_prefix_validation_pass(self):
         """validate_license must accept a key generated on this machine."""
@@ -1058,9 +1133,9 @@ class TestHardwareIDConsistency:
         from cores.license.validator import validate_license
 
         invalid_keys = [
-            "12606-11111-11111-11111-11111",        # parseable but wrong sig
-            "00000-00000-00000-00000-00000",        # wrong sig (version=0)
-            "99999-99999-99999-99999-99999",        # wrong sig (year=99)
+            "12606-11111-11111-11111-11111",  # parseable but wrong sig
+            "00000-00000-00000-00000-00000",  # wrong sig (version=0)
+            "99999-99999-99999-99999-99999",  # wrong sig (year=99)
         ]
         for key in invalid_keys:
             valid, reason = validate_license(key)
@@ -1081,9 +1156,7 @@ class TestHardwareIDConsistency:
         store.save("TEST-12345-TEST-12345-TEST", hwid)
         loaded = store.load()
         assert loaded is not None
-        assert loaded["hardware_id"] == hwid, (
-            f"Stored HWID mismatch: saved={hwid}, loaded={loaded['hardware_id']}"
-        )
+        assert loaded["hardware_id"] == hwid, f"Stored HWID mismatch: saved={hwid}, loaded={loaded['hardware_id']}"
 
         # Ensure is_activated returns True
         assert store.is_activated is True
@@ -1121,12 +1194,8 @@ class TestHardwareIDConsistency:
 
         stored = store.load()
         assert stored is not None
-        assert stored["hardware_id"] == hwid, (
-            f"HWID drift: expected={hwid}, stored={stored['hardware_id']}"
-        )
-        assert stored["license_key"] == key, (
-            f"License key drift: expected={key}, stored={stored['license_key']}"
-        )
+        assert stored["hardware_id"] == hwid, f"HWID drift: expected={hwid}, stored={stored['hardware_id']}"
+        assert stored["license_key"] == key, f"License key drift: expected={key}, stored={stored['license_key']}"
 
         valid_stored, reason_stored = is_license_valid()
         assert valid_stored, f"Stored license check failed: {reason_stored}"
@@ -1257,9 +1326,7 @@ class TestHardwareIDStability:
             result_hwid = hashlib.sha256(
                 "|".join([hostname, mac, hw_mod._get_machine_id()]).encode("utf-8")
             ).hexdigest()[:32]
-            assert result_hwid == hwid_old, (
-                f"Non-duplicate HWID changed: old={hwid_old}, new={result_hwid}"
-            )
+            assert result_hwid == hwid_old, f"Non-duplicate HWID changed: old={hwid_old}, new={result_hwid}"
         finally:
             hw_mod._get_raw_machine_ids = _orig
 
@@ -1306,17 +1373,14 @@ class TestHardwareIDStability:
                 importlib.reload(hw_mod)
 
                 machine_id = hw_mod._get_machine_id()
-                assert machine_id == mid, (
-                    f"Symlink duplicate not deduplicated: got {machine_id!r}, expected {mid!r}"
-                )
+                assert machine_id == mid, f"Symlink duplicate not deduplicated: got {machine_id!r}, expected {mid!r}"
 
                 hwid = hw_mod.get_hardware_id()
                 expected_raw = "|".join([socket.gethostname(), hw_mod._get_mac(), mid])
                 expected_hwid = hashlib.sha256(expected_raw.encode("utf-8")).hexdigest()[:32]
 
                 assert hwid == expected_hwid, (
-                    f"HWID differs with real duplicate scenario: "
-                    f"got={hwid}, expected={expected_hwid}"
+                    f"HWID differs with real duplicate scenario: got={hwid}, expected={expected_hwid}"
                 )
             finally:
                 os.path.exists = _orig_exists

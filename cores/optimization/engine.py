@@ -77,6 +77,7 @@ class AutoOptimizationEngine:
             return []
 
         import time
+
         now = time.monotonic()
         if now - self._last_optimization < self._cooldown:
             return []
@@ -91,24 +92,28 @@ class AutoOptimizationEngine:
                 int(self._params["eventbus_max_history"] * 0.5),
             )
             if new_val < self._params["eventbus_max_history"]:
-                actions.append(OptimizationAction(
-                    parameter="eventbus_max_history",
-                    old_value=self._params["eventbus_max_history"],
-                    new_value=new_val,
-                    reason=f"High memory ({mem_pct:.0f}%): reducing history to {new_val}",
-                ))
+                actions.append(
+                    OptimizationAction(
+                        parameter="eventbus_max_history",
+                        old_value=self._params["eventbus_max_history"],
+                        new_value=new_val,
+                        reason=f"High memory ({mem_pct:.0f}%): reducing history to {new_val}",
+                    )
+                )
                 self._params["eventbus_max_history"] = int(new_val)
         elif mem_pct < 30 and self._params["eventbus_max_history"] < 500:
             new_val = min(
                 self._max_params["eventbus_max_history"],
                 int(self._params["eventbus_max_history"] * 2),
             )
-            actions.append(OptimizationAction(
-                parameter="eventbus_max_history",
-                old_value=self._params["eventbus_max_history"],
-                new_value=new_val,
-                reason=f"Low memory ({mem_pct:.0f}%): increasing history to {new_val}",
-            ))
+            actions.append(
+                OptimizationAction(
+                    parameter="eventbus_max_history",
+                    old_value=self._params["eventbus_max_history"],
+                    new_value=new_val,
+                    reason=f"Low memory ({mem_pct:.0f}%): increasing history to {new_val}",
+                )
+            )
             self._params["eventbus_max_history"] = int(new_val)
 
         # 2. Scheduler interval: back off on failures
@@ -118,24 +123,28 @@ class AutoOptimizationEngine:
                 self._max_params["scheduler_interval_min"],
                 self._params["scheduler_interval_min"] * 2,
             )
-            actions.append(OptimizationAction(
-                parameter="scheduler_interval_min",
-                old_value=self._params["scheduler_interval_min"],
-                new_value=new_val,
-                reason=f"High recovery rate: backing off scheduler to {new_val}min",
-            ))
+            actions.append(
+                OptimizationAction(
+                    parameter="scheduler_interval_min",
+                    old_value=self._params["scheduler_interval_min"],
+                    new_value=new_val,
+                    reason=f"High recovery rate: backing off scheduler to {new_val}min",
+                )
+            )
             self._params["scheduler_interval_min"] = int(new_val)
         elif recovery_attempts == 0 and self._params["scheduler_interval_min"] > 30:
             new_val = max(
                 self._min_params["scheduler_interval_min"],
                 self._params["scheduler_interval_min"] // 2,
             )
-            actions.append(OptimizationAction(
-                parameter="scheduler_interval_min",
-                old_value=self._params["scheduler_interval_min"],
-                new_value=new_val,
-                reason=f"Stable system: reducing scheduler interval to {new_val}min",
-            ))
+            actions.append(
+                OptimizationAction(
+                    parameter="scheduler_interval_min",
+                    old_value=self._params["scheduler_interval_min"],
+                    new_value=new_val,
+                    reason=f"Stable system: reducing scheduler interval to {new_val}min",
+                )
+            )
             self._params["scheduler_interval_min"] = int(new_val)
 
         # 3. Retry backoff: increase on repeated failures
@@ -145,12 +154,14 @@ class AutoOptimizationEngine:
                 self._max_params["retry_backoff_base"],
                 self._params["retry_backoff_base"] * 1.5,
             )
-            actions.append(OptimizationAction(
-                parameter="retry_backoff_base",
-                old_value=self._params["retry_backoff_base"],
-                new_value=new_val,
-                reason=f"High retry rate ({pipeline_retries}): increasing backoff to {new_val}s",
-            ))
+            actions.append(
+                OptimizationAction(
+                    parameter="retry_backoff_base",
+                    old_value=self._params["retry_backoff_base"],
+                    new_value=new_val,
+                    reason=f"High retry rate ({pipeline_retries}): increasing backoff to {new_val}s",
+                )
+            )
             self._params["retry_backoff_base"] = int(new_val)
 
         # 4. Agent max_retries: reduce on error cascades
@@ -160,12 +171,14 @@ class AutoOptimizationEngine:
                 self._min_params["agent_max_retries"],
                 self._params["agent_max_retries"] - 1,
             )
-            actions.append(OptimizationAction(
-                parameter="agent_max_retries",
-                old_value=self._params["agent_max_retries"],
-                new_value=new_val,
-                reason=f"Agent crash cascade ({agent_crashes}): reducing retries to {new_val}",
-            ))
+            actions.append(
+                OptimizationAction(
+                    parameter="agent_max_retries",
+                    old_value=self._params["agent_max_retries"],
+                    new_value=new_val,
+                    reason=f"Agent crash cascade ({agent_crashes}): reducing retries to {new_val}",
+                )
+            )
             self._params["agent_max_retries"] = int(new_val)
 
         # 5. Health check interval: increase on stable systems
@@ -175,12 +188,14 @@ class AutoOptimizationEngine:
                 self._max_params["health_check_interval"],
                 self._params["health_check_interval"] * 1.5,
             )
-            actions.append(OptimizationAction(
-                parameter="health_check_interval",
-                old_value=self._params["health_check_interval"],
-                new_value=new_val,
-                reason=f"Stable system: reducing health check frequency to {new_val}s",
-            ))
+            actions.append(
+                OptimizationAction(
+                    parameter="health_check_interval",
+                    old_value=self._params["health_check_interval"],
+                    new_value=new_val,
+                    reason=f"Stable system: reducing health check frequency to {new_val}s",
+                )
+            )
             self._params["health_check_interval"] = int(new_val)
 
         if actions:
@@ -189,12 +204,15 @@ class AutoOptimizationEngine:
                 action.applied_at = datetime.now(UTC).isoformat()
                 logger.info(
                     "[OPTIMIZE] %s: %s -> %s (%s)",
-                    action.parameter, action.old_value, action.new_value, action.reason,
+                    action.parameter,
+                    action.old_value,
+                    action.new_value,
+                    action.reason,
                 )
             with self._lock:
                 self._history.extend(actions)
                 if len(self._history) > self._max_history:
-                    self._history[:] = self._history[-self._max_history:]
+                    self._history[:] = self._history[-self._max_history :]
 
             self._emit_optimization_events(actions)
 
@@ -204,6 +222,7 @@ class AutoOptimizationEngine:
         for action in actions:
             try:
                 from cores.events.event_bus import get_event_bus
+
                 bus = get_event_bus()
                 bus.publish(
                     "auto_optimization_applied",

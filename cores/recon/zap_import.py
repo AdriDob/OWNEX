@@ -41,7 +41,6 @@ def parse_zap_xml(path: Path) -> list[ZapSite]:
         LOG.error("Failed to parse ZAP XML %s: %s", path, e)
         return []
 
-
     for alertitem in root.iter("alertitem"):
         try:
             alert_name_el = alertitem.find("alert")
@@ -97,6 +96,7 @@ def parse_zap_xml(path: Path) -> list[ZapSite]:
 
             # Extract site name from URL
             from urllib.parse import urlparse
+
             parsed = urlparse(url or "")
             site_name = f"{parsed.scheme}://{parsed.netloc}"
 
@@ -111,8 +111,7 @@ def parse_zap_xml(path: Path) -> list[ZapSite]:
             continue
 
     sites = list(sites_map.values())
-    LOG.info("Parsed %d sites with %d total alerts from ZAP XML %s",
-             len(sites), sum(len(s.urls) for s in sites), path)
+    LOG.info("Parsed %d sites with %d total alerts from ZAP XML %s", len(sites), sum(len(s.urls) for s in sites), path)
     return sites
 
 
@@ -161,8 +160,7 @@ def parse_zap_json(path: Path) -> list[ZapSite]:
                 LOG.warning("Skipping malformed ZAP JSON alert: %s", e)
 
     sites = list(sites_map.values())
-    LOG.info("Parsed %d sites with %d alerts from ZAP JSON %s",
-             len(sites), sum(len(s.alerts) for s in sites), path)
+    LOG.info("Parsed %d sites with %d alerts from ZAP JSON %s", len(sites), sum(len(s.alerts) for s in sites), path)
     return sites
 
 

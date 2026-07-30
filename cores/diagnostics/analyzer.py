@@ -58,15 +58,17 @@ class DiagnosticAnalyzer:
         metadata: dict[str, Any] | None = None,
     ) -> None:
         with self._lock:
-            self._error_history.append({
-                "component": component,
-                "error_message": error_message,
-                "failure_type": failure_type,
-                "metadata": metadata or {},
-                "timestamp": datetime.now(UTC).isoformat(),
-            })
+            self._error_history.append(
+                {
+                    "component": component,
+                    "error_message": error_message,
+                    "failure_type": failure_type,
+                    "metadata": metadata or {},
+                    "timestamp": datetime.now(UTC).isoformat(),
+                }
+            )
             if len(self._error_history) > self._max_history:
-                self._error_history[:] = self._error_history[-self._max_history // 2:]
+                self._error_history[:] = self._error_history[-self._max_history // 2 :]
 
     # ── Pattern detection ─────────────────────────────────────────────
 
@@ -91,19 +93,21 @@ class DiagnosticAnalyzer:
                 frequency = len(entries)
                 confidence = min(1.0, frequency / 10)
 
-                patterns.append(FailurePattern(
-                    pattern_id=f"pat_{hash(key) % 100000:05d}",
-                    description=(
-                        f"Repeated failure in {component}: "
-                        f"{frequency} occurrences in last {len(self._error_history)} events"
-                    ),
-                    frequency=frequency,
-                    affected_components=[component],
-                    typical_error=error,
-                    first_seen=min(timestamps),
-                    last_seen=max(timestamps),
-                    confidence=confidence,
-                ))
+                patterns.append(
+                    FailurePattern(
+                        pattern_id=f"pat_{hash(key) % 100000:05d}",
+                        description=(
+                            f"Repeated failure in {component}: "
+                            f"{frequency} occurrences in last {len(self._error_history)} events"
+                        ),
+                        frequency=frequency,
+                        affected_components=[component],
+                        typical_error=error,
+                        first_seen=min(timestamps),
+                        last_seen=max(timestamps),
+                        confidence=confidence,
+                    )
+                )
 
             patterns.sort(key=lambda p: p.frequency, reverse=True)
             return patterns[:20]
@@ -120,24 +124,21 @@ class DiagnosticAnalyzer:
                     continue
 
                 # Simple periodic check: same error type occurring repeatedly
-                error_types = Counter(
-                    e["failure_type"] for e in comp_errors
-                )
+                error_types = Counter(e["failure_type"] for e in comp_errors)
                 for failure_type, count in error_types.most_common(3):
                     if count >= 3:
-                        patterns.append(FailurePattern(
-                            pattern_id=f"periodic_{comp}_{failure_type}",
-                            description=(
-                                f"Periodic {failure_type} in {comp}: "
-                                f"{count} occurrences"
-                            ),
-                            frequency=count,
-                            affected_components=[comp],
-                            typical_error=failure_type,
-                            first_seen=comp_errors[0]["timestamp"],
-                            last_seen=comp_errors[-1]["timestamp"],
-                            confidence=min(0.8, count / 8),
-                        ))
+                        patterns.append(
+                            FailurePattern(
+                                pattern_id=f"periodic_{comp}_{failure_type}",
+                                description=(f"Periodic {failure_type} in {comp}: {count} occurrences"),
+                                frequency=count,
+                                affected_components=[comp],
+                                typical_error=failure_type,
+                                first_seen=comp_errors[0]["timestamp"],
+                                last_seen=comp_errors[-1]["timestamp"],
+                                confidence=min(0.8, count / 8),
+                            )
+                        )
 
             patterns.sort(key=lambda p: p.frequency, reverse=True)
             return patterns[:10]
@@ -145,10 +146,7 @@ class DiagnosticAnalyzer:
     def most_failing_components(self, top_n: int = 5) -> list[dict[str, Any]]:
         with self._lock:
             counts: Counter = Counter(e["component"] for e in self._error_history)
-            return [
-                {"component": comp, "failures": count}
-                for comp, count in counts.most_common(top_n)
-            ]
+            return [{"component": comp, "failures": count} for comp, count in counts.most_common(top_n)]
 
     # ── Root cause analysis ───────────────────────────────────────────
 
@@ -160,61 +158,71 @@ class DiagnosticAnalyzer:
             comp = pattern.affected_components[0]
 
             if "eventbus" in comp or "event_bus" in comp:
-                hypotheses.append(RootCauseHypothesis(
-                    component=comp,
-                    confidence=min(1.0, pattern.confidence + 0.1),
-                    evidence=[
-                        pattern.typical_error,
-                        f"{pattern.frequency} eventbus failures recorded",
-                        f"First seen: {pattern.first_seen}",
-                    ],
-                    suggested_action="reset_event_bus",
-                    generated_at=datetime.now(UTC).isoformat(),
-                ))
+                hypotheses.append(
+                    RootCauseHypothesis(
+                        component=comp,
+                        confidence=min(1.0, pattern.confidence + 0.1),
+                        evidence=[
+                            pattern.typical_error,
+                            f"{pattern.frequency} eventbus failures recorded",
+                            f"First seen: {pattern.first_seen}",
+                        ],
+                        suggested_action="reset_event_bus",
+                        generated_at=datetime.now(UTC).isoformat(),
+                    )
+                )
             elif "agent" in comp.lower():
-                hypotheses.append(RootCauseHypothesis(
-                    component=comp,
-                    confidence=min(1.0, pattern.confidence + 0.05),
-                    evidence=[
-                        pattern.typical_error,
-                        f"{pattern.frequency} failures in agent {comp}",
-                    ],
-                    suggested_action=f"restart_agent:{comp}",
-                    generated_at=datetime.now(UTC).isoformat(),
-                ))
+                hypotheses.append(
+                    RootCauseHypothesis(
+                        component=comp,
+                        confidence=min(1.0, pattern.confidence + 0.05),
+                        evidence=[
+                            pattern.typical_error,
+                            f"{pattern.frequency} failures in agent {comp}",
+                        ],
+                        suggested_action=f"restart_agent:{comp}",
+                        generated_at=datetime.now(UTC).isoformat(),
+                    )
+                )
             elif "scheduler" in comp.lower():
-                hypotheses.append(RootCauseHypothesis(
-                    component=comp,
-                    confidence=pattern.confidence,
-                    evidence=[
-                        pattern.typical_error,
-                        f"Scheduler failed {pattern.frequency} times",
-                    ],
-                    suggested_action="restart_scheduler",
-                    generated_at=datetime.now(UTC).isoformat(),
-                ))
+                hypotheses.append(
+                    RootCauseHypothesis(
+                        component=comp,
+                        confidence=pattern.confidence,
+                        evidence=[
+                            pattern.typical_error,
+                            f"Scheduler failed {pattern.frequency} times",
+                        ],
+                        suggested_action="restart_scheduler",
+                        generated_at=datetime.now(UTC).isoformat(),
+                    )
+                )
             elif "db" in comp.lower() or "database" in comp.lower():
-                hypotheses.append(RootCauseHypothesis(
-                    component=comp,
-                    confidence=pattern.confidence,
-                    evidence=[
-                        pattern.typical_error,
-                        f"Database errors: {pattern.frequency} occurrences",
-                    ],
-                    suggested_action="reopen_db_connection",
-                    generated_at=datetime.now(UTC).isoformat(),
-                ))
+                hypotheses.append(
+                    RootCauseHypothesis(
+                        component=comp,
+                        confidence=pattern.confidence,
+                        evidence=[
+                            pattern.typical_error,
+                            f"Database errors: {pattern.frequency} occurrences",
+                        ],
+                        suggested_action="reopen_db_connection",
+                        generated_at=datetime.now(UTC).isoformat(),
+                    )
+                )
             else:
-                hypotheses.append(RootCauseHypothesis(
-                    component=comp,
-                    confidence=pattern.confidence * 0.5,
-                    evidence=[
-                        pattern.typical_error,
-                        f"Unknown component: {pattern.frequency} failures",
-                    ],
-                    suggested_action="generic_recovery",
-                    generated_at=datetime.now(UTC).isoformat(),
-                ))
+                hypotheses.append(
+                    RootCauseHypothesis(
+                        component=comp,
+                        confidence=pattern.confidence * 0.5,
+                        evidence=[
+                            pattern.typical_error,
+                            f"Unknown component: {pattern.frequency} failures",
+                        ],
+                        suggested_action="generic_recovery",
+                        generated_at=datetime.now(UTC).isoformat(),
+                    )
+                )
 
         return hypotheses
 

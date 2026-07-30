@@ -127,10 +127,18 @@ def parse_burp_json(path: Path) -> list[BurpItem]:
             comment = entry.get("comment", "")
 
             burp_item = BurpItem(
-                url=url, host=host, port=port, protocol=protocol,
-                method=method, path=path_text, status=status,
-                length=length, mime_type=mime, request=request,
-                response=response, comment=comment,
+                url=url,
+                host=host,
+                port=port,
+                protocol=protocol,
+                method=method,
+                path=path_text,
+                status=status,
+                length=length,
+                mime_type=mime,
+                request=request,
+                response=response,
+                comment=comment,
             )
             burp_item.findings = _analyze_burp_item(burp_item)
             items.append(burp_item)

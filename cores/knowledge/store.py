@@ -117,24 +117,28 @@ class SqlAlchemyKnowledgeStore(KnowledgeStore):
         return relation_id
 
     def find_artifacts(self, fingerprint: str) -> list[dict[str, Any]]:
-        rows = self.session.query(KnowledgeArtifactModel).filter(KnowledgeArtifactModel.fingerprint == fingerprint).all()
+        rows = (
+            self.session.query(KnowledgeArtifactModel).filter(KnowledgeArtifactModel.fingerprint == fingerprint).all()
+        )
         results = []
         for row in rows:
-            results.append({
-                "artifact_id": row.id,
-                "title": row.title,
-                "summary": row.summary,
-                "description": row.description,
-                "content_type": row.content_type,
-                "body": row.body,
-                "canonical_entities": row.canonical_entities,
-                "metadata": row.metadata_json,
-                "created_at": row.created_at.isoformat() if row.created_at else None,
-                "updated_at": row.updated_at.isoformat() if row.updated_at else None,
-                "version": row.version,
-                "fingerprint": row.fingerprint,
-                "dedup_source_ids": row.dedup_source_ids,
-            })
+            results.append(
+                {
+                    "artifact_id": row.id,
+                    "title": row.title,
+                    "summary": row.summary,
+                    "description": row.description,
+                    "content_type": row.content_type,
+                    "body": row.body,
+                    "canonical_entities": row.canonical_entities,
+                    "metadata": row.metadata_json,
+                    "created_at": row.created_at.isoformat() if row.created_at else None,
+                    "updated_at": row.updated_at.isoformat() if row.updated_at else None,
+                    "version": row.version,
+                    "fingerprint": row.fingerprint,
+                    "dedup_source_ids": row.dedup_source_ids,
+                }
+            )
         return results
 
     def get_artifact(self, artifact_id: str) -> dict[str, Any] | None:

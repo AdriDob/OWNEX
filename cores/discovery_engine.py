@@ -30,13 +30,15 @@ logger = logging.getLogger("ownex.discovery_engine")
 
 class DiscoveryMode(Enum):
     """Discovery operating modes."""
-    CONTINUOUS = "continuous"      # Run forever, every cycle
-    SCHEDULED = "scheduled"        # Run at specific intervals
-    ON_DEMAND = "on_demand"        # Trigger manually
+
+    CONTINUOUS = "continuous"  # Run forever, every cycle
+    SCHEDULED = "scheduled"  # Run at specific intervals
+    ON_DEMAND = "on_demand"  # Trigger manually
 
 
 class OpportunityStatus(Enum):
     """Status of an opportunity in the pipeline."""
+
     DISCOVERED = "discovered"
     CLASSIFIED = "classified"
     SCORED = "scored"
@@ -50,11 +52,12 @@ class OpportunityStatus(Enum):
 @dataclass
 class RankedOpportunity:
     """Opportunity with ranking metadata."""
+
     opportunity: ScoredOpportunity
     rank: int = 0
     score: float = 0.0
-    evh: float = 0.0              # Expected Value per Hour
-    priority: str = "normal"      # critical, high, normal, low
+    evh: float = 0.0  # Expected Value per Hour
+    priority: str = "normal"  # critical, high, normal, low
     status: OpportunityStatus = OpportunityStatus.DISCOVERED
     discovered_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     classified_at: datetime | None = None
@@ -67,24 +70,24 @@ class RankedOpportunity:
 @dataclass
 class DiscoveryConfig:
     """Configuration for the discovery engine."""
+
     mode: DiscoveryMode = DiscoveryMode.CONTINUOUS
-    cycle_interval_seconds: int = 300           # 5 minutes between full cycles
-    max_opportunities_per_cycle: int = 500      # Limit per cycle
-    min_score_threshold: float = 0.3            # Minimum score to keep
-    min_evh_threshold: float = 1.0              # Minimum EVH to queue
-    deduplication_window_hours: int = 24        # Hours to keep dedup cache
+    cycle_interval_seconds: int = 300  # 5 minutes between full cycles
+    max_opportunities_per_cycle: int = 500  # Limit per cycle
+    min_score_threshold: float = 0.3  # Minimum score to keep
+    min_evh_threshold: float = 1.0  # Minimum EVH to queue
+    deduplication_window_hours: int = 24  # Hours to keep dedup cache
     enable_classification: bool = True
     enable_scoring: bool = True
     enable_ranking: bool = True
-    categories: list[str] = field(default_factory=lambda: [
-        "security", "forge", "pulse", "freelance", "crypto"
-    ])
-    max_concurrent_fetch: int = 10              # Parallel adapter fetches
+    categories: list[str] = field(default_factory=lambda: ["security", "forge", "pulse", "freelance", "crypto"])
+    max_concurrent_fetch: int = 10  # Parallel adapter fetches
 
 
 @dataclass
 class DiscoveryMetrics:
     """Runtime metrics for discovery engine."""
+
     cycles_completed: int = 0
     total_opportunities_found: int = 0
     total_opportunities_kept: int = 0
@@ -101,7 +104,7 @@ class DiscoveryMetrics:
 class DiscoveryEngine:
     """
     24/7 Discovery Engine for OWNEX.
-    
+
     Continuously discovers, classifies, scores, and ranks opportunities
     from all connected platforms. Feeds the action queue for execution.
     """
@@ -130,8 +133,11 @@ class DiscoveryEngine:
         self._on_opportunity_queued: list[Callable[[RankedOpportunity], Any]] = []
         self._on_cycle_complete: list[Callable[[DiscoveryMetrics], Any]] = []
 
-        logger.info("DiscoveryEngine initialized: mode=%s, interval=%ds",
-                    self.config.mode.value, self.config.cycle_interval_seconds)
+        logger.info(
+            "DiscoveryEngine initialized: mode=%s, interval=%ds",
+            self.config.mode.value,
+            self.config.cycle_interval_seconds,
+        )
 
     def register_queued_callback(self, callback: Callable[[RankedOpportunity], Any]) -> None:
         """Register callback when opportunity is queued for action."""
@@ -255,7 +261,7 @@ class DiscoveryEngine:
         # 4. CLASSIFY & SCORE
         ranked_opportunities = []
 
-        for source, item in unique_candidates[:self.config.max_opportunities_per_cycle]:
+        for source, item in unique_candidates[: self.config.max_opportunities_per_cycle]:
             try:
                 if source == "adapter":
                     # Already a ScoredOpportunity
@@ -289,7 +295,7 @@ class DiscoveryEngine:
                     metadata={
                         "source": source,
                         "category": scored.cycle,
-                    }
+                    },
                 )
 
                 ranked_opportunities.append(ranked)
@@ -352,7 +358,13 @@ class DiscoveryEngine:
 
         logger.info(
             "Discovery cycle #%d complete: found=%d, kept=%d, scored=%d, queued=%d, deduped=%d, duration=%.2fs",
-            self._metrics.cycles_completed, cycle_found, cycle_kept, cycle_scored, cycle_queued, cycle_deduped, cycle_duration
+            self._metrics.cycles_completed,
+            cycle_found,
+            cycle_kept,
+            cycle_scored,
+            cycle_queued,
+            cycle_deduped,
+            cycle_duration,
         )
 
         # Trigger cycle callbacks
@@ -362,23 +374,24 @@ class DiscoveryEngine:
             except Exception as e:
                 logger.error("Cycle callback failed: %s", e)
 
-        self.event_bus.publish("discovery:cycle_complete",
+        self.event_bus.publish(
+            "discovery:cycle_complete",
             cycle=self._metrics.cycles_completed,
             found=cycle_found,
             kept=cycle_kept,
             queued=cycle_queued,
-            duration=cycle_duration
+            duration=cycle_duration,
         )
 
         return self._metrics
 
     def _make_dedup_key(self, source: str, item: Any) -> str:
         """Create deduplication key from opportunity."""
-        if hasattr(item, 'id'):
+        if hasattr(item, "id"):
             return f"{source}:{item.id}"
-        elif hasattr(item, 'external_id'):
+        elif hasattr(item, "external_id"):
             return f"{source}:{item.external_id}"
-        elif hasattr(item, 'url') and item.url:
+        elif hasattr(item, "url") and item.url:
             return f"{source}:url:{item.url}"
         else:
             return f"{source}:{hash(str(item))}"
@@ -445,8 +458,8 @@ class DiscoveryEngine:
 
     def _calculate_evh(self, scored: ScoredOpportunity) -> float:
         """Calculate Expected Value per Hour."""
-        reward = getattr(scored, 'reward', 0) or 0
-        effort = getattr(scored, 'effort_hours', 4) or 4
+        reward = getattr(scored, "reward", 0) or 0
+        effort = getattr(scored, "effort_hours", 4) or 4
 
         if effort <= 0:
             return 0.0
@@ -473,20 +486,23 @@ class DiscoveryEngine:
 
     def _emit_opportunity_event(self, opp: RankedOpportunity) -> None:
         """Emit event for discovered opportunity."""
-        self.event_bus.publish("opportunity:discovered", {
-            "id": opp.opportunity.id,
-            "name": opp.opportunity.name,
-            "category": opp.opportunity.cycle,
-            "platform": opp.opportunity.source_name,
-            "reward": getattr(opp.opportunity, 'estimated_payout', 0),
-            "evh": opp.evh,
-            "score": opp.score,
-            "priority": opp.priority,
-            "rank": opp.rank,
-            "url": getattr(opp.opportunity, 'public_url', None),
-            "tags": getattr(opp.opportunity, 'technology_tags', []),
-            "discovered_at": opp.discovered_at.isoformat(),
-        })
+        self.event_bus.publish(
+            "opportunity:discovered",
+            {
+                "id": opp.opportunity.id,
+                "name": opp.opportunity.name,
+                "category": opp.opportunity.cycle,
+                "platform": opp.opportunity.source_name,
+                "reward": getattr(opp.opportunity, "estimated_payout", 0),
+                "evh": opp.evh,
+                "score": opp.score,
+                "priority": opp.priority,
+                "rank": opp.rank,
+                "url": getattr(opp.opportunity, "public_url", None),
+                "tags": getattr(opp.opportunity, "technology_tags", []),
+                "discovered_at": opp.discovered_at.isoformat(),
+            },
+        )
 
     # ── Queue Management ──────────────────────────────────────────────
 
@@ -513,10 +529,13 @@ class DiscoveryEngine:
         """Mark opportunity as rejected."""
         opp.status = OpportunityStatus.REJECTED
         opp.metadata["rejection_reason"] = reason
-        self.event_bus.publish("opportunity:rejected", {
-            "id": opp.opportunity.id,
-            "reason": reason,
-        })
+        self.event_bus.publish(
+            "opportunity:rejected",
+            {
+                "id": opp.opportunity.id,
+                "reason": reason,
+            },
+        )
 
     # ── Status & Metrics ──────────────────────────────────────────────
 
@@ -547,7 +566,7 @@ class DiscoveryEngine:
                 "min_score": self.config.min_score_threshold,
                 "min_evh": self.config.min_evh_threshold,
                 "max_per_cycle": self.config.max_opportunities_per_cycle,
-            }
+            },
         }
 
     async def health_check(self) -> dict[str, Any]:
