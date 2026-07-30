@@ -13,7 +13,8 @@
     "settings": "Configuración",
     "terminal": "Terminal",
     "opensource": "Open Source",
-    "zero_barrier": "Ingresos Sin Barreras"
+    "zero_barrier": "Ingresos Sin Barreras",
+    "version_backup": "Backup de Versión"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -180,6 +181,24 @@
     "total_opportunities": "Total de Oportunidades",
     "total_potential_earnings": "Ganancias Potenciales Totales",
     "by_platform": "Por Plataforma"
+  },
+  "version_backup": {
+    "title": "Backup de Versión",
+    "subtitle": "Sistema de backup y rollback de versiones",
+    "backup": "Backup",
+    "restore": "Restaurar",
+    "rollback": "Rollback",
+    "list_backups": "Listar Backups",
+    "verify": "Verificar",
+    "current_version": "Versión Actual",
+    "backup_notes": "Notas de Backup",
+    "create_backup": "Crear Backup",
+    "rollback_to_version": "Rollback a Versión",
+    "restore_latest": "Restaurar Último",
+    "version_history": "Historial de Versiones",
+    "integrity": "Integridad",
+    "pre_rollback": "Backup Pre-rollback",
+    "emergency_recovery": "Recuperación de Emergencia"
   },
   "notifications": {
     "title": "Notificaciones",
