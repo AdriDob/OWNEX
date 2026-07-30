@@ -1,4 +1,4 @@
-## Sesión 2026-07-28 — OWNEX OMEGA: Empresa de Departamentos + Voz + i18n
+## Sesión 2026-07-28 — OWNEX OMEGA: Empresa de Departamentos + Voz + i18n + Motion System
 
 ### Completed
 
@@ -79,6 +79,49 @@
   - Sistema: "estado del sistema", "busca findings"
   - Configuración: "cambia tema a PS5"
 - Integración con Workflow Engine (start, pause, resume, cancel workflows)
+
+**Motion System Mejorado**
+- `frontend/src/composables/useMotion.ts`: Sistema de motion completo (integrated con motion.css)
+  - MOTION_CONFIG: duraciones, easing, spring physics
+  - MOTION_CLASSES: clases CSS matching motion.css
+  - useMotion(): hook principal con reduced motion support
+  - useHoverMotion(): hover, click, glow styles
+  - useStaggerMotion(): stagger delays y classes
+  - useCardMotion(): card enter y hover animations
+  - useListMotion(): list item animations
+  - useModalMotion(): modal backdrop y content animations
+  - useToastMotion(): toast enter/exit animations
+  - useDropdownMotion(): dropdown animations
+  - usePageMotion(): page transitions
+  - useShimmer(): shimmer y skeleton styles
+  - usePulseAnimation(): pulse y glow animations
+  - useSpin(): spin animation
+  - useBounce(): bounce animation
+  - useScrollMotion(): scroll smooth
+- Integración Motion en componentes UI:
+  - Button.vue: transition-all → ownex-transition-fast
+  - Card.vue: added ownex-hover-lift class
+  - Skeleton.vue: ownex-skeleton, ownex-pulse-subtle
+
+**Consolidación de Componentes Duplicados**
+- Eliminados duplicados de dashboard/:
+  - AgentFleet.vue (reemplazado por mission-control/AgentFleet.vue)
+  - NextBestAction.vue (reemplazado por mission-control/NextBestAction.vue)
+  - OpportunityRadar.vue (reemplazado por mission-control/OpportunityRadar.vue)
+  - KnowledgeFeed.vue (reemplazado por mission-control/KnowledgeFeed.vue)
+  - WorkCycleCard.vue (eliminado, duplicado)
+- MissionControl.vue: imports actualizados a mission-control/
+
+**Mejora de Rendimiento**
+- Code Splitting implementado en router/index.ts
+- webpackChunkName agregado a todas las rutas:
+  - auth chunk: LoginPage, Activation
+  - mission-control chunk: GamingConsole, MissionControl
+  - intelligence chunk: IntelligenceDashboard, Findings, HypothesisQueue, EvidenceCenter, InvestigationCenter, InvestigationDetail, ConfidenceDashboard, DifferentialEngine
+  - targets chunk: TargetsPage, Discovery, AttackSurface, OpportunityRadar, TargetDetail, EndpointDetail
+  - reports chunk: ReportCenter, ReportQueue, ReportHistory, ReportDetail, VerificationGuide
+- Lazy loading de rutas
+- Mejora de tiempo de carga inicial
 
 **OpenRouter API Key Configuration**
 - Nueva API key configurada en todo el sistema
