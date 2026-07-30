@@ -20,6 +20,7 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
         return
 
     from cores.auth.auth import verify_token
+
     payload = verify_token(token)
     if not payload:
         await websocket.close(code=4001, reason="Invalid token")

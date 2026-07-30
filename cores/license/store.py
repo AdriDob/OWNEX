@@ -11,6 +11,7 @@ logger = logging.getLogger("ownex.license.store")
 
 def _get_license_file() -> Path:
     from cores.platform.system import get_data_dir
+
     return get_data_dir() / "license.json"
 
 
@@ -36,10 +37,15 @@ class LicenseStore:
             return None
         try:
             data = json.loads(self._path.read_text())
-            logger.info("[HW] LicenseStore.load: loaded = %s", {k: (v[:16] + "..." if isinstance(v, str) and len(v) > 16 else v) for k, v in data.items()})
+            logger.info(
+                "[HW] LicenseStore.load: loaded = %s",
+                {k: (v[:16] + "..." if isinstance(v, str) and len(v) > 16 else v) for k, v in data.items()},
+            )
             stored_hw = data.get("hardware_id", "")
             logger.info("[HW] LicenseStore.load: stored_hardware_id = %s", stored_hw)
-            logger.info("[HW] LicenseStore.load: stored_hardware_id[:7] = %s", stored_hw[:7] if stored_hw else "(empty)")
+            logger.info(
+                "[HW] LicenseStore.load: stored_hardware_id[:7] = %s", stored_hw[:7] if stored_hw else "(empty)"
+            )
             return data
         except (json.JSONDecodeError, OSError) as exc:
             logger.warning("[HW] LicenseStore.load: FAILED: %s", exc)

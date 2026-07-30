@@ -27,8 +27,10 @@ class GauRunner:
         path = self.output_dir / out_file
         cmd = [
             self._binary,
-            "--o", str(path),
-            "--max-urls", str(max_urls),
+            "--o",
+            str(path),
+            "--max-urls",
+            str(max_urls),
             domain,
         ]
         if filters:
@@ -40,9 +42,7 @@ class GauRunner:
             stderr=asyncio.subprocess.PIPE,
         )
         try:
-            stdout, stderr = await asyncio.wait_for(
-                proc.communicate(), timeout=self.timeout
-            )
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=self.timeout)
         except TimeoutError:
             proc.kill()
             await proc.communicate()

@@ -34,7 +34,9 @@ from cores.ledger import (
 
 def _all_ledger_entries():
     from cores.ledger import _all_entries
+
     return _all_entries()
+
 
 logger = logging.getLogger("ownex.financial.truth_layer")
 
@@ -285,7 +287,13 @@ class FinancialState:
                 for cat, sb in self.by_category.items()
             },
             "summary": [
-                {"label": s.label, "amount": round(s.amount, 2), "category": s.category.value, "confidence": s.confidence, "detail": s.detail}
+                {
+                    "label": s.label,
+                    "amount": round(s.amount, 2),
+                    "category": s.category.value,
+                    "confidence": s.confidence,
+                    "detail": s.detail,
+                }
                 for s in self.summary
             ],
         }
@@ -327,9 +335,7 @@ class TruthLayer:
 
             category_breakdowns[cat_key]["amount"] += amount
             category_breakdowns[cat_key]["count"] += 1
-            category_breakdowns[cat_key]["confidence"] = max(
-                category_breakdowns[cat_key]["confidence"], conf
-            )
+            category_breakdowns[cat_key]["confidence"] = max(category_breakdowns[cat_key]["confidence"], conf)
 
             if e.entry_id in self._disputed_entries:
                 state.disputed_balance += amount
@@ -380,18 +386,9 @@ class TruthLayer:
         state.entry_count = len(entries)
         state.wallet = compute_wallet()
 
-        all_healthy = all(
-            ps.sync_state.sync_health == SyncHealth.HEALTHY
-            for ps in state.by_platform.values()
-        )
-        any_failed = any(
-            ps.sync_state.sync_health == SyncHealth.FAILED
-            for ps in state.by_platform.values()
-        )
-        all_never = all(
-            ps.sync_state.sync_health == SyncHealth.NEVER_SYNCED
-            for ps in state.by_platform.values()
-        )
+        all_healthy = all(ps.sync_state.sync_health == SyncHealth.HEALTHY for ps in state.by_platform.values())
+        any_failed = any(ps.sync_state.sync_health == SyncHealth.FAILED for ps in state.by_platform.values())
+        all_never = all(ps.sync_state.sync_health == SyncHealth.NEVER_SYNCED for ps in state.by_platform.values())
         if all_never:
             state.sync_health = SyncHealth.NEVER_SYNCED
         elif any_failed:
@@ -410,53 +407,65 @@ class TruthLayer:
     def _build_summary(self, state: FinancialState) -> list[SummaryItem]:
         items = []
         if state.verified_balance > 0:
-            items.append(SummaryItem(
-                label="Dinero real confirmado",
-                amount=state.verified_balance,
-                category=ValueCategory.VERIFIED_REAL,
-                confidence=1.0,
-                detail="Sincronizado con plataformas de bug bounty",
-            ))
+            items.append(
+                SummaryItem(
+                    label="Dinero real confirmado",
+                    amount=state.verified_balance,
+                    category=ValueCategory.VERIFIED_REAL,
+                    confidence=1.0,
+                    detail="Sincronizado con plataformas de bug bounty",
+                )
+            )
         if state.pending_balance > 0:
-            items.append(SummaryItem(
-                label="Pagos pendientes",
-                amount=state.pending_balance,
-                category=ValueCategory.PENDING,
-                confidence=0.85,
-                detail="Reportados por plataformas, no pagados aún",
-            ))
+            items.append(
+                SummaryItem(
+                    label="Pagos pendientes",
+                    amount=state.pending_balance,
+                    category=ValueCategory.PENDING,
+                    confidence=0.85,
+                    detail="Reportados por plataformas, no pagados aún",
+                )
+            )
         if state.withdrawn_balance > 0:
-            items.append(SummaryItem(
-                label="Retirado",
-                amount=state.withdrawn_balance,
-                category=ValueCategory.VERIFIED_REAL,
-                confidence=1.0,
-                detail="Retiros completados verificados",
-            ))
+            items.append(
+                SummaryItem(
+                    label="Retirado",
+                    amount=state.withdrawn_balance,
+                    category=ValueCategory.VERIFIED_REAL,
+                    confidence=1.0,
+                    detail="Retiros completados verificados",
+                )
+            )
         if state.estimated_balance > 0:
-            items.append(SummaryItem(
-                label="Estimado (no verificado)",
-                amount=state.estimated_balance,
-                category=ValueCategory.ESTIMATED,
-                confidence=0.3,
-                detail="Inferencia del sistema — confirmar con fuente externa",
-            ))
+            items.append(
+                SummaryItem(
+                    label="Estimado (no verificado)",
+                    amount=state.estimated_balance,
+                    category=ValueCategory.ESTIMATED,
+                    confidence=0.3,
+                    detail="Inferencia del sistema — confirmar con fuente externa",
+                )
+            )
         if state.manual_balance > 0:
-            items.append(SummaryItem(
-                label="Ajuste manual",
-                amount=state.manual_balance,
-                category=ValueCategory.MANUAL_INPUT,
-                confidence=0.6,
-                detail="Ingresado por usuario — verificar contra plataforma",
-            ))
+            items.append(
+                SummaryItem(
+                    label="Ajuste manual",
+                    amount=state.manual_balance,
+                    category=ValueCategory.MANUAL_INPUT,
+                    confidence=0.6,
+                    detail="Ingresado por usuario — verificar contra plataforma",
+                )
+            )
         if state.disputed_balance > 0:
-            items.append(SummaryItem(
-                label="En disputa",
-                amount=state.disputed_balance,
-                category=ValueCategory.UNKNOWN,
-                confidence=0.1,
-                detail="Discrepancias detectadas — requiere revisión",
-            ))
+            items.append(
+                SummaryItem(
+                    label="En disputa",
+                    amount=state.disputed_balance,
+                    category=ValueCategory.UNKNOWN,
+                    confidence=0.1,
+                    detail="Discrepancias detectadas — requiere revisión",
+                )
+            )
         return items
 
     def get_platform_sync(self, platform_id: str) -> PlatformSyncState:

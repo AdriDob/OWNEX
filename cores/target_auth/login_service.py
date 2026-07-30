@@ -105,7 +105,12 @@ class TargetLoginService:
         if not login_url:
             return {"token": None, "cookies": None, "expires_at": None, "error": "No login_url provided"}
         if not username or not password:
-            return {"token": None, "cookies": None, "expires_at": None, "error": "Username and password required for form login"}
+            return {
+                "token": None,
+                "cookies": None,
+                "expires_at": None,
+                "error": "Username and password required for form login",
+            }
 
         extra_params = creds.get("login_params", {}) or {}
         form_data = {
@@ -171,10 +176,16 @@ class TargetLoginService:
     @staticmethod
     def _handle_basic_auth(creds: dict) -> dict:
         import base64
+
         username = creds.get("username", "")
         password = creds.get("password", "")
         if not username and not password:
-            return {"token": None, "cookies": None, "expires_at": None, "error": "Basic auth requires username or password"}
+            return {
+                "token": None,
+                "cookies": None,
+                "expires_at": None,
+                "error": "Basic auth requires username or password",
+            }
         raw = f"{username}:{password}"
         encoded = base64.b64encode(raw.encode("utf-8")).decode("ascii")
         return {"token": f"Basic {encoded}", "cookies": None, "expires_at": None, "error": None}

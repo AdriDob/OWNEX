@@ -74,7 +74,7 @@ class FailurePredictionSystem:
                     self._co_occurrence[prev["failure_type"]][failure_type] += 1
 
             if len(self._error_history) > self._max_history:
-                self._error_history[:] = self._error_history[-self._max_history // 2:]
+                self._error_history[:] = self._error_history[-self._max_history // 2 :]
 
     # ── Prediction ────────────────────────────────────────────────────
 
@@ -89,9 +89,7 @@ class FailurePredictionSystem:
             components = [component] if component else list(set(e["component"] for e in self._error_history))
 
             for comp in components:
-                comp_errors = [
-                    e for e in self._error_history if e["component"] == comp
-                ]
+                comp_errors = [e for e in self._error_history if e["component"] == comp]
                 if not comp_errors:
                     continue
 
@@ -151,15 +149,17 @@ class FailurePredictionSystem:
                     else:
                         action = "inspect_component"
 
-                predictions.append(FailurePrediction(
-                    component=comp,
-                    risk_level=risk,
-                    probability=round(probability, 2),
-                    predicted_failure_type=predicted_type,
-                    evidence=evidence,
-                    generated_at=datetime.now(UTC).isoformat(),
-                    recommended_action=action,
-                ))
+                predictions.append(
+                    FailurePrediction(
+                        component=comp,
+                        risk_level=risk,
+                        probability=round(probability, 2),
+                        predicted_failure_type=predicted_type,
+                        evidence=evidence,
+                        generated_at=datetime.now(UTC).isoformat(),
+                        recommended_action=action,
+                    )
+                )
 
             predictions.sort(key=lambda p: p.probability, reverse=True)
             return predictions

@@ -1,4 +1,5 @@
 """httpx wrapper — HTTP endpoint probing."""
+
 import json
 import logging
 import os
@@ -61,6 +62,7 @@ class HttpxTool(BaseTool):
             return []
         finally:
             import shutil
+
             shutil.rmtree(tmp, ignore_errors=True)
 
     def _parse_json_lines(self, stdout: str) -> list[UnifiedResult]:
@@ -75,28 +77,35 @@ class HttpxTool(BaseTool):
                 if not url:
                     continue
                 tech_list = data.get("tech", []) or []
-                results.append(UnifiedResult(
-                    source="httpx",
-                    target=url,
-                    result_type="endpoint",
-                    confidence=0.9,
-                    name=f"Live: {url}",
-                    evidence={
-                        "status_code": data.get("status_code"),
-                        "content_length": data.get("content_length"),
-                        "title": data.get("title", ""),
-                        "webserver": data.get("webserver", ""),
-                        "technologies": tech_list,
-                    },
-                    tags=["live", *[f"tech:{t}" for t in tech_list]],
-                ))
+                results.append(
+                    UnifiedResult(
+                        source="httpx",
+                        target=url,
+                        result_type="endpoint",
+                        confidence=0.9,
+                        name=f"Live: {url}",
+                        evidence={
+                            "status_code": data.get("status_code"),
+                            "content_length": data.get("content_length"),
+                            "title": data.get("title", ""),
+                            "webserver": data.get("webserver", ""),
+                            "technologies": tech_list,
+                        },
+                        tags=["live", *[f"tech:{t}" for t in tech_list]],
+                    )
+                )
             except json.JSONDecodeError:
                 url = line.strip()
                 if url:
-                    results.append(UnifiedResult(
-                        source="httpx", target=url, result_type="endpoint",
-                        confidence=0.5, name=f"Live: {url}",
-                    ))
+                    results.append(
+                        UnifiedResult(
+                            source="httpx",
+                            target=url,
+                            result_type="endpoint",
+                            confidence=0.5,
+                            name=f"Live: {url}",
+                        )
+                    )
         return results
 
     def parse_output(self, stdout: str) -> list[UnifiedResult]:

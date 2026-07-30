@@ -33,6 +33,7 @@ logger = logging.getLogger("ownex.vault")
 
 class CredentialType(Enum):
     """Types of credentials stored in the vault."""
+
     API_KEY = "api_key"
     OAUTH_TOKEN = "oauth_token"
     OAUTH_REFRESH = "oauth_refresh"
@@ -45,6 +46,7 @@ class CredentialType(Enum):
 
 class VaultOperation(Enum):
     """Operations on the vault for audit logging."""
+
     CREATE = "create"
     READ = "read"
     UPDATE = "update"
@@ -58,6 +60,7 @@ class VaultOperation(Enum):
 @dataclass
 class CredentialMetadata:
     """Metadata for a stored credential (no sensitive data)."""
+
     id: str
     name: str
     type: CredentialType
@@ -77,6 +80,7 @@ class CredentialMetadata:
 @dataclass
 class AuditEntry:
     """Audit log entry for vault operations."""
+
     id: str
     timestamp: datetime
     operation: VaultOperation
@@ -92,17 +96,20 @@ class AuditEntry:
 @dataclass
 class VaultConfig:
     """Vault configuration."""
+
     encryption_key_path: str = ".vault/encryption.key"
     vault_data_path: str = ".vault/credentials.enc"
     audit_log_path: str = ".vault/audit.log"
     master_key_iterations: int = 100000
     auto_lock_minutes: int = 30
     max_audit_entries: int = 10000
-    require_approval_for: set[VaultOperation] = field(default_factory=lambda: {
-        VaultOperation.EXPORT,
-        VaultOperation.DELETE,
-        VaultOperation.ROTATE,
-    })
+    require_approval_for: set[VaultOperation] = field(
+        default_factory=lambda: {
+            VaultOperation.EXPORT,
+            VaultOperation.DELETE,
+            VaultOperation.ROTATE,
+        }
+    )
 
 
 class EncryptionManager:
@@ -164,7 +171,7 @@ class EncryptionManager:
 class SecureVault:
     """
     Secure credential vault with encryption and audit logging.
-    
+
     Features:
     - AES-256 encryption via Fernet
     - PBKDF2 key derivation
@@ -280,32 +287,40 @@ class SecureVault:
 
         # Trim audit log
         if len(self._audit_log) > self.config.max_audit_entries:
-            self._audit_log = self._audit_log[-self.config.max_audit_entries:]
+            self._audit_log = self._audit_log[-self.config.max_audit_entries :]
 
         # Persist audit log
         try:
             os.makedirs(os.path.dirname(self.config.audit_log_path), exist_ok=True)
             with open(self.config.audit_log_path, "a") as f:
-                f.write(json.dumps({
-                    "id": entry.id,
-                    "timestamp": entry.timestamp.isoformat(),
-                    "operation": entry.operation.value,
-                    "credential_id": entry.credential_id,
-                    "credential_name": entry.credential_name,
-                    "actor": entry.actor,
-                    "success": entry.success,
-                    "details": entry.details,
-                }) + "\n")
+                f.write(
+                    json.dumps(
+                        {
+                            "id": entry.id,
+                            "timestamp": entry.timestamp.isoformat(),
+                            "operation": entry.operation.value,
+                            "credential_id": entry.credential_id,
+                            "credential_name": entry.credential_name,
+                            "actor": entry.actor,
+                            "success": entry.success,
+                            "details": entry.details,
+                        }
+                    )
+                    + "\n"
+                )
         except Exception as e:
             logger.error("Failed to write audit log: %s", e)
 
         # Emit event
-        self.event_bus.publish("vault:audit", {
-            "operation": operation.value,
-            "credential_id": credential_id,
-            "actor": actor,
-            "success": success,
-        })
+        self.event_bus.publish(
+            "vault:audit",
+            {
+                "operation": operation.value,
+                "credential_id": credential_id,
+                "actor": actor,
+                "success": success,
+            },
+        )
 
     def _save(self) -> None:
         """Save encrypted credentials to disk."""
@@ -375,11 +390,18 @@ class SecureVault:
         }
 
         self._save()
-        self._audit(VaultOperation.CREATE, credential_id, name, actor, True, {
-            "type": type.value,
-            "platform": platform,
-            "account": account,
-        })
+        self._audit(
+            VaultOperation.CREATE,
+            credential_id,
+            name,
+            actor,
+            True,
+            {
+                "type": type.value,
+                "platform": platform,
+                "account": account,
+            },
+        )
 
         logger.info("Created credential: %s (%s)", name, credential_id)
         return credential_id
@@ -394,9 +416,16 @@ class SecureVault:
 
         cred = self._credentials.get(credential_id)
         if not cred:
-            self._audit(VaultOperation.READ, credential_id, None, actor, False, {
-                "reason": "not_found",
-            })
+            self._audit(
+                VaultOperation.READ,
+                credential_id,
+                None,
+                actor,
+                False,
+                {
+                    "reason": "not_found",
+                },
+            )
             return None
 
         # Update access tracking
@@ -454,9 +483,16 @@ class SecureVault:
 
         cred = self._credentials.get(credential_id)
         if not cred:
-            self._audit(VaultOperation.UPDATE, credential_id, None, actor, False, {
-                "reason": "not_found",
-            })
+            self._audit(
+                VaultOperation.UPDATE,
+                credential_id,
+                None,
+                actor,
+                False,
+                {
+                    "reason": "not_found",
+                },
+            )
             return False
 
         self._update_activity()
@@ -479,9 +515,20 @@ class SecureVault:
         cred["metadata"]["updated_at"] = datetime.now(UTC).isoformat()
 
         self._save()
-        self._audit(VaultOperation.UPDATE, credential_id, old_name, actor, True, {
-            "fields_updated": [k for k, v in locals().items() if v is not None and k not in ["self", "credential_id", "actor", "cred"]],
-        })
+        self._audit(
+            VaultOperation.UPDATE,
+            credential_id,
+            old_name,
+            actor,
+            True,
+            {
+                "fields_updated": [
+                    k
+                    for k, v in locals().items()
+                    if v is not None and k not in ["self", "credential_id", "actor", "cred"]
+                ],
+            },
+        )
 
         logger.info("Updated credential: %s", credential_id)
         return True
@@ -500,9 +547,16 @@ class SecureVault:
         if not force and self._require_approval(VaultOperation.DELETE):
             # In real implementation, this would be async with callback
             logger.warning("DELETE requires approval, use force=True or implement approval callback")
-            self._audit(VaultOperation.DELETE, credential_id, cred["metadata"]["name"], actor, False, {
-                "reason": "approval_required",
-            })
+            self._audit(
+                VaultOperation.DELETE,
+                credential_id,
+                cred["metadata"]["name"],
+                actor,
+                False,
+                {
+                    "reason": "approval_required",
+                },
+            )
             return False
 
         self._update_activity()
@@ -540,27 +594,36 @@ class SecureVault:
             if type and CredentialType(meta["type"]) != type:
                 continue
 
-            results.append(CredentialMetadata(
-                id=meta["id"],
-                name=meta["name"],
-                type=CredentialType(meta["type"]),
-                platform=meta["platform"],
-                account=meta["account"],
-                description=meta["description"],
-                tags=meta["tags"],
-                created_at=datetime.fromisoformat(meta["created_at"]),
-                updated_at=datetime.fromisoformat(meta["updated_at"]),
-                last_accessed=datetime.fromisoformat(meta["last_accessed"]) if meta.get("last_accessed") else None,
-                expires_at=datetime.fromisoformat(meta["expires_at"]) if meta.get("expires_at") else None,
-                rotation_interval_days=meta.get("rotation_interval_days"),
-                is_active=meta.get("is_active", True),
-                access_count=meta.get("access_count", 0),
-            ))
+            results.append(
+                CredentialMetadata(
+                    id=meta["id"],
+                    name=meta["name"],
+                    type=CredentialType(meta["type"]),
+                    platform=meta["platform"],
+                    account=meta["account"],
+                    description=meta["description"],
+                    tags=meta["tags"],
+                    created_at=datetime.fromisoformat(meta["created_at"]),
+                    updated_at=datetime.fromisoformat(meta["updated_at"]),
+                    last_accessed=datetime.fromisoformat(meta["last_accessed"]) if meta.get("last_accessed") else None,
+                    expires_at=datetime.fromisoformat(meta["expires_at"]) if meta.get("expires_at") else None,
+                    rotation_interval_days=meta.get("rotation_interval_days"),
+                    is_active=meta.get("is_active", True),
+                    access_count=meta.get("access_count", 0),
+                )
+            )
 
-        self._audit(VaultOperation.LIST, None, None, actor, True, {
-            "count": len(results),
-            "filters": {"platform": platform, "type": type.value if type else None},
-        })
+        self._audit(
+            VaultOperation.LIST,
+            None,
+            None,
+            actor,
+            True,
+            {
+                "count": len(results),
+                "filters": {"platform": platform, "type": type.value if type else None},
+            },
+        )
 
         return results
 
@@ -582,9 +645,16 @@ class SecureVault:
         # Check approval
         if self._require_approval(VaultOperation.ROTATE):
             logger.warning("ROTATE requires approval")
-            self._audit(VaultOperation.ROTATE, credential_id, cred["metadata"]["name"], actor, False, {
-                "reason": "approval_required",
-            })
+            self._audit(
+                VaultOperation.ROTATE,
+                credential_id,
+                cred["metadata"]["name"],
+                actor,
+                False,
+                {
+                    "reason": "approval_required",
+                },
+            )
             return False
 
         self._update_activity()
@@ -613,22 +683,26 @@ class SecureVault:
             if meta.get("expires_at"):
                 exp = datetime.fromisoformat(meta["expires_at"])
                 if exp.timestamp() <= cutoff:
-                    results.append(CredentialMetadata(
-                        id=meta["id"],
-                        name=meta["name"],
-                        type=CredentialType(meta["type"]),
-                        platform=meta["platform"],
-                        account=meta["account"],
-                        description=meta["description"],
-                        tags=meta["tags"],
-                        created_at=datetime.fromisoformat(meta["created_at"]),
-                        updated_at=datetime.fromisoformat(meta["updated_at"]),
-                        last_accessed=datetime.fromisoformat(meta["last_accessed"]) if meta.get("last_accessed") else None,
-                        expires_at=exp,
-                        rotation_interval_days=meta.get("rotation_interval_days"),
-                        is_active=meta.get("is_active", True),
-                        access_count=meta.get("access_count", 0),
-                    ))
+                    results.append(
+                        CredentialMetadata(
+                            id=meta["id"],
+                            name=meta["name"],
+                            type=CredentialType(meta["type"]),
+                            platform=meta["platform"],
+                            account=meta["account"],
+                            description=meta["description"],
+                            tags=meta["tags"],
+                            created_at=datetime.fromisoformat(meta["created_at"]),
+                            updated_at=datetime.fromisoformat(meta["updated_at"]),
+                            last_accessed=datetime.fromisoformat(meta["last_accessed"])
+                            if meta.get("last_accessed")
+                            else None,
+                            expires_at=exp,
+                            rotation_interval_days=meta.get("rotation_interval_days"),
+                            is_active=meta.get("is_active", True),
+                            access_count=meta.get("access_count", 0),
+                        )
+                    )
 
         return results
 
@@ -649,22 +723,26 @@ class SecureVault:
             if interval and last_rotated:
                 last = datetime.fromisoformat(last_rotated)
                 if (now - last).days >= interval:
-                    results.append(CredentialMetadata(
-                        id=meta["id"],
-                        name=meta["name"],
-                        type=CredentialType(meta["type"]),
-                        platform=meta["platform"],
-                        account=meta["account"],
-                        description=meta["description"],
-                        tags=meta["tags"],
-                        created_at=datetime.fromisoformat(meta["created_at"]),
-                        updated_at=datetime.fromisoformat(meta["updated_at"]),
-                        last_accessed=datetime.fromisoformat(meta["last_accessed"]) if meta.get("last_accessed") else None,
-                        expires_at=datetime.fromisoformat(meta["expires_at"]) if meta.get("expires_at") else None,
-                        rotation_interval_days=interval,
-                        is_active=meta.get("is_active", True),
-                        access_count=meta.get("access_count", 0),
-                    ))
+                    results.append(
+                        CredentialMetadata(
+                            id=meta["id"],
+                            name=meta["name"],
+                            type=CredentialType(meta["type"]),
+                            platform=meta["platform"],
+                            account=meta["account"],
+                            description=meta["description"],
+                            tags=meta["tags"],
+                            created_at=datetime.fromisoformat(meta["created_at"]),
+                            updated_at=datetime.fromisoformat(meta["updated_at"]),
+                            last_accessed=datetime.fromisoformat(meta["last_accessed"])
+                            if meta.get("last_accessed")
+                            else None,
+                            expires_at=datetime.fromisoformat(meta["expires_at"]) if meta.get("expires_at") else None,
+                            rotation_interval_days=interval,
+                            is_active=meta.get("is_active", True),
+                            access_count=meta.get("access_count", 0),
+                        )
+                    )
 
         return results
 

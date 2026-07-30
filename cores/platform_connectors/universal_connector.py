@@ -24,20 +24,22 @@ logger = logging.getLogger("ownex.platform_connectors")
 
 class PlatformCategory(Enum):
     """Platform categories matching OWNEX Work Cycles."""
-    BUG_BOUNTY = "security"           # Security cycle
-    DEV_BOUNTY = "forge"              # Forge cycle
-    AI_WORK_DATA = "pulse"            # Pulse cycle
-    FREELANCE = "freelance"           # Freelance cycle
+
+    BUG_BOUNTY = "security"  # Security cycle
+    DEV_BOUNTY = "forge"  # Forge cycle
+    AI_WORK_DATA = "pulse"  # Pulse cycle
+    FREELANCE = "freelance"  # Freelance cycle
 
 
 @dataclass
 class PlatformConfig:
     """Configuration for a platform connector."""
+
     name: str
     category: PlatformCategory
-    adapter_platform: str             # Name used in adapter registry
+    adapter_platform: str  # Name used in adapter registry
     enabled: bool = True
-    cadence_seconds: int = 3600       # Default 1 hour
+    cadence_seconds: int = 3600  # Default 1 hour
     config: dict[str, Any] = field(default_factory=dict)
     last_run: datetime | None = None
     error_count: int = 0
@@ -46,6 +48,7 @@ class PlatformConfig:
 @dataclass
 class PlatformOpportunity:
     """Unified opportunity from any platform."""
+
     id: str
     platform: str
     category: PlatformCategory
@@ -64,7 +67,7 @@ class PlatformOpportunity:
 class UniversalPlatformConnector:
     """
     Universal connector that wraps existing adapters as sensors.
-    
+
     This eliminates the need for separate PlatformConnector classes.
     All platforms are handled through the existing adapter registry.
     """
@@ -101,14 +104,10 @@ class UniversalPlatformConnector:
         logger.info(f"Starting UniversalPlatformConnector with {len(self.configs)} platforms")
 
         # Start sensor registry background loop
-        self._monitor_tasks.append(
-            asyncio.create_task(self.sensor_registry.run_all())
-        )
+        self._monitor_tasks.append(asyncio.create_task(self.sensor_registry.run_all()))
 
         # Start opportunity processing loop
-        self._monitor_tasks.append(
-            asyncio.create_task(self._process_opportunities_loop())
-        )
+        self._monitor_tasks.append(asyncio.create_task(self._process_opportunities_loop()))
 
         # Wait for all tasks
         await asyncio.gather(*self._monitor_tasks, return_exceptions=True)
@@ -148,20 +147,23 @@ class UniversalPlatformConnector:
 
             # Emit to EventBus for downstream processing
             for obs in unique:
-                await self.event_bus.publish("observation.new", {
-                    "id": obs.id,
-                    "sensor_id": obs.sensor_id,
-                    "title": obs.title,
-                    "description": obs.description,
-                    "source_type": obs.source_type,
-                    "source_name": obs.source_name,
-                    "url": obs.url,
-                    "estimated_reward_min": obs.estimated_reward_min,
-                    "estimated_reward_max": obs.estimated_reward_max,
-                    "tags": obs.tags,
-                    "observed_at": obs.observed_at,
-                    "raw_data": obs.raw_data,
-                })
+                await self.event_bus.publish(
+                    "observation.new",
+                    {
+                        "id": obs.id,
+                        "sensor_id": obs.sensor_id,
+                        "title": obs.title,
+                        "description": obs.description,
+                        "source_type": obs.source_type,
+                        "source_name": obs.source_name,
+                        "url": obs.url,
+                        "estimated_reward_min": obs.estimated_reward_min,
+                        "estimated_reward_max": obs.estimated_reward_max,
+                        "tags": obs.tags,
+                        "observed_at": obs.observed_at,
+                        "raw_data": obs.raw_data,
+                    },
+                )
 
             logger.info(f"Processed {len(unique)} unique observations from {len(all_observations)} total")
 
@@ -231,7 +233,6 @@ DEFAULT_PLATFORMS = [
         adapter_platform="intigriti",
         cadence_seconds=900,
     ),
-
     # DEV BOUNTY (Forge Cycle)
     PlatformConfig(
         name="superteam",
@@ -275,7 +276,6 @@ DEFAULT_PLATFORMS = [
         adapter_platform="opencollective",
         cadence_seconds=3600,
     ),
-
     # AI WORK / DATA TASKS (Pulse Cycle)
     PlatformConfig(
         name="outlier",
@@ -313,7 +313,6 @@ DEFAULT_PLATFORMS = [
         adapter_platform="linkedin_easyapply",
         cadence_seconds=7200,
     ),
-
     # FREELANCE (Freelance Cycle)
     PlatformConfig(
         name="freelancer",

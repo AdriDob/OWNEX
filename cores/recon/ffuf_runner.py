@@ -31,9 +31,24 @@ class FfufRunner:
             "description": "Exhaustive fuzzing across many wordlists",
             "wordlist": "discovery/Web-Content/raft-large-files.txt",
             "extensions": [
-                "php", "asp", "aspx", "jsp", "do", "action",
-                "txt", "bak", "zip", "tar.gz", "sql", "xml",
-                "json", "config", "conf", "log", "git", "svn",
+                "php",
+                "asp",
+                "aspx",
+                "jsp",
+                "do",
+                "action",
+                "txt",
+                "bak",
+                "zip",
+                "tar.gz",
+                "sql",
+                "xml",
+                "json",
+                "config",
+                "conf",
+                "log",
+                "git",
+                "svn",
             ],
             "max_time": 600,
         },
@@ -61,11 +76,7 @@ class FfufRunner:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.timeout = timeout
         self._binary = _resolve_tool("ffuf") or "ffuf"
-        self.seclists_dir = (
-            seclists_dir
-            or os.environ.get("SECLISTS_PATH")
-            or "/usr/share/seclists"
-        )
+        self.seclists_dir = seclists_dir or os.environ.get("SECLISTS_PATH") or "/usr/share/seclists"
 
     def _resolve_wordlist(self, profile: str) -> str | None:
         """Resolve wordlist path for a profile."""
@@ -100,16 +111,19 @@ class FfufRunner:
         wordlist_path = wordlist or self._resolve_wordlist(profile)
         if not wordlist_path:
             raise FileNotFoundError(
-                f"No wordlist available for profile '{profile}'. "
-                f"Set SECLISTS_PATH or provide explicit wordlist."
+                f"No wordlist available for profile '{profile}'. Set SECLISTS_PATH or provide explicit wordlist."
             )
 
         cmd = [
             self._binary,
-            "-u", target_url + "/FUZZ",
-            "-w", wordlist_path,
-            "-of", "json",
-            "-o", str(path.with_suffix(".json")),
+            "-u",
+            target_url + "/FUZZ",
+            "-w",
+            wordlist_path,
+            "-of",
+            "json",
+            "-o",
+            str(path.with_suffix(".json")),
             "-s",  # silent
         ]
 
@@ -120,11 +134,7 @@ class FfufRunner:
         if extra_args:
             cmd.extend(extra_args)
 
-        effective_timeout = (
-            min(max_time, self.timeout)
-            if max_time
-            else profile_cfg.get("max_time", self.timeout)
-        )
+        effective_timeout = min(max_time, self.timeout) if max_time else profile_cfg.get("max_time", self.timeout)
 
         proc = await asyncio.create_subprocess_exec(
             *cmd,
@@ -132,9 +142,7 @@ class FfufRunner:
             stderr=asyncio.subprocess.PIPE,
         )
         try:
-            stdout, stderr = await asyncio.wait_for(
-                proc.communicate(), timeout=effective_timeout
-            )
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=effective_timeout)
         except TimeoutError:
             proc.kill()
             await proc.communicate()
@@ -157,25 +165,25 @@ class FfufRunner:
             results = data.get("results", []) if isinstance(data, dict) else data
             parsed = []
             for r in results:
-                parsed.append({
-                    "url": r.get("url", ""),
-                    "status": r.get("status", 0),
-                    "length": r.get("length", 0),
-                    "words": r.get("words", 0),
-                    "lines": r.get("lines", 0),
-                    "content_type": r.get("content_type", ""),
-                    "redirect_location": r.get("redirectlocation", ""),
-                    "host": r.get("host", ""),
-                    "input": r.get("input", {}),
-                })
+                parsed.append(
+                    {
+                        "url": r.get("url", ""),
+                        "status": r.get("status", 0),
+                        "length": r.get("length", 0),
+                        "words": r.get("words", 0),
+                        "lines": r.get("lines", 0),
+                        "content_type": r.get("content_type", ""),
+                        "redirect_location": r.get("redirectlocation", ""),
+                        "host": r.get("host", ""),
+                        "input": r.get("input", {}),
+                    }
+                )
             return parsed
         except (json.JSONDecodeError, KeyError) as e:
             LOG.warning("Failed to parse ffuf JSON: %s", e)
             return []
 
-    def categorize_findings(
-        self, results: list[dict[str, Any]]
-    ) -> dict[str, list[dict[str, Any]]]:
+    def categorize_findings(self, results: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
         """Categorize ffuf results by response status."""
         categories: dict[str, list[dict[str, Any]]] = {
             "admin_panels": [],
@@ -203,9 +211,7 @@ class FfufRunner:
                 categories["error"].append(r)
         return categories
 
-    async def discover_paths(
-        self, target_url: str, profile: str = "fast"
-    ) -> list[dict[str, Any]]:
+    async def discover_paths(self, target_url: str, profile: str = "fast") -> list[dict[str, Any]]:
         """Convenience: run ffuf and parse results in one call."""
         out = await self.run_ffuf(target_url, profile=profile)
         json_path = out.with_suffix(".json") if out.suffix != ".json" else out

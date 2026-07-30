@@ -145,14 +145,17 @@ class ZapRunner:
         """
         LOG.warning("ZAP active scan starting: %s (policy=%s, max=%dmin)", target_url, policy, max_duration)
 
-        scan = await self._post("ascan/action/scan", {
-            "url": target_url,
-            "recurse": "true",
-            "inScopeOnly": "false",
-            "scanPolicyName": policy,
-            "method": "GET",
-            "postData": "true",
-        })
+        scan = await self._post(
+            "ascan/action/scan",
+            {
+                "url": target_url,
+                "recurse": "true",
+                "inScopeOnly": "false",
+                "scanPolicyName": policy,
+                "method": "GET",
+                "postData": "true",
+            },
+        )
         scan_id = scan.get("scan")
         if not scan_id:
             raise ZapConnectionError("ZAP active scan did not return a scan ID")
@@ -207,11 +210,14 @@ class ZapRunner:
         """
         LOG.info("ZAP spider starting: %s", target_url)
 
-        scan = await self._post("spider/action/scan", {
-            "url": target_url,
-            "maxChildren": str(max_children),
-            "recurse": "true",
-        })
+        scan = await self._post(
+            "spider/action/scan",
+            {
+                "url": target_url,
+                "maxChildren": str(max_children),
+                "recurse": "true",
+            },
+        )
         scan_id = scan.get("scan")
 
         if not scan_id:
@@ -258,28 +264,33 @@ class ZapRunner:
         """
         LOG.info("Fetching ZAP passive alerts for: %s", target_url)
 
-        alerts = await self._get("alert/view/alerts", {
-            "baseurl": target_url,
-        })
+        alerts = await self._get(
+            "alert/view/alerts",
+            {
+                "baseurl": target_url,
+            },
+        )
 
         raw = alerts.get("alerts", [])
         results = []
         for a in raw:
             alert = self._normalize_alert(a)
             if alert.is_passive:
-                results.append({
-                    "alert": alert.alert,
-                    "risk": alert.risk,
-                    "risk_score": alert.risk_score,
-                    "confidence": alert.confidence,
-                    "url": alert.url,
-                    "param": alert.param,
-                    "description": alert.description,
-                    "solution": alert.solution,
-                    "cwe_id": alert.cwe_id,
-                    "plugin_id": alert.plugin_id,
-                    "evidence": alert.evidence,
-                })
+                results.append(
+                    {
+                        "alert": alert.alert,
+                        "risk": alert.risk,
+                        "risk_score": alert.risk_score,
+                        "confidence": alert.confidence,
+                        "url": alert.url,
+                        "param": alert.param,
+                        "description": alert.description,
+                        "solution": alert.solution,
+                        "cwe_id": alert.cwe_id,
+                        "plugin_id": alert.plugin_id,
+                        "evidence": alert.evidence,
+                    }
+                )
 
         LOG.info("ZAP passive alerts: %d found", len(results))
         return results
@@ -306,22 +317,24 @@ class ZapRunner:
             alert = self._normalize_alert(a)
             if risk_level and alert.risk_score < self._risk_threshold(risk_level):
                 continue
-            results.append({
-                "alert": alert.alert,
-                "risk": alert.risk,
-                "risk_score": alert.risk_score,
-                "confidence": alert.confidence,
-                "url": alert.url,
-                "param": alert.param,
-                "attack": alert.attack,
-                "description": alert.description,
-                "solution": alert.solution,
-                "reference": alert.reference,
-                "cwe_id": alert.cwe_id,
-                "plugin_id": alert.plugin_id,
-                "evidence": alert.evidence,
-                "is_passive": alert.is_passive,
-            })
+            results.append(
+                {
+                    "alert": alert.alert,
+                    "risk": alert.risk,
+                    "risk_score": alert.risk_score,
+                    "confidence": alert.confidence,
+                    "url": alert.url,
+                    "param": alert.param,
+                    "attack": alert.attack,
+                    "description": alert.description,
+                    "solution": alert.solution,
+                    "reference": alert.reference,
+                    "cwe_id": alert.cwe_id,
+                    "plugin_id": alert.plugin_id,
+                    "evidence": alert.evidence,
+                    "is_passive": alert.is_passive,
+                }
+            )
 
         return results
 
@@ -359,10 +372,13 @@ class ZapRunner:
 
     async def new_session(self, name: str = "CATEYE-scan", overwrite: bool = True) -> dict:
         """Create a new ZAP session for isolated scanning."""
-        return await self._post("core/action/newSession", {
-            "name": name,
-            "overwrite": "true" if overwrite else "false",
-        })
+        return await self._post(
+            "core/action/newSession",
+            {
+                "name": name,
+                "overwrite": "true" if overwrite else "false",
+            },
+        )
 
     async def access_url(self, url: str) -> dict:
         """Tell ZAP to access a URL so it can passively analyze it."""

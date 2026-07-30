@@ -76,25 +76,31 @@ class BaseAgent(ABC):
             key = event_type.value if isinstance(event_type, EventType) else event_type
             self.bus.subscribe(key, self._on_event)
             self._subscription_types.append(key)
-        self.bus.publish(AgentEvent(
-            event_type=EventType.AGENT_REGISTERED,
-            source=self.agent_id,
-            payload={
-                "agent_id": self.agent_id.value,
-                "name": self.name,
-                "capabilities": self.capabilities,
-                "status": self.status.value,
-            },
-        ))
+        self.bus.publish(
+            AgentEvent(
+                event_type=EventType.AGENT_REGISTERED,
+                source=self.agent_id,
+                payload={
+                    "agent_id": self.agent_id.value,
+                    "name": self.name,
+                    "capabilities": self.capabilities,
+                    "status": self.status.value,
+                },
+            )
+        )
         sub_count = len(self._get_subscriptions())
-        logger.info("[AGENT] %s started, subscribed to %d event types, capabilities: %s",
-                    self.agent_id.value, sub_count, self.capabilities)
+        logger.info(
+            "[AGENT] %s started, subscribed to %d event types, capabilities: %s",
+            self.agent_id.value,
+            sub_count,
+            self.capabilities,
+        )
 
     def stop(self) -> None:
         """Stop the agent and unsubscribe from the bus."""
         self._running = False
         self.status = AgentStatus.OFFLINE
-        for event_type in getattr(self, '_subscription_types', []):
+        for event_type in getattr(self, "_subscription_types", []):
             self.bus.unsubscribe(event_type, self._on_event)
         self.bus.unsubscribe_agent(self.agent_id, self._on_event)
         self._subscription_types.clear()
@@ -121,13 +127,17 @@ class BaseAgent(ABC):
                     loop = None
                 if loop and loop.is_running():
                     task = asyncio.ensure_future(result)
-                    task.add_done_callback(lambda t: logger.error(
-                        "[AGENT] %s async handler failed: %s",
-                        self.agent_id.value, t.exception()
-                    ) if t.exception() else None)
+                    task.add_done_callback(
+                        lambda t: (
+                            logger.error("[AGENT] %s async handler failed: %s", self.agent_id.value, t.exception())
+                            if t.exception()
+                            else None
+                        )
+                    )
                 else:
                     # No running loop — run in background thread to avoid blocking
                     import threading
+
                     threading.Thread(target=lambda r=result: asyncio.run(r), daemon=True).start()
             self.tasks_completed += 1
             elapsed = (time.monotonic() - t0) * 1000
@@ -138,19 +148,22 @@ class BaseAgent(ABC):
             self.last_error = str(exc)
             self.status = AgentStatus.ERROR
             elapsed = (time.monotonic() - t0) * 1000
-            logger.error("[AGENT] %s error processing %s: %s (%.0fms)",
-                         self.agent_id.value, event.event_type, exc, elapsed)
-            self.bus.publish(AgentEvent(
-                event_type=EventType.SYSTEM_ERROR,
-                source=self.agent_id,
-                target=AgentId.COORDINATOR,
-                correlation_id=event.correlation_id,
-                payload={
-                    "error": str(exc),
-                    "original_event": event.event_type,
-                    "duration_ms": round(elapsed, 1),
-                },
-            ))
+            logger.error(
+                "[AGENT] %s error processing %s: %s (%.0fms)", self.agent_id.value, event.event_type, exc, elapsed
+            )
+            self.bus.publish(
+                AgentEvent(
+                    event_type=EventType.SYSTEM_ERROR,
+                    source=self.agent_id,
+                    target=AgentId.COORDINATOR,
+                    correlation_id=event.correlation_id,
+                    payload={
+                        "error": str(exc),
+                        "original_event": event.event_type,
+                        "duration_ms": round(elapsed, 1),
+                    },
+                )
+            )
 
     def health(self) -> dict[str, Any]:
         """Return agent health snapshot."""
@@ -169,13 +182,20 @@ class BaseAgent(ABC):
             "running": self._running,
         }
 
-    def emit(self, event_type: EventType | str, payload: dict[str, Any],
-             target: AgentId | None = None, correlation_id: str = "") -> None:
+    def emit(
+        self,
+        event_type: EventType | str,
+        payload: dict[str, Any],
+        target: AgentId | None = None,
+        correlation_id: str = "",
+    ) -> None:
         """Helper to publish an event from this agent."""
-        self.bus.publish(AgentEvent(
-            event_type=event_type,
-            source=self.agent_id,
-            target=target,
-            correlation_id=correlation_id,
-            payload=payload,
-        ))
+        self.bus.publish(
+            AgentEvent(
+                event_type=event_type,
+                source=self.agent_id,
+                target=target,
+                correlation_id=correlation_id,
+                payload=payload,
+            )
+        )

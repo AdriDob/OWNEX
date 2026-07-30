@@ -1,4 +1,5 @@
 """Nuclei wrapper — vulnerability scanning."""
+
 import json
 import logging
 
@@ -54,6 +55,7 @@ class NucleiTool(BaseTool):
             return []
         finally:
             import shutil
+
             shutil.rmtree(tmp, ignore_errors=True)
 
     def _parse_json_lines(self, stdout: str) -> list[UnifiedResult]:
@@ -75,25 +77,27 @@ class NucleiTool(BaseTool):
                 matched = data.get("matched-at", host)
                 extracted = data.get("extracted-results", [])
 
-                results.append(UnifiedResult(
-                    source="nuclei",
-                    target=host,
-                    result_type="vulnerability",
-                    severity=self.SEVERITY_MAP.get(severity, "info"),
-                    confidence=0.7 if severity in ("critical", "high") else 0.5,
-                    name=f"[{severity.upper()}] {name}",
-                    description=description,
-                    evidence={
-                        "template_id": template_id,
-                        "matched_at": matched,
-                        "extracted_results": extracted,
-                        "curl_command": data.get("curl-command", ""),
-                        "request": data.get("request", ""),
-                        "response": data.get("response", ""),
-                    },
-                    tags=tags,
-                    raw=line,
-                ))
+                results.append(
+                    UnifiedResult(
+                        source="nuclei",
+                        target=host,
+                        result_type="vulnerability",
+                        severity=self.SEVERITY_MAP.get(severity, "info"),
+                        confidence=0.7 if severity in ("critical", "high") else 0.5,
+                        name=f"[{severity.upper()}] {name}",
+                        description=description,
+                        evidence={
+                            "template_id": template_id,
+                            "matched_at": matched,
+                            "extracted_results": extracted,
+                            "curl_command": data.get("curl-command", ""),
+                            "request": data.get("request", ""),
+                            "response": data.get("response", ""),
+                        },
+                        tags=tags,
+                        raw=line,
+                    )
+                )
             except json.JSONDecodeError:
                 pass
         return results

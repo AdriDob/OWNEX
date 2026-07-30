@@ -60,12 +60,13 @@ class OutcomeTracker:
     def record(self, entry: OutcomeEntry) -> None:
         self._outcomes.append(entry)
         if len(self._outcomes) > self.MAX_HISTORY:
-            self._outcomes = self._outcomes[-self.MAX_HISTORY:]
+            self._outcomes = self._outcomes[-self.MAX_HISTORY :]
         self._archive(entry)
 
     def _archive(self, entry: OutcomeEntry) -> None:
         try:
             from cores.memory.insight_archive import Insight, get_insight_archive
+
             archive = get_insight_archive()
             insight = Insight(
                 id=f"outcome-{entry.action_id}-{int(entry.timestamp)}",

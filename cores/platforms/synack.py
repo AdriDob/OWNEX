@@ -34,6 +34,7 @@ class Synack(BugBountyPlatform):
     def sync_earnings(self, api_key: str) -> SyncResult:
         try:
             import requests
+
             resp = requests.get(
                 "https://api.synack.com/api/v3/submissions",
                 headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"},

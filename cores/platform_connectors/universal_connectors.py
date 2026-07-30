@@ -20,7 +20,7 @@ from core.opportunity.adapters import (
 from core.sensors.adapters.generic_adapter import GenericAdapterSensor
 from core.sensors.base import Sensor
 from core.sensors.observation import Observation
-from core.sensors.observation_engine import ObservationEngine
+from core.sensors.observation_engine import ObservationEngine, get_observation_engine
 from cores.prometheus_metrics import (
     OPPORTUNITY_PROVIDER_HEALTH,
     OPPORTUNITY_PROVIDERS_ACTIVE,
@@ -32,6 +32,7 @@ logger = logging.getLogger("ownex.platform_connectors")
 
 class PlatformCategory(Enum):
     """Categories of work platforms."""
+
     BUG_BOUNTY = "bug_bounty"
     DEV_BOUNTY = "dev_bounty"
     DATA_ANNOTATION = "data_annotation"
@@ -42,6 +43,7 @@ class PlatformCategory(Enum):
 
 class PlatformStatus(Enum):
     """Platform connector status."""
+
     IDLE = "idle"
     CONNECTING = "connecting"
     ACTIVE = "active"
@@ -53,6 +55,7 @@ class PlatformStatus(Enum):
 @dataclass
 class PlatformConfig:
     """Configuration for a platform connector."""
+
     platform_id: str
     name: str
     category: PlatformCategory
@@ -69,6 +72,7 @@ class PlatformConfig:
 @dataclass
 class PlatformMetrics:
     """Runtime metrics for a platform."""
+
     status: PlatformStatus = PlatformStatus.IDLE
     last_run: datetime | None = None
     last_success: datetime | None = None
@@ -83,7 +87,7 @@ class PlatformMetrics:
 class UniversalPlatformConnector:
     """
     Universal connector for any work platform.
-    
+
     Wraps an OpportunityAdapter as a Sensor in the Universal Sensor Network.
     Provides unified interface for discovery, monitoring, and management.
     """
@@ -140,8 +144,7 @@ class UniversalPlatformConnector:
             # Update Prometheus
             OPPORTUNITY_PROVIDERS_ACTIVE.labels(category=self.config.category.value).inc()
             OPPORTUNITY_PROVIDER_HEALTH.labels(
-                provider=self.config.platform_id,
-                category=self.config.category.value
+                provider=self.config.platform_id, category=self.config.category.value
             ).set(1)
 
             self.metrics.status = PlatformStatus.ACTIVE
@@ -153,8 +156,7 @@ class UniversalPlatformConnector:
             self.metrics.status = PlatformStatus.ERROR
             self.metrics.last_error = str(e)
             OPPORTUNITY_PROVIDER_HEALTH.labels(
-                provider=self.config.platform_id,
-                category=self.config.category.value
+                provider=self.config.platform_id, category=self.config.category.value
             ).set(-1)
             return False
 
@@ -227,7 +229,7 @@ class UniversalPlatformConnector:
                     source=obs.source_name,
                     category=obs.source_type,
                     score=0.5,  # Will be scored downstream
-                    evh=0.0
+                    evh=0.0,
                 )
 
             # Emit event for new opportunities
@@ -279,7 +281,7 @@ class UniversalPlatformConnector:
 class PlatformConnectorManager:
     """
     Manages all platform connectors.
-    
+
     Provides unified control, monitoring, and discovery across all platforms.
     """
 
@@ -315,10 +317,7 @@ class PlatformConnectorManager:
 
     def get_connectors_by_category(self, category: PlatformCategory) -> list[UniversalPlatformConnector]:
         """Get connectors by category."""
-        return [
-            c for c in self.connectors.values()
-            if c.config.category == category
-        ]
+        return [c for c in self.connectors.values() if c.config.category == category]
 
     async def initialize_all(self) -> dict[str, bool]:
         """Initialize all connectors."""
@@ -373,10 +372,7 @@ class PlatformConnectorManager:
             "error": error,
             "disabled": disabled,
             "total_opportunities_found": total_opps,
-            "platforms": {
-                pid: connector.get_status()
-                for pid, connector in self.connectors.items()
-            }
+            "platforms": {pid: connector.get_status() for pid, connector in self.connectors.items()},
         }
 
     def get_opportunity_summary(self) -> dict[str, Any]:
@@ -394,6 +390,7 @@ class PlatformConnectorManager:
 # ──────────────────────────────────────────────────────────────────────────
 # DEFAULT PLATFORM CONFIGURATIONS
 # ──────────────────────────────────────────────────────────────────────────
+
 
 def get_default_platform_configs() -> list[PlatformConfig]:
     """Get default platform configurations for all supported categories."""
@@ -426,7 +423,6 @@ def get_default_platform_configs() -> list[PlatformConfig]:
             config={"enabled": True},
             tags=["security", "bug_bounty"],
         ),
-
         # ── Dev Bounty ──
         PlatformConfig(
             platform_id="superteam",
@@ -482,7 +478,6 @@ def get_default_platform_configs() -> list[PlatformConfig]:
             config={"enabled": True},
             tags=["web3", "crypto", "dev_bounty"],
         ),
-
         # ── Data Annotation / AI Work ──
         PlatformConfig(
             platform_id="outlier",
@@ -538,7 +533,6 @@ def get_default_platform_configs() -> list[PlatformConfig]:
             config={"enabled": True},
             tags=["freelance", "microtask"],
         ),
-
         # ── Freelance ──
         PlatformConfig(
             platform_id="linkedin_jobs",
@@ -567,7 +561,6 @@ def get_default_platform_configs() -> list[PlatformConfig]:
             config={"enabled": True},
             tags=["freelance", "projects"],
         ),
-
         # ── Crypto ──
         PlatformConfig(
             platform_id="coingecko",
@@ -587,7 +580,6 @@ def get_default_platform_configs() -> list[PlatformConfig]:
             config={"enabled": True},
             tags=["finance", "budget"],
         ),
-
         # ── Atlas (OSINT/CVE) ──
         PlatformConfig(
             platform_id="cve",

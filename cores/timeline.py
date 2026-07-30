@@ -7,19 +7,21 @@ from database.db import SessionLocal
 
 LOG = logging.getLogger("ownex.timeline")
 
-EVENT_TYPES = frozenset({
-    "recon",
-    "endpoint_discovered",
-    "graph_updated",
-    "hot_path_detected",
-    "differential_triggered",
-    "evidence_generated",
-    "verdict_assigned",
-    "report_generated",
-    "ai_explanation",
-    "quick_win_created",
-    "historical_memory_updated",
-})
+EVENT_TYPES = frozenset(
+    {
+        "recon",
+        "endpoint_discovered",
+        "graph_updated",
+        "hot_path_detected",
+        "differential_triggered",
+        "evidence_generated",
+        "verdict_assigned",
+        "report_generated",
+        "ai_explanation",
+        "quick_win_created",
+        "historical_memory_updated",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -92,14 +94,16 @@ def build_timeline(
 
         # Add target creation events
         for t in targets:
-            timeline.add(TimelineEvent(
-                event_type="recon",
-                timestamp=t.created_at.isoformat() if t.created_at else "",
-                source="system",
-                description=f"Target added: {t.name}",
-                target_id=t.id,
-                target_name=t.name,
-            ))
+            timeline.add(
+                TimelineEvent(
+                    event_type="recon",
+                    timestamp=t.created_at.isoformat() if t.created_at else "",
+                    source="system",
+                    description=f"Target added: {t.name}",
+                    target_id=t.id,
+                    target_name=t.name,
+                )
+            )
 
         # Add endpoint discovery events
         for t in targets:
@@ -111,57 +115,57 @@ def build_timeline(
                 .all()
             )
             for ep in eps:
-                timeline.add(TimelineEvent(
-                    event_type="endpoint_discovered",
-                    timestamp=ep.discovered_at.isoformat() if ep.discovered_at else "",
-                    source="recon",
-                    description=f"Endpoint discovered: {ep.method} {ep.path}",
-                    target_id=t.id,
-                    target_name=t.name,
-                    endpoint_id=ep.id,
-                    endpoint_path=f"{ep.method} {ep.path}",
-                ))
+                timeline.add(
+                    TimelineEvent(
+                        event_type="endpoint_discovered",
+                        timestamp=ep.discovered_at.isoformat() if ep.discovered_at else "",
+                        source="recon",
+                        description=f"Endpoint discovered: {ep.method} {ep.path}",
+                        target_id=t.id,
+                        target_name=t.name,
+                        endpoint_id=ep.id,
+                        endpoint_path=f"{ep.method} {ep.path}",
+                    )
+                )
 
         # Add verdict events
         verdict_query = session.query(Verdict)
         if target_id:
-            endpoint_ids = [
-                e.id for e in session.query(Endpoint.id).filter(Endpoint.target_id == target_id).all()
-            ]
+            endpoint_ids = [e.id for e in session.query(Endpoint.id).filter(Endpoint.target_id == target_id).all()]
             if endpoint_ids:
                 verdict_query = verdict_query.filter(Verdict.endpoint_id.in_(endpoint_ids))
         for v in verdict_query.order_by(Verdict.created_at.desc()).limit(limit).all():
-            ep = (
-                session.query(Endpoint).filter(Endpoint.id == v.endpoint_id).first()
-                if v.endpoint_id
-                else None
-            )
+            ep = session.query(Endpoint).filter(Endpoint.id == v.endpoint_id).first() if v.endpoint_id else None
             t = next((t for t in targets if t.id == (ep.target_id if ep else None)), None)
-            timeline.add(TimelineEvent(
-                event_type="verdict_assigned",
-                timestamp=v.created_at.isoformat() if v.created_at else "",
-                source="validation",
-                description=f"Verdict {v.status}",
-                target_id=ep.target_id if ep else None,
-                target_name=t.name if t else None,
-                endpoint_id=v.endpoint_id,
-                verdict_id=v.id,
-                verdict_status=v.status,
-                confidence=float(v.confidence) if v.confidence else None,
-            ))
+            timeline.add(
+                TimelineEvent(
+                    event_type="verdict_assigned",
+                    timestamp=v.created_at.isoformat() if v.created_at else "",
+                    source="validation",
+                    description=f"Verdict {v.status}",
+                    target_id=ep.target_id if ep else None,
+                    target_name=t.name if t else None,
+                    endpoint_id=v.endpoint_id,
+                    verdict_id=v.id,
+                    verdict_status=v.status,
+                    confidence=float(v.confidence) if v.confidence else None,
+                )
+            )
 
         # Add evidence events
         ev_query = session.query(Evidence).order_by(Evidence.created_at.desc()).limit(limit)
         for ev in ev_query.all():
-            timeline.add(TimelineEvent(
-                event_type="evidence_generated",
-                timestamp=ev.created_at.isoformat() if ev.created_at else "",
-                source="validation",
-                description=f"Evidence: {ev.attempt_label} ({ev.response_status})",
-                endpoint_id=ev.endpoint_id,
-                verdict_id=ev.verdict_id,
-                metadata={"response_status": ev.response_status, "consistent": ev.consistent},
-            ))
+            timeline.add(
+                TimelineEvent(
+                    event_type="evidence_generated",
+                    timestamp=ev.created_at.isoformat() if ev.created_at else "",
+                    source="validation",
+                    description=f"Evidence: {ev.attempt_label} ({ev.response_status})",
+                    endpoint_id=ev.endpoint_id,
+                    verdict_id=ev.verdict_id,
+                    metadata={"response_status": ev.response_status, "consistent": ev.consistent},
+                )
+            )
 
         # Add scan events
         scan_query = session.query(ScanRun)
@@ -169,19 +173,21 @@ def build_timeline(
             scan_query = scan_query.filter(ScanRun.target_id == target_id)
         for scan in scan_query.order_by(ScanRun.started_at.desc()).limit(20).all():
             t = session.query(Target).filter(Target.id == scan.target_id).first()
-            timeline.add(TimelineEvent(
-                event_type="recon",
-                timestamp=scan.started_at.isoformat() if scan.started_at else "",
-                source="scanner",
-                description=f"Scan {scan.status}: {scan.mode} mode ({scan.endpoint_count} endpoints)",
-                target_id=scan.target_id,
-                target_name=t.name if t else None,
-                duration_ms=(
-                    (scan.finished_at - scan.started_at).total_seconds() * 1000
-                    if scan.finished_at and scan.started_at
-                    else None
-                ),
-            ))
+            timeline.add(
+                TimelineEvent(
+                    event_type="recon",
+                    timestamp=scan.started_at.isoformat() if scan.started_at else "",
+                    source="scanner",
+                    description=f"Scan {scan.status}: {scan.mode} mode ({scan.endpoint_count} endpoints)",
+                    target_id=scan.target_id,
+                    target_name=t.name if t else None,
+                    duration_ms=(
+                        (scan.finished_at - scan.started_at).total_seconds() * 1000
+                        if scan.finished_at and scan.started_at
+                        else None
+                    ),
+                )
+            )
 
         # Add memory/learning events
         mem_records = (
@@ -192,13 +198,15 @@ def build_timeline(
             .all()
         )
         for mr in mem_records:
-            timeline.add(TimelineEvent(
-                event_type="historical_memory_updated",
-                timestamp=mr.created_at.isoformat() if mr.created_at else "",
-                source="intelligence",
-                description=f"Learning snapshot: {mr.key}",
-                metadata={"memory_id": mr.id, "category": mr.category},
-            ))
+            timeline.add(
+                TimelineEvent(
+                    event_type="historical_memory_updated",
+                    timestamp=mr.created_at.isoformat() if mr.created_at else "",
+                    source="intelligence",
+                    description=f"Learning snapshot: {mr.key}",
+                    metadata={"memory_id": mr.id, "category": mr.category},
+                )
+            )
 
         timeline.sort()
 
@@ -207,7 +215,7 @@ def build_timeline(
             timeline.events = timeline.filter_by_type(event_type)
 
         # Apply pagination
-        timeline.events = timeline.events[offset:offset + limit]
+        timeline.events = timeline.events[offset : offset + limit]
 
         return timeline
 

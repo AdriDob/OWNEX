@@ -460,7 +460,7 @@ class KnowledgeGraph:
                 if d.decision_id == decision_id:
                     d.actual_outcome = outcome
                     actual_value = outcome.reward_usd / max(outcome.cost_usd, 0.001)
-                    d.regret = max(0, decision.expected_value - actual_value)
+                    d.regret = max(0, d.expected_value - actual_value)
                     break
 
             with sqlite3.connect(self.db_path) as conn:

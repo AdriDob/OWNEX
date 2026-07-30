@@ -16,8 +16,16 @@ from database import models
 logger = logging.getLogger("ownex.pipeline.report_service")
 
 REPORT_STATUSES = [
-    "draft", "ready", "submitted", "need_more_info",
-    "triaged", "resolved", "paid", "duplicate", "informative", "na",
+    "draft",
+    "ready",
+    "submitted",
+    "need_more_info",
+    "triaged",
+    "resolved",
+    "paid",
+    "duplicate",
+    "informative",
+    "na",
 ]
 
 
@@ -109,10 +117,7 @@ def create_report_from_findings(
         raise ValueError("No findings found for the given IDs")
 
     target_ids = {f.target_id for f in findings}
-    targets = {
-        t.id: t
-        for t in session.query(models.Target).filter(models.Target.id.in_(target_ids)).all()
-    }
+    targets = {t.id: t for t in session.query(models.Target).filter(models.Target.id.in_(target_ids)).all()}
 
     severities = [f.severity or "medium" for f in findings]
     severity_order = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
@@ -211,13 +216,7 @@ def list_reports(
 
     order_col = getattr(models.Report, sort_by, models.Report.created_at)
     order_fn = desc if sort_order == "desc" else asc
-    rows = (
-        query
-        .order_by(order_fn(order_col))
-        .offset(offset)
-        .limit(limit)
-        .all()
-    )
+    rows = query.order_by(order_fn(order_col)).offset(offset).limit(limit).all()
 
     items = [_report_to_dict(r) for r in rows]
     return items, total
@@ -233,9 +232,17 @@ def update_report(
         return None
 
     simple_fields = {
-        "program", "target", "vulnerability", "severity", "status",
-        "format", "estimated_reward", "confirmed_reward", "currency",
-        "evidence_count", "notes",
+        "program",
+        "target",
+        "vulnerability",
+        "severity",
+        "status",
+        "format",
+        "estimated_reward",
+        "confirmed_reward",
+        "currency",
+        "evidence_count",
+        "notes",
     }
     json_fields = {"timeline", "attachments"}
 

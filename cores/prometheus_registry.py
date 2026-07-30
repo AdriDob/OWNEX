@@ -11,4 +11,5 @@ from prometheus_client.core import CollectorRegistry as RegistryType
 def get_registry() -> RegistryType:
     """Return the OWNEX Prometheus registry."""
     from cores.prometheus_metrics import OWNEX_REGISTRY
+
     return OWNEX_REGISTRY

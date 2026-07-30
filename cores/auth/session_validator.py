@@ -50,24 +50,26 @@ class SessionValidator:
     def validate(self, token: str, device_id: str | None = None) -> SessionValidationResult:
         valid, data = verify_session(token)
         if not valid:
-            self._anomalies.append({
-                "type": "invalid_token",
-                "device_id": device_id,
-                "timestamp": time.time(),
-            })
-            return SessionValidationResult(
-                valid=False, reason="Invalid or expired token"
+            self._anomalies.append(
+                {
+                    "type": "invalid_token",
+                    "device_id": device_id,
+                    "timestamp": time.time(),
+                }
             )
+            return SessionValidationResult(valid=False, reason="Invalid or expired token")
 
         sub = data.get("sub", "") if data else ""
 
         if device_id and sub and sub != device_id:
-            self._anomalies.append({
-                "type": "device_mismatch",
-                "expected": device_id,
-                "actual": sub,
-                "timestamp": time.time(),
-            })
+            self._anomalies.append(
+                {
+                    "type": "device_mismatch",
+                    "expected": device_id,
+                    "actual": sub,
+                    "timestamp": time.time(),
+                }
+            )
             return SessionValidationResult(
                 valid=False,
                 device_id=device_id,

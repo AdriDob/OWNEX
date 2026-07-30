@@ -55,7 +55,6 @@ def detect_trends(
 ) -> TrendReport:
     session = SessionLocal()
     try:
-
         from database.models import Endpoint, Finding, Target
 
         report = TrendReport()
@@ -64,7 +63,7 @@ def detect_trends(
         endpoints = session.query(Endpoint).all()
         surface_counts: dict[str, int] = {}
         for ep in endpoints:
-            params = ep.parsed_params if hasattr(ep, 'parsed_params') else {}
+            params = ep.parsed_params if hasattr(ep, "parsed_params") else {}
             surfaces = params.get("attack_surface", []) if isinstance(params, dict) else []
             if isinstance(surfaces, list):
                 for s in surfaces:
@@ -74,16 +73,18 @@ def detect_trends(
         sorted_surfaces = sorted(surface_counts.items(), key=lambda x: x[1], reverse=True)
         for surface, count in sorted_surfaces[:8]:
             pct = round(count / total_eps * 100, 1)
-            report.rising_surfaces.append(TrendSignal(
-                label=surface,
-                dimension="attack_surface",
-                direction="active",
-                current_value=pct,
-                previous_value=0.0,
-                change_pct=pct,
-                confidence=round(min(pct / 100, 0.9), 3),
-                sample_size=count,
-            ))
+            report.rising_surfaces.append(
+                TrendSignal(
+                    label=surface,
+                    dimension="attack_surface",
+                    direction="active",
+                    current_value=pct,
+                    previous_value=0.0,
+                    change_pct=pct,
+                    confidence=round(min(pct / 100, 0.9), 3),
+                    sample_size=count,
+                )
+            )
 
         # Emerging vulnerability classes from finding titles
         findings = session.query(Finding).all()
@@ -97,23 +98,26 @@ def detect_trends(
         for vtype, count in sorted_vulns[:8]:
             pct = round(count / total_findings * 100, 1)
             confidence = min(0.5 + (count / total_findings), 0.95)
-            report.emerging_vulnerability_classes.append(TrendSignal(
-                label=vtype,
-                dimension="vulnerability_type",
-                direction="rising",
-                current_value=pct,
-                previous_value=0.0,
-                change_pct=pct,
-                confidence=round(confidence, 3),
-                sample_size=count,
-            ))
+            report.emerging_vulnerability_classes.append(
+                TrendSignal(
+                    label=vtype,
+                    dimension="vulnerability_type",
+                    direction="rising",
+                    current_value=pct,
+                    previous_value=0.0,
+                    change_pct=pct,
+                    confidence=round(confidence, 3),
+                    sample_size=count,
+                )
+            )
 
         # Repeated endpoint patterns: analyze path patterns
         path_patterns: dict[str, int] = {}
         import re
+
         for ep in endpoints:
             path = ep.path or "/"
-            parts = [p for p in path.split("/") if p and not p.isdigit() and not re.match(r'^\{.*\}$', p)]
+            parts = [p for p in path.split("/") if p and not p.isdigit() and not re.match(r"^\{.*\}$", p)]
             if len(parts) >= 2:
                 pattern = "/" + "/".join(parts[:2])
                 path_patterns[pattern] = path_patterns.get(pattern, 0) + 1
@@ -121,16 +125,18 @@ def detect_trends(
         sorted_paths = sorted(path_patterns.items(), key=lambda x: x[1], reverse=True)
         for pattern, count in sorted_paths[:5]:
             if count >= 2:
-                report.repeated_endpoint_patterns.append(TrendSignal(
-                    label=pattern,
-                    dimension="endpoint_path",
-                    direction="repeated",
-                    current_value=float(count),
-                    previous_value=0.0,
-                    change_pct=100.0,
-                    confidence=round(min(count / total_eps * 2, 0.95), 3),
-                    sample_size=count,
-                ))
+                report.repeated_endpoint_patterns.append(
+                    TrendSignal(
+                        label=pattern,
+                        dimension="endpoint_path",
+                        direction="repeated",
+                        current_value=float(count),
+                        previous_value=0.0,
+                        change_pct=100.0,
+                        confidence=round(min(count / total_eps * 2, 0.95), 3),
+                        sample_size=count,
+                    )
+                )
 
         # Growing target categories from target domains
         targets = session.query(Target).all()
@@ -143,16 +149,18 @@ def detect_trends(
         total_targets = len(targets) or 1
         for tld, count in sorted(domain_tlds.items(), key=lambda x: x[1], reverse=True)[:5]:
             pct = round(count / total_targets * 100, 1)
-            report.growing_target_categories.append(TrendSignal(
-                label=tld,
-                dimension="target_category",
-                direction="growing",
-                current_value=pct,
-                previous_value=0.0,
-                change_pct=pct,
-                confidence=round(min(0.5 + pct / 200, 0.9), 3),
-                sample_size=count,
-            ))
+            report.growing_target_categories.append(
+                TrendSignal(
+                    label=tld,
+                    dimension="target_category",
+                    direction="growing",
+                    current_value=pct,
+                    previous_value=0.0,
+                    change_pct=pct,
+                    confidence=round(min(0.5 + pct / 200, 0.9), 3),
+                    sample_size=count,
+                )
+            )
 
         return report
 

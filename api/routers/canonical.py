@@ -92,6 +92,7 @@ async def get_events(
     event_type: str | None = Query(None, description="Filter by event type"),
 ):
     from cores.intelligence.event_system import get_event_system
+
     es = get_event_system()
     return {"events": es.get_events(event_type)}
 
@@ -105,5 +106,6 @@ async def get_metrics():
 @router.get("/anti-drift")
 async def get_anti_drift_report():
     from cores.intelligence.anti_drift import get_enforcer
+
     enforcer = get_enforcer()
     return enforcer.report()

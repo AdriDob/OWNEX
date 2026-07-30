@@ -53,7 +53,7 @@ class CryptoSyncManager:
                 if wid not in self._connectors:
                     self._connectors[wid] = ExchangeConnector(wallet_id=wid, exchange_name=name)
             elif provider.startswith("solana"):
-                suffix = provider[len("solana"):].lstrip("_") or "mainnet"
+                suffix = provider[len("solana") :].lstrip("_") or "mainnet"
                 wid = f"solana:{suffix}"
                 if wid not in self._connectors:
                     self._connectors[wid] = SolanaConnector(wallet_id=wid)
@@ -91,9 +91,13 @@ class CryptoSyncManager:
             if finalized:
                 logger.info(
                     "Auto‑finalized %d withdrawal(s) for %s: %s",
-                    len(finalized), wallet_id, finalized,
+                    len(finalized),
+                    wallet_id,
+                    finalized,
                 )
-            logger.info("Crypto sync OK: %s — %.2f USD (%d balances)", wallet_id, snapshot.total_usd, len(snapshot.balances))
+            logger.info(
+                "Crypto sync OK: %s — %.2f USD (%d balances)", wallet_id, snapshot.total_usd, len(snapshot.balances)
+            )
         else:
             publish_financial_event(
                 "financial:sync_failed",

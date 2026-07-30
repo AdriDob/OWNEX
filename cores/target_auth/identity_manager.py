@@ -9,10 +9,17 @@ from database import db, models
 logger = logging.getLogger("ownex.target_auth.identity")
 
 # Fields stored inside the encrypted credentials JSON blob
-CREDENTIAL_FIELDS = frozenset({
-    "username", "password", "token", "api_key",
-    "cookies", "login_url", "login_params",
-})
+CREDENTIAL_FIELDS = frozenset(
+    {
+        "username",
+        "password",
+        "token",
+        "api_key",
+        "cookies",
+        "login_url",
+        "login_params",
+    }
+)
 
 
 class TargetIdentityManager:
@@ -79,9 +86,7 @@ class TargetIdentityManager:
     def get_identity(self, identity_id: int) -> dict | None:
         session = db.SessionLocal()
         try:
-            identity = session.query(models.TargetIdentity).filter(
-                models.TargetIdentity.id == identity_id
-            ).first()
+            identity = session.query(models.TargetIdentity).filter(models.TargetIdentity.id == identity_id).first()
             if not identity:
                 return None
             return self._to_out(identity, session)
@@ -94,9 +99,7 @@ class TargetIdentityManager:
 
         session = db.SessionLocal()
         try:
-            identity = session.query(models.TargetIdentity).filter(
-                models.TargetIdentity.id == identity_id
-            ).first()
+            identity = session.query(models.TargetIdentity).filter(models.TargetIdentity.id == identity_id).first()
             if not identity:
                 return None
 
@@ -129,17 +132,15 @@ class TargetIdentityManager:
     def delete_identity(self, identity_id: int) -> bool:
         session = db.SessionLocal()
         try:
-            identity = session.query(models.TargetIdentity).filter(
-                models.TargetIdentity.id == identity_id
-            ).first()
+            identity = session.query(models.TargetIdentity).filter(models.TargetIdentity.id == identity_id).first()
             if not identity:
                 return False
             # Soft delete
             identity.is_active = False
             # Also invalidate any active session
-            session.query(models.TargetSession).filter(
-                models.TargetSession.identity_id == identity_id
-            ).update({"is_valid": False})
+            session.query(models.TargetSession).filter(models.TargetSession.identity_id == identity_id).update(
+                {"is_valid": False}
+            )
             session.commit()
             return True
         finally:
@@ -149,10 +150,14 @@ class TargetIdentityManager:
         """Retrieve decrypted credentials for internal use (never expose via API)."""
         session = db.SessionLocal()
         try:
-            identity = session.query(models.TargetIdentity).filter(
-                models.TargetIdentity.id == identity_id,
-                models.TargetIdentity.is_active,
-            ).first()
+            identity = (
+                session.query(models.TargetIdentity)
+                .filter(
+                    models.TargetIdentity.id == identity_id,
+                    models.TargetIdentity.is_active,
+                )
+                .first()
+            )
             if not identity or not identity.credentials_encrypted:
                 return {}
             return self._vault.decrypt_json(identity.credentials_encrypted)
@@ -166,9 +171,9 @@ class TargetIdentityManager:
         session_valid = False
         session_expires_at = None
         if db_session:
-            sess = db_session.query(models.TargetSession).filter(
-                models.TargetSession.identity_id == identity.id
-            ).first()
+            sess = (
+                db_session.query(models.TargetSession).filter(models.TargetSession.identity_id == identity.id).first()
+            )
             if sess:
                 session_valid = sess.is_valid
                 session_expires_at = sess.expires_at.isoformat() if sess.expires_at else None

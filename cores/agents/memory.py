@@ -97,13 +97,15 @@ class MemoryAgent(BaseAgent):
         total = len(event.payload.get("verdicts", {}))
 
         if target and total > 0:
-            self._memory.setdefault("validation_history", []).append({
-                "target": target,
-                "confirmed": confirmed,
-                "total": total,
-                "ratio": round(confirmed / max(total, 1), 2),
-                "timestamp": datetime.now(UTC).isoformat(),
-            })
+            self._memory.setdefault("validation_history", []).append(
+                {
+                    "target": target,
+                    "confirmed": confirmed,
+                    "total": total,
+                    "ratio": round(confirmed / max(total, 1), 2),
+                    "timestamp": datetime.now(UTC).isoformat(),
+                }
+            )
             self._save()
 
     def _on_exploit(self, event: AgentEvent) -> None:
@@ -124,12 +126,14 @@ class MemoryAgent(BaseAgent):
         """Track report generation history."""
         reports = event.payload.get("reports", [])
         for r in reports:
-            self._memory.setdefault("reports_generated", []).append({
-                "title": r.get("title", ""),
-                "severity": r.get("severity", ""),
-                "bounty_estimate": r.get("bounty_estimate", 0),
-                "timestamp": datetime.now(UTC).isoformat(),
-            })
+            self._memory.setdefault("reports_generated", []).append(
+                {
+                    "title": r.get("title", ""),
+                    "severity": r.get("severity", ""),
+                    "bounty_estimate": r.get("bounty_estimate", 0),
+                    "timestamp": datetime.now(UTC).isoformat(),
+                }
+            )
         self._save()
 
     def remember(self, namespace: str, key: str) -> Any:

@@ -258,7 +258,11 @@ class HypothesisChallenger:
         if alternatives or missing or tests:
             LOG.info(
                 "Challenger: vt=%s, alternatives=%d, tests=%d, missing=%d, uncertainty=%s",
-                vt, len(alternatives), len(tests), len(missing), uncertainty,
+                vt,
+                len(alternatives),
+                len(tests),
+                len(missing),
+                uncertainty,
             )
 
         return EnrichedVerdictData(
@@ -269,9 +273,7 @@ class HypothesisChallenger:
             uncertainty_level=uncertainty,
         )
 
-    def _design_contradiction_tests(
-        self, vt: str, signals: dict[str, Any]
-    ) -> list[ContradictionTest]:
+    def _design_contradiction_tests(self, vt: str, signals: dict[str, Any]) -> list[ContradictionTest]:
         tests_by_type: dict[str, list[dict[str, Any]]] = {
             "idor": [
                 {
@@ -366,9 +368,7 @@ class HypothesisChallenger:
             tests = self._generic_tests(vt)
         return [ContradictionTest(**t) for t in tests]
 
-    def _filter_missing_by_signals(
-        self, vt: str, signals: dict[str, Any]
-    ) -> list[str]:
+    def _filter_missing_by_signals(self, vt: str, signals: dict[str, Any]) -> list[str]:
         all_missing = list(MISSING_VERIFICATIONS.get(vt, []))
         if not all_missing:
             return self._generic_missing(vt)

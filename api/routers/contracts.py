@@ -66,90 +66,107 @@ async def contracts_debug():
     # Targets
     try:
         from api.services.data_service import list_targets
+
         raw = list_targets(skip=0, limit=5)
         items_raw = raw.get("items", []) if isinstance(raw, dict) else []
         items = [normalize_target(t) for t in items_raw]
         validation = validate_paginated_response(raw, "target")
-        samples.append({
-            "contract": "target",
-            "endpoint": "/api/targets",
-            "count": len(items),
-            "sample": items[:2],
-            "validation": validation,
-            "status": "ok" if validation["valid_items"] == validation["total_items"] else "mismatch",
-        })
+        samples.append(
+            {
+                "contract": "target",
+                "endpoint": "/api/targets",
+                "count": len(items),
+                "sample": items[:2],
+                "validation": validation,
+                "status": "ok" if validation["valid_items"] == validation["total_items"] else "mismatch",
+            }
+        )
     except Exception as exc:
         samples.append({"contract": "target", "endpoint": "/api/targets", "error": str(exc), "status": "error"})
 
     # Opportunities
     try:
         from api.services.data_service import list_opportunities
+
         raw = list_opportunities(skip=0, limit=5)
         items_raw = raw.get("items", []) if isinstance(raw, dict) else []
         items = [normalize_opportunity(o) for o in items_raw]
         validation = validate_paginated_response(raw, "opportunity")
-        samples.append({
-            "contract": "opportunity",
-            "endpoint": "/api/opportunities",
-            "count": len(items),
-            "sample": items[:2],
-            "validation": validation,
-            "status": "ok" if validation["valid_items"] == validation["total_items"] else "mismatch",
-        })
+        samples.append(
+            {
+                "contract": "opportunity",
+                "endpoint": "/api/opportunities",
+                "count": len(items),
+                "sample": items[:2],
+                "validation": validation,
+                "status": "ok" if validation["valid_items"] == validation["total_items"] else "mismatch",
+            }
+        )
     except Exception as exc:
-        samples.append({"contract": "opportunity", "endpoint": "/api/opportunities", "error": str(exc), "status": "error"})
+        samples.append(
+            {"contract": "opportunity", "endpoint": "/api/opportunities", "error": str(exc), "status": "error"}
+        )
 
     # Endpoints
     try:
         from api.services.data_service import list_endpoints
+
         raw = list_endpoints(skip=0, limit=5)
         items_raw = raw.get("items", []) if isinstance(raw, dict) else []
         items = [normalize_endpoint(e) for e in items_raw]
         validation = validate_paginated_response(raw, "endpoint")
-        samples.append({
-            "contract": "endpoint",
-            "endpoint": "/api/endpoints",
-            "count": len(items),
-            "sample": items[:2],
-            "validation": validation,
-            "status": "ok" if validation["valid_items"] == validation["total_items"] else "mismatch",
-        })
+        samples.append(
+            {
+                "contract": "endpoint",
+                "endpoint": "/api/endpoints",
+                "count": len(items),
+                "sample": items[:2],
+                "validation": validation,
+                "status": "ok" if validation["valid_items"] == validation["total_items"] else "mismatch",
+            }
+        )
     except Exception as exc:
         samples.append({"contract": "endpoint", "endpoint": "/api/endpoints", "error": str(exc), "status": "error"})
 
     # Findings
     try:
         from api.services.data_service import list_findings
+
         raw = list_findings(skip=0, limit=5)
         items_raw = raw.get("items", []) if isinstance(raw, dict) else []
         items = [normalize_finding(f) for f in items_raw]
         validation = validate_paginated_response(raw, "finding")
-        samples.append({
-            "contract": "finding",
-            "endpoint": "/api/findings",
-            "count": len(items),
-            "sample": items[:2],
-            "validation": validation,
-            "status": "ok" if validation["valid_items"] == validation["total_items"] else "mismatch",
-        })
+        samples.append(
+            {
+                "contract": "finding",
+                "endpoint": "/api/findings",
+                "count": len(items),
+                "sample": items[:2],
+                "validation": validation,
+                "status": "ok" if validation["valid_items"] == validation["total_items"] else "mismatch",
+            }
+        )
     except Exception as exc:
         samples.append({"contract": "finding", "endpoint": "/api/findings", "error": str(exc), "status": "error"})
 
     # Evidence
     try:
         from api.services.data_service import list_evidence
+
         raw = list_evidence(skip=0, limit=5)
         items_raw = raw.get("items", []) if isinstance(raw, dict) else []
         items = [normalize_evidence(e) for e in items_raw]
         validation = validate_paginated_response(raw, "evidence")
-        samples.append({
-            "contract": "evidence",
-            "endpoint": "/api/evidence",
-            "count": len(items),
-            "sample": items[:2],
-            "validation": validation,
-            "status": "ok" if validation["valid_items"] == validation["total_items"] else "mismatch",
-        })
+        samples.append(
+            {
+                "contract": "evidence",
+                "endpoint": "/api/evidence",
+                "count": len(items),
+                "sample": items[:2],
+                "validation": validation,
+                "status": "ok" if validation["valid_items"] == validation["total_items"] else "mismatch",
+            }
+        )
     except Exception as exc:
         samples.append({"contract": "evidence", "endpoint": "/api/evidence", "error": str(exc), "status": "error"})
 

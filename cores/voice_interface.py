@@ -28,17 +28,19 @@ logger = logging.getLogger("ownex.voice")
 
 class VoiceProvider(Enum):
     """Supported voice providers."""
-    LOCAL = "local"              # Local STT/TTS (Whisper, Piper, etc.)
-    AZURE = "azure"              # Azure Cognitive Services
-    AWS = "aws"                  # AWS Polly/Transcribe
-    GOOGLE = "google"            # Google Cloud Speech/Text-to-Speech
-    ELEVENLABS = "elevenlabs"    # ElevenLabs TTS
-    OPENAI = "openai"            # OpenAI Whisper/TTS
-    ALEXA = "alexa"              # Alexa Skills Kit
+
+    LOCAL = "local"  # Local STT/TTS (Whisper, Piper, etc.)
+    AZURE = "azure"  # Azure Cognitive Services
+    AWS = "aws"  # AWS Polly/Transcribe
+    GOOGLE = "google"  # Google Cloud Speech/Text-to-Speech
+    ELEVENLABS = "elevenlabs"  # ElevenLabs TTS
+    OPENAI = "openai"  # OpenAI Whisper/TTS
+    ALEXA = "alexa"  # Alexa Skills Kit
 
 
 class VoiceLanguage(Enum):
     """Supported languages."""
+
     EN_US = "en-US"
     EN_GB = "en-GB"
     ES_ES = "es-ES"
@@ -55,6 +57,7 @@ class VoiceLanguage(Enum):
 @dataclass
 class VoiceConfig:
     """Voice interface configuration."""
+
     # Provider settings
     stt_provider: VoiceProvider = VoiceProvider.LOCAL
     tts_provider: VoiceProvider = VoiceProvider.LOCAL
@@ -93,6 +96,7 @@ class VoiceConfig:
 @dataclass
 class VoiceCommand:
     """Parsed voice command."""
+
     id: str
     raw_text: str
     intent: str
@@ -105,6 +109,7 @@ class VoiceCommand:
 @dataclass
 class SpeechResult:
     """Result of speech recognition."""
+
     text: str
     confidence: float
     language: str
@@ -115,6 +120,7 @@ class SpeechResult:
 @dataclass
 class TTSResult:
     """Result of text-to-speech."""
+
     audio_data: bytes
     format: str  # "wav", "mp3", "ogg"
     duration: float
@@ -124,6 +130,7 @@ class TTSResult:
 # ──────────────────────────────────────────────────────────────────────────
 # PROVIDER INTERFACES
 # ──────────────────────────────────────────────────────────────────────────
+
 
 class STTProvider(ABC):
     """Abstract speech-to-text provider."""
@@ -192,6 +199,7 @@ class TTSProvider(ABC):
 # LOCAL PROVIDERS (Whisper + Piper)
 # ──────────────────────────────────────────────────────────────────────────
 
+
 class LocalSTTProvider(STTProvider):
     """Local STT using Whisper."""
 
@@ -202,6 +210,7 @@ class LocalSTTProvider(STTProvider):
     async def initialize(self, config: VoiceConfig) -> bool:
         try:
             import whisper
+
             self._model = whisper.load_model(config.stt_model)
             self._initialized = True
             logger.info("Local STT (Whisper) initialized with model: %s", config.stt_model)
@@ -304,8 +313,10 @@ class LocalTTSProvider(TTSProvider):
         try:
             cmd = [
                 self._piper_path,
-                "--model", self._voice_path,
-                "--output_file", output_path,
+                "--model",
+                self._voice_path,
+                "--output_file",
+                output_path,
             ]
 
             proc = await asyncio.create_subprocess_exec(
@@ -359,9 +370,11 @@ class LocalTTSProvider(TTSProvider):
 # ALEXA SKILLS KIT ADAPTER
 # ──────────────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class AlexaRequest:
     """Incoming Alexa request."""
+
     request_id: str
     session_id: str
     intent_name: str
@@ -372,6 +385,7 @@ class AlexaRequest:
 @dataclass
 class AlexaResponse:
     """Outgoing Alexa response."""
+
     output_speech: str
     reprompt: str | None = None
     should_end_session: bool = True
@@ -484,6 +498,7 @@ class AlexaAdapter:
 # COMMAND PARSER
 # ──────────────────────────────────────────────────────────────────────────
 
+
 class VoiceCommandParser:
     """Parse natural language into structured commands."""
 
@@ -503,7 +518,6 @@ class VoiceCommandParser:
                 ],
                 "entities": ["category", "platform"],
             },
-
             # Status commands
             {
                 "intent": "get_status",
@@ -513,7 +527,6 @@ class VoiceCommandParser:
                 ],
                 "entities": [],
             },
-
             # Task commands
             {
                 "intent": "list_tasks",
@@ -523,7 +536,6 @@ class VoiceCommandParser:
                 ],
                 "entities": ["status"],
             },
-
             {
                 "intent": "approve_task",
                 "patterns": [
@@ -531,7 +543,6 @@ class VoiceCommandParser:
                 ],
                 "entities": ["task_id"],
             },
-
             {
                 "intent": "reject_task",
                 "patterns": [
@@ -539,7 +550,6 @@ class VoiceCommandParser:
                 ],
                 "entities": ["task_id", "reason"],
             },
-
             # Mode commands
             {
                 "intent": "set_mode",
@@ -549,7 +559,6 @@ class VoiceCommandParser:
                 ],
                 "entities": ["mode"],
             },
-
             # Report commands
             {
                 "intent": "generate_report",
@@ -559,7 +568,6 @@ class VoiceCommandParser:
                 ],
                 "entities": ["period", "type"],
             },
-
             # Learning commands
             {
                 "intent": "show_learning",
@@ -568,7 +576,6 @@ class VoiceCommandParser:
                 ],
                 "entities": [],
             },
-
             # Help
             {
                 "intent": "help",
@@ -577,7 +584,6 @@ class VoiceCommandParser:
                 ],
                 "entities": [],
             },
-
             # Stop/Cancel
             {
                 "intent": "stop",
@@ -589,6 +595,7 @@ class VoiceCommandParser:
         ]
 
         import re
+
         for p in patterns:
             p["compiled"] = [re.compile(pat, re.IGNORECASE) for pat in p["patterns"]]
             self._patterns.append(p)
@@ -643,6 +650,7 @@ class VoiceCommandParser:
         # Task ID entity
         if "task_id" in entity_types:
             import re
+
             match = re.search(r"#?(\d+)", text)
             if match:
                 entities["task_id"] = match.group(1)
@@ -662,10 +670,11 @@ class VoiceCommandParser:
 # VOICE INTERFACE
 # ──────────────────────────────────────────────────────────────────────────
 
+
 class VoiceInterface:
     """
     Main voice interface — orchestrates STT, TTS, command parsing, and Alexa.
-    
+
     Provider-agnostic: can use local, cloud, or Alexa providers.
     """
 
@@ -711,8 +720,11 @@ class VoiceInterface:
             self._register_alexa_intents()
 
         if success:
-            logger.info("Voice interface initialized (STT: %s, TTS: %s)",
-                       self.config.stt_provider.value, self.config.tts_provider.value)
+            logger.info(
+                "Voice interface initialized (STT: %s, TTS: %s)",
+                self.config.stt_provider.value,
+                self.config.tts_provider.value,
+            )
         else:
             logger.warning("Voice interface partially initialized")
 
@@ -783,9 +795,12 @@ class VoiceInterface:
                 command = self.parser.parse(result.text, self._session_id)
 
                 # Emit event
-                self.event_bus.publish("voice:command", {
-                    "command": command.__dict__,
-                })
+                self.event_bus.publish(
+                    "voice:command",
+                    {
+                        "command": command.__dict__,
+                    },
+                )
 
                 # Call handler
                 if self._on_command:
@@ -820,10 +835,13 @@ class VoiceInterface:
             # For now, just log
             logger.info("TTS: %s (%.2fs)", text[:50], time.time() - start)
 
-            self.event_bus.publish("voice:spoken", {
-                "text": text,
-                "duration": result.duration,
-            })
+            self.event_bus.publish(
+                "voice:spoken",
+                {
+                    "text": text,
+                    "duration": result.duration,
+                },
+            )
 
             return True
 
@@ -843,7 +861,10 @@ class VoiceInterface:
     async def handle_alexa_request(self, request: dict) -> dict:
         """Handle incoming Alexa request."""
         if not self._alexa:
-            return {"version": "1.0", "response": {"outputSpeech": {"type": "PlainText", "text": "Alexa not configured"}}}
+            return {
+                "version": "1.0",
+                "response": {"outputSpeech": {"type": "PlainText", "text": "Alexa not configured"}},
+            }
 
         return await self._alexa.handle_request(request)
 

@@ -33,8 +33,9 @@ logger = logging.getLogger("ownex.execution.mutation_engine")
 @dataclass
 class MutationVariant:
     """A single parameter mutation variant."""
-    strategy: str          # encoding_bypass | hpp | type_confusion | waf_bypass
-    sub_strategy: str      # e.g. double_url_encode, duplicate_param, string_to_array
+
+    strategy: str  # encoding_bypass | hpp | type_confusion | waf_bypass
+    sub_strategy: str  # e.g. double_url_encode, duplicate_param, string_to_array
     params: dict[str, str | list[str]]
     description: str
     expected_behavior: str = ""
@@ -43,6 +44,7 @@ class MutationVariant:
 @dataclass
 class SmartMutationPlan:
     """Complete mutation plan from the Smart Mutation Engine."""
+
     attack_vector: str = "generic"
     variants: list[MutationVariant] = field(default_factory=list)
     reasoning: str = ""
@@ -149,13 +151,15 @@ class EncodingBypassEngine:
         }.items():
             mutated_value = method(value)
             if mutated_value != value:
-                variants.append(MutationVariant(
-                    strategy="encoding_bypass",
-                    sub_strategy=suffix.lstrip("_"),
-                    params={param: mutated_value},
-                    description=desc,
-                    expected_behavior="WAF may miss encoded payload",
-                ))
+                variants.append(
+                    MutationVariant(
+                        strategy="encoding_bypass",
+                        sub_strategy=suffix.lstrip("_"),
+                        params={param: mutated_value},
+                        description=desc,
+                        expected_behavior="WAF may miss encoded payload",
+                    )
+                )
         return variants
 
 
@@ -167,21 +171,25 @@ class HPPEngine:
         """Duplicate each param to create HPP variants."""
         variants: list[MutationVariant] = []
         for param, value in params.items():
-            variants.append(MutationVariant(
-                strategy="hpp",
-                sub_strategy="duplicate_param",
-                params={param: value, f"{param}[dup]": value},
-                description=f"Duplicate param {param}={value}",
-                expected_behavior="Backend may interpret differently",
-            ))
+            variants.append(
+                MutationVariant(
+                    strategy="hpp",
+                    sub_strategy="duplicate_param",
+                    params={param: value, f"{param}[dup]": value},
+                    description=f"Duplicate param {param}={value}",
+                    expected_behavior="Backend may interpret differently",
+                )
+            )
             null_value = value + "\x00"
-            variants.append(MutationVariant(
-                strategy="hpp",
-                sub_strategy="null_byte_injection",
-                params={param: null_value},
-                description=f"Null byte injection in {param}",
-                expected_behavior="String truncation or error",
-            ))
+            variants.append(
+                MutationVariant(
+                    strategy="hpp",
+                    sub_strategy="null_byte_injection",
+                    params={param: null_value},
+                    description=f"Null byte injection in {param}",
+                    expected_behavior="String truncation or error",
+                )
+            )
         return variants
 
     @staticmethod
@@ -189,23 +197,27 @@ class HPPEngine:
         """Convert params to array notation (param[])."""
         variants: list[MutationVariant] = []
         for param, value in params.items():
-            variants.append(MutationVariant(
-                strategy="hpp",
-                sub_strategy="array_notation",
-                params={f"{param}[]": value},
-                description=f"Array notation for {param}",
-                expected_behavior="Type confusion or parameter override",
-            ))
+            variants.append(
+                MutationVariant(
+                    strategy="hpp",
+                    sub_strategy="array_notation",
+                    params={f"{param}[]": value},
+                    description=f"Array notation for {param}",
+                    expected_behavior="Type confusion or parameter override",
+                )
+            )
             # Multiple values as array
             values = value.split(",")
             if len(values) > 1:
-                variants.append(MutationVariant(
-                    strategy="hpp",
-                    sub_strategy="multiple_values",
-                    params={param: values},
-                    description=f"Multiple values for {param}",
-                    expected_behavior="Backend joins or errors",
-                ))
+                variants.append(
+                    MutationVariant(
+                        strategy="hpp",
+                        sub_strategy="multiple_values",
+                        params={param: values},
+                        description=f"Multiple values for {param}",
+                        expected_behavior="Backend joins or errors",
+                    )
+                )
         return variants
 
 
@@ -221,82 +233,100 @@ class TypeConfusionEngine:
 
             if vtype == "int":
                 # String confusion
-                variants.append(MutationVariant(
-                    strategy="type_confusion",
-                    sub_strategy="int_to_string",
-                    params={param: f"{value}x"},
-                    description=f"Int→string confusion for {param}",
-                    expected_behavior="500 or type coercion",
-                ))
+                variants.append(
+                    MutationVariant(
+                        strategy="type_confusion",
+                        sub_strategy="int_to_string",
+                        params={param: f"{value}x"},
+                        description=f"Int→string confusion for {param}",
+                        expected_behavior="500 or type coercion",
+                    )
+                )
                 # Overflow
                 large_int = "999999999999999999999999999999"
-                variants.append(MutationVariant(
-                    strategy="type_confusion",
-                    sub_strategy="integer_overflow",
-                    params={param: large_int},
-                    description=f"Integer overflow for {param}",
-                    expected_behavior="Overflow error or default value",
-                ))
+                variants.append(
+                    MutationVariant(
+                        strategy="type_confusion",
+                        sub_strategy="integer_overflow",
+                        params={param: large_int},
+                        description=f"Integer overflow for {param}",
+                        expected_behavior="Overflow error or default value",
+                    )
+                )
                 # Negative
-                variants.append(MutationVariant(
-                    strategy="type_confusion",
-                    sub_strategy="negative_number",
-                    params={param: f"-{value}"},
-                    description=f"Negative number for {param}",
-                    expected_behavior="Boundary check bypass",
-                ))
+                variants.append(
+                    MutationVariant(
+                        strategy="type_confusion",
+                        sub_strategy="negative_number",
+                        params={param: f"-{value}"},
+                        description=f"Negative number for {param}",
+                        expected_behavior="Boundary check bypass",
+                    )
+                )
                 # Float
-                variants.append(MutationVariant(
-                    strategy="type_confusion",
-                    sub_strategy="float_injection",
-                    params={param: f"{value}.0"},
-                    description=f"Float injection for {param}",
-                    expected_behavior="Type coercion or error",
-                ))
+                variants.append(
+                    MutationVariant(
+                        strategy="type_confusion",
+                        sub_strategy="float_injection",
+                        params={param: f"{value}.0"},
+                        description=f"Float injection for {param}",
+                        expected_behavior="Type coercion or error",
+                    )
+                )
 
             elif vtype == "bool":
                 # String confusion for bool params
-                variants.append(MutationVariant(
-                    strategy="type_confusion",
-                    sub_strategy="bool_to_string",
-                    params={param: f"{value}_"},
-                    description=f"Bool→string confusion for {param}",
-                    expected_behavior="Backend may treat as false/true",
-                ))
+                variants.append(
+                    MutationVariant(
+                        strategy="type_confusion",
+                        sub_strategy="bool_to_string",
+                        params={param: f"{value}_"},
+                        description=f"Bool→string confusion for {param}",
+                        expected_behavior="Backend may treat as false/true",
+                    )
+                )
                 # Null injection
-                variants.append(MutationVariant(
-                    strategy="type_confusion",
-                    sub_strategy="null_injection",
-                    params={param: "null"},
-                    description=f"Null injection for {param}",
-                    expected_behavior="SQL NULL or JS null bypass",
-                ))
+                variants.append(
+                    MutationVariant(
+                        strategy="type_confusion",
+                        sub_strategy="null_injection",
+                        params={param: "null"},
+                        description=f"Null injection for {param}",
+                        expected_behavior="SQL NULL or JS null bypass",
+                    )
+                )
 
             else:  # string
                 # Array injection
-                variants.append(MutationVariant(
-                    strategy="type_confusion",
-                    sub_strategy="string_to_array",
-                    params={param: [value]},
-                    description=f"String→array confusion for {param}",
-                    expected_behavior="500 or param ignored",
-                ))
+                variants.append(
+                    MutationVariant(
+                        strategy="type_confusion",
+                        sub_strategy="string_to_array",
+                        params={param: [value]},
+                        description=f"String→array confusion for {param}",
+                        expected_behavior="500 or param ignored",
+                    )
+                )
                 # Null injection
-                variants.append(MutationVariant(
-                    strategy="type_confusion",
-                    sub_strategy="null_injection",
-                    params={param: value + "\x00"},
-                    description=f"Null byte injection for {param}",
-                    expected_behavior="String truncation",
-                ))
+                variants.append(
+                    MutationVariant(
+                        strategy="type_confusion",
+                        sub_strategy="null_injection",
+                        params={param: value + "\x00"},
+                        description=f"Null byte injection for {param}",
+                        expected_behavior="String truncation",
+                    )
+                )
                 # Empty string
-                variants.append(MutationVariant(
-                    strategy="type_confusion",
-                    sub_strategy="empty_string",
-                    params={param: ""},
-                    description=f"Empty string for {param}",
-                    expected_behavior="Validation bypass",
-                ))
+                variants.append(
+                    MutationVariant(
+                        strategy="type_confusion",
+                        sub_strategy="empty_string",
+                        params={param: ""},
+                        description=f"Empty string for {param}",
+                        expected_behavior="Validation bypass",
+                    )
+                )
 
         return variants
 
@@ -327,22 +357,47 @@ class WAFBypassEngine:
     def case_switching(payload: str) -> str:
         """Alternate case for SQL keywords in the payload."""
         keywords = {
-            "select", "union", "from", "where", "and", "or",
-            "insert", "update", "delete", "drop", "alter",
-            "sleep", "benchmark", "waitfor", "delay",
-            "having", "group", "order", "by", "limit",
-            "exec", "execute", "xp_cmdshell", "load_file",
-            "into", "outfile", "dumpfile", "information_schema",
-            "char", "concat", "group_concat", "substr",
-            "alert", "script", "onerror", "onload",
+            "select",
+            "union",
+            "from",
+            "where",
+            "and",
+            "or",
+            "insert",
+            "update",
+            "delete",
+            "drop",
+            "alter",
+            "sleep",
+            "benchmark",
+            "waitfor",
+            "delay",
+            "having",
+            "group",
+            "order",
+            "by",
+            "limit",
+            "exec",
+            "execute",
+            "xp_cmdshell",
+            "load_file",
+            "into",
+            "outfile",
+            "dumpfile",
+            "information_schema",
+            "char",
+            "concat",
+            "group_concat",
+            "substr",
+            "alert",
+            "script",
+            "onerror",
+            "onload",
         }
         result = payload
         for keyword in keywords:
             if keyword in result.lower():
-                mutated = "".join(
-                    ch.upper() if random.random() < 0.5 else ch.lower()
-                    for ch in keyword
-                )
+                mutated = "".join(ch.upper() if random.random() < 0.5 else ch.lower() for ch in keyword)
                 result = re.sub(rf"\b{keyword}\b", mutated, result, flags=re.IGNORECASE)
         return result
 
@@ -362,10 +417,12 @@ class WAFBypassEngine:
         return [
             ("application/x-www-form-urlencoded", "{}", "Standard form encoding"),
             ("application/json", '{{"input":"{}"}}', "JSON encoding"),
-            ("application/xml", '<root><input>{}</input></root>', "XML encoding"),
-            ("multipart/form-data; boundary=BOUNDARY",
-             "--BOUNDARY\r\nContent-Disposition: form-data; name=\"input\"\r\n\r\n{}\r\n--BOUNDARY--\r\n",
-             "Multipart encoding"),
+            ("application/xml", "<root><input>{}</input></root>", "XML encoding"),
+            (
+                "multipart/form-data; boundary=BOUNDARY",
+                '--BOUNDARY\r\nContent-Disposition: form-data; name="input"\r\n\r\n{}\r\n--BOUNDARY--\r\n',
+                "Multipart encoding",
+            ),
             ("text/plain", "{}", "Plain text encoding"),
         ]
 
@@ -378,36 +435,42 @@ class WAFBypassEngine:
         for i in range(min(3, len(cls.SQL_COMMENT_PATTERNS))):
             mutated = cls.comment_injection(value)
             if mutated != value:
-                variants.append(MutationVariant(
-                    strategy="waf_bypass",
-                    sub_strategy="comment_injection",
-                    params={param: mutated},
-                    description=f"SQL comment injection variant {i+1}",
-                    expected_behavior="WAF regex broken",
-                ))
+                variants.append(
+                    MutationVariant(
+                        strategy="waf_bypass",
+                        sub_strategy="comment_injection",
+                        params={param: mutated},
+                        description=f"SQL comment injection variant {i + 1}",
+                        expected_behavior="WAF regex broken",
+                    )
+                )
 
         # Case switching
         mutated = cls.case_switching(value)
         if mutated != value:
-            variants.append(MutationVariant(
-                strategy="waf_bypass",
-                sub_strategy="case_switching",
-                params={param: mutated},
-                description="Case-switched keywords",
-                expected_behavior="WAF case-sensitive regex bypassed",
-            ))
+            variants.append(
+                MutationVariant(
+                    strategy="waf_bypass",
+                    sub_strategy="case_switching",
+                    params={param: mutated},
+                    description="Case-switched keywords",
+                    expected_behavior="WAF case-sensitive regex bypassed",
+                )
+            )
 
         # Newline injection (2 variants)
         for _ in range(2):
             mutated = cls.newline_injection(value)
             if mutated != value:
-                variants.append(MutationVariant(
-                    strategy="waf_bypass",
-                    sub_strategy="newline_injection",
-                    params={param: mutated},
-                    description="Newline/carriage return injection",
-                    expected_behavior="WAF line-based parsing bypassed",
-                ))
+                variants.append(
+                    MutationVariant(
+                        strategy="waf_bypass",
+                        sub_strategy="newline_injection",
+                        params={param: mutated},
+                        description="Newline/carriage return injection",
+                        expected_behavior="WAF line-based parsing bypassed",
+                    )
+                )
 
         return variants
 
@@ -465,7 +528,7 @@ class SmartMutationEngine:
         strategy_order = {"encoding_bypass": 0, "hpp": 1, "type_confusion": 2, "waf_bypass": 3}
         unique_variants.sort(key=lambda v: strategy_order.get(v.strategy, 99))
 
-        limited = unique_variants[:self._max_variants]
+        limited = unique_variants[: self._max_variants]
 
         return SmartMutationPlan(
             attack_vector=attack_vector,
@@ -491,20 +554,17 @@ class SmartMutationEngine:
         plan = self.plan(url, method, params, body, headers)
 
         if tool_name == "sqlmap":
-            filtered = [
-                v for v in plan.variants
-                if v.strategy in ("encoding_bypass", "waf_bypass")
-            ]
-            plan.variants = filtered[:self._max_variants]
+            filtered = [v for v in plan.variants if v.strategy in ("encoding_bypass", "waf_bypass")]
+            plan.variants = filtered[: self._max_variants]
             plan.reasoning += " [sqlmap-optimized: encoding + WAF bypass only]"
 
         elif tool_name == "dalfox":
             filtered = [
-                v for v in plan.variants
-                if v.sub_strategy in ("double_url_encode", "case_switching",
-                                      "unicode", "mixed", "newline_injection")
+                v
+                for v in plan.variants
+                if v.sub_strategy in ("double_url_encode", "case_switching", "unicode", "mixed", "newline_injection")
             ]
-            plan.variants = filtered[:self._max_variants]
+            plan.variants = filtered[: self._max_variants]
             plan.reasoning += " [dalfox-optimized: XSS-relevant variants only]"
 
         return plan

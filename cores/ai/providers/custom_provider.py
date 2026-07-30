@@ -1,4 +1,5 @@
 """Custom Provider — User-defined custom AI provider."""
+
 from __future__ import annotations
 
 import logging
@@ -14,7 +15,8 @@ class CustomProvider(BaseProvider):
 
     def __init__(self, config: ProviderConfig | None = None) -> None:
         super().__init__(
-            config or ProviderConfig(
+            config
+            or ProviderConfig(
                 name="custom",
                 priority=10,
                 models=["custom"],

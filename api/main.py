@@ -238,7 +238,7 @@ async def lifespan(app: FastAPI):
         update_system = SelfUpdateSystem()
         update_available, update_msg = update_system.check_for_updates()
         logger.info("Self-update check: %s", update_msg)
-        if update_available and os.getenv("AUTO_UPDATE_ENABLED", "false").lower() == "true":
+        if update_available and os.getenv("AUTO_UPDATE_ENABLED", "false").lower() == "true":  # noqa: F823
             logger.info("Auto-update enabled, performing update...")
             success, msg, logs = update_system.perform_update()
             for log in logs:
@@ -287,7 +287,7 @@ async def lifespan(app: FastAPI):
     # Initialize Operations System (24/7 watchdog, recovery, backups, cleanup, doctor)
     try:
         from cores.operations import initialize_operations
-        
+
         ops = await initialize_operations()
         logger.info("Operations system initialized (watchdog, recovery, backups, cleanup, doctor)")
     except Exception as exc:
@@ -846,8 +846,10 @@ async def lifespan(app: FastAPI):
             self_healing = get_self_healing_system()
             heal_results = self_healing.validate_system()
             if heal_results["overall_status"] == "degraded":
-                logger.warning("[BOOT] Self-healing: system degraded, %d repairs attempted",
-                              heal_results.get("repairs_attempted", 0))
+                logger.warning(
+                    "[BOOT] Self-healing: system degraded, %d repairs attempted",
+                    heal_results.get("repairs_attempted", 0),
+                )
             else:
                 logger.info("[BOOT] Self-healing: system healthy")
         except Exception as exc:

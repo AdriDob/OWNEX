@@ -44,7 +44,8 @@ class DiscoveryMonitor:
                 new_count = sum(1 for p in programs if p.is_new)
                 logger.info(
                     "Discovery: %d programs found (%d new)",
-                    len(programs), new_count,
+                    len(programs),
+                    new_count,
                 )
                 self._last_check = time.time()
                 self._check_count += 1
@@ -56,9 +57,7 @@ class DiscoveryMonitor:
         return {
             "running": self._running,
             "interval_hours": self._interval // 3600,
-            "last_check": datetime.fromtimestamp(self._last_check, tz=UTC).isoformat()
-            if self._last_check > 0
-            else "",
+            "last_check": datetime.fromtimestamp(self._last_check, tz=UTC).isoformat() if self._last_check > 0 else "",
             "check_count": self._check_count,
         }
 

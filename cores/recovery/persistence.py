@@ -84,17 +84,22 @@ class RecoveryStore:
                 """INSERT INTO recovery_events
                    (timestamp, component, failure_type, recovery_action, status, details, duration_ms)
                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                (datetime.now(UTC).isoformat(), component, failure_type,
-                 recovery_action, status, details[:500], duration_ms),
+                (
+                    datetime.now(UTC).isoformat(),
+                    component,
+                    failure_type,
+                    recovery_action,
+                    status,
+                    details[:500],
+                    duration_ms,
+                ),
             )
             conn.commit()
 
     def get_recovery_history(self, limit: int = 100) -> list[dict[str, Any]]:
         with self._lock, sqlite3.connect(self._db_path) as conn:
             conn.row_factory = sqlite3.Row
-            rows = conn.execute(
-                "SELECT * FROM recovery_events ORDER BY id DESC LIMIT ?", (limit,)
-            ).fetchall()
+            rows = conn.execute("SELECT * FROM recovery_events ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
             return [dict(r) for r in rows]
 
     def update_circuit_breaker(
@@ -110,18 +115,14 @@ class RecoveryStore:
                 """INSERT OR REPLACE INTO circuit_breaker_state
                    (component, state, failure_count, last_failure, opened_at, cooldown_until)
                    VALUES (?, ?, ?, ?, ?, ?)""",
-                (component, state, failure_count,
-                 datetime.now(UTC).isoformat(),
-                 opened_at, cooldown_until),
+                (component, state, failure_count, datetime.now(UTC).isoformat(), opened_at, cooldown_until),
             )
             conn.commit()
 
     def get_circuit_breaker(self, component: str) -> dict[str, Any] | None:
         with self._lock, sqlite3.connect(self._db_path) as conn:
             conn.row_factory = sqlite3.Row
-            row = conn.execute(
-                "SELECT * FROM circuit_breaker_state WHERE component = ?", (component,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM circuit_breaker_state WHERE component = ?", (component,)).fetchone()
             return dict(row) if row else None
 
     def update_learning_state(self, key: str, value: float) -> None:
@@ -136,9 +137,7 @@ class RecoveryStore:
     def get_learning_state(self, key: str) -> float | None:
         with self._lock, sqlite3.connect(self._db_path) as conn:
             conn.row_factory = sqlite3.Row
-            row = conn.execute(
-                "SELECT value FROM learning_state WHERE key = ?", (key,)
-            ).fetchone()
+            row = conn.execute("SELECT value FROM learning_state WHERE key = ?", (key,)).fetchone()
             return row["value"] if row else None
 
     def get_all_learning_state(self) -> dict[str, float]:
@@ -159,9 +158,7 @@ class RecoveryStore:
     def get_health_snapshots(self, limit: int = 100) -> list[dict[str, Any]]:
         with self._lock, sqlite3.connect(self._db_path) as conn:
             conn.row_factory = sqlite3.Row
-            rows = conn.execute(
-                "SELECT * FROM health_snapshots ORDER BY id DESC LIMIT ?", (limit,)
-            ).fetchall()
+            rows = conn.execute("SELECT * FROM health_snapshots ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
             result = []
             for r in rows:
                 d = dict(r)

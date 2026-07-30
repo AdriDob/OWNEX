@@ -84,6 +84,7 @@ class PipelineSnapshot:
     This is the ONLY format that reporting, dashboard, and export
     consumers should read. No recomputation allowed.
     """
+
     status: str
     target: TargetSnapshot | None = None
     endpoints: list[EndpointSnapshot] = field(default_factory=list)
@@ -97,7 +98,9 @@ class PipelineSnapshot:
     summary: str = ""
 
 
-def from_pipeline_output(pipeline_result: dict[str, Any], target_info: dict[str, Any] | None = None) -> PipelineSnapshot:
+def from_pipeline_output(
+    pipeline_result: dict[str, Any], target_info: dict[str, Any] | None = None
+) -> PipelineSnapshot:
     endpoints = [
         EndpointSnapshot(
             path=ep.get("path", "/"),
@@ -157,6 +160,7 @@ def from_pipeline_output(pipeline_result: dict[str, Any], target_info: dict[str,
         )
 
     from datetime import datetime
+
     return PipelineSnapshot(
         status=pipeline_result.get("status", "unknown"),
         target=target,
@@ -170,7 +174,9 @@ def from_pipeline_output(pipeline_result: dict[str, Any], target_info: dict[str,
             clean_count=pipeline_result.get("clean_endpoints", 0),
             noise_ratio=float(pipeline_result.get("noise_ratio", 0)),
             reasoning={},
-        ) if "noise_ratio" in pipeline_result else None,
+        )
+        if "noise_ratio" in pipeline_result
+        else None,
         coverage_score=float(pipeline_result.get("coverage_score", 0)),
         timestamp=datetime.now(UTC).isoformat(),
         summary=pipeline_result.get("assistant_summary", pipeline_result.get("summary", "")),

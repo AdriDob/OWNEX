@@ -25,6 +25,7 @@ def _resolve_tool(tool_name: str) -> str | None:
             return str(go_path)
     return shutil.which(tool_name)
 
+
 # Map of tool names to CLI commands for version checking
 TOOL_CHECKS = {
     "subfinder": ["subfinder", "-version"],
@@ -47,9 +48,7 @@ def check_tool_available(tool_name: str) -> bool:
     return _resolve_tool(tool_name) is not None
 
 
-async def check_tool_async(
-    tool_name: str, test_cmd: list[str], timeout: int = 5
-) -> bool:
+async def check_tool_async(tool_name: str, test_cmd: list[str], timeout: int = 5) -> bool:
     """
     Async check if a tool responds to a version/help command.
     Returns True if tool is available and responds within timeout.
@@ -107,9 +106,7 @@ async def verify_recon_tools(mode: str = "FAST") -> dict[str, bool]:
     return status
 
 
-def validate_mode_compatibility(
-    mode: str, tool_status: dict[str, bool]
-) -> tuple[bool, str]:
+def validate_mode_compatibility(mode: str, tool_status: dict[str, bool]) -> tuple[bool, str]:
     """
     Check if requested recon mode is compatible with available tools.
 

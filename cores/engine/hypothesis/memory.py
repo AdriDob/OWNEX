@@ -31,6 +31,7 @@ class HypothesisMemory:
             return self._success_cache[key]
         try:
             from cores.memory.decision_memory import DecisionMemory
+
             rate = DecisionMemory().get_success_rate(str(vt.value))
         except Exception:
             rate = 0.0
@@ -44,7 +45,9 @@ class HypothesisMemory:
         return rates
 
     def find_similar_pattern(
-        self, h: Hypothesis, threshold: float = 0.4,
+        self,
+        h: Hypothesis,
+        threshold: float = 0.4,
     ) -> dict[str, Any] | None:
         path = str(h.endpoint.get("path", ""))
         labels = h.endpoint.get("labels", [])
@@ -60,7 +63,8 @@ class HypothesisMemory:
         return None
 
     def refine(
-        self, hypotheses: list[Hypothesis],
+        self,
+        hypotheses: list[Hypothesis],
     ) -> list[Hypothesis]:
         refined = []
         success_rates = self.compute_all_success_rates()

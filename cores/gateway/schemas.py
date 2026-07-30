@@ -15,8 +15,10 @@ from pydantic import BaseModel, ConfigDict, Field
 
 # ── Envelope ──────────────────────────────────────────────────────────
 
+
 class APIEnvelope(BaseModel):
     """Standard API response wrapper. Every endpoint returns this shape."""
+
     version: str = "1.0"
     schema_: str = Field("CATEYE/v1", alias="schema")
     data: Any = None
@@ -31,6 +33,7 @@ class APIEnvelope(BaseModel):
 
 class PaginatedEnvelope(BaseModel):
     """Paginated response wrapper."""
+
     version: str = "1.0"
     schema_: str = Field("CATEYE/v1", alias="schema")
     items: list[Any] = []
@@ -45,6 +48,7 @@ class PaginatedEnvelope(BaseModel):
 
 # ── Unified helpers ──────────────────────────────────────────────────
 
+
 def ok(data: Any, version: str = "1.0") -> APIEnvelope:
     return APIEnvelope(version=version, data=data)
 
@@ -58,6 +62,7 @@ def paginated(items: list, total: int, skip: int = 0, limit: int = 100, version:
 
 
 # ── Simple envelope helpers for direct dict responses ──────────────
+
 
 def safe_response(data: dict | None = None) -> dict:
     """Wrap a response dict with a minimal safety envelope.
@@ -77,6 +82,7 @@ def error_response(msg: str) -> dict:
 
 
 # ── DTOs ──────────────────────────────────────────────────────────────
+
 
 class TargetDTO(BaseModel):
     id: int

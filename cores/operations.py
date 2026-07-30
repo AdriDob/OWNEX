@@ -8,27 +8,23 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import os
 import shutil
-import signal
-import subprocess
-import sys
 import time
-from collections.abc import Awaitable, Callable
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from core.events.event_bus import get_core_event_bus
-from cores.prometheus_metrics import get_registry
 
 logger = logging.getLogger("ownex.operations")
 
 
 class ComponentState(Enum):
     """Component health states."""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -40,11 +36,12 @@ class ComponentState(Enum):
 @dataclass
 class ComponentHealth:
     """Health status of a component."""
+
     name: str
     state: ComponentState = ComponentState.UNKNOWN
-    last_check: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_check: datetime = field(default_factory=lambda: datetime.now(UTC))
     message: str = ""
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
     recovery_attempts: int = 0
     max_recovery_attempts: int = 3
 
@@ -52,32 +49,35 @@ class ComponentHealth:
 @dataclass
 class BackupInfo:
     """Backup metadata."""
+
     id: str
     path: Path
     created_at: datetime
     size_bytes: int
-    components: List[str]
+    components: list[str]
     checksum: str = ""
 
 
 @dataclass
 class DoctorCheck:
     """Individual health check result."""
+
     name: str
     passed: bool
     message: str
     severity: str  # info, warning, critical
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class DoctorReport:
     """Complete doctor report."""
+
     timestamp: datetime
     overall_healthy: bool
-    checks: List[DoctorCheck]
+    checks: list[DoctorCheck]
     summary: str
-    recommendations: List[str]
+    recommendations: list[str]
 
 
 class Watchdog:
@@ -89,17 +89,17 @@ class Watchdog:
         event_bus=None,
     ):
         self.check_interval = check_interval
-        self._components: Dict[str, ComponentHealth] = {}
+        self._components: dict[str, ComponentHealth] = {}
         self._running = False
-        self._task: Optional[asyncio.Task] = None
-        self._recovery_handlers: Dict[str, Callable[[], asyncio.coroutine]] = {}
+        self._task: asyncio.Task | None = None
+        self._recovery_handlers: dict[str, Callable[[], asyncio.coroutine]] = {}
         self.event_bus = event_bus or get_core_event_bus()
 
     def register_component(
         self,
         name: str,
         checker: Callable[[], asyncio.coroutine],
-        recovery: Optional[Callable[[], asyncio.coroutine]] = None,
+        recovery: Callable[[], asyncio.coroutine] | None = None,
         max_recovery_attempts: int = 3,
     ) -> None:
         """Register a component for monitoring."""
@@ -164,18 +164,21 @@ class Watchdog:
             else:
                 component.state = ComponentState.HEALTHY
                 component.message = "OK"
-            component.last_check = datetime.now(timezone.utc)
+            component.last_check = datetime.now(UTC)
             component.recovery_attempts = 0
         except Exception as e:
             component.state = ComponentState.UNHEALTHY
             component.message = f"Check failed: {e}"
-            component.last_check = datetime.now(timezone.utc)
+            component.last_check = datetime.now(UTC)
             logger.error("Component %s check failed: %s", name, e)
 
-            self.event_bus.publish("operations:component_unhealthy", {
-                "component": name,
-                "error": str(e),
-            })
+            self.event_bus.publish(
+                "operations:component_unhealthy",
+                {
+                    "component": name,
+                    "error": str(e),
+                },
+            )
 
     async def _attempt_recovery(self, name: str) -> None:
         """Attempt to recover a failed component."""
@@ -187,29 +190,39 @@ class Watchdog:
             return
 
         component.recovery_attempts += 1
-        logger.info("Attempting recovery %d/%d for %s",
-                   component.recovery_attempts, component.max_recovery_attempts, name)
+        logger.info(
+            "Attempting recovery %d/%d for %s", component.recovery_attempts, component.max_recovery_attempts, name
+        )
 
-        self.event_bus.publish("operations:recovery_started", {
-            "component": name,
-            "attempt": component.recovery_attempts,
-        })
+        self.event_bus.publish(
+            "operations:recovery_started",
+            {
+                "component": name,
+                "attempt": component.recovery_attempts,
+            },
+        )
 
         try:
             await recovery()
             # Re-check after recovery
             component.state = ComponentState.STARTING
-            self.event_bus.publish("operations:recovery_success", {
-                "component": name,
-                "attempt": component.recovery_attempts,
-            })
+            self.event_bus.publish(
+                "operations:recovery_success",
+                {
+                    "component": name,
+                    "attempt": component.recovery_attempts,
+                },
+            )
         except Exception as e:
             logger.error("Recovery failed for %s: %s", name, e)
-            self.event_bus.publish("operations:recovery_failed", {
-                "component": name,
-                "attempt": component.recovery_attempts,
-                "error": str(e),
-            })
+            self.event_bus.publish(
+                "operations:recovery_failed",
+                {
+                    "component": name,
+                    "attempt": component.recovery_attempts,
+                    "error": str(e),
+                },
+            )
 
 
 class BackupManager:
@@ -219,13 +232,13 @@ class BackupManager:
         self.backup_dir = backup_dir
         self.backup_dir.mkdir(parents=True, exist_ok=True)
 
-        self._backups: List[BackupInfo] = []
+        self._backups: list[BackupInfo] = []
         self._max_backups = 30
         self.event_bus = get_core_event_bus()
 
-    async def create_backup(self, name: Optional[str] = None) -> BackupInfo:
+    async def create_backup(self, name: str | None = None) -> BackupInfo:
         """Create a backup of critical data."""
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
         backup_id = name or f"backup_{timestamp.strftime('%Y%m%d_%H%M%S')}"
 
         backup_path = self.backup_dir / backup_id
@@ -238,6 +251,7 @@ class BackupManager:
         db_path = Path("data/cateye.db")
         if db_path.exists():
             import shutil
+
             shutil.copy2(db_path, backup_path / "cateye.db")
             components.append("database")
             total_size += db_path.stat().st_size
@@ -246,6 +260,7 @@ class BackupManager:
         config_dir = Path("config")
         if config_dir.exists():
             import shutil
+
             shutil.copytree(config_dir, backup_path / "config", dirs_exist_ok=True)
             components.append("config")
             for f in (backup_path / "config").rglob("*"):
@@ -258,7 +273,7 @@ class BackupManager:
             (backup_path / "logs").mkdir(exist_ok=True)
             for log_file in log_dir.glob("*.log"):
                 try:
-                    with open(log_file, "r") as f:
+                    with open(log_file) as f:
                         lines = f.readlines()[-1000:]
                     with open(backup_path / "logs" / log_file.name, "w") as f:
                         f.writelines(lines)
@@ -292,11 +307,14 @@ class BackupManager:
         self._backups.append(info)
         self._prune_old_backups()
 
-        self.event_bus.publish("operations:backup_created", {
-            "backup_id": backup_id,
-            "size_bytes": total_size,
-            "components": components,
-        })
+        self.event_bus.publish(
+            "operations:backup_created",
+            {
+                "backup_id": backup_id,
+                "size_bytes": total_size,
+                "components": components,
+            },
+        )
 
         logger.info("Backup created: %s (%d bytes, components: %s)", backup_id, total_size, components)
         return info
@@ -318,19 +336,24 @@ class BackupManager:
             db_backup = backup.path / "cateye.db"
             if db_backup.exists():
                 import shutil
+
                 shutil.copy2(db_backup, "data/cateye.db")
 
             # Restore config
             config_backup = backup.path / "config"
             if config_backup.exists():
                 import shutil
+
                 if Path("config").exists():
                     shutil.rmtree("config")
                 shutil.copytree(config_backup, "config")
 
-            self.event_bus.publish("operations:backup_restored", {
-                "backup_id": backup_id,
-            })
+            self.event_bus.publish(
+                "operations:backup_restored",
+                {
+                    "backup_id": backup_id,
+                },
+            )
 
             logger.info("Backup restored: %s", backup_id)
             return True
@@ -338,13 +361,14 @@ class BackupManager:
             logger.error("Restore failed: %s", e)
             return False
 
-    def list_backups(self) -> List[BackupInfo]:
+    def list_backups(self) -> list[BackupInfo]:
         """List all backups."""
         return sorted(self._backups, key=lambda b: b.created_at, reverse=True)
 
     def _calculate_checksum(self, path: Path) -> str:
         """Calculate SHA256 checksum of a directory."""
         import hashlib
+
         sha256 = hashlib.sha256()
         for file_path in sorted(path.rglob("*")):
             if file_path.is_file():
@@ -356,10 +380,11 @@ class BackupManager:
     def _prune_old_backups(self) -> None:
         """Remove old backups beyond max_backups."""
         if len(self._backups) > self._max_backups:
-            old_backups = self._backups[:-self._max_backups]
+            old_backups = self._backups[: -self._max_backups]
             for backup in old_backups:
                 try:
                     import shutil
+
                     shutil.rmtree(backup.path)
                     self._backups.remove(backup)
                     logger.info("Pruned old backup: %s", backup.id)
@@ -378,9 +403,9 @@ class StorageCleaner:
         self.max_disk_percent = max_disk_percent
         self.check_interval = check_interval
 
-        self._cleanup_rules: List[Callable[[], asyncio.coroutine]] = []
+        self._cleanup_rules: list[Callable[[], asyncio.coroutine]] = []
         self._running = False
-        self._task: Optional[asyncio.Task] = None
+        self._task: asyncio.Task | None = None
 
         self.event_bus = get_core_event_bus()
 
@@ -424,13 +449,12 @@ class StorageCleaner:
             percent_used = (usage.used / usage.total) * 100
 
             if percent_used > self.max_disk_percent:
-                logger.warning("Disk usage high: %.1f%% (limit: %.1f%%)",
-                              percent_used, self.max_disk_percent)
+                logger.warning("Disk usage high: %.1f%% (limit: %.1f%%)", percent_used, self.max_disk_percent)
                 await self.run_cleanup()
         except Exception as e:
             logger.error("Disk check failed: %s", e)
 
-    async def run_cleanup(self) -> Dict[str, int]:
+    async def run_cleanup(self) -> dict[str, int]:
         """Run all cleanup rules."""
         results = {}
 
@@ -445,10 +469,13 @@ class StorageCleaner:
 
         total_freed = sum(v for v in results.values() if v > 0)
 
-        self.event_bus.publish("operations:cleanup_completed", {
-            "freed_bytes": total_freed,
-            "results": results,
-        })
+        self.event_bus.publish(
+            "operations:cleanup_completed",
+            {
+                "freed_bytes": total_freed,
+                "results": results,
+            },
+        )
 
         return results
 
@@ -457,7 +484,7 @@ class Doctor:
     """System diagnostics and health verification."""
 
     def __init__(self):
-        self._checks: List[Callable[[], asyncio.coroutine]] = []
+        self._checks: list[Callable[[], asyncio.coroutine]] = []
         self.event_bus = get_core_event_bus()
 
     def add_check(self, check: Callable[[], asyncio.coroutine]) -> None:
@@ -477,12 +504,14 @@ class Doctor:
                     checks.append(DoctorCheck(**result))
             except Exception as e:
                 logger.error("Check failed: %s", e)
-                checks.append(DoctorCheck(
-                    name=check.__name__,
-                    passed=False,
-                    message=f"Check error: {e}",
-                    severity="critical",
-                ))
+                checks.append(
+                    DoctorCheck(
+                        name=check.__name__,
+                        passed=False,
+                        message=f"Check error: {e}",
+                        severity="critical",
+                    )
+                )
 
         # Also run built-in checks
         builtin_checks = await self._run_builtin_checks()
@@ -503,23 +532,26 @@ class Doctor:
         recommendations = self._generate_recommendations(checks)
 
         report = DoctorReport(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             overall_healthy=overall_healthy,
             checks=checks,
             summary=summary,
             recommendations=recommendations,
         )
 
-        self.event_bus.publish("operations:doctor_completed", {
-            "healthy": overall_healthy,
-            "checks": len(checks),
-            "critical": len(critical_failures),
-            "warnings": len(warnings),
-        })
+        self.event_bus.publish(
+            "operations:doctor_completed",
+            {
+                "healthy": overall_healthy,
+                "checks": len(checks),
+                "critical": len(critical_failures),
+                "warnings": len(warnings),
+            },
+        )
 
         return report
 
-    async def _run_builtin_checks(self) -> List[DoctorCheck]:
+    async def _run_builtin_checks(self) -> list[DoctorCheck]:
         """Run built-in diagnostic checks."""
         checks = []
 
@@ -527,97 +559,121 @@ class Doctor:
         try:
             usage = shutil.disk_usage("/")
             percent = (usage.used / usage.total) * 100
-            checks.append(DoctorCheck(
-                name="disk_space",
-                passed=percent < 90,
-                message=f"Disk usage: {percent:.1f}%",
-                severity="critical" if percent >= 90 else "warning" if percent >= 80 else "info",
-                details={"used_gb": usage.used / 1e9, "total_gb": usage.total / 1e9, "percent": percent},
-            ))
+            checks.append(
+                DoctorCheck(
+                    name="disk_space",
+                    passed=percent < 90,
+                    message=f"Disk usage: {percent:.1f}%",
+                    severity="critical" if percent >= 90 else "warning" if percent >= 80 else "info",
+                    details={"used_gb": usage.used / 1e9, "total_gb": usage.total / 1e9, "percent": percent},
+                )
+            )
         except Exception as e:
-            checks.append(DoctorCheck(
-                name="disk_space",
-                passed=False,
-                message=f"Disk check failed: {e}",
-                severity="critical",
-            ))
+            checks.append(
+                DoctorCheck(
+                    name="disk_space",
+                    passed=False,
+                    message=f"Disk check failed: {e}",
+                    severity="critical",
+                )
+            )
 
         # Check database connectivity
         try:
             from database import db
+
             session = db.SessionLocal()
             session.execute(db.text("SELECT 1"))
             session.close()
-            checks.append(DoctorCheck(
-                name="database",
-                passed=True,
-                message="Database connection OK",
-                severity="info",
-            ))
+            checks.append(
+                DoctorCheck(
+                    name="database",
+                    passed=True,
+                    message="Database connection OK",
+                    severity="info",
+                )
+            )
         except Exception as e:
-            checks.append(DoctorCheck(
-                name="database",
-                passed=False,
-                message=f"Database error: {e}",
-                severity="critical",
-            ))
+            checks.append(
+                DoctorCheck(
+                    name="database",
+                    passed=False,
+                    message=f"Database error: {e}",
+                    severity="critical",
+                )
+            )
 
         # Check API health
         try:
             from api.main import app
-            checks.append(DoctorCheck(
-                name="api",
-                passed=True,
-                message=f"API loaded ({len(app.routes)} routes)",
-                severity="info",
-            ))
+
+            checks.append(
+                DoctorCheck(
+                    name="api",
+                    passed=True,
+                    message=f"API loaded ({len(app.routes)} routes)",
+                    severity="info",
+                )
+            )
         except Exception as e:
-            checks.append(DoctorCheck(
-                name="api",
-                passed=False,
-                message=f"API error: {e}",
-                severity="critical",
-            ))
+            checks.append(
+                DoctorCheck(
+                    name="api",
+                    passed=False,
+                    message=f"API error: {e}",
+                    severity="critical",
+                )
+            )
 
         # Check event bus
         try:
             from core.events.event_bus import get_core_event_bus
+
             bus = get_core_event_bus()
-            checks.append(DoctorCheck(
-                name="event_bus",
-                passed=True,
-                message="Event bus operational",
-                severity="info",
-            ))
+            checks.append(
+                DoctorCheck(
+                    name="event_bus",
+                    passed=True,
+                    message="Event bus operational",
+                    severity="info",
+                )
+            )
         except Exception as e:
-            checks.append(DoctorCheck(
-                name="event_bus",
-                passed=False,
-                message=f"Event bus error: {e}",
-                severity="critical",
-            ))
+            checks.append(
+                DoctorCheck(
+                    name="event_bus",
+                    passed=False,
+                    message=f"Event bus error: {e}",
+                    severity="critical",
+                )
+            )
 
         # Check operations components
         try:
             from cores.operations import get_operations_manager
+
             ops = get_operations_manager()
-            checks.append(DoctorCheck(
-                name="operations",
-                passed=ops._running if hasattr(ops, '_running') else False,
-                message="Operations system running" if ops._running else "Operations system not running",
-                severity="info" if ops._running else "warning",
-            ))
+            checks.append(
+                DoctorCheck(
+                    name="operations",
+                    passed=ops._running if hasattr(ops, "_running") else False,
+                    message="Operations system running" if ops._running else "Operations system not running",
+                    severity="info" if ops._running else "warning",
+                )
+            )
         except Exception as e:
-            checks.append(DoctorCheck(
-                name="operations",
-                passed=False,
-                message=f"Operations error: {e}",
-                severity="warning",
-            ))
+            checks.append(
+                DoctorCheck(
+                    name="operations",
+                    passed=False,
+                    message=f"Operations error: {e}",
+                    severity="warning",
+                )
+            )
 
         return checks
 
-    def _generate_recommendations(self, checks: List[DoctorCheck]) -> List[str]:
+    def _generate_recommendations(self, checks: list[DoctorCheck]) -> list[str]:
         """Generate recommendations based on check results."""
         recommendations = []
 
@@ -674,6 +730,7 @@ class OperationsManager:
 
     def _register_default_cleanup_rules(self) -> None:
         """Register default cleanup rules."""
+
         async def clean_old_logs() -> int:
             """Clean old log files."""
             freed = 0
@@ -695,6 +752,7 @@ class OperationsManager:
                     size = backup.size_bytes
                     try:
                         import shutil
+
                         shutil.rmtree(backup.path)
                         freed += size
                     except Exception:
@@ -730,7 +788,7 @@ class OperationsManager:
         self,
         name: str,
         checker: Callable[[], asyncio.coroutine],
-        recovery: Optional[Callable[[], asyncio.coroutine]] = None,
+        recovery: Callable[[], asyncio.coroutine] | None = None,
     ) -> None:
         """Register a component for watchdog monitoring."""
         self.watchdog.register_component(name, checker, recovery)
@@ -796,7 +854,7 @@ class OperationsManager:
         self,
         name: str,
         checker: Callable[[], asyncio.coroutine],
-        recovery: Optional[Callable[[], asyncio.coroutine]] = None,
+        recovery: Callable[[], asyncio.coroutine] | None = None,
     ) -> None:
         """Register a component for watchdog monitoring."""
         self.watchdog.register_component(name, checker, recovery)
@@ -813,7 +871,7 @@ class OperationsManager:
         """Run system diagnostics."""
         return await self.doctor.run(verbose)
 
-    async def create_backup(self, name: Optional[str] = None) -> BackupInfo:
+    async def create_backup(self, name: str | None = None) -> BackupInfo:
         """Create a manual backup."""
         return await self.backup_manager.create_backup(name)
 
@@ -826,7 +884,7 @@ class OperationsManager:
 # SINGLETON
 # ──────────────────────────────────────────────────────────────────────────
 
-_operations_manager: Optional[OperationsManager] = None
+_operations_manager: OperationsManager | None = None
 
 
 def get_operations_manager() -> OperationsManager:

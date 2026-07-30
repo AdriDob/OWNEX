@@ -60,7 +60,9 @@ class SyncConfig:
 
     @classmethod
     def conservative(cls) -> SyncConfig:
-        return cls(mode=SyncMode.INCREMENTAL, cache_ttl=600, max_retries=5, initial_backoff=30, rate_limit_per_minute=10)
+        return cls(
+            mode=SyncMode.INCREMENTAL, cache_ttl=600, max_retries=5, initial_backoff=30, rate_limit_per_minute=10
+        )
 
 
 @dataclass
@@ -161,9 +163,14 @@ class SyncPipeline:
         if not limiter.acquire():
             self._truth.record_sync_failure(platform_id, "rate_limited")
             return SyncReport(
-                platform_id=platform_id, success=False, mode=cfg.mode,
-                duration_ms=0, entries_found=0, entries_updated=0,
-                reconciliation_status="failed", error="Rate limit exceeded",
+                platform_id=platform_id,
+                success=False,
+                mode=cfg.mode,
+                duration_ms=0,
+                entries_found=0,
+                entries_updated=0,
+                reconciliation_status="failed",
+                error="Rate limit exceeded",
             )
 
         if cfg.mode == SyncMode.FULL:
@@ -181,12 +188,14 @@ class SyncPipeline:
         duration = (time.time() - start) * 1000
 
         if result is None or not result.success:
-            self._truth.record_sync_failure(
-                platform_id, result.error if result else "no_result"
-            )
+            self._truth.record_sync_failure(platform_id, result.error if result else "no_result")
             return SyncReport(
-                platform_id=platform_id, success=False, mode=cfg.mode,
-                duration_ms=round(duration, 1), entries_found=0, entries_updated=0,
+                platform_id=platform_id,
+                success=False,
+                mode=cfg.mode,
+                duration_ms=round(duration, 1),
+                entries_found=0,
+                entries_updated=0,
                 reconciliation_status="failed",
                 error=result.error if result else "Unknown error",
             )
@@ -206,7 +215,9 @@ class SyncPipeline:
                 reconciliation_status = f"error: {exc}"
 
         return SyncReport(
-            platform_id=platform_id, success=True, mode=cfg.mode,
+            platform_id=platform_id,
+            success=True,
+            mode=cfg.mode,
             duration_ms=round(duration, 1),
             entries_found=len(entries),
             entries_updated=len(delta),
@@ -238,19 +249,21 @@ class SyncPipeline:
                 last_error = str(exc)
 
             if attempt < config.max_retries - 1:
-                backoff = config.initial_backoff * (2 ** attempt)
+                backoff = config.initial_backoff * (2**attempt)
                 logger.info(
                     "Retry %d/%d for %s in %.1fs: %s",
-                    attempt + 1, config.max_retries, platform.platform_id, backoff, last_error,
+                    attempt + 1,
+                    config.max_retries,
+                    platform.platform_id,
+                    backoff,
+                    last_error,
                 )
                 time.sleep(backoff)
 
         logger.error("All retries exhausted for %s: %s", platform.platform_id, last_error)
         return SyncResult(success=False, error=last_error)
 
-    def _detect_delta(
-        self, platform_id: str, entries: list[dict[str, Any]]
-    ) -> list[dict[str, Any]]:
+    def _detect_delta(self, platform_id: str, entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
         prev = self._last_sync_data.get(platform_id, {})
         current = {e.get("id", ""): e for e in entries}
         delta = []
@@ -264,10 +277,9 @@ class SyncPipeline:
                 delta.append({"_delta": DeltaType.REMOVED.value, "id": eid})
         return delta
 
-    def _run_reconciliation(
-        self, platform_id: str, entries: list[dict[str, Any]]
-    ) -> None:
+    def _run_reconciliation(self, platform_id: str, entries: list[dict[str, Any]]) -> None:
         from cores.financial.reconciliation import get_reconciliation_engine
+
         engine = get_reconciliation_engine()
         engine.check_platform(self._truth, platform_id, entries)
 

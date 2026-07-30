@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import sqlite3
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -114,7 +114,7 @@ class MaintenanceEngine:
             "total_operations": total_ops,
             "errors": errors,
             "results": {k: [self._result_to_dict(mr) for mr in v] for k, v in results.items()},
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     def summary(self) -> dict[str, Any]:
@@ -146,7 +146,7 @@ class MaintenanceEngine:
             "databases": dbs,
             "total_db_count": len(dbs),
             "total_size_mb": round(sum(d.get("size_mb", 0) for d in dbs if "size_mb" in d), 2),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     # ── Internal helpers ──────────────────────────────────────────

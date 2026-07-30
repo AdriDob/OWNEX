@@ -13,9 +13,10 @@ logger = logging.getLogger("ownex.license.hardware")
 def _get_mac() -> str:
     try:
         import uuid
+
         mac = uuid.getnode()
         if mac and (mac >> 40) & 1 == 0:
-            return ":".join(f"{(mac >> (8 * i)) & 0xff:02x}" for i in range(6))
+            return ":".join(f"{(mac >> (8 * i)) & 0xFF:02x}" for i in range(6))
     except Exception:
         logger.warning("Failed to get MAC address", exc_info=True)
     return "unknown-mac"
@@ -48,6 +49,7 @@ def _get_raw_machine_ids() -> list[str]:
     if os.name == "nt":
         try:
             import winreg
+
             with winreg.OpenKey(
                 winreg.HKEY_LOCAL_MACHINE,
                 r"SOFTWARE\Microsoft\Cryptography",

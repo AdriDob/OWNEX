@@ -2,13 +2,12 @@
 Self-update system for Rastro.
 Handles git pull, dependency installation, and service restart.
 """
-import asyncio
+
 import logging
 import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
 
 from cores.events.event_bus import get_event_bus
 
@@ -35,16 +34,12 @@ class SelfUpdateSystem:
             return str(self.venv_path / "Scripts" / "python.exe")
         return str(self.venv_path / "bin" / "python")
 
-    def check_for_updates(self) -> Tuple[bool, str]:
+    def check_for_updates(self) -> tuple[bool, str]:
         """Check if updates are available."""
         try:
             # Fetch latest changes
             result = subprocess.run(
-                ["git", "fetch", "origin"],
-                cwd=self.project_root,
-                capture_output=True,
-                text=True,
-                timeout=30
+                ["git", "fetch", "origin"], cwd=self.project_root, capture_output=True, text=True, timeout=30
             )
             if result.returncode != 0:
                 return False, f"Git fetch failed: {result.stderr}"
@@ -55,7 +50,7 @@ class SelfUpdateSystem:
                 cwd=self.project_root,
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=30,
             )
             if result.returncode != 0:
                 return False, f"Git rev-list failed: {result.stderr}"
@@ -70,7 +65,7 @@ class SelfUpdateSystem:
         except Exception as e:
             return False, f"Update check failed: {e}"
 
-    def perform_update(self) -> Tuple[bool, str, List[str]]:
+    def perform_update(self) -> tuple[bool, str, list[str]]:
         """Perform self-update: git pull, install dependencies, return restart needed."""
         logs = []
         try:
@@ -81,7 +76,7 @@ class SelfUpdateSystem:
                 cwd=self.project_root,
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=60,
             )
             if result.returncode != 0:
                 logs.append(f"Git pull failed: {result.stderr}")
@@ -119,18 +114,18 @@ class SelfUpdateSystem:
                 cwd=self.project_root,
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=30,
             )
             if result.returncode != 0:
                 return False
 
-            changed_files = result.stdout.strip().split('\n')
+            changed_files = result.stdout.strip().split("\n")
             return any(f in changed_files for f in ["pyproject.toml", "requirements.txt", "setup.py", "pyproject.lock"])
 
         except Exception:
             return False
 
-    def _install_dependencies(self) -> Tuple[bool, List[str]]:
+    def _install_dependencies(self) -> tuple[bool, list[str]]:
         """Install dependencies using pip."""
         logs = []
         try:
@@ -142,7 +137,7 @@ class SelfUpdateSystem:
                     cwd=self.project_root,
                     capture_output=True,
                     text=True,
-                    timeout=180
+                    timeout=180,
                 )
                 if result.returncode == 0:
                     logs.append("Pyproject install successful")
@@ -157,7 +152,7 @@ class SelfUpdateSystem:
                     cwd=self.project_root,
                     capture_output=True,
                     text=True,
-                    timeout=180
+                    timeout=180,
                 )
                 if result.returncode == 0:
                     logs.append("Requirements install successful")
@@ -179,7 +174,7 @@ class SelfUpdateSystem:
         # Just signal that a restart is needed
         pass
 
-    async def run_update_check(self) -> Dict[str, any]:
+    async def run_update_check(self) -> dict[str, any]:
         """Run complete update check and apply if needed."""
         if not self.auto_update_enabled:
             return {"status": "disabled", "message": "Auto-update not enabled"}
@@ -194,11 +189,9 @@ class SelfUpdateSystem:
         # Emit event
         try:
             bus = get_event_bus()
-            bus.publish("system:update", {
-                "status": "completed" if success else "failed",
-                "message": message,
-                "logs": logs
-            })
+            bus.publish(
+                "system:update", {"status": "completed" if success else "failed", "message": message, "logs": logs}
+            )
         except Exception as e:
             logger.warning("Failed to emit update event: %s", e)
 
@@ -206,7 +199,7 @@ class SelfUpdateSystem:
             "status": "completed" if success else "failed",
             "message": message,
             "logs": logs,
-            "restart_required": success
+            "restart_required": success,
         }
 
 

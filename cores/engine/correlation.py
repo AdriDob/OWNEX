@@ -30,6 +30,7 @@ SOURCE_PRIORITY = {
 @dataclass
 class CorrelatedFinding:
     """A finding enriched with correlation data."""
+
     id: str
     title: str
     description: str
@@ -88,28 +89,28 @@ class CorrelationEngine:
 
         return new_findings
 
-    def _default_extract(
-        self, source: str, items: list[dict[str, Any]]
-    ) -> list[CorrelatedFinding]:
+    def _default_extract(self, source: str, items: list[dict[str, Any]]) -> list[CorrelatedFinding]:
         """Default extraction from dict items with common fields."""
         now = datetime.now().isoformat()
         findings = []
         for i, item in enumerate(items):
             if isinstance(item, dict):
                 title = item.get("title", item.get("alert", item.get("name", f"{source}_finding_{i}")))
-                findings.append(CorrelatedFinding(
-                    id=f"{source}_{i}",
-                    title=str(title),
-                    description=str(item.get("description", item.get("detail", ""))),
-                    severity=str(item.get("severity", item.get("risk", "info"))),
-                    source=source,
-                    url=item.get("url", ""),
-                    host=item.get("host", ""),
-                    tags=item.get("tags", []),
-                    cwe_ids=item.get("cwe_ids", []),
-                    raw_data=item,
-                    created_at=now,
-                ))
+                findings.append(
+                    CorrelatedFinding(
+                        id=f"{source}_{i}",
+                        title=str(title),
+                        description=str(item.get("description", item.get("detail", ""))),
+                        severity=str(item.get("severity", item.get("risk", "info"))),
+                        source=source,
+                        url=item.get("url", ""),
+                        host=item.get("host", ""),
+                        tags=item.get("tags", []),
+                        cwe_ids=item.get("cwe_ids", []),
+                        raw_data=item,
+                        created_at=now,
+                    )
+                )
         return findings
 
     def _correlate(self, new_findings: list[CorrelatedFinding]) -> None:
@@ -137,15 +138,10 @@ class CorrelationEngine:
                         related.add(other.id)
             f.related_findings = list(related)
 
-    def get_priority_findings(
-        self, min_severity: str = "medium", top_n: int = 50
-    ) -> list[CorrelatedFinding]:
+    def get_priority_findings(self, min_severity: str = "medium", top_n: int = 50) -> list[CorrelatedFinding]:
         """Get top findings by priority and severity."""
         min_score = _severity_score(min_severity)
-        scored = [
-            f for f in self.findings
-            if _severity_score(f.severity) >= min_score
-        ]
+        scored = [f for f in self.findings if _severity_score(f.severity) >= min_score]
         scored.sort(
             key=lambda f: (f.source_priority, _severity_score(f.severity)),
             reverse=True,
@@ -154,10 +150,7 @@ class CorrelationEngine:
 
     def get_findings_by_host(self, host: str) -> list[CorrelatedFinding]:
         """Get all findings for a specific host."""
-        return [
-            f for f in self.findings
-            if host in (f.host or extract_host(f.url))
-        ]
+        return [f for f in self.findings if host in (f.host or extract_host(f.url))]
 
     def get_source_summary(self) -> dict[str, int]:
         """Count findings per source."""
@@ -185,6 +178,7 @@ def extract_host(url: str) -> str:
         return ""
     try:
         from urllib.parse import urlparse
+
         return urlparse(url).netloc
     except Exception:
         return url

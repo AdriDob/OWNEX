@@ -51,6 +51,7 @@ class PaymentMethod:
 @dataclass
 class RevenueOpportunity:
     """Revenue opportunity from any platform"""
+
     id: str
     platform: str
     title: str
@@ -68,6 +69,7 @@ class RevenueOpportunity:
 @dataclass
 class PaymentTransaction:
     """Payment transaction for a revenue opportunity"""
+
     transaction_id: str
     opportunity_id: str
     platform: PaymentPlatform
@@ -85,6 +87,7 @@ class PaymentTransaction:
 @dataclass
 class RevenueMetrics:
     """Revenue tracking metrics for platform"""
+
     platform: str
     currency: str
     total_amount: Decimal
@@ -100,6 +103,7 @@ class RevenueMetrics:
 @dataclass
 class PaymentThreshold:
     """Payment threshold configuration for different platforms"""
+
     platform: PaymentPlatform
     min_amount: Decimal
     currency: str
@@ -132,16 +136,21 @@ class RevenueTracker:
         logger.info(f"Created revenue opportunity: {opportunity.title} - {opportunity.amount} {opportunity.currency}")
 
         # Emit event for new opportunity
-        self.event_bus.publish("opportunity.created", {
-            "opportunity_id": opportunity.id,
-            "title": opportunity.title,
-            "amount": opportunity.amount,
-            "currency": opportunity.currency,
-            "platform": opportunity.platform,
-            "created_at": opportunity.created_at.isoformat(),
-        })
+        self.event_bus.publish(
+            "opportunity.created",
+            {
+                "opportunity_id": opportunity.id,
+                "title": opportunity.title,
+                "amount": opportunity.amount,
+                "currency": opportunity.currency,
+                "platform": opportunity.platform,
+                "created_at": opportunity.created_at.isoformat(),
+            },
+        )
 
-    def update_opportunity_status(self, opportunity_id: str, new_status: PaymentStatus, transaction_data: dict[str, Any] = None):
+    def update_opportunity_status(
+        self, opportunity_id: str, new_status: PaymentStatus, transaction_data: dict[str, Any] = None
+    ):
         """Update status of a revenue opportunity"""
         if opportunity_id not in self.opportunities:
             logger.error(f"Opportunity {opportunity_id} not found")
@@ -161,18 +170,29 @@ class RevenueTracker:
         self._update_metrics(opportunity)
 
         # Emit status change event
-        self.event_bus.publish("opportunity.status_changed", {
-            "opportunity_id": opportunity_id,
-            "old_status": old_status.value,
-            "new_status": new_status.value,
-            "updated_at": opportunity.updated_at.isoformat(),
-            "amount": opportunity.amount,
-            "currency": opportunity.currency,
-        })
+        self.event_bus.publish(
+            "opportunity.status_changed",
+            {
+                "opportunity_id": opportunity_id,
+                "old_status": old_status.value,
+                "new_status": new_status.value,
+                "updated_at": opportunity.updated_at.isoformat(),
+                "amount": opportunity.amount,
+                "currency": opportunity.currency,
+            },
+        )
 
         return True
 
-    def process_payment(self, opportunity_id: str, platform: PaymentPlatform, method_id: str, amount: Decimal, currency: str, exchange_rate: Decimal = Decimal("1.0")):
+    def process_payment(
+        self,
+        opportunity_id: str,
+        platform: PaymentPlatform,
+        method_id: str,
+        amount: Decimal,
+        currency: str,
+        exchange_rate: Decimal = Decimal("1.0"),
+    ):
         """Process payment for a revenue opportunity"""
         if opportunity_id not in self.opportunities:
             logger.error(f"Opportunity {opportunity_id} not found for payment")
@@ -201,28 +221,37 @@ class RevenueTracker:
         self.transactions.append(transaction)
 
         # Update opportunity status to review
-        self.update_opportunity_status(opportunity_id, PaymentStatus.REVIEWING, {
-            "transaction_id": transaction_id,
-            "amount": amount,
-            "currency": currency,
-            "platform": platform.value,
-        })
+        self.update_opportunity_status(
+            opportunity_id,
+            PaymentStatus.REVIEWING,
+            {
+                "transaction_id": transaction_id,
+                "amount": amount,
+                "currency": currency,
+                "platform": platform.value,
+            },
+        )
 
         logger.info(f"Created payment transaction {transaction_id} for opportunity {opportunity_id}")
 
         # Emit payment created event
-        self.event_bus.publish("payment.created", {
-            "transaction_id": transaction_id,
-            "opportunity_id": opportunity_id,
-            "amount": amount,
-            "currency": currency,
-            "platform": platform.value,
-            "created_at": transaction.created_at.isoformat(),
-        })
+        self.event_bus.publish(
+            "payment.created",
+            {
+                "transaction_id": transaction_id,
+                "opportunity_id": opportunity_id,
+                "amount": amount,
+                "currency": currency,
+                "platform": platform.value,
+                "created_at": transaction.created_at.isoformat(),
+            },
+        )
 
         return transaction
 
-    def _validate_payment(self, opportunity: RevenueOpportunity, platform: PaymentPlatform, method_id: str, amount: Decimal, currency: str):
+    def _validate_payment(
+        self, opportunity: RevenueOpportunity, platform: PaymentPlatform, method_id: str, amount: Decimal, currency: str
+    ):
         """Validate payment processing requirements"""
         # Check if payment method exists
         if method_id not in self.payment_methods:
@@ -303,13 +332,16 @@ class RevenueTracker:
         self.daily_revenue[today] += amount
 
         # Emit daily metrics event
-        self.event_bus.publish("daily.revenue", {
-            "date": today,
-            "platform": platform,
-            "amount": amount,
-            "currency": currency,
-            "total_daily": self.daily_revenue[today],
-        })
+        self.event_bus.publish(
+            "daily.revenue",
+            {
+                "date": today,
+                "platform": platform,
+                "amount": amount,
+                "currency": currency,
+                "total_daily": self.daily_revenue[today],
+            },
+        )
 
 
 class RevenueAnalytics:
@@ -346,12 +378,14 @@ class RevenueAnalytics:
         # This would typically use historical data, for now returns current status
         trend = []
         for metrics in self.tracker.metrics.values():
-            trend.append({
-                "platform": metrics.platform,
-                "currency": metrics.currency,
-                "current_amount": float(metrics.total_amount),
-                "growth_rate": 0.0,  # Would calculate based on historical data
-            })
+            trend.append(
+                {
+                    "platform": metrics.platform,
+                    "currency": metrics.currency,
+                    "current_amount": float(metrics.total_amount),
+                    "growth_rate": 0.0,  # Would calculate based on historical data
+                }
+            )
         return trend
 
     def get_payment_processing_efficiency(self) -> dict[str, Any]:
@@ -383,35 +417,23 @@ async def main_revenue_tracker():
 
     # Setup payment methods
     paypal_method = PaymentMethod(
-        platform=PaymentPlatform.PAYPAL,
-        account_id="paypal_123",
-        name="Primary PayPal Account",
-        currency="USD"
+        platform=PaymentPlatform.PAYPAL, account_id="paypal_123", name="Primary PayPal Account", currency="USD"
     )
     tracker.add_payment_method(paypal_method)
 
     wise_method = PaymentMethod(
-        platform=PaymentPlatform.WISE,
-        account_id="wise_456",
-        name="Wise International",
-        currency="ARS"
+        platform=PaymentPlatform.WISE, account_id="wise_456", name="Wise International", currency="ARS"
     )
     tracker.add_payment_method(wise_method)
 
     # Setup payment thresholds
     bug_bounty_threshold = PaymentThreshold(
-        platform=PaymentPlatform.BUG_BOUNTY,
-        min_amount=Decimal("50"),
-        currency="USD",
-        auto_approve=True
+        platform=PaymentPlatform.BUG_BOUNTY, min_amount=Decimal("50"), currency="USD", auto_approve=True
     )
     tracker.thresholds[PaymentPlatform.BUG_BOUNTY] = bug_bounty_threshold
 
     dev_bounty_threshold = PaymentThreshold(
-        platform=PaymentPlatform.DEV_BOUNTY,
-        min_amount=Decimal("100"),
-        currency="USD",
-        auto_approve=True
+        platform=PaymentPlatform.DEV_BOUNTY, min_amount=Decimal("100"), currency="USD", auto_approve=True
     )
     tracker.thresholds[PaymentPlatform.DEV_BOUNTY] = dev_bounty_threshold
 
@@ -425,7 +447,7 @@ async def main_revenue_tracker():
         currency="USD",
         status=PaymentStatus.ACCEPTED,
         deadline=datetime.now(UTC) + timedelta(days=7),
-        provider_info={"platform": "hackerone", "severity": "critical"}
+        provider_info={"platform": "hackerone", "severity": "critical"},
     )
     tracker.create_opportunity(bug_bounty_opp)
 
@@ -438,7 +460,7 @@ async def main_revenue_tracker():
         currency="USD",
         status=PaymentStatus.PENDING,
         deadline=datetime.now(UTC) + timedelta(days=14),
-        provider_info={"platform": "bountysource", "type": "feature"}
+        provider_info={"platform": "bountysource", "type": "feature"},
     )
     tracker.create_opportunity(dev_bounty_opp)
 
@@ -451,7 +473,7 @@ async def main_revenue_tracker():
         currency="USD",
         status=PaymentStatus.ACCEPTED,
         deadline=datetime.now(UTC) + timedelta(days=30),
-        provider_info={"platform": "scale_ai", "type": "computer_vision"}
+        provider_info={"platform": "scale_ai", "type": "computer_vision"},
     )
     tracker.create_opportunity(data_annotation_opp)
 
@@ -459,21 +481,20 @@ async def main_revenue_tracker():
     tracker.process_payment("opp_1", PaymentPlatform.PAYPAL, "paypal_123", Decimal("2500.00"), "USD")
 
     # Update opportunity statuses
-    tracker.update_opportunity_status("opp_1", PaymentStatus.PAID, {
-        "transaction_id": "tx_123",
-        "processed_at": datetime.now(UTC).isoformat(),
-        "platform_fee": 50.00
-    })
+    tracker.update_opportunity_status(
+        "opp_1",
+        PaymentStatus.PAID,
+        {"transaction_id": "tx_123", "processed_at": datetime.now(UTC).isoformat(), "platform_fee": 50.00},
+    )
 
-    tracker.update_opportunity_status("opp_2", PaymentStatus.ACCEPTED, {
-        "review_completed_at": datetime.now(UTC).isoformat(),
-        "approver": "john_doe"
-    })
+    tracker.update_opportunity_status(
+        "opp_2", PaymentStatus.ACCEPTED, {"review_completed_at": datetime.now(UTC).isoformat(), "approver": "john_doe"}
+    )
 
     # Add some daily revenue data
     tracker.add_daily_revenue("bug_bounty", Decimal("5250.00"), "USD")  # Total paid to user
-    tracker.add_daily_revenue("dev_bounty", Decimal("800.00"), "USD")   # Pending review
-    tracker.add_daily_revenue("data_annotation", Decimal("300.00"), "USD") # Pending review
+    tracker.add_daily_revenue("dev_bounty", Decimal("800.00"), "USD")  # Pending review
+    tracker.add_daily_revenue("data_annotation", Decimal("300.00"), "USD")  # Pending review
 
     # Setup analytics
     analytics = RevenueAnalytics(tracker)

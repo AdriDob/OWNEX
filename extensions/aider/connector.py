@@ -1,4 +1,13 @@
+"""Aider connector — optional dependency guard."""
+
 from __future__ import annotations
+
+# Soft import guard
+try:
+    import aider  # noqa: F401
+    _AIDER_AVAILABLE = True
+except ImportError:
+    _AIDER_AVAILABLE = False
 
 from core.interfaces.connector import ConnectorHealth, IConnector
 

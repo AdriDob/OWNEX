@@ -111,15 +111,17 @@ def _get_top_bounties(limit: int = 5) -> dict:
             findings = session.query(models.Finding).filter(models.Finding.target_id == t.id).all()
             intel = intel_map.get(t.id)
             opp_score = round((intel.opportunity_score or 0) / 10, 1) if intel else 0
-            bounties.append({
-                "id": t.id,
-                "name": t.name or f"Target #{t.id}",
-                "domain": t.domain or "",
-                "opportunity_score": opp_score,
-                "findings_count": len(findings),
-                "competition_score": int(intel.competition_score or 0) if intel else 0,
-                "freshness_score": int(intel.freshness_score or 0) if intel else 50,
-            })
+            bounties.append(
+                {
+                    "id": t.id,
+                    "name": t.name or f"Target #{t.id}",
+                    "domain": t.domain or "",
+                    "opportunity_score": opp_score,
+                    "findings_count": len(findings),
+                    "competition_score": int(intel.competition_score or 0) if intel else 0,
+                    "freshness_score": int(intel.freshness_score or 0) if intel else 50,
+                }
+            )
             if len(bounties) >= limit:
                 break
         bounties.sort(key=lambda x: x["opportunity_score"], reverse=True)
@@ -144,9 +146,7 @@ def _get_earnings_summary() -> dict:
 
         paid_count = by_status.get("paid", 0)
 
-        confirmed_verdicts = session.query(models.Verdict).filter(
-            models.Verdict.status == "confirmed"
-        ).count()
+        confirmed_verdicts = session.query(models.Verdict).filter(models.Verdict.status == "confirmed").count()
 
         return {
             "total_rewards": total_rewards,
@@ -169,26 +169,14 @@ def _get_report_status() -> dict:
         total = sum(len(v) for v in stages.values())
 
         verdict_counts = {
-            "detected": session.query(models.Verdict).filter(
-                models.Verdict.status == "detected"
-            ).count(),
-            "validated": session.query(models.Verdict).filter(
-                models.Verdict.status == "validated"
-            ).count(),
-            "confirmed": session.query(models.Verdict).filter(
-                models.Verdict.status == "confirmed"
-            ).count(),
-            "reported": session.query(models.Verdict).filter(
-                models.Verdict.status == "reported"
-            ).count(),
-            "inconclusive": session.query(models.Verdict).filter(
-                models.Verdict.status == "inconclusive"
-            ).count(),
+            "detected": session.query(models.Verdict).filter(models.Verdict.status == "detected").count(),
+            "validated": session.query(models.Verdict).filter(models.Verdict.status == "validated").count(),
+            "confirmed": session.query(models.Verdict).filter(models.Verdict.status == "confirmed").count(),
+            "reported": session.query(models.Verdict).filter(models.Verdict.status == "reported").count(),
+            "inconclusive": session.query(models.Verdict).filter(models.Verdict.status == "inconclusive").count(),
         }
         return {
-            "pipeline_stages": {
-                k: len(v) for k, v in stages.items()
-            },
+            "pipeline_stages": {k: len(v) for k, v in stages.items()},
             "verdict_counts": verdict_counts,
             "total": total,
         }
@@ -199,20 +187,27 @@ def _get_report_status() -> dict:
 def _get_target_details(name: str) -> dict:
     session = _get_session()
     try:
-        t = session.query(models.Target).filter(
-            (models.Target.name.ilike(f"%{name}%")) | (models.Target.id == _parse_int(name))
-        ).first()
+        t = (
+            session.query(models.Target)
+            .filter((models.Target.name.ilike(f"%{name}%")) | (models.Target.id == _parse_int(name)))
+            .first()
+        )
         if not t:
             return {"error": f"No se encontró target: {name}"}
 
         endpoints = session.query(models.Endpoint).filter(models.Endpoint.target_id == t.id).all()
         findings = session.query(models.Finding).filter(models.Finding.target_id == t.id).all()
-        confirmed = session.query(models.Verdict).filter(
-            models.Verdict.endpoint_id.in_([ep.id for ep in endpoints]),
-            models.Verdict.status == "confirmed",
-        ).count()
+        confirmed = (
+            session.query(models.Verdict)
+            .filter(
+                models.Verdict.endpoint_id.in_([ep.id for ep in endpoints]),
+                models.Verdict.status == "confirmed",
+            )
+            .count()
+        )
 
         from cores.targets.models import TargetIntel
+
         intel = session.query(TargetIntel).filter(TargetIntel.id == t.id).first()
 
         return {
@@ -254,11 +249,13 @@ async def _web_search(query: str) -> dict:
             snippet_el = r.select_one(".result__snippet")
             link_el = r.select_one(".result__url")
             if title_el and snippet_el:
-                results.append({
-                    "title": title_el.get_text(strip=True),
-                    "snippet": snippet_el.get_text(strip=True),
-                    "url": link_el.get_text(strip=True) if link_el else "",
-                })
+                results.append(
+                    {
+                        "title": title_el.get_text(strip=True),
+                        "snippet": snippet_el.get_text(strip=True),
+                        "url": link_el.get_text(strip=True) if link_el else "",
+                    }
+                )
         return {"query": query, "results": results}
     except Exception as e:
         logger.warning("Web search failed: %s", e)

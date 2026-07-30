@@ -71,12 +71,7 @@ class MemoryStore:
             q = session.query(MemoryRecord).filter(MemoryRecord.category == category)
             if key_prefix:
                 q = q.filter(MemoryRecord.key.startswith(key_prefix))
-            records = (
-                q.order_by(MemoryRecord.created_at.desc())
-                .offset(offset)
-                .limit(limit)
-                .all()
-            )
+            records = q.order_by(MemoryRecord.created_at.desc()).offset(offset).limit(limit).all()
             results = []
             for r in records:
                 item = {"id": r.id, "key": r.key, "created_at": r.created_at.isoformat() if r.created_at else ""}
@@ -132,11 +127,7 @@ class MemoryStore:
     def categories(self) -> list[str]:
         session = self._session()
         try:
-            records = (
-                session.query(MemoryRecord.category)
-                .distinct()
-                .all()
-            )
+            records = session.query(MemoryRecord.category).distinct().all()
             return [r[0] for r in records]
         finally:
             session.close()

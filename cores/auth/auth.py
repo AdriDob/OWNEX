@@ -16,8 +16,8 @@ from typing import Any
 # Secret key — persisted to a file so tokens survive restarts
 _SECRET_KEY: str | None = None
 
-TOKEN_TTL = 86400       # 24 hours
-REFRESH_TTL = 2592000   # 30 days
+TOKEN_TTL = 86400  # 24 hours
+REFRESH_TTL = 2592000  # 30 days
 
 
 def _get_secret() -> str:
@@ -104,12 +104,14 @@ def verify_session(token: str) -> tuple[bool, dict[str, Any] | None]:
 def _b64(s: str) -> str:
     """URL-safe base64 encode (no padding)."""
     import base64
+
     return base64.urlsafe_b64encode(s.encode("utf-8")).rstrip(b"=").decode("ascii")
 
 
 def _unb64(s: str) -> str:
     """URL-safe base64 decode."""
     import base64
+
     # Add padding
     padding = 4 - len(s) % 4
     if padding != 4:

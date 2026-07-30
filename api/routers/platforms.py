@@ -37,15 +37,17 @@ def platform_status():
     for pid in DEFAULT_PLATFORMS:
         meta = PLATFORM_META.get(pid, {"name": pid.capitalize(), "color": "default"})
         v = vault_map.get(pid, {})
-        platforms.append({
-            "name": meta["name"],
-            "provider": pid,
-            "connected": v.get("has_credentials", False),
-            "username": v.get("email", "").split("@")[0] if v.get("email") else "",
-            "email": v.get("email", ""),
-            "earnings": 0,
-            "pending": 0,
-            "last_sync": v.get("last_checked", ""),
-        })
+        platforms.append(
+            {
+                "name": meta["name"],
+                "provider": pid,
+                "connected": v.get("has_credentials", False),
+                "username": v.get("email", "").split("@")[0] if v.get("email") else "",
+                "email": v.get("email", ""),
+                "earnings": 0,
+                "pending": 0,
+                "last_sync": v.get("last_checked", ""),
+            }
+        )
 
     return {"platforms": platforms}

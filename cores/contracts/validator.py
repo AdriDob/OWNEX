@@ -15,26 +15,67 @@ logger = logging.getLogger("ownex.contracts.validator")
 
 EXPECTED_FIELDS: dict[str, set[str]] = {
     "target": {
-        "id", "name", "domain", "payout", "score", "risk",
-        "roi", "endpoints", "findings", "confirmedFindings",
-        "competition", "freshness",
+        "id",
+        "name",
+        "domain",
+        "payout",
+        "score",
+        "risk",
+        "roi",
+        "endpoints",
+        "findings",
+        "confirmedFindings",
+        "competition",
+        "freshness",
     },
     "opportunity": {
-        "id", "targetId", "name", "domain", "payout", "score",
-        "risk", "roi", "endpoints", "findings", "competition",
-        "freshness", "surfaces", "vectors",
+        "id",
+        "targetId",
+        "name",
+        "domain",
+        "payout",
+        "score",
+        "risk",
+        "roi",
+        "endpoints",
+        "findings",
+        "competition",
+        "freshness",
+        "surfaces",
+        "vectors",
     },
     "endpoint": {
-        "id", "targetId", "path", "method", "risk", "confidence",
-        "vector", "labels", "signals", "attackSurface", "actionable",
+        "id",
+        "targetId",
+        "path",
+        "method",
+        "risk",
+        "confidence",
+        "vector",
+        "labels",
+        "signals",
+        "attackSurface",
+        "actionable",
     },
     "finding": {
-        "id", "targetId", "endpointId", "title", "severity",
-        "confidence", "status", "payout", "risk", "vector",
+        "id",
+        "targetId",
+        "endpointId",
+        "title",
+        "severity",
+        "confidence",
+        "status",
+        "payout",
+        "risk",
+        "vector",
     },
     "evidence": {
-        "id", "verdictId", "findingId", "requestUrl",
-        "responseStatus", "consistent",
+        "id",
+        "verdictId",
+        "findingId",
+        "requestUrl",
+        "responseStatus",
+        "consistent",
     },
 }
 
@@ -142,10 +183,7 @@ def validate_paginated_response(
             if field in item and item[field] is not None:
                 field_hits[field] = field_hits.get(field, 0) + 1
 
-    coverage = {
-        field: (hits / total * 100) if total > 0 else 0.0
-        for field, hits in field_hits.items()
-    }
+    coverage = {field: (hits / total * 100) if total > 0 else 0.0 for field, hits in field_hits.items()}
 
     return {
         "total_items": total,

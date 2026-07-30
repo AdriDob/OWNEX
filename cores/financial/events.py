@@ -198,7 +198,11 @@ def register_financial_event_bridge() -> None:
         channels = ["web"]
         if priority in ("high", "critical"):
             channels.append("desktop")
-        if event_type in ("financial:withdrawal_failed", "financial:reconciliation_conflict", "financial:payout_received"):
+        if event_type in (
+            "financial:withdrawal_failed",
+            "financial:reconciliation_conflict",
+            "financial:payout_received",
+        ):
             channels.append("mobile")
 
         hub.notify(

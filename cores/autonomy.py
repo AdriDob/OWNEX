@@ -31,14 +31,16 @@ logger = logging.getLogger("ownex.autonomy")
 
 class AutonomyLevel(Enum):
     """Autonomy levels from most restricted to least."""
-    OBSERVER = 0      # Read-only, analysis only
-    PREPARER = 1      # Plans/drafts, no execution
-    SUPERVISOR = 2    # Executes with approval
-    AUTONOMOUS = 3    # Executes pre-authorized tasks
+
+    OBSERVER = 0  # Read-only, analysis only
+    PREPARER = 1  # Plans/drafts, no execution
+    SUPERVISOR = 2  # Executes with approval
+    AUTONOMOUS = 3  # Executes pre-authorized tasks
 
 
 class ApprovalDecision(Enum):
     """Approval decision outcomes."""
+
     APPROVED = "approved"
     REJECTED = "rejected"
     DEFERRED = "deferred"
@@ -47,6 +49,7 @@ class ApprovalDecision(Enum):
 
 class ApprovalGateType(Enum):
     """Types of approval gates."""
+
     TASK_EXECUTION = "task_execution"
     TOOL_USE = "tool_use"
     CREDENTIAL_ACCESS = "credential_access"
@@ -58,6 +61,7 @@ class ApprovalGateType(Enum):
 @dataclass
 class ApprovalRequest:
     """Request for human approval."""
+
     id: str
     gate_type: ApprovalGateType
     autonomy_level: AutonomyLevel
@@ -77,6 +81,7 @@ class ApprovalRequest:
 @dataclass
 class AutonomyPolicy:
     """Policy defining what each autonomy level can do."""
+
     level: AutonomyLevel
 
     # Capabilities
@@ -118,7 +123,6 @@ DEFAULT_POLICIES: dict[AutonomyLevel, AutonomyPolicy] = {
         max_daily_actions=0,
         max_action_duration_minutes=0,
     ),
-
     AutonomyLevel.PREPARER: AutonomyPolicy(
         level=AutonomyLevel.PREPARER,
         can_read=True,
@@ -133,7 +137,6 @@ DEFAULT_POLICIES: dict[AutonomyLevel, AutonomyPolicy] = {
         max_action_duration_minutes=10,
         requires_approval_for=set(),  # Nothing to approve - no execution
     ),
-
     AutonomyLevel.SUPERVISOR: AutonomyPolicy(
         level=AutonomyLevel.SUPERVISOR,
         can_read=True,
@@ -158,7 +161,6 @@ DEFAULT_POLICIES: dict[AutonomyLevel, AutonomyPolicy] = {
         learn_from_feedback=True,
         auto_escalate_failures=True,
     ),
-
     AutonomyLevel.AUTONOMOUS: AutonomyPolicy(
         level=AutonomyLevel.AUTONOMOUS,
         can_read=True,
@@ -195,6 +197,7 @@ DEFAULT_POLICIES: dict[AutonomyLevel, AutonomyPolicy] = {
 @dataclass
 class ActionContext:
     """Context for an action being evaluated."""
+
     action_type: str
     category: str
     tool: str | None = None
@@ -209,6 +212,7 @@ class ActionContext:
 @dataclass
 class AutonomyDecision:
     """Decision on whether an action is allowed."""
+
     allowed: bool
     level: AutonomyLevel
     reason: str
@@ -247,15 +251,15 @@ class ConsoleApprovalGate(ApprovalGate):
         self._responses[request.id] = future
 
         # Print to console
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"APPROVAL REQUEST: {request.title}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print(f"Type: {request.gate_type.value}")
         print(f"Level: {request.autonomy_level.name}")
         print(f"Description: {request.description}")
         print(f"Details: {request.details}")
         print(f"Requested by: {request.requested_by}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print("Options: [a]pprove, [r]eject, [d]efer, [m]odify")
 
         # Wait for response (with timeout)
@@ -285,7 +289,7 @@ class ConsoleApprovalGate(ApprovalGate):
 class AutonomyManager:
     """
     Manages autonomy levels and enforces policies.
-    
+
     This is the central authority that decides what actions are allowed
     at each autonomy level and manages approval gates.
     """
@@ -332,10 +336,13 @@ class AutonomyManager:
 
         logger.info("Autonomy level changed: %s -> %s", old_level.name, level.name)
 
-        self.event_bus.publish("autonomy:level_changed", {
-            "old_level": old_level.name,
-            "new_level": level.name,
-        })
+        self.event_bus.publish(
+            "autonomy:level_changed",
+            {
+                "old_level": old_level.name,
+                "new_level": level.name,
+            },
+        )
 
         for callback in self._level_change_callbacks:
             try:
@@ -412,7 +419,10 @@ class AutonomyManager:
                 policy=policy,
             )
 
-        if context.estimated_duration_minutes > policy.max_action_duration_minutes and policy.max_action_duration_minutes > 0:
+        if (
+            context.estimated_duration_minutes > policy.max_action_duration_minutes
+            and policy.max_action_duration_minutes > 0
+        ):
             return AutonomyDecision(
                 allowed=False,
                 level=self.current_level,
@@ -503,9 +513,7 @@ class AutonomyManager:
             details=details,
             requested_at=datetime.now(UTC),
             requested_by=requested_by,
-            expires_at=datetime.now(UTC).replace(
-                minute=datetime.now(UTC).minute + expires_in_minutes
-            ),
+            expires_at=datetime.now(UTC).replace(minute=datetime.now(UTC).minute + expires_in_minutes),
         )
 
         self._pending_approvals[request.id] = request
@@ -537,12 +545,15 @@ class AutonomyManager:
             except Exception as e:
                 logger.error("Approval callback failed: %s", e)
 
-        self.event_bus.publish("autonomy:approval_decision", {
-            "request_id": request.id,
-            "gate_type": gate_type.value,
-            "decision": decision.value,
-            "duration": duration,
-        })
+        self.event_bus.publish(
+            "autonomy:approval_decision",
+            {
+                "request_id": request.id,
+                "gate_type": gate_type.value,
+                "decision": decision.value,
+                "duration": duration,
+            },
+        )
 
         logger.info("Approval %s for %s: %s", request.id, gate_type.value, decision.value)
         return decision

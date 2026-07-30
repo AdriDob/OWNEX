@@ -381,18 +381,18 @@ class TestAIRouterEngine:
             assert r.to_provider in ("opencode_free", "fcc_proxy", "ollama")
 
     def test_get_status_returns_dict(self):
-            from core.ai_router.engine import AIRouterEngine
+        from core.ai_router.engine import AIRouterEngine
 
-            e = AIRouterEngine()
-            with (
-                patch.object(e, "_check_proxy", return_value=(True, "claude", 5.0)),
-                patch.object(e, "_check_ollama", return_value=(True, ["llama3"], 3.0)),
-            ):
-                s = e.check_health().to_dict()
-                assert "status" in s
-                assert "current_provider" in s
-                assert "current_model" in s
-                assert "available_providers" in s
+        e = AIRouterEngine()
+        with (
+            patch.object(e, "_check_proxy", return_value=(True, "claude", 5.0)),
+            patch.object(e, "_check_ollama", return_value=(True, ["llama3"], 3.0)),
+        ):
+            s = e.check_health().to_dict()
+            assert "status" in s
+            assert "current_provider" in s
+            assert "current_model" in s
+            assert "available_providers" in s
 
     def test_record_switch_appends_to_history(self, engine):
         from core.ai_router.engine import SwitchRecord
