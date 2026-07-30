@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="healthBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#161b22;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="healthyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ff88;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#00ff88;stop-opacity:0.5" />
+    </linearGradient>
+    <linearGradient id="warningGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#ffd700;stop-opacity:0.5" />
+    </linearGradient>
+    <linearGradient id="criticalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff4444;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#ff4444;stop-opacity:0.5" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="450" fill="url(#healthBg)" rx="16"/>
+  
+  <!-- Header -->
+  <rect x="20" y="20" width="760" height="40" fill="#0d1117" rx="10" stroke="#00ff88" stroke-width="2"/>
+  <circle cx="50" cy="40" r="10" fill="#00ff88"/>
+  <text x="70" y="46" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="white">HEALTH MONITORING SYSTEM — Real-time Diagnostics</text>
+  <text x="700" y="46" font-family="Arial" font-size="12" fill="#00ff88">● SYSTEM HEALTHY</text>
+  
+  <!-- Overall Score -->
+  <rect x="30" y="75" width="200" height="80" fill="url(#healthyGradient)" stroke="#00ff88" stroke-width="2" rx="12"/>
+  <text x="130" y="95" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#00ff88">OVERALL SCORE</text>
+  <text x="130" y="125" text-anchor="middle" font-family="Arial" font-size="32" font-weight="bold" fill="white">94/100</text>
+  <text x="130" y="145" text-anchor="middle" font-family="Arial" font-size="10" fill="#888">All systems operational</text>
+  
+  <!-- Health Components -->
+  <text x="450" y="90" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#888">COMPONENT STATUS</text>
+  
+  <!-- Component 1: API -->
+  <rect x="250" y="100" width="140" height="50" fill="url(#healthyGradient)" stroke="#00ff88" stroke-width="1" rx="8"/>
+  <text x="320" y="115" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="white">API Server</text>
+  <text x="320" y="130" text-anchor="middle" font-family="Arial" font-size="9" fill="#00ff88">● Online • 2ms</text>
+  <text x="320" y="142" text-anchor="middle" font-family="Arial" font-size="8" fill="#888">Uptime: 99.9%</text>
+  
+  <!-- Component 2: Database -->
+  <rect x="400" y="100" width="140" height="50" fill="url(#healthyGradient)" stroke="#00ff88" stroke-width="1" rx="8"/>
+  <text x="470" y="115" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="white">Database</text>
+  <text x="470" y="130" text-anchor="middle" font-family="Arial" font-size="9" fill="#00ff88">● Connected • 5ms</text>
+  <text x="470" y="142" text-anchor="middle" font-family="Arial" font-size="8" fill="#888">Size: 2.3GB</text>
+  
+  <!-- Component 3: EventBus -->
+  <rect x="550" y="100" width="140" height="50" fill="url(#healthyGradient)" stroke="#00ff88" stroke-width="1" rx="8"/>
+  <text x="620" y="115" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="white">EventBus</text>
+  <text x="620" y="130" text-anchor="middle" font-family="Arial" font-size="9" fill="#00ff88">● Active • 14 pubs</text>
+  <text x="620" y="142" text-anchor="middle" font-family="Arial" font-size="8" fill="#888">Events/min: 127</text>
+  
+  <!-- Component 4: Scheduler -->
+  <rect x="250" y="160" width="140" height="50" fill="url(#healthyGradient)" stroke="#00ff88" stroke-width="1" rx="8"/>
+  <text x="320" y="175" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="white">Scheduler</text>
+  <text x="320" y="190" text-anchor="middle" font-family="Arial" font-size="9" fill="#00ff88">● Running • 23 jobs</text>
+  <text x="320" y="202" text-anchor="middle" font-family="Arial" font-size="8" fill="#888">Next: 2min</text>
+  
+  <!-- Component 5: ModelRouter -->
+  <rect x="400" y="160" width="140" height="50" fill="url(#healthyGradient)" stroke="#00ff88" stroke-width="1" rx="8"/>
+  <text x="470" y="175" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="white">ModelRouter</text>
+  <text x="470" y="190" text-anchor="middle" font-family="Arial" font-size="9" fill="#00ff88">● Ollama Active</text>
+  <text x="470" y="202" text-anchor="middle" font-family="Arial" font-size="8" fill="#888">Fallback: FCC</text>
+  
+  <!-- Component 6: Vault -->
+  <rect x="550" y="160" width="140" height="50" fill="url(#healthyGradient)" stroke="#00ff88" stroke-width="1" rx="8"/>
+  <text x="620" y="175" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="white">Credentials Vault</text>
+  <text x="620" y="190" text-anchor="middle" font-family="Arial" font-size="9" fill="#00ff88">● Secure • 1000+ ops</text>
+  <text x="620" y="202" text-anchor="middle" font-family="Arial" font-size="8" fill="#888">Audit: Active</text>
+  
+  <!-- Warning Component -->
+  <rect x="250" y="220" width="140" height="50" fill="url(#warningGradient)" stroke="#ffd700" stroke-width="1" rx="8"/>
+  <text x="320" y="235" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="white">Memory Usage</text>
+  <text x="320" y="250" text-anchor="middle" font-family="Arial" font-size="9" fill="#ffd700">⚠ 78% RAM</text>
+  <text x="320" y="262" text-anchor="middle" font-family="Arial" font-size="8" fill="#888">Threshold: 80%</text>
+  
+  <!-- Critical Component -->
+  <rect x="400" y="220" width="140" height="50" fill="url(#criticalGradient)" stroke="#ff4444" stroke-width="1" rx="8"/>
+  <text x="470" y="235" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="white">Disk Space</text>
+  <text x="470" y="250" text-anchor="middle" font-family="Arial" font-size="9" fill="#ff4444">⚠ 92% Used</text>
+  <text x="470" y="262" text-anchor="middle" font-family="Arial" font-size="8" fill="#888">Cleanup needed</text>
+  
+  <!-- Recovery Component -->
+  <rect x="550" y="220" width="140" height="50" fill="url(#healthyGradient)" stroke="#00ff88" stroke-width="1" rx="8"/>
+  <text x="620" y="235" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="white">Recovery Engine</text>
+  <text x="620" y="250" text-anchor="middle" font-family="Arial" font-size="9" fill="#00ff88">● Standby</text>
+  <text x="620" y="262" text-anchor="middle" font-family="Arial" font-size="8" fill="#888">Auto-restart: ON</text>
+  
+  <!-- Metrics Section -->
+  <text x="400" y="310" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#888">REAL-TIME METRICS</text>
+  
+  <!-- Metric 1 -->
+  <rect x="30" y="325" width="150" height="40" fill="#0d1117" stroke="#0070d1" stroke-width="1" rx="6"/>
+  <text x="105" y="340" text-anchor="middle" font-family="Arial" font-size="9" fill="#0070d1">REQUESTS/SEC</text>
+  <text x="105" y="358" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold" fill="white">127</text>
+  
+  <!-- Metric 2 -->
+  <rect x="190" y="325" width="150" height="40" fill="#0d1117" stroke="#00ff88" stroke-width="1" rx="6"/>
+  <text x="265" y="340" text-anchor="middle" font-family="Arial" font-size="9" fill="#00ff88">ERROR RATE</text>
+  <text x="265" y="358" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold" fill="white">0.02%</text>
+  
+  <!-- Metric 3 -->
+  <rect x="350" y="325" width="150" height="40" fill="#0d1117" stroke="#ffd700" stroke-width="1" rx="6"/>
+  <text x="425" y="340" text-anchor="middle" font-family="Arial" font-size="9" fill="#ffd700">AVG LATENCY</text>
+  <text x="425" y="358" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold" fill="white">45ms</text>
+  
+  <!-- Metric 4 -->
+  <rect x="510" y="325" width="150" height="40" fill="#0d1117" stroke="#0070d1" stroke-width="1" rx="6"/>
+  <text x="585" y="340" text-anchor="middle" font-family="Arial" font-size="9" fill="#0070d1">ACTIVE AGENTS</text>
+  <text x="585" y="358" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold" fill="white">8/10</text>
+  
+  <!-- Metric 5 -->
+  <rect x="670" y="325" width="100" height="40" fill="#0d1117" stroke="#00ff88" stroke-width="1" rx="6"/>
+  <text x="720" y="340" text-anchor="middle" font-family="Arial" font-size="9" fill="#00ff88">UPTIME</text>
+  <text x="720" y="358" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold" fill="white">99.9%</text>
+  
+  <!-- Recent Events -->
+  <text x="400" y="390" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#888">RECENT EVENTS</text>
+  
+  <rect x="30" y="405" width="740" height="35" fill="#0d1117" stroke="#0070d1" stroke-width="1" rx="6"/>
+  <text x="50" y="425" font-family="Arial" font-size="9" fill="#00ff88">✓ Scheduler job completed</text>
+  <text x="250" y="425" font-family="Arial" font-size="9" fill="#00ff88">✓ Platform sync successful</text>
+  <text x="450" y="425" font-family="Arial" font-size="9" fill="#ffd700">⚠ Memory usage warning</text>
+  <text x="650" y="425" font-family="Arial" font-size="9" fill="#ff4444">✗ Disk space critical</text>
+</svg>
