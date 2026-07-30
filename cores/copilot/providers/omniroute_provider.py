@@ -15,6 +15,17 @@ logger = logging.getLogger("orion.copilot.providers.omniroute")
 
 _OMNIROUTE_MODELS = [
     "oc/deepseek-v4-flash-free",
+    "oc/qwen3.6-plus-free",
+    "oc/minimax-m3-free",
+    "aug/gemini-3.1-pro",
+    "aug/gemini-3.0-flash",
+    "groq/llama-3.3-70b-versatile",
+    "groq/meta-llama/llama-4-scout-17b-16e-instruct",
+    "groq/qwen/qwen3-32b",
+    "groq/qwen/qwen3.6-27b",
+    "samba/Meta-Llama-3.3-70B-Instruct",
+    "samba/Llama-4-Maverick-17B-128E-Instruct",
+    "samba/DeepSeek-V3.2",
     "auto/best-coding",
     "auto/best-fast",
     "auto/best-reasoning",
@@ -29,7 +40,7 @@ class OmniRouteProvider(BaseProvider):
                 name="omniroute",
                 priority=15,
                 models=_OMNIROUTE_MODELS,
-                timeout_s=120,
+                timeout_s=60,
             )
         )
         self._base_url = self._config.extra.get(
@@ -39,14 +50,30 @@ class OmniRouteProvider(BaseProvider):
         self._default_model = self._config.models[0]
 
     async def check(self) -> bool:
+        """Quick health check with short timeout."""
+        try:
+            import httpx
+
+            async with httpx.AsyncClient(timeout=3) as client:
+                r = await client.get(f"{self._base_url}/models")
+                return r.status_code == 200
+        except Exception:
+            return False
+
+    async def list_models(self) -> list[str]:
+        """List available models from OmniRoute."""
         try:
             import httpx
 
             async with httpx.AsyncClient(timeout=5) as client:
                 r = await client.get(f"{self._base_url}/models")
-                return r.status_code == 200
-        except Exception:
-            return False
+                if r.status_code == 200:
+                    data = r.json()
+                    models = [m.get("id", "") for m in data.get("data", [])]
+                    return models[:100]  # Limit to first 100 models
+        except Exception as e:
+            logger.warning("Failed to list OmniRoute models: %s", e)
+        return self._config.models
 
     async def chat(self, messages: list[dict[str, str]], **kwargs: Any) -> ProviderResponse:
         import time
@@ -65,8 +92,18 @@ class OmniRouteProvider(BaseProvider):
                         "messages": messages,
                         "stream": False,
                         "max_tokens": kwargs.get("max_tokens", 4096),
+                        "temperature": kwargs.get("temperature", 0.7),
                     },
                 )
+                if r.status_code != 200:
+                    logger.warning("OmniRoute API error: %s - %s", r.status_code, r.text)
+                    return ProviderResponse(
+                        content="",
+                        provider="omniroute",
+                        model=model,
+                        error=f"API error {r.status_code}",
+                        duration_ms=(time.monotonic() - t0) * 1000,
+                    )
                 data = r.json()
                 dur = (time.monotonic() - t0) * 1000
 
