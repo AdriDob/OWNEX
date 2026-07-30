@@ -456,8 +456,8 @@ class ProviderRegistry:
             logger.warning(f"Failed to save AI config: {e}")
 
     def build_provider(self, cfg: dict) -> AIProvider:
-        ptype = cfg.get("provider_type", "openrouter")
-        # 1. Try OpenRouter first (premium models)
+        ptype = cfg.get("provider_type", "openai")  # Default to OpenAI-compatible (OmniRoute)
+        # 1. Try OpenRouter if explicitly requested (premium models)
         if ptype in ("openrouter",):
             from .providers.openrouter_provider import OpenRouterProvider
             p = OpenRouterProvider(
@@ -495,10 +495,10 @@ class ProviderRegistry:
             if p.is_available():
                 return p
             logger.info("Ollama provider unavailable, trying alternatives")
-        # 5. Try OpenAI-compatible
+        # 5. Try OpenAI-compatible (OmniRoute primary)
         p = OpenAICompatibleProvider(  # type: ignore[assignment]
             api_key=cfg.get("api_key", ""),
-            base_url=cfg.get("api_base", "https://api.openai.com/v1"),
+            base_url=cfg.get("api_base", "http://localhost:20128/v1"),
             model=cfg.get("llm_model", "gpt-4o-mini"),
         )
         if p.is_available():
