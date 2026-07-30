@@ -84,6 +84,7 @@ class DevinProvider(AIProvider):
             
         except subprocess.TimeoutExpired:
             logger.warning("Devin CLI timed out")
+            self._available = False
             return ""
         except Exception as e:
             logger.warning(f"Devin call failed: {e}")
