@@ -8,7 +8,7 @@ from typing import Any
 from cores.agents.base import BaseAgent
 from cores.agents.types import AgentEvent, AgentId, EventType
 
-logger = logging.getLogger("cateye.agents.documentation")
+logger = logging.getLogger("ownex.agents.documentation")
 
 
 class DocumentationAgent(BaseAgent):

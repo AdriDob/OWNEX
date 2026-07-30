@@ -6,7 +6,7 @@ Every response includes provenance, confidence, and category for every value.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
@@ -35,7 +35,7 @@ from cores.financial.withdrawal import (
 from cores.ledger import LedgerEvent, record_event
 from cores.ledger import get_history as get_ledger_history
 
-logger = logging.getLogger("cateye.api.financial_truth")
+logger = logging.getLogger("ownex.api.financial_truth")
 
 router = APIRouter(prefix="/api/financial", tags=["financial_truth"])
 
@@ -295,7 +295,7 @@ def refresh_prices() -> dict[str, Any]:
         cleared["price_cache"] = True
     except Exception:
         pass
-    return {"status": "ok", "cleared": cleared, "timestamp": datetime.now(timezone.utc).isoformat()}
+    return {"status": "ok", "cleared": cleared, "timestamp": datetime.now(UTC).isoformat()}
 
 
 # ── Integrations Status ──────────────────────────────────────────────
@@ -424,7 +424,7 @@ def integrations_status() -> dict[str, Any]:
         "parciales": sum(1 for i in integrations.values() if i["estado"] == "yellow"),
         "fallidas": sum(1 for i in integrations.values() if i["estado"] == "red"),
         "integraciones": integrations,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -443,7 +443,7 @@ def _calc_integration_status(consecutive_failures: int, last_success: float) -> 
 def _ts_to_iso(ts: float) -> str:
     if not ts:
         return ""
-    return datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
+    return datetime.fromtimestamp(ts, tz=UTC).isoformat()
 
 
 # ── Reconciliation ───────────────────────────────────────────────────

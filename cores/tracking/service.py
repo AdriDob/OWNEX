@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.platforms import get_platform
 from cores.settings.service import get_platform_config
 
-logger = logging.getLogger("cateye.tracking")
+logger = logging.getLogger("ownex.tracking")
 
 PLATFORM_STATE_MAP: dict[str, str] = {
     "new": "submitted",
@@ -49,7 +49,7 @@ def _save_submission_record(
         if existing:
             existing.external_id = external_id or existing.external_id
             existing.status = status
-            existing.last_update = datetime.now(timezone.utc)
+            existing.last_update = datetime.now(UTC)
             if extra:
                 existing.extra_data = json.dumps(extra, ensure_ascii=False)
         else:
@@ -142,7 +142,7 @@ def handle_webhook_callback(
 
         mapped_status = PLATFORM_STATE_MAP.get(status, status)
         record.status = mapped_status
-        record.last_update = datetime.now(timezone.utc)
+        record.last_update = datetime.now(UTC)
         if extra:
             existing = json.loads(record.extra_data) if record.extra_data else {}
             existing.update(extra)
@@ -153,7 +153,7 @@ def handle_webhook_callback(
         report = session.query(Report).filter(Report.id == record.report_id).first()
         if report:
             report.status = mapped_status
-            report.updated_at = datetime.now(timezone.utc)
+            report.updated_at = datetime.now(UTC)
             # Update confirmed reward if paid
             if mapped_status == "paid" and extra and "reward" in extra:
                 report.confirmed_reward = float(extra["reward"])

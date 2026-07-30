@@ -4,6 +4,7 @@ Differential Intelligence API — expose interesting differences and anomalies.
 
 from __future__ import annotations
 
+from datetime import UTC
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
@@ -55,7 +56,7 @@ def _build_snapshot(target_id: int | None = None) -> PipelineSnapshot:
                 potential_idor=bool(s.get("potential_idor", False)),
             ))
 
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         target_snapshot = None
         if first_target:
@@ -96,7 +97,7 @@ def _build_snapshot(target_id: int | None = None) -> PipelineSnapshot:
                 graphql_surfaces=graphql_surfaces,
             ),
             coverage_score=0.0,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             summary=f"Differential intelligence analysis for {first_target.name}",
         )
     finally:

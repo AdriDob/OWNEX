@@ -1,3 +1,4 @@
+from datetime import UTC
 from pathlib import Path
 
 from fastapi import HTTPException
@@ -12,11 +13,11 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
     import asyncio
     import json
     import logging
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from cores.recon.tools import validate_mode_compatibility, verify_recon_tools
 
-    logger = logging.getLogger("cateye.main")
+    logger = logging.getLogger("ownex.main")
 
     # Validate inputs
     if not target_name or not target_name.strip():
@@ -150,7 +151,7 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
 
         # Update scan record with success
         scan.status = "completed"
-        scan.finished_at = datetime.now(timezone.utc)
+        scan.finished_at = datetime.now(UTC)
         scan.endpoint_count = endpoint_count
         try:
             scan.outputs = json.dumps(outputs, ensure_ascii=False)
@@ -161,10 +162,10 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
         session.commit()
         logger.info(f"Scan {scan.id} completed: {endpoint_count} endpoints")
 
-    except asyncio.TimeoutError:
+    except TimeoutError:
         logger.warning(f"Scan {scan.id} timed out after {timeout}s")
         scan.status = "timeout"
-        scan.finished_at = datetime.now(timezone.utc)
+        scan.finished_at = datetime.now(UTC)
         scan.outputs = f"Scan timed out after {timeout}s"
         session.add(scan)
         session.commit()
@@ -176,7 +177,7 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
     except Exception as exc:
         logger.error(f"Scan {scan.id} failed: {exc}", exc_info=True)
         scan.status = "failed"
-        scan.finished_at = datetime.now(timezone.utc)
+        scan.finished_at = datetime.now(UTC)
         scan.outputs = str(exc)[:500]
         session.add(scan)
         session.commit()

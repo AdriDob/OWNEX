@@ -1,11 +1,11 @@
 import logging
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from database.db import SessionLocal
 
-LOG = logging.getLogger("cateye.intelligence.recommendations")
+LOG = logging.getLogger("ownex.intelligence.recommendations")
 
 
 @dataclass
@@ -75,7 +75,7 @@ class RecommendationBundle:
     surfaces: list[SurfaceRecommendation] = field(default_factory=list)
     quick_wins: list[QuickWinRecommendation] = field(default_factory=list)
     reports: list[ReportRecommendation] = field(default_factory=list)
-    generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    generated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {

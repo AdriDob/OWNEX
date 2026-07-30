@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 from uuid import uuid4
@@ -266,7 +266,7 @@ class AgentEvent:
     """
     event_id: str = field(default_factory=lambda: uuid4().hex[:12])
     event_type: EventType | str = ""
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     source: AgentId | str = ""
     target: AgentId | str | None = None
     correlation_id: str = ""

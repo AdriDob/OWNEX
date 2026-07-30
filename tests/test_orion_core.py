@@ -6,7 +6,7 @@ import pytest
 
 from core.app_registry import AppRegistry, get_app_registry
 from core.database.manager import DatabaseManager, get_db_manager
-from core.events.event_bus import CoreEventBus, get_core_event_bus
+from core.events import CoreEventBus, get_core_event_bus
 from core.interfaces.scheduler import JobDefinition
 from core.normalizer.base import (
     NormalizedBet,

@@ -3,12 +3,12 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.bounty_scraper.scraper import BountyScraper
 
-logger = logging.getLogger("cateye.bounty_scraper.monitor")
+logger = logging.getLogger("ownex.bounty_scraper.monitor")
 
 
 class DiscoveryMonitor:
@@ -56,7 +56,7 @@ class DiscoveryMonitor:
         return {
             "running": self._running,
             "interval_hours": self._interval // 3600,
-            "last_check": datetime.fromtimestamp(self._last_check, tz=timezone.utc).isoformat()
+            "last_check": datetime.fromtimestamp(self._last_check, tz=UTC).isoformat()
             if self._last_check > 0
             else "",
             "check_count": self._check_count,

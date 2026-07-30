@@ -12,7 +12,7 @@ from typing import Any
 from cores.authhub.base import OAuth2Provider
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("cateye.authhub.gmail")
+logger = logging.getLogger("ownex.authhub.gmail")
 
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"

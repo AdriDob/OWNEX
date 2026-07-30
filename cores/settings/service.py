@@ -5,13 +5,13 @@ import logging
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("cateye.settings")
+logger = logging.getLogger("ownex.settings")
 
-CATEYE_NS = "CATEYE"
+OWNEX_NS = "OWNEX"
 PLATFORM_NS = "platform"
 
 
-class CATEYEMode(str, Enum):
+class OWNEXMode(str, Enum):
     MANUAL = "manual"
     AUTOMATIC = "automatic"
 
@@ -36,10 +36,10 @@ def _get_session():
 
 
 def _get_setting(key: str, default: Any = None) -> Any:
-    from database.models import CATEYEConfig
+    from database.models import OWNEXConfig
     session = _get_session()
     try:
-        record = session.query(CATEYEConfig).filter(CATEYEConfig.key == key).first()
+        record = session.query(OWNEXConfig).filter(OWNEXConfig.key == key).first()
         if record:
             return json.loads(record.value)
         return default
@@ -51,14 +51,14 @@ def _get_setting(key: str, default: Any = None) -> Any:
 
 
 def _set_setting(key: str, value: Any) -> None:
-    from database.models import CATEYEConfig
+    from database.models import OWNEXConfig
     session = _get_session()
     try:
-        record = session.query(CATEYEConfig).filter(CATEYEConfig.key == key).first()
+        record = session.query(OWNEXConfig).filter(OWNEXConfig.key == key).first()
         if record:
             record.value = json.dumps(value, ensure_ascii=False)
         else:
-            record = CATEYEConfig(key=key, value=json.dumps(value, ensure_ascii=False))
+            record = OWNEXConfig(key=key, value=json.dumps(value, ensure_ascii=False))
             session.add(record)
         session.commit()
     except Exception as exc:
@@ -76,18 +76,18 @@ def set_setting(key: str, value: Any) -> None:
     _set_setting(key, value)
 
 
-def get_mode() -> CATEYEMode:
-    raw = _get_setting(f"{CATEYE_NS}.mode", "manual")
+def get_mode() -> OWNEXMode:
+    raw = _get_setting(f"{OWNEX_NS}.mode", "manual")
     try:
-        return CATEYEMode(raw)
+        return OWNEXMode(raw)
     except ValueError:
-        return CATEYEMode.MANUAL
+        return OWNEXMode.MANUAL
 
 
-def set_mode(mode: str | CATEYEMode) -> None:
+def set_mode(mode: str | OWNEXMode) -> None:
     if isinstance(mode, str):
-        mode = CATEYEMode(mode)
-    _set_setting(f"{CATEYE_NS}.mode", mode.value)
+        mode = OWNEXMode(mode)
+    _set_setting(f"{OWNEX_NS}.mode", mode.value)
 
 
 def get_platform_config(platform_id: str) -> dict[str, Any]:

@@ -1,13 +1,13 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="brand/ownex/hero-cover.svg">
-    <img src="brand/ownex/hero-cover.svg" alt="OWNEX — Autonomous Work OS" width="100%">
+    <img src="brand/ownex/hero-cover.svg" alt="OWNEX OMEGA — Autonomous Work Operating Platform" width="100%">
   </picture>
 </p>
 
 <p align="center">
-  <a href="#"><img src="https://img.shields.io/badge/status-rc%20v5.1.0-10B981?style=flat-square&labelColor=0A0C12" alt="Status"></a>
-  <a href="#"><img src="https://img.shields.io/badge/version-5.1.0-10B981?style=flat-square&labelColor=0A0C12" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/status-rc%20v7.0.0-10B981?style=flat-square&labelColor=0A0C12" alt="Status"></a>
+  <a href="#"><img src="https://img.shields.io/badge/version-7.0.0-10B981?style=flat-square&labelColor=0A0C12" alt="Version"></a>
   <a href="#"><img src="https://img.shields.io/badge/coverage-98%25-34D399?style=flat-square&labelColor=0A0C12" alt="Coverage"></a>
   <a href="#"><img src="https://img.shields.io/badge/stack-Tauri%20%7C%20Vue%203%20%7C%20FastAPI-2563EB?style=flat-square&labelColor=0A0C12" alt="Stack"></a>
   <a href="#"><img src="https://img.shields.io/badge/license-proprietary-F59E0B?style=flat-square&labelColor=0A0C12" alt="License"></a>
@@ -24,9 +24,9 @@
 
 ---
 
-## 🚀 What Is OWNEX?
+## 🚀 What Is OWNEX OMEGA?
 
-**OWNEX** is an **Autonomous Work Operating System** — a personal command center that converts scattered opportunities into executable work cycles. It's not a dashboard. Not a SaaS panel. An **OS for autonomous work**.
+**OWNEX OMEGA** is an **Autonomous Work Operating System** — a personal command center that converts scattered opportunities into executable work cycles. It's not a dashboard. Not a SaaS panel. An **OS for autonomous work**.
 
 Built for bug bounty hunters, security researchers, and autonomous agents who need *outcomes over activity*, *action over information*, *cycles over pages*.
 
@@ -75,7 +75,7 @@ States:          🟢 #10B981  🔴 #EF4444  🟡 #FBBF24
 ## 🖥️ Desktop App (Tauri + Vue 3)
 
 ```
-OWNEX.app / OWNEX.exe
+OWNEX OMEGA.app / OWNEX OMEGA.exe
 ├── Vue 3 + TypeScript + Tailwind CSS v4
 ├── Rust shell (Tauri v2) — native, ~15MB, low RAM
 ├── Python sidecar (FastAPI) — business logic, agents
@@ -134,20 +134,20 @@ Command center on your wrist:
 | **DNI / Tax ID** | Only for withdrawals & KYC on each platform |
 | **Python 3.11+** | Backend runtime |
 | **Node.js 20+** | Frontend development |
-| **Ollama** (optional) | Local LLMs: `curl -fsSL https://ollama.ai/install.sh \| sh` |
+| **Ollama** (optional) | Local LLMs: `curl -fsSL https://ollama.ai/install.sh | sh` |
 
 ### One-Command Install
 
 ```bash
-bash <(curl -sSf https://raw.githubusercontent.com/yourusername/ownex/main/install.sh)
+bash <(curl -sSf https://raw.githubusercontent.com/yourusername/ownex-omega/main/install.sh)
 ```
 
 ### Manual Setup
 
 ```bash
 # Clone
-git clone https://github.com/yourusername/ownex.git
-cd ownex
+git clone https://github.com/yourusername/ownex-omega.git
+cd ownex-omega
 
 # Backend
 python3 -m venv .venv
@@ -175,7 +175,7 @@ python -m core.scripts.verify_system --verbose
 ## 🏗️ Architecture
 
 ```
-ownex/
+ownex-omega/
 ├── api/                       # FastAPI routers (80+ endpoints)
 │   ├── routers/               # Mission Control, Security, Forge...
 │   └── scheduler.py           # 23 jobs, 4 cycles
@@ -222,25 +222,25 @@ pytest tests/ --ignore=tests/test_security.py -q
 
 ---
 
-## 📦 v5.1.0 — Daily Running Release
+## 📦 v7.0.0 — OMEGA Release Candidate
 
 > **RC release** — installs, starts, opens API, maintains state, registers errors, can restart.
-> All daily operational features are present. Advanced features continue in v5.2.
+> All daily operational features are present. Advanced features continue in v7.1.
 
 ### ✅ What's Included
 
 | Feature | Status |
 |---|---|
-| **Instalación limpia** | ✓ `setup.sh` / `setup_windows.ps1` |
-| **API arrancando** | ✓ FastAPI on port 8000 |
-| **EventBus unificado** | ✓ `core.events` → `cores.events` |
+| **Clean Installation** | ✓ `setup.sh` / `setup_windows.ps1` |
+| **API Starting** | ✓ FastAPI on port 8000 |
+| **Unified EventBus** | ✓ `core.events` → `cores.events` |
 | **Capability Registry** | ✓ 10 capabilities registered at boot |
 | **Revenue Engine** | ✓ Discovery, scoring, tracking, payments |
-| **Métodos de pago AR** | ✓ PayPal, Payoneer, Wise, Cripto, Transferencia |
-| **USD → ARS conversion** | ✓ Built-in converter |
+| **AR Payment Methods** | ✓ PayPal, Payoneer, Wise, Crypto, Transfer |
+| **USD → ARS Conversion** | ✓ Built-in converter |
 | **ownex doctor** | ✓ System diagnostic (`scripts/ownex_doctor.py`) |
-| **Windows 11 installer** | ✓ `start.bat`, `start.ps1`, `setup_windows.ps1` |
-| **Windows 11 guide** | ✓ `README_INSTALL_WIN11.md` |
+| **Windows 11 Installer** | ✓ `start.bat`, `start.ps1`, `setup_windows.ps1` |
+| **Windows 11 Guide** | ✓ `README_INSTALL_WIN11.md` |
 | **75 tests passing** | ✓ 63 original + 12 new revenue tests |
 | **API docs** | ✓ `http://localhost:8000/docs` |
 
@@ -253,7 +253,7 @@ Discovery → Scoring → Preparation → Execution → Delivery → Validation 
 - **RevenueEngine** — daily discovery, EV scoring, payment processing
 - **PaymentTracker** — tracking by platform, status, and period
 - **USD/ARS converter** — with exchange rate support
-- **5 Argentina payment methods** — Wise, PayPal, Payoneer, Cripto, Transferencia
+- **5 Argentina payment methods** — Wise, PayPal, Payoneer, Crypto, Transfer
 
 ### Windows 11 Quick Start
 
@@ -295,8 +295,8 @@ Proprietary — All Rights Reserved.
 ---
 
 <p align="center">
-  <img src="brand/ownex/logo-mark.svg" alt="OWNEX" width="64">
+  <img src="brand/ownex/logo-mark.svg" alt="OWNEX OMEGA" width="64">
   <br>
-  <b>OWNEX v5.3.0</b> — <i>Autonomous Work Operating Interface</i><br>
+  <b>OWNEX OMEGA v7.0.0</b> — <i>Autonomous Work Operating Platform</i><br>
   Built with 🔥 by CATEYE Research
 </p>

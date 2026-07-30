@@ -13,7 +13,7 @@ import logging
 import os
 import sqlite3
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.engine.base import Engine
@@ -38,8 +38,8 @@ class Entity:
     platform: str = ""
 
     # First and last seen
-    first_observed: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    last_observed: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    first_observed: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    last_observed: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     # Statistics
     observation_count: int = 1
@@ -245,7 +245,7 @@ class IdentityEngine(Engine):
         ).hexdigest()[:16]
 
         fingerprint = self._compute_fingerprint(observation)
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         entity = Entity(
             id=entity_id,
@@ -306,7 +306,7 @@ class IdentityEngine(Engine):
 
     def _update_entity(self, entity: Entity, observation: Observation) -> Entity:
         """Update an existing entity with new observation data."""
-        entity.last_observed = datetime.now(timezone.utc).isoformat()
+        entity.last_observed = datetime.now(UTC).isoformat()
         entity.observation_count += 1
 
         # Merge tags

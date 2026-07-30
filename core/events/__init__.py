@@ -4,15 +4,7 @@ from __future__ import annotations
 Bridges events to CATEYE's legacy EventBus so app events reach
 legacy subscribers.
 """
-from cores.events.correlation import (
-    get_correlation_id,
-    get_or_create_correlation_id,
-    new_correlation_id,
-    set_correlation_id,
-    with_correlation_id,
-    with_new_correlation_id,
-)
-from cores.events.event_bus import CoreEventBus, get_core_event_bus
+from core.events.event_bus import CoreEventBus, get_core_event_bus
 from cores.events.store import EventStore, get_event_store, reset_event_store
 from cores.events.types import CorrelationId, Decision, EventEnvelope, Events
 

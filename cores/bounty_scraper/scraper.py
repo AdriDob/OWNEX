@@ -29,13 +29,13 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.bounty_scraper.changes import DiscoveryDiff, get_change_tracker
 from cores.scope_reader import read_program_scope
 
-logger = logging.getLogger("cateye.bounty_scraper")
+logger = logging.getLogger("ownex.bounty_scraper")
 
 REQUEST_HEADERS = {
     "User-Agent": (
@@ -108,7 +108,7 @@ def _parse_reward_range(text: str) -> tuple[str, float]:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 @dataclass
@@ -851,7 +851,7 @@ class BountyScraper:
                 logger.warning("Web scan failed: %s", e)
 
         self._programs = all_programs
-        self._last_refresh = datetime.now(timezone.utc).isoformat()
+        self._last_refresh = datetime.now(UTC).isoformat()
         logger.info(
             "Total: %d unique reward-offering programs scraped across all sources",
             len(all_programs),

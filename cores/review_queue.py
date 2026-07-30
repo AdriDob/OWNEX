@@ -1,11 +1,11 @@
 import contextlib
 import logging
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-LOG = logging.getLogger("cateye.review_queue")
+LOG = logging.getLogger("ownex.review_queue")
 
 
 class ConfidenceTier(Enum):
@@ -45,7 +45,7 @@ class ReviewQueue:
     medium_confidence: list[ReviewItem] = field(default_factory=list)
     low_confidence: list[ReviewItem] = field(default_factory=list)
     total_items: int = 0
-    generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    generated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def add(self, item: ReviewItem) -> None:
         if item.tier == "HIGH_CONFIDENCE":

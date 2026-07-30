@@ -9,7 +9,7 @@ from typing import Any
 
 from core.http_probe.probes import HttpResponse, ProbeResult
 
-logger = logging.getLogger("cateye.http_probe.analyzer")
+logger = logging.getLogger("ownex.http_probe.analyzer")
 
 # ── Evidence extraction patterns ──────────────────────────────
 

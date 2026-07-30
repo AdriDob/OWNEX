@@ -12,7 +12,7 @@ from core.execution.runtime.kernel import ExecutionKernel
 from core.execution.runtime.state_machine import WorkflowState
 from core.execution.runtime.worker import WorkerEngine
 
-logger = logging.getLogger("cateye.execution.simulation")
+logger = logging.getLogger("ownex.execution.simulation")
 
 
 @dataclass

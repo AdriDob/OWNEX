@@ -24,7 +24,7 @@ def _get_secret() -> str:
     global _SECRET_KEY
     if _SECRET_KEY is not None:
         return _SECRET_KEY
-    env_key = os.environ.get("CATEYE_AUTH_SECRET")
+    env_key = os.environ.get("OWNEX_AUTH_SECRET")
     if env_key:
         _SECRET_KEY = env_key
         return _SECRET_KEY

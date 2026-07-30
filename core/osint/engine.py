@@ -12,7 +12,7 @@ from typing import Any
 
 import httpx
 
-logger = logging.getLogger("cateye.osint")
+logger = logging.getLogger("ownex.osint")
 
 HACKERTARGET = "https://api.hackertarget.com"
 

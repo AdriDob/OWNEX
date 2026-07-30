@@ -21,7 +21,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -36,7 +36,7 @@ def _all_ledger_entries():
     from cores.ledger import _all_entries
     return _all_entries()
 
-logger = logging.getLogger("cateye.financial.truth_layer")
+logger = logging.getLogger("ownex.financial.truth_layer")
 
 
 # ── Value Classification ─────────────────────────────────────────────
@@ -362,7 +362,7 @@ class TruthLayer:
                 amount=data["amount"],
                 confidence=data["confidence"],
                 entry_count=data["count"],
-                last_updated=datetime.now(timezone.utc).isoformat(),
+                last_updated=datetime.now(UTC).isoformat(),
             )
 
         state.by_platform = {}
@@ -401,7 +401,7 @@ class TruthLayer:
         else:
             state.sync_health = SyncHealth.DEGRADED
 
-        state.last_sync = datetime.now(timezone.utc).isoformat()
+        state.last_sync = datetime.now(UTC).isoformat()
         state.last_reconciliation = self._last_reconciliation
 
         state.summary = self._build_summary(state)
@@ -479,7 +479,7 @@ class TruthLayer:
         self._disputed_entries.discard(entry_id)
 
     def mark_reconciled(self, timestamp: str = "") -> None:
-        self._last_reconciliation = timestamp or datetime.now(timezone.utc).isoformat()
+        self._last_reconciliation = timestamp or datetime.now(UTC).isoformat()
 
 
 _TRUTH: TruthLayer | None = None

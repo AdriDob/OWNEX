@@ -8,11 +8,18 @@ from __future__ import annotations
 
 import contextlib
 import logging
+import time
 from typing import Any
 
 from core.engine.base import Engine
 from core.sensors.base import ObservationCache, Sensor
 from core.sensors.observation import Observation
+from cores.prometheus_metrics import (
+    OBSERVATION_ENGINE_COLLECTIONS_TOTAL,
+    OBSERVATIONS_EMITTED_TOTAL,
+    OBSERVATION_CACHE_SIZE,
+    OBSERVATION_PIPELINE_STAGE,
+)
 
 logger = logging.getLogger("ownex.sensors.observation_engine")
 

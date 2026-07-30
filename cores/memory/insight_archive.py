@@ -9,7 +9,7 @@ from typing import Any
 
 from cores.memory.memory_store import MemoryStore, get_memory_store
 
-logger = logging.getLogger("cateye.memory.insight")
+logger = logging.getLogger("ownex.memory.insight")
 
 CATEGORY = "insight"
 

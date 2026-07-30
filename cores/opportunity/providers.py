@@ -10,12 +10,12 @@ from __future__ import annotations
 import logging
 import uuid
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.opportunity.models import Opportunity, OpportunityProviderInfo, OpportunitySource
 
-logger = logging.getLogger("cateye.opportunity.providers")
+logger = logging.getLogger("ownex.opportunity.providers")
 
 _GLOBAL_PROVIDERS: list[BaseProvider] = []
 
@@ -62,7 +62,7 @@ class BaseProvider(ABC):
         return f"{self.name}_{raw.get('id', str(uuid.uuid4())[:8])}"
 
     def _ts(self) -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
 
 class ManualProvider(BaseProvider):
@@ -354,7 +354,7 @@ class PublicProgramProvider(BaseProvider):
     ]
 
     def discover(self) -> list[Opportunity]:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         self._opportunities = []
         for seed in self._SEED_OPPORTUNITIES:
             opp = Opportunity(
@@ -385,7 +385,7 @@ class PublicProgramProvider(BaseProvider):
         return list(self._opportunities)
 
     def refresh(self) -> list[Opportunity]:
-        self._last_refresh = datetime.now(timezone.utc).isoformat()
+        self._last_refresh = datetime.now(UTC).isoformat()
         return []
 
 
@@ -426,7 +426,7 @@ class GitHubAdvisoryProvider(BaseProvider):
     ]
 
     def discover(self) -> list[Opportunity]:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         self._opportunities = []
         for seed in self._SEEDS:
             opp = Opportunity(
@@ -454,7 +454,7 @@ class GitHubAdvisoryProvider(BaseProvider):
         return list(self._opportunities)
 
     def refresh(self) -> list[Opportunity]:
-        self._last_refresh = datetime.now(timezone.utc).isoformat()
+        self._last_refresh = datetime.now(UTC).isoformat()
         return []
 
 
@@ -496,7 +496,7 @@ class HuntrProvider(BaseProvider):
     ]
 
     def discover(self) -> list[Opportunity]:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         self._opportunities = []
         for seed in self._SEEDS:
             opp = Opportunity(
@@ -524,7 +524,7 @@ class HuntrProvider(BaseProvider):
         return list(self._opportunities)
 
     def refresh(self) -> list[Opportunity]:
-        self._last_refresh = datetime.now(timezone.utc).isoformat()
+        self._last_refresh = datetime.now(UTC).isoformat()
         return []
 
 
@@ -538,7 +538,7 @@ class AllSourcesProvider(BaseProvider):
     category = "platform"
 
     def discover(self) -> list[Opportunity]:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         all_seeds = PublicProgramProvider._SEED_OPPORTUNITIES + GitHubAdvisoryProvider._SEEDS + HuntrProvider._SEEDS
         self._opportunities = []
         for seed in all_seeds:
@@ -567,7 +567,7 @@ class AllSourcesProvider(BaseProvider):
         return list(self._opportunities)
 
     def refresh(self) -> list[Opportunity]:
-        self._last_refresh = datetime.now(timezone.utc).isoformat()
+        self._last_refresh = datetime.now(UTC).isoformat()
         return []
 
 

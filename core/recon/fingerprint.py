@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-logger = logging.getLogger("cateye.recon.fingerprint")
+logger = logging.getLogger("ownex.recon.fingerprint")
 
 TECH_PATTERNS: dict[str, list[dict[str, Any]]] = {
     "react": [

@@ -2,11 +2,11 @@
 
 import asyncio
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter
 
-logger = logging.getLogger("cateye.api.hunt")
+logger = logging.getLogger("ownex.api.hunt")
 router = APIRouter(prefix="/api/hunt", tags=["hunt"])
 
 # Track background tasks to prevent silent leaks
@@ -31,7 +31,7 @@ async def start_hunt():
         return {"status": "already_running"}
 
     _hunt_state["status"] = "running"
-    _hunt_state["started_at"] = datetime.now(timezone.utc).isoformat()
+    _hunt_state["started_at"] = datetime.now(UTC).isoformat()
     _hunt_state["findings_found"] = 0
     _hunt_state["targets_scanned"] = 0
     logger.info("Hunt started")

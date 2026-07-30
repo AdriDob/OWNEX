@@ -12,7 +12,7 @@ from cores.recon.httpx_runner import HttpxRunner
 from cores.recon.katana_runner import KatanaRunner
 from cores.recon.subfinder_runner import SubfinderRunner
 
-logger = logging.getLogger("cateye.agents.research")
+logger = logging.getLogger("ownex.agents.research")
 
 
 class ResearchAgent(BaseAgent):

@@ -9,14 +9,14 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from enum import Enum
 from typing import Any
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 
-logger = logging.getLogger("cateye.ledger")
+logger = logging.getLogger("ownex.ledger")
 
 LEDGER_EVENTS = [
     "bounty_created",
@@ -145,7 +145,7 @@ def record_event(
     from database.models import LedgerEntry as LedgerEntryModel
 
     entry_id = str(uuid.uuid4())
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
     metadata_json = json.dumps(metadata or {})
 
     session = _get_session()
@@ -258,7 +258,7 @@ def reconcile() -> dict[str, Any]:
         "entry_count": len(_all_entries()),
         "issues": issues,
         "healthy": len(issues) == 0,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
     }
 
 

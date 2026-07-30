@@ -1,11 +1,12 @@
-from __future__ import annotations
+"""
+EventBus bridge for CATEYE notifications to Discord/web.
+Uses `EventBus` from `cores.events.event_bus` for compatibility.
+"""
 
-import contextlib
 import logging
-from collections.abc import Callable
 from typing import Any
 
-from cores.events.event_bus import CoreEventBus
+from core.events.event_bus import CoreEventBus
 from cores.notifications.discord import get_discord_adapter
 
 logger = logging.getLogger("cateye.notifications.event_bridge")
@@ -41,54 +42,49 @@ EVENT_TITLE_MAP: dict[str, str] = {
 }
 
 
-def _format_message(event: str, data: dict[str, Any]) -> str:
-    parts = []
-    for k, v in data.items():
-        if k == "event":
-            continue
-        if isinstance(v, (list, dict)):
-            import json
-
-            v = json.dumps(v, indent=2)[:500]
-        parts.append(f"**{k}**: {v}")
-    return "\n".join(parts) if parts else "(sin detalles)"
-
-
-def _handle_event(event: str, **data: Any) -> None:
-    discord = get_discord_adapter()
-    if not discord or not discord.is_enabled:
-        return
-    priority = EVENT_PRIORITY_MAP.get(event, "low")
-    title = EVENT_TITLE_MAP.get(event, f"Evento: {event}")
-    message = _format_message(event, data)
-    discord.send(title=title, message=message, priority=priority)
-
-
 class NotificationEventBridge:
-    """Bridge EventBus events to Discord/web notifications."""
+    """Bridge for CATEYE event bus -> Discord/web notifications."""
 
     def __init__(self, event_bus: CoreEventBus):
-        self._bus = event_bus
-        self._unsubscribers: list[Callable[[], None]] = []
+        self._event_bus = event_bus
+        self._subscriptions: list = []
+        self._discord_adapter = get_discord_adapter()
 
     def start(self) -> int:
-        for event_type in EVENT_PRIORITY_MAP:
-            unsub = self._bus.subscribe(event_type, _handle_event)
-            self._unsubscribers.append(unsub)
-        logger.info(
-            "[NOTIFY] EventBus bridge started — %d event types subscribed",
-            len(self._unsubscribers),
+        """Start listening for events and dispatch to Discord."""
+        subscribed_count = 0
+
+        for event, priority in EVENT_PRIORITY_MAP.items():
+            # Subscribe to event with appropriate priority
+            sub_unsub = self._event_bus.subscribe(event, self._handle_event)
+            self._subscriptions.append(sub_unsub)
+            subscribed_count += 1
+
+        return subscribed_count
+
+    def _handle_event(self, event: str, **data: Any) -> None:
+        """Process incoming event and dispatch notification."""
+        priority = EVENT_PRIORITY_MAP.get(event, "medium")
+        title = EVENT_TITLE_MAP.get(event, event)
+
+        # Convert event data to message string
+        message = f"Event: {event}\nData: {data}"
+
+        # Dispatch to Discord adapter
+        self._discord_adapter.send(
+            title=title,
+            message=message,
+            priority=priority,
+            metadata={"event": event, **data},
         )
-        return len(self._unsubscribers)
 
     def stop(self) -> None:
-        for unsub in self._unsubscribers:
-            with contextlib.suppress(Exception):
-                unsub()
-        count = len(self._unsubscribers)
-        self._unsubscribers.clear()
-        logger.info("[NOTIFY] EventBus bridge stopped — %d handlers removed", count)
+        """Stop listening for events."""
+        for unsub in self._subscriptions:
+            unsub()
+        self._subscriptions.clear()
 
     @property
     def subscribed_events(self) -> list[str]:
-        return list(EVENT_PRIORITY_MAP)
+        """Get list of currently subscribed events."""
+        return list(EVENT_PRIORITY_MAP.keys())

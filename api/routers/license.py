@@ -10,7 +10,7 @@ from cores.gateway.schemas import error, ok
 from cores.license import is_license_valid, validate_license
 from cores.license.store import get_license_store
 
-logger = logging.getLogger("cateye.api.license")
+logger = logging.getLogger("ownex.api.license")
 
 router = APIRouter(prefix="/api/license", tags=["license"])
 

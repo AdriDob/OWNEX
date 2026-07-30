@@ -81,6 +81,18 @@ class IntegrationRegistry:
             )
         )
 
+    def load_all(self, integrations: list[IntegrationDef]) -> None:
+        """Load multiple integrations from definition dataclasses."""
+        for idef in integrations:
+            self.register_from_def(
+                name=idef.name,
+                category=idef.category,
+                description=idef.description,
+                icon=idef.icon,
+                tags=idef.tags,
+                status=idef.status if hasattr(idef, 'status') else "unknown",
+            )
+
     def get(self, name: str) -> IntegrationStatus | None:
         return self._status_cache.get(name)
 

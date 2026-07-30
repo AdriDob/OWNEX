@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 from .tools import _resolve_tool
 
-LOG = logging.getLogger("cateye.recon.ffuf")
+LOG = logging.getLogger("ownex.recon.ffuf")
 
 
 class FfufRunner:
@@ -135,7 +135,7 @@ class FfufRunner:
             stdout, stderr = await asyncio.wait_for(
                 proc.communicate(), timeout=effective_timeout
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             proc.kill()
             await proc.communicate()
             path.write_text("FFUF TIMED OUT")

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .tools import _resolve_tool
 
-LOG = logging.getLogger("cateye.recon.gau")
+LOG = logging.getLogger("ownex.recon.gau")
 
 
 class GauRunner:
@@ -43,7 +43,7 @@ class GauRunner:
             stdout, stderr = await asyncio.wait_for(
                 proc.communicate(), timeout=self.timeout
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             proc.kill()
             await proc.communicate()
             path.write_text("GAU TIMED OUT")

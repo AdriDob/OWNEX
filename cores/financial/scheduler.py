@@ -9,13 +9,13 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.identity_vault import get_identity_vault
 from cores.platforms import PLATFORM_REGISTRY
 
-logger = logging.getLogger("cateye.financial.scheduler")
+logger = logging.getLogger("ownex.financial.scheduler")
 
 
 @dataclass
@@ -117,12 +117,12 @@ class FinancialSyncScheduler:
         return results
 
     def sync_all(self) -> SyncReport:
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
 
         platform_results = self.sync_platforms()
         crypto_results = self.sync_crypto()
 
-        end = datetime.now(timezone.utc)
+        end = datetime.now(UTC)
 
         report = SyncReport(
             start_time=start.isoformat(),

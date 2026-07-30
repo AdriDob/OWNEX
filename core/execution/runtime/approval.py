@@ -9,7 +9,7 @@ from core.execution.runtime.context import RuntimeContext
 from core.execution.runtime.kernel import ExecutionKernel
 from core.execution.runtime.publisher import ExecutionEventPublisher
 
-logger = logging.getLogger("cateye.execution.approval")
+logger = logging.getLogger("ownex.execution.approval")
 
 
 class ApprovalManager:

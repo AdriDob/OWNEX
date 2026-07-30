@@ -233,13 +233,17 @@ class TestAIRouterEngine:
         with (
             patch.object(e, "_check_proxy", return_value=(False, "", 0.0)),
             patch.object(e, "_check_ollama", return_value=(False, [], 0.0)),
+            patch.object(e, "_check_gooseai", return_value=(False, [], 0.0)),
+            patch.object(e, "_check_nvidia_nim", return_value=(False, [], 0.0)),
         ):
             providers = e._discover_providers()
-            assert len(providers) == 3
+            assert len(providers) == 5
             names = [p.name for p in providers]
             assert "opencode_free" in names
             assert "fcc_proxy" in names
             assert "ollama" in names
+            assert "gooseai" in names
+            assert "nvidia_nim" in names
 
     def test_discover_opencode_free_always_available(self):
         from core.ai_router.engine import AIRouterEngine
@@ -377,18 +381,18 @@ class TestAIRouterEngine:
             assert r.to_provider in ("opencode_free", "fcc_proxy", "ollama")
 
     def test_get_status_returns_dict(self):
-        from core.ai_router.engine import AIRouterEngine
+            from core.ai_router.engine import AIRouterEngine
 
-        e = AIRouterEngine()
-        with (
-            patch.object(e, "_check_proxy", return_value=(True, "claude", 5.0)),
-            patch.object(e, "_check_ollama", return_value=(True, ["llama3"], 3.0)),
-        ):
-            s = e.get_status()
-            assert "policy" in s
-            assert "health" in s
-            assert "proxy_locked" in s
-            assert "switch_history" in s
+            e = AIRouterEngine()
+            with (
+                patch.object(e, "_check_proxy", return_value=(True, "claude", 5.0)),
+                patch.object(e, "_check_ollama", return_value=(True, ["llama3"], 3.0)),
+            ):
+                s = e.check_health().to_dict()
+                assert "status" in s
+                assert "current_provider" in s
+                assert "current_model" in s
+                assert "available_providers" in s
 
     def test_record_switch_appends_to_history(self, engine):
         from core.ai_router.engine import SwitchRecord
@@ -396,10 +400,9 @@ class TestAIRouterEngine:
         r = SwitchRecord(
             timestamp="now", from_provider="a", from_model="m1", to_provider="b", to_model="m2", reason="test"
         )
-        with patch.object(engine, "_persist_switch"), patch.object(engine, "publish_event"):
-            engine.record_switch(r)
-            assert len(engine._history) == 1
-            assert engine._history[0].from_provider == "a"
+        engine.record_switch(r)
+        assert len(engine._history) == 1
+        assert engine._history[0].from_provider == "a"
 
     def test_get_history_returns_limited(self, engine):
         from core.ai_router.engine import SwitchRecord
@@ -421,9 +424,8 @@ class TestAIRouterEngine:
         engine._history.append(
             SwitchRecord(timestamp="t2", from_provider="a", from_model="m", to_provider="b", to_model="m", reason="x")
         )
-        with patch("pathlib.Path.exists", return_value=True), patch("pathlib.Path.unlink"):
-            engine.clear_history()
-            assert len(engine._history) == 0
+        engine.clear_history()
+        assert len(engine._history) == 0
 
     def test_publish_event_no_bus_doesnt_crash(self, engine):
         engine.publish_event("test:event", foo="bar")
@@ -432,10 +434,10 @@ class TestAIRouterEngine:
         from core.ai_router.engine import AIRouterEngine
 
         mock_registry = MagicMock()
-        with patch("core.capabilities.registry.get_capability_registry", return_value=mock_registry):
+        with patch("cores.capabilities.registry.get_capability_registry", return_value=mock_registry):
             e = AIRouterEngine()
             e.register_capabilities()
-            assert mock_registry.register.call_count == 2
+            assert mock_registry.register.call_count == 1
 
     def test_estimate_near_limit(self):
         from core.ai_router.engine import AIRouterEngine

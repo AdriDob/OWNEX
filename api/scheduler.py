@@ -21,7 +21,7 @@ import logging
 import re
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import text
@@ -56,7 +56,7 @@ def _get_copilot():
     return _copilot_instance
 
 
-logger = logging.getLogger("cateye.scheduler")
+logger = logging.getLogger("ownex.scheduler")
 
 STAGE_INTERVALS = {
     "discover": 3600,
@@ -183,7 +183,7 @@ class ScanScheduler:
 
     async def _run_pipeline(self):
         logger.info("=== Autonomous Pipeline Cycle ===")
-        now = datetime.now(timezone.utc).timestamp()
+        now = datetime.now(UTC).timestamp()
         self._cycle_started = now
 
         if self._should_run("discover", now):
@@ -526,7 +526,7 @@ class ScanScheduler:
                     "source": "discovery_scheduler",
                 },
             )
-            self._last_run["discover"] = datetime.now(timezone.utc).timestamp()
+            self._last_run["discover"] = datetime.now(UTC).timestamp()
         finally:
             session.close()
 
@@ -620,7 +620,7 @@ class ScanScheduler:
                     sum(1 for t in targets if (now - self._target_cooldowns.get(t.id, 0)) < TARGET_COOLDOWN),
                 )
 
-            self._last_run["recon"] = datetime.now(timezone.utc).timestamp()
+            self._last_run["recon"] = datetime.now(UTC).timestamp()
         finally:
             session.close()
 
@@ -644,7 +644,7 @@ class ScanScheduler:
                 pipeline_id=pipeline_id,
                 target_id=target.id,
                 target_name=target.name,
-                timestamp=datetime.now(timezone.utc).timestamp(),
+                timestamp=datetime.now(UTC).timestamp(),
                 source="ScanScheduler",
             )
             logger.info(
@@ -729,7 +729,7 @@ class ScanScheduler:
                 # Si no se crearon hallazgos, no emitimos un evento "completed" global para promote.
                 # Se asume que no hay nada que promover para los pipelines activos.
                 pass
-            self._last_run["promote"] = datetime.now(timezone.utc).timestamp()
+            self._last_run["promote"] = datetime.now(UTC).timestamp()
         except Exception as e:
             logger.warning("[PROMOTE] Promote stage failed: %s", e)
             # Emitir evento de fallo para cada pipeline activo si la etapa falló globalmente
@@ -793,7 +793,7 @@ class ScanScheduler:
                         self._copilot_hook(
                             "hypothesis", "failed", pipeline_id=pipeline_id, error_message=str(e)
                         )  # Emitir evento
-            self._last_run["hypothesis"] = datetime.now(timezone.utc).timestamp()
+            self._last_run["hypothesis"] = datetime.now(UTC).timestamp()
         finally:
             session.close()
 
@@ -855,7 +855,7 @@ class ScanScheduler:
                     promoted,
                 )
 
-            self._last_run["auto_validate"] = datetime.now(timezone.utc).timestamp()
+            self._last_run["auto_validate"] = datetime.now(UTC).timestamp()
         except Exception as exc:
             logger.exception("[AUTO_VALIDATE] Failed: %s", exc)
             raise
@@ -946,7 +946,7 @@ class ScanScheduler:
                 except Exception as e:
                     logger.debug("Validation failed for finding %d: %s", f.id, e)
                     self._copilot_hook("validate", "failed", pipeline_id=pipeline_id, error_message=str(e))
-            self._last_run["validate"] = datetime.now(timezone.utc).timestamp()
+            self._last_run["validate"] = datetime.now(UTC).timestamp()
         finally:
             session.close()
 
@@ -1041,7 +1041,7 @@ class ScanScheduler:
                     self._copilot_hook(
                         "report", "failed", pipeline_id=pipeline_id, error_message=str(e)
                     )  # Emitir evento
-            self._last_run["report"] = datetime.now(timezone.utc).timestamp()
+            self._last_run["report"] = datetime.now(UTC).timestamp()
         finally:
             session.close()
 
@@ -1107,7 +1107,7 @@ class ScanScheduler:
                 stats.get("total_reports_queued", 0),
             )
 
-            self._last_run["ai_bounty"] = datetime.now(timezone.utc).timestamp()
+            self._last_run["ai_bounty"] = datetime.now(UTC).timestamp()
         except ImportError as exc:
             logger.warning("[AI_BOUNTY] Module not available: %s", exc)
         except Exception as exc:

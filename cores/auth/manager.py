@@ -8,7 +8,7 @@ from core.auth.credentials import CredentialEntry, CredentialStore
 from core.auth.injector import apply_auth_to_request_kwargs
 from core.auth.provider import AuthConfig, get_provider
 
-logger = logging.getLogger("cateye.auth.manager")
+logger = logging.getLogger("ownex.auth.manager")
 
 
 @dataclass

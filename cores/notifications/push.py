@@ -11,7 +11,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-logger = logging.getLogger("cateye.notifications.push")
+logger = logging.getLogger("ownex.notifications.push")
 
 EVENT_PUSH_MAP: dict[str, dict[str, Any]] = {
     "opportunity:found": {

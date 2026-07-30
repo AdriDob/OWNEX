@@ -4,7 +4,7 @@ from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-logger = logging.getLogger("cateye.error")
+logger = logging.getLogger("ownex.error")
 
 _SECURITY_HEADERS = {
     "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ws:; frame-ancestors 'none'; form-action 'self'",

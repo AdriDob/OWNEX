@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-LOG = logging.getLogger("cateye.validation.challenger")
+LOG = logging.getLogger("ownex.validation.challenger")
 
 
 @dataclass

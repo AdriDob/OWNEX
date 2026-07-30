@@ -7,7 +7,7 @@ into a single response that answers "What should I do next?"
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.opportunity import get_engine as get_opp_engine
@@ -193,5 +193,5 @@ def get_context() -> dict[str, Any]:
         "opportunities": opportunities[:5],
         "progress": progress,
         "guided_paths": _get_guided_paths(),
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
     }

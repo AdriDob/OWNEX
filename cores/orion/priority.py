@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from core.orion.models import (
     OrionDecision,
@@ -46,7 +46,7 @@ def generate_decisions(scores: dict[str, ROIScore]) -> list[OrionDecision]:
 
     for pid, roi in scores.items():
         level = classify_priority(roi.score)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         if level == PriorityLevel.CRITICAL:
             decisions.append(
@@ -135,7 +135,7 @@ def decisions_to_tasks(decisions: list[OrionDecision]) -> list[OrionTask]:
         }
         tasks.append(
             OrionTask(
-                id=f"orion-{i}-{datetime.now(timezone.utc).timestamp():.0f}",
+                id=f"orion-{i}-{datetime.now(UTC).timestamp():.0f}",
                 kind=d.kind,
                 target=d.platform.value,
                 description=d.reason,

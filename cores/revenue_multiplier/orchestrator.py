@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -60,7 +60,7 @@ class RevenueMultiplierOrchestrator:
         results: dict[str, Any] = {
             "session_id": self._session_id,
             "mode": self._config.mode.value,
-            "started_at": datetime.now(timezone.utc).isoformat(),
+            "started_at": datetime.now(UTC).isoformat(),
             "bounty": {},
             "crypto": {},
             "tool_summary": self._registry.get_summary(),
@@ -74,7 +74,7 @@ class RevenueMultiplierOrchestrator:
 
         self._running = False
         results["metrics"] = self._metrics.to_dict()
-        results["finished_at"] = datetime.now(timezone.utc).isoformat()
+        results["finished_at"] = datetime.now(UTC).isoformat()
 
         logger.warning("=" * 60)
         logger.warning("  MAX REVENUE MODE COMPLETE [%s]", self._session_id)

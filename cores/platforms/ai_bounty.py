@@ -8,7 +8,7 @@ from typing import Any
 
 from cores.platforms.base import BugBountyPlatform, SubmissionResult
 
-logger = logging.getLogger("cateye.platforms.ai_bounty")
+logger = logging.getLogger("ownex.platforms.ai_bounty")
 
 
 AI_BOUNTY_PROGRAMS: dict[str, dict[str, Any]] = {

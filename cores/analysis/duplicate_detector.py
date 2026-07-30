@@ -14,12 +14,13 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass
+from datetime import UTC
 from difflib import SequenceMatcher
 from typing import Any
 
 from cores.dedup import fingerprint_path
 
-logger = logging.getLogger("cateye.analysis.duplicate_detector")
+logger = logging.getLogger("ownex.analysis.duplicate_detector")
 
 HIGH_RISK_THRESHOLD = 0.7
 MEDIUM_RISK_THRESHOLD = 0.4
@@ -209,11 +210,11 @@ class DuplicateDetector:
 
     def _age_days(self, finding: dict[str, Any]) -> int | None:
         try:
-            from datetime import datetime, timezone
+            from datetime import datetime
             created = finding.get("created_at") or finding.get("created", "")
             if created:
                 dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
-                return (datetime.now(timezone.utc) - dt).days
+                return (datetime.now(UTC) - dt).days
         except (ValueError, TypeError, AttributeError):
             pass
         return None

@@ -11,7 +11,7 @@ from typing import Any, TypeVar
 
 T = TypeVar("T")
 
-logger = logging.getLogger("cateye.gateway.retry")
+logger = logging.getLogger("ownex.gateway.retry")
 
 DEFAULT_MAX_RETRIES = 3
 DEFAULT_BASE_DELAY = 1.0

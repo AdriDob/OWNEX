@@ -5,6 +5,7 @@ Quick Wins API — evaluate monetization opportunities from pipeline data.
 from __future__ import annotations
 
 from dataclasses import asdict
+from datetime import UTC
 
 from fastapi import APIRouter, HTTPException
 
@@ -113,7 +114,7 @@ def _build_snapshot(target_id: int | None = None) -> PipelineSnapshot:
                 risk_score=float(max((ep.risk_score for ep in ep_snapshots), default=0)),
             )
 
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         return PipelineSnapshot(
             status="completed",
@@ -123,7 +124,7 @@ def _build_snapshot(target_id: int | None = None) -> PipelineSnapshot:
             verdicts=verdict_snapshots,
             reports=report_snapshots,
             coverage_score=0.0,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
         )
     finally:
         session.close()

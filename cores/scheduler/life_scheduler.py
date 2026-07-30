@@ -14,14 +14,14 @@ import time
 import uuid
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-from cores.events.event_bus import get_event_bus
-from cores.events.types import EventType
 from core.health.engine import get_health_center
 from core.memory.store import get_unified_memory
+from cores.events.event_bus import get_event_bus
+from cores.events.types import EventType
 
 logger = logging.getLogger("orion.life_scheduler")
 
@@ -302,7 +302,7 @@ class LifeScheduler:
                 "job_name": job_def.name,
                 "run_id": run_id,
                 "trigger": trigger,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
             correlation_id=run_id,
         )
@@ -354,7 +354,7 @@ class LifeScheduler:
                 result.message,
             )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error("[LifeScheduler] ✗ %s [%s] TIMEOUT after %ds", job_def.name, run_id, job_def.timeout_seconds)
             self._bus.publish(
                 EventType.JOB_FAILED.value,

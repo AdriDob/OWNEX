@@ -14,7 +14,7 @@ from core.copilot.opencode_bridge import get_opencode_bridge
 from core.copilot.orion_context import get_orion_context
 from core.copilot.providers.router import get_provider_router
 
-logger = logging.getLogger("cateye.api.copilot")
+logger = logging.getLogger("ownex.api.copilot")
 
 router = APIRouter(prefix="/api/copilot", tags=["copilot"])
 

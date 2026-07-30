@@ -39,12 +39,12 @@ describe('settings store', () => {
   it('persists to localStorage on update', () => {
     const store = useSettingsStore()
     store.updateGeneral({ userName: 'TestUser' })
-    const saved = JSON.parse(localStorage.getItem('cateye_settings')!)
+    const saved = JSON.parse(localStorage.getItem('ownex_settings')!)
     expect(saved.general.userName).toBe('TestUser')
   })
 
   it('loads from localStorage on init', () => {
-    localStorage.setItem('cateye_settings', JSON.stringify({
+    localStorage.setItem('ownex_settings', JSON.stringify({
       general: { userName: 'Custom', language: 'en', theme: 'dark', colors: 'blue', accessibility: true, animations: false },
     }))
     const store = useSettingsStore()

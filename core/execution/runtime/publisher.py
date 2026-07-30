@@ -5,7 +5,7 @@ from typing import Any
 
 from cores.events.types import EventEnvelope, Events
 
-logger = logging.getLogger("cateye.execution.publisher")
+logger = logging.getLogger("ownex.execution.publisher")
 
 
 class ExecutionEventPublisher:

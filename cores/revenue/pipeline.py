@@ -20,14 +20,14 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from database.db import SessionLocal
 from database.models import Finding, Report, SubmissionRecord
 from database.models_economic import PayoutRecord, RevenueEvent
 
-logger = logging.getLogger("cateye.revenue.pipeline")
+logger = logging.getLogger("ownex.revenue.pipeline")
 
 REVENUE_SUBMISSION_STATUSES = [
     "draft",
@@ -228,7 +228,7 @@ class RevenuePipeline:
 
             if external_status and external_status != submission.status:
                 submission.status = external_status
-                submission.last_update = datetime.now(timezone.utc)
+                submission.last_update = datetime.now(UTC)
                 db.flush()
 
                 self._publish(
@@ -348,7 +348,7 @@ class RevenuePipeline:
             external_id=external_id,
             submission_record_id=submission_record_id,
             status="confirmed",
-            paid_at=datetime.now(timezone.utc),
+            paid_at=datetime.now(UTC),
         )
         db.add(payout)
         db.flush()

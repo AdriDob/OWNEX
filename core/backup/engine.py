@@ -81,7 +81,7 @@ def _build_manifest(files: list[dict[str, Any]]) -> dict[str, Any]:
 def _checkpoint_wal() -> None:
     """Run WAL checkpoint on all known SQLite databases for consistency."""
     known_dbs = [
-        OWNEX_DIR / "cateye.db",
+        OWNEX_DIR / "ownex.db",
         OWNEX_DIR / "database" / "ownex.db",
         OWNEX_DIR / "database" / "ownex_core.db",
         OWNEX_DIR / "database" / "memory.db",
@@ -198,12 +198,12 @@ def verify_backup(archive_path: str) -> dict[str, Any]:
 
 
 def list_backups() -> list[dict[str, Any]]:
-    """List all available ORION backups with metadata."""
+    """List all available OWNEX backups with metadata."""
     if not BACKUP_DIR.exists():
         return []
 
     backups = []
-    for f in sorted(BACKUP_DIR.glob("ORION_BACKUP_*.zip"), reverse=True):
+    for f in sorted(BACKUP_DIR.glob("OWNEX_BACKUP_*.zip"), reverse=True):
         stat = f.stat()
         backups.append(
             {
@@ -219,7 +219,7 @@ def list_backups() -> list[dict[str, Any]]:
 
 def prune_backups(keep: int = DEFAULT_KEEP) -> dict[str, Any]:
     """Remove old backups, keeping only the N most recent."""
-    backups = sorted(BACKUP_DIR.glob("ORION_BACKUP_*.zip"), reverse=True)
+    backups = sorted(BACKUP_DIR.glob("OWNEX_BACKUP_*.zip"), reverse=True)
     if len(backups) <= keep:
         return {"status": "ok", "deleted": 0, "kept": len(backups), "limit": keep}
 

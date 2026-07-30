@@ -5,7 +5,7 @@ import json
 import logging
 from typing import Any
 
-logger = logging.getLogger("cateye.target_auth.login")
+logger = logging.getLogger("ownex.target_auth.login")
 
 
 class TargetLoginService:

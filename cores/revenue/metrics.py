@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from database.db import SessionLocal
@@ -32,7 +32,7 @@ class RevenueMetrics:
         """Revenue breakdown by month."""
         session = SessionLocal()
         try:
-            cutoff = datetime.now(timezone.utc) - timedelta(days=months * 30)
+            cutoff = datetime.now(UTC) - timedelta(days=months * 30)
             payouts = (
                 session.query(PayoutRecord)
                 .filter(PayoutRecord.paid_at >= cutoff, PayoutRecord.status == "confirmed")
@@ -368,7 +368,7 @@ class RevenueMetrics:
             "findings_by_type": self.findings_by_type(),
             "usd_per_hour": self.usd_per_hour(),
             "platform_speed_days": self.platform_speed_days(),
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
         }
 
     def capital_dashboard(self) -> dict[str, Any]:
@@ -380,7 +380,7 @@ class RevenueMetrics:
             recent_findings = (
                 session.query(Finding)
                 .filter(
-                    Finding.created_at >= datetime.now(timezone.utc) - timedelta(days=30),
+                    Finding.created_at >= datetime.now(UTC) - timedelta(days=30),
                 )
                 .count()
             )
@@ -409,7 +409,7 @@ class RevenueMetrics:
                 scanned_recently = (
                     session.query(Target)
                     .filter(
-                        Target.last_scanned >= datetime.now(timezone.utc) - timedelta(days=7),
+                        Target.last_scanned >= datetime.now(UTC) - timedelta(days=7),
                     )
                     .count()
                 )

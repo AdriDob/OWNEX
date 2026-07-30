@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("cateye.recon.dedup")
+logger = logging.getLogger("ownex.recon.dedup")
 
 _UUID_PATTERN = re.compile(
     r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",

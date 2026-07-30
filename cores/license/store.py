@@ -6,7 +6,7 @@ import json
 import logging
 from pathlib import Path
 
-logger = logging.getLogger("cateye.license.store")
+logger = logging.getLogger("ownex.license.store")
 
 
 def _get_license_file() -> Path:

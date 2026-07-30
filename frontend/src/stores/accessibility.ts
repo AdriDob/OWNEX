@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 
-const STORAGE_KEY = 'cateye_accessibility'
+const STORAGE_KEY = 'ownex_accessibility'
 
 export interface AccessibilityState {
   keyboardNavigation: boolean

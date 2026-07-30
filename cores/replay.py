@@ -1,12 +1,12 @@
 import json
 import logging
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from database.db import SessionLocal
 
-LOG = logging.getLogger("cateye.replay")
+LOG = logging.getLogger("ownex.replay")
 
 
 @dataclass(frozen=True)
@@ -25,7 +25,7 @@ class Replay:
     target_id: int
     target_name: str
     domain: str | None
-    generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    generated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     timeline: list[ReplayFrame] = field(default_factory=list)
     endpoints: list[dict[str, Any]] = field(default_factory=list)

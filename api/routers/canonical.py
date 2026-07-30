@@ -13,7 +13,7 @@ from fastapi import APIRouter, HTTPException, Query
 
 from cores.intelligence.unified_orchestrator import get_orchestrator
 
-LOG = logging.getLogger("cateye.api.canonical")
+LOG = logging.getLogger("ownex.api.canonical")
 
 router = APIRouter(prefix="/api/canonical", tags=["canonical"])
 

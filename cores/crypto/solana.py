@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.crypto.base import (
@@ -16,7 +16,7 @@ from cores.crypto.base import (
 )
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("cateye.crypto.solana")
+logger = logging.getLogger("ownex.crypto.solana")
 
 SOLANA_RPC = "https://api.mainnet-beta.solana.com"
 SOL_DECIMALS = 9
@@ -92,7 +92,7 @@ class SolanaConnector(CryptoConnector):
                 usd_value=balance * usd_price,
                 decimals=SOL_DECIMALS,
                 chain="solana",
-                last_updated=datetime.now(timezone.utc).isoformat(),
+                last_updated=datetime.now(UTC).isoformat(),
             )
         )
         return balances
@@ -150,7 +150,7 @@ class SolanaConnector(CryptoConnector):
 
                 timestamp = ""
                 if block_time:
-                    timestamp = datetime.fromtimestamp(block_time, tz=timezone.utc).isoformat()
+                    timestamp = datetime.fromtimestamp(block_time, tz=UTC).isoformat()
 
                 usd_price = get_usd_price("SOL")
                 tx_type = "send" if is_outgoing else "receive"

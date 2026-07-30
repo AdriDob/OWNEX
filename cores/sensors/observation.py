@@ -7,7 +7,7 @@ It is NOT an opportunity — just evidence that something exists.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -53,7 +53,7 @@ class Observation:
     tags: list[str] = field(default_factory=list)
 
     # Timing
-    observed_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    observed_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     # Confidence in the observation itself (not the signal quality)
     confidence: float = 1.0

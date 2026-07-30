@@ -8,7 +8,7 @@ import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 
-LOG = logging.getLogger("cateye.recon.seclists")
+LOG = logging.getLogger("ownex.recon.seclists")
 
 
 @dataclass

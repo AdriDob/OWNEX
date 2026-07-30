@@ -12,6 +12,7 @@ Coordinates:
 from __future__ import annotations
 
 import logging
+from datetime import UTC
 from typing import Any
 
 from cores.contracts import ArtifactProtocol
@@ -21,7 +22,7 @@ from cores.intelligence.dependency_graph import DependencyGraph
 from cores.intelligence.event_system import EventSystem, get_event_system
 from cores.intelligence.observability import ObservabilityCollector, get_observability
 
-LOG = logging.getLogger("cateye.intelligence.orchestrator")
+LOG = logging.getLogger("ownex.intelligence.orchestrator")
 
 
 class UnifiedOrchestrator:
@@ -80,8 +81,8 @@ class UnifiedOrchestrator:
         if event_type:
             self.events.emit(event_type, {"artifact_type": artifact_type, "version": artifact.version})
         if artifact_type == "PipelineArtifact":
-            from datetime import datetime, timezone
-            self._last_pipeline_run = datetime.now(timezone.utc).isoformat()
+            from datetime import datetime
+            self._last_pipeline_run = datetime.now(UTC).isoformat()
         return artifact
 
     def get(self, artifact_type: str) -> ArtifactProtocol | None:

@@ -5,7 +5,7 @@ from typing import Any
 
 from cores.events.types import EventEnvelope
 
-logger = logging.getLogger("cateye.execution.integration")
+logger = logging.getLogger("ownex.execution.integration")
 
 
 class ExecutionEventBusBridge:

@@ -10,8 +10,8 @@ import logging
 from typing import Any
 
 from cores.events.correlation import get_or_create_correlation_id
-from cores.events.types import EventEnvelope
 from cores.events.store import get_event_store
+from cores.events.types import EventEnvelope
 
 logger = logging.getLogger("orion.core.copilot.publisher")
 SOURCE = "copilot"

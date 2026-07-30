@@ -4,7 +4,7 @@ Prevents work interruption by detecting provider limits early and
 switching to available alternatives before the current model fails.
 
 Fallback chain (never includes OpenRouter directly):
-  OpenCode Free → FCC Proxy → NVIDIA NIM → Ollama Local
+  OpenCode Free → FCC Proxy → GooseAI → NVIDIA NIM → Ollama Local
 
 Provider status is persisted to ~/.orion/ai_provider_status.json
 for cross-module visibility.
@@ -21,14 +21,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("cateye.ai_router")
+logger = logging.getLogger("ownex.ai_router")
 
 POLICY_PATH = os.path.expanduser("~/.orion/ai_policy.yaml")
 HISTORY_PATH = os.path.expanduser("~/.orion/ai_switches.jsonl")
 
 _TIER_ORDER = {"free": 1, "proxy": 2, "cloud": 3, "local": 4}
 
-_VALID_CHAIN = ["opencode_free", "fcc_proxy", "nvidia_nim", "ollama"]
+_VALID_CHAIN = ["opencode_free", "fcc_proxy", "gooseai", "nvidia_nim", "ollama"]
 
 _ALWAYS_VALID_MODELS = {
     "opencode/deepseek-v4-flash-free",
@@ -258,7 +258,37 @@ class AIRouterEngine:
             )
         )
 
-        # 3. Ollama local
+        # 3. GooseAI (cloud, cost-effective)
+        gooseai_available, gooseai_models, gooseai_latency = self._check_gooseai()
+        providers.append(
+            AIProviderStatus(
+                name="gooseai",
+                tier="cloud",
+                available=gooseai_available,
+                current_model=gooseai_models[0] if gooseai_models else "",
+                models=gooseai_models,
+                latency_ms=gooseai_latency,
+                last_checked=now,
+                error="" if gooseai_available else "GooseAI not configured",
+            )
+        )
+
+        # 4. NVIDIA NIM (cloud, high quality)
+        nim_available, nim_models, nim_latency = self._check_nvidia_nim()
+        providers.append(
+            AIProviderStatus(
+                name="nvidia_nim",
+                tier="cloud",
+                available=nim_available,
+                current_model=nim_models[0] if nim_models else "",
+                models=nim_models,
+                latency_ms=nim_latency,
+                last_checked=now,
+                error="" if nim_available else "NVIDIA NIM not reachable",
+            )
+        )
+
+        # 5. Ollama local
         ollama_available, ollama_models, ollama_latency = self._check_ollama()
         providers.append(
             AIProviderStatus(
@@ -305,6 +335,54 @@ class AIRouterEngine:
         except Exception:
             pass
         return []
+
+    def _check_gooseai(self) -> tuple[bool, list[str], float]:
+        start = time.monotonic()
+        try:
+            import httpx
+
+            api_key = os.getenv("GOSEAI_API_KEY", "")
+            base_url = os.getenv("GOSEAI_API_BASE", "https://api.goose.ai/v1")
+
+            if not api_key:
+                elapsed = (time.monotonic() - start) * 1000
+                return False, [], elapsed
+
+            headers = {"Authorization": f"Bearer {api_key}"}
+            resp = httpx.get(f"{base_url}/models", headers=headers, timeout=5.0)
+            elapsed = (time.monotonic() - start) * 1000
+
+            if resp.status_code == 200:
+                data = resp.json()
+                models = [m["id"] for m in data.get("data", []) if m.get("id")]
+                return bool(models), models, elapsed
+            return False, [], elapsed
+        except Exception:
+            elapsed = (time.monotonic() - start) * 1000
+            return False, [], elapsed
+
+    def _check_nvidia_nim(self) -> tuple[bool, list[str], float]:
+        start = time.monotonic()
+        try:
+            import httpx
+
+            api_key = os.getenv("NVIDIA_API_KEY", "")
+            if not api_key:
+                elapsed = (time.monotonic() - start) * 1000
+                return False, [], elapsed
+
+            headers = {"Authorization": f"Bearer {api_key}"}
+            resp = httpx.get("https://integrate.api.nvidia.com/v1/models", headers=headers, timeout=5.0)
+            elapsed = (time.monotonic() - start) * 1000
+
+            if resp.status_code == 200:
+                data = resp.json()
+                models = [m["id"] for m in data.get("data", []) if m.get("id")]
+                return bool(models), models, elapsed
+            return False, [], elapsed
+        except Exception:
+            elapsed = (time.monotonic() - start) * 1000
+            return False, [], elapsed
 
     def _check_ollama(self) -> tuple[bool, list[str], float]:
         start = time.monotonic()
@@ -462,114 +540,103 @@ class AIRouterEngine:
 
         return FallbackRecommendation(should_switch=False, reason="No suitable fallback found")
 
-    def get_status(self) -> dict[str, Any]:
-        health = self.check_health()
-        history = self._history[-10:]
-        return {
-            "policy": self._policy.to_dict(),
-            "health": health.to_dict(),
-            "proxy_locked": self.is_proxy_locked(),
-            "switch_history": [r.to_dict() for r in history],
-        }
-
-    # ── Event publishing ─────────────────────────────────────────
-
-    def _get_event_bus(self) -> Any:
-        if self._event_bus is None:
-            try:
-                from cores.events.event_bus import get_core_event_bus
-
-                self._event_bus = get_core_event_bus()
-            except Exception:
-                pass
-        return self._event_bus
-
-    def publish_event(self, event_type: str, **data: Any) -> None:
-        bus = self._get_event_bus()
-        if bus is None:
-            return
-        try:
-            bus.publish(event_type, **data)
-        except Exception as exc:
-            logger.debug("Cannot publish event %s: %s", event_type, exc)
+    def execute_switch(self, task_type: str = "", task_complexity: str = "") -> FallbackRecommendation:
+        recommendation = self.recommend_fallback(task_type, task_complexity)
+        if recommendation.should_switch:
+            self._record_switch(recommendation)
+        return recommendation
 
     def record_switch(self, record: SwitchRecord) -> None:
+        """Public method to record a switch (for testing)."""
         self._history.append(record)
-        self._persist_switch(record)
-        self.publish_event(
-            "ai:router:switched" if record.success else "ai:router:switch_failed",
-            from_provider=record.from_provider,
-            from_model=record.from_model,
-            to_provider=record.to_provider,
-            to_model=record.to_model,
-            reason=record.reason,
+        self._save_history()
+
+    def _record_switch(self, rec: FallbackRecommendation) -> None:
+        record = SwitchRecord(
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            from_provider=rec.from_provider,
+            from_model=rec.from_model,
+            to_provider=rec.to_provider,
+            to_model=rec.to_model,
+            reason=rec.reason,
+            success=True,
         )
-
-    # ── History persistence ──────────────────────────────────────
-
-    def _persist_switch(self, record: SwitchRecord) -> None:
-        try:
-            path = Path(HISTORY_PATH)
-            path.parent.mkdir(parents=True, exist_ok=True)
-            with open(path, "a") as f:
-                f.write(json.dumps(record.to_dict()) + "\n")
-        except Exception as exc:
-            logger.debug("Cannot persist switch record: %s", exc)
+        self._history.append(record)
+        self._save_history()
 
     def _load_history(self) -> None:
         try:
-            path = Path(HISTORY_PATH)
-            if path.exists():
-                with open(path) as f:
+            if os.path.isfile(HISTORY_PATH):
+                with open(HISTORY_PATH) as f:
                     for line in f:
-                        line = line.strip()
-                        if line:
-                            try:
-                                data = json.loads(line)
-                                self._history.append(SwitchRecord(**data))
-                            except Exception:
-                                continue
-        except Exception:
-            pass
+                        if line.strip():
+                            data = json.loads(line)
+                            self._history.append(SwitchRecord(**data))
+        except Exception as exc:
+            logger.debug("Cannot load switch history: %s", exc)
 
-    def get_history(self, limit: int = 20) -> list[SwitchRecord]:
-        return list(self._history[-limit:])
+    def _save_history(self) -> None:
+        try:
+            Path(HISTORY_PATH).parent.mkdir(parents=True, exist_ok=True)
+            with open(HISTORY_PATH, "w") as f:
+                for record in self._history[-500:]:
+                    f.write(json.dumps(record.to_dict()) + "\n")
+        except Exception as exc:
+            logger.warning("Cannot save switch history: %s", exc)
+
+    def get_switch_history(self, limit: int = 50) -> list[dict[str, Any]]:
+        return [r.to_dict() for r in self._history[-limit:]]
+
+    def get_history(self, limit: int = 50) -> list[dict[str, Any]]:
+        """Alias for get_switch_history for test compatibility."""
+        return self.get_switch_history(limit)
 
     def clear_history(self) -> None:
+        """Clear the switch history."""
         self._history.clear()
-        try:
-            path = Path(HISTORY_PATH)
-            if path.exists():
-                path.unlink()
-        except Exception:
-            pass
+        self._save_history()
 
-    # ── Capability registration ──────────────────────────────────
+    def _persist_switch(self, record: SwitchRecord) -> None:
+        """Persist a switch record (called internally)."""
+        self._history.append(record)
+        self._save_history()
+
+    def publish_event(self, event: str, **kwargs) -> None:
+        """Publish an event to the event bus (no-op if no bus)."""
+        if self._event_bus:
+            self._event_bus.publish(event, **kwargs)
 
     def register_capabilities(self) -> None:
+        """Register capabilities with the capability registry."""
         try:
-            from core.capabilities.registry import get_capability_registry
+            from cores.capabilities.registry import get_capability_registry
 
-            reg = get_capability_registry()
-            reg.register(
-                "ai_completion",
+            registry = get_capability_registry()
+            registry.register(
                 "ai_router",
-                {"providers": "opencode_free,fcc_proxy,ollama", "models": sorted(_ALWAYS_VALID_MODELS)},
-                description="Intelligent AI model fallback routing",
+                "core.ai_router.engine",
+                metadata={
+                    "name": "AI Router",
+                    "description": "Intelligent model fallback for ORION ecosystem",
+                    "version": "1.0.0",
+                    "capabilities": [
+                        "provider_discovery",
+                        "fallback_recommendation",
+                        "health_monitoring",
+                        "switch_execution",
+                    ],
+                },
             )
-            reg.register(
-                "ai_health_check",
-                "ai_router",
-                {},
-                description="Check health of all AI providers",
-            )
-        except Exception as exc:
-            logger.warning("Cannot register AI Router capabilities: %s", exc)
+        except Exception as e:
+            logger.debug("Could not register capabilities: %s", e)
 
 
-# ── Module-level registration ──────────────────────────────────
+def get_ai_router() -> AIRouterEngine:
+    """Global singleton accessor."""
+    global _ROUTER
+    if _ROUTER is None:
+        _ROUTER = AIRouterEngine()
+    return _ROUTER
 
-try:
-    AIRouterEngine().register_capabilities()
-except Exception:
-    logger.debug("AI Router capabilities not registered at import time")
+
+_ROUTER: AIRouterEngine | None = None

@@ -4,7 +4,7 @@ import logging
 import time as _real_time
 from typing import Any
 
-logger = logging.getLogger("cateye.execution.resource")
+logger = logging.getLogger("ownex.execution.resource")
 
 
 class ResourceManager:

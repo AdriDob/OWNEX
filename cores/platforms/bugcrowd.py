@@ -5,7 +5,7 @@ from typing import Any
 
 from cores.platforms.base import BugBountyPlatform, SubmissionResult, SyncResult
 
-logger = logging.getLogger("cateye.platforms.bugcrowd")
+logger = logging.getLogger("ownex.platforms.bugcrowd")
 
 BC_API_BASE = "https://api.bugcrowd.com/v1"
 

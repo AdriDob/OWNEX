@@ -6,7 +6,7 @@ import json
 import logging
 import time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.crypto.base import (
@@ -20,7 +20,7 @@ from cores.crypto.base import (
 )
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("cateye.crypto.exchange")
+logger = logging.getLogger("ownex.crypto.exchange")
 
 
 SUPPORTED_EXCHANGES: dict[str, dict[str, str]] = {
@@ -106,7 +106,7 @@ class ExchangeConnector(CryptoConnector):
                     balance=total,
                     usd_value=total * usd_price,
                     chain=f"exchange:{self._exchange_name}",
-                    last_updated=datetime.now(timezone.utc).isoformat(),
+                    last_updated=datetime.now(UTC).isoformat(),
                 ))
         return balances
 
@@ -128,7 +128,7 @@ class ExchangeConnector(CryptoConnector):
                         t.get("time", t.get("created_at", 0)) / 1000
                         if isinstance(t.get("time"), (int, float)) and t.get("time", 0) > 1e10
                         else t.get("time", t.get("created_at", 0)),
-                        tz=timezone.utc,
+                        tz=UTC,
                     ).isoformat(),
                     asset=t.get("symbol", t.get("product_id", "")),
                     amount=float(t.get("qty", t.get("size", 0))),
@@ -151,7 +151,7 @@ class ExchangeConnector(CryptoConnector):
                         d.get("insertTime", d.get("created_at", 0)) / 1000
                         if isinstance(d.get("insertTime"), (int, float)) and d.get("insertTime", 0) > 1e10
                         else d.get("insertTime", d.get("created_at", 0)),
-                        tz=timezone.utc,
+                        tz=UTC,
                     ).isoformat(),
                     asset=d.get("coin", d.get("currency", "")),
                     amount=float(d.get("amount", 0)),
@@ -189,7 +189,7 @@ class ExchangeConnector(CryptoConnector):
                         w.get("applyTime", w.get("created_at", 0)) / 1000
                         if isinstance(w.get("applyTime"), (int, float)) and w.get("applyTime", 0) > 1e10
                         else w.get("applyTime", w.get("created_at", 0)),
-                        tz=timezone.utc,
+                        tz=UTC,
                     ).isoformat(),
                 ))
 

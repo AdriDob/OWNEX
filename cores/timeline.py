@@ -1,11 +1,11 @@
 import logging
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from database.db import SessionLocal
 
-LOG = logging.getLogger("cateye.timeline")
+LOG = logging.getLogger("ownex.timeline")
 
 EVENT_TYPES = frozenset({
     "recon",
@@ -51,7 +51,7 @@ class TimelineEvent:
 @dataclass
 class Timeline:
     events: list[TimelineEvent] = field(default_factory=list)
-    generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    generated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def add(self, event: TimelineEvent) -> None:
         self.events.append(event)

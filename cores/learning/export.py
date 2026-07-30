@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from .profile import ProfileService, get_profile_service
 
@@ -24,7 +24,7 @@ class ProfileExporter:
             return "# Investigator Profile\n\n*No profile data yet.*"
 
         lines = ["# Investigator Profile"]
-        lines.append(f"\n*Generated: {datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')}Z*")
+        lines.append(f"\n*Generated: {datetime.now(UTC).isoformat().replace('+00:00', 'Z')}Z*")
         lines.append(f"\n*Adaptive mode: {'Enabled' if stats.get('adaptive_mode') else 'Disabled'}*")
 
         # Discovery

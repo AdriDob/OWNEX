@@ -7,7 +7,7 @@ from typing import Any
 
 from core.auth.provider import AuthType
 
-logger = logging.getLogger("cateye.auth.credentials")
+logger = logging.getLogger("ownex.auth.credentials")
 
 
 @dataclass

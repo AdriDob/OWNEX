@@ -6,7 +6,7 @@ from typing import Any
 from core.execution.runtime.kernel import ExecutionKernel
 from core.execution.runtime.state_machine import WorkflowState
 
-logger = logging.getLogger("cateye.execution.api")
+logger = logging.getLogger("ownex.execution.api")
 
 
 class RuntimeAPI:

@@ -22,7 +22,7 @@ from core.http_probe.probes import (
     XSSProbe,
 )
 
-logger = logging.getLogger("cateye.http_probe.engine")
+logger = logging.getLogger("ownex.http_probe.engine")
 
 # ── HTTP client abstraction ───────────────────────────────────
 

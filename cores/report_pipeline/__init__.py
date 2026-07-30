@@ -10,7 +10,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -18,7 +18,7 @@ from database import db
 from database.models import Evidence, Finding, Report, Target, Verdict
 from database.models_economic import BountyTier, Program
 
-logger = logging.getLogger("cateye.report_pipeline")
+logger = logging.getLogger("ownex.report_pipeline")
 
 REPORTS_DIR = Path("reports/generated")
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -179,7 +179,7 @@ class ReportPipeline:
     def get_daily_top(self, limit: int = 7) -> list[ReportCandidate]:
         """Top N eligible findings from last 24h, ranked by score * EVH."""
         candidates = self.get_eligible_findings()
-        cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+        cutoff = datetime.now(UTC) - timedelta(hours=24)
         daily = [c for c in candidates if datetime.fromisoformat(c.discovered_at.replace("Z", "+00:00")) > cutoff]
         daily.sort(key=lambda c: c.score * max(c.evh, 1), reverse=True)
         return daily[:limit]
@@ -187,14 +187,14 @@ class ReportPipeline:
     def get_weekly_top(self, limit: int = 15) -> list[ReportCandidate]:
         """Top N eligible findings from last 168h."""
         candidates = self.get_eligible_findings()
-        cutoff = datetime.now(timezone.utc) - timedelta(hours=168)
+        cutoff = datetime.now(UTC) - timedelta(hours=168)
         weekly = [c for c in candidates if datetime.fromisoformat(c.discovered_at.replace("Z", "+00:00")) > cutoff]
         weekly.sort(key=lambda c: c.score * max(c.evh, 1), reverse=True)
         return weekly[:limit]
 
     def generate_report(self, candidate: ReportCandidate) -> GeneratedReport:
         """Generate complete markdown + JSON report for a candidate."""
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         markdown = self._render_markdown(candidate)
         json_data = self._to_json(candidate)
@@ -225,7 +225,7 @@ class ReportPipeline:
             report.markdown = edited_markdown
             report.file_path = str(REPORTS_DIR / f"report_{finding_id}_edited.md")
             Path(report.file_path).write_text(edited_markdown, encoding="utf-8")
-            report.edited_at = datetime.now(timezone.utc).isoformat()
+            report.edited_at = datetime.now(UTC).isoformat()
 
         report.stage = "ready"
         return report
@@ -324,7 +324,7 @@ class ReportPipeline:
             f"**Estimated Reward:** ${c.estimated_reward:,.2f}  ",
             f"**EVH (Expected $/hr):** ${c.evh:,.2f}  ",
             f"**Discovered:** {c.discovered_at[:19].replace('T', ' ')} UTC  ",
-            f"**Report Generated:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC  ",
+            f"**Report Generated:** {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')} UTC  ",
             "",
             "---",
             "",

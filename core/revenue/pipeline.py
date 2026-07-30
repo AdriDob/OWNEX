@@ -27,7 +27,7 @@ from database.db import SessionLocal
 from database.models import Finding, Report, SubmissionRecord
 from database.models_economic import PayoutRecord, RevenueEvent
 
-logger = logging.getLogger("cateye.revenue.pipeline")
+logger = logging.getLogger("ownex.revenue.pipeline")
 
 REVENUE_SUBMISSION_STATUSES = [
     "draft",

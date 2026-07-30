@@ -10,7 +10,7 @@ from cores.financial.truth_layer import get_truth_layer
 from cores.financial.withdrawal import get_summary as get_withdrawal_summary
 from cores.identity_vault import get_identity_vault
 
-logger = logging.getLogger("cateye.api.accounts_hub")
+logger = logging.getLogger("ownex.api.accounts_hub")
 
 router = APIRouter(prefix="/api/accounts-hub", tags=["accounts_hub"])
 

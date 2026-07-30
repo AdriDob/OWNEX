@@ -21,7 +21,7 @@ from cores.agents import (
     get_strategy_agent,
 )
 
-logger = logging.getLogger("cateye.api.agents")
+logger = logging.getLogger("ownex.api.agents")
 router = APIRouter(prefix="/api/agents", tags=["agents"])
 
 

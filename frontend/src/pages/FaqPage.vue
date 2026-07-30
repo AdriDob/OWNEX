@@ -20,7 +20,7 @@ const faqs: FaqItem[] = [
   // ── Seguridad ──
   { q: '¿Dónde se almacenan mis API keys?', a: 'Las API keys se cifran con AES-256-GCM usando la Web Crypto API del navegador. La clave de cifrado se guarda en localStorage y los datos cifrados en sessionStorage. Al cerrar el navegador, las keys en sessionStorage se borran automáticamente.', category: 'Seguridad' },
   { q: '¿Cómo se protegen las comunicaciones?', a: 'Todas las llamadas a la API usan tokens JWT firmados con HMAC-SHA256. El middleware CSRF de doble cookie protege contra ataques de falsificación. Las rutas de la API requieren autenticación excepto login, health y activation.', category: 'Seguridad' },
-  { q: '¿OWNEX registra eventos de seguridad?', a: 'Sí. Todos los eventos de autenticación (login, logout, token almacenado) se registran en un audit log persistente cifrado en ~/.cateye/audit.jsonl con permisos 600.', category: 'Seguridad' },
+  { q: '¿OWNEX registra eventos de seguridad?', a: 'Sí. Todos los eventos de autenticación (login, logout, token almacenado) se registran en un audit log persistente cifrado en ~/.ownex/audit.jsonl con permisos 600.', category: 'Seguridad' },
   { q: '¿Qué pasa si alguien roba mi token de sesión?', a: 'Los tokens tienen expiración de 24 horas. El secret usado para firmarlos persiste en disco con permisos 600. Si necesitas revocar sesiones, puedes reiniciar el servidor o cambiar la variable CATEYE_AUTH_SECRET.', category: 'Seguridad' },
 
   // ── Operación ──
