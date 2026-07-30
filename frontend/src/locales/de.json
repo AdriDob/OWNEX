@@ -1,0 +1,28 @@
+{
+  "app": {
+    "name": "OWNEX OMEGA",
+    "tagline": "Autonome Arbeitsbetriebsplattform"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "mission_control": "Mission Control",
+    "analytics": "Analysen",
+    "opportunities": "Gelegenheiten",
+    "findings": "Ergebnisse",
+    "reports": "Berichte",
+    "settings": "Einstellungen",
+    "terminal": "Terminal"
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "create": "Erstellen",
+    "update": "Aktualisieren",
+    "search": "Suchen",
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg"
+  }
+}

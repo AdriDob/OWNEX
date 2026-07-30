@@ -1,0 +1,153 @@
+{
+  "app": {
+    "name": "OWNEX OMEGA",
+    "tagline": "Plateforme Opérationnelle de Travail Autonome"
+  },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "mission_control": "Contrôle de Mission",
+    "analytics": "Analyses",
+    "opportunities": "Opportunités",
+    "findings": "Découvertes",
+    "reports": "Rapports",
+    "settings": "Paramètres",
+    "terminal": "Terminal"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "subtitle": "Vue d'ensemble du système",
+    "status": "État du système",
+    "active_agents": "Agents actifs",
+    "workflows": "Workflows",
+    "throughput": "Débit",
+    "revenue": "Revenus",
+    "knowledge": "Connaissance"
+  },
+  "mission_control": {
+    "title": "Contrôle de Mission",
+    "subtitle": "État de la flotte d'agents",
+    "agents": "Agents",
+    "tasks": "Tâches",
+    "learning": "Apprentissage",
+    "performance": "Performance"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "subtitle": "Configuration",
+    "appearance": "Apparence",
+    "language": "Langue",
+    "voice": "Contrôle vocal",
+    "integrations": "Intégrations",
+    "security": "Sécurité",
+    "about": "À propos"
+  },
+  "appearance": {
+    "theme": "Thème",
+    "theme_cyber": "Cyber",
+    "theme_ps5": "PS5",
+    "theme_minimal": "Minimal",
+    "theme_dark": "Sombre",
+    "colors": "Couleurs",
+    "density": "Densité",
+    "density_comfortable": "Confortable",
+    "density_normal": "Normal",
+    "density_compact": "Compact"
+  },
+  "language": {
+    "title": "Langue",
+    "select": "Sélectionner la langue",
+    "english": "Anglais",
+    "spanish": "Espagnol",
+    "french": "Français",
+    "german": "Allemand",
+    "japanese": "Japonais",
+    "chinese": "Chinois"
+  },
+  "voice": {
+    "title": "Contrôle vocal",
+    "enabled": "Activer le contrôle vocal",
+    "wake_word": "Mot de réveil",
+    "continuous": "Écoute continue",
+    "language": "Langue vocale",
+    "test_microphone": "Tester le microphone",
+    "commands": "Commandes vocales"
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "update": "Mettre à jour",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "sort": "Trier",
+    "export": "Exporter",
+    "import": "Importer",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "warning": "Avertissement",
+    "info": "Information",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "close": "Fermer",
+    "open": "Ouvrir",
+    "view": "Voir",
+    "actions": "Actions",
+    "details": "Détails",
+    "status": "État",
+    "date": "Date",
+    "time": "Heure",
+    "all": "Tous",
+    "none": "Aucun"
+  },
+  "status": {
+    "online": "En ligne",
+    "offline": "Hors ligne",
+    "pending": "En attente",
+    "in_progress": "En cours",
+    "completed": "Terminé",
+    "failed": "Échoué",
+    "cancelled": "Annulé"
+  },
+  "agents": {
+    "orchestrator": "Orchestrateur",
+    "architecture": "Architecture",
+    "coding": "Codage",
+    "debug": "Débogage",
+    "qa": "Contrôle qualité",
+    "security": "Sécurité",
+    "documentation": "Documentation",
+    "research": "Recherche",
+    "product": "Produit",
+    "revenue": "Revenus",
+    "automation": "Automatisation",
+    "infrastructure": "Infrastructure",
+    "evolution": "Évolution"
+  },
+  "workflows": {
+    "feature_development": "Développement de fonctionnalités",
+    "bug_fix": "Correction de bugs",
+    "revenue_opportunity": "Opportunité de revenus",
+    "start": "Démarrer le workflow",
+    "pause": "Mettre en pause le workflow",
+    "resume": "Reprendre le workflow",
+    "cancel": "Annuler le workflow"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "no_notifications": "Aucune notification",
+    "mark_all_read": "Marquer tout comme lu",
+    "clear_all": "Tout effacer"
+  },
+  "terminal": {
+    "title": "Terminal",
+    "connected": "Connecté",
+    "disconnected": "Déconnecté",
+    "shell": "Shell",
+    "command": "Commande"
+  }
+}
