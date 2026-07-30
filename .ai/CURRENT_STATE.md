@@ -692,4 +692,65 @@ OpenCode Config:
 4. **Testing & Validation**
    - Departmental workflow tests
    - Handoff verification
-   - MVP agent validation
+
+**Welcome Page — Página de Bienvenida para OWNEX OMEGA**
+- frontend/src/pages/WelcomePage.vue: Página de bienvenida impactante
+  - Hero Section con logo OWNEX animado (pulse-ring, pulse-dot)
+  - Feature pills (Target Discovery, Vulnerability Analysis, Automated Reporting, MERLIN AI Assistant)
+  - MERLIN mini avatar con bubble de saludo animado
+  - Greetings rotativos de MERLIN (cada 10 segundos)
+  - Quick Actions Grid (6 acciones principales):
+    - Hablar con MERLIN
+    - Discovery
+    - Hallazgos
+    - Reportes
+    - Capital
+    - Backup
+  - System Status Grid (4 servicios):
+    - OWNEX OMEGA (Online)
+    - MERLIN (Ready)
+    - Scheduler (Running)
+    - Database (Connected)
+  - Recent Activity List (4 actividades recientes)
+  - Quick Stats Grid (4 estadísticas):
+    - Targets Activos
+    - Hallazgos Totales
+    - Reportes del Mes
+    - Ingresos del Mes
+  - Footer con versión y copyright
+  - Animaciones: fadeIn, pulse-ring, pulse-dot, retro-border, bubble-pulse
+  - Styling Steam-like (gradients, backdrop-filter, borders, shadows)
+  - Responsive: Grids adaptativos, flex-wrap
+- frontend/src/router/index.ts: Router actualizado
+  - Ruta '/' ahora apunta a WelcomePage (bienvenido)
+  - Ruta '/dashboard' apunta a GamingConsole (dashboard)
+  - Legacy redirect '/home' → '/dashboard'
+- frontend/src/components/layout/AppSidebar.vue: Sidebar actualizado
+  - 'Mission Control' → 'Bienvenido' (path: '/')
+  - 'Dashboard' agregado (path: '/dashboard')
+  - 'MERLIN' agregado en sección PULSO (path: '/merlin')
+
+**ModernNavbar — Barra de Navegación Moderna**
+- frontend/src/components/layout/ModernNavbar.vue: Navbar moderna
+  - Navbar con diseño moderno y minimalista
+  - Brand OWNEX OMEGA con logo animado (pulse-ring-mini, pulse-dot-mini)
+  - Search bar central con icono de búsqueda
+  - Navbar actions con botones de navegación rápida:
+    - MERLIN (con avatar animado)
+    - Discovery
+    - Hallazgos
+    - Reportes
+    - Capital
+    - Settings
+  - MERLIN Quick Chat dropdown:
+    - Avatar pequeño animado
+    - Header con título y botón close
+    - Chat messages area
+    - Input area con botón send
+  - Animaciones: pulse-ring-mini, pulse-dot-mini, retro-border-mini, slide-down
+  - Styling moderno (backdrop-filter, borders, shadows, gradients)
+  - Responsive design
+  - Sticky navbar (z-index: 100)
+- Welcome Page actualizada:
+  - Integración de ModernNavbar
+  - Navbar incluido en la página de bienvenida
