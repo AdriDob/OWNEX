@@ -1,0 +1,153 @@
+{
+  "app": {
+    "name": "OWNEX OMEGA",
+    "tagline": "Autonomous Work Operating Platform"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "mission_control": "Mission Control",
+    "analytics": "Analytics",
+    "opportunities": "Opportunities",
+    "findings": "Findings",
+    "reports": "Reports",
+    "settings": "Settings",
+    "terminal": "Terminal"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "System Overview",
+    "status": "System Status",
+    "active_agents": "Active Agents",
+    "workflows": "Workflows",
+    "throughput": "Throughput",
+    "revenue": "Revenue",
+    "knowledge": "Knowledge"
+  },
+  "mission_control": {
+    "title": "Mission Control",
+    "subtitle": "Agent Fleet Status",
+    "agents": "Agents",
+    "tasks": "Tasks",
+    "learning": "Learning",
+    "performance": "Performance"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Configuration",
+    "appearance": "Appearance",
+    "language": "Language",
+    "voice": "Voice Control",
+    "integrations": "Integrations",
+    "security": "Security",
+    "about": "About"
+  },
+  "appearance": {
+    "theme": "Theme",
+    "theme_cyber": "Cyber",
+    "theme_ps5": "PS5",
+    "theme_minimal": "Minimal",
+    "theme_dark": "Dark",
+    "colors": "Colors",
+    "density": "Density",
+    "density_comfortable": "Comfortable",
+    "density_normal": "Normal",
+    "density_compact": "Compact"
+  },
+  "language": {
+    "title": "Language",
+    "select": "Select Language",
+    "english": "English",
+    "spanish": "Español",
+    "french": "Français",
+    "german": "Deutsch",
+    "japanese": "日本語",
+    "chinese": "中文"
+  },
+  "voice": {
+    "title": "Voice Control",
+    "enabled": "Enable Voice Control",
+    "wake_word": "Wake Word",
+    "continuous": "Continuous Listening",
+    "language": "Voice Language",
+    "test_microphone": "Test Microphone",
+    "commands": "Voice Commands"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "update": "Update",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "export": "Export",
+    "import": "Import",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "open": "Open",
+    "view": "View",
+    "actions": "Actions",
+    "details": "Details",
+    "status": "Status",
+    "date": "Date",
+    "time": "Time",
+    "all": "All",
+    "none": "None"
+  },
+  "status": {
+    "online": "Online",
+    "offline": "Offline",
+    "pending": "Pending",
+    "in_progress": "In Progress",
+    "completed": "Completed",
+    "failed": "Failed",
+    "cancelled": "Cancelled"
+  },
+  "agents": {
+    "orchestrator": "Orchestrator",
+    "architecture": "Architecture",
+    "coding": "Coding",
+    "debug": "Debug",
+    "qa": "QA",
+    "security": "Security",
+    "documentation": "Documentation",
+    "research": "Research",
+    "product": "Product",
+    "revenue": "Revenue",
+    "automation": "Automation",
+    "infrastructure": "Infrastructure",
+    "evolution": "Evolution"
+  },
+  "workflows": {
+    "feature_development": "Feature Development",
+    "bug_fix": "Bug Fix",
+    "revenue_opportunity": "Revenue Opportunity",
+    "start": "Start Workflow",
+    "pause": "Pause Workflow",
+    "resume": "Resume Workflow",
+    "cancel": "Cancel Workflow"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "no_notifications": "No notifications",
+    "mark_all_read": "Mark all as read",
+    "clear_all": "Clear all"
+  },
+  "terminal": {
+    "title": "Terminal",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "shell": "Shell",
+    "command": "Command"
+  }
+}

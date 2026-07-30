@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
+import { useI18n } from '@/composables/useI18n'
 import type { ToolsSettings } from '@/stores/settings'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
@@ -18,6 +19,7 @@ import {
 
 const settings = useSettingsStore()
 const a11y = useAccessibilityStore()
+const { setLocale, currentLocale, supportedLocales } = useI18n()
 
 const fontScaleOptions = [75, 85, 100, 115, 130, 150]
 
@@ -379,13 +381,13 @@ onMounted(() => {
               <Tooltip text="Idioma de la interfaz de usuario." position="right"><span class="inline-flex h-3 w-3 items-center justify-center rounded-full bg-muted-foreground/20 text-[7px] text-muted-foreground cursor-help">?</span></Tooltip>
             </label>
             <select
-              :value="settings.data.general.language"
-              @change="settings.updateGeneral({ language: ($event.target as HTMLSelectElement).value })"
+              :value="currentLocale"
+              @change="setLocale(($event.target as HTMLSelectElement).value as any)"
               class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2 font-mono text-sm text-foreground focus:outline-none focus:border-primary/50"
             >
-              <option value="es">Español</option>
-              <option value="en">English</option>
-              <option value="pt">Português</option>
+              <option v-for="locale in supportedLocales" :key="locale" :value="locale">
+                {{ locale === 'en' ? 'English' : locale === 'es' ? 'Español' : locale === 'fr' ? 'Français' : locale === 'de' ? 'Deutsch' : locale === 'ja' ? '日本語' : locale === 'zh' ? '中文' : locale }}
+              </option>
             </select>
           </div>
         </div>
