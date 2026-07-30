@@ -21,6 +21,7 @@ from cores.revenue_tracker.RevenueTracker import (
     RevenueTracker,
     get_revenue_tracker,
 )
+from cores.revenue_tracker.revenue_potential import generate_revenue_report
 
 logger = logging.getLogger("ownex.api.zero_barrier")
 
@@ -322,4 +323,27 @@ async def sync_platform_earnings(platform: str, api_key: str = "") -> dict[str, 
         raise HTTPException(status_code=404, detail=f"Platform connector for {platform} not found")
     except Exception as e:
         logger.error(f"[ZERO-BARRIER] Error syncing platform: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/revenue-potential")
+async def get_revenue_potential() -> dict[str, Any]:
+    """Get maximum revenue potential analysis.
+
+    Returns revenue potential across tiers:
+    - conservative: 0.5x multiplier
+    - moderate: 1.0x multiplier (recommended)
+    - aggressive: 2.0x multiplier
+    - maximum: 3.0x multiplier
+
+    Platforms:
+    - bug_bounty: HackerOne, Bugcrowd, Intigriti, YesWeHack, Synack
+    - dev_bounty: Gitcoin, GitHub Sponsors, Bountysource
+    - data_annotation: Labelbox, Scale AI, Amazon Mechanical Turk
+    """
+    try:
+        report = generate_revenue_report()
+        return report
+    except Exception as e:
+        logger.error(f"[ZERO-BARRIER] Error generating revenue potential: {e}")
         raise HTTPException(status_code=500, detail=str(e))
