@@ -1,6 +1,8 @@
 """Zero-Barrier Income Opportunities API Router.
 
 Provides endpoints for zero-barrier income opportunities (no interview, portfolio, experience required).
+Focused on: Bug Bounty, Dev Bounty, Data Annotation.
+Integrates with existing platform connectors (cores/platforms/).
 """
 
 from __future__ import annotations
@@ -30,7 +32,7 @@ class ZeroBarrierOpportunityRequest(BaseModel):
     """Request to create a zero-barrier opportunity."""
 
     id: str
-    platform: str
+    platform: str  # bug_bounty, dev_bounty, data_annotation
     title: str
     description: str
     amount: float
@@ -65,11 +67,17 @@ class ZeroBarrierOpportunityResponse(BaseModel):
 
 @router.get("/opportunities", response_model=list[ZeroBarrierOpportunityResponse])
 async def get_zero_barrier_opportunities(
-    platform: str | None = None,
+    platform: str | None = None,  # bug_bounty, dev_bounty, data_annotation
     min_amount: float = 0.0,
     difficulty: str | None = None,
 ) -> list[ZeroBarrierOpportunityResponse]:
-    """Get zero-barrier opportunities (no interview, portfolio, experience required)."""
+    """Get zero-barrier opportunities (no interview, portfolio, experience required).
+
+    Platforms:
+    - bug_bounty: HackerOne, Bugcrowd, Intigriti, YesWeHack, Synack
+    - dev_bounty: Gitcoin, GitHub Sponsors, Bountysource
+    - data_annotation: Labelbox, Scale AI, Amazon Mechanical Turk
+    """
     tracker = get_revenue_tracker()
 
     try:
@@ -109,8 +117,22 @@ async def get_zero_barrier_opportunities(
 
 @router.post("/opportunities")
 async def create_zero_barrier_opportunity(request: ZeroBarrierOpportunityRequest) -> dict[str, Any]:
-    """Create a zero-barrier opportunity."""
+    """Create a zero-barrier opportunity.
+
+    Platforms:
+    - bug_bounty: HackerOne, Bugcrowd, Intigriti, YesWeHack, Synack
+    - dev_bounty: Gitcoin, GitHub Sponsors, Bountysource
+    - data_annotation: Labelbox, Scale AI, Amazon Mechanical Turk
+    """
     tracker = get_revenue_tracker()
+
+    # Validate platform
+    valid_platforms = ["bug_bounty", "dev_bounty", "data_annotation"]
+    if request.platform not in valid_platforms:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid platform. Must be one of: {', '.join(valid_platforms)}",
+        )
 
     try:
         from cores.revenue_tracker.RevenueTracker import RevenueOpportunity
@@ -155,7 +177,13 @@ async def create_zero_barrier_opportunity(request: ZeroBarrierOpportunityRequest
 
 @router.get("/stats")
 async def get_zero_barrier_stats() -> dict[str, Any]:
-    """Get zero-barrier opportunity statistics."""
+    """Get zero-barrier opportunity statistics.
+
+    Platforms:
+    - bug_bounty: HackerOne, Bugcrowd, Intigriti, YesWeHack, Synack
+    - dev_bounty: Gitcoin, GitHub Sponsors, Bountysource
+    - data_annotation: Labelbox, Scale AI, Amazon Mechanical Turk
+    """
     tracker = get_revenue_tracker()
 
     try:
@@ -198,7 +226,13 @@ async def get_zero_barrier_stats() -> dict[str, Any]:
 
 @router.get("/platforms")
 async def get_zero_barrier_platforms() -> dict[str, Any]:
-    """Get available zero-barrier platforms."""
+    """Get available zero-barrier platforms.
+
+    Platforms:
+    - bug_bounty: HackerOne, Bugcrowd, Intigriti, YesWeHack, Synack
+    - dev_bounty: Gitcoin, GitHub Sponsors, Bountysource
+    - data_annotation: Labelbox, Scale AI, Amazon Mechanical Turk
+    """
     platforms = {
         "bug_bounty": {
             "name": "Bug Bounty",
@@ -206,35 +240,86 @@ async def get_zero_barrier_platforms() -> dict[str, Any]:
             "description": "Find vulnerabilities in software and get paid",
             "avg_reward": 500.0,
             "success_rate": 0.15,
+            "skills": ["web security", "pentesting", "vulnerability analysis"],
+            "connectors": ["hackerone", "bugcrowd", "intigriti", "yeswehack", "synack"],
         },
-        "open_source_bounty": {
-            "name": "Open Source Bounties",
+        "dev_bounty": {
+            "name": "Dev Bounty",
             "platforms": ["Gitcoin", "GitHub Sponsors", "Bountysource", "IssueHunt"],
-            "description": "Complete open source tasks and get paid",
+            "description": "Complete development tasks and get paid",
             "avg_reward": 150.0,
             "success_rate": 0.40,
+            "skills": ["programming", "git", "development"],
+            "connectors": ["gitcoin", "github"],
         },
-        "micro_task": {
-            "name": "Micro Tasks",
-            "platforms": ["Amazon Mechanical Turk", "Clickworker", "Microworkers", "Figure Eight"],
-            "description": "Complete small tasks for pay",
-            "avg_reward": 5.0,
-            "success_rate": 0.85,
-        },
-        "affiliate": {
-            "name": "Affiliate Marketing",
-            "platforms": ["Amazon Associates", "ShareASale", "ClickBank", "Rakuten"],
-            "description": "Promote products and earn commissions",
-            "avg_reward": 25.0,
-            "success_rate": 0.20,
-        },
-        "gamification": {
-            "name": "Gamification",
-            "platforms": ["Swagbucks", "InboxDollars", "Survey Junkie", "UserTesting"],
-            "description": "Complete gamified tasks for rewards",
+        "data_annotation": {
+            "name": "Data Annotation",
+            "platforms": ["Labelbox", "Scale AI", "Amazon Mechanical Turk", "Figure Eight"],
+            "description": "Annotate data for AI training and get paid",
             "avg_reward": 10.0,
-            "success_rate": 0.90,
+            "success_rate": 0.85,
+            "skills": ["data labeling", "annotation", "attention to detail"],
+            "connectors": ["mechanical_turk"],
         },
     }
 
     return {"platforms": platforms}
+
+
+@router.get("/sync/{platform}")
+async def sync_platform_earnings(platform: str, api_key: str = "") -> dict[str, Any]:
+    """Sync earnings from platform using existing connectors.
+
+    Platforms:
+    - hackerone: cores/platforms/hackerone.py
+    - bugcrowd: cores/platforms/bugcrowd.py
+    - intigriti: cores/platforms/intigriti.py
+    - yeswehack: cores/platforms/yeswehack.py
+    - synack: cores/platforms/synack.py
+    """
+    valid_platforms = ["hackerone", "bugcrowd", "intigriti", "yeswehack", "synack"]
+    if platform not in valid_platforms:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid platform. Must be one of: {', '.join(valid_platforms)}",
+        )
+
+    try:
+        # Import existing platform connector
+        if platform == "hackerone":
+            from cores.platforms.hackerone import HackerOne
+            connector = HackerOne()
+        elif platform == "bugcrowd":
+            from cores.platforms.bugcrowd import Bugcrowd
+            connector = Bugcrowd()
+        elif platform == "intigriti":
+            from cores.platforms.intigriti import Intigriti
+            connector = Intigriti()
+        elif platform == "yeswehack":
+            from cores.platforms.yeswehack import YesWeHack
+            connector = YesWeHack()
+        elif platform == "synack":
+            from cores.platforms.synack import Synack
+            connector = Synack()
+        else:
+            raise HTTPException(status_code=400, detail="Platform not supported")
+
+        # Sync earnings using existing connector
+        sync_result = connector.sync_earnings(api_key)
+
+        return {
+            "success": sync_result.success,
+            "earnings": sync_result.earnings,
+            "payouts": sync_result.payouts,
+            "programs": sync_result.programs,
+            "total_earned": sync_result.total_earned,
+            "total_pending": sync_result.total_pending,
+            "error": sync_result.error,
+        }
+
+    except ImportError as e:
+        logger.error(f"[ZERO-BARRIER] Platform connector not found: {e}")
+        raise HTTPException(status_code=404, detail=f"Platform connector for {platform} not found")
+    except Exception as e:
+        logger.error(f"[ZERO-BARRIER] Error syncing platform: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
