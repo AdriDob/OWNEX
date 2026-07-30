@@ -1,27 +1,50 @@
-"""OWNEX Specialist Agents — Team-based architecture."""
+"""OWNEX Omega — Departmental Agent Organization."""
 
-from .commander import CommanderAgent
-from .planner import PlannerAgent
-from .research import ResearchAgent
-from .coder import CoderAgent
-from .reviewer import ReviewerAgent
-from .browser import BrowserAgent
-from .security import SecurityAgent
+# Executive Level
+# Build Department
+from .architecture import ArchitectureAgent
+
+# Operations Department
+from .automation import AutomationAgent
+from .coding import CodingAgent
+from .debug import DebugAgent
+
+# Knowledge Department
 from .documentation import DocumentationAgent
-from .finance import FinanceAgent
-from .learning import LearningAgent
+
+# Strategic Department
 from .evolution import EvolutionAgent
+from .infrastructure import InfrastructureAgent
+from .orchestrator import OrchestratorAgent
+
+# Business Department
+from .product import ProductAgent
+
+# Quality Department
+from .qa import QAAgent
+from .research import ResearchAgent
+from .revenue import RevenueAgent
+from .security import SecurityAgent
 
 __all__ = [
-    "CommanderAgent",
-    "PlannerAgent",
-    "ResearchAgent",
-    "CoderAgent",
-    "ReviewerAgent",
-    "BrowserAgent",
+    # Executive
+    "OrchestratorAgent",
+    # Build
+    "ArchitectureAgent",
+    "CodingAgent",
+    "DebugAgent",
+    # Quality
+    "QAAgent",
     "SecurityAgent",
+    # Knowledge
     "DocumentationAgent",
-    "FinanceAgent",
-    "LearningAgent",
+    "ResearchAgent",
+    # Business
+    "ProductAgent",
+    "RevenueAgent",
+    # Operations
+    "AutomationAgent",
+    "InfrastructureAgent",
+    # Strategic
     "EvolutionAgent",
 ]
