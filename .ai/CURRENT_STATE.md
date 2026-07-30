@@ -188,17 +188,30 @@
   - 4 tiers: conservative (0.5x), moderate (1.0x), aggressive (2.0x), maximum (3.0x)
   - PlatformPotential dataclass: avg_reward, success_rate, daily_capacity, avg_time_per_opportunity
   - RevenuePotential dataclass: monthly breakdown por plataforma
-  - calculate_revenue_potential(): cálculo basado en tier multiplier
-  - generate_revenue_report(): reporte completo con todas las tiers
-- Resultados:
+  - calculate_revenue_potential(tier, include_market_modules): cálculo opcional con market modules
+  - generate_revenue_report(include_market_modules): reporte completo con todas las tiers
+- Market Modules (riskier but higher potential):
+  - Trading: Crypto Trading (cores/trading/executor.py) — 10 trades/día, avg $100, 35% win rate, 5% daily risk max, 80% efficiency
+  - Investment: DeFi Yield Farming (cores/investment/manager.py) — 5 positions, 20% APY, $1000 min position, 80% efficiency
+  - Market Intelligence: Arbitrage (cores/market_intelligence/models.py) — 20 opportunities/día, avg $50, 60% success rate, 70% analysis efficiency
+- Resultados SIN market modules:
   - CONSERVATIVE: $27,375/mes ($328,500/año)
   - MODERATE ⭐: $54,750/mes ($657,000/año) — RECOMENDADO
   - AGGRESSIVE: $109,500/mes ($1,314,000/año)
   - MAXIMUM 🚀: $164,250/mes ($1,971,000/año)
-- Desglose Maximum:
-  - Bug Bounty: $33,750/mes (HackerOne, Bugcrowd, Intigriti, YesWeHack, Synack)
-  - Dev Bounty: $54,000/mes (Gitcoin, GitHub Sponsors, Bountysource)
-  - Data Annotation: $76,500/mes (Labelbox, Scale AI, Amazon Mechanical Turk)
+- Resultados CON market modules:
+  - CONSERVATIVE: $38,875/mes ($466,500/año)
+  - MODERATE ⭐: $77,750/mes ($933,000/año) — RECOMENDADO
+  - AGGRESSIVE: $155,500/mes ($1,866,000/año)
+  - MAXIMUM 🚀: $233,250/mes ($2,799,000/año)
+- Incremento con market modules: +$69,000/mes (+$828,000/año) = +42%
+- Desglose Maximum CON market modules:
+  - Bug Bounty: $33,750/mes
+  - Dev Bounty: $54,000/mes
+  - Data Annotation: $76,500/mes
+  - Trading: $25,200/mes (Riesgo alto)
+  - Investment: $6,000/mes (Riesgo medio)
+  - Market Intelligence: $37,800/mes (Riesgo medio)
 
 **OpenRouter API Key Configuration**
 - Nueva API key configurada en todo el sistema
