@@ -255,18 +255,61 @@
   - Essential files backup (database, config, .env, identity_vault, targets, .ai, cores, api, frontend, scripts, requirements, pyproject.toml, package.json, package-lock.json)
 - Traducciones en 6 idiomas (en, es, fr, de, ja, zh)
 
-**Frontend UI/UX para Version Backup**
-- frontend/src/pages/VersionBackup.vue: Página completa de gestión de backups
-  - Información de versión actual (version, git commit)
-  - Acciones rápidas: crear backup, restaurar último, refrescar
-  - Lista de backups con detalles (version, estado, fecha, tamaño, notas)
-  - Modal de creación de backup con notas
-  - Modal de rollback con confirmación y advertencias
-  - Modal de verificación de integridad con resultados
-  - Cards de backup con estado visual (active, backup, rollback)
-  - Integración con API endpoints (/api/version-backup/*)
-  - Formateo de fechas y tamaños
-  - Estados de carga y manejo de errores
+**Integración Sistema de Recuperación + Version Backup con Almacenamiento Local SQLite**
+- cores/recovery/persistence.py: Shared SQLite storage para ambos sistemas
+  - Tabla version_backups agregada a recovery_history.db
+  - save_version_backup(): guardar metadata de version backup
+  - get_version_backups(): obtener todos los version backups
+  - get_version_backup(): obtener backup específico (por version o git commit)
+  - update_version_backup_state(): actualizar estado de backup
+  - delete_version_backup(): eliminar backup de storage
+  - cleanup_old_version_backups(): cleanup automático (max_count)
+  - Índices idx_version_backups_created_at, idx_version_backups_version
+- cores/version_backup/backup_system.py: Integración con RecoveryStore
+  - __init__(): usa RecoveryStore para shared SQLite storage
+  - _save_snapshot(): guarda en RecoveryStore (SQLite) en lugar de versions.json
+  - _load_history(): carga desde RecoveryStore (SQLite)
+  - _cleanup_old_backups(): usa RecoveryStore.cleanup_old_version_backups()
+  - Fallback a JSON storage si RecoveryStore no disponible
+- cores/recovery/engine.py: Version rollback recovery en RecoveryEngine
+  - __init__(): inicializa VersionBackupSystem para rollback recovery
+  - attempt_version_rollback_recovery(): rollback para fallos críticos
+  - execute_version_rollback(): ejecuta rollback según healing rules
+  - get_version_recovery_status(): estado de recuperación de versiones
+  - Registro de recovery actions en RecoveryStore
+- cores/recovery/healing_rules.py: Healing rules para version rollback
+  - FailureType.CRITICAL_SYSTEM_FAILURE: fallos críticos del sistema
+  - FailureType.VERSION_CORRUPTION: corrupción de versión
+  - HealingRule: version_rollback con priority 0 (máxima prioridad)
+  - requires_circuit_breaker=False para fallos críticos
+- Características:
+  - Almacenamiento local unificado SQLite (recovery_history.db)
+  - Shared storage para recovery events y version backups
+  - Automatic cleanup de backups antiguos (max 10)
+  - Version rollback como última opción para fallos críticos
+  - Priority 0 (máxima) para fallos que requieren rollback
+  - Logging completo de operaciones de recovery
+  - Fallback a JSON storage si RecoveryStore no disponible
+  - Índices eficientes para búsquedas de version backups
+
+**Frontend UI/UX para Version Backup (Estilo Steam OWNEX OMEGA)**
+- frontend/src/pages/VersionBackup.vue: Página completa estilo Steam
+  - Top Bar con logo OWNEX animado (anillos pulsantes)
+  - Hero Section con 'O' mark animado y action pills
+  - Cards Grid con cards estilo Steam (backdrop-filter, borders semitransparentes)
+  - Backup History con cards en grid (no lista vertical)
+  - Modales con backdrop-filter blur y styling Steam
+  - Color scheme: primary (#60A5FA), green (#34D399), gold (#FBBF24), red (#F87171)
+  - Animaciones: pulse-ring, pulse-dot, animate-pulse, animate-spin
+  - Lucide icons: Shield, RefreshCw, Activity, Archive, AlertTriangle, X, Trash2
+  - Typography: font-display para headings, tracking-wide/loose
+  - Responsivo: hidden lg:block para animaciones, flex-wrap
+  - States: loading, empty, active cards
+  - Action pills con hover effects y disabled states
+  - Mini buttons para acciones de backup
+  - State badges (active, backup, rollback) con colores
+  - Modales con close button y backdrop-filter
+  - Form inputs con styling Steam (dark backgrounds, borders)
 - frontend/src/router/index.ts: Ruta /operations/version-backup agregada
 
 **Integración Auto-Update + Version Backup**
