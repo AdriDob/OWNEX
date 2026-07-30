@@ -1,0 +1,28 @@
+{
+  "app": {
+    "name": "OWNEX OMEGA",
+    "tagline": "自主工作运营平台"
+  },
+  "navigation": {
+    "dashboard": "仪表板",
+    "mission_control": "任务控制",
+    "analytics": "分析",
+    "opportunities": "机会",
+    "findings": "发现",
+    "reports": "报告",
+    "settings": "设置",
+    "terminal": "终端"
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "create": "创建",
+    "update": "更新",
+    "search": "搜索",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功"
+  }
+}

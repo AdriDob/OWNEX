@@ -4,6 +4,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import { routes, isPublicRoute } from './router'
 import { useAuthStore } from '@/stores/auth'
+import i18n from '@/composables/useI18n'
 import './style.css'
 import 'xterm/css/xterm.css'
 
@@ -43,4 +44,5 @@ router.beforeEach(async (to, from, next) => {
 const app = createApp(App)
 app.use(pinia)
 app.use(router)
+app.use(i18n)
 app.mount('#app')
