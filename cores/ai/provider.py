@@ -61,6 +61,16 @@ PROVIDER_CATALOG: list[ProviderSpec] = [
         default_model="gemini-2.0-flash",
     ),
     ProviderSpec(
+        id="devin",
+        label="Devin AI Agent (Free)",
+        models=["default", "swe-1.6-slow"],
+        env_host="DEVIN_PATH",
+        env_model="DEVIN_MODEL",
+        env_key="",
+        default_host="devin",
+        default_model="default",
+    ),
+    ProviderSpec(
         id="local",
         label="Local Rule-Based (No LLM)",
         models=[],
@@ -437,7 +447,17 @@ class ProviderRegistry:
 
     def build_provider(self, cfg: dict) -> AIProvider:
         ptype = cfg.get("provider_type", "gemini")
-        # 1. Try Gemini first (free, fast)
+        # 1. Try Devin first (free, agent with tools)
+        if ptype in ("devin",):
+            from .providers.devin_provider import DevinProvider
+            p = DevinProvider(
+                devin_path=cfg.get("devin_path", "devin"),
+                model=cfg.get("devin_model", "default"),
+            )
+            if p.is_available():
+                return p
+            logger.info("Devin provider unavailable, trying alternatives")
+        # 2. Try Gemini (free, fast)
         if ptype in ("gemini",):
             p = GeminiProvider(
                 api_key=cfg.get("gemini_api_key", cfg.get("api_key", "")),
@@ -446,7 +466,7 @@ class ProviderRegistry:
             if p.is_available():
                 return p
             logger.info("Gemini provider unavailable, trying alternatives")
-        # 2. Try Ollama (local)
+        # 3. Try Ollama (local)
         if ptype in ("ollama", "gemini"):
             p = OllamaProvider(  # type: ignore[assignment]
                 host=cfg.get("ollama_host", "http://localhost:11434"),
@@ -455,7 +475,7 @@ class ProviderRegistry:
             if p.is_available():
                 return p
             logger.info("Ollama provider unavailable, trying alternatives")
-        # 3. Try OpenAI-compatible
+        # 4. Try OpenAI-compatible
         p = OpenAICompatibleProvider(  # type: ignore[assignment]
             api_key=cfg.get("api_key", ""),
             base_url=cfg.get("api_base", "https://api.openai.com/v1"),
@@ -463,7 +483,7 @@ class ProviderRegistry:
         )
         if p.is_available():
             return p
-        # 4. Final fallback: rule-based
+        # 5. Final fallback: rule-based
         logger.info("No LLM provider available — using local rule-based fallback")
         return LocalFallbackProvider()
 
@@ -490,6 +510,12 @@ class ProviderRegistry:
                 if spec.id == "ollama":
                     p = OllamaProvider(
                         host=os.environ.get(spec.env_host, spec.default_host),
+                    )
+                    available = p.is_available()
+                elif spec.id == "devin":
+                    from .providers.devin_provider import DevinProvider
+                    p = DevinProvider(
+                        devin_path=os.environ.get(spec.env_host, spec.default_host),
                     )
                     available = p.is_available()
                 elif spec.id == "openai":
