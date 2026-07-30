@@ -164,7 +164,7 @@
 
 **Zero-Barrier Income Opportunities**
 - cores/revenue_tracker/RevenueTracker.py extendido (verificación: módulo existía)
-  - PaymentPlatform enum extendido (MICRO_TASK, OPEN_SOURCE_BOUNTY, AFFILIATE, GAMIFICATION)
+  - PaymentPlatform enum limpiado a solo: BUG_BOUNTY, DEV_BOUNTY, DATA_ANNOTATION
   - BarrierType enum nuevo (INTERVIEW, PORTFOLIO, EXPERIENCE, DEGREE, CERTIFICATION, LOCATION, VISA, LANGUAGE, NONE)
   - RevenueOpportunity dataclass extendido con campos zero-barrier
   - is_zero_barrier(): check si no tiene barreras
@@ -174,10 +174,12 @@
   - get_total_potential_earnings(): total potencial
 - api/routers/zero_barrier.py: API router completo
   - GET /api/zero-barrier/opportunities: listar oportunidades (filtros: platform, min_amount, difficulty)
-  - POST /api/zero-barrier/opportunities: crear oportunidad
+  - POST /api/zero-barrier/opportunities: crear oportunidad (validación: solo bug_bounty, dev_bounty, data_annotation)
   - GET /api/zero-barrier/stats: estadísticas
-  - GET /api/zero-barrier/platforms: plataformas disponibles
-- Plataformas soportadas: Bug Bounty, Open Source Bounties, Micro Tasks, Affiliate Marketing, Gamification
+  - GET /api/zero-barrier/platforms: plataformas disponibles con connectors
+  - GET /api/zero-barrier/sync/{platform}: sync earnings usando conectores existentes (hackerone, bugcrowd, intigriti, yeswehack, synack)
+- Plataformas soportadas: Bug Bounty, Dev Bounty, Data Annotation
+- Integración con conectores existentes: cores/platforms/hackerone.py, bugcrowd.py, intigriti.py, yeswehack.py, synack.py
 - Traducciones en 6 idiomas (en, es, fr, de, ja, zh)
 
 **OpenRouter API Key Configuration**
