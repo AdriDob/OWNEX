@@ -275,6 +275,12 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/pages/ReplayCenter.vue'),
         meta: { title: 'Replay Center' },
       },
+      {
+        path: 'version-backup',
+        name: 'operations-version-backup',
+        component: () => import('@/pages/VersionBackup.vue'),
+        meta: { title: 'Backup de Versión' },
+      },
       { path: 'logs', redirect: '/operations/health' },
     ],
   },

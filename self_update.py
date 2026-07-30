@@ -7,10 +7,16 @@ and proposing its own evolution while preventing uncontrolled changes.
 
 This is the core implementation that puts the Constitution into action
 within OWNEX's existing architecture.
+
+INTEGRATED WITH VERSION BACKUP SYSTEM:
+- Automatic pre-update backups before any self-update
+- Rollback capability if update fails or user is unsatisfied
+- Integration with cores/version_backup/backup_system.py
 """
 
 import logging
 from datetime import datetime
+from pathlib import Path
 
 # Import OWNEX Constitution constants
 try:
@@ -33,6 +39,14 @@ except ImportError:
         FOUNDER_PRINCIPLES,
         INTEGRATION_REQUIREMENTS,
     )
+
+# Import Version Backup System
+try:
+    from cores.version_backup import get_version_backup_system
+except ImportError:
+    import sys
+    sys.path.insert(0, str(Path(__file__).parent))
+    from cores.version_backup import get_version_backup_system
 
 # Configure logging for self-update operations
 logging.basicConfig(
@@ -855,6 +869,25 @@ class SelfEvolutionSystem:
         print(f"   Risk Level: {evolution_action['risk_level']}")
         print("=" * 80)
 
+        # ⚡ INTEGRATED WITH VERSION BACKUP SYSTEM
+        # Create automatic pre-update backup before applying evolution
+        print("📦 CREATING PRE-UPDATE BACKUP...")
+        try:
+            backup_system = get_version_backup_system()
+            backup_notes = f"Pre-update backup before evolution: {evolution_action['action_id']} - {evolution_action['opportunity_type']}"
+            backup_result = backup_system.create_backup(notes=backup_notes)
+
+            if backup_result.status.value == "success":
+                print(f"✅ PRE-UPDATE BACKUP CREATED: {backup_result.backup_path}")
+                print(f"   Version: {backup_result.version}")
+                print(f"   Size: {backup_result.manifest.get('size', 0) / 1024 / 1024:.2f} MB")
+            else:
+                print(f"⚠️  PRE-UPDATE BACKUP FAILED: {backup_result.error}")
+                print("   Continuing with evolution action (backup optional)")
+        except Exception as e:
+            print(f"⚠️  PRE-UPDATE BACKUP ERROR: {e}")
+            print("   Continuing with evolution action (backup optional)")
+
         # Create evolution record
         evolution_record = {
             "action_id": evolution_action["action_id"],
@@ -868,6 +901,7 @@ class SelfEvolutionSystem:
             "status": "applied_successfully",
             "timestamp": datetime.now().isoformat(),
             "autonomy_level": evolution_action["autonomy_level"],
+            "pre_update_backup": backup_result.backup_path if backup_result.status.value == "success" else None,
         }
 
         # Update system metrics based on applied evolution
@@ -881,6 +915,7 @@ class SelfEvolutionSystem:
         print(f"   Action ID: {evolution_action['action_id']}")
         print(f"   Opportunity Type: {evolution_action['opportunity_type']}")
         print(f"   Risk Level: {evolution_action['risk_level']}")
+        print(f"   Pre-update Backup: {evolution_record['pre_update_backup']}")
 
     def _update_system_metrics_after_evolution(self, evolution_type: str):
         """
