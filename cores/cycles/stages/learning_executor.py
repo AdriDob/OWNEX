@@ -51,9 +51,7 @@ class LearningExecutor(BaseStageExecutor):
                 entries.extend(db_entries)
 
                 # If we have report data, extract lessons from the pipeline run
-                pipeline_lessons = self._extract_pipeline_lessons(
-                    stage_results, target, reports, validated
-                )
+                pipeline_lessons = self._extract_pipeline_lessons(stage_results, target, reports, validated)
                 for lesson in pipeline_lessons:
                     ltype = LearningType(lesson.get("type", "pattern"))
                     entry = kc._store_entry(
@@ -65,7 +63,11 @@ class LearningExecutor(BaseStageExecutor):
                         metadata=lesson.get("metadata", {}),
                     )
                     if entry:
-                        entries.append(entry._asdict() if hasattr(entry, '_asdict') else {"id": str(entry), "lesson": lesson["lesson"]})
+                        entries.append(
+                            entry._asdict()
+                            if hasattr(entry, "_asdict")
+                            else {"id": str(entry), "lesson": lesson["lesson"]}
+                        )
 
             except Exception as exc:
                 self.logger.debug("KnowledgeCapture integration not available: %s", exc)
@@ -106,11 +108,7 @@ class LearningExecutor(BaseStageExecutor):
 
             session = db.SessionLocal()
             try:
-                db_target = (
-                    session.query(TargetModel)
-                    .filter(TargetModel.name == target)
-                    .first()
-                )
+                db_target = session.query(TargetModel).filter(TargetModel.name == target).first()
                 if db_target:
                     findings = (
                         session.query(Finding)
@@ -121,15 +119,17 @@ class LearningExecutor(BaseStageExecutor):
                     for finding in findings:
                         entry = kc.capture_from_finding(finding)
                         if entry:
-                            entries.append({
-                                "id": entry.id,
-                                "type": entry.type.value if hasattr(entry.type, 'value') else str(entry.type),
-                                "lesson": entry.lesson[:200],
-                                "confidence": entry.confidence,
-                                "vuln_type": entry.vuln_type,
-                                "platform": entry.platform,
-                                "source": "db_finding",
-                            })
+                            entries.append(
+                                {
+                                    "id": entry.id,
+                                    "type": entry.type.value if hasattr(entry.type, "value") else str(entry.type),
+                                    "lesson": entry.lesson[:200],
+                                    "confidence": entry.confidence,
+                                    "vuln_type": entry.vuln_type,
+                                    "platform": entry.platform,
+                                    "source": "db_finding",
+                                }
+                            )
             finally:
                 session.close()
         except Exception as exc:
@@ -154,24 +154,26 @@ class LearningExecutor(BaseStageExecutor):
             total = len(validated)
             if total > 0:
                 hit_rate = confirmed / total
-                lessons.append({
-                    "type": "score_calibration",
-                    "lesson": (
-                        f"Pipeline hit rate for {target}: {confirmed}/{total} confirmed "
-                        f"({round(hit_rate * 100, 1)}%). "
-                        f"{'Hypothesis confidence calibration is accurate.' if hit_rate > 0.5 else 'Hypothesis generation may be over-generating low-confidence leads.'}"
-                    ),
-                    "confidence": min(1.0, hit_rate + 0.2),
-                    "vuln_type": None,
-                    "platform": None,
-                    "metadata": {
-                        "target": target,
-                        "confirmed": confirmed,
-                        "rejected": rejected,
-                        "total": total,
-                        "hit_rate": round(hit_rate, 3),
-                    },
-                })
+                lessons.append(
+                    {
+                        "type": "score_calibration",
+                        "lesson": (
+                            f"Pipeline hit rate for {target}: {confirmed}/{total} confirmed "
+                            f"({round(hit_rate * 100, 1)}%). "
+                            f"{'Hypothesis confidence calibration is accurate.' if hit_rate > 0.5 else 'Hypothesis generation may be over-generating low-confidence leads.'}"
+                        ),
+                        "confidence": min(1.0, hit_rate + 0.2),
+                        "vuln_type": None,
+                        "platform": None,
+                        "metadata": {
+                            "target": target,
+                            "confirmed": confirmed,
+                            "rejected": rejected,
+                            "total": total,
+                            "hit_rate": round(hit_rate, 3),
+                        },
+                    }
+                )
 
         # Lesson from vulnerability type effectiveness
         if reports:
@@ -182,22 +184,24 @@ class LearningExecutor(BaseStageExecutor):
 
             if vuln_types:
                 most_common = max(vuln_types, key=vuln_types.get)
-                lessons.append({
-                    "type": "pattern",
-                    "lesson": (
-                        f"Most common vulnerability type for {target}: {most_common} "
-                        f"({vuln_types[most_common]} findings). "
-                        f"Focus future testing on {most_common} patterns."
-                    ),
-                    "confidence": 0.7,
-                    "vuln_type": most_common,
-                    "platform": None,
-                    "metadata": {
-                        "target": target,
-                        "vuln_type_breakdown": vuln_types,
-                        "most_common": most_common,
-                    },
-                })
+                lessons.append(
+                    {
+                        "type": "pattern",
+                        "lesson": (
+                            f"Most common vulnerability type for {target}: {most_common} "
+                            f"({vuln_types[most_common]} findings). "
+                            f"Focus future testing on {most_common} patterns."
+                        ),
+                        "confidence": 0.7,
+                        "vuln_type": most_common,
+                        "platform": None,
+                        "metadata": {
+                            "target": target,
+                            "vuln_type_breakdown": vuln_types,
+                            "most_common": most_common,
+                        },
+                    }
+                )
 
         # Lesson from report quality
         if reports:
@@ -209,21 +213,23 @@ class LearningExecutor(BaseStageExecutor):
                     for g in r.get("quality_check", {}).get("gaps", []):
                         gaps.add(g)
                 if gaps:
-                    lessons.append({
-                        "type": "report_structure",
-                        "lesson": (
-                            f"Report quality gaps identified: {', '.join(list(gaps)[:3])}. "
-                            f"Improve evidence collection for these areas."
-                        ),
-                        "confidence": 0.8,
-                        "vuln_type": None,
-                        "platform": None,
-                        "metadata": {
-                            "quality_passed": quality_passed,
-                            "quality_total": quality_total,
-                            "common_gaps": list(gaps),
-                        },
-                    })
+                    lessons.append(
+                        {
+                            "type": "report_structure",
+                            "lesson": (
+                                f"Report quality gaps identified: {', '.join(list(gaps)[:3])}. "
+                                f"Improve evidence collection for these areas."
+                            ),
+                            "confidence": 0.8,
+                            "vuln_type": None,
+                            "platform": None,
+                            "metadata": {
+                                "quality_passed": quality_passed,
+                                "quality_total": quality_total,
+                                "common_gaps": list(gaps),
+                            },
+                        }
+                    )
 
         return lessons
 
@@ -241,37 +247,41 @@ class LearningExecutor(BaseStageExecutor):
             confirmed = [v for v in validated if v.get("status") == "confirmed"]
             if confirmed:
                 for v in confirmed[:3]:
-                    entries.append({
-                        "id": f"learn_{v.get('hypothesis_id', 'unknown')}_{datetime.now(UTC).timestamp()}",
-                        "type": "pattern",
-                        "lesson": (
-                            f"Confirmed {v.get('vulnerability_type', 'unknown')} on "
-                            f"{v.get('method', 'GET')} {v.get('endpoint', '/')} "
-                            f"— technique validated with confidence {v.get('confidence', 0)}"
-                        ),
-                        "confidence": v.get("confidence", 0.5),
-                        "vuln_type": v.get("vulnerability_type"),
-                        "platform": None,
-                        "source": "pipeline_result",
-                        "created_at": datetime.now(UTC).isoformat(),
-                    })
+                    entries.append(
+                        {
+                            "id": f"learn_{v.get('hypothesis_id', 'unknown')}_{datetime.now(UTC).timestamp()}",
+                            "type": "pattern",
+                            "lesson": (
+                                f"Confirmed {v.get('vulnerability_type', 'unknown')} on "
+                                f"{v.get('method', 'GET')} {v.get('endpoint', '/')} "
+                                f"— technique validated with confidence {v.get('confidence', 0)}"
+                            ),
+                            "confidence": v.get("confidence", 0.5),
+                            "vuln_type": v.get("vulnerability_type"),
+                            "platform": None,
+                            "source": "pipeline_result",
+                            "created_at": datetime.now(UTC).isoformat(),
+                        }
+                    )
 
         if target:
-            entries.append({
-                "id": f"learn_general_{datetime.now(UTC).timestamp()}",
-                "type": "tool_effectiveness",
-                "lesson": (
-                    f"Security pipeline completed for {target}. "
-                    f"Generated {len(validated)} validations, "
-                    f"{len(reports)} reports. "
-                    f"Pipeline execution successful."
-                ),
-                "confidence": 0.9,
-                "vuln_type": None,
-                "platform": None,
-                "source": "pipeline_metadata",
-                "created_at": datetime.now(UTC).isoformat(),
-            })
+            entries.append(
+                {
+                    "id": f"learn_general_{datetime.now(UTC).timestamp()}",
+                    "type": "tool_effectiveness",
+                    "lesson": (
+                        f"Security pipeline completed for {target}. "
+                        f"Generated {len(validated)} validations, "
+                        f"{len(reports)} reports. "
+                        f"Pipeline execution successful."
+                    ),
+                    "confidence": 0.9,
+                    "vuln_type": None,
+                    "platform": None,
+                    "source": "pipeline_metadata",
+                    "created_at": datetime.now(UTC).isoformat(),
+                }
+            )
 
         return entries
 

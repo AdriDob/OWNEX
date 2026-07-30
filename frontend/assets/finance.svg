@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="400" height="200">
+  <defs>
+    <linearGradient id="financeBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#161b22;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="200" fill="url(#financeBg)" rx="16"/>
+  
+  <!-- Header -->
+  <rect x="20" y="20" width="360" height="40" fill="#0d1117" rx="8" stroke="#00ff88" stroke-width="1" opacity="0.5"/>
+  <circle cx="40" cy="40" r="12" fill="#00ff88"/>
+  <text x="60" y="44" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">PATRIMONIO</text>
+  
+  <!-- Exchange Rate Cards -->
+  <rect x="30" y="80" width="100" height="50" fill="#0d1117" stroke="#0070d1" stroke-width="1" rx="8"/>
+  <text x="80" y="100" text-anchor="middle" font-family="Arial" font-size="10" fill="#0070d1">USD → ARS</text>
+  <text x="80" y="120" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="white">$950</text>
+  
+  <rect x="150" y="80" width="100" height="50" fill="#0d1117" stroke="#00ff88" stroke-width="1" rx="8"/>
+  <text x="200" y="100" text-anchor="middle" font-family="Arial" font-size="10" fill="#00ff88">USDT → ARS</text>
+  <text x="200" y="120" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="white">$980</text>
+  
+  <rect x="270" y="80" width="100" height="50" fill="#0d1117" stroke="#ffd700" stroke-width="1" rx="8"/>
+  <text x="320" y="100" text-anchor="middle" font-family="Arial" font-size="10" fill="#ffd700">Total ARS</text>
+  <text x="320" y="120" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="white">$524K</text>
+  
+  <!-- Payment Methods -->
+  <rect x="30" y="145" width="100" height="35" fill="#0070d1" opacity="0.3" rx="6"/>
+  <text x="80" y="167" text-anchor="middle" font-family="Arial" font-size="11" fill="white">Wise</text>
+  
+  <rect x="150" y="145" width="100" height="35" fill="#00ff88" opacity="0.3" rx="6"/>
+  <text x="200" y="167" text-anchor="middle" font-family="Arial" font-size="11" fill="white">Binance P2P</text>
+  
+  <rect x="270" y="145" width="100" height="35" fill="#ffd700" opacity="0.3" rx="6"/>
+  <text x="320" y="167" text-anchor="middle" font-family="Arial" font-size="11" fill="white">PayPal</text>
+</svg>

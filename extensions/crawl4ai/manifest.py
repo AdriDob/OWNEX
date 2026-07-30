@@ -13,15 +13,18 @@ manifest = ExtensionManifest(
     author="OWNEX",
     icon="Search",
     capabilities=[
-        Capability(domain="web_crawl",
+        Capability(
+            domain="web_crawl",
             name="Web Crawl",
             description="Crawl any URL and extract LLM-ready markdown content",
         ),
-        Capability(domain="batch_crawl",
+        Capability(
+            domain="batch_crawl",
             name="Batch Crawl",
             description="Crawl multiple URLs with structured output",
         ),
-        Capability(domain="content_monitor",
+        Capability(
+            domain="content_monitor",
             name="Content Monitor",
             description="Monitor pages for content changes and new information",
         ),

@@ -13,19 +13,23 @@ manifest = ExtensionManifest(
     author="OWNEX",
     icon="ScanEye",
     capabilities=[
-        Capability(domain="web_navigation",
+        Capability(
+            domain="web_navigation",
             name="Web Navigation",
             description="Navigate any website with AI-powered understanding",
         ),
-        Capability(domain="form_filling",
+        Capability(
+            domain="form_filling",
             name="Form Filling",
             description="Complete web forms automatically with AI",
         ),
-        Capability(domain="data_extraction",
+        Capability(
+            domain="data_extraction",
             name="Structured Data Extraction",
             description="Extract structured data from any web page",
         ),
-        Capability(domain="visual_monitoring",
+        Capability(
+            domain="visual_monitoring",
             name="Visual Monitoring",
             description="Monitor web pages for visual changes",
         ),

@@ -14,15 +14,18 @@ manifest = ExtensionManifest(
     author="OWNEX",
     icon="Wrench",
     capabilities=[
-        Capability(domain="toolkit_access",
+        Capability(
+            domain="toolkit_access",
             name="Toolkit Access",
             description="Access 1000+ third-party toolkits for agent actions",
         ),
-        Capability(domain="auth_management",
+        Capability(
+            domain="auth_management",
             name="Auth Management",
             description="Managed OAuth and API key storage for all integrations",
         ),
-        Capability(domain="action_execution",
+        Capability(
+            domain="action_execution",
             name="Action Execution",
             description="Execute actions on external platforms with sandboxing",
         ),

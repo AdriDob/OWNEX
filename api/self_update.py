@@ -1,4 +1,3 @@
-
 # Mock update_system for now - will be replaced by actual implementation later
 from types import SimpleNamespace
 

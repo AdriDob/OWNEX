@@ -14,15 +14,18 @@ manifest = ExtensionManifest(
     author="OWNEX",
     icon="BookOpen",
     capabilities=[
-        Capability(domain="skill_extraction",
+        Capability(
+            domain="skill_extraction",
             name="Skill Extraction",
             description="Extract AI skills from documentation and code repos",
         ),
-        Capability(domain="conflict_detection",
+        Capability(
+            domain="conflict_detection",
             name="Conflict Detection",
             description="Auto-detect conflicting instructions across skills",
         ),
-        Capability(domain="doc_ingestion",
+        Capability(
+            domain="doc_ingestion",
             name="Documentation Ingestion",
             description="Ingest multi-source documentation into the skill library",
         ),

@@ -71,16 +71,36 @@ class HypothesisExecutor(BaseStageExecutor):
         # ── Technology-based hypotheses ──
         tech_vulns = {
             "nginx": [
-                ("Misconfigured NGINX", "NGINX path traversal or misconfiguration", "medium", ["path_traversal", "misconfiguration"]),
-                ("NGINX Insecure Directives", "Weak NGINX security directives allowing information disclosure", "medium", ["info_disclosure"]),
+                (
+                    "Misconfigured NGINX",
+                    "NGINX path traversal or misconfiguration",
+                    "medium",
+                    ["path_traversal", "misconfiguration"],
+                ),
+                (
+                    "NGINX Insecure Directives",
+                    "Weak NGINX security directives allowing information disclosure",
+                    "medium",
+                    ["info_disclosure"],
+                ),
             ],
             "apache": [
-                ("Apache Misconfiguration", "Apache server info disclosure via server-status", "medium", ["misconfiguration"]),
+                (
+                    "Apache Misconfiguration",
+                    "Apache server info disclosure via server-status",
+                    "medium",
+                    ["misconfiguration"],
+                ),
                 ("Apache Path Traversal", "Potential path traversal in Apache aliases", "high", ["path_traversal"]),
             ],
             "wordpress": [
                 ("WordPress Plugin Vulnerability", "Outdated or vulnerable WordPress plugin", "high", ["known_vuln"]),
-                ("WordPress User Enumeration", "WordPress user enumeration via REST API", "medium", ["info_disclosure"]),
+                (
+                    "WordPress User Enumeration",
+                    "WordPress user enumeration via REST API",
+                    "medium",
+                    ["info_disclosure"],
+                ),
                 ("WordPress Admin Access", "Weak admin credentials or exposed wp-admin", "critical", ["auth_bypass"]),
             ],
             "django": [
@@ -89,14 +109,29 @@ class HypothesisExecutor(BaseStageExecutor):
             ],
             "express": [
                 ("Express Error Handling", "Express stack traces in error responses", "medium", ["info_disclosure"]),
-                ("Express CORS Misconfiguration", "Overly permissive CORS on Express endpoints", "high", ["misconfiguration"]),
+                (
+                    "Express CORS Misconfiguration",
+                    "Overly permissive CORS on Express endpoints",
+                    "high",
+                    ["misconfiguration"],
+                ),
             ],
             "fastapi": [
-                ("FastAPI OpenAPI Exposure", "Exposed /docs or /openapi.json providing attack surface", "medium", ["info_disclosure"]),
+                (
+                    "FastAPI OpenAPI Exposure",
+                    "Exposed /docs or /openapi.json providing attack surface",
+                    "medium",
+                    ["info_disclosure"],
+                ),
                 ("FastAPI Input Validation", "Missing input validation on FastAPI endpoints", "high", ["injection"]),
             ],
             "react": [
-                ("React API Key Exposure", "API keys or secrets exposed in React bundle", "critical", ["info_disclosure"]),
+                (
+                    "React API Key Exposure",
+                    "API keys or secrets exposed in React bundle",
+                    "critical",
+                    ["info_disclosure"],
+                ),
                 ("React Client-Side Routing", "Client-side access control bypass", "medium", ["auth_bypass"]),
             ],
             "vue": [
@@ -108,61 +143,104 @@ class HypothesisExecutor(BaseStageExecutor):
         for tech_name in tech_names:
             if tech_name in tech_vulns:
                 for vuln_name, description, severity, tags in tech_vulns[tech_name]:
-                    hypotheses.append({
-                        "title": vuln_name,
-                        "description": description,
-                        "severity": severity,
-                        "tags": tags,
-                        "source": f"tech:{tech_name}",
-                        "confidence": "medium",
-                    })
+                    hypotheses.append(
+                        {
+                            "title": vuln_name,
+                            "description": description,
+                            "severity": severity,
+                            "tags": tags,
+                            "source": f"tech:{tech_name}",
+                            "confidence": "medium",
+                        }
+                    )
 
         # ── Service-based hypotheses ──
         service_vulns = {
-            "http": [("Open HTTP Service", "Standard HTTP service may expose internal endpoints", "medium", ["discovery"])],
-            "https": [("HTTPS Service", "Standard HTTPS service, check TLS configuration", "low", ["tls", "discovery"])],
+            "http": [
+                ("Open HTTP Service", "Standard HTTP service may expose internal endpoints", "medium", ["discovery"])
+            ],
+            "https": [
+                ("HTTPS Service", "Standard HTTPS service, check TLS configuration", "low", ["tls", "discovery"])
+            ],
             "ssh": [("SSH Service", "Open SSH port, potential brute-force or weak keys", "medium", ["brute_force"])],
-            "mysql": [("MySQL Database Exposure", "Open MySQL port, potential SQL injection or weak auth", "critical", ["injection"])],
-            "postgresql": [("PostgreSQL Database Exposure", "Open PostgreSQL port, potential weak auth", "critical", ["injection"])],
-            "redis": [("Redis Unauthenticated Access", "Open Redis port without auth, potential data exposure", "critical", ["misconfiguration"])],
-            "mongodb": [("MongoDB Unauthenticated Access", "Open MongoDB port without auth", "critical", ["misconfiguration"])],
+            "mysql": [
+                (
+                    "MySQL Database Exposure",
+                    "Open MySQL port, potential SQL injection or weak auth",
+                    "critical",
+                    ["injection"],
+                )
+            ],
+            "postgresql": [
+                ("PostgreSQL Database Exposure", "Open PostgreSQL port, potential weak auth", "critical", ["injection"])
+            ],
+            "redis": [
+                (
+                    "Redis Unauthenticated Access",
+                    "Open Redis port without auth, potential data exposure",
+                    "critical",
+                    ["misconfiguration"],
+                )
+            ],
+            "mongodb": [
+                ("MongoDB Unauthenticated Access", "Open MongoDB port without auth", "critical", ["misconfiguration"])
+            ],
         }
 
         for service_name in service_names:
             if service_name in service_vulns:
                 for vuln_name, description, severity, tags in service_vulns[service_name]:
-                    hypotheses.append({
-                        "title": vuln_name,
-                        "description": description,
-                        "severity": severity,
-                        "tags": tags,
-                        "source": f"service:{service_name}",
-                        "confidence": "medium",
-                    })
+                    hypotheses.append(
+                        {
+                            "title": vuln_name,
+                            "description": description,
+                            "severity": severity,
+                            "tags": tags,
+                            "source": f"service:{service_name}",
+                            "confidence": "medium",
+                        }
+                    )
 
         # ── Generic endpoint hypotheses ──
         generic_hypotheses = [
             ("Missing Authentication", "Endpoint accessible without authentication", "high", ["auth_bypass", "idora"]),
-            ("Insecure Direct Object Reference", "Predictable resource IDs allowing unauthorised access", "high", ["idora", "access_control"]),
+            (
+                "Insecure Direct Object Reference",
+                "Predictable resource IDs allowing unauthorised access",
+                "high",
+                ["idora", "access_control"],
+            ),
             ("SQL Injection", "Potential SQL injection in query parameters", "critical", ["injection", "sqli"]),
             ("Cross-Site Scripting (XSS)", "Reflected or stored XSS in user input", "high", ["xss", "injection"]),
             ("Server-Side Request Forgery", "Potential SSRF in URL parameters", "critical", ["ssrf", "injection"]),
-            ("Rate Limiting Missing", "Endpoint without rate limiting, potential brute-force", "medium", ["misconfiguration"]),
+            (
+                "Rate Limiting Missing",
+                "Endpoint without rate limiting, potential brute-force",
+                "medium",
+                ["misconfiguration"],
+            ),
             ("Information Disclosure", "Sensitive information in responses or headers", "medium", ["info_disclosure"]),
             ("Open Redirect", "Unvalidated redirect parameters", "medium", ["redirect"]),
-            ("Path Traversal", "Path traversal in file or static resource endpoints", "high", ["path_traversal", "injection"]),
+            (
+                "Path Traversal",
+                "Path traversal in file or static resource endpoints",
+                "high",
+                ["path_traversal", "injection"],
+            ),
             ("Mass Assignment", "Unprotected model properties in POST/PUT requests", "high", ["misconfiguration"]),
         ]
 
         for vuln_name, description, severity, tags in generic_hypotheses:
-            hypotheses.append({
-                "title": vuln_name,
-                "description": description,
-                "severity": severity,
-                "tags": tags,
-                "source": "generic",
-                "confidence": "low",
-            })
+            hypotheses.append(
+                {
+                    "title": vuln_name,
+                    "description": description,
+                    "severity": severity,
+                    "tags": tags,
+                    "source": "generic",
+                    "confidence": "low",
+                }
+            )
 
         # Deduplicate by title
         seen: set[str] = set()

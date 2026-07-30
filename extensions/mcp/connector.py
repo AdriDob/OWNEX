@@ -7,6 +7,7 @@ import logging
 # Soft import guard
 try:
     import mcp  # noqa: F401
+
     _MCP_AVAILABLE = True
 except ImportError:
     _MCP_AVAILABLE = False
