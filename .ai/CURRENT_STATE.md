@@ -155,12 +155,30 @@
   - GET /api/opensource/stats: estadísticas
 
 **Traducciones Completas**
-- frontend/src/locales/en.json: Inglés completo (incluye open source)
-- frontend/src/locales/es.json: Español completo (incluye open source)
-- frontend/src/locales/fr.json: Francés completo (incluye open source)
-- frontend/src/locales/de.json: Alemán completo (incluye open source)
-- frontend/src/locales/ja.json: Japonés completo (incluye open source)
-- frontend/src/locales/zh.json: Chino completo (incluye open source)
+- frontend/src/locales/en.json: Inglés completo (incluye open source, zero_barrier)
+- frontend/src/locales/es.json: Español completo (incluye open source, zero_barrier)
+- frontend/src/locales/fr.json: Francés completo (incluye open source, zero_barrier)
+- frontend/src/locales/de.json: Alemán completo (incluye open source, zero_barrier)
+- frontend/src/locales/ja.json: Japonés completo (incluye open source, zero_barrier)
+- frontend/src/locales/zh.json: Chino completo (incluye open source, zero_barrier)
+
+**Zero-Barrier Income Opportunities**
+- cores/revenue_tracker/RevenueTracker.py extendido (verificación: módulo existía)
+  - PaymentPlatform enum extendido (MICRO_TASK, OPEN_SOURCE_BOUNTY, AFFILIATE, GAMIFICATION)
+  - BarrierType enum nuevo (INTERVIEW, PORTFOLIO, EXPERIENCE, DEGREE, CERTIFICATION, LOCATION, VISA, LANGUAGE, NONE)
+  - RevenueOpportunity dataclass extendido con campos zero-barrier
+  - is_zero_barrier(): check si no tiene barreras
+  - get_potential_earnings(): amount * success_rate
+  - get_zero_barrier_opportunities(): filtrar oportunidades sin barreras
+  - get_opportunities_by_platform(): filtrar por plataforma
+  - get_total_potential_earnings(): total potencial
+- api/routers/zero_barrier.py: API router completo
+  - GET /api/zero-barrier/opportunities: listar oportunidades (filtros: platform, min_amount, difficulty)
+  - POST /api/zero-barrier/opportunities: crear oportunidad
+  - GET /api/zero-barrier/stats: estadísticas
+  - GET /api/zero-barrier/platforms: plataformas disponibles
+- Plataformas soportadas: Bug Bounty, Open Source Bounties, Micro Tasks, Affiliate Marketing, Gamification
+- Traducciones en 6 idiomas (en, es, fr, de, ja, zh)
 
 **OpenRouter API Key Configuration**
 - Nueva API key configurada en todo el sistema
