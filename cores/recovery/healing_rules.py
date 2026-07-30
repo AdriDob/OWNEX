@@ -23,6 +23,9 @@ class FailureType(str, Enum):
     MEMORY_CORRUPT = "memory_corrupt"
     WATCHDOG_STALLED = "watchdog_stalled"
     API_UNRESPONSIVE = "api_unresponsive"
+    # ⚡ INTEGRATED WITH VERSION BACKUP SYSTEM
+    CRITICAL_SYSTEM_FAILURE = "critical_system_failure"
+    VERSION_CORRUPTION = "version_corruption"
     UNKNOWN = "unknown"
 
 
@@ -113,6 +116,21 @@ HEALING_RULES: list[HealingRule] = [
         "restart_api_server",
         "Attempt to restart the API server via health endpoint",
         priority=1,
+    ),
+    # ⚡ INTEGRATED WITH VERSION BACKUP SYSTEM
+    HealingRule(
+        FailureType.CRITICAL_SYSTEM_FAILURE,
+        "version_rollback",
+        "Rollback to previous stable version as last resort",
+        priority=0,  # Highest priority for critical failures
+        requires_circuit_breaker=False,
+    ),
+    HealingRule(
+        FailureType.VERSION_CORRUPTION,
+        "version_rollback",
+        "Rollback to previous stable version when version corruption detected",
+        priority=0,  # Highest priority for version corruption
+        requires_circuit_breaker=False,
     ),
 ]
 
