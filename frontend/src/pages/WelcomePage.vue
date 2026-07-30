@@ -1,5 +1,8 @@
 <template>
   <div class="welcome-page">
+    <!-- ═══ MODERN NAVBAR ═══ -->
+    <ModernNavbar />
+
     <!-- ═══ HERO SECTION ═══ -->
     <section class="hero-section">
       <div class="hero-content">
