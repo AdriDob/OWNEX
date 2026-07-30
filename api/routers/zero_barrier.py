@@ -327,8 +327,11 @@ async def sync_platform_earnings(platform: str, api_key: str = "") -> dict[str, 
 
 
 @router.get("/revenue-potential")
-async def get_revenue_potential() -> dict[str, Any]:
+async def get_revenue_potential(include_market_modules: bool = True) -> dict[str, Any]:
     """Get maximum revenue potential analysis.
+
+    Args:
+        include_market_modules: Include trading, investment, and market intelligence modules (riskier but higher potential)
 
     Returns revenue potential across tiers:
     - conservative: 0.5x multiplier
@@ -336,13 +339,18 @@ async def get_revenue_potential() -> dict[str, Any]:
     - aggressive: 2.0x multiplier
     - maximum: 3.0x multiplier
 
-    Platforms:
+    Base Platforms:
     - bug_bounty: HackerOne, Bugcrowd, Intigriti, YesWeHack, Synack
     - dev_bounty: Gitcoin, GitHub Sponsors, Bountysource
     - data_annotation: Labelbox, Scale AI, Amazon Mechanical Turk
+
+    Market Modules (if enabled):
+    - trading: Crypto Trading (cores/trading/executor.py)
+    - investment: DeFi Yield Farming (cores/investment/manager.py)
+    - market_intelligence: Market Intelligence Arbitrage (cores/market_intelligence/models.py)
     """
     try:
-        report = generate_revenue_report()
+        report = generate_revenue_report(include_market_modules)
         return report
     except Exception as e:
         logger.error(f"[ZERO-BARRIER] Error generating revenue potential: {e}")
