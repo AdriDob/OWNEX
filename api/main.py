@@ -1427,6 +1427,9 @@ app.include_router(version_backup.router)
 # Setup router
 app.include_router(setup.router)
 
+# MERLIN router
+app.include_router(merlin.router)
+
 # Security Cycle router
 app.include_router(security_cycle.router)
 
