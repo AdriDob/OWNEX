@@ -36,6 +36,14 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'Personalización', public: true },
   },
 
+  // ── MERLIN (Office Retro Modernized Assistant) ──
+  {
+    path: '/merlin',
+    name: 'merlin',
+    component: () => import(/* webpackChunkName: "merlin" */ '@/components/merlin/MerlinInterface.vue'),
+    meta: { title: 'MERLIN' },
+  },
+
   // ── AUTH ──
   {
     path: '/login',

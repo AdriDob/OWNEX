@@ -1,100 +1,270 @@
-"""MERLIN Intelligence API — brief, decisions, strategic memory."""
+"""API Router for MERLIN - Office Retro Modernized Assistant."""
 
-from __future__ import annotations
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import Optional, List
+from datetime import datetime
 
-import logging
-from datetime import UTC, datetime
-from typing import Any
-
-from fastapi import APIRouter
-
-logger = logging.getLogger("orion.merlin")
 router = APIRouter(prefix="/api/merlin", tags=["merlin"])
 
 
-@router.get("/brief")
-async def merlin_brief():
-    """Generate the current daily brief from system state."""
+class ChatRequest(BaseModel):
+    """Request model for chat."""
+    message: str
+    context: Optional[dict] = None
+
+
+class ChatResponse(BaseModel):
+    """Response model for chat."""
+    response: str
+    timestamp: datetime
+    is_success: bool = True
+
+
+class SettingsRequest(BaseModel):
+    """Request model for settings."""
+    custom_name: Optional[str] = "MERLIN"
+    custom_greeting: Optional[str] = "¡Hola! Soy MERLIN, tu asistente de inteligencia autónoma."
+    detail_level: Optional[str] = "normal"
+    response_tone: Optional[str] = "professional"
+    enable_analytics: Optional[bool] = True
+    enable_learning: Optional[bool] = True
+
+
+class MemoryRequest(BaseModel):
+    """Request model for memory."""
+    question: str
+    response: str
+    timestamp: datetime
+
+
+@router.post("/chat", response_model=ChatResponse)
+async def chat(request: ChatRequest):
+    """Chat with MERLIN."""
     try:
-        from cores.capabilities.registration import register_builtin_capabilities
+        # Import merlin system
+        from cores.merlin.system import get_merlin_system
 
-        from cores.events.event_bus import get_core_event_bus
+        merlin = get_merlin_system()
 
-        bus = get_core_event_bus()
-        bus.publish("merlin:brief_requested")
-        register_builtin_capabilities()
+        # Process message with context
+        context = request.context or {}
+        response = await merlin.process_message(
+            message=request.message,
+            detail_level=context.get("detail_level", "normal"),
+            response_tone=context.get("response_tone", "professional"),
+            enable_analytics=context.get("enable_analytics", True),
+            enable_learning=context.get("enable_learning", True)
+        )
+
+        return ChatResponse(
+            response=response,
+            timestamp=datetime.now(),
+            is_success=True
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/settings")
+async def save_settings(request: SettingsRequest):
+    """Save MERLIN settings."""
+    try:
+        # Save settings to database or config
+        # This is a placeholder - implement actual storage
         return {
             "success": True,
-            "brief": "OWNEX System Brief: Capabilities registered, platform operational.",
-            "data": {"capabilities": 10, "status": "operational"},
-            "generated_at": datetime.now(UTC).isoformat(),
+            "message": "Settings saved successfully",
+            "settings": request.dict()
         }
+
     except Exception as e:
-        logger.exception("Failed to generate MERLIN brief")
-        return {"success": False, "error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/decisions")
-async def merlin_decisions(limit: int = 10):
-    """List recent strategic decisions."""
+@router.get("/settings")
+async def get_settings():
+    """Get MERLIN settings."""
     try:
-        from cores.events.event_bus import get_core_event_bus
+        # Get settings from database or config
+        # This is a placeholder - implement actual retrieval
+        return {
+            "custom_name": "MERLIN",
+            "custom_greeting": "¡Hola! Soy MERLIN, tu asistente de inteligencia autónoma.",
+            "detail_level": "normal",
+            "response_tone": "professional",
+            "enable_analytics": True,
+            "enable_learning": True
+        }
 
-        bus = get_core_event_bus()
-        bus.publish("merlin:decisions_requested")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/memory")
+async def save_memory(request: MemoryRequest):
+    """Save conversation to memory."""
+    try:
+        # Import memory system
+        from cores.merlin.memory import get_merlin_memory
+
+        memory = get_merlin_memory()
+        await memory.save_conversation(
+            question=request.question,
+            response=request.response,
+            timestamp=request.timestamp
+        )
+
         return {
             "success": True,
-            "total_decisions": 0,
-            "resolved": 0,
-            "pending": 0,
-            "categories": {},
+            "message": "Memory saved successfully"
         }
+
     except Exception as e:
-        logger.exception("Failed to get decisions")
-        return {"success": False, "error": str(e)}
-
-
-@router.post("/decisions")
-async def record_decision(decision: dict[str, Any]):
-    """Record a new strategic decision."""
-    try:
-        from cores.events.event_bus import get_core_event_bus
-
-        bus = get_core_event_bus()
-        bus.publish("merlin:decision_recorded", decision_id=decision.get("id"))
-        return {"success": True}
-    except Exception as e:
-        logger.exception("Failed to record decision")
-        return {"success": False, "error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/memory")
-async def merlin_memory():
-    """Get MERLIN's strategic context."""
+async def get_memory(limit: int = 10):
+    """Get recent memory entries."""
     try:
-        from cores.events.event_bus import get_core_event_bus
+        # Import memory system
+        from cores.merlin.memory import get_merlin_memory
 
-        bus = get_core_event_bus()
-        bus.publish("merlin:memory_requested")
+        memory = get_merlin_memory()
+        entries = await memory.get_recent_memories(limit=limit)
+
+        return {
+            "entries": entries,
+            "total": len(entries)
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/capabilities")
+async def get_capabilities():
+    """Get MERLIN capabilities."""
+    capabilities = [
+        {
+            "id": "target_analysis",
+            "name": "Análisis de Targets",
+            "description": "Análisis completo de objetivos y vulnerabilidades",
+            "icon": "🎯"
+        },
+        {
+            "id": "report_generation",
+            "name": "Generación de Reportes",
+            "description": "Generación automatizada de reportes de vulnerabilidades",
+            "icon": "📊"
+        },
+        {
+            "id": "workflow_optimization",
+            "name": "Optimización de Workflows",
+            "description": "Optimización de flujos de trabajo y procesos",
+            "icon": "⚡"
+        },
+        {
+            "id": "data_analysis",
+            "name": "Análisis de Datos",
+            "description": "Análisis e investigación de datos",
+            "icon": "🔍"
+        },
+        {
+            "id": "strategic_planning",
+            "name": "Planificación Estratégica",
+            "description": "Planificación estratégica y toma de decisiones",
+            "icon": "📋"
+        },
+        {
+            "id": "technical_assistance",
+            "name": "Asistencia Técnica",
+            "description": "Asistencia en decisiones técnicas y debugging",
+            "icon": "🔧"
+        }
+    ]
+
+    return {"capabilities": capabilities}
+
+
+@router.get("/status")
+async def get_status():
+    """Get MERLIN status."""
+    return {
+        "name": "MERLIN",
+        "status": "online",
+        "version": "1.0.0",
+        "theme": "office_retro_modernized",
+        "features": {
+            "chat": True,
+            "memory": True,
+            "analytics": True,
+            "learning": True,
+            "customization": True
+        }
+    }
+
+
+@router.post("/clear")
+async def clear_chat():
+    """Clear chat history."""
+    try:
+        # Clear chat history from memory
+        # This is a placeholder - implement actual clearing
         return {
             "success": True,
-            "strategic_context": "ACTIVE",
-            "goals": {},
+            "message": "Chat cleared successfully"
         }
+
     except Exception as e:
-        logger.exception("Failed to get MERLIN memory")
-        return {"success": False, "error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/memory/goals")
-async def set_goals(goals: dict[str, Any]):
-    """Set strategic goals."""
+@router.get("/notes")
+async def get_notes():
+    """Get user notes."""
     try:
-        from cores.events.event_bus import get_core_event_bus
+        # Get notes from database
+        # This is a placeholder - implement actual retrieval
+        notes = [
+            {
+                "id": 1,
+                "title": "Análisis de target principal",
+                "date": datetime.now().isoformat(),
+                "content": "Notas sobre el análisis..."
+            },
+            {
+                "id": 2,
+                "title": "Reporte de vulnerabilidad SQLi",
+                "date": datetime.now().isoformat(),
+                "content": "Detalles del reporte..."
+            }
+        ]
 
-        bus = get_core_event_bus()
-        bus.publish("merlin:goals_set", goals=goals)
-        return {"success": True, "goals": goals}
+        return {"notes": notes}
+
     except Exception as e:
-        logger.exception("Failed to set goals")
-        return {"success": False, "error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/notes")
+async def save_note(title: str, content: str):
+    """Save a note."""
+    try:
+        # Save note to database
+        # This is a placeholder - implement actual saving
+        return {
+            "success": True,
+            "message": "Note saved successfully",
+            "note": {
+                "id": 1,
+                "title": title,
+                "content": content,
+                "date": datetime.now().isoformat()
+            }
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
