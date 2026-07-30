@@ -509,6 +509,88 @@ class VoiceCommandParser:
     def _register_builtin_patterns(self) -> None:
         """Register built-in command patterns."""
         patterns = [
+            # Navigation commands
+            {
+                "intent": "navigate",
+                "patterns": [
+                    r"(go|ve|ir a|navigate to|abrir).*(dashboard|mission control|analytics|settings|terminal)",
+                    r"(abrir|ir).*(dashboard|mission control|analytics|settings|terminal)",
+                ],
+                "entities": ["destination"],
+            },
+            # Workflow commands
+            {
+                "intent": "start_workflow",
+                "patterns": [
+                    r"(inicia|start|ejecuta|run).*(workflow|proceso)",
+                    r"(inicia|start).*(feature development|bug fix|revenue opportunity)",
+                ],
+                "entities": ["workflow_type", "feature_name"],
+            },
+            {
+                "intent": "pause_workflow",
+                "patterns": [
+                    r"(pausa|pause|detener|stop).*(workflow|proceso)",
+                ],
+                "entities": ["workflow_id"],
+            },
+            {
+                "intent": "resume_workflow",
+                "patterns": [
+                    r"(reanuda|resume|continuar).*(workflow|proceso)",
+                ],
+                "entities": ["workflow_id"],
+            },
+            {
+                "intent": "cancel_workflow",
+                "patterns": [
+                    r"(cancela|cancel|abortar).*(workflow|proceso)",
+                ],
+                "entities": ["workflow_id"],
+            },
+            # Agent commands
+            {
+                "intent": "activate_agent",
+                "patterns": [
+                    r"(activa|activate|inicia).*(agente|agent).*(coding|debug|qa|security|orchestrator)",
+                    r"(coding|debug|qa|security|orchestrator).*(agente|agent)",
+                ],
+                "entities": ["agent_id"],
+            },
+            {
+                "intent": "pause_agent",
+                "patterns": [
+                    r"(pausa|pause).*(agente|agent).*(coding|debug|qa|security|orchestrator)",
+                ],
+                "entities": ["agent_id"],
+            },
+            # Status commands
+            {
+                "intent": "get_status",
+                "patterns": [
+                    r"(status|estado|how.*going|what.*happening|what.*doing)",
+                    r"(show|give|dame).*(status|summary|report|estado|resumen)",
+                ],
+                "entities": [],
+            },
+            # Search commands
+            {
+                "intent": "search",
+                "patterns": [
+                    r"(busca|search|look for|find).*(findings|hallazgos|vulnerabilities|vulnerabilidades)",
+                    r"(filtrar|filter).*(por|by|for).*(target|sql|xss)",
+                ],
+                "entities": ["query"],
+            },
+            # Theme commands
+            {
+                "intent": "set_theme",
+                "patterns": [
+                    r"(cambia|change|set).*(tema|theme).*(cyber|ps5|minimal|dark)",
+                    r"(activa|activate).*(modo|mode).*(ps5|cyber)",
+                ],
+                "entities": ["theme"],
+            },
             # Discovery commands
             {
                 "intent": "discover_opportunities",
@@ -518,35 +600,26 @@ class VoiceCommandParser:
                 ],
                 "entities": ["category", "platform"],
             },
-            # Status commands
-            {
-                "intent": "get_status",
-                "patterns": [
-                    r"(status|how.*going|what.*happening|what.*doing)",
-                    r"(show|give).*(status|summary|report)",
-                ],
-                "entities": [],
-            },
             # Task commands
             {
                 "intent": "list_tasks",
                 "patterns": [
-                    r"(list|show|what).*(task|pending|queue)",
-                    r"(pending|waiting).*(task|approval)",
+                    r"(list|show|what).*(task|pending|queue|tarea|pendiente)",
+                    r"(pending|waiting).*(task|approval|tarea)",
                 ],
                 "entities": ["status"],
             },
             {
                 "intent": "approve_task",
                 "patterns": [
-                    r"(approve|accept|yes|go ahead).*(task|#?\d+)",
+                    r"(approve|accept|yes|go ahead|aprueba|sí).*(task|#?\d+|tarea)",
                 ],
                 "entities": ["task_id"],
             },
             {
                 "intent": "reject_task",
                 "patterns": [
-                    r"(reject|deny|no|decline).*(task|#?\d+)",
+                    r"(reject|deny|no|decline|rechaza|no).*(task|#?\d+|tarea)",
                 ],
                 "entities": ["task_id", "reason"],
             },
@@ -554,8 +627,8 @@ class VoiceCommandParser:
             {
                 "intent": "set_mode",
                 "patterns": [
-                    r"(set|change|switch).*(mode|level).*(observer|preparer|supervisor|autonomous)",
-                    r"(go|enter).*(observer|preparer|supervisor|autonomous).*(mode|level)",
+                    r"(set|change|switch|cambia|cambiar).*(mode|level|nivel).*(observer|preparer|supervisor|autonomous)",
+                    r"(go|enter|ir a).*(observer|preparer|supervisor|autonomous).*(mode|level|nivel)",
                 ],
                 "entities": ["mode"],
             },
@@ -563,8 +636,8 @@ class VoiceCommandParser:
             {
                 "intent": "generate_report",
                 "patterns": [
-                    r"(generate|create|make|prepare).*(report|summary)",
-                    r"(daily|weekly|monthly).*(report|summary)",
+                    r"(generate|create|make|prepare|genera|crea).*(report|summary|reporte|resumen)",
+                    r"(daily|weekly|monthly|diario|semanal|mensual).*(report|summary|reporte|resumen)",
                 ],
                 "entities": ["period", "type"],
             },
@@ -572,7 +645,7 @@ class VoiceCommandParser:
             {
                 "intent": "show_learning",
                 "patterns": [
-                    r"(show|what).*(learn|learned|pattern|insight)",
+                    r"(show|what|muestra).*(learn|learned|pattern|insight|aprendizaje|patrón)",
                 ],
                 "entities": [],
             },
@@ -580,7 +653,7 @@ class VoiceCommandParser:
             {
                 "intent": "help",
                 "patterns": [
-                    r"(help|what can you do|commands)",
+                    r"(help|what can you do|commands|ayuda|qué puedes hacer|comandos)",
                 ],
                 "entities": [],
             },
@@ -588,7 +661,7 @@ class VoiceCommandParser:
             {
                 "intent": "stop",
                 "patterns": [
-                    r"(stop|cancel|quit|exit|never mind)",
+                    r"(stop|cancel|quit|exit|never mind|detente|cancelar|salir)",
                 ],
                 "entities": [],
             },
@@ -640,6 +713,39 @@ class VoiceCommandParser:
         entities = {}
         text_lower = text.lower()
 
+        # Destination entity (navigation)
+        if "destination" in entity_types:
+            destinations = ["dashboard", "mission control", "analytics", "settings", "terminal"]
+            for dest in destinations:
+                if dest in text_lower:
+                    entities["destination"] = dest.replace(" ", "_")
+                    break
+
+        # Workflow type entity
+        if "workflow_type" in entity_types:
+            workflows = ["feature development", "bug fix", "revenue opportunity"]
+            for wf in workflows:
+                if wf in text_lower:
+                    entities["workflow_type"] = wf.replace(" ", "_")
+                    break
+
+        # Feature name entity
+        if "feature_name" in entity_types:
+            import re
+
+            # Extract feature name after "de" or "for"
+            match = re.search(r"(?:de|for|por)\s+(.+)", text_lower)
+            if match:
+                entities["feature_name"] = match.group(1).strip()
+
+        # Agent ID entity
+        if "agent_id" in entity_types:
+            agents = ["orchestrator", "architecture", "coding", "debug", "qa", "security", "documentation", "research", "product", "revenue", "automation", "infrastructure", "evolution"]
+            for agent in agents:
+                if agent in text_lower:
+                    entities["agent_id"] = agent
+                    break
+
         # Mode entity
         if "mode" in entity_types:
             for mode in ["observer", "preparer", "supervisor", "autonomous"]:
@@ -662,6 +768,23 @@ class VoiceCommandParser:
                 if cat in text_lower:
                     entities["category"] = cat
                     break
+
+        # Theme entity
+        if "theme" in entity_types:
+            themes = ["cyber", "ps5", "minimal", "dark"]
+            for theme in themes:
+                if theme in text_lower:
+                    entities["theme"] = theme
+                    break
+
+        # Query entity (search)
+        if "query" in entity_types:
+            import re
+
+            # Extract query after keywords
+            match = re.search(r"(?:busca|search|find|filtrar|filter)\s+(.+)", text_lower)
+            if match:
+                entities["query"] = match.group(1).strip()
 
         return entities
 
