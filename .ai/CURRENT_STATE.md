@@ -215,6 +215,46 @@
 - Incremento con OPTIMIZACIÓN: +$474,130/mes (+$5,689,560/año) = +119% vs rates bajos
 - Incremento total desde base: +$709,225/mes (+$8,510,700/año) = +432% vs SIN market modules
 
+**Sistema de Backup y Recuperación de Versiones**
+- cores/version_backup/backup_system.py: Sistema completo de backup y rollback
+  - VersionBackupSystem: coordinador central de backups de versiones
+  - create_backup(): crear backup de versión actual con notas
+  - rollback_to_version(): rollback a versión específica (por version o git commit)
+  - restore_latest(): restaurar desde backup más reciente
+  - list_backups(): listar todos los backups disponibles
+  - verify_backup(): verificar integridad de backup (checksum SHA256)
+  - _cleanup_old_backups(): mantener solo max 10 backups
+  - VersionSnapshot: snapshot de versión con estado, manifest, checksum
+  - BackupResult: resultado de operación de backup
+  - VersionState: ACTIVE, BACKUP, ROLLBACK, CORRUPTED
+  - BackupStatus: SUCCESS, FAILED, IN_PROGRESS, CANCELLED
+- api/routers/version_backup.py: API router para version backup
+  - POST /api/version-backup/backup: crear backup con notas
+  - GET /api/version-backup/backups: listar todos los backups
+  - GET /api/version-backup/backup/{backup_path}/verify: verificar integridad
+  - POST /api/version-backup/rollback: rollback a versión específica
+  - POST /api/version-backup/restore-latest: restaurar desde backup más reciente
+  - GET /api/version-backup/current-version: obtener versión actual
+- scripts/version_backup.py: CLI para version backup
+  - python scripts/version_backup.py backup --notes "Pre-update backup"
+  - python scripts/version_backup.py list: listar backups
+  - python scripts/version_backup.py verify <backup_path>: verificar integridad
+  - python scripts/version_backup.py rollback --version v1.0.0: rollback a versión
+  - python scripts/version_backup.py rollback --commit abc123: rollback a commit
+  - python scripts/version_backup.py restore-latest: restaurar desde último
+  - python scripts/version_backup.py current: obtener versión actual
+- Características:
+  - Pre-update snapshots automáticos
+  - Version history tracking (versions.json)
+  - Multiple version installations
+  - Integrity verification (SHA256 checksum)
+  - Emergency recovery
+  - Pre-rollback backup automático
+  - Max 10 backups (auto-cleanup)
+  - Git state restoration
+  - Essential files backup (database, config, .env, identity_vault, targets, .ai, cores, api, frontend, scripts, requirements, pyproject.toml, package.json, package-lock.json)
+- Traducciones en 6 idiomas (en, es, fr, de, ja, zh)
+
 **OpenRouter API Key Configuration**
 - Nueva API key configurada en todo el sistema
 - `cores/ai/provider.py`: OpenRouter agregado como provider (opcional premium)
