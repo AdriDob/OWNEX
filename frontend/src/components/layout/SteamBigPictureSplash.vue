@@ -24,14 +24,45 @@ const isVideoEnded = ref(false)
 const loadingDots = ref('')
 const currentTime = ref('')
 
+// System checks for OWNEX Boot Sequence
+const systemChecks = ref([
+  { name: 'Backend', status: 'pending' as 'pending' | 'checking' | 'complete' | 'error' },
+  { name: 'Providers', status: 'pending' },
+  { name: 'Scheduler', status: 'pending' },
+  { name: 'Voice', status: 'pending' },
+  { name: 'Database', status: 'pending' },
+  { name: 'Mission Control', status: 'pending' },
+  { name: 'Memory', status: 'pending' },
+  { name: 'Agents', status: 'pending' },
+])
+
 let progressInterval: ReturnType<typeof setInterval> | null = null
 let videoInterval: ReturnType<typeof setTimeout> | null = null
 let particleAnimationId: number | null = null
+let systemCheckInterval: ReturnType<typeof setInterval> | null = null
 
 // Elite sound effects
 function playEliteSound(type: 'startup' | 'success' | 'error' | 'hover') {
   // In production, play actual audio files
   console.log(`[ELITE AUDIO] Playing ${type} sound effect`)
+}
+
+// OWNEX System Checks
+async function runSystemChecks() {
+  const checkOrder = [0, 1, 2, 3, 4, 5, 6, 7] // Index of systemChecks
+
+  for (const idx of checkOrder) {
+    systemChecks.value[idx].status = 'checking'
+    await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 400))
+
+    // Simulate system check (in production, actual API calls)
+    const isHealthy = Math.random() > 0.1 // 90% success rate
+    systemChecks.value[idx].status = isHealthy ? 'complete' : 'error'
+
+    if (!isHealthy) {
+      console.warn(`[BOOT] ${systemChecks.value[idx].name} check failed`)
+    }
+  }
 }
 
 // Elite particle system
@@ -165,35 +196,39 @@ function updateTime() {
 
 async function startSequence() {
   playEliteSound('startup')
-  
+
   await new Promise(resolve => setTimeout(resolve, 1500))
-  
+
   phase.value = 'logo'
   await new Promise(resolve => setTimeout(resolve, 800))
-  
+
   logoScale.value = 1
   logoOpacity.value = 1
-  
+
   await new Promise(resolve => setTimeout(resolve, 1500))
-  
+
   startVideoPlayback()
-  
+
   await new Promise(resolve => setTimeout(resolve, 3000))
-  
+
   initParticles()
-  
+
   await new Promise(resolve => setTimeout(resolve, 2000))
-  
+
+  // Run system checks
+  await runSystemChecks()
+
+  // Show loading progress after system checks
   startLoadingAnimation()
-  
+
   const startTime = Date.now()
   const duration = 3000
-  
+
   function progressAnimation() {
     const elapsed = Date.now() - startTime
     const percentage = Math.min((elapsed / duration) * 100, 100)
     progress.value = percentage
-    
+
     if (percentage < 100) {
       requestAnimationFrame(progressAnimation)
     } else {
@@ -201,13 +236,13 @@ async function startSequence() {
       stopParticles()
       phase.value = 'fadeout'
       playEliteSound('success')
-      
+
       setTimeout(() => {
         emit('done')
       }, 1500)
     }
   }
-  
+
   requestAnimationFrame(progressAnimation)
 }
 
@@ -222,6 +257,7 @@ function reset() {
   isVideoEnded.value = false
   loadingDots.value = ''
   videoCurrentTime = 0
+  systemChecks.value.forEach(check => check.status = 'pending')
   stopParticles()
   pauseVideo()
 }
@@ -391,18 +427,35 @@ const progressBarStyle = computed(() => ({
           </div>
         </div>
 
-        <!-- Elite loading progress -->
+        <!-- OWNEX System Checks -->
         <div
           v-if="phase === 'content'"
           :class="[
-            'mt-10 flex flex-col items-center gap-3 transition-all duration-400 ease-out',
+            'mt-10 flex flex-col items-center gap-4 transition-all duration-400 ease-out',
             contentOpacity ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4',
           ]"
         >
           <span class="font-mono text-xs uppercase tracking-widest" style="color: var(--elite-secondary);">
-            Inicializando sistemas
+            Comprobación de sistemas
           </span>
 
+          <!-- System Check Items -->
+          <div class="flex flex-col gap-2 w-64">
+            <div
+              v-for="(check, idx) in systemChecks"
+              :key="check.name"
+              class="flex items-center justify-between text-xs font-mono"
+              style="color: var(--elite-secondary);"
+            >
+              <span>{{ check.name }}</span>
+              <span v-if="check.status === 'pending'" class="text-muted-foreground">●</span>
+              <span v-else-if="check.status === 'checking'" class="animate-pulse" style="color: var(--elite-primary);">◉</span>
+              <span v-else-if="check.status === 'complete'" style="color: var(--elite-accent);">✓</span>
+              <span v-else-if="check.status === 'error'" style="color: var(--elite-destructive, #ef4444);">✗</span>
+            </div>
+          </div>
+
+          <!-- Progress Bar -->
           <div class="relative w-64 h-1.5 rounded-full overflow-hidden" style="background: var(--elite-glass);">
             <div
               class="h-full rounded-full transition-all duration-200 ease-out"
