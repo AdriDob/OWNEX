@@ -10,7 +10,6 @@ import hashlib
 import logging
 import secrets
 from datetime import datetime, timedelta
-from typing import Optional
 
 logger = logging.getLogger("ownex.user_auth")
 
@@ -146,7 +145,7 @@ class UserAuth:
             "expires_at": expires_at.isoformat(),
         }
 
-    def verify_token(self, access_token: str) -> Optional[dict[str, str]]:
+    def verify_token(self, access_token: str) -> dict[str, str] | None:
         """Verificar access token."""
         session = self.db.execute(
             """
@@ -166,7 +165,7 @@ class UserAuth:
             "expires_at": expires_at.isoformat(),
         }
 
-    def refresh_token(self, refresh_token: str) -> Optional[dict[str, str]]:
+    def refresh_token(self, refresh_token: str) -> dict[str, str] | None:
         """Refresh access token."""
         session = self.db.execute(
             """
@@ -179,7 +178,7 @@ class UserAuth:
         if not session:
             return None
 
-        user_id = session[0]
+        session[0]
 
         # Generate new tokens
         new_access_token = secrets.token_urlsafe(32)
@@ -216,7 +215,7 @@ class UserAuth:
 
 
 # Singleton instance
-_user_auth: Optional[UserAuth] = None
+_user_auth: UserAuth | None = None
 
 
 def get_user_auth(db_session) -> UserAuth:

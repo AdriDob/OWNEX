@@ -12,25 +12,25 @@ logger = logging.getLogger("ownex.agents.specialists.security")
 
 class SecurityAgent(SpecialistAgent):
     """Security — Vulnerability detection and security testing specialist.
-    
+
     Objectives:
     - Primary: Detect vulnerabilities and perform security testing
     - Secondary: Collect evidence, confirm exploits, validate findings
-    
+
     Limits:
     - Max 3 concurrent security scans
     - Max 1200s per security operation
-    
+
     Tools:
     - Vulnerability scanners (Nuclei, Nmap)
     - Exploit testing
     - Evidence collection
     - Security validation
-    
+
     Priorities:
     - Priority level: 2
     - Task preferences: security scanning, vulnerability detection
-    
+
     Handoffs:
     - Receives from: Commander, Research
     - Hands off to: Reviewer, Documentation, Learning

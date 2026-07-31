@@ -54,7 +54,7 @@ class NotificationEventBridge:
         """Start listening for events and dispatch to Discord."""
         subscribed_count = 0
 
-        for event, priority in EVENT_PRIORITY_MAP.items():
+        for event, _priority in EVENT_PRIORITY_MAP.items():
             # Subscribe to event with appropriate priority
             sub_unsub = self._event_bus.subscribe(event, self._handle_event)
             self._subscriptions.append(sub_unsub)

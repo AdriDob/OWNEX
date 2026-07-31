@@ -19,12 +19,10 @@ from __future__ import annotations
 
 import logging
 import subprocess
-import json
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger("ownex.devin_tool")
 
@@ -60,8 +58,8 @@ class DevinTask:
     files: list[str]
     context: dict[str, Any]
     created_at: datetime
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
     status: str = "pending"  # pending, running, completed, failed
     output: str = ""
     error: str = ""
@@ -326,7 +324,7 @@ class DevinTool:
 
 
 # Singleton instance
-_devin_tool: Optional[DevinTool] = None
+_devin_tool: DevinTool | None = None
 
 
 def get_devin_tool(devin_path: str = "opencode") -> DevinTool:

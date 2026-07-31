@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from cores.financial.truth_layer import TruthLayer, get_truth_layer
@@ -28,14 +28,14 @@ def _all_ledger_entries():
 logger = logging.getLogger("ownex.financial.reconciliation")
 
 
-class ConsistencyState(str, Enum):
+class ConsistencyState(StrEnum):
     CONSISTENT = "consistent"
     STALE = "stale"
     CONFLICT = "conflict"
     UNKNOWN = "unknown"
 
 
-class DiscrepancyType(str, Enum):
+class DiscrepancyType(StrEnum):
     TIMING_MISMATCH = "timing_mismatch"
     MISSING_PAYOUT = "missing_payout"
     DUPLICATE_ENTRY = "duplicate_entry"

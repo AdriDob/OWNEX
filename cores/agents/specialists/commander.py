@@ -23,34 +23,34 @@ logger = logging.getLogger("ownex.agents.specialists.commander")
 
 class CommanderAgent(SpecialistAgent):
     """Commander — Team coordination specialist.
-    
+
     Objectives:
     - Primary: Coordinate specialists to achieve system objectives
     - Secondary: Optimize team cooperation, handle failures, report status
-    
+
     Limits:
     - NEVER executes tasks directly
     - Max 50 concurrent delegations
     - Max 120s per coordination cycle
-    
+
     Tools:
     - Task assignment system
     - Agent status monitoring
     - Workflow orchestration
     - Health monitoring dashboard
-    
+
     Priorities:
     - Priority level: 1 (highest)
     - Task preferences: workflow coordination, agent management
-    
+
     Memory:
     - Namespace: "commander"
     - Retains: 10000 items (system-wide state)
-    
+
     Communication:
     - Channels: All specialist agents, system alerts
     - Response timeout: 30s (urgent)
-    
+
     Handoffs:
     - NEVER receives handoffs (top-level coordinator)
     - Can delegate to any specialist

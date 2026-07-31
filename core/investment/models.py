@@ -3,13 +3,13 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger("orion.investment.models")
 
 
-class StrategyType(str, Enum):
+class StrategyType(StrEnum):
     CRYPTO_SPOT = "crypto_spot"
     CRYPTO_FUTURES = "crypto_futures"
     CRYPTO_DEFI = "crypto_defi"
@@ -22,14 +22,14 @@ class StrategyType(str, Enum):
     FOREX = "forex"
 
 
-class RiskLevel(str, Enum):
+class RiskLevel(StrEnum):
     CONSERVATIVE = "conservative"
     MODERATE = "moderate"
     AGGRESSIVE = "aggressive"
     SPECULATIVE = "speculative"
 
 
-class StrategyStatus(str, Enum):
+class StrategyStatus(StrEnum):
     ACTIVE = "active"
     PAUSED = "paused"
     STOPPED = "stopped"

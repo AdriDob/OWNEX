@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from cores.setup.steps.enhanced_personalization import get_enhanced_personalization_system
@@ -21,7 +21,7 @@ from cores.voice_interface import VoiceConfig, VoiceInterface
 logger = logging.getLogger("ownex.voice_commands")
 
 
-class CommandCategory(str, Enum):
+class CommandCategory(StrEnum):
     """Categorías de comandos de voz."""
     GENERAL = "general"
     BUG_BOUNTY = "bug_bounty"
@@ -57,7 +57,6 @@ class AdvancedVoiceCommands:
 
     def _initialize_commands(self) -> None:
         """Inicializar comandos de voz."""
-        name = self.personalization.profile.preferred_name or self.personalization.profile.name
 
         self.commands = [
             # Comandos generales
@@ -349,7 +348,7 @@ class AdvancedVoiceCommands:
         obsidian = get_obsidian_integration()
         content = text.replace("nota en obsidian", "").replace("guardar en obsidian", "").replace("obsidian", "").strip()
 
-        result = obsidian.create_merlin_note(
+        obsidian.create_merlin_note(
             title="Voice Note",
             content=content,
             tags=["voice", "merlin"],

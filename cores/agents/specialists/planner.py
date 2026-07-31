@@ -12,25 +12,25 @@ logger = logging.getLogger("ownex.agents.specialists.planner")
 
 class PlannerAgent(SpecialistAgent):
     """Planner — Task planning and decomposition specialist.
-    
+
     Objectives:
     - Primary: Create detailed plans for complex objectives
     - Secondary: Estimate resources, resolve dependencies, optimize execution order
-    
+
     Limits:
     - Max 5 concurrent plans
     - Max 300s per plan generation
-    
+
     Tools:
     - Task decomposition
     - Resource estimation
     - Dependency resolution
     - Timeline optimization
-    
+
     Priorities:
     - Priority level: 2
     - Task preferences: plan generation, resource allocation
-    
+
     Handoffs:
     - Receives from: Commander
     - Hands off to: All specialists (based on plan)

@@ -6,6 +6,7 @@ Provides continuous operation capabilities for OWNEX.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 import shutil
@@ -124,10 +125,8 @@ class Watchdog:
         self._running = False
         if self._task:
             self._task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-            except asyncio.CancelledError:
-                pass
         logger.info("Watchdog stopped")
 
     async def _monitor_loop(self) -> None:
@@ -427,10 +426,8 @@ class StorageCleaner:
         self._running = False
         if self._task:
             self._task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-            except asyncio.CancelledError:
-                pass
 
     async def _cleanup_loop(self) -> None:
         """Periodic cleanup loop."""
@@ -629,7 +626,7 @@ class Doctor:
         try:
             from core.events.event_bus import get_core_event_bus
 
-            bus = get_core_event_bus()
+            get_core_event_bus()
             checks.append(
                 DoctorCheck(
                     name="event_bus",
@@ -849,23 +846,6 @@ class OperationsManager:
                 break
             except Exception as e:
                 logger.error("Daily backup failed: %s", e)
-
-    def register_component(
-        self,
-        name: str,
-        checker: Callable[[], asyncio.coroutine],
-        recovery: Callable[[], asyncio.coroutine] | None = None,
-    ) -> None:
-        """Register a component for watchdog monitoring."""
-        self.watchdog.register_component(name, checker, recovery)
-
-    def add_storage_cleanup_rule(self, rule: Callable[[], asyncio.coroutine]) -> None:
-        """Add a storage cleanup rule."""
-        self.storage_cleaner.add_cleanup_rule(rule)
-
-    def add_doctor_check(self, check: Callable[[], asyncio.coroutine]) -> None:
-        """Add a diagnostic check."""
-        self.doctor.add_check(check)
 
     async def run_doctor(self, verbose: bool = False) -> DoctorReport:
         """Run system diagnostics."""

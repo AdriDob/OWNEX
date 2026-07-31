@@ -54,11 +54,10 @@ def count_steps() -> int:
 
 
 # Import steps explicitly to register them
-from cores.setup.steps.personalization_step import personalization_step  # noqa: E402
-
 from cores.setup.steps.copilot_step import execute as copilot_step  # noqa: E402
 from cores.setup.steps.identity_step import execute as identity_step  # noqa: E402
 from cores.setup.steps.integrations_step import execute as integrations_step  # noqa: E402
+from cores.setup.steps.personalization_step import personalization_step  # noqa: E402
 from cores.setup.steps.smartwatch_step import execute as smartwatch_step  # noqa: E402
 from cores.setup.steps.system_step import execute as system_step  # noqa: E402
 from cores.setup.steps.test_step import execute as test_step  # noqa: E402

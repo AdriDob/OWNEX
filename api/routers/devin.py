@@ -224,10 +224,7 @@ async def get_tasks(status: str | None = None, limit: int = 10):
     """Get tasks with optional filter."""
     tool = get_devin_tool()
 
-    if status:
-        tasks = tool.get_tasks_by_status(status)
-    else:
-        tasks = tool.get_recent_tasks(limit)
+    tasks = tool.get_tasks_by_status(status) if status else tool.get_recent_tasks(limit)
 
     return {
         "success": True,

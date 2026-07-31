@@ -10,11 +10,11 @@ Explicit hierarchy:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class DataProvenance(str, Enum):
+class DataProvenance(StrEnum):
     EXTERNAL_API = "external_api"
     SYNCED_CACHE = "synced_cache"
     MANUAL_INPUT = "manual_input"

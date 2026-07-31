@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class VulnerabilityType(str, Enum):
+class VulnerabilityType(StrEnum):
     IDOR = "idor"
     AUTH_BYPASS = "auth_bypass"
     SSRF = "ssrf"
@@ -33,7 +33,7 @@ class VulnerabilityType(str, Enum):
     AUTOFILL_SENSITIVE = "autofill_sensitive"
 
 
-class HypothesisSource(str, Enum):
+class HypothesisSource(StrEnum):
     RULE = "rule"
     PATTERN = "pattern"
     LLM = "llm"

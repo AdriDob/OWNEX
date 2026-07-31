@@ -49,7 +49,7 @@ class SpecialistConfig:
 
 class SpecialistAgent(BaseAgent, ABC):
     """Base class for all OWNEX specialist agents.
-    
+
     Each specialist has:
     - Clear objectives (primary + secondary)
     - Defined limits (concurrency, time, resources)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger("ownex.health.scoring")
@@ -21,7 +21,7 @@ PENALTY_MEMORY_HIGH = 7.0
 PENALTY_CIRCUIT_OPEN = 20.0
 
 
-class HealthStatus(str, Enum):
+class HealthStatus(StrEnum):
     OK = "healthy"
     DEGRADED = "degraded"
     CRITICAL = "critical"

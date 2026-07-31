@@ -145,7 +145,7 @@ def run_scan(deep: bool = False) -> DiscoveryReport:
 
     all_discoveries: list[DiscoveryRecord] = []
 
-    for idx, source in enumerate(sources):
+    for _idx, source in enumerate(sources):
         try:
             # Deep scan: check source availability
             if deep:

@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 from uuid import uuid4
 
 # ── Enums ─────────────────────────────────────────────────────────
 
 
-class AgentId(str, Enum):
+class AgentId(StrEnum):
     # Core Leadership
     COMMANDER = "commander"
     PLANNER = "planner"
@@ -39,7 +39,7 @@ class AgentId(str, Enum):
     MEMORY = "learning"  # Legacy: maps to Learning
 
 
-class AgentStatus(str, Enum):
+class AgentStatus(StrEnum):
     IDLE = "idle"
     WORKING = "working"
     WAITING = "waiting"
@@ -47,7 +47,7 @@ class AgentStatus(str, Enum):
     OFFLINE = "offline"
 
 
-class EventType(str, Enum):
+class EventType(StrEnum):
     # Commander Events
     TASK_ASSIGNED = "task.assigned"
     TASK_DELEGATED = "task.delegated"
@@ -166,7 +166,7 @@ class EventType(str, Enum):
     SYSTEM_ERROR = "system.error"
 
 
-class PipelineState(str, Enum):
+class PipelineState(StrEnum):
     """Full 11-state lifecycle of a single pipeline run."""
 
     PENDING = "pending"

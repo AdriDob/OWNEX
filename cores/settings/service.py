@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger("ownex.settings")
@@ -11,7 +11,7 @@ OWNEX_NS = "OWNEX"
 PLATFORM_NS = "platform"
 
 
-class OWNEXMode(str, Enum):
+class OWNEXMode(StrEnum):
     MANUAL = "manual"
     AUTOMATIC = "automatic"
 

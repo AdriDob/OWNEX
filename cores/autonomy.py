@@ -502,7 +502,7 @@ class AutonomyManager:
         expires_in_minutes: int = 30,
     ) -> ApprovalDecision:
         """Request human approval for an action."""
-        policy = self.get_policy()
+        self.get_policy()
 
         request = ApprovalRequest(
             id=f"appr_{int(time.time() * 1000)}",

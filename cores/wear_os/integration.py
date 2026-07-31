@@ -14,13 +14,13 @@ import json
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 logger = logging.getLogger("ownex.wear_os")
 
 
-class WatchEventType(str, Enum):
+class WatchEventType(StrEnum):
     """Tipos de eventos del reloj."""
     NOTIFICATION = "notification"
     APPROVAL_REQUEST = "approval_request"
@@ -30,7 +30,7 @@ class WatchEventType(str, Enum):
     MERLIN_MESSAGE = "merlin_message"
 
 
-class WatchNotificationLevel(str, Enum):
+class WatchNotificationLevel(StrEnum):
     """Niveles de notificación."""
     CRITICAL = "critical"
     HIGH = "high"

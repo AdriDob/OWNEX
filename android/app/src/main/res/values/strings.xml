@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">CATEYE</string>
-    <string name="title_activity_main">CATEYE</string>
-    <string name="package_name">ai.catseye.app</string>
-    <string name="custom_url_scheme">ai.catseye.app</string>
+    <string name="app_name">RASTRO</string>
+    <string name="title_activity_main">RASTRO</string>
+    <string name="package_name">ai.rastro.app</string>
+    <string name="custom_url_scheme">ai.rastro.app</string>
 </resources>

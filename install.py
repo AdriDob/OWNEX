@@ -117,10 +117,10 @@ class OwnexInstaller:
             # Get pip path
             if self.system_info["os"] == "Windows":
                 pip_path = venv_dir / "Scripts" / "pip"
-                python_path = venv_dir / "Scripts" / "python"
+                venv_dir / "Scripts" / "python"
             else:
                 pip_path = venv_dir / "bin" / "pip"
-                python_path = venv_dir / "bin" / "python"
+                venv_dir / "bin" / "python"
 
             # Upgrade pip
             subprocess.run(
@@ -491,10 +491,9 @@ echo "With: MERLIN Assistant, Daily Planning, Obsidian Integration, Voice Comman
             return False
 
         # Install dependencies
-        if not self.minimal:
-            if not self.install_dependencies():
-                logger.error("Error instalando dependencias")
-                return False
+        if not self.minimal and not self.install_dependencies():
+            logger.error("Error instalando dependencias")
+            return False
 
         # Run personalization wizard
         personalization_data = self.run_personalization_wizard()
@@ -522,19 +521,17 @@ echo "With: MERLIN Assistant, Daily Planning, Obsidian Integration, Voice Comman
             logger.warning("Error configurando integraciones (no fatal)")
 
         # Initialize database
-        if not self.minimal:
-            if not self.initialize_database():
-                logger.error("Error inicializando base de datos")
-                return False
+        if not self.minimal and not self.initialize_database():
+            logger.error("Error inicializando base de datos")
+            return False
 
         # Create startup script
         if not self.create_startup_script():
             logger.warning("No se pudo crear script de inicio")
 
         # Run post-installation tests
-        if not self.minimal:
-            if not self.run_post_installation_tests():
-                logger.warning("Algunas pruebas post-instalación fallaron")
+        if not self.minimal and not self.run_post_installation_tests():
+            logger.warning("Algunas pruebas post-instalación fallaron")
 
         # Print summary
         self.print_summary(personalization_data)
