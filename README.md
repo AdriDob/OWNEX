@@ -2,9 +2,9 @@
 
 <div align="center">
 
-<img src="assets/branding/logo/ownex-logo-production.svg" alt="OWNEX OMEGA Logo" width="300"/>
+<img src="assets/branding/professional/omega_logo.png" alt="OWNEX OMEGA Logo" width="300"/>
 
-<img src="assets/branding/professional/hero_banner.jpg" alt="OWNEX OMEGA — Autonomous Work Operating System" width="1100"/>
+<img src="assets/branding/professional/ai_hero_banner.png" alt="OWNEX OMEGA — Autonomous Work Operating System" width="1100"/>
 
 ---
 
@@ -27,8 +27,21 @@
 
 OWNEX OMEGA is an autonomous operating system ecosystem with two complementary editions:
 
-- **OWNEX ALPHA** — Desktop edition for developers and professionals
-- **OWNEX OMEGA** — Mobile edition for smartphones and wearables
+<div align="center">
+
+### OWNEX ALPHA (Desktop)
+
+<img src="assets/branding/professional/alpha_logo.png" alt="OWNEX ALPHA Logo" width="200"/>
+
+Desktop edition for developers and professionals — Professional, robust, enterprise-grade
+
+### OWNEX OMEGA (Mobile)
+
+<img src="assets/branding/professional/omega_logo.png" alt="OWNEX OMEGA Logo" width="200"/>
+
+Mobile edition for smartphones and wearables — Modern, sleek, mobile-first
+
+</div>
 
 Together, they perform software engineering, cybersecurity, bug bounty, AI orchestration, autonomous workflows, revenue generation, documentation, learning, self-healing infrastructure, and continuous self-improvement.
 
