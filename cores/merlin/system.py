@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import logging
-import asyncio
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Any
 
-from cores.merlin.config import MerlinConfig, DetailLevel, ResponseTone
+from cores.merlin.config import DetailLevel, MerlinConfig, ResponseTone
+from cores.merlin.memory import get_merlin_memory
 from cores.merlin.personality import MerlinPersonality, RetroStyle
-from cores.merlin.memory import MerlinMemory, get_merlin_memory
 
 logger = logging.getLogger("ownex.merlin.system")
 
@@ -17,7 +16,7 @@ logger = logging.getLogger("ownex.merlin.system")
 class MerlinSystem:
     """MERLIN System - Office Retro Modernized AI Assistant."""
 
-    def __init__(self, config: Optional[MerlinConfig] = None):
+    def __init__(self, config: MerlinConfig | None = None):
         self.config = config or MerlinConfig()
         self.personality = MerlinPersonality(
             style=RetroStyle.MODERN_RETRO if self.config.theme.value == "modern_retro" else RetroStyle.OFFICE_97
@@ -114,7 +113,7 @@ class MerlinSystem:
 
     def _generate_target_analysis_response(self, message: str) -> str:
         """Generate response for target analysis."""
-        return f"""
+        return """
 MERLIN ha analizado tu solicitud de análisis de target.
 
 Para realizar un análisis completo, MERLIN necesita:
@@ -134,7 +133,7 @@ Por favor, proporciona los detalles del target y MERLIN procederá con el análi
 
     def _generate_report_generation_response(self, message: str) -> str:
         """Generate response for report generation."""
-        return f"""
+        return """
 MERLIN está listo para generar un reporte profesional.
 
 Para generar un reporte, necesito:
@@ -155,7 +154,7 @@ Proporciona los detalles de la vulnerabilidad y MERLIN generará el reporte.
 
     def _generate_workflow_optimization_response(self, message: str) -> str:
         """Generate response for workflow optimization."""
-        return f"""
+        return """
 MERLIN puede optimizar tu workflow de bug bounty.
 
 Áreas que MERLIN puede optimizar:
@@ -176,7 +175,7 @@ MERLIN analizará tu situación y proporcionará recomendaciones específicas.
 
     def _generate_data_analysis_response(self, message: str) -> str:
         """Generate response for data analysis."""
-        return f"""
+        return """
 MERLIN está preparado para analizar datos.
 
 Tipos de análisis que MERLIN puede realizar:
@@ -196,7 +195,7 @@ Proporciona los datos y MERLIN generará insights y recomendaciones.
 
     def _generate_strategic_planning_response(self, message: str) -> str:
         """Generate response for strategic planning."""
-        return f"""
+        return """
 MERLIN puede ayudarte con planificación estratégica.
 
 Áreas de planificación estratégica:
@@ -217,7 +216,7 @@ MERLIN generará un plan personalizado basado en tu situación.
 
     def _generate_technical_assistance_response(self, message: str) -> str:
         """Generate response for technical assistance."""
-        return f"""
+        return """
 MERLIN está aquí para asistirte técnicamente.
 
 Áreas de asistencia técnica:
@@ -257,7 +256,7 @@ Por favor, sé más específico sobre lo que necesitas y MERLIN proporcionará a
         # This is a placeholder - implement actual analytics tracking
         logger.info(f"Analytics tracked: intent={intent}, message_length={len(message)}, response_length={len(response)}")
 
-    async def get_capabilities(self) -> Dict[str, Any]:
+    async def get_capabilities(self) -> dict[str, Any]:
         """Get MERLIN's capabilities."""
         return {
             "name": self.config.name,
@@ -277,7 +276,7 @@ Por favor, sé más específico sobre lo que necesitas y MERLIN proporcionará a
             }
         }
 
-    async def get_status(self) -> Dict[str, Any]:
+    async def get_status(self) -> dict[str, Any]:
         """Get MERLIN's current status."""
         memory_stats = self.memory.get_memory_stats()
 
@@ -304,7 +303,7 @@ Por favor, sé más específico sobre lo que necesitas y MERLIN proporcionará a
             logger.error(f"Error clearing chat: {e}")
             return False
 
-    async def update_config(self, config_updates: Dict[str, Any]) -> bool:
+    async def update_config(self, config_updates: dict[str, Any]) -> bool:
         """Update MERLIN configuration."""
         try:
             for key, value in config_updates.items():
@@ -319,7 +318,7 @@ Por favor, sé más específico sobre lo que necesitas y MERLIN proporcionará a
 
 
 # Singleton instance
-_merlin_system: Optional[MerlinSystem] = None
+_merlin_system: MerlinSystem | None = None
 
 
 def get_merlin_system() -> MerlinSystem:

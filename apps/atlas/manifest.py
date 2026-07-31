@@ -11,7 +11,7 @@ from .providers import PROVIDERS
 manifest = IAppPlugin(
     id="atlas",
     name="ATLAS",
-    version="5.0.0",
+    version="7.0.0",
     description="Personal Investment Dashboard — stocks, crypto, ETFs, bonds, and DeFi",
     icon="TrendingUp",
     order=2,

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 from enum import Enum
 
 
@@ -55,7 +54,7 @@ class MerlinConfig:
 
     # Theme
     theme: Theme = Theme.MODERN_RETRO
-    custom_color: Optional[str] = None  # Hex color
+    custom_color: str | None = None  # Hex color
 
     # Office Retro Personality
     office_retro_mode: bool = True
@@ -122,7 +121,7 @@ class MerlinConfig:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "MerlinConfig":
+    def from_dict(cls, data: dict) -> MerlinConfig:
         """Create from dictionary."""
         return cls(
             name=data.get("name", "MERLIN"),

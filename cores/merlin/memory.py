@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Optional, List, Dict, Any
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger("ownex.merlin.memory")
 
@@ -31,10 +31,10 @@ class MemoryEntry:
     title: str
     content: str
     timestamp: datetime
-    tags: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    tags: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
     access_count: int = 0
-    last_accessed: Optional[datetime] = None
+    last_accessed: datetime | None = None
 
     def to_dict(self) -> dict:
         """Convert to dictionary."""
@@ -51,7 +51,7 @@ class MemoryEntry:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "MemoryEntry":
+    def from_dict(cls, data: dict) -> MemoryEntry:
         """Create from dictionary."""
         return cls(
             id=data["id"],
@@ -69,17 +69,17 @@ class MemoryEntry:
 class MerlinMemory:
     """MERLIN's memory system with retro office styling."""
 
-    def __init__(self, storage_path: Optional[Path] = None):
+    def __init__(self, storage_path: Path | None = None):
         self.storage_path = storage_path or Path.cwd() / "database" / "merlin_memory.json"
         self.storage_path.parent.mkdir(parents=True, exist_ok=True)
-        self._memories: Dict[str, MemoryEntry] = {}
+        self._memories: dict[str, MemoryEntry] = {}
         self._load_memories()
 
     def _load_memories(self) -> None:
         """Load memories from storage."""
         if self.storage_path.exists():
             try:
-                with open(self.storage_path, "r") as f:
+                with open(self.storage_path) as f:
                     data = json.load(f)
                     for entry_data in data.get("memories", []):
                         entry = MemoryEntry.from_dict(entry_data)
@@ -107,7 +107,7 @@ class MerlinMemory:
         question: str,
         response: str,
         timestamp: datetime,
-        tags: Optional[List[str]] = None
+        tags: list[str] | None = None
     ) -> str:
         """Save a conversation to memory."""
         entry_id = f"conv_{timestamp.timestamp()}"
@@ -132,7 +132,7 @@ class MerlinMemory:
         self,
         title: str,
         pattern: str,
-        tags: Optional[List[str]] = None
+        tags: list[str] | None = None
     ) -> str:
         """Save a pattern to memory."""
         entry_id = f"pattern_{datetime.now().timestamp()}"
@@ -157,7 +157,7 @@ class MerlinMemory:
         self,
         title: str,
         workflow: str,
-        tags: Optional[List[str]] = None
+        tags: list[str] | None = None
     ) -> str:
         """Save a workflow to memory."""
         entry_id = f"workflow_{datetime.now().timestamp()}"
@@ -182,7 +182,7 @@ class MerlinMemory:
         self,
         title: str,
         content: str,
-        tags: Optional[List[str]] = None
+        tags: list[str] | None = None
     ) -> str:
         """Save a note to memory."""
         entry_id = f"note_{datetime.now().timestamp()}"
@@ -203,7 +203,7 @@ class MerlinMemory:
         logger.info(f"Saved note memory: {entry_id}")
         return entry_id
 
-    async def get_memory(self, entry_id: str) -> Optional[MemoryEntry]:
+    async def get_memory(self, entry_id: str) -> MemoryEntry | None:
         """Get a specific memory entry."""
         entry = self._memories.get(entry_id)
         if entry:
@@ -215,8 +215,8 @@ class MerlinMemory:
     async def get_recent_memories(
         self,
         limit: int = 10,
-        memory_type: Optional[MemoryType] = None
-    ) -> List[MemoryEntry]:
+        memory_type: MemoryType | None = None
+    ) -> list[MemoryEntry]:
         """Get recent memories."""
         memories = list(self._memories.values())
 
@@ -232,7 +232,7 @@ class MerlinMemory:
         self,
         query: str,
         limit: int = 10
-    ) -> List[MemoryEntry]:
+    ) -> list[MemoryEntry]:
         """Search memories by query."""
         query_lower = query.lower()
         results = []
@@ -267,20 +267,20 @@ class MerlinMemory:
 
         return len(to_remove)
 
-    async def get_memories_by_tag(self, tag: str) -> List[MemoryEntry]:
+    async def get_memories_by_tag(self, tag: str) -> list[MemoryEntry]:
         """Get memories by tag."""
         return [m for m in self._memories.values() if tag in m.tags]
 
-    async def get_memories_by_type(self, memory_type: MemoryType) -> List[MemoryEntry]:
+    async def get_memories_by_type(self, memory_type: MemoryType) -> list[MemoryEntry]:
         """Get memories by type."""
         return [m for m in self._memories.values() if m.type == memory_type]
 
     async def update_memory(
         self,
         entry_id: str,
-        title: Optional[str] = None,
-        content: Optional[str] = None,
-        tags: Optional[List[str]] = None
+        title: str | None = None,
+        content: str | None = None,
+        tags: list[str] | None = None
     ) -> bool:
         """Update a memory entry."""
         entry = self._memories.get(entry_id)
@@ -309,7 +309,7 @@ class MerlinMemory:
             return True
         return False
 
-    def get_memory_stats(self) -> Dict[str, Any]:
+    def get_memory_stats(self) -> dict[str, Any]:
         """Get memory statistics."""
         memories = list(self._memories.values())
 
@@ -329,7 +329,7 @@ class MerlinMemory:
 
 
 # Singleton instance
-_merlin_memory: Optional[MerlinMemory] = None
+_merlin_memory: MerlinMemory | None = None
 
 
 def get_merlin_memory() -> MerlinMemory:

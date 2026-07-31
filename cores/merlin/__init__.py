@@ -10,10 +10,10 @@ through their public interfaces. It never accesses apps directly.
 
 from __future__ import annotations
 
-from cores.merlin.system import MerlinSystem
+from cores.merlin.config import MerlinConfig
 from cores.merlin.memory import MerlinMemory
 from cores.merlin.personality import MerlinPersonality
-from cores.merlin.config import MerlinConfig
+from cores.merlin.system import MerlinSystem
 
 __all__ = [
     "MerlinSystem",

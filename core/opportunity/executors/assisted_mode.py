@@ -25,6 +25,7 @@ logger = logging.getLogger("ownex.opportunity.assisted_mode")
 @dataclass
 class PreparedWork:
     """Work prepared for submission, awaiting user approval."""
+
     platform: str
     opportunity_id: str
     title: str

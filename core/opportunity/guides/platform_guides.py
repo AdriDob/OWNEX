@@ -11,12 +11,12 @@ Each platform has:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 
 @dataclass
 class Step:
     """A single step in a platform guide."""
+
     title: str
     description: str
     action: str  # "click", "type", "upload", "navigate", "copy"
@@ -29,6 +29,7 @@ class Step:
 @dataclass
 class PlatformGuide:
     """Complete guide for a platform."""
+
     platform: str
     name: str
     url: str

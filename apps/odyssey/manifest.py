@@ -15,7 +15,7 @@ from .providers import PROVIDERS
 manifest = IAppPlugin(
     id="odyssey",
     name="ODYSSEY",
-    version="5.0.0",
+    version="7.0.0",
     description="Gambling Analytics — bankroll, ROI, EV, prediction markets, and sports betting intelligence",
     icon="Dices",
     order=3,
