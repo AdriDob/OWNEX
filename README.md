@@ -2,6 +2,21 @@
 
 <div align="center">
 
+```
+██╗   ██╗ ██████╗ ██████╗ ██████╗ ███████╗
+██║   ██║██╔═══╝██╔═══╝██╔══██╗██╔════╝
+██║   ██║██║     ██║   ██║  ██║███████╗
+╚██╗ ██╔╝██║     ██║   ██║  ██║╚════██║
+ ╚████╔╝ ╚██████╗╚██████╚██████╔╝███████║
+  ╚═══╝   ╚═════╝ ╚═════╝╚═════╝ ╚══════╝
+```
+
+**Autonomous Work Operating Platform — Plataforma Autónoma de Trabajo**
+
+*Independencia financiera mediante software, automatización, bug bounty, IA y activos digitales*
+
+---
+
 ![Version](https://img.shields.io/badge/version-7.0.0-blue)
 ![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
 ![Vue](https://img.shields.io/badge/vue-3-4FC08D.svg)
@@ -18,10 +33,6 @@
 [![GitHub Issues](https://img.shields.io/github/issues/AdriDob/rastrohunteralpha)](https://github.com/AdriDob/rastrohunteralpha/issues)
 
 </div>
-
-**Autonomous Work Operating Platform — Plataforma Autónoma de Trabajo**
-
-*Independencia financiera mediante software, automatización, bug bounty, IA y activos digitales*
 
 ---
 
