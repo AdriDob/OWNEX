@@ -1,4 +1,4 @@
-name: CI/CD
+name: CI
 
 on:
   push:
@@ -10,90 +10,104 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  PYTHON_VERSION: "3.11"
+
 jobs:
   lint:
-    name: Lint
+    name: Lint (ruff)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - uses: astral-sh/setup-ruff@v2
         with:
-          python-version: "3.11"
-          cache: "pip"
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install ruff
-      - name: Ruff check
-        run: ruff check . --select=E,F,W
+          version: "0.15"
+      - run: ruff check . --select=E,F,W,I,N,UP,B,SIM
 
-  test-backend:
-    name: Backend Tests
+  typecheck:
+    name: Typecheck (mypy)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-          cache: "pip"
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Core tests
-        run: |
-          python -m pytest tests/test_executors.py tests/test_coder_agent.py tests/test_workflow_engine.py tests/test_financial_hub.py -v --no-header -q
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -q
+      - run: python -m mypy core/opportunity/scoring.py core/scheduler/scheduler.py core/scheduler/jobs.py api/main.py
 
-  verify-system:
-    name: System Verification
+  test-fast:
+    name: Fast Tests (smoke)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-          cache: "pip"
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Verify system
-        run: python -m core.scripts.verify_system --quick
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -q
+      - run: |
+          python scripts/dev test-fast
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-fast
+          path: htmlcov/
+
+  test-core:
+    name: Core Tests (full, no network)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -q
+      - run: |
+          python -m pytest \
+            --ignore=tests/test_security.py \
+            --ignore=tests/test_vision_gateway.py \
+            --ignore=tests/test_scheduler.py \
+            --ignore=tests/test_api_endpoints.py \
+            --deselect=tests/test_opportunity_engine_comprehensive.py::TestIntegrationScenarios::test_full_scoring_workflow \
+            --cov=cores --cov=core --cov-report=term-missing:skip-covered \
+            --cov-fail-under=80 \
+            --timeout=60 -q tests/
 
   test-frontend:
-    name: Frontend Tests
+    name: Frontend (lint + build)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
+          cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - name: Install dependencies
-        run: npm ci --silent
-      - name: Lint
-        run: npm run lint 2>/dev/null || echo "No lint script"
-      - name: Build check
-        run: npm run build --silent 2>/dev/null || echo "Build check skipped"
+      - run: npm ci --silent
+      - run: npm run lint --if-present
+      - run: npm run build --if-present
 
-  deploy:
-    name: Deploy
-    if: github.ref == 'refs/heads/main'
-    needs: [lint, test-backend, verify-system, test-frontend]
+  verify:
+    name: Verify System
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    needs: [lint, typecheck, test-fast, test-core, test-frontend]
     steps:
-      - name: Deploy placeholder
-        run: echo "Deploy step — configure your deployment target here"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -q
+      - run: python -m core.scripts.verify_system --quick
+      - run: test -f frontend/dist/index.html && echo "frontend/dist/index.html: OK"
