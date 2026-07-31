@@ -755,6 +755,191 @@ OpenCode Config:
   - Integración de ModernNavbar
   - Navbar incluido en la página de bienvenida
 
+**Enhanced Personalization System — Jarvis 2030 Style para Adriel**
+- cores/setup/steps/enhanced_personalization.py: Sistema de personalización avanzado
+  - PersonalProfile: Perfil personal completo
+    - Información básica (nombre, nombre preferido, timezone, language)
+    - Experiencia (nivel, modo de trabajo, nivel de guía)
+    - Objetivos (objetivo principal, meta mensual)
+    - Contexto (primeros días, onboarding completado)
+    - Preferencias (voice, Obsidian, horarios de trabajo)
+    - Productividad (tareas diarias, planificación, tracking)
+    - Integraciones (calendario, email, tasks)
+    - Personalidad del asistente (nombre, tono, proactividad)
+    - Features específicas (bug bounty, dev bounty, data annotation, productivity)
+  - UserExperienceLevel: BEGINNER, INTERMEDIATE, ADVANCED, EXPERT
+  - WorkMode: BUG_BOUNTY, DEV_BOUNTY, DATA_ANNOTATION, FREELANCE, MIXED
+  - GuidanceLevel: HIGH_GUIDANCE, MEDIUM_GUIDANCE, LOW_GUIDANCE, SELF_DIRECTED
+  - OnboardingStep: Pasos del wizard con preguntas
+  - EnhancedPersonalizationSystem: Sistema de personalización
+    - get_onboarding_steps(): 8 pasos (welcome, experience, guidance, goals, integrations, productivity, voice, confirmation)
+    - process_step_answers(): Procesar respuestas de cada paso
+    - get_greeting(): Saludo personalizado según días de uso
+    - get_daily_plan_prompt(): Prompt de planificación diaria
+    - is_first_time_user(): Verificar si es usuario primerizo
+    - increment_usage_days(): Incrementar contador de días
+    - get_obsidian_config(): Configuración de Obsidian
+    - _get_obsidian_template(): Template de nota diaria para Obsidian
+- frontend/src/pages/EnhancedPersonalizationWizard.vue: Wizard personalizado estilo JARVIS
+  - JARVIS Style con HUD layer (scan lines, grid overlay, particles)
+  - Progress bar animada con gradient
+  - Step indicator con dots activos/completados
+  - Step content con MERLIN avatar animado
+  - MERLIN avatar con 3 rings rotativos (outer, middle, inner)
+  - Greetings personalizados según paso actual
+  - Questions container con text, number, time, select, boolean toggle
+  - Navigation buttons (Anterior/Siguiente)
+  - Light effects con 3 orbs flotantes (cyan, green, orange)
+  - Animaciones: scan-move, grid-pulse, particle-float, ring-rotate, step-fade, orb-float
+  - Styling JARVIS (Rajdhani, Orbitron fonts, cyan colors, glow effects)
+- api/routers/enhanced_personalization.py: API router para personalización
+  - GET /api/setup/enhanced-personalization/steps: Obtener pasos del wizard
+  - POST /api/setup/enhanced-personalization/step: Procesar paso
+  - POST /api/setup/enhanced-personalization/complete: Completar wizard
+  - GET /api/setup/enhanced-personalization/profile: Obtener perfil
+  - GET /api/setup/enhanced-personalization/greeting: Obtener saludo
+  - GET /api/setup/enhanced-personalization/obsidian-config: Configuración Obsidian
+  - GET /api/setup/enhanced-personalization/daily-plan: Plan diario
+  - POST /api/setup/enhanced-personalization/reset: Reset personalización
+  - GET /api/setup/enhanced-personalization/is-first-time: Verificar primer uso
+  - POST /api/setup/enhanced-personalization/increment-usage: Incrementar días
+- frontend/src/router/index.ts: Router actualizado
+  - Ruta /setup/enhanced agregada para Enhanced Personalization Wizard
+
+**Obsidian Integration — Notas Automáticas**
+- cores/obsidian/integration.py: Integración con Obsidian
+  - ObsidianIntegration: Integración con Obsidian
+    - initialize_vault(): Inicializar estructura del vault
+    - _create_daily_note_template(): Template de nota diaria
+    - _create_planning_template(): Template de planificación
+    - _create_merlin_config(): Configuración de MERLIN
+    - create_daily_note(): Crear nota diaria
+    - append_to_daily_note(): Agregar contenido a nota diaria
+    - create_merlin_note(): Crear nota de MERLIN
+    - get_daily_notes(): Obtener notas diarias recientes
+    - get_merlin_notes(): Obtener notas de MERLIN recientes
+  - Templates personalizados con nombre del usuario
+  - Tags automáticos (daily, plan, merlin, config)
+  - Frontmatter YAML con metadata
+  - Estructura de directorios (Daily Notes, Templates, MERLIN)
+  - Integración con Daily Planning System
+
+**Advanced Voice Commands — Comandos de Voz Avanzados**
+- cores/voice/advanced_commands.py: Sistema de comandos de voz avanzados
+  - CommandCategory: GENERAL, BUG_BOUNTY, DEV_BOUNTY, DATA_ANNOTATION, PRODUCTIVITY, PLANNING, NOTE_TAKING, OBSIDIAN, SYSTEM
+  - VoiceCommand: Comando de voz con phrases, category, description, action, parameters
+  - AdvancedVoiceCommands: Sistema de comandos de voz
+    - Comandos generales: greeting, daily_plan, status
+    - Comandos bug bounty: scan_target, new_finding, submit_report
+    - Comandos productividad: take_break, resume_work, focus_mode
+    - Comandos notas: create_note, obsidian_note
+    - Comandos sistema: shutdown
+    - initialize_voice(): Inicializar interfaz de voz (Whisper + Piper)
+    - process_voice_command(): Procesar comando de voz
+    - _execute_command(): Ejecutar comando específico
+    - get_available_commands(): Obtener comandos disponibles
+  - Integración con VoiceInterface existente
+  - Respuestas habladas con TTS
+  - Phrases en español (personalizado para Adriel)
+
+**Daily Planning System — Planificación Diaria y Productividad**
+- cores/productivity/daily_planning.py: Sistema de planificación diaria
+  - Task: Tarea diaria con categoría, prioridad, estado, tiempo estimado
+  - TaskPriority: CRITICAL, HIGH, MEDIUM, LOW
+  - TaskStatus: PENDING, IN_PROGRESS, COMPLETED, BLOCKED, CANCELLED
+  - TaskCategory: BUG_BOUNTY, DEV_BOUNTY, DATA_ANNOTATION, LEARNING, PLANNING, ADMIN, BREAK
+  - DailyPlan: Plan diario con tareas, tiempos, breaks, focus sessions
+  - ProductivityMetrics: Métricas de productividad (tasks, hours, revenue, bugs, reports)
+  - DailyPlanningSystem: Sistema de planificación diaria
+    - generate_daily_plan(): Generar plan según perfil del usuario
+    - _generate_bug_bounty_tasks(): Tareas de bug bounty según nivel de guía
+    - _generate_dev_bounty_tasks(): Tareas de dev bounty según nivel de guía
+    - _generate_data_annotation_tasks(): Tareas de data annotation según nivel de guía
+    - _generate_learning_tasks(): Tareas de aprendizaje para principiantes
+    - _generate_planning_tasks(): Tareas de planificación
+    - _calculate_breaks(): Calcular breaks necesarios
+    - update_task_status(): Actualizar estado de tarea
+    - add_break(): Agregar break al plan
+    - get_daily_plan(): Obtener plan diario
+    - get_productivity_metrics(): Obtener métricas de productividad
+    - sync_with_obsidian(): Sincronizar plan con Obsidian
+    - _format_plan_for_obsidian(): Formatear plan para Obsidian
+    - get_weekly_summary(): Obtener resumen semanal
+  - Personalización según nivel de guía (high_guidance, medium, low, self_directed)
+  - Personalización según nivel de experiencia (beginner, intermediate, advanced, expert)
+  - Personalización según modo de trabajo (bug_bounty, dev_bounty, data_annotation, freelance, mixed)
+- api/routers/productivity.py: API router para productividad
+  - GET /api/productivity/daily-plan: Obtener plan diario
+  - POST /api/productivity/daily-plan/generate: Generar plan diario
+  - PUT /api/productivity/task/{task_id}/status: Actualizar estado de tarea
+  - POST /api/productivity/break: Agregar break
+  - GET /api/productivity/metrics: Obtener métricas de productividad
+  - GET /api/productivity/weekly-summary: Obtener resumen semanal
+  - POST /api/productivity/sync-obsidian: Sincronizar con Obsidian
+
+**Guided Onboarding System — Onboarding Guiado para Primeros Días**
+- cores/onboarding/guided_system.py: Sistema de onboarding guiado
+  - OnboardingDay: Días de onboarding (DAY_1 a DAY_7)
+  - LessonStatus: NOT_STARTED, IN_PROGRESS, COMPLETED, SKIPPED
+  - Lesson: Lección de onboarding con contenido personalizado
+  - OnboardingProgress: Progreso de onboarding con tracking
+  - GuidedOnboardingSystem: Sistema de onboarding guiado
+    - _initialize_lessons(): Inicializar lecciones según perfil
+    - start_onboarding(): Iniciar onboarding
+    - get_current_lesson(): Obtener lección actual
+    - complete_lesson(): Completar lección
+    - _advance_day(): Avanzar al siguiente día
+    - get_onboarding_summary(): Obtener resumen de onboarding
+    - is_onboarding_complete(): Verificar si onboarding está completo
+  - Lecciones personalizadas con nombre del usuario
+  - Contenido adaptado según nivel de guía
+  - Lecciones específicas por modo de trabajo
+  - Progresión gradual durante 7 días
+  - Fundamentos de bug bounty (Day 2)
+  - Primera práctica (Day 2)
+  - Sistema de planificación diaria (Day 3)
+  - Voice commands (Day 3)
+  - Más lecciones según modo de trabajo (Day 4-7)
+- api/routers/onboarding.py: API router para onboarding
+  - POST /api/onboarding/start: Iniciar onboarding
+  - GET /api/onboarding/current-lesson: Obtener lección actual
+  - POST /api/onboarding/lesson/{lesson_id}/complete: Completar lección
+  - GET /api/onboarding/summary: Obtener resumen de onboarding
+  - GET /api/onboarding/is-complete: Verificar si onboarding está completo
+
+**Universal Installer Mejorado**
+- install.py: Instalador universal mejorado
+  - setup_integrations(): Configurar integraciones (Obsidian, Voice, Daily Planning, Onboarding)
+  - apply_configuration(): Aceptar personalization_data como parámetro
+  - Verificar disponibilidad de Whisper para STT
+  - Verificar disponibilidad de Piper para TTS
+  - Configurar Obsidian vault path
+  - Habilitar/deshabilitar features según preferencias
+  - Actualizar .env con flags de features (OBSIDIAN_ENABLED, VOICE_ENABLED, DAILY_PLANNING, GUIDED_ONBOARDING)
+  - Actualizar scripts de inicio con información de features
+- Compatible con Windows/Linux/Mac
+- Instalación automática de todas las features
+- Configuración personalizada durante instalación
+
+Características del Sistema Completo:
+- Personalización completa con nombre (Adriel)
+- Preguntas personales (experiencia, objetivos, guía)
+- Nivel de guía configurable (llevarte de la mano)
+- Integración Obsidian para notas automáticas
+- Voice commands avanzados con Whisper
+- Template de nota diaria personalizado
+- Greetings personalizados según días de uso
+- Planificación diaria automática
+- Modo guiado para primeros días
+- Comandos de voz en español
+- Integración con todas las features (bug bounty, dev bounty, data annotation)
+- Productividad remunerada enfocada
+- JARVIS style con efectos de luces
+- Animaciones fluidas (particles, rings, orbs)
+- Compatible con Windows/Linux/Mac
+- Instalación automática de todas las features
+- Configuración personalizada durante instalación
+
 **JARVIS Design — Interfaz Futurista High-Tech HUD Style**
 - frontend/src/pages/JarvisWelcome.vue: Página de bienvenida estilo JARVIS
   - HUD Layer con:
