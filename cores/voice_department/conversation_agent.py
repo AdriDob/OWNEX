@@ -112,7 +112,7 @@ class ConversationAgent:
         detail_level = self.personalization_system.get_detail_level_value(context.user_id)
 
         # Aplicar personalidad
-        response = self._apply_personality(intent, context, pref.personality)
+        response = self._apply_personality(intent, context, pref.preferred_personality)
 
         # Aplicar modo de conversación
         response = self._apply_mode(response, context.mode, detail_level)
