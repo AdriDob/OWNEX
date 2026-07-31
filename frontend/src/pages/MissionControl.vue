@@ -69,6 +69,48 @@ onMounted(() => {
 onUnmounted(() => {
   if (refreshInterval) clearInterval(refreshInterval)
 })
+
+// ── Adapters: service shapes → component prop shapes ──
+
+const fleetAgents = computed(() =>
+  (dashboard.value?.agents || []).map((a, i) => ({
+    id: String(i),
+    name: a.name,
+    role: a.description || 'Agente',
+    status: a.status,
+    model: undefined as string | undefined,
+    progress: undefined as number | undefined,
+    currentTask: a.description,
+  })),
+)
+
+const radarOpportunities = computed(() =>
+  (dashboard.value?.opportunities || []).map((o) => ({
+    id: o.id,
+    title: o.title,
+    platform: 'custom' as const,
+    type: (o.type === 'bug-bounty' || o.type === 'vdp' || o.type === 'ctf' || o.type === 'freelance' || o.type === 'research'
+      ? o.type : 'research') as 'bug-bounty' | 'vdp' | 'ctf' | 'freelance' | 'research',
+    severity: 'info' as const,
+    reward: o.reward ? `$${o.reward.toLocaleString()}` : undefined,
+    confidence: o.confidence,
+    tags: [o.source],
+    postedAt: new Date().toISOString(),
+  })),
+)
+
+const feedItems = computed(() =>
+  (dashboard.value?.knowledgeFeed || []).map((k) => ({
+    id: k.id,
+    type: (k.type === 'alert' || k.type === 'pattern' || k.type === 'learning' || k.type === 'decision'
+      ? (k.type === 'alert' ? 'alert' : k.type === 'pattern' ? 'pattern' : k.type === 'learning' ? 'learning' : 'insight')
+      : 'system') as 'insight' | 'learning' | 'pattern' | 'alert' | 'achievement' | 'system',
+    title: k.message,
+    description: k.typeLabel,
+    timestamp: k.timestamp,
+    tags: [],
+  })),
+)
 </script>
 
 <template>
@@ -143,20 +185,33 @@ onUnmounted(() => {
           class="lg:col-span-2"
         />
         <ThroughputCore v-else class="lg:col-span-2" />
-        <AgentFleet v-if="dashboard" :agents="dashboard.agents" />
-        <AgentFleet v-else />
+        <AgentFleet v-if="dashboard" :agents="fleetAgents" />
+        <AgentFleet v-else :agents="[]" />
       </div>
 
       <!-- Row 2: Opportunity Radar + Next Best Action -->
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <OpportunityRadar
-          v-if="dashboard && dashboard.opportunities.length > 0"
-          :opportunities="dashboard.opportunities"
+          v-if="dashboard && radarOpportunities.length > 0"
+          :opportunities="radarOpportunities"
           class="lg:col-span-2"
         />
-        <OpportunityRadar v-else class="lg:col-span-2" />
-        <NextBestAction v-if="dashboard" :action="dashboard.nextAction" />
-        <NextBestAction v-else />
+        <OpportunityRadar v-else :opportunities="[]" class="lg:col-span-2" />
+        <NextBestAction
+          v-if="dashboard && dashboard.nextAction"
+          :title="dashboard.nextAction.title"
+          :description="dashboard.nextAction.reason || 'Revisar prioridades en Mission Control'"
+          :primary-action="{ label: 'Ejecutar', variant: 'primary' }"
+          :secondary-action="{ label: 'Posponer', variant: 'ghost' }"
+          :reasoning="dashboard.nextAction.reason || ''"
+          :meta="{
+            esfuerzo: dashboard.nextAction.effort || '—',
+            recompensa: dashboard.nextAction.estimatedReward
+              ? `$${dashboard.nextAction.estimatedReward}`
+              : '—',
+          }"
+        />
+        <NextBestAction v-else title="Sin acción pendiente" description="Revisar oportunidades o iniciar un ciclo de trabajo" :primary-action="{ label: 'Ejecutar', variant: 'primary' }" />
       </div>
 
       <!-- Row 3: Report Pipeline (Daily/Weekly Top -->
@@ -167,10 +222,10 @@ onUnmounted(() => {
 
       <!-- Row 5: Knowledge Feed -->
       <KnowledgeFeed
-        v-if="dashboard && dashboard.knowledgeFeed.length > 0"
-        :items="dashboard.knowledgeFeed"
+        v-if="dashboard && feedItems.length > 0"
+        :items="feedItems"
       />
-      <KnowledgeFeed v-else />
+      <KnowledgeFeed v-else :items="[]" />
     </template>
   </div>
 </template>
