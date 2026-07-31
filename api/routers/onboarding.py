@@ -5,8 +5,6 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 
 from cores.onboarding.guided_system import (
-    GuidedOnboardingSystem,
-    LessonStatus,
     get_guided_onboarding_system,
 )
 
