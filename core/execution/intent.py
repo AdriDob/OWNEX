@@ -3,11 +3,11 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class IntentStatus(str, Enum):
+class IntentStatus(StrEnum):
     """Lifecycle of an intent from expression to execution."""
 
     EXPRESSED = "expressed"
@@ -21,7 +21,7 @@ class IntentStatus(str, Enum):
     REJECTED = "rejected"
 
 
-class IntentUrgency(str, Enum):
+class IntentUrgency(StrEnum):
     """Perceived urgency of an intent."""
 
     LOW = "low"

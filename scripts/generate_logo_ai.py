@@ -4,10 +4,12 @@ OWNEX Professional Banner Generator usando Pollinations.ai (IA gratuita sin API 
 Genera banner completo de alta calidad para portada GitHub
 """
 
-import requests
 import os
-from PIL import Image
 from io import BytesIO
+
+import requests
+from PIL import Image
+
 
 def generate_professional_banner():
     """Generar banner OWNEX profesional usando IA de Pollinations.ai."""

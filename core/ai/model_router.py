@@ -15,14 +15,14 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import Enum, StrEnum
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger("ownex.model_router")
 
 
-class TaskType(str, Enum):
+class TaskType(StrEnum):
     RESEARCH = "research"  # Reading docs, gathering context
     ANALYSIS = "analysis"  # Code review, vulnerability analysis
     VALIDATION = "validation"  # Verify findings, check quality

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
@@ -13,7 +13,7 @@ from sqlalchemy.orm import declarative_base, relationship
 Base = declarative_base()
 
 
-class CycleStatus(str, Enum):
+class CycleStatus(StrEnum):
     INACTIVE = "inactive"
     IDLE = "idle"
     RUNNING = "running"
@@ -22,7 +22,7 @@ class CycleStatus(str, Enum):
     COMPLETED = "completed"
 
 
-class CycleCategory(str, Enum):
+class CycleCategory(StrEnum):
     SECURITY = "security"
     FORGE = "forge"
     PULSE = "pulse"
@@ -30,7 +30,7 @@ class CycleCategory(str, Enum):
     ATLAS = "atlas"
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(StrEnum):
     PENDING = "pending"
     QUEUED = "queued"
     RUNNING = "running"
@@ -40,7 +40,7 @@ class TaskStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
-class ExecutionStatus(str, Enum):
+class ExecutionStatus(StrEnum):
     CREATED = "created"
     STARTED = "started"
     IN_PROGRESS = "in_progress"

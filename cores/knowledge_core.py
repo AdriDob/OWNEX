@@ -186,7 +186,7 @@ class KnowledgeGraph:
                     failure_reason TEXT,
                     metadata TEXT DEFAULT '{}'
                 );
-                
+
                 CREATE TABLE IF NOT EXISTS platform_expertise (
                     platform TEXT PRIMARY KEY,
                     total_tasks INTEGER DEFAULT 0,
@@ -200,7 +200,7 @@ class KnowledgeGraph:
                     common_failures TEXT DEFAULT '{}',
                     last_updated TEXT NOT NULL
                 );
-                
+
                 CREATE TABLE IF NOT EXISTS agent_profiles (
                     agent TEXT PRIMARY KEY,
                     total_tasks INTEGER DEFAULT 0,
@@ -213,7 +213,7 @@ class KnowledgeGraph:
                     failure_patterns TEXT DEFAULT '{}',
                     last_updated TEXT NOT NULL
                 );
-                
+
                 CREATE TABLE IF NOT EXISTS decisions (
                     decision_id TEXT PRIMARY KEY,
                     timestamp TEXT NOT NULL,
@@ -225,7 +225,7 @@ class KnowledgeGraph:
                     regret REAL DEFAULT 0,
                     FOREIGN KEY(actual_outcome_id) REFERENCES outcomes(task_id)
                 );
-                
+
                 CREATE INDEX IF NOT EXISTS idx_outcomes_platform ON outcomes(platform);
                 CREATE INDEX IF NOT EXISTS idx_outcomes_agent ON outcomes(agent);
                 CREATE INDEX IF NOT EXISTS idx_outcomes_time ON outcomes(completed_at);

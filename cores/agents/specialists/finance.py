@@ -12,25 +12,25 @@ logger = logging.getLogger("ownex.agents.specialists.finance")
 
 class FinanceAgent(SpecialistAgent):
     """Finance — Financial tracking and revenue optimization specialist.
-    
+
     Objectives:
     - Primary: Track financial performance and optimize revenue
     - Secondary: Calculate costs, manage payouts, track profitability
-    
+
     Limits:
     - Max 5 concurrent financial tasks
     - Max 180s per financial operation
-    
+
     Tools:
     - Revenue calculation
     - Cost tracking
     - Payout management
     - Profitability analysis
-    
+
     Priorities:
     - Priority level: 4
     - Task preferences: revenue calculation, cost tracking
-    
+
     Handoffs:
     - Receives from: Commander, Security (payouts)
     - Hands off to: Evolution (optimization suggestions)

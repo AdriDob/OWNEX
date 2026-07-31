@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 
-class NodeState(str, Enum):
+class NodeState(StrEnum):
     """Possible states for a single node during execution.
 
     Transitions:
@@ -52,7 +52,7 @@ _NODE_TRANSITIONS: dict[NodeState, set[NodeState]] = {
 }
 
 
-class WorkflowState(str, Enum):
+class WorkflowState(StrEnum):
     """States for the entire workflow execution."""
 
     CREATED = "created"

@@ -3,8 +3,10 @@
 OWNEX Banner Generator — Crea banner PNG profesional
 """
 
-from PIL import Image, ImageDraw, ImageFont
 import os
+
+from PIL import Image, ImageDraw, ImageFont
+
 
 def create_professional_banner():
     """Crear banner PNG profesional para OWNEX."""
@@ -24,7 +26,7 @@ def create_professional_banner():
 
     # Gradiente background (simulado con rectángulos)
     for i in range(height):
-        alpha = int(255 * (i / height) * 0.2)
+        int(255 * (i / height) * 0.2)
         color = (
             int(background_color[0] + (accent_color[0] - background_color[0]) * (i / height) * 0.3),
             int(background_color[1] + (accent_color[1] - background_color[1]) * (i / height) * 0.3),
@@ -51,13 +53,13 @@ def create_professional_banner():
     # Calcular posición centrada
     bbox = draw.textbbox((0, 0), text, font=title_font)
     text_width = bbox[2] - bbox[0]
-    text_height = bbox[3] - bbox[1]
+    bbox[3] - bbox[1]
     x = (width - text_width) // 2
     y = 180
 
     # Glow effect (dibujar texto varias veces con opacidad)
     for i in range(5):
-        alpha = 255 - (i * 40)
+        255 - (i * 40)
         glow_color = (
             min(255, accent_color[0] + i * 20),
             min(255, accent_color[1] + i * 20),

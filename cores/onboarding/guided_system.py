@@ -13,14 +13,14 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 from cores.setup.steps.enhanced_personalization import get_enhanced_personalization_system
 
 
-class OnboardingDay(str, Enum):
+class OnboardingDay(StrEnum):
     """Días de onboarding."""
     DAY_1 = "day_1"
     DAY_2 = "day_2"
@@ -31,7 +31,7 @@ class OnboardingDay(str, Enum):
     DAY_7 = "day_7"
 
 
-class LessonStatus(str, Enum):
+class LessonStatus(StrEnum):
     """Estado de lección."""
     NOT_STARTED = "not_started"
     IN_PROGRESS = "in_progress"

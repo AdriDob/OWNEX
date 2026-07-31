@@ -14,7 +14,7 @@ logger = logging.getLogger("ownex.ai.providers.devin")
 
 class DevinProvider(AIProvider):
     """Devin provider — Free AI agent via Devin CLI.
-    
+
     Features:
     - Free AI agent with terminal access
     - Built-in tools for code analysis, file operations, web search

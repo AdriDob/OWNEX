@@ -223,8 +223,8 @@ class InMemoryStore(MemoryStore):
 
     def _unindex_entry(self, entry: MemoryEntry) -> None:
         """Remove entry from indices."""
-        for idx_name, idx in self._indices.items():
-            for key, ids in idx.items():
+        for _idx_name, idx in self._indices.items():
+            for _key, ids in idx.items():
                 ids.discard(entry.id)
 
     async def store(self, entry: MemoryEntry) -> bool:

@@ -217,7 +217,7 @@ class DecisionEngine:
 
     def update_belief(self, outcome) -> None:
         """Actualiza creencias con resultado real (TaskOutcome del KG)"""
-        key = self._get_belief_key(outcome.platform, outcome.task_type, outcome.agent)
+        self._get_belief_key(outcome.platform, outcome.task_type, outcome.agent)
         belief = self.get_belief(outcome.platform, outcome.task_type, outcome.agent)
 
         belief.update(

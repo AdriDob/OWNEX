@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 logger = logging.getLogger("ownex.recovery.healing_rules")
 
 
-class FailureType(str, Enum):
+class FailureType(StrEnum):
     EVENTBUS_STUCK = "eventbus_stuck"
     EVENTBUS_DEAD = "eventbus_dead"
     AGENT_CRASHED = "agent_crashed"

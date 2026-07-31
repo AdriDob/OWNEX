@@ -7,6 +7,7 @@ across all platforms, classifying them, and ranking by expected value.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import time
 from collections.abc import Callable
@@ -169,10 +170,8 @@ class DiscoveryEngine:
 
         if self._cycle_task:
             self._cycle_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._cycle_task
-            except asyncio.CancelledError:
-                pass
 
         logger.info("DiscoveryEngine stopped")
         self.event_bus.publish("discovery:stopped")

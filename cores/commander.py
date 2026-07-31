@@ -238,7 +238,7 @@ class CommanderAgent(BaseAgent):
             self._health_task.cancel()
 
         # Stop all active tasks
-        for task_id, task in self.active_tasks.items():
+        for task_id, _task in self.active_tasks.items():
             asyncio.create_task(self._cancel_task(task_id, "Commander stopping"))
 
         # Call parent stop to unregister from event bus
@@ -424,7 +424,7 @@ class CommanderAgent(BaseAgent):
         completed_platforms = set()
         # Note: This is synchronous check - in async context we'd fetch more detail
         # For now, use simple heuristic
-        for task_id, completed_task in self.completed_tasks.items():
+        for _task_id, completed_task in self.completed_tasks.items():
             if hasattr(completed_task, "opportunity_id") and completed_task.opportunity_id:
                 # Check if this task's platform matches
                 if completed_task.opportunity_id and platform in str(completed_task.opportunity_id):
@@ -573,8 +573,8 @@ class CommanderAgent(BaseAgent):
 
     async def _check_task_timeouts(self) -> None:
         """Check for timed out tasks."""
-        now = time.time()
-        for task_id, task in list(self.active_tasks.items()):
+        time.time()
+        for _task_id, _task in list(self.active_tasks.items()):
             # In real implementation, track start time
             pass
 
@@ -615,7 +615,7 @@ class CommanderAgent(BaseAgent):
         if task_id not in self.pending_approvals:
             return False
 
-        task = self.pending_approvals.pop(task_id)
+        self.pending_approvals.pop(task_id)
 
         if approved:
             await self._approve_task(task_id)

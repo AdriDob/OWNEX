@@ -22,7 +22,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from cores.ledger import (
@@ -44,7 +44,7 @@ logger = logging.getLogger("ownex.financial.truth_layer")
 # ── Value Classification ─────────────────────────────────────────────
 
 
-class ValueCategory(str, Enum):
+class ValueCategory(StrEnum):
     VERIFIED_REAL = "verified_real"
     PENDING = "pending"
     ESTIMATED = "estimated"
@@ -121,7 +121,7 @@ def confidence_from_source(source: str) -> float:
 # ── Sync Health ──────────────────────────────────────────────────────
 
 
-class SyncHealth(str, Enum):
+class SyncHealth(StrEnum):
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     STALE = "stale"

@@ -8,7 +8,7 @@ from typing import Any
 logger = logging.getLogger("ownex.auth.provider")
 
 
-class AuthType(str, enum.Enum):
+class AuthType(enum.StrEnum):
     BEARER_TOKEN = "bearer_token"
     JWT = "jwt"
     COOKIE = "cookie"

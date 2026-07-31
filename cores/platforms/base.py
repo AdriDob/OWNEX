@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class PlatformAction(str, Enum):
+class PlatformAction(StrEnum):
     PREPARE_ONLY = "prepare_only"
     PREPARE_AND_OPEN = "prepare_and_open"
     PREPARE_AND_FILL = "prepare_and_fill"

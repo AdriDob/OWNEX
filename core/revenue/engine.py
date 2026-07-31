@@ -92,7 +92,6 @@ class RevenueEngine:
     ) -> Payment:
         """Process a payment for a completed opportunity."""
         payment_id = f"pay_{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}"
-        fee = payment_id
 
         payment = Payment(
             id=payment_id,

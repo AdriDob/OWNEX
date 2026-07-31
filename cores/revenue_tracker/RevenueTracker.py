@@ -288,7 +288,7 @@ class RevenueTracker:
             return False
 
         method = self.payment_methods[method_id]
-        if not method.status == "active":
+        if method.status != "active":
             return False
 
         # Check if opportunity is in correct status
@@ -304,10 +304,7 @@ class RevenueTracker:
             return True
 
         threshold = self.thresholds[platform]
-        if amount < threshold.min_amount:
-            return False
-
-        return True
+        return not amount < threshold.min_amount
 
     def _update_metrics(self, opportunity: RevenueOpportunity):
         """Update revenue metrics based on opportunity status change"""
@@ -353,7 +350,7 @@ class RevenueTracker:
         if date is None:
             date = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
 
-        date_key = date.strftime("%Y-%m-%d")
+        date.strftime("%Y-%m-%d")
         return {platform: self.daily_revenue[platform] for platform in self.daily_revenue}
 
     def add_daily_revenue(self, platform: str, amount: Decimal, currency: str):

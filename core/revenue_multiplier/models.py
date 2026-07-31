@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
-from enum import Enum, auto
+from enum import Enum, StrEnum, auto
 from typing import Any
 
 
@@ -32,7 +32,7 @@ class ToolCategory(Enum):
     INFRASTRUCTURE = "infrastructure"
 
 
-class RevenueCategory(str, Enum):
+class RevenueCategory(StrEnum):
     BUG_BOUNTY = "bug_bounty"
     CRYPTO_TRADING = "crypto_trading"
     DEFI_YIELD = "defi_yield"

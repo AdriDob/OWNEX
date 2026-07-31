@@ -123,10 +123,7 @@ class OperationsResearchEngine:
         3. Asigna recursos respetando dependencias y límites
         4. Ajusta por ventana temporal y deadlines
         """
-        if candidates:
-            work_queue = list(candidates)
-        else:
-            work_queue = [c for _, _, c in self._task_queue]
+        work_queue = list(candidates) if candidates else [c for _, _, c in self._task_queue]
 
         # Enriquecer con estimaciones basadas en conocimiento
         enriched = self._enrich_candidates(work_queue)
@@ -167,12 +164,10 @@ class OperationsResearchEngine:
                 continue
             if c.estimated_cost > budget.max_cost_usd:
                 continue
-            if budget.time_window_start and c.deadline:
-                if c.deadline < budget.time_window_start:
-                    continue
-            if budget.time_window_end and c.deadline:
-                if c.deadline > budget.time_window_end:
-                    continue
+            if budget.time_window_start and c.deadline and c.deadline < budget.time_window_start:
+                continue
+            if budget.time_window_end and c.deadline and c.deadline > budget.time_window_end:
+                continue
             feasible.append(c)
         return feasible
 

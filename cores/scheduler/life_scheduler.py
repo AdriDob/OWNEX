@@ -15,7 +15,7 @@ import uuid
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from core.health.engine import get_health_center
@@ -26,7 +26,7 @@ from cores.events.types import EventType
 logger = logging.getLogger("orion.life_scheduler")
 
 
-class JobType(str, Enum):
+class JobType(StrEnum):
     """Tipos de jobs que el Life Scheduler puede ejecutar."""
 
     # Bug Bounty (existentes, wrapped)

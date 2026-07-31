@@ -285,7 +285,7 @@ class RecoveryStore:
         with self._lock, sqlite3.connect(self._db_path) as conn:
             # Get total count
             count_result = conn.execute("SELECT COUNT(*) as count FROM version_backups").fetchone()
-            total_count = count_result["count"] if count_result else 0
+            total_count = count_result[0] if count_result else 0
 
             if total_count <= max_count:
                 return 0

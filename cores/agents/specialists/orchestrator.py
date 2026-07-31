@@ -16,29 +16,29 @@ logger = logging.getLogger("ownex.agents.departments.orchestrator")
 
 class OrchestratorAgent(SpecialistAgent):
     """Orchestrator — CEO of OWNEX Omega.
-    
+
     Never executes tasks directly. Only coordinates departments.
-    
+
     Objectives:
     - Primary: Coordinate departments to achieve system objectives
     - Secondary: Prioritize tasks, monitor progress, handle failures
-    
+
     Limits:
     - NEVER executes tasks directly
     - Max 100 concurrent delegations
     - Max 180s per coordination cycle
-    
+
     Tools:
     - Task assignment system
     - Department monitoring
     - Workflow orchestration
     - Priority management
     - Progress tracking
-    
+
     Priorities:
     - Priority level: 1 (highest)
     - Task preferences: workflow coordination, department management
-    
+
     Handoffs:
     - Delegates to all departments
     - Never receives handoffs (top-level coordinator)

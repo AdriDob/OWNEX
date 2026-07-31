@@ -1,4 +1,4 @@
-package ai.catseye.app;
+package ai.rastro.app;
 
 import com.getcapacitor.BridgeActivity;
 

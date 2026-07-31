@@ -332,10 +332,7 @@ class ToolRegistry:
 
     def list_tools(self, category: str | None = None) -> list[ToolManifest]:
         """List all tools, optionally filtered by category."""
-        if category:
-            names = self._categories.get(category, [])
-        else:
-            names = list(self._tools.keys())
+        names = self._categories.get(category, []) if category else list(self._tools.keys())
         return [self._manifests[n] for n in names]
 
     def list_categories(self) -> list[str]:
@@ -583,8 +580,8 @@ class EditorTool(BaseTool):
 
         elif action == "patch":
             path = inputs["path"]
-            old = inputs["old_string"]
-            new = inputs["new_string"]
+            inputs["old_string"]
+            inputs["new_string"]
             return {"action": "patch", "path": path, "replaced": True}
 
         elif action == "list":
@@ -616,8 +613,8 @@ class APITool(BaseTool):
     async def execute(self, inputs: dict[str, Any]) -> dict[str, Any]:
         method = inputs.get("method", "GET")
         url = inputs["url"]
-        headers = inputs.get("headers", {})
-        body = inputs.get("body")
+        inputs.get("headers", {})
+        inputs.get("body")
 
         # In real implementation: use aiohttp
         return {
