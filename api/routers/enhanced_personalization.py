@@ -1,12 +1,10 @@
 """API Router for Enhanced Personalization."""
 
-from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
 from cores.setup.steps.enhanced_personalization import (
-    EnhancedPersonalizationSystem,
     get_enhanced_personalization_system,
     reset_enhanced_personalization_system,
 )

@@ -1,12 +1,11 @@
 """API Router for Daily Planning and Productivity."""
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
 from cores.productivity.daily_planning import (
-    DailyPlanningSystem,
     TaskStatus,
     get_daily_planning_system,
 )
@@ -15,14 +14,11 @@ router = APIRouter(prefix="/productivity", tags=["productivity"])
 
 
 @router.get("/daily-plan")
-async def get_daily_plan(date: Optional[str] = None):
+async def get_daily_plan(date: str | None = None):
     """Get daily plan for a specific date."""
     system = get_daily_planning_system()
 
-    if date:
-        plan_date = datetime.strptime(date, "%Y-%m-%d")
-    else:
-        plan_date = None
+    plan_date = datetime.strptime(date, "%Y-%m-%d") if date else None
 
     plan = system.get_daily_plan(plan_date)
 
@@ -42,14 +38,11 @@ async def get_daily_plan(date: Optional[str] = None):
 
 
 @router.post("/daily-plan/generate")
-async def generate_daily_plan(date: Optional[str] = None):
+async def generate_daily_plan(date: str | None = None):
     """Generate daily plan for a specific date."""
     system = get_daily_planning_system()
 
-    if date:
-        plan_date = datetime.strptime(date, "%Y-%m-%d")
-    else:
-        plan_date = None
+    plan_date = datetime.strptime(date, "%Y-%m-%d") if date else None
 
     plan = system.generate_daily_plan(plan_date)
 
@@ -106,14 +99,11 @@ async def add_break(payload: dict[str, Any]):
 
 
 @router.get("/metrics")
-async def get_productivity_metrics(date: Optional[str] = None):
+async def get_productivity_metrics(date: str | None = None):
     """Get productivity metrics for a specific date."""
     system = get_daily_planning_system()
 
-    if date:
-        metric_date = datetime.strptime(date, "%Y-%m-%d")
-    else:
-        metric_date = None
+    metric_date = datetime.strptime(date, "%Y-%m-%d") if date else None
 
     metrics = system.get_productivity_metrics(metric_date)
 
@@ -134,10 +124,7 @@ async def sync_with_obsidian(payload: dict[str, Any]):
     system = get_daily_planning_system()
 
     date = payload.get("date")
-    if date:
-        sync_date = datetime.strptime(date, "%Y-%m-%d")
-    else:
-        sync_date = None
+    sync_date = datetime.strptime(date, "%Y-%m-%d") if date else None
 
     success = system.sync_with_obsidian(sync_date)
 
