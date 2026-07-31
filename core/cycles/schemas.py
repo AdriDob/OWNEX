@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class CycleStatus(str):
@@ -74,6 +74,18 @@ class CycleRead(CycleBase):
     id: int
     created_at: datetime
     updated_at: datetime
+
+    @field_validator("config", mode="before")
+    @classmethod
+    def parse_config(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            import json
+
+            try:
+                return json.loads(v or "{}")
+            except (json.JSONDecodeError, TypeError):
+                return {}
+        return v
 
 
 class CycleMetrics(BaseModel):

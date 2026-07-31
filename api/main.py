@@ -1,8 +1,10 @@
 import asyncio
 import logging
 import os
+from collections.abc import Callable
 from contextlib import asynccontextmanager, suppress
 from pathlib import Path
+from typing import Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +17,7 @@ from api.middleware.error_handling import ErrorHandlingMiddleware, SecurityHeade
 from api.middleware.rate_limit_middleware import RateLimitMiddleware
 from api.routers import (
     accounts_hub,
+    activity,
     agents_router,
     ai_security,
     assistant,
@@ -22,8 +25,8 @@ from api.routers import (
     attack,
     attack_surface,
     auth,
-    auth_users,
     auth_user,
+    auth_users,
     authhub,
     bank_payout,
     canonical,
@@ -47,6 +50,7 @@ from api.routers import (
     financial_truth,
     findings,
     forge_app,
+    forge_cycle,
     hunt,
     hunter,
     hypotheses,
@@ -83,6 +87,7 @@ from api.routers import (
     productivity,
     project_dashboard,
     pulse_app,
+    pulse_cycle,
     quick_wins,
     recon,
     report_pipeline,
@@ -898,19 +903,121 @@ async def lifespan(app: FastAPI):
         core_bus = get_event_bus()
         orion_scheduler = get_core_scheduler()
 
-        def _on_job_due(job: JobDefinition) -> None:
+        def _resolve_handler(handler: Any) -> Callable[..., Any] | None:
+            """Resolve a handler string to a callable.
+
+            Supports ``module:attr`` (``core.opportunity.tasks:sync_cycle_scores``),
+            ``module.attr`` (``core.credentials.vault.backup_vault``) and
+            ``module.Class.method`` (``api.scheduler.ScanScheduler._stage_discover``).
+            """
+            if callable(handler):
+                return handler
+            if not isinstance(handler, str):
+                return None
+            if ":" in handler:
+                module_path, attr_path = handler.split(":", 1)
+            else:
+                module_path, attr_path = handler, ""
+            try:
+                import importlib
+
+                if not attr_path:
+                    parts = module_path.split(".")
+                    for cut in range(len(parts) - 1, 0, -1):
+                        candidate_mod = ".".join(parts[:cut])
+                        try:
+                            obj: Any = importlib.import_module(candidate_mod)
+                        except Exception:
+                            continue
+                        for part in parts[cut:]:
+                            obj = getattr(obj, part)
+                        if callable(obj):
+                            return obj
+                    return None
+                obj = importlib.import_module(module_path)
+                for part in attr_path.split("."):
+                    obj = getattr(obj, part)
+                return obj if callable(obj) else None
+            except Exception as exc:
+                logger.warning("[ORION] Cannot resolve handler %r: %s", handler, exc)
+                return None
+
+        def _bind_scheduler_method(handler: Any) -> Any:
+            """Bind unbound ScanScheduler stage methods to the running singleton.
+
+            CATEYE manifest jobs reference ``ScanScheduler._stage_*`` as unbound
+            class methods; bind them to ``api.scheduler.scheduler_instance``.
+            """
+            if handler is None or not isinstance(handler, type(lambda: None)):
+                return None
+            qualname = getattr(handler, "__qualname__", "") or ""
+            if not qualname.startswith("ScanScheduler."):
+                return None
+            try:
+                import api.scheduler as sched_mod
+
+                instance = getattr(sched_mod, "scheduler_instance", None)
+                if instance is None:
+                    return None
+                method_name = qualname.split(".", 1)[1]
+                bound = getattr(instance, method_name, None)
+                return bound if callable(bound) else None
+            except Exception as exc:
+                logger.warning("[ORION] Could not bind scheduler method %s: %s", qualname, exc)
+                return None
+
+        def _run_job(job: JobDefinition) -> Any:
+            """Invoke a job's resolved handler with its configured args."""
+            handler = _resolve_handler(job.handler)
+            if handler is None:
+                logger.warning("[ORION] Job %s has no callable handler %r", job.job_id, job.handler)
+                return None
+            args = list(job.kwargs.get("args", []) or [])
+            logger.info("[ORION] Running job %s (app=%s, args=%s)", job.job_id, job.app_id, args)
+            try:
+                bound = _bind_scheduler_method(handler)
+                if bound is not None:
+                    handler = bound
+                return handler(*args)
+            except Exception as exc:
+                logger.exception("[ORION] Job %s handler failed: %s", job.job_id, exc)
+                return None
+
+        def _on_job_due(job: JobDefinition) -> Any:
             core_bus.publish("scheduler:job_due", job_id=job.job_id, app_id=job.app_id)
+            return _run_job(job)
 
         orion_scheduler.set_job_handler(_on_job_due)
         for job_def in registry.get_scheduler_jobs():
-            jd = JobDefinition(
-                job_id=job_def["job_id"],
-                app_id=job_def["app_id"],
-                handler=job_def["handler"],
-                trigger=job_def.get("trigger", "interval"),
-                seconds=job_def.get("seconds", 3600),
+            jd = (
+                job_def
+                if isinstance(job_def, JobDefinition)
+                else JobDefinition(
+                    job_id=job_def["job_id"],
+                    app_id=job_def["app_id"],
+                    handler=job_def["handler"],
+                    trigger=job_def.get("trigger", "interval"),
+                    seconds=job_def.get("seconds", 3600),
+                    kwargs=job_def.get("kwargs", {}),
+                    metadata=job_def.get("metadata"),
+                )
             )
             orion_scheduler.add_job(jd)
+
+        # Register cycle jobs (Security/Forge/Pulse/Vault/Atlas) not exposed by app manifests
+        try:
+            from core.scheduler.jobs import get_all_jobs
+
+            registered_ids = {job.job_id for job in orion_scheduler.get_jobs()}
+            for _cycle, cycle_jobs in get_all_jobs().items():
+                for job_def in cycle_jobs:
+                    if job_def.job_id in registered_ids:
+                        continue
+                    registered_ids.add(job_def.job_id)
+                    orion_scheduler.add_job(job_def)
+        except Exception as exc:
+            logger.warning("[ORION] Cycle jobs registration failed (non-fatal): %s", exc)
+
         await orion_scheduler.start()
 
         logger.info(
@@ -1409,6 +1516,7 @@ app.include_router(platforms.router)
 app.include_router(financial_sync.router)
 app.include_router(financial_truth.router)
 app.include_router(mission.router)
+app.include_router(activity.router)
 app.include_router(crypto.router)
 app.include_router(accounts_hub.router)
 app.include_router(authhub.router)
@@ -1458,6 +1566,8 @@ app.include_router(merlin.router)
 
 # Security Cycle router
 app.include_router(security_cycle.router)
+app.include_router(forge_cycle.router)
+app.include_router(pulse_cycle.router)
 
 # ── ORION Platform: core + app routers ──
 try:

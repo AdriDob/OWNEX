@@ -1,4 +1,4 @@
-"""Tests for scheduler job definitions — all 4 cycles (Forge, Pulse, Vault, Atlas)."""
+"""Tests for scheduler job definitions — all 5 cycles (Security, Forge, Pulse, Vault, Atlas)."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ from core.scheduler.jobs import (
     get_atlas_jobs,
     get_forge_jobs,
     get_pulse_jobs,
+    get_security_jobs,
     get_vault_jobs,
 )
 
@@ -147,6 +148,32 @@ class TestAtlasJobs:
     def test_has_intel_job(self):
         ids = [j.job_id for j in get_atlas_jobs()]
         assert "atlas_intel_30min" in ids
+
+
+class TestSecurityJobs:
+    def test_returns_list(self):
+        jobs = get_security_jobs()
+        assert isinstance(jobs, list)
+
+    def test_all_have_valid_structure(self):
+        for job in get_security_jobs():
+            _check_job_structure(job)
+
+    def test_all_have_security_app_id(self):
+        for job in get_security_jobs():
+            assert job.app_id == "security"
+
+    def test_has_cycle_start_job(self):
+        ids = [j.job_id for j in get_security_jobs()]
+        assert "security_cycle_start" in ids
+
+    def test_has_advance_job(self):
+        ids = [j.job_id for j in get_security_jobs()]
+        assert "security_cycle_advance" in ids
+
+    def test_has_sync_job(self):
+        ids = [j.job_id for j in get_security_jobs()]
+        assert "security_cycle_sync" in ids
 
 
 class TestGetAllJobs:
