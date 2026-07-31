@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![OWNEX Logo](assets/logo.svg)
+![OWNEX Logo](frontend/assets/logo.svg)
 
 **Autonomous Work Operating Platform**
 
@@ -234,7 +234,7 @@ Rastro/
 <div align="center">
 
 ### OWNEX Hub — PS5/Jarvis UI
-![OWNEX Hub](frontend/assets/hub.svg) | [Detallado](docs/images/ownex-hub-detailed.svg)
+![OWNEX Hub](frontend/assets/hub.svg)
 
 ### Task Management — Unified Platform
 ![Task Management](frontend/assets/tasks.svg)
@@ -250,18 +250,6 @@ Rastro/
 
 ### AI Integration — ModelRouter
 ![AI Integration](frontend/assets/ai-integration.svg)
-
-### Workflow Complete — Autonomous Work Cycle
-[Workflow Complete](docs/images/workflow-complete.svg)
-
-### Platform Integration — 12 Connected Platforms
-[Platform Integration](docs/images/platform-integration.svg)
-
-### Health Monitoring — Real-time Diagnostics
-[Health Monitoring](docs/images/health-monitoring.svg)
-
-### Revenue Flow — Detection to Wealth
-[Revenue Flow](docs/images/revenue-flow.svg)
 
 </div>
 
