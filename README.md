@@ -2,9 +2,9 @@
 
 <div align="center">
 
-<img src="assets/concept-hero.png" alt="OWNEX — Autonomous Work Operating System"/>
-
 <img src="assets/logo.png" alt="OWNEX Logo" width="200" height="200"/>
+
+<img src="assets/concept-hero.png" alt="OWNEX — Autonomous Work Operating System"/>
 
 ---
 
