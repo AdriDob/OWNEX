@@ -940,6 +940,64 @@ Características del Sistema Completo:
 - Instalación automática de todas las features
 - Configuración personalizada durante instalación
 
+**Smartwatch and Mobile Companion — Wear OS y Android/iOS Completados**
+- cores/wear_os/integration.py: Integración con Wear OS
+  - WatchEventType: NOTIFICATION, APPROVAL_REQUEST, APPROVAL_RESPONSE, STATUS_UPDATE, SYSTEM_ALERT, MERLIN_MESSAGE
+  - WatchNotificationLevel: CRITICAL, HIGH, MEDIUM, LOW
+  - WatchNotification: Notificación para el reloj con ID, título, mensaje, nivel, acción requerida
+  - WatchApprovalRequest: Solicitud de aprobación desde el reloj
+  - WatchStatus: Estado del sistema (online, scheduler, workflows, approvals, findings, targets, health score)
+  - WearOSIntegration: Sistema de integración con Wear OS
+    - send_notification(): Enviar notificación al reloj
+    - request_approval(): Solicitar aprobación desde el reloj
+    - respond_approval(): Responder a solicitud de aprobación
+    - get_status(): Obtener estado del sistema para el reloj
+    - get_notifications(): Obtener notificaciones del reloj
+    - mark_notification_read(): Marcar notificación como leída
+    - get_pending_approvals(): Obtener aprobaciones pendientes
+    - clear_old_notifications(): Limpiar notificaciones antiguas
+  - Persistencia en JSON (notifications.json, approvals.json)
+  - Keep last 50 notifications, last 20 approval requests
+- api/routers/wear_os.py: API router para Wear OS
+  - GET /api/wear-os/status: Obtener estado del reloj
+  - POST /api/wear-os/notification: Enviar notificación al reloj
+  - GET /api/wear-os/notifications: Obtener notificaciones (filter by level, unread_only, limit)
+  - PUT /api/wear-os/notification/{notification_id}/read: Marcar notificación como leída
+  - POST /api/wear-os/approval-request: Solicitar aprobación desde el reloj
+  - GET /api/wear-os/approvals/pending: Obtener aprobaciones pendientes
+  - POST /api/wear-os/approval/{request_id}/respond: Responder a aprobación
+  - POST /api/wear-os/clear-notifications: Limpiar notificaciones antiguas
+- frontend/src/pages/MobileCompanionJarvis.vue: Companion móvil estilo JARVIS
+  - JARVIS Style con HUD layer (scan lines, grid overlay, particles)
+  - Device cards para Android y Wear OS con estado de conexión
+  - Features grid (Dashboard Móvil, MERLIN Chat, Notificaciones, Aprobaciones, Targets, Capital)
+  - MERLIN Mini con avatar animado y chat
+  - Status grid con métricas del sistema (findings, targets, scheduler, próxima acción)
+  - Quick actions (Actualizar Estado, MERLIN Full, Dashboard, Notificaciones)
+  - Animaciones: scan-move, grid-pulse, particle-float, ring-rotate, status-pulse
+  - Styling JARVIS (Rajdhani, Orbitron fonts, cyan colors, glow effects)
+  - Mobile-responsive design
+  - Polling cada 2 minutos
+  - Push notifications support
+- frontend/src/router/index.ts: Router actualizado
+  - Ruta /mobile: Companion original
+  - Ruta /mobile/jarvis: Companion estilo JARVIS
+- cores/setup/steps/smartwatch_step.py: Smartwatch step mejorado
+  - Nuevo field: approvals_enabled (Aprobaciones desde el reloj)
+  - Nuevo field: merlin_mini_enabled (MERLIN Mini en el reloj)
+  - Nuevo field: sync_interval (Intervalo de sincronización en minutos)
+- ORION_SETUP_GUIDE.md: Guía completa de configuración profesional
+  - Requisitos (Desktop, Android, Wear OS)
+  - Instalación Desktop con Enhanced Personalization Wizard
+  - Companion Android: Auto-discovery, manual connection, features
+  - Watch Companion Wear OS: Transferencia desde Companion, características, modo critical-only
+  - Configuración guiada (Identity, Desktop, COPILOT, Integrations, Smartwatch)
+  - Health Check (Desktop, Android, Wear OS) con indicadores 🟢🟡🔴
+  - Seguridad (autenticación, dispositivos conectados, sesiones)
+  - Actualizaciones (auto-update y manual)
+  - Solución de problemas (desktop, companion, watch, notifications)
+  - Roadmap de features futuras
+
 **JARVIS Design — Interfaz Futurista High-Tech HUD Style**
 - frontend/src/pages/JarvisWelcome.vue: Página de bienvenida estilo JARVIS
   - HUD Layer con:
