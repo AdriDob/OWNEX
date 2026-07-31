@@ -210,6 +210,7 @@ class VersionBackupSystem:
             checksum = self._calculate_checksum(backup_path)
             manifest["checksum"] = checksum
             manifest["size"] = total_size
+            manifest["total_files"] = len(manifest["files"])
 
             # Save manifest
             manifest_path = backup_path / "manifest.json"
