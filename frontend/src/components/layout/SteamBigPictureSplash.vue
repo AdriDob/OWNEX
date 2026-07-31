@@ -44,7 +44,7 @@ let systemCheckInterval: ReturnType<typeof setInterval> | null = null
 // Elite sound effects
 function playEliteSound(type: 'startup' | 'success' | 'error' | 'hover') {
   // In production, play actual audio files
-  console.log(`[ELITE AUDIO] Playing ${type} sound effect`)
+  // console.log(`[ELITE AUDIO] Playing ${type} sound effect`)
 }
 
 // OWNEX System Checks
