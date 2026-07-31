@@ -163,7 +163,7 @@
             <button @click="verifyBackup(backup)" class="mini-button mini-info" :disabled="loading">
               <Shield class="w-3 h-3" /> Verify
             </button>
-            <button @click="showRollbackModal(backup)" class="mini-button mini-warning" :disabled="loading || backup.state === 'active'">
+            <button @click="openRollbackModal(backup)" class="mini-button mini-warning" :disabled="loading || backup.state === 'active'">
               <RefreshCw class="w-3 h-3" /> Rollback
             </button>
             <button @click="deleteBackup(backup)" class="mini-button mini-danger" :disabled="loading || backup.state === 'active'">
@@ -367,7 +367,7 @@ const verifyBackup = async (backup: any) => {
   }
 }
 
-const showRollbackModal = (backup: any) => {
+const openRollbackModal = (backup: any) => {
   selectedBackup.value = backup
   showRollbackModal.value = true
 }

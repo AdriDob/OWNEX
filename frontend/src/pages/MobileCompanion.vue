@@ -534,7 +534,7 @@ const loadAllData = async () => {
 
     // Load today's mood
     const today = new Date().toISOString().split('T')[0]
-    const { data: moodData: todayMood } = await supabase
+    const { data: todayMood } = await supabase
       .from('daily_moods')
       .select('*')
       .eq('user_id', userId)

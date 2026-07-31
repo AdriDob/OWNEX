@@ -53,9 +53,11 @@ def count_steps() -> int:
     return len(_STEP_REGISTRY)
 
 
-from core.setup.steps.copilot_step import *  # noqa: E402, F401, F403
-from core.setup.steps.identity_step import *  # noqa: E402, F401, F403
-from core.setup.steps.integrations_step import *  # noqa: E402, F401, F403
-from core.setup.steps.smartwatch_step import *  # noqa: E402, F401, F403
-from core.setup.steps.system_step import *  # noqa: E402, F401, F403
-from core.setup.steps.test_step import *  # noqa: E402, F401, F403
+# Import steps explicitly to register them (trigger decorators)
+import core.setup.steps.copilot_step  # noqa: E402, F401
+import core.setup.steps.identity_step  # noqa: E402, F401
+import core.setup.steps.integrations_step  # noqa: E402, F401
+import core.setup.steps.personalization_step  # noqa: E402, F401
+import core.setup.steps.smartwatch_step  # noqa: E402, F401
+import core.setup.steps.system_step  # noqa: E402, F401
+import core.setup.steps.test_step  # noqa: E402, F401

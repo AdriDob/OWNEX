@@ -4,7 +4,7 @@
  * Based on OWNEX_DESIGN_SYSTEM.md §3.2
  */
 
-import { computed } from 'vue'
+import { computed, defineComponent, h } from 'vue'
 import OwnexBadge from '../ui/OwnexBadge.vue'
 import OwnexButton from '../ui/OwnexButton.vue'
 
@@ -64,54 +64,35 @@ const getTypeIcon = (type: string) => {
   }
   return icons[type] || icons.system
 }
-</script>
 
-<template>
-  <div class="ownex-knowledge-feed" role="region" aria-label="Feed de conocimiento">
-    <div class="ownex-knowledge-feed__header">
-      <h3 class="ownex-knowledge-feed__title">Feed de Conocimiento</h3>
-      <OwnexBadge variant="default" size="sm">
-        {{ displayedItems.length }} items
-      </OwnexBadge>
-    </div>
+const getConfidenceColor = (score: number) => {
+  if (score >= 80) return 'var(--ownex-green)'
+  if (score >= 60) return 'var(--ownex-yellow)'
+  return 'var(--ownex-red)'
+}
 
-    <div class="ownex-knowledge-feed__list">
-      <template v-if="props.groupByDate">
-        <div v-for="(group, dateKey) in groupedItems" :key="dateKey" class="ownex-knowledge-feed__date-group">
-          <div class="ownex-knowledge-feed__date-label">{{ formatDateLabel(dateKey) }}</div>
-          <div
-            v-for="item in group"
-            :key="item.id"
-            class="ownex-knowledge-feed__item"
-            :class="`ownex-knowledge-feed__item--${item.type}`"
-          >
-            <KnowledgeFeedItem :item="item" />
-          </div>
-        </div>
-      </template>
-      <template v-else>
-        <KnowledgeFeedItem
-          v-for="item in displayedItems"
-          :key="item.id"
-          :item="item"
-        />
-      </template>
+const displayedItems = computed(() => props.items.slice(0, props.maxItems))
 
-      <!-- Empty state -->
-      <div v-if="!props.items.length" class="ownex-knowledge-feed__empty">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V5a3 3 0 0 0-3-3H12z" />
-          <path d="M2 22h20M2 17h20" />
-        </svg>
-        <p>El feed está vacío</p>
-        <span>Los insights aparecen tras ejecuciones de ciclos</span>
-      </div>
-    </div>
-  </div>
-</template>
+const groupedItems = computed(() => {
+  const groups: Record<string, FeedItem[]> = {}
+  for (const item of displayedItems.value) {
+    const date = new Date(item.timestamp).toDateString()
+    if (!groups[date]) groups[date] = []
+    groups[date].push(item)
+  }
+  return groups
+})
 
-<script setup lang="ts">
-import { computed, defineComponent, h } from 'vue'
+const formatDateLabel = (dateString: string) => {
+  const date = new Date(dateString)
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+
+  if (date.toDateString() === today.toDateString()) return 'HOY'
+  if (date.toDateString() === yesterday.toDateString()) return 'AYER'
+  return date.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase()
+}
 
 // Inner item component for cleaner structure
 const KnowledgeFeedItem = defineComponent({
@@ -195,36 +176,51 @@ const KnowledgeFeedItem = defineComponent({
     ])
   },
 })
-
-const getConfidenceColor = (score: number) => {
-  if (score >= 80) return 'var(--ownex-green)'
-  if (score >= 60) return 'var(--ownex-yellow)'
-  return 'var(--ownex-red)'
-}
-
-const displayedItems = computed(() => props.items.slice(0, props.maxItems))
-
-const groupedItems = computed(() => {
-  const groups: Record<string, FeedItem[]> = {}
-  for (const item of displayedItems.value) {
-    const date = new Date(item.timestamp).toDateString()
-    if (!groups[date]) groups[date] = []
-    groups[date].push(item)
-  }
-  return groups
-})
-
-const formatDateLabel = (dateString: string) => {
-  const date = new Date(dateString)
-  const today = new Date()
-  const yesterday = new Date(today)
-  yesterday.setDate(yesterday.getDate() - 1)
-
-  if (date.toDateString() === today.toDateString()) return 'HOY'
-  if (date.toDateString() === yesterday.toDateString()) return 'AYER'
-  return date.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase()
-}
 </script>
+
+<template>
+  <div class="ownex-knowledge-feed" role="region" aria-label="Feed de conocimiento">
+    <div class="ownex-knowledge-feed__header">
+      <h3 class="ownex-knowledge-feed__title">Feed de Conocimiento</h3>
+      <OwnexBadge variant="default" size="sm">
+        {{ displayedItems.length }} items
+      </OwnexBadge>
+    </div>
+
+    <div class="ownex-knowledge-feed__list">
+      <template v-if="props.groupByDate">
+        <div v-for="(group, dateKey) in groupedItems" :key="dateKey" class="ownex-knowledge-feed__date-group">
+          <div class="ownex-knowledge-feed__date-label">{{ formatDateLabel(dateKey) }}</div>
+          <div
+            v-for="item in group"
+            :key="item.id"
+            class="ownex-knowledge-feed__item"
+            :class="`ownex-knowledge-feed__item--${item.type}`"
+          >
+            <KnowledgeFeedItem :item="item" />
+          </div>
+        </div>
+      </template>
+      <template v-else>
+        <KnowledgeFeedItem
+          v-for="item in displayedItems"
+          :key="item.id"
+          :item="item"
+        />
+      </template>
+
+      <!-- Empty state -->
+      <div v-if="!props.items.length" class="ownex-knowledge-feed__empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V5a3 3 0 0 0-3-3H12z" />
+          <path d="M2 22h20M2 17h20" />
+        </svg>
+        <p>El feed está vacío</p>
+        <span>Los insights aparecen tras ejecuciones de ciclos</span>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .ownex-knowledge-feed {

@@ -102,7 +102,7 @@
                 <span class="message-time">{{ formatTime(message.timestamp) }}</span>
               </div>
               <div class="message-body">
-                <div v-if="message.role === 'merlin'" class="typing-indicator" v-if="message.isTyping">
+                <div v-if="message.role === 'merlin' && message.isTyping" class="typing-indicator">
                   <span class="typing-dot"></span>
                   <span class="typing-dot"></span>
                   <span class="typing-dot"></span>

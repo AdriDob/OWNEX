@@ -600,3 +600,15 @@ async def main_revenue_tracker():
 if __name__ == "__main__":
     # Run the revenue tracker
     asyncio.run(main_revenue_tracker())
+
+
+# Module-level singleton getter
+_revenue_tracker_instance: RevenueTracker | None = None
+
+
+def get_revenue_tracker() -> RevenueTracker:
+    """Get or create the global revenue tracker instance."""
+    global _revenue_tracker_instance
+    if _revenue_tracker_instance is None:
+        _revenue_tracker_instance = RevenueTracker()
+    return _revenue_tracker_instance

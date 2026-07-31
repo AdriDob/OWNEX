@@ -35,6 +35,10 @@ const statusConfig = computed(() => ({
   working: { label: 'Trabajando', variant: 'success' as const, icon: 'activity', pulse: true },
   complete: { label: 'Completado', variant: 'success' as const, icon: 'check-circle' },
   error: { label: 'Error', variant: 'error' as const, icon: 'alert-circle' },
+  // Fallback for unknown statuses (e.g., from tests)
+  online: { label: 'En línea', variant: 'success' as const, icon: 'wifi', pulse: true },
+  local: { label: 'Local', variant: 'default' as const, icon: 'cpu' },
+  limited: { label: 'Limitado', variant: 'warning' as const, icon: 'alert-triangle' },
 }))
 
 const getRoleColor = (role: string) => {
@@ -57,6 +61,37 @@ const formatRelativeTime = (isoString?: string) => {
   if (minutes < 60) return `Hace ${minutes}m`
   const hours = Math.floor(minutes / 60)
   return `Hace ${hours}h`
+}
+
+const activeCount = computed(() =>
+  props.agents.filter(a => a.status === 'working' || a.status === 'thinking').length
+)
+
+const roleToCycle = (role: string): 'security' | 'forge' | 'pulse' | 'vault' | 'atlas' | 'odyssey' => {
+  const mapping: Record<string, any> = {
+    'Analista': 'security',
+    'Cazador': 'forge',
+    'Ejecutor': 'pulse',
+    'Validador': 'vault',
+    'Explorador': 'atlas',
+    'Estratega': 'odyssey',
+  }
+  return mapping[role] || 'security'
+}
+
+const statusDotStyle = (status: string) => {
+  const styles: Record<string, any> = {
+    idle: { backgroundColor: 'var(--ownex-text-muted)', boxShadow: 'none' },
+    thinking: { backgroundColor: 'var(--ownex-blue)', boxShadow: '0 0 8px var(--ownex-blue)' },
+    working: { backgroundColor: 'var(--ownex-green)', boxShadow: '0 0 8px var(--ownex-green)' },
+    complete: { backgroundColor: 'var(--ownex-green)', boxShadow: '0 0 8px var(--ownex-green)' },
+    error: { backgroundColor: 'var(--ownex-red)', boxShadow: '0 0 8px var(--ownex-red)' },
+    // Fallback for unknown statuses
+    online: { backgroundColor: 'var(--ownex-green)', boxShadow: '0 0 8px var(--ownex-green)' },
+    local: { backgroundColor: 'var(--ownex-blue)', boxShadow: '0 0 8px var(--ownex-blue)' },
+    limited: { backgroundColor: 'var(--ownex-yellow)', boxShadow: '0 0 8px var(--ownex-yellow)' },
+  }
+  return styles[status] || styles.idle
 }
 </script>
 
@@ -166,37 +201,6 @@ const formatRelativeTime = (isoString?: string) => {
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue'
-
-const activeCount = computed(() =>
-  props.agents.filter(a => a.status === 'working' || a.status === 'thinking').length
-)
-
-const roleToCycle = (role: string): 'security' | 'forge' | 'pulse' | 'vault' | 'atlas' | 'odyssey' => {
-  const mapping: Record<string, any> = {
-    'Analista': 'security',
-    'Cazador': 'forge',
-    'Ejecutor': 'pulse',
-    'Validador': 'vault',
-    'Explorador': 'atlas',
-    'Estratega': 'odyssey',
-  }
-  return mapping[role] || 'security'
-}
-
-const statusDotStyle = (status: string) => {
-  const styles: Record<string, any> = {
-    idle: { backgroundColor: 'var(--ownex-text-muted)', boxShadow: 'none' },
-    thinking: { backgroundColor: 'var(--ownex-blue)', boxShadow: '0 0 8px var(--ownex-blue)' },
-    working: { backgroundColor: 'var(--ownex-green)', boxShadow: '0 0 8px var(--ownex-green)' },
-    complete: { backgroundColor: 'var(--ownex-green)', boxShadow: '0 0 8px var(--ownex-green)' },
-    error: { backgroundColor: 'var(--ownex-red)', boxShadow: '0 0 8px var(--ownex-red)' },
-  }
-  return styles[status] || styles.idle
-}
-</script>
 
 <style scoped>
 .ownex-agent-fleet {

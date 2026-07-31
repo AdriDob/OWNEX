@@ -68,6 +68,27 @@ const getRoiColor = (score?: number) => {
   if (score >= 40) return 'var(--ownex-blue)'
   return 'var(--ownex-text-muted)'
 }
+
+const displayedOpportunities = computed(() =>
+  props.opportunities.slice(0, props.maxItems)
+)
+
+const formatType = (type: string) => {
+  const labels: Record<string, string> = {
+    'bug-bounty': 'Bug Bounty',
+    'vdp': 'VDP',
+    'ctf': 'CTF',
+    'freelance': 'Freelance',
+    'research': 'Research',
+  }
+  return labels[type] || type
+}
+
+const getConfidenceColor = (score: number) => {
+  if (score >= 80) return 'var(--ownex-green)'
+  if (score >= 60) return 'var(--ownex-yellow)'
+  return 'var(--ownex-red)'
+}
 </script>
 
 <template>
@@ -220,31 +241,6 @@ const getRoiColor = (score?: number) => {
     </div>
   </div>
 </template>
-
-<script setup lang="ts>
-import { computed } from 'vue'
-
-const displayedOpportunities = computed(() =>
-  props.opportunities.slice(0, props.maxItems)
-)
-
-const formatType = (type: string) => {
-  const labels: Record<string, string> = {
-    'bug-bounty': 'Bug Bounty',
-    'vdp': 'VDP',
-    'ctf': 'CTF',
-    'freelance': 'Freelance',
-    'research': 'Research',
-  }
-  return labels[type] || type
-}
-
-const getConfidenceColor = (score: number) => {
-  if (score >= 80) return 'var(--ownex-green)'
-  if (score >= 60) return 'var(--ownex-yellow)'
-  return 'var(--ownex-red)'
-}
-</script>
 
 <style scoped>
 .ownex-opportunity-radar {

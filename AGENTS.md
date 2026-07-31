@@ -68,11 +68,16 @@ Sos la abejita del panal CATEYE. Mientras el usuario trabaja:
 
 ## Comandos útiles
 
-- Tests: `.venv/bin/python -m pytest --timeout=60 -q --ignore=tests/test_security.py`
-- Lint: `.venv/bin/python -m ruff check .`
-- Backup: `python run.py --backup`
-- Add target: `python run.py --add-target <name> --domain <domain>`
-- Health: `curl http://localhost:8000/api/health`
+| Goal | Command |
+|------|---------|
+| Tests | `python scripts/dev test` (or `make test`) — excludes `test_security.py` |
+| Fast smoke | `python scripts/dev test-fast` / `make test-fast` (scoring + opportunity + scheduler-jobs) |
+| Lint + typecheck + fast tests | `python scripts/dev check` / `make check` |
+| Lint (write fixes) | `python scripts/dev fmt` / `make fmt` |
+| Type check (scoped) | `python scripts/dev typecheck-fast` / `make typecheck-fast` |
+| Backup | `python run.py --backup` |
+| Add target | `python run.py --add-target <name> --domain <domain>` |
+| Health | `curl http://localhost:8000/api/health` |
 
 ## Protocolo de Arranque de Agente — "Ponte a trabajar"
 
