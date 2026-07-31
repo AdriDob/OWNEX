@@ -1,31 +1,31 @@
 <div align="center">
 
-<img src=".ai/brand/approved/logos/ownex-logo-production.svg" alt="OWNEX OMEGA Logo" width="400"/>
+<img src="assets/branding/logo/ownex-logo-production.svg" alt="OWNEX OMEGA" width="500"/>
 
-<img src=".ai/brand/approved/heroes/ownex-hero-production.svg" alt="OWNEX OMEGA — Autonomous Work Operating System"/>
+**Autonomous AI workforce for bug bounty, development, and revenue generation.**
 
----
+OWNEX OMEGA is an autonomous operating system that deploys AI agents to work bug bounty programs, execute development tasks, manage revenue, and learn continuously—while you sleep.
 
-[![Version](https://img.shields.io/badge/version-7.0.0-0B0B0B)](https://github.com/AdriDob/rastrohunteralpha)
-[![Python](https://img.shields.io/badge/python-3.11+-3B82F6)](https://www.python.org)
-[![Vue](https://img.shields.io/badge/vue-3-4FC08D)](https://vuejs.org)
+[![Version](https://img.shields.io/badge/version-7.0.0-3B82F6)](https://github.com/AdriDob/rastrohunteralpha)
+[![Python](https://img.shields.io/badge/python-3.11+-3776AB)](https://www.python.org)
+[![Vue](https://img.shields.io/badge/vue-3-42B883)](https://vuejs.org)
 [![TypeScript](https://img.shields.io/badge/typescript-5.0+-3178C6)](https://www.typescriptlang.org)
 [![License](https://img.shields.io/badge/license-MIT-F59E0B)](LICENSE)
 [![Status](https://img.shields.io/badge/status-production--ready-22C55E)](https://github.com/AdriDob/rastrohunteralpha)
 
 ---
 
-# OWNEX OMEGA
-
-**Autonomous AI workforce for bug bounty, development, and revenue generation.**
-
-OWNEX OMEGA is an autonomous operating system that deploys AI agents to work bug bounty programs, execute development tasks, manage revenue, and learn continuously—while you sleep.
-
-[Install](#-quick-start) • [Documentation](#-documentation) • [Architecture](#-architecture) • [Contributing](#-contributing)
-
----
-
 </div>
+
+## Quick Start
+
+```bash
+git clone https://github.com/AdriDob/rastrohunteralpha.git
+cd rastrohunteralpha
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python run.py
+```
 
 ## Overview
 
@@ -53,60 +53,13 @@ Together, they perform software engineering, cybersecurity, bug bounty, AI orche
 
 ---
 
-## Quick Start
-
-```bash
-git clone https://github.com/AdriDob/rastrohunteralpha.git
-cd rastrohunteralpha
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-python run.py            # starts the API + background scheduler
-# then open http://localhost:8000/api/health
-```
-
-## Local Development
-
-OWNEX OMEGA ships a single dev entrypoint — the `dev` helper — plus a thin
-`Makefile` wrapper. Both always use `.venv/bin/python`.
-
-```bash
-# one-time setup
-make venv                 # creates .venv and installs requirements
-
-# daily loop (lint → typecheck → fast tests)
-make check                # or:  python scripts/dev check
-
-# individual steps
-python scripts/dev lint         # ruff check + format --check
-python scripts/dev fmt          # ruff check --fix && ruff format  (writes)
-python scripts/dev typecheck    # mypy over cores/ core/ api/ database/ desktop/
-python scripts/dev test         # pytest suite (excludes test_security.py — live external
-                              |   calls — plus test_vision_gateway.py & test_scheduler.py,
-                              |   which are network/rate-limit flaky in CI; run explicitly to include)
-python scripts/dev coverage     # pytest --cov=cores,core
-python scripts/dev test-fast    # smoke subset: scoring, opportunity, scheduler
-python scripts/dev work         # agent startup protocol ("Ponte a trabajar")
-python scripts/dev status       # agent startup without tests
-```
-
-> **Pre-commit** (`.githooks/pre-commit`) runs `ruff check` on staged files and a
-> quick pytest smoke via `make check`. Commits that break lint/tests should use
-> `git commit --no-verify` only as a last resort and be followed by
-> `make check`.
-
-The full test contract is `AGENTS.md` → `.ai/AGENT_CHARTER.md`. See
-`docs/development/DAILY_WORKFLOW.md` for the step-by-step daily protocol and
-`docs/` for per-subsystem guides.
-
----
-
 ## Visual Overview
 
 <div align="center">
 
 ### Mission Control
 
-<img src="assets/branding/banner/concept-mission-control.svg" alt="Mission Control Dashboard" width="1100"/>
+<img src="assets/branding/banner/ownex-hero-production.svg" alt="Mission Control Dashboard" width="1100"/>
 
 ### Autonomous Operating System
 
@@ -124,6 +77,7 @@ The full test contract is `AGENTS.md` → `.ai/AGENT_CHARTER.md`. See
 
 ---
 
+<<<<<<< HEAD
 ## ⚡ Quick Start
 
 ```bash
@@ -431,6 +385,9 @@ Supabase is a 100% free and open source cloud sync solution integrated into OWNE
 ---
 
 ## 📚 Documentation
+=======
+## Documentation
+>>>>>>> 0fd1b90c (fix(test): resolve flaky test_full_scoring_workflow by extending mock side_effect)
 
 - **[README.md](README.md)** — Complete project documentation
 - **[assets/branding/OWNEX_BRAND_GUIDELINES.md](assets/branding/OWNEX_BRAND_GUIDELINES.md)** — Brand guidelines and visual identity
@@ -438,48 +395,12 @@ Supabase is a 100% free and open source cloud sync solution integrated into OWNE
 - **[.ai/PRODUCTION_RULES.md](.ai/PRODUCTION_RULES.md)** — Production rules
 - **[.ai/CURRENT_STATE.md](.ai/CURRENT_STATE.md)** — Verified state of each feature
 - **[.ai/ROADMAP.md](.ai/ROADMAP.md)** — General roadmap
-- **[.ai/OWNEX_OMEGA_ARCHITECTURE.md](.ai/OWNEX_OMEGA_ARCHITECTURE.md)** — System architecture
-- **[.ai/SPECIALIST_TEAM_ARCHITECTURE.md](.ai/SPECIALIST_TEAM_ARCHITECTURE.md)** — Specialist team architecture
-- **[.ai/DEVIN_INTEGRATION.md](.ai/DEVIN_INTEGRATION.md)** — Devin CLI documentation
-- **[SUPABASE_docs/development/SETUP_GUIDE.md](SUPABASE_docs/development/SETUP_GUIDE.md)** — Supabase configuration guide
-- **[docs/operations/MOBILE_SYNC_PLAN.md](docs/operations/MOBILE_SYNC_PLAN.md)** — Mobile sync plan
-- **[docs/archived/INFORME_FINAL_PROYECTO.md](docs/archived/INFORME_FINAL_PROYECTO.md)** — Complete project report
-- **[docs/archived/PLAN_MANANA.md](docs/archived/PLAN_MANANA.md)** — Plan for tomorrow
 
 ---
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
-## 📄 License
+## License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-- [FastAPI](https://fastapi.tiangolo.com/) — Modern async web framework
-- [Vue.js](https://vuejs.org/) — Progressive JavaScript framework
-- [Supabase](https://supabase.com/) — Open source BaaS
-- [Devin](https://devin.ai) — Free development tool
-- [Ollama](https://ollama.com) — Local models
-- [ShadCN](https://ui.shadcn.com/) — Component library
-
----
-
-## 📞 Contact
-
-**GitHub:** [AdriDob/rastrohunteralpha](https://github.com/AdriDob/rastrohunteralpha)
-
-**Status:** Production Ready ✅
 
 ---
 

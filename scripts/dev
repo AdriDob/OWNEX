@@ -107,20 +107,9 @@ def cmd_coverage(extra: list[str]) -> int:
 
 
 def cmd_test_fast(_extra: list[str]) -> int:
-    # test_full_scoring_workflow is excluded: its mock side_effect sequence
-    # (3 items) cannot satisfy the real on_accept/on_reject DB lookups.
     return _run(
         "pytest (fast)",
-        [
-            PY,
-            "-m",
-            "pytest",
-            "--timeout=30",
-            "-q",
-            "--deselect",
-            "tests/test_opportunity_engine_comprehensive.py::TestIntegrationScenarios::test_full_scoring_workflow",
-            *TEST_TARGETS,
-        ],
+        [PY, "-m", "pytest", "--timeout=30", "-q", *TEST_TARGETS],
     )
 
 

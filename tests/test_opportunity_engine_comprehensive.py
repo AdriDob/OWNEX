@@ -631,9 +631,14 @@ class TestIntegrationScenarios:
             mock_session_instance = Mock()
             mock_session.return_value = mock_session_instance
             mock_session_instance.query.return_value.filter.return_value.first.side_effect = [
-                mock_finding,  # For finding lookup in record_feedback
-                mock_program,  # For program lookup in _estimate_reward
-                mock_tier,  # For tier lookup in _estimate_reward
+                mock_finding,  # Finding lookup in record_feedback (accept)
+                mock_program,  # Program lookup in _estimate_reward (accept)
+                mock_tier,  # Tier lookup in _estimate_reward (accept)
+                mock_finding,  # Finding lookup in on_accept
+                mock_finding,  # Finding lookup in record_feedback (reject)
+                mock_program,  # Program lookup in _estimate_reward (reject)
+                mock_tier,  # Tier lookup in _estimate_reward (reject)
+                mock_finding,  # Finding lookup in on_reject
             ]
             mock_session_instance.query.return_value.all.return_value = [mock_tier]
 

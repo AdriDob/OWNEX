@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <!-- Deep dark background -->
+    <linearGradient id="mcBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#030406"/>
+      <stop offset="50%" stop-color="#06080C"/>
+      <stop offset="100%" stop-color="#020305"/>
+    </linearGradient>
+
+    <!-- Blue glow for dashboard -->
+    <radialGradient id="mcGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#1E40AF" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Card surface -->
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#14161E"/>
+      <stop offset="100%" stop-color="#0F1117"/>
+    </linearGradient>
+
+    <!-- Core blue -->
+    <linearGradient id="mcBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+
+    <!-- Gold -->
+    <linearGradient id="mcGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+
+    <!-- Success green -->
+    <linearGradient id="mcGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22C55E"/>
+      <stop offset="100%" stop-color="#16A34A"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#mcBg)"/>
+  <rect width="1200" height="630" fill="url(#mcGlow)"/>
+
+  <!-- ═══ MISSION CONTROL DASHBOARD CONCEPT ═══ -->
+
+  <!-- Top status bar -->
+  <rect x="40" y="30" width="1120" height="50" rx="8" fill="url(#cardGrad)" stroke="#1A1A2E" stroke-width="1"/>
+  
+  <!-- Status indicators -->
+  <circle cx="70" cy="55" r="6" fill="#22C55E"/>
+  <text x="90" y="60" font-family="'Inter', sans-serif" font-size="14" fill="#9CA3AF">System Online</text>
+  
+  <text x="1050" y="60" font-family="'Inter', monospace" font-size="13" fill="#60A5FA" text-anchor="end">Throughput: 12/hr</text>
+
+  <!-- Main dashboard area -->
+  
+  <!-- Left sidebar -->
+  <rect x="40" y="100" width="200" height="490" rx="8" fill="url(#cardGrad)" stroke="#1A1A2E" stroke-width="1"/>
+  
+  <!-- Sidebar items -->
+  <rect x="55" y="120" width="170" height="40" rx="6" fill="#3B82F6" fill-opacity="0.1" stroke="#3B82F6" stroke-width="1"/>
+  <text x="65" y="145" font-family="'Inter', sans-serif" font-size="13" fill="#FFFFFF">Mission Control</text>
+  
+  <text x="65" y="190" font-family="'Inter', sans-serif" font-size="13" fill="#64748B">Security</text>
+  <text x="65" y="230" font-family="'Inter', sans-serif" font-size="13" fill="#64748B">Forge</text>
+  <text x="65" y="270" font-family="'Inter', sans-serif" font-size="13" fill="#64748B">Pulse</text>
+  <text x="65" y="310" font-family="'Inter', sans-serif" font-size="13" fill="#64748B">Vault</text>
+  <text x="65" y="350" font-family="'Inter', sans-serif" font-size="13" fill="#64748B">Atlas</text>
+
+  <!-- Main content area -->
+  
+  <!-- Next Best Action card (hero) -->
+  <rect x="260" y="100" width="700" height="120" rx="8" fill="url(#cardGrad)" stroke="#3B82F6" stroke-width="1.5"/>
+  
+  <text x="280" y="130" font-family="'Inter', sans-serif" font-size="14" fill="#60A5FA" font-weight="600">⚡ NEXT ACTION</text>
+  <text x="280" y="160" font-family="'Inter', sans-serif" font-size="18" fill="#FFFFFF">Validate IDOR in Target X</text>
+  
+  <!-- Metrics -->
+  <rect x="280" y="175" width="120" height="30" rx="4" fill="#1E293B"/>
+  <text x="340" y="195" font-family="'Inter', sans-serif" font-size="13" fill="#F59E0B" text-anchor="middle">$800</text>
+  
+  <rect x="410" y="175" width="120" height="30" rx="4" fill="#1E293B"/>
+  <text x="470" y="195" font-family="'Inter', sans-serif" font-size="13" fill="#60A5FA" text-anchor="middle">87%</text>
+  
+  <rect x="540" y="175" width="120" height="30" rx="4" fill="#1E293B"/>
+  <text x="600" y="195" font-family="'Inter', sans-serif" font-size="13" fill="#9CA3AF" text-anchor="middle">25 min</text>
+
+  <!-- Work cycles grid -->
+  <rect x="260" y="240" width="220" height="160" rx="8" fill="url(#cardGrad)" stroke="#1A1A2E" stroke-width="1"/>
+  <text x="280" y="265" font-family="'Inter', sans-serif" font-size="12" fill="#60A5FA">🔵 SECURITY</text>
+  <text x="280" y="285" font-family="'Inter', sans-serif" font-size="11" fill="#64748B">12 opportunities</text>
+  <text x="280" y="305" font-family="'Inter', sans-serif" font-size="11" fill="#F59E0B">$2,400 potential</text>
+  <circle cx="440" cy="280" r="4" fill="#22C55E"/>
+
+  <rect x="500" y="240" width="220" height="160" rx="8" fill="url(#cardGrad)" stroke="#1A1A2E" stroke-width="1"/>
+  <text x="520" y="265" font-family="'Inter', sans-serif" font-size="12" fill="#A855F7">🟣 FORGE</text>
+  <text x="520" y="285" font-family="'Inter', sans-serif" font-size="11" fill="#64748B">3 available</text>
+  <text x="520" y="305" font-family="'Inter', sans-serif" font-size="11" fill="#F59E0B">$450 potential</text>
+  <circle cx="680" cy="280" r="4" fill="#64748B"/>
+
+  <rect x="740" y="240" width="220" height="160" rx="8" fill="url(#cardGrad)" stroke="#1A1A2E" stroke-width="1"/>
+  <text x="760" y="265" font-family="'Inter', sans-serif" font-size="12" fill="#22C55E">🟢 PULSE</text>
+  <text x="760" y="285" font-family="'Inter', sans-serif" font-size="11" fill="#64748B">0 tasks</text>
+  <text x="760" y="305" font-family="'Inter', sans-serif" font-size="11" fill="#F59E0B">$0 potential</text>
+  <circle cx="920" cy="280" r="4" fill="#F59E0B"/>
+
+  <!-- Agent Fleet panel -->
+  <rect x="260" y="420" width="460" height="170" rx="8" fill="url(#cardGrad)" stroke="#1A1A2E" stroke-width="1"/>
+  <text x="280" y="445" font-family="'Inter', sans-serif" font-size="12" fill="#60A5FA">🤖 AGENT FLEET</text>
+  
+  <text x="280" y="475" font-family="'Inter', sans-serif" font-size="11" fill="#FFFFFF">Research Agent</text>
+  <circle cx="440" cy="472" r="3" fill="#22C55E"/>
+  <text x="455" y="475" font-family="'Inter', sans-serif" font-size="10" fill="#64748B">Scanning programs...</text>
+  
+  <text x="280" y="505" font-family="'Inter', sans-serif" font-size="11" fill="#FFFFFF">Execution Agent</text>
+  <circle cx="440" cy="502" r="3" fill="#64748B"/>
+  <text x="455" y="505" font-family="'Inter', sans-serif" font-size="10" fill="#64748B">Available</text>
+  
+  <text x="280" y="535" font-family="'Inter', sans-serif" font-size="11" fill="#FFFFFF">Security Agent</text>
+  <circle cx="440" cy="532" r="3" fill="#22C55E"/>
+  <text x="455" y="535" font-family="'Inter', sans-serif" font-size="10" fill="#64748B">Validating IDOR...</text>
+
+  <!-- Revenue panel -->
+  <rect x="740" y="420" width="220" height="170" rx="8" fill="url(#cardGrad)" stroke="#1A1A2E" stroke-width="1"/>
+  <text x="760" y="445" font-family="'Inter', sans-serif" font-size="12" fill="#F59E0B">💰 REVENUE</text>
+  <text x="760" y="480" font-family="'Inter', sans-serif" font-size="24" fill="#FFFFFF" font-weight="600">$12,400</text>
+  <text x="760" y="500" font-family="'Inter', sans-serif" font-size="11" fill="#22C55E">+12% this week</text>
+  <text x="760" y="530" font-family="'Inter', sans-serif" font-size="10" fill="#64748B">Projected: $327K/mo</text>
+
+  <!-- Logo watermark (subtle) -->
+  <g transform="translate(1100, 580)" opacity="0.3">
+    <circle cx="0" cy="0" r="20" fill="none" stroke="#3B82F6" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="12" fill="none" stroke="#60A5FA" stroke-width="1"/>
+    <circle cx="0" cy="0" r="4" fill="#60A5FA"/>
+  </g>
+</svg>

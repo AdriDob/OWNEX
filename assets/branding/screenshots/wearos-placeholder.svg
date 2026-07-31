@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" rx="80" fill="#050505"/>
+  <text x="200" y="200" font-family="'Inter', sans-serif" font-size="20" fill="#3B82F6" text-anchor="middle">Wear OS</text>
+  <text x="200" y="225" font-family="'Inter', sans-serif" font-size="12" fill="#64748B" text-anchor="middle">400x400</text>
+</svg>
