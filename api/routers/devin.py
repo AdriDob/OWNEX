@@ -9,8 +9,6 @@ from fastapi import APIRouter, HTTPException
 from cores.ai.devin_tool import (
     DevinCommandType,
     DevinModel,
-    DevinTask,
-    DevinTool,
     get_devin_tool,
 )
 
@@ -32,7 +30,7 @@ async def get_devin_status():
             "version": version,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/run")
