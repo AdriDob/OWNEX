@@ -38,6 +38,7 @@ class ProviderTier(int, Enum):
     FALLBACK = 2  # FCC Proxy — good quality
     LOCAL = 3  # Ollama — free, private
     FREE = 4  # OpenCode free models
+    DEVIN = 5  # Devin CLI — free development tool
 
 
 @dataclass
@@ -178,14 +179,35 @@ class ModelRouter:
                 context_window=128000,
                 capabilities=["chat", "research", "learning"],
             ),
+            # ── Tier 5: Devin CLI (Free Development Tool) ──
+            "devin-claude-sonnet": ModelProfile(
+                name="anthropic/claude-sonnet-4-5",
+                provider="devin",
+                tier=ProviderTier.DEVIN,
+                cost_per_1k_input=0.0,
+                cost_per_1k_output=0.0,
+                avg_speed_ms=2500,
+                context_window=200000,
+                capabilities=["code", "refactor", "debug", "test", "optimize", "review", "plan"],
+            ),
+            "devin-deepseek": ModelProfile(
+                name="opencode/deepseek-v4-flash-free",
+                provider="devin",
+                tier=ProviderTier.DEVIN,
+                cost_per_1k_input=0.0,
+                cost_per_1k_output=0.0,
+                avg_speed_ms=2000,
+                context_window=128000,
+                capabilities=["code", "analysis", "chat"],
+            ),
         }
 
         # Map task types to compatible models (ordered by preference)
         self._task_model_map = {
-            TaskType.CODE: ["fcc-gpt4o-mini", "ollama-qwen-coder", "opencode-deepseek"],
-            TaskType.ANALYSIS: ["fcc-gpt4o-mini", "fcc-claude-haiku", "ollama-qwen-coder"],
-            TaskType.RESEARCH: ["fcc-claude-haiku", "ollama-hermes", "opencode-nemotron"],
-            TaskType.VALIDATION: ["omniroute-claude-sonnet", "fcc-claude-haiku", "fcc-gpt4o-mini"],
+            TaskType.CODE: ["devin-claude-sonnet", "fcc-gpt4o-mini", "ollama-qwen-coder", "opencode-deepseek"],
+            TaskType.ANALYSIS: ["devin-claude-sonnet", "fcc-gpt4o-mini", "fcc-claude-haiku", "ollama-qwen-coder"],
+            TaskType.RESEARCH: ["devin-claude-sonnet", "fcc-claude-haiku", "ollama-hermes", "opencode-nemotron"],
+            TaskType.VALIDATION: ["devin-claude-sonnet", "omniroute-claude-sonnet", "fcc-claude-haiku", "fcc-gpt4o-mini"],
             TaskType.REPORT: ["omniroute-claude-sonnet", "omniroute-gpt4o", "fcc-claude-haiku"],
             TaskType.LEARNING: ["ollama-hermes", "fcc-claude-haiku", "opencode-nemotron"],
             TaskType.PLANNING: ["omniroute-claude-sonnet", "fcc-gpt4o-mini", "ollama-hermes"],

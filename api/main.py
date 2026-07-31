@@ -1439,6 +1439,9 @@ app.include_router(productivity.router)
 # Life Management router
 app.include_router(life_management.router)
 
+# Devin Tool router
+app.include_router(devin.router)
+
 # Onboarding router
 app.include_router(onboarding.router)
 
