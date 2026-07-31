@@ -1,10 +1,8 @@
-# OWNEX
-
 <div align="center">
 
-<img src="assets/logo.png" alt="OWNEX Logo" width="200" height="200"/>
+<img src="assets/branding/logo/ownex-logo-horizontal-premium.svg" alt="OWNEX OMEGA Logo" width="600"/>
 
-<img src="assets/concept-hero.png" alt="OWNEX — Autonomous Work Operating System"/>
+<img src="assets/branding/banner/hero-minimal-black.svg" alt="OWNEX OMEGA — Autonomous Work Operating System"/>
 
 ---
 
@@ -19,48 +17,112 @@
 [![GitHub Forks](https://img.shields.io/github/forks/AdriDob/rastrohunteralpha?style=social)](https://github.com/AdriDob/rastrohunteralpha)
 [![GitHub Issues](https://img.shields.io/github/issues/AdriDob/rastrohunteralpha)](https://github.com/AdriDob/rastrohunteralpha/issues)
 
-</div>
+---
+
+# OWNEX OMEGA
+
+**Autonomous AI workforce for bug bounty, development, and revenue generation.**
+
+OWNEX OMEGA is an autonomous operating system that deploys AI agents to work bug bounty programs, execute development tasks, manage revenue, and learn continuously—while you sleep.
+
+[Install](#-quick-start) • [Documentation](#-documentation) • [Architecture](#-architecture) • [Contributing](#-contributing)
 
 ---
 
+</div>
+
 ## Overview
 
-OWNEX is an autonomous operating system ecosystem with two complementary editions:
+OWNEX OMEGA is a production-ready autonomous operating system with two complementary editions:
 
 - **OWNEX ALPHA** — Desktop edition for developers and professionals
 - **OWNEX OMEGA** — Mobile edition for smartphones and wearables
 
 Together, they perform software engineering, cybersecurity, bug bounty, AI orchestration, autonomous workflows, revenue generation, documentation, learning, self-healing infrastructure, and continuous self-improvement.
 
+### Key Features
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| **Bug Bounty Automation** | ✅ | 10+ integrated executors (HackerOne, Bugcrowd, Intigriti, etc.) |
+| **AI-Powered Intelligence** | ✅ | Claude, DeepSeek, Ollama, Devin CLI integration |
+| **MERLIN Assistant** | ✅ | AI assistant with premium interface design |
+| **Life Management** | ✅ | Tasks, goals, habits, mood tracking, personalized advice |
+| **Mobile Companion** | ✅ | Android + Wear OS apps (100% complete) |
+| **Cloud Sync** | ✅ | Supabase integration (100% free, open source) |
+| **Voice Commands** | ✅ | Whisper + Piper local (voice control) |
+| **Internationalization** | ✅ | 6 languages (English, Español, Français, Deutsch, 日本語, 中文) |
+| **Devin CLI Integration** | ✅ | Free development tool as AI provider |
+| **Premium Design** | ✅ | Minimalist dark command center interface |
+
 ---
 
-## 🖼️ Visual Overview — Work Cycles
+## Quick Start
+
+```bash
+git clone https://github.com/AdriDob/rastrohunteralpha.git
+cd rastrohunteralpha
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python run.py            # starts the API + background scheduler
+# then open http://localhost:8000/api/health
+```
+
+## Local Development
+
+OWNEX OMEGA ships a single dev entrypoint — the `dev` helper — plus a thin
+`Makefile` wrapper. Both always use `.venv/bin/python`.
+
+```bash
+# one-time setup
+make venv                 # creates .venv and installs requirements
+
+# daily loop (lint → typecheck → fast tests)
+make check                # or:  python scripts/dev check
+
+# individual steps
+python scripts/dev lint         # ruff check + format --check
+python scripts/dev fmt          # ruff check --fix && ruff format  (writes)
+python scripts/dev typecheck    # mypy over cores/ core/ api/ database/ desktop/
+python scripts/dev test         # pytest suite (excludes test_security.py — live external
+                              |   calls — plus test_vision_gateway.py & test_scheduler.py,
+                              |   which are network/rate-limit flaky in CI; run explicitly to include)
+python scripts/dev coverage     # pytest --cov=cores,core
+python scripts/dev test-fast    # smoke subset: scoring, opportunity, scheduler
+python scripts/dev work         # agent startup protocol ("Ponte a trabajar")
+python scripts/dev status       # agent startup without tests
+```
+
+> **Pre-commit** (`.githooks/pre-commit`) runs `ruff check` on staged files and a
+> quick pytest smoke via `make check`. Commits that break lint/tests should use
+> `git commit --no-verify` only as a last resort and be followed by
+> `make check`.
+
+The full test contract is `AGENTS.md` → `.ai/AGENT_CHARTER.md`. See
+`DAILY_WORKFLOW.md` for the step-by-step daily protocol and
+`docs/` for per-subsystem guides.
+
+---
+
+## Visual Overview
 
 <div align="center">
 
-### FORGE — Dev Bounty
+### Mission Control
 
-<img src="assets/concept-forge.png" alt="FORGE — Dev Bounty"/>
+<img src="assets/branding/banner/concept-mission-control.svg" alt="Mission Control Dashboard" width="1100"/>
 
-### PULSE — AI Work
+### Autonomous Operating System
 
-<img src="assets/concept-pulse.png" alt="PULSE — AI Work"/>
+<img src="assets/branding/banner/concept-autonomous-os.svg" alt="Autonomous Operating System" width="1100"/>
 
-### VAULT — Wealth
+### Digital Brain
 
-<img src="assets/concept-vault.png" alt="VAULT — Wealth"/>
+<img src="assets/branding/banner/concept-digital-brain.svg" alt="Digital Knowledge Graph" width="1100"/>
 
-### ATLAS — Intelligence
+### Professional Intelligence Platform
 
-<img src="assets/concept-atlas.png" alt="ATLAS — Intelligence"/>
-
-### SECURITY — Bug Bounty
-
-<img src="assets/concept-security.png" alt="SECURITY — Bug Bounty"/>
-
-### ODYSSEY — Predictive Markets
-
-<img src="assets/concept-odyssey.png" alt="ODYSSEY — Predictive Markets"/>
+<img src="assets/branding/banner/concept-professional-intelligence.svg" alt="Professional Intelligence Platform" width="1100"/>
 
 </div>
 
@@ -93,144 +155,11 @@ npm run dev
 
 ---
 
-## 🎯 Key Features
-
-| Feature | Status | Description |
-|---------|--------|-------------|
-| **Bug Bounty Automation** | ✅ | 10+ executors integrados (HackerOne, Bugcrowd, Intigriti, etc.) |
-| **AI-Powered Intelligence** | ✅ | Claude, DeepSeek, Ollama, Devin CLI integration |
-| **MERLIN Assistant** | ✅ | IA asistida con Office Retro Modernized design |
-| **Life Management** | ✅ | Tasks, goals, habits, mood tracking, personalized advice |
-| **Mobile Companion** | ✅ | Android + Wear OS apps (100% complete) |
-| **Cloud Sync** | ✅ | Supabase integration (100% free, open source) |
-| **Voice Commands** | ✅ | Whisper + Piper local (control por voz) |
-| **Internationalization** | ✅ | 6 idiomas (English, Español, Français, Deutsch, 日本語, 中文) |
-| **Devin CLI Integration** | ✅ | Tool gratuito de desarrollo como provider de IA |
-| **JARVIS 2030 Style** | ✅ | Interfaz futurista High-Tech HUD |
-
----
-
-## 🧠 AI & Automation
-
-### MERLIN Assistant
-
-MERLIN es el asistente de IA integrado en OWNEX que proporciona:
-
-- **Conversación Natural** — Chat interactivo con send/receive messages
-- **Recomendaciones Personalizadas** — Basadas en mood, energy, stress
-- **Office Retro Modernized Design** — Interfaz elegante y profesional
-- **Context-Aware** — Entiende el estado del sistema y del usuario
-- **Advice Engine** — Consejo personalizado para mejoras
-
-### Devin CLI Integration
-
-- **DevinTool** — 13 comandos (run, refactor, implement, debug, test, optimize, review, plan, analyze, research, validate, explore, assist)
-- **Modelos Soportados** — claude-sonnet-4-5, deepseek-v4-flash-free, nemotron-3-ultra-free, mimo-free
-- **API Endpoints** — 13 endpoints para sync y get operations
-- **ModelRouter Integration** — Devin como primera opción para CODE, ANALYSIS, RESEARCH, VALIDATION
-- **Task Tracking** — Status, timestamps, output, error, duration tracking completo
-
-### AI Providers
-
-- **OpenRouter** — Claude models vía proxy (gratuito)
-- **OpenCode** — Modelos gratuitos (deepseek, nemotron, mimo)
-- **Ollama** — Modelos locales (qwen3-coder, hermes-orion)
-- **Devin CLI** — Tool gratuito de desarrollo de Cognition
-
----
-
-## 📱 Editions
-
-### OWNEX ALPHA (Desktop)
-
-OWNEX ALPHA es la edición de escritorio diseñada para desarrolladores y profesionales.
-
-**Features:**
-- **Full-Featured Desktop Application** — Interfaz completa para desarrollo profesional
-- **Advanced Development Tools** — Terminal integration, code completion, debugging
-- **Complete AI Orchestration** — Multi-provider AI management (Claude, DeepSeek, Ollama, Devin)
-- **Professional Workflow Automation** — Automatización de tareas complejas
-- **Full IDE Integration** — VSCode, JetBrains, neovim support
-- **Project Management** — Task tracking, milestones, progress monitoring
-- **Advanced Debugging** — Integrated debugging with AI assistance
-- **Documentation Generation** — Auto-documentación de código
-- **Performance Monitoring** — System health, performance metrics, optimization
-- **Custom Workflows** — Creación de workflows personalizados
-
-### OWNEX OMEGA (Mobile)
-
-OWNEX OMEGA es la edición móvil diseñada para smartphones y wearables.
-
-**Features:**
-- **Android Companion App** — App completa con dashboard y controles
-- **Wear OS Smartwatch App** — App de reloj inteligente para acciones rápidas
-- **Cloud Sync with ALPHA** — Sincronización bidireccional con ALPHA
-- **Quick Actions** — Aprobaciones, notificaciones, estado del sistema
-- **Mobile-Optimized Interface** — Diseño optimizado para móvil
-- **Offline Support** — Funcionalidad offline con sync cuando hay conexión
-- **Push Notifications** — Alertas push para eventos importantes
-- **Voice Commands** — Control por voz en móvil
-- **Location Awareness** — Context-aware basado en ubicación
-- **Battery Optimization** - Optimización de batería para uso prolongado
-
----
-
-## 🏗️ Tech Stack
-
-### Backend
-- **Python 3.11+** — Lenguaje principal
-- **FastAPI** — Framework web async
-- **SQLAlchemy** — ORM para base de datos
-- **SQLite** — Base de datos (dev) / PostgreSQL (prod)
-- **Pydantic** — Validación de datos
-- **Celery** — Background tasks
-- **Redis** — Cache y message broker
-
-### Frontend
-- **Vue 3** — Framework reactive
-- **TypeScript** — Type safety
-- **Tailwind CSS v4** — Utility-first CSS
-- **Vite** — Build tool
-- **ShadCN Vue** — Component library
-- **Motion.css** — Animaciones
-- **Web Speech API** — Voice commands
-- **Web Audio API** — Audio system
-
-### Mobile
-- **Android 10+** — App Companion (100% completa)
-- **Wear OS 3+** — App Watch (100% completa)
-- **Kotlin** — Lenguaje nativo
-- **Jetpack Compose** — UI framework
-- **Coroutines** — Programación asíncrona
-- **Bluetooth** — Sincronización reloj-móvil
-
-### AI & Machine Learning
-- **Whisper** — Speech-to-Text local
-- **Piper** — Text-to-Speech local
-- **Ollama** — Modelos locales (qwen3-coder, hermes-orion)
-- **OpenRouter** — Claude models vía proxy
-- **OpenCode** — Modelos gratuitos (deepseek, nemotron, mimo)
-- **Devin CLI** — Tool gratuito de desarrollo de Cognition
-- **Supabase** — Cloud sync (100% free, open source)
-
-### DevOps & Deployment
-- **Docker** — Containerización
-- **GitHub Actions** — CI/CD
-- **pytest** — Testing backend
-- **Vitest** — Testing frontend
-- **Ruff** — Linting Python
-- **Biome** — Linting frontend
-- **mypy** — Type checking Python
-
----
-
-## 📊 Project Architecture
+## Architecture
 
 ### Work Cycles
 
-OWNEX organiza todas sus operaciones en **Work Cycles**, cada uno con un
-`LoopPattern` propio (fases, cadencia, human gates, budget) ejecutado por el
-scheduler 24/7:
+OWNEX organizes all operations into **Work Cycles**, each with its own `LoopPattern` (phases, cadence, human gates, budget) executed by the scheduler 24/7:
 
 | Cycle | Category | Focus |
 |-------|----------|-------|
@@ -243,51 +172,98 @@ scheduler 24/7:
 
 ### System Components
 
-OWNEX está compuesto por los siguientes componentes principales:
-
 **Core Systems**
-- **Agent Fleet** — Sistema de agentes autónomos que trabajan simultáneamente
-- **Live Workflows** — Ejecución y monitoreo de workflows en tiempo real
-- **Opportunity Radar** — Detección automática de oportunidades
-- **Revenue Analytics** — Seguimiento y optimización de streams de ingresos
-- **Autonomous Coding** — Generación de código con auto-mejora
-- **Knowledge Memory** — Grafo de conocimiento persistente
-- **Security Engine** — Monitoreo de seguridad integrado
-- **Evolution Center** — Auto-mejora continua
-- **Infrastructure Health** — Sistemas de auto-recuperación
-- **Voice Assistant** — Interfaz de lenguaje natural
+- **Agent Fleet** — Autonomous agents working simultaneously
+- **Live Workflows** — Real-time workflow execution and monitoring
+- **Opportunity Radar** — Automatic opportunity detection
+- **Revenue Analytics** — Revenue stream tracking and optimization
+- **Autonomous Coding** — Code generation with self-improvement
+- **Knowledge Memory** — Persistent knowledge graph
+- **Security Engine** — Integrated security monitoring
+- **Evolution Center** — Continuous self-improvement
+- **Infrastructure Health** — Self-healing systems
+- **Voice Assistant** — Natural language interface
 
 **Data Layer**
-- **SQLite** — Base de datos local (desarrollo)
-- **PostgreSQL** — Base de datos en producción vía Supabase
+- **SQLite** — Local database (development)
+- **PostgreSQL** — Production database via Supabase
 - **Supabase** — Cloud sync, auth, realtime subscriptions
-- **Redis** — Cache y message broker
-- **Knowledge Graph** — Grafo de conocimiento persistente
+- **Redis** — Cache and message broker
+- **Knowledge Graph** — Persistent knowledge graph
 
 **AI Layer**
-- **Devin CLI** — Tool gratuito de desarrollo
-- **OpenRouter** — Claude models vía proxy
-- **OpenCode** — Modelos gratuitos
-- **Ollama** — Modelos locales
-- **Whisper** — Speech-to-Text local
-- **Piper** — Text-to-Speech local
-- **MERLIN** — IA asistida personalizada
+- **Devin CLI** — Free development tool
+- **OpenRouter** — Claude models via proxy
+- **OpenCode** — Free models (deepseek, nemotron, mimo)
+- **Ollama** — Local models (qwen3-coder, hermes-orion)
+- **Whisper** — Local speech-to-text
+- **Piper** — Local text-to-speech
+- **MERLIN** — Personalized AI assistant
 
 **Communication Layer**
-- **EventBus** — Sistema de eventos para comunicación interna
-- **AgentBus** — Sistema de agentes autónomos
-- **RecoveryEngine** — Motor de recuperación de errores
-- **Health Monitoring** — 5 sistemas de monitoreo de salud
+- **EventBus** — Internal event system
+- **AgentBus** — Autonomous agent system
+- **RecoveryEngine** — Error recovery engine
+- **Health Monitoring** — 5 health monitoring systems
 
 **UI Layer**
-- **Vue 3 Frontend** — Interfaz web responsive
-- **Android App** — App nativa Kotlin
-- **Wear OS App** — App de reloj inteligente
-- **Desktop App** — App de escritorio nativa
+- **Vue 3 Frontend** — Responsive web interface
+- **Android App** — Native Kotlin app
+- **Wear OS App** — Smartwatch app
+- **Desktop App** — Native desktop app
 
 ---
 
-## 📊 Project Status
+## Tech Stack
+
+### Backend
+- **Python 3.11+** — Main language
+- **FastAPI** — Async web framework
+- **SQLAlchemy** — ORM for database
+- **SQLite** — Database (dev) / PostgreSQL (prod)
+- **Pydantic** — Data validation
+- **Celery** — Background tasks
+- **Redis** — Cache and message broker
+
+### Frontend
+- **Vue 3** — Reactive framework
+- **TypeScript** — Type safety
+- **Tailwind CSS v4** — Utility-first CSS
+- **Vite** — Build tool
+- **ShadCN Vue** — Component library
+- **Motion.css** — Animations
+- **Web Speech API** — Voice commands
+- **Web Audio API** — Audio system
+
+### Mobile
+- **Android 10+** — Companion App (100% complete)
+- **Wear OS 3+** — Watch App (100% complete)
+- **Kotlin** — Native language
+- **Jetpack Compose** — UI framework
+- **Coroutines** — Async programming
+- **Bluetooth** — Watch-phone sync
+
+### AI & Machine Learning
+- **Whisper** — Local speech-to-text
+- **Piper** — Local text-to-speech
+- **Ollama** — Local models (qwen3-coder, hermes-orion)
+- **OpenRouter** — Claude models via proxy
+- **OpenCode** — Free models (deepseek, nemotron, mimo)
+- **Devin CLI** — Cognition's free development tool
+- **Supabase** — Cloud sync (100% free, open source)
+
+### DevOps & Deployment
+- **Docker** — Containerization
+- **GitHub Actions** — CI/CD
+- **pytest** — Backend testing
+- **Vitest** — Frontend testing
+- **Ruff** — Python linting
+- **Biome** — Frontend linting
+- **mypy** — Python type checking
+
+---
+
+## Project Status
 
 ```
 FASE 0 (Foundation)       ████████████████████ 100% ✅
@@ -301,21 +277,21 @@ FASE 5 (Automatización)   █████████████████�
 FASE 6 (Desktop+Mobile)   ████████████████████ 100% ✅
 
 OVERALL PROGRESS: ████████████████████  100% ✅
-PROYECTO OWNEX: ✅ PRODUCTION READY
+OWNEX PROJECT: ✅ PRODUCTION READY
 ```
 
 ### Statistics
 
 | Metric | Value |
 |--------|-------|
-| **Fases Completadas** | 7+ (Foundation → Desktop+Mobile) |
-| **Executors Implementados** | 10+ (Algora, Freelancer, Opire, IssueHunt, CoderAgent, etc.) |
-| **Scheduler Jobs** | 23 (Automatización 24/7 en 4 ciclos) |
-| **Health Monitoring Systems** | 5 (Seguridad integral) |
-| **Tests Passing** | 75+ (Cobertura robusta) |
-| **Ruff Errors** | 0 (Código limpio) |
-| **Idiomas Soportados** | 6 (English, Español, Français, Deutsch, 日本語, 中文) |
-| **Plataformas** | Windows, Linux, macOS, Android 10+, Wear OS 3+ |
+| **Phases Completed** | 7+ (Foundation → Desktop+Mobile) |
+| **Executors Implemented** | 10+ (Algora, Freelancer, Opire, IssueHunt, CoderAgent, etc.) |
+| **Scheduler Jobs** | 23 (24/7 automation across 4 cycles) |
+| **Health Monitoring Systems** | 5 (Comprehensive security) |
+| **Tests Passing** | 75+ (Robust coverage) |
+| **Ruff Errors** | 0 (Clean code) |
+| **Languages Supported** | 6 (English, Español, Français, Deutsch, 日本語, 中文) |
+| **Platforms** | Windows, Linux, macOS, Android 10+, Wear OS 3+ |
 
 ---
 
@@ -325,10 +301,10 @@ PROYECTO OWNEX: ✅ PRODUCTION READY
 
 | Tier | Monthly | Annual | Description |
 |------|---------|-------|-------------|
-| **CONSERVATIVE** | $218,368.75 | $2,620,425 | Mínimo Maximizado — Multiplier 1.0x |
-| **MODERATE ⭐** | $327,553.12 | $3,930,637.50 | Recomendado — Multiplier 1.5x |
-| **AGGRESSIVE** | $545,921.88 | $6,551,062.50 | Alto Riesgo — Multiplier 2.5x |
-| **MAXIMUM 🚀** | $873,475.00 | $10,481,700.00 | Máximo Absoluto — Multiplier 4.0x |
+| **CONSERVATIVE** | $218,368.75 | $2,620,425 | Minimum Maximized — Multiplier 1.0x |
+| **MODERATE ⭐** | $327,553.12 | $3,930,637.50 | Recommended — Multiplier 1.5x |
+| **AGGRESSIVE** | $545,921.88 | $6,551,062.50 | High Risk — Multiplier 2.5x |
+| **MAXIMUM 🚀** | $873,475.00 | $10,481,700.00 | Maximum Absolute — Multiplier 4.0x |
 
 ### Success Rates OPTIMIZED (grounded in system data)
 
@@ -343,37 +319,37 @@ PROYECTO OWNEX: ✅ PRODUCTION READY
 ### Android Companion (100% Complete)
 
 **Features:**
-- Dashboard completo con System Health, Workflows, Notifications
-- MERLIN Chat interactivo con send/receive messages
-- Pending Approvals con approve/reject buttons
+- Complete dashboard with System Health, Workflows, Notifications
+- Interactive MERLIN Chat with send/receive messages
+- Pending Approvals with approve/reject buttons
 - Life Management Summary (tasks, goals, habits, mood)
 - Settings Modal (push notifications, polling interval, critical-only mode, sound alerts, vibration)
 - Navigation Bar (dashboard, merlin, notifications, approvals, life)
-- Real-time polling con refresh
-- JARVIS 2030 Style design
+- Real-time polling with refresh
+- Premium minimalist design
 
 ### Wear OS Companion (100% Complete)
 
 **Features:**
-- System Health en un vistazo (🟢 Online, 🔴 Offline, 🟡 Connecting)
+- System Health at a glance (🟢 Online, 🔴 Offline, 🟡 Connecting)
 - Active Workflows count
 - Pending Approvals count
-- Critical Notifications con alertas nativas
-- Approval Request UI con approve/reject buttons
+- Critical Notifications with native alerts
+- Approval Request UI with approve/reject buttons
 - MERLIN Summary
-- Polling cada 30 segundos
+- 30-second polling
 - Notification Channel creation
-- Layouts para rectangular y round screens
+- Layouts for rectangular and round screens
 
 ---
 
 ## 🧘 Life Management Module
 
 **Overview:**
-El módulo de Life Management de OWNEX es un sistema completo de gestión de vida personal que ayuda a los usuarios a mejorar su productividad, bienestar y consecución de metas.
+The OWNEX Life Management module is a comprehensive personal life management system that helps users improve productivity, well-being, and goal achievement.
 
 **Features:**
-- **Task Management Extendido** — Priorities, categories, recurring tasks, tags, subtasks, deadlines
+- **Extended Task Management** — Priorities, categories, recurring tasks, tags, subtasks, deadlines
 - **Goal Setting & Tracking** — Milestones, progress tracking, vision board, journaling, completion rewards
 - **Habit Tracking** — Streaks, frequency tracking, mood correlation, rewards system, habit chains
 - **Psychological Support System** — Mood tracking, energy levels, stress monitoring, sleep quality, gratitude journal, mood patterns analysis
@@ -384,75 +360,75 @@ El módulo de Life Management de OWNEX es un sistema completo de gestión de vid
 - **Progress Visualization** — Charts, graphs, and visual representations of progress across all areas
 
 **Integration:**
-- Sync con Supabase para datos en la nube
-- Integración con MERLIN para consejos personalizados
-- Integración con Voice Commands para input por voz
-- Integración con Mobile Apps para tracking en móvil
+- Sync with Supabase for cloud data
+- Integration with MERLIN for personalized advice
+- Integration with Voice Commands for voice input
+- Integration with Mobile Apps for mobile tracking
 
 ---
 
 ## 🤖 Devin CLI Integration
 
 **Overview:**
-Devin CLI es un tool gratuito de desarrollo de Cognition que está integrado en OWNEX como provider de IA para tareas de desarrollo.
+Devin CLI is a free development tool from Cognition integrated into OWNEX as an AI provider for development tasks.
 
 **Features:**
-- **DevinTool con 13 Comandos:**
-  - `run` — Ejecutar comandos de desarrollo
-  - `refactor` — Refactorizar código existente
-  - `implement` — Implementar nuevas features
-  - `debug` — Debug código con errores
-  - `test` — Escribir y ejecutar tests
-  - `optimize` — Optimizar rendimiento
-  - `review` — Review de código
-  - `plan` — Planificar arquitectura
-  - `analyze` — Analizar código
-  - `research` — Investigar soluciones
-  - `validate` — Validar implementaciones
-  - `explore` — Explorar codebase
-  - `assist` — Asistencia general
+- **DevinTool with 13 Commands:**
+  - `run` — Execute development commands
+  - `refactor` — Refactor existing code
+  - `implement` — Implement new features
+  - `debug` — Debug code with errors
+  - `test` — Write and execute tests
+  - `optimize` — Optimize performance
+  - `review` — Code review
+  - `plan` — Plan architecture
+  - `analyze` — Analyze code
+  - `research` — Research solutions
+  - `validate` — Validate implementations
+  - `explore` — Explore codebase
+  - `assist` — General assistance
 
-- **Modelos Soportados:**
+- **Supported Models:**
   - claude-sonnet-4-5 (via OpenRouter)
   - deepseek-v4-flash-free (via OpenCode)
   - nemotron-3-ultra-free (via OpenCode)
   - mimo-free (via OpenCode)
 
 - **API Endpoints:**
-  - 13 endpoints para sync y get operations
-  - Task tracking completo (status, timestamps, output, error, duration)
-  - Integration con ModelRouter para selección automática de modelo
+  - 13 endpoints for sync and get operations
+  - Complete task tracking (status, timestamps, output, error, duration)
+  - Integration with ModelRouter for automatic model selection
 
 - **ModelRouter Integration:**
-  - Devin como primera opción para CODE, ANALYSIS, RESEARCH, VALIDATION
-  - Failover chain a otros providers si Devin no disponible
-  - Selección automática basada en tipo de tarea
+  - Devin as first choice for CODE, ANALYSIS, RESEARCH, VALIDATION
+  - Failover chain to other providers if Devin unavailable
+  - Automatic selection based on task type
 
 ---
 
 ## ☁️ Supabase Cloud Sync
 
 **Overview:**
-Supabase es la solución de cloud sync 100% free y open source integrada en OWNEX para sincronización de datos entre ALPHA (Desktop) y OMEGA (Mobile).
+Supabase is a 100% free and open source cloud sync solution integrated into OWNEX for data synchronization between ALPHA (Desktop) and OMEGA (Mobile).
 
 **Features:**
-- **Supabase Client Integration** — Python client para conexión con Supabase
-- **Sync Manager** — Sistema de sincronización para tasks, goals, habits, daily_moods
-- **API Endpoints** — 6 endpoints para sync y get operations
-- **Database Schema Completo** — 6 tablas (users, tasks, goals, habits, habit_entries, daily_moods)
-- **Row Level Security (RLS) Policies** — Políticas de seguridad a nivel de fila
-- **Realtime Subscriptions** — Sync automático en tiempo real
-- **Auth Integrado** — Sistema de autenticación de Supabase
-- **500MB PostgreSQL (Free Tier)** — Base de datos en la nube gratuita
+- **Supabase Client Integration** — Python client for Supabase connection
+- **Sync Manager** — Synchronization system for tasks, goals, habits, daily_moods
+- **API Endpoints** — 6 endpoints for sync and get operations
+- **Complete Database Schema** — 6 tables (users, tasks, goals, habits, habit_entries, daily_moods)
+- **Row Level Security (RLS) Policies** — Row-level security policies
+- **Realtime Subscriptions** — Automatic real-time sync
+- **Integrated Auth** — Supabase authentication system
+- **500MB PostgreSQL (Free Tier)** — Free cloud database
 - **OAuth Providers** — Google, GitHub, etc.
 
 **Schema:**
-- `users` — Información de usuarios
-- `tasks` — Tasks con prioridades, categorías, status
-- `goals` — Goals con milestones, progress
-- `habits` — Habits con streaks, frequency
-- `habit_entries` - Entries de habits diarios
-- `daily_moods` — Mood tracking diario
+- `users` — User information
+- `tasks` — Tasks with priorities, categories, status
+- `goals` — Goals with milestones, progress
+- `habits` — Habits with streaks, frequency
+- `habit_entries` - Daily habit entries
+- `daily_moods` — Daily mood tracking
 
 **Setup Guide:** [SUPABASE_SETUP_GUIDE.md](SUPABASE_SETUP_GUIDE.md)
 
@@ -460,44 +436,45 @@ Supabase es la solución de cloud sync 100% free y open source integrada en OWNE
 
 ## 📚 Documentation
 
-- **[README.md](README.md)** — Documentación completa del proyecto
-- **[.ai/AGENT_CHARTER.md](.ai/AGENT_CHARTER.md)** — Constitution, Agent Loop, Regla de Oro
-- **[.ai/PRODUCTION_RULES.md](.ai/PRODUCTION_RULES.md)** — Reglas de producción
-- **[.ai/CURRENT_STATE.md](.ai/CURRENT_STATE.md)** — Estado verificado de cada feature
-- **[.ai/ROADMAP.md](.ai/ROADMAP.md)** — Roadmap general
-- **[.ai/OWNEX_OMEGA_ARCHITECTURE.md](.ai/OWNEX_OMEGA_ARCHITECTURE.md)** — Arquitectura del sistema
-- **[.ai/SPECIALIST_TEAM_ARCHITECTURE.md](.ai/SPECIALIST_TEAM_ARCHITECTURE.md)** — Equipo de especialistas
-- **[.ai/DEVIN_INTEGRATION.md](.ai/DEVIN_INTEGRATION.md)** — Documentación de Devin CLI
-- **[SUPABASE_SETUP_GUIDE.md](SUPABASE_SETUP_GUIDE.md)** — Guía de configuración de Supabase
-- **[MOBILE_SYNC_PLAN.md](MOBILE_SYNC_PLAN.md)** — Plan de sincronización móvil
-- **[INFORME_FINAL_PROYECTO.md](INFORME_FINAL_PROYECTO.md)** — Informe completo del proyecto
-- **[PLAN_MANANA.md](PLAN_MANANA.md)** — Plan para mañana
+- **[README.md](README.md)** — Complete project documentation
+- **[assets/branding/OWNEX_BRAND_GUIDELINES.md](assets/branding/OWNEX_BRAND_GUIDELINES.md)** — Brand guidelines and visual identity
+- **[.ai/AGENT_CHARTER.md](.ai/AGENT_CHARTER.md)** — Constitution, Agent Loop, Golden Rule
+- **[.ai/PRODUCTION_RULES.md](.ai/PRODUCTION_RULES.md)** — Production rules
+- **[.ai/CURRENT_STATE.md](.ai/CURRENT_STATE.md)** — Verified state of each feature
+- **[.ai/ROADMAP.md](.ai/ROADMAP.md)** — General roadmap
+- **[.ai/OWNEX_OMEGA_ARCHITECTURE.md](.ai/OWNEX_OMEGA_ARCHITECTURE.md)** — System architecture
+- **[.ai/SPECIALIST_TEAM_ARCHITECTURE.md](.ai/SPECIALIST_TEAM_ARCHITECTURE.md)** — Specialist team architecture
+- **[.ai/DEVIN_INTEGRATION.md](.ai/DEVIN_INTEGRATION.md)** — Devin CLI documentation
+- **[SUPABASE_SETUP_GUIDE.md](SUPABASE_SETUP_GUIDE.md)** — Supabase configuration guide
+- **[MOBILE_SYNC_PLAN.md](MOBILE_SYNC_PLAN.md)** — Mobile sync plan
+- **[INFORME_FINAL_PROYECTO.md](INFORME_FINAL_PROYECTO.md)** — Complete project report
+- **[PLAN_MANANA.md](PLAN_MANANA.md)** — Plan for tomorrow
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork el repo
-2. Crea una feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la branch (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
 ## 📄 License
 
-Este proyecto está bajo la licencia MIT — ver el archivo [LICENSE](LICENSE) para detalles.
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
 ---
 
 ## 🙏 Acknowledgments
 
-- [FastAPI](https://fastapi.tiangolo.com/) — Framework web async moderno
-- [Vue.js](https://vuejs.org/) — Framework progressive de JavaScript
-- [Supabase](https://supabase.com/) — BaaS open source
-- [Devin](https://devin.ai) — Tool gratuito de desarrollo
-- [Ollama](https://ollama.com) — Modelos locales
+- [FastAPI](https://fastapi.tiangolo.com/) — Modern async web framework
+- [Vue.js](https://vuejs.org/) — Progressive JavaScript framework
+- [Supabase](https://supabase.com/) — Open source BaaS
+- [Devin](https://devin.ai) — Free development tool
+- [Ollama](https://ollama.com) — Local models
 - [ShadCN](https://ui.shadcn.com/) — Component library
 
 ---
@@ -512,6 +489,8 @@ Este proyecto está bajo la licencia MIT — ver el archivo [LICENSE](LICENSE) p
 
 <div align="center">
 
-**OWNEX — Autonomous Operating System Ecosystem**
+**OWNEX OMEGA — Autonomous Work Operating System**
+
+*Build financial independence through autonomous software, automation, and intelligent systems.*
 
 </div>
