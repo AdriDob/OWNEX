@@ -65,14 +65,79 @@ npm run dev
 |---------|--------|-------------|
 | **Bug Bounty Automation** | ✅ | 10+ executors integrados (HackerOne, Bugcrowd, Intigriti, etc.) |
 | **AI-Powered Intelligence** | ✅ | Claude, DeepSeek, Ollama, Devin CLI integration |
+| **MERLIN Assistant** | ✅ | IA asistida con Office Retro Modernized design |
 | **Life Management** | ✅ | Tasks, goals, habits, mood tracking, personalized advice |
 | **Mobile Companion** | ✅ | Android + Wear OS apps (100% complete) |
 | **Cloud Sync** | ✅ | Supabase integration (100% free, open source) |
 | **Voice Commands** | ✅ | Whisper + Piper local (control por voz) |
 | **Internationalization** | ✅ | 6 idiomas (English, Español, Français, Deutsch, 日本語, 中文) |
 | **Devin CLI Integration** | ✅ | Tool gratuito de desarrollo como provider de IA |
-| **MERLIN Assistant** | ✅ | IA asistida con Office Retro Modernized design |
 | **JARVIS 2030 Style** | ✅ | Interfaz futurista High-Tech HUD |
+
+---
+
+## 🧠 AI & Automation
+
+### MERLIN Assistant
+
+MERLIN es el asistente de IA integrado en OWNEX que proporciona:
+
+- **Conversación Natural** — Chat interactivo con send/receive messages
+- **Recomendaciones Personalizadas** — Basadas en mood, energy, stress
+- **Office Retro Modernized Design** — Interfaz elegante y profesional
+- **Context-Aware** — Entiende el estado del sistema y del usuario
+- **Advice Engine** — Consejo personalizado para mejoras
+
+### Devin CLI Integration
+
+- **DevinTool** — 13 comandos (run, refactor, implement, debug, test, optimize, review, plan, analyze, research, validate, explore, assist)
+- **Modelos Soportados** — claude-sonnet-4-5, deepseek-v4-flash-free, nemotron-3-ultra-free, mimo-free
+- **API Endpoints** — 13 endpoints para sync y get operations
+- **ModelRouter Integration** — Devin como primera opción para CODE, ANALYSIS, RESEARCH, VALIDATION
+- **Task Tracking** — Status, timestamps, output, error, duration tracking completo
+
+### AI Providers
+
+- **OpenRouter** — Claude models vía proxy (gratuito)
+- **OpenCode** — Modelos gratuitos (deepseek, nemotron, mimo)
+- **Ollama** — Modelos locales (qwen3-coder, hermes-orion)
+- **Devin CLI** — Tool gratuito de desarrollo de Cognition
+
+---
+
+## 📱 Editions
+
+### OWNEX ALPHA (Desktop)
+
+OWNEX ALPHA es la edición de escritorio diseñada para desarrolladores y profesionales.
+
+**Features:**
+- **Full-Featured Desktop Application** — Interfaz completa para desarrollo profesional
+- **Advanced Development Tools** — Terminal integration, code completion, debugging
+- **Complete AI Orchestration** — Multi-provider AI management (Claude, DeepSeek, Ollama, Devin)
+- **Professional Workflow Automation** — Automatización de tareas complejas
+- **Full IDE Integration** — VSCode, JetBrains, neovim support
+- **Project Management** — Task tracking, milestones, progress monitoring
+- **Advanced Debugging** — Integrated debugging with AI assistance
+- **Documentation Generation** — Auto-documentación de código
+- **Performance Monitoring** — System health, performance metrics, optimization
+- **Custom Workflows** — Creación de workflows personalizados
+
+### OWNEX OMEGA (Mobile)
+
+OWNEX OMEGA es la edición móvil diseñada para smartphones y wearables.
+
+**Features:**
+- **Android Companion App** — App completa con dashboard y controles
+- **Wear OS Smartwatch App** — App de reloj inteligente para acciones rápidas
+- **Cloud Sync with ALPHA** — Sincronización bidireccional con ALPHA
+- **Quick Actions** — Aprobaciones, notificaciones, estado del sistema
+- **Mobile-Optimized Interface** — Diseño optimizado para móvil
+- **Offline Support** — Funcionalidad offline con sync cuando hay conexión
+- **Push Notifications** — Alertas push para eventos importantes
+- **Voice Commands** — Control por voz en móvil
+- **Location Awareness** — Context-aware basado en ubicación
+- **Battery Optimization** - Optimización de batería para uso prolongado
 
 ---
 
@@ -122,6 +187,54 @@ npm run dev
 - **Ruff** — Linting Python
 - **Biome** — Linting frontend
 - **mypy** — Type checking Python
+
+---
+
+## 📊 Project Architecture
+
+### System Components
+
+OWNEX está compuesto por los siguientes componentes principales:
+
+**Core Systems**
+- **Agent Fleet** — Sistema de agentes autónomos que trabajan simultáneamente
+- **Live Workflows** — Ejecución y monitoreo de workflows en tiempo real
+- **Opportunity Radar** — Detección automática de oportunidades
+- **Revenue Analytics** — Seguimiento y optimización de streams de ingresos
+- **Autonomous Coding** — Generación de código con auto-mejora
+- **Knowledge Memory** — Grafo de conocimiento persistente
+- **Security Engine** — Monitoreo de seguridad integrado
+- **Evolution Center** — Auto-mejora continua
+- **Infrastructure Health** — Sistemas de auto-recuperación
+- **Voice Assistant** — Interfaz de lenguaje natural
+
+**Data Layer**
+- **SQLite** — Base de datos local (desarrollo)
+- **PostgreSQL** — Base de datos en producción vía Supabase
+- **Supabase** — Cloud sync, auth, realtime subscriptions
+- **Redis** — Cache y message broker
+- **Knowledge Graph** — Grafo de conocimiento persistente
+
+**AI Layer**
+- **Devin CLI** — Tool gratuito de desarrollo
+- **OpenRouter** — Claude models vía proxy
+- **OpenCode** — Modelos gratuitos
+- **Ollama** — Modelos locales
+- **Whisper** — Speech-to-Text local
+- **Piper** — Text-to-Speech local
+- **MERLIN** — IA asistida personalizada
+
+**Communication Layer**
+- **EventBus** — Sistema de eventos para comunicación interna
+- **AgentBus** — Sistema de agentes autónomos
+- **RecoveryEngine** — Motor de recuperación de errores
+- **Health Monitoring** — 5 sistemas de monitoreo de salud
+
+**UI Layer**
+- **Vue 3 Frontend** — Interfaz web responsive
+- **Android App** — App nativa Kotlin
+- **Wear OS App** — App de reloj inteligente
+- **Desktop App** — App de escritorio nativa
 
 ---
 
@@ -207,39 +320,90 @@ PROYECTO OWNEX: ✅ PRODUCTION READY
 
 ## 🧘 Life Management Module
 
+**Overview:**
+El módulo de Life Management de OWNEX es un sistema completo de gestión de vida personal que ayuda a los usuarios a mejorar su productividad, bienestar y consecución de metas.
+
 **Features:**
-- Task Management extendido (priorities, categories, recurring, tags, subtasks)
-- Goal Setting & Tracking (milestones, progress, vision board, journaling)
-- Habit Tracking (streaks, frequency, mood tracking, rewards system)
-- Psychological Support System (mood, energy, stress, sleep, gratitude journal)
-- Personalized Advice Engine (context-aware based on mood, energy, stress)
-- PC Usage Tracking (sessions, productivity score, distractions, statistics)
-- Daily Summary (all-in-one dashboard)
+- **Task Management Extendido** — Priorities, categories, recurring tasks, tags, subtasks, deadlines
+- **Goal Setting & Tracking** — Milestones, progress tracking, vision board, journaling, completion rewards
+- **Habit Tracking** — Streaks, frequency tracking, mood correlation, rewards system, habit chains
+- **Psychological Support System** — Mood tracking, energy levels, stress monitoring, sleep quality, gratitude journal, mood patterns analysis
+- **Personalized Advice Engine** — Context-aware recommendations based on mood, energy, stress, sleep patterns, productivity metrics
+- **PC Usage Tracking** — Session duration, productivity score, distraction analysis, application usage statistics, time allocation
+- **Daily Summary Dashboard** — All-in-one dashboard with tasks, goals, habits, mood, PC usage, and recommendations
+- **AI-Powered Insights** — MERLIN provides personalized advice based on all tracked data
+- **Progress Visualization** — Charts, graphs, and visual representations of progress across all areas
+
+**Integration:**
+- Sync con Supabase para datos en la nube
+- Integración con MERLIN para consejos personalizados
+- Integración con Voice Commands para input por voz
+- Integración con Mobile Apps para tracking en móvil
 
 ---
 
 ## 🤖 Devin CLI Integration
 
+**Overview:**
+Devin CLI es un tool gratuito de desarrollo de Cognition que está integrado en OWNEX como provider de IA para tareas de desarrollo.
+
 **Features:**
-- DevinTool con comandos (run, refactor, implement, debug, test, optimize, review, plan)
-- Modelos (claude-sonnet-4-5, deepseek-v4-flash-free, nemotron-3-ultra-free, mimo-free)
-- API endpoints (13 endpoints para sync y get operations)
-- ModelRouter integration (Devin como primera opción para CODE, ANALYSIS, RESEARCH, VALIDATION)
-- Task tracking completo (status, timestamps, output, error, duration)
+- **DevinTool con 13 Comandos:**
+  - `run` — Ejecutar comandos de desarrollo
+  - `refactor` — Refactorizar código existente
+  - `implement` — Implementar nuevas features
+  - `debug` — Debug código con errores
+  - `test` — Escribir y ejecutar tests
+  - `optimize` — Optimizar rendimiento
+  - `review` — Review de código
+  - `plan` — Planificar arquitectura
+  - `analyze` — Analizar código
+  - `research` — Investigar soluciones
+  - `validate` — Validar implementaciones
+  - `explore` — Explorar codebase
+  - `assist` — Asistencia general
+
+- **Modelos Soportados:**
+  - claude-sonnet-4-5 (via OpenRouter)
+  - deepseek-v4-flash-free (via OpenCode)
+  - nemotron-3-ultra-free (via OpenCode)
+  - mimo-free (via OpenCode)
+
+- **API Endpoints:**
+  - 13 endpoints para sync y get operations
+  - Task tracking completo (status, timestamps, output, error, duration)
+  - Integration con ModelRouter para selección automática de modelo
+
+- **ModelRouter Integration:**
+  - Devin como primera opción para CODE, ANALYSIS, RESEARCH, VALIDATION
+  - Failover chain a otros providers si Devin no disponible
+  - Selección automática basada en tipo de tarea
 
 ---
 
 ## ☁️ Supabase Cloud Sync
 
+**Overview:**
+Supabase es la solución de cloud sync 100% free y open source integrada en OWNEX para sincronización de datos entre ALPHA (Desktop) y OMEGA (Mobile).
+
 **Features:**
-- Supabase client integration (100% free, open source)
-- Sync manager para tasks, goals, habits, daily_moods
-- API endpoints para sync y get operations
-- Database schema completo con 6 tablas
-- Row Level Security (RLS) policies
-- Realtime subscriptions (sync automático)
-- 500MB PostgreSQL (Free Tier)
-- Auth incluido
+- **Supabase Client Integration** — Python client para conexión con Supabase
+- **Sync Manager** — Sistema de sincronización para tasks, goals, habits, daily_moods
+- **API Endpoints** — 6 endpoints para sync y get operations
+- **Database Schema Completo** — 6 tablas (users, tasks, goals, habits, habit_entries, daily_moods)
+- **Row Level Security (RLS) Policies** — Políticas de seguridad a nivel de fila
+- **Realtime Subscriptions** — Sync automático en tiempo real
+- **Auth Integrado** — Sistema de autenticación de Supabase
+- **500MB PostgreSQL (Free Tier)** — Base de datos en la nube gratuita
+- **OAuth Providers** — Google, GitHub, etc.
+
+**Schema:**
+- `users` — Información de usuarios
+- `tasks` — Tasks con prioridades, categorías, status
+- `goals` — Goals con milestones, progress
+- `habits` — Habits con streaks, frequency
+- `habit_entries` - Entries de habits diarios
+- `daily_moods` — Mood tracking diario
 
 **Setup Guide:** [SUPABASE_SETUP_GUIDE.md](SUPABASE_SETUP_GUIDE.md)
 

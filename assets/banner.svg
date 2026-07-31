@@ -8,6 +8,10 @@
       <stop offset="0%" style="stop-color:#0B0B0B;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#111111;stop-opacity:1" />
     </linearGradient>
+    <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#2D7FF9;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#D4AF37;stop-opacity:0.2" />
+    </linearGradient>
   </defs>
 
   <!-- Background deep dark with subtle gradient -->
@@ -26,7 +30,7 @@
   <circle cx="1000" cy="600" r="1" fill="#2D7FF9" opacity="0.2"/>
 
   <!-- Main content - centered -->
-  <g transform="translate(800, 280)">
+  <g transform="translate(800, 260)">
     <!-- Abstract navigation paths -->
     <path d="M -100 0 L -50 -50 L 0 -80 L 50 -50 L 100 0" fill="none" stroke="#2D7FF9" stroke-width="2" opacity="0.5"/>
     <path d="M -100 0 L -50 50 L 0 80 L 50 50 L 100 0" fill="none" stroke="#2D7FF9" stroke-width="2" opacity="0.5"/>
@@ -42,20 +46,34 @@
   </g>
 
   <!-- Text OWNEX - minimal, wide spacing -->
-  <text x="800" y="420" font-family="Arial, sans-serif" font-size="80" font-weight="300" fill="#FFFFFF" text-anchor="middle" letter-spacing="20">OWNEX</text>
+  <text x="800" y="400" font-family="Arial, sans-serif" font-size="80" font-weight="300" fill="#FFFFFF" text-anchor="middle" letter-spacing="20">OWNEX</text>
 
-  <!-- Subtitle - Autonomous Work Operating System -->
-  <text x="800" y="480" font-family="Arial, sans-serif" font-size="24" font-weight="300" fill="#2D7FF9" text-anchor="middle" letter-spacing="8">Autonomous Work Operating System</text>
+  <!-- ALPHA section - left -->
+  <g transform="translate(400, 460)">
+    <rect x="-120" y="-40" width="240" height="80" rx="40" fill="url(#grad3)" stroke="#2D7FF9" stroke-width="2"/>
+    <text x="0" y="5" font-family="Arial, sans-serif" font-size="32" font-weight="300" fill="#FFFFFF" text-anchor="middle" letter-spacing="6">ALPHA</text>
+    <text x="0" y="40" font-family="Arial, sans-serif" font-size="14" font-weight="300" fill="#2D7FF9" text-anchor="middle" letter-spacing="2">Desktop</text>
+  </g>
+
+  <!-- OMEGA section - right -->
+  <g transform="translate(1200, 460)">
+    <rect x="-120" y="-40" width="240" height="80" rx="40" fill="url(#grad3)" stroke="#D4AF37" stroke-width="2"/>
+    <text x="0" y="5" font-family="Arial, sans-serif" font-size="32" font-weight="300" fill="#FFFFFF" text-anchor="middle" letter-spacing="6">OMEGA</text>
+    <text x="0" y="40" font-family="Arial, sans-serif" font-size="14" font-weight="300" fill="#D4AF37" text-anchor="middle" letter-spacing="2">Mobile</text>
+  </g>
+
+  <!-- Connection line -->
+  <line x1="520" y1="460" x2="680" y2="460" stroke="#2D7FF9" stroke-width="1" opacity="0.3"/>
+  <line x1="920" y1="460" x2="1080" y2="460" stroke="#2D7FF9" stroke-width="1" opacity="0.3"/>
+
+  <!-- Subtitle -->
+  <text x="800" y="540" font-family="Arial, sans-serif" font-size="24" font-weight="300" fill="#2D7FF9" text-anchor="middle" letter-spacing="8">Autonomous Work Operating System</text>
 
   <!-- Technical subtitle - minimal -->
-  <text x="800" y="530" font-family="Arial, sans-serif" font-size="14" font-weight="300" fill="#666666" text-anchor="middle" letter-spacing="4">Precision • Automation • Intelligence</text>
+  <text x="800" y="580" font-family="Arial, sans-serif" font-size="14" font-weight="300" fill="#666666" text-anchor="middle" letter-spacing="4">Precision • Automation • Intelligence</text>
 
-  <!-- Minimal metrics - subtle -->
-  <g transform="translate(800, 580)">
-    <text x="-200" y="0" font-family="Arial, sans-serif" font-size="12" fill="#2D7FF9" text-anchor="middle" letter-spacing="2">ALPHA</text>
-    <text x="0" y="0" font-family="Arial, sans-serif" font-size="12" fill="#D4AF37" text-anchor="middle" letter-spacing="2">OMEGA</text>
-    <text x="200" y="0" font-family="Arial, sans-serif" font-size="12" fill="#2D7FF9" text-anchor="middle" letter-spacing="2">v7.0.0</text>
-  </g>
+  <!-- Version -->
+  <text x="800" y="630" font-family="Arial, sans-serif" font-size="12" font-weight="300" fill="#444444" text-anchor="middle" letter-spacing="2">v7.0.0</text>
 
   <!-- Subtle glow - very minimal -->
   <ellipse cx="800" cy="350" rx="300" ry="100" fill="url(#grad1)" opacity="0.05"/>
