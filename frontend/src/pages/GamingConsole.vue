@@ -36,17 +36,19 @@ function handleQuickAction(path: string) {
   router.push(path)
 }
 
-// Fake activity log entries — in production these come from the API
-const activityLog = ref([
-  { time: '14:00:32', type: 'success', msg: 'Forge Agent · Discovered 3 new bounties on Superteam' },
-  { time: '13:45:10', type: 'info', msg: 'Pulse Agent · Completed Outlier task #4421 · $85 earned' },
-  { time: '13:22:00', type: 'finding', msg: 'Security Agent · Validated SQLi on admin.example.com · Finding #1293 created' },
-  { time: '12:58:44', type: 'warn', msg: 'Resource Manager · Cleaned 142MB of temp files · DB vacuumed' },
-  { time: '12:30:15', type: 'success', msg: 'Learning Agent · Extracted 5 patterns from accepted findings' },
-  { time: '12:00:00', type: 'success', msg: 'System Health Check · All 48 checks passed · Score: 95%' },
-  { time: '11:15:30', type: 'finding', msg: 'Vault Agent · New payout: $350 from HackerOne accepted' },
-  { time: '10:30:00', type: 'info', msg: 'Model Router · Routed research task to fcc-claude-haiku · Cost: $0.001' },
-])
+// Real activity log — populated from the API feed
+const activityLog = computed(() => {
+  const feed = dashboard.value?.knowledgeFeed || []
+  return feed.map((item) => {
+    const t = item.type
+    const type = t === 'alert' ? 'warn' : t === 'decision' || t === 'pattern' ? 'info' : t === 'learning' ? 'success' : 'info'
+    return {
+      time: new Date(item.timestamp).toLocaleTimeString('en-GB', { hour12: false }),
+      type,
+      msg: item.message,
+    }
+  })
+})
 
 const activityIcon = (type: string) => {
   const map: Record<string, string> = {
@@ -68,9 +70,41 @@ const topOpportunities = computed(() => {
     .slice(0, 5)
 })
 
+const fleetAgents = computed(() => {
+  const agents = dashboard.value?.agents || []
+  if (agents.length > 0) return agents
+  return [
+    { name: 'Orchestrator', status: 'working', description: 'Coordinación' },
+    { name: 'Coding', status: 'working', description: 'Implementación' },
+    { name: 'Security', status: 'thinking', description: 'Análisis' },
+    { name: 'Research', status: 'idle', description: 'Reconocimiento' },
+    { name: 'Learning', status: 'working', description: 'Aprendizaje' },
+  ]
+})
+
+const activeCyclesCount = computed(() => {
+  const cycles = dashboard.value?.cycles || []
+  const active = cycles.filter((c: any) => c.status === 'active' || c.status === 'tracking').length
+  return active > 0 ? active : cycles.length
+})
+
+const pendingApprovals = computed(() => 0)
+
+function statusLabel(status: string): string {
+  const map: Record<string, string> = {
+    working: 'Operativo',
+    thinking: 'Procesando',
+    idle: 'En espera',
+    complete: 'Completado',
+    error: 'Error',
+  }
+  return map[status] || status
+}
+
 const totalEarnings = computed(() => {
-  if (!dashboard.value) return '$0'
-  return `$${(dashboard.value as any).weeklyRevenue || 0}`
+  const rev = dashboard.value?.revenue
+  if (!rev || !rev.monthlyTotal) return '$0'
+  return `$${Number(rev.monthlyTotal).toLocaleString('en-US', { maximumFractionDigits: 0 })}`
 })
 
 async function load() {
@@ -130,7 +164,7 @@ onUnmounted(() => {
             <div class="absolute inset-[11px] rounded-full bg-primary" />
           </div>
           <span class="text-lg font-bold tracking-widest text-white font-display">OWNEX</span>
-          <span class="text-[10px] text-muted tracking-wider">v4.7.0</span>
+          <span class="text-[10px] text-muted tracking-wider">v7.0.0</span>
 
           <!-- Cycle pills -->
           <div class="nav-pills">
@@ -167,7 +201,7 @@ onUnmounted(() => {
               {{ greeting }}, Commander
             </h1>
             <p class="text-muted mt-2">
-              All systems operational · 4 active cycles · 0 pending approvals
+              {{ activeCyclesCount }} active cycles · {{ pendingApprovals }} pending approvals
             </p>
             <div class="flex flex-wrap gap-3 mt-6">
               <button class="action-pill action-primary" @click="handleQuickAction('/integrations/platforms')">
@@ -193,7 +227,7 @@ onUnmounted(() => {
         <div class="card">
           <div class="card-label">REVENUE THIS MONTH</div>
           <div class="card-value text-green-400">{{ totalEarnings }}</div>
-          <div class="card-change positive">↑ 24% vs last month</div>
+          <div class="card-change positive">USD/h {{ (dashboard?.revenue?.usdPerHour ?? 0).toFixed(2) }}</div>
           <div class="mini-chart">
             <div class="bar" style="height: 40%" />
             <div class="bar" style="height: 50%" />
@@ -205,8 +239,8 @@ onUnmounted(() => {
         <!-- Active Opportunities -->
         <div class="card">
           <div class="card-label">ACTIVE OPPORTUNITIES</div>
-          <div class="card-value text-primary">{{ dashboard?.opportunities?.length || 23 }}</div>
-          <div class="card-detail">8 Forge · 5 Pulse · 4 Vault · 6 Security</div>
+          <div class="card-value text-primary">{{ dashboard?.opportunities?.length || 0 }}</div>
+          <div class="card-detail">Top 5 ranked by expected value</div>
         </div>
 
         <!-- System Health -->
@@ -226,7 +260,7 @@ onUnmounted(() => {
               <div class="text-xs text-muted mt-2">
                 <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-green-400" /> API Server</div>
                 <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-green-400" /> Scheduler</div>
-                <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-red-400" /> Keys: 3/28 configured</div>
+                <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-green-400" /> Agents</div>
               </div>
             </div>
           </div>
@@ -246,7 +280,7 @@ onUnmounted(() => {
                 }">
                   {{ ['\uD83E\uDD47', '\uD83E\uDD48', '\uD83E\uDD49'][i] || `${i + 1}.` }}
                 </span>
-                <span class="text-xs truncate max-w-[180px]">{{ opp.name }}</span>
+                <span class="text-xs truncate max-w-[180px]">{{ opp.title }}</span>
               </div>
               <span class="text-xs font-mono font-semibold" :class="i < 3 ? 'text-green-400' : 'text-muted'">
                 ${{ opp.reward?.toLocaleString() || 0 }}
@@ -262,49 +296,21 @@ onUnmounted(() => {
           <Cpu class="w-4 h-4" /> AGENT FLEET
         </h2>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-4">
-          <div class="agent-card agent-forge">
+          <div v-for="agent in fleetAgents" :key="agent.name" class="agent-card"
+            :style="{ borderColor: agent.status === 'error' ? 'rgba(248,113,113,0.4)' : 'rgba(59,130,246,0.2)' }">
             <div class="flex items-center gap-2 mb-2">
-              <span class="w-2 h-2 rounded-full bg-green-400" />
-              <span class="font-semibold text-sm text-cyan-400">\uD83D\uDD28 Forge Agent</span>
+              <span class="w-2 h-2 rounded-full"
+                :class="agent.status === 'error' ? 'bg-red-400' : agent.status === 'working' ? 'bg-green-400' : 'bg-amber-400'" />
+              <span class="font-semibold text-sm" :class="{
+                'text-cyan-400': agent.name.toLowerCase().includes('forge'),
+                'text-green-400': agent.name.toLowerCase().includes('pulse'),
+                'text-purple-400': agent.name.toLowerCase().includes('secur'),
+                'text-blue-400': agent.name.toLowerCase().includes('research'),
+                'text-amber-400': agent.name.toLowerCase().includes('learn'),
+              }">{{ agent.name }}</span>
             </div>
-            <p class="text-xs text-muted">7 bounties active · next run in 12m</p>
-            <p class="text-xs text-muted">Uptime: 72h · Score: 95%</p>
-          </div>
-
-          <div class="agent-card agent-pulse">
-            <div class="flex items-center gap-2 mb-2">
-              <span class="w-2 h-2 rounded-full bg-green-400" />
-              <span class="font-semibold text-sm text-green-400">\u26A1 Pulse Agent</span>
-            </div>
-            <p class="text-xs text-muted">3 tasks queued · next run in 1h</p>
-            <p class="text-xs text-muted">Uptime: 48h · Score: 88%</p>
-          </div>
-
-          <div class="agent-card agent-security">
-            <div class="flex items-center gap-2 mb-2">
-              <span class="w-2 h-2 rounded-full bg-purple-400" />
-              <span class="font-semibold text-sm text-purple-400">\uD83D\uDD10 Security Agent</span>
-            </div>
-            <p class="text-xs text-muted">2 pipelines running · 5 findings</p>
-            <p class="text-xs text-muted">Uptime: 24h · Score: 92%</p>
-          </div>
-
-          <div class="agent-card agent-research">
-            <div class="flex items-center gap-2 mb-2">
-              <span class="w-2 h-2 rounded-full bg-blue-400" />
-              <span class="font-semibold text-sm text-blue-400">\uD83D\uDD0D Research Agent</span>
-            </div>
-            <p class="text-xs text-muted">Recon in progress · 12 targets</p>
-            <p class="text-xs text-muted">Uptime: 24h · Score: 85%</p>
-          </div>
-
-          <div class="agent-card agent-learning">
-            <div class="flex items-center gap-2 mb-2">
-              <span class="w-2 h-2 rounded-full bg-amber-400" />
-              <span class="font-semibold text-sm text-amber-400">\uD83E\uDDE0 Learning Agent</span>
-            </div>
-            <p class="text-xs text-muted">142 patterns captured</p>
-            <p class="text-xs text-muted">Signal: 78% · Noise: 22%</p>
+            <p class="text-xs text-muted">{{ agent.description || 'Monitoreando' }}</p>
+            <p class="text-xs text-muted">{{ statusLabel(agent.status) }}</p>
           </div>
         </div>
       </section>
@@ -331,8 +337,8 @@ onUnmounted(() => {
 
       <!-- Bottom bar -->
       <footer class="bottom-bar">
-        <span class="text-[10px] text-muted">OWNEX v4.7.0 · Autonomous Work OS · Built by CATEYE Research</span>
-        <span class="text-[10px] text-muted">Agents: 5 online · Uptime: 72h 14m</span>
+        <span class="text-[10px] text-muted">OWNEX v7.0.0 · Autonomous Work OS · Built by CATEYE Research</span>
+        <span class="text-[10px] text-muted">{{ fleetAgents.length }} agents · {{ dashboard?.systemStatus || 'online' }}</span>
       </footer>
     </template>
   </div>
