@@ -172,6 +172,7 @@ Diseñado para sentirse como entrar a PS5, con:
 - **Ollama** — Modelos locales (qwen3-coder, hermes-orion)
 - **OpenRouter** — Claude models vía proxy
 - **OpenCode** — Modelos gratuitos (deepseek, nemotron, mimo)
+- **Devin CLI** — Tool gratuito de desarrollo de Cognition
 
 #### DevOps & Deployment
 - **Docker** — Containerización
