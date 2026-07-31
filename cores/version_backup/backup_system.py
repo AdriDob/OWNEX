@@ -241,7 +241,7 @@ class VersionBackupSystem:
                 status=BackupStatus.SUCCESS,
                 version=version,
                 backup_path=str(backup_path),
-                message=f"Backup created successfully",
+                message="Backup created successfully",
                 manifest=manifest,
             )
 
@@ -314,7 +314,7 @@ class VersionBackupSystem:
             if not version_file.exists():
                 return []
 
-            with open(version_file, "r") as f:
+            with open(version_file) as f:
                 data = json.load(f)
 
             return [VersionSnapshot(**item) for item in data]
@@ -380,7 +380,7 @@ class VersionBackupSystem:
         if not manifest_path.exists():
             return {"valid": False, "error": "Manifest not found"}
 
-        with open(manifest_path, "r") as f:
+        with open(manifest_path) as f:
             manifest = json.load(f)
 
         # Verify checksum

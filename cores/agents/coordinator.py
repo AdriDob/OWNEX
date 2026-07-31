@@ -35,7 +35,7 @@ STAGE_TO_AGENT: dict[PipelineState, AgentId] = {
     PipelineState.READY: AgentId.COORDINATOR,
     PipelineState.SUBMITTED: AgentId.COORDINATOR,
     PipelineState.TRIAGED: AgentId.COORDINATOR,
-    PipelineState.PAID: AgentId.FINANCIAL,
+    PipelineState.PAID: AgentId.FINANCE,
     PipelineState.CLOSED: AgentId.COORDINATOR,
 }
 

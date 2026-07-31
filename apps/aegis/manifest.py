@@ -22,7 +22,7 @@ from .providers import PROVIDERS
 manifest = IAppPlugin(
     id="aegis",
     name="AEGIS",
-    version="5.0.0",
+    version="7.0.0",
     description="Offensive Security Platform — recon, scanning, validation, evidence, reporting, and learning",
     icon="Shield",
     order=5,

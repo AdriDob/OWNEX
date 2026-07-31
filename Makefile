@@ -1,4 +1,4 @@
-.PHONY: help install-windows build-android build-desktop clean lint typecheck test prebuild
+.PHONY: help install-windows build-android build-desktop clean lint typecheck test prebuild work version-info version-sync version-bump checkpoint status
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -42,3 +42,24 @@ test: ## Run test suite with coverage
 
 prebuild: ## Run pre-build validation
 	python scripts/prebuild.py
+
+work: ## Run agent startup protocol
+	python scripts/agent-startup.py
+
+version-info: ## Show version sync status
+	python -m core.system.version_engine info
+
+version-sync: ## Sync VERSION.txt to all project files
+	python -m core.system.version_engine sync
+
+version-bump: ## Bump patch version, sync all files, add changelog entry
+	python -m core.system.version_engine bump patch --auto-sync --changelog -m "Auto-bump from agent work session"
+
+checkpoint: ## Generate summary of changes since last commit
+	@git diff --stat HEAD
+	@echo "---"
+	@echo "Untracked files:"
+	@git status --short | grep "^??" || echo "(none)"
+
+status: ## Full system health check
+	python scripts/agent-startup.py --no-tests

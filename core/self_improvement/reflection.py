@@ -14,15 +14,16 @@ import json
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger("ownex.self_improvement")
 
 
-class IssueType(str, Enum):
+class IssueType(StrEnum):
     """Type of issue/limitation."""
+
     API_FAILURE = "api_failure"
     MISSING_FEATURE = "missing_feature"
     USER_REJECTED = "user_rejected"
@@ -31,8 +32,9 @@ class IssueType(str, Enum):
     SUGGESTION = "suggestion"
 
 
-class Severity(str, Enum):
+class Severity(StrEnum):
     """Severity of issue."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -42,6 +44,7 @@ class Severity(str, Enum):
 @dataclass
 class Reflection:
     """A reflection on something the system couldn't do or failed at."""
+
     id: str
     timestamp: str
     issue_type: IssueType

@@ -62,7 +62,10 @@ class PulseCycle:
                     "enabled": True,
                     "priority": 6,
                     "status": "idle",
-                    "config": {"platforms": ["outlier", "dataannotation", "mindrift", "remotasks"], "skill_match": True},
+                    "config": {
+                        "platforms": ["outlier", "dataannotation", "mindrift", "remotasks"],
+                        "skill_match": True,
+                    },
                 }
             )
             logger.info("Created Pulse cycle")

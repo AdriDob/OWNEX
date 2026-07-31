@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -46,7 +45,7 @@ async def sync_tasks(request: SyncRequest):
             }
     except Exception as e:
         logger.error(f"Failed to sync tasks: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/tasks")
@@ -63,7 +62,7 @@ def get_tasks(status: str | None = None):
         }
     except Exception as e:
         logger.error(f"Failed to get tasks: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/tasks/{task_id}")
@@ -82,7 +81,7 @@ def get_task(task_id: str):
         raise
     except Exception as e:
         logger.error(f"Failed to get task: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/tasks/update-status")
@@ -105,7 +104,7 @@ def update_task_status(request: UpdateStatusRequest):
         raise
     except Exception as e:
         logger.error(f"Failed to update task status: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/connections")
@@ -120,7 +119,7 @@ def get_connections():
         }
     except Exception as e:
         logger.error(f"Failed to get connections: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/dashboard")
@@ -159,4 +158,4 @@ def get_dashboard():
         }
     except Exception as e:
         logger.error(f"Failed to get dashboard: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None

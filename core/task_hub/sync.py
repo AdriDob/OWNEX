@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import logging
 from datetime import UTC, datetime
-from typing import Any
 
 import httpx
 
 from core.credentials.vault import get_platform_credentials
-from core.task_hub.models import PlatformConnection, TaskStatus, UnifiedTask
+from core.task_hub.models import PlatformConnection, TaskPriority, TaskStatus, UnifiedTask
 
 logger = logging.getLogger("ownex.task_hub.sync")
 
@@ -59,7 +58,7 @@ class TaskSync:
             )
 
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient():
                 # Fetch bounties (actual API call would go here)
                 # For now, simulate with mock data
                 mock_tasks = [
@@ -117,7 +116,7 @@ class TaskSync:
             )
 
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient():
                 # Fetch projects (actual API call would go here)
                 mock_tasks = [
                     UnifiedTask(
@@ -162,9 +161,7 @@ class TaskSync:
             )
 
         try:
-            async with httpx.AsyncClient() as client:
-                headers = {"Authorization": f"token {creds['token']}"}
-
+            async with httpx.AsyncClient():
                 # Fetch issues from watched repos (actual API call would go here)
                 mock_tasks = [
                     UnifiedTask(
@@ -209,7 +206,7 @@ class TaskSync:
             )
 
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient():
                 # Fetch jobs (actual API call would go here)
                 mock_tasks = [
                     UnifiedTask(

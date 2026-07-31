@@ -74,6 +74,18 @@ Sos la abejita del panal CATEYE. Mientras el usuario trabaja:
 - Add target: `python run.py --add-target <name> --domain <domain>`
 - Health: `curl http://localhost:8000/api/health`
 
+## Protocolo de Arranque de Agente — "Ponte a trabajar"
+
+Cuando cualquier agente comience una sesión, ejecutar `make work` (o `python scripts/agent-startup.py`). Este protocolo:
+
+1. **Version check** — Verifica que VERSION.txt, pyproject.toml, package.json, core/__init__.py y apps/ están sincronizados
+2. **State snapshot** — Lee `.ai/SESSION_CHECKPOINT.md`, `.ai/TASK_QUEUE.md`, `.ai/CURRENT_STATE.md`
+3. **Health check** — Ruff + pytest (puede saltar con `--no-tests`)
+4. **Quick wins scan** — Busca oportunidades nuevas sin procesar
+5. **Next action** — Muestra la tarea de mayor prioridad pendiente
+
+Ver detalles completos en `.ai/STARTUP.md`.
+
 ## STRATEGIC AUDIT FRAMEWORK
 
 Cada cambio debe evaluarse contra `.ai/STRATEGIC_AUDIT.md` — el marco de auditoría permanente del Chief Architect. Diez preguntas obligatorias antes de implementar, score 0-10 en 18 dimensiones. No construir ORION por construir: cada cambio debe aumentar mediblemente la probabilidad de encontrar vulnerabilidades reales y convertirlas en recompensas.

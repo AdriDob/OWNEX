@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -213,7 +214,6 @@ async def backup_vault() -> dict[str, Any]:
     Scheduler handler: ``core.credentials.vault.backup_vault``
     """
     import json
-    from datetime import datetime
 
     vault_dir = Path("~/.config/ownex").expanduser()
     backup_dir = vault_dir / "backups"
@@ -235,11 +235,152 @@ async def backup_vault() -> dict[str, Any]:
     backup_path = backup_dir / f"credentials_{timestamp}.json"
     backup_path.write_text(json.dumps(snapshot, indent=2))
 
-    from datetime import timezone
-
     return {
         "success": True,
         "path": str(backup_path),
         "fields": len(snapshot),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
+    }
+
+
+_AUDIT_LOG_PATH = Path("~/.config/ownex/credential_audit.jsonl").expanduser()
+
+
+def _log_credential_access(action: str, platform: str, field: str = "") -> None:
+    """Append an audit entry for a credential operation."""
+    import json
+
+    _AUDIT_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    entry = {
+        "timestamp": datetime.now(UTC).isoformat(),
+        "action": action,
+        "platform": platform,
+        "field": field,
+    }
+    with open(_AUDIT_LOG_PATH, "a") as f:
+        f.write(json.dumps(entry) + "\n")
+
+
+def get_audit_log(limit: int = 100) -> list[dict[str, Any]]:
+    """Get recent audit log entries for credential access."""
+    import json
+
+    if not _AUDIT_LOG_PATH.exists():
+        return []
+
+    entries: list[dict[str, Any]] = []
+    try:
+        with open(_AUDIT_LOG_PATH) as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    entries.append(json.loads(line))
+    except OSError:
+        return []
+
+    entries.reverse()
+    return entries[:limit]
+
+
+def get_secret_scan_results() -> dict[str, Any]:
+    """Scan the codebase for leaked secrets.
+
+    Checks common file types for patterns resembling API keys, tokens,
+    and passwords that should not be in version control.
+    """
+    import re
+
+    secret_patterns: list[tuple[str, str]] = [
+        ("GitHub Token", r"ghp_[A-Za-z0-9]{36}"),
+        ("GitHub PAT", r"gh[A-Z][A-Za-z0-9]{36}"),
+        ("GitLab Token", r"glpat-[A-Za-z0-9\-]{20}"),
+        ("Slack Token", r"xox[baprs]-[A-Za-z0-9-]+"),
+        ("AWS Access Key", r"AKIA[A-Z0-9]{16}"),
+        ("AWS Secret", r"(?i)aws_secret_access_key\s*=.*[A-Za-z0-9/+=]{40}"),
+        ("Google API Key", r"AIza[A-Za-z0-9\-_]{35}"),
+        ("Generic API Key", r"(?i)api[_-]?key\s*=\s*['\"][A-Za-z0-9]{32,}['\"]"),
+        ("Generic Secret", r"(?i)secret\s*=\s*['\"][A-Za-z0-9]{16,}['\"]"),
+        ("Private Key", r"-----BEGIN [A-Z ]+PRIVATE KEY-----"),
+        ("Bearer Token", r"(?i)bearer\s+[A-Za-z0-9\-\._~+\/=]{20,}"),
+    ]
+
+    compiled = [(name, re.compile(pattern)) for name, pattern in secret_patterns]
+    results: list[dict[str, Any]] = []
+    project_root = Path(__file__).resolve().parents[2]
+
+    skip_dirs = {".git", ".venv", "__pycache__", "node_modules", ".mypy_cache", ".ruff_cache"}
+    skip_exts = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".pdf", ".db", ".sqlite", ".log"}
+
+    for file_path in project_root.rglob("*"):
+        if not file_path.is_file():
+            continue
+        if any(part in skip_dirs for part in file_path.parts):
+            continue
+        if file_path.suffix.lower() in skip_exts:
+            continue
+        if file_path.stat().st_size > 1_000_000:
+            continue
+
+        try:
+            content = file_path.read_text(encoding="utf-8", errors="ignore")
+        except (OSError, UnicodeDecodeError):
+            continue
+
+        for name, pattern in compiled:
+            for match in pattern.finditer(content):
+                rel_path = str(file_path.relative_to(project_root))
+                results.append(
+                    {
+                        "type": name,
+                        "file": rel_path,
+                        "line": content[: match.start()].count("\n") + 1,
+                        "match_preview": match.group()[:20] + "...",
+                    }
+                )
+
+    return {
+        "success": True,
+        "total_issues": len(results),
+        "issues": results,
+        "scanned_at": datetime.now(UTC).isoformat(),
+    }
+
+
+def rotate_credential(platform: str, field: str, new_value: str) -> dict[str, Any]:
+    """Rotate a credential (update value and log to audit trail).
+
+    Updates the value in the opportunity.env file and records the action.
+    """
+    env_path = Path("~/.config/ownex/opportunity.env").expanduser()
+    if not env_path.exists():
+        return {"success": False, "error": "Credentials file not found"}
+
+    env_content = env_path.read_text(encoding="utf-8")
+    env_lines = env_content.splitlines()
+    var_name = f"{platform.upper()}_{field.upper()}"
+    found = False
+
+    new_lines: list[str] = []
+    for line in env_lines:
+        stripped = line.strip()
+        if stripped.startswith(f"{var_name}="):
+            new_lines.append(f"{var_name}={new_value}")
+            found = True
+        else:
+            new_lines.append(line)
+
+    if not found:
+        return {"success": False, "error": f"Variable {var_name} not found in credentials file"}
+
+    env_path.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
+    _log_credential_access("rotate", platform, field)
+
+    global _credentials
+    _credentials = None
+
+    return {
+        "success": True,
+        "platform": platform,
+        "field": field,
+        "rotated_at": datetime.now(UTC).isoformat(),
     }

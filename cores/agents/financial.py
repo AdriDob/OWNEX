@@ -35,7 +35,7 @@ class FinancialAgent(BaseAgent):
         return os.path.join(home, ".orion", "financial_data.json")
 
     def _get_agent_id(self) -> AgentId:
-        return AgentId.FINANCIAL
+        return AgentId.FINANCE
 
     def _get_subscriptions(self) -> list[EventType | str]:
         return [
