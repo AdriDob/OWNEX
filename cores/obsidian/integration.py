@@ -255,7 +255,7 @@ type: daily-note
             "date": date_str,
         }
 
-    def create_merlin_note(self, title: str, content: str, tags: list[str] = None) -> dict[str, Any]:
+    def create_merlin_note(self, title: str, content: str, tags: Optional[list[str]] = None) -> dict[str, Any]:
         """Crear nota de MERLIN."""
         if tags is None:
             tags = ["merlin"]
@@ -288,7 +288,7 @@ type: merlin-note
 
     def get_daily_notes(self, limit: int = 7) -> list[dict[str, Any]]:
         """Obtener notas diarias recientes."""
-        notes = []
+        notes: list[dict[str, Any]] = []
         for note_path in sorted(self.daily_notes_path.glob("*.md"), reverse=True)[:limit]:
             with open(note_path, "r", encoding="utf-8") as f:
                 content = f.read()
@@ -301,7 +301,7 @@ type: merlin-note
 
     def get_merlin_notes(self, limit: int = 10) -> list[dict[str, Any]]:
         """Obtener notas de MERLIN recientes."""
-        notes = []
+        notes: list[dict[str, Any]] = []
         for note_path in sorted(self.merlin_notes_path.glob("*.md"), reverse=True)[:limit]:
             with open(note_path, "r", encoding="utf-8") as f:
                 content = f.read()
