@@ -12,11 +12,11 @@ from io import BytesIO
 def generate_professional_banner():
     """Generar banner OWNEX profesional usando IA de Pollinations.ai."""
 
-    # Prompt ULTRA PROFESIONAL para banner completo
-    prompt = "professional tech banner for OWNEX, minimalist futuristic design, cyan and navy blue color scheme, centered composition, clean typography, modern startup branding, glassmorphism style, subtle gradients, geometric shapes, high contrast, professional business aesthetic, 4K UHD quality, centered, dark background"
+    # Prompt ULTRA PROFESIONAL para banner completo - Actualizado
+    prompt = "OWNEX professional banner, futuristic tech company branding, bold cyan text on dark navy background, sleek modern design, geometric elements, glowing effects, professional startup aesthetic, high contrast, centered composition, minimalist yet striking, 4K UHD, ultra detailed"
 
     # URL de Pollinations.ai (gratuito, no API key) - dimensiones grandes para banner
-    url = f"https://image.pollinations.ai/prompt/{prompt}?width=1280&height=640&nologo=true&seed=ownex2024&model=flux"
+    url = f"https://image.pollinations.ai/prompt/{prompt}?width=1280&height=640&nologo=true&seed=ownex2025&model=flux"
 
     try:
         print("Generando banner profesional con IA...")
