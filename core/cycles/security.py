@@ -234,6 +234,93 @@ class SecurityCycle:
             "metrics": tasks,
         }
 
+    def run_pipeline(self, context: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Run the full 7-stage Security pipeline end-to-end.
+
+        Executes each registered stage executor in order (recon →
+        attack_surface → hypothesis → validation → evidence → report →
+        learning), propagating stage results into the shared context so
+        later stages consume earlier output. DB tasks are advanced as
+        each stage completes.
+
+        Returns:
+            dict with ``cycle_id``, ``stages_completed``, ``results``
+            (per-stage envelopes) and ``overall`` status.
+        """
+        from cores.cycles.stages import get_executor
+
+        ctx: dict[str, Any] = {
+            "target": "ownex.local",
+            "scope": [],
+            "mode": "auto",
+            "pipeline_context": {},
+            "endpoints": [],
+            "attack_surface": {},
+            "hypotheses": [],
+            "findings": [],
+            "confirmed_findings": [],
+            "reports": [],
+            "evidence_packages": [],
+        }
+        if context:
+            ctx.update(context)
+
+        cycle = self.ensure_cycle()
+        if cycle.status not in ("running", "completed"):
+            try:
+                cycle = self.start_cycle()
+            except Exception as e:
+                logger.warning("Could not start cycle for pipeline: %s", e)
+
+        results: list[dict[str, Any]] = []
+        for stage in self.STAGE_ORDER:
+            try:
+                executor = get_executor(stage)
+                result = executor.execute(ctx)
+            except Exception as e:
+                logger.error("Stage %s failed: %s", stage, e)
+                result = {"stage": stage, "status": "failed", "summary": f"Stage error: {e}", "details": {}}
+
+            results.append(result)
+            details = result.get("details") or {}
+
+            # Propagate results to the shared context (as the E2E test expects)
+            if stage == "recon":
+                ctx["endpoints"] = details.get("endpoints", ctx.get("endpoints", []))
+            elif stage == "attack_surface":
+                ctx["attack_surface"] = details
+            elif stage == "hypothesis":
+                ctx["hypotheses"] = details.get("hypotheses", ctx.get("hypotheses", []))
+            elif stage == "validation":
+                ctx["confirmed_findings"] = details.get("confirmed", ctx.get("confirmed_findings", []))
+            elif stage == "evidence":
+                ctx["evidence_packages"] = details.get("evidence_packages", [])
+            elif stage == "report":
+                ctx["reports"] = details.get("reports", [])
+
+            # Advance DB task for this stage
+            try:
+                self.advance_stage(cycle.id, stage, result)
+            except Exception as e:
+                logger.warning("Could not advance DB task for stage %s: %s", stage, e)
+
+        # Update pipeline context with completion metadata
+        ctx["pipeline_context"] = {
+            "stages_completed": [r.get("stage") for r in results if r.get("status") == "completed"],
+            "duration_seconds": ctx.get("pipeline_context", {}).get("duration_seconds", 0),
+        }
+
+        completed = [r for r in results if r.get("status") == "completed"]
+        overall = "completed" if len(completed) == len(self.STAGE_ORDER) else "partial"
+
+        return {
+            "cycle_id": cycle.id,
+            "overall": overall,
+            "stages_completed": len(completed),
+            "stages_total": len(self.STAGE_ORDER),
+            "results": results,
+        }
+
 
 _SECURITY_CYCLE: SecurityCycle | None = None
 

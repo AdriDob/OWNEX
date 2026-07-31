@@ -10,6 +10,7 @@ import asyncio
 import logging
 import time
 from collections.abc import Callable
+from datetime import datetime
 from typing import Any
 
 from core.interfaces import IScheduler
@@ -80,6 +81,27 @@ class CoreScheduler(IScheduler):
 
     # ── Internal loop ────────────────────────────────────────────
 
+    def _job_next_run(self, job: JobDefinition, last_run: float, now: float) -> float:
+        """Return the next time a job should run (epoch seconds).
+
+        Cron jobs use the ``cron`` expression from their kwargs; interval
+        jobs use ``job.seconds``.
+        """
+        if job.trigger == "cron":
+            cron_expr = job.kwargs.get("cron") or ""
+            if not cron_expr:
+                return now + job.seconds if job.seconds > 0 else now + 3600
+            try:
+                from croniter import croniter
+
+                base = datetime.fromtimestamp(last_run or now)
+                return croniter(cron_expr, base).get_next(float)
+            except Exception:
+                logger.warning("Invalid cron %r for %s — falling back to hourly", cron_expr, job.job_id)
+                return now + 3600
+        seconds = job.seconds or 3600
+        return last_run + seconds
+
     async def _loop(self) -> None:
         last_run: dict[str, float] = {}
 
@@ -89,7 +111,11 @@ class CoreScheduler(IScheduler):
                 if job.kwargs.get("paused"):
                     continue
                 last = last_run.get(job_id, 0)
-                if now - last >= job.seconds:
+                if last == 0:
+                    last_run[job_id] = now
+                    continue
+                next_run = self._job_next_run(job, last, now)
+                if now >= next_run:
                     last_run[job_id] = now
                     handler = self._on_job_due
                     if handler is not None:
