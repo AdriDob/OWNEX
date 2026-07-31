@@ -116,7 +116,7 @@
 
 | ID | Task | Estado real | Esfuerzo |
 |----|------|-------------|----------|
-| AUD-9 | Limpiar 424 errores de lint en código nuevo (no el histórico de 4876) | ⏳ Pendiente | M |
+| AUD-9 | Limpiar 424 errores de lint en código nuevo | ⚠️ PARCIAL 2026-07-31 — de 457 → 30 errores. Fix: field_validator parse_config en CycleRead (500→200 en /api/cycles); B904 `from None` en 9 routers; OWNEX_VERSION hardcodeada 5.0.0→eliminada (usar import 7.0.0) en backup/engine.py; F821 `session`→`sessions` typo en life_management; F811 duplicados en orion_cli.py y operations.py; E402 en __init__.py per-file-ignores. 30 errores restantes son legacy (E741 `l`, F401 extension imports, F841 `bus`) — no código nuevo | M |
 | AUD-10 | Commitear cambios sin commitear (README, assets, tests scheduler/vision, fixes auth/supabase/revenue) | ✅ COMPLETADO 2026-07-31 | S |
 | AUD-11 | Decidir core/ vs cores/: elegir uno como SSOT | ⏳ Pendiente | L |
 | AUD-12 | Android namespace unificado (ai.rastro/catseye/CATEYE) | ⏳ Pendiente | S |
