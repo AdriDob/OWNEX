@@ -543,6 +543,20 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'Preguntas Frecuentes' },
   },
 
+  // ── MOBILE COMPANION ──
+  {
+    path: '/mobile',
+    name: 'mobile',
+    component: () => import(/* webpackChunkName: "mobile" */ '@/pages/MobileCompanion.vue'),
+    meta: { title: 'Companion', requiresAuth: true },
+  },
+  {
+    path: '/mobile/jarvis',
+    name: 'mobile-jarvis',
+    component: () => import(/* webpackChunkName: "mobile-jarvis" */ '@/pages/MobileCompanionJarvis.vue'),
+    meta: { title: 'ORION Companion — Jarvis Style', requiresAuth: true },
+  },
+
   // ── Catch-all ──
   {
     path: '/:pathMatch(.*)*',

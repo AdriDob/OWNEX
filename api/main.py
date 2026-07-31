@@ -110,6 +110,7 @@ from api.routers import (
     version,
     version_backup,
     voice,
+    wear_os,
     webhooks,
     ws,
     zap,
@@ -1436,6 +1437,9 @@ app.include_router(productivity.router)
 
 # Onboarding router
 app.include_router(onboarding.router)
+
+# Wear OS router
+app.include_router(wear_os.router)
 
 # MERLIN router
 app.include_router(merlin.router)
