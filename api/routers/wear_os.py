@@ -1,12 +1,11 @@
 """API Router for Wear OS Integration."""
 
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
 from cores.wear_os.integration import (
     WatchNotificationLevel,
-    WearOSIntegration,
     get_wear_os_integration,
 )
 
@@ -48,7 +47,7 @@ async def send_notification(payload: dict[str, Any]):
 
 @router.get("/notifications")
 async def get_notifications(
-    level: Optional[str] = None,
+    level: str | None = None,
     unread_only: bool = False,
     limit: int = 20,
 ):

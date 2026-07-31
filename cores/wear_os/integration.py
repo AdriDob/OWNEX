@@ -16,7 +16,6 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
 
 logger = logging.getLogger("ownex.wear_os")
 
@@ -49,7 +48,7 @@ class WatchNotification:
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
     read: bool = False
     requires_action: bool = False
-    action_type: Optional[str] = None
+    action_type: str | None = None
 
 
 @dataclass
@@ -58,10 +57,10 @@ class WatchApprovalRequest:
     request_id: str
     title: str
     description: str
-    workflow_id: Optional[str] = None
+    workflow_id: str | None = None
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
     responded: bool = False
-    approved: Optional[bool] = None
+    approved: bool | None = None
 
 
 @dataclass
@@ -81,7 +80,7 @@ class WatchStatus:
 class WearOSIntegration:
     """Integración con Wear OS."""
 
-    def __init__(self, storage_path: Optional[Path] = None):
+    def __init__(self, storage_path: Path | None = None):
         self.storage_path = storage_path or Path.home() / ".ownex" / "wear_os"
         self.storage_path.mkdir(parents=True, exist_ok=True)
         self.notifications: list[WatchNotification] = []
@@ -92,13 +91,13 @@ class WearOSIntegration:
         """Cargar estado desde almacenamiento."""
         notifications_file = self.storage_path / "notifications.json"
         if notifications_file.exists():
-            with open(notifications_file, "r") as f:
+            with open(notifications_file) as f:
                 data = json.load(f)
                 self.notifications = [WatchNotification(**n) for n in data]
 
         approvals_file = self.storage_path / "approvals.json"
         if approvals_file.exists():
-            with open(approvals_file, "r") as f:
+            with open(approvals_file) as f:
                 data = json.load(f)
                 self.approval_requests = [WatchApprovalRequest(**a) for a in data]
 
@@ -118,7 +117,7 @@ class WearOSIntegration:
         message: str,
         level: WatchNotificationLevel = WatchNotificationLevel.MEDIUM,
         requires_action: bool = False,
-        action_type: Optional[str] = None,
+        action_type: str | None = None,
     ) -> WatchNotification:
         """Enviar notificación al reloj."""
         notification = WatchNotification(
@@ -144,7 +143,7 @@ class WearOSIntegration:
         self,
         title: str,
         description: str,
-        workflow_id: Optional[str] = None,
+        workflow_id: str | None = None,
     ) -> WatchApprovalRequest:
         """Solicitar aprobación desde el reloj."""
         request = WatchApprovalRequest(
@@ -195,7 +194,7 @@ class WearOSIntegration:
 
     def get_notifications(
         self,
-        level: Optional[WatchNotificationLevel] = None,
+        level: WatchNotificationLevel | None = None,
         unread_only: bool = False,
         limit: int = 20,
     ) -> list[WatchNotification]:
@@ -235,7 +234,7 @@ class WearOSIntegration:
 
 
 # Singleton instance
-_wear_os_integration: Optional[WearOSIntegration] = None
+_wear_os_integration: WearOSIntegration | None = None
 
 
 def get_wear_os_integration() -> WearOSIntegration:

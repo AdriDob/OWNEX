@@ -10,7 +10,7 @@ import contextlib
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.engine.base import Engine
@@ -146,7 +146,7 @@ class TimeSensitiveStrategy(Strategy):
             return 0.0
         try:
             due = datetime.fromisoformat(opportunity.raw_data["due_by"])
-            hours_left = (due - datetime.now(timezone.utc)).total_seconds() / 3600
+            hours_left = (due - datetime.now(UTC)).total_seconds() / 3600
             if hours_left <= 0:
                 return 0.0
             if hours_left < 24:

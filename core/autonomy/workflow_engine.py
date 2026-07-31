@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.opportunity.adapters import fetch_all_opportunities
@@ -24,7 +24,7 @@ class WorkPlan:
     estimated_effort_hours: float
     estimated_reward: float
     confidence: float
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 @dataclass
@@ -37,7 +37,7 @@ class ExecutionResult:
     total_time_seconds: float
     reward_earned: float = 0.0
     error: str | None = None
-    completed_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    completed_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 class AutonomousWorkflow:

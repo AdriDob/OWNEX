@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 # ── Standard Normalized Types ────────────────────────────────────
@@ -34,7 +34,7 @@ class NormalizedPortfolio:
     positions: list[NormalizedPosition] = field(default_factory=list)
     currency: str = "USD"
     provider: str = ""
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     extra: dict[str, Any] = field(default_factory=dict)
 
 
@@ -98,7 +98,7 @@ class NormalizedPrice:
     change_24h: float | None = None
     volume_24h: float | None = None
     source: str = ""
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     extra: dict[str, Any] = field(default_factory=dict)
 
 

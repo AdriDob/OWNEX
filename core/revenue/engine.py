@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-from core.revenue.converter import net_after_fee, usd_to_ars
+from core.revenue.converter import usd_to_ars
 from core.revenue.discovery import discover_daily_opportunities
 from core.revenue.models import (
     ARGENTINA_METHODS,
@@ -91,7 +91,7 @@ class RevenueEngine:
         platform: str = "unknown",
     ) -> Payment:
         """Process a payment for a completed opportunity."""
-        payment_id = f"pay_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+        payment_id = f"pay_{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}"
         fee = payment_id
 
         payment = Payment(

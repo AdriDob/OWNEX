@@ -11,8 +11,6 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any
 
-from cores.agents.types import AgentId
-
 logger = logging.getLogger("ownex.workflow.handoff")
 
 

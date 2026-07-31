@@ -6,7 +6,7 @@ These functions are invoked by the scheduler as cron/interval jobs.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger("ownex.opportunity.tasks")
@@ -48,7 +48,7 @@ async def sync_cycle_scores(cycle: str = "forge", dry_run: bool = False) -> dict
             "cycle": cycle,
             "count": len(results),
             "success": True,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     except Exception as e:
@@ -58,7 +58,7 @@ async def sync_cycle_scores(cycle: str = "forge", dry_run: bool = False) -> dict
             "count": 0,
             "success": False,
             "error": str(e),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
 
@@ -66,7 +66,7 @@ async def purge_stale_opportunities(hours: int = 72) -> dict[str, Any]:
     """Remove stale opportunities older than `hours`."""
     from datetime import timedelta
 
-    stale_before = datetime.now(timezone.utc) - timedelta(hours=hours)
+    stale_before = datetime.now(UTC) - timedelta(hours=hours)
     logger.info(f"Purge stale opportunities before {stale_before.isoformat()}")
 
     try:

@@ -10,7 +10,7 @@ import json
 import logging
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -152,7 +152,7 @@ class DesktopSettings:
 
     def record_boot(self) -> None:
         """Record a boot timestamp and mark first run as handled."""
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         if self.get("initial_boot_timestamp") is None:
             self.set("initial_boot_timestamp", now)
         if self.get("first_run", True):
@@ -191,7 +191,7 @@ class DesktopSettings:
         self.set("refresh_token", None)
 
     def record_shutdown(self) -> None:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         self.set("last_session", {
             "shutdown": now,
             "uptime_history_count": len(self.get("uptime_history", [])),

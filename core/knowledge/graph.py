@@ -27,7 +27,7 @@ import json
 import logging
 import uuid
 from collections import deque
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import or_
@@ -119,7 +119,7 @@ class KnowledgeGraph:
         """Add a node. If node_id is provided, upserts."""
         node_id = node_id or self._new_id(node_type, name)
         props_json = json.dumps(properties or {})
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         session = self._session()
         try:
             existing = session.get(KGNode, node_id)
@@ -225,7 +225,7 @@ class KnowledgeGraph:
                 edge_type=edge_type,
                 weight=weight,
                 properties=json.dumps(properties or {}),
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
             session.add(edge)
             session.commit()

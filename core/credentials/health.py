@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.credentials.vault import get_credentials, validate_credentials
@@ -67,7 +67,7 @@ async def check_secrets_health() -> dict[str, Any]:
             "populated_platforms": populated_platforms,
             "coverage_pct": round((populated_platforms / len(PLATFORMS)) * 100, 1) if PLATFORMS else 0,
             "platforms": platform_health,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     except Exception as e:
@@ -75,5 +75,5 @@ async def check_secrets_health() -> dict[str, Any]:
         return {
             "success": False,
             "error": str(e),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }

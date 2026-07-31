@@ -3,8 +3,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.copilot.providers.base import BaseProvider, ProviderResponse
 from core.copilot.providers.devin_provider import DevinProvider
+
+from core.copilot.providers.base import BaseProvider, ProviderResponse
 from core.copilot.providers.fcc_provider import FCCProvider
 from core.copilot.providers.nvidia_provider import NvidiaProvider  # Nuevo proveedor
 from core.copilot.providers.ollama_provider import OllamaProvider
@@ -53,12 +54,12 @@ class ProviderRouter:
         self, task_type: str = TASK_CHAT, messages: list[dict[str, str]] | None = None, **kwargs: Any
     ) -> ProviderResponse:
         messages = messages or []
-        
+
         # Try Devin first (free AI agent with tools)
         if (provider := self.get_provider("devin")) and await provider.check():
             return await provider.chat(messages, **kwargs)
         logger.warning("Devin unavailable, falling back to other providers")
-        
+
         # Original fallback chain
         if task_type == TASK_CODE and (provider := self.get_provider("opencode")):
             if await provider.check():

@@ -16,10 +16,10 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
-from cores.setup.steps.enhanced_personalization import get_enhanced_personalization_system
 from cores.obsidian.integration import get_obsidian_integration
+from cores.setup.steps.enhanced_personalization import get_enhanced_personalization_system
 
 
 class TaskPriority(str, Enum):
@@ -63,7 +63,7 @@ class Task:
     completed_minutes: int = 0
     notes: str = ""
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
-    completed_at: Optional[str] = None
+    completed_at: str | None = None
 
 
 @dataclass
@@ -99,7 +99,7 @@ class ProductivityMetrics:
 class DailyPlanningSystem:
     """Sistema de planificación diaria."""
 
-    def __init__(self, storage_path: Optional[Path] = None):
+    def __init__(self, storage_path: Path | None = None):
         self.personalization = get_enhanced_personalization_system()
         self.obsidian = get_obsidian_integration()
         self.storage_path = storage_path or Path.home() / ".ownex" / "daily_plans"
@@ -110,7 +110,7 @@ class DailyPlanningSystem:
         """Cargar planes desde almacenamiento."""
         self.plans: dict[str, DailyPlan] = {}
         for plan_file in self.storage_path.glob("*.json"):
-            with open(plan_file, "r") as f:
+            with open(plan_file) as f:
                 data = json.load(f)
                 date = data["date"]
                 tasks = [Task(**task) for task in data["tasks"]]
@@ -146,7 +146,7 @@ class DailyPlanningSystem:
                 "updated_at": plan.updated_at,
             }, f, indent=2, default=str)
 
-    def generate_daily_plan(self, date: Optional[datetime] = None) -> DailyPlan:
+    def generate_daily_plan(self, date: datetime | None = None) -> DailyPlan:
         """Generar plan diario basado en perfil del usuario."""
         if date is None:
             date = datetime.now()
@@ -423,7 +423,7 @@ class DailyPlanningSystem:
         self._save_plan(plan)
         return True
 
-    def get_daily_plan(self, date: Optional[datetime] = None) -> Optional[DailyPlan]:
+    def get_daily_plan(self, date: datetime | None = None) -> DailyPlan | None:
         """Obtener plan diario."""
         if date is None:
             date = datetime.now()
@@ -435,7 +435,7 @@ class DailyPlanningSystem:
 
         return self.plans[date_str]
 
-    def get_productivity_metrics(self, date: Optional[datetime] = None) -> ProductivityMetrics:
+    def get_productivity_metrics(self, date: datetime | None = None) -> ProductivityMetrics:
         """Obtener métricas de productividad."""
         if date is None:
             date = datetime.now()
@@ -458,7 +458,7 @@ class DailyPlanningSystem:
             efficiency_score=plan.progress_percentage,
         )
 
-    def sync_with_obsidian(self, date: Optional[datetime] = None) -> bool:
+    def sync_with_obsidian(self, date: datetime | None = None) -> bool:
         """Sincronizar plan con Obsidian."""
         if not self.personalization.profile.obsidian_enabled:
             return False
@@ -524,7 +524,7 @@ class DailyPlanningSystem:
 
 
 # Singleton instance
-_daily_planning_system: Optional[DailyPlanningSystem] = None
+_daily_planning_system: DailyPlanningSystem | None = None
 
 
 def get_daily_planning_system() -> DailyPlanningSystem:

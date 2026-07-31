@@ -44,7 +44,7 @@ import shutil
 import subprocess
 import sys
 import zipfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from cores.env.config import get_config
@@ -286,7 +286,7 @@ def create_build_info(output_dir: Path, version: str, components: dict[str, bool
         "app": "CATEYE",
         "version": version,
         "build_id": f"CATEYE-v{version}-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
-        "build_date": datetime.now(timezone.utc).isoformat(),
+        "build_date": datetime.now(UTC).isoformat(),
         "commit": get_git_commit(),
         "python": sys.version.split()[0],
         "platform": sys.platform,

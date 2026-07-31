@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.engine.base import Engine
@@ -80,7 +80,7 @@ class EvolutionEngine(Engine):
         changes.extend(class_changes)
 
         result = EvolutionResult(
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             changes=changes,
             stats=stats,
             force=force,

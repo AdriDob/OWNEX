@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter
 from sqlalchemy import text
@@ -125,7 +125,7 @@ async def list_scans(limit: int = 50, offset: int = 0):
 async def scans_today():
     db = get_db_manager().get_session("aegis")
     try:
-        today = datetime.now(timezone.utc).date()
+        today = datetime.now(UTC).date()
         count = db.query(ScanResult).filter(text("date(created_at) = date(:today)")).params(today=today).count()
         return {"count": count}
     finally:
@@ -312,4 +312,4 @@ async def aegis_health():
         db_ok = False
     finally:
         db.close()
-    return {"status": "ok", "db": db_ok, "timestamp": datetime.now(timezone.utc).isoformat()}
+    return {"status": "ok", "db": db_ok, "timestamp": datetime.now(UTC).isoformat()}

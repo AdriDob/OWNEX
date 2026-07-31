@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger("catseye.intel.llm")
@@ -116,7 +116,7 @@ SIMULATED_CHECKS: list[dict[str, Any]] = [
 
 
 def _build_fallback_result(endpoint: str, api_key: str | None = None) -> LLMScanResult:
-    epoch = int(datetime.now(timezone.utc).timestamp())
+    epoch = int(datetime.now(UTC).timestamp())
     checks = [
         LLMCheck(
             name=c["name"],
@@ -138,7 +138,7 @@ def _build_fallback_result(endpoint: str, api_key: str | None = None) -> LLMScan
     return LLMScanResult(
         endpoint=endpoint,
         model=f"analyzed_{epoch} (fallback — Garak not installed)",
-        timestamp=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        timestamp=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         checks=checks,
         summary={
             "passed": passed,
@@ -182,7 +182,7 @@ async def scan_llm_endpoint(endpoint: str, api_key: str | None = None) -> LLMSca
             return LLMScanResult(
                 endpoint=endpoint,
                 model=model_name,
-                timestamp=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                timestamp=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
                 checks=checks,
                 summary={
                     "passed": passed,
@@ -216,7 +216,7 @@ async def scan_local_model(model_name: str = "qwen3-coder:8b") -> LLMScanResult:
             return LLMScanResult(
                 endpoint=endpoint,
                 model=model_name,
-                timestamp=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                timestamp=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
                 checks=checks,
                 summary={
                     "passed": passed,

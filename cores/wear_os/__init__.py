@@ -1,12 +1,12 @@
 """Wear OS Module."""
 
 from cores.wear_os.integration import (
-    WearOSIntegration,
     WatchApprovalRequest,
     WatchEventType,
     WatchNotification,
     WatchNotificationLevel,
     WatchStatus,
+    WearOSIntegration,
     get_wear_os_integration,
     reset_wear_os_integration,
 )

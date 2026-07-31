@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.revenue.models import Payment, RevenueRecord, RevenueStats
@@ -43,7 +43,7 @@ class PaymentTracker:
         for p in self._payments:
             if p.id == payment_id:
                 p.status = "paid"
-                p.paid_at = datetime.now(timezone.utc).isoformat()
+                p.paid_at = datetime.now(UTC).isoformat()
                 p.method = method
                 for rec in self._records:
                     if rec.payment_id == payment_id:
@@ -80,5 +80,5 @@ class PaymentTracker:
 def _cutoff_date(period_days: int) -> str:
     from datetime import timedelta
 
-    cutoff = datetime.now(timezone.utc) - timedelta(days=period_days)
+    cutoff = datetime.now(UTC) - timedelta(days=period_days)
     return cutoff.strftime("%Y-%m-%d")

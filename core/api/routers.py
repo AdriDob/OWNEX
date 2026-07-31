@@ -8,7 +8,7 @@ extensions, backup, update, knowledge graph, and health.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
@@ -169,7 +169,7 @@ async def core_status():
 
     return {
         "status": "ok",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "apps": registry.status(),
         "extensions": ext_registry.status(),
         "databases": db.list_databases(),

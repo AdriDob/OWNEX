@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from cores.agents.specialist import SpecialistAgent, SpecialistConfig
 from cores.agents.types import AgentEvent, AgentId, EventType
@@ -36,10 +35,10 @@ class CoderAgent(SpecialistAgent):
     - Receives from: Commander, Planner, Research
     - Hands off to: Reviewer, Documentation
     """
-    
+
     def _get_agent_id(self) -> AgentId:
         return AgentId.CODER
-    
+
     def _get_default_config(self) -> SpecialistConfig:
         return SpecialistConfig(
             primary_objective="Generate, refactor, and implement code",
@@ -66,20 +65,20 @@ class CoderAgent(SpecialistAgent):
                 "documentation_needed": "documentation",
             },
         )
-    
+
     def _get_specialist_tools(self) -> list[str]:
         return ["code_generation", "refactoring", "pr_creation", "testing"]
-    
+
     def _get_handoff_targets(self) -> list[AgentId]:
         return [AgentId.REVIEWER, AgentId.DOCUMENTATION]
-    
+
     def _get_subscriptions(self) -> list[EventType | str]:
         return [EventType.CODE_REQUESTED, EventType.FIX_APPLIED]
-    
+
     def handle_event(self, event: AgentEvent) -> None:
         if event.event_type == EventType.CODE_REQUESTED:
             self._generate_code(event)
-    
+
     def _generate_code(self, event: AgentEvent) -> None:
         """Generate code for the requested task."""
         task = event.payload.get("task", "")

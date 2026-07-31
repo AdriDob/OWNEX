@@ -9,9 +9,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from cores.events.types import Events
 from core.reports.quality.classifier import QualityClassifier
 from core.reports.quality.scorer import QualityScorer
+from cores.events.types import Events
 from database import db, models
 
 logger = logging.getLogger("orion.core.auto_submit")

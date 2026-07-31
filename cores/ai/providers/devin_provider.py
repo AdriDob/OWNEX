@@ -5,8 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import subprocess
-import json
-from typing import Generator
+from collections.abc import Generator
 
 from ..provider import AIProvider
 
@@ -22,7 +21,7 @@ class DevinProvider(AIProvider):
     - No API key required
     - Local execution with full filesystem access
     """
-    
+
     def __init__(
         self,
         devin_path: str | None = None,
@@ -31,7 +30,7 @@ class DevinProvider(AIProvider):
         self.devin_path = devin_path or os.getenv("DEVIN_PATH", "devin")
         self.model = model or os.getenv("DEVIN_MODEL", "default")
         self._available: bool | None = None
-        
+
     def _check(self) -> bool:
         """Check if Devin CLI is available."""
         try:
@@ -48,25 +47,25 @@ class DevinProvider(AIProvider):
         except Exception as e:
             logger.warning(f"Devin check failed: {e}")
             return False
-    
+
     def is_available(self) -> bool:
         if self._available is None:
             self._available = self._check()
         return self._available
-    
+
     @property
     def name(self) -> str:
         return f"devin/{self.model}"
-    
+
     def chat(self, messages: list[dict[str, str]], max_tokens: int = 512) -> str:
         """Execute Devin CLI with the prompt."""
         if not self.is_available():
             logger.warning("Devin CLI not available")
             return ""
-        
+
         # Format messages into a single prompt
         prompt = self._format_prompt(messages)
-        
+
         try:
             # Run Devin with the prompt
             result = subprocess.run(
@@ -75,13 +74,13 @@ class DevinProvider(AIProvider):
                 timeout=120,  # 2 minute timeout
                 text=True
             )
-            
+
             if result.returncode != 0:
                 logger.warning(f"Devin CLI error: {result.stderr}")
                 return ""
-            
+
             return result.stdout.strip()
-            
+
         except subprocess.TimeoutExpired:
             logger.warning("Devin CLI timed out")
             self._available = False
@@ -90,14 +89,14 @@ class DevinProvider(AIProvider):
             logger.warning(f"Devin call failed: {e}")
             self._available = False
             return ""
-    
+
     def chat_stream(self, messages: list[dict[str, str]], max_tokens: int = 512) -> Generator[str, None, None]:
         """Stream Devin output if possible."""
         if not self.is_available():
             return
-        
+
         prompt = self._format_prompt(messages)
-        
+
         try:
             # Run Devin with streaming output
             process = subprocess.Popen(
@@ -107,20 +106,20 @@ class DevinProvider(AIProvider):
                 text=True,
                 bufsize=1  # Line buffered
             )
-            
+
             for line in process.stdout:
                 if line:
                     yield line
-            
+
             process.wait()
-            
+
             if process.returncode != 0:
                 logger.warning(f"Devin CLI stream error: {process.stderr.read()}")
-                
+
         except Exception as e:
             logger.warning(f"Devin stream failed: {e}")
             self._available = False
-    
+
     def _format_prompt(self, messages: list[dict[str, str]]) -> str:
         """Format messages into a single prompt for Devin."""
         parts = []
@@ -133,11 +132,11 @@ class DevinProvider(AIProvider):
                 parts.append(f"User: {content}")
             elif role == "assistant":
                 parts.append(f"Assistant: {content}")
-        
+
         # Add final instruction
         parts.append("Please provide a concise response.")
         return "\n".join(parts)
-    
+
     def get_config(self) -> dict:
         return {
             "provider": self.name,

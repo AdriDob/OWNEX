@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
 
 def _hora_saludo() -> str:
-    h = datetime.now(timezone.utc).hour
+    h = datetime.now(UTC).hour
     if h < 12:
         return "¡Buenos días"
     if h < 18:

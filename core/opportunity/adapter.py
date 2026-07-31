@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from core.opportunity.models import PersonalHistory, ScoredOpportunity
 from core.opportunity.scorer import score_opportunity
@@ -83,7 +83,7 @@ def adapt_opportunity(
         platform=platform,
         technology_tags=list(opp.technology_tags),
         url=opp.public_url,
-        created_at=opp.created_at or datetime.now(timezone.utc).isoformat(),
+        created_at=opp.created_at or datetime.now(UTC).isoformat(),
         personal=personal,
         original=opp,
     )

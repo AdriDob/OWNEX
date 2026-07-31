@@ -18,7 +18,6 @@ Exit code 0 = all green, 1 = issues found.
 
 from __future__ import annotations
 
-import json
 import subprocess
 import sys
 from pathlib import Path

@@ -213,7 +213,7 @@ class TestRunner:
                     proc.communicate(),
                     timeout=self.timeout,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 proc.kill()
                 await proc.communicate()
                 return TestResult(

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.market_intelligence.models import Confidence, IntelligenceSource, MarketDomain, SourceTier
@@ -88,12 +88,12 @@ class SourceManager:
         if correct:
             source.signals_correct += 1
         source.reliability = source.accuracy
-        source.last_analyzed = datetime.now(timezone.utc).isoformat()
+        source.last_analyzed = datetime.now(UTC).isoformat()
         self._history[source_id].append(
             {
                 "correct": correct,
                 "details": details,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         )
         logger.info(

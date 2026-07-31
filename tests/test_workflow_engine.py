@@ -6,10 +6,9 @@ Basic integration test for workflow execution and handoffs.
 import pytest
 
 from cores.workflow import (
+    TaskStatus,
     WorkflowOrchestrator,
     WorkflowStatus,
-    TaskStatus,
-    HandoffStatus,
 )
 
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.ai_bounty.publisher import AIBountyEventPublisher
@@ -134,11 +134,11 @@ class AIBountyMonitor:
             payout_range=payout_range or self._programs.get(platform, {}).get("payout_range", ""),
             targets=targets or [],
             severity=severity,
-            detected_at=datetime.now(timezone.utc).isoformat(),
+            detected_at=datetime.now(UTC).isoformat(),
             status="new",
         )
         self._detected[key] = challenge
-        self._programs[platform]["last_checked"] = datetime.now(timezone.utc).isoformat()
+        self._programs[platform]["last_checked"] = datetime.now(UTC).isoformat()
 
         self._publisher.challenge_detected(
             platform=platform,

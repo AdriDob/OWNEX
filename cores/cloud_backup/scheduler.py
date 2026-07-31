@@ -6,10 +6,8 @@ Provides cron-based scheduling for automatic cloud backups.
 from __future__ import annotations
 
 import logging
-from datetime import UTC, datetime
-from pathlib import Path
 
-from cores.cloud_backup import CloudBackupConfig, CloudProvider, get_cloud_backup_manager
+from cores.cloud_backup import CloudBackupConfig, get_cloud_backup_manager
 from cores.version_backup import get_version_backup_system
 
 logger = logging.getLogger("ownex.cloud_backup_scheduler")
@@ -31,8 +29,8 @@ class CloudBackupScheduler:
         logger.info(f"[CLOUD BACKUP SCHEDULER] Scheduling daily backup at {hour:02d}:{minute:02d}")
 
         try:
-            from croniter import croniter
             import schedule
+            from croniter import croniter
 
             cron_expression = f"{minute} {hour} * * *"
             logger.info(f"[CLOUD BACKUP SCHEDULER] Cron expression: {cron_expression}")

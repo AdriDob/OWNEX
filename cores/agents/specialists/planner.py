@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from cores.agents.specialist import SpecialistAgent, SpecialistConfig
 from cores.agents.types import AgentEvent, AgentId, EventType
@@ -36,10 +35,10 @@ class PlannerAgent(SpecialistAgent):
     - Receives from: Commander
     - Hands off to: All specialists (based on plan)
     """
-    
+
     def _get_agent_id(self) -> AgentId:
         return AgentId.PLANNER
-    
+
     def _get_default_config(self) -> SpecialistConfig:
         return SpecialistConfig(
             primary_objective="Create detailed plans for complex objectives",
@@ -72,28 +71,28 @@ class PlannerAgent(SpecialistAgent):
                 "requires_security": "security",
             },
         )
-    
+
     def _get_specialist_tools(self) -> list[str]:
         return ["task_decomposition", "resource_estimation", "dependency_resolution", "timeline_optimization"]
-    
+
     def _get_handoff_targets(self) -> list[AgentId]:
         return [AgentId.RESEARCH, AgentId.CODER, AgentId.BROWSER, AgentId.SECURITY]
-    
+
     def _get_subscriptions(self) -> list[EventType | str]:
         return [EventType.PLAN_REQUESTED, EventType.TASK_ASSIGNED]
-    
+
     def handle_event(self, event: AgentEvent) -> None:
         if event.event_type == EventType.PLAN_REQUESTED:
             self._generate_plan(event)
         elif event.event_type == EventType.TASK_ASSIGNED:
             self._update_plan(event)
-    
+
     def _generate_plan(self, event: AgentEvent) -> None:
         """Generate a detailed plan for the objective."""
         objective = event.payload.get("objective", "")
         logger.info(f"[PLANNER] Generating plan for: {objective}")
         # Implement plan generation logic
-    
+
     def _update_plan(self, event: AgentEvent) -> None:
         """Update existing plan based on new information."""
         # Implement plan update logic
