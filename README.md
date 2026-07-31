@@ -2,6 +2,8 @@
 
 <div align="center">
 
+<img src="assets/logo.svg" alt="OWNEX Logo" width="120" height="120"/>
+
 <div style="
   background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%);
   border: 2px solid #00f0ff;
