@@ -2,16 +2,16 @@
 
 <div align="center">
 
-<img src="assets/banner.svg" alt="OWNEX Banner" width="1280" height="640"/>
+<img src="assets/banner.svg" alt="OWNEX" width="1600" height="700"/>
 
 ---
 
-[![Version](https://img.shields.io/badge/version-7.0.0-0B0F19)](https://github.com/AdriDob/rastrohunteralpha)
-[![Python](https://img.shields.io/badge/python-3.11+-3776AB)](https://www.python.org)
+[![Version](https://img.shields.io/badge/version-7.0.0-0B0B0B)](https://github.com/AdriDob/rastrohunteralpha)
+[![Python](https://img.shields.io/badge/python-3.11+-2D7FF9)](https://www.python.org)
 [![Vue](https://img.shields.io/badge/vue-3-4FC08D)](https://vuejs.org)
 [![TypeScript](https://img.shields.io/badge/typescript-5.0+-3178C6)](https://www.typescriptlang.org)
-[![License](https://img.shields.io/badge/license-MIT-6EE7B7)](LICENSE)
-[![Status](https://img.shields.io/badge/status-production--ready-5CF2B5)](https://github.com/AdriDob/rastrohunteralpha)
+[![License](https://img.shields.io/badge/license-MIT-D4AF37)](LICENSE)
+[![Status](https://img.shields.io/badge/status-production--ready-2D7FF9)](https://github.com/AdriDob/rastrohunteralpha)
 
 [![GitHub Stars](https://img.shields.io/github/stars/AdriDob/rastrohunteralpha?style=social)](https://github.com/AdriDob/rastrohunteralpha)
 [![GitHub Forks](https://img.shields.io/github/forks/AdriDob/rastrohunteralpha?style=social)](https://github.com/AdriDob/rastrohunteralpha)
@@ -19,32 +19,39 @@
 
 </div>
 
-**Autonomous Operating System Ecosystem — Ecosistema de Sistema Operativo Autónomo**
+---
 
-*Independencia financiera mediante software, automatización, bug bounty, IA y activos digitales*
+## Overview
+
+OWNEX is an autonomous operating system ecosystem with two complementary editions:
+
+- **OWNEX ALPHA** — Desktop edition for developers and professionals
+- **OWNEX OMEGA** — Mobile edition for smartphones and wearables
+
+Together, they perform software engineering, cybersecurity, bug bounty, AI orchestration, autonomous workflows, revenue generation, documentation, learning, self-healing infrastructure, and continuous self-improvement.
 
 ---
 
 ## ⚡ Quick Start
 
 ```bash
-# Clonar repo
+# Clone the repository
 git clone https://github.com/AdriDob/rastrohunteralpha.git
 cd rastrohunteralpha
 
-# Instalar dependencias
+# Install dependencies
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-# Configurar
+# Configure environment
 cp .env.example .env
-# Editar .env con tus credenciales
+# Edit .env with your credentials
 
-# Iniciar backend
+# Run the backend
 python api/main.py
 
-# Iniciar frontend
+# Run the frontend (in another terminal)
 cd frontend
 npm install
 npm run dev
