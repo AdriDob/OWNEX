@@ -23,6 +23,7 @@ from api.routers import (
     attack_surface,
     auth,
     auth_users,
+    auth_user,
     authhub,
     bank_payout,
     canonical,
@@ -1365,6 +1366,7 @@ app.include_router(operations.router)
 app.include_router(opportunity_intelligence.router)
 app.include_router(auth.router)
 app.include_router(auth_users.router)
+app.include_router(auth_user.router)
 app.include_router(sync.router)
 app.include_router(notifications.router)
 app.include_router(mobile.router)
