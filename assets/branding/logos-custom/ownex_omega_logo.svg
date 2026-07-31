@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="omegaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Circle - mobile/rounded shape -->
+  <circle cx="200" cy="200" r="180"
+          fill="none" stroke="url(#omegaGrad)" stroke-width="4" filter="url(#glow)"/>
+
+  <!-- Inner circle -->
+  <circle cx="200" cy="200" r="140"
+          fill="url(#omegaGrad)" opacity="0.2"/>
+
+  <!-- Omega symbol Ω -->
+  <text x="200" y="180" text-anchor="middle" font-family="Arial, sans-serif"
+        font-size="100" font-weight="bold" fill="#F0F0F0" filter="url(#glow)">Ω</text>
+
+  <!-- Ownex text -->
+  <text x="200" y="300" text-anchor="middle" font-family="Arial, sans-serif"
+        font-size="32" font-weight="bold" fill="#F0F0F0">OWNEX</text>
+
+  <!-- Omega text -->
+  <text x="200" y="335" text-anchor="middle" font-family="Arial, sans-serif"
+        font-size="20" font-weight="bold" fill="#8B5CF6">OMEGA</text>
+</svg>
