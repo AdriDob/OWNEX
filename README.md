@@ -2,11 +2,7 @@
 
 <div align="center">
 
-<img src="assets/logo.svg" alt="OWNEX Logo" width="128" height="128"/>
-
-**Autonomous Personal Operating System**
-
-Build. Learn. Execute. Earn.
+<img src="assets/banner.svg" alt="OWNEX Banner" width="1280" height="640"/>
 
 ---
 
