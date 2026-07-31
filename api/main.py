@@ -100,6 +100,7 @@ from api.routers import (
     settings_runtime,
     settings_unified,
     setup,
+    supabase,
     sync,
     system,
     system_state,
@@ -1434,6 +1435,7 @@ app.include_router(version_backup.router)
 
 # Setup router
 app.include_router(setup.router)
+app.include_router(supabase.router)
 app.include_router(enhanced_personalization.router)
 
 # Productivity router
