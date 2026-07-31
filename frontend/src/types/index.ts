@@ -1,292 +1,365 @@
-// ── Core Domain ──
+/**
+ * TypeScript Type Definitions for OWNEX OMEGA
+ *
+ * Interfaces específicas para respuestas de API y datos del sistema
+ * para evitar el uso excesivo de `any`.
+ */
 
-export interface Target {
-  id: number
-  name: string
-  domain: string
-  endpoint_count: number
-  finding_count: number
-  confirmed_findings: number
-  estimated_payout: number
-  roi: number
-  risk_score: number
-  opportunity_score: number
-  competition_score: number
-  freshness_score: number
-  created_at: string | null
+// ==================== AUTH TYPES ====================
+
+export interface LoginResponse {
+  session: {
+    token: string;
+    user_id: string;
+    expires_at: string;
+  };
 }
 
-export interface Finding {
-  id: number
-  target_id: number
-  endpoint_id: number | null
-  title: string
-  severity: 'critical' | 'high' | 'medium' | 'low' | 'info'
-  description: string | null
-  payout: number
-  target_name: string
-  endpoint_path: string
-  created_at: string | null
-  poc_path?: string
-  suggested_responses?: string[]
+export interface DeviceInfo {
+  device_id: string;
+  device_type: string;
+  os: string;
+  browser: string;
+  ip_address: string;
 }
 
-export interface Verdict {
-  id: number
-  hot_path_id: string | null
-  endpoint_id: number
-  status: 'confirmed' | 'rejected' | 'inconclusive' | 'pending'
-  confidence: number
-  reproducibility_score: number
-  reason: string | null
-  validation_report: Record<string, any>
-  created_at: string | null
+// ==================== TASK TYPES ====================
+
+export interface Task {
+  task_id: string;
+  title: string;
+  description: string;
+  category: TaskCategory;
+  priority: TaskPriority;
+  status: TaskStatus;
+  created_at: string;
+  completed_at?: string;
+  assigned_to?: string;
 }
 
-export interface EvidenceItem {
-  id: number
-  verdict_id: number
-  endpoint_id: number
-  attempt_label: string
-  request_url: string
-  request_method: string
-  response_status: number
-  consistent: boolean
-  curl_command: string | null
-  body_diff_ratio: number
-  request_body: string | null
-  response_body: string | null
+export type TaskCategory = 'bug_bounty' | 'dev_bounty' | 'data_annotation' | 'learning' | 'planning' | 'admin' | 'break';
+export type TaskPriority = 'critical' | 'high' | 'medium' | 'low';
+export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'blocked' | 'cancelled';
+
+// ==================== WORKFLOW TYPES ====================
+
+export interface Workflow {
+  workflow_id: string;
+  title: string;
+  description: string;
+  status: WorkflowStatus;
+  tasks: Task[];
+  created_at: string;
+  updated_at: string;
 }
 
-export interface Report {
-  id: number
-  investigation_id: number | null
-  format: string
-  program: string
-  target: string
-  vulnerability: string
-  severity: string
-  status: 'draft' | 'pending' | 'submitted' | 'paid' | 'rejected'
-  estimated_reward: number
-  confirmed_reward: number
-  currency: string
-  evidence_count: number
-  summary: string
-  content: Record<string, any> | null
-  created_at: string | null
-  updated_at: string | null
+export type WorkflowStatus = 'pending' | 'running' | 'paused' | 'completed' | 'failed' | 'cancelled';
+
+// ==================== MERLIN TYPES ====================
+
+export interface MerlinMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: string;
+  emotion?: string;
 }
 
-// ── WebSocket ──
-
-export type WsConnectionStatus = 'disconnected' | 'connecting' | 'connected'
-
-export interface WsEvent {
-  type: string
-  payload: Record<string, any>
-  ts: number
+export interface MerlinMemory {
+  memory_id: string;
+  type: MemoryType;
+  content: string;
+  tags: string[];
+  created_at: string;
 }
 
-// ── Financial ──
+export type MemoryType = 'conversation' | 'pattern' | 'workflow' | 'strategy' | 'knowledge' | 'note';
 
-export interface ProgramPayout {
-  program: string
-  report_count: number
-  confirmed_count: number
-  acceptance_rate: number
-  total_confirmed: number
-  avg_payout: number
-  highest_payout: number
-  avg_response_days: number
+export interface MerlinNote {
+  note_id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface TypePayout {
-  vulnerability_type: string
-  count: number
-  confirmed_count: number
-  total_estimated: number
-  total_confirmed: number
-  avg_estimated: number
-  avg_confirmed: number
-  base_payout: number
-  learned_payout: number
-  adjustment_factor: number
+// ==================== INTEGRATION TYPES ====================
+
+export interface Integration {
+  integration_id: string;
+  name: string;
+  category: string;
+  status: 'connected' | 'disconnected' | 'error';
+  last_sync?: string;
+  config: Record<string, unknown>;
 }
 
-export interface RewardLearning {
-  generated_at: string
-  total_reports: number
-  total_confirmed: number
-  total_confirmed_value: number
-  overall_acceptance_rate: number
-  by_type: Record<string, TypePayout>
-  by_program: Record<string, ProgramPayout>
-  top_programs_by_payout: ProgramPayout[]
-  top_programs_by_acceptance: ProgramPayout[]
-  prediction_accuracy: number
-  summary: string
+export interface IntegrationsData {
+  integrations: Integration[];
+  by_category: Record<string, Integration[]>;
+  by_status: Record<string, number>;
 }
 
-export interface FinancialMetrics {
-  total_earned: number
-  pending_payouts: number
-  paid_payouts: number
-  monthly_breakdown: { month: string; amount: number; paid: number }[]
-  value_per_hour: number
-  hours_tracked: number
+// ==================== BACKUP TYPES ====================
+
+export interface Backup {
+  backup_id: string;
+  created_at: string;
+  size: number;
+  version: string;
+  description?: string;
+  checksum: string;
 }
 
-// ── Hot Path / Attack Decision ──
+// ==================== PLANET TYPES ====================
 
-export interface HotPathItem {
-  path: string
-  method: string
-  target_id: number | null
-  risk_score: number
-  vector: string
-  ownership_risk: boolean
-  reason: string
-  suggestions: string[]
+export interface Planet {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  description: string;
+  category: string;
 }
 
-export interface AttackDecision {
-  summary: string
-  high_value_targets: HotPathItem[]
-  attack_vectors: Array<{ vector: string; endpoints: string[]; count: number }>
-  ownership_risks: HotPathItem[]
-  manual_test_suggestions: string[]
+// ==================== PLATFORM GUIDE TYPES ====================
+
+export interface PlatformGuide {
+  platform_id: string;
+  name: string;
+  description: string;
+  url: string;
+  category: string;
+  difficulty: string;
+  rewards: {
+    min: number;
+    max: number;
+    currency: string;
+  };
 }
 
-// ── Orion Context ──
+// ==================== SETTING TYPES ====================
 
-export interface OrionContext {
-  timestamp: string
-  system: { status: string; health_score: number; details: string[]; uptime_hours: number }
-  counts: {
-    targets: number; endpoints: number; findings: number; verdicts: number
-    confirmed_findings: number; total_estimated_payout: number
-    pending_rewards: number; reports_ready: number; active_scans: number
-  }
-  findings: { by_severity: Record<string, number>; new_24h: number }
-  verdicts: { by_status: Record<string, number>; confirmed: number; rejected: number; inconclusive: number }
-  reports: { by_status: Record<string, number>; total_rewards: number; pending_rewards: number; ready_for_approval: number }
-  earnings: { total: number; pending: number; paid: number }
-  opportunities: {
-    total: number
-    top: Array<{ id: number; name: string; domain: string; opportunity_score: number; endpoints: number; competition: number; freshness: number }>
-  }
-  next_action: { target_id: number; title: string; why_now: string; effort: string; estimated_reward: string; type: string } | null
-  scans: { active: number; recent: Array<{ id: number; target_id: number; mode: string; status: string; endpoints: number; started: string }> }
-  activity_24h: { total: number; events: Array<{ type: string; id: number; severity?: string; timestamp: string }> }
-  pipeline: { detected: number; validated: number; confirmed: number; reported: number }
-  _meta: { cached_at: number; ttl_seconds: number; version?: string; error?: string }
+export interface Setting {
+  key: string;
+  value: unknown;
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+  category: string;
+  description?: string;
 }
 
-// ── Pipeline ──
+// ==================== ERROR TYPES ====================
 
-export interface PipelineStages {
-  detected: Finding[]
-  validated: Finding[]
-  confirmed: Finding[]
-  reported: Finding[]
+export interface ErrorResponse {
+  error: string;
+  message?: string;
+  details?: Record<string, unknown>;
 }
 
-// ── Scan ──
+// ==================== NOTIFICATION TYPES ====================
 
-export interface ScanRun {
-  id: number
-  target_id: number
-  mode: string
-  status: string
-  endpoint_count: number
-  started_at: string | null
-  finished_at: string | null
+export interface Notification {
+  notification_id: string;
+  title: string;
+  message: string;
+  level: NotificationLevel;
+  created_at: string;
+  read: boolean;
+  requires_action: boolean;
+  action_type?: string;
 }
 
-// ── ZAP Integration ──
+export type NotificationLevel = 'critical' | 'high' | 'medium' | 'low';
 
-export interface ZapAlert {
-  alert: string
-  risk: string
-  risk_score: number
-  confidence: string
-  url: string
-  param: string
-  description: string
-  solution: string
-  cwe_id: string
-  plugin_id: string
-  evidence: string
-  is_passive: boolean
+// ==================== WEAR OS TYPES ====================
+
+export interface WatchNotification {
+  notification_id: string;
+  title: string;
+  message: string;
+  level: NotificationLevel;
+  created_at: string;
+  read: boolean;
+  requires_action: boolean;
+  action_type?: string;
 }
 
-export interface ZapSpiderResult {
-  status: string
-  urls_found: string[]
-  url_count: number
-  scan_id: string
+export interface WatchApprovalRequest {
+  request_id: string;
+  title: string;
+  description: string;
+  workflow_id?: string;
+  created_at: string;
+  responded: boolean;
+  approved?: boolean;
 }
 
-export interface ZapPassiveResult {
-  status: string
-  target_url: string
-  alerts: ZapAlert[]
-  alert_count: number
+export interface WatchStatus {
+  system_online: boolean;
+  scheduler_running: boolean;
+  active_workflows: number;
+  pending_approvals: number;
+  findings_total: number;
+  findings_confirmed: number;
+  targets_active: number;
+  health_score: number;
+  last_updated: string;
 }
 
-export interface ZapHypothesisResult {
-  status: string
-  target_url: string
-  hypotheses: HypothesisItem[]
-  total: number
+// ==================== PRODUCTIVITY TYPES ====================
+
+export interface DailyPlan {
+  date: string;
+  tasks: Task[];
+  total_estimated_minutes: number;
+  total_completed_minutes: number;
+  progress_percentage: number;
+  breaks_scheduled: number;
+  breaks_taken: number;
+  focus_sessions: number;
+  created_at: string;
+  updated_at: string;
 }
 
-// ── Enriched Hypothesis with Didactic Fields ──
-
-export interface HypothesisItem {
-  id: string
-  vulnerability_type: string
-  target_id: number
-  target_name: string
-  endpoint: Record<string, any>
-  likelihood: number
-  impact: number
-  confidence: number
-  priority_score: number
-  evidence: string[]
-  reasoning: string
-  suggested_actions: string[]
-  source: string
-  vector: string
-  what_is_this: string
-  why_suspected: string
-  real_world_impact: string
-  how_to_verify: string[]
-  estimated_difficulty: string
-  estimated_time_minutes: number
-  estimated_reward_range: string
+export interface ProductivityMetrics {
+  date: string;
+  tasks_completed: number;
+  tasks_total: number;
+  focus_hours: number;
+  break_hours: number;
+  revenue_generated: number;
+  bugs_found: number;
+  reports_submitted: number;
+  learning_hours: number;
+  efficiency_score: number;
 }
 
-// ── Verification Guide ──
+// ==================== ONBOARDING TYPES ====================
 
-export type VerificationStepStatus = 'pending' | 'in_progress' | 'completed' | 'failed'
-
-export interface VerificationStep {
-  id: string
-  label: string
-  description: string
-  status: VerificationStepStatus
-  type: 'check' | 'command' | 'screenshot' | 'note'
+export interface OnboardingLesson {
+  lesson_id: string;
+  day: string;
+  title: string;
+  description: string;
+  content: string;
+  duration_minutes: number;
+  status: LessonStatus;
+  completed_at?: string;
+  notes: string;
 }
 
-export interface VerificationSession {
-  hypothesis_id: string
-  vulnerability_type: string
-  target_name: string
-  target_url: string
-  steps: VerificationStep[]
-  current_step: number
-  started_at: string | null
-  completed_at: string | null
-  result: 'pending' | 'confirmed' | 'rejected' | 'inconclusive' | null
+export type LessonStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped';
+
+export interface OnboardingProgress {
+  user_name: string;
+  current_day: string;
+  lessons_completed: number;
+  lessons_total: number;
+  completion_percentage: number;
+  started_at: string;
+  completed_at?: string;
+  notes: string[];
+}
+
+// ==================== PERSONALIZATION TYPES ====================
+
+export interface PersonalProfile {
+  name: string;
+  preferred_name: string;
+  timezone: string;
+  language: string;
+  experience_level: ExperienceLevel;
+  work_mode: WorkMode;
+  guidance_level: GuidanceLevel;
+  primary_goal: string;
+  secondary_goals: string[];
+  income_target_monthly: number;
+  is_first_time_user: boolean;
+  days_using: number;
+  completed_onboarding: boolean;
+  voice_enabled: boolean;
+  voice_language: string;
+  obsidian_enabled: boolean;
+  obsidian_vault_path: string;
+  obsidian_daily_notes: boolean;
+  work_hours_start: string;
+  work_hours_end: string;
+  work_days: string[];
+  break_reminders: boolean;
+  daily_tasks_enabled: boolean;
+  daily_planning_enabled: boolean;
+  progress_tracking: boolean;
+  calendar_integration: boolean;
+  email_integration: boolean;
+  task_integration: string;
+  assistant_name: string;
+  assistant_tone: string;
+  assistant_proactivity: string;
+  bug_bounty_focus: boolean;
+  dev_bounty_focus: boolean;
+  data_annotation_focus: boolean;
+  productivity_focus: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
+export type WorkMode = 'bug_bounty' | 'dev_bounty' | 'data_annotation' | 'freelance' | 'mixed';
+export type GuidanceLevel = 'high_guidance' | 'medium_guidance' | 'low_guidance' | 'self_directed';
+
+// ==================== API RESPONSE WRAPPER ====================
+
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+// ==================== PAGINATION TYPES ====================
+
+export interface PaginatedResponse<T = unknown> {
+  items: T[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+// ==================== HEALTH TYPES ====================
+
+export interface HealthStatus {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  score: number;
+  checks: HealthCheck[];
+  last_updated: string;
+}
+
+export interface HealthCheck {
+  name: string;
+  status: 'pass' | 'fail' | 'warn';
+  message?: string;
+  duration_ms?: number;
+}
+
+// ==================== WIZARD TYPES ====================
+
+export interface WizardQuestion {
+  id: string;
+  question: string;
+  type: 'text' | 'number' | 'time' | 'select' | 'boolean';
+  placeholder?: string;
+  required: boolean;
+  default?: unknown;
+  options?: Array<{ value: string; label: string }>;
+  condition?: string;
+  description?: string;
+}
+
+export interface WizardStep {
+  step_id: string;
+  title: string;
+  description: string;
+  questions: WizardQuestion[];
+  is_required: boolean;
+  can_skip: boolean;
 }
