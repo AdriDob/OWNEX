@@ -18,6 +18,7 @@ def _skip_if_external_api_down(result):
     if any(m in error for m in markers):
         pytest.skip(f"External API unavailable: {error[:120]}")
 
+
 # ── Fixtures ──────────────────────────────────────────────────────
 
 HERE = Path(__file__).parent
