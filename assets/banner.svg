@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6EE7FF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background dark -->
+  <rect width="1280" height="640" fill="#0B0F19"/>
+
+  <!-- Logo elements - centered -->
+  <g transform="translate(640, 280)">
+    <!-- Orbital ring -->
+    <circle cx="0" cy="0" r="100" fill="none" stroke="url(#grad1)" stroke-width="10"/>
+
+    <!-- Hexagon -->
+    <polygon points="0,-60 52,-30 52,30 0,60 -52,30 -52,-30" fill="none" stroke="url(#grad1)" stroke-width="6"/>
+
+    <!-- Inner core -->
+    <circle cx="0" cy="0" r="40" fill="url(#grad1)"/>
+
+    <!-- Center dot -->
+    <circle cx="0" cy="0" r="12" fill="#ffffff"/>
+  </g>
+
+  <!-- Text OWNEX -->
+  <text x="640" y="480" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="#ffffff" text-anchor="middle" letter-spacing="8">OWNEX</text>
+
+  <!-- Text OMEGA -->
+  <text x="640" y="540" font-family="Arial, sans-serif" font-size="32" font-weight="normal" fill="#6EE7FF" text-anchor="middle" letter-spacing="4">OMEGA</text>
+
+  <!-- Subtitle -->
+  <text x="640" y="590" font-family="Arial, sans-serif" font-size="16" fill="#5CF2B5" text-anchor="middle" letter-spacing="2">Autonomous Personal Operating System</text>
+</svg>
