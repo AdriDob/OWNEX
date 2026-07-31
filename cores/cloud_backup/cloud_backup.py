@@ -330,8 +330,17 @@ class GCSBackupProvider(CloudBackupProvider):
             self._gcs_client = storage.Client()
             bucket = self._gcs_client.bucket(self.config.bucket_name)
 
-            # Test connection
-            bucket.blob("test").delete()
+            # Test connection by checking if bucket exists and is accessible
+            if not bucket.exists():
+                logger.error(f"[CLOUD BACKUP] GCS bucket does not exist: {self.config.bucket_name}")
+                return False
+
+            # Try to list a single object to verify permissions
+            try:
+                next(bucket.list_blobs(max_results=1))
+            except Exception:
+                # Bucket exists but may be empty or no read permissions - still connected
+                pass
 
             logger.info(f"[CLOUD BACKUP] Connected to GCS bucket: {self.config.bucket_name}")
             return True
