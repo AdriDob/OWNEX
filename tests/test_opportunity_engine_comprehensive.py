@@ -604,6 +604,7 @@ class TestOpportunityEngine:
 class TestIntegrationScenarios:
     """Integration test scenarios for end-to-end workflows."""
 
+    @pytest.mark.serial
     def test_full_scoring_workflow(self):
         """Test the complete workflow from feedback to score adjustment."""
         engine = OpportunityEngine()

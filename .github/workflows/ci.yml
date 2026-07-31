@@ -58,9 +58,9 @@ jobs:
           path: htmlcov/
 
   test-core:
-    name: Core Tests (full, no network)
+    name: Core Tests (parallel, no network)
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -69,12 +69,11 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt -q
       - run: |
-          python -m pytest \
+          python -m pytest -n auto \
             --ignore=tests/test_security.py \
             --ignore=tests/test_vision_gateway.py \
             --ignore=tests/test_scheduler.py \
             --ignore=tests/test_api_endpoints.py \
-            --deselect=tests/test_opportunity_engine_comprehensive.py::TestIntegrationScenarios::test_full_scoring_workflow \
             --cov=cores --cov=core --cov-report=term-missing:skip-covered \
             --cov-fail-under=80 \
             --timeout=60 -q tests/
