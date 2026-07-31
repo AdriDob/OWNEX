@@ -88,3 +88,6 @@ RUNTIME_GAPS.md
 /package-lock.json
 C:\\Users\\*
 squashfs-root/
+
+# Runtime artifacts
+data/
