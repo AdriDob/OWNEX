@@ -37,6 +37,7 @@ from api.routers import (
     discovery,
     economic,
     endpoints,
+    enhanced_personalization,
     evidence,
     evolution,
     execution,
@@ -63,6 +64,7 @@ from api.routers import (
     notifications,
     offensive,
     offensive_web3,
+    opensource,
     operations,
     opportunities,
     opportunity_intelligence,
@@ -104,13 +106,12 @@ from api.routers import (
     vault_app,
     verdicts,
     version,
+    version_backup,
     voice,
     webhooks,
     ws,
     zap,
-    opensource,
     zero_barrier,
-    version_backup,
 )
 from api.routers.investment import register_investment_capabilities as _reg_inv_caps
 from cores.env.config import get_config
@@ -293,7 +294,7 @@ async def lifespan(app: FastAPI):
     try:
         from cores.operations import initialize_operations
 
-        ops = await initialize_operations()
+        await initialize_operations()
         logger.info("Operations system initialized (watchdog, recovery, backups, cleanup, doctor)")
     except Exception as exc:
         logger.warning("Operations system init failed (non-fatal): %s", exc)
@@ -817,7 +818,7 @@ async def lifespan(app: FastAPI):
         try:
             from core.revenue.engine import RevenueEngine
 
-            revenue_engine = RevenueEngine()
+            RevenueEngine()  # Initialized but not used yet
             logger.info("[BOOT] Revenue Engine ready")
         except Exception as exc:
             logger.warning("Revenue Engine init failed (non-fatal): %s", exc)
@@ -1426,6 +1427,7 @@ app.include_router(version_backup.router)
 
 # Setup router
 app.include_router(setup.router)
+app.include_router(enhanced_personalization.router)
 
 # MERLIN router
 app.include_router(merlin.router)
