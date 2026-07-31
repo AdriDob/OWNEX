@@ -154,13 +154,14 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import type { WizardStep, WizardQuestion } from '@/types'
 
 const router = useRouter()
 
-const steps = ref([])
+const steps = ref<WizardStep[]>([])
 const currentStepIndex = ref(0)
-const answers = ref<Record<string, any>>({})
-const userProfile = ref<any>(null)
+const answers = ref<Record<string, unknown>>({})
+const userProfile = ref<unknown>(null)
 
 const currentStep = computed(() => steps.value[currentStepIndex.value])
 const progress = computed(() => ((currentStepIndex.value + 1) / steps.value.length) * 100)
@@ -168,7 +169,7 @@ const isLastStep = computed(() => currentStepIndex.value === steps.value.length 
 
 const isStepValid = computed(() => {
   if (!currentStep.value) return false
-  return currentStep.value.questions.every((q: any) => {
+  return currentStep.value.questions.every((q: WizardQuestion) => {
     if (q.required && !answers.value[q.id]) return false
     return true
   })
