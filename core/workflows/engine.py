@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 from typing import Any
 
@@ -122,7 +122,7 @@ class WorkflowEngine:
         with self._lock:
             run.results.append(result)
             run.status = result.status
-            run.updated_at = datetime.now(timezone.utc)
+            run.updated_at = datetime.now(UTC)
         return result
 
     def _dispatch_step(self, step: WorkflowStep) -> dict[str, Any]:

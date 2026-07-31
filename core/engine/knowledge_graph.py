@@ -16,7 +16,7 @@ import logging
 import os
 import sqlite3
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -45,8 +45,8 @@ class KnowledgeNode:
     type: str  # program, opportunity, tag, finding, user, sensor, capability
     name: str
     properties: dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
     confidence: float = 1.0
 
 
@@ -59,8 +59,8 @@ class KnowledgeEdge:
     relationship: str  # belongs_to, similar_to, requires, produces, ...
     strength: float = 1.0
     properties: dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
     confidence: float = 1.0
 
 
@@ -162,7 +162,7 @@ class KnowledgeGraph(Engine):
     # ── Node operations ─────────────────────────────────────────────
 
     def add_node(self, node: KnowledgeNode) -> KnowledgeNode:
-        node.last_updated = datetime.now(timezone.utc)
+        node.last_updated = datetime.now(UTC)
         conn = _connect(self.db_path)
         conn.execute(
             """INSERT OR REPLACE INTO nodes
@@ -252,7 +252,7 @@ class KnowledgeGraph(Engine):
             raw = f"{type}:{name}"
             node_id = hashlib.sha256(raw.encode()).hexdigest()[:16]
         existing = self.get_node(node_id)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if existing:
             existing.name = name
             existing.last_updated = now
@@ -282,7 +282,7 @@ class KnowledgeGraph(Engine):
     # ── Edge operations ─────────────────────────────────────────────
 
     def add_edge(self, edge: KnowledgeEdge) -> KnowledgeEdge:
-        edge.last_updated = datetime.now(timezone.utc)
+        edge.last_updated = datetime.now(UTC)
         conn = _connect(self.db_path)
         conn.execute(
             """INSERT OR REPLACE INTO edges

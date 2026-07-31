@@ -6,7 +6,7 @@ import logging
 import subprocess
 import sys
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -117,7 +117,7 @@ class ActionResult:
     status: str  # "ok" | "error" | "skipped" | "recommended"
     message: str
     details: dict[str, Any] = field(default_factory=dict)
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 class AutomationEngine:
@@ -412,12 +412,12 @@ class AutomationEngine:
             findings["latest_backup"] = bs.get("latest_backup")
             latest = bs.get("latest_backup")
             if latest:
-                from datetime import datetime, timezone
+                from datetime import datetime
 
                 created = latest.get("created_at", "")
                 if created:
                     try:
-                        age_h = (datetime.now(timezone.utc) - datetime.fromisoformat(created)).total_seconds() / 3600
+                        age_h = (datetime.now(UTC) - datetime.fromisoformat(created)).total_seconds() / 3600
                         findings["backup_age_hours"] = round(age_h, 1)
                         if age_h > 48:
                             issues.append(f"Last backup {round(age_h, 1)}h ago — run --backup")
@@ -585,7 +585,7 @@ class AutomationEngine:
 
 def _is_today(iso_ts: str) -> bool:
     try:
-        return datetime.fromisoformat(iso_ts).date() == datetime.now(timezone.utc).date()
+        return datetime.fromisoformat(iso_ts).date() == datetime.now(UTC).date()
     except Exception:
         return False
 

@@ -12,7 +12,7 @@ import logging
 import os
 import sqlite3
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.engine.base import Engine
@@ -57,7 +57,7 @@ class LearningRecord:
     tags: list[str] = field(default_factory=list)
 
     # Metadata
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     notes: str = ""
 
 

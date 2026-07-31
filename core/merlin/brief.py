@@ -7,7 +7,7 @@ and generates a structured daily briefing for Adriel.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from database import db, models
@@ -34,7 +34,7 @@ class MerlinBrief:
     def generate(self) -> dict[str, Any]:
         """Generate a complete daily brief. Returns structured dict."""
         brief = {
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
             "targets": self._target_summary(),
             "pipeline": self._pipeline_summary(),
             "findings": self._findings_summary(),

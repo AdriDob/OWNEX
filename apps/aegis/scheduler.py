@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import UTC
 
 from apps.aegis.models import AegisTarget, ScanResult
 from core.database.manager import get_db_manager
@@ -24,9 +25,9 @@ def check_active_targets() -> dict[str, int]:
 
 def cleanup_stale_scans() -> dict[str, int]:
     """Remove scan results older than 90 days."""
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
-    cutoff = datetime.now(timezone.utc) - timedelta(days=90)
+    cutoff = datetime.now(UTC) - timedelta(days=90)
     db = get_db_manager().get_session("aegis")
     try:
         stale = db.query(ScanResult).filter(ScanResult.created_at < cutoff).count()

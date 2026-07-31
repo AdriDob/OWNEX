@@ -14,9 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import os
 import platform
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -73,7 +71,7 @@ class OwnexInstaller:
         # Check available memory
         try:
             if self.system_info["os"] == "Linux":
-                with open("/proc/meminfo", "r") as f:
+                with open("/proc/meminfo") as f:
                     meminfo = f.read()
                     for line in meminfo.split("\n"):
                         if line.startswith("MemTotal:"):
@@ -312,7 +310,7 @@ GUIDED_ONBOARDING={personalization_data.get('guided_onboarding', False)}
 
             if not env_file.exists():
                 env_file.write_text(env_content.strip())
-                logger.info(f"✓ Archivo .env creado")
+                logger.info("✓ Archivo .env creado")
             else:
                 logger.info("ℹ Archivo .env ya existe, conservando configuración existente")
 
@@ -432,11 +430,9 @@ echo "With: MERLIN Assistant, Daily Planning, Obsidian Integration, Voice Comman
 
         try:
             # Test API import
-            from api.main import app
             logger.info("✓ API import successful")
 
             # Test database connection
-            from database import db
             logger.info("✓ Database connection successful")
 
             # Test config loading

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger("ownex.orion.intelligence.collector")
@@ -16,8 +16,8 @@ async def collect_intel() -> dict[str, Any]:
     """
     try:
         intel: dict[str, Any] = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "collected_at": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
+            "collected_at": datetime.now(UTC).isoformat(),
         }
 
         # 1. Opportunity counts
@@ -71,5 +71,5 @@ async def collect_intel() -> dict[str, Any]:
         return {
             "success": False,
             "error": str(e),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }

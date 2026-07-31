@@ -11,7 +11,6 @@ Provides:
 from __future__ import annotations
 
 import logging
-import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -130,7 +129,6 @@ class S3BackupProvider(CloudBackupProvider):
             self.connect()
 
         try:
-            import shutil
 
             backup_path = Path(backup_path)
 
@@ -358,7 +356,6 @@ class GCSBackupProvider(CloudBackupProvider):
             self.connect()
 
         try:
-            import shutil
 
             backup_path = Path(backup_path)
 

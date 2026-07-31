@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.cycles.knowledge_capture import KnowledgeCapture
@@ -35,7 +35,7 @@ class IntegrationEvent:
     target: str  # security_cycle, mission_control, opportunity_engine
     type: str
     payload: dict[str, Any]
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     priority: int = 5
 
     def to_dict(self) -> dict[str, Any]:
@@ -129,7 +129,7 @@ class IntegrationOrchestrator:
             )
 
         context = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "knowledge_count": len(latest_knowledge),
             "opportunities_analyzed": len(opportunities),
             "high_value_opportunities": len(high_value_opportunities),
@@ -144,7 +144,7 @@ class IntegrationOrchestrator:
             "orchestrator": "active",
             "knowledge_entries": len(self.knowledge.get_entries()),
             "opportunity_sources": len(self.engine.get_top5_by_domain()),
-            "last_cycle": datetime.now(timezone.utc).isoformat(),
+            "last_cycle": datetime.now(UTC).isoformat(),
         }
 
 

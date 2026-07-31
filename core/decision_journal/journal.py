@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import desc
 
@@ -90,7 +90,7 @@ def record_outcome(decision_id: str, outcome: str, reward: float = 0.0, notes: s
         entry.outcome = outcome
         entry.reward = reward
         entry.feedback_notes = notes
-        entry.updated_at = datetime.now(timezone.utc)
+        entry.updated_at = datetime.now(UTC)
         db.commit()
         logger.info("Outcome recorded: %s → %s (reward=%.2f)", decision_id, outcome, reward)
         return True

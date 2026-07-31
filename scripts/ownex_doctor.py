@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import importlib
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def check_python() -> dict[str, str]:
@@ -38,7 +38,7 @@ checks = [
 ]
 
 print("OWNEX Doctor")
-print(f"Time: {datetime.now(timezone.utc).isoformat()}")
+print(f"Time: {datetime.now(UTC).isoformat()}")
 print()
 
 all_ok = True

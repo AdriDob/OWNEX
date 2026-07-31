@@ -29,7 +29,7 @@ from __future__ import annotations
 import json
 import logging
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -40,7 +40,7 @@ from database.db import SessionLocal
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 log = logging.getLogger("seed_real")
 
-NOW = datetime.now(timezone.utc)
+NOW = datetime.now(UTC)
 WEEK_AGO = NOW - timedelta(days=7)
 TWO_WEEKS_AGO = NOW - timedelta(days=14)
 MONTH_AGO = NOW - timedelta(days=30)

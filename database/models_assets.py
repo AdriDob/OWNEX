@@ -7,7 +7,7 @@ tracked for changes, health, and discovery status.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.sql import func
@@ -45,7 +45,7 @@ class Asset(Base):
     tags = Column(Text, default="[]")
     source = Column(String(64), default="")
     confidence = Column(Float, default=0.8)
-    discovered_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    discovered_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     last_verified_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

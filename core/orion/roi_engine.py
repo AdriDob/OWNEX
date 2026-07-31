@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import text
@@ -54,7 +54,7 @@ def score_all(session: Any) -> dict[str, ROIScore]:
     Returns a dict of ``{platform_id: ROIScore}`` sorted by score descending.
     """
     scores: dict[str, ROIScore] = {}
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     cutoff_30d = now - timedelta(days=30)
     cutoff_7d = now - timedelta(days=7)
 
@@ -186,7 +186,7 @@ def _compute_scores(scores: dict[str, ROIScore]) -> None:
         if s.last_active:
             try:
                 last = datetime.fromisoformat(s.last_active.replace("Z", "+00:00"))
-                days_since = (datetime.now(timezone.utc) - last).days
+                days_since = (datetime.now(UTC) - last).days
                 pts += 5.0 * max(0.0, 1.0 - days_since / 30.0)
             except (ValueError, TypeError):
                 pass

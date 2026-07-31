@@ -532,11 +532,11 @@ if __name__ == "__main__":
         print(f"    Avg Reward: ${platform_data['avg_reward']}")
         # Show updated success rates from calculation
         if platform_key == "bug_bounty":
-            print(f"    Success Rate: 30% (optimized with AI + automation)")
+            print("    Success Rate: 30% (optimized with AI + automation)")
         elif platform_key == "dev_bounty":
-            print(f"    Success Rate: 70% (optimized with AI + code generation)")
+            print("    Success Rate: 70% (optimized with AI + code generation)")
         elif platform_key == "data_annotation":
-            print(f"    Success Rate: 95% (optimized with AI-assisted annotation)")
+            print("    Success Rate: 95% (optimized with AI-assisted annotation)")
         else:
             print(f"    Success Rate: {platform_data['success_rate'] * 100}%")
         print(f"    Platforms: {', '.join(platform_data['platforms'])}")

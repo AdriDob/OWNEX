@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger("orion.core.copilot.auditor")
@@ -43,7 +43,7 @@ class AuditReport:
     def __init__(self, auditor_name: str) -> None:
         self.auditor_name = auditor_name
         self.findings: list[AuditFinding] = []
-        self.timestamp = datetime.now(timezone.utc)
+        self.timestamp = datetime.now(UTC)
 
     def add(self, finding: AuditFinding) -> None:
         self.findings.append(finding)

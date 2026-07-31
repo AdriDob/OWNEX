@@ -14,14 +14,12 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from cores.revenue_tracker.revenue_potential import generate_revenue_report
 from cores.revenue_tracker.RevenueTracker import (
     BarrierType,
-    PaymentPlatform,
     PaymentStatus,
-    RevenueTracker,
     get_revenue_tracker,
 )
-from cores.revenue_tracker.revenue_potential import generate_revenue_report
 
 logger = logging.getLogger("ownex.api.zero_barrier")
 

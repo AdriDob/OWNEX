@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -64,7 +64,7 @@ def test_rollup_empty() -> None:
 
 
 def test_rollup_hourly_basic() -> None:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     hour_start = now.replace(minute=0, second=0, microsecond=0) - timedelta(hours=1)
     _insert_events(
         [
@@ -99,7 +99,7 @@ def test_rollup_hourly_basic() -> None:
 
 
 def test_rollup_daily() -> None:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     day_start = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=1)
     _insert_events(
         [
@@ -119,7 +119,7 @@ def test_rollup_daily() -> None:
 
 
 def test_rollup_duration_stats() -> None:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     hour_start = now.replace(minute=0, second=0, microsecond=0) - timedelta(hours=1)
     _insert_events(
         [
@@ -182,7 +182,7 @@ def test_analyze_empty() -> None:
 
 
 def test_analyze_descriptive_stats() -> None:
-    cutoff = datetime.now(timezone.utc) - timedelta(days=14)
+    cutoff = datetime.now(UTC) - timedelta(days=14)
     _insert_events(
         [
             {
@@ -218,14 +218,14 @@ def test_analyze_descriptive_stats() -> None:
 
 
 def test_bottleneck_detection_no_data() -> None:
-    cutoff = datetime.now(timezone.utc)
+    cutoff = datetime.now(UTC)
     engine = AnalyzeEngine()
     result = engine._level_2_bottlenecks(cutoff)
     assert result["bottlenecks"] == []
 
 
 def test_bottleneck_detection_with_tool() -> None:
-    cutoff = datetime.now(timezone.utc) - timedelta(days=14)
+    cutoff = datetime.now(UTC) - timedelta(days=14)
     _insert_events(
         [
             {
@@ -283,7 +283,7 @@ def test_bottleneck_detection_with_tool() -> None:
 
 
 def test_pattern_mining_empty() -> None:
-    cutoff = datetime.now(timezone.utc)
+    cutoff = datetime.now(UTC)
     engine = AnalyzeEngine()
     result = engine._level_3_patterns(cutoff)
     assert result["pattern_count"] >= 0  # some stats may have 0 observations
@@ -297,7 +297,7 @@ def test_asset_proposal_empty() -> None:
 
 
 def test_rollup_has_correct_schema() -> None:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     hour_start = now.replace(minute=0, second=0, microsecond=0) - timedelta(hours=1)
     _insert_events(
         [

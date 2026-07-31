@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core import OWNEX_DIR
@@ -92,7 +92,7 @@ class UpdateManager:
             self._remote_version = self._current_version
             self._manifest = None
 
-        self._last_checked = datetime.now(timezone.utc).isoformat()
+        self._last_checked = datetime.now(UTC).isoformat()
         return self.status()
 
     def status(self) -> dict[str, Any]:
@@ -138,7 +138,7 @@ class UpdateManager:
             "version_from": self._current_version,
             "version_to": self._remote_version,
             "backup_path": backup_result.get("backup_path"),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         self._history.append(record)
         self._persist(record)
@@ -182,7 +182,7 @@ class UpdateManager:
             "action": "rollback",
             "backup_path": backup_path,
             "restored_files": restore_result.get("restored_files"),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         self._history.append(record)
         self._persist(record)

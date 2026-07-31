@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from cores.agents.specialist import SpecialistAgent, SpecialistConfig
 from cores.agents.types import AgentEvent, AgentId, EventType
@@ -36,10 +35,10 @@ class LearningAgent(SpecialistAgent):
     - Receives from: All specialists
     - Hands off to: Evolution (improvement suggestions)
     """
-    
+
     def _get_agent_id(self) -> AgentId:
         return AgentId.LEARNING
-    
+
     def _get_default_config(self) -> SpecialistConfig:
         return SpecialistConfig(
             primary_objective="Capture knowledge and learn from system operations",
@@ -63,27 +62,27 @@ class LearningAgent(SpecialistAgent):
                 "improvement_opportunity": "evolution",
             },
         )
-    
+
     def _get_specialist_tools(self) -> list[str]:
         return ["knowledge_storage", "pattern_recognition", "error_analysis", "feedback_processing"]
-    
+
     def _get_handoff_targets(self) -> list[AgentId]:
         return [AgentId.EVOLUTION]
-    
+
     def _get_subscriptions(self) -> list[EventType | str]:
         return [EventType.PATTERN_LEARNED, EventType.ERROR_ANALYZED, EventType.FEEDBACK_PROCESSED]
-    
+
     def handle_event(self, event: AgentEvent) -> None:
         if event.event_type == EventType.PATTERN_LEARNED:
             self._process_pattern(event)
         elif event.event_type == EventType.ERROR_ANALYZED:
             self._analyze_error(event)
-    
+
     def _process_pattern(self, event: AgentEvent) -> None:
         """Process learned pattern."""
         pattern = event.payload.get("pattern", "")
         logger.info(f"[LEARNING] Processing pattern: {pattern}")
-    
+
     def _analyze_error(self, event: AgentEvent) -> None:
         """Analyze error for learning."""
         error = event.payload.get("error", "")

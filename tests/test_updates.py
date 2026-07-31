@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from core.update.engine import UpdateManager, _parse_semver
 
@@ -77,7 +77,7 @@ class TestUpdateManager:
         monkeypatch.setattr("core.update.engine.UPDATE_LOG", tmp_path / "history.jsonl")
 
         mgr1 = UpdateManager()
-        mgr1._persist({"action": "test", "timestamp": datetime.now(timezone.utc).isoformat()})
+        mgr1._persist({"action": "test", "timestamp": datetime.now(UTC).isoformat()})
 
         mgr2 = UpdateManager()
         assert len(mgr2.get_history()) == 1

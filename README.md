@@ -296,7 +296,10 @@ PROYECTO OWNEX: ✅ PRODUCTION READY
 | **Advanced Voice Commands** | ✅ | Spanish phrases + TTS |
 | **Daily Planning** | ✅ | Sistema de planificación diaria |
 | **Guided Onboarding** | ✅ | Onboarding guiado de 7 días |
-| **Mobile Companion** | ✅ | Android + Wear OS Companion |
+| **Mobile Companion (Android)** | ✅ | App Android 100% completa con dashboard, MERLIN, approvals, Life Management |
+| **Wear OS Companion** | ✅ | App Wear OS 100% completa con health, notifications, approvals, MERLIN summary |
+| **Life Management** | ✅ | Sistema de gestión de vida personal (tasks, goals, habits, mood, advice, PC usage) |
+| **Devin CLI Integration** | ✅ | Tool gratuito de desarrollo integrado como provider de IA |
 | **Type Safety** | ✅ | TypeScript interfaces + mypy gradual |
 
 ---

@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.engine.base import Engine
@@ -42,7 +42,7 @@ class AgentContext:
     opportunity: Opportunity
     fragments: list[ContextFragment] = field(default_factory=list)
     system_prompt: str = ""
-    built_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    built_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     total_tokens: int = 0
     depth: str = "standard"       # "quick", "standard", "deep"
 

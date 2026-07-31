@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 class UserExperienceLevel(str, Enum):
@@ -121,7 +121,7 @@ class OnboardingStep:
 class EnhancedPersonalizationSystem:
     """Sistema de personalización mejorado."""
 
-    def __init__(self, config_path: Optional[Path] = None):
+    def __init__(self, config_path: Path | None = None):
         self.config_path = config_path or Path.home() / ".ownex" / "personalization.json"
         self.profile = PersonalProfile()
         self._load_profile()
@@ -130,7 +130,7 @@ class EnhancedPersonalizationSystem:
         """Cargar perfil desde archivo."""
         if self.config_path.exists():
             try:
-                with open(self.config_path, "r") as f:
+                with open(self.config_path) as f:
                     data = json.load(f)
                     self.profile = PersonalProfile(**data)
             except Exception:
@@ -500,7 +500,7 @@ type: daily-note
 
 
 # Singleton instance
-_enhanced_personalization_system: Optional[EnhancedPersonalizationSystem] = None
+_enhanced_personalization_system: EnhancedPersonalizationSystem | None = None
 
 
 def get_enhanced_personalization_system() -> EnhancedPersonalizationSystem:

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 
@@ -70,7 +70,7 @@ class RevenuePublisher:
         bounty_total = Decimal("0")
         trading_total = Decimal("0")
         defi_total = Decimal("0")
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         for ev in self._events:
             if ev.category == RevenueCategory.BUG_BOUNTY:
@@ -133,7 +133,7 @@ class RevenuePublisher:
                         amount=Decimal(str(data.get("amount", "0"))),
                         currency=data.get("currency", "USD"),
                         description=data.get("description", ""),
-                        timestamp=datetime.fromisoformat(data.get("timestamp", datetime.now(timezone.utc).isoformat())),
+                        timestamp=datetime.fromisoformat(data.get("timestamp", datetime.now(UTC).isoformat())),
                         metadata=data.get("metadata", {}),
                     )
                 )

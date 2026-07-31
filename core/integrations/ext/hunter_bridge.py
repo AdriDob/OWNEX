@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 import shutil
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -257,5 +257,5 @@ def status_summary() -> dict[str, Any]:
         "claude_bug_bounty": check_hunter(),
         "web3_bug_bounty_skills": check_web3_skills(),
         "bounty_hunter_mcp": check_mcp_hunter(),
-        "checked_at": datetime.now(timezone.utc).isoformat(),
+        "checked_at": datetime.now(UTC).isoformat(),
     }

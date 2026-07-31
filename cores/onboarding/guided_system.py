@@ -12,10 +12,10 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from cores.setup.steps.enhanced_personalization import get_enhanced_personalization_system
 
@@ -49,7 +49,7 @@ class Lesson:
     content: str
     duration_minutes: int
     status: LessonStatus = LessonStatus.NOT_STARTED
-    completed_at: Optional[str] = None
+    completed_at: str | None = None
     notes: str = ""
 
 
@@ -62,18 +62,18 @@ class OnboardingProgress:
     lessons_total: int = 0
     completion_percentage: float = 0.0
     started_at: str = field(default_factory=lambda: datetime.now().isoformat())
-    completed_at: Optional[str] = None
+    completed_at: str | None = None
     notes: list[str] = field(default_factory=list)
 
 
 class GuidedOnboardingSystem:
     """Sistema de onboarding guiado."""
 
-    def __init__(self, storage_path: Optional[Path] = None):
+    def __init__(self, storage_path: Path | None = None):
         self.personalization = get_enhanced_personalization_system()
         self.storage_path = storage_path or Path.home() / ".ownex" / "onboarding"
         self.storage_path.mkdir(parents=True, exist_ok=True)
-        self.progress: Optional[OnboardingProgress] = None
+        self.progress: OnboardingProgress | None = None
         self.lessons: list[Lesson] = []
         self._load_progress()
         self._initialize_lessons()
@@ -83,7 +83,7 @@ class GuidedOnboardingSystem:
         progress_file = self.storage_path / "progress.json"
 
         if progress_file.exists():
-            with open(progress_file, "r") as f:
+            with open(progress_file) as f:
                 data = json.load(f)
                 self.progress = OnboardingProgress(**data)
 
@@ -260,7 +260,7 @@ Te enseñaré a documentar tus hallazgos correctamente.
                 day=OnboardingDay.DAY_3,
                 title="Sistema de Planificación Diaria",
                 description="Aprender a usar el sistema de planificación",
-                content=f"""
+                content="""
 El sistema de planificación diaria es tu clave para la productividad.
 
 ## ¿Cómo Funciona?
@@ -304,7 +304,7 @@ Vamos a generar tu primer plan diario:
                 day=OnboardingDay.DAY_3,
                 title="Voice Commands",
                 description="Aprender a usar comandos de voz",
-                content=f"""
+                content="""
 Los comandos de voz te permiten interactuar conmigo sin usar el teclado.
 
 ## Comandos Básicos
@@ -356,7 +356,7 @@ Prueba los comandos básicos:
         self._save_progress()
         return self.progress
 
-    def get_current_lesson(self) -> Optional[Lesson]:
+    def get_current_lesson(self) -> Lesson | None:
         """Obtener lección actual."""
         if not self.progress:
             return None
@@ -426,7 +426,7 @@ Prueba los comandos básicos:
 
 
 # Singleton instance
-_guided_onboarding_system: Optional[GuidedOnboardingSystem] = None
+_guided_onboarding_system: GuidedOnboardingSystem | None = None
 
 
 def get_guided_onboarding_system() -> GuidedOnboardingSystem:

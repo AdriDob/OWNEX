@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import IntEnum
 from typing import Any
 
@@ -202,7 +202,7 @@ class IntelligentNotificationManager:
             "body": n.body,
             "priority": n.priority.name.lower(),
             "event_type": n.event_type,
-            "timestamp": datetime.fromtimestamp(n.timestamp, tz=timezone.utc).isoformat(),
+            "timestamp": datetime.fromtimestamp(n.timestamp, tz=UTC).isoformat(),
             "data": n.data,
         }
 
@@ -243,7 +243,7 @@ class IntelligentNotificationManager:
             "digest_queue_size": len(self._digest_queue),
             "total_suppressed": self._total_suppressed,
             "dedup_cache_size": len(self._dedup_cache),
-            "last_digest": datetime.fromtimestamp(self._last_digest, tz=timezone.utc).isoformat(),
+            "last_digest": datetime.fromtimestamp(self._last_digest, tz=UTC).isoformat(),
         }
 
     def get_history(self, limit: int = 20) -> list[dict[str, Any]]:

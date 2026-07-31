@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from cores.agents.specialist import SpecialistAgent, SpecialistConfig
 from cores.agents.types import AgentEvent, AgentId, EventType
@@ -36,10 +35,10 @@ class ReviewerAgent(SpecialistAgent):
     - Receives from: Coder, Security
     - Hands off to: Commander (approval), Documentation
     """
-    
+
     def _get_agent_id(self) -> AgentId:
         return AgentId.REVIEWER
-    
+
     def _get_default_config(self) -> SpecialistConfig:
         return SpecialistConfig(
             primary_objective="Review code and changes for quality",
@@ -65,20 +64,20 @@ class ReviewerAgent(SpecialistAgent):
                 "documentation_needed": "documentation",
             },
         )
-    
+
     def _get_specialist_tools(self) -> list[str]:
         return ["code_analysis", "quality_check", "security_review", "approval_system"]
-    
+
     def _get_handoff_targets(self) -> list[AgentId]:
         return [AgentId.COMMANDER, AgentId.DOCUMENTATION]
-    
+
     def _get_subscriptions(self) -> list[EventType | str]:
         return [EventType.REVIEW_REQUESTED, EventType.CODE_REVIEWED]
-    
+
     def handle_event(self, event: AgentEvent) -> None:
         if event.event_type == EventType.REVIEW_REQUESTED:
             self._execute_review(event)
-    
+
     def _execute_review(self, event: AgentEvent) -> None:
         """Execute code review."""
         code_change = event.payload.get("change", "")

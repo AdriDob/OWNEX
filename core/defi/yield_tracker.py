@@ -8,7 +8,7 @@ so the financial layer records them in the ledger.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.defi.positions import DefiPosition, YieldSnapshot
@@ -117,7 +117,7 @@ class DefiYieldTracker:
                 "usd_value": position.usd_value,
                 "apy": position.apy,
                 "monthly_yield": round(monthly, 2),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
             events.append(event)
 

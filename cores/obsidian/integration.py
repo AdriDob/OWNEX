@@ -9,10 +9,9 @@ Sistema de integración con Obsidian para:
 
 from __future__ import annotations
 
-import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from cores.setup.steps.enhanced_personalization import get_enhanced_personalization_system
 
@@ -20,7 +19,7 @@ from cores.setup.steps.enhanced_personalization import get_enhanced_personalizat
 class ObsidianIntegration:
     """Integración con Obsidian."""
 
-    def __init__(self, vault_path: Optional[Path] = None):
+    def __init__(self, vault_path: Path | None = None):
         self.system = get_enhanced_personalization_system()
         self.vault_path = vault_path or Path(self.system.profile.obsidian_vault_path)
         self.daily_notes_path = self.vault_path / "Daily Notes"
@@ -177,7 +176,7 @@ type: config
 
         config_path.write_text(config, encoding="utf-8")
 
-    def create_daily_note(self, date: Optional[datetime] = None) -> dict[str, Any]:
+    def create_daily_note(self, date: datetime | None = None) -> dict[str, Any]:
         """Crear nota diaria."""
         if date is None:
             date = datetime.now()
@@ -234,7 +233,7 @@ type: daily-note
             "date": date_str,
         }
 
-    def append_to_daily_note(self, content: str, date: Optional[datetime] = None) -> dict[str, Any]:
+    def append_to_daily_note(self, content: str, date: datetime | None = None) -> dict[str, Any]:
         """Agregar contenido a la nota diaria."""
         if date is None:
             date = datetime.now()
@@ -255,7 +254,7 @@ type: daily-note
             "date": date_str,
         }
 
-    def create_merlin_note(self, title: str, content: str, tags: Optional[list[str]] = None) -> dict[str, Any]:
+    def create_merlin_note(self, title: str, content: str, tags: list[str] | None = None) -> dict[str, Any]:
         """Crear nota de MERLIN."""
         if tags is None:
             tags = ["merlin"]
@@ -290,7 +289,7 @@ type: merlin-note
         """Obtener notas diarias recientes."""
         notes: list[dict[str, Any]] = []
         for note_path in sorted(self.daily_notes_path.glob("*.md"), reverse=True)[:limit]:
-            with open(note_path, "r", encoding="utf-8") as f:
+            with open(note_path, encoding="utf-8") as f:
                 content = f.read()
             notes.append({
                 "path": str(note_path),
@@ -303,7 +302,7 @@ type: merlin-note
         """Obtener notas de MERLIN recientes."""
         notes: list[dict[str, Any]] = []
         for note_path in sorted(self.merlin_notes_path.glob("*.md"), reverse=True)[:limit]:
-            with open(note_path, "r", encoding="utf-8") as f:
+            with open(note_path, encoding="utf-8") as f:
                 content = f.read()
             notes.append({
                 "path": str(note_path),
@@ -314,7 +313,7 @@ type: merlin-note
 
 
 # Singleton instance
-_obsidian_integration: Optional[ObsidianIntegration] = None
+_obsidian_integration: ObsidianIntegration | None = None
 
 
 def get_obsidian_integration() -> ObsidianIntegration:

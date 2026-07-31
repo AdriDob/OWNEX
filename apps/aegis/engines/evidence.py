@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -24,7 +24,7 @@ class EvidenceEngine:
     async def store(self, finding_id: int, content: bytes, filename: str, mime: str = "text/plain") -> dict[str, Any]:
         """Store an evidence artifact."""
         sha256 = hashlib.sha256(content).hexdigest()
-        safe_name = f"{finding_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{filename}"
+        safe_name = f"{finding_id}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{filename}"
         path = EVIDENCE_DIR / safe_name
         path.write_bytes(content)
 

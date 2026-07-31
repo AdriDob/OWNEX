@@ -10,13 +10,10 @@ Sistema de comandos de voz avanzados con:
 
 from __future__ import annotations
 
-import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
-from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from cores.setup.steps.enhanced_personalization import get_enhanced_personalization_system
 from cores.voice_interface import VoiceConfig, VoiceInterface
@@ -54,7 +51,7 @@ class AdvancedVoiceCommands:
 
     def __init__(self):
         self.personalization = get_enhanced_personalization_system()
-        self.voice_interface: Optional[VoiceInterface] = None
+        self.voice_interface: VoiceInterface | None = None
         self.commands: list[VoiceCommand] = []
         self._initialize_commands()
 
@@ -384,7 +381,7 @@ class AdvancedVoiceCommands:
 
 
 # Singleton instance
-_advanced_voice_commands: Optional[AdvancedVoiceCommands] = None
+_advanced_voice_commands: AdvancedVoiceCommands | None = None
 
 
 def get_advanced_voice_commands() -> AdvancedVoiceCommands:

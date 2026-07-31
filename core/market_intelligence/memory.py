@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -60,7 +60,7 @@ class IntelMemory:
             "correct": correct,
             "details": details,
             "value_usd": value_usd,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         self._outcomes.append(entry)
         self._save("outcomes.json", self._outcomes)
@@ -101,7 +101,7 @@ class IntelMemory:
             "confidence": confidence,
             "verified": False,
             "correct": None,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         self._predictions.append(entry)
         self._save("predictions.json", self._predictions)
@@ -113,7 +113,7 @@ class IntelMemory:
             if p.get("id") == prediction_id:
                 p["verified"] = True
                 p["correct"] = correct
-                p["verified_at"] = datetime.now(timezone.utc).isoformat()
+                p["verified_at"] = datetime.now(UTC).isoformat()
                 self._save("predictions.json", self._predictions)
                 self.record_outcome(
                     signal_id=prediction_id,

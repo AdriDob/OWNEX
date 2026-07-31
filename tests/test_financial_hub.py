@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from fastapi import FastAPI
@@ -370,7 +370,7 @@ def docs_checklist():
             if doc is None:
                 return None
             doc.is_completed = True
-            doc.completed_at = datetime.now(timezone.utc)
+            doc.completed_at = datetime.now(UTC)
             session.commit()
             session.refresh(doc)
             return mgr._doc_to_dict(doc)
