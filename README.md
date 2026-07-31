@@ -29,6 +29,7 @@
 - [Potencial de Ingresos](#-potencial-de-ingresos)
 - [Características Principales](#-características-principales)
 - [MERLIN — IA Asistida](#-merlin--ia-asistida)
+- [Life Management](#-life-management)
 - [Interfaz JARVIS 2030 Style](#-interfaz-jarvis-2030-style)
 - [Mobile Companion](#-mobile-companion--android--wear-os)
 - [Instalación](#-instalación)
@@ -395,6 +396,21 @@ PROYECTO OWNEX: ✅ PRODUCTION READY
 - **Typing Effect** — Efecto de typing animado
 - **Emotion Detection** — Emojis según sentimiento
 - **Theme Variations** — Classic 97, Modern Retro, Cyber Retro
+
+### 🧘 Life Management — Sistema de Gestión de Vida Personal
+
+- **Task Management Extendido** — Tareas con prioridades, categorías, recurring, linked goals/habits
+- **Goal Setting & Tracking** — Metas a largo plazo con milestones, progress tracking, vision board
+- **Habit Tracking** — Hábitos diarios con streaks, frequency, mood tracking, rewards
+- **Psychological Support** — Estado de ánimo diario, energía, estrés, gratitude journal, challenges, achievements
+- **Personalized Advice Engine** — Consejos personalizados por categoría (productivity, health, mental health, finance, relationships, motivation)
+- **PC Usage Tracking** — Tracking de sesiones, productividad, estadísticas diarias, distractions
+- **Daily Summary** — Resumen completo del día: tasks, habits, goals, mood, PC usage
+- **Intuitive Dashboard** — Interfaz JARVIS 2030 Style con filters, modals, progress bars
+- **Categories:** Work, Personal, Health, Finance, Learning, Social, Home, Hobby
+- **Priorities:** Critical, High, Medium, Low
+- **Mood Levels:** Very Positive, Positive, Neutral, Negative, Very Negative
+- **Advice Categories:** Productivity, Health, Mental Health, Finance, Relationships, Personal Growth, Motivation, Sleep, Nutrition, Exercise
 
 ### 💰 Gestión Financiera
 
