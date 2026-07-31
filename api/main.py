@@ -82,6 +82,7 @@ from api.routers import (
     orion_cli,
     osint,
     overview,
+    personal_infrastructure,
     pipeline,
     platforms,
     productivity,
@@ -1503,6 +1504,7 @@ app.include_router(offensive.router)
 app.include_router(offensive_web3.router)
 app.include_router(investigations.router)
 app.include_router(settings_ai.router)
+app.include_router(personal_infrastructure.router)
 app.include_router(settings_runtime.router)
 app.include_router(settings_unified.router)
 app.include_router(webhooks.router)
