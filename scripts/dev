@@ -74,8 +74,7 @@ def cmd_typecheck(extra: list[str]) -> int:
 def cmd_typecheck_fast(_extra: list[str]) -> int:
     return _run(
         "mypy (scoped)",
-        [PY, "-m", "mypy", "core/opportunity/scoring.py",
-         "core/scheduler/scheduler.py", "core/scheduler/jobs.py"],
+        [PY, "-m", "mypy", "core/opportunity/scoring.py", "core/scheduler/scheduler.py", "core/scheduler/jobs.py"],
     )
 
 
@@ -91,8 +90,17 @@ def cmd_test(extra: list[str]) -> int:
 def cmd_coverage(extra: list[str]) -> int:
     return _run(
         "pytest --cov",
-        [PY, "-m", "pytest", "--cov=cores", "--cov=core",
-         "--cov-report=term-missing:skip-covered", *DEFAULT_TEST_ARGS, "tests/"] + extra,
+        [
+            PY,
+            "-m",
+            "pytest",
+            "--cov=cores",
+            "--cov=core",
+            "--cov-report=term-missing:skip-covered",
+            *DEFAULT_TEST_ARGS,
+            "tests/",
+        ]
+        + extra,
     )
 
 
@@ -101,9 +109,16 @@ def cmd_test_fast(_extra: list[str]) -> int:
     # (3 items) cannot satisfy the real on_accept/on_reject DB lookups.
     return _run(
         "pytest (fast)",
-        [PY, "-m", "pytest", "--timeout=30", "-q",
-         "--deselect", "tests/test_opportunity_engine_comprehensive.py::TestIntegrationScenarios::test_full_scoring_workflow",
-         *TEST_TARGETS],
+        [
+            PY,
+            "-m",
+            "pytest",
+            "--timeout=30",
+            "-q",
+            "--deselect",
+            "tests/test_opportunity_engine_comprehensive.py::TestIntegrationScenarios::test_full_scoring_workflow",
+            *TEST_TARGETS,
+        ],
     )
 
 
@@ -133,7 +148,6 @@ COMMANDS = {
     "coverage": cmd_coverage,
     "test-fast": cmd_test_fast,
     "check": cmd_check,
-    "typecheck-fast": cmd_typecheck_fast,
     "work": cmd_work,
     "status": cmd_status,
 }
