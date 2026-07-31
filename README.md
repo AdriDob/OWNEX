@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![OWNEX Banner](assets/banner.svg)
+![OWNEX Banner](assets/banner.png)
 
 ---
 
