@@ -83,45 +83,47 @@ class VoicePersonalizationSystem:
         self._save_data()
         return pref
 
-    def set_tone(self, user_id: str, tone: str) -> None:
+    def set_tone(self, user_id: str, tone: str) -> VoicePreference:
         """Establecer tono."""
-        self.update_preferences(user_id, tone=tone)
+        return self.update_preferences(user_id, tone=tone)
 
-    def set_speed(self, user_id: str, speed: float) -> None:
+    def set_speed(self, user_id: str, speed: float) -> VoicePreference:
         """Establecer velocidad."""
-        self.update_preferences(user_id, speed=max(0.5, min(2.0, speed)))
+        return self.update_preferences(user_id, speed=max(0.5, min(2.0, speed)))
 
-    def set_pitch(self, user_id: str, pitch: float) -> None:
+    def set_pitch(self, user_id: str, pitch: float) -> VoicePreference:
         """Establecer pitch."""
-        self.update_preferences(user_id, pitch=max(0.5, min(2.0, pitch)))
+        return self.update_preferences(user_id, pitch=max(0.5, min(2.0, pitch)))
 
-    def set_volume(self, user_id: str, volume: float) -> None:
+    def set_volume(self, user_id: str, volume: float) -> VoicePreference:
         """Establecer volumen."""
-        self.update_preferences(user_id, volume=max(0.0, min(1.0, volume)))
+        return self.update_preferences(user_id, volume=max(0.0, min(1.0, volume)))
 
-    def set_language(self, user_id: str, language: str) -> None:
+    def set_language(self, user_id: str, language: str) -> VoicePreference:
         """Establecer idioma."""
-        self.update_preferences(user_id, language=language)
+        return self.update_preferences(user_id, language=language)
 
-    def set_auto_explain(self, user_id: str, auto_explain: bool) -> None:
+    def set_auto_explain(self, user_id: str, auto_explain: bool) -> VoicePreference:
         """Establecer si explicar automáticamente."""
-        self.update_preferences(user_id, auto_explain=auto_explain)
+        return self.update_preferences(user_id, auto_explain=auto_explain)
 
-    def set_auto_narrate(self, user_id: str, auto_narrate: bool) -> None:
+    def set_auto_narrate(self, user_id: str, auto_narrate: bool) -> VoicePreference:
         """Establecer si narrar automáticamente."""
-        self.update_preferences(user_id, auto_narrate=auto_narrate)
+        return self.update_preferences(user_id, auto_narrate=auto_narrate)
 
-    def set_interrupt_threshold(self, user_id: str, threshold: str) -> None:
+    def set_interrupt_threshold(self, user_id: str, threshold: str) -> VoicePreference:
         """Establecer umbral de interrupción."""
         valid_thresholds = ["risk_only", "important", "always", "never"]
         if threshold in valid_thresholds:
-            self.update_preferences(user_id, interrupt_threshold=threshold)
+            return self.update_preferences(user_id, interrupt_threshold=threshold)
+        return self.get_preferences(user_id)
 
-    def set_detail_level(self, user_id: str, detail_level: str) -> None:
+    def set_detail_level(self, user_id: str, detail_level: str) -> VoicePreference:
         """Establecer nivel de detalle."""
         valid_levels = ["minimal", "low", "medium", "high", "maximum"]
         if detail_level in valid_levels:
-            self.update_preferences(user_id, detail_level=detail_level)
+            return self.update_preferences(user_id, detail_level=detail_level)
+        return self.get_preferences(user_id)
 
     def set_conversation_mode(self, user_id: str, mode: ConversationMode) -> None:
         """Establecer modo de conversación."""
