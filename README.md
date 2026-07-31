@@ -2,9 +2,9 @@
 
 <div align="center">
 
-<img src="assets/branding/logo/ownex-logo-production.svg" alt="OWNEX OMEGA Logo" width="400"/>
+<img src="assets/branding/logo/ownex-logo-production.svg" alt="OWNEX OMEGA Logo" width="300"/>
 
-<img src="assets/branding/banner/ownex-hero-production.svg" alt="OWNEX OMEGA — Autonomous Work Operating System"/>
+<img src="assets/branding/social/github-social-preview.svg" alt="OWNEX OMEGA — Autonomous Work Operating System" width="1100"/>
 
 ---
 
@@ -40,23 +40,23 @@ Together, they perform software engineering, cybersecurity, bug bounty, AI orche
 
 ### FORGE — Dev Bounty
 
-<img src="assets/branding/icons/work-cycles/forge.svg" alt="FORGE — Dev Bounty" width="400"/>
+<img src="assets/branding/icons/work-cycles/forge.svg" alt="FORGE — Dev Bounty" width="200"/>
 
 ### PULSE — AI Work
 
-<img src="assets/branding/icons/work-cycles/pulse.svg" alt="PULSE — AI Work" width="400"/>
+<img src="assets/branding/icons/work-cycles/pulse.svg" alt="PULSE — AI Work" width="200"/>
 
 ### VAULT — Wealth
 
-<img src="assets/branding/icons/work-cycles/vault.svg" alt="VAULT — Wealth" width="400"/>
+<img src="assets/branding/icons/work-cycles/vault.svg" alt="VAULT — Wealth" width="200"/>
 
 ### ATLAS — Intelligence
 
-<img src="assets/branding/icons/work-cycles/atlas.svg" alt="ATLAS — Intelligence" width="400"/>
+<img src="assets/branding/icons/work-cycles/atlas.svg" alt="ATLAS — Intelligence" width="200"/>
 
 ### SECURITY — Bug Bounty
 
-<img src="assets/branding/icons/work-cycles/security.svg" alt="SECURITY — Bug Bounty" width="400"/>
+<img src="assets/branding/icons/work-cycles/security.svg" alt="SECURITY — Bug Bounty" width="200"/>
 
 </div>
 
