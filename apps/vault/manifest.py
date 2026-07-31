@@ -25,7 +25,7 @@ vault_router = APIRouter(prefix="/vault", tags=["vault"])
 manifest = IAppPlugin(
     id="vault",
     name="VAULT",
-    version="5.0.0",
+    version="7.0.0",
     description="Bug Bounty Platforms — HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack, Immunefi",
     icon="Shield",
     order=20,

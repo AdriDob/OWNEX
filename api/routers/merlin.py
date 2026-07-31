@@ -1,9 +1,9 @@
 """API Router for MERLIN - Office Retro Modernized Assistant."""
 
+from datetime import datetime
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional, List
-from datetime import datetime
 
 router = APIRouter(prefix="/api/merlin", tags=["merlin"])
 
@@ -11,7 +11,7 @@ router = APIRouter(prefix="/api/merlin", tags=["merlin"])
 class ChatRequest(BaseModel):
     """Request model for chat."""
     message: str
-    context: Optional[dict] = None
+    context: dict | None = None
 
 
 class ChatResponse(BaseModel):
@@ -23,12 +23,12 @@ class ChatResponse(BaseModel):
 
 class SettingsRequest(BaseModel):
     """Request model for settings."""
-    custom_name: Optional[str] = "MERLIN"
-    custom_greeting: Optional[str] = "¡Hola! Soy MERLIN, tu asistente de inteligencia autónoma."
-    detail_level: Optional[str] = "normal"
-    response_tone: Optional[str] = "professional"
-    enable_analytics: Optional[bool] = True
-    enable_learning: Optional[bool] = True
+    custom_name: str | None = "MERLIN"
+    custom_greeting: str | None = "¡Hola! Soy MERLIN, tu asistente de inteligencia autónoma."
+    detail_level: str | None = "normal"
+    response_tone: str | None = "professional"
+    enable_analytics: bool | None = True
+    enable_learning: bool | None = True
 
 
 class MemoryRequest(BaseModel):
@@ -64,7 +64,7 @@ async def chat(request: ChatRequest):
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/settings")
@@ -80,7 +80,7 @@ async def save_settings(request: SettingsRequest):
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/settings")
@@ -99,7 +99,7 @@ async def get_settings():
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/memory")
@@ -122,7 +122,7 @@ async def save_memory(request: MemoryRequest):
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/memory")
@@ -141,7 +141,7 @@ async def get_memory(limit: int = 10):
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/capabilities")
@@ -219,7 +219,7 @@ async def clear_chat():
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/notes")
@@ -246,7 +246,7 @@ async def get_notes():
         return {"notes": notes}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/notes")
@@ -267,4 +267,4 @@ async def save_note(title: str, content: str):
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

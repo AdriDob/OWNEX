@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -38,7 +37,7 @@ def get_audit(limit: int = 100):
         }
     except Exception as e:
         logger.error(f"Failed to get audit log: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/rotate")
@@ -51,7 +50,7 @@ def rotate_secret(request: RotateRequest):
         return result
     except Exception as e:
         logger.error(f"Failed to rotate credential: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/scan")
@@ -62,7 +61,7 @@ def scan_secrets():
         return results
     except Exception as e:
         logger.error(f"Secret scan failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/platform/{platform}")
@@ -77,4 +76,4 @@ def get_platform(platform: str):
         }
     except Exception as e:
         logger.error(f"Failed to get platform credentials: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None

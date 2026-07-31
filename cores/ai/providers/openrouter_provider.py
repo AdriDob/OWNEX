@@ -6,12 +6,12 @@ import logging
 import os
 from typing import Any
 
-from cores.ai.providers.base import BaseAIProvider
+from cores.ai.provider import AIProvider
 
 logger = logging.getLogger("ownex.ai.providers.openrouter")
 
 
-class OpenRouterProvider(BaseAIProvider):
+class OpenRouterProvider(AIProvider):
     """OpenRouter provider for premium AI models.
 
     Supports GPT-4, Claude, Gemini, and other premium models via OpenRouter.

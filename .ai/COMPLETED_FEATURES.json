@@ -1,2147 +1,2147 @@
 {
-  "version": "4.5.0",
-  "last_updated": "2026-07-23T09:31:08.924582Z",
-  "total_tests": 1391,
-  "phases": {
-    "FASE_1": {
-      "name": "Base Stabilization",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "evidence_upload_api",
-          "name": "Evidence Upload API",
-          "status": "production_ready",
-          "files": [
-            "api/routers/evidence.py"
-          ]
-        },
-        {
-          "id": "target_scan_trigger",
-          "name": "Target Scan Trigger",
-          "status": "production_ready",
-          "files": [
-            "api/routers/targets.py"
-          ]
-        },
-        {
-          "id": "pwa_assets",
-          "name": "PWA Assets (manifest, icons, service-worker)",
-          "status": "production_ready",
-          "files": [
-            "frontend/public/"
-          ]
-        },
-        {
-          "id": "except_pass_fix",
-          "name": "32 bare except:pass \u2192 logged",
-          "status": "production_ready",
-          "files": [
-            "15 files modified"
-          ]
-        }
-      ]
-    },
-    "FASE_2": {
-      "name": "Modules Connected",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "opportunity_eventbus",
-          "name": "OpportunityEngine \u2192 EventBus",
-          "status": "production_ready",
-          "detail": "opportunity:found / opportunity:updated published"
-        },
-        {
-          "id": "scheduler_orion_score",
-          "name": "Scheduler + ORION SCORE multiplier",
-          "status": "production_ready",
-          "files": [
-            "api/scheduler.py"
-          ]
-        },
-        {
-          "id": "findings_eventbus",
-          "name": "Findings \u2192 EventBus",
-          "status": "production_ready",
-          "files": [
-            "api/routers/findings.py"
-          ]
-        },
-        {
-          "id": "agentbus_eventbus_bridge",
-          "name": "AgentBus \u2192 EventBus bridge",
-          "status": "production_ready",
-          "files": [
-            "cores/agents/bus.py",
-            "api/main.py"
-          ]
-        },
-        {
-          "id": "ghost_events_fixed",
-          "name": "8 Ghost event types \u2192 all have real publishers",
-          "status": "production_ready"
-        }
-      ]
-    },
-    "FASE_3": {
-      "name": "Pipeline E2E",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "discover_stage",
-          "name": "DISCOVER stage",
-          "status": "production_ready",
-          "detail": "Scrapes + creates targets + publishes opportunity:found"
-        },
-        {
-          "id": "recon_stage",
-          "name": "RECON stage",
-          "status": "production_ready",
-          "detail": "Scans targets + uses ORION next_action for prioritization"
-        },
-        {
-          "id": "hypothesis_stage",
-          "name": "HYPOTHESIS stage",
-          "status": "production_ready",
-          "detail": "Fixed import: cores.engine.hypothesis.generators.generate_hypotheses"
-        },
-        {
-          "id": "validate_stage",
-          "name": "VALIDATE stage",
-          "status": "production_ready",
-          "detail": "Fixed import: ValidationLoopEngine.evaluate()"
-        },
-        {
-          "id": "report_stage",
-          "name": "REPORT stage",
-          "status": "production_ready",
-          "detail": "Fixed import: create_report_from_findings()"
-        },
-        {
-          "id": "auto_report",
-          "name": "Auto-report subscriber",
-          "status": "production_ready",
-          "detail": "EventBus subscriber: finding confirmed \u2192 report draft"
-        }
-      ]
-    },
-    "FASE_4": {
-      "name": "ORION Automation",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "auto_prioritization",
-          "name": "Auto-prioritization",
-          "status": "production_ready",
-          "detail": "Scheduler consults ORION.get_next_action()"
-        },
-        {
-          "id": "explanation_logging",
-          "name": "Auto-explanation logging",
-          "status": "production_ready",
-          "detail": "Scheduler logs [ORION] Auto-prioritized X (priority=Y, why=Z)"
-        },
-        {
-          "id": "evh_scoring",
-          "name": "EVH scoring",
-          "status": "production_ready",
-          "files": [
-            "cores/orion/next_action.py"
-          ]
-        },
-        {
-          "id": "reward_learner",
-          "name": "RewardLearner feedback loop",
-          "status": "production_ready",
-          "detail": "analyze() + adjustments by vulnerability type"
-        }
-      ]
-    },
-    "FASE_5": {
-      "name": "ORION Reasoning Layer",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "hypothesis_challenger",
-          "name": "Hypothesis Challenger",
-          "status": "production_ready",
-          "files": [
-            "cores/validation/challenger.py",
-            "cores/validation/gate.py",
-            "cores/validation/confidence.py",
-            "cores/validation/loop_engine.py"
-          ],
-          "detail": "AlternativeExplainer (7 tipos), ContradictionTestDesigner, MissingVerificationsAnalyzer, uncertainty_penalty"
-        },
-        {
-          "id": "evidence_graph",
-          "name": "Evidence Graph",
-          "status": "production_ready",
-          "files": [
-            "core/evidence_graph/"
-          ],
-          "detail": "SQLite persistente, for/against/neutral, weight/confidence, edges, balance scoring"
-        },
-        {
-          "id": "feedback_learner",
-          "name": "FeedbackLearner pipeline",
-          "status": "production_ready",
-          "tests": 12,
-          "detail": "FeedbackTuner accumulates + applies weight adjustments"
-        },
-        {
-          "id": "adaptive_report_gate",
-          "name": "Adaptive Report Gate",
-          "status": "pending"
-        }
-      ]
-    },
-    "FASE_6": {
-      "name": "Release Hardening",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "fix_financial_sync_scheduler",
-          "name": "FinancialSyncScheduler event-loop fix",
-          "status": "production_ready"
-        },
-        {
-          "id": "fix_notification_poller",
-          "name": "NotificationPoller stop flag",
-          "status": "production_ready"
-        },
-        {
-          "id": "fix_watchdog_bus",
-          "name": "Watchdog bus fix (agent\u2192event)",
-          "status": "production_ready"
-        },
-        {
-          "id": "fix_research_imports",
-          "name": "research.py imports fixed",
-          "status": "production_ready"
-        },
-        {
-          "id": "fix_db_indexes",
-          "name": "14 missing DB indexes added",
-          "status": "production_ready"
-        },
-        {
-          "id": "fix_task_orphans",
-          "name": "3 create_task orphans tracked",
-          "status": "production_ready"
-        },
-        {
-          "id": "fix_wal_checkpoint",
-          "name": "WAL checkpoint added",
-          "status": "production_ready"
-        },
-        {
-          "id": "fix_correlation_dedup",
-          "name": "CorrelationEngine dedup cache limit",
-          "status": "production_ready"
-        },
-        {
-          "id": "fix_ensure_future",
-          "name": "ensure_future error logging",
-          "status": "production_ready"
-        },
-        {
-          "id": "fix_cooldown_prune",
-          "name": "_target_cooldowns cyclic purge",
-          "status": "production_ready"
-        },
-        {
-          "id": "fix_open_context",
-          "name": "open() \u2192 with open() in auth",
-          "status": "production_ready"
-        },
-        {
-          "id": "fix_audit_rotation",
-          "name": "audit.jsonl rotation (10MB, 3 backups)",
-          "status": "production_ready"
-        }
-      ]
-    },
-    "FASE_7": {
-      "name": "ORION Platform v4.0.0",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "extension_sdk",
-          "name": "Extension SDK",
-          "status": "production_ready",
-          "files": [
-            "core/extension/"
-          ],
-          "detail": "Manifest, hooks (before/after), capabilities, declarative settings, hot reload, failure isolation"
-        },
-        {
-          "id": "secrets_manager",
-          "name": "Secrets Manager",
-          "status": "production_ready",
-          "files": [
-            "core/secrets/manager.py"
-          ],
-          "tests": 11,
-          "detail": "IdentityVault bridge (AES-256-GCM), env fallback, cache, REST API"
-        },
-        {
-          "id": "health_center",
-          "name": "Health Center",
-          "status": "production_ready",
-          "files": [
-            "core/health/engine.py",
-            "core/health/checks.py"
-          ],
-          "tests": 25,
-          "detail": "Unifies 3 legacy systems, green/yellow/red status, snapshots, unified summary endpoint"
-        },
-        {
-          "id": "app_registry",
-          "name": "AppRegistry bridge",
-          "status": "production_ready",
-          "files": [
-            "core/app_registry.py"
-          ]
-        },
-        {
-          "id": "core_api_endpoints",
-          "name": "Core API Endpoints",
-          "status": "production_ready",
-          "files": [
-            "core/api/routers.py"
-          ],
-          "detail": "/extensions, /secrets, /health under /api/core"
-        }
-      ]
-    },
-    "FASE_8": {
-      "name": "ORION Financial Layer",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "coingecko_feed",
-          "name": "CoinGecko price feed",
-          "status": "production_ready",
-          "files": [
-            "cores/crypto/coingecko.py"
-          ],
-          "detail": "30+ crypto prices, 24h change, cache, free tier"
-        },
-        {
-          "id": "takenos_connector",
-          "name": "Takenos financial connector",
-          "status": "production_ready",
-          "files": [
-            "cores/financial/takenos/"
-          ],
-          "detail": "Balance manual, CSV import, Solana USDC sync"
-        },
-        {
-          "id": "financial_dashboard",
-          "name": "Unified Financial Dashboard",
-          "status": "production_ready",
-          "files": [
-            "cores/financial/dashboard.py"
-          ],
-          "detail": "Patrimonio total, breakdown, objetivo libertad 30K, ingresos del mes, alertas"
-        },
-        {
-          "id": "financial_truth_layer",
-          "name": "Financial Truth Layer",
-          "status": "production_ready",
-          "files": [
-            "cores/financial/"
-          ],
-          "detail": "Dashboard endpoint, integrations status, reconciliation, withdrawal tracking"
-        },
-        {
-          "id": "coinbase_fix",
-          "name": "Coinbase HMAC fix",
-          "status": "production_ready",
-          "files": [
-            "apps/atlas/connectors/coinbase/"
-          ]
-        },
-        {
-          "id": "kraken_fix",
-          "name": "Kraken portfolio fix",
-          "status": "production_ready",
-          "files": [
-            "apps/atlas/connectors/kraken/"
-          ]
-        }
-      ]
-    },
-    "FASE_9": {
-      "name": "Hermes Automation Agent",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "hermes_manifest",
-          "name": "Hermes Manifest + AppRegistry",
-          "status": "production_ready",
-          "files": [
-            "apps/hermes/manifest.py"
-          ]
-        },
-        {
-          "id": "hermes_engine",
-          "name": "Hermes Automation Engine",
-          "status": "production_ready",
-          "files": [
-            "apps/hermes/engine.py"
-          ],
-          "detail": "Safe mode, 6 commands (backup/status/health/logs/doctor/help)",
-          "tests": 15
-        },
-        {
-          "id": "hermes_cli",
-          "name": "Hermes CLI via run.py",
-          "status": "production_ready",
-          "files": [
-            "run.py"
-          ],
-          "detail": "python run.py --hermes <command>"
-        },
-        {
-          "id": "hermes_action_logging",
-          "name": "Hermes action logging",
-          "status": "production_ready",
-          "detail": "JSONL persistente en ~/.orion/hermes_actions.jsonl"
-        },
-        {
-          "id": "hermes_tools",
-          "name": "Hermes tool adapters",
-          "status": "production_ready",
-          "files": [
-            "apps/hermes/tools/"
-          ],
-          "detail": "10 tool adapters for Windows management"
-        },
-        {
-          "id": "hermes_windows_shortcut",
-          "name": "Hermes Windows launcher",
-          "status": "production_ready",
-          "files": [
-            "scripts/hermes_shortcut.bat",
-            "scripts/hermes_silent.vbs"
-          ]
-        }
-      ]
-    },
-    "FASE_10": {
-      "name": "Senior Copilot Agent",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "copilot_authority",
-          "name": "Authority Levels (5)",
-          "status": "production_ready",
-          "files": [
-            "core/copilot/permissions.py"
-          ],
-          "detail": "Observer, Assistant, Operator, Senior Hunter, Administrator"
-        },
-        {
-          "id": "copilot_decision_confidence",
-          "name": "Decision Confidence (4 bands)",
-          "status": "production_ready",
-          "files": [
-            "core/copilot/permissions.py"
-          ]
-        },
-        {
-          "id": "copilot_policy_engine",
-          "name": "Policy Engine (6 rules)",
-          "status": "production_ready",
-          "files": [
-            "core/copilot/permissions.py"
-          ]
-        },
-        {
-          "id": "copilot_context",
-          "name": "Context Builder",
-          "status": "production_ready",
-          "files": [
-            "core/copilot/context.py"
-          ]
-        },
-        {
-          "id": "copilot_explain",
-          "name": "Explanation Engine",
-          "status": "production_ready",
-          "files": [
-            "core/copilot/explain.py"
-          ]
-        },
-        {
-          "id": "copilot_planner",
-          "name": "Planner (6 vuln types)",
-          "status": "production_ready",
-          "files": [
-            "core/copilot/planner.py"
-          ]
-        },
-        {
-          "id": "copilot_analyzer",
-          "name": "Finding Analyzer",
-          "status": "production_ready",
-          "files": [
-            "core/copilot/analyzer.py"
-          ]
-        },
-        {
-          "id": "copilot_auditors",
-          "name": "Auditors (4 tipos)",
-          "status": "production_ready",
-          "files": [
-            "core/copilot/auditor.py"
-          ]
-        },
-        {
-          "id": "copilot_pre_report_review",
-          "name": "Pre-Report Review (9 items)",
-          "status": "production_ready",
-          "files": [
-            "core/copilot/review.py"
-          ]
-        },
-        {
-          "id": "copilot_recommender",
-          "name": "Recommender",
-          "status": "production_ready",
-          "files": [
-            "core/copilot/recommender.py"
-          ]
-        },
-        {
-          "id": "copilot_eventbus",
-          "name": "EventBus integration",
-          "status": "production_ready",
-          "files": [
-            "api/main.py"
-          ]
-        },
-        {
-          "id": "copilot_publisher",
-          "name": "CopilotEventPublisher",
-          "status": "production_ready",
-          "files": [
-            "core/copilot/publisher.py"
-          ],
-          "detail": "7 event types, decouples COPILOT from EventBus"
-        },
-        {
-          "id": "copilot_decision_engine",
-          "name": "COPILOT Decision Engine",
-          "status": "production_ready",
-          "files": [
-            "core/copilot/agent.py"
-          ],
-          "detail": "make_decision() with priority/reason/confidence/actions/eta/roi"
-        },
-        {
-          "id": "copilot_executor",
-          "name": "COPILOT Executor",
-          "status": "production_ready",
-          "files": [
-            "core/copilot/executor.py"
-          ]
-        },
-        {
-          "id": "copilot_system_context",
-          "name": "System Context provider",
-          "status": "production_ready",
-          "files": [
-            "core/copilot/system_context.py"
-          ]
-        },
-        {
-          "id": "copilot_tests",
-          "name": "COPILOT tests",
-          "status": "production_ready",
-          "tests": 80,
-          "files": [
-            "tests/test_copilot_agent.py"
-          ]
-        }
-      ]
-    },
-    "FASE_11": {
-      "name": "Unified Memory",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "memory_model",
-          "name": "MemoryEntry SQLAlchemy model",
-          "status": "production_ready",
-          "files": [
-            "core/memory/models.py"
-          ]
-        },
-        {
-          "id": "memory_crud",
-          "name": "Memory CRUD operations",
-          "status": "production_ready",
-          "files": [
-            "core/memory/store.py"
-          ]
-        },
-        {
-          "id": "memory_namespace",
-          "name": "Namespace isolation (6 namespaces)",
-          "status": "production_ready"
-        },
-        {
-          "id": "memory_search",
-          "name": "Text search + tag filtering + priority sorting",
-          "status": "production_ready"
-        },
-        {
-          "id": "memory_embedding",
-          "name": "Embedding storage support",
-          "status": "production_ready"
-        },
-        {
-          "id": "memory_expiration",
-          "name": "Optional expiration + auto-prune",
-          "status": "production_ready"
-        },
-        {
-          "id": "memory_copilot_integration",
-          "name": "Copilot memory integration (remember/recall)",
-          "status": "production_ready"
-        },
-        {
-          "id": "memory_tests",
-          "name": "Unified Memory tests",
-          "status": "production_ready",
-          "tests": 23,
-          "files": [
-            "tests/test_unified_memory.py"
-          ]
-        }
-      ]
-    },
-    "FASE_12": {
-      "name": "Integration Center",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "integration_discovery",
-          "name": "Built-in integration definitions (23)",
-          "status": "production_ready",
-          "files": [
-            "core/integrations/discovery.py"
-          ],
-          "detail": "7 categories: platform, ai, exchange, blockchain, financial, messaging, infrastructure"
-        },
-        {
-          "id": "integration_registry",
-          "name": "IntegrationRegistry with runtime status checks",
-          "status": "production_ready",
-          "files": [
-            "core/integrations/registry.py"
-          ]
-        },
-        {
-          "id": "integration_api",
-          "name": "Integration API endpoints (GET list, GET single, POST test)",
-          "status": "production_ready",
-          "files": [
-            "core/api/routers.py"
-          ]
-        },
-        {
-          "id": "integration_tests",
-          "name": "Integration Center tests",
-          "status": "production_ready",
-          "tests": 6,
-          "files": [
-            "tests/test_core_api_routers.py"
-          ]
-        }
-      ]
-    },
-    "FASE_13": {
-      "name": "Event Foundation + Knowledge Graph",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "event_types",
-          "name": "Events class (40+ constants)",
-          "status": "production_ready",
-          "files": [
-            "core/events/types.py"
-          ],
-          "detail": "EventEnvelope, Decision, CorrelationId"
-        },
-        {
-          "id": "correlation_id",
-          "name": "Correlation ID propagation",
-          "status": "production_ready",
-          "files": [
-            "core/events/correlation.py"
-          ]
-        },
-        {
-          "id": "event_store",
-          "name": "Event Store (SQLite)",
-          "status": "production_ready",
-          "files": [
-            "core/events/store.py"
-          ],
-          "detail": "Persist, replay by time/cid/type, search, stats, prune"
-        },
-        {
-          "id": "capability_registry",
-          "name": "Capability Registry",
-          "status": "production_ready",
-          "files": [
-            "core/capabilities/registry.py"
-          ]
-        },
-        {
-          "id": "knowledge_graph_model",
-          "name": "Knowledge Graph models (KGNode, KGEdge)",
-          "status": "production_ready",
-          "files": [
-            "core/knowledge/models.py"
-          ]
-        },
-        {
-          "id": "knowledge_graph_engine",
-          "name": "Knowledge Graph engine",
-          "status": "production_ready",
-          "files": [
-            "core/knowledge/graph.py"
-          ],
-          "detail": "add_node/edge, get_neighbors, get_path, get_subgraph, stats, record_finding/report/decision"
-        },
-        {
-          "id": "knowledge_graph_api",
-          "name": "KG API endpoints",
-          "status": "production_ready",
-          "files": [
-            "core/api/routers.py"
-          ]
-        },
-        {
-          "id": "kg_copilot_integration",
-          "name": "COPILOT \u2192 KG integration",
-          "status": "production_ready",
-          "files": [
-            "core/copilot/agent.py"
-          ]
-        },
-        {
-          "id": "kg_event_bridge",
-          "name": "KG Event bridge (finding:* and target:*)",
-          "status": "production_ready",
-          "files": [
-            "api/main.py"
-          ]
-        },
-        {
-          "id": "event_foundation_tests",
-          "name": "Event Foundation tests",
-          "status": "production_ready",
-          "tests": 32,
-          "files": [
-            "tests/test_event_foundation.py"
-          ]
-        },
-        {
-          "id": "knowledge_graph_tests",
-          "name": "Knowledge Graph tests",
-          "status": "production_ready",
-          "tests": 34,
-          "files": [
-            "tests/test_knowledge_graph.py"
-          ]
-        },
-        {
-          "id": "kg_api_tests",
-          "name": "KG API tests",
-          "status": "production_ready",
-          "tests": 9,
-          "files": [
-            "tests/test_core_api_routers.py"
-          ]
-        }
-      ]
-    },
-    "FASE_14": {
-      "name": "EP-5 Execution Runtime",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "execution_context",
-          "name": "RuntimeContext + VirtualClock",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/context.py",
-            "core/execution/runtime/clock.py"
-          ]
-        },
-        {
-          "id": "execution_state_machine",
-          "name": "State Machine (12 node + 11 workflow states)",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/state_machine.py"
-          ]
-        },
-        {
-          "id": "execution_journal",
-          "name": "ExecutionJournal",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/journal.py"
-          ]
-        },
-        {
-          "id": "execution_publisher",
-          "name": "ExecutionEventPublisher (26 types)",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/publisher.py"
-          ]
-        },
-        {
-          "id": "execution_kernel",
-          "name": "ExecutionKernel orchestrator",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/kernel.py"
-          ]
-        },
-        {
-          "id": "capability_dispatcher",
-          "name": "CapabilityDispatcher pipeline",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/dispatcher.py"
-          ],
-          "detail": "Permission\u2192Secrets\u2192RateLimit\u2192Metrics\u2192Execute"
-        },
-        {
-          "id": "worker_engine",
-          "name": "WorkerEngine (17 bytecode instructions)",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/worker.py"
-          ]
-        },
-        {
-          "id": "checkpoint_manager",
-          "name": "CheckpointManager",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/checkpoint.py"
-          ]
-        },
-        {
-          "id": "retry_engine",
-          "name": "RetryEngine (6 policies)",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/retry.py"
-          ]
-        },
-        {
-          "id": "timeout_engine",
-          "name": "TimeoutEngine (4 types)",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/timeout.py"
-          ]
-        },
-        {
-          "id": "rollback_engine",
-          "name": "RollbackEngine",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/rollback.py"
-          ]
-        },
-        {
-          "id": "execution_scheduler",
-          "name": "Execution Scheduler",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/scheduler.py"
-          ]
-        },
-        {
-          "id": "metrics_engine",
-          "name": "MetricsEngine (13 types)",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/metrics.py"
-          ]
-        },
-        {
-          "id": "resource_manager",
-          "name": "ResourceManager",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/resource.py"
-          ]
-        },
-        {
-          "id": "approval_manager",
-          "name": "ApprovalManager lifecycle",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/approval.py"
-          ]
-        },
-        {
-          "id": "runtime_api",
-          "name": "RuntimeAPI (start/pause/resume/cancel)",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/api.py"
-          ]
-        },
-        {
-          "id": "simulation_mode",
-          "name": "Simulation Mode",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/simulation.py"
-          ]
-        },
-        {
-          "id": "execution_eventbus_bridge",
-          "name": "EventBus Bridge (bidirectional)",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/integration.py"
-          ]
-        },
-        {
-          "id": "execution_kg_bridge",
-          "name": "KG Bridge",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/kg_bridge.py"
-          ]
-        },
-        {
-          "id": "execution_copilot_observer",
-          "name": "COPILOT Execution Observer",
-          "status": "production_ready",
-          "files": [
-            "core/execution/runtime/observer.py"
-          ]
-        },
-        {
-          "id": "execution_compiler",
-          "name": "Execution Compiler",
-          "status": "production_ready",
-          "files": [
-            "core/execution/compiler.py",
-            "core/execution/contract.py"
-          ]
-        },
-        {
-          "id": "execution_tests",
-          "name": "Execution Runtime tests",
-          "status": "production_ready",
-          "tests": 111,
-          "files": [
-            "tests/test_execution_runtime.py"
-          ]
-        }
-      ]
-    },
-    "FASE_15": {
-      "name": "Configuration Wizard v2",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "wizard_models",
-          "name": "WizardStepDef + WizardState models",
-          "status": "production_ready",
-          "files": [
-            "core/setup/models.py"
-          ]
-        },
-        {
-          "id": "wizard_step_registry",
-          "name": "Step registry + @define_step decorator",
-          "status": "production_ready",
-          "files": [
-            "core/setup/steps/__init__.py"
-          ]
-        },
-        {
-          "id": "wizard_identity_step",
-          "name": "Identity step (username, email, role)",
-          "status": "production_ready",
-          "files": [
-            "core/setup/steps/identity_step.py"
-          ]
-        },
-        {
-          "id": "wizard_system_step",
-          "name": "System step (Python, Node, Ollama, disk, permissions)",
-          "status": "production_ready",
-          "files": [
-            "core/setup/steps/system_step.py"
-          ]
-        },
-        {
-          "id": "wizard_copilot_step",
-          "name": "COPILOT step (authority, LLM provider)",
-          "status": "production_ready",
-          "files": [
-            "core/setup/steps/copilot_step.py"
-          ]
-        },
-        {
-          "id": "wizard_integrations_step",
-          "name": "Integrations step (registry discovery)",
-          "status": "production_ready",
-          "files": [
-            "core/setup/steps/integrations_step.py"
-          ]
-        },
-        {
-          "id": "wizard_smartwatch_step",
-          "name": "Smartwatch step (Wear OS)",
-          "status": "production_ready",
-          "files": [
-            "core/setup/steps/smartwatch_step.py"
-          ]
-        },
-        {
-          "id": "wizard_test_step",
-          "name": "Test step (EventBus, DB, vault, COPILOT, scheduler)",
-          "status": "production_ready",
-          "files": [
-            "core/setup/steps/test_step.py"
-          ]
-        },
-        {
-          "id": "wizard_engine",
-          "name": "Wizard engine (go_back, skip, reset, state persistence)",
-          "status": "production_ready",
-          "files": [
-            "core/setup/wizard.py"
-          ]
-        },
-        {
-          "id": "wizard_api",
-          "name": "Wizard API endpoints",
-          "status": "production_ready",
-          "files": [
-            "core/api/routers.py"
-          ]
-        },
-        {
-          "id": "wizard_tests",
-          "name": "Wizard tests",
-          "status": "production_ready",
-          "tests": 14,
-          "files": [
-            "tests/test_setup.py"
-          ]
-        }
-      ]
-    },
-    "FASE_16": {
-      "name": "Extreme Simplification",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "plugin_discovery",
-          "name": "Shared plugin discovery",
-          "status": "production_ready",
-          "files": [
-            "core/plugin/discovery.py"
-          ],
-          "detail": "discover_manifests() unifies scanning/loading of apps and extensions"
-        },
-        {
-          "id": "app_registry_simplified",
-          "name": "AppRegistry simplified (75 lines less)",
-          "status": "production_ready",
-          "files": [
-            "core/app_registry.py"
-          ]
-        },
-        {
-          "id": "extension_registry_simplified",
-          "name": "ExtensionRegistry simplified (no circular import)",
-          "status": "production_ready",
-          "files": [
-            "core/extension/registry.py"
-          ]
-        },
-        {
-          "id": "journal_eventstore",
-          "name": "Journal \u2192 EventStore persistence",
-          "status": "production_ready",
-          "detail": "execution:journal:entry published to EventBus \u2192 EventStore. Fallback after restart."
-        },
-        {
-          "id": "secrets_single_path",
-          "name": "SecretsManager single Vault path",
-          "status": "production_ready",
-          "files": [
-            "core/secrets/manager.py"
-          ]
-        }
-      ]
-    },
-    "FASE_17": {
-      "name": "Revenue Pipeline",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "revenue_pipeline_orchestrator",
-          "name": "RevenuePipeline orchestrator",
-          "status": "production_ready",
-          "files": [
-            "core/revenue/pipeline.py"
-          ],
-          "detail": "submit_report(), check_submission_status(), sync_platform_payouts(), record_payout(), revenue_summary(), list_submissions()"
-        },
-        {
-          "id": "revenue_models",
-          "name": "Revenue models (PayoutRecord + RevenueEvent)",
-          "status": "production_ready",
-          "files": [
-            "database/models_economic.py"
-          ]
-        },
-        {
-          "id": "revenue_events",
-          "name": "6 revenue event types",
-          "status": "production_ready",
-          "files": [
-            "core/events/types.py"
-          ]
-        },
-        {
-          "id": "revenue_capabilities",
-          "name": "5 revenue capabilities in CapabilityRegistry",
-          "status": "production_ready"
-        },
-        {
-          "id": "revenue_api",
-          "name": "Revenue API endpoints (6 routes under /api/revenue/)",
-          "status": "production_ready",
-          "files": [
-            "api/routers/revenue.py"
-          ]
-        },
-        {
-          "id": "revenue_tests",
-          "name": "Revenue Pipeline tests",
-          "status": "production_ready",
-          "tests": 31,
-          "files": [
-            "tests/test_revenue_pipeline.py"
-          ]
-        }
-      ]
-    },
-    "CORE_STABLE": {
-      "name": "Core Stable Infrastructure",
-      "completed": "continuous",
-      "features": [
-        {
-          "id": "auth_token_service",
-          "name": "Auth TokenService + SessionStore",
-          "status": "production_ready",
-          "files": [
-            "cores/auth/"
-          ]
-        },
-        {
-          "id": "license_validator",
-          "name": "License Validator + Store (Ed25519)",
-          "status": "production_ready",
-          "files": [
-            "cores/license/"
-          ]
-        },
-        {
-          "id": "identity_vault",
-          "name": "IdentityVault (AES-256-GCM)",
-          "status": "production_ready",
-          "files": [
-            "cores/identity_vault.py"
-          ]
-        },
-        {
-          "id": "csrf_middleware",
-          "name": "CSRF Middleware (double-submit cookie)",
-          "status": "production_ready",
-          "files": [
-            "api/middleware/csrf_middleware.py"
-          ]
-        },
-        {
-          "id": "error_middleware",
-          "name": "Error Handling Middleware",
-          "status": "production_ready",
-          "files": [
-            "api/middleware/error_handling.py"
-          ]
-        },
-        {
-          "id": "audit_log",
-          "name": "Audit Log (JSONL, chmod 600)",
-          "status": "production_ready",
-          "files": [
-            "cores/audit_log.py"
-          ]
-        },
-        {
-          "id": "ledger",
-          "name": "Ledger \u2192 SQLite",
-          "status": "production_ready"
-        },
-        {
-          "id": "event_bus",
-          "name": "Event Bus \u2192 SQLite",
-          "status": "production_ready"
-        },
-        {
-          "id": "system_state",
-          "name": "System State \u2192 SQLite",
-          "status": "production_ready"
-        }
-      ]
-    },
-    "NEW_SESSION": {
-      "name": "Current Session \u2014 Offensive Intelligence + Quality + Evolution",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "offensive_intelligence",
-          "name": "Offensive Intelligence Engine",
-          "status": "production_ready",
-          "files": [
-            "core/offensive/"
-          ],
-          "tests": 101,
-          "detail": "IDOR, SSRF, XSS, SQLi, Auth Bypass reasoners, Planner, Curiosity Engine, Relationship Graph, ContradictionEngine, Triager, Attack templates, Publisher"
-        },
-        {
-          "id": "offensive_api",
-          "name": "Offensive Intelligence API",
-          "status": "production_ready",
-          "files": [
-            "api/routers/offensive.py"
-          ],
-          "detail": "8 API endpoints for offensive analysis"
-        },
-        {
-          "id": "evidence_composer",
-          "name": "Evidence Engine \u2014 EvidenceComposer",
-          "status": "production_ready",
-          "files": [
-            "core/evidence/composer.py"
-          ],
-          "details": 13,
-          "detail": "PoC, requests, responses, curl, Python exploit, timeline, CVSS, CWE, CAPEC, OWASP, MITRE, report readiness"
-        },
-        {
-          "id": "report_quality_gate",
-          "name": "Report Quality Gate + Acceptance Optimizer",
-          "status": "production_ready",
-          "files": [
-            "api/routers/reports_quality.py"
-          ]
-        },
-        {
-          "id": "evolution_engine",
-          "name": "Evolution Engine \u2014 adaptive learning",
-          "status": "production_ready",
-          "files": [
-            "core/evolution/",
-            "api/routers/evolution.py"
-          ]
-        },
-        {
-          "id": "mission_control_api",
-          "name": "Mission Control API + frontend",
-          "status": "production_ready",
-          "files": [
-            "api/routers/mission.py",
-            "frontend/src/pages/MissionControl.vue"
-          ]
-        },
-        {
-          "id": "copilot_router",
-          "name": "Copilot API router",
-          "status": "production_ready",
-          "files": [
-            "api/routers/copilot.py"
-          ]
-        },
-        {
-          "id": "workflows_engine",
-          "name": "Workflows Engine",
-          "status": "production_ready",
-          "files": [
-            "core/workflows/"
-          ]
-        },
-        {
-          "id": "aegis_app",
-          "name": "Aegis security app (frontend + backend)",
-          "status": "production_ready",
-          "files": [
-            "apps/aegis/",
-            "frontend/src/apps/aegis/"
-          ]
-        },
-        {
-          "id": "sync_engine",
-          "name": "Sync Engine",
-          "status": "production_ready",
-          "files": [
-            "core/sync/"
-          ]
-        },
-        {
-          "id": "finance_core",
-          "name": "Finance Core (models, engine)",
-          "status": "production_ready",
-          "files": [
-            "core/finance/"
-          ]
-        },
-        {
-          "id": "reports_core",
-          "name": "Reports Core module",
-          "status": "production_ready",
-          "files": [
-            "core/reports/"
-          ]
-        },
-        {
-          "id": "documentation_platform",
-          "name": "Documentation Platform (auto-generation)",
-          "status": "production_ready",
-          "files": [
-            "core/documentation/"
-          ],
-          "detail": "Models, registrar, introspect (18 auto-registered modules)"
-        },
-        {
-          "id": "assistant_composable",
-          "name": "Assistant composable (frontend)",
-          "status": "production_ready",
-          "files": [
-            "frontend/src/composables/useAssistant.ts"
-          ]
-        },
-        {
-          "id": "companion_composable",
-          "name": "Mobile Companion composable",
-          "status": "production_ready",
-          "files": [
-            "frontend/src/composables/useCompanion.ts"
-          ]
-        },
-        {
-          "id": "health_center_ui",
-          "name": "Health Center page",
-          "status": "production_ready",
-          "files": [
-            "frontend/src/pages/HealthCenter.vue"
-          ]
-        },
-        {
-          "id": "mobile_companion_ui",
-          "name": "Mobile Companion page",
-          "status": "production_ready",
-          "files": [
-            "frontend/src/pages/MobileCompanion.vue"
-          ]
-        },
-        {
-          "id": "workflows_ui",
-          "name": "Workflows page",
-          "status": "production_ready",
-          "files": [
-            "frontend/src/pages/Workflows.vue"
-          ]
-        },
-        {
-          "id": "tools_amass",
-          "name": "Amass tool adapter",
-          "status": "production_ready",
-          "files": [
-            "cores/tools/amass.py"
-          ]
-        },
-        {
-          "id": "tools_naabu",
-          "name": "Naabu tool adapter",
-          "status": "production_ready",
-          "files": [
-            "cores/tools/naabu.py"
-          ]
-        },
-        {
-          "id": "tools_shodan",
-          "name": "Shodan tool adapter (REST API)",
-          "status": "production_ready",
-          "files": [
-            "cores/tools/shodan.py"
-          ]
-        },
-        {
-          "id": "tools_uncover",
-          "name": "Uncover tool adapter",
-          "status": "production_ready",
-          "files": [
-            "cores/tools/uncover.py"
-          ]
-        },
-        {
-          "id": "discord_notifications",
-          "name": "Discord notification bridge",
-          "status": "production_ready",
-          "files": [
-            "cores/notifications/discord.py"
-          ]
-        },
-        {
-          "id": "arca_integration",
-          "name": "ARCA integration connector",
-          "status": "production_ready",
-          "files": [
-            "cores/integrations/arca/"
-          ]
-        },
-        {
-          "id": "outlook_integration",
-          "name": "Outlook integration connector",
-          "status": "production_ready",
-          "files": [
-            "cores/integrations/outlook/"
-          ]
-        },
-        {
-          "id": "tauri_desktop",
-          "name": "Tauri Desktop app (Rust+WebView)",
-          "status": "production_ready",
-          "files": [
-            "src-tauri/"
-          ]
-        },
-        {
-          "id": "setup_script",
-          "name": "Linux setup script",
-          "status": "production_ready",
-          "files": [
-            "scripts/setup.sh"
-          ]
-        },
-        {
-          "id": "desktop_install_script",
-          "name": "Windows desktop tools installer (33 tools via winget)",
-          "status": "production_ready",
-          "files": [
-            "scripts/install_desktop_tools.ps1"
-          ]
-        },
-        {
-          "id": "unified_settings",
-          "name": "Unified settings API router",
-          "status": "production_ready",
-          "files": [
-            "api/routers/settings_unified.py"
-          ]
-        },
-        {
-          "id": "data_table_ui",
-          "name": "DataTable UI component",
-          "status": "production_ready",
-          "files": [
-            "frontend/src/components/ui/DataTable.vue"
-          ]
-        },
-        {
-          "id": "drawer_ui",
-          "name": "Drawer UI component",
-          "status": "production_ready",
-          "files": [
-            "frontend/src/components/ui/Drawer.vue"
-          ]
-        },
-        {
-          "id": "modal_ui",
-          "name": "Modal UI component",
-          "status": "production_ready",
-          "files": [
-            "frontend/src/components/ui/Modal.vue"
-          ]
-        },
-        {
-          "id": "select_ui",
-          "name": "Select UI component",
-          "status": "production_ready",
-          "files": [
-            "frontend/src/components/ui/Select.vue"
-          ]
-        }
-      ]
-    },
-    "FASE_18": {
-      "name": "Offensive Intelligence + Evidence + Quality",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "offensive_engine",
-          "name": "Offensive Intelligence Engine (5 reasoners)",
-          "status": "production_ready",
-          "files": [
-            "core/offensive/"
-          ],
-          "tests": 101
-        },
-        {
-          "id": "offensive_api",
-          "name": "Offensive Intelligence API (8 endpoints)",
-          "status": "production_ready",
-          "files": [
-            "api/routers/offensive.py"
-          ]
-        },
-        {
-          "id": "evidence_composer",
-          "name": "Evidence Composer (PoC, CVSS, CWE)",
-          "status": "production_ready",
-          "files": [
-            "core/evidence/composer.py"
-          ],
-          "tests": 37
-        },
-        {
-          "id": "report_quality_gate",
-          "name": "Report Quality Gate",
-          "status": "production_ready",
-          "files": [
-            "api/routers/reports_quality.py"
-          ]
-        },
-        {
-          "id": "evolution_engine",
-          "name": "Evolution Engine",
-          "status": "production_ready",
-          "files": [
-            "core/evolution/"
-          ]
-        },
-        {
-          "id": "mission_control",
-          "name": "Mission Control API + frontend",
-          "status": "production_ready",
-          "files": [
-            "api/routers/mission.py",
-            "frontend/src/pages/MissionControl.vue"
-          ]
-        },
-        {
-          "id": "copilot_api_router",
-          "name": "Copilot API Router",
-          "status": "production_ready",
-          "files": [
-            "api/routers/copilot.py"
-          ]
-        },
-        {
-          "id": "workflows_engine",
-          "name": "Workflows Engine",
-          "status": "production_ready",
-          "files": [
-            "core/workflows/"
-          ]
-        },
-        {
-          "id": "aegis_app",
-          "name": "Aegis App",
-          "status": "production_ready",
-          "files": [
-            "apps/aegis/",
-            "frontend/src/apps/aegis/"
-          ]
-        },
-        {
-          "id": "sync_engine",
-          "name": "Sync Engine",
-          "status": "production_ready",
-          "files": [
-            "core/sync/"
-          ]
-        },
-        {
-          "id": "finance_core",
-          "name": "Finance Core",
-          "status": "production_ready",
-          "files": [
-            "core/finance/"
-          ]
-        },
-        {
-          "id": "reports_core",
-          "name": "Reports Core",
-          "status": "production_ready",
-          "files": [
-            "core/reports/"
-          ]
-        },
-        {
-          "id": "documentation_platform",
-          "name": "Documentation Platform",
-          "status": "production_ready",
-          "files": [
-            "core/documentation/"
-          ]
-        },
-        {
-          "id": "tools_amass",
-          "name": "Amass tool",
-          "status": "production_ready",
-          "files": [
-            "cores/tools/amass.py"
-          ]
-        },
-        {
-          "id": "tools_naabu",
-          "name": "Naabu tool",
-          "status": "production_ready",
-          "files": [
-            "cores/tools/naabu.py"
-          ]
-        },
-        {
-          "id": "tools_shodan",
-          "name": "Shodan tool",
-          "status": "production_ready",
-          "files": [
-            "cores/tools/shodan.py"
-          ]
-        },
-        {
-          "id": "tools_uncover",
-          "name": "Uncover tool",
-          "status": "production_ready",
-          "files": [
-            "cores/tools/uncover.py"
-          ]
-        },
-        {
-          "id": "discord_notifications",
-          "name": "Discord notifications",
-          "status": "production_ready",
-          "files": [
-            "cores/notifications/discord.py"
-          ]
-        },
-        {
-          "id": "arca_integration",
-          "name": "ARCA integration",
-          "status": "production_ready",
-          "files": [
-            "cores/integrations/arca/"
-          ]
-        },
-        {
-          "id": "outlook_integration",
-          "name": "Outlook integration",
-          "status": "production_ready",
-          "files": [
-            "cores/integrations/outlook/"
-          ]
-        },
-        {
-          "id": "tauri_desktop",
-          "name": "Tauri Desktop",
-          "status": "production_ready",
-          "files": [
-            "src-tauri/"
-          ]
-        },
-        {
-          "id": "setup_script",
-          "name": "Linux setup script",
-          "status": "production_ready",
-          "files": [
-            "scripts/setup.sh"
-          ]
-        },
-        {
-          "id": "windows_installer",
-          "name": "Windows tools installer",
-          "status": "production_ready",
-          "files": [
-            "scripts/install_desktop_tools.ps1"
-          ]
-        },
-        {
-          "id": "unified_settings",
-          "name": "Unified settings API",
-          "status": "production_ready",
-          "files": [
-            "api/routers/settings_unified.py"
-          ]
-        },
-        {
-          "id": "ui_components",
-          "name": "UI components (DataTable, Drawer, Modal, Select)",
-          "status": "production_ready",
-          "files": [
-            "frontend/src/components/ui/"
-          ]
-        }
-      ]
-    },
-    "FASE_19": {
-      "name": "Hermes v2: Professional Desktop Agent",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "hermes_events",
-          "name": "Hermes EventBus events (7 types)",
-          "status": "production_ready",
-          "files": [
-            "core/events/types.py"
-          ]
-        },
-        {
-          "id": "hermes_publisher",
-          "name": "HermesEventPublisher",
-          "status": "production_ready",
-          "files": [
-            "apps/hermes/publisher.py"
-          ]
-        },
-        {
-          "id": "hermes_permissions",
-          "name": "Permission System (5 risk levels)",
-          "status": "production_ready",
-          "files": [
-            "apps/hermes/permissions.py"
-          ],
-          "tests": 14
-        },
-        {
-          "id": "hermes_security",
-          "name": "Security Layer (PS/Path/PID validation)",
-          "status": "production_ready",
-          "files": [
-            "apps/hermes/security.py"
-          ],
-          "tests": 24
-        },
-        {
-          "id": "hermes_engine_integration",
-          "name": "Engine integration with security pipeline",
-          "status": "production_ready",
-          "files": [
-            "apps/hermes/engine.py"
-          ]
-        },
-        {
-          "id": "hermes_v2_tests",
-          "name": "Hermes v2 tests (events+permissions+security)",
-          "status": "production_ready",
-          "tests": 48
-        }
-      ]
-    },
-    "FASE_20": {
-      "name": "Command System Fase 1",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "command_models",
-          "name": "Command models (5 permission levels, flags)",
-          "status": "production_ready",
-          "files": [
-            "core/commands/models.py"
-          ]
-        },
-        {
-          "id": "command_registry",
-          "name": "Command Registry (107 commands, 14 categories)",
-          "status": "production_ready",
-          "files": [
-            "core/commands/registry.py"
-          ]
-        },
-        {
-          "id": "command_dispatcher",
-          "name": "Command Dispatcher + EventBus",
-          "status": "production_ready",
-          "files": [
-            "core/commands/dispatcher.py"
-          ]
-        },
-        {
-          "id": "command_api",
-          "name": "Command API endpoints (6)",
-          "status": "production_ready",
-          "files": [
-            "api/routers/commands.py"
-          ]
-        },
-        {
-          "id": "command_events",
-          "name": "Command event types (3)",
-          "status": "production_ready",
-          "files": [
-            "core/events/types.py"
-          ]
-        },
-        {
-          "id": "command_tests",
-          "name": "Command System tests",
-          "status": "production_ready",
-          "tests": 45
-        }
-      ]
-    },
-    "FASE_21": {
-      "name": "Pipeline Hypothesis Fix + Estabilidad",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "path_hypothesis_fallback",
-          "name": "Path-based hypothesis fallback (6 vuln types)",
-          "status": "production_ready",
-          "files": [
-            "api/scheduler.py"
-          ]
-        },
-        {
-          "id": "vuln_type_map_extended",
-          "name": "VULN_TYPE_MAP extended (file_upload, graphql)",
-          "status": "production_ready",
-          "files": [
-            "core/pipeline/hypothesis_bridge.py"
-          ]
-        },
-        {
-          "id": "orphaned_db_cleanup",
-          "name": "Orphaned test DBs cleanup (1303\u21928)",
-          "status": "production_ready"
-        },
-        {
-          "id": "ruff_fixes_12",
-          "name": "12 Ruff SIM114/B007/B024 fixes",
-          "status": "production_ready"
-        }
-      ]
-    },
-    "FASE_22": {
-      "name": "Report Acceptance Optimizer",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "acceptance_learner",
-          "name": "AcceptanceLearner (prediction + adaptation)",
-          "status": "production_ready",
-          "files": [
-            "core/reports/acceptance/learner.py"
-          ]
-        },
-        {
-          "id": "acceptance_api",
-          "name": "Acceptance API endpoints (7)",
-          "status": "production_ready",
-          "files": [
-            "api/routers/reports_acceptance.py"
-          ]
-        },
-        {
-          "id": "acceptance_events",
-          "name": "Acceptance events (3 types)",
-          "status": "production_ready",
-          "files": [
-            "core/events/types.py"
-          ]
-        },
-        {
-          "id": "acceptance_tests",
-          "name": "Acceptance Optimizer tests",
-          "status": "production_ready",
-          "tests": 18
-        }
-      ]
-    },
-    "FASE_23": {
-      "name": "Recon Intelligence",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "target_prioritizer",
-          "name": "TargetPrioritizer (EV + tech + attack plans)",
-          "status": "production_ready",
-          "files": [
-            "core/target_intelligence/prioritizer.py"
-          ]
-        },
-        {
-          "id": "scheduler_recon_integration",
-          "name": "Scheduler integration (budget-aware EV)",
-          "status": "production_ready",
-          "files": [
-            "api/scheduler.py"
-          ]
-        },
-        {
-          "id": "recon_intel_tests",
-          "name": "Target intelligence tests",
-          "status": "production_ready",
-          "tests": 22
-        }
-      ]
-    },
-    "FASE_24": {
-      "name": "Expansion Execution Plan",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "tech_scout_report",
-          "name": "Technology Scout Report",
-          "status": "production_ready",
-          "files": [
-            ".ai/TECHNOLOGY_SCOUT_REPORT.md"
-          ]
-        },
-        {
-          "id": "expansion_intel_report",
-          "name": "Expansion Intelligence Report",
-          "status": "production_ready",
-          "files": [
-            ".ai/EXPANSION_INTELLIGENCE_REPORT.md"
-          ]
-        },
-        {
-          "id": "expansion_exec_plan",
-          "name": "Expansion Execution Plan",
-          "status": "production_ready",
-          "files": [
-            ".ai/EXPANSION_EXECUTION_PLAN.md"
-          ]
-        },
-        {
-          "id": "sprint_0_tools",
-          "name": "Sprint 0 tools (Gitleaks, Garak, BrowserUse)",
-          "status": "production_ready",
-          "files": [
-            "cores/tools/extra.py"
-          ],
-          "tests": 24
-        },
-        {
-          "id": "expansion_memory",
-          "name": "Expansion Unified Memory entries",
-          "status": "production_ready",
-          "detail": "8 entries under namespace expansion"
-        }
-      ]
-    },
-    "FASE_25": {
-      "name": "Expansion Sprints 4-10 (Revenue Ready)",
-      "completed": "July 2026",
-      "features": [
-        {
-          "id": "s4_ai_bounty_hunter",
-          "name": "S-4: AI Bounty Auto-Hunter",
-          "status": "production_ready",
-          "files": [
-            "core/auto_hunter/"
-          ],
-          "tests": 29,
-          "detail": "4 AI Bounty programs, scheduler 2h, EV ranking"
-        },
-        {
-          "id": "s5_revenue_dashboard_v2",
-          "name": "S-5: Revenue Dashboard V2",
-          "status": "production_ready",
-          "files": [
-            "frontend/src/pages/RevenueDashboard.vue",
-            "api/routers/targets.py"
-          ],
-          "detail": "Targets by EV tab"
-        },
-        {
-          "id": "ux1_baby_mode",
-          "name": "UX-1: Baby Mode",
-          "status": "production_ready",
-          "files": [
-            "frontend/src/pages/BabyMode.vue"
-          ],
-          "detail": "3 main action buttons"
-        },
-        {
-          "id": "s6_auto_submission",
-          "name": "S-6: Auto-Submission Pipeline",
-          "status": "production_ready",
-          "files": [
-            "core/auto_submit/pipeline.py"
-          ],
-          "tests": 12,
-          "detail": "Quality Gate, platform detection, EventBus"
-        },
-        {
-          "id": "s7_target_discovery",
-          "name": "S-7: Target Discovery Automator",
-          "status": "production_ready",
-          "files": [
-            "cores/bounty_scraper/"
-          ],
-          "tests": 25,
-          "detail": "ProgramChangeTracker, payout ranking"
-        },
-        {
-          "id": "s8_report_optimizer_v2",
-          "name": "S-8: Report Optimizer V2",
-          "status": "production_ready",
-          "files": [
-            "core/reports/optimizer.py"
-          ],
-          "tests": 23,
-          "detail": "RemediationDB (12 types), CWE_MAP, ReportContextBuilder"
-        },
-        {
-          "id": "s9_auto_recon",
-          "name": "S-9: Auto-Recon Enhancement",
-          "status": "production_ready",
-          "files": [
-            "cores/recon/"
-          ],
-          "tests": 23,
-          "detail": "NaabuRunner, centralized dedup, ReconRunner integration"
-        },
-        {
-          "id": "s10_verdict_learner",
-          "name": "S-10: Verdict Auto-Learner",
-          "status": "production_ready",
-          "files": [
-            "core/learning/verdict_learner.py",
-            "api/main.py"
-          ],
-          "tests": 14,
-          "detail": "FeedbackTuner \u2194 AcceptanceLearner bridge, auto-outcome recording"
-        }
-      ]
-    },
-    "FASE_26": [
-      {
-        "feature": "AI Security Module (Fase 1)",
-        "description": "AI Bug Bounty / LLM Security simple module. Escaneo de modelos locales con Garak, oportunidades AI bounty, y frontend simple con 2 tabs.",
-        "files": [
-          "core/intel/llm_scanner.py",
-          "api/routers/ai_security.py",
-          "frontend/src/pages/AISecurity.vue"
+    "version": "7.0.0",
+    "last_updated": "2026-07-23T09:31:08.924582Z",
+    "total_tests": 1391,
+    "phases": {
+        "FASE_1": {
+            "name": "Base Stabilization",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "evidence_upload_api",
+                    "name": "Evidence Upload API",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/evidence.py"
+                    ]
+                },
+                {
+                    "id": "target_scan_trigger",
+                    "name": "Target Scan Trigger",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/targets.py"
+                    ]
+                },
+                {
+                    "id": "pwa_assets",
+                    "name": "PWA Assets (manifest, icons, service-worker)",
+                    "status": "production_ready",
+                    "files": [
+                        "frontend/public/"
+                    ]
+                },
+                {
+                    "id": "except_pass_fix",
+                    "name": "32 bare except:pass \u2192 logged",
+                    "status": "production_ready",
+                    "files": [
+                        "15 files modified"
+                    ]
+                }
+            ]
+        },
+        "FASE_2": {
+            "name": "Modules Connected",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "opportunity_eventbus",
+                    "name": "OpportunityEngine \u2192 EventBus",
+                    "status": "production_ready",
+                    "detail": "opportunity:found / opportunity:updated published"
+                },
+                {
+                    "id": "scheduler_orion_score",
+                    "name": "Scheduler + ORION SCORE multiplier",
+                    "status": "production_ready",
+                    "files": [
+                        "api/scheduler.py"
+                    ]
+                },
+                {
+                    "id": "findings_eventbus",
+                    "name": "Findings \u2192 EventBus",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/findings.py"
+                    ]
+                },
+                {
+                    "id": "agentbus_eventbus_bridge",
+                    "name": "AgentBus \u2192 EventBus bridge",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/agents/bus.py",
+                        "api/main.py"
+                    ]
+                },
+                {
+                    "id": "ghost_events_fixed",
+                    "name": "8 Ghost event types \u2192 all have real publishers",
+                    "status": "production_ready"
+                }
+            ]
+        },
+        "FASE_3": {
+            "name": "Pipeline E2E",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "discover_stage",
+                    "name": "DISCOVER stage",
+                    "status": "production_ready",
+                    "detail": "Scrapes + creates targets + publishes opportunity:found"
+                },
+                {
+                    "id": "recon_stage",
+                    "name": "RECON stage",
+                    "status": "production_ready",
+                    "detail": "Scans targets + uses ORION next_action for prioritization"
+                },
+                {
+                    "id": "hypothesis_stage",
+                    "name": "HYPOTHESIS stage",
+                    "status": "production_ready",
+                    "detail": "Fixed import: cores.engine.hypothesis.generators.generate_hypotheses"
+                },
+                {
+                    "id": "validate_stage",
+                    "name": "VALIDATE stage",
+                    "status": "production_ready",
+                    "detail": "Fixed import: ValidationLoopEngine.evaluate()"
+                },
+                {
+                    "id": "report_stage",
+                    "name": "REPORT stage",
+                    "status": "production_ready",
+                    "detail": "Fixed import: create_report_from_findings()"
+                },
+                {
+                    "id": "auto_report",
+                    "name": "Auto-report subscriber",
+                    "status": "production_ready",
+                    "detail": "EventBus subscriber: finding confirmed \u2192 report draft"
+                }
+            ]
+        },
+        "FASE_4": {
+            "name": "ORION Automation",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "auto_prioritization",
+                    "name": "Auto-prioritization",
+                    "status": "production_ready",
+                    "detail": "Scheduler consults ORION.get_next_action()"
+                },
+                {
+                    "id": "explanation_logging",
+                    "name": "Auto-explanation logging",
+                    "status": "production_ready",
+                    "detail": "Scheduler logs [ORION] Auto-prioritized X (priority=Y, why=Z)"
+                },
+                {
+                    "id": "evh_scoring",
+                    "name": "EVH scoring",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/orion/next_action.py"
+                    ]
+                },
+                {
+                    "id": "reward_learner",
+                    "name": "RewardLearner feedback loop",
+                    "status": "production_ready",
+                    "detail": "analyze() + adjustments by vulnerability type"
+                }
+            ]
+        },
+        "FASE_5": {
+            "name": "ORION Reasoning Layer",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "hypothesis_challenger",
+                    "name": "Hypothesis Challenger",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/validation/challenger.py",
+                        "cores/validation/gate.py",
+                        "cores/validation/confidence.py",
+                        "cores/validation/loop_engine.py"
+                    ],
+                    "detail": "AlternativeExplainer (7 tipos), ContradictionTestDesigner, MissingVerificationsAnalyzer, uncertainty_penalty"
+                },
+                {
+                    "id": "evidence_graph",
+                    "name": "Evidence Graph",
+                    "status": "production_ready",
+                    "files": [
+                        "core/evidence_graph/"
+                    ],
+                    "detail": "SQLite persistente, for/against/neutral, weight/confidence, edges, balance scoring"
+                },
+                {
+                    "id": "feedback_learner",
+                    "name": "FeedbackLearner pipeline",
+                    "status": "production_ready",
+                    "tests": 12,
+                    "detail": "FeedbackTuner accumulates + applies weight adjustments"
+                },
+                {
+                    "id": "adaptive_report_gate",
+                    "name": "Adaptive Report Gate",
+                    "status": "pending"
+                }
+            ]
+        },
+        "FASE_6": {
+            "name": "Release Hardening",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "fix_financial_sync_scheduler",
+                    "name": "FinancialSyncScheduler event-loop fix",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "fix_notification_poller",
+                    "name": "NotificationPoller stop flag",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "fix_watchdog_bus",
+                    "name": "Watchdog bus fix (agent\u2192event)",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "fix_research_imports",
+                    "name": "research.py imports fixed",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "fix_db_indexes",
+                    "name": "14 missing DB indexes added",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "fix_task_orphans",
+                    "name": "3 create_task orphans tracked",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "fix_wal_checkpoint",
+                    "name": "WAL checkpoint added",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "fix_correlation_dedup",
+                    "name": "CorrelationEngine dedup cache limit",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "fix_ensure_future",
+                    "name": "ensure_future error logging",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "fix_cooldown_prune",
+                    "name": "_target_cooldowns cyclic purge",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "fix_open_context",
+                    "name": "open() \u2192 with open() in auth",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "fix_audit_rotation",
+                    "name": "audit.jsonl rotation (10MB, 3 backups)",
+                    "status": "production_ready"
+                }
+            ]
+        },
+        "FASE_7": {
+            "name": "ORION Platform v4.0.0",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "extension_sdk",
+                    "name": "Extension SDK",
+                    "status": "production_ready",
+                    "files": [
+                        "core/extension/"
+                    ],
+                    "detail": "Manifest, hooks (before/after), capabilities, declarative settings, hot reload, failure isolation"
+                },
+                {
+                    "id": "secrets_manager",
+                    "name": "Secrets Manager",
+                    "status": "production_ready",
+                    "files": [
+                        "core/secrets/manager.py"
+                    ],
+                    "tests": 11,
+                    "detail": "IdentityVault bridge (AES-256-GCM), env fallback, cache, REST API"
+                },
+                {
+                    "id": "health_center",
+                    "name": "Health Center",
+                    "status": "production_ready",
+                    "files": [
+                        "core/health/engine.py",
+                        "core/health/checks.py"
+                    ],
+                    "tests": 25,
+                    "detail": "Unifies 3 legacy systems, green/yellow/red status, snapshots, unified summary endpoint"
+                },
+                {
+                    "id": "app_registry",
+                    "name": "AppRegistry bridge",
+                    "status": "production_ready",
+                    "files": [
+                        "core/app_registry.py"
+                    ]
+                },
+                {
+                    "id": "core_api_endpoints",
+                    "name": "Core API Endpoints",
+                    "status": "production_ready",
+                    "files": [
+                        "core/api/routers.py"
+                    ],
+                    "detail": "/extensions, /secrets, /health under /api/core"
+                }
+            ]
+        },
+        "FASE_8": {
+            "name": "ORION Financial Layer",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "coingecko_feed",
+                    "name": "CoinGecko price feed",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/crypto/coingecko.py"
+                    ],
+                    "detail": "30+ crypto prices, 24h change, cache, free tier"
+                },
+                {
+                    "id": "takenos_connector",
+                    "name": "Takenos financial connector",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/financial/takenos/"
+                    ],
+                    "detail": "Balance manual, CSV import, Solana USDC sync"
+                },
+                {
+                    "id": "financial_dashboard",
+                    "name": "Unified Financial Dashboard",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/financial/dashboard.py"
+                    ],
+                    "detail": "Patrimonio total, breakdown, objetivo libertad 30K, ingresos del mes, alertas"
+                },
+                {
+                    "id": "financial_truth_layer",
+                    "name": "Financial Truth Layer",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/financial/"
+                    ],
+                    "detail": "Dashboard endpoint, integrations status, reconciliation, withdrawal tracking"
+                },
+                {
+                    "id": "coinbase_fix",
+                    "name": "Coinbase HMAC fix",
+                    "status": "production_ready",
+                    "files": [
+                        "apps/atlas/connectors/coinbase/"
+                    ]
+                },
+                {
+                    "id": "kraken_fix",
+                    "name": "Kraken portfolio fix",
+                    "status": "production_ready",
+                    "files": [
+                        "apps/atlas/connectors/kraken/"
+                    ]
+                }
+            ]
+        },
+        "FASE_9": {
+            "name": "Hermes Automation Agent",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "hermes_manifest",
+                    "name": "Hermes Manifest + AppRegistry",
+                    "status": "production_ready",
+                    "files": [
+                        "apps/hermes/manifest.py"
+                    ]
+                },
+                {
+                    "id": "hermes_engine",
+                    "name": "Hermes Automation Engine",
+                    "status": "production_ready",
+                    "files": [
+                        "apps/hermes/engine.py"
+                    ],
+                    "detail": "Safe mode, 6 commands (backup/status/health/logs/doctor/help)",
+                    "tests": 15
+                },
+                {
+                    "id": "hermes_cli",
+                    "name": "Hermes CLI via run.py",
+                    "status": "production_ready",
+                    "files": [
+                        "run.py"
+                    ],
+                    "detail": "python run.py --hermes <command>"
+                },
+                {
+                    "id": "hermes_action_logging",
+                    "name": "Hermes action logging",
+                    "status": "production_ready",
+                    "detail": "JSONL persistente en ~/.orion/hermes_actions.jsonl"
+                },
+                {
+                    "id": "hermes_tools",
+                    "name": "Hermes tool adapters",
+                    "status": "production_ready",
+                    "files": [
+                        "apps/hermes/tools/"
+                    ],
+                    "detail": "10 tool adapters for Windows management"
+                },
+                {
+                    "id": "hermes_windows_shortcut",
+                    "name": "Hermes Windows launcher",
+                    "status": "production_ready",
+                    "files": [
+                        "scripts/hermes_shortcut.bat",
+                        "scripts/hermes_silent.vbs"
+                    ]
+                }
+            ]
+        },
+        "FASE_10": {
+            "name": "Senior Copilot Agent",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "copilot_authority",
+                    "name": "Authority Levels (5)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/copilot/permissions.py"
+                    ],
+                    "detail": "Observer, Assistant, Operator, Senior Hunter, Administrator"
+                },
+                {
+                    "id": "copilot_decision_confidence",
+                    "name": "Decision Confidence (4 bands)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/copilot/permissions.py"
+                    ]
+                },
+                {
+                    "id": "copilot_policy_engine",
+                    "name": "Policy Engine (6 rules)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/copilot/permissions.py"
+                    ]
+                },
+                {
+                    "id": "copilot_context",
+                    "name": "Context Builder",
+                    "status": "production_ready",
+                    "files": [
+                        "core/copilot/context.py"
+                    ]
+                },
+                {
+                    "id": "copilot_explain",
+                    "name": "Explanation Engine",
+                    "status": "production_ready",
+                    "files": [
+                        "core/copilot/explain.py"
+                    ]
+                },
+                {
+                    "id": "copilot_planner",
+                    "name": "Planner (6 vuln types)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/copilot/planner.py"
+                    ]
+                },
+                {
+                    "id": "copilot_analyzer",
+                    "name": "Finding Analyzer",
+                    "status": "production_ready",
+                    "files": [
+                        "core/copilot/analyzer.py"
+                    ]
+                },
+                {
+                    "id": "copilot_auditors",
+                    "name": "Auditors (4 tipos)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/copilot/auditor.py"
+                    ]
+                },
+                {
+                    "id": "copilot_pre_report_review",
+                    "name": "Pre-Report Review (9 items)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/copilot/review.py"
+                    ]
+                },
+                {
+                    "id": "copilot_recommender",
+                    "name": "Recommender",
+                    "status": "production_ready",
+                    "files": [
+                        "core/copilot/recommender.py"
+                    ]
+                },
+                {
+                    "id": "copilot_eventbus",
+                    "name": "EventBus integration",
+                    "status": "production_ready",
+                    "files": [
+                        "api/main.py"
+                    ]
+                },
+                {
+                    "id": "copilot_publisher",
+                    "name": "CopilotEventPublisher",
+                    "status": "production_ready",
+                    "files": [
+                        "core/copilot/publisher.py"
+                    ],
+                    "detail": "7 event types, decouples COPILOT from EventBus"
+                },
+                {
+                    "id": "copilot_decision_engine",
+                    "name": "COPILOT Decision Engine",
+                    "status": "production_ready",
+                    "files": [
+                        "core/copilot/agent.py"
+                    ],
+                    "detail": "make_decision() with priority/reason/confidence/actions/eta/roi"
+                },
+                {
+                    "id": "copilot_executor",
+                    "name": "COPILOT Executor",
+                    "status": "production_ready",
+                    "files": [
+                        "core/copilot/executor.py"
+                    ]
+                },
+                {
+                    "id": "copilot_system_context",
+                    "name": "System Context provider",
+                    "status": "production_ready",
+                    "files": [
+                        "core/copilot/system_context.py"
+                    ]
+                },
+                {
+                    "id": "copilot_tests",
+                    "name": "COPILOT tests",
+                    "status": "production_ready",
+                    "tests": 80,
+                    "files": [
+                        "tests/test_copilot_agent.py"
+                    ]
+                }
+            ]
+        },
+        "FASE_11": {
+            "name": "Unified Memory",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "memory_model",
+                    "name": "MemoryEntry SQLAlchemy model",
+                    "status": "production_ready",
+                    "files": [
+                        "core/memory/models.py"
+                    ]
+                },
+                {
+                    "id": "memory_crud",
+                    "name": "Memory CRUD operations",
+                    "status": "production_ready",
+                    "files": [
+                        "core/memory/store.py"
+                    ]
+                },
+                {
+                    "id": "memory_namespace",
+                    "name": "Namespace isolation (6 namespaces)",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "memory_search",
+                    "name": "Text search + tag filtering + priority sorting",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "memory_embedding",
+                    "name": "Embedding storage support",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "memory_expiration",
+                    "name": "Optional expiration + auto-prune",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "memory_copilot_integration",
+                    "name": "Copilot memory integration (remember/recall)",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "memory_tests",
+                    "name": "Unified Memory tests",
+                    "status": "production_ready",
+                    "tests": 23,
+                    "files": [
+                        "tests/test_unified_memory.py"
+                    ]
+                }
+            ]
+        },
+        "FASE_12": {
+            "name": "Integration Center",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "integration_discovery",
+                    "name": "Built-in integration definitions (23)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/integrations/discovery.py"
+                    ],
+                    "detail": "7 categories: platform, ai, exchange, blockchain, financial, messaging, infrastructure"
+                },
+                {
+                    "id": "integration_registry",
+                    "name": "IntegrationRegistry with runtime status checks",
+                    "status": "production_ready",
+                    "files": [
+                        "core/integrations/registry.py"
+                    ]
+                },
+                {
+                    "id": "integration_api",
+                    "name": "Integration API endpoints (GET list, GET single, POST test)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/api/routers.py"
+                    ]
+                },
+                {
+                    "id": "integration_tests",
+                    "name": "Integration Center tests",
+                    "status": "production_ready",
+                    "tests": 6,
+                    "files": [
+                        "tests/test_core_api_routers.py"
+                    ]
+                }
+            ]
+        },
+        "FASE_13": {
+            "name": "Event Foundation + Knowledge Graph",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "event_types",
+                    "name": "Events class (40+ constants)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/events/types.py"
+                    ],
+                    "detail": "EventEnvelope, Decision, CorrelationId"
+                },
+                {
+                    "id": "correlation_id",
+                    "name": "Correlation ID propagation",
+                    "status": "production_ready",
+                    "files": [
+                        "core/events/correlation.py"
+                    ]
+                },
+                {
+                    "id": "event_store",
+                    "name": "Event Store (SQLite)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/events/store.py"
+                    ],
+                    "detail": "Persist, replay by time/cid/type, search, stats, prune"
+                },
+                {
+                    "id": "capability_registry",
+                    "name": "Capability Registry",
+                    "status": "production_ready",
+                    "files": [
+                        "core/capabilities/registry.py"
+                    ]
+                },
+                {
+                    "id": "knowledge_graph_model",
+                    "name": "Knowledge Graph models (KGNode, KGEdge)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/knowledge/models.py"
+                    ]
+                },
+                {
+                    "id": "knowledge_graph_engine",
+                    "name": "Knowledge Graph engine",
+                    "status": "production_ready",
+                    "files": [
+                        "core/knowledge/graph.py"
+                    ],
+                    "detail": "add_node/edge, get_neighbors, get_path, get_subgraph, stats, record_finding/report/decision"
+                },
+                {
+                    "id": "knowledge_graph_api",
+                    "name": "KG API endpoints",
+                    "status": "production_ready",
+                    "files": [
+                        "core/api/routers.py"
+                    ]
+                },
+                {
+                    "id": "kg_copilot_integration",
+                    "name": "COPILOT \u2192 KG integration",
+                    "status": "production_ready",
+                    "files": [
+                        "core/copilot/agent.py"
+                    ]
+                },
+                {
+                    "id": "kg_event_bridge",
+                    "name": "KG Event bridge (finding:* and target:*)",
+                    "status": "production_ready",
+                    "files": [
+                        "api/main.py"
+                    ]
+                },
+                {
+                    "id": "event_foundation_tests",
+                    "name": "Event Foundation tests",
+                    "status": "production_ready",
+                    "tests": 32,
+                    "files": [
+                        "tests/test_event_foundation.py"
+                    ]
+                },
+                {
+                    "id": "knowledge_graph_tests",
+                    "name": "Knowledge Graph tests",
+                    "status": "production_ready",
+                    "tests": 34,
+                    "files": [
+                        "tests/test_knowledge_graph.py"
+                    ]
+                },
+                {
+                    "id": "kg_api_tests",
+                    "name": "KG API tests",
+                    "status": "production_ready",
+                    "tests": 9,
+                    "files": [
+                        "tests/test_core_api_routers.py"
+                    ]
+                }
+            ]
+        },
+        "FASE_14": {
+            "name": "EP-5 Execution Runtime",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "execution_context",
+                    "name": "RuntimeContext + VirtualClock",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/context.py",
+                        "core/execution/runtime/clock.py"
+                    ]
+                },
+                {
+                    "id": "execution_state_machine",
+                    "name": "State Machine (12 node + 11 workflow states)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/state_machine.py"
+                    ]
+                },
+                {
+                    "id": "execution_journal",
+                    "name": "ExecutionJournal",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/journal.py"
+                    ]
+                },
+                {
+                    "id": "execution_publisher",
+                    "name": "ExecutionEventPublisher (26 types)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/publisher.py"
+                    ]
+                },
+                {
+                    "id": "execution_kernel",
+                    "name": "ExecutionKernel orchestrator",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/kernel.py"
+                    ]
+                },
+                {
+                    "id": "capability_dispatcher",
+                    "name": "CapabilityDispatcher pipeline",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/dispatcher.py"
+                    ],
+                    "detail": "Permission\u2192Secrets\u2192RateLimit\u2192Metrics\u2192Execute"
+                },
+                {
+                    "id": "worker_engine",
+                    "name": "WorkerEngine (17 bytecode instructions)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/worker.py"
+                    ]
+                },
+                {
+                    "id": "checkpoint_manager",
+                    "name": "CheckpointManager",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/checkpoint.py"
+                    ]
+                },
+                {
+                    "id": "retry_engine",
+                    "name": "RetryEngine (6 policies)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/retry.py"
+                    ]
+                },
+                {
+                    "id": "timeout_engine",
+                    "name": "TimeoutEngine (4 types)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/timeout.py"
+                    ]
+                },
+                {
+                    "id": "rollback_engine",
+                    "name": "RollbackEngine",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/rollback.py"
+                    ]
+                },
+                {
+                    "id": "execution_scheduler",
+                    "name": "Execution Scheduler",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/scheduler.py"
+                    ]
+                },
+                {
+                    "id": "metrics_engine",
+                    "name": "MetricsEngine (13 types)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/metrics.py"
+                    ]
+                },
+                {
+                    "id": "resource_manager",
+                    "name": "ResourceManager",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/resource.py"
+                    ]
+                },
+                {
+                    "id": "approval_manager",
+                    "name": "ApprovalManager lifecycle",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/approval.py"
+                    ]
+                },
+                {
+                    "id": "runtime_api",
+                    "name": "RuntimeAPI (start/pause/resume/cancel)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/api.py"
+                    ]
+                },
+                {
+                    "id": "simulation_mode",
+                    "name": "Simulation Mode",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/simulation.py"
+                    ]
+                },
+                {
+                    "id": "execution_eventbus_bridge",
+                    "name": "EventBus Bridge (bidirectional)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/integration.py"
+                    ]
+                },
+                {
+                    "id": "execution_kg_bridge",
+                    "name": "KG Bridge",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/kg_bridge.py"
+                    ]
+                },
+                {
+                    "id": "execution_copilot_observer",
+                    "name": "COPILOT Execution Observer",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/runtime/observer.py"
+                    ]
+                },
+                {
+                    "id": "execution_compiler",
+                    "name": "Execution Compiler",
+                    "status": "production_ready",
+                    "files": [
+                        "core/execution/compiler.py",
+                        "core/execution/contract.py"
+                    ]
+                },
+                {
+                    "id": "execution_tests",
+                    "name": "Execution Runtime tests",
+                    "status": "production_ready",
+                    "tests": 111,
+                    "files": [
+                        "tests/test_execution_runtime.py"
+                    ]
+                }
+            ]
+        },
+        "FASE_15": {
+            "name": "Configuration Wizard v2",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "wizard_models",
+                    "name": "WizardStepDef + WizardState models",
+                    "status": "production_ready",
+                    "files": [
+                        "core/setup/models.py"
+                    ]
+                },
+                {
+                    "id": "wizard_step_registry",
+                    "name": "Step registry + @define_step decorator",
+                    "status": "production_ready",
+                    "files": [
+                        "core/setup/steps/__init__.py"
+                    ]
+                },
+                {
+                    "id": "wizard_identity_step",
+                    "name": "Identity step (username, email, role)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/setup/steps/identity_step.py"
+                    ]
+                },
+                {
+                    "id": "wizard_system_step",
+                    "name": "System step (Python, Node, Ollama, disk, permissions)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/setup/steps/system_step.py"
+                    ]
+                },
+                {
+                    "id": "wizard_copilot_step",
+                    "name": "COPILOT step (authority, LLM provider)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/setup/steps/copilot_step.py"
+                    ]
+                },
+                {
+                    "id": "wizard_integrations_step",
+                    "name": "Integrations step (registry discovery)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/setup/steps/integrations_step.py"
+                    ]
+                },
+                {
+                    "id": "wizard_smartwatch_step",
+                    "name": "Smartwatch step (Wear OS)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/setup/steps/smartwatch_step.py"
+                    ]
+                },
+                {
+                    "id": "wizard_test_step",
+                    "name": "Test step (EventBus, DB, vault, COPILOT, scheduler)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/setup/steps/test_step.py"
+                    ]
+                },
+                {
+                    "id": "wizard_engine",
+                    "name": "Wizard engine (go_back, skip, reset, state persistence)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/setup/wizard.py"
+                    ]
+                },
+                {
+                    "id": "wizard_api",
+                    "name": "Wizard API endpoints",
+                    "status": "production_ready",
+                    "files": [
+                        "core/api/routers.py"
+                    ]
+                },
+                {
+                    "id": "wizard_tests",
+                    "name": "Wizard tests",
+                    "status": "production_ready",
+                    "tests": 14,
+                    "files": [
+                        "tests/test_setup.py"
+                    ]
+                }
+            ]
+        },
+        "FASE_16": {
+            "name": "Extreme Simplification",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "plugin_discovery",
+                    "name": "Shared plugin discovery",
+                    "status": "production_ready",
+                    "files": [
+                        "core/plugin/discovery.py"
+                    ],
+                    "detail": "discover_manifests() unifies scanning/loading of apps and extensions"
+                },
+                {
+                    "id": "app_registry_simplified",
+                    "name": "AppRegistry simplified (75 lines less)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/app_registry.py"
+                    ]
+                },
+                {
+                    "id": "extension_registry_simplified",
+                    "name": "ExtensionRegistry simplified (no circular import)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/extension/registry.py"
+                    ]
+                },
+                {
+                    "id": "journal_eventstore",
+                    "name": "Journal \u2192 EventStore persistence",
+                    "status": "production_ready",
+                    "detail": "execution:journal:entry published to EventBus \u2192 EventStore. Fallback after restart."
+                },
+                {
+                    "id": "secrets_single_path",
+                    "name": "SecretsManager single Vault path",
+                    "status": "production_ready",
+                    "files": [
+                        "core/secrets/manager.py"
+                    ]
+                }
+            ]
+        },
+        "FASE_17": {
+            "name": "Revenue Pipeline",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "revenue_pipeline_orchestrator",
+                    "name": "RevenuePipeline orchestrator",
+                    "status": "production_ready",
+                    "files": [
+                        "core/revenue/pipeline.py"
+                    ],
+                    "detail": "submit_report(), check_submission_status(), sync_platform_payouts(), record_payout(), revenue_summary(), list_submissions()"
+                },
+                {
+                    "id": "revenue_models",
+                    "name": "Revenue models (PayoutRecord + RevenueEvent)",
+                    "status": "production_ready",
+                    "files": [
+                        "database/models_economic.py"
+                    ]
+                },
+                {
+                    "id": "revenue_events",
+                    "name": "6 revenue event types",
+                    "status": "production_ready",
+                    "files": [
+                        "core/events/types.py"
+                    ]
+                },
+                {
+                    "id": "revenue_capabilities",
+                    "name": "5 revenue capabilities in CapabilityRegistry",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "revenue_api",
+                    "name": "Revenue API endpoints (6 routes under /api/revenue/)",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/revenue.py"
+                    ]
+                },
+                {
+                    "id": "revenue_tests",
+                    "name": "Revenue Pipeline tests",
+                    "status": "production_ready",
+                    "tests": 31,
+                    "files": [
+                        "tests/test_revenue_pipeline.py"
+                    ]
+                }
+            ]
+        },
+        "CORE_STABLE": {
+            "name": "Core Stable Infrastructure",
+            "completed": "continuous",
+            "features": [
+                {
+                    "id": "auth_token_service",
+                    "name": "Auth TokenService + SessionStore",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/auth/"
+                    ]
+                },
+                {
+                    "id": "license_validator",
+                    "name": "License Validator + Store (Ed25519)",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/license/"
+                    ]
+                },
+                {
+                    "id": "identity_vault",
+                    "name": "IdentityVault (AES-256-GCM)",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/identity_vault.py"
+                    ]
+                },
+                {
+                    "id": "csrf_middleware",
+                    "name": "CSRF Middleware (double-submit cookie)",
+                    "status": "production_ready",
+                    "files": [
+                        "api/middleware/csrf_middleware.py"
+                    ]
+                },
+                {
+                    "id": "error_middleware",
+                    "name": "Error Handling Middleware",
+                    "status": "production_ready",
+                    "files": [
+                        "api/middleware/error_handling.py"
+                    ]
+                },
+                {
+                    "id": "audit_log",
+                    "name": "Audit Log (JSONL, chmod 600)",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/audit_log.py"
+                    ]
+                },
+                {
+                    "id": "ledger",
+                    "name": "Ledger \u2192 SQLite",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "event_bus",
+                    "name": "Event Bus \u2192 SQLite",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "system_state",
+                    "name": "System State \u2192 SQLite",
+                    "status": "production_ready"
+                }
+            ]
+        },
+        "NEW_SESSION": {
+            "name": "Current Session \u2014 Offensive Intelligence + Quality + Evolution",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "offensive_intelligence",
+                    "name": "Offensive Intelligence Engine",
+                    "status": "production_ready",
+                    "files": [
+                        "core/offensive/"
+                    ],
+                    "tests": 101,
+                    "detail": "IDOR, SSRF, XSS, SQLi, Auth Bypass reasoners, Planner, Curiosity Engine, Relationship Graph, ContradictionEngine, Triager, Attack templates, Publisher"
+                },
+                {
+                    "id": "offensive_api",
+                    "name": "Offensive Intelligence API",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/offensive.py"
+                    ],
+                    "detail": "8 API endpoints for offensive analysis"
+                },
+                {
+                    "id": "evidence_composer",
+                    "name": "Evidence Engine \u2014 EvidenceComposer",
+                    "status": "production_ready",
+                    "files": [
+                        "core/evidence/composer.py"
+                    ],
+                    "details": 13,
+                    "detail": "PoC, requests, responses, curl, Python exploit, timeline, CVSS, CWE, CAPEC, OWASP, MITRE, report readiness"
+                },
+                {
+                    "id": "report_quality_gate",
+                    "name": "Report Quality Gate + Acceptance Optimizer",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/reports_quality.py"
+                    ]
+                },
+                {
+                    "id": "evolution_engine",
+                    "name": "Evolution Engine \u2014 adaptive learning",
+                    "status": "production_ready",
+                    "files": [
+                        "core/evolution/",
+                        "api/routers/evolution.py"
+                    ]
+                },
+                {
+                    "id": "mission_control_api",
+                    "name": "Mission Control API + frontend",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/mission.py",
+                        "frontend/src/pages/MissionControl.vue"
+                    ]
+                },
+                {
+                    "id": "copilot_router",
+                    "name": "Copilot API router",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/copilot.py"
+                    ]
+                },
+                {
+                    "id": "workflows_engine",
+                    "name": "Workflows Engine",
+                    "status": "production_ready",
+                    "files": [
+                        "core/workflows/"
+                    ]
+                },
+                {
+                    "id": "aegis_app",
+                    "name": "Aegis security app (frontend + backend)",
+                    "status": "production_ready",
+                    "files": [
+                        "apps/aegis/",
+                        "frontend/src/apps/aegis/"
+                    ]
+                },
+                {
+                    "id": "sync_engine",
+                    "name": "Sync Engine",
+                    "status": "production_ready",
+                    "files": [
+                        "core/sync/"
+                    ]
+                },
+                {
+                    "id": "finance_core",
+                    "name": "Finance Core (models, engine)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/finance/"
+                    ]
+                },
+                {
+                    "id": "reports_core",
+                    "name": "Reports Core module",
+                    "status": "production_ready",
+                    "files": [
+                        "core/reports/"
+                    ]
+                },
+                {
+                    "id": "documentation_platform",
+                    "name": "Documentation Platform (auto-generation)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/documentation/"
+                    ],
+                    "detail": "Models, registrar, introspect (18 auto-registered modules)"
+                },
+                {
+                    "id": "assistant_composable",
+                    "name": "Assistant composable (frontend)",
+                    "status": "production_ready",
+                    "files": [
+                        "frontend/src/composables/useAssistant.ts"
+                    ]
+                },
+                {
+                    "id": "companion_composable",
+                    "name": "Mobile Companion composable",
+                    "status": "production_ready",
+                    "files": [
+                        "frontend/src/composables/useCompanion.ts"
+                    ]
+                },
+                {
+                    "id": "health_center_ui",
+                    "name": "Health Center page",
+                    "status": "production_ready",
+                    "files": [
+                        "frontend/src/pages/HealthCenter.vue"
+                    ]
+                },
+                {
+                    "id": "mobile_companion_ui",
+                    "name": "Mobile Companion page",
+                    "status": "production_ready",
+                    "files": [
+                        "frontend/src/pages/MobileCompanion.vue"
+                    ]
+                },
+                {
+                    "id": "workflows_ui",
+                    "name": "Workflows page",
+                    "status": "production_ready",
+                    "files": [
+                        "frontend/src/pages/Workflows.vue"
+                    ]
+                },
+                {
+                    "id": "tools_amass",
+                    "name": "Amass tool adapter",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/tools/amass.py"
+                    ]
+                },
+                {
+                    "id": "tools_naabu",
+                    "name": "Naabu tool adapter",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/tools/naabu.py"
+                    ]
+                },
+                {
+                    "id": "tools_shodan",
+                    "name": "Shodan tool adapter (REST API)",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/tools/shodan.py"
+                    ]
+                },
+                {
+                    "id": "tools_uncover",
+                    "name": "Uncover tool adapter",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/tools/uncover.py"
+                    ]
+                },
+                {
+                    "id": "discord_notifications",
+                    "name": "Discord notification bridge",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/notifications/discord.py"
+                    ]
+                },
+                {
+                    "id": "arca_integration",
+                    "name": "ARCA integration connector",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/integrations/arca/"
+                    ]
+                },
+                {
+                    "id": "outlook_integration",
+                    "name": "Outlook integration connector",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/integrations/outlook/"
+                    ]
+                },
+                {
+                    "id": "tauri_desktop",
+                    "name": "Tauri Desktop app (Rust+WebView)",
+                    "status": "production_ready",
+                    "files": [
+                        "src-tauri/"
+                    ]
+                },
+                {
+                    "id": "setup_script",
+                    "name": "Linux setup script",
+                    "status": "production_ready",
+                    "files": [
+                        "scripts/setup.sh"
+                    ]
+                },
+                {
+                    "id": "desktop_install_script",
+                    "name": "Windows desktop tools installer (33 tools via winget)",
+                    "status": "production_ready",
+                    "files": [
+                        "scripts/install_desktop_tools.ps1"
+                    ]
+                },
+                {
+                    "id": "unified_settings",
+                    "name": "Unified settings API router",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/settings_unified.py"
+                    ]
+                },
+                {
+                    "id": "data_table_ui",
+                    "name": "DataTable UI component",
+                    "status": "production_ready",
+                    "files": [
+                        "frontend/src/components/ui/DataTable.vue"
+                    ]
+                },
+                {
+                    "id": "drawer_ui",
+                    "name": "Drawer UI component",
+                    "status": "production_ready",
+                    "files": [
+                        "frontend/src/components/ui/Drawer.vue"
+                    ]
+                },
+                {
+                    "id": "modal_ui",
+                    "name": "Modal UI component",
+                    "status": "production_ready",
+                    "files": [
+                        "frontend/src/components/ui/Modal.vue"
+                    ]
+                },
+                {
+                    "id": "select_ui",
+                    "name": "Select UI component",
+                    "status": "production_ready",
+                    "files": [
+                        "frontend/src/components/ui/Select.vue"
+                    ]
+                }
+            ]
+        },
+        "FASE_18": {
+            "name": "Offensive Intelligence + Evidence + Quality",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "offensive_engine",
+                    "name": "Offensive Intelligence Engine (5 reasoners)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/offensive/"
+                    ],
+                    "tests": 101
+                },
+                {
+                    "id": "offensive_api",
+                    "name": "Offensive Intelligence API (8 endpoints)",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/offensive.py"
+                    ]
+                },
+                {
+                    "id": "evidence_composer",
+                    "name": "Evidence Composer (PoC, CVSS, CWE)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/evidence/composer.py"
+                    ],
+                    "tests": 37
+                },
+                {
+                    "id": "report_quality_gate",
+                    "name": "Report Quality Gate",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/reports_quality.py"
+                    ]
+                },
+                {
+                    "id": "evolution_engine",
+                    "name": "Evolution Engine",
+                    "status": "production_ready",
+                    "files": [
+                        "core/evolution/"
+                    ]
+                },
+                {
+                    "id": "mission_control",
+                    "name": "Mission Control API + frontend",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/mission.py",
+                        "frontend/src/pages/MissionControl.vue"
+                    ]
+                },
+                {
+                    "id": "copilot_api_router",
+                    "name": "Copilot API Router",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/copilot.py"
+                    ]
+                },
+                {
+                    "id": "workflows_engine",
+                    "name": "Workflows Engine",
+                    "status": "production_ready",
+                    "files": [
+                        "core/workflows/"
+                    ]
+                },
+                {
+                    "id": "aegis_app",
+                    "name": "Aegis App",
+                    "status": "production_ready",
+                    "files": [
+                        "apps/aegis/",
+                        "frontend/src/apps/aegis/"
+                    ]
+                },
+                {
+                    "id": "sync_engine",
+                    "name": "Sync Engine",
+                    "status": "production_ready",
+                    "files": [
+                        "core/sync/"
+                    ]
+                },
+                {
+                    "id": "finance_core",
+                    "name": "Finance Core",
+                    "status": "production_ready",
+                    "files": [
+                        "core/finance/"
+                    ]
+                },
+                {
+                    "id": "reports_core",
+                    "name": "Reports Core",
+                    "status": "production_ready",
+                    "files": [
+                        "core/reports/"
+                    ]
+                },
+                {
+                    "id": "documentation_platform",
+                    "name": "Documentation Platform",
+                    "status": "production_ready",
+                    "files": [
+                        "core/documentation/"
+                    ]
+                },
+                {
+                    "id": "tools_amass",
+                    "name": "Amass tool",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/tools/amass.py"
+                    ]
+                },
+                {
+                    "id": "tools_naabu",
+                    "name": "Naabu tool",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/tools/naabu.py"
+                    ]
+                },
+                {
+                    "id": "tools_shodan",
+                    "name": "Shodan tool",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/tools/shodan.py"
+                    ]
+                },
+                {
+                    "id": "tools_uncover",
+                    "name": "Uncover tool",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/tools/uncover.py"
+                    ]
+                },
+                {
+                    "id": "discord_notifications",
+                    "name": "Discord notifications",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/notifications/discord.py"
+                    ]
+                },
+                {
+                    "id": "arca_integration",
+                    "name": "ARCA integration",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/integrations/arca/"
+                    ]
+                },
+                {
+                    "id": "outlook_integration",
+                    "name": "Outlook integration",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/integrations/outlook/"
+                    ]
+                },
+                {
+                    "id": "tauri_desktop",
+                    "name": "Tauri Desktop",
+                    "status": "production_ready",
+                    "files": [
+                        "src-tauri/"
+                    ]
+                },
+                {
+                    "id": "setup_script",
+                    "name": "Linux setup script",
+                    "status": "production_ready",
+                    "files": [
+                        "scripts/setup.sh"
+                    ]
+                },
+                {
+                    "id": "windows_installer",
+                    "name": "Windows tools installer",
+                    "status": "production_ready",
+                    "files": [
+                        "scripts/install_desktop_tools.ps1"
+                    ]
+                },
+                {
+                    "id": "unified_settings",
+                    "name": "Unified settings API",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/settings_unified.py"
+                    ]
+                },
+                {
+                    "id": "ui_components",
+                    "name": "UI components (DataTable, Drawer, Modal, Select)",
+                    "status": "production_ready",
+                    "files": [
+                        "frontend/src/components/ui/"
+                    ]
+                }
+            ]
+        },
+        "FASE_19": {
+            "name": "Hermes v2: Professional Desktop Agent",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "hermes_events",
+                    "name": "Hermes EventBus events (7 types)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/events/types.py"
+                    ]
+                },
+                {
+                    "id": "hermes_publisher",
+                    "name": "HermesEventPublisher",
+                    "status": "production_ready",
+                    "files": [
+                        "apps/hermes/publisher.py"
+                    ]
+                },
+                {
+                    "id": "hermes_permissions",
+                    "name": "Permission System (5 risk levels)",
+                    "status": "production_ready",
+                    "files": [
+                        "apps/hermes/permissions.py"
+                    ],
+                    "tests": 14
+                },
+                {
+                    "id": "hermes_security",
+                    "name": "Security Layer (PS/Path/PID validation)",
+                    "status": "production_ready",
+                    "files": [
+                        "apps/hermes/security.py"
+                    ],
+                    "tests": 24
+                },
+                {
+                    "id": "hermes_engine_integration",
+                    "name": "Engine integration with security pipeline",
+                    "status": "production_ready",
+                    "files": [
+                        "apps/hermes/engine.py"
+                    ]
+                },
+                {
+                    "id": "hermes_v2_tests",
+                    "name": "Hermes v2 tests (events+permissions+security)",
+                    "status": "production_ready",
+                    "tests": 48
+                }
+            ]
+        },
+        "FASE_20": {
+            "name": "Command System Fase 1",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "command_models",
+                    "name": "Command models (5 permission levels, flags)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/commands/models.py"
+                    ]
+                },
+                {
+                    "id": "command_registry",
+                    "name": "Command Registry (107 commands, 14 categories)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/commands/registry.py"
+                    ]
+                },
+                {
+                    "id": "command_dispatcher",
+                    "name": "Command Dispatcher + EventBus",
+                    "status": "production_ready",
+                    "files": [
+                        "core/commands/dispatcher.py"
+                    ]
+                },
+                {
+                    "id": "command_api",
+                    "name": "Command API endpoints (6)",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/commands.py"
+                    ]
+                },
+                {
+                    "id": "command_events",
+                    "name": "Command event types (3)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/events/types.py"
+                    ]
+                },
+                {
+                    "id": "command_tests",
+                    "name": "Command System tests",
+                    "status": "production_ready",
+                    "tests": 45
+                }
+            ]
+        },
+        "FASE_21": {
+            "name": "Pipeline Hypothesis Fix + Estabilidad",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "path_hypothesis_fallback",
+                    "name": "Path-based hypothesis fallback (6 vuln types)",
+                    "status": "production_ready",
+                    "files": [
+                        "api/scheduler.py"
+                    ]
+                },
+                {
+                    "id": "vuln_type_map_extended",
+                    "name": "VULN_TYPE_MAP extended (file_upload, graphql)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/pipeline/hypothesis_bridge.py"
+                    ]
+                },
+                {
+                    "id": "orphaned_db_cleanup",
+                    "name": "Orphaned test DBs cleanup (1303\u21928)",
+                    "status": "production_ready"
+                },
+                {
+                    "id": "ruff_fixes_12",
+                    "name": "12 Ruff SIM114/B007/B024 fixes",
+                    "status": "production_ready"
+                }
+            ]
+        },
+        "FASE_22": {
+            "name": "Report Acceptance Optimizer",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "acceptance_learner",
+                    "name": "AcceptanceLearner (prediction + adaptation)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/reports/acceptance/learner.py"
+                    ]
+                },
+                {
+                    "id": "acceptance_api",
+                    "name": "Acceptance API endpoints (7)",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/reports_acceptance.py"
+                    ]
+                },
+                {
+                    "id": "acceptance_events",
+                    "name": "Acceptance events (3 types)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/events/types.py"
+                    ]
+                },
+                {
+                    "id": "acceptance_tests",
+                    "name": "Acceptance Optimizer tests",
+                    "status": "production_ready",
+                    "tests": 18
+                }
+            ]
+        },
+        "FASE_23": {
+            "name": "Recon Intelligence",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "target_prioritizer",
+                    "name": "TargetPrioritizer (EV + tech + attack plans)",
+                    "status": "production_ready",
+                    "files": [
+                        "core/target_intelligence/prioritizer.py"
+                    ]
+                },
+                {
+                    "id": "scheduler_recon_integration",
+                    "name": "Scheduler integration (budget-aware EV)",
+                    "status": "production_ready",
+                    "files": [
+                        "api/scheduler.py"
+                    ]
+                },
+                {
+                    "id": "recon_intel_tests",
+                    "name": "Target intelligence tests",
+                    "status": "production_ready",
+                    "tests": 22
+                }
+            ]
+        },
+        "FASE_24": {
+            "name": "Expansion Execution Plan",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "tech_scout_report",
+                    "name": "Technology Scout Report",
+                    "status": "production_ready",
+                    "files": [
+                        ".ai/TECHNOLOGY_SCOUT_REPORT.md"
+                    ]
+                },
+                {
+                    "id": "expansion_intel_report",
+                    "name": "Expansion Intelligence Report",
+                    "status": "production_ready",
+                    "files": [
+                        ".ai/EXPANSION_INTELLIGENCE_REPORT.md"
+                    ]
+                },
+                {
+                    "id": "expansion_exec_plan",
+                    "name": "Expansion Execution Plan",
+                    "status": "production_ready",
+                    "files": [
+                        ".ai/EXPANSION_EXECUTION_PLAN.md"
+                    ]
+                },
+                {
+                    "id": "sprint_0_tools",
+                    "name": "Sprint 0 tools (Gitleaks, Garak, BrowserUse)",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/tools/extra.py"
+                    ],
+                    "tests": 24
+                },
+                {
+                    "id": "expansion_memory",
+                    "name": "Expansion Unified Memory entries",
+                    "status": "production_ready",
+                    "detail": "8 entries under namespace expansion"
+                }
+            ]
+        },
+        "FASE_25": {
+            "name": "Expansion Sprints 4-10 (Revenue Ready)",
+            "completed": "July 2026",
+            "features": [
+                {
+                    "id": "s4_ai_bounty_hunter",
+                    "name": "S-4: AI Bounty Auto-Hunter",
+                    "status": "production_ready",
+                    "files": [
+                        "core/auto_hunter/"
+                    ],
+                    "tests": 29,
+                    "detail": "4 AI Bounty programs, scheduler 2h, EV ranking"
+                },
+                {
+                    "id": "s5_revenue_dashboard_v2",
+                    "name": "S-5: Revenue Dashboard V2",
+                    "status": "production_ready",
+                    "files": [
+                        "frontend/src/pages/RevenueDashboard.vue",
+                        "api/routers/targets.py"
+                    ],
+                    "detail": "Targets by EV tab"
+                },
+                {
+                    "id": "ux1_baby_mode",
+                    "name": "UX-1: Baby Mode",
+                    "status": "production_ready",
+                    "files": [
+                        "frontend/src/pages/BabyMode.vue"
+                    ],
+                    "detail": "3 main action buttons"
+                },
+                {
+                    "id": "s6_auto_submission",
+                    "name": "S-6: Auto-Submission Pipeline",
+                    "status": "production_ready",
+                    "files": [
+                        "core/auto_submit/pipeline.py"
+                    ],
+                    "tests": 12,
+                    "detail": "Quality Gate, platform detection, EventBus"
+                },
+                {
+                    "id": "s7_target_discovery",
+                    "name": "S-7: Target Discovery Automator",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/bounty_scraper/"
+                    ],
+                    "tests": 25,
+                    "detail": "ProgramChangeTracker, payout ranking"
+                },
+                {
+                    "id": "s8_report_optimizer_v2",
+                    "name": "S-8: Report Optimizer V2",
+                    "status": "production_ready",
+                    "files": [
+                        "core/reports/optimizer.py"
+                    ],
+                    "tests": 23,
+                    "detail": "RemediationDB (12 types), CWE_MAP, ReportContextBuilder"
+                },
+                {
+                    "id": "s9_auto_recon",
+                    "name": "S-9: Auto-Recon Enhancement",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/recon/"
+                    ],
+                    "tests": 23,
+                    "detail": "NaabuRunner, centralized dedup, ReconRunner integration"
+                },
+                {
+                    "id": "s10_verdict_learner",
+                    "name": "S-10: Verdict Auto-Learner",
+                    "status": "production_ready",
+                    "files": [
+                        "core/learning/verdict_learner.py",
+                        "api/main.py"
+                    ],
+                    "tests": 14,
+                    "detail": "FeedbackTuner \u2194 AcceptanceLearner bridge, auto-outcome recording"
+                }
+            ]
+        },
+        "FASE_26": [
+            {
+                "feature": "AI Security Module (Fase 1)",
+                "description": "AI Bug Bounty / LLM Security simple module. Escaneo de modelos locales con Garak, oportunidades AI bounty, y frontend simple con 2 tabs.",
+                "files": [
+                    "core/intel/llm_scanner.py",
+                    "api/routers/ai_security.py",
+                    "frontend/src/pages/AISecurity.vue"
+                ],
+                "tests": "tests/test_ai_security.py (5 unit pass, 6 integration skipped)",
+                "dependencies": [
+                    "cores/tools/extra.py (GarakTool)",
+                    "core/ai_bounty/engine.py"
+                ],
+                "integration_level": "connected",
+                "date": "2026-07-23"
+            }
         ],
-        "tests": "tests/test_ai_security.py (5 unit pass, 6 integration skipped)",
-        "dependencies": [
-          "cores/tools/extra.py (GarakTool)",
-          "core/ai_bounty/engine.py"
+        "FASE_28": [
+            {
+                "feature": "CensysTool",
+                "description": "REST tool for internet asset discovery and certificate transparency, registered in TOOL_REGISTRY.",
+                "files": [
+                    "cores/tools/censys.py",
+                    "cores/tools/__init__.py",
+                    "cores/tools/extra.py"
+                ],
+                "tests": "-",
+                "dependencies": [
+                    "cores/tools/base.py (BaseTool, UnifiedResult)"
+                ],
+                "integration_level": "registered",
+                "date": "2026-07-24"
+            },
+            {
+                "feature": "Crypto Technical Analysis",
+                "description": "RSI, SMA, MACD indicators from CoinGecko OHLC history. get_technical_signals() with interpretation.",
+                "files": [
+                    "cores/crypto/coingecko.py"
+                ],
+                "tests": "-",
+                "dependencies": [
+                    "cores/crypto/base.py"
+                ],
+                "integration_level": "connected",
+                "date": "2026-07-24"
+            },
+            {
+                "feature": "Smart Notifications Bridge",
+                "description": "IntelligentNotificationManager wired to 14 EventBus events + 3 API endpoints (GET /smart, GET+POST /smart/config).",
+                "files": [
+                    "api/main.py",
+                    "api/routers/notifications.py"
+                ],
+                "tests": "-",
+                "dependencies": [
+                    "core/notifications/intelligent.py",
+                    "core/events/bus.py"
+                ],
+                "integration_level": "connected",
+                "date": "2026-07-24"
+            },
+            {
+                "feature": "Revenue Intelligence",
+                "description": "USD/hour metric in RevenueMetrics, dynamic platform speed in TargetPrioritizer, USD/hour in scheduler EV log.",
+                "files": [
+                    "core/revenue/metrics.py",
+                    "core/target_intelligence/prioritizer.py",
+                    "api/scheduler.py"
+                ],
+                "tests": "22 (target_intelligence) + 31 (revenue_pipeline) + 17 (scheduler) = 70",
+                "dependencies": [
+                    "database/models_economic.py (PayoutRecord)"
+                ],
+                "integration_level": "production_ready",
+                "date": "2026-07-24"
+            }
         ],
-        "integration_level": "connected",
-        "date": "2026-07-23"
-      }
-    ],
-    "FASE_28": [
-      {
-        "feature": "CensysTool",
-        "description": "REST tool for internet asset discovery and certificate transparency, registered in TOOL_REGISTRY.",
-        "files": [
-          "cores/tools/censys.py",
-          "cores/tools/__init__.py",
-          "cores/tools/extra.py"
-        ],
-        "tests": "-",
-        "dependencies": [
-          "cores/tools/base.py (BaseTool, UnifiedResult)"
-        ],
-        "integration_level": "registered",
-        "date": "2026-07-24"
-      },
-      {
-        "feature": "Crypto Technical Analysis",
-        "description": "RSI, SMA, MACD indicators from CoinGecko OHLC history. get_technical_signals() with interpretation.",
-        "files": [
-          "cores/crypto/coingecko.py"
-        ],
-        "tests": "-",
-        "dependencies": [
-          "cores/crypto/base.py"
-        ],
-        "integration_level": "connected",
-        "date": "2026-07-24"
-      },
-      {
-        "feature": "Smart Notifications Bridge",
-        "description": "IntelligentNotificationManager wired to 14 EventBus events + 3 API endpoints (GET /smart, GET+POST /smart/config).",
-        "files": [
-          "api/main.py",
-          "api/routers/notifications.py"
-        ],
-        "tests": "-",
-        "dependencies": [
-          "core/notifications/intelligent.py",
-          "core/events/bus.py"
-        ],
-        "integration_level": "connected",
-        "date": "2026-07-24"
-      },
-      {
-        "feature": "Revenue Intelligence",
-        "description": "USD/hour metric in RevenueMetrics, dynamic platform speed in TargetPrioritizer, USD/hour in scheduler EV log.",
-        "files": [
-          "core/revenue/metrics.py",
-          "core/target_intelligence/prioritizer.py",
-          "api/scheduler.py"
-        ],
-        "tests": "22 (target_intelligence) + 31 (revenue_pipeline) + 17 (scheduler) = 70",
-        "dependencies": [
-          "database/models_economic.py (PayoutRecord)"
-        ],
-        "integration_level": "production_ready",
-        "date": "2026-07-24"
-      }
-    ],
-    "FASE_29": [
-      {
-        "feature": "Opportunity Score Engine (OWNEX Phase 1)",
-        "description": "Unified scorer across all Work Cycles (Security, Forge, Pulse, Vault, Atlas). Computes expected value, acceptance probability, difficulty, competition, personal fit, and confidence. Integrates personal history from RevenueMetrics. Top5Engine curates exactly 5 diversified recommendations per cycle/source. 23 tests.",
-        "files": [
-          "core/opportunity/models.py",
-          "core/opportunity/personal.py",
-          "core/opportunity/scorer.py",
-          "core/opportunity/top5.py",
-          "core/opportunity/__init__.py",
-          "api/routers/opportunity_score.py",
-          "tests/test_opportunity_core.py"
-        ],
-        "tests": "23 (test_opportunity_core.py)",
-        "dependencies": [
-          "core/priority/ev_engine.py (compute_ev)",
-          "core/revenue/metrics.py (RevenueMetrics)",
-          "cores/opportunity/models.py (Opportunity)"
-        ],
-        "integration_level": "production_ready",
-        "date": "2026-07-26"
-      }
-    ]
-  }
+        "FASE_29": [
+            {
+                "feature": "Opportunity Score Engine (OWNEX Phase 1)",
+                "description": "Unified scorer across all Work Cycles (Security, Forge, Pulse, Vault, Atlas). Computes expected value, acceptance probability, difficulty, competition, personal fit, and confidence. Integrates personal history from RevenueMetrics. Top5Engine curates exactly 5 diversified recommendations per cycle/source. 23 tests.",
+                "files": [
+                    "core/opportunity/models.py",
+                    "core/opportunity/personal.py",
+                    "core/opportunity/scorer.py",
+                    "core/opportunity/top5.py",
+                    "core/opportunity/__init__.py",
+                    "api/routers/opportunity_score.py",
+                    "tests/test_opportunity_core.py"
+                ],
+                "tests": "23 (test_opportunity_core.py)",
+                "dependencies": [
+                    "core/priority/ev_engine.py (compute_ev)",
+                    "core/revenue/metrics.py (RevenueMetrics)",
+                    "cores/opportunity/models.py (Opportunity)"
+                ],
+                "integration_level": "production_ready",
+                "date": "2026-07-26"
+            }
+        ]
+    }
 }

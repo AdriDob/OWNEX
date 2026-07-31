@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(StrEnum):
     """Status of a task across all platforms."""
+
     PENDING = "pending"  # Disponible para aceptar
     ACCEPTED = "accepted"  # Aceptada por el usuario
     IN_PROGRESS = "in_progress"  # En progreso
@@ -19,8 +20,9 @@ class TaskStatus(str, Enum):
     EXPIRED = "expired"  # Expirada
 
 
-class TaskPriority(str, Enum):
+class TaskPriority(StrEnum):
     """Priority level of a task."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -30,6 +32,7 @@ class TaskPriority(str, Enum):
 @dataclass
 class UnifiedTask:
     """Unified task model across all platforms."""
+
     id: str  # Unique ID: platform_platform_id
     platform: str  # algora, freelancer, github, outlier, etc.
     platform_id: str  # Original ID from platform
@@ -82,6 +85,7 @@ class UnifiedTask:
 @dataclass
 class PlatformConnection:
     """Connection status for a platform."""
+
     platform: str
     connected: bool
     last_sync: str | None = None

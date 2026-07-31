@@ -12,8 +12,6 @@ from typing import Any
 from core.self_improvement.reflection import (
     IssueType,
     Reflection,
-    SelfReflectionEngine,
-    Severity,
     get_reflection_engine,
 )
 
@@ -23,6 +21,7 @@ logger = logging.getLogger("ownex.self_improvement.plan_generator")
 @dataclass
 class ImprovementAction:
     """A specific action to implement an improvement."""
+
     id: str
     reflection_id: str
     action_type: str  # "add_file", "modify_file", "add_config", "add_dependency", "add_test"

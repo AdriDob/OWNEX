@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
@@ -52,7 +51,7 @@ def get_guide(platform: str, guide_type: str = "account"):
         raise
     except Exception as e:
         logger.error(f"Failed to get guide for {platform}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/{platform}/account")

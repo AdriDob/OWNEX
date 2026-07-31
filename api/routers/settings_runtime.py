@@ -5,7 +5,9 @@ from typing import Any
 from fastapi import APIRouter
 
 from cores.settings.service import (
-    CATEYEMode,
+    OWNEXMode as CATEYEMode,
+)
+from cores.settings.service import (
     get_all_settings,
     get_mode,
     get_platform_config,
@@ -40,6 +42,7 @@ def set_mode_setting(body: dict[str, str]) -> dict[str, str]:
 @router.get("/platforms")
 def get_platform_settings() -> dict[str, dict[str, Any]]:
     from cores.settings.service import get_all_platform_configs
+
     return get_all_platform_configs()
 
 

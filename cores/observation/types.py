@@ -49,10 +49,10 @@ class Severity(StrEnum):
 class Evidence:
     """Immutable evidence attached to an observation."""
 
-    evidence_id: str = field(default_factory=lambda: uuid.uuid4().hex[:12])
     source: str
     source_type: SourceType
     content: str | bytes
+    evidence_id: str = field(default_factory=lambda: uuid.uuid4().hex[:12])
     metadata: dict[str, Any] = field(default_factory=dict)
     timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     hash: str = ""
