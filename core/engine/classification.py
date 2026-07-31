@@ -12,7 +12,7 @@ import logging
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.engine.base import Engine
@@ -67,7 +67,7 @@ class Opportunity:
     raw_data: dict[str, Any] = field(default_factory=dict)
 
     # Timing
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     # Pipeline status
     status: str = "new"       # new | planned | prepared | executed | validated | archived

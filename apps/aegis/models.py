@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import Column, DateTime, Float, Integer, String, Text
 from sqlalchemy.orm import declarative_base
@@ -21,9 +21,9 @@ class AegisTarget(Base):
     priority = Column(String(16), default="medium")
     tags = Column(Text)
     notes = Column(Text)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     updated_at = Column(
-        DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
     )
 
 
@@ -43,7 +43,7 @@ class ScanResult(Base):
     evidence = Column(Text)
     confidence = Column(Float, default=1.0)
     raw_output = Column(Text)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
 
 class VulnFinding(Base):
@@ -62,9 +62,9 @@ class VulnFinding(Base):
     remediation = Column(Text)
     poc = Column(Text)
     status = Column(String(32), default="open")  # open, confirmed, false_positive, fixed
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     updated_at = Column(
-        DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
     )
 
 
@@ -78,7 +78,7 @@ class ScanReport(Base):
     content = Column(Text)
     findings_summary = Column(Text)
     severity_counts = Column(Text)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
 
 class Payload(Base):
@@ -90,7 +90,7 @@ class Payload(Base):
     payload = Column(Text, nullable=False)
     description = Column(Text)
     tags = Column(Text)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
 
 class KnowHow(Base):
@@ -102,7 +102,7 @@ class KnowHow(Base):
     content = Column(Text)
     tags = Column(Text)
     source = Column(String(256))
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     updated_at = Column(
-        DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
     )

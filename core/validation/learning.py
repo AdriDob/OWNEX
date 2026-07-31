@@ -18,7 +18,7 @@ import os
 import threading
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -69,7 +69,7 @@ def _serialize_outcome(outcome: ValidationOutcome) -> str:
         "duration_ms": outcome.duration_ms,
         "signals_count": outcome.signals_count,
         "reproducible": outcome.reproducible,
-        "timestamp": outcome.timestamp or datetime.now(timezone.utc).isoformat(),
+        "timestamp": outcome.timestamp or datetime.now(UTC).isoformat(),
     })
 
 

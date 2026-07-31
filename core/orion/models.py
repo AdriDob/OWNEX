@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -65,7 +65,7 @@ class ROIScore:
     effort_per_finding: float = 0.0  # estimated hours
     trend: str = "stable"  # rising | falling | stable
     last_active: str = ""
-    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 @dataclass
@@ -79,7 +79,7 @@ class OrionDecision:
     score: float = 0.0
     reason: str = ""
     payload: dict[str, Any] = field(default_factory=dict)
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     expires_at: str = ""
 
     def is_expired(self) -> bool:
@@ -87,7 +87,7 @@ class OrionDecision:
             return False
         try:
             expiry = datetime.fromisoformat(self.expires_at)
-            return datetime.now(timezone.utc) > expiry
+            return datetime.now(UTC) > expiry
         except (ValueError, TypeError):
             return False
 
@@ -105,7 +105,7 @@ class OrionTask:
     status: str = "pending"  # pending | running | completed | failed
     handler: str = ""  # scheduler handler path
     payload: dict[str, Any] = field(default_factory=dict)
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     completed_at: str = ""
 
 
@@ -119,14 +119,14 @@ class MemoryRecord:
     source: str = ""
     ttl_hours: int = 0  # 0 = permanent
     tags: list[str] = field(default_factory=list)
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def is_expired(self) -> bool:
         if self.ttl_hours <= 0:
             return False
         try:
             created = datetime.fromisoformat(self.created_at)
-            age = (datetime.now(timezone.utc) - created).total_seconds() / 3600
+            age = (datetime.now(UTC) - created).total_seconds() / 3600
             return age > self.ttl_hours
         except (ValueError, TypeError):
             return False

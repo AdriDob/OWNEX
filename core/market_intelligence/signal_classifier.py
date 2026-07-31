@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from core.market_intelligence.models import (
@@ -394,7 +394,7 @@ def classify_signal(
         urgency=urgency,
         entities=entities,
         source_tier=source.tier,
-        posted_at=datetime.now(timezone.utc).isoformat(),
+        posted_at=datetime.now(UTC).isoformat(),
     )
 
     logger.debug(

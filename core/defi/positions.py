@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -60,7 +60,7 @@ class DefiPosition:
 class YieldSnapshot:
     """Snapshot of all DeFi positions at a point in time."""
 
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     positions: list[DefiPosition] = field(default_factory=list)
 
     @property

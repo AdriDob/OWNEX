@@ -4,7 +4,7 @@ import hashlib
 import json
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 RELEASE_DIR = Path("build/release")
@@ -50,7 +50,7 @@ def main():
         "app": "CATEYE",
         "version": VERSION,
         "build_id": f"CATEYE-v{VERSION}-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
-        "build_date": datetime.now(timezone.utc).isoformat(),
+        "build_date": datetime.now(UTC).isoformat(),
         "commit": get_git_commit(),
         "python": sys.version.split()[0],
         "platform": sys.platform,

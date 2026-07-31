@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -43,7 +43,7 @@ class KnowledgeEntry:
     lesson: str = ""
     confidence: float = 0.0  # 0.0-1.0
     metadata: dict[str, Any] = field(default_factory=dict)
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     validated: bool = False
     validated_at: str | None = None
     outcome: str | None = None  # "confirmed", "rejected", "pending"
@@ -94,7 +94,7 @@ class KnowledgeCapture:
             lesson = self._build_lesson(finding, verdicts, evidence_quality, report_quality, platform, program)
 
             entry = KnowledgeEntry(
-                id=f"k_{finding.id}_{lesson_type.value}_{datetime.now(timezone.utc).timestamp()}",
+                id=f"k_{finding.id}_{lesson_type.value}_{datetime.now(UTC).timestamp()}",
                 type=lesson_type,
                 source_finding_id=finding.id,
                 source_target_id=finding.target_id,
@@ -151,7 +151,7 @@ class KnowledgeCapture:
             platform = target.name.split("_")[0] if target and "_" in target.name else ""
 
             entry = KnowledgeEntry(
-                id=f"k_payout_{payout.id}_{datetime.now(timezone.utc).timestamp()}",
+                id=f"k_payout_{payout.id}_{datetime.now(UTC).timestamp()}",
                 type=LearningType.SCORE_CALIBRATION,
                 source_finding_id=f.id,
                 source_target_id=f.target_id,
@@ -186,7 +186,7 @@ class KnowledgeCapture:
         platform = target.name.split("_")[0] if target and "_" in target.name else ""
 
         entry = KnowledgeEntry(
-            id=f"k_fail_{finding.id}_{datetime.now(timezone.utc).timestamp()}",
+            id=f"k_fail_{finding.id}_{datetime.now(UTC).timestamp()}",
             type=LearningType.FAILURE_ANALYSIS,
             source_finding_id=finding.id,
             source_target_id=finding.target_id,

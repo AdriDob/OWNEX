@@ -14,7 +14,6 @@ from pydantic import BaseModel
 from cores.version_backup import (
     BackupStatus,
     get_version_backup_system,
-    VersionBackupSystem,
 )
 
 logger = logging.getLogger("ownex.api.version_backup")

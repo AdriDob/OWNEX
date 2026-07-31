@@ -6,7 +6,6 @@ Improves OWNEX through audits and improvements.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from cores.agents.specialist import SpecialistAgent, SpecialistConfig
 from cores.agents.types import AgentEvent, AgentId, EventType

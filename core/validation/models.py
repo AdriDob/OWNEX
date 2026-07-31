@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -146,7 +146,7 @@ class AttackCandidate:
     # Estado de validación
     status: str = "pending"  # pending, planned, validated, confirmed, rejected, error
 
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -241,7 +241,7 @@ class ValidationPlan:
     # Señales a buscar en las respuestas
     signals_to_check: list[str] = field(default_factory=list)
 
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     @property
     def estimated_cost(self) -> int:
@@ -326,7 +326,7 @@ class ValidationResult:
     poc_httpie: str = ""
     evidence_data: dict[str, Any] = field(default_factory=dict)
 
-    executed_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    executed_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     duration_ms: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:

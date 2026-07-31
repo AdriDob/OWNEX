@@ -29,7 +29,7 @@ import os
 import shutil
 import sys
 import zipfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from cores.env.config import get_config
@@ -188,7 +188,7 @@ def _write_build_info(output_dir: Path, version: str, has_bundle: bool) -> None:
     info = {
         "app": "CATEYE",
         "version": version,
-        "build_date": datetime.now(timezone.utc).isoformat(),
+        "build_date": datetime.now(UTC).isoformat(),
         "python": sys.version.split()[0],
         "platform": sys.platform,
         "has_pyinstaller_bundle": has_bundle,

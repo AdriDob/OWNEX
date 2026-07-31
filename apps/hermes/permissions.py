@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -137,7 +137,7 @@ class ActionRecord:
     status: str  # requested | approved | denied | started | completed | failed
     risk: str
     destructive: bool
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     message: str = ""
     details: dict[str, Any] = field(default_factory=dict)
 

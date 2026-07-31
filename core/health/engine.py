@@ -15,7 +15,7 @@ import os
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 from typing import Any
 
@@ -104,7 +104,7 @@ class HealthCenter:
             snapshot = HealthSnapshot(
                 status=status,
                 score=score,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 checks=results,
                 details={"errors": errors},
             )
@@ -139,7 +139,7 @@ class HealthCenter:
             snapshot = HealthSnapshot(
                 status=status,
                 score=score,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 checks=results,
                 details={"category": category},
             )

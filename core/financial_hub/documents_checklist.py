@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.financial_hub.models import PayoutDocument
@@ -101,7 +101,7 @@ class DocumentsChecklist:
             if doc is None:
                 return None
             doc.is_completed = True
-            doc.completed_at = datetime.now(timezone.utc)
+            doc.completed_at = datetime.now(UTC)
             session.commit()
             session.refresh(doc)
             return self._doc_to_dict(doc)

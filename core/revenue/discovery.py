@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.opportunity.models import ScoredOpportunity
@@ -20,7 +20,7 @@ def discover_daily_opportunities(
 
     sorted_opps = sorted(scored, key=lambda o: o.score.overall, reverse=True)
 
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today = datetime.now(UTC).strftime("%Y-%m-%d")
 
     discovered: list[dict[str, Any]] = []
     for opp in sorted_opps[:top_n]:

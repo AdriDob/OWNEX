@@ -7,7 +7,7 @@ Just wraps its output as ownObservations.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from core.sensors.base import Sensor
 from core.sensors.observation import Observation
@@ -42,7 +42,7 @@ class HackerOneSensor(Sensor):
             if not prog.has_rewards:
                 continue
 
-            now = datetime.now(timezone.utc).isoformat()
+            now = datetime.now(UTC).isoformat()
             obs = Observation(
                 id=f"hackerone:{prog.name}",
                 sensor_id=self.id,
@@ -63,6 +63,6 @@ class HackerOneSensor(Sensor):
             observations.append(obs)
 
         self._fetch_count += 1
-        self._last_fetch = datetime.now(timezone.utc).timestamp()
+        self._last_fetch = datetime.now(UTC).timestamp()
         logger.info("HackerOneSensor: %d observations", len(observations))
         return observations

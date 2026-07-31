@@ -5,11 +5,10 @@ from __future__ import annotations
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
 
 import pytest
 
-from cores.recovery.persistence import get_recovery_store, reset_recovery_store
+from cores.recovery.persistence import reset_recovery_store
 from cores.version_backup import (
     BackupResult,
     BackupStatus,
@@ -134,7 +133,7 @@ class TestVersionBackupSystem:
         manifest_path = Path(result.backup_path) / "manifest.json"
         assert manifest_path.exists()
 
-        with open(manifest_path, "r") as f:
+        with open(manifest_path) as f:
             manifest = json.load(f)
 
         assert "version" in manifest

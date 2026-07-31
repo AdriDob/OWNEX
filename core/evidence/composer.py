@@ -16,11 +16,11 @@ import json
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-from cores.events.types import EventEnvelope
 from core.offensive.models import Hypothesis
+from cores.events.types import EventEnvelope
 
 logger = logging.getLogger("orion.core.evidence.composer")
 
@@ -105,7 +105,7 @@ class EvidenceBundle:
     nuclei_template_id: str = ""
 
     # Metadata
-    composed_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    composed_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     composition_version: str = "1.0"
 
     def to_dict(self) -> dict[str, Any]:

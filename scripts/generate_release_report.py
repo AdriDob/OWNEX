@@ -19,7 +19,7 @@ import argparse
 import json
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -163,7 +163,7 @@ def main() -> None:
 
 ---
 
-*Report auto-generated on {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}*
+*Report auto-generated on {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S UTC')}*
 """
 
     REPORT_PATH.write_text(report, encoding="utf-8")

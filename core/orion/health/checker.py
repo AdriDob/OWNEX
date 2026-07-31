@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -115,5 +115,5 @@ async def collect_health_metrics() -> dict[str, Any]:
         "components": components,
         "healthy_count": sum(1 for s in statuses if s == "ok"),
         "total_components": len(components),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }

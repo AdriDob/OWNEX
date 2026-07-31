@@ -3,7 +3,7 @@ from __future__ import annotations
 import contextlib
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from database import db
@@ -309,7 +309,7 @@ class EvolutionEngine:
             if opportunity_cost_hours is not None:
                 a.opportunity_cost_hours = opportunity_cost_hours
             if status in ("validated", "production"):
-                a.last_validated = datetime.now(timezone.utc)
+                a.last_validated = datetime.now(UTC)
                 a.validation_count = (a.validation_count or 0) + 1
             if status == "production":
                 a.hit_count = (a.hit_count or 0) + 1

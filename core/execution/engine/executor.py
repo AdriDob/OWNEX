@@ -13,7 +13,7 @@ import time
 import uuid
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger("ownex.execution.engine")
@@ -50,7 +50,7 @@ class TaskDefinition:
     timeout_seconds: int = 300
     retry_count: int = 0
     max_retries: int = 3
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -89,7 +89,7 @@ class TaskExecution:
     logs: list[str] = field(default_factory=list)
 
     def add_log(self, message: str) -> None:
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(UTC).isoformat()
         self.logs.append(f"[{timestamp}] {message}")
 
     def to_dict(self) -> dict[str, Any]:
@@ -126,7 +126,7 @@ class TaskExecutor:
             task_id=task.id,
             status=TaskStatus.RUNNING,
             phase=TaskPhase.PREPARE,
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
         )
 
         start_time = time.time()
@@ -190,7 +190,7 @@ class TaskExecutor:
             execution.phase = TaskPhase.REPORT
             execution.progress = 1.0
             execution.current_step = "completed"
-            execution.completed_at = datetime.now(timezone.utc)
+            execution.completed_at = datetime.now(UTC)
             execution.duration_ms = (time.time() - start_time) * 1000
             execution.output = output
 
@@ -201,7 +201,7 @@ class TaskExecutor:
                 "report": report,
             }
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             error = f"Task timed out after {task.timeout_seconds}s"
             execution.error = error
             execution.status = TaskStatus.FAILED
@@ -245,7 +245,7 @@ class TaskExecutor:
             "action_type": task.action_type,
             "success": True,
             "output_summary": str(output)[:500],
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     async def _log_step(self, execution: TaskExecution, message: str) -> None:
@@ -316,7 +316,7 @@ class ExecutionEngine:
             try:
                 task = await asyncio.wait_for(self._task_queue.get(), timeout=1.0)
                 await self._executor.execute(task)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
             except Exception as e:
                 logger.error(f"Worker error: {e}")

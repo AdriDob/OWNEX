@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from apps.odyssey.providers.kelly import KellyProvider
 from fastapi import APIRouter
@@ -148,7 +148,7 @@ async def performance():
         # Best win streak
         streak = 0
         best_streak = 0
-        for b in sorted(bets, key=lambda x: x.placed_at or datetime.min.replace(tzinfo=timezone.utc)):
+        for b in sorted(bets, key=lambda x: x.placed_at or datetime.min.replace(tzinfo=UTC)):
             if b.outcome == "win":
                 streak += 1
                 best_streak = max(best_streak, streak)
@@ -217,4 +217,4 @@ async def odyssey_health():
         db_ok = False
     finally:
         db.close()
-    return {"status": "ok", "db": db_ok, "timestamp": datetime.now(timezone.utc).isoformat()}
+    return {"status": "ok", "db": db_ok, "timestamp": datetime.now(UTC).isoformat()}

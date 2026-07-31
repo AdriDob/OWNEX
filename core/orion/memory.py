@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import select
@@ -71,7 +71,7 @@ def remember(
                 "ttl_hours": ttl_hours,
             }
         )
-        existing.updated_at = datetime.now(timezone.utc)
+        existing.updated_at = datetime.now(UTC)
     else:
         node = KGNode(
             id=node_id,
@@ -167,7 +167,7 @@ def forget(
     if category:
         stmt = stmt.where(KGNode.node_type == f"orion_{category}")
     if older_than_hours > 0:
-        cutoff = datetime.now(timezone.utc).timestamp() - older_than_hours * 3600
+        cutoff = datetime.now(UTC).timestamp() - older_than_hours * 3600
         from sqlalchemy import func as sa_func
 
         stmt = stmt.where(sa_func.strftime("%s", KGNode.created_at) < str(int(cutoff)))

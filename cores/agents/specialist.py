@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from cores.agents.base import BaseAgent
-from cores.agents.types import AgentEvent, AgentId, EventType
+from cores.agents.types import AgentId, EventType
 
 logger = logging.getLogger("ownex.agents.specialist")
 
@@ -16,32 +16,32 @@ logger = logging.getLogger("ownex.agents.specialist")
 @dataclass
 class SpecialistConfig:
     """Configuration for a specialist agent."""
-    
+
     # Objectives
     primary_objective: str
     secondary_objectives: list[str] = field(default_factory=list)
-    
+
     # Limits
     max_concurrent_tasks: int = 3
     max_execution_time: int = 300  # seconds
     resource_limits: dict[str, Any] = field(default_factory=dict)
-    
+
     # Tools
     available_tools: list[str] = field(default_factory=list)
     tool_permissions: dict[str, bool] = field(default_factory=dict)
-    
+
     # Priorities
     priority_level: int = 5  # 1 (highest) -> 10 (lowest)
     task_preferences: list[str] = field(default_factory=list)
-    
+
     # Memory
     memory_namespace: str = "general"
     memory_retention: int = 1000  # max items
-    
+
     # Communication
     communication_channels: list[str] = field(default_factory=list)
     response_timeout: int = 60  # seconds
-    
+
     # Handoffs
     handoff_targets: list[AgentId] = field(default_factory=list)
     handoff_conditions: dict[str, str] = field(default_factory=dict)
@@ -59,7 +59,7 @@ class SpecialistAgent(BaseAgent, ABC):
     - Communication channels
     - Handoff targets and conditions
     """
-    
+
     def __init__(self, bus: Any = None, config: SpecialistConfig | None = None) -> None:
         super().__init__(bus)
         self.config = config or self._get_default_config()
@@ -72,7 +72,7 @@ class SpecialistAgent(BaseAgent, ABC):
             "handoffs_completed": 0,
             "resource_usage": {},
         }
-        
+
     @abstractmethod
     def _get_default_config(self) -> SpecialistConfig:
         """Return default configuration for this specialist."""
@@ -80,29 +80,29 @@ class SpecialistAgent(BaseAgent, ABC):
             primary_objective="Execute specialized tasks",
             secondary_objectives=[],
         )
-    
+
     @abstractmethod
     def _get_specialist_tools(self) -> list[str]:
         """Return list of tools this specialist can use."""
         return []
-    
+
     @abstractmethod
     def _get_handoff_targets(self) -> list[AgentId]:
         """Return list of agents this specialist can handoff to."""
         return []
-    
+
     def can_handle_task(self, task: dict[str, Any]) -> bool:
         """Check if this specialist can handle a given task."""
         task_type = task.get("type", "")
         return task_type in self.config.task_preferences
-    
+
     def should_handoff(self, task: dict[str, Any]) -> tuple[bool, AgentId | None]:
         """Determine if task should be handed off to another specialist."""
         for condition, target_agent in self.config.handoff_conditions.items():
             if self._evaluate_condition(task, condition):
                 return True, AgentId(target_agent)
         return False, None
-    
+
     def _evaluate_condition(self, task: dict[str, Any], condition: str) -> bool:
         """Evaluate a handoff condition."""
         # Simple condition evaluation (can be extended)
@@ -117,7 +117,7 @@ class SpecialistAgent(BaseAgent, ABC):
         elif condition == "requires_review":
             return task.get("requires_review", False)
         return False
-    
+
     def handoff_task(self, task: dict[str, Any], target: AgentId) -> None:
         """Handoff a task to another specialist."""
         self.emit(
@@ -133,21 +133,21 @@ class SpecialistAgent(BaseAgent, ABC):
         )
         self._performance_metrics["handoffs_completed"] += 1
         logger.info(f"[SPECIALIST] {self.agent_id.value} handed off task to {target.value}")
-    
+
     def update_performance_metrics(self, success: bool, execution_time: float) -> None:
         """Update performance metrics after task completion."""
         if success:
             self._performance_metrics["tasks_completed"] += 1
         else:
             self._performance_metrics["tasks_failed"] += 1
-        
+
         # Update average execution time
         total = self._performance_metrics["tasks_completed"] + self._performance_metrics["tasks_failed"]
         current_avg = self._performance_metrics["avg_execution_time"]
         self._performance_metrics["avg_execution_time"] = (
             (current_avg * (total - 1) + execution_time) / total
         )
-    
+
     def get_specialist_health(self) -> dict[str, Any]:
         """Return detailed health status for this specialist."""
         base_health = self.health()
@@ -170,11 +170,11 @@ class SpecialistAgent(BaseAgent, ABC):
             },
         }
         return {**base_health, **specialist_health}
-    
+
     def optimize_cooperation(self) -> dict[str, Any]:
         """Analyze and suggest optimizations for agent cooperation."""
         suggestions = []
-        
+
         # Analyze handoff patterns
         if self._performance_metrics["handoffs_completed"] > 10:
             suggestions.append({
@@ -182,7 +182,7 @@ class SpecialistAgent(BaseAgent, ABC):
                 "suggestion": "Consider direct integration with frequent handoff targets",
                 "evidence": f"High handoff count: {self._performance_metrics['handoffs_completed']}",
             })
-        
+
         # Analyze task completion rate
         total = self._performance_metrics["tasks_completed"] + self._performance_metrics["tasks_failed"]
         if total > 0:
@@ -193,7 +193,7 @@ class SpecialistAgent(BaseAgent, ABC):
                     "suggestion": "Review task complexity vs specialist capabilities",
                     "evidence": f"Low success rate: {success_rate:.2%}",
                 })
-        
+
         # Analyze execution time
         avg_time = self._performance_metrics["avg_execution_time"]
         if avg_time > self.config.max_execution_time * 0.8:
@@ -202,7 +202,7 @@ class SpecialistAgent(BaseAgent, ABC):
                 "suggestion": "Consider task decomposition or parallelization",
                 "evidence": f"High avg execution time: {avg_time:.1f}s",
             })
-        
+
         return {
             "specialist": self.agent_id.value,
             "suggestions": suggestions,

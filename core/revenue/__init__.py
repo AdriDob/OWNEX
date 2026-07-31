@@ -1,7 +1,7 @@
 from core.revenue.engine import RevenueEngine
 from core.revenue.models import (
-    ArgentinaPaymentMethod,
     ARGENTINA_METHODS,
+    ArgentinaPaymentMethod,
     Payment,
     RevenueRecord,
     RevenueStats,

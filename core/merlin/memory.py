@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.memory.store import UnifiedMemoryStore
@@ -40,7 +40,7 @@ class MerlinMemory:
         return ""
 
     def store_brief(self, brief_text: str) -> None:
-        date_tag = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        date_tag = datetime.now(UTC).strftime("%Y-%m-%d")
         self.remember(
             key=f"{DAILY_BRIEF_PREFIX}{date_tag}",
             content=brief_text,

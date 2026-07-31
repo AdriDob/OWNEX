@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter
 
@@ -228,4 +228,4 @@ async def atlas_health():
         db_ok = False
     finally:
         db.close()
-    return {"status": "ok", "db": db_ok, "timestamp": datetime.now(timezone.utc).isoformat()}
+    return {"status": "ok", "db": db_ok, "timestamp": datetime.now(UTC).isoformat()}

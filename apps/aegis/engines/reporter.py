@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from apps.aegis.models import AegisTarget, ScanReport, ScanResult, VulnFinding
@@ -65,7 +65,7 @@ class ReporterEngine:
         lines = [
             f"# Security Report: {target.name}",
             f"**Target**: {target.domain or target.name}",
-            f"**Date**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
+            f"**Date**: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}",
             f"**Status**: {target.status}",
             "",
             "## Summary",

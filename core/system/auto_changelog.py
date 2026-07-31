@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import logging
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -55,7 +55,7 @@ def run_git_log(since: str | None = None, max_count: int = 50) -> list[dict[str,
                     {
                         "sha": sha[:8],
                         "author": author,
-                        "date": datetime.fromtimestamp(int(timestamp), tz=timezone.utc).isoformat(),
+                        "date": datetime.fromtimestamp(int(timestamp), tz=UTC).isoformat(),
                         "message": message,
                     }
                 )
@@ -138,7 +138,7 @@ def generate_changelog_entry(version: str, commits: list[dict[str, str]]) -> str
             sections.extend(classified[cat_key])
             sections.append("")
 
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today = datetime.now(UTC).strftime("%Y-%m-%d")
     header = f"## [{version}] - {today}\n"
     body = "\n".join(sections) if sections else "No significant changes.\n"
 
@@ -195,7 +195,7 @@ def create_snapshot(label: str = "pre-update") -> dict[str, Any]:
 
     ve = VersionEngine()
     snapshot = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "version": ve.get_version(),
         "label": label,
         "files": {},
@@ -216,7 +216,7 @@ def create_snapshot(label: str = "pre-update") -> dict[str, Any]:
 
     # Save snapshot
     SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     snapshot_path = SNAPSHOT_DIR / f"snapshot_{label}_{timestamp}.json"
     snapshot_path.write_text(json.dumps(snapshot, indent=2))
 

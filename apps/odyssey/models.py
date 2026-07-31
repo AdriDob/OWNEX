@@ -5,7 +5,7 @@ Analytical only — tracks performance, never executes bets.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import Column, DateTime, Float, Integer, String, Text
 from sqlalchemy.orm import declarative_base
@@ -26,8 +26,8 @@ class Bankroll(Base):
     risk_level = Column(String(16), default="medium")  # low, medium, high
     max_stake_percent = Column(Float, default=5.0)
     notes = Column(Text)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
+    updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
 
 class Bet(Base):
@@ -53,7 +53,7 @@ class Bet(Base):
     notes = Column(Text)
     placed_at = Column(DateTime)
     settled_at = Column(DateTime)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
 
 class Strategy(Base):
@@ -72,4 +72,4 @@ class Strategy(Base):
     sports = Column(String(512))  # comma-separated
     platforms = Column(String(512))
     active = Column(Integer, default=1)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))

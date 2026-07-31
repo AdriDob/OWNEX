@@ -53,7 +53,7 @@ def main():
         result = backup_system.create_backup(notes=args.notes)
 
         if result.status.value == "success":
-            print(f"[OWNEX BACKUP] Backup created successfully!")
+            print("[OWNEX BACKUP] Backup created successfully!")
             print(f"  Version: {result.version}")
             print(f"  Path: {result.backup_path}")
             print(f"  Size: {result.manifest.get('size', 0) / 1024 / 1024:.2f} MB")

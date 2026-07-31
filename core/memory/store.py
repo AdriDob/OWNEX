@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import or_
@@ -65,7 +65,7 @@ class UnifiedMemoryStore:
                 existing.expires_at = expires_at
                 if embedding is not None:
                     existing.embedding = json.dumps(embedding)
-                existing.updated_at = datetime.now(timezone.utc)
+                existing.updated_at = datetime.now(UTC)
                 entry_id = existing.id
             else:
                 entry = MemoryEntry(
@@ -156,7 +156,7 @@ class UnifiedMemoryStore:
                 q = q.filter(MemoryEntry.priority >= min_priority)
 
             if not include_expired:
-                now = datetime.now(timezone.utc)
+                now = datetime.now(UTC)
                 q = q.filter(or_(MemoryEntry.expires_at.is_(None), MemoryEntry.expires_at > now))
 
             q = q.order_by(MemoryEntry.priority.desc(), MemoryEntry.created_at.desc())
@@ -230,7 +230,7 @@ class UnifiedMemoryStore:
         _ensure_db()
         db = get_db_manager().get_session(DB_ID)
         try:
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             count = (
                 db.query(MemoryEntry).filter(MemoryEntry.expires_at.isnot(None), MemoryEntry.expires_at <= now).delete()
             )
@@ -252,7 +252,7 @@ class UnifiedMemoryStore:
         try:
             total = db.query(MemoryEntry).count()
             namespaces = db.query(MemoryEntry.namespace).distinct().count()
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             expired_rows = (
                 db.query(MemoryEntry).filter(MemoryEntry.expires_at.isnot(None), MemoryEntry.expires_at <= now).count()
             )
@@ -266,7 +266,7 @@ class UnifiedMemoryStore:
 
     @staticmethod
     def _prune_expired(db: Any) -> None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         db.query(MemoryEntry).filter(MemoryEntry.expires_at.isnot(None), MemoryEntry.expires_at <= now).delete()
         db.commit()
 

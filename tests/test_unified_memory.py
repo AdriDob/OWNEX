@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -109,7 +109,7 @@ class TestQuery:
 
 class TestExpiration:
     def test_expired_excluded(self, mem: UnifiedMemoryStore) -> None:
-        past = datetime.now(timezone.utc) - timedelta(hours=1)
+        past = datetime.now(UTC) - timedelta(hours=1)
         mem.store("test", "expired", "Expired content", expires_at=past)
         mem.store("test", "active", "Active content")
         results = mem.query(namespace="test")
@@ -117,14 +117,14 @@ class TestExpiration:
         assert results[0]["key"] == "active"
 
     def test_expired_included_with_flag(self, mem: UnifiedMemoryStore) -> None:
-        past = datetime.now(timezone.utc) - timedelta(hours=1)
+        past = datetime.now(UTC) - timedelta(hours=1)
         mem.store("test", "expired", "Expired", expires_at=past)
         results = mem.query(namespace="test", include_expired=True)
         assert len(results) == 1
 
     def test_prune_expired(self, mem: UnifiedMemoryStore) -> None:
-        past = datetime.now(timezone.utc) - timedelta(hours=1)
-        future = datetime.now(timezone.utc) + timedelta(hours=1)
+        past = datetime.now(UTC) - timedelta(hours=1)
+        future = datetime.now(UTC) + timedelta(hours=1)
         mem.store("test", "e1", "Expired", expires_at=past)
         mem.store("test", "e2", "Expired", expires_at=past)
         mem.store("test", "f", "Future", expires_at=future)

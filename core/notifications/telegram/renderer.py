@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.notifications.hierarchy import InfoLevel
@@ -51,7 +51,7 @@ def daily_l1(data: dict[str, Any]) -> str:
     health = data.get("health_score", 0)
     estado = "🟢 excelente" if health >= 90 else "🟡 bueno" if health >= 70 else "🔴 regular"
     return (
-        f"☀️ *Briefing Diario — {datetime.now(timezone.utc).strftime('%d/%m/%Y')}*\n\n"
+        f"☀️ *Briefing Diario — {datetime.now(UTC).strftime('%d/%m/%Y')}*\n\n"
         f"📊 *Sistema* — Salud: {health}/100 ({estado})\n"
         f"🎯 *Targets*: {targets} activos\n"
         f"🔍 *Hallazgos*: {findings} total ({confirmed} confirmados)\n"

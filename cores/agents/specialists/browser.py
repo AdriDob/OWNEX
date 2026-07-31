@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from cores.agents.specialist import SpecialistAgent, SpecialistConfig
 from cores.agents.types import AgentEvent, AgentId, EventType
@@ -36,10 +35,10 @@ class BrowserAgent(SpecialistAgent):
     - Receives from: Commander, Planner
     - Hands off to: Research, Documentation
     """
-    
+
     def _get_agent_id(self) -> AgentId:
         return AgentId.BROWSER
-    
+
     def _get_default_config(self) -> SpecialistConfig:
         return SpecialistConfig(
             primary_objective="Automate web interactions and scraping",
@@ -64,27 +63,27 @@ class BrowserAgent(SpecialistAgent):
                 "guide_needed": "documentation",
             },
         )
-    
+
     def _get_specialist_tools(self) -> list[str]:
         return ["playwright_automation", "form_submission", "element_interaction", "web_scraping"]
-    
+
     def _get_handoff_targets(self) -> list[AgentId]:
         return [AgentId.RESEARCH, AgentId.DOCUMENTATION]
-    
+
     def _get_subscriptions(self) -> list[EventType | str]:
         return [EventType.BROWSER_NAVIGATE, EventType.BROWSER_SCRAPE]
-    
+
     def handle_event(self, event: AgentEvent) -> None:
         if event.event_type == EventType.BROWSER_NAVIGATE:
             self._navigate(event)
         elif event.event_type == EventType.BROWSER_SCRAPE:
             self._scrape(event)
-    
+
     def _navigate(self, event: AgentEvent) -> None:
         """Navigate to URL."""
         url = event.payload.get("url", "")
         logger.info(f"[BROWSER] Navigating to: {url}")
-    
+
     def _scrape(self, event: AgentEvent) -> None:
         """Scrape web page."""
         target = event.payload.get("target", "")

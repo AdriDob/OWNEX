@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import UTC
+
 from core.acceptance import AcceptanceAnalyzer, AcceptanceOptimizer, AcceptancePredictor
 from core.acceptance.models import AcceptanceOutcome, OptimizerSuggestion, PlatformProfile, PredictionResult
 
@@ -122,9 +124,9 @@ def test_worst_vuln_types():
 
 def test_acceptance_trend():
     a = AcceptanceAnalyzer()
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     a.record_batch(
         [
             make_outcome("hackerone", "idor", "high", "rejected", submitted_at=now - timedelta(days=10)),

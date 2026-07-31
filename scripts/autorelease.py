@@ -35,7 +35,7 @@ import re
 import subprocess
 import sys
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -391,7 +391,7 @@ def main() -> None:
 
     print("=" * 64)
     print("  CATEYE AutoRelease v1.0")
-    print(f"  {datetime.now(timezone.utc).isoformat()}")
+    print(f"  {datetime.now(UTC).isoformat()}")
     print("=" * 64)
     print(f"  Artifact dir: {artifact_dir}")
     print(f"  Dry run:      {dry_run}")

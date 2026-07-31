@@ -1,7 +1,7 @@
 """Tests for Devin AI provider."""
 
-import pytest
 from unittest.mock import Mock, patch
+
 from cores.ai.providers.devin_provider import DevinProvider
 
 
@@ -74,10 +74,10 @@ class TestDevinProvider:
         )
         provider = DevinProvider()
         provider._available = True  # Skip availability check
-        
+
         messages = [{"role": "user", "content": "Test message"}]
         result = provider.chat(messages)
-        
+
         assert result == "Devin response here"
         mock_run.assert_called_once()
 
@@ -91,10 +91,10 @@ class TestDevinProvider:
         )
         provider = DevinProvider()
         provider._available = True
-        
+
         messages = [{"role": "user", "content": "Test message"}]
         result = provider.chat(messages)
-        
+
         assert result == ""
 
     @patch('subprocess.run')
@@ -103,10 +103,10 @@ class TestDevinProvider:
         mock_run.side_effect = __import__('subprocess').TimeoutExpired("devin", 120)
         provider = DevinProvider()
         provider._available = True
-        
+
         messages = [{"role": "user", "content": "Test message"}]
         result = provider.chat(messages)
-        
+
         assert result == ""
         assert provider._available is False
 
@@ -114,7 +114,7 @@ class TestDevinProvider:
         """Test get_config method."""
         provider = DevinProvider(devin_path="/custom/devin", model="custom-model")
         config = provider.get_config()
-        
+
         assert config["provider"] == "devin/custom-model"
         assert config["model"] == "custom-model"
         assert config["devin_path"] == "/custom/devin"
@@ -124,7 +124,7 @@ class TestDevinProvider:
         """Test that availability check is cached."""
         provider = DevinProvider()
         provider._available = True
-        
+
         # Should return cached value without calling subprocess
         assert provider.is_available() is True
         assert provider._available is True

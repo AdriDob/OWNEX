@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.merlin.memory import MerlinMemory
@@ -37,7 +37,7 @@ class MerlinDecisionLog:
             "expected_impact": expected_impact,
             "confidence": confidence,
             "alternatives": alternatives or [],
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "status": "pending",
             "actual_impact": None,
         }
@@ -62,7 +62,7 @@ class MerlinDecisionLog:
 
         data["status"] = "resolved" if success else "failed"
         data["actual_impact"] = actual_impact
-        data["resolved_at"] = datetime.now(timezone.utc).isoformat()
+        data["resolved_at"] = datetime.now(UTC).isoformat()
         self._memory.store_decision(decision_id, data)
 
     def get_recent(self, limit: int = 10) -> list[dict[str, Any]]:

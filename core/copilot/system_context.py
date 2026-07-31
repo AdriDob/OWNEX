@@ -8,7 +8,7 @@ It queries the DB, scheduler, and other modules to answer:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.copilot.context import CopilotContext
@@ -38,7 +38,7 @@ class SystemContextBuilder:
     def _collect_system_state(self) -> dict[str, Any]:
         """Query DB for targets, findings, and scheduler info."""
         state: dict[str, Any] = {
-            "collected_at": datetime.now(timezone.utc).isoformat(),
+            "collected_at": datetime.now(UTC).isoformat(),
             "targets": self._get_targets_summary(),
             "findings": self._get_findings_summary(),
             "scheduler": self._get_scheduler_status(),

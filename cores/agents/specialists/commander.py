@@ -55,10 +55,10 @@ class CommanderAgent(SpecialistAgent):
     - NEVER receives handoffs (top-level coordinator)
     - Can delegate to any specialist
     """
-    
+
     def _get_agent_id(self) -> AgentId:
         return AgentId.COMMANDER
-    
+
     def _get_default_config(self) -> SpecialistConfig:
         return SpecialistConfig(
             primary_objective="Coordinate OWNEX specialists to achieve system objectives",
@@ -112,7 +112,7 @@ class CommanderAgent(SpecialistAgent):
             handoff_targets=[],  # Commander doesn't receive handoffs
             handoff_conditions={},
         )
-    
+
     def _get_specialist_tools(self) -> list[str]:
         return [
             "task_assignment",
@@ -122,7 +122,7 @@ class CommanderAgent(SpecialistAgent):
             "failure_handler",
             "status_reporter",
         ]
-    
+
     def _get_handoff_targets(self) -> list[AgentId]:
         # Commander can delegate to any specialist
         return [
@@ -137,7 +137,7 @@ class CommanderAgent(SpecialistAgent):
             AgentId.FINANCE,
             AgentId.EVOLUTION,
         ]
-    
+
     def _get_subscriptions(self) -> list[EventType | str]:
         return [
             EventType.TASK_COMPLETED,
@@ -151,7 +151,7 @@ class CommanderAgent(SpecialistAgent):
             EventType.PIPELINE_START,
             EventType.PIPELINE_FAILED,
         ]
-    
+
     def handle_event(self, event: AgentEvent) -> None:
         """Handle coordination events."""
         if event.event_type == EventType.TASK_COMPLETED:
@@ -166,73 +166,73 @@ class CommanderAgent(SpecialistAgent):
             self._handle_agent_health_change(event)
         elif event.event_type in (EventType.SYSTEM_ALERT, EventType.SYSTEM_ERROR):
             self._handle_system_alert(event)
-    
+
     def _handle_task_completion(self, event: AgentEvent) -> None:
         """Handle task completion from a specialist."""
         task_id = event.payload.get("task_id", "")
         specialist = event.payload.get("specialist", "")
         logger.info(f"[COMMANDER] Task {task_id} completed by {specialist}")
-        
+
         # Check if this was part of a workflow
         workflow_id = event.payload.get("workflow_id", "")
         if workflow_id:
             self._advance_workflow(workflow_id, task_id)
-    
+
     def _handle_task_failure(self, event: AgentEvent) -> None:
         """Handle task failure from a specialist."""
         task_id = event.payload.get("task_id", "")
         specialist = event.payload.get("specialist", "")
         error = event.payload.get("error", "")
-        
+
         logger.warning(f"[COMMANDER] Task {task_id} failed on {specialist}: {error}")
-        
+
         # Attempt recovery or reassignment
         self._handle_failure_recovery(task_id, specialist, error)
-    
+
     def _handle_workflow_start(self, event: AgentEvent) -> None:
         """Handle workflow initiation."""
         workflow_id = event.payload.get("workflow_id", "")
         logger.info(f"[COMMANDER] Workflow {workflow_id} started")
-    
+
     def _handle_workflow_completion(self, event: AgentEvent) -> None:
         """Handle workflow completion."""
         workflow_id = event.payload.get("workflow_id", "")
         logger.info(f"[COMMANDER] Workflow {workflow_id} completed")
-    
+
     def _handle_agent_health_change(self, event: AgentEvent) -> None:
         """Handle agent health status changes."""
         agent_id = event.payload.get("agent_id", "")
         status = event.payload.get("status", "")
-        
+
         if status == "error":
             logger.error(f"[COMMANDER] Agent {agent_id} in error state")
             self._handle_unhealthy_agent(agent_id)
-    
+
     def _handle_system_alert(self, event: AgentEvent) -> None:
         """Handle system-level alerts."""
         alert_type = event.payload.get("alert_type", "")
         severity = event.payload.get("severity", "info")
-        
+
         logger.warning(f"[COMMANDER] System alert: {alert_type} ({severity})")
-        
+
         if severity in ("critical", "error"):
             self._handle_critical_alert(alert_type, event.payload)
-    
+
     def _advance_workflow(self, workflow_id: str, completed_task_id: str) -> None:
         """Advance workflow to next stage."""
         # Implement workflow advancement logic
         pass
-    
+
     def _handle_failure_recovery(self, task_id: str, failed_specialist: str, error: str) -> None:
         """Handle task failure recovery."""
         # Implement retry or reassignment logic
         pass
-    
+
     def _handle_unhealthy_agent(self, agent_id: str) -> None:
         """Handle unhealthy agent."""
         # Implement agent recovery or replacement logic
         pass
-    
+
     def _handle_critical_alert(self, alert_type: str, payload: dict[str, Any]) -> None:
         """Handle critical system alerts."""
         # Implement critical alert handling
