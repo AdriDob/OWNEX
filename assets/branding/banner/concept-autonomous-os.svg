@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <!-- Deep space background -->
+    <linearGradient id="aosBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020305"/>
+      <stop offset="50%" stop-color="#050608"/>
+      <stop offset="100%" stop-color="#030406"/>
+    </linearGradient>
+
+    <!-- Grid pattern -->
+    <pattern id="gridPattern" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0L0 0 0 40" fill="none" stroke="#1E293B" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+
+    <!-- Central core glow -->
+    <radialGradient id="coreGlow" cx="50%" cy="50%" r="40%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.15"/>
+      <stop offset="70%" stop-color="#2563EB" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#1E40AF" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Node glow -->
+    <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#60A5FA" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Connection gradient -->
+    <linearGradient id="connGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#60A5FA" stop-opacity="0.2"/>
+    </linearGradient>
+
+    <!-- Gold for active nodes -->
+    <linearGradient id="activeGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#aosBg)"/>
+  <rect width="1200" height="630" fill="url(#gridPattern)"/>
+
+  <!-- Central glow -->
+  <circle cx="600" cy="315" r="250" fill="url(#coreGlow)"/>
+
+  <!-- ═══ AUTONOMOUS OPERATING SYSTEM CONCEPT ═══ -->
+
+  <!-- Central hub (OWNEX core) -->
+  <g transform="translate(600, 315)">
+    <!-- Outer ring -->
+    <circle cx="0" cy="0" r="80" fill="none" stroke="#3B82F6" stroke-width="2" opacity="0.4"/>
+    <circle cx="0" cy="0" r="70" fill="none" stroke="#60A5FA" stroke-width="1.5" opacity="0.5"/>
+    
+    <!-- Core -->
+    <circle cx="0" cy="0" r="45" fill="#1E293B" stroke="#3B82F6" stroke-width="2"/>
+    <circle cx="0" cy="0" r="35" fill="none" stroke="#60A5FA" stroke-width="1" opacity="0.6"/>
+    <circle cx="0" cy="0" r="15" fill="#3B82F6" opacity="0.8"/>
+    <circle cx="0" cy="0" r="8" fill="#FFFFFF"/>
+    
+    <!-- Label -->
+    <text x="0" y="110" font-family="'Inter', sans-serif" font-size="12" fill="#60A5FA" text-anchor="middle" font-weight="600">OWNEX CORE</text>
+  </g>
+
+  <!-- Satellite nodes (agents) -->
+  
+  <!-- Research Agent -->
+  <g transform="translate(200, 150)">
+    <line x1="0" y1="0" x2="400" y2="165" stroke="url(#connGrad)" stroke-width="1" opacity="0.4"/>
+    <circle cx="0" cy="0" r="25" fill="#1E293B" stroke="#3B82F6" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="8" fill="#60A5FA"/>
+    <text x="0" y="45" font-family="'Inter', sans-serif" font-size="11" fill="#9CA3AF" text-anchor="middle">Research</text>
+    <circle cx="35" cy="-20" r="3" fill="#22C55E"/>
+  </g>
+
+  <!-- Execution Agent -->
+  <g transform="translate(1000, 150)">
+    <line x1="0" y1="0" x2="-400" y2="165" stroke="url(#connGrad)" stroke-width="1" opacity="0.4"/>
+    <circle cx="0" cy="0" r="25" fill="#1E293B" stroke="#3B82F6" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="8" fill="#60A5FA"/>
+    <text x="0" y="45" font-family="'Inter', sans-serif" font-size="11" fill="#9CA3AF" text-anchor="middle">Execution</text>
+    <circle cx="35" cy="-20" r="3" fill="#22C55E"/>
+  </g>
+
+  <!-- Memory Agent -->
+  <g transform="translate(150, 480)">
+    <line x1="0" y1="0" x2="450" y2="-165" stroke="url(#connGrad)" stroke-width="1" opacity="0.4"/>
+    <circle cx="0" cy="0" r="25" fill="#1E293B" stroke="#3B82F6" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="8" fill="#60A5FA"/>
+    <text x="0" y="45" font-family="'Inter', sans-serif" font-size="11" fill="#9CA3AF" text-anchor="middle">Memory</text>
+    <circle cx="35" cy="-20" r="3" fill="#F59E0B"/>
+  </g>
+
+  <!-- Security Agent -->
+  <g transform="translate(1050, 480)">
+    <line x1="0" y1="0" x2="-450" y2="-165" stroke="url(#connGrad)" stroke-width="1" opacity="0.4"/>
+    <circle cx="0" cy="0" r="25" fill="#1E293B" stroke="#3B82F6" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="8" fill="#60A5FA"/>
+    <text x="0" y="45" font-family="'Inter', sans-serif" font-size="11" fill="#9CA3AF" text-anchor="middle">Security</text>
+    <circle cx="35" cy="-20" r="3" fill="#22C55E"/>
+  </g>
+
+  <!-- Analyst Agent -->
+  <g transform="translate(350, 580)">
+    <line x1="0" y1="0" x2="250" y2="-265" stroke="url(#connGrad)" stroke-width="1" opacity="0.4"/>
+    <circle cx="0" cy="0" r="20" fill="#1E293B" stroke="#3B82F6" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="6" fill="#60A5FA"/>
+    <text x="0" y="38" font-family="'Inter', sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">Analyst</text>
+    <circle cx="28" cy="-15" r="2.5" fill="#64748B"/>
+  </g>
+
+  <!-- Revenue Agent -->
+  <g transform="translate(850, 580)">
+    <line x1="0" y1="0" x2="-250" y2="-265" stroke="url(#connGrad)" stroke-width="1" opacity="0.4"/>
+    <circle cx="0" cy="0" r="20" fill="#1E293B" stroke="#F59E0B" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="6" fill="#F59E0B"/>
+    <text x="0" y="38" font-family="'Inter', sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">Revenue</text>
+    <circle cx="28" cy="-15" r="2.5" fill="#22C55E"/>
+  </g>
+
+  <!-- Data streams (animated feel) -->
+  <g opacity="0.3">
+    <circle cx="400" cy="240" r="2" fill="#60A5FA"/>
+    <circle cx="450" cy="200" r="1.5" fill="#60A5FA"/>
+    <circle cx="800" cy="240" r="2" fill="#60A5FA"/>
+    <circle cx="750" cy="200" r="1.5" fill="#60A5FA"/>
+    <circle cx="500" cy="400" r="1.5" fill="#60A5FA"/>
+    <circle cx="700" cy="400" r="1.5" fill="#60A5FA"/>
+  </g>
+
+  <!-- Status indicators -->
+  <g transform="translate(50, 50)">
+    <rect x="0" y="0" width="180" height="60" rx="8" fill="#1E293B" fill-opacity="0.5" stroke="#1A1A2E"/>
+    <text x="15" y="25" font-family="'Inter', sans-serif" font-size="11" fill="#64748B">SYSTEM STATUS</text>
+    <circle cx="20" cy="45" r="4" fill="#22C55E"/>
+    <text x="35" y="48" font-family="'Inter', sans-serif" font-size="12" fill="#FFFFFF">All Systems Operational</text>
+  </g>
+
+  <g transform="translate(970, 50)">
+    <rect x="0" y="0" width="180" height="60" rx="8" fill="#1E293B" fill-opacity="0.5" stroke="#1A1A2E"/>
+    <text x="15" y="25" font-family="'Inter', sans-serif" font-size="11" fill="#64748B">ACTIVE AGENTS</text>
+    <text x="15" y="48" font-family="'Inter', sans-serif" font-size="16" fill="#60A5FA" font-weight="600">6 / 6</text>
+  </g>
+
+  <!-- Bottom metrics -->
+  <g transform="translate(50, 550)">
+    <rect x="0" y="0" width="150" height="40" rx="6" fill="#1E293B" fill-opacity="0.5" stroke="#1A1A2E"/>
+    <text x="15" y="25" font-family="'Inter', sans-serif" font-size="11" fill="#64748B">UPTIME</text>
+    <text x="130" y="25" font-family="'Inter', monospace" font-size="12" fill="#22C55E" text-anchor="end">99.9%</text>
+  </g>
+
+  <g transform="translate(220, 550)">
+    <rect x="0" y="0" width="150" height="40" rx="6" fill="#1E293B" fill-opacity="0.5" stroke="#1A1A2E"/>
+    <text x="15" y="25" font-family="'Inter', sans-serif" font-size="11" fill="#64748B">TASKS/HR</text>
+    <text x="130" y="25" font-family="'Inter', monospace" font-size="12" fill="#60A5FA" text-anchor="end">12</text>
+  </g>
+
+  <!-- Title overlay -->
+  <g transform="translate(600, 580)">
+    <text x="0" y="0" font-family="'Inter', sans-serif" font-size="14" fill="#60A5FA" text-anchor="middle" letter-spacing="3" opacity="0.8">AUTONOMOUS OPERATING SYSTEM</text>
+  </g>
+</svg>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <rect width="1920" height="1080" fill="#050505"/>
+  
+  <!-- Architecture layers -->
+  <rect x="200" y="150" width="1520" height="120" fill="none" stroke="#3B82F6" stroke-width="2" opacity="0.4" rx="10"/>
+  <rect x="200" y="350" width="1520" height="120" fill="none" stroke="#3B82F6" stroke-width="2" opacity="0.4" rx="10"/>
+  <rect x="200" y="550" width="1520" height="120" fill="none" stroke="#3B82F6" stroke-width="2" opacity="0.4" rx="10"/>
+  <rect x="200" y="750" width="1520" height="120" fill="none" stroke="#3B82F6" stroke-width="2" opacity="0.4" rx="10"/>
+  
+  <!-- Layer connections -->
+  <line x1="960" y1="270" x2="960" y2="350" stroke="#3B82F6" stroke-width="2" opacity="0.5"/>
+  <line x1="960" y1="470" x2="960" y2="550" stroke="#3B82F6" stroke-width="2" opacity="0.5"/>
+  <line x1="960" y1="670" x2="960" y2="750" stroke="#3B82F6" stroke-width="2" opacity="0.5"/>
+  
+  <!-- Central core -->
+  <circle cx="960" cy="540" r="40" fill="#3B82F6" opacity="0.8"/>
+  <circle cx="960" cy="540" r="20" fill="#F0F0F0" opacity="0.9"/>
+  
+  <!-- Accent points -->
+  <circle cx="960" cy="210" r="6" fill="#F59E0B" opacity="0.8"/>
+  <circle cx="960" cy="410" r="6" fill="#F59E0B" opacity="0.8"/>
+  <circle cx="960" cy="610" r="6" fill="#F59E0B" opacity="0.8"/>
+  <circle cx="960" cy="810" r="6" fill="#F59E0B" opacity="0.8"/>
+</svg>
