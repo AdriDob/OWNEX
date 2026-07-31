@@ -7,7 +7,7 @@ Implementa modos de accesibilidad para diferentes necesidades:
 - Subtitles: Voz + subtítulos automáticos
 """
 
-from __future__ annotations
+from __future__ import annotations
 
 import logging
 from enum import StrEnum
