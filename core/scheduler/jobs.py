@@ -278,7 +278,7 @@ def get_security_jobs() -> list[JobDefinition]:
         _cron_job(
             job_id="security_cycle_start",
             app_id="security",
-            handler="core.cycles.security:get_security_cycle",
+            handler="core.cycles.tasks:auto_start_security_cycle",
             cron="0 */2 * * *",
             args=[],
             metadata={"cycle": "security", "type": "auto_start"},

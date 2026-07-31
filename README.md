@@ -332,9 +332,9 @@ PROYECTO OWNEX: ✅ PRODUCTION READY
 
 ### Success Rates OPTIMIZED
 
-- **Bug Bounty:** 95% (máximo realista: AI + automation + calidad de PoC)
-- **Dev Bounty:** 95% (máximo realista: AI code generation + revisión)
-- **Data Annotation:** 99% (máximo realista: AI-assisted + QA humano en edge cases)
+- **Bug Bounty:** 30% (optimizado con AI + automation)
+- **Dev Bounty:** 70% (optimizado con AI + code generation)
+- **Data Annotation:** 95% (optimizado con AI-assisted annotation)
 
 ---
 
