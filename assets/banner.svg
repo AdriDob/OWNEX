@@ -27,9 +27,9 @@
   <!-- Text OWNEX -->
   <text x="640" y="480" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="#ffffff" text-anchor="middle" letter-spacing="8">OWNEX</text>
 
-  <!-- Text OMEGA -->
-  <text x="640" y="540" font-family="Arial, sans-serif" font-size="32" font-weight="normal" fill="#6EE7FF" text-anchor="middle" letter-spacing="4">OMEGA</text>
-
   <!-- Subtitle -->
-  <text x="640" y="590" font-family="Arial, sans-serif" font-size="16" fill="#5CF2B5" text-anchor="middle" letter-spacing="2">Autonomous Personal Operating System</text>
+  <text x="640" y="540" font-family="Arial, sans-serif" font-size="24" font-weight="normal" fill="#6EE7FF" text-anchor="middle" letter-spacing="4">ALPHA • OMEGA</text>
+
+  <!-- Sub-subtitle -->
+  <text x="640" y="590" font-family="Arial, sans-serif" font-size="16" fill="#5CF2B5" text-anchor="middle" letter-spacing="2">Autonomous Operating System Ecosystem</text>
 </svg>
