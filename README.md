@@ -40,23 +40,23 @@ Together, they perform software engineering, cybersecurity, bug bounty, AI orche
 
 ### FORGE — Dev Bounty
 
-<img src="assets/branding/professional/code.jpg" alt="FORGE — Dev Bounty" width="200"/>
+<img src="assets/branding/professional/forge.png" alt="FORGE — Dev Bounty" width="200"/>
 
 ### PULSE — AI Work
 
-<img src="assets/branding/professional/technology.jpg" alt="PULSE — AI Work" width="200"/>
+<img src="assets/branding/professional/pulse.png" alt="PULSE — AI Work" width="200"/>
 
 ### VAULT — Wealth
 
-<img src="assets/branding/professional/finance.jpg" alt="VAULT — Wealth" width="200"/>
+<img src="assets/branding/professional/vault.png" alt="VAULT — Wealth" width="200"/>
 
 ### ATLAS — Intelligence
 
-<img src="assets/branding/professional/dashboard.jpg" alt="ATLAS — Intelligence" width="200"/>
+<img src="assets/branding/professional/atlas.png" alt="ATLAS — Intelligence" width="200"/>
 
 ### SECURITY — Bug Bounty
 
-<img src="assets/branding/professional/security.jpg" alt="SECURITY — Bug Bounty" width="200"/>
+<img src="assets/branding/professional/security.png" alt="SECURITY — Bug Bounty" width="200"/>
 
 </div>
 
