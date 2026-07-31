@@ -4,13 +4,13 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger("ownex.crypto.base")
 
 
-class ChainType(str, Enum):
+class ChainType(StrEnum):
     EVM = "evm"
     BITCOIN = "bitcoin"
     SOLANA = "solana"
@@ -19,7 +19,7 @@ class ChainType(str, Enum):
     EXCHANGE = "exchange"
 
 
-class ConnectionStatus(str, Enum):
+class ConnectionStatus(StrEnum):
     CONNECTED = "connected"
     DISCONNECTED = "disconnected"
     RATE_LIMITED = "rate_limited"
@@ -27,7 +27,7 @@ class ConnectionStatus(str, Enum):
     UNCONFIGURED = "unconfigured"
 
 
-class WalletType(str, Enum):
+class WalletType(StrEnum):
     HOT = "hot"
     EXCHANGE = "exchange"
     LEDGER = "ledger"

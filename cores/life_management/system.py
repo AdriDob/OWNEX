@@ -18,7 +18,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger("ownex.life_management")
 
@@ -122,19 +122,19 @@ class Task:
     category: TaskCategory
     priority: TaskPriority
     status: TaskStatus
-    due_date: Optional[datetime] = None
+    due_date: datetime | None = None
     created_at: datetime = field(default_factory=datetime.now)
-    completed_at: Optional[datetime] = None
+    completed_at: datetime | None = None
     estimated_minutes: int = 30
     actual_minutes: int = 0
     tags: list[str] = field(default_factory=list)
     subtasks: list[str] = field(default_factory=list)
     recurring: bool = False
-    recurring_frequency: Optional[str] = None
+    recurring_frequency: str | None = None
     reminder_enabled: bool = False
-    reminder_time: Optional[str] = None
-    linked_goal_id: Optional[str] = None
-    linked_habit_id: Optional[str] = None
+    reminder_time: str | None = None
+    linked_goal_id: str | None = None
+    linked_habit_id: str | None = None
 
 
 @dataclass
@@ -147,7 +147,7 @@ class Goal:
     status: GoalStatus
     target_date: datetime
     created_at: datetime = field(default_factory=datetime.now)
-    completed_at: Optional[datetime] = None
+    completed_at: datetime | None = None
     progress_percentage: int = 0
     milestones: list[str] = field(default_factory=list)
     tasks: list[str] = field(default_factory=list)
@@ -171,9 +171,9 @@ class Habit:
     best_streak: int = 0
     completed_dates: list[str] = field(default_factory=list)
     target_days: list[str] = field(default_factory=list)
-    target_time: Optional[str] = None
+    target_time: str | None = None
     reminder_enabled: bool = True
-    linked_goal_id: Optional[str] = None
+    linked_goal_id: str | None = None
     triggers: list[str] = field(default_factory=list)
     rewards: list[str] = field(default_factory=list)
     difficulty: str = "medium"  # easy, medium, hard
@@ -186,8 +186,8 @@ class HabitEntry:
     habit_id: str
     date: str
     completed: bool
-    mood_before: Optional[MoodLevel] = None
-    mood_after: Optional[MoodLevel] = None
+    mood_before: MoodLevel | None = None
+    mood_after: MoodLevel | None = None
     notes: str = ""
     timestamp: datetime = field(default_factory=datetime.now)
 
@@ -196,10 +196,10 @@ class HabitEntry:
 class DailyMood:
     """Estado de ánimo diario."""
     date: str
-    mood_morning: Optional[MoodLevel] = None
-    mood_afternoon: Optional[MoodLevel] = None
-    mood_evening: Optional[MoodLevel] = None
-    mood_night: Optional[MoodLevel] = None
+    mood_morning: MoodLevel | None = None
+    mood_afternoon: MoodLevel | None = None
+    mood_evening: MoodLevel | None = None
+    mood_night: MoodLevel | None = None
     energy_level: int = 5  # 1-10
     stress_level: int = 5  # 1-10
     sleep_quality: int = 5  # 1-10
@@ -220,12 +220,12 @@ class DailyRoutine:
     meals: list[dict[str, Any]] = field(default_factory=list)
     work_blocks: list[dict[str, Any]] = field(default_factory=list)
     break_times: list[dict[str, Any]] = field(default_factory=list)
-    exercise_time: Optional[str] = None
-    learning_time: Optional[str] = None
-    social_time: Optional[str] = None
-    relaxation_time: Optional[str] = None
-    actual_wake_up: Optional[str] = None
-    actual_sleep: Optional[str] = None
+    exercise_time: str | None = None
+    learning_time: str | None = None
+    social_time: str | None = None
+    relaxation_time: str | None = None
+    actual_wake_up: str | None = None
+    actual_sleep: str | None = None
     adherence_score: int = 0
 
 
@@ -234,7 +234,7 @@ class PCUsageSession:
     """Sesión de uso de PC."""
     session_id: str
     start_time: datetime
-    end_time: Optional[datetime] = None
+    end_time: datetime | None = None
     duration_minutes: int = 0
     applications: list[str] = field(default_factory=list)
     category: str = "work"  # work, entertainment, learning, other
@@ -295,13 +295,13 @@ class LifeManagementSystem:
         description: str,
         category: TaskCategory,
         priority: TaskPriority,
-        due_date: Optional[datetime] = None,
+        due_date: datetime | None = None,
         estimated_minutes: int = 30,
-        tags: Optional[list[str]] = None,
+        tags: list[str] | None = None,
         recurring: bool = False,
-        recurring_frequency: Optional[str] = None,
-        linked_goal_id: Optional[str] = None,
-        linked_habit_id: Optional[str] = None,
+        recurring_frequency: str | None = None,
+        linked_goal_id: str | None = None,
+        linked_habit_id: str | None = None,
     ) -> Task:
         """Crear nueva tarea."""
         task_id = f"task_{datetime.now().strftime('%Y%m%d%H%M%S')}"
@@ -364,7 +364,7 @@ class LifeManagementSystem:
         description: str,
         category: GoalCategory,
         target_date: datetime,
-        milestones: Optional[list[str]] = None,
+        milestones: list[str] | None = None,
         daily_focus: bool = False,
         vision_board: bool = False,
         journaling: bool = False,
@@ -424,8 +424,8 @@ class LifeManagementSystem:
         title: str,
         description: str,
         frequency: HabitFrequency,
-        target_time: Optional[str] = None,
-        linked_goal_id: Optional[str] = None,
+        target_time: str | None = None,
+        linked_goal_id: str | None = None,
         difficulty: str = "medium",
     ) -> Habit:
         """Crear nuevo hábito."""
@@ -451,8 +451,8 @@ class LifeManagementSystem:
         self,
         habit_id: str,
         completed: bool,
-        mood_before: Optional[MoodLevel] = None,
-        mood_after: Optional[MoodLevel] = None,
+        mood_before: MoodLevel | None = None,
+        mood_after: MoodLevel | None = None,
         notes: str = "",
     ) -> HabitEntry:
         """Registrar entrada de hábito."""
@@ -497,17 +497,17 @@ class LifeManagementSystem:
 
     def log_daily_mood(
         self,
-        mood_morning: Optional[MoodLevel] = None,
-        mood_afternoon: Optional[MoodLevel] = None,
-        mood_evening: Optional[MoodLevel] = None,
-        mood_night: Optional[MoodLevel] = None,
+        mood_morning: MoodLevel | None = None,
+        mood_afternoon: MoodLevel | None = None,
+        mood_evening: MoodLevel | None = None,
+        mood_night: MoodLevel | None = None,
         energy_level: int = 5,
         stress_level: int = 5,
         sleep_quality: int = 5,
         notes: str = "",
-        gratitude: Optional[list[str]] = None,
-        challenges: Optional[list[str]] = None,
-        achievements: Optional[list[str]] = None,
+        gratitude: list[str] | None = None,
+        challenges: list[str] | None = None,
+        achievements: list[str] | None = None,
     ) -> DailyMood:
         """Registrar estado de ánimo diario."""
         date = datetime.now().strftime("%Y-%m-%d")
@@ -557,7 +557,7 @@ class LifeManagementSystem:
     def generate_advice(
         self,
         category: AdviceCategory,
-        context: Optional[dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ) -> PersonalizedAdvice:
         """Generar consejo personalizado."""
         advice_id = f"advice_{datetime.now().strftime('%Y%m%d%H%M%S')}"
@@ -623,7 +623,7 @@ class LifeManagementSystem:
         session_id: str,
         productivity_score: int = 5,
         task_completed: bool = False,
-        distractions: Optional[list[str]] = None,
+        distractions: list[str] | None = None,
     ) -> bool:
         """Finalizar sesión de uso de PC."""
         if session_id not in self.pc_usage:
@@ -648,7 +648,7 @@ class LifeManagementSystem:
             if session.start_time.strftime("%Y-%m-%d") == date_str
         ]
 
-        total_minutes = sum(session.duration_minutes for session in session)
+        total_minutes = sum(session.duration_minutes for session in sessions)
         productive_minutes = sum(
             session.duration_minutes for session in sessions if session.category == "work"
         )
@@ -703,7 +703,7 @@ class LifeManagementSystem:
 
 
 # Singleton instance
-_life_management_system: Optional[LifeManagementSystem] = None
+_life_management_system: LifeManagementSystem | None = None
 
 
 def get_life_management_system(user_id: str = "default", storage_path: str = "~/.config/ownex/life_management") -> LifeManagementSystem:

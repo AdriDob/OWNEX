@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import UTC
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from cores.recovery.persistence import get_recovery_store
@@ -20,7 +20,7 @@ COOLDOWN_SECONDS = 60.0
 HALF_OPEN_RETRIES = 1
 
 
-class CircuitState(str, Enum):
+class CircuitState(StrEnum):
     CLOSED = "closed"
     OPEN = "open"
     HALF_OPEN = "half_open"

@@ -6,6 +6,7 @@ import logging
 from dataclasses import dataclass
 
 import numpy as np
+
 from apps.odyssey.providers.kelly import KellyProvider
 
 logger = logging.getLogger("orion.odyssey.engines.kelly")

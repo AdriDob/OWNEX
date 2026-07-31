@@ -5,11 +5,11 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 
-from apps.odyssey.providers.kelly import KellyProvider
 from fastapi import APIRouter
 from sqlalchemy import func
 
 from apps.odyssey.models import Bankroll, Bet, Strategy
+from apps.odyssey.providers.kelly import KellyProvider
 from core.database.manager import get_db_manager
 
 logger = logging.getLogger("orion.odyssey.api")

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 
 from database import db
 from database.models import Finding, Target
@@ -216,7 +216,7 @@ class OpportunityEngine:
                 session.close()
 
 
-class FeedbackOutcome(str, Enum):
+class FeedbackOutcome(StrEnum):
     ACCEPT = "accept"
     REJECT = "reject"
 

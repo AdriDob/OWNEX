@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from cores.financial.truth_layer import (
@@ -30,12 +30,12 @@ MAX_RETRIES = 5
 INITIAL_BACKOFF = 10  # seconds
 
 
-class SyncMode(str, Enum):
+class SyncMode(StrEnum):
     FULL = "full"
     INCREMENTAL = "incremental"
 
 
-class DeltaType(str, Enum):
+class DeltaType(StrEnum):
     NEW = "new"
     UPDATED = "updated"
     REMOVED = "removed"

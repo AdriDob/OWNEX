@@ -12,25 +12,25 @@ logger = logging.getLogger("ownex.agents.specialists.reviewer")
 
 class ReviewerAgent(SpecialistAgent):
     """Reviewer — Code review and quality assurance specialist.
-    
+
     Objectives:
     - Primary: Review code and changes for quality
     - Secondary: Grant/deny approvals, ensure standards compliance
-    
+
     Limits:
     - Max 8 concurrent reviews
     - Max 300s per review
-    
+
     Tools:
     - Code analysis
     - Quality checks
     - Security review
     - Approval system
-    
+
     Priorities:
     - Priority level: 4
     - Task preferences: code review, quality check
-    
+
     Handoffs:
     - Receives from: Coder, Security
     - Hands off to: Commander (approval), Documentation

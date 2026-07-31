@@ -8,7 +8,7 @@ Usa Supabase para autenticación y sincronización en la nube.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger("ownex.supabase_sync")
 
@@ -44,7 +44,7 @@ class SupabaseSyncManager:
 
         try:
             # Upsert task (insert or update)
-            response = client.table('tasks').upsert(task_data).execute()
+            client.table('tasks').upsert(task_data).execute()
 
             logger.info(f"Task synced to Supabase: {task_data.get('task_id')}")
             return True
@@ -60,7 +60,7 @@ class SupabaseSyncManager:
             return False
 
         try:
-            response = client.table('goals').upsert(goal_data).execute()
+            client.table('goals').upsert(goal_data).execute()
 
             logger.info(f"Goal synced to Supabase: {goal_data.get('goal_id')}")
             return True
@@ -76,7 +76,7 @@ class SupabaseSyncManager:
             return False
 
         try:
-            response = client.table('habits').upsert(habit_data).execute()
+            client.table('habits').upsert(habit_data).execute()
 
             logger.info(f"Habit synced to Supabase: {habit_data.get('habit_id')}")
             return True
@@ -92,7 +92,7 @@ class SupabaseSyncManager:
             return False
 
         try:
-            response = client.table('daily_moods').upsert(mood_data).execute()
+            client.table('daily_moods').upsert(mood_data).execute()
 
             logger.info(f"Daily mood synced to Supabase: {mood_data.get('date')}")
             return True
@@ -182,10 +182,10 @@ class SupabaseSyncManager:
 
 
 # Singleton instance
-_supabase_sync_manager: Optional[SupabaseSyncManager] = None
+_supabase_sync_manager: SupabaseSyncManager | None = None
 
 
-def get_supabase_sync_manager() -> Optional[SupabaseSyncManager]:
+def get_supabase_sync_manager() -> SupabaseSyncManager | None:
     """Obtener instancia singleton de SupabaseSyncManager."""
     global _supabase_sync_manager
 

@@ -10,7 +10,7 @@ import json
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timezone
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any
 
 from sqlalchemy import create_engine, text
@@ -43,7 +43,7 @@ LEDGER_EVENTS = [
 ]
 
 
-class LedgerEvent(str, Enum):
+class LedgerEvent(StrEnum):
     BOUNTY_CREATED = "bounty_created"
     BOUNTY_PENDING = "bounty_pending"
     BOUNTY_APPROVED = "bounty_approved"
@@ -82,7 +82,7 @@ class LedgerEntryData:
     reconciled: bool = False
 
 
-class DataSource(str, Enum):
+class DataSource(StrEnum):
     EXTERNAL_API = "external_api"
     SYNCED_CACHE = "synced_cache"
     MANUAL_INPUT = "manual_input"

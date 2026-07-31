@@ -17,7 +17,7 @@ import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from cores.ledger import LedgerEvent, record_event
@@ -46,14 +46,14 @@ DEFAULT_CONFIRMATIONS_REQUIRED: dict[str, int] = {
 # ── Enums ────────────────────────────────────────────────────────────
 
 
-class WithdrawalStatus(str, Enum):
+class WithdrawalStatus(StrEnum):
     INITIATED = "initiated"
     PENDING = "pending"
     COMPLETED = "completed"
     FAILED = "failed"
 
 
-class ConfirmationMethod(str, Enum):
+class ConfirmationMethod(StrEnum):
     API_VERIFIED = "api_verified"
     MANUAL_PROOF = "manual_proof"
     RECONCILIATION = "reconciliation"

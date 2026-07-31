@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 from pydantic import BaseModel, Field
 
 
-class ExecutionMode(str, Enum):
+class ExecutionMode(StrEnum):
     DRY_RUN = "dry_run"
     PAPER = "paper"
     LIVE = "live"

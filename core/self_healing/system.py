@@ -64,11 +64,7 @@ class ImportValidator:
 
             # Component names can contain dots but not start/end with them
             components = name.split(".")
-            for component in components:
-                if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", component):
-                    return False
-
-            return True
+            return all(re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", component) for component in components)
         except Exception:
             return False
 

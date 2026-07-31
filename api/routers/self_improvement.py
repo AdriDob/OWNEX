@@ -59,10 +59,7 @@ def get_reflections(status: str | None = None):
     """Get all reflections, optionally filtered by status."""
     try:
         engine = get_reflection_engine()
-        if status:
-            reflections = [r for r in engine._reflections if r.status == status]
-        else:
-            reflections = engine._reflections
+        reflections = [r for r in engine._reflections if r.status == status] if status else engine._reflections
         return {
             "success": True,
             "reflections": [r.to_dict() for r in reflections],
@@ -160,10 +157,7 @@ def get_actions(status: str | None = None):
     """Get all improvement actions, optionally filtered by status."""
     try:
         generator = get_plan_generator()
-        if status:
-            actions = [a for a in generator._actions if a.status == status]
-        else:
-            actions = generator._actions
+        actions = [a for a in generator._actions if a.status == status] if status else generator._actions
         return {
             "success": True,
             "actions": [a.to_dict() for a in actions],

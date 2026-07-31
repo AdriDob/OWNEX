@@ -116,7 +116,7 @@ def health_check(run_tests: bool = True) -> bool:
         print(f"    {GREEN}✓ Ruff clean{RESET}")
     else:
         errors = result.stdout.strip().split("\n")
-        error_count = len([e for e in errors if "Found" in e or "error" in e.lower()])
+        len([e for e in errors if "Found" in e or "error" in e.lower()])
         print(f"    {YELLOW}⚠ {len(errors)} lint issues{RESET}")
         for e in errors[-3:]:
             print(f"    {e}")

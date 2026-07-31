@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from core.copilot.permissions import AuthorityLevel
 
 
-class PrimitiveType(str, Enum):
+class PrimitiveType(StrEnum):
     """Universal primitive node types for building workflows.
 
     Every workflow is composed of these atoms.

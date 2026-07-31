@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import os
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 from pydantic import BaseModel, field_validator
 
 
-class TradingMode(str, Enum):
+class TradingMode(StrEnum):
     REAL = "real"
     DRY_RUN = "dry_run"
     PAPER_TRADING = "paper_trading"

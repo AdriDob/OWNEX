@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class PermissionLevel(str, Enum):
+class PermissionLevel(StrEnum):
     """Permission levels for command execution.
 
     Mirrors the COMMAND_SYSTEM.md taxonomy and Hermes risk levels.

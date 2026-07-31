@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class PlatformID(str, Enum):
+class PlatformID(StrEnum):
     """Known income platforms — extend as new adapters are added."""
 
     HACKERONE = "hackerone"
@@ -24,7 +24,7 @@ class PlatformID(str, Enum):
     UNKNOWN = "unknown"
 
 
-class PriorityLevel(str, Enum):
+class PriorityLevel(StrEnum):
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -32,7 +32,7 @@ class PriorityLevel(str, Enum):
     BACKGROUND = "background"
 
 
-class TaskKind(str, Enum):
+class TaskKind(StrEnum):
     """Types of tasks ORION can dispatch."""
 
     RECON = "recon"

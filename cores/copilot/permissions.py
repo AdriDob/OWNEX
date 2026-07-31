@@ -9,7 +9,7 @@ from typing import Any
 logger = logging.getLogger("orion.core.copilot.permissions")
 
 
-class AuthorityLevel(str, enum.Enum):
+class AuthorityLevel(enum.StrEnum):
     """Authority levels for the Copilot.
 
     Each level inherits all abilities of the levels below it.

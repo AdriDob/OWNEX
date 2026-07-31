@@ -11,7 +11,7 @@ import threading
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger("ownex.predictor.engine")
@@ -19,7 +19,7 @@ logger = logging.getLogger("ownex.predictor.engine")
 PREDICTION_WINDOW = 300
 
 
-class RiskLevel(str, Enum):
+class RiskLevel(StrEnum):
     LOW = "low_risk"
     MEDIUM = "medium_risk"
     HIGH = "high_risk"

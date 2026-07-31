@@ -20,13 +20,13 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 # ── Vulnerability types ────────────────────────────────────────
 
 
-class VulnType(str, Enum):
+class VulnType(StrEnum):
     IDOR = "idor"
     SSRF = "ssrf"
     XSS = "xss"
@@ -46,7 +46,7 @@ class VulnType(str, Enum):
 # ── Protocol types ─────────────────────────────────────────────
 
 
-class ProtocolType(str, Enum):
+class ProtocolType(StrEnum):
     HTTP = "http"
     HTTPS = "https"
     GRAPHQL = "graphql"
@@ -61,7 +61,7 @@ class ProtocolType(str, Enum):
 # ── Severity ───────────────────────────────────────────────────
 
 
-class Severity(str, Enum):
+class Severity(StrEnum):
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -174,7 +174,7 @@ class AttackCandidate:
 # ── ValidationPlan ─────────────────────────────────────────────
 
 
-class ProbeType(str, Enum):
+class ProbeType(StrEnum):
     """Tipo de prueba a ejecutar."""
 
     BASELINE = "baseline"  # Request normal para tener línea de base

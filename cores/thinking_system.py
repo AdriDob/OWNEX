@@ -9,6 +9,7 @@ This system implements the continuous cognitive cycles that enable OWNEX to:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import time
 from collections.abc import Callable
@@ -681,12 +682,10 @@ class ThinkingSystem:
         """Stop all thinking loops."""
         self._running = False
 
-        for name, task in self._tasks.items():
+        for _name, task in self._tasks.items():
             task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await task
-            except asyncio.CancelledError:
-                pass
 
         self._tasks.clear()
         logger.info("ThinkingSystem stopped")

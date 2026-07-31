@@ -307,7 +307,7 @@ async def main_platform_connectors():
     logger.info("Starting OWNEX Platform Connectors")
 
     # Initialize EventBus
-    event_bus = get_event_bus()
+    get_event_bus()
 
     # Setup sample platforms - in production, would read from config
     bug_bounty_config = PlatformConfig(

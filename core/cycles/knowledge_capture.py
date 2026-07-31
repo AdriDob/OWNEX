@@ -10,7 +10,7 @@ import json
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from database import db
@@ -20,7 +20,7 @@ from database.models_economic import PayoutRecord
 logger = logging.getLogger("ownex.cycles.knowledge")
 
 
-class LearningType(str, Enum):
+class LearningType(StrEnum):
     PATTERN = "pattern"
     TOOL_EFFECTIVENESS = "tool_effectiveness"
     PLATFORM_QUIRK = "platform_quirk"

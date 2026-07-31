@@ -3,11 +3,11 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class ExecutionState(str, Enum):
+class ExecutionState(StrEnum):
     """Lifecycle state of a workflow execution."""
 
     PENDING = "pending"
@@ -21,7 +21,7 @@ class ExecutionState(str, Enum):
     ROLLED_BACK = "rolled_back"
 
 
-class ApprovalStatus(str, Enum):
+class ApprovalStatus(StrEnum):
     """Outcome of a human approval gate."""
 
     PENDING = "pending"

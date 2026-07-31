@@ -186,7 +186,7 @@ class TestVersionBackupSystem:
         result = backup_system.create_backup()
 
         verification = backup_system.verify_backup(result.backup_path)
-        assert verification["valid"] == True
+        assert verification["valid"]
         assert verification["version"] == "unknown"
         assert "git_commit" in verification
         assert "created_at" in verification
@@ -195,7 +195,7 @@ class TestVersionBackupSystem:
     def test_verify_backup_invalid_path(self, backup_system):
         """Test verifying a backup with invalid path."""
         verification = backup_system.verify_backup("/nonexistent/path")
-        assert verification["valid"] == False
+        assert not verification["valid"]
         assert "error" in verification
 
     def test_verify_backup_missing_manifest(self, backup_system, temp_ownex_dir):
@@ -205,7 +205,7 @@ class TestVersionBackupSystem:
         backup_path.mkdir(parents=True)
 
         verification = backup_system.verify_backup(str(backup_path))
-        assert verification["valid"] == False
+        assert not verification["valid"]
         assert "Manifest not found" in verification["error"]
 
     def test_rollback_to_version(self, backup_system):
@@ -223,7 +223,7 @@ class TestVersionBackupSystem:
         # Rollback
         result = backup_system.rollback_to_version(version=backups[0]["version"])
 
-        assert result["success"] == True
+        assert result["success"]
         assert result["version"] == "unknown"
         assert "Rollback completed successfully" in result["message"]
 
@@ -231,7 +231,7 @@ class TestVersionBackupSystem:
         """Test rollback to non-existent version."""
         result = backup_system.rollback_to_version(version="nonexistent")
 
-        assert result["success"] == False
+        assert not result["success"]
         assert "not found" in result["error"].lower()
 
     def test_restore_latest(self, backup_system):
@@ -241,7 +241,7 @@ class TestVersionBackupSystem:
 
         result = backup_system.restore_latest()
 
-        assert result["success"] == True
+        assert result["success"]
         assert result["version"] == "unknown"
 
     def test_restore_latest_no_backups(self, backup_system):
@@ -253,7 +253,7 @@ class TestVersionBackupSystem:
         system = VersionBackupSystem(ownex_dir=backup_system.ownex_dir)
         result = system.restore_latest()
 
-        assert result["success"] == False
+        assert not result["success"]
         assert "No backups available" in result["error"]
 
     def test_cleanup_old_backups(self, backup_system):

@@ -71,7 +71,7 @@ async def get_tasks(
     if status:
         tasks = [t for t in tasks if t.status.value == status]
     if date:
-        filter_date = datetime.strptime(date, "%Y-%m-%d")
+        datetime.strptime(date, "%Y-%m-%d")
         tasks = [t for t in tasks if t.due_date and t.due_date.strftime("%Y-%m-%d") == date]
 
     return {

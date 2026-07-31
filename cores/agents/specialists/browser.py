@@ -12,25 +12,25 @@ logger = logging.getLogger("ownex.agents.specialists.browser")
 
 class BrowserAgent(SpecialistAgent):
     """Browser — Web automation and interaction specialist.
-    
+
     Objectives:
     - Primary: Automate web interactions and scraping
     - Secondary: Form submission, element interaction, navigation
-    
+
     Limits:
     - Max 5 concurrent browser sessions
     - Max 600s per browser operation
-    
+
     Tools:
     - Playwright automation
     - Form submission
     - Element interaction
     - Web scraping
-    
+
     Priorities:
     - Priority level: 3
     - Task preferences: browser automation, web scraping
-    
+
     Handoffs:
     - Receives from: Commander, Planner
     - Hands off to: Research, Documentation

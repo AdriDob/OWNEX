@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import random
 from collections.abc import Callable
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from core.execution.runtime.clock import VirtualClock
@@ -11,7 +11,7 @@ from core.execution.runtime.clock import VirtualClock
 logger = logging.getLogger("ownex.execution.retry")
 
 
-class RetryPolicy(str, Enum):
+class RetryPolicy(StrEnum):
     IMMEDIATE = "immediate"
     LINEAR = "linear"
     EXPONENTIAL = "exponential"

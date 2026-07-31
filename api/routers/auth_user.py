@@ -2,9 +2,8 @@
 API Router for User Authentication
 """
 
-from typing import Any
 
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, EmailStr
 
 from cores.auth.user_auth import get_user_auth

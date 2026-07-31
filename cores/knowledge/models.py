@@ -3,11 +3,11 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class KnowledgeContentType(str, Enum):
+class KnowledgeContentType(StrEnum):
     advisory = "advisory"
     template = "template"
     rule = "rule"

@@ -309,7 +309,7 @@ class RevenueEngine:
     def _handle_payment_creation(self, event_type: str, **kwargs):
         """Handle payment creation events - Phase 8: PAYMENT"""
         payment_id = kwargs.get("payment_id")
-        opportunity_id = kwargs.get("opportunity_id")
+        kwargs.get("opportunity_id")
 
         if payment_id in self.payments:
             payment = self.payments[payment_id]

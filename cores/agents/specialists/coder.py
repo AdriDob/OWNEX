@@ -12,25 +12,25 @@ logger = logging.getLogger("ownex.agents.specialists.coder")
 
 class CoderAgent(SpecialistAgent):
     """Coder — Code generation and implementation specialist.
-    
+
     Objectives:
     - Primary: Generate, refactor, and implement code
     - Secondary: Create PRs, apply fixes, optimize performance
-    
+
     Limits:
     - Max 5 concurrent coding tasks
     - Max 900s per coding operation
-    
+
     Tools:
     - Code generation (Devin, OpenCode)
     - Refactoring tools
     - PR creation
     - Testing integration
-    
+
     Priorities:
     - Priority level: 3
     - Task preferences: code generation, refactoring
-    
+
     Handoffs:
     - Receives from: Commander, Planner, Research
     - Hands off to: Reviewer, Documentation

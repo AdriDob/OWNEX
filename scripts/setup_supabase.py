@@ -59,8 +59,8 @@ def check_supabase_credentials():
 def test_supabase_connection():
     """Probar conexión con Supabase."""
     try:
-        from supabase import create_client
         from dotenv import load_dotenv
+        from supabase import create_client
 
         load_dotenv()
 
@@ -70,7 +70,7 @@ def test_supabase_connection():
         client = create_client(supabase_url, supabase_key)
 
         # Test connection
-        response = client.table('tasks').select('*').limit(1).execute()
+        client.table('tasks').select('*').limit(1).execute()
 
         print("✅ Supabase connection successful")
         return True

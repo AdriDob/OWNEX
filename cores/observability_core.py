@@ -151,7 +151,7 @@ class MetricsCollector:
                     labels TEXT DEFAULT '{}',
                     metadata TEXT DEFAULT '{}'
                 );
-                
+
                 CREATE TABLE IF NOT EXISTS executions (
                     execution_id TEXT PRIMARY KEY,
                     agent TEXT NOT NULL,
@@ -177,7 +177,7 @@ class MetricsCollector:
                     roi REAL DEFAULT 0,
                     reward_rate REAL DEFAULT 0
                 );
-                
+
                 CREATE TABLE IF NOT EXISTS alerts (
                     alert_id TEXT PRIMARY KEY,
                     severity TEXT NOT NULL,
@@ -189,7 +189,7 @@ class MetricsCollector:
                     acknowledged INTEGER DEFAULT 0,
                     resolved_at TEXT
                 );
-                
+
                 CREATE TABLE IF NOT EXISTS health_snapshots (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp TEXT NOT NULL,
@@ -205,7 +205,7 @@ class MetricsCollector:
                     agent_health TEXT DEFAULT '{}',
                     alerts TEXT DEFAULT '[]'
                 );
-                
+
                 CREATE INDEX IF NOT EXISTS idx_metrics_name_time ON metrics(name, timestamp);
                 CREATE INDEX IF NOT EXISTS idx_executions_agent_time ON executions(agent, started_at);
                 CREATE INDEX IF NOT EXISTS idx_executions_platform_time ON executions(platform, started_at);
@@ -525,7 +525,7 @@ class MetricsCollector:
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 """
-                INSERT INTO health_snapshots 
+                INSERT INTO health_snapshots
                 (timestamp, active_agents, queued_tasks, running_tasks,
                  completed_last_hour, failed_last_hour, avg_reward_rate,
                  total_cost_last_hour, total_reward_last_hour, error_rate)

@@ -12,25 +12,25 @@ logger = logging.getLogger("ownex.agents.specialists.learning")
 
 class LearningAgent(SpecialistAgent):
     """Learning — Knowledge capture and pattern learning specialist.
-    
+
     Objectives:
     - Primary: Capture knowledge and learn from system operations
     - Secondary: Analyze patterns, process feedback, improve decision-making
-    
+
     Limits:
     - Max 15 concurrent learning tasks
     - Max 240s per learning operation
-    
+
     Tools:
     - Knowledge storage
     - Pattern recognition
     - Error analysis
     - Feedback processing
-    
+
     Priorities:
     - Priority level: 4
     - Task preferences: pattern learning, knowledge capture
-    
+
     Handoffs:
     - Receives from: All specialists
     - Hands off to: Evolution (improvement suggestions)

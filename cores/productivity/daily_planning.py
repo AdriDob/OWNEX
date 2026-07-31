@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -22,7 +22,7 @@ from cores.obsidian.integration import get_obsidian_integration
 from cores.setup.steps.enhanced_personalization import get_enhanced_personalization_system
 
 
-class TaskPriority(str, Enum):
+class TaskPriority(StrEnum):
     """Prioridad de tarea."""
     CRITICAL = "critical"
     HIGH = "high"
@@ -30,7 +30,7 @@ class TaskPriority(str, Enum):
     LOW = "low"
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(StrEnum):
     """Estado de tarea."""
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
@@ -39,7 +39,7 @@ class TaskStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
-class TaskCategory(str, Enum):
+class TaskCategory(StrEnum):
     """Categoría de tarea."""
     BUG_BOUNTY = "bug_bounty"
     DEV_BOUNTY = "dev_bounty"
@@ -160,7 +160,6 @@ class DailyPlanningSystem:
         # Generar nuevo plan
         plan = DailyPlan(date=date_str)
 
-        name = self.personalization.profile.preferred_name or self.personalization.profile.name
         guidance = self.personalization.profile.guidance_level
         experience = self.personalization.profile.experience_level
         work_mode = self.personalization.profile.work_mode
@@ -475,7 +474,6 @@ class DailyPlanningSystem:
 
     def _format_plan_for_obsidian(self, plan: DailyPlan) -> str:
         """Formatear plan para Obsidian."""
-        name = self.personalization.profile.preferred_name or self.personalization.profile.name
 
         content = f"""
 
