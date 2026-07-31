@@ -4,7 +4,7 @@ API Router for Supabase Sync
 
 from typing import Any
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from cores.supabase.sync_manager import get_supabase_sync_manager
@@ -48,7 +48,7 @@ async def sync_task(payload: SyncTaskRequest):
 
         return {"success": True, "message": "Task synced successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/sync/goal")
@@ -67,7 +67,7 @@ async def sync_goal(payload: SyncGoalRequest):
 
         return {"success": True, "message": "Goal synced successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/sync/habit")
@@ -86,7 +86,7 @@ async def sync_habit(payload: SyncHabitRequest):
 
         return {"success": True, "message": "Habit synced successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail(str(e)))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/sync/daily_mood")
@@ -105,7 +105,7 @@ async def sync_daily_mood(payload: SyncDailyMoodRequest):
 
         return {"success": True, "message": "Daily mood synced successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail(str(e)))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/tasks/{user_id}")
@@ -121,7 +121,7 @@ async def get_user_tasks(user_id: str):
 
         return {"success": True, "tasks": tasks}
     except Exception as e:
-        raise HTTPException(status_code=500, detail(str(e)))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/goals/{user_id}")
@@ -137,7 +137,7 @@ async def get_user_goals(user_id: str):
 
         return {"success": True, "goals": goals}
     except Exception as e:
-        raise HTTPException(status_code=500, detail(str(e)))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/habits/{user_id}")
@@ -153,7 +153,7 @@ async def get_user_habits(user_id: str):
 
         return {"success": True, "habits": habits}
     except Exception as e:
-        raise HTTPException(status_code=500, detail(str(e)))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/daily_moods/{user_id}")
@@ -169,4 +169,4 @@ async def get_user_daily_moods(user_id: str, limit: int = 7):
 
         return {"success": True, "moods": moods}
     except Exception as e:
-        raise HTTPException(status_code=500, detail(str(e)))
+        raise HTTPException(status_code=500, detail=str(e)) from None

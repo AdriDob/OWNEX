@@ -58,6 +58,9 @@ class CoderAgentResult:
 class CoderAgentConfig:
     """Configuration for CoderAgent."""
 
+    # Model to use for code generation
+    model: str = "claude-sonnet-4"
+
     # Timeouts
     clone_timeout: int = 120
     analysis_timeout: int = 60
