@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" width="800" height="200">
+  <defs>
+    <!-- Premium dark background gradient -->
+    <linearGradient id="premiumBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#030406"/>
+      <stop offset="50%" stop-color="#06080C"/>
+      <stop offset="100%" stop-color="#020305"/>
+    </linearGradient>
+
+    <!-- Core blue gradient - refined -->
+    <linearGradient id="coreBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="40%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+
+    <!-- Gold accent gradient - premium -->
+    <linearGradient id="premiumGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBBF24"/>
+      <stop offset="50%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+
+    <!-- Subtle ambient glow -->
+    <radialGradient id="ambientGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.08"/>
+      <stop offset="70%" stop-color="#2563EB" stop-opacity="0.02"/>
+      <stop offset="100%" stop-color="#1E40AF" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Text glow filter - subtle -->
+    <filter id="textGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Icon glow filter - refined -->
+    <filter id="iconGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="200" rx="24" fill="url(#premiumBg)"/>
+
+  <!-- Ambient glow behind icon -->
+  <circle cx="60" cy="100" r="70" fill="url(#ambientGlow)"/>
+
+  <!-- ═══ PREMIUM LOGOMARK ═══ -->
+  <g transform="translate(60,100)">
+    
+    <!-- Outer orbital ring - refined -->
+    <ellipse cx="0" cy="0" rx="48" ry="16" fill="none" stroke="url(#coreBlue)" stroke-width="1.5" 
+             transform="rotate(-8)" opacity="0.4"/>
+    
+    <!-- Middle orbital ring -->
+    <ellipse cx="0" cy="0" rx="38" ry="12" fill="none" stroke="#60A5FA" stroke-width="2" 
+             transform="rotate(12)" opacity="0.5"/>
+    
+    <!-- Inner orbital ring -->
+    <ellipse cx="0" cy="0" rx="28" ry="9" fill="none" stroke="#93C5FD" stroke-width="1.2" 
+             transform="rotate(-4)" opacity="0.35"/>
+
+    <!-- Core O ring - main element -->
+    <circle cx="0" cy="0" r="22" fill="none" stroke="url(#coreBlue)" stroke-width="3" 
+            opacity="0.9" filter="url(#iconGlow)"/>
+    <circle cx="0" cy="0" r="22" fill="none" stroke="#FFFFFF" stroke-width="0.8" opacity="0.12"/>
+
+    <!-- Inner cutout ring -->
+    <circle cx="0" cy="0" r="14" fill="none" stroke="#60A5FA" stroke-width="0.6" opacity="0.25"/>
+
+    <!-- Gold accent dot - positioned precisely -->
+    <circle cx="16" cy="-16" r="2.5" fill="url(#premiumGold)" opacity="0.85" filter="url(#iconGlow)"/>
+    <circle cx="16" cy="-16" r="1" fill="#FFFFFF" opacity="0.9"/>
+
+    <!-- Center core - refined -->
+    <circle cx="0" cy="0" r="6" fill="#3B82F6" opacity="0.2"/>
+    <circle cx="0" cy="0" r="4" fill="#60A5FA" opacity="0.5"/>
+    <circle cx="0" cy="0" r="2.5" fill="#FFFFFF" opacity="0.95"/>
+    <circle cx="-0.5" cy="-0.5" r="0.8" fill="#60A5FA" opacity="1"/>
+
+    <!-- Subtle scanline -->
+    <line x1="-20" y1="0" x2="20" y2="0" stroke="#60A5FA" stroke-width="0.3" opacity="0.1"/>
+  </g>
+
+  <!-- ═══ PREMIUM LOGOTYPE ═══ -->
+  <g transform="translate(120, 100)">
+    <!-- Main wordmark -->
+    <text x="0" y="8" 
+          font-family="'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
+          font-size="56" 
+          font-weight="600" 
+          fill="#FFFFFF" 
+          letter-spacing="4"
+          filter="url(#textGlow)">
+      OWNEX
+    </text>
+
+    <!-- Subtle underline accent -->
+    <line x1="2" y1="22" x2="210" y2="22" stroke="url(#premiumGold)" stroke-width="1.5" opacity="0.4"/>
+
+    <!-- Tagline - refined -->
+    <text x="2" y="42" 
+          font-family="'Inter', -apple-system, sans-serif" 
+          font-size="11" 
+          font-weight="500" 
+          fill="#64748B" 
+          letter-spacing="6"
+          opacity="0.9">
+      AUTONOMOUS WORK OS
+    </text>
+  </g>
+
+  <!-- Version badge - subtle -->
+  <g transform="translate(680, 100)">
+    <rect x="-30" y="-12" width="60" height="24" rx="12" fill="#1E293B" opacity="0.5"/>
+    <text x="0" y="4" 
+          font-family="'Inter', monospace" 
+          font-size="10" 
+          font-weight="600" 
+          fill="#60A5FA" 
+          text-anchor="middle">
+      v7.0
+    </text>
+  </g>
+</svg>

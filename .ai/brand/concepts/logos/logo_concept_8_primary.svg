@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <circle cx="100" cy="100" r="40" fill="#3B82F6" opacity="0.9"/>
+  <line x1="100" y1="60" x2="100" y2="30" stroke="#3B82F6" stroke-width="2" opacity="0.7"/>
+  <line x1="100" y1="140" x2="100" y2="170" stroke="#3B82F6" stroke-width="2" opacity="0.7"/>
+  <line x1="60" y1="100" x2="30" y2="100" stroke="#3B82F6" stroke-width="2" opacity="0.7"/>
+  <line x1="140" y1="100" x2="170" y2="100" stroke="#3B82F6" stroke-width="2" opacity="0.7"/>
+  <line x1="72" y1="72" x2="50" y2="50" stroke="#3B82F6" stroke-width="2" opacity="0.5"/>
+  <line x1="128" y1="72" x2="150" y2="50" stroke="#3B82F6" stroke-width="2" opacity="0.5"/>
+  <line x1="72" y1="128" x2="50" y2="150" stroke="#3B82F6" stroke-width="2" opacity="0.5"/>
+  <line x1="128" y1="128" x2="150" y2="150" stroke="#3B82F6" stroke-width="2" opacity="0.5"/>
+  <circle cx="100" cy="100" r="15" fill="#F0F0F0" opacity="0.9"/>
+  <circle cx="135" cy="65" r="5" fill="#F59E0B" opacity="0.9"/>
+</svg>

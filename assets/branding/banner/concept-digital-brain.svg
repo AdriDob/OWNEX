@@ -1,0 +1,190 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <!-- Dark background -->
+    <linearGradient id="dbBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#030406"/>
+      <stop offset="50%" stop-color="#06080C"/>
+      <stop offset="100%" stop-color="#020305"/>
+    </linearGradient>
+
+    <!-- Node glow -->
+    <radialGradient id="dbNodeGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#60A5FA" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Connection gradient -->
+    <linearGradient id="dbConnGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#60A5FA" stop-opacity="0.1"/>
+    </linearGradient>
+
+    <!-- Knowledge gold -->
+    <linearGradient id="dbGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+
+    <!-- Pulse animation effect -->
+    <radialGradient id="dbPulse" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#60A5FA" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#dbBg)"/>
+
+  <!-- ═══ DIGITAL BRAIN - KNOWLEDGE GRAPH CONCEPT ═══ -->
+
+  <!-- Central knowledge hub -->
+  <g transform="translate(600, 315)">
+    <!-- Outer glow -->
+    <circle cx="0" cy="0" r="120" fill="url(#dbPulse)"/>
+    
+    <!-- Central hub -->
+    <circle cx="0" cy="0" r="50" fill="#1E293B" stroke="#3B82F6" stroke-width="2"/>
+    <circle cx="0" cy="0" r="35" fill="none" stroke="#60A5FA" stroke-width="1.5" opacity="0.6"/>
+    <circle cx="0" cy="0" r="15" fill="#3B82F6"/>
+    <circle cx="0" cy="0" r="6" fill="#FFFFFF"/>
+    
+    <text x="0" y="75" font-family="'Inter', sans-serif" font-size="12" fill="#60A5FA" text-anchor="middle" font-weight="600">KNOWLEDGE HUB</text>
+  </g>
+
+  <!-- Knowledge clusters (connected nodes) -->
+
+  <!-- Bug Bounty cluster -->
+  <g transform="translate(200, 200)">
+    <line x1="0" y1="0" x2="400" y2="115" stroke="url(#dbConnGrad)" stroke-width="1.5"/>
+    
+    <!-- Cluster nodes -->
+    <circle cx="0" cy="0" r="30" fill="#1E293B" stroke="#3B82F6" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="10" fill="#60A5FA"/>
+    
+    <circle cx="-40" cy="40" r="15" fill="#1E293B" stroke="#3B82F6" stroke-width="1"/>
+    <circle cx="-40" cy="40" r="5" fill="#60A5FA"/>
+    <line x1="0" y1="0" x2="-40" y2="40" stroke="#3B82F6" stroke-width="0.8" opacity="0.4"/>
+    
+    <circle cx="50" cy="35" r="18" fill="#1E293B" stroke="#F59E0B" stroke-width="1"/>
+    <circle cx="50" cy="35" r="6" fill="#F59E0B"/>
+    <line x1="0" y1="0" x2="50" y2="35" stroke="#F59E0B" stroke-width="0.8" opacity="0.4"/>
+    
+    <text x="0" y="55" font-family="'Inter', sans-serif" font-size="11" fill="#9CA3AF" text-anchor="middle">Bug Bounty</text>
+  </g>
+
+  <!-- Development cluster -->
+  <g transform="translate(1000, 200)">
+    <line x1="0" y1="0" x2="-400" y2="115" stroke="url(#dbConnGrad)" stroke-width="1.5"/>
+    
+    <circle cx="0" cy="0" r="30" fill="#1E293B" stroke="#3B82F6" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="10" fill="#60A5FA"/>
+    
+    <circle cx="35" cy="45" r="15" fill="#1E293B" stroke="#3B82F6" stroke-width="1"/>
+    <circle cx="35" cy="45" r="5" fill="#60A5FA"/>
+    <line x1="0" y1="0" x2="35" y2="45" stroke="#3B82F6" stroke-width="0.8" opacity="0.4"/>
+    
+    <circle cx="-45" cy="30" r="18" fill="#1E293B" stroke="#F59E0B" stroke-width="1"/>
+    <circle cx="-45" cy="30" r="6" fill="#F59E0B"/>
+    <line x1="0" y1="0" x2="-45" y2="30" stroke="#F59E0B" stroke-width="0.8" opacity="0.4"/>
+    
+    <text x="0" y="55" font-family="'Inter', sans-serif" font-size="11" fill="#9CA3AF" text-anchor="middle">Development</text>
+  </g>
+
+  <!-- Revenue cluster -->
+  <g transform="translate(300, 500)">
+    <line x1="0" y1="0" x2="300" y2="-185" stroke="url(#dbConnGrad)" stroke-width="1.5"/>
+    
+    <circle cx="0" cy="0" r="35" fill="#1E293B" stroke="#F59E0B" stroke-width="2"/>
+    <circle cx="0" cy="0" r="12" fill="#F59E0B"/>
+    
+    <circle cx="-50" cy="-30" r="20" fill="#1E293B" stroke="#F59E0B" stroke-width="1"/>
+    <circle cx="-50" cy="-30" r="7" fill="#F59E0B"/>
+    <line x1="0" y1="0" x2="-50" y2="-30" stroke="#F59E0B" stroke-width="0.8" opacity="0.4"/>
+    
+    <circle cx="45" cy="-25" r="15" fill="#1E293B" stroke="#3B82F6" stroke-width="1"/>
+    <circle cx="45" cy="-25" r="5" fill="#60A5FA"/>
+    <line x1="0" y1="0" x2="45" y2="-25" stroke="#3B82F6" stroke-width="0.8" opacity="0.4"/>
+    
+    <text x="0" y="60" font-family="'Inter', sans-serif" font-size="11" fill="#F59E0B" text-anchor="middle" font-weight="600">Revenue</text>
+  </g>
+
+  <!-- Intelligence cluster -->
+  <g transform="translate(900, 500)">
+    <line x1="0" y1="0" x2="-300" y2="-185" stroke="url(#dbConnGrad)" stroke-width="1.5"/>
+    
+    <circle cx="0" cy="0" r="35" fill="#1E293B" stroke="#3B82F6" stroke-width="2"/>
+    <circle cx="0" cy="0" r="12" fill="#60A5FA"/>
+    
+    <circle cx="40" cy="-35" r="18" fill="#1E293B" stroke="#3B82F6" stroke-width="1"/>
+    <circle cx="40" cy="-35" r="6" fill="#60A5FA"/>
+    <line x1="0" y1="0" x2="40" y2="-35" stroke="#3B82F6" stroke-width="0.8" opacity="0.4"/>
+    
+    <circle cx="-45" cy="-20" r="15" fill="#1E293B" stroke="#F59E0B" stroke-width="1"/>
+    <circle cx="-45" cy="-20" r="5" fill="#F59E0B"/>
+    <line x1="0" y1="0" x2="-45" y2="-20" stroke="#F59E0B" stroke-width="0.8" opacity="0.4"/>
+    
+    <text x="0" y="60" font-family="'Inter', sans-serif" font-size="11" fill="#9CA3AF" text-anchor="middle">Intelligence</text>
+  </g>
+
+  <!-- Pattern cluster -->
+  <g transform="translate(150, 350)">
+    <line x1="0" y1="0" x2="450" y2="-35" stroke="url(#dbConnGrad)" stroke-width="1"/>
+    
+    <circle cx="0" cy="0" r="25" fill="#1E293B" stroke="#3B82F6" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="8" fill="#60A5FA"/>
+    
+    <circle cx="-30" cy="25" r="12" fill="#1E293B" stroke="#3B82F6" stroke-width="1"/>
+    <circle cx="-30" cy="25" r="4" fill="#60A5FA"/>
+    <line x1="0" y1="0" x2="-30" y2="25" stroke="#3B82F6" stroke-width="0.6" opacity="0.3"/>
+    
+    <text x="0" y="45" font-family="'Inter', sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">Patterns</text>
+  </g>
+
+  <!-- Security cluster -->
+  <g transform="translate(1050, 350)">
+    <line x1="0" y1="0" x2="-450" y2="-35" stroke="url(#dbConnGrad)" stroke-width="1"/>
+    
+    <circle cx="0" cy="0" r="25" fill="#1E293B" stroke="#22C55E" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="8" fill="#22C55E"/>
+    
+    <circle cx="25" cy="30" r="12" fill="#1E293B" stroke="#22C55E" stroke-width="1"/>
+    <circle cx="25" cy="30" r="4" fill="#22C55E"/>
+    <line x1="0" y1="0" x2="25" y2="30" stroke="#22C55E" stroke-width="0.6" opacity="0.3"/>
+    
+    <text x="0" y="45" font-family="'Inter', sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">Security</text>
+  </g>
+
+  <!-- Cross-cluster connections (learning pathways) -->
+  <g opacity="0.2">
+    <line x1="200" y1="200" x2="300" y2="500" stroke="#60A5FA" stroke-width="0.5" stroke-dasharray="4 4"/>
+    <line x1="1000" y1="200" x2="900" y2="500" stroke="#60A5FA" stroke-width="0.5" stroke-dasharray="4 4"/>
+    <line x1="200" y1="200" x2="150" y2="350" stroke="#60A5FA" stroke-width="0.5" stroke-dasharray="4 4"/>
+    <line x1="1000" y1="200" x2="1050" y2="350" stroke="#60A5FA" stroke-width="0.5" stroke-dasharray="4 4"/>
+  </g>
+
+  <!-- Learning indicators (pulsing nodes) -->
+  <g>
+    <circle cx="450" cy="280" r="3" fill="#F59E0B" opacity="0.8"/>
+    <circle cx="750" cy="280" r="3" fill="#F59E0B" opacity="0.8"/>
+    <circle cx="500" cy="380" r="2.5" fill="#60A5FA" opacity="0.6"/>
+    <circle cx="700" cy="380" r="2.5" fill="#60A5FA" opacity="0.6"/>
+  </g>
+
+  <!-- Stats overlay -->
+  <g transform="translate(50, 50)">
+    <rect x="0" y="0" width="160" height="50" rx="6" fill="#1E293B" fill-opacity="0.5" stroke="#1A1A2E"/>
+    <text x="15" y="20" font-family="'Inter', sans-serif" font-size="10" fill="#64748B">KNOWLEDGE NODES</text>
+    <text x="15" y="38" font-family="'Inter', sans-serif" font-size="14" fill="#60A5FA" font-weight="600">2,847</text>
+  </g>
+
+  <g transform="translate(990, 50)">
+    <rect x="0" y="0" width="160" height="50" rx="6" fill="#1E293B" fill-opacity="0.5" stroke="#1A1A2E"/>
+    <text x="15" y="20" font-family="'Inter', sans-serif" font-size="10" fill="#64748B">CONNECTIONS</text>
+    <text x="15" y="38" font-family="'Inter', sans-serif" font-size="14" fill="#60A5FA" font-weight="600">12,394</text>
+  </g>
+
+  <!-- Title -->
+  <g transform="translate(600, 580)">
+    <text x="0" y="0" font-family="'Inter', sans-serif" font-size="14" fill="#60A5FA" text-anchor="middle" letter-spacing="3" opacity="0.8">DIGITAL KNOWLEDGE GRAPH</text>
+  </g>
+</svg>
