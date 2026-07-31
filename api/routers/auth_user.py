@@ -108,4 +108,4 @@ async def refresh_token(refresh_token: str):
 
         return {"success": True, **result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail(str(e))
+        raise HTTPException(status_code=500, detail=str(e))

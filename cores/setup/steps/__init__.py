@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-from core.setup.models import WizardStepDef
+from cores.setup.models import WizardStepDef
 
 _STEP_REGISTRY: dict[str, WizardStepDef] = {}
 
@@ -54,11 +54,11 @@ def count_steps() -> int:
 
 
 # Import steps explicitly to register them
-from core.setup.steps.personalization_step import personalization_step  # noqa: E402
+from cores.setup.steps.personalization_step import personalization_step  # noqa: E402
 
-from core.setup.steps.copilot_step import copilot_step  # noqa: E402
-from core.setup.steps.identity_step import identity_step  # noqa: E402
-from core.setup.steps.integrations_step import integrations_step  # noqa: E402
-from core.setup.steps.smartwatch_step import smartwatch_step  # noqa: E402
-from core.setup.steps.system_step import system_step  # noqa: E402
-from core.setup.steps.test_step import test_step  # noqa: E402
+from cores.setup.steps.copilot_step import execute as copilot_step  # noqa: E402
+from cores.setup.steps.identity_step import execute as identity_step  # noqa: E402
+from cores.setup.steps.integrations_step import execute as integrations_step  # noqa: E402
+from cores.setup.steps.smartwatch_step import execute as smartwatch_step  # noqa: E402
+from cores.setup.steps.system_step import execute as system_step  # noqa: E402
+from cores.setup.steps.test_step import execute as test_step  # noqa: E402
