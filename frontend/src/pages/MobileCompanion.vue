@@ -1,413 +1,670 @@
 <template>
-  <div class="mobile-companion-wrapper">
-    <!-- Header -->
-    <div class="mobile-header">
-      <div class="header-content">
-        <div class="logo">🤖 ORION</div>
-        <div class="status-indicator" :class="systemStatus">
-          <div class="status-dot"></div>
-          <span>{{ statusText }}</span>
+  <div class="auth-wrapper">
+    <!-- Login Screen -->
+    <div v-if="authState === 'login'" class="auth-screen">
+      <div class="auth-container">
+        <div class="auth-header">
+          <div class="logo">🤖 ORION</div>
+          <div class="subtitle">Cloud Sync Powered by Supabase</div>
         </div>
-      </div>
-      <div class="header-actions">
-        <button @click="refreshStatus" class="icon-btn" title="Refresh">
-          <RefreshCw :class="{ spinning: refreshing }" />
-        </button>
-        <button @click="showSettings = true" class="icon-btn" title="Settings">
-          ⚙️
-        </button>
-      </div>
-    </div>
 
-    <!-- Dashboard -->
-    <div class="dashboard">
-      <!-- System Health Card -->
-      <div class="card health-card">
-        <div class="card-header">
-          <h3>📊 System Health</h3>
-          <Badge :variant="healthVariant">{{ healthScore }}/100</Badge>
-        </div>
-        <div class="health-metrics">
-          <div class="metric">
-            <div class="metric-label">Backend</div>
-            <div class="metric-value" :class="backendStatus">{{ backendStatusText }}</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Scheduler</div>
-            <div class="metric-value" :class="schedulerStatus">{{ schedulerStatusText }}</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">EventBus</div>
-            <div class="metric-value" :class="eventBusStatus">{{ eventBusStatusText }}</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Database</div>
-            <div class="metric-value" :class="databaseStatus">{{ databaseStatusText }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Workflows Card -->
-      <div class="card workflows-card">
-        <div class="card-header">
-          <h3>🔄 Active Workflows</h3>
-          <Badge>{{ activeWorkflows }}</Badge>
-        </div>
-        <div class="workflows-list">
-          <div v-for="workflow in workflows" :key="workflow.id" class="workflow-item">
-            <div class="workflow-info">
-              <div class="workflow-name">{{ workflow.name }}</div>
-              <div class="workflow-status" :class="workflow.status">{{ workflow.status }}</div>
-            </div>
-            <div class="workflow-progress">
-              <div class="progress-bar">
-                <div class="progress-fill" :style="{ width: workflow.progress + '%' }"></div>
-              </div>
-              <span class="progress-text">{{ workflow.progress }}%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Notifications Card -->
-      <div class="card notifications-card">
-        <div class="card-header">
-          <h3>🔔 Notifications</h3>
-          <Badge>{{ unreadNotifications }}</Badge>
-        </div>
-        <div class="notifications-list">
-          <div v-for="notif in notifications" :key="notif.id" class="notification-item" :class="{ unread: !notif.read }">
-            <div class="notification-icon">{{ notif.icon }}</div>
-            <div class="notification-content">
-              <div class="notification-title">{{ notif.title }}</div>
-              <div class="notification-message">{{ notif.message }}</div>
-              <div class="notification-time">{{ formatTime(notif.timestamp) }}</div>
-            </div>
-            <button @click="markAsRead(notif.id)" class="icon-btn-small">✓</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- MERLIN Chat Card -->
-      <div class="card merlin-card">
-        <div class="card-header">
-          <h3>🧙 MERLIN</h3>
-          <Badge variant="outline">Online</Badge>
-        </div>
-        <div class="merlin-chat">
-          <div class="chat-messages" ref="chatMessages">
-            <div v-for="msg in merlinMessages" :key="msg.id" class="chat-message" :class="msg.role">
-              <div class="message-avatar">{{ msg.role === 'user' ? '👤' : '🧙' }}</div>
-              <div class="message-content">
-                <div class="message-text">{{ msg.content }}</div>
-                <div class="message-time">{{ formatTime(msg.timestamp) }}</div>
-              </div>
-            </div>
-          </div>
-          <div class="chat-input">
+        <form @submit.prevent="handleLogin" class="auth-form">
+          <div class="form-group">
+            <label>Email</label>
             <input
-              v-model="merlinInput"
-              @keyup.enter="sendMerlinMessage"
-              placeholder="Ask MERLIN anything..."
-              class="message-input-field"
+              v-model="loginForm.email"
+              type="email"
+              placeholder="your@email.com"
+              class="form-input"
+              required
             />
-            <button @click="sendMerlinMessage" class="send-btn">📤</button>
           </div>
-        </div>
-      </div>
 
-      <!-- Approvals Card -->
-      <div class="card approvals-card">
-        <div class="card-header">
-          <h3>✅ Pending Approvals</h3>
-          <Badge variant="warning">{{ pendingApprovals }}</Badge>
-        </div>
-        <div class="approvals-list">
-          <div v-for="approval in approvals" :key="approval.id" class="approval-item">
-            <div class="approval-info">
-              <div class="approval-title">{{ approval.title }}</div>
-              <div class="approval-description">{{ approval.description }}</div>
-              <div class="approval-risk" :class="approval.risk">{{ approval.risk }}</div>
-            </div>
-            <div class="approval-actions">
-              <button @click="approveRequest(approval.id)" class="btn-approve">✓</button>
-              <button @click="rejectRequest(approval.id)" class="btn-reject">✗</button>
-            </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input
+              v-model="loginForm.password"
+              type="password"
+              placeholder="••••••••"
+              class="form-input"
+              required
+            />
           </div>
-        </div>
-      </div>
 
-      <!-- Life Management Card -->
-      <div class="card life-card">
-        <div class="card-header">
-          <h3>🧘 Life Management</h3>
-          <Badge>{{ lifeScore }}/100</Badge>
-        </div>
-        <div class="life-summary">
-          <div class="life-metric">
-            <div class="life-icon">📋</div>
-            <div class="life-data">
-              <div class="life-label">Tasks</div>
-              <div class="life-value">{{ lifeData.tasks_completed }}/{{ lifeData.tasks_total }}</div>
-            </div>
+          <button type="submit" class="auth-btn" :disabled="loading">
+            {{ loading ? 'Logging in...' : 'Login' }}
+          </button>
+
+          <div class="auth-footer">
+            <span>Don't have an account?</span>
+            <button @click="authState = 'register'" class="link-btn">Register</button>
           </div>
-          <div class="life-metric">
-            <div class="life-icon">🎯</div>
-            <div class="life-data">
-              <div class="life-label">Goals</div>
-              <div class="life-value">{{ lifeData.goals_progress }}%</div>
-            </div>
-          </div>
-          <div class="life-metric">
-            <div class="life-icon">🔄</div>
-            <div class="life-data">
-              <div class="life-label">Habits</div>
-              <div class="life-value">{{ lifeData.habits_completed }}/{{ lifeData.habits_total }}</div>
-            </div>
-          </div>
-          <div class="life-metric">
-            <div class="life-icon">😊</div>
-            <div class="life-data">
-              <div class="life-label">Mood</div>
-              <div class="life-value">{{ lifeData.mood }}</div>
-            </div>
-          </div>
-        </div>
+        </form>
+
+        <div v-if="error" class="error-message">{{ error }}</div>
       </div>
     </div>
 
-    <!-- Settings Modal -->
-    <div v-if="showSettings" class="modal-overlay" @click="showSettings = false">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3>⚙️ Settings</h3>
-          <button @click="showSettings = false" class="close-btn">✕</button>
+    <!-- Register Screen -->
+    <div v-if="authState === 'register'" class="auth-screen">
+      <div class="auth-container">
+        <div class="auth-header">
+          <div class="logo">🤖 ORION</div>
+          <div class="subtitle">Create Account</div>
         </div>
-        <div class="settings-content">
-          <div class="setting-item">
-            <label>Push Notifications</label>
-            <input type="checkbox" v-model="settings.pushEnabled" class="toggle" />
+
+        <form @submit.prevent="handleRegister" class="auth-form">
+          <div class="form-group">
+            <label>Email</label>
+            <input
+              v-model="registerForm.email"
+              type="email"
+              placeholder="your@email.com"
+              class="form-input"
+              required
+            />
           </div>
-          <div class="setting-item">
-            <label>Polling Interval (min)</label>
-            <input type="number" v-model="settings.pollingInterval" class="number-input" />
+
+          <div class="form-group">
+            <label>Password</label>
+            <input
+              v-model="registerForm.password"
+              type="password"
+              placeholder="••••••••"
+              class="form-input"
+              required
+              minlength="6"
+            />
           </div>
-          <div class="setting-item">
-            <label>Critical-Only Mode</label>
-            <input type="checkbox" v-model="settings.criticalOnly" class="toggle" />
+
+          <div class="form-group">
+            <label>Confirm Password</label>
+            <input
+              v-model="registerForm.confirmPassword"
+              type="password"
+              placeholder="••••••••"
+              class="form-input"
+              required
+              minlength="6"
+            />
           </div>
-          <div class="setting-item">
-            <label>Sound Alerts</label>
-            <input type="checkbox" v-model="settings.soundAlerts" class="toggle" />
+
+          <button type="submit" class="auth-btn" :disabled="loading">
+            {{ loading ? 'Creating account...' : 'Register' }}
+          </button>
+
+          <div class="auth-footer">
+            <span>Already have an account?</span>
+            <button @click="authState = 'login'" class="link-btn">Login</button>
           </div>
-          <div class="setting-item">
-            <label>Vibration</label>
-            <input type="checkbox" v-model="settings.vibration" class="toggle" />
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button @click="saveSettings" class="btn-primary">Save</button>
-        </div>
+        </form>
+
+        <div v-if="error" class="error-message">{{ error }}</div>
       </div>
     </div>
 
-    <!-- Navigation Bar -->
-    <div class="nav-bar">
-      <button @click="activeTab = 'dashboard'" class="nav-item" :class="{ active: activeTab === 'dashboard' }">
-        📊
-      </button>
-      <button @click="activeTab = 'merlin'" class="nav-item" :class="{ active: activeTab === 'merlin' }">
-        🧙
-      </button>
-      <button @click="activeTab = 'notifications'" class="nav-item" :class="{ active: activeTab === 'notifications' }">
-        🔔
-      </button>
-      <button @click="activeTab = 'approvals'" class="nav-item" :class="{ active: activeTab === 'approvals' }">
-        ✅
-      </button>
-      <button @click="activeTab = 'life'" class="nav-item" :class="{ active: activeTab === 'life' }">
-        🧘
-      </button>
+    <!-- Main App (after login) -->
+    <div v-if="authState === 'authenticated'" class="mobile-companion-wrapper">
+      <!-- Header -->
+      <div class="mobile-header">
+        <div class="header-content">
+          <div class="logo">🤖 ORION</div>
+          <div class="status-indicator" :class="syncStatus">
+            <div class="status-dot"></div>
+            <span>{{ syncStatusText }}</span>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button @click="refreshData" class="icon-btn" title="Refresh">
+            <RefreshCw :class="{ spinning: refreshing }" />
+          </button>
+          <button @click="showSettings = true" class="icon-btn" title="Settings">
+            ⚙️
+          </button>
+          <button @click="handleLogout" class="icon-btn" title="Logout">
+            🚪
+          </button>
+        </div>
+      </div>
+
+      <!-- Dashboard -->
+      <div class="dashboard">
+        <!-- System Health Card -->
+        <div class="card health-card">
+          <div class="card-header">
+            <h3>📊 System Health</h3>
+            <Badge :variant="healthVariant">{{ healthScore }}/100</Badge>
+          </div>
+          <div class="health-metrics">
+            <div class="metric">
+              <div class="metric-label">Backend</div>
+              <div class="metric-value" :class="backendStatus">{{ backendStatusText }}</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Supabase</div>
+              <div class="metric-value" :class="supabaseStatus">{{ supabaseStatusText }}</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Sync</div>
+              <div class="metric-value" :class="syncStatus">{{ syncStatusText }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tasks Card -->
+        <div class="card tasks-card">
+          <div class="card-header">
+            <h3>📋 Tasks</h3>
+            <Badge>{{ tasks.length }}</Badge>
+          </div>
+          <div class="tasks-list">
+            <div v-for="task in tasks" :key="task.task_id" class="task-item" :class="{ completed: task.status === 'completed' }">
+              <div class="task-info">
+                <div class="task-title">{{ task.title }}</div>
+                <div class="task-status" :class="task.status">{{ task.status }}</div>
+              </div>
+              <button @click="toggleTask(task)" class="icon-btn-small">✓</button>
+            </div>
+          </div>
+          <button @click="showAddTask = true" class="add-btn">+ Add Task</button>
+        </div>
+
+        <!-- Goals Card -->
+        <div class="card goals-card">
+          <div class="card-header">
+            <h3>🎯 Goals</h3>
+            <Badge>{{ goals.length }}</Badge>
+          </div>
+          <div class="goals-list">
+            <div v-for="goal in goals" :key="goal.goal_id" class="goal-item">
+              <div class="goal-info">
+                <div class="goal-title">{{ goal.title }}</div>
+                <div class="goal-progress">
+                  <div class="progress-bar">
+                    <div class="progress-fill" :style="{ width: goal.progress + '%' }"></div>
+                  </div>
+                  <span class="progress-text">{{ goal.progress }}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Habits Card -->
+        <div class="card habits-card">
+          <div class="card-header">
+            <h3>🔄 Habits</h3>
+            <Badge>{{ habits.length }}</Badge>
+          </div>
+          <div class="habits-list">
+            <div v-for="habit in habits" :key="habit.habit_id" class="habit-item">
+              <div class="habit-info">
+                <div class="habit-title">{{ habit.title }}</div>
+                <div class="habit-streak">🔥 {{ habit.streak }} day streak</div>
+              </div>
+              <button @click="completeHabit(habit)" class="icon-btn-small">✓</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Mood Card -->
+        <div class="card mood-card">
+          <div class="card-header">
+            <h3>😊 Daily Mood</h3>
+            <Badge :variant="moodVariant">{{ currentMood }}</Badge>
+          </div>
+          <div class="mood-selector">
+            <button
+              v-for="mood in moods"
+              :key="mood.value"
+              @click="setMood(mood.value)"
+              class="mood-btn"
+              :class="{ active: currentMood === mood.value }"
+            >
+              {{ mood.emoji }}
+            </button>
+          </div>
+          <div class="mood-metrics">
+            <div class="mood-metric">
+              <label>Energy</label>
+              <input v-model.number="moodData.energy_level" type="range" min="1" max="10" class="range-input" />
+              <span>{{ moodData.energy_level }}/10</span>
+            </div>
+            <div class="mood-metric">
+              <label>Stress</label>
+              <input v-model.number="moodData.stress_level" type="range" min="1" max="10" class="range-input" />
+              <span>{{ moodData.stress_level }}/10</span>
+            </div>
+          </div>
+          <button @click="saveMood" class="save-btn">Save Mood</button>
+        </div>
+      </div>
+
+      <!-- Add Task Modal -->
+      <div v-if="showAddTask" class="modal-overlay" @click="showAddTask = false">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h3>Add Task</h3>
+            <button @click="showAddTask = false" class="close-btn">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Title</label>
+              <input v-model="newTask.title" type="text" class="form-input" placeholder="Task title" />
+            </div>
+            <div class="form-group">
+              <label>Priority</label>
+              <select v-model="newTask.priority" class="form-input">
+                <option value="critical">Critical</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Category</label>
+              <select v-model="newTask.category" class="form-input">
+                <option value="work">Work</option>
+                <option value="personal">Personal</option>
+                <option value="health">Health</option>
+                <option value="finance">Finance</option>
+                <option value="learning">Learning</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button @click="addTask" class="btn-primary">Add Task</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Modal -->
+      <div v-if="showSettings" class="modal-overlay" @click="showSettings = false">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h3>⚙️ Settings</h3>
+            <button @click="showSettings = false" class="close-btn">✕</button>
+          </div>
+          <div class="settings-content">
+            <div class="setting-item">
+              <label>Push Notifications</label>
+              <input type="checkbox" v-model="settings.pushEnabled" class="toggle" />
+            </div>
+            <div class="setting-item">
+              <label>Auto-sync</label>
+              <input type="checkbox" v-model="settings.autoSync" class="toggle" />
+            </div>
+            <div class="setting-item">
+              <label>Sync Interval (min)</label>
+              <input type="number" v-model="settings.syncInterval" class="number-input" />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button @click="saveSettings" class="btn-primary">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Bar -->
+      <div class="nav-bar">
+        <button @click="activeTab = 'dashboard'" class="nav-item" :class="{ active: activeTab === 'dashboard' }">
+          📊
+        </button>
+        <button @click="activeTab = 'tasks'" class="nav-item" :class="{ active: activeTab === 'tasks' }">
+          📋
+        </button>
+        <button @click="activeTab = 'goals'" class="nav-item" :class="{ active: activeTab === 'goals' }">
+          🎯
+        </button>
+        <button @click="activeTab = 'habits'" class="nav-item" :class="{ active: activeTab === 'habits' }">
+          🔄
+        </button>
+        <button @click="activeTab = 'mood'" class="nav-item" :class="{ active: activeTab === 'mood' }">
+          😊
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { RefreshCw } from '@lucide/vue'
 import Badge from '@/components/ui/Badge.vue'
 
 // State
-const activeTab = ref('dashboard')
-const showSettings = ref(false)
-const refreshing = ref(false)
+const authState = ref<'login' | 'register' | 'authenticated'>('login')
+const loading = ref(false)
+const error = ref('')
 
-// System Status
-const systemStatus = ref('online')
-const statusText = computed(() => {
-  const status = systemStatus.value
-  return status === 'online' ? 'Online' : status === 'offline' ? 'Offline' : 'Connecting'
+// Login form
+const loginForm = ref({
+  email: '',
+  password: '',
 })
 
-// Health
+// Register form
+const registerForm = ref({
+  email: '',
+  password: '',
+  confirmPassword: '',
+})
+
+// Supabase client
+let supabase: any = null
+let userId: string = ''
+
+// App state
+const syncStatus = ref('synced')
 const healthScore = ref(85)
+const backendStatus = ref('online')
+const supabaseStatus = ref('connected')
+const refreshing = ref(false)
+const showSettings = ref(false)
+const showAddTask = ref(false)
+const activeTab = ref('dashboard')
+
+// Data
+const tasks = ref<any[]>([])
+const goals = ref<any[]>([])
+const habits = ref<any[]>([])
+const currentMood = ref('neutral')
+
+// Mood data
+const moodData = ref({
+  mood: 'neutral',
+  energy_level: 5,
+  stress_level: 5,
+})
+
+const moods = [
+  { value: 'very_positive', emoji: '😄' },
+  { value: 'positive', emoji: '🙂' },
+  { value: 'neutral', emoji: '😐' },
+  { value: 'negative', emoji: '😔' },
+  { value: 'very_negative', emoji: '😢' },
+]
+
+// New task
+const newTask = ref({
+  title: '',
+  priority: 'medium',
+  category: 'work',
+})
+
+// Settings
+const settings = ref({
+  pushEnabled: true,
+  autoSync: true,
+  syncInterval: 5,
+})
+
+// Computed
+const syncStatusText = computed(() => {
+  const status = syncStatus.value
+  return status === 'synced' ? 'Synced' : status === 'syncing' ? 'Syncing...' : 'Offline'
+})
+
 const healthVariant = computed(() => {
   if (healthScore.value >= 80) return 'success'
   if (healthScore.value >= 50) return 'warning'
   return 'danger'
 })
 
-const backendStatus = ref('online')
 const backendStatusText = computed(() => backendStatus.value === 'online' ? 'Online' : 'Offline')
-const schedulerStatus = ref('running')
-const schedulerStatusText = computed(() => schedulerStatus.value === 'running' ? 'Running' : 'Stopped')
-const eventBusStatus = ref('active')
-const eventBusStatusText = computed(() => eventBusStatus.value === 'active' ? 'Active' : 'Inactive')
-const databaseStatus = ref('connected')
-const databaseStatusText = computed(() => databaseStatus.value === 'connected' ? 'Connected' : 'Disconnected')
+const supabaseStatusText = computed(() => supabaseStatus.value === 'connected' ? 'Connected' : 'Disconnected')
 
-// Workflows
-const activeWorkflows = ref(3)
-const workflows = ref([
-  { id: 1, name: 'Security Scan', status: 'running', progress: 65 },
-  { id: 2, name: 'Code Review', status: 'pending', progress: 0 },
-  { id: 3, name: 'Report Generation', status: 'completed', progress: 100 },
-])
-
-// Notifications
-const unreadNotifications = ref(5)
-const notifications = ref([
-  { id: 1, icon: '🚨', title: 'Finding Detected', message: 'SQL injection in target', timestamp: Date.now() - 300000, read: false },
-  { id: 2, icon: '✅', title: 'Report Accepted', message: 'HackerOne accepted report', timestamp: Date.now() - 600000, read: false },
-  { id: 3, icon: '🔄', title: 'Workflow Started', message: 'Security scan initiated', timestamp: Date.now() - 900000, read: true },
-  { id: 4, icon: '💰', title: 'Payout Received', message: '$500 received from Bugcrowd', timestamp: Date.now() - 1800000, read: true },
-  { id: 5, icon: '🧙', title: 'MERLIN Insight', message: 'New opportunity detected', timestamp: Date.now() - 3600000, read: true },
-])
-
-// MERLIN
-const merlinMessages = ref([
-  { id: 1, role: 'assistant', content: 'Hello! I am MERLIN, your AI assistant. How can I help you today?', timestamp: Date.now() },
-])
-const merlinInput = ref('')
-const chatMessages = ref<HTMLElement | null>(null)
-
-// Approvals
-const pendingApprovals = ref(2)
-const approvals = ref([
-  { id: 1, title: 'Submit Report', description: 'Submit SQL injection finding to HackerOne', risk: 'high' },
-  { id: 2, title: 'Approve Payment', description: 'Approve $500 payout from Bugcrowd', risk: 'low' },
-])
-
-// Life Management
-const lifeScore = ref(75)
-const lifeData = ref({
-  tasks_completed: 8,
-  tasks_total: 12,
-  goals_progress: 65,
-  habits_completed: 4,
-  habits_total: 6,
-  mood: 'Positive',
-})
-
-// Settings
-const settings = ref({
-  pushEnabled: true,
-  pollingInterval: 2,
-  criticalOnly: false,
-  soundAlerts: true,
-  vibration: true,
+const moodVariant = computed(() => {
+  const mood = currentMood.value
+  if (mood === 'very_positive' || mood === 'positive') return 'success'
+  if (mood === 'neutral') return 'outline'
+  return 'danger'
 })
 
 // Methods
-const refreshStatus = async () => {
+const initSupabase = async () => {
+  try {
+    const { createClient } = await import('@supabase/supabase-js')
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Supabase credentials not configured')
+    }
+
+    supabase = createClient(supabaseUrl, supabaseKey)
+    console.log('Supabase initialized')
+  } catch (e) {
+    console.error('Failed to initialize Supabase:', e)
+    error.value = 'Failed to initialize Supabase'
+  }
+}
+
+const handleLogin = async () => {
+  loading.value = true
+  error.value = ''
+
+  try {
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
+      email: loginForm.value.email,
+      password: loginForm.value.password,
+    })
+
+    if (authError) throw authError
+
+    userId = data.user.id
+    authState.value = 'authenticated'
+
+    // Load data
+    await loadAllData()
+  } catch (e: any) {
+    error.value = e.message || 'Login failed'
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleRegister = async () => {
+  loading.value = true
+  error.value = ''
+
+  if (registerForm.value.password !== registerForm.value.confirmPassword) {
+    error.value = 'Passwords do not match'
+    loading.value = false
+    return
+  }
+
+  try {
+    const { data, error: authError } = await supabase.auth.signUp({
+      email: registerForm.value.email,
+      password: registerForm.value.password,
+    })
+
+    if (authError) throw authError
+
+    userId = data.user.id
+    authState.value = 'authenticated'
+
+    // Load data
+    await loadAllData()
+  } catch (e: any) {
+    error.value = e.message || 'Registration failed'
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleLogout = async () => {
+  await supabase.auth.signOut()
+  authState.value = 'login'
+  userId = ''
+  tasks.value = []
+  goals.value = []
+  habits.value = []
+}
+
+const loadAllData = async () => {
+  syncStatus.value = 'syncing'
+
+  try {
+    // Load tasks
+    const { data: tasksData } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('user_id', userId)
+
+    tasks.value = tasksData || []
+
+    // Load goals
+    const { data: goalsData } = await supabase
+      .from('goals')
+      .select('*')
+      .eq('user_id', userId)
+
+    goals.value = goalsData || []
+
+    // Load habits
+    const { data: habitsData } = await supabase
+      .from('habits')
+      .select('*')
+      .eq('user_id', userId)
+
+    habits.value = habitsData || []
+
+    // Load today's mood
+    const today = new Date().toISOString().split('T')[0]
+    const { data: moodData: todayMood } = await supabase
+      .from('daily_moods')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('date', today)
+      .single()
+
+    if (todayMood) {
+      currentMood.value = todayMood.mood
+      moodData.value = {
+        mood: todayMood.mood,
+        energy_level: todayMood.energy_level || 5,
+        stress_level: todayMood.stress_level || 5,
+      }
+    }
+
+    syncStatus.value = 'synced'
+  } catch (e) {
+    console.error('Failed to load data:', e)
+    syncStatus.value = 'offline'
+  }
+}
+
+const refreshData = async () => {
   refreshing.value = true
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await loadAllData()
   refreshing.value = false
 }
 
-const formatTime = (timestamp: number) => {
-  const diff = Date.now() - timestamp
-  const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return 'Just now'
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
-}
+const toggleTask = async (task: any) => {
+  const newStatus = task.status === 'completed' ? 'pending' : 'completed'
 
-const markAsRead = (id: number) => {
-  const notif = notifications.value.find(n => n.id === id)
-  if (notif) {
-    notif.read = true
-    unreadNotifications.value--
+  const { error } = await supabase
+    .from('tasks')
+    .update({ status: newStatus, completed_at: newStatus === 'completed' ? new Date().toISOString() : null })
+    .eq('task_id', task.task_id)
+
+  if (!error) {
+    task.status = newStatus
   }
 }
 
-const sendMerlinMessage = async () => {
-  if (!merlinInput.value.trim()) return
-
-  const userMessage = {
-    id: Date.now(),
-    role: 'user',
-    content: merlinInput.value,
-    timestamp: Date.now(),
+const addTask = async () => {
+  const taskData = {
+    user_id: userId,
+    task_id: `task-${Date.now()}`,
+    title: newTask.value.title,
+    status: 'pending',
+    priority: newTask.value.priority,
+    category: newTask.value.category,
+    created_at: new Date().toISOString(),
   }
 
-  merlinMessages.value.push(userMessage)
-  merlinInput.value = ''
+  const { error } = await supabase.from('tasks').insert(taskData)
 
-  // Scroll to bottom
-  await nextTick()
-  if (chatMessages.value) {
-    chatMessages.value.scrollTop = chatMessages.value.scrollHeight
+  if (!error) {
+    tasks.value.push(taskData)
+    showAddTask.value = false
+    newTask.value = { title: '', priority: 'medium', category: 'work' }
+  }
+}
+
+const completeHabit = async (habit: any) => {
+  const entryData = {
+    user_id: userId,
+    habit_id: habit.habit_id,
+    date: new Date().toISOString().split('T')[0],
+    completed: true,
+    energy_level: 5,
   }
 
-  // Simulate MERLIN response
-  setTimeout(() => {
-    const assistantMessage = {
-      id: Date.now(),
-      role: 'assistant',
-      content: 'I understand your request. Let me analyze the situation and provide you with the best course of action.',
-      timestamp: Date.now(),
-    }
-    merlinMessages.value.push(assistantMessage)
+  const { error } = await supabase.from('habit_entries').insert(entryData)
 
-    nextTick(() => {
-      if (chatMessages.value) {
-        chatMessages.value.scrollTop = chatMessages.value.scrollHeight
-      }
-    })
-  }, 1000)
+  if (!error) {
+    habit.streak += 1
+  }
 }
 
-const approveRequest = (id: number) => {
-  approvals.value = approvals.value.filter(a => a.id !== id)
-  pendingApprovals.value--
+const setMood = (mood: string) => {
+  currentMood.value = mood
+  moodData.value.mood = mood
 }
 
-const rejectRequest = (id: number) => {
-  approvals.value = approvals.value.filter(a => a.id !== id)
-  pendingApprovals.value--
+const saveMood = async () => {
+  const today = new Date().toISOString().split('T')[0]
+
+  const moodDataToSave = {
+    user_id: userId,
+    date: today,
+    mood: moodData.value.mood,
+    energy_level: moodData.value.energy_level,
+    stress_level: moodData.value.stress_level,
+  }
+
+  const { error } = await supabase
+    .from('daily_moods')
+    .upsert(moodDataToSave)
+
+  if (!error) {
+    console.log('Mood saved')
+  }
 }
 
 const saveSettings = () => {
-  showSettings.value = false
-  // Save to localStorage or API
   localStorage.setItem('mobileSettings', JSON.stringify(settings.value))
+  showSettings.value = false
 }
 
 // Lifecycle
-onMounted(() => {
+onMounted(async () => {
+  await initSupabase()
+
+  // Check for existing session
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (session) {
+    userId = session.user.id
+    authState.value = 'authenticated'
+    await loadAllData()
+  }
+
   // Load settings
   const savedSettings = localStorage.getItem('mobileSettings')
   if (savedSettings) {
     settings.value = JSON.parse(savedSettings)
   }
 
-  // Start polling
-  refreshStatus()
-  setInterval(refreshStatus, settings.value.pollingInterval * 60000)
+  // Auto-sync
+  if (settings.value.autoSync) {
+    setInterval(loadAllData, settings.value.syncInterval * 60000)
+  }
 })
 
 onUnmounted(() => {
@@ -416,6 +673,110 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.auth-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+}
+
+.auth-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.auth-container {
+  background: rgba(0, 240, 255, 0.05);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 16px;
+  padding: 40px;
+  max-width: 400px;
+  width: 100%;
+  backdrop-filter: blur(10px);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.logo {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #00f0ff;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.form-input {
+  background: rgba(0, 240, 255, 0.05);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 8px;
+  color: #fff;
+  padding: 12px;
+  font-family: 'Inter', sans-serif;
+}
+
+.auth-btn {
+  background: #00f0ff;
+  color: #000;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.auth-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.auth-footer {
+  text-align: center;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #00f0ff;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.error-message {
+  color: #ff6b35;
+  text-align: center;
+  margin-top: 20px;
+}
+
 .mobile-companion-wrapper {
   min-height: 100vh;
   background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%);
@@ -441,12 +802,6 @@ onUnmounted(() => {
   margin-bottom: 10px;
 }
 
-.logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #00f0ff;
-}
-
 .status-indicator {
   display: flex;
   align-items: center;
@@ -454,8 +809,13 @@ onUnmounted(() => {
   font-size: 0.9rem;
 }
 
-.status-indicator.online .status-dot {
+.status-indicator.synced .status-dot {
   background: #00ff88;
+}
+
+.status-indicator.syncing .status-dot {
+  background: #ffaa00;
+  animation: pulse 1s infinite;
 }
 
 .status-indicator.offline .status-dot {
@@ -467,7 +827,6 @@ onUnmounted(() => {
   height: 8px;
   border-radius: 50%;
   background: #00ff88;
-  animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
@@ -488,10 +847,6 @@ onUnmounted(() => {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.icon-btn:hover {
-  background: rgba(0, 240, 255, 0.2);
 }
 
 .icon-btn.spinning {
@@ -533,7 +888,7 @@ onUnmounted(() => {
 
 .health-metrics {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 15px;
 }
 
@@ -557,73 +912,66 @@ onUnmounted(() => {
 }
 
 .metric-value.online,
-.metric-value.running,
-.metric-value.active,
-.metric-value.connected {
+.metric-value.connected,
+.metric-value.synced {
   color: #00ff88;
 }
 
 .metric-value.offline,
-.metric-value.stopped,
-.metric-value.inactive,
 .metric-value.disconnected {
   color: #ff6b35;
 }
 
-.workflows-list,
-.notifications-list,
-.approvals-list {
+.tasks-list,
+.goals-list,
+.habits-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.workflow-item,
-.notification-item,
-.approval-item {
+.task-item,
+.goal-item,
+.habit-item {
   background: rgba(0, 240, 255, 0.05);
   border: 1px solid rgba(0, 240, 255, 0.1);
   border-radius: 12px;
   padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.workflow-info,
-.notification-content,
-.approval-info {
-  flex: 1;
+.task-item.completed {
+  opacity: 0.5;
 }
 
-.workflow-name,
-.notification-title,
-.approval-title {
+.task-title,
+.goal-title,
+.habit-title {
   color: #fff;
   font-weight: 600;
   margin-bottom: 5px;
 }
 
-.workflow-status {
+.task-status {
   font-size: 0.8rem;
   padding: 2px 8px;
   border-radius: 4px;
   display: inline-block;
 }
 
-.workflow-status.running {
+.task-status.completed {
   background: rgba(0, 255, 136, 0.2);
   color: #00ff88;
 }
 
-.workflow-status.pending {
+.task-status.pending {
   background: rgba(255, 170, 0, 0.2);
   color: #ffaa00;
 }
 
-.workflow-status.completed {
-  background: rgba(0, 240, 255, 0.2);
-  color: #00f0ff;
-}
-
-.workflow-progress {
+.goal-progress {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -651,24 +999,8 @@ onUnmounted(() => {
   font-weight: bold;
 }
 
-.notification-item.unread {
-  border-color: #00f0ff;
-  background: rgba(0, 240, 255, 0.1);
-}
-
-.notification-icon {
-  font-size: 1.5rem;
-  margin-right: 12px;
-}
-
-.notification-message {
-  color: #ccc;
-  font-size: 0.9rem;
-  margin-bottom: 5px;
-}
-
-.notification-time {
-  color: #666;
+.habit-streak {
+  color: #ffaa00;
   font-size: 0.8rem;
 }
 
@@ -681,167 +1013,71 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
-.merlin-chat {
-  display: flex;
-  flex-direction: column;
-  height: 300px;
-}
-
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.chat-message {
-  display: flex;
-  gap: 10px;
-  max-width: 80%;
-}
-
-.chat-message.user {
-  align-self: flex-end;
-  flex-direction: row-reverse;
-}
-
-.message-avatar {
-  font-size: 1.5rem;
-}
-
-.message-content {
+.add-btn {
   background: rgba(0, 240, 255, 0.1);
-  border: 1px solid rgba(0, 240, 255, 0.2);
-  border-radius: 12px;
-  padding: 10px 15px;
-}
-
-.chat-message.user .message-content {
-  background: rgba(0, 255, 136, 0.1);
-  border-color: rgba(0, 255, 136, 0.2);
-}
-
-.message-text {
-  color: #fff;
-  font-size: 0.9rem;
-  margin-bottom: 5px;
-}
-
-.message-time {
-  color: #666;
-  font-size: 0.75rem;
-}
-
-.chat-input {
-  display: flex;
-  gap: 10px;
-}
-
-.message-input-field {
-  flex: 1;
-  background: rgba(0, 240, 255, 0.05);
-  border: 1px solid rgba(0, 240, 255, 0.2);
-  border-radius: 8px;
-  color: #fff;
-  padding: 10px 15px;
-  font-family: 'Inter', sans-serif;
-}
-
-.send-btn {
-  background: #00f0ff;
-  color: #000;
-  border: none;
-  padding: 10px 15px;
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  color: #00f0ff;
+  padding: 10px;
   border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
-}
-
-.approval-description {
-  color: #ccc;
-  font-size: 0.9rem;
-  margin-bottom: 5px;
-}
-
-.approval-risk {
-  font-size: 0.8rem;
-  padding: 2px 8px;
-  border-radius: 4px;
-  display: inline-block;
-}
-
-.approval-risk.high {
-  background: rgba(255, 107, 53, 0.2);
-  color: #ff6b35;
-}
-
-.approval-risk.low {
-  background: rgba(0, 255, 136, 0.2);
-  color: #00ff88;
-}
-
-.approval-actions {
-  display: flex;
-  gap: 8px;
+  width: 100%;
   margin-top: 10px;
 }
 
-.btn-approve {
-  background: #00ff88;
-  color: #000;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
+.mood-selector {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
 }
 
-.btn-reject {
-  background: #ff6b35;
-  color: #fff;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.life-summary {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-}
-
-.life-metric {
+.mood-btn {
   background: rgba(0, 240, 255, 0.05);
-  border: 1px solid rgba(0, 240, 255, 0.1);
-  border-radius: 12px;
-  padding: 12px;
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 8px;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.mood-btn.active {
+  background: rgba(0, 240, 255, 0.2);
+  border-color: #00f0ff;
+  transform: scale(1.1);
+}
+
+.mood-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.mood-metric {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-.life-icon {
-  font-size: 1.5rem;
+.mood-metric label {
+  color: #888;
+  font-size: 0.9rem;
+  min-width: 60px;
 }
 
-.life-data {
+.range-input {
   flex: 1;
 }
 
-.life-label {
-  color: #888;
-  font-size: 0.85rem;
-  margin-bottom: 3px;
-}
-
-.life-value {
-  color: #fff;
+.save-btn {
+  background: #00f0ff;
+  color: #000;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
   font-weight: bold;
-  font-size: 1rem;
+  width: 100%;
 }
 
 .modal-overlay {
@@ -887,6 +1123,18 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .settings-content {
   display: flex;
   flex-direction: column;
@@ -915,12 +1163,6 @@ onUnmounted(() => {
 
 .number-input {
   width: 80px;
-}
-
-.modal-footer {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
 }
 
 .btn-primary {
