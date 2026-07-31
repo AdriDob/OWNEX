@@ -61,6 +61,18 @@ module = [
 ]
 ignore_errors = true
 
+# Gradual type checking - enable for safer modules
+[[tool.mypy.overrides]]
+module = [
+    "cores.obsidian",
+    "cores.wear_os",
+    "cores.productivity",
+    "cores.onboarding",
+    "cores.setup.steps.enhanced_personalization",
+]
+check_untyped_defs = true
+disallow_any_unimported = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --tb=short"
