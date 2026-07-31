@@ -55,6 +55,7 @@ from api.routers import (
     intelligence,
     investigations,
     investment,
+    life_management,
     license,
     market_intelligence,
     merlin,
@@ -1434,6 +1435,9 @@ app.include_router(enhanced_personalization.router)
 
 # Productivity router
 app.include_router(productivity.router)
+
+# Life Management router
+app.include_router(life_management.router)
 
 # Onboarding router
 app.include_router(onboarding.router)
