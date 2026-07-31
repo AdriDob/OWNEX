@@ -180,6 +180,23 @@ Ver `.ai/TASK_QUEUE.md` para el detalle.
   Sin datos reales aún → valores 0 (contrato correcto, no mock).
 - 114 tests verdes (añadido test_execution_compiler), ruff limpio, build OK.
 
+### AUD-9 ⚠️ — Lint cleanup (parcial)
+- De 457 → 30 errores. Fixes aplicados:
+  - `core/cycles/schemas.py`: field_validator `parse_config` en `CycleRead` (fix 500→200 en `/api/cycles`)
+  - 9 routers: B904 `from None` en `raise HTTPException(...)`
+  - `core/backup/engine.py`: eliminada redefinición `OWNEX_VERSION = "5.0.0"` (usar import 7.0.0)
+  - `cores/life_management/system.py`: F821 `session`→`sessions` typo; F821 `context`→`context or {}`
+  - `cores/operations.py`: eliminados duplicados `register_component`/`add_storage_cleanup_rule`/`add_doctor_check`; fix `publish(event, {dict})` → `publish(event, **{dict})`
+  - `api/routers/orion_cli.py`: eliminado handler `cli_doctor` duplicado (código muerto)
+  - `api/routers/*.py` (9 routers): B904 `from None` en raises
+  - `pyproject.toml`: per-file-ignores E402 en `__init__.py` (patrón de auto-registro deliberado)
+- 30 errores restantes son legacy (E741 `l`, F401 extension imports, F841 `bus`) — no código nuevo
+
+### AUD-7 ✅ — GamingConsole conectado a datos reales
+- El servicio ya conectaba a 8 endpoints; el bloqueo real era `/api/cycles` (500: `config: Text` JSON string vs schema `dict`). Fix: field_validator en `CycleRead` → 200 con 5 ciclos; GamingConsole mostraba fallbacks solo por ese 500.
+- 8/8 endpoints verificados con token (overview, top5, activity, mission/status, system/state, financial-summary, cycles, metrics). Sin datos reales aún → valores 0 (contrato correcto, no mock).
+- 129 tests verdes, ruff limpio, build OK.
+
 ### AUD-8 ⚠️ — Routers de ciclos montados (forge + pulse)
 - `forge_cycle.py` estaba definido pero NO montado en main.py → montado
   (status/dashboard/knowledge → 200).
