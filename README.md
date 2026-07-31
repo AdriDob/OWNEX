@@ -2,7 +2,9 @@
 
 <div align="center">
 
-<img src="assets/banner.svg" alt="OWNEX" width="1600" height="700"/>
+<img src="assets/concept-hero.png" alt="OWNEX — Autonomous Work Operating System"/>
+
+<img src="assets/logo.png" alt="OWNEX Logo" width="200" height="200"/>
 
 ---
 
@@ -29,6 +31,38 @@ OWNEX is an autonomous operating system ecosystem with two complementary edition
 - **OWNEX OMEGA** — Mobile edition for smartphones and wearables
 
 Together, they perform software engineering, cybersecurity, bug bounty, AI orchestration, autonomous workflows, revenue generation, documentation, learning, self-healing infrastructure, and continuous self-improvement.
+
+---
+
+## 🖼️ Visual Overview — Work Cycles
+
+<div align="center">
+
+### FORGE — Dev Bounty
+
+<img src="assets/concept-forge.png" alt="FORGE — Dev Bounty"/>
+
+### PULSE — AI Work
+
+<img src="assets/concept-pulse.png" alt="PULSE — AI Work"/>
+
+### VAULT — Wealth
+
+<img src="assets/concept-vault.png" alt="VAULT — Wealth"/>
+
+### ATLAS — Intelligence
+
+<img src="assets/concept-atlas.png" alt="ATLAS — Intelligence"/>
+
+### SECURITY — Bug Bounty
+
+<img src="assets/concept-security.png" alt="SECURITY — Bug Bounty"/>
+
+### ODYSSEY — Predictive Markets
+
+<img src="assets/concept-odyssey.png" alt="ODYSSEY — Predictive Markets"/>
+
+</div>
 
 ---
 
@@ -191,6 +225,21 @@ OWNEX OMEGA es la edición móvil diseñada para smartphones y wearables.
 ---
 
 ## 📊 Project Architecture
+
+### Work Cycles
+
+OWNEX organiza todas sus operaciones en **Work Cycles**, cada uno con un
+`LoopPattern` propio (fases, cadencia, human gates, budget) ejecutado por el
+scheduler 24/7:
+
+| Cycle | Category | Focus |
+|-------|----------|-------|
+| **FORGE** | Dev Bounty | Superteam, Opire, TaskBounty, CoderAgent |
+| **PULSE** | AI Work | Outlier, DataAnnotation, Mindrift |
+| **VAULT** | Wealth | Revenue intelligence, payouts, capital dashboard |
+| **ATLAS** | Intelligence | Market signals, opportunity scoring |
+| **SECURITY** | Bug Bounty | Recon → Hypothesis → Validation → Evidence → Report |
+| **ODYSSEY** | Predictive Markets | Probability models, betting |
 
 ### System Components
 
