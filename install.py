@@ -16,6 +16,7 @@ import json
 import logging
 import os
 import platform
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -280,7 +281,7 @@ class OwnexInstaller:
             logger.warning("Módulo de personalización no disponible, usando configuración por defecto")
             return personalization_data
 
-    def apply_configuration(self) -> bool:
+    def apply_configuration(self, personalization_data: dict[str, Any]) -> bool:
         """Apply personalized configuration."""
         logger.info("Aplicando configuración personalizada...")
 
@@ -288,21 +289,25 @@ class OwnexInstaller:
             config_dir = self.install_dir / "config"
             config_file = config_dir / "personalized_config.json"
 
-            config_file.write_text(json.dumps(self.config, indent=2))
+            config_file.write_text(json.dumps(personalization_data, indent=2))
             logger.info(f"✓ Configuración guardada en {config_file}")
 
             # Create .env file with personalized settings
             env_file = self.install_dir / ".env"
             env_content = f"""
 # OWNEX OMEGA - Configuración Personalizada
-GENERATED_AT={json.dumps(self.config.get('use_case'))}
-AUTOMATION_LEVEL={self.config.get('automation_level')}
-EXPERTISE_LEVEL={self.config.get('expertise_level')}
-ENABLED_MODULES={','.join(self.config.get('enabled_modules', []))}
-PRIMARY_PLATFORMS={','.join(self.config.get('primary_platforms', []))}
-APP_NAME={self.config.get('ui_customization', {}).get('app_name', 'OWNEX OMEGA')}
-THEME={self.config.get('ui_customization', {}).get('theme', 'dark')}
-ACCENT_COLOR={self.config.get('ui_customization', {}).get('accent_color', '#60A5FA')}
+GENERATED_AT={json.dumps(personalization_data.get('use_case'))}
+AUTOMATION_LEVEL={personalization_data.get('automation_level')}
+EXPERTISE_LEVEL={personalization_data.get('expertise_level')}
+ENABLED_MODULES={','.join(personalization_data.get('enabled_modules', []))}
+PRIMARY_PLATFORMS={','.join(personalization_data.get('primary_platforms', []))}
+APP_NAME={personalization_data.get('ui_customization', {}).get('app_name', 'OWNEX OMEGA')}
+THEME={personalization_data.get('ui_customization', {}).get('theme', 'dark')}
+ACCENT_COLOR={personalization_data.get('ui_customization', {}).get('accent_color', '#60A5FA')}
+OBSIDIAN_ENABLED={personalization_data.get('obsidian_enabled', False)}
+VOICE_ENABLED={personalization_data.get('voice_enabled', False)}
+DAILY_PLANNING={personalization_data.get('daily_planning', False)}
+GUIDED_ONBOARDING={personalization_data.get('guided_onboarding', False)}
 """
 
             if not env_file.exists():
@@ -339,6 +344,54 @@ ACCENT_COLOR={self.config.get('ui_customization', {}).get('accent_color', '#60A5
             logger.error(f"Error inicializando base de datos: {e}")
             return False
 
+    def setup_integrations(self, personalization_data: dict[str, Any]) -> bool:
+        """Setup integrations (Obsidian, Voice, etc.)."""
+        logger.info("Configurando integraciones...")
+
+        try:
+            # Obsidian integration
+            if personalization_data.get("obsidian_enabled", False):
+                obsidian_vault = personalization_data.get("obsidian_vault_path", "")
+                if obsidian_vault:
+                    logger.info(f"✓ Obsidian vault configurado: {obsidian_vault}")
+                else:
+                    logger.warning("Obsidian habilitado pero no se especificó vault path")
+
+            # Voice integration
+            if personalization_data.get("voice_enabled", False):
+                logger.info("✓ Voice commands habilitados")
+                # Check for Whisper and Piper
+                try:
+                    import whisper
+                    logger.info("✓ Whisper disponible para STT")
+                except ImportError:
+                    logger.warning("Whisper no instalado, voice commands limitados")
+
+                try:
+                    # Check for Piper binary
+                    import shutil
+                    piper_path = shutil.which("piper")
+                    if piper_path:
+                        logger.info("✓ Piper disponible para TTS")
+                    else:
+                        logger.warning("Piper no encontrado, TTS no disponible")
+                except Exception:
+                    logger.warning("Error verificando Piper")
+
+            # Daily planning
+            if personalization_data.get("daily_planning", False):
+                logger.info("✓ Daily planning habilitado")
+
+            # Guided onboarding
+            if personalization_data.get("guided_onboarding", False):
+                logger.info("✓ Guided onboarding habilitado")
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Error configurando integraciones: {e}")
+            return False
+
     def create_startup_script(self) -> bool:
         """Create startup script for the system."""
         logger.info("Creando script de inicio...")
@@ -347,6 +400,8 @@ ACCENT_COLOR={self.config.get('ui_customization', {}).get('accent_color', '#60A5
             if self.system_info["os"] == "Windows":
                 script_content = f"""@echo off
 cd /d "{self.install_dir}"
+echo Starting OWNEX OMEGA...
+echo With: MERLIN Assistant, Daily Planning, Obsidian Integration, Voice Commands
 .venv\\Scripts\\python run.py
 pause
 """
@@ -354,6 +409,8 @@ pause
             else:
                 script_content = f"""#!/bin/bash
 cd "{self.install_dir}"
+echo "Starting OWNEX OMEGA..."
+echo "With: MERLIN Assistant, Daily Planning, Obsidian Integration, Voice Commands"
 .venv/bin/python run.py
 """
                 script_file = self.install_dir / "start.sh"
@@ -447,11 +504,26 @@ cd "{self.install_dir}"
         personalization_data = self.run_personalization_wizard()
         if not personalization_data:
             logger.warning("Usando configuración por defecto")
+            personalization_data = {
+                "name": "Usuario",
+                "use_case": "bug_bounty",
+                "enabled_modules": ["targets", "findings", "reports"],
+                "automation_level": "medium",
+                "expertise_level": "intermediate",
+                "obsidian_enabled": False,
+                "voice_enabled": False,
+                "daily_planning": False,
+                "guided_onboarding": False,
+            }
 
         # Apply configuration
-        if not self.apply_configuration():
+        if not self.apply_configuration(personalization_data):
             logger.error("Error aplicando configuración")
             return False
+
+        # Setup integrations (Obsidian, Voice, etc.)
+        if not self.setup_integrations(personalization_data):
+            logger.warning("Error configurando integraciones (no fatal)")
 
         # Initialize database
         if not self.minimal:
@@ -469,7 +541,7 @@ cd "{self.install_dir}"
                 logger.warning("Algunas pruebas post-instalación fallaron")
 
         # Print summary
-        self.print_summary()
+        self.print_summary(personalization_data)
 
         return True
 

@@ -64,6 +64,7 @@ from api.routers import (
     notifications,
     offensive,
     offensive_web3,
+    onboarding,
     opensource,
     operations,
     opportunities,
@@ -76,6 +77,7 @@ from api.routers import (
     overview,
     pipeline,
     platforms,
+    productivity,
     project_dashboard,
     pulse_app,
     quick_wins,
@@ -1428,6 +1430,12 @@ app.include_router(version_backup.router)
 # Setup router
 app.include_router(setup.router)
 app.include_router(enhanced_personalization.router)
+
+# Productivity router
+app.include_router(productivity.router)
+
+# Onboarding router
+app.include_router(onboarding.router)
 
 # MERLIN router
 app.include_router(merlin.router)
