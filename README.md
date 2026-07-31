@@ -1,4 +1,4 @@
-# OWNEX OMEGA
+# OWNEX
 
 <div align="center">
 
@@ -23,7 +23,12 @@
 
 ## Overview
 
-OWNEX OMEGA is an autonomous operating system that performs software engineering, cybersecurity, bug bounty, AI orchestration, autonomous workflows, revenue generation, documentation, learning, self-healing infrastructure, and continuous self-improvement.
+OWNEX is an autonomous operating system ecosystem with two complementary editions:
+
+- **OWNEX ALPHA** — Desktop edition for developers and professionals
+- **OWNEX OMEGA** — Mobile edition for smartphones and wearables
+
+Together, they perform software engineering, cybersecurity, bug bounty, AI orchestration, autonomous workflows, revenue generation, documentation, learning, self-healing infrastructure, and continuous self-improvement.
 
 ---
 
@@ -42,12 +47,21 @@ OWNEX OMEGA is an autonomous operating system that performs software engineering
 - **Infrastructure Health** — Self-healing systems
 - **Voice Assistant** — Natural language interface
 
-### Companion Apps
+### Editions
 
-- **Desktop Companion** — Native desktop application
-- **Mobile Companion** — Android app with full dashboard
-- **Wear OS Companion** — Smartwatch app for quick actions
-- **Cloud Sync** — Supabase-powered synchronization across devices
+**OWNEX ALPHA (Desktop)**
+- Full-featured desktop application
+- Advanced development tools
+- Terminal integration
+- Complete AI orchestration
+- Professional workflow automation
+
+**OWNEX OMEGA (Mobile)**
+- Android companion app
+- Wear OS smartwatch app
+- Cloud sync with ALPHA
+- Quick actions and notifications
+- Mobile-optimized interface
 
 ### AI Integration
 
@@ -151,6 +165,6 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 <div align="center">
 
-**OWNEX OMEGA — Autonomous Personal Operating System**
+**OWNEX — Autonomous Operating System Ecosystem**
 
 </div>
