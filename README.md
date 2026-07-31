@@ -2,7 +2,78 @@
 
 <div align="center">
 
-![OWNEX Banner](assets/banner.png)
+<div style="
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%);
+  border: 2px solid #00f0ff;
+  border-radius: 20px;
+  padding: 60px 40px;
+  margin: 40px 0;
+  max-width: 1000px;
+  box-shadow: 0 0 40px rgba(0, 240, 255, 0.3);
+">
+
+<div style="
+  font-size: 72px;
+  font-weight: bold;
+  color: #00f0ff;
+  text-shadow: 0 0 20px rgba(0, 240, 255, 0.8),
+               0 0 40px rgba(0, 240, 255, 0.4);
+  letter-spacing: 8px;
+  margin-bottom: 20px;
+  font-family: 'Arial', sans-serif;
+">
+
+OWNEX
+
+</div>
+
+<div style="
+  font-size: 28px;
+  color: #ffffff;
+  font-weight: 600;
+  margin-bottom: 15px;
+  font-family: 'Arial', sans-serif;
+">
+
+Autonomous Work Operating Platform
+
+</div>
+
+<div style="
+  font-size: 18px;
+  color: #888888;
+  margin-bottom: 30px;
+  font-family: 'Arial', sans-serif;
+  letter-spacing: 2px;
+">
+
+ZERO-BARRIER ENTRY • AUTONOMOUS OPERATION • AI-POWERED INTELLIGENCE
+
+</div>
+
+<div style="
+  background: rgba(0, 255, 136, 0.2);
+  border: 2px solid #00ff88;
+  border-radius: 30px;
+  padding: 15px 40px;
+  display: inline-block;
+">
+
+<span style="
+  color: #00ff88;
+  font-size: 24px;
+  font-weight: bold;
+  font-family: 'Arial', sans-serif;
+  letter-spacing: 2px;
+">
+
+✓ PRODUCTION READY
+
+</span>
+
+</div>
+
+</div>
 
 ---
 
