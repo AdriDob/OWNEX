@@ -60,23 +60,23 @@ def calculate_revenue_potential(tier: RevenueTier, include_market_modules: bool 
         "bug_bounty": PlatformPotential(
             name="Bug Bounty",
             avg_reward=500.0,
-            success_rate=1.0,  # Maximum: AI + automation guarantees acceptance
-            daily_capacity=5,  # bugs found/processed per day
-            avg_time_per_opportunity=4.0,  # hours per bug
+            success_rate=0.95,  # Máximo realista: AI + automation + calidad de PoC
+            daily_capacity=5,
+            avg_time_per_opportunity=4.0,
         ),
         "dev_bounty": PlatformPotential(
             name="Dev Bounty",
             avg_reward=150.0,
-            success_rate=1.0,  # Maximum: AI code generation guarantees delivery
-            daily_capacity=10,  # tasks per day
-            avg_time_per_opportunity=2.0,  # hours per task
+            success_rate=0.95,  # Máximo realista: AI code generation + revisión
+            daily_capacity=10,
+            avg_time_per_opportunity=2.0,
         ),
         "data_annotation": PlatformPotential(
             name="Data Annotation",
             avg_reward=10.0,
-            success_rate=1.0,  # Maximum: AI-assisted annotation guarantees quality
-            daily_capacity=100,  # tasks per day
-            avg_time_per_opportunity=0.1,  # hours per task
+            success_rate=0.99,  # Máximo realista: AI-assisted + QA humano en edge cases
+            daily_capacity=100,
+            avg_time_per_opportunity=0.1,
         ),
     }
 
