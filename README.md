@@ -119,13 +119,23 @@ PROYECTO OWNEX: ✅ PRODUCTION READY
 - **Vault Cycle** — Gestión de credenciales y secrets con encriptación Fernet
 - **Atlas Cycle** — Crypto trading y gestión de patrimonio
 
-### 🤖 IA Asistida
+### 🤖 MERLIN — IA Asistida
+- **Nombre:** MERLIN (Office Retro Modernized Assistant)
+- **Personalidad:** Office Retro Modernized — Estilo Office 97/2000/XP modernizado con animaciones
+- **Avatar:** 🧙 (mago) con gradientes y pulse animations
 - **Auto-Reflexión** — Sistema que razona sobre errores y se actualiza automáticamente
 - **ModelRouter** — Decisión autónoma local vs FCC vs Ollama vs OpenCode
 - **OmniRoute Integration** — Modelos reales del gateway (deepseek, best-coding, best-reasoning)
 - **Learning Loop** — Aprendizaje continuo de resultados y feedback
 - **CoderAgent** — 6 módulos autónomos: repo_analyzer, issue_analyzer, code_generator, test_runner, pr_builder, orchestrator
 - **Self-Improvement System** — Captura errores, genera mejoras, prioriza acciones automáticamente
+- **Memory System** — Sistema de memoria persistente con tipos: conversation, pattern, workflow, strategy, knowledge, note
+- **Intent Analysis** — Detección de intención: target_analysis, report_generation, workflow_optimization, data_analysis, strategic_planning, technical_assistance
+- **Response Formatting** — Según detail_level (concise, normal, detailed) y response_tone (professional, friendly, casual, formal)
+- **Retro Reactions** — Frases retro (disquete virtual, monitores CRT, teclas mecánicas)
+- **Typing Effect** — Efecto de typing animado
+- **Emotion Detection** — Emojis según sentimiento
+- **Theme Variations** — Classic 97, Modern Retro, Cyber Retro
 
 ### 💰 Gestión Financiera
 - **Cobros Internacionales** — Argentina (Wise, Binance P2P, PayPal)
