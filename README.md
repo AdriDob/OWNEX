@@ -1,103 +1,113 @@
-# 🚀 OWNEX OMEGA — Autonomous Work Operating Platform
+# OWNEX OMEGA
 
 <div align="center">
 
-<div style="
-  background: linear-gradient(135deg, #080814 0%, #141428 50%, #0a0a1a 100%);
-  border: 3px solid #00f0ff;
-  border-radius: 24px;
-  padding: 80px 60px;
-  margin: 50px 0;
-  max-width: 1100px;
-  box-shadow: 0 0 60px rgba(0, 240, 255, 0.4),
-              0 0 30px rgba(0, 240, 255, 0.2),
-              inset 0 0 30px rgba(0, 240, 255, 0.1);
-">
+<img src="assets/logo.svg" alt="OWNEX Logo" width="128" height="128"/>
 
-<div style="
-  font-size: 72px;
-  font-weight: 800;
-  color: #ffffff;
-  text-shadow: 0 0 30px rgba(0, 240, 255, 0.6),
-               0 0 60px rgba(0, 240, 255, 0.3);
-  letter-spacing: 12px;
-  margin-bottom: 25px;
-  font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
-  text-transform: uppercase;
-">
+**Autonomous Personal Operating System**
 
-OWNEX
+Build. Learn. Execute. Earn.
 
-</div>
+---
 
-<div style="
-  font-size: 32px;
-  color: #ffffff;
-  font-weight: 600;
-  margin-bottom: 20px;
-  font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
-  letter-spacing: 1px;
-">
+[![Version](https://img.shields.io/badge/version-7.0.0-0B0F19)](https://github.com/AdriDob/rastrohunteralpha)
+[![Python](https://img.shields.io/badge/python-3.11+-3776AB)](https://www.python.org)
+[![Vue](https://img.shields.io/badge/vue-3-4FC08D)](https://vuejs.org)
+[![TypeScript](https://img.shields.io/badge/typescript-5.0+-3178C6)](https://www.typescriptlang.org)
+[![License](https://img.shields.io/badge/license-MIT-6EE7B7)](LICENSE)
+[![Status](https://img.shields.io/badge/status-production--ready-5CF2B5)](https://github.com/AdriDob/rastrohunteralpha)
 
-Autonomous Work Operating Platform
-
-</div>
-
-<div style="
-  font-size: 16px;
-  color: #aaaaaa;
-  margin-bottom: 40px;
-  font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  font-weight: 500;
-">
-
-Zero-Barrier Entry • Autonomous Operation • AI-Powered Intelligence
-
-</div>
-
-<div style="
-  background: linear-gradient(135deg, rgba(0, 255, 136, 0.3) 0%, rgba(0, 240, 255, 0.3) 100%);
-  border: 2px solid #00ff88;
-  border-radius: 40px;
-  padding: 20px 50px;
-  display: inline-block;
-  box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
-">
-
-<span style="
-  color: #ffffff;
-  font-size: 22px;
-  font-weight: 700;
-  font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-">
-
-✓ Production Ready
-
-</span>
-
-</div>
+[![GitHub Stars](https://img.shields.io/github/stars/AdriDob/rastrohunteralpha?style=social)](https://github.com/AdriDob/rastrohunteralpha)
+[![GitHub Forks](https://img.shields.io/github/forks/AdriDob/rastrohunteralpha?style=social)](https://github.com/AdriDob/rastrohunteralpha)
+[![GitHub Issues](https://img.shields.io/github/issues/AdriDob/rastrohunteralpha)](https://github.com/AdriDob/rastrohunteralpha/issues)
 
 </div>
 
 ---
 
-![Version](https://img.shields.io/badge/version-7.0.0-blue)
-![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
-![Vue](https://img.shields.io/badge/vue-3-4FC08D.svg)
-![TypeScript](https://img.shields.io/badge/typescript-5.0+-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Status](https://img.shields.io/badge/status-production--ready-success.svg)
-![Supabase](https://img.shields.io/badge/supabase-3ecf8e.svg)
-![Devin](https://img.shields.io/badge/devin-CLI-orange.svg)
+## Overview
 
-**Zero-Barrier Entry | Autonomous Operation | AI-Powered Intelligence | Cloud Sync**
+OWNEX OMEGA is an autonomous operating system that performs software engineering, cybersecurity, bug bounty, AI orchestration, autonomous workflows, revenue generation, documentation, learning, self-healing infrastructure, and continuous self-improvement.
 
-[![GitHub Stars](https://img.shields.io/github/stars/AdriDob/rastrohunteralpha?style=social)](https://github.com/AdriDob/rastrohunteralpha)
-[![GitHub Forks](https://img.shields.io/github/forks/AdriDob/rastrohunteralpha?style=social)](https://github.com/AdriDob/rastrohunteralpha/stargazers)
-[![GitHub Issues](https://img.shields.io/github/issues/AdriDob/rastrohunteralpha)](https://github.com/AdriDob/rastrohunteralpha/issues)
+---
+
+## Features
+
+- **Agent Fleet** — Autonomous AI agents working simultaneously
+- **Live Workflows** — Real-time workflow execution and monitoring
+- **Opportunity Radar** — Automatic detection of opportunities
+- **Revenue Analytics** — Track and optimize revenue streams
+- **Autonomous Coding** — Self-improving code generation
+- **Knowledge Memory** — Persistent knowledge graph
+- **Security Engine** — Built-in security monitoring
+- **Evolution Center** — Continuous self-improvement
+- **Infrastructure Health** — Self-healing systems
+- **Voice Assistant** — Natural language interface
+- **Desktop Companion** — Native desktop application
+- **Mobile Companion** — Android and Wear OS apps
+
+---
+
+## Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/AdriDob/rastrohunteralpha.git
+cd rastrohunteralpha
+
+# Install dependencies
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# Run the backend
+python api/main.py
+
+# Run the frontend (in another terminal)
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+## Documentation
+
+- [Setup Guide](SUPABASE_SETUP_GUIDE.md)
+- [Deployment Guide](DEPLOYMENT_GUIDE.md)
+- [Architecture](.ai/OWNEX_OMEGA_ARCHITECTURE.md)
+- [Current State](.ai/CURRENT_STATE.md)
+
+---
+
+## Technology Stack
+
+**Backend**
+- Python 3.11+
+- FastAPI
+- SQLAlchemy
+- Supabase
+
+**Frontend**
+- Vue 3
+- TypeScript
+- Tailwind CSS
+- Vite
+
+**Mobile**
+- Android (Kotlin)
+- Wear OS (Kotlin)
+
+---
+
+## License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+<div align="center">
+
+**OWNEX OMEGA — Autonomous Personal Operating System**
 
 </div>
