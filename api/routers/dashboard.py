@@ -174,18 +174,20 @@ async def list_models():
     return models
 
 
-@router.get("/keys", response_model=list[dict])
-async def list_keys():
-    """List API keys with quota info."""
-    # TODO: Implement key management from config/secrets
-    return []
+# @router.get("/keys", response_model=list[dict])
+# async def list_keys():
+#     """List API keys with quota info."""
+#     # TODO: Implement key management from config/secrets
+#     # Temporarily disabled - needs implementation
+#     raise HTTPException(status_code=501, detail="Key management not implemented yet")
 
 
-@router.get("/sessions", response_model=list[dict])
-async def list_sessions():
-    """List active sessions."""
-    # TODO: Implement session persistence
-    return []
+# @router.get("/sessions", response_model=list[dict])
+# async def list_sessions():
+#     """List active sessions."""
+#     # TODO: Implement session persistence
+#     # Temporarily disabled - needs implementation
+#     raise HTTPException(status_code=501, detail="Session management not implemented yet")
 
 
 # WebSocket for live logs
