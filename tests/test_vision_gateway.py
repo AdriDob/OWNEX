@@ -109,6 +109,7 @@ def test_gemini_ocr_text(test_image):
     from vision_gateway.engines.gemini import extract_text
 
     result = extract_text(str(test_image))
+    _skip_if_external_api_down(result)
     assert "error" not in result, result["error"]
     assert "ORION" in result["text"] or "Vision" in result["text"]
 
