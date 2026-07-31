@@ -174,10 +174,29 @@ export const api = {
     request<T>(path, { method: 'DELETE' }),
 }
 
+import type { LoginResponse, ErrorResponse } from '@/types'
+
+// ── Additional types for API responses ──
+
+interface RevenueSummary {
+  success: boolean;
+  total_payout?: number;
+}
+
+interface SubmissionsResponse {
+  submissions: SubmissionRecord[];
+  total: number;
+}
+
+interface FindingsResponse {
+  items: FindingItem[];
+  total: number;
+}
+
 // ── Auth API (no token needed) ──
 
 export async function login(deviceId: string, deviceInfo?: string) {
-  return api.post<{ session: any }>('/auth/login', { device_id: deviceId, device_info: deviceInfo }, true)
+  return api.post<{ session: LoginResponse }>('/auth/login', { device_id: deviceId, device_info: deviceInfo }, true)
 }
 
 export async function checkLicense() {
@@ -300,13 +319,13 @@ export interface RevenueMetricsData {
 export async function getRevenueMetrics(): Promise<RevenueMetricsData> {
   // Aggregate from multiple endpoints
   const [summaryRes, submissionRes, findingRes] = await Promise.allSettled([
-    api.get<{ success: boolean; total_payout?: number }>('/revenue/summary'),
-    api.get<{ submissions: SubmissionRecord[]; total: number }>('/reports/submissions'),
-    api.get<{ items: FindingItem[]; total: number }>('/findings'),
+    api.get<RevenueSummary>('/revenue/summary'),
+    api.get<SubmissionsResponse>('/reports/submissions'),
+    api.get<FindingsResponse>('/findings'),
   ])
-  const summary: any = summaryRes.status === 'fulfilled' ? summaryRes.value : {}
-  const subs = submissionRes.status === 'fulfilled' ? submissionRes.value : { submissions: [], total: 0 }
-  const finds = findingRes.status === 'fulfilled' ? findingRes.value : { items: [], total: 0 }
+  const summary: RevenueSummary = summaryRes.status === 'fulfilled' ? summaryRes.value : { success: false }
+  const subs: SubmissionsResponse = submissionRes.status === 'fulfilled' ? submissionRes.value : { submissions: [], total: 0 }
+  const finds: FindingsResponse = findingRes.status === 'fulfilled' ? findingRes.value : { items: [], total: 0 }
   const submissions = subs.submissions || []
   const findings = finds.items || []
 
