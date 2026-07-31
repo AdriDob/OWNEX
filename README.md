@@ -1,21 +1,17 @@
 <div align="center">
 
-<img src="assets/branding/logo/ownex-logo-horizontal-premium.svg" alt="OWNEX OMEGA Logo" width="600"/>
+<img src=".ai/brand/approved/logos/ownex-logo-production.svg" alt="OWNEX OMEGA Logo" width="400"/>
 
-<img src="assets/branding/banner/hero-minimal-black.svg" alt="OWNEX OMEGA — Autonomous Work Operating System"/>
+<img src=".ai/brand/approved/heroes/ownex-hero-production.svg" alt="OWNEX OMEGA — Autonomous Work Operating System"/>
 
 ---
 
 [![Version](https://img.shields.io/badge/version-7.0.0-0B0B0B)](https://github.com/AdriDob/rastrohunteralpha)
-[![Python](https://img.shields.io/badge/python-3.11+-2D7FF9)](https://www.python.org)
+[![Python](https://img.shields.io/badge/python-3.11+-3B82F6)](https://www.python.org)
 [![Vue](https://img.shields.io/badge/vue-3-4FC08D)](https://vuejs.org)
 [![TypeScript](https://img.shields.io/badge/typescript-5.0+-3178C6)](https://www.typescriptlang.org)
-[![License](https://img.shields.io/badge/license-MIT-D4AF37)](LICENSE)
-[![Status](https://img.shields.io/badge/status-production--ready-2D7FF9)](https://github.com/AdriDob/rastrohunteralpha)
-
-[![GitHub Stars](https://img.shields.io/github/stars/AdriDob/rastrohunteralpha?style=social)](https://github.com/AdriDob/rastrohunteralpha)
-[![GitHub Forks](https://img.shields.io/github/forks/AdriDob/rastrohunteralpha?style=social)](https://github.com/AdriDob/rastrohunteralpha)
-[![GitHub Issues](https://img.shields.io/github/issues/AdriDob/rastrohunteralpha)](https://github.com/AdriDob/rastrohunteralpha/issues)
+[![License](https://img.shields.io/badge/license-MIT-F59E0B)](LICENSE)
+[![Status](https://img.shields.io/badge/status-production--ready-22C55E)](https://github.com/AdriDob/rastrohunteralpha)
 
 ---
 
@@ -99,7 +95,7 @@ python scripts/dev status       # agent startup without tests
 > `make check`.
 
 The full test contract is `AGENTS.md` → `.ai/AGENT_CHARTER.md`. See
-`DAILY_WORKFLOW.md` for the step-by-step daily protocol and
+`docs/development/DAILY_WORKFLOW.md` for the step-by-step daily protocol and
 `docs/` for per-subsystem guides.
 
 ---
@@ -430,7 +426,7 @@ Supabase is a 100% free and open source cloud sync solution integrated into OWNE
 - `habit_entries` - Daily habit entries
 - `daily_moods` — Daily mood tracking
 
-**Setup Guide:** [SUPABASE_SETUP_GUIDE.md](SUPABASE_SETUP_GUIDE.md)
+**Setup Guide:** [SUPABASE_docs/development/SETUP_GUIDE.md](SUPABASE_docs/development/SETUP_GUIDE.md)
 
 ---
 
@@ -445,10 +441,10 @@ Supabase is a 100% free and open source cloud sync solution integrated into OWNE
 - **[.ai/OWNEX_OMEGA_ARCHITECTURE.md](.ai/OWNEX_OMEGA_ARCHITECTURE.md)** — System architecture
 - **[.ai/SPECIALIST_TEAM_ARCHITECTURE.md](.ai/SPECIALIST_TEAM_ARCHITECTURE.md)** — Specialist team architecture
 - **[.ai/DEVIN_INTEGRATION.md](.ai/DEVIN_INTEGRATION.md)** — Devin CLI documentation
-- **[SUPABASE_SETUP_GUIDE.md](SUPABASE_SETUP_GUIDE.md)** — Supabase configuration guide
-- **[MOBILE_SYNC_PLAN.md](MOBILE_SYNC_PLAN.md)** — Mobile sync plan
-- **[INFORME_FINAL_PROYECTO.md](INFORME_FINAL_PROYECTO.md)** — Complete project report
-- **[PLAN_MANANA.md](PLAN_MANANA.md)** — Plan for tomorrow
+- **[SUPABASE_docs/development/SETUP_GUIDE.md](SUPABASE_docs/development/SETUP_GUIDE.md)** — Supabase configuration guide
+- **[docs/operations/MOBILE_SYNC_PLAN.md](docs/operations/MOBILE_SYNC_PLAN.md)** — Mobile sync plan
+- **[docs/archived/INFORME_FINAL_PROYECTO.md](docs/archived/INFORME_FINAL_PROYECTO.md)** — Complete project report
+- **[docs/archived/PLAN_MANANA.md](docs/archived/PLAN_MANANA.md)** — Plan for tomorrow
 
 ---
 
