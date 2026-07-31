@@ -21,6 +21,7 @@ SMARTWATCH_SCHEMA: dict[str, Any] = {
             "type": "switch",
             "required": False,
             "default": True,
+            "description": "Recibir notificaciones en tu Wear OS",
         },
         {
             "key": "critical_only",
@@ -29,6 +30,30 @@ SMARTWATCH_SCHEMA: dict[str, Any] = {
             "required": False,
             "default": False,
             "description": "Solo notificar aprobaciones y fallos del sistema",
+        },
+        {
+            "key": "approvals_enabled",
+            "label": "Aprobaciones desde el reloj",
+            "type": "switch",
+            "required": False,
+            "default": True,
+            "description": "Permitir aprobar workflows desde el reloj",
+        },
+        {
+            "key": "merlin_mini_enabled",
+            "label": "MERLIN Mini en el reloj",
+            "type": "switch",
+            "required": False,
+            "default": True,
+            "description": "Interfaz simplificada de MERLIN en el reloj",
+        },
+        {
+            "key": "sync_interval",
+            "label": "Intervalo de sincronización (minutos)",
+            "type": "number",
+            "required": False,
+            "default": 5,
+            "description": "Frecuencia de sincronización con el reloj",
         },
     ],
 }
@@ -55,11 +80,14 @@ def execute(state: dict[str, Any]) -> dict[str, Any]:
 
     return {
         "status": "ok",
-        "message": "ORION Watch Companion configurado",
+        "message": "ORION Watch Companion configurado exitosamente",
         "data": {
             "enabled": True,
             "notifications_enabled": state.get("notifications_enabled", True),
             "critical_only": state.get("critical_only", False),
+            "approvals_enabled": state.get("approvals_enabled", True),
+            "merlin_mini_enabled": state.get("merlin_mini_enabled", True),
+            "sync_interval": state.get("sync_interval", 5),
             "sync_via": "companion",
         },
     }

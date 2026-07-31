@@ -335,6 +335,67 @@ class EvolutionEngine:
         finally:
             session.close()
 
+    def run_cycle(self) -> dict[str, Any]:
+        """Run a full evolution cycle: observe → analyze → experiment → learn.
+        
+        Returns a report with proposals and health_before metrics.
+        """
+        # Observe: flush any buffered metrics
+        self.flush_metric_buffer()
+        
+        # Analyze: query recent events for patterns
+        recent_events = self.query_events(limit=100)
+        
+        # Generate health snapshot
+        health_before = {
+            "event_count": len(recent_events),
+            "timestamp": datetime.now(UTC).isoformat(),
+            "modules": list(set(e.get("module") for e in recent_events if e.get("module")))
+        }
+        
+        # Experiment: create proposals based on analysis
+        proposals = []
+        if recent_events:
+            # Simple proposal: if there are failures, suggest investigation
+            failures = [e for e in recent_events if e.get("status") == "failure"]
+            if failures:
+                proposals.append({
+                    "type": "investigate_failures",
+                    "description": f"Found {len(failures)} failed events requiring investigation",
+                    "priority": "high",
+                    "affected_modules": list(set(f.get("module") for f in failures if f.get("module")))
+                })
+            
+            # Proposal: if high duration events, suggest optimization
+            slow_events = [e for e in recent_events if e.get("duration_ms", 0) > 5000]
+            if slow_events:
+                proposals.append({
+                    "type": "optimize_performance",
+                    "description": f"Found {len(slow_events)} slow events (>5s)",
+                    "priority": "medium",
+                    "affected_modules": list(set(e.get("module") for e in slow_events if e.get("module")))
+                })
+        
+        # Learn: create knowledge assets from findings
+        for proposal in proposals:
+            self.create_asset(
+                asset_type="proposal",
+                domain="evolution",
+                title=proposal["type"],
+                description=proposal["description"],
+                source="evolution_cycle",
+                source_confidence=0.7,
+                content=proposal,
+                tags=["auto-generated", proposal["priority"]]
+            )
+        
+        return {
+            "proposals": proposals,
+            "health_before": health_before,
+            "timestamp": datetime.now(UTC).isoformat(),
+            "proposals_count": len(proposals)
+        }
+
 
 # ── Singleton access ─────────────────────────────────────────
 
