@@ -13,27 +13,94 @@
 
 ---
 
-## OWNEX ALPHA — Desktop Operating System
+## What is OWNEX?
 
-The command center for autonomous operations. Mission Control, agent fleet, terminal, memory, evolution engine.
+OWNEX is an autonomous personal operating system: a single platform that discovers opportunities, executes technical work, learns from outcomes, and evolves its own operation — from a desktop command center to your phone and wrist.
 
-<p align="center">
-  <img src="assets/logos/ownex-lockup-alpha.png" alt="OWNEX ALPHA" width="600"/>
-</p>
+It is built around a closed loop: **observe → decide → execute → learn → evolve**. The human stays at the decision gate; the system handles the rest.
 
 ---
 
-## OWNEX OMEGA — Android & Wear OS Companion
+## One system, two editions
 
-Permanent connection: approvals, notifications, MERLIN chat, system health — on your phone and wrist.
+OWNEX ships as two connected identities sharing a single core.
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="assets/logos/ownex-lockup-alpha.png" alt="OWNEX ALPHA" width="420"/>
+      <br/><br/>
+      <b>ALPHA — Desktop Operating System</b>
+      <br/>
+      The command center: agents, workflows, terminal, memory,
+      evolution engine, and the full mission-control dashboard.
+    </td>
+    <td width="50%" align="center">
+      <img src="assets/logos/ownex-lockup-omega.png" alt="OWNEX OMEGA" width="420"/>
+      <br/><br/>
+      <b>OMEGA — Android & Wear OS Companion</b>
+      <br/>
+      Permanent connection: approvals, notifications, MERLIN chat,
+      system health — on your phone and on your wrist.
+    </td>
+  </tr>
+</table>
+
+## Mission Control
+
+Every operation is visible in one place: system health, the agent fleet,
+opportunities scored by expected value, revenue, and the next best action.
 
 <p align="center">
-  <img src="assets/logos/ownex-lockup-omega.png" alt="OWNEX OMEGA" width="600"/>
+  <img src="assets/concepts/mission-control.png" alt="Mission Control" width="100%"/>
 </p>
 
----
+## Architecture
 
-## Core Capabilities
+Control plane, departments, agents, execution, learning, feedback — designed for
+autonomy, with the human at every decision gate.
+
+<p align="center">
+  <img src="assets/concepts/architecture.png" alt="Architecture" width="100%"/>
+</p>
+
+| Layer | Responsibility |
+|---|---|
+| **OWNEX Core** | Event bus, scheduler, unified memory, security layer |
+| **Departments** | Orchestrator · Engineering · Quality · Security · Revenue |
+| **Agents** | Autonomous specialists coordinated per department |
+| **Execution** | Workflows, executors, platform connectors |
+| **Learning** | Feedback loops, knowledge capture, reward models |
+| **Evolution** | Self-improvement, version rollback, recovery |
+
+## Ecosystem
+
+<p align="center">
+  <img src="assets/concepts/product-overview.png" alt="Product overview" width="100%"/>
+</p>
+
+| Component | Role |
+|---|---|
+| **ALPHA Desktop** | Command center — core operations |
+| **OMEGA Mobile** | Android companion — approvals, chat, sync |
+| **Wear OS** | Wrist alerts — critical decisions on the move |
+| **MERLIN** | Intelligent assistant with persistent memory |
+| **Agents** | Autonomous departments working in parallel |
+| **Memory** | Persistent knowledge store (SQLite, namespaced) |
+| **Evolution Engine** | Continuous self-improvement with recovery |
+
+## Mobile experience
+
+<p align="center">
+  <img src="assets/concepts/mobile-omega.png" alt="OMEGA mobile experience" width="100%"/>
+</p>
+
+<p align="center">
+  <img src="assets/mobile/omega-splash.png" alt="OMEGA splash" width="260"/>
+  <img src="assets/desktop/alpha-wallpaper.png" alt="ALPHA wallpaper" width="620"/>
+</p>
+
+## Core capabilities
 
 | Capability | Status |
 |---|---|
@@ -43,12 +110,11 @@ Permanent connection: approvals, notifications, MERLIN chat, system health — o
 | MERLIN assistant with unified memory | Production |
 | Security cycle with 7 stage executors | Production |
 | Executive dashboard (revenue verdict, USD/hour, platform speed) | Production |
+| ALPHA + OMEGA + Wear OS companions | Production |
 | Self-update, version backup, recovery engine | Production |
 | 6-language interface (EN, ES, FR, DE, JA, ZH) | Production |
 
----
-
-## Quick Start
+## Quick start
 
 ```bash
 git clone https://github.com/AdriDob/rastrohunteralpha.git
@@ -69,9 +135,7 @@ curl http://127.0.0.1:8000/api/health   # system health
 python run.py --backup                   # snapshot before changes
 ```
 
----
-
-## Tech Stack
+## Tech stack
 
 | Layer | Technology |
 |---|---|
@@ -83,16 +147,31 @@ python run.py --backup                   # snapshot before changes
 | Automation | Scheduler (cron-aware) · EventBus · AgentBus · RecoveryEngine |
 | Quality | pytest (1,400+ tests) · Ruff · mypy · Biome · Vitest |
 
----
+## Repository structure
+
+```
+api/              FastAPI application and routers
+core/ cores/      Domain engines (cycles, opportunities, execution, learning)
+apps/             ORION applications (aegis, atlas, odyssey, hermes)
+frontend/         Vue 3 single-page application
+android/ wearos/  OMEGA companions
+scripts/brand/    Deterministic brand pipeline (SVG → PNG)
+assets/           Brand system, banners, concept art, video storyboard
+```
 
 ## Documentation
 
-- [Brand Identity](assets/branding/OWNEX_BRAND_IDENTITY.md) — marks, colors, type, usage rules
-- [Design Tokens](assets/branding/design-tokens.json) — machine-readable brand tokens
+- [Brand identity](assets/branding/OWNEX_BRAND_IDENTITY.md) — marks, colors, type, usage rules
+- [Design tokens](assets/branding/design-tokens.json) — machine-readable brand tokens
+- [Trailer storyboard](assets/video/trailer-storyboard.md) — 90s product trailer structure
 - [Agent Charter](.ai/AGENT_CHARTER.md) — constitution and operating rules
 - [Architecture](.ai/ARCHITECTURE_FINAL.md) — full architectural decisions
 
----
+## Philosophy
+
+**Consolidation over expansion.** OWNEX does not grow by adding modules; it grows by
+closing loops. Every component must produce observable results, survive restarts, and
+connect to at least one real consumer. If it cannot be verified, it does not exist.
 
 ## License
 
@@ -101,7 +180,7 @@ MIT — see [LICENSE](LICENSE). Brand fonts: SIL OFL 1.1 (Google Fonts).
 ---
 
 <p align="center">
-  <img src="assets/logos/ownex-mark-alpha.png" alt="OWNEX" width="120"/>
+  <img src="assets/logos/ownex-mark-alpha.png" alt="OWNEX" width="140"/>
 </p>
 
 <p align="center"><sub>OWNEX — Autonomous Personal Operating System · ALPHA + OMEGA</sub></p>
