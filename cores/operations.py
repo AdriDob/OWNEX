@@ -763,11 +763,10 @@ class OperationsManager:
                 if temp_dir.exists():
                     for f in temp_dir.glob("*"):
                         try:
-                            if f.stat().st_mtime < time.time() - 86400:  # older than 1 day
-                                if f.is_file():
-                                    size = f.stat().st_size
-                                    f.unlink()
-                                    freed += size
+                            if f.stat().st_mtime < time.time() - 86400 and f.is_file():  # older than 1 day
+                                size = f.stat().st_size
+                                f.unlink()
+                                freed += size
                         except Exception:
                             pass
             return freed
