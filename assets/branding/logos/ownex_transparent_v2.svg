@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="transGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00F0FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0044FF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- No background - transparent -->
+
+  <!-- Symbol -->
+  <polygon points="256,30 476,136 476,376 256,482 36,376 36,136"
+           fill="none" stroke="url(#transGrad)" stroke-width="3"/>
+  <polygon points="256,60 436,144 436,368 256,452 76,368 76,144"
+           fill="url(#transGrad)" opacity="0.2"/>
+  <polygon points="256,100 356,256 256,300"
+           fill="#00F0FF"/>
+  <polygon points="256,140 320,256 256,260"
+           fill="#0044FF" opacity="0.9"/>
+  <circle cx="256" cy="220" r="18" fill="#00FF88"/>
+
+  <text x="256" y="400" text-anchor="middle" font-family="Inter, system-ui, sans-serif"
+        font-size="48" font-weight="700" fill="#FFFFFF" letter-spacing="4">OWNEX</text>
+</svg>
