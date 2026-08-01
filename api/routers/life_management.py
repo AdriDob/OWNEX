@@ -49,7 +49,7 @@ async def create_task(payload: dict[str, Any]):
             "task": task.__dict__,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/tasks")
@@ -97,7 +97,7 @@ async def update_task_status(task_id: str, payload: dict[str, Any]):
             "message": "Task status updated",
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 # ============ GOAL MANAGEMENT ============
@@ -125,7 +125,7 @@ async def create_goal(payload: dict[str, Any]):
             "goal": goal.__dict__,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/goals")
@@ -163,7 +163,7 @@ async def update_goal_progress(goal_id: str, payload: dict[str, Any]):
             "message": "Goal progress updated",
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 # ============ HABIT TRACKING ============
@@ -189,7 +189,7 @@ async def create_habit(payload: dict[str, Any]):
             "habit": habit.__dict__,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/habits")
@@ -228,7 +228,7 @@ async def log_habit_entry(habit_id: str, payload: dict[str, Any]):
             "entry": entry.__dict__,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/habits/{habit_id}/streak")
@@ -272,7 +272,7 @@ async def log_daily_mood(payload: dict[str, Any]):
             "daily_mood": daily_mood.__dict__,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/mood/trends")
@@ -307,7 +307,7 @@ async def generate_advice(payload: dict[str, Any]):
             "advice": advice.__dict__,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/advice/today")
@@ -339,7 +339,7 @@ async def start_pc_session(payload: dict[str, Any]):
             "session": session.__dict__,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/pc/session/{session_id}/end")
@@ -363,7 +363,7 @@ async def end_pc_session(session_id: str, payload: dict[str, Any]):
             "message": "Session ended",
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/pc/usage/{date}")
@@ -379,7 +379,7 @@ async def get_daily_pc_usage(date: str):
             "usage": usage,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 # ============ DAILY SUMMARY ============
@@ -398,7 +398,7 @@ async def get_daily_summary():
             "summary": summary,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/merlin-insight")
@@ -414,4 +414,4 @@ async def get_merlin_insight():
             "insight": insight,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
