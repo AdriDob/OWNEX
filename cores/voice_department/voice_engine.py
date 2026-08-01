@@ -8,10 +8,12 @@ response builder → voice synthesizer → audio output.
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from typing import Any
 
 from cores.voice_department.conversation_agent import get_conversation_agent
 from cores.voice_department.models import (
+    AutomaticSummary,
     ConversationContext,
     SystemNarration,
 )
