@@ -99,8 +99,8 @@ class LightRAGConnector(IConnector):
             if not query_text:
                 return {"error": "query parameter is required"}
 
-            top_k = params.get("top_k", 5)
-            min_similarity = params.get("min_similarity", 0.7)
+            params.get("top_k", 5)
+            params.get("min_similarity", 0.7)
 
             # Note: This would require actual LightRAG implementation
             # For now, return placeholder response
