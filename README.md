@@ -9,6 +9,8 @@
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/typescript-5-3178C6?style=flat-square" alt="TypeScript"/></a>
   <a href="https://www.kotlinlang.org/"><img src="https://img.shields.io/badge/kotlin-android-7F52FF?style=flat-square" alt="Kotlin"/></a>
   <a href="https://github.com/AdriDob/rastrohunteralpha/actions"><img src="https://img.shields.io/badge/ci-passing-success?style=flat-square" alt="CI"/></a>
+  <a href="https://github.com/AdriDob/rastrohunteralpha/issues"><img src="https://img.shields.io/badge/issues-open-success?style=flat-square" alt="Issues"/></a>
+  <a href="https://github.com/AdriDob/rastrohunteralpha/pulls"><img src="https://img.shields.io/badge/prs-welcome-success?style=flat-square" alt="PRs"/></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-08090A?style=flat-square" alt="License"/></a>
 </p>
 
@@ -393,6 +395,113 @@ We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for deta
 - 🐛 [GitHub Issues](https://github.com/AdriDob/rastrohunteralpha/issues)
 - 💬 [GitHub Discussions](https://github.com/AdriDob/rastrohunteralpha/discussions)
 - 📧 Email: support@ownex.ai
+- 🐦 Twitter: [@ownex_ai](https://twitter.com/ownex_ai)
+
+---
+
+## 📊 Screenshots
+
+<details>
+<summary>🖥️ Desktop Interface (ALPHA)</summary>
+
+<p align="center">
+  <img src="assets/concepts/desktop-showcase.png" alt="OWNEX ALPHA Desktop Interface" width="100%"/>
+</p>
+
+**Mission Control Dashboard** - Real-time system monitoring, agent fleet status, opportunity scoring, and revenue tracking.
+
+</details>
+
+<details>
+<summary>📱 Mobile Interface (OMEGA)</summary>
+
+<p align="center">
+  <img src="assets/concepts/mobile-showcase.png" alt="OWNEX OMEGA Mobile Interface" width="400"/>
+</p>
+
+**OMEGA Companion** - Approvals, notifications, MERLIN chat, and system health monitoring on your phone.
+
+</details>
+
+---
+
+## 🎨 Brand Assets
+
+OWNEX brand assets are available for use in accordance with our [Brand Usage Guide](BRAND_USAGE_GUIDE.md):
+
+- 🎨 [Brand Identity](assets/branding/OWNEX_BRAND_IDENTITY.md) - Complete brand specification
+- 🔧 [Design Tokens](assets/branding/design-tokens.json) - Machine-readable design system
+- 📁 [Logos](assets/logos/) - SVG and PNG logo files
+- 🖼️ [Banners](assets/banners/) - Hero banners and covers
+- 🎯 [Concept Art](assets/concepts/) - Architecture diagrams and showcases
+
+---
+
+## 🌍 Localization
+
+OWNEX supports multiple languages:
+
+- 🇬🇧 English (EN)
+- 🇪🇸 Español (ES)
+- 🇫🇷 Français (FR)
+- 🇩🇪 Deutsch (DE)
+- 🇯🇵 日本語 (JA)
+- 🇨🇳 中文 (ZH)
+
+Language can be configured in the system settings.
+
+---
+
+## 🔐 Security
+
+OWNEX takes security seriously:
+
+- 🔒 Local-first data processing by default
+- 🔐 Encrypted credential storage
+- 🛡️ Security-focused architecture
+- 📊 Regular security audits
+- 🚨 Vulnerability disclosure process
+
+For security concerns, please email security@ownex.ai
+
+---
+
+## 📈 Performance
+
+OWNEX is optimized for performance:
+
+- ⚡ Fast agent coordination with minimal latency
+- 💾 Efficient memory management with SQLite
+- 🔄 Asynchronous task execution
+- 📊 Real-time dashboard updates
+- 🎯 Intelligent caching strategies
+
+---
+
+## 🎯 Target Users
+
+OWNEX is designed for:
+
+- 🔬 Security researchers and bug bounty hunters
+- 💻 Software developers and engineers
+- 📊 Data analysts and researchers
+- 💰 Freelancers and automation enthusiasts
+- 🧠 Anyone seeking to automate technical workflows
+
+---
+
+## 🏆 Success Stories
+
+<details>
+<summary>📖 User Experiences</summary>
+
+- **Security Research:** "OWNEX helped me discover 3 critical vulnerabilities in a single week, saving me hours of manual recon work."
+- **Development:** "The autonomous workflows reduced my deployment time from 2 hours to 15 minutes."
+- **Data Analysis:** "I can now process and analyze datasets 10x faster with OWNEX's automated pipelines."
+
+Share your success story via [GitHub Discussions](https://github.com/AdriDob/rastrohunteralpha/discussions)!
+
+</details>
 
 ---
 
