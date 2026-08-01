@@ -64,7 +64,7 @@ def product_overview() -> None:
     ]
     cards = []
     links = []
-    for title, sub, x, y, accent in nodes:
+    for _title, _sub, x, y, accent in nodes:
         links.append(
             f'<line x1="{cxs}" y1="{cys}" x2="{x}" y2="{y}" stroke="#16213A" stroke-width="2" stroke-dasharray="10 8"/>'
         )
@@ -84,7 +84,7 @@ def product_overview() -> None:
     texts = header_texts("PRODUCT OVERVIEW", "01", "ECOSYSTEM") + [
         (cxs, cys + 195, "OWNEX CORE", "sg", 700, 30, "#F6F8FB", 4, "center"),
     ]
-    for title, sub, x, y, accent in nodes:
+    for title, _sub, x, y, _accent in nodes:
         texts += [
             (x, y - 20, title, "sg", 600, 24, "#F6F8FB", 2, "center"),
             (x, y + 14, sub, "inter", 400, 16, C["muted"], 1, "center"),
@@ -204,12 +204,11 @@ def architecture() -> None:
     ]
     lw, lh, lx = 1500, 118, (W - 1500) / 2
     svg_parts = []
-    for i, (name, sub, accent) in enumerate(layers):
+    for i, (_name, _sub, accent) in enumerate(layers):
         y = 260 + i * (lh + 62)
         svg_parts.append(card_svg(lx, y, lw, lh))
         svg_parts.append(f'<rect x="{lx}" y="{y}" width="10" height="{lh}" rx="5" fill="{accent}"/>')
         if i < len(layers) - 1:
-            (y + lh + y + lh + 62) / 2
             svg_parts.append(
                 f'<line x1="{W / 2}" y1="{y + lh}" x2="{W / 2}" y2="{y + lh + 62}" stroke="#2A3650" stroke-width="2"/>'
             )
@@ -227,7 +226,7 @@ def architecture() -> None:
   {footer_svg(note="DESIGNED FOR AUTONOMY — HUMAN AT THE DECISION GATE")}
 """
     texts = header_texts("ARCHITECTURE", "03", "SYSTEM FLOW")
-    for i, (name, sub, accent) in enumerate(layers):
+    for i, (name, sub, _accent) in enumerate(layers):
         y = 260 + i * (lh + 62)
         texts += [
             (lx + 44, y + 40, name, "sg", 700, 30, "#F6F8FB", 2, "left"),
