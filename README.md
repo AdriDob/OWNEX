@@ -24,7 +24,7 @@
 
 OWNEX is an autonomous personal operating system: a single platform that discovers
 opportunities, executes technical work, learns from outcomes, and evolves its own
-operation — from a desktop command center to your wrist.
+operation — from a desktop command center to your phone.
 
 It is built around a closed loop: **observe → decide → execute → learn → evolve**.
 The human stays at the decision gate; the system handles the rest.
@@ -50,10 +50,10 @@ OWNEX ships as two connected identities sharing a single core.
     <td width="50%" align="center">
       <img src="assets/logos/ownex-omega.png" alt="OWNEX OMEGA" width="420"/>
       <br/><br/>
-      <b>OMEGA — Android &amp; Wear OS Companion</b>
+      <b>OMEGA — Android Companion</b>
       <br/>
       Permanent connection: approvals, notifications, MERLIN chat,
-      system health — on your phone and on your wrist.
+      system health — on your phone.
     </td>
   </tr>
 </table>
@@ -95,7 +95,6 @@ autonomy, with the human at every decision gate.
 |---|---|
 | **ALPHA Desktop** | Command center — core operations |
 | **OMEGA Mobile** | Android companion — approvals, chat, sync |
-| **Wear OS** | Wrist alerts — critical decisions on the move |
 | **MERLIN** | Intelligent assistant with persistent memory |
 | **Agents** | Autonomous departments working in parallel |
 | **Memory** | Persistent knowledge store (SQLite, namespaced) |
