@@ -25,7 +25,7 @@ def main():
 
     python_exe = venv_python if os.path.exists(venv_python) else sys.executable
 
-    print(f"[ownex-backend] Starting API server: {python_exe} {api_entry}")
+    print(f"[orion-backend] Starting API server: {python_exe} {api_entry}")
     sys.stdout.flush()
 
     proc = subprocess.Popen(
@@ -36,7 +36,7 @@ def main():
     )
 
     def handle_signal(sig, frame):
-        print(f"[ownex-backend] Received signal {sig}, shutting down...")
+        print(f"[orion-backend] Received signal {sig}, shutting down...")
         proc.terminate()
         proc.wait(timeout=10)
         sys.exit(0)
