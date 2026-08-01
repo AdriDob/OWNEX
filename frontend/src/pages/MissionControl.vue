@@ -17,6 +17,7 @@ import LoadingState from '@/components/ui/LoadingState.vue'
 import ErrorState from '@/components/ui/ErrorState.vue'
 import { fetchOwnexDashboard } from '@/services/ownexData'
 import type { OwnexDashboardData } from '@/services/ownexData'
+import { useAudio } from '@/composables/useAudio'
 
 const router = useRouter()
 const dashboard = ref<OwnexDashboardData | null>(null)
@@ -24,6 +25,7 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 const degraded = ref(false)
 let refreshInterval: ReturnType<typeof setInterval> | null = null
+const audio = useAudio()
 
 const greeting = computed(() => {
   const h = new Date().getHours()
@@ -50,11 +52,14 @@ async function load() {
     dashboard.value = data
     degraded.value = false
     error.value = null
+    audio.play('success')
   } catch (e: any) {
     if (!dashboard.value) {
       error.value = e?.message || 'Error al cargar'
+      audio.play('error')
     } else {
       degraded.value = true
+      audio.play('warning')
     }
   } finally {
     loading.value = false
@@ -62,6 +67,7 @@ async function load() {
 }
 
 onMounted(() => {
+  audio.play('startup')
   load()
   refreshInterval = setInterval(() => load(), 30000)
 })
