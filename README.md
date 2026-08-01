@@ -176,15 +176,15 @@ graph TB
 
 | Capability | Status |
 |---|---|
-| Bug bounty pipeline (discover → recon → hypothesis → validate → report) | Production |
-| Opportunity engine with EV scoring and platform executors | Production |
-| Autonomous workflows and agent fleet | Production |
-| MERLIN assistant with unified memory | Production |
-| Security cycle with 7 stage executors | Production |
-| Executive dashboard (revenue verdict, USD/hour, platform speed) | Production |
+| Autonomous opportunity discovery and execution | Production |
+| Expected value scoring and prioritization | Production |
+| Autonomous workflows and agent coordination | Production |
+| MERLIN assistant with persistent memory | Production |
+| Security vulnerability research and validation | Production |
+| Executive dashboard with revenue tracking | Production |
 | ALPHA + OMEGA + Wear OS companions | Production |
 | Self-update, version backup, recovery engine | Production |
-| 6-language interface (EN, ES, FR, DE, JA, ZH) | Production |
+| Multi-language interface (EN, ES, FR, DE, JA, ZH) | Production |
 
 ---
 
@@ -230,11 +230,11 @@ python run.py --backup                   # snapshot before changes
 ```
 api/              FastAPI application and routers
 core/ cores/      Domain engines (cycles, opportunities, execution, learning)
-apps/             ORION applications (aegis, atlas, odyssey, hermes)
+apps/             Optional applications and extensions
 frontend/         Vue 3 single-page application
 android/ wearos/  OMEGA companions
 scripts/brand/    Deterministic brand pipeline (SVG → PNG)
-assets/           Brand system, banners, concept art, video storyboard
+assets/           Brand system, banners, concept art, architecture diagrams
 ```
 
 ---
@@ -249,6 +249,16 @@ assets/           Brand system, banners, concept art, video storyboard
 - [Architecture decisions](.ai/ARCHITECTURE_FINAL.md) — full architectural decisions
 
 ---
+
+## Use Cases
+
+OWNEX automates technical workflows across multiple domains:
+
+- **Security Research:** Autonomous vulnerability discovery, validation, and reporting
+- **Development:** Code generation, testing, and deployment automation
+- **Data Analysis:** Opportunity discovery, data processing, and insight generation
+- **Revenue:** Automated task execution with expected value optimization
+- **Knowledge Management:** Persistent memory with cross-session learning
 
 ## Philosophy
 
