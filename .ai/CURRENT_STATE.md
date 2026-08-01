@@ -1,3 +1,61 @@
+## Sesión 2026-08-01 — BRAND IDENTITY v3: "The Aperture Nexus" (rebuild total)
+
+> **QUÉ SE HIZO:** Rebuild completo de la identidad de marca OWNEX, rechazando la v2
+> (hexágono+diamante+cerebro, look AI-generated). Pipeline determinista vectorial
+> (cairosvg + Pillow + fontTools, sin GPU) como reemplazo del pipeline ComfyUI/FLUX
+> (requería GPU NVIDIA 12GB+ inexistente). Pusheado a GitHub (main).
+
+### Marca nueva (verificada)
+
+1. **Mark "The Aperture Nexus"**: anillo octagonal + X de rayos cónicos desde nodo cuadrado
+   central + rayo que rompe el anillo arriba-derecha (evolución núcleo→edge).
+   Dos ediciones con geometría idéntica: **ALPHA** (desktop, cyan→blue) y **OMEGA**
+   (mobile/wear, emerald→cyan).
+2. **Design tokens** (`assets/branding/design-tokens.json`, SSOT): space_black #05060A,
+   cyber_cyan #00D5FF, deep_blue #1E40FF, emerald #00E39A, surfaces/stroke/white/muted.
+   Tipografía: Space Grotesk (display), Inter (UI), JetBrains Mono (mono) — SIL OFL vendored.
+3. **Logo system** (19 archivos en `assets/logos/`): mark, lockup (+mono), app icon,
+   favicon 64px (bold), UI 32px (bold), mono white/black, lockups ALPHA/OMEGA — SVG + PNG.
+4. **Banners**: hero-banner 2400×1260 + og-cover 1200×630 (`assets/banners/`).
+5. **5 conceptos** 2400×1350 (`assets/concepts/`): product-overview, mission-control,
+   architecture, mobile-omega, boot-sequence — grid + crop marks + mono captions, una sola
+   dirección de arte.
+6. **Wallpapers**: ALPHA desktop 2560×1440 + OMEGA splash 1080×2400 (`assets/desktop|mobile/`).
+7. **Trailer storyboard** 90s/8 escenas (`assets/video/trailer-storyboard.md`).
+8. **README** reconstruido startup-grade en inglés (claims creíbles, sin tablas de
+   ingresos irreales, refs a assets nuevos).
+
+### Limpieza (Delete Don't Comment)
+
+- Eliminados 30+ scripts legacy v2 (`scripts/generate_*_v2.py`, `convert_*.py`, ComfyUI
+  generation) + `.ai/brand/` completo (ComfyUI, PROMPT_LIBRARY, generation_pipeline).
+- Eliminados `.github/README.md` duplicado (referenciaba assets v2 rotos),
+  `assets/video/SIMPLE_VIDEO_GUIDE_V2.md`, `ownex_presentation_v2.mp4`.
+- `assets/branding/` quedó solo con: `design-tokens.json`, `OWNEX_BRAND_IDENTITY.md`, `fonts/`.
+- El proyecto pasó de ~30 scripts de branding a 1 pipeline (`scripts/brand/`, 6 módulos).
+
+### Verificación
+
+- Muestreo de píxeles por región en todos los PNG (geometry del mark, transparencia alpha,
+  presencia de texto, ink stats) → OK.
+- 0 referencias rotas a assets v2 en el repo (grep global limpio).
+- Fonts: 3 var fonts descargados de google/fonts, instanced con fontTools → 10 statics, validados.
+- cairosvg no soporta fuentes en `<text>` → PNG compone texto con PIL (fuente de verdad en `textlib.py`).
+
+### Commits
+
+- `4ac0968e` feat(branding): restructure branding system and rewrite README to startup standards
+- `ce3ec593` clean(branding): remove obsolete ComfyUI/FLUX v2 generation pipeline (67 files, −5104)
+
+### Próximo (orden de impacto)
+
+1. AUD-12: Android namespace unificado (ai.rastro/catseye/CATEYE) — crash on launch.
+2. AUD-13: Tauri: fix lib name + versión (no compila).
+3. AUD-14: WearOS real o descartar.
+4. Frontend: 254 errores tsc preexistentes en páginas sin mantenimiento.
+
+---
+
 ## Sesión 2026-07-31 — VERIFICACIÓN DE PRODUCTO + MISSION CONTROL CON DATOS REALES
 
 > **QUÉ SE HIZO:** Verifiqué en runtime el estado real de los cuellos de botella
