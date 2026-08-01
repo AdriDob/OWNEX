@@ -91,6 +91,7 @@ class VersionBackupSystem:
         # Use RecoveryStore for shared SQLite storage
         try:
             from cores.recovery.persistence import get_recovery_store
+
             self._recovery_store = get_recovery_store()
             logger.info("[VERSION BACKUP] Using shared SQLite storage (recovery_history.db)")
         except ImportError:
@@ -150,6 +151,12 @@ class VersionBackupSystem:
         backup_name = f"OWNEX_v{version}_{timestamp}"
         backup_path = self.backup_dir / backup_name
 
+        # Avoid collisions when multiple backups land in the same second
+        counter = 1
+        while backup_path.exists():
+            backup_path = self.backup_dir / f"OWNEX_v{version}_{timestamp}_{counter}"
+            counter += 1
+
         try:
             # Create backup directory
             backup_path.mkdir(parents=True, exist_ok=True)
@@ -190,9 +197,13 @@ class VersionBackupSystem:
 
                 dest = backup_path / file_pattern
                 if source.is_dir():
-                    shutil.copytree(source, dest, ignore=shutil.ignore_patterns(
-                        "__pycache__", "*.pyc", ".git", "node_modules", ".venv", "dist", "build"
-                    ))
+                    shutil.copytree(
+                        source,
+                        dest,
+                        ignore=shutil.ignore_patterns(
+                            "__pycache__", "*.pyc", ".git", "node_modules", ".venv", "dist", "build"
+                        ),
+                    )
                     # Calculate size
                     for item in source.rglob("*"):
                         if item.is_file():
@@ -201,10 +212,12 @@ class VersionBackupSystem:
                     shutil.copy2(source, dest)
                     total_size += source.stat().st_size
 
-                manifest["files"].append({
-                    "path": file_pattern,
-                    "type": "directory" if source.is_dir() else "file",
-                })
+                manifest["files"].append(
+                    {
+                        "path": file_pattern,
+                        "type": "directory" if source.is_dir() else "file",
+                    }
+                )
 
             # Calculate checksum
             checksum = self._calculate_checksum(backup_path)
@@ -338,7 +351,7 @@ class VersionBackupSystem:
             history.sort(key=lambda s: s.created_at)
 
             # Remove oldest backups
-            to_remove = history[:-self.max_backups]
+            to_remove = history[: -self.max_backups]
 
             for snapshot in to_remove:
                 backup_path = Path(snapshot.backup_path)
@@ -347,7 +360,7 @@ class VersionBackupSystem:
                     logger.info(f"[VERSION BACKUP] Removed old backup: {backup_path}")
 
             # Update history
-            history = history[-self.max_backups:]
+            history = history[-self.max_backups :]
 
             with open(self.backup_dir / "versions.json", "w") as f:
                 json.dump([s.__dict__ for s in history], f, indent=2)
