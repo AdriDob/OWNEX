@@ -1,131 +1,166 @@
-# Technical Debt - OWNEX OMEGA
+# OWNEX TECHNICAL DEBT — Technical Debt Tracker
 
-Documentación de deuda técnica y areas de mejora identificadas.
+> **What is Technical Debt?**
+> Technical debt is the implied cost of additional rework caused by choosing an easy solution now instead of using a better approach that would take longer.
 
-## CRITICAL Issues
+---
 
-### 1. Import Inconsistency: core/ vs cores/
-- **Status**: Documented, deferred
-- **Description**: El código base tiene inconsistencia fundamental entre imports `from core.` y `from cores.`
-- **Impact**: Potenciales ImportError en producción si la estructura cambia
-- **Files afectados**: api/main.py (37 imports from core/), cores/setup/steps/__init__.py
-- **Decision**: Ambos directorios existen y funcionan actualmente. La migración completa requiere análisis profundo.
-- **Planned action**: Estandarizar a `cores/` en un refactor separado (prioridad baja-media)
-- **Note**: Este es un legacy issue que necesita más investigación antes de cambiar
+## Critical Debt (P0)
 
-### 2. Abstract Methods con `pass` - False Positive
-- **Status**: Not an issue
-- **Description**: Las clases abstractas (STTProvider, TTSProvider, etc.) tienen métodos con `@abstractmethod` y `pass`
-- **Analysis**: Esto es el comportamiento normal de ABC en Python. Las clases hijas (LocalSTTProvider, LocalTTSProvider) implementan estos métodos correctamente.
-- **Decision**: No requiere acción. Los métodos abstractos están correctamente definidos y las implementaciones concretas funcionan.
+### Mobile Companion Not Functional
+- **Issue:** Mobile Companion requires Supabase but it's not configured
+- **Impact:** Mobile ecosystem (Alpha/Omega) incomplete
+- **Cost:** User cannot use mobile sync, push notifications, approvals
+- **Plan:** Configure Supabase in frontend/.env
+- **Estimate:** 2 hours
+- **Owner:** User (requires Supabase account)
 
-## HIGH Priority Issues
+### Android Crash on Launch
+- **Issue:** 3 distinct namespaces (rastro/catseye/CATEYE)
+- **Impact:** Android app crashes on launch
+- **Cost:** Mobile experience non-existent
+- **Plan:** Unify namespace to ai.rastro.app
+- **Estimate:** 1 hour
+- **Owner:** Requires Java installation (sudo)
 
-### 3. TODOs sin Implementar en Código de Producción
-- **Status**: Fixed
-- **File**: api/routers/dashboard.py
-- **Lines**: 180, 187
-- **Endpoints**: /keys, /sessions
-- **Action**: Endpoints deshabilitados con error 501 (Not Implemented)
+### WearOS Not Buildable
+- **Issue:** Only 4 mock files, no build.gradle/manifest
+- **Impact:** WearOS cannot be built or deployed
+- **Cost:** Smartwatch experience non-existent
+- **Plan:** Implement real WearOS or discard
+- **Estimate:** 8 hours (real implementation) or 0.5 hours (discard)
+- **Owner:** User decision needed
 
-### 4. Excesivo Uso de `any` en TypeScript Frontend
-- **Status**: Fixed
-- **File**: frontend/src/types/index.ts, frontend/src/lib/api.ts, frontend/src/pages/EnhancedPersonalizationWizard.vue
-- **Action**: Definir interfaces específicas para cada respuesta de API (30+ interfaces creadas)
-- **Details**: TypeScript type definitions creadas en frontend/src/types/index.ts con todas las interfaces necesarias
+---
 
-### 5. Wildcard Imports con `import *`
-- **Status**: Fixed
-- **File**: cores/setup/steps/__init__.py
-- **Action**: Importar explícitamente símbolos necesarios
-- **Details**: Reemplazados 7 wildcard imports con imports explícitos
+## Important Debt (P1)
 
-### 6. Type Checking Deshabilitado para Módulos Críticos
-- **Status**: Fixed (gradual)
-- **File**: pyproject.toml
-- **Modules**: cores.obsidian, cores.wear_os, cores.productivity, cores.onboarding, cores.setup.steps.enhanced_personalization
-- **Action**: Habilitar type checking gradualmente (check_untyped_defs, disallow_any_unimported para nuevos módulos)
+### Frontend TypeScript Errors
+- **Issue:** 254 pre-existing tsc errors in unmaintained pages
+- **Impact:** Code quality questionable, type safety compromised
+- **Cost:** Potential runtime errors, difficult debugging
+- **Plan:** Fix tsc errors in pages (Capital.vue, LifeManagement.vue, ReportPipeline.vue, etc.)
+- **Estimate:** 6 hours
+- **Owner:** Dev
+- **Status:** Blocked by vue-tsc dependency issue
 
-## MEDIUM Priority Issues
+### Console.log in Mobile Frontend
+- **Issue:** Console.log statements in MobileCompanion.vue, MobileCompanionJarvis.vue, ModernNavbar.vue, SteamBigPictureSplash.vue
+- **Impact:** Performance degradation, security risk in production
+- **Cost:** Excess log output, potential information leakage
+- **Plan:** Remove console.log statements
+- **Estimate:** 0.5 hours
+- **Owner:** Dev
 
-### 7. Excesivos Type Ignore Comments
-- **Status**: Pending
-- **Count**: 56+ ocurrencias de `# type: ignore`
-- **Action**: Revisar y corregir problemas de tipado subyacentes
+---
 
-### 8. console.log en Código Frontend de Producción
-- **Status**: Fixed
-- **Files**:
-  - ModernNavbar.vue (comentado)
-  - SteamBigPictureSplash.vue (comentado)
-  - VoiceCommandPanel.vue (comentado)
-- **Action**: Removidos o comentados console.logs de producción
+## Minor Debt (P2)
 
-### 9. Exception Handling Genérico sin Logging
-- **Status**: Pending
-- **File**: cores/opportunity/auto_scanner.py
-- **Action**: Loggear excepciones con contexto
+### Auto Maintenance System Not Exists
+- **Issue:** OWNEX cannot automatically detect errors, outdated libraries, old documentation, incorrect configurations
+- **Impact:** Debt accumulates, system degrades over time
+- **Cost:** Manual maintenance burden
+- **Plan:** Implement basic auto-diagnosis and recommendation system
+- **Estimate:** 12 hours
+- **Owner:** Dev
 
-### 10. Métodos de Agentes con Implementaciones Vacías
-- **Status**: Pending
-- **Files**:
-  - cores/agents/specialists/orchestrator.py
-  - cores/agents/specialists/commander.py
-  - cores/agents/specialists/planner.py
-- **Action**: Implementar lógica de coordinación o documentar
+### Lint Errors (Legacy)
+- **Issue:** 30 remaining lint errors (legacy code, not new)
+- **Impact:** Code style inconsistency, potential bugs
+- **Cost:** Maintenance burden
+- **Plan:** Fix remaining lint errors (E741, F401, F841)
+- **Estimate:** 2 hours
+- **Owner:** Dev
 
-### 11. Faltan Type Hints en Funciones Públicas
-- **Status**: Partially Fixed
-- **Files**: cores/obsidian/integration.py (type hints agregados)
-- **Action**: Agregar type hints según PEP 484
+### Premium Sounds Not Fully Implemented
+- **Issue:** Premium sounds not implemented in all interactions
+- **Impact:** Inconsistent user experience
+- **Cost:** Not achieving premium feel
+- **Plan:** Implement sounds in all components
+- **Estimate:** 4 hours
+- **Owner:** Dev
 
-## LOW Priority Issues
+---
 
-### 12. Naming Inconsistency - Logger Names
-- **Status**: Pending
-- **Description**: "ownex.", "cateye.", "catseye."
-- **Action**: Estandarizar a "ownex."
+## Decisions Made
 
-### 13. Hardcoded Strings
-- **Status**: Pending
-- **Files**: Varios archivos
-- **Action**: Mover a constantes o configuración
+### cores/ vs cores/ Decision (2026-07-31)
+- **Decision:** cores/ is Single Source of Truth (SSOT)
+- **Reason:** cores/ has 845 files vs 533 in core/, 2x more imports in API, contains productive CATEYE pipeline
+- **Plan:** Migrate core/ to cores/ gradually
+- **Status:** In progress
+- **Estimate:** 8 hours
 
-### 14. Duplicate Code en Cloud Backup Providers
-- **Status**: Pending
-- **File**: cores/cloud_backup/cloud_backup.py
-- **Action**: Extraer lógica común a clase base
+---
 
-### 15. Imports No Usados
-- **Status**: Pending
-- **Files**: Múltiples archivos __init__.py
-- **Action**: Revisar necessity o remover
+## Debt Reduction Strategy
 
-### 16. Parámetro `skipAuth` No Usado
-- **Status**: Pending
-- **File**: frontend/src/lib/api.ts
-- **Action**: Implementar uso o remover parámetro
+### 1. Pay Critical Debt First
+- Mobile Companion (configure Supabase)
+- Android namespace (unify)
+- WearOS (decision)
 
-## Resumen
+### 2. Pay Important Debt Second
+- Fix tsc errors
+- Remove console.log
+- Implement auto maintenance
 
-|| Severidad | Cantidad | Status |
-||-----------|----------|--------|
-|| Critical | 2 | 1 documented, 1 false positive |
-|| High | 4 | 3 fixed, 1 pending |
-|| Medium | 5 | 1 fixed, 4 pending |
-|| Low | 5 | 0 fixed, 5 pending |
-|| **Total** | **16** | **4 fixed, 1 documented, 1 false positive** |
+### 3. Pay Minor Debt Last
+- Fix lint errors
+- Implement premium sounds
+- Complete cores/ migration
 
-## Prioridades de Arreglo
+---
 
-1. ✅ GCS Backup bug (CRITICAL) - Fixed
-2. ✅ Abstract methods with pass (CRITICAL) - False positive, not an issue
-3. ✅ TODOs in dashboard.py (HIGH) - Fixed
-4. ✅ console.log in frontend (MEDIUM) - Fixed
-5. ✅ Replace `any` types in frontend (HIGH) - Fixed
-6. ✅ Remove wildcard imports (HIGH) - Fixed
-7. ✅ Enable type checking gradually (HIGH) - Fixed (for new modules)
-8. Remove excessive type ignore comments (MEDIUM) - Next
-9. Exception handling without logging (MEDIUM)
-10. Methods with empty implementations (MEDIUM)
-11. Missing type hints (MEDIUM) - Partially Fixed
+## Debt Budget
+
+**Total Debt Cost Estimate:** 43.5 hours
+
+| Priority | Debt Items | Hours | Completed | Remaining |
+|----------|-----------|-------|-----------|-----------|
+| P0 | Mobile Companion, Android, WearOS | 11.5 | 0 | 11.5 |
+| P1 | tsc errors, console.log | 6.5 | 0 | 6.5 |
+| P2 | Auto maintenance, lint, sounds | 18 | 0 | 18 |
+| Decision | cores/ migration | 8 | 0 | 8 |
+
+---
+
+## Prevention
+
+### Rules to Avoid New Debt
+
+1. **No TODO without date** - Every TODO must have a deadline
+2. **No dead code** - Delete obsolete code immediately
+3. **No unused imports** - Remove unused imports immediately
+4. **No console.log in production** - Use proper logging
+5. **Type safety** - Use TypeScript strict mode
+6. **Lint passing** - All code must pass lint
+7. **Tests passing** - All tests must pass before commit
+8. **Documentation** - Document complex logic
+
+### Code Review Checklist
+
+- [ ] No new TODOs without dates
+- [ ] No dead code added
+- [ ] No unused imports
+- [ ] No console.log in production code
+- [ ] TypeScript strict mode compliant
+- [ ] Lint passing
+- [ ] Tests passing
+- [ ] Documentation updated
+
+---
+
+## Debt Payoff Log
+
+| Date | Debt Item | Hours Spent | Status |
+|------|-----------|-------------|--------|
+| 2026-08-01 | N/A | 0 | N/A |
+
+---
+
+## Last Updated
+
+**Date:** 2026-08-01
+**Updated By:** CATEYE Excellence Protocol
+**Version:** 1.0

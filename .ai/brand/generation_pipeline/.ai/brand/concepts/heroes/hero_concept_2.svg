@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <rect width="1920" height="1080" fill="#050505"/>
+  
+  <!-- Agent nodes -->
+  <circle cx="400" cy="300" r="40" fill="#3B82F6" opacity="0.6"/>
+  <circle cx="800" cy="250" r="35" fill="#3B82F6" opacity="0.5"/>
+  <circle cx="1200" cy="350" r="45" fill="#3B82F6" opacity="0.7"/>
+  <circle cx="600" cy="500" r="38" fill="#3B82F6" opacity="0.55"/>
+  <circle cx="1000" cy="480" r="42" fill="#3B82F6" opacity="0.65"/>
+  <circle cx="1400" cy="520" r="36" fill="#3B82F6" opacity="0.5"/>
+  <circle cx="500" cy="700" r="40" fill="#3B82F6" opacity="0.6"/>
+  <circle cx="900" cy="750" r="35" fill="#3B82F6" opacity="0.5"/>
+  <circle cx="1300" cy="680" r="44" fill="#3B82F6" opacity="0.68"/>
+  
+  <!-- Connection lines -->
+  <line x1="400" y1="300" x2="800" y2="250" stroke="#3B82F6" stroke-width="1" opacity="0.3"/>
+  <line x1="800" y1="250" x2="1200" y2="350" stroke="#3B82F6" stroke-width="1" opacity="0.3"/>
+  <line x1="600" y1="500" x2="1000" y2="480" stroke="#3B82F6" stroke-width="1" opacity="0.3"/>
+  <line x1="1000" y1="480" x2="1400" y2="520" stroke="#3B82F6" stroke-width="1" opacity="0.3"/>
+  <line x1="500" y1="700" x2="900" y2="750" stroke="#3B82F6" stroke-width="1" opacity="0.3"/>
+  <line x1="900" y1="750" x2="1300" y2="680" stroke="#3B82F6" stroke-width="1" opacity="0.3"/>
+  
+  <!-- Central coordination -->
+  <circle cx="960" cy="540" r="60" fill="#3B82F6" opacity="0.8"/>
+  <circle cx="960" cy="540" r="30" fill="#F0F0F0" opacity="0.9"/>
+  
+  <!-- Gold accents -->
+  <circle cx="960" cy="540" r="8" fill="#F59E0B" opacity="0.9"/>
+</svg>

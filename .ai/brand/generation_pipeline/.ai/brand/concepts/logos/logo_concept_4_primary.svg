@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="flowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#F0F0F0;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="70" fill="none" stroke="url(#flowGrad)" stroke-width="4" opacity="0.8"/>
+  <path d="M100 30 Q 150 50 170 100 Q 150 150 100 170 Q 50 150 30 100 Q 50 50 100 30" 
+        fill="none" stroke="#3B82F6" stroke-width="2" opacity="0.6"/>
+  <circle cx="100" cy="100" r="35" fill="#3B82F6" opacity="0.8"/>
+  <circle cx="130" cy="70" r="7" fill="#F59E0B" opacity="0.9"/>
+</svg>
