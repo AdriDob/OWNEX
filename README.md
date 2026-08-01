@@ -1,9 +1,5 @@
 <p align="center">
-  <img src="assets/banners/hero-banner-alpha.png" alt="OWNEX ALPHA" width="100%"/>
-</p>
-
-<p align="center">
-  <img src="assets/logos/ownex-lockup-alpha.png" alt="OWNEX ALPHA" width="600"/>
+  <img src="assets/banners/hero-banner-unified.png" alt="OWNEX — Autonomous Personal Operating System" width="100%"/>
 </p>
 
 <p align="center">
@@ -22,7 +18,7 @@
 The command center for autonomous operations. Mission Control, agent fleet, terminal, memory, evolution engine.
 
 <p align="center">
-  <img src="assets/banners/hero-banner-alpha.png" alt="OWNEX ALPHA Hero" width="100%"/>
+  <img src="assets/logos/ownex-lockup-alpha.png" alt="OWNEX ALPHA" width="600"/>
 </p>
 
 ---
@@ -32,7 +28,7 @@ The command center for autonomous operations. Mission Control, agent fleet, term
 Permanent connection: approvals, notifications, MERLIN chat, system health — on your phone and wrist.
 
 <p align="center">
-  <img src="assets/banners/hero-banner-omega.png" alt="OWNEX OMEGA Hero" width="100%"/>
+  <img src="assets/logos/ownex-lockup-omega.png" alt="OWNEX OMEGA" width="600"/>
 </p>
 
 ---
