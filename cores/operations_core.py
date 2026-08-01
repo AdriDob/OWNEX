@@ -283,10 +283,7 @@ class OperationsResearchEngine:
         best_score = -1
         for agent_name in available:
             profile = self.kg.get_agent_profile(agent_name)
-            if not profile:
-                score = 0.5  # unknown
-            else:
-                score = profile.efficiency * profile.success_rate
+            score = 0.5 if not profile else profile.efficiency * profile.success_rate
 
             if score > best_score:
                 best_score = score
