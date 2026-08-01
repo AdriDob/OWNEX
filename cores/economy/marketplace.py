@@ -1,15 +1,16 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
-from cores.economy.registry import Capability, CapabilityCategory, CapabilityRegistry, registry
-from cores.economy.escrow import EscrowAccount, EscrowManager, EscrowStatus, escrow_manager
+from cores.economy.escrow import EscrowManager, escrow_manager
+from cores.economy.registry import CapabilityCategory, CapabilityRegistry, registry
 from cores.economy.reputation import ReputationEngine, ReputationEvent, ReputationEventType, reputation_engine
-from cores.economy.settlement import Settlement, SettlementEngine, SettlementStatus, settlement_engine
+from cores.economy.settlement import SettlementEngine, settlement_engine
 
 
 class JobStatus(str, Enum):

@@ -2,10 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from decimal import Decimal, ROUND_HALF_UP
 from enum import Enum
 from typing import Any
-from typing import Optional
 
 
 class SettlementStatus(str, Enum):

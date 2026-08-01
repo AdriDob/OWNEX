@@ -10,8 +10,8 @@ Structure:
 - audio/ — Audio files (TTS, music, SFX)
 """
 
-from pathlib import Path
 import json
+from pathlib import Path
 
 VIDEO_GEN_DIR = Path("assets/video_generation")
 MODELS_DIR = VIDEO_GEN_DIR / "models"
@@ -145,11 +145,11 @@ with open(config_file, "w") as f:
     json.dump(config, f, indent=2)
 
 print(f"✓ Video generation structure created: {VIDEO_GEN_DIR}")
-print(f"  - models/")
-print(f"  - workflows/")
-print(f"  - prompts/")
-print(f"  - renders/")
-print(f"  - audio/")
+print("  - models/")
+print("  - workflows/")
+print("  - prompts/")
+print("  - renders/")
+print("  - audio/")
 print(f"✓ Configuration saved: {config_file}")
 print(f"  - {len(SCENES)} scenes configured")
 print(f"  - Total duration: {sum(s['duration'] for s in SCENES.values())} seconds")

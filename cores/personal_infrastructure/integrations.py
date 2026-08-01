@@ -12,7 +12,6 @@ from typing import Any
 from cores.personal_infrastructure.admin_navigator import get_admin_navigator
 from cores.personal_infrastructure.health_center import get_integration_health_center
 from cores.personal_infrastructure.manager import get_personal_infrastructure_manager
-from cores.personal_infrastructure.models import ObjectiveCategory
 from cores.personal_infrastructure.wealth_assistant import get_wealth_assistant
 
 logger = logging.getLogger("ownex.personal_infrastructure.integrations")

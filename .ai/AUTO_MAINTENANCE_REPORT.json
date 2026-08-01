@@ -1,0 +1,263 @@
+{
+  "timestamp": "2026-08-01T00:44:38.165978",
+  "total_issues": 36,
+  "critical": 1,
+  "medium": 0,
+  "low": 35,
+  "issues": [
+    {
+      "type": "dependency_check_failed",
+      "severity": "low",
+      "error": "Command '['pip', 'list', '--outdated', '--format=json']' timed out after 30 seconds",
+      "recommendation": "Manual dependency review required"
+    },
+    {
+      "type": "lint_errors",
+      "severity": "high",
+      "error_count": 5807,
+      "recommendation": "Fix 5807 lint errors with 'ruff check --fix'"
+    },
+    {
+      "type": "test_check_failed",
+      "severity": "low",
+      "error": "Command '['python', '-m', 'pytest', '--timeout=60', '-q']' timed out after 60 seconds",
+      "recommendation": "Manual test review required"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "release_isolation.py",
+      "recommendation": "Review release_isolation.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "migrate_to_postgres.py",
+      "recommendation": "Review migrate_to_postgres.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "build_release.py",
+      "recommendation": "Review build_release.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "build_android.py",
+      "recommendation": "Review build_android.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "auto_maintenance.py",
+      "recommendation": "Review auto_maintenance.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "copilot.py",
+      "recommendation": "Review copilot.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "smoke_test_playwright.py",
+      "recommendation": "Review smoke_test_playwright.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "setup_video_generation.py",
+      "recommendation": "Review setup_video_generation.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "integrity_check.py",
+      "recommendation": "Review integrity_check.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "test_desktop_boot.py",
+      "recommendation": "Review test_desktop_boot.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "find_orphaned_pages.py",
+      "recommendation": "Review find_orphaned_pages.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "install.py",
+      "recommendation": "Review install.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "bootstrap.py",
+      "recommendation": "Review bootstrap.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "generate_release_report.py",
+      "recommendation": "Review generate_release_report.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "package_portable.py",
+      "recommendation": "Review package_portable.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "agent-startup.py",
+      "recommendation": "Review agent-startup.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "ownex_final_audit.py",
+      "recommendation": "Review ownex_final_audit.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "version_backup.py",
+      "recommendation": "Review version_backup.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "test_installer.py",
+      "recommendation": "Review test_installer.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "assemble_output.py",
+      "recommendation": "Review assemble_output.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "ownex_doctor.py",
+      "recommendation": "Review ownex_doctor.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "audit_imports.py",
+      "recommendation": "Review audit_imports.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "install_windows.py",
+      "recommendation": "Review install_windows.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "setup_supabase.py",
+      "recommendation": "Review setup_supabase.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "prebuild.py",
+      "recommendation": "Review prebuild.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "real_world_validation.py",
+      "recommendation": "Review real_world_validation.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "validate_assets.py",
+      "recommendation": "Review validate_assets.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "seed_real.py",
+      "recommendation": "Review seed_real.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "autorelease.py",
+      "recommendation": "Review autorelease.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "gen_build_info.py",
+      "recommendation": "Review gen_build_info.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "test_portable.py",
+      "recommendation": "Review test_portable.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "release.py",
+      "recommendation": "Review release.py - may be unused"
+    },
+    {
+      "type": "potentially_orphaned_script",
+      "severity": "low",
+      "file": "smoke_test.py",
+      "recommendation": "Review smoke_test.py - may be unused"
+    }
+  ],
+  "recommendations": [
+    "Manual dependency review required",
+    "Fix 5807 lint errors with 'ruff check --fix'",
+    "Manual test review required",
+    "Review release_isolation.py - may be unused",
+    "Review migrate_to_postgres.py - may be unused",
+    "Review build_release.py - may be unused",
+    "Review build_android.py - may be unused",
+    "Review auto_maintenance.py - may be unused",
+    "Review copilot.py - may be unused",
+    "Review smoke_test_playwright.py - may be unused",
+    "Review setup_video_generation.py - may be unused",
+    "Review integrity_check.py - may be unused",
+    "Review test_desktop_boot.py - may be unused",
+    "Review find_orphaned_pages.py - may be unused",
+    "Review install.py - may be unused",
+    "Review bootstrap.py - may be unused",
+    "Review generate_release_report.py - may be unused",
+    "Review package_portable.py - may be unused",
+    "Review agent-startup.py - may be unused",
+    "Review ownex_final_audit.py - may be unused",
+    "Review version_backup.py - may be unused",
+    "Review test_installer.py - may be unused",
+    "Review assemble_output.py - may be unused",
+    "Review ownex_doctor.py - may be unused",
+    "Review audit_imports.py - may be unused",
+    "Review install_windows.py - may be unused",
+    "Review setup_supabase.py - may be unused",
+    "Review prebuild.py - may be unused",
+    "Review real_world_validation.py - may be unused",
+    "Review validate_assets.py - may be unused",
+    "Review seed_real.py - may be unused",
+    "Review autorelease.py - may be unused",
+    "Review gen_build_info.py - may be unused",
+    "Review test_portable.py - may be unused",
+    "Review release.py - may be unused",
+    "Review smoke_test.py - may be unused"
+  ]
+}

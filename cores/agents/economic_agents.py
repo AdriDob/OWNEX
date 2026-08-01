@@ -4,19 +4,11 @@ from __future__ import annotations
 
 import asyncio
 import time
-import uuid
-from datetime import timedelta
-from typing import Any, Optional
 
 from cores.agents.base import BaseAgent
-from cores.agents.types import AgentEvent, AgentId, AgentStatus, EventType
 from cores.agents.economic_mixin import EconomicAgentMixin
-from cores.economy.registry import CapabilityCategory
+from cores.agents.types import AgentId
 from cores.economy import marketplace, registry
-from cores.swarm import coordinator, graph, message_bus
-from cores.swarm.coordinator import AgentRole
-from cores.swarm.graph import NodeType, EdgeType
-from cores.swarm.communication import MessageType, Priority, AgentMessage
 
 
 class ReconAgent(BaseAgent, EconomicAgentMixin):

@@ -18,8 +18,6 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from cores.personal_infrastructure.models import WealthAccount
-
 logger = logging.getLogger("ownex.personal_infrastructure.wealth_assistant")
 
 WEALTH_DATA_PATH = Path.home() / ".ownex" / "personal_infrastructure" / "wealth"
