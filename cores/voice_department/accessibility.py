@@ -56,10 +56,7 @@ class VoiceAccessibilitySystem:
             return False
         if self.current_mode == AccessibilityMode.HYBRID:
             return self.subtitles_enabled
-        if self.current_mode == AccessibilityMode.SUBTITLES:
-            return True
-
-        return False
+        return self.current_mode == AccessibilityMode.SUBTITLES
 
     def add_subtitle(self, text: str, timestamp: float, speaker: str = "OWNEX") -> None:
         """Agregar subtítulo."""

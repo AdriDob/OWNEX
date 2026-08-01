@@ -65,10 +65,7 @@ def find_similar_engagements(
 def get_learning_stats(agent_id: str | None = None) -> dict[str, Any]:
     """Aggregate learning statistics."""
     with _LOCK:
-        if agent_id is None:
-            records = _ENGAGEMENTS
-        else:
-            records = [r for r in _ENGAGEMENTS if r["agent_id"] == agent_id]
+        records = _ENGAGEMENTS if agent_id is None else [r for r in _ENGAGEMENTS if r["agent_id"] == agent_id]
         total = len(records)
         successes = sum(1 for r in records if r["success"])
         rewards = sum(r["reward"] for r in records)

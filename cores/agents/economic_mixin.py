@@ -323,8 +323,8 @@ class EconomicAgentMixin:
             return False
 
         # Find or create agent in swarm
-        agent_id = f"{swarm_id}_{self._economic_role}_{self._economic_traits.agent_id[-6:]}"
-        for aid, agent in swarm.agents.items():
+        f"{swarm_id}_{self._economic_role}_{self._economic_traits.agent_id[-6:]}"
+        for aid, _agent in swarm.agents.items():
             if self._economic_traits.agent_id in aid:
                 self._economic_traits.current_swarm = swarm_id
                 self._economic_traits.swarm_role = role

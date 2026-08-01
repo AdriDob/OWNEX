@@ -337,7 +337,7 @@ class EvolutionEngine:
 
     def run_cycle(self) -> dict[str, Any]:
         """Run a full evolution cycle: observe → analyze → experiment → learn.
-        
+
         Returns a report with proposals and health_before metrics.
         """
         # Observe: flush any buffered metrics

@@ -209,7 +209,7 @@ def architecture() -> None:
         svg_parts.append(card_svg(lx, y, lw, lh))
         svg_parts.append(f'<rect x="{lx}" y="{y}" width="10" height="{lh}" rx="5" fill="{accent}"/>')
         if i < len(layers) - 1:
-            mid = (y + lh + y + lh + 62) / 2
+            (y + lh + y + lh + 62) / 2
             svg_parts.append(
                 f'<line x1="{W / 2}" y1="{y + lh}" x2="{W / 2}" y2="{y + lh + 62}" stroke="#2A3650" stroke-width="2"/>'
             )

@@ -14,12 +14,12 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 
-class UserExperienceLevel(str, Enum):
+class UserExperienceLevel(StrEnum):
     """Nivel de experiencia del usuario."""
     BEGINNER = "beginner"
     INTERMEDIATE = "intermediate"
@@ -27,7 +27,7 @@ class UserExperienceLevel(str, Enum):
     EXPERT = "expert"
 
 
-class WorkMode(str, Enum):
+class WorkMode(StrEnum):
     """Modo de trabajo preferido."""
     BUG_BOUNTY = "bug_bounty"
     DEV_BOUNTY = "dev_bounty"
@@ -36,7 +36,7 @@ class WorkMode(str, Enum):
     MIXED = "mixed"
 
 
-class GuidanceLevel(str, Enum):
+class GuidanceLevel(StrEnum):
     """Nivel de guía requerido."""
     HIGH_GUIDANCE = "high_guidance"  # Llevar de la mano
     MEDIUM_GUIDANCE = "medium_guidance"

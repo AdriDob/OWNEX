@@ -3,12 +3,12 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from threading import RLock
 from typing import Any
 
 
-class ReputationEventType(str, Enum):
+class ReputationEventType(StrEnum):
     JOB_COMPLETED = "job_completed"
     JOB_FAILED = "job_failed"
     DISPUTE_WON = "dispute_won"

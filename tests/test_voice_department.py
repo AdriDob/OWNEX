@@ -175,14 +175,14 @@ class TestVoicePersonalization:
     def test_should_explain(self):
         """Test lógica de auto-explain."""
         personalization = get_voice_personalization()
-        pref = personalization.set_auto_explain("test_user_14", True)
+        personalization.set_auto_explain("test_user_14", True)
 
         assert personalization.should_explain("test_user_14") is True
 
     def test_should_narrate(self):
         """Test lógica de auto-narrate."""
         personalization = get_voice_personalization()
-        pref = personalization.set_auto_narrate("test_user_15", True)
+        personalization.set_auto_narrate("test_user_15", True)
 
         assert personalization.should_narrate("test_user_15") is True
 
