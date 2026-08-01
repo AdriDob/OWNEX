@@ -382,3 +382,24 @@
   - 650+ líneas Python nuevas, todas lint clean
 
 - **Condiciones para reabrir**: Si loop-engineering publica breaking changes en su CLI/format, o si los patrones existentes requieren nuevas fases (ejecución paralela, sub-loops anidados, triggers externos).
+
+## 2026-08-01: Brand Identity v3 — "The Aperture Nexus" (rebuild total)
+
+- **Problema**: La identidad v2 (hexágono + diamante + cerebro, estética "AI-generated") fue rechazada por el usuario: se veía como colección de imágenes generadas, no como identidad de startup comercial (referencia: Tesla/Apple/SpaceX/Linear/NVIDIA/PlayStation). Además el pipeline ComfyUI/FLUX exigía GPU NVIDIA 12GB+ inexistente en el equipo (AMD RX 6600 sin ROCm) — no reproducible.
+
+- **Alternativas consideradas**:
+  1. **Pipeline vectorial determinista (elegido)** — Python + cairosvg + Pillow + fontTools. Geometría exacta programática, 100% reproducible sin GPU, fonts SIL OFL vendored, texto renderizado con PIL (cairosvg no soporta fuentes en `<text>` → se parsea el SVG, se quita `<text>` y se compone con PIL).
+  2. Mantener v2 con ajustes menores — El usuario pidió explícitamente rebuild ("no me interesa mantener nada de la v2").
+  3. AI image generation (Stable Diffusion/FLUX) — Rechazado: el rechazo de v2 fue precisamente por ese look; además requería GPU ausente.
+
+- **Decisión**: Marca v3 "The Aperture Nexus": anillo octagonal (instrumento de precisión) + X de rayos cónicos desde nodo cuadrado central (inteligencia en el núcleo), con rayo que rompe el anillo arriba-derecha (evolución núcleo→edge). Dos ediciones conectadas: ALPHA (desktop, cyan→blue) y OMEGA (mobile/wear, emerald→cyan) — misma geometría, distinto color. Tokens en `assets/branding/design-tokens.json` (SSOT). Todo el pipeline vive en `scripts/brand/` (6 módulos). Assets en `assets/{logos,banners,concepts,desktop,mobile}/`. README reconstruido startup-grade (inglés, sin claims fantásticos).
+
+- **Impacto**:
+  - 37+ archivos de marca nuevos (SVG + PNG), todos verificados por muestreo de píxeles por región
+  - 30+ scripts legacy v2 + `.ai/brand/` (ComfyUI) eliminados — un solo pipeline SSOT
+  - README con claims creíbles (sin tablas de ingresos irreales que delataban hobby)
+  - 0 regresiones: backend/frontend intactos; solo branding + docs
+  - Fuentes vendored (SIL OFL) → renders deterministas sin dependencia de red
+  - Storyboard de trailer 90s (8 escenas) en `assets/video/trailer-storyboard.md`
+
+- **Condiciones para reabrir**: Si el usuario cambia la dirección creativa (nuevo mark), o si se necesita una familia extendida (submarcas por departamento, iconos de ciclo). El pipeline `scripts/brand/` permite regenerar todo el sistema cambiando solo `pipeline.py` + `design-tokens.json`.
