@@ -12,7 +12,6 @@ from cores.voice_department import (
     get_voice_visual_interface,
 )
 from cores.voice_department.audio_engine import AudioEngine, AudioQuality, reset_high_quality_audio_engine
-from cores.voice_department.audio_engine import AudioEngine, AudioQuality
 from cores.voice_department.models import (
     AccessibilityMode,
     ConversationMode,
@@ -216,6 +215,7 @@ class TestAudioEngine:
 
     def test_set_invalid_tts_engine(self):
         """Test que motor TTS inválido no se establece."""
+        reset_high_quality_audio_engine()
         engine = get_high_quality_audio_engine()
         engine.set_tts_engine(AudioEngine.WHISPER)  # WHISPER no es TTS
 

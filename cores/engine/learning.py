@@ -195,7 +195,7 @@ class LearningEngine(Engine):
             predicted_value=opportunity.estimated_reward_max,
             predicted_effort=opportunity.estimated_effort_hours,
             confidence=opportunity.confidence,
-            tags=opportunity.tags,
+            tags=opportunity.technology_tags,
             notes=notes,
         )
 
