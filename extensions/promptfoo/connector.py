@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import logging
 import os
@@ -11,12 +12,7 @@ from core.interfaces.connector import ConnectorHealth, IConnector
 
 logger = logging.getLogger("ownex.promptfoo.connector")
 
-try:
-    import promptfoo
-
-    _PROMPTFOO_AVAILABLE = True
-except ImportError:
-    _PROMPTFOO_AVAILABLE = False
+_PROMPTFOO_AVAILABLE = importlib.util.find_spec("promptfoo") is not None
 
 
 class PromptFooConnector(IConnector):

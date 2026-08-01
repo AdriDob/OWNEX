@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import logging
 import os
 import subprocess
@@ -9,12 +10,7 @@ from core.interfaces.connector import ConnectorHealth, IConnector
 
 logger = logging.getLogger("ownex.nanobot.connector")
 
-try:
-    from nanobot import Nanobot
-
-    _NANOBOT_AVAILABLE = True
-except ImportError:
-    _NANOBOT_AVAILABLE = False
+_NANOBOT_AVAILABLE = importlib.util.find_spec("nanobot") is not None
 
 
 class NanobotConnector(IConnector):
