@@ -266,16 +266,15 @@ class AdministrativeNavigator:
 
     def get_all_statuses(self) -> dict[str, dict[str, Any]]:
         """Obtener estado de todos los procesos."""
-        return {proc_id: self.get_process_status(proc_id) for proc_id in self.processes.keys()}
+        return {proc_id: self.get_process_status(proc_id) for proc_id in self.processes}
 
     def get_next_action(self) -> str:
         """Obtener la próxima acción recomendada."""
         # Buscar proceso en progreso
         for process in self.processes.values():
-            if process.status == "in_progress":
-                if process.current_step_index < len(process.steps):
-                    step = process.steps[process.current_step_index]
-                    return f"Completar paso: {step.title} en proceso {process.title}"
+            if process.status == "in_progress" and process.current_step_index < len(process.steps):
+                step = process.steps[process.current_step_index]
+                return f"Completar paso: {step.title} en proceso {process.title}"
 
         # Si no hay procesos en progreso, sugerir el primero pendiente
         for process in self.processes.values():

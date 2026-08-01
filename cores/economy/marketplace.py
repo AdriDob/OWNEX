@@ -4,7 +4,7 @@ import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from cores.economy.escrow import EscrowManager, escrow_manager
@@ -13,7 +13,7 @@ from cores.economy.reputation import ReputationEngine, ReputationEvent, Reputati
 from cores.economy.settlement import SettlementEngine, settlement_engine
 
 
-class JobStatus(str, Enum):
+class JobStatus(StrEnum):
     OPEN = "open"
     ASSIGNED = "assigned"
     IN_PROGRESS = "in_progress"
@@ -24,7 +24,7 @@ class JobStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
-class BidStatus(str, Enum):
+class BidStatus(StrEnum):
     PENDING = "pending"
     ACCEPTED = "accepted"
     REJECTED = "rejected"

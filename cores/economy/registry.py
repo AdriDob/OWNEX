@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class CapabilityCategory(str, Enum):
+class CapabilityCategory(StrEnum):
     RECON = "recon"
     FUZZING = "fuzzing"
     EXPLOIT_GENERATION = "exploit_generation"
@@ -18,7 +18,7 @@ class CapabilityCategory(str, Enum):
     SPECIALIST = "specialist"
 
 
-class PricingModel(str, Enum):
+class PricingModel(StrEnum):
     PER_USE = "per_use"
     PER_HOUR = "per_hour"
     PER_FINDING = "per_finding"
@@ -26,7 +26,7 @@ class PricingModel(str, Enum):
     REVENUE_SHARE = "revenue_share"
 
 
-class AgentStatus(str, Enum):
+class AgentStatus(StrEnum):
     ACTIVE = "active"
     BUSY = "busy"
     OFFLINE = "offline"
@@ -112,7 +112,7 @@ class CapabilityRegistry:
         if category:
             candidates = [c for c in candidates if c.category == category]
         if tags:
-            tag_set = set(tags)
+            set(tags)
             candidates = [c for c in candidates if any(t in c.tags for t in tags)]
         if max_price is not None:
             candidates = [c for c in candidates if c.base_price <= max_price]

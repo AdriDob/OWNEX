@@ -5,12 +5,12 @@ import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from threading import Lock
 from typing import Any
 
 
-class NodeType(str, Enum):
+class NodeType(StrEnum):
     ROOT_DOMAIN = "root_domain"
     SUBDOMAIN = "subdomain"
     IP_ADDRESS = "ip_address"
@@ -26,7 +26,7 @@ class NodeType(str, Enum):
     NOTE = "note"
 
 
-class EdgeType(str, Enum):
+class EdgeType(StrEnum):
     RESOLVES_TO = "resolves_to"
     HOSTS = "hosts"
     RUNS_ON = "runs_on"
@@ -160,7 +160,6 @@ class AttackSurfaceGraph:
         with self._lock:
             if source_id not in self._nodes or target_id not in self._nodes:
                 return None
-            edge_key = f"{source_id}:{edge_type.value}:{target_id}"
             edge_id = f"edge_{uuid.uuid4().hex[:12]}"
             edge = GraphEdge(
                 id=edge_id,
@@ -256,7 +255,7 @@ class AttackSurfaceGraph:
             exploitability = max(self._nodes[n].exploitability for n in nodes)
             path_id = f"path_{uuid.uuid4().hex[:12]}"
             steps = []
-            for i, (n, e) in enumerate(zip(nodes, edges)):
+            for _i, (n, e) in enumerate(zip(nodes, edges, strict=False)):
                 edge = self._edges.get(e)
                 steps.append({"node": n, "edge": edge.type.value if edge else None, "risk": self._nodes[n].risk_score})
             paths.append(

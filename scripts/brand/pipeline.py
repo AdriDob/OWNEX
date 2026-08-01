@@ -186,7 +186,7 @@ def draw_text(
     x0 = xy[0] - total / 2 if anchor_mid else xy[0]
     y0 = xy[1] - px * 0.72 if anchor_mid else xy[1]
     fill_rgba = fill if alpha >= 255 else fill + f"{alpha:02X}"
-    for ch, w in zip(text, widths):
+    for ch, w in zip(text, widths, strict=False):
         draw.text((x0, y0), ch, font=f, fill=fill_rgba)
         x0 += w
 

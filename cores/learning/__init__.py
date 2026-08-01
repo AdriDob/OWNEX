@@ -155,6 +155,43 @@ def register_prompt_update_callback(*args, **kwargs):
     return _fn(*args, **kwargs)
 
 
+# Service getters (used by the API router)
+def get_profile_service(*args, **kwargs):
+    from .profile import get_profile_service as _fn
+
+    return _fn(*args, **kwargs)
+
+
+def get_event_tracker(*args, **kwargs):
+    from .tracker import get_event_tracker as _fn
+
+    return _fn(*args, **kwargs)
+
+
+def get_prioritizer(*args, **kwargs):
+    from .prioritizer import get_prioritizer as _fn
+
+    return _fn(*args, **kwargs)
+
+
+def get_explainer(*args, **kwargs):
+    from .explainer import get_explainer as _fn
+
+    return _fn(*args, **kwargs)
+
+
+def get_memory_builder(*args, **kwargs):
+    from .memory import get_memory_builder as _fn
+
+    return _fn(*args, **kwargs)
+
+
+def get_exporter(*args, **kwargs):
+    from .export import get_exporter as _fn
+
+    return _fn(*args, **kwargs)
+
+
 __all__ = [
     "record_engagement_outcome",
     "find_similar_engagements",
@@ -180,4 +217,10 @@ __all__ = [
     "get_learning_loop_status",
     "get_learning_history",
     "register_prompt_update_callback",
+    "get_profile_service",
+    "get_event_tracker",
+    "get_prioritizer",
+    "get_explainer",
+    "get_memory_builder",
+    "get_exporter",
 ]
