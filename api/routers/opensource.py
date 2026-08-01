@@ -94,7 +94,7 @@ async def get_recommendations(request: CategoryRecommendationRequest) -> list[Ca
 
     except Exception as e:
         logger.error(f"[OPENSOURCE] Error getting recommendations: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/contributions")
@@ -133,10 +133,10 @@ async def add_contribution(request: ContributionRequest) -> dict[str, Any]:
 
     except ValueError as e:
         logger.error(f"[OPENSOURCE] Invalid category: {e}")
-        raise HTTPException(status_code=400, detail=f"Invalid category: {request.category}")
+        raise HTTPException(status_code=400, detail=f"Invalid category: {request.category}") from None
     except Exception as e:
         logger.error(f"[OPENSOURCE] Error adding contribution: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/stats")

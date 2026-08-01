@@ -76,7 +76,7 @@ async def logout(authorization: str = Header(...)):
 
         return {"success": True, "message": "Logged out successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/verify")
@@ -92,7 +92,7 @@ async def verify_token(authorization: str = Header(...)):
 
         return {"success": True, "user_id": result["user_id"]}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/refresh")
@@ -107,4 +107,4 @@ async def refresh_token(refresh_token: str):
 
         return {"success": True, **result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None

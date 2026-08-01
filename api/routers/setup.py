@@ -39,7 +39,7 @@ async def run_personalization(request: PersonalizationRequest):
             raise HTTPException(status_code=400, detail=result.get("message", "Personalization failed"))
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/personalization/default-modules/{use_case}")

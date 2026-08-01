@@ -59,7 +59,7 @@ async def create_backup(request: CreateBackupRequest) -> dict[str, Any]:
 
     except Exception as e:
         logger.error(f"[VERSION BACKUP] Error creating backup: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/backups")
@@ -77,7 +77,7 @@ async def list_backups() -> dict[str, Any]:
 
     except Exception as e:
         logger.error(f"[VERSION BACKUP] Error listing backups: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/backup/{backup_path:path}/verify")
@@ -91,7 +91,7 @@ async def verify_backup(backup_path: str) -> dict[str, Any]:
 
     except Exception as e:
         logger.error(f"[VERSION BACKUP] Error verifying backup: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/rollback")
@@ -109,7 +109,7 @@ async def rollback_to_version(request: RollbackRequest) -> dict[str, Any]:
 
     except Exception as e:
         logger.error(f"[VERSION BACKUP] Error rolling back: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/restore-latest")
@@ -123,7 +123,7 @@ async def restore_latest() -> dict[str, Any]:
 
     except Exception as e:
         logger.error(f"[VERSION BACKUP] Error restoring latest: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/current-version")
@@ -142,4 +142,4 @@ async def get_current_version() -> dict[str, Any]:
 
     except Exception as e:
         logger.error(f"[VERSION BACKUP] Error getting current version: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
