@@ -1,0 +1,113 @@
+{
+  "colors": {
+    "name": "OWNEX Color Palette",
+    "description": "Premium dark theme inspired by Tesla, SpaceX, Linear, Apple",
+    "colors": {
+      "primary": {
+        "main": "#1A1A1A",
+        "light": "#2A2A2A",
+        "dark": "#0A0A0A"
+      },
+      "accent": {
+        "blue": "#3B82F6",
+        "cyan": "#06B6D4",
+        "emerald": "#10B981",
+        "gold": "#F59E0B",
+        "purple": "#8B5CF6"
+      },
+      "semantic": {
+        "success": "#10B981",
+        "warning": "#F59E0B",
+        "error": "#EF4444",
+        "info": "#3B82F6"
+      },
+      "neutral": {
+        "white": "#FFFFFF",
+        "gray_50": "#808080",
+        "gray_100": "#505050",
+        "gray_200": "#3A3A3A",
+        "gray_300": "#252525",
+        "gray_400": "#1A1A1A",
+        "gray_500": "#0F0F0F"
+      },
+      "gradients": {
+        "primary": "linear-gradient(135deg, #1A1A1A 0%, #0A0A0A 100%)",
+        "accent": "linear-gradient(135deg, #3B82F6 0%, #06B6D4 100%)",
+        "success": "linear-gradient(135deg, #10B981 0%, #059669 100%)",
+        "gold": "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)"
+      }
+    }
+  },
+  "typography": {
+    "name": "OWNEX Typography",
+    "description": "Modern sans-serif inspired by Linear and Apple",
+    "fonts": {
+      "primary": {
+        "family": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        "weights": {
+          "light": 300,
+          "regular": 400,
+          "medium": 500,
+          "semibold": 600,
+          "bold": 700
+        }
+      },
+      "mono": {
+        "family": "JetBrains Mono, 'Fira Code', 'Cascadia Code', monospace",
+        "weights": {
+          "regular": 400,
+          "medium": 500,
+          "bold": 700
+        }
+      }
+    },
+    "scale": {
+      "xs": "0.75rem",
+      "sm": "0.875rem",
+      "base": "1rem",
+      "lg": "1.125rem",
+      "xl": "1.25rem",
+      "2xl": "1.5rem",
+      "3xl": "1.875rem",
+      "4xl": "2.25rem",
+      "5xl": "3rem"
+    }
+  },
+  "spacing": {
+    "name": "OWNEX Spacing",
+    "description": "Consistent spacing system inspired by Apple and Linear",
+    "spacing": {
+      "xs": "0.25rem",
+      "sm": "0.5rem",
+      "md": "1rem",
+      "lg": "1.5rem",
+      "xl": "2rem",
+      "2xl": "3rem",
+      "3xl": "4rem",
+      "4xl": "6rem"
+    }
+  },
+  "border_radius": {
+    "name": "OWNEX Border Radius",
+    "description": "Rounded corners inspired by Apple and Linear",
+    "radius": {
+      "none": "0",
+      "sm": "0.25rem",
+      "md": "0.5rem",
+      "lg": "0.75rem",
+      "xl": "1rem",
+      "2xl": "1.5rem",
+      "full": "9999px"
+    }
+  },
+  "shadows": {
+    "name": "OWNEX Shadows",
+    "description": "Subtle shadows inspired by Linear and Apple",
+    "shadows": {
+      "sm": "0 1px 2px rgba(0, 0, 0, 0.1)",
+      "md": "0 4px 6px rgba(0, 0, 0, 0.1)",
+      "lg": "0 10px 15px rgba(0, 0, 0, 0.1)",
+      "xl": "0 20px 25px rgba(0, 0, 0, 0.15)"
+    }
+  }
+}
