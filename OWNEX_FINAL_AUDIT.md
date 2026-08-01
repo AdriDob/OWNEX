@@ -50,7 +50,7 @@ OWNEX es un sistema operativo personal autónomo con múltiples componentes avan
 | Branding | 95% | Excelente, estándar premium |
 | Auto Mantenimiento | 15% | Auto maintenance framework creado + ruff fixes aplicados |
 
-**OVERALL:** ~82% funcionalidad real (subió del 80% al 82%)
+**OVERALL:** ~83% funcionalidad real (subió del 82% al 83%)
 
 ---
 
@@ -76,6 +76,7 @@ OWNEX es un sistema operativo personal autónomo con múltiples componentes avan
 - Ruff fixes aplicados (249 + 59 = 308 fixes automáticos)
 - Premium sounds integrados en componentes core
 - WearOS descartado (análisis de decisión implementado)
+- README actualizado (referencias WearOS removidas)
 
 **Parciales:**
 - Backend (scheduler conectado, ciclos conectados)
