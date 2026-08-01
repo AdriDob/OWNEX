@@ -194,6 +194,11 @@ class ConstitutionComplianceValidator:
             if change_impact.get("compliance_issues", 0) > 0:
                 return True  # Violates principle
 
+        elif "EVIDENCE DRIVEN" in principle:
+            # Check for assumption-based changes
+            if not change_impact.get("evidence_based", False):
+                return True
+
         return False  # Compliant
 
     def _check_founder_principle(self, principle: str, change_description: str, change_impact: dict) -> bool:
