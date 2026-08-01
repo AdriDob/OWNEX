@@ -1,6 +1,6 @@
-# SETUP GUIDE — CATEYE v4.6.0
+# SETUP GUIDE — OWNEX v7.0.0
 
-> Guía de configuración óptima para usar CATEYE en bug bounty real.
+> Guía de configuración óptima para usar OWNEX en bug bounty real.
 > Elegí el perfil que mejor se adapte a tu equipo y necesidades.
 
 ---
@@ -9,7 +9,7 @@
 
 | Perfil | Hardware | Automatización | Ideal para |
 |--------|----------|----------------|------------|
-| **Mínima** | 4GB RAM, 2 cores | Solo scheduler básico | Probar CATEYE por primera vez |
+| **Mínima** | 4GB RAM, 2 cores | Solo scheduler básico | Probar OWNEX por primera vez |
 | **Recomendada** | 8GB RAM, 4 cores | Scheduler completo + LLM local | Uso diario |
 | **Profesional** | 16GB RAM, 8 cores | Full pipeline + LLM local + recon tools | Uso intensivo |
 | **Máxima** | 32GB+ RAM, 16+ cores | Todo activo + múltiples LLMs | Producción pesada |
@@ -20,7 +20,7 @@
 
 ### Qué instalar
 ```bash
-# Solo lo esencial para que CATEYE funcione
+# Solo lo esencial para que OWNEX funcione
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -41,7 +41,7 @@ python run.py --setup
 - Discovery Monitor (ejecutar manual cuando se necesite)
 
 ### Impacto
-- ✅ CATEYE funciona completamente
+- ✅ OWNEX funciona completamente
 - ❌ No hay recon profundo (solo httpx + katana + nuclei vía API)
 - ❌ No hay detección de pagos automática
 - ❌ Las oportunidades en RAM se pierden al reiniciar
@@ -295,4 +295,4 @@ kill -9 <PID>
 
 ---
 
-*Julio 2026 — CATEYE v4.6.0*
+*Julio 2026 — OWNEX v4.6.0*
