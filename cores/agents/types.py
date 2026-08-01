@@ -31,6 +31,13 @@ class AgentId(StrEnum):
     FINANCE = "finance"
     EVOLUTION = "evolution"
 
+    # Economic Agents
+    RECON = "recon"
+    FUZZER = "fuzzer"
+    VALIDATOR_ECON = "validator_econ"
+    EXPLOITER = "exploiter"
+    SPECIALIST = "specialist"
+
     # Legacy Support (mapped to new specialists)
     COORDINATOR = "coordinator"  # Legacy: maps to Commander
     VALIDATOR = "reviewer"  # Legacy: maps to Reviewer

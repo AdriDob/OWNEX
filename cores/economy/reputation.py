@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
-from threading import Lock
+from threading import RLock
 
 
 class ReputationEventType(str, Enum):
@@ -80,7 +80,7 @@ class ReputationEngine:
     def __init__(self):
         self._scores: dict[str, float] = {}
         self._events: dict[str, list[ReputationEvent]] = {}
-        self._lock = Lock()
+        self._lock = RLock()
 
     def get_score(self, agent_id: str) -> float:
         with self._lock:
