@@ -38,6 +38,16 @@
         </div>
       </div>
       <div class="header-right">
+        <div class="mode-toggle">
+          <button
+            @click="toggleMode"
+            class="mode-btn"
+            :class="{ 'mode-beginner': isBeginnerMode, 'mode-expert': !isBeginnerMode }"
+          >
+            <span class="mode-icon">{{ isBeginnerMode ? '🎓' : '🔬' }}</span>
+            <span class="mode-text">{{ isBeginnerMode ? 'BEGINNER' : 'EXPERT' }}</span>
+          </button>
+        </div>
         <div class="header-metrics">
           <div class="metric">
             <span class="metric-label">CPU</span>
@@ -218,6 +228,7 @@ const isOnline = ref(true)
 const isProcessing = ref(false)
 const userInput = ref('')
 const sidebarCollapsed = ref(false)
+const isBeginnerMode = ref(true)
 
 const greeting = ref('INITIALIZING JARVIS INTERFACE... SYSTEM READY. AWAITING INPUT.')
 const capabilities = ref([
@@ -306,8 +317,8 @@ async function sendMessage() {
     const response = await axios.post('/api/merlin/chat', {
       message: userMessage,
       context: {
-        detail_level: 'normal',
-        response_tone: 'professional',
+        detail_level: isBeginnerMode.value ? 'beginner' : 'expert',
+        response_tone: isBeginnerMode.value ? 'simple' : 'technical',
         enable_analytics: true,
         enable_learning: true
       }
@@ -348,6 +359,20 @@ function scrollToBottom() {
 
 function toggleSidebar() {
   sidebarCollapsed.value = !sidebarCollapsed.value
+}
+
+function toggleMode() {
+  isBeginnerMode.value = !isBeginnerMode.value
+  const mode = isBeginnerMode.value ? 'beginner' : 'expert'
+  messages.value.push({
+    id: Date.now(),
+    role: 'merlin',
+    content: isBeginnerMode.value
+      ? 'BEGINNER MODE ACTIVATED. I will explain everything simply, like I would to a 10-year-old.'
+      : 'EXPERT MODE ACTIVATED. I will provide detailed technical information and implementation details.',
+    timestamp: new Date(),
+    isTyping: false
+  })
 }
 
 function loadLog(log: any) {
@@ -633,6 +658,60 @@ onMounted(() => {
 .header-right {
   display: flex;
   gap: 1rem;
+  align-items: center;
+}
+
+.mode-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 0.25rem;
+  color: #00f0ff;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mode-btn:hover {
+  background: rgba(0, 240, 255, 0.2);
+  border-color: rgba(0, 240, 255, 0.5);
+}
+
+.mode-beginner {
+  border-color: rgba(0, 255, 136, 0.3);
+  color: #00ff88;
+}
+
+.mode-beginner:hover {
+  background: rgba(0, 255, 136, 0.1);
+  border-color: rgba(0, 255, 136, 0.5);
+}
+
+.mode-expert {
+  border-color: rgba(255, 136, 0, 0.3);
+  color: #ff8800;
+}
+
+.mode-expert:hover {
+  background: rgba(255, 136, 0, 0.1);
+  border-color: rgba(255, 136, 0, 0.5);
+}
+
+.mode-icon {
+  font-size: 1rem;
+}
+
+.mode-text {
+  font-weight: 700;
 }
 
 .header-metrics {
