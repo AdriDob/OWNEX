@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  
+  <defs>
+    <linearGradient id="markGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D5FF"/>
+      <stop offset="100%" stop-color="#1E40FF"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D5FF"/>
+      <stop offset="100%" stop-color="#1E40FF" stop-opacity="0.6"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g transform="scale(2.0)">
+    
+  <g id="ownex-mark" filter="url(#glow)">
+    <path d="M 410.9 101.1 L 384.0 128.0 L 258.8 253.2 L 245.4 239.7 L 239.7 245.4 L 253.2 258.8 L 128.0 384.0 L 101.1 410.9 Z" fill="#FFFFFF"/>
+    <path d="M 410.9 101.1 L 384.0 128.0 L 258.8 253.2 L 272.3 239.7 L 266.6 245.4 L 253.2 258.8 L 128.0 384.0 L 101.1 410.9 Z" fill="#FFFFFF"/>
+    <circle cx="256.0" cy="256.0" r="248" fill="none" stroke="#FFFFFF" stroke-width="2.5" opacity="0.35"/>
+    <rect x="252.0" y="252.0" width="8" height="8" rx="2" fill="#FFFFFF"/>
+  </g>
+  </g>
+</svg>
