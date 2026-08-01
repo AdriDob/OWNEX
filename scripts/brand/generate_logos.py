@@ -34,7 +34,7 @@ def lockup_svg(edition: str | None = None, mono: bool = False) -> str:
             f'<text x="{text_x}" y="312" font-family="JetBrains Mono, monospace" font-size="22" '
             f'fill="{tag_fill}" letter-spacing="6">{tag}</text>'
         )
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}">
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {_h}" width="{w}" height="{_h}">
   {mark}
   <text x="{text_x}" y="216" font-family="Space Grotesk, sans-serif" font-weight="700"
         font-size="120" fill="{"#FFFFFF" if mono else "#F6F8FB"}" letter-spacing="8">OWNEX</text>

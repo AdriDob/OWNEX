@@ -87,9 +87,9 @@ def product_overview() -> None:
     for title, _sub, x, y, _accent in nodes:
         texts += [
             (x, y - 20, title, "sg", 600, 24, "#F6F8FB", 2, "center"),
-            (x, y + 14, sub, "inter", 400, 16, C["muted"], 1, "center"),
+            (x, y + 14, _sub, "inter", 400, 16, C["muted"], 1, "center"),
         ]
-    texts += footer_texts("ONE CORE — TWO EDITIONS — EVERY DEVICE")
+    texts += footer_texts("ONE CORE — TWO EDITIONS — EVERY DEVICE", W, H)
     emit("product-overview.png", canvas(body), texts)
 
 
@@ -184,7 +184,7 @@ def mission_control() -> None:
         (bx + 100, 1025, "highest EV before end of cycle.", "inter", 400, 16, "#F6F8FB", 0, "center"),
         (bx + 100, 1060, "EST. VALUE $1,240", "jbm", 500, 14, C["emerald"], 2, "center"),
     ]
-    texts += footer_texts("SCHEDULER ACTIVE · 26 JOBS · EVENT BUS HEALTHY")
+    texts += footer_texts("SCHEDULER ACTIVE · 26 JOBS · EVENT BUS HEALTHY", W, H)
     emit("mission-control.png", canvas(body), texts)
 
 
@@ -234,7 +234,7 @@ def architecture() -> None:
         ]
         labels = ["CONTROL PLANE", "ORGANIZATION", "ORGANIZATION", "EXECUTION", "INTELLIGENCE", "FEEDBACK"]
         texts.append((120, y + 40, labels[i], "jbm", 400, 20, "#3D4A63", 3, "left"))
-    texts += footer_texts("DESIGNED FOR AUTONOMY — HUMAN AT THE DECISION GATE")
+    texts += footer_texts("DESIGNED FOR AUTONOMY — HUMAN AT THE DECISION GATE", W, H)
     emit("architecture.png", canvas(body), texts)
 
 
@@ -296,7 +296,7 @@ def mobile_omega() -> None:
         (watch_x, watch_y + 132, "SWIPE TO APPROVE", "inter", 400, 15, C["muted"], 1, "center"),
         (watch_x, watch_y + 235, "STATUS: CONNECTED", "jbm", 400, 15, C["emerald"], 2, "center"),
     ]
-    texts += footer_texts("PERMANENT CONNECTION — DESKTOP TO WRIST")
+    texts += footer_texts("PERMANENT CONNECTION — DESKTOP TO PHONE", W, H)
     emit("mobile-omega.png", canvas(body), texts)
 
 
@@ -333,7 +333,7 @@ def boot_sequence() -> None:
             (944, 663 + i * 88, s, "jbm", 500, 17, "#F6F8FB", 2, "left"),
             (1520, 663 + i * 88, pct, "jbm", 400, 16, C["emerald"], 2, "right"),
         ]
-    texts += footer_texts("BOOT SEQUENCE 00:00:09 — CLEARANCE: AUTONOMOUS")
+    texts += footer_texts("BOOT SEQUENCE 00:00:09 — CLEARANCE: AUTONOMOUS", W, H)
     emit("boot-sequence.png", canvas(body), texts)
 
 
