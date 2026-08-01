@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <rect width="1920" height="1080" fill="#050505"/>
+  
+  <!-- Subtle grid pattern -->
+  <defs>
+    <pattern id="heroGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#3B82F6" stroke-width="0.5" opacity="0.1"/>
+    </pattern>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#heroGrid)"/>
+  
+  <!-- Central hero circle -->
+  <circle cx="960" cy="540" r="200" fill="none" stroke="#3B82F6" stroke-width="2" opacity="0.3"/>
+  <circle cx="960" cy="540" r="150" fill="none" stroke="#3B82F6" stroke-width="1.5" opacity="0.2"/>
+  <circle cx="960" cy="540" r="100" fill="#3B82F6" opacity="0.1"/>
+  
+  <!-- Data flow lines -->
+  <line x1="200" y1="540" x2="760" y2="540" stroke="#3B82F6" stroke-width="1" opacity="0.3"/>
+  <line x1="1160" y1="540" x2="1720" y2="540" stroke="#3B82F6" stroke-width="1" opacity="0.3"/>
+  <line x1="960" y1="200" x2="960" y2="440" stroke="#3B82F6" stroke-width="1" opacity="0.3"/>
+  <line x1="960" y1="640" x2="960" y2="880" stroke="#3B82F6" stroke-width="1" opacity="0.3"/>
+  
+  <!-- Accent dots -->
+  <circle cx="760" cy="540" r="4" fill="#F59E0B" opacity="0.8"/>
+  <circle cx="1160" cy="540" r="4" fill="#F59E0B" opacity="0.8"/>
+  <circle cx="960" cy="440" r="4" fill="#F59E0B" opacity="0.8"/>
+  <circle cx="960" cy="640" r="4" fill="#F59E0B" opacity="0.8"/>
+  
+  <!-- Text placeholder -->
+  <text x="960" y="950" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#F0F0F0" opacity="0.6">OWNEX OMEGA</text>
+  <text x="960" y="980" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#3B82F6" opacity="0.8">Autonomous Work Operating System</text>
+</svg>
