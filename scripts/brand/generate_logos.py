@@ -15,7 +15,7 @@ MARK_SCALE = 0.5  # mark scale in lockups
 
 def lockup_svg(edition: str | None = None, mono: bool = False) -> str:
     """Horizontal lockup: mark + OWNEX wordmark + optional edition tag."""
-    w, h = 1024, 384
+    w, _h = 1024, 384
     variant = "alpha" if edition is None else edition.lower()
     mark_x = 200
     mark_scale = MARK_SCALE
