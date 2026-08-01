@@ -15,16 +15,16 @@ MARK_SCALE = 0.5  # mark scale in lockups
 
 def lockup_svg(edition: str | None = None, mono: bool = False) -> str:
     """Horizontal lockup: mark + OWNEX wordmark + optional edition tag."""
-    W, H = 1024, 384
+    w, h = 1024, 384
     variant = "alpha" if edition is None else edition.lower()
     mark_x = 200
     mark_scale = MARK_SCALE
     text_x = mark_x + 170 * mark_scale + 110
     if mono:
-        mark = mark_svg(variant, mono=True, size=W)
+        mark = mark_svg(variant, mono=True, size=w)
         tag_fill = "#FFFFFF"
     else:
-        mark = mark_svg(variant, mono=False, size=W)
+        mark = mark_svg(variant, mono=False, size=w)
         tag_fill = C["cyber_cyan"] if variant == "alpha" else C["emerald"]
     # SVG text (rendered by browsers); PNG text composited by PIL.
     edition_tag = ""
@@ -43,7 +43,6 @@ def lockup_svg(edition: str | None = None, mono: bool = False) -> str:
 
 
 def lockup_png(edition: str | None, mono: bool, out: Path, width: int = 2048) -> Path:
-    "alpha" if edition is None else edition.lower()
     svg = lockup_svg(edition, mono)
     tmp = out.with_suffix(".tmp.png")
     render(svg, tmp, width=width)
