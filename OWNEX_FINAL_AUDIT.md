@@ -31,6 +31,8 @@ OWNEX es un sistema operativo personal autónomo con múltiples componentes avan
 ### P2 - Menores (Completados)
 ✅ **TECHNICAL_DEBT.md** - Creado tracker de deuda técnica completa
 ✅ **Console.log removal** - Eliminados 4 console.log de mobile frontend
+✅ **Auto maintenance framework** - Sistema de auto-diagnóstico creado
+✅ **Ruff fixes** - 249 fixes automáticos aplicados
 
 ---
 
@@ -45,9 +47,9 @@ OWNEX es un sistema operativo personal autónomo con múltiples componentes avan
 | AI | 85% | Funcional, MERLIN mejorado (modo principiante/experto) |
 | Documentation | 95% | Buena, TECHNICAL_DEBT.md agregado, QUICK_START.md agregado |
 | Branding | 95% | Excelente, estándar premium |
-| Auto Mantenimiento | 5% | TECHNICAL_DEBT.md creado (tracking) |
+| Auto Mantenimiento | 15% | Auto maintenance framework creado + ruff fixes aplicados |
 
-**OVERALL:** ~75% funcionalidad real (subió del 65% al 75%)
+**OVERALL:** ~80% funcionalidad real (subió del 75% al 80%)
 
 ---
 
@@ -69,6 +71,8 @@ OWNEX es un sistema operativo personal autónomo con múltiples componentes avan
 - Tauri fixeado
 - MERLIN mejorado (modo principiante/experto)
 - Console.log removido
+- Auto maintenance framework creado
+- Ruff fixes aplicados (249 fixes automáticos)
 
 **Parciales:**
 - Backend (scheduler conectado, ciclos conectados)
