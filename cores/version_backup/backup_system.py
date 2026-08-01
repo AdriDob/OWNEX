@@ -219,14 +219,19 @@ class VersionBackupSystem:
                     }
                 )
 
-            # Calculate checksum
-            checksum = self._calculate_checksum(backup_path)
-            manifest["checksum"] = checksum
             manifest["size"] = total_size
             manifest["total_files"] = len(manifest["files"])
 
-            # Save manifest
+            # Save manifest first (without checksum)
             manifest_path = backup_path / "manifest.json"
+            with open(manifest_path, "w") as f:
+                json.dump(manifest, f, indent=2)
+
+            # Calculate checksum excluding manifest.json (avoids circular dependency)
+            checksum = self._calculate_checksum(backup_path, exclude="manifest.json")
+            manifest["checksum"] = checksum
+
+            # Re-save manifest with checksum
             with open(manifest_path, "w") as f:
                 json.dump(manifest, f, indent=2)
 
@@ -267,12 +272,14 @@ class VersionBackupSystem:
                 error=str(e),
             )
 
-    def _calculate_checksum(self, path: Path) -> str:
+    def _calculate_checksum(self, path: Path, exclude: str = "") -> str:
         """Calculate SHA256 checksum of a directory."""
         sha256_hash = hashlib.sha256()
 
         for item in sorted(path.rglob("*")):
             if item.is_file():
+                if exclude and item.name == exclude and item.parent == path:
+                    continue
                 with open(item, "rb") as f:
                     for chunk in iter(lambda: f.read(4096), b""):
                         sha256_hash.update(chunk)
@@ -399,7 +406,7 @@ class VersionBackupSystem:
 
         # Verify checksum
         expected_checksum = manifest.get("checksum", "")
-        actual_checksum = self._calculate_checksum(backup_path)
+        actual_checksum = self._calculate_checksum(backup_path, exclude="manifest.json")
 
         if expected_checksum != actual_checksum:
             return {
