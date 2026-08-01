@@ -43,16 +43,16 @@ def alpha_wallpaper() -> None:
 
 
 def omega_splash() -> None:
-    W2, H2 = 1080, 2400
+    w2, h2 = 1080, 2400
     mark = mark_svg("omega", size=512)
     texts = [
-        (W2 / 2, 640, "OWNEX", "sg", 700, 120, "#F6F8FB", 14, "center"),
-        (W2 / 2, 720, "OMEGA", "jbm", 500, 40, C["emerald"], 8, "center"),
-        (W2 / 2, 790, "MOBILE COMPANION", "inter", 400, 28, C["muted"], 6, "center"),
-        (W2 / 2, 1750, "SYSTEM LINKED", "jbm", 400, 26, C["emerald"], 5, "center"),
-        (W2 / 2, 1810, "12 AGENTS · 3 APPROVALS · MEMORY SYNCED", "jbm", 400, 20, "#3D4A63", 3, "center"),
+        (w2 / 2, 640, "OWNEX", "sg", 700, 120, "#F6F8FB", 14, "center"),
+        (w2 / 2, 720, "OMEGA", "jbm", 500, 40, C["emerald"], 8, "center"),
+        (w2 / 2, 790, "MOBILE COMPANION", "inter", 400, 28, C["muted"], 6, "center"),
+        (w2 / 2, 1750, "SYSTEM LINKED", "jbm", 400, 26, C["emerald"], 5, "center"),
+        (w2 / 2, 1810, "12 AGENTS · 3 APPROVALS · MEMORY SYNCED", "jbm", 400, 20, "#3D4A63", 3, "center"),
     ]
-    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W2} {H2}">
+    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w2} {h2}">
   <defs>
     <radialGradient id="splashGlow" cx="50%" cy="30%" r="50%">
       <stop offset="0%" stop-color="#00E39A" stop-opacity="0.12"/>
@@ -64,17 +64,17 @@ def omega_splash() -> None:
       <stop offset="100%" stop-color="#080C16"/>
     </linearGradient>
   </defs>
-  <rect width="{W2}" height="{H2}" fill="url(#splashBg)"/>
-  <rect width="{W2}" height="{H2}" fill="url(#splashGlow)"/>
-  {"".join(f'<line x1="{x}" y1="0" x2="{x}" y2="{H2}" stroke="#0A0F1C" stroke-width="1"/>' for x in range(0, W2 + 1, 135))}
-  {"".join(f'<line x1="0" y1="{y}" x2="{W2}" y2="{y}" stroke="#0A0F1C" stroke-width="1"/>' for y in range(0, H2 + 1, 135))}
-  <g transform="translate({W2 / 2}, 300) scale(1.35)"><g transform="translate(-256,-256) scale(0.8)">{mark}</g></g>
-  <rect x="{W2 / 2 - 300}" y="1640" width="600" height="300" rx="24" fill="#0B0E15" stroke="#1D2430" stroke-width="1.5"/>
-  <rect x="{W2 / 2 - 240}" y="1710" width="480" height="14" rx="7" fill="#16213A"/>
-  <rect x="{W2 / 2 - 240}" y="1710" width="360" height="14" rx="7" fill="#00E39A"/>
+  <rect width="{w2}" height="{h2}" fill="url(#splashBg)"/>
+  <rect width="{w2}" height="{h2}" fill="url(#splashGlow)"/>
+  {"".join(f'<line x1="{x}" y1="0" x2="{x}" y2="{h2}" stroke="#0A0F1C" stroke-width="1"/>' for x in range(0, w2 + 1, 135))}
+  {"".join(f'<line x1="0" y1="{y}" x2="{w2}" y2="{y}" stroke="#0A0F1C" stroke-width="1"/>' for y in range(0, h2 + 1, 135))}
+  <g transform="translate({w2 / 2}, 300) scale(1.35)"><g transform="translate(-256,-256) scale(0.8)">{mark}</g></g>
+  <rect x="{w2 / 2 - 300}" y="1640" width="600" height="300" rx="24" fill="#0B0E15" stroke="#1D2430" stroke-width="1.5"/>
+  <rect x="{w2 / 2 - 240}" y="1710" width="480" height="14" rx="7" fill="#16213A"/>
+  <rect x="{w2 / 2 - 240}" y="1710" width="360" height="14" rx="7" fill="#00E39A"/>
 </svg>"""
     out = MOBILE / "omega-splash.png"
-    render(svg, out, width=W2, text_fn=lambda d, s: _draw(d, texts, s), text_scale=1.0)
+    render(svg, out, width=w2, text_fn=lambda d, s: _draw(d, texts, s), text_scale=1.0)
     (MOBILE / "omega-splash.svg").write_text(svg)
     print("mobile:", out)
 
