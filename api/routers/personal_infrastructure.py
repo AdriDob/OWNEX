@@ -27,8 +27,8 @@ logger = logging.getLogger("ownex.api.personal_infrastructure")
 
 router = APIRouter(prefix="/api/personal-infrastructure", tags=["personal-infrastructure"])
 
-
 # ==================== ENDPOINTS DE OBJETIVOS ====================
+
 
 @router.get("/objectives")
 async def get_all_objectives():
@@ -58,7 +58,7 @@ async def get_objective(objective_id: str):
     objective = manager.get_objective(objective_id)
 
     if not objective:
-        raise HTTPException(status_code=404, detail=f"Objective {objective_id} not found")
+        raise HTTPException(status_code=404, detail=f"Objective {objective_id} not found") from None
 
     return {
         "id": objective.objective_id,
@@ -103,7 +103,7 @@ async def start_objective(objective_id: str):
             "current_step": progress.current_step,
         }
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
+        raise HTTPException(status_code=404, detail=str(exc)) from None
 
 
 @router.get("/objectives/{objective_id}/progress")
@@ -113,7 +113,7 @@ async def get_objective_progress(objective_id: str):
     progress = manager.progress.get(objective_id)
 
     if not progress:
-        raise HTTPException(status_code=404, detail=f"Objective {objective_id} not started")
+        raise HTTPException(status_code=404, detail=f"Objective {objective_id} not started") from None
 
     return {
         "objective_id": progress.objective_id,
@@ -134,7 +134,7 @@ async def complete_integration_task(objective_id: str, integration_id: str):
     success = manager.complete_integration_task(objective_id, integration_id)
 
     if not success:
-        raise HTTPException(status_code=400, detail="Failed to complete task")
+        raise HTTPException(status_code=400, detail="Failed to complete task") from None
 
     progress = manager.progress.get(objective_id)
     return {
@@ -145,6 +145,7 @@ async def complete_integration_task(objective_id: str, integration_id: str):
 
 
 # ==================== ENDPOINTS DE INFRAESTRUCTURA ====================
+
 
 @router.get("/snapshot")
 async def get_infrastructure_snapshot():
@@ -184,7 +185,7 @@ async def get_integration_explanation(integration_id: str):
     explanation = manager.explain_integration(integration_id)
 
     if not explanation:
-        raise HTTPException(status_code=404, detail=f"Integration {integration_id} not found")
+        raise HTTPException(status_code=404, detail=f"Integration {integration_id} not found") from None
 
     return {
         "title": explanation.title,
@@ -198,6 +199,7 @@ async def get_integration_explanation(integration_id: str):
 
 
 # ==================== ENDPOINTS DE WEALTH ====================
+
 
 @router.post("/wealth/income")
 async def add_income(
@@ -228,7 +230,7 @@ async def add_income(
             "date": income.date.isoformat(),
         }
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail=str(exc)) from None
 
 
 @router.post("/wealth/expenses")
@@ -258,7 +260,7 @@ async def add_expense(
             "date": expense.date.isoformat(),
         }
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail=str(exc)) from None
 
 
 @router.get("/wealth/summary/{year}/{month}")
@@ -291,6 +293,7 @@ async def get_financial_health():
 
 # ==================== ENDPOINTS DE ADMINISTRACIÓN ====================
 
+
 @router.get("/admin/processes")
 async def get_admin_processes():
     """Obtener todos los procesos administrativos."""
@@ -317,7 +320,7 @@ async def get_admin_process(process_id: str):
     status = navigator.get_process_status(process_id)
 
     if "error" in status:
-        raise HTTPException(status_code=404, detail=status["error"])
+        raise HTTPException(status_code=404, detail=status["error"]) from None
 
     return status
 
@@ -334,7 +337,7 @@ async def start_admin_process(process_id: str):
             "started_at": process.started_at.isoformat() if process.started_at else None,
         }
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
+        raise HTTPException(status_code=404, detail=str(exc)) from None
 
 
 @router.post("/admin/processes/{process_id}/advance")
@@ -344,7 +347,7 @@ async def advance_admin_step(process_id: str, step_id: str):
     success = navigator.advance_step(process_id, step_id)
 
     if not success:
-        raise HTTPException(status_code=400, detail="Failed to advance step")
+        raise HTTPException(status_code=400, detail="Failed to advance step") from None
 
     status = navigator.get_process_status(process_id)
     return status
@@ -358,6 +361,7 @@ async def get_next_admin_action():
 
 
 # ==================== ENDPOINTS DE HEALTH CENTER ====================
+
 
 @router.get("/health/overview")
 async def get_health_overview():
@@ -382,6 +386,7 @@ async def get_health_score_by_category():
 
 # ==================== ENDPOINTS DE APROBACIONES ====================
 
+
 @router.get("/approval/check")
 async def check_approval_category(action: str):
     """Determinar categoría de aprobación para una acción."""
@@ -392,6 +397,7 @@ async def check_approval_category(action: str):
 
 # ==================== ENDPOINTS DE ARGENTINA/ARCA ====================
 
+
 @router.get("/argentina/tax-category/{category}")
 async def get_tax_category_explanation(category: str):
     """Obtener explicación de categoría fiscal argentina."""
@@ -400,7 +406,7 @@ async def get_tax_category_explanation(category: str):
         afip_category = AFIPCategory(category)
         return support.get_tax_category_explanation(afip_category)
     except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid category: {category}")
+        raise HTTPException(status_code=400, detail=f"Invalid category: {category}") from None
 
 
 @router.get("/argentina/recommendation/{annual_income_usd}")

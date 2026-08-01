@@ -111,7 +111,7 @@ async def get_zero_barrier_opportunities(
 
     except Exception as e:
         logger.error(f"[ZERO-BARRIER] Error getting opportunities: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/opportunities")
@@ -171,7 +171,7 @@ async def create_zero_barrier_opportunity(request: ZeroBarrierOpportunityRequest
 
     except Exception as e:
         logger.error(f"[ZERO-BARRIER] Error creating opportunity: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/stats")
@@ -220,7 +220,7 @@ async def get_zero_barrier_stats() -> dict[str, Any]:
 
     except Exception as e:
         logger.error(f"[ZERO-BARRIER] Error getting stats: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/platforms")
@@ -318,10 +318,10 @@ async def sync_platform_earnings(platform: str, api_key: str = "") -> dict[str, 
 
     except ImportError as e:
         logger.error(f"[ZERO-BARRIER] Platform connector not found: {e}")
-        raise HTTPException(status_code=404, detail=f"Platform connector for {platform} not found")
+        raise HTTPException(status_code=404, detail=f"Platform connector for {platform} not found") from None
     except Exception as e:
         logger.error(f"[ZERO-BARRIER] Error syncing platform: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/revenue-potential")
@@ -352,4 +352,4 @@ async def get_revenue_potential(include_market_modules: bool = True) -> dict[str
         return report
     except Exception as e:
         logger.error(f"[ZERO-BARRIER] Error generating revenue potential: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None

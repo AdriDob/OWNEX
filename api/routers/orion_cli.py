@@ -11,28 +11,6 @@ logger = logging.getLogger("orion.cli.api")
 router = APIRouter(prefix="/api/cli", tags=["orion_cli"])
 
 
-@router.get("/doctor")
-async def cli_doctor(
-    component: str = Query(
-        "all",
-        description="Component to check: all, database, api, pipeline, evidence, verdicts, reports, ai, quick_wins, replay, screenshot, adaptive, timeline, memory, operations",
-    ),
-    fix: bool = Query(False, description="Attempt auto-fix if issues found"),
-):
-    """Run system doctor diagnostics (equivalent to 'orion doctor')."""
-    from cores.operations import get_operations_manager
-
-    ops = get_operations_manager()
-    result = await ops.run_doctor(component=component, fix=fix)
-
-    return {
-        "success": True,
-        "command": "doctor",
-        "summary": result.get("summary", "Doctor check completed"),
-        "details": result,
-    }
-
-
 @router.get("/help")
 async def cli_help(command: str = ""):
     """Lista de comandos disponibles."""

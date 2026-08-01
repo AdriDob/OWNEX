@@ -51,7 +51,7 @@ def create_reflection(request: ReflectionRequest):
         }
     except Exception as e:
         logger.error(f"Failed to create reflection: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/reflections")
@@ -67,7 +67,7 @@ def get_reflections(status: str | None = None):
         }
     except Exception as e:
         logger.error(f"Failed to get reflections: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/reflections/pending")
@@ -83,7 +83,7 @@ def get_pending_reflections():
         }
     except Exception as e:
         logger.error(f"Failed to get pending reflections: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/reflections/high-priority")
@@ -99,7 +99,7 @@ def get_high_priority_reflections(limit: int = 10):
         }
     except Exception as e:
         logger.error(f"Failed to get high priority reflections: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/reflections/{reflection_id}/status")
@@ -119,7 +119,7 @@ def update_reflection_status(reflection_id: str, new_status: str):
         raise
     except Exception as e:
         logger.error(f"Failed to update reflection status: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/plan")
@@ -134,7 +134,7 @@ def get_improvement_plan():
         }
     except Exception as e:
         logger.error(f"Failed to get improvement plan: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/plan/auto-generate")
@@ -149,7 +149,7 @@ def auto_generate_plan():
         }
     except Exception as e:
         logger.error(f"Failed to auto-generate plan: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/actions")
@@ -165,7 +165,7 @@ def get_actions(status: str | None = None):
         }
     except Exception as e:
         logger.error(f"Failed to get actions: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/actions/pending")
@@ -181,7 +181,7 @@ def get_pending_actions():
         }
     except Exception as e:
         logger.error(f"Failed to get pending actions: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/actions/high-priority")
@@ -197,7 +197,7 @@ def get_high_priority_actions(limit: int = 10):
         }
     except Exception as e:
         logger.error(f"Failed to get high priority actions: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/actions/status")
@@ -217,7 +217,7 @@ def update_action_status(request: ActionStatusRequest):
         raise
     except Exception as e:
         logger.error(f"Failed to update action status: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/dashboard")
@@ -246,4 +246,4 @@ def get_dashboard():
         }
     except Exception as e:
         logger.error(f"Failed to get dashboard: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
