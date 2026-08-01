@@ -1,49 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 2400">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 2400" width="1080" height="2400">
   <defs>
-    <radialGradient id="splashGlow" cx="50%" cy="30%" r="50%">
-      <stop offset="0%" stop-color="#00E39A" stop-opacity="0.12"/>
-      <stop offset="60%" stop-color="#00D5FF" stop-opacity="0.04"/>
-      <stop offset="100%" stop-color="#05060A" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="splashBg" x1="0%" y1="0%" x2="0%" y2="100%">
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#05060A"/>
-      <stop offset="100%" stop-color="#080C16"/>
+      <stop offset="100%" stop-color="#0B0E15"/>
     </linearGradient>
   </defs>
-  <rect width="1080" height="2400" fill="url(#splashBg)"/>
-  <rect width="1080" height="2400" fill="url(#splashGlow)"/>
-  <line x1="0" y1="0" x2="0" y2="2400" stroke="#0A0F1C" stroke-width="1"/><line x1="135" y1="0" x2="135" y2="2400" stroke="#0A0F1C" stroke-width="1"/><line x1="270" y1="0" x2="270" y2="2400" stroke="#0A0F1C" stroke-width="1"/><line x1="405" y1="0" x2="405" y2="2400" stroke="#0A0F1C" stroke-width="1"/><line x1="540" y1="0" x2="540" y2="2400" stroke="#0A0F1C" stroke-width="1"/><line x1="675" y1="0" x2="675" y2="2400" stroke="#0A0F1C" stroke-width="1"/><line x1="810" y1="0" x2="810" y2="2400" stroke="#0A0F1C" stroke-width="1"/><line x1="945" y1="0" x2="945" y2="2400" stroke="#0A0F1C" stroke-width="1"/><line x1="1080" y1="0" x2="1080" y2="2400" stroke="#0A0F1C" stroke-width="1"/>
-  <line x1="0" y1="0" x2="1080" y2="0" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="135" x2="1080" y2="135" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="270" x2="1080" y2="270" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="405" x2="1080" y2="405" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="540" x2="1080" y2="540" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="675" x2="1080" y2="675" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="810" x2="1080" y2="810" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="945" x2="1080" y2="945" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1080" x2="1080" y2="1080" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1215" x2="1080" y2="1215" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1350" x2="1080" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1485" x2="1080" y2="1485" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1620" x2="1080" y2="1620" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1755" x2="1080" y2="1755" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1890" x2="1080" y2="1890" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="2025" x2="1080" y2="2025" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="2160" x2="1080" y2="2160" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="2295" x2="1080" y2="2295" stroke="#0A0F1C" stroke-width="1"/>
-  <g transform="translate(540.0, 300) scale(1.35)"><g transform="translate(-256,-256) scale(0.8)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  
-  <defs>
-    <linearGradient id="markGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00E39A"/>
-      <stop offset="100%" stop-color="#00D5FF"/>
-    </linearGradient>
-    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00E39A"/>
-      <stop offset="100%" stop-color="#00D5FF" stop-opacity="0.6"/>
-    </linearGradient>
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
-  <g transform="scale(1.0)">
-    
-  <g id="ownex-mark" filter="url(#glow)">
+  <rect width="1080" height="2400" fill="url(#bgGrad)"/>
+  <g transform="translate(540.0, 1200.0) scale(1.265625)"><g id="ownex-mark" filter="url(#glow)">
     <path d="M 410.9 101.1 L 384.0 128.0 L 258.8 253.2 L 245.4 239.7 L 239.7 245.4 L 253.2 258.8 L 128.0 384.0 L 101.1 410.9 Z" fill="url(#markGrad)"/>
     <path d="M 410.9 101.1 L 384.0 128.0 L 258.8 253.2 L 272.3 239.7 L 266.6 245.4 L 253.2 258.8 L 128.0 384.0 L 101.1 410.9 Z" fill="url(#markGrad)"/>
     <circle cx="256.0" cy="256.0" r="248" fill="none" stroke="#00D5FF" stroke-width="2.5" opacity="0.35"/>
     <rect x="252.0" y="252.0" width="8" height="8" rx="2" fill="url(#markGrad)"/>
-  </g>
-  </g>
-</svg></g></g>
-  <rect x="240.0" y="1640" width="600" height="300" rx="24" fill="#0B0E15" stroke="#1D2430" stroke-width="1.5"/>
-  <rect x="300.0" y="1710" width="480" height="14" rx="7" fill="#16213A"/>
-  <rect x="300.0" y="1710" width="360" height="14" rx="7" fill="#00E39A"/>
+  </g></g>
+  <text x="540.0" y="1600.0" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="100" fill="#F6F8FB" letter-spacing="12" text-anchor="middle">OWNEX</text>
+  <text x="540.0" y="1680.0" font-family="JetBrains Mono, monospace" font-size="32" fill="#00E39A" letter-spacing="8" text-anchor="middle">OMEGA — ANDROID & WEAR OS COMPANION</text>
 </svg>

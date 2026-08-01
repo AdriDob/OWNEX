@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="assets/banners/hero-banner.png" alt="OWNEX — The Personalized Autonomous Operating System" width="100%"/>
+  <img src="assets/banners/hero-banner-alpha.png" alt="OWNEX ALPHA" width="100%"/>
+</p>
+
+<p align="center">
+  <img src="assets/logos/ownex-lockup-alpha.png" alt="OWNEX ALPHA" width="600"/>
 </p>
 
 <p align="center">
@@ -13,67 +17,23 @@
 
 ---
 
-# OWNEX
+## OWNEX ALPHA — Desktop Operating System
 
-## The Personalized Autonomous Operating System
+The command center for autonomous operations. Mission Control, agent fleet, terminal, memory, evolution engine.
 
-An intelligent system that learns your goals, adapts to your workflow and helps you build, automate and evolve.
-
----
-
-## What is OWNEX?
-
-OWNEX is a personalized autonomous operating system designed to help individuals learn, create, automate and execute tasks with intelligent AI agents.
-
-It is not a collection of tools. It is a system that observes how you work, understands your objectives, and evolves alongside you — from a desktop command center to your phone and wrist.
-
-OWNEX runs a continuous **Evolution Loop**:
-
-```
-Observe → Understand → Recommend → Improve → Learn
-```
-
-Every interaction teaches the system. Every decision refines its model of you. The result: a personal operating environment that becomes more valuable the longer you use it.
+<p align="center">
+  <img src="assets/banners/hero-banner-alpha.png" alt="OWNEX ALPHA Hero" width="100%"/>
+</p>
 
 ---
 
-## Brand Architecture
+## OWNEX OMEGA — Android & Wear OS Companion
 
-OWNEX is organized into four interconnected layers:
+Permanent connection: approvals, notifications, MERLIN chat, system health — on your phone and wrist.
 
-| Layer | Identity | Role |
-|-------|----------|------|
-| **OWNEX ALPHA** | Desktop Core | Mission Control, development environment, agent orchestration, automation, engineering |
-| **OWNEX OMEGA** | Mobile Companion | Personal connection, notifications, approvals, daily intelligence, anywhere access |
-| **MERLIN** | Personal AI Agent | Teacher, assistant, guide, explanation layer, memory |
-| **ORION** | System Intelligence Layer | Health monitoring, evolution, optimization, self-improvement |
-
-```
-OWNEX ALPHA
-    ↓
-MERLIN
-    ↓
-Agent Departments
-    ↓
-Execution Layer
-    ↓
-Memory
-    ↓
-Evolution Engine (ORION)
-    ↓
-OWNEX OMEGA
-```
-
----
-
-## One System, Two Editions
-
-OWNEX ships as two connected identities sharing a single core.
-
-| ALPHA — Desktop Operating System | OMEGA — Android & Wear OS Companion |
-|---|---|
-| <img src="assets/logos/ownex-alpha.png" alt="ALPHA" width="280"/> | <img src="assets/logos/ownex-omega.png" alt="OMEGA" width="280"/> |
-| Command center: agents, workflows, terminal, memory, evolution engine, mission-control dashboard. | Permanent connection: approvals, notifications, MERLIN chat, system health — on your phone and wrist. |
+<p align="center">
+  <img src="assets/banners/hero-banner-omega.png" alt="OWNEX OMEGA Hero" width="100%"/>
+</p>
 
 ---
 
@@ -89,25 +49,6 @@ OWNEX ships as two connected identities sharing a single core.
 | Executive dashboard (revenue verdict, USD/hour, platform speed) | Production |
 | Self-update, version backup, recovery engine | Production |
 | 6-language interface (EN, ES, FR, DE, JA, ZH) | Production |
-
----
-
-## Architecture
-
-Control plane, departments, agents, execution, learning, feedback — designed for autonomy, with the human at every decision gate.
-
-<p align="center">
-  <img src="assets/concepts/architecture.png" alt="Architecture" width="80%"/>
-</p>
-
-| Layer | Responsibility |
-|---|---|
-| **OWNEX Core** | Event bus, scheduler, unified memory, security layer |
-| **Departments** | Orchestrator · Engineering · Quality · Security · Revenue |
-| **Agents** | Autonomous specialists coordinated per department |
-| **Execution** | Workflows, executors, platform connectors |
-| **Learning** | Feedback loops, knowledge capture, reward models |
-| **Evolution (ORION)** | Self-improvement, version rollback, recovery |
 
 ---
 
@@ -150,24 +91,10 @@ python run.py --backup                   # snapshot before changes
 
 ## Documentation
 
-- [Documentation Index](DOCUMENTATION_INDEX.md) — Complete documentation index
-- [Troubleshooting Guide](TROUBLESHOOTING.md) — Common issues and solutions
-- [API Reference](API_REFERENCE.md) — Complete API documentation
-- [Brand Usage Guide](BRAND_USAGE_GUIDE.md) — Brand asset usage guidelines
-- [Screenshot Guide](SCREENSHOT_GUIDE.md) — Screenshot standards and process
-- [Brand Identity](assets/branding/OWNEX_BRAND_IDENTITY.md) — Complete brand identity
-- [Design Tokens](assets/branding/design-tokens.json) — Machine-readable brand tokens
-- [Trailer Storyboard](assets/video/trailer-storyboard.md) — 90s product trailer structure
-- [Agent Charter](.ai/AGENT_CHARTER.md) — Constitution and operating rules
-- [Architecture](.ai/ARCHITECTURE_FINAL.md) — Full architectural decisions
-
----
-
-## Philosophy
-
-**Consolidation over expansion.** OWNEX does not grow by adding modules; it grows by closing loops. Every component must produce observable results, survive restarts, and connect to at least one real consumer. If it cannot be verified, it does not exist.
-
-**The system adapts to the person, not the person to the software.**
+- [Brand Identity](assets/branding/OWNEX_BRAND_IDENTITY.md) — marks, colors, type, usage rules
+- [Design Tokens](assets/branding/design-tokens.json) — machine-readable brand tokens
+- [Agent Charter](.ai/AGENT_CHARTER.md) — constitution and operating rules
+- [Architecture](.ai/ARCHITECTURE_FINAL.md) — full architectural decisions
 
 ---
 
@@ -178,7 +105,7 @@ MIT — see [LICENSE](LICENSE). Brand fonts: SIL OFL 1.1 (Google Fonts).
 ---
 
 <p align="center">
-  <img src="assets/logos/ownex-mark.png" alt="OWNEX" width="140"/>
+  <img src="assets/logos/ownex-mark-alpha.png" alt="OWNEX" width="120"/>
 </p>
 
-<p align="center"><sub>OWNEX — The Personalized Autonomous Operating System · ALPHA + OMEGA</sub></p>
+<p align="center"><sub>OWNEX — Autonomous Personal Operating System · ALPHA + OMEGA</sub></p>
