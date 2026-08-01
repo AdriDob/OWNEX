@@ -43,7 +43,7 @@ async def register(payload: RegisterRequest):
 
         return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/login")
@@ -63,7 +63,7 @@ async def login(payload: LoginRequest):
 
         return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/logout")

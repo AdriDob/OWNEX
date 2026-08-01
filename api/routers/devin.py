@@ -54,7 +54,7 @@ async def run_devin_task(payload: dict[str, Any]):
             "task": task.__dict__,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/refactor")
@@ -75,7 +75,7 @@ async def refactor_code(payload: dict[str, Any]):
             "task": task.__dict__,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/implement")
@@ -96,7 +96,7 @@ async def implement_feature(payload: dict[str, Any]):
             "task": task.__dict__,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/debug")
@@ -117,7 +117,7 @@ async def debug_code(payload: dict[str, Any]):
             "task": task.__dict__,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/test")
@@ -138,7 +138,7 @@ async def generate_tests(payload: dict[str, Any]):
             "task": task.__dict__,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/optimize")
@@ -159,7 +159,7 @@ async def optimize_code(payload: dict[str, Any]):
             "task": task.__dict__,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/review")
@@ -180,7 +180,7 @@ async def code_review(payload: dict[str, Any]):
             "task": task.__dict__,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.post("/plan")
@@ -200,7 +200,7 @@ async def plan_feature(payload: dict[str, Any]):
             "task": task.__dict__,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/tasks/{task_id}")
