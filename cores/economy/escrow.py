@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Optional
 from threading import Lock
+from typing import Any
 
 
 class EscrowStatus(str, Enum):
@@ -38,12 +39,12 @@ class EscrowAccount:
     description: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.utcnow)
-    funded_at: Optional[datetime] = None
-    expires_at: Optional[datetime] = None
-    released_at: Optional[datetime] = None
+    funded_at: datetime | None = None
+    expires_at: datetime | None = None
+    released_at: datetime | None = None
     released_amount: float = 0.0
-    dispute_id: Optional[str] = None
-    auto_release_after: Optional[timedelta] = None
+    dispute_id: str | None = None
+    auto_release_after: timedelta | None = None
     release_conditions: list[Callable[..., bool]] = field(default_factory=list)
 
 
@@ -55,11 +56,11 @@ class Dispute:
     reason: str
     evidence: dict[str, Any] = field(default_factory=dict)
     status: DisputeResolution = DisputeResolution.PENDING
-    resolver_id: Optional[str] = None
-    resolution: Optional[str] = None
+    resolver_id: str | None = None
+    resolution: str | None = None
     created_at: datetime = field(default_factory=datetime.utcnow)
-    resolved_at: Optional[datetime] = None
-    split_ratio: Optional[float] = None
+    resolved_at: datetime | None = None
+    split_ratio: float | None = None
 
 
 class EscrowManager:
@@ -80,8 +81,8 @@ class EscrowManager:
         amount: float,
         currency: str = "USDC",
         description: str = "",
-        expires_in: Optional[timedelta] = None,
-        auto_release_after: Optional[timedelta] = None,
+        expires_in: timedelta | None = None,
+        auto_release_after: timedelta | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> str:
         escrow_id = f"esc_{uuid.uuid4().hex[:12]}"
@@ -123,7 +124,7 @@ class EscrowManager:
             escrow.status = EscrowStatus.LOCKED
             return True
 
-    def release_escrow(self, escrow_id: str, releaser_id: str, amount: Optional[float] = None) -> bool:
+    def release_escrow(self, escrow_id: str, releaser_id: str, amount: float | None = None) -> bool:
         with self._lock:
             escrow = self._escrows.get(escrow_id)
             if not escrow or escrow.status not in (EscrowStatus.FUNDED, EscrowStatus.LOCKED):
@@ -184,7 +185,7 @@ class EscrowManager:
         dispute_id: str,
         resolver_id: str,
         resolution: DisputeResolution,
-        split_ratio: Optional[float] = None,
+        split_ratio: float | None = None,
         resolution_note: str = "",
     ) -> bool:
         with self._lock:
@@ -211,19 +212,19 @@ class EscrowManager:
                 escrow.status = EscrowStatus.REFUNDED
             return True
 
-    def get_escrow(self, escrow_id: str) -> Optional[EscrowAccount]:
+    def get_escrow(self, escrow_id: str) -> EscrowAccount | None:
         with self._lock:
             return self._escrows.get(escrow_id)
 
-    def get_dispute(self, dispute_id: str) -> Optional[Dispute]:
+    def get_dispute(self, dispute_id: str) -> Dispute | None:
         with self._lock:
             return self._disputes.get(dispute_id)
 
     def list_escrows(
         self,
-        requester_id: Optional[str] = None,
-        provider_id: Optional[str] = None,
-        status: Optional[EscrowStatus] = None,
+        requester_id: str | None = None,
+        provider_id: str | None = None,
+        status: EscrowStatus | None = None,
     ) -> list[EscrowAccount]:
         with self._lock:
             result = list(self._escrows.values())

@@ -3,8 +3,8 @@
 Comprehensive audit of OWNEX according to the Final Excellence Protocol.
 """
 
-from pathlib import Path
 import json
+from pathlib import Path
 
 PROJECT_ROOT = Path("/home/adrie/projects/Rastro")
 
@@ -15,12 +15,11 @@ def check_backend() -> dict:
     # Check FastAPI main
     main_py = PROJECT_ROOT / "api" / "main.py"
     if main_py.exists():
-        print(f"✓ FastAPI main.py exists")
+        print("✓ FastAPI main.py exists")
     else:
-        print(f"❌ FastAPI main.py missing")
+        print("❌ FastAPI main.py missing")
 
     # Check database
-    from pathlib import Path
     db_files = list(PROJECT_ROOT.glob("*.db"))
     print(f"✓ Database files: {len(db_files)}")
     for db in db_files:
@@ -46,13 +45,13 @@ def check_frontend() -> dict:
     frontend_dir = PROJECT_ROOT / "frontend"
     package_json = frontend_dir / "package.json"
     if package_json.exists():
-        print(f"✓ Frontend package.json exists")
+        print("✓ Frontend package.json exists")
         with open(package_json) as f:
             pkg = json.load(f)
             print(f"  - Vue: {pkg.get('dependencies', {}).get('vue', 'N/A')}")
             print(f"  - TypeScript: {pkg.get('devDependencies', {}).get('typescript', 'N/A')}")
     else:
-        print(f"❌ Frontend package.json missing")
+        print("❌ Frontend package.json missing")
 
     # Check pages
     pages_dir = frontend_dir / "src" / "pages"
@@ -73,23 +72,23 @@ def check_desktop() -> dict:
     # Check Tauri
     tauri_dir = PROJECT_ROOT / "src-tauri"
     if tauri_dir.exists():
-        print(f"✓ Tauri directory exists")
+        print("✓ Tauri directory exists")
         cargo_toml = tauri_dir / "Cargo.toml"
         if cargo_toml.exists():
-            print(f"✓ Cargo.toml exists")
+            print("✓ Cargo.toml exists")
         else:
-            print(f"❌ Cargo.toml missing")
+            print("❌ Cargo.toml missing")
     else:
-        print(f"❌ Tauri directory missing")
+        print("❌ Tauri directory missing")
 
     # Check PyInstaller dist
     dist_dir = PROJECT_ROOT / "dist"
     if dist_dir.exists():
-        print(f"✓ Dist directory exists")
+        print("✓ Dist directory exists")
         executables = list(dist_dir.glob("*"))
         print(f"  - Executables: {len(executables)}")
     else:
-        print(f"❌ Dist directory missing")
+        print("❌ Dist directory missing")
 
     return {"tauri": tauri_dir.exists(), "dist": dist_dir.exists()}
 
@@ -100,23 +99,23 @@ def check_mobile() -> dict:
     # Check Android
     android_dir = PROJECT_ROOT / "android"
     if android_dir.exists():
-        print(f"✓ Android directory exists")
+        print("✓ Android directory exists")
         build_gradle = android_dir / "app" / "build.gradle"
         if build_gradle.exists():
-            print(f"✓ build.gradle exists")
+            print("✓ build.gradle exists")
         else:
-            print(f"❌ build.gradle missing")
+            print("❌ build.gradle missing")
     else:
-        print(f"❌ Android directory missing")
+        print("❌ Android directory missing")
 
     # Check WearOS
     wearos_dir = PROJECT_ROOT / "wearos"
     if wearos_dir.exists():
-        print(f"✓ WearOS directory exists")
+        print("✓ WearOS directory exists")
         wearos_files = list(wearos_dir.rglob("*"))
         print(f"  - Files: {len(wearos_files)}")
     else:
-        print(f"❌ WearOS directory missing")
+        print("❌ WearOS directory missing")
 
     return {"android": android_dir.exists(), "wearos": wearos_dir.exists()}
 
@@ -127,20 +126,20 @@ def check_ai() -> dict:
     # Check AI providers
     ai_dir = PROJECT_ROOT / "core" / "ai"
     if ai_dir.exists():
-        print(f"✓ Core AI directory exists")
+        print("✓ Core AI directory exists")
         ai_files = list(ai_dir.glob("*.py"))
         print(f"  - AI files: {len(ai_files)}")
     else:
-        print(f"❌ Core AI directory missing")
+        print("❌ Core AI directory missing")
 
     # Check agents
     agents_dir = PROJECT_ROOT / "cores" / "agents"
     if agents_dir.exists():
-        print(f"✓ Agents directory exists")
+        print("✓ Agents directory exists")
         agent_files = list(agents_dir.rglob("*.py"))
         print(f"  - Agent files: {len(agent_files)}")
     else:
-        print(f"❌ Agents directory missing")
+        print("❌ Agents directory missing")
 
     return {"ai": ai_dir.exists(), "agents": agents_dir.exists()}
 
@@ -151,21 +150,21 @@ def check_documentation() -> dict:
     # Check README
     readme = PROJECT_ROOT / "README.md"
     if readme.exists():
-        print(f"✓ README.md exists")
+        print("✓ README.md exists")
         with open(readme) as f:
             lines = len(f.readlines())
             print(f"  - Lines: {lines}")
     else:
-        print(f"❌ README.md missing")
+        print("❌ README.md missing")
 
     # Check .ai docs
     ai_dir = PROJECT_ROOT / ".ai"
     if ai_dir.exists():
-        print(f"✓ .ai directory exists")
+        print("✓ .ai directory exists")
         ai_files = list(ai_dir.glob("*.md"))
         print(f"  - .ai docs: {len(ai_files)}")
     else:
-        print(f"❌ .ai directory missing")
+        print("❌ .ai directory missing")
 
     return {"readme": readme.exists(), "ai_docs": len(ai_files) if ai_dir.exists() else 0}
 

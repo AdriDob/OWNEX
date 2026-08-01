@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-import asyncio
-import json
 import uuid
 from collections import defaultdict
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from enum import Enum
-from typing import Any, Callable, Optional
-from threading import Lock
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from threading import Lock
+from typing import Any
 
 
 class AgentRole(str, Enum):

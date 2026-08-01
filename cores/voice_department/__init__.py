@@ -14,10 +14,10 @@ from cores.voice_department.accessibility import get_voice_accessibility
 from cores.voice_department.audio_engine import get_high_quality_audio_engine
 from cores.voice_department.conversation_agent import get_conversation_agent
 from cores.voice_department.integrations import get_voice_department_integrations
+from cores.voice_department.visual_interface import get_voice_visual_interface
 from cores.voice_department.voice_engine import get_voice_engine
 from cores.voice_department.voice_memory import get_voice_memory
 from cores.voice_department.voice_personalization import get_voice_personalization
-from cores.voice_department.visual_interface import get_voice_visual_interface
 
 __all__ = [
     "get_conversation_agent",

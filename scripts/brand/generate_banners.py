@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from pipeline import C, BANNERS, render, draw_text, draw_text_left, mark_svg
+from pipeline import BANNERS, C, draw_text, mark_svg, render
 
 W, H = 2400, 1260
 

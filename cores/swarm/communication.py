@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import uuid
 from collections import defaultdict
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable
 from threading import Lock
-from concurrent.futures import ThreadPoolExecutor
+from typing import Any
 
 
 class MessageType(str, Enum):
@@ -125,7 +125,7 @@ class MessageBus:
             if timeout:
                 return await asyncio.wait_for(queue.get(), timeout=timeout)
             return await queue.get()
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return None
 
     def send_direct(

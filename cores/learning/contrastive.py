@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import json
-import numpy as np
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
-from pathlib import Path
 from threading import Lock
+
+import numpy as np
 
 
 @dataclass(slots=True)

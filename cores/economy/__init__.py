@@ -1,21 +1,30 @@
 from __future__ import annotations
 
-from cores.economy.registry import (
-    Capability,
-    CapabilityCategory,
-    CapabilityRegistry,
-    AgentProfile,
-    AgentStatus,
-    PricingModel,
-    registry,
-)
 from cores.economy.escrow import (
+    Dispute,
+    DisputeResolution,
     EscrowAccount,
     EscrowManager,
     EscrowStatus,
-    Dispute,
-    DisputeResolution,
     escrow_manager,
+)
+from cores.economy.marketplace import (
+    Bid,
+    BidStatus,
+    Delivery,
+    Job,
+    JobStatus,
+    Marketplace,
+    marketplace,
+)
+from cores.economy.registry import (
+    AgentProfile,
+    AgentStatus,
+    Capability,
+    CapabilityCategory,
+    CapabilityRegistry,
+    PricingModel,
+    registry,
 )
 from cores.economy.reputation import (
     ReputationEngine,
@@ -27,19 +36,10 @@ from cores.economy.reputation import (
 from cores.economy.settlement import (
     Settlement,
     SettlementEngine,
-    SettlementStatus,
     SettlementSplit,
+    SettlementStatus,
     SplitType,
     settlement_engine,
-)
-from cores.economy.marketplace import (
-    Job,
-    Bid,
-    Delivery,
-    JobStatus,
-    BidStatus,
-    Marketplace,
-    marketplace,
 )
 
 __all__ = [
