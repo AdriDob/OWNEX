@@ -43,7 +43,7 @@ def lockup_svg(edition: str | None = None, mono: bool = False) -> str:
 
 
 def lockup_png(edition: str | None, mono: bool, out: Path, width: int = 2048) -> Path:
-    variant = "alpha" if edition is None else edition.lower()
+    "alpha" if edition is None else edition.lower()
     svg = lockup_svg(edition, mono)
     tmp = out.with_suffix(".tmp.png")
     render(svg, tmp, width=width)

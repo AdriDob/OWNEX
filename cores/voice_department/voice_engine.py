@@ -52,7 +52,7 @@ class VoiceEngine:
         intent = self.conversation_agent._analyze_intent(transcribed_text, context)
 
         # Paso 3: Conversation Planner
-        response_plan = await self._conversation_planner(intent, context)
+        await self._conversation_planner(intent, context)
 
         # Paso 4: Task Planner (delegar a OWNEX brain)
         task_result = await self._task_planner(intent, context)
@@ -81,7 +81,7 @@ class VoiceEngine:
         intent = self.conversation_agent._analyze_intent(text, context)
 
         # Conversation Planner
-        response_plan = await self._conversation_planner(intent, context)
+        await self._conversation_planner(intent, context)
 
         # Task Planner
         task_result = await self._task_planner(intent, context)
@@ -166,7 +166,7 @@ class VoiceEngine:
             pref = self.personalization_system.get_preferences(self.current_context.user_id)
             if pref.auto_narrate:
                 # Sintetizar y hablar la narración
-                audio = await self._text_to_speech(narration.action, self.current_context)
+                await self._text_to_speech(narration.action, self.current_context)
                 # Reproducir audio (placeholder)
                 logger.info(f"Narrating: {narration.action}")
 
@@ -187,7 +187,7 @@ class VoiceEngine:
 
         if should_interrupt:
             # Sintetizar y hacer la pregunta
-            audio = await self._text_to_speech(question.question, self.current_context)
+            await self._text_to_speech(question.question, self.current_context)
             # Reproducir audio (placeholder)
             logger.info(f"Asking: {question.question}")
 

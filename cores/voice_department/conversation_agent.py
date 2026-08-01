@@ -381,7 +381,7 @@ class ConversationAgent:
 
     def _should_speak(self, context: ConversationContext) -> bool:
         """Determinar si debe hablar según preferencias."""
-        pref = self.personalization_system.get_preferences(context.user_id)
+        self.personalization_system.get_preferences(context.user_id)
 
         if context.accessibility_mode == "silent":
             return False

@@ -4,12 +4,12 @@ import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 from threading import Lock
 from typing import Any
 
 
-class EscrowStatus(str, Enum):
+class EscrowStatus(StrEnum):
     CREATED = "created"
     FUNDED = "funded"
     LOCKED = "locked"
@@ -20,7 +20,7 @@ class EscrowStatus(str, Enum):
     PARTIALLY_RELEASED = "partially_released"
 
 
-class DisputeResolution(str, Enum):
+class DisputeResolution(StrEnum):
     PENDING = "pending"
     PROVIDER_WIN = "provider_win"
     REQUESTER_WIN = "requester_win"
@@ -202,7 +202,7 @@ class EscrowManager:
             if resolution == DisputeResolution.SPLIT:
                 dispute.split_ratio = split_ratio or 0.5
                 provider_amount = escrow.amount * dispute.split_ratio
-                requester_amount = escrow.amount - provider_amount
+                escrow.amount - provider_amount
                 escrow.released_amount = provider_amount
                 escrow.status = EscrowStatus.PARTIALLY_RELEASED
             elif resolution == DisputeResolution.PROVIDER_WIN:

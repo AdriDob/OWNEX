@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class SettlementStatus(str, Enum):
+class SettlementStatus(StrEnum):
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -14,7 +14,7 @@ class SettlementStatus(str, Enum):
     PARTIAL = "partial"
 
 
-class SplitType(str, Enum):
+class SplitType(StrEnum):
     FIXED = "fixed"
     PERCENTAGE = "percentage"
     TIERED = "tiered"

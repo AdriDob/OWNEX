@@ -1,18 +1,19 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import uuid
 from collections import defaultdict
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from threading import Lock
 from typing import Any
 
 
-class MessageType(str, Enum):
+class MessageType(StrEnum):
     TASK_ASSIGNED = "task_assigned"
     TASK_STARTED = "task_started"
     TASK_COMPLETED = "task_completed"
@@ -31,7 +32,7 @@ class MessageType(str, Enum):
     RESPONSE = "response"
 
 
-class Priority(str, Enum):
+class Priority(StrEnum):
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
@@ -86,10 +87,8 @@ class MessageBus:
 
         for recipient in recipients:
             if recipient in self._agent_queues:
-                try:
+                with contextlib.suppress(asyncio.QueueFull):
                     self._agent_queues[recipient].put_nowait(message)
-                except asyncio.QueueFull:
-                    pass
 
         self._deliver_to_handlers(message)
         return True
@@ -109,10 +108,8 @@ class MessageBus:
                         handlers.extend(hs)
 
         for handler in handlers:
-            try:
+            with contextlib.suppress(Exception):
                 self._executor.submit(handler, message)
-            except Exception:
-                pass
 
     def get_queue(self, agent_id: str) -> asyncio.Queue:
         if agent_id not in self._agent_queues:

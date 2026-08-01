@@ -72,7 +72,7 @@ class PromptEvolutionEngine:
         """Initialize population with base prompts + variations."""
         with self._lock:
             self._population = []
-            for i, base in enumerate(base_prompts):
+            for _i, base in enumerate(base_prompts):
                 genome = PromptGenome(
                     id=f"genome_{uuid.uuid4().hex[:8]}",
                     prompt_template=base,

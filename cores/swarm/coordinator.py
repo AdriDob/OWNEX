@@ -1,17 +1,18 @@
 from __future__ import annotations
 
+import contextlib
 import uuid
 from collections import defaultdict
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from threading import Lock
 from typing import Any
 
 
-class AgentRole(str, Enum):
+class AgentRole(StrEnum):
     RECON = "recon"
     FUZZER = "fuzzer"
     EXPLOITER = "exploiter"
@@ -20,7 +21,7 @@ class AgentRole(str, Enum):
     SPECIALIST = "specialist"
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(StrEnum):
     PENDING = "pending"
     ASSIGNED = "assigned"
     IN_PROGRESS = "in_progress"
@@ -29,7 +30,7 @@ class TaskStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
-class SwarmStatus(str, Enum):
+class SwarmStatus(StrEnum):
     INITIALIZING = "initializing"
     ACTIVE = "active"
     PAUSED = "paused"
@@ -117,7 +118,7 @@ class SwarmCoordinator:
         task_templates = self._get_task_templates(objective)
         tasks = []
         name_to_id = {}
-        for i, template in enumerate(task_templates):
+        for _i, template in enumerate(task_templates):
             task_id = f"{swarm.id}_task_{template['name']}"
             name_to_id[template["name"]] = task_id
             task = SwarmTask(
@@ -271,10 +272,8 @@ class SwarmCoordinator:
                 agent.status = "idle"
                 agent.current_task = None
             for cb in self._completion_callbacks:
-                try:
+                with contextlib.suppress(Exception):
                     cb(swarm_id, task)
-                except Exception:
-                    pass
 
     def get_swarm_status(self, swarm_id: str) -> dict[str, Any] | None:
         swarm = self._swarms.get(swarm_id)
