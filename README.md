@@ -191,5 +191,5 @@ MIT — see [LICENSE](LICENSE). Brand fonts: SIL OFL 1.1 (Google Fonts).
 ---
 
 <p align="center">
-  <sub>OWNEX — Autonomous Personal Operating System · ALPHA + OMEGA</sub>
+  <sub>OWNEX — Autonomous Personalizable Operating System · ALPHA + OMEGA</sub>
 </p>
