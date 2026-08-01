@@ -12,9 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from cores.voice_department.models import (
-    AccessibilityMode,
     ConversationMode,
-    VoiceInteractionType,
     VoicePersonality,
     VoicePreference,
 )

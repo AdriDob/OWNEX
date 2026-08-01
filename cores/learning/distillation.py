@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import json
-import hashlib
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable
 from pathlib import Path
 from threading import Lock
-from collections import defaultdict
+from typing import Any
 
 
 @dataclass(slots=True)
@@ -79,22 +78,21 @@ class DistillationPipeline:
             teacher_output=teacher_output or {},
         )
 
-        with self._lock:
-            with open(self._samples_file, "a") as f:
-                f.write(
-                    json.dumps(
-                        {
-                            "id": sample.id,
-                            "input_data": sample.input_data,
-                            "teacher_output": sample.teacher_output,
-                            "student_output": sample.student_output,
-                            "loss": sample.loss,
-                            "metadata": sample.metadata,
-                            "created_at": sample.created_at.isoformat(),
-                        }
-                    )
-                    + "\n"
+        with self._lock, open(self._samples_file, "a") as f:
+            f.write(
+                json.dumps(
+                    {
+                        "id": sample.id,
+                        "input_data": sample.input_data,
+                        "teacher_output": sample.teacher_output,
+                        "student_output": sample.student_output,
+                        "loss": sample.loss,
+                        "metadata": sample.metadata,
+                        "created_at": sample.created_at.isoformat(),
+                    }
                 )
+                + "\n"
+            )
 
         return sample.id
 
@@ -262,8 +260,9 @@ class DistillationPipeline:
         params = artifact.get("parameters", {})
         arch = artifact.get("architecture", "linear")
 
-        from cores.learning import embed_engagement
         import numpy as np
+
+        from cores.learning import embed_engagement
 
         emb = np.array(embed_engagement(input_data)).reshape(1, -1)
 

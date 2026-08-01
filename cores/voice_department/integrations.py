@@ -16,8 +16,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from cores.voice_department.voice_engine import get_voice_engine
 from cores.voice_department.visual_interface import get_voice_visual_interface
+from cores.voice_department.voice_engine import get_voice_engine
 
 logger = logging.getLogger("ownex.voice_department.integrations")
 

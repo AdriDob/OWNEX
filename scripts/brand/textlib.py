@@ -45,7 +45,7 @@ def text_pil(d, texts: list, s: float = 1.0) -> None:
 
 
 def card_svg(x, y, w, h, fill="#0B0E15", stroke="#1D2430", rx=16, glow=False) -> str:
-    extra = f'<filter id="cardGlow"><feGaussianBlur stdDeviation="24" result="b"/></filter>' if glow else ""
+    extra = '<filter id="cardGlow"><feGaussianBlur stdDeviation="24" result="b"/></filter>' if glow else ""
     return f'{extra}<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}" fill="{fill}" stroke="{stroke}" stroke-width="1.5"/>'
 
 

@@ -10,8 +10,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from pipeline import C, CONCEPTS, render, mark_svg, draw_text, draw_text_left
-from textlib import text_svg, text_pil, card_svg, header_svg, header_texts, footer_svg, footer_texts
+from pipeline import CONCEPTS, C, mark_svg, render
+from textlib import card_svg, footer_svg, footer_texts, header_svg, header_texts, text_pil
 
 W, H = 2400, 1350
 

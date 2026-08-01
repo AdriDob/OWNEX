@@ -2,16 +2,13 @@
 
 from __future__ import annotations
 
-import asyncio
-import json
 import time
 import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Callable, Optional
-from pathlib import Path
-from threading import Lock, Thread
 from collections import deque
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from threading import Lock, Thread
 
 
 @dataclass(slots=True)
@@ -140,7 +137,7 @@ class LearningLoop:
                 print(f"[LEARNING] Cycle error: {e}")
                 time.sleep(30)  # Back off on error
 
-    def _run_cycle(self) -> "LearningCycleResult":
+    def _run_cycle(self) -> LearningCycleResult:
         """Run one complete learning cycle."""
         start_time = time.time()
         cycle_id = f"cycle_{uuid.uuid4().hex[:8]}"
@@ -260,8 +257,8 @@ class LearningLoop:
         """Get aggregate learning stats."""
         from cores.learning import get_learning_stats
         from cores.learning.contrastive import get_contrastive_model_state
-        from cores.learning.evolution import get_evolution_stats
         from cores.learning.distillation import get_distillation_stats
+        from cores.learning.evolution import get_evolution_stats
 
         return {
             "engagements": get_learning_stats(),
@@ -270,7 +267,7 @@ class LearningLoop:
             "distillation": get_distillation_stats(),
         }
 
-    def force_cycle(self) -> "LearningCycleResult":
+    def force_cycle(self) -> LearningCycleResult:
         """Force an immediate learning cycle."""
         with self._lock:
             self._next_cycle = datetime.utcnow()

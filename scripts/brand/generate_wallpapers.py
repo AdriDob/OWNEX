@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from pipeline import C, DESKTOP, MOBILE, render, mark_svg, draw_text, draw_text_left
+from pipeline import DESKTOP, MOBILE, C, mark_svg, render
 
 W, H = 2560, 1440
 

@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import json
 import uuid
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any
 from threading import Lock
-from collections import defaultdict
-import math
+from typing import Any
 
 
 class NodeType(str, Enum):
@@ -57,7 +56,7 @@ class GraphNode:
     updated_at: datetime = field(default_factory=datetime.utcnow)
     tags: set[str] = field(default_factory=set)
 
-    def merge(self, other: "GraphNode") -> None:
+    def merge(self, other: GraphNode) -> None:
         self.confidence = max(self.confidence, other.confidence)
         self.exploitability = max(self.exploitability, other.exploitability)
         self.risk_score = max(self.risk_score, other.risk_score)

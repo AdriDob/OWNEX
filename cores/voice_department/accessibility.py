@@ -10,7 +10,6 @@ Implementa modos de accesibilidad para diferentes necesidades:
 from __future__ import annotations
 
 import logging
-from enum import StrEnum
 from typing import Any
 
 from cores.voice_department.models import AccessibilityMode, VoiceVisualContext

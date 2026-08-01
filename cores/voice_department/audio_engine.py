@@ -68,10 +68,7 @@ class HighQualityAudioEngine:
         self.current_quality = quality
 
         # Ajustar motores según calidad
-        if quality == AudioQuality.MINIMAL:
-            self.current_tts_engine = AudioEngine.PIPER
-            self.current_stt_engine = AudioEngine.WHISPER
-        elif quality == AudioQuality.STANDARD:
+        if quality == AudioQuality.MINIMAL or quality == AudioQuality.STANDARD:
             self.current_tts_engine = AudioEngine.PIPER
             self.current_stt_engine = AudioEngine.WHISPER
         elif quality == AudioQuality.HIGH:

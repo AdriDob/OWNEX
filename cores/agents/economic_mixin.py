@@ -2,27 +2,24 @@
 
 from __future__ import annotations
 
-import asyncio
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Optional
+from datetime import timedelta
+from typing import Any
 
 from cores.economy import (
     AgentProfile,
-    AgentStatus as EconAgentStatus,
     Capability,
     CapabilityCategory,
-    CapabilityRegistry,
-    Marketplace,
-    ReputationEngine,
-    registry,
     marketplace,
+    registry,
     reputation_engine,
-    escrow_manager,
 )
-from cores.swarm import SwarmAgent, SwarmTask, AgentRole, coordinator, message_bus
+from cores.economy import (
+    AgentStatus as EconAgentStatus,
+)
+from cores.swarm import coordinator, message_bus
 from cores.swarm.communication import AgentMessage, MessageType, Priority
 
 
@@ -98,7 +95,6 @@ class EconomicAgentMixin:
 
     def _register_with_economy(self, auto_register: bool) -> None:
         """Register this agent and its capabilities with the economy registry."""
-        from cores.agents.types import AgentId
 
         traits = self._economic_traits
         traits.agent_id = self.agent_id.value if hasattr(self, "agent_id") else str(uuid.uuid4())
@@ -124,7 +120,7 @@ class EconomicAgentMixin:
         message_bus.subscribe(traits.agent_id, MessageType.BROADCAST, self._on_swarm_message)
         message_bus.subscribe_all(traits.agent_id, self._on_any_economy_message)
 
-    def _register_capability_from_string(self, cap_str: str) -> Optional[str]:
+    def _register_capability_from_string(self, cap_str: str) -> str | None:
         """Register a capability from a capability string like 'recon:subdomain_enum'."""
         try:
             parts = cap_str.split(":")
@@ -162,7 +158,7 @@ class EconomicAgentMixin:
                 registry.register_capability(cap)
                 self._economic_traits.capabilities_registered.append(cap_id)
                 return cap_id
-        except Exception as e:
+        except Exception:
             pass
         return None
 
@@ -254,7 +250,7 @@ class EconomicAgentMixin:
         amount: float,
         estimated_duration: timedelta = None,
         message: str = "",
-    ) -> Optional[str]:
+    ) -> str | None:
         """Place a bid on a marketplace job."""
         if self._economic_traits.current_jobs >= self._economic_traits.max_concurrent_jobs:
             return None
@@ -297,7 +293,7 @@ class EconomicAgentMixin:
                             return bids_placed
         return bids_placed
 
-    def submit_delivery(self, job_id: str, content: dict, evidence: dict = None) -> Optional[str]:
+    def submit_delivery(self, job_id: str, content: dict, evidence: dict = None) -> str | None:
         """Submit work delivery for a job."""
         delivery_id = marketplace.submit_delivery(
             job_id=job_id,
@@ -358,7 +354,7 @@ class EconomicAgentMixin:
         priority: str = "normal",
     ) -> bool:
         """Publish a message to the swarm message bus."""
-        from cores.swarm.communication import MessageType, Priority, AgentMessage
+        from cores.swarm.communication import MessageType
 
         msg_type_member = getattr(MessageType, msg_type.upper(), None)
         priority_member = getattr(Priority, priority.upper(), None)
@@ -380,10 +376,10 @@ class EconomicAgentMixin:
         exploitability: float = 0.0,
         risk_score: float = 0.0,
         metadata: dict = None,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Share discovered intelligence to the attack surface graph."""
-        from cores.swarm.graph import NodeType, EdgeType
         from cores.swarm import graph
+        from cores.swarm.graph import NodeType
 
         node_type_enum = getattr(NodeType, node_type.upper(), NodeType.NOTE)
         node_id = graph.add_node(
@@ -416,7 +412,7 @@ class EconomicAgentMixin:
         exploitability: float,
         risk_score: float,
         evidence: dict = None,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Report a vulnerability finding."""
         vuln_id = self.share_intel(
             node_type="vulnerability",
@@ -428,8 +424,8 @@ class EconomicAgentMixin:
         )
 
         # Link to target
-        from cores.swarm.graph import EdgeType
         from cores.swarm import graph
+        from cores.swarm.graph import EdgeType
 
         if vuln_id and target_node:
             graph.add_edge(target_node, vuln_id, EdgeType.VULNERABLE_TO, discovered_by=self._economic_traits.agent_id)

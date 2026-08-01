@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from pipeline import C, LOGOS, render, draw_text, draw_text_left, font, mark_svg, svg_to_png, SIZE, CX, CY
+from pipeline import LOGOS, C, draw_text, draw_text_left, mark_svg, render, svg_to_png
 
 LOGO_DIR = LOGOS  # assets/logos
 

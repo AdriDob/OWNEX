@@ -7,7 +7,6 @@ response builder → voice synthesizer → audio output.
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from typing import Any
 
@@ -15,7 +14,6 @@ from cores.voice_department.conversation_agent import get_conversation_agent
 from cores.voice_department.models import (
     ConversationContext,
     SystemNarration,
-    VoiceVisualContext,
 )
 from cores.voice_department.voice_personalization import get_voice_personalization
 

@@ -6,9 +6,9 @@ Expone endpoints para gestionar la infraestructura personal del usuario.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 from decimal import Decimal
-from typing import Any
+
+from fastapi import APIRouter, HTTPException
 
 from cores.personal_infrastructure.admin_navigator import get_admin_navigator
 from cores.personal_infrastructure.argentina_support import (
@@ -17,19 +17,11 @@ from cores.personal_infrastructure.argentina_support import (
 )
 from cores.personal_infrastructure.health_center import get_integration_health_center
 from cores.personal_infrastructure.manager import get_personal_infrastructure_manager
-from cores.personal_infrastructure.models import (
-    AdministrativeStep,
-    AdministrativeProcess,
-    ApprovalCategory,
-    ObjectiveCategory,
-    ObjectiveProgress,
-)
 from cores.personal_infrastructure.wealth_assistant import (
     ExpenseCategory,
     IncomeSource,
     get_wealth_assistant,
 )
-from fastapi import APIRouter, HTTPException
 
 logger = logging.getLogger("ownex.api.personal_infrastructure")
 

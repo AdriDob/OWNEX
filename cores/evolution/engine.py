@@ -342,17 +342,17 @@ class EvolutionEngine:
         """
         # Observe: flush any buffered metrics
         self.flush_metric_buffer()
-        
+
         # Analyze: query recent events for patterns
         recent_events = self.query_events(limit=100)
-        
+
         # Generate health snapshot
         health_before = {
             "event_count": len(recent_events),
             "timestamp": datetime.now(UTC).isoformat(),
             "modules": list(set(e.get("module") for e in recent_events if e.get("module")))
         }
-        
+
         # Experiment: create proposals based on analysis
         proposals = []
         if recent_events:
@@ -365,7 +365,7 @@ class EvolutionEngine:
                     "priority": "high",
                     "affected_modules": list(set(f.get("module") for f in failures if f.get("module")))
                 })
-            
+
             # Proposal: if high duration events, suggest optimization
             slow_events = [e for e in recent_events if e.get("duration_ms", 0) > 5000]
             if slow_events:
@@ -375,7 +375,7 @@ class EvolutionEngine:
                     "priority": "medium",
                     "affected_modules": list(set(e.get("module") for e in slow_events if e.get("module")))
                 })
-        
+
         # Learn: create knowledge assets from findings
         for proposal in proposals:
             self.create_asset(
@@ -388,7 +388,7 @@ class EvolutionEngine:
                 content=proposal,
                 tags=["auto-generated", proposal["priority"]]
             )
-        
+
         return {
             "proposals": proposals,
             "health_before": health_before,
