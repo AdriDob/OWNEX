@@ -1,39 +1,112 @@
 {
-  "brand": "OWNEX",
-  "editions": ["ALPHA", "OMEGA"],
-  "tagline": "Autonomous Personal Operating System",
-  "concept": "The Aperture Nexus — an octagonal aperture ring (precision instrument) with an X of tapered rays radiating from a central square node (intelligence at the core). The top-right ray breaks through the aperture: evolution from core (ALPHA) to edge (OMEGA).",
-  "color_system": {
-    "space_black": { "hex": "#05060A", "usage": "Global background" },
-    "surface_1": { "hex": "#0B0E15", "usage": "Elevated panels, cards" },
-    "surface_2": { "hex": "#11151F", "usage": "Nested surfaces" },
-    "stroke": { "hex": "#1D2430", "usage": "Borders, dividers" },
-    "cyber_cyan": { "hex": "#00D5FF", "usage": "Primary — key elements, focus" },
-    "deep_blue": { "hex": "#1E40FF", "usage": "Secondary — depth, gradients" },
-    "emerald": { "hex": "#00E39A", "usage": "Accent — success, OMEGA edition" },
-    "white": { "hex": "#F6F8FB", "usage": "Primary text" },
-    "muted": { "hex": "#8A94A6", "usage": "Secondary text" }
-  },
-  "gradients": {
-    "hero": ["#00D5FF", "#1E40FF"],
-    "emerald_fade": ["#00E39A", "#00D5FF"]
+  "name": "OWNEX Design Tokens",
+  "version": "2.0",
+  "description": "Design tokens for OWNEX premium brand identity",
+  "colors": {
+    "cosmos": "#08090A",
+    "surface": "#111113",
+    "surfaceAlt": "#1F2023",
+    "surfaceHighlight": "#2A2D35",
+    "textPrimary": "#F6F8FB",
+    "textSecondary": "#8B8D98",
+    "textTertiary": "#5E6272",
+    "accent": "#5E6AD2",
+    "accentHover": "#7B85E0",
+    "accentSubtle": "rgba(94, 106, 210, 0.15)",
+    "success": "#00E39A",
+    "warning": "#FFB020",
+    "error": "#FF5252",
+    "white": "#FFFFFF",
+    "black": "#000000"
   },
   "typography": {
-    "display": { "family": "Space Grotesk", "weights": [400, 500, 600, 700], "usage": "Wordmark, headlines" },
-    "ui": { "family": "Inter", "weights": [400, 500, 600, 700], "usage": "Body, UI, documentation" },
-    "mono": { "family": "JetBrains Mono", "weights": [400, 500], "usage": "Code, technical labels" }
+    "fontFamily": {
+      "display": "'Inter Display', 'Inter', system-ui, -apple-system, sans-serif",
+      "body": "'Inter', system-ui, -apple-system, sans-serif",
+      "mono": "'JetBrains Mono', 'Fira Code', monospace"
+    },
+    "scale": {
+      "h1": {
+        "size": "64px",
+        "weight": 700,
+        "lineHeight": 1.1,
+        "letterSpacing": "-0.03em"
+      },
+      "h2": {
+        "size": "48px",
+        "weight": 600,
+        "lineHeight": 1.2,
+        "letterSpacing": "-0.02em"
+      },
+      "h3": {
+        "size": "36px",
+        "weight": 600,
+        "lineHeight": 1.2,
+        "letterSpacing": "-0.02em"
+      },
+      "h4": {
+        "size": "24px",
+        "weight": 500,
+        "lineHeight": 1.3,
+        "letterSpacing": "-0.01em"
+      },
+      "body": {
+        "size": "16px",
+        "weight": 400,
+        "lineHeight": 1.5,
+        "letterSpacing": "0"
+      },
+      "small": {
+        "size": "14px",
+        "weight": 400,
+        "lineHeight": 1.5,
+        "letterSpacing": "0"
+      },
+      "caption": {
+        "size": "12px",
+        "weight": 400,
+        "lineHeight": 1.4,
+        "letterSpacing": "0"
+      }
+    }
   },
-  "logo_system": {
-    "mark": "ownex-mark.svg",
-    "lockup": "ownex-lockup.svg",
-    "app_icon": "ownex-icon.svg",
-    "favicon": "ownex-favicon.svg",
-    "monochrome": "ownex-monochrome.svg",
-    "ui_32px": "ownex-ui-32px.png",
-    "alpha": "ownex-alpha.svg",
-    "omega": "ownex-omega.svg"
+  "spacing": {
+    "unit": 8,
+    "scale": {
+      "1": 4,
+      "2": 8,
+      "3": 16,
+      "4": 24,
+      "5": 32,
+      "6": 48,
+      "8": 64,
+      "10": 96,
+      "12": 128
+    }
   },
-  "forbidden": ["brain", "robot", "eye", "circuit", "hologram", "random AI imagery", "cartoon", "excessive neon"],
-  "principles": ["geometry", "precision", "engineering", "evolution", "intelligence", "minimalism"],
-  "license": "Fonts: Space Grotesk, Inter, JetBrains Mono under SIL OFL 1.1 (Google Fonts)"
+  "layout": {
+    "containerMaxWidth": 1200,
+    "sectionPadding": 96,
+    "gridBase": 8
+  },
+  "components": {
+    "missionControl": {
+      "background": "#08090A",
+      "surface": "#111113",
+      "accent": "#5E6AD2",
+      "text": "#F6F8FB"
+    },
+    "merlin": {
+      "background": "#08090A",
+      "surface": "#111113",
+      "accent": "#00E39A",
+      "text": "#F6F8FB"
+    },
+    "agentFleet": {
+      "background": "#08090A",
+      "surface": "#111113",
+      "accent": "#5E6AD2",
+      "text": "#F6F8FB"
+    }
+  }
 }
