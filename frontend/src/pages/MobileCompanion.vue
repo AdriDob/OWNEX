@@ -434,7 +434,6 @@ const initSupabase = async () => {
     }
 
     supabase = createClient(supabaseUrl, supabaseKey)
-    console.log('Supabase initialized')
   } catch (e) {
     console.error('Failed to initialize Supabase:', e)
     error.value = 'Failed to initialize Supabase'
@@ -633,7 +632,7 @@ const saveMood = async () => {
     .upsert(moodDataToSave)
 
   if (!error) {
-    console.log('Mood saved')
+    // Mood saved successfully
   }
 }
 

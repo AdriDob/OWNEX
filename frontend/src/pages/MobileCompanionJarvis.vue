@@ -245,7 +245,6 @@ function connectWatch() {
 
 function refreshStatus() {
   // Simular refresh
-  console.log('Refreshing status...')
 }
 
 function navigateTo(path: string) {
@@ -260,7 +259,6 @@ function sendMerlinMessage() {
   if (!merlinInput.value.trim()) return
 
   // Send message to MERLIN
-  console.log('Sending to MERLIN:', merlinInput.value)
   merlinInput.value = ''
 }
 
