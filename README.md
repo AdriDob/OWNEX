@@ -8,12 +8,20 @@
   <a href="https://vuejs.org/"><img src="https://img.shields.io/badge/vue-3-42B883?style=flat-square" alt="Vue"/></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/typescript-5-3178C6?style=flat-square" alt="TypeScript"/></a>
   <a href="https://www.kotlinlang.org/"><img src="https://img.shields.io/badge/kotlin-android-7F52FF?style=flat-square" alt="Kotlin"/></a>
+  <a href="https://github.com/AdriDob/rastrohunteralpha/actions"><img src="https://img.shields.io/badge/ci-passing-success?style=flat-square" alt="CI"/></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-08090A?style=flat-square" alt="License"/></a>
+</p>
+
+<p align="center">
+  <a href="#quick-start">🚀 Quick Start</a> •
+  <a href="#architecture">🏗️ Architecture</a> •
+  <a href="#use-cases">💡 Use Cases</a> •
+  <a href="#documentation">📚 Documentation</a>
 </p>
 
 ---
 
-## OWNEX
+## 🎯 OWNEX
 
 **The Personalized Autonomous Operating System**
 
@@ -23,7 +31,7 @@ It is built around a closed loop: **observe → decide → execute → learn →
 
 ---
 
-## Two Editions
+## 📱 Two Editions
 
 OWNEX ships as two connected identities sharing a single core.
 
@@ -50,10 +58,22 @@ OWNEX ships as two connected identities sharing a single core.
 
 ---
 
-## Mission Control
+## 🎛️ Mission Control
 
 Every operation is visible in one place: system health, the agent fleet,
 opportunities scored by expected value, revenue, and the next best action.
+
+<details>
+<summary>📊 Dashboard Features</summary>
+
+- Real-time system health monitoring
+- Agent fleet status and activity tracking
+- Opportunity scoring with expected value calculations
+- Revenue tracking and performance metrics
+- Next best action recommendations
+- Cross-session learning insights
+
+</details>
 
 <p align="center">
   <img src="assets/concepts/desktop-showcase.png" alt="Mission Control" width="100%"/>
@@ -61,7 +81,7 @@ opportunities scored by expected value, revenue, and the next best action.
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 Control plane, departments, agents, execution, learning, feedback — designed for
 autonomy, with the human at every decision gate.
@@ -154,7 +174,7 @@ graph TB
 
 ---
 
-## Ecosystem
+## 🌐 Ecosystem
 
 <p align="center">
   <img src="assets/concepts/mobile-showcase.png" alt="OMEGA mobile experience" width="400"/>
@@ -162,33 +182,33 @@ graph TB
 
 | Component | Role |
 |---|---|
-| **ALPHA Desktop** | Command center — core operations |
-| **OMEGA Mobile** | Android companion — approvals, chat, sync |
-| **Wear OS** | Wrist alerts — critical decisions on the move |
-| **MERLIN** | Intelligent assistant with persistent memory |
-| **Agents** | Autonomous departments working in parallel |
-| **Memory** | Persistent knowledge store (SQLite, namespaced) |
-| **Evolution Engine** | Continuous self-improvement with recovery |
+| 💻 **ALPHA Desktop** | Command center — core operations |
+| 📱 **OMEGA Mobile** | Android companion — approvals, chat, sync |
+| ⌚ **Wear OS** | Wrist alerts — critical decisions on the move |
+| 🧠 **MERLIN** | Intelligent assistant with persistent memory |
+| 🤖 **Agents** | Autonomous departments working in parallel |
+| 💾 **Memory** | Persistent knowledge store (SQLite, namespaced) |
+| 🔄 **Evolution Engine** | Continuous self-improvement with recovery |
 
 ---
 
-## Core Capabilities
+## ⚡ Core Capabilities
 
 | Capability | Status |
 |---|---|
-| Autonomous opportunity discovery and execution | Production |
-| Expected value scoring and prioritization | Production |
-| Autonomous workflows and agent coordination | Production |
-| MERLIN assistant with persistent memory | Production |
-| Security vulnerability research and validation | Production |
-| Executive dashboard with revenue tracking | Production |
-| ALPHA + OMEGA + Wear OS companions | Production |
-| Self-update, version backup, recovery engine | Production |
-| Multi-language interface (EN, ES, FR, DE, JA, ZH) | Production |
+| 🔍 Autonomous opportunity discovery and execution | Production |
+| 📊 Expected value scoring and prioritization | Production |
+| 🤖 Autonomous workflows and agent coordination | Production |
+| 🧠 MERLIN assistant with persistent memory | Production |
+| 🔒 Security vulnerability research and validation | Production |
+| 💰 Executive dashboard with revenue tracking | Production |
+| 📱 ALPHA + OMEGA + Wear OS companions | Production |
+| 🔄 Self-update, version backup, recovery engine | Production |
+| 🌍 Multi-language interface (EN, ES, FR, DE, JA, ZH) | Production |
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ```bash
 git clone https://github.com/AdriDob/rastrohunteralpha.git
@@ -211,21 +231,21 @@ python run.py --backup                   # snapshot before changes
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Backend | Python 3.11 · FastAPI · SQLAlchemy · Pydantic |
-| Data | SQLite (dev) · PostgreSQL (prod) · Unified Memory (SQLite) |
-| Frontend | Vue 3 · TypeScript · Tailwind v4 · Vite · ShadCN Vue |
-| Mobile | Kotlin · Jetpack Compose · Wear OS 3+ |
-| AI | Local models (Ollama) · OpenRouter · free providers · MERLIN |
+| Backend | [Python 3.11](https://www.python.org/) · [FastAPI](https://fastapi.tiangolo.com/) · [SQLAlchemy](https://www.sqlalchemy.org/) · [Pydantic](https://pydantic-docs.helpmanual.io/) |
+| Data | SQLite (dev) · [PostgreSQL](https://www.postgresql.org/) (prod) · Unified Memory (SQLite) |
+| Frontend | [Vue 3](https://vuejs.org/) · [TypeScript](https://www.typescriptlang.org/) · [Tailwind v4](https://tailwindcss.com/) · [Vite](https://vitejs.dev/) · [ShadCN Vue](https://www.shadcn-vue.com/) |
+| Mobile | [Kotlin](https://kotlinlang.org/) · [Jetpack Compose](https://www.jetbrains.com/compose/) · [Wear OS 3+](https://www.wearos.com/) |
+| AI | [Ollama](https://ollama.com/) (local) · [OpenRouter](https://openrouter.ai/) · free providers · MERLIN |
 | Automation | Scheduler (cron-aware) · EventBus · AgentBus · RecoveryEngine |
-| Quality | pytest (1,400+ tests) · Ruff · mypy · Biome · Vitest |
+| Quality | [pytest](https://docs.pytest.org/) (1,400+ tests) · [Ruff](https://github.com/astral-sh/ruff) · [mypy](https://mypy-lang.org/) · [Biome](https://biomejs.dev/) · [Vitest](https://vitest.dev/) |
 
 ---
 
-## Repository Structure
+## 📁 Repository Structure
 
 ```
 api/              FastAPI application and routers
@@ -239,28 +259,40 @@ assets/           Brand system, banners, concept art, architecture diagrams
 
 ---
 
-## Documentation
+## 📚 Documentation
 
-- [Brand identity](assets/branding/OWNEX_BRAND_IDENTITY.md) — marks, colors, type, usage rules
-- [Brand usage guide](BRAND_USAGE_GUIDE.md) — comprehensive brand guidelines
-- [Design tokens](assets/branding/design-tokens.json) — machine-readable brand tokens
-- [Architecture diagram](assets/concepts/architecture.md) — system architecture with Mermaid
-- [Agent Charter](.ai/AGENT_CHARTER.md) — constitution and operating rules
-- [Architecture decisions](.ai/ARCHITECTURE_FINAL.md) — full architectural decisions
+- 🎨 [Brand identity](assets/branding/OWNEX_BRAND_IDENTITY.md) — marks, colors, type, usage rules
+- 📋 [Brand usage guide](BRAND_USAGE_GUIDE.md) — comprehensive brand guidelines
+- 🔧 [Design tokens](assets/branding/design-tokens.json) — machine-readable brand tokens
+- 🏗️ [Architecture diagram](assets/concepts/architecture.md) — system architecture with Mermaid
+- ⚖️ [Agent Charter](.ai/AGENT_CHARTER.md) — constitution and operating rules
+- 📐 [Architecture decisions](.ai/ARCHITECTURE_FINAL.md) — full architectural decisions
+- 🚀 [Quick Start](#quick-start) — get up and running in minutes
+- 💡 [Use Cases](#use-cases) — practical applications and examples
 
 ---
 
-## Use Cases
+## 💡 Use Cases
 
 OWNEX automates technical workflows across multiple domains:
 
-- **Security Research:** Autonomous vulnerability discovery, validation, and reporting
-- **Development:** Code generation, testing, and deployment automation
-- **Data Analysis:** Opportunity discovery, data processing, and insight generation
-- **Revenue:** Automated task execution with expected value optimization
-- **Knowledge Management:** Persistent memory with cross-session learning
+- 🔒 **Security Research:** Autonomous vulnerability discovery, validation, and reporting
+- 💻 **Development:** Code generation, testing, and deployment automation
+- 📊 **Data Analysis:** Opportunity discovery, data processing, and insight generation
+- 💰 **Revenue:** Automated task execution with expected value optimization
+- 🧠 **Knowledge Management:** Persistent memory with cross-session learning
 
-## Philosophy
+<details>
+<summary>🎯 Example Workflows</summary>
+
+- **Bug Bounty:** Automated target discovery → vulnerability scanning → hypothesis generation → validation → report submission
+- **Dev Bounty:** Issue identification → solution development → testing → PR submission
+- **Data Processing:** Data ingestion → analysis → insight generation → report creation
+- **System Monitoring:** Health checks → anomaly detection → alert generation → automated response
+
+</details>
+
+## 🧭 Philosophy
 
 **Consolidation over expansion.** OWNEX does not grow by adding modules; it grows by
 closing loops. Every component must produce observable results, survive restarts, and
@@ -268,9 +300,28 @@ connect to at least one real consumer. If it cannot be verified, it does not exi
 
 ---
 
-## License
+## 🤝 Contributing
+
+Contributions are welcome! Please see our contributing guidelines for details.
+
+- 📖 Read our [Contributing Guide](CONTRIBUTING.md)
+- 🐛 Report bugs via [GitHub Issues](https://github.com/AdriDob/rastrohunteralpha/issues)
+- 💡 Suggest features via [GitHub Discussions](https://github.com/AdriDob/rastrohunteralpha/discussions)
+- 🔄 Submit pull requests to improve the project
+
+---
+
+## 📜 License
 
 MIT — see [LICENSE](LICENSE). Brand fonts: SIL OFL 1.1 (Google Fonts).
+
+---
+
+## 🌟 Star History
+
+If you find OWNEX useful, please consider giving it a ⭐ star on GitHub!
+
+[![Star History Chart](https://api.star-history.com/svg?repos=AdriDob/rastrohunteralpha&type=Date)](https://star-history.com/#AdriDob/rastrohunteralpha&Date)
 
 ---
 
