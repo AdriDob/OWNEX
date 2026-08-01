@@ -250,9 +250,13 @@ class RecoveryStore:
         with self._lock, sqlite3.connect(self._db_path) as conn:
             conn.row_factory = sqlite3.Row
             if version:
-                row = conn.execute("SELECT * FROM version_backups WHERE version = ? ORDER BY created_at DESC LIMIT 1", (version,)).fetchone()
+                row = conn.execute(
+                    "SELECT * FROM version_backups WHERE version = ? ORDER BY created_at DESC LIMIT 1", (version,)
+                ).fetchone()
             elif git_commit:
-                row = conn.execute("SELECT * FROM version_backups WHERE git_commit = ? ORDER BY created_at DESC LIMIT 1", (git_commit,)).fetchone()
+                row = conn.execute(
+                    "SELECT * FROM version_backups WHERE git_commit = ? ORDER BY created_at DESC LIMIT 1", (git_commit,)
+                ).fetchone()
             else:
                 return None
 
@@ -317,5 +321,17 @@ def get_recovery_store() -> RecoveryStore:
 
 
 def reset_recovery_store() -> None:
+    """Reset the singleton store (test isolation).
+
+    Also removes the backing SQLite file so the next store starts fresh.
+    Only used by tests.
+    """
     global _store_instance
-    _store_instance = None
+    if _store_instance is not None:
+        db_path = _store_instance._db_path
+        _store_instance = None
+        for suffix in ("", "-wal", "-shm"):
+            with contextlib.suppress(FileNotFoundError):
+                Path(db_path + suffix).unlink()
+    else:
+        _store_instance = None
