@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Hexagon -->
+  <polygon points="32,5 57,20 57,44 32,59 7,44 7,20"
+           fill="none" stroke="url(#iconGrad)" stroke-width="2"/>
+
+  <!-- Inner Hexagon -->
+  <polygon points="32,10 52,22 52,42 32,54 12,42 12,22"
+           fill="url(#iconGrad)" opacity="0.2"/>
+
+  <!-- Interconnected triangles -->
+  <polygon points="32,18 40,26 36,32 40,26" fill="#06B6D4"/>
+  <polygon points="32,46 24,40 40,32 24,40" fill="#3B82F6"/>
+  <polygon points="12,32 20,26 20,38 12,42" fill="#8B5CF6"/>
+  <polygon points="52,32 44,38 44,38 52,42" fill="#10B981"/>
+
+  <!-- Center point -->
+  <circle cx="32" cy="32" r="3" fill="#F59E0B"/>
+</svg>

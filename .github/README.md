@@ -2,9 +2,9 @@
 
 <div align="center">
 
-<img src="../assets/branding/professional/omega_logo.png" alt="OWNEX OMEGA Logo" width="300"/>
+<img src="../assets/branding/professional/ownex_main_logo.png" alt="OWNEX OMEGA Logo" width="300"/>
 
-<img src="../assets/branding/professional/ai_hero_banner.png" alt="OWNEX OMEGA — Autonomous Work Operating System" width="1100"/>
+<img src="../assets/branding/professional/cinematic_hero_banner.png" alt="OWNEX OMEGA — Autonomous Work Operating System" width="1100"/>
 
 ---
 
