@@ -91,7 +91,7 @@
 
 ---
 
-## PRÓXIMAS TAREAS POR PRIORIDAD (actualizado 2026-07-31)
+## PRÓXIMAS TAREAS POR PRIORIDAD (actualizado 2026-08-01)
 
 > Basado en la auditoría real, NO en el plan original. Orden = impacto en producto.
 
@@ -119,9 +119,9 @@
 | AUD-9 | Limpiar 424 errores de lint en código nuevo | ⚠️ PARCIAL 2026-07-31 — de 457 → 30 errores. Fix: field_validator parse_config en CycleRead (500→200 en /api/cycles); B904 `from None` en 9 routers; OWNEX_VERSION hardcodeada 5.0.0→eliminada (usar import 7.0.0) en backup/engine.py; F821 `session`→`sessions` typo en life_management; F811 duplicados en orion_cli.py y operations.py; E402 en __init__.py per-file-ignores. 30 errores restantes son legacy (E741 `l`, F401 extension imports, F841 `bus`) — no código nuevo | M |
 | AUD-10 | Commitear cambios sin commitear (README, assets, tests scheduler/vision, fixes auth/supabase/revenue) | ✅ COMPLETADO 2026-07-31 | S |
 | AUD-11 | Decidir core/ vs cores/: elegir uno como SSOT | ✅ COMPLETADO 2026-07-31 — **cores/ es SSOT** (845 archivos vs 533, 2x más imports en API, contiene pipeline productivo CATEYE). core/ se migrará gradualmente a cores/ | L |
-| AUD-12 | Android namespace unificado (ai.rastro/catseye/CATEYE) | ⏳ Pendiente | S |
-| AUD-13 | Tauri: fix lib name + versión | ⏳ Pendiente | S |
-| AUD-14 | WearOS real o descartar | ⏳ Pendiente | L |
+| AUD-12 | Android namespace unificado (ai.rastro/catseye/CATEYE) | ✅ COMPLETADO 2026-08-01 — namespace unificado `ai.rastro.app` en build.gradle, MainActivity, manifest, capacitor.config.json, strings.xml | S |
+| AUD-13 | Tauri: fix lib name + versión | ✅ COMPLETADO 2026-08-01 — main.rs corregido `orion_desktop::run()`, cargo check OK | S |
+| AUD-14 | WearOS real o descartar | ✅ COMPLETADO 2026-08-01 — Descartado (commit c420f8fb): ROI negativo, redundante con OMEGA mobile, < 1% market share | L |
 
 ---
 
