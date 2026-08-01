@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug to help us improve OWNEX OMEGA
+about: Report a bug to help us improve OWNEX
 title: '[BUG] '
 labels: bug
 assignees: ''
