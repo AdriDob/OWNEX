@@ -44,13 +44,13 @@ OWNEX es un sistema operativo personal autónomo con múltiples componentes avan
 | Backend | 85% | Funcional, scheduler conectado (AUD-1 fixeado) |
 | Frontend | 75% | Build válido, 0 páginas huérfanas, console.log removido |
 | Desktop | 75% | PyInstaller funciona, Tauri fixeado (lib name + versión) |
-| Mobile | 35% | Android build limpio, Supabase config example agregado |
+| Mobile | 40% | Android build limpio, Supabase config example agregado, WearOS descartado |
 | AI | 85% | Funcional, MERLIN mejorado (modo principiante/experto) |
 | Documentation | 95% | Buena, TECHNICAL_DEBT.md agregado, QUICK_START.md agregado |
 | Branding | 95% | Excelente, estándar premium |
 | Auto Mantenimiento | 15% | Auto maintenance framework creado + ruff fixes aplicados |
 
-**OVERALL:** ~80% funcionalidad real (subió del 75% al 80%)
+**OVERALL:** ~82% funcionalidad real (subió del 80% al 82%)
 
 ---
 
@@ -74,6 +74,8 @@ OWNEX es un sistema operativo personal autónomo con múltiples componentes avan
 - Console.log removido
 - Auto maintenance framework creado
 - Ruff fixes aplicados (249 fixes automáticos)
+- Premium sounds integrados en componentes core
+- WearOS descartado (análisis de decisión implementado)
 
 **Parciales:**
 - Backend (scheduler conectado, ciclos conectados)
