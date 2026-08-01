@@ -1,0 +1,86 @@
+{
+  "1": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": 123456789,
+      "steps": 20,
+      "cfg": 7,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 1.0,
+      "model": [
+        "4",
+        0
+      ],
+      "positive": [
+        "6",
+        0
+      ],
+      "negative": [
+        "7",
+        0
+      ],
+      "latent_image": [
+        "5",
+        0
+      ]
+    }
+  },
+  "2": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "stable_video_diffusion.safetensors"
+    }
+  },
+  "3": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "PC powers on, OWNEX ALPHA appears, system health scan with HUD, MERLIN assistant greets with text 'Welcome back. Your system is ready.', Mission Control dashboard opens, agents initialize, smooth premium animation, 20 seconds total, boot sequence like Tesla startup",
+      "clip": [
+        "2",
+        1
+      ]
+    }
+  },
+  "4": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "robots, humanoids, digital brains, AI clich\u00e9s, excessive neon, clutter, low quality",
+      "clip": [
+        "2",
+        1
+      ]
+    }
+  },
+  "5": {
+    "class_type": "EmptyLatentVideo",
+    "inputs": {
+      "width": 1920,
+      "height": 1080,
+      "length": 600,
+      "batch_size": 1
+    }
+  },
+  "6": {
+    "class_type": "VAEDecodeVideo",
+    "inputs": {
+      "samples": [
+        "1",
+        0
+      ],
+      "vae": [
+        "2",
+        2
+      ]
+    }
+  },
+  "7": {
+    "class_type": "SaveLatent",
+    "inputs": {
+      "samples": [
+        "5",
+        0
+      ]
+    }
+  }
+}
