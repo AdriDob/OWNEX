@@ -1,0 +1,39 @@
+{
+  "brand": "OWNEX",
+  "editions": ["ALPHA", "OMEGA"],
+  "tagline": "Autonomous Personal Operating System",
+  "concept": "The Aperture Nexus — an octagonal aperture ring (precision instrument) with an X of tapered rays radiating from a central square node (intelligence at the core). The top-right ray breaks through the aperture: evolution from core (ALPHA) to edge (OMEGA).",
+  "color_system": {
+    "space_black": { "hex": "#05060A", "usage": "Global background" },
+    "surface_1": { "hex": "#0B0E15", "usage": "Elevated panels, cards" },
+    "surface_2": { "hex": "#11151F", "usage": "Nested surfaces" },
+    "stroke": { "hex": "#1D2430", "usage": "Borders, dividers" },
+    "cyber_cyan": { "hex": "#00D5FF", "usage": "Primary — key elements, focus" },
+    "deep_blue": { "hex": "#1E40FF", "usage": "Secondary — depth, gradients" },
+    "emerald": { "hex": "#00E39A", "usage": "Accent — success, OMEGA edition" },
+    "white": { "hex": "#F6F8FB", "usage": "Primary text" },
+    "muted": { "hex": "#8A94A6", "usage": "Secondary text" }
+  },
+  "gradients": {
+    "hero": ["#00D5FF", "#1E40FF"],
+    "emerald_fade": ["#00E39A", "#00D5FF"]
+  },
+  "typography": {
+    "display": { "family": "Space Grotesk", "weights": [400, 500, 600, 700], "usage": "Wordmark, headlines" },
+    "ui": { "family": "Inter", "weights": [400, 500, 600, 700], "usage": "Body, UI, documentation" },
+    "mono": { "family": "JetBrains Mono", "weights": [400, 500], "usage": "Code, technical labels" }
+  },
+  "logo_system": {
+    "mark": "ownex-mark.svg",
+    "lockup": "ownex-lockup.svg",
+    "app_icon": "ownex-icon.svg",
+    "favicon": "ownex-favicon.svg",
+    "monochrome": "ownex-monochrome.svg",
+    "ui_32px": "ownex-ui-32px.png",
+    "alpha": "ownex-alpha.svg",
+    "omega": "ownex-omega.svg"
+  },
+  "forbidden": ["brain", "robot", "eye", "circuit", "hologram", "random AI imagery", "cartoon", "excessive neon"],
+  "principles": ["geometry", "precision", "engineering", "evolution", "intelligence", "minimalism"],
+  "license": "Fonts: Space Grotesk, Inter, JetBrains Mono under SIL OFL 1.1 (Google Fonts)"
+}

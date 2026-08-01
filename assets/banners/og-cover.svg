@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="ogGlow" cx="22%" cy="50%" r="42%">
+      <stop offset="0%" stop-color="#00D5FF" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#05060A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#05060A"/>
+  <rect width="1200" height="630" fill="url(#ogGlow)"/>
+  <line x1="0" y1="0" x2="0" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="120" y1="0" x2="120" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="240" y1="0" x2="240" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="360" y1="0" x2="360" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="480" y1="0" x2="480" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="600" y1="0" x2="600" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="720" y1="0" x2="720" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="840" y1="0" x2="840" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="960" y1="0" x2="960" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="1080" y1="0" x2="1080" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="1200" y1="0" x2="1200" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="1320" y1="0" x2="1320" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="1440" y1="0" x2="1440" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="1560" y1="0" x2="1560" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="1680" y1="0" x2="1680" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="1800" y1="0" x2="1800" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="1920" y1="0" x2="1920" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="2040" y1="0" x2="2040" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="2160" y1="0" x2="2160" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="2280" y1="0" x2="2280" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="2400" y1="0" x2="2400" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="0" x2="2400" y2="0" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="120" x2="2400" y2="120" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="240" x2="2400" y2="240" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="360" x2="2400" y2="360" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="480" x2="2400" y2="480" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="600" x2="2400" y2="600" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="720" x2="2400" y2="720" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="840" x2="2400" y2="840" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="960" x2="2400" y2="960" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="1080" x2="2400" y2="1080" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="1200" x2="2400" y2="1200" stroke="#0C1220" stroke-width="1"/>
+  <g transform="translate(250, 315) scale(0.78)"><g transform="translate(-256,-256)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  
+  <defs>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D5FF"/>
+      <stop offset="100%" stop-color="#1E40FF"/>
+    </linearGradient>
+    <linearGradient id="rayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D5FF"/>
+      <stop offset="100%" stop-color="#1E40FF"/>
+    </linearGradient>
+  </defs>
+  <g transform="scale(1.0)">
+    
+  <g id="ownex-mark">
+    <polygon points="263.78,227.01 410.86,45.99 466.01,101.14 284.99,248.22" fill="url(#rayGrad)" fill-opacity="1"/><polygon points="248.22,284.99 144.98,422.17 89.83,367.02 227.01,263.78" fill="url(#rayGrad)" fill-opacity="1"/><polygon points="227.01,248.22 89.83,144.98 144.98,89.83 248.22,227.01" fill="url(#rayGrad)" fill-opacity="1"/><polygon points="284.99,263.78 422.17,367.02 367.02,422.17 263.78,284.99" fill="url(#rayGrad)" fill-opacity="1"/>
+    <path d="M 335.60 63.83 L 176.40 63.83 L 63.83 176.40 L 63.83 335.60 L 176.40 448.17 L 335.60 448.17 L 448.17 335.60 L 448.17 176.40" fill="none" stroke="url(#ringGrad)" stroke-width="15.0" stroke-linejoin="miter"/>
+    <rect x="233.0" y="233.0" width="46.0" height="46.0" fill="#FFFFFF"/>
+  </g>
+  </g>
+</svg></g></g>
+  <text x="600" y="262" font-family="Space Grotesk, sans-serif" font-weight="700"
+        font-size="86" fill="#F6F8FB" letter-spacing="8">OWNEX</text>
+  <text x="600" y="330" font-family="Inter, sans-serif" font-size="24" fill="#8A94A6" letter-spacing="6">
+    AUTONOMOUS PERSONAL OPERATING SYSTEM</text>
+  <text x="600" y="398" font-family="JetBrains Mono, monospace" font-size="17" fill="#3D4A63" letter-spacing="4">
+    ALPHA DESKTOP · OMEGA MOBILE · MERLIN · AGENTS · EVOLUTION</text>
+  <line x1="600" y1="452" x2="1080" y2="452" stroke="#141B2C" stroke-width="1"/>
+</svg>

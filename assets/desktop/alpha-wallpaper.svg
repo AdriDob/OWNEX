@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2560 1440">
+  <defs>
+    <radialGradient id="wallGlow" cx="50%" cy="42%" r="46%">
+      <stop offset="0%" stop-color="#00D5FF" stop-opacity="0.14"/>
+      <stop offset="60%" stop-color="#1E40FF" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#05060A" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="wallBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#05060A"/>
+      <stop offset="100%" stop-color="#080C16"/>
+    </linearGradient>
+  </defs>
+  <rect width="2560" height="1440" fill="url(#wallBg)"/>
+  <rect width="2560" height="1440" fill="url(#wallGlow)"/>
+  <line x1="0" y1="0" x2="0" y2="1440" stroke="#0A0F1C" stroke-width="1"/><line x1="160" y1="0" x2="160" y2="1440" stroke="#0A0F1C" stroke-width="1"/><line x1="320" y1="0" x2="320" y2="1440" stroke="#0A0F1C" stroke-width="1"/><line x1="480" y1="0" x2="480" y2="1440" stroke="#0A0F1C" stroke-width="1"/><line x1="640" y1="0" x2="640" y2="1440" stroke="#0A0F1C" stroke-width="1"/><line x1="800" y1="0" x2="800" y2="1440" stroke="#0A0F1C" stroke-width="1"/><line x1="960" y1="0" x2="960" y2="1440" stroke="#0A0F1C" stroke-width="1"/><line x1="1120" y1="0" x2="1120" y2="1440" stroke="#0A0F1C" stroke-width="1"/><line x1="1280" y1="0" x2="1280" y2="1440" stroke="#0A0F1C" stroke-width="1"/><line x1="1440" y1="0" x2="1440" y2="1440" stroke="#0A0F1C" stroke-width="1"/><line x1="1600" y1="0" x2="1600" y2="1440" stroke="#0A0F1C" stroke-width="1"/><line x1="1760" y1="0" x2="1760" y2="1440" stroke="#0A0F1C" stroke-width="1"/><line x1="1920" y1="0" x2="1920" y2="1440" stroke="#0A0F1C" stroke-width="1"/><line x1="2080" y1="0" x2="2080" y2="1440" stroke="#0A0F1C" stroke-width="1"/><line x1="2240" y1="0" x2="2240" y2="1440" stroke="#0A0F1C" stroke-width="1"/><line x1="2400" y1="0" x2="2400" y2="1440" stroke="#0A0F1C" stroke-width="1"/><line x1="2560" y1="0" x2="2560" y2="1440" stroke="#0A0F1C" stroke-width="1"/>
+  <line x1="0" y1="0" x2="2560" y2="0" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="160" x2="2560" y2="160" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="320" x2="2560" y2="320" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="480" x2="2560" y2="480" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="640" x2="2560" y2="640" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="800" x2="2560" y2="800" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="960" x2="2560" y2="960" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1120" x2="2560" y2="1120" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1280" x2="2560" y2="1280" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1440" x2="2560" y2="1440" stroke="#0A0F1C" stroke-width="1"/>
+  <g transform="translate(1280.0, 420) scale(1.55)"><g transform="translate(-256,-256) scale(0.66)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  
+  <defs>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D5FF"/>
+      <stop offset="100%" stop-color="#1E40FF"/>
+    </linearGradient>
+    <linearGradient id="rayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D5FF"/>
+      <stop offset="100%" stop-color="#1E40FF"/>
+    </linearGradient>
+  </defs>
+  <g transform="scale(1.0)">
+    
+  <g id="ownex-mark">
+    <polygon points="263.78,227.01 410.86,45.99 466.01,101.14 284.99,248.22" fill="url(#rayGrad)" fill-opacity="1"/><polygon points="248.22,284.99 144.98,422.17 89.83,367.02 227.01,263.78" fill="url(#rayGrad)" fill-opacity="1"/><polygon points="227.01,248.22 89.83,144.98 144.98,89.83 248.22,227.01" fill="url(#rayGrad)" fill-opacity="1"/><polygon points="284.99,263.78 422.17,367.02 367.02,422.17 263.78,284.99" fill="url(#rayGrad)" fill-opacity="1"/>
+    <path d="M 335.60 63.83 L 176.40 63.83 L 63.83 176.40 L 63.83 335.60 L 176.40 448.17 L 335.60 448.17 L 448.17 335.60 L 448.17 176.40" fill="none" stroke="url(#ringGrad)" stroke-width="15.0" stroke-linejoin="miter"/>
+    <rect x="233.0" y="233.0" width="46.0" height="46.0" fill="#FFFFFF"/>
+  </g>
+  </g>
+</svg></g></g>
+  <line x1="1020.0" y1="1010" x2="1540.0" y2="1010" stroke="#141B2C" stroke-width="1"/>
+</svg>

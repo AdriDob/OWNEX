@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1350" width="2400" height="1350">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#00D5FF" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#05060A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="2400" height="1350" fill="#05060A"/>
+  <rect width="2400" height="1350" fill="url(#bgGlow)"/>
+  <line x1="0" y1="0" x2="0" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="150" y1="0" x2="150" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="300" y1="0" x2="300" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="450" y1="0" x2="450" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="600" y1="0" x2="600" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="750" y1="0" x2="750" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="900" y1="0" x2="900" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="1050" y1="0" x2="1050" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="1200" y1="0" x2="1200" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="1350" y1="0" x2="1350" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="1500" y1="0" x2="1500" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="1650" y1="0" x2="1650" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="1800" y1="0" x2="1800" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="1950" y1="0" x2="1950" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="2100" y1="0" x2="2100" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="2250" y1="0" x2="2250" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="2400" y1="0" x2="2400" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="0" x2="2400" y2="0" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="150" x2="2400" y2="150" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="300" x2="2400" y2="300" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="450" x2="2400" y2="450" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="600" x2="2400" y2="600" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="750" x2="2400" y2="750" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="900" x2="2400" y2="900" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1050" x2="2400" y2="1050" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1200" x2="2400" y2="1200" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1350" x2="2400" y2="1350" stroke="#0A0F1C" stroke-width="1"/>
+  
+  
+  <rect x="0" y="0" width="2400" height="120" fill="#07090F"/>
+  <line x1="0" y1="120" x2="2400" y2="120" stroke="#1D2430" stroke-width="1"/>
+  <circle cx="52" cy="60" r="6" fill="#00E39A"/>
+  <text x="78" y="70" font-family="JetBrains Mono, monospace" font-weight="500" font-size="24"
+        fill="#F6F8FB" letter-spacing="4">ARCHITECTURE</text>
+  <text x="2080" y="70" font-family="JetBrains Mono, monospace" font-size="20"
+        fill="#8A94A6" letter-spacing="3">OWNEX CONCEPT 03 / SYSTEM FLOW</text>
+  <line x1="2060" y1="42" x2="2060" y2="78" stroke="#1D2430" stroke-width="2"/>
+
+  <rect x="450.0" y="260" width="1500" height="118" rx="16" fill="#0B0E15" stroke="#1D2430" stroke-width="1.5"/><rect x="450.0" y="260" width="10" height="118" rx="5" fill="#00D5FF"/><line x1="1200.0" y1="378" x2="1200.0" y2="440" stroke="#2A3650" stroke-width="2"/><polygon points="1191.0,428 1209.0,428 1200.0,440" fill="#2A3650"/><rect x="450.0" y="440" width="1500" height="118" rx="16" fill="#0B0E15" stroke="#1D2430" stroke-width="1.5"/><rect x="450.0" y="440" width="10" height="118" rx="5" fill="#00D5FF"/><line x1="1200.0" y1="558" x2="1200.0" y2="620" stroke="#2A3650" stroke-width="2"/><polygon points="1191.0,608 1209.0,608 1200.0,620" fill="#2A3650"/><rect x="450.0" y="620" width="1500" height="118" rx="16" fill="#0B0E15" stroke="#1D2430" stroke-width="1.5"/><rect x="450.0" y="620" width="10" height="118" rx="5" fill="#00D5FF"/><line x1="1200.0" y1="738" x2="1200.0" y2="800" stroke="#2A3650" stroke-width="2"/><polygon points="1191.0,788 1209.0,788 1200.0,800" fill="#2A3650"/><rect x="450.0" y="800" width="1500" height="118" rx="16" fill="#0B0E15" stroke="#1D2430" stroke-width="1.5"/><rect x="450.0" y="800" width="10" height="118" rx="5" fill="#6A8CFF"/><line x1="1200.0" y1="918" x2="1200.0" y2="980" stroke="#2A3650" stroke-width="2"/><polygon points="1191.0,968 1209.0,968 1200.0,980" fill="#2A3650"/><rect x="450.0" y="980" width="1500" height="118" rx="16" fill="#0B0E15" stroke="#1D2430" stroke-width="1.5"/><rect x="450.0" y="980" width="10" height="118" rx="5" fill="#00E39A"/><line x1="1200.0" y1="1098" x2="1200.0" y2="1160" stroke="#2A3650" stroke-width="2"/><polygon points="1191.0,1148 1209.0,1148 1200.0,1160" fill="#2A3650"/><rect x="450.0" y="1160" width="1500" height="118" rx="16" fill="#0B0E15" stroke="#1D2430" stroke-width="1.5"/><rect x="450.0" y="1160" width="10" height="118" rx="5" fill="#00E39A"/>
+  <text x="120" y="330" font-family="JetBrains Mono, monospace" font-size="20" fill="#3D4A63" letter-spacing="3">CONTROL PLANE</text>
+  <text x="120" y="620" font-family="JetBrains Mono, monospace" font-size="20" fill="#3D4A63" letter-spacing="3">ORGANIZATION</text>
+  <text x="120" y="850" font-family="JetBrains Mono, monospace" font-size="20" fill="#3D4A63" letter-spacing="3">EXECUTION</text>
+  <text x="120" y="1080" font-family="JetBrains Mono, monospace" font-size="20" fill="#3D4A63" letter-spacing="3">INTELLIGENCE</text>
+  <text x="120" y="1290" font-family="JetBrains Mono, monospace" font-size="20" fill="#3D4A63" letter-spacing="3">FEEDBACK</text>
+  
+  <line x1="0" y1="1278" x2="2400" y2="1278" stroke="#1D2430" stroke-width="1"/>
+  <circle cx="52" cy="1314" r="5" fill="#00D5FF"/>
+  <text x="72" y="1321" font-family="JetBrains Mono, monospace" font-size="20"
+        fill="#3D4A63" letter-spacing="3">DESIGNED FOR AUTONOMY — HUMAN AT THE DECISION GATE</text>
+  <text x="2348" y="1321" text-anchor="end" font-family="JetBrains Mono, monospace"
+        font-size="20" fill="#3D4A63" letter-spacing="3">OWNEX © 2026</text>
+
+
+</svg>
