@@ -89,11 +89,11 @@ class AutonomousWorkflow:
                 reward=opp.reward,
                 effort_hours=opp.effort_hours,
                 platform=opp.platform,
-                technology_tags=opp.tags,
+                technology_tags=opp.technology_tags,
                 url=opp.url,
                 created_at=opp.created_at,
                 personal=self.personal,
-                original=opp.metadata,
+                original=opp.original,
             )
             if scored_opp.score.overall >= self.min_score_threshold:
                 scored.append(scored_opp)

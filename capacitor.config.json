@@ -1,6 +1,6 @@
 {
   "appId": "ai.CATEYE.app",
-  "appName": "RASTRO",
+  "appName": "CATEYE",
   "webDir": "frontend/dist",
   "server": {
     "androidScheme": "https",

@@ -205,7 +205,7 @@ class ModelRouter:
         # Map task types to compatible models (ordered by preference)
         self._task_model_map = {
             TaskType.CODE: ["devin-claude-sonnet", "fcc-gpt4o-mini", "ollama-qwen-coder", "opencode-deepseek"],
-            TaskType.ANALYSIS: ["devin-claude-sonnet", "fcc-gpt4o-mini", "fcc-claude-haiku", "ollama-qwen-coder"],
+            TaskType.ANALYSIS: ["fcc-gpt4o-mini", "fcc-claude-haiku", "ollama-qwen-coder"],
             TaskType.RESEARCH: ["devin-claude-sonnet", "fcc-claude-haiku", "ollama-hermes", "opencode-nemotron"],
             TaskType.VALIDATION: [
                 "devin-claude-sonnet",
@@ -312,9 +312,8 @@ class ModelRouter:
             ProviderTier.FALLBACK: 0.85,
             ProviderTier.LOCAL: 0.70,
             ProviderTier.FREE: 0.60,
-            ProviderTier.DEVIN: 0.50,
         }
-        confidence = tier_confidence[profile.tier]
+        confidence = tier_confidence.get(profile.tier, 0.5)
         if not capability_match:
             confidence *= 0.8
 
