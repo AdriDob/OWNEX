@@ -1,5 +1,5 @@
 {
-  "appId": "ai.rastro.app",
+  "appId": "ai.CATEYE.app",
   "appName": "RASTRO",
   "webDir": "frontend/dist",
   "server": {

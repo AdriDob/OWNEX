@@ -89,7 +89,7 @@ class AutonomousWorkflow:
                 reward=opp.reward,
                 effort_hours=opp.effort_hours,
                 platform=opp.platform,
-                technology_tags=opp.tags,
+                technology_tags=opp.technology_tags,
                 url=opp.url,
                 created_at=opp.created_at,
                 personal=self.personal,
