@@ -80,8 +80,8 @@ def footer_svg(W: int = 2400, H: int = 1350, note: str = "SYSTEM NOMINAL — ALL
 """
 
 
-def footer_texts(note: str = "SYSTEM NOMINAL — ALL MODULES OPERATIONAL") -> list:
+def footer_texts(note: str = "SYSTEM NOMINAL — ALL MODULES OPERATIONAL", W: int = 2400, H: int = 1350) -> list:
     return [
-        (72, 1350 - 29, note, "jbm", 400, 20, "#3D4A63", 3, "left"),
-        (2400 - 52, 1350 - 29, "OWNEX © 2026", "jbm", 400, 20, "#3D4A63", 3, "right"),
+        (72, H - 29, note, "jbm", 400, 20, "#3D4A63", 3, "left"),
+        (W - 52, H - 29, "OWNEX © 2026", "jbm", 400, 20, "#3D4A63", 3, "right"),
     ]

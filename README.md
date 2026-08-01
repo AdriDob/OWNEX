@@ -13,6 +13,121 @@
 
 ---
 
+## What is OWNEX?
+
+OWNEX is an autonomous personal operating system: a single platform that discovers opportunities, executes technical work, learns from outcomes, and evolves its own operation — from a desktop command center to your phone.
+
+It is built around a closed loop: **observe → decide → execute → learn → evolve**. The human stays at the decision gate; the system handles the rest.
+
+---
+
+## One system, two editions
+
+OWNEX ships as two connected identities sharing a single core.
+
+| ALPHA — Desktop Operating System | OMEGA — Android & Wear OS Companion |
+|---|---|
+| <img src="assets/logos/ownex-alpha.png" alt="ALPHA" width="280"/> | <img src="assets/logos/ownex-omega.png" alt="OMEGA" width="280"/> |
+| Command center: agents, workflows, terminal, memory, evolution engine, mission-control dashboard. | Permanent connection: approvals, notifications, MERLIN chat, system health — on your phone and wrist. |
+
+---
+
+## Core capabilities
+
+| Capability | Status |
+|---|---|
+| Bug bounty pipeline (discover → recon → hypothesis → validate → report) | Production |
+| Opportunity engine with EV scoring and platform executors | Production |
+| Autonomous workflows and agent fleet | Production |
+| MERLIN assistant with unified memory | Production |
+| Security cycle with 7 stage executors | Production |
+| Executive dashboard (revenue verdict, USD/hour, platform speed) | Production |
+| Self-update, version backup, recovery engine | Production |
+| 6-language interface (EN, ES, FR, DE, JA, ZH) | Production |
+
+---
+
+## Architecture
+
+Control plane, departments, agents, execution, learning, feedback — designed for autonomy, with the human at every decision gate.
+
+<p align="center">
+  <img src="assets/concepts/architecture.png" alt="Architecture" width="80%"/>
+</p>
+
+| Layer | Responsibility |
+|---|---|
+| **OWNEX Core** | Event bus, scheduler, unified memory, security layer |
+| **Departments** | Orchestrator · Engineering · Quality · Security · Revenue |
+| **Agents** | Autonomous specialists coordinated per department |
+| **Execution** | Workflows, executors, platform connectors |
+| **Learning** | Feedback loops, knowledge capture, reward models |
+| **Evolution** | Self-improvement, version rollback, recovery |
+
+---
+
+## Quick start
+
+```bash
+git clone https://github.com/AdriDob/rastrohunteralpha.git
+cd rastrohunteralpha
+
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env          # add your platform credentials
+
+python api/main.py            # backend → http://127.0.0.1:8000
+
+cd frontend && npm install
+npm run dev                   # frontend → http://localhost:5173
+```
+
+```bash
+curl http://127.0.0.1:8000/api/health   # system health
+python run.py --backup                   # snapshot before changes
+```
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Python 3.11 · FastAPI · SQLAlchemy · Pydantic |
+| Data | SQLite (dev) · PostgreSQL (prod) · Unified Memory (SQLite) |
+| Frontend | Vue 3 · TypeScript · Tailwind v4 · Vite · ShadCN Vue |
+| Mobile | Kotlin · Jetpack Compose · Wear OS 3+ |
+| AI | Local models (Ollama) · OpenRouter · free providers · MERLIN |
+| Automation | Scheduler (cron-aware) · EventBus · AgentBus · RecoveryEngine |
+| Quality | pytest (1,400+ tests) · Ruff · mypy · Biome · Vitest |
+
+---
+
+## Documentation
+
+- [Documentation Index](DOCUMENTATION_INDEX.md) — Complete documentation index
+- [Troubleshooting Guide](TROUBLESHOOTING.md) — Common issues and solutions
+- [API Reference](API_REFERENCE.md) — Complete API documentation
+- [Brand identity](assets/branding/OWNEX_BRAND_IDENTITY.md) — marks, colors, type, usage rules
+- [Design tokens](assets/branding/design-tokens.json) — machine-readable brand tokens
+- [Trailer storyboard](assets/video/trailer-storyboard.md) — 90s product trailer structure
+- [Agent Charter](.ai/AGENT_CHARTER.md) — constitution and operating rules
+- [Architecture](.ai/ARCHITECTURE_FINAL.md) — full architectural decisions
+
+---
+
+## Philosophy
+
+**Consolidation over expansion.** OWNEX does not grow by adding modules; it grows by closing loops. Every component must produce observable results, survive restarts, and connect to at least one real consumer. If it cannot be verified, it does not exist.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE). Brand fonts: SIL OFL 1.1 (Google Fonts).
+
+---
+
 <p align="center">
   <img src="assets/logos/ownex-mark.png" alt="OWNEX" width="140"/>
 </p>
