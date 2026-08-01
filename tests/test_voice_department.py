@@ -1,6 +1,5 @@
 """Voice Department Tests - Tests para el sistema conversacional de voz."""
 
-
 import pytest
 
 from cores.voice_department import (
@@ -12,6 +11,7 @@ from cores.voice_department import (
     get_voice_personalization,
     get_voice_visual_interface,
 )
+from cores.voice_department.audio_engine import AudioEngine, AudioQuality, reset_high_quality_audio_engine
 from cores.voice_department.audio_engine import AudioEngine, AudioQuality
 from cores.voice_department.models import (
     AccessibilityMode,

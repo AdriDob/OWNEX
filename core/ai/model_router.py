@@ -207,7 +207,12 @@ class ModelRouter:
             TaskType.CODE: ["devin-claude-sonnet", "fcc-gpt4o-mini", "ollama-qwen-coder", "opencode-deepseek"],
             TaskType.ANALYSIS: ["devin-claude-sonnet", "fcc-gpt4o-mini", "fcc-claude-haiku", "ollama-qwen-coder"],
             TaskType.RESEARCH: ["devin-claude-sonnet", "fcc-claude-haiku", "ollama-hermes", "opencode-nemotron"],
-            TaskType.VALIDATION: ["devin-claude-sonnet", "omniroute-claude-sonnet", "fcc-claude-haiku", "fcc-gpt4o-mini"],
+            TaskType.VALIDATION: [
+                "devin-claude-sonnet",
+                "omniroute-claude-sonnet",
+                "fcc-claude-haiku",
+                "fcc-gpt4o-mini",
+            ],
             TaskType.REPORT: ["omniroute-claude-sonnet", "omniroute-gpt4o", "fcc-claude-haiku"],
             TaskType.LEARNING: ["ollama-hermes", "fcc-claude-haiku", "opencode-nemotron"],
             TaskType.PLANNING: ["omniroute-claude-sonnet", "fcc-gpt4o-mini", "ollama-hermes"],
@@ -307,6 +312,7 @@ class ModelRouter:
             ProviderTier.FALLBACK: 0.85,
             ProviderTier.LOCAL: 0.70,
             ProviderTier.FREE: 0.60,
+            ProviderTier.DEVIN: 0.50,
         }
         confidence = tier_confidence[profile.tier]
         if not capability_match:
