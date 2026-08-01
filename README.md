@@ -2,9 +2,9 @@
 
 <div align="center">
 
-<img src="assets/branding/professional/ownex_main_logo.png" alt="OWNEX OMEGA Logo" width="300"/>
+<img src="assets/branding/logos_png/ownex_main_logo_v2.png" alt="OWNEX OMEGA Logo" width="300"/>
 
-<img src="assets/branding/professional/cinematic_hero_banner.png" alt="OWNEX OMEGA — Autonomous Work Operating System" width="1100"/>
+<img src="assets/branding/banners_png/hero_banner_v2.png" alt="OWNEX OMEGA — Autonomous Personal Operating System" width="1100"/>
 
 ---
 
@@ -31,13 +31,13 @@ OWNEX OMEGA is an autonomous operating system ecosystem with two complementary e
 
 ### OWNEX ALPHA (Desktop)
 
-<img src="assets/branding/professional/alpha_logo.png" alt="OWNEX ALPHA Logo" width="200"/>
+<img src="assets/branding/logos_png/alpha_logo_v2.png" alt="OWNEX ALPHA Logo" width="200"/>
 
 Desktop edition for developers and professionals — Professional, robust, enterprise-grade
 
 ### OWNEX OMEGA (Mobile)
 
-<img src="assets/branding/professional/omega_logo.png" alt="OWNEX OMEGA Logo" width="200"/>
+<img src="assets/branding/logos_png/omega_logo_v2.png" alt="OWNEX OMEGA Logo" width="200"/>
 
 Mobile edition for smartphones and wearables — Modern, sleek, mobile-first
 
