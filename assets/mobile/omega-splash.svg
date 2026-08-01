@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 2400">
+  <defs>
+    <radialGradient id="splashGlow" cx="50%" cy="30%" r="50%">
+      <stop offset="0%" stop-color="#00E39A" stop-opacity="0.12"/>
+      <stop offset="60%" stop-color="#00D5FF" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#05060A" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="splashBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#05060A"/>
+      <stop offset="100%" stop-color="#080C16"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="2400" fill="url(#splashBg)"/>
+  <rect width="1080" height="2400" fill="url(#splashGlow)"/>
+  <line x1="0" y1="0" x2="0" y2="2400" stroke="#0A0F1C" stroke-width="1"/><line x1="135" y1="0" x2="135" y2="2400" stroke="#0A0F1C" stroke-width="1"/><line x1="270" y1="0" x2="270" y2="2400" stroke="#0A0F1C" stroke-width="1"/><line x1="405" y1="0" x2="405" y2="2400" stroke="#0A0F1C" stroke-width="1"/><line x1="540" y1="0" x2="540" y2="2400" stroke="#0A0F1C" stroke-width="1"/><line x1="675" y1="0" x2="675" y2="2400" stroke="#0A0F1C" stroke-width="1"/><line x1="810" y1="0" x2="810" y2="2400" stroke="#0A0F1C" stroke-width="1"/><line x1="945" y1="0" x2="945" y2="2400" stroke="#0A0F1C" stroke-width="1"/><line x1="1080" y1="0" x2="1080" y2="2400" stroke="#0A0F1C" stroke-width="1"/>
+  <line x1="0" y1="0" x2="1080" y2="0" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="135" x2="1080" y2="135" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="270" x2="1080" y2="270" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="405" x2="1080" y2="405" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="540" x2="1080" y2="540" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="675" x2="1080" y2="675" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="810" x2="1080" y2="810" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="945" x2="1080" y2="945" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1080" x2="1080" y2="1080" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1215" x2="1080" y2="1215" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1350" x2="1080" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1485" x2="1080" y2="1485" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1620" x2="1080" y2="1620" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1755" x2="1080" y2="1755" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1890" x2="1080" y2="1890" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="2025" x2="1080" y2="2025" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="2160" x2="1080" y2="2160" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="2295" x2="1080" y2="2295" stroke="#0A0F1C" stroke-width="1"/>
+  <g transform="translate(540.0, 300) scale(1.35)"><g transform="translate(-256,-256) scale(0.8)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  
+  <defs>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E39A"/>
+      <stop offset="100%" stop-color="#00D5FF"/>
+    </linearGradient>
+    <linearGradient id="rayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E39A"/>
+      <stop offset="100%" stop-color="#00D5FF"/>
+    </linearGradient>
+  </defs>
+  <g transform="scale(1.0)">
+    
+  <g id="ownex-mark">
+    <polygon points="263.78,227.01 410.86,45.99 466.01,101.14 284.99,248.22" fill="url(#rayGrad)" fill-opacity="1"/><polygon points="248.22,284.99 144.98,422.17 89.83,367.02 227.01,263.78" fill="url(#rayGrad)" fill-opacity="1"/><polygon points="227.01,248.22 89.83,144.98 144.98,89.83 248.22,227.01" fill="url(#rayGrad)" fill-opacity="1"/><polygon points="284.99,263.78 422.17,367.02 367.02,422.17 263.78,284.99" fill="url(#rayGrad)" fill-opacity="1"/>
+    <path d="M 335.60 63.83 L 176.40 63.83 L 63.83 176.40 L 63.83 335.60 L 176.40 448.17 L 335.60 448.17 L 448.17 335.60 L 448.17 176.40" fill="none" stroke="url(#ringGrad)" stroke-width="15.0" stroke-linejoin="miter"/>
+    <rect x="233.0" y="233.0" width="46.0" height="46.0" fill="#FFFFFF"/>
+  </g>
+  </g>
+</svg></g></g>
+  <rect x="240.0" y="1640" width="600" height="300" rx="24" fill="#0B0E15" stroke="#1D2430" stroke-width="1.5"/>
+  <rect x="300.0" y="1710" width="480" height="14" rx="7" fill="#16213A"/>
+  <rect x="300.0" y="1710" width="360" height="14" rx="7" fill="#00E39A"/>
+</svg>

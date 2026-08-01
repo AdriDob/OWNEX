@@ -66,7 +66,7 @@ def lockup_png(edition: str | None, mono: bool, out: Path, width: int = 2048) ->
     )
     if tag:
         draw_text_left(d, (text_x * s, 300 * s), tag, "JetBrainsMono", 400, 21 * s, tag_fill, tracking=6)
-    img.convert("RGB").save(out)
+    img.save(out)
     tmp.unlink()
     return out
 
@@ -99,9 +99,11 @@ def main() -> None:
     (logos / "ownex-mark.svg").write_text(mark_svg("alpha"))
     render(mark_svg("alpha"), logos / "ownex-mark.png", width=1024)
 
-    # 2. Monochrome mark
-    (logos / "ownex-monochrome.svg").write_text(mark_svg("alpha", mono=True))
-    render(mark_svg("alpha", mono=True), logos / "ownex-monochrome.png", width=1024)
+    # 2. Monochrome marks (white for dark UIs, black for light UIs)
+    (logos / "ownex-monochrome.svg").write_text(mark_svg("alpha", mono="white"))
+    render(mark_svg("alpha", mono="white"), logos / "ownex-monochrome.png", width=1024)
+    (logos / "ownex-monochrome-black.svg").write_text(mark_svg("alpha", mono="black"))
+    render(mark_svg("alpha", mono="black"), logos / "ownex-monochrome-black.png", width=1024)
 
     # 3. Lockups
     for edition in (None, "ALPHA", "OMEGA"):
@@ -126,10 +128,10 @@ def main() -> None:
 </svg>"""
     (logos / "ownex-icon.svg").write_text(app_icon_svg)
 
-    # 5. Favicon (64px SVG, 64px PNG) + UI 32px
-    (logos / "ownex-favicon.svg").write_text(mark_svg("alpha", size=64))
-    svg_to_png(mark_svg("alpha", size=64), logos / "ownex-favicon.png", 64)
-    svg_to_png(mark_svg("alpha", size=512), logos / "ownex-ui-32px.png", 32)
+    # 5. Favicon (64px SVG, 64px PNG) + UI 32px — bold strokes for small sizes
+    (logos / "ownex-favicon.svg").write_text(mark_svg("alpha", size=64, bold=True))
+    svg_to_png(mark_svg("alpha", size=64, bold=True), logos / "ownex-favicon.png", 64)
+    svg_to_png(mark_svg("alpha", size=512, bold=True), logos / "ownex-ui-32px.png", 32)
 
     print("Logo system generated →", logos)
 
