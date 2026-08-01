@@ -47,6 +47,14 @@ Together, they perform software engineering, cybersecurity, bug bounty, AI orche
 
 ---
 
+## 🎬 Demo
+
+[![OWNEX OMEGA Presentation](assets/video/ownex_presentation_v2.mp4)]
+
+**[Watch Presentation Video](assets/video/ownex_presentation_v2.mp4)** (55s)
+
+---
+
 ## 🖼️ Visual Overview — Work Cycles
 
 <div align="center">
