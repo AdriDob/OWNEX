@@ -360,8 +360,9 @@ GUIDED_ONBOARDING={personalization_data.get('guided_onboarding', False)}
                 logger.info("✓ Voice commands habilitados")
                 # Check for Whisper and Piper
                 try:
-                    import whisper
-                    logger.info("✓ Whisper disponible para STT")
+                    import importlib.util
+                    if importlib.util.find_spec("whisper") is not None:
+                        logger.info("✓ Whisper disponible para STT")
                 except ImportError:
                     logger.warning("Whisper no instalado, voice commands limitados")
 

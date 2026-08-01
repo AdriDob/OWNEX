@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import importlib.util
 import logging
 import os
 from pathlib import Path
@@ -9,15 +10,7 @@ from core.interfaces.connector import ConnectorHealth, IConnector
 
 logger = logging.getLogger("ownex.lightrag.connector")
 
-try:
-    import lightrag
-    from lightrag import LightRAG as LightRAGClient
-    from lightrag.llm import openai_embedding
-
-    _LIGHTRAG_AVAILABLE = True
-except ImportError:
-    _LIGHTRAG_AVAILABLE = False
-    LightRAGClient = None  # type: ignore[assignment]
+_LIGHTRAG_AVAILABLE = importlib.util.find_spec("lightrag") is not None
 
 
 class LightRAGConnector(IConnector):
@@ -109,31 +102,15 @@ class LightRAGConnector(IConnector):
             top_k = params.get("top_k", 5)
             min_similarity = params.get("min_similarity", 0.7)
 
-            # Generate embedding using LightRAG's embedding function
-            embedding = openai_embedding(query_text)
-
-            # Query LightRAG with the embedding
-            # Note: This assumes LightRAGClient has a method to query with embeddings
-            # In a real implementation, we would call the actual LightRAG API
-            results = await self._query_lightrag_with_embedding(embedding, top_k=top_k, min_similarity=min_similarity)
-
-            # Format results for compatibility with the memory system
-            formatted_results = []
-            for result in results:
-                formatted_results.append(
-                    {
-                        "text": result.get("text", ""),
-                        "score": result.get("score", 0.0),
-                        "metadata": result.get("metadata", {}),
-                    }
-                )
-
+            # Note: This would require actual LightRAG implementation
+            # For now, return placeholder response
             return {
                 "query": query_text,
-                "results": formatted_results,
-                "total_found": len(formatted_results),
-                "embedding_generated": True,
+                "results": [],
+                "total_found": 0,
+                "embedding_generated": False,
                 "timestamp": str(datetime.datetime.now()),
+                "message": "LightRAG not fully implemented - placeholder response"
             }
 
         except Exception as e:

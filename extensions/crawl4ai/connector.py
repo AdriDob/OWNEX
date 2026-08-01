@@ -1,17 +1,13 @@
 from __future__ import annotations
 
+import importlib.util
 import logging
 
 from core.interfaces.connector import ConnectorHealth, IConnector
 
 logger = logging.getLogger("ownex.crawl4ai.connector")
 
-try:
-    import crawl4ai
-
-    _CRAWL4AI_AVAILABLE = True
-except ImportError:
-    _CRAWL4AI_AVAILABLE = False
+_CRAWL4AI_AVAILABLE = importlib.util.find_spec("crawl4ai") is not None
 
 
 class Crawl4AIConnector(IConnector):
