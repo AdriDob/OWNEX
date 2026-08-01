@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 import subprocess
 from pathlib import Path
 
@@ -33,20 +34,20 @@ SIZE = 512
 CX = CY = SIZE / 2
 
 # ---------------------------------------------------------------------------
-# Mark geometry — "The Aperture Nexus"
+# Mark geometry — "The Signal" — clean geometric precision
+# A refined monogram: intersecting diagonals with precise negative space
 # ---------------------------------------------------------------------------
 
-OCT_R = 208  # octagon circumradius
-OCT_SW = 15  # ring stroke width
-RAY_R_EDGE = 196  # rays ending at ring inner edge
-RAY_R_BREAK = 258  # breaking ray length (through aperture gap)
-RAY_R_CORE = 26  # ray start radius (narrow center)
-RAY_W_CORE = 30  # ray width at center
-RAY_W_TIP = 78  # ray width at tip
-NODE = 46  # central node square size
+# Core mark dimensions (in 512px coordinate space)
+MARK_R = 220  # outer bounding radius
+BAR_W = 38  # bar thickness
+BAR_GAP = 8  # gap at center intersection
+ARM_LEN = 200  # arm length from center
+END_R = 12  # rounded end radius
 
-# Octagon vertex angles (deg, from +x, CCW); y-flipped for SVG later.
-OCT_ANGLES = [22.5 + 45 * k for k in range(8)]
+# Secondary accent ring
+RING_R = 248
+RING_SW = 2.5
 
 
 def pt(angle_deg: float, radius: float, cx: float = CX, cy: float = CY) -> tuple[float, float]:
@@ -54,86 +55,135 @@ def pt(angle_deg: float, radius: float, cx: float = CX, cy: float = CY) -> tuple
     return (cx + radius * math.cos(a), cy - radius * math.sin(a))
 
 
-def octagon_segments(radius: float) -> list[tuple[tuple[float, float], tuple[float, float]]]:
-    """7 segments (top-right one open — the aperture gap)."""
-    segs = []
-    for i in range(8):
-        a1, a2 = OCT_ANGLES[i], OCT_ANGLES[(i + 1) % 8]
-        if {round(a1, 1), round(a2, 1)} == {round(22.5, 1), round(67.5, 1)}:
-            continue
-        segs.append((pt(a1, radius), pt(a2, radius)))
-    return segs
-
-
-def ray_quad(
-    angle_deg: float, r_tip: float, core: float = RAY_R_CORE, w_core: float = RAY_W_CORE, w_tip: float = RAY_W_TIP
-) -> str:
-    """Tapered ray: narrow at core, wide at tip. Returns polygon points."""
-    a = math.radians(angle_deg)
-    nx, ny = -math.sin(a), -math.cos(a)  # perpendicular (y-flipped space)
-    x0, y0 = CX + core * math.cos(a), CY - core * math.sin(a)
-    x1, y1 = CX + r_tip * math.cos(a), CY - r_tip * math.sin(a)
-    hc, ht = w_core / 2, w_tip / 2
-    p = [
-        (x0 + hc * nx, y0 + hc * ny),
-        (x1 + ht * nx, y1 + ht * ny),
-        (x1 - ht * nx, y1 - ht * ny),
-        (x0 - hc * nx, y0 - hc * ny),
-    ]
-    return " ".join(f"{x:.2f},{y:.2f}" for x, y in p)
+def rounded_rect_path(x: float, y: float, w: float, h: float, r: float) -> str:
+    """SVG path for rounded rect centered at (x,y)."""
+    hw, hh = w / 2, h / 2
+    x0, y0 = x - hw, y - hh
+    x1, y1 = x + hw, y + hh
+    return (
+        f"M {x0 + r:.2f} {y0:.2f}"
+        f" L {x1 - r:.2f} {y0:.2f}"
+        f" Q {x1:.2f} {y0:.2f} {x1:.2f} {y0 + r:.2f}"
+        f" L {x1:.2f} {y1 - r:.2f}"
+        f" Q {x1:.2f} {y1:.2f} {x1 - r:.2f} {y1:.2f}"
+        f" L {x0 + r:.2f} {y1:.2f}"
+        f" Q {x0:.2f} {y1:.2f} {x0:.2f} {y1 - r:.2f}"
+        f" L {x0:.2f} {y0 + r:.2f}"
+        f" Q {x0:.2f} {y0:.2f} {x0 + r:.2f} {y0:.2f}"
+        " Z"
+    )
 
 
 def mark_defs(variant: str = "alpha") -> str:
-    cyan, blue = C["cyber_cyan"], C["deep_blue"]
-    if variant == "omega":
-        cyan, blue = C["emerald"], C["cyber_cyan"]
+    """Gradient definitions per variant."""
+    if variant == "alpha":
+        start, end = C["cyber_cyan"], C["deep_blue"]
+    elif variant == "omega":
+        start, end = C["emerald"], C["cyber_cyan"]
+    else:
+        start, end = C["cyber_cyan"], C["deep_blue"]
     return f"""
   <defs>
+    <linearGradient id="markGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="{start}"/>
+      <stop offset="100%" stop-color="{end}"/>
+    </linearGradient>
     <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="{cyan}"/>
-      <stop offset="100%" stop-color="{blue}"/>
+      <stop offset="0%" stop-color="{start}"/>
+      <stop offset="100%" stop-color="{end}" stop-opacity="0.6"/>
     </linearGradient>
-    <linearGradient id="rayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="{cyan}"/>
-      <stop offset="100%" stop-color="{blue}"/>
-    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>"""
 
 
-def mark_group(variant: str = "alpha", mono: str | None = "white", bold: bool = False) -> str:
-    """Core mark group on transparent canvas. mono: 'white' | 'black' | None."""
-    m = 2.0 if bold else 1.0
-    oct_sw, ray_wc, ray_wt, node = OCT_SW * m, RAY_W_CORE * m, RAY_W_TIP * m, NODE * m
-    fill = "#FFFFFF" if mono == "white" else ("#05060A" if mono == "black" else "url(#rayGrad)")
-    ring = "#FFFFFF" if mono == "white" else ("#05060A" if mono == "black" else "url(#ringGrad)")
-    node_fill = "#FFFFFF" if mono == "white" else ("#05060A" if mono == "black" else "#FFFFFF")
+def mark_group(variant: str = "alpha", mono: str | None = None, bold: bool = False) -> str:
+    """Core mark: two intersecting bars with precise center gap + subtle ring."""
+    m = 1.2 if bold else 1.0
+    bar_w = BAR_W * m
+    gap = BAR_GAP * m
+    arm_len = ARM_LEN * m
+    end_r = END_R * m
+    ring_sw = RING_SW * m
 
-    segs = octagon_segments(OCT_R)
-    pts = []
-    for p1, p2 in segs:
-        if not pts:
-            pts.append(p1)
-        pts.append(p2)
-    ring_path = "M " + " L ".join(f"{x:.2f} {y:.2f}" for x, y in pts)
+    fill = "#FFFFFF" if mono == "white" else ("#05060A" if mono == "black" else "url(#markGrad)")
+    ring_fill = "none" if mono else "url(#ringGrad)"
+    ring_stroke = "#FFFFFF" if mono == "white" else ("#05060A" if mono == "black" else C["cyber_cyan"])
 
-    rays = []
-    # breaking ray along 45° (through aperture), opposite arm along 225°
-    rays.append(ray_quad(45, RAY_R_BREAK, w_core=ray_wc, w_tip=ray_wt))
-    rays.append(ray_quad(225, RAY_R_EDGE, w_core=ray_wc, w_tip=ray_wt))
-    # second axis 135° / 315°
-    rays.append(ray_quad(135, RAY_R_EDGE, w_core=ray_wc, w_tip=ray_wt))
-    rays.append(ray_quad(315, RAY_R_EDGE, w_core=ray_wc, w_tip=ray_wt))
+    half_w = bar_w / 2
+    half_gap = gap / 2
 
-    node_rect = (
-        f'<rect x="{CX - node / 2:.1f}" y="{CY - node / 2:.1f}" width="{node}" height="{node}" fill="{node_fill}"/>'
-    )
+    # Main diagonal bar (\) - top-left to bottom-right
+    bar1_points = [
+        pt(225, arm_len + half_w * 1.414),
+        pt(45, arm_len + half_w * 1.414),
+        pt(45, arm_len - half_w * 1.414),
+        pt(225, arm_len - half_w * 1.414),
+    ]
+    # Other diagonal (/) - top-right to bottom-left
+    bar2_points = [
+        pt(135, arm_len + half_w * 1.414),
+        pt(315, arm_len + half_w * 1.414),
+        pt(315, arm_len - half_w * 1.414),
+        pt(135, arm_len - half_w * 1.414),
+    ]
 
-    rays_svg = "".join(f'<polygon points="{p}" fill="{fill}" fill-opacity="1"/>' for p in rays)
+    # Center gap - cut out the intersection square
+    center_gap = gap * 1.414
+    cx, cy = CX, CY
+
+    # Build as paths with center gap
+    def bar_path(angle: float) -> str:
+        a = math.radians(angle)
+        cos_a, sin_a = math.cos(a), math.sin(a)
+        hw = half_w
+        # Four corners of the bar, with center cutout
+        # Start at far end, trace around, leaving center gap
+        if angle == 45:  # main diagonal
+            pts = [
+                (cx + cos_a * (arm_len + hw), cy - sin_a * (arm_len + hw)),  # tip
+                (cx + cos_a * (arm_len - hw), cy - sin_a * (arm_len - hw)),
+                (cx + cos_a * half_gap, cy - sin_a * half_gap),
+                # inner corner, go perpendicular to create gap
+                (cx + cos_a * half_gap - sin_a * hw, cy - sin_a * half_gap - cos_a * hw),
+                (cx - cos_a * half_gap - sin_a * hw, cy + sin_a * half_gap - cos_a * hw),
+                (cx - cos_a * half_gap, cy + sin_a * half_gap),
+                (cx - cos_a * (arm_len - hw), cy + sin_a * (arm_len - hw)),
+                (cx - cos_a * (arm_len + hw), cy + sin_a * (arm_len + hw)),
+            ]
+        else:  # 135° diagonal
+            pts = [
+                (cx - cos_a * (arm_len + hw), cy - sin_a * (arm_len + hw)),
+                (cx - cos_a * (arm_len - hw), cy - sin_a * (arm_len - hw)),
+                (cx - cos_a * half_gap, cy - sin_a * half_gap),
+                (cx - cos_a * half_gap + sin_a * hw, cy - sin_a * half_gap + cos_a * hw),
+                (cx + cos_a * half_gap + sin_a * hw, cy + sin_a * half_gap + cos_a * hw),
+                (cx + cos_a * half_gap, cy + sin_a * half_gap),
+                (cx + cos_a * (arm_len - hw), cy + sin_a * (arm_len - hw)),
+                (cx + cos_a * (arm_len + hw), cy + sin_a * (arm_len + hw)),
+            ]
+        return "M " + " L ".join(f"{x:.1f} {y:.1f}" for x, y in pts) + " Z"
+
+    bar1 = bar_path(45)
+    bar2 = bar_path(135)
+
+    # Subtle outer ring
+    ring = f'<circle cx="{CX}" cy="{CY}" r="{RING_R}" fill="none" stroke="{ring_stroke}" stroke-width="{ring_sw}" opacity="0.35"/>'
+
+    # Small center node (precision indicator)
+    node = f'<rect x="{CX - 4}" y="{CY - 4}" width="8" height="8" rx="2" fill="{fill}"/>'
+
     return f"""
-  <g id="ownex-mark">
-    {rays_svg}
-    <path d="{ring_path}" fill="none" stroke="{ring}" stroke-width="{oct_sw}" stroke-linejoin="miter"/>
-    {node_rect}
+  <g id="ownex-mark" filter="url(#glow)">
+    <path d="{bar1}" fill="{fill}"/>
+    <path d="{bar2}" fill="{fill}"/>
+    {ring}
+    {node}
   </g>"""
 
 
@@ -178,7 +228,6 @@ def draw_text(
     anchor_mid: bool = True,
     alpha: int = 255,
 ) -> None:
-    """Text with letter-spacing. anchor_mid → xy is the text center."""
     f = font(fname, weight, px)
     spacing = int(round(tracking * px / 1000))
     widths = [draw.textlength(ch, font=f) + spacing for ch in text]
@@ -211,13 +260,6 @@ def draw_text_left(
 
 
 def render(svg: str, out: Path, width: int = 1024, text_fn=None, text_scale: float | None = None) -> Path:
-    """Render SVG → PNG, optionally compositing PIL text on top.
-
-    `<text>` elements are stripped before rasterizing (cairosvg renders
-    them in a fallback font); PIL text provides the pixel-exact type.
-    """
-    import re
-
     out.parent.mkdir(parents=True, exist_ok=True)
     svg_notext = re.sub(r"<text\b[^>]*>.*?</text>", "", svg, flags=re.S)
     svg_to_png(svg_notext, out, width)
@@ -233,7 +275,6 @@ def render(svg: str, out: Path, width: int = 1024, text_fn=None, text_scale: flo
 
 
 def view(path: Path) -> None:
-    """Open the rendered asset for human inspection."""
     subprocess.run(["xdg-open", str(path)])
 
 
