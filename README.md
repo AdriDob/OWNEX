@@ -16,6 +16,8 @@
   <a href="#quick-start">🚀 Quick Start</a> •
   <a href="#architecture">🏗️ Architecture</a> •
   <a href="#use-cases">💡 Use Cases</a> •
+  <a href="#roadmap">🗺️ Roadmap</a> •
+  <a href="#faq">❓ FAQ</a> •
   <a href="#documentation">📚 Documentation</a>
 </p>
 
@@ -322,6 +324,89 @@ MIT — see [LICENSE](LICENSE). Brand fonts: SIL OFL 1.1 (Google Fonts).
 If you find OWNEX useful, please consider giving it a ⭐ star on GitHub!
 
 [![Star History Chart](https://api.star-history.com/svg?repos=AdriDob/rastrohunteralpha&type=Date)](https://star-history.com/#AdriDob/rastrohunteralpha&Date)
+
+---
+
+## 🗺️ Roadmap
+
+### Current Focus
+- 🎯 Enhanced agent coordination and optimization
+- 🧠 Improved learning algorithms and memory management
+- 🔒 Expanded security research capabilities
+- 📱 Enhanced OMEGA mobile experience
+
+### Planned Features
+- 🌐 Multi-platform support expansion
+- 🤖 Advanced MERLIN capabilities with context awareness
+- 📊 Real-time collaboration features
+- 🔧 Plugin system for custom integrations
+- 🎨 Customizable UI themes and layouts
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed release history.
+
+---
+
+## ❓ FAQ
+
+<details>
+<summary>🤔 What makes OWNEX different from other automation tools?</summary>
+
+OWNEX combines autonomous agents, persistent memory, and continuous learning in a unified system. Unlike task-specific tools, OWNEX adapts and evolves based on outcomes, creating increasingly efficient workflows over time.
+
+</details>
+
+<details>
+<summary>💻 What are the system requirements?</summary>
+
+- **Desktop:** Python 3.11+, 4GB RAM minimum, 10GB disk space
+- **Mobile:** Android 8.0+ for OMEGA, Wear OS 3+ for smartwatch
+- **AI:** Optional GPU for local models, or use cloud providers
+
+</details>
+
+<details>
+<summary>🔒 Is my data secure?</summary>
+
+OWNEX processes data locally by default. All sensitive credentials are stored in encrypted configuration files. Cloud AI providers are used only when explicitly configured.
+
+</details>
+
+<details>
+<summary>🌍 Can I use OWNEX without internet?</summary>
+
+Yes, OWNEX can run completely offline using local AI models (Ollama). Internet connection is only required for cloud AI providers and platform integrations.
+
+</details>
+
+<details>
+<summary>🤝 How can I contribute?</summary>
+
+We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for details on reporting bugs, suggesting features, and submitting pull requests.
+
+</details>
+
+---
+
+## 🆘 Support
+
+- 📖 [Documentation](#documentation)
+- 🐛 [GitHub Issues](https://github.com/AdriDob/rastrohunteralpha/issues)
+- 💬 [GitHub Discussions](https://github.com/AdriDob/rastrohunteralpha/discussions)
+- 📧 Email: support@ownex.ai
+
+---
+
+## 🙏 Acknowledgments
+
+OWNEX is built upon excellent open-source projects:
+
+- [FastAPI](https://fastapi.tiangolo.com/) - Modern web framework
+- [Vue.js](https://vuejs.org/) - Progressive JavaScript framework
+- [Ollama](https://ollama.com/) - Local AI model execution
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- And many other amazing open-source contributors
+
+Special thanks to the open-source community for making tools like these possible.
 
 ---
 
