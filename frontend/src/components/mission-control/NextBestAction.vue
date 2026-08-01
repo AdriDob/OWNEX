@@ -7,6 +7,7 @@
 import { computed } from 'vue'
 import OwnexButton from '../ui/OwnexButton.vue'
 import OwnexBadge from '../ui/OwnexBadge.vue'
+import { useAudio } from '@/composables/useAudio'
 
 interface Props {
   title: string
@@ -45,6 +46,16 @@ const confidenceLabel = computed(() => {
   if (c >= 60) return 'CONFIANZA MEDIA'
   return 'REQUIERE REVISIÓN'
 })
+
+const audio = useAudio()
+
+function handlePrimaryAction() {
+  audio.play('click')
+}
+
+function handleSecondaryAction() {
+  audio.play('toggle')
+}
 </script>
 
 <template>
@@ -109,6 +120,7 @@ const confidenceLabel = computed(() => {
         :variant="primaryAction.variant"
         size="lg"
         class="ownex-next-action__primary-btn"
+        @click="handlePrimaryAction"
       >
         {{ primaryAction.label }}
       </OwnexButton>
@@ -117,6 +129,7 @@ const confidenceLabel = computed(() => {
         :variant="secondaryAction.variant"
         size="lg"
         class="ownex-next-action__secondary-btn"
+        @click="handleSecondaryAction"
       >
         {{ secondaryAction.label }}
       </OwnexButton>

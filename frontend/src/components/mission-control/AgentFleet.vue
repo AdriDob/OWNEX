@@ -6,6 +6,7 @@
 
 import { computed } from 'vue'
 import OwnexBadge from '../ui/OwnexBadge.vue'
+import { useAudio } from '@/composables/useAudio'
 
 interface Agent {
   id: string
@@ -67,6 +68,20 @@ const activeCount = computed(() =>
   props.agents.filter(a => a.status === 'working' || a.status === 'thinking').length
 )
 
+const audio = useAudio()
+
+function handleAgentClick(agent: Agent) {
+  if (agent.status === 'thinking') {
+    audio.play('agent_thinking')
+  } else if (agent.status === 'complete') {
+    audio.play('success')
+  } else if (agent.status === 'error') {
+    audio.play('error')
+  } else {
+    audio.play('click')
+  }
+}
+
 const roleToCycle = (role: string): 'security' | 'forge' | 'pulse' | 'vault' | 'atlas' | 'odyssey' => {
   const mapping: Record<string, any> = {
     'Analista': 'security',
@@ -110,6 +125,7 @@ const statusDotStyle = (status: string) => {
         :key="agent.id"
         class="ownex-agent-fleet__agent"
         :class="`ownex-agent-fleet__agent--${agent.status}`"
+        @click="handleAgentClick(agent)"
       >
         <!-- Avatar / Status indicator -->
         <div class="ownex-agent-fleet__avatar-wrapper">
