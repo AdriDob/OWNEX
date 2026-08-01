@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 384" width="1024" height="384">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  
+  <defs>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D5FF"/>
+      <stop offset="100%" stop-color="#1E40FF"/>
+    </linearGradient>
+    <linearGradient id="rayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D5FF"/>
+      <stop offset="100%" stop-color="#1E40FF"/>
+    </linearGradient>
+  </defs>
+  <g transform="scale(2.0)">
+    
+  <g id="ownex-mark">
+    <polygon points="263.78,227.01 410.86,45.99 466.01,101.14 284.99,248.22" fill="url(#rayGrad)" fill-opacity="1"/><polygon points="248.22,284.99 144.98,422.17 89.83,367.02 227.01,263.78" fill="url(#rayGrad)" fill-opacity="1"/><polygon points="227.01,248.22 89.83,144.98 144.98,89.83 248.22,227.01" fill="url(#rayGrad)" fill-opacity="1"/><polygon points="284.99,263.78 422.17,367.02 367.02,422.17 263.78,284.99" fill="url(#rayGrad)" fill-opacity="1"/>
+    <path d="M 335.60 63.83 L 176.40 63.83 L 63.83 176.40 L 63.83 335.60 L 176.40 448.17 L 335.60 448.17 L 448.17 335.60 L 448.17 176.40" fill="none" stroke="url(#ringGrad)" stroke-width="15.0" stroke-linejoin="miter"/>
+    <rect x="233.0" y="233.0" width="46.0" height="46.0" fill="#FFFFFF"/>
+  </g>
+  </g>
+</svg>
+  <text x="395.0" y="216" font-family="Space Grotesk, sans-serif" font-weight="700"
+        font-size="120" fill="#F6F8FB" letter-spacing="8">OWNEX</text>
+  
+</svg>

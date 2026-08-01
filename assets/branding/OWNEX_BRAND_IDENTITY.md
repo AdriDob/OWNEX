@@ -1,233 +1,149 @@
-# OWNEX OMEGA — Brand Identity
+# OWNEX Brand Identity
 
-> **Autonomous AI workforce for bug bounty, development, and revenue generation.**
-
----
-
-## Brand Name
-
-**OWNEX OMEGA**
-
-### Name Breakdown
-- **OWNEX**: Represents ownership, autonomy, and personal control
-- **OMEGA**: Signifies the ultimate, final, and most complete version
+> **Version 3.0** — "The Aperture Nexus"
+> A deterministic, vector-first identity system. No stock imagery, no AI-generated
+> randomness: every asset is produced from exact geometry by a reproducible pipeline
+> (`scripts/brand/`).
 
 ---
 
-## Slogan
+## 1. The Mark
 
-**"Autonomous Work Operating System"**
+**Name:** The Aperture Nexus
 
-### Tagline
+**Concept:** An octagonal aperture ring — precision instrument language — crossed by an
+X of tapered rays radiating from a central square node. The top-right ray breaks through
+the aperture: intelligence at the core, evolution toward the edge.
 
-**"Your personal AI-powered workforce"**
+```
+  ┌─────────────────────────────┐
+  │  aperture ring (octagon)    │  ← the system, the loop, precision
+  │    X of tapered rays        │  ← OWNEX, convergence, distributed signal
+  │    central square node      │  ← the intelligence core
+  │    top-right ray breakout   │  ← evolution: ALPHA core → OMEGA edge
+  └─────────────────────────────┘
+```
 
----
+**Meaning map**
 
-## Mission
+| Element | Meaning |
+|---|---|
+| Octagonal aperture | Precision instrument, engineered system |
+| X of rays | OWNEX — intersection of human decision and autonomous execution |
+| Tapered rays (narrow at core → wide at tips) | Signal radiating from the core |
+| Square node (not a dot) | Engineering precision; the decision point |
+| Aperture gap + breakout ray | Growth, evolution, extension to devices |
 
-Enable individuals to build financial independence through autonomous software, automation, and intelligent systems.
-
----
-
-## Vision
-
-A world where anyone can deploy a fleet of AI agents that work 24/7 to generate revenue, learn continuously, and execute complex workflows autonomously.
-
----
-
-## Values
-
-### Autonomy over Control
-Empower users to own their automated workflows and take control of their financial future.
-
-### Results over Activity
-Measure by revenue generated, not tasks completed. Outcomes matter more than activity.
-
-### Intelligence over Complexity
-Smart systems that hide complexity from users while delivering sophisticated capabilities.
-
-### Quality over Quantity
-Premium execution over feature bloat. Every component serves a purpose.
-
-### Transparency over Opacity
-Users always understand what their agents are doing and why.
+**Forbidden elements** (never use): brains, robots, eyes, circuit traces, holograms,
+orbiting-dot clichés, cartoon characters, photo textures.
 
 ---
 
-## Elevator Pitch
+## 2. The Two Editions
 
-OWNEX OMEGA is an autonomous operating system that deploys AI agents to work bug bounty programs, execute development tasks, manage revenue, and learn continuously—while you sleep.
+One mark. Two connected identities.
 
----
+| Edition | Role | Color treatment | Tag |
+|---|---|---|---|
+| **OWNEX ALPHA** | Desktop Operating System — the command center | Cyber Cyan → Deep Blue gradient | `ALPHA — DESKTOP OPERATING SYSTEM` |
+| **OWNEX OMEGA** | Android + Wear OS Companion — permanent connection | Emerald → Cyber Cyan gradient | `OMEGA — MOBILE COMPANION` |
 
-## One-Liner
-
-Autonomous AI workforce for bug bounty, development, and revenue generation.
-
----
-
-## Brand Voice
-
-### Tone
-- **Professional** — Technical but accessible, confident but not arrogant
-- **Precise** — Every word has purpose, no fluff
-- **Minimal** — Say more with less
-- **Confident** — We know what we're building
-- **Technical but human** — Engineering excellence with empathy
-
-### Writing Style
-- **Direct**: Say what you mean, no fluff
-- **Active**: Active voice, present tense
-- **Precise**: Specific terminology, no ambiguity
-- **Confident**: We know our system
-- **Human**: Technical but accessible
-
-### Example Headlines
-
-❌ "Leveraging AI-powered autonomous agents for optimal workflow automation"
-✅ "Autonomous agents that work while you sleep"
-
-❌ "Comprehensive bug bounty platform with advanced vulnerability detection"
-✅ "Find vulnerabilities. Get paid. Sleep."
-
-### Microcopy
-
-- **Buttons**: Action-oriented ("Execute", not "Submit")
-- **Errors**: Helpful, not technical ("Connection failed", not "ERR_CONNECTION_REFUSED")
-- **Empty states**: Actionable ("No agents deployed. Deploy one →", not "No data available")
+The mark geometry is **identical** in both editions. Identity difference lives in color
+and framing only — the editions must always be recognizable as one ecosystem.
 
 ---
 
-## Brand Personality
+## 3. Color System
 
-### Archetype
-**The Architect** — Builds systems, creates order, enables autonomy.
+| Token | Hex | Usage |
+|---|---|---|
+| **Cyber Cyan** `primary` | `#00D5FF` | Key elements, focus, links, active states |
+| **Deep Blue** `secondary` | `#1E40FF` | Depth, gradients, secondary accents |
+| **Emerald** `accent` | `#00E39A` | Success, growth, OMEGA edition |
+| **Space Black** `background` | `#05060A` | Global background |
+| Surface 1 | `#0B0E15` | Cards, panels |
+| Surface 2 | `#11151F` | Nested surfaces |
+| Stroke | `#1D2430` | Borders, dividers |
+| White | `#F6F8FB` | Primary text |
+| Muted | `#8A94A6` | Secondary text |
 
-### Traits
-- **Intelligent** — Smart, capable, sophisticated
-- **Autonomous** — Independent, self-sufficient, reliable
-- **Premium** — High-quality, professional, refined
-- **Minimal** — Clean, focused, essential
-- **Futuristic** — Forward-thinking, innovative, advanced
+**Rules**
 
-### Anti-Traits
-- Not gimmicky or trendy
-- Not overly technical or inaccessible
-- Not chaotic or disorganized
-- Not cheap or low-quality
-- Not cute or playful
-
----
-
-## Brand Promise
-
-OWNEX OMEGA promises to:
-- Deploy autonomous agents that work 24/7
-- Generate revenue through bug bounty and development
-- Learn and improve continuously
-- Provide complete transparency and control
-- Deliver premium, professional quality
+- Space Black is the default background. Cyan is reserved for what matters.
+- Do not use more than one accent hue per view. Cyan is the hero; Emerald marks success
+  or the OMEGA edition; Deep Blue only in gradients.
+- Text contrast: white/muted only — never colored text for body copy.
 
 ---
 
-## Brand Positioning
+## 4. Typography
 
-### Category
-Autonomous AI Operating System for Financial Independence
+| Role | Family | Weights | Usage |
+|---|---|---|---|
+| Display | **Space Grotesk** | 500, 700 | Wordmark, headlines |
+| UI | **Inter** | 400–700 | Body, UI, documentation |
+| Mono | **JetBrains Mono** | 400, 500 | Labels, technical captions, terminal |
 
-### Differentiation
-- **Complete autonomy** — Works while you sleep
-- **Multiple revenue streams** — Bug bounty, development, data annotation
-- **Continuous learning** — Gets smarter over time
-- **Premium design** — Minimalist, professional interface
-- **Full-stack solution** — Desktop, mobile, wearables
+**Voice:** precise, measured, understated. Full sentences in headlines; mono labels in
+uppercase with letter-spacing for system captions.
 
-### Target Audience
-- Developers and technical professionals
-- Bug bounty hunters
-- Freelancers and independent workers
-- Financial independence seekers
-- AI and automation enthusiasts
+All three families are licensed under SIL Open Font License 1.1 (Google Fonts) and are
+vendored in `assets/branding/fonts/` for deterministic rendering.
 
 ---
 
-## Brand Story
+## 5. Logo System
 
-OWNEX OMEGA was born from a simple question: *What if software could work for you instead of you working for software?*
+| Asset | File | Use |
+|---|---|---|
+| Primary mark (transparent) | `assets/logos/ownex-mark.svg/.png` | Everywhere: docs, app, web |
+| Horizontal lockup | `assets/logos/ownex-lockup.svg/.png` | README, site header |
+| App icon | `assets/logos/ownex-icon.svg/.png` | Application icon (squircle) |
+| Favicon | `assets/logos/ownex-favicon.svg/.png` | Browser tab (64px) |
+| UI mark 32px | `assets/logos/ownex-ui-32px.png` | Toolbars, menus (bold variant) |
+| Monochrome white | `assets/logos/ownex-monochrome.svg/.png` | Dark surfaces |
+| Monochrome black | `assets/logos/ownex-monochrome-black.svg/.png` | Light surfaces |
+| ALPHA lockup | `assets/logos/ownex-alpha.svg/.png` | ALPHA edition |
+| OMEGA lockup | `assets/logos/ownex-omega.svg/.png` | OMEGA edition |
+| Mono lockup | `assets/logos/ownex-lockup-mono.svg/.png` | Favicon/watermark contexts |
 
-We believe that financial independence shouldn't require endless manual labor. With the right autonomous systems, anyone can deploy a fleet of AI agents that work 24/7, learn continuously, and generate real revenue.
-
-Our system isn't just another tool—it's an autonomous operating system designed to be your personal AI workforce. From bug bounty programs to development tasks, from revenue management to continuous learning, OWNEX OMEGA works while you sleep.
-
-This is the future of work: autonomous, intelligent, and always on.
-
----
-
-## Brand Visual Identity
-
-### Visual Philosophy
-**"Dark Command Center, not Cyberpunk Hacker"**
-
-We're not building a hacker terminal from 1998. We're building a premium operating system that converts dispersed opportunities into executable cycles.
-
-### Core Visual Principles
-1. **Clarity over complexity** — If it's not understood in 3 seconds, it doesn't exist
-2. **Action over information** — UI suggests next action, doesn't just show data
-3. **Cycles over pages** — Work lives in cycles, not separate pages
-4. **Outcomes over activity** — $ earned > requests sent > time invested
-5. **Agents over tools** — Users see agents working, not models/AI
-6. **Throughput over metrics** — Real value velocity > vanity metrics
-
-### Visual Reference Points
-- Linear — Minimalist, premium, developer-focused
-- Arc Browser — Elegant, powerful, opinionated
-- Raycast — Keyboard-first, efficient, professional
-- Vercel — Clean, modern, developer-centric
-- GitHub — Reliable, essential, community-driven
+**Clearance:** keep at least one quarter of the mark's height free on all sides.
+**Minimum size:** 24px for the mark, 32px for lockups. **Do not** re-color, add
+gradients, drop shadows, or distort the geometry.
 
 ---
 
-## Brand Applications
+## 6. Imagery Direction
 
-### GitHub Repository
-- **README**: Use hero banner with horizontal logo
-- **Description**: "Autonomous AI workforce for bug bounty, development, and revenue generation"
-- **Topics**: autonomous-ai, bug-bounty, automation, revenue, python, vue, typescript
-- **Social preview**: Use OG image with isotype + tagline
+All conceptual artwork follows a single art direction:
 
-### Documentation
-- **Headers**: Use OWNEX Blue for emphasis
-- **Code blocks**: Use OWNEX Gold for highlights
-- **Callouts**: Use status colors for notes/warnings
+- Space-black canvas with a fine blueprint grid
+- Thin mono captions in uppercase, letter-spaced
+- Rounded-16 cards on Surface 1 with Stroke borders
+- One gradient accent per composition; emerald reserved for status/growth
+- Engineering crop marks at corners
+- Footer strip with mono status line — the system always "reports state"
 
-### Marketing Materials
-- **Headlines**: OWNEX White on Deep background
-- **Subheadlines**: OWNEX Blue for emphasis
-- **CTAs**: OWNEX Gold for primary actions
-- **Backgrounds**: Near-black palette only
+**Produced with:** Python + cairosvg + fontTools (open source). No AI image generators,
+no stock photos — the images are deterministic output of `scripts/brand/generate_*.py`.
 
 ---
 
-## Brand Guidelines Reference
+## 7. Asset Map
 
-For comprehensive visual identity guidelines, see [OWNEX_BRAND_GUIDELINES.md](OWNEX_BRAND_GUIDELINES.md).
+```
+assets/
+├── branding/          design tokens, fonts, this document
+├── logos/             mark + lockups (SVG + PNG)
+├── banners/           hero banner, OG cover
+├── concepts/          product overview, mission control, architecture,
+│                      mobile experience, boot sequence
+├── desktop/           ALPHA wallpaper
+├── mobile/            OMEGA splash
+└── video/             trailer storyboard
+```
 
----
+## 8. License
 
-## Brand Contact
-
-### GitHub
-[AdriDob/rastrohunteralpha](https://github.com/AdriDob/rastrohunteralpha)
-
-### License
-MIT License — Open source, free to use
-
-### Brand Inquiries
-For brand partnerships, licensing, or media inquiries, please open an issue on GitHub.
-
----
-
-**OWNEX OMEGA Brand Identity v1.0**
-*Last updated: 2026-07-31*
-*Version: 7.0.0*
+Brand geometry and concept artwork: MIT (same as the project).
+Fonts: SIL OFL 1.1 — see `assets/branding/fonts/`.

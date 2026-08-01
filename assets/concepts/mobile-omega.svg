@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1350" width="2400" height="1350">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#00D5FF" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#05060A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="2400" height="1350" fill="#05060A"/>
+  <rect width="2400" height="1350" fill="url(#bgGlow)"/>
+  <line x1="0" y1="0" x2="0" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="150" y1="0" x2="150" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="300" y1="0" x2="300" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="450" y1="0" x2="450" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="600" y1="0" x2="600" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="750" y1="0" x2="750" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="900" y1="0" x2="900" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="1050" y1="0" x2="1050" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="1200" y1="0" x2="1200" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="1350" y1="0" x2="1350" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="1500" y1="0" x2="1500" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="1650" y1="0" x2="1650" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="1800" y1="0" x2="1800" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="1950" y1="0" x2="1950" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="2100" y1="0" x2="2100" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="2250" y1="0" x2="2250" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="2400" y1="0" x2="2400" y2="1350" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="0" x2="2400" y2="0" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="150" x2="2400" y2="150" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="300" x2="2400" y2="300" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="450" x2="2400" y2="450" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="600" x2="2400" y2="600" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="750" x2="2400" y2="750" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="900" x2="2400" y2="900" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1050" x2="2400" y2="1050" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1200" x2="2400" y2="1200" stroke="#0A0F1C" stroke-width="1"/><line x1="0" y1="1350" x2="2400" y2="1350" stroke="#0A0F1C" stroke-width="1"/>
+  
+  
+  <rect x="0" y="0" width="2400" height="120" fill="#07090F"/>
+  <line x1="0" y1="120" x2="2400" y2="120" stroke="#1D2430" stroke-width="1"/>
+  <circle cx="52" cy="60" r="6" fill="#00E39A"/>
+  <text x="78" y="70" font-family="JetBrains Mono, monospace" font-weight="500" font-size="24"
+        fill="#F6F8FB" letter-spacing="4">MOBILE EXPERIENCE</text>
+  <text x="2080" y="70" font-family="JetBrains Mono, monospace" font-size="20"
+        fill="#8A94A6" letter-spacing="3">OWNEX CONCEPT 04 / OMEGA EDITION</text>
+  <line x1="2060" y1="42" x2="2060" y2="78" stroke="#1D2430" stroke-width="2"/>
+
+  <rect x="560" y="250" width="560" height="1000" rx="56" fill="#0B0E15" stroke="#1D2430" stroke-width="3"/>
+  <rect x="584" y="274" width="512" height="952" rx="38" fill="#07090F"/>
+  <rect x="780.0" y="262" width="120" height="8" rx="4" fill="#1D2430"/>
+  <rect x="620" y="320" width="440" height="96" rx="14" fill="#0F1524" stroke="#1D2430" stroke-width="1"/>
+  <rect x="620" y="450" width="440" height="118" rx="14" fill="#0B0E15" stroke="#1D2430" stroke-width="1"/><rect x="620" y="600" width="440" height="118" rx="14" fill="#0B0E15" stroke="#1D2430" stroke-width="1"/><rect x="620" y="750" width="440" height="118" rx="14" fill="#0B0E15" stroke="#1D2430" stroke-width="1"/><rect x="620" y="900" width="440" height="118" rx="14" fill="#0B0E15" stroke="#1D2430" stroke-width="1"/>
+  <circle cx="1650" cy="540" r="260" fill="#0B0E15" stroke="#1D2430" stroke-width="4"/>
+  <circle cx="1650" cy="540" r="234" fill="#07090F" stroke="#16213A" stroke-width="1"/>
+  <rect x="1620" y="246" width="60" height="14" rx="7" fill="#1D2430"/>
+  <rect x="1480" y="420" width="340" height="9" rx="4" fill="#16213A"/><rect x="1480" y="490" width="290" height="9" rx="4" fill="#16213A"/><rect x="1480" y="560" width="240" height="9" rx="4" fill="#16213A"/>
+  <rect x="1480" y="600" width="340" height="120" rx="14" fill="#0F1524" stroke="#1D2430" stroke-width="1"/>
+  <rect x="1480" y="740" width="340" height="70" rx="14" fill="#0F1524" stroke="#1D2430" stroke-width="1"/>
+  
+  <line x1="0" y1="1278" x2="2400" y2="1278" stroke="#1D2430" stroke-width="1"/>
+  <circle cx="52" cy="1314" r="5" fill="#00D5FF"/>
+  <text x="72" y="1321" font-family="JetBrains Mono, monospace" font-size="20"
+        fill="#3D4A63" letter-spacing="3">PERMANENT CONNECTION — DESKTOP TO WRIST</text>
+  <text x="2348" y="1321" text-anchor="end" font-family="JetBrains Mono, monospace"
+        font-size="20" fill="#3D4A63" letter-spacing="3">OWNEX © 2026</text>
+
+
+</svg>

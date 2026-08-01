@@ -1,0 +1,46 @@
+"""Identify orphaned frontend pages (pages not routed)."""
+
+from pathlib import Path
+
+PAGES_DIR = Path("/home/adrie/projects/Rastro/frontend/src/pages")
+ROUTED_PAGES = {
+    # From router/index.ts
+    "AISecurity.vue", "AccountHealth.vue", "AccountsHub.vue", "ActionsView.vue",
+    "Activation.vue", "AgentCenter.vue", "ArgentinaPayments.vue", "AttackSurface.vue",
+    "BabyMode.vue", "Bounties.vue", "Capital.vue", "ConfidenceDashboard.vue",
+    "Connections.vue", "DailyMode.vue", "Dashboard.vue", "DifferentialEngine.vue",
+    "Discovery.vue", "EndpointDetail.vue", "EnhancedPersonalizationWizard.vue",
+    "EvidenceCenter.vue", "ExecutiveDashboard.vue", "FaqPage.vue", "FinanceIntel.vue",
+    "FinancialTruth.vue", "FindingDetail.vue", "Findings.vue", "GamingConsole.vue",
+    "HealthCenter.vue", "HistoryView.vue", "HotPaths.vue", "HypothesisQueue.vue",
+    "Identity.vue", "InsightsView.vue", "IntelHub.vue", "IntelligenceDashboard.vue",
+    "InvestigationCenter.vue", "InvestigationDetail.vue", "InvestmentHub.vue",
+    "JarvisWelcome.vue", "KnowledgeGraphPage.vue", "LifeManagement.vue",
+    "LoginPage.vue", "MemoryPatterns.vue", "MissionControl.vue",
+    "MobileCompanion.vue", "MobileCompanionJarvis.vue", "MoneyRadar.vue",
+    "NextAction.vue", "NotFound.vue", "NotificationsPage.vue", "Onboarding.vue",
+    "OperationsDashboard.vue", "Opportunities.vue", "OpportunityPlanner.vue",
+    "OpportunityRadar.vue", "PS5Hub.vue", "PersonalIntelligence.vue",
+    "PersonalizationWizard.vue", "PipelineDetail.vue", "PipelineMonitor.vue",
+    "PlatformGuides.vue", "PolymarketTrading.vue", "ProgramCatalog.vue",
+    "ProgramIntel.vue", "ProjectDashboard.vue", "Pulse.vue", "ReplayCenter.vue",
+    "ReportCenter.vue", "ReportDetail.vue", "ReportHistory.vue", "ReportQueue.vue",
+    "RevenueDashboard.vue", "RevenueMultiplier.vue", "ScreenshotCenter.vue",
+    "SecurityCycle.vue", "Settings.vue", "SyncCenter.vue", "SystemLogsPage.vue",
+    "TargetDetail.vue", "TargetsPage.vue", "TaskHub.vue", "TaskQueue.vue",
+    "TerminalView.vue", "Trading.vue", "TruthInspector.vue", "VerificationGuide.vue",
+    "VersionBackup.vue", "Wallets.vue", "WelcomePage.vue", "Workflows.vue",
+}
+
+# Get all pages
+all_pages = [f.name for f in PAGES_DIR.glob("*.vue")]
+
+# Find orphaned pages
+orphaned = [p for p in all_pages if p not in ROUTED_PAGES]
+
+print(f"Total pages: {len(all_pages)}")
+print(f"Routed pages: {len(ROUTED_PAGES)}")
+print(f"Orphaned pages: {len(orphaned)}")
+print("\nOrphaned pages:")
+for page in sorted(orphaned):
+    print(f"  - {page}")

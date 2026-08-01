@@ -102,11 +102,13 @@ def mark_defs(variant: str = "alpha") -> str:
   </defs>"""
 
 
-def mark_group(variant: str = "alpha", mono: bool = False) -> str:
-    """Core mark group on transparent canvas. mono=True → pure white."""
-    fill = "#FFFFFF" if mono else "url(#rayGrad)"
-    ring = "#FFFFFF" if mono else "url(#ringGrad)"
-    node = "#FFFFFF" if mono else "#FFFFFF"
+def mark_group(variant: str = "alpha", mono: str | None = "white", bold: bool = False) -> str:
+    """Core mark group on transparent canvas. mono: 'white' | 'black' | None."""
+    m = 2.0 if bold else 1.0
+    oct_sw, ray_wc, ray_wt, node = OCT_SW * m, RAY_W_CORE * m, RAY_W_TIP * m, NODE * m
+    fill = "#FFFFFF" if mono == "white" else ("#05060A" if mono == "black" else "url(#rayGrad)")
+    ring = "#FFFFFF" if mono == "white" else ("#05060A" if mono == "black" else "url(#ringGrad)")
+    node_fill = "#FFFFFF" if mono == "white" else ("#05060A" if mono == "black" else "#FFFFFF")
 
     segs = octagon_segments(OCT_R)
     pts = []
@@ -118,33 +120,34 @@ def mark_group(variant: str = "alpha", mono: bool = False) -> str:
 
     rays = []
     # breaking ray along 45° (through aperture), opposite arm along 225°
-    rays.append(ray_quad(45, RAY_R_BREAK))
-    rays.append(ray_quad(225, RAY_R_EDGE))
+    rays.append(ray_quad(45, RAY_R_BREAK, w_core=ray_wc, w_tip=ray_wt))
+    rays.append(ray_quad(225, RAY_R_EDGE, w_core=ray_wc, w_tip=ray_wt))
     # second axis 135° / 315°
-    rays.append(ray_quad(135, RAY_R_EDGE))
-    rays.append(ray_quad(315, RAY_R_EDGE))
+    rays.append(ray_quad(135, RAY_R_EDGE, w_core=ray_wc, w_tip=ray_wt))
+    rays.append(ray_quad(315, RAY_R_EDGE, w_core=ray_wc, w_tip=ray_wt))
 
-    node_size = NODE
     node_rect = (
-        f'<rect x="{CX - node_size / 2:.1f}" y="{CY - node_size / 2:.1f}" '
-        f'width="{node_size}" height="{node_size}" fill="{node if not mono else "#FFFFFF"}"/>'
+        f'<rect x="{CX - node / 2:.1f}" y="{CY - node / 2:.1f}" width="{node}" height="{node}" fill="{node_fill}"/>'
     )
 
     rays_svg = "".join(f'<polygon points="{p}" fill="{fill}" fill-opacity="1"/>' for p in rays)
     return f"""
   <g id="ownex-mark">
     {rays_svg}
-    <path d="{ring_path}" fill="none" stroke="{ring}" stroke-width="{OCT_SW}" stroke-linejoin="miter"/>
+    <path d="{ring_path}" fill="none" stroke="{ring}" stroke-width="{oct_sw}" stroke-linejoin="miter"/>
     {node_rect}
   </g>"""
 
 
-def mark_svg(variant: str = "alpha", mono: bool = False, size: int = SIZE, bg: str | None = None) -> str:
+def mark_svg(
+    variant: str = "alpha", mono: str | bool = False, size: int = SIZE, bg: str | None = None, bold: bool = False
+) -> str:
+    mono_out: str | None = "white" if mono is True else (mono or None)
     bg_rect = f'<rect width="{size}" height="{size}" fill="{bg}"/>' if bg else ""
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {size} {size}" width="{size}" height="{size}">
   {bg_rect}{mark_defs(variant)}
   <g transform="scale({size / SIZE})">
-    {mark_group(variant, mono)}
+    {mark_group(variant, mono_out, bold)}
   </g>
 </svg>"""
     return svg
@@ -209,18 +212,25 @@ def draw_text_left(
         x += draw.textlength(ch, font=f) + spacing
 
 
-def render(svg: str, out: Path, width: int = 1024, text_fn=None, bg: str = "#05060A") -> Path:
-    """Render SVG → PNG, optionally compositing PIL text on top."""
+def render(svg: str, out: Path, width: int = 1024, text_fn=None, text_scale: float | None = None) -> Path:
+    """Render SVG → PNG, optionally compositing PIL text on top.
+
+    `<text>` elements are stripped before rasterizing (cairosvg renders
+    them in a fallback font); PIL text provides the pixel-exact type.
+    """
+    import re
+
     out.parent.mkdir(parents=True, exist_ok=True)
-    svg_to_png(svg, out, width)
+    svg_notext = re.sub(r"<text\b[^>]*>.*?</text>", "", svg, flags=re.S)
+    svg_to_png(svg_notext, out, width)
     if text_fn:
         img = Image.open(out).convert("RGBA")
         layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
         d = ImageDraw.Draw(layer)
-        s = width / 512
+        s = width / 512 if text_scale is None else text_scale
         text_fn(d, s)
         img.alpha_composite(layer)
-        img.convert("RGB").save(out)
+        img.save(out)
     return out
 
 

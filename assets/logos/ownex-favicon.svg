@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  
+  <defs>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D5FF"/>
+      <stop offset="100%" stop-color="#1E40FF"/>
+    </linearGradient>
+    <linearGradient id="rayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D5FF"/>
+      <stop offset="100%" stop-color="#1E40FF"/>
+    </linearGradient>
+  </defs>
+  <g transform="scale(0.125)">
+    
+  <g id="ownex-mark">
+    <polygon points="253.17,216.40 383.28,18.41 493.59,128.72 295.60,258.83" fill="url(#rayGrad)" fill-opacity="1"/><polygon points="258.83,295.60 172.56,449.75 62.25,339.44 216.40,253.17" fill="url(#rayGrad)" fill-opacity="1"/><polygon points="216.40,258.83 62.25,172.56 172.56,62.25 258.83,216.40" fill="url(#rayGrad)" fill-opacity="1"/><polygon points="295.60,253.17 449.75,339.44 339.44,449.75 253.17,295.60" fill="url(#rayGrad)" fill-opacity="1"/>
+    <path d="M 335.60 63.83 L 176.40 63.83 L 63.83 176.40 L 63.83 335.60 L 176.40 448.17 L 335.60 448.17 L 448.17 335.60 L 448.17 176.40" fill="none" stroke="url(#ringGrad)" stroke-width="30.0" stroke-linejoin="miter"/>
+    <rect x="210.0" y="210.0" width="92.0" height="92.0" fill="#FFFFFF"/>
+  </g>
+  </g>
+</svg>
