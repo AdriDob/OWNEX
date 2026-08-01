@@ -18,6 +18,7 @@ class CapabilityCategory(str, Enum):
     EVIDENCE_COLLECTION = "evidence_collection"
     REPORTING = "reporting"
     POST_EXPLOITATION = "post_exploitation"
+    SPECIALIST = "specialist"
 
 
 class PricingModel(str, Enum):

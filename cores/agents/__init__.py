@@ -8,6 +8,8 @@ from cores.agents.base import BaseAgent
 from cores.agents.bus import IEventBus, LocalEventBus, get_agent_bus, reset_agent_bus
 from cores.agents.coordinator import CoordinatorAgent, get_coordinator
 from cores.agents.documentation import DocumentationAgent
+from cores.agents.economic_agents import ReconAgent, FuzzerAgent, ValidatorAgent as EconomicValidatorAgent
+from cores.agents.economic_mixin import EconomicAgentMixin, EconomicTraits
 from cores.agents.exploit import ExploitAgent
 from cores.agents.financial import FinancialAgent, get_financial_agent
 from cores.agents.memory import MemoryAgent, get_memory_agent
@@ -35,12 +37,17 @@ __all__ = [
     "EventType",
     "PipelineState",
     "BaseAgent",
+    "EconomicAgentMixin",
+    "EconomicTraits",
     "CoordinatorAgent",
     "get_coordinator",
     "ResearchAgent",
     "ValidatorAgent",
+    "EconomicValidatorAgent",
     "ExploitAgent",
     "DocumentationAgent",
+    "ReconAgent",
+    "FuzzerAgent",
     "StrategyAgent",
     "get_strategy_agent",
     "MemoryAgent",
@@ -50,6 +57,8 @@ __all__ = [
     "start_all_agents",
     "stop_all_agents",
     "get_all_agents",
+    "agents_health",
+    "reset_all_agents",
 ]
 
 # Track started agent instances for proper lifecycle management
