@@ -6,7 +6,7 @@
       font-weight: 700;
       font-size: 48px;
       letter-spacing: -0.02em;
-      fill: #F6F8FB;
+      fill: #FFFFFF;
     }
     .edition {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -17,5 +17,5 @@
     }
   </style>
   <text x="0" y="55" class="brand">OWNEX</text>
-  <text x="0" y="85" class="edition">OMEGA</text>
+  <text x="0" y="85" class="edition">ALPHA</text>
 </svg>

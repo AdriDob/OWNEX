@@ -6,7 +6,7 @@
       font-weight: 700;
       font-size: 48px;
       letter-spacing: -0.02em;
-      fill: #F6F8FB;
+      fill: #FFFFFF;
     }
     .edition {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;

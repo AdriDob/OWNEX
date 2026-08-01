@@ -1,19 +1,21 @@
 <p align="center">
-  <img src="assets/banners/hero-banner-unified.png" alt="OWNEX — Autonomous Personal Operating System" width="100%"/>
+  <img src="assets/banners/hero-banner-unified.png" alt="OWNEX" width="100%"/>
 </p>
 
 <p align="center">
-  <a href="https://github.com/AdriDob/rastrohunteralpha/releases"><img src="https://img.shields.io/badge/version-7.0.0-00D5FF?style=flat-square" alt="Version"/></a>
+  <a href="https://github.com/AdriDob/rastrohunteralpha/releases"><img src="https://img.shields.io/badge/version-7.0.0-5E6AD2?style=flat-square" alt="Version"/></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square" alt="Python"/></a>
   <a href="https://vuejs.org/"><img src="https://img.shields.io/badge/vue-3-42B883?style=flat-square" alt="Vue"/></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/typescript-5-3178C6?style=flat-square" alt="TypeScript"/></a>
   <a href="https://www.kotlinlang.org/"><img src="https://img.shields.io/badge/kotlin-android-7F52FF?style=flat-square" alt="Kotlin"/></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-F6F8FB?style=flat-square" alt="License"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-08090A?style=flat-square" alt="License"/></a>
 </p>
 
 ---
 
-## What is OWNEX?
+## OWNEX
+
+**The Personalized Autonomous Operating System**
 
 OWNEX is an autonomous personal operating system: a single platform that discovers opportunities, executes technical work, learns from outcomes, and evolves its own operation — from a desktop command center to your phone and wrist.
 
@@ -21,14 +23,14 @@ It is built around a closed loop: **observe → decide → execute → learn →
 
 ---
 
-## One system, two editions
+## Two Editions
 
 OWNEX ships as two connected identities sharing a single core.
 
 <table>
   <tr>
     <td width="50%" align="center">
-      <img src="assets/logos/ownex-lockup-alpha.png" alt="OWNEX ALPHA" width="420"/>
+      <img src="assets/logos/ownex-alpha.png" alt="OWNEX ALPHA" width="320"/>
       <br/><br/>
       <b>ALPHA — Desktop Operating System</b>
       <br/>
@@ -36,7 +38,7 @@ OWNEX ships as two connected identities sharing a single core.
       evolution engine, and the full mission-control dashboard.
     </td>
     <td width="50%" align="center">
-      <img src="assets/logos/ownex-lockup-omega.png" alt="OWNEX OMEGA" width="420"/>
+      <img src="assets/logos/ownex-omega.png" alt="OWNEX OMEGA" width="320"/>
       <br/><br/>
       <b>OMEGA — Android & Wear OS Companion</b>
       <br/>
@@ -46,23 +48,100 @@ OWNEX ships as two connected identities sharing a single core.
   </tr>
 </table>
 
+---
+
 ## Mission Control
 
 Every operation is visible in one place: system health, the agent fleet,
 opportunities scored by expected value, revenue, and the next best action.
 
 <p align="center">
-  <img src="assets/concepts/mission-control.png" alt="Mission Control" width="100%"/>
+  <img src="assets/concepts/desktop-showcase.png" alt="Mission Control" width="100%"/>
 </p>
+
+---
 
 ## Architecture
 
 Control plane, departments, agents, execution, learning, feedback — designed for
 autonomy, with the human at every decision gate.
 
-<p align="center">
-  <img src="assets/concepts/architecture.png" alt="Architecture" width="100%"/>
-</p>
+```mermaid
+graph TB
+    subgraph "Human Layer"
+        H[Human Operator]
+    end
+
+    subgraph "OWNEX Core"
+        EC[Event Bus]
+        SC[Scheduler]
+        UM[Unified Memory]
+        SL[Security Layer]
+    end
+
+    subgraph "Intelligence Layer"
+        ME[MERLIN]
+        IE[Evolution Engine]
+        RL[Recovery Engine]
+    end
+
+    subgraph "Agent Departments"
+        ORCH[Orchestrator]
+        ENG[Engineering]
+        QUA[Quality]
+        SEC[Security]
+        REV[Revenue]
+    end
+
+    subgraph "Execution Layer"
+        WF[Workflows]
+        EX[Executors]
+        PC[Platform Connectors]
+    end
+
+    subgraph "Memory Layer"
+        KM[Knowledge Capture]
+        FM[Feedback Loops]
+        RM[Reward Models]
+    end
+
+    H -->|Strategic Direction| EC
+    H -->|Approval Gates| ORCH
+
+    EC --> SC
+    EC --> UM
+    EC --> SL
+
+    SC --> ORCH
+    SC --> ENG
+    SC --> QUA
+    SC --> SEC
+    SC --> REV
+
+    ME --> EC
+    ME --> UM
+
+    IE --> EC
+    IE --> UM
+    IE --> RL
+
+    ORCH --> WF
+    ENG --> WF
+    QUA --> WF
+    SEC --> WF
+    REV --> WF
+
+    WF --> EX
+    EX --> PC
+
+    EX --> KM
+    KM --> FM
+    FM --> RM
+    RM --> IE
+
+    UM --> ME
+    UM --> IE
+```
 
 | Layer | Responsibility |
 |---|---|
@@ -73,10 +152,12 @@ autonomy, with the human at every decision gate.
 | **Learning** | Feedback loops, knowledge capture, reward models |
 | **Evolution** | Self-improvement, version rollback, recovery |
 
+---
+
 ## Ecosystem
 
 <p align="center">
-  <img src="assets/concepts/product-overview.png" alt="Product overview" width="100%"/>
+  <img src="assets/concepts/mobile-showcase.png" alt="OMEGA mobile experience" width="400"/>
 </p>
 
 | Component | Role |
@@ -89,18 +170,9 @@ autonomy, with the human at every decision gate.
 | **Memory** | Persistent knowledge store (SQLite, namespaced) |
 | **Evolution Engine** | Continuous self-improvement with recovery |
 
-## Mobile experience
+---
 
-<p align="center">
-  <img src="assets/concepts/mobile-omega.png" alt="OMEGA mobile experience" width="100%"/>
-</p>
-
-<p align="center">
-  <img src="assets/mobile/omega-splash.png" alt="OMEGA splash" width="260"/>
-  <img src="assets/desktop/alpha-wallpaper.png" alt="ALPHA wallpaper" width="620"/>
-</p>
-
-## Core capabilities
+## Core Capabilities
 
 | Capability | Status |
 |---|---|
@@ -114,7 +186,9 @@ autonomy, with the human at every decision gate.
 | Self-update, version backup, recovery engine | Production |
 | 6-language interface (EN, ES, FR, DE, JA, ZH) | Production |
 
-## Quick start
+---
+
+## Quick Start
 
 ```bash
 git clone https://github.com/AdriDob/rastrohunteralpha.git
@@ -135,7 +209,9 @@ curl http://127.0.0.1:8000/api/health   # system health
 python run.py --backup                   # snapshot before changes
 ```
 
-## Tech stack
+---
+
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -147,7 +223,9 @@ python run.py --backup                   # snapshot before changes
 | Automation | Scheduler (cron-aware) · EventBus · AgentBus · RecoveryEngine |
 | Quality | pytest (1,400+ tests) · Ruff · mypy · Biome · Vitest |
 
-## Repository structure
+---
+
+## Repository Structure
 
 ```
 api/              FastAPI application and routers
@@ -159,19 +237,26 @@ scripts/brand/    Deterministic brand pipeline (SVG → PNG)
 assets/           Brand system, banners, concept art, video storyboard
 ```
 
+---
+
 ## Documentation
 
 - [Brand identity](assets/branding/OWNEX_BRAND_IDENTITY.md) — marks, colors, type, usage rules
+- [Brand usage guide](BRAND_USAGE_GUIDE.md) — comprehensive brand guidelines
 - [Design tokens](assets/branding/design-tokens.json) — machine-readable brand tokens
-- [Trailer storyboard](assets/video/trailer-storyboard.md) — 90s product trailer structure
+- [Architecture diagram](assets/concepts/architecture.md) — system architecture with Mermaid
 - [Agent Charter](.ai/AGENT_CHARTER.md) — constitution and operating rules
-- [Architecture](.ai/ARCHITECTURE_FINAL.md) — full architectural decisions
+- [Architecture decisions](.ai/ARCHITECTURE_FINAL.md) — full architectural decisions
+
+---
 
 ## Philosophy
 
 **Consolidation over expansion.** OWNEX does not grow by adding modules; it grows by
 closing loops. Every component must produce observable results, survive restarts, and
 connect to at least one real consumer. If it cannot be verified, it does not exist.
+
+---
 
 ## License
 
@@ -180,7 +265,7 @@ MIT — see [LICENSE](LICENSE). Brand fonts: SIL OFL 1.1 (Google Fonts).
 ---
 
 <p align="center">
-  <img src="assets/logos/ownex-mark-alpha.png" alt="OWNEX" width="140"/>
+  <img src="assets/logos/ownex-mark.png" alt="OWNEX" width="100"/>
 </p>
 
-<p align="center"><sub>OWNEX — Autonomous Personal Operating System · ALPHA + OMEGA</sub></p>
+<p align="center"><sub>OWNEX — The Personalized Autonomous Operating System</sub></p>

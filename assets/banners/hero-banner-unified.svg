@@ -1,42 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1260" width="2400" height="1260">
-  <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#05060A"/>
-      <stop offset="50%" stop-color="#07090F"/>
-      <stop offset="100%" stop-color="#0B0E15"/>
-    </linearGradient>
-    <linearGradient id="alphaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00D5FF"/>
-      <stop offset="100%" stop-color="#1E40FF"/>
-    </linearGradient>
-    <linearGradient id="omegaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00E39A"/>
-      <stop offset="100%" stop-color="#00D5FF"/>
-    </linearGradient>
-  </defs>
-  <rect width="2400" height="1260" fill="url(#bgGrad)"/>
-  
-  <!-- ALPHA mark (left) -->
-  <g transform="translate(800.0, 630.0) scale(3.28125)"><g id="ownex-mark" filter="url(#glow)">
-    <path d="M 410.9 101.1 L 384.0 128.0 L 258.8 253.2 L 245.4 239.7 L 239.7 245.4 L 253.2 258.8 L 128.0 384.0 L 101.1 410.9 Z" fill="url(#markGrad)"/>
-    <path d="M 410.9 101.1 L 384.0 128.0 L 258.8 253.2 L 272.3 239.7 L 266.6 245.4 L 253.2 258.8 L 128.0 384.0 L 101.1 410.9 Z" fill="url(#markGrad)"/>
-    <circle cx="256.0" cy="256.0" r="248" fill="none" stroke="#00D5FF" stroke-width="2.5" opacity="0.35"/>
-    <rect x="252.0" y="252.0" width="8" height="8" rx="2" fill="url(#markGrad)"/>
-  </g></g>
-  <text x="800.0" y="950.0" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="100" fill="#F6F8FB" letter-spacing="10" text-anchor="middle">ALPHA</text>
-  <text x="800.0" y="1020.0" font-family="JetBrains Mono, monospace" font-size="28" fill="#00D5FF" letter-spacing="6" text-anchor="middle">DESKTOP OPERATING SYSTEM</text>
-  
-  <!-- OMEGA mark (right) - need omega inner -->
-  <g transform="translate(1600.0, 630.0) scale(3.28125)"><g id="ownex-mark" filter="url(#glow)">
-    <path d="M 410.9 101.1 L 384.0 128.0 L 258.8 253.2 L 245.4 239.7 L 239.7 245.4 L 253.2 258.8 L 128.0 384.0 L 101.1 410.9 Z" fill="url(#markGrad)"/>
-    <path d="M 410.9 101.1 L 384.0 128.0 L 258.8 253.2 L 272.3 239.7 L 266.6 245.4 L 253.2 258.8 L 128.0 384.0 L 101.1 410.9 Z" fill="url(#markGrad)"/>
-    <circle cx="256.0" cy="256.0" r="248" fill="none" stroke="#00D5FF" stroke-width="2.5" opacity="0.35"/>
-    <rect x="252.0" y="252.0" width="8" height="8" rx="2" fill="url(#markGrad)"/>
-  </g></g>
-  <text x="1600.0" y="950.0" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="100" fill="#F6F8FB" letter-spacing="10" text-anchor="middle">OMEGA</text>
-  <text x="1600.0" y="1020.0" font-family="JetBrains Mono, monospace" font-size="28" fill="#00E39A" letter-spacing="6" text-anchor="middle">ANDROID & WEAR OS COMPANION</text>
-  
-  <!-- Center title -->
-  <text x="1200.0" y="350.0" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="140" fill="#F6F8FB" letter-spacing="12" text-anchor="middle">OWNEX</text>
-  <text x="1200.0" y="430.0" font-family="JetBrains Mono, monospace" font-size="36" fill="#8A94A6" letter-spacing="8" text-anchor="middle">AUTONOMOUS PERSONAL OPERATING SYSTEM</text>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="2400" height="600" viewBox="0 0 2400 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="2400" height="600" fill="#08090A"/>
+
+  <!-- Geometric mark (large, subtle) -->
+  <g opacity="0.03">
+    <circle cx="1200" cy="300" r="280" stroke="#F6F8FB" stroke-width="40" fill="none"/>
+    <path d="M1200 20 L1200 220 L1600 300 L1200 380 L1200 580 L800 300 L1200 20 Z" fill="#F6F8FB"/>
+    <circle cx="1200" cy="300" r="70" fill="#08090A" stroke="#F6F8FB" stroke-width="20"/>
+  </g>
+
+  <!-- Content -->
+  <g transform="translate(1200, 300)">
+    <!-- Wordmark -->
+    <text x="0" y="20" text-anchor="middle" font-family="'Inter Display', 'Inter', system-ui, sans-serif" font-weight="700" font-size="120" letter-spacing="-0.02em" fill="#F6F8FB">OWNEX</text>
+
+    <!-- Tagline -->
+    <text x="0" y="80" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-weight="400" font-size="28" letter-spacing="0.02em" fill="#8B8D98">The Personalized Autonomous Operating System</text>
+
+    <!-- Accent line -->
+    <rect x="-100" y="110" width="200" height="2" fill="#5E6AD2"/>
+  </g>
 </svg>

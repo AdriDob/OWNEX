@@ -1,6 +1,15 @@
-# OWNEX Brand Usage Guide
+# OWNEX Brand Usage Guide v2.0
 
 Guidelines for using OWNEX brand assets consistently across all touchpoints.
+
+## Brand Philosophy
+
+OWNEX represents precision, autonomy, and evolution. The brand communicates engineering excellence through extreme restraint, mathematical precision, and functional design.
+
+**Inspired by:** Linear, Vercel, Tesla
+**Core principle:** Every pixel has purpose. Decoration is latency made visible.
+
+---
 
 ## Brand Assets Location
 
@@ -11,10 +20,11 @@ assets/
 ├── logos/              # Logo files (SVG + PNG)
 ├── branding/          # Brand identity documentation
 ├── banners/           # Hero banners
-├── concepts/          # Concept art
-├── screenshots/       # Application screenshots
-└── video/             # Video assets
+├── concepts/          # Concept art, architecture diagrams
+└── screenshots/       # Application screenshots
 ```
+
+---
 
 ## Logo System
 
@@ -23,186 +33,203 @@ assets/
 | Logo | Format | Usage |
 |------|--------|-------|
 | **OWNEX Mark** | SVG, PNG | Icon, favicon, small spaces |
-| **OWNEX ALPHA** | SVG, PNG | Desktop edition branding |
-| **OWNEX OMEGA** | SVG, PNG | Mobile edition branding |
+| **OWNEX Wordmark** | SVG, PNG | Typography-focused applications |
 | **OWNEX Lockup** | SVG, PNG | Horizontal lockup for headers |
 | **OWNEX Icon** | SVG, PNG | App icon, launcher |
 
+### Edition Variants
+
+| Logo | Format | Usage |
+|------|--------|-------|
+| **OWNEX ALPHA** | SVG, PNG | Desktop edition branding |
+| **OWNEX OMEGA** | SVG, PNG | Mobile edition branding |
+
 ### Logo Variants
 
-- **Color**: Full color branding (default)
-- **Monochrome**: Single color for restricted contexts
-- **Mono Black**: Black only for high contrast
-- **UI 32px**: Optimized for UI elements
+- **Color:** Full color branding (default)
+- **Black:** Monochrome black for light backgrounds
+- **White:** Monochrome white for dark backgrounds
 
 ### Logo Usage Rules
 
-1. **Minimum Size**: 32px for UI, 120px for print
-2. **Clear Space**: Maintain 1x logo height clear space
-3. **Background**: Use light or dark backgrounds, never mid-tone
-4. **Distortion**: Never stretch or alter aspect ratio
-5. **Modifications**: Never modify colors, shapes, or proportions
+1. **Minimum Size:** 32px for UI, 120px for print
+2. **Clear Space:** Maintain 1x logo height clear space
+3. **Background:** Use cosmos (#08090A) or white only
+4. **Distortion:** Never stretch or alter aspect ratio
+5. **Modifications:** Never modify colors, shapes, or proportions
+6. **Monochrome Preferred:** Use monochrome variants in most contexts
+
+---
 
 ## Color System
 
-### Primary Colors
+### Primary Palette
 
 ```css
---ownex-cyber-cyan: #00D5FF;
---ownex-deep-blue: #0B0E15;
---ownex-emerald: #00E39A;
---ownex-space-black: #07090F;
+/* Backgrounds */
+--ownex-cosmos: #08090A;        /* Main background */
+--ownex-surface: #111113;       /* UI surface */
+--ownex-surface-alt: #1F2023;   /* Panel, card background */
+--ownex-surface-highlight: #2A2D35; /* Hover states */
+
+/* Text */
+--ownex-text-primary: #F6F8FB;  /* Primary text */
+--ownex-text-secondary: #8B8D98; /* Secondary text */
+--ownex-text-tertiary: #5E6272;  /* Tertiary, disabled */
+
+/* Accent */
+--ownex-accent: #5E6AD2;        /* Primary action, links, active states */
+--ownex-accent-hover: #7B85E0;   /* Hover state */
+--ownex-accent-subtle: rgba(94, 106, 210, 0.15); /* Subtle backgrounds */
+
+/* Functional */
+--ownex-success: #00E39A;      /* Success, validation */
+--ownex-warning: #FFB020;       /* Warning, pending */
+--ownex-error: #FF5252;         /* Error, critical */
 ```
 
-### Secondary Colors
+### Color Usage Rules
 
-```css
---ownex-surface-1: #16213A;
---ownex-surface-2: #1D2430;
---ownex-surface-3: #3D4A63;
---ownex-muted: #8A94A6;
---ownex-text-primary: #F6F8FB;
---ownex-text-secondary: #C4CBD5;
-```
+1. **Accent is functional, not decorative** - Use only on links, buttons, active states
+2. **Gray ramp is pure neutral** - No warm/cool tints, true gray
+3. **High contrast required** - Minimum 4.5:1 contrast ratio for text
+4. **Single accent principle** - Never mix accent with other brand colors
+5. **Background consistency** - Cosmos (#08090A) is the primary background
 
-### Color Usage
-
-- **Cyber Cyan**: CTAs, highlights, success states
-- **Deep Blue**: Primary backgrounds, UI elements
-- **Emerald**: Success, validation, positive feedback
-- **Space Black**: Main background, depth
-- **Muted**: Secondary text, disabled states
+---
 
 ## Typography
 
-### Font Families
+### Font Stack
 
 ```css
---font-display: 'Space Grotesk', sans-serif;
---font-body: 'Inter', sans-serif;
---font-mono: 'JetBrains Mono', monospace;
+/* Display (Headlines) */
+font-family: 'Inter Display', 'Inter', system-ui, -apple-system, sans-serif;
+
+/* Body (UI, paragraphs) */
+font-family: 'Inter', system-ui, -apple-system, sans-serif;
+
+/* Mono (Code, technical) */
+font-family: 'JetBrains Mono', 'Fira Code', monospace;
 ```
 
 ### Typography Scale
 
-| Level | Size | Weight | Usage |
-|-------|------|--------|-------|
-| H1 | 48px | 700 | Page titles |
-| H2 | 36px | 600 | Section headers |
-| H3 | 24px | 500 | Subsections |
-| Body | 16px | 400 | Body text |
-| Small | 14px | 400 | Captions |
-| Mono | 14px | 400 | Code, data |
+| Size | Weight | Line Height | Letter Spacing | Usage |
+|------|--------|-------------|----------------|-------|
+| 64px | 700 | 1.1 | -0.03em | H1 - Hero |
+| 48px | 600 | 1.2 | -0.02em | H2 - Section |
+| 36px | 600 | 1.2 | -0.02em | H3 - Subsection |
+| 24px | 500 | 1.3 | -0.01em | H4 - Component |
+| 16px | 400 | 1.5 | 0 | Body |
+| 14px | 400 | 1.5 | 0 | Small |
+| 12px | 400 | 1.4 | 0 | Caption |
 
 ### Typography Rules
 
-1. **Line Height**: 1.5 for body, 1.2 for headings
-2. **Letter Spacing**: 0.01em for headings, normal for body
-3. **Case**: Title case for headings, sentence case for body
-4. **Max Width**: 75 characters for body text
+1. **Tight letter spacing** - Negative spacing on display sizes for engineered feel
+2. **Aggressive vertical rhythm** - High line height, dense columns
+3. **Mono for technical** - Use JetBrains Mono for code, data, technical labels
+4. **Case usage** - Title case for headings, sentence case for body
+5. **Max width** - 75 characters for body text
+
+---
+
+## Spacing & Layout
+
+### Grid System
+
+- **Base unit:** 8px grid
+- **Component spacing:** Multiples of 8 (8, 16, 24, 32, 48, 64)
+- **Container max-width:** 1200px
+- **Section padding:** 96px vertical
+
+### Spacing Scale
+
+```css
+--space-1: 4px;
+--space-2: 8px;
+--space-3: 16px;
+--space-4: 24px;
+--space-5: 32px;
+--space-6: 48px;
+--space-8: 64px;
+--space-10: 96px;
+--space-12: 128px;
+```
+
+---
 
 ## Component Branding
 
-### Mission Control
+### Mission Control (ALPHA)
 
-- **Color**: Cyber Cyan + Deep Blue
-- **Style**: Dashboard, grid-based, metrics-focused
-- **Tone**: Professional, technical, precise
+- **Background:** Cosmos (#08090A)
+- **Surface:** Surface (#111113)
+- **Accent:** Accent (#5E6AD2) - only on active states
+- **Text:** Primary (#F6F8FB)
+- **Style:** Grid-based, metrics-focused, dense information
+- **Tone:** Professional, technical, precise
 
 ### MERLIN Assistant
 
-- **Color**: Emerald + Space Black
-- **Style**: Conversational, clean, accessible
-- **Tone**: Helpful, intelligent, patient
+- **Background:** Cosmos (#08090A)
+- **Surface:** Surface (#111113)
+- **Accent:** Success (#00E39A) - for AI responses
+- **Text:** Primary (#F6F8FB)
+- **Style:** Conversational, clean, terminal-like
+- **Tone:** Helpful, intelligent, patient
 
 ### Agent Fleet
 
-- **Color**: Cycle-based (Security/Forge/Pulse/Vault/Atlas/Odyssey)
-- **Style**: Status indicators, activity cards
-- **Tone**: Dynamic, operational, fleet-focused
+- **Background:** Cosmos (#08090A)
+- **Surface:** Surface (#111113)
+- **Accent:** Department-specific colors (single accent per agent)
+- **Text:** Primary (#F6F8FB)
+- **Style:** Status indicators, activity cards, compact
+- **Tone:** Dynamic, operational, fleet-focused
 
-## Application Branding
+---
+
+## Product Branding
 
 ### Desktop (ALPHA)
 
-- **Window Title**: "OWNEX ALPHA - Mission Control"
-- **Icon**: ownex-icon.png
-- **Color Scheme**: Deep Blue + Cyber Cyan
-- **Window Frame**: Space Black with Cyan accents
+- **Window Title:** "OWNEX ALPHA"
+- **Icon:** Geometric mark (monochrome)
+- **Color Scheme:** Cosmos + Accent
+- **Window Frame:** Cosmos with thin accent border
+- **UI Style:** Dense, keyboard-first, terminal aesthetic
 
 ### Mobile (OMEGA)
 
-- **App Name**: "OWNEX OMEGA"
-- **Icon**: ownex-icon.png
-- **Color Scheme**: Emerald + Deep Blue
-- **Navigation**: Bottom tab bar with colored indicators
+- **App Name:** "OWNEX OMEGA"
+- **Icon:** Geometric mark (monochrome)
+- **Color Scheme:** Cosmos + Accent
+- **Navigation:** Bottom tab bar with accent indicators
+- **UI Style:** Touch-optimized, clear hierarchy
+
+---
 
 ## Web Branding
 
-### Website Headers
+### GitHub README
 
-- **Logo**: OWNEX Lockup (left aligned)
-- **Background**: Space Black
-- **CTA**: Cyber Cyan button
-- **Navigation**: White text on hover
+- **Header:** OWNEX wordmark + "The Personalized Autonomous Operating System"
+- **Background:** Cosmos (#08090A)
+- **Text:** Off-white (#F6F8FB)
+- **Accent:** Only on links and badges
+- **Images:** Minimal, functional, no decoration
 
 ### Documentation
 
-- **Logo**: OWNEX Mark (small)
-- **Background**: White/Space Black toggle
-- **Headings**: Deep Blue text
-- **Code Blocks**: Surface-1 background
+- **Logo:** Geometric mark (small, monochrome)
+- **Background:** White/Cosmos toggle
+- **Headings:** Cosmos color
+- **Code Blocks:** Surface background
+- **Style:** Reference-quality, technical
 
-## Print Branding
-
-### Business Cards
-
-- **Front**: OWNEX Mark + Name + Title
-- **Back**: Contact info + QR code
-- **Colors**: Black + White + Cyan accent
-- **Paper**: Matte finish, 300gsm
-
-### Presentations
-
-- **Title Slide**: OWNEX Lockup + Title
-- **Content**: White background, dark text
-- **Charts**: OWNEX color palette
-- **Footer**: OWNEX Mark + page number
-
-## Digital Marketing
-
-### Social Media
-
-- **Avatar**: OWNEX Mark (circular)
-- **Header**: OWNEX Lockup + tagline
-- **Posts**: Cyan accent colors
-- **Stories**: Full-screen OWNEX branding
-
-### Email Signatures
-
-```
-[OWNEX Mark]
-Your Name
-Title
-OWNEX — Autonomous Personal Operating System
-https://ownex.ai
-```
-
-## Video Branding
-
-### Intro Sequence
-
-1. OWNEX Mark fade-in (2s)
-2. Text: "OWNEX" (1s)
-3. Text: "Autonomous Personal Operating System" (2s)
-4. Fade to content (1s)
-
-### Outro Sequence
-
-1. OWNEX Mark fade-in (1s)
-2. Text: "OWNEX" (1s)
-3. URL: "https://ownex.ai" (2s)
-4. Fade to black (1s)
+---
 
 ## Asset Generation
 
@@ -211,65 +238,79 @@ All brand assets are generated deterministically using the pipeline in `scripts/
 ```bash
 # Generate all logos
 cd scripts/brand
-python generate_logos.py
+python generate_premium_logos.py
 
-# Generate concept art
-python generate_concepts.py
+# Generate banners
+python generate_premium_banners.py
 
-# Generate wallpapers
-python generate_wallpapers.py
+# Generate showcase visuals
+python generate_showcase.py
+
+# Convert SVG to PNG
+python svg_to_png.py
+python convert_banners.py
+python convert_showcase.py
 ```
 
-## Brand Guidelines Compliance
+---
+
+## Brand Compliance
 
 ### Do's
 
-✅ Use official logo files from `assets/logos/`
-✅ Maintain minimum clear space around logos
 ✅ Use official color palette
 ✅ Follow typography scale
-✅ Use appropriate logo for context (ALPHA vs OMEGA)
+✅ Maintain 8px grid alignment
+✅ Use monochrome logos preferred
+✅ High contrast (4.5:1 minimum)
+✅ Functional color usage
+✅ Consistent spacing
+✅ Minimal, functional design
 
 ### Don'ts
 
-❌ Modify logo colors or shapes
-❌ Stretch or distort logos
-❌ Use unofficial colors
-❌ Mix fonts outside the system
-❌ Use logos on mid-tone backgrounds
+❌ Add gradients or shadows
+❌ Use decorative illustrations
+❌ Mix multiple accent colors
+❌ Modify logo proportions
+❌ Use warm/cool gray tints
+❌ Add decoration without purpose
+❌ Break the 8px grid
+❌ Use generated text in images
 
-## Brand Asset Requests
+---
 
-For custom brand assets or variations:
+## Quality Criteria
 
-1. Check existing assets in `assets/`
-2. Review brand identity documentation
-3. Submit request with specific requirements
-4. Allow 2-3 business days for delivery
+Before finalizing any asset, verify:
 
-## Brand Maintenance
+1. **Does it look like a real tech company?** (Tesla, Linear, Vercel level)
+2. **Would a professional developer trust this repository?**
+3. **Do images explain the product or just decorate?**
+4. **Does the identity work without the word "AI"?**
+5. **Is every pixel intentional?**
+6. **Is the restraint visible?**
 
-Brand assets are updated quarterly:
+If any answer is "no", refine.
 
-- **Q1**: Logo refinements
-- **Q2**: Color palette review
-- **Q3**: Typography updates
-- **Q4**: New asset generation
+---
 
-## Brand Guidelines Version
+## Brand Version
 
-- **Current Version**: 1.0
-- **Last Updated**: 2026-08-01
-- **Next Review**: 2026-11-01
+- **Version:** 2.0 (Premium Redesign)
+- **Inspired by:** Linear, Vercel, Tesla
+- **Last Updated:** 2026-08-01
+- **Design Philosophy:** Extreme restraint, functional design, engineering precision
+
+---
 
 ## Contact
 
 For brand-related questions:
-- Email: brand@ownex.ai
-- Documentation: assets/branding/OWNEX_BRAND_IDENTITY.md
+- Documentation: `.ai/OWNEX_PREMIUM_BRAND_IDENTITY.md`
 - Design Tokens: assets/branding/design-tokens.json
 
 ---
 
-**OWNEX Brand System v1.0**
-**Autonomous Personal Operating System**
+**OWNEX Brand System v2.0**
+**The Personalized Autonomous Operating System**
