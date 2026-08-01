@@ -638,12 +638,11 @@ class ThinkingSystem:
         """Get learnings applicable to a task type/platform."""
         applicable = []
         for learning in self._learning_records:
-            if learning.task_type == task_type or learning.platform == platform:
-                if learning.confidence >= self.config.learning_confidence_threshold:
-                    applicable.append(learning)
+            if (learning.task_type == task_type or learning.platform == platform) and learning.confidence >= self.config.learning_confidence_threshold:
+                applicable.append(learning)
 
         # Sort by confidence and recency
-        applicable.sort(key=lambda l: (l.confidence, l.last_applied or l.created_at), reverse=True)
+        applicable.sort(key=lambda learning_record: (learning_record.confidence, learning_record.last_applied or learning_record.created_at), reverse=True)
         return applicable[:10]
 
     def apply_learning(self, learning_id: str) -> bool:
