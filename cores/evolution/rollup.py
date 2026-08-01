@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from database import db
@@ -23,14 +23,14 @@ class RollupEngine:
         """Roll up the last full hour of metric events."""
         now = datetime.now(UTC)
         period_end = now.replace(minute=0, second=0, microsecond=0)
-        period_start = period_end.replace(hour=period_end.hour - 1)
+        period_start = period_end - timedelta(hours=1)
         return self._rollup_for(period_start, period_end, "hourly")
 
     def run_daily(self) -> dict[str, Any]:
         """Roll up the last full day of metric events."""
         now = datetime.now(UTC)
         period_end = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        period_start = period_end.replace(day=period_end.day - 1)
+        period_start = period_end - timedelta(days=1)
         return self._rollup_for(period_start, period_end, "daily")
 
     def _rollup_for(self, period_start: datetime, period_end: datetime, granularity: str) -> dict[str, Any]:

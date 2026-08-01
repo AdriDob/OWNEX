@@ -362,7 +362,7 @@ Prueba los comandos básicos:
             return None
 
         # Encontrar primera lección no completada del día actual
-        day_lessons = [l for l in self.lessons if l.day == self.progress.current_day]
+        day_lessons = [lesson for lesson in self.lessons if lesson.day == self.progress.current_day]
         for lesson in day_lessons:
             if lesson.status == LessonStatus.NOT_STARTED:
                 return lesson
@@ -373,7 +373,7 @@ Prueba los comandos básicos:
 
     def complete_lesson(self, lesson_id: str, notes: str = "") -> bool:
         """Completar lección."""
-        lesson = next((l for l in self.lessons if l.lesson_id == lesson_id), None)
+        lesson = next((existing_lesson for existing_lesson in self.lessons if existing_lesson.lesson_id == lesson_id), None)
 
         if not lesson:
             return False
