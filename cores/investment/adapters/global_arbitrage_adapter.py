@@ -16,12 +16,17 @@ class GlobalArbitrageAdapter:
 
     def __init__(self, config: dict[str, Any] | None = None) -> None:
         self._config = config or {}
-        self._exchanges = self._config.get("exchanges", ["binance", "kraken", "coinbase"])
+        self._exchanges = self._config.get(
+            "exchanges",
+            ["binance", "okx", "kraken", "coinbase", "bybit", "bitget", "mexc", "gateio"],
+        )
         self._min_spread_pct = self._config.get("min_spread_pct", 0.5)
         self._max_position_usd = self._config.get("max_position_usd", 10000)
         # cap de cordura: spreads spot reales entre exchanges líquidos no superan un
         # ~10%; valores mayores son tickers basura/ilíquidos que corrompen el scan
         self._spread_sanity_max = self._config.get("spread_sanity_max", 10.0)
+        # liquidez mínima (24h quoteVolume) suma de ambas puntas para ser ejecutable
+        self._min_quote_volume_usd = self._config.get("min_quote_volume_usd", 500000.0)
         self._connected = False
 
     @property
@@ -68,7 +73,7 @@ class GlobalArbitrageAdapter:
                     ex = exchange_class({"enableRateLimit": True})
                     ex_tickers = await ex.fetch_tickers()
                     tickers[ex_name] = {
-                        s: {"bid": t.get("bid"), "ask": t.get("ask")}
+                        s: {"bid": t.get("bid"), "ask": t.get("ask"), "qv": t.get("quoteVolume") or 0}
                         for s, t in ex_tickers.items()
                         if t.get("bid") and t.get("ask")
                     }
@@ -80,6 +85,12 @@ class GlobalArbitrageAdapter:
                 bids = {ex: tickers[ex][symbol]["bid"] for ex in tickers if symbol in tickers[ex]}
                 asks = {ex: tickers[ex][symbol]["ask"] for ex in tickers if symbol in tickers[ex]}
                 if len(bids) < 2:
+                    continue
+                # liquidez mínima (24h quoteVolume) sumada en ambas puntas: solo
+                # pares de facto ejecutables, evita polvo y señales fantasma
+                if self._min_quote_volume_usd and sum(
+                    tickers[ex][symbol]["qv"] for ex in tickers if symbol in tickers[ex]
+                ) < self._min_quote_volume_usd:
                     continue
                 best_bid_ex = max(bids, key=bids.get)
                 best_ask_ex = min(asks, key=asks.get)
