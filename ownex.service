@@ -1,0 +1,18 @@
+[Unit]
+Description=OWNEX Autonomous Bug Bounty Daemon
+After=network.target
+
+[Service]
+Type=simple
+User=adrie
+WorkingDirectory=/home/adrie/projects/Rastro
+Environment=PATH=/home/adrie/projects/Rastro/.venv/bin
+Environment=DATABASE_URL=sqlite:////home/adrie/.orion/database/cateye.db
+ExecStart=/home/adrie/projects/Rastro/.venv/bin/python run.py --daemon
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
