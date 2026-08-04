@@ -53,6 +53,7 @@ from api.routers import (
     endpoints,
     enhanced_personalization,
     evidence,
+    fiverr,
     evolution,
     execution,
     financial_sync,
@@ -1582,6 +1583,7 @@ app.include_router(voice_commands.router)
 app.include_router(opensource.router)
 app.include_router(zero_barrier.router)
 app.include_router(direct_work.router)
+app.include_router(fiverr.router)
 app.include_router(career.router)
 app.include_router(oar.router)
 app.include_router(capability_expansion.router)
