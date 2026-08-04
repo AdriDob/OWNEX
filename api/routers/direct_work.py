@@ -598,6 +598,25 @@ async def direct_work_income_projector(request: IncomeProjectionRequest) -> dict
     ).to_dict()
 
 
+@router.post("/income-dashboard")
+async def direct_work_income_dashboard(request: IncomeProjectionRequest) -> dict[str, Any]:
+    """One-pane financial snapshot: Work Bank + Revenue + Income Projector.
+
+    Answers "does this system improve my money?" in a single call: jobs found /
+    prepared / delivered, payouts collected + pending, per-platform ROI, and the
+    time-to-target projection (same inputs as /income-projector).
+    """
+    from cores.direct_work_engine.income_dashboard import get_income_dashboard
+
+    return get_income_dashboard().snapshot(
+        work_income_usd_per_month=request.work_income_usd_per_month,
+        savings_usd_per_month=request.savings_usd_per_month,
+        start_capital_usd=request.start_capital_usd,
+        annual_return_rate=request.annual_return_rate,
+        target_monthly_usd=request.target_monthly_usd,
+    )
+
+
 @router.get("/access/explain")
 async def direct_work_access_explain() -> dict[str, Any]:
     """Account integration guide: what each platform needs, why, and how to unlock it.
