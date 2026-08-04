@@ -320,7 +320,7 @@ def _handle_install() -> None:
     installer = _BASE_DIR / "scripts" / "install.py"
     if installer.exists():
         _log("INSTALL", "Running installer script...")
-        result = subprocess.run([sys.executable, str(installer)])
+        result = subprocess.run([sys.executable, str(installer)], cwd=_BASE_DIR)
         if result.returncode != 0:
             _log("INSTALL", "Installer script failed (rc=%d)", result.returncode)
             sys.exit(1)
