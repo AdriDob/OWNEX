@@ -480,7 +480,7 @@ watch(isOpen, (open) => {
 
 .ownex-command-palette__item:hover,
 .ownex-command-palette__item--selected {
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .ownex-command-palette__item-icon {

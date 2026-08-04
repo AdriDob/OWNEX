@@ -34,7 +34,13 @@ class ScanAssistant:
         self._evidence_graph = evidence_graph or EvidenceGraph()
         self._report_engine = report_engine or ReportEngine()
 
-    def summarize_scan(self, scan_id: str, endpoint_count: int = 0, verdicts: list[dict[str, Any]] | None = None, reports: list[FinalReport] | None = None) -> str:
+    def summarize_scan(
+        self,
+        scan_id: str,
+        endpoint_count: int = 0,
+        verdicts: list[dict[str, Any]] | None = None,
+        reports: list[FinalReport] | None = None,
+    ) -> str:
         verdicts = verdicts or self._evidence_graph.get_verdicts()
         reports = reports or []
 
@@ -46,8 +52,10 @@ class ScanAssistant:
         lines.append(f"## Scan Summary: {scan_id}")
         lines.append("")
         lines.append(f"**Endpoints analyzed:** {endpoint_count}")
-        lines.append(f"**Verdicts:** {len(verdicts)} total "
-                      f"({len(confirmed)} confirmed, {len(inconclusive)} inconclusive, {len(rejected)} rejected)")
+        lines.append(
+            f"**Verdicts:** {len(verdicts)} total "
+            f"({len(confirmed)} confirmed, {len(inconclusive)} inconclusive, {len(rejected)} rejected)"
+        )
         lines.append(f"**Reports generated:** {len(reports)}")
         lines.append("")
 
@@ -71,7 +79,13 @@ class ScanAssistant:
 
         return "\n".join(lines)
 
-    def explain_finding(self, finding_id: str, verdict: dict[str, Any] | None = None, report: FinalReport | None = None, evidence_graph: EvidenceGraph | None = None) -> str:
+    def explain_finding(
+        self,
+        finding_id: str,
+        verdict: dict[str, Any] | None = None,
+        report: FinalReport | None = None,
+        evidence_graph: EvidenceGraph | None = None,
+    ) -> str:
         graph = evidence_graph or self._evidence_graph
 
         lines: list[str] = []
@@ -104,9 +118,11 @@ class ScanAssistant:
             if related:
                 lines.append(f"### Evidence ({len(related)} comparisons)")
                 for comp in related[:5]:
-                    lines.append(f"- Attempt {comp.get('attempt')}: "
-                                 f"status_match={comp.get('status_match')}, "
-                                 f"body_diff={comp.get('body_diff_ratio', 0):.2%}")
+                    lines.append(
+                        f"- Attempt {comp.get('attempt')}: "
+                        f"status_match={comp.get('status_match')}, "
+                        f"body_diff={comp.get('body_diff_ratio', 0):.2%}"
+                    )
                 lines.append("")
                 consistent = sum(1 for c in related if c.get("consistent"))
                 lines.append(f"**Consistency:** {consistent}/{len(related)} attempts reliable")
@@ -140,19 +156,23 @@ class ScanAssistant:
 
             priority = risk + (signal_count * 5) + (10 if entity_bridge else 0)
 
-            scored.append({
-                "node_id": ep["node_id"],
-                "value": ep.get("value", ""),
-                "priority_score": round(priority, 1),
-                "risk_score": risk,
-                "signals": meta.get("signals", []),
-                "entity_bridge": entity_bridge,
-            })
+            scored.append(
+                {
+                    "node_id": ep["node_id"],
+                    "value": ep.get("value", ""),
+                    "priority_score": round(priority, 1),
+                    "risk_score": risk,
+                    "signals": meta.get("signals", []),
+                    "entity_bridge": entity_bridge,
+                }
+            )
 
         scored.sort(key=lambda x: x["priority_score"], reverse=True)
         return scored[:top_n]
 
-    def risk_narrative(self, target_name: str, endpoints: list[dict[str, Any]], verdicts: list[dict[str, Any]] | None = None) -> str:
+    def risk_narrative(
+        self, target_name: str, endpoints: list[dict[str, Any]], verdicts: list[dict[str, Any]] | None = None
+    ) -> str:
         verdicts = verdicts or []
 
         total = len(endpoints)
@@ -194,11 +214,15 @@ class ScanAssistant:
         lines.append("")
         lines.append("### Recommendation")
         if severity in ("critical", "high"):
-            lines.append("Immediate investigation required. High-risk endpoints with active "
-                         "findings should be prioritized for manual verification and responsible disclosure.")
+            lines.append(
+                "Immediate investigation required. High-risk endpoints with active "
+                "findings should be prioritized for manual verification and responsible disclosure."
+            )
         elif severity == "medium":
-            lines.append("Moderate risk posture. Review high-risk endpoints and validate "
-                         "findings before proceeding to manual exploitation.")
+            lines.append(
+                "Moderate risk posture. Review high-risk endpoints and validate "
+                "findings before proceeding to manual exploitation."
+            )
         else:
             lines.append("Low risk posture. Continue monitoring for changes in attack surface.")
 
@@ -244,6 +268,7 @@ class ScanAssistant:
             return "## Differential Intelligence\n\nNo differential data available."
 
         from cores.differential_intelligence import DifferentialBundle
+
         if not isinstance(differential_bundle, DifferentialBundle):
             return "## Differential Intelligence\n\nInvalid differential data."
 
@@ -255,8 +280,12 @@ class ScanAssistant:
 
         all_findings: list[Any] = []
         for field_name in (
-            "target_differences", "endpoint_differences", "historical_changes",
-            "cross_target_patterns", "web3_differences", "interesting_anomalies",
+            "target_differences",
+            "endpoint_differences",
+            "historical_changes",
+            "cross_target_patterns",
+            "web3_differences",
+            "interesting_anomalies",
         ):
             all_findings.extend(getattr(differential_bundle, field_name, []))
 
@@ -282,8 +311,7 @@ class ScanAssistant:
                 objs_str = ", ".join(objects[:3]) if objects else ""
                 requires = getattr(item, "requires_validation", True)
                 lines.append(
-                    f"- **{title}** (risk: {risk}, confidence: {conf:.0%})"
-                    + (f" — {objs_str}" if objs_str else "")
+                    f"- **{title}** (risk: {risk}, confidence: {conf:.0%})" + (f" — {objs_str}" if objs_str else "")
                 )
                 if desc:
                     lines.append(f"  {desc[:200]}")
@@ -296,14 +324,13 @@ class ScanAssistant:
         if differential_bundle.interesting_anomalies:
             lines.append("### Recommended Review Priority")
             for a in differential_bundle.interesting_anomalies[:3]:
-                lines.append(
-                    f"- [{getattr(a, 'validation_priority', 'low').upper()}] "
-                    f"{getattr(a, 'title', 'Unknown')}"
-                )
+                lines.append(f"- [{getattr(a, 'validation_priority', 'low').upper()}] {getattr(a, 'title', 'Unknown')}")
 
         lines.append("")
-        lines.append("*These are observations derived from existing pipeline data. "
-                     "They do not constitute vulnerability findings and require human validation.*")
+        lines.append(
+            "*These are observations derived from existing pipeline data. "
+            "They do not constitute vulnerability findings and require human validation.*"
+        )
 
         return "\n".join(lines)
 

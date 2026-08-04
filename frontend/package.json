@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "lint": "biome check src/",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build"
@@ -32,16 +33,19 @@
     "xterm": "^5.3.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/vite": "^4.1.6",
     "@tauri-apps/cli": "^2.11.4",
     "@vitejs/plugin-vue": "^5.2.4",
     "@vitest/coverage-v8": "^4.1.9",
     "@vue/test-utils": "^2.4.11",
+    "biome": "^0.3.3",
     "jsdom": "^29.1.1",
+    "playwright": "^1.62.1",
     "tailwindcss": "^4.1.6",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",
     "vitest": "^4.1.9",
-    "vue-tsc": "^2.2.4"
+    "vue-tsc": "^2.2.12"
   }
 }

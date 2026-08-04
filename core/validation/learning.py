@@ -57,20 +57,22 @@ def _ensure_dir() -> None:
 
 
 def _serialize_outcome(outcome: ValidationOutcome) -> str:
-    return json.dumps({
-        "target_id": outcome.target_id,
-        "target_name": outcome.target_name,
-        "vuln_type": outcome.vulnerability_type,
-        "confidence": outcome.confidence,
-        "promoted": outcome.promoted,
-        "severity": outcome.severity,
-        "endpoint_path": outcome.endpoint_path,
-        "method": outcome.method,
-        "duration_ms": outcome.duration_ms,
-        "signals_count": outcome.signals_count,
-        "reproducible": outcome.reproducible,
-        "timestamp": outcome.timestamp or datetime.now(UTC).isoformat(),
-    })
+    return json.dumps(
+        {
+            "target_id": outcome.target_id,
+            "target_name": outcome.target_name,
+            "vuln_type": outcome.vulnerability_type,
+            "confidence": outcome.confidence,
+            "promoted": outcome.promoted,
+            "severity": outcome.severity,
+            "endpoint_path": outcome.endpoint_path,
+            "method": outcome.method,
+            "duration_ms": outcome.duration_ms,
+            "signals_count": outcome.signals_count,
+            "reproducible": outcome.reproducible,
+            "timestamp": outcome.timestamp or datetime.now(UTC).isoformat(),
+        }
+    )
 
 
 def record_outcome(outcome: ValidationOutcome) -> None:
@@ -181,11 +183,7 @@ def get_target_stats(target_id: int) -> dict[str, Any]:
         }
 
     agg = _aggregate_by_target_vuln(target_outcomes)
-    by_vuln = {
-        vt: stats
-        for (tid, vt), stats in agg.items()
-        if tid == target_id
-    }
+    by_vuln = {vt: stats for (tid, vt), stats in agg.items() if tid == target_id}
     total = sum(s["total_validations"] for s in by_vuln.values())
     promoted = sum(s["promoted_count"] for s in by_vuln.values())
     return {

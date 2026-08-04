@@ -44,12 +44,8 @@ class TestEnrichedVerdictData:
 
     def test_to_dict(self):
         data = EnrichedVerdictData(
-            alternative_explanations=[
-                AlternativeExplanation("a", "d", "t", 0.2)
-            ],
-            contradiction_tests=[
-                ContradictionTest("t1", "d1", "vuln", "not", "alta")
-            ],
+            alternative_explanations=[AlternativeExplanation("a", "d", "t", 0.2)],
+            contradiction_tests=[ContradictionTest("t1", "d1", "vuln", "not", "alta")],
             missing_verifications=["Falta ownership"],
             next_best_test=ContradictionTest("t2", "d2", "vuln", "not", "muy alta"),
             uncertainty_level="media",

@@ -1,27 +1,56 @@
 {
   "name": "OWNEX Design Tokens",
-  "version": "2.0",
-  "description": "Design tokens for OWNEX premium brand identity",
-  "colors": {
-    "cosmos": "#08090A",
-    "surface": "#111113",
-    "surfaceAlt": "#1F2023",
-    "surfaceHighlight": "#2A2D35",
-    "textPrimary": "#F6F8FB",
-    "textSecondary": "#8B8D98",
-    "textTertiary": "#5E6272",
-    "accent": "#5E6AD2",
-    "accentHover": "#7B85E0",
-    "accentSubtle": "rgba(94, 106, 210, 0.15)",
-    "success": "#00E39A",
-    "warning": "#FFB020",
-    "error": "#FF5252",
-    "white": "#FFFFFF",
-    "black": "#000000"
+  "version": "3.0",
+  "description": "Design tokens for OWNEX brand identity v3 — 'The Aperture Nexus'. Base black/white/premium grays, electric blue intelligence, emerald progress, decision orange. Single source of truth for the branding pipeline.",
+  "color_system": {
+    "space_black": {
+      "hex": "#05060A",
+      "role": "base background"
+    },
+    "cyber_cyan": {
+      "hex": "#00D5FF",
+      "role": "intelligence accent"
+    },
+    "deep_blue": {
+      "hex": "#1E40FF",
+      "role": "intelligence accent"
+    },
+    "emerald": {
+      "hex": "#00E39A",
+      "role": "progress accent"
+    },
+    "decision": {
+      "hex": "#FF7A1A",
+      "role": "decision accent"
+    },
+    "surface": {
+      "hex": "#111318",
+      "role": "surface"
+    },
+    "surface_alt": {
+      "hex": "#1F2229",
+      "role": "surface alt"
+    },
+    "stroke": {
+      "hex": "#2A2E37",
+      "role": "border/stroke"
+    },
+    "white": {
+      "hex": "#FFFFFF",
+      "role": "on-black text"
+    },
+    "muted": {
+      "hex": "#8B8D98",
+      "role": "secondary text"
+    },
+    "text": {
+      "hex": "#F6F8FB",
+      "role": "primary text"
+    }
   },
   "typography": {
     "fontFamily": {
-      "display": "'Inter Display', 'Inter', system-ui, -apple-system, sans-serif",
+      "display": "'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif",
       "body": "'Inter', system-ui, -apple-system, sans-serif",
       "mono": "'JetBrains Mono', 'Fira Code', monospace"
     },
@@ -91,21 +120,22 @@
   },
   "components": {
     "missionControl": {
-      "background": "#08090A",
-      "surface": "#111113",
-      "accent": "#5E6AD2",
+      "background": "#05060A",
+      "surface": "#111318",
+      "accent": "#00D5FF",
+      "decision": "#FF7A1A",
       "text": "#F6F8FB"
     },
     "merlin": {
-      "background": "#08090A",
-      "surface": "#111113",
+      "background": "#05060A",
+      "surface": "#111318",
       "accent": "#00E39A",
       "text": "#F6F8FB"
     },
     "agentFleet": {
-      "background": "#08090A",
-      "surface": "#111113",
-      "accent": "#5E6AD2",
+      "background": "#05060A",
+      "surface": "#111318",
+      "accent": "#1E40FF",
       "text": "#F6F8FB"
     }
   }

@@ -13,6 +13,7 @@ from typing import Any
 
 class ObjectiveCategory(StrEnum):
     """Categorías de objetivos del usuario."""
+
     DEVELOPMENT = "development"
     BUG_BOUNTY = "bug_bounty"
     DEV_BOUNTY = "dev_bounty"
@@ -25,6 +26,7 @@ class ObjectiveCategory(StrEnum):
 
 class IntegrationHealth(StrEnum):
     """Estado de salud de una integración."""
+
     CONNECTED = "connected"
     PENDING_AUTH = "pending_auth"
     NOT_CONFIGURED = "not_configured"
@@ -34,6 +36,7 @@ class IntegrationHealth(StrEnum):
 
 class ApprovalCategory(StrEnum):
     """Categorías de aprobación para acciones sensibles."""
+
     AUTO = "auto"  # Puede hacerlo solo (organizar archivos, actualizar docs, tests)
     CONFIRM = "confirm"  # Pregunta antes (enviar emails, conectar servicios)
     MANUAL = "manual"  # Nunca automático (movimientos financieros, inversiones, pagos)
@@ -42,6 +45,7 @@ class ApprovalCategory(StrEnum):
 @dataclass
 class LearningExplanation:
     """Explicación educativa para una acción o concepto."""
+
     title: str
     what_is: str  # "Qué es"
     what_for: str  # "Para qué sirve"
@@ -54,6 +58,7 @@ class LearningExplanation:
 @dataclass
 class AccountIntegration:
     """Representa una cuenta o servicio integrado."""
+
     integration_id: str
     name: str
     category: ObjectiveCategory
@@ -70,6 +75,7 @@ class AccountIntegration:
 @dataclass
 class ObjectiveDefinition:
     """Definición de un objetivo del usuario."""
+
     objective_id: str
     category: ObjectiveCategory
     title: str
@@ -84,6 +90,7 @@ class ObjectiveDefinition:
 @dataclass
 class ObjectiveProgress:
     """Progreso de un objetivo del usuario."""
+
     objective_id: str
     started_at: datetime | None = None
     completed_at: datetime | None = None
@@ -97,6 +104,7 @@ class ObjectiveProgress:
 @dataclass
 class AdministrativeStep:
     """Paso de un trámite administrativo."""
+
     step_id: str
     title: str
     description: str
@@ -125,6 +133,7 @@ class AdministrativeStep:
 @dataclass
 class AdministrativeProcess:
     """Proceso administrativo completo (ej: configurar pagos internacionales)."""
+
     process_id: str
     title: str
     objective: str  # "Recibir pagos internacionales"
@@ -138,6 +147,7 @@ class AdministrativeProcess:
 @dataclass
 class WealthAccount:
     """Cuenta financiera (sin datos sensibles)."""
+
     account_id: str
     name: str
     type: str  # bank, crypto, paypal, wise, etc.
@@ -151,6 +161,7 @@ class WealthAccount:
 @dataclass
 class InfrastructureSnapshot:
     """Snapshot completo de la infraestructura personal."""
+
     objectives_progress: dict[str, ObjectiveProgress]
     integrations: dict[str, AccountIntegration]
     administrative_processes: dict[str, AdministrativeProcess]

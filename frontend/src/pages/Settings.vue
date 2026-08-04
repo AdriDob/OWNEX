@@ -446,7 +446,7 @@ onMounted(() => {
           >
             <div class="flex items-center justify-between mb-2">
               <Cpu class="h-5 w-5" :class="settings.data.ai.provider === p.id ? 'text-primary' : 'text-muted-foreground'" />
-              <div v-if="settings.data.ai.provider === p.id" class="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(0,255,65,0.5)]" />
+              <div v-if="settings.data.ai.provider === p.id" class="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
             </div>
             <p class="font-mono text-sm font-semibold text-foreground">{{ p.label }}</p>
             <p class="font-mono text-[9px] text-muted-foreground mt-0.5">{{ p.desc }}</p>
@@ -569,7 +569,7 @@ onMounted(() => {
           >
             <div class="flex items-center gap-3">
               <div
-                :class="['h-2 w-2 rounded-full', tool.info.installed ? 'bg-success shadow-[0_0_6px_rgba(0,230,118,0.5)]' : 'bg-muted-foreground/30']"
+                :class="['h-2 w-2 rounded-full', tool.info.installed ? 'bg-success shadow-[0_0_6px_rgba(22,163,74,0.4)]' : 'bg-muted-foreground/30']"
               />
               <div>
                 <p class="font-mono text-xs font-semibold text-foreground">{{ tool.name }}</p>

@@ -204,16 +204,16 @@ class InMemoryStore(MemoryStore):
         self._indices["type"][t].add(entry.id)
 
         # Level index
-        l = entry.level.name
-        if l not in self._indices["level"]:
-            self._indices["level"][l] = set()
-        self._indices["level"][l].add(entry.id)
+        level_name = entry.level.name
+        if level_name not in self._indices["level"]:
+            self._indices["level"][level_name] = set()
+        self._indices["level"][level_name].add(entry.id)
 
         # Source index
-        s = entry.source
-        if s not in self._indices["source"]:
-            self._indices["source"][s] = set()
-        self._indices["source"][s].add(entry.id)
+        src = entry.source
+        if src not in self._indices["source"]:
+            self._indices["source"][src] = set()
+        self._indices["source"][src].add(entry.id)
 
         # Tags index
         for tag in entry.tags:
@@ -253,8 +253,8 @@ class InMemoryStore(MemoryStore):
         # Filter by level
         if query.levels:
             level_ids = set()
-            for l in query.levels:
-                level_ids.update(self._indices["level"].get(l.name, set()))
+            for level in query.levels:
+                level_ids.update(self._indices["level"].get(level.name, set()))
             candidate_ids &= level_ids
 
         # Filter by source
@@ -538,15 +538,16 @@ class MemorySystem:
         common_keys = set(content1.keys()) & set(content2.keys())
         for key in common_keys:
             v1, v2 = content1[key], content2[key]
-            if isinstance(v1, (str, int, float, bool)) and isinstance(v2, (str, int, float, bool)):
-                if v1 != v2:
-                    # Check if they're semantic opposites
-                    if isinstance(v1, bool) and isinstance(v2, bool) and v1 != v2:
-                        return True
-                    if isinstance(v1, (int, float)) and isinstance(v2, (int, float)):
-                        # Significant difference
-                        if abs(v1 - v2) / max(abs(v1), abs(v2), 1) > 0.5:
-                            return True
+            if isinstance(v1, (str, int, float, bool)) and isinstance(v2, (str, int, float, bool)) and v1 != v2:
+                # Check if they're semantic opposites
+                if isinstance(v1, bool) and isinstance(v2, bool) and v1 != v2:
+                    return True
+                if (
+                    isinstance(v1, (int, float))
+                    and isinstance(v2, (int, float))
+                    and abs(v1 - v2) / max(abs(v1), abs(v2), 1) > 0.5
+                ):
+                    return True
         return False
 
     # ──────────────────────────────────────────────────────────────────────

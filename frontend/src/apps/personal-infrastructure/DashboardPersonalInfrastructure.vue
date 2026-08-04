@@ -65,13 +65,13 @@ const startObjective = async (objectiveId: string) => {
 
 const getCategoryColor = (category: string) => {
   const colors: Record<string, string> = {
-    development: 'bg-blue-500',
-    bug_bounty: 'bg-purple-500',
-    dev_bounty: 'bg-green-500',
-    freelance: 'bg-orange-500',
-    wealth: 'bg-yellow-500',
+    development: 'bg-primary',
+    bug_bounty: 'bg-intigriti',
+    dev_bounty: 'bg-success',
+    freelance: 'bg-warning',
+    wealth: 'bg-warning',
   }
-  return colors[category] || 'bg-gray-500'
+  return colors[category] || 'bg-muted'
 }
 
 const getCategoryLabel = (category: string) => {
@@ -98,18 +98,18 @@ onMounted(async () => {
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-3xl font-bold text-white">Personal Infrastructure Manager</h1>
-        <p class="text-gray-400 mt-1">Configura tu infraestructura digital sin conocimientos técnicos</p>
+        <p class="text-muted-foreground mt-1">Configura tu infraestructura digital sin conocimientos técnicos</p>
       </div>
       <div class="flex items-center gap-4">
         <div class="text-right">
-          <div class="text-sm text-gray-400">Progreso General</div>
+          <div class="text-sm text-muted-foreground">Progreso General</div>
           <div class="text-2xl font-bold text-white">{{ overallCompletion.toFixed(0) }}%</div>
         </div>
       </div>
     </div>
 
     <!-- Next Action Banner -->
-    <Card class="bg-gradient-to-r from-blue-600 to-purple-600 border-0">
+    <Card class="bg-gradient-to-r from-primary to-intigriti border-0">
       <CardContent class="p-6">
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
@@ -127,17 +127,17 @@ onMounted(async () => {
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
-      <div class="text-gray-400">Cargando objetivos...</div>
+      <div class="text-muted-foreground">Cargando objetivos...</div>
     </div>
 
     <!-- Objectives Grid -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <Card v-for="objective in objectives" :key="objective.id" class="bg-gray-800 border-gray-700">
+      <Card v-for="objective in objectives" :key="objective.id" class="bg-surface-hover border-border-light">
         <CardHeader>
           <div class="flex items-start justify-between">
             <div class="flex-1">
               <CardTitle class="text-white">{{ objective.title }}</CardTitle>
-              <CardDescription class="text-gray-400 mt-1">{{ objective.description }}</CardDescription>
+              <CardDescription class="text-muted-foreground mt-1">{{ objective.description }}</CardDescription>
             </div>
             <Badge :class="getCategoryColor(objective.category)" class="text-white">
               {{ getCategoryLabel(objective.category) }}
@@ -148,14 +148,14 @@ onMounted(async () => {
           <!-- Progress -->
           <div v-if="objectivesProgress[objective.id]">
             <div class="flex items-center justify-between text-sm mb-2">
-              <span class="text-gray-400">Progreso</span>
+              <span class="text-muted-foreground">Progreso</span>
               <span class="text-white font-semibold">{{ objectivesProgress[objective.id].completion_percentage.toFixed(0) }}%</span>
             </div>
             <Progress :value="objectivesProgress[objective.id].completion_percentage" class="h-2" />
           </div>
 
           <!-- Integrations Count -->
-          <div class="flex items-center gap-2 text-sm text-gray-400">
+          <div class="flex items-center gap-2 text-sm text-muted-foreground">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
             </svg>
@@ -163,7 +163,7 @@ onMounted(async () => {
           </div>
 
           <!-- Duration -->
-          <div class="flex items-center gap-2 text-sm text-gray-400">
+          <div class="flex items-center gap-2 text-sm text-muted-foreground">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -174,14 +174,14 @@ onMounted(async () => {
           <Button
             v-if="!objectivesProgress[objective.id]"
             @click="startObjective(objective.id)"
-            class="w-full bg-blue-600 hover:bg-blue-700"
+            class="w-full bg-primary hover:bg-primary/90"
           >
             Iniciar Objetivo
           </Button>
           <Button
             v-else
             :disabled="objectivesProgress[objective.id].completion_percentage >= 100"
-            class="w-full bg-green-600 hover:bg-green-700"
+            class="w-full bg-success hover:bg-success/90"
           >
             {{ objectivesProgress[objective.id].completion_percentage >= 100 ? 'Completado' : 'En Progreso' }}
           </Button>

@@ -50,13 +50,13 @@ async function fetchEVTargets() {
 }
 
 const platformColors: Record<string, string> = {
-  hackerone: 'bg-green-500/20 text-green-400',
-  bugcrowd: 'bg-blue-500/20 text-blue-400',
-  immunefi: 'bg-purple-500/20 text-purple-400',
-  intigriti: 'bg-orange-500/20 text-orange-400',
-  synack: 'bg-cyan-500/20 text-cyan-400',
-  yeswehack: 'bg-pink-500/20 text-pink-400',
-  code4rena: 'bg-red-500/20 text-red-400',
+  hackerone: 'bg-hackerone/15 text-hackerone',
+  bugcrowd: 'bg-bugcrowd/15 text-bugcrowd',
+  immunefi: 'bg-intigriti/15 text-intigriti',
+  intigriti: 'bg-bugcrowd/15 text-bugcrowd',
+  synack: 'bg-synack/15 text-synack',
+  yeswehack: 'bg-yeswehack/15 text-yeswehack',
+  code4rena: 'bg-destructive/15 text-destructive',
 }
 
 const evColumns = [
@@ -82,7 +82,7 @@ function pct(n: number | null | undefined): string {
 }
 
 function platformBadge(platform: string) {
-  const cls = platformColors[platform] || 'bg-gray-500/20 text-gray-400'
+  const cls = platformColors[platform] || 'bg-muted/20 text-muted-foreground'
   return `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${cls}">${platform}</span>`
 }
 
@@ -109,12 +109,12 @@ const summaryCards = computed(() => {
   const ps = data.value.payout_summary
   const fp = data.value.finding_pipeline
   return [
-    { label: 'Total Payout', value: fmt(ps.total_payout), icon: DollarSign, color: 'text-green-400' },
-    { label: 'Pending', value: fmt(ps.pending_total), icon: Clock, color: 'text-yellow-400' },
-    { label: 'Avg Payout', value: fmt(ps.avg_payout), icon: BarChart3, color: 'text-blue-400' },
-    { label: 'Acceptance Rate', value: pct(fp.submissions.acceptance_rate), icon: CheckCircle2, color: 'text-emerald-400' },
-    { label: 'Total Submissions', value: String(fp.submissions.total), icon: Target, color: 'text-cyan-400' },
-    { label: 'Confirmed Findings', value: String(fp.findings.confirmed), icon: CircleDot, color: 'text-violet-400' },
+    { label: 'Total Payout', value: fmt(ps.total_payout), icon: DollarSign, color: 'text-success' },
+    { label: 'Pending', value: fmt(ps.pending_total), icon: Clock, color: 'text-warning' },
+    { label: 'Avg Payout', value: fmt(ps.avg_payout), icon: BarChart3, color: 'text-foreground' },
+    { label: 'Acceptance Rate', value: pct(fp.submissions.acceptance_rate), icon: CheckCircle2, color: 'text-success' },
+    { label: 'Total Submissions', value: String(fp.submissions.total), icon: Target, color: 'text-foreground' },
+    { label: 'Confirmed Findings', value: String(fp.findings.confirmed), icon: CircleDot, color: 'text-success' },
   ]
 })
 
@@ -257,7 +257,7 @@ onMounted(() => {
                 </div>
                 <div class="flex items-center gap-2">
                   <div class="w-20 h-2 rounded-full bg-accent overflow-hidden">
-                    <div class="h-full rounded-full transition-all" :class="rate.acceptance_rate >= 0.5 ? 'bg-green-500' : rate.acceptance_rate >= 0.3 ? 'bg-yellow-500' : 'bg-red-500'" :style="{ width: (rate.acceptance_rate * 100) + '%' }"></div>
+                    <div class="h-full rounded-full transition-all" :class="rate.acceptance_rate >= 0.5 ? 'bg-success' : rate.acceptance_rate >= 0.3 ? 'bg-warning' : 'bg-destructive'" :style="{ width: (rate.acceptance_rate * 100) + '%' }"></div>
                   </div>
                   <span class="text-sm font-semibold w-12 text-right">{{ pct(rate.acceptance_rate) }}</span>
                 </div>
@@ -297,7 +297,7 @@ onMounted(() => {
                 class="flex items-center gap-4 py-3 border-b border-border/50 last:border-0">
                 <span class="text-sm font-medium w-16">{{ month.month }}</span>
                 <div class="flex-1 h-5 rounded bg-accent overflow-hidden">
-                  <div class="h-full rounded bg-gradient-to-r from-blue-500 to-blue-400 transition-all" :style="{ width: (month.total / maxMonthlyTotal * 100) + '%' }"></div>
+                  <div class="h-full rounded bg-primary transition-all" :style="{ width: (month.total / maxMonthlyTotal * 100) + '%' }"></div>
                 </div>
                 <span class="text-sm font-semibold w-28 text-right">{{ fmt(month.total) }}</span>
                 <span class="text-xs text-muted-foreground w-12 text-right">{{ month.count }}</span>
@@ -325,7 +325,7 @@ onMounted(() => {
                   </div>
                 </div>
                 <div class="flex-1 h-5 rounded bg-accent overflow-hidden">
-                  <div class="h-full rounded bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all" :style="{ width: (prog.total_payout / maxProgramTotal * 100) + '%' }"></div>
+                  <div class="h-full rounded bg-gradient-to-r from-success to-success transition-all" :style="{ width: (prog.total_payout / maxProgramTotal * 100) + '%' }"></div>
                 </div>
                 <div class="text-right w-28">
                   <p class="text-sm font-semibold">{{ fmt(prog.total_payout) }}</p>
@@ -353,7 +353,7 @@ onMounted(() => {
                   <p class="text-xs text-muted-foreground">{{ vuln.total_programs }} program{{ vuln.total_programs !== 1 ? 's' : '' }}</p>
                 </div>
                 <div class="flex-1 h-5 rounded bg-accent overflow-hidden">
-                  <div class="h-full rounded bg-gradient-to-r from-violet-500 to-violet-400 transition-all" :style="{ width: (vuln.total_payout / maxVulnTotal * 100) + '%' }"></div>
+                  <div class="h-full rounded bg-gradient-to-r from-primary to-primary/80 transition-all" :style="{ width: (vuln.total_payout / maxVulnTotal * 100) + '%' }"></div>
                 </div>
                 <div class="text-right w-28">
                   <p class="text-sm font-semibold">{{ fmt(vuln.total_payout) }}</p>
@@ -375,7 +375,7 @@ onMounted(() => {
         <Card class="card-base">
           <CardHeader>
             <CardTitle class="flex items-center gap-2">
-              <Zap class="w-5 h-5 text-yellow-400" />
+              <Zap class="w-5 h-5 text-warning" />
               Targets Ranked by Expected Value (USD/hour)
             </CardTitle>
           </CardHeader>
@@ -398,10 +398,10 @@ onMounted(() => {
                 </Badge>
               </template>
               <template #cell-estimated_reward="{ value }">
-                <span class="text-green-400 font-medium">${{ value.toLocaleString() }}</span>
+                <span class="text-success font-medium">${{ value.toLocaleString() }}</span>
               </template>
               <template #cell-acceptance_probability="{ value }">
-                <span :class="value >= 0.7 ? 'text-green-400' : value >= 0.4 ? 'text-yellow-400' : 'text-red-400'">
+                <span :class="value >= 0.7 ? 'text-success' : value >= 0.4 ? 'text-warning' : 'text-destructive'">
                   {{ (value * 100).toFixed(0) }}%
                 </span>
               </template>
@@ -427,19 +427,19 @@ onMounted(() => {
           <CardContent>
             <div class="grid grid-cols-2 gap-4 mb-4">
               <div class="p-3 rounded-lg bg-accent/30 text-center">
-                <p class="text-2xl font-bold text-blue-400">{{ data.finding_pipeline.findings.total }}</p>
+                <p class="text-2xl font-bold text-primary">{{ data.finding_pipeline.findings.total }}</p>
                 <p class="text-xs text-muted-foreground mt-1">Total Findings</p>
               </div>
               <div class="p-3 rounded-lg bg-accent/30 text-center">
-                <p class="text-2xl font-bold text-green-400">{{ data.finding_pipeline.findings.confirmed }}</p>
+                <p class="text-2xl font-bold text-success">{{ data.finding_pipeline.findings.confirmed }}</p>
                 <p class="text-xs text-muted-foreground mt-1">Confirmed</p>
               </div>
               <div class="p-3 rounded-lg bg-accent/30 text-center">
-                <p class="text-2xl font-bold text-red-400">{{ data.finding_pipeline.findings.rejected }}</p>
+                <p class="text-2xl font-bold text-destructive">{{ data.finding_pipeline.findings.rejected }}</p>
                 <p class="text-xs text-muted-foreground mt-1">Rejected</p>
               </div>
               <div class="p-3 rounded-lg bg-accent/30 text-center">
-                <p class="text-2xl font-bold text-yellow-400">{{ data.finding_pipeline.findings.open }}</p>
+                <p class="text-2xl font-bold text-warning">{{ data.finding_pipeline.findings.open }}</p>
                 <p class="text-xs text-muted-foreground mt-1">Open</p>
               </div>
             </div>
@@ -458,19 +458,19 @@ onMounted(() => {
           <CardContent>
             <div class="grid grid-cols-2 gap-4 mb-4">
               <div class="p-3 rounded-lg bg-accent/30 text-center">
-                <p class="text-2xl font-bold text-cyan-400">{{ data.finding_pipeline.submissions.total }}</p>
+                <p class="text-2xl font-bold text-muted-foreground">{{ data.finding_pipeline.submissions.total }}</p>
                 <p class="text-xs text-muted-foreground mt-1">Total Submissions</p>
               </div>
               <div class="p-3 rounded-lg bg-accent/30 text-center">
-                <p class="text-2xl font-bold text-green-400">{{ data.finding_pipeline.submissions.accepted }}</p>
+                <p class="text-2xl font-bold text-success">{{ data.finding_pipeline.submissions.accepted }}</p>
                 <p class="text-xs text-muted-foreground mt-1">Accepted</p>
               </div>
               <div class="p-3 rounded-lg bg-accent/30 text-center">
-                <p class="text-2xl font-bold text-red-400">{{ data.finding_pipeline.submissions.rejected }}</p>
+                <p class="text-2xl font-bold text-destructive">{{ data.finding_pipeline.submissions.rejected }}</p>
                 <p class="text-xs text-muted-foreground mt-1">Rejected</p>
               </div>
               <div class="p-3 rounded-lg bg-accent/30 text-center">
-                <p class="text-2xl font-bold text-yellow-400">{{ data.finding_pipeline.submissions.pending }}</p>
+                <p class="text-2xl font-bold text-warning">{{ data.finding_pipeline.submissions.pending }}</p>
                 <p class="text-xs text-muted-foreground mt-1">Pending</p>
               </div>
             </div>
@@ -492,13 +492,13 @@ onMounted(() => {
                 class="flex items-center gap-4 py-2 border-b border-border/50 last:border-0">
                 <span class="text-sm font-medium w-32">{{ ft.vuln_type }}</span>
                 <div class="flex gap-3 text-xs">
-                  <span class="text-blue-400">{{ ft.total }} total</span>
-                  <span class="text-green-400">{{ ft.confirmed }} confirmed</span>
-                  <span class="text-red-400">{{ ft.rejected }} rejected</span>
+                  <span class="text-muted-foreground">{{ ft.total }} total</span>
+                  <span class="text-success">{{ ft.confirmed }} confirmed</span>
+                  <span class="text-destructive">{{ ft.rejected }} rejected</span>
                 </div>
                 <div class="flex-1 h-4 rounded bg-accent overflow-hidden flex">
-                  <div v-if="ft.total > 0" class="h-full bg-green-500/60 transition-all" :style="{ width: (ft.confirmed / ft.total * 100) + '%' }"></div>
-                  <div v-if="ft.total > 0" class="h-full bg-red-500/40 transition-all" :style="{ width: (ft.rejected / ft.total * 100) + '%' }"></div>
+                  <div v-if="ft.total > 0" class="h-full bg-success/60 transition-all" :style="{ width: (ft.confirmed / ft.total * 100) + '%' }"></div>
+                  <div v-if="ft.total > 0" class="h-full bg-destructive/40 transition-all" :style="{ width: (ft.rejected / ft.total * 100) + '%' }"></div>
                 </div>
                 <span class="text-xs font-medium w-14 text-right">{{ pct(ft.confirmation_rate) }}</span>
               </div>
@@ -526,13 +526,13 @@ onMounted(() => {
                 <span class="text-lg font-bold text-primary">{{ value }}</span>
               </template>
               <template #cell-ev="{ value, item }">
-                <span class="text-sm font-semibold text-green-400">{{ fmtCurrency(item.ev) }}/h</span>
+                <span class="text-sm font-semibold text-success">{{ fmtCurrency(item.ev) }}/h</span>
               </template>
               <template #cell-reward="{ value, item }">
                 <span class="text-sm">{{ fmtCurrency(item.reward) }}</span>
               </template>
               <template #cell-prob="{ value, item }">
-                <span :class="item.prob >= 0.5 ? 'text-green-400' : item.prob >= 0.3 ? 'text-yellow-400' : 'text-red-400'">
+                <span :class="item.prob >= 0.5 ? 'text-success' : item.prob >= 0.3 ? 'text-warning' : 'text-destructive'">
                   {{ pct(item.prob) }}
                 </span>
               </template>

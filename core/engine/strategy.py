@@ -4,6 +4,7 @@ Not planning. DECIDING.
 Strategy evaluates opportunities and produces a priority-ranked queue.
 Each strategy scores independently; the weighted sum produces final priority.
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -27,10 +28,10 @@ class PrioritizedOpportunity:
     """An opportunity with a strategy decision attached."""
 
     opportunity: Opportunity
-    priority: float           # 0.0 to 1.0
-    reason: str               # why this priority?
-    estimated_ev: float       # expected value after strategy
-    estimated_time: float     # estimated hours
+    priority: float  # 0.0 to 1.0
+    reason: str  # why this priority?
+    estimated_ev: float  # expected value after strategy
+    estimated_time: float  # estimated hours
     due_by: datetime | None = None
     strategy_applied: str = ""
 
@@ -42,7 +43,7 @@ class WorkContext:
     opportunities: list[Opportunity]
     available_time_hours: float = 8.0
     current_cycle: str | None = None
-    energy_level: str = "normal"           # "low", "normal", "high"
+    energy_level: str = "normal"  # "low", "normal", "high"
     financial_goal_month: float = 10000.0
     financial_goal_week: float = 2500.0
     earned_this_month: float = 0.0
@@ -113,10 +114,7 @@ class BestEffortRatioStrategy(Strategy):
         hours = max(opportunity.estimated_effort_hours, 0.5)
         ratio = ev / hours
         max_ratio = max(
-            (
-                o.estimated_reward_max * o.confidence / max(o.estimated_effort_hours, 0.5)
-                for o in context.opportunities
-            ),
+            (o.estimated_reward_max * o.confidence / max(o.estimated_effort_hours, 0.5) for o in context.opportunities),
             default=1.0,
         )
         if max_ratio == 0:
@@ -273,21 +271,26 @@ class StrategyEngine(Engine):
             priority = total_score / total_weight if total_weight > 0 else 0.0
             ev = opp.estimated_reward_max * opp.confidence
 
-            scored.append(PrioritizedOpportunity(
-                opportunity=opp,
-                priority=priority,
-                reason=" | ".join(reasons),
-                estimated_ev=ev,
-                estimated_time=opp.estimated_effort_hours,
-                strategy_applied=self.__class__.__name__,
-            ))
+            scored.append(
+                PrioritizedOpportunity(
+                    opportunity=opp,
+                    priority=priority,
+                    reason=" | ".join(reasons),
+                    estimated_ev=ev,
+                    estimated_time=opp.estimated_effort_hours,
+                    strategy_applied=self.__class__.__name__,
+                )
+            )
 
         scored.sort(key=lambda p: p.priority, reverse=True)
-        self._emit("strategy:decided", {
-            "top_choice": scored[0].opportunity.id if scored else None,
-            "total_considered": len(scored),
-            "top_3": [p.opportunity.name for p in scored[:3]],
-        })
+        self._emit(
+            "strategy:decided",
+            {
+                "top_choice": scored[0].opportunity.id if scored else None,
+                "total_considered": len(scored),
+                "top_3": [p.opportunity.name for p in scored[:3]],
+            },
+        )
         return scored
 
     async def should_continue(

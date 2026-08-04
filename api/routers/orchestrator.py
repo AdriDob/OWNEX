@@ -16,10 +16,12 @@ async def get_decisions():
 async def get_next_action():
     orchestrator = get_orchestrator()
     actions = orchestrator.recommend_next_action(3)
-    return ok({
-        "actions": [a.to_dict() for a in actions],
-        "count": len(actions),
-    })
+    return ok(
+        {
+            "actions": [a.to_dict() for a in actions],
+            "count": len(actions),
+        }
+    )
 
 
 @router.get("/highlights")

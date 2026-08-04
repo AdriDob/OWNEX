@@ -6,7 +6,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from core.credentials.vault import get_credentials, validate_credentials
+from cores.credentials.vault import get_credentials, validate_credentials
 
 logger = logging.getLogger("ownex.credentials.health")
 

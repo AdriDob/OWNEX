@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import PlainTextResponse, Response
 
@@ -46,16 +45,18 @@ def list_all_submissions(limit: int = Query(50, ge=1, le=500)):
         rows = session.query(SubmissionRecord).order_by(SubmissionRecord.submitted_at.desc()).limit(limit).all()
         submissions = []
         for s in rows:
-            submissions.append({
-                "id": s.id,
-                "report_id": s.report_id,
-                "platform": s.platform,
-                "external_id": s.external_id,
-                "status": s.status,
-                "reward": None,
-                "submitted_at": s.submitted_at.isoformat() if s.submitted_at else None,
-                "last_update": s.last_update.isoformat() if s.last_update else None,
-            })
+            submissions.append(
+                {
+                    "id": s.id,
+                    "report_id": s.report_id,
+                    "platform": s.platform,
+                    "external_id": s.external_id,
+                    "status": s.status,
+                    "reward": None,
+                    "submitted_at": s.submitted_at.isoformat() if s.submitted_at else None,
+                    "last_update": s.last_update.isoformat() if s.last_update else None,
+                }
+            )
         return {"submissions": submissions, "total": len(submissions)}
     except Exception:
         return {"submissions": [], "total": 0}
@@ -148,13 +149,21 @@ def export_single_report(report_id: int, format: str = Query("markdown", pattern
     try:
         content, mime = export_report(report_id, format)
         if isinstance(content, bytes):
-            return Response(content=content, media_type=mime, headers={
-                "Content-Disposition": f'attachment; filename="report_{report_id}.{format}"',
-            })
+            return Response(
+                content=content,
+                media_type=mime,
+                headers={
+                    "Content-Disposition": f'attachment; filename="report_{report_id}.{format}"',
+                },
+            )
         if mime == "text/markdown":
-            return PlainTextResponse(content=content, media_type=mime, headers={
-                "Content-Disposition": f'attachment; filename="report_{report_id}.md"',
-            })
+            return PlainTextResponse(
+                content=content,
+                media_type=mime,
+                headers={
+                    "Content-Disposition": f'attachment; filename="report_{report_id}.md"',
+                },
+            )
         return PlainTextResponse(content=content, media_type=mime)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
@@ -163,6 +172,7 @@ def export_single_report(report_id: int, format: str = Query("markdown", pattern
 @router.get("/{report_id}/versions")
 def list_report_versions(report_id: int):
     from database import db
+
     session = db.SessionLocal()
     try:
         report = get_report(session, report_id)
@@ -177,6 +187,7 @@ def list_report_versions(report_id: int):
 @router.post("/{report_id}/versions")
 def create_report_version(report_id: int, body: dict[str, str] | None = None):
     from database import db
+
     if body is None:
         body = {}
     session = db.SessionLocal()
@@ -206,6 +217,7 @@ def submit_report_to_platform_endpoint(report_id: int, body: dict[str, str]):
 @router.get("/{report_id}/submissions")
 def get_report_submissions(report_id: int):
     from database import db
+
     session = db.SessionLocal()
     try:
         report = get_report(session, report_id)

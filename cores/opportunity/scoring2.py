@@ -79,6 +79,7 @@ def compute_layered_score(
     pattern_score: float = 0.0,
     historical_score: float = 0.0,
     memory_score: float = 0.0,
+    feedback_multipliers: dict[str, float] | None = None,
 ) -> OpportunityScore:
     """Compute layered OpportunityScore with EVH and breakdown."""
     reasoning: list[str] = []
@@ -133,6 +134,13 @@ def compute_layered_score(
         + weights["strategic"] * (strategic_score / 100.0)
         + weights["confidence"] * (confidence_score / 100.0)
     )
+
+    # Apply feedback multipliers if available
+    if feedback_multipliers:
+        combined_mult = feedback_multipliers.get("combined_multiplier", 1.0)
+        overall = overall * combined_mult
+        reasoning.append(f"Feedback multiplier: {combined_mult:.2f}x")
+
     overall = max(0.0, min(1.0, overall))
 
     breakdown = ScoreBreakdown(

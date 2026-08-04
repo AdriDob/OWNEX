@@ -31,9 +31,9 @@ def check(description: str, condition: bool, detail: str = ""):
 
 
 def main():
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print("  CATEYE Pre-Build Validation")
-    print(f"{'='*50}\n")
+    print(f"{'=' * 50}\n")
 
     # === Phase 1: Python dependencies ===
     print("── Python dependencies ──")
@@ -63,9 +63,11 @@ def main():
     try:
         _orig_db_url = os.environ.pop("DATABASE_URL", None)
         from database import db
+
         db.init_db()
         session = db.SessionLocal()
         from sqlalchemy import text
+
         session.execute(text("SELECT 1"))
         session.close()
         check("Database connection", True)
@@ -81,6 +83,7 @@ def main():
     print("\n── Application ──")
     try:
         from api.main import app
+
         routes = len(app.routes)
         check(f"App loads ({routes} routes)", True)
     except Exception as e:
@@ -94,7 +97,9 @@ def main():
             result = subprocess.run(
                 ["npx", "vite", "build"],
                 cwd=str(frontend_dir),
-                capture_output=True, text=True, timeout=120,
+                capture_output=True,
+                text=True,
+                timeout=120,
             )
             if result.returncode == 0:
                 check("Frontend builds", True)
@@ -113,7 +118,9 @@ def main():
         result = subprocess.run(
             [sys.executable, "-m", "ruff", "check", "."],
             cwd=str(ROOT),
-            capture_output=True, text=True, timeout=60,
+            capture_output=True,
+            text=True,
+            timeout=60,
         )
         if result.returncode == 0:
             check("ruff lint passes", True)
@@ -131,7 +138,9 @@ def main():
         result = subprocess.run(
             [sys.executable, "-m", "mypy", "cores/", "api/", "database/", "desktop/"],
             cwd=str(ROOT),
-            capture_output=True, text=True, timeout=60,
+            capture_output=True,
+            text=True,
+            timeout=60,
         )
         if result.returncode == 0:
             check("mypy type checks pass", True)
@@ -147,9 +156,20 @@ def main():
     print("\n── Test suite ──")
     try:
         result = subprocess.run(
-            [sys.executable, "-m", "pytest", "tests/", "--tb=short", "-q", "--cov=cores", "--cov-report=term-missing:skip-covered"],
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "tests/",
+                "--tb=short",
+                "-q",
+                "--cov=cores",
+                "--cov-report=term-missing:skip-covered",
+            ],
             cwd=str(ROOT),
-            capture_output=True, text=True, timeout=120,
+            capture_output=True,
+            text=True,
+            timeout=120,
         )
         output = result.stdout or result.stderr or ""
         last_line = output.strip().split("\n")[-1] if output.strip() else ""
@@ -157,17 +177,18 @@ def main():
             check(f"Tests pass ({last_line})", True)
         else:
             import re
-            m = re.search(r'(\d+) passed.*?(\d+) failed', output)
+
+            m = re.search(r"(\d+) passed.*?(\d+) failed", output)
             msg = f"{m.group(0)}" if m else f"exit {result.returncode}"
             check("Tests pass", False, msg)
     except subprocess.TimeoutExpired:
         check("Tests pass", False, "timed out (120s)")
 
     # === Summary ===
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     status = "PASSED" if CHECKS_FAILED == 0 else "FAILED"
     print(f"  {status}: {CHECKS_PASSED} passed, {CHECKS_FAILED} failed")
-    print(f"{'='*50}\n")
+    print(f"{'=' * 50}\n")
     return 0 if CHECKS_FAILED == 0 else 1
 
 

@@ -22,9 +22,7 @@ from typing import Any
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", handlers=[logging.StreamHandler(sys.stdout)]
 )
 logger = logging.getLogger("ownex.installer")
 
@@ -88,8 +86,9 @@ class OwnexInstaller:
         # Check disk space
         try:
             import shutil
+
             disk_usage = shutil.disk_usage(self.install_dir)
-            free_gb = disk_usage.free / (1024 ** 3)
+            free_gb = disk_usage.free / (1024**3)
             if free_gb < 2:
                 logger.error(f"Espacio insuficiente: {free_gb:.1f} GB libre (mínimo: 2GB)")
                 return False
@@ -108,11 +107,7 @@ class OwnexInstaller:
             venv_dir = self.install_dir / ".venv"
             if not venv_dir.exists():
                 logger.info("Creando entorno virtual...")
-                subprocess.run(
-                    [sys.executable, "-m", "venv", str(venv_dir)],
-                    check=True,
-                    capture_output=True
-                )
+                subprocess.run([sys.executable, "-m", "venv", str(venv_dir)], check=True, capture_output=True)
 
             # Get pip path
             if self.system_info["os"] == "Windows":
@@ -123,33 +118,30 @@ class OwnexInstaller:
                 venv_dir / "bin" / "python"
 
             # Upgrade pip
-            subprocess.run(
-                [str(pip_path), "install", "--upgrade", "pip"],
-                check=True,
-                capture_output=True
-            )
+            subprocess.run([str(pip_path), "install", "--upgrade", "pip"], check=True, capture_output=True)
 
             # Install requirements
             requirements_file = self.install_dir / "requirements.txt"
             if requirements_file.exists():
                 subprocess.run(
-                    [str(pip_path), "install", "-r", str(requirements_file)],
-                    check=True,
-                    capture_output=True
+                    [str(pip_path), "install", "-r", str(requirements_file)], check=True, capture_output=True
                 )
                 logger.info("✓ Dependencias instaladas")
             else:
                 logger.warning("No se encontró requirements.txt, instalando dependencias básicas...")
                 basic_deps = [
-                    "fastapi", "uvicorn", "sqlalchemy", "pydantic",
-                    "httpx", "python-multipart", "python-jose",
-                    "passlib", "bcrypt", "python-dotenv"
+                    "fastapi",
+                    "uvicorn",
+                    "sqlalchemy",
+                    "pydantic",
+                    "httpx",
+                    "python-multipart",
+                    "python-jose",
+                    "passlib",
+                    "bcrypt",
+                    "python-dotenv",
                 ]
-                subprocess.run(
-                    [str(pip_path), "install"] + basic_deps,
-                    check=True,
-                    capture_output=True
-                )
+                subprocess.run([str(pip_path), "install"] + basic_deps, check=True, capture_output=True)
                 logger.info("✓ Dependencias básicas instaladas")
 
             return True
@@ -162,17 +154,7 @@ class OwnexInstaller:
         """Setup necessary directories."""
         logger.info("Configurando directorios...")
 
-        directories = [
-            "config",
-            "database",
-            "logs",
-            "temp",
-            "backups",
-            "cores",
-            "api",
-            "frontend",
-            "scripts"
-        ]
+        directories = ["config", "database", "logs", "temp", "backups", "cores", "api", "frontend", "scripts"]
 
         for dir_name in directories:
             dir_path = self.install_dir / dir_name
@@ -210,7 +192,7 @@ class OwnexInstaller:
             "6": "developer",
             "7": "researcher",
             "8": "hobbyist",
-            "9": "other"
+            "9": "other",
         }
 
         choice = input("\nSelecciona una opción (1-9): ").strip()
@@ -219,7 +201,9 @@ class OwnexInstaller:
         # Ask for modules
         print("\n¿Qué módulos quieres habilitar?")
         print("(Deja vacío para usar los módulos recomendados)")
-        print("Módulos disponibles: forge, pulse, vault, atlas, security, copilot, analytics, reports, targets, integrations")
+        print(
+            "Módulos disponibles: forge, pulse, vault, atlas, security, copilot, analytics, reports, targets, integrations"
+        )
 
         modules_input = input("Módulos (separados por coma): ").strip()
         modules = [m.strip() for m in modules_input.split(",")] if modules_input else []
@@ -234,12 +218,7 @@ class OwnexInstaller:
         print("3. Advanced (avanzado)")
         print("4. Expert (experto)")
 
-        expertise_map = {
-            "1": "beginner",
-            "2": "intermediate",
-            "3": "advanced",
-            "4": "expert"
-        }
+        expertise_map = {"1": "beginner", "2": "intermediate", "3": "advanced", "4": "expert"}
 
         expertise_choice = input("Selecciona una opción (1-4): ").strip()
         expertise_level = expertise_map.get(expertise_choice, "intermediate")
@@ -258,12 +237,13 @@ class OwnexInstaller:
             "modules": modules,
             "custom_name": custom_name,
             "expertise_level": expertise_level,
-            "primary_platforms": primary_platforms
+            "primary_platforms": primary_platforms,
         }
 
         # Run personalization step
         try:
             from cores.setup.steps.personalization_step import personalization_step
+
             result = personalization_step(personalization_data)
 
             if result["status"] == "ok":
@@ -294,18 +274,18 @@ class OwnexInstaller:
             env_file = self.install_dir / ".env"
             env_content = f"""
 # OWNEX OMEGA - Configuración Personalizada
-GENERATED_AT={json.dumps(personalization_data.get('use_case'))}
-AUTOMATION_LEVEL={personalization_data.get('automation_level')}
-EXPERTISE_LEVEL={personalization_data.get('expertise_level')}
-ENABLED_MODULES={','.join(personalization_data.get('enabled_modules', []))}
-PRIMARY_PLATFORMS={','.join(personalization_data.get('primary_platforms', []))}
-APP_NAME={personalization_data.get('ui_customization', {}).get('app_name', 'OWNEX OMEGA')}
-THEME={personalization_data.get('ui_customization', {}).get('theme', 'dark')}
-ACCENT_COLOR={personalization_data.get('ui_customization', {}).get('accent_color', '#60A5FA')}
-OBSIDIAN_ENABLED={personalization_data.get('obsidian_enabled', False)}
-VOICE_ENABLED={personalization_data.get('voice_enabled', False)}
-DAILY_PLANNING={personalization_data.get('daily_planning', False)}
-GUIDED_ONBOARDING={personalization_data.get('guided_onboarding', False)}
+GENERATED_AT={json.dumps(personalization_data.get("use_case"))}
+AUTOMATION_LEVEL={personalization_data.get("automation_level")}
+EXPERTISE_LEVEL={personalization_data.get("expertise_level")}
+ENABLED_MODULES={",".join(personalization_data.get("enabled_modules", []))}
+PRIMARY_PLATFORMS={",".join(personalization_data.get("primary_platforms", []))}
+APP_NAME={personalization_data.get("ui_customization", {}).get("app_name", "OWNEX OMEGA")}
+THEME={personalization_data.get("ui_customization", {}).get("theme", "dark")}
+ACCENT_COLOR={personalization_data.get("ui_customization", {}).get("accent_color", "#60A5FA")}
+OBSIDIAN_ENABLED={personalization_data.get("obsidian_enabled", False)}
+VOICE_ENABLED={personalization_data.get("voice_enabled", False)}
+DAILY_PLANNING={personalization_data.get("daily_planning", False)}
+GUIDED_ONBOARDING={personalization_data.get("guided_onboarding", False)}
 """
 
             if not env_file.exists():
@@ -331,6 +311,7 @@ GUIDED_ONBOARDING={personalization_data.get('guided_onboarding', False)}
             if not db_file.exists():
                 # Create database schema
                 from database import db
+
                 db.create_all()
                 logger.info("✓ Base de datos inicializada")
             else:
@@ -361,6 +342,7 @@ GUIDED_ONBOARDING={personalization_data.get('guided_onboarding', False)}
                 # Check for Whisper and Piper
                 try:
                     import importlib.util
+
                     if importlib.util.find_spec("whisper") is not None:
                         logger.info("✓ Whisper disponible para STT")
                 except ImportError:
@@ -369,6 +351,7 @@ GUIDED_ONBOARDING={personalization_data.get('guided_onboarding', False)}
                 try:
                     # Check for Piper binary
                     import shutil
+
                     piper_path = shutil.which("piper")
                     if piper_path:
                         logger.info("✓ Piper disponible para TTS")
@@ -550,20 +533,12 @@ Ejemplos:
   python install.py              # Instalación completa con wizard
   python install.py --dev        # Modo desarrollo
   python install.py --minimal    # Instalación mínima (sin dependencias)
-        """
+        """,
     )
 
-    parser.add_argument(
-        "--dev",
-        action="store_true",
-        help="Modo desarrollo (instala dependencias adicionales)"
-    )
+    parser.add_argument("--dev", action="store_true", help="Modo desarrollo (instala dependencias adicionales)")
 
-    parser.add_argument(
-        "--minimal",
-        action="store_true",
-        help="Instalación mínima (sin dependencias ni pruebas)"
-    )
+    parser.add_argument("--minimal", action="store_true", help="Instalación mínima (sin dependencias ni pruebas)")
 
     args = parser.parse_args()
 

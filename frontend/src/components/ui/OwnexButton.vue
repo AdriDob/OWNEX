@@ -111,7 +111,7 @@ const classes = computed(() => [
 }
 .ownex-btn--secondary:hover:not(:disabled) {
   background: var(--ownex-bg-surface);
-  border-color: rgba(59, 130, 246, 0.25);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .ownex-btn--ghost {
@@ -129,7 +129,7 @@ const classes = computed(() => [
 }
 .ownex-btn--danger:hover:not(:disabled) {
   background: #DC2626;
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+  box-shadow: 0 0 20px rgba(232, 33, 39, 0.2);
 }
 
 .ownex-btn--gold {

@@ -61,11 +61,13 @@ class EvidenceGraph:
 
     def add_edge(self, from_id: str, to_id: str, relationship: str) -> None:
         with self._lock:
-            self._edges.append({
-                "from": from_id,
-                "to": to_id,
-                "relationship": relationship,
-            })
+            self._edges.append(
+                {
+                    "from": from_id,
+                    "to": to_id,
+                    "relationship": relationship,
+                }
+            )
 
     def get_node(self, node_id: str) -> dict[str, Any] | None:
         with self._lock:
@@ -75,17 +77,11 @@ class EvidenceGraph:
         with self._lock:
             if node_id is None:
                 return list(self._edges)
-            return [
-                e for e in self._edges
-                if e["from"] == node_id or e["to"] == node_id
-            ]
+            return [e for e in self._edges if e["from"] == node_id or e["to"] == node_id]
 
     def get_nodes_by_type(self, node_type: str) -> list[dict[str, Any]]:
         with self._lock:
-            return [
-                n for n in self._nodes.values()
-                if n.get("type") == node_type
-            ]
+            return [n for n in self._nodes.values() if n.get("type") == node_type]
 
     def get_verdicts(self) -> list[dict[str, Any]]:
         return self.get_nodes_by_type("verdict")

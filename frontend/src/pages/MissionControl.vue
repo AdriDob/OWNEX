@@ -12,6 +12,8 @@ import NextBestAction from '@/components/mission-control/NextBestAction.vue'
 import AgentFleet from '@/components/mission-control/AgentFleet.vue'
 import OpportunityRadar from '@/components/mission-control/OpportunityRadar.vue'
 import KnowledgeFeed from '@/components/mission-control/KnowledgeFeed.vue'
+import DirectWorkRadar from '@/components/mission-control/DirectWorkRadar.vue'
+import GoodMorning from '@/components/mission-control/GoodMorning.vue'
 import ReportPipeline from '@/components/dashboard/ReportPipeline.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import ErrorState from '@/components/ui/ErrorState.vue'
@@ -219,6 +221,12 @@ const feedItems = computed(() =>
         />
         <NextBestAction v-else title="Sin acción pendiente" description="Revisar oportunidades o iniciar un ciclo de trabajo" :primary-action="{ label: 'Ejecutar', variant: 'primary' }" />
       </div>
+
+      <!-- Row 2.5: Daily Operation Mode -->
+      <GoodMorning />
+
+      <!-- Row 2.7: Direct Work recommendations -->
+      <DirectWorkRadar />
 
       <!-- Row 3: Report Pipeline (Daily/Weekly Top -->
       <ReportPipeline />

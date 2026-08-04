@@ -22,7 +22,7 @@ class ConversationMemory:
     def add(self, role: str, content: str) -> None:
         self._exchanges.append({"role": role, "content": content, "timestamp": datetime.utcnow().isoformat()})
         if len(self._exchanges) > self._max:
-            self._exchanges = self._exchanges[-self._max:]
+            self._exchanges = self._exchanges[-self._max :]
 
     def recent(self, n: int = 5) -> list[dict[str, str]]:
         return [{"role": e["role"], "content": e["content"]} for e in self._exchanges[-n:]]
@@ -75,11 +75,13 @@ def get_recent_interactions(limit: int = 10) -> list[dict[str, Any]]:
                 details = json.loads(r.details) if r.details else {}
             except (json.JSONDecodeError, TypeError):
                 details = {"content": str(r.details)}
-            result.append({
-                "role": details.get("role", "unknown"),
-                "content": details.get("content", ""),
-                "timestamp": r.created_at.isoformat() if r.created_at else "",
-            })
+            result.append(
+                {
+                    "role": details.get("role", "unknown"),
+                    "content": details.get("content", ""),
+                    "timestamp": r.created_at.isoformat() if r.created_at else "",
+                }
+            )
         return result
     finally:
         session.close()

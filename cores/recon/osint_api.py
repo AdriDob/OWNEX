@@ -269,9 +269,15 @@ class HunterClient(OSINTClient):
         return await self._get("/domain-search", params={"domain": domain, "api_key": self.api_key})
 
     async def email_finder(self, domain: str, first_name: str, last_name: str) -> dict[str, Any] | None:
-        return await self._get("/email-finder", params={
-            "domain": domain, "first_name": first_name, "last_name": last_name, "api_key": self.api_key,
-        })
+        return await self._get(
+            "/email-finder",
+            params={
+                "domain": domain,
+                "first_name": first_name,
+                "last_name": last_name,
+                "api_key": self.api_key,
+            },
+        )
 
     async def email_verifier(self, email: str) -> dict[str, Any] | None:
         return await self._get("/email-verifier", params={"email": email, "api_key": self.api_key})

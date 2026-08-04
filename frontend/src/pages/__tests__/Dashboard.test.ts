@@ -87,7 +87,7 @@ describe('Dashboard page', () => {
     const wrapper = createWrapper()
     await new Promise(resolve => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
-    expect(wrapper.text()).toContain('CATEYE')
+    expect(wrapper.text()).toContain('Centro de Inteligencia OWNEX')
     expect(wrapper.text()).toContain('DashOp')
     expect(wrapper.text()).toContain('ACTIVE')
   })

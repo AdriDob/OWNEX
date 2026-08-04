@@ -24,7 +24,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   size: 120,
   strokeWidth: 8,
-  color: '#3b82f6',
+  color: '#ffffff',
   showLabel: true,
   labelSize: 'text-2xl',
 })
@@ -38,10 +38,10 @@ const center = computed(() => props.size / 2)
 const offset = ref(circumference.value) // start at full (empty)
 
 const statusColor = computed(() => {
-  if (props.value >= 80) return '#22c55e'  // green
-  if (props.value >= 50) return '#f59e0b'  // amber
-  if (props.value >= 25) return '#f97316'  // orange
-  return '#ef4444'                         // red
+  if (props.value >= 80) return '#16A34A'  // green
+  if (props.value >= 50) return '#D97706'  // amber
+  if (props.value >= 25) return '#D97706'  // orange
+  return '#E82127'                         // red
 })
 
 onMounted(() => {
@@ -68,7 +68,7 @@ onMounted(() => {
         :cy="center"
         :r="radius"
         :stroke-width="strokeWidth"
-        stroke="rgba(26, 26, 46, 0.4)"
+        stroke="rgba(255, 255, 255, 0.08)"
         fill="none"
       />
       <!-- Progress arc -->

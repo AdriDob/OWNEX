@@ -257,7 +257,10 @@ def get_git_commit() -> str:
     try:
         result = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
-            capture_output=True, text=True, timeout=10, cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            cwd=PROJECT_ROOT,
         )
         return result.stdout.strip() if result.returncode == 0 else "unknown"
     except Exception:

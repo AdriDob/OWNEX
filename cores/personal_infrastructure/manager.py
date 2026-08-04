@@ -432,7 +432,9 @@ class PersonalInfrastructureManager:
             objective_id=objective_id,
             started_at=datetime.now(),
             pending_tasks=[integ.integration_id for integ in objective.required_integrations],
-            current_step="Crear cuenta " + objective.required_integrations[0].name if objective.required_integrations else "",
+            current_step="Crear cuenta " + objective.required_integrations[0].name
+            if objective.required_integrations
+            else "",
         )
 
         self.progress[objective_id] = progress
@@ -525,7 +527,9 @@ class PersonalInfrastructureManager:
         integration = self.integrations.get(integration_id)
         return integration.explanation if integration else None
 
-    def create_administrative_process(self, process_id: str, title: str, objective: str, steps: list[AdministrativeStep]) -> AdministrativeProcess:
+    def create_administrative_process(
+        self, process_id: str, title: str, objective: str, steps: list[AdministrativeStep]
+    ) -> AdministrativeProcess:
         """Crear un proceso administrativo."""
         process = AdministrativeProcess(
             process_id=process_id,

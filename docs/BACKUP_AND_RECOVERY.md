@@ -67,6 +67,7 @@ BACKUP_PATHS = [
     "evidence/",
 ]
 
+
 def create_backup(output_dir: str | None = None) -> Path | None:
     dest = Path(output_dir) if output_dir else ORION_DIR
     timestamp = time.strftime("%Y%m%d_%H%M%S")

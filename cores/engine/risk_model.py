@@ -2,59 +2,122 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-UUID_PATTERN = re.compile(
-    r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-)
+UUID_PATTERN = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
 HEX_PATTERN = re.compile(r"^[0-9a-fA-F]{24}$")
 TOKEN_PATTERN = re.compile(r"^[A-Za-z0-9_-]{32,}$")
 
 STATIC_EXTENSIONS: set[str] = {
-    ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp",
-    ".woff", ".woff2", ".ttf", ".eot",
-    ".css", ".js", ".map",
-    ".ico", ".mp4", ".webm", ".mp3", ".wav",
-    ".pdf", ".doc", ".docx", ".xls", ".xlsx",
-    ".zip", ".tar", ".gz",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".svg",
+    ".webp",
+    ".woff",
+    ".woff2",
+    ".ttf",
+    ".eot",
+    ".css",
+    ".js",
+    ".map",
+    ".ico",
+    ".mp4",
+    ".webm",
+    ".mp3",
+    ".wav",
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".zip",
+    ".tar",
+    ".gz",
 }
 
 LOW_VALUE_FRAGMENTS: set[str] = {
-    "/health", "/status", "/metrics", "/favicon.ico",
-    "/robots.txt", "/sitemap.xml", "/ping", "/version",
-    "/swagger-resources", "/v2/api-docs", "/webjars",
-    "/actuator", "/heartbeat", "/ready", "/live",
+    "/health",
+    "/status",
+    "/metrics",
+    "/favicon.ico",
+    "/robots.txt",
+    "/sitemap.xml",
+    "/ping",
+    "/version",
+    "/swagger-resources",
+    "/v2/api-docs",
+    "/webjars",
+    "/actuator",
+    "/heartbeat",
+    "/ready",
+    "/live",
 }
 
 SIGNAL_LABELS: set[str] = {
-    "graphql", "admin", "export", "auth", "multi_tenant",
-    "billing", "identity", "internal", "file_operation",
-    "import", "id_parameter", "uuid_identifier",
-    "numeric_identifier", "mutation", "sensitive",
+    "graphql",
+    "admin",
+    "export",
+    "auth",
+    "multi_tenant",
+    "billing",
+    "identity",
+    "internal",
+    "file_operation",
+    "import",
+    "id_parameter",
+    "uuid_identifier",
+    "numeric_identifier",
+    "mutation",
+    "sensitive",
 }
 
 SIGNAL_KEYWORDS: set[str] = {
-    "graphql", "admin", "export", "auth", "multi_tenant",
-    "billing", "identity", "internal", "file_operation",
-    "import", "uuid", "auth_smell", "idor_params",
-    "ownership_risk", "sensitive_operation", "high_value_keyword",
-    "object_reference_param", "api_path", "mutating_method",
+    "graphql",
+    "admin",
+    "export",
+    "auth",
+    "multi_tenant",
+    "billing",
+    "identity",
+    "internal",
+    "file_operation",
+    "import",
+    "uuid",
+    "auth_smell",
+    "idor_params",
+    "ownership_risk",
+    "sensitive_operation",
+    "high_value_keyword",
+    "object_reference_param",
+    "api_path",
+    "mutating_method",
 }
 
 BOLA_INDICATORS: set[str] = {
-    "idor_candidate", "ownership_boundary", "tenant_boundary",
+    "idor_candidate",
+    "ownership_boundary",
+    "tenant_boundary",
     "data_exfiltration",
 }
 
 IDOR_CONFIRMATION_SIGNALS: set[str] = {
-    "uuid", "numeric_id", "idor_params", "auth_smell",
-    "ownership_risk", "object_reference_param",
+    "uuid",
+    "numeric_id",
+    "idor_params",
+    "auth_smell",
+    "ownership_risk",
+    "object_reference_param",
 }
 
 AUTH_BOUNDARY_INDICATORS: set[str] = {
-    "authentication_surface", "admin_surface", "internal_surface",
+    "authentication_surface",
+    "admin_surface",
+    "internal_surface",
 }
 
 MULTI_TENANT_ZONE_INDICATORS: set[str] = {
-    "multi_tenant", "tenant_boundary",
+    "multi_tenant",
+    "tenant_boundary",
 }
 
 
@@ -123,8 +186,12 @@ class NoiseReductionLayer:
     def reduce(self, endpoints: list[dict[str, Any]]) -> NoiseReport:
         if not endpoints:
             return NoiseReport(
-                discarded=[], merged=[], duplicates_removed=[],
-                clean=[], noise_ratio=0.0, reasoning={},
+                discarded=[],
+                merged=[],
+                duplicates_removed=[],
+                clean=[],
+                noise_ratio=0.0,
+                reasoning={},
             )
 
         working: list[dict[str, Any]] = list(endpoints)
@@ -161,9 +228,9 @@ class NoiseReductionLayer:
         return NoiseReport(
             discarded=discarded,
             merged=[],
-            duplicates_removed=[d for d in discarded if any(
-                r.startswith("[duplicate]") for r in reasoning.get("duplicates", [])
-            )],
+            duplicates_removed=[
+                d for d in discarded if any(r.startswith("[duplicate]") for r in reasoning.get("duplicates", []))
+            ],
             clean=working,
             noise_ratio=noise_ratio,
             reasoning=reasoning,
@@ -289,10 +356,7 @@ class NoiseReductionLayer:
             rs = float(ep.get("risk_score", 0))
             if rs < threshold:
                 removed.append(ep)
-                reasons.append(
-                    f"[below_threshold] {ep.get('path')} "
-                    f"risk_score {rs} < {threshold}"
-                )
+                reasons.append(f"[below_threshold] {ep.get('path')} risk_score {rs} < {threshold}")
             else:
                 clean.append(ep)
 
@@ -312,19 +376,14 @@ class NoiseReductionLayer:
             has_idor = ep.get("potential_idor", False)
 
             has_signal = (
-                any(ls in SIGNAL_LABELS for ls in labels)
-                or any(s in SIGNAL_KEYWORDS for s in signals)
-                or has_idor
+                any(ls in SIGNAL_LABELS for ls in labels) or any(s in SIGNAL_KEYWORDS for s in signals) or has_idor
             )
 
             if has_signal:
                 clean.append(ep)
             else:
                 removed.append(ep)
-                reasons.append(
-                    f"[no_signal] {ep.get('path')} "
-                    f"risk_score {risk_score} no security signals"
-                )
+                reasons.append(f"[no_signal] {ep.get('path')} risk_score {risk_score} no security signals")
 
         return clean, removed, reasons
 
@@ -362,7 +421,12 @@ class RiskClassifier:
             )
 
         idor_confidence = self._compute_idor_confidence(
-            path, signals, attack_surface, labels, risk_score, potential_idor,
+            path,
+            signals,
+            attack_surface,
+            labels,
+            risk_score,
+            potential_idor,
         )
 
         is_idor = idor_confidence >= self.config.idor_confidence_threshold
@@ -397,9 +461,7 @@ class RiskClassifier:
             return True
 
         has_signal = (
-            potential_idor
-            or any(s in SIGNAL_KEYWORDS for s in signals)
-            or any(ls in SIGNAL_LABELS for ls in labels)
+            potential_idor or any(s in SIGNAL_KEYWORDS for s in signals) or any(ls in SIGNAL_LABELS for ls in labels)
         )
         return not has_signal
 
@@ -431,10 +493,7 @@ class RiskClassifier:
             confidence += 0.1
         if "id_parameter" in labels:
             confidence += 0.1
-        if any(
-            token in lower
-            for token in ["user_id", "account_id", "order_id", "file_id", "device_id"]
-        ):
+        if any(token in lower for token in ["user_id", "account_id", "order_id", "file_id", "device_id"]):
             confidence += 0.1
 
         confidence = min(confidence, 1.0)
@@ -447,7 +506,9 @@ class RiskClassifier:
         return round(confidence, 2)
 
     def _detect_cluster_type(
-        self, attack_surface: list[str], labels: list[str],
+        self,
+        attack_surface: list[str],
+        labels: list[str],
     ) -> str | None:
         if any(s in BOLA_INDICATORS for s in attack_surface):
             return "IDOR"
@@ -605,29 +666,31 @@ def analyze(
         if verdict.is_noise:
             continue
         roi = roi_estimator.estimate(ep)
-        classified.append({
-            **ep,
-            "risk_verdict": {
-                "is_high_value": verdict.is_high_value,
-                "is_idor": verdict.is_idor,
-                "idor_confidence": verdict.idor_confidence,
-                "cluster_type": verdict.cluster_type,
-                "reason": verdict.reason,
-            },
-            "roi": {
-                "value_score": roi.value_score,
-                "effort_score": roi.effort_score,
-                "payout_potential": roi.payout_potential,
-                "overall": roi.overall,
-                "reasoning": roi.reasoning,
-            },
-        })
+        classified.append(
+            {
+                **ep,
+                "risk_verdict": {
+                    "is_high_value": verdict.is_high_value,
+                    "is_idor": verdict.is_idor,
+                    "idor_confidence": verdict.idor_confidence,
+                    "cluster_type": verdict.cluster_type,
+                    "reason": verdict.reason,
+                },
+                "roi": {
+                    "value_score": roi.value_score,
+                    "effort_score": roi.effort_score,
+                    "payout_potential": roi.payout_potential,
+                    "overall": roi.overall,
+                    "reasoning": roi.reasoning,
+                },
+            }
+        )
 
     surface_map = mapper.map(classified)
 
     return {
         "noise_reduction": {
-            "total_input": noise_report.total_input if hasattr(noise_report, 'total_input') else len(endpoint_data),
+            "total_input": noise_report.total_input if hasattr(noise_report, "total_input") else len(endpoint_data),
             "discarded_count": len(noise_report.discarded),
             "clean_count": len(noise_report.clean),
             "noise_ratio": noise_report.noise_ratio,
@@ -644,31 +707,28 @@ def analyze(
         },
         "attack_surface_map": {
             "idor_clusters": [
-                {"path": e.get("path"), "method": e.get("method"),
-                 "risk_score": e.get("risk_score"), "signals": e.get("signals")}
+                {
+                    "path": e.get("path"),
+                    "method": e.get("method"),
+                    "risk_score": e.get("risk_score"),
+                    "signals": e.get("signals"),
+                }
                 for e in surface_map.idor_clusters
             ],
             "auth_boundaries": [
-                {"path": e.get("path"), "method": e.get("method"),
-                 "risk_score": e.get("risk_score")}
+                {"path": e.get("path"), "method": e.get("method"), "risk_score": e.get("risk_score")}
                 for e in surface_map.auth_boundaries
             ],
             "multi_tenant_zones": [
-                {"path": e.get("path"), "method": e.get("method"),
-                 "risk_score": e.get("risk_score")}
+                {"path": e.get("path"), "method": e.get("method"), "risk_score": e.get("risk_score")}
                 for e in surface_map.multi_tenant_zones
             ],
             "graphql_surfaces": [
-                {"path": e.get("path"), "method": e.get("method"),
-                 "risk_score": e.get("risk_score")}
+                {"path": e.get("path"), "method": e.get("method"), "risk_score": e.get("risk_score")}
                 for e in surface_map.graphql_surfaces
             ],
         },
-        "high_value_endpoints": [
-            e for e in classified if e.get("risk_verdict", {}).get("is_high_value")
-        ],
-        "idor_candidates": [
-            e for e in classified if e.get("risk_verdict", {}).get("is_idor")
-        ],
+        "high_value_endpoints": [e for e in classified if e.get("risk_verdict", {}).get("is_high_value")],
+        "idor_candidates": [e for e in classified if e.get("risk_verdict", {}).get("is_idor")],
         "endpoints": classified,
     }

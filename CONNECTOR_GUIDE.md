@@ -11,7 +11,10 @@ that declares a `Capability(domain="connector", name="<service>")`.
 ```python
 # extensions/binance_connector/manifest.py
 from core.extension import (
-    ExtensionManifest, Capability, ApiKeyField, SwitchField,
+    ExtensionManifest,
+    Capability,
+    ApiKeyField,
+    SwitchField,
 )
 
 manifest = ExtensionManifest(
@@ -39,6 +42,7 @@ manifest = ExtensionManifest(
 ```python
 # extensions/binance_connector/hooks.py
 from core.secrets.manager import get_secrets_manager
+
 
 def sync_balances():
     secrets = get_secrets_manager()

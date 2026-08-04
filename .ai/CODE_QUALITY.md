@@ -82,11 +82,11 @@ npx vitest run --coverage  # Tests + coverage
 ```python
 # Métricas de calidad
 QUALITY_METRICS = {
-    'test_coverage': 0.85,
-    'linting_errors': 0,
-    'security_score': 92,
-    'cyclomatic_complexity': 7.3,
-    'bug_density': 0.001
+    "test_coverage": 0.85,
+    "linting_errors": 0,
+    "security_score": 92,
+    "cyclomatic_complexity": 7.3,
+    "bug_density": 0.001,
 }
 ```
 
@@ -165,12 +165,12 @@ def quality_check_file(filepath: str) -> dict:
         "no_duplicate_code": True,
         "linting_passes": True,
         "tests_pass": True,
-        "security_scan_passes": True
+        "security_scan_passes": True,
     }
     return {
         "status": "PASS" if all(checks.values()) else "FAIL",
         "details": checks,
-        "score": sum(checks.values()) / len(checks.values())
+        "score": sum(checks.values()) / len(checks.values()),
     }
 ```
 
@@ -180,7 +180,7 @@ def quality_check_file(filepath: str) -> dict:
 ```python
 # Distribución de complejidad típica
 # Simple functions (1-4): 70%
-# Medium functions (5-10): 25%  
+# Medium functions (5-10): 25%
 # Complex functions (>10): 5%
 ```
 
@@ -206,11 +206,11 @@ JS_FILES = 89
 
 # Métricas de calidad actuales
 quality_metrics = {
-    'ruff_violations': 0,
-    'mypy_errors': 2,
-    'pytest_failures': 5,
-    'bandit_issues': 0,
-    'coverage_percent': 87.3
+    "ruff_violations": 0,
+    "mypy_errors": 2,
+    "pytest_failures": 5,
+    "bandit_issues": 0,
+    "coverage_percent": 87.3,
 }
 ```
 

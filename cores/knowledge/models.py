@@ -49,7 +49,9 @@ class RawKnowledgeDocument:
     raw_content: dict[str, Any]
     payload_type: KnowledgeContentType = KnowledgeContentType.other
     ingest_timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    metadata: KnowledgeMetadata = field(default_factory=lambda: KnowledgeMetadata(source="unknown", source_id="unknown", source_type="unknown"))
+    metadata: KnowledgeMetadata = field(
+        default_factory=lambda: KnowledgeMetadata(source="unknown", source_id="unknown", source_type="unknown")
+    )
 
 
 @dataclass
@@ -61,7 +63,9 @@ class CanonicalKnowledgeArtifact:
     content_type: KnowledgeContentType
     body: str | None
     canonical_entities: list[str] = field(default_factory=list)
-    metadata: KnowledgeMetadata = field(default_factory=lambda: KnowledgeMetadata(source="unknown", source_id="unknown", source_type="unknown"))
+    metadata: KnowledgeMetadata = field(
+        default_factory=lambda: KnowledgeMetadata(source="unknown", source_id="unknown", source_type="unknown")
+    )
     created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
     updated_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
     version: int = 1

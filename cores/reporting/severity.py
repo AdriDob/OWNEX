@@ -1,4 +1,3 @@
-
 SEVERITY_LEVELS = ["critical", "high", "medium", "low", "info"]
 
 SEVERITY_THRESHOLDS: dict[str, tuple[float, float]] = {

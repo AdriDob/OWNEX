@@ -1,16 +1,21 @@
 """Voice Command API Router.
 
-Processes voice commands and integrates with workflow engine.
+Processes voice commands, evaluates whether a request is worth the user's time
+(income/learning/opportunity reasoning), and bridges real-time audio between
+OMEGA (mobile STT) and ALPHA (desktop TTS). All speech APIs are open-source
+browser Web Speech (SpeechRecognition / speechSynthesis).
 """
 
 from __future__ import annotations
 
 import logging
+import threading
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from cores.voice.opportunity_evaluator import OpportunityEvaluator
 from cores.voice_interface import VoiceCommand, VoiceCommandParser
 from cores.workflow import WorkflowOrchestrator
 
@@ -21,6 +26,12 @@ router = APIRouter(prefix="/voice", tags=["voice"])
 # Global instances
 _command_parser = VoiceCommandParser()
 _workflow_orchestrator = WorkflowOrchestrator()
+_evaluator = OpportunityEvaluator()
+
+# In-memory reply queue: OMEGA posts, ALPHA polls and speaks.
+_reply_lock = threading.Lock()
+_reply_seq = 0
+_replies: list[dict[str, Any]] = []
 
 
 class VoiceCommandRequest(BaseModel):
@@ -40,6 +51,83 @@ class VoiceCommandResponse(BaseModel):
     success: bool
     message: str
     action_taken: str | None = None
+
+
+class AssistantRequest(BaseModel):
+    """Request to the intelligent voice assistant (text from OMEGA STT)."""
+
+    text: str
+    session_id: str | None = None
+
+
+class AssistantReply(BaseModel):
+    """A reply the ALPHA desktop should speak/display."""
+
+    id: int
+    request_text: str
+    domain: str
+    worth_it: bool
+    worth_score: float
+    response: str
+    reasoning: list[str]
+    suggested_action: str
+    created_at: str
+
+
+@router.post("/assistant")
+async def process_assistant(request: AssistantRequest) -> AssistantReply:
+    """Evaluate a voice request and queue a reply for the ALPHA desktop."""
+    from datetime import UTC, datetime
+
+    evaluation = _evaluator.evaluate(request.text)
+
+    response = _compose_response(evaluation)
+
+    global _reply_seq
+    with _reply_lock:
+        _reply_seq += 1
+        reply = AssistantReply(
+            id=_reply_seq,
+            request_text=evaluation.request_text,
+            domain=evaluation.domain,
+            worth_it=evaluation.worth_it,
+            worth_score=evaluation.worth_score,
+            response=response,
+            reasoning=evaluation.reasoning,
+            suggested_action=evaluation.suggested_action,
+            created_at=datetime.now(UTC).isoformat(),
+        )
+        _replies.append(reply.model_dump())
+        if len(_replies) > 100:
+            del _replies[:-100]
+
+    logger.info(
+        "[VOICE-ASSISTANT] domain=%s worth=%s score=%.2f request=%r",
+        evaluation.domain,
+        evaluation.worth_it,
+        evaluation.worth_score,
+        request.text,
+    )
+    return reply
+
+
+@router.get("/assistant/replies")
+async def get_assistant_replies(since: int = 0) -> dict[str, Any]:
+    """Return replies newer than ``since`` so ALPHA can speak them in real time."""
+    with _reply_lock:
+        new_replies = [r for r in _replies if r["id"] > since]
+    return {"replies": new_replies}
+
+
+def _compose_response(evaluation) -> str:
+    """Compose a natural, speakable response from the evaluation."""
+    parts = []
+    if evaluation.worth_it:
+        parts.append(f"Sí, vale la pena. {evaluation.reasoning[0] if evaluation.reasoning else ''}")
+    else:
+        parts.append(f"No es una prioridad. {evaluation.reasoning[0] if evaluation.reasoning else ''}")
+    parts.append(f"Sugerencia: {evaluation.suggested_action}")
+    return " ".join(parts)
 
 
 @router.post("/command", response_model=VoiceCommandResponse)
@@ -257,8 +345,9 @@ async def get_voice_status() -> dict[str, Any]:
     """Get voice interface status."""
     return {
         "enabled": True,
-        "stt_provider": "local_whisper",
-        "tts_provider": "local_piper",
+        "stt_provider": "browser_webspeech",
+        "tts_provider": "browser_webspeech",
+        "assistant_endpoint": "/voice/assistant",
         "language": "es-ES",
         "wake_word": "ownex",
     }

@@ -43,13 +43,11 @@ class SyncResult:
 class BugBountyPlatform(ABC):
     @property
     @abstractmethod
-    def platform_id(self) -> str:
-        ...
+    def platform_id(self) -> str: ...
 
     @property
     @abstractmethod
-    def display_name(self) -> str:
-        ...
+    def display_name(self) -> str: ...
 
     def supports_action(self, action: str | PlatformAction) -> bool:
         if isinstance(action, str):
@@ -71,12 +69,10 @@ class BugBountyPlatform(ABC):
         }
 
     @abstractmethod
-    def _format_report(self, report_data: dict[str, Any]) -> dict[str, Any]:
-        ...
+    def _format_report(self, report_data: dict[str, Any]) -> dict[str, Any]: ...
 
     @abstractmethod
-    def _get_submit_url(self, report_data: dict[str, Any]) -> str:
-        ...
+    def _get_submit_url(self, report_data: dict[str, Any]) -> str: ...
 
     def submit(self, report_data: dict[str, Any], api_key: str) -> SubmissionResult:
         raise NotImplementedError(f"{self.platform_id} does not support API submission")

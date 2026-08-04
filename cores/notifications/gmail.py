@@ -24,9 +24,7 @@ class GmailAdapter:
         self._client_secret = cfg.gmail_client_secret
         self._refresh_token = cfg.gmail_refresh_token
         self._from_email = cfg.gmail_from
-        self._enabled = bool(
-            self._client_id and self._client_secret and self._refresh_token and self._from_email
-        )
+        self._enabled = bool(self._client_id and self._client_secret and self._refresh_token and self._from_email)
 
     @property
     def is_enabled(self) -> bool:

@@ -17,6 +17,7 @@ logger = logging.getLogger("ownex.personal_infrastructure.argentina_support")
 
 class AFIPCategory(StrEnum):
     """Categorías AFIP."""
+
     MONOTRIBUTISTA = "monotributista"
     RESPONSABLE_INSCRIPTO = "responsable_inscripto"
     EXENTO = "exento"
@@ -25,6 +26,7 @@ class AFIPCategory(StrEnum):
 
 class IncomeCategoryAR(StrEnum):
     """Categorías de ingresos para Argentina."""
+
     SERVICIOS_DIGITALES = "servicios_digitales"
     BUG_BOUNTY = "bug_bounty"
     FREELANCE = "freelance"
@@ -35,6 +37,7 @@ class IncomeCategoryAR(StrEnum):
 @dataclass
 class ArgentinaTaxInfo:
     """Información fiscal argentina."""
+
     category: AFIPCategory
     cuit: str | None = None
     cuil: str | None = None
@@ -47,6 +50,7 @@ class ArgentinaTaxInfo:
 @dataclass
 class ArgentinaRecommendation:
     """Recomendación específica para Argentina."""
+
     title: str
     description: str
     category: str  # fiscal, legal, operational

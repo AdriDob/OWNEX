@@ -41,9 +41,8 @@ class ImportValidator:
                     for alias in node.names:
                         if not self._validate_import_name(alias.name):
                             errors.append(f"Invalid import name '{alias.name}' in {file_path}")
-                elif isinstance(node, ast.ImportFrom):
-                    if node.module and not self._validate_import_name(node.module):
-                        errors.append(f"Invalid module '{node.module}' in {file_path}")
+                elif isinstance(node, ast.ImportFrom) and node.module and not self._validate_import_name(node.module):
+                    errors.append(f"Invalid module '{node.module}' in {file_path}")
 
         except SyntaxError as e:
             errors.append(f"Syntax error in {file_path}: {e}")
@@ -508,7 +507,6 @@ class SelfHealingSystem:
 
             bus = get_event_bus()
             event_data = {
-                "event_type": "system:health:validated",
                 "status": self.health_status,
                 "results": results,
             }

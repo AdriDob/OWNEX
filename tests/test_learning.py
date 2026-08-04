@@ -6,6 +6,7 @@ import pytest
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────
 
+
 @pytest.fixture(scope="module")
 def client():
     from fastapi.testclient import TestClient
@@ -20,17 +21,21 @@ def client():
     # Ensure clean user for testing
     from database.db import SessionLocal
     from database.models import User
+
     s = SessionLocal()
     s.query(User).filter(User.username == "ple_test_user").delete()
     s.commit()
     s.close()
 
     # Register a test user and get token
-    reg = c.post("/api/auth/users/register", json={
-        "username": "ple_test_user",
-        "email": "ple@test.com",
-        "password": "ple_test_pass_123",
-    })
+    reg = c.post(
+        "/api/auth/users/register",
+        json={
+            "username": "ple_test_user",
+            "email": "ple@test.com",
+            "password": "ple_test_pass_123",
+        },
+    )
     token = reg.json()["access_token"]
     c.headers = {"Authorization": f"Bearer {token}"}
     return c
@@ -41,9 +46,11 @@ def clean_ple_data(request):
     """Clean up PLE data after each test."""
     yield
     from cores.learning import get_profile_service
+
     # Get the actual user_id from the module-scoped client fixture
     client = request.getfixturevalue("client")
     from cores.auth.auth import verify_token
+
     tok = client.headers.get("Authorization", "").removeprefix("Bearer ")
     data = verify_token(tok)
     if data:
@@ -53,6 +60,7 @@ def clean_ple_data(request):
         # Also clean up learning events
         from cores.learning.profile import LearningEvent
         from database.db import SessionLocal
+
         s = SessionLocal()
         s.query(LearningEvent).filter(LearningEvent.user_id == uid).delete()
         s.commit()
@@ -60,6 +68,7 @@ def clean_ple_data(request):
 
 
 # ─── Profile Tests ────────────────────────────────────────────────────────
+
 
 class TestProfile:
     def test_get_profile_empty(self, client):
@@ -85,12 +94,16 @@ class TestProfile:
 
 # ─── Event Tracking Tests ─────────────────────────────────────────────────
 
+
 class TestEventTracking:
     def test_track_target_viewed(self, client):
-        resp = client.post("/api/learning/events", json={
-            "event_type": "target_viewed",
-            "data": {"industry": "finance", "technology": "aws", "domain": "example.com"},
-        })
+        resp = client.post(
+            "/api/learning/events",
+            json={
+                "event_type": "target_viewed",
+                "data": {"industry": "finance", "technology": "aws", "domain": "example.com"},
+            },
+        )
         assert resp.status_code == 200
 
         prof = client.get("/api/learning/profile")
@@ -99,20 +112,26 @@ class TestEventTracking:
         assert "aws" in prof.json()["discovery"]["technologies"]
 
     def test_track_finding_created(self, client):
-        resp = client.post("/api/learning/events", json={
-            "event_type": "finding_created",
-            "data": {"bug_class": "IDOR", "severity": "high"},
-        })
+        resp = client.post(
+            "/api/learning/events",
+            json={
+                "event_type": "finding_created",
+                "data": {"bug_class": "IDOR", "severity": "high"},
+            },
+        )
         assert resp.status_code == 200
 
         prof = client.get("/api/learning/profile")
         assert prof.json()["success_history"]["high_severity_findings"] >= 1
 
     def test_track_module_visited(self, client):
-        resp = client.post("/api/learning/events", json={
-            "event_type": "module_visited",
-            "data": {"module": "targets"},
-        })
+        resp = client.post(
+            "/api/learning/events",
+            json={
+                "event_type": "module_visited",
+                "data": {"module": "targets"},
+            },
+        )
         assert resp.status_code == 200
 
         prof = client.get("/api/learning/profile")
@@ -121,10 +140,13 @@ class TestEventTracking:
 
     def test_track_session(self, client):
         client.post("/api/learning/events", json={"event_type": "session_started", "data": {}})
-        resp = client.post("/api/learning/events", json={
-            "event_type": "session_ended",
-            "data": {"duration_minutes": 120},
-        })
+        resp = client.post(
+            "/api/learning/events",
+            json={
+                "event_type": "session_ended",
+                "data": {"duration_minutes": 120},
+            },
+        )
         assert resp.status_code == 200
 
         prof = client.get("/api/learning/profile")
@@ -142,33 +164,43 @@ class TestEventTracking:
 
 # ─── Prioritization Tests ─────────────────────────────────────────────────
 
+
 class TestPrioritization:
     def test_prioritize_targets_no_profile(self, client):
         # Reset first (no profile data means neutral scoring)
         client.post("/api/learning/profile/reset")
-        resp = client.post("/api/learning/prioritize/targets", json={
-            "targets": [
-                {"name": "target1", "industry": "finance"},
-                {"name": "target2", "industry": "healthcare"},
-            ],
-        })
+        resp = client.post(
+            "/api/learning/prioritize/targets",
+            json={
+                "targets": [
+                    {"name": "target1", "industry": "finance"},
+                    {"name": "target2", "industry": "healthcare"},
+                ],
+            },
+        )
         assert resp.status_code == 200
         results = resp.json()
         assert len(results) == 2
 
     def test_prioritize_targets_with_profile(self, client):
         # Create profile with finance preference
-        client.post("/api/learning/events", json={
-            "event_type": "target_viewed",
-            "data": {"industry": "finance", "technology": "aws", "domain": "bank.com"},
-        })
+        client.post(
+            "/api/learning/events",
+            json={
+                "event_type": "target_viewed",
+                "data": {"industry": "finance", "technology": "aws", "domain": "bank.com"},
+            },
+        )
 
-        resp = client.post("/api/learning/prioritize/targets", json={
-            "targets": [
-                {"name": "bank", "industry": "finance", "technology": "aws"},
-                {"name": "hospital", "industry": "healthcare", "technology": "azure"},
-            ],
-        })
+        resp = client.post(
+            "/api/learning/prioritize/targets",
+            json={
+                "targets": [
+                    {"name": "bank", "industry": "finance", "technology": "aws"},
+                    {"name": "hospital", "industry": "healthcare", "technology": "azure"},
+                ],
+            },
+        )
         assert resp.status_code == 200
         results = resp.json()
         # Finance target should have higher score due to preference match
@@ -178,21 +210,30 @@ class TestPrioritization:
 
     def test_prioritize_findings(self, client):
         # Build IDOR preference
-        client.post("/api/learning/events", json={
-            "event_type": "finding_created",
-            "data": {"bug_class": "IDOR", "severity": "medium"},
-        })
-        client.post("/api/learning/events", json={
-            "event_type": "finding_created",
-            "data": {"bug_class": "IDOR", "severity": "medium"},
-        })
+        client.post(
+            "/api/learning/events",
+            json={
+                "event_type": "finding_created",
+                "data": {"bug_class": "IDOR", "severity": "medium"},
+            },
+        )
+        client.post(
+            "/api/learning/events",
+            json={
+                "event_type": "finding_created",
+                "data": {"bug_class": "IDOR", "severity": "medium"},
+            },
+        )
 
-        resp = client.post("/api/learning/prioritize/findings", json={
-            "findings": [
-                {"bug_class": "IDOR", "severity": "high"},
-                {"bug_class": "XXE", "severity": "high"},
-            ],
-        })
+        resp = client.post(
+            "/api/learning/prioritize/findings",
+            json={
+                "findings": [
+                    {"bug_class": "IDOR", "severity": "high"},
+                    {"bug_class": "XXE", "severity": "high"},
+                ],
+            },
+        )
         assert resp.status_code == 200
         results = resp.json()
         idor_item = next(r for r in results if r["item"]["bug_class"] == "IDOR")
@@ -200,9 +241,12 @@ class TestPrioritization:
 
     def test_prioritization_disabled_in_adaptive_off(self, client):
         client.patch("/api/learning/preferences", json={"adaptive_mode": False})
-        resp = client.post("/api/learning/prioritize/targets", json={
-            "targets": [{"name": "t1", "industry": "finance"}],
-        })
+        resp = client.post(
+            "/api/learning/prioritize/targets",
+            json={
+                "targets": [{"name": "t1", "industry": "finance"}],
+            },
+        )
         assert resp.status_code == 200
         results = resp.json()
         assert results[0]["score"] == 0.0  # No adaptive scoring
@@ -210,15 +254,22 @@ class TestPrioritization:
 
 # ─── Explanation Tests ────────────────────────────────────────────────────
 
+
 class TestExplanations:
     def test_explain_priority(self, client):
-        client.post("/api/learning/events", json={
-            "event_type": "target_viewed",
-            "data": {"industry": "finance"},
-        })
-        resp = client.post("/api/learning/explain/priority", json={
-            "targets": [{"name": "bank", "industry": "finance"}],
-        })
+        client.post(
+            "/api/learning/events",
+            json={
+                "event_type": "target_viewed",
+                "data": {"industry": "finance"},
+            },
+        )
+        resp = client.post(
+            "/api/learning/explain/priority",
+            json={
+                "targets": [{"name": "bank", "industry": "finance"}],
+            },
+        )
         assert resp.status_code == 200
         results = resp.json()
         assert len(results) == 1
@@ -232,25 +283,35 @@ class TestExplanations:
 
 # ─── AI Memory Tests ──────────────────────────────────────────────────────
 
+
 class TestMemory:
     def test_context(self, client):
-        client.post("/api/learning/events", json={
-            "event_type": "target_viewed",
-            "data": {"industry": "finance", "technology": "aws"},
-        })
-        resp = client.post("/api/learning/memory/context", json={
-            "target": {"industry": "finance", "technology": "aws"},
-        })
+        client.post(
+            "/api/learning/events",
+            json={
+                "event_type": "target_viewed",
+                "data": {"industry": "finance", "technology": "aws"},
+            },
+        )
+        resp = client.post(
+            "/api/learning/memory/context",
+            json={
+                "target": {"industry": "finance", "technology": "aws"},
+            },
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert "context" in data
         assert "finance" in data["context"]
 
     def test_similar_findings(self, client):
-        client.post("/api/learning/events", json={
-            "event_type": "finding_created",
-            "data": {"bug_class": "SQLi", "severity": "high"},
-        })
+        client.post(
+            "/api/learning/events",
+            json={
+                "event_type": "finding_created",
+                "data": {"bug_class": "SQLi", "severity": "high"},
+            },
+        )
         resp = client.get("/api/learning/memory/similar-findings", params={"bug_class": "SQLi"})
         assert resp.status_code == 200
         results = resp.json()
@@ -259,12 +320,16 @@ class TestMemory:
 
 # ─── Daily Recommendations Tests ──────────────────────────────────────────
 
+
 class TestRecommendations:
     def test_daily_recommendations(self, client):
-        client.post("/api/learning/events", json={
-            "event_type": "finding_created",
-            "data": {"bug_class": "IDOR", "severity": "high"},
-        })
+        client.post(
+            "/api/learning/events",
+            json={
+                "event_type": "finding_created",
+                "data": {"bug_class": "IDOR", "severity": "high"},
+            },
+        )
         resp = client.get("/api/learning/recommendations/daily")
         assert resp.status_code == 200
         recs = resp.json()
@@ -273,11 +338,13 @@ class TestRecommendations:
 
 # ─── Export Tests ─────────────────────────────────────────────────────────
 
+
 class TestExport:
     def test_export_json(self, client):
         resp = client.get("/api/learning/export", params={"fmt": "json"})
         assert resp.status_code == 200
         import json
+
         data = json.loads(resp.text)
         assert "exists" in data
 

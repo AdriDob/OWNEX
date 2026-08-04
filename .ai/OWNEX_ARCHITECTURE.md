@@ -150,34 +150,34 @@ OWNEX is not a bug bounty tool. OWNEX is an **Autonomous Work Operating System**
 ```python
 @dataclass
 class Observation:
-    id: str                        # hash: sensor + external_id
-    sensor_id: str                 # "hackerone", "github_issues", "rss"
-    source_type: str               # "bug_bounty", "dev_task", "freelance", "ai_work"
-    observed_at: datetime          # when the sensor detected it
+    id: str  # hash: sensor + external_id
+    sensor_id: str  # "hackerone", "github_issues", "rss"
+    source_type: str  # "bug_bounty", "dev_task", "freelance", "ai_work"
+    observed_at: datetime  # when the sensor detected it
     title: str
     description: str
     url: str | None
     tags: list[str]
-    confidence: float = 0.8       # how sure the sensor is about the data
-    external_id: str = ""          # original platform ID
+    confidence: float = 0.8  # how sure the sensor is about the data
+    external_id: str = ""  # original platform ID
 
     # Raw economic data (normalization engine converts these)
     estimated_reward_min: float = 0.0
     estimated_reward_max: float = 0.0
     estimated_effort_hours: float = 0.0
     reward_currency: str = "USD"
-    reward_raw: str = ""           # original string like "$500 - $10,000"
+    reward_raw: str = ""  # original string like "$500 - $10,000"
 
     # State
-    status: str = "new"            # new | normalized | identified | classified
-    checksum: str = ""             # for identity resolution + dedup
+    status: str = "new"  # new | normalized | identified | classified
+    checksum: str = ""  # for identity resolution + dedup
 
     # Raw payload
     raw_data: dict = field(default_factory=dict)
-    raw_format: str = ""           # "json", "html", "rss", "email", "file"
+    raw_format: str = ""  # "json", "html", "rss", "email", "file"
 
     # Cycle hint (set by ClassificationEngine)
-    cycle: str | None = None       # "security", "forge", "pulse", "vault", "atlas"
+    cycle: str | None = None  # "security", "forge", "pulse", "vault", "atlas"
 ```
 
 **Key insight**: Observation is atomic. It carries no interpretation. It's a raw observation.
@@ -187,33 +187,33 @@ class Observation:
 ```python
 class Sensor(ABC):
     """A sensor observes ONE domain and returns Observations.
-    
+
     Sensors have NO intelligence. They do NOT classify, score,
     or decide. They simply observe and report.
-    
+
     Each sensor is easy to test independently:
     - Mock the external source
     - Verify the Observation list
     """
-    
-    id: str                        # unique sensor ID
-    name: str                      # human name
+
+    id: str  # unique sensor ID
+    name: str  # human name
     description: str = ""
     version: str = "1.0.0"
-    
+
     # Configuration
     enabled: bool = True
-    cadence_seconds: int = 3600   # default 1 hour
+    cadence_seconds: int = 3600  # default 1 hour
     max_observations_per_run: int = 100
     timeout_seconds: int = 30
-    
+
     # Credentials required (names in the vault)
     required_credentials: list[str] = field(default_factory=list)
-    
+
     @abstractmethod
     async def observe(self) -> list[Observation]:
         """Poll the external source and return observations.
-        
+
         Implementations:
         - BugBountySensor: calls BountyScraper.scrape_all() then wraps in Observation
         - GitHubSensor: queries GitHub API for issues/PRs with bounties
@@ -221,7 +221,7 @@ class Sensor(ABC):
         - EmailSensor: reads IMAP inbox
         """
         pass
-    
+
     async def pre_filter(self, observation: Observation) -> Observation | None:
         """Optional: filter or enrich before releasing. Return None to discard."""
         return observation
@@ -513,9 +513,9 @@ class CapabilityEngine:
 ```python
 class StrategyEngine:
     """Decides what to work on RIGHT NOW.
-    
+
     Not planning — DECIDING.
-    
+
     Given N opportunities, StrategyEngine asks:
     - Which maximizes expected income RIGHT NOW?
     - Which has lowest competition?
@@ -523,7 +523,7 @@ class StrategyEngine:
     - Which plays to the user's strengths?
     - Is there a deadline approaching?
     - What's the opportunity cost of NOT doing X?
-    
+
     Strategy is NOT static. It evolves with:
     - Market conditions (more/less competition)
     - User performance data (acceptance rate by type)
@@ -531,15 +531,17 @@ class StrategyEngine:
     - Energy level (hard vs easy tasks)
     - Financial goals (this week/month/quarter)
     """
-    
+
     strategies: list[Strategy]
-    
+
     def add_strategy(self, strategy: Strategy): ...
-    
-    async def decide(self, opportunities: list[ScoredOpportunity], context: WorkContext) -> list[PrioritizedOpportunity]:
+
+    async def decide(
+        self, opportunities: list[ScoredOpportunity], context: WorkContext
+    ) -> list[PrioritizedOpportunity]:
         """Returns opportunities in execution order."""
         ...
-    
+
     async def should_continue(self, current: ScoredOpportunity, paused: bool = False) -> bool:
         """Check if we should keep working on current or switch."""
         ...

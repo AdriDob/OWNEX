@@ -23,6 +23,7 @@ router = APIRouter(prefix="/api/auth/users", tags=["auth-users"])
 
 # ─── Password helpers (PBKDF2-HMAC-SHA256, stdlib only) ───────────────
 
+
 def _hash_password(password: str) -> str:
     salt = os.urandom(32)
     dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 600_000)
@@ -37,6 +38,7 @@ def _verify_password(password: str, stored: str) -> bool:
 
 
 # ─── Schemas ─────────────────────────────────────────────────────────
+
 
 class RegisterRequest(BaseModel):
     username: str
@@ -69,6 +71,7 @@ class UserProfile(BaseModel):
 
 # ─── Endpoints ───────────────────────────────────────────────────────
 
+
 @router.post("/register", response_model=TokenResponse, status_code=201)
 def register(body: RegisterRequest):
     if len(body.password) < 8:
@@ -78,9 +81,7 @@ def register(body: RegisterRequest):
 
     session = SessionLocal()
     try:
-        if session.query(User).filter(
-            (User.username == body.username) | (User.email == body.email)
-        ).first():
+        if session.query(User).filter((User.username == body.username) | (User.email == body.email)).first():
             raise HTTPException(409, "Username or email already exists")
 
         user = User(

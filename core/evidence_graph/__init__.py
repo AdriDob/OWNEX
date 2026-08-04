@@ -7,6 +7,7 @@ Each hypothesis stores:
 - inter-node relationships (edges)
 The Copilot queries this to make informed decisions.
 """
+# ruff: noqa: E402
 from core.evidence_graph.graph import EvidenceGraph, get_evidence_graph
 
 __all__ = [

@@ -47,20 +47,20 @@ const activeTab = ref<'daily' | 'weekly' | 'ready'>('daily')
 
 const sevColor = (sev: string) => {
   const c = sev.toLowerCase()
-  if (c === 'critical') return 'text-red-400'
-  if (c === 'high') return 'text-orange-400'
-  if (c === 'medium') return 'text-yellow-400'
-  if (c === 'low') return 'text-green-400'
-  return 'text-blue-400'
+  if (c === 'critical') return 'text-destructive'
+  if (c === 'high') return 'text-warning'
+  if (c === 'medium') return 'text-warning'
+  if (c === 'low') return 'text-success'
+  return 'text-primary'
 }
 
 const sevBadge = (sev: string) => {
   const c = sev.toLowerCase()
-  if (c === 'critical') return 'bg-red-500/20 text-red-400'
-  if (c === 'high') return 'bg-orange-500/20 text-orange-400'
-  if (c === 'medium') return 'bg-yellow-500/20 text-yellow-400'
-  if (c === 'low') return 'bg-green-500/20 text-green-400'
-  return 'bg-blue-500/20 text-blue-400'
+  if (c === 'critical') return 'bg-destructive/20 text-destructive'
+  if (c === 'high') return 'bg-warning/20 text-warning'
+  if (c === 'medium') return 'bg-warning/20 text-warning'
+  if (c === 'low') return 'bg-success/20 text-success'
+  return 'bg-primary/20 text-primary'
 }
 
 async function loadPipeline() {
@@ -229,7 +229,7 @@ const ReportCandidateList = defineComponent({
               h('div', { class: 'flex items-center gap-2 flex-wrap' }, [
                 h('h3', { class: 'font-medium text-sm truncate' }, c.title),
                 h('span', { class: `px-1.5 py-0.5 rounded text-[10px] font-mono font-medium ${sevBadge(c.severity)}` }, c.severity.toUpperCase()),
-                h('span', { class: 'px-1.5 py-0.5 rounded text-[10px] font-mono bg-purple-500/20 text-purple-400' }, c.platform),
+                h('span', { class: 'px-1.5 py-0.5 rounded text-[10px] font-mono bg-intigriti/20 text-intigriti' }, c.platform),
               ]),
               h('div', { class: 'flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap' }, [
                 h('span', { class: 'flex items-center gap-1' }, [h(DollarSign, { class: 'h-3 w-3' }), `$${c.estimated_reward.toLocaleString()}`]),
@@ -269,7 +269,7 @@ const ReadyReportsList = defineComponent({
               h('div', { class: 'flex items-center gap-2 flex-wrap' }, [
                 h('h3', { class: 'font-medium text-sm truncate' }, r.title),
                 h('span', { class: `px-1.5 py-0.5 rounded text-[10px] font-mono font-medium ${sevBadge(r.severity)}` }, r.severity.toUpperCase()),
-                h('span', { class: 'px-1.5 py-0.5 rounded text-[10px] font-mono bg-purple-500/20 text-purple-400' }, r.platform),
+                h('span', { class: 'px-1.5 py-0.5 rounded text-[10px] font-mono bg-intigriti/20 text-intigriti' }, r.platform),
               ]),
               h('div', { class: 'flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap' }, [
                 h('span', { class: 'flex items-center gap-1' }, [h(DollarSign, { class: 'h-3 w-3' }), `$${r.estimated_reward.toLocaleString()}`]),
@@ -305,11 +305,11 @@ const ReadyReportsList = defineComponent({
 // Severity helpers (duplicate for inline components)
 const sevBadge = (sev: string) => {
   const c = sev.toLowerCase()
-  if (c === 'critical') return 'bg-red-500/20 text-red-400'
-  if (c === 'high') return 'bg-orange-500/20 text-orange-400'
-  if (c === 'medium') return 'bg-yellow-500/20 text-yellow-400'
-  if (c === 'low') return 'bg-green-500/20 text-green-400'
-  return 'bg-blue-500/20 text-blue-400'
+  if (c === 'critical') return 'bg-destructive/20 text-destructive'
+  if (c === 'high') return 'bg-warning/20 text-warning'
+  if (c === 'medium') return 'bg-warning/20 text-warning'
+  if (c === 'low') return 'bg-success/20 text-success'
+  return 'bg-primary/20 text-primary'
 }
 </script>
 
@@ -323,7 +323,7 @@ const sevBadge = (sev: string) => {
   color: white;
 }
 .btn-primary:hover {
-  background: #3b82f6;
+  background: #ffffff;
 }
 .btn-ghost {
   background: transparent;

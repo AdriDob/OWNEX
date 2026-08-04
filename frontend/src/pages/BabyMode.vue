@@ -189,29 +189,29 @@ onUnmounted(() => {
         label="Revenue Total"
         :value="'$' + stats.revenue.toLocaleString()"
         icon="DollarSign"
-        color="text-green-400"
-        bg="bg-green-500/10"
+        color="text-success"
+        bg="bg-success/10"
       />
       <KPIBlock
         label="Findings"
         :value="String(stats.findings)"
         icon="Bug"
-        color="text-blue-400"
-        bg="bg-blue-500/10"
+        color="text-primary"
+        bg="bg-primary/10"
       />
       <KPIBlock
         label="Reportes"
         :value="String(stats.reports)"
         icon="FileText"
-        color="text-purple-400"
-        bg="bg-purple-500/10"
+        color="text-intigriti"
+        bg="bg-intigriti/10"
       />
       <KPIBlock
         label="Targets"
         :value="String(stats.targets)"
         icon="Target"
-        color="text-cyan-400"
-        bg="bg-cyan-500/10"
+        color="text-muted-foreground"
+        bg="bg-muted/10"
       />
     </div>
 
@@ -226,7 +226,7 @@ onUnmounted(() => {
           border-2 border-primary/30 hover:border-primary/60
           transition-all duration-500 hover:scale-105
           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
-          shadow-[0_0_60px_rgba(0,255,65,0.1)] hover:shadow-[0_0_80px_rgba(0,255,65,0.2)]"
+          shadow-[0_0_60px_rgba(255,255,255,0.1)] hover:shadow-[0_0_80px_rgba(255,255,255,0.2)]"
       >
         <div v-if="isHuntActive"
           class="absolute inset-0 rounded-full animate-ping bg-primary/10"
@@ -240,8 +240,8 @@ onUnmounted(() => {
             <span class="text-lg font-bold text-primary" v-else>Cazando...</span>
           </template>
           <template v-else-if="huntStatus === 'done'">
-            <CheckCircle2 class="w-16 h-16 text-green-400 mb-4" />
-            <span class="text-lg font-bold text-green-400">¡HECHO!</span>
+            <CheckCircle2 class="w-16 h-16 text-success mb-4" />
+            <span class="text-lg font-bold text-success">¡HECHO!</span>
           </template>
           <template v-else-if="huntStatus === 'error'">
             <XCircle class="w-16 h-16 text-destructive mb-4" />
@@ -285,37 +285,37 @@ onUnmounted(() => {
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-8">
       <button @click="router.push('/capital')"
         class="group relative flex flex-col items-center justify-center p-8 rounded-2xl
-          border border-green-500/30 bg-gradient-to-br from-green-500/10 to-green-900/20
-          hover:from-green-500/20 hover:to-green-900/30 hover:scale-[1.02] hover:border-green-400/50
+          border border-success/30 bg-gradient-to-br from-success/10 to-success/20
+          hover:from-success/20 hover:to-success/30 hover:scale-[1.02] hover:border-success/50
           transition-all duration-300">
-        <DollarSign class="w-12 h-12 text-green-400 mb-4" />
-        <span class="text-xl font-bold text-green-400 mb-2">CAPITAL</span>
+        <DollarSign class="w-12 h-12 text-success mb-4" />
+        <span class="text-xl font-bold text-success mb-2">CAPITAL</span>
         <p class="text-sm text-muted-foreground text-center">
           ${{ stats.revenue.toLocaleString() }} en payouts
         </p>
-        <ArrowRight class="w-5 h-5 text-green-400 absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <ArrowRight class="w-5 h-5 text-success absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity" />
       </button>
 
       <button @click="router.push('/intelligence/findings')"
         class="group relative flex flex-col items-center justify-center p-8 rounded-2xl
-          border border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-blue-900/20
-          hover:from-blue-500/20 hover:to-blue-900/30 hover:scale-[1.02] hover:border-blue-400/50
+          border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/20
+          hover:from-primary/20 hover:to-primary/30 hover:scale-[1.02] hover:border-primary/50
           transition-all duration-300">
-        <Bug class="w-12 h-12 text-blue-400 mb-4" />
-        <span class="text-xl font-bold text-blue-400 mb-2">FINDINGS</span>
+        <Bug class="w-12 h-12 text-primary mb-4" />
+        <span class="text-xl font-bold text-primary mb-2">FINDINGS</span>
         <p class="text-sm text-muted-foreground">{{ stats.findings }} hallazgos registrados</p>
-        <ArrowRight class="w-5 h-5 text-blue-400 absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <ArrowRight class="w-5 h-5 text-primary absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity" />
       </button>
 
       <button @click="router.push('/reports/queue')"
         class="group relative flex flex-col items-center justify-center p-8 rounded-2xl
-          border border-purple-500/30 bg-gradient-to-br from-purple-500/10 to-purple-900/20
-          hover:from-purple-500/20 hover:to-purple-900/30 hover:scale-[1.02] hover:border-purple-400/50
+          border border-intigriti/30 bg-gradient-to-br from-intigriti/10 to-intigriti/20
+          hover:from-intigriti/20 hover:to-intigriti/30 hover:scale-[1.02] hover:border-intigriti/50
           transition-all duration-300">
-        <FileText class="w-12 h-12 text-purple-400 mb-4" />
-        <span class="text-xl font-bold text-purple-400 mb-2">REPORTES</span>
+        <FileText class="w-12 h-12 text-intigriti mb-4" />
+        <span class="text-xl font-bold text-intigriti mb-2">REPORTES</span>
         <p class="text-sm text-muted-foreground">{{ stats.reports }} en cola de envío</p>
-        <ArrowRight class="w-5 h-5 text-purple-400 absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <ArrowRight class="w-5 h-5 text-intigriti absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity" />
       </button>
     </div>
 

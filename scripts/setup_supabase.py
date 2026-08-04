@@ -70,7 +70,7 @@ def test_supabase_connection():
         client = create_client(supabase_url, supabase_key)
 
         # Test connection
-        client.table('tasks').select('*').limit(1).execute()
+        client.table("tasks").select("*").limit(1).execute()
 
         print("✅ Supabase connection successful")
         return True

@@ -77,7 +77,9 @@ def install_playwright() -> bool:
     log("Installing playwright package...")
     result = subprocess.run(
         [sys.executable, "-m", "pip", "install", "playwright", "--quiet"],
-        capture_output=True, text=True, timeout=120,
+        capture_output=True,
+        text=True,
+        timeout=120,
     )
     if result.returncode != 0:
         log(f"  pip install failed: {result.stderr[-200:]}")
@@ -87,7 +89,9 @@ def install_playwright() -> bool:
     log("Installing Chromium browser...")
     result = subprocess.run(
         [sys.executable, "-m", "playwright", "install", "chromium"],
-        capture_output=True, text=True, timeout=120,
+        capture_output=True,
+        text=True,
+        timeout=120,
     )
     if result.returncode != 0:
         log(f"  playwright install chromium failed: {result.stderr[-200:]}")
@@ -186,9 +190,7 @@ def main() -> None:
             page = context.new_page()
 
             # Collect all console messages
-            page.on("console", lambda msg: console_errors.append(
-                f"[{msg.type}] {msg.text}"
-            ))
+            page.on("console", lambda msg: console_errors.append(f"[{msg.type}] {msg.text}"))
 
             # Collect page errors (uncaught exceptions)
             page.on("pageerror", lambda err: page_errors.append(str(err)))
@@ -213,7 +215,7 @@ def main() -> None:
 
                 # Check for React root rendering
                 root_content = page.content()
-                has_react_root = 'id="root"' in root_content or '__reactFiber' in root_content
+                has_react_root = 'id="root"' in root_content or "__reactFiber" in root_content
                 if has_react_root:
                     ok("React root found in DOM")
                 else:
@@ -243,26 +245,13 @@ def main() -> None:
 
             # HTTP 401/403 are expected during boot (auth checks, no token yet)
             expected_boot_errors = [
-                msg for msg in console_errors
-                if msg.startswith("[error]") and ("401" in msg or "403" in msg)
+                msg for msg in console_errors if msg.startswith("[error]") and ("401" in msg or "403" in msg)
             ]
             # Real JS errors — everything except expected HTTP 401/403
-            js_errors = [
-                msg for msg in console_errors
-                if msg.startswith("[error]") or msg.startswith("[assert]")
-            ]
-            real_js_errors = [
-                msg for msg in js_errors
-                if msg not in expected_boot_errors
-            ]
-            fatal_errors = [
-                msg for msg in console_errors
-                if any(p in msg for p in fatal_patterns)
-            ]
-            warnings = [
-                msg for msg in console_errors
-                if msg.startswith("[warning]")
-            ]
+            js_errors = [msg for msg in console_errors if msg.startswith("[error]") or msg.startswith("[assert]")]
+            real_js_errors = [msg for msg in js_errors if msg not in expected_boot_errors]
+            fatal_errors = [msg for msg in console_errors if any(p in msg for p in fatal_patterns)]
+            warnings = [msg for msg in console_errors if msg.startswith("[warning]")]
 
             if expected_boot_errors:
                 for err in expected_boot_errors:
@@ -296,10 +285,12 @@ def main() -> None:
 
             # ── 6. Report summary ──────────────────────────────────
             non_fatal = len(console_errors) - len(real_js_errors) - len(fatal_errors) - len(expected_boot_errors)
-            log(f"\n  Console messages: {len(console_errors)} total "
+            log(
+                f"\n  Console messages: {len(console_errors)} total "
                 f"({len(real_js_errors)} errors, {len(fatal_errors)} fatal, "
                 f"{len(expected_boot_errors)} HTTP 401/403 boot noise, "
-                f"{len(warnings)} warnings, {non_fatal} info/debug)")
+                f"{len(warnings)} warnings, {non_fatal} info/debug)"
+            )
 
             browser.close()
 

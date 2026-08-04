@@ -34,9 +34,11 @@ def rule(
     severity: str = "error",
 ) -> Callable[[RuleCheck], RuleCheck]:
     """Decorator to register a product behavior rule."""
+
     def decorator(fn: RuleCheck) -> RuleCheck:
         _RULES.append(ProductRule(name=name, description=description, severity=severity, check=fn))
         return fn
+
     return decorator
 
 
@@ -167,6 +169,7 @@ def _check_decision_engine() -> str | None:
 def _check_execution_tracker() -> str | None:
     try:
         from cores.actions.execution_tracker import get_execution_tracker
+
         tracker = get_execution_tracker()
         if tracker is None:
             return "Execution tracker not initialized"
@@ -179,6 +182,7 @@ def _check_execution_tracker() -> str | None:
 def _check_explainability() -> str | None:
     try:
         from cores.explainability.explanation_engine import get_explanation_engine
+
         engine = get_explanation_engine()
         if engine is None:
             return "Explanation engine not initialized"
@@ -191,6 +195,7 @@ def _check_explainability() -> str | None:
 def _check_accountability() -> str | None:
     try:
         from cores.accountability.outcome_tracker import get_outcome_tracker
+
         tracker = get_outcome_tracker()
         if tracker is None:
             return "Outcome tracker not initialized"
@@ -203,6 +208,7 @@ def _check_accountability() -> str | None:
 def _check_scorecard() -> str | None:
     try:
         from cores.accountability.system_scorecard import get_system_scorecard
+
         scorecard = get_system_scorecard()
         latest = scorecard.get_latest()
         if latest is None:
@@ -216,6 +222,7 @@ def _check_scorecard() -> str | None:
 def _check_decision_memory() -> str | None:
     try:
         from cores.memory.decision_memory import get_decision_memory
+
         memory = get_decision_memory()
         if memory is None:
             return "Decision memory not initialized"
@@ -228,6 +235,7 @@ def _check_decision_memory() -> str | None:
 def _check_insight_archive() -> str | None:
     try:
         from cores.memory.insight_archive import get_insight_archive
+
         archive = get_insight_archive()
         if archive is None:
             return "Insight archive not initialized"
@@ -240,6 +248,7 @@ def _check_insight_archive() -> str | None:
 def _check_execution_api() -> str | None:
     try:
         from api.routers.execution import router
+
         if router is None:
             return "Execution API router not registered"
     except Exception as exc:
@@ -251,6 +260,7 @@ def _check_execution_api() -> str | None:
 def _check_priority_memory() -> str | None:
     try:
         from cores.intelligence.priority_engine import get_priority_engine
+
         engine = get_priority_engine()
         result = engine.consume_memory()
         if result.get("status") == "error":
@@ -276,13 +286,15 @@ def check_all_rules() -> list[dict[str, Any]]:
                 violation = r.check()
             except Exception as exc:
                 violation = str(exc)
-        results.append({
-            "name": r.name,
-            "description": r.description,
-            "severity": r.severity,
-            "passed": violation is None,
-            "violation": violation,
-        })
+        results.append(
+            {
+                "name": r.name,
+                "description": r.description,
+                "severity": r.severity,
+                "passed": violation is None,
+                "violation": violation,
+            }
+        )
     return results
 
 

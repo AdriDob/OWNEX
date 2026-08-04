@@ -22,7 +22,9 @@ extensions/
 ```python
 # extensions/hello/manifest.py
 from core.extension import (
-    ExtensionManifest, TextField, Capability,
+    ExtensionManifest,
+    TextField,
+    Capability,
 )
 
 manifest = ExtensionManifest(
@@ -46,11 +48,13 @@ Hooks are synchronous callbacks that run at specific lifecycle points.
 # extensions/my_ext/hooks.py
 from core.extension.hooks import on_hook
 
+
 @on_hook("before_scan")
 def warn_before_scan(target_id, scan_type):
     print(f"About to scan {target_id} with {scan_type}")
     # Return False to cancel the operation
     return True
+
 
 @on_hook("after_report")
 def log_after_report(report_id):
@@ -105,8 +109,11 @@ Settings fields auto-generate a settings UI in the frontend.
 
 ```python
 from core.extension import (
-    TextField, ApiKeyField, SwitchField,
-    NumberField, SelectField,
+    TextField,
+    ApiKeyField,
+    SwitchField,
+    NumberField,
+    SelectField,
 )
 
 settings = [
@@ -174,6 +181,7 @@ If an extension's `manifest.py` fails to load:
 ```python
 # tests/test_extensions.py
 from core.extension.registry import get_extension_registry
+
 
 def test_extension_discovery():
     registry = get_extension_registry()

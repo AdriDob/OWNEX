@@ -79,14 +79,16 @@ class CoinbaseConnector(AtlasConnector):
                     usd_price = await self._get_usd_price(currency)
                     value = balance * usd_price if usd_price else balance
                     total_value += value
-                    positions.append(NormalizedPosition(
-                        symbol=currency,
-                        name=acc.get("name", currency),
-                        asset_type="crypto",
-                        quantity=balance,
-                        current_price=usd_price or 0.0,
-                        value=value,
-                    ))
+                    positions.append(
+                        NormalizedPosition(
+                            symbol=currency,
+                            name=acc.get("name", currency),
+                            asset_type="crypto",
+                            quantity=balance,
+                            current_price=usd_price or 0.0,
+                            value=value,
+                        )
+                    )
             return NormalizedPortfolio(total_value=total_value, positions=positions, provider="coinbase")
         except Exception as exc:
             logger.warning("Coinbase portfolio failed: %s", exc)
@@ -153,6 +155,7 @@ class CoinbaseConnector(AtlasConnector):
                 return float(resp.json().get("data", {}).get("amount", 0))
             # fallback to CoinGecko
             from cores.crypto.coingecko import get_coingecko_feed
+
             return get_coingecko_feed().get_price(currency)
         except Exception:
             return None

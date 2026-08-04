@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 from collections.abc import AsyncIterator
 from typing import Any
+
+import httpx
 
 from core.copilot.providers.base import BaseProvider, ProviderConfig, ProviderResponse
 
@@ -11,11 +14,15 @@ logger = logging.getLogger("orion.copilot.providers.fcc")
 
 
 class FCCProvider(BaseProvider):
-    """FCC proxy — Claude models via OpenRouter proxy (free tier)."""
+    """FCC proxy — Claude models via OpenRouter proxy (free tier) with NVIDIA fallback support."""
+
+    # HTTP status codes that should trigger failover
+    FAILOVER_STATUS_CODES = {401, 402, 403, 429, 500, 502, 503, 504}
 
     def __init__(self, config: ProviderConfig | None = None) -> None:
         super().__init__(
-            config or ProviderConfig(
+            config
+            or ProviderConfig(
                 name="fcc",
                 priority=20,
                 models=[
@@ -29,23 +36,75 @@ class FCCProvider(BaseProvider):
                 timeout_s=60,
             )
         )
-        self._base_url = (
-            self._config.extra.get("base_url", os.getenv("ANTHROPIC_BASE_URL", "")) or "https://openrouter.ai/api/v1"
-        )
+        # Support multiple API key sources: NVIDIA, Anthropic, OpenRouter
         self._api_key = self._config.extra.get(
-            "api_key", os.getenv("ANTHROPIC_API_KEY", os.getenv("OPENROUTER_API_KEY", ""))
+            "api_key",
+            os.getenv("NVIDIA_API_KEY")
+            or os.getenv("NIM_API_KEY")
+            or os.getenv("ANTHROPIC_API_KEY")
+            or os.getenv("OPENROUTER_API_KEY")
+            or "",
         )
+        # Determine base URL based on which key we're using
+        if self._api_key and (
+            os.getenv("NVIDIA_API_KEY") or os.getenv("NIM_API_KEY") or self._config.extra.get("use_nvidia")
+        ):
+            self._base_url = self._config.extra.get(
+                "base_url", os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
+            )
+            self._provider_type = "nvidia"
+        else:
+            self._base_url = self._config.extra.get(
+                "base_url", os.getenv("ANTHROPIC_BASE_URL", "https://openrouter.ai/api/v1")
+            )
+            self._provider_type = "openrouter"
         self._default_model = self._config.models[0]
+        self._last_health_check = 0.0
+        self._health_check_interval = 60.0  # seconds
+        self._healthy = False
 
     async def check(self) -> bool:
-        """Quick health check - just verify API key is present."""
-        return bool(self._api_key)
+        """Health check with actual connectivity verification and caching."""
+        now = time.monotonic()
+        if now - self._last_health_check < self._health_check_interval:
+            return self._healthy
+
+        self._last_health_check = now
+        self._healthy = await self._verify_connectivity()
+        return self._healthy
+
+    async def _verify_connectivity(self) -> bool:
+        """Verify actual API connectivity."""
+        if not self._api_key:
+            logger.debug("FCC: No API key configured")
+            return False
+
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                r = await client.get(
+                    f"{self._base_url}/models",
+                    headers={"Authorization": f"Bearer {self._api_key}"},
+                )
+                if r.status_code == 200:
+                    logger.debug("FCC: Health check passed (%s)", self._provider_type)
+                    return True
+                elif r.status_code in self.FAILOVER_STATUS_CODES:
+                    logger.warning("FCC: Health check failed with status %d (%s)", r.status_code, self._provider_type)
+                    return False
+                else:
+                    logger.warning("FCC: Health check unexpected status %d (%s)", r.status_code, self._provider_type)
+                    return False
+        except Exception as exc:
+            logger.warning("FCC: Health check error (%s): %s", self._provider_type, exc)
+            return False
+
+    def _should_failover(self, status_code: int) -> bool:
+        """Determine if a status code should trigger failover."""
+        return status_code in self.FAILOVER_STATUS_CODES
 
     async def list_models(self) -> list[str]:
-        """List available free models from OpenRouter."""
+        """List available free models from the configured provider."""
         try:
-            import httpx
-
             async with httpx.AsyncClient(timeout=10) as client:
                 r = await client.get(
                     f"{self._base_url}/models",
@@ -94,12 +153,15 @@ class FCCProvider(BaseProvider):
                 )
                 if r.status_code != 200:
                     logger.warning("FCC API error: %s - %s", r.status_code, r.text)
+                    # Include failover flag for router
+                    should_failover = self._should_failover(r.status_code)
                     return ProviderResponse(
                         content="",
                         provider="fcc",
                         model=model,
                         error=f"API error {r.status_code}",
                         duration_ms=(time.monotonic() - t0) * 1000,
+                        extra={"should_failover": should_failover, "status_code": r.status_code},
                     )
                 data = r.json()
                 dur = (time.monotonic() - t0) * 1000

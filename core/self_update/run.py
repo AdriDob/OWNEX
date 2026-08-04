@@ -3,9 +3,9 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-project_dir = Path(__file__).resolve().parent.parent.parent
-
 from core.self_update.engine import SelfUpdateEngine
+
+project_dir = Path(__file__).resolve().parent.parent.parent
 
 engine = SelfUpdateEngine(str(project_dir))
 

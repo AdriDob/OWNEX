@@ -28,18 +28,21 @@ _pywin32 = {}
 
 try:
     import win32event
+
     _pywin32["event"] = win32event
 except ImportError:
     _pywin32["event"] = None
 
 try:
     import win32service
+
     _pywin32["service"] = win32service
 except ImportError:
     _pywin32["service"] = None
 
 try:
     import win32serviceutil
+
     _pywin32["serviceutil"] = win32serviceutil
 except ImportError:
     _pywin32["serviceutil"] = None
@@ -96,12 +99,11 @@ if _HAS_PYWIN32:
 
             os.environ["CATEYE_DESKTOP"] = "1"
             from cores.platform.system import get_db_path
+
             db_path = get_db_path()
             db_path.parent.mkdir(parents=True, exist_ok=True)
             os.environ["DATABASE_URL"] = f"sqlite:///{db_path}"
-            os.environ["CATEYE_BASE_DIR"] = str(
-                getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent)
-            )
+            os.environ["CATEYE_BASE_DIR"] = str(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
 
             port = _init_settings()
             host = "127.0.0.1"
@@ -113,6 +115,7 @@ if _HAS_PYWIN32:
             _lifecycle("[SERVICE]", "Server started on %s:%d", host, port)
 
             from desktop.watchdog import Watchdog
+
             self._watchdog = Watchdog(
                 health_check_url=f"http://{host}:{port}/api/health",
                 check_interval=30.0,
@@ -122,6 +125,7 @@ if _HAS_PYWIN32:
             _lifecycle("[SERVICE]", "Watchdog started")
 
             from cores.agents import start_all_agents
+
             start_all_agents()
             _lifecycle("[SERVICE]", "Agents started")
 
@@ -175,6 +179,7 @@ def run_service() -> None:
     if not _HAS_PYWIN32:
         print("pywin32 not available — running in console mode")
         from desktop.main_desktop import main as desktop_main
+
         desktop_main()
         return
     win32serviceutil = _pywin32["serviceutil"]

@@ -4,121 +4,271 @@ from typing import Any
 
 from cores.env.config import get_config
 
-UUID_PATTERN = re.compile(
-    r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-)
+UUID_PATTERN = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
 
 NUMERIC_SEGMENT_PATTERN = re.compile(r"/(?:[0-9]+)(?:/|$)")
-ID_PATTERN = re.compile(r"(?:user|account|order|invoice|device|file|customer|subscription|team|project|resource)_?id", re.I)
+ID_PATTERN = re.compile(
+    r"(?:user|account|order|invoice|device|file|customer|subscription|team|project|resource)_?id", re.I
+)
 NOUN_ID_PATTERN = re.compile(r"/(?:[A-Za-z]+)-?(?:id|uuid|key|token)(?:/|$)", re.I)
 
 STATIC_EXTENSIONS: set[str] = {
-    ".png", ".jpg", ".jpeg", ".gif", ".svg",
-    ".woff", ".woff2", ".ttf", ".css", ".js",
-    ".map", ".ico", ".mp4", ".webm",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".svg",
+    ".woff",
+    ".woff2",
+    ".ttf",
+    ".css",
+    ".js",
+    ".map",
+    ".ico",
+    ".mp4",
+    ".webm",
 }
 
 LOW_VALUE_PATTERNS: list[str] = [
-    "/health", "/status", "/metrics", "/favicon.ico",
-    "/robots.txt", "/sitemap.xml", "/ping", "/version",
-    "/swagger-resources", "/v2/api-docs", "/webjars",
-    "/actuator", "/heartbeat", "/ready", "/live",
-    "/static/", "/assets/", "/css/", "/js/", "/images/",
+    "/health",
+    "/status",
+    "/metrics",
+    "/favicon.ico",
+    "/robots.txt",
+    "/sitemap.xml",
+    "/ping",
+    "/version",
+    "/swagger-resources",
+    "/v2/api-docs",
+    "/webjars",
+    "/actuator",
+    "/heartbeat",
+    "/ready",
+    "/live",
+    "/static/",
+    "/assets/",
+    "/css/",
+    "/js/",
+    "/images/",
     "/logo",
 ]
 
 AUTH_KEYWORDS: list[str] = [
-    "login", "auth", "session", "token", "password",
-    "oauth", "signin", "signup", "refresh", "apikey", "jwt",
+    "login",
+    "auth",
+    "session",
+    "token",
+    "password",
+    "oauth",
+    "signin",
+    "signup",
+    "refresh",
+    "apikey",
+    "jwt",
 ]
 
 MULTI_TENANT_KEYWORDS: list[str] = [
-    "org", "tenant", "workspace", "account", "company", "team", "member",
+    "org",
+    "tenant",
+    "workspace",
+    "account",
+    "company",
+    "team",
+    "member",
 ]
 
 ADMIN_KEYWORDS: list[str] = [
-    "admin", "dashboard", "internal", "staff", "superuser", "management",
+    "admin",
+    "dashboard",
+    "internal",
+    "staff",
+    "superuser",
+    "management",
 ]
 
 EXPORT_KEYWORDS: list[str] = [
-    "export", "download", "backup", "report", "csv", "pdf",
+    "export",
+    "download",
+    "backup",
+    "report",
+    "csv",
+    "pdf",
 ]
 
 UPLOAD_KEYWORDS: list[str] = [
-    "upload", "attachment", "file", "import",
+    "upload",
+    "attachment",
+    "file",
+    "import",
 ]
 
 GRAPHQL_KEYWORDS: list[str] = [
-    "graphql", "gql",
+    "graphql",
+    "gql",
 ]
 
 IDOR_PARAMS: list[str] = [
-    "id", "user_id", "org_id", "tenant_id", "account_id",
-    "workspace_id", "member_id", "team_id",
+    "id",
+    "user_id",
+    "org_id",
+    "tenant_id",
+    "account_id",
+    "workspace_id",
+    "member_id",
+    "team_id",
 ]
 
 AUTH_SMELL_TOKENS: list[str] = [
-    "org_id", "tenant_id", "workspace_id", "account_id",
-    "user_id", "team_id",
+    "org_id",
+    "tenant_id",
+    "workspace_id",
+    "account_id",
+    "user_id",
+    "team_id",
 ]
 
 OBJECT_REFERENCE_TOKENS: list[str] = [
-    "user_id", "uid", "account_id", "order_id", "invoice_id",
-    "device_id", "file_id", "customer_id", "subscription_id",
-    "team_id", "project_id", "resource_id", "session_id",
+    "user_id",
+    "uid",
+    "account_id",
+    "order_id",
+    "invoice_id",
+    "device_id",
+    "file_id",
+    "customer_id",
+    "subscription_id",
+    "team_id",
+    "project_id",
+    "resource_id",
+    "session_id",
 ]
 
 OWNERSHIP_HINTS: list[str] = [
-    "user", "account", "profile", "order", "invoice",
-    "subscription", "device", "tenant", "org", "project",
-    "team", "resource", "member",
+    "user",
+    "account",
+    "profile",
+    "order",
+    "invoice",
+    "subscription",
+    "device",
+    "tenant",
+    "org",
+    "project",
+    "team",
+    "resource",
+    "member",
 ]
 
 HIGH_VALUE_KEYWORDS: set[str] = {
-    "billing", "admin", "internal", "graphql", "export",
-    "attachments", "uploads", "reports", "audit", "token",
-    "apikey", "keys", "invite", "organization", "workspace", "tenant",
+    "billing",
+    "admin",
+    "internal",
+    "graphql",
+    "export",
+    "attachments",
+    "uploads",
+    "reports",
+    "audit",
+    "token",
+    "apikey",
+    "keys",
+    "invite",
+    "organization",
+    "workspace",
+    "tenant",
 }
 
 BILLING_KEYWORDS: list[str] = [
-    "billing", "invoice", "subscription", "payment", "transfer",
+    "billing",
+    "invoice",
+    "subscription",
+    "payment",
+    "transfer",
 ]
 
 IDENTITY_KEYWORDS: list[str] = [
-    "invite", "member", "user",
+    "invite",
+    "member",
+    "user",
 ]
 
 SENSITIVE_OPERATIONS: list[str] = [
-    "/delete", "/remove", "/transfer", "/approve", "/reject",
+    "/delete",
+    "/remove",
+    "/transfer",
+    "/approve",
+    "/reject",
 ]
 
 WEB3_KEYWORDS: list[str] = [
-    "wallet", "balance", "transfer", "tx", "transaction",
-    "signature", "nonce", "rpc", "infura", "alchemy",
-    "contract", "ethereum", "solana", "web3", "chain",
+    "wallet",
+    "balance",
+    "transfer",
+    "tx",
+    "transaction",
+    "signature",
+    "nonce",
+    "rpc",
+    "infura",
+    "alchemy",
+    "contract",
+    "ethereum",
+    "solana",
+    "web3",
+    "chain",
 ]
 
 RPC_KEYWORDS: list[str] = [
-    "eth_", "net_", "web3_", "sol_", "jsonrpc",
+    "eth_",
+    "net_",
+    "web3_",
+    "sol_",
+    "jsonrpc",
 ]
 
 SENSITIVE_PATHS: list[str] = [
-    "admin", "dashboard", "export", "download",
-    "settings", "profile", "billing", "payment",
-    "transfer", "report",
+    "admin",
+    "dashboard",
+    "export",
+    "download",
+    "settings",
+    "profile",
+    "billing",
+    "payment",
+    "transfer",
+    "report",
 ]
 
 LOW_VALUE_ATTACK_PATTERNS: list[str] = [
-    r"/health", r"/status", r"/metrics", r"/favicon\.ico",
-    r"/robots\.txt", r"/sitemap\.xml", r"/static/",
-    r"/assets/", r"/css/", r"/js/", r"/images/",
-    r"/logo", r"/ping",
+    r"/health",
+    r"/status",
+    r"/metrics",
+    r"/favicon\.ico",
+    r"/robots\.txt",
+    r"/sitemap\.xml",
+    r"/static/",
+    r"/assets/",
+    r"/css/",
+    r"/js/",
+    r"/images/",
+    r"/logo",
+    r"/ping",
 ]
 
 ATTACK_VECTOR_KEYWORDS: dict[str, list[str]] = {
-    "IDOR": ["user_id", "account_id", "order_id", "file_id", "device_id",
-             "customer_id", "subscription_id", "team_id", "project_id",
-             "resource_id", "uid"],
+    "IDOR": [
+        "user_id",
+        "account_id",
+        "order_id",
+        "file_id",
+        "device_id",
+        "customer_id",
+        "subscription_id",
+        "team_id",
+        "project_id",
+        "resource_id",
+        "uid",
+    ],
     "Auth bypass": ["auth", "login", "session", "token"],
     "Data exposure": ["export", "download", "upload"],
     "Privilege escalation": ["admin", "dashboard", "manage"],
@@ -144,10 +294,7 @@ def _rank_attack_vector(path: str, params: dict[str, Any] | None) -> str:
             any(token in lower for token in OBJECT_REFERENCE_TOKENS)
             or bool(UUID_PATTERN.search(path))
             or bool(NUMERIC_SEGMENT_PATTERN.search(path))
-            or any(
-                any(ref == k.lower() for ref in OBJECT_REFERENCE_TOKENS)
-                for k in p
-            )
+            or any(any(ref == k.lower() for ref in OBJECT_REFERENCE_TOKENS) for k in p)
         )
     )
     if has_ownership:
@@ -228,12 +375,7 @@ def score(
     auth_smells: list[str] = []
     score_val: float = 0.0
 
-    is_api = (
-        "/api/" in lower
-        or lower.startswith("api")
-        or "/v1/" in lower
-        or "/v2/" in lower
-    )
+    is_api = "/api/" in lower or lower.startswith("api") or "/v1/" in lower or "/v2/" in lower
     if is_api:
         labels.append("api")
         score_val += 10.0
@@ -346,10 +488,7 @@ def score(
             score_val += 22.0
             signals.append("idor_params")
 
-        if any(
-            any(token == p or token in p for token in OBJECT_REFERENCE_TOKENS)
-            for p in lowered_params
-        ):
+        if any(any(token == p or token in p for token in OBJECT_REFERENCE_TOKENS) for p in lowered_params):
             score_val += 10.0
             signals.append("object_reference_param")
 
@@ -485,10 +624,21 @@ def score_target(meta: dict[str, Any] | None = None) -> dict[str, float]:
     if "wordpress" in technology_tags:
         score_val += 20.0
         roi += 15.0
-    wp_plugins = {t for t in technology_tags if t in (
-        "woocommerce", "elementor", "yoast", "acf",
-        "jetpack", "wpforms", "wordfence", "wprocket",
-    )}
+    wp_plugins = {
+        t
+        for t in technology_tags
+        if t
+        in (
+            "woocommerce",
+            "elementor",
+            "yoast",
+            "acf",
+            "jetpack",
+            "wpforms",
+            "wordfence",
+            "wprocket",
+        )
+    }
     score_val += min(len(wp_plugins) * 5.0, 20.0)
     modern_fw = {"nextjs", "nuxt", "django", "fastapi", "spring", "laravel", "rails"}
     if modern_fw & set(technology_tags):
@@ -519,14 +669,12 @@ def score_target(meta: dict[str, Any] | None = None) -> dict[str, float]:
 
     freshness = float(meta.get("freshness", 75.0))
     attack_surface_score = min(
-        (api_count * 10) + (30 if meta.get("wildcard") else 0)
-        + (10 if has_graphql else 0),
+        (api_count * 10) + (30 if meta.get("wildcard") else 0) + (10 if has_graphql else 0),
         100.0,
     )
     opportunity_score = min(
         max(
-            50.0 + (freshness * 0.5) - (competition * 0.8)
-            + (attack_surface_score * 0.6) + (roi_score * 0.2),
+            50.0 + (freshness * 0.5) - (competition * 0.8) + (attack_surface_score * 0.6) + (roi_score * 0.2),
             0.0,
         ),
         100.0,
@@ -557,26 +705,18 @@ def generate_suggestions(path: str, method: str, params: dict[str, Any]) -> list
             any(token in lower for token in OBJECT_REFERENCE_TOKENS)
             or bool(UUID_PATTERN.search(path))
             or bool(NUMERIC_SEGMENT_PATTERN.search(path))
-            or any(
-                any(ref == k.lower() for ref in OBJECT_REFERENCE_TOKENS)
-                for k in p
-            )
+            or any(any(ref == k.lower() for ref in OBJECT_REFERENCE_TOKENS) for k in p)
         )
     )
 
     if has_ownership:
         suggestions.append(
-            "Modificar el identificador de recurso (user_id/order_id/file_id) "
-            "y reproducir con otra cuenta de sesión."
+            "Modificar el identificador de recurso (user_id/order_id/file_id) y reproducir con otra cuenta de sesión."
         )
-        suggestions.append(
-            "Intentar acceso cruzado entre cuentas para detectar "
-            "debilidad en límites de propiedad."
-        )
+        suggestions.append("Intentar acceso cruzado entre cuentas para detectar debilidad en límites de propiedad.")
     if "graphql" in lower:
         suggestions.append(
-            "Enviar consultas GraphQL con parámetros de usuario/objeto "
-            "alternados para detectar filtrado débil."
+            "Enviar consultas GraphQL con parámetros de usuario/objeto alternados para detectar filtrado débil."
         )
     if method in {"POST", "PUT", "PATCH", "DELETE"}:
         suggestions.append(
@@ -584,18 +724,11 @@ def generate_suggestions(path: str, method: str, params: dict[str, Any]) -> list
             "para escalar privilegios o alterar asociaciones."
         )
     if any(token in lower for token in ["export", "download"]):
-        suggestions.append(
-            "Solicitar recursos con IDs de otros usuarios para probar "
-            "exposición de datos."
-        )
+        suggestions.append("Solicitar recursos con IDs de otros usuarios para probar exposición de datos.")
     if any(token in lower for token in ["auth", "login", "token", "session"]):
-        suggestions.append(
-            "Intentar bypass de autorización usando tokens inválidos "
-            "o IDs de usuario distintos."
-        )
+        suggestions.append("Intentar bypass de autorización usando tokens inválidos o IDs de usuario distintos.")
     if not suggestions:
         suggestions.append(
-            "Revisar esta ruta por lógica de negocio relevante y posibles "
-            "controles de autorización débiles."
+            "Revisar esta ruta por lógica de negocio relevante y posibles controles de autorización débiles."
         )
     return suggestions

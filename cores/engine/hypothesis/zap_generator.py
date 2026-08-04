@@ -85,16 +85,40 @@ DEFAULT_DIDACTIC: dict[str, Any] = {
 # ── Alert text → VulnerabilityType mapping ─────────────────────────────
 
 ALERT_PATTERNS: list[tuple[re.Pattern, str, VulnerabilityType]] = [
-    (re.compile(r"(?i)content.security.policy|missing.*csp|content.security"), "missing_csp", VulnerabilityType.MISSING_CSP),
+    (
+        re.compile(r"(?i)content.security.policy|missing.*csp|content.security"),
+        "missing_csp",
+        VulnerabilityType.MISSING_CSP,
+    ),
     (re.compile(r"(?i)strict.transport.security|hsts|missing.*hsts"), "missing_hsts", VulnerabilityType.MISSING_HSTS),
     (re.compile(r"(?i)x.frame.options|clickjack|missing.*xfo|x.frame"), "missing_xfo", VulnerabilityType.MISSING_XFO),
-    (re.compile(r"(?i)cookie.*secure|cookie.*httponly|cookie.*flag|cookie.*without"), "cookie_no_flags", VulnerabilityType.COOKIE_NO_FLAGS),
+    (
+        re.compile(r"(?i)cookie.*secure|cookie.*httponly|cookie.*flag|cookie.*without"),
+        "cookie_no_flags",
+        VulnerabilityType.COOKIE_NO_FLAGS,
+    ),
     (re.compile(r"(?i)tls.*weak|ssl.*weak|weak.*cipher|protocol.*old"), "tls_weak", VulnerabilityType.TLS_WEAK),
-    (re.compile(r"(?i)cacheable|information.*leak.*cache|cache.*https"), "cacheable_https", VulnerabilityType.CACHEABLE_HTTPS),
-    (re.compile(r"(?i)autocomplete|autofill|password.*autocomplete"), "autofill_sensitive", VulnerabilityType.AUTOFILL_SENSITIVE),
+    (
+        re.compile(r"(?i)cacheable|information.*leak.*cache|cache.*https"),
+        "cacheable_https",
+        VulnerabilityType.CACHEABLE_HTTPS,
+    ),
+    (
+        re.compile(r"(?i)autocomplete|autofill|password.*autocomplete"),
+        "autofill_sensitive",
+        VulnerabilityType.AUTOFILL_SENSITIVE,
+    ),
     (re.compile(r"(?i)x.xss.protection|missing.*xss"), "misconfiguration", VulnerabilityType.MISCONFIGURATION),
-    (re.compile(r"(?i)info.*leak|information.*disclosure|directory.*listing|server.*leak"), "info_leak", VulnerabilityType.INFO_LEAK),
-    (re.compile(r"(?i)x.content.type.options|nosniff|mime.*sniff"), "misconfiguration", VulnerabilityType.MISCONFIGURATION),
+    (
+        re.compile(r"(?i)info.*leak|information.*disclosure|directory.*listing|server.*leak"),
+        "info_leak",
+        VulnerabilityType.INFO_LEAK,
+    ),
+    (
+        re.compile(r"(?i)x.content.type.options|nosniff|mime.*sniff"),
+        "misconfiguration",
+        VulnerabilityType.MISCONFIGURATION,
+    ),
     (re.compile(r"(?i)permissions.policy|feature.policy"), "misconfiguration", VulnerabilityType.MISCONFIGURATION),
     (re.compile(r"(?i)referrer.*policy|referer.*leak"), "info_leak", VulnerabilityType.INFO_LEAK),
     (re.compile(r"(?i)open.*redirect|redirect.*unvalidated"), "misconfiguration", VulnerabilityType.MISCONFIGURATION),
@@ -168,38 +192,41 @@ def generate_from_zap_alerts(
         likelihood = min(1.0, risk_score / 5.0 + conf_value)
         impact = min(1.0, risk_score / 4.0)
 
-        hypotheses.append(Hypothesis(
-            id=hyp_id,
-            vulnerability_type=vt,
-            target_id=target_id,
-            target_name=target_name,
-            endpoint={
-                "path": url,
-                "method": "GET",
-                "risk_score": float(risk_score),
-                "id": endpoint_id,
-                "alert_plugin": plugin_id,
-                "evidence": evidence_text,
-            },
-            likelihood=likelihood,
-            impact=impact,
-            exploitability=max(0.3, 1.0 - impact),
-            confidence=conf_value,
-            priority_score=risk_score * 10.0,
-            evidence=[evidence_text] if evidence_text else [f"ZAP alert: {alert_name}"],
-            reasoning="\n".join(reasoning_parts),
-            suggested_actions=suggested,
-            source=HypothesisSource.ZAP,
-            vector=canonical_key,
-            attack_surface_labels=["passive_recon", canonical_key],
-            what_is_this=didactic["what_is_this"],
-            why_suspected=f"ZAP analizó pasivamente el tráfico HTTP y detectó: {alert_name}" + (f" en {url}" if url else ""),
-            real_world_impact=didactic["real_world_impact"],
-            how_to_verify=tuple(how_to_verify),
-            estimated_difficulty=didactic["difficulty"],
-            estimated_time_minutes=didactic["time_minutes"],
-            estimated_reward_range=didactic["reward_range"],
-        ))
+        hypotheses.append(
+            Hypothesis(
+                id=hyp_id,
+                vulnerability_type=vt,
+                target_id=target_id,
+                target_name=target_name,
+                endpoint={
+                    "path": url,
+                    "method": "GET",
+                    "risk_score": float(risk_score),
+                    "id": endpoint_id,
+                    "alert_plugin": plugin_id,
+                    "evidence": evidence_text,
+                },
+                likelihood=likelihood,
+                impact=impact,
+                exploitability=max(0.3, 1.0 - impact),
+                confidence=conf_value,
+                priority_score=risk_score * 10.0,
+                evidence=[evidence_text] if evidence_text else [f"ZAP alert: {alert_name}"],
+                reasoning="\n".join(reasoning_parts),
+                suggested_actions=suggested,
+                source=HypothesisSource.ZAP,
+                vector=canonical_key,
+                attack_surface_labels=["passive_recon", canonical_key],
+                what_is_this=didactic["what_is_this"],
+                why_suspected=f"ZAP analizó pasivamente el tráfico HTTP y detectó: {alert_name}"
+                + (f" en {url}" if url else ""),
+                real_world_impact=didactic["real_world_impact"],
+                how_to_verify=tuple(how_to_verify),
+                estimated_difficulty=didactic["difficulty"],
+                estimated_time_minutes=didactic["time_minutes"],
+                estimated_reward_range=didactic["reward_range"],
+            )
+        )
 
     return hypotheses
 
@@ -262,7 +289,7 @@ def _build_verification_steps(
         steps += [
             f"Navega a: {url}",
             "Identifica campos de contraseña o datos sensibles.",
-            "Inspecciona el HTML (clic derecho → Inspeccionar) y busca `autocomplete=\"on\"` o ausencia de `autocomplete=\"off\"`.",
+            'Inspecciona el HTML (clic derecho → Inspeccionar) y busca `autocomplete="on"` o ausencia de `autocomplete="off"`.',
             "Toma screenshot del código HTML del campo sensible.",
         ]
     else:
@@ -288,4 +315,5 @@ def _build_suggested_actions(vt: VulnerabilityType, solution: str, url: str) -> 
 
 def _extract_host(url: str) -> str:
     from urllib.parse import urlparse
+
     return urlparse(url).hostname or url

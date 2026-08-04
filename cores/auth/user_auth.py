@@ -34,10 +34,7 @@ class UserAuth:
     ) -> dict[str, str]:
         """Registrar nuevo usuario."""
         # Check if user exists
-        existing_user = self.db.execute(
-            "SELECT id FROM users WHERE email = ?",
-            (email,)
-        ).fetchone()
+        existing_user = self.db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
 
         if existing_user:
             return {"success": False, "error": "User already exists"}
@@ -99,10 +96,7 @@ class UserAuth:
     ) -> dict[str, str]:
         """Login usuario existente."""
         # Get user
-        user = self.db.execute(
-            "SELECT id, password_hash FROM users WHERE email = ?",
-            (email,)
-        ).fetchone()
+        user = self.db.execute("SELECT id, password_hash FROM users WHERE email = ?", (email,)).fetchone()
 
         if not user:
             return {"success": False, "error": "Invalid credentials"}

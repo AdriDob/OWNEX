@@ -77,11 +77,11 @@ async function syncPlatform(provider: string) {
 }
 
 const platformColors: Record<string, string> = {
-  hackerone: 'text-emerald-400',
-  bugcrowd: 'text-orange-400',
-  intigriti: 'text-purple-400',
-  yeswehack: 'text-rose-300',
-  synack: 'text-blue-400',
+  hackerone: 'text-success',
+  bugcrowd: 'text-warning',
+  intigriti: 'text-intigriti',
+  yeswehack: 'text-destructive',
+  synack: 'text-muted-foreground',
 }
 
 const connectedCount = computed(() => accounts.value.filter(a => a.connected).length)
@@ -260,13 +260,13 @@ onMounted(loadData)
                   <input
                     v-model="connectEmail"
                     placeholder="Email on {{ platform }}"
-                    class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-1.5 text-xs text-foreground"
+                    class="w-full rounded-lg border border-border/60 bg-background/60 px-3 py-1.5 text-xs text-foreground"
                   />
                   <input
                     v-model="connectToken"
                     placeholder="API Key or token"
                     type="password"
-                    class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-1.5 text-xs text-foreground"
+                    class="w-full rounded-lg border border-border/60 bg-background/60 px-3 py-1.5 text-xs text-foreground"
                   />
                   <div v-if="connectError" class="text-[10px] text-destructive">{{ connectError }}</div>
                   <div class="flex gap-2">
@@ -326,7 +326,7 @@ onMounted(loadData)
               v-if="accounts.length > 0"
               :labels="doughnutLabels"
               :data="doughnutData"
-              :colors="['#22c55e', '#6b7280']"
+              :colors="['#16A34A', '#6b7280']"
               :height="200"
               :show-legend="true"
               :cutout="'65%'"
@@ -348,7 +348,7 @@ onMounted(loadData)
                 <input
                   v-model="settings.email"
                   placeholder="your@email.com"
-                  class="mt-1 w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-1.5 text-xs text-foreground"
+                  class="mt-1 w-full rounded-lg border border-border/60 bg-background/60 px-3 py-1.5 text-xs text-foreground"
                 />
               </div>
               <div>
@@ -356,14 +356,14 @@ onMounted(loadData)
                 <input
                   v-model="settings.wallet_address"
                   placeholder="0x... or bc1..."
-                  class="mt-1 w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-1.5 text-xs text-foreground"
+                  class="mt-1 w-full rounded-lg border border-border/60 bg-background/60 px-3 py-1.5 text-xs text-foreground"
                 />
               </div>
               <div>
                 <p class="text-[10px] text-muted-foreground flex items-center gap-1"><Shield class="h-3 w-3" /> Operational Mode</p>
                 <select
                   v-model="settings.operational_mode"
-                  class="mt-1 w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-1.5 text-xs text-foreground"
+                  class="mt-1 w-full rounded-lg border border-border/60 bg-background/60 px-3 py-1.5 text-xs text-foreground"
                 >
                   <option value="manual">Manual</option>
                   <option value="prepare">Prepare</option>

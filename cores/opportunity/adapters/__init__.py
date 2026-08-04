@@ -203,10 +203,17 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
 
     # Vault adapters
     try:
-        from core.opportunity.adapters.vault import VaultAdapter
+        from core.opportunity.adapters.vault import (
+            BinanceAdapter,
+            CoinGeckoAdapter,
+            DefiLlamaAdapter,
+            FireflyAdapter,
+        )
 
-        registry.register("coingecko", VaultAdapter)
-        registry.register("firefly", VaultAdapter)
+        registry.register("coingecko", CoinGeckoAdapter)
+        registry.register("firefly", FireflyAdapter)
+        registry.register("binance", BinanceAdapter)
+        registry.register("defillama", DefiLlamaAdapter)
     except ImportError:
         pass
 

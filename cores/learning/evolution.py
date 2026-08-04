@@ -224,7 +224,7 @@ class PromptEvolutionEngine:
         elif mutation == "remove_example":
             # Remove example sections
             lines = prompt.split("\n")
-            filtered = [l for l in lines if not l.strip().startswith("Example:")]
+            filtered = [line for line in lines if not line.strip().startswith("Example:")]
             return "\n".join(filtered)
 
         elif mutation == "change_persona":
@@ -242,7 +242,7 @@ class PromptEvolutionEngine:
 
         return prompt
 
-    def get_best(self) -> Optional[PromptGenome]:
+    def get_best(self) -> PromptGenome | None:
         with self._lock:
             if not self._population:
                 return None
@@ -283,7 +283,7 @@ def evolve_prompts(test_cases: list[dict]) -> dict:
     return _evolution_engine.evolve(test_cases)
 
 
-def get_best_prompt() -> Optional[str]:
+def get_best_prompt() -> str | None:
     """Get the current best prompt."""
     best = _evolution_engine.get_best()
     return best.prompt_template if best else None

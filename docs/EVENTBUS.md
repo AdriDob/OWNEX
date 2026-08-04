@@ -175,7 +175,8 @@ AgentBus publish(event)
 from cores.events.event_bus import get_event_bus
 
 bus = get_event_bus()
-bus.publish("finding:status_changed",
+bus.publish(
+    "finding:status_changed",
     id=finding.id,
     new_status="confirmed",
     target_id=finding.target_id,
@@ -189,8 +190,10 @@ bus.publish("finding:status_changed",
 ```python
 from cores.events.event_bus import get_event_bus
 
+
 def my_handler(event_type, priority, **payload):
     logger.info("Received %s: %s", event_type, payload)
+
 
 bus = get_event_bus()
 bus.subscribe("finding:created", my_handler)
@@ -204,6 +207,7 @@ Use the wildcard `*` pattern:
 def catch_all(event_type, priority, **payload):
     logger.debug("Event: %s", event_type)
 
+
 bus.subscribe("*", catch_all)
 ```
 
@@ -212,6 +216,7 @@ bus.subscribe("*", catch_all)
 ```python
 async def async_handler(event_type, priority, **payload):
     await some_async_operation(payload)
+
 
 bus.subscribe_async("report:generated", async_handler)
 ```

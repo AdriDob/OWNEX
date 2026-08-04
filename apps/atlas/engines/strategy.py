@@ -70,13 +70,15 @@ class StrategyEngine:
             action = "sell" if diff > 0 else "buy"
             delta_value = total * abs(diff) / 100
 
-            suggestions.append(RebalanceSuggestion(
-                symbol=asset_type,
-                current_percent=round(current_pct_val, 1),
-                target_percent=target_pct,
-                action=action,
-                delta_value=round(delta_value, 2),
-            ))
+            suggestions.append(
+                RebalanceSuggestion(
+                    symbol=asset_type,
+                    current_percent=round(current_pct_val, 1),
+                    target_percent=target_pct,
+                    action=action,
+                    delta_value=round(delta_value, 2),
+                )
+            )
 
         return StrategyRecommendation(
             suggestions=suggestions,

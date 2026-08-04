@@ -62,7 +62,7 @@ describe('DataTable', () => {
 
   it('renders correct number of data rows per page', () => {
     const rows = wrapper.findAll('tbody tr')
-    expect(rows.length).toBe(3) // 1 header + 2 data rows
+    expect(rows.length).toBe(2) // 2 data rows with pageSize=2
   })
 
   it('shows search input when searchable is true', () => {
@@ -75,7 +75,7 @@ describe('DataTable', () => {
     await searchInput.setValue('alice')
     
     const rows = wrapper.findAll('tbody tr')
-    expect(rows.length).toBe(2) // 1 header + 1 data row
+    expect(rows.length).toBe(1) // 1 data row
     expect(wrapper.text()).toContain('Alice')
     expect(wrapper.text()).not.toContain('Bob')
   })
@@ -113,8 +113,10 @@ describe('DataTable', () => {
     expect(wrapper.text()).not.toContain('Charlie')
     
     // Go to next page
-    const nextButton = wrapper.find('button:contains("Siguiente")')
-    await nextButton.trigger('click')
+    const buttons = wrapper.findAll('button')
+    const nextButton = buttons.find(b => b.text() === 'Siguiente')
+    expect(nextButton).toBeDefined()
+    await nextButton!.trigger('click')
     
     expect(wrapper.text()).toContain('Charlie')
     expect(wrapper.text()).toContain('Diana')
@@ -133,7 +135,7 @@ describe('DataTable', () => {
       },
     })
     
-    expect(loadingWrapper.find('.animate-pulse').exists()).toBe(true)
+    expect(loadingWrapper.find('.ownex-skeleton').exists()).toBe(true)
   })
 
   it('shows empty state when no items', () => {
@@ -161,7 +163,7 @@ describe('DataTable', () => {
         pageSize: 2,
       },
       slots: {
-        'cell-status': '<span class="custom-badge">{{ props.value }}</span>',
+        'cell-status': '<span class="custom-badge">{{ value }}</span>',
       },
       global: {
         stubs: { ChevronUp: true, ChevronDown: true, Search: true, X: true },

@@ -91,7 +91,7 @@ def _signal_strength(h: Hypothesis) -> float:
     signal_score = min(len(signals) / 8.0, 1.0)
     evidence_score = min(evidence_count / 6.0, 1.0)
     risk_score_norm = min(risk_score / 100.0, 1.0)
-    return (signal_score * 0.3 + evidence_score * 0.3 + risk_score_norm * 0.4)
+    return signal_score * 0.3 + evidence_score * 0.3 + risk_score_norm * 0.4
 
 
 def _surface_overlap(h: Hypothesis) -> float:
@@ -178,10 +178,7 @@ def compute_exploitability(h: Hypothesis) -> float:
     complexity = 1.0 - min(risk_score / 100.0, 1.0)
 
     auth_required = 0.4 if "auth" in ep.get("labels", []) else 0.8
-    tool_factor = 0.7 if any(
-        t in h.vulnerability_type.value
-        for t in {"idor", "graphql", "xss"}
-    ) else 0.4
+    tool_factor = 0.7 if any(t in h.vulnerability_type.value for t in {"idor", "graphql", "xss"}) else 0.4
 
     score = (
         EXPLOITABILITY_WEIGHTS["attack_vector_complexity"] * complexity
@@ -205,12 +202,7 @@ def compute_confidence(
     pattern_factor = min(pattern_similarity, 1.0) * 0.15
     memory_factor = min(past_success_rate, 1.0) * 0.10
 
-    base = (
-        risk_norm * 0.35
-        + evidence_factor * 0.25
-        + pattern_factor
-        + memory_factor
-    )
+    base = risk_norm * 0.35 + evidence_factor * 0.25 + pattern_factor + memory_factor
     return min(max(base, 0.05), 0.95)
 
 
@@ -220,12 +212,7 @@ def compute_priority_score(h: Hypothesis) -> float:
     exploitability_weight = compute_exploitability(h)
     confidence_weight = h.confidence
 
-    score = (
-        likelihood_weight * 0.25
-        + impact_weight * 0.35
-        + exploitability_weight * 0.25
-        + confidence_weight * 0.15
-    )
+    score = likelihood_weight * 0.25 + impact_weight * 0.35 + exploitability_weight * 0.25 + confidence_weight * 0.15
     return round(score * 10.0, 2)
 
 
@@ -327,6 +314,7 @@ def reorder_attack_queue(
     0.3 = balanced (default)
     0.5+ = ROI-dominant
     """
+
     def _composite(h: Hypothesis) -> tuple[float, float]:
         # priority_score already includes ROI via apply_roi_to_priority in score_hypothesis
         # But for queue reordering we also consider roi_score as tiebreaker

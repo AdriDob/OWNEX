@@ -22,7 +22,9 @@ def _build_roi_detail(
     return {
         "endpoint_id": hypothesis.endpoint.get("id") if hypothesis.endpoint else None,
         "hypothesis_id": hypothesis.id,
-        "vulnerability_type": hypothesis.vulnerability_type.value if hasattr(hypothesis.vulnerability_type, "value") else str(hypothesis.vulnerability_type),
+        "vulnerability_type": hypothesis.vulnerability_type.value
+        if hasattr(hypothesis.vulnerability_type, "value")
+        else str(hypothesis.vulnerability_type),
         "path": endpoint_path or hypothesis.endpoint.get("path", ""),
         "method": endpoint_method or hypothesis.endpoint.get("method", "GET"),
         "roi_normalized": hypothesis.roi_score,
@@ -54,20 +56,22 @@ def get_target_roi(target_id: int):
         scored_endpoints = []
         for ep in endpoints:
             s = _score_endpoint(ep)
-            scored_endpoints.append({
-                "id": ep.id,
-                "target_id": ep.target_id,
-                "path": ep.path,
-                "method": ep.method or "GET",
-                "risk_score": s.get("risk_score", 0),
-                "confidence": s.get("confidence", 0),
-                "vector": s.get("vector", "unknown"),
-                "labels": s.get("labels", []),
-                "signals": s.get("signals", []),
-                "attack_surface": s.get("attack_surface", []),
-                "actionable": s.get("actionable", False),
-                "parsed_params": ep.parsed_params,
-            })
+            scored_endpoints.append(
+                {
+                    "id": ep.id,
+                    "target_id": ep.target_id,
+                    "path": ep.path,
+                    "method": ep.method or "GET",
+                    "risk_score": s.get("risk_score", 0),
+                    "confidence": s.get("confidence", 0),
+                    "vector": s.get("vector", "unknown"),
+                    "labels": s.get("labels", []),
+                    "signals": s.get("signals", []),
+                    "attack_surface": s.get("attack_surface", []),
+                    "actionable": s.get("actionable", False),
+                    "parsed_params": ep.parsed_params,
+                }
+            )
 
         engine = HypothesisEngine()
         output = engine.run(
@@ -82,11 +86,13 @@ def get_target_roi(target_id: int):
 
         for h in prioritized:
             ep = ep_map.get(h.endpoint.get("id")) if h.endpoint else None
-            roi_details.append(_build_roi_detail(
-                h,
-                endpoint_path=ep.get("path", "") if ep else "",
-                endpoint_method=ep.get("method", "GET") if ep else "GET",
-            ))
+            roi_details.append(
+                _build_roi_detail(
+                    h,
+                    endpoint_path=ep.get("path", "") if ep else "",
+                    endpoint_method=ep.get("method", "GET") if ep else "GET",
+                )
+            )
 
         [r for r in roi_details if r["is_profitable"]]
         total_return = sum(r["expected_return"] for r in roi_details)

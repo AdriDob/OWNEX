@@ -7,6 +7,7 @@ Provides:
 - Compounding strategy simulation
 - Event bus integration for yield events
 """
+# ruff: noqa: E402
 from core.defi.positions import DefiPosition, ProtocolInfo, YieldSnapshot
 from core.defi.strategy import CompoundStrategy, StrategyProjection
 from core.defi.yield_tracker import DefiYieldTracker

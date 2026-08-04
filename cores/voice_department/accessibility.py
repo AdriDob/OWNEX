@@ -61,11 +61,13 @@ class VoiceAccessibilitySystem:
     def add_subtitle(self, text: str, timestamp: float, speaker: str = "OWNEX") -> None:
         """Agregar subtítulo."""
         if self.should_show_subtitles():
-            self.subtitle_history.append({
-                "text": text,
-                "timestamp": timestamp,
-                "speaker": speaker,
-            })
+            self.subtitle_history.append(
+                {
+                    "text": text,
+                    "timestamp": timestamp,
+                    "speaker": speaker,
+                }
+            )
             logger.debug(f"Subtitle added: {text}")
 
     def get_subtitle_history(self, limit: int = 50) -> list[dict[str, Any]]:

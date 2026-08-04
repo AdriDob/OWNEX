@@ -58,12 +58,14 @@ class ConversationAgent:
         response = self._generate_response(intent, context)
 
         # Actualizar contexto
-        context.history.append({
-            "input": user_input,
-            "intent": intent,
-            "response": response,
-            "timestamp": datetime.now().isoformat(),
-        })
+        context.history.append(
+            {
+                "input": user_input,
+                "intent": intent,
+                "response": response,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
         return {
             "response": response,
@@ -172,7 +174,9 @@ class ConversationAgent:
             },
         }
 
-        return base_responses.get(intent, base_responses["general"]).get(personality, base_responses["general"][VoicePersonality.SENIOR_ENGINEER])
+        return base_responses.get(intent, base_responses["general"]).get(
+            personality, base_responses["general"][VoicePersonality.SENIOR_ENGINEER]
+        )
 
     def _apply_mode(self, response: str, mode: ConversationMode, detail_level: int) -> str:
         """Aplicar modo de conversación y nivel de detalle."""
@@ -400,7 +404,9 @@ class ConversationAgent:
         self.personalization_system.set_conversation_mode(context.user_id, new_mode)
         return context
 
-    def switch_personality(self, context: ConversationContext, new_personality: VoicePersonality) -> ConversationContext:
+    def switch_personality(
+        self, context: ConversationContext, new_personality: VoicePersonality
+    ) -> ConversationContext:
         """Cambiar personalidad."""
         context.personality = new_personality
         self.personalization_system.set_personality(context.user_id, new_personality)

@@ -63,20 +63,22 @@ def run_hypotheses(target_id: int):
         scored_endpoints = []
         for ep in endpoints:
             s = _score_endpoint(ep)
-            scored_endpoints.append({
-                "id": ep.id,
-                "target_id": ep.target_id,
-                "path": ep.path,
-                "method": ep.method or "GET",
-                "risk_score": s.get("risk_score", 0),
-                "confidence": s.get("confidence", 0),
-                "vector": s.get("vector", "unknown"),
-                "labels": s.get("labels", []),
-                "signals": s.get("signals", []),
-                "attack_surface": s.get("attack_surface", []),
-                "actionable": s.get("actionable", False),
-                "parsed_params": ep.parsed_params,
-            })
+            scored_endpoints.append(
+                {
+                    "id": ep.id,
+                    "target_id": ep.target_id,
+                    "path": ep.path,
+                    "method": ep.method or "GET",
+                    "risk_score": s.get("risk_score", 0),
+                    "confidence": s.get("confidence", 0),
+                    "vector": s.get("vector", "unknown"),
+                    "labels": s.get("labels", []),
+                    "signals": s.get("signals", []),
+                    "attack_surface": s.get("attack_surface", []),
+                    "actionable": s.get("actionable", False),
+                    "parsed_params": ep.parsed_params,
+                }
+            )
 
         engine = HypothesisEngine()
         output = engine.run(

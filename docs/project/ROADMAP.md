@@ -49,6 +49,12 @@
 | P27 | Discord Notifications (12 events) | FASE_18 | — | ✅ Observability |
 | P28 | ARCA / Outlook Integrations | FASE_18 | — | ✅ Revenue |
 | P29 | Linux Setup + Windows Installer (33 tools) | FASE_18 | — | ✅ Deployment |
+| P30 | **Work Cycles (6)** — Security, Forge, Pulse, Atlas, Vault, CoderAgent | 2026-08-01 | — | ✅ Autonomy/Revenue |
+| P31 | **Direct Work Engine (DWE)** — multi-adapter | 2026-08-01 | 51 | ✅ Revenue (work sourcing) |
+| P32 | **Work Bank** — top picks + skill_gap + daily brief | 2026-08-01 | 16 | ✅ Acceptance/Learning |
+| P33 | **Voice Assistant** | 2026-08-01 | 9 | ✅ Autonomy |
+| P34 | **OAR AI Runtime** (unified provider OS) | 2026-08-04 | 12 | ✅ Cost/Learning |
+| P35 | **Career Engine** (skill-gaps + roadmap) | 2026-08-04 | 14 | ✅ Learning (Revenue via upskilling) |
 
 ---
 
@@ -58,6 +64,8 @@
 |----|---------|----------|--------|--------|
 | IP01 | **Security Cycle E2E** | Executive Dashboard, Knowledge Capture, scheduler bootstrap, GamingConsole fake data | 3-4 hrs | **NEXT** |
 | IP02 | **Desktop Release (Tauri)** | Never built, PyInstaller sidecar untested, credentials vault seed | 1-2 hrs | AFTER IP01 |
+| IP03 | **OAR API wiring** | Exponer SmartRouter vía `api/routers/oar.py` (engine+12 tests listo) | 1-2 hrs | POST IP02 |
+| IP04 | **Career Engine API wiring** | Exponer `/career/*` + roadmap en Mission Control (engine+14 tests listo) | 1-2 hrs | POST IP03 |
 
 ---
 
@@ -72,18 +80,24 @@
 
 ---
 
-## 🔴 PENDING — OMEGA MULTI-CYCLE ARCHITECTURE (Revenue Rule Compliant)
+## 🔴↗️ OMEGA MULTI-CYCLE ARCHITECTURE — Mayormente COMPLETADO (2026-08-01)
 
-| ID | Feature | Revenue Rule | Effort |
-|----|---------|--------------|--------|
-| OM01 | **Forge Cycle (Dev Bounties)** | ✅ Detection + Acceptance + Learning | 4-6 hrs |
-| OM02 | **Pulse Cycle (AI Work / Microtasks)** | ✅ Detection + Acceptance + Learning | 4-6 hrs |
-| OM03 | **Multi-Cycle Orchestrator** | ✅ Autonomy + Learning | 3-4 hrs |
-| OM04 | **Autonomous Agents System (12 agents)** | ✅ Autonomy + Learning | 6-8 hrs |
-| OM05 | **Continuous Sensors per Domain** | ✅ Detection | 4-6 hrs |
-| OM06 | **Self-Repair System** | ✅ Stability → Revenue continuity | 3-4 hrs |
-| OM07 | **Learning System (Post-cycle)** | ✅ Learning | 3-4 hrs |
-| OM08 | **Mobile Companion (Android + Wear OS)** | ✅ Autonomy + Observability | 4-6 hrs |
+> Los 6 Work Cycles ya operan (Security, Forge, Pulse, Atlas, Vault, CoderAgent)
+> impulsados por DWE + Work Bank. Queda profundizar la autonomía 24/7 y el mobile.
+
+| ID | Feature | Status (2026-08-04) | Revenue Rule |
+|----|---------|---------------------|--------------|
+| OM01 | Forge Cycle (Dev Bounties) | ✅ Impl. (Work Cycle) | ✅ Detection + Acceptance + Learning |
+| OM02 | Pulse Cycle (AI Work / Microtasks) | ✅ Impl. (Work Cycle) | ✅ Detection + Acceptance + Learning |
+| OM03 | Multi-Cycle Orchestrator | 🟡 DWE coordina, orquestador profundo pendiente | ✅ Autonomy + Learning |
+| OM04 | Autonomous Agents System (12 agents) | 🟡 AgentFleet + 7 agents; 12 OMEGA no creados | ✅ Autonomy + Learning |
+| OM05 | Continuous Sensors per Domain | 🟡 Sensors por ciclo parcial | ✅ Detection |
+| OM06 | Self-Repair System | 🔴 Pendiente | ✅ Stability → Revenue continuity |
+| OM07 | Learning System (Post-cycle) | 🟡 Career Engine + Work Bank assess | ✅ Learning |
+| OM08 | Mobile Companion | 🟡 OMEGA Expo/RN esqueleto en `omega/` | ✅ Autonomy + Observability |
+
+> **Nota 2026-08-04:** OAR AI Runtime (routing IA con budget/failover) y Career Engine
+> (skill-gaps + roadmap) son la base del `OM07 Learning System` y la autonomía de `OM03/OM04`.
 
 ---
 
@@ -92,7 +106,7 @@
 | ID | Feature | Reason |
 |----|---------|--------|
 | PD01 | CI/CD Pipeline (GitHub Actions) | Deferred — no release blocker yet |
-| PD02 | Repo Hygiene (216 modified, 50 untracked) | Deferred — commit after IP01+IP02 |
+| PD02 | Repo Hygiene (198 modified, 27 untracked) | Deferred — commit after IP01+IP02 |
 | PD03 | Extension Cycle Integration | **Fails Revenue Rule** — no direct detection/evidence/acceptance/learning |
 | PD04 | Evolution Engine Wiring | **Fails Revenue Rule** — infrastructure only |
 | PD05 | Smart Notifications Bridge | FASE_28 partial — needs frontend |
@@ -166,6 +180,7 @@ OMEGA Multi-Cycle Architecture (Parallel, Revenue Rule Compliant)
 | **7.0.1** | Sprint 1 done | Security Cycle E2E complete |
 | **7.1.0** | Sprint 2 done | Desktop installer released |
 | **7.2.0** | Sprint 3 done | Clean repo, CI/CD, production hardened |
+| **7.3.0** | IP03+IP04 | OAR API + Career Engine API wired into Mission Control |
 | **8.0.0** | Sprint 4-6 done | Forge + Pulse + Orchestrator + Agents operational |
-| **8.1.0** | Sprint 7 done | Self-Repair + Learning + Mobile Companion |
+| **8.1.0** | Sprint 7 done | Self-Repair + Learning + Mobile Companion (OMEGA Expo/RN) |
 | **9.0.0** | Post-v8 | Extension/Evolution integration (if Revenue Rule passes) |

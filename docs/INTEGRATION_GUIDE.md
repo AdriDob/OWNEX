@@ -388,6 +388,7 @@ curl http://localhost:8000/api/financial/integrations/status
 
 ```python
 from cores.financial.takenos.connector import get_takenos_connector
+
 conn = get_takenos_connector()
 
 # Manual balance entry
@@ -606,7 +607,7 @@ vault.store_credentials(
     metadata={
         "api_key": "your-binance-api-key",
         "api_secret": "your-binance-api-secret",
-    }
+    },
 )
 
 # Retrieve

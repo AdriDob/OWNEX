@@ -18,27 +18,36 @@ from api.middleware.rate_limit_middleware import RateLimitMiddleware
 from api.routers import (
     accounts_hub,
     activity,
+    agent_coordinator,
     agents_router,
     ai_security,
     assistant,
     atlas_app,
+    atlas_cycle,
     attack,
     attack_surface,
     auth,
     auth_user,
     auth_users,
     authhub,
+    auto_submit,
     bank_payout,
+    bounty_pipeline,
     canonical,
+    capability_expansion,
+    career,
     commands,
     connections,
     contracts,
+    credentials_rotation,
     crypto,
     cycles,
     daily,
+    daily_mode,
     devin,
     differential_intelligence,
     digest,
+    direct_work,
     discovery,
     economic,
     endpoints,
@@ -64,17 +73,21 @@ from api.routers import (
     license,
     life_management,
     market_intelligence,
+    mercenary_filter,
     merlin,
     micro,
     mission,
     mobile,
+    mobile_approvals,
     notifications,
+    oar,
     offensive,
     offensive_web3,
     onboarding,
     opensource,
     operations,
     opportunities,
+    opportunity_feedback,
     opportunity_intelligence,
     opportunity_score,
     orchestrator,
@@ -89,6 +102,7 @@ from api.routers import (
     project_dashboard,
     pulse_app,
     pulse_cycle,
+    qa_cycle,
     quick_wins,
     recon,
     report_pipeline,
@@ -106,6 +120,7 @@ from api.routers import (
     settings_runtime,
     settings_unified,
     setup,
+    stability,
     supabase,
     sync,
     system,
@@ -116,10 +131,12 @@ from api.routers import (
     terminal_ws,
     validation,
     vault_app,
+    vault_cycle,
     verdicts,
     version,
     version_backup,
     voice,
+    voice_commands,
     wear_os,
     webhooks,
     ws,
@@ -315,8 +332,9 @@ async def lifespan(app: FastAPI):
     # ── Initialize loop engines ──
     try:
         from core.loop.startup import init_loop_engines
+        from core.scheduler.scheduler import get_core_scheduler
 
-        result = init_loop_engines(scheduler=scheduler, event_bus=bus)
+        result = init_loop_engines(scheduler=get_core_scheduler(), event_bus=bus)
         logger.info(
             "Loop engines: %d registered, %d errors",
             len(result["registered"]),
@@ -420,8 +438,14 @@ async def lifespan(app: FastAPI):
         bus = get_event_bus()
         notifier = get_intelligent_notifier()
 
-        def _smart_notify(event_type: str, data: dict | None = None) -> None:
-            notifier.route_to_user(event_type, data or {})
+        def _smart_notify(event_type: str, **payload: Any) -> None:
+            data = dict(payload)
+            data.pop("_priority", None)
+            title = data.pop("title", event_type)
+            body = data.pop("message", data.pop("body", ""))
+            notification = notifier.process_event(event_type, title=title, body=body, data=data)
+            if notification is not None:
+                notifier.route_to_user(notification)
 
         key_events = [
             "finding:created",
@@ -486,7 +510,7 @@ async def lifespan(app: FastAPI):
         except Exception as exc:
             logger.warning("[BOOT] FeedbackTuner init error: %s", exc)
 
-        def _feedback_handler(event_type, payload):
+        def _feedback_handler(event_type, **payload):
             if payload.get("new_status") not in ("confirmed", "rejected"):
                 return
             if _tuner is None:
@@ -527,7 +551,7 @@ async def lifespan(app: FastAPI):
 
             _vl = get_verdict_learner()
 
-            def _verdict_handler(event_type, payload):
+            def _verdict_handler(event_type, **payload):
                 _vl.handle_finding_status_changed(payload)
 
             bus.subscribe("finding:status_changed", _verdict_handler)
@@ -580,7 +604,7 @@ async def lifespan(app: FastAPI):
             except Exception as exc:
                 logger.warning("[COPILOT] Analysis handler error: %s", exc)
 
-        def _copilot_finding_handler(event_type, payload):
+        def _copilot_finding_handler(event_type, **payload):
             if _copilot is None:
                 return
             try:
@@ -602,7 +626,7 @@ async def lifespan(app: FastAPI):
         bus.subscribe("finding:created", _copilot_finding_handler)
         bus.subscribe("finding:status_changed", _copilot_finding_handler)
 
-        def _copilot_target_handler(event_type, payload):
+        def _copilot_target_handler(event_type, **payload):
             if _copilot is None:
                 return
             target_name = payload.get("name", "unknown")
@@ -642,7 +666,7 @@ async def lifespan(app: FastAPI):
         except Exception as exc:
             logger.warning("[BOOT] Evidence Graph init error: %s", exc)
 
-        def _evidence_graph_handler(event_type, payload):
+        def _evidence_graph_handler(event_type, **payload):
             if _eg is None:
                 return
             new_status = payload.get("new_status")
@@ -683,7 +707,7 @@ async def lifespan(app: FastAPI):
                 stats["total_edges"],
             )
 
-            def _knowledge_graph_handler(event_type: str, payload: dict) -> None:
+            def _knowledge_graph_handler(event_type: str, **payload: object) -> None:
                 try:
                     if event_type.startswith("finding:"):
                         finding_id = payload.get("id", "unknown")
@@ -787,6 +811,14 @@ async def lifespan(app: FastAPI):
 
     # Start Recovery Engine and Health Monitor
     try:
+        from core.health.checks import register_default_checks
+        from core.health.engine import get_health_center
+
+        center = get_health_center()
+        center.enable_persistence()
+        register_default_checks(center)
+        logger.info("[BOOT] Default health checks registered")
+
         from cores.recovery import get_health_monitor, get_recovery_engine
 
         recovery = get_recovery_engine()
@@ -1080,12 +1112,10 @@ async def lifespan(app: FastAPI):
         logger.warning("[ORION] Secrets manager init failed (non-fatal): %s", exc)
 
     try:
-        from core.health.checks import register_default_checks
         from core.health.engine import get_health_center
 
         center = get_health_center()
         center.enable_persistence()
-        register_default_checks(center)
         snapshot = center.run_all()
         logger.info(
             "[ORION] Health center initialized: %s (%d/%d checks passed)",
@@ -1183,7 +1213,7 @@ async def lifespan(app: FastAPI):
         # 3. Subscribers for orphan events
         bus = get_event_bus()
 
-        def _opportunity_handler(event_type, payload):
+        def _opportunity_handler(event_type, **payload):
             """When a new opportunity is found, refresh COPILOT recommendations."""
             if _copilot is not None:
                 with suppress(Exception):
@@ -1192,7 +1222,7 @@ async def lifespan(app: FastAPI):
         bus.subscribe("opportunity:found", _opportunity_handler)
         bus.subscribe("opportunity:updated", _opportunity_handler)
 
-        def _recovery_handler(event_type, payload):
+        def _recovery_handler(event_type, **payload):
             """When recovery happens, log to Event Store."""
             with suppress(Exception):
                 _event_store.store_dict(
@@ -1207,7 +1237,7 @@ async def lifespan(app: FastAPI):
         bus.subscribe("recovery:failed", _recovery_handler)
 
         # ── Telegram Bridge ──────────────────────────────────────────
-        def _telegram_handler(event_type, payload):
+        def _telegram_handler(event_type, **payload):
             from core.notifications.telegram.bridge import handle_event
 
             handle_event(event_type, **payload)
@@ -1472,13 +1502,19 @@ app.include_router(market_intelligence.router)
 app.include_router(system.router)
 app.include_router(screenshots.router)
 app.include_router(operations.router)
+app.include_router(opportunity_feedback.router)
 app.include_router(opportunity_intelligence.router)
+app.include_router(mercenary_filter.router)
+app.include_router(auto_submit.router)
+app.include_router(bounty_pipeline.router)
+app.include_router(agent_coordinator.router)
 app.include_router(auth.router)
 app.include_router(auth_users.router)
 app.include_router(auth_user.router)
 app.include_router(sync.router)
 app.include_router(notifications.router)
 app.include_router(mobile.router)
+app.include_router(mobile_approvals.router)
 app.include_router(contracts.router)
 app.include_router(cycles.router)
 app.include_router(forge_app.router)
@@ -1487,6 +1523,8 @@ app.include_router(vault_app.router)
 app.include_router(atlas_app.router)
 app.include_router(revenue_app.router)
 app.include_router(system_state.router)
+app.include_router(stability.router)
+app.include_router(daily_mode.router)
 app.include_router(daily.router)
 app.include_router(discovery.router)
 app.include_router(orchestrator.router)
@@ -1520,6 +1558,7 @@ app.include_router(financial_truth.router)
 app.include_router(mission.router)
 app.include_router(activity.router)
 app.include_router(crypto.router)
+app.include_router(credentials_rotation.router)
 app.include_router(accounts_hub.router)
 app.include_router(authhub.router)
 app.include_router(bank_payout.router)
@@ -1539,8 +1578,14 @@ app.include_router(ai_security.router)
 app.include_router(opportunity_score.router)
 app.include_router(report_pipeline.router)
 app.include_router(voice.router)
+app.include_router(voice_commands.router)
 app.include_router(opensource.router)
 app.include_router(zero_barrier.router)
+app.include_router(direct_work.router)
+app.include_router(career.router)
+app.include_router(oar.router)
+app.include_router(capability_expansion.router)
+app.include_router(capability_expansion.capabilities_router)
 app.include_router(version_backup.router)
 
 # Setup router
@@ -1570,6 +1615,9 @@ app.include_router(merlin.router)
 app.include_router(security_cycle.router)
 app.include_router(forge_cycle.router)
 app.include_router(pulse_cycle.router)
+app.include_router(vault_cycle.router)
+app.include_router(atlas_cycle.router)
+app.include_router(qa_cycle.router)
 
 # ── ORION Platform: core + app routers ──
 try:

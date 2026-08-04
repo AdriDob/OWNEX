@@ -21,8 +21,8 @@
 
       <div class="flex items-center gap-4">
         <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span class="text-xs text-green-400 font-semibold">BACKUP SYSTEM OPERATIONAL</span>
+          <span class="w-2 h-2 rounded-full bg-success animate-pulse" />
+          <span class="text-xs text-success font-semibold">BACKUP SYSTEM OPERATIONAL</span>
         </div>
         <div class="live-badge">LIVE</div>
       </div>
@@ -69,7 +69,7 @@
         <div class="card-detail">
           <div class="text-xs text-muted mt-2">
             <div class="flex items-center gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-green-400" />
+              <span class="w-1.5 h-1.5 rounded-full bg-success" />
               Commit: <span class="font-mono text-xs">{{ currentVersion?.git_commit?.substring(0, 8) || 'Unknown' }}</span>
             </div>
           </div>
@@ -78,7 +78,7 @@
 
       <div class="card">
         <div class="card-label">BACKUP STORAGE</div>
-        <div class="card-value text-green-400">Local SQLite</div>
+        <div class="card-value text-success">Local SQLite</div>
         <div class="card-detail">Shared with Recovery System</div>
       </div>
 
@@ -92,7 +92,7 @@
               stroke-linecap="round" />
           </svg>
           <div>
-            <div class="text-2xl font-bold font-display text-green-400">
+            <div class="text-2xl font-bold font-display text-success">
               100%
             </div>
             <div class="text-xs text-muted mt-2">
@@ -104,7 +104,7 @@
 
       <div class="card">
         <div class="card-label">BACKUP COUNT</div>
-        <div class="card-value text-amber-400">{{ backups.length }} / 10</div>
+        <div class="card-value text-warning">{{ backups.length }} / 10</div>
         <div class="card-detail">Auto-cleanup enabled</div>
       </div>
     </section>
@@ -115,7 +115,7 @@
         <h2 class="text-xl font-bold text-white font-display tracking-wide">BACKUP HISTORY</h2>
         <div class="flex items-center gap-2">
           <span class="text-xs text-muted">{{ backups.length }} backups</span>
-          <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+          <div class="w-2 h-2 rounded-full bg-success animate-pulse" />
         </div>
       </div>
 
@@ -212,8 +212,8 @@
         <div class="modal-body">
           <div class="rollback-warning">
             <div class="flex items-center gap-3 mb-4">
-              <AlertTriangle class="w-6 h-6 text-amber-400" />
-              <p class="text-amber-400 font-semibold">WARNING: IRREVERSIBLE ACTION</p>
+              <AlertTriangle class="w-6 h-6 text-warning" />
+              <p class="text-warning font-semibold">WARNING: IRREVERSIBLE ACTION</p>
             </div>
             <p class="text-muted mb-4">You are about to rollback to a previous version. This will restore all files and git state.</p>
           </div>
@@ -261,12 +261,12 @@
         <div class="modal-body">
           <div class="verification-result" :class="{ 'result-valid': verificationResult?.valid, 'result-invalid': !verificationResult?.valid }">
             <div class="verification-icon">
-              <Shield v-if="verificationResult?.valid" class="w-12 h-12 text-green-400" />
-              <AlertTriangle v-else class="w-12 h-12 text-red-400" />
+              <Shield v-if="verificationResult?.valid" class="w-12 h-12 text-success" />
+              <AlertTriangle v-else class="w-12 h-12 text-destructive" />
             </div>
             <div class="verification-details">
               <p class="font-semibold">{{ verificationResult?.valid ? 'Backup is valid and integrity verified' : 'Backup verification failed' }}</p>
-              <p v-if="!verificationResult?.valid" class="text-red-400 text-sm mt-2">{{ verificationResult?.error }}</p>
+              <p v-if="!verificationResult?.valid" class="text-destructive text-sm mt-2">{{ verificationResult?.error }}</p>
               <div v-if="verificationResult?.valid" class="valid-details">
                 <div class="detail-item">
                   <span class="text-muted text-xs">Version:</span>
@@ -477,14 +477,14 @@ onMounted(() => {
 }
 
 .pill-backup {
-  background: rgba(59, 130, 246, 0.2);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   color: #60A5FA;
 }
 
 .live-badge {
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(232, 33, 39, 0.2);
+  border: 1px solid rgba(232, 33, 39, 0.3);
   color: #F87171;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
@@ -508,13 +508,13 @@ onMounted(() => {
 
 .o-ring-outer {
   inset: 0;
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
   animation: pulse-ring 3s ease-in-out infinite;
 }
 
 .o-ring-inner {
   inset: 20px;
-  border-color: rgba(59, 130, 246, 0.5);
+  border-color: rgba(255, 255, 255, 0.5);
   animation: pulse-ring 3s ease-in-out infinite 1s;
 }
 
@@ -572,14 +572,14 @@ onMounted(() => {
 }
 
 .action-primary {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
   color: #60A5FA;
 }
 
 .action-primary:hover:not(:disabled) {
-  background: rgba(59, 130, 246, 0.3);
-  border-color: rgba(59, 130, 246, 0.6);
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
 }
 
 .action-green {
@@ -596,7 +596,7 @@ onMounted(() => {
 .action-gold {
   background: rgba(251, 191, 36, 0.2);
   border-color: rgba(251, 191, 36, 0.4);
-  color: #FBBF24;
+  color: #D97706;
 }
 
 .action-gold:hover:not(:disabled) {
@@ -618,7 +618,7 @@ onMounted(() => {
 .action-warning {
   background: rgba(251, 191, 36, 0.2);
   border-color: rgba(251, 191, 36, 0.4);
-  color: #FBBF24;
+  color: #D97706;
 }
 
 .action-warning:hover:not(:disabled) {
@@ -735,8 +735,8 @@ onMounted(() => {
 }
 
 .backup-card:hover {
-  border-color: rgba(59, 130, 246, 0.3);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
 
 .backup-card.card-active {
@@ -781,15 +781,15 @@ onMounted(() => {
 }
 
 .state-badge.backup {
-  background: rgba(59, 130, 246, 0.2);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   color: #60AFA;
 }
 
 .state-badge.rollback {
   background: rgba(251, 191, 36, 0.2);
   border: 1px solid rgba(251, 191, 36, 0.3);
-  color: #FBBF24;
+  color: #D97706;
 }
 
 .backup-date {
@@ -850,7 +850,7 @@ onMounted(() => {
 .mini-warning {
   background: rgba(251, 191, 36, 0.2);
   border-color: rgba(251, 191, 36, 0.3);
-  color: #FBBF24;
+  color: #D97706;
 }
 
 .mini-warning:hover:not(:disabled) {
@@ -960,7 +960,7 @@ onMounted(() => {
 
 .form-textarea:focus {
   outline: none;
-  border-color: rgba(59, 130, 246, 0.5);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .rollback-warning {
@@ -986,8 +986,8 @@ onMounted(() => {
 
 .pre-rollback-info {
   padding: 0.75rem;
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 0.375rem;
 }
 

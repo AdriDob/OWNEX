@@ -425,10 +425,12 @@ class CommanderAgent(BaseAgent):
         # Note: This is synchronous check - in async context we'd fetch more detail
         # For now, use simple heuristic
         for _task_id, completed_task in self.completed_tasks.items():
-            if hasattr(completed_task, "opportunity_id") and completed_task.opportunity_id:
-                # Check if this task's platform matches
-                if completed_task.opportunity_id and platform in str(completed_task.opportunity_id):
-                    completed_platforms.add(platform)
+            if (
+                hasattr(completed_task, "opportunity_id")
+                and completed_task.opportunity_id
+                and platform in str(completed_task.opportunity_id)
+            ):
+                completed_platforms.add(platform)
         if platform not in completed_platforms:
             return True
 
@@ -605,10 +607,12 @@ class CommanderAgent(BaseAgent):
                 if self.discovery_engine:
                     queued = await self.discovery_engine.get_queued_opportunities()
                     for opp in queued:
-                        if opp.opportunity.id == task.opportunity_id:
-                            if opp.evh >= self.config.auto_approve_threshold_evh:
-                                await self._approve_task(task_id)
-                                break
+                        if (
+                            opp.opportunity.id == task.opportunity_id
+                            and opp.evh >= self.config.auto_approve_threshold_evh
+                        ):
+                            await self._approve_task(task_id)
+                            break
 
     async def approve_task(self, task_id: str, approved: bool, reason: str = "") -> bool:
         """Approve or reject a pending task."""

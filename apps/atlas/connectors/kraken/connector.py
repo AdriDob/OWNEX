@@ -97,14 +97,16 @@ class KrakenConnector(AtlasConnector):
                     usd_price = prices.get(f"{asset_id[1:]}USD", 0.0)
                 value = balance * usd_price
                 total_value += value
-                positions.append(NormalizedPosition(
-                    symbol=symbol,
-                    name=symbol,
-                    asset_type="crypto",
-                    quantity=balance,
-                    current_price=usd_price,
-                    value=value,
-                ))
+                positions.append(
+                    NormalizedPosition(
+                        symbol=symbol,
+                        name=symbol,
+                        asset_type="crypto",
+                        quantity=balance,
+                        current_price=usd_price,
+                        value=value,
+                    )
+                )
 
             return NormalizedPortfolio(
                 total_value=total_value,

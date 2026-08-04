@@ -9,42 +9,42 @@
      ═══════════════════════════════════════════════════════════════════ */
 
   /* ── Fondos Progresivos (Deep → Base → Surface → Glass) ── */
-  --ownex-bg-deep:      #050505;  /* Fondo principal - casi negro puro */
-  --ownex-bg-base:      #080808;  /* Paneles elevados */
-  --ownex-bg-surface:   #0F1117;  /* Tarjetas, modales */
-  --ownex-bg-glass:     rgba(15, 17, 23, 0.7);
-  --ownex-bg-glass-border: rgba(59, 130, 246, 0.12);
+  --ownex-bg-deep:      #000000;  /* Fondo principal - negro puro */
+  --ownex-bg-base:      #050505;  /* Paneles elevados */
+  --ownex-bg-surface:   #0A0A0A;  /* Tarjetas, modales */
+  --ownex-bg-glass:     rgba(10, 10, 10, 0.75);
+  --ownex-bg-glass-border: rgba(255, 255, 255, 0.08);
 
-  /* ── Colores de Identidad ── */
-  --ownex-blue:         #3B82F6;  /* Acciones, selección, inteligencia, navegación */
+  /* ── Colores de Identidad (TESLA — monocromo + rojo como único acento) ── */
+  --ownex-blue:         #FFFFFF;  /* Acciones, selección, navegación (blanco) */
   --ownex-white:        #FFFFFF;  /* Información importante, títulos, resultados */
-  --ownex-gold:         #F59E0B;  /* Dinero, recompensas, logros, oportunidades premium */
+  --ownex-gold:         #B45309;  /* Recompensas, oportunidades premium (ámbar desaturado) */
 
-  /* ── Estados (SOLO 3) ── */
-  --ownex-green:        #10B981;  /* ✅ Activo / Éxito */
-  --ownex-red:          #EF4444;  /* ❌ Error / Riesgo */
-  --ownex-yellow:       #FBBF24;  /* ⚠️ Atención / Advertencia */
+  /* ── Estados (SOLO 3, desaturados) ── */
+  --ownex-green:        #16A34A;  /* ✅ Activo / Éxito */
+  --ownex-red:          #E82127;  /* ❌ Error / Riesgo (rojo Tesla) */
+  --ownex-yellow:       #D97706;  /* ⚠️ Atención / Advertencia */
 
-  /* ── Texto ── */
-  --ownex-text-primary:   #FFFFFF;
-  --ownex-text-secondary: #94A3B8;  /* slate-400 */
-  --ownex-text-muted:     #64748B;  /* slate-500 */
-  --ownex-text-disabled:  #475569;  /* slate-600 */
+  /* ── Texto (grises neutros) ── */
+  --ownex-text-primary:   #F5F5F5;
+  --ownex-text-secondary: #8A8A8A;
+  --ownex-text-muted:     #6B6B6B;
+  --ownex-text-disabled:  #4A4A4A;
 
-  /* ── Platform Colors ── */
-  --ownex-hackerone:  #00D46A;
-  --ownex-bugcrowd:   #F56E2F;
-  --ownex-intigriti:  #6935D3;
-  --ownex-synack:     #1E88E5;
-  --ownex-yeswehack:  #FF6B6B;
+  /* ── Platform Colors (desaturados) ── */
+  --ownex-hackerone:  #16A34A;
+  --ownex-bugcrowd:   #B45309;
+  --ownex-intigriti:  #8B5CF6;
+  --ownex-synack:     #5B7D9E;
+  --ownex-yeswehack:  #DC2626;
 
-  /* ── Cycle Colors ── */
-  --ownex-cycle-security: #3B82F6;  /* Blue */
-  --ownex-cycle-forge:    #A855F7;  /* Purple */
-  --ownex-cycle-pulse:    #10B981;  /* Green */
-  --ownex-cycle-vault:    #F59E0B;  /* Gold */
-  --ownex-cycle-atlas:    #E2E8F0;  /* Slate */
-  --ownex-cycle-odyssey:  #F97316;  /* Orange */
+  /* ── Cycle Colors (monocromo, rojo = odyssey) ── */
+  --ownex-cycle-security: #F5F5F5;
+  --ownex-cycle-forge:    #9CA3AF;
+  --ownex-cycle-pulse:    #16A34A;
+  --ownex-cycle-vault:    #D97706;
+  --ownex-cycle-atlas:    #D4D4D8;
+  --ownex-cycle-odyssey:  #E82127;
 
   /* ═══════════════════════════════════════════════════════════════════
      TYPOGRAPHY
@@ -96,14 +96,14 @@
 
   /* Mica (para paneles laterales) */
   --mica-bg:        rgba(8, 8, 8, 0.9);
-  --mica-border:    1px solid rgba(59, 130, 246, 0.08);
+  --mica-border:    1px solid rgba(255, 255, 255, 0.06);
 
   /* Elevation Shadows */
   --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.4);
   --shadow-md:  0 4px 12px rgba(0, 0, 0, 0.5);
   --shadow-lg:  0 8px 32px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 24px rgba(59, 130, 246, 0.15);
-  --shadow-gold: 0 0 24px rgba(245, 158, 11, 0.15);
+  --shadow-glow: 0 0 24px rgba(255, 255, 255, 0.06);
+  --shadow-gold: 0 0 24px rgba(180, 83, 9, 0.15);
 
   /* ═══════════════════════════════════════════════════════════════════
      RADIUS & TRANSITIONS
@@ -161,7 +161,7 @@
      FOCUS RING
      ═══════════════════════════════════════════════════════════════════ */
 
-  --focus-ring: 0 0 0 2px rgba(59, 130, 246, 0.15), 0 0 12px rgba(59, 130, 246, 0.08);
+  --focus-ring: 0 0 0 2px rgba(255, 255, 255, 0.1), 0 0 12px rgba(255, 255, 255, 0.05);
 }
 
 /* ═══════════════════════════════════════════════════════════════════

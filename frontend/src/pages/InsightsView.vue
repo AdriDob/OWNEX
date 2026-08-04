@@ -233,7 +233,7 @@ onMounted(fetchInsights)
               </div>
               <p class="text-xs text-foreground">{{ step.content }}</p>
               <div class="flex items-center gap-1 mt-0.5">
-                <div class="h-1 w-12 rounded-full bg-[#1a1d29]">
+                <div class="h-1 w-12 rounded-full bg-surface">
                   <div class="h-full rounded-full bg-primary" :style="{ width: `${step.confidence * 100}%` }" />
                 </div>
                 <span class="text-[9px] text-muted-foreground">{{ (step.confidence * 100).toFixed(0) }}%</span>

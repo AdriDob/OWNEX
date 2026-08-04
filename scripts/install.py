@@ -68,8 +68,11 @@ def get_default_output() -> Path:
 def run_cmd(cmd: list[str], cwd: Path | None = None, timeout: int = 300) -> bool:
     try:
         result = subprocess.run(
-            cmd, cwd=cwd or PROJECT_ROOT,
-            capture_output=True, text=True, timeout=timeout,
+            cmd,
+            cwd=cwd or PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
         )
         if result.returncode != 0:
             log("CMD", f"FAILED: {' '.join(cmd)}")
@@ -90,6 +93,7 @@ def run_cmd(cmd: list[str], cwd: Path | None = None, timeout: int = 300) -> bool
 
 
 # ── Step 1: Frontend ──────────────────────────────────────────────────
+
 
 def ensure_frontend_built() -> bool:
     dist = FRONTEND_DIR / "dist"
@@ -114,6 +118,7 @@ def ensure_frontend_built() -> bool:
 
 # ── Step 2: PyInstaller ───────────────────────────────────────────────
 
+
 def build_pyinstaller() -> bool:
     log("PYINSTALLER", "Building EXE...")
     spec = PROJECT_ROOT / "CATEYE.spec"
@@ -136,6 +141,7 @@ def build_pyinstaller() -> bool:
 
 
 # ── Step 3: Assemble output ───────────────────────────────────────────
+
 
 def assemble_output(output_dir: Path, version: str, dev_mode: bool) -> None:
     log("ASSEMBLE", f"Output: {output_dir}")
@@ -284,6 +290,7 @@ def _write_install_log(output_dir: Path, version: str) -> None:
 
 # ── Step 4: Portable ZIP ────────────────────────────────────────────
 
+
 def create_portable_zip(output_dir: Path, version: str) -> Path | None:
     log("ZIP", "Creating CATEYE.zip...")
     zip_path = output_dir / "CATEYE.zip"
@@ -307,6 +314,7 @@ def create_portable_zip(output_dir: Path, version: str) -> Path | None:
 
 
 # ── Step 5: Validation ──────────────────────────────────────────────
+
 
 def validate_installation(output_dir: Path) -> bool:
     log("VALIDATE", "Verifying installation...")
@@ -337,11 +345,14 @@ def validate_installation(output_dir: Path) -> bool:
 
 # ── Main ─────────────────────────────────────────────────────────────
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="CATEYE installer — one-command setup")
     parser.add_argument("--dev", action="store_true", help="Dev mode (skip PyInstaller, use python run.py)")
     parser.add_argument("--portable", action="store_true", help="Portable ZIP only (no output dir assembly)")
-    parser.add_argument("--output", type=Path, default=None, help="Output directory (default: CATEYE_OUTPUT_DIR or platform default)")
+    parser.add_argument(
+        "--output", type=Path, default=None, help="Output directory (default: CATEYE_OUTPUT_DIR or platform default)"
+    )
     parser.add_argument("--no-frontend", action="store_true", help="Skip frontend build")
     parser.add_argument("--version", default=None, help="Version override")
     args = parser.parse_args()

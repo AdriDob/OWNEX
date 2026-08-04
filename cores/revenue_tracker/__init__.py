@@ -1,4 +1,4 @@
-from .RevenueTracker import (
+from .revenue_tracker import (
     BarrierType,
     PaymentMethod,
     PaymentPlatform,

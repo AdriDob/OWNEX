@@ -46,8 +46,8 @@ const chartData = computed(() => ({
   datasets: props.datasets.map(ds => ({
     ...ds,
     backgroundColor: ds.backgroundColor || (isDark.value
-      ? ['rgba(124,58,237,0.7)', 'rgba(59,130,246,0.7)', 'rgba(34,197,94,0.7)', 'rgba(234,179,8,0.7)', 'rgba(239,68,68,0.7)']
-      : ['rgba(124,58,237,0.6)', 'rgba(59,130,246,0.6)', 'rgba(34,197,94,0.6)', 'rgba(234,179,8,0.6)', 'rgba(239,68,68,0.6)']),
+      ? ['rgba(156, 163, 175,0.7)', 'rgba(255,255,255,0.7)', 'rgba(22,163,74,0.7)', 'rgba(217, 119, 6,0.7)', 'rgba(232,33,39,0.7)']
+      : ['rgba(156, 163, 175,0.6)', 'rgba(255,255,255,0.6)', 'rgba(22,163,74,0.6)', 'rgba(217, 119, 6,0.6)', 'rgba(232,33,39,0.6)']),
     borderColor: ds.borderColor || 'transparent',
     borderWidth: ds.borderWidth || 0,
     borderRadius: ds.borderRadius ?? 4,

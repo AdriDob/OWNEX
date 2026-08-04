@@ -120,11 +120,11 @@ watch(() => props.visible, (v) => {
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             class="drop-shadow-lg"
-            style="filter: drop-shadow(0 0 24px rgba(59, 130, 246, 0.3))"
+            style="filter: drop-shadow(0 0 24px rgba(255, 255, 255, 0.3))"
           >
             <ellipse
               cx="256" cy="256" rx="180" ry="80"
-              stroke="#3b82f6" stroke-width="1.5" opacity="0.3"
+              stroke="#ffffff" stroke-width="1.5" opacity="0.3"
               transform="rotate(-30 256 256)"
             >
               <animateTransform attributeName="transform" type="rotate"
@@ -132,24 +132,24 @@ watch(() => props.visible, (v) => {
             </ellipse>
             <ellipse
               cx="256" cy="256" rx="180" ry="80"
-              stroke="#3b82f6" stroke-width="1" opacity="0.15"
+              stroke="#ffffff" stroke-width="1" opacity="0.15"
               transform="rotate(30 256 256)"
             >
               <animateTransform attributeName="transform" type="rotate"
                 from="30 256 256" to="390 256 256" dur="15s" repeatCount="indefinite" />
             </ellipse>
-            <circle cx="256" cy="256" r="200" stroke="#3b82f6" stroke-width="12" opacity="0.1" />
+            <circle cx="256" cy="256" r="200" stroke="#ffffff" stroke-width="12" opacity="0.1" />
             <polygon
               points="256,96 376,156 376,356 256,416 136,356 136,156"
-              stroke="#3b82f6" stroke-width="6"
-              fill="rgba(59, 130, 246, 0.05)"
+              stroke="#ffffff" stroke-width="6"
+              fill="rgba(255, 255, 255, 0.05)"
               stroke-linejoin="round"
               :class="{ 'animate-pulse': phase === 'loading' }"
             />
-            <circle cx="256" cy="256" r="32" fill="#3b82f6" opacity="0.8">
+            <circle cx="256" cy="256" r="32" fill="#ffffff" opacity="0.8">
               <animate attributeName="r" values="28;36;28" dur="2s" repeatCount="indefinite" />
             </circle>
-            <circle cx="256" cy="256" r="32" fill="#3b82f6" opacity="0.3">
+            <circle cx="256" cy="256" r="32" fill="#ffffff" opacity="0.3">
               <animate attributeName="r" values="32;48;32" dur="2s" repeatCount="indefinite" />
             </circle>
           </svg>
@@ -206,7 +206,7 @@ watch(() => props.visible, (v) => {
               :style="{
                 width: progress + '%',
                 background: 'var(--splash-progress-bar)',
-                boxShadow: '0 0 12px rgba(59, 130, 246, 0.4)',
+                boxShadow: '0 0 12px rgba(255, 255, 255, 0.4)',
               }"
             />
           </div>
@@ -224,7 +224,7 @@ watch(() => props.visible, (v) => {
 
       <div class="absolute bottom-0 left-0 right-0 h-px"
         style="{
-          background: 'linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.2) 50%, transparent 100%)',
+          background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%)',
         }"
       />
     </div>

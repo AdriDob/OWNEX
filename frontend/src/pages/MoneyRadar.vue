@@ -242,7 +242,7 @@ function openProgram(id: number) {
       <button
         v-for="item in filtered"
         :key="item.id"
-        class="grid w-full grid-cols-12 items-center gap-2 rounded-xl border border-border/40 bg-[#11131f]/40 px-4 py-3 text-left text-sm transition-all hover:border-primary/30 hover:bg-[#11131f]/80 animate-in"
+        class="grid w-full grid-cols-12 items-center gap-2 rounded-xl border border-border/40 bg-surface/40 px-4 py-3 text-left text-sm transition-all hover:border-primary/30 hover:bg-surface/80 animate-in"
         @click="openProgram(item.id)"
       >
         <div class="col-span-3 min-w-0">

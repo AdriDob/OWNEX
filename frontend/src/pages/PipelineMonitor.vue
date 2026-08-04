@@ -26,8 +26,8 @@ let interval: ReturnType<typeof setInterval> | null = null
 
 const STATE_ORDER = ['pending', 'discovery', 'validation', 'evidence', 'ai_review', 'ready', 'submitted', 'triaged', 'paid', 'closed']
 const STATE_COLORS: Record<string, string> = {
-  pending: '#6b7280', discovery: '#3b82f6', validation: '#8b5cf6', evidence: '#f59e0b', ai_review: '#10b981',
-  ready: '#22c55e', submitted: '#06b6d4', triaged: '#f97316', paid: '#6366f1', closed: '#22c55e', failed: '#ef4444', cancelled: '#6b7280',
+  pending: '#6b7280', discovery: '#ffffff', validation: '#9CA3AF', evidence: '#D97706', ai_review: '#16A34A',
+  ready: '#16A34A', submitted: '#9CA3AF', triaged: '#D97706', paid: '#9CA3AF', closed: '#16A34A', failed: '#E82127', cancelled: '#6b7280',
 }
 
 async function fetchPipelines() {
@@ -152,7 +152,7 @@ onUnmounted(() => { if (interval) clearInterval(interval) })
                   <p class="text-sm font-semibold text-foreground truncate">{{ p.target_name || `Target #${p.target_id}` }}</p>
                   <p class="text-[10px] font-mono text-muted-foreground">{{ p.id.slice(0, 12) }}...</p>
                 </div>
-                <Badge :variant="STATE_COLORS[p.state] === '#22c55e' ? 'default' : 'warning'" class="text-[10px]">{{ p.state }}</Badge>
+                <Badge :variant="STATE_COLORS[p.state] === '#16A34A' ? 'default' : 'warning'" class="text-[10px]">{{ p.state }}</Badge>
               </div>
               <!-- Progress bar -->
               <div class="mb-3">
@@ -160,13 +160,13 @@ onUnmounted(() => { if (interval) clearInterval(interval) })
                   <span class="text-[10px] text-muted-foreground">Progress</span>
                   <span class="text-[10px] font-bold text-foreground">{{ Math.round(stateProgress(p.state)) }}%</span>
                 </div>
-                <div class="h-1.5 overflow-hidden rounded-full bg-[#1a1d29]">
+                <div class="h-1.5 overflow-hidden rounded-full bg-surface">
                   <div class="h-full rounded-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-500" :style="{ width: `${stateProgress(p.state)}%` }" />
                 </div>
                 <div class="mt-2 flex gap-0.5">
                   <div v-for="s in STATE_ORDER" :key="s" :title="s"
                     class="h-1.5 flex-1 rounded-sm transition-all"
-                    :class="p.state === 'failed' || p.state === 'cancelled' ? 'bg-destructive' : STATE_ORDER.indexOf(s) < STATE_ORDER.indexOf(p.state) ? 'bg-success' : s === p.state ? 'bg-primary' : 'bg-[#2a2e3d]'"
+                    :class="p.state === 'failed' || p.state === 'cancelled' ? 'bg-destructive' : STATE_ORDER.indexOf(s) < STATE_ORDER.indexOf(p.state) ? 'bg-success' : s === p.state ? 'bg-primary' : 'bg-border-light'"
                   />
                 </div>
               </div>
@@ -185,10 +185,10 @@ onUnmounted(() => { if (interval) clearInterval(interval) })
               <div v-if="p.error" class="mb-3 rounded-md bg-destructive/10 px-2 py-1 text-[11px] text-destructive">{{ p.error }}</div>
               <div class="flex gap-2">
                 <button @click.stop="handleCancel(p.id)"
-                  class="rounded-md border border-warning bg-[#12141f] px-2.5 py-1 text-[10px] font-semibold text-warning"
+                  class="rounded-md border border-warning bg-surface px-2.5 py-1 text-[10px] font-semibold text-warning"
                 >Cancel</button>
                 <button @click.stop="handleDelete(p.id)"
-                  class="rounded-md border border-destructive bg-[#12141f] px-2.5 py-1 text-[10px] font-semibold text-destructive"
+                  class="rounded-md border border-destructive bg-surface px-2.5 py-1 text-[10px] font-semibold text-destructive"
                 >Delete</button>
               </div>
             </div>
@@ -224,7 +224,7 @@ onUnmounted(() => { if (interval) clearInterval(interval) })
                 </div>
               </div>
               <button @click.stop="handleDelete(p.id)"
-                class="mt-2 rounded-md border border-destructive bg-[#12141f] px-2.5 py-1 text-[10px] font-semibold text-destructive"
+                class="mt-2 rounded-md border border-destructive bg-surface px-2.5 py-1 text-[10px] font-semibold text-destructive"
               >Delete</button>
             </div>
           </div>

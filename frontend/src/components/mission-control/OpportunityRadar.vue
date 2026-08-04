@@ -433,8 +433,8 @@ const getConfidenceColor = (score: number) => {
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  background: rgba(217, 119, 6, 0.1);
+  border: 1px solid rgba(217, 119, 6, 0.2);
   border-radius: var(--radius-md);
 }
 

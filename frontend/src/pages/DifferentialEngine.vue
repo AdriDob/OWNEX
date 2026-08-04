@@ -168,7 +168,7 @@ onMounted(fetchAnalysis)
             :datasets="[{
               label: 'Hallazgos',
               data: riskDistributionData,
-              backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#6b7280'],
+              backgroundColor: ['#E82127', '#D97706', '#A16207', '#16A34A', '#6b7280'],
             }]"
             :height="200"
             yLabel="Count"
@@ -225,7 +225,7 @@ onMounted(fetchAnalysis)
                   <span class="text-muted-foreground">Confidence</span>
                   <span class="font-semibold text-foreground">{{ (finding.confidence * 100).toFixed(0) }}%</span>
                 </div>
-                <div class="h-1 overflow-hidden rounded-full bg-[#1a1d29]">
+                <div class="h-1 overflow-hidden rounded-full bg-surface">
                   <div class="h-full rounded-full transition-all" :class="scoreColor(finding.confidence)" :style="{ width: `${finding.confidence * 100}%` }" />
                 </div>
               </div>
@@ -234,7 +234,7 @@ onMounted(fetchAnalysis)
                   <span class="text-muted-foreground">Novelty</span>
                   <span class="font-semibold text-foreground">{{ (finding.novelty * 100).toFixed(0) }}%</span>
                 </div>
-                <div class="h-1 overflow-hidden rounded-full bg-[#1a1d29]">
+                <div class="h-1 overflow-hidden rounded-full bg-surface">
                   <div class="h-full rounded-full transition-all" :class="scoreColor(finding.novelty)" :style="{ width: `${finding.novelty * 100}%` }" />
                 </div>
               </div>
@@ -243,7 +243,7 @@ onMounted(fetchAnalysis)
                   <span class="text-muted-foreground">ROI</span>
                   <span class="font-semibold text-foreground">{{ (finding.roi * 100).toFixed(0) }}%</span>
                 </div>
-                <div class="h-1 overflow-hidden rounded-full bg-[#1a1d29]">
+                <div class="h-1 overflow-hidden rounded-full bg-surface">
                   <div class="h-full rounded-full transition-all" :class="scoreColor(finding.roi)" :style="{ width: `${finding.roi * 100}%` }" />
                 </div>
               </div>

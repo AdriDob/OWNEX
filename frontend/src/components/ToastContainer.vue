@@ -11,7 +11,7 @@ const { toasts, removeToast, iconMap, iconColorMap } = useToast()
       <TransitionGroup name="toast">
         <div
           v-for="t in toasts" :key="t.id"
-          class="pointer-events-auto flex items-start gap-3 rounded-xl border border-border/40 bg-[#131524]/95 px-4 py-3 shadow-2xl backdrop-blur-xl w-72"
+          class="pointer-events-auto flex items-start gap-3 rounded-xl border border-border/40 bg-surface/95 px-4 py-3 shadow-2xl backdrop-blur-xl w-72"
           :class="'border-l-2 ' + (t.type === 'success' ? 'border-l-success' : t.type === 'error' ? 'border-l-destructive' : t.type === 'warning' ? 'border-l-warning' : 'border-l-primary')"
         >
           <component :is="iconMap[t.type]" :class="['mt-0.5 h-4 w-4 shrink-0', iconColorMap[t.type]]" />

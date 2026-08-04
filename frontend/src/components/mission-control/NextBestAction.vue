@@ -142,7 +142,7 @@ function handleSecondaryAction() {
   background: linear-gradient(135deg, rgba(10, 10, 15, 0.95), rgba(5, 5, 5, 0.85));
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
   position: relative;
@@ -278,8 +278,8 @@ function handleSecondaryAction() {
   align-items: flex-start;
   gap: var(--space-2);
   padding: var(--space-3);
-  background: rgba(59, 130, 246, 0.05);
-  border: 1px solid rgba(59, 130, 246, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
   color: var(--ownex-text-secondary);
   font-size: 12px;

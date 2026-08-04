@@ -66,13 +66,17 @@ class TestAuthMiddleware:
             "/api/evidence",
             "/api/opportunities",
             "/api/overview",
-            "/api/system/health",
             "/api/execution/tracker",
             "/api/stats",
         ]
         for path in protected:
             resp = client.get(path)
             assert resp.status_code == 401, f"{path} should require auth, got {resp.status_code}"
+
+    def test_system_health_is_public(self, client):
+        """Health endpoints are public by design (monitoring without auth)."""
+        resp = client.get("/api/system/health")
+        assert resp.status_code != 401, "Health endpoint must stay publicly reachable"
 
     def test_missing_auth_header_format(self, client):
         resp = client.get("/api/targets", headers={"Authorization": "NotBearer something"})
@@ -160,7 +164,6 @@ class TestAuthMiddleware:
             "/api/evidence",
             "/api/opportunities",
             "/api/overview",
-            "/api/system/health",
             "/api/execution/tracker",
             "/api/stats",
             "/api/daily/briefing",

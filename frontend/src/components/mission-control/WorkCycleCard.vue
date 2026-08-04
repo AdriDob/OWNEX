@@ -345,13 +345,13 @@ const formatTime = (isoString: string) => {
   flex: 1;
 }
 
-/* Cycle RGB values */
-.ownex-cycle-card--security { --cycle-color-rgb: 59, 130, 246; }
-.ownex-cycle-card--forge    { --cycle-color-rgb: 168, 85, 247; }
-.ownex-cycle-card--pulse    { --cycle-color-rgb: 16, 185, 129; }
-.ownex-cycle-card--vault    { --cycle-color-rgb: 245, 158, 11; }
-.ownex-cycle-card--atlas    { --cycle-color-rgb: 226, 232, 240; }
-.ownex-cycle-card--odyssey  { --cycle-color-rgb: 249, 115, 22; }
+/* Cycle RGB values (TESLA — monochrome + red accent) */
+.ownex-cycle-card--security { --cycle-color-rgb: 245, 245, 245; }
+.ownex-cycle-card--forge    { --cycle-color-rgb: 156, 163, 175; }
+.ownex-cycle-card--pulse    { --cycle-color-rgb: 22, 163, 74; }
+.ownex-cycle-card--vault    { --cycle-color-rgb: 217, 119, 6; }
+.ownex-cycle-card--atlas    { --cycle-color-rgb: 212, 212, 216; }
+.ownex-cycle-card--odyssey  { --cycle-color-rgb: 232, 33, 39; }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {

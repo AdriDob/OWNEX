@@ -34,12 +34,7 @@ class DevinProvider(AIProvider):
     def _check(self) -> bool:
         """Check if Devin CLI is available."""
         try:
-            result = subprocess.run(
-                [self.devin_path, "--version"],
-                capture_output=True,
-                timeout=10,
-                text=True
-            )
+            result = subprocess.run([self.devin_path, "--version"], capture_output=True, timeout=10, text=True)
             return result.returncode == 0
         except (FileNotFoundError, subprocess.TimeoutExpired) as e:
             logger.debug(f"Devin CLI not available: {e}")
@@ -72,7 +67,7 @@ class DevinProvider(AIProvider):
                 [self.devin_path, "run", prompt],
                 capture_output=True,
                 timeout=120,  # 2 minute timeout
-                text=True
+                text=True,
             )
 
             if result.returncode != 0:
@@ -104,7 +99,7 @@ class DevinProvider(AIProvider):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                bufsize=1  # Line buffered
+                bufsize=1,  # Line buffered
             )
 
             for line in process.stdout:

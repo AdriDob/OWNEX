@@ -493,19 +493,16 @@ import requests
 
 # Initialize client
 client = requests.Session()
-client.headers.update({
-    "Authorization": "Bearer YOUR_API_KEY"
-})
+client.headers.update({"Authorization": "Bearer YOUR_API_KEY"})
 
 # Get health
 response = client.get("http://127.0.0.1:8000/api/health")
 print(response.json())
 
 # Discover opportunities
-response = client.post("http://127.0.0.1:8000/api/opportunities/discover", json={
-    "target": "example.com",
-    "platform": "hackerone"
-})
+response = client.post(
+    "http://127.0.0.1:8000/api/opportunities/discover", json={"target": "example.com", "platform": "hackerone"}
+)
 print(response.json())
 ```
 

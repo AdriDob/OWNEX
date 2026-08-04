@@ -12,12 +12,14 @@ async def get_identity():
     identity = mgr.get_identity()
     if not identity:
         return error("Identity not initialized", version="1.0")
-    return ok({
-        "user_id": identity.user_id,
-        "display_name": identity.display_name,
-        "device_count": identity.device_count,
-        "preferences": identity.preferences,
-    })
+    return ok(
+        {
+            "user_id": identity.user_id,
+            "display_name": identity.display_name,
+            "device_count": identity.device_count,
+            "preferences": identity.preferences,
+        }
+    )
 
 
 @router.post("/preferences")

@@ -46,13 +46,13 @@ interface PlatformInfo {
 
 // ── Platform Configuration ─────────────────────────────────────────────
 const PULSE_PLATFORMS: PlatformInfo[] = [
-  { id: 'outlier', name: 'outlier', displayName: 'Outlier', icon: Brain, color: 'text-purple-400', bgColor: 'bg-purple-500/10', connected: false, opportunityCount: 0 },
-  { id: 'mindrift', name: 'mindrift', displayName: 'Mindrift', icon: Zap, color: 'text-yellow-400', bgColor: 'bg-yellow-500/10', connected: false, opportunityCount: 0 },
-  { id: 'dataannotation', name: 'dataannotation', displayName: 'DataAnnotation', icon: Globe, color: 'text-blue-400', bgColor: 'bg-blue-500/10', connected: false, opportunityCount: 0 },
-  { id: 'remotasks', name: 'remotasks', displayName: 'Remotasks', icon: Code2, color: 'text-green-400', bgColor: 'bg-green-500/10', connected: false, opportunityCount: 0 },
-  { id: 'freelancer_microtask', name: 'freelancer_microtask', displayName: 'Freelancer Microtasks', icon: DollarSign, color: 'text-orange-400', bgColor: 'bg-orange-500/10', connected: false, opportunityCount: 0 },
-  { id: 'linkedin_easyapply', name: 'linkedin_easyapply', displayName: 'LinkedIn Easy Apply', icon: Linkedin, color: 'text-blue-600', bgColor: 'bg-blue-600/10', connected: false, opportunityCount: 0 },
-  { id: 'opyre_microtask', name: 'opyre_microtask', displayName: 'Opyre Microtasks', icon: Github, color: 'text-pink-400', bgColor: 'bg-pink-500/10', connected: false, opportunityCount: 0 },
+  { id: 'outlier', name: 'outlier', displayName: 'Outlier', icon: Brain, color: 'text-intigriti', bgColor: 'bg-intigriti/10', connected: false, opportunityCount: 0 },
+  { id: 'mindrift', name: 'mindrift', displayName: 'Mindrift', icon: Zap, color: 'text-warning', bgColor: 'bg-warning/10', connected: false, opportunityCount: 0 },
+  { id: 'dataannotation', name: 'dataannotation', displayName: 'DataAnnotation', icon: Globe, color: 'text-primary', bgColor: 'bg-primary/10', connected: false, opportunityCount: 0 },
+  { id: 'remotasks', name: 'remotasks', displayName: 'Remotasks', icon: Code2, color: 'text-success', bgColor: 'bg-success/10', connected: false, opportunityCount: 0 },
+  { id: 'freelancer_microtask', name: 'freelancer_microtask', displayName: 'Freelancer Microtasks', icon: DollarSign, color: 'text-warning', bgColor: 'bg-warning/10', connected: false, opportunityCount: 0 },
+  { id: 'linkedin_easyapply', name: 'linkedin_easyapply', displayName: 'LinkedIn Easy Apply', icon: Linkedin, color: "text-primary", bgColor: "bg-primary/10", connected: false, opportunityCount: 0 },
+  { id: 'opyre_microtask', name: 'opyre_microtask', displayName: 'Opyre Microtasks', icon: Github, color: 'text-destructive', bgColor: 'bg-destructive/10', connected: false, opportunityCount: 0 },
 ]
 
 // ── State ──────────────────────────────────────────────────────────────
@@ -456,7 +456,7 @@ watch([selectedPlatform, effortFilter, minReward, maxReward, sortBy, sortOrder],
             </div>
 
             <div class="flex items-center gap-3 text-[9px] font-mono mb-2">
-              <span class="flex items-center gap-1 text-amber-400">
+              <span class="flex items-center gap-1 text-warning">
                 <Star class="h-2.5 w-2.5" />
                 {{ formatReward(opp.reward) }}
               </span>
@@ -517,7 +517,7 @@ watch([selectedPlatform, effortFilter, minReward, maxReward, sortBy, sortOrder],
                   <Badge variant="outline" class="text-[8px]">{{ opp.platformDisplay }}</Badge>
                 </td>
                 <td class="px-4 py-3 text-center">
-                  <span class="font-bold tabular-nums text-amber-400">{{ formatReward(opp.reward) }}</span>
+                  <span class="font-bold tabular-nums text-warning">{{ formatReward(opp.reward) }}</span>
                 </td>
                 <td class="px-4 py-3 text-center">
                   <span :class="effortColor(opp.effortHours)" class="px-2 py-0.5 rounded text-[8px] font-mono">{{ effortLabel(opp.effortHours) }} ({{ opp.effortHours }}h)</span>

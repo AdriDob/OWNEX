@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Query, Request
 
 from cores.auth.auth import verify_session
@@ -79,13 +78,15 @@ async def restore_session(request: Request):
 
     # Return session context: last tab, filters, target
     global_state = state.get("global", {})
-    return ok({
-        "session": {
-            "last_dashboard_tab": global_state.get("last_dashboard_tab"),
-            "last_viewed_target": global_state.get("last_viewed_target"),
-            "filters": global_state.get("filters"),
-            "theme": global_state.get("theme"),
-            "language": global_state.get("language"),
-        },
-        "device_id": device_id,
-    })
+    return ok(
+        {
+            "session": {
+                "last_dashboard_tab": global_state.get("last_dashboard_tab"),
+                "last_viewed_target": global_state.get("last_viewed_target"),
+                "filters": global_state.get("filters"),
+                "theme": global_state.get("theme"),
+                "language": global_state.get("language"),
+            },
+            "device_id": device_id,
+        }
+    )

@@ -23,6 +23,7 @@ logger = logging.getLogger("ownex.voice_commands")
 
 class CommandCategory(StrEnum):
     """Categorías de comandos de voz."""
+
     GENERAL = "general"
     BUG_BOUNTY = "bug_bounty"
     DEV_BOUNTY = "dev_bounty"
@@ -37,6 +38,7 @@ class CommandCategory(StrEnum):
 @dataclass
 class VoiceCommand:
     """Comando de voz."""
+
     command_id: str
     phrases: list[str]
     category: CommandCategory
@@ -84,7 +86,6 @@ class AdvancedVoiceCommands:
                 action="get_status",
                 parameters={},
             ),
-
             # Comandos de bug bounty
             VoiceCommand(
                 command_id="scan_target",
@@ -110,7 +111,6 @@ class AdvancedVoiceCommands:
                 action="submit_report",
                 parameters={},
             ),
-
             # Comandos de productividad
             VoiceCommand(
                 command_id="take_break",
@@ -136,7 +136,6 @@ class AdvancedVoiceCommands:
                 action="enable_focus_mode",
                 parameters={},
             ),
-
             # Comandos de notas
             VoiceCommand(
                 command_id="create_note",
@@ -154,7 +153,6 @@ class AdvancedVoiceCommands:
                 action="create_obsidian_note",
                 parameters={"content": "from_voice"},
             ),
-
             # Comandos del sistema
             VoiceCommand(
                 command_id="shutdown",
@@ -346,7 +344,9 @@ class AdvancedVoiceCommands:
         from cores.obsidian.integration import get_obsidian_integration
 
         obsidian = get_obsidian_integration()
-        content = text.replace("nota en obsidian", "").replace("guardar en obsidian", "").replace("obsidian", "").strip()
+        content = (
+            text.replace("nota en obsidian", "").replace("guardar en obsidian", "").replace("obsidian", "").strip()
+        )
 
         obsidian.create_merlin_note(
             title="Voice Note",

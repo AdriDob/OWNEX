@@ -64,7 +64,7 @@ function copyPaymentInfo(text: string) {
   <div class="p-6">
     <div class="mb-6">
       <h1 class="text-3xl font-bold text-white mb-2">Cobros Internacionales</h1>
-      <p class="text-gray-400">Gestión de pagos desde Argentina a nivel global</p>
+      <p class="text-muted-foreground">Gestión de pagos desde Argentina a nivel global</p>
     </div>
 
     <!-- Exchange Rates -->
@@ -73,10 +73,10 @@ function copyPaymentInfo(text: string) {
         <CardContent class="p-4">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-gray-400">USD → ARS</p>
+              <p class="text-sm text-muted-foreground">USD → ARS</p>
               <p class="text-2xl font-bold text-white">${{ exchangeRate }}</p>
             </div>
-            <DollarSign class="w-8 h-8 text-[#0070d1]" />
+            <DollarSign class="w-8 h-8 text-primary" />
           </div>
         </CardContent>
       </Card>
@@ -84,10 +84,10 @@ function copyPaymentInfo(text: string) {
         <CardContent class="p-4">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-gray-400">USDT → ARS</p>
+              <p class="text-sm text-muted-foreground">USDT → ARS</p>
               <p class="text-2xl font-bold text-white">${{ cryptoRate }}</p>
             </div>
-            <TrendingUp class="w-8 h-8 text-[#00ff88]" />
+            <TrendingUp class="w-8 h-8 text-success" />
           </div>
         </CardContent>
       </Card>
@@ -103,18 +103,18 @@ function copyPaymentInfo(text: string) {
           <div
             v-for="method in paymentMethods"
             :key="method.id"
-            class="bg-[#0d1117] border-2 rounded-xl p-4"
-            :class="method.recommended ? 'border-[#00ff88]' : 'border-[#0070d1]/30'"
+            class="bg-surface border-2 rounded-xl p-4"
+            :class="method.recommended ? 'border-success' : 'border-primary/30'"
           >
             <div class="flex items-center justify-between mb-4">
-              <component :is="method.icon" class="w-8 h-8" :class="method.recommended ? 'text-[#00ff88]' : 'text-[#0070d1]'" />
-              <div v-if="method.recommended" class="flex items-center gap-1 text-[#00ff88] text-sm">
+              <component :is="method.icon" class="w-8 h-8" :class="method.recommended ? 'text-success' : 'text-primary'" />
+              <div v-if="method.recommended" class="flex items-center gap-1 text-success text-sm">
                 <CheckCircle class="w-4 h-4" />
                 Recomendado
               </div>
             </div>
             <h3 class="text-lg font-bold text-white mb-2">{{ method.name }}</h3>
-            <div class="space-y-1 text-sm text-gray-400">
+            <div class="space-y-1 text-sm text-muted-foreground">
               <p>Fee: {{ method.fee }}%</p>
               <p>Tiempo: {{ method.time }}</p>
             </div>
@@ -131,26 +131,26 @@ function copyPaymentInfo(text: string) {
       <CardContent>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <label class="block text-sm text-gray-400 mb-2">Monto en USD</label>
+            <label class="block text-sm text-muted-foreground mb-2">Monto en USD</label>
             <input
               type="number"
-              class="w-full bg-[#0a0a0f] border border-[#0070d1]/30 rounded-lg px-4 py-3 text-white"
+              class="w-full bg-background border border-primary/30 rounded-lg px-4 py-3 text-white"
               placeholder="100"
             />
           </div>
           <div>
-            <label class="block text-sm text-gray-400 mb-2">Método</label>
-            <select class="w-full bg-[#0a0a0f] border border-[#0070d1]/30 rounded-lg px-4 py-3 text-white">
+            <label class="block text-sm text-muted-foreground mb-2">Método</label>
+            <select class="w-full bg-background border border-primary/30 rounded-lg px-4 py-3 text-white">
               <option v-for="method in paymentMethods" :key="method.id" :value="method.id">
                 {{ method.name }}
               </option>
             </select>
           </div>
         </div>
-        <div class="bg-[#0d1117] rounded-lg p-4">
-          <p class="text-sm text-gray-400 mb-2">Recibirás en ARS:</p>
-          <p class="text-3xl font-bold text-[#00ff88]">$475,000</p>
-          <p class="text-sm text-gray-400">USD 500 → ARS (Wise)</p>
+        <div class="bg-surface rounded-lg p-4">
+          <p class="text-sm text-muted-foreground mb-2">Recibirás en ARS:</p>
+          <p class="text-3xl font-bold text-success">$475,000</p>
+          <p class="text-sm text-muted-foreground">USD 500 → ARS (Wise)</p>
         </div>
       </CardContent>
     </Card>
@@ -165,18 +165,18 @@ function copyPaymentInfo(text: string) {
           <div
             v-for="payment in recentPayments"
             :key="payment.id"
-            class="bg-[#0d1117] border border-[#0070d1]/30 rounded-lg p-4 flex items-center justify-between"
+            class="bg-surface border border-primary/30 rounded-lg p-4 flex items-center justify-between"
           >
             <div>
               <p class="font-bold text-white">{{ payment.platform }}</p>
-              <p class="text-sm text-gray-400">{{ payment.date }}</p>
+              <p class="text-sm text-muted-foreground">{{ payment.date }}</p>
             </div>
             <div class="text-right">
               <p class="font-bold text-white">${{ payment.amount }} USD</p>
-              <p class="text-sm text-[#00ff88]">${{ payment.received.toLocaleString() }} ARS</p>
+              <p class="text-sm text-success">${{ payment.received.toLocaleString() }} ARS</p>
             </div>
             <div class="text-right">
-              <p class="text-sm text-gray-400">{{ payment.method }}</p>
+              <p class="text-sm text-muted-foreground">{{ payment.method }}</p>
             </div>
           </div>
         </div>

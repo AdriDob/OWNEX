@@ -20,6 +20,7 @@ COLORS = {
     "black": "#000000",
 }
 
+
 def create_github_social_preview():
     """Creates GitHub social preview image"""
     svg = f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -48,6 +49,7 @@ def create_github_social_preview():
 </svg>"""
     return svg
 
+
 def save_svg(svg_content, filepath):
     """Save SVG content to file"""
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
@@ -60,10 +62,12 @@ def convert_svg_to_png(svg_path, png_path, width=1280, height=640):
     """Convert SVG to PNG using cairosvg"""
     try:
         import cairosvg
+
         cairosvg.svg2png(url=str(svg_path), write_to=str(png_path), output_width=width, output_height=height)
         print(f"Converted: {svg_path.name} → {png_path.name}")
     except ImportError:
         print("cairosvg not available, skipping PNG conversion")
+
 
 def main():
     """Generate social preview assets"""
@@ -80,6 +84,7 @@ def main():
 
     print("\n✓ Social preview assets generated successfully")
     print(f"Output directory: {output_dir.absolute()}")
+
 
 if __name__ == "__main__":
     main()

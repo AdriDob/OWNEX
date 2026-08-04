@@ -89,7 +89,7 @@ const cycleStyle = computed(() => {
 }
 
 /* Cycle color RGB values for rgba() */
-.ownex-card--cycle-security { --cycle-color-rgb: 59, 130, 246; }
+.ownex-card--cycle-security { --cycle-color-rgb: 245, 245, 245; }
 .ownex-card--cycle-forge    { --cycle-color-rgb: 168, 85, 247; }
 .ownex-card--cycle-pulse    { --cycle-color-rgb: 16, 185, 129; }
 .ownex-card--cycle-vault    { --cycle-color-rgb: 245, 158, 11; }

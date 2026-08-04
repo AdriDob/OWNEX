@@ -40,6 +40,7 @@ def _apply_search(q, model_cls, search: str, fields: list[str]) -> Any:
     if not search:
         return q
     from sqlalchemy import or_
+
     conditions = []
     for field in fields:
         if hasattr(model_cls, field):
@@ -50,7 +51,9 @@ def _apply_search(q, model_cls, search: str, fields: list[str]) -> Any:
     return q
 
 
-def list_targets(skip: int = 0, limit: int = 100, sort_by: str = "name", sort_order: str = "asc", search: str = "") -> tuple[list[dict[str, Any]], int]:
+def list_targets(
+    skip: int = 0, limit: int = 100, sort_by: str = "name", sort_order: str = "asc", search: str = ""
+) -> tuple[list[dict[str, Any]], int]:
     session = _get_session()
     try:
         query = session.query(models.Target)
@@ -74,10 +77,14 @@ def list_targets(skip: int = 0, limit: int = 100, sort_by: str = "name", sort_or
 
         # Batch-load confirmed verdict endpoint_ids
         confirmed_endpoint_ids = {
-            v[0] for v in session.query(models.Verdict.endpoint_id).filter(
+            v[0]
+            for v in session.query(models.Verdict.endpoint_id)
+            .filter(
                 models.Verdict.status == "confirmed",
                 models.Verdict.endpoint_id.isnot(None),
-            ).distinct().all()
+            )
+            .distinct()
+            .all()
         }
 
         # Batch-load TargetIntel for all targets
@@ -99,21 +106,23 @@ def list_targets(skip: int = 0, limit: int = 100, sort_by: str = "name", sort_or
 
             confirmed = sum(1 for f in findings if f.endpoint_id in confirmed_endpoint_ids)
 
-            result.append({
-                "id": t.id,
-                "name": t.name or f"Target #{t.id}",
-                "domain": t.domain or "",
-                "endpoint_count": len(endpoints),
-                "finding_count": len(findings),
-                "confirmed_findings": confirmed,
-                "estimated_payout": payout,
-                "roi": round(_target_roi(t, endpoints) / 10, 1),
-                "risk_score": max_risk,
-                "opportunity_score": round((intel.opportunity_score or 0) / 10, 1) if intel else 0,
-                "competition_score": int(intel.competition_score or 0) if intel else 0,
-                "freshness_score": int(intel.freshness_score or 0) if intel else 50,
-                "created_at": t.created_at.isoformat() if t.created_at else None,
-            })
+            result.append(
+                {
+                    "id": t.id,
+                    "name": t.name or f"Target #{t.id}",
+                    "domain": t.domain or "",
+                    "endpoint_count": len(endpoints),
+                    "finding_count": len(findings),
+                    "confirmed_findings": confirmed,
+                    "estimated_payout": payout,
+                    "roi": round(_target_roi(t, endpoints) / 10, 1),
+                    "risk_score": max_risk,
+                    "opportunity_score": round((intel.opportunity_score or 0) / 10, 1) if intel else 0,
+                    "competition_score": int(intel.competition_score or 0) if intel else 0,
+                    "freshness_score": int(intel.freshness_score or 0) if intel else 50,
+                    "created_at": t.created_at.isoformat() if t.created_at else None,
+                }
+            )
         return result, total
     finally:
         session.close()
@@ -144,10 +153,14 @@ def get_target(target_id: int) -> dict[str, Any] | None:
         confirmed_endpoint_ids = set()
         if finding_endpoint_ids:
             confirmed_endpoint_ids = {
-                v[0] for v in session.query(models.Verdict.endpoint_id).filter(
+                v[0]
+                for v in session.query(models.Verdict.endpoint_id)
+                .filter(
                     models.Verdict.endpoint_id.in_(finding_endpoint_ids),
                     models.Verdict.status == "confirmed",
-                ).distinct().all()
+                )
+                .distinct()
+                .all()
             }
         confirmed = sum(1 for f in findings if f.endpoint_id in confirmed_endpoint_ids)
 
@@ -177,7 +190,14 @@ def get_target(target_id: int) -> dict[str, Any] | None:
         session.close()
 
 
-def list_endpoints(target_id: int | None = None, skip: int = 0, limit: int = 100, sort_by: str = "path", sort_order: str = "asc", search: str = "") -> tuple[list[dict[str, Any]], int]:
+def list_endpoints(
+    target_id: int | None = None,
+    skip: int = 0,
+    limit: int = 100,
+    sort_by: str = "path",
+    sort_order: str = "asc",
+    search: str = "",
+) -> tuple[list[dict[str, Any]], int]:
     session = _get_session()
     try:
         q = session.query(models.Endpoint)
@@ -190,19 +210,21 @@ def list_endpoints(target_id: int | None = None, skip: int = 0, limit: int = 100
         result = []
         for ep in endpoints:
             s = _score_endpoint(ep)
-            result.append({
-                "id": ep.id,
-                "target_id": ep.target_id,
-                "path": ep.path,
-                "method": ep.method or "GET",
-                "risk_score": s.get("risk_score", 0),
-                "confidence": s.get("confidence", 0),
-                "vector": s.get("vector", "unknown"),
-                "labels": s.get("labels", []),
-                "signals": s.get("signals", []),
-                "attack_surface": s.get("attack_surface", []),
-                "actionable": s.get("actionable", False),
-            })
+            result.append(
+                {
+                    "id": ep.id,
+                    "target_id": ep.target_id,
+                    "path": ep.path,
+                    "method": ep.method or "GET",
+                    "risk_score": s.get("risk_score", 0),
+                    "confidence": s.get("confidence", 0),
+                    "vector": s.get("vector", "unknown"),
+                    "labels": s.get("labels", []),
+                    "signals": s.get("signals", []),
+                    "attack_surface": s.get("attack_surface", []),
+                    "actionable": s.get("actionable", False),
+                }
+            )
         return result, total
     finally:
         session.close()
@@ -232,7 +254,15 @@ def get_endpoint(endpoint_id: int) -> dict[str, Any] | None:
         session.close()
 
 
-def list_findings(target_id: int | None = None, endpoint_id: int | None = None, skip: int = 0, limit: int = 100, sort_by: str = "severity", sort_order: str = "desc", search: str = "") -> tuple[list[dict[str, Any]], int]:
+def list_findings(
+    target_id: int | None = None,
+    endpoint_id: int | None = None,
+    skip: int = 0,
+    limit: int = 100,
+    sort_by: str = "severity",
+    sort_order: str = "desc",
+    search: str = "",
+) -> tuple[list[dict[str, Any]], int]:
     session = _get_session()
     try:
         q = session.query(models.Finding)
@@ -270,24 +300,33 @@ def list_findings(target_id: int | None = None, endpoint_id: int | None = None, 
             base_payout = SEVERITY_PAYOUT.get((f.severity or "info").lower(), 0)
             intel = intel_map.get(f.target_id)
             payout = int(base_payout * (1 + intel.reward_score / 100)) if intel and intel.reward_score else base_payout
-            result.append({
-                "id": f.id,
-                "target_id": f.target_id,
-                "endpoint_id": f.endpoint_id,
-                "title": f.title or f"Finding #{f.id}",
-                "severity": f.severity or "medium",
-                "description": f.description,
-                "payout": payout,
-                "target_name": target.name or f"#{target.id}" if target else "",
-                "endpoint_path": f"{ep.method} {ep.path}" if ep else "",
-                "created_at": f.created_at.isoformat() if f.created_at else None,
-            })
+            result.append(
+                {
+                    "id": f.id,
+                    "target_id": f.target_id,
+                    "endpoint_id": f.endpoint_id,
+                    "title": f.title or f"Finding #{f.id}",
+                    "severity": f.severity or "medium",
+                    "description": f.description,
+                    "payout": payout,
+                    "target_name": target.name or f"#{target.id}" if target else "",
+                    "endpoint_path": f"{ep.method} {ep.path}" if ep else "",
+                    "created_at": f.created_at.isoformat() if f.created_at else None,
+                }
+            )
         return result, total
     finally:
         session.close()
 
 
-def list_evidence(verdict_id: int | None = None, skip: int = 0, limit: int = 100, sort_by: str = "id", sort_order: str = "desc", search: str = "") -> tuple[list[dict[str, Any]], int]:
+def list_evidence(
+    verdict_id: int | None = None,
+    skip: int = 0,
+    limit: int = 100,
+    sort_by: str = "id",
+    sort_order: str = "desc",
+    search: str = "",
+) -> tuple[list[dict[str, Any]], int]:
     session = _get_session()
     try:
         q = session.query(models.Evidence)
@@ -321,12 +360,18 @@ def list_evidence(verdict_id: int | None = None, skip: int = 0, limit: int = 100
         session.close()
 
 
-def list_opportunities(skip: int = 0, limit: int = 200, sort_by: str = "roi", sort_order: str = "desc", search: str = "") -> tuple[list[dict[str, Any]], int]:
+def list_opportunities(
+    skip: int = 0, limit: int = 200, sort_by: str = "roi", sort_order: str = "desc", search: str = ""
+) -> tuple[list[dict[str, Any]], int]:
     session = _get_session()
     try:
         targets = session.query(models.Target).all()
         if search:
-            targets = [t for t in targets if search.lower() in (t.name or "").lower() or search.lower() in (t.domain or "").lower()]
+            targets = [
+                t
+                for t in targets
+                if search.lower() in (t.name or "").lower() or search.lower() in (t.domain or "").lower()
+            ]
         if not targets:
             return [], 0
 
@@ -366,25 +411,30 @@ def list_opportunities(skip: int = 0, limit: int = 200, sort_by: str = "roi", so
                 payout = int(payout * (1 + intel.reward_score / 100))
             roi = _target_roi(t, endpoints) / 10
 
-            scored.append({
-                "target_id": t.id,
-                "name": t.name or f"Target #{t.id}",
-                "domain": t.domain or "",
-                "roi": round(roi, 1),
-                "max_risk": max_risk,
-                "endpoint_count": len(endpoints),
-                "finding_count": len(findings),
-                "surfaces": sorted(surfaces)[:4],
-                "vectors": sorted(vectors),
-                "estimated_payout": payout,
-                "opportunity_score": round((intel.opportunity_score or 0) / 10, 1) if intel else 0,
-                "competition_score": int(intel.competition_score or 0) if intel else 0,
-                "freshness_score": int(intel.freshness_score or 0) if intel else 50,
-            })
+            scored.append(
+                {
+                    "target_id": t.id,
+                    "name": t.name or f"Target #{t.id}",
+                    "domain": t.domain or "",
+                    "roi": round(roi, 1),
+                    "max_risk": max_risk,
+                    "endpoint_count": len(endpoints),
+                    "finding_count": len(findings),
+                    "surfaces": sorted(surfaces)[:4],
+                    "vectors": sorted(vectors),
+                    "estimated_payout": payout,
+                    "opportunity_score": round((intel.opportunity_score or 0) / 10, 1) if intel else 0,
+                    "competition_score": int(intel.competition_score or 0) if intel else 0,
+                    "freshness_score": int(intel.freshness_score or 0) if intel else 50,
+                }
+            )
         reverse = sort_order == "desc"
-        scored.sort(key=lambda r: r.get(sort_by, 0) if isinstance(r.get(sort_by, 0), (int, float)) else str(r.get(sort_by, "")), reverse=reverse)
+        scored.sort(
+            key=lambda r: r.get(sort_by, 0) if isinstance(r.get(sort_by, 0), (int, float)) else str(r.get(sort_by, "")),
+            reverse=reverse,
+        )
         total = len(scored)
-        scored = scored[skip:skip + limit]
+        scored = scored[skip : skip + limit]
         return scored, total
     finally:
         session.close()
@@ -405,19 +455,21 @@ def get_attack_surfaces() -> dict[str, list[dict[str, Any]]]:
             if not surfaces:
                 surfaces = ["general"]
             for surface in surfaces:
-                groups.setdefault(surface, []).append({
-                    "id": ep.id,
-                    "target_id": ep.target_id,
-                    "path": ep.path,
-                    "method": ep.method or "GET",
-                    "risk_score": s.get("risk_score", 0),
-                    "confidence": s.get("confidence", 0),
-                    "vector": s.get("vector", "unknown"),
-                    "labels": s.get("labels", []),
-                    "signals": s.get("signals", []),
-                    "attack_surface": s.get("attack_surface", []),
-                    "actionable": s.get("actionable", False),
-                })
+                groups.setdefault(surface, []).append(
+                    {
+                        "id": ep.id,
+                        "target_id": ep.target_id,
+                        "path": ep.path,
+                        "method": ep.method or "GET",
+                        "risk_score": s.get("risk_score", 0),
+                        "confidence": s.get("confidence", 0),
+                        "vector": s.get("vector", "unknown"),
+                        "labels": s.get("labels", []),
+                        "signals": s.get("signals", []),
+                        "attack_surface": s.get("attack_surface", []),
+                        "actionable": s.get("actionable", False),
+                    }
+                )
         for k in groups:
             groups[k].sort(key=lambda x: x["risk_score"], reverse=True)
         return dict(sorted(groups.items()))
@@ -507,6 +559,7 @@ def generate_report() -> dict[str, Any]:
         total_value = sum(SEVERITY_PAYOUT.get((f.severity or "info").lower(), 0) for f in findings)
 
         from datetime import datetime as dt
+
         now = dt.now().strftime("%Y-%m-%d %H:%M")
 
         # Batch-load TargetIntel for payout multipliers
@@ -541,17 +594,19 @@ def generate_report() -> dict[str, Any]:
             if f.description:
                 lines.append(f"- **Description:** {f.description}\n")
             lines.append("\n")
-            finding_outs.append({
-                "id": f.id,
-                "target_id": f.target_id,
-                "endpoint_id": f.endpoint_id,
-                "title": f.title or f"Finding #{f.id}",
-                "severity": f.severity or "medium",
-                "description": f.description,
-                "payout": payout,
-                "target_name": target.name if target else "",
-                "endpoint_path": "",
-            })
+            finding_outs.append(
+                {
+                    "id": f.id,
+                    "target_id": f.target_id,
+                    "endpoint_id": f.endpoint_id,
+                    "title": f.title or f"Finding #{f.id}",
+                    "severity": f.severity or "medium",
+                    "description": f.description,
+                    "payout": payout,
+                    "target_name": target.name if target else "",
+                    "endpoint_path": "",
+                }
+            )
 
         return {
             "title": "CATEYE Bug Bounty Report",
@@ -567,6 +622,7 @@ def generate_report() -> dict[str, Any]:
 
 
 # ── Create operations ───────────────────────────────
+
 
 def create_target(name: str, domain: str | None = None) -> dict[str, Any]:
     session = _get_session()
@@ -584,7 +640,9 @@ def create_target(name: str, domain: str | None = None) -> dict[str, Any]:
         session.close()
 
 
-def create_endpoint(target_id: int, path: str, method: str = "GET", params: dict[str, Any] | None = None) -> dict[str, Any]:
+def create_endpoint(
+    target_id: int, path: str, method: str = "GET", params: dict[str, Any] | None = None
+) -> dict[str, Any]:
     session = _get_session()
     try:
         target = session.query(models.Target).filter(models.Target.id == target_id).first()
@@ -609,7 +667,9 @@ def create_endpoint(target_id: int, path: str, method: str = "GET", params: dict
         session.close()
 
 
-def create_finding(target_id: int, title: str, severity: str = "medium", description: str | None = None, endpoint_id: int | None = None) -> dict[str, Any]:
+def create_finding(
+    target_id: int, title: str, severity: str = "medium", description: str | None = None, endpoint_id: int | None = None
+) -> dict[str, Any]:
     session = _get_session()
     try:
         target = session.query(models.Target).filter(models.Target.id == target_id).first()
@@ -639,6 +699,7 @@ def create_finding(target_id: int, title: str, severity: str = "medium", descrip
 
 
 # ── Scan / Digest ──────────────────────────────────
+
 
 def list_scan_runs(target_id: int | None = None, limit: int = 50) -> list[dict[str, Any]]:
     session = _get_session()
@@ -696,14 +757,16 @@ def get_digest() -> dict[str, Any]:
             if cache_key not in _score_cache:
                 _score_cache[cache_key] = unified_score(safe_path, safe_method, ep.parsed_params)
             result = _score_cache[cache_key]
-            entries.append({
-                "id": ep.id,
-                "target_id": ep.target_id,
-                "path": safe_path,
-                "method": safe_method,
-                "labels": result["labels"],
-                "risk_score": result["risk_score"],
-            })
+            entries.append(
+                {
+                    "id": ep.id,
+                    "target_id": ep.target_id,
+                    "path": safe_path,
+                    "method": safe_method,
+                    "labels": result["labels"],
+                    "risk_score": result["risk_score"],
+                }
+            )
         entries.sort(key=lambda item: item["risk_score"], reverse=True)
 
         high_signal = [e for e in entries if e["risk_score"] >= 0.5]
@@ -733,19 +796,25 @@ def get_digest() -> dict[str, Any]:
 
 # ── Verdicts ───────────────────────────────────────
 
-def list_verdicts(status: str | None = None, confidence_min: float = 0.0, target_id: int | None = None, limit: int = 100) -> list[dict[str, Any]]:
+
+def list_verdicts(
+    status: str | None = None, confidence_min: float = 0.0, target_id: int | None = None, limit: int = 100
+) -> list[dict[str, Any]]:
     session = _get_session()
     try:
         from sqlalchemy import Float, cast
+
         q = session.query(models.Verdict)
         if status:
             q = q.filter(models.Verdict.status == status)
         if confidence_min > 0:
             q = q.filter(cast(models.Verdict.confidence, Float) >= confidence_min)
         if target_id:
-            q = q.filter(models.Verdict.endpoint_id.in_(
-                session.query(models.Endpoint.id).filter(models.Endpoint.target_id == target_id)
-            ))
+            q = q.filter(
+                models.Verdict.endpoint_id.in_(
+                    session.query(models.Endpoint.id).filter(models.Endpoint.target_id == target_id)
+                )
+            )
         verdicts = q.order_by(models.Verdict.created_at.desc()).limit(limit).all()
         return [
             {
@@ -809,20 +878,25 @@ def get_verdict(verdict_id: int) -> dict[str, Any] | None:
 def get_evidence_for_verdict(verdict_id: int) -> dict[str, Any]:
     session = _get_session()
     try:
-        evidence_records = session.query(models.Evidence).filter(
-            models.Evidence.verdict_id == verdict_id
-        ).order_by(models.Evidence.id).all()
+        evidence_records = (
+            session.query(models.Evidence)
+            .filter(models.Evidence.verdict_id == verdict_id)
+            .order_by(models.Evidence.id)
+            .all()
+        )
         attempts = []
         for ev in evidence_records:
-            attempts.append({
-                "attempt": ev.attempt_label,
-                "status_code": ev.response_status,
-                "consistent": ev.consistent == "true",
-                "body_diff_ratio": float(ev.body_diff_ratio) if ev.body_diff_ratio else 0.0,
-                "sensitive_fields": __import__("json").loads(ev.sensitive_fields) if ev.sensitive_fields else [],
-                "curl_command": ev.curl_command,
-                "body_hash": ev.response_body_hash,
-            })
+            attempts.append(
+                {
+                    "attempt": ev.attempt_label,
+                    "status_code": ev.response_status,
+                    "consistent": ev.consistent == "true",
+                    "body_diff_ratio": float(ev.body_diff_ratio) if ev.body_diff_ratio else 0.0,
+                    "sensitive_fields": __import__("json").loads(ev.sensitive_fields) if ev.sensitive_fields else [],
+                    "curl_command": ev.curl_command,
+                    "body_hash": ev.response_body_hash,
+                }
+            )
         return {
             "verdict_id": verdict_id,
             "total_attempts": len(evidence_records),
@@ -830,7 +904,8 @@ def get_evidence_for_verdict(verdict_id: int) -> dict[str, Any]:
             "summary": {
                 "total_attempts": len(evidence_records),
                 "consistent_count": sum(1 for ev in evidence_records if ev.consistent == "true"),
-                "consistency_ratio": sum(1 for ev in evidence_records if ev.consistent == "true") / max(len(evidence_records), 1),
+                "consistency_ratio": sum(1 for ev in evidence_records if ev.consistent == "true")
+                / max(len(evidence_records), 1),
             },
             "reproduction_steps": [
                 "1. Obtain authentication tokens for two different users",
@@ -844,6 +919,7 @@ def get_evidence_for_verdict(verdict_id: int) -> dict[str, Any]:
 
 
 # ── Internal helpers ────────────────────────────────────
+
 
 def _score_endpoint(ep) -> dict:
     return unified_score(ep.path, ep.method or "GET", ep.parsed_params)

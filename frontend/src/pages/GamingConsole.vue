@@ -28,7 +28,7 @@ const greeting = computed(() => {
 const systemHealthColor = computed(() => {
   const score = dashboard.value?.systemHealth ?? 0
   if (score >= 90) return '#34D399'
-  if (score >= 70) return '#FBBF24'
+  if (score >= 70) return '#D97706'
   return '#F87171'
 })
 
@@ -58,7 +58,7 @@ const activityIcon = (type: string) => {
 }
 const activityColor = (type: string) => {
   const map: Record<string, string> = {
-    success: '#34D399', finding: '#FBBF24', warn: '#F87171', info: '#60A5FA'
+    success: '#34D399', finding: '#D97706', warn: '#F87171', info: '#60A5FA'
   }
   return map[type] || '#64748B'
 }
@@ -88,7 +88,7 @@ const activeCyclesCount = computed(() => {
   return active > 0 ? active : cycles.length
 })
 
-const pendingApprovals = computed(() => 0)
+const pendingApprovals = computed(() => dashboard.value?.pendingApprovals ?? 0)
 
 function statusLabel(status: string): string {
   const map: Record<string, string> = {
@@ -178,8 +178,8 @@ onUnmounted(() => {
 
         <div class="flex items-center gap-4">
           <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            <span class="text-xs text-green-400 font-semibold">ALL SYSTEMS OPERATIONAL</span>
+            <span class="w-2 h-2 rounded-full bg-success animate-pulse" />
+            <span class="text-xs text-success font-semibold">ALL SYSTEMS OPERATIONAL</span>
           </div>
           <div class="live-badge">LIVE</div>
         </div>
@@ -226,7 +226,7 @@ onUnmounted(() => {
         <!-- Revenue -->
         <div class="card">
           <div class="card-label">REVENUE THIS MONTH</div>
-          <div class="card-value text-green-400">{{ totalEarnings }}</div>
+          <div class="card-value text-success">{{ totalEarnings }}</div>
           <div class="card-change positive">USD/h {{ (dashboard?.revenue?.usdPerHour ?? 0).toFixed(2) }}</div>
           <div class="mini-chart">
             <div class="bar" style="height: 40%" />
@@ -258,9 +258,9 @@ onUnmounted(() => {
                 {{ dashboard?.systemHealth || 95 }}%
               </div>
               <div class="text-xs text-muted mt-2">
-                <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-green-400" /> API Server</div>
-                <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-green-400" /> Scheduler</div>
-                <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-green-400" /> Agents</div>
+                <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-success" /> API Server</div>
+                <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-success" /> Scheduler</div>
+                <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-success" /> Agents</div>
               </div>
             </div>
           </div>
@@ -275,14 +275,14 @@ onUnmounted(() => {
               @click="handleQuickAction('/opportunities')">
               <div class="flex items-center gap-2">
                 <span class="text-xs font-bold" :class="{
-                  'text-amber-400': i === 0, 'text-amber-300': i === 1,
-                  'text-amber-200': i === 2, 'text-muted': i > 2
+                  'text-warning': i === 0, 'text-warning/90': i === 1,
+                  'text-warning/70': i === 2, 'text-muted': i > 2
                 }">
                   {{ ['\uD83E\uDD47', '\uD83E\uDD48', '\uD83E\uDD49'][i] || `${i + 1}.` }}
                 </span>
                 <span class="text-xs truncate max-w-[180px]">{{ opp.title }}</span>
               </div>
-              <span class="text-xs font-mono font-semibold" :class="i < 3 ? 'text-green-400' : 'text-muted'">
+              <span class="text-xs font-mono font-semibold" :class="i < 3 ? 'text-success' : 'text-muted'">
                 ${{ opp.reward?.toLocaleString() || 0 }}
               </span>
             </div>
@@ -297,16 +297,16 @@ onUnmounted(() => {
         </h2>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-4">
           <div v-for="agent in fleetAgents" :key="agent.name" class="agent-card"
-            :style="{ borderColor: agent.status === 'error' ? 'rgba(248,113,113,0.4)' : 'rgba(59,130,246,0.2)' }">
+            :style="{ borderColor: agent.status === 'error' ? 'rgba(248,113,113,0.4)' : 'rgba(255, 255, 255,0.2)' }">
             <div class="flex items-center gap-2 mb-2">
               <span class="w-2 h-2 rounded-full"
-                :class="agent.status === 'error' ? 'bg-red-400' : agent.status === 'working' ? 'bg-green-400' : 'bg-amber-400'" />
+                :class="agent.status === 'error' ? 'bg-destructive' : agent.status === 'working' ? 'bg-success' : 'bg-warning'" />
               <span class="font-semibold text-sm" :class="{
-                'text-cyan-400': agent.name.toLowerCase().includes('forge'),
-                'text-green-400': agent.name.toLowerCase().includes('pulse'),
-                'text-purple-400': agent.name.toLowerCase().includes('secur'),
-                'text-blue-400': agent.name.toLowerCase().includes('research'),
-                'text-amber-400': agent.name.toLowerCase().includes('learn'),
+                'text-muted-foreground': agent.name.toLowerCase().includes('forge'),
+                'text-success': agent.name.toLowerCase().includes('pulse'),
+                'text-intigriti': agent.name.toLowerCase().includes('secur'),
+                'text-primary': agent.name.toLowerCase().includes('research'),
+                'text-warning': agent.name.toLowerCase().includes('learn'),
               }">{{ agent.name }}</span>
             </div>
             <p class="text-xs text-muted">{{ agent.description || 'Monitoreando' }}</p>
@@ -354,8 +354,8 @@ onUnmounted(() => {
   font-family: var(--font-sans, 'Inter', ui-sans-serif, system-ui, sans-serif);
   overflow-x: hidden;
   background-image:
-    radial-gradient(ellipse at 25% 50%, rgba(59,130,246,0.03) 0%, transparent 60%),
-    radial-gradient(ellipse at 75% 50%, rgba(245,158,11,0.02) 0%, transparent 50%),
+    radial-gradient(ellipse at 25% 50%, rgba(255, 255, 255,0.03) 0%, transparent 60%),
+    radial-gradient(ellipse at 75% 50%, rgba(217,119,6,0.02) 0%, transparent 50%),
     repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.008) 3px, rgba(255,255,255,0.008) 4px);
 }
 
@@ -395,10 +395,10 @@ onUnmounted(() => {
 }
 .pill:hover { opacity: 0.8; }
 .pill-forge { color: #22D3EE; border-color: rgba(6, 182, 212, 0.3); background-color: rgba(6, 182, 212, 0.1); }
-.pill-pulse { color: #4ADE80; border-color: rgba(34, 197, 94, 0.3); background-color: rgba(34, 197, 94, 0.1); }
-.pill-vault { color: #FBBF24; border-color: rgba(245, 158, 11, 0.3); background-color: rgba(245, 158, 11, 0.1); }
-.pill-atlas { color: #A78BFA; border-color: rgba(168, 85, 247, 0.3); background-color: rgba(168, 85, 247, 0.1); }
-.pill-security { color: #F87171; border-color: rgba(239, 68, 68, 0.3); background-color: rgba(239, 68, 68, 0.1); }
+.pill-pulse { color: #16A34A; border-color: rgba(22, 163, 74, 0.3); background-color: rgba(22, 163, 74, 0.1); }
+.pill-vault { color: #D97706; border-color: rgba(217, 119, 6, 0.3); background-color: rgba(217, 119, 6, 0.1); }
+.pill-atlas { color: #9CA3AF; border-color: rgba(156, 163, 175, 0.3); background-color: rgba(156, 163, 175, 0.1); }
+.pill-security { color: #F87171; border-color: rgba(232, 33, 39, 0.3); background-color: rgba(232, 33, 39, 0.1); }
 
 .live-badge {
   padding: 0.25rem 1rem;
@@ -421,11 +421,11 @@ onUnmounted(() => {
 }
 .o-ring-outer {
   top: 0; right: 0; bottom: 0; left: 0;
-  border: 2px solid rgba(0, 112, 209, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.4);
 }
 .o-ring-inner {
   top: 16px; right: 16px; bottom: 16px; left: 16px;
-  border: 1px solid rgba(0, 112, 209, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 .o-dot {
   position: absolute;
@@ -434,21 +434,21 @@ onUnmounted(() => {
   width: 0.375rem;
   height: 0.375rem;
   border-radius: 9999px;
-  background-color: #FBBF24;
+  background-color: #D97706;
   box-shadow: 0 10px 15px -3px rgba(251, 191, 36, 0.5);
 }
 .o-core {
   position: absolute;
   top: 36px; right: 36px; bottom: 36px; left: 36px;
   border-radius: 9999px;
-  background-color: rgba(0, 112, 209, 0.2);
+  background-color: rgba(255, 255, 255, 0.2);
 }
 .o-core::after {
   content: '';
   position: absolute;
   top: 8px; right: 8px; bottom: 8px; left: 8px;
   border-radius: 9999px;
-  background-color: rgba(0, 112, 209, 0.6);
+  background-color: rgba(255, 255, 255, 0.6);
 }
 
 /* Action pills */
@@ -466,9 +466,9 @@ onUnmounted(() => {
 }
 .action-pill:hover { opacity: 0.8; transform: translateY(-2px); }
 .action-primary { color: #22D3EE; border-color: rgba(6, 182, 212, 0.4); background-color: rgba(6, 182, 212, 0.15); }
-.action-green { color: #4ADE80; border-color: rgba(34, 197, 94, 0.4); background-color: rgba(34, 197, 94, 0.15); }
-.action-gold { color: #FBBF24; border-color: rgba(245, 158, 11, 0.4); background-color: rgba(245, 158, 11, 0.15); }
-.action-red { color: #F87171; border-color: rgba(239, 68, 68, 0.4); background-color: rgba(239, 68, 68, 0.15); }
+.action-green { color: #16A34A; border-color: rgba(22, 163, 74, 0.4); background-color: rgba(22, 163, 74, 0.15); }
+.action-gold { color: #D97706; border-color: rgba(217, 119, 6, 0.4); background-color: rgba(217, 119, 6, 0.15); }
+.action-red { color: #F87171; border-color: rgba(232, 33, 39, 0.4); background-color: rgba(232, 33, 39, 0.15); }
 
 /* Cards grid */
 .cards-grid {
@@ -498,7 +498,7 @@ onUnmounted(() => {
 .card:hover {
   border-color: rgba(255, 255, 255, 0.1);
   background-color: rgba(255, 255, 255, 0.05);
-  box-shadow: 0 0 30px rgba(59,130,246,0.05);
+  box-shadow: 0 0 30px rgba(255, 255, 255,0.05);
 }
 
 .card-label {
@@ -519,7 +519,7 @@ onUnmounted(() => {
   font-size: 0.75rem;
   margin-top: 0.25rem;
 }
-.card-change.positive { color: #4ADE80; }
+.card-change.positive { color: #16A34A; }
 
 .card-detail {
   font-size: 0.75rem;
@@ -540,7 +540,7 @@ onUnmounted(() => {
 .mini-chart .bar {
   width: 0.75rem;
   border-radius: 2px 2px 0 0;
-  background-color: rgba(0, 112, 209, 0.2);
+  background-color: rgba(255, 255, 255, 0.2);
   transition: all 0.15s ease;
 }
 .mini-chart .bar.active {
@@ -567,14 +567,14 @@ onUnmounted(() => {
   transition: all 0.15s ease;
 }
 .agent-card:hover {
-  box-shadow: 0 0 20px rgba(59,130,246,0.05);
+  box-shadow: 0 0 20px rgba(255, 255, 255,0.05);
   transform: translateY(-2px);
 }
 .agent-forge { border-color: rgba(6, 182, 212, 0.2); background-color: rgba(6, 182, 212, 0.04); }
-.agent-pulse { border-color: rgba(34, 197, 94, 0.2); background-color: rgba(34, 197, 94, 0.04); }
-.agent-security { border-color: rgba(168, 85, 247, 0.2); background-color: rgba(168, 85, 247, 0.04); }
-.agent-research { border-color: rgba(59, 130, 246, 0.2); background-color: rgba(59, 130, 246, 0.04); }
-.agent-learning { border-color: rgba(245, 158, 11, 0.2); background-color: rgba(245, 158, 11, 0.04); }
+.agent-pulse { border-color: rgba(22, 163, 74, 0.2); background-color: rgba(22, 163, 74, 0.04); }
+.agent-security { border-color: rgba(156, 163, 175, 0.2); background-color: rgba(156, 163, 175, 0.04); }
+.agent-research { border-color: rgba(255, 255, 255, 0.2); background-color: rgba(255, 255, 255, 0.04); }
+.agent-learning { border-color: rgba(217, 119, 6, 0.2); background-color: rgba(217, 119, 6, 0.04); }
 
 /* Activity log */
 .activity-log {

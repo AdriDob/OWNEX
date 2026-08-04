@@ -161,7 +161,7 @@ type: config
 
 ## Configuración
 - Horas de trabajo: {self.system.profile.work_hours_start} - {self.system.profile.work_hours_end}
-- Días de trabajo: {', '.join(self.system.profile.work_days)}
+- Días de trabajo: {", ".join(self.system.profile.work_days)}
 - Voice enabled: {self.system.profile.voice_enabled}
 - Obsidian daily notes: {self.system.profile.obsidian_daily_notes}
 
@@ -291,11 +291,13 @@ type: merlin-note
         for note_path in sorted(self.daily_notes_path.glob("*.md"), reverse=True)[:limit]:
             with open(note_path, encoding="utf-8") as f:
                 content = f.read()
-            notes.append({
-                "path": str(note_path),
-                "filename": note_path.name,
-                "content": content,
-            })
+            notes.append(
+                {
+                    "path": str(note_path),
+                    "filename": note_path.name,
+                    "content": content,
+                }
+            )
         return notes
 
     def get_merlin_notes(self, limit: int = 10) -> list[dict[str, Any]]:
@@ -304,11 +306,13 @@ type: merlin-note
         for note_path in sorted(self.merlin_notes_path.glob("*.md"), reverse=True)[:limit]:
             with open(note_path, encoding="utf-8") as f:
                 content = f.read()
-            notes.append({
-                "path": str(note_path),
-                "filename": note_path.name,
-                "content": content,
-            })
+            notes.append(
+                {
+                    "path": str(note_path),
+                    "filename": note_path.name,
+                    "content": content,
+                }
+            )
         return notes
 
 

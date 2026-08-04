@@ -22,6 +22,7 @@ from cores.setup.steps.enhanced_personalization import get_enhanced_personalizat
 
 class OnboardingDay(StrEnum):
     """Días de onboarding."""
+
     DAY_1 = "day_1"
     DAY_2 = "day_2"
     DAY_3 = "day_3"
@@ -33,6 +34,7 @@ class OnboardingDay(StrEnum):
 
 class LessonStatus(StrEnum):
     """Estado de lección."""
+
     NOT_STARTED = "not_started"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -42,6 +44,7 @@ class LessonStatus(StrEnum):
 @dataclass
 class Lesson:
     """Lección de onboarding."""
+
     lesson_id: str
     day: OnboardingDay
     title: str
@@ -56,6 +59,7 @@ class Lesson:
 @dataclass
 class OnboardingProgress:
     """Progreso de onboarding."""
+
     user_name: str
     current_day: OnboardingDay
     lessons_completed: int = 0
@@ -179,7 +183,6 @@ Yo te responderé con tu plan diario personalizado.
 """,
                 duration_minutes=20,
             ),
-
             # Day 2
             Lesson(
                 lesson_id="day2_1",
@@ -253,7 +256,6 @@ Te enseñaré a documentar tus hallazgos correctamente.
 """,
                 duration_minutes=30,
             ),
-
             # Day 3
             Lesson(
                 lesson_id="day3_1",
@@ -339,7 +341,6 @@ Prueba los comandos básicos:
 """,
                 duration_minutes=25,
             ),
-
             # Day 4-7: Más lecciones según modo de trabajo
         ]
 
@@ -373,7 +374,9 @@ Prueba los comandos básicos:
 
     def complete_lesson(self, lesson_id: str, notes: str = "") -> bool:
         """Completar lección."""
-        lesson = next((existing_lesson for existing_lesson in self.lessons if existing_lesson.lesson_id == lesson_id), None)
+        lesson = next(
+            (existing_lesson for existing_lesson in self.lessons if existing_lesson.lesson_id == lesson_id), None
+        )
 
         if not lesson:
             return False
@@ -422,7 +425,10 @@ Prueba los comandos básicos:
         if not self.progress:
             return False
 
-        return self.progress.current_day == OnboardingDay.DAY_7 and self.progress.lessons_completed == self.progress.lessons_total
+        return (
+            self.progress.current_day == OnboardingDay.DAY_7
+            and self.progress.lessons_completed == self.progress.lessons_total
+        )
 
 
 # Singleton instance

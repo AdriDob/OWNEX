@@ -84,7 +84,7 @@ class OrionAgent:
 
         return {
             "response": "No pude conectar con ningún motor de IA. "
-                        "Verificá que Ollama esté corriendo o configurá OPENROUTER_API_KEY.",
+            "Verificá que Ollama esté corriendo o configurá OPENROUTER_API_KEY.",
             "engine": "none",
         }
 
@@ -217,11 +217,13 @@ class OrionAgent:
                     continue
 
                 tool_result = await execute_tool(fn_name, fn_args)
-                messages.append({
-                    "role": "tool",
-                    "content": json.dumps(tool_result, ensure_ascii=False),
-                    "tool_call_id": tc.get("id", "") if isinstance(tc, dict) else "",
-                })
+                messages.append(
+                    {
+                        "role": "tool",
+                        "content": json.dumps(tool_result, ensure_ascii=False),
+                        "tool_call_id": tc.get("id", "") if isinstance(tc, dict) else "",
+                    }
+                )
 
             # Call model again
             if source == "openrouter":

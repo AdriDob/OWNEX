@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Generate build_info.json for the build/release/ directory."""
+
 import hashlib
 import json
 import subprocess
@@ -23,7 +24,9 @@ def get_git_commit():
     try:
         r = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         return r.stdout.strip() if r.returncode == 0 else "unknown"
     except Exception:
@@ -43,7 +46,7 @@ def main():
         if f.is_file():
             relp = str(f.relative_to(RELEASE_DIR))
             sz = f.stat().st_size
-            human = f"{sz/1024:.1f} KB" if sz < 1024 * 1024 else f"{sz/1024/1024:.1f} MB"
+            human = f"{sz / 1024:.1f} KB" if sz < 1024 * 1024 else f"{sz / 1024 / 1024:.1f} MB"
             files[relp] = {"size_bytes": sz, "size_human": human}
 
     info = {
@@ -55,7 +58,7 @@ def main():
         "python": sys.version.split()[0],
         "platform": sys.platform,
         "total_size_bytes": total,
-        "total_size_human": f"{total/1024/1024:.1f} MB",
+        "total_size_human": f"{total / 1024 / 1024:.1f} MB",
         "components": {
             "frontend": True,
             "pyinstaller": True,

@@ -98,7 +98,7 @@ function renderGraph() {
     .selectAll('line')
     .data(data.value.links)
     .join('line')
-    .attr('stroke', 'rgba(168, 85, 247, 0.15)')
+    .attr('stroke', 'rgba(156, 163, 175, 0.15)')
     .attr('stroke-width', 1)
     .attr('stroke-dasharray', '2,2')
 

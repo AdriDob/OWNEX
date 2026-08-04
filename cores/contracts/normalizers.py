@@ -79,6 +79,7 @@ OVERVIEW_FIELD_MAP: dict[str, str] = {
 
 # ── snake_case -> camelCase converter ──────────────────────────────────
 
+
 def _to_camel(key: str) -> str:
     """Convert snake_case to camelCase."""
     if "_" not in key:
@@ -88,6 +89,7 @@ def _to_camel(key: str) -> str:
 
 
 # ── Safe value helpers ────────────────────────────────────────────────
+
 
 def _safe_int(v: Any, default: int = 0) -> int:
     if v is None:
@@ -126,6 +128,7 @@ def _safe_dict(v: Any, default: dict | None = None) -> dict:
 
 
 # ── Normalizers ───────────────────────────────────────────────────────
+
 
 def _apply_map(raw: dict[str, Any], field_map: dict[str, str]) -> dict[str, Any]:
     """Rename fields using field_map, camelCase the rest."""
@@ -238,15 +241,35 @@ def normalize_overview(raw: dict[str, Any] | None) -> dict[str, Any]:
     mapped["activeScans"] = _safe_int(mapped.get("activeScans"))
     mapped["highSignal"] = _safe_int(mapped.get("highSignal"))
     mapped["avgRisk"] = _safe_float(mapped.get("avgRisk"))
-    mapped["riskDistribution"] = _safe_dict(mapped.get("riskDistribution"), {
-        "critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0,
-    })
-    mapped["severity"] = _safe_dict(mapped.get("severity"), {
-        "critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0,
-    })
-    mapped["pipeline"] = _safe_dict(mapped.get("pipeline"), {
-        "detected": 0, "validated": 0, "confirmed": 0, "reported": 0,
-    })
+    mapped["riskDistribution"] = _safe_dict(
+        mapped.get("riskDistribution"),
+        {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0,
+        },
+    )
+    mapped["severity"] = _safe_dict(
+        mapped.get("severity"),
+        {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0,
+        },
+    )
+    mapped["pipeline"] = _safe_dict(
+        mapped.get("pipeline"),
+        {
+            "detected": 0,
+            "validated": 0,
+            "confirmed": 0,
+            "reported": 0,
+        },
+    )
     mapped["vectorDistribution"] = _safe_dict(mapped.get("vectorDistribution"))
     # Normalize top targets
     top = mapped.get("topTargets", [])
@@ -276,51 +299,94 @@ def normalize_paginated(raw: dict[str, Any], item_normalizer) -> dict[str, Any]:
 
 # ── Empty DTO factories (guarantee no undefined/null propagation) ─────
 
+
 def _empty_target() -> dict[str, Any]:
     return {
-        "id": 0, "name": "", "domain": "", "payout": 0, "score": 0.0,
-        "risk": 0.0, "roi": 0.0, "endpoints": 0, "findings": 0,
-        "confirmedFindings": 0, "competition": 0.0, "freshness": 0.0,
+        "id": 0,
+        "name": "",
+        "domain": "",
+        "payout": 0,
+        "score": 0.0,
+        "risk": 0.0,
+        "roi": 0.0,
+        "endpoints": 0,
+        "findings": 0,
+        "confirmedFindings": 0,
+        "competition": 0.0,
+        "freshness": 0.0,
     }
 
 
 def _empty_opportunity() -> dict[str, Any]:
     return {
-        "id": 0, "targetId": 0, "name": "", "domain": "", "payout": 0,
-        "score": 0.0, "risk": 0.0, "roi": 0.0, "endpoints": 0,
-        "findings": 0, "competition": 0.0, "freshness": 0.0,
-        "surfaces": [], "vectors": [],
+        "id": 0,
+        "targetId": 0,
+        "name": "",
+        "domain": "",
+        "payout": 0,
+        "score": 0.0,
+        "risk": 0.0,
+        "roi": 0.0,
+        "endpoints": 0,
+        "findings": 0,
+        "competition": 0.0,
+        "freshness": 0.0,
+        "surfaces": [],
+        "vectors": [],
     }
 
 
 def _empty_endpoint() -> dict[str, Any]:
     return {
-        "id": 0, "targetId": 0, "path": "", "method": "GET",
-        "risk": 0.0, "confidence": 0.0, "vector": "",
-        "labels": [], "signals": [], "attackSurface": [],
+        "id": 0,
+        "targetId": 0,
+        "path": "",
+        "method": "GET",
+        "risk": 0.0,
+        "confidence": 0.0,
+        "vector": "",
+        "labels": [],
+        "signals": [],
+        "attackSurface": [],
         "actionable": False,
     }
 
 
 def _empty_finding() -> dict[str, Any]:
     return {
-        "id": 0, "targetId": 0, "endpointId": 0, "title": "",
-        "severity": "info", "confidence": 0.0, "status": "open",
-        "payout": 0, "risk": 0.0, "vector": "",
+        "id": 0,
+        "targetId": 0,
+        "endpointId": 0,
+        "title": "",
+        "severity": "info",
+        "confidence": 0.0,
+        "status": "open",
+        "payout": 0,
+        "risk": 0.0,
+        "vector": "",
     }
 
 
 def _empty_evidence() -> dict[str, Any]:
     return {
-        "id": 0, "verdictId": 0, "findingId": 0, "requestUrl": "",
-        "responseStatus": 0, "consistent": False,
+        "id": 0,
+        "verdictId": 0,
+        "findingId": 0,
+        "requestUrl": "",
+        "responseStatus": 0,
+        "consistent": False,
     }
 
 
 def _empty_overview() -> dict[str, Any]:
     return {
-        "targets": 0, "endpoints": 0, "findings": 0, "confirmed": 0,
-        "activeScans": 0, "highSignal": 0, "avgRisk": 0.0,
+        "targets": 0,
+        "endpoints": 0,
+        "findings": 0,
+        "confirmed": 0,
+        "activeScans": 0,
+        "highSignal": 0,
+        "avgRisk": 0.0,
         "riskDistribution": {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0},
         "severity": {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0},
         "pipeline": {"detected": 0, "validated": 0, "confirmed": 0, "reported": 0},

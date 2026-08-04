@@ -37,9 +37,9 @@ const saving = ref(false)
 const formError = ref('')
 
 const priorityColors: Record<string, string> = {
-  low: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  medium: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-  high: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+  low: 'bg-primary/10 text-primary border-primary/20',
+  medium: 'bg-warning/10 text-warning border-warning/20',
+  high: 'bg-warning/10 text-warning border-warning/20',
   critical: 'bg-destructive/10 text-destructive border-destructive/20',
 }
 
@@ -179,18 +179,18 @@ onMounted(loadTasks)
         <input
           v-model="newTitle"
           placeholder="Task title"
-          class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-2 text-xs text-foreground"
+          class="w-full rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-xs text-foreground"
         />
         <textarea
           v-model="newDescription"
           placeholder="Description (optional)"
           rows="2"
-          class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-2 text-xs text-foreground resize-none"
+          class="w-full rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-xs text-foreground resize-none"
         />
         <div class="flex items-center gap-3">
           <select
             v-model="newPriority"
-            class="rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-2 text-xs text-foreground"
+            class="rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-xs text-foreground"
           >
             <option value="low">Low</option>
             <option value="medium">Medium</option>

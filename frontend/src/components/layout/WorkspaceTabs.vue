@@ -176,7 +176,7 @@ const scrollRight = () => {
   position: relative;
   height: 44px;
   background: rgba(8, 8, 8, 0.9);
-  border-bottom: 1px solid rgba(59, 130, 246, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   font-family: var(--font-body);
@@ -226,9 +226,9 @@ const scrollRight = () => {
 }
 
 .ownex-workspace-tabs__tab--active {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(59, 130, 246, 0.06));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
   color: var(--ownex-blue);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .ownex-workspace-tabs__tab-icon {
@@ -261,7 +261,7 @@ const scrollRight = () => {
 }
 
 .ownex-workspace-tabs__tab-badge--success {
-  background: rgba(16, 185, 129, 0.15);
+  background: rgba(22, 163, 74, 0.15);
   color: var(--ownex-green);
 }
 
@@ -271,12 +271,12 @@ const scrollRight = () => {
 }
 
 .ownex-workspace-tabs__tab-badge--error {
-  background: rgba(239, 68, 68, 0.15);
+  background: rgba(232, 33, 39, 0.15);
   color: var(--ownex-red);
 }
 
 .ownex-workspace-tabs__tab-badge--gold {
-  background: rgba(245, 158, 11, 0.15);
+  background: rgba(217, 119, 6, 0.15);
   color: var(--ownex-gold);
 }
 
@@ -298,7 +298,7 @@ const scrollRight = () => {
 
 .ownex-workspace-tabs__tab-close:hover {
   opacity: 1;
-  background: rgba(239, 68, 68, 0.15);
+  background: rgba(232, 33, 39, 0.15);
   color: var(--ownex-red);
 }
 
@@ -309,7 +309,7 @@ const scrollRight = () => {
   justify-content: center;
   width: 32px;
   height: 32px;
-  border: 1px dashed rgba(59, 130, 246, 0.3);
+  border: 1px dashed rgba(255, 255, 255, 0.3);
   background: transparent;
   border-radius: var(--radius-md);
   color: var(--ownex-blue);
@@ -320,7 +320,7 @@ const scrollRight = () => {
 
 .ownex-workspace-tabs__add-tab:hover {
   opacity: 1;
-  background: rgba(59, 130, 246, 0.08);
+  background: rgba(255, 255, 255, 0.08);
   border-style: solid;
 }
 

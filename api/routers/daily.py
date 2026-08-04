@@ -30,16 +30,19 @@ _CACHE_KEY = "briefing"
 
 def _get_engine():
     from cores.opportunity import get_engine as _get_engine
+
     return _get_engine()
 
 
 def _get_priority():
     from cores.intelligence.priority_engine import get_priority_engine as _get_priority
+
     return _get_priority()
 
 
 def _get_orchestrator():
     from cores.orchestrator.assistant_orchestrator import get_orchestrator as _get_orch
+
     return _get_orch()
 
 
@@ -137,30 +140,38 @@ async def refresh_briefing():
 
 def _top_opportunities(engine, limit: int = 2) -> list:
     from cores.ux.info_filter import truncate
+
     opportunities = engine.get_all()
     scored = []
     for o in opportunities:
         score_val = o.score.overall if o.score else 0.0
         payout = o.estimated_payout or 0
-        scored.append({
-            "id": o.id,
-            "name": truncate(o.name, 60),
-            "category": o.category,
-            "score": round(score_val, 2),
-            "estimated_payout": payout,
-            "priority": o.priority or "medium",
-        })
+        scored.append(
+            {
+                "id": o.id,
+                "name": truncate(o.name, 60),
+                "category": o.category,
+                "score": round(score_val, 2),
+                "estimated_payout": payout,
+                "priority": o.priority or "medium",
+            }
+        )
     scored.sort(key=lambda x: (x["score"], x["estimated_payout"]), reverse=True)
     return scored[:limit]
 
 
 def _get_risk_alerts(limit: int = 1) -> list:
     from database import db, models
+
     session = db.SessionLocal()
     try:
-        rows = session.query(models.Finding).filter(
-            models.Finding.severity.in_(["critical", "high"])
-        ).order_by(models.Finding.created_at.desc()).limit(limit).all()
+        rows = (
+            session.query(models.Finding)
+            .filter(models.Finding.severity.in_(["critical", "high"]))
+            .order_by(models.Finding.created_at.desc())
+            .limit(limit)
+            .all()
+        )
         return [
             {
                 "id": r.id,
@@ -177,11 +188,16 @@ def _get_risk_alerts(limit: int = 1) -> list:
 
 def _get_quick_wins(limit: int = 1) -> list:
     from database import db, models
+
     session = db.SessionLocal()
     try:
-        rows = session.query(models.Finding).filter(
-            models.Finding.severity.in_(["critical", "high"])
-        ).order_by(models.Finding.created_at.desc()).limit(limit).all()
+        rows = (
+            session.query(models.Finding)
+            .filter(models.Finding.severity.in_(["critical", "high"]))
+            .order_by(models.Finding.created_at.desc())
+            .limit(limit)
+            .all()
+        )
         return [
             {
                 "id": r.id,
@@ -201,6 +217,7 @@ def _get_quick_wins(limit: int = 1) -> list:
 def _get_system_health() -> dict:
     try:
         from cores.system_state import get_system_state
+
         state = get_system_state()
         summary = state.get_summary()
         return {
@@ -214,6 +231,7 @@ def _get_system_health() -> dict:
 
 def _build_assistant_insight(priority, opp_engine) -> dict:
     from cores.ux.info_filter import truncate
+
     top = priority.get_top(1)
     metrics = opp_engine.get_metrics()
     total = metrics.get("opportunities_total", 0)

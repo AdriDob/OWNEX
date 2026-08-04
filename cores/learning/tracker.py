@@ -36,7 +36,9 @@ class EventTracker:
         is_duplicate = finding_data.get("duplicate", False)
         if is_duplicate:
             self._profile.increment(user_id, "duplicates_found")
-        is_informational = severity == "informational" or severity == "info" or finding_data.get("is_informational", False)
+        is_informational = (
+            severity == "informational" or severity == "info" or finding_data.get("is_informational", False)
+        )
         if is_informational:
             self._profile.increment(user_id, "informational_findings")
         self._profile.log_event(user_id, "finding_created", finding_data)

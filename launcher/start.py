@@ -57,7 +57,9 @@ def check_ollama():
     try:
         r = subprocess.run(
             ["ollama", "list"],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         if r.returncode == 0:
             models = r.stdout.lower()
@@ -153,9 +155,17 @@ def start_dashboard(demo: bool = False) -> subprocess.Popen:
     env["CATEYE_BACKEND"] = f"http://127.0.0.1:{backend_port}"
     log(f"Starting Streamlit dashboard on http://localhost:{DASHBOARD_PORT}")
     proc = subprocess.Popen(
-        [sys.executable, "-m", "streamlit", "run", "dashboard/app.py",
-         "--server.port", str(DASHBOARD_PORT),
-         "--server.headless", "true"],
+        [
+            sys.executable,
+            "-m",
+            "streamlit",
+            "run",
+            "dashboard/app.py",
+            "--server.port",
+            str(DASHBOARD_PORT),
+            "--server.headless",
+            "true",
+        ],
         cwd=ROOT,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
@@ -222,10 +232,14 @@ def seed_demo_data():
             ("Wallet balance enumeration", "medium", "/api/v1/wallet/balance"),
         ]
         for title, severity, fpath in findings_data:
-            ep = session.query(models.Endpoint).filter(
-                models.Endpoint.path == fpath,
-                models.Endpoint.target_id == target.id,
-            ).first()
+            ep = (
+                session.query(models.Endpoint)
+                .filter(
+                    models.Endpoint.path == fpath,
+                    models.Endpoint.target_id == target.id,
+                )
+                .first()
+            )
             finding = models.Finding(
                 target_id=target.id,
                 endpoint_id=ep.id if ep else None,
@@ -326,9 +340,14 @@ def main():
 
     parser = argparse.ArgumentParser(description="CATEYE — bug bounty intelligence")
     parser.add_argument("--backend", action="store_true", help="Start backend only")
-    parser.add_argument("--dashboard", nargs="?", const="streamlit", default=None,
-                        choices=["streamlit", "react"],
-                        help="Start dashboard only (streamlit|react)")
+    parser.add_argument(
+        "--dashboard",
+        nargs="?",
+        const="streamlit",
+        default=None,
+        choices=["streamlit", "react"],
+        help="Start dashboard only (streamlit|react)",
+    )
     parser.add_argument("--demo", action="store_true", help="Demo mode with fake dataset")
     args = parser.parse_args()
 

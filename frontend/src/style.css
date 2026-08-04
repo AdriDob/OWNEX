@@ -15,43 +15,45 @@
 
 @theme {
   /* ════════════════════════════════════════════════════════════
-     COLOR SYSTEM — OWNEX Design System
+     COLOR SYSTEM — TESLA STYLE
+     Pure black · Neutral grays · White primary · Tesla red accent
+     Minimal. No glows. No gradients of color. Function over decoration.
      ══════════════════════════════════════════════════════════ */
 
-  /* ── Core Pallette (Functional RGB) ── */
-  --color-background: rgb(5, 5, 5);
-  --color-surface: rgb(10, 10, 15);
-  --color-surface-hover: rgb(16, 16, 24);
-  --color-border: rgb(26, 26, 46);
-  --color-border-light: rgb(37, 37, 64);
-  --color-muted: rgb(82, 82, 91);
-  --color-muted-foreground: rgb(139, 139, 149);
-  --color-foreground: rgb(240, 240, 240);
+  /* ── Core Palette (Neutral Monochrome) ── */
+  --color-background: #000000;
+  --color-surface: #0a0a0a;
+  --color-surface-hover: #141414;
+  --color-border: #1f1f1f;
+  --color-border-light: #2e2e2e;
+  --color-muted: #4a4a4a;
+  --color-muted-foreground: #8a8a8a;
+  --color-foreground: #f5f5f5;
 
   /* ── Identity ── */
-  --color-primary: rgb(0, 112, 209);
-  --color-primary-foreground: rgb(239, 246, 255);
-  --color-accent: rgb(0, 112, 209);
-  --color-accent-foreground: rgb(224, 240, 255);
-  --color-destructive: rgb(239, 68, 68);
-  --color-warning: rgb(245, 158, 11);
-  --color-success: rgb(34, 197, 94);
-  --color-gold: rgb(245, 158, 11);
+  --color-primary: #ffffff;
+  --color-primary-foreground: #000000;
+  --color-accent: #e82127;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #e82127;
+  --color-warning: #d97706;
+  --color-success: #16a34a;
+  --color-gold: #b45309;
 
-  /* ── Platform Colors ── */
-  --color-hackerone: rgb(0, 212, 106);
-  --color-bugcrowd: rgb(245, 110, 47);
-  --color-intigriti: rgb(105, 53, 211);
-  --color-synack: rgb(30, 136, 229);
-  --color-yeswehack: rgb(255, 107, 107);
+  /* ── Platform Colors (desaturated, subdued) ── */
+  --color-hackerone: #16a34a;
+  --color-bugcrowd: #b45309;
+  --color-intigriti: #9CA3AF;
+  --color-synack: #ffffff;
+  --color-yeswehack: #dc2626;
 
-  /* ── Cycle Colors ── */
-  --color-cycle-security: rgb(0, 112, 209);
-  --color-cycle-forge: rgb(168, 85, 247);
-  --color-cycle-pulse: rgb(34, 197, 94);
-  --color-cycle-vault: rgb(245, 158, 11);
-  --color-cycle-atlas: rgb(226, 232, 240);
-  --color-cycle-odyssey: rgb(249, 115, 22);
+  /* ── Cycle Colors (monochrome hierarchy, red = odyssey) ── */
+  --color-cycle-security: #f5f5f5;
+  --color-cycle-forge: #9ca3af;
+  --color-cycle-pulse: #16a34a;
+  --color-cycle-vault: #d97706;
+  --color-cycle-atlas: #d4d4d8;
+  --color-cycle-odyssey: #e82127;
 
   /* ── Typography ── */
   --font-sans: 'Inter', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
@@ -74,12 +76,12 @@
   --radius-xl: 24px;
   --radius-full: 9999px;
 
-  /* ── Shadows ── */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 24px rgba(59, 130, 246, 0.15);
-  --shadow-gold: 0 0 24px rgba(245, 158, 11, 0.15);
+  /* ── Shadows (neutral, no color tint) ── */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 24px rgba(255, 255, 255, 0.06);
+  --shadow-gold: 0 0 24px rgba(255, 255, 255, 0.06);
 
   /* ── Border Width ── */
   --border-width: 1px;
@@ -96,10 +98,10 @@
 
 [data-accent="default"] { }
 [data-accent="gold"] {
-  --color-primary: #f59e0b;
-  --color-primary-foreground: #1a1200;
-  --color-accent: #fbbf24;
-  --color-accent-foreground: #1a1200;
+  --color-primary: #f5f5f5;
+  --color-primary-foreground: #000000;
+  --color-accent: #f5f5f5;
+  --color-accent-foreground: #000000;
 }
 
 [data-density="compact"] { --spacing-unit: 0.75; }
@@ -119,8 +121,8 @@
   }
 
   ::selection {
-    background-color: rgba(59, 130, 246, 0.2);
-    color: #f0f0f0;
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #f5f5f5;
   }
 
   ::-webkit-scrollbar {
@@ -143,22 +145,22 @@
 }
 
 /* ════════════════════════════════════════════════════════════
-   PS5 × STEAM BIG PICTURE — Splash Screen Tokens
+   TESLA — Splash Screen Tokens
    ════════════════════════════════════════════════════════════ */
 .splash-bg {
-  --splash-bg: #030303;
-  --splash-glow-color: rgba(59, 130, 246, 0.15);
+  --splash-bg: #000000;
+  --splash-glow-color: rgba(255, 255, 255, 0.05);
   --splash-glow-radius: 400px;
   --splash-logo-size: 80px;
   --splash-title-size: 2.5rem;
   --splash-subtitle-size: 0.75rem;
   --splash-title-weight: 700;
   --splash-title-tracking: 0.35em;
-  --splash-progress-bar: #3b82f6;
-  --splash-progress-bg: rgba(59, 130, 246, 0.1);
-  --splash-text: #f0f0f0;
+  --splash-progress-bar: #ffffff;
+  --splash-progress-bg: rgba(255, 255, 255, 0.08);
+  --splash-text: #f5f5f5;
   --splash-text-muted: #6b7280;
-  --splash-particle-color: rgba(59, 130, 246, 0.3);
+  --splash-particle-color: rgba(255, 255, 255, 0.08);
 }
 @layer utilities {
   /* ── Card base (clean, minimal) ── */
@@ -180,11 +182,11 @@
   }
 
   .card-blue {
-    border-color: rgba(59, 130, 246, 0.2);
+    border-color: rgba(255, 255, 255, 0.08);
   }
   .card-blue:hover {
-    border-color: rgba(59, 130, 246, 0.4);
-    box-shadow: 0 2px 20px rgba(59, 130, 246, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
   }
 
   /* ── Glass effect ── */
@@ -216,30 +218,30 @@
     border-radius: 50%;
   }
   .status-dot-green {
-    background: #22c55e;
-    box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+    background: #16a34a;
+    box-shadow: 0 0 6px rgba(22, 163, 74, 0.4);
   }
   .status-dot-amber {
-    background: #f59e0b;
-    box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+    background: #d97706;
+    box-shadow: 0 0 6px rgba(217, 119, 6, 0.4);
   }
   .status-dot-red {
-    background: #ef4444;
-    box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+    background: #E82127;
+    box-shadow: 0 0 6px rgba(232, 33, 39, 0.4);
   }
   .status-dot-off {
     background: #27272a;
   }
 
-  /* ── Gradient text ── */
+  /* ── Gradient text (monochrome) ── */
   .text-gradient {
-    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+    background: linear-gradient(135deg, #f5f5f5, #8a8a8a);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .text-gradient-gold {
-    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    background: linear-gradient(135deg, #f5f5f5, #9ca3af);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -248,15 +250,15 @@
     text-wrap: balance;
   }
 
-  /* ── Glow effects ── */
+  /* ── Glow effects (neutral only) ── */
   .glow-blue {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.04);
   }
   .glow-blue-strong {
-    box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.08);
   }
   .glow-gold {
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.1);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.04);
   }
 
   /* ── Animations ── */
@@ -276,8 +278,8 @@
   }
   .hover-lift:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    border-color: rgba(59, 130, 246, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.08);
   }
   .hover-lift:active {
     transform: translateY(0);
@@ -300,7 +302,7 @@
 
   .focus-glow:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15), 0 0 12px rgba(59, 130, 246, 0.08);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12), 0 0 12px rgba(255, 255, 255, 0.05);
   }
 
   /* ── Skeleton ── */
@@ -321,28 +323,28 @@
     text-transform: uppercase;
   }
   .cycle-badge-security {
-    background: rgba(59, 130, 246, 0.15);
-    color: #60a5fa;
+    background: rgba(245, 245, 245, 0.1);
+    color: #f5f5f5;
   }
   .cycle-badge-forge {
-    background: rgba(168, 85, 247, 0.15);
-    color: #a78bfa;
+    background: rgba(156, 163, 175, 0.12);
+    color: #9ca3af;
   }
   .cycle-badge-pulse {
-    background: rgba(34, 197, 94, 0.15);
+    background: rgba(22, 163, 74, 0.12);
     color: #4ade80;
   }
   .cycle-badge-vault {
-    background: rgba(245, 158, 11, 0.15);
+    background: rgba(217, 119, 6, 0.12);
     color: #fbbf24;
   }
   .cycle-badge-atlas {
-    background: rgba(226, 232, 240, 0.1);
-    color: #cbd5e1;
+    background: rgba(212, 212, 216, 0.08);
+    color: #d4d4d8;
   }
   .cycle-badge-odyssey {
-    background: rgba(249, 115, 22, 0.15);
-    color: #fb923c;
+    background: rgba(232, 33, 39, 0.12);
+    color: #E82127;
   }
 
   /* ── Staggered list ── */
@@ -388,10 +390,10 @@
 
   /* ── Backward compatibility aliases ── */
   .phosphor {
-    text-shadow: 0 0 4px rgba(59, 130, 246, 0.15), 0 0 8px rgba(59, 130, 246, 0.08);
+    text-shadow: 0 0 4px rgba(255, 255, 255, 0.08), 0 0 8px rgba(255, 255, 255, 0.04);
   }
   .phosphor-strong {
-    text-shadow: 0 0 4px rgba(59, 130, 246, 0.15), 0 0 12px rgba(59, 130, 246, 0.1), 0 0 20px rgba(59, 130, 246, 0.05);
+    text-shadow: 0 0 4px rgba(255, 255, 255, 0.08), 0 0 12px rgba(255, 255, 255, 0.06), 0 0 20px rgba(255, 255, 255, 0.03);
   }
   .glass-terminal {
     background: rgba(10, 10, 15, 0.92);
@@ -413,9 +415,9 @@
     height: 8px;
     border-radius: 50%;
   }
-  .lamp-green { background: #22c55e; box-shadow: 0 0 6px rgba(34, 197, 94, 0.4); }
-  .lamp-amber { background: #f59e0b; box-shadow: 0 0 6px rgba(245, 158, 11, 0.4); }
-  .lamp-red { background: #ef4444; box-shadow: 0 0 6px rgba(239, 68, 68, 0.4); }
+  .lamp-green { background: #16a34a; box-shadow: 0 0 6px rgba(22, 163, 74, 0.4); }
+  .lamp-amber { background: #d97706; box-shadow: 0 0 6px rgba(217, 119, 6, 0.4); }
+  .lamp-red { background: #E82127; box-shadow: 0 0 6px rgba(232, 33, 39, 0.4); }
   .lamp-off { background: #27272a; }
 
   /* ── Chart bar enter ── */
@@ -449,28 +451,28 @@
   /* ── Grid backgrounds ── */
   .bg-grid {
     background-image:
-      linear-gradient(rgba(26, 26, 46, 0.15) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(26, 26, 46, 0.15) 1px, transparent 1px);
+      linear-gradient(rgba(31, 31, 31, 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(31, 31, 31, 0.5) 1px, transparent 1px);
     background-size: 40px 40px;
   }
   .bg-grid-subtle {
     background-image:
-      linear-gradient(rgba(26, 26, 46, 0.08) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(26, 26, 46, 0.08) 1px, transparent 1px);
+      linear-gradient(rgba(31, 31, 31, 0.3) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(31, 31, 31, 0.3) 1px, transparent 1px);
     background-size: 64px 64px;
   }
 
   /* ── Data grid ── */
   .bg-data-grid {
     background-image:
-      linear-gradient(rgba(59, 130, 246, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(59, 130, 246, 0.04) 1px, transparent 1px);
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
     background-size: 24px 24px;
   }
   .bg-data-grid-subtle {
     background-image:
-      linear-gradient(rgba(59, 130, 246, 0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(59, 130, 246, 0.025) 1px, transparent 1px);
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
     background-size: 48px 48px;
   }
 }
@@ -495,8 +497,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 8px rgba(59, 130, 246, 0.2); }
-  50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+  0%, 100% { box-shadow: 0 0 8px rgba(255, 255, 255, 0.08); }
+  50% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.18); }
 }
 
 @keyframes ping-slow {

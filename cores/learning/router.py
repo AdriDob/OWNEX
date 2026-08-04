@@ -22,6 +22,7 @@ router = APIRouter(prefix="/api/learning", tags=["learning"])
 
 # ─── Helpers ─────────────────────────────────────────────────────────────
 
+
 def _get_user_id(request: Request) -> str:
     auth = request.headers.get("Authorization", "")
     token = auth.removeprefix("Bearer ").strip()
@@ -34,6 +35,7 @@ def _get_user_id(request: Request) -> str:
 
 
 # ─── Schemas ─────────────────────────────────────────────────────────────
+
 
 class EventBody(BaseModel):
     event_type: str
@@ -58,6 +60,7 @@ class PreferenceUpdate(BaseModel):
 
 # ─── Profile ─────────────────────────────────────────────────────────────
 
+
 @router.get("/profile")
 def get_profile(request: Request):
     user_id = _get_user_id(request)
@@ -78,6 +81,7 @@ def reset_profile(request: Request):
 
 # ─── Preferences ─────────────────────────────────────────────────────────
 
+
 @router.patch("/preferences")
 def update_preferences(body: PreferenceUpdate, request: Request):
     user_id = _get_user_id(request)
@@ -90,6 +94,7 @@ def update_preferences(body: PreferenceUpdate, request: Request):
 
 
 # ─── Events ─────────────────────────────────────────────────────────────
+
 
 @router.post("/events")
 def track_event(body: EventBody, request: Request):
@@ -139,6 +144,7 @@ def list_events(
 
 # ─── Prioritization ──────────────────────────────────────────────────────
 
+
 @router.post("/prioritize/targets")
 def prioritize_targets(body: PrioritizeTargetsBody, request: Request):
     user_id = _get_user_id(request)
@@ -156,6 +162,7 @@ def prioritize_findings(body: PrioritizeFindingsBody, request: Request):
 
 
 # ─── Explanations ────────────────────────────────────────────────────────
+
 
 @router.post("/explain/priority")
 def explain_priority(body: PrioritizeTargetsBody, request: Request):
@@ -178,6 +185,7 @@ def profile_summary(request: Request):
 
 # ─── AI Memory ───────────────────────────────────────────────────────────
 
+
 @router.post("/memory/context")
 def get_context(body: TargetContextBody, request: Request):
     user_id = _get_user_id(request)
@@ -196,6 +204,7 @@ def similar_findings(request: Request, bug_class: str = Query("")):
 
 # ─── Daily Recommendations ──────────────────────────────────────────────
 
+
 @router.get("/recommendations/daily")
 def daily_recommendations(request: Request):
     user_id = _get_user_id(request)
@@ -205,6 +214,7 @@ def daily_recommendations(request: Request):
 
 # ─── Export ──────────────────────────────────────────────────────────────
 
+
 @router.get("/export")
 def export_profile(request: Request, fmt: str = Query("json", pattern="^(json|markdown)$")):
     user_id = _get_user_id(request)
@@ -212,4 +222,5 @@ def export_profile(request: Request, fmt: str = Query("json", pattern="^(json|ma
     content = exporter.export(user_id, fmt)
     media = "application/json" if fmt == "json" else "text/markdown"
     from fastapi.responses import PlainTextResponse
+
     return PlainTextResponse(content, media_type=media)

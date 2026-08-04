@@ -4,6 +4,7 @@ from __future__ import annotations
 Generates complete markdown reports with evidence, ready for manual platform submission.
 Top 7 daily, top 15 weekly. Always manual submit with edit/download option.
 """
+# ruff: noqa: E402
 import json
 import logging
 import os

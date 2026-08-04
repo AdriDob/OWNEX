@@ -3,9 +3,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any
 
-UUID_PATTERN = re.compile(
-    r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-)
+UUID_PATTERN = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
 
 ENTITY_PATTERNS: dict[str, list[str]] = {
     "user": ["user", "users", "profile", "member", "members"],
@@ -24,10 +22,23 @@ ENTITY_PATTERNS: dict[str, list[str]] = {
     "search": ["search", "query"],
     "config": ["config", "configuration", "settings", "preferences"],
     "web3_entity": [
-        "wallet", "balance", "transfer", "tx", "transaction",
-        "signature", "nonce", "rpc", "infura", "alchemy",
-        "contract", "ethereum", "solana", "web3", "chain",
-        "eth_", "jsonrpc",
+        "wallet",
+        "balance",
+        "transfer",
+        "tx",
+        "transaction",
+        "signature",
+        "nonce",
+        "rpc",
+        "infura",
+        "alchemy",
+        "contract",
+        "ethereum",
+        "solana",
+        "web3",
+        "chain",
+        "eth_",
+        "jsonrpc",
     ],
 }
 
@@ -227,9 +238,7 @@ class NodeExtractor:
       - signal nodes: risk signals (idor, auth, graphql, etc.)
     """
 
-    def extract(
-        self, scored_endpoints: list[dict[str, Any]]
-    ) -> tuple[list[dict[str, Any]], dict[str, list[str]]]:
+    def extract(self, scored_endpoints: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, list[str]]]:
         nodes: list[dict[str, Any]] = []
         endpoint_ids: list[str] = []
         entity_endpoints: dict[str, list[str]] = defaultdict(list)
@@ -242,20 +251,22 @@ class NodeExtractor:
             method = str(ep.get("method", "GET")).upper()
             node_id = f"endpoint:{method}:{path}"
 
-            nodes.append({
-                "node_id": node_id,
-                "type": "endpoint",
-                "value": f"{method} {path}",
-                "metadata": {
-                    "method": method,
-                    "path": path,
-                    "risk_score": float(ep.get("risk_score", 0)),
-                    "labels": list(ep.get("labels", [])),
-                    "signals": list(ep.get("signals", [])),
-                    "attack_surface": list(ep.get("attack_surface", [])),
-                    "params": list(ep.get("params", {}).keys()) if isinstance(ep.get("params"), dict) else [],
-                },
-            })
+            nodes.append(
+                {
+                    "node_id": node_id,
+                    "type": "endpoint",
+                    "value": f"{method} {path}",
+                    "metadata": {
+                        "method": method,
+                        "path": path,
+                        "risk_score": float(ep.get("risk_score", 0)),
+                        "labels": list(ep.get("labels", [])),
+                        "signals": list(ep.get("signals", [])),
+                        "attack_surface": list(ep.get("attack_surface", [])),
+                        "params": list(ep.get("params", {}).keys()) if isinstance(ep.get("params"), dict) else [],
+                    },
+                }
+            )
             endpoint_ids.append(node_id)
 
             # Entities from path segments
@@ -264,12 +275,14 @@ class NodeExtractor:
                 for pattern in patterns:
                     if f"/{pattern}" in lower_path or lower_path.startswith(f"{pattern}/") or lower_path == pattern:
                         if entity_name not in seen_entities:
-                            nodes.append({
-                                "node_id": f"entity:{entity_name}",
-                                "type": "entity",
-                                "value": entity_name,
-                                "metadata": {"endpoints_count": 0, "avg_risk_score": 0.0},
-                            })
+                            nodes.append(
+                                {
+                                    "node_id": f"entity:{entity_name}",
+                                    "type": "entity",
+                                    "value": entity_name,
+                                    "metadata": {"endpoints_count": 0, "avg_risk_score": 0.0},
+                                }
+                            )
                             seen_entities.add(entity_name)
                         entity_endpoints[entity_name].append(node_id)
                         break
@@ -283,12 +296,14 @@ class NodeExtractor:
                         for pattern in patterns:
                             if pattern in lower_key:
                                 if entity_name not in seen_entities:
-                                    nodes.append({
-                                        "node_id": f"entity:{entity_name}",
-                                        "type": "entity",
-                                        "value": entity_name,
-                                        "metadata": {"endpoints_count": 0, "avg_risk_score": 0.0},
-                                    })
+                                    nodes.append(
+                                        {
+                                            "node_id": f"entity:{entity_name}",
+                                            "type": "entity",
+                                            "value": entity_name,
+                                            "metadata": {"endpoints_count": 0, "avg_risk_score": 0.0},
+                                        }
+                                    )
                                     seen_entities.add(entity_name)
                                 entity_endpoints[entity_name].append(node_id)
                                 break
@@ -297,12 +312,14 @@ class NodeExtractor:
             if "web3" in ep.get("signals", []):
                 we3_id = "web3_entity:web3"
                 if we3_id not in seen_entities:
-                    nodes.append({
-                        "node_id": we3_id,
-                        "type": "web3_entity",
-                        "value": "Web3 / Crypto endpoint",
-                        "metadata": {"endpoints_count": 0, "avg_risk_score": 0.0},
-                    })
+                    nodes.append(
+                        {
+                            "node_id": we3_id,
+                            "type": "web3_entity",
+                            "value": "Web3 / Crypto endpoint",
+                            "metadata": {"endpoints_count": 0, "avg_risk_score": 0.0},
+                        }
+                    )
                     seen_entities.add(we3_id)
                 entity_endpoints.setdefault("web3_entity", []).append(node_id)
 
@@ -311,29 +328,33 @@ class NodeExtractor:
             for label in labels:
                 signal_name = label.replace("_", " ")
                 if label not in seen_signals:
-                    nodes.append({
-                        "node_id": f"signal:{label}",
-                        "type": "signal",
-                        "value": signal_name,
-                        "metadata": {"endpoints_count": 0, "avg_risk_score": 0.0},
-                    })
+                    nodes.append(
+                        {
+                            "node_id": f"signal:{label}",
+                            "type": "signal",
+                            "value": signal_name,
+                            "metadata": {"endpoints_count": 0, "avg_risk_score": 0.0},
+                        }
+                    )
                     seen_signals.add(label)
 
             # Signals from attack_surface
             for surface in ep.get("attack_surface", []):
                 surface_key = surface.replace("_surface", "").replace("_", " ")
                 if surface_key not in seen_signals:
-                    nodes.append({
-                        "node_id": f"signal:{surface_key}",
-                        "type": "signal",
-                        "value": surface_key,
-                        "metadata": {"endpoints_count": 0, "avg_risk_score": 0.0},
-                    })
+                    nodes.append(
+                        {
+                            "node_id": f"signal:{surface_key}",
+                            "type": "signal",
+                            "value": surface_key,
+                            "metadata": {"endpoints_count": 0, "avg_risk_score": 0.0},
+                        }
+                    )
                     seen_signals.add(surface_key)
 
         # Enrich entity/signal metadata
         risk_by_endpoint = {
-            f"endpoint:{e.get('method','GET')}:{e.get('path','/')}": float(e.get("risk_score", 0))
+            f"endpoint:{e.get('method', 'GET')}:{e.get('path', '/')}": float(e.get("risk_score", 0))
             for e in scored_endpoints
         }
 
@@ -349,9 +370,9 @@ class NodeExtractor:
             if node["type"] == "signal":
                 signal_key = node["node_id"].replace("signal:", "")
                 matching_eps = [
-                    e for e in scored_endpoints
-                    if signal_key in e.get("labels", [])
-                    or signal_key in e.get("attack_surface", [])
+                    e
+                    for e in scored_endpoints
+                    if signal_key in e.get("labels", []) or signal_key in e.get("attack_surface", [])
                 ]
                 scores = [float(e.get("risk_score", 0)) for e in matching_eps]
                 node["metadata"]["endpoints_count"] = len(matching_eps)
@@ -402,37 +423,42 @@ class RelationshipDetector:
             if target_id:
                 for unique_eid in set(ep_ids):
                     if unique_eid in endpoint_nodes:
-                        edges.append({
-                            "from": unique_eid,
-                            "to": target_id,
-                            "relationship": "references",
-                        })
+                        edges.append(
+                            {
+                                "from": unique_eid,
+                                "to": target_id,
+                                "relationship": "references",
+                            }
+                        )
 
         # Endpoint -> Signal (has_signal)
         for ep in scored_endpoints:
-            eid = f"endpoint:{ep.get('method','GET')}:{ep.get('path','/')}"
+            eid = f"endpoint:{ep.get('method', 'GET')}:{ep.get('path', '/')}"
             if eid not in endpoint_nodes:
                 continue
             for label in ep.get("labels", []):
                 sid = f"signal:{label}"
                 if sid in signal_nodes:
-                    edges.append({
-                        "from": eid,
-                        "to": sid,
-                        "relationship": "has_signal",
-                    })
+                    edges.append(
+                        {
+                            "from": eid,
+                            "to": sid,
+                            "relationship": "has_signal",
+                        }
+                    )
             for surface in ep.get("attack_surface", []):
                 surface_key = surface.replace("_surface", "").replace("_", " ")
                 sid = f"signal:{surface_key}"
                 if sid in signal_nodes and not any(
-                    e["from"] == eid and e["to"] == sid and e["relationship"] == "has_signal"
-                    for e in edges
+                    e["from"] == eid and e["to"] == sid and e["relationship"] == "has_signal" for e in edges
                 ):
-                    edges.append({
-                        "from": eid,
-                        "to": sid,
-                        "relationship": "has_signal",
-                    })
+                    edges.append(
+                        {
+                            "from": eid,
+                            "to": sid,
+                            "relationship": "has_signal",
+                        }
+                    )
 
         # Entity -> Entity: shared endpoints bridge
         entity_pairs_seen: set[tuple[str, str]] = set()
@@ -447,11 +473,13 @@ class RelationshipDetector:
                     ep_pair = (id_a, id_b) if id_a <= id_b else (id_b, id_a)
                     if ep_pair not in entity_pairs_seen:
                         entity_pairs_seen.add(ep_pair)
-                        edges.append({
-                            "from": ep_pair[0],
-                            "to": ep_pair[1],
-                            "relationship": "shared_context",
-                        })
+                        edges.append(
+                            {
+                                "from": ep_pair[0],
+                                "to": ep_pair[1],
+                                "relationship": "shared_context",
+                            }
+                        )
 
         # Signal -> Entity: relevance (entity triggers signal)
         for entity_name, signal_type in ENTITY_SIGNAL_MAP.items():
@@ -459,17 +487,21 @@ class RelationshipDetector:
             we3id = f"web3_entity:{entity_name}"
             sid = f"signal:{signal_type}"
             if eid in entity_nodes and sid in signal_nodes:
-                edges.append({
-                    "from": eid,
-                    "to": sid,
-                    "relationship": "triggers",
-                })
+                edges.append(
+                    {
+                        "from": eid,
+                        "to": sid,
+                        "relationship": "triggers",
+                    }
+                )
             if we3id in web3_nodes and sid in signal_nodes:
-                edges.append({
-                    "from": we3id,
-                    "to": sid,
-                    "relationship": "triggers",
-                })
+                edges.append(
+                    {
+                        "from": we3id,
+                        "to": sid,
+                        "relationship": "triggers",
+                    }
+                )
 
         # Endpoint -> Endpoint: shared entity bridge
         ep_pairs_seen: set[tuple[str, str]] = set()
@@ -482,11 +514,13 @@ class RelationshipDetector:
                         ep_pair2 = (eid_a, eid_b) if eid_a <= eid_b else (eid_b, eid_a)
                         if ep_pair2 not in ep_pairs_seen:
                             ep_pairs_seen.add(ep_pair2)
-                            edges.append({
-                                "from": ep_pair2[0],
-                                "to": ep_pair2[1],
-                                "relationship": "shares_entity",
-                            })
+                            edges.append(
+                                {
+                                    "from": ep_pair2[0],
+                                    "to": ep_pair2[1],
+                                    "relationship": "shares_entity",
+                                }
+                            )
 
         return edges
 
@@ -497,14 +531,9 @@ class ClusterEngine:
     labels, attack surfaces, and entity types.
     """
 
-    def build(
-        self, scored_endpoints: list[dict[str, Any]], entity_endpoints: dict[str, list[str]]
-    ) -> list[Cluster]:
+    def build(self, scored_endpoints: list[dict[str, Any]], entity_endpoints: dict[str, list[str]]) -> list[Cluster]:
         clusters: list[Cluster] = []
-        {
-            f"endpoint:{e.get('method','GET')}:{e.get('path','/')}": e
-            for e in scored_endpoints
-        }
+        {f"endpoint:{e.get('method', 'GET')}:{e.get('path', '/')}": e for e in scored_endpoints}
 
         for definition in CLUSTER_DEFINITIONS:
             name = definition["name"]
@@ -512,7 +541,7 @@ class ClusterEngine:
             reasons: list[str] = []
 
             for ep in scored_endpoints:
-                f"endpoint:{ep.get('method','GET')}:{ep.get('path','/')}"
+                f"endpoint:{ep.get('method', 'GET')}:{ep.get('path', '/')}"
                 labels = ep.get("labels", [])
                 surfaces = ep.get("attack_surface", [])
                 signals = ep.get("signals", [])
@@ -561,7 +590,9 @@ class ClusterEngine:
                         if any(f"/{p}" in lower_path for p in patterns):
                             matched_reasons.append(f"entity:{entity}")
                     if matched_reasons:
-                        reasons.append(f"{ep.get('method','GET')} {ep.get('path','/')} ({', '.join(matched_reasons)})")
+                        reasons.append(
+                            f"{ep.get('method', 'GET')} {ep.get('path', '/')} ({', '.join(matched_reasons)})"
+                        )
 
             # Confidence: ratio of endpoints with direct matches vs. entity-only
             direct_matches = 0
@@ -579,12 +610,14 @@ class ClusterEngine:
 
             confidence = round(direct_matches / len(matched), 2) if matched else 0.0
 
-            clusters.append(Cluster(
-                name=name,
-                endpoints=matched,
-                confidence=confidence,
-                reasoning=reasons,
-            ))
+            clusters.append(
+                Cluster(
+                    name=name,
+                    endpoints=matched,
+                    confidence=confidence,
+                    reasoning=reasons,
+                )
+            )
 
         return clusters
 
@@ -623,14 +656,14 @@ class HotPathDetector:
             # Find endpoints in start cluster that reference the bridge entity
             start_with_entity = []
             for ep in start.endpoints:
-                eid = f"endpoint:{ep.get('method','GET')}:{ep.get('path','/')}"
+                eid = f"endpoint:{ep.get('method', 'GET')}:{ep.get('path', '/')}"
                 if eid in entity_endpoints.get(bridge_entity, []):
                     start_with_entity.append(ep)
 
             # Find endpoints in end cluster that reference the bridge entity
             end_with_entity = []
             for ep in end.endpoints:
-                eid = f"endpoint:{ep.get('method','GET')}:{ep.get('path','/')}"
+                eid = f"endpoint:{ep.get('method', 'GET')}:{ep.get('path', '/')}"
                 if eid in entity_endpoints.get(bridge_entity, []):
                     end_with_entity.append(ep)
 
@@ -638,10 +671,10 @@ class HotPathDetector:
             path_nodes: list[str] = []
             if start_with_entity:
                 best = max(start_with_entity, key=lambda x: float(x.get("risk_score", 0)))
-                path_nodes.append(f"endpoint:{best.get('method','GET')}:{best.get('path','/')}")
+                path_nodes.append(f"endpoint:{best.get('method', 'GET')}:{best.get('path', '/')}")
             elif start.endpoints:
                 best = max(start.endpoints, key=lambda x: float(x.get("risk_score", 0)))
-                path_nodes.append(f"endpoint:{best.get('method','GET')}:{best.get('path','/')}")
+                path_nodes.append(f"endpoint:{best.get('method', 'GET')}:{best.get('path', '/')}")
             else:
                 continue
 
@@ -649,10 +682,10 @@ class HotPathDetector:
 
             if end_with_entity:
                 best = max(end_with_entity, key=lambda x: float(x.get("risk_score", 0)))
-                path_nodes.append(f"endpoint:{best.get('method','GET')}:{best.get('path','/')}")
+                path_nodes.append(f"endpoint:{best.get('method', 'GET')}:{best.get('path', '/')}")
             elif end.endpoints:
                 best = max(end.endpoints, key=lambda x: float(x.get("risk_score", 0)))
-                path_nodes.append(f"endpoint:{best.get('method','GET')}:{best.get('path','/')}")
+                path_nodes.append(f"endpoint:{best.get('method', 'GET')}:{best.get('path', '/')}")
             else:
                 continue
 
@@ -668,11 +701,13 @@ class HotPathDetector:
                 elif avg_score >= 50 and reward == "low":
                     reward = "medium"
 
-            hot_paths.append(HotPath(
-                nodes=path_nodes,
-                why_it_matters=why,
-                estimated_reward=reward,
-            ))
+            hot_paths.append(
+                HotPath(
+                    nodes=path_nodes,
+                    why_it_matters=why,
+                    estimated_reward=reward,
+                )
+            )
 
         # Reward-sort: high first, then medium, then low
         reward_order = {"high": 0, "medium": 1, "low": 2}

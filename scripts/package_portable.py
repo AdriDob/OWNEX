@@ -137,9 +137,15 @@ def create_portable_dist(skip_pyinstaller: bool) -> Path:
 
     # ── Documentation ──
     docs = [
-        "README.md", "SYSTEM.md", "FUNCTIONAL_SPEC.md",
-        "USER_GUIDE.md", "DAILY_WORKFLOW.md", "SETUP_GUIDE.md",
-        "RELEASE_NOTES_v3.0.0.md", "CHANGELOG.md", "LICENSE",
+        "README.md",
+        "SYSTEM.md",
+        "FUNCTIONAL_SPEC.md",
+        "USER_GUIDE.md",
+        "DAILY_WORKFLOW.md",
+        "SETUP_GUIDE.md",
+        "RELEASE_NOTES_v3.0.0.md",
+        "CHANGELOG.md",
+        "LICENSE",
     ]
     for doc in docs:
         src = PROJECT_ROOT / doc
@@ -195,7 +201,7 @@ def create_portable_dist(skip_pyinstaller: bool) -> Path:
         "# CATEYE Portable Launcher\n"
         'SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"\n'
         'export CATEYE_DATA_DIR="${SCRIPT_DIR}/data"\n'
-        'export CATEYE_CSRF_DISABLED=1\n'
+        "export CATEYE_CSRF_DISABLED=1\n"
         'exec "${SCRIPT_DIR}/CATEYE" --browser "$@"\n'
     )
     launcher.chmod(0o755)

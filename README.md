@@ -222,7 +222,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env          # add your platform credentials
 
-python api/main.py            # backend → http://127.0.0.1:8000
+uvicorn api.main:app --host 127.0.0.1 --port 8000   # backend → http://127.0.0.1:8000
 
 cd frontend && npm install
 npm run dev                   # frontend → http://localhost:5173

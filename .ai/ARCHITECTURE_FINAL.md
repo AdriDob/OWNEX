@@ -279,6 +279,7 @@ Puede:
 # En CoreEventBus.publish():
 try:
     from cores.events.event_bus import get_event_bus
+
     get_event_bus().publish(event, **data)
 except Exception:
     pass

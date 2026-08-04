@@ -159,7 +159,7 @@ const chartData = computed(() => filtered.value.slice(0, 10).map(o => o.opportun
         </div>
         <BarChart
           :labels="chartLabels"
-          :datasets="[{ label: 'Opportunity Score', data: chartData, backgroundColor: '#3b82f6' }]"
+          :datasets="[{ label: 'Opportunity Score', data: chartData, backgroundColor: '#ffffff' }]"
           :height="200"
           xLabel="Oportunidad"
           yLabel="Score"

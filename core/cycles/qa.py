@@ -524,7 +524,9 @@ class QATestCycle:
 
                 req = urllib.request.Request(
                     url,
-                    data=json_mod.dumps(tc.body).encode() if tc.body and tc.method in ("POST", "PUT", "PATCH") else None,
+                    data=json_mod.dumps(tc.body).encode()
+                    if tc.body and tc.method in ("POST", "PUT", "PATCH")
+                    else None,
                     headers={
                         "User-Agent": "OWNEX-QA-Cycle/1.0",
                         "Accept": "application/json",
@@ -897,7 +899,8 @@ class QATestCycle:
                 cycle_id=cycle_id,
                 test_title=result.test_case.title,
                 outcome="failed",
-                details=result.error_message or f"Expected {result.test_case.expected_status}, got {result.actual_status}",
+                details=result.error_message
+                or f"Expected {result.test_case.expected_status}, got {result.actual_status}",
             )
 
         # Update cycle config with follow-up tracking

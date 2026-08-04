@@ -173,7 +173,7 @@ function sendQuickMessage() {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 2px solid rgba(59, 130, 246, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   animation: pulse-ring-mini 3s ease-in-out infinite;
 }
 
@@ -224,8 +224,8 @@ function sendQuickMessage() {
 }
 
 .search-bar:focus-within {
-  border-color: rgba(59, 130, 246, 0.3);
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 }
 
 .search-icon {
@@ -271,8 +271,8 @@ function sendQuickMessage() {
 }
 
 .nav-btn:hover {
-  border-color: rgba(59, 130, 246, 0.3);
-  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
   transform: translateY(-2px);
 }
 
@@ -315,7 +315,7 @@ function sendQuickMessage() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #6366f1 0%, #9500ff 100%);
+  background: linear-gradient(135deg, #9CA3AF 0%, #9500ff 100%);
   border-radius: 50%;
   font-size: 0.75rem;
   z-index: 1;
@@ -398,7 +398,7 @@ function sendQuickMessage() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #6366f1 0%, #9500ff 100%);
+  background: linear-gradient(135deg, #9CA3AF 0%, #9500ff 100%);
   border-radius: 50%;
   font-size: 0.625rem;
   z-index: 1;
@@ -456,21 +456,21 @@ function sendQuickMessage() {
 }
 
 .quick-input:focus {
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .quick-send {
   width: 36px;
   height: 36px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(59, 130, 246, 0.2);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 0.25rem;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .quick-send:hover {
-  border-color: rgba(59, 130, 246, 0.3);
-  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.3);
 }
 </style>

@@ -435,10 +435,11 @@ Actualización automática vía scheduler. Acceso programático:
 
 ```python
 from core.revenue.economic_memory import EconomicMemory
+
 econ = EconomicMemory()
-econ.get_summary()       # Resumen global
-econ.rank_programs()     # Programas rankeados por ROI
-econ.get_program("name") # Score de un programa específico
+econ.get_summary()  # Resumen global
+econ.rank_programs()  # Programas rankeados por ROI
+econ.get_program("name")  # Score de un programa específico
 ```
 
 ---

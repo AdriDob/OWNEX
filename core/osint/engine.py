@@ -22,6 +22,8 @@ class OSINTEngine:
         self._http = httpx.Client(timeout=10.0)
 
     def dns_resolve(self, domain: str, record: str = "a") -> dict[str, Any]:
+        if not domain:
+            return {"domain": "", "type": record.upper(), "records": [], "count": 0}
         try:
             if record.lower() == "a":
                 addrs = set()
@@ -38,6 +40,8 @@ class OSINTEngine:
             return {"domain": domain, "type": record.upper(), "records": [], "error": str(exc)}
 
     def crtsh_search(self, domain: str) -> list[dict[str, Any]]:
+        if not domain:
+            return []
         try:
             resp = self._http.get("https://crt.sh/", params={"q": domain, "output": "json"}, timeout=15.0)
             if resp.status_code == 200:
@@ -53,6 +57,8 @@ class OSINTEngine:
             return []
 
     def whois(self, domain: str) -> dict[str, Any]:
+        if not domain:
+            return {"domain": "", "lines": [], "count": 0}
         try:
             resp = self._http.get(f"{HACKERTARGET}/whois/", params={"q": domain})
             if resp.status_code == 200:
@@ -64,6 +70,8 @@ class OSINTEngine:
             return {"domain": domain, "error": str(exc)}
 
     def email_security(self, domain: str) -> dict[str, Any]:
+        if not domain:
+            return {"domain": "", "spf_count": 0, "mx_count": 0}
         try:
             spf = self._http.get(f"{HACKERTARGET}/dnslookup/", params={"q": domain}, timeout=8.0)
             mx = self._http.get(f"{HACKERTARGET}/mxlookup/", params={"q": domain}, timeout=8.0)
@@ -126,6 +134,8 @@ class OSINTEngine:
         return sorted(subdomains)[:200]
 
     def domain_recon(self, domain: str) -> dict[str, Any]:
+        if not domain:
+            return {"domain": "", "ip_count": 0, "subdomain_count": 0, "subdomains": []}
         dns = self.dns_resolve(domain)
         subdomains = self.subdomain_discover(domain)
         whois_data = self.whois(domain)

@@ -32,8 +32,10 @@ logger = logging.getLogger("cateye.frontend_server")
 
 DEFAULT_FRONTEND_DIR = str(get_frontend_dist_dir())
 
+
 def _is_dir(path: str) -> bool:
     return Path(path).is_dir()
+
 
 app = FastAPI(title="CATEYE Frontend")
 
@@ -64,6 +66,7 @@ def create_app(static_dir: str) -> FastAPI:
     _app = FastAPI(title="CATEYE Frontend")
 
     if not _is_dir(static_dir):
+
         @_app.get("/{full_path:path}")
         async def not_found(full_path: str):
             return {"error": "Frontend not built — run `npm run build` in frontend/"}
@@ -93,6 +96,7 @@ def main() -> None:
 
     static_app = create_app(args.dir)
     import uvicorn
+
     uvicorn.run(static_app, host=args.host, port=args.port, log_level="warning")
 
 

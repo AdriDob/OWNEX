@@ -120,6 +120,7 @@ logger = logging.getLogger("ownex.nombre_de_extensión")
 try:
     # Importar solo si está disponible
     import nombre_de_extensión
+
     _EXTENSION_AVAILABLE = True
 except ImportError:
     _EXTENSION_AVAILABLE = False
@@ -144,7 +145,8 @@ manifest = ExtensionManifest(
         Capability(
             domain="knowledge_manager",  # Dominio principal
             name="Knowledge Base",
-            description="Gestionar bases de conocimiento"),
+            description="Gestionar bases de conocimiento",
+        ),
     ],
     hooks={
         "before_validation": "nombre_de_extensión.hooks.before_validation",
@@ -161,6 +163,7 @@ El conector es la puerta de acceso real a la extensión.
 
 ```python
 from core.interfaces.connector import ConnectorHealth, IConnector
+
 
 class NombreDeExtensiónConnector(IConnector):
     connector_id = "extensión_nombre_de_extensión"
@@ -186,9 +189,11 @@ Los hooks permiten reacciones automáticas a eventos del sistema.
 ```python
 from core.extension.hooks import ExtensionHook
 
+
 async def before_validation(data: dict) -> dict:
     """Ejecutar antes de validar something"""
     return {"validated_data": data, "hook_applied": True}
+
 
 class NombreDeExtensiónHooks:
     before_validation = before_validation
@@ -289,19 +294,17 @@ connector = LightRAGConnector()
 await connector.connect()
 
 # 3. Hacer una consulta
-result = await connector.query({
-    "query": "mis conocimientos más recientes sobre IA",
-    "top_k": 5,
-    "min_similarity": 0.7
-})
+result = await connector.query({"query": "mis conocimientos más recientes sobre IA", "top_k": 5, "min_similarity": 0.7})
 
 print(f"🔍 Resultados: {result}")
 
 # 4. Insertar nuevo conocimiento
-await connector.insert({
-    "text": "OWNEX usa lightrag para memoria gráfica con conocimiento",
-    "metadata": {"source": "ejemplo", "timestamp": "2025-01-30"}
-})
+await connector.insert(
+    {
+        "text": "OWNEX usa lightrag para memoria gráfica con conocimiento",
+        "metadata": {"source": "ejemplo", "timestamp": "2025-01-30"},
+    }
+)
 
 # 5. Obtener estadísticas
 stats = await connector.stats()
@@ -392,16 +395,19 @@ except:
 ```python
 # 1. Verificar si está instalada
 import importlib.util
+
 spec = importlib.util.find_spec("lightrag")
 print(f"lightrag disponible: {spec is not None}")
 
 # 2. Verificar conexión
 from extensions.lightrag.connector import LightRAGConnector
+
 connector = LightRAGConnector()
 print(f"Estado de conexión: {connector._connected}")
 
 # 3. Verificar disponibilidad de la extensión
 from core.extension.registry import get_extension_registry
+
 reg = get_extension_registry()
 print(f"Extensión en registro: {'lightrag' in [e.id for e in reg.registry]}")
 ```
@@ -491,6 +497,7 @@ config/kestra.yml         # Configuración de Kestra
 ```python
 # Primero verificar si está disponible
 import importlib.util
+
 if importlib.util.find_spec("lightrag"):
     # Si está disponible, intentar cargarla
     reg.load("lightrag")
@@ -503,8 +510,10 @@ else:
 ```python
 # Verificar errores de importación
 import traceback
+
 try:
     from extensions.lightrag.connector import LightRAGConnector
+
     connector = LightRAGConnector()
     await connector.connect()
 except Exception as e:

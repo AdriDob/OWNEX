@@ -77,7 +77,7 @@ function formatLabel(k: string) {
           </div>
           <BarChart
             :labels="currentEndpoints.slice(0, 10).map(e => e.path.length > 18 ? e.path.slice(0, 16) + '…' : e.path)"
-            :datasets="[{ label: 'Risk', data: currentEndpoints.slice(0, 10).map(e => e.risk_score), backgroundColor: '#f97316' }]"
+            :datasets="[{ label: 'Risk', data: currentEndpoints.slice(0, 10).map(e => e.risk_score), backgroundColor: '#D97706' }]"
             :horizontal="true"
             :height="220"
             yLabel="Endpoint"

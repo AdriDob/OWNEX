@@ -4,6 +4,7 @@ from __future__ import annotations
 The Copilot consumes Core Services (EventBus, Decision Journal, Memory, System State)
 through their public interfaces. It never accesses apps directly.
 """
+# ruff: noqa: E402
 from core.copilot.agent import CopilotAgent
 from core.copilot.analyzer import AnalysisResult, FindingAnalyzer
 from core.copilot.auditor import (

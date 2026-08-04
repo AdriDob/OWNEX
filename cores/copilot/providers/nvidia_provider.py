@@ -31,9 +31,44 @@ class NvidiaProvider(BaseProvider):
         )
         self._api_key = self._config.extra.get("api_key", os.getenv("NVIDIA_API_KEY", ""))
         self._default_model = self._config.models[0]
+        # Supported models list for routing
+        self._supported_models = [
+            "nv-ai-foundation-541280:mistral-8x7b-instruct-v0.2",
+            "nv-ai-foundation-541280:llama-3.1-70b-instruct",
+            "nv-ai-foundation-541280:nemotron-3-ultra",
+            "nvidia/nemotron-3-ultra",
+            "meta/llama-3.1-70b-instruct",
+        ]
 
     async def check(self) -> bool:
-        return bool(self._api_key)
+        if not self._api_key:
+            return False
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                r = await client.get(
+                    f"{self._base_url}/models",
+                    headers={"Authorization": f"Bearer {self._api_key}"},
+                )
+                return r.status_code == 200
+        except Exception:
+            return False
+
+    async def list_models(self) -> list[str]:
+        if not self._api_key:
+            return self._supported_models
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                r = await client.get(
+                    f"{self._base_url}/models",
+                    headers={"Authorization": f"Bearer {self._api_key}"},
+                )
+                if r.status_code == 200:
+                    data = r.json()
+                    models = [m.get("id", "") for m in data.get("data", []) if m.get("id")]
+                    return models[:50]
+        except Exception as e:
+            logger.warning("Failed to list NVIDIA models: %s", e)
+        return self._supported_models
 
     async def chat(self, messages: list[dict[str, str]], **kwargs: Any) -> ProviderResponse:
         import time
@@ -51,7 +86,15 @@ class NvidiaProvider(BaseProvider):
                     },
                     json={"model": model, "messages": messages, "max_tokens": kwargs.get("max_tokens", 4096)},
                 )
-                r.raise_for_status()  # Raise an exception for HTTP errors
+                if r.status_code != 200:
+                    logger.error(f"NVIDIA chat failed with HTTP error: {r.status_code} - {r.text}")
+                    return ProviderResponse(
+                        content="",
+                        provider="nvidia",
+                        model=model,
+                        error=f"HTTP {r.status_code}: {r.text}",
+                        duration_ms=(time.monotonic() - t0) * 1000,
+                    )
                 data = r.json()
                 dur = (time.monotonic() - t0) * 1000
                 choice = data.get("choices", [{}])[0]

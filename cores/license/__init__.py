@@ -6,4 +6,3 @@ public key is embedded and the private key lives on the licensing server.
 """
 
 from cores.license.validator import is_license_valid, validate_license
-

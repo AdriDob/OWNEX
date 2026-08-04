@@ -55,22 +55,28 @@ class PortfolioEngine:
         db = get_db_manager().get_session("atlas")
         try:
             for pos in portfolio.positions:
-                asset = db.query(Asset).filter(
-                    Asset.symbol == pos.symbol,
-                    Asset.portfolio_id == 1,
-                ).first()
+                asset = (
+                    db.query(Asset)
+                    .filter(
+                        Asset.symbol == pos.symbol,
+                        Asset.portfolio_id == 1,
+                    )
+                    .first()
+                )
                 if asset:
                     asset.quantity = pos.quantity
                     asset.avg_price = pos.avg_price
                 else:
-                    db.add(Asset(
-                        portfolio_id=1,
-                        symbol=pos.symbol,
-                        name=pos.name,
-                        asset_type=pos.asset_type,
-                        quantity=pos.quantity,
-                        avg_price=pos.avg_price,
-                    ))
+                    db.add(
+                        Asset(
+                            portfolio_id=1,
+                            symbol=pos.symbol,
+                            name=pos.name,
+                            asset_type=pos.asset_type,
+                            quantity=pos.quantity,
+                            avg_price=pos.avg_price,
+                        )
+                    )
             db.commit()
             logger.info("Portfolio snapshot saved (%d positions)", len(portfolio.positions))
         except Exception as exc:

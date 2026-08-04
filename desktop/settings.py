@@ -58,6 +58,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
 
 def _get_config_path() -> Path:
     from cores.platform.system import get_config_dir
+
     return get_config_dir()
 
 
@@ -105,8 +106,7 @@ class DesktopSettings:
             self._data["settings_version"] = SETTINGS_VERSION
             changed = True
         if self._data.get("installed_version") not in (None, "1.6.0"):
-            logger.info("Updated installed_version from %s to 1.6.0",
-                        self._data.get("installed_version"))
+            logger.info("Updated installed_version from %s to 1.6.0", self._data.get("installed_version"))
             self._data["installed_version"] = "1.6.0"
             changed = True
         return changed
@@ -177,6 +177,7 @@ class DesktopSettings:
         did = self.get("device_id")
         if not did:
             import platform
+
             host = platform.node() or "unknown"
             did = f"{host}-{uuid.uuid4().hex[:8]}"
             self.set("device_id", did)
@@ -192,10 +193,13 @@ class DesktopSettings:
 
     def record_shutdown(self) -> None:
         now = datetime.now(UTC).isoformat()
-        self.set("last_session", {
-            "shutdown": now,
-            "uptime_history_count": len(self.get("uptime_history", [])),
-        })
+        self.set(
+            "last_session",
+            {
+                "shutdown": now,
+                "uptime_history_count": len(self.get("uptime_history", [])),
+            },
+        )
 
     @property
     def config_path(self) -> str:

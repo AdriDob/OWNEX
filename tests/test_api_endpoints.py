@@ -11,6 +11,7 @@ def client():
 
     from api.main import app
     from cores.license.validator import generate_license
+
     c = TestClient(app)
     # Activate a license first
     lic = generate_license(expiry_days=365)
@@ -194,10 +195,15 @@ class TestCreateTarget:
         assert data["path"] == "/api/test"
 
     def test_create_finding(self, client):
-        resp = client.post("/api/findings", json={
-            "target_id": 1, "endpoint_id": 1,
-            "title": "test finding", "severity": "medium",
-        })
+        resp = client.post(
+            "/api/findings",
+            json={
+                "target_id": 1,
+                "endpoint_id": 1,
+                "title": "test finding",
+                "severity": "medium",
+            },
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert "id" in data

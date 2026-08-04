@@ -101,20 +101,20 @@ confidence = self._scorer.calculate(
 
 Add to Verdict constructor:
 ```python
-uncertainty_level=challenger_data.uncertainty_level,
-alternative_explanations=[a.to_dict() for a in challenger_data.alternative_explanations],
-missing_verifications=challenger_data.missing_verifications,
-next_best_test=challenger_data.next_best_test.to_dict() if challenger_data.next_best_test else None,
+uncertainty_level = (challenger_data.uncertainty_level,)
+alternative_explanations = ([a.to_dict() for a in challenger_data.alternative_explanations],)
+missing_verifications = (challenger_data.missing_verifications,)
+next_best_test = (challenger_data.next_best_test.to_dict() if challenger_data.next_best_test else None,)
 ```
 
 ### 5. EDIT: `cores/validation/verdict_handler.py` — Persist new fields
 
 Modify `_save_verdict()` to include:
 ```python
-uncertainty_level=getattr(verdict, "uncertainty_level", "unknown"),
-alternative_explanations_json=json.dumps(getattr(verdict, "alternative_explanations", [])),
-missing_verifications_json=json.dumps(getattr(verdict, "missing_verifications", [])),
-next_best_test_json=json.dumps(getattr(verdict, "next_best_test", None)),
+uncertainty_level = (getattr(verdict, "uncertainty_level", "unknown"),)
+alternative_explanations_json = (json.dumps(getattr(verdict, "alternative_explanations", [])),)
+missing_verifications_json = (json.dumps(getattr(verdict, "missing_verifications", [])),)
+next_best_test_json = (json.dumps(getattr(verdict, "next_best_test", None)),)
 ```
 
 Modify `_create_finding()` to include uncertainty in description:
@@ -391,7 +391,11 @@ class HypothesisChallenger:
         if alternatives or missing or tests:
             LOG.info(
                 "Challenger: vt=%s, alternatives=%d, tests=%d, missing=%d, uncertainty=%s",
-                vt, len(alternatives), len(tests), len(missing), uncertainty,
+                vt,
+                len(alternatives),
+                len(tests),
+                len(missing),
+                uncertainty,
             )
 
         return EnrichedVerdictData(
@@ -402,9 +406,7 @@ class HypothesisChallenger:
             uncertainty_level=uncertainty,
         )
 
-    def _design_contradiction_tests(
-        self, vt: str, signals: dict[str, Any]
-    ) -> list[ContradictionTest]:
+    def _design_contradiction_tests(self, vt: str, signals: dict[str, Any]) -> list[ContradictionTest]:
         tests_by_type: dict[str, list[dict[str, Any]]] = {
             "idor": [
                 {
@@ -587,7 +589,7 @@ class HypothesisChallenger:
 2. Add to breakdown dict: `"uncertainty_penalty": round(uncertainty_penalty, 4)`
 3. After `noise_penalty * WEIGHTS["noise_penalty"]`, add:
    ```python
-   - uncertainty_penalty
+   -uncertainty_penalty
    ```
 
 ### loop_engine.py (lines 1-177)
@@ -607,20 +609,20 @@ class HypothesisChallenger:
 6. Pass `uncertainty_penalty=enriched.uncertainty_penalty` to `scorer.calculate()`
 7. Add to `Verdict(...)`:
    ```python
-   uncertainty_level=enriched.uncertainty_level,
-   alternative_explanations=[a.to_dict() for a in enriched.alternative_explanations],
-   missing_verifications=enriched.missing_verifications,
-   next_best_test=enriched.next_best_test.to_dict() if enriched.next_best_test else None,
+   uncertainty_level = (enriched.uncertainty_level,)
+   alternative_explanations = ([a.to_dict() for a in enriched.alternative_explanations],)
+   missing_verifications = (enriched.missing_verifications,)
+   next_best_test = (enriched.next_best_test.to_dict() if enriched.next_best_test else None,)
    ```
 
 ### verdict_handler.py (lines 1-146)
 
 1. In `_save_verdict()`, after `retry_count=...`, add:
    ```python
-   uncertainty_level=getattr(verdict, "uncertainty_level", "unknown"),
-   missing_verifications=json.dumps(getattr(verdict, "missing_verifications", [])),
-   alternative_explanations=json.dumps(getattr(verdict, "alternative_explanations", [])),
-   next_best_test=json.dumps(getattr(verdict, "next_best_test", None)),
+   uncertainty_level = (getattr(verdict, "uncertainty_level", "unknown"),)
+   missing_verifications = (json.dumps(getattr(verdict, "missing_verifications", [])),)
+   alternative_explanations = (json.dumps(getattr(verdict, "alternative_explanations", [])),)
+   next_best_test = (json.dumps(getattr(verdict, "next_best_test", None)),)
    ```
 2. `_create_finding()` → add to `description`:
    ```python

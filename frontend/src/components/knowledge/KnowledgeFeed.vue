@@ -270,11 +270,11 @@ const handleAction = (entry: KnowledgeEntry) => {
 }
 
 /* Type-specific colors */
-.ownex-knowledge-feed__entry--pattern .ownex-knowledge-feed__type { --entry-color-rgb: 59, 130, 246; }
-.ownex-knowledge-feed__entry--insight .ownex-knowledge-feed__type { --entry-color-rgb: 168, 85, 247; }
-.ownex-knowledge-feed__entry--technique .ownex-knowledge-feed__type { --entry-color-rgb: 16, 185, 129; }
-.ownex-knowledge-feed__entry--financial .ownex-knowledge-feed__type { --entry-color-rgb: 245, 158, 11; }
-.ownex-knowledge-feed__entry--platform .ownex-knowledge-feed__type { --entry-color-rgb: 226, 232, 240; }
+.ownex-knowledge-feed__entry--pattern .ownex-knowledge-feed__type { --entry-color-rgb: 245, 245, 245; }
+.ownex-knowledge-feed__entry--insight .ownex-knowledge-feed__type { --entry-color-rgb: 156, 163, 175; }
+.ownex-knowledge-feed__entry--technique .ownex-knowledge-feed__type { --entry-color-rgb: 22, 163, 74; }
+.ownex-knowledge-feed__entry--financial .ownex-knowledge-feed__type { --entry-color-rgb: 217, 119, 6; }
+.ownex-knowledge-feed__entry--platform .ownex-knowledge-feed__type { --entry-color-rgb: 212, 212, 216; }
 
 /* Content */
 .ownex-knowledge-feed__content {
