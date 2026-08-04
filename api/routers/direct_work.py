@@ -693,6 +693,30 @@ async def direct_work_set_assistance_mode(payload: dict[str, Any] | None = None)
     return ModeInfo.from_current().to_dict()
 
 
+@router.post("/daily-companion")
+async def direct_work_daily_companion(
+    payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Consolidated daily routine: system + personal + market + focus.
+
+    The Daily Companion answers every morning:
+    "What should I do today? What opportunities exist? What matters most?"
+
+    Combines system health, personal state, market opportunities and
+    focus recommendations into one briefing. All data from existing engines.
+    """
+    from cores.direct_work_engine.daily_companion import daily_companion
+
+    cfg = payload or {}
+    return daily_companion(
+        work_income_usd_per_month=cfg.get("work_income_usd_per_month", 0.0),
+        savings_usd_per_month=cfg.get("savings_usd_per_month", 0.0),
+        start_capital_usd=cfg.get("start_capital_usd", 0.0),
+        annual_return_rate=cfg.get("annual_return_rate", 0.10),
+        target_monthly_usd=cfg.get("target_monthly_usd", 100_000.0),
+    )
+
+
 @router.get("/access/explain")
 async def direct_work_access_explain() -> dict[str, Any]:
     """Account integration guide: what each platform needs, why, and how to unlock it.
