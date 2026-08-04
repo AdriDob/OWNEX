@@ -1,0 +1,501 @@
+"""Intelligent Recommender — ranks opportunities by expected value, acceptance probability, and compatibility."""
+
+from __future__ import annotations
+
+import logging
+from dataclasses import dataclass
+
+from cores.direct_work_engine.models import (
+    EmploymentType,
+    ExperienceLevel,
+    Opportunity,
+    RankedOpportunity,
+    UserProfile,
+)
+from cores.direct_work_engine.scoring import ZeroBarrierScorer
+
+logger = logging.getLogger("ownex.direct_work_engine.recommendation")
+
+# How each employment type maps to the "world" the opportunity lives in.
+# Outcome-based worlds pay for the result (bounties, microtasks, prizes) and
+# skip the classic selection process; the others keep a hiring funnel.
+EMPLOYMENT_TYPE_MODEL: dict[EmploymentType, str] = {
+    EmploymentType.FULL_TIME: "classic_employment",
+    EmploymentType.PART_TIME: "classic_employment",
+    EmploymentType.CONTRACT: "freelance",
+    EmploymentType.FREELANCE: "freelance",
+    EmploymentType.PROJECT: "freelance",
+    EmploymentType.RETAINER: "freelance",
+    EmploymentType.BOUNTY: "outcome_bounty",
+    EmploymentType.OPEN_CALL: "outcome_bounty",
+    EmploymentType.MICROTASK: "ai_task",
+    EmploymentType.CHALLENGE: "competition",
+    EmploymentType.PRIZE: "competition",
+    EmploymentType.ROLLING: "rolling",
+}
+
+_OUTCOME_BASED_MODELS = frozenset({"outcome_bounty", "ai_task", "competition"})
+
+
+def opportunity_model(employment_type: EmploymentType) -> str:
+    """Classify an opportunity into its market model (see EMPLOYMENT_TYPE_MODEL)."""
+    return EMPLOYMENT_TYPE_MODEL.get(employment_type, "freelance")
+
+
+def is_outcome_based(employment_type: EmploymentType) -> bool:
+    """True when the opportunity pays for the delivered result, not for the person."""
+    return opportunity_model(employment_type) in _OUTCOME_BASED_MODELS
+
+
+@dataclass(slots=True)
+class RecommenderConfig:
+    """Configuration for the recommendation engine."""
+
+    # Weights for overall recommendation score
+    weight_zero_barrier: float = 0.25
+    weight_expected_value: float = 0.25
+    weight_acceptance_probability: float = 0.20
+    weight_compatibility: float = 0.15
+    weight_speed: float = 0.10
+    weight_reputation: float = 0.05
+
+    # Thresholds
+    min_zero_barrier_score: float = 30.0
+    min_expected_value: float = 10.0
+    min_acceptance_probability: float = 0.1
+    min_compatibility: float = 0.3
+
+    # Diversity
+    max_per_platform: int = 3
+    max_per_category: int = 5
+    enforce_diversity: bool = True
+
+    def validate(self) -> bool:
+        total = (
+            self.weight_zero_barrier
+            + self.weight_expected_value
+            + self.weight_acceptance_probability
+            + self.weight_compatibility
+            + self.weight_speed
+            + self.weight_reputation
+        )
+        return abs(total - 1.0) < 0.001
+
+
+DEFAULT_RECOMMENDER_CONFIG = RecommenderConfig()
+
+# Fast Income Mode — Reward x Probability x Speed. Optimizes for short
+# time-to-payment, high acceptance and reasonable reward over pure reward size.
+_FAST_INCOME_CONFIG = RecommenderConfig(
+    weight_expected_value=0.30,
+    weight_acceptance_probability=0.25,
+    weight_speed=0.25,
+    weight_zero_barrier=0.10,
+    weight_compatibility=0.05,
+    weight_reputation=0.05,
+    min_expected_value=0.0,
+    min_zero_barrier_score=0.0,
+)
+
+FAST_INCOME_RECOMMENDER_CONFIG = _FAST_INCOME_CONFIG
+
+
+class IntelligentRecommender:
+    """Ranks and recommends opportunities based on multiple factors.
+
+    Prioritizes:
+    1. Highest expected value
+    2. Highest acceptance probability
+    3. Lowest barrier (highest zero barrier score)
+    4. Highest user compatibility
+    5. Fastest payment
+    6. Highest reputation
+    """
+
+    def __init__(
+        self,
+        config: RecommenderConfig | None = None,
+        scorer: ZeroBarrierScorer | None = None,
+    ):
+        self.config = config or DEFAULT_RECOMMENDER_CONFIG
+        self.scorer = scorer or ZeroBarrierScorer()
+        if not self.config.validate():
+            raise ValueError("Recommender config weights must sum to 1.0")
+
+    def recommend(
+        self,
+        opportunities: list[Opportunity],
+        profile: UserProfile,
+        limit: int = 10,
+        mode: str = "balanced",
+    ) -> list[RankedOpportunity]:
+        """Generate ranked recommendations for a user profile.
+
+        ``mode="fast_income"`` swaps the config to the Fast Income preset
+        (Reward x Probability x Speed): it optimizes for short time-to-payment,
+        high acceptance probability and reasonable reward over pure reward size.
+        """
+        if mode == "fast_income":
+            self.config = _FAST_INCOME_CONFIG
+        return self.__recommend(opportunities, profile, limit=limit)
+
+    def __recommend(
+        self,
+        opportunities: list[Opportunity],
+        profile: UserProfile,
+        limit: int = 10,
+    ) -> list[RankedOpportunity]:
+        if not opportunities:
+            return []
+
+        # 1. Score all opportunities with zero barrier score
+        scored_opps = self._score_opportunities(opportunities)
+
+        # 2. Calculate acceptance probability per opportunity
+        for opp in scored_opps:
+            opp.acceptance_probability = self._calculate_acceptance_probability(opp, profile)
+
+        # 3. Calculate compatibility score
+        for opp in scored_opps:
+            opp.compatibility_score = self._calculate_compatibility(opp, profile)
+
+        # 4. Calculate speed score (inverse of time to payment)
+        for opp in scored_opps:
+            opp.speed_score = self._calculate_speed_score(opp)
+
+        # 5. Calculate reputation score
+        for opp in scored_opps:
+            opp.reputation_score = self._calculate_reputation_score(opp)
+
+        # 6. Calculate risk score
+        for opp in scored_opps:
+            opp.risk_score = self._calculate_risk_score(opp)
+
+        # 7. Calculate expected value
+        for opp in scored_opps:
+            opp.expected_value = self._calculate_expected_value(opp)
+
+        # 8. Calculate overall recommendation score
+        for opp in scored_opps:
+            opp.overall_recommendation_score = self._calculate_overall_score(opp)
+
+        # 9. Generate strategy for top opportunities
+        for ranked_opp in scored_opps:
+            ranked_opp.strategy = self._generate_strategy(ranked_opp, profile)
+            ranked_opp.recommendation_reasoning = self._generate_reasoning(ranked_opp, profile)
+
+        # 10. Sort by overall score (descending)
+        ranked = sorted(scored_opps, key=lambda o: o.overall_recommendation_score, reverse=True)
+
+        # 11. Apply diversity constraints
+        if self.config.enforce_diversity:
+            ranked = self._apply_diversity(ranked)
+
+        # 12. Assign ranks and limit
+        for i, opp in enumerate(ranked[:limit]):
+            opp.rank = i + 1
+
+        return ranked[:limit]
+
+    def _score_opportunities(self, opportunities: list[Opportunity]) -> list[RankedOpportunity]:
+        """Score opportunities and convert to RankedOpportunity."""
+        ranked: list[RankedOpportunity] = []
+
+        for opp in opportunities:
+            # Ensure zero barrier score exists
+            if opp.zero_barrier_score is None:
+                opp.zero_barrier_score = self.scorer.score(opp)
+
+            # Filter by minimum threshold
+            if opp.zero_barrier_score.total < self.config.min_zero_barrier_score:
+                continue
+
+            ranked.append(
+                RankedOpportunity(
+                    opportunity=opp,
+                    zero_barrier_score=opp.zero_barrier_score,
+                )
+            )
+
+        return ranked
+
+    def _calculate_acceptance_probability(self, ranked: RankedOpportunity, profile: UserProfile) -> float:
+        """Estimate probability of acceptance based on profile match."""
+        opp = ranked.opportunity
+        zb = ranked.zero_barrier_score
+
+        if not zb:
+            return 0.1
+
+        # Base probability from zero barrier score
+        base_prob = zb.total / 100.0
+
+        # Adjust for experience match
+        exp_match = self._experience_match(opp, profile)
+        base_prob *= 0.5 + 0.5 * exp_match
+
+        # Adjust for skill match
+        skill_match = self._skill_match(opp, profile)
+        base_prob *= 0.6 + 0.4 * skill_match
+
+        # Adjust for platform history
+        platform_hist = profile.platform_success_rates.get(opp.platform.value, 0.5)
+        base_prob *= 0.7 + 0.3 * platform_hist
+
+        # Adjust for category history
+        cat_hist = profile.category_success_rates.get(opp.category.value, 0.5)
+        base_prob *= 0.8 + 0.2 * cat_hist
+
+        return max(0.01, min(0.95, base_prob))
+
+    def _calculate_compatibility(self, ranked: RankedOpportunity, profile: UserProfile) -> float:
+        """Calculate user-opportunity compatibility score (0-1)."""
+        opp = ranked.opportunity
+        score = 0.0
+        factors = 0
+
+        # Skill match
+        skill_match = self._skill_match(opp, profile)
+        score += skill_match
+        factors += 1
+
+        # Experience level match
+        exp_match = self._experience_match(opp, profile)
+        score += exp_match
+        factors += 1
+
+        # Language match
+        lang_match = 1.0 if opp.language_required.lower() in [lang.lower() for lang in profile.languages] else 0.3
+        score += lang_match
+        factors += 1
+
+        # Remote preference
+        remote_match = 1.0 if (not profile.remote_only or opp.remote) else 0.0
+        score += remote_match
+        factors += 1
+
+        # Payment method preference
+        payment_match = 1.0 if opp.payment_method in profile.preferred_payment_methods else 0.5
+        score += payment_match
+        factors += 1
+
+        # Currency preference
+        currency_match = 1.0 if opp.currency in profile.preferred_currencies else 0.5
+        score += currency_match
+        factors += 1
+
+        # Employment type preference
+        emp_match = 1.0 if opp.employment_type in profile.preferred_employment_types else 0.5
+        score += emp_match
+        factors += 1
+
+        # Async preference
+        async_match = 1.0 if (not profile.async_preferred or opp.asynchronous) else 0.5
+        score += async_match
+        factors += 1
+
+        # AI tools preference
+        ai_match = 1.0 if (profile.accepts_ai_tools or not opp.accepts_ai_tools) else 0.5
+        score += ai_match
+        factors += 1
+
+        return score / factors if factors > 0 else 0.5
+
+    def _experience_match(self, opp: Opportunity, profile: UserProfile) -> float:
+        """Match opportunity experience requirement to user level."""
+        opp_exp = opp.experience_required
+        user_exp = profile.experience_level
+
+        # Map to numeric for comparison
+        exp_values = {
+            ExperienceLevel.NONE: 0,
+            ExperienceLevel.JUNIOR: 1,
+            ExperienceLevel.MID: 2,
+            ExperienceLevel.SENIOR: 3,
+        }
+
+        opp_val = exp_values.get(opp_exp, 1)
+        user_val = exp_values.get(user_exp, 0)
+
+        if user_val >= opp_val:
+            return 1.0  # User meets or exceeds requirement
+        elif user_val == opp_val - 1:
+            return 0.7  # One level below
+        else:
+            return 0.3  # Significantly below
+
+    def _skill_match(self, opp: Opportunity, profile: UserProfile) -> float:
+        """Match opportunity technology tags to user skills."""
+        if not opp.technology_tags:
+            return 0.5
+
+        user_skills_lower = {s.lower() for s in profile.skills}
+        matches = sum(1 for tag in opp.technology_tags if tag.lower() in user_skills_lower)
+
+        if matches == 0:
+            return 0.2
+        elif matches >= len(opp.technology_tags):
+            return 1.0
+        else:
+            return 0.4 + 0.6 * (matches / len(opp.technology_tags))
+
+    def _calculate_speed_score(self, ranked: RankedOpportunity) -> float:
+        """Calculate speed score (higher = faster payment)."""
+        opp = ranked.opportunity
+        if opp.time_to_payout_days is None:
+            return 0.5
+        if opp.time_to_payout_days <= 7:
+            return 1.0
+        elif opp.time_to_payout_days <= 14:
+            return 0.8
+        elif opp.time_to_payout_days <= 30:
+            return 0.6
+        elif opp.time_to_payout_days <= 60:
+            return 0.4
+        else:
+            return 0.2
+
+    def _calculate_reputation_score(self, ranked: RankedOpportunity) -> float:
+        """Calculate platform/company reputation score."""
+        opp = ranked.opportunity
+        return (opp.reputation + opp.payment_proven * 0.5 + opp.stability) / 2.5
+
+    def _calculate_risk_score(self, ranked: RankedOpportunity) -> float:
+        """Calculate risk score (higher = more risky)."""
+        opp = ranked.opportunity
+        return opp.risk
+
+    def _calculate_expected_value(self, ranked: RankedOpportunity) -> float:
+        """Calculate expected monetary value."""
+        opp = ranked.opportunity
+        acceptance = ranked.acceptance_probability
+        payment = opp.payment
+
+        # Adjust for payment reliability
+        from cores.direct_work_engine.models import PAYMENT_RELIABILITY
+
+        reliability = PAYMENT_RELIABILITY.get(opp.payment_method, 0.5)
+
+        # Expected value = payment * acceptance_prob * reliability
+        return payment * acceptance * reliability
+
+    def _calculate_overall_score(self, ranked: RankedOpportunity) -> float:
+        """Calculate weighted overall recommendation score."""
+        c = self.config
+        zb = ranked.zero_barrier_score
+
+        zero_barrier_norm = zb.total / 100.0 if zb else 0.0
+        expected_value_norm = min(1.0, ranked.expected_value / 10000.0)  # Normalize to $10k
+        acceptance_norm = ranked.acceptance_probability
+        compatibility_norm = ranked.compatibility_score
+        speed_norm = ranked.speed_score
+        reputation_norm = ranked.reputation_score
+
+        score = (
+            c.weight_zero_barrier * zero_barrier_norm
+            + c.weight_expected_value * expected_value_norm
+            + c.weight_acceptance_probability * acceptance_norm
+            + c.weight_compatibility * compatibility_norm
+            + c.weight_speed * speed_norm
+            + c.weight_reputation * reputation_norm
+        )
+
+        # Risk penalty
+        score *= 1.0 - 0.3 * ranked.risk_score
+
+        return round(score * 100, 1)  # 0-100 scale
+
+    def _generate_strategy(self, ranked: RankedOpportunity, profile: UserProfile) -> str:
+        """Generate personalized action strategy."""
+        opp = ranked.opportunity
+        zb = ranked.zero_barrier_score
+
+        steps: list[str] = []
+
+        if zb and zb.total < 50:
+            steps.append("⚠️ High barrier — prepare thoroughly before applying")
+
+        if opp.portfolio_required and not profile.has_portfolio:
+            steps.append("📁 Build minimal portfolio first (1-2 relevant projects)")
+
+        if opp.technical_test_required:
+            steps.append("🧪 Prepare for technical test — review common patterns for this category")
+
+        if opp.interview_required:
+            steps.append("🎤 Practice interview — focus on remote work async communication")
+
+        if opp.registration_required:
+            steps.append("📝 Register on platform — verify payment method setup")
+
+        # Add category-specific advice
+        if opp.category.value == "game_development":
+            steps.append("🎮 Highlight game programming projects (not art) in application")
+
+        if opp.category.value in ["bug_bounty", "security_research"]:
+            steps.append("🔒 Emphasize responsible disclosure history and report quality")
+
+        if is_outcome_based(opp.employment_type):
+            steps.append("🎯 Outcome-based: deliver the result, no selection process")
+
+        if not steps:
+            steps.append("✅ Low barrier — apply directly with tailored cover letter")
+
+        return " → ".join(steps)
+
+    def _generate_reasoning(self, ranked: RankedOpportunity, profile: UserProfile) -> list[str]:
+        """Generate human-readable reasoning for recommendation."""
+        zb = ranked.zero_barrier_score
+        reasons: list[str] = []
+
+        reasons.append(f"Overall Score: {ranked.overall_recommendation_score}/100")
+        reasons.append(f"Expected Value: ${ranked.expected_value:.0f}")
+        reasons.append(f"Acceptance Probability: {ranked.acceptance_probability:.0%}")
+        reasons.append(f"Compatibility: {ranked.compatibility_score:.0%}")
+        reasons.append(f"Zero Barrier: {zb.total if zb else 'N/A'}/100 ({zb.barrier_label if zb else 'unknown'})")
+        reasons.append(f"Speed Score: {ranked.speed_score:.0%}")
+        reasons.append(f"Reputation: {ranked.reputation_score:.0%}")
+        reasons.append(f"Risk: {ranked.risk_score:.0%}")
+        reasons.append(f"Model: {opportunity_model(ranked.opportunity.employment_type)}")
+
+        if zb:
+            if zb.enablers:
+                reasons.append("✅ " + "; ".join(zb.enablers[:3]))
+            if zb.blockers:
+                reasons.append("⚠️ " + "; ".join(zb.blockers[:3]))
+
+        return reasons
+
+    def _apply_diversity(self, ranked: list[RankedOpportunity]) -> list[RankedOpportunity]:
+        """Apply diversity constraints to avoid over-concentration."""
+        platform_counts: dict[str, int] = {}
+        category_counts: dict[str, int] = {}
+        diversified: list[RankedOpportunity] = []
+
+        for opp in ranked:
+            platform = opp.opportunity.platform.value
+            category = opp.opportunity.category.value
+
+            platform_count = platform_counts.get(platform, 0)
+            category_count = category_counts.get(category, 0)
+
+            if platform_count >= self.config.max_per_platform:
+                continue
+            if category_count >= self.config.max_per_category:
+                continue
+
+            diversified.append(opp)
+            platform_counts[platform] = platform_count + 1
+            category_counts[category] = category_count + 1
+
+        return diversified
+
+
+def recommend_opportunities(
+    opportunities: list[Opportunity],
+    profile: UserProfile,
+    limit: int = 10,
+    config: RecommenderConfig | None = None,
+) -> list[RankedOpportunity]:
+    """Convenience function for recommendations."""
+    recommender = IntelligentRecommender(config=config)
+    return recommender.recommend(opportunities, profile, limit)
