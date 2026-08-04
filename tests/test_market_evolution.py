@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from cores.direct_work_engine.income_projection import IncomeProjector, project_income
 from cores.direct_work_engine.market_evolution import (
     EcosystemRecord,
     MarketEvolutionEngine,
@@ -191,3 +192,84 @@ def test_market_report_endpoint(tmp_path: Path, monkeypatch) -> None:
     assert payload["best_recommendation"]
     assert "recommended_actions" in payload
     assert "ecosystems" not in payload
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Income Projector — honest time-to-income math
+# ─────────────────────────────────────────────────────────────────────
+
+
+def test_projector_reaches_target_within_horizon() -> None:
+    # Starting capital that already yields > target monthly at 10%/yr
+    projection = project_income(
+        work_income_usd_per_month=5000,
+        savings_usd_per_month=2000,
+        start_capital_usd=12_000_000,  # 12% pocket change for a yield test
+        target_monthly_usd=100_000,
+    )
+    assert projection.months_to_target == 1
+    assert projection.crossing_months == 1
+    assert projection.portfolio_monthly_income_usd > 100_000
+
+
+def test_projector_compounds_capital() -> None:
+    projection = project_income(
+        work_income_usd_per_month=0,
+        savings_usd_per_month=1000,
+        start_capital_usd=0,
+        target_monthly_usd=1_000_000,
+    )
+    # 10%/yr on $1000/mo: first month portfolio income is tiny; capital grows
+    assert projection.months_to_target is None or projection.months_to_target > 100
+    assert projection.start_capital_usd == 0.0
+    curve = projection.monthly_curve
+    assert curve[0]["capital_usd"] > 0
+    # curve is monotonically growing
+    capitals = [sample["capital_usd"] for sample in curve]
+    assert capitals == sorted(capitals)
+
+
+def test_projector_crossing_without_target() -> None:
+    projection = project_income(
+        work_income_usd_per_month=100_000,
+        savings_usd_per_month=5000,
+        start_capital_usd=12_000_000,
+        target_monthly_usd=900_000,
+    )
+    # portfolio income starts well above work income
+    assert projection.crossing_months is not None
+    assert projection.portfolio_monthly_income_usd >= projection.savings_usd_per_month
+    assert projection.months_to_target is None or projection.months_to_target > 1
+
+
+def test_projector_default_annual_return_named() -> None:
+    # Defaults must be conservative (no invented "50% optimized").
+    assert IncomeProjector.project.__name__  # just ensures callable default
+    p = project_income(work_income_usd_per_month=0, savings_usd_per_month=1000)
+    assert abs(p.annual_return_rate - 0.10) < 1e-9
+
+
+def test_income_projector_endpoint(tmp_path: Path, monkeypatch) -> None:
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from api.routers.direct_work import router
+
+    app = FastAPI()
+    app.include_router(router, prefix="/api")
+    client = TestClient(app)
+    resp = client.post(
+        "/api/direct-work/income-projector",
+        json={
+            "work_income_usd_per_month": 3000,
+            "savings_usd_per_month": 1000,
+            "start_capital_usd": 50_000,
+            "annual_return_rate": 0.10,
+            "target_monthly_usd": 100_000,
+        },
+    )
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert "months_to_target" in payload
+    assert "crossing_months" in payload
+    assert "monthly_curve" in payload
