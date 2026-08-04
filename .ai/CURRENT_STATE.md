@@ -1,3 +1,62 @@
+## Sesión 2026-08-04 — MAGIC EXPERIENCE ENGINE + OPPORTUNITY EXECUTION PLAN
+
+> **QUÉ SE HIZO:** Implementados los dos specs del owner (Opportunity Execution
+> Engine + Magic Experience Engine) como un único módulo determinista que cubre
+> el gap real: no existía ningún plan de ejecución que respondiera "qué hacer,
+> qué hace OWNEX, cuánto tarda, y cuál es el siguiente botón".
+
+### `cores/direct_work_engine/execution_planner.py` (NUEVO)
+- **`plan_objective(text)`** — "Universal Request Understanding": clasifica
+  una petición en lenguaje natural (website, Fiverr delivery, bug analysis,
+  tool install, documentation, market research, project prep) en una categoría
+  curada y devuelve un `PlanResult` con Goal/Requirements/Plan/Tools/Execution/
+  Verification/Deliverables + Time Compression (normal_hours vs OWNEX_hours) y
+  automation %. Cero LLM, cero inventos — plantillas deterministas con
+  números honestos.
+- **`plan_execution(opportunity)`** — "Opportunity Execution Engine":
+  convierte una oportunidad (dict o Work Bank item) en un `OpportunityPlan`
+  con: Opportunity Report (campos + direct_links), human_work_minutes (solo
+  decisiones personales: cuenta, revisión, envío), automation_pct, work
+  reduction model (original_hours → remaining_human_hours), EV = reward ×
+  success_probability / human_hours, roadmap 4 pasos (Prepare→Execute→QC→
+  Deliver), next_button y eligibility_note.
+
+### Endpoints nuevos en `api/routers/direct_work.py`
+- `POST /direct-work/plan/objective` — petición genérica → blueprint mágico.
+- `POST /direct-work/plan/opportunity` — oportunidad existente → plan de
+  ejecución con links directos, EV y roadmap.
+
+### Verificación
+- 7 tests nuevos en `tests/test_execution_planner.py` (clasificación de
+  peticiones, fallback category, time_compression, report con links,
+  WorkItem-like object, high-reward honest probability).
+- **118 tests pasan** (7 nuevos + 21 market_evolution + 24 direct_work_api +
+  35 direct_work_engine + 25 workbank), ruff 0 errores, `import api.main` OK.
+- Commits: `639355b5` (magic experience + opportunity execution plan).
+
+> **QUÉ SE HIZO:** Integración del modelo "RESULT-BASED OPPORTUNITY MODEL" del owner
+> (competencia por resultado entregado, no por contratación) + engine estratégico de
+> Fiverr + endpoint de decisión "saber decir NO" en el flujo diario. Todo EXTEND sobre
+> lo existente, cero lógica duplicada.
+
+### Result-Based Opportunity Model (`cores/result_based.py` + router `/result-based/*`)
+- **Clasificador S/A/B/C**: bug bounty (bounty/open_call sin entrevista/portfolio/test) → **S** "Direct Result"; AI eval/data (microtask/challenge/prize) → **A** "Low Friction"; OSS bounty (muestra juzgada) → **B** "Skill-Proof"; empleo tradicional → **C** "Traditional" (skip). Principio del owner incorporado: *"sin entrevista no significa sin competencia; la competencia pasa del CV al resultado entregado"*.
+- **First-Day Guide** (persistente en `data/first_day.json`): 5 pasos que llevan a un usuario sin experiencia a recompensas reales desde el día 1 (canales públicos → primer micro dev bounty → bug bounty low-hanging → setup manual → Fiverr). `POST /result-based/first-day/step` trackea progreso.
+- Verificado: bug bounty→S, AI eval→A, full_time+entrevista→C.
+
+### Fiverr Strategic Engine (`cores/fiverr/engine.py` + router `/fiverr/*`)
+- Filosofía "vendo soluciones, no horas": 11 gigs que resuelven UN problema (Python automation, API/AI integration, bug fixing, browser/desktop automation, data processing, utilities, Unity/Unreal solo código).
+- Pricing Starter/Standard/Premium desde banda única (`_DEFAULT_PRICE_BANDS`, cero magic numbers) + plan de entrega en 7 pasos (Requerimiento→Paquete) + **Asset Knowledge Base** persistente (`data/fiverr_assets.json`): cada orden completada registra un asset reutilizable para acelerar la siguiente.
+- Delivery reusa `AssistedExecutor` existente (Regla de Oro: no reimplementar pipeline). Ethics gate (plagio/overclaim/ToS) en `/fiverr/ethics-check`.
+
+### Decision "say NO" endpoint (`api/routers/decision.py`, router `/decision/*`)
+- `POST /decision/evaluate` expone el `DecisionEngine` existente (cores/decision_core) como pregunta simple: "¿vale la pena esta tarea?" → verdict GO/SKIP, EV, ROI, USD/hora. Verificado: bounty $1000/8h → GO; tarea $5/$30 → SKIP.
+
+### Verificación
+- **15 tests nuevos** en `tests/test_fiverr_decision.py` (9 fiverr+decision + 6 result-based). **70 passed** (fiverr+decision+result-based+direct_work_api+workbank), ruff limpio, `import api.main` OK. Routers montados en main.py (fiverr, decision, result_based).
+
+---
+
 ## Sesión 2026-08-04 — INCOME DASHBOARD: single pane of glass (WorkBank + Revenue + Projection)
 
 > **QUÉ SE HIZO:** Cierre del plan del owner "instalar y usar a full": se implementó el último
