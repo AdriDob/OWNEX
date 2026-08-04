@@ -1,3 +1,36 @@
+## Sesión 2026-08-04 — ALPHA FOUNDATION: Guided Assistance System
+
+> **QUÉ SE HIZO:** Implementado el único módulo faltante del spec "OWNEX ALPHA
+> FOUNDATION PROMPT": el sistema de modos de asistencia (Guided/Assisted/Autonomous/Expert).
+> Los otros 4 módulos del Alpha ya existían: Conversational Intelligence (`plan_objective`),
+> Personal Memory (`UnifiedMemoryStore` + `MerlinMemory`), UX Rule (cubierta por el
+> execution planner) y desarrollo modular (patrón del proyecto).
+
+### Guided Assistance System (`cores/direct_work_engine/assistance_mode.py`, NUEVO)
+- 4 modos persistentes en `UnifiedMemoryStore` (namespace `user`, key `assistance_mode`):
+  - **GUIDED**: explica todo, pide aprobación antes de cada paso (onboarding).
+  - **ASSISTED**: explica decisiones importantes, revisión antes de ejecutar (default).
+  - **AUTONOMOUS**: ejecuta workflows aprobados sin interrupción (usuario de confianza).
+  - **EXPERT**: detalles técnicos, mínima explicación, máximo control.
+- `get_mode()` / `set_mode(mode)` — lectura/escritura persistente.
+- `get_guidance(mode)` — devuelve la configuración de guía para un modo:
+  `explain_plan`, `explain_tools`, `explain_verification`, `auto_approve`,
+  `show_technical_details`, `next_button_text`.
+- `ModeInfo` dataclass con `from_current()` para el endpoint.
+
+### Endpoints
+- `GET /direct-work/assistance-mode` — modo actual + configuración de guía.
+- `POST /direct-work/assistance-mode` — cambiar modo (`{"mode": "autonomous"}`).
+
+### Verificación
+- 8 tests nuevos en `tests/test_assistance_mode.py` (default mode, persistencia,
+  invalid mode, guidance completeness, mode progression, ModeInfo, survival).
+- **75 tests pasan** (8 assistance + 7 execution_planner + 21 market_evolution +
+  24 direct_work_api + 15 más), ruff limpio, `import api.main` OK.
+- Commits: `aadac4fc` (assistance mode system).
+
+---
+
 ## Sesión 2026-08-04 — MAGIC EXPERIENCE ENGINE + OPPORTUNITY EXECUTION PLAN
 
 > **QUÉ SE HIZO:** Implementados los dos specs del owner (Opportunity Execution
