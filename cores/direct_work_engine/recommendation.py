@@ -148,6 +148,11 @@ class IntelligentRecommender:
         if not opportunities:
             return []
 
+        # 0. Apply profile preferences as hard filters (caller-supplied profile
+        #    governs what the user is actually looking for): drop excluded
+        #    categories and rewards below the minimum the user will take on.
+        opportunities = self._apply_profile_filter(opportunities, profile)
+
         # 1. Score all opportunities with zero barrier score
         scored_opps = self._score_opportunities(opportunities)
 
@@ -196,6 +201,26 @@ class IntelligentRecommender:
             opp.rank = i + 1
 
         return ranked[:limit]
+
+    def _apply_profile_filter(self, opportunities: list[Opportunity], profile: UserProfile) -> list[Opportunity]:
+        """Apply profile preferences as hard filters before scoring.
+
+        Excluded categories never surface. Rewards below the user's floor are
+        dropped. When no preference is set the profile is a no-op, so legacy
+        callers keep their exact behavior.
+        """
+        excluded = {c.value if hasattr(c, "value") else str(c) for c in profile.excluded_categories}
+        if not excluded and profile.min_payment <= 0.0:
+            return opportunities
+
+        filtered: list[Opportunity] = []
+        for opp in opportunities:
+            if opp.category.value in excluded:
+                continue
+            if profile.min_payment > 0.0 and opp.payment < profile.min_payment:
+                continue
+            filtered.append(opp)
+        return filtered
 
     def _score_opportunities(self, opportunities: list[Opportunity]) -> list[RankedOpportunity]:
         """Score opportunities and convert to RankedOpportunity."""

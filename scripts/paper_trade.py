@@ -11,6 +11,7 @@ más adelante para capital real (SIEMPRE en papeles primero).
 
 Uso:
     python scripts/paper_trade.py --runs 10 --capital 1000 --min-spread 0.5
+    python scripts/paper_trade.py --exchanges binance,okx,mexc --min-quote-volume 500000 --min-spread 0.5
 """
 
 from __future__ import annotations
@@ -61,11 +62,19 @@ def _simulate(opp: dict, capital: float) -> dict:
     }
 
 
-async def run_paper(runs: int, capital: float, min_spread: float) -> int:
-    adapter = GlobalArbitrageAdapter({"min_spread_pct": min_spread, "max_position_usd": 500})
+async def run_paper(runs: int, capital: float, min_spread: float, exchanges: list[str], min_qv: float) -> int:
+    adapter = GlobalArbitrageAdapter(
+        {
+            "min_spread_pct": min_spread,
+            "max_position_usd": 500,
+            "exchanges": exchanges,
+            "min_quote_volume_usd": min_qv,
+        }
+    )
 
     print("=== PAPER TRADING — arbitraje global (sin riesgo) ===")
-    print(f"Capital virtual: ${capital:.2f} | Runs: {runs} | Min spread: {min_spread}% | Fee sim: {FEE_PCT}%")
+    print(f"Capital virtual: ${capital:.2f} | Runs: {runs} | Min spread: {min_spread}% | Fee sim: {FEE_PCT}% | Min liq 24h: ${min_qv:,.0f}")
+    print(f"Exchanges: {', '.join(exchanges)}")
     print(f"Estrategia: {STRATEGY} | Fecha: {datetime.now(UTC).isoformat()}\n")
 
     connected = await adapter.connect()
@@ -155,11 +164,17 @@ async def run_paper(runs: int, capital: float, min_spread: float) -> int:
 
 def main() -> int:
     p = argparse.ArgumentParser(description="Paper trading arbitraje global")
-    p.add_argument("--runs", type=int, default=10)
+    p.add_argument("--runs", type=int, default=5)
     p.add_argument("--capital", type=float, default=1000.0)
     p.add_argument("--min-spread", type=float, default=0.5, dest="min_spread")
+    p.add_argument("--min-quote-volume", type=float, default=500000.0, dest="min_qv",
+                   help="Liquidez mínima 24h (suma ambas puntas) en USD para declarar ejecutable")
+    p.add_argument("--exchanges", type=str,
+                   default="binance,okx,kraken,coinbase,bybit,bitget,mexc,gateio",
+                   help="Exchanges separados por coma a escanear")
     args = p.parse_args()
-    return asyncio.run(run_paper(args.runs, args.capital, args.min_spread))
+    exchanges = [e.strip() for e in args.exchanges.split(",") if e.strip()]
+    return asyncio.run(run_paper(args.runs, args.capital, args.min_spread, exchanges, args.min_qv))
 
 
 if __name__ == "__main__":

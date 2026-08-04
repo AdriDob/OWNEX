@@ -18,7 +18,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from cores.direct_work_engine.filters import StrictFilter
-from cores.direct_work_engine.models import Opportunity
+from cores.direct_work_engine.models import (
+    EmploymentType,
+    ExperienceLevel,
+    Opportunity,
+    OpportunityCategory,
+    UserProfile,
+)
 from cores.direct_work_engine.scoring import ZeroBarrierScorer
 
 logger = logging.getLogger("ownex.direct_work_engine.workbank")
@@ -106,21 +112,36 @@ class WorkBank:
         self,
         opportunities: list[Opportunity],
         target: int | None = None,
+        profile: UserProfile | None = None,
     ) -> dict:
         """Prepare up to ``target`` zero-barrier jobs (default: the daily goal, 10).
 
         Strict filter runs first: opportunities with red flags (unclear payment,
         non-remote, gift-card-only payout, hiring funnel) are hard-rejected and
-        reported — never prepared. Quality over quantity.
+        reported — never prepared. When a ``profile`` is provided, the same
+        preference filters as the recommender apply (excluded categories and the
+        minimum reward floor). Quality over quantity.
         """
         scorer = ZeroBarrierScorer()
         strict_filter = StrictFilter()
         if target is None:
             target = TARGETS["daily"]
 
+        excluded = (
+            {c.value if hasattr(c, "value") else str(c) for c in profile.excluded_categories}
+            if profile is not None
+            else set()
+        )
+
         eligible: list[tuple[Opportunity, float]] = []
         rejected: dict[str, list[str]] = {}
         for opp in opportunities:
+            if opp.category.value in excluded:
+                rejected[opp.id] = ["excluded_category"]
+                continue
+            if profile is not None and profile.min_payment > 0.0 and opp.payment < profile.min_payment:
+                rejected[opp.id] = ["below_min_payment"]
+                continue
             reasons = strict_filter.reject(opp)
             if reasons:
                 rejected[opp.id] = reasons
@@ -310,7 +331,42 @@ def run_daily_cycle(target: int | None = None, opportunities: list[Opportunity] 
         if found is None:
             found = asyncio.run(engine.discovery.discover_all())
         found = found or []
-        return get_workbank().daily_cycle(found, target=target)
+        profile = UserProfile(
+            name="Adriel",
+            country="Argentina",
+            languages={"es", "en"},
+            skills={"python", "go", "unity", "typescript"},
+            experience_level=ExperienceLevel.NONE,
+            remote_only=True,
+            accepts_ai_tools=True,
+            has_portfolio=False,
+            preferred_employment_types=[
+                EmploymentType.BOUNTY,
+                EmploymentType.OPEN_CALL,
+                EmploymentType.MICROTASK,
+                EmploymentType.CHALLENGE,
+                EmploymentType.PRIZE,
+            ],
+            preferred_categories=[
+                OpportunityCategory.BUG_BOUNTY,
+                OpportunityCategory.DEV_BOUNTY,
+                OpportunityCategory.SECURITY_RESEARCH,
+                OpportunityCategory.OSS_BOUNTIES,
+                OpportunityCategory.AI_EVALUATION,
+                OpportunityCategory.DATA_ANNOTATION,
+                OpportunityCategory.SYNTHETIC_DATA,
+                OpportunityCategory.WEB_SCRAPING,
+            ],
+            excluded_categories=[
+                OpportunityCategory.FULL_STACK,
+                OpportunityCategory.FRONTEND,
+                OpportunityCategory.BACKEND,
+                OpportunityCategory.CLOUD,
+                OpportunityCategory.DEVOPS,
+            ],
+            min_payment=10.0,
+        )
+        return get_workbank().daily_cycle(found, target=target, profile=profile)
 
     result: dict = {}
 
