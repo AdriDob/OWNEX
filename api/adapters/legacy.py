@@ -121,6 +121,13 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
         logger.warning("Could not build opire adapter: %s", exc)
 
     try:
+        from api.adapters.direct_work_bugbounty import build_bugbounty_adapters
+
+        adapters.extend(build_bugbounty_adapters())
+    except Exception as exc:  # pragma: no cover
+        logger.warning("Could not build bugbounty adapters: %s", exc)
+
+    try:
         from core.opportunity.adapters.issuehunt import IssueHuntAdapter
 
         adapters.append(

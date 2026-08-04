@@ -586,3 +586,45 @@ class TestSourceIntelApi:
         body = resp.json()
         assert all(s["trust_score"] >= 90 for s in body["sources"])
         assert isinstance(body["uncovered_categories"], list)
+
+
+class TestBugBountyDweAdapter:
+    """Public-grade bug bounty discovery: works with zero keys, honors payout."""
+
+    def test_fetches_public_programs_across_sources(self) -> None:
+        from api.adapters.direct_work_bugbounty import _BOUNTY_DATA_URLS, BugBountyDweAdapter
+
+        sample = [
+            {"name": "OpenSea", "url": "https://bugcrowd.com/opensea", "max_payout": 3000000},
+            {"handle": "tesla", "url": "https://bugcrowd.com/tesla", "offers_bounties": True, "max_payout": 100000},
+        ]
+
+        adapter = BugBountyDweAdapter()
+        with (
+            patch.object(adapter, "_load_json", new=AsyncMock(return_value=sample)),
+            patch.object(adapter, "_credentials_for", return_value={}),
+        ):
+            opps = asyncio.run(adapter.fetch_opportunities())
+
+        assert len(opps) == len(sample) * len(_BOUNTY_DATA_URLS)
+        top = max(opps, key=lambda o: o.payment)
+        assert top.payment == 3000000.0
+        assert top.category.value == "bug_bounty"
+        assert top.employment_type.value == "bounty"
+        assert top.portfolio_required is False
+        assert top.interview_required is False
+        assert top.experience_required.value == "none"
+
+    def test_public_grade_requires_registration_when_no_key(self) -> None:
+        from api.adapters.direct_work_bugbounty import BugBountyDweAdapter
+
+        adapter = BugBountyDweAdapter()
+        with patch.object(adapter, "_load_json", new=AsyncMock(return_value=[])):
+            opps = asyncio.run(adapter.fetch_opportunities())
+        assert opps == []
+
+    def test_registered_in_default_adapters(self) -> None:
+        from api.adapters.legacy import build_default_adapters
+
+        names = [a.source.name for a in build_default_adapters()]
+        assert "bugbounty" in names
