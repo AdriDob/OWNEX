@@ -1,3 +1,35 @@
+## Sesión 2026-08-04 — INCOME DASHBOARD: single pane of glass (WorkBank + Revenue + Projection)
+
+> **QUÉ SE HIZO:** Cierre del plan del owner "instalar y usar a full": se implementó el último
+> gap real de los 5 puntos de cierre (los otros 4 ya existían: Decision Engine, Knowledge Graph,
+> métricas, manifest/constitución). Dashboard financiero consolidado, cero lógica duplicada.
+
+### Income Dashboard (`cores/direct_work_engine/income_dashboard.py`, NUEVO)
+- `IncomeDashboard.snapshot()` — el "¿el sistema mejora mi dinero?" en UNA llamada, leyendo de
+  motores existentes (Regla de Oro: no crea datos, consolida):
+  - `work` — jobs **found / prepared (ready_to_deliver) / delivered / needs_access** del WorkBank
+    + `available_for_delivery` + targets daily/weekly/monthly (via `bank.progress()`).
+  - `income` — **total_earned_usd / pending_usd / platforms_tracked** agregados desde
+    `RevenueTracker.metrics` por plataforma (completed_amount + pending_amount). Sin inventar
+    `usd_per_hour` (no existe en el tracker real → se quitó, honestidad).
+  - `roi` — lista por plataforma: earned/pending/accepted/total desde outcomes reales.
+  - `projection` — delega al IncomeProjector (crossing_months, months_to_target, monthly_curve);
+    si no hay ingreso/ahorro → note "Configurá ingreso/ahorro por mes para ver tiempos".
+- Degradación defensiva: cada bloque con try/except → un engine caído no rompe el panel.
+
+### Endpoint
+- `POST /api/direct-work/income-dashboard` (router direct_work, reusa `IncomeProjectionRequest` del
+  /income-projector). Devuelve `{generated_at, work, income, roi, projection}`.
+
+### Verificación
+- Tests en `tests/test_market_evolution.py` (3 nuevos → 21 passed en el archivo): snapshot shape,
+  projection con/sin inputs, endpoint HTTP 200. Suite DWE completa 90 passed (+21 market_evolution),
+  ruff 0 errores, `import api.main` OK.
+- Commits: `7f5a9c06` (dashboard + endpoint), `b01b7489` (bugbounty adapter + fiverr engine +
+  arbitrage scheduler jobs + QUICKSTART — trabajo pendiente de sesión previa, 76 tests scheduler).
+
+---
+
 ## Sesión 2026-08-04 — MARKET EVOLUTION ENGINE (spec completado: OVOS + Friction Index + Retirement + KB)
 
 > **QUÉ SE HIZO:** El spec "OWNEX MARKET EVOLUTION ENGINE" pedía 5 piezas que el stack
