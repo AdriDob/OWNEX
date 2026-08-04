@@ -273,3 +273,56 @@ def test_income_projector_endpoint(tmp_path: Path, monkeypatch) -> None:
     assert "months_to_target" in payload
     assert "crossing_months" in payload
     assert "monthly_curve" in payload
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Income Dashboard — single pane of glass (WorkBank + Revenue + Projector)
+# ─────────────────────────────────────────────────────────────────────
+
+
+def test_income_dashboard_snapshot_shape(tmp_path: Path, monkeypatch) -> None:
+    from cores.direct_work_engine.income_dashboard import IncomeDashboard
+
+    dashboard = IncomeDashboard()
+    snapshot = dashboard.snapshot(work_income_usd_per_month=3000, savings_usd_per_month=1000)
+    assert set(snapshot) >= {"generated_at", "work", "income", "roi", "projection"}
+    assert set(snapshot["work"]) >= {"found", "prepared", "delivered", "needs_access", "targets"}
+    assert set(snapshot["income"]) >= {"total_earned_usd", "pending_usd", "platforms_tracked"}
+    assert isinstance(snapshot["roi"], list)
+    assert snapshot["projection"]["months_to_target"] is not None or snapshot["projection"]["months_to_target"] is None
+
+
+def test_income_dashboard_projection_requires_inputs(tmp_path: Path, monkeypatch) -> None:
+    from cores.direct_work_engine.income_dashboard import IncomeDashboard
+
+    snapshot = IncomeDashboard().snapshot()
+    assert snapshot["projection"]["crossing_months"] is None
+    assert "note" in snapshot["projection"]
+
+
+def test_income_dashboard_endpoint(tmp_path: Path, monkeypatch) -> None:
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from api.routers.direct_work import router
+
+    app = FastAPI()
+    app.include_router(router, prefix="/api")
+    client = TestClient(app)
+    resp = client.post(
+        "/api/direct-work/income-dashboard",
+        json={
+            "work_income_usd_per_month": 3000,
+            "savings_usd_per_month": 1000,
+            "start_capital_usd": 50_000,
+            "annual_return_rate": 0.10,
+            "target_monthly_usd": 100_000,
+        },
+    )
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert "work" in payload
+    assert "income" in payload
+    assert "roi" in payload
+    assert "projection" in payload
+    assert payload["projection"]["months_to_target"] is not None
