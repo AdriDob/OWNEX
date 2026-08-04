@@ -153,7 +153,7 @@ class DistillationPipeline:
         # Embed inputs
         from cores.learning import embed_engagement
 
-        X_train = np.array([embed_engagement(s.input_data) for s in train_samples])
+        x_train = np.array([embed_engagement(s.input_data) for s in train_samples])
         y_train = np.array(
             [
                 list(s.teacher_output.values())[0] if isinstance(s.teacher_output, dict) and s.teacher_output else 0.0
@@ -161,7 +161,7 @@ class DistillationPipeline:
             ]
         )
 
-        X_val = np.array([embed_engagement(s.input_data) for s in val_samples])
+        x_val = np.array([embed_engagement(s.input_data) for s in val_samples])
         y_val = np.array(
             [
                 list(s.teacher_output.values())[0] if isinstance(s.teacher_output, dict) and s.teacher_output else 0.0
@@ -174,26 +174,26 @@ class DistillationPipeline:
             from sklearn.linear_model import Ridge
 
             model = Ridge(alpha=1.0)
-            model.fit(X_train, y_train)
+            model.fit(x_train, y_train)
 
             # Validate
-            val_pred = model.predict(X_val)
+            val_pred = model.predict(x_val)
             val_loss = float(np.mean((val_pred - y_val) ** 2))
 
             artifacts = {
                 "model_type": "linear",
                 "weights": model.coef_.tolist(),
                 "intercept": float(model.intercept_),
-                "embedding_dim": X_train.shape[1],
+                "embedding_dim": x_train.shape[1],
             }
 
         elif architecture == "decision_tree":
             from sklearn.tree import DecisionTreeRegressor
 
             model = DecisionTreeRegressor(max_depth=5, random_state=42)
-            model.fit(X_train, y_train)
+            model.fit(x_train, y_train)
 
-            val_pred = model.predict(X_val)
+            val_pred = model.predict(x_val)
             val_loss = float(np.mean((val_pred - y_val) ** 2))
 
             import pickle

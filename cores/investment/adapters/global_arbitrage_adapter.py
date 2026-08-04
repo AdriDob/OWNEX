@@ -19,6 +19,9 @@ class GlobalArbitrageAdapter:
         self._exchanges = self._config.get("exchanges", ["binance", "kraken", "coinbase"])
         self._min_spread_pct = self._config.get("min_spread_pct", 0.5)
         self._max_position_usd = self._config.get("max_position_usd", 10000)
+        # cap de cordura: spreads spot reales entre exchanges líquidos no superan un
+        # ~10%; valores mayores son tickers basura/ilíquidos que corrompen el scan
+        self._spread_sanity_max = self._config.get("spread_sanity_max", 10.0)
         self._connected = False
 
     @property
@@ -81,18 +84,19 @@ class GlobalArbitrageAdapter:
                 best_bid_ex = max(bids, key=bids.get)
                 best_ask_ex = min(asks, key=asks.get)
                 spread = (bids[best_bid_ex] - asks[best_ask_ex]) / asks[best_ask_ex] * 100
-                if spread >= self._min_spread_pct:
-                    opportunities.append(
-                        {
-                            "symbol": symbol,
-                            "buy_on": best_ask_ex,
-                            "buy_price": asks[best_ask_ex],
-                            "sell_on": best_bid_ex,
-                            "sell_price": bids[best_bid_ex],
-                            "spread_pct": round(spread, 2),
-                            "estimated_profit_usd": round(spread / 100 * self._max_position_usd, 2),
-                        }
-                    )
+                if not (self._min_spread_pct <= spread <= self._spread_sanity_max):
+                    continue
+                opportunities.append(
+                    {
+                        "symbol": symbol,
+                        "buy_on": best_ask_ex,
+                        "buy_price": asks[best_ask_ex],
+                        "sell_on": best_bid_ex,
+                        "sell_price": bids[best_bid_ex],
+                        "spread_pct": round(spread, 2),
+                        "estimated_profit_usd": round(spread / 100 * self._max_position_usd, 2),
+                    }
+                )
             return sorted(opportunities, key=lambda o: o["spread_pct"], reverse=True)
         except ImportError:
             logger.warning("ccxt not installed — returning mock opportunity")

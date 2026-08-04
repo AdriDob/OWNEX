@@ -118,8 +118,8 @@ function severityVariant(severity?: string) {
 }
 
 function difficultyColor(diff?: string) {
-  const map: Record<string, string> = { fácil: 'text-green-400', facil: 'text-green-400', media: 'text-yellow-400', 'requiere experiencia': 'text-red-400' }
-  return map[(diff || '').toLowerCase()] || 'text-gray-400'
+  const map: Record<string, string> = { fácil: 'text-success', facil: 'text-success', media: 'text-warning', 'requiere experiencia': 'text-destructive' }
+  return map[(diff || '').toLowerCase()] || 'text-muted-foreground'
 }
 </script>
 
@@ -129,10 +129,10 @@ function difficultyColor(diff?: string) {
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div class="min-w-0">
         <h1 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-          <Shield class="w-6 h-6 text-cyan-400" />
+          <Shield class="w-6 h-6 text-muted-foreground" />
           Guía de Validación
         </h1>
-        <p class="text-sm text-gray-400 mt-1">Sigue estos pasos para verificar la hipótesis manualmente</p>
+        <p class="text-sm text-muted-foreground mt-1">Sigue estos pasos para verificar la hipótesis manualmente</p>
       </div>
       <Button variant="ghost" size="sm" @click="router.back()">
         <ChevronLeft class="w-4 h-4 mr-1" /> Volver
@@ -161,9 +161,9 @@ function difficultyColor(diff?: string) {
     <!-- Empty State -->
     <template v-else-if="!hypothesis">
       <Card class="p-12 text-center">
-        <HelpCircle class="w-12 h-12 text-gray-500 mx-auto mb-4" />
-        <h2 class="text-lg font-semibold text-gray-300">No hay hipótesis para verificar</h2>
-        <p class="text-gray-500 mt-2">Selecciona una hipótesis desde la sección de hallazgos o ZAP scan.</p>
+        <HelpCircle class="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+        <h2 class="text-lg font-semibold text-foreground/80">No hay hipótesis para verificar</h2>
+        <p class="text-muted-foreground mt-2">Selecciona una hipótesis desde la sección de hallazgos o ZAP scan.</p>
         <Button class="mt-4" @click="router.push('/findings')">
           Ir a Hallazgos
         </Button>
@@ -181,32 +181,32 @@ function difficultyColor(diff?: string) {
               <span v-if="hypothesis.estimated_difficulty" class="text-xs" :class="difficultyColor(hypothesis.estimated_difficulty)">
                 {{ hypothesis.estimated_difficulty }}
               </span>
-              <span v-if="hypothesis.estimated_time_minutes" class="text-xs text-gray-500">
+              <span v-if="hypothesis.estimated_time_minutes" class="text-xs text-muted-foreground">
                 ~{{ hypothesis.estimated_time_minutes }} min
               </span>
             </div>
-            <p class="text-sm text-gray-300">{{ hypothesis.target_name }}</p>
+            <p class="text-sm text-foreground/80">{{ hypothesis.target_name }}</p>
           </div>
           <div v-if="hypothesis.estimated_reward_range" class="text-right">
-            <p class="text-xs text-gray-500">Recompensa estimada</p>
+            <p class="text-xs text-muted-foreground">Recompensa estimada</p>
             <p class="text-sm font-semibold text-gold">{{ hypothesis.estimated_reward_range }}</p>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
           <div>
-            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">¿Qué es esto?</h3>
-            <p class="text-sm text-gray-300">{{ hypothesis.what_is_this || 'Sin descripción' }}</p>
+            <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">¿Qué es esto?</h3>
+            <p class="text-sm text-foreground/80">{{ hypothesis.what_is_this || 'Sin descripción' }}</p>
           </div>
           <div>
-            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Impacto real</h3>
-            <p class="text-sm text-gray-300">{{ hypothesis.real_world_impact || 'Sin descripción' }}</p>
+            <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Impacto real</h3>
+            <p class="text-sm text-foreground/80">{{ hypothesis.real_world_impact || 'Sin descripción' }}</p>
           </div>
         </div>
 
         <div>
-          <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">¿Por qué se sospecha?</h3>
-          <p class="text-sm text-gray-300">{{ hypothesis.why_suspected || hypothesis.reasoning }}</p>
+          <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">¿Por qué se sospecha?</h3>
+          <p class="text-sm text-foreground/80">{{ hypothesis.why_suspected || hypothesis.reasoning }}</p>
         </div>
       </Card>
 
@@ -222,12 +222,12 @@ function difficultyColor(diff?: string) {
 
       <!-- Progress Bar -->
       <div class="space-y-1">
-        <div class="flex justify-between text-xs text-gray-500">
+        <div class="flex justify-between text-xs text-muted-foreground">
           <span>Progreso: {{ currentStep + 1 }} / {{ totalSteps }}</span>
           <span>{{ Math.round(progress) }}%</span>
         </div>
-        <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
-          <div class="h-full bg-cyan-500 rounded-full transition-all duration-500" :style="{ width: `${progress}%` }"></div>
+        <div class="w-full h-1.5 bg-surface-hover rounded-full overflow-hidden">
+          <div class="h-full bg-primary rounded-full transition-all duration-500" :style="{ width: `${progress}%` }"></div>
         </div>
       </div>
 
@@ -235,16 +235,16 @@ function difficultyColor(diff?: string) {
       <Card class="p-6 space-y-4" v-if="steps.length > 0">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <span v-if="steps[currentStep].type === 'screenshot'"><Camera class="w-4 h-4 text-purple-400" /></span>
-            <span v-else-if="steps[currentStep].type === 'command'"><Terminal class="w-4 h-4 text-green-400" /></span>
-            <span v-else-if="steps[currentStep].type === 'note'"><FileText class="w-4 h-4 text-blue-400" /></span>
-            <span v-else><CheckCircle2 class="w-4 h-4 text-cyan-400" /></span>
+            <span v-if="steps[currentStep].type === 'screenshot'"><Camera class="w-4 h-4 text-intigriti" /></span>
+            <span v-else-if="steps[currentStep].type === 'command'"><Terminal class="w-4 h-4 text-success" /></span>
+            <span v-else-if="steps[currentStep].type === 'note'"><FileText class="w-4 h-4 text-primary" /></span>
+            <span v-else><CheckCircle2 class="w-4 h-4 text-muted-foreground" /></span>
             <Badge variant="outline">{{ formatType(steps[currentStep].type) }}</Badge>
           </div>
-          <span class="text-xs text-gray-500">{{ steps[currentStep].status === 'completed' ? '✅ Completado' : steps[currentStep].status === 'failed' ? '❌ Falló' : steps[currentStep].status === 'in_progress' ? 'En progreso...' : 'Pendiente' }}</span>
+          <span class="text-xs text-muted-foreground">{{ steps[currentStep].status === 'completed' ? '✅ Completado' : steps[currentStep].status === 'failed' ? '❌ Falló' : steps[currentStep].status === 'in_progress' ? 'En progreso...' : 'Pendiente' }}</span>
         </div>
 
-        <p class="text-gray-200 leading-relaxed">{{ steps[currentStep].description }}</p>
+        <p class="text-foreground leading-relaxed">{{ steps[currentStep].description }}</p>
 
         <div class="flex gap-2 pt-2">
           <Button
@@ -253,7 +253,7 @@ function difficultyColor(diff?: string) {
             :disabled="steps[currentStep].status === 'completed'"
             @click="markStep('completed')"
           >
-            <CheckCircle2 class="w-4 h-4 mr-1 text-green-400" /> Hecho
+            <CheckCircle2 class="w-4 h-4 mr-1 text-success" /> Hecho
           </Button>
           <Button
             size="sm"
@@ -261,7 +261,7 @@ function difficultyColor(diff?: string) {
             :disabled="steps[currentStep].status === 'failed'"
             @click="markStep('failed')"
           >
-            <XCircle class="w-4 h-4 mr-1 text-red-400" /> No funciona
+            <XCircle class="w-4 h-4 mr-1 text-destructive" /> No funciona
           </Button>
           <Button
             size="sm"
@@ -300,14 +300,14 @@ function difficultyColor(diff?: string) {
 
       <!-- Notes Area -->
       <Card class="p-4">
-        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">
+        <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">
           <FileText class="w-3.5 h-3.5 inline mr-1" />
           Notas de validación
         </label>
         <textarea
           v-model="notes"
           placeholder="Anota cualquier observación durante la validación: comportamiento extraño, respuestas inesperadas, URLs alternativas..."
-          class="w-full h-24 bg-gray-900/50 border border-gray-700 rounded-lg p-3 text-sm text-gray-200 placeholder-gray-600 resize-none focus:outline-none focus:ring-1 focus:ring-cyan-500"
+          class="w-full h-24 bg-surface/50 border border-border-light rounded-lg p-3 text-sm text-foreground placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-1 focus:ring-primary/30"
         ></textarea>
       </Card>
 
@@ -315,19 +315,19 @@ function difficultyColor(diff?: string) {
       <Card class="p-5" v-if="result !== 'pending'">
         <div class="flex items-center gap-3">
           <div v-if="result === 'confirmed'">
-            <CheckCircle2 class="w-8 h-8 text-green-400" />
+            <CheckCircle2 class="w-8 h-8 text-success" />
           </div>
           <div v-else-if="result === 'rejected'">
-            <XCircle class="w-8 h-8 text-red-400" />
+            <XCircle class="w-8 h-8 text-destructive" />
           </div>
           <div v-else>
-            <AlertTriangle class="w-8 h-8 text-yellow-400" />
+            <AlertTriangle class="w-8 h-8 text-warning" />
           </div>
           <div class="flex-1">
             <h3 class="font-semibold text-white">
               {{ result === 'confirmed' ? '¡Vulnerabilidad confirmada!' : result === 'rejected' ? 'Falso positivo' : 'No concluyente' }}
             </h3>
-            <p class="text-sm text-gray-400">
+            <p class="text-sm text-muted-foreground">
               {{ result === 'confirmed' ? 'La hipótesis ha sido validada manualmente. Se ha registrado el hallazgo y puedes proceder a crear el reporte.' : result === 'rejected' ? 'La hipótesis no se pudo reproducir. El sistema aprenderá de este resultado.' : 'No se pudo determinar con certeza. Revisa manualmente o intenta con otro enfoque.' }}
             </p>
           </div>
@@ -338,14 +338,14 @@ function difficultyColor(diff?: string) {
       </Card>
 
       <!-- Step List (Summary) -->
-      <details class="text-sm text-gray-500">
-        <summary class="cursor-pointer hover:text-gray-300">Ver todos los pasos ({{ totalSteps }})</summary>
+      <details class="text-sm text-muted-foreground">
+        <summary class="cursor-pointer hover:text-foreground/80">Ver todos los pasos ({{ totalSteps }})</summary>
         <ul class="mt-2 space-y-1 pl-4">
           <li v-for="(step, i) in steps" :key="step.id" class="flex items-center gap-2">
-            <span v-if="step.status === 'completed'" class="text-green-400"><CheckCircle2 class="w-3.5 h-3.5" /></span>
-            <span v-else-if="step.status === 'failed'" class="text-red-400"><XCircle class="w-3.5 h-3.5" /></span>
-            <span v-else class="text-gray-600"><HelpCircle class="w-3.5 h-3.5" /></span>
-            <span :class="{ 'text-green-400': step.status === 'completed', 'text-red-400': step.status === 'failed', 'text-gray-400': step.status === 'pending' }">
+            <span v-if="step.status === 'completed'" class="text-success"><CheckCircle2 class="w-3.5 h-3.5" /></span>
+            <span v-else-if="step.status === 'failed'" class="text-destructive"><XCircle class="w-3.5 h-3.5" /></span>
+            <span v-else class="text-muted-foreground/70"><HelpCircle class="w-3.5 h-3.5" /></span>
+            <span :class="{ 'text-success': step.status === 'completed', 'text-destructive': step.status === 'failed', 'text-muted-foreground': step.status === 'pending' }">
               Paso {{ i + 1 }}
             </span>
           </li>
@@ -357,6 +357,6 @@ function difficultyColor(diff?: string) {
 
 <style scoped>
 .text-gold {
-  color: #f59e0b;
+  color: #D97706;
 }
 </style>

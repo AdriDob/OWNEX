@@ -311,6 +311,42 @@ def get_security_jobs() -> list[JobDefinition]:
     return jobs
 
 
+def get_direct_work_jobs() -> list[JobDefinition]:
+    """DIRECT WORK jobs — autonomous production of delivery-ready zero-barrier jobs.
+
+    Jobs:
+    - work_bank_daily_cycle: discover + prepare zero-barrier jobs every day (06:15)
+    """
+    return [
+        _cron_job(
+            job_id="work_bank_daily_cycle",
+            app_id="direct-work",
+            handler="cores.direct_work_engine.workbank:run_daily_cycle",
+            cron="15 6 * * *",
+            args=[],
+            metadata={"type": "work_bank", "desc": "prepara trabajos cero-barrera listos para entregar"},
+        ),
+    ]
+
+
+def get_qa_jobs() -> list[JobDefinition]:
+    """QA jobs — daily automated QA regression run.
+
+    Jobs:
+    - qa_daily_cycle: auto-generated test suite run + persistence (08:30)
+    """
+    return [
+        _cron_job(
+            job_id="qa_daily_cycle",
+            app_id="qa",
+            handler="core.cycles.tasks:run_qa_cycle",
+            cron="30 8 * * *",
+            args=[],
+            metadata={"cycle": "qa", "type": "qa", "desc": "regresion QA automatica diaria"},
+        ),
+    ]
+
+
 def get_all_jobs() -> dict[str, list[JobDefinition]]:
     """Return all cycle jobs."""
     return {
@@ -319,4 +355,6 @@ def get_all_jobs() -> dict[str, list[JobDefinition]]:
         "pulse": get_pulse_jobs(),
         "vault": get_vault_jobs(),
         "atlas": get_atlas_jobs(),
+        "direct_work": get_direct_work_jobs(),
+        "qa": get_qa_jobs(),
     }

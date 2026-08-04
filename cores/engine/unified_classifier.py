@@ -4,43 +4,79 @@ from typing import Any
 
 from cores.engine.unified_scoring import score
 
-UUID_PATTERN = re.compile(
-    r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-)
+UUID_PATTERN = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
 
 NUMERIC_PATTERN = re.compile(r"/(?:[0-9]+)(?:/|$)")
 
 AUTH_SMELL_TOKENS = [
-    "org_id", "tenant_id", "workspace_id",
-    "account_id", "user_id", "team_id",
+    "org_id",
+    "tenant_id",
+    "workspace_id",
+    "account_id",
+    "user_id",
+    "team_id",
 ]
 
 ADMIN_KEYWORDS = [
-    "admin", "dashboard", "internal", "staff", "superuser", "management",
+    "admin",
+    "dashboard",
+    "internal",
+    "staff",
+    "superuser",
+    "management",
 ]
 
 GRAPHQL_KEYWORDS = ["graphql", "gql"]
 
 MULTI_TENANT_KEYWORDS = [
-    "org", "tenant", "workspace", "account", "company", "team", "member",
+    "org",
+    "tenant",
+    "workspace",
+    "account",
+    "company",
+    "team",
+    "member",
 ]
 
 AUTH_KEYWORDS = [
-    "login", "auth", "session", "token", "password",
-    "oauth", "signin", "signup", "refresh", "apikey", "jwt",
+    "login",
+    "auth",
+    "session",
+    "token",
+    "password",
+    "oauth",
+    "signin",
+    "signup",
+    "refresh",
+    "apikey",
+    "jwt",
 ]
 
 EXPORT_KEYWORDS = [
-    "export", "download", "backup", "report", "csv", "pdf",
+    "export",
+    "download",
+    "backup",
+    "report",
+    "csv",
+    "pdf",
 ]
 
 UPLOAD_KEYWORDS = [
-    "upload", "attachment", "file", "import",
+    "upload",
+    "attachment",
+    "file",
+    "import",
 ]
 
 IDOR_PARAMS = [
-    "id", "user_id", "org_id", "tenant_id", "account_id",
-    "workspace_id", "member_id", "team_id",
+    "id",
+    "user_id",
+    "org_id",
+    "tenant_id",
+    "account_id",
+    "workspace_id",
+    "member_id",
+    "team_id",
 ]
 
 
@@ -67,11 +103,7 @@ def classify(
     attack_surface: list[str] = []
 
     is_api = (
-        "/api/" in lower
-        or lower.startswith("api")
-        or lower.endswith("graphql")
-        or "/v1/" in lower
-        or "/v2/" in lower
+        "/api/" in lower or lower.startswith("api") or lower.endswith("graphql") or "/v1/" in lower or "/v2/" in lower
     )
     if is_api:
         labels.append("api")
@@ -125,10 +157,7 @@ def classify(
     if any(part.isdigit() for part in lower.split("/")):
         labels.append("numeric_identifier")
 
-    if any(
-        len(part) >= 24 and "-" in part
-        for part in lower.split("/")
-    ):
+    if any(len(part) >= 24 and "-" in part for part in lower.split("/")):
         labels.append("uuid_identifier")
 
     sc = score(safe_path, safe_method, safe_params)

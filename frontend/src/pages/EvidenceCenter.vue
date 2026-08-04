@@ -143,7 +143,7 @@ function diffColor(ratio: number) {
         <div v-for="item in filtered" :key="item.id" class="animate-in">
           <button
             @click="toggleExpand(item.id)"
-            class="w-full rounded-xl border border-border/40 bg-[#11131f]/40 px-4 py-3 text-left transition-all hover:border-primary/30"
+            class="w-full rounded-xl border border-border/40 bg-surface/40 px-4 py-3 text-left transition-all hover:border-primary/30"
           >
             <div class="flex items-center gap-3">
               <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
@@ -170,7 +170,7 @@ function diffColor(ratio: number) {
 
           <!-- Expanded detail -->
           <Transition name="fade">
-            <div v-if="expanded[item.id]" class="mt-1 rounded-xl border border-border/30 bg-[#0d0f14] p-4 space-y-3">
+            <div v-if="expanded[item.id]" class="mt-1 rounded-xl border border-border/30 bg-background p-4 space-y-3">
               <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <div>
                   <p class="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Request</p>

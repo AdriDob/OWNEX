@@ -51,7 +51,7 @@ function drawParticles(ctx: CanvasRenderingContext2D, width: number, height: num
     p.y += p.vy
     p.opacity = Math.max(0, 0.4 * (1 - p.life / p.maxLife))
 
-    ctx.fillStyle = `rgba(59, 130, 246, ${p.opacity})`
+    ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`
     ctx.beginPath()
     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
     ctx.fill()
@@ -113,5 +113,5 @@ onUnmounted(() => {
     class="absolute inset-0 w-full h-full pointer-events-none"
     aria-hidden="true"
   />
-  <div v-else class="absolute inset-0 bg-gradient-to-b from-black to-[#050505]" aria-hidden="true" />
+  <div v-else class="absolute inset-0 bg-gradient-to-b from-black to-background" aria-hidden="true" />
 </template>

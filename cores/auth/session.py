@@ -107,10 +107,7 @@ class SessionStore:
         self._save()
 
     def list_devices(self) -> list[dict[str, Any]]:
-        return [
-            {"device_id": did, **info}
-            for did, info in self._devices.items()
-        ]
+        return [{"device_id": did, **info} for did, info in self._devices.items()]
 
     def list_sessions(self) -> list[dict[str, Any]]:
         return list(self._sessions.values())

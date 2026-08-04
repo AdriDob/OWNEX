@@ -37,12 +37,14 @@ async def get_identity_center():
     email = get_setting("identity.email", {"primary": "", "secondary": ""})
     wallets = get_setting("identity.wallets", {k: "" for k in WALLET_KEYS})
     never_submit = get_setting("CATEYE.never_submit_without_approval", True)
-    return ok({
-        "platforms": platforms,
-        "email": email,
-        "wallets": wallets,
-        "never_submit_without_approval": never_submit,
-    })
+    return ok(
+        {
+            "platforms": platforms,
+            "email": email,
+            "wallets": wallets,
+            "never_submit_without_approval": never_submit,
+        }
+    )
 
 
 @router.post("/platform/{provider}/connect")

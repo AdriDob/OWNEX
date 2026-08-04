@@ -91,13 +91,15 @@ class IntegrationHealthCenter:
 
         for int_id, integ in self.manager.integrations.items():
             if self._needs_attention(integ):
-                needing_attention.append({
-                    "integration_id": int_id,
-                    "name": integ.name,
-                    "health": integ.health.value,
-                    "reason": self._get_attention_reason(integ),
-                    "recommended_action": self._get_recommended_action(integ),
-                })
+                needing_attention.append(
+                    {
+                        "integration_id": int_id,
+                        "name": integ.name,
+                        "health": integ.health.value,
+                        "reason": self._get_attention_reason(integ),
+                        "recommended_action": self._get_recommended_action(integ),
+                    }
+                )
 
         return needing_attention
 
@@ -129,7 +131,9 @@ class IntegrationHealthCenter:
                 return "Sincronizar manualmente"
         return "Revisar configuración"
 
-    def update_integration_health(self, integration_id: str, health: IntegrationHealth, last_sync: datetime | None = None) -> bool:
+    def update_integration_health(
+        self, integration_id: str, health: IntegrationHealth, last_sync: datetime | None = None
+    ) -> bool:
         """Actualizar estado de salud de una integración."""
         if integration_id not in self.manager.integrations:
             return False

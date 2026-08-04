@@ -46,9 +46,9 @@ const STATE_LABELS: Record<string, string> = {
   paid: 'Paid', closed: 'Closed',
 }
 const STATE_COLORS: Record<string, string> = {
-  pending: '#6b7280', discovery: '#3b82f6', validation: '#8b5cf6', evidence: '#f59e0b',
-  ai_review: '#10b981', ready: '#22c55e', submitted: '#06b6d4', triaged: '#f97316',
-  paid: '#6366f1', closed: '#22c55e', failed: '#ef4444', cancelled: '#6b7280',
+  pending: '#6b7280', discovery: '#ffffff', validation: '#9CA3AF', evidence: '#D97706',
+  ai_review: '#16A34A', ready: '#16A34A', submitted: '#9CA3AF', triaged: '#D97706',
+  paid: '#9CA3AF', closed: '#16A34A', failed: '#E82127', cancelled: '#6b7280',
 }
 
 async function fetchPipeline() {
@@ -77,7 +77,7 @@ const stageProgressionData = computed(() => {
     datasets: [{
       label: 'Completado',
       data: data.map(v => v * 100),
-      backgroundColor: data.map(v => v ? 'rgba(34,197,94,0.7)' : 'rgba(107,114,128,0.3)'),
+      backgroundColor: data.map(v => v ? 'rgba(22,163,74,0.7)' : 'rgba(107,114,128,0.3)'),
     }],
   }
 })
@@ -93,7 +93,7 @@ const qualityMetricsData = computed(() => {
         stateProgress(pipeline.value.state),
         Math.max(0, 100 - pipeline.value.retries * 20),
       ],
-      backgroundColor: ['rgba(34,197,94,0.7)', 'rgba(59,130,246,0.7)', 'rgba(234,179,8,0.7)'],
+      backgroundColor: ['rgba(22,163,74,0.7)', 'rgba(255, 255, 255,0.7)', 'rgba(217, 119, 6,0.7)'],
     }],
   }
 })

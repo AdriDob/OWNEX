@@ -133,7 +133,7 @@ def main() -> None:
 |-------|-------|
 | **Application** | CATEYE |
 | **Version** | v{version} |
-| **Build ID** | `{info.get("build_id", f"v{version}-{build_date.replace('-','')}") if info else f"v{version}-{build_date.replace('-','')}"}` |
+| **Build ID** | `{info.get("build_id", f"v{version}-{build_date.replace('-', '')}") if info else f"v{version}-{build_date.replace('-', '')}"}` |
 | **Build Date** | {build_date} |
 | **Commit** | `{commit}` |
 | **Platform** | {platform} |
@@ -163,7 +163,7 @@ def main() -> None:
 
 ---
 
-*Report auto-generated on {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S UTC')}*
+*Report auto-generated on {datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")}*
 """
 
     REPORT_PATH.write_text(report, encoding="utf-8")

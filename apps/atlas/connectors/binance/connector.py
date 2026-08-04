@@ -81,14 +81,16 @@ class BinanceConnector(AtlasConnector):
                     price = await self._get_price(b["asset"])
                     value = total * price if price else 0.0
                     total_value += value
-                    positions.append(NormalizedPosition(
-                        symbol=b["asset"],
-                        name=b["asset"],
-                        asset_type="crypto",
-                        quantity=total,
-                        current_price=price or 0.0,
-                        value=value,
-                    ))
+                    positions.append(
+                        NormalizedPosition(
+                            symbol=b["asset"],
+                            name=b["asset"],
+                            asset_type="crypto",
+                            quantity=total,
+                            current_price=price or 0.0,
+                            value=value,
+                        )
+                    )
             return NormalizedPortfolio(
                 total_value=total_value,
                 cash=0.0,

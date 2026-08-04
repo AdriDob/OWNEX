@@ -44,7 +44,7 @@ class SupabaseSyncManager:
 
         try:
             # Upsert task (insert or update)
-            client.table('tasks').upsert(task_data).execute()
+            client.table("tasks").upsert(task_data).execute()
 
             logger.info(f"Task synced to Supabase: {task_data.get('task_id')}")
             return True
@@ -60,7 +60,7 @@ class SupabaseSyncManager:
             return False
 
         try:
-            client.table('goals').upsert(goal_data).execute()
+            client.table("goals").upsert(goal_data).execute()
 
             logger.info(f"Goal synced to Supabase: {goal_data.get('goal_id')}")
             return True
@@ -76,7 +76,7 @@ class SupabaseSyncManager:
             return False
 
         try:
-            client.table('habits').upsert(habit_data).execute()
+            client.table("habits").upsert(habit_data).execute()
 
             logger.info(f"Habit synced to Supabase: {habit_data.get('habit_id')}")
             return True
@@ -92,7 +92,7 @@ class SupabaseSyncManager:
             return False
 
         try:
-            client.table('daily_moods').upsert(mood_data).execute()
+            client.table("daily_moods").upsert(mood_data).execute()
 
             logger.info(f"Daily mood synced to Supabase: {mood_data.get('date')}")
             return True
@@ -108,7 +108,7 @@ class SupabaseSyncManager:
             return []
 
         try:
-            response = client.table('tasks').select('*').eq('user_id', user_id).execute()
+            response = client.table("tasks").select("*").eq("user_id", user_id).execute()
 
             return response.data
         except Exception as e:
@@ -123,7 +123,7 @@ class SupabaseSyncManager:
             return []
 
         try:
-            response = client.table('goals').select('*').eq('user_id', user_id).execute()
+            response = client.table("goals").select("*").eq("user_id", user_id).execute()
 
             return response.data
         except Exception as e:
@@ -138,7 +138,7 @@ class SupabaseSyncManager:
             return []
 
         try:
-            response = client.table('habits').select('*').eq('user_id', user_id).execute()
+            response = client.table("habits").select("*").eq("user_id", user_id).execute()
 
             return response.data
         except Exception as e:
@@ -153,7 +153,14 @@ class SupabaseSyncManager:
             return []
 
         try:
-            response = client.table('daily_moods').select('*').eq('user_id', user_id).order('date', desc=True).limit(limit).execute()
+            response = (
+                client.table("daily_moods")
+                .select("*")
+                .eq("user_id", user_id)
+                .order("date", desc=True)
+                .limit(limit)
+                .execute()
+            )
 
             return response.data
         except Exception as e:
@@ -169,10 +176,7 @@ class SupabaseSyncManager:
 
         try:
             # Supabase realtime subscription
-            client.realtime.subscribe(
-                f'{table}:user_id=eq.{user_id}',
-                callback
-            )
+            client.realtime.subscribe(f"{table}:user_id=eq.{user_id}", callback)
 
             logger.info(f"Subscribed to {table} changes for user {user_id}")
             return True

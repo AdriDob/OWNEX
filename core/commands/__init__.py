@@ -3,6 +3,7 @@ from __future__ import annotations
 """Command System — OWNEX's operational language runtime.
 Fase 1 implementation: Command Registry + Dispatcher + Permission Validation.
 """
+# ruff: noqa: E402
 from core.commands.dispatcher import CommandDispatcher, get_command_dispatcher
 from core.commands.models import (
     CommandCost,

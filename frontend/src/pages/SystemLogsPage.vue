@@ -31,8 +31,8 @@ const typeIcons: Record<string, any> = {
 
 const typeColors: Record<string, string> = {
   finding: 'text-destructive', verdict: 'text-accent', scan: 'text-primary',
-  evidence: 'text-success', intelligence: 'text-[#8B5CF6]',
-  notification: 'text-warning', target: 'text-[#00A98F]', agent: 'text-[#0D90F4]',
+  evidence: 'text-success', intelligence: 'text-intigriti',
+  notification: 'text-warning', target: 'text-success', agent: 'text-primary',
 }
 
 const severityColor = (s?: string) => {
@@ -77,12 +77,12 @@ const eventTypes = computed(() => {
     <!-- Filters -->
     <div class="flex flex-wrap items-center gap-3 animate-in">
       <select v-model="filterType" @change="fetchData"
-        class="rounded-lg border border-border/60 bg-[#11131f]/60 px-3 py-2 text-xs text-foreground">
+        class="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-xs text-foreground">
         <option value="">All events</option>
         <option v-for="t in eventTypes" :key="t" :value="t">{{ t }}</option>
       </select>
       <select v-model="since" @change="fetchData"
-        class="rounded-lg border border-border/60 bg-[#11131f]/60 px-3 py-2 text-xs text-foreground">
+        class="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-xs text-foreground">
         <option value="">Last 72h</option>
         <option value="24">Last 24h</option>
         <option value="168">Last week</option>

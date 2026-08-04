@@ -1,6 +1,6 @@
 # MODULE INDEX — OWNEX OMEGA v7.0
 
-**Generated from code investigation:** 2026-07-30
+**Generated from code investigation:** 2026-08-04
 
 ---
 
@@ -43,6 +43,11 @@
 | **ORION** | `cores/orion/` | Next action, EVH scoring | Strategic recommendations, portfolio scoring | `RewardLearner`, `Program` | ✅ Production | High | — | 2026-07-23 |
 | **AI Security** | `core/intel/llm_scanner.py` | Garak scanner, AI bounty | Local model scanning, 5 unit tests | `cores/tools/extra.py` | 🟡 Unit tests pass | Medium | 45% | 2026-07-23 |
 | **Evolution** | `core/evolution/` | 9 modules (stubs) | Self-evolution, design, heal, test, watch | None (not wired) | 🔴 Stubs only | Low | 0% | 2026-07-30 |
+| **Direct Work Engine** | `cores/direct_work_engine/` | Work cycles multi-adapter | Opportunity discovery, categorical pipeline, task generation | `OpportunityCategory`, `UserProfile` | ✅ 51 tests | High | 100% | 2026-08-01 |
+| **Work Bank** | `cores/workbank/` | Top picks + skill_gap + daily brief | Work opportunity prioritization | `direct_work_engine`, `career_engine` | ✅ 16 tests | High | 100% | 2026-08-01 |
+| **Voice Assistant** | `api/routers/voice.py` | Voice command assistant | Voice → command routing | `core/commands` | ✅ 9 tests, montado | Medium | 100% | 2026-08-01 |
+| **OAR AI Runtime** | `cores/ai/runtime/` | Unified AI provider OS (14 módulos) | SmartRouter (TaskType→provider), CostTracker (daily budget), FailoverEngine (circuit breaker), HealthMonitor, LearningEngine, SemanticCache, ContextManager | `adapters` (9), `interfaces` | 🟡 Engine+12 tests, **sin API** | High | 100% | 2026-08-04 |
+| **Career Engine** | `cores/career_engine.py` | Continuous learning del usuario | Skill-gap detection, roadmap, interview prep, daily training | `direct_work_engine` (UserProfile) | 🟡 14 tests, CapabilityRegistry, **sin API** | High | 100% | 2026-08-04 |
 
 ---
 
@@ -54,6 +59,7 @@
 | **Services** | `services/ownexData.ts` | Central API client | 7+ real endpoints | ✅ Real | High |
 | **Composables** | `composables/` | useAssistant, useCompanion | Local + API | ✅ Real | High |
 | **UI Components** | `components/ui/` | DataTable, Drawer, Modal, Select | ShadCN Vue + Tailwind v4 | ✅ Production | High |
+| **OMEGA Mobile** | `omega/src/` | Expo/React Native Companion | Dashboard, 8 cards, services API/WS, Zustand store | `omega/services` (api.ts, socket.ts) | 🟡 Esqueleto, sin publicar | Medium |
 | **Aegis App** | `components/apps/aegis/` | Security app UI | Backend Aegis | ✅ Production | Medium |
 | **Layout** | `layouts/` | MainLayout, Sidebar, Header | Local state | ✅ Production | High |
 

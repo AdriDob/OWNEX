@@ -83,12 +83,12 @@ const metricCards = computed(() => {
   const trading = m.trading || {}
   const revenue = m.revenue || {}
   return [
-    { label: 'Total Findings', value: String(bounty.findings_total || 0), icon: Target, color: 'text-blue-400' },
-    { label: 'Top Tool', value: Object.keys(bounty.top_tools || {})[0] || '—', icon: Wrench, color: 'text-cyan-400' },
-    { label: 'Trades', value: String(trading.total_trades || 0), icon: TrendingUp, color: 'text-emerald-400' },
-    { label: 'Win Rate', value: (trading.win_rate ?? 0) + '%', icon: Activity, color: 'text-violet-400' },
-    { label: '24h Revenue', value: '$' + (parseFloat(revenue['24h'] || '0')).toFixed(2), icon: DollarSign, color: 'text-green-400' },
-    { label: 'Est. Annual', value: '$' + (parseFloat(revenue.estimated_annual || '0')).toFixed(2), icon: BarChart3, color: 'text-yellow-400' },
+    { label: 'Total Findings', value: String(bounty.findings_total || 0), icon: Target, color: 'text-primary' },
+    { label: 'Top Tool', value: Object.keys(bounty.top_tools || {})[0] || '—', icon: Wrench, color: 'text-muted-foreground' },
+    { label: 'Trades', value: String(trading.total_trades || 0), icon: TrendingUp, color: 'text-success' },
+    { label: 'Win Rate', value: (trading.win_rate ?? 0) + '%', icon: Activity, color: 'text-intigriti' },
+    { label: '24h Revenue', value: '$' + (parseFloat(revenue['24h'] || '0')).toFixed(2), icon: DollarSign, color: 'text-success' },
+    { label: 'Est. Annual', value: '$' + (parseFloat(revenue.estimated_annual || '0')).toFixed(2), icon: BarChart3, color: 'text-warning' },
   ]
 })
 
@@ -215,7 +215,7 @@ onMounted(fetchAll)
               <div v-for="t in tools.tools" :key="t.name"
                 class="flex items-center justify-between py-2 px-2 rounded hover:bg-accent/30 transition-colors">
                 <div class="flex items-center gap-3 min-w-0">
-                  <span class="w-2 h-2 rounded-full shrink-0" :class="t.available ? 'bg-green-400' : 'bg-red-400'"></span>
+                  <span class="w-2 h-2 rounded-full shrink-0" :class="t.available ? 'bg-success' : 'bg-destructive'"></span>
                   <span class="text-sm font-medium truncate">{{ t.name }}</span>
                   <Badge variant="outline" class="text-[9px] font-mono">{{ t.category }}</Badge>
                 </div>
@@ -287,7 +287,7 @@ onMounted(fetchAll)
               <div v-for="(ev, i) in events" :key="i"
                 class="flex items-start gap-3 p-2 rounded hover:bg-accent/30 transition-colors">
                 <div class="w-2 h-2 rounded-full mt-1.5 shrink-0"
-                  :class="ev.category === 'bug_bounty' ? 'bg-blue-400' : ev.category === 'crypto_trading' ? 'bg-green-400' : 'bg-yellow-400'">
+                  :class="ev.category === 'bug_bounty' ? 'bg-primary' : ev.category === 'crypto_trading' ? 'bg-success' : 'bg-warning'">
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-xs font-medium truncate">{{ ev.description }}</p>

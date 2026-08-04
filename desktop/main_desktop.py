@@ -30,6 +30,7 @@ import logging
 import logging.handlers
 import os
 import signal
+import subprocess
 import sys
 import threading
 import time
@@ -62,13 +63,16 @@ _lifecycle_logger: logging.Logger | None = None
 
 # ── Error dialog (visible even without console) ──────────────────────
 
+
 def _show_error(title: str, message: str) -> None:
     try:
         import ctypes
+
         ctypes.windll.user32.MessageBoxW(0, message, title, 0x10)
     except Exception:
         try:
             import tkinter.messagebox as mb
+
             mb.showerror(title, message)
         except Exception as exc:
             _lifecycle("[ERROR]", "Fallback error dialog failed: %s", exc)
@@ -76,9 +80,11 @@ def _show_error(title: str, message: str) -> None:
 
 # ── Logging ──────────────────────────────────────────────────────────
 
+
 def _setup_logging(dev: bool) -> str:
     if getattr(sys, "frozen", False) and os.name == "nt":
         from cores.platform.system import get_log_dir as _get_log_dir
+
         log_dir = _get_log_dir()
     else:
         log_dir = Path.cwd() / "logs"
@@ -92,9 +98,7 @@ def _setup_logging(dev: bool) -> str:
     root.setLevel(level)
     fmt = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
 
-    fh = logging.handlers.RotatingFileHandler(
-        cateye_log, maxBytes=5 * 1024 * 1024, backupCount=3
-    )
+    fh = logging.handlers.RotatingFileHandler(cateye_log, maxBytes=5 * 1024 * 1024, backupCount=3)
     fh.setFormatter(fmt)
     root.addHandler(fh)
 
@@ -107,12 +111,8 @@ def _setup_logging(dev: bool) -> str:
     _lifecycle_logger = logging.getLogger("cateye.desktop.lifecycle")
     _lifecycle_logger.setLevel(logging.INFO)
     _lifecycle_logger.propagate = False
-    lh = logging.handlers.RotatingFileHandler(
-        lifecycle_log, maxBytes=2 * 1024 * 1024, backupCount=2
-    )
-    lh.setFormatter(
-        logging.Formatter("%(asctime)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
-    )
+    lh = logging.handlers.RotatingFileHandler(lifecycle_log, maxBytes=2 * 1024 * 1024, backupCount=2)
+    lh.setFormatter(logging.Formatter("%(asctime)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S"))
     lh.setLevel(logging.INFO)
     _lifecycle_logger.addHandler(lh)
 
@@ -128,6 +128,7 @@ def _lifecycle(tag: str, msg: str, *args) -> None:
 
 # ── Server thread ────────────────────────────────────────────────────
 
+
 class ServerThread:
     """Runs uvicorn in a background daemon thread."""
 
@@ -138,13 +139,12 @@ class ServerThread:
         self._thread: threading.Thread | None = None
 
     def start(self, app) -> None:
-        self._thread = threading.Thread(
-            target=self._run, args=(app,), daemon=True, name="cateye-server"
-        )
+        self._thread = threading.Thread(target=self._run, args=(app,), daemon=True, name="cateye-server")
         self._thread.start()
 
     def _run(self, app) -> None:
         from uvicorn import Config, Server
+
         config = Config(
             app,
             host=self.host,
@@ -163,8 +163,10 @@ class ServerThread:
 
 # ── Health helpers ───────────────────────────────────────────────────
 
+
 def _wait_for_port(host: str, port: int, timeout: float = 15.0) -> bool:
     import socket
+
     start = time.time()
     while time.time() - start < timeout:
         try:
@@ -177,6 +179,7 @@ def _wait_for_port(host: str, port: int, timeout: float = 15.0) -> bool:
 
 def _wait_for_health(host: str, port: int, timeout: float = 30.0) -> bool:
     import httpx
+
     start = time.time()
     while time.time() - start < timeout:
         try:
@@ -192,6 +195,7 @@ def _wait_for_health(host: str, port: int, timeout: float = 30.0) -> bool:
 
 
 # ── Frontend mounting ────────────────────────────────────────────────
+
 
 def _mount_frontend(app) -> bool:
     import logging
@@ -244,6 +248,7 @@ def _mount_frontend(app) -> bool:
 
 # ── Desktop session (auto-auth) ──────────────────────────────────────
 
+
 def _create_desktop_session(port: int) -> None:
     """Create a desktop session token so the frontend can call private APIs.
 
@@ -268,11 +273,14 @@ def _create_desktop_session(port: int) -> None:
     try:
         manager = get_auth_manager()
         _lifecycle(_BOOT, "Session — calling manager.authenticate (device=%s)", device_id)
-        result = manager.authenticate(device_id, {
-            "desktop": True,
-            "port": port,
-            "frozen": getattr(sys, "frozen", False),
-        })
+        result = manager.authenticate(
+            device_id,
+            {
+                "desktop": True,
+                "port": port,
+                "frozen": getattr(sys, "frozen", False),
+            },
+        )
         _lifecycle(_BOOT, "Session — authenticate result keys: %s", list(result.keys()) if result else "NONE")
         if result and "token" in result:
             token_preview = result["token"][:20] + "..." if len(result["token"]) > 20 else result["token"]
@@ -290,10 +298,12 @@ def _create_desktop_session(port: int) -> None:
     except Exception as exc:
         _lifecycle(_BOOT, "Session creation failed (non-critical): %s", exc)
         import traceback
+
         _lifecycle(_BOOT, "Session — traceback: %s", traceback.format_exc())
 
 
 # ── Settings / first run ─────────────────────────────────────────────
+
 
 def _init_settings() -> int:
     from desktop.first_run import run_first_time
@@ -310,6 +320,7 @@ def _init_settings() -> int:
 
 
 # ── Desktop window ──────────────────────────────────────────────────
+
 
 def _open_desktop_window(host: str, port: int) -> bool:
     """Try to open a pywebview desktop window.
@@ -346,13 +357,16 @@ def _open_desktop_window(host: str, port: int) -> bool:
         _lifecycle(_BROWSER, "webview.start() starting...")
         webview.start(storage_path=None)
         elapsed = time.time() - start_ts
-        _lifecycle(_BROWSER, "webview.start() returned after %.2fs (user_closed=%s)",
-                   elapsed, user_closed.is_set())
+        _lifecycle(_BROWSER, "webview.start() returned after %.2fs (user_closed=%s)", elapsed, user_closed.is_set())
 
         if elapsed < 2.0 and not user_closed.is_set():
-            _lifecycle(_BROWSER, "Desktop window unavailable — "
-                       "webview returned in %.2fs without user action "
-                       "(likely WebView2 runtime missing)", elapsed)
+            _lifecycle(
+                _BROWSER,
+                "Desktop window unavailable — "
+                "webview returned in %.2fs without user action "
+                "(likely WebView2 runtime missing)",
+                elapsed,
+            )
             return False
 
         return True
@@ -390,6 +404,7 @@ def _open_browser(port: int) -> None:
 
 # ── Tray (optional, never blocks) ────────────────────────────────────
 
+
 def _start_tray(server: ServerThread, shutdown_event: threading.Event):
     from desktop.browser_opener import open_dashboard
     from desktop.settings import get_settings
@@ -402,6 +417,24 @@ def _start_tray(server: ServerThread, shutdown_event: threading.Event):
         settings.record_shutdown()
         shutdown_event.set()
 
+    def on_stop_service():
+        try:
+            if sys.platform == "win32":
+                subprocess.run(["net", "stop", "CATEYE"], shell=True, check=False)
+            else:
+                subprocess.run(["systemctl", "stop", "ownex"], check=False)
+        except Exception as exc:
+            _lifecycle(_TRAY, "Stop service failed: %s", exc)
+
+    def on_start_service():
+        try:
+            if sys.platform == "win32":
+                subprocess.run(["net", "start", "CATEYE"], shell=True, check=False)
+            else:
+                subprocess.run(["systemctl", "start", "ownex"], check=False)
+        except Exception as exc:
+            _lifecycle(_TRAY, "Start service failed: %s", exc)
+
     api_port = server.port
     try:
         tray = TrayController(
@@ -413,11 +446,14 @@ def _start_tray(server: ServerThread, shutdown_event: threading.Event):
                 target_id=settings.get("last_opened_target"),
             ),
             on_open_daily_mode=lambda: open_dashboard(
-                port=api_port, path="/daily",
+                port=api_port,
+                path="/daily",
                 token=settings.get("session_token"),
                 device_id=settings.get("device_id"),
             ),
             on_restart=lambda: _lifecycle(_BOOT, "Restart not supported in single-process mode"),
+            on_stop_service=on_stop_service,
+            on_start_service=on_start_service,
             on_check_status=lambda: f"Running on port {server.port}",
             on_quit=on_quit,
         )
@@ -431,6 +467,7 @@ def _start_tray(server: ServerThread, shutdown_event: threading.Event):
 
 # ── Main ─────────────────────────────────────────────────────────────
 
+
 def main() -> None:
     dev = "--dev" in sys.argv
     no_tray = "--no-tray" in sys.argv
@@ -438,9 +475,9 @@ def main() -> None:
 
     _setup_logging(dev)
     _lifecycle(_BOOT, "CATEYE Desktop — PID: %d", os.getpid())
-    _lifecycle(_BOOT, "Frozen: %s, Python: %s, OS: %s",
-               getattr(sys, "frozen", False),
-               sys.version.split()[0], sys.platform)
+    _lifecycle(
+        _BOOT, "Frozen: %s, Python: %s, OS: %s", getattr(sys, "frozen", False), sys.version.split()[0], sys.platform
+    )
 
     # ── Set env before imports that read them ────────────────────────
     if getattr(sys, "frozen", False):
@@ -450,6 +487,7 @@ def main() -> None:
         base_dir = str(Path(__file__).resolve().parent.parent)
 
     from cores.platform.system import get_db_path
+
     db_path = get_db_path()
 
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -479,13 +517,13 @@ def main() -> None:
 
     # ── Check for rollback after failed update ───────────────────────
     from desktop.updater import check_and_rollback_if_needed, mark_update_success
+
     if check_and_rollback_if_needed():
         _lifecycle(_BOOT, "Rolled back to previous version after failed update")
     # Will be cleared after a successful boot
-    threading.Thread(target=lambda: (
-        time.sleep(15),
-        mark_update_success() if callable(mark_update_success) else None
-    ), daemon=True).start()
+    threading.Thread(
+        target=lambda: (time.sleep(15), mark_update_success() if callable(mark_update_success) else None), daemon=True
+    ).start()
 
     # Mount frontend static assets on the same app
     _mount_frontend(api_app)
@@ -497,19 +535,23 @@ def main() -> None:
 
     if not _wait_for_port(host, port):
         _lifecycle(_API, "Server failed to bind on %s:%d", host, port)
-        _show_error("CATEYE - Error de inicio",
-                    f"El servidor no pudo iniciar en {host}:{port}.\n"
-                    "Verifica que el puerto no esté ocupado por otro proceso.")
+        _show_error(
+            "CATEYE - Error de inicio",
+            f"El servidor no pudo iniciar en {host}:{port}.\nVerifica que el puerto no esté ocupado por otro proceso.",
+        )
         sys.exit(1)
     _lifecycle(_API, "Server listening on %s:%d", host, port)
 
     if not _wait_for_health(host, port):
-        lifecycle_path = _lifecycle_logger.handlers[0].baseFilename if _lifecycle_logger and _lifecycle_logger.handlers else "logs/lifecycle.log"
+        lifecycle_path = (
+            _lifecycle_logger.handlers[0].baseFilename
+            if _lifecycle_logger and _lifecycle_logger.handlers
+            else "logs/lifecycle.log"
+        )
         _lifecycle(_HEALTHY, "Health check timed out — revisar lifecycle.log")
-        _show_error("CATEYE - Error de inicio",
-                    "El servidor backend no responde.\n"
-                    "Revisa los detalles en:\n"
-                    f"{lifecycle_path}")
+        _show_error(
+            "CATEYE - Error de inicio", f"El servidor backend no responde.\nRevisa los detalles en:\n{lifecycle_path}"
+        )
         sys.exit(1)
     _lifecycle(_HEALTHY, "Backend healthy on port %d", port)
 
@@ -517,12 +559,13 @@ def main() -> None:
     def _background_update_check():
         try:
             from desktop.updater import check_for_updates
+
             release = check_for_updates()
             if release:
-                _lifecycle(_BOOT, "Update available: v%s (current: v%s)",
-                           release.version, "1.0.0")
+                _lifecycle(_BOOT, "Update available: v%s (current: v%s)", release.version, "1.0.0")
         except Exception as exc:
             _lifecycle(_BOOT, "Update check failed (non-fatal): %s", exc)
+
     threading.Thread(target=_background_update_check, daemon=True).start()
 
     # ── Create desktop session (auto-auth for local use) ─────────────
@@ -566,6 +609,7 @@ def main() -> None:
 
     try:
         from database.db import engine
+
         engine.dispose()
     except Exception as exc:
         logger.warning("Failed to dispose database engine: %s", exc)

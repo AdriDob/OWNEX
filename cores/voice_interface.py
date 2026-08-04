@@ -740,7 +740,21 @@ class VoiceCommandParser:
 
         # Agent ID entity
         if "agent_id" in entity_types:
-            agents = ["orchestrator", "architecture", "coding", "debug", "qa", "security", "documentation", "research", "product", "revenue", "automation", "infrastructure", "evolution"]
+            agents = [
+                "orchestrator",
+                "architecture",
+                "coding",
+                "debug",
+                "qa",
+                "security",
+                "documentation",
+                "research",
+                "product",
+                "revenue",
+                "automation",
+                "infrastructure",
+                "evolution",
+            ]
             for agent in agents:
                 if agent in text_lower:
                     entities["agent_id"] = agent

@@ -33,7 +33,7 @@ onMounted(async () => {
       foreground: '#e0e0e0',
       cursor: '#0070d1',
       cursorAccent: '#ffffff',
-      selectionBackground: 'rgba(0, 112, 209, 0.4)',
+      selectionBackground: 'rgba(255, 255, 255, 0.4)',
       black: '#1a1a2e',
       red: '#ff5555',
       green: '#50fa7b',
@@ -136,8 +136,8 @@ function clearTerminal() {
       <div class="flex items-center gap-3">
         <span class="font-mono text-[10px] font-bold tracking-widest text-primary uppercase">Terminal</span>
         <span class="text-[10px] text-muted-foreground font-mono">OWNEX Shell v5.0.0</span>
-        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-[9px] font-mono">
-          <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/10 text-success text-[9px] font-mono">
+          <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
           {{ ws?.readyState === WS_OPEN ? 'Connected' : 'Local' }}
         </span>
       </div>

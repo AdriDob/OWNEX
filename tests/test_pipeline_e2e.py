@@ -21,6 +21,7 @@ def client():
 
     from api.main import app
     from cores.license.validator import generate_license
+
     c = TestClient(app)
     lic = generate_license(expiry_days=365)
     c.post("/api/license/activate", json={"key": lic})
@@ -48,10 +49,13 @@ class TestPipelineE2E:
     TARGET_DOMAIN = "smoke.example.com"
 
     def test_01_create_target(self, client):
-        resp = client.post("/api/targets", json={
-            "name": self.TARGET_NAME,
-            "domain": self.TARGET_DOMAIN,
-        })
+        resp = client.post(
+            "/api/targets",
+            json={
+                "name": self.TARGET_NAME,
+                "domain": self.TARGET_DOMAIN,
+            },
+        )
         assert resp.status_code == 200, f"Create target failed: {resp.text}"
         data = resp.json()
         assert data["name"] == self.TARGET_NAME
@@ -90,12 +94,15 @@ class TestPipelineE2E:
         target_id = pytest._target_id
         top = pytest._hypothesis_output["top_priority"]
         inv_name = f"{top['vulnerability_type']} — {self.TARGET_NAME}"
-        resp = client.post("/api/investigations", json={
-            "target_id": target_id,
-            "name": inv_name,
-            "notes": f"Promoted from hypothesis: {top['reasoning'][:200]}",
-            "tags": [top["vulnerability_type"], "from_hypothesis"],
-        })
+        resp = client.post(
+            "/api/investigations",
+            json={
+                "target_id": target_id,
+                "name": inv_name,
+                "notes": f"Promoted from hypothesis: {top['reasoning'][:200]}",
+                "tags": [top["vulnerability_type"], "from_hypothesis"],
+            },
+        )
         assert resp.status_code == 200, f"Create investigation failed: {resp.text}"
         data = resp.json()
         assert data["name"] == inv_name

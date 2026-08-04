@@ -142,11 +142,11 @@ function openUrl(url: string) {
   <div class="p-6">
     <div class="mb-6">
       <h1 class="text-3xl font-bold text-white mb-2">Guías de Plataformas</h1>
-      <p class="text-gray-400">Instrucciones paso a paso para crear cuentas y subir trabajos</p>
+      <p class="text-muted-foreground">Instrucciones paso a paso para crear cuentas y subir trabajos</p>
     </div>
 
     <LoadingState v-if="loading" />
-    <div v-else-if="error" class="text-red-400">{{ error }}</div>
+    <div v-else-if="error" class="text-destructive">{{ error }}</div>
 
     <div v-else>
       <!-- Platform Selection -->
@@ -154,16 +154,16 @@ function openUrl(url: string) {
         <Card
           v-for="platform in platforms"
           :key="platform"
-          class="cursor-pointer hover:border-blue-500 transition-colors"
+          class="cursor-pointer hover:border-primary/40 transition-colors"
           @click="loadGuide(platform, 'account')"
         >
           <CardContent class="p-4">
             <div class="flex items-center justify-between">
               <div>
                 <h3 class="text-lg font-semibold text-white capitalize">{{ platform }}</h3>
-                <p class="text-sm text-gray-400">Guía de cuenta y trabajo</p>
+                <p class="text-sm text-muted-foreground">Guía de cuenta y trabajo</p>
               </div>
-              <ChevronRight class="text-gray-400" />
+              <ChevronRight class="text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -182,7 +182,7 @@ function openUrl(url: string) {
               ← Volver a plataformas
             </Button>
             <h2 class="text-2xl font-bold text-white capitalize">{{ selectedPlatform }}</h2>
-            <p class="text-gray-400">{{ currentGuide?.url }}</p>
+            <p class="text-muted-foreground">{{ currentGuide?.url }}</p>
           </div>
           <div class="flex gap-2">
             <Button
@@ -207,15 +207,15 @@ function openUrl(url: string) {
           <div
             v-for="(step, index) in currentSteps"
             :key="index"
-            class="bg-gray-900 border border-gray-800 rounded-lg p-4"
+            class="bg-surface border border-border rounded-lg p-4"
           >
             <div class="flex items-start gap-4">
-              <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+              <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold">
                 {{ index + 1 }}
               </div>
               <div class="flex-1">
                 <h3 class="text-lg font-semibold text-white mb-2">{{ step.title }}</h3>
-                <p class="text-gray-300 mb-3 whitespace-pre-line">{{ step.description }}</p>
+                <p class="text-foreground/80 mb-3 whitespace-pre-line">{{ step.description }}</p>
 
                 <div class="flex flex-wrap gap-2 mb-3">
                   <Badge variant="outline">{{ step.action }}</Badge>
@@ -225,8 +225,8 @@ function openUrl(url: string) {
                   </Badge>
                 </div>
 
-                <div v-if="step.value" class="bg-gray-800 rounded p-2 mb-2">
-                  <code class="text-sm text-green-400">{{ step.value }}</code>
+                <div v-if="step.value" class="bg-surface-hover rounded p-2 mb-2">
+                  <code class="text-sm text-success">{{ step.value }}</code>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -258,8 +258,8 @@ function openUrl(url: string) {
           </CardHeader>
           <CardContent>
             <ul class="space-y-2">
-              <li v-for="(tip, index) in currentGuide?.tips" :key="index" class="flex items-start gap-2 text-gray-300">
-                <CheckCircle class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+              <li v-for="(tip, index) in currentGuide?.tips" :key="index" class="flex items-start gap-2 text-foreground/80">
+                <CheckCircle class="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
                 <span>{{ tip }}</span>
               </li>
             </ul>
@@ -276,13 +276,13 @@ function openUrl(url: string) {
               <div
                 v-for="(error, index) in currentGuide?.common_errors"
                 :key="index"
-                class="bg-red-900/20 border border-red-800 rounded p-3"
+                class="bg-destructive/10 border border-destructive/20 rounded p-3"
               >
                 <div class="flex items-start gap-2">
-                  <AlertCircle class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <AlertCircle class="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
                   <div>
-                    <p class="font-semibold text-red-400">{{ error.error }}</p>
-                    <p class="text-sm text-gray-300">{{ error.solution }}</p>
+                    <p class="font-semibold text-destructive">{{ error.error }}</p>
+                    <p class="text-sm text-foreground/80">{{ error.solution }}</p>
                   </div>
                 </div>
               </div>

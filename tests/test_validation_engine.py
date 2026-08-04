@@ -328,9 +328,7 @@ class TestConfidenceEngine:
 
     def test_mixed_signals_medium_confidence(self):
         engine = ConfidenceEngine()
-        baseline = ProbeResult(
-            probe_type=ProbeType.BASELINE, success=True, status_code=200, response_size=500
-        )
+        baseline = ProbeResult(probe_type=ProbeType.BASELINE, success=True, status_code=200, response_size=500)
         probe = ProbeResult(
             probe_type=ProbeType.ID_SWAP,
             success=True,
@@ -347,9 +345,7 @@ class TestConfidenceEngine:
 
     def test_sql_error_detection(self):
         engine = ConfidenceEngine()
-        baseline = ProbeResult(
-            probe_type=ProbeType.BASELINE, success=True, status_code=200, response_size=100
-        )
+        baseline = ProbeResult(probe_type=ProbeType.BASELINE, success=True, status_code=200, response_size=100)
         probe = ProbeResult(
             probe_type=ProbeType.ERROR_ANALYSIS,
             success=False,
@@ -532,6 +528,7 @@ class TestValidationEngine:
 
         # Luego probar con un HEAD request rápido
         import httpx
+
         try:
             r = httpx.head("https://httpbin.org/get", timeout=5)
             if r.status_code != 200:
@@ -719,9 +716,7 @@ def test_engine_end_to_end_with_mock_http(mock_fire):
 def test_engine_rejects_when_no_data_leak(mock_fire):
     """Si no hay data leak, no debe promover."""
     # Mismas respuestas en baseline y probe (sin señal)
-    same_response = ProbeResponse(
-        status_code=200, body='{"status":"ok"}', body_bytes=15, elapsed_ms=50.0, success=True
-    )
+    same_response = ProbeResponse(status_code=200, body='{"status":"ok"}', body_bytes=15, elapsed_ms=50.0, success=True)
     mock_fire.return_value = same_response
 
     engine = ValidationEngine()

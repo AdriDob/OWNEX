@@ -78,7 +78,9 @@ class GapAnalyzer:
             reinjection_plan=reinjection,
         )
 
-    def _generate_missing_hot_paths(self, uncovered: list[str], endpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def _generate_missing_hot_paths(
+        self, uncovered: list[str], endpoints: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         ep_map = {}
         for ep in endpoints:
             method = str(ep.get("method", "GET")).upper()
@@ -89,14 +91,16 @@ class GapAnalyzer:
         missing: list[dict[str, Any]] = []
         for eid in uncovered:
             ep = ep_map.get(eid, {})
-            missing.append({
-                "node_id": eid,
-                "method": ep.get("method", "GET"),
-                "path": ep.get("path", "/"),
-                "why_missing": "not_covered_by_any_test_scenario",
-                "risk_score": float(ep.get("risk_score", 0)),
-                "auth_context_needed": self._infer_auth_context(ep),
-            })
+            missing.append(
+                {
+                    "node_id": eid,
+                    "method": ep.get("method", "GET"),
+                    "path": ep.get("path", "/"),
+                    "why_missing": "not_covered_by_any_test_scenario",
+                    "risk_score": float(ep.get("risk_score", 0)),
+                    "auth_context_needed": self._infer_auth_context(ep),
+                }
+            )
         missing.sort(key=lambda x: x["risk_score"], reverse=True)
         return missing
 
@@ -109,7 +113,9 @@ class GapAnalyzer:
                 under_tested.append(entity)
         return under_tested
 
-    def _detect_blind_spots(self, uncovered: list[str], endpoints: list[dict[str, Any]], auth_contexts: list[str]) -> list[dict[str, str]]:
+    def _detect_blind_spots(
+        self, uncovered: list[str], endpoints: list[dict[str, Any]], auth_contexts: list[str]
+    ) -> list[dict[str, str]]:
         ep_map = {}
         for ep in endpoints:
             method = str(ep.get("method", "GET")).upper()
@@ -120,14 +126,18 @@ class GapAnalyzer:
         spots: list[dict[str, str]] = []
         for eid in uncovered:
             ep = ep_map.get(eid, {})
-            spots.append({
-                "endpoint_id": eid,
-                "reason": "no_test_scenario",
-                "auth_context": "anonymous" if not self._infer_auth_context(ep) else "authenticated",
-            })
+            spots.append(
+                {
+                    "endpoint_id": eid,
+                    "reason": "no_test_scenario",
+                    "auth_context": "anonymous" if not self._infer_auth_context(ep) else "authenticated",
+                }
+            )
         return spots
 
-    def _build_reinjection_plan(self, missing: list[dict[str, Any]], uncovered: list[str], endpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def _build_reinjection_plan(
+        self, missing: list[dict[str, Any]], uncovered: list[str], endpoints: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         return [
             {
                 "node_id": m["node_id"],

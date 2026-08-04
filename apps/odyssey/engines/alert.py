@@ -35,9 +35,9 @@ class AlertEngine:
     async def _check_losing_streak(self) -> list[Alert]:
         db = get_db_manager().get_session("odyssey")
         try:
-            recent = db.query(Bet).filter(
-                Bet.outcome.in_(["win", "loss"])
-            ).order_by(Bet.placed_at.desc()).limit(20).all()
+            recent = (
+                db.query(Bet).filter(Bet.outcome.in_(["win", "loss"])).order_by(Bet.placed_at.desc()).limit(20).all()
+            )
 
             streak = 0
             for bet in recent:
@@ -47,12 +47,14 @@ class AlertEngine:
                     break
 
             if streak >= 5:
-                return [Alert(
-                    type="losing_streak",
-                    severity="warning",
-                    message=f"Losing streak of {streak} consecutive bets",
-                    data={"streak": streak},
-                )]
+                return [
+                    Alert(
+                        type="losing_streak",
+                        severity="warning",
+                        message=f"Losing streak of {streak} consecutive bets",
+                        data={"streak": streak},
+                    )
+                ]
             return []
         finally:
             db.close()

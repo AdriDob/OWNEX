@@ -3,6 +3,7 @@
 Every AI call gets a structured AgentContext with fragments from multiple
 sources. No naked prompts. The model receives an expedition, not a message.
 """
+
 from __future__ import annotations
 
 import logging
@@ -24,9 +25,9 @@ logger = logging.getLogger("ownex.context")
 class ContextFragment:
     """A single piece of context from one source."""
 
-    source: str                # "platform_docs", "user_history", "memory", "credentials"
+    source: str  # "platform_docs", "user_history", "memory", "credentials"
     content: str
-    relevance: float = 1.0    # 0.0 to 1.0, for prioritization
+    relevance: float = 1.0  # 0.0 to 1.0, for prioritization
     token_estimate: int = 0
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -44,7 +45,7 @@ class AgentContext:
     system_prompt: str = ""
     built_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     total_tokens: int = 0
-    depth: str = "standard"       # "quick", "standard", "deep"
+    depth: str = "standard"  # "quick", "standard", "deep"
 
     def add(self, fragment: ContextFragment) -> None:
         self.fragments.append(fragment)
@@ -78,8 +79,7 @@ class ContextSource(ABC):
     """A source of context information."""
 
     @abstractmethod
-    async def fetch(self, opportunity: Opportunity, depth: str = "standard") -> list[ContextFragment]:
-        ...
+    async def fetch(self, opportunity: Opportunity, depth: str = "standard") -> list[ContextFragment]: ...
 
 
 class MemoryContextSource(ContextSource):
@@ -95,11 +95,13 @@ class MemoryContextSource(ContextSource):
             try:
                 entries = self.memory_store.get_relevant(str(opportunity.id))
                 for entry in entries[:5]:
-                    fragments.append(ContextFragment(
-                        source="memory",
-                        content=entry.content,
-                        relevance=0.8,
-                    ))
+                    fragments.append(
+                        ContextFragment(
+                            source="memory",
+                            content=entry.content,
+                            relevance=0.8,
+                        )
+                    )
             except Exception:
                 pass
         return fragments
@@ -123,12 +125,14 @@ class SystemContextSource(ContextSource):
                 content_lines = ["**System Status:**"]
                 for name, h in health_data.items():
                     content_lines.append(f"- {name}: {h.get('status', 'unknown')}")
-                fragments.append(ContextFragment(
-                    source="system",
-                    content="\n".join(content_lines),
-                    relevance=0.5,
-                    token_estimate=50,
-                ))
+                fragments.append(
+                    ContextFragment(
+                        source="system",
+                        content="\n".join(content_lines),
+                        relevance=0.5,
+                        token_estimate=50,
+                    )
+                )
             except Exception:
                 pass
         return fragments

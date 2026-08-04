@@ -4,7 +4,7 @@
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div class="space-y-1 min-w-0">
         <div class="flex items-center gap-2">
-          <Shield class="h-6 w-6 text-blue-400" />
+          <Shield class="h-6 w-6 text-primary" />
           <h1 class="font-display text-2xl font-bold text-foreground">Security Cycle</h1>
           <Badge variant="secondary" class="text-xs">Rastro v5</Badge>
         </div>
@@ -71,7 +71,7 @@
             </div>
             <div class="w-full bg-muted rounded-full h-2">
               <div
-                class="bg-blue-400 h-2 rounded-full transition-all duration-300"
+                class="bg-primary h-2 rounded-full transition-all duration-300"
                 :style="`width: ${progressPercent}%`"
               ></div>
             </div>
@@ -101,14 +101,14 @@
               <h3 class="text-sm font-medium text-muted-foreground mb-2">Estado</h3>
               <div class="flex items-center gap-2">
                 <div class="h-2 w-2 rounded-full" :class="{
-                  'bg-green-500': currentStage.status === 'completed',
-                  'bg-yellow-500': currentStage.status === 'active',
-                  'bg-gray-500': currentStage.status === 'pending' || currentStage.status === 'inactive'
+                  'bg-success': currentStage.status === 'completed',
+                  'bg-warning': currentStage.status === 'active',
+                  'bg-muted': currentStage.status === 'pending' || currentStage.status === 'inactive'
                 }"/>
                 <span class="text-sm font-medium" :class="{
-                  'text-green-600': currentStage.status === 'completed',
-                  'text-yellow-600': currentStage.status === 'active',
-                  'text-gray-600': currentStage.status === 'pending' || currentStage.status === 'inactive'
+                  'text-success': currentStage.status === 'completed',
+                  'text-warning': currentStage.status === 'active',
+                  'text-muted-foreground/70': currentStage.status === 'pending' || currentStage.status === 'inactive'
                 }">{{ currentStage.status }}</span>
               </div>
             </div>

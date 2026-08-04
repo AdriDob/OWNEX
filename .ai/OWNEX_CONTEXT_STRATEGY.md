@@ -40,9 +40,10 @@ from typing import Any
 @dataclass
 class ContextFragment:
     """A single piece of context from one source."""
-    source: str                # "platform_docs", "user_history", "memory", "credentials"
+
+    source: str  # "platform_docs", "user_history", "memory", "credentials"
     content: str
-    relevance: float = 1.0    # 0.0 to 1.0, for prioritization
+    relevance: float = 1.0  # 0.0 to 1.0, for prioritization
     token_estimate: int = 0
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -50,21 +51,22 @@ class ContextFragment:
 @dataclass
 class AgentContext:
     """Full context prepared for an AI call.
-    
+
     This is what the model actually receives.
     Everything is structured, no naked prompts.
     """
+
     opportunity: ScoredOpportunity
     fragments: list[ContextFragment] = field(default_factory=list)
     system_prompt: str = ""
     built_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     total_tokens: int = 0
     depth: str = "standard"
-    
+
     def add(self, fragment: ContextFragment):
         self.fragments.append(fragment)
         self.total_tokens += fragment.token_estimate
-    
+
     def to_prompt(self) -> str:
         """Convert context to a structured prompt for the model."""
         parts = ["# OWNEX Agent Context", ""]
@@ -76,20 +78,20 @@ class AgentContext:
         parts.append(f"- Estimated Effort: {self.opportunity.estimated_effort_hours}h")
         parts.append(f"- URL: {self.opportunity.url}")
         parts.append("")
-        
+
         # Add fragments sorted by relevance
         sorted_frags = sorted(self.fragments, key=lambda f: f.relevance, reverse=True)
         for frag in sorted_frags:
             parts.append(f"## Context: {frag.source}")
             parts.append(frag.content)
             parts.append("")
-        
+
         if self.system_prompt:
             parts.append("## System Instructions")
             parts.append(self.system_prompt)
-        
+
         return "\n".join(parts)
-    
+
     def token_count(self) -> int:
         """Rough token estimate."""
         return sum(f.token_estimate for f in self.fragments) + len(self.system_prompt) // 4
@@ -97,7 +99,7 @@ class AgentContext:
 
 class ContextSource(ABC):
     """A source of context for the context engine."""
-    
+
     @abstractmethod
     async def fetch(self, opportunity: ScoredOpportunity, depth: str = "standard") -> ContextFragment | None:
         pass
@@ -108,16 +110,16 @@ class ContextSource(ABC):
 
 class PlatformDocsSource(ContextSource):
     """Fetches platform documentation, scope, rules."""
-    
+
     async def fetch(self, opportunity: ScoredOpportunity, depth: str = "standard") -> ContextFragment | None:
         """Get platform-specific docs.
-        
+
         For bug bounty: program scope, rules, exclusions
         For dev bounty: repo README, issues, contributing guide
         For freelance: project description, requirements
         """
         source = opportunity.source_name.lower()
-        
+
         if source == "hackerone" and opportunity.url:
             # Fetch program page for scope/rules
             content = await self._fetch_program_page(opportunity.url)
@@ -128,7 +130,7 @@ class PlatformDocsSource(ContextSource):
                     relevance=0.9,
                     token_estimate=len(content) // 4,
                 )
-        
+
         # Generic fallback
         return ContextFragment(
             source="platform_docs",
@@ -136,7 +138,7 @@ class PlatformDocsSource(ContextSource):
             relevance=0.5,
             token_estimate=50,
         )
-    
+
     async def _fetch_program_page(self, url: str) -> str | None:
         """Fetch and extract text from program page."""
         try:
@@ -145,6 +147,7 @@ class PlatformDocsSource(ContextSource):
                 if resp.status_code == 200:
                     # Extract text from HTML
                     from bs4 import BeautifulSoup
+
                     soup = BeautifulSoup(resp.text, "html.parser")
                     return soup.get_text(separator="\n", strip=True)[:3000]
         except Exception:
@@ -153,16 +156,16 @@ class PlatformDocsSource(ContextSource):
 
 class UserHistorySource(ContextSource):
     """Fetches user's history on this platform."""
-    
+
     async def fetch(self, opportunity: ScoredOpportunity, depth: str = "standard") -> ContextFragment | None:
         """Get user's past submissions, acceptance rate, earnings."""
         platform = opportunity.source_name.lower()
-        
+
         # Query MemoryStore for history
         history = memory_store.get_by_platform(platform)
         if not history:
             return None
-        
+
         text = (
             f"User history on {platform}:\n"
             f"- Total submissions: {history.total_submissions}\n"
@@ -171,7 +174,7 @@ class UserHistorySource(ContextSource):
             f"- Avg payout: ${history.personal_avg_payout:.2f}\n"
             f"- Avg days to complete: {history.personal_avg_days:.1f}"
         )
-        
+
         return ContextFragment(
             source="user_history",
             content=text,
@@ -182,25 +185,25 @@ class UserHistorySource(ContextSource):
 
 class LearningSource(ContextSource):
     """Fetches patterns extracted by the Learning Engine."""
-    
+
     async def fetch(self, opportunity: ScoredOpportunity, depth: str = "standard") -> ContextFragment | None:
         """Get patterns from similar past opportunities."""
         patterns = learning_system.get_patterns_for_source(
             source_type=opportunity.source_type,
             cycle=opportunity.cycle,
         )
-        
+
         if not patterns:
             return None
-        
+
         text_lines = ["Learned patterns for similar opportunities:"]
         for p in patterns[:5]:
             text_lines.append(f"- Pattern: {p.pattern}")
             text_lines.append(f"  Confidence: {p.confidence:.0%}")
             text_lines.append(f"  Applied: {p.times_applied}x, Success: {p.success_rate:.0%}")
-        
+
         text = "\n".join(text_lines)
-        
+
         return ContextFragment(
             source="learning_system",
             content=text,
@@ -214,7 +217,7 @@ class LearningSource(ContextSource):
 
 class ContextEngine:
     """Builds enriched context for AI calls.
-    
+
     Before ANY provider call, the ContextEngine assembles:
     - Platform docs (scope, rules, API)
     - User history (past submissions, acceptance rate)
@@ -223,10 +226,10 @@ class ContextEngine:
     - Current state (state machine)
     - Strategy context (current priorities)
     - Memory (persistent user memory)
-    
+
     The result is a structured AgentContext that the model can consume.
     """
-    
+
     def __init__(self):
         self.sources: list[ContextSource] = [
             PlatformDocsSource(),
@@ -235,11 +238,11 @@ class ContextEngine:
             # More sources added as they're built
         ]
         self.max_tokens: int = 8000  # max context tokens
-    
+
     def add_source(self, source: ContextSource):
         """Register a new context source."""
         self.sources.append(source)
-    
+
     async def build_context(
         self,
         opportunity: ScoredOpportunity,
@@ -247,12 +250,12 @@ class ContextEngine:
         system_prompt: str = "",
     ) -> AgentContext:
         """Build full context for an opportunity.
-        
+
         Args:
             opportunity: The opportunity to build context for
             depth: "light" (quick), "standard" (full), "deep" (exhaustive)
             system_prompt: Additional system instructions
-        
+
         Returns:
             AgentContext with all fragments
         """
@@ -261,31 +264,35 @@ class ContextEngine:
             system_prompt=system_prompt,
             depth=depth,
         )
-        
+
         # Add opportunity itself as first context
-        context.add(ContextFragment(
-            source="opportunity",
-            content=f"Name: {opportunity.name}\n"
-                    f"Description: {opportunity.description}\n"
-                    f"Value: ${opportunity.estimated_reward_max:.2f}\n"
-                    f"Effort: {opportunity.estimated_effort_hours}h\n"
-                    f"Tags: {', '.join(opportunity.tags)}\n"
-                    f"Confidence: {opportunity.confidence:.0%}",
-            relevance=1.0,
-            token_estimate=100,
-        ))
-        
+        context.add(
+            ContextFragment(
+                source="opportunity",
+                content=f"Name: {opportunity.name}\n"
+                f"Description: {opportunity.description}\n"
+                f"Value: ${opportunity.estimated_reward_max:.2f}\n"
+                f"Effort: {opportunity.estimated_effort_hours}h\n"
+                f"Tags: {', '.join(opportunity.tags)}\n"
+                f"Confidence: {opportunity.confidence:.0%}",
+                relevance=1.0,
+                token_estimate=100,
+            )
+        )
+
         # Add state
         machine = state_engine.get_or_create(opportunity.id)
-        context.add(ContextFragment(
-            source="state",
-            content=f"Current state: {machine.current_state.value}\n"
-                    f"Time in state: {machine.time_in_state() / 3600:.1f}h\n"
-                    f"Transitions: {machine.transitions_count}",
-            relevance=0.8,
-            token_estimate=30,
-        ))
-        
+        context.add(
+            ContextFragment(
+                source="state",
+                content=f"Current state: {machine.current_state.value}\n"
+                f"Time in state: {machine.time_in_state() / 3600:.1f}h\n"
+                f"Transitions: {machine.transitions_count}",
+                relevance=0.8,
+                token_estimate=30,
+            )
+        )
+
         # Fetch from all context sources
         for source in self.sources:
             try:
@@ -294,19 +301,19 @@ class ContextEngine:
                     context.add(fragment)
             except Exception as e:
                 logger.warning(f"Context source {source.__class__.__name__} failed: {e}")
-        
+
         # Sort by relevance
         context.fragments.sort(key=lambda f: f.relevance, reverse=True)
-        
+
         return context
-    
+
     async def build_system_prompt(
         self,
         context: AgentContext,
         role: str = "analyst",
     ) -> str:
         """Build a system prompt from the context.
-        
+
         Different roles get different prompt templates:
         - analyst: "Analyze this opportunity..."
         - planner: "Plan execution for..."
@@ -332,7 +339,7 @@ class ContextEngine:
                 "5. Fallback strategies\n"
             ),
         }
-        
+
         base = prompts.get(role, prompts["analyst"])
         return f"{base}\n\n{context.to_prompt()}"
 ```
@@ -372,24 +379,25 @@ from typing import Any
 @dataclass
 class PrioritizedOpportunity:
     """An opportunity with a strategy decision attached."""
+
     opportunity: ScoredOpportunity
-    priority: float          # 0.0 to 1.0
-    reason: str              # why this priority?
-    estimated_ev: float      # expected value after strategy
-    estimated_time: float    # estimated hours
+    priority: float  # 0.0 to 1.0
+    reason: str  # why this priority?
+    estimated_ev: float  # expected value after strategy
+    estimated_time: float  # estimated hours
     due_by: datetime | None = None
     strategy_applied: str = ""
 
 
 class Strategy(ABC):
     """A strategy decides what to work on.
-    
+
     Each strategy has a weight. The overall score is weighted sum.
     """
-    
+
     name: str = ""
     weight: float = 1.0
-    
+
     @abstractmethod
     def score(self, opportunity: ScoredOpportunity, context: WorkContext) -> float:
         """Score 0.0 to 1.0. Higher = more priority."""
@@ -401,10 +409,10 @@ class Strategy(ABC):
 
 class MaxEVStrategy(Strategy):
     """Prioritize opportunities with highest expected value."""
-    
+
     name = "max_ev"
     weight = 1.0
-    
+
     def score(self, opportunity: ScoredOpportunity, context: WorkContext) -> float:
         """EV score: normalized to [0, 1] based on max EV in the batch."""
         max_ev = max((o.estimated_reward_max * o.confidence for o in context.opportunities), default=1.0)
@@ -416,16 +424,18 @@ class MaxEVStrategy(Strategy):
 
 class BestEffortRatioStrategy(Strategy):
     """Prioritize best $/hour ratio."""
-    
+
     name = "best_effort_ratio"
     weight = 0.8
-    
+
     def score(self, opportunity: ScoredOpportunity, context: WorkContext) -> float:
         ev = opportunity.estimated_reward_max * opportunity.confidence
         hours = max(opportunity.estimated_effort_hours, 0.5)
         ratio = ev / hours
-        max_ratio = max((o.estimated_reward_max * o.confidence / max(o.estimated_effort_hours, 0.5) 
-                        for o in context.opportunities), default=1.0)
+        max_ratio = max(
+            (o.estimated_reward_max * o.confidence / max(o.estimated_effort_hours, 0.5) for o in context.opportunities),
+            default=1.0,
+        )
         if max_ratio == 0:
             return 0.0
         return min(ratio / max_ratio, 1.0)
@@ -433,10 +443,10 @@ class BestEffortRatioStrategy(Strategy):
 
 class LowCompetitionStrategy(Strategy):
     """Prioritize opportunities with least competition."""
-    
+
     name = "low_competition"
     weight = 0.6
-    
+
     def score(self, opportunity: ScoredOpportunity, context: WorkContext) -> float:
         # Low competition = high personal_fit, low overall competition
         score = (1 - opportunity.competition) * 0.5 + opportunity.personal_fit * 0.5
@@ -445,10 +455,10 @@ class LowCompetitionStrategy(Strategy):
 
 class TimeSensitiveStrategy(Strategy):
     """Prioritize opportunities with approaching deadlines."""
-    
+
     name = "time_sensitive"
     weight = 0.7
-    
+
     def score(self, opportunity: ScoredOpportunity, context: WorkContext) -> float:
         if not opportunity.due_by:
             return 0.0
@@ -462,13 +472,13 @@ class TimeSensitiveStrategy(Strategy):
 
 class QuickWinStrategy(Strategy):
     """Prioritize opportunities that can be done quickly (< 2h).
-    
+
     Good for filling short time slots or building momentum.
     """
-    
+
     name = "quick_win"
     weight = 0.4
-    
+
     def score(self, opportunity: ScoredOpportunity, context: WorkContext) -> float:
         if opportunity.estimated_effort_hours <= 0:
             return 0.0
@@ -481,10 +491,10 @@ class QuickWinStrategy(Strategy):
 
 class AvailabilityStrategy(Strategy):
     """Filter by current time availability."""
-    
+
     name = "availability"
     weight = 0.5
-    
+
     def score(self, opportunity: ScoredOpportunity, context: WorkContext) -> float:
         """If we have 30 min, prefer quick wins."""
         available_hours = context.available_time_hours
@@ -498,10 +508,10 @@ class AvailabilityStrategy(Strategy):
 
 class CycleBalanceStrategy(Strategy):
     """Ensure we're not doing only one type of work."""
-    
+
     name = "cycle_balance"
     weight = 0.3
-    
+
     def score(self, opportunity: ScoredOpportunity, context: WorkContext) -> float:
         """Score higher for underrepresented cycles."""
         cycle_counts = context.get_cycle_counts()
@@ -520,23 +530,24 @@ class CycleBalanceStrategy(Strategy):
 @dataclass
 class WorkContext:
     """Current work context for strategy decisions."""
+
     opportunities: list[ScoredOpportunity]
-    available_time_hours: float = 8.0      # available work hours today
-    current_cycle: str | None = None       # what we're doing right now
-    energy_level: str = "normal"           # "low", "normal", "high"
+    available_time_hours: float = 8.0  # available work hours today
+    current_cycle: str | None = None  # what we're doing right now
+    energy_level: str = "normal"  # "low", "normal", "high"
     financial_goal_month: float = 10000.0  # monthly target
-    financial_goal_week: float = 2500.0    # weekly target
+    financial_goal_week: float = 2500.0  # weekly target
     earned_this_month: float = 0.0
     earned_this_week: float = 0.0
     last_strategy: str = "balanced"
     user_preferences: dict[str, float] = field(default_factory=dict)
-    
+
     def get_cycle_counts(self) -> dict[str, int]:
         counts = {}
         for o in self.opportunities:
             counts[o.cycle] = counts.get(o.cycle, 0) + 1
         return counts
-    
+
     def get_cycle_ev(self) -> dict[str, float]:
         evs = {}
         for o in self.opportunities:
@@ -550,11 +561,11 @@ class WorkContext:
 
 class StrategyEngine:
     """Decides what to work on RIGHT NOW.
-    
+
     Not planning — DECIDING.
     Runs every time the queue needs prioritization.
     """
-    
+
     def __init__(self):
         self.strategies: list[Strategy] = [
             MaxEVStrategy(),
@@ -565,16 +576,16 @@ class StrategyEngine:
             AvailabilityStrategy(),
             CycleBalanceStrategy(),
         ]
-    
+
     def add_strategy(self, strategy: Strategy):
         self.strategies.append(strategy)
-    
+
     def set_weights(self, weights: dict[str, float]):
         """Override strategy weights dynamically."""
         for s in self.strategies:
             if s.name in weights:
                 s.weight = weights[s.name]
-    
+
     async def decide(
         self,
         opportunities: list[ScoredOpportunity],
@@ -583,14 +594,14 @@ class StrategyEngine:
         """Score all opportunities and return prioritized list."""
         if context is None:
             context = WorkContext(opportunities=opportunities)
-        
+
         context.opportunities = opportunities
-        
+
         scored: list[PrioritizedOpportunity] = []
         for opp in opportunities:
             total_score = 0.0
             total_weight = 0.0
-            
+
             reasons = []
             for strategy in self.strategies:
                 try:
@@ -601,9 +612,9 @@ class StrategyEngine:
                         reasons.append(f"{strategy.name}={score:.2f}")
                 except Exception as e:
                     logger.warning(f"Strategy {strategy.name} failed for {opp.id}: {e}")
-            
+
             priority = total_score / total_weight if total_weight > 0 else 0.0
-            
+
             ev = opp.estimated_reward_max * opp.confidence
             po = PrioritizedOpportunity(
                 opportunity=opp,
@@ -614,23 +625,26 @@ class StrategyEngine:
                 strategy_applied=self.__class__.__name__,
             )
             scored.append(po)
-        
+
         # Sort by priority descending
         scored.sort(key=lambda p: p.priority, reverse=True)
-        
+
         await self._emit_strategy(scored)
-        
+
         return scored
-    
+
     async def _emit_strategy(self, prioritized: list[PrioritizedOpportunity]):
         if event_bus:
             top = prioritized[:5]
-            await event_bus.emit("strategy:decided", {
-                "top_choice": top[0].opportunity.id if top else None,
-                "total_considered": len(prioritized),
-                "top_5": [p.opportunity.name for p in top],
-            })
-    
+            await event_bus.emit(
+                "strategy:decided",
+                {
+                    "top_choice": top[0].opportunity.id if top else None,
+                    "total_considered": len(prioritized),
+                    "top_5": [p.opportunity.name for p in top],
+                },
+            )
+
     async def should_continue(
         self,
         current: ScoredOpportunity,
@@ -638,33 +652,36 @@ class StrategyEngine:
         context: WorkContext,
     ) -> tuple[bool, str]:
         """Should we continue current work or switch?
-        
+
         Returns (keep_going, reason)
         """
         if not new_opportunities:
             return (True, "No new opportunities to consider")
-        
+
         # Score current vs best alternative
         best = await self.decide([current] + new_opportunities, context)
-        
+
         if len(best) < 2:
             return (True, "Only one option")
-        
+
         current_rank = next(i for i, p in enumerate(best) if p.opportunity.id == current.id)
-        
+
         if current_rank == 0:
             return (True, "Current is still highest priority")
-        
+
         best_alt = best[0]
         current_score = best[current_rank]
-        
+
         # Switch only if alternative is significantly better
         if best_alt.priority > current_score.priority * 1.5:
-            return (False, f"Better opportunity: {best_alt.opportunity.name} "
-                          f"(priority {best_alt.priority:.2f} vs {current_score.priority:.2f})")
-        
+            return (
+                False,
+                f"Better opportunity: {best_alt.opportunity.name} "
+                f"(priority {best_alt.priority:.2f} vs {current_score.priority:.2f})",
+            )
+
         return (True, "Current priority within acceptable range")
-    
+
     def get_statistics(self) -> dict[str, Any]:
         return {
             "strategies": [s.name for s in self.strategies],
@@ -682,14 +699,15 @@ class StrategyEngine:
 # 2. ContextEngine build_context() for that opportunity
 # 3. PipelineEngine executes with the full context
 
+
 async def decide_and_execute():
     # Get all scored opportunities
     opportunities = opportunity_engine.get_scored(status="scored")
-    
+
     if not opportunities:
         logger.info("No opportunities to process")
         return
-    
+
     # Build work context
     work_context = WorkContext(
         opportunities=opportunities,
@@ -698,22 +716,22 @@ async def decide_and_execute():
         financial_goal_month=10000.0,
         earned_this_month=await vault.get_monthly_earnings(),
     )
-    
+
     # Decide
     prioritized = await strategy_engine.decide(opportunities, work_context)
-    
+
     if not prioritized:
         return
-    
+
     # Take top opportunity
     top = prioritized[0]
-    
+
     # Build context
     context = await context_engine.build_context(
         top.opportunity,
         depth="standard",
     )
-    
+
     # Execute
     await pipeline_engine.execute(
         opportunity=top.opportunity,

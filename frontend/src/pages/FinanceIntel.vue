@@ -47,7 +47,7 @@ function changeStr(sym: string): { text: string; color: string; icon: any } | nu
   if (!data.value) return null
   const ch = data.value.crypto_24h[sym]
   if (ch === undefined) return null
-  return { text: `${ch >= 0 ? '+' : ''}${ch.toFixed(1)}%`, color: ch >= 0 ? 'text-green-400' : 'text-red-400', icon: ch >= 0 ? ArrowUpRight : ArrowDownRight }
+  return { text: `${ch >= 0 ? '+' : ''}${ch.toFixed(1)}%`, color: ch >= 0 ? 'text-success' : 'text-destructive', icon: ch >= 0 ? ArrowUpRight : ArrowDownRight }
 }
 
 const healthEmoji = (h: number) => h >= 80 ? '🟢' : h >= 50 ? '🟡' : '🔴'
@@ -58,8 +58,8 @@ const healthEmoji = (h: number) => h >= 80 ? '🟢' : h >= 50 ? '🟡' : '🔴'
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="p-2 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/20">
-          <TrendingUp class="w-5 h-5 text-emerald-400" />
+        <div class="p-2 rounded-xl bg-gradient-to-br from-success/20 to-muted/20 border border-success/20">
+          <TrendingUp class="w-5 h-5 text-success" />
         </div>
         <div>
           <h1 class="text-xl font-bold tracking-tight">Finance Intel</h1>
@@ -74,7 +74,7 @@ const healthEmoji = (h: number) => h >= 80 ? '🟢' : h >= 50 ? '🟡' : '🔴'
 
     <!-- Loading -->
     <div v-if="loading && !data" class="flex items-center justify-center py-24 text-muted-foreground gap-2">
-      <div class="w-4 h-4 rounded-full border-2 border-emerald-500/20 border-t-emerald-400 animate-spin" />
+      <div class="w-4 h-4 rounded-full border-2 border-success/20 border-t-emerald-400 animate-spin" />
       <span class="text-sm">Cargando...</span>
     </div>
 
@@ -94,13 +94,13 @@ const healthEmoji = (h: number) => h >= 80 ? '🟢' : h >= 50 ? '🟡' : '🔴'
           <div class="flex items-center gap-2 mt-1">
             <p class="text-xl font-bold">{{ data.objetivo_progreso.toFixed(0) }}%</p>
             <div class="flex-1 bg-muted/30 rounded-full h-1.5">
-              <div class="bg-purple-400 h-1.5 rounded-full transition-all" :style="{ width: data.objetivo_progreso + '%' }" />
+              <div class="bg-intigriti h-1.5 rounded-full transition-all" :style="{ width: data.objetivo_progreso + '%' }" />
             </div>
           </div>
         </GlassCard>
         <GlassCard class="p-4">
           <p class="text-[10px] text-muted-foreground uppercase tracking-wider">Riesgo</p>
-          <p class="text-xl font-bold mt-1" :class="data.riesgo.overall <= 25 ? 'text-green-400' : data.riesgo.overall <= 50 ? 'text-yellow-400' : data.riesgo.overall <= 75 ? 'text-orange-400' : 'text-red-400'">{{ data.riesgo.label }}</p>
+          <p class="text-xl font-bold mt-1" :class="data.riesgo.overall <= 25 ? 'text-success' : data.riesgo.overall <= 50 ? 'text-warning' : data.riesgo.overall <= 75 ? 'text-warning' : 'text-destructive'">{{ data.riesgo.label }}</p>
         </GlassCard>
       </div>
 
@@ -114,7 +114,7 @@ const healthEmoji = (h: number) => h >= 80 ? '🟢' : h >= 50 ? '🟡' : '🔴'
               <span class="capitalize font-medium">{{ d.nombre }}</span>
               <div class="flex items-center gap-2">
                 <span class="font-mono font-bold">{{ d.venta?.toFixed(1) ?? '—' }}</span>
-                <span v-if="d.variacion !== null" class="text-xs" :class="d.variacion >= 0 ? 'text-green-400' : 'text-red-400'">
+                <span v-if="d.variacion !== null" class="text-xs" :class="d.variacion >= 0 ? 'text-success' : 'text-destructive'">
                   {{ d.variacion >= 0 ? '+' : '' }}{{ d.variacion.toFixed(2) }}
                 </span>
               </div>
@@ -143,12 +143,12 @@ const healthEmoji = (h: number) => h >= 80 ? '🟢' : h >= 50 ? '🟡' : '🔴'
           <div v-if="data.oportunidades.length" class="space-y-2">
             <div v-for="op in data.oportunidades" :key="op.title"
               class="p-3 rounded-lg border transition-all hover:border-foreground/20"
-              :class="op.priority === 'alta' ? 'bg-amber-500/5 border-amber-500/20' : 'bg-card'">
+              :class="op.priority === 'alta' ? 'bg-warning/5 border-amber-500/20' : 'bg-card'">
               <div class="flex items-start gap-2.5">
                 <div class="p-1 rounded-lg shrink-0 mt-0.5"
-                  :class="op.priority === 'alta' ? 'bg-amber-500/10' : op.priority === 'info' ? 'bg-gray-500/10' : 'bg-blue-500/10'">
-                  <Lightbulb v-if="op.priority === 'alta'" class="w-3.5 h-3.5 text-amber-400" />
-                  <TrendingUp v-else class="w-3.5 h-3.5 text-blue-400" />
+                  :class="op.priority === 'alta' ? 'bg-warning/10' : op.priority === 'info' ? 'bg-muted/10' : 'bg-primary/10'">
+                  <Lightbulb v-if="op.priority === 'alta'" class="w-3.5 h-3.5 text-warning" />
+                  <TrendingUp v-else class="w-3.5 h-3.5 text-primary" />
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-0.5">
@@ -157,8 +157,8 @@ const healthEmoji = (h: number) => h >= 80 ? '🟢' : h >= 50 ? '🟡' : '🔴'
                   </div>
                   <p class="text-xs text-muted-foreground">{{ op.description }}</p>
                   <div class="mt-2">
-                    <span class="text-xs font-medium text-blue-400">{{ op.action }}</span>
-                    <span v-if="op.roi_estimate !== '—'" class="text-xs text-emerald-400 ml-2">· {{ op.roi_estimate }}</span>
+                    <span class="text-xs font-medium text-primary">{{ op.action }}</span>
+                    <span v-if="op.roi_estimate !== '—'" class="text-xs text-success ml-2">· {{ op.roi_estimate }}</span>
                   </div>
                 </div>
               </div>

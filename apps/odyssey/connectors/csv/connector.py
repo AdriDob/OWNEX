@@ -68,7 +68,15 @@ class CSVImporterConnector(OdysseyConnector):
         stake = self._safe_float(row.get("Stake") or row.get("stake") or 0)
         payout = self._safe_float(row.get("Payout") or row.get("payout") or 0)
         raw_outcome = str(row.get("Outcome") or row.get("result") or "pending").lower()
-        outcome = "win" if raw_outcome in ("win", "won") else "loss" if raw_outcome in ("loss", "lost") else raw_outcome if raw_outcome in ("push", "pending") else "pending"
+        outcome = (
+            "win"
+            if raw_outcome in ("win", "won")
+            else "loss"
+            if raw_outcome in ("loss", "lost")
+            else raw_outcome
+            if raw_outcome in ("push", "pending")
+            else "pending"
+        )
         return NormalizedBet(
             event=event,
             market=row.get("Market") or row.get("market") or "",

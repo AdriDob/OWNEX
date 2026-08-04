@@ -28,8 +28,10 @@ class AttackSurfaceArtifact(Bundle):
         super().__post_init__()
         self.depends_on("PipelineArtifact")
         self.total_surfaces = (
-            len(self.idor_clusters) + len(self.auth_boundaries)
-            + len(self.multi_tenant_zones) + len(self.graphql_surfaces)
+            len(self.idor_clusters)
+            + len(self.auth_boundaries)
+            + len(self.multi_tenant_zones)
+            + len(self.graphql_surfaces)
         )
 
     @classmethod

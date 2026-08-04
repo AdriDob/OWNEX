@@ -95,13 +95,15 @@ class Hunter:
                 if not name:
                     continue
                 scopes = p.get("scopes") or p.get("targets") or p.get("scope") or []
-                results.append({
-                    "name": name,
-                    "scopes": scopes,
-                    "domain": p.get("domain") or p.get("url") or p.get("website") or None,
-                    "program_url": p.get("program_url") or p.get("url") or p.get("link") or None,
-                    "source": platform,
-                })
+                results.append(
+                    {
+                        "name": name,
+                        "scopes": scopes,
+                        "domain": p.get("domain") or p.get("url") or p.get("website") or None,
+                        "program_url": p.get("program_url") or p.get("url") or p.get("link") or None,
+                        "source": platform,
+                    }
+                )
         except Exception as exc:
             LOG.debug("fetch_public_programs error for %s: %s", platform, exc)
         return results
@@ -120,10 +122,9 @@ class Hunter:
                 source = p.get("source") or "imported"
 
                 # Idempotent deduplication check
-                exists = session.query(TargetIntel).filter(
-                    TargetIntel.name == name,
-                    TargetIntel.source == source
-                ).first()
+                exists = (
+                    session.query(TargetIntel).filter(TargetIntel.name == name, TargetIntel.source == source).first()
+                )
                 if exists:
                     continue
 
@@ -141,20 +142,27 @@ class Hunter:
                 # technology fingerprinting
                 tech_tags = fingerprint_program(p)
                 cms = classify_cms(tech_tags)
-                wp_plugins = [t for t in tech_tags if t in (
-                    "woocommerce", "elementor", "yoast", "acf",
-                    "jetpack", "wpforms", "wordfence", "wprocket",
-                )]
+                wp_plugins = [
+                    t
+                    for t in tech_tags
+                    if t
+                    in (
+                        "woocommerce",
+                        "elementor",
+                        "yoast",
+                        "acf",
+                        "jetpack",
+                        "wpforms",
+                        "wordfence",
+                        "wprocket",
+                    )
+                ]
                 tech_relevance = score_technology_relevance(tech_tags)
 
                 # heuristics for SaaS/B2B/admin/multi-tenant
                 keywords = " ".join(scopes).lower()
-                saas_prob = (
-                    0.8 if any(k in keywords for k in ["saas", "app.", "app-"]) else 0.2
-                )
-                b2b = any(
-                    k in keywords for k in ["enterprise", "b2b", "business", "company"]
-                )
+                saas_prob = 0.8 if any(k in keywords for k in ["saas", "app.", "app-"]) else 0.2
+                b2b = any(k in keywords for k in ["enterprise", "b2b", "business", "company"])
                 admin = any(k in keywords for k in ["admin", "dashboard", "panel"])
                 multi_tenant = (
                     any(
@@ -170,12 +178,8 @@ class Hunter:
                     or wildcard
                 )
                 export = "export" in keywords or "download" in keywords
-                auth_heavy = any(
-                    k in keywords for k in ["login", "signup", "auth", "session"]
-                )
-                static = any(
-                    k in keywords for k in ["blog", "wordpress", "marketing", "landing"]
-                )
+                auth_heavy = any(k in keywords for k in ["login", "signup", "auth", "session"])
+                static = any(k in keywords for k in ["blog", "wordpress", "marketing", "landing"])
 
                 meta = {
                     "graphql": graphql,
@@ -217,16 +221,31 @@ class Hunter:
                     b2b_indicator=b2b,
                     admin_detected=admin,
                     multi_tenant=multi_tenant,
-                    tags=",".join(
-                        sorted({"bookmarked"} if p.get("bookmarked") else set())
-                    ),
+                    tags=",".join(sorted({"bookmarked"} if p.get("bookmarked") else set())),
                     technology_tags=",".join(tech_tags),
                     cms_detected=cms or (tech_tags[0] if tech_tags else None),
-                    framework_detected=next((t for t in tech_tags if t in (
-                        "laravel", "django", "rails", "nextjs", "nuxt",
-                        "spring", "fastapi", "flask", "express", "symfony",
-                        "gatsby", "aspnet",
-                    )), None),
+                    framework_detected=next(
+                        (
+                            t
+                            for t in tech_tags
+                            if t
+                            in (
+                                "laravel",
+                                "django",
+                                "rails",
+                                "nextjs",
+                                "nuxt",
+                                "spring",
+                                "fastapi",
+                                "flask",
+                                "express",
+                                "symfony",
+                                "gatsby",
+                                "aspnet",
+                            )
+                        ),
+                        None,
+                    ),
                     wordpress_plugins_detected=",".join(wp_plugins) if wp_plugins else None,
                 )
 
@@ -247,9 +266,7 @@ class Hunter:
                         session.add(sc)
 
                 session.commit()
-                saved.append(
-                    {"id": intel.id, "name": name, "domain": domain, "scores": scores}
-                )
+                saved.append({"id": intel.id, "name": name, "domain": domain, "scores": scores})
         finally:
             session.close()
         return saved
@@ -274,15 +291,11 @@ class Hunter:
 
             if search:
                 like = f"%{search}%"
-                query = query.filter(
-                    TargetIntel.name.ilike(like) | TargetIntel.domain.ilike(like)
-                )
+                query = query.filter(TargetIntel.name.ilike(like) | TargetIntel.domain.ilike(like))
 
             if technology:
                 like = f"%{technology.lower()}%"
-                query = query.filter(
-                    TargetIntel.technology_tags.ilike(like)
-                )
+                query = query.filter(TargetIntel.technology_tags.ilike(like))
 
             if platform:
                 query = query.filter(TargetIntel.source.ilike(platform))
@@ -297,27 +310,31 @@ class Hunter:
 
             items = []
             for r in rows:
-                items.append({
-                    "id": r.id,
-                    "name": r.name,
-                    "domain": r.domain,
-                    "source": r.source,
-                    "program_url": r.program_url,
-                    "quality_score": r.quality_score,
-                    "roi_score": r.roi_score,
-                    "opportunity_score": r.opportunity_score,
-                    "technology_tags": (r.technology_tags or "").split(",") if r.technology_tags else [],
-                    "cms_detected": r.cms_detected,
-                    "framework_detected": r.framework_detected,
-                    "wordpress_plugins_detected": (r.wordpress_plugins_detected or "").split(",") if r.wordpress_plugins_detected else [],
-                    "saas_probability": r.saas_probability,
-                    "api_density": r.api_density,
-                    "graphql_detected": r.graphql_detected,
-                    "multi_tenant": r.multi_tenant,
-                    "admin_detected": r.admin_detected,
-                    "tags": r.tags,
-                    "created_at": str(r.created_at) if r.created_at else None,
-                })
+                items.append(
+                    {
+                        "id": r.id,
+                        "name": r.name,
+                        "domain": r.domain,
+                        "source": r.source,
+                        "program_url": r.program_url,
+                        "quality_score": r.quality_score,
+                        "roi_score": r.roi_score,
+                        "opportunity_score": r.opportunity_score,
+                        "technology_tags": (r.technology_tags or "").split(",") if r.technology_tags else [],
+                        "cms_detected": r.cms_detected,
+                        "framework_detected": r.framework_detected,
+                        "wordpress_plugins_detected": (r.wordpress_plugins_detected or "").split(",")
+                        if r.wordpress_plugins_detected
+                        else [],
+                        "saas_probability": r.saas_probability,
+                        "api_density": r.api_density,
+                        "graphql_detected": r.graphql_detected,
+                        "multi_tenant": r.multi_tenant,
+                        "admin_detected": r.admin_detected,
+                        "tags": r.tags,
+                        "created_at": str(r.created_at) if r.created_at else None,
+                    }
+                )
             return items, total
         finally:
             session.close()

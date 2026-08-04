@@ -45,6 +45,7 @@ try:
     from cores.version_backup import get_version_backup_system
 except ImportError:
     import sys
+
     sys.path.insert(0, str(Path(__file__).parent))
     from cores.version_backup import get_version_backup_system
 
@@ -194,10 +195,8 @@ class ConstitutionComplianceValidator:
             if change_impact.get("compliance_issues", 0) > 0:
                 return True  # Violates principle
 
-        elif "EVIDENCE DRIVEN" in principle:
-            # Check for assumption-based changes
-            if not change_impact.get("evidence_based", False):
-                return True
+        elif "EVIDENCE DRIVEN" in principle_id and not change_impact.get("evidence_based", False):
+            return True
 
         return False  # Compliant
 
@@ -212,21 +211,10 @@ class ConstitutionComplianceValidator:
         # Implementation placeholder - could expand with specific rules
         # For now, this is a general check
 
-        # Example: Check MINIMUM INTERVENTION
-        if "MINIMUM INTERVENTION" in principle:
-            # Check for unnecessary changes
-            if change_impact.get("intervention_level", "high") == "excessive":
-                return True
-
-        # Example: Check EVIDENCE DRIVEN
-        elif "EVIDENCE DRIVEN" in principle:
-            # Check for assumption-based changes
-            if not change_impact.get("evidence_based", False):
-                return True
-
-        # Add more principle-specific checks as needed
-
-        return False  # Compliant
+        # Example: Check MINIMUM INTERVENTION or EVIDENCE DRIVEN
+        return (
+            "MINIMUM INTERVENTION" in principle and change_impact.get("intervention_level", "high") == "excessive"
+        ) or ("EVIDENCE DRIVEN" in principle and not change_impact.get("evidence_based", False))
 
     def _check_integration_requirement(self, requirement: str, change_description: str, change_impact: dict) -> bool:
         """

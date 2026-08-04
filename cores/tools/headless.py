@@ -125,37 +125,43 @@ class HeadlessScanner:
                     matches = re.findall(pattern, html, re.IGNORECASE)
                     if matches:
                         for m in matches[:3]:
-                            findings.append(DomFinding(
-                                vuln_type="DOM XSS Sink",
-                                url=url,
-                                detail=f"Potencial sink XSS DOM detectado: {m}",
-                                evidence=m,
-                                severity="high",
-                                confidence=0.5,
-                            ))
+                            findings.append(
+                                DomFinding(
+                                    vuln_type="DOM XSS Sink",
+                                    url=url,
+                                    detail=f"Potencial sink XSS DOM detectado: {m}",
+                                    evidence=m,
+                                    severity="high",
+                                    confidence=0.5,
+                                )
+                            )
 
                 # 2. Detect prototype pollution
                 for pattern in PROTOTYPE_POLLUTION_PATTERNS:
                     if re.search(pattern, html, re.IGNORECASE):
-                        findings.append(DomFinding(
-                            vuln_type="Prototype Pollution",
-                            url=url,
-                            detail=f"Posible prototype pollution: {pattern}",
-                            evidence=pattern,
-                            severity="high",
-                            confidence=0.4,
-                        ))
+                        findings.append(
+                            DomFinding(
+                                vuln_type="Prototype Pollution",
+                                url=url,
+                                detail=f"Posible prototype pollution: {pattern}",
+                                evidence=pattern,
+                                severity="high",
+                                confidence=0.4,
+                            )
+                        )
 
                 # 3. SPA endpoint discovery
                 if js_urls:
-                    findings.append(DomFinding(
-                        vuln_type="SPA JavaScript Routes",
-                        url=url,
-                        detail=f"{len(js_urls)} archivos JS detectados — posibles rutas SPA por descubrir",
-                        evidence="\n".join(js_urls[:10]),
-                        severity="low",
-                        confidence=0.7,
-                    ))
+                    findings.append(
+                        DomFinding(
+                            vuln_type="SPA JavaScript Routes",
+                            url=url,
+                            detail=f"{len(js_urls)} archivos JS detectados — posibles rutas SPA por descubrir",
+                            evidence="\n".join(js_urls[:10]),
+                            severity="low",
+                            confidence=0.7,
+                        )
+                    )
 
                 # 4. Sensitive data in localStorage
                 try:
@@ -164,28 +170,32 @@ class HeadlessScanner:
                         str_val = str(value)
                         for name, pat in SENSITIVE_DOM_PATTERNS.items():
                             if re.search(pat, str_val, re.IGNORECASE):
-                                findings.append(DomFinding(
-                                    vuln_type=f"Sensitive Data in localStorage ({name})",
-                                    url=url,
-                                    detail=f"Key '{key}' contiene datos sensibles: {name}",
-                                    evidence=f"{key}: {str_val[:200]}",
-                                    severity="high" if name in ("jwt", "private_key") else "medium",
-                                    confidence=0.8,
-                                ))
+                                findings.append(
+                                    DomFinding(
+                                        vuln_type=f"Sensitive Data in localStorage ({name})",
+                                        url=url,
+                                        detail=f"Key '{key}' contiene datos sensibles: {name}",
+                                        evidence=f"{key}: {str_val[:200]}",
+                                        severity="high" if name in ("jwt", "private_key") else "medium",
+                                        confidence=0.8,
+                                    )
+                                )
                 except json.JSONDecodeError:
                     pass
 
                 # 5. Console errors (potential XSS or info leaks)
                 for msg in console_messages:
                     if any(kw in msg.lower() for kw in ("xss", "error", "blocked", "warning", "security")):
-                        findings.append(DomFinding(
-                            vuln_type="Console Security Message",
-                            url=url,
-                            detail=msg[:300],
-                            evidence=msg[:500],
-                            severity="medium",
-                            confidence=0.5,
-                        ))
+                        findings.append(
+                            DomFinding(
+                                vuln_type="Console Security Message",
+                                url=url,
+                                detail=msg[:300],
+                                evidence=msg[:500],
+                                severity="medium",
+                                confidence=0.5,
+                            )
+                        )
 
             except Exception as e:
                 logger.debug("Headless navigation error for %s: %s", url, e)

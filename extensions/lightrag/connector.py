@@ -110,7 +110,7 @@ class LightRAGConnector(IConnector):
                 "total_found": 0,
                 "embedding_generated": False,
                 "timestamp": str(datetime.datetime.now()),
-                "message": "LightRAG not fully implemented - placeholder response"
+                "message": "LightRAG not fully implemented - placeholder response",
             }
 
         except Exception as e:

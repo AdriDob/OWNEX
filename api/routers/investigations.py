@@ -148,36 +148,29 @@ def investigation_dashboard(investigation_id: int):
     try:
         inv = _get_or_404(session, investigation_id)
 
-        endpoint_count = session.query(models.Endpoint).filter(
-            models.Endpoint.target_id == inv.target_id
-        ).count()
+        endpoint_count = session.query(models.Endpoint).filter(models.Endpoint.target_id == inv.target_id).count()
 
-        findings = (
-            session.query(models.Finding)
-            .filter(models.Finding.target_id == inv.target_id)
-            .all()
-        )
+        findings = session.query(models.Finding).filter(models.Finding.target_id == inv.target_id).all()
         finding_count = len(findings)
         by_severity: dict[str, int] = {}
         for f in findings:
             s = f.severity or "unknown"
             by_severity[s] = by_severity.get(s, 0) + 1
 
-        verdicts = session.query(models.Verdict).filter(
-            models.Verdict.endpoint_id.in_(
-                session.query(models.Endpoint.id).filter(
-                    models.Endpoint.target_id == inv.target_id
+        verdicts = (
+            session.query(models.Verdict)
+            .filter(
+                models.Verdict.endpoint_id.in_(
+                    session.query(models.Endpoint.id).filter(models.Endpoint.target_id == inv.target_id)
                 )
             )
-        ).all() if endpoint_count > 0 else []
+            .all()
+            if endpoint_count > 0
+            else []
+        )
         confirmed_count = sum(1 for v in verdicts if v.status == "confirmed")
 
-        reports = (
-            session.query(models.Report)
-            .order_by(models.Report.created_at.desc())
-            .limit(10)
-            .all()
-        )
+        reports = session.query(models.Report).order_by(models.Report.created_at.desc()).limit(10).all()
 
         # ── Pipeline state tracking ────────────────────────────────
         pipeline_state = json.loads(inv.pipeline_state) if inv.pipeline_state else {}
@@ -189,21 +182,58 @@ def investigation_dashboard(investigation_id: int):
         timeline = []
         if endpoint_count > 0:
             stages_passed += 1
-            timeline.append({"stage": "recon", "status": "done", "label": f"{endpoint_count} endpoints discovered", "timestamp": inv.created_at.isoformat() if inv.created_at else None})
+            timeline.append(
+                {
+                    "stage": "recon",
+                    "status": "done",
+                    "label": f"{endpoint_count} endpoints discovered",
+                    "timestamp": inv.created_at.isoformat() if inv.created_at else None,
+                }
+            )
         if hypotheses_count > 0:
             stages_passed += 1
-            timeline.append({"stage": "hypotheses", "status": "done", "label": f"{hypotheses_count} hypotheses generated", "timestamp": inv.updated_at.isoformat() if inv.updated_at else None})
+            timeline.append(
+                {
+                    "stage": "hypotheses",
+                    "status": "done",
+                    "label": f"{hypotheses_count} hypotheses generated",
+                    "timestamp": inv.updated_at.isoformat() if inv.updated_at else None,
+                }
+            )
         else:
-            timeline.append({"stage": "hypotheses", "status": "pending", "label": "Awaiting hypotheses", "timestamp": None})
+            timeline.append(
+                {"stage": "hypotheses", "status": "pending", "label": "Awaiting hypotheses", "timestamp": None}
+            )
         if validated_count > 0:
             stages_passed += 1
-            timeline.append({"stage": "validation", "status": "done", "label": f"{validated_count} findings validated", "timestamp": None})
+            timeline.append(
+                {
+                    "stage": "validation",
+                    "status": "done",
+                    "label": f"{validated_count} findings validated",
+                    "timestamp": None,
+                }
+            )
         if confirmed_count > 0:
             stages_passed += 1
-            timeline.append({"stage": "evidence", "status": "done", "label": f"{confirmed_count} confirmed verdicts", "timestamp": None})
+            timeline.append(
+                {
+                    "stage": "evidence",
+                    "status": "done",
+                    "label": f"{confirmed_count} confirmed verdicts",
+                    "timestamp": None,
+                }
+            )
         if len(reports) > 0:
             stages_passed += 1
-            timeline.append({"stage": "report", "status": "done", "label": f"{len(reports)} reports generated", "timestamp": reports[0].created_at.isoformat() if reports[0].created_at else None})
+            timeline.append(
+                {
+                    "stage": "report",
+                    "status": "done",
+                    "label": f"{len(reports)} reports generated",
+                    "timestamp": reports[0].created_at.isoformat() if reports[0].created_at else None,
+                }
+            )
         else:
             timeline.append({"stage": "report", "status": "pending", "label": "No reports yet", "timestamp": None})
 

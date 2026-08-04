@@ -17,7 +17,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   stages: () => [
     { label: 'Oportunidades detectadas', value: 42, color: 'text-accent' },
-    { label: 'Analizadas', value: 18, color: 'text-blue-400' },
+    { label: 'Analizadas', value: 18, color: 'text-primary' },
     { label: 'Priorizadas', value: 7, color: 'text-warning' },
     { label: 'En ejecución', value: 3, color: 'text-primary' },
     { label: 'Completadas', value: 1, color: 'text-success' },

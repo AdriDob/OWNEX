@@ -21,11 +21,9 @@ Finding.target_id → query TargetIdentity(is_baseline, is_active) → SessionRe
 #### A. Nuevo helper `_resolve_auth_pair()`
 
 ```python
-async def _resolve_auth_pair(
-    self, session, target_id: int
-) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+async def _resolve_auth_pair(self, session, target_id: int) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
     """Resuelve baseline y probe AuthContext para un target.
-    
+
     Retorna (baseline_ctx, probe_ctx).
     Si no hay identidades configuradas, ambos son None (anónimo).
     El resolve() puede hacer login HTTP (login_form) → to_thread().
@@ -34,17 +32,25 @@ async def _resolve_auth_pair(
 
     resolver = get_session_resolver()
 
-    baseline_id = session.query(models.TargetIdentity.id).filter(
-        models.TargetIdentity.target_id == target_id,
-        models.TargetIdentity.is_baseline.is_(True),
-        models.TargetIdentity.is_active.is_(True),
-    ).scalar()
+    baseline_id = (
+        session.query(models.TargetIdentity.id)
+        .filter(
+            models.TargetIdentity.target_id == target_id,
+            models.TargetIdentity.is_baseline.is_(True),
+            models.TargetIdentity.is_active.is_(True),
+        )
+        .scalar()
+    )
 
-    probe_id = session.query(models.TargetIdentity.id).filter(
-        models.TargetIdentity.target_id == target_id,
-        models.TargetIdentity.is_baseline.is_(False),
-        models.TargetIdentity.is_active.is_(True),
-    ).scalar()
+    probe_id = (
+        session.query(models.TargetIdentity.id)
+        .filter(
+            models.TargetIdentity.target_id == target_id,
+            models.TargetIdentity.is_baseline.is_(False),
+            models.TargetIdentity.is_active.is_(True),
+        )
+        .scalar()
+    )
 
     baseline_ctx = await asyncio.to_thread(resolver.resolve, baseline_id) if baseline_id else None
     probe_ctx = await asyncio.to_thread(resolver.resolve, probe_id) if probe_id else None

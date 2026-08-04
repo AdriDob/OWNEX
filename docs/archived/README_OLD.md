@@ -673,7 +673,7 @@ config = MerlinConfig(
     memory_retention_days=30,
     max_concurrent_requests=5,
     request_timeout=30,
-    streaming_enabled=True
+    streaming_enabled=True,
 )
 ```
 
@@ -683,10 +683,7 @@ config = MerlinConfig(
 # cores/obsidian/integration.py
 from cores.obsidian.integration import ObsidianIntegration
 
-obsidian = ObsidianIntegration(
-    vault_path="/path/to/obsidian/vault",
-    system=merlin_system
-)
+obsidian = ObsidianIntegration(vault_path="/path/to/obsidian/vault", system=merlin_system)
 
 # Inicializar estructura del vault
 obsidian.initialize_vault()
@@ -695,10 +692,7 @@ obsidian.initialize_vault()
 obsidian.create_daily_note()
 
 # Crear nota de MERLIN
-obsidian.create_merlin_note(
-    title="Análisis de target",
-    content="Contenido de la nota..."
-)
+obsidian.create_merlin_note(title="Análisis de target", content="Contenido de la nota...")
 ```
 
 ---

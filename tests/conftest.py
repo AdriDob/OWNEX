@@ -10,6 +10,7 @@ import pytest
 
 os.environ.setdefault("CATEYE_CSRF_DISABLED", "1")
 
+
 @pytest.fixture(scope="session", autouse=True)
 def _set_license_key() -> None:
     """Generate a dev Ed25519 key pair at test time for license generation."""
@@ -17,12 +18,11 @@ def _set_license_key() -> None:
         from base64 import b64encode
 
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
         key = Ed25519PrivateKey.generate()
         priv_raw = key.private_bytes_raw()
         os.environ["CATEYE_LICENSE_PRIVATE_KEY"] = b64encode(priv_raw).decode()
-        os.environ["CATEYE_LICENSE_PUBLIC_KEY"] = b64encode(
-            key.public_key().public_bytes_raw()
-        ).decode()
+        os.environ["CATEYE_LICENSE_PUBLIC_KEY"] = b64encode(key.public_key().public_bytes_raw()).decode()
 
 
 # ── Path fixtures ─────────────────────────────────────────────────
@@ -42,6 +42,7 @@ def go_bin() -> Path:
 def recon_tools(go_bin: Path) -> dict[str, Path | None]:
     """Resolve all recon tool paths."""
     from cores.recon.tools import _resolve_tool
+
     return {
         "subfinder": _resolve_tool("subfinder"),
         "katana": _resolve_tool("katana"),

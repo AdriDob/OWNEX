@@ -24,9 +24,9 @@ function onInput(e: Event) {
     :value="modelValue"
     @input="onInput"
     :class="cn(
-      'flex h-9 w-full rounded-lg border border-[rgb(37,37,64)] bg-[rgb(15,17,23)]/50 px-3 py-1 text-sm text-[rgb(240,240,240)] shadow-sm transition-colors',
-      'placeholder:text-[rgb(100,116,139)]/50',
-      'focus:border-[rgb(0,112,209)]/30 focus:outline-none focus:ring-1 focus:ring-[rgb(0,112,209)]/20',
+      'flex h-9 w-full rounded-lg border border-border-light bg-surface/50 px-3 py-1 text-sm text-foreground shadow-sm transition-colors',
+      'placeholder:text-muted-foreground/50',
+      'focus:border-primary/30 focus:outline-none focus:ring-1 focus:ring-primary/20',
       'disabled:cursor-not-allowed disabled:opacity-50',
       props.class,
     )"

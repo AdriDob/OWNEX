@@ -17,8 +17,8 @@ class Capability:
       - ``Capability("notification", "telegram")``
     """
 
-    domain: str      # e.g. "scanner", "ai_model", "exporter", "connector"
-    name: str        # e.g. "subdomain", "gemini", "pdf", "binance"
+    domain: str  # e.g. "scanner", "ai_model", "exporter", "connector"
+    name: str  # e.g. "subdomain", "gemini", "pdf", "binance"
     description: str = ""
     config: dict[str, Any] = field(default_factory=dict)
 
@@ -34,9 +34,14 @@ class CapabilityRegistry:
         existing = self._capabilities[capability.domain].get(capability.name)
         if existing and existing != extension_id:
             import logging
+
             logging.getLogger("orion.core.capabilities").warning(
                 "Capability %s/%s claimed by both %s and %s — keeping %s",
-                capability.domain, capability.name, existing, extension_id, existing,
+                capability.domain,
+                capability.name,
+                existing,
+                extension_id,
+                existing,
             )
             return
         self._capabilities[capability.domain][capability.name] = extension_id

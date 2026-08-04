@@ -10,6 +10,7 @@ router = APIRouter(prefix="/api/setup", tags=["setup"])
 
 class PersonalizationRequest(BaseModel):
     """Request model for personalization."""
+
     use_case: str
     modules: list[str] = []
     custom_name: str = ""
@@ -21,20 +22,18 @@ class PersonalizationRequest(BaseModel):
 async def run_personalization(request: PersonalizationRequest):
     """Run the personalization step with user preferences."""
     try:
-        result = personalization_step({
-            "use_case": request.use_case,
-            "modules": request.modules,
-            "custom_name": request.custom_name,
-            "expertise_level": request.expertise_level,
-            "primary_platforms": request.primary_platforms
-        })
+        result = personalization_step(
+            {
+                "use_case": request.use_case,
+                "modules": request.modules,
+                "custom_name": request.custom_name,
+                "expertise_level": request.expertise_level,
+                "primary_platforms": request.primary_platforms,
+            }
+        )
 
         if result["status"] == "ok":
-            return {
-                "success": True,
-                "message": result["message"],
-                "data": result["data"]
-            }
+            return {"success": True, "message": result["message"], "data": result["data"]}
         else:
             raise HTTPException(status_code=400, detail=result.get("message", "Personalization failed"))
 
@@ -48,10 +47,7 @@ async def get_default_modules(use_case: str):
     from cores.setup.steps.personalization_step import _get_default_modules_for_use_case
 
     modules = _get_default_modules_for_use_case(use_case)
-    return {
-        "use_case": use_case,
-        "default_modules": modules
-    }
+    return {"use_case": use_case, "default_modules": modules}
 
 
 @router.get("/personalization/use-cases")
@@ -60,13 +56,17 @@ async def get_use_cases():
     use_cases = [
         {"id": "bug_bounty_researcher", "title": "Bug Bounty Researcher", "description": "Investigación individual"},
         {"id": "bug_bounty_company", "title": "Bug Bounty Company", "description": "Gestión empresarial"},
-        {"id": "cybersecurity_consultant", "title": "Cybersecurity Consultant", "description": "Consultoría de seguridad"},
+        {
+            "id": "cybersecurity_consultant",
+            "title": "Cybersecurity Consultant",
+            "description": "Consultoría de seguridad",
+        },
         {"id": "penetration_tester", "title": "Penetration Tester", "description": "Testing profesional"},
         {"id": "security_analyst", "title": "Security Analyst", "description": "Análisis de seguridad"},
         {"id": "developer", "title": "Developer", "description": "Desarrollo seguro"},
         {"id": "researcher", "title": "Researcher", "description": "Investigación"},
         {"id": "hobbyist", "title": "Hobbyist", "description": "Aprendizaje personal"},
-        {"id": "other", "title": "Otro", "description": "Uso personalizado"}
+        {"id": "other", "title": "Otro", "description": "Uso personalizado"},
     ]
     return {"use_cases": use_cases}
 
@@ -84,7 +84,7 @@ async def get_available_modules():
         {"id": "analytics", "title": "Analytics", "description": "Análisis y métricas"},
         {"id": "reports", "title": "Reports", "description": "Generación de reportes"},
         {"id": "targets", "title": "Targets", "description": "Gestión de objetivos"},
-        {"id": "integrations", "title": "Integrations", "description": "Integraciones externas"}
+        {"id": "integrations", "title": "Integrations", "description": "Integraciones externas"},
     ]
     return {"modules": modules}
 
@@ -97,6 +97,6 @@ async def get_available_platforms():
         {"id": "bugcrowd", "title": "Bugcrowd", "description": "Programas diversos"},
         {"id": "intigriti", "title": "Intigriti", "description": "Plataforma europea"},
         {"id": "yeswehack", "title": "YesWeHack", "description": "Plataforma francesa"},
-        {"id": "synack", "title": "Synack", "description": "Crowdsec elite"}
+        {"id": "synack", "title": "Synack", "description": "Crowdsec elite"},
     ]
     return {"platforms": platforms}

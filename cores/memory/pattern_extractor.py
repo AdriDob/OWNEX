@@ -3,6 +3,7 @@ Pattern extractor: learn vulnerability patterns from confirmed findings.
 
 Converts findings + evidence into reusable patterns for cross-target learning.
 """
+
 import re
 from typing import Any
 
@@ -102,12 +103,14 @@ class PatternExtractor:
                 successful = sum(1 for a in attempts if a.get("consistent"))
                 confidence = successful / len(attempts) if attempts else 0.5
 
-            patterns.append({
-                "mutation_key": mutation_key,
-                "mutation_value": mutation_value,
-                "confidence": confidence,
-                "type": "parameter_swap",  # Could also be header_mutation, path_mutation
-            })
+            patterns.append(
+                {
+                    "mutation_key": mutation_key,
+                    "mutation_value": mutation_value,
+                    "confidence": confidence,
+                    "type": "parameter_swap",  # Could also be header_mutation, path_mutation
+                }
+            )
 
         return patterns
 
@@ -201,10 +204,12 @@ class PatternExtractor:
             score += smell_overlap
 
             if score >= 2:  # Threshold for similarity
-                similar.append({
-                    "pattern": existing,
-                    "similarity_score": score,
-                })
+                similar.append(
+                    {
+                        "pattern": existing,
+                        "similarity_score": score,
+                    }
+                )
 
         # Sort by similarity score
         similar.sort(key=lambda x: x["similarity_score"], reverse=True)  # type: ignore[arg-type,return-value]

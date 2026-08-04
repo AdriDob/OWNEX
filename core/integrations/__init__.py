@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 """ORION Integration Center — unified view of all external integrations."""
+# ruff: noqa: E402
 from core.integrations.discovery import (
     BUILTIN_INTEGRATIONS,
     IntegrationDef,

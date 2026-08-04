@@ -43,11 +43,12 @@ describe('settings store', () => {
     expect(saved.general.userName).toBe('TestUser')
   })
 
-  it('loads from localStorage on init', () => {
+  it('loads from localStorage on init', async () => {
     localStorage.setItem('ownex_settings', JSON.stringify({
       general: { userName: 'Custom', language: 'en', theme: 'dark', colors: 'blue', accessibility: true, animations: false },
     }))
     const store = useSettingsStore()
+    await new Promise(resolve => setTimeout(resolve, 0))
     expect(store.data.general.userName).toBe('Custom')
     expect(store.data.general.language).toBe('en')
   })
@@ -71,7 +72,9 @@ describe('settings store', () => {
   it('updateApiKeys merges and syncs to backend', async () => {
     mockApi.put.mockResolvedValue({})
     const store = useSettingsStore()
-    await store.updateApiKeys({ hackerone: 'h1-token', bugcrowd: 'bc-token' })
+    await vi.waitFor(() => expect(store.ready).toBe(true))
+    store.updateApiKeys({ hackerone: 'h1-token', bugcrowd: 'bc-token' })
+    await vi.waitFor(() => expect(mockApi.put).toHaveBeenCalled())
     expect(store.data.apiKeys.hackerone).toBe('h1-token')
     expect(store.data.apiKeys.bugcrowd).toBe('bc-token')
     expect(mockApi.put).toHaveBeenCalledWith('/settings/all', expect.any(Object))

@@ -10,6 +10,7 @@ Modules:
     predictor — acceptance probability estimation
     optimizer — report improvement suggestions based on patterns
 """
+# ruff: noqa: E402
 from core.acceptance.analyzer import AcceptanceAnalyzer
 from core.acceptance.models import AcceptanceOutcome, PlatformProfile, SubmissionRecord
 from core.acceptance.optimizer import AcceptanceOptimizer

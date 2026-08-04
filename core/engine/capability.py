@@ -4,6 +4,7 @@ Not "what models" or "what tools". WHAT CAPABILITIES.
 Tools implement capabilities. The engine matches opportunity requirements
 to available capabilities and tells the Planner what's feasible.
 """
+
 from __future__ import annotations
 
 import logging
@@ -22,10 +23,10 @@ class Capability:
     Not a tool. A capability. Tools implement capabilities.
     """
 
-    id: str                     # "web_scraping", "code_execution", "git_ops"
-    name: str                   # "Web Scraping"
+    id: str  # "web_scraping", "code_execution", "git_ops"
+    name: str  # "Web Scraping"
     description: str
-    category: str               # "data_collection", "analysis", "execution"
+    category: str  # "data_collection", "analysis", "execution"
 
     # Tools that provide this capability
     providers: list[str] = field(default_factory=list)
@@ -42,7 +43,7 @@ class Capability:
 
     # Availability
     available: bool = True
-    requires_user: bool = False      # needs user approval
+    requires_user: bool = False  # needs user approval
 
 
 BUILTIN_CAPABILITIES: dict[str, dict[str, Any]] = {
@@ -187,11 +188,7 @@ class CapabilityEngine(Engine):
         if "all" in required_ids:
             return list(self._capabilities.values())
 
-        return [
-            self._capabilities[r]
-            for r in required_ids
-            if r in self._capabilities
-        ]
+        return [self._capabilities[r] for r in required_ids if r in self._capabilities]
 
     def can_execute(self, source_type: str) -> tuple[bool, list[str]]:
         """Check if OWNEX has all capabilities for a source_type.

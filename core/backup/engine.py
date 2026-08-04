@@ -18,7 +18,6 @@ logger = logging.getLogger("ownex.core.backup")
 
 BACKUP_DIR = OWNEX_DIR / "backups"
 DEFAULT_KEEP = 10
-OWNEX_VERSION = "5.0.0"
 
 
 def _default_exclude(name: str) -> bool:

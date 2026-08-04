@@ -238,13 +238,16 @@ Border Style:    3px solid #E0E0E0
 # MERLIN System Initialization
 merlin_system = MerlinSystem()
 
+
 # Session Management
 async def create_merlin_session(user_id: str):
     return await merlin_system.initialize_session(user_id)
 
+
 # Query Processing
 async def process_office_query(session_id: str, query: str):
     return await merlin_system.process_query(session_id, query)
+
 
 # Cycle Integration
 async def integrate_with_cycles(payload: Dict):
@@ -348,6 +351,7 @@ app.include_router(merlin_router, prefix="/api/merlin")
 
 # CORS Configuration
 from fastapi.middleware.cors import CORSMiddleware
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

@@ -38,10 +38,10 @@ def _score_action(opp: Opportunity) -> float:
 
     # Weighted combination favoring low effort + high value
     return (
-        evh_norm * 0.4 +
-        (1.0 - exec_s) * 0.25 +  # invert: lower execution score = easier = better
-        comp_s * 0.2 +
-        conf_s * 0.15
+        evh_norm * 0.4
+        + (1.0 - exec_s) * 0.25  # invert: lower execution score = easier = better
+        + comp_s * 0.2
+        + conf_s * 0.15
     )
 
 
@@ -80,20 +80,26 @@ def _generate_steps(opp: Opportunity) -> list[str]:
         "Understand the scope and target",
     ]
     if cat in ("web", "api"):
-        base.extend([
-            "Run a basic reconnaissance scan",
-            "Document any findings",
-        ])
+        base.extend(
+            [
+                "Run a basic reconnaissance scan",
+                "Document any findings",
+            ]
+        )
     elif cat in ("web3",):
-        base.extend([
-            "Review smart contract if available",
-            "Check for common web3 vulnerabilities",
-        ])
+        base.extend(
+            [
+                "Review smart contract if available",
+                "Check for common web3 vulnerabilities",
+            ]
+        )
     else:
-        base.extend([
-            "Analyze the target surface",
-            "Identify potential entry points",
-        ])
+        base.extend(
+            [
+                "Analyze the target surface",
+                "Identify potential entry points",
+            ]
+        )
     base.append("Generate a structured report of your findings")
     return base
 

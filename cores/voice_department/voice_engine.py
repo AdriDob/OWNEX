@@ -182,10 +182,7 @@ class VoiceEngine:
         question = self.conversation_agent.ask_intelligent_question(context, risk_level)
 
         # Determinar si debe interrumpir según preferencias
-        should_interrupt = self.personalization_system.should_interrupt(
-            self.current_context.user_id,
-            risk_level
-        )
+        should_interrupt = self.personalization_system.should_interrupt(self.current_context.user_id, risk_level)
 
         if should_interrupt:
             # Sintetizar y hacer la pregunta
@@ -235,6 +232,7 @@ El sistema continúa estable.
             return
 
         from cores.voice_department.models import ConversationMode
+
         new_mode = ConversationMode(mode)
         self.current_context = self.conversation_agent.switch_mode(self.current_context, new_mode)
 
@@ -246,6 +244,7 @@ El sistema continúa estable.
             return
 
         from cores.voice_department.models import VoicePersonality
+
         new_personality = VoicePersonality(personality)
         self.current_context = self.conversation_agent.switch_personality(self.current_context, new_personality)
 

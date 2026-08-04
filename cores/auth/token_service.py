@@ -97,11 +97,13 @@ class TokenService:
         result = []
         for device_id, entry in self._tokens.items():
             if entry.get("expires_at", 0) >= now:
-                result.append({
-                    "device_id": device_id,
-                    "created_at": entry.get("created_at"),
-                    "expires_at": entry.get("expires_at"),
-                })
+                result.append(
+                    {
+                        "device_id": device_id,
+                        "created_at": entry.get("created_at"),
+                        "expires_at": entry.get("expires_at"),
+                    }
+                )
         return result
 
     def count(self) -> int:

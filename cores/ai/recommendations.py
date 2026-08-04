@@ -32,14 +32,16 @@ def generate_recommendations() -> list[dict[str, Any]]:
             [f for f in findings if f.target_id == t.id]
             t_verdicts = [v for v in verdicts if v.endpoint_id and v.endpoint_id in {ep.id for ep in t_eps}]
 
-            roi = unified_score_target({
-                "api_count": len(t_eps),
-                "has_graphql": any("/graphql" in (ep.path or "").lower() for ep in t_eps),
-                "has_admin": any("admin" in (ep.path or "").lower() for ep in t_eps),
-                "has_api": any("/api/" in (ep.path or "") for ep in t_eps),
-                "has_exports": any("export" in (ep.path or "").lower() for ep in t_eps),
-                "source": (t.name or "").lower(),
-            })
+            roi = unified_score_target(
+                {
+                    "api_count": len(t_eps),
+                    "has_graphql": any("/graphql" in (ep.path or "").lower() for ep in t_eps),
+                    "has_admin": any("admin" in (ep.path or "").lower() for ep in t_eps),
+                    "has_api": any("/api/" in (ep.path or "") for ep in t_eps),
+                    "has_exports": any("export" in (ep.path or "").lower() for ep in t_eps),
+                    "source": (t.name or "").lower(),
+                }
+            )
 
             critical_eps = []
             idor_eps = []
@@ -55,12 +57,14 @@ def generate_recommendations() -> list[dict[str, Any]]:
                 if "graphql" in (ep.path or "").lower():
                     graphql_eps.append({"path": ep.path, "method": ep.method})
                 if s.get("actionable"):
-                    actionable_eps.append({
-                        "path": ep.path,
-                        "method": ep.method,
-                        "score": rs,
-                        "suggestions": generate_suggestions(ep.path, ep.method or "GET", ep.parsed_params),
-                    })
+                    actionable_eps.append(
+                        {
+                            "path": ep.path,
+                            "method": ep.method,
+                            "score": rs,
+                            "suggestions": generate_suggestions(ep.path, ep.method or "GET", ep.parsed_params),
+                        }
+                    )
 
             confirmed = sum(1 for v in t_verdicts if v.status == "confirmed")
             estimated_payout = confirmed * 5000 + len(critical_eps) * 3000 + len(idor_eps) * 2000
@@ -68,32 +72,34 @@ def generate_recommendations() -> list[dict[str, Any]]:
 
             priority = roi.get("priority", 0)
             if priority >= 50 or len(critical_eps) > 0:
-                recs.append({
-                    "type": "attack",
-                    "target_id": t.id,
-                    "target_name": t.name,
-                    "domain": t.domain,
-                    "priority_score": priority,
-                    "roi_score": roi.get("roi_score", 0),
-                    "quality": roi.get("quality", 0),
-                    "complexity": roi.get("complexity_score", 0),
-                    "critical_endpoints": len(critical_eps),
-                    "idor_candidates": len(idor_eps),
-                    "graphql_surfaces": len(graphql_eps),
-                    "actionable_endpoints": len(actionable_eps),
-                    "estimated_time_minutes": time_estimate,
-                    "estimated_payout": estimated_payout,
-                    "confirmed_findings": confirmed,
-                    "top_critical": critical_eps[:3],
-                    "top_idor": idor_eps[:3],
-                    "top_actionable": actionable_eps[:3],
-                    "reason": (
-                        f"ROI {roi.get('roi_score', 0):.0f} · "
-                        f"{len(critical_eps)} críticos · "
-                        f"{len(idor_eps)} IDOR potenciales · "
-                        f"{len(graphql_eps)} GraphQL"
-                    ),
-                })
+                recs.append(
+                    {
+                        "type": "attack",
+                        "target_id": t.id,
+                        "target_name": t.name,
+                        "domain": t.domain,
+                        "priority_score": priority,
+                        "roi_score": roi.get("roi_score", 0),
+                        "quality": roi.get("quality", 0),
+                        "complexity": roi.get("complexity_score", 0),
+                        "critical_endpoints": len(critical_eps),
+                        "idor_candidates": len(idor_eps),
+                        "graphql_surfaces": len(graphql_eps),
+                        "actionable_endpoints": len(actionable_eps),
+                        "estimated_time_minutes": time_estimate,
+                        "estimated_payout": estimated_payout,
+                        "confirmed_findings": confirmed,
+                        "top_critical": critical_eps[:3],
+                        "top_idor": idor_eps[:3],
+                        "top_actionable": actionable_eps[:3],
+                        "reason": (
+                            f"ROI {roi.get('roi_score', 0):.0f} · "
+                            f"{len(critical_eps)} críticos · "
+                            f"{len(idor_eps)} IDOR potenciales · "
+                            f"{len(graphql_eps)} GraphQL"
+                        ),
+                    }
+                )
 
         recs.sort(key=lambda r: r.get("priority_score", 0), reverse=True)
         return recs

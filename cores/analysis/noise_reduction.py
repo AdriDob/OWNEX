@@ -2,43 +2,97 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-UUID_PATTERN = re.compile(
-    r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-)
+UUID_PATTERN = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
 
 HEX_PATTERN = re.compile(r"^[0-9a-fA-F]{24}$")
 
 TOKEN_PATTERN = re.compile(r"^[A-Za-z0-9_-]{32,}$")
 
 STATIC_EXTENSIONS: set[str] = {
-    ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp",
-    ".woff", ".woff2", ".ttf", ".eot",
-    ".css", ".js", ".map",
-    ".ico", ".mp4", ".webm", ".mp3", ".wav",
-    ".pdf", ".doc", ".docx", ".xls", ".xlsx",
-    ".zip", ".tar", ".gz",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".svg",
+    ".webp",
+    ".woff",
+    ".woff2",
+    ".ttf",
+    ".eot",
+    ".css",
+    ".js",
+    ".map",
+    ".ico",
+    ".mp4",
+    ".webm",
+    ".mp3",
+    ".wav",
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".zip",
+    ".tar",
+    ".gz",
 }
 
 LOW_VALUE_FRAGMENTS: set[str] = {
-    "/health", "/status", "/metrics", "/favicon.ico",
-    "/robots.txt", "/sitemap.xml", "/ping", "/version",
-    "/swagger-resources", "/v2/api-docs", "/webjars",
-    "/actuator", "/heartbeat", "/ready", "/live",
+    "/health",
+    "/status",
+    "/metrics",
+    "/favicon.ico",
+    "/robots.txt",
+    "/sitemap.xml",
+    "/ping",
+    "/version",
+    "/swagger-resources",
+    "/v2/api-docs",
+    "/webjars",
+    "/actuator",
+    "/heartbeat",
+    "/ready",
+    "/live",
 }
 
 SIGNAL_LABELS: set[str] = {
-    "graphql", "admin", "export", "auth", "multi_tenant",
-    "billing", "identity", "internal", "file_operation",
-    "import", "id_parameter", "uuid_identifier",
-    "numeric_identifier", "mutation", "sensitive",
+    "graphql",
+    "admin",
+    "export",
+    "auth",
+    "multi_tenant",
+    "billing",
+    "identity",
+    "internal",
+    "file_operation",
+    "import",
+    "id_parameter",
+    "uuid_identifier",
+    "numeric_identifier",
+    "mutation",
+    "sensitive",
 }
 
 SIGNAL_KEYWORDS: set[str] = {
-    "graphql", "admin", "export", "auth", "multi_tenant",
-    "billing", "identity", "internal", "file_operation",
-    "import", "uuid", "auth_smell", "idor_params",
-    "ownership_risk", "sensitive_operation", "high_value_keyword",
-    "object_reference_param", "api_path", "mutating_method",
+    "graphql",
+    "admin",
+    "export",
+    "auth",
+    "multi_tenant",
+    "billing",
+    "identity",
+    "internal",
+    "file_operation",
+    "import",
+    "uuid",
+    "auth_smell",
+    "idor_params",
+    "ownership_risk",
+    "sensitive_operation",
+    "high_value_keyword",
+    "object_reference_param",
+    "api_path",
+    "mutating_method",
 }
 
 
@@ -227,9 +281,7 @@ class NoiseReductionEngine:
                 clean.extend(group)
                 continue
 
-            group_sorted = sorted(
-                group, key=lambda x: float(x.get("risk_score", 0)), reverse=True
-            )
+            group_sorted = sorted(group, key=lambda x: float(x.get("risk_score", 0)), reverse=True)
             kept = group_sorted[0]
             clean.append(kept)
             for ep in group_sorted[1:]:
@@ -257,10 +309,7 @@ class NoiseReductionEngine:
             score = float(ep.get("risk_score", 0))
             if score < threshold:
                 removed.append(ep)
-                reasons.append(
-                    f"[below_threshold] {ep.get('path')} "
-                    f"risk_score {score} < threshold {threshold}"
-                )
+                reasons.append(f"[below_threshold] {ep.get('path')} risk_score {score} < threshold {threshold}")
             else:
                 clean.append(ep)
 
@@ -288,10 +337,7 @@ class NoiseReductionEngine:
                 clean.append(ep)
             else:
                 removed.append(ep)
-                reasons.append(
-                    f"[no_signal] {ep.get('path')} "
-                    f"risk_score {risk_score} no security signals"
-                )
+                reasons.append(f"[no_signal] {ep.get('path')} risk_score {risk_score} no security signals")
 
         return clean, removed, reasons
 

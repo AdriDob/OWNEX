@@ -6,18 +6,20 @@ def extract_endpoints(snapshot) -> list[dict[str, Any]]:
         return []
     out = []
     for ep in getattr(snapshot, "endpoints", []):
-        out.append({
-            "path": getattr(ep, "path", "/"),
-            "method": getattr(ep, "method", "GET"),
-            "risk_score": getattr(ep, "risk_score", 0.0),
-            "confidence": getattr(ep, "confidence", 0.0),
-            "labels": list(getattr(ep, "labels", [])),
-            "attack_surface": list(getattr(ep, "attack_surface", [])),
-            "signals": list(getattr(ep, "signals", [])),
-            "vector": getattr(ep, "vector", ""),
-            "potential_idor": getattr(ep, "potential_idor", False),
-            "actionable": getattr(ep, "actionable", False),
-        })
+        out.append(
+            {
+                "path": getattr(ep, "path", "/"),
+                "method": getattr(ep, "method", "GET"),
+                "risk_score": getattr(ep, "risk_score", 0.0),
+                "confidence": getattr(ep, "confidence", 0.0),
+                "labels": list(getattr(ep, "labels", [])),
+                "attack_surface": list(getattr(ep, "attack_surface", [])),
+                "signals": list(getattr(ep, "signals", [])),
+                "vector": getattr(ep, "vector", ""),
+                "potential_idor": getattr(ep, "potential_idor", False),
+                "actionable": getattr(ep, "actionable", False),
+            }
+        )
     return out
 
 
@@ -28,23 +30,27 @@ def extract_hot_paths(snapshot, hot_paths: list | None = None, investigation_gra
         items = getattr(src, "hot_paths", src) if investigation_graph is not None else src
         for item in items:
             if hasattr(item, "nodes"):
-                out.append({
-                    "nodes": list(getattr(item, "nodes", [])),
-                    "why_it_matters": getattr(item, "why_it_matters", ""),
-                    "estimated_reward": getattr(item, "estimated_reward", "medium"),
-                })
+                out.append(
+                    {
+                        "nodes": list(getattr(item, "nodes", [])),
+                        "why_it_matters": getattr(item, "why_it_matters", ""),
+                        "estimated_reward": getattr(item, "estimated_reward", "medium"),
+                    }
+                )
             elif isinstance(item, dict):
                 out.append(item)
     if not out and snapshot is not None:
         for hp in getattr(snapshot, "hot_paths", []):
-            out.append({
-                "node_id": getattr(hp, "node_id", ""),
-                "path": getattr(hp, "path", ""),
-                "method": getattr(hp, "method", "GET"),
-                "risk_score": getattr(hp, "risk_score", 0.0),
-                "vector": getattr(hp, "vector", ""),
-                "cluster_type": getattr(hp, "cluster_type", None),
-            })
+            out.append(
+                {
+                    "node_id": getattr(hp, "node_id", ""),
+                    "path": getattr(hp, "path", ""),
+                    "method": getattr(hp, "method", "GET"),
+                    "risk_score": getattr(hp, "risk_score", 0.0),
+                    "vector": getattr(hp, "vector", ""),
+                    "cluster_type": getattr(hp, "cluster_type", None),
+                }
+            )
     return out
 
 
@@ -90,8 +96,10 @@ def extract_verdict_map(snapshot, verdicts: list | None = None, evidence_graph=N
 
 def extract_surface(attack_surface, snapshot) -> dict[str, list[dict[str, Any]]]:
     out: dict[str, list[dict[str, Any]]] = {
-        "idor_clusters": [], "auth_boundaries": [],
-        "multi_tenant_zones": [], "graphql_surfaces": [],
+        "idor_clusters": [],
+        "auth_boundaries": [],
+        "multi_tenant_zones": [],
+        "graphql_surfaces": [],
     }
     if attack_surface is not None:
         for attr in ("idor_clusters", "auth_boundaries", "multi_tenant_zones", "graphql_surfaces"):
@@ -110,8 +118,10 @@ def extract_quick_wins(quick_wins) -> dict[str, Any]:
     if quick_wins is None:
         return {}
     out: dict[str, Any] = {
-        "top_quick_wins": [], "fast_exploit_paths": [],
-        "low_effort_high_roi": [], "total_estimated_value": 0.0,
+        "top_quick_wins": [],
+        "fast_exploit_paths": [],
+        "low_effort_high_roi": [],
+        "total_estimated_value": 0.0,
         "avg_quick_win_score": 0.0,
     }
     if hasattr(quick_wins, "top_quick_wins"):

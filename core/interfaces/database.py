@@ -17,12 +17,10 @@ class IDatabase(ABC):
         """
 
     @abstractmethod
-    def get_engine(self, app_id: str) -> Engine:
-        ...
+    def get_engine(self, app_id: str) -> Engine: ...
 
     @abstractmethod
-    def get_session(self, app_id: str) -> Session:
-        ...
+    def get_session(self, app_id: str) -> Session: ...
 
     @abstractmethod
     def run_migrations(self, app_id: str, base: type) -> None:

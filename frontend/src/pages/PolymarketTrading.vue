@@ -42,8 +42,8 @@ const STRATEGY_DEFS: Record<string, {
   btc_arb: {
     label: 'BTC Latency Arbitrage',
     icon: Zap,
-    accent: 'text-amber-400',
-    bgGlow: 'bg-amber-500/5',
+    accent: 'text-warning',
+    bgGlow: 'bg-warning/5',
     description: 'Detecta micro-movimientos de BTC en Binance y entra en Polymarket antes de que el mercado reaccione',
     whatItDoes: 'Monitorea velas de 1s en Binance. Si BTC se mueve >$70 en 1 minuto, genera señal de compra/venta en el mercado 5m de Polymarket.',
     needsKeys: false,
@@ -53,8 +53,8 @@ const STRATEGY_DEFS: Record<string, {
   smart_money: {
     label: 'Smart Money Copy Trading',
     icon: Copy,
-    accent: 'text-cyan-400',
-    bgGlow: 'bg-cyan-500/5',
+    accent: 'text-muted-foreground',
+    bgGlow: "bg-primary/5",
     description: 'Escanea y copia las posiciones de los traders más rentables de Polymarket',
     whatItDoes: 'Consulta el leaderboard de Polymarket, filtra traders por win rate >60%, y genera señales de copy trade basadas en sus posiciones abiertas.',
     needsKeys: false,
@@ -64,8 +64,8 @@ const STRATEGY_DEFS: Record<string, {
   complete_arb: {
     label: 'Complete-Set Arbitrage',
     icon: BarChart3,
-    accent: 'text-emerald-400',
-    bgGlow: 'bg-emerald-500/5',
+    accent: 'text-success',
+    bgGlow: 'bg-success/5',
     description: 'Explota diferencias de precio cuando YES+NO no suman 1.0',
     whatItDoes: 'Escanea mercados buscando donde YES + NO != 1. Compra el lado barato, vende el caro. Riesgo mínimo, ganancia por spread.',
     needsKeys: false,
@@ -75,8 +75,8 @@ const STRATEGY_DEFS: Record<string, {
   weather: {
     label: 'Weather Prediction Markets',
     icon: Thermometer,
-    accent: 'text-sky-400',
-    bgGlow: 'bg-sky-500/5',
+    accent: 'text-muted-foreground',
+    bgGlow: "bg-primary/5",
     description: 'Predice temperaturas de liquidación en mercados climáticos de Polymarket',
     whatItDoes: 'Obtiene datos de Open-Meteo (gratis, sin API key). Estima si la temperatura superará un umbral. Ideal para mercados "Hace más de 30°C en Buenos Aires".',
     needsKeys: false,
@@ -86,8 +86,8 @@ const STRATEGY_DEFS: Record<string, {
   lp_mm: {
     label: 'LP Market Making',
     icon: Activity,
-    accent: 'text-violet-400',
-    bgGlow: 'bg-violet-500/5',
+    accent: 'text-intigriti',
+    bgGlow: "bg-primary/5",
     description: 'Coloca órdenes límite para ganar rewards de liquidez en Polymarket',
     whatItDoes: 'Calcula spreads óptimos (coarse tick + fine tick) para órdenes de compra/venta. Gana incentives del programa de liquidez de Polymarket CLOB.',
     needsKeys: true,
@@ -264,9 +264,9 @@ function openRepo(repo: string) {
         <div class="tactical-panel rounded-xl p-4">
           <div class="flex items-center justify-between mb-2">
             <span class="font-mono text-[10px] text-muted-foreground tracking-wider">BTC/USD</span>
-            <Bitcoin class="h-4 w-4 text-amber-400" />
+            <Bitcoin class="h-4 w-4 text-warning" />
           </div>
-          <p class="font-mono text-xl font-bold text-amber-400">
+          <p class="font-mono text-xl font-bold text-warning">
             <template v-if="btcStatus">{{ fmtUSD(btcStatus.price) }}</template>
             <Skeleton v-else class="h-6 w-20 inline-block align-middle" />
           </p>
@@ -298,9 +298,9 @@ function openRepo(repo: string) {
         <div class="tactical-panel rounded-xl p-4">
           <div class="flex items-center justify-between mb-2">
             <span class="font-mono text-[10px] text-muted-foreground tracking-wider">WEATHER</span>
-            <Cloud class="h-4 w-4 text-sky-400" />
+            <Cloud class="h-4 w-4 text-muted-foreground" />
           </div>
-          <p class="font-mono text-xl font-bold text-sky-400">
+          <p class="font-mono text-xl font-bold text-muted-foreground">
             {{ weatherData?.current_temp ?? '—' }}°C
           </p>
           <p class="text-[10px] text-muted-foreground mt-1">
@@ -311,9 +311,9 @@ function openRepo(repo: string) {
         <div class="tactical-panel rounded-xl p-4">
           <div class="flex items-center justify-between mb-2">
             <span class="font-mono text-[10px] text-muted-foreground tracking-wider">ARBITRAJE</span>
-            <BarChart3 class="h-4 w-4 text-emerald-400" />
+            <BarChart3 class="h-4 w-4 text-success" />
           </div>
-          <p class="font-mono text-xl font-bold text-emerald-400">
+          <p class="font-mono text-xl font-bold text-success">
             {{ scanResult?.result?.complete_arb?.opportunities?.length ?? 0 }}
           </p>
           <p class="text-[10px] text-muted-foreground mt-1">Complete-set oportunidades</p>
@@ -450,7 +450,7 @@ function openRepo(repo: string) {
                 <div v-if="scanResult.result.weather.data" class="space-y-1">
                   <div class="flex justify-between text-[11px]">
                     <span class="text-muted-foreground">Temperatura actual</span>
-                    <span class="font-mono font-bold text-sky-400">{{ scanResult.result.weather.data.current_temp ?? '—' }}°C</span>
+                    <span class="font-mono font-bold text-muted-foreground">{{ scanResult.result.weather.data.current_temp ?? '—' }}°C</span>
                   </div>
                   <div class="flex justify-between text-[11px]">
                     <span class="text-muted-foreground">Pronóstico máxima</span>
@@ -519,7 +519,7 @@ function openRepo(repo: string) {
       <!-- ═══ QUICK ACTIONS STRIP ═══ -->
       <div class="flex flex-wrap items-center gap-2 rounded-xl bg-data-grid-subtle border border-border/30 px-4 py-3">
         <span class="font-mono text-[9px] font-bold uppercase tracking-wider text-muted-foreground mr-1">
-          <Zap class="h-3 w-3 inline mr-1 text-amber-400" />
+          <Zap class="h-3 w-3 inline mr-1 text-warning" />
           Acciones rápidas
         </span>
         <button

@@ -44,15 +44,13 @@ from core.memory.store import get_memory_store
 store = get_memory_store()
 
 # Guardar
-store.store(namespace="user", key="preferred_language", content="es",
-            tags=["preference"], priority=2.0)
+store.store(namespace="user", key="preferred_language", content="es", tags=["preference"], priority=2.0)
 
 # Leer
 entry = store.get("user", "preferred_language")  # dict | None
 
 # Buscar
-results = store.query(namespace="cateye", tags=["finding", "critical"],
-                      search="IDOR", limit=10)
+results = store.query(namespace="cateye", tags=["finding", "critical"], search="IDOR", limit=10)
 
 # Eliminar
 store.delete("user", "temporal_data")

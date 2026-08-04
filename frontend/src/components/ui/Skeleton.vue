@@ -22,13 +22,13 @@ const props = withDefaults(defineProps<Props>(), {
     <div
       v-if="variant === 'shimmer'"
       class="absolute inset-0 -translate-x-full"
-      style="background: linear-gradient(90deg, transparent, rgba(0,255,65,0.04), transparent); animation: shimmerSlide 1.8s ease-in-out infinite;"
+      style="background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent); animation: shimmerSlide 1.8s ease-in-out infinite;"
     />
     <!-- CRT flicker variant -->
     <div
       v-if="variant === 'crt'"
       class="absolute inset-0"
-      style="background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,65,0.04) 2px, rgba(0,255,65,0.04) 4px); animation: phosphorFlicker 0.1s infinite;"
+      style="background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.04) 2px, rgba(255,255,255,0.04) 4px); animation: phosphorFlicker 0.1s infinite;"
     />
     <!-- Pulse variant -->
     <div

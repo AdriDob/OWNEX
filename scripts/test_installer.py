@@ -110,10 +110,13 @@ def main() -> None:
     log("Running installer silently (may prompt for admin elevation)...")
     try:
         import ctypes
+
         if ctypes.windll.shell32.IsUserAnAdmin():
             result = subprocess.run(
                 [str(installer), "/S"],
-                capture_output=True, text=True, timeout=120,
+                capture_output=True,
+                text=True,
+                timeout=120,
             )
             if result.returncode != 0:
                 fail(f"Installer returned exit code {result.returncode}")
@@ -127,6 +130,7 @@ def main() -> None:
                 sys.exit(1)
             log("Installer launched via RunAs, waiting for completion...")
             import time
+
             max_wait = 120
             while max_wait > 0 and not (installed_dir / "uninstall.exe").exists():
                 time.sleep(1)
@@ -139,7 +143,9 @@ def main() -> None:
         log("ctypes not available — falling back to subprocess")
         result = subprocess.run(
             [str(installer), "/S"],
-            capture_output=True, text=True, timeout=120,
+            capture_output=True,
+            text=True,
+            timeout=120,
         )
         if result.returncode == 0:
             ok("Installer completed successfully")
@@ -175,6 +181,7 @@ def main() -> None:
         log("  See log above for missing files")
         if not args.no_uninstall:
             import ctypes
+
             ctypes.windll.shell32.ShellExecuteW(None, "runas", str(installed_dir / "uninstall.exe"), "/S", None, 0)
         sys.exit(1)
 
@@ -212,6 +219,7 @@ def main() -> None:
         proc.kill()
         if not args.no_uninstall:
             import ctypes
+
             ctypes.windll.shell32.ShellExecuteW(None, "runas", str(installed_dir / "uninstall.exe"), "/S", None, 0)
         sys.exit(1)
 
@@ -249,10 +257,13 @@ def main() -> None:
             uninstall_exe = installed_dir / "uninstall.exe"
             if uninstall_exe.exists():
                 import ctypes
+
                 if ctypes.windll.shell32.IsUserAnAdmin():
                     result = subprocess.run(
                         [str(uninstall_exe), "/S"],
-                        capture_output=True, text=True, timeout=30,
+                        capture_output=True,
+                        text=True,
+                        timeout=30,
                     )
                     if result.returncode == 0:
                         ok("Uninstaller completed successfully")
@@ -262,6 +273,7 @@ def main() -> None:
                     log("Not admin — attempting ShellExecute RunAs for uninstall...")
                     ctypes.windll.shell32.ShellExecuteW(None, "runas", str(uninstall_exe), "/S", None, 0)
                     import time
+
                     time.sleep(5)
                     if not uninstall_exe.exists():
                         ok("Uninstaller completed successfully (target removed)")

@@ -274,6 +274,7 @@ def main() -> None:
     if args.validate:
         log("ASSEMBLE", "Running asset validation...")
         from scripts.validate_assets import check_build
+
         success = check_build(output_dir, release_mode=True)
         if success:
             log("ASSEMBLE", "Asset validation PASSED")

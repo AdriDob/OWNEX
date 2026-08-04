@@ -232,11 +232,9 @@ def create_or_update_release(tag: str, artifact_dir: Path, dry_run: bool, force:
             log("SKIP", f"[dry-run] Would update release {tag}")
             return url
 
-        r = gh(["release", "edit", tag,
-                "--draft=false",
-                "--prerelease=false",
-                "--latest",
-                f"--notes-file={notes_path}"])
+        r = gh(
+            ["release", "edit", tag, "--draft=false", "--prerelease=false", "--latest", f"--notes-file={notes_path}"]
+        )
         if r.returncode == 0:
             log("OK", f"Release {tag} updated (draft=false, prerelease=false, latest=true)")
         else:
@@ -255,11 +253,19 @@ def create_or_update_release(tag: str, artifact_dir: Path, dry_run: bool, force:
         log("SKIP", f"  gh release create {tag} --title 'CATEYE v{version} — Stable Release'")
         return "https://github.com/AdriDob/CATEYEhunteralpha/releases/tag/" + tag
 
-    r = gh(["release", "create", tag,
-            "--title", f"CATEYE v{version} — Stable Release",
+    r = gh(
+        [
+            "release",
+            "create",
+            tag,
+            "--title",
+            f"CATEYE v{version} — Stable Release",
             "--draft=false",
             "--prerelease=false",
-            "--latest"] + notes_arg)
+            "--latest",
+        ]
+        + notes_arg
+    )
     if r.returncode == 0:
         url = r.stdout.strip()
         log("OK", f"Release created: {url}")
@@ -339,8 +345,7 @@ def verify_release(tag: str, artifact_dir: Path, dry_run: bool) -> bool:
         log("INFO", "Downloading CATEYEInstaller.exe from GitHub to verify SHA256...")
         tmp = Path(tempfile.mkstemp(suffix=".exe")[1])
         try:
-            r = gh(["release", "download", tag, "--pattern", "CATEYEInstaller.exe",
-                    "--output", str(tmp)], timeout=120)
+            r = gh(["release", "download", tag, "--pattern", "CATEYEInstaller.exe", "--output", str(tmp)], timeout=120)
             if r.returncode == 0:
                 local_hash = sha256(artifact_dir / "CATEYEInstaller.exe")
                 remote_hash = sha256(tmp)
@@ -376,10 +381,14 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    parser.add_argument("--dir", type=Path,
-                        default=Path(os.environ.get("HOME", "/tmp")) / "CATEYE" if sys.platform != "win32"
-                        else Path(os.environ.get("USERPROFILE", "C:/")) / "OneDrive" / "Desktop" / "Yo" / "privado" / "CATEYE",
-                        help="Artifact directory (default: CATEYE final output)")
+    parser.add_argument(
+        "--dir",
+        type=Path,
+        default=Path(os.environ.get("HOME", "/tmp")) / "CATEYE"
+        if sys.platform != "win32"
+        else Path(os.environ.get("USERPROFILE", "C:/")) / "OneDrive" / "Desktop" / "Yo" / "privado" / "CATEYE",
+        help="Artifact directory (default: CATEYE final output)",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Preview only, no changes")
     parser.add_argument("--force", action="store_true", help="Override safety checks")
     parser.add_argument("--version", default=None, help="Override version (semver)")
@@ -487,7 +496,9 @@ def main() -> None:
         print(f"  ❌ RELEASE v{version} — FAILED")
     print(f"  Tag:          {tag}")
     print(f"  GitHub URL:   {url}")
-    print(f"  Artifacts:    {len(ARTIFACT_NAMES)} files (~{sum((artifact_dir / n).stat().st_size for n in ARTIFACT_NAMES if (artifact_dir / n).exists()) / 1024 / 1024:.0f} MB)")
+    print(
+        f"  Artifacts:    {len(ARTIFACT_NAMES)} files (~{sum((artifact_dir / n).stat().st_size for n in ARTIFACT_NAMES if (artifact_dir / n).exists()) / 1024 / 1024:.0f} MB)"
+    )
     print(f"  Confidence:   {confidence}/100")
     if FAILURES:
         print(f"  Failures:     {len(FAILURES)}")

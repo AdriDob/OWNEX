@@ -70,7 +70,7 @@ onMounted(async () => {
           </div>
           <BarChart
             :labels="trends.slice(0, 8).map(t => t.name.length > 14 ? t.name.slice(0, 12) + '…' : t.name)"
-            :datasets="[{ label: 'Magnitude', data: trends.slice(0, 8).map(t => t.magnitude || 0), backgroundColor: '#06b6d4' }]"
+            :datasets="[{ label: 'Magnitude', data: trends.slice(0, 8).map(t => t.magnitude || 0), backgroundColor: '#9CA3AF' }]"
             :horizontal="true"
             :height="220"
             xLabel="Magnitude"

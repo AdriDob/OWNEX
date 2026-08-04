@@ -43,10 +43,12 @@ def init_all_connectors() -> dict[str, AtlasConnector]:
             inst = cls()
             connected = False
             import asyncio
+
             try:
                 loop = asyncio.get_event_loop()
                 if loop.is_running():
                     import asyncio as _a
+
                     connected = _a.run_coroutine_threadsafe(inst.connect(), loop).result(5)
                 else:
                     connected = asyncio.run(inst.connect())
@@ -78,12 +80,14 @@ register_connector(CSVImporterConnector)
 # Optional connectors (require external running instances)
 try:
     from apps.atlas.connectors.freqtrade.connector import FreqtradeConnector  # noqa: E402
+
     register_connector(FreqtradeConnector)
 except ImportError:
     pass
 
 try:
     from apps.atlas.connectors.hummingbot.connector import HummingbotConnector  # noqa: E402
+
     register_connector(HummingbotConnector)
 except ImportError:
     pass

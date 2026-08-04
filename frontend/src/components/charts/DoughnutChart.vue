@@ -24,9 +24,9 @@ const props = withDefaults(defineProps<Props>(), {
 const isDark = computed(() => document.documentElement.classList.contains('dark'))
 
 const defaultColors = computed(() => [
-  '#7c3aed', '#3b82f6', '#22c55e', '#eab308', '#ef4444',
-  '#ec4899', '#14b8a6', '#f97316', '#8b5cf6', '#6366f1',
-  '#84cc16', '#06b6d4', '#a855f7', '#d946ef', '#0ea5e9',
+  '#7c3aed', '#ffffff', '#16A34A', '#A16207', '#E82127',
+  '#9CA3AF', '#14b8a6', '#D97706', '#9CA3AF', '#9CA3AF',
+  '#84cc16', '#9CA3AF', '#a855f7', '#d946ef', '#0ea5e9',
 ])
 
 const chartData = computed(() => ({

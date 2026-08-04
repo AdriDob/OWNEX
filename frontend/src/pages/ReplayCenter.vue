@@ -50,13 +50,13 @@ const stageIcons: Record<string, any> = {
 }
 
 const stageColors: Record<string, string> = {
-  recon: 'text-blue-400',
-  endpoints: 'text-emerald-400',
-  hot_paths: 'text-orange-400',
-  evidence: 'text-purple-400',
-  verdicts: 'text-amber-400',
-  findings: 'text-rose-400',
-  reports: 'text-cyan-400',
+  recon: 'text-primary',
+  endpoints: 'text-success',
+  hot_paths: 'text-warning',
+  evidence: 'text-intigriti',
+  verdicts: 'text-warning',
+  findings: 'text-destructive',
+  reports: 'text-muted-foreground',
 }
 
 const stageOrder = ['recon', 'endpoints', 'hot_paths', 'evidence', 'verdicts', 'findings', 'reports']
@@ -208,7 +208,7 @@ onMounted(loadTargets)
               </Badge>
             </div>
             <p class="mt-1 text-[10px] text-muted-foreground">{{ target.domain }}</p>
-            <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-[#1a1d29]">
+            <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
               <div
                 class="h-full rounded-full bg-gradient-to-r from-primary to-primary/70 transition-all"
                 :style="{ width: `${targetProgress(target)}%` }"
@@ -263,7 +263,7 @@ onMounted(loadTargets)
                 y-label="Stage"
               />
 
-              <div class="h-1.5 overflow-hidden rounded-full bg-[#1a1d29]">
+              <div class="h-1.5 overflow-hidden rounded-full bg-surface">
                 <div
                   class="h-full rounded-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-500"
                   :style="{ width: `${progressPercent}%` }"
@@ -365,7 +365,7 @@ onMounted(loadTargets)
                     <p class="text-[9px] text-muted-foreground">Progress</p>
                     <p class="text-sm font-semibold text-foreground">{{ currentStepIndex + 1 }} / {{ timeline.total_steps }} steps</p>
                   </div>
-                  <div class="h-2 overflow-hidden rounded-full bg-[#1a1d29]">
+                  <div class="h-2 overflow-hidden rounded-full bg-surface">
                     <div
                       class="h-full rounded-full bg-gradient-to-r from-primary to-primary/70 transition-all"
                       :style="{ width: `${progressPercent}%` }"

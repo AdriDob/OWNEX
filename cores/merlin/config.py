@@ -8,6 +8,7 @@ from enum import Enum
 
 class DetailLevel(Enum):
     """Detail level for responses."""
+
     CONCISE = "concise"
     NORMAL = "normal"
     DETAILED = "detailed"
@@ -15,6 +16,7 @@ class DetailLevel(Enum):
 
 class ResponseTone(Enum):
     """Tone for responses."""
+
     PROFESSIONAL = "professional"
     FRIENDLY = "friendly"
     CASUAL = "casual"
@@ -23,6 +25,7 @@ class ResponseTone(Enum):
 
 class Theme(Enum):
     """Retro office themes."""
+
     CLASSIC_97 = "classic_97"
     MODERN_RETRO = "modern_retro"
     CYBER_RETRO = "cyber_retro"
@@ -67,14 +70,29 @@ class MerlinConfig:
     memory_retention_days: int = 90
 
     # Capabilities
-    capabilities: list[str] = field(default_factory=lambda: [
-        "target_analysis",
-        "report_generation",
-        "workflow_optimization",
-        "data_analysis",
-        "strategic_planning",
-        "technical_assistance"
-    ])
+    capabilities: list[str] = field(
+        default_factory=lambda: [
+            "target_analysis",
+            "report_generation",
+            "workflow_optimization",
+            "data_analysis",
+            "strategic_planning",
+            "technical_assistance",
+        ]
+    )
+
+    # Voice Commands Configuration
+    voice_commands_enabled: bool = True
+    voice_command_confirmation_required: bool = True
+    voice_command_language: str = "es-ES"
+    voice_command_mappings: dict[str, list[str]] = field(
+        default_factory=lambda: {
+            "claim_bounty": ["claim bounty", "reclamar bounty", "claim issue"],
+            "submit_pr": ["submit pr", "enviar pr", "submit pull request"],
+            "get_bounty": ["check bounty", "ver bounty", "status bounty"],
+            "start_pipeline": ["start pipeline", "iniciar pipeline", "execute pipeline"],
+        }
+    )
 
     # Integrations
     enable_ownex_integration: bool = True
@@ -117,7 +135,11 @@ class MerlinConfig:
             "enable_forge_integration": self.enable_forge_integration,
             "max_concurrent_requests": self.max_concurrent_requests,
             "request_timeout": self.request_timeout,
-            "streaming_enabled": self.streaming_enabled
+            "streaming_enabled": self.streaming_enabled,
+            "voice_commands_enabled": self.voice_commands_enabled,
+            "voice_command_confirmation_required": self.voice_command_confirmation_required,
+            "voice_command_language": self.voice_command_language,
+            "voice_command_mappings": self.voice_command_mappings,
         }
 
     @classmethod
@@ -144,19 +166,34 @@ class MerlinConfig:
             retro_typing_effect=data.get("retro_typing_effect", True),
             memory_limit=data.get("memory_limit", 1000),
             memory_retention_days=data.get("memory_retention_days", 90),
-            capabilities=data.get("capabilities", [
-                "target_analysis",
-                "report_generation",
-                "workflow_optimization",
-                "data_analysis",
-                "strategic_planning",
-                "technical_assistance"
-            ]),
+            capabilities=data.get(
+                "capabilities",
+                [
+                    "target_analysis",
+                    "report_generation",
+                    "workflow_optimization",
+                    "data_analysis",
+                    "strategic_planning",
+                    "technical_assistance",
+                ],
+            ),
             enable_ownex_integration=data.get("enable_ownex_integration", True),
             enable_retrieval_integration=data.get("enable_retrieval_integration", True),
             enable_pulse_integration=data.get("enable_pulse_integration", True),
             enable_forge_integration=data.get("enable_forge_integration", True),
             max_concurrent_requests=data.get("max_concurrent_requests", 5),
             request_timeout=data.get("request_timeout", 30),
-            streaming_enabled=data.get("streaming_enabled", True)
+            streaming_enabled=data.get("streaming_enabled", True),
+            voice_commands_enabled=data.get("voice_commands_enabled", True),
+            voice_command_confirmation_required=data.get("voice_command_confirmation_required", True),
+            voice_command_language=data.get("voice_command_language", "es-ES"),
+            voice_command_mappings=data.get(
+                "voice_command_mappings",
+                {
+                    "claim_bounty": ["claim bounty", "reclamar bounty", "claim issue"],
+                    "submit_pr": ["submit pr", "enviar pr", "submit pull request"],
+                    "get_bounty": ["check bounty", "ver bounty", "status bounty"],
+                    "start_pipeline": ["start pipeline", "iniciar pipeline", "execute pipeline"],
+                },
+            ),
         )

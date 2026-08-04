@@ -89,26 +89,30 @@ class PriorityRebalancer:
             adjusted = max(0.0, min(100.0, adjusted))
             drift = adjusted - score
 
-            rebalanced.append(RebalancedScore(
-                hot_path_id=hot_path_id,
-                original_score=score,
-                adjusted_score=round(adjusted, 1),
-                drift=round(drift, 1),
-                reasons=adjustments,
-            ))
+            rebalanced.append(
+                RebalancedScore(
+                    hot_path_id=hot_path_id,
+                    original_score=score,
+                    adjusted_score=round(adjusted, 1),
+                    drift=round(drift, 1),
+                    reasons=adjustments,
+                )
+            )
 
         rebalanced.sort(key=lambda r: r.adjusted_score, reverse=True)
         return rebalanced
 
     def reorder_hot_paths(self, hot_paths: list[Any], rebalanced: list[RebalancedScore]) -> list[Any]:
         score_map: dict[str, float] = {r.hot_path_id: r.adjusted_score for r in rebalanced}
+
         def _key(hp: Any) -> float:
-            if hasattr(hp, 'nodes') and hp.nodes:
+            if hasattr(hp, "nodes") and hp.nodes:
                 return score_map.get(hp.nodes[0], 0.0)
             if isinstance(hp, dict):
                 nodes = hp.get("nodes", [""])
                 return score_map.get(nodes[0] if nodes else "", 0.0)
             return 0.0
+
         sorted_hot_paths = sorted(hot_paths, key=_key, reverse=True)
         return sorted_hot_paths
 

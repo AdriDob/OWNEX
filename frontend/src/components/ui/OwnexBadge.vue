@@ -132,8 +132,8 @@ const handleRemove = (event: MouseEvent) => {
 }
 
 .ownex-badge--success {
-  background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(16, 185, 129, 0.25);
+  background: rgba(22, 163, 74, 0.12);
+  border-color: rgba(22, 163, 74, 0.25);
   color: var(--ownex-green);
 }
 
@@ -144,14 +144,14 @@ const handleRemove = (event: MouseEvent) => {
 }
 
 .ownex-badge--error {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.25);
+  background: rgba(232, 33, 39, 0.12);
+  border-color: rgba(232, 33, 39, 0.25);
   color: var(--ownex-red);
 }
 
 .ownex-badge--gold {
-  background: rgba(245, 158, 11, 0.12);
-  border-color: rgba(245, 158, 11, 0.25);
+  background: rgba(217, 119, 6, 0.12);
+  border-color: rgba(217, 119, 6, 0.25);
   color: var(--ownex-gold);
   font-weight: var(--font-weight-bold);
 }
@@ -169,18 +169,18 @@ const handleRemove = (event: MouseEvent) => {
 }
 
 /* RGB values for rgba() */
-.ownex-badge--cycle-security { --badge-color-rgb: 59, 130, 246; --badge-color: var(--color-cycle-security); }
-.ownex-badge--cycle-forge    { --badge-color-rgb: 168, 85, 247; --badge-color: var(--color-cycle-forge); }
-.ownex-badge--cycle-pulse    { --badge-color-rgb: 16, 185, 129; --badge-color: var(--color-cycle-pulse); }
-.ownex-badge--cycle-vault    { --badge-color-rgb: 245, 158, 11; --badge-color: var(--color-cycle-vault); }
-.ownex-badge--cycle-atlas    { --badge-color-rgb: 226, 232, 240; --badge-color: var(--color-cycle-atlas); }
-.ownex-badge--cycle-odyssey  { --badge-color-rgb: 249, 115, 22; --badge-color: var(--color-cycle-odyssey); }
+.ownex-badge--cycle-security { --badge-color-rgb: 245, 245, 245; --badge-color: var(--color-cycle-security); }
+.ownex-badge--cycle-forge    { --badge-color-rgb: 156, 163, 175; --badge-color: var(--color-cycle-forge); }
+.ownex-badge--cycle-pulse    { --badge-color-rgb: 22, 163, 74; --badge-color: var(--color-cycle-pulse); }
+.ownex-badge--cycle-vault    { --badge-color-rgb: 217, 119, 6; --badge-color: var(--color-cycle-vault); }
+.ownex-badge--cycle-atlas    { --badge-color-rgb: 212, 212, 216; --badge-color: var(--color-cycle-atlas); }
+.ownex-badge--cycle-odyssey  { --badge-color-rgb: 232, 33, 39; --badge-color: var(--color-cycle-odyssey); }
 
-.ownex-badge--platform-hackerone  { --badge-color-rgb: 0, 212, 106; --badge-color: var(--color-hackerone); }
-.ownex-badge--platform-bugcrowd   { --badge-color-rgb: 245, 110, 47; --badge-color: var(--color-bugcrowd); }
-.ownex-badge--platform-intigriti  { --badge-color-rgb: 105, 53, 211; --badge-color: var(--color-intigriti); }
-.ownex-badge--platform-synack     { --badge-color-rgb: 30, 136, 229; --badge-color: var(--color-synack); }
-.ownex-badge--platform-yeswehack  { --badge-color-rgb: 255, 107, 107; --badge-color: var(--color-yeswehack); }
+.ownex-badge--platform-hackerone  { --badge-color-rgb: 22, 163, 74; --badge-color: var(--color-hackerone); }
+.ownex-badge--platform-bugcrowd   { --badge-color-rgb: 180, 83, 9; --badge-color: var(--color-bugcrowd); }
+.ownex-badge--platform-intigriti  { --badge-color-rgb: 139, 92, 246; --badge-color: var(--color-intigriti); }
+.ownex-badge--platform-synack     { --badge-color-rgb: 91, 125, 158; --badge-color: var(--color-synack); }
+.ownex-badge--platform-yeswehack  { --badge-color-rgb: 220, 38, 38; --badge-color: var(--color-yeswehack); }
 
 /* Removable */
 .ownex-badge--removable {

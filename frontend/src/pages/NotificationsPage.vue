@@ -46,7 +46,7 @@ const chartData = computed(() => ({
   datasets: [{
     label: 'Notificaciones',
     data: [typeCounts.value.info, typeCounts.value.success, typeCounts.value.warning, typeCounts.value.error],
-    backgroundColor: ['rgba(59,130,246,0.7)', 'rgba(34,197,94,0.7)', 'rgba(234,179,8,0.7)', 'rgba(239,68,68,0.7)'],
+    backgroundColor: ['rgba(255, 255, 255,0.7)', 'rgba(22,163,74,0.7)', 'rgba(217, 119, 6,0.7)', 'rgba(232, 33, 39,0.7)'],
   }],
 }))
 

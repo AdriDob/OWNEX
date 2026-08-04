@@ -16,6 +16,7 @@ from database.db import Base, SessionLocal
 
 # ─── SQLAlchemy Models ─────────────────────────────────────────────────────
 
+
 class InvestigatorProfile(Base):
     """Persistent user profile storing behavioural metrics."""
 
@@ -75,24 +76,21 @@ class LearningEvent(Base):
 
 # ─── Service Layer ────────────────────────────────────────────────────────
 
+
 class ProfileService:
     """Read/write the investigator profile."""
 
     def get(self, user_id: str) -> InvestigatorProfile | None:
         session = SessionLocal()
         try:
-            return session.query(InvestigatorProfile).filter(
-                InvestigatorProfile.user_id == user_id
-            ).first()
+            return session.query(InvestigatorProfile).filter(InvestigatorProfile.user_id == user_id).first()
         finally:
             session.close()
 
     def get_or_create(self, user_id: str) -> InvestigatorProfile:
         session = SessionLocal()
         try:
-            profile = session.query(InvestigatorProfile).filter(
-                InvestigatorProfile.user_id == user_id
-            ).first()
+            profile = session.query(InvestigatorProfile).filter(InvestigatorProfile.user_id == user_id).first()
             if profile:
                 return profile
             profile = InvestigatorProfile(user_id=user_id)
@@ -114,9 +112,9 @@ class ProfileService:
     def update_field(self, user_id: str, field: str, value: Any) -> bool:
         session = SessionLocal()
         try:
-            rows = session.query(InvestigatorProfile).filter(
-                InvestigatorProfile.user_id == user_id
-            ).update({field: value})
+            rows = (
+                session.query(InvestigatorProfile).filter(InvestigatorProfile.user_id == user_id).update({field: value})
+            )
             session.commit()
             return rows > 0
         finally:
@@ -125,9 +123,12 @@ class ProfileService:
     def increment(self, user_id: str, field: str, amount: int = 1) -> bool:
         session = SessionLocal()
         try:
-            profile = session.query(InvestigatorProfile).filter(
-                InvestigatorProfile.user_id == user_id
-            ).with_for_update().first()
+            profile = (
+                session.query(InvestigatorProfile)
+                .filter(InvestigatorProfile.user_id == user_id)
+                .with_for_update()
+                .first()
+            )
             if not profile:
                 profile = InvestigatorProfile(user_id=user_id)
                 session.add(profile)
@@ -143,9 +144,12 @@ class ProfileService:
         """Append to a JSON list field (e.g. industries, technologies)."""
         session = SessionLocal()
         try:
-            profile = session.query(InvestigatorProfile).filter(
-                InvestigatorProfile.user_id == user_id
-            ).with_for_update().first()
+            profile = (
+                session.query(InvestigatorProfile)
+                .filter(InvestigatorProfile.user_id == user_id)
+                .with_for_update()
+                .first()
+            )
             if not profile:
                 profile = InvestigatorProfile(user_id=user_id)
                 session.add(profile)
@@ -163,9 +167,12 @@ class ProfileService:
         """Increment a counter in a [{key, count}, ...] list field."""
         session = SessionLocal()
         try:
-            profile = session.query(InvestigatorProfile).filter(
-                InvestigatorProfile.user_id == user_id
-            ).with_for_update().first()
+            profile = (
+                session.query(InvestigatorProfile)
+                .filter(InvestigatorProfile.user_id == user_id)
+                .with_for_update()
+                .first()
+            )
             if not profile:
                 profile = InvestigatorProfile(user_id=user_id)
                 session.add(profile)
@@ -173,12 +180,34 @@ class ProfileService:
             lst: list = list(getattr(profile, field, []) or [])
             found = False
             for item in lst:
-                if item.get("class") == key or item.get("module") == key or item.get("name") == key or item.get("type") == key or item.get("tool") == key or item.get("style") == key:
+                if (
+                    item.get("class") == key
+                    or item.get("module") == key
+                    or item.get("name") == key
+                    or item.get("type") == key
+                    or item.get("tool") == key
+                    or item.get("style") == key
+                ):
                     item["count"] = item.get("count", 0) + 1
                     found = True
                     break
             if not found:
-                lst.append({"class" if field == "favorite_bug_classes" else "module" if field == "favorite_modules" else "name" if field == "favorite_asset_types" else "tool" if field == "favorite_tools" else "style" if field == "favorite_report_styles" else "key": key, "count": 1})
+                lst.append(
+                    {
+                        "class"
+                        if field == "favorite_bug_classes"
+                        else "module"
+                        if field == "favorite_modules"
+                        else "name"
+                        if field == "favorite_asset_types"
+                        else "tool"
+                        if field == "favorite_tools"
+                        else "style"
+                        if field == "favorite_report_styles"
+                        else "key": key,
+                        "count": 1,
+                    }
+                )
             setattr(profile, field, lst)
             session.commit()
             return True
@@ -197,7 +226,11 @@ class ProfileService:
     def get_events(self, user_id: str, event_type: str | None = None, limit: int = 100) -> list[LearningEvent]:
         session = SessionLocal()
         try:
-            query = session.query(LearningEvent).filter(LearningEvent.user_id == user_id).order_by(LearningEvent.created_at.desc())
+            query = (
+                session.query(LearningEvent)
+                .filter(LearningEvent.user_id == user_id)
+                .order_by(LearningEvent.created_at.desc())
+            )
             if event_type:
                 query = query.filter(LearningEvent.event_type == event_type)
             return query.limit(limit).all()
@@ -250,9 +283,7 @@ class ProfileService:
     def reset(self, user_id: str) -> bool:
         session = SessionLocal()
         try:
-            profile = session.query(InvestigatorProfile).filter(
-                InvestigatorProfile.user_id == user_id
-            ).first()
+            profile = session.query(InvestigatorProfile).filter(InvestigatorProfile.user_id == user_id).first()
             if not profile:
                 return False
             profile.total_targets = 0

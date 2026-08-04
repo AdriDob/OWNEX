@@ -31,7 +31,6 @@ class ScoringViolationError(RuntimeError):
     """
 
 
-
 def assert_no_legacy_scoring():
     """
     Runtime guard: ensures legacy scoring modules are not importable.
@@ -39,7 +38,4 @@ def assert_no_legacy_scoring():
     """
     for mod in FORBIDDEN_IMPORTS:
         if mod in __import__("sys").modules:
-            raise ScoringViolationError(
-                f"Legacy scoring module loaded: {mod}. "
-                f"Use {SOURCE_OF_TRUTH} instead."
-            )
+            raise ScoringViolationError(f"Legacy scoring module loaded: {mod}. Use {SOURCE_OF_TRUTH} instead.")

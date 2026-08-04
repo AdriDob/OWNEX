@@ -38,6 +38,8 @@ class Target(Base):
 
     domain = Column(String, nullable=True)
 
+    active = Column(Boolean, default=True, nullable=False, index=True)
+
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -82,6 +84,18 @@ class Endpoint(Base):
     hypothesis_id = Column(
         String,
         nullable=True,
+    )
+
+    # Autonomous scanning fields
+    last_scanned = Column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    scan_count = Column(
+        Integer,
+        default=0,
+        nullable=False,
     )
 
     @property
@@ -1040,5 +1054,41 @@ class KnowledgeAsset(Base):
     __table_args__ = (Index("ix_knowledge_assets_lookup", "domain", "asset_type", "status"),)
 
 
+class MobileApproval(Base):
+    """Mobile approval requests for autonomous actions (bounties, reports, etc.)."""
+
+    __tablename__ = "mobile_approvals"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Entity requiring approval
+    entity_type = Column(String, nullable=False, index=True)  # "bounty", "report", "action"
+    entity_id = Column(String, nullable=False, index=True)  # ID of the entity
+
+    # Approval details
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    metadata_json = Column(Text, nullable=True)  # Additional context (JSON)
+
+    # Status: pending, approved, rejected
+    status = Column(String, nullable=False, default="pending", index=True)
+
+    # Priority: low, medium, high, critical
+    priority = Column(String, nullable=False, default="medium")
+
+    # Approval/rejection info
+    approved_by = Column(String, nullable=True)  # User/device that approved
+    approved_at = Column(DateTime(timezone=True), nullable=True)
+    rejection_reason = Column(Text, nullable=True)
+
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (Index("ix_mobile_approvals_entity", "entity_type", "entity_id"),)
+
+
 # Backward-compatible alias — import as CATEYEConfig or RastroConfig
 RastroConfig = CATEYEConfig
+# OWNEX settings service imports the config model under the OWNEX name
+OWNEXConfig = CATEYEConfig

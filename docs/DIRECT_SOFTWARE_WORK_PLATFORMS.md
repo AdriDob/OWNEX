@@ -129,34 +129,46 @@
 
 ```python
 # FORGE cycle - Dev Bounty & Direct Freelance
-{
-    "name": "Forge",
-    "slug": "forge",
-    "description": "Dev bounty, open source development, freelance software work",
-    "category": "FORGE",
-    "status": "INACTIVE",
-    "enabled": True,
-    "priority": 80,
-    "config": json.dumps({
-        "platforms": [
-            "superteam", "opire", "algora",
-            "opencollective", "freelancer", "linkedin",
-            "issuehunt", "opyre", "issuehand"
-        ]
-    }),
-},
+(
+    {
+        "name": "Forge",
+        "slug": "forge",
+        "description": "Dev bounty, open source development, freelance software work",
+        "category": "FORGE",
+        "status": "INACTIVE",
+        "enabled": True,
+        "priority": 80,
+        "config": json.dumps(
+            {
+                "platforms": [
+                    "superteam",
+                    "opire",
+                    "algora",
+                    "opencollective",
+                    "freelancer",
+                    "linkedin",
+                    "issuehunt",
+                    "opyre",
+                    "issuehand",
+                ]
+            }
+        ),
+    },
+)
 
 # PULSE cycle - AI Work & Data Annotation
-{
-    "name": "Pulse",
-    "slug": "pulse",
-    "description": "AI work, microtasks, data annotation, direct software work",
-    "category": "PULSE",
-    "status": "INACTIVE",
-    "enabled": True,
-    "priority": 70,
-    "config": json.dumps({"platforms": ["outlier", "mindrift", "dataannotation", "datannotation", "remotasks"]}),
-},
+(
+    {
+        "name": "Pulse",
+        "slug": "pulse",
+        "description": "AI work, microtasks, data annotation, direct software work",
+        "category": "PULSE",
+        "status": "INACTIVE",
+        "enabled": True,
+        "priority": 70,
+        "config": json.dumps({"platforms": ["outlier", "mindrift", "dataannotation", "datannotation", "remotasks"]}),
+    },
+)
 ```
 
 ---
@@ -168,49 +180,61 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
     # ... existing ...
     try:
         from core.opportunity.adapters.forge import ForgeAdapter, SuperteamAdapter, OpireAdapter, AlgoraAdapter
+
         registry.register("superteam", SuperteamAdapter)
         registry.register("opire", OpireAdapter)
         registry.register("algora", AlgoraAdapter)
         registry.register("forge", ForgeAdapter)  # base
     except ImportError:
         pass
-    
+
     try:
         from core.opportunity.adapters.opire import OpireAdapter, OpyreAdapter
+
         registry.register("opire", OpireAdapter)
         registry.register("opyre", OpyreAdapter)
     except ImportError:
         pass
-    
+
     try:
         from core.opportunity.adapters.issuehunt import IssueHuntAdapter, IssueHandAdapter
+
         registry.register("issuehunt", IssueHuntAdapter)
         registry.register("issuehand", IssueHandAdapter)
     except ImportError:
         pass
-    
+
     try:
         from core.opportunity.adapters.linkedin import LinkedInAdapter
+
         registry.register("linkedin", LinkedInAdapter)
     except ImportError:
         pass
-    
+
     try:
         from core.opportunity.adapters.freelancer import FreelancerAdapter, FreelancerMicrotaskAdapter
+
         registry.register("freelancer", FreelancerAdapter)
         registry.register("freelancer_microtask", FreelancerMicrotaskAdapter)
     except ImportError:
         pass
-    
+
     try:
         from core.opportunity.adapters.opencollective import OpenCollectiveAdapter, OpenCollectiveProjectsAdapter
+
         registry.register("opencollective", OpenCollectiveAdapter)
         registry.register("opencollective_projects", OpenCollectiveProjectsAdapter)
     except ImportError:
         pass
-    
+
     try:
-        from core.opportunity.adapters.pulse import OutlierAdapter, DataAnnotationAdapter, MindriftAdapter, RemotasksAdapter
+        from core.opportunity.adapters.pulse import (
+            OutlierAdapter,
+            DataAnnotationAdapter,
+            MindriftAdapter,
+            RemotasksAdapter,
+        )
+
         registry.register("outlier", OutlierAdapter)
         registry.register("dataannotation", DataAnnotationAdapter)
         registry.register("mindrift", MindriftAdapter)
@@ -275,7 +299,7 @@ JOBS = [
         handler=fetch_forge_opportunities,
     ),
     JobDefinition(
-        job_id="pulse_fetch_opportunities", 
+        job_id="pulse_fetch_opportunities",
         app_id="opportunity",
         seconds=1800,  # cada 30 min (AI work rota rápido)
         handler=fetch_pulse_opportunities,

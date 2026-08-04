@@ -105,13 +105,13 @@ function toggleSort(field: typeof sortField.value) {
 
 // ── Computed ──
 const platformColors: Record<string, string> = {
-  hackerone: 'bg-green-500/20 text-green-400 border-green-500/30',
-  bugcrowd: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  intigriti: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  synack: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-  yeswehack: 'bg-pink-500/20 text-pink-400 border-pink-500/30',
-  immunefi: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  code4rena: 'bg-red-500/20 text-red-400 border-red-500/30',
+  hackerone: 'bg-success/20 text-success border-success/30',
+  bugcrowd: 'bg-primary/20 text-primary border-primary/30',
+  intigriti: 'bg-intigriti/20 text-intigriti border-purple-500/30',
+  synack: 'bg-muted/20 text-muted-foreground border-border-light',
+  yeswehack: 'bg-destructive/20 text-destructive border-pink-500/30',
+  immunefi: 'bg-warning/20 text-warning border-warning/30',
+  code4rena: 'bg-destructive/20 text-destructive border-destructive/30',
 }
 
 const filteredTargets = computed(() => {
@@ -151,12 +151,12 @@ const kpiCards = computed(() => {
   const platformSpeed = capitalData.value.platform_speed_days || {}
 
   return [
-    { label: 'Capital Total', value: `$${(payout.total_payout || 0).toLocaleString()}`, sub: `Pendiente: $${(payout.pending_total || 0).toLocaleString()}`, icon: DollarSign, color: 'text-green-400', bg: 'bg-green-500/10', trend: '+12%', trendIcon: ArrowUpRight },
-    { label: 'USD / Hora', value: `$${usdPerHour.toFixed(2)}`, sub: 'Basado en payouts históricos', icon: ZapIcon, color: 'text-yellow-400', bg: 'bg-yellow-500/10', trend: '+8%', trendIcon: ArrowUpRight },
-    { label: 'Findings Totales', value: String(cap.total_findings || 0), sub: `Críticos: ${cap.critical_count || 0} · High: ${cap.high_count || 0}`, icon: Target, color: 'text-red-400', bg: 'bg-red-500/10', trend: `${cap.recent_30d_findings || 0} (30d)`, trendIcon: Activity },
-    { label: 'Targets Activos', value: String(targets.total || 0), sub: `${targets.scanned_last_7d || 0} escaneados (7d)`, icon: Zap2, color: 'text-cyan-400', bg: 'bg-cyan-500/10', trend: `${Math.round((targets.scanned_last_7d || 0) / Math.max(targets.total || 1, 1) * 100)}% cobertura`, trendIcon: ArrowUpRight },
-    { label: 'Tasa Aceptación', value: `${((pipeline.submissions?.acceptance_rate || 0) * 100).toFixed(1)}%`, sub: `${pipeline.submissions?.accepted || 0}/${pipeline.submissions?.total || 0} aceptados`, icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/10', trend: 'vs mes anterior', trendIcon: ArrowUpRight },
-    { label: 'Programas Rastreados', value: String(econ.total_programs || 0), sub: `USD/h global: $${(econ.overall_usd_per_hour || 0).toFixed(2)}`, icon: Crown, color: 'text-purple-400', bg: 'bg-purple-500/10', trend: `${econ.overall_accepted_rate ? (econ.overall_accepted_rate * 100).toFixed(1) + '% accept' : ''}`, trendIcon: Gem },
+    { label: 'Capital Total', value: `$${(payout.total_payout || 0).toLocaleString()}`, sub: `Pendiente: $${(payout.pending_total || 0).toLocaleString()}`, icon: DollarSign, color: 'text-success', bg: 'bg-success/10', trend: '+12%', trendIcon: ArrowUpRight },
+    { label: 'USD / Hora', value: `$${usdPerHour.toFixed(2)}`, sub: 'Basado en payouts históricos', icon: ZapIcon, color: 'text-warning', bg: 'bg-warning/10', trend: '+8%', trendIcon: ArrowUpRight },
+    { label: 'Findings Totales', value: String(cap.total_findings || 0), sub: `Críticos: ${cap.critical_count || 0} · High: ${cap.high_count || 0}`, icon: Target, color: 'text-destructive', bg: 'bg-destructive/10', trend: `${cap.recent_30d_findings || 0} (30d)`, trendIcon: Activity },
+    { label: 'Targets Activos', value: String(targets.total || 0), sub: `${targets.scanned_last_7d || 0} escaneados (7d)`, icon: Zap2, color: 'text-muted-foreground', bg: 'bg-muted/10', trend: `${Math.round((targets.scanned_last_7d || 0) / Math.max(targets.total || 1, 1) * 100)}% cobertura`, trendIcon: ArrowUpRight },
+    { label: 'Tasa Aceptación', value: `${((pipeline.submissions?.acceptance_rate || 0) * 100).toFixed(1)}%`, sub: `${pipeline.submissions?.accepted || 0}/${pipeline.submissions?.total || 0} aceptados`, icon: CheckCircle2, color: 'text-success', bg: 'bg-success/10', trend: 'vs mes anterior', trendIcon: ArrowUpRight },
+    { label: 'Programas Rastreados', value: String(econ.total_programs || 0), sub: `USD/h global: $${(econ.overall_usd_per_hour || 0).toFixed(2)}`, icon: Crown, color: 'text-intigriti', bg: 'bg-intigriti/10', trend: `${econ.overall_accepted_rate ? (econ.overall_accepted_rate * 100).toFixed(1) + '% accept' : ''}`, trendIcon: Gem },
   ]
 })
 
@@ -183,7 +183,7 @@ function pct(n: number | null | undefined): string {
 }
 
 function platformBadge(platform: string) {
-  const cls = platformColors[platform] || 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+  const cls = platformColors[platform] || 'bg-muted/20 text-muted-foreground border-border-light/30'
   return `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${cls}">${platform}</span>`
 }
 
@@ -374,7 +374,7 @@ function copyToClipboard(text: string) {
           <Card>
             <CardHeader class="flex flex-row items-center justify-between">
               <CardTitle class="flex items-center gap-2">
-                <Zap class="h-4 w-4 text-yellow-400" /> Targets Calientes (Top EV)
+                <Zap class="h-4 w-4 text-warning" /> Targets Calientes (Top EV)
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -399,7 +399,7 @@ function copyToClipboard(text: string) {
           <Card>
             <CardHeader class="flex flex-row items-center justify-between">
               <CardTitle class="flex items-center gap-2">
-                <Crown class="h-4 w-4 text-yellow-400" /> Top Programas por ROI
+                <Crown class="h-4 w-4 text-warning" /> Top Programas por ROI
               </CardTitle>
             </CardHeader>
             <CardContent>

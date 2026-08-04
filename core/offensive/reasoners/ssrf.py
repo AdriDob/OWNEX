@@ -57,6 +57,8 @@ METHOD_RISK: dict[str, float] = {
 
 IP_PATTERN = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
 URL_PATTERN = re.compile(r"https?://", re.IGNORECASE)
+
+
 class SSRFReasoner(BaseReasoner):
     @property
     def vulnerability_type(self) -> str:
@@ -138,9 +140,7 @@ class SSRFReasoner(BaseReasoner):
             why_human_would_investigate=self._build_triager_justification(
                 endpoint, params_of_interest, method, signals
             ),
-            why_triager_might_reject=self._build_triager_rejection(
-                endpoint, params_of_interest, method, signals
-            ),
+            why_triager_might_reject=self._build_triager_rejection(endpoint, params_of_interest, method, signals),
             parameters_of_interest=params_of_interest,
             signals=signals,
             test_instructions=self._build_test_instructions(endpoint, params_of_interest, method),

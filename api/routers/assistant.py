@@ -78,6 +78,7 @@ async def orion_chat(body: OrionChatRequest):
     if not body.message.strip():
         raise HTTPException(status_code=400, detail="Message cannot be empty")
     from cores.ai.orion_agent import OrionAgent
+
     agent = OrionAgent()
     history = [{"role": m.role, "content": m.content} for m in body.history]
     return await agent.chat(body.message, history)
@@ -125,6 +126,7 @@ def get_history(limit: int = Query(10, ge=1, le=50)):
 
 
 # ── Investigation Narrator endpoints ──
+
 
 @router.get("/investigation/{target_id}")
 def get_investigation_state(target_id: int):

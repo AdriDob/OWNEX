@@ -285,8 +285,8 @@ const getTypeConfig = (type: Opportunity['type']) => {
   grid-template-columns: repeat(4, 1fr);
   gap: var(--space-3);
   padding: var(--space-3);
-  background: rgba(59, 130, 246, 0.03);
-  border: 1px solid rgba(59, 130, 246, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-md);
 }
 

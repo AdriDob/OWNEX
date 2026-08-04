@@ -95,11 +95,11 @@
 ```python
 # cores/auth/user_auth.py
 class UserAuth:
-    - register(email, password, device_info)
-    - login(email, password, device_info)
-    - logout(session_token)
-    - verify_token(session_token)
-    - refresh_token(refresh_token)
+    -register(email, password, device_info)
+    -login(email, password, device_info)
+    -logout(session_token)
+    -verify_token(session_token)
+    -refresh_token(refresh_token)
 ```
 
 **Database:**
@@ -154,11 +154,11 @@ CREATE TABLE devices (
 ```python
 # cores/mobile/pc_sync.py
 class PCSyncServer:
-    - start_server(host, port)
-    - stop_server()
-    - handle_connection(client_socket)
-    - broadcast_message(message)
-    - get_connected_devices()
+    -start_server(host, port)
+    -stop_server()
+    -handle_connection(client_socket)
+    -broadcast_message(message)
+    -get_connected_devices()
 ```
 
 **API Endpoints:**

@@ -149,7 +149,7 @@ export function useHoverMotion() {
 
   const getGlowStyle = () => ({
     transition: 'box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1)',
-    boxShadow: '0 0 0 1px var(--color-primary), 0 0 24px rgba(0, 112, 209, 0.3)',
+    boxShadow: '0 0 0 1px var(--color-primary), 0 0 24px rgba(255, 255, 255, 0.12)',
   })
 
   return {

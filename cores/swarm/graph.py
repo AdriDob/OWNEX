@@ -187,18 +187,24 @@ class AttackSurfaceGraph:
         result = []
         for target_id in self._adjacency.get(node_id, set()):
             for edge in self._edges.values():
-                if edge.source == node_id and edge.target == target_id:
-                    if edge_type is None or edge.type == edge_type:
-                        result.append((target_id, edge))
+                if (
+                    edge.source == node_id
+                    and edge.target == target_id
+                    and (edge_type is None or edge.type == edge_type)
+                ):
+                    result.append((target_id, edge))
         return result
 
     def get_predecessors(self, node_id: str, edge_type: EdgeType | None = None) -> list[tuple[str, GraphEdge]]:
         result = []
         for source_id in self._reverse_adjacency.get(node_id, set()):
             for edge in self._edges.values():
-                if edge.source == source_id and edge.target == node_id:
-                    if edge_type is None or edge.type == edge_type:
-                        result.append((source_id, edge))
+                if (
+                    edge.source == source_id
+                    and edge.target == node_id
+                    and (edge_type is None or edge.type == edge_type)
+                ):
+                    result.append((source_id, edge))
         return result
 
     def get_nodes_by_type(self, node_type: NodeType) -> list[GraphNode]:

@@ -19,15 +19,27 @@ from core.opportunity.executors.freelancer_executor import FreelancerExecutor
 from core.opportunity.executors.issuehunt_executor import IssueHuntExecutor
 from core.opportunity.executors.mindrift_executor import MindriftExecutor
 from core.opportunity.executors.opire_executor import OpireExecutor
+from core.opportunity.mercenary_filter import (
+    MercenaryAttributes,
+    get_mercenary_filter,
+)
 
 
 class OpportunityOrchestrator:
     """Orquesta la discovery, ejecución y workflow autónomo para ciclos FORGE y PULSE.
 
     Integra adaptadores, ejecutores y agentes autónomos en un único punto de entrada.
+
+    Modo Mercenario Técnico:
+    - NO busca empleo ("contratame")
+    - SÍ busca valor intercambiable por dinero ("resolver problema público → monetizar")
+    - Filtro agresivo: SCORE > 80/100 para pasar
     """
 
-    def __init__(self) -> None:
+    def __init__(self, mercenary_mode: bool = True) -> None:
+        self.mercenary_mode = mercenary_mode
+        self.mercenary_filter = get_mercenary_filter()
+
         # Inicializar adaptadores for each cycle
         self.forge_adapters = [SuperteamAdapter(), OpireAdapter(), AlgoraAdapter(), IssueHuntAdapter()]
         self.pulse_adapters = [
@@ -70,18 +82,86 @@ class OpportunityOrchestrator:
 
                 logging.getLogger("ownex.orchestrator").error(f"Adapter {adapter.platform} fetch failed: {e}")
 
-        # 2. Priorizar usando el engine de scoring (TargetPrioritizer)
+        # 2. Aplicar filtro mercenario si está activo
+        if self.mercenary_mode:
+            raw_opps = self._apply_mercenary_filter(raw_opps)
+
+        # 3. Priorizar usando el engine de scoring (TargetPrioritizer)
         from core.opportunity.tasks import prioritize_targets
 
         prioritized = await prioritize_targets(raw_opps, cycle=cycle)
 
-        # 3. Procesar top-N oportunidades con workflow autónomo
+        # 4. Procesar top-N oportunidades con workflow autónomo
         results: list[dict[str, Any]] = []
         for opp in prioritized[:limit]:
             opp_result = await self._process_opportunity(opp, cycle)
             results.append(opp_result)
 
         return results
+
+    def _apply_mercenary_filter(self, opportunities: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Apply mercenary filter to opportunities - SCORE > 80/100 or ARCHIVE."""
+        filtered = []
+        archived_count = 0
+
+        for opp in opportunities:
+            opp_id = opp.get("id", opp.get("bounty_id", ""))
+            platform = opp.get("platform", "")
+            source_type = opp.get("source_type", "")
+            tags = opp.get("tags", [])
+
+            # Determine category
+            category = self.mercenary_filter.get_category(platform, source_type, tags)
+
+            # Build mercenary attributes from opportunity data
+            attrs = MercenaryAttributes(
+                verifiable_payment=platform in {"algora", "opire", "superteam", "hackerone", "bugcrowd"},
+                payment_amount_verified=opp.get("reward", 0) > 0,
+                defined_objective=bool(opp.get("description") or opp.get("title")),
+                clear_deliverable=source_type in {"dev_bounty", "bounty", "task"},
+                no_interview_required=source_type in {"dev_bounty", "bounty", "ai_work"},
+                no_portfolio_required=source_type in {"dev_bounty", "bounty", "ai_work"},
+                argentina_compatible=True,  # Most platforms accept Argentina
+                remote_work=True,  # Most opportunities are remote
+                real_it_work=any(tag in tags for tag in ["code", "security", "bug", "fix", "api", "backend"]),
+                technical_skill_required=True,
+                no_mechanical_task=source_type not in {"data_entry", "manual"},
+                reasonable_timeframe=0 < opp.get("effort_hours", 8) <= 100,
+                estimated_hours=opp.get("effort_hours", 8),
+                hourly_rate_competitive=opp.get("reward", 0) / max(opp.get("effort_hours", 1), 1) > 10,
+                category=category,
+            )
+
+            # Score opportunity
+            score = self.mercenary_filter.score_opportunity(opp_id, attrs)
+
+            if score.passed_filter:
+                opp["mercenary_score"] = score.total_score
+                opp["mercenary_category"] = category.name
+                opp["mercenary_priority"] = score.category_priority.name
+                filtered.append(opp)
+            else:
+                archived_count += 1
+                import logging
+
+                logging.getLogger("ownex.orchestrator").info(
+                    "[MercenaryFilter] Archived %s (score=%.1f, blockers=%s)",
+                    opp_id,
+                    score.total_score,
+                    list(score.blockers.keys()),
+                )
+
+        import logging
+
+        logging.getLogger("ownex.orchestrator").info(
+            "[MercenaryFilter] Filtered %d/%d opportunities (archived %d, passed %d)",
+            len(filtered),
+            len(opportunities),
+            archived_count,
+            len(filtered),
+        )
+
+        return filtered
 
     async def _process_opportunity(self, opportunity: dict[str, Any], cycle: str) -> dict[str, Any]:
         """Claim + resolver + entregar una única oportunidad usando adaptadores+ejecutores+agentes.

@@ -23,10 +23,13 @@ logger = logging.getLogger("cateye.desktop.updater")
 
 GITHUB_REPO = "AdriDob/cateye"
 
+
 # Production paths resolved at import time
 def _get_data_dir() -> Path:
     from cores.utils.paths import get_data_path
+
     return get_data_path()
+
 
 _DATA_DIR = _get_data_dir()
 UPDATE_STAGING_DIR = _DATA_DIR / "updates"
@@ -231,6 +234,7 @@ def verify_checksum(filepath: str, expected_sha256: str) -> bool:
 def _extract_zip(zip_path: str, dest_dir: Path) -> bool:
     """Extract a ZIP file to the destination directory."""
     import zipfile
+
     try:
         with zipfile.ZipFile(zip_path, "r") as zf:
             zf.extractall(dest_dir)
@@ -307,12 +311,16 @@ def apply_update(release: ReleaseInfo, downloaded_path: str) -> bool:
 
     # 3. Set rollback flag
     ROLLBACK_FLAG.parent.mkdir(parents=True, exist_ok=True)
-    ROLLBACK_FLAG.write_text(json.dumps({
-        "previous_version": _current_version(),
-        "new_version": release.version,
-        "applied_at": time.time(),
-        "backup_path": str(backup_dir),
-    }))
+    ROLLBACK_FLAG.write_text(
+        json.dumps(
+            {
+                "previous_version": _current_version(),
+                "new_version": release.version,
+                "applied_at": time.time(),
+                "backup_path": str(backup_dir),
+            }
+        )
+    )
 
     # 4. Update VERSION file
     version_file = _get_exe_dir() / "VERSION"

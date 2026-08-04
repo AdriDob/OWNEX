@@ -61,6 +61,8 @@ SCRIPT_INDICATORS = re.compile(
     r"<script|<img|<svg|<iframe|<body|<input|<textarea|<math",
     re.IGNORECASE,
 )
+
+
 class XSSReasoner(BaseReasoner):
     @property
     def vulnerability_type(self) -> str:
@@ -156,9 +158,7 @@ class XSSReasoner(BaseReasoner):
             why_human_would_investigate=self._build_triager_justification(
                 endpoint, params_of_interest, method, signals
             ),
-            why_triager_might_reject=self._build_triager_rejection(
-                endpoint, params_of_interest, method, signals
-            ),
+            why_triager_might_reject=self._build_triager_rejection(endpoint, params_of_interest, method, signals),
             parameters_of_interest=params_of_interest,
             signals=signals,
             test_instructions=self._build_test_instructions(endpoint, params_of_interest, method),

@@ -186,7 +186,9 @@ class OpenSourceCategoryManager:
 
             # Platform matching (30% weight)
             if platforms:
-                platform_matches = sum(1 for platform in platforms if platform.lower() in [p.lower() for p in info["platforms"]])
+                platform_matches = sum(
+                    1 for platform in platforms if platform.lower() in [p.lower() for p in info["platforms"]]
+                )
                 platform_score = (platform_matches / len(info["platforms"])) * 0.3
                 score += platform_score
             else:
@@ -217,13 +219,15 @@ class OpenSourceContributionTracker:
         if project not in self._contributions:
             self._contributions[project] = []
 
-        self._contributions[project].append({
-            "issue_id": issue_id,
-            "title": title,
-            "category": category.value,
-            "status": status,
-            "timestamp": str(self._get_timestamp()),
-        })
+        self._contributions[project].append(
+            {
+                "issue_id": issue_id,
+                "title": title,
+                "category": category.value,
+                "status": status,
+                "timestamp": str(self._get_timestamp()),
+            }
+        )
 
         logger.info(f"[OPENSOURCE] Contribution added: {project}#{issue_id} - {title}")
 
@@ -231,11 +235,7 @@ class OpenSourceContributionTracker:
         """Get contributions, optionally filtered by project."""
         if project:
             return self._contributions.get(project, [])
-        return [
-            contrib
-            for contributions in self._contributions.values()
-            for contrib in contributions
-        ]
+        return [contrib for contributions in self._contributions.values() for contrib in contributions]
 
     def get_contribution_stats(self) -> dict[str, Any]:
         """Get contribution statistics."""
@@ -258,6 +258,7 @@ class OpenSourceContributionTracker:
     def _get_timestamp(self) -> str:
         """Get current timestamp."""
         from datetime import UTC, datetime
+
         return datetime.now(UTC).isoformat()
 
 

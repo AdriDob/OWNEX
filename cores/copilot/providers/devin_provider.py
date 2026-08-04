@@ -19,15 +19,10 @@ class DevinProvider(BaseProvider):
 
     def __init__(self, config: ProviderConfig | None = None) -> None:
         super().__init__(
-            config
-            or ProviderConfig(name="devin", priority=15, models=["default", "swe-1.6-slow"], timeout_s=300)
+            config or ProviderConfig(name="devin", priority=15, models=["default", "swe-1.6-slow"], timeout_s=300)
         )
         self._binary = self._config.extra.get("binary", "devin")
-        self._model = (
-            self._config.extra.get("model", self._config.models[0])
-            if self._config.models
-            else "default"
-        )
+        self._model = self._config.extra.get("model", self._config.models[0]) if self._config.models else "default"
 
     async def check(self) -> bool:
         try:
@@ -77,10 +72,8 @@ class DevinProvider(BaseProvider):
                 duration_ms=(time.monotonic() - t0) * 1000,
             )
         except FileNotFoundError:
-            return ProviderResponse(
-                content="", provider="devin", model=self._model, error="devin binary not found"
-            )
-        except Exception exc:
+            return ProviderResponse(content="", provider="devin", model=self._model, error="devin binary not found")
+        except Exception as exc:
             return ProviderResponse(
                 content="",
                 provider="devin",

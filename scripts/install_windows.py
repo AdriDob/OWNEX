@@ -97,7 +97,7 @@ def _assemble_portable(version: str, build_dist: Path) -> Path:
     readme = bundle / "README.txt"
     readme.write_text(
         f"""CATEYE v{version} — Windows Portable Edition
-{'=' * 50}
+{"=" * 50}
 
 Run:  CATEYE.exe
 

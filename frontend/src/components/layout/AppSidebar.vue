@@ -200,9 +200,9 @@ function formatCompact(n: number) {
     <div class="flex h-14 items-center gap-3 border-b border-border/40 px-4">
       <div class="flex h-7 w-7 shrink-0 items-center justify-center">
         <svg viewBox="0 0 512 512" width="28" height="28" fill="none">
-          <polygon points="256,96 376,156 376,356 256,416 136,356 136,156" stroke="#3b82f6" stroke-width="6" fill="rgba(59,130,246,0.08)" />
-          <circle cx="256" cy="256" r="24" fill="#3b82f6" opacity="0.8" />
-          <circle cx="256" cy="256" r="200" stroke="#3b82f6" stroke-width="8" opacity="0.1" />
+          <polygon points="256,96 376,156 376,356 256,416 136,356 136,156" stroke="#ffffff" stroke-width="6" fill="rgba(255, 255, 255,0.08)" />
+          <circle cx="256" cy="256" r="24" fill="#ffffff" opacity="0.8" />
+          <circle cx="256" cy="256" r="200" stroke="#ffffff" stroke-width="8" opacity="0.1" />
         </svg>
       </div>
       <Transition name="fade">
@@ -296,7 +296,7 @@ function formatCompact(n: number) {
         >
           <span
             v-if="isActive(item.path)"
-            class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary shadow-[0_0_6px_rgba(59,130,246,0.5)]"
+            class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary shadow-[0_0_6px_rgba(255, 255, 255,0.5)]"
           />
           <component :is="item.icon" :class="['h-4 w-4 shrink-0', isActive(item.path) ? 'scale-110 text-primary' : '']" />
           <Transition name="fade">

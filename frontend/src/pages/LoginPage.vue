@@ -62,9 +62,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-[#0a0b14] via-[#0e0f1a] to-[#11131f] p-4">
+  <div class="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-background via-surface to-surface p-4">
     <!-- Decorative grid -->
-    <div class="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(124,58,237,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(124,58,237,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
+    <div class="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(156, 163, 175,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(156, 163, 175,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
 
     <div class="relative w-full max-w-sm">
       <!-- Logo -->
@@ -76,7 +76,7 @@ onMounted(async () => {
       </div>
 
       <!-- Card -->
-      <div class="rounded-2xl border border-border/40 bg-[#131524]/80 p-6 backdrop-blur-xl hover-lift stagger-item" style="--i: 1">
+      <div class="rounded-2xl border border-border/40 bg-surface/80 p-6 backdrop-blur-xl hover-lift stagger-item" style="--i: 1">
         <div class="mb-5 text-center">
           <h2 class="text-sm font-semibold text-foreground">
             {{ isRegister ? 'Crear cuenta' : 'Iniciar sesión' }}

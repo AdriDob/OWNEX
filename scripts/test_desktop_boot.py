@@ -85,18 +85,21 @@ def test_path_resolution() -> None:
         index = frontend_dist / "index.html"
         check("Frontend index.html exists", index.is_file())
     else:
-        check("Frontend dist directory exists (build required)", False,
-              "run: cd frontend && npm run build")
+        check("Frontend dist directory exists (build required)", False, "run: cd frontend && npm run build")
 
     data_dir = get_data_dir()
     check("get_data_dir() returns Path", isinstance(data_dir, Path))
-    check("get_data_dir() does not contain XDG (no Linux fallback)",
-          "xdg" not in str(data_dir).lower() and ".local/share" not in str(data_dir))
+    check(
+        "get_data_dir() does not contain XDG (no Linux fallback)",
+        "xdg" not in str(data_dir).lower() and ".local/share" not in str(data_dir),
+    )
 
     config_dir = get_config_dir()
     check("get_config_dir() returns Path", isinstance(config_dir, Path))
-    check("get_config_dir() does not contain XDG (no Linux fallback)",
-          "xdg" not in str(config_dir).lower() and ".config/CATEYE" not in str(config_dir))
+    check(
+        "get_config_dir() does not contain XDG (no Linux fallback)",
+        "xdg" not in str(config_dir).lower() and ".config/CATEYE" not in str(config_dir),
+    )
 
     # Simulate frozen path
     orig_frozen = getattr(sys, "frozen", False)
@@ -124,6 +127,7 @@ def test_main_desktop_entry() -> None:
     section("2. main_desktop Entry Point")
 
     import importlib
+
     mod = importlib.import_module("desktop.main_desktop")
 
     check("main() exists", hasattr(mod, "main"))
@@ -135,6 +139,7 @@ def test_main_desktop_entry() -> None:
 
     # Verify no subprocess/multiprocessing dependencies
     import inspect
+
     source = inspect.getsource(mod)
     check("No subprocess.Popen usage", "Popen" not in source)
     check("No multiprocessing module import", "import multiprocessing" not in source)
@@ -156,11 +161,15 @@ def test_frontend_detection() -> None:
     section("3. Frontend Detection")
 
     from cores.platform.system import get_frontend_dist_dir
+
     dist_dir = get_frontend_dist_dir()
-    check("Frontend dist dir ends with frontend/dist or frontend_dist",
-          str(dist_dir).endswith(("frontend/dist", "frontend_dist")))
+    check(
+        "Frontend dist dir ends with frontend/dist or frontend_dist",
+        str(dist_dir).endswith(("frontend/dist", "frontend_dist")),
+    )
 
     from desktop.serve_frontend import mount_frontend
+
     check("mount_frontend() exists", callable(mount_frontend))
 
     log.info("")
@@ -173,6 +182,7 @@ def test_serve_frontend() -> None:
     section("4. serve_frontend Module")
 
     import importlib
+
     mod = importlib.import_module("desktop.serve_frontend")
     check("create_app() exists", hasattr(mod, "create_app"))
     check("mount_frontend() exists", hasattr(mod, "mount_frontend"))
@@ -191,23 +201,26 @@ def test_settings_and_autostart() -> None:
     section("5. Settings and autostart")
 
     from desktop.settings import DEFAULT_SETTINGS
+
     check("DesktopSettings importable", True)
     check("DEFAULT_SETTINGS has first_run", "first_run" in DEFAULT_SETTINGS)
     check("DEFAULT_SETTINGS has onboarding_complete", "onboarding_complete" in DEFAULT_SETTINGS)
 
     from desktop.autostart import disable_autostart, enable_autostart, is_autostart_enabled
+
     check("enable_autostart exists", callable(enable_autostart))
     check("disable_autostart exists", callable(disable_autostart))
     check("is_autostart_enabled exists", callable(is_autostart_enabled))
 
     import platform
+
     if platform.system() == "Windows" or platform.system() == "Darwin":
-        check("is_autostart_enabled returns bool on supported OS",
-              isinstance(is_autostart_enabled(), bool))
+        check("is_autostart_enabled returns bool on supported OS", isinstance(is_autostart_enabled(), bool))
     else:
         check_skip("is_autostart_enabled (not Windows/macOS)")
 
     from desktop.first_run import is_first_run_complete, run_first_time
+
     check("run_first_time exists", callable(run_first_time))
     check("is_first_run_complete exists", callable(is_first_run_complete))
 
@@ -251,11 +264,13 @@ def test_notifications() -> None:
     section("7. Notifications (plyer-only)")
 
     import importlib
+
     mod = importlib.import_module("desktop.notifications")
     check("send_notification exists", hasattr(mod, "send_notification"))
     check("set_silent_mode exists", hasattr(mod, "set_silent_mode"))
 
     import inspect
+
     source = inspect.getsource(mod)
     check("No notify-send fallback", "notify-send" not in source)
 

@@ -74,15 +74,17 @@ class PolymarketConnector(OdysseyConnector):
                 volume = m.get("volume", 0)
                 if isinstance(volume, str):
                     volume = float(volume)
-                markets.append(NormalizedMarket(
-                    name=m.get("question", m.get("name", "")),
-                    sport=m.get("category", "prediction"),
-                    event=m.get("question", ""),
-                    odds_home=1.0 / yes_price if yes_price > 0 else 0.0,
-                    odds_away=1.0 / no_price if no_price > 0 else 0.0,
-                    volume=float(volume),
-                    platform="polymarket",
-                ))
+                markets.append(
+                    NormalizedMarket(
+                        name=m.get("question", m.get("name", "")),
+                        sport=m.get("category", "prediction"),
+                        event=m.get("question", ""),
+                        odds_home=1.0 / yes_price if yes_price > 0 else 0.0,
+                        odds_away=1.0 / no_price if no_price > 0 else 0.0,
+                        volume=float(volume),
+                        platform="polymarket",
+                    )
+                )
             return markets
         except Exception as exc:
             logger.warning("Polymarket markets failed: %s", exc)

@@ -8,6 +8,7 @@ from enum import Enum
 
 class RetroStyle(Enum):
     """Retro office styles."""
+
     OFFICE_97 = "office_97"
     OFFICE_2000 = "office_2000"
     OFFICE_XP = "office_xp"
@@ -28,7 +29,7 @@ class MerlinPersonality:
             "Bienvenido de nuevo. MERLIN está listo para asistirte.",
             "MERLIN aquí. ¿En qué puedo ayudarte hoy?",
             "¡Saludos! MERLIN reportándose para el servicio.",
-            "¡Hey! MERLIN online y listo para rockear."
+            "¡Hey! MERLIN online y listo para rockear.",
         ]
 
         self.sign_offs = [
@@ -36,7 +37,7 @@ class MerlinPersonality:
             "— Tu amigo MERLIN",
             "— Atentamente, MERLIN",
             "— MERLIN, a tu servicio",
-            "— With love, MERLIN"
+            "— With love, MERLIN",
         ]
 
         self.thinking_phrases = [
@@ -45,7 +46,7 @@ class MerlinPersonality:
             "Analizando los datos disponibles...",
             "MERLIN está buscando en su memoria...",
             "Procesando información...",
-            "Un momento, MERLIN está pensando..."
+            "Un momento, MERLIN está pensando...",
         ]
 
         self.error_phrases = [
@@ -53,7 +54,7 @@ class MerlinPersonality:
             "MERLIN encontró un problema. Por favor, intenta de nuevo.",
             "Error del sistema. MERLIN reportará esto.",
             "Algo salió mal. MERLIN investigará.",
-            "Error crítico. MERLIN necesita ayuda."
+            "Error crítico. MERLIN necesita ayuda.",
         ]
 
         self.success_phrases = [
@@ -61,7 +62,7 @@ class MerlinPersonality:
             "¡Misión cumplida! MERLIN ha terminado.",
             "¡Listo! MERLIN ha completado el trabajo.",
             "¡Perfecto! MERLIN finalizó con éxito.",
-            "¡Hecho! MERLIN está listo para más."
+            "¡Hecho! MERLIN está listo para más.",
         ]
 
         self.retro_reactions = [
@@ -71,7 +72,7 @@ class MerlinPersonality:
             "📊 Gráficos generados con estilo!",
             "⌨️ Teclas mecánicas activadas...",
             "🖥️ Monitores CRT simulados...",
-            "📁 Archivos organizados al estilo clásico!"
+            "📁 Archivos organizados al estilo clásico!",
         ]
 
     def get_greeting(self) -> str:
@@ -98,12 +99,7 @@ class MerlinPersonality:
         """Get a random retro reaction."""
         return random.choice(self.retro_reactions)
 
-    def format_response(
-        self,
-        content: str,
-        detail_level: str = "normal",
-        response_tone: str = "professional"
-    ) -> str:
+    def format_response(self, content: str, detail_level: str = "normal", response_tone: str = "professional") -> str:
         """Format response according to settings."""
         # Apply detail level
         if detail_level == "concise":
@@ -184,7 +180,7 @@ class MerlinPersonality:
             "success": "✅",
             "error": "❌",
             "warning": "⚠️",
-            "info": "ℹ️"
+            "info": "ℹ️",
         }
         return emotions.get(sentiment, "🧙")
 
@@ -194,7 +190,7 @@ class MerlinPersonality:
             RetroStyle.OFFICE_97: "#4a5568",
             RetroStyle.OFFICE_2000: "#6366f1",
             RetroStyle.OFFICE_XP: "#f59e0b",
-            RetroStyle.MODERN_RETRO: "#99199a"
+            RetroStyle.MODERN_RETRO: "#99199a",
         }
         return colors.get(self.style, "#99199a")
 
@@ -204,6 +200,6 @@ class MerlinPersonality:
             RetroStyle.OFFICE_97: "linear-gradient(135deg, #2d3436 0%, #1e293b 50%, #0f172a 100%)",
             RetroStyle.OFFICE_2000: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
             RetroStyle.OFFICE_XP: "linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #3d7ab5 100%)",
-            RetroStyle.MODERN_RETRO: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
+            RetroStyle.MODERN_RETRO: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
         }
         return backgrounds.get(self.style, "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)")

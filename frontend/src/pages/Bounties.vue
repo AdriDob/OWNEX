@@ -182,7 +182,7 @@ function confidenceVariant(c: number) {
           </div>
           <BarChart
             :labels="evhChartLabels"
-            :datasets="[{ label: 'EVH', data: evhChartData, backgroundColor: '#22c55e' }]"
+            :datasets="[{ label: 'EVH', data: evhChartData, backgroundColor: '#16A34A' }]"
             :height="200"
             xLabel="Programa"
             yLabel="EVH"

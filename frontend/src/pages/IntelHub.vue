@@ -39,9 +39,9 @@ async function runLLMScan() {
 const llmScoreColor = computed(() => {
   if (!llmResult.value) return ''
   const s = llmResult.value.summary.score
-  if (s >= 80) return 'text-green-400'
-  if (s >= 60) return 'text-yellow-400'
-  return 'text-red-400'
+  if (s >= 80) return 'text-success'
+  if (s >= 60) return 'text-warning'
+  return 'text-destructive'
 })
 
 const remedyCount = computed(() => {
@@ -81,13 +81,13 @@ async function runCVE() {
 
 const priorityBadge = (label: string) => {
   const m: Record<string, string> = {
-    Critical: 'bg-red-500/15 text-red-400 border-red-500/30',
-    High: 'bg-orange-500/15 text-orange-400 border-orange-500/30',
-    Medium: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30',
-    Low: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-    Info: 'bg-gray-500/15 text-gray-400 border-gray-500/30',
+    Critical: 'bg-destructive/15 text-destructive border-destructive/30',
+    High: 'bg-warning/15 text-warning border-warning/30',
+    Medium: 'bg-warning/15 text-warning border-warning/30',
+    Low: 'bg-primary/15 text-primary border-primary/30',
+    Info: 'bg-muted/15 text-muted-foreground border-border-light/30',
   }
-  return m[label] || 'bg-gray-500/15 text-gray-400 border-gray-500/30'
+  return m[label] || 'bg-muted/15 text-muted-foreground border-border-light/30'
 }
 
 const criticalCount = computed(() =>
@@ -107,8 +107,8 @@ const kevCount = computed(() =>
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div>
         <div class="flex items-center gap-3">
-          <div class="p-2.5 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/20">
-            <Brain class="w-6 h-6 text-blue-400" />
+          <div class="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-intigriti/20 border border-primary/20">
+            <Brain class="w-6 h-6 text-primary" />
           </div>
           <div>
             <h1 class="text-2xl font-bold tracking-tight">OWNEX Intelligence</h1>
@@ -138,8 +138,8 @@ const kevCount = computed(() =>
     <template v-if="activeTab === 'llm'">
       <GlassCard class="p-5 sm:p-6">
         <div class="flex flex-col sm:flex-row items-start gap-4">
-          <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 shrink-0 hidden sm:block">
-            <Terminal class="w-6 h-6 text-blue-400" />
+          <div class="p-3 rounded-xl bg-primary/10 border border-primary/20 shrink-0 hidden sm:block">
+            <Terminal class="w-6 h-6 text-primary" />
           </div>
           <div class="flex-1 w-full space-y-4">
             <div>
@@ -187,8 +187,8 @@ const kevCount = computed(() =>
       <!-- Loading -->
       <div v-if="llmScanning" class="flex flex-col items-center justify-center py-20 text-muted-foreground">
         <div class="relative w-16 h-16 mb-4">
-          <div class="absolute inset-0 rounded-full border-2 border-blue-500/20 border-t-blue-400 animate-spin" />
-          <Brain class="absolute inset-0 m-auto w-6 h-6 text-blue-400 animate-pulse" />
+          <div class="absolute inset-0 rounded-full border-2 border-primary/20 border-t-blue-400 animate-spin" />
+          <Brain class="absolute inset-0 m-auto w-6 h-6 text-primary animate-pulse" />
         </div>
         <p class="text-lg font-medium">Running security probes…</p>
         <p class="text-sm mt-1">Testing prompt injection, jailbreaks, data leakage, and more</p>
@@ -243,10 +243,10 @@ const kevCount = computed(() =>
         </GlassCard>
 
         <!-- Remediation callout -->
-        <div v-if="remedyCount > 0" class="p-4 rounded-xl border bg-amber-500/5 border-amber-500/20 flex items-start gap-3">
-          <Lightbulb class="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+        <div v-if="remedyCount > 0" class="p-4 rounded-xl border bg-warning/5 border-amber-500/20 flex items-start gap-3">
+          <Lightbulb class="w-5 h-5 text-warning shrink-0 mt-0.5" />
           <div>
-            <p class="font-medium text-amber-400">{{ remedyCount }} issues need attention</p>
+            <p class="font-medium text-warning">{{ remedyCount }} issues need attention</p>
             <p class="text-sm text-muted-foreground mt-0.5">
               Expand each check below for the exact probe payload, model response, and remediation steps.
             </p>
@@ -262,8 +262,8 @@ const kevCount = computed(() =>
             class="rounded-xl border transition-all overflow-hidden"
             :class="[
               check.passed
-                ? 'bg-green-500/[0.03] border-green-500/15'
-                : 'bg-red-500/[0.03] border-red-500/15',
+                ? 'bg-success/[0.03] border-success/15'
+                : 'bg-destructive/[0.03] border-destructive/15',
               llmExpandedCheck === check.name ? 'ring-1 ring-inset' : '',
               llmExpandedCheck === check.name && check.passed ? 'ring-green-500/30' : '',
               llmExpandedCheck === check.name && !check.passed ? 'ring-red-500/30' : '',
@@ -275,10 +275,10 @@ const kevCount = computed(() =>
             >
               <div
                 class="p-1.5 rounded-lg shrink-0"
-                :class="check.passed ? 'bg-green-500/10' : 'bg-red-500/10'"
+                :class="check.passed ? 'bg-success/10' : 'bg-destructive/10'"
               >
-                <CheckCircle v-if="check.passed" class="w-4 h-4 text-green-400" />
-                <XCircle v-else class="w-4 h-4 text-red-400" />
+                <CheckCircle v-if="check.passed" class="w-4 h-4 text-success" />
+                <XCircle v-else class="w-4 h-4 text-destructive" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
@@ -301,7 +301,7 @@ const kevCount = computed(() =>
             </button>
 
             <div v-if="llmExpandedCheck === check.name" class="px-4 pb-4 space-y-3 border-t pt-3"
-              :class="check.passed ? 'border-green-500/10' : 'border-red-500/10'"
+              :class="check.passed ? 'border-success/10' : 'border-destructive/10'"
             >
               <!-- Probe payload -->
               <div v-if="check.probe" class="space-y-1">
@@ -320,7 +320,7 @@ const kevCount = computed(() =>
                 </div>
                 <div
                   class="p-2.5 rounded-lg border text-xs font-mono"
-                  :class="check.passed ? 'bg-green-500/5 border-green-500/15 text-green-300' : 'bg-red-500/5 border-red-500/15 text-red-300'"
+                  :class="check.passed ? 'bg-success/5 border-success/15 text-success' : 'bg-destructive/5 border-destructive/15 text-destructive'"
                 >
                   {{ check.model_response }}
                 </div>
@@ -328,10 +328,10 @@ const kevCount = computed(() =>
 
               <!-- Remediation -->
               <div v-if="check.remediation" class="space-y-1">
-                <div class="flex items-center gap-1.5 text-xs text-amber-400">
+                <div class="flex items-center gap-1.5 text-xs text-warning">
                   <Lightbulb class="w-3 h-3" /> Remediation
                 </div>
-                <div class="p-2.5 rounded-lg bg-amber-500/5 border border-amber-500/15 text-xs">
+                <div class="p-2.5 rounded-lg bg-warning/5 border border-amber-500/15 text-xs">
                   {{ check.remediation }}
                 </div>
               </div>
@@ -347,8 +347,8 @@ const kevCount = computed(() =>
     <template v-if="activeTab === 'cve'">
       <GlassCard class="p-5 sm:p-6">
         <div class="flex flex-col sm:flex-row items-start gap-4">
-          <div class="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 shrink-0 hidden sm:block">
-            <Search class="w-6 h-6 text-purple-400" />
+          <div class="p-3 rounded-xl bg-intigriti/10 border border-purple-500/20 shrink-0 hidden sm:block">
+            <Search class="w-6 h-6 text-intigriti" />
           </div>
           <div class="flex-1 w-full space-y-4">
             <div>
@@ -424,7 +424,7 @@ const kevCount = computed(() =>
       <div v-if="cveLoading" class="flex flex-col items-center justify-center py-20 text-muted-foreground">
         <div class="relative w-16 h-16 mb-4">
           <div class="absolute inset-0 rounded-full border-2 border-purple-500/20 border-t-purple-400 animate-spin" />
-          <Search class="absolute inset-0 m-auto w-6 h-6 text-purple-400 animate-pulse" />
+          <Search class="absolute inset-0 m-auto w-6 h-6 text-intigriti animate-pulse" />
         </div>
         <p class="text-lg font-medium">Fetching CVE intelligence…</p>
         <p class="text-sm mt-1">Querying NVD + EPSS + CISA KEV databases</p>
@@ -436,9 +436,9 @@ const kevCount = computed(() =>
         <GlassCard class="p-4">
           <div class="flex flex-wrap items-center gap-4 text-sm">
             <span class="text-muted-foreground">{{ cveResults.length }} CVEs</span>
-            <span class="text-red-400 font-medium" v-if="criticalCount">{{ criticalCount }} critical</span>
-            <span class="text-orange-400 font-medium" v-if="highCount">{{ highCount }} high</span>
-            <span class="text-red-400 font-medium" v-if="kevCount">{{ kevCount }} exploited in wild (KEV)</span>
+            <span class="text-destructive font-medium" v-if="criticalCount">{{ criticalCount }} critical</span>
+            <span class="text-warning font-medium" v-if="highCount">{{ highCount }} high</span>
+            <span class="text-destructive font-medium" v-if="kevCount">{{ kevCount }} exploited in wild (KEV)</span>
             <span class="text-xs text-muted-foreground ml-auto">
               Data: NVD · EPSS (FIRST) · CISA KEV
             </span>
@@ -458,14 +458,14 @@ const kevCount = computed(() =>
             <div
               class="p-1.5 rounded-lg shrink-0 mt-0.5"
               :class="{
-                'bg-red-500/10': cve.priority_label === 'Critical',
-                'bg-orange-500/10': cve.priority_label === 'High',
-                'bg-yellow-500/10': cve.priority_label === 'Medium',
-                'bg-blue-500/10': cve.priority_label === 'Low',
+                'bg-destructive/10': cve.priority_label === 'Critical',
+                'bg-warning/10': cve.priority_label === 'High',
+                'bg-warning/10': cve.priority_label === 'Medium',
+                'bg-primary/10': cve.priority_label === 'Low',
               }"
             >
-              <AlertTriangle v-if="cve.priority_label === 'Critical' || cve.priority_label === 'High'" class="w-4 h-4 text-red-400" />
-              <Info v-else class="w-4 h-4 text-blue-400" />
+              <AlertTriangle v-if="cve.priority_label === 'Critical' || cve.priority_label === 'High'" class="w-4 h-4 text-destructive" />
+              <Info v-else class="w-4 h-4 text-primary" />
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex flex-wrap items-center gap-2">
@@ -489,10 +489,10 @@ const kevCount = computed(() =>
           <div v-if="cveExpanded === cve.id" class="px-4 pb-4 border-t pt-3 space-y-3">
             <!-- Fix -->
             <div class="space-y-1">
-              <div class="flex items-center gap-1.5 text-xs text-amber-400">
+              <div class="flex items-center gap-1.5 text-xs text-warning">
                 <Lightbulb class="w-3 h-3" /> Recommended fix
               </div>
-              <div class="p-2.5 rounded-lg bg-amber-500/5 border border-amber-500/15 text-xs">
+              <div class="p-2.5 rounded-lg bg-warning/5 border border-amber-500/15 text-xs">
                 {{ cve.fix }}
               </div>
             </div>
@@ -502,7 +502,7 @@ const kevCount = computed(() =>
                 :href="cve.url"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:underline"
+                class="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
               >
                 <ExternalLink class="w-3 h-3" />
                 View on NVD

@@ -10,6 +10,10 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from threading import Lock, Thread
 
+from cores.learning.contrastive import train_contrastive
+from cores.learning.distillation import train_distilled_model
+from cores.learning.evolution import evolve_prompts
+
 
 @dataclass(slots=True)
 class LearningCycleResult:

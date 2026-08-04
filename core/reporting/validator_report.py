@@ -278,10 +278,7 @@ class ValidatorReport:
         if self.poc_python:
             sections.append("### Python\n\n```python\n" + self.poc_python + "\n```")
         if not self.poc_curl and not self.poc_python:
-            sections.append(
-                "*No automated PoC was generated for this finding. "
-                "Manual verification is recommended.*"
-            )
+            sections.append("*No automated PoC was generated for this finding. Manual verification is recommended.*")
         return "\n\n".join(sections)
 
     def _evidence_section(self) -> str:
@@ -345,46 +342,43 @@ class ValidatorReport:
         )
 
     def _impact(self) -> str:
-        return (
-            "## Impact\n\n"
-            + {
-                "idor": (
-                    "An attacker could access, modify, or delete resources belonging to "
-                    "other users. Depending on the application, this may include personal "
-                    "information, financial data, private messages, or administrative functions. "
-                    "The business impact ranges from data breach (GDPR/CCPA liability) to "
-                    "complete account takeover in severe cases."
-                ),
-                "auth_bypass": (
-                    "An unauthenticated attacker could access protected endpoints, "
-                    "perform privileged actions, or extract sensitive data. "
-                    "This vulnerability undermines the entire authentication model "
-                    "and may lead to full compromise of the affected system."
-                ),
-                "ssrf": (
-                    "An attacker could probe internal network services, read cloud "
-                    "instance metadata (e.g., AWS IAM credentials), or interact with "
-                    "internal APIs. In cloud environments, this often leads to "
-                    "credential exposure and lateral movement."
-                ),
-                "xss": (
-                    "An attacker could execute arbitrary JavaScript in the context "
-                    "of a victim user's session, leading to session hijacking, "
-                    "credential theft, CSRF bypass, or malware distribution."
-                ),
-                "sqli": (
-                    "An attacker could extract, modify, or delete database contents. "
-                    "Severe cases allow reading the entire application database, "
-                    "including password hashes, PII, and business-critical data. "
-                    "In some configurations, code execution on the database server "
-                    "is possible."
-                ),
-            }.get(
-                self.vulnerability_type,
-                "An attacker could exploit this vulnerability to compromise "
-                "the confidentiality, integrity, or availability of the affected system. "
-                "The exact impact depends on the specific application context.",
-            )
+        return "## Impact\n\n" + {
+            "idor": (
+                "An attacker could access, modify, or delete resources belonging to "
+                "other users. Depending on the application, this may include personal "
+                "information, financial data, private messages, or administrative functions. "
+                "The business impact ranges from data breach (GDPR/CCPA liability) to "
+                "complete account takeover in severe cases."
+            ),
+            "auth_bypass": (
+                "An unauthenticated attacker could access protected endpoints, "
+                "perform privileged actions, or extract sensitive data. "
+                "This vulnerability undermines the entire authentication model "
+                "and may lead to full compromise of the affected system."
+            ),
+            "ssrf": (
+                "An attacker could probe internal network services, read cloud "
+                "instance metadata (e.g., AWS IAM credentials), or interact with "
+                "internal APIs. In cloud environments, this often leads to "
+                "credential exposure and lateral movement."
+            ),
+            "xss": (
+                "An attacker could execute arbitrary JavaScript in the context "
+                "of a victim user's session, leading to session hijacking, "
+                "credential theft, CSRF bypass, or malware distribution."
+            ),
+            "sqli": (
+                "An attacker could extract, modify, or delete database contents. "
+                "Severe cases allow reading the entire application database, "
+                "including password hashes, PII, and business-critical data. "
+                "In some configurations, code execution on the database server "
+                "is possible."
+            ),
+        }.get(
+            self.vulnerability_type,
+            "An attacker could exploit this vulnerability to compromise "
+            "the confidentiality, integrity, or availability of the affected system. "
+            "The exact impact depends on the specific application context.",
         )
 
     def _remediation_section(self) -> str:

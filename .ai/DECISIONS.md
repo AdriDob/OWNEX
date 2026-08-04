@@ -1,5 +1,33 @@
 # Decisions — Registro de Decisiones Arquitectónicas
 
+## 2026-08-04: OAR AI Runtime — sistema operativo unificado de providers de IA
+
+- **Problema**: Cada operación de IA se cableaba contra un provider concreto (Ollama local, OpenRouter, Groq, FCC, etc.) de forma ad-hoc. No había un punto único de entrada: rutear por tipo de tarea, presupuesto, failover, caché ni aprendizaje de preferencias. Con 9+ providers disponibles, el routing manual no escala y no respeta el coste (budget diario USD).
+- **Alternativas consideradas**:
+  1. **OAR (`cores/ai/runtime/`), elegido** — Contenedor único que levanta registry → health → cost → failover → cache → context → learning → router. `SmartRouter` decide por `TaskType` (CODE→local, etc.) priorizando local+gratis (`prefer_local`/`prefer_free`), con confidence y estimación de coste/latencia.
+  2. Envolver solo el router de FCC — Dependía de un solo proxy, no del ecosistema completo de providers.
+  3. Mantener el cableado ad-hoc — No cierra ningún loop de coste/failover/aprendizaje.
+- **Decisión**: OAR como API unificada de IA. 9 factories de adapters (OpenRouter, Groq, Together, DeepInfra, Cerebras, NVIDIA, FCC, OpenCode, LMStudio). `CostTracker` con `daily_budget_usd`, `FailoverEngine` (circuit breaker por provider), `LearningEngine` (preferencias por TaskType), `SemanticCache`.
+- **Impacto**:
+  - Un solo `OAR.initialize()` → toda la infra de IA lista
+  - Routing por tarea + budget + failover + aprendizaje en un solo lugar
+  - `tests/test_oar.py` 12 passed; aún **sin** router API (necesita `api/routers/oar.py`)
+- **Condiciones para reabrir**: Métricas de coste/latencia por provider observadas en producción, o decisión de exponer OAR vía API REST.
+
+## 2026-08-04: Career Engine — aprendizaje continuo del usuario (skill gaps + roadmap)
+
+- **Problema**: OWNEX encontraba oportunidades pero no cerraba el loop de "cómo el usuario gana la skill que le faltaría para cobrar más". El `UserProfile` del DWE tiene skills, pero nada las comparaba contra lo que cada categoría de mercado realmente pide.
+- **Alternativas consideradas**:
+  1. **Career Engine (`cores/career_engine.py`), elegido** — `CATEGORY_REQUIRED_SKILLS` curadas de realidad de mercado por las 36 categorías. `detect_skill_gaps()` prioriza "skill compartida por 2+ categorías" como high. Genera roadmap, preguntas de entrevista por categoría, y plan de entrenamiento diario. Todo deriva del `UserProfile` real (nunca inventa).
+  2. Solo listar skills — No produce acción (roadmap/entrenamiento/entrevista).
+  3. Modelo ML de skill-matching — Sobredimensionado sin datos de entrenamiento reales.
+- **Decisión**: Career Engine como motor determinista. Se auto-registra en CapabilityRegistry vía `register_all_capabilities()` (también registra el DWE, idempotente).
+- **Impacto**:
+  - Cierra el `skill_gap` del Daily Brief del Work Bank: el top pick viene con su plan de aprendizaje
+  - `tests/test_career_engine.py` 14 passed
+  - Aún **sin** router API (se puede exponer como `/career/*`)
+- **Condiciones para reabrir**: Exponer API `/career/*` o integrar el roadmap en Mission Control para que sea visible (regla "si no es visible, no existe").
+
 ## 2026-07-06: Ed25519 para licencias
 
 - **Problema**: El sistema de licencias usaba HMAC-SHA256 con una clave hardcodeada en el código fuente. Cualquier persona con acceso al binario podía forjar licencias.
@@ -403,3 +431,87 @@
   - Storyboard de trailer 90s (8 escenas) en `assets/video/trailer-storyboard.md`
 
 - **Condiciones para reabrir**: Si el usuario cambia la dirección creativa (nuevo mark), o si se necesita una familia extendida (submarcas por departamento, iconos de ciclo). El pipeline `scripts/brand/` permite regenerar todo el sistema cambiando solo `pipeline.py` + `design-tokens.json`.
+
+## 2026-08-01: Direct Work Engine — barrera como espectro, no como promesa
+
+- **Problema**: La visión "Zero Barrier" prometía "0 barrera de entrada" como si existiera en todo el mercado. Eso no es cierto en muchas áreas. Además `cores/direct_work_engine/` era un módulo fantasma: su `__init__.py` declaraba imports (`models`, `discovery`, `scoring`, `recommendation`, `profile_builder`, `engine`) a archivos inexistentes — `import` rompía con `ModuleNotFoundError`. Por otro lado, `RevenueTracker.is_zero_barrier()` trataba la barrera como **boolean** (todo o nada).
+
+- **Alternativas consideradas**:
+  1. **Score continuo 0-100 (elegido)** — La barrera es un espectro: OWNEX busca, filtra y prioriza oportunidades con la MENOR barrera (sin entrevista cuando exista, sin portfolio si es opcional, registro rápido, pago internacional, remoto). Nunca promete "cero barrera garantizado". El `ZeroBarrierScorer` pondera 15 factores (suma 1.0) y el `IntelligentRecommender` ordena por ingreso esperado > aceptación > menor barrera > compatibilidad > velocidad > reputación, con diversidad y penalización por riesgo.
+  2. Mantener el boolean existente — No rankea, no discrimina, contradice la visión.
+  3. Poblar solo el scorer — Deja sin motor de decisión ni discovery.
+
+- **Decisión**: Poblar el módulo fantasma `cores/direct_work_engine/` como motor desacoplado (sin imports a `core/`): `models` (Opportunity con 18+ campos de barrera, GameDevSpecialization solo-programación, UserProfile expandido, RankedOpportunity), `scoring` (espectro 0-100 + enablers/blockers/reasoning), `recommendation` (config con pesos validables + strategy personalizada), `discovery` (async, adapters por plataforma con aislamiento de errores), `engine` (orquesta discover→score→recommend→stats), `profile_builder` (solo datos reales, nunca inventar). Game Development como categoría obligatoria que **excluye arte** (concept/character/environment/UI art, animación artística) e incluye solo programación. Fixes al diseño concurrente: pesos que sumaban 1.10 → 1.0 + normalización defensiva; `enablers`/`blockers` agregados a `ZeroBarrierScore`; `__post_init__` tolera specialization como string.
+
+- **Impacto**:
+  - `import cores.direct_work_engine` OK (antes roto); `tests/test_direct_work_engine.py` 28 passed; ruff limpio
+  - El diferenciador OWNEX queda explícito: "de miles de oportunidades, estas tres son las más probables de cobrar esta semana, en este orden" — motor de decisión, no acumulación de módulos
+  - Módulo NO montado aún en `api/main.py` (sin adapters reales registrados) — próximo paso natural: adapters Algora/Opire/Freelancer existentes vía `register_adapter`  - 0 regresiones: no toca `core/`, `api/` ni otros módulos; solo se pobló el fantasma
+
+- **Condiciones para reabrir**: Cuando se registren adapters reales de discovery, cuando se monte el router en `api/main.py`, o si se requiere que el scorer reaccione al historial real de payout del usuario (feedback loop de Memory System).
+
+## 2026-08-01: Direct Work Engine — feedback loop + clasificación de modelos de mercado
+
+- **Problema**: El DWE rankeaba oportunidades sin aprender de los outcomes reales (el scorer no conocía qué plataformas/categorías cobran más). Además la visión OWNEX 2035 exige distinguir los **modelos de mercado** (empleo clásico vs freelance vs bounties vs bug bounty vs OSS vs AI tasks vs competencias): las tareas públicas ("¿podés resolver esto?") son más objetivas que los procesos de selección ("¿quién sos?") y deben priorizarse, pero eso no estaba explicitado en el motor.
+
+- **Alternativas consideradas**:
+  1. **Feedback loop con historial real (elegido)** — `feedback.py` con `LearningRecord` (platform, category, accepted, amount, time_to_payout_days), `apply_learning()` que pliega outcomes verificados (accepted/paid vs failed/cancelled; pending/reviewing NO cuentan) en `UserProfile.platform_success_rates`/`category_success_rates`/`total_earnings`/`avg_time_to_payment_days`, y `build_history_from_revenue_tracker()` que deriva records desde el RevenueTracker real. Historial vacío = no-op (nunca inventa tasas). El recommender YA lee esas tasas (`_calculate_acceptance_probability`), así el motor mejora con cada cobro/rechazo.
+  2. Scorer que adivine tasas por defecto — Contradice "nunca inventar información". Descartado.
+  3. Solo documentar la visión — No cierra ningún loop medible.
+
+- **Decisión**: Implementar feedback loop + `EMPLOYMENT_TYPE_MODEL`/`opportunity_model()`/`is_outcome_based()` (7 modelos de mercado, expuestos en `recommendation_reasoning` y strategy "Outcome-based: deliver the result"). `DirectWorkEngine.learn()` como entrada única. Vision 2035 registrada en `.ai/STRATEGIC_VISION.md`.
+
+- **Impacto**:
+  - El motor aprende de datos reales: `platform_success_rates`/`category_success_rates` alimentan la probabilidad de aceptación → ranking más honesto con cada ciclo
+  - OWNEX distingue explícitamente "mundo resultado" (bounty/microtask/prize) vs "mundo selección" (empleo/freelance) y prioriza las tareas públicas de menor barrera
+  - `tests/test_direct_work_engine.py` 28 → 35 (feedback loop con RevenueTracker, nunca inventa, clasificación de modelos); ruff limpio
+  - 0 regresiones: módulo desacoplado, no toca `core/`, `api/` ni otros módulos
+  - `register_capabilities()` ya auto-registra `learn_from_outcomes` en CapabilityRegistry
+
+- **Condiciones para reabrir**: Cuando se registren adapters reales de discovery (los `core/opportunity/adapters/` existentes vía `register_adapter`), cuando se monte el router/endpoint en `api/main.py`, o cuando se quiera persistir el `UserProfile` aprendido entre sesiones (hoy se reconstruye en memoria).
+
+## 2026-08-01: Direct Work Engine — router expuesto en la API (visible en Mission Control)
+
+- **Problema**: El motor DWE rankeaba oportunidades pero no era consumible: no había endpoints, no era visible en Mission Control. Regla del proyecto: "si no es visible, no existe".
+- **Decisión**: Montar `api/routers/direct_work.py` en `api/main.py` con `GET /api/direct-work/status`, `POST /api/direct-work/score`, `POST /api/direct-work/recommend`, `POST /api/direct-work/learn`. Serialización enum-aware (dict ↔ dataclass) en el router, manteniendo los modelos del DWE puros. Sin auto-submisión: enviar info personal sigue requiriendo aprobación (Human Control Layer).
+- **Impacto**:
+  - El pipeline del megaprompt (Discovery → Intelligence → … → Payment Tracking) ahora tiene interfaz consumible: score/recommend/learn/status
+  - `tests/test_direct_work_api.py` 5 passed con TestClient; `import api.main` OK
+  - El feedback loop (`/learn`) queda accesible para alimentarse del historial real de pagos
+- **Condiciones para reabrir**: Cuando se registren más adapters reales (envolver los `core/opportunity/adapters/` de Algora, IssueHunt, Freelancer a `BaseDiscoveryAdapter`), o cuando el frontend consuma estos endpoints en Mission Control.
+
+## 2026-08-01: Direct Work Engine — primer adapter real de discovery (Opire)
+
+- **Problema**: El DWE rankeaba oportunidades que nadie le alimentaba: sin adapters reales, `discover_all()` no producía nada. El motor de decisión no generaba valor sin datos vivos.
+- **Decisión**: Crear `api/adapters/direct_work_opire.py` — `OpireDweAdapter(BaseDiscoveryAdapter)` envuelve el `OpireAdapter` legacy (API pública de Opire, auth opcional) y normaliza `RawOpportunity` → `Opportunity` (categoría dev_bounty, employment_type BOUNTY → outcome-based, difficulty inferida de effort_hours). Se registra idempotente y tolerante a errores en `get_engine()` del router. Vive en la capa API para que el DWE siga desacoplado de `core/`.
+- **Impacto**:
+  - `get_engine().discovery` ahora tiene OPIRE registrado → el motor puede descubrir bounties reales de Opire
+  - `tests/test_direct_work_api.py` 5 → 8 (conversión mockeada, sin red; registro automático idempotente)
+  - 0 regresiones: import api.main OK, ruff limpio
+- **Condiciones para reabrir**: Cuando se registren más fuentes (Algora, OpenCollective, Superteam, GitHub Sponsors) o se exponga el discovery en un endpoint accionable (`POST /direct-work/discover`).
+
+## 2026-08-01: Direct Work Engine — wrapper genérico + más fuentes reales
+
+- **Problema**: Cada adapter real (Opire) duplicaba la conversión `RawOpportunity → Opportunity`. Envolver más plataformas multiplicaría el código copiado.
+- **Decisión**: `api/adapters/legacy.py` — `LegacyOpportunityDweAdapter(BaseDiscoveryAdapter)` (un solo camino de conversión parametrizado por platform/category/employment_type) + `build_default_adapters()` que registra **opire, issuehunt y freelancer**. `OpireDweAdapter` queda como subclase fina del wrapper (DRY). Freelancer clasificado como modelo *freelance* (mundo selección); bounties como outcome-based — refuerza la clasificación de 7 modelos.
+- **Impacto**:
+  - El motor descubre de 3 fuentes reales: `get_engine().discovery.adapters = {opire, issuehunt, freelancer}`
+  - `tests/test_direct_work_api.py` 8 → 10 (conversión mockeada sin red, clasificación freelance vs bounty)
+  - 0 regresiones: 45 tests verdes, import api.main OK, ruff limpio
+- **Condiciones para reabrir**: Envolver Algora/OpenCollective/Superteam, o exponer discovery accionable (`POST /direct-work/discover`), o que el frontend consuma `/recommend`.
+
+## 2026-08-01: Vault & Atlas Cycles — 6 Work Cycles operativos (AUD-8)
+
+- **Problema**: Solo 4 de 6 Work Cycles tenían clase de motor + router API (security, forge, pulse, direct_work). Vault y Atlas solo tenían seeds DB + scheduler jobs, sin motor ni endpoints — invisibles en Mission Control.
+- **Alternativas consideradas**:
+  1. **Crear clases VaultCycle/AtlasCycle + routers (elegido)** — Seguir patrón ForgeCycle/PulseCycle existente. Motor desacoplado, bookkeeping DB, knowledge capture, executive dashboard integration.
+  2. Solo montar routers stub sin motor — Violaría "si no es visible, no existe" y "no mocks en producción".
+  3. Unificar en un solo ciclo "Wealth+Intelligence" — Pérdida de granularidad, categorías distintas (wealth vs intelligence).
+- **Decisión**: Crear `core/cycles/vault.py` (VaultCycle, priority 7) y `core/cycles/atlas.py` (AtlasCycle, priority 5) con 6 stages cada uno. Routers `vault_cycle.py` y `atlas_cycle.py` con 8 endpoints cada uno. Montados en `api/main.py`.
+- **Impacto**:
+  - 6 ciclos operativos: security, forge, pulse, vault, atlas, direct_work
+  - `get_all_jobs()` → 27 jobs (vault:2, atlas:2, direct_work:1)
+  - Executive Dashboard backend ya expone datos; frontend Mission Control puede consumir `/dashboard`, `/knowledge`, `/status`
+  - 0 regresiones: patrón idéntico a forge/pulse, solo adapta platforms/sources
+- **Condiciones para reabrir**: Cuando el frontend consuma estos endpoints en Mission Control, o cuando se requiera `run_pipeline()` real (hoy solo bookkeeping DB como forge/pulse).
+

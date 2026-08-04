@@ -25,6 +25,7 @@ logger = logging.getLogger("ownex.life_management")
 
 class TaskPriority(Enum):
     """Prioridad de tarea."""
+
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -33,6 +34,7 @@ class TaskPriority(Enum):
 
 class TaskStatus(Enum):
     """Estado de tarea."""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -42,6 +44,7 @@ class TaskStatus(Enum):
 
 class TaskCategory(Enum):
     """Categoría de tarea."""
+
     WORK = "work"
     PERSONAL = "personal"
     HEALTH = "health"
@@ -54,6 +57,7 @@ class TaskCategory(Enum):
 
 class GoalCategory(Enum):
     """Categoría de meta."""
+
     CAREER = "career"
     FINANCE = "finance"
     HEALTH = "health"
@@ -66,6 +70,7 @@ class GoalCategory(Enum):
 
 class GoalStatus(Enum):
     """Estado de meta."""
+
     NOT_STARTED = "not_started"
     IN_PROGRESS = "in_progress"
     ON_TRACK = "on_track"
@@ -76,6 +81,7 @@ class GoalStatus(Enum):
 
 class HabitFrequency(Enum):
     """Frecuencia de hábito."""
+
     DAILY = "daily"
     WEEKLY = "weekly"
     MONTHLY = "monthly"
@@ -84,6 +90,7 @@ class HabitFrequency(Enum):
 
 class HabitStatus(Enum):
     """Estado de hábito."""
+
     ACTIVE = "active"
     PAUSED = "paused"
     COMPLETED = "completed"
@@ -92,6 +99,7 @@ class HabitStatus(Enum):
 
 class MoodLevel(Enum):
     """Nivel de estado de ánimo."""
+
     VERY_POSITIVE = "very_positive"
     POSITIVE = "positive"
     NEUTRAL = "neutral"
@@ -101,6 +109,7 @@ class MoodLevel(Enum):
 
 class AdviceCategory(Enum):
     """Categoría de consejo."""
+
     PRODUCTIVITY = "productivity"
     HEALTH = "health"
     MENTAL_HEALTH = "mental_health"
@@ -116,6 +125,7 @@ class AdviceCategory(Enum):
 @dataclass
 class Task:
     """Tarea personal extendida."""
+
     task_id: str
     title: str
     description: str
@@ -140,6 +150,7 @@ class Task:
 @dataclass
 class Goal:
     """Meta a largo plazo."""
+
     goal_id: str
     title: str
     description: str
@@ -161,6 +172,7 @@ class Goal:
 @dataclass
 class Habit:
     """Hábito diario."""
+
     habit_id: str
     title: str
     description: str
@@ -182,6 +194,7 @@ class Habit:
 @dataclass
 class HabitEntry:
     """Entrada de hábito diario."""
+
     entry_id: str
     habit_id: str
     date: str
@@ -195,6 +208,7 @@ class HabitEntry:
 @dataclass
 class DailyMood:
     """Estado de ánimo diario."""
+
     date: str
     mood_morning: MoodLevel | None = None
     mood_afternoon: MoodLevel | None = None
@@ -212,6 +226,7 @@ class DailyMood:
 @dataclass
 class DailyRoutine:
     """Rutina diaria."""
+
     routine_id: str
     title: str
     date: str
@@ -232,6 +247,7 @@ class DailyRoutine:
 @dataclass
 class PCUsageSession:
     """Sesión de uso de PC."""
+
     session_id: str
     start_time: datetime
     end_time: datetime | None = None
@@ -246,6 +262,7 @@ class PCUsageSession:
 @dataclass
 class PersonalizedAdvice:
     """Consejo personalizado."""
+
     advice_id: str
     category: AdviceCategory
     title: str
@@ -344,8 +361,7 @@ class LifeManagementSystem:
         """Obtener tareas para una fecha específica."""
         date_str = date.strftime("%Y-%m-%d")
         return [
-            task for task in self.tasks.values()
-            if task.due_date and task.due_date.strftime("%Y-%m-%d") == date_str
+            task for task in self.tasks.values() if task.due_date and task.due_date.strftime("%Y-%m-%d") == date_str
         ]
 
     def get_tasks_by_priority(self, priority: TaskPriority) -> list[Task]:
@@ -409,7 +425,8 @@ class LifeManagementSystem:
     def get_active_goals(self) -> list[Goal]:
         """Obtener metas activas."""
         return [
-            goal for goal in self.goals.values()
+            goal
+            for goal in self.goals.values()
             if goal.status in [GoalStatus.NOT_STARTED, GoalStatus.IN_PROGRESS, GoalStatus.ON_TRACK]
         ]
 
@@ -644,20 +661,19 @@ class LifeManagementSystem:
         date_str = date.strftime("%Y-%m-%d")
 
         sessions = [
-            session for session in self.pc_usage.values()
-            if session.start_time.strftime("%Y-%m-%d") == date_str
+            session for session in self.pc_usage.values() if session.start_time.strftime("%Y-%m-%d") == date_str
         ]
 
         total_minutes = sum(session.duration_minutes for session in sessions)
-        productive_minutes = sum(
-            session.duration_minutes for session in sessions if session.category == "work"
-        )
+        productive_minutes = sum(session.duration_minutes for session in sessions if session.category == "work")
 
         return {
             "total_minutes": total_minutes,
             "productive_minutes": productive_minutes,
             "entertainment_minutes": total_minutes - productive_minutes,
-            "average_productivity": sum(session.productivity_score for session in sessions) / len(sessions) if sessions else 0,
+            "average_productivity": sum(session.productivity_score for session in sessions) / len(sessions)
+            if sessions
+            else 0,
             "sessions_count": len(sessions),
         }
 
@@ -706,7 +722,9 @@ class LifeManagementSystem:
 _life_management_system: LifeManagementSystem | None = None
 
 
-def get_life_management_system(user_id: str = "default", storage_path: str = "~/.config/ownex/life_management") -> LifeManagementSystem:
+def get_life_management_system(
+    user_id: str = "default", storage_path: str = "~/.config/ownex/life_management"
+) -> LifeManagementSystem:
     """Obtener instancia singleton del sistema de gestión de vida."""
     global _life_management_system
 

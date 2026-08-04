@@ -240,7 +240,7 @@ onMounted(fetchHypotheses)
                   {{ (h.confidence * 100).toFixed(0) }}%
                 </span>
               </div>
-              <div class="h-1.5 overflow-hidden rounded-full bg-[#1a1d29]">
+              <div class="h-1.5 overflow-hidden rounded-full bg-surface">
                 <div class="h-full rounded-full transition-all" :class="scoreBarColor(h.confidence)" :style="{ width: `${h.confidence * 100}%` }" />
               </div>
             </div>
@@ -251,7 +251,7 @@ onMounted(fetchHypotheses)
                   {{ (h.impact * 100).toFixed(0) }}%
                 </span>
               </div>
-              <div class="h-1.5 overflow-hidden rounded-full bg-[#1a1d29]">
+              <div class="h-1.5 overflow-hidden rounded-full bg-surface">
                 <div class="h-full rounded-full transition-all" :class="scoreBarColor(h.impact)" :style="{ width: `${h.impact * 100}%` }" />
               </div>
             </div>
@@ -262,7 +262,7 @@ onMounted(fetchHypotheses)
                   {{ (h.likelihood * 100).toFixed(0) }}%
                 </span>
               </div>
-              <div class="h-1.5 overflow-hidden rounded-full bg-[#1a1d29]">
+              <div class="h-1.5 overflow-hidden rounded-full bg-surface">
                 <div class="h-full rounded-full transition-all" :class="scoreBarColor(h.likelihood)" :style="{ width: `${h.likelihood * 100}%` }" />
               </div>
             </div>

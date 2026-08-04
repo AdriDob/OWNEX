@@ -15,7 +15,8 @@ class FCCProvider(BaseProvider):
 
     def __init__(self, config: ProviderConfig | None = None) -> None:
         super().__init__(
-            config or ProviderConfig(
+            config
+            or ProviderConfig(
                 name="fcc",
                 priority=20,
                 models=[
@@ -33,7 +34,13 @@ class FCCProvider(BaseProvider):
             self._config.extra.get("base_url", os.getenv("ANTHROPIC_BASE_URL", "")) or "https://openrouter.ai/api/v1"
         )
         self._api_key = self._config.extra.get(
-            "api_key", os.getenv("ANTHROPIC_API_KEY", os.getenv("OPENROUTER_API_KEY", "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"))
+            "api_key",
+            os.getenv(
+                "ANTHROPIC_API_KEY",
+                os.getenv(
+                    "OPENROUTER_API_KEY", "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"
+                ),
+            ),
         )
         self._default_model = self._config.models[0]
 

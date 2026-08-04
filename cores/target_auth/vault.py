@@ -84,10 +84,12 @@ class CredentialVault:
 
     def encrypt_json(self, data: dict) -> str:
         import json
+
         return self.encrypt(json.dumps(data, separators=(",", ":")))
 
     def decrypt_json(self, ciphertext: str) -> dict:
         import json
+
         raw = self.decrypt(ciphertext)
         if not raw:
             return {}

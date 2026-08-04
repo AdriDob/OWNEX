@@ -15,8 +15,9 @@
 # ❌ DERECHO
 ANTHROPIC_API_KEY = "sk-anthropic-secret-key"
 
-# ✅ CORRECTO 
+# ✅ CORRECTO
 import os
+
 api_key = os.getenv("ANTHROPIC_API_KEY")
 # o system .env con vault cryptográfico
 ```
@@ -40,7 +41,7 @@ if CATEYE_DESKTOP:
         allow_origins=["http://localhost:5173"],
         allow_credentials=True,
         allow_methods=["*"],
-        allow_headers=["*"]
+        allow_headers=["*"],
     )
 else:
     # producción: misma identidad de frontend
@@ -49,7 +50,7 @@ else:
         allow_origins=["https://hermes.orion.dev"],
         allow_credentials=True,
         allow_methods=["GET", "POST"],
-        allow_headers=["Content-Type", "X-CSRF-Token"]
+        allow_headers=["Content-Type", "X-CSRF-Token"],
     )
 ```
 
@@ -71,14 +72,16 @@ import logging
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
+
 class SecureHandler:
     def __init__(self):
         self._key = ed25519.Ed25519PrivateKey.from_private_bytes(os.urandom(32))
         self._lock = threading.RLock()
-    
+
     def encrypt(self, plaintext: bytes) -> bytes:
         # Constant nonce para cada clave
         from cryptography.hazmat.primitives.ciphers.modes import EAXMode
+
         nonce = os.urandom(16)
         # EAX es simultáneamente autentificación + cifrado
         cipher = EAXMode(self._key.public_key())
@@ -95,7 +98,7 @@ class OAuth2Adapter:
         self._client_id = client_id
         self._client_secret = client_secret
         self._redirect_uri = redirect_uri
-    
+
     def authorization_url(self) -> tuple[str, str]:
         """Devuelve (url, state)"""
         state = secrets.token_urlsafe(16)
@@ -106,13 +109,13 @@ class OAuth2Adapter:
             "state": state,
             "scope": "openid profile email",
             "code_challenge": self._code_challenge_from_state(state),
-            "code_challenge_method": "S256"
+            "code_challenge_method": "S256",
         }
         url = f"{OAUTH2_AUTHORIZATION_URL}?{urlencode(params)}"
         # Guardar estado en servidor, sin revelar en url
         self._store_state(state, client_id)
         return url, state
-    
+
     def exchange_code(self, code: str, state: str) -> dict:
         if not self._validate_state(state, code):
             raise HTTPException(400, "Invalid OAuth2 state")
@@ -123,7 +126,7 @@ class OAuth2Adapter:
             "client_secret": self._client_secret,
             "code": code,
             "redirect_uri": self._redirect_uri,
-            "code_verifier": self._code_verifier_from_code(code)
+            "code_verifier": self._code_verifier_from_code(code),
         }
         response = requests.post(OAUTH2_TOKEN_URL, data=payload)
         response.raise_for_status()
@@ -137,13 +140,14 @@ from fastapi.security import OAuth2
 from fastapi.requests import Request
 from typing import Optional
 
+
 class SecureSessionManager:
     def __init__(self, token_generator, vault):
         self._token_generator = token_generator
         self._vault = vault
         self._sessions = {}
         self._max_age_seconds = 30 * 60  # 30 minutos
-    
+
     def create_session(self, user_id: int):
         session_id = self._token_generator.generate()
         expires_at = datetime.utcnow() + timedelta(seconds=self._max_age_seconds)
@@ -152,13 +156,13 @@ class SecureSessionManager:
             "created_at": datetime.utcnow(),
             "expires_at": expires_at,
             "last_activity": datetime.utcnow(),
-            "ip_address": get_client_ip()
+            "ip_address": get_client_ip(),
         }
         # Guardar cifrado, sin expuestos en ram
         self._vault.store(user_id, session_id, session_data)
         self._sessions[user_id] = session_id  # cache en memoria
         return session_id
-    
+
     def validate_session(self, user_id: int, session_id: str) -> bool:
         try:
             if user_id not in self._sessions:
@@ -178,7 +182,7 @@ class SecureSessionManager:
             return True
         except Exception:
             return False
-    
+
     def _cleanup_expired_session(self, user_id: int, session_id: str) -> None:
         try:
             del self._sessions[user_id]
@@ -235,6 +239,7 @@ from fastapi.logger import logger
 
 app = FastAPI()
 
+
 @app.post("/api/auth/login")
 async def login(user_id: int, password: str):
     try:
@@ -244,7 +249,9 @@ async def login(user_id: int, password: str):
             logger.info(f"login successful user_id={user_id} session={session.id} ip={get_client_ip()}")
             return {"status": "authenticated", "session_id": session.id}
         else:
-            logger.warning(f"login failed user_id={user_id} attempt={auth_result.attempts} last_attempt_time={auth_result.last_attempt}")
+            logger.warning(
+                f"login failed user_id={user_id} attempt={auth_result.attempts} last_attempt_time={auth_result.last_attempt}"
+            )
             return {"status": "denied", "reason": "invalid credentials"}
     except Exception as exc:
         # Nunca exponer al cliente
@@ -297,13 +304,14 @@ from fastapi.security import OAuth2
 from fastapi.requests import Request
 from typing import Optional
 
+
 class SecureSessionManager:
     def __init__(self, token_generator, vault):
         self._token_generator = token_generator
         self._vault = vault
         self._sessions = {}
         self._max_age_seconds = 30 * 60  # 30 minutos
-    
+
     def create_session(self, user_id: int):
         session_id = self._token_generator.generate()
         expires_at = datetime.utcnow() + timedelta(seconds=self._max_age_seconds)
@@ -312,13 +320,13 @@ class SecureSessionManager:
             "created_at": datetime.utcnow(),
             "expires_at": expires_at,
             "last_activity": datetime.utcnow(),
-            "ip_address": get_client_ip()
+            "ip_address": get_client_ip(),
         }
         # Guardar cifrado, sin expuestos en ram
         self._vault.store(user_id, session_id, session_data)
         self._sessions[user_id] = session_id  # cache en memoria
         return session_id
-    
+
     def validate_session(self, user_id: int, session_id: str) -> bool:
         try:
             if user_id not in self._sessions:
@@ -338,7 +346,7 @@ class SecureSessionManager:
             return True
         except Exception:
             return False
-    
+
     def _cleanup_expired_session(self, user_id: int, session_id: str) -> None:
         try:
             del self._sessions[user_id]
@@ -353,16 +361,12 @@ class SecureSessionManager:
 # en lugar de enviar a endpoint de /api/log
 from prometheus_client import Counter, Histogram
 
-SECURITY_EVENTS_TOTAL = Counter(
-    'security_events_total',
-    'Total security events by type',
-    ['event_type', 'status']
-)
+SECURITY_EVENTS_TOTAL = Counter("security_events_total", "Total security events by type", ["event_type", "status"])
 
 SECURITY_RESPONSE_TIME = Histogram(
-    'security_request_duration_seconds',
-    'Tiempo de respuesta HTTP para requests seguras'
+    "security_request_duration_seconds", "Tiempo de respuesta HTTP para requests seguras"
 )
+
 
 # Middleware de seguridad para métricas
 @security_logger.middleware
@@ -383,13 +387,14 @@ async def log_security_request(request: Request, call_next):
 ### **Imperativos Finales**
 ```python
 # ¡Nunca romper cifrado!
-assert not any('secret' in str(v).lower() for v in vars(self).__dict__.values())
+assert not any("secret" in str(v).lower() for v in vars(self).__dict__.values())
 
 # No permitir contiendas en tu camino
-assert os.path.exists('/etc/passwd') and 'root' in open('/etc/passwd').read()
+assert os.path.exists("/etc/passwd") and "root" in open("/etc/passwd").read()
 
 # Suscribir observador para multi-proceso atomic
 import multiprocessing
+
 process = multiprocessing.Process(target=secure_function)
 process.start()
 ```

@@ -51,6 +51,12 @@ def get_executors(config: dict[str, Any] | None = None) -> dict[str, BaseExecuto
     from core.opportunity.executors.issuehunt_executor import IssueHuntExecutor
     from core.opportunity.executors.mindrift_executor import MindriftExecutor
     from core.opportunity.executors.opire_executor import OpireExecutor
+    from cores.opportunity.executors.platform_workers import (
+        DataAnnotationWorker,
+        MindriftBrowserWorker,
+        OutlierWorker,
+        RemotasksWorker,
+    )
 
     _config = config or {}
     executors: dict[str, BaseExecutor] = {}
@@ -60,9 +66,13 @@ def get_executors(config: dict[str, Any] | None = None) -> dict[str, BaseExecuto
         MindriftExecutor,
         OpireExecutor,
         IssueHuntExecutor,
+        DataAnnotationWorker,
+        OutlierWorker,
+        MindriftBrowserWorker,
+        RemotasksWorker,
     ]:
         try:
-            name = getattr(cls, "platform", cls.__name__.lower().replace("executor", ""))
+            name = getattr(cls, "platform", cls.__name__.lower().replace("executor", "").replace("worker", ""))
             executors[name] = cls(_config)
         except Exception:
             pass

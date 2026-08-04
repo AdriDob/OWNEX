@@ -8,6 +8,7 @@ Each entry records:
 - Outcome (after feedback)
 - Feedback loop
 """
+# ruff: noqa: E402
 from core.decision_journal.journal import (
     get_decisions,
     log_decision,

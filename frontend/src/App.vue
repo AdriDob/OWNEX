@@ -20,6 +20,7 @@ import AssistantBubble from '@/components/assistant/AssistantBubble.vue'
 import AssistantHint from '@/components/assistant/AssistantHint.vue'
 import SteamBigPictureSplash from '@/components/layout/SteamBigPictureSplash.vue'
 import VoiceCommandPanel from '@/components/voice/VoiceCommandPanel.vue'
+import VoiceAssistantListener from '@/components/voice/VoiceAssistantListener.vue'
 import { useAssistant } from '@/composables/useAssistant'
 
 declare global {
@@ -149,6 +150,9 @@ onUnmounted(() => {
     <div class="flex h-screen w-screen overflow-hidden bg-background">
     <!-- Splash screen -->
     <SteamBigPictureSplash :visible="splashVisible" @done="splashVisible = false" />
+
+    <!-- Voice assistant listener (ALPHA desktop speaks replies from OMEGA) -->
+    <VoiceAssistantListener />
 
     <!-- Global loading bar -->
     <div v-if="showGlobalLoading" class="fixed top-0 left-0 right-0 z-[100] h-0.5">

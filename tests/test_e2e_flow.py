@@ -18,6 +18,7 @@ def client():
     init_db()
     from api.main import app
     from cores.license.validator import generate_license
+
     c = TestClient(app)
     lic = generate_license(expiry_days=365)
     c.post("/api/license/activate", json={"key": lic})
@@ -70,10 +71,13 @@ class TestE2EFlow:
 
     def test_03_create_target(self, client, db_session):
         """Create a target and verify it persists."""
-        resp = client.post("/api/targets", json={
-            "name": self.TARGET_NAME,
-            "domain": self.TARGET_DOMAIN,
-        })
+        resp = client.post(
+            "/api/targets",
+            json={
+                "name": self.TARGET_NAME,
+                "domain": self.TARGET_DOMAIN,
+            },
+        )
         assert resp.status_code == 200, f"Failed: {resp.text}"
         data = resp.json()
         assert data["name"] == self.TARGET_NAME
@@ -88,7 +92,7 @@ class TestE2EFlow:
 
     def test_04_get_target_list(self, client):
         """Verify target appears in listing."""
-        resp = client.get("/api/targets?limit=500")
+        resp = client.get(f"/api/targets?search={self.TARGET_NAME}")
         assert resp.status_code == 200
         data = resp.json()
         names = [item["name"] for item in data["items"]]
@@ -103,11 +107,14 @@ class TestE2EFlow:
 
     def test_06_create_endpoint(self, client, db_session):
         """Create an endpoint and verify it persists."""
-        resp = client.post("/api/endpoints", json={
-            "target_id": self.__class__.target_id,
-            "path": "/api/test",
-            "method": "GET",
-        })
+        resp = client.post(
+            "/api/endpoints",
+            json={
+                "target_id": self.__class__.target_id,
+                "path": "/api/test",
+                "method": "GET",
+            },
+        )
         assert resp.status_code in (200, 201), f"Failed: {resp.text}"
         data = resp.json()
         ep_id = data.get("id")
@@ -130,13 +137,16 @@ class TestE2EFlow:
 
     def test_08_create_finding(self, client, db_session):
         """Create a finding and verify persistence."""
-        resp = client.post("/api/findings", json={
-            "target_id": self.__class__.target_id,
-            "endpoint_id": self.__class__.endpoint_id,
-            "severity": "high",
-            "title": "E2E Test Finding",
-            "description": "Test finding from E2E validation",
-        })
+        resp = client.post(
+            "/api/findings",
+            json={
+                "target_id": self.__class__.target_id,
+                "endpoint_id": self.__class__.endpoint_id,
+                "severity": "high",
+                "title": "E2E Test Finding",
+                "description": "Test finding from E2E validation",
+            },
+        )
         assert resp.status_code in (200, 201), f"Failed: {resp.text}"
         data = resp.json()
         finding_id = data.get("id")
@@ -150,21 +160,27 @@ class TestE2EFlow:
 
     def test_09_create_report(self, client, db_session):
         """Create a report from findings."""
-        resp = client.post("/api/reports", json={
-            "title": "E2E Test Report",
-            "finding_ids": [self.__class__.finding_id],
-            "program": self.TARGET_NAME,
-            "vulnerability": "idor",
-            "severity": "high",
-            "format": "markdown",
-        })
-        if resp.status_code == 422:
-            # Schema may require additional fields — try alternative payload
-            resp = client.post("/api/reports", json={
+        resp = client.post(
+            "/api/reports",
+            json={
+                "title": "E2E Test Report",
                 "finding_ids": [self.__class__.finding_id],
                 "program": self.TARGET_NAME,
                 "vulnerability": "idor",
-            })
+                "severity": "high",
+                "format": "markdown",
+            },
+        )
+        if resp.status_code == 422:
+            # Schema may require additional fields — try alternative payload
+            resp = client.post(
+                "/api/reports",
+                json={
+                    "finding_ids": [self.__class__.finding_id],
+                    "program": self.TARGET_NAME,
+                    "vulnerability": "idor",
+                },
+            )
         assert resp.status_code in (200, 201), f"Report creation failed: {resp.text}"
         report = resp.json()
         report_id = report.get("id")
@@ -185,14 +201,10 @@ class TestE2EFlow:
 
     def test_11_simulate_restart(self, db_session):
         """Simulate restart: verify data persists in DB directly."""
-        t = db_session.query(models.Target).filter(
-            models.Target.name == self.TARGET_NAME
-        ).first()
+        t = db_session.query(models.Target).filter(models.Target.name == self.TARGET_NAME).first()
         assert t is not None, "Target lost from DB — persistence failure"
 
-        ep = db_session.query(models.Endpoint).filter(
-            models.Endpoint.id == self.__class__.endpoint_id
-        ).first()
+        ep = db_session.query(models.Endpoint).filter(models.Endpoint.id == self.__class__.endpoint_id).first()
         assert ep is not None, "Endpoint lost from DB"
 
     def test_12_cleanup(self, db_session):
@@ -201,13 +213,9 @@ class TestE2EFlow:
         if tid is None:
             return
 
-        eids = [r.id for r in db_session.query(models.Endpoint).filter(
-            models.Endpoint.target_id == tid
-        ).all()]
+        eids = [r.id for r in db_session.query(models.Endpoint).filter(models.Endpoint.target_id == tid).all()]
         for eid in eids:
-            db_session.query(models.Verdict).filter(
-                models.Verdict.endpoint_id == eid
-            ).delete()
+            db_session.query(models.Verdict).filter(models.Verdict.endpoint_id == eid).delete()
 
         db_session.query(models.Finding).filter(models.Finding.target_id == tid).delete()
         db_session.query(models.Endpoint).filter(models.Endpoint.target_id == tid).delete()

@@ -11,6 +11,7 @@ El directorio `.ai/` es la única fuente de verdad para reglas, protocolos y dec
 | Archivo .ai/ | Función (consulte directamente) |
 |--------------|--------------------------------------|
 | **AGENT_CHARTER.md** | Constitución, Agent Loop, Regla de Oro - leer primero |
+| **OWNEX_VISION_CHARTER.md** | Visión de producto (APOS) - la brújula: qué es OWNEX |
 | **PRODUCTION_RULES.md** | Reglas de producción - NO modificar |
 | **CURRENT_STATE.md** | Estado verificado de cada feature |
 | **TASK_QUEUE.md** | Cola de tareas priorizada |

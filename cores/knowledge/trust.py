@@ -6,23 +6,25 @@ from typing import Any
 
 @dataclass
 class ConfidenceScorerConfig:
-    source_trust: dict[str, float] = field(default_factory=lambda: {
-        "mitre": 1.0,
-        "nvd": 0.95,
-        "cve": 0.95,
-        "owasp": 0.9,
-        "portswigger": 0.9,
-        "nuclei": 0.8,
-        "payloadsallthethings": 0.75,
-        "seclists": 0.75,
-        "hackerone": 0.85,
-        "bugcrowd": 0.85,
-        "intigriti": 0.85,
-        "yeswehack": 0.85,
-        "public_report": 0.7,
-        "technical_doc": 0.7,
-        "orion_research": 0.95,
-    })
+    source_trust: dict[str, float] = field(
+        default_factory=lambda: {
+            "mitre": 1.0,
+            "nvd": 0.95,
+            "cve": 0.95,
+            "owasp": 0.9,
+            "portswigger": 0.9,
+            "nuclei": 0.8,
+            "payloadsallthethings": 0.75,
+            "seclists": 0.75,
+            "hackerone": 0.85,
+            "bugcrowd": 0.85,
+            "intigriti": 0.85,
+            "yeswehack": 0.85,
+            "public_report": 0.7,
+            "technical_doc": 0.7,
+            "orion_research": 0.95,
+        }
+    )
     freshness_weight: float = 0.15
     source_weight: float = 0.35
     metadata_weight: float = 0.25

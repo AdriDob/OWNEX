@@ -31,9 +31,7 @@ logger = logging.getLogger("orion.core.validation.http_adapter")
 DEFAULT_TIMEOUT = 15.0
 DEFAULT_MAX_REDIRECTS = 5
 DEFAULT_USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/125.0.0.0 Safari/537.36"
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
 )
 
 
@@ -197,18 +195,14 @@ class HTTPAdapter:
         path_clean = path.lstrip("/")
         return f"{base}/{path_clean}" if path_clean else base
 
-    def compare_responses(
-        self, baseline: ProbeResponse, probe: ProbeResponse
-    ) -> dict[str, Any]:
+    def compare_responses(self, baseline: ProbeResponse, probe: ProbeResponse) -> dict[str, Any]:
         """Compara dos respuestas y devuelve diferencias estructuradas."""
         diff: dict[str, Any] = {
             "status_code_diff": baseline.status_code != probe.status_code,
             "size_diff_bytes": probe.body_bytes - baseline.body_bytes,
             "time_diff_ms": round(probe.elapsed_ms - baseline.elapsed_ms, 1),
             "body_changed": baseline.body != probe.body,
-            "body_size_change_ratio": round(
-                probe.body_bytes / max(baseline.body_bytes, 1), 2
-            ),
+            "body_size_change_ratio": round(probe.body_bytes / max(baseline.body_bytes, 1), 2),
         }
         return diff
 

@@ -452,13 +452,13 @@ async function completeWizard() {
 
 .o-ring-outer {
   inset: 0;
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
   animation: pulse-ring 3s ease-in-out infinite;
 }
 
 .o-ring-inner {
   inset: 12px;
-  border-color: rgba(59, 130, 246, 0.5);
+  border-color: rgba(255, 255, 255, 0.5);
   animation: pulse-ring 3s ease-in-out infinite 1s;
 }
 
@@ -582,13 +582,13 @@ async function completeWizard() {
 }
 
 .use-case-card:hover {
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
 }
 
 .use-case-card.selected {
   border-color: #60A5FA;
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .use-case-icon {
@@ -628,13 +628,13 @@ async function completeWizard() {
 }
 
 .module-card:hover {
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
 }
 
 .module-card.selected {
   border-color: #60A5FA;
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .module-icon {
@@ -683,13 +683,13 @@ async function completeWizard() {
 }
 
 .expertise-card:hover {
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
 }
 
 .expertise-card.selected {
   border-color: #60A5FA;
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .expertise-icon {
@@ -718,8 +718,8 @@ async function completeWizard() {
 
 .feature-tag {
   padding: 0.25rem 0.5rem;
-  background: rgba(59, 130, 246, 0.2);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 9999px;
   font-size: 0.75rem;
   color: #60A5FA;
@@ -745,13 +745,13 @@ async function completeWizard() {
 }
 
 .platform-card:hover {
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
 }
 
 .platform-card.selected {
   border-color: #60A5FA;
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .platform-icon {
@@ -809,7 +809,7 @@ async function completeWizard() {
 
 .form-input:focus {
   outline: none;
-  border-color: rgba(59, 130, 246, 0.5);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .form-hint {
@@ -862,8 +862,8 @@ async function completeWizard() {
 
 .summary-tag {
   padding: 0.25rem 0.5rem;
-  background: rgba(59, 130, 246, 0.2);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 9999px;
   font-size: 0.75rem;
   color: #60A5FA;
@@ -905,14 +905,14 @@ async function completeWizard() {
 }
 
 .btn-primary {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
   color: #60A5FA;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: rgba(59, 130, 246, 0.3);
-  border-color: rgba(59, 130, 246, 0.6);
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
 }
 
 .btn-secondary {

@@ -317,13 +317,13 @@ onMounted(() => {
 
 .o-ring-outer {
   inset: 0;
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
   animation: pulse-ring 3s ease-in-out infinite;
 }
 
 .o-ring-inner {
   inset: 24px;
-  border-color: rgba(59, 130, 246, 0.5);
+  border-color: rgba(255, 255, 255, 0.5);
   animation: pulse-ring 3s ease-in-out infinite 1s;
 }
 
@@ -391,8 +391,8 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: rgba(59, 130, 246, 0.2);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 9999px;
   font-size: 0.875rem;
   color: #60A5FA;
@@ -400,8 +400,8 @@ onMounted(() => {
 }
 
 .feature-pill:hover {
-  background: rgba(59, 130, 246, 0.3);
-  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
 }
 
@@ -448,7 +448,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #6366f1 0%, #9500ff 100%);
+  background: linear-gradient(135deg, #9CA3AF 0%, #9500ff 100%);
   border-radius: 50%;
   font-size: 1.5rem;
   z-index: 1;
@@ -508,7 +508,7 @@ onMounted(() => {
 }
 
 .action-card:hover {
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-4px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
 }
@@ -616,7 +616,7 @@ onMounted(() => {
 }
 
 .activity-item:hover {
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
   transform: translateX(4px);
 }
 

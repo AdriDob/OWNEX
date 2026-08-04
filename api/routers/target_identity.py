@@ -68,7 +68,12 @@ def login_identity(target_id: int, identity_id: int):
     result = session_manager.login(identity_id)
     if result.get("error"):
         return error(result["error"], version="1.0")
-    return ok({"status": "logged_in", "token_preview": (result.get("token") or "")[:16] + "..." if result.get("token") else None})
+    return ok(
+        {
+            "status": "logged_in",
+            "token_preview": (result.get("token") or "")[:16] + "..." if result.get("token") else None,
+        }
+    )
 
 
 @router.get("/{identity_id}/session")

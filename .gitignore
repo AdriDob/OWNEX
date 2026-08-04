@@ -91,3 +91,6 @@ squashfs-root/
 
 # Runtime artifacts
 data/
+
+# Backup artifacts
+.ownex_backups/

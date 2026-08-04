@@ -154,7 +154,7 @@ function closeModal() {
             :datasets="[{
               label: 'Count',
               data: severityChartData.data,
-              backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'],
+              backgroundColor: ['#E82127', '#D97706', '#A16207', '#16A34A', '#ffffff'],
             }]"
             :height="200"
             :showLegend="false"
@@ -213,8 +213,8 @@ function closeModal() {
       <Transition name="modal">
         <div v-if="showModal && selectedScreenshot" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click="closeModal">
           <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="closeModal" />
-          <div class="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-border/40 bg-[#11131f] shadow-2xl animate-in" @click.stop>
-            <div class="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border/40 bg-[#11131f]/90 backdrop-blur-sm px-4 sm:px-6 py-4">
+          <div class="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-border/40 bg-surface shadow-2xl animate-in" @click.stop>
+            <div class="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border/40 bg-surface/90 backdrop-blur-sm px-4 sm:px-6 py-4">
               <div class="flex items-center gap-3">
                 <h2 class="text-base font-semibold text-foreground">{{ selectedScreenshot.title }}</h2>
                 <Badge :variant="severityColor(selectedScreenshot.severity)">{{ selectedScreenshot.severity }}</Badge>

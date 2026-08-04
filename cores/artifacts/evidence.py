@@ -29,15 +29,9 @@ class EvidenceGraphArtifact(Bundle):
             verdicts = self.graph.get_verdicts()
             self.verdict_count = len(verdicts)
             self.comparison_count = len(self.graph.get_comparisons())
-            self.confirmed_count = sum(
-                1 for v in verdicts if v.get("status") == "confirmed"
-            )
-            self.rejected_count = sum(
-                1 for v in verdicts if v.get("status") == "rejected"
-            )
-            self.inconclusive_count = sum(
-                1 for v in verdicts if v.get("status") == "inconclusive"
-            )
+            self.confirmed_count = sum(1 for v in verdicts if v.get("status") == "confirmed")
+            self.rejected_count = sum(1 for v in verdicts if v.get("status") == "rejected")
+            self.inconclusive_count = sum(1 for v in verdicts if v.get("status") == "inconclusive")
 
     def to_graph(self) -> _EvidenceGraph:
         if self.graph:

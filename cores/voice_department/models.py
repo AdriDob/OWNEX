@@ -13,6 +13,7 @@ from typing import Any
 
 class ConversationMode(StrEnum):
     """Modos de conversación."""
+
     NORMAL = "normal"
     TEACH = "teach"  # Explicar todo desde cero
     ENGINEER = "engineer"  # Detalle técnico
@@ -24,6 +25,7 @@ class ConversationMode(StrEnum):
 
 class VoicePersonality(StrEnum):
     """Personalidades de voz."""
+
     PROFESSOR = "professor"
     SENIOR_ENGINEER = "senior_engineer"
     EXECUTIVE = "executive"
@@ -34,6 +36,7 @@ class VoicePersonality(StrEnum):
 
 class VoiceInteractionType(StrEnum):
     """Tipos de interacción de voz."""
+
     SPEECH_ONLY = "speech_only"
     TEXT_ONLY = "text_only"
     HYBRID = "hybrid"  # Ambos al mismo tiempo
@@ -41,6 +44,7 @@ class VoiceInteractionType(StrEnum):
 
 class AccessibilityMode(StrEnum):
     """Modos de accesibilidad."""
+
     SILENT = "silent"  # Solo texto, sin voz
     VOICE = "voice"  # Solo voz
     HYBRID = "hybrid"  # Voz + subtítulos
@@ -50,6 +54,7 @@ class AccessibilityMode(StrEnum):
 @dataclass
 class VoiceExplanation:
     """Explicación detallada de una acción o concepto."""
+
     what_did: str  # "Qué hizo"
     why: str  # "Por qué"
     what_modified: str  # "Qué modificó"
@@ -64,6 +69,7 @@ class VoiceExplanation:
 @dataclass
 class ConversationContext:
     """Contexto de la conversación actual."""
+
     session_id: str
     user_id: str
     mode: ConversationMode = ConversationMode.NORMAL
@@ -81,6 +87,7 @@ class ConversationContext:
 @dataclass
 class VoicePreference:
     """Preferencias de voz del usuario."""
+
     user_id: str
     tone: str = "professional"  # professional, casual, formal
     speed: float = 1.0  # 0.5 a 2.0
@@ -98,6 +105,7 @@ class VoicePreference:
 @dataclass
 class VoiceMemory:
     """Memoria de voz del usuario."""
+
     user_id: str
     previous_explanations: dict[str, VoiceExplanation] = field(default_factory=dict)
     common_questions: dict[str, str] = field(default_factory=dict)  # Pregunta → Respuesta
@@ -111,6 +119,7 @@ class VoiceMemory:
 @dataclass
 class SystemNarration:
     """Narración del sistema mientras trabaja."""
+
     action: str  # "Estoy analizando la arquitectura"
     status: str  # "in_progress", "completed", "error"
     detail: str = ""  # Detalle adicional
@@ -121,6 +130,7 @@ class SystemNarration:
 @dataclass
 class IntelligentQuestion:
     """Pregunta inteligente del sistema."""
+
     question: str
     context: str  # Contexto de la pregunta
     risk_level: str  # "low", "medium", "high", "critical"
@@ -133,6 +143,7 @@ class IntelligentQuestion:
 @dataclass
 class AutomaticSummary:
     """Resumen automático de actividad."""
+
     date: datetime
     activities: list[str]
     changes_made: list[str]
@@ -147,6 +158,7 @@ class AutomaticSummary:
 @dataclass
 class VoiceVisualContext:
     """Contexto visual mientras habla."""
+
     highlight_files: list[str] = field(default_factory=list)
     show_code: bool = False
     code_content: str = ""

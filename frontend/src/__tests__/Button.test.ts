@@ -51,7 +51,7 @@ describe('Button', () => {
       slots: { default: 'Ghost' },
     })
     const button = wrapper.find('button')
-    expect(button.classes()).toContain('hover:bg-surface')
+    expect(button.classes()).toContain('text-muted-foreground')
   })
 
   it('applies link variant classes', () => {

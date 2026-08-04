@@ -66,20 +66,20 @@ from typing import Any
 @dataclass
 class ClassificationResult:
     """Result of classifying an observation."""
-    
-    opportunity_id: str | None       # None if noise
+
+    opportunity_id: str | None  # None if noise
     is_opportunity: bool
-    cycle: str | None                # "security", "forge", "pulse", "vault", "atlas"
-    source_type: str | None          # "bug_bounty", "dev_bounty", "ai_work", etc.
+    cycle: str | None  # "security", "forge", "pulse", "vault", "atlas"
+    source_type: str | None  # "bug_bounty", "dev_bounty", "ai_work", etc.
     tags: list[str] = field(default_factory=list)
     confidence: float = 0.0
     reason: str = ""
-    layer: str = "rules"             # "rules", "heuristics", "llm"
+    layer: str = "rules"  # "rules", "heuristics", "llm"
 
 
 class Classifier(ABC):
     """A classifier decides if an observation is an opportunity."""
-    
+
     @abstractmethod
     async def classify(self, observation: Observation) -> ClassificationResult:
         pass
@@ -90,11 +90,11 @@ class Classifier(ABC):
 
 class SourceTypeClassifier(Classifier):
     """Classifies based on the sensor's source_type.
-    
+
     If the sensor already tagged it as "bug_bounty", the classifier
     just confirms it. This is the fastest path.
     """
-    
+
     SOURCE_TYPE_MAP = {
         "bug_bounty": "security",
         "dev_bounty": "forge",
@@ -106,11 +106,11 @@ class SourceTypeClassifier(Classifier):
         "investment": "vault",
         "intel": "atlas",
     }
-    
+
     async def classify(self, observation: Observation) -> ClassificationResult:
         source_type = observation.source_type
         cycle = self.SOURCE_TYPE_MAP.get(source_type)
-        
+
         if cycle:
             return ClassificationResult(
                 is_opportunity=True,
@@ -129,9 +129,9 @@ class SourceTypeClassifier(Classifier):
 
 class RewardClassifier(Classifier):
     """Classifies based on reward presence and magnitude."""
-    
-    MIN_REWARD_THRESHOLD = 5.0       # $5 minimum to be an opportunity
-    
+
+    MIN_REWARD_THRESHOLD = 5.0  # $5 minimum to be an opportunity
+
     async def classify(self, observation: Observation) -> ClassificationResult:
         if observation.estimated_reward_max < self.MIN_REWARD_THRESHOLD:
             return ClassificationResult(
@@ -139,7 +139,7 @@ class RewardClassifier(Classifier):
                 reason=f"Reward ${observation.estimated_reward_max:.2f} below threshold ${self.MIN_REWARD_THRESHOLD:.2f}",
                 layer="rules",
             )
-        
+
         # Has reward → opportunity, but need more info for cycle
         return ClassificationResult(
             is_opportunity=True,
@@ -151,13 +151,13 @@ class RewardClassifier(Classifier):
 
 class PatternClassifier(Classifier):
     """Classifies by regex patterns in title/description/tags.
-    
+
     "xss", "sql injection", "bug bounty" → security
     "bounty", "issue hunt", "algora"   → forge
     "ai training", "data labeling"     → pulse
     "investment", "defi", "nft"        → vault
     """
-    
+
     PATTERNS: dict[str, list[str]] = {
         "security": [
             r"\b(bug\s*bounty|bbp|vdp)\b",
@@ -182,10 +182,10 @@ class PatternClassifier(Classifier):
             r"\b(audit|smart\s*contract)\b",
         ],
     }
-    
+
     async def classify(self, observation: Observation) -> ClassificationResult:
         text = f"{observation.title} {observation.description} {' '.join(observation.tags)}".lower()
-        
+
         scores = {}
         for cycle, patterns in self.PATTERNS.items():
             score = 0
@@ -194,14 +194,14 @@ class PatternClassifier(Classifier):
                 score += len(matches)
             if score > 0:
                 scores[cycle] = score
-        
+
         if not scores:
             return ClassificationResult(
                 is_opportunity=False,
                 reason="No pattern matched title/description/tags",
                 layer="rules",
             )
-        
+
         best_cycle = max(scores, key=scores.get)
         return ClassificationResult(
             is_opportunity=True,
@@ -216,12 +216,12 @@ class PatternClassifier(Classifier):
 
 class CompositeClassifier(Classifier):
     """Runs classifiers in order, stops when confident enough.
-    
+
     Fast path: rules (Layer 1, <1ms, 90% of cases)
     Medium path: heuristics (Layer 2, <100ms, 9% of cases)
     Slow path: LLM (Layer 3, >1s, 1% of cases)
     """
-    
+
     def __init__(self):
         self.rules: list[Classifier] = [
             SourceTypeClassifier(),
@@ -230,7 +230,7 @@ class CompositeClassifier(Classifier):
         ]
         self.heuristics: list[Classifier] = []
         self.llm: Classifier | None = None
-    
+
     async def classify(self, observation: Observation) -> ClassificationResult:
         # Layer 1: Rules
         for classifier in self.rules:
@@ -239,18 +239,18 @@ class CompositeClassifier(Classifier):
                 return result
             if not result.is_opportunity and result.confidence >= 0.9:
                 return result
-        
+
         # Layer 2: Heuristics
         for classifier in self.heuristics:
             result = await classifier.classify(observation)
             if result.is_opportunity and result.confidence >= 0.7:
                 return result
-        
+
         # Layer 3: LLM
         if self.llm:
             result = await self.llm.classify(observation)
             return result
-        
+
         # Fallback: noise
         return ClassificationResult(
             is_opportunity=False,
@@ -264,30 +264,33 @@ class CompositeClassifier(Classifier):
 
 class ClassificationEngine:
     """Orchestrates classification of observations.
-    
+
     Observation → ClassificationResult → ScoredOpportunity | discarding
     """
-    
+
     def __init__(self):
         self.classifier = CompositeClassifier()
         self.event_bus = None
-    
+
     async def classify(self, observation: Observation) -> ScoredOpportunity | None:
         """Classify a single observation.
-        
+
         Returns ScoredOpportunity if it's an opportunity, None if noise.
         Emits events for both cases.
         """
         result = await self.classifier.classify(observation)
-        
+
         if not result.is_opportunity:
-            await self._emit("observation:discarded", {
-                "observation_id": observation.id,
-                "reason": result.reason,
-                "layer": result.layer,
-            })
+            await self._emit(
+                "observation:discarded",
+                {
+                    "observation_id": observation.id,
+                    "reason": result.reason,
+                    "layer": result.layer,
+                },
+            )
             return None
-        
+
         # Create ScoredOpportunity
         opportunity = ScoredOpportunity(
             id=observation.id,
@@ -304,15 +307,18 @@ class ClassificationEngine:
             confidence=result.confidence,
             raw_data=observation.raw_data,
         )
-        
-        await self._emit("opportunity:created", {
-            "opportunity_id": opportunity.id,
-            "cycle": opportunity.cycle,
-            "source_type": opportunity.source_type,
-        })
-        
+
+        await self._emit(
+            "opportunity:created",
+            {
+                "opportunity_id": opportunity.id,
+                "cycle": opportunity.cycle,
+                "source_type": opportunity.source_type,
+            },
+        )
+
         return opportunity
-    
+
     async def _emit(self, event: str, data: dict):
         if self.event_bus:
             await self.event_bus.emit(event, data)
@@ -336,29 +342,29 @@ from typing import Any
 @dataclass
 class Capability:
     """A capability is something OWNEX can do.
-    
+
     Not a tool. A capability.
     Tools implement capabilities.
     """
-    
-    id: str                    # "web_scraping", "code_execution", "git_ops"
-    name: str                  # "Web Scraping"
+
+    id: str  # "web_scraping", "code_execution", "git_ops"
+    name: str  # "Web Scraping"
     description: str
-    category: str              # "data_collection", "analysis", "execution"
-    
+    category: str  # "data_collection", "analysis", "execution"
+
     # Tools that provide this capability
     providers: list[str] = field(default_factory=list)
-    
+
     # Models that are good at this
     preferred_models: list[str] = field(default_factory=list)
-    
+
     # Required credentials
     required_credentials: list[str] = field(default_factory=list)
-    
+
     # Cost estimation
     estimated_cost_per_run: float = 0.0
     estimated_time_per_run: int = 60  # seconds
-    
+
     # Availability
     available: bool = True
     requires_user: bool = False  # needs user approval
@@ -459,39 +465,39 @@ CAPABILITIES = {
 ```python
 class CapabilityEngine:
     """Matches opportunity requirements to OWNEX capabilities.
-    
+
     The Planner asks: "What do I need to execute this opportunity?"
     CapabilityEngine answers: "These 3 capabilities, available via these providers."
     """
-    
+
     def __init__(self):
         self._capabilities: dict[str, Capability] = {}
         self._register_builtin()
-    
+
     def _register_builtin(self):
         for cap in CAPABILITIES.values():
             self._capabilities[cap.id] = cap
-    
+
     def register(self, capability: Capability):
         """Register a new capability."""
         self._capabilities[capability.id] = capability
-    
+
     def get(self, capability_id: str) -> Capability | None:
         return self._capabilities.get(capability_id)
-    
+
     def list_all(self) -> dict[str, Capability]:
         return dict(self._capabilities)
-    
+
     def list_by_category(self, category: str) -> list[Capability]:
         return [c for c in self._capabilities.values() if c.category == category]
-    
+
     def match_opportunity(
-        self, 
+        self,
         opportunity: ScoredOpportunity,
         source_type: str | None = None,
     ) -> list[Capability]:
         """Match opportunity requirements to capabilities.
-        
+
         Different opportunity types need different capabilities:
         - bug_bounty: web_scraping, network_scanning, api_interaction, llm_reasoning
         - dev_bounty: git_operations, code_execution, api_interaction
@@ -507,18 +513,18 @@ class CapabilityEngine:
             "oss_sponsor": ["git_operations", "code_execution"],
             "job_application": ["browser_automation", "document_parsing"],
         }
-        
+
         source = source_type or opportunity.source_type
         required = type_requirements.get(source, ["llm_reasoning"])
-        
+
         if "all" in required:
             return list(self._capabilities.values())
-        
+
         return [self._capabilities[r] for r in required if r in self._capabilities]
-    
+
     def can_execute(self, opportunity: ScoredOpportunity) -> tuple[bool, list[str]]:
         """Check if OWNEX has all capabilities for this opportunity.
-        
+
         Returns (can_execute, missing_capabilities)
         """
         required = self.match_opportunity(opportunity)
@@ -527,19 +533,19 @@ class CapabilityEngine:
             if not cap.available:
                 missing.append(cap.id)
         return len(missing) == 0, missing
-    
+
     def estimate_cost(self, opportunity: ScoredOpportunity) -> float:
         """Estimate cost to execute this opportunity."""
         required = self.match_opportunity(opportunity)
         return sum(c.estimated_cost_per_run for c in required)
-    
+
     def get_statistics(self) -> dict[str, Any]:
         """Get capability engine statistics."""
         categories = {}
         for cap in self._capabilities.values():
             categories.setdefault(cap.category, [])
             categories[cap.category].append(cap.id)
-        
+
         return {
             "total_capabilities": len(self._capabilities),
             "available": sum(1 for c in self._capabilities.values() if c.available),
@@ -553,30 +559,32 @@ class CapabilityEngine:
 ```python
 # Wiring example:
 
+
 async def process_observation(obs: Observation) -> ScoredOpportunity | None:
     # 1. Classify
     opportunity = await classification_engine.classify(obs)
     if not opportunity:
         return None
-    
+
     # 2. Check capabilities
     can_do, missing = capability_engine.can_execute(opportunity)
     if not can_do:
         logger.warning(f"Cannot execute {opportunity.id}: missing {missing}")
         # Could still queue for user review
         opportunity.confidence *= 0.5
-    
+
     # 3. Estimate cost
     cost = capability_engine.estimate_cost(opportunity)
     opportunity.estimated_cost = cost
-    
+
     # 4. Update state
     state_engine.transition(
         obs.id,
         OpportunityState.CLASSIFIED,
-        reason=f"Classified as {opportunity.cycle}/{opportunity.source_type}, "
-               f"cost ${cost:.2f}, missing caps: {missing}" if missing else "All required capabilities available",
+        reason=f"Classified as {opportunity.cycle}/{opportunity.source_type}, cost ${cost:.2f}, missing caps: {missing}"
+        if missing
+        else "All required capabilities available",
     )
-    
+
     return opportunity
 ```

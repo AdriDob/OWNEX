@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import logging
 
+from sqlalchemy import TextClause
+
 logger = logging.getLogger("orion.core.health.checks")
 
 
@@ -26,18 +28,18 @@ def register_default_checks(center: HealthCenter) -> None:  # noqa: F821
 
     def check_scheduler() -> bool:
         try:
-            from api.scheduler import scheduler
+            from api.scheduler import scheduler_instance
 
-            return scheduler is not None
+            return scheduler_instance is not None
         except Exception:
             return False
 
     def check_database() -> bool:
         try:
-            from database.db import get_db
+            from database.db import engine
 
-            db = get_db()
-            db.execute("SELECT 1")
+            with engine.connect() as conn:
+                conn.execute(TextClause("SELECT 1"))
             return True
         except Exception:
             return False

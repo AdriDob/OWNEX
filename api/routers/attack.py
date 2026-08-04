@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Query
 
 router = APIRouter(prefix="/api/attack", tags=["attack"])
@@ -25,12 +24,14 @@ def attack_decision(
 
         endpoint_data = []
         for ep in endpoints:
-            endpoint_data.append({
-                "path": ep.path,
-                "method": ep.method,
-                "params": ep.parsed_params,
-                "target_id": ep.target_id,
-            })
+            endpoint_data.append(
+                {
+                    "path": ep.path,
+                    "method": ep.method,
+                    "params": ep.parsed_params,
+                    "target_id": ep.target_id,
+                }
+            )
 
         return engine.evaluate_endpoints(endpoint_data)
     finally:

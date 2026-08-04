@@ -26,7 +26,7 @@ class TestDevinProvider:
         provider = DevinProvider(model="swe-1.6-slow")
         assert provider.name == "devin/swe-1.6-slow"
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_check_available(self, mock_run):
         """Test check when Devin is available."""
         mock_run.return_value = Mock(returncode=0)
@@ -34,17 +34,17 @@ class TestDevinProvider:
         assert provider.is_available() is True
         mock_run.assert_called_once_with(["devin", "--version"], capture_output=True, timeout=10, text=True)
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_check_unavailable_file_not_found(self, mock_run):
         """Test check when Devin binary is not found."""
         mock_run.side_effect = FileNotFoundError()
         provider = DevinProvider()
         assert provider.is_available() is False
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_check_unavailable_timeout(self, mock_run):
         """Test check when Devin times out."""
-        mock_run.side_effect = __import__('subprocess').TimeoutExpired("devin", 10)
+        mock_run.side_effect = __import__("subprocess").TimeoutExpired("devin", 10)
         provider = DevinProvider()
         assert provider.is_available() is False
 
@@ -64,14 +64,10 @@ class TestDevinProvider:
         assert "User: How are you?" in prompt
         assert "Please provide a concise response." in prompt
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_chat_success(self, mock_run):
         """Test successful chat call."""
-        mock_run.return_value = Mock(
-            returncode=0,
-            stdout="Devin response here",
-            stderr=""
-        )
+        mock_run.return_value = Mock(returncode=0, stdout="Devin response here", stderr="")
         provider = DevinProvider()
         provider._available = True  # Skip availability check
 
@@ -81,14 +77,10 @@ class TestDevinProvider:
         assert result == "Devin response here"
         mock_run.assert_called_once()
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_chat_error(self, mock_run):
         """Test chat call with error."""
-        mock_run.return_value = Mock(
-            returncode=1,
-            stdout="",
-            stderr="Error occurred"
-        )
+        mock_run.return_value = Mock(returncode=1, stdout="", stderr="Error occurred")
         provider = DevinProvider()
         provider._available = True
 
@@ -97,10 +89,10 @@ class TestDevinProvider:
 
         assert result == ""
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_chat_timeout(self, mock_run):
         """Test chat call with timeout."""
-        mock_run.side_effect = __import__('subprocess').TimeoutExpired("devin", 120)
+        mock_run.side_effect = __import__("subprocess").TimeoutExpired("devin", 120)
         provider = DevinProvider()
         provider._available = True
 

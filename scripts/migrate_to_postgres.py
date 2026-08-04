@@ -115,7 +115,7 @@ for table_name in TABLE_NAMES:
                 TOTAL += 1
             except Exception as e2:
                 pg_session.rollback()
-                print(f"    ✗ {table_name} row {item.get('id', '?' )}: {e2}")
+                print(f"    ✗ {table_name} row {item.get('id', '?')}: {e2}")
 
 # ── Done ───────────────────────────────────────────────────────────────────
 

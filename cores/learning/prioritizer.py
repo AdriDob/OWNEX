@@ -83,7 +83,9 @@ class AdaptivePrioritizer:
             return [PrioritizedItem(f, 0.0, []) for f in findings]
 
         result = []
-        favorite_classes = [c.get("class", "").lower() for c in (profile.favorite_bug_classes or []) if c.get("count", 0) > 0]
+        favorite_classes = [
+            c.get("class", "").lower() for c in (profile.favorite_bug_classes or []) if c.get("count", 0) > 0
+        ]
 
         for f in findings:
             score = 0.0
@@ -92,7 +94,11 @@ class AdaptivePrioritizer:
 
             if bug_class in favorite_classes:
                 class_count = next(
-                    (c.get("count", 0) for c in (profile.favorite_bug_classes or []) if c.get("class", "").lower() == bug_class),
+                    (
+                        c.get("count", 0)
+                        for c in (profile.favorite_bug_classes or [])
+                        if c.get("class", "").lower() == bug_class
+                    ),
                     0,
                 )
                 score += class_count * 1.5
@@ -161,27 +167,33 @@ class AdaptivePrioritizer:
         )[:3]
         if top_classes:
             class_names = ", ".join(c.get("class", "") for c in top_classes)
-            recommendations.append({
-                "type": "continue_strength",
-                "message": f"Continue investigating {class_names} — your strongest categories",
-                "explanation": f"Based on {sum(c.get('count', 0) for c in top_classes)} confirmed findings in these classes",
-            })
+            recommendations.append(
+                {
+                    "type": "continue_strength",
+                    "message": f"Continue investigating {class_names} — your strongest categories",
+                    "explanation": f"Based on {sum(c.get('count', 0) for c in top_classes)} confirmed findings in these classes",
+                }
+            )
 
         if profile.confirmed_findings > 0 and profile.rejected_findings > 0:
             ratio = profile.confirmed_findings / (profile.confirmed_findings + profile.rejected_findings)
             if ratio < 0.5:
-                recommendations.append({
-                    "type": "quality_tip",
-                    "message": "Consider reviewing methodology — rejection rate is above 50%",
-                    "explanation": f"{profile.rejected_findings} rejected out of {profile.confirmed_findings + profile.rejected_findings} total validations",
-                })
+                recommendations.append(
+                    {
+                        "type": "quality_tip",
+                        "message": "Consider reviewing methodology — rejection rate is above 50%",
+                        "explanation": f"{profile.rejected_findings} rejected out of {profile.confirmed_findings + profile.rejected_findings} total validations",
+                    }
+                )
 
         if profile.average_findings_per_session > 0:
-            recommendations.append({
-                "type": "productivity",
-                "message": f"Average {profile.average_findings_per_session:.1f} findings per session",
-                "explanation": "Tracked from your investigation history",
-            })
+            recommendations.append(
+                {
+                    "type": "productivity",
+                    "message": f"Average {profile.average_findings_per_session:.1f} findings per session",
+                    "explanation": "Tracked from your investigation history",
+                }
+            )
 
         return recommendations
 

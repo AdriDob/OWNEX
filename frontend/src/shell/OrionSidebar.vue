@@ -131,7 +131,7 @@ function navigate(path: string) {
     <div class="flex items-center gap-2 px-4 h-14 border-b border-border/40">
       <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/30">
         <svg viewBox="0 0 512 512" width="20" height="20" fill="none">
-          <polygon points="256,96 376,156 376,356 256,416 136,356 136,156" stroke="currentColor" stroke-width="6" fill="rgba(59,130,246,0.08)" />
+          <polygon points="256,96 376,156 376,356 256,416 136,356 136,156" stroke="currentColor" stroke-width="6" fill="rgba(255, 255, 255,0.08)" />
           <circle cx="256" cy="256" r="24" fill="currentColor" opacity="0.8" />
         </svg>
       </div>

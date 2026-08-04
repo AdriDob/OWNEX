@@ -14,6 +14,7 @@ logger = logging.getLogger("cateye.desktop.notifications")
 _HAS_PLYER = False
 try:
     from plyer import notification as plyer_notification
+
     _HAS_PLYER = True
 except ImportError:
     pass

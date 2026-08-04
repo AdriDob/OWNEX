@@ -45,6 +45,7 @@ async def _run_bb_stage(stage_method: str) -> JobResult:
 
 # ── Executors individuales ────────────────────────────────────────
 
+
 async def bb_discover() -> JobResult:
     return await _run_bb_stage("_stage_discover")
 
@@ -75,6 +76,7 @@ async def bb_ai_bounty() -> JobResult:
 
 # ── Registro ──────────────────────────────────────────────────────
 
+
 def register_bb_jobs(scan_scheduler=None) -> None:
     """
     Registra los stages del pipeline BB como jobs individuales en LifeScheduler.
@@ -88,87 +90,101 @@ def register_bb_jobs(scan_scheduler=None) -> None:
     scheduler = get_life_scheduler()
 
     # DISCOVER - cada 1h, prioridad alta (fuente de todo)
-    scheduler.register(JobDefinition(
-        job_type=JobType.BB_DISCOVER,
-        name="Bug Bounty: Discover Programs",
-        description="Scrape public platforms for new programs",
-        interval_seconds=3600,  # 1h
-        priority=100,
-        run_at_startup=True,
-        tags=["bugbounty", "discover", "revenue", "source"],
-        executor=bb_discover,
-    ))
+    scheduler.register(
+        JobDefinition(
+            job_type=JobType.BB_DISCOVER,
+            name="Bug Bounty: Discover Programs",
+            description="Scrape public platforms for new programs",
+            interval_seconds=3600,  # 1h
+            priority=100,
+            run_at_startup=True,
+            tags=["bugbounty", "discover", "revenue", "source"],
+            executor=bb_discover,
+        )
+    )
 
     # RECON - cada 30min, depende de discover
-    scheduler.register(JobDefinition(
-        job_type=JobType.BB_RECON,
-        name="Bug Bounty: Recon Scan",
-        description="Run recon on prioritized targets",
-        interval_seconds=1800,  # 30min
-        priority=90,
-        depends_on=[JobType.BB_DISCOVER],
-        tags=["bugbounty", "recon", "revenue", "active"],
-        executor=bb_recon,
-    ))
+    scheduler.register(
+        JobDefinition(
+            job_type=JobType.BB_RECON,
+            name="Bug Bounty: Recon Scan",
+            description="Run recon on prioritized targets",
+            interval_seconds=1800,  # 30min
+            priority=90,
+            depends_on=[JobType.BB_DISCOVER],
+            tags=["bugbounty", "recon", "revenue", "active"],
+            executor=bb_recon,
+        )
+    )
 
     # HYPOTHESIS - cada 15min, depende de recon
-    scheduler.register(JobDefinition(
-        job_type=JobType.BB_HYPOTHESIS,
-        name="Bug Bounty: Generate Hypotheses",
-        description="Generate vulnerability hypotheses from recon data",
-        interval_seconds=900,  # 15min
-        priority=85,
-        depends_on=[JobType.BB_RECON],
-        tags=["bugbounty", "hypothesis", "intelligence"],
-        executor=bb_hypothesis,
-    ))
+    scheduler.register(
+        JobDefinition(
+            job_type=JobType.BB_HYPOTHESIS,
+            name="Bug Bounty: Generate Hypotheses",
+            description="Generate vulnerability hypotheses from recon data",
+            interval_seconds=900,  # 15min
+            priority=85,
+            depends_on=[JobType.BB_RECON],
+            tags=["bugbounty", "hypothesis", "intelligence"],
+            executor=bb_hypothesis,
+        )
+    )
 
     # PROMOTE - cada 10min, depende de hypothesis
-    scheduler.register(JobDefinition(
-        job_type=JobType.BB_PROMOTE,
-        name="Bug Bounty: Promote Hypotheses",
-        description="Test hypotheses against real endpoints (probe)",
-        interval_seconds=600,  # 10min
-        priority=80,
-        depends_on=[JobType.BB_HYPOTHESIS],
-        tags=["bugbounty", "promote", "validation", "active"],
-        executor=bb_promote,
-    ))
+    scheduler.register(
+        JobDefinition(
+            job_type=JobType.BB_PROMOTE,
+            name="Bug Bounty: Promote Hypotheses",
+            description="Test hypotheses against real endpoints (probe)",
+            interval_seconds=600,  # 10min
+            priority=80,
+            depends_on=[JobType.BB_HYPOTHESIS],
+            tags=["bugbounty", "promote", "validation", "active"],
+            executor=bb_promote,
+        )
+    )
 
     # VALIDATE - cada 2h, depende de promote
-    scheduler.register(JobDefinition(
-        job_type=JobType.BB_VALIDATE,
-        name="Bug Bounty: Validate Findings",
-        description="Run controlled validation on promoted findings",
-        interval_seconds=7200,  # 2h
-        priority=75,
-        depends_on=[JobType.BB_PROMOTE],
-        timeout_seconds=600,  # 10min timeout para validación
-        tags=["bugbounty", "validate", "evidence", "critical"],
-        executor=bb_validate,
-    ))
+    scheduler.register(
+        JobDefinition(
+            job_type=JobType.BB_VALIDATE,
+            name="Bug Bounty: Validate Findings",
+            description="Run controlled validation on promoted findings",
+            interval_seconds=7200,  # 2h
+            priority=75,
+            depends_on=[JobType.BB_PROMOTE],
+            timeout_seconds=600,  # 10min timeout para validación
+            tags=["bugbounty", "validate", "evidence", "critical"],
+            executor=bb_validate,
+        )
+    )
 
     # REPORT - cada 1h, depende de validate
-    scheduler.register(JobDefinition(
-        job_type=JobType.BB_REPORT,
-        name="Bug Bounty: Generate Reports",
-        description="Generate reports for confirmed findings",
-        interval_seconds=3600,  # 1h
-        priority=70,
-        depends_on=[JobType.BB_VALIDATE],
-        tags=["bugbounty", "report", "delivery", "revenue"],
-        executor=bb_report,
-    ))
+    scheduler.register(
+        JobDefinition(
+            job_type=JobType.BB_REPORT,
+            name="Bug Bounty: Generate Reports",
+            description="Generate reports for confirmed findings",
+            interval_seconds=3600,  # 1h
+            priority=70,
+            depends_on=[JobType.BB_VALIDATE],
+            tags=["bugbounty", "report", "delivery", "revenue"],
+            executor=bb_report,
+        )
+    )
 
     # AI BOUNTY - cada 2h, independiente
-    scheduler.register(JobDefinition(
-        job_type=JobType.BB_AI_BOUNTY,
-        name="Bug Bounty: AI Bounty Programs",
-        description="Check AI bounty programs for opportunities",
-        interval_seconds=7200,  # 2h
-        priority=60,
-        tags=["bugbounty", "ai", "specialized"],
-        executor=bb_ai_bounty,
-    ))
+    scheduler.register(
+        JobDefinition(
+            job_type=JobType.BB_AI_BOUNTY,
+            name="Bug Bounty: AI Bounty Programs",
+            description="Check AI bounty programs for opportunities",
+            interval_seconds=7200,  # 2h
+            priority=60,
+            tags=["bugbounty", "ai", "specialized"],
+            executor=bb_ai_bounty,
+        )
+    )
 
     logger.info("[BB Jobs] Registered 7 bug bounty jobs in LifeScheduler")

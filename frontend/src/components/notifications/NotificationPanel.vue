@@ -79,7 +79,7 @@ if (typeof document !== 'undefined') {
     <Transition name="panel">
       <div
         v-if="open"
-        class="absolute right-0 top-full mt-2 w-80 rounded-xl border border-border/40 bg-[#131524]/95 p-2 shadow-2xl backdrop-blur-xl z-50"
+        class="absolute right-0 top-full mt-2 w-80 rounded-xl border border-border/40 bg-surface/95 p-2 shadow-2xl backdrop-blur-xl z-50"
       >
         <!-- Header -->
         <div class="flex items-center justify-between px-2 py-1.5">

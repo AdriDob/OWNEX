@@ -5,6 +5,7 @@ Three-layer classification:
   Layer 2 (HEURISTICS): medium, covers 9%
   Layer 3 (LLM):    expensive, only for ambiguous cases (1%)
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -27,12 +28,12 @@ class ClassificationResult:
 
     is_opportunity: bool
     opportunity_id: str | None = None
-    cycle: str | None = None         # "security", "forge", "pulse", "vault", "atlas"
-    source_type: str | None = None   # "bug_bounty", "dev_bounty", "ai_work", etc.
+    cycle: str | None = None  # "security", "forge", "pulse", "vault", "atlas"
+    source_type: str | None = None  # "bug_bounty", "dev_bounty", "ai_work", etc.
     tags: list[str] = field(default_factory=list)
     confidence: float = 0.0
     reason: str = ""
-    layer: str = "rules"             # "rules", "heuristics", "llm"
+    layer: str = "rules"  # "rules", "heuristics", "llm"
 
 
 @dataclass
@@ -49,9 +50,9 @@ class Opportunity:
     url: str | None
 
     # Classification
-    cycle: str                # "security", "forge", "pulse", "vault", "atlas"
-    source_type: str          # "bug_bounty", "dev_bounty", "ai_work", etc.
-    source_name: str          # sensor_id or platform name
+    cycle: str  # "security", "forge", "pulse", "vault", "atlas"
+    source_type: str  # "bug_bounty", "dev_bounty", "ai_work", etc.
+    source_name: str  # sensor_id or platform name
     tags: list[str]
 
     # Economics
@@ -61,7 +62,7 @@ class Opportunity:
 
     # Quality
     confidence: float = 0.5
-    layer: str = "rules"      # classification layer used
+    layer: str = "rules"  # classification layer used
 
     # Raw
     raw_data: dict[str, Any] = field(default_factory=dict)
@@ -70,7 +71,7 @@ class Opportunity:
     created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     # Pipeline status
-    status: str = "new"       # new | planned | prepared | executed | validated | archived
+    status: str = "new"  # new | planned | prepared | executed | validated | archived
 
 
 # ── Classifier interface ───────────────────────────────────────────
@@ -80,8 +81,7 @@ class Classifier(ABC):
     """A classifier decides if an observation is an opportunity."""
 
     @abstractmethod
-    async def classify(self, observation: Observation) -> ClassificationResult:
-        ...
+    async def classify(self, observation: Observation) -> ClassificationResult: ...
 
 
 # ── Rule-based classifiers (Layer 1) ───────────────────────────────
@@ -239,9 +239,7 @@ class CompositeClassifier(Classifier):
                 return result
             if not result.is_opportunity and result.confidence >= 0.9:
                 return result
-            if result.is_opportunity and (
-                best_positive is None or result.confidence >= best_positive.confidence
-            ):
+            if result.is_opportunity and (best_positive is None or result.confidence >= best_positive.confidence):
                 best_positive = result
 
         # Return best positive from rules if any
@@ -299,11 +297,14 @@ class ClassificationEngine(Engine):
         result = await self.classifier.classify(observation)
 
         if not result.is_opportunity:
-            self._emit("observation:discarded", {
-                "observation_id": observation.id,
-                "reason": result.reason,
-                "layer": result.layer,
-            })
+            self._emit(
+                "observation:discarded",
+                {
+                    "observation_id": observation.id,
+                    "reason": result.reason,
+                    "layer": result.layer,
+                },
+            )
             return None
 
         opportunity = Opportunity(
@@ -323,17 +324,18 @@ class ClassificationEngine(Engine):
             raw_data=observation.raw_data,
         )
 
-        self._emit("opportunity:created", {
-            "opportunity_id": opportunity.id,
-            "cycle": opportunity.cycle,
-            "source_type": opportunity.source_type,
-        })
+        self._emit(
+            "opportunity:created",
+            {
+                "opportunity_id": opportunity.id,
+                "cycle": opportunity.cycle,
+                "source_type": opportunity.source_type,
+            },
+        )
 
         return opportunity
 
-    async def classify_all(
-        self, observations: list[Observation]
-    ) -> list[Opportunity]:
+    async def classify_all(self, observations: list[Observation]) -> list[Opportunity]:
         """Classify a batch of observations, return only opportunities."""
         opportunities: list[Opportunity] = []
         for obs in observations:

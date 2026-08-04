@@ -62,14 +62,16 @@ class MemoryBuilder:
         if not profile:
             return []
 
-        for c in (profile.favorite_bug_classes or []):
+        for c in profile.favorite_bug_classes or []:
             if c.get("class", "").lower() == bug_class.lower() and c.get("count", 0) > 0:
-                return [{
-                    "type": "similar_finding",
-                    "bug_class": bug_class,
-                    "count": c["count"],
-                    "note": f"This looks similar to finding patterns you have validated {c['count']} times before.",
-                }]
+                return [
+                    {
+                        "type": "similar_finding",
+                        "bug_class": bug_class,
+                        "count": c["count"],
+                        "note": f"This looks similar to finding patterns you have validated {c['count']} times before.",
+                    }
+                ]
         return []
 
     def investigation_tip(self, user_id: str, target: dict[str, Any]) -> str | None:
@@ -81,7 +83,7 @@ class MemoryBuilder:
         reasons = []
         if target.get("technology") in (profile.technologies or []):
             reasons.append(f"focus on {target['technology']} endpoints")
-        for c in (profile.favorite_bug_classes or []):
+        for c in profile.favorite_bug_classes or []:
             if c.get("count", 0) > 3:
                 reasons.append(f"check for {c['class']} vulnerabilities")
                 break

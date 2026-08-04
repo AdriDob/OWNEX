@@ -108,7 +108,7 @@ function confidenceColor(c: number) {
         <Input v-model="search" placeholder="Buscar patrones..." class="pl-10" @input="fetchPatterns" />
       </div>
       <select v-model="categoryFilter" @change="fetchPatterns"
-        class="rounded-lg border border-border/60 bg-[#11131f]/60 px-3 py-2 text-xs text-foreground">
+        class="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-xs text-foreground">
         <option value="">Todas las categorías</option>
         <option v-for="c in categories" :key="c" :value="c">{{ categoryLabel(c) }}</option>
       </select>
@@ -118,11 +118,11 @@ function confidenceColor(c: number) {
     </div>
 
     <!-- Create form -->
-    <div v-if="showCreate" class="animate-in rounded-xl border border-primary/30 bg-[#11131f]/60 p-4 space-y-3">
+    <div v-if="showCreate" class="animate-in rounded-xl border border-primary/30 bg-surface/60 p-4 space-y-3">
       <p class="text-xs font-semibold text-foreground">Registrar nuevo patrón</p>
       <Input v-model="newObservation" placeholder="Ej: Las empresas fintech pagan mejor los IDOR" />
       <div class="flex items-center gap-3">
-        <select v-model="newCategory" class="rounded-lg border border-border/60 bg-[#11131f]/60 px-3 py-2 text-xs text-foreground flex-1">
+        <select v-model="newCategory" class="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-xs text-foreground flex-1">
           <option v-for="c in categories" :key="c" :value="c">{{ categoryLabel(c) }}</option>
         </select>
         <Input v-model="newTags" placeholder="Tags: fintech,idor (opcional)" class="flex-1" />

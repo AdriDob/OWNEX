@@ -31,6 +31,7 @@ Every app needs a manifest declaring its identity and capabilities:
 from core.interfaces import IAppPlugin
 from core.extension.manifest import AppManifest
 
+
 class HelloApp(IAppPlugin):
     @property
     def manifest(self) -> AppManifest:
@@ -39,11 +40,12 @@ class HelloApp(IAppPlugin):
             name="Hello World",
             version="1.0.0",
             description="Example app",
-            routers=["apps.hello.api.routers.router"],    # FastAPI routers (optional)
-            scheduler_jobs=[],                             # Periodic jobs (optional)
-            widgets=[],                                    # Dashboard widgets (optional)
-            db_path="",                                    # SQLite path (optional, relative to ~/.orion/database/)
+            routers=["apps.hello.api.routers.router"],  # FastAPI routers (optional)
+            scheduler_jobs=[],  # Periodic jobs (optional)
+            widgets=[],  # Dashboard widgets (optional)
+            db_path="",  # SQLite path (optional, relative to ~/.orion/database/)
         )
+
 
 registry.register(HelloApp())
 ```
@@ -68,13 +70,15 @@ registry.register(HelloApp())
 A job is a periodic task that runs at a fixed interval:
 
 ```python
-scheduler_jobs=[{
-    "id": "hello_ping",
-    "name": "Ping health check",
-    "handler": "apps.hello.engine:ping_health",
-    "interval": 3600,  # seconds
-    "app_id": "hello",
-}]
+scheduler_jobs = [
+    {
+        "id": "hello_ping",
+        "name": "Ping health check",
+        "handler": "apps.hello.engine:ping_health",
+        "interval": 3600,  # seconds
+        "app_id": "hello",
+    }
+]
 ```
 
 The handler is a dot-path to a callable: `"module.path:function_name"`.
@@ -87,14 +91,16 @@ Jobs are registered with `CoreScheduler` which fires `scheduler:job_due` events.
 A widget is a KPI card shown on the ORION Home dashboard:
 
 ```python
-widgets=[{
-    "id": "hello-greetings",
-    "label": "Greetings Today",
-    "value_endpoint": "/api/hello/stats",
-    "value_path": "greetings_today",   # JSONPath to extract value
-    "icon": "Bell",
-    "category": "general",
-}]
+widgets = [
+    {
+        "id": "hello-greetings",
+        "label": "Greetings Today",
+        "value_endpoint": "/api/hello/stats",
+        "value_path": "greetings_today",  # JSONPath to extract value
+        "icon": "Bell",
+        "category": "general",
+    }
+]
 ```
 
 ---
@@ -108,6 +114,7 @@ Create a `FastAPI APIRouter` and reference it in the manifest:
 from fastapi import APIRouter
 
 router = APIRouter(prefix="/api/hello", tags=["hello"])
+
 
 @router.get("/greet")
 async def greet(name: str = "world"):
@@ -169,13 +176,16 @@ from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 
+
 class Greeting(Base):
     __tablename__ = "greetings"
     id = Column(Integer, primary_key=True)
     name = Column(String)
 
+
 # Create tables on startup
 from core.database.manager import get_db_manager
+
 dbm = get_db_manager()
 engine = dbm.register("hello", f"hello.db")
 Base.metadata.create_all(engine)
@@ -190,9 +200,11 @@ For advanced use cases, apps can register lifecycle hooks:
 ```python
 from core.extension.hooks import register_hook
 
+
 def before_backup(context):
     """Called before every backup operation."""
     logger.info("App hello: preparing for backup")
+
 
 register_hook("before", "backup:create", before_backup)
 ```
@@ -213,11 +225,13 @@ Apps can expose settings via the unified settings system:
 # apps/hello/api/routers.py
 from cores.settings.service import get_setting, set_setting
 
+
 @router.get("/settings")
 async def get_hello_settings():
     return {
         "greeting": get_setting("hello_greeting", "Hello"),
     }
+
 
 @router.post("/settings")
 async def update_hello_settings(greeting: str):
@@ -291,5 +305,6 @@ Check compatibility at runtime:
 
 ```python
 from core.version import PLUGIN_API
+
 assert PLUGIN_API == "1.0", "Incompatible plugin API version"
 ```

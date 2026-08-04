@@ -144,7 +144,7 @@ const selectCycle = (cycleId: string) => {
   bottom: 0;
   z-index: var(--z-sidebar);
   background: var(--mica-bg);
-  border-right: 1px solid rgba(59, 130, 246, 0.08);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   display: flex;
@@ -159,7 +159,7 @@ const selectCycle = (cycleId: string) => {
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-4);
-  border-bottom: 1px solid rgba(59, 130, 246, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   min-height: 64px;
 }
 
@@ -230,9 +230,9 @@ const selectCycle = (cycleId: string) => {
 }
 
 .ownex-sidebar__cycle-btn--active {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
   color: var(--ownex-blue);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .ownex-sidebar__cycle-icon {
