@@ -617,6 +617,49 @@ async def direct_work_income_dashboard(request: IncomeProjectionRequest) -> dict
     )
 
 
+@router.post("/plan/objective")
+async def direct_work_plan_objective(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Universal request understanding: turn a loose request into a full blueprint.
+
+    "Magic Experience Engine" — takes plain-language objectives ("create a
+    website", "prepare a Fiverr delivery", "analyze this bug") and returns
+    Goal → Requirements → Plan → Tools → Verification → Deliverable with an
+    honest Time Compression estimate (normal hours vs OWNEX-optimized hours),
+    the automation % and the human decisions that remain.
+    """
+    from cores.direct_work_engine.execution_planner import plan_objective
+
+    objective = (payload or {}).get("objective", "")
+    result = plan_objective(objective)
+    return result.to_dict() if result.objective else {"error": result.error, "objective": objective}
+
+
+@router.post("/plan/opportunity")
+async def direct_work_plan_opportunity(
+    payload: dict[str, Any] | None = None,
+    success_probability: float | None = None,
+) -> dict[str, Any]:
+    """Execution plan for an existing opportunity: report + links + EV + roadmap.
+
+    "Opportunity Execution Engine" — the missing answer to "what do I do, what
+    does OWNEX do, how long, and what's the next button". Includes direct links
+    (never force the user to search), human-vs-automation split, work-reduction
+    model and EV = reward × success_probability / human_hours.
+    """
+    from cores.direct_work_engine.execution_planner import plan_execution
+
+    opportunity = (payload or {}).get("opportunity", {})
+    platform_url = (payload or {}).get("platform_url", "")
+    if isinstance(opportunity, dict) and "id" in opportunity:
+        # allow {id, platform_url} shortcut to pull from the work bank
+        bank = get_workbank()
+        item = bank.get_item(opportunity["id"])
+        if item:
+            opportunity = item
+    plan = plan_execution(opportunity, platform_url=platform_url, success_probability=success_probability)
+    return plan.to_dict()
+
+
 @router.get("/access/explain")
 async def direct_work_access_explain() -> dict[str, Any]:
     """Account integration guide: what each platform needs, why, and how to unlock it.
