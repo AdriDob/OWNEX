@@ -92,8 +92,8 @@ class GlobalArbitrageAdapter:
                     tickers[ex][symbol]["qv"] for ex in tickers if symbol in tickers[ex]
                 ) < self._min_quote_volume_usd:
                     continue
-                best_bid_ex = max(bids, key=bids.get)
-                best_ask_ex = min(asks, key=asks.get)
+                best_bid_ex = max(bids, key=lambda k: bids[k])
+                best_ask_ex = min(asks, key=lambda k: asks[k])
                 spread = (bids[best_bid_ex] - asks[best_ask_ex]) / asks[best_ask_ex] * 100
                 if not (self._min_spread_pct <= spread <= self._spread_sanity_max):
                     continue

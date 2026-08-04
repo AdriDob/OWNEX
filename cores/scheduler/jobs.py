@@ -311,6 +311,24 @@ def get_security_jobs() -> list[JobDefinition]:
     return jobs
 
 
+def get_investment_jobs() -> list[JobDefinition]:
+    """INVESTMENT jobs — autonomous revenue engines.
+
+    - investment_arbitrage_scan: cross-exchange price-gap scan (8 exchanges,
+      $500k liquidity floor) every 4h. Paper/dry-run; surfaces real edge.
+    """
+    return [
+        _cron_job(
+            job_id="investment_arbitrage_scan",
+            app_id="investment",
+            handler="core.investment.tasks:run_global_arbitrage_scan",
+            cron="23 */4 * * *",
+            args=[],
+            metadata={"cycle": "investment", "type": "revenue", "desc": "escaneo automatico de arbitraje cross-exchange"},
+        ),
+    ]
+
+
 def get_all_jobs() -> dict[str, list[JobDefinition]]:
     """Return all cycle jobs."""
     return {
@@ -319,4 +337,5 @@ def get_all_jobs() -> dict[str, list[JobDefinition]]:
         "pulse": get_pulse_jobs(),
         "vault": get_vault_jobs(),
         "atlas": get_atlas_jobs(),
+        "investment": get_investment_jobs(),
     }
