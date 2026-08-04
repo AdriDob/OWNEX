@@ -291,6 +291,14 @@ class AnalysisCardRequest(BaseModel):
     profile: dict[str, Any] | None = None
 
 
+class IncomeProjectionRequest(BaseModel):
+    work_income_usd_per_month: float
+    savings_usd_per_month: float
+    start_capital_usd: float = 0.0
+    annual_return_rate: float = 0.10
+    target_monthly_usd: float = 100_000.0
+
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -569,6 +577,25 @@ async def direct_work_market_report() -> dict[str, Any]:
     report = get_market_evolution_engine().analyze()
     report.pop("ecosystems", None)
     return report
+
+
+@router.post("/income-projector")
+async def direct_work_income_projector(request: IncomeProjectionRequest) -> dict[str, Any]:
+    """Honest time-to-income projection: work income → capital → portfolio income.
+
+    Compounds real monthly savings at a conservative annual return and reports
+    when portfolio income crosses the work income and then a target monthly USD
+    figure (default $100k). No fabricated returns — the rate is an explicit input.
+    """
+    from cores.direct_work_engine.income_projection import IncomeProjector
+
+    return IncomeProjector.project(
+        work_income_usd_per_month=request.work_income_usd_per_month,
+        savings_usd_per_month=request.savings_usd_per_month,
+        start_capital_usd=request.start_capital_usd,
+        annual_return_rate=request.annual_return_rate,
+        target_monthly_usd=request.target_monthly_usd,
+    ).to_dict()
 
 
 @router.get("/access/explain")
