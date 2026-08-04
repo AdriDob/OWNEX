@@ -1,3 +1,27 @@
+## Sesión 2026-08-04 — DAILY COMPANION SYSTEM
+
+> **QUÉ SE HIZO:** Implementado el sistema de compañero diario (Daily Companion) que consolida el estado del sistema, estado personal, oportunidades de mercado y recomendaciones de enfoque en una sola llamada. Cierra el gap del spec "OWNEX DAILY COMPANION SYSTEM".
+
+### Daily Companion (`cores/direct_work_engine/daily_companion.py`, NUEVO)
+- `daily_companion()` — ejecuta la rutina diaria completa en UNA llamada:
+  - `system` — estado de salud del sistema (score, status, snapshots).
+  - `personal` — tareas pendientes, entregados hoy, objetivos de aprendizaje.
+  - `market` — oportunidades analizadas, top fuentes, nuevos ecosistemas.
+  - `focus` — qué detener, automatizar, delegar, mejorar (detección de distracciones).
+  - `briefing` — resumen consolidado con saludo, salud, tareas importantes, acciones recomendadas.
+  - `projection` — proyección de tiempo para alcanzar objetivo de ingreso.
+- Degradación defensiva: cada bloque con `_safe()` → un engine caído no rompe el panel.
+
+### Endpoint
+- `POST /direct-work/daily-companion` → `{generated_at, system, personal, market, focus, briefing, projection}`.
+
+### Verificación
+- 7 tests nuevos en `tests/test_daily_companion.py` (bloques completos, forma del briefing, categorías de enfoque, proyección, saludo válido).
+- **125 tests pasan** (7 daily_companion + 8 assistance + 7 execution_planner + 21 market_evolution + 24 direct_work_api + 35 direct_work_engine + 25 workbank), ruff limpio, `import api.main` OK.
+- Commits: `0e4b5a7e` (daily companion + endpoint).
+
+---
+
 ## Sesión 2026-08-04 — ALPHA FOUNDATION: Guided Assistance System
 
 > **QUÉ SE HIZO:** Implementado el único módulo faltante del spec "OWNEX ALPHA
