@@ -1,3 +1,39 @@
+## Sesión 2026-08-04 — MARKET EVOLUTION ENGINE (spec completado: OVOS + Friction Index + Retirement + KB)
+
+> **QUÉ SE HIZO:** El spec "OWNEX MARKET EVOLUTION ENGINE" pedía 5 piezas que el stack
+> DWE no tenía (el resto ya existía: SourceIntel/Global Radar, Continuous Expansion,
+> learning, daily-brief). Se implementaron sobre el motor real, cero duplicación.
+
+### Market Evolution (`cores/direct_work_engine/market_evolution.py`, NUEVO)
+- **OVOS — OWNEX Verified Opportunity Score (0-100)**: score comparable por ecosistema
+  combinando 9 inputs ponderados (weights suman 1.0): expected reward, success probability,
+  completion time, barrier level, market stability, competition, skill match, legal
+  accessibility, historical success. `_compute_ovos()` puro y testeable.
+- **Friction Index (S/A/B/C/REJECT)**: tier compacto desde reward/barrier/type/trust;
+  job_board y HIGH-barrier → REJECT (regla dura).
+- **Automatic Retirement**: fuentes con friction REJECT, trust <40, o sin aceptaciones tras
+  3 intentos medidos → archivadas (`retired=True` + razón). Con historial positivo se retienen.
+- **MarketKnowledgeBase** persistente (`data/market_kb.json`): `EcosystemRecord` por plataforma
+  (review_date, first_seen, históricos attempts/accepted/earned, rating, retired, notes).
+  Sobrevive restarts; `upsert()` hace merge sin pisar historia. Singleton vía
+  `get_market_evolution_engine()`.
+- **Market Report**: `analyze()` entrega platforms_analyzed, new_ecosystems_discovered,
+  high_confidence_opportunities, highest_ev, best_recommendation, emerging_categories,
+  rejected_platforms, friction_summary S/A/B/C/REJECT, recommended_actions.
+
+### Endpoint
+- `POST /api/direct-work/market-report` (router direct_work existente) → el reporte diario
+  del spec en UNA llamada. Verificado en runtime 200: 135 plataformas analizadas, top
+  HackerOne, 13 retiradas, 122 nuevas descubiertas.
+- Reutiliza `SourceIntelEngine` + KB persistente — no duplica análisis del Global Radar.
+
+### Verificación
+- `tests/test_market_evolution.py` (13 tests): reward parsing, friction tiers, rejection,
+  OVOS ordering, retirement por trust/friction/historial, persistencia + merge KB,
+  report shape, endpoint API. **100 passed** (DWE+workbank+API+suelta), ruff global 0.
+
+---
+
 ## Sesión 2026-08-04 — QA Cycle conectado (router + scheduler job)
 
 > **QUÉ SE HIZO:** `core/cycles/qa.py` (QATestCycle, 1151 líneas, motor completo:

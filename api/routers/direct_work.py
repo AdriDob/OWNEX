@@ -267,6 +267,7 @@ class SkillGapRequest(BaseModel):
 class WorkBankCycleRequest(BaseModel):
     opportunities: list[dict[str, Any]] = []
     target: int = 100
+    profile: dict[str, Any] | None = None
 
 
 class ExtensionRequest(BaseModel):
@@ -391,7 +392,7 @@ async def direct_work_workbank_cycle(request: WorkBankCycleRequest) -> dict[str,
     if not opportunities:
         opportunities = await engine.discovery.discover_all()
     bank = get_workbank()
-    return bank.daily_cycle(opportunities, target=request.target)
+    return bank.daily_cycle(opportunities, target=request.target, profile=_income_max_profile(request.profile))
 
 
 @router.get("/workbank")
@@ -551,6 +552,23 @@ async def direct_work_analysis_card(request: AnalysisCardRequest) -> dict[str, A
             "analysis_cadence_hours": cadence,
         },
     }
+
+
+@router.post("/market-report")
+async def direct_work_market_report() -> dict[str, Any]:
+    """The Market Evolution Engine report (spec: daily market intelligence).
+
+    Scores every curated ecosystem with OVOS (0-100), assigns the S/A/B/C/REJECT
+    friction tier, applies Automatic Retirement, persists the knowledge base and
+    returns the consolidated market report: new ecosystems discovered, high
+    confidence opportunities, emerging categories, rejected platforms, highest
+    EV and recommended actions.
+    """
+    from cores.direct_work_engine.market_evolution import get_market_evolution_engine
+
+    report = get_market_evolution_engine().analyze()
+    report.pop("ecosystems", None)
+    return report
 
 
 @router.get("/access/explain")
