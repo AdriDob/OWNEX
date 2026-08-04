@@ -660,6 +660,39 @@ async def direct_work_plan_opportunity(
     return plan.to_dict()
 
 
+@router.get("/assistance-mode")
+async def direct_work_assistance_mode() -> dict[str, Any]:
+    """Return the current assistance mode and its guidance configuration.
+
+    The mode controls how much OWNEX explains and what requires user
+    approval. Persisted in memory so it survives backend restarts.
+    """
+    from cores.direct_work_engine.assistance_mode import ModeInfo
+
+    return ModeInfo.from_current().to_dict()
+
+
+@router.post("/assistance-mode")
+async def direct_work_set_assistance_mode(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Set the assistance mode (guided / assisted / autonomous / expert).
+
+    GUIDED:     explain everything, ask before each step.
+    ASSISTED:   explain important decisions, review before execution.
+    AUTONOMOUS: execute approved workflows without interruption.
+    EXPERT:     technical details only, minimal explanation.
+    """
+    from cores.direct_work_engine.assistance_mode import set_mode
+
+    mode = (payload or {}).get("mode", "assisted")
+    try:
+        set_mode(mode)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from None
+    from cores.direct_work_engine.assistance_mode import ModeInfo
+
+    return ModeInfo.from_current().to_dict()
+
+
 @router.get("/access/explain")
 async def direct_work_access_explain() -> dict[str, Any]:
     """Account integration guide: what each platform needs, why, and how to unlock it.
