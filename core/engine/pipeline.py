@@ -4,6 +4,7 @@ Extends the existing v5 execution infrastructure with structured planning
 and preparation layers. PipelineEngine v5 is preserved; this adds the
 orchestration layer around it.
 """
+
 from __future__ import annotations
 
 import logging
@@ -31,7 +32,7 @@ class PlanStep:
     name: str
     description: str
     order: int
-    capability: str                # capability ID needed
+    capability: str  # capability ID needed
     estimated_minutes: int = 0
     depends_on: list[str] = field(default_factory=list)
     timeout_seconds: int = 300
@@ -40,7 +41,7 @@ class PlanStep:
 
     # Result placeholder
     result: Any = None
-    status: str = "pending"        # pending | running | completed | failed | skipped
+    status: str = "pending"  # pending | running | completed | failed | skipped
     started_at: datetime | None = None
     completed_at: datetime | None = None
 
@@ -56,7 +57,7 @@ class ExecutionPlan:
     updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     total_estimated_minutes: int = 0
     context_hash: str = ""
-    status: str = "created"        # created | running | completed | failed
+    status: str = "created"  # created | running | completed | failed
 
     def add_step(self, step: PlanStep) -> None:
         self.steps.append(step)
@@ -80,49 +81,115 @@ class ExecutionResult:
 
 
 BUG_BOUNTY_PLAN = [
-    PlanStep("recon", "Reconnaissance", "Gather intel: subdomains, endpoints, tech stack",
-             order=1, capability="network_scanning", estimated_minutes=15),
-    PlanStep("scope", "Scope Analysis", "Analyze program scope, rules, exclusions",
-             order=2, capability="web_scraping", estimated_minutes=10),
-    PlanStep("test", "Vulnerability Testing", "Systematic testing per methodology",
-             order=3, capability="llm_reasoning", estimated_minutes=120),
-    PlanStep("report", "Report Writing", "Write findings report with PoC",
-             order=4, capability="llm_reasoning", estimated_minutes=30),
-    PlanStep("submit", "Submission", "Submit finding to platform",
-             order=5, capability="api_interaction", estimated_minutes=5),
+    PlanStep(
+        "recon",
+        "Reconnaissance",
+        "Gather intel: subdomains, endpoints, tech stack",
+        order=1,
+        capability="network_scanning",
+        estimated_minutes=15,
+    ),
+    PlanStep(
+        "scope",
+        "Scope Analysis",
+        "Analyze program scope, rules, exclusions",
+        order=2,
+        capability="web_scraping",
+        estimated_minutes=10,
+    ),
+    PlanStep(
+        "test",
+        "Vulnerability Testing",
+        "Systematic testing per methodology",
+        order=3,
+        capability="llm_reasoning",
+        estimated_minutes=120,
+    ),
+    PlanStep(
+        "report",
+        "Report Writing",
+        "Write findings report with PoC",
+        order=4,
+        capability="llm_reasoning",
+        estimated_minutes=30,
+    ),
+    PlanStep(
+        "submit", "Submission", "Submit finding to platform", order=5, capability="api_interaction", estimated_minutes=5
+    ),
 ]
 
 DEV_BOUNTY_PLAN = [
-    PlanStep("clone", "Clone Repository", "Clone repo and set up environment",
-             order=1, capability="git_operations", estimated_minutes=5),
-    PlanStep("understand", "Code Understanding", "Read existing code, understand patterns",
-             order=2, capability="code_execution", estimated_minutes=30),
-    PlanStep("implement", "Implementation", "Write code to solve the issue",
-             order=3, capability="code_execution", estimated_minutes=120),
-    PlanStep("test", "Testing", "Run tests, verify solution",
-             order=4, capability="code_execution", estimated_minutes=15),
-    PlanStep("submit", "Submit PR", "Create pull request with solution",
-             order=5, capability="git_operations", estimated_minutes=5),
+    PlanStep(
+        "clone",
+        "Clone Repository",
+        "Clone repo and set up environment",
+        order=1,
+        capability="git_operations",
+        estimated_minutes=5,
+    ),
+    PlanStep(
+        "understand",
+        "Code Understanding",
+        "Read existing code, understand patterns",
+        order=2,
+        capability="code_execution",
+        estimated_minutes=30,
+    ),
+    PlanStep(
+        "implement",
+        "Implementation",
+        "Write code to solve the issue",
+        order=3,
+        capability="code_execution",
+        estimated_minutes=120,
+    ),
+    PlanStep(
+        "test", "Testing", "Run tests, verify solution", order=4, capability="code_execution", estimated_minutes=15
+    ),
+    PlanStep(
+        "submit",
+        "Submit PR",
+        "Create pull request with solution",
+        order=5,
+        capability="git_operations",
+        estimated_minutes=5,
+    ),
 ]
 
 AI_WORK_PLAN = [
-    PlanStep("analyze", "Analyze Task", "Read task description and requirements",
-             order=1, capability="llm_reasoning", estimated_minutes=5),
-    PlanStep("execute", "Execute Task", "Complete the AI work task",
-             order=2, capability="code_execution", estimated_minutes=60),
-    PlanStep("verify", "Verify Output", "Check quality before submission",
-             order=3, capability="llm_reasoning", estimated_minutes=10),
-    PlanStep("submit", "Submit", "Submit completed work",
-             order=4, capability="api_interaction", estimated_minutes=2),
+    PlanStep(
+        "analyze",
+        "Analyze Task",
+        "Read task description and requirements",
+        order=1,
+        capability="llm_reasoning",
+        estimated_minutes=5,
+    ),
+    PlanStep(
+        "execute",
+        "Execute Task",
+        "Complete the AI work task",
+        order=2,
+        capability="code_execution",
+        estimated_minutes=60,
+    ),
+    PlanStep(
+        "verify",
+        "Verify Output",
+        "Check quality before submission",
+        order=3,
+        capability="llm_reasoning",
+        estimated_minutes=10,
+    ),
+    PlanStep("submit", "Submit", "Submit completed work", order=4, capability="api_interaction", estimated_minutes=2),
 ]
 
 GENERIC_PLAN = [
-    PlanStep("assess", "Assessment", "Assess the opportunity",
-             order=1, capability="llm_reasoning", estimated_minutes=15),
-    PlanStep("execute", "Execution", "Execute the work",
-             order=2, capability="code_execution", estimated_minutes=60),
-    PlanStep("submit", "Submission", "Submit results",
-             order=3, capability="api_interaction", estimated_minutes=5),
+    PlanStep(
+        "assess", "Assessment", "Assess the opportunity", order=1, capability="llm_reasoning", estimated_minutes=15
+    ),
+    PlanStep("execute", "Execution", "Execute the work", order=2, capability="code_execution", estimated_minutes=60),
+    PlanStep("submit", "Submission", "Submit results", order=3, capability="api_interaction", estimated_minutes=5),
 ]
 
 PLAN_TEMPLATES: dict[str, list[PlanStep]] = {
@@ -228,16 +295,20 @@ class PreparationEngine:
     async def _check_git(self) -> dict[str, Any]:
         result = subprocess.run(["git", "--version"], capture_output=True, text=True, timeout=10)
         ok = result.returncode == 0
-        return {"capability": "git_operations", "status": "ready" if ok else "not_found",
-                "version": result.stdout.strip() if ok else None, "available": ok}
+        return {
+            "capability": "git_operations",
+            "status": "ready" if ok else "not_found",
+            "version": result.stdout.strip() if ok else None,
+            "available": ok,
+        }
 
     async def _check_code_exec(self) -> dict[str, Any]:
-        return {"capability": "code_execution", "status": "ready",
-                "version": sys.version, "available": True}
+        return {"capability": "code_execution", "status": "ready", "version": sys.version, "available": True}
 
     async def _check_http(self) -> dict[str, Any]:
         try:
             import httpx  # noqa: F401
+
             return {"capability": "web_scraping", "status": "ready", "available": True}
         except ImportError:
             return {"capability": "web_scraping", "status": "missing_dependency", "available": False}
@@ -245,12 +316,12 @@ class PreparationEngine:
     async def _check_network_tools(self) -> dict[str, Any]:
         result = subprocess.run(["which", "nmap"], capture_output=True, text=True, timeout=10)
         ok = result.returncode == 0
-        return {"capability": "network_scanning", "status": "ready" if ok else "not_found",
-                "available": ok}
+        return {"capability": "network_scanning", "status": "ready" if ok else "not_found", "available": ok}
 
     async def _check_browser(self) -> dict[str, Any]:
         try:
             import playwright  # noqa: F401
+
             return {"capability": "browser_automation", "status": "ready", "available": True}
         except ImportError:
             return {"capability": "browser_automation", "status": "missing_dependency", "available": False}
@@ -305,11 +376,11 @@ class ExecutionPipeline(Engine):
                 if result.get("success"):
                     return True, result
                 # Log failure but retry
-                logger.warning("Step %s failed (attempt %d/%d): %s",
-                               step.name, attempt, max_attempts, result.get("error"))
+                logger.warning(
+                    "Step %s failed (attempt %d/%d): %s", step.name, attempt, max_attempts, result.get("error")
+                )
             except Exception as e:
-                logger.warning("Step %s raised exception (attempt %d/%d): %s",
-                               step.name, attempt, max_attempts, e)
+                logger.warning("Step %s raised exception (attempt %d/%d): %s", step.name, attempt, max_attempts, e)
                 if attempt >= max_attempts:
                     return False, {"error": str(e)}
                 continue

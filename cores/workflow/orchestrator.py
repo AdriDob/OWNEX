@@ -72,9 +72,7 @@ class WorkflowOrchestrator:
 
         return True
 
-    def complete_task(
-        self, workflow_id: str, task_id: str, result: dict[str, Any]
-    ) -> bool:
+    def complete_task(self, workflow_id: str, task_id: str, result: dict[str, Any]) -> bool:
         """Complete a task and trigger handoffs."""
         if not self._engine.complete_task(workflow_id, task_id, result):
             return False

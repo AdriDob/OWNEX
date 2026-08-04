@@ -42,12 +42,12 @@ Convierte una `Hypothesis` en un `TestPlan` con `AttackStep` tipados. Cada tipo 
 @dataclass
 class TestPlan:
     hypothesis_id: str
-    vulnerability_type: str   # "idor", "ssrf", "xss", "sqli", "auth_bypass"
-    target: str               # Base URL del target
+    vulnerability_type: str  # "idor", "ssrf", "xss", "sqli", "auth_bypass"
+    target: str  # Base URL del target
     endpoint_path: str
-    steps: list[AttackStep]   # Baseline + N test steps
+    steps: list[AttackStep]  # Baseline + N test steps
     payloads: dict[str, list[str]]  # Payloads por key
-    detection_strategy: str   # "status_diff", "body_diff", "timing", etc.
+    detection_strategy: str  # "status_diff", "body_diff", "timing", etc.
     auth_required: bool
 ```
 
@@ -56,12 +56,12 @@ class TestPlan:
 ```python
 @dataclass
 class AttackStep:
-    purpose: str       # "baseline", "test", "verify", "enumerate"
-    method: str        # GET, POST, PUT, DELETE
-    path: str          # Ruta del endpoint
-    headers: dict      # Headers adicionales
-    params: dict       # Parámetros de query
-    body: Any          # Cuerpo de la request
+    purpose: str  # "baseline", "test", "verify", "enumerate"
+    method: str  # GET, POST, PUT, DELETE
+    path: str  # Ruta del endpoint
+    headers: dict  # Headers adicionales
+    params: dict  # Parámetros de query
+    body: Any  # Cuerpo de la request
     payload_key: str | None  # Key del payload usado
 ```
 

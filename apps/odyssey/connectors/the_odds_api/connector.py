@@ -51,7 +51,9 @@ class OddsHarvesterConnector(OdysseyConnector):
             return ConnectorHealth(
                 connected=resp.status_code == 200,
                 latency_ms=round(latency, 1),
-                rate_limit_remaining=int(resp.headers.get("x-requests-remaining", 0)) if "x-requests-remaining" in resp.headers else None,
+                rate_limit_remaining=int(resp.headers.get("x-requests-remaining", 0))
+                if "x-requests-remaining" in resp.headers
+                else None,
             )
         except Exception as exc:
             return ConnectorHealth(connected=False, error=str(exc))
@@ -64,12 +66,15 @@ class OddsHarvesterConnector(OdysseyConnector):
             return []
         try:
             sport_key = sport or "upcoming"
-            resp = await self._client.get(f"/sports/{sport_key}/odds", params={
-                "apiKey": self._api_key,
-                "regions": "us,uk,eu",
-                "markets": "h2h,spreads,totals",
-                "oddsFormat": "decimal",
-            })
+            resp = await self._client.get(
+                f"/sports/{sport_key}/odds",
+                params={
+                    "apiKey": self._api_key,
+                    "regions": "us,uk,eu",
+                    "markets": "h2h,spreads,totals",
+                    "oddsFormat": "decimal",
+                },
+            )
             if resp.status_code != 200:
                 logger.warning("TheOddsAPI returned %d", resp.status_code)
                 return []
@@ -80,15 +85,17 @@ class OddsHarvesterConnector(OdysseyConnector):
                     for market in bookmaker.get("markets", []):
                         outcomes = market.get("outcomes", [])
                         if len(outcomes) >= 2:
-                            markets.append(NormalizedMarket(
-                                name=f"{event.get('home_team', '')} vs {event.get('away_team', '')}",
-                                sport=event.get("sport_title", sport_key),
-                                event=event.get("id", ""),
-                                odds_home=float(outcomes[0].get("price", 0)),
-                                odds_away=float(outcomes[1].get("price", 0)),
-                                volume=0.0,
-                                platform="the_odds_api",
-                            ))
+                            markets.append(
+                                NormalizedMarket(
+                                    name=f"{event.get('home_team', '')} vs {event.get('away_team', '')}",
+                                    sport=event.get("sport_title", sport_key),
+                                    event=event.get("id", ""),
+                                    odds_home=float(outcomes[0].get("price", 0)),
+                                    odds_away=float(outcomes[1].get("price", 0)),
+                                    volume=0.0,
+                                    platform="the_odds_api",
+                                )
+                            )
             return markets
         except Exception as exc:
             logger.warning("TheOddsAPI markets failed: %s", exc)

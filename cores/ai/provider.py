@@ -20,6 +20,7 @@ logger = logging.getLogger("cateye.ai.provider")
 @dataclass
 class ProviderSpec:
     """Describes an available provider type."""
+
     id: str
     label: str
     models: list[str] = field(default_factory=list)
@@ -34,7 +35,14 @@ PROVIDER_CATALOG: list[ProviderSpec] = [
     ProviderSpec(
         id="openrouter",
         label="OpenRouter (Premium)",
-        models=["openai/gpt-4o-mini", "openai/gpt-4o", "google/gemini-flash-1.5", "google/gemini-pro-1.5", "meta-llama/llama-3.1-70b-instruct", "qwen/qwen-2.5-72b-instruct"],
+        models=[
+            "openai/gpt-4o-mini",
+            "openai/gpt-4o",
+            "google/gemini-flash-1.5",
+            "google/gemini-pro-1.5",
+            "meta-llama/llama-3.1-70b-instruct",
+            "qwen/qwen-2.5-72b-instruct",
+        ],
         env_host="OPENROUTER_BASE_URL",
         env_model="OPENROUTER_MODEL",
         env_key="OPENROUTER_API_KEY",
@@ -44,7 +52,14 @@ PROVIDER_CATALOG: list[ProviderSpec] = [
     ProviderSpec(
         id="ollama",
         label="Ollama (Local)",
-        models=["freehuntx/qwen3-coder:8b", "qwen3:14b", "qwen2.5-coder:7b", "codellama:7b", "llama3.1:8b", "mistral:7b"],
+        models=[
+            "freehuntx/qwen3-coder:8b",
+            "qwen3:14b",
+            "qwen2.5-coder:7b",
+            "codellama:7b",
+            "llama3.1:8b",
+            "mistral:7b",
+        ],
         env_host="OLLAMA_HOST",
         env_model="OLLAMA_MODEL",
         default_host="http://localhost:11434",
@@ -92,21 +107,18 @@ PROVIDER_CATALOG: list[ProviderSpec] = [
 
 class AIProvider(ABC):
     @abstractmethod
-    def chat(self, messages: list[dict[str, str]], max_tokens: int = 512) -> str:
-        ...
+    def chat(self, messages: list[dict[str, str]], max_tokens: int = 512) -> str: ...
 
     def chat_stream(self, messages: list[dict[str, str]], max_tokens: int = 512) -> Generator[str, None, None]:
         """Override for SSE streaming. Default yields the full response."""
         yield self.chat(messages, max_tokens=max_tokens)
 
     @abstractmethod
-    def is_available(self) -> bool:
-        ...
+    def is_available(self) -> bool: ...
 
     @property
     @abstractmethod
-    def name(self) -> str:
-        ...
+    def name(self) -> str: ...
 
     def get_config(self) -> dict:
         return {"provider": self.name, "available": self.is_available()}
@@ -121,6 +133,7 @@ class OllamaProvider(AIProvider):
     def _check(self) -> bool:
         try:
             import urllib.request
+
             req = urllib.request.Request(f"{self.host}/api/tags", method="GET")
             with urllib.request.urlopen(req, timeout=5) as resp:
                 return resp.status == 200
@@ -140,12 +153,15 @@ class OllamaProvider(AIProvider):
         prompt = self._format_prompt(messages)
         try:
             import urllib.request
-            payload = json.dumps({
-                "model": self.model,
-                "prompt": prompt,
-                "stream": False,
-                "options": {"num_predict": max_tokens, "temperature": 0.3},
-            }).encode()
+
+            payload = json.dumps(
+                {
+                    "model": self.model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {"num_predict": max_tokens, "temperature": 0.3},
+                }
+            ).encode()
             req = urllib.request.Request(
                 f"{self.host}/api/generate",
                 data=payload,
@@ -177,13 +193,16 @@ class OllamaProvider(AIProvider):
     def chat_stream(self, messages: list[dict[str, str]], max_tokens: int = 512) -> Generator[str, None, None]:
         try:
             import urllib.request
+
             prompt = self._format_prompt(messages)
-            payload = json.dumps({
-                "model": self.model,
-                "prompt": prompt,
-                "stream": True,
-                "options": {"num_predict": max_tokens, "temperature": 0.3},
-            }).encode()
+            payload = json.dumps(
+                {
+                    "model": self.model,
+                    "prompt": prompt,
+                    "stream": True,
+                    "options": {"num_predict": max_tokens, "temperature": 0.3},
+                }
+            ).encode()
             req = urllib.request.Request(
                 f"{self.host}/api/generate",
                 data=payload,
@@ -226,12 +245,15 @@ class OpenAICompatibleProvider(AIProvider):
             return ""
         try:
             import urllib.request
-            payload = json.dumps({
-                "model": self.model,
-                "messages": messages,
-                "max_tokens": max_tokens,
-                "temperature": 0.3,
-            }).encode()
+
+            payload = json.dumps(
+                {
+                    "model": self.model,
+                    "messages": messages,
+                    "max_tokens": max_tokens,
+                    "temperature": 0.3,
+                }
+            ).encode()
             req = urllib.request.Request(
                 f"{self.base_url}/chat/completions",
                 data=payload,
@@ -253,13 +275,16 @@ class OpenAICompatibleProvider(AIProvider):
             return
         try:
             import urllib.request
-            payload = json.dumps({
-                "model": self.model,
-                "messages": messages,
-                "max_tokens": max_tokens,
-                "temperature": 0.3,
-                "stream": True,
-            }).encode()
+
+            payload = json.dumps(
+                {
+                    "model": self.model,
+                    "messages": messages,
+                    "max_tokens": max_tokens,
+                    "temperature": 0.3,
+                    "stream": True,
+                }
+            ).encode()
             req = urllib.request.Request(
                 f"{self.base_url}/chat/completions",
                 data=payload,
@@ -326,12 +351,20 @@ class GeminiProvider(AIProvider):
             return ""
         try:
             import urllib.request
+
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
-            payload = json.dumps({
-                "contents": self._build_contents(messages),
-                "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.3},
-            }).encode()
-            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json", "X-Goog-Api-Key": self.api_key}, method="POST")
+            payload = json.dumps(
+                {
+                    "contents": self._build_contents(messages),
+                    "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.3},
+                }
+            ).encode()
+            req = urllib.request.Request(
+                url,
+                data=payload,
+                headers={"Content-Type": "application/json", "X-Goog-Api-Key": self.api_key},
+                method="POST",
+            )
             with urllib.request.urlopen(req, timeout=30) as resp:
                 result = json.loads(resp.read().decode())
                 candidates = result.get("candidates", [])
@@ -348,12 +381,20 @@ class GeminiProvider(AIProvider):
             return
         try:
             import urllib.request
+
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:streamGenerateContent?alt=sse"
-            payload = json.dumps({
-                "contents": self._build_contents(messages),
-                "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.3},
-            }).encode()
-            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json", "X-Goog-Api-Key": self.api_key}, method="POST")
+            payload = json.dumps(
+                {
+                    "contents": self._build_contents(messages),
+                    "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.3},
+                }
+            ).encode()
+            req = urllib.request.Request(
+                url,
+                data=payload,
+                headers={"Content-Type": "application/json", "X-Goog-Api-Key": self.api_key},
+                method="POST",
+            )
             with urllib.request.urlopen(req, timeout=60) as resp:
                 for line in resp:
                     line = line.decode().strip()
@@ -386,7 +427,9 @@ class LocalFallbackProvider(AIProvider):
         last_lower = last.lower()
 
         if "hola" in last_lower or "hello" in last_lower or "qué tal" in last_lower:
-            return "Estoy listo para analizar tu ecosistema. Pregúntame sobre targets, oportunidades, o qué hacer ahora."
+            return (
+                "Estoy listo para analizar tu ecosistema. Pregúntame sobre targets, oportunidades, o qué hacer ahora."
+            )
         if "quiénes soy" in last_lower or "qué eres" in last_lower:
             return (
                 "Soy CATEYE AI, el analista principal del sistema. "
@@ -415,6 +458,7 @@ class ProviderRegistry:
         config = {}
         try:
             from database import db, models
+
             session = db.SessionLocal()
             try:
                 rows = session.query(models.AIProviderConfig).all()
@@ -439,12 +483,11 @@ class ProviderRegistry:
     def _save_config(self, cfg: dict):
         try:
             from database import db, models
+
             session = db.SessionLocal()
             try:
                 for key, value in cfg.items():
-                    existing = session.query(models.AIProviderConfig).filter(
-                        models.AIProviderConfig.key == key
-                    ).first()
+                    existing = session.query(models.AIProviderConfig).filter(models.AIProviderConfig.key == key).first()
                     if existing:
                         existing.value = str(value)
                     else:
@@ -460,6 +503,7 @@ class ProviderRegistry:
         # 1. Try OpenRouter if explicitly requested (premium models)
         if ptype in ("openrouter",):
             from .providers.openrouter_provider import OpenRouterProvider
+
             p = OpenRouterProvider(
                 api_key=cfg.get("openrouter_api_key", cfg.get("api_key", "")),
                 model=cfg.get("openrouter_model", "openai/gpt-4o-mini"),
@@ -470,6 +514,7 @@ class ProviderRegistry:
         # 2. Try Devin (free, agent with tools)
         if ptype in ("devin",):
             from .providers.devin_provider import DevinProvider
+
             p = DevinProvider(
                 devin_path=cfg.get("devin_path", "devin"),
                 model=cfg.get("devin_model", "default"),
@@ -529,6 +574,7 @@ class ProviderRegistry:
             if spec.id != "local":
                 if spec.id == "openrouter":
                     from .providers.openrouter_provider import OpenRouterProvider
+
                     p = OpenRouterProvider(
                         api_key=os.environ.get(spec.env_key, ""),
                     )
@@ -540,20 +586,22 @@ class ProviderRegistry:
                     available = p.is_available()
                 elif spec.id == "devin":
                     from .providers.devin_provider import DevinProvider
+
                     p = DevinProvider(
                         devin_path=os.environ.get(spec.env_host, spec.default_host),
                     )
                     available = p.is_available()
                 elif spec.id == "openai":
-                    available = bool(os.environ.get("OPENAI_API_KEY") or
-                                     self._load_config().get("api_key"))
-            result.append({
-                "id": spec.id,
-                "label": spec.label,
-                "models": spec.models,
-                "available": available,
-                "active": current.name.startswith(spec.id),
-            })
+                    available = bool(os.environ.get("OPENAI_API_KEY") or self._load_config().get("api_key"))
+            result.append(
+                {
+                    "id": spec.id,
+                    "label": spec.label,
+                    "models": spec.models,
+                    "available": available,
+                    "active": current.name.startswith(spec.id),
+                }
+            )
         return result
 
 

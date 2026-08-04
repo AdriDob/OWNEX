@@ -58,24 +58,28 @@ def build_full_context() -> dict[str, Any]:
             rs = s.get("risk_score", 0)
             total_risk += rs
             if rs >= 25:
-                high_signal.append({
-                    "id": ep.id,
-                    "target_id": ep.target_id,
-                    "path": ep.path,
-                    "method": ep.method,
-                    "risk_score": rs,
-                    "vector": s.get("vector", ""),
-                    "labels": s.get("labels", []),
-                })
+                high_signal.append(
+                    {
+                        "id": ep.id,
+                        "target_id": ep.target_id,
+                        "path": ep.path,
+                        "method": ep.method,
+                        "risk_score": rs,
+                        "vector": s.get("vector", ""),
+                        "labels": s.get("labels", []),
+                    }
+                )
             if s.get("actionable"):
-                actionable.append({
-                    "id": ep.id,
-                    "target_id": ep.target_id,
-                    "path": ep.path,
-                    "method": ep.method,
-                    "risk_score": rs,
-                    "vector": s.get("vector", ""),
-                })
+                actionable.append(
+                    {
+                        "id": ep.id,
+                        "target_id": ep.target_id,
+                        "path": ep.path,
+                        "method": ep.method,
+                        "risk_score": rs,
+                        "vector": s.get("vector", ""),
+                    }
+                )
             vec = s.get("vector", "Unknown")
             by_vector[vec] = by_vector.get(vec, 0) + 1
             for surf in s.get("attack_surface", []):
@@ -151,25 +155,29 @@ def build_full_context() -> dict[str, Any]:
             t_eps = [ep for ep in endpoints if ep.target_id == t.id]
             if not t_eps:
                 continue
-            roi = unified_score_target({
-                "api_count": len(t_eps),
-                "has_graphql": any("/graphql" in (ep.path or "").lower() for ep in t_eps),
-                "has_admin": any("admin" in (ep.path or "").lower() for ep in t_eps),
-                "has_api": any("/api/" in (ep.path or "") for ep in t_eps),
-                "has_exports": any("export" in (ep.path or "").lower() for ep in t_eps),
-                "source": (t.name or "").lower(),
-            })
-            target_rois.append({
-                "id": t.id,
-                "name": t.name,
-                "domain": t.domain,
-                "ep_count": len(t_eps),
-                "priority": roi.get("priority", 0),
-                "roi_score": roi.get("roi_score", 0),
-                "quality": roi.get("quality", 0),
-                "complexity": roi.get("complexity_score", 0),
-                "attack_surface_score": roi.get("attack_surface_score", 0),
-            })
+            roi = unified_score_target(
+                {
+                    "api_count": len(t_eps),
+                    "has_graphql": any("/graphql" in (ep.path or "").lower() for ep in t_eps),
+                    "has_admin": any("admin" in (ep.path or "").lower() for ep in t_eps),
+                    "has_api": any("/api/" in (ep.path or "") for ep in t_eps),
+                    "has_exports": any("export" in (ep.path or "").lower() for ep in t_eps),
+                    "source": (t.name or "").lower(),
+                }
+            )
+            target_rois.append(
+                {
+                    "id": t.id,
+                    "name": t.name,
+                    "domain": t.domain,
+                    "ep_count": len(t_eps),
+                    "priority": roi.get("priority", 0),
+                    "roi_score": roi.get("roi_score", 0),
+                    "quality": roi.get("quality", 0),
+                    "complexity": roi.get("complexity_score", 0),
+                    "attack_surface_score": roi.get("attack_surface_score", 0),
+                }
+            )
         target_rois.sort(key=lambda x: x["priority"], reverse=True)
         context["opportunities"] = {
             "total": len(target_rois),
@@ -209,29 +217,35 @@ def build_full_context() -> dict[str, Any]:
         recent_activity: list[dict] = []
         for f in findings:
             if f.created_at and f.created_at >= cutoff_24h:
-                recent_activity.append({
-                    "type": "finding",
-                    "id": f.id,
-                    "title": f.title or f"Finding #{f.id}",
-                    "severity": f.severity or "medium",
-                    "timestamp": f.created_at.isoformat() if f.created_at else "",
-                })
+                recent_activity.append(
+                    {
+                        "type": "finding",
+                        "id": f.id,
+                        "title": f.title or f"Finding #{f.id}",
+                        "severity": f.severity or "medium",
+                        "timestamp": f.created_at.isoformat() if f.created_at else "",
+                    }
+                )
         for v in verdicts:
             if v.created_at and v.created_at >= cutoff_24h:
-                recent_activity.append({
-                    "type": "verdict",
-                    "id": v.id,
-                    "status": v.status,
-                    "timestamp": v.created_at.isoformat() if v.created_at else "",
-                })
+                recent_activity.append(
+                    {
+                        "type": "verdict",
+                        "id": v.id,
+                        "status": v.status,
+                        "timestamp": v.created_at.isoformat() if v.created_at else "",
+                    }
+                )
         for s in scans:
             if s.started_at and s.started_at >= cutoff_24h:
-                recent_activity.append({
-                    "type": "scan",
-                    "id": s.id,
-                    "status": s.status,
-                    "timestamp": s.started_at.isoformat() if s.started_at else "",
-                })
+                recent_activity.append(
+                    {
+                        "type": "scan",
+                        "id": s.id,
+                        "status": s.status,
+                        "timestamp": s.started_at.isoformat() if s.started_at else "",
+                    }
+                )
         recent_activity.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
         context["activity"] = {
             "last_24h": len(recent_activity),
@@ -253,24 +267,27 @@ def build_full_context() -> dict[str, Any]:
             ep_snaps = []
             for ep in endpoints:
                 s = unified_score(ep.path, ep.method or "GET", ep.parsed_params)
-                ep_snaps.append(EndpointSnapshot(
-                    path=ep.path,
-                    method=ep.method or "GET",
-                    risk_score=float(s.get("risk_score", 0)),
-                    confidence=0.0,
-                    labels=s.get("labels", []),
-                    attack_surface=s.get("attack_surface", []),
-                    signals=s.get("signals", []),
-                    vector=s.get("vector", ""),
-                    actionable=bool(s.get("actionable", False)),
-                    potential_idor=bool(s.get("potential_idor", False)),
-                ))
+                ep_snaps.append(
+                    EndpointSnapshot(
+                        path=ep.path,
+                        method=ep.method or "GET",
+                        risk_score=float(s.get("risk_score", 0)),
+                        confidence=0.0,
+                        labels=s.get("labels", []),
+                        attack_surface=s.get("attack_surface", []),
+                        signals=s.get("signals", []),
+                        vector=s.get("vector", ""),
+                        actionable=bool(s.get("actionable", False)),
+                        potential_idor=bool(s.get("potential_idor", False)),
+                    )
+                )
             first_target = targets[0] if targets else None
             if first_target:
                 qw_snapshot = PipelineSnapshot(
                     status="completed",
                     target=TargetSnapshot(
-                        target_id=first_target.id, name=first_target.name or f"#{first_target.id}",
+                        target_id=first_target.id,
+                        name=first_target.name or f"#{first_target.id}",
                     ),
                     endpoints=ep_snaps,
                 )
@@ -299,13 +316,17 @@ def build_full_context() -> dict[str, Any]:
                     context["quick_wins"]["categories"][cat] = context["quick_wins"]["categories"].get(cat, 0) + 1
             else:
                 context["quick_wins"] = {
-                    "total_opportunities": 0, "avg_quick_win_score": 0.0,
-                    "categories": {}, "top_opportunities": [],
+                    "total_opportunities": 0,
+                    "avg_quick_win_score": 0.0,
+                    "categories": {},
+                    "top_opportunities": [],
                 }
         except Exception:
             context["quick_wins"] = {
-                "total_opportunities": 0, "avg_quick_win_score": 0.0,
-                "categories": {}, "top_opportunities": [],
+                "total_opportunities": 0,
+                "avg_quick_win_score": 0.0,
+                "categories": {},
+                "top_opportunities": [],
             }
 
         return context

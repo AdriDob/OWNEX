@@ -40,9 +40,11 @@ def create_endpoint(body: EndpointCreate):
 @router.post("/analyze")
 def analyze_endpoint(body: EndpointAnalysisRequest):
     from cores.engine.unified_classifier import classify as unified_classify
+
     result: dict[str, Any] = {"local": unified_classify(body.path, body.method, body.params or {})}
     try:
         from cores.ai.analyzer import AIAnalyzer
+
         ai = AIAnalyzer()
         result["ai"] = ai.analyze_endpoint(body.path, body.method, body.params or {})
     except Exception as exc:
@@ -59,7 +61,9 @@ def get_endpoints(
     sort_order: str = Query("asc", pattern="^(asc|desc)$"),
     search: str = Query("", max_length=200),
 ):
-    items, total = list_endpoints(target_id=target_id, skip=skip, limit=limit, sort_by=sort_by, sort_order=sort_order, search=search)
+    items, total = list_endpoints(
+        target_id=target_id, skip=skip, limit=limit, sort_by=sort_by, sort_order=sort_order, search=search
+    )
     return {"items": items, "total": total, "skip": skip, "limit": limit}
 
 

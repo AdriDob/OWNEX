@@ -22,9 +22,7 @@ class AegisTarget(Base):
     tags = Column(Text)
     notes = Column(Text)
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
-    updated_at = Column(
-        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
-    )
+    updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
 
 class ScanResult(Base):
@@ -63,9 +61,7 @@ class VulnFinding(Base):
     poc = Column(Text)
     status = Column(String(32), default="open")  # open, confirmed, false_positive, fixed
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
-    updated_at = Column(
-        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
-    )
+    updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
 
 class ScanReport(Base):
@@ -103,6 +99,4 @@ class KnowHow(Base):
     tags = Column(Text)
     source = Column(String(256))
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
-    updated_at = Column(
-        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
-    )
+    updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))

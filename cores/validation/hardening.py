@@ -3,6 +3,7 @@ Execution hardening layer: detect network behavior anomalies and adapt strategy.
 
 Prevents false negatives/positives from WAF, throttling, timeouts, rate limiting.
 """
+
 import re
 import time
 from dataclasses import dataclass, field
@@ -12,6 +13,7 @@ from typing import Any
 @dataclass
 class NetworkBehaviorMetadata:
     """Metadata about detected network behavior anomalies."""
+
     has_rate_limit: bool = False
     has_waf_blocking: bool = False  # none | weak | strong
     waf_strength: str = "none"
@@ -179,10 +181,10 @@ class AdaptiveRetryStrategy:
 
     # Max retries by endpoint pattern (conservative)
     RETRY_BUDGET = {
-        "admin": 1,           # Admin endpoints: low tolerance
-        "auth": 2,            # Auth endpoints: medium tolerance
-        "api": 3,             # API endpoints: higher tolerance
-        "safe": 5,            # Safe methods (GET, HEAD): high tolerance
+        "admin": 1,  # Admin endpoints: low tolerance
+        "auth": 2,  # Auth endpoints: medium tolerance
+        "api": 3,  # API endpoints: higher tolerance
+        "safe": 5,  # Safe methods (GET, HEAD): high tolerance
     }
 
     def __init__(self, base_timeout: int = 15):
@@ -323,10 +325,12 @@ class AdaptiveRetryStrategy:
         if domain not in self._request_history:
             self._request_history[domain] = []
 
-        self._request_history[domain].append({
-            "timestamp": time.time(),
-            "metadata": response_metadata,
-        })
+        self._request_history[domain].append(
+            {
+                "timestamp": time.time(),
+                "metadata": response_metadata,
+            }
+        )
 
         # Keep only last 20 requests per domain
         if len(self._request_history[domain]) > 20:
@@ -338,12 +342,8 @@ class AdaptiveRetryStrategy:
             return False
 
         history = self._request_history[domain]
-        rate_limit_count = sum(
-            1 for entry in history if entry["metadata"].has_rate_limit
-        )
-        timeout_count = sum(
-            1 for entry in history if entry["metadata"].has_timeout
-        )
+        rate_limit_count = sum(1 for entry in history if entry["metadata"].has_rate_limit)
+        timeout_count = sum(1 for entry in history if entry["metadata"].has_timeout)
 
         # If 2+ rate limits or 2+ timeouts in recent history, flag escalation
         return rate_limit_count >= 2 or timeout_count >= 2

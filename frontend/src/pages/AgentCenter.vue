@@ -42,7 +42,7 @@ let healthInterval: ReturnType<typeof setInterval> | null = null
 let pipelineInterval: ReturnType<typeof setInterval> | null = null
 
 const statusColors: Record<string, string> = {
-  idle: '#22c55e', working: '#3b82f6', waiting: '#eab308', error: '#ef4444', offline: '#6b7280',
+  idle: '#16A34A', working: '#ffffff', waiting: '#A16207', error: '#E82127', offline: '#6b7280',
 }
 
 const agentIcons: Record<string, string> = {
@@ -227,7 +227,7 @@ onUnmounted(() => {
             </div>
             <div v-for="ev in events" :key="ev.event_id"
               class="rounded bg-surface/10 px-2 py-1 border-l-2"
-              :style="{ borderLeftColor: ev.priority <= 3 ? '#3b82f6' : '#6b7280' }"
+              :style="{ borderLeftColor: ev.priority <= 3 ? '#ffffff' : '#6b7280' }"
             >
               <div class="flex justify-between gap-2">
                 <span class="text-primary">{{ ev.event_type }}</span>

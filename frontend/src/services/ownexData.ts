@@ -71,6 +71,7 @@ export interface OwnexDashboardData {
   cycles: WorkCycleData[]
   systemHealth: number
   systemStatus: string
+  pendingApprovals: number
   timestamp: string
 }
 
@@ -109,7 +110,7 @@ interface RevenueSummaryResponse {
 
 const DEFAULT_STAGES = [
   { label: 'Oportunidades detectadas', value: 0, color: 'text-accent' },
-  { label: 'Analizadas', value: 0, color: 'text-blue-400' },
+  { label: 'Analizadas', value: 0, color: 'text-primary' },
   { label: 'Priorizadas', value: 0, color: 'text-warning' },
   { label: 'En ejecución', value: 0, color: 'text-primary' },
   { label: 'Completadas', value: 0, color: 'text-success' },
@@ -349,19 +350,19 @@ export async function fetchCycles(): Promise<WorkCycleData[]> {
     }
 
     const colorMap: Record<string, string> = {
-      security: 'text-blue-400',
-      forge: 'text-purple-400',
-      pulse: 'text-green-400',
-      vault: 'text-amber-400',
-      atlas: 'text-sky-400',
+      security: 'text-primary',
+      forge: 'text-intigriti',
+      pulse: 'text-success',
+      vault: 'text-warning',
+      atlas: 'text-muted-foreground',
     }
 
     const badgeColorMap: Record<string, string> = {
-      security: 'bg-blue-500/20 text-blue-400',
-      forge: 'bg-purple-500/20 text-purple-400',
-      pulse: 'bg-green-500/20 text-green-400',
-      vault: 'bg-amber-500/20 text-amber-400',
-      atlas: 'bg-sky-500/20 text-sky-400',
+      security: 'bg-primary/20 text-primary',
+      forge: 'bg-intigriti/20 text-intigriti',
+      pulse: 'bg-success/20 text-success',
+      vault: 'bg-warning/20 text-warning',
+      atlas: 'bg-muted/20 text-muted-foreground',
     }
 
     const routeMap: Record<string, string> = {
@@ -403,10 +404,19 @@ export async function fetchCycles(): Promise<WorkCycleData[]> {
   }
 }
 
+async function fetchApprovals(): Promise<number> {
+  try {
+    const data = await api.get<{ count: number }>('/capability-expansion/approvals')
+    return data.count ?? 0
+  } catch {
+    return 0
+  }
+}
+
 // ── Main fetch ──
 
 export async function fetchOwnexDashboard(): Promise<OwnexDashboardData> {
-  const [stages, opportunities, activity, mission, agents, revenue, cycles] = await Promise.all([
+  const [stages, opportunities, activity, mission, agents, revenue, cycles, pendingApprovals] = await Promise.all([
     fetchOverview(),
     fetchOpportunities(),
     fetchActivity(),
@@ -414,6 +424,7 @@ export async function fetchOwnexDashboard(): Promise<OwnexDashboardData> {
     fetchSystemStatus(),
     fetchRevenueSnapshot(),
     fetchCycles(),
+    fetchApprovals(),
   ])
 
   const completedCount = stages.length > 0 ? stages[stages.length - 1].value : 0
@@ -431,6 +442,249 @@ export async function fetchOwnexDashboard(): Promise<OwnexDashboardData> {
     cycles,
     systemHealth: mission.health,
     systemStatus: mission.status,
+    pendingApprovals,
     timestamp: mission.timestamp,
   }
+}
+
+// ── Direct Work Engine ──
+
+export interface DirectWorkOpportunity {
+  id: string
+  title: string
+  platform: string
+  category: string
+  payment: number
+  remote: boolean
+  employment_type: string
+}
+
+export interface DirectWorkRanked {
+  rank: number
+  opportunity: DirectWorkOpportunity
+  expected_value: number
+  acceptance_probability: number
+  overall_recommendation_score: number
+  strategy: string | null
+  recommendation_reasoning: string[]
+  zero_barrier_score: {
+    total: number
+    barrier_level: string
+    enablers: string[]
+    blockers: string[]
+  }
+}
+
+export interface DirectWorkRecommendResponse {
+  ranked: DirectWorkRanked[]
+}
+
+export function buildDirectWorkProfile(): Record<string, unknown> {
+  return {
+    name: 'Adriel',
+    country: 'Argentina',
+    languages: ['es', 'en'],
+    skills: ['python', 'go', 'unity', 'typescript'],
+    experience_level: 'none',
+    remote_only: true,
+    accepts_ai_tools: true,
+  }
+}
+
+export async function fetchDirectWorkRecommendations(
+  opportunities: Record<string, unknown>[] = [],
+): Promise<DirectWorkRanked[]> {
+  const data = await api.post<DirectWorkRecommendResponse>('/direct-work/recommend', {
+    profile: buildDirectWorkProfile(),
+    opportunities,
+    limit: 5,
+  })
+  return data.ranked
+}
+
+// ── Work Bank ──
+
+export interface WorkBankTarget {
+  target: number
+  achieved: number
+  ready_total: number
+  pct: number
+}
+
+export interface WorkBankItem {
+  id: string
+  title: string
+  platform: string
+  category: string
+  reward: number
+  barrier_score: number
+  employment_type: string
+  status: string
+  access_status: string
+  access_requirement: string
+  deliverables: string[]
+  created_at: string
+  ready_to_deliver: boolean
+}
+
+export interface WorkBankState {
+  store_path: string
+  scanned: number
+  eligible_zero_barrier: number
+  new_items_added: number
+  total_in_bank: number
+  ready_to_deliver: number
+  needs_access: number
+  delivered: number
+  targets: {
+    daily: WorkBankTarget
+    weekly: WorkBankTarget
+    monthly: WorkBankTarget
+  }
+  weekly_best: WorkBankItem[]
+  items: WorkBankItem[]
+}
+
+export interface DailyBriefSource {
+  name: string
+  url: string
+  category: string
+  trust_score: number
+  earning_potential: string
+  average_reward: string
+}
+
+export interface DailyBrief {
+  generated_at: string
+  scanned: number
+  summary: string
+  top_opportunity: DirectWorkRanked | null
+  ranked: DirectWorkRanked[]
+  learning: {
+    missing_skills: string[]
+    plan: Array<{ skill: string; resource: string; estimated_hours: number }>
+  } | null
+  best_sources?: DailyBriefSource[]
+}
+
+export async function fetchDirectWorkWorkBank(): Promise<WorkBankState> {
+  return api.get<WorkBankState>('/direct-work/workbank')
+}
+
+export async function runDirectWorkCycle(target: number = 10): Promise<WorkBankState> {
+  const summary = await api.post<{ scanned: number; new_items_added: number; ready_to_deliver: number; needs_access: number }>(
+    '/direct-work/workbank/cycle',
+    { target },
+  )
+  const state = await fetchDirectWorkWorkBank()
+  return { ...state, ...summary }
+}
+
+export async function fetchDirectWorkDailyBrief(limit: number = 5): Promise<DailyBrief> {
+  return api.post<DailyBrief>('/direct-work/daily-brief', { profile: buildDirectWorkProfile(), limit })
+}
+
+// ── Assisted delivery ──
+
+export interface DeliveryPackage {
+  item_id: string
+  platform: string
+  title: string
+  ready_to_deliver: boolean
+  need_user_action: string
+  package_path: string
+  files: string[]
+  submission_url: string | null
+  guide_url: string | null
+  deliverables: string[]
+}
+
+export interface DeliverableItem {
+  id: string
+  title: string
+  platform: string
+  reward: number
+  deliverables: string[]
+  url: string
+}
+
+export async function fetchDeliveryQueue(): Promise<{ count: number; items: DeliverableItem[] }> {
+  return api.get<{ count: number; items: DeliverableItem[] }>('/direct-work/deliver/pending')
+}
+
+// ── Daily Operation Mode (GOOD MORNING) ──
+
+export interface GoodMorningState {
+  generated_at: string
+  summary: string
+  system: { status: string; score: number }
+  memory: { healthy: boolean; entries: number; namespaces: Record<string, number> }
+  important_tasks: Array<{ title: string; platform: string; reward?: number; requirement?: string }>
+  opportunities: {
+    scanned_sources: number
+    best_sources: Array<{ name: string; category: string; trust_score: number; earning_potential: string }>
+  }
+  unfinished_work: {
+    ready_to_deliver: Array<{ title: string; platform: string; reward: number }>
+    needs_access: Array<{ title: string; platform: string; requirement: string }>
+    targets: Record<string, unknown>
+  }
+  improvements_suggested: Array<{ type: string; name: string; benefit: string; priority: string }>
+  pending_approvals: Array<{ id: string; message: string; level?: string }>
+}
+
+export async function fetchGoodMorning(): Promise<GoodMorningState> {
+  return api.get<GoodMorningState>('/system/good-morning')
+}
+
+// ── Global Radar (Platform Analysis System) ──
+
+export interface PlatformAnalysisCard {
+  name: string
+  url: string
+  category: string
+  source_type: string
+  country_availability: string
+  argentina_compatibility: string
+  argentina_reason: string
+  payment_method: string
+  average_reward: string
+  entry_barrier: string
+  interview_required: boolean
+  portfolio_required: boolean
+  experience_required: boolean
+  task_transparency: number
+  trust_score: number
+  earning_potential: string
+  recommendation: string
+  priority: number
+}
+
+export interface SourceIntelResponse {
+  analyzed: number
+  total_curated_sources: number
+  stats: {
+    by_category: Record<string, number>
+    by_recommendation: Record<string, number>
+    argentina_compatible: number
+    avg_trust_score: number
+  }
+  uncovered_categories: string[]
+  sources: PlatformAnalysisCard[]
+}
+
+export async function fetchSourceIntel(options?: {
+  categories?: string[]
+  query?: string
+  min_trust?: number
+}): Promise<SourceIntelResponse> {
+  return api.post<SourceIntelResponse>('/direct-work/source-intel', options ?? {})
+}
+
+export async function prepareDelivery(itemId: string): Promise<DeliveryPackage> {
+  return api.post<DeliveryPackage>(`/direct-work/workbank/${itemId}/deliver/prepare`, {})
+}
+
+export async function approveDelivery(itemId: string): Promise<{ status: string; reward: number }> {
+  return api.post<{ status: string; reward: number }>(`/direct-work/workbank/${itemId}/deliver/approve`, {})
 }

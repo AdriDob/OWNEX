@@ -74,10 +74,10 @@ const healthColor = computed(() => {
 })
 
 const eventTypeIcon: Record<string, string> = {
-  scan: 'text-blue-400',
-  finding: 'text-purple-400',
-  report: 'text-amber-400',
-  system: 'text-emerald-400',
+  scan: 'text-primary',
+  finding: 'text-intigriti',
+  report: 'text-warning',
+  system: 'text-success',
   error: 'text-destructive',
 }
 

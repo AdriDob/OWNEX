@@ -61,23 +61,17 @@ extensions/{extension_name}/
 ```python
 manifest = ExtensionManifest(
     id="extension_name",
-    name="Extension Display Name", 
+    name="Extension Display Name",
     version="1.0.0",
     description="Brief description",
     author="Author Name",
     icon="🔧",
-    capabilities=[
-        Capability(
-            domain="extension_name",
-            name="Capability Name",
-            description="Capability description"
-        )
-    ],
+    capabilities=[Capability(domain="extension_name", name="Capability Name", description="Capability description")],
     hooks={},
     dependencies=[],
     settings=[],
     enabled=True,
-    priority=50
+    priority=50,
 )
 ```
 

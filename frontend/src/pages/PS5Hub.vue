@@ -86,42 +86,42 @@ function openMultiplication() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#0d1117] to-[#161b22] text-white">
+  <div class="min-h-screen bg-gradient-to-br from-background via-surface to-surface-hover text-white">
     <!-- Header - PS5 Style -->
-    <header class="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-[#0070d1]/30">
+    <header class="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-b border-primary/30">
       <div class="container mx-auto px-6 py-4 flex items-center justify-between">
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#0070d1] to-[#00aaff] flex items-center justify-center">
+          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary flex items-center justify-center">
             <Crown class="w-6 h-6 text-white" />
           </div>
           <div>
             <h1 class="text-2xl font-bold tracking-wider">OWNEX</h1>
-            <p class="text-xs text-[#0070d1]">Nivel {{ userStats.level }} • {{ userStats.completed }} Completados</p>
+            <p class="text-xs text-primary">Nivel {{ userStats.level }} • {{ userStats.completed }} Completados</p>
           </div>
         </div>
 
         <div class="flex items-center gap-6">
           <div class="text-right">
-            <p class="text-sm text-gray-400">Ganancias Totales</p>
-            <p class="text-xl font-bold text-[#00ff88]">${{ userStats.earnings.toFixed(2) }}</p>
+            <p class="text-sm text-muted-foreground">Ganancias Totales</p>
+            <p class="text-xl font-bold text-success">${{ userStats.earnings.toFixed(2) }}</p>
           </div>
           <button
             @click="openPatrimony"
-            class="p-3 rounded-lg bg-[#0d1117] border border-[#0070d1]/30 hover:border-[#0070d1] transition-colors"
+            class="p-3 rounded-lg bg-surface border border-primary/30 hover:border-primary transition-colors"
           >
-            <DollarSign class="w-5 h-5 text-[#0070d1]" />
+            <DollarSign class="w-5 h-5 text-primary" />
           </button>
           <button
             @click="openMultiplication"
-            class="p-3 rounded-lg bg-[#0d1117] border border-[#0070d1]/30 hover:border-[#0070d1] transition-colors"
+            class="p-3 rounded-lg bg-surface border border-primary/30 hover:border-primary transition-colors"
           >
-            <TrendingUp class="w-5 h-5 text-[#0070d1]" />
+            <TrendingUp class="w-5 h-5 text-primary" />
           </button>
           <button
             @click="openSettings"
-            class="p-3 rounded-lg bg-[#0d1117] border border-[#0070d1]/30 hover:border-[#0070d1] transition-colors"
+            class="p-3 rounded-lg bg-surface border border-primary/30 hover:border-primary transition-colors"
           >
-            <Settings class="w-5 h-5 text-[#0070d1]" />
+            <Settings class="w-5 h-5 text-primary" />
           </button>
         </div>
       </div>
@@ -131,7 +131,7 @@ function openMultiplication() {
     <main class="container mx-auto px-6 pt-32 pb-12">
       <div class="text-center mb-12">
         <h2 class="text-4xl font-bold mb-4">Selecciona tu Categoría</h2>
-        <p class="text-gray-400 text-lg">Trabajos públicos remunerados por aporte • Sin entrevista • Solo perfil</p>
+        <p class="text-muted-foreground text-lg">Trabajos públicos remunerados por aporte • Sin entrevista • Solo perfil</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -139,7 +139,7 @@ function openMultiplication() {
           v-for="category in categories"
           :key="category.id"
           @click="selectCategory(category.id)"
-          class="group relative bg-gradient-to-br from-[#0d1117] to-[#161b22] border-2 border-transparent hover:border-[#0070d1] rounded-2xl p-8 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-[#0070d1]/20"
+          class="group relative bg-gradient-to-br from-surface to-surface-hover border-2 border-transparent hover:border-primary rounded-2xl p-8 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/20"
         >
           <div class="absolute top-4 right-4 w-12 h-12 rounded-full opacity-20 group-hover:opacity-100 transition-opacity" :style="{ backgroundColor: category.color }" />
           
@@ -149,16 +149,16 @@ function openMultiplication() {
             </div>
 
             <h3 class="text-2xl font-bold mb-2">{{ category.name }}</h3>
-            <p class="text-gray-400 mb-6">{{ category.description }}</p>
+            <p class="text-muted-foreground mb-6">{{ category.description }}</p>
 
             <div class="space-y-2 mb-6">
               <div class="flex justify-between text-sm">
-                <span class="text-gray-400">Disponibles</span>
+                <span class="text-muted-foreground">Disponibles</span>
                 <span class="font-bold">{{ category.count }}</span>
               </div>
               <div class="flex justify-between text-sm">
-                <span class="text-gray-400">Potencial</span>
-                <span class="font-bold text-[#00ff88]">${{ category.potential }}</span>
+                <span class="text-muted-foreground">Potencial</span>
+                <span class="font-bold text-success">${{ category.potential }}</span>
               </div>
             </div>
 
@@ -175,27 +175,27 @@ function openMultiplication() {
 
       <!-- Quick Stats - Jarvis Style -->
       <div class="mt-16 max-w-4xl mx-auto">
-        <div class="bg-[#0d1117]/50 border border-[#0070d1]/30 rounded-2xl p-8">
+        <div class="bg-surface/50 border border-primary/30 rounded-2xl p-8">
           <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-            <Zap class="w-5 h-5 text-[#0070d1]" />
+            <Zap class="w-5 h-5 text-primary" />
             Estado del Sistema
           </h3>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div class="text-center">
-              <p class="text-3xl font-bold text-[#0070d1]">{{ userStats.completed }}</p>
-              <p class="text-sm text-gray-400">Completados</p>
+              <p class="text-3xl font-bold text-primary">{{ userStats.completed }}</p>
+              <p class="text-sm text-muted-foreground">Completados</p>
             </div>
             <div class="text-center">
-              <p class="text-3xl font-bold text-[#00ff88]">${{ userStats.earnings.toFixed(2) }}</p>
-              <p class="text-sm text-gray-400">Ganancias</p>
+              <p class="text-3xl font-bold text-success">${{ userStats.earnings.toFixed(2) }}</p>
+              <p class="text-sm text-muted-foreground">Ganancias</p>
             </div>
             <div class="text-center">
-              <p class="text-3xl font-bold text-[#ff00aa]">3</p>
-              <p class="text-sm text-gray-400">Categorías</p>
+              <p class="text-3xl font-bold text-destructive">3</p>
+              <p class="text-sm text-muted-foreground">Categorías</p>
             </div>
             <div class="text-center">
-              <p class="text-3xl font-bold text-[#00aaff]">Nvl {{ userStats.level }}</p>
-              <p class="text-sm text-gray-400">Nivel</p>
+              <p class="text-3xl font-bold text-primary">Nvl {{ userStats.level }}</p>
+              <p class="text-sm text-muted-foreground">Nivel</p>
             </div>
           </div>
         </div>

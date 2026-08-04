@@ -17,11 +17,11 @@ from cores.engine.hypothesis.models import (
     VulnerabilityType,
 )
 
-UUID_PATTERN = re.compile(
-    r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-)
+UUID_PATTERN = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
 NUMERIC_SEGMENT = re.compile(r"/(?:[0-9]+)(?:/|$)")
-ID_PARAM = re.compile(r"(?:user|account|order|invoice|file|team|org|project|resource|customer|subscription|device)_?id", re.I)
+ID_PARAM = re.compile(
+    r"(?:user|account|order|invoice|file|team|org|project|resource|customer|subscription|device)_?id", re.I
+)
 UUID_PARAM = re.compile(r"(?:uuid|token|session|key|guid|ref)_?", re.I)
 
 
@@ -31,7 +31,9 @@ def _hyp_id(vt: str, ep_id: int, suffix: str = "") -> str:
 
 
 def generate_idor(
-    ep: dict[str, Any], target_id: int, target_name: str,
+    ep: dict[str, Any],
+    target_id: int,
+    target_name: str,
 ) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
     method: str = str(ep.get("method", "GET")).upper()
@@ -44,10 +46,17 @@ def generate_idor(
     has_idor_signal = (
         potential_idor
         or any(s in surface for s in {"ownership_boundary", "tenant_boundary"})
-        or any(s in signals for s in {
-            "uuid", "numeric_id", "idor_params", "ownership_risk",
-            "object_reference_param", "auth_smell",
-        })
+        or any(
+            s in signals
+            for s in {
+                "uuid",
+                "numeric_id",
+                "idor_params",
+                "ownership_risk",
+                "object_reference_param",
+                "auth_smell",
+            }
+        )
         or "id_parameter" in labels
     )
     if not has_idor_signal or risk_score < 20:
@@ -114,7 +123,9 @@ def generate_idor(
 
 
 def generate_auth_bypass(
-    ep: dict[str, Any], target_id: int, target_name: str,
+    ep: dict[str, Any],
+    target_id: int,
+    target_name: str,
 ) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
     str(ep.get("method", "GET")).upper()
@@ -179,7 +190,9 @@ def generate_auth_bypass(
 
 
 def generate_ssrf(
-    ep: dict[str, Any], target_id: int, target_name: str,
+    ep: dict[str, Any],
+    target_id: int,
+    target_name: str,
 ) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
     method: str = str(ep.get("method", "GET")).upper()
@@ -189,7 +202,23 @@ def generate_ssrf(
     lower = path.lower()
 
     has_ssrf_signal = (
-        any(kw in lower for kw in {"webhook", "callback", "proxy", "fetch", "url", "redirect", "forward", "image", "avatar", "import", "upload", "download"})
+        any(
+            kw in lower
+            for kw in {
+                "webhook",
+                "callback",
+                "proxy",
+                "fetch",
+                "url",
+                "redirect",
+                "forward",
+                "image",
+                "avatar",
+                "import",
+                "upload",
+                "download",
+            }
+        )
         or "file_operation" in labels
         or "upload_surface" in ep.get("attack_surface", [])
         or any(s in signals for s in {"file_operation", "export"})
@@ -242,7 +271,9 @@ def generate_ssrf(
 
 
 def generate_privilege_escalation(
-    ep: dict[str, Any], target_id: int, target_name: str,
+    ep: dict[str, Any],
+    target_id: int,
+    target_name: str,
 ) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
     method: str = str(ep.get("method", "GET")).upper()
@@ -255,7 +286,9 @@ def generate_privilege_escalation(
     is_admin = "admin_surface" in surface or "admin" in labels
     is_internal = "internal_surface" in surface or "internal" in labels
     has_admin_signal = is_admin or is_internal or any(s in signals for s in {"admin", "internal"})
-    has_role_signal = any(kw in lower for kw in {"role", "permission", "admin", "sudo", "superuser", "privilege", "staff", "dashboard"})
+    has_role_signal = any(
+        kw in lower for kw in {"role", "permission", "admin", "sudo", "superuser", "privilege", "staff", "dashboard"}
+    )
 
     if not (has_admin_signal or has_role_signal):
         return None
@@ -301,7 +334,9 @@ def generate_privilege_escalation(
 
 
 def generate_data_exposure(
-    ep: dict[str, Any], target_id: int, target_name: str,
+    ep: dict[str, Any],
+    target_id: int,
+    target_name: str,
 ) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
     method: str = str(ep.get("method", "GET")).upper()
@@ -363,7 +398,9 @@ def generate_data_exposure(
 
 
 def generate_graphql(
-    ep: dict[str, Any], target_id: int, target_name: str,
+    ep: dict[str, Any],
+    target_id: int,
+    target_name: str,
 ) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
     str(ep.get("method", "GET")).upper()
@@ -420,7 +457,9 @@ def generate_graphql(
 
 
 def generate_business_logic(
-    ep: dict[str, Any], target_id: int, target_name: str,
+    ep: dict[str, Any],
+    target_id: int,
+    target_name: str,
 ) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
     method: str = str(ep.get("method", "GET")).upper()
@@ -430,7 +469,22 @@ def generate_business_logic(
     lower = path.lower()
 
     has_logic_signals = (
-        any(kw in lower for kw in {"transfer", "payment", "refund", "coupon", "discount", "credit", "wallet", "balance", "order", "checkout", "purchase"})
+        any(
+            kw in lower
+            for kw in {
+                "transfer",
+                "payment",
+                "refund",
+                "coupon",
+                "discount",
+                "credit",
+                "wallet",
+                "balance",
+                "order",
+                "checkout",
+                "purchase",
+            }
+        )
         or "web3" in labels
         or any(s in signals for s in {"web3"})
     )
@@ -485,7 +539,9 @@ def generate_business_logic(
 
 
 def generate_file_operation(
-    ep: dict[str, Any], target_id: int, target_name: str,
+    ep: dict[str, Any],
+    target_id: int,
+    target_name: str,
 ) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
     method: str = str(ep.get("method", "GET")).upper()
@@ -540,7 +596,9 @@ def generate_file_operation(
 
 
 def generate_web3(
-    ep: dict[str, Any], target_id: int, target_name: str,
+    ep: dict[str, Any],
+    target_id: int,
+    target_name: str,
 ) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
     str(ep.get("method", "GET")).upper()
@@ -550,12 +608,18 @@ def generate_web3(
     risk_score: float = float(ep.get("risk_score", 0))
     lower = path.lower()
 
-    is_web3 = "web3" in labels or "web3" in signals or any(s in surface for s in {"rpc_surface", "wallet_surface", "signature_surface"})
+    is_web3 = (
+        "web3" in labels
+        or "web3" in signals
+        or any(s in surface for s in {"rpc_surface", "wallet_surface", "signature_surface"})
+    )
     if not is_web3:
         return None
 
     is_rpc = "rpc_surface" in surface or any(kw in lower for kw in {"rpc", "jsonrpc", "eth_", "call", "send"})
-    is_wallet = "wallet_surface" in surface or any(kw in lower for kw in {"wallet", "balance", "transfer", "signature", "nonce"})
+    is_wallet = "wallet_surface" in surface or any(
+        kw in lower for kw in {"wallet", "balance", "transfer", "signature", "nonce"}
+    )
     is_signature = "signature_surface" in surface or any(kw in lower for kw in {"signature", "sign", "message", "eip"})
 
     evidence = []
@@ -660,77 +724,106 @@ def generate_nuclei(
         if type_tag:
             actions.insert(0, f"Research CVE {type_tag} for known exploit chains")
 
-        hypotheses.append(Hypothesis(
-            id=hyp_id,
-            vulnerability_type=vt,
-            target_id=target_id,
-            target_name=target_name,
-            endpoint={"path": matched, "id": 0, "method": nf.get("method", "GET")},
-            likelihood=0.65 if sev in ("critical", "high") else 0.45,
-            impact=impact,
-            exploitability=0.55,
-            confidence=0.3,
-            priority_score=0.0,
-            evidence=evidence,
-            reasoning=f"Nuclei template '{name}' matched at {matched}. This is an automated scanner finding that requires manual review to confirm. The template targets {vt.value} class vulnerabilities. {'CVE: ' + type_tag if type_tag else ''}",
-            suggested_actions=actions,
-            source=HypothesisSource.PATTERN,
-            vector=f"nuclei/{sev}",
-            attack_surface_labels=list(tag_set),
-        ))
+        hypotheses.append(
+            Hypothesis(
+                id=hyp_id,
+                vulnerability_type=vt,
+                target_id=target_id,
+                target_name=target_name,
+                endpoint={"path": matched, "id": 0, "method": nf.get("method", "GET")},
+                likelihood=0.65 if sev in ("critical", "high") else 0.45,
+                impact=impact,
+                exploitability=0.55,
+                confidence=0.3,
+                priority_score=0.0,
+                evidence=evidence,
+                reasoning=f"Nuclei template '{name}' matched at {matched}. This is an automated scanner finding that requires manual review to confirm. The template targets {vt.value} class vulnerabilities. {'CVE: ' + type_tag if type_tag else ''}",
+                suggested_actions=actions,
+                source=HypothesisSource.PATTERN,
+                vector=f"nuclei/{sev}",
+                attack_surface_labels=list(tag_set),
+            )
+        )
     return hypotheses
 
 
 TECHNOLOGY_HYPOTHESES: dict[str, list[dict[str, Any]]] = {
     "wordpress": [
-        {"type": VulnerabilityType.MISCONFIGURATION, "vector": "xmlrpc",
-         "reasoning": "WordPress XML-RPC enabled — brute force / SSRF / pingback DDoS",
-         "evidence": ["XML-RPC endpoint commonly accessible without auth"],
-         "actions": ["Disable xmlrpc.php if not required", "Restrict to trusted IPs"]},
-        {"type": VulnerabilityType.INFO_LEAK, "vector": "wp-json",
-         "reasoning": "WordPress REST API exposes user enumeration via /wp/v2/users",
-         "evidence": ["REST API leaks usernames, author IDs, post metadata"],
-         "actions": ["Add .htaccess restriction to /wp-json/", "Use a WAF rule to block user enum"]},
-        {"type": VulnerabilityType.KNOWN_VULNERABILITY, "vector": "version_disclosure",
-         "reasoning": "WordPress version string visible — known CVEs may apply",
-         "evidence": ["Version leak in /readme.html, generator tag, or /wp-includes/"],
-         "actions": ["Remove generator tag from header", "Block /readme.html and /wp-admin/readme.html"]},
+        {
+            "type": VulnerabilityType.MISCONFIGURATION,
+            "vector": "xmlrpc",
+            "reasoning": "WordPress XML-RPC enabled — brute force / SSRF / pingback DDoS",
+            "evidence": ["XML-RPC endpoint commonly accessible without auth"],
+            "actions": ["Disable xmlrpc.php if not required", "Restrict to trusted IPs"],
+        },
+        {
+            "type": VulnerabilityType.INFO_LEAK,
+            "vector": "wp-json",
+            "reasoning": "WordPress REST API exposes user enumeration via /wp/v2/users",
+            "evidence": ["REST API leaks usernames, author IDs, post metadata"],
+            "actions": ["Add .htaccess restriction to /wp-json/", "Use a WAF rule to block user enum"],
+        },
+        {
+            "type": VulnerabilityType.KNOWN_VULNERABILITY,
+            "vector": "version_disclosure",
+            "reasoning": "WordPress version string visible — known CVEs may apply",
+            "evidence": ["Version leak in /readme.html, generator tag, or /wp-includes/"],
+            "actions": ["Remove generator tag from header", "Block /readme.html and /wp-admin/readme.html"],
+        },
     ],
     "drupal": [
-        {"type": VulnerabilityType.MISCONFIGURATION, "vector": "drupal_debug",
-         "reasoning": "Drupal debug mode may expose configuration and DB credentials",
-         "evidence": ["Drupal detected — check for /CHANGELOG.txt, /INSTALL.txt"],
-         "actions": ["Disable debug mode in settings.php", "Remove install/upgrade files"]},
+        {
+            "type": VulnerabilityType.MISCONFIGURATION,
+            "vector": "drupal_debug",
+            "reasoning": "Drupal debug mode may expose configuration and DB credentials",
+            "evidence": ["Drupal detected — check for /CHANGELOG.txt, /INSTALL.txt"],
+            "actions": ["Disable debug mode in settings.php", "Remove install/upgrade files"],
+        },
     ],
     "joomla": [
-        {"type": VulnerabilityType.INFO_LEAK, "vector": "joomla_manifest",
-         "reasoning": "Joomla version disclosure via /administrator/manifests/files/joomla.xml",
-         "evidence": ["Joomla detected — version can be fingerprinted from XML manifest"],
-         "actions": ["Restrict access to /administrator/", "Block XML manifest endpoints"]},
+        {
+            "type": VulnerabilityType.INFO_LEAK,
+            "vector": "joomla_manifest",
+            "reasoning": "Joomla version disclosure via /administrator/manifests/files/joomla.xml",
+            "evidence": ["Joomla detected — version can be fingerprinted from XML manifest"],
+            "actions": ["Restrict access to /administrator/", "Block XML manifest endpoints"],
+        },
     ],
     "nginx": [
-        {"type": VulnerabilityType.MISCONFIGURATION, "vector": "nginx_alias_traversal",
-         "reasoning": "Misconfigured nginx alias directive may allow path traversal",
-         "evidence": ["Static file alias detected — test /static../ for directory escape"],
-         "actions": ["Use root instead of alias", "Ensure trailing slashes in location blocks"]},
+        {
+            "type": VulnerabilityType.MISCONFIGURATION,
+            "vector": "nginx_alias_traversal",
+            "reasoning": "Misconfigured nginx alias directive may allow path traversal",
+            "evidence": ["Static file alias detected — test /static../ for directory escape"],
+            "actions": ["Use root instead of alias", "Ensure trailing slashes in location blocks"],
+        },
     ],
     "php": [
-        {"type": VulnerabilityType.MISCONFIGURATION, "vector": "phpinfo",
-         "reasoning": "phpinfo() exposure leaks server configuration, credentials, and env vars",
-         "evidence": ["PHP detected — scan for phpinfo() pages on common paths"],
-         "actions": ["Remove phpinfo() files from production", "Block *.phps, phpinfo.php"]},
+        {
+            "type": VulnerabilityType.MISCONFIGURATION,
+            "vector": "phpinfo",
+            "reasoning": "phpinfo() exposure leaks server configuration, credentials, and env vars",
+            "evidence": ["PHP detected — scan for phpinfo() pages on common paths"],
+            "actions": ["Remove phpinfo() files from production", "Block *.phps, phpinfo.php"],
+        },
     ],
     "asp.net": [
-        {"type": VulnerabilityType.INFO_LEAK, "vector": "aspnet_trace",
-         "reasoning": "ASP.NET tracing/debug enabled — request details, cookies, session tokens exposed",
-         "evidence": ["ASP.NET detected — check /trace.axd, /elmah.axd"],
-         "actions": ["Disable <trace> in web.config", "Remove ELMAH in production"]},
+        {
+            "type": VulnerabilityType.INFO_LEAK,
+            "vector": "aspnet_trace",
+            "reasoning": "ASP.NET tracing/debug enabled — request details, cookies, session tokens exposed",
+            "evidence": ["ASP.NET detected — check /trace.axd, /elmah.axd"],
+            "actions": ["Disable <trace> in web.config", "Remove ELMAH in production"],
+        },
     ],
     "amazonaws": [
-        {"type": VulnerabilityType.MISCONFIGURATION, "vector": "s3_bucket",
-         "reasoning": "AWS S3 bucket may be publicly readable/writable",
-         "evidence": ["Target uses AWS — test common bucket naming patterns"],
-         "actions": ["Verify S3 bucket policies", "Enable Block Public Access"]},
+        {
+            "type": VulnerabilityType.MISCONFIGURATION,
+            "vector": "s3_bucket",
+            "reasoning": "AWS S3 bucket may be publicly readable/writable",
+            "evidence": ["Target uses AWS — test common bucket naming patterns"],
+            "actions": ["Verify S3 bucket policies", "Enable Block Public Access"],
+        },
     ],
 }
 
@@ -791,36 +884,77 @@ def generate_from_discovered_paths(
     hypotheses: list[Hypothesis] = []
     seen: set[str] = set()
     suspicious_endpoints = {
-        ".git/config": (VulnerabilityType.INFO_LEAK, "git_exposure",
-                        "Git repository exposed — source code and credentials at risk"),
-        ".env": (VulnerabilityType.INFO_LEAK, "env_exposure",
-                 "Environment file exposed — API keys, DB credentials, secrets"),
-        "wp-config.php.bak": (VulnerabilityType.INFO_LEAK, "wp_config_backup",
-                              "WordPress config backup exposed — DB credentials"),
-        "backup.sql": (VulnerabilityType.INFO_LEAK, "sql_backup",
-                       "Database backup exposed — all tables and credentials"),
-        "sitemap.xml": (VulnerabilityType.INFO_LEAK, "sitemap",
-                        "Sitemap exposes all application routes — attack surface mapping"),
-        "robots.txt": (VulnerabilityType.INFO_LEAK, "robots",
-                       "robots.txt may list disallowed admin/sensitive paths"),
-        "crossdomain.xml": (VulnerabilityType.MISCONFIGURATION, "crossdomain",
-                            "Flash crossdomain policy — may allow unintended cross-origin access"),
-        "client-access-policy.xml": (VulnerabilityType.MISCONFIGURATION, "client_access_policy",
-                                     "Silverlight access policy — may allow unintended cross-origin access"),
-        "actuator/health": (VulnerabilityType.INFO_LEAK, "actuator",
-                            "Spring Actuator health endpoint — application state and build info"),
-        "actuator/env": (VulnerabilityType.INFO_LEAK, "actuator_env",
-                         "Spring Actuator env — environment variables, secrets, DB URLs"),
-        "swagger/v1/swagger.json": (VulnerabilityType.INFO_LEAK, "swagger",
-                                    "Swagger/OpenAPI spec exposed — full API surface documentation"),
-        "api-docs": (VulnerabilityType.INFO_LEAK, "api_docs",
-                     "API documentation exposed — all endpoints, parameters, auth schemes"),
-        "graphql": (VulnerabilityType.INFO_LEAK, "graphql_endpoint",
-                    "GraphQL endpoint found — introspection may expose full schema"),
-        "console": (VulnerabilityType.MISCONFIGURATION, "admin_console",
-                    "Admin console exposed — potential for unauthorized access"),
-        "actuator/gateway/routes": (VulnerabilityType.INFO_LEAK, "gateway_routes",
-                                    "API Gateway routes exposed — internal service topology leaked"),
+        ".git/config": (
+            VulnerabilityType.INFO_LEAK,
+            "git_exposure",
+            "Git repository exposed — source code and credentials at risk",
+        ),
+        ".env": (
+            VulnerabilityType.INFO_LEAK,
+            "env_exposure",
+            "Environment file exposed — API keys, DB credentials, secrets",
+        ),
+        "wp-config.php.bak": (
+            VulnerabilityType.INFO_LEAK,
+            "wp_config_backup",
+            "WordPress config backup exposed — DB credentials",
+        ),
+        "backup.sql": (
+            VulnerabilityType.INFO_LEAK,
+            "sql_backup",
+            "Database backup exposed — all tables and credentials",
+        ),
+        "sitemap.xml": (
+            VulnerabilityType.INFO_LEAK,
+            "sitemap",
+            "Sitemap exposes all application routes — attack surface mapping",
+        ),
+        "robots.txt": (VulnerabilityType.INFO_LEAK, "robots", "robots.txt may list disallowed admin/sensitive paths"),
+        "crossdomain.xml": (
+            VulnerabilityType.MISCONFIGURATION,
+            "crossdomain",
+            "Flash crossdomain policy — may allow unintended cross-origin access",
+        ),
+        "client-access-policy.xml": (
+            VulnerabilityType.MISCONFIGURATION,
+            "client_access_policy",
+            "Silverlight access policy — may allow unintended cross-origin access",
+        ),
+        "actuator/health": (
+            VulnerabilityType.INFO_LEAK,
+            "actuator",
+            "Spring Actuator health endpoint — application state and build info",
+        ),
+        "actuator/env": (
+            VulnerabilityType.INFO_LEAK,
+            "actuator_env",
+            "Spring Actuator env — environment variables, secrets, DB URLs",
+        ),
+        "swagger/v1/swagger.json": (
+            VulnerabilityType.INFO_LEAK,
+            "swagger",
+            "Swagger/OpenAPI spec exposed — full API surface documentation",
+        ),
+        "api-docs": (
+            VulnerabilityType.INFO_LEAK,
+            "api_docs",
+            "API documentation exposed — all endpoints, parameters, auth schemes",
+        ),
+        "graphql": (
+            VulnerabilityType.INFO_LEAK,
+            "graphql_endpoint",
+            "GraphQL endpoint found — introspection may expose full schema",
+        ),
+        "console": (
+            VulnerabilityType.MISCONFIGURATION,
+            "admin_console",
+            "Admin console exposed — potential for unauthorized access",
+        ),
+        "actuator/gateway/routes": (
+            VulnerabilityType.INFO_LEAK,
+            "gateway_routes",
+            "API Gateway routes exposed — internal service topology leaked",
+        ),
     }
     for path in paths:
         lower = path.lower().strip("/").rstrip("/")
@@ -844,8 +978,10 @@ def generate_from_discovered_paths(
                 priority_score=0.55,
                 evidence=[f"Path discovered: {path}"],
                 reasoning=reason,
-                suggested_actions=["Immediately restrict access to this path",
-                                   f"Verify if {path} is needed in production"],
+                suggested_actions=[
+                    "Immediately restrict access to this path",
+                    f"Verify if {path} is needed in production",
+                ],
                 source=HypothesisSource.RULE,
                 vector=vector,
                 attack_surface_labels=[suffix.split("/")[0], "exposed_path"],

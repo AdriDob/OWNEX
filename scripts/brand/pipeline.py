@@ -108,33 +108,14 @@ def mark_group(variant: str = "alpha", mono: str | None = None, bold: bool = Fal
     bar_w = BAR_W * m
     gap = BAR_GAP * m
     arm_len = ARM_LEN * m
-    end_r = END_R * m
     ring_sw = RING_SW * m
 
     fill = "#FFFFFF" if mono == "white" else ("#05060A" if mono == "black" else "url(#markGrad)")
-    ring_fill = "none" if mono else "url(#ringGrad)"
     ring_stroke = "#FFFFFF" if mono == "white" else ("#05060A" if mono == "black" else C["cyber_cyan"])
 
     half_w = bar_w / 2
     half_gap = gap / 2
 
-    # Main diagonal bar (\) - top-left to bottom-right
-    bar1_points = [
-        pt(225, arm_len + half_w * 1.414),
-        pt(45, arm_len + half_w * 1.414),
-        pt(45, arm_len - half_w * 1.414),
-        pt(225, arm_len - half_w * 1.414),
-    ]
-    # Other diagonal (/) - top-right to bottom-left
-    bar2_points = [
-        pt(135, arm_len + half_w * 1.414),
-        pt(315, arm_len + half_w * 1.414),
-        pt(315, arm_len - half_w * 1.414),
-        pt(135, arm_len - half_w * 1.414),
-    ]
-
-    # Center gap - cut out the intersection square
-    center_gap = gap * 1.414
     cx, cy = CX, CY
 
     # Build as paths with center gap

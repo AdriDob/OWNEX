@@ -262,12 +262,7 @@ class DiscoveryEngine:
 
         for source, item in unique_candidates[: self.config.max_opportunities_per_cycle]:
             try:
-                if source == "adapter":
-                    # Already a ScoredOpportunity
-                    scored = item
-                else:
-                    # Convert observation to scored opportunity
-                    scored = self._observation_to_scored(item)
+                scored = item if source == "adapter" else self._observation_to_scored(item)
 
                 if not scored:
                     continue

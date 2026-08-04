@@ -36,9 +36,12 @@ def _category_guide(cat: str) -> list[dict[str, str]]:
             {"title": "Cloud Security Checklist", "url": "https://cloudsecurityalliance.org/"},
         ],
     }
-    return guides.get(cat, [
-        {"title": "Security Fundamentals", "url": "https://portswigger.net/web-security"},
-    ])
+    return guides.get(
+        cat,
+        [
+            {"title": "Security Fundamentals", "url": "https://portswigger.net/web-security"},
+        ],
+    )
 
 
 def _generate_analysis(opp: Opportunity) -> dict[str, Any]:
@@ -101,19 +104,69 @@ def _generate_why_matters(opp: Opportunity) -> str:
 def _generate_steps(opp: Opportunity, cat: str) -> list[dict[str, object]]:
     """Generate actionable steps for this opportunity."""
     steps = [
-        {"step": 1, "title": "Review opportunity scope", "description": f"Read the full scope and rules for {opp.name}. Understand what is in and out of scope."},
-        {"step": 2, "title": "Set up your environment", "description": "Prepare your tools: browser, proxies, and any required accounts."},
+        {
+            "step": 1,
+            "title": "Review opportunity scope",
+            "description": f"Read the full scope and rules for {opp.name}. Understand what is in and out of scope.",
+        },
+        {
+            "step": 2,
+            "title": "Set up your environment",
+            "description": "Prepare your tools: browser, proxies, and any required accounts.",
+        },
     ]
     if cat in ("web", "api"):
-        steps.append({"step": 3, "title": "Reconnaissance", "description": "Map the target: endpoints, parameters, authentication mechanisms."})
-        steps.append({"step": 4, "title": "Test for common issues", "description": "Check for OWASP Top 10 vulnerabilities relevant to this target."})
+        steps.append(
+            {
+                "step": 3,
+                "title": "Reconnaissance",
+                "description": "Map the target: endpoints, parameters, authentication mechanisms.",
+            }
+        )
+        steps.append(
+            {
+                "step": 4,
+                "title": "Test for common issues",
+                "description": "Check for OWASP Top 10 vulnerabilities relevant to this target.",
+            }
+        )
     elif cat == "web3":
-        steps.append({"step": 3, "title": "Review smart contract", "description": "Read the contract code if available. Look for common patterns."})
-        steps.append({"step": 4, "title": "Test for vulnerabilities", "description": "Check for reentrancy, access control, and oracle issues."})
+        steps.append(
+            {
+                "step": 3,
+                "title": "Review smart contract",
+                "description": "Read the contract code if available. Look for common patterns.",
+            }
+        )
+        steps.append(
+            {
+                "step": 4,
+                "title": "Test for vulnerabilities",
+                "description": "Check for reentrancy, access control, and oracle issues.",
+            }
+        )
     else:
-        steps.append({"step": 3, "title": "Explore the target", "description": "Understand the attack surface and identify potential issues."})
-        steps.append({"step": 4, "title": "Document findings", "description": "Record any issues found with clear steps to reproduce."})
-    steps.append({"step": 5, "title": "Generate report", "description": "Create a structured report of your findings and analysis."})
+        steps.append(
+            {
+                "step": 3,
+                "title": "Explore the target",
+                "description": "Understand the attack surface and identify potential issues.",
+            }
+        )
+        steps.append(
+            {
+                "step": 4,
+                "title": "Document findings",
+                "description": "Record any issues found with clear steps to reproduce.",
+            }
+        )
+    steps.append(
+        {
+            "step": 5,
+            "title": "Generate report",
+            "description": "Create a structured report of your findings and analysis.",
+        }
+    )
     return steps
 
 

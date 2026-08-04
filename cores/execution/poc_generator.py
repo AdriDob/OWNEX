@@ -33,7 +33,9 @@ class PoCGenerator:
         scenarios: list[TestScenario] = []
         for hp in hot_paths:
             hp_id = hp.get("id") or hp.get("hot_path_id") or str(id(hp))
-            template_name = hp.get("template", {}).get("name", "unknown") if isinstance(hp.get("template"), dict) else "unknown"
+            template_name = (
+                hp.get("template", {}).get("name", "unknown") if isinstance(hp.get("template"), dict) else "unknown"
+            )
             for node_id in hp.get("nodes", []):
                 details = endpoint_details_map.get(node_id, {})
                 signals = endpoint_signals_map.get(node_id, {})
@@ -59,17 +61,19 @@ class PoCGenerator:
                     probe_token=probe_token,
                 )
 
-                scenarios.append(TestScenario(
-                    hot_path_id=f"{hp_id}:{node_id}",
-                    node_id=node_id,
-                    attack_vector=attack_vector,
-                    request_spec=spec,
-                    mutations=mutations,
-                    auth_baseline=auth_baseline,
-                    auth_probe=auth_probe,
-                    endpoint_signals=signals,
-                    template_name=template_name,
-                ))
+                scenarios.append(
+                    TestScenario(
+                        hot_path_id=f"{hp_id}:{node_id}",
+                        node_id=node_id,
+                        attack_vector=attack_vector,
+                        request_spec=spec,
+                        mutations=mutations,
+                        auth_baseline=auth_baseline,
+                        auth_probe=auth_probe,
+                        endpoint_signals=signals,
+                        template_name=template_name,
+                    )
+                )
         return scenarios
 
     def _detect_vector(self, node_id: str, signals: dict[str, Any]) -> str:

@@ -52,12 +52,8 @@ class MemoryPatternLibrary:
         Stores pattern in memory for future matching.
         """
         # Extract pattern
-        auth_smells = PatternExtractor.detect_auth_smells(
-            endpoint_params, sensitive_fields
-        )
-        mutation_patterns = PatternExtractor.extract_mutation_patterns(
-            [], successful_mutations
-        )
+        auth_smells = PatternExtractor.detect_auth_smells(endpoint_params, sensitive_fields)
+        mutation_patterns = PatternExtractor.extract_mutation_patterns([], successful_mutations)
 
         pattern = PatternExtractor.extract_vulnerability_pattern(
             finding_title=finding_title,
@@ -127,11 +123,7 @@ class MemoryPatternLibrary:
         normalized = PatternExtractor.normalize_endpoint_path(endpoint_path)
 
         for sess in self._session():
-            profiles = (
-                sess.query(MemoryRecord)
-                .filter(MemoryRecord.category == "endpoint_profile")
-                .all()
-            )
+            profiles = sess.query(MemoryRecord).filter(MemoryRecord.category == "endpoint_profile").all()
             break
 
         similar = []
@@ -158,10 +150,12 @@ class MemoryPatternLibrary:
 
                 total_score = similarity_score + smell_overlap
                 if total_score >= 1:
-                    similar.append({
-                        "profile": profile,
-                        "similarity": total_score,
-                    })
+                    similar.append(
+                        {
+                            "profile": profile,
+                            "similarity": total_score,
+                        }
+                    )
             except json.JSONDecodeError:
                 continue
 
@@ -180,11 +174,7 @@ class MemoryPatternLibrary:
         Returns list of successful mutations from similar findings.
         """
         for sess in self._session():
-            patterns = (
-                sess.query(MemoryRecord)
-                .filter(MemoryRecord.category == "vuln_pattern")
-                .all()
-            )
+            patterns = sess.query(MemoryRecord).filter(MemoryRecord.category == "vuln_pattern").all()
             break
 
         templates = []
@@ -221,11 +211,7 @@ class MemoryPatternLibrary:
         normalized_path = PatternExtractor.normalize_endpoint_path(endpoint_path)
 
         for sess in self._session():
-            patterns = (
-                sess.query(MemoryRecord)
-                .filter(MemoryRecord.category == "vuln_pattern")
-                .all()
-            )
+            patterns = sess.query(MemoryRecord).filter(MemoryRecord.category == "vuln_pattern").all()
             break
 
         similar_patterns = []
@@ -304,11 +290,7 @@ class MemoryPatternLibrary:
         cutoff = datetime.now() - timedelta(days=self.RETENTION_DAYS)
 
         for sess in self._session():
-            deleted = (
-                sess.query(MemoryRecord)
-                .filter(MemoryRecord.created_at < cutoff)
-                .delete()
-            )
+            deleted = sess.query(MemoryRecord).filter(MemoryRecord.created_at < cutoff).delete()
             break
 
         return deleted
@@ -330,9 +312,7 @@ class MemoryEngine:
         finally:
             session.close()
 
-    def remember(
-        self, category: str, key: str, details: dict[str, Any]
-    ) -> MemoryRecord:
+    def remember(self, category: str, key: str, details: dict[str, Any]) -> MemoryRecord:
         record = MemoryRecord(category=category, key=key, details=str(details))
         for sess in self._session():
             sess.add(record)

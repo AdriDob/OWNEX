@@ -15,10 +15,16 @@ from typing import Any
 logger = logging.getLogger("cateye.identity.device")
 
 DATA_DIR = str(
-    Path(os.environ.get("CATEYE_DATA_DIR", os.path.join(
-        os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")),
-        "CATEYE",
-    ))) / "identity"
+    Path(
+        os.environ.get(
+            "CATEYE_DATA_DIR",
+            os.path.join(
+                os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")),
+                "CATEYE",
+            ),
+        )
+    )
+    / "identity"
 )
 
 DEVICE_TTL = 86400 * 90

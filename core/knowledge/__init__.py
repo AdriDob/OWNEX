@@ -10,6 +10,7 @@ Usage:
     kg.add_edge(target_id, finding_id, EdgeTypes.HAS_FINDING)
     neighbors = kg.get_neighbors(target_id)
 """
+# ruff: noqa: E402
 from core.knowledge.graph import (
     EdgeTypes,
     KGEdge,

@@ -16,6 +16,7 @@ class EVHRating(StrEnum):
 @dataclass(frozen=True)
 class OpportunitySource:
     """Origin metadata for an opportunity."""
+
     type: str  # "platform", "independent", "web3", "emerging", "research"
     name: str
     url: str
@@ -25,6 +26,7 @@ class OpportunitySource:
 @dataclass(frozen=True)
 class OpportunityCategory:
     """Categorisation of the opportunity's technical domain."""
+
     primary: str  # web, api, mobile, web3, cloud, hardware, other
     secondary: list[str] = field(default_factory=list)
 
@@ -32,6 +34,7 @@ class OpportunityCategory:
 @dataclass(frozen=True)
 class ScoreBreakdown:
     """Detailed layered score with per-factor explanation."""
+
     reward_score: float
     competition_score: float
     discovery_score: float
@@ -51,6 +54,7 @@ class ScoreBreakdown:
 @dataclass(frozen=True)
 class EVHCalculation:
     """Expected Value Per Hour estimate."""
+
     value: float
     rating: EVHRating
     estimated_payout: float
@@ -62,6 +66,7 @@ class EVHCalculation:
 @dataclass(frozen=True)
 class OpportunityScore:
     """Computed multi-factor score with human-readable reasoning."""
+
     overall: float  # 0.0-1.0
     reward_potential: float
     scope_quality: float
@@ -76,6 +81,7 @@ class OpportunityScore:
 @dataclass(frozen=True)
 class Opportunity:
     """A single public bug bounty or responsible disclosure opportunity."""
+
     id: str
     name: str
     source: OpportunitySource
@@ -99,6 +105,7 @@ class Opportunity:
 @dataclass(frozen=True)
 class OpportunitySnapshot:
     """Point-in-time snapshot of all tracked opportunities."""
+
     id: str
     timestamp: str
     period: str  # daily, weekly, monthly
@@ -109,6 +116,7 @@ class OpportunitySnapshot:
 @dataclass(frozen=True)
 class OpportunityProviderInfo:
     """Describes a registered provider."""
+
     name: str
     category: str
     active: bool
@@ -120,6 +128,7 @@ class OpportunityProviderInfo:
 @dataclass(frozen=True)
 class OpportunityRecommendations:
     """Generated operator recommendations."""
+
     top_opportunities: list[Opportunity] = field(default_factory=list)
     top_independent: list[Opportunity] = field(default_factory=list)
     top_web3: list[Opportunity] = field(default_factory=list)
@@ -134,6 +143,7 @@ class OpportunityRecommendations:
 @dataclass(frozen=True)
 class IdentityVaultEntry:
     """Stored provider identity."""
+
     provider_name: str
     email: str = ""
     metadata: dict[str, str] = field(default_factory=dict)

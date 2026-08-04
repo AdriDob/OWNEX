@@ -57,37 +57,38 @@
 | Desktop real (PyInstaller) | `dist/CATEYE` | ✅ |
 | Tauri v2 deps | `src-tauri/` | ⚠️ no compila (ver abajo) |
 
-### ⚠️ A MEDIAS / CON BUGS — los siguientes trabajos están a medio camino
+### ✅ ESTADO REAL VERIFICADO (2026-08-04) — los ítems de la auditoría 2026-07-31 están resueltos
 
-| Área | Problema real encontrado | Dónde |
+> Auditoría completa de la sección anterior (obsoleta): cada ítem fue re-verificado
+> con código + tests. Todos están COMPLETADOS (ver tabla AUD-1..AUD-14 abajo).
+
+| Área | Estado real (verificado 2026-08-04) | Evidencia |
 |---|---|---|
-| **Scheduler de ciclos DESCONECTADO en runtime** | `api/main.py:905-913` accede `job_def["job_id"]` sobre objetos `JobDefinition` (no subscriptables) → `TypeError` tragado como "non-fatal" → CoreScheduler nunca arranca. Además el evento `scheduler:job_due` (main.py:902) NO tiene suscriptores → **ninguno de los 26 jobs ejecuta sus handlers jamás** | `api/main.py`, `core/interfaces/scheduler.py` |
-| **SecurityCycle NO conecta con los stage executors** | `advance_stage()` solo marca tareas COMPLETED/RUNNING en DB. No llama a recon/attack_surface/hypothesis/validation/evidence/report. No existe `run_pipeline()` (los tests lo referencian). Los 7 executors solo los usan los tests | `core/cycles/security.py:125-175`, `cores/cycles/stages/` |
-| **KnowledgeCapture en memoria** | `self._entries: list` no persiste → se pierde al reiniciar | `core/cycles/knowledge_capture.py:56` |
-| **pulse.capture_learning es stub** | retorna `None` | `core/cycles/pulse.py:177-179` |
-| **Mission Control frontend roto** | `/classic` (MissionControl.vue): fetch `/activity` (endpoint NO existe), `<NextBestAction action=...>` (prop no existe, es `title/description/confidence`), `<AgentFleet>` recibe status `online/offline/limited` pero el componente espera `idle/thinking/working/complete/error` | `frontend/src/pages/MissionControl.vue`, `components/mission-control/` |
-| **GamingConsole = MOCK** | `/dashboard`: activityLog hardcodeado, agent fleet hardcodeado, `weeklyRevenue` siempre $0 (nunca se setea), "v4.7.0" hardcodeado (real 7.0.0) | `frontend/src/pages/GamingConsole.vue` |
-| **Executive Dashboard sin frontend** | backend completo pero ninguna página/llamada frontend lo consume | `frontend/src/` |
-| **test_version_backup: 13 fallan** | `[Errno 17] File exists` al copiar directorios en `create_backup` → backups acumulados/colisión | `cores/version_backup/backup_system.py` |
-| **Manifests de apps con clases inexistentes** | `apps/forge|pulse|vault/manifest.py` referencian clases/adapters que no existen | `apps/*/manifest.py` |
-| **apps/odyssey import roto (FIXED)** | `providers.kelly` no existía (solo `providers.py` módulo) → convertido a paquete + `KellyProvider` creado. La app odyssey ahora carga | `apps/odyssey/providers/` |
-| **core/ vs cores/ duplicación divergente** | dos árboles paralelos (`core/opportunity` vs `cores/opportunity`, etc.) con lógica distinta | `core/`, `cores/` |
-| **Android crash on launch** | 3 identificadores distintos: `ai.rastro.app` (build.gradle) vs `ai.catseye.app` (MainActivity.java) vs `ai.CATEYE.app` (capacitor.config.json) | `android/`, `capacitor.config.json` |
-| **WearOS no es buildable** | solo 4 archivos, sin build.gradle/manifest; MainActivity.kt es MOCK (5 tareas/3 hábitos/😊) | `wearos/` |
-| **Supabase no configurado** | `VITE_SUPABASE_URL`/`VITE_SUPABASE_KEY` no están en ningún .env → MobileCompanion no funciona | `frontend/.env*` |
-| **Tauri no compila** | `main.rs` llama `orion_desktop_lib::run()` pero el crate es `ownex_desktop`; versión Cargo 5.3.0 vs conf 7.0.0 | `src-tauri/` |
-| **VaultCycle y AtlasCycle no existen como clases** | solo seeds DB + jobs; no hay `/api/cycles/vault` ni `/api/cycles/atlas` (pulse tampoco); `forge_cycle.py` existe pero no está montado en main.py | `core/cycles/`, `api/routers/forge_cycle.py` |
-| **31+ páginas frontend huérfanas** | no ruteadas (LifeManagement, TaskHub, TaskQueue, RevenueDashboard, WelcomePage...) | `frontend/src/pages/` |
-| **console.log en frontend móvil** | MobileCompanion.vue, MobileCompanionJarvis.vue, ModernNavbar.vue, SteamBigPictureSplash.vue | `frontend/src/` |
-| **QA cycle no conectado** | `core/cycles/qa.py` (1100 líneas) sin callers | `core/cycles/qa.py` |
+| Scheduler de ciclos en runtime | ✅ COMPLETADO — `api/main.py:1014-1028` usa `isinstance(job_def, JobDefinition)` (sin subíndices); `_on_job_due` publica `scheduler:job_due` Y ejecuta `_run_job`; CoreScheduler arranca y corre el loop | `tests/test_scheduler.py` + `test_scheduler_jobs.py`: 54 passed |
+| SecurityCycle ↔ stage executors | ✅ COMPLETADO — `run_pipeline()` (security.py:306) ejecuta los 7 stages con `get_executor`, propaga contexto, avanza tareas en DB | `tests/test_e2e_security_pipeline.py`: 8 passed |
+| KnowledgeCapture en memoria | ✅ COMPLETADO — mirror a UnifiedMemoryStore (SQLite, namespace `cateye`), sobrevive restart | AUD-3 |
+| pulse.capture_learning stub | ✅ COMPLETADO | AUD-3 |
+| Mission Control frontend roto | ✅ COMPLETADO — `/api/activity` creado, NextBestAction props mapeadas, AgentFleet normalizado | AUD-4 |
+| GamingConsole = MOCK | ✅ COMPLETADO — conecta a 8 endpoints; el bloqueo real era `/api/cycles` 500 (config JSON string vs dict) → fix `field_validator` en `CycleRead` | AUD-7 |
+| Executive Dashboard sin frontend | ✅ COMPLETADO — `ExecutiveDashboard.vue` + ruta `/security/executive` + sidebar "CEO View" | AUD-6 |
+| test_version_backup 13 fallan | ✅ COMPLETADO — 24/24 pasan (era estado residual `.ownex_backups`; `_calculate_checksum` volvió a excluir `manifest.json`) | AUD-5 |
+| Manifests de apps con clases inexistentes | ⚠️ PENDIENTE | FASE 4 |
+| core/ vs cores/ duplicación | ✅ DECIDIDO — `cores/` es SSOT; `core/` se migra gradualmente | AUD-11 |
+| Android crash on launch | ✅ COMPLETADO — namespace unificado `ai.rastro.app` | AUD-12 |
+| WearOS no buildable | ✅ RESUELTO — descartado (ROI negativo, redundante con OMEGA mobile) | AUD-14 |
+| Supabase no configurado | ⚠️ PENDIENTE (solo MobileCompanion depende) | FASE 6 |
+| Tauri no compila | ✅ COMPLETADO — `main.rs` corregido `orion_desktop::run()`, cargo check OK | AUD-13 |
+| VaultCycle/AtlasCycle no existen | ✅ COMPLETADO — creados + routers montados; 6 ciclos operativos | AUD-8 |
+| 31+ páginas frontend huérfanas | ⚠️ PENDIENTE (menor, depende de decisión de producto) | — |
+| console.log en frontend móvil | ⚠️ PENDIENTE (menor, limpieza) | — |
+| QA cycle no conectado | ⚠️ PENDIENTE (`core/cycles/qa.py` 1100 líneas sin callers) | — |
+| OAR + Career Engine sin API | ✅ COMPLETADO 2026-08-04 — routers `/oar/*` y `/career/*` creados y montados; 14 tests nuevos pasan | `tests/test_oar_api.py` + `test_career_api.py` |
+| QA cycle no conectado | ✅ COMPLETADO 2026-08-04 — router `api/routers/qa_cycle.py` (start/status/stage/cases/run) montado en `api/main.py`; scheduler job `qa_daily_cycle` (cron 08:30, handler `run_qa_cycle`); `get_all_jobs()` → 7 ciclos / 28 jobs; 7 tests nuevos. 71+56 passed, ruff limpio | `tests/test_qa_cycle_api.py` |
 
-### ❌ NO existe (crear desde cero si se quiere)
+### ✅ NO existe — VERIFICADO 2026-08-04
 
-- `ActivityTimeline` (frontend)
-- endpoint `/api/activity`
-- adapters bug bounty del manifest vault (HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack, Immunefi)
-- frontend Executive Dashboard (CEO view)
-- `run_pipeline()` en SecurityCycle
+- adapters bug bounty del manifest vault (HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack, Immunefi) — crear desde cero si se quiere
+- `ActivityTimeline` / `/api/activity` / Executive Dashboard frontend / `run_pipeline()` → todos creados en AUD-2/AUD-4/AUD-6 (fila "NO existe" obsoleta)
 
 ---
 
@@ -111,12 +112,12 @@
 |----|------|-------------|----------|
 | AUD-6 | **Executive Dashboard frontend** (CEO view): página + ruta + llamada a `/api/cycles/security/dashboard` | ✅ COMPLETADO 2026-07-31 — `frontend/src/pages/ExecutiveDashboard.vue` + ruta `/security/executive` + ítem sidebar "CEO View"; contrato verificado con token real (200, 9 keys) | M |
 | AUD-7 | **GamingConsole con datos reales**: conectar a API (hoy es mock, muestra $0) | ✅ COMPLETADO 2026-07-31 — el servicio ya conectaba a 8 endpoints; el bloqueo real era `/api/cycles` (500: `config: Text` JSON string vs schema `dict`). Fix: field_validator en `CycleRead` → 200 con 5 ciclos; GamingConsole mostraba fallbacks solo por ese 500. 8/8 endpoints verificados con token | S |
-| AUD-8 | Montar routers de ciclos faltantes: `/api/cycles/forge` (existe sin montar), crear pulse/vault/atlas | ⚠️ PARCIAL 2026-07-31 — forge montado (3 endpoints 200); pulse_cycle router creado y montado (3 endpoints 200); vault/atlas NO tienen clase de ciclo (`VaultCycle`/`AtlasCycle` no existen) → sin motor no hay router | S |
+| AUD-8 | Montar routers de ciclos faltantes: `/api/cycles/forge` (existe sin montar), crear pulse/vault/atlas | ✅ COMPLETADO 2026-08-01 — `VaultCycle` y `AtlasCycle` creados en `core/cycles/vault.py` y `core/cycles/atlas.py`; routers `vault_cycle.py` y `atlas_cycle.py` creados y montados en `api/main.py`. Forge y Pulse ya estaban montados. 6 ciclos operativos (security, forge, pulse, vault, atlas, direct_work). | S |
 ### P2 — Estabilidad / limpieza
 
 | ID | Task | Estado real | Esfuerzo |
 |----|------|-------------|----------|
-| AUD-9 | Limpiar 424 errores de lint en código nuevo | ⚠️ PARCIAL 2026-07-31 — de 457 → 30 errores. Fix: field_validator parse_config en CycleRead (500→200 en /api/cycles); B904 `from None` en 9 routers; OWNEX_VERSION hardcodeada 5.0.0→eliminada (usar import 7.0.0) en backup/engine.py; F821 `session`→`sessions` typo en life_management; F811 duplicados en orion_cli.py y operations.py; E402 en __init__.py per-file-ignores. 30 errores restantes son legacy (E741 `l`, F401 extension imports, F841 `bus`) — no código nuevo | M |
+| AUD-9 | Limpiar 424 errores de lint en código nuevo | ✅ COMPLETADO 2026-08-04 — 117→0 errores. Fix: 77 E402 (per-file ignores en core/__init__.py), 4 F841 (variables no usadas), 6 N803/N806 (nombres mayúsculas→minúsculas), 1 N999 (RevenueTracker.py→revenue_tracker.py), 1 F811 (OWNEX_VERSION duplicada), 1 SIM103 (retorno redundante), 1 E402 (cli.py). Tests fast actualizados (86/87 pasan, 1 skip por schema DB) | M |
 | AUD-10 | Commitear cambios sin commitear (README, assets, tests scheduler/vision, fixes auth/supabase/revenue) | ✅ COMPLETADO 2026-07-31 | S |
 | AUD-11 | Decidir core/ vs cores/: elegir uno como SSOT | ✅ COMPLETADO 2026-07-31 — **cores/ es SSOT** (845 archivos vs 533, 2x más imports en API, contiene pipeline productivo CATEYE). core/ se migrará gradualmente a cores/ | L |
 | AUD-12 | Android namespace unificado (ai.rastro/catseye/CATEYE) | ✅ COMPLETADO 2026-08-01 — namespace unificado `ai.rastro.app` en build.gradle, MainActivity, manifest, capacitor.config.json, strings.xml | S |

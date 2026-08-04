@@ -59,12 +59,14 @@ class PersonalInfrastructureIntegrations:
         for obj_id, progress in snapshot.objectives_progress.items():
             obj_def = self.manager.get_objective(obj_id)
             if obj_def:
-                objectives.append({
-                    "title": obj_def.title,
-                    "category": obj_def.category.value,
-                    "progress": progress.completion_percentage,
-                    "status": "completed" if progress.completion_percentage >= 100 else "in_progress",
-                })
+                objectives.append(
+                    {
+                        "title": obj_def.title,
+                        "category": obj_def.category.value,
+                        "progress": progress.completion_percentage,
+                        "status": "completed" if progress.completion_percentage >= 100 else "in_progress",
+                    }
+                )
 
         return {
             "type": "objectives",
@@ -301,7 +303,11 @@ class PersonalInfrastructureIntegrations:
                 "value": snapshot.overall_completion,
                 "max": 100,
                 "unit": "%",
-                "color": "green" if snapshot.overall_completion >= 80 else "yellow" if snapshot.overall_completion >= 50 else "red",
+                "color": "green"
+                if snapshot.overall_completion >= 80
+                else "yellow"
+                if snapshot.overall_completion >= 50
+                else "red",
             },
             {
                 "id": "integration_health",
@@ -317,7 +323,11 @@ class PersonalInfrastructureIntegrations:
                 "title": "Salud Financiera",
                 "value": f"{financial_health['health_score']}/100",
                 "details": f"Tasa de ahorro: {financial_health['savings_rate']:.1%}",
-                "color": "green" if financial_health['health_score'] >= 70 else "yellow" if financial_health['health_score'] >= 50 else "red",
+                "color": "green"
+                if financial_health["health_score"] >= 70
+                else "yellow"
+                if financial_health["health_score"] >= 50
+                else "red",
             },
             {
                 "id": "next_action",

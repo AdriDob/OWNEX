@@ -46,6 +46,7 @@ class HackerOne(BugBountyPlatform):
         formatted = self._format_report(report_data)
         try:
             import requests
+
             resp = requests.post(
                 f"{H1_API_BASE}/reports",
                 auth=(api_key, ""),
@@ -90,6 +91,7 @@ class HackerOne(BugBountyPlatform):
     def check_status(self, external_id: str, api_key: str = "") -> str:
         try:
             import requests
+
             resp = requests.get(
                 f"{H1_API_BASE}/reports/{external_id}",
                 timeout=15,
@@ -105,6 +107,7 @@ class HackerOne(BugBountyPlatform):
     def sync_earnings(self, api_key: str) -> SyncResult:
         try:
             import requests
+
             resp = requests.get(
                 f"{H1_API_BASE}/me/bounties",
                 auth=(api_key, ""),
@@ -122,15 +125,17 @@ class HackerOne(BugBountyPlatform):
                 attrs = b.get("attributes", {})
                 amount = float(attrs.get("amount", 0))
                 total += amount
-                earnings.append({
-                    "id": b.get("id", ""),
-                    "amount": amount,
-                    "currency": attrs.get("currency", "USD"),
-                    "program": attrs.get("team", {}).get("handle", ""),
-                    "report_id": attrs.get("report", {}).get("id", ""),
-                    "state": attrs.get("state", ""),
-                    "created_at": attrs.get("created_at", ""),
-                })
+                earnings.append(
+                    {
+                        "id": b.get("id", ""),
+                        "amount": amount,
+                        "currency": attrs.get("currency", "USD"),
+                        "program": attrs.get("team", {}).get("handle", ""),
+                        "report_id": attrs.get("report", {}).get("id", ""),
+                        "state": attrs.get("state", ""),
+                        "created_at": attrs.get("created_at", ""),
+                    }
+                )
 
             return SyncResult(
                 success=True,

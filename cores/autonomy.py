@@ -602,7 +602,7 @@ class AutonomyManager:
                 "daily_actions": self._daily_actions,
                 "pending_approvals": len(self._pending_approvals),
             },
-            "available_levels": [l.name for l in AutonomyLevel],
+            "available_levels": [level.name for level in AutonomyLevel],
         }
 
     def get_pending_approvals(self) -> list[ApprovalRequest]:

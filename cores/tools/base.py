@@ -77,6 +77,15 @@ class BaseTool:
         except (FileNotFoundError, subprocess.TimeoutExpired):
             return False
 
+    def _record_usage(self) -> None:
+        """Record this tool run in the Tool Ecosystem usage tracker (best-effort)."""
+        try:
+            from cores.tools.ecosystem import record_tool_usage
+
+            record_tool_usage(self.name)
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("Tool usage tracking unavailable for %s: %s", self.name, exc)
+
     def run(
         self,
         args: list[str],
@@ -105,6 +114,7 @@ class BaseTool:
                     elapsed_ms=elapsed,
                     error=proc.stderr[:500] or f"exit code {proc.returncode}",
                 )
+            self._record_usage()
             results = self.parse_output(proc.stdout)
             return ToolResult(
                 success=True,

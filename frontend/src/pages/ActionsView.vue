@@ -95,7 +95,7 @@ onMounted(async () => {
         </summary>
         <div class="mt-2 space-y-1">
           <div v-for="(entry, i) in history.slice(0, 5)" :key="i"
-            class="flex items-center justify-between rounded-lg bg-[#1a1e2b] border border-[#2a2e3d] px-3 py-2 text-xs transition-all hover:bg-[#252836]"
+            class="flex items-center justify-between rounded-lg bg-surface border border-border-light px-3 py-2 text-xs transition-all hover:bg-surface-hover"
           >
             <span class="text-foreground">{{ entry.label || entry.action_id }}</span>
             <span class="font-semibold"

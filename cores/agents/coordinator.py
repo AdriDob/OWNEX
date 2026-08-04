@@ -502,8 +502,47 @@ class CoordinatorAgent(BaseAgent):
             logger.warning("[COORD] Submission requested for unknown pipeline %s", pipeline_id[:8])
             return
 
-        # Global safety check
-        if get_setting("CATEYE.never_submit_without_approval", True):
+        # Global safety check (can be bypassed for elite findings)
+        never_submit = get_setting("CATEYE.never_submit_without_approval", True)
+
+        # Check if this is an elite finding that can bypass approval
+        is_elite = False
+        if never_submit:
+            # Try to get finding and check elite gate
+            session = _get_db_session()
+            try:
+                from database.models import Finding, Report
+
+                report = session.query(Report).filter(Report.pipeline_id == pipeline_id).first()
+                if report and report.finding_id:
+                    finding = session.query(Finding).filter(Finding.id == report.finding_id).first()
+                    if finding:
+                        # Check elite gate
+                        from core.reports.quality.scorer import QualityScorer
+                        from cores.auto_submit.pipeline import _check_elite_gate
+
+                        scorer = QualityScorer()
+                        quality_score = scorer.score(finding.id)
+                        is_elite, _ = _check_elite_gate(finding, quality_score.score)
+
+                        if is_elite:
+                            # Check if auto_approve_elite is enabled
+                            from cores.auto_submit.pipeline import _get_elite_thresholds
+
+                            thresholds = _get_elite_thresholds()
+                            auto_approve_elite = thresholds.get("auto_approve_elite", True)
+
+                            if auto_approve_elite:
+                                logger.info(
+                                    "[COORD] Elite finding %s bypasses global approval check (score: %.1f)",
+                                    finding.id,
+                                    quality_score.score,
+                                )
+                                never_submit = False
+            finally:
+                session.close()
+
+        if never_submit:
             logger.info("[COORD] Blocked auto-submit pipeline %s (approval required)", pipeline_id[:8])
             self.emit(
                 EventType.SYSTEM_ALERT,

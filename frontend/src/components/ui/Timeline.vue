@@ -21,10 +21,10 @@ const props = withDefaults(defineProps<{
 })
 
 const dotColors: Record<string, string> = {
-  success: 'bg-success shadow-[0_0_6px_rgba(0,230,118,0.4)]',
-  error: 'bg-destructive shadow-[0_0_6px_rgba(255,23,68,0.4)]',
-  pending: 'bg-warning shadow-[0_0_6px_rgba(255,171,0,0.4)]',
-  info: 'bg-primary shadow-[0_0_6px_rgba(0,255,65,0.4)]',
+  success: 'bg-success',
+  error: 'bg-destructive',
+  pending: 'bg-warning',
+  info: 'bg-primary',
 }
 </script>
 

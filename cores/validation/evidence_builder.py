@@ -41,14 +41,9 @@ class EvidenceBuilder:
         verdict_id: int | None = None,
     ) -> list[dict[str, Any]]:
         auth_label = getattr(auth_context, "label", "unknown")
-        return [
-            self.build_from_comparison(request_spec, auth_label, c, verdict_id)
-            for c in comparisons
-        ]
+        return [self.build_from_comparison(request_spec, auth_label, c, verdict_id) for c in comparisons]
 
-    def build_comparison_summary(
-        self, comparisons: list[ComparisonResult]
-    ) -> dict[str, Any]:
+    def build_comparison_summary(self, comparisons: list[ComparisonResult]) -> dict[str, Any]:
         if not comparisons:
             return {"total": 0}
         return {
@@ -61,14 +56,10 @@ class EvidenceBuilder:
                 max(c.body_diff_ratio for c in comparisons),
             ],
             "status_matches": sum(1 for c in comparisons if c.status_match),
-            "sensitive_fields_found": sorted(set(
-                f for c in comparisons for f in c.sensitive_fields_detected
-            )),
+            "sensitive_fields_found": sorted(set(f for c in comparisons for f in c.sensitive_fields_detected)),
         }
 
-    def _build_curl(
-        self, spec: RequestSpec, auth_label: str, comparison: ComparisonResult
-    ) -> str:
+    def _build_curl(self, spec: RequestSpec, auth_label: str, comparison: ComparisonResult) -> str:
         parts = ["curl"]
         if spec.method != "GET":
             parts.append(f"-X {spec.method}")

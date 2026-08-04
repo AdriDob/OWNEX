@@ -81,8 +81,7 @@ class ConfidenceEngine:
             if probe.timing_anomaly_ms > 2000:
                 signals_found += 1
                 reasoning.append(
-                    f"Timing anomaly: {probe.timing_anomaly_ms:.0f}ms vs baseline "
-                    f"(sugiere SQLi time-based)"
+                    f"Timing anomaly: {probe.timing_anomaly_ms:.0f}ms vs baseline (sugiere SQLi time-based)"
                 )
                 break
 
@@ -93,9 +92,7 @@ class ConfidenceEngine:
             reasoning.append("Payload reflejado en response (sugiere XSS)")
 
         # ── Status code changes ────────────────────────────────────
-        status_changes = sum(
-            1 for p in result.probes if p.status_code != baseline.status_code and p.status_code > 0
-        )
+        status_changes = sum(1 for p in result.probes if p.status_code != baseline.status_code and p.status_code > 0)
         if status_changes > 0:
             signals_found += 1
             reasoning.append(f"{status_changes} probe(s) con status code diferente al baseline")
@@ -178,11 +175,17 @@ class ConfidenceEngine:
     def _detect_sql_error(self, result: ValidationResult) -> bool:
         """Detecta mensajes de error SQL en responses."""
         sql_keywords = [
-            "sql", "mysql", "postgresql", "sqlite",
+            "sql",
+            "mysql",
+            "postgresql",
+            "sqlite",
             "you have an error in your sql syntax",
             "unclosed quotation mark",
-            "odbc", "driver", "db2",
-            "ora-", "oracle",
+            "odbc",
+            "driver",
+            "db2",
+            "ora-",
+            "oracle",
             "syntax error",
         ]
         for probe in result.probes:

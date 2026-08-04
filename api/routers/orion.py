@@ -20,6 +20,7 @@ router = APIRouter(prefix="/api/orion", tags=["cateye"])
 
 # ── Decision context (summary, next action, opportunities, progress) ──
 
+
 @router.get("/context")
 def context() -> dict[str, Any]:
     """Return unified CATEYE decision context: summary, next action, opportunities, progress."""
@@ -32,6 +33,7 @@ def context() -> dict[str, Any]:
 
 
 # ── Full system state (counts, pipeline, earnings, opportunities, etc.) ──
+
 
 @router.get("/context/system")
 def system_context(refresh: bool = Query(False)) -> dict[str, Any]:
@@ -51,6 +53,7 @@ def refresh_context() -> dict[str, Any]:
 
 # ── Next action ──
 
+
 @router.get("/next-action")
 def next_action() -> dict[str, Any]:
     """Return the single best next action for the user."""
@@ -63,6 +66,7 @@ def next_action() -> dict[str, Any]:
 
 
 # ── Opportunity analysis ──
+
 
 @router.post("/analyze-opportunity/{opportunity_id}")
 def analyze_opportunity_endpoint(opportunity_id: str) -> dict[str, Any]:

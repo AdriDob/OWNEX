@@ -24,6 +24,7 @@ from cores.setup.steps.enhanced_personalization import get_enhanced_personalizat
 
 class TaskPriority(StrEnum):
     """Prioridad de tarea."""
+
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -32,6 +33,7 @@ class TaskPriority(StrEnum):
 
 class TaskStatus(StrEnum):
     """Estado de tarea."""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -41,6 +43,7 @@ class TaskStatus(StrEnum):
 
 class TaskCategory(StrEnum):
     """Categoría de tarea."""
+
     BUG_BOUNTY = "bug_bounty"
     DEV_BOUNTY = "dev_bounty"
     DATA_ANNOTATION = "data_annotation"
@@ -53,6 +56,7 @@ class TaskCategory(StrEnum):
 @dataclass
 class Task:
     """Tarea diaria."""
+
     task_id: str
     title: str
     description: str
@@ -69,6 +73,7 @@ class Task:
 @dataclass
 class DailyPlan:
     """Plan diario."""
+
     date: str
     tasks: list[Task] = field(default_factory=list)
     total_estimated_minutes: int = 0
@@ -84,6 +89,7 @@ class DailyPlan:
 @dataclass
 class ProductivityMetrics:
     """Métricas de productividad."""
+
     date: str
     tasks_completed: int = 0
     tasks_total: int = 0
@@ -133,18 +139,23 @@ class DailyPlanningSystem:
         plan_file = self.storage_path / f"{plan.date}.json"
 
         with open(plan_file, "w") as f:
-            json.dump({
-                "date": plan.date,
-                "tasks": [task.__dict__ for task in plan.tasks],
-                "total_estimated_minutes": plan.total_estimated_minutes,
-                "total_completed_minutes": plan.total_completed_minutes,
-                "progress_percentage": plan.progress_percentage,
-                "breaks_scheduled": plan.breaks_scheduled,
-                "breaks_taken": plan.breaks_taken,
-                "focus_sessions": plan.focus_sessions,
-                "created_at": plan.created_at,
-                "updated_at": plan.updated_at,
-            }, f, indent=2, default=str)
+            json.dump(
+                {
+                    "date": plan.date,
+                    "tasks": [task.__dict__ for task in plan.tasks],
+                    "total_estimated_minutes": plan.total_estimated_minutes,
+                    "total_completed_minutes": plan.total_completed_minutes,
+                    "progress_percentage": plan.progress_percentage,
+                    "breaks_scheduled": plan.breaks_scheduled,
+                    "breaks_taken": plan.breaks_taken,
+                    "focus_sessions": plan.focus_sessions,
+                    "created_at": plan.created_at,
+                    "updated_at": plan.updated_at,
+                },
+                f,
+                indent=2,
+                default=str,
+            )
 
     def generate_daily_plan(self, date: datetime | None = None) -> DailyPlan:
         """Generar plan diario basado en perfil del usuario."""
@@ -197,51 +208,55 @@ class DailyPlanningSystem:
         tasks = []
 
         if guidance.value == "high_guidance":
-            tasks.extend([
-                Task(
-                    task_id="bb1",
-                    title="Revisar objetivos de bug bounty",
-                    description="MERLIN te guiará paso a paso en cómo configurar tus objetivos de bug bounty",
-                    category=TaskCategory.BUG_BOUNTY,
-                    priority=TaskPriority.CRITICAL,
-                    estimated_minutes=30,
-                ),
-                Task(
-                    task_id="bb2",
-                    title="Explorar plataformas de bug bounty",
-                    description="MERLIN te mostrará las mejores plataformas para empezar (HackerOne, Bugcrowd, etc.)",
-                    category=TaskCategory.BUG_BOUNTY,
-                    priority=TaskPriority.HIGH,
-                    estimated_minutes=45,
-                ),
-                Task(
-                    task_id="bb3",
-                    title="Seleccionar primer objetivo",
-                    description="MERLIN te ayudará a elegir tu primer target basado en tu nivel",
-                    category=TaskCategory.BUG_BOUNTY,
-                    priority=TaskPriority.HIGH,
-                    estimated_minutes=30,
-                ),
-            ])
+            tasks.extend(
+                [
+                    Task(
+                        task_id="bb1",
+                        title="Revisar objetivos de bug bounty",
+                        description="MERLIN te guiará paso a paso en cómo configurar tus objetivos de bug bounty",
+                        category=TaskCategory.BUG_BOUNTY,
+                        priority=TaskPriority.CRITICAL,
+                        estimated_minutes=30,
+                    ),
+                    Task(
+                        task_id="bb2",
+                        title="Explorar plataformas de bug bounty",
+                        description="MERLIN te mostrará las mejores plataformas para empezar (HackerOne, Bugcrowd, etc.)",
+                        category=TaskCategory.BUG_BOUNTY,
+                        priority=TaskPriority.HIGH,
+                        estimated_minutes=45,
+                    ),
+                    Task(
+                        task_id="bb3",
+                        title="Seleccionar primer objetivo",
+                        description="MERLIN te ayudará a elegir tu primer target basado en tu nivel",
+                        category=TaskCategory.BUG_BOUNTY,
+                        priority=TaskPriority.HIGH,
+                        estimated_minutes=30,
+                    ),
+                ]
+            )
         else:
-            tasks.extend([
-                Task(
-                    task_id="bb1",
-                    title="Revisar targets activos",
-                    description="Revisar objetivos actuales y priorizar",
-                    category=TaskCategory.BUG_BOUNTY,
-                    priority=TaskPriority.HIGH,
-                    estimated_minutes=30,
-                ),
-                Task(
-                    task_id="bb2",
-                    title="Análisis de objetivo seleccionado",
-                    description="Análisis profundo del target",
-                    category=TaskCategory.BUG_BOUNTY,
-                    priority=TaskPriority.HIGH,
-                    estimated_minutes=60,
-                ),
-            ])
+            tasks.extend(
+                [
+                    Task(
+                        task_id="bb1",
+                        title="Revisar targets activos",
+                        description="Revisar objetivos actuales y priorizar",
+                        category=TaskCategory.BUG_BOUNTY,
+                        priority=TaskPriority.HIGH,
+                        estimated_minutes=30,
+                    ),
+                    Task(
+                        task_id="bb2",
+                        title="Análisis de objetivo seleccionado",
+                        description="Análisis profundo del target",
+                        category=TaskCategory.BUG_BOUNTY,
+                        priority=TaskPriority.HIGH,
+                        estimated_minutes=60,
+                    ),
+                ]
+            )
 
         return tasks
 
@@ -250,43 +265,47 @@ class DailyPlanningSystem:
         tasks = []
 
         if guidance.value == "high_guidance":
-            tasks.extend([
-                Task(
-                    task_id="db1",
-                    title="Configurar entorno de dev bounty",
-                    description="MERLIN te guiará en la configuración de herramientas para dev bounty",
-                    category=TaskCategory.DEV_BOUNTY,
-                    priority=TaskPriority.CRITICAL,
-                    estimated_minutes=30,
-                ),
-                Task(
-                    task_id="db2",
-                    title="Explorar repositorios de código abierto",
-                    description="MERLIN te mostrará cómo encontrar repositorios con programas de dev bounty",
-                    category=TaskCategory.DEV_BOUNTY,
-                    priority=TaskPriority.HIGH,
-                    estimated_minutes=45,
-                ),
-            ])
+            tasks.extend(
+                [
+                    Task(
+                        task_id="db1",
+                        title="Configurar entorno de dev bounty",
+                        description="MERLIN te guiará en la configuración de herramientas para dev bounty",
+                        category=TaskCategory.DEV_BOUNTY,
+                        priority=TaskPriority.CRITICAL,
+                        estimated_minutes=30,
+                    ),
+                    Task(
+                        task_id="db2",
+                        title="Explorar repositorios de código abierto",
+                        description="MERLIN te mostrará cómo encontrar repositorios con programas de dev bounty",
+                        category=TaskCategory.DEV_BOUNTY,
+                        priority=TaskPriority.HIGH,
+                        estimated_minutes=45,
+                    ),
+                ]
+            )
         else:
-            tasks.extend([
-                Task(
-                    task_id="db1",
-                    title="Revisar repositorios seleccionados",
-                    description="Revisar repositorios activos",
-                    category=TaskCategory.DEV_BOUNTY,
-                    priority=TaskPriority.HIGH,
-                    estimated_minutes=30,
-                ),
-                Task(
-                    task_id="db2",
-                    title="Análisis de código",
-                    description="Análisis de código del repositorio",
-                    category=TaskCategory.DEV_BOUNTY,
-                    priority=TaskPriority.HIGH,
-                    estimated_minutes=60,
-                ),
-            ])
+            tasks.extend(
+                [
+                    Task(
+                        task_id="db1",
+                        title="Revisar repositorios seleccionados",
+                        description="Revisar repositorios activos",
+                        category=TaskCategory.DEV_BOUNTY,
+                        priority=TaskPriority.HIGH,
+                        estimated_minutes=30,
+                    ),
+                    Task(
+                        task_id="db2",
+                        title="Análisis de código",
+                        description="Análisis de código del repositorio",
+                        category=TaskCategory.DEV_BOUNTY,
+                        priority=TaskPriority.HIGH,
+                        estimated_minutes=60,
+                    ),
+                ]
+            )
 
         return tasks
 
@@ -295,43 +314,47 @@ class DailyPlanningSystem:
         tasks = []
 
         if guidance.value == "high_guidance":
-            tasks.extend([
-                Task(
-                    task_id="da1",
-                    title="Explorar plataformas de data annotation",
-                    description="MERLIN te mostrará las mejores plataformas para data annotation remunerada",
-                    category=TaskCategory.DATA_ANNOTATION,
-                    priority=TaskPriority.HIGH,
-                    estimated_minutes=30,
-                ),
-                Task(
-                    task_id="da2",
-                    title="Configurar cuenta en plataforma seleccionada",
-                    description="MERLIN te guiará en el proceso de configuración",
-                    category=TaskCategory.DATA_ANNOTATION,
-                    priority=TaskPriority.HIGH,
-                    estimated_minutes=20,
-                ),
-            ])
+            tasks.extend(
+                [
+                    Task(
+                        task_id="da1",
+                        title="Explorar plataformas de data annotation",
+                        description="MERLIN te mostrará las mejores plataformas para data annotation remunerada",
+                        category=TaskCategory.DATA_ANNOTATION,
+                        priority=TaskPriority.HIGH,
+                        estimated_minutes=30,
+                    ),
+                    Task(
+                        task_id="da2",
+                        title="Configurar cuenta en plataforma seleccionada",
+                        description="MERLIN te guiará en el proceso de configuración",
+                        category=TaskCategory.DATA_ANNOTATION,
+                        priority=TaskPriority.HIGH,
+                        estimated_minutes=20,
+                    ),
+                ]
+            )
         else:
-            tasks.extend([
-                Task(
-                    task_id="da1",
-                    title="Revisar tareas de annotation pendientes",
-                    description="Revisar tareas disponibles",
-                    category=TaskCategory.DATA_ANNOTATION,
-                    priority=TaskPriority.HIGH,
-                    estimated_minutes=15,
-                ),
-                Task(
-                    task_id="da2",
-                    title="Completar tareas de annotation",
-                    description="Completar tareas seleccionadas",
-                    category=TaskCategory.DATA_ANNOTATION,
-                    priority=TaskPriority.HIGH,
-                    estimated_minutes=60,
-                ),
-            ])
+            tasks.extend(
+                [
+                    Task(
+                        task_id="da1",
+                        title="Revisar tareas de annotation pendientes",
+                        description="Revisar tareas disponibles",
+                        category=TaskCategory.DATA_ANNOTATION,
+                        priority=TaskPriority.HIGH,
+                        estimated_minutes=15,
+                    ),
+                    Task(
+                        task_id="da2",
+                        title="Completar tareas de annotation",
+                        description="Completar tareas seleccionadas",
+                        category=TaskCategory.DATA_ANNOTATION,
+                        priority=TaskPriority.HIGH,
+                        estimated_minutes=60,
+                    ),
+                ]
+            )
 
         return tasks
 
@@ -406,7 +429,11 @@ class DailyPlanningSystem:
             plan.total_completed_minutes += 10  # Add 10 minutes for starting
 
         # Recalcular progreso
-        plan.progress_percentage = (plan.total_completed_minutes / plan.total_estimated_minutes) * 100 if plan.total_estimated_minutes > 0 else 0
+        plan.progress_percentage = (
+            (plan.total_completed_minutes / plan.total_estimated_minutes) * 100
+            if plan.total_estimated_minutes > 0
+            else 0
+        )
 
         self._save_plan(plan)
         return True
@@ -484,7 +511,9 @@ class DailyPlanningSystem:
 """
 
         for task in plan.tasks:
-            status_emoji = "✅" if task.status == TaskStatus.COMPLETED else "⏳" if task.status == TaskStatus.IN_PROGRESS else "⬜"
+            status_emoji = (
+                "✅" if task.status == TaskStatus.COMPLETED else "⏳" if task.status == TaskStatus.IN_PROGRESS else "⬜"
+            )
             content += f"- {status_emoji} **{task.title}** ({task.category.value})\n"
             if task.notes:
                 content += f"  - {task.notes}\n"

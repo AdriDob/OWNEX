@@ -235,8 +235,8 @@
 }
 
 @keyframes ownex-pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
 }
 
 @keyframes ownex-shimmer {
@@ -278,7 +278,7 @@
 }
 
 .ownex-hover-glow:hover {
-  box-shadow: 0 0 0 1px var(--ownex-blue), 0 0 24px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 0 1px var(--ownex-blue), 0 0 24px rgba(255, 255, 255, 0.08);
 }
 
 .ownex-active-scale:active {

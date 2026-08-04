@@ -95,7 +95,7 @@ function timeLabel(t: string | null) {
       </div>
       <div class="flex items-center gap-2">
         <select v-model="filterTime" @change="fetchQueue"
-          class="rounded-lg border border-border/60 bg-[#11131f]/60 px-3 py-2 text-xs text-foreground">
+          class="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-xs text-foreground">
           <option value="">Todos</option>
           <option value="immediate">Urgentes</option>
           <option value="today">Hoy</option>
@@ -130,7 +130,7 @@ function timeLabel(t: string | null) {
 
       <div class="space-y-2 animate-in">
         <div v-for="(item, i) in items" :key="item.id"
-          class="flex items-center gap-4 rounded-xl border border-border/40 bg-[#11131f]/40 p-4 transition-all hover:border-primary/30 cursor-pointer"
+          class="flex items-center gap-4 rounded-xl border border-border/40 bg-surface/40 p-4 transition-all hover:border-primary/30 cursor-pointer"
           :style="{ animationDelay: `${i * 30}ms` }"
           @click="router.push({ name: 'reports' })">
           <!-- Rank -->

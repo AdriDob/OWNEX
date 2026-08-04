@@ -44,10 +44,10 @@ const expandedPlatformPayout = ref<string | null>(null)
 const showPayoutGuide = ref(false)
 
 const methodTypeIcon: Record<string, string> = {
-  crypto: 'text-amber-400',
-  wallet: 'text-blue-400',
+  crypto: 'text-warning',
+  wallet: 'text-primary',
   bank: 'text-accent',
-  p2p: 'text-emerald-400',
+  p2p: 'text-success',
 }
 
 const methodTypeLabel: Record<string, string> = {
@@ -91,14 +91,14 @@ const payoutError = ref('')
 const payoutSuccess = ref('')
 
 const platformMeta: Record<string, { color: string; bg: string }> = {
-  hackerone: { color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-  bugcrowd: { color: 'text-orange-400', bg: 'bg-orange-500/10' },
-  intigriti: { color: 'text-purple-400', bg: 'bg-purple-500/10' },
-  synack: { color: 'text-blue-400', bg: 'bg-blue-500/10' },
-  yeswehack: { color: 'text-rose-300', bg: 'bg-rose-500/10' },
-  immunefi: { color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
-  code4rena: { color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
-  huntr: { color: 'text-violet-400', bg: 'bg-violet-500/10' },
+  hackerone: { color: 'text-success', bg: 'bg-success/10' },
+  bugcrowd: { color: 'text-warning', bg: 'bg-warning/10' },
+  intigriti: { color: 'text-intigriti', bg: 'bg-intigriti/10' },
+  synack: { color: 'text-primary', bg: 'bg-primary/10' },
+  yeswehack: { color: 'text-destructive', bg: 'bg-destructive/10' },
+  immunefi: { color: 'text-muted-foreground', bg: 'bg-muted/10' },
+  code4rena: { color: 'text-warning', bg: 'bg-warning/10' },
+  huntr: { color: 'text-intigriti', bg: 'bg-intigriti/10' },
 }
 
 const statusColor = (s: string) => {
@@ -560,7 +560,7 @@ function formatMoney(n: number | null | undefined) {
           <div v-for="acct in payoutAccounts" :key="acct.id" class="card-base rounded-xl p-4">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <div class="flex h-9 w-9 items-center justify-center rounded-lg" :class="acct.type === 'crypto' ? 'bg-amber-500/10 text-amber-400' : acct.type === 'paypal' ? 'bg-blue-500/10 text-blue-400' : 'bg-accent/10 text-accent'">
+                <div class="flex h-9 w-9 items-center justify-center rounded-lg" :class="acct.type === 'crypto' ? 'bg-warning/10 text-warning' : acct.type === 'paypal' ? 'bg-primary/10 text-primary' : 'bg-accent/10 text-accent'">
                   <Building2 v-if="acct.type === 'bank'" class="h-4 w-4" />
                   <Coins v-else-if="acct.type === 'crypto'" class="h-4 w-4" />
                   <CreditCard v-else class="h-4 w-4" />

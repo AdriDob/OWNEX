@@ -18,9 +18,13 @@ notes = Column(Text, nullable=True, default="")
 
 Migración en `db.py`:
 ```python
-_migrate_columns(session, "findings", [
-    ("notes", "TEXT DEFAULT ''"),
-])
+_migrate_columns(
+    session,
+    "findings",
+    [
+        ("notes", "TEXT DEFAULT ''"),
+    ],
+)
 ```
 
 Endpoint `PATCH /api/findings/{finding_id}` en `findings.py`:
@@ -54,6 +58,7 @@ En `api/main.py` startup, agregar:
 ```python
 from cores.validation.llm_analyzer import FeedbackLearner
 
+
 def _on_finding_status_changed(event_data: dict):
     new_status = event_data.get("new_status", "")
     if new_status == "rejected":
@@ -64,6 +69,7 @@ def _on_finding_status_changed(event_data: dict):
             learner.analyze_verdict_patterns()
         except Exception as e:
             logger.warning("FeedbackLearner error: %s", e)
+
 
 get_event_bus().subscribe("finding:status_changed", _on_finding_status_changed)
 ```
@@ -81,6 +87,7 @@ La función `handle_finding_status_change` en `api/routers/findings.py` ya publi
 
 ```python
 """Backup and restore for CATEYE data."""
+
 import json
 import logging
 import shutil
@@ -100,6 +107,7 @@ BACKUP_PATHS = [
     "identity_vault.key",
     "evidence/",
 ]
+
 
 def create_backup(output_dir: str | None = None) -> Path | None:
     dest = Path(output_dir or ORION_DIR)
@@ -140,6 +148,7 @@ En `main()`:
 ```python
 if args.backup:
     from cores.backup import create_backup
+
     out = None if args.backup == "auto" else args.backup
     path = create_backup(out)
     if path:
@@ -148,6 +157,7 @@ if args.backup:
 
 if args.restore:
     from cores.backup import restore_backup
+
     if restore_backup(args.restore):
         print("✅ Restored successfully")
     else:
@@ -163,6 +173,7 @@ if args.restore:
 
 ```python
 """Hunter dashboard — single endpoint for daily bug bounty overview."""
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database import db, models
@@ -170,35 +181,29 @@ from cores.intelligence.reward_learning import RewardLearner
 
 router = APIRouter(prefix="/api/hunter", tags=["hunter"])
 
+
 @router.get("/summary")
 def hunter_summary(session: Session = Depends(db.get_db)):
     # Active targets
     target_count = session.query(models.Target).count()
-    
+
     # Pending findings (open, not rejected)
-    pending = session.query(models.Finding).filter(
-        models.Finding.status == "open"
-    ).count()
-    confirmed = session.query(models.Finding).filter(
-        models.Finding.status == "confirmed"
-    ).count()
-    
+    pending = session.query(models.Finding).filter(models.Finding.status == "open").count()
+    confirmed = session.query(models.Finding).filter(models.Finding.status == "confirmed").count()
+
     # Recent reports (last 30 days)
     from datetime import datetime, timedelta
     from database.models import Report
+
     month_ago = datetime.utcnow() - timedelta(days=30)
-    monthly_reports = session.query(Report).filter(
-        Report.created_at >= month_ago
-    ).count()
-    
+    monthly_reports = session.query(Report).filter(Report.created_at >= month_ago).count()
+
     # Payouts
     learner = RewardLearner()
     reward_report = learner.analyze()
     total_confirmed = reward_report.total_confirmed_value if reward_report else 0.0
-    total_estimated = sum(
-        r.estimated_reward or 0.0 for r in session.query(Report).all()
-    )
-    
+    total_estimated = sum(r.estimated_reward or 0.0 for r in session.query(Report).all())
+
     return {
         "active_targets": target_count,
         "pending_findings": pending,
@@ -213,6 +218,7 @@ def hunter_summary(session: Session = Depends(db.get_db)):
 Registrar en `api/main.py`:
 ```python
 from api.routers.hunter import router as hunter_router
+
 app.include_router(hunter_router)
 ```
 
@@ -231,6 +237,7 @@ En `main()`:
 ```python
 if args.add_target:
     from database import db, models
+
     db.init_db()
     session = db.SessionLocal()
     try:
@@ -257,6 +264,7 @@ from pathlib import Path
 
 USER_TEMPLATES_DIR = Path.home() / ".orion" / "templates"
 
+
 def ensure_default_templates():
     """Copy built-in templates to user dir on first run."""
     if not USER_TEMPLATES_DIR.exists():
@@ -265,6 +273,7 @@ def ensure_default_templates():
         if built_in.exists():
             shutil.copytree(built_in, USER_TEMPLATES_DIR, dirs_exist_ok=True)
             logger.info("Copied default templates to %s", USER_TEMPLATES_DIR)
+
 
 class ExportFormats:
     def __init__(self):
@@ -303,6 +312,7 @@ def _try_refresh_auth(self, auth: AuthContext) -> AuthContext | None:
     """If auth failed with 401/403, try to refresh the session."""
     try:
         from cores.target_auth.session_resolver import get_session_resolver
+
         resolver = get_session_resolver()
         # We need the identity_id — stored in auth.label
         if auth.label and auth.label.startswith("identity_"):

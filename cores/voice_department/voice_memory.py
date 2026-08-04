@@ -68,9 +68,7 @@ class VoiceMemorySystem:
             for user_id, memory in self.memories.items():
                 data[user_id] = {
                     "user_id": memory.user_id,
-                    "previous_explanations": {
-                        k: asdict(v) for k, v in memory.previous_explanations.items()
-                    },
+                    "previous_explanations": {k: asdict(v) for k, v in memory.previous_explanations.items()},
                     "common_questions": memory.common_questions,
                     "error_patterns": memory.error_patterns,
                     "learning_points": memory.learning_points,

@@ -17,6 +17,7 @@ VENV_NAME = "venv_hermes3_9"
 VENV_PATH = Path.home() / VENV_NAME
 REQUIRED_PYTHON_VERSION = (3, 9, 0)
 
+
 def check_python_version():
     """
     Check if the current Python version meets requirements.
@@ -25,15 +26,20 @@ def check_python_version():
     version_tuple = (current_version.major, current_version.minor, current_version.micro)
 
     print(f"💻 Current Python version: {current_version.major}.{current_version.minor}.{current_version.micro}")
-    print(f"🎯 Required Python version: {REQUIRED_PYTHON_VERSION[0]}.{REQUIRED_PYTHON_VERSION[1]}.{REQUIRED_PYTHON_VERSION[2]}")
+    print(
+        f"🎯 Required Python version: {REQUIRED_PYTHON_VERSION[0]}.{REQUIRED_PYTHON_VERSION[1]}.{REQUIRED_PYTHON_VERSION[2]}"
+    )
 
     if version_tuple >= REQUIRED_PYTHON_VERSION:
         print("✅ Python version requirement satisfied!")
         return True
     else:
         print("❌ Python version does not meet requirements!")
-        print(f"   Please upgrade to Python {REQUIRED_PYTHON_VERSION[0]}.{REQUIRED_PYTHON_VERSION[1]}.{REQUIRED_PYTHON_VERSION[2]} or higher")
+        print(
+            f"   Please upgrade to Python {REQUIRED_PYTHON_VERSION[0]}.{REQUIRED_PYTHON_VERSION[1]}.{REQUIRED_PYTHON_VERSION[2]} or higher"
+        )
         return False
+
 
 def create_virtual_environment() -> dict[str, Any]:
     """
@@ -44,21 +50,13 @@ def create_virtual_environment() -> dict[str, Any]:
 
     if VENV_PATH.exists():
         print(f"✅ Virtual environment already exists at: {VENV_PATH}")
-        return {
-            "status": "exists",
-            "path": str(VENV_PATH),
-            "message": "Virtual environment already exists"
-        }
+        return {"status": "exists", "path": str(VENV_PATH), "message": "Virtual environment already exists"}
 
     print("🔨 Creating new virtual environment...")
 
     try:
         # Create virtual environment
-        result = subprocess.run(
-            [sys.executable, "-m", "venv", str(VENV_PATH)],
-            capture_output=True,
-            text=True
-        )
+        result = subprocess.run([sys.executable, "-m", "venv", str(VENV_PATH)], capture_output=True, text=True)
 
         if result.returncode == 0:
             print(f"✅ Successfully created virtual environment at: {VENV_PATH}")
@@ -70,28 +68,22 @@ def create_virtual_environment() -> dict[str, Any]:
                 python_executable = VENV_PATH / "bin" / "python"
 
             # Get Python version in new environment
-            version_result = subprocess.run(
-                [str(python_executable), "--version"],
-                capture_output=True,
-                text=True
-            )
+            version_result = subprocess.run([str(python_executable), "--version"], capture_output=True, text=True)
 
             return {
                 "status": "created",
                 "path": str(VENV_PATH),
                 "python_executable": str(python_executable),
                 "activation_command": generate_activation_command(VENV_PATH),
-                "python_version": version_result.stdout.strip()
+                "python_version": version_result.stdout.strip(),
             }
         else:
             raise Exception(f"Failed to create virtual environment: {result.stderr}")
 
     except Exception as e:
         print(f"❌ Error creating virtual environment: {e}")
-        return {
-            "status": "error",
-            "error": str(e)
-        }
+        return {"status": "error", "error": str(e)}
+
 
 def generate_activation_command(venv_path: Path) -> str:
     """
@@ -101,6 +93,7 @@ def generate_activation_command(venv_path: Path) -> str:
         return f"{venv_path / 'Scripts' / 'activate.bat'}"
     else:
         return f"source {venv_path / 'bin' / 'activate'}"
+
 
 def install_essential_packages() -> dict[str, Any]:
     """
@@ -118,7 +111,7 @@ def install_essential_packages() -> dict[str, Any]:
         "requests>=2.25.1",
         "pytest>=6.2.0",
         "ruff>=0.1.0",
-        "pytest-cov>=2.12.0"
+        "pytest-cov>=2.12.0",
     ]
 
     print("📦 Installing development packages...")
@@ -133,34 +126,21 @@ def install_essential_packages() -> dict[str, Any]:
         for package in essential_packages:
             print(f"📥 Installing: {package}")
 
-            result = subprocess.run(
-                [str(pip_executable), "install", package],
-                capture_output=True,
-                text=True
-            )
+            result = subprocess.run([str(pip_executable), "install", package], capture_output=True, text=True)
 
             if result.returncode == 0:
                 print(f"✅ Successfully installed: {package}")
             else:
                 print(f"❌ Failed to install {package}: {result.stderr}")
-                return {
-                    "status": "error",
-                    "package": package,
-                    "error": result.stderr
-                }
+                return {"status": "error", "package": package, "error": result.stderr}
 
         print("✅ All packages installed successfully!")
-        return {
-            "status": "success",
-            "packages_installed": len(essential_packages)
-        }
+        return {"status": "success", "packages_installed": len(essential_packages)}
 
     except Exception as e:
         print(f"❌ Error during package installation: {e}")
-        return {
-            "status": "error",
-            "exception": str(e)
-        }
+        return {"status": "error", "exception": str(e)}
+
 
 def verify_virtual_environment() -> bool:
     """
@@ -172,7 +152,9 @@ def verify_virtual_environment() -> bool:
         return False
 
     # Check Python executable in virtual environment
-    python_executable = VENV_PATH / "bin" / "python" if platform.system() != "Windows" else VENV_PATH / "Scripts" / "python.exe"
+    python_executable = (
+        VENV_PATH / "bin" / "python" if platform.system() != "Windows" else VENV_PATH / "Scripts" / "python.exe"
+    )
 
     if not python_executable.exists():
         print("❌ Python executable not found in virtual environment!")
@@ -180,11 +162,7 @@ def verify_virtual_environment() -> bool:
 
     # Try to execute a simple command
     try:
-        result = subprocess.run(
-            [str(python_executable), "--version"],
-            capture_output=True,
-            text=True
-        )
+        result = subprocess.run([str(python_executable), "--version"], capture_output=True, text=True)
 
         if result.returncode == 0:
             print("✅ Virtual environment is properly configured!")
@@ -197,6 +175,7 @@ def verify_virtual_environment() -> bool:
     except Exception as e:
         print(f"❌ Error testing virtual environment: {e}")
         return False
+
 
 def main():
     """
@@ -242,6 +221,7 @@ def main():
     print("✨ Hermes Agent development environment setup completed!")
 
     return venv_setup
+
 
 if __name__ == "__main__":
     main()

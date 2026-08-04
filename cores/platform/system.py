@@ -90,6 +90,7 @@ class PlatformInfo:
 
 # ─── Path resolution ──────────────────────────────────────────────────
 
+
 def get_project_root() -> Path:
     """Return the project root directory.
 
@@ -128,7 +129,8 @@ def get_data_dir() -> Path:
 
     _diag_path = os.path.join(
         os.environ.get("APPDATA", os.path.expanduser("~")),
-        "CATEYE", "license_diagnostic.log",
+        "CATEYE",
+        "license_diagnostic.log",
     )
 
     if is_windows():

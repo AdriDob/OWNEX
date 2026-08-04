@@ -22,6 +22,7 @@ logger = logging.getLogger("ownex.wear_os")
 
 class WatchEventType(StrEnum):
     """Tipos de eventos del reloj."""
+
     NOTIFICATION = "notification"
     APPROVAL_REQUEST = "approval_request"
     APPROVAL_RESPONSE = "approval_response"
@@ -32,6 +33,7 @@ class WatchEventType(StrEnum):
 
 class WatchNotificationLevel(StrEnum):
     """Niveles de notificación."""
+
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -41,6 +43,7 @@ class WatchNotificationLevel(StrEnum):
 @dataclass
 class WatchNotification:
     """Notificación para el reloj."""
+
     notification_id: str
     title: str
     message: str
@@ -54,6 +57,7 @@ class WatchNotification:
 @dataclass
 class WatchApprovalRequest:
     """Solicitud de aprobación desde el reloj."""
+
     request_id: str
     title: str
     description: str
@@ -66,6 +70,7 @@ class WatchApprovalRequest:
 @dataclass
 class WatchStatus:
     """Estado del sistema para el reloj."""
+
     system_online: bool = True
     scheduler_running: bool = False
     active_workflows: int = 0
@@ -228,7 +233,9 @@ class WearOSIntegration:
         """Limpiar notificaciones antiguas."""
         cutoff = datetime.now().timestamp() - (days * 86400)
         original_count = len(self.notifications)
-        self.notifications = [n for n in self.notifications if datetime.fromisoformat(n.created_at).timestamp() > cutoff]
+        self.notifications = [
+            n for n in self.notifications if datetime.fromisoformat(n.created_at).timestamp() > cutoff
+        ]
         self._save_state()
         return original_count - len(self.notifications)
 

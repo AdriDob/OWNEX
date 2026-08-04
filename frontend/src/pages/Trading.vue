@@ -69,7 +69,7 @@ function badgeVariant(value: number, goodIfAbove = 0) {
 <template>
   <div class="flex flex-col items-center justify-start min-h-[80vh] px-4 py-8 animate-in">
     <div class="flex items-center gap-3 mb-2">
-      <TrendingUp class="w-8 h-8 text-blue-400" />
+      <TrendingUp class="w-8 h-8 text-primary" />
       <h1 class="text-3xl font-bold text-foreground">Trading</h1>
     </div>
     <p class="text-muted-foreground mb-8 text-center max-w-md">
@@ -82,19 +82,19 @@ function badgeVariant(value: number, goodIfAbove = 0) {
         <Card class="card-base">
           <CardContent class="p-3 text-center">
             <p class="text-xs text-muted-foreground">Capital total</p>
-            <p class="text-lg font-bold text-emerald-400">{{ usd(status.total_capital || 0) }}</p>
+            <p class="text-lg font-bold text-success">{{ usd(status.total_capital || 0) }}</p>
           </CardContent>
         </Card>
         <Card class="card-base">
           <CardContent class="p-3 text-center">
             <p class="text-xs text-muted-foreground">Desplegado</p>
-            <p class="text-lg font-bold text-blue-400">{{ usd(status.deployed || 0) }}</p>
+            <p class="text-lg font-bold text-primary">{{ usd(status.deployed || 0) }}</p>
           </CardContent>
         </Card>
         <Card class="card-base">
           <CardContent class="p-3 text-center">
             <p class="text-xs text-muted-foreground">P&L total</p>
-            <p :class="['text-lg font-bold', (status.summary?.total_pnl || 0) >= 0 ? 'text-green-400' : 'text-red-400']">
+            <p :class="['text-lg font-bold', (status.summary?.total_pnl || 0) >= 0 ? 'text-success' : 'text-destructive']">
               {{ usd(status.summary?.total_pnl || 0) }}
             </p>
           </CardContent>
@@ -102,7 +102,7 @@ function badgeVariant(value: number, goodIfAbove = 0) {
         <Card class="card-base">
           <CardContent class="p-3 text-center">
             <p class="text-xs text-muted-foreground">Sharpe</p>
-            <p :class="['text-lg font-bold', (status.summary?.sharpe || 0) >= 1 ? 'text-green-400' : 'text-yellow-400']">
+            <p :class="['text-lg font-bold', (status.summary?.sharpe || 0) >= 1 ? 'text-success' : 'text-warning']">
               {{ (status.summary?.sharpe || 0).toFixed(2) }}
             </p>
           </CardContent>
@@ -150,19 +150,19 @@ function badgeVariant(value: number, goodIfAbove = 0) {
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
             <div class="text-center p-2 rounded-lg bg-surface/30">
               <p class="text-xs text-muted-foreground">Retorno total</p>
-              <p :class="['text-lg font-bold', backtestResult.total_return_pct >= 0 ? 'text-green-400' : 'text-red-400']">
+              <p :class="['text-lg font-bold', backtestResult.total_return_pct >= 0 ? 'text-success' : 'text-destructive']">
                 {{ pct(backtestResult.total_return_pct) }}
               </p>
             </div>
             <div class="text-center p-2 rounded-lg bg-surface/30">
               <p class="text-xs text-muted-foreground">Sharpe</p>
-              <p :class="['text-lg font-bold', backtestResult.sharpe >= 1 ? 'text-green-400' : 'text-yellow-400']">
+              <p :class="['text-lg font-bold', backtestResult.sharpe >= 1 ? 'text-success' : 'text-warning']">
                 {{ backtestResult.sharpe.toFixed(2) }}
               </p>
             </div>
             <div class="text-center p-2 rounded-lg bg-surface/30">
               <p class="text-xs text-muted-foreground">Max drawdown</p>
-              <p class="text-lg font-bold text-red-400">{{ pct(backtestResult.max_drawdown_pct) }}</p>
+              <p class="text-lg font-bold text-destructive">{{ pct(backtestResult.max_drawdown_pct) }}</p>
             </div>
             <div class="text-center p-2 rounded-lg bg-surface/30">
               <p class="text-xs text-muted-foreground">Win rate</p>
@@ -194,10 +194,10 @@ function badgeVariant(value: number, goodIfAbove = 0) {
                   <td class="py-1 pr-2 text-foreground">{{ t.exit_date }}</td>
                   <td class="py-1 pr-2 text-right font-mono">{{ usd(t.entry_price) }}</td>
                   <td class="py-1 pr-2 text-right font-mono">{{ usd(t.exit_price) }}</td>
-                  <td :class="['py-1 pr-2 text-right font-mono', t.pnl >= 0 ? 'text-green-400' : 'text-red-400']">
+                  <td :class="['py-1 pr-2 text-right font-mono', t.pnl >= 0 ? 'text-success' : 'text-destructive']">
                     {{ usd(t.pnl) }}
                   </td>
-                  <td :class="['py-1 pr-2 text-right font-mono', t.pnl_pct >= 0 ? 'text-green-400' : 'text-red-400']">
+                  <td :class="['py-1 pr-2 text-right font-mono', t.pnl_pct >= 0 ? 'text-success' : 'text-destructive']">
                     {{ pct(t.pnl_pct) }}
                   </td>
                 </tr>
@@ -206,7 +206,7 @@ function badgeVariant(value: number, goodIfAbove = 0) {
           </div>
         </template>
 
-        <p v-if="backtestError" class="text-sm text-red-400 mt-2">{{ backtestError }}</p>
+        <p v-if="backtestError" class="text-sm text-destructive mt-2">{{ backtestError }}</p>
       </CardContent>
     </Card>
   </div>

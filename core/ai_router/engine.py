@@ -366,7 +366,7 @@ class AIRouterEngine:
         try:
             import httpx
 
-            api_key = os.getenv("NVIDIA_API_KEY", "")
+            api_key = os.getenv("NVIDIA_API_KEY", "") or os.getenv("NIM_API_KEY", "")
             if not api_key:
                 elapsed = (time.monotonic() - start) * 1000
                 return False, [], elapsed

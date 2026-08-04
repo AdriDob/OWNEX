@@ -36,9 +36,7 @@ Las advertencias de "no se verificó X" son strings hardcodeados que no consider
 Agregar en `_design_contradiction_tests` y `challenge()`:
 
 ```python
-def _filter_missing_by_signals(
-    self, vt: str, signals: dict[str, Any]
-) -> list[str]:
+def _filter_missing_by_signals(self, vt: str, signals: dict[str, Any]) -> list[str]:
     """Filtrar missing_verifications según señales ya detectadas."""
     all_missing = list(MISSING_VERIFICATIONS.get(vt, []))
     # Mapa: signal → prefijo de missing_verification a remover
@@ -70,7 +68,7 @@ class Verdict:
 
 Al construir el Verdict, agregar:
 ```python
-vulnerability_type=vulnerability_type,
+vulnerability_type = (vulnerability_type,)
 ```
 
 ### E. `cores/validation/verdict_handler.py` — vt al Finding
@@ -102,12 +100,20 @@ vulnerability_type = Column(String, nullable=True, default="unknown")
 
 Agregar:
 ```python
-_migrate_columns(session, "verdicts", [
-    ("vulnerability_type", "VARCHAR DEFAULT 'unknown'"),
-])
-_migrate_columns(session, "findings", [
-    ("vulnerability_type", "VARCHAR DEFAULT 'unknown'"),
-])
+_migrate_columns(
+    session,
+    "verdicts",
+    [
+        ("vulnerability_type", "VARCHAR DEFAULT 'unknown'"),
+    ],
+)
+_migrate_columns(
+    session,
+    "findings",
+    [
+        ("vulnerability_type", "VARCHAR DEFAULT 'unknown'"),
+    ],
+)
 ```
 
 ### H. `api/scheduler.py` — pasar vt

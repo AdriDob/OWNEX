@@ -42,17 +42,30 @@ class TestFullLoop:
         engine = get_priority_engine()
         assert engine.count() == 0
 
-        engine.ingest_opportunity({
-            "id": 1, "name": "Test Opp", "score": 85,
-            "estimated_payout": 5000, "confidence": 0.8,
-        })
-        engine.ingest_quick_win({
-            "id": 1, "title": "Test QW", "confidence": 0.9,
-            "estimated_payout": 2000,
-        })
-        engine.ingest_system_alert({
-            "id": 1, "title": "Test Alert", "severity": "high",
-        })
+        engine.ingest_opportunity(
+            {
+                "id": 1,
+                "name": "Test Opp",
+                "score": 85,
+                "estimated_payout": 5000,
+                "confidence": 0.8,
+            }
+        )
+        engine.ingest_quick_win(
+            {
+                "id": 1,
+                "title": "Test QW",
+                "confidence": 0.9,
+                "estimated_payout": 2000,
+            }
+        )
+        engine.ingest_system_alert(
+            {
+                "id": 1,
+                "title": "Test Alert",
+                "severity": "high",
+            }
+        )
 
         ranked = engine.get_ranked(limit=10)
         assert len(ranked) >= 3, "All 3 signals should produce actions"
@@ -65,18 +78,21 @@ class TestFullLoop:
         engine = get_priority_engine()
         explainer = get_explanation_engine()
 
-        engine.ingest_opportunity({
-            "id": 2, "name": "Explainable Opp", "score": 90,
-            "estimated_payout": 10000, "confidence": 0.9,
-        })
+        engine.ingest_opportunity(
+            {
+                "id": 2,
+                "name": "Explainable Opp",
+                "score": 90,
+                "estimated_payout": 10000,
+                "confidence": 0.9,
+            }
+        )
         ranked = engine.get_ranked(limit=5)
         assert len(ranked) > 0
 
         for action in ranked:
             signals = [f"source:{action.source}", f"score:{action.combined_score:.2f}"]
-            explanation = explainer.explain_priority_rank(
-                action.id, action.combined_score, signals
-            )
+            explanation = explainer.explain_priority_rank(action.id, action.combined_score, signals)
             assert explanation is not None
             assert explanation.summary
             assert len(explanation.reasoning_chain) > 0
@@ -112,13 +128,15 @@ class TestFullLoop:
         )
         assert record.outcome_score > 0
 
-        outcome_tracker.record(OutcomeEntry(
-            action_id="test_action",
-            action_type="test",
-            label="Test Outcome",
-            result="success",
-            value_score=0.8,
-        ))
+        outcome_tracker.record(
+            OutcomeEntry(
+                action_id="test_action",
+                action_type="test",
+                label="Test Outcome",
+                result="success",
+                value_score=0.8,
+            )
+        )
 
         summary = outcome_tracker.get_summary()
         assert summary["total"] >= 1
@@ -147,22 +165,29 @@ class TestFullLoop:
         engine = get_priority_engine()
 
         for i in range(5):
-            memory.record_decision(Decision(
-                id=f"learn-decision-{i}",
-                action="test_learn",
-                reason=f"Test learning iteration {i}",
-                confidence=0.8,
-                source="test",
-                outcome="success" if i < 4 else "failure",
-            ))
+            memory.record_decision(
+                Decision(
+                    id=f"learn-decision-{i}",
+                    action="test_learn",
+                    reason=f"Test learning iteration {i}",
+                    confidence=0.8,
+                    source="test",
+                    outcome="success" if i < 4 else "failure",
+                )
+            )
 
         sr = memory.get_success_rate("test_learn")
         assert sr > 0.5, "Success rate should reflect successful outcomes"
 
-        engine.ingest_opportunity({
-            "id": 3, "name": "Learn Test", "score": 50,
-            "estimated_payout": 1000, "confidence": 0.5,
-        })
+        engine.ingest_opportunity(
+            {
+                "id": 3,
+                "name": "Learn Test",
+                "score": 50,
+                "estimated_payout": 1000,
+                "confidence": 0.5,
+            }
+        )
 
         result = engine.consume_memory()
         assert result["status"] in ("consumed", "error")
@@ -172,26 +197,38 @@ class TestFullLoop:
         engine = get_priority_engine()
         memory = get_decision_memory()
 
-        engine.ingest_opportunity({
-            "id": 4, "name": "Reprio A", "score": 80,
-            "estimated_payout": 5000, "confidence": 0.7,
-        })
-        engine.ingest_opportunity({
-            "id": 5, "name": "Reprio B", "score": 70,
-            "estimated_payout": 4000, "confidence": 0.6,
-        })
+        engine.ingest_opportunity(
+            {
+                "id": 4,
+                "name": "Reprio A",
+                "score": 80,
+                "estimated_payout": 5000,
+                "confidence": 0.7,
+            }
+        )
+        engine.ingest_opportunity(
+            {
+                "id": 5,
+                "name": "Reprio B",
+                "score": 70,
+                "estimated_payout": 4000,
+                "confidence": 0.6,
+            }
+        )
 
         before = engine.get_ranked(limit=5)
         [(a.id, a.combined_score) for a in before]
 
-        memory.record_decision(Decision(
-            id="reprio-feedback",
-            action="open_opportunity",
-            reason="Historical failures for this type",
-            confidence=0.9,
-            source="test",
-            outcome="failure",
-        ))
+        memory.record_decision(
+            Decision(
+                id="reprio-feedback",
+                action="open_opportunity",
+                reason="Historical failures for this type",
+                confidence=0.9,
+                source="test",
+                outcome="failure",
+            )
+        )
 
         engine.consume_memory()
         after = engine.get_ranked(limit=5)
@@ -225,9 +262,9 @@ class TestFullLoop:
         explained_actions = {e["action"] for e in explanations}
 
         for aid in tracked_ids:
-            assert aid in explained_actions or any(
-                aid in e["action"] for e in explanations
-            ), f"No orphan actions: {aid} must have explanation"
+            assert aid in explained_actions or any(aid in e["action"] for e in explanations), (
+                f"No orphan actions: {aid} must have explanation"
+            )
 
     def test_full_loop_integration(self):
         """Complete loop: signal → prioritize → explain → execute → track → store → learn."""
@@ -239,10 +276,15 @@ class TestFullLoop:
         outcome = get_outcome_tracker()
 
         # SIGNAL
-        priority.ingest_opportunity({
-            "id": 100, "name": "Full Loop Test", "score": 95,
-            "estimated_payout": 15000, "confidence": 0.9,
-        })
+        priority.ingest_opportunity(
+            {
+                "id": 100,
+                "name": "Full Loop Test",
+                "score": 95,
+                "estimated_payout": 15000,
+                "confidence": 0.9,
+            }
+        )
 
         # PRIORITIZE
         ranked = priority.get_ranked(limit=5)
@@ -250,9 +292,7 @@ class TestFullLoop:
         top = ranked[0]
 
         # EXPLAIN
-        explanation = explainer.explain_priority_rank(
-            top.id, top.combined_score, ["test signal"]
-        )
+        explanation = explainer.explain_priority_rank(top.id, top.combined_score, ["test signal"])
         assert explanation is not None
 
         # EXECUTE
@@ -266,21 +306,25 @@ class TestFullLoop:
         assert track_entry["action_id"] == "mark_reviewed"
 
         # STORE
-        outcome.record(OutcomeEntry(
-            action_id="mark_reviewed",
-            action_type="feedback",
-            label="Full Loop Outcome",
-            result="success",
-            value_score=0.9,
-        ))
-        memory.record_decision(Decision(
-            id="full-loop-decision",
-            action="mark_reviewed",
-            reason="Full loop validation test",
-            confidence=0.9,
-            source="test",
-            outcome="success",
-        ))
+        outcome.record(
+            OutcomeEntry(
+                action_id="mark_reviewed",
+                action_type="feedback",
+                label="Full Loop Outcome",
+                result="success",
+                value_score=0.9,
+            )
+        )
+        memory.record_decision(
+            Decision(
+                id="full-loop-decision",
+                action="mark_reviewed",
+                reason="Full loop validation test",
+                confidence=0.9,
+                source="test",
+                outcome="success",
+            )
+        )
 
         # LEARN
         stored = memory.get_decision("full-loop-decision")
@@ -317,13 +361,15 @@ class TestNoOrphans:
         memory = get_decision_memory()
         explainer = get_explanation_engine()
 
-        memory.record_decision(Decision(
-            id="orphan-check",
-            action="test",
-            reason="Testing orphan detection",
-            confidence=0.5,
-            source="test",
-        ))
+        memory.record_decision(
+            Decision(
+                id="orphan-check",
+                action="test",
+                reason="Testing orphan detection",
+                confidence=0.5,
+                source="test",
+            )
+        )
 
         explanation = explainer.get_explanation("orphan-check")
         if explanation is None:

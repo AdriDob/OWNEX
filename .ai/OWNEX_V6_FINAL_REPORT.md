@@ -84,25 +84,26 @@ Rastro/core/engine/
 # base.py — Ejemplo de la interfaz base
 from abc import ABC, abstractmethod
 
+
 class Engine(ABC):
     """Base class for all OWNEX v6 engines."""
-    
+
     name: str = ""
-    
+
     @abstractmethod
     async def initialize(self):
         """Called once at startup."""
         pass
-    
+
     @abstractmethod
     async def health(self) -> dict:
         """Return engine health status."""
         pass
-    
+
     async def start(self):
         """Called when engine should begin processing."""
         pass
-    
+
     async def stop(self):
         """Called on shutdown."""
         pass
@@ -137,39 +138,42 @@ Rastro/core/sensors/
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+
 @dataclass
 class Observation:
     """A raw observation from the world.
-    
+
     This is the atomic unit of OWNEX.
     Not an opportunity — just a signal.
     """
+
     id: str
     sensor_id: str
-    source_type: str        # "bug_bounty", "dev_bounty", "ai_work"
-    source_name: str        # "hackerone", "github", "mindrift"
-    external_id: str        # ID on the platform
+    source_type: str  # "bug_bounty", "dev_bounty", "ai_work"
+    source_name: str  # "hackerone", "github", "mindrift"
+    external_id: str  # ID on the platform
     title: str
     description: str
     raw_data: dict
-    observed_at: str        # ISO timestamp
+    observed_at: str  # ISO timestamp
     url: str | None = None
     estimated_reward_min: float = 0.0
     estimated_reward_max: float = 0.0
     tags: list[str] | None = None
 
+
 class Sensor(ABC):
     """A single sensor in the Universal Sensor Network."""
-    
+
     id: str = ""
     name: str = ""
     cadence_seconds: int = 3600  # default 1h
-    
+
     @abstractmethod
     async def fetch(self) -> list[Observation]:
         """Fetch observations from the sensor source."""
         pass
-    
+
     async def health(self) -> dict:
         return {"id": self.id, "status": "active"}
 ```
@@ -181,16 +185,17 @@ class Sensor(ABC):
 from cores.bounty_scraper.scraper import BountyScraper
 from core.sensors.base import Sensor, Observation
 
+
 class HackerOneSensor(Sensor):
     """Wraps the existing HackerOne scraper as a Sensor."""
-    
+
     id = "hackerone_sensor"
     name = "HackerOne Programs Sensor"
     cadence_seconds = 1800  # 30 min
-    
+
     def __init__(self):
         self.scraper = BountyScraper()
-    
+
     async def fetch(self) -> list[Observation]:
         """Use legacy scraper, emit Observations."""
         results = await self.scraper.run_async()  # hypothetical async wrapper
@@ -200,14 +205,14 @@ class HackerOneSensor(Sensor):
                 sensor_id=self.id,
                 source_type="bug_bounty",
                 source_name="hackerone",
-                external_id=str(p['id']),
-                title=p.get('program_name', p.get('name', 'Unknown')),
-                description=p.get('description', ''),
+                external_id=str(p["id"]),
+                title=p.get("program_name", p.get("name", "Unknown")),
+                description=p.get("description", ""),
                 raw_data=p,
                 observed_at=datetime.now(timezone.utc).isoformat(),
-                url=p.get('url', ''),
-                estimated_reward_min=p.get('reward_min', 0),
-                estimated_reward_max=p.get('reward_max', 0),
+                url=p.get("url", ""),
+                estimated_reward_min=p.get("reward_min", 0),
+                estimated_reward_max=p.get("reward_max", 0),
             )
             for p in results
         ]

@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Header, Query, Request
 
 from cores.audit_log import log_event
@@ -71,11 +70,13 @@ async def get_me(authorization: str | None = Header(None)):
     if not result.valid:
         return error(result.reason or "Invalid session", version="1.0")
 
-    return ok({
-        "device_id": result.device_id,
-        "user_id": result.user_id,
-        "authenticated": True,
-    })
+    return ok(
+        {
+            "device_id": result.device_id,
+            "user_id": result.user_id,
+            "authenticated": True,
+        }
+    )
 
 
 @router.post("/validate")
@@ -103,12 +104,14 @@ async def get_session(device_id: str = Query(None)):
     if session is None:
         return error("Session not found", version="1.0")
 
-    return ok({
-        "device_id": session["device_id"],
-        "created_at": session.get("created_at"),
-        "last_seen": session.get("last_seen"),
-        "meta": session.get("meta", {}),
-    })
+    return ok(
+        {
+            "device_id": session["device_id"],
+            "created_at": session.get("created_at"),
+            "last_seen": session.get("last_seen"),
+            "meta": session.get("meta", {}),
+        }
+    )
 
 
 @router.get("/devices")

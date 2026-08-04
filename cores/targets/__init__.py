@@ -10,7 +10,11 @@ from cores.targets.models import Scope, TargetIntel
 from cores.targets.parser import parse_program_scopes
 
 __all__ = [
-    "TargetIntel", "Scope", "Hunter",
-    "filter_targets_by_min_quality", "filter_targets_by_max_complexity",
-    "filter_targets_by_platform", "parse_program_scopes",
+    "TargetIntel",
+    "Scope",
+    "Hunter",
+    "filter_targets_by_min_quality",
+    "filter_targets_by_max_complexity",
+    "filter_targets_by_platform",
+    "parse_program_scopes",
 ]

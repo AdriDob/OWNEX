@@ -46,7 +46,7 @@ const eventIcons: Record<string, any> = {
 }
 
 const eventColors: Record<string, string> = {
-  scan: 'text-blue-400',
+  scan: 'text-primary',
   finding: 'text-destructive',
   report: 'text-gold',
   verdict: 'text-success',
@@ -199,7 +199,7 @@ onMounted(() => {
       <!-- ══ TIMELINE TAB ══ -->
       <div v-if="activeTab === 'timeline'" class="space-y-4 animate-in">
         <!-- Calendar navigation -->
-        <div class="flex items-center justify-between rounded-xl border border-border/40 bg-[#131524]/60 p-3">
+        <div class="flex items-center justify-between rounded-xl border border-border/40 bg-surface/60 p-3">
           <div class="flex items-center gap-2">
             <button @click="goDay(-1)" class="rounded-lg p-1.5 text-muted-foreground hover:bg-surface/30 hover:text-foreground transition-colors">
               <ChevronLeft class="h-4 w-4" />
@@ -248,7 +248,7 @@ onMounted(() => {
               <component :is="eventIcons[event.event_type] || Activity" :class="['h-4 w-4', eventColors[event.event_type] || 'text-muted-foreground']" />
             </div>
             <!-- Content -->
-            <div class="flex-1 min-w-0 rounded-xl border border-border/20 bg-[#ffffff08] px-4 py-3">
+            <div class="flex-1 min-w-0 rounded-xl border border-border/20 bg-surface/10 px-4 py-3">
               <div class="flex items-start justify-between gap-2">
                 <div class="flex items-center gap-2">
                   <Badge variant="outline" class="text-[8px] uppercase">{{ event.event_type }}</Badge>
@@ -280,7 +280,7 @@ onMounted(() => {
           </div>
           <div class="space-y-1">
             <div v-for="d in decisions" :key="d.id"
-              class="rounded-lg bg-[#ffffff08] px-3 py-2 transition-all hover:bg-[#ffffff10]"
+              class="rounded-lg bg-surface/10 px-3 py-2 transition-all hover:bg-surface/20"
             >
               <div class="flex items-center justify-between mb-0.5">
                 <span class="text-xs font-semibold text-foreground">{{ d.details?.action || d.key }}</span>
@@ -312,7 +312,7 @@ onMounted(() => {
           </div>
           <div class="space-y-1">
             <div v-for="ins in insights" :key="ins.id"
-              class="rounded-lg bg-[#ffffff08] px-3 py-2 transition-all hover:bg-[#ffffff10]"
+              class="rounded-lg bg-surface/10 px-3 py-2 transition-all hover:bg-surface/20"
             >
               <div class="flex items-center justify-between mb-0.5">
                 <span class="text-xs font-semibold text-foreground">{{ ins.details?.title || ins.key }}</span>

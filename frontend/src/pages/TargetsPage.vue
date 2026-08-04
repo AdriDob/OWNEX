@@ -65,10 +65,10 @@ onMounted(fetchData)
 
 function platformColor(p: string) {
   const map: Record<string, string> = {
-    hackerone: 'text-[#00A98F]', bugcrowd: 'text-[#6333FF]',
-    intigriti: 'text-[#0D90F4]', synack: 'text-[#FF6B35]',
-    immunefi: 'text-[#FF6B35]', yeswehack: 'text-[#E74C3C]',
-    code4rena: 'text-[#00A98F]',
+    hackerone: 'text-success', bugcrowd: 'text-intigriti',
+    intigriti: 'text-primary', synack: 'text-warning',
+    immunefi: 'text-warning', yeswehack: 'text-destructive',
+    code4rena: 'text-success',
   }
   return map[p?.toLowerCase()] || 'text-primary'
 }
@@ -100,15 +100,15 @@ function priorityBadge(p: string): 'destructive' | 'warning' | 'default' {
       <div class="relative flex-1 min-w-[200px] max-w-xs">
         <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         <input v-model="search" placeholder="Search targets, technologies..."
-          class="w-full rounded-lg border border-border/60 bg-[#11131f]/60 py-2 pl-9 pr-3 text-xs text-foreground placeholder:text-muted-foreground/50" />
+          class="w-full rounded-lg border border-border/60 bg-surface/60 py-2 pl-9 pr-3 text-xs text-foreground placeholder:text-muted-foreground/50" />
       </div>
       <select v-model="platformFilter" @change="fetchData"
-        class="rounded-lg border border-border/60 bg-[#11131f]/60 px-3 py-2 text-xs text-foreground">
+        class="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-xs text-foreground">
         <option value="">All platforms</option>
         <option v-for="p in platforms" :key="p" :value="p">{{ p }}</option>
       </select>
       <select v-model="statusFilter" @change="fetchData"
-        class="rounded-lg border border-border/60 bg-[#11131f]/60 px-3 py-2 text-xs text-foreground">
+        class="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-xs text-foreground">
         <option value="">All status</option>
         <option value="active">Active</option>
         <option value="paused">Paused</option>
@@ -156,7 +156,7 @@ function priorityBadge(p: string): 'destructive' | 'warning' | 'default' {
     <template v-else>
       <div class="space-y-2 animate-in">
         <div v-for="(item, i) in sorted" :key="item.id"
-          class="flex items-center gap-4 rounded-xl border border-border/40 bg-[#11131f]/40 p-4 transition-all hover:border-primary/30 hover:bg-primary/5 cursor-pointer"
+          class="flex items-center gap-4 rounded-xl border border-border/40 bg-surface/40 p-4 transition-all hover:border-primary/30 hover:bg-primary/5 cursor-pointer"
           :style="{ animationDelay: `${i * 20}ms` }"
           @click="router.push(`/programs/${item.id}`)">
           <!-- Rank -->

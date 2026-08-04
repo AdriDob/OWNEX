@@ -18,6 +18,7 @@ router = APIRouter(prefix="/api/odyssey", tags=["odyssey"])
 
 # ── Bankroll ──
 
+
 @router.get("/bankroll/total")
 async def bankroll_total():
     db = get_db_manager().get_session("odyssey")
@@ -50,6 +51,7 @@ async def list_bankrolls():
 
 
 # ── Bets ──
+
 
 @router.get("/bets/active")
 async def active_bets_count():
@@ -93,6 +95,7 @@ async def list_bets(limit: int = 50, status: str = ""):
 
 # ── Analytics ──
 
+
 @router.get("/analytics/roi")
 async def roi():
     db = get_db_manager().get_session("odyssey")
@@ -104,7 +107,11 @@ async def roi():
         total_payout = sum(b.payout for b in settled)
         profit = total_payout - total_staked
         roi_pct = (profit / total_staked * 100) if total_staked else 0.0
-        return {"roi": round(roi_pct, 2), "total_staked": round(total_staked, 2), "total_payout": round(total_payout, 2)}
+        return {
+            "roi": round(roi_pct, 2),
+            "total_staked": round(total_staked, 2),
+            "total_payout": round(total_payout, 2),
+        }
     finally:
         db.close()
 
@@ -168,6 +175,7 @@ async def performance():
 
 # ── Strategies ──
 
+
 @router.get("/strategies")
 async def list_strategies():
     db = get_db_manager().get_session("odyssey")
@@ -192,6 +200,7 @@ async def list_strategies():
 
 # ── Kelly Calculator ──
 
+
 @router.post("/strategies/kelly")
 async def kelly_calculate(odds: float, win_probability: float, bankroll: float, fraction: float = 0.25):
     kelly = KellyProvider()
@@ -206,6 +215,7 @@ async def kelly_calculate(odds: float, win_probability: float, bankroll: float, 
 
 
 # ── Health ──
+
 
 @router.get("/health")
 async def odyssey_health():

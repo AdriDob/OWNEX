@@ -46,15 +46,39 @@ TWO_WEEKS_AGO = NOW - timedelta(days=14)
 MONTH_AGO = NOW - timedelta(days=30)
 
 CLEANUP_ORDER = [
-    "report_priorities", "memory_patterns", "submission_records",
-    "report_versions", "reports", "validation_runs", "validation_results",
-    "evidence", "verdicts", "findings", "endpoints",
-    "scan_runs", "pipeline_runs", "investigations", "quick_wins",
-    "favorites", "tasks", "notifications", "delivery_records",
-    "target_sessions", "target_identities", "devices",
-    "target_scopes", "targets_intel", "scope_documents",
-    "program_intel", "bounty_tiers", "programs",
-    "memory_records", "sessions", "financial_metrics", "targets", "users",
+    "report_priorities",
+    "memory_patterns",
+    "submission_records",
+    "report_versions",
+    "reports",
+    "validation_runs",
+    "validation_results",
+    "evidence",
+    "verdicts",
+    "findings",
+    "endpoints",
+    "scan_runs",
+    "pipeline_runs",
+    "investigations",
+    "quick_wins",
+    "favorites",
+    "tasks",
+    "notifications",
+    "delivery_records",
+    "target_sessions",
+    "target_identities",
+    "devices",
+    "target_scopes",
+    "targets_intel",
+    "scope_documents",
+    "program_intel",
+    "bounty_tiers",
+    "programs",
+    "memory_records",
+    "sessions",
+    "financial_metrics",
+    "targets",
+    "users",
 ]
 
 
@@ -83,10 +107,30 @@ PROGRAMS = [
         "orion_score": 9.5,
         "priority": "critical",
         "tiers": [
-            {"tier_name": "Critical", "min_reward": 5000, "max_reward": 25500, "requirements": "RCE, SQLi with data exfiltration, authentication bypass affecting multiple users"},
-            {"tier_name": "High", "min_reward": 2000, "max_reward": 5000, "requirements": "SSRF, XSS with admin impact, privilege escalation"},
-            {"tier_name": "Medium", "min_reward": 500, "max_reward": 2000, "requirements": "CSRF with impact, stored XSS, IDOR"},
-            {"tier_name": "Low", "min_reward": 0, "max_reward": 500, "requirements": "Minor info disclosure, open redirect"},
+            {
+                "tier_name": "Critical",
+                "min_reward": 5000,
+                "max_reward": 25500,
+                "requirements": "RCE, SQLi with data exfiltration, authentication bypass affecting multiple users",
+            },
+            {
+                "tier_name": "High",
+                "min_reward": 2000,
+                "max_reward": 5000,
+                "requirements": "SSRF, XSS with admin impact, privilege escalation",
+            },
+            {
+                "tier_name": "Medium",
+                "min_reward": 500,
+                "max_reward": 2000,
+                "requirements": "CSRF with impact, stored XSS, IDOR",
+            },
+            {
+                "tier_name": "Low",
+                "min_reward": 0,
+                "max_reward": 500,
+                "requirements": "Minor info disclosure, open redirect",
+            },
         ],
         "endpoints": [
             ("GET", "/admin/api/2024-01/graphql.json", "Shopfiy Admin GraphQL API"),
@@ -110,13 +154,30 @@ PROGRAMS = [
         "rewards_text": "$500 - $10,000 per vulnerability",
         "exclusions_text": "DoS, rate limiting, self-XSS, clickjacking without impact, social engineering",
         "technologies": json.dumps(["Elixir", "Python", "React", "Rust", "ScyllaDB"]),
-        "assets": json.dumps(["discord.com", "*.discord.com", "cdn.discord.com", "api.discord.com", "gateway.discord.gg"]),
+        "assets": json.dumps(
+            ["discord.com", "*.discord.com", "cdn.discord.com", "api.discord.com", "gateway.discord.gg"]
+        ),
         "orion_score": 9.2,
         "priority": "critical",
         "tiers": [
-            {"tier_name": "Critical", "min_reward": 5000, "max_reward": 10000, "requirements": "RCE, SQLi, authentication bypass"},
-            {"tier_name": "High", "min_reward": 2000, "max_reward": 5000, "requirements": "SSRF, IDOR on user data, privilege escalation"},
-            {"tier_name": "Medium", "min_reward": 500, "max_reward": 2000, "requirements": "XSS, CSRF, information disclosure"},
+            {
+                "tier_name": "Critical",
+                "min_reward": 5000,
+                "max_reward": 10000,
+                "requirements": "RCE, SQLi, authentication bypass",
+            },
+            {
+                "tier_name": "High",
+                "min_reward": 2000,
+                "max_reward": 5000,
+                "requirements": "SSRF, IDOR on user data, privilege escalation",
+            },
+            {
+                "tier_name": "Medium",
+                "min_reward": 500,
+                "max_reward": 2000,
+                "requirements": "XSS, CSRF, information disclosure",
+            },
             {"tier_name": "Low", "min_reward": 0, "max_reward": 500, "requirements": "Low-impact info disclosure"},
         ],
         "endpoints": [
@@ -145,8 +206,18 @@ PROGRAMS = [
         "orion_score": 8.8,
         "priority": "critical",
         "tiers": [
-            {"tier_name": "Critical", "min_reward": 5000, "max_reward": 10000, "requirements": "RCE, SQLi, authentication bypass"},
-            {"tier_name": "High", "min_reward": 2000, "max_reward": 5000, "requirements": "SSRF, privilege escalation, account takeover"},
+            {
+                "tier_name": "Critical",
+                "min_reward": 5000,
+                "max_reward": 10000,
+                "requirements": "RCE, SQLi, authentication bypass",
+            },
+            {
+                "tier_name": "High",
+                "min_reward": 2000,
+                "max_reward": 5000,
+                "requirements": "SSRF, privilege escalation, account takeover",
+            },
             {"tier_name": "Medium", "min_reward": 500, "max_reward": 2000, "requirements": "XSS, CSRF, IDOR"},
             {"tier_name": "Low", "min_reward": 0, "max_reward": 500, "requirements": "Minor info disclosure"},
         ],
@@ -176,9 +247,24 @@ PROGRAMS = [
         "orion_score": 8.5,
         "priority": "high",
         "tiers": [
-            {"tier_name": "Critical", "min_reward": 5000, "max_reward": 10000, "requirements": "RCE, authentication bypass, data exfiltration at scale"},
-            {"tier_name": "High", "min_reward": 2000, "max_reward": 5000, "requirements": "SSRF, IDOR, privilege escalation"},
-            {"tier_name": "Medium", "min_reward": 500, "max_reward": 2000, "requirements": "XSS, CSRF, info disclosure"},
+            {
+                "tier_name": "Critical",
+                "min_reward": 5000,
+                "max_reward": 10000,
+                "requirements": "RCE, authentication bypass, data exfiltration at scale",
+            },
+            {
+                "tier_name": "High",
+                "min_reward": 2000,
+                "max_reward": 5000,
+                "requirements": "SSRF, IDOR, privilege escalation",
+            },
+            {
+                "tier_name": "Medium",
+                "min_reward": 500,
+                "max_reward": 2000,
+                "requirements": "XSS, CSRF, info disclosure",
+            },
             {"tier_name": "Low", "min_reward": 0, "max_reward": 500, "requirements": "Minor info disclosure"},
         ],
         "endpoints": [
@@ -207,8 +293,18 @@ PROGRAMS = [
         "orion_score": 8.3,
         "priority": "high",
         "tiers": [
-            {"tier_name": "Critical", "min_reward": 5000, "max_reward": 10000, "requirements": "RCE on core, authentication bypass"},
-            {"tier_name": "High", "min_reward": 2000, "max_reward": 5000, "requirements": "SQLi, privilege escalation, XSS on core"},
+            {
+                "tier_name": "Critical",
+                "min_reward": 5000,
+                "max_reward": 10000,
+                "requirements": "RCE on core, authentication bypass",
+            },
+            {
+                "tier_name": "High",
+                "min_reward": 2000,
+                "max_reward": 5000,
+                "requirements": "SQLi, privilege escalation, XSS on core",
+            },
             {"tier_name": "Medium", "min_reward": 500, "max_reward": 2000, "requirements": "XSS, CSRF, IDOR"},
             {"tier_name": "Low", "min_reward": 0, "max_reward": 500, "requirements": "Info disclosure, open redirect"},
         ],
@@ -238,9 +334,24 @@ PROGRAMS = [
         "orion_score": 8.0,
         "priority": "high",
         "tiers": [
-            {"tier_name": "Critical", "min_reward": 10000, "max_reward": 20000, "requirements": "RCE, auth bypass affecting multiple users, data exfiltration"},
-            {"tier_name": "High", "min_reward": 3000, "max_reward": 10000, "requirements": "SSRF, IDOR on reports, privilege escalation"},
-            {"tier_name": "Medium", "min_reward": 500, "max_reward": 3000, "requirements": "XSS, CSRF, limited info disclosure"},
+            {
+                "tier_name": "Critical",
+                "min_reward": 10000,
+                "max_reward": 20000,
+                "requirements": "RCE, auth bypass affecting multiple users, data exfiltration",
+            },
+            {
+                "tier_name": "High",
+                "min_reward": 3000,
+                "max_reward": 10000,
+                "requirements": "SSRF, IDOR on reports, privilege escalation",
+            },
+            {
+                "tier_name": "Medium",
+                "min_reward": 500,
+                "max_reward": 3000,
+                "requirements": "XSS, CSRF, limited info disclosure",
+            },
             {"tier_name": "Low", "min_reward": 0, "max_reward": 500, "requirements": "Minor design issues"},
         ],
         "endpoints": [
@@ -561,7 +672,12 @@ PIPELINE_RUNS = [
     {"current_state": "completed", "quality_score": 0.87, "target_idx": 1},
     {"current_state": "running", "quality_score": 0.45, "target_idx": 2},
     {"current_state": "completed", "quality_score": 0.79, "target_idx": 3},
-    {"current_state": "failed", "quality_score": 0.0, "target_idx": 4, "error_message": "Timeout en escaneo de GraphQL schema — endpoint no responde"},
+    {
+        "current_state": "failed",
+        "quality_score": 0.0,
+        "target_idx": 4,
+        "error_message": "Timeout en escaneo de GraphQL schema — endpoint no responde",
+    },
     {"current_state": "completed", "quality_score": 0.88, "target_idx": 5},
     {"current_state": "pending", "quality_score": 0.0, "target_idx": 0},
     {"current_state": "completed", "quality_score": 0.95, "target_idx": 1},
@@ -571,44 +687,110 @@ PIPELINE_RUNS = [
 # ── INVESTIGATIONS ───────────────────────────────────────────────────────
 
 INVESTIGATIONS = [
-    {"name": "Discord SQLi Discovery", "status": "active", "target_idx": 1,
-     "tags": json.dumps(["sql_injection", "discord", "critical"]),
-     "notes": "Investigando CWE-89 en endpoint /api/v9/discovery/categories. Se encontró inyección potencial en parámetro `category_name`. Pendiente de validación manual."},
-    {"name": "Shoplfy SSRF Webhook", "status": "active", "target_idx": 0,
-     "tags": json.dumps(["ssrf", "shopfiy", "cloud_metadata"]),
-     "notes": "Verificando SSRF en endpoint de webhooks de fulfillment. Probando con metadata.google.internal y 169.254.169.254."},
-    {"name": "Slack Apps Manifest SSRF", "status": "paused", "target_idx": 3,
-     "tags": json.dumps(["ssrf", "slack", "manifest"]),
-     "notes": "Slack corrigió parcialmente el endpoint /api/apps.manifest.create. Esperando nueva versión del endpoint."},
-    {"name": "WordPess XML-RPC SSRF", "status": "active", "target_idx": 4,
-     "tags": json.dumps(["ssrf", "wordpess", "xmlrpc"]),
-     "notes": "Pingback.ping SSRF confirmado. Preparando reporte para HackerOne."},
+    {
+        "name": "Discord SQLi Discovery",
+        "status": "active",
+        "target_idx": 1,
+        "tags": json.dumps(["sql_injection", "discord", "critical"]),
+        "notes": "Investigando CWE-89 en endpoint /api/v9/discovery/categories. Se encontró inyección potencial en parámetro `category_name`. Pendiente de validación manual.",
+    },
+    {
+        "name": "Shoplfy SSRF Webhook",
+        "status": "active",
+        "target_idx": 0,
+        "tags": json.dumps(["ssrf", "shopfiy", "cloud_metadata"]),
+        "notes": "Verificando SSRF en endpoint de webhooks de fulfillment. Probando con metadata.google.internal y 169.254.169.254.",
+    },
+    {
+        "name": "Slack Apps Manifest SSRF",
+        "status": "paused",
+        "target_idx": 3,
+        "tags": json.dumps(["ssrf", "slack", "manifest"]),
+        "notes": "Slack corrigió parcialmente el endpoint /api/apps.manifest.create. Esperando nueva versión del endpoint.",
+    },
+    {
+        "name": "WordPess XML-RPC SSRF",
+        "status": "active",
+        "target_idx": 4,
+        "tags": json.dumps(["ssrf", "wordpess", "xmlrpc"]),
+        "notes": "Pingback.ping SSRF confirmado. Preparando reporte para HackerOne.",
+    },
 ]
 
 # ── TASKS ────────────────────────────────────────────────────────────────
 
 TASKS = [
-    {"title": "Validar manualmente SQLi en Discord", "description": "Ejecutar consultas SQL de prueba contra discovery/categories y verificar respuesta", "status": "pending", "priority": "critical"},
-    {"title": "Redactar reporte SSRF WordPess", "description": "Incluir PoC con pingback.ping a webhook propio y captura de request", "status": "in_progress", "priority": "high"},
-    {"title": "Revisar logs de pipeline GitLab", "description": "Verificar si masked variables se exponen en jobs recientes", "status": "pending", "priority": "medium"},
-    {"title": "Actualizar alcance de HackerOne", "description": "Revisar cambios en scope document después de la última notificación", "status": "completed", "priority": "low"},
-    {"title": "Probar rate limiting en GraphQL de Shoplfy", "description": "Enviar 1000 mutations en 10 segundos y medir respuesta", "status": "pending", "priority": "high"},
-    {"title": "Configurar webhook de prueba para SSRF", "description": "Crear listener público para capturar requests de servidores", "status": "completed", "priority": "medium"},
+    {
+        "title": "Validar manualmente SQLi en Discord",
+        "description": "Ejecutar consultas SQL de prueba contra discovery/categories y verificar respuesta",
+        "status": "pending",
+        "priority": "critical",
+    },
+    {
+        "title": "Redactar reporte SSRF WordPess",
+        "description": "Incluir PoC con pingback.ping a webhook propio y captura de request",
+        "status": "in_progress",
+        "priority": "high",
+    },
+    {
+        "title": "Revisar logs de pipeline GitLab",
+        "description": "Verificar si masked variables se exponen en jobs recientes",
+        "status": "pending",
+        "priority": "medium",
+    },
+    {
+        "title": "Actualizar alcance de HackerOne",
+        "description": "Revisar cambios en scope document después de la última notificación",
+        "status": "completed",
+        "priority": "low",
+    },
+    {
+        "title": "Probar rate limiting en GraphQL de Shoplfy",
+        "description": "Enviar 1000 mutations en 10 segundos y medir respuesta",
+        "status": "pending",
+        "priority": "high",
+    },
+    {
+        "title": "Configurar webhook de prueba para SSRF",
+        "description": "Crear listener público para capturar requests de servidores",
+        "status": "completed",
+        "priority": "medium",
+    },
 ]
 
 # ── QUICK WINS ───────────────────────────────────────────────────────────
 
 QUICK_WINS = [
-    {"title": "WordPess User Enumeration via REST API", "impact": "high", "target_idx": 4,
-     "description": "GET /wp-json/wp/v2/users — devuelve slugs y display names. No requiere auth. Ideal para informe rápido."},
-    {"title": "Shoplfy GraphQL Introspection", "impact": "medium", "target_idx": 0,
-     "description": "GraphQL Admin API con introspection habilitada. Se puede extraer schema completo."},
-    {"title": "HackerOne Security.txt Analysis", "impact": "low", "target_idx": 5,
-     "description": "Revisar /.well-known/security.txt por campos desactualizados o redirecciones."},
-    {"title": "GitLab Public Projects Enumeration", "impact": "medium", "target_idx": 2,
-     "description": "GET /api/v4/projects sin autenticación devuelve proyectos públicos con metadatos útiles."},
-    {"title": "Discord Guild Metadata Extraction", "impact": "low", "target_idx": 1,
-     "description": "Guilds públicos exponen member_count, presence_count, channel count."},
+    {
+        "title": "WordPess User Enumeration via REST API",
+        "impact": "high",
+        "target_idx": 4,
+        "description": "GET /wp-json/wp/v2/users — devuelve slugs y display names. No requiere auth. Ideal para informe rápido.",
+    },
+    {
+        "title": "Shoplfy GraphQL Introspection",
+        "impact": "medium",
+        "target_idx": 0,
+        "description": "GraphQL Admin API con introspection habilitada. Se puede extraer schema completo.",
+    },
+    {
+        "title": "HackerOne Security.txt Analysis",
+        "impact": "low",
+        "target_idx": 5,
+        "description": "Revisar /.well-known/security.txt por campos desactualizados o redirecciones.",
+    },
+    {
+        "title": "GitLab Public Projects Enumeration",
+        "impact": "medium",
+        "target_idx": 2,
+        "description": "GET /api/v4/projects sin autenticación devuelve proyectos públicos con metadatos útiles.",
+    },
+    {
+        "title": "Discord Guild Metadata Extraction",
+        "impact": "low",
+        "target_idx": 1,
+        "description": "Guilds públicos exponen member_count, presence_count, channel count.",
+    },
 ]
 
 # ── SCAN RUNS ────────────────────────────────────────────────────────────
@@ -628,66 +810,159 @@ SCAN_RUNS = [
 # ── MEMORY RECORDS ─────────────────────────────────────────────────────
 
 MEMORY_RECORDS = [
-    ("ssrf_patterns", "ssrf_webhook_urls", json.dumps({"pattern": "webhook/callback/pingback URLs", "count": 89, "platforms": ["shopfiy", "slack", "wordpess", "discord"]})),
-    ("graphql_introspection", "introspection_active", json.dumps({"pattern": "GraphQL introspection enabled on production", "count": 47, "platforms": ["shopfiy", "hackerone"]})),
-    ("auth_bypass", "mass_assignment_api", json.dumps({"pattern": "Mass assignment in REST APIs", "count": 31, "platforms": ["shopfiy", "gitlab"]})),
-    ("idor_patterns", "incremental_id_enumerations", json.dumps({"pattern": "Incremental numeric IDs in REST endpoints", "count": 63, "platforms": ["shopfiy", "gitlab", "hackerone"]})),
-    ("xss_patterns", "stored_xss_markdown", json.dumps({"pattern": "Stored XSS in markdown/MR descriptions", "count": 23, "platforms": ["gitlab", "hackerone"]})),
-    ("crypto_failures", "hardcoded_secrets", json.dumps({"pattern": "Hardcoded/default secrets in plugins", "count": 12, "platforms": ["wordpess"]})),
-    ("auth_failures", "missing_rate_limiting", json.dumps({"pattern": "Missing rate limiting on auth endpoints", "count": 56, "platforms": ["discord", "shopfiy"]})),
-    ("info_disclosure", "user_enumeration", json.dumps({"pattern": "User enumeration via public REST endpoints", "count": 78, "platforms": ["wordpess", "gitlab"]})),
-    ("tech_profiles", "rails_api_patterns", json.dumps({"pattern": "Ruby on Rails JSON API common patterns", "count": 95, "platforms": ["shopfiy", "gitlab", "hackerone"]})),
+    (
+        "ssrf_patterns",
+        "ssrf_webhook_urls",
+        json.dumps(
+            {
+                "pattern": "webhook/callback/pingback URLs",
+                "count": 89,
+                "platforms": ["shopfiy", "slack", "wordpess", "discord"],
+            }
+        ),
+    ),
+    (
+        "graphql_introspection",
+        "introspection_active",
+        json.dumps(
+            {
+                "pattern": "GraphQL introspection enabled on production",
+                "count": 47,
+                "platforms": ["shopfiy", "hackerone"],
+            }
+        ),
+    ),
+    (
+        "auth_bypass",
+        "mass_assignment_api",
+        json.dumps({"pattern": "Mass assignment in REST APIs", "count": 31, "platforms": ["shopfiy", "gitlab"]}),
+    ),
+    (
+        "idor_patterns",
+        "incremental_id_enumerations",
+        json.dumps(
+            {
+                "pattern": "Incremental numeric IDs in REST endpoints",
+                "count": 63,
+                "platforms": ["shopfiy", "gitlab", "hackerone"],
+            }
+        ),
+    ),
+    (
+        "xss_patterns",
+        "stored_xss_markdown",
+        json.dumps(
+            {"pattern": "Stored XSS in markdown/MR descriptions", "count": 23, "platforms": ["gitlab", "hackerone"]}
+        ),
+    ),
+    (
+        "crypto_failures",
+        "hardcoded_secrets",
+        json.dumps({"pattern": "Hardcoded/default secrets in plugins", "count": 12, "platforms": ["wordpess"]}),
+    ),
+    (
+        "auth_failures",
+        "missing_rate_limiting",
+        json.dumps(
+            {"pattern": "Missing rate limiting on auth endpoints", "count": 56, "platforms": ["discord", "shopfiy"]}
+        ),
+    ),
+    (
+        "info_disclosure",
+        "user_enumeration",
+        json.dumps(
+            {"pattern": "User enumeration via public REST endpoints", "count": 78, "platforms": ["wordpess", "gitlab"]}
+        ),
+    ),
+    (
+        "tech_profiles",
+        "rails_api_patterns",
+        json.dumps(
+            {
+                "pattern": "Ruby on Rails JSON API common patterns",
+                "count": 95,
+                "platforms": ["shopfiy", "gitlab", "hackerone"],
+            }
+        ),
+    ),
 ]
 
 # ── FINANCIAL METRICS (ALL ZERO - honest) ───────────────────────────────
 
+
 def make_financial_metrics():
     metrics = []
-    periods = ["2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09"]
+    periods = [
+        "2024-10",
+        "2024-11",
+        "2024-12",
+        "2025-01",
+        "2025-02",
+        "2025-03",
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+    ]
     for _i, period in enumerate(periods):
-        metrics.append({
-            "metric_type": "usd_earned",
-            "dimension": "all",
-            "value": 0.0,
-            "period": period,
-        })
-        metrics.append({
-            "metric_type": "usd_per_hour",
-            "dimension": "all",
-            "value": 0.0,
-            "period": period,
-        })
-        metrics.append({
-            "metric_type": "hours_spent",
-            "dimension": "all",
-            "value": 0.0,
-            "period": period,
-        })
-        metrics.append({
-            "metric_type": "reports_submitted",
-            "dimension": "all",
-            "value": 0.0,
-            "period": period,
-        })
-        metrics.append({
-            "metric_type": "reports_accepted",
-            "dimension": "all",
-            "value": 0.0,
-            "period": period,
-        })
+        metrics.append(
+            {
+                "metric_type": "usd_earned",
+                "dimension": "all",
+                "value": 0.0,
+                "period": period,
+            }
+        )
+        metrics.append(
+            {
+                "metric_type": "usd_per_hour",
+                "dimension": "all",
+                "value": 0.0,
+                "period": period,
+            }
+        )
+        metrics.append(
+            {
+                "metric_type": "hours_spent",
+                "dimension": "all",
+                "value": 0.0,
+                "period": period,
+            }
+        )
+        metrics.append(
+            {
+                "metric_type": "reports_submitted",
+                "dimension": "all",
+                "value": 0.0,
+                "period": period,
+            }
+        )
+        metrics.append(
+            {
+                "metric_type": "reports_accepted",
+                "dimension": "all",
+                "value": 0.0,
+                "period": period,
+            }
+        )
     # Per-program metrics (all zero)
     for name in [p["name"] for p in PROGRAMS]:
         for period in ["2025-Q3", "all_time"]:
-            metrics.append({
-                "metric_type": "usd_per_program",
-                "dimension": name,
-                "value": 0.0,
-                "period": period,
-            })
+            metrics.append(
+                {
+                    "metric_type": "usd_per_program",
+                    "dimension": name,
+                    "value": 0.0,
+                    "period": period,
+                }
+            )
     return metrics
 
 
 # ── MAIN ─────────────────────────────────────────────────────────────────
+
 
 def seed():
     db.init_db()
@@ -700,6 +975,7 @@ def seed():
         # ── USER ──
         import hashlib
         import os as _os
+
         salt = _os.urandom(32)
         dk = hashlib.pbkdf2_hmac("sha256", b"cateye2024", salt, 600_000)
         password_hash = salt.hex() + ":" + dk.hex()
@@ -866,9 +1142,19 @@ def seed():
                 endpoint_id=finding.endpoint_id,
                 status=vstatus,
                 confidence=json.dumps({"overall": vconf, "rule_match": vconf + 0.1, "evidence": vconf - 0.05}),
-                reproducibility_score=json.dumps({"attempt_1": "consistent", "attempt_2": "consistent", "attempt_3": "partial"}),
-                validation_report=json.dumps({"passed_rules": ["sqli_detected", "param_tampering"], "failed_rules": [], "details": f"Validation pipeline confirmed {finding.title}"}),
-                confidence_details=json.dumps({"method": "automated_validation", "signals": vconf * 10, "noise_floor": 0.2}),
+                reproducibility_score=json.dumps(
+                    {"attempt_1": "consistent", "attempt_2": "consistent", "attempt_3": "partial"}
+                ),
+                validation_report=json.dumps(
+                    {
+                        "passed_rules": ["sqli_detected", "param_tampering"],
+                        "failed_rules": [],
+                        "details": f"Validation pipeline confirmed {finding.title}",
+                    }
+                ),
+                confidence_details=json.dumps(
+                    {"method": "automated_validation", "signals": vconf * 10, "noise_floor": 0.2}
+                ),
                 evidence_links=json.dumps([f"evidence_{fi}_1", f"evidence_{fi}_2"]),
                 reason=f"Automated validation result for {finding.title}. Status: {vstatus}. Confidence: {vconf:.0%}.",
                 retry_count=3,
@@ -895,7 +1181,9 @@ def seed():
                     request_body=json.dumps({"query": f"test payload for {finding.title}"}),
                     auth_label="user_session",
                     response_status=200 if verdict.status == "confirmed" else 403,
-                    response_headers=json.dumps({"content-type": "application/json", "x-request-id": f"req_{fi}_{attempt}"}),
+                    response_headers=json.dumps(
+                        {"content-type": "application/json", "x-request-id": f"req_{fi}_{attempt}"}
+                    ),
                     response_body=json.dumps({"status": verdict.status, "details": "simulated response for demo"}),
                     response_body_hash=f"hash_{fi}_{attempt}",
                     status_match="true" if verdict.status == "confirmed" else "false",
@@ -907,16 +1195,20 @@ def seed():
 
             # Create report if verdict is confirmed
             if verdict.status == "confirmed" and prog_idx < 3:
-                reports_data.append({
-                    "finding": finding,
-                    "verdict": verdict,
-                    "program_name": PROGRAMS[prog_idx]["name"],
-                    "program": PROGRAMS[prog_idx],
-                    "prog_idx": prog_idx,
-                })
+                reports_data.append(
+                    {
+                        "finding": finding,
+                        "verdict": verdict,
+                        "program_name": PROGRAMS[prog_idx]["name"],
+                        "program": PROGRAMS[prog_idx],
+                        "prog_idx": prog_idx,
+                    }
+                )
 
         session.commit()
-        log.info(f"{len(verdicts)} verdicts creados ({sum(1 for v in verdicts if v.status == 'confirmed')} confirmed, {sum(1 for v in verdicts if v.status == 'inconclusive')} inconclusive).")
+        log.info(
+            f"{len(verdicts)} verdicts creados ({sum(1 for v in verdicts if v.status == 'confirmed')} confirmed, {sum(1 for v in verdicts if v.status == 'inconclusive')} inconclusive)."
+        )
 
         # ── REPORTS ──
         report_titles = [
@@ -963,11 +1255,11 @@ def seed():
 {sev.upper()}
 
 ## CWE
-{finding.title.split(' — ')[0] if ' — ' in finding.title else 'N/A'}
+{finding.title.split(" — ")[0] if " — " in finding.title else "N/A"}
 
 ## Pasos para reproducir
 1. Autenticarse en {pname.lower()}.com
-2. Navegar al endpoint {finding.title.split(' — ')[0] if ' — ' in finding.title else 'N/A'}
+2. Navegar al endpoint {finding.title.split(" — ")[0] if " — " in finding.title else "N/A"}
 3. Enviar payload de prueba
 4. Observar la respuesta
 
@@ -988,10 +1280,12 @@ Reporte generado automáticamente por CATEYE pipeline. No enviado.
                 currency="USD",
                 evidence_count=2,
                 notes="Reporte demo · preloaded. Referencia a programa real, contenido generado.",
-                timeline=json.dumps([
-                    {"date": (NOW - timedelta(days=2)).isoformat(), "event": "Report created by CATEYE pipeline"},
-                    {"date": (NOW - timedelta(days=1)).isoformat(), "event": "Finding validated"},
-                ]),
+                timeline=json.dumps(
+                    [
+                        {"date": (NOW - timedelta(days=2)).isoformat(), "event": "Report created by CATEYE pipeline"},
+                        {"date": (NOW - timedelta(days=1)).isoformat(), "event": "Finding validated"},
+                    ]
+                ),
                 attachments="[]",
             )
             session.add(report)
@@ -1039,6 +1333,7 @@ Reporte generado automáticamente por CATEYE pipeline. No enviado.
         # ── PIPELINE RUNS ──
         for prun in PIPELINE_RUNS:
             import uuid
+
             pipeline = models.PipelineRun(
                 target_id=targets[prun["target_idx"]].id,
                 correlation_id=str(uuid.uuid4()),

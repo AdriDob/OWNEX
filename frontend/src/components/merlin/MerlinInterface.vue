@@ -581,7 +581,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #6366f1 0%, #9500ff 100%);
+  background: linear-gradient(135deg, #9CA3AF 0%, #9500ff 100%);
   border-radius: 50%;
 }
 
@@ -771,8 +771,8 @@ onMounted(() => {
 
 .message-merlin .message-content {
   background: rgba(99, 102, 241, 0.2);
-  border: 2px solid #6366f1;
-  border-left: 4px solid #6366f1;
+  border: 2px solid #9CA3AF;
+  border-left: 4px solid #9CA3AF;
 }
 
 .message-user .message-content {
@@ -803,7 +803,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #6366f1 0%, #9500ff 100%);
+  background: linear-gradient(135deg, #9CA3AF 0%, #9500ff 100%);
   border-radius: 50%;
   font-size: 1rem;
   z-index: 1;
@@ -869,7 +869,7 @@ onMounted(() => {
   content: "▸";
   position: absolute;
   left: 0;
-  color: #6366f1;
+  color: #9CA3AF;
 }
 
 .prompt {
@@ -887,7 +887,7 @@ onMounted(() => {
 .typing-dot {
   width: 8px;
   height: 8px;
-  background: #6366f1;
+  background: #9CA3AF;
   border-radius: 50%;
   animation: typingBounce 1.4s ease-in-out infinite;
 }
@@ -936,7 +936,7 @@ onMounted(() => {
 }
 
 .input-retro-border:focus-within {
-  border-color: #6366f1;
+  border-color: #9CA3AF;
   box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
 }
 
@@ -969,7 +969,7 @@ onMounted(() => {
 }
 
 .retro-send-btn:hover:not(:disabled) {
-  border-color: #6366f1;
+  border-color: #9CA3AF;
   background: rgba(99, 102, 241, 0.4);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
@@ -1095,7 +1095,7 @@ onMounted(() => {
 
 .note-item:hover,
 .memory-item:hover {
-  border-color: #6366f1;
+  border-color: #9CA3AF;
   background: rgba(99, 102, 241, 0.1);
   transform: translateX(4px);
 }
@@ -1143,7 +1143,7 @@ onMounted(() => {
 }
 
 .quick-action-btn:hover {
-  border-color: #6366f1;
+  border-color: #9CA3AF;
   background: rgba(99, 102, 241, 0.1);
   transform: translateX(4px);
 }
@@ -1292,7 +1292,7 @@ onMounted(() => {
 .retro-input:focus,
 .retro-select:focus,
 .retro-textarea:focus {
-  border-color: #6366f1;
+  border-color: #9CA3AF;
   box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
 }
 
@@ -1304,7 +1304,7 @@ onMounted(() => {
 }
 
 .setting-checkbox input {
-  accent-color: #6366f1;
+  accent-color: #9CA3AF;
 }
 
 .setting-checkbox span {
@@ -1321,12 +1321,12 @@ onMounted(() => {
 }
 
 .retro-primary {
-  border-color: #6366f1;
+  border-color: #9CA3AF;
   background: rgba(99, 102, 241, 0.2);
 }
 
 .retro-primary:hover {
-  border-color: #6366f1;
+  border-color: #9CA3AF;
   background: rgba(99, 102, 241, 0.4);
 }
 

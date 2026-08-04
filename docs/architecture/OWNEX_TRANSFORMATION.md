@@ -201,7 +201,7 @@ Transformed Approach:
 strategic_direction = {
     "monthly_goals": ["Dev bounty for X corp"],
     "priorities": ["High value tasks", "Fast payouts"],
-    "thresholds": {"min_value": "$500", "max_risk": "low"}
+    "thresholds": {"min_value": "$500", "max_risk": "low"},
 }
 
 # System coordinates opportunities for approval

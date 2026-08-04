@@ -29,6 +29,7 @@ RECOMMENDATIONS_FILE = WEALTH_DATA_PATH / "recommendations.json"
 
 class IncomeSource(StrEnum):
     """Fuentes de ingresos."""
+
     BUG_BOUNTY = "bug_bounty"
     DEV_BOUNTY = "dev_bounty"
     FREELANCE = "freelance"
@@ -39,6 +40,7 @@ class IncomeSource(StrEnum):
 
 class ExpenseCategory(StrEnum):
     """Categorías de gastos."""
+
     TOOLS = "tools"  # Software, servicios
     HARDWARE = "hardware"  # Hardware, equipos
     EDUCATION = "education"  # Cursos, libros
@@ -51,6 +53,7 @@ class ExpenseCategory(StrEnum):
 @dataclass
 class IncomeEntry:
     """Entrada de ingreso."""
+
     entry_id: str
     source: IncomeSource
     amount: Decimal
@@ -65,6 +68,7 @@ class IncomeEntry:
 @dataclass
 class ExpenseEntry:
     """Entrada de gasto."""
+
     entry_id: str
     category: ExpenseCategory
     amount: Decimal
@@ -77,6 +81,7 @@ class ExpenseEntry:
 @dataclass
 class FinancialGoal:
     """Meta financiera."""
+
     goal_id: str
     title: str
     target_amount: Decimal
@@ -90,6 +95,7 @@ class FinancialGoal:
 @dataclass
 class FinancialRecommendation:
     """Recomendación financiera."""
+
     recommendation_id: str
     title: str
     description: str
@@ -185,7 +191,9 @@ class WealthAssistant:
         except Exception as exc:
             logger.error("Error saving wealth data: %s", exc)
 
-    def add_income(self, source: IncomeSource, amount: Decimal, currency: str, platform: str, description: str, account_id: str) -> IncomeEntry:
+    def add_income(
+        self, source: IncomeSource, amount: Decimal, currency: str, platform: str, description: str, account_id: str
+    ) -> IncomeEntry:
         """Agregar ingreso."""
         entry_id = f"income_{datetime.now().timestamp()}"
 
@@ -205,7 +213,9 @@ class WealthAssistant:
         self._generate_recommendations()
         return entry
 
-    def add_expense(self, category: ExpenseCategory, amount: Decimal, currency: str, description: str, is_deductible: bool = False) -> ExpenseEntry:
+    def add_expense(
+        self, category: ExpenseCategory, amount: Decimal, currency: str, description: str, is_deductible: bool = False
+    ) -> ExpenseEntry:
         """Agregar gasto."""
         entry_id = f"expense_{datetime.now().timestamp()}"
 
@@ -224,7 +234,9 @@ class WealthAssistant:
         self._generate_recommendations()
         return entry
 
-    def create_goal(self, title: str, target_amount: Decimal, currency: str, deadline: datetime, category: str) -> FinancialGoal:
+    def create_goal(
+        self, title: str, target_amount: Decimal, currency: str, deadline: datetime, category: str
+    ) -> FinancialGoal:
         """Crear meta financiera."""
         goal_id = f"goal_{datetime.now().timestamp()}"
 
@@ -259,14 +271,12 @@ class WealthAssistant:
         """Obtener resumen mensual."""
         # Filtrar ingresos del mes
         month_income = [
-            entry for entry in self.income.values()
-            if entry.date.year == year and entry.date.month == month
+            entry for entry in self.income.values() if entry.date.year == year and entry.date.month == month
         ]
 
         # Filtrar gastos del mes
         month_expenses = [
-            entry for entry in self.expenses.values()
-            if entry.date.year == year and entry.date.month == month
+            entry for entry in self.expenses.values() if entry.date.year == year and entry.date.month == month
         ]
 
         total_income = sum(entry.amount for entry in month_income)
@@ -320,15 +330,9 @@ class WealthAssistant:
 
     def get_tax_prep_summary(self, year: int) -> dict[str, Any]:
         """Obtener resumen para preparación fiscal (Argentina/ARCA friendly)."""
-        year_income = [
-            entry for entry in self.income.values()
-            if entry.date.year == year
-        ]
+        year_income = [entry for entry in self.income.values() if entry.date.year == year]
 
-        year_expenses = [
-            entry for entry in self.expenses.values()
-            if entry.date.year == year and entry.is_deductible
-        ]
+        year_expenses = [entry for entry in self.expenses.values() if entry.date.year == year and entry.is_deductible]
 
         total_income = sum(entry.amount for entry in year_income)
         total_deductible = sum(entry.amount for entry in year_expenses)
@@ -370,10 +374,7 @@ class WealthAssistant:
             )
 
         # Recomendación: Separar porcentaje para impuestos
-        current_year_income = [
-            entry for entry in self.income.values()
-            if entry.date.year == current_date.year
-        ]
+        current_year_income = [entry for entry in self.income.values() if entry.date.year == current_date.year]
         if current_year_income:
             total = sum(entry.amount for entry in current_year_income)
             if total > Decimal("1000"):  # Si tiene más de $1000 en ingresos
@@ -393,12 +394,14 @@ class WealthAssistant:
         """Obtener salud financiera general."""
         current_date = datetime.now()
         current_month_income = [
-            entry for entry in self.income.values()
+            entry
+            for entry in self.income.values()
             if entry.date.month == current_date.month and entry.date.year == current_date.year
         ]
 
         current_month_expenses = [
-            entry for entry in self.expenses.values()
+            entry
+            for entry in self.expenses.values()
             if entry.date.month == current_date.month and entry.date.year == current_date.year
         ]
 
@@ -408,7 +411,8 @@ class WealthAssistant:
 
         # Metas próximas a vencer
         upcoming_goals = [
-            goal for goal in self.goals.values()
+            goal
+            for goal in self.goals.values()
             if goal.deadline > current_date and goal.deadline < current_date + timedelta(days=30)
         ]
 

@@ -39,7 +39,9 @@ class FingerprintDeduplicator(KnowledgeDeduplicator):
         }
 
         merged["metadata"] = merged_meta
-        merged["dedup_source_ids"] = sorted(set(existing.get("dedup_source_ids", []) + incoming.get("dedup_source_ids", [])))
+        merged["dedup_source_ids"] = sorted(
+            set(existing.get("dedup_source_ids", []) + incoming.get("dedup_source_ids", []))
+        )
 
         merged["version"] = max(int(existing.get("version", 1)), int(incoming.get("version", 1))) + 1
         return merged

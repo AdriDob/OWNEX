@@ -22,21 +22,20 @@ TASK_SYSTEM = "system"
 class ProviderRouter:
     """Routes queries to the best available LLM provider based on task type.
 
-    Priority chain:
-      code -> Devin (free AI agent) -> OpenCode (CLI)
-      reason -> Devin (free AI agent) -> FCC (Claude via proxy)
-      chat -> Devin (free AI agent) -> Ollama (local, fast)
+    Priority chain (updated with NVIDIA as first-class provider):
+      code -> Devin (free AI agent) -> OpenCode (CLI) -> FCC (Claude via proxy) -> NVIDIA -> Ollama
+      reason -> Devin (free AI agent) -> FCC (Claude via proxy) -> NVIDIA -> Ollama
+      chat -> Devin (free AI agent) -> Ollama (local, fast) -> NVIDIA -> FCC
       system -> deterministic (internal)
-      # Added NVIDIA as an additional provider
     """
 
     def __init__(self) -> None:
         self._providers: list[BaseProvider] = [
             DevinProvider(),  # Free AI agent with tools
-            FCCProvider(),
-            OllamaProvider(),
             OpenCodeProvider(),
-            NvidiaProvider()
+            FCCProvider(),
+            NvidiaProvider(),
+            OllamaProvider(),
         ]
         self._health_cache: dict[str, bool] = {}
 
@@ -60,19 +59,27 @@ class ProviderRouter:
             return await provider.chat(messages, **kwargs)
         logger.warning("Devin unavailable, falling back to other providers")
 
-        # Original fallback chain
-        if task_type == TASK_CODE and (provider := self.get_provider("opencode")):
-            if await provider.check():
-                return await provider.chat(messages, **kwargs)
-            logger.warning("OpenCode unavailable, falling back to FCC")
+        # Task-specific routing with proper fallback chain
+        if task_type == TASK_CODE:
+            # code -> OpenCode -> FCC -> NVIDIA -> Ollama
+            for provider_name in ["opencode", "fcc", "nvidia", "ollama"]:
+                if (provider := self.get_provider(provider_name)) and await provider.check():
+                    return await provider.chat(messages, **kwargs)
+                logger.warning("%s unavailable, trying next", provider_name)
 
-        if task_type in (TASK_REASON, TASK_CODE) and (provider := self.get_provider("fcc")):
-            if await provider.check():
-                return await provider.chat(messages, **kwargs)
-            logger.warning("FCC unavailable, falling back to Ollama")
+        elif task_type == TASK_REASON:
+            # reason -> FCC -> NVIDIA -> OpenCode -> Ollama
+            for provider_name in ["fcc", "nvidia", "opencode", "ollama"]:
+                if (provider := self.get_provider(provider_name)) and await provider.check():
+                    return await provider.chat(messages, **kwargs)
+                logger.warning("%s unavailable, trying next", provider_name)
 
-        if provider := self.get_provider("ollama"):
-            return await provider.chat(messages, **kwargs)
+        else:
+            # chat/default -> Ollama -> NVIDIA -> FCC -> OpenCode
+            for provider_name in ["ollama", "nvidia", "fcc", "opencode"]:
+                if (provider := self.get_provider(provider_name)) and await provider.check():
+                    return await provider.chat(messages, **kwargs)
+                logger.warning("%s unavailable, trying next", provider_name)
 
         return ProviderResponse(content="No provider available", provider="none", error="all providers unavailable")
 
@@ -86,6 +93,12 @@ class ProviderRouter:
             and await provider.check()
             and hasattr(provider, "chat_stream")
         ):
+            async for token in await provider.chat_stream(messages, **kwargs):  # type: ignore
+                yield token
+            return
+
+        # Try NVIDIA for streaming (reasoning models)
+        if (provider := self.get_provider("nvidia")) and await provider.check() and hasattr(provider, "chat_stream"):
             async for token in await provider.chat_stream(messages, **kwargs):  # type: ignore
                 yield token
             return

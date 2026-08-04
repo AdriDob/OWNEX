@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from cores.observability import record, timer
+from cores.opportunity.feedback import FeedbackOutcome, get_feedback_loop
 from cores.opportunity.history import get_history_manager
 from cores.opportunity.models import (
     EVHRating,
@@ -174,10 +175,19 @@ class OpportunityEngine:
 
     def _score_all(self, opps: list[Opportunity], use_layered: bool) -> list[Opportunity]:
         scored: list[Opportunity] = []
+        feedback_loop = get_feedback_loop()
+
         for opp in opps:
             with timer("opportunity.score"):
                 try:
-                    s = compute_layered_score(opp)
+                    # Get personalized multipliers from feedback loop
+                    feedback_multipliers = feedback_loop.get_personalized_multipliers(
+                        category=opp.category,
+                        platform=opp.source.name if opp.source else "unknown",
+                        technology_tags=opp.technology_tags,
+                    )
+
+                    s = compute_layered_score(opp, feedback_multipliers=feedback_multipliers)
                     priority = _score_to_priority(s.overall)
                     scored.append(
                         Opportunity(
@@ -341,6 +351,61 @@ class OpportunityEngine:
             }
             for o in self.get_all()[:limit]
         ]
+
+    # ── Feedback Loop ───────────────────────────────────────────────
+
+    def record_feedback(
+        self,
+        opportunity_id: str,
+        outcome: str,
+        category: str,
+        platform: str,
+        technology_tags: list[str],
+        estimated_payout: float = 0.0,
+        actual_payout: float = 0.0,
+        reasoning: str = "",
+    ) -> None:
+        """Record feedback for an opportunity to learn from decisions."""
+        feedback_loop = get_feedback_loop()
+
+        try:
+            outcome_enum = FeedbackOutcome(outcome.lower())
+        except ValueError:
+            logger.warning("Invalid feedback outcome: %s", outcome)
+            return
+
+        feedback_loop.record_feedback(
+            opportunity_id=opportunity_id,
+            outcome=outcome_enum,
+            category=category,
+            platform=platform,
+            technology_tags=technology_tags,
+            estimated_payout=estimated_payout,
+            actual_payout=actual_payout,
+            reasoning=reasoning,
+        )
+
+        # Invalidate recommendations to force re-computation with new feedback
+        self._recommendations = None
+
+    def get_feedback_summary(self) -> dict[str, Any]:
+        """Get summary of all feedback data."""
+        feedback_loop = get_feedback_loop()
+        return feedback_loop.get_feedback_summary()
+
+    def get_feedback_multipliers(
+        self,
+        category: str,
+        platform: str,
+        technology_tags: list[str],
+    ) -> dict[str, float]:
+        """Get personalized multipliers for a specific opportunity context."""
+        feedback_loop = get_feedback_loop()
+        return feedback_loop.get_personalized_multipliers(
+            category=category,
+            platform=platform,
+            technology_tags=technology_tags,
+        )
 
 
 def get_engine() -> OpportunityEngine:

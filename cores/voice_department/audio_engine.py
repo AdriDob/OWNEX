@@ -20,6 +20,7 @@ logger = logging.getLogger("ownex.voice_department.audio_engine")
 
 class AudioEngine(StrEnum):
     """Motores de audio disponibles."""
+
     PIPER = "piper"  # Ya existente, rápida y buena calidad
     KOKORO = "kokoro"  # Alta calidad, más lenta
     XTTS_V2 = "xtts_v2"  # Muy alta calidad, más lenta
@@ -31,6 +32,7 @@ class AudioEngine(StrEnum):
 
 class AudioQuality(StrEnum):
     """Niveles de calidad de audio."""
+
     MINIMAL = "minimal"  # Piper, Whisper base
     STANDARD = "standard"  # Piper, Whisper small
     HIGH = "high"  # Piper, Whisper medium

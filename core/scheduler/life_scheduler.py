@@ -28,6 +28,7 @@ logger = logging.getLogger("orion.life_scheduler")
 
 class JobType(StrEnum):
     """Tipos de jobs que el Life Scheduler puede ejecutar."""
+
     # Bug Bounty (existentes, wrapped)
     BB_DISCOVER = "bb_discover"
     BB_RECON = "bb_recon"
@@ -72,6 +73,7 @@ class JobType(StrEnum):
 @dataclass
 class JobDefinition:
     """Definición declarativa de un job."""
+
     job_type: JobType
     name: str
     description: str
@@ -91,6 +93,7 @@ class JobDefinition:
 @dataclass
 class JobResult:
     """Resultado de ejecución de un job."""
+
     success: bool
     message: str = ""
     data: dict[str, Any] = field(default_factory=dict)
@@ -161,7 +164,10 @@ class LifeScheduler:
         }
         logger.info(
             "[LifeScheduler] Registered job: %s (%s every %ds, priority=%d)",
-            job_def.name, job_def.job_type.value, job_def.interval_seconds, job_def.priority
+            job_def.name,
+            job_def.job_type.value,
+            job_def.interval_seconds,
+            job_def.priority,
         )
 
     def register_executor(self, job_type: JobType, executor: Callable[[], Awaitable[JobResult]]) -> None:
@@ -225,9 +231,7 @@ class LifeScheduler:
                 # Lanzar jobs (respetando max_concurrent)
                 for job_type in ready_jobs:
                     if job_type not in self._job_tasks or self._job_tasks[job_type].done():
-                        self._job_tasks[job_type] = asyncio.create_task(
-                            self._run_job_once(job_type, "scheduled")
-                        )
+                        self._job_tasks[job_type] = asyncio.create_task(self._run_job_once(job_type, "scheduled"))
 
                 # Limpiar tasks completadas
                 self._cleanup_completed_tasks()
@@ -266,6 +270,7 @@ class LifeScheduler:
 
     def _resolve_dependencies(self, due_jobs: list[JobType]) -> list[JobType]:
         """Ordena jobs por prioridad y dependencias (topological-ish)."""
+
         def sort_key(jt: JobType):
             job = self._jobs[jt]
             deps_satisfied = all(
@@ -304,10 +309,7 @@ class LifeScheduler:
 
         try:
             # Timeout wrapper
-            result = await asyncio.wait_for(
-                job_def.executor(),
-                timeout=job_def.timeout_seconds
-            )
+            result = await asyncio.wait_for(job_def.executor(), timeout=job_def.timeout_seconds)
 
             duration = time.time() - start
             self._last_run[job_type] = time.time()
@@ -320,9 +322,7 @@ class LifeScheduler:
             else:
                 stats["failures"] += 1
             stats["last_duration"] = duration
-            stats["avg_duration"] = (
-                (stats["avg_duration"] * (stats["runs"] - 1) + duration) / stats["runs"]
-            )
+            stats["avg_duration"] = (stats["avg_duration"] * (stats["runs"] - 1) + duration) / stats["runs"]
 
             # Persistir en memoria
             self._mem.store(
@@ -348,12 +348,14 @@ class LifeScheduler:
             logger.info(
                 "[LifeScheduler] %s %s [%s] %.2fs — %s",
                 "✓" if result.success else "✗",
-                job_def.name, run_id, duration, result.message
+                job_def.name,
+                run_id,
+                duration,
+                result.message,
             )
 
         except TimeoutError:
-            logger.error("[LifeScheduler] ✗ %s [%s] TIMEOUT after %ds",
-                        job_def.name, run_id, job_def.timeout_seconds)
+            logger.error("[LifeScheduler] ✗ %s [%s] TIMEOUT after %ds", job_def.name, run_id, job_def.timeout_seconds)
             self._bus.publish(
                 EventType.JOB_FAILED.value,
                 payload={"job_type": job_type.value, "error": "timeout", "run_id": run_id},
@@ -389,7 +391,9 @@ class LifeScheduler:
                     "interval": jd.interval_seconds,
                     "priority": jd.priority,
                     "last_run_ago": now - self._last_run.get(jt, 0) if jt in self._last_run else None,
-                    "next_run_in": max(0, jd.interval_seconds - (now - self._last_run.get(jt, 0))) if jt in self._last_run else 0,
+                    "next_run_in": max(0, jd.interval_seconds - (now - self._last_run.get(jt, 0)))
+                    if jt in self._last_run
+                    else 0,
                     "stats": self._job_stats.get(jt, {}),
                     "tags": jd.tags,
                     "depends_on": [d.value for d in jd.depends_on],
@@ -414,6 +418,7 @@ class LifeScheduler:
 # ── Singleton global ──────────────────────────────────────────────
 
 _life_scheduler: LifeScheduler | None = None
+
 
 def get_life_scheduler() -> LifeScheduler:
     global _life_scheduler

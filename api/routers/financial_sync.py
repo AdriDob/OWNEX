@@ -64,7 +64,9 @@ def sync_status():
             "successful_platforms": last.successful_platforms,
             "total_crypto": last.total_crypto,
             "successful_crypto": last.successful_crypto,
-        } if last else None,
+        }
+        if last
+        else None,
     }
 
 

@@ -41,6 +41,7 @@ REPORT = {
 TARGET_DOMAIN = "testphp.vulnweb.com"
 TARGET_NAME = "AcunetixTest"
 
+
 def log_stage(name, status, detail, data=None):
     entry = {"status": status, "detail": detail, "elapsed_s": round(time.time() - stage_start, 2)}
     if data:
@@ -49,6 +50,7 @@ def log_stage(name, status, detail, data=None):
     icon = "✓" if status == "ok" else "✗" if status == "fail" else "⚠"
     print(f"  {icon} {name}: {detail} ({entry['elapsed_s']}s)")
 
+
 # ── Stage 1: Create Target ────────────────────────────────────────────
 print("\n=== REAL-WORLD VALIDATION ===")
 print(f"Target: {TARGET_DOMAIN} ({TARGET_NAME})")
@@ -56,13 +58,21 @@ print()
 
 stage_start = time.time()
 try:
-    resp = client.post("/api/targets", json={
-        "name": TARGET_NAME,
-        "domain": TARGET_DOMAIN,
-    })
+    resp = client.post(
+        "/api/targets",
+        json={
+            "name": TARGET_NAME,
+            "domain": TARGET_DOMAIN,
+        },
+    )
     if resp.status_code == 200:
         target_id = resp.json()["id"]
-        log_stage("1_create_target", "ok", f"Target #{target_id} created", {"id": target_id, "name": TARGET_NAME, "domain": TARGET_DOMAIN})
+        log_stage(
+            "1_create_target",
+            "ok",
+            f"Target #{target_id} created",
+            {"id": target_id, "name": TARGET_NAME, "domain": TARGET_DOMAIN},
+        )
     else:
         log_stage("1_create_target", "fail", f"HTTP {resp.status_code}: {resp.text}")
         target_id = None
@@ -116,12 +126,17 @@ if target_id:
             data = resp.json()
             hy_total = data["total_hypotheses"]
             by_type = data.get("by_type", {})
-            log_stage("3_hypotheses", "ok", f"{hy_total} hypotheses generated", {
-                "total": hy_total,
-                "by_type": by_type,
-                "top_priority": data["top_priority"]["vulnerability_type"] if data["top_priority"] else None,
-                "top_score": data["top_priority"]["priority_score"] if data["top_priority"] else None,
-            })
+            log_stage(
+                "3_hypotheses",
+                "ok",
+                f"{hy_total} hypotheses generated",
+                {
+                    "total": hy_total,
+                    "by_type": by_type,
+                    "top_priority": data["top_priority"]["vulnerability_type"] if data["top_priority"] else None,
+                    "top_score": data["top_priority"]["priority_score"] if data["top_priority"] else None,
+                },
+            )
             top_hypothesis = data["top_priority"]
         else:
             log_stage("3_hypotheses", "fail", f"HTTP {resp.status_code}: {resp.text}")
@@ -135,19 +150,27 @@ stage_start = time.time()
 if target_id and top_hypothesis:
     try:
         inv_name = f"{top_hypothesis['vulnerability_type']} — {TARGET_NAME}"
-        resp = client.post("/api/investigations", json={
-            "target_id": target_id,
-            "name": inv_name,
-            "notes": f"Promoted from hypothesis: {top_hypothesis['reasoning'][:200]}",
-            "tags": [top_hypothesis["vulnerability_type"], "from_hypothesis"],
-        })
+        resp = client.post(
+            "/api/investigations",
+            json={
+                "target_id": target_id,
+                "name": inv_name,
+                "notes": f"Promoted from hypothesis: {top_hypothesis['reasoning'][:200]}",
+                "tags": [top_hypothesis["vulnerability_type"], "from_hypothesis"],
+            },
+        )
         if resp.status_code == 200:
             inv_id = resp.json()["id"]
-            log_stage("4_investigation", "ok", f"Investigation #{inv_id} created", {
-                "id": inv_id,
-                "name": inv_name,
-                "status": "active",
-            })
+            log_stage(
+                "4_investigation",
+                "ok",
+                f"Investigation #{inv_id} created",
+                {
+                    "id": inv_id,
+                    "name": inv_name,
+                    "status": "active",
+                },
+            )
         else:
             log_stage("4_investigation", "fail", f"HTTP {resp.status_code}: {resp.text}")
             inv_id = None
@@ -165,12 +188,17 @@ if inv_id:
         resp = client.get(f"/api/investigations/{inv_id}/dashboard")
         if resp.status_code == 200:
             dash = resp.json()
-            log_stage("5_dashboard", "ok", "Dashboard loaded", {
-                "pipeline_progress": f"{dash['pipeline']['progress_pct']}%",
-                "confidence": dash["pipeline"]["overall_confidence"],
-                "stages": dash["pipeline"]["stages"],
-                "stats": dash["stats"],
-            })
+            log_stage(
+                "5_dashboard",
+                "ok",
+                "Dashboard loaded",
+                {
+                    "pipeline_progress": f"{dash['pipeline']['progress_pct']}%",
+                    "confidence": dash["pipeline"]["overall_confidence"],
+                    "stages": dash["pipeline"]["stages"],
+                    "stats": dash["stats"],
+                },
+            )
         else:
             log_stage("5_dashboard", "fail", f"HTTP {resp.status_code}: {resp.text}")
     except Exception as e:
@@ -182,12 +210,17 @@ try:
     resp = client.get("/api/reports/generate")
     if resp.status_code == 200:
         report = resp.json()
-        log_stage("6_report", "ok", "Report generated", {
-            "title": report["title"],
-            "findings": report["total_findings"],
-            "estimated_value": report.get("total_estimated_value", 0),
-            "markdown_len": len(report.get("markdown", "")),
-        })
+        log_stage(
+            "6_report",
+            "ok",
+            "Report generated",
+            {
+                "title": report["title"],
+                "findings": report["total_findings"],
+                "estimated_value": report.get("total_estimated_value", 0),
+                "markdown_len": len(report.get("markdown", "")),
+            },
+        )
     else:
         log_stage("6_report", "fail", f"HTTP {resp.status_code}: {resp.text}")
 except Exception as e:
@@ -227,10 +260,15 @@ if target_id:
         resp = client.get("/api/attack-surface")
         if resp.status_code == 200:
             as_data = resp.json()
-            log_stage("9_attack_surface", "ok", "Attack surface loaded", {
-                "clusters": len(as_data.get("clusters", [])),
-                "hot_paths": len(as_data.get("hot_paths", [])),
-            })
+            log_stage(
+                "9_attack_surface",
+                "ok",
+                "Attack surface loaded",
+                {
+                    "clusters": len(as_data.get("clusters", [])),
+                    "hot_paths": len(as_data.get("hot_paths", [])),
+                },
+            )
         else:
             log_stage("9_attack_surface", "fail", f"HTTP {resp.status_code}: {resp.text}")
     except Exception as e:

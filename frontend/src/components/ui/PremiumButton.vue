@@ -18,11 +18,11 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const variantStyles: Record<string, string> = {
-  primary: 'bg-[rgb(0,112,209)]/10 text-[rgb(0,112,209)] border border-[rgb(0,112,209)]/20 hover:bg-[rgb(0,112,209)]/20 hover:border-[rgb(0,112,209)]/40 focus-glow',
-  secondary: 'bg-[rgb(15,17,23)] text-[rgb(240,240,240)] border border-[rgb(26,26,46)] hover:bg-[rgb(16,16,24)] hover:border-[rgb(37,37,64)] focus-glow',
-  ghost: 'text-[rgb(139,139,149)] hover:text-[rgb(240,240,240)] hover:bg-[rgb(15,17,23)]/40',
-  gold: 'bg-[rgb(245,158,11)]/10 text-[rgb(245,158,11)] border border-[rgb(245,158,11)]/20 hover:bg-[rgb(245,158,11)]/20 hover:border-[rgb(245,158,11)]/40 focus-glow',
-  outline: 'bg-transparent text-[rgb(240,240,240)] border border-[rgb(26,26,46)] hover:border-[rgb(0,112,209)]/30 hover:text-[rgb(0,112,209)]',
+  primary: 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/40 focus-glow',
+  secondary: 'bg-surface text-foreground border border-border hover:bg-surface-hover hover:border-border-light focus-glow',
+  ghost: 'text-muted-foreground hover:text-foreground hover:bg-surface/40',
+  gold: 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/40 focus-glow',
+  outline: 'bg-transparent text-foreground border border-border hover:border-primary/30 hover:text-primary',
 }
 
 const sizeStyles: Record<string, string> = {

@@ -66,7 +66,11 @@ def _windows_startup_path() -> str | None:
         return None
     return os.path.join(
         appdata,
-        "Microsoft", "Windows", "Start Menu", "Programs", "Startup",
+        "Microsoft",
+        "Windows",
+        "Start Menu",
+        "Programs",
+        "Startup",
         "CATEYE.bat",
     )
 
@@ -98,6 +102,7 @@ def _get_autostart_path() -> str | None:
 
 
 # ── Enable ───────────────────────────────────────────────────────────
+
 
 def _enable_windows() -> bool:
     path = _windows_startup_path()
@@ -180,6 +185,7 @@ def enable_autostart() -> bool:
 
 # ── Disable ──────────────────────────────────────────────────────────
 
+
 def _disable_windows() -> bool:
     path = _windows_startup_path()
     if path and os.path.exists(path):
@@ -228,6 +234,7 @@ def disable_autostart() -> bool:
 
 # ── Check ────────────────────────────────────────────────────────────
 
+
 def is_autostart_enabled() -> bool:
     """Check if CATEYE is configured to start with the OS.
 
@@ -238,6 +245,7 @@ def is_autostart_enabled() -> bool:
 
 
 # ── Legacy compatibility ────────────────────────────────────────────
+
 
 def install_autostart() -> bool:
     return enable_autostart()

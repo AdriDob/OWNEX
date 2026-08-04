@@ -21,6 +21,7 @@ router = APIRouter(prefix="/api/atlas", tags=["atlas"])
 
 # ── Portfolio ──
 
+
 @router.get("/portfolio/value")
 async def portfolio_value():
     engine = PortfolioEngine()
@@ -57,6 +58,7 @@ async def get_portfolio():
 
 # ── Assets ──
 
+
 @router.get("/assets")
 async def list_assets():
     db = get_db_manager().get_session("atlas")
@@ -90,6 +92,7 @@ async def asset_count():
 
 # ── Transactions ──
 
+
 @router.get("/transactions")
 async def list_transactions(limit: int = 50):
     db = get_db_manager().get_session("atlas")
@@ -114,6 +117,7 @@ async def list_transactions(limit: int = 50):
 
 # ── Performance ──
 
+
 @router.get("/performance/daily")
 async def daily_performance():
     engine = PerformanceEngine()
@@ -137,6 +141,7 @@ async def performance():
 
 # ── Risk ──
 
+
 @router.get("/risk")
 async def risk_assessment():
     engine = PortfolioEngine()
@@ -156,6 +161,7 @@ async def risk_assessment():
 
 # ── Analytics ──
 
+
 @router.get("/analytics/allocation")
 async def allocation():
     engine = PortfolioEngine()
@@ -171,6 +177,7 @@ async def allocation():
 
 
 # ── Strategy / Rebalance ──
+
 
 @router.get("/strategy/rebalance")
 async def rebalance():
@@ -196,6 +203,7 @@ async def rebalance():
 
 # ── Wallets ──
 
+
 @router.get("/wallets")
 async def list_wallets():
     db = get_db_manager().get_session("atlas")
@@ -217,6 +225,7 @@ async def list_wallets():
 
 
 # ── Health ──
+
 
 @router.get("/health")
 async def atlas_health():

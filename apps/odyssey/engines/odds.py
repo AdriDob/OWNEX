@@ -34,6 +34,7 @@ class OddsEngine:
         if decimal <= 1.0:
             return "0/1"
         from fractions import Fraction
+
         f = Fraction(decimal - 1.0).limit_denominator(100)
         return f"{f.numerator}/{f.denominator}"
 

@@ -104,7 +104,7 @@ const featureChartData = computed(() => {
     datasets: [{
       label: 'Completion %',
       data: features.value.slice(0, 12).map(f => f.completion),
-      backgroundColor: '#3b82f6',
+      backgroundColor: '#ffffff',
     }],
   }
 })
@@ -225,7 +225,7 @@ const debtSeverityData = computed(() => {
         </Card>
 
         <div v-if="features.length" class="space-y-2">
-          <div v-for="f in features" :key="f.id" class="rounded-xl border border-border/40 bg-[#11131f]/40 px-4 py-3 transition-all hover:border-primary/30">
+          <div v-for="f in features" :key="f.id" class="rounded-xl border border-border/40 bg-surface/40 px-4 py-3 transition-all hover:border-primary/30">
             <div class="flex items-center justify-between gap-4">
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
@@ -271,7 +271,7 @@ const debtSeverityData = computed(() => {
             />
           </Card>
           <div class="space-y-2">
-            <div v-for="d in techDebt" :key="d.id" class="rounded-xl border border-border/40 bg-[#11131f]/40 px-4 py-3">
+            <div v-for="d in techDebt" :key="d.id" class="rounded-xl border border-border/40 bg-surface/40 px-4 py-3">
               <div class="flex items-start justify-between gap-3">
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">

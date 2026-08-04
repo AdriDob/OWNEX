@@ -145,6 +145,7 @@ def on_hook(hook_name: str, extension_id: str | None = None):
         def my_handler(target_id, scan_type):
             logger.info("About to scan %s", target_id)
     """
+
     def decorator(func: HookHandler) -> HookHandler:
         registry = get_hook_registry()
         ext_id = extension_id or func.__module__.split(".")[0]

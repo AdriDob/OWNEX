@@ -30,7 +30,9 @@ class KellyEngine:
         self._provider = KellyProvider()
         self.default_fraction = default_fraction
 
-    async def recommend(self, odds: float, win_prob: float, bankroll: float, fraction: float | None = None) -> KellyRecommendation:
+    async def recommend(
+        self, odds: float, win_prob: float, bankroll: float, fraction: float | None = None
+    ) -> KellyRecommendation:
         result = self._provider.calculate(odds, win_prob, bankroll, fraction or self.default_fraction)
 
         ev = result["ev"]

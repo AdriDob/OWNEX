@@ -68,7 +68,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'welcome',
-    component: () => import(/* webpackChunkName: "welcome" */ '@/pages/JarvisWelcome.vue'),
+    component: () => import(/* webpackChunkName: "welcome" */ '@/pages/WelcomePage.vue'),
     meta: { title: 'Bienvenido' },
   },
   {

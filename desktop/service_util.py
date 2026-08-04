@@ -20,6 +20,7 @@ def _win32_modules() -> tuple[bool, Any, Any]:
     try:
         import win32service as _sv
         import win32serviceutil as _su
+
         return True, _sv, _su
     except ImportError:
         return False, None, None

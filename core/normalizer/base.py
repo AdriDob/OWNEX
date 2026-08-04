@@ -14,7 +14,7 @@ class NormalizedPosition:
 
     symbol: str
     name: str = ""
-    asset_type: str = ""           # stock, crypto, etf, bond, cash
+    asset_type: str = ""  # stock, crypto, etf, bond, cash
     quantity: float = 0.0
     avg_price: float = 0.0
     current_price: float = 0.0
@@ -44,7 +44,7 @@ class NormalizedTransaction:
 
     tx_id: str = ""
     symbol: str = ""
-    tx_type: str = ""              # buy, sell, deposit, withdrawal
+    tx_type: str = ""  # buy, sell, deposit, withdrawal
     quantity: float = 0.0
     price: float = 0.0
     fees: float = 0.0
@@ -61,7 +61,7 @@ class NormalizedMarket:
 
     market_id: str = ""
     title: str = ""
-    platform: str = ""             # polymarket, betfair, pinnacle
+    platform: str = ""  # polymarket, betfair, pinnacle
     outcomes: list[dict] = field(default_factory=list)  # [{name, price, volume}]
     volume_24h: float = 0.0
     close_time: str = ""
@@ -79,7 +79,7 @@ class NormalizedBet:
     platform: str = ""
     odds: float = 0.0
     stake: float = 0.0
-    outcome: str = "pending"       # win, loss, push, pending
+    outcome: str = "pending"  # win, loss, push, pending
     payout: float = 0.0
     ev: float = 0.0
     roi: float = 0.0
@@ -109,21 +109,16 @@ class BaseNormalizer(ABC):
     """Transforms raw connector data into standard normalized types."""
 
     @abstractmethod
-    def normalize_portfolio(self, raw: Any) -> NormalizedPortfolio:
-        ...
+    def normalize_portfolio(self, raw: Any) -> NormalizedPortfolio: ...
 
     @abstractmethod
-    def normalize_transactions(self, raw: list[Any]) -> list[NormalizedTransaction]:
-        ...
+    def normalize_transactions(self, raw: list[Any]) -> list[NormalizedTransaction]: ...
 
     @abstractmethod
-    def normalize_prices(self, raw: dict[str, Any]) -> list[NormalizedPrice]:
-        ...
+    def normalize_prices(self, raw: dict[str, Any]) -> list[NormalizedPrice]: ...
 
     @abstractmethod
-    def normalize_markets(self, raw: list[Any]) -> list[NormalizedMarket]:
-        ...
+    def normalize_markets(self, raw: list[Any]) -> list[NormalizedMarket]: ...
 
     @abstractmethod
-    def normalize_bets(self, raw: list[Any]) -> list[NormalizedBet]:
-        ...
+    def normalize_bets(self, raw: list[Any]) -> list[NormalizedBet]: ...

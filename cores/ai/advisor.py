@@ -62,17 +62,17 @@ Eres CATEYE AI, el analista principal de un sistema de bug bounty intelligence.
 Usa datos reales del sistema para responder. Sé breve, directo y accionable.
 
 Contexto actual del sistema:
-- Targets: {t.get('total', 0)}
-- Endpoints: {e.get('total', 0)} ({e.get('high_signal', 0)} high signal, {e.get('actionable', 0)} accionables)
-- Risk promedio: {e.get('avg_risk', 0)}
-- Findings: {f.get('total', 0)} ({f.get('new_24h', 0)} en 24h)
-- Veredictos: {v.get('total', 0)} ({v.get('confirmed', 0)} confirmados)
-- Pipeline: {p.get('detected', 0)}D -> {p.get('validated', 0)}V -> {p.get('confirmed', 0)}C
-- Oportunidades: {o.get('total', 0)} targets con ROI calculado
-- Actividad 24h: {a.get('last_24h', 0)} eventos
-- Scans activos: {ctx.get('scans', {}).get('active', 0)}
-- Programas: {ctx.get('intelligence', {}).get('total_programs', 0)}
-- Quick Wins: {qw.get('total_opportunities', 0)} oportunidades · score {qw.get('avg_quick_win_score', 0)} · valor total ${qw.get('total_estimated_value', 0):,.0f}
+- Targets: {t.get("total", 0)}
+- Endpoints: {e.get("total", 0)} ({e.get("high_signal", 0)} high signal, {e.get("actionable", 0)} accionables)
+- Risk promedio: {e.get("avg_risk", 0)}
+- Findings: {f.get("total", 0)} ({f.get("new_24h", 0)} en 24h)
+- Veredictos: {v.get("total", 0)} ({v.get("confirmed", 0)} confirmados)
+- Pipeline: {p.get("detected", 0)}D -> {p.get("validated", 0)}V -> {p.get("confirmed", 0)}C
+- Oportunidades: {o.get("total", 0)} targets con ROI calculado
+- Actividad 24h: {a.get("last_24h", 0)} eventos
+- Scans activos: {ctx.get("scans", {}).get("active", 0)}
+- Programas: {ctx.get("intelligence", {}).get("total_programs", 0)}
+- Quick Wins: {qw.get("total_opportunities", 0)} oportunidades · score {qw.get("avg_quick_win_score", 0)} · valor total ${qw.get("total_estimated_value", 0):,.0f}
 
 Reglas:
 1. Responde solo con datos reales del contexto.
@@ -85,7 +85,9 @@ Reglas:
 
 def _rule_based_answer(query: str, ctx: dict[str, Any]) -> str:
     # ROI question
-    if any(w in query for w in ["roi", "mejor target", "mejor oportunidad", "qué target", "best target", "what to attack"]):
+    if any(
+        w in query for w in ["roi", "mejor target", "mejor oportunidad", "qué target", "best target", "what to attack"]
+    ):
         opps = ctx.get("opportunities", {}).get("top", [])
         if opps:
             best = opps[0]
@@ -122,7 +124,10 @@ def _rule_based_answer(query: str, ctx: dict[str, Any]) -> str:
         top = qw.get("top_opportunities", [])
         cats = qw.get("categories", {})
         if top:
-            lines = [f"{o['endpoint']} — score {o['score']:.2f} ({o['category']}) · ${o['payout']:,.0f} en {o['effort']}min" for o in top]
+            lines = [
+                f"{o['endpoint']} — score {o['score']:.2f} ({o['category']}) · ${o['payout']:,.0f} en {o['effort']}min"
+                for o in top
+            ]
             header = f"Quick Wins ({qw.get('total_opportunities', 0)} oportunidades, valor total ${qw.get('total_estimated_value', 0):,.0f}):"
             cat_line = " · ".join(f"{k}: {v}" for k, v in sorted(cats.items())) if cats else ""
             return header + "\n" + ("\n".join(lines)) + ("\n" + cat_line if cat_line else "")
@@ -134,8 +139,12 @@ def _rule_based_answer(query: str, ctx: dict[str, Any]) -> str:
         if scans:
             lines = []
             for s in scans[:5]:
-                status_icon = {"completed": "✅", "running": "🔄", "pending": "⏳", "failed": "❌", "timeout": "⚠️"}.get(s.get("status", ""), "❓")
-                lines.append(f"{status_icon} Scan #{s['id']} modo {s.get('mode','?')}: {s.get('status','?')} ({s.get('endpoint_count',0)} endpoints)")
+                status_icon = {"completed": "✅", "running": "🔄", "pending": "⏳", "failed": "❌", "timeout": "⚠️"}.get(
+                    s.get("status", ""), "❓"
+                )
+                lines.append(
+                    f"{status_icon} Scan #{s['id']} modo {s.get('mode', '?')}: {s.get('status', '?')} ({s.get('endpoint_count', 0)} endpoints)"
+                )
             return "Últimos escaneos:\n" + "\n".join(lines)
         return "No hay escaneos registrados aún."
 

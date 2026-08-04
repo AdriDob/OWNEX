@@ -30,7 +30,7 @@ class MerlinSystem:
         detail_level: str = "normal",
         response_tone: str = "professional",
         enable_analytics: bool = True,
-        enable_learning: bool = True
+        enable_learning: bool = True,
     ) -> str:
         """Process a user message and generate a response."""
         if self._is_processing:
@@ -47,18 +47,13 @@ class MerlinSystem:
 
             # Format response according to settings
             formatted_response = self.personality.format_response(
-                response,
-                detail_level=detail_level,
-                response_tone=response_tone
+                response, detail_level=detail_level, response_tone=response_tone
             )
 
             # Save to memory if learning is enabled
             if enable_learning:
                 await self.memory.save_conversation(
-                    question=message,
-                    response=formatted_response,
-                    timestamp=datetime.now(),
-                    tags=[intent]
+                    question=message, response=formatted_response, timestamp=datetime.now(), tags=[intent]
                 )
 
             # Analytics if enabled
@@ -106,7 +101,7 @@ class MerlinSystem:
             "strategic_planning": self._generate_strategic_planning_response(message),
             "technical_assistance": self._generate_technical_assistance_response(message),
             "greeting": self.personality.get_greeting(),
-            "general": self._generate_general_response(message)
+            "general": self._generate_general_response(message),
         }
 
         return responses.get(intent, self._generate_general_response(message))
@@ -254,7 +249,9 @@ Por favor, sé más específico sobre lo que necesitas y MERLIN proporcionará a
     async def _track_analytics(self, message: str, intent: str, response: str) -> None:
         """Track analytics for the conversation."""
         # This is a placeholder - implement actual analytics tracking
-        logger.info(f"Analytics tracked: intent={intent}, message_length={len(message)}, response_length={len(response)}")
+        logger.info(
+            f"Analytics tracked: intent={intent}, message_length={len(message)}, response_length={len(response)}"
+        )
 
     async def get_capabilities(self) -> dict[str, Any]:
         """Get MERLIN's capabilities."""
@@ -272,8 +269,8 @@ Por favor, sé más específico sobre lo que necesitas y MERLIN proporcionará a
                 "learning": self.config.enable_learning,
                 "context_awareness": self.config.enable_context_awareness,
                 "typing_effect": self.config.retro_typing_effect,
-                "retro_animations": self.config.retro_animations
-            }
+                "retro_animations": self.config.retro_animations,
+            },
         }
 
     async def get_status(self) -> dict[str, Any]:
@@ -289,8 +286,8 @@ Por favor, sé más específico sobre lo que necesitas y MERLIN proporcionará a
             "personality": {
                 "style": self.personality.style.value,
                 "greeting": self.personality.get_greeting(),
-                "sign_off": self.personality.get_sign_off()
-            }
+                "sign_off": self.personality.get_sign_off(),
+            },
         }
 
     async def clear_chat(self) -> bool:

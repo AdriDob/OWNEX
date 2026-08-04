@@ -31,10 +31,9 @@ function onChange(e: Event) {
       :value="modelValue"
       @change="onChange"
       :class="cn(
-        'flex h-9 w-full appearance-none rounded-lg border border-[rgb(37,37,64)] bg-[rgb(15,17,23)]/50 px-3 py-1 pr-8 text-sm text-[rgb(240,240,240)] shadow-sm transition-colors',
-        'focus:border-[rgb(0,112,209)]/30 focus:outline-none focus:ring-1 focus:ring-[rgb(0,112,209)]/20',
-        'disabled:cursor-not-allowed disabled:opacity-50',
-        !modelValue && 'text-[rgb(100,116,139)]/50',
+        'flex h-9 w-full appearance-none rounded-lg border border-border-light bg-surface/50 px-3 py-1 pr-8 text-sm text-foreground shadow-sm transition-colors',
+        'focus:border-primary/30 focus:outline-none focus:ring-1 focus:ring-primary/20',
+        !modelValue && 'text-muted-foreground/50',
         props.class,
       )"
     >

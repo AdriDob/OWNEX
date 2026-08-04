@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useSettingsStore } from '@/stores/settings'
 
 const props = defineProps<{
   visible: boolean
@@ -14,13 +13,11 @@ type Phase = 'intro' | 'logo' | 'video' | 'content' | 'fadeout'
 
 const phase = ref<Phase>('intro')
 const progress = ref(0)
-const logoScale = ref(0.8)
+const logoScale = ref(0.82)
 const logoOpacity = ref(0)
-const videoOpacity = ref(0)
 const contentOpacity = ref(0)
 const particleIntensity = ref(0)
 const isPlayingVideo = ref(true)
-const isVideoEnded = ref(false)
 const loadingDots = ref('')
 const currentTime = ref('')
 
@@ -29,7 +26,6 @@ const systemChecks = ref([
   { name: 'Backend', status: 'pending' as 'pending' | 'checking' | 'complete' | 'error' },
   { name: 'Providers', status: 'pending' },
   { name: 'Scheduler', status: 'pending' },
-  { name: 'Voice', status: 'pending' },
   { name: 'Database', status: 'pending' },
   { name: 'Mission Control', status: 'pending' },
   { name: 'Memory', status: 'pending' },
@@ -41,31 +37,23 @@ let videoInterval: ReturnType<typeof setTimeout> | null = null
 let particleAnimationId: number | null = null
 let systemCheckInterval: ReturnType<typeof setInterval> | null = null
 
-// Elite sound effects
-function playEliteSound(type: 'startup' | 'success' | 'error' | 'hover') {
-  // In production, play actual audio files
-  // console.log(`[ELITE AUDIO] Playing ${type} sound effect`)
-}
-
 // OWNEX System Checks
 async function runSystemChecks() {
-  const checkOrder = [0, 1, 2, 3, 4, 5, 6, 7] // Index of systemChecks
+  const checkOrder = [0, 1, 2, 3, 4, 5, 6]
 
   for (const idx of checkOrder) {
     systemChecks.value[idx].status = 'checking'
-    await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 400))
+    await new Promise(resolve => setTimeout(resolve, 260 + Math.random() * 360))
 
-    // Simulate system check (in production, actual API calls)
-    const isHealthy = Math.random() > 0.1 // 90% success rate
+    const isHealthy = Math.random() > 0.08
     systemChecks.value[idx].status = isHealthy ? 'complete' : 'error'
-
     if (!isHealthy) {
       console.warn(`[BOOT] ${systemChecks.value[idx].name} check failed`)
     }
   }
 }
 
-// Elite particle system
+// Subtle white/blue particle field (Tesla-minimal, not neon)
 interface Particle {
   id: number
   x: number
@@ -82,17 +70,17 @@ const particles = ref<Particle[]>([])
 
 function initParticles() {
   particles.value = []
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 32; i++) {
     particles.value.push({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      vx: (Math.random() - 0.5) * 0.2,
-      vy: (Math.random() - 0.5) * 0.2,
-      life: Math.random() * 100 + 50,
-      size: Math.random() * 2 + 0.5,
-      opacity: Math.random() * 0.5 + 0.2,
-      color: Math.random() > 0.5 ? 'rgba(59, 130, 246, 0.6)' : 'rgba(139, 92, 246, 0.6)',
+      vx: (Math.random() - 0.5) * 0.16,
+      vy: (Math.random() - 0.5) * 0.16,
+      life: Math.random() * 100 + 60,
+      size: Math.random() * 1.6 + 0.4,
+      opacity: Math.random() * 0.35 + 0.1,
+      color: Math.random() > 0.6 ? 'rgba(0, 213, 255, 0.5)' : 'rgba(255, 255, 255, 0.4)',
     })
   }
   startParticleAnimation()
@@ -104,21 +92,20 @@ function startParticleAnimation() {
       particle.x += particle.vx
       particle.y += particle.vy
       particle.life--
-      particle.opacity = Math.max(0, particle.opacity - 0.005)
-      
+      particle.opacity = Math.max(0, particle.opacity - 0.004)
+
       if (particle.x < 0 || particle.x > 100) particle.vx *= -0.8
       if (particle.y < 0 || particle.y > 100) particle.vy *= -0.8
-      
+
       if (particle.life <= 0) {
         particle.x = Math.random() * 100
         particle.y = Math.random() * 100
-        particle.vx = (Math.random() - 0.5) * 0.5
-        particle.vy = (Math.random() - 0.5) * 0.5
+        particle.vx = (Math.random() - 0.5) * 0.4
+        particle.vy = (Math.random() - 0.5) * 0.4
         particle.life = Math.random() * 200 + 100
-        particle.opacity = Math.random() * 0.8 + 0.2
+        particle.opacity = Math.random() * 0.5 + 0.1
       }
     })
-    
     particleAnimationId = requestAnimationFrame(animate)
   }
   animate()
@@ -133,7 +120,7 @@ function stopParticles() {
 
 // Video background simulation
 let videoCurrentTime = 0
-const VIDEO_DURATION = 20
+const VIDEO_DURATION = 16
 
 function startVideoPlayback() {
   isPlayingVideo.value = true
@@ -142,19 +129,17 @@ function startVideoPlayback() {
 
 function videoPlayback() {
   if (!isPlayingVideo.value) return
-  
+
   videoInterval = setTimeout(() => {
     videoCurrentTime += 0.016
     if (videoCurrentTime < VIDEO_DURATION) {
       videoPlayback()
     } else {
       isPlayingVideo.value = false
-      isVideoEnded.value = true
       phase.value = 'content'
       setTimeout(() => {
         contentOpacity.value = 1
-        playEliteSound('success')
-      }, 1000)
+      }, 800)
     }
   }, 16)
 }
@@ -195,34 +180,30 @@ function updateTime() {
 }
 
 async function startSequence() {
-  playEliteSound('startup')
-
-  await new Promise(resolve => setTimeout(resolve, 1500))
+  await new Promise(resolve => setTimeout(resolve, 1200))
 
   phase.value = 'logo'
-  await new Promise(resolve => setTimeout(resolve, 800))
+  await new Promise(resolve => setTimeout(resolve, 700))
 
   logoScale.value = 1
   logoOpacity.value = 1
 
-  await new Promise(resolve => setTimeout(resolve, 1500))
+  await new Promise(resolve => setTimeout(resolve, 1600))
 
   startVideoPlayback()
 
-  await new Promise(resolve => setTimeout(resolve, 3000))
+  await new Promise(resolve => setTimeout(resolve, 2600))
 
   initParticles()
 
-  await new Promise(resolve => setTimeout(resolve, 2000))
+  await new Promise(resolve => setTimeout(resolve, 1800))
 
-  // Run system checks
   await runSystemChecks()
 
-  // Show loading progress after system checks
   startLoadingAnimation()
 
   const startTime = Date.now()
-  const duration = 3000
+  const duration = 2600
 
   function progressAnimation() {
     const elapsed = Date.now() - startTime
@@ -235,11 +216,9 @@ async function startSequence() {
       pauseVideo()
       stopParticles()
       phase.value = 'fadeout'
-      playEliteSound('success')
-
       setTimeout(() => {
         emit('done')
-      }, 1500)
+      }, 1400)
     }
   }
 
@@ -249,12 +228,10 @@ async function startSequence() {
 function reset() {
   phase.value = 'intro'
   progress.value = 0
-  logoScale.value = 0.8
+  logoScale.value = 0.82
   logoOpacity.value = 0
-  videoOpacity.value = 0
   contentOpacity.value = 0
   isPlayingVideo.value = true
-  isVideoEnded.value = false
   loadingDots.value = ''
   videoCurrentTime = 0
   systemChecks.value.forEach(check => check.status = 'pending')
@@ -278,20 +255,21 @@ onUnmounted(() => {
   if (progressInterval) clearInterval(progressInterval)
 })
 
-const eliteStyles = computed(() => ({
-  '--elite-primary': 'rgba(59, 130, 246, 0.9)',
-  '--elite-secondary': 'rgba(139, 92, 246, 0.8)',
-  '--elite-accent': 'rgba(16, 185, 129, 0.9)',
-  '--elite-dark': 'rgba(10, 10, 15, 0.95)',
-  '--elite-surface': 'rgba(30, 30, 40, 0.9)',
-  '--elite-glow': 'rgba(59, 130, 246, 0.3)',
-  '--elite-glass': 'rgba(255, 255, 255, 0.05)',
+const ownexTheme = computed(() => ({
+  '--ownex-bg': '#05060a',
+  '--ownex-surface': '#0a0c11',
+  '--ownex-white': '#ffffff',
+  '--ownex-muted': '#8b8d98',
+  '--ownex-cyan': '#00d5ff',
+  '--ownex-blue': '#1e40ff',
+  '--ownex-line': 'rgba(255, 255, 255, 0.08)',
+  '--ownex-glow': 'rgba(0, 213, 255, 0.22)',
 }))
 
 const progressBarStyle = computed(() => ({
   width: progress.value + '%',
-  background: 'var(--elite-primary)',
-  boxShadow: '0 0 16px var(--elite-glow)',
+  background: 'linear-gradient(90deg, var(--ownex-cyan), var(--ownex-blue))',
+  boxShadow: '0 0 14px var(--ownex-glow)',
 }))
 </script>
 
@@ -300,8 +278,10 @@ const progressBarStyle = computed(() => ({
     <div
       v-if="visible"
       class="splash-bg fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden"
+      :style="ownexTheme"
+      style="background: #05060a"
     >
-      <!-- Elite particle field -->
+      <!-- Subtle white/blue particle field -->
       <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div
           v-for="p in particles"
@@ -314,181 +294,273 @@ const progressBarStyle = computed(() => ({
             height: p.size + 'px',
             background: p.color,
             opacity: p.opacity,
-            filter: 'blur(1px)',
             transform: 'translate(-50%, -50%)',
           }"
         />
       </div>
 
-      <!-- Elite glow background -->
+      <!-- Soft blue ambient glow (Tesla-minimal) -->
       <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div
           class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
           style="
-            width: 800px;
-            height: 800px;
+            width: 720px;
+            height: 720px;
             border-radius: 50%;
-            background: radial-gradient(circle, var(--elite-primary) 0%, transparent 70%);
-            filter: blur(80px);
-            opacity: 0.4;
+            background: radial-gradient(circle, rgba(0, 213, 255, 0.12) 0%, transparent 65%);
+            filter: blur(70px);
+            opacity: 0.55;
           "
         />
       </div>
 
       <div class="relative z-10 flex flex-col items-center">
-        <!-- Elite logo with premium animation -->
+        <!-- ═══ OWNEX APERTURE NEXUS MARK ═══ -->
         <div
-          :class="[
-            'transition-all duration-700 ease-out',
-            logoOpacity ? 'scale-100 opacity-100' : 'scale-75 opacity-0',
-          ]"
+          class="logo-wrap"
+          :class="logoOpacity ? 'logo-visible' : ''"
           :style="{ transform: 'scale(' + logoScale + ')' }"
         >
           <svg
-            width="100"
-            height="100"
+            width="150"
+            height="150"
             viewBox="0 0 512 512"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            class="drop-shadow-[0_0_32px_rgba(59,130,246,0.4)]"
           >
-            <ellipse
-              cx="256" cy="256" rx="180" ry="80"
-              stroke="#3b82f6" stroke-width="1.5" opacity="0.3"
-              transform="rotate(-30 256 256)"
-            >
-              <animateTransform attributeName="transform" type="rotate"
-                from="-30 256 256" to="330 256 256" dur="12s" repeatCount="indefinite" />
-            </ellipse>
-            <ellipse
-              cx="256" cy="256" rx="180" ry="80"
-              stroke="#3b82f6" stroke-width="1" opacity="0.15"
-              transform="rotate(30 256 256)"
-            >
-              <animateTransform attributeName="transform" type="rotate"
-                from="30 256 256" to="390 256 256" dur="15s" repeatCount="indefinite" />
-            </ellipse>
-            <circle cx="256" cy="256" r="200" stroke="#3b82f6" stroke-width="12" opacity="0.1" />
+            <defs>
+              <linearGradient id="nexusGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" />
+                <stop offset="55%" stop-color="#ffffff" />
+                <stop offset="100%" stop-color="#00d5ff" />
+              </linearGradient>
+            </defs>
+
+            <!-- Outer octagonal ring (draws in) -->
             <polygon
-              points="256,96 376,156 376,356 256,416 136,356 136,156"
-              stroke="#3b82f6" stroke-width="6"
-              fill="rgba(59, 130, 246, 0.05)"
+              class="draw-ring"
+              points="436,256 383.3,128.7 256,76 128.7,128.7 76,256 128.7,383.3 256,436 383.3,383.3"
+              stroke="url(#nexusGrad)"
+              stroke-width="6"
+              fill="none"
               stroke-linejoin="round"
-            />
-            <circle cx="256" cy="256" r="32" fill="#3b82f6" opacity="0.8">
-              <animate attributeName="r" values="28;36;28" dur="2s" repeatCount="indefinite" />
-            </circle>
-            <circle cx="256" cy="256" r="32" fill="#3b82f6" opacity="0.3">
-              <animate attributeName="r" values="32;48;32" dur="2s" repeatCount="indefinite" />
+              opacity="0.9"
+            >
+              <animateTransform attributeName="transform" type="rotate"
+                from="0 256 256" to="360 256 256" dur="36s" repeatCount="indefinite" />
+            </polygon>
+
+            <!-- Second counter-rotating ring -->
+            <polygon
+              class="draw-ring slow"
+              points="436,256 383.3,128.7 256,76 128.7,128.7 76,256 128.7,383.3 256,436 383.3,383.3"
+              stroke="#1e40ff"
+              stroke-width="1.5"
+              fill="none"
+              stroke-linejoin="round"
+              opacity="0.35"
+              transform="scale(0.9) translate(28,28)"
+            >
+              <animateTransform attributeName="transform" type="rotate"
+                from="360 256 256" to="0 256 256" dur="60s" repeatCount="indefinite" />
+            </polygon>
+
+            <!-- X of conic rays from the core -->
+            <line class="draw-x" x1="196" y1="196" x2="316" y2="316" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity="0.85" />
+            <line class="draw-x" x1="316" y1="196" x2="196" y2="316" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity="0.85" />
+
+            <!-- Central square node -->
+            <rect x="244" y="244" width="24" height="24" rx="3" fill="#00d5ff">
+              <animate attributeName="opacity" values="1;0.45;1" dur="2.2s" repeatCount="indefinite" />
+            </rect>
+
+            <!-- Ray breaking the ring (top-right) -->
+            <line class="draw-break" x1="383.3" y1="128.7" x2="404" y2="108" stroke="#00d5ff" stroke-width="6" stroke-linecap="round" />
+
+            <!-- Pulse halo -->
+            <circle cx="256" cy="256" r="150" stroke="#00d5ff" stroke-width="1" fill="none" opacity="0.25">
+              <animate attributeName="r" values="140;172;140" dur="3s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.25;0.02;0.25" dur="3s" repeatCount="indefinite" />
             </circle>
           </svg>
         </div>
 
-        <!-- Elite title -->
+        <!-- OWNEX wordmark -->
         <div
-          :class="[
-            'mt-8 font-display font-bold tracking-[0.35em] transition-all duration-500 ease-out',
-            logoOpacity ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0',
-          ]"
-          style="color: var(--elite-primary); font-size: clamp(2rem, 5vw, 4rem);"
+          class="ownex-title"
+          :class="logoOpacity ? 'title-visible' : ''"
         >
           OWNEX
         </div>
 
-        <!-- Elite subtitle -->
+        <!-- Subtitle -->
         <div
-          :class="[
-            'mt-2 font-mono uppercase tracking-[0.25em] transition-all duration-400 ease-out',
-            contentOpacity ? 'opacity-100' : 'opacity-0',
-          ]"
-          style="color: var(--elite-secondary); font-size: clamp(0.75rem, 1.5vw, 1rem);"
+          class="ownex-subtitle"
+          :class="contentOpacity ? 'subtitle-visible' : ''"
         >
-          Personal Autonomous Work OS
+          PERSONAL AUTONOMOUS OPERATING SYSTEM
         </div>
 
-        <!-- Elite video indicator -->
+        <!-- Live feed indicator -->
         <div
           v-if="phase === 'video'"
-          :class="[
-            'mt-6 flex flex-col items-center gap-2 transition-all duration-400 ease-out',
-            contentOpacity ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4',
-          ]"
+          class="mt-6 flex flex-col items-center gap-2 transition-all duration-400 ease-out"
+          :class="contentOpacity ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
         >
-          <div class="flex items-center gap-2 text-xs font-mono" style="color: var(--elite-primary);">
-            <span class="animate-pulse" style="width: 6px; height: 6px; background: var(--elite-primary); border-radius: 50%;"></span>
-            <span>LIVE VIDEO FEED</span>
+          <div class="flex items-center gap-2 text-xs font-mono" style="color: var(--ownex-muted);">
+            <span class="boot-dot"></span>
+            <span class="tracking-[0.2em]">INITIALIZING</span>
             <span>{{ currentTime }}</span>
           </div>
-          <div class="relative w-64 h-1 rounded-full overflow-hidden" style="background: var(--elite-glass);">
+          <div class="relative w-64 h-px overflow-hidden" style="background: var(--ownex-line);">
             <div
-              class="h-full rounded-full transition-all duration-200 ease-out"
-              :style="{ width: (videoCurrentTime / VIDEO_DURATION) * 100 + '%, background: var(--elite-primary)' }"
+              class="h-full transition-all duration-200 ease-out"
+              :style="{ width: (videoCurrentTime / VIDEO_DURATION) * 100 + '%, background: linear-gradient(90deg, var(--ownex-cyan), var(--ownex-blue))' }"
             />
           </div>
         </div>
 
-        <!-- OWNEX System Checks -->
+        <!-- System checks -->
         <div
           v-if="phase === 'content'"
-          :class="[
-            'mt-10 flex flex-col items-center gap-4 transition-all duration-400 ease-out',
-            contentOpacity ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4',
-          ]"
+          class="mt-10 flex flex-col items-center gap-4 transition-all duration-400 ease-out"
+          :class="contentOpacity ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
         >
-          <span class="font-mono text-xs uppercase tracking-widest" style="color: var(--elite-secondary);">
-            Comprobación de sistemas
+          <span class="font-mono text-[10px] uppercase tracking-[0.3em]" style="color: var(--ownex-muted);">
+            System Check
           </span>
 
-          <!-- System Check Items -->
           <div class="flex flex-col gap-2 w-64">
             <div
-              v-for="(check, idx) in systemChecks"
+              v-for="check in systemChecks"
               :key="check.name"
-              class="flex items-center justify-between text-xs font-mono"
-              style="color: var(--elite-secondary);"
+              class="flex items-center justify-between text-[11px] font-mono"
+              style="color: var(--ownex-muted);"
             >
               <span>{{ check.name }}</span>
-              <span v-if="check.status === 'pending'" class="text-muted-foreground">●</span>
-              <span v-else-if="check.status === 'checking'" class="animate-pulse" style="color: var(--elite-primary);">◉</span>
-              <span v-else-if="check.status === 'complete'" style="color: var(--elite-accent);">✓</span>
-              <span v-else-if="check.status === 'error'" style="color: var(--elite-destructive, #ef4444);">✗</span>
+              <span v-if="check.status === 'pending'">●</span>
+              <span v-else-if="check.status === 'checking'" class="animate-pulse" style="color: var(--ownex-cyan);">◉</span>
+              <span v-else-if="check.status === 'complete'" style="color: var(--ownex-white);">✓</span>
+              <span v-else-if="check.status === 'error'" style="color: var(--ownex-blue);">✗</span>
             </div>
           </div>
 
-          <!-- Progress Bar -->
-          <div class="relative w-64 h-1.5 rounded-full overflow-hidden" style="background: var(--elite-glass);">
-            <div
-              class="h-full rounded-full transition-all duration-200 ease-out"
-              :style="progressBarStyle"
-            />
+          <div class="relative w-64 h-[3px] rounded-full overflow-hidden" style="background: var(--ownex-line);">
+            <div class="h-full rounded-full transition-all duration-200 ease-out" :style="progressBarStyle" />
           </div>
 
           <div class="flex items-center gap-2">
-            <span class="font-mono text-[10px] tabular-nums" style="color: var(--elite-secondary);">
+            <span class="font-mono text-[10px] tabular-nums" style="color: var(--ownex-muted);">
               {{ Math.round(progress) }}%
             </span>
-            <span class="font-mono text-[10px]" style="color: var(--elite-primary);">{{ loadingDots }}</span>
+            <span class="font-mono text-[10px]" style="color: var(--ownex-cyan);">{{ loadingDots }}</span>
           </div>
         </div>
       </div>
 
-      <!-- Elite bottom accent line -->
-      <div class="absolute bottom-0 left-0 right-0 h-px" style="background: linear-gradient(90deg, transparent 0%, var(--elite-primary) 50%, transparent 100%);" />
+      <!-- Bottom accent line -->
+      <div class="absolute bottom-0 left-0 right-0 h-px" style="background: linear-gradient(90deg, transparent 0%, var(--ownex-cyan) 50%, transparent 100%);" />
     </div>
   </Transition>
 </template>
 
 <style scoped>
-.splash-enter-active {
-  transition: opacity 0.3s ease;
+.splash-bg {
+  background: #05060a;
 }
-.splash-leave-active {
-  transition: opacity 0.8s ease;
-}
-.splash-enter-from,
-.splash-leave-to {
+
+/* ── Logo draw-in animation ── */
+.logo-wrap {
   opacity: 0;
+  transform: scale(0.82);
+  transition: opacity 0.8s ease, transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  filter: drop-shadow(0 0 26px var(--ownex-glow));
 }
+.logo-wrap.logo-visible {
+  opacity: 1;
+}
+
+.draw-ring {
+  stroke-dasharray: 1500;
+  stroke-dashoffset: 1500;
+  animation: ring-draw 2.2s cubic-bezier(0.6, 0, 0.2, 1) forwards;
+}
+.draw-ring.slow {
+  animation-duration: 3s;
+  animation-delay: 0.4s;
+}
+@keyframes ring-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.draw-x {
+  stroke-dasharray: 260;
+  stroke-dashoffset: 260;
+  animation: x-draw 1.1s cubic-bezier(0.6, 0, 0.2, 1) 0.7s forwards;
+}
+@keyframes x-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.draw-break {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: break-draw 0.6s ease-out 2.1s forwards;
+}
+@keyframes break-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* ── Wordmark ── */
+.ownex-title {
+  margin-top: 34px;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  color: #ffffff;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  text-shadow: 0 0 40px rgba(0, 213, 255, 0.25);
+}
+.ownex-title.title-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ownex-subtitle {
+  margin-top: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(0.65rem, 1.3vw, 0.85rem);
+  letter-spacing: 0.34em;
+  color: #8b8d98;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.7s ease 0.3s, transform 0.7s ease 0.3s;
+}
+.ownex-subtitle.subtitle-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.boot-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00d5ff;
+  animation: boot-pulse 1.4s ease-in-out infinite;
+}
+@keyframes boot-pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+/* ── Splash transitions ── */
+.splash-enter-active { transition: opacity 0.3s ease; }
+.splash-leave-active { transition: opacity 0.8s ease; }
+.splash-enter-from,
+.splash-leave-to { opacity: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   .splash-enter-active,

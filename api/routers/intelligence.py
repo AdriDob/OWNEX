@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Query
 from fastapi.responses import PlainTextResponse
 
@@ -15,6 +14,7 @@ def _fmt_validator(fmt: str) -> str:
     if fmt not in ("json", "csv", "markdown"):
         return "json"
     return fmt
+
 
 router = APIRouter(prefix="/api/intelligence", tags=["intelligence"])
 

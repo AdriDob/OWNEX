@@ -27,9 +27,9 @@ const error = ref<string | null>(null)
 const expanded = ref<Record<string, boolean>>({})
 
 function getTier(score: number): { label: string; color: string; variant: 'success' | 'warning' | 'destructive' } {
-  if (score >= 0.7) return { label: 'HIGH', color: '#22c55e', variant: 'success' }
-  if (score >= 0.4) return { label: 'MEDIUM', color: '#eab308', variant: 'warning' }
-  return { label: 'LOW', color: '#ef4444', variant: 'destructive' }
+  if (score >= 0.7) return { label: 'HIGH', color: '#16A34A', variant: 'success' }
+  if (score >= 0.4) return { label: 'MEDIUM', color: '#A16207', variant: 'warning' }
+  return { label: 'LOW', color: '#E82127', variant: 'destructive' }
 }
 
 const highConf = computed(() => audits.value.filter(a => a.overall_score >= 0.7))
@@ -137,7 +137,7 @@ onMounted(fetchAudits)
         </div>
         <div v-for="a in lowConf" :key="a.item_id" class="mb-2 last:mb-0">
           <button @click="toggleExpand(a.item_id)"
-            class="w-full rounded-lg border border-destructive/20 bg-[#1e2230] px-4 py-3 text-left transition-all hover:border-destructive/40"
+            class="w-full rounded-lg border border-destructive/20 bg-surface-hover px-4 py-3 text-left transition-all hover:border-destructive/40"
           >
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-2">
@@ -152,7 +152,7 @@ onMounted(fetchAudits)
                 <span class="text-muted-foreground">Confidence</span>
                 <span class="font-semibold" :style="{ color: getTier(a.overall_score).color }">{{ (a.overall_score * 100).toFixed(0) }}%</span>
               </div>
-              <div class="h-1.5 overflow-hidden rounded-full bg-[#1a1d29]">
+              <div class="h-1.5 overflow-hidden rounded-full bg-surface">
                 <div class="h-full rounded-full transition-all" :style="{ width: `${a.overall_score * 100}%`, background: getTier(a.overall_score).color }" />
               </div>
             </div>
@@ -163,14 +163,14 @@ onMounted(fetchAudits)
             </div>
           </button>
           <Transition name="fade">
-            <div v-if="expanded[a.item_id]" class="mt-1 rounded-lg bg-[#0d0f14] p-3">
+            <div v-if="expanded[a.item_id]" class="mt-1 rounded-lg bg-background p-3">
               <p class="mb-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Factors</p>
               <div v-for="(f, fi) in a.factors" :key="fi" class="mb-2">
                 <div class="flex justify-between text-[10px] mb-0.5">
                   <span class="text-muted-foreground">{{ f.name }}</span>
                   <span class="font-semibold text-foreground">{{ (f.value * f.weight).toFixed(3) }}</span>
                 </div>
-                <div class="h-1 overflow-hidden rounded-full bg-[#1a1d29]">
+                <div class="h-1 overflow-hidden rounded-full bg-surface">
                   <div class="h-full rounded-full bg-primary/60" :style="{ width: `${f.value * 100}%` }" />
                 </div>
                 <p class="text-[9px] text-muted-foreground mt-0.5">{{ f.description }}</p>
@@ -189,7 +189,7 @@ onMounted(fetchAudits)
         </div>
         <div v-for="a in highConf" :key="a.item_id" class="mb-2 last:mb-0">
           <button @click="toggleExpand(a.item_id)"
-            class="w-full rounded-lg border border-success/20 bg-[#1e2230] px-4 py-3 text-left transition-all hover:border-success/40"
+            class="w-full rounded-lg border border-success/20 bg-surface-hover px-4 py-3 text-left transition-all hover:border-success/40"
           >
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-2">
@@ -203,7 +203,7 @@ onMounted(fetchAudits)
                 <span class="text-muted-foreground">Confidence</span>
                 <span class="font-semibold text-success">{{ (a.overall_score * 100).toFixed(0) }}%</span>
               </div>
-              <div class="h-1.5 overflow-hidden rounded-full bg-[#1a1d29]">
+              <div class="h-1.5 overflow-hidden rounded-full bg-surface">
                 <div class="h-full rounded-full bg-success" :style="{ width: `${a.overall_score * 100}%` }" />
               </div>
             </div>
@@ -219,7 +219,7 @@ onMounted(fetchAudits)
         </div>
         <div v-for="a in medConf" :key="a.item_id" class="mb-2 last:mb-0">
           <button @click="toggleExpand(a.item_id)"
-            class="w-full rounded-lg border border-warning/20 bg-[#1e2230] px-4 py-3 text-left transition-all hover:border-warning/40"
+            class="w-full rounded-lg border border-warning/20 bg-surface-hover px-4 py-3 text-left transition-all hover:border-warning/40"
           >
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-2">
@@ -233,7 +233,7 @@ onMounted(fetchAudits)
                 <span class="text-muted-foreground">Confidence</span>
                 <span class="font-semibold text-warning">{{ (a.overall_score * 100).toFixed(0) }}%</span>
               </div>
-              <div class="h-1.5 overflow-hidden rounded-full bg-[#1a1d29]">
+              <div class="h-1.5 overflow-hidden rounded-full bg-surface">
                 <div class="h-full rounded-full bg-warning" :style="{ width: `${a.overall_score * 100}%` }" />
               </div>
             </div>

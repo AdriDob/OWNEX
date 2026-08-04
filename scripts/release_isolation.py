@@ -95,6 +95,7 @@ def read_version() -> str:
 
 # ── Phase 1: Clean build ─────────────────────────────────────────────
 
+
 def phase_clean() -> bool:
     for d in [DIST_DIR, BUILD_DIR]:
         if d.exists():
@@ -123,12 +124,14 @@ def phase_build_full() -> bool:
 
 # ── Phase 2: Import audit ───────────────────────────────────────────
 
+
 def phase_import_audit() -> bool:
     log("  Running audit_imports.py...")
     return run_cmd([sys.executable, str(SCRIPT_DIR / "audit_imports.py")], timeout=120)
 
 
 # ── Phase 3: Asset validation ───────────────────────────────────────
+
 
 def phase_asset_validation() -> bool:
     log("  Running validate_assets.py...")
@@ -137,12 +140,14 @@ def phase_asset_validation() -> bool:
 
 # ── Phase 4: Smoke test ─────────────────────────────────────────────
 
+
 def phase_smoke_test() -> bool:
     log("  Running smoke_test.py...")
     return run_cmd([sys.executable, str(SCRIPT_DIR / "smoke_test.py")], timeout=120)
 
 
 # ── Phase 5: Playwright smoke test ──────────────────────────────────
+
 
 def phase_smoke_test_playwright() -> bool:
     log("  Running smoke_test_playwright.py...")
@@ -154,12 +159,14 @@ def phase_smoke_test_playwright() -> bool:
 
 # ── Phase 6: Portable test ──────────────────────────────────────────
 
+
 def phase_portable_test() -> bool:
     log("  Running test_portable.py...")
     return run_cmd([sys.executable, str(SCRIPT_DIR / "test_portable.py")], timeout=180)
 
 
 # ── Phase 6: Installer test ─────────────────────────────────────────
+
 
 def phase_installer_test() -> bool:
     log("  Running test_installer.py...")
@@ -168,6 +175,7 @@ def phase_installer_test() -> bool:
 
 # ── Phase 7: Generate RELEASE_REPORT.md ─────────────────────────────
 
+
 def generate_report(version: str, artifacts: dict[str, str] | None = None) -> bool:
     log(f"  Generating {REPORT_PATH}...")
     cmd = [sys.executable, str(SCRIPT_DIR / "generate_release_report.py")]
@@ -175,6 +183,7 @@ def generate_report(version: str, artifacts: dict[str, str] | None = None) -> bo
 
 
 # ── Main ────────────────────────────────────────────────────────────
+
 
 def main() -> None:
     global PASS

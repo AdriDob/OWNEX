@@ -144,9 +144,7 @@ class SpecialistAgent(BaseAgent, ABC):
         # Update average execution time
         total = self._performance_metrics["tasks_completed"] + self._performance_metrics["tasks_failed"]
         current_avg = self._performance_metrics["avg_execution_time"]
-        self._performance_metrics["avg_execution_time"] = (
-            (current_avg * (total - 1) + execution_time) / total
-        )
+        self._performance_metrics["avg_execution_time"] = (current_avg * (total - 1) + execution_time) / total
 
     def get_specialist_health(self) -> dict[str, Any]:
         """Return detailed health status for this specialist."""
@@ -177,31 +175,37 @@ class SpecialistAgent(BaseAgent, ABC):
 
         # Analyze handoff patterns
         if self._performance_metrics["handoffs_completed"] > 10:
-            suggestions.append({
-                "type": "handoff_optimization",
-                "suggestion": "Consider direct integration with frequent handoff targets",
-                "evidence": f"High handoff count: {self._performance_metrics['handoffs_completed']}",
-            })
+            suggestions.append(
+                {
+                    "type": "handoff_optimization",
+                    "suggestion": "Consider direct integration with frequent handoff targets",
+                    "evidence": f"High handoff count: {self._performance_metrics['handoffs_completed']}",
+                }
+            )
 
         # Analyze task completion rate
         total = self._performance_metrics["tasks_completed"] + self._performance_metrics["tasks_failed"]
         if total > 0:
             success_rate = self._performance_metrics["tasks_completed"] / total
             if success_rate < 0.8:
-                suggestions.append({
-                    "type": "success_rate_improvement",
-                    "suggestion": "Review task complexity vs specialist capabilities",
-                    "evidence": f"Low success rate: {success_rate:.2%}",
-                })
+                suggestions.append(
+                    {
+                        "type": "success_rate_improvement",
+                        "suggestion": "Review task complexity vs specialist capabilities",
+                        "evidence": f"Low success rate: {success_rate:.2%}",
+                    }
+                )
 
         # Analyze execution time
         avg_time = self._performance_metrics["avg_execution_time"]
         if avg_time > self.config.max_execution_time * 0.8:
-            suggestions.append({
-                "type": "performance_optimization",
-                "suggestion": "Consider task decomposition or parallelization",
-                "evidence": f"High avg execution time: {avg_time:.1f}s",
-            })
+            suggestions.append(
+                {
+                    "type": "performance_optimization",
+                    "suggestion": "Consider task decomposition or parallelization",
+                    "evidence": f"High avg execution time: {avg_time:.1f}s",
+                }
+            )
 
         return {
             "specialist": self.agent_id.value,

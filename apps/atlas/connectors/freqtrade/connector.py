@@ -65,15 +65,17 @@ class FreqtradeConnector(AtlasConnector):
             for trade in data.get("trades", []):
                 val = float(trade.get("current_profit", 0)) * float(trade.get("stake_amount", 0))
                 total_value += val
-                positions.append(NormalizedPosition(
-                    symbol=trade.get("pair", ""),
-                    asset_type="crypto",
-                    quantity=float(trade.get("amount", 0)),
-                    avg_price=float(trade.get("open_rate", 0)),
-                    current_price=float(trade.get("current_rate", 0)),
-                    value=val,
-                    pnl_percent=float(trade.get("current_profit", 0)) * 100,
-                ))
+                positions.append(
+                    NormalizedPosition(
+                        symbol=trade.get("pair", ""),
+                        asset_type="crypto",
+                        quantity=float(trade.get("amount", 0)),
+                        avg_price=float(trade.get("open_rate", 0)),
+                        current_price=float(trade.get("current_rate", 0)),
+                        value=val,
+                        pnl_percent=float(trade.get("current_profit", 0)) * 100,
+                    )
+                )
             return NormalizedPortfolio(total_value=total_value, positions=positions, provider="freqtrade")
         except Exception as exc:
             logger.warning("Freqtrade portfolio failed: %s", exc)

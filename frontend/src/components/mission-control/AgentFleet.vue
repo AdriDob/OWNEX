@@ -265,15 +265,15 @@ const statusDotStyle = (status: string) => {
 }
 
 .ownex-agent-fleet__agent--working {
-  border-color: rgba(16, 185, 129, 0.3);
+  border-color: rgba(22, 163, 74, 0.3);
 }
 
 .ownex-agent-fleet__agent--thinking {
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .ownex-agent-fleet__agent--error {
-  border-color: rgba(239, 68, 68, 0.3);
+  border-color: rgba(232, 33, 39, 0.3);
 }
 
 /* Avatar */

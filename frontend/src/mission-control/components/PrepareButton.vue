@@ -47,7 +47,7 @@ function handleClick() {
       :disabled="!isActive && !(phase === 'preparing')"
       class="relative px-10 py-4 rounded-xl font-bold text-base tracking-wide transition-all duration-300"
       :class="[
-        isActive && !disabled ? 'bg-primary text-primary-foreground hover:brightness-110 hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] active:scale-[0.98]' : '',
+        isActive && !disabled ? 'bg-primary text-primary-foreground hover:brightness-110 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] active:scale-[0.98]' : '',
         !isActive && phase !== 'preparing' ? 'bg-muted/30 text-muted-foreground cursor-not-allowed' : '',
         phase === 'preparing' ? 'bg-primary/50 text-primary-foreground cursor-wait' : '',
         phase === 'ready' ? 'bg-success/20 text-success border border-success/30 hover:bg-success/30' : '',

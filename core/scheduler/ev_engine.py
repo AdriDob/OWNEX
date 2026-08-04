@@ -17,23 +17,24 @@ logger = logging.getLogger("orion.scheduler.ev_engine")
 @dataclass
 class EVInput:
     """Inputs para cálculo de EV unificado."""
+
     # ── Financieros directos ─────────────────────────────────────
-    expected_revenue: float = 0.0           # Ingreso esperado si tiene éxito
-    probability_success: float = 0.5        # 0-1, probabilidad de éxito
-    time_investment_hours: float = 1.0      # Horas que requiere
+    expected_revenue: float = 0.0  # Ingreso esperado si tiene éxito
+    probability_success: float = 0.5  # 0-1, probabilidad de éxito
+    time_investment_hours: float = 1.0  # Horas que requiere
 
     # ── Costes y riesgos ────────────────────────────────────────
-    risk_level: float = 0.3                 # 0-1, riesgo de pérdida/fracaso
-    opportunity_cost: float = 0.0           # EV/hora de la mejor alternativa
-    upfront_cost: float = 0.0               # Coste inicial (tools, fees, etc.)
+    risk_level: float = 0.3  # 0-1, riesgo de pérdida/fracaso
+    opportunity_cost: float = 0.0  # EV/hora de la mejor alternativa
+    upfront_cost: float = 0.0  # Coste inicial (tools, fees, etc.)
 
     # ── Valor estratégico / aprendizaje ─────────────────────────
-    skill_value: float = 0.0                # Valor de aprendizaje futuro ($/hora equivalente)
-    network_value: float = 0.0              # Contactos, reputación ($ equivalente)
-    strategic_alignment: float = 0.5        # 0-1, alineación con metas a largo plazo
+    skill_value: float = 0.0  # Valor de aprendizaje futuro ($/hora equivalente)
+    network_value: float = 0.0  # Contactos, reputación ($ equivalente)
+    strategic_alignment: float = 0.5  # 0-1, alineación con metas a largo plazo
 
     # ── Contexto ────────────────────────────────────────────────
-    domain: str = "general"                 # bug_bounty, investment, freelance, etc.
+    domain: str = "general"  # bug_bounty, investment, freelance, etc.
     tags: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -41,12 +42,13 @@ class EVInput:
 @dataclass
 class EVResult:
     """Resultado del cálculo de EV."""
-    ev_per_hour: float                      # EV neto por hora
-    total_ev: float                         # EV total de la actividad
-    breakdown: dict[str, float]             # Desglose por componente
-    confidence: float                       # 0-1, confianza en la estimación
-    recommendation: str                     # "do_now", "schedule", "delegate", "drop", "invest_more"
-    rationale: str                          # Explicación legible
+
+    ev_per_hour: float  # EV neto por hora
+    total_ev: float  # EV total de la actividad
+    breakdown: dict[str, float]  # Desglose por componente
+    confidence: float  # 0-1, confianza en la estimación
+    recommendation: str  # "do_now", "schedule", "delegate", "drop", "invest_more"
+    rationale: str  # Explicación legible
 
 
 class EVCalculator:
@@ -77,9 +79,9 @@ class EVCalculator:
 
     # Umbrales de recomendación
     THRESHOLDS = {
-        "do_now": 1.5,      # EV > 1.5x opportunity_cost y confidence > 0.7
-        "schedule": 1.0,    # EV > opportunity_cost y confidence > 0.5
-        "delegate": 0.1,    # EV > 0 pero < opportunity_cost
+        "do_now": 1.5,  # EV > 1.5x opportunity_cost y confidence > 0.7
+        "schedule": 1.0,  # EV > opportunity_cost y confidence > 0.5
+        "delegate": 0.1,  # EV > 0 pero < opportunity_cost
         "drop": -float("inf"),  # EV <= 0
     }
 
@@ -137,15 +139,10 @@ class EVCalculator:
         # ── 5. Confidence ───────────────────────────────────────
         # Basada en: probability_success, inverse risk, data quality
         data_quality = inp.metadata.get("data_quality", 0.5)  # 0-1
-        confidence = min(
-            inp.probability_success * (1 - inp.risk_level) * (0.5 + 0.5 * data_quality),
-            0.95
-        )
+        confidence = min(inp.probability_success * (1 - inp.risk_level) * (0.5 + 0.5 * data_quality), 0.95)
 
         # ── 6. Recommendation ───────────────────────────────────
-        recommendation, rationale = self._make_recommendation(
-            ev_per_hour, inp.opportunity_cost, confidence, inp
-        )
+        recommendation, rationale = self._make_recommendation(ev_per_hour, inp.opportunity_cost, confidence, inp)
 
         # ── 7. Breakdown ────────────────────────────────────────
         breakdown = {
@@ -178,11 +175,7 @@ class EVCalculator:
         )
 
     def _make_recommendation(
-        self,
-        ev_per_hour: float,
-        opportunity_cost: float,
-        confidence: float,
-        inp: EVInput
+        self, ev_per_hour: float, opportunity_cost: float, confidence: float, inp: EVInput
     ) -> tuple[str, str]:
         """Determina la recomendación basada en EV y confianza."""
 
@@ -193,21 +186,16 @@ class EVCalculator:
 
         if ratio >= self.THRESHOLDS["do_now"] and confidence >= 0.7:
             return "do_now", (
-                f"EV alto ({ev_per_hour:.2f}/h, {ratio:.1f}x alternativa) "
-                f"con confianza {confidence:.0%}. Ejecutar ya."
+                f"EV alto ({ev_per_hour:.2f}/h, {ratio:.1f}x alternativa) con confianza {confidence:.0%}. Ejecutar ya."
             )
 
         if ratio >= self.THRESHOLDS["schedule"] and confidence >= 0.5:
             return "schedule", (
-                f"EV positivo ({ev_per_hour:.2f}/h, {ratio:.1f}x alternativa) "
-                f"con confianza {confidence:.0%}. Agendar."
+                f"EV positivo ({ev_per_hour:.2f}/h, {ratio:.1f}x alternativa) con confianza {confidence:.0%}. Agendar."
             )
 
         if ratio >= self.THRESHOLDS["delegate"] and confidence >= 0.3:
-            return "delegate", (
-                f"EV bajo ({ev_per_hour:.2f}/h) pero positivo. "
-                f"Considerar delegar o automatizar."
-            )
+            return "delegate", (f"EV bajo ({ev_per_hour:.2f}/h) pero positivo. Considerar delegar o automatizar.")
 
         return "drop", f"EV insuficiente vs alternativa ({ratio:.1f}x). Reevaluar."
 
@@ -256,6 +244,7 @@ class EVCalculator:
 
 _ev_calculator: EVCalculator | None = None
 
+
 def get_ev_calculator() -> EVCalculator:
     global _ev_calculator
     if _ev_calculator is None:
@@ -264,6 +253,7 @@ def get_ev_calculator() -> EVCalculator:
 
 
 # ── Helpers para dominios específicos ─────────────────────────────
+
 
 def estimate_bb_success_probability(target_name: str, vuln_type: str, historical_data: dict) -> float:
     """Estima probabilidad de éxito en bug bounty basado en histórico."""

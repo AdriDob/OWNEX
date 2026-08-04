@@ -30,7 +30,10 @@ class AIInsightArtifact(Bundle):
     def __post_init__(self) -> None:
         super().__post_init__()
         self.depends_on(
-            "PipelineArtifact", "EvidenceGraphArtifact",
-            "ScreenshotArtifact", "DifferentialArtifact",
-            "QuickWinsArtifact", "ExecutionPlanArtifact",
+            "PipelineArtifact",
+            "EvidenceGraphArtifact",
+            "ScreenshotArtifact",
+            "DifferentialArtifact",
+            "QuickWinsArtifact",
+            "ExecutionPlanArtifact",
         )

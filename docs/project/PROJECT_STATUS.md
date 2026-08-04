@@ -1,12 +1,12 @@
 # PROJECT STATUS — OWNEX OMEGA v7.0
 
-**Last Calculated:** 2026-07-30 (from code evidence)
+**Last Calculated:** 2026-08-04 (from code evidence)
 
 ---
 
-## Global Percentage: **85%**
+## Global Percentage: **90%**
 
-**Justification:** Core product (autonomous pipeline, opportunity scoring, revenue engine, health, offensive engine, evidence, reports, learning, recon, auto-submit, AI bounty) is production-ready with tests. Security Cycle test fixed (category="security"). Gaps: Desktop build (never run), GamingConsole fake data, 216 modified files unclean. Extensions/Evolution exist but not integrated (deferred per Revenue Rule).
+**Justification:** Core product (autonomous pipeline, opportunity scoring, revenue engine, health, offensive engine, evidence, reports, learning, recon, auto-submit, AI bounty) is production-ready with tests. 6 Work Cycles operativos (Security, Forge, Pulse, Atlas, Vault, CoderAgent) + Direct Work Engine multi-adapter + Work Bank. Nuevos motores 2026-08-04: OAR AI Runtime (routing IA basado en coste/failover/aprendizaje) y Career Engine (skill-gaps + roadmap). Gaps: Desktop build (never run), OAR/Career sin endpoint API aún, repo unclean. Extensions/Evolution exist but not integrated (deferred per Revenue Rule).
 
 ---
 
@@ -29,6 +29,12 @@
 | **Auto-Submission** | 95% | Quality gate, platform detection, EventBus, 12 tests |
 | **AI Bounty Hunter** | 95% | 4 programs, scheduler 2h, EV ranking, 29 tests |
 | **Target Discovery** | 95% | Bounty scraper, change tracker, payout ranking, 25 tests |
+| **Direct Work Engine (DWE)** | 90% | Multi-adapter (bug bounty, freelance, dev, data annotation), OpportunityCategory + UserProfile, 8 executors/23 handlers, 51 tests |
+| **Work Bank** | 85% | Top picks + skill_gap + daily brief, 16 tests |
+| **Voice Assistant** | 80% | Voice router montado en `api/main.py`, 9 tests |
+| **OAR AI Runtime** | 75% | `cores/ai/runtime/` 14 módulos: SmartRouter, CostTracker, FailoverEngine, HealthMonitor, LearningEngine, SemanticCache, 9 adapters; **12 tests, sin endpoint API aún** |
+| **Career Engine** | 75% | Skill-gap detection, roadmap, interview prep, daily training; **14 tests, auto-registro CapabilityRegistry, sin endpoint API aún** |
+| **OMEGA mobile (Expo/RN)** | 40% | `omega/` esqueleto React Native, dashboard + servicios API/WS, aún no publicado a EAS |
 | **Agents (7)** | 90% | EventBus integrated, COPILOT senior, 6 specialists |
 | **Frontend (Core Pages)** | 80% | MissionControl, SecurityCycle, Opportunities, RevenueDashboard real; GamingConsole fake |
 | **Extensions (13)** | 30% | Discovery + manifest + connector work; **no cycle integration** |
@@ -44,9 +50,9 @@
 | Layer | % | Notes |
 |-------|----|-------|
 | **Infrastructure** | 85% | API, DB, EventBus, Scheduler, Secrets, Health — all working |
-| **Backend** | 92% | All core engines production-ready with tests |
-| **Frontend** | 75% | Core pages real; 1 fake page (GamingConsole); components solid |
-| **Agents** | 90% | 7 agents, EventBus wired, COPILOT hooks in scheduler |
+| **Backend** | 94% | Core engines production-ready; nuevos OAR + Career Engine (tested, sin API) |
+| **Frontend** | 80% | Core pages real + OMEGA mobile esqueleto; 1 fake page (GamingConsole) |
+| **Agents** | 90% | 7 agents + Work Cycles (6) + DWE multi-adapter, EventBus wired |
 | **Automation** | 80% | Pipeline runs, Security Cycle not auto-bootstrapped |
 | **Documentation** | 60% | **This system** — living docs in `/docs/project/`, .ai/ updated |
 | **Observability** | 90% | Health Center 25 tests, snapshots, unified status, audit log rotation |
@@ -95,7 +101,13 @@
 | test_secrets.py | 11 | 11 | 0 | 100% |
 | test_commands.py | 45 | 45 | 0 | 100% |
 | test_hermes_v2.py | 48 | 48 | 0 | 100% |
-| **TOTAL** | **434** | **433** | **1** | **99.8%** |
+| test_direct_work_engine.py + test_direct_work_api.py | 51 | 51 | 0 | 100% |
+| test_workbank.py | 16 | 16 | 0 | 100% |
+| test_voice_assistant.py | 9 | 9 | 0 | 100% |
+| test_oar.py | 12 | 12 | 0 | 100% |
+| test_career_engine.py | 14 | 14 | 0 | 100% |
+| **TOTAL (core)** | **434** | **433** | **1** | **99.8%** |
+| **+ Nuevos (DWE/WorkBank/Voice/OAR/Career)** | **+102** | **102** | **0** | **100%** |
 
 *AI Security integration tests skipped (require local models)
 
@@ -105,8 +117,8 @@
 
 | Metric | Count | Status |
 |--------|-------|--------|
-| Modified (git) | 216 | ⚠️ Needs commit/cleanup |
-| Untracked | 50 | ⚠️ Extensions + evolution + bin + config + docs |
-| Staged | 313 | From OWNEX v7.0.0 commit |
+| Modified (git) | 198 | ⚠️ Needs commit/cleanup |
+| Untracked | 27 | ⚠️ OAR runtime + career_engine + omega/ + ownex.service + tests nuevos |
+| Staged | 0 | Post v7.0.0 commit |
 
-**Action needed:** Commit or stash before release build.
+**Action needed:** Commit or stash the 27 untracked modules before next release build.

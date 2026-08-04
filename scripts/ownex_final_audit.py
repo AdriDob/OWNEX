@@ -8,6 +8,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path("/home/adrie/projects/Rastro")
 
+
 def check_backend() -> dict:
     """Audit backend state."""
     print("\n=== BACKEND AUDIT ===")
@@ -37,6 +38,7 @@ def check_backend() -> dict:
 
     return {"main_py": main_py.exists(), "routers": len(routers), "tests": len(test_files)}
 
+
 def check_frontend() -> dict:
     """Audit frontend state."""
     print("\n=== FRONTEND AUDIT ===")
@@ -65,6 +67,7 @@ def check_frontend() -> dict:
 
     return {"package_json": package_json.exists(), "pages": len(pages), "components": len(components)}
 
+
 def check_desktop() -> dict:
     """Audit desktop state."""
     print("\n=== DESKTOP AUDIT ===")
@@ -91,6 +94,7 @@ def check_desktop() -> dict:
         print("❌ Dist directory missing")
 
     return {"tauri": tauri_dir.exists(), "dist": dist_dir.exists()}
+
 
 def check_mobile() -> dict:
     """Audit mobile state."""
@@ -119,6 +123,7 @@ def check_mobile() -> dict:
 
     return {"android": android_dir.exists(), "wearos": wearos_dir.exists()}
 
+
 def check_ai() -> dict:
     """Audit AI systems."""
     print("\n=== AI AUDIT ===")
@@ -142,6 +147,7 @@ def check_ai() -> dict:
         print("❌ Agents directory missing")
 
     return {"ai": ai_dir.exists(), "agents": agents_dir.exists()}
+
 
 def check_documentation() -> dict:
     """Audit documentation."""
@@ -168,6 +174,7 @@ def check_documentation() -> dict:
 
     return {"readme": readme.exists(), "ai_docs": len(ai_files) if ai_dir.exists() else 0}
 
+
 def main():
     """Run complete audit."""
     print("OWNEX FINAL AUDIT — Complete Excellence Audit")
@@ -179,7 +186,7 @@ def main():
         "desktop": check_desktop(),
         "mobile": check_mobile(),
         "ai": check_ai(),
-        "documentation": check_documentation()
+        "documentation": check_documentation(),
     }
 
     print("\n" + "=" * 60)
@@ -188,7 +195,17 @@ def main():
 
     # Calculate completion percentage
     total_checks = 6
-    passed_checks = sum(1 for result in audit_results.values() if isinstance(result, dict) and result.get("package_json") or result.get("main_py") or result.get("tauri") or result.get("android") or result.get("ai") or result.get("readme"))
+    passed_checks = sum(
+        1
+        for result in audit_results.values()
+        if isinstance(result, dict)
+        and result.get("package_json")
+        or result.get("main_py")
+        or result.get("tauri")
+        or result.get("android")
+        or result.get("ai")
+        or result.get("readme")
+    )
 
     print(f"Basic Infrastructure: {passed_checks}/{total_checks} components exist")
 
@@ -219,6 +236,7 @@ def main():
         f.write(f"- .ai docs: {audit_results['documentation']['ai_docs']}\n")
 
     print(f"\n✓ Audit saved to: {audit_file}")
+
 
 if __name__ == "__main__":
     main()

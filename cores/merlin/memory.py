@@ -15,6 +15,7 @@ logger = logging.getLogger("ownex.merlin.memory")
 
 class MemoryType(Enum):
     """Types of memory entries."""
+
     CONVERSATION = "conversation"
     PATTERN = "pattern"
     WORKFLOW = "workflow"
@@ -26,6 +27,7 @@ class MemoryType(Enum):
 @dataclass
 class MemoryEntry:
     """A memory entry."""
+
     id: str
     type: MemoryType
     title: str
@@ -47,7 +49,7 @@ class MemoryEntry:
             "tags": self.tags,
             "metadata": self.metadata,
             "access_count": self.access_count,
-            "last_accessed": self.last_accessed.isoformat() if self.last_accessed else None
+            "last_accessed": self.last_accessed.isoformat() if self.last_accessed else None,
         }
 
     @classmethod
@@ -62,7 +64,7 @@ class MemoryEntry:
             tags=data.get("tags", []),
             metadata=data.get("metadata", {}),
             access_count=data.get("access_count", 0),
-            last_accessed=datetime.fromisoformat(data["last_accessed"]) if data.get("last_accessed") else None
+            last_accessed=datetime.fromisoformat(data["last_accessed"]) if data.get("last_accessed") else None,
         )
 
 
@@ -94,7 +96,7 @@ class MerlinMemory:
         try:
             data = {
                 "memories": [entry.to_dict() for entry in self._memories.values()],
-                "last_updated": datetime.now().isoformat()
+                "last_updated": datetime.now().isoformat(),
             }
             with open(self.storage_path, "w") as f:
                 json.dump(data, f, indent=2)
@@ -103,11 +105,7 @@ class MerlinMemory:
             logger.error(f"Failed to save memories: {e}")
 
     async def save_conversation(
-        self,
-        question: str,
-        response: str,
-        timestamp: datetime,
-        tags: list[str] | None = None
+        self, question: str, response: str, timestamp: datetime, tags: list[str] | None = None
     ) -> str:
         """Save a conversation to memory."""
         entry_id = f"conv_{timestamp.timestamp()}"
@@ -119,7 +117,7 @@ class MerlinMemory:
             content=f"Q: {question}\nA: {response}",
             timestamp=timestamp,
             tags=tags or ["conversation"],
-            metadata={"question": question, "response": response}
+            metadata={"question": question, "response": response},
         )
 
         self._memories[entry_id] = entry
@@ -128,12 +126,7 @@ class MerlinMemory:
         logger.info(f"Saved conversation memory: {entry_id}")
         return entry_id
 
-    async def save_pattern(
-        self,
-        title: str,
-        pattern: str,
-        tags: list[str] | None = None
-    ) -> str:
+    async def save_pattern(self, title: str, pattern: str, tags: list[str] | None = None) -> str:
         """Save a pattern to memory."""
         entry_id = f"pattern_{datetime.now().timestamp()}"
 
@@ -144,7 +137,7 @@ class MerlinMemory:
             content=pattern,
             timestamp=datetime.now(),
             tags=tags or ["pattern"],
-            metadata={"pattern": pattern}
+            metadata={"pattern": pattern},
         )
 
         self._memories[entry_id] = entry
@@ -153,12 +146,7 @@ class MerlinMemory:
         logger.info(f"Saved pattern memory: {entry_id}")
         return entry_id
 
-    async def save_workflow(
-        self,
-        title: str,
-        workflow: str,
-        tags: list[str] | None = None
-    ) -> str:
+    async def save_workflow(self, title: str, workflow: str, tags: list[str] | None = None) -> str:
         """Save a workflow to memory."""
         entry_id = f"workflow_{datetime.now().timestamp()}"
 
@@ -169,7 +157,7 @@ class MerlinMemory:
             content=workflow,
             timestamp=datetime.now(),
             tags=tags or ["workflow"],
-            metadata={"workflow": workflow}
+            metadata={"workflow": workflow},
         )
 
         self._memories[entry_id] = entry
@@ -178,12 +166,7 @@ class MerlinMemory:
         logger.info(f"Saved workflow memory: {entry_id}")
         return entry_id
 
-    async def save_note(
-        self,
-        title: str,
-        content: str,
-        tags: list[str] | None = None
-    ) -> str:
+    async def save_note(self, title: str, content: str, tags: list[str] | None = None) -> str:
         """Save a note to memory."""
         entry_id = f"note_{datetime.now().timestamp()}"
 
@@ -194,7 +177,7 @@ class MerlinMemory:
             content=content,
             timestamp=datetime.now(),
             tags=tags or ["note"],
-            metadata={"note": content}
+            metadata={"note": content},
         )
 
         self._memories[entry_id] = entry
@@ -212,11 +195,7 @@ class MerlinMemory:
             self._save_memories()
         return entry
 
-    async def get_recent_memories(
-        self,
-        limit: int = 10,
-        memory_type: MemoryType | None = None
-    ) -> list[MemoryEntry]:
+    async def get_recent_memories(self, limit: int = 10, memory_type: MemoryType | None = None) -> list[MemoryEntry]:
         """Get recent memories."""
         memories = list(self._memories.values())
 
@@ -228,20 +207,16 @@ class MerlinMemory:
 
         return memories[:limit]
 
-    async def search_memories(
-        self,
-        query: str,
-        limit: int = 10
-    ) -> list[MemoryEntry]:
+    async def search_memories(self, query: str, limit: int = 10) -> list[MemoryEntry]:
         """Search memories by query."""
         query_lower = query.lower()
         results = []
 
         for entry in self._memories.values():
             if (
-                query_lower in entry.title.lower() or
-                query_lower in entry.content.lower() or
-                any(query_lower in tag.lower() for tag in entry.tags)
+                query_lower in entry.title.lower()
+                or query_lower in entry.content.lower()
+                or any(query_lower in tag.lower() for tag in entry.tags)
             ):
                 results.append(entry)
 
@@ -254,7 +229,8 @@ class MerlinMemory:
         """Clean up old memories beyond retention period."""
         cutoff_date = datetime.now() - timedelta(days=retention_days)
         to_remove = [
-            entry_id for entry_id, entry in self._memories.items()
+            entry_id
+            for entry_id, entry in self._memories.items()
             if entry.timestamp < cutoff_date and entry.type != MemoryType.PATTERN
         ]
 
@@ -276,11 +252,7 @@ class MerlinMemory:
         return [m for m in self._memories.values() if m.type == memory_type]
 
     async def update_memory(
-        self,
-        entry_id: str,
-        title: str | None = None,
-        content: str | None = None,
-        tags: list[str] | None = None
+        self, entry_id: str, title: str | None = None, content: str | None = None, tags: list[str] | None = None
     ) -> bool:
         """Update a memory entry."""
         entry = self._memories.get(entry_id)
@@ -324,7 +296,7 @@ class MerlinMemory:
             "type_counts": type_counts,
             "total_access_count": total_access,
             "oldest_memory": min((m.timestamp for m in memories), default=None),
-            "newest_memory": max((m.timestamp for m in memories), default=None)
+            "newest_memory": max((m.timestamp for m in memories), default=None),
         }
 
 

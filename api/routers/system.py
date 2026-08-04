@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, HTTPException, Query
 
 from cores.confidence import audit_findings, audit_single, audit_verdicts
@@ -60,7 +59,12 @@ def get_definitions():
             {"id": "shodan", "name": "Shodan", "free": True, "url": "https://account.shodan.io"},
             {"id": "censys", "name": "Censys", "free": True, "url": "https://search.censys.io/account/api"},
             {"id": "virustotal", "name": "VirusTotal", "free": True, "url": "https://virustotal.com/gui/my-apikey"},
-            {"id": "securitytrails", "name": "SecurityTrails", "free": False, "url": "https://securitytrails.com/app/account/credentials"},
+            {
+                "id": "securitytrails",
+                "name": "SecurityTrails",
+                "free": False,
+                "url": "https://securitytrails.com/app/account/credentials",
+            },
             {"id": "alienvault", "name": "AlienVault OTX", "free": True, "url": "https://otx.alienvault.com/settings"},
             {"id": "urlscan", "name": "URLScan.io", "free": True, "url": "https://urlscan.io/user/api/"},
             {"id": "hunter", "name": "Hunter.io", "free": True, "url": "https://hunter.io/api-keys"},
@@ -71,7 +75,11 @@ def get_definitions():
             {"id": "pulsedive", "name": "Pulsedive", "free": True, "url": "https://pulsedive.com/account/"},
             {"id": "ipinfo", "name": "IPInfo", "free": True, "url": "https://ipinfo.io/account"},
         ],
-        "languages": [{"id": "es", "name": "Español"}, {"id": "en", "name": "English"}, {"id": "pt", "name": "Português"}],
+        "languages": [
+            {"id": "es", "name": "Español"},
+            {"id": "en", "name": "English"},
+            {"id": "pt", "name": "Português"},
+        ],
         "event_types": ["scan", "finding", "report", "verdict", "sync", "system"],
     }
 
@@ -114,6 +122,7 @@ def get_review_queue(limit: int = Query(100, ge=1, le=500)):
 def get_system_state():
     """Full system state summary with service health details."""
     from cores.system_state import get_system_state as _get_state
+
     state = _get_state()
     return {
         "state": state.get_summary(),
@@ -128,6 +137,7 @@ def get_system_state_events(
 ):
     """Recent event bus history."""
     from cores.events.event_bus import get_event_bus
+
     bus = get_event_bus()
     events = bus.get_history(event_type=event_type, limit=limit)
     return {
@@ -139,6 +149,7 @@ def get_system_state_events(
 @router.get("/update-check")
 def check_update():
     from desktop.updater import _current_version, check_for_updates
+
     release = check_for_updates()
     if release is None:
         return {"available": False, "current_version": _current_version()}
@@ -149,3 +160,118 @@ def check_update():
         "release_notes_url": release.release_notes_url,
         "current_version": _current_version(),
     }
+
+
+@router.get("/daemon/status")
+def get_daemon_status():
+    """Get daemon status - whether it's running and its state."""
+    import os
+    from pathlib import Path
+
+    # Check if daemon is running via PID file
+    pid_file = Path.home() / ".orion" / "daemon.pid"
+    daemon_running = False
+    daemon_pid = None
+
+    if pid_file.exists():
+        try:
+            pid = int(pid_file.read_text().strip())
+            # Check if process exists
+            os.kill(pid, 0)  # Signal 0 just checks existence
+            daemon_running = True
+            daemon_pid = pid
+        except (ProcessLookupError, ValueError):
+            # Process dead, clean up
+            pid_file.unlink(missing_ok=True)
+
+    # Get system state
+    from cores.system_state import get_system_state
+
+    state = get_system_state()
+
+    return {
+        "daemon_running": daemon_running,
+        "daemon_pid": daemon_pid,
+        "system_state": state.get_summary(),
+        "services": state.get_services(),
+    }
+
+
+@router.post("/daemon/start")
+def start_daemon():
+    """Start the autonomous daemon."""
+    import os
+    import subprocess
+    from pathlib import Path
+
+    pid_file = Path.home() / ".orion" / "daemon.pid"
+
+    # Check if already running
+    if pid_file.exists():
+        try:
+            pid = int(pid_file.read_text().strip())
+            os.kill(pid, 0)
+            return {"success": False, "message": f"Daemon already running (PID: {pid})"}
+        except (ProcessLookupError, ValueError):
+            pass
+
+    # Start daemon in background
+    venv_python = Path(__file__).resolve().parent.parent.parent.parent / ".venv" / "bin" / "python"
+    if not venv_python.exists():
+        venv_python = Path("/home/adrie/projects/Rastro/.venv/bin/python")
+
+    # Use nohup to detach
+    env = os.environ.copy()
+    env["DATABASE_URL"] = "sqlite:///" + str(Path.home() / ".orion" / "database" / "cateye.db")
+
+    proc = subprocess.Popen(
+        [str(venv_python), "run.py", "--daemon"],
+        cwd="/home/adrie/projects/Rastro",
+        env=env,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+
+    # Write PID file
+    pid_file.write_text(str(proc.pid))
+
+    # Update system state
+    from cores.system_state import get_system_state
+
+    state = get_system_state()
+    state.register_service("autonomous_daemon")
+    state.report_healthy("autonomous_daemon")
+
+    return {"success": True, "message": "Daemon started", "pid": proc.pid}
+
+
+@router.post("/daemon/stop")
+def stop_daemon():
+    """Stop the autonomous daemon."""
+    import os
+    import signal
+    from pathlib import Path
+
+    pid_file = Path.home() / ".orion" / "daemon.pid"
+
+    if not pid_file.exists():
+        return {"success": False, "message": "Daemon not running"}
+
+    try:
+        pid = int(pid_file.read_text().strip())
+        os.kill(pid, signal.SIGTERM)
+        pid_file.unlink(missing_ok=True)
+
+        # Update system state
+        from cores.system_state import get_system_state
+
+        state = get_system_state()
+        state.report_unhealthy("autonomous_daemon", "Stopped by user")
+
+        return {"success": True, "message": "Daemon stopped"}
+    except (ProcessLookupError, ValueError):
+        pid_file.unlink(missing_ok=True)
+        return {"success": False, "message": "Daemon process not found"}
+    except Exception as e:
+        return {"success": False, "message": f"Error stopping daemon: {e}"}

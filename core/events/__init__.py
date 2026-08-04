@@ -4,6 +4,7 @@ from __future__ import annotations
 Bridges events to CATEYE's legacy EventBus so app events reach
 legacy subscribers.
 """
+# ruff: noqa: E402
 from core.events.event_bus import CoreEventBus, get_core_event_bus
 from cores.events.store import EventStore, get_event_store, reset_event_store
 from cores.events.types import CorrelationId, Decision, EventEnvelope, Events

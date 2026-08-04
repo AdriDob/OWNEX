@@ -43,6 +43,7 @@ from cores.agents.validator import ValidatorAgent
 @pytest.fixture(autouse=True)
 def _reset_bus():
     from cores.agents import reset_all_agents
+
     reset_all_agents()
     yield
     reset_all_agents()
@@ -216,9 +217,14 @@ class TestBaseAgent:
         bus.subscribe(EventType.SYSTEM_ERROR, lambda e: errors.append(e))
 
         class BrokenAgent(BaseAgent):
-            def _get_agent_id(self): return AgentId.RESEARCH
-            def _get_subscriptions(self): return ["broken.event"]
-            def handle_event(self, event): raise ValueError("test error")
+            def _get_agent_id(self):
+                return AgentId.RESEARCH
+
+            def _get_subscriptions(self):
+                return ["broken.event"]
+
+            def handle_event(self, event):
+                raise ValueError("test error")
 
         agent = BrokenAgent()
         agent.start()
@@ -238,12 +244,14 @@ class TestCoordinator:
         coordinator = get_coordinator()
         coordinator.start()
 
-        bus.publish(AgentEvent(
-            event_type=EventType.PIPELINE_START,
-            source="api",
-            target=AgentId.COORDINATOR,
-            payload={"target_id": 1, "target_name": "test.com"},
-        ))
+        bus.publish(
+            AgentEvent(
+                event_type=EventType.PIPELINE_START,
+                source="api",
+                target=AgentId.COORDINATOR,
+                payload={"target_id": 1, "target_name": "test.com"},
+            )
+        )
         time.sleep(0.03)
 
         pipelines = coordinator.list_pipelines()
@@ -260,19 +268,25 @@ class TestCoordinator:
         bus.subscribe(EventType.SYSTEM_ALERT, lambda e: alerts.append(e))
 
         # Start two pipelines for same target
-        bus.publish(AgentEvent(
-            event_type=EventType.PIPELINE_START,
-            source="api", target=AgentId.COORDINATOR,
-            correlation_id="p1",
-            payload={"target_id": 1, "target_name": "dup.com"},
-        ))
+        bus.publish(
+            AgentEvent(
+                event_type=EventType.PIPELINE_START,
+                source="api",
+                target=AgentId.COORDINATOR,
+                correlation_id="p1",
+                payload={"target_id": 1, "target_name": "dup.com"},
+            )
+        )
         time.sleep(0.02)
-        bus.publish(AgentEvent(
-            event_type=EventType.PIPELINE_START,
-            source="api", target=AgentId.COORDINATOR,
-            correlation_id="p2",
-            payload={"target_id": 1, "target_name": "dup.com"},
-        ))
+        bus.publish(
+            AgentEvent(
+                event_type=EventType.PIPELINE_START,
+                source="api",
+                target=AgentId.COORDINATOR,
+                correlation_id="p2",
+                payload={"target_id": 1, "target_name": "dup.com"},
+            )
+        )
         time.sleep(0.03)
 
         # Should have emitted a conflict alert
@@ -286,11 +300,14 @@ class TestCoordinator:
         research_events = []
         bus.subscribe(EventType.RESEARCH_START, lambda e: research_events.append(e))
 
-        bus.publish(AgentEvent(
-            event_type=EventType.PIPELINE_START,
-            source="api", target=AgentId.COORDINATOR,
-            payload={"target_id": 2, "target_name": "stage-test.com"},
-        ))
+        bus.publish(
+            AgentEvent(
+                event_type=EventType.PIPELINE_START,
+                source="api",
+                target=AgentId.COORDINATOR,
+                payload={"target_id": 2, "target_name": "stage-test.com"},
+            )
+        )
         time.sleep(0.03)
 
         assert len(research_events) >= 1, f"No research events, pipelines={coordinator.list_pipelines()}"
@@ -301,21 +318,27 @@ class TestCoordinator:
         coordinator.start()
         pid = "lifecycle-test"
 
-        bus.publish(AgentEvent(
-            event_type=EventType.PIPELINE_START,
-            source="api", target=AgentId.COORDINATOR,
-            correlation_id=pid,
-            payload={"target_id": 3, "target_name": "lifecycle.com"},
-        ))
+        bus.publish(
+            AgentEvent(
+                event_type=EventType.PIPELINE_START,
+                source="api",
+                target=AgentId.COORDINATOR,
+                correlation_id=pid,
+                payload={"target_id": 3, "target_name": "lifecycle.com"},
+            )
+        )
         time.sleep(0.03)
 
         # Complete the discovery stage
-        bus.publish(AgentEvent(
-            event_type=EventType.PIPELINE_STAGE_COMPLETED,
-            source=AgentId.RESEARCH, target=AgentId.COORDINATOR,
-            correlation_id=pid,
-            payload={"stage": "discovery", "next_stage": "validation"},
-        ))
+        bus.publish(
+            AgentEvent(
+                event_type=EventType.PIPELINE_STAGE_COMPLETED,
+                source=AgentId.RESEARCH,
+                target=AgentId.COORDINATOR,
+                correlation_id=pid,
+                payload={"stage": "discovery", "next_stage": "validation"},
+            )
+        )
         time.sleep(0.03)
 
         status = coordinator.get_pipeline_status(pid)
@@ -335,22 +358,28 @@ class TestAgentCommunication:
         pipeline_events = []
         bus.subscribe(EventType.PIPELINE_STAGE_COMPLETED, lambda e: pipeline_events.append(e))
 
-        bus.publish(AgentEvent(
-            event_type=EventType.PIPELINE_START,
-            source="test", target=AgentId.COORDINATOR,
-            payload={"target_id": 10, "target_name": "agent-flow.com"},
-        ))
+        bus.publish(
+            AgentEvent(
+                event_type=EventType.PIPELINE_START,
+                source="test",
+                target=AgentId.COORDINATOR,
+                payload={"target_id": 10, "target_name": "agent-flow.com"},
+            )
+        )
         time.sleep(0.02)
 
         # Research publishes completion
         research = ResearchAgent()
         research.start()
-        bus.publish(AgentEvent(
-            event_type=EventType.RESEARCH_START,
-            source=AgentId.COORDINATOR, target=AgentId.RESEARCH,
-            correlation_id=list(coordinator._active_pipelines.keys())[0],
-            payload={"target_id": 10, "target_name": "agent-flow.com"},
-        ))
+        bus.publish(
+            AgentEvent(
+                event_type=EventType.RESEARCH_START,
+                source=AgentId.COORDINATOR,
+                target=AgentId.RESEARCH,
+                correlation_id=list(coordinator._active_pipelines.keys())[0],
+                payload={"target_id": 10, "target_name": "agent-flow.com"},
+            )
+        )
         time.sleep(0.02)
         research.stop()
         coordinator.stop()
@@ -376,11 +405,19 @@ class TestAgentLifecycle:
         reset_agent_bus()
         start_all_agents()
         time.sleep(0.02)
-        health = {a.agent_id.value: a.health() for a in (
-            get_coordinator(), ResearchAgent(), ValidatorAgent(),
-            ExploitAgent(), DocumentationAgent(), get_strategy_agent(),
-            get_memory_agent(), get_financial_agent(),
-        )}
+        health = {
+            a.agent_id.value: a.health()
+            for a in (
+                get_coordinator(),
+                ResearchAgent(),
+                ValidatorAgent(),
+                ExploitAgent(),
+                DocumentationAgent(),
+                get_strategy_agent(),
+                get_memory_agent(),
+                get_financial_agent(),
+            )
+        }
         assert "coordinator" in health
         assert health["coordinator"]["name"] == "Coordinador"
         assert "research" in health
@@ -394,9 +431,15 @@ class TestMemoryAgent:
     def test_store_and_recall(self, bus):
         agent = get_memory_agent()
         agent.start()
-        agent.emit(EventType.MEMORY_STORE, payload={
-            "key": "test_key", "value": {"data": 42}, "namespace": "testing",
-        }, target=AgentId.MEMORY)
+        agent.emit(
+            EventType.MEMORY_STORE,
+            payload={
+                "key": "test_key",
+                "value": {"data": 42},
+                "namespace": "testing",
+            },
+            target=AgentId.MEMORY,
+        )
         time.sleep(0.02)
         result = agent.remember("testing", "test_key")
         assert result is not None
@@ -420,17 +463,24 @@ class TestFinancialAgent:
         reset_agent_bus()
         # Fresh agent instance to avoid state accumulation
         from cores.agents.financial import _FINANCIAL
+
         _FINANCIAL = None  # noqa
         import os
         import tempfile
+
         tmp = os.path.join(tempfile.gettempdir(), "test_finance.json")
         agent = FinancialAgent(data_path=tmp)
         if os.path.exists(tmp):
             os.remove(tmp)
         agent.start()
-        agent.emit(EventType.FINANCIAL_PAYOUT_RECORDED, payload={
-            "amount": 500, "program": "test", "currency": "USD",
-        })
+        agent.emit(
+            EventType.FINANCIAL_PAYOUT_RECORDED,
+            payload={
+                "amount": 500,
+                "program": "test",
+                "currency": "USD",
+            },
+        )
         time.sleep(0.03)
         summary = agent.get_summary()
         assert summary["metrics"]["total_paid"] == 500, f"Got {summary}"
@@ -455,6 +505,7 @@ def api_client():
     reset_agent_bus()
     from api.main import app
     from cores.license.validator import generate_license
+
     c = TestClient(app)
     lic = generate_license(expiry_days=365)
     c.post("/api/license/activate", json={"key": lic})
@@ -506,9 +557,13 @@ class TestAgentAPI:
             assert "recommendations" in data
 
     def test_pipeline_start(self, api_client):
-        resp = api_client.post("/api/agents/pipeline/start", json={
-            "target_id": 999, "target_name": "api-test.com",
-        })
+        resp = api_client.post(
+            "/api/agents/pipeline/start",
+            json={
+                "target_id": 999,
+                "target_name": "api-test.com",
+            },
+        )
         if resp.status_code == 200:
             data = resp.json()
             assert data["status"] == "started"

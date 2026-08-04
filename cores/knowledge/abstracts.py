@@ -79,7 +79,9 @@ class KnowledgeIndexer(ABC):
 
 class KnowledgeGraphService(ABC):
     @abstractmethod
-    def add_relation(self, source_id: str, target_id: str, relation_type: str, metadata: dict[str, Any] | None = None) -> None:
+    def add_relation(
+        self, source_id: str, target_id: str, relation_type: str, metadata: dict[str, Any] | None = None
+    ) -> None:
         """Register a semantic relation between two knowledge artifacts."""
 
     @abstractmethod

@@ -16,6 +16,7 @@ logger = logging.getLogger("ownex.workflow.engine")
 
 class WorkflowStatus(StrEnum):
     """Status of a workflow execution."""
+
     PENDING = "pending"
     RUNNING = "running"
     PAUSED = "paused"
@@ -26,6 +27,7 @@ class WorkflowStatus(StrEnum):
 
 class TaskStatus(StrEnum):
     """Status of a workflow task."""
+
     PENDING = "pending"
     ASSIGNED = "assigned"
     IN_PROGRESS = "in_progress"
@@ -37,6 +39,7 @@ class TaskStatus(StrEnum):
 @dataclass
 class WorkflowTask:
     """A single task within a workflow."""
+
     id: str
     name: str
     agent_id: str  # Use string to avoid AgentId conflict
@@ -53,6 +56,7 @@ class WorkflowTask:
 @dataclass
 class Workflow:
     """A workflow composed of multiple tasks."""
+
     id: str
     name: str
     description: str
@@ -180,9 +184,7 @@ class WorkflowEngine:
         logger.info(f"[WORKFLOW] Task {task_id} started")
         return True
 
-    def complete_task(
-        self, workflow_id: str, task_id: str, result: dict[str, Any]
-    ) -> bool:
+    def complete_task(self, workflow_id: str, task_id: str, result: dict[str, Any]) -> bool:
         """Mark a task as completed with result."""
         workflow = self._workflows.get(workflow_id)
         if not workflow:

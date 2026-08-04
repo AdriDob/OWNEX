@@ -216,9 +216,7 @@ def validate_environment() -> dict[str, dict]:
         "mode": mode.value,
         "safe_mode": _SAFE_MODE,
         "all_critical_ok": all(
-            v["ok"] or not v.get("fatal", False)
-            for k, v in results.items()
-            if not k.startswith("_")
+            v["ok"] or not v.get("fatal", False) for k, v in results.items() if not k.startswith("_")
         ),
     }
 

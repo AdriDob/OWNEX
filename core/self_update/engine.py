@@ -191,6 +191,6 @@ class SelfUpdateEngine:
             "status": "ok",
             "name": self.name,
             "current_version": self._read_version(),
-            "status": self.status,
+            "engine_status": self.status,
             "project_dir": str(self.project_dir),
         }

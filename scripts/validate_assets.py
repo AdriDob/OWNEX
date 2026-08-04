@@ -91,22 +91,22 @@ def check_orion_bundle(orion_dir: Path) -> None:
     exe = orion_dir / exe_name
     check(f"{exe_name} exists", exe.is_file())
     if exe.is_file():
-        check(f"{exe_name} > 1 MB", exe.stat().st_size > 1_000_000,
-              f"({exe.stat().st_size / 1024 / 1024:.1f} MB)")
+        check(f"{exe_name} > 1 MB", exe.stat().st_size > 1_000_000, f"({exe.stat().st_size / 1024 / 1024:.1f} MB)")
 
     internal = orion_dir / "_internal"
 
     # Frontend assets (try _internal/ first, then bundle root)
-    frontend = (internal / "frontend_dist") if internal.is_dir() and (internal / "frontend_dist").is_dir() else orion_dir / "frontend_dist"
+    frontend = (
+        (internal / "frontend_dist")
+        if internal.is_dir() and (internal / "frontend_dist").is_dir()
+        else orion_dir / "frontend_dist"
+    )
     check("frontend_dist/ exists", frontend.is_dir())
     if frontend.is_dir():
-        check("frontend_dist/index.html exists",
-              (frontend / "index.html").is_file())
-        check("frontend_dist/assets/ exists",
-              (frontend / "assets").is_dir())
+        check("frontend_dist/index.html exists", (frontend / "index.html").is_file())
+        check("frontend_dist/assets/ exists", (frontend / "assets").is_dir())
         asset_count = len(list(frontend.rglob("*")))
-        check(f"frontend_dist/ has files ({asset_count})",
-              asset_count > 5)
+        check(f"frontend_dist/ has files ({asset_count})", asset_count > 5)
 
     # Internal PyInstaller files
     check("_internal/ exists (PyInstaller runtime)", internal.is_dir())
@@ -124,14 +124,12 @@ def check_orion_bundle(orion_dir: Path) -> None:
         if is_win:
             native_count += len(list(internal.rglob("*.dll")))
         # Also check for .pyd inside base_library.zip (not applicable, but check the pattern)
-        check(f"_internal/ has native modules ({native_count})",
-              native_count > 0)
+        check(f"_internal/ has native modules ({native_count})", native_count > 0)
 
     # Critical Python modules — compiled into PYZ, not individual files.
     # Verify by checking that base_library.zip or PYZ archive exists.
     if internal.is_dir():
-        pyz_found = (internal / "base_library.zip").exists() or \
-                    len(list(internal.rglob("PYZ-*.pyz"))) > 0
+        pyz_found = (internal / "base_library.zip").exists() or len(list(internal.rglob("PYZ-*.pyz"))) > 0
         if not pyz_found:
             # Fallback: check for any zip files
             zips = list(internal.rglob("*.zip"))
@@ -139,12 +137,13 @@ def check_orion_bundle(orion_dir: Path) -> None:
         check("Python bytecode archive exists (PYZ)", pyz_found)
 
     # VERSION file (try _internal/ first, then bundle root)
-    version_file = (internal / "VERSION") if internal.is_dir() and (internal / "VERSION").is_file() else orion_dir / "VERSION"
+    version_file = (
+        (internal / "VERSION") if internal.is_dir() and (internal / "VERSION").is_file() else orion_dir / "VERSION"
+    )
     check("VERSION file exists", version_file.is_file())
     if version_file.is_file():
         version = version_file.read_text().strip()
-        check(f"VERSION is valid ({version})",
-              len(version) > 0 and version[0].isdigit())
+        check(f"VERSION is valid ({version})", len(version) > 0 and version[0].isdigit())
 
     # Icon (if available)
     icon = orion_dir / "orion.ico"
@@ -156,10 +155,8 @@ def check_orion_bundle(orion_dir: Path) -> None:
     # Size sanity
     total_bytes = sum(f.stat().st_size for f in orion_dir.rglob("*") if f.is_file())
     total_mb = total_bytes / 1024 / 1024
-    check(f"Total bundle size ({total_mb:.1f} MB)", total_mb > 5,
-          detail="(expected > 5 MB for a complete build)")
-    check(f"Bundle not oversized ({total_mb:.1f} MB)", total_mb < 2000,
-          detail="(expected < 2 GB)")
+    check(f"Total bundle size ({total_mb:.1f} MB)", total_mb > 5, detail="(expected > 5 MB for a complete build)")
+    check(f"Bundle not oversized ({total_mb:.1f} MB)", total_mb < 2000, detail="(expected < 2 GB)")
 
 
 def main() -> None:

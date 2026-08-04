@@ -183,6 +183,7 @@ def main() -> None:
     # Cleanup
     if not args.keep_temp:
         import time
+
         for attempt in range(3):
             try:
                 shutil.rmtree(temp_dir)

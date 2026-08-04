@@ -20,10 +20,16 @@ from cores.identity.session_store import SessionStore
 logger = logging.getLogger("cateye.identity")
 
 DATA_DIR = str(
-    Path(os.environ.get("CATEYE_DATA_DIR", os.path.join(
-        os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")),
-        "CATEYE",
-    ))) / "identity"
+    Path(
+        os.environ.get(
+            "CATEYE_DATA_DIR",
+            os.path.join(
+                os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")),
+                "CATEYE",
+            ),
+        )
+    )
+    / "identity"
 )
 
 
@@ -153,11 +159,13 @@ class IdentityManager:
     def issue_api_token(self, label: str = "default") -> str:
         token = str(uuid.uuid4())
         if self._identity:
-            self._identity.api_tokens.append({
-                "token": token,
-                "label": label,
-                "issued_at": time.time(),
-            })
+            self._identity.api_tokens.append(
+                {
+                    "token": token,
+                    "label": label,
+                    "issued_at": time.time(),
+                }
+            )
             self._save_identity()
         return token
 

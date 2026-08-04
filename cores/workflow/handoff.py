@@ -16,6 +16,7 @@ logger = logging.getLogger("ownex.workflow.handoff")
 
 class HandoffStatus(StrEnum):
     """Status of a handoff."""
+
     PENDING = "pending"
     INITIATED = "initiated"
     ACCEPTED = "accepted"
@@ -27,6 +28,7 @@ class HandoffStatus(StrEnum):
 @dataclass
 class HandoffCondition:
     """Condition for triggering a handoff."""
+
     condition_type: str  # e.g., "architecture_ready", "test_failed"
     source_agent: str  # Use string to avoid AgentId conflict
     target_agent: str  # Use string to avoid AgentId conflict
@@ -37,6 +39,7 @@ class HandoffCondition:
 @dataclass
 class Handoff:
     """A handoff between departments."""
+
     id: str
     workflow_id: str
     task_id: str
@@ -313,11 +316,7 @@ class HandoffManager:
 
     def get_pending_handoffs(self, agent_id: str) -> list[Handoff]:
         """Get pending handoffs for an agent."""
-        return [
-            h
-            for h in self._handoffs.values()
-            if h.target_agent == agent_id and h.status == HandoffStatus.ACCEPTED
-        ]
+        return [h for h in self._handoffs.values() if h.target_agent == agent_id and h.status == HandoffStatus.ACCEPTED]
 
     def _find_condition(
         self, condition_type: str, source_agent: str, target_agent: str | None = None

@@ -275,28 +275,30 @@ def normalize_roi_scores(
             breakdown=breakdown,
         )
 
-        normalized.append(Hypothesis(
-            id=h.id,
-            vulnerability_type=h.vulnerability_type,
-            target_id=h.target_id,
-            target_name=h.target_name,
-            endpoint=h.endpoint,
-            likelihood=h.likelihood,
-            impact=h.impact,
-            exploitability=h.exploitability,
-            confidence=h.confidence,
-            priority_score=h.priority_score,
-            roi_score=round(norm, 2),
-            evidence=h.evidence,
-            reasoning=h.reasoning,
-            suggested_actions=h.suggested_actions,
-            source=h.source,
-            vector=h.vector,
-            attack_surface_labels=h.attack_surface_labels,
-            similarity_to_past=h.similarity_to_past,
-            past_pattern_id=h.past_pattern_id,
-            score=new_score,
-        ))
+        normalized.append(
+            Hypothesis(
+                id=h.id,
+                vulnerability_type=h.vulnerability_type,
+                target_id=h.target_id,
+                target_name=h.target_name,
+                endpoint=h.endpoint,
+                likelihood=h.likelihood,
+                impact=h.impact,
+                exploitability=h.exploitability,
+                confidence=h.confidence,
+                priority_score=h.priority_score,
+                roi_score=round(norm, 2),
+                evidence=h.evidence,
+                reasoning=h.reasoning,
+                suggested_actions=h.suggested_actions,
+                source=h.source,
+                vector=h.vector,
+                attack_surface_labels=h.attack_surface_labels,
+                similarity_to_past=h.similarity_to_past,
+                past_pattern_id=h.past_pattern_id,
+                score=new_score,
+            )
+        )
 
     return normalized
 

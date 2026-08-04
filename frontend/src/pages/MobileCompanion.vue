@@ -151,6 +151,38 @@
           </div>
         </div>
 
+        <!-- Pending Approvals Card -->
+        <div class="card approvals-card">
+          <div class="card-header">
+            <h3>✅ Pending Approvals</h3>
+            <Badge :variant="approvalsBadgeVariant">{{ pendingApprovals.length }}</Badge>
+          </div>
+          <div v-if="pendingApprovals.length === 0" class="empty-state">
+            <div class="empty-icon">🎉</div>
+            <div class="empty-text">No pending approvals</div>
+          </div>
+          <div v-else class="approvals-list">
+            <div v-for="approval in pendingApprovals" :key="approval.id" class="approval-item">
+              <div class="approval-info">
+                <div class="approval-title">{{ approval.title }}</div>
+                <div class="approval-meta">
+                  <span class="approval-type">{{ approval.entity_type }}</span>
+                  <span class="approval-priority" :class="approval.priority">{{ approval.priority }}</span>
+                </div>
+                <div v-if="approval.description" class="approval-description">{{ approval.description }}</div>
+              </div>
+              <div class="approval-actions">
+                <button @click="approveApproval(approval.id)" class="approve-btn" :disabled="approving">
+                  ✓
+                </button>
+                <button @click="rejectApproval(approval.id)" class="reject-btn" :disabled="approving">
+                  ✕
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Tasks Card -->
         <div class="card tasks-card">
           <div class="card-header">
@@ -363,8 +395,11 @@ const refreshing = ref(false)
 const showSettings = ref(false)
 const showAddTask = ref(false)
 const activeTab = ref('dashboard')
+const approving = ref(false)
 
 // Data
+const pendingApprovals = ref<any[]>([])
+let ws: WebSocket | null = null
 const tasks = ref<any[]>([])
 const goals = ref<any[]>([])
 const habits = ref<any[]>([])
@@ -419,6 +454,12 @@ const moodVariant = computed(() => {
   if (mood === 'very_positive' || mood === 'positive') return 'success'
   if (mood === 'neutral') return 'outline'
   return 'danger'
+})
+
+const approvalsBadgeVariant = computed(() => {
+  if (pendingApprovals.value.length === 0) return 'outline'
+  if (pendingApprovals.value.some((a) => a.priority === 'critical' || a.priority === 'high')) return 'danger'
+  return 'warning'
 })
 
 // Methods
@@ -641,6 +682,90 @@ const saveSettings = () => {
   showSettings.value = false
 }
 
+// Approval methods
+const loadPendingApprovals = async () => {
+  try {
+    const response = await fetch('/api/mobile/pending-approvals')
+    if (response.ok) {
+      const data = await response.json()
+      pendingApprovals.value = data
+    }
+  } catch (e) {
+    console.error('Failed to load approvals:', e)
+  }
+}
+
+const approveApproval = async (approvalId: number) => {
+  approving.value = true
+  try {
+    const response = await fetch(`/api/mobile/approve/${approvalId}`, {
+      method: 'POST',
+    })
+    if (response.ok) {
+      await loadPendingApprovals()
+    }
+  } catch (e) {
+    console.error('Failed to approve:', e)
+  } finally {
+    approving.value = false
+  }
+}
+
+const rejectApproval = async (approvalId: number) => {
+  approving.value = true
+  try {
+    const response = await fetch(`/api/mobile/reject/${approvalId}`, {
+      method: 'POST',
+    })
+    if (response.ok) {
+      await loadPendingApprovals()
+    }
+  } catch (e) {
+    console.error('Failed to reject:', e)
+  } finally {
+    approving.value = false
+  }
+}
+
+const connectWebSocket = () => {
+  const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/mobile/ws/approvals`
+  ws = new WebSocket(wsUrl)
+
+  ws.onopen = () => {
+    console.log('[Approvals] WebSocket connected')
+    // Send ping every 30 seconds to keep connection alive
+    setInterval(() => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send('ping')
+      }
+    }, 30000)
+  }
+
+  ws.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data)
+      console.log('[Approvals] Received:', data)
+
+      if (data.type === 'approval_requested') {
+        loadPendingApprovals()
+      } else if (data.type === 'approval_approved' || data.type === 'approval_rejected') {
+        loadPendingApprovals()
+      }
+    } catch (e) {
+      console.error('[Approvals] Failed to parse message:', e)
+    }
+  }
+
+  ws.onerror = (error) => {
+    console.error('[Approvals] WebSocket error:', error)
+  }
+
+  ws.onclose = () => {
+    console.log('[Approvals] WebSocket closed, reconnecting in 5s...')
+    setTimeout(connectWebSocket, 5000)
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
   await initSupabase()
@@ -652,6 +777,8 @@ onMounted(async () => {
     userId = session.user.id
     authState.value = 'authenticated'
     await loadAllData()
+    await loadPendingApprovals()
+    connectWebSocket()
   }
 
   // Load settings
@@ -667,7 +794,11 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  // Cleanup
+  // Cleanup WebSocket
+  if (ws) {
+    ws.close()
+    ws = null
+  }
 })
 </script>
 
@@ -705,7 +836,7 @@ onUnmounted(() => {
 .logo {
   font-size: 2rem;
   font-weight: bold;
-  color: #00f0ff;
+  color: #00d5ff;
   margin-bottom: 10px;
 }
 
@@ -741,7 +872,7 @@ onUnmounted(() => {
 }
 
 .auth-btn {
-  background: #00f0ff;
+  background: #00d5ff;
   color: #000;
   border: none;
   padding: 12px;
@@ -765,7 +896,7 @@ onUnmounted(() => {
 .link-btn {
   background: none;
   border: none;
-  color: #00f0ff;
+  color: #00d5ff;
   cursor: pointer;
   font-weight: bold;
 }
@@ -809,7 +940,7 @@ onUnmounted(() => {
 }
 
 .status-indicator.synced .status-dot {
-  background: #00ff88;
+  background: #00e39a;
 }
 
 .status-indicator.syncing .status-dot {
@@ -825,7 +956,7 @@ onUnmounted(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #00ff88;
+  background: #00e39a;
 }
 
 @keyframes pulse {
@@ -841,7 +972,7 @@ onUnmounted(() => {
 .icon-btn {
   background: rgba(0, 240, 255, 0.1);
   border: 1px solid rgba(0, 240, 255, 0.3);
-  color: #00f0ff;
+  color: #00d5ff;
   padding: 8px 12px;
   border-radius: 8px;
   cursor: pointer;
@@ -881,7 +1012,7 @@ onUnmounted(() => {
 
 .card-header h3 {
   margin: 0;
-  color: #00f0ff;
+  color: #00d5ff;
   font-size: 1.1rem;
 }
 
@@ -913,7 +1044,7 @@ onUnmounted(() => {
 .metric-value.online,
 .metric-value.connected,
 .metric-value.synced {
-  color: #00ff88;
+  color: #00e39a;
 }
 
 .metric-value.offline,
@@ -923,7 +1054,8 @@ onUnmounted(() => {
 
 .tasks-list,
 .goals-list,
-.habits-list {
+.habits-list,
+.approvals-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -931,7 +1063,8 @@ onUnmounted(() => {
 
 .task-item,
 .goal-item,
-.habit-item {
+.habit-item,
+.approval-item {
   background: rgba(0, 240, 255, 0.05);
   border: 1px solid rgba(0, 240, 255, 0.1);
   border-radius: 12px;
@@ -941,8 +1074,119 @@ onUnmounted(() => {
   align-items: center;
 }
 
-.task-item.completed {
+.approval-item {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.approval-info {
+  flex: 1;
+  margin-bottom: 10px;
+}
+
+.approval-title {
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.approval-meta {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.approval-type {
+  color: #888;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.approval-priority {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.approval-priority.high {
+  background: rgba(255, 107, 53, 0.2);
+  color: #ff6b35;
+}
+
+.approval-priority.critical {
+  background: rgba(255, 59, 48, 0.2);
+  color: #ff3b30;
+}
+
+.approval-priority.medium {
+  background: rgba(255, 204, 0, 0.2);
+  color: #ffcc00;
+}
+
+.approval-priority.low {
+  background: rgba(0, 227, 154, 0.2);
+  color: #00e39a;
+}
+
+.approval-description {
+  color: #aaa;
+  font-size: 0.85rem;
+  margin-top: 5px;
+}
+
+.approval-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.approve-btn {
+  background: rgba(0, 227, 154, 0.2);
+  border: 1px solid rgba(0, 227, 154, 0.4);
+  color: #00e39a;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.approve-btn:disabled {
   opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.reject-btn {
+  background: rgba(255, 59, 48, 0.2);
+  border: 1px solid rgba(255, 59, 48, 0.4);
+  color: #ff3b30;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.reject-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 30px;
+  color: #888;
+}
+
+.empty-icon {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.empty-text {
+  font-size: 0.9rem;
 }
 
 .task-title,
@@ -962,7 +1206,7 @@ onUnmounted(() => {
 
 .task-status.completed {
   background: rgba(0, 255, 136, 0.2);
-  color: #00ff88;
+  color: #00e39a;
 }
 
 .task-status.pending {
@@ -986,14 +1230,14 @@ onUnmounted(() => {
 }
 
 .progress-fill {
-  background: linear-gradient(90deg, #00f0ff, #00ff88);
+  background: linear-gradient(90deg, #00d5ff, #00e39a);
   height: 100%;
   border-radius: 10px;
   transition: width 0.3s ease;
 }
 
 .progress-text {
-  color: #00f0ff;
+  color: #00d5ff;
   font-size: 0.85rem;
   font-weight: bold;
 }
@@ -1006,7 +1250,7 @@ onUnmounted(() => {
 .icon-btn-small {
   background: rgba(0, 255, 136, 0.1);
   border: 1px solid rgba(0, 255, 136, 0.3);
-  color: #00ff88;
+  color: #00e39a;
   padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
@@ -1015,7 +1259,7 @@ onUnmounted(() => {
 .add-btn {
   background: rgba(0, 240, 255, 0.1);
   border: 1px solid rgba(0, 240, 255, 0.3);
-  color: #00f0ff;
+  color: #00d5ff;
   padding: 10px;
   border-radius: 8px;
   cursor: pointer;
@@ -1041,7 +1285,7 @@ onUnmounted(() => {
 
 .mood-btn.active {
   background: rgba(0, 240, 255, 0.2);
-  border-color: #00f0ff;
+  border-color: #00d5ff;
   transform: scale(1.1);
 }
 
@@ -1069,7 +1313,7 @@ onUnmounted(() => {
 }
 
 .save-btn {
-  background: #00f0ff;
+  background: #00d5ff;
   color: #000;
   border: none;
   padding: 10px 20px;
@@ -1094,7 +1338,7 @@ onUnmounted(() => {
 
 .modal-content {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border: 1px solid #00f0ff;
+  border: 1px solid #00d5ff;
   border-radius: 16px;
   padding: 30px;
   max-width: 400px;
@@ -1110,7 +1354,7 @@ onUnmounted(() => {
 
 .modal-header h3 {
   margin: 0;
-  color: #00f0ff;
+  color: #00d5ff;
 }
 
 .close-btn {
@@ -1165,7 +1409,7 @@ onUnmounted(() => {
 }
 
 .btn-primary {
-  background: #00f0ff;
+  background: #00d5ff;
   color: #000;
   border: none;
   padding: 10px 20px;
@@ -1190,7 +1434,7 @@ onUnmounted(() => {
 .nav-item {
   background: rgba(0, 240, 255, 0.1);
   border: 1px solid rgba(0, 240, 255, 0.2);
-  color: #00f0ff;
+  color: #00d5ff;
   padding: 12px 20px;
   border-radius: 8px;
   cursor: pointer;
@@ -1199,7 +1443,7 @@ onUnmounted(() => {
 }
 
 .nav-item.active {
-  background: #00f0ff;
+  background: #00d5ff;
   color: #000;
   transform: scale(1.1);
 }

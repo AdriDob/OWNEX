@@ -19,17 +19,19 @@ class ScoreWeights:
 
     @property
     def total(self) -> float:
-        return sum([
-            self.technical_confidence,
-            self.reproducibility,
-            self.evidence_completeness,
-            self.business_impact,
-            self.security_impact,
-            self.scope_compliance,
-            self.duplicate_risk,
-            self.report_quality,
-            self.severity_justification,
-        ])
+        return sum(
+            [
+                self.technical_confidence,
+                self.reproducibility,
+                self.evidence_completeness,
+                self.business_impact,
+                self.security_impact,
+                self.scope_compliance,
+                self.duplicate_risk,
+                self.report_quality,
+                self.severity_justification,
+            ]
+        )
 
 
 DEFAULT_WEIGHTS = ScoreWeights()

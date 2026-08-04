@@ -1,13 +1,12 @@
-"""OmniRoute provider — OpenAI-compatible HTTP provider via local Docker (:20128).
-
-Mirror of core/copilot/providers/omniroute_provider.py.
-"""
+from __future__ import annotations
 
 import json
 import logging
 import os
 from collections.abc import AsyncIterator
 from typing import Any
+
+import httpx
 
 from core.copilot.providers.base import BaseProvider, ProviderConfig, ProviderResponse
 
@@ -31,6 +30,15 @@ _OMNIROUTE_MODELS = [
     "auto/best-reasoning",
 ]
 
+# NVIDIA models available via NVIDIA NIM API
+_NVIDIA_MODELS = [
+    "nv-ai-foundation-541280:mistral-8x7b-instruct-v0.2",
+    "nv-ai-foundation-541280:llama-3.1-70b-instruct",
+    "nv-ai-foundation-541280:nemotron-3-ultra",
+    "nvidia/nemotron-3-ultra",
+    "meta/llama-3.1-70b-instruct",
+]
+
 
 class OmniRouteProvider(BaseProvider):
     def __init__(self, config: ProviderConfig | None = None) -> None:
@@ -48,6 +56,10 @@ class OmniRouteProvider(BaseProvider):
         )
         self._api_key = self._config.extra.get("api_key", os.getenv("OMNIROUTE_API_KEY", "omniroute"))
         self._default_model = self._config.models[0]
+        # NVIDIA integration for models not available via OmniRoute
+        self._nvidia_enabled = bool(os.getenv("NVIDIA_API_KEY") or os.getenv("NIM_API_KEY"))
+        self._nvidia_base_url = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
+        self._nvidia_api_key = os.getenv("NVIDIA_API_KEY") or os.getenv("NIM_API_KEY", "")
 
     async def check(self) -> bool:
         """Quick health check with short timeout."""
@@ -56,12 +68,26 @@ class OmniRouteProvider(BaseProvider):
 
             async with httpx.AsyncClient(timeout=3) as client:
                 r = await client.get(f"{self._base_url}/models")
-                return r.status_code == 200
+                if r.status_code == 200:
+                    return True
         except Exception:
-            return False
+            pass
+        # Fallback to NVIDIA if OmniRoute is down
+        if self._nvidia_enabled:
+            try:
+                async with httpx.AsyncClient(timeout=5) as client:
+                    r = await client.get(
+                        f"{self._nvidia_base_url}/models",
+                        headers={"Authorization": f"Bearer {self._nvidia_api_key}"},
+                    )
+                    return r.status_code == 200
+            except Exception:
+                pass
+        return False
 
     async def list_models(self) -> list[str]:
-        """List available models from OmniRoute."""
+        """List available models from OmniRoute + NVIDIA."""
+        models = []
         try:
             import httpx
 
@@ -70,106 +96,227 @@ class OmniRouteProvider(BaseProvider):
                 if r.status_code == 200:
                     data = r.json()
                     models = [m.get("id", "") for m in data.get("data", [])]
-                    return models[:100]  # Limit to first 100 models
         except Exception as e:
             logger.warning("Failed to list OmniRoute models: %s", e)
-        return self._config.models
+
+        # Add NVIDIA models if available
+        if self._nvidia_enabled:
+            try:
+                async with httpx.AsyncClient(timeout=5) as client:
+                    r = await client.get(
+                        f"{self._nvidia_base_url}/models",
+                        headers={"Authorization": f"Bearer {self._nvidia_api_key}"},
+                    )
+                    if r.status_code == 200:
+                        data = r.json()
+                        nvidia_models = [m.get("id", "") for m in data.get("data", []) if m.get("id")]
+                        models.extend(nvidia_models)
+            except Exception as e:
+                logger.warning("Failed to list NVIDIA models: %s", e)
+
+        if not models:
+            models = _OMNIROUTE_MODELS
+            if self._nvidia_enabled:
+                models.extend(_NVIDIA_MODELS)
+        return models[:100]  # Limit to first 100 models
 
     async def chat(self, messages: list[dict[str, str]], **kwargs: Any) -> ProviderResponse:
         import time
 
-        import httpx
-
         model = kwargs.get("model", self._default_model)
         t0 = time.monotonic()
-        try:
-            async with httpx.AsyncClient(timeout=self._config.timeout_s) as client:
-                r = await client.post(
-                    f"{self._base_url}/chat/completions",
-                    headers={"Authorization": f"Bearer {self._api_key}", "Content-Type": "application/json"},
-                    json={
-                        "model": model,
-                        "messages": messages,
-                        "stream": False,
-                        "max_tokens": kwargs.get("max_tokens", 4096),
-                        "temperature": kwargs.get("temperature", 0.7),
-                    },
-                )
-                if r.status_code != 200:
-                    logger.warning("OmniRoute API error: %s - %s", r.status_code, r.text)
-                    return ProviderResponse(
-                        content="",
-                        provider="omniroute",
-                        model=model,
-                        error=f"API error {r.status_code}",
-                        duration_ms=(time.monotonic() - t0) * 1000,
-                    )
-                data = r.json()
-                dur = (time.monotonic() - t0) * 1000
 
-                if "error" in data:
-                    return ProviderResponse(
-                        content="",
-                        provider="omniroute",
-                        model=model,
-                        error=data["error"].get("message", str(data["error"])),
-                        duration_ms=dur,
-                    )
+        # Check if model is a NVIDIA model
+        is_nvidia_model = (
+            model in _NVIDIA_MODELS
+            or model.startswith("nvidia/")
+            or model.startswith("nv-")
+            or model.startswith("meta/")
+        )
 
-                choice = data.get("choices", [{}])[0]
-                content = choice.get("message", {}).get("content", "")
-                usage = data.get("usage", {})
+        # Try OmniRoute first for non-NVIDIA models
+        if not is_nvidia_model:
+            try:
+                async with httpx.AsyncClient(timeout=self._config.timeout_s) as client:
+                    r = await client.post(
+                        f"{self._base_url}/chat/completions",
+                        headers={"Authorization": f"Bearer {self._api_key}", "Content-Type": "application/json"},
+                        json={
+                            "model": model,
+                            "messages": messages,
+                            "stream": False,
+                            "max_tokens": kwargs.get("max_tokens", 4096),
+                            "temperature": kwargs.get("temperature", 0.7),
+                        },
+                    )
+                    if r.status_code == 200:
+                        data = r.json()
+                        dur = (time.monotonic() - t0) * 1000
+
+                        if "error" in data:
+                            return ProviderResponse(
+                                content="",
+                                provider="omniroute",
+                                model=model,
+                                error=data["error"].get("message", str(data["error"])),
+                                duration_ms=dur,
+                            )
+
+                        choice = data.get("choices", [{}])[0]
+                        content = choice.get("message", {}).get("content", "")
+                        usage = data.get("usage", {})
+                        return ProviderResponse(
+                            content=content,
+                            provider="omniroute",
+                            model=data.get("model", model),
+                            tokens_in=usage.get("prompt_tokens", 0),
+                            tokens_out=usage.get("completion_tokens", 0),
+                            duration_ms=dur,
+                        )
+                    elif r.status_code in (401, 402, 403, 429, 500, 502, 503, 504):
+                        logger.warning("OmniRoute API error %d, will try NVIDIA fallback: %s", r.status_code, r.text)
+                    else:
+                        logger.warning("OmniRoute API error: %s - %s", r.status_code, r.text)
+            except Exception as exc:
+                logger.warning("OmniRoute chat failed, will try NVIDIA fallback: %s", exc)
+
+        # NVIDIA fallback (or primary for NVIDIA models)
+        if self._nvidia_enabled:
+            try:
+                async with httpx.AsyncClient(timeout=self._config.timeout_s) as client:
+                    r = await client.post(
+                        f"{self._nvidia_base_url}/chat/completions",
+                        headers={
+                            "Authorization": f"Bearer {self._nvidia_api_key}",
+                            "Content-Type": "application/json",
+                            "Accept": "text/event-stream",
+                        },
+                        json={"model": model, "messages": messages, "max_tokens": kwargs.get("max_tokens", 4096)},
+                    )
+                    if r.status_code == 200:
+                        data = r.json()
+                        dur = (time.monotonic() - t0) * 1000
+                        choice = data.get("choices", [{}])[0]
+                        content = choice.get("message", {}).get("content", "")
+                        usage = data.get("usage", {})
+                        return ProviderResponse(
+                            content=content,
+                            provider="omniroute",
+                            model=model,
+                            tokens_in=usage.get("prompt_tokens", 0),
+                            tokens_out=usage.get("completion_tokens", 0),
+                            duration_ms=dur,
+                        )
+                    else:
+                        logger.warning("NVIDIA API error: %s - %s", r.status_code, r.text)
+                        return ProviderResponse(
+                            content="",
+                            provider="omniroute",
+                            model=model,
+                            error=f"NVIDIA API error {r.status_code}",
+                            duration_ms=(time.monotonic() - t0) * 1000,
+                        )
+            except Exception as exc:
+                logger.warning("NVIDIA chat failed: %s", exc)
                 return ProviderResponse(
-                    content=content,
+                    content="",
                     provider="omniroute",
-                    model=data.get("model", model),
-                    tokens_in=usage.get("prompt_tokens", 0),
-                    tokens_out=usage.get("completion_tokens", 0),
-                    duration_ms=dur,
+                    model=model,
+                    error=str(exc),
+                    duration_ms=(time.monotonic() - t0) * 1000,
                 )
-        except Exception as exc:
-            logger.warning("OmniRoute chat failed: %s", exc)
-            return ProviderResponse(
-                content="",
-                provider="omniroute",
-                model=model,
-                error=str(exc),
-                duration_ms=(time.monotonic() - t0) * 1000,
-            )
+
+        # OmniRoute failed and no NVIDIA fallback
+        return ProviderResponse(
+            content="",
+            provider="omniroute",
+            model=model,
+            error="All providers unavailable",
+            duration_ms=(time.monotonic() - t0) * 1000,
+        )
 
     async def chat_stream(self, messages: list[dict[str, str]], **kwargs: Any) -> AsyncIterator[str]:
         import httpx
 
         model = kwargs.get("model", self._default_model)
-        try:
-            async with (
-                httpx.AsyncClient(timeout=self._config.timeout_s) as client,
-                client.stream(
-                    "POST",
-                    f"{self._base_url}/chat/completions",
-                    headers={"Authorization": f"Bearer {self._api_key}", "Content-Type": "application/json"},
-                    json={
-                        "model": model,
-                        "messages": messages,
-                        "stream": True,
-                        "max_tokens": kwargs.get("max_tokens", 4096),
-                    },
-                ) as r,
-            ):
-                async for line in r.aiter_lines():
-                    if not line.strip() or line.startswith(":"):
-                        continue
-                    if line.startswith("data: [DONE]"):
-                        break
-                    if line.startswith("data: "):
-                        try:
-                            data = json.loads(line.removeprefix("data: "))
-                            delta = data.get("choices", [{}])[0].get("delta", {})
-                            if content := delta.get("content"):
-                                yield content
-                            if reasoning := delta.get("reasoning_content"):
-                                yield reasoning
-                        except (json.JSONDecodeError, IndexError, KeyError):
+        is_nvidia_model = (
+            model in _NVIDIA_MODELS
+            or model.startswith("nvidia/")
+            or model.startswith("nv-")
+            or model.startswith("meta/")
+        )
+
+        # Try OmniRoute first for non-NVIDIA models
+        if not is_nvidia_model:
+            try:
+                async with (
+                    httpx.AsyncClient(timeout=self._config.timeout_s) as client,
+                    client.stream(
+                        "POST",
+                        f"{self._base_url}/chat/completions",
+                        headers={"Authorization": f"Bearer {self._api_key}", "Content-Type": "application/json"},
+                        json={
+                            "model": model,
+                            "messages": messages,
+                            "stream": True,
+                            "max_tokens": kwargs.get("max_tokens", 4096),
+                        },
+                    ) as r,
+                ):
+                    async for line in r.aiter_lines():
+                        if not line.strip() or line.startswith(":"):
                             continue
-        except Exception as exc:
-            logger.warning("OmniRoute stream failed: %s", exc)
+                        if line.startswith("data: [DONE]"):
+                            break
+                        if line.startswith("data: "):
+                            try:
+                                data = json.loads(line.removeprefix("data: "))
+                                delta = data.get("choices", [{}])[0].get("delta", {})
+                                if content := delta.get("content"):
+                                    yield content
+                                if reasoning := delta.get("reasoning_content"):
+                                    yield reasoning
+                            except (json.JSONDecodeError, IndexError, KeyError):
+                                continue
+                    return
+            except Exception as exc:
+                logger.warning("OmniRoute stream failed, will try NVIDIA fallback: %s", exc)
+
+        # NVIDIA fallback (or primary for NVIDIA models)
+        if self._nvidia_enabled:
+            try:
+                async with (
+                    httpx.AsyncClient(timeout=self._config.timeout_s) as client,
+                    client.stream(
+                        "POST",
+                        f"{self._nvidia_base_url}/chat/completions",
+                        headers={
+                            "Authorization": f"Bearer {self._nvidia_api_key}",
+                            "Content-Type": "application/json",
+                            "Accept": "text/event-stream",
+                        },
+                        json={
+                            "model": model,
+                            "messages": messages,
+                            "stream": True,
+                            "max_tokens": kwargs.get("max_tokens", 4096),
+                        },
+                    ) as r,
+                ):
+                    async for line in r.aiter_lines():
+                        if not line.strip() or line.startswith(":"):
+                            continue
+                        if line.startswith("data: [DONE]"):
+                            break
+                        if line.startswith("data: "):
+                            try:
+                                data = json.loads(line.removeprefix("data: "))
+                                delta = data.get("choices", [{}])[0].get("delta", {})
+                                if content := delta.get("content"):
+                                    yield content
+                                if reasoning := delta.get("reasoning_content"):
+                                    yield reasoning
+                            except (json.JSONDecodeError, IndexError, KeyError):
+                                continue
+            except Exception as exc:
+                logger.warning("NVIDIA stream failed: %s", exc)

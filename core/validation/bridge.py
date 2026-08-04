@@ -97,7 +97,10 @@ class ValidationBridge:
         # Determinar si requiere auth
         requires_auth = bool(
             hypothesis.why_triager_might_reject
-            and any(kw in hypothesis.why_triager_might_reject.lower() for kw in ["auth", "authentication", "login", "session"])
+            and any(
+                kw in hypothesis.why_triager_might_reject.lower()
+                for kw in ["auth", "authentication", "login", "session"]
+            )
         )
 
         candidate = AttackCandidate(
@@ -158,7 +161,9 @@ class ValidationBridge:
         Un solo paso: analyze + convert + score + filter.
         """
         result = self._offensive.analyze_endpoint(endpoint_data)
-        return self.from_reasoner_result(result, target_id=target_id, min_priority=min_priority, max_candidates=max_candidates)
+        return self.from_reasoner_result(
+            result, target_id=target_id, min_priority=min_priority, max_candidates=max_candidates
+        )
 
     # ── Full pipeline ──────────────────────────────────────────
 
@@ -189,8 +194,11 @@ class ValidationBridge:
         candidates = self.from_reasoner_result(result, target_id=target_id, min_priority=min_priority)
 
         if not candidates:
-            logger.info("[BRIDGE] Ningún candidate superó el filtro económico para %s %s",
-                       endpoint_data.get("method", "GET"), endpoint_data.get("path", ""))
+            logger.info(
+                "[BRIDGE] Ningún candidate superó el filtro económico para %s %s",
+                endpoint_data.get("method", "GET"),
+                endpoint_data.get("path", ""),
+            )
             return []
 
         # 3. Completar datos de red para cada candidate
@@ -267,8 +275,12 @@ class ValidationBridge:
                     results.extend(ep_results)
                 except Exception as exc:
                     ep = futures[future]
-                    logger.warning("[BRIDGE] Batch validation failed for %s %s: %s",
-                                 ep.get("method", "GET"), ep.get("path", ""), exc)
+                    logger.warning(
+                        "[BRIDGE] Batch validation failed for %s %s: %s",
+                        ep.get("method", "GET"),
+                        ep.get("path", ""),
+                        exc,
+                    )
 
         results.sort(key=lambda r: r.candidate.economic_score.priority if r.candidate else 0, reverse=True)
         return results
@@ -298,9 +310,7 @@ class ValidationBridge:
             endpoint_path=candidate.endpoint_path,
             method=candidate.method,
             duration_ms=engine_result.duration_ms,
-            signals_count=len(engine_result.result.total_signals)
-            if engine_result.result
-            else 0,
+            signals_count=len(engine_result.result.total_signals) if engine_result.result else 0,
             reproducible=engine_result.result.reproducible if engine_result.result else False,
         )
         record_outcome(outcome)

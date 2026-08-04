@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 # ── Program ──
 
+
 class ProgramCreate(BaseModel):
     name: str
     platform: str
@@ -69,6 +70,7 @@ class ProgramListOut(BaseModel):
 
 # ── BountyTier ──
 
+
 class BountyTierCreate(BaseModel):
     program_id: int
     tier_name: str
@@ -91,6 +93,7 @@ class BountyTierOut(BaseModel):
 
 # ── ScopeDocument ──
 
+
 class ScopeDocumentOut(BaseModel):
     id: int
     program_id: int
@@ -105,6 +108,7 @@ class ScopeDocumentOut(BaseModel):
 
 
 # ── ProgramIntel ──
+
 
 class ProgramIntelOut(BaseModel):
     id: int
@@ -156,6 +160,7 @@ class ProgramIntelUpdate(BaseModel):
 
 # ── FinancialMetric ──
 
+
 class FinancialMetricOut(BaseModel):
     id: int
     metric_type: str
@@ -180,6 +185,7 @@ class FinancialSummaryOut(BaseModel):
 
 
 # ── Money Radar ──
+
 
 class MoneyRadarProgramOut(BaseModel):
     id: int
@@ -210,6 +216,7 @@ class MoneyRadarOut(BaseModel):
 
 # ── ROI Summary ──
 
+
 class ROISummaryOut(BaseModel):
     total_earned: float = 0.0
     total_pending: float = 0.0
@@ -230,6 +237,7 @@ class ROISummaryOut(BaseModel):
 
 
 # ── Memory Pattern ──
+
 
 class MemoryPatternCreate(BaseModel):
     category: str
@@ -259,6 +267,7 @@ class MemoryPatternListOut(BaseModel):
 
 # ── Report Priority ──
 
+
 class ReportPriorityOut(BaseModel):
     id: int
     report_id: int
@@ -283,6 +292,7 @@ class ReportPriorityListOut(BaseModel):
 
 
 # ── Opportunity Planner ──
+
 
 class OpportunityPlanOut(BaseModel):
     program_id: int

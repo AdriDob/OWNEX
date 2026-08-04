@@ -12,6 +12,33 @@ from core.cycles.security import get_security_cycle
 logger = logging.getLogger("ownex.cycles.tasks")
 
 
+def run_qa_cycle(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    """Auto-run the QA Testing cycle.
+
+    Called daily by the scheduler: generates test cases from the current
+    targets/endpoints/findings, executes them, and persists the report.
+    """
+    from core.cycles.qa import get_qa_cycle
+
+    qa = get_qa_cycle()
+    cycle = qa.ensure_cycle()
+
+    if cycle.status in ("running",):
+        return {"status": "skipped", "reason": "QA cycle already running"}
+
+    try:
+        result = qa.run_full_qa_cycle()
+        return {
+            "status": "ok",
+            "cycle_id": result.get("cycle_id"),
+            "tests": result.get("report", {}).get("total_tests", 0),
+            "pass_rate": result.get("report", {}).get("pass_rate"),
+        }
+    except Exception as e:  # noqa: BLE001
+        logger.warning("Could not auto-run QA cycle: %s", e)
+        return {"status": "error", "message": str(e)}
+
+
 def auto_start_security_cycle(*args: Any, **kwargs: Any) -> dict[str, Any]:
     """Auto-start the Security Cycle if it is idle/inactive.
 

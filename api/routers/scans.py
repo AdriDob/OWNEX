@@ -18,6 +18,7 @@ class ScanRequest(BaseModel):
 async def launch_scan(request: ScanRequest):
     from cores.orchestrator.scan_service import launch_scan as service_launch_scan
     from database import db
+
     session = db.SessionLocal()
     try:
         result = await service_launch_scan(

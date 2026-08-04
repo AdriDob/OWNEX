@@ -422,6 +422,290 @@ def _handle_diagnostics() -> None:
     print()
 
 
+def _handle_daemon(args: list[str]) -> None:
+    """--daemon: Run OWNEX as a persistent background daemon (24/7 autonomous mode).
+
+    python run.py --daemon                    # Run forever with scheduler
+    python run.py --daemon --interval 300     # Custom interval in seconds (default 300)
+    python run.py --daemon --once             # Run one cycle and exit (for testing)
+    """
+    import asyncio
+    import signal
+    import time
+    from datetime import datetime
+
+    interval = 300  # default 5 minutes
+    once = False
+
+    for i, arg in enumerate(args):
+        if arg == "--interval" and i + 1 < len(args):
+            try:
+                interval = int(args[i + 1])
+            except ValueError:
+                _log("DAEMON", "Invalid interval, using default 300s")
+        if arg == "--once":
+            once = True
+
+    _log("DAEMON", "Starting OWNEX Autonomous Daemon (interval=%ds, once=%s)", interval, once)
+
+    # Setup signal handlers for graceful shutdown
+    shutdown_event = asyncio.Event()
+
+    # Write PID file
+    import os
+    from pathlib import Path
+
+    pid_file = Path.home() / ".orion" / "daemon.pid"
+    pid_file.parent.mkdir(parents=True, exist_ok=True)
+    pid_file.write_text(str(os.getpid()))
+
+    def _signal_handler(signum, frame):
+        _log("DAEMON", "Signal %s received, initiating graceful shutdown...", signum)
+        shutdown_event.set()
+
+    signal.signal(signal.SIGTERM, _signal_handler)
+    signal.signal(signal.SIGINT, _signal_handler)
+    if hasattr(signal, "SIGHUP"):
+        signal.signal(signal.SIGHUP, _signal_handler)
+
+    async def run_daemon():
+        # Initialize core systems
+        _log("DAEMON", "Initializing core systems...")
+        from database import db
+
+        db.init_db()
+
+        from cores.credentials.vault import get_credentials
+
+        get_credentials()
+
+        # Update system state - register daemon
+        from cores.system_state import get_system_state
+
+        state = get_system_state()
+        state.register_service("autonomous_daemon")
+        state.report_healthy("autonomous_daemon")
+
+        # Health check on startup
+        _log("DAEMON", "Running initial health checks...")
+        await _run_health_checks()
+
+        cycle = 0
+        while not shutdown_event.is_set():
+            cycle += 1
+            start_time = time.monotonic()
+            _log("DAEMON", "=== Cycle %d started at %s ===", cycle, datetime.now().isoformat())
+
+            try:
+                # 1. Health watchdog - check and recover providers
+                await _health_watchdog()
+
+                # 2. Scheduled tasks
+                await _run_scheduled_tasks(cycle)
+
+                # 3. Autonomous workflow (discover → prioritize → execute → analyze)
+                if not once:
+                    await _run_autonomous_cycle()
+
+            except Exception as e:
+                _log("DAEMON", "Cycle %d error: %s", cycle, e)
+                import traceback
+
+                _log("DAEMON", traceback.format_exc()[-500:])
+
+            elapsed = time.monotonic() - start_time
+            _log("DAEMON", "Cycle %d completed in %.1fs", cycle, elapsed)
+
+            if once:
+                _log("DAEMON", "Single cycle mode - exiting")
+                break
+
+            # Sleep until next cycle (with shutdown check)
+            sleep_start = time.monotonic()
+            while time.monotonic() - sleep_start < interval and not shutdown_event.is_set():
+                await asyncio.sleep(1)
+
+        # Cleanup on exit
+        _log("DAEMON", "Cleaning up...")
+        pid_file.unlink(missing_ok=True)
+        state.report_unhealthy("autonomous_daemon", "Shutdown gracefully")
+        _log("DAEMON", "Daemon stopped gracefully after %d cycles", cycle)
+
+    async def _run_health_checks():
+        try:
+            from cores.copilot.providers.fcc_provider import FCCProvider
+            from cores.copilot.providers.nvidia_provider import NvidiaProvider
+            from cores.copilot.providers.ollama_provider import OllamaProvider
+            from cores.copilot.providers.omniroute_provider import OmniRouteProvider
+            from cores.copilot.providers.opencode_provider import OpenCodeProvider
+
+            providers = [
+                ("FCC", FCCProvider()),
+                ("NVIDIA", NvidiaProvider()),
+                ("OmniRoute", OmniRouteProvider()),
+                ("Ollama", OllamaProvider()),
+                ("OpenCode", OpenCodeProvider()),
+            ]
+
+            for name, provider in providers:
+                try:
+                    healthy = await provider.check()
+                    status = "HEALTHY" if healthy else "UNHEALTHY"
+                    _log("DAEMON", "  %s: %s", name, status)
+                except Exception as e:
+                    _log("DAEMON", "  %s: ERROR - %s", name, e)
+        except ImportError as e:
+            _log("DAEMON", "Provider import failed: %s", e)
+
+    async def _health_watchdog():
+        """Check providers and log unhealthy ones for monitoring."""
+        try:
+            from cores.copilot.providers.fcc_provider import FCCProvider
+            from cores.copilot.providers.nvidia_provider import NvidiaProvider
+            from cores.copilot.providers.ollama_provider import OllamaProvider
+            from cores.copilot.providers.omniroute_provider import OmniRouteProvider
+            from cores.copilot.providers.opencode_provider import OpenCodeProvider
+
+            providers = [
+                ("FCC", FCCProvider()),
+                ("NVIDIA", NvidiaProvider()),
+                ("OmniRoute", OmniRouteProvider()),
+                ("Ollama", OllamaProvider()),
+                ("OpenCode", OpenCodeProvider()),
+            ]
+
+            unhealthy = []
+            for name, provider in providers:
+                try:
+                    healthy = await provider.check()
+                    if not healthy:
+                        unhealthy.append(name)
+                except Exception:
+                    unhealthy.append(name)
+
+            if unhealthy:
+                _log("DAEMON", "WATCHDOG: Unhealthy providers: %s", ", ".join(unhealthy))
+            else:
+                _log("DAEMON", "WATCHDOG: All providers healthy")
+        except Exception as e:
+            _log("DAEMON", "Watchdog error: %s", e)
+
+    async def _run_scheduled_tasks(cycle: int):
+        """Run periodic maintenance tasks."""
+        _log("DAEMON", "Running scheduled tasks (cycle %d)...", cycle)
+
+        # Every cycle: backup check (placeholder)
+        # Every 12 cycles (~1hr): database vacuum
+        if cycle % 12 == 0:
+            _log("DAEMON", "  → Database maintenance (vacuum/analyze)")
+            try:
+                from database import db
+
+                session = db.SessionLocal()
+                try:
+                    session.execute("VACUUM")
+                    session.execute("ANALYZE")
+                    session.commit()
+                    _log("DAEMON", "  → Database vacuum complete")
+                finally:
+                    session.close()
+            except Exception as e:
+                _log("DAEMON", "  → Database maintenance failed: %s", e)
+
+        # Every 6 cycles (~30min): credentials refresh check
+        if cycle % 6 == 0:
+            _log("DAEMON", "  → Refreshing credentials vault")
+            try:
+                from cores.credentials.vault import get_credentials
+
+                get_credentials(force_refresh=True)
+            except Exception as e:
+                _log("DAEMON", "  → Credentials refresh failed: %s", e)
+
+    async def _run_autonomous_cycle():
+        """Main autonomous workflow: discover → prioritize → execute → analyze → validate → learn."""
+        _log("DAEMON", "Running autonomous workflow...")
+
+        from database import db, models
+
+        session = db.SessionLocal()
+
+        try:
+            # 1. DISCOVER - Get active targets
+            targets = session.query(models.Target).filter(models.Target.active).all()
+            if not targets:
+                _log("DAEMON", "  No active targets - skipping cycle")
+                return
+
+            _log("DAEMON", "  Found %d active targets", len(targets))
+
+            for target in targets:
+                _log("DAEMON", "  Processing target: %s (%s)", target.name, target.domain)
+
+                # 2. PRIORITIZE - Get endpoints needing scan
+                endpoints = (
+                    session.query(models.Endpoint)
+                    .filter(
+                        models.Endpoint.target_id == target.id,
+                        models.Endpoint.last_scanned.is_(None) | (models.Endpoint.scan_count < 3),
+                    )
+                    .limit(20)
+                    .all()
+                )
+
+                if not endpoints:
+                    _log("DAEMON", "    No endpoints need scanning")
+                    continue
+
+                # 3. EXECUTE - Run validation/scanning via Validation Bridge
+                try:
+                    from core.validation.bridge import ValidationBridge
+
+                    bridge = ValidationBridge()
+
+                    eps = [
+                        {
+                            "path": getattr(ep, "path", getattr(ep, "url", "")),
+                            "method": getattr(ep, "method", "GET"),
+                            "host": getattr(target, "domain", ""),
+                            "target_id": target.id,
+                        }
+                        for ep in endpoints
+                    ]
+
+                    _log("DAEMON", "    Validating %d endpoints...", len(eps))
+                    results = bridge.validate_batch(eps, target_id=target.id, session=session, dry_run=False)
+
+                    promoted = [r for r in results if r.promoted]
+                    _log("DAEMON", "    Results: %d candidates, %d promoted", len(results), len(promoted))
+
+                    # 4. ANALYZE - Update endpoint scan status
+                    for ep in endpoints:
+                        ep.last_scanned = datetime.utcnow()
+                        ep.scan_count = (ep.scan_count or 0) + 1
+                    session.commit()
+
+                except Exception as e:
+                    _log("DAEMON", "    Validation error: %s", e)
+                    import traceback
+
+                    _log("DAEMON", traceback.format_exc()[-300:])
+
+        finally:
+            session.close()
+
+    try:
+        asyncio.run(run_daemon())
+    except KeyboardInterrupt:
+        _log("DAEMON", "Interrupted by user")
+    except Exception as e:
+        _log("DAEMON", "Fatal error: %s", e)
+        import traceback
+
+        _log("DAEMON", traceback.format_exc())
+        sys.exit(1)
+
+
 # ── Entry point ────────────────────────────────────────────────────────
 
 
@@ -567,10 +851,7 @@ def _handle_validate(args: list[str]) -> None:
         for target in targets:
             _log("VALIDATE", "Target: %s (id=%d)", target.name, target.id)
             endpoints = (
-                session.query(db.models.Endpoint)
-                .filter(db.models.Endpoint.target_id == target.id)
-                .limit(50)
-                .all()
+                session.query(db.models.Endpoint).filter(db.models.Endpoint.target_id == target.id).limit(50).all()
             )
             if not endpoints:
                 _log("VALIDATE", "  Sin endpoints → skip")
@@ -589,16 +870,26 @@ def _handle_validate(args: list[str]) -> None:
             results = bridge.validate_batch(eps, target_id=target.id, session=session, dry_run=dry_run)
 
             promoted = [r for r in results if r.promoted]
-            _log("VALIDATE", "  %d candidates | %d promovidos | %s",
-                 len(results), len(promoted), "DRY" if dry_run else "REAL")
+            _log(
+                "VALIDATE",
+                "  %d candidates | %d promovidos | %s",
+                len(results),
+                len(promoted),
+                "DRY" if dry_run else "REAL",
+            )
 
             for r in results:
                 if r.candidate and r.confidence:
                     status = "✅" if r.promoted else "—"
-                    _log("VALIDATE", "  %s %s %s → conf=%.0f%% prior=%d",
-                         status, r.candidate.method, r.candidate.endpoint_path[:55],
-                         r.confidence.score * 100,
-                         r.candidate.economic_score.priority)
+                    _log(
+                        "VALIDATE",
+                        "  %s %s %s → conf=%.0f%% prior=%d",
+                        status,
+                        r.candidate.method,
+                        r.candidate.endpoint_path[:55],
+                        r.confidence.score * 100,
+                        r.candidate.economic_score.priority,
+                    )
 
         _log("VALIDATE", "=== VALIDATION COMPLETE ===")
     finally:
@@ -690,6 +981,146 @@ def _handle_report(args: list[str]) -> None:
         session.close()
 
 
+def _handle_doctor(args: list[str]) -> None:
+    """--doctor: AI provider diagnostics and health checks.
+
+    Usage:
+        python run.py --doctor
+        python run.py --doctor ai
+        python run.py --doctor ai --verbose
+    """
+    import asyncio
+    import os
+
+    # Check if "ai" subcommand is specified
+    check_ai = "ai" in args or "--ai" in args
+    verbose = "--verbose" in args or "-v" in args
+
+    print("\n🏥 OWNEX Doctor - AI Provider Diagnostics\n")
+    print("=" * 60)
+
+    # 1. Environment check
+    print("\n📋 Environment Variables:")
+    env_vars = {
+        "NVIDIA_API_KEY": os.getenv("NVIDIA_API_KEY", ""),
+        "NIM_API_KEY": os.getenv("NIM_API_KEY", ""),
+        "ANTHROPIC_API_KEY": os.getenv("ANTHROPIC_API_KEY", ""),
+        "OPENROUTER_API_KEY": os.getenv("OPENROUTER_API_KEY", ""),
+        "OMNIROUTE_API_KEY": os.getenv("OMNIROUTE_API_KEY", ""),
+        "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY", ""),
+        "FCC_BASE_URL": os.getenv("FCC_BASE_URL", "http://localhost:8082"),
+        "NVIDIA_BASE_URL": os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1"),
+        "OLLAMA_HOST": os.getenv("OLLAMA_HOST", "http://localhost:11434"),
+    }
+
+    for key, value in env_vars.items():
+        if value:
+            masked = value[:4] + ".." + value[-4:] if len(value) > 8 else "****"
+            print(f"  ✅ {key}: {masked}")
+        else:
+            print(f"  ❌ {key}: NOT SET")
+
+    if not check_ai:
+        print("\n💡 Run with 'ai' flag for full provider health checks:")
+        print("   python run.py --doctor ai")
+        return
+
+    # 2. Credentials vault check
+    print("\n🔐 Credentials Vault:")
+    try:
+        from cores.credentials.vault import get_credentials
+
+        creds = get_credentials()
+        vault_vars = {
+            "nvidia_api_key": creds.nvidia_api_key,
+            "nim_api_key": creds.nim_api_key,
+            "anthropic_api_key": creds.anthropic_api_key,
+            "openai_api_key": creds.openai_api_key,
+            "omniroute_api_key": creds.omniroute_api_key,
+            "fcc_base_url": creds.fcc_base_url,
+            "ollama_base_url": creds.ollama_base_url,
+        }
+        for key, value in vault_vars.items():
+            if value:
+                masked = value[:4] + ".." + value[-4:] if len(value) > 8 else "****"
+                print(f"  ✅ {key}: {masked}")
+            else:
+                print(f"  ❌ {key}: NOT SET")
+    except Exception as e:
+        print(f"  ⚠️  Vault error: {e}")
+
+    # 3. Provider health checks
+    print("\n🏥 Provider Health Checks:")
+    print("-" * 60)
+
+    async def check_providers():
+        # Import providers
+        try:
+            from cores.copilot.providers.fcc_provider import FCCProvider
+            from cores.copilot.providers.nvidia_provider import NvidiaProvider
+            from cores.copilot.providers.ollama_provider import OllamaProvider
+            from cores.copilot.providers.omniroute_provider import OmniRouteProvider
+            from cores.copilot.providers.opencode_provider import OpenCodeProvider
+
+            providers = [
+                ("FCC (Claude Proxy)", FCCProvider()),
+                ("NVIDIA NIM", NvidiaProvider()),
+                ("OmniRoute", OmniRouteProvider()),
+                ("Ollama Local", OllamaProvider()),
+                ("OpenCode Free", OpenCodeProvider()),
+            ]
+
+            for name, provider in providers:
+                print(f"\n  🔍 Checking {name}...")
+                try:
+                    healthy = await provider.check()
+                    if healthy:
+                        print("     ✅ HEALTHY")
+                        if verbose:
+                            models = await provider.list_models()
+                            print(f"     📦 Models available: {len(models)}")
+                            for m in models[:5]:
+                                print(f"        - {m}")
+                            if len(models) > 5:
+                                print(f"        ... and {len(models) - 5} more")
+                    else:
+                        print("     ❌ UNHEALTHY")
+                except Exception as e:
+                    print(f"     ❌ ERROR: {e}")
+
+            # 4. Test actual chat completion
+            if verbose:
+                print("\n🧪 Test Chat Completion:")
+                print("-" * 60)
+                test_messages = [{"role": "user", "content": "Say 'OK' if you receive this"}]
+
+                for name, provider in providers:
+                    if not await provider.check():
+                        continue
+                    print(f"\n  🔬 Testing {name}...")
+                    try:
+                        response = await provider.chat(test_messages, max_tokens=10)
+                        if response.error:
+                            print(f"     ❌ Error: {response.error}")
+                        else:
+                            print(f"     ✅ Response: {response.content[:50]}...")
+                            print(f"     ⏱️  Latency: {response.duration_ms:.0f}ms")
+                            print(f"     📊 Tokens: {response.tokens_in}→{response.tokens_out}")
+                    except Exception as e:
+                        print(f"     ❌ Exception: {e}")
+
+        except ImportError as e:
+            print(f"  ⚠️  Could not import providers: {e}")
+
+    try:
+        asyncio.run(check_providers())
+    except Exception as e:
+        print(f"\n❌ Doctor check failed: {e}")
+
+    print("\n" + "=" * 60)
+    print("🏁 Doctor diagnostics complete\n")
+
+
 def main() -> None:
     args_set = set(sys.argv[1:])
     args_list = sys.argv[1:]
@@ -704,6 +1135,16 @@ def main() -> None:
         print("\n🔍 ORION System Verification\n")
         _print_verify()
         print()
+        return
+
+    # --daemon: Run as persistent autonomous daemon (24/7)
+    if "--daemon" in args_set:
+        _handle_daemon(args_list)
+        return
+
+    # --doctor: AI provider diagnostics
+    if "--doctor" in args_set:
+        _handle_doctor(args_list)
         return
 
     # --backup: create data backup (uses ORION Backup Engine)

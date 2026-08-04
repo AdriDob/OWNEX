@@ -41,10 +41,10 @@ const loading = ref(true)
 const error = ref('')
 
 const nodeTypeColors: Record<string, string> = {
-  target: 'text-[#00A98F]', program: 'text-[#00A98F]', asset: 'text-[#6333FF]',
-  domain: 'text-[#0D90F4]', endpoint: 'text-[#FF6B35]',
+  target: 'text-success', program: 'text-success', asset: 'text-intigriti',
+  domain: 'text-primary', endpoint: 'text-warning',
   finding: 'text-destructive', report: 'text-gold', reward: 'text-success',
-  decision: 'text-accent', technology: 'text-[#8B5CF6]',
+  decision: 'text-accent', technology: 'text-intigriti',
 }
 
 const nodeTypeIcons: Record<string, any> = {
@@ -138,7 +138,7 @@ const filteredNodes = computed(() => {
       <!-- Node types breakdown -->
       <div v-if="topNodeTypes.length" class="grid grid-cols-2 gap-2 sm:grid-cols-4 animate-in">
         <div v-for="[type, count] in topNodeTypes" :key="type"
-          class="flex items-center gap-3 rounded-xl border border-border/40 bg-[#11131f]/40 p-3 cursor-pointer transition-all hover:border-primary/30"
+          class="flex items-center gap-3 rounded-xl border border-border/40 bg-surface/40 p-3 cursor-pointer transition-all hover:border-primary/30"
           :class="selectedType === type ? 'ring-1 ring-primary/40 border-primary/40' : ''"
           @click="selectedType = selectedType === type ? '' : type">
           <div class="flex h-8 w-8 items-center justify-center rounded-lg" :class="'bg-' + nodeTypeColors[type]?.replace('text-', '') + '/10'">
@@ -156,7 +156,7 @@ const filteredNodes = computed(() => {
         <div class="relative flex-1 min-w-[200px] max-w-xs">
           <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <input v-model="searchNode" placeholder="Search nodes..."
-            class="w-full rounded-lg border border-border/60 bg-[#11131f]/60 py-2 pl-9 pr-3 text-xs text-foreground" />
+            class="w-full rounded-lg border border-border/60 bg-surface/60 py-2 pl-9 pr-3 text-xs text-foreground" />
         </div>
         <Button variant="outline" size="sm" @click="fetchAll" class="gap-2">
           <RefreshCw class="h-3.5 w-3.5" /> Refresh

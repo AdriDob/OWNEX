@@ -8,6 +8,7 @@ Exports:
 - CycleMetricsEngine for metrics computation
 - Event publishing helpers
 """
+# ruff: noqa: E402
 from core.cycles.events import (
     publish_cycle_activated,
     publish_cycle_created,

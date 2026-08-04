@@ -150,12 +150,12 @@ def handle_command(cmd: str) -> bool:
         p = ctx.get("pipeline", {})
         print(f"""
   {NEGRITA}Estado del sistema:{RESET}
-  {GRIS}Proveedor AI:{RESET}   {provider} {'✅' if available else '❌'}
-  {GRIS}Memoria:{RESET}        {status.get('memory_exchanges', 0)} intercambios
-  {GRIS}Targets:{RESET}        {t.get('total', 0)}
-  {GRIS}Endpoints:{RESET}      {e.get('total', 0)} ({e.get('high_signal', 0)} high signal)
-  {GRIS}Findings:{RESET}       {f.get('total', 0)}
-  {GRIS}Pipeline:{RESET}       {p.get('detected', 0)}D → {p.get('validated', 0)}V → {p.get('confirmed', 0)}C
+  {GRIS}Proveedor AI:{RESET}   {provider} {"✅" if available else "❌"}
+  {GRIS}Memoria:{RESET}        {status.get("memory_exchanges", 0)} intercambios
+  {GRIS}Targets:{RESET}        {t.get("total", 0)}
+  {GRIS}Endpoints:{RESET}      {e.get("total", 0)} ({e.get("high_signal", 0)} high signal)
+  {GRIS}Findings:{RESET}       {f.get("total", 0)}
+  {GRIS}Pipeline:{RESET}       {p.get("detected", 0)}D → {p.get("validated", 0)}V → {p.get("confirmed", 0)}C
 """)
         return True
 

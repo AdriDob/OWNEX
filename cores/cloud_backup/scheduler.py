@@ -5,6 +5,7 @@ Provides cron-based scheduling for automatic cloud backups.
 
 from __future__ import annotations
 
+import importlib.util
 import logging
 
 from cores.cloud_backup import CloudBackupConfig, get_cloud_backup_manager
@@ -24,39 +25,33 @@ class CloudBackupScheduler:
         if cloud_config:
             self.cloud_manager = get_cloud_backup_manager(cloud_config)
 
-    def schedule_daily_backup(self, hour: int = 2, minute: int = 0) -> dict[str, str]:
+    def schedule_daily_backup(self, hour: int = 2, minute: int = 0) -> dict[str, str | bool]:
         """Schedule a daily backup at specified time."""
         logger.info(f"[CLOUD BACKUP SCHEDULER] Scheduling daily backup at {hour:02d}:{minute:02d}")
 
-        try:
-            import schedule
-            from croniter import croniter
-
-            cron_expression = f"{minute} {hour} * * *"
-            logger.info(f"[CLOUD BACKUP SCHEDULER] Cron expression: {cron_expression}")
-
-            return {
-                "success": True,
-                "schedule": "daily",
-                "cron_expression": cron_expression,
-                "time": f"{hour:02d}:{minute:02d}",
-            }
-
-        except ImportError:
+        if not (importlib.util.find_spec("schedule") and importlib.util.find_spec("croniter")):
             logger.error("[CLOUD BACKUP SCHEDULER] croniter or schedule not installed")
             return {
                 "success": False,
                 "error": "croniter or schedule not installed",
             }
 
+        cron_expression = f"{minute} {hour} * * *"
+        logger.info(f"[CLOUD BACKUP SCHEDULER] Cron expression: {cron_expression}")
+
+        return {
+            "success": True,
+            "schedule": "daily",
+            "cron_expression": cron_expression,
+            "time": f"{hour:02d}:{minute:02d}",
+        }
+
     def execute_scheduled_backup(self) -> dict[str, any]:
         """Execute a scheduled backup (local + cloud)."""
         logger.info("[CLOUD BACKUP SCHEDULER] Executing scheduled backup")
 
         # Step 1: Create local backup
-        local_result = self.version_backup_system.create_backup(
-            notes="Scheduled automatic backup"
-        )
+        local_result = self.version_backup_system.create_backup(notes="Scheduled automatic backup")
 
         if local_result.status.value != "success":
             return {
@@ -94,28 +89,31 @@ class CloudBackupScheduler:
                 "cloud_provider": None,
             }
 
-    def schedule_weekly_backup(self, day_of_week: int = 0, hour: int = 2, minute: int = 0) -> dict[str, str]:
+    def schedule_weekly_backup(
+        self, day_of_week: int = 0, hour: int = 2, minute: int = 0
+    ) -> dict[str, str | bool | int]:
         """Schedule a weekly backup on specified day (0 = Monday)."""
-        logger.info(f"[CLOUD BACKUP SCHEDULER] Scheduling weekly backup on day {day_of_week} at {hour:02d}:{minute:02d}")
+        logger.info(
+            f"[CLOUD BACKUP SCHEDULER] Scheduling weekly backup on day {day_of_week} at {hour:02d}:{minute:02d}"
+        )
 
-        try:
-            cron_expression = f"{minute} {hour} * * {day_of_week}"
-            logger.info(f"[CLOUD BACKUP SCHEDULER] Cron expression: {cron_expression}")
-
-            return {
-                "success": True,
-                "schedule": "weekly",
-                "cron_expression": cron_expression,
-                "day_of_week": day_of_week,
-                "time": f"{hour:02d}:{minute:02d}",
-            }
-
-        except ImportError:
-            logger.error("[CLOUD BACKUP SCHEDULER] croniter not installed")
+        if not (importlib.util.find_spec("schedule") and importlib.util.find_spec("croniter")):
+            logger.error("[CLOUD BACKUP SCHEDULER] croniter or schedule not installed")
             return {
                 "success": False,
-                "error": "croniter not installed",
+                "error": "croniter or schedule not installed",
             }
+
+        cron_expression = f"{minute} {hour} * * {day_of_week}"
+        logger.info(f"[CLOUD BACKUP SCHEDULER] Cron expression: {cron_expression}")
+
+        return {
+            "success": True,
+            "schedule": "weekly",
+            "cron_expression": cron_expression,
+            "day_of_week": day_of_week,
+            "time": f"{hour:02d}:{minute:02d}",
+        }
 
     def cleanup_old_cloud_backups(self) -> dict[str, any]:
         """Clean up old cloud backups based on retention policy."""

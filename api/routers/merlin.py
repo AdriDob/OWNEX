@@ -10,12 +10,14 @@ router = APIRouter(prefix="/api/merlin", tags=["merlin"])
 
 class ChatRequest(BaseModel):
     """Request model for chat."""
+
     message: str
     context: dict | None = None
 
 
 class ChatResponse(BaseModel):
     """Response model for chat."""
+
     response: str
     timestamp: datetime
     is_success: bool = True
@@ -23,6 +25,7 @@ class ChatResponse(BaseModel):
 
 class SettingsRequest(BaseModel):
     """Request model for settings."""
+
     custom_name: str | None = "MERLIN"
     custom_greeting: str | None = "¡Hola! Soy MERLIN, tu asistente de inteligencia autónoma."
     detail_level: str | None = "normal"
@@ -33,6 +36,7 @@ class SettingsRequest(BaseModel):
 
 class MemoryRequest(BaseModel):
     """Request model for memory."""
+
     question: str
     response: str
     timestamp: datetime
@@ -54,14 +58,10 @@ async def chat(request: ChatRequest):
             detail_level=context.get("detail_level", "normal"),
             response_tone=context.get("response_tone", "professional"),
             enable_analytics=context.get("enable_analytics", True),
-            enable_learning=context.get("enable_learning", True)
+            enable_learning=context.get("enable_learning", True),
         )
 
-        return ChatResponse(
-            response=response,
-            timestamp=datetime.now(),
-            is_success=True
-        )
+        return ChatResponse(response=response, timestamp=datetime.now(), is_success=True)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
@@ -73,11 +73,7 @@ async def save_settings(request: SettingsRequest):
     try:
         # Save settings to database or config
         # This is a placeholder - implement actual storage
-        return {
-            "success": True,
-            "message": "Settings saved successfully",
-            "settings": request.dict()
-        }
+        return {"success": True, "message": "Settings saved successfully", "settings": request.dict()}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
@@ -95,7 +91,7 @@ async def get_settings():
             "detail_level": "normal",
             "response_tone": "professional",
             "enable_analytics": True,
-            "enable_learning": True
+            "enable_learning": True,
         }
 
     except Exception as e:
@@ -111,15 +107,10 @@ async def save_memory(request: MemoryRequest):
 
         memory = get_merlin_memory()
         await memory.save_conversation(
-            question=request.question,
-            response=request.response,
-            timestamp=request.timestamp
+            question=request.question, response=request.response, timestamp=request.timestamp
         )
 
-        return {
-            "success": True,
-            "message": "Memory saved successfully"
-        }
+        return {"success": True, "message": "Memory saved successfully"}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
@@ -135,10 +126,7 @@ async def get_memory(limit: int = 10):
         memory = get_merlin_memory()
         entries = await memory.get_recent_memories(limit=limit)
 
-        return {
-            "entries": entries,
-            "total": len(entries)
-        }
+        return {"entries": entries, "total": len(entries)}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
@@ -152,38 +140,38 @@ async def get_capabilities():
             "id": "target_analysis",
             "name": "Análisis de Targets",
             "description": "Análisis completo de objetivos y vulnerabilidades",
-            "icon": "🎯"
+            "icon": "🎯",
         },
         {
             "id": "report_generation",
             "name": "Generación de Reportes",
             "description": "Generación automatizada de reportes de vulnerabilidades",
-            "icon": "📊"
+            "icon": "📊",
         },
         {
             "id": "workflow_optimization",
             "name": "Optimización de Workflows",
             "description": "Optimización de flujos de trabajo y procesos",
-            "icon": "⚡"
+            "icon": "⚡",
         },
         {
             "id": "data_analysis",
             "name": "Análisis de Datos",
             "description": "Análisis e investigación de datos",
-            "icon": "🔍"
+            "icon": "🔍",
         },
         {
             "id": "strategic_planning",
             "name": "Planificación Estratégica",
             "description": "Planificación estratégica y toma de decisiones",
-            "icon": "📋"
+            "icon": "📋",
         },
         {
             "id": "technical_assistance",
             "name": "Asistencia Técnica",
             "description": "Asistencia en decisiones técnicas y debugging",
-            "icon": "🔧"
-        }
+            "icon": "🔧",
+        },
     ]
 
     return {"capabilities": capabilities}
@@ -197,13 +185,7 @@ async def get_status():
         "status": "online",
         "version": "1.0.0",
         "theme": "office_retro_modernized",
-        "features": {
-            "chat": True,
-            "memory": True,
-            "analytics": True,
-            "learning": True,
-            "customization": True
-        }
+        "features": {"chat": True, "memory": True, "analytics": True, "learning": True, "customization": True},
     }
 
 
@@ -213,10 +195,7 @@ async def clear_chat():
     try:
         # Clear chat history from memory
         # This is a placeholder - implement actual clearing
-        return {
-            "success": True,
-            "message": "Chat cleared successfully"
-        }
+        return {"success": True, "message": "Chat cleared successfully"}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
@@ -233,14 +212,14 @@ async def get_notes():
                 "id": 1,
                 "title": "Análisis de target principal",
                 "date": datetime.now().isoformat(),
-                "content": "Notas sobre el análisis..."
+                "content": "Notas sobre el análisis...",
             },
             {
                 "id": 2,
                 "title": "Reporte de vulnerabilidad SQLi",
                 "date": datetime.now().isoformat(),
-                "content": "Detalles del reporte..."
-            }
+                "content": "Detalles del reporte...",
+            },
         ]
 
         return {"notes": notes}
@@ -258,12 +237,7 @@ async def save_note(title: str, content: str):
         return {
             "success": True,
             "message": "Note saved successfully",
-            "note": {
-                "id": 1,
-                "title": title,
-                "content": content,
-                "date": datetime.now().isoformat()
-            }
+            "note": {"id": 1, "title": title, "content": content, "date": datetime.now().isoformat()},
         }
 
     except Exception as e:

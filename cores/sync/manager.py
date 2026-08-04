@@ -142,14 +142,8 @@ class SyncManager:
         """Build the response with global state + device-specific state."""
         device_state = self._devices.get(device_id, {}).get("state", {})
         return {
-            "global": {
-                k: v.get("value")
-                for k, v in self._global_state.items()
-            },
-            "device": {
-                k: v.get("value")
-                for k, v in device_state.items()
-            },
+            "global": {k: v.get("value") for k, v in self._global_state.items()},
+            "device": {k: v.get("value") for k, v in device_state.items()},
             "device_id": device_id,
             "last_sync": self._devices.get(device_id, {}).get("last_sync", 0),
             "device_count": len(self._devices),

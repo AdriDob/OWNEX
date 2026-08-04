@@ -97,11 +97,13 @@ function alignClass(align?: string) {
       <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <input
         v-model="searchQuery"
+        type="search"
         :placeholder="searchPlaceholder"
         class="h-9 w-full rounded-lg border border-border/60 bg-surface/50 pl-9 pr-8 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/30 focus:outline-none focus:ring-1 focus:ring-primary/20"
       />
       <button
         v-if="searchQuery"
+        type="button"
         @click="searchQuery = ''"
         class="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
       >

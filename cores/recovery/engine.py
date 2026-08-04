@@ -48,6 +48,7 @@ class RecoveryEngine:
         # Initialize version backup system for rollback recovery
         try:
             from cores.version_backup import get_version_backup_system
+
             self._version_backup_system = get_version_backup_system()
             logger.info("[RECOVERY ENGINE] Version backup system integrated for rollback recovery")
         except ImportError:
@@ -288,15 +289,22 @@ class RecoveryEngine:
 
     def _action_restart_scheduler(self, component: str, details: dict | None) -> tuple[bool, str]:
         try:
-            import httpx
+            import asyncio
 
-            from cores.settings.service import get_setting
+            from api.scheduler import scheduler_instance
 
-            base = get_setting("CATEYE.api_url", "http://127.0.0.1:8000")
-            r = httpx.post(f"{base}/api/scheduler/restart", timeout=5.0)
-            if r.status_code == 200:
-                return True, "Scheduler restart requested via API"
-            return False, f"Scheduler restart returned HTTP {r.status_code}"
+            if scheduler_instance is None:
+                return False, "Scheduler not started (no instance)"
+
+            async def _restart() -> None:
+                await scheduler_instance.stop()
+                await scheduler_instance.start()
+
+            try:
+                asyncio.ensure_future(_restart())
+            except RuntimeError:
+                asyncio.run(_restart())
+            return True, "Scheduler restarted in-process"
         except Exception as exc:
             return False, str(exc)
 

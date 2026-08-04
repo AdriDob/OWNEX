@@ -33,12 +33,23 @@ class QuickWinsArtifact(Bundle):
             self.fastest_path_minutes = getattr(self.report, "fastest_path_minutes", 0)
             top = getattr(self.report, "top_quick_wins", [])
             self.top_quick_wins = [
-                {"path": getattr(w, "endpoint_path", ""), "method": getattr(w, "endpoint_method", ""), "score": getattr(w, "quick_win_score", 0.0), "roi": getattr(w, "roi_score", 0.0), "category": getattr(w, "category", "")}
+                {
+                    "path": getattr(w, "endpoint_path", ""),
+                    "method": getattr(w, "endpoint_method", ""),
+                    "score": getattr(w, "quick_win_score", 0.0),
+                    "roi": getattr(w, "roi_score", 0.0),
+                    "category": getattr(w, "category", ""),
+                }
                 for w in top
             ]
             actions = getattr(self.report, "immediate_action_endpoints", [])
             self.immediate_actions = [
-                {"path": getattr(a, "path", ""), "method": getattr(a, "method", ""), "action": getattr(a, "action", ""), "priority": getattr(a, "priority", "")}
+                {
+                    "path": getattr(a, "path", ""),
+                    "method": getattr(a, "method", ""),
+                    "action": getattr(a, "action", ""),
+                    "priority": getattr(a, "priority", ""),
+                }
                 for a in actions
             ]
 

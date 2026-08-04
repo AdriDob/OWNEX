@@ -60,7 +60,7 @@ function actionBadge(action: string) {
 <template>
   <div class="flex flex-col items-center justify-start min-h-[80vh] px-4 py-8 animate-in">
     <div class="flex items-center gap-3 mb-2">
-      <Shield class="w-8 h-8 text-purple-400" />
+      <Shield class="w-8 h-8 text-intigriti" />
       <h1 class="text-3xl font-bold text-foreground">AI Security</h1>
     </div>
     <p class="text-muted-foreground mb-8 text-center max-w-md">
@@ -96,16 +96,16 @@ function actionBadge(action: string) {
               </Badge>
             </div>
             <div class="grid grid-cols-3 gap-3 mb-4">
-              <div class="text-center p-2 rounded-lg bg-green-500/10">
-                <p class="text-2xl font-bold text-green-400">{{ scanResult.summary.passed }}</p>
+              <div class="text-center p-2 rounded-lg bg-success/10">
+                <p class="text-2xl font-bold text-success">{{ scanResult.summary.passed }}</p>
                 <p class="text-xs text-muted-foreground">Pasaron</p>
               </div>
-              <div class="text-center p-2 rounded-lg bg-red-500/10">
-                <p class="text-2xl font-bold text-red-400">{{ scanResult.summary.failed }}</p>
+              <div class="text-center p-2 rounded-lg bg-destructive/10">
+                <p class="text-2xl font-bold text-destructive">{{ scanResult.summary.failed }}</p>
                 <p class="text-xs text-muted-foreground">Fallaron</p>
               </div>
-              <div class="text-center p-2 rounded-lg bg-yellow-500/10">
-                <p class="text-2xl font-bold text-yellow-400">{{ scanResult.summary.high_severity }}</p>
+              <div class="text-center p-2 rounded-lg bg-warning/10">
+                <p class="text-2xl font-bold text-warning">{{ scanResult.summary.high_severity }}</p>
                 <p class="text-xs text-muted-foreground">Críticos</p>
               </div>
             </div>
@@ -115,15 +115,15 @@ function actionBadge(action: string) {
 
         <Card v-for="c in scanResult.checks" :key="c.name" class="card-base">
           <CardContent class="p-3 flex items-start gap-3">
-            <CheckCircle2 v-if="c.passed" class="w-5 h-5 text-green-400 mt-0.5 shrink-0" />
-            <AlertTriangle v-else class="w-5 h-5 text-red-400 mt-0.5 shrink-0" />
+            <CheckCircle2 v-if="c.passed" class="w-5 h-5 text-success mt-0.5 shrink-0" />
+            <AlertTriangle v-else class="w-5 h-5 text-destructive mt-0.5 shrink-0" />
             <div class="min-w-0">
               <div class="flex items-center gap-2 mb-1">
                 <span class="font-medium text-sm">{{ c.name }}</span>
                 <Badge :variant="severityBadge(c.severity)" size="sm">{{ c.severity }}</Badge>
               </div>
               <p class="text-xs text-muted-foreground">{{ c.detail }}</p>
-              <p v-if="c.remediation" class="text-xs text-yellow-400/80 mt-1">{{ c.remediation }}</p>
+              <p v-if="c.remediation" class="text-xs text-warning/80 mt-1">{{ c.remediation }}</p>
             </div>
           </CardContent>
         </Card>
@@ -153,15 +153,15 @@ function actionBadge(action: string) {
             </div>
             <div class="grid grid-cols-3 gap-2 text-center text-sm">
               <div>
-                <p class="font-mono text-green-400">${{ opp.estimated_payout.toLocaleString() }}</p>
+                <p class="font-mono text-success">${{ opp.estimated_payout.toLocaleString() }}</p>
                 <p class="text-xs text-muted-foreground">Pago estimado</p>
               </div>
               <div>
-                <p class="font-mono text-blue-400">{{ opp.effort_hours }}h</p>
+                <p class="font-mono text-primary">{{ opp.effort_hours }}h</p>
                 <p class="text-xs text-muted-foreground">Esfuerzo</p>
               </div>
               <div>
-                <p class="font-mono text-yellow-400">${{ opp.expected_value_per_hour }}/h</p>
+                <p class="font-mono text-warning">${{ opp.expected_value_per_hour }}/h</p>
                 <p class="text-xs text-muted-foreground">Valor esperado</p>
               </div>
             </div>
@@ -170,6 +170,6 @@ function actionBadge(action: string) {
       </div>
     </template>
 
-    <p v-if="error" class="text-sm text-red-400 mt-4">{{ error }}</p>
+    <p v-if="error" class="text-sm text-destructive mt-4">{{ error }}</p>
   </div>
 </template>

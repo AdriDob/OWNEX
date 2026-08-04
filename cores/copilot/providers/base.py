@@ -18,6 +18,7 @@ class ProviderResponse:
     tokens_out: int = 0
     duration_ms: float = 0.0
     error: str | None = None
+    extra: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

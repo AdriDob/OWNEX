@@ -16,15 +16,15 @@ const offset = 2
 
 const accent = computed(() => {
   const map: Record<string, string> = {
-    'text-purple-400': '#a78bfa',
-    'text-blue-400': '#60a5fa',
-    'text-amber-400': '#fbbf24',
-    'text-cyan-400': '#22d3ee',
+    'text-intigriti': '#a78bfa',
+    'text-primary': '#60a5fa',
+    'text-warning': '#fbbf24',
+    'text-muted-foreground': '#22d3ee',
     'text-foreground': '#f1f5f9',
     'text-gold': '#f5a623',
-    'text-green-400': '#4ade80',
-    'text-orange-400': '#fb923c',
-    'text-rose-500': '#f43f5e',
+    'text-success': '#4ade80',
+    'text-warning': '#fb923c',
+    "text-destructive": "#e82127",
   }
   return map[props.character.color] ?? '#a78bfa'
 })
@@ -95,7 +95,7 @@ const c = computed(() => (characters as any)[props.character.id] ?? characters.d
       <template v-if="character.id === 'rover'">
         <!-- Dog tongue -->
         <ellipse :cx="s * 0.5" :cy="mouthY" :rx="s * 0.08" :ry="s * 0.06" :fill="accent" opacity="0.6" />
-        <ellipse :cx="s * 0.5" :cy="mouthY + s * 0.03" :rx="s * 0.04" :ry="s * 0.04" fill="#ef4444" opacity="0.5" />
+        <ellipse :cx="s * 0.5" :cy="mouthY + s * 0.03" :rx="s * 0.04" :ry="s * 0.04" fill="#E82127" opacity="0.5" />
       </template>
       <template v-else-if="character.id === 'pepe'">
         <!-- Pepe smirk -->

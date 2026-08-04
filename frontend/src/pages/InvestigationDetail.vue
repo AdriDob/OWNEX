@@ -228,7 +228,7 @@ onMounted(fetchInvestigation)
               <span class="text-xs font-semibold text-foreground">{{ stageLabels[stage.key] || stage.name }}</span>
               <span :class="['h-2 w-2 rounded-full', stageColors[stage.status]]" />
             </div>
-            <div class="h-1.5 overflow-hidden rounded-full bg-[#1a1d29]">
+            <div class="h-1.5 overflow-hidden rounded-full bg-surface">
               <div
                 class="h-full rounded-full transition-all duration-500"
                 :class="stage.status === 'failed' ? 'bg-destructive' : 'bg-primary'"

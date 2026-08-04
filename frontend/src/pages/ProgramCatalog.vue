@@ -43,13 +43,13 @@ const platforms = computed(() => {
 })
 
 const platformColors: Record<string, string> = {
-  hackerone: '#22c55e',
-  bugcrowd: '#f97316',
-  intigriti: '#a855f7',
-  yeswehack: '#fb7185',
-  synack: '#3b82f6',
-  immunefi: '#22d3ee',
-  code4rena: '#eab308',
+  hackerone: '#16a34a',
+  bugcrowd: '#b45309',
+  intigriti: '#9CA3AF',
+  yeswehack: '#dc2626',
+  synack: '#ffffff',
+  immunefi: '#9CA3AF',
+  code4rena: '#e82127',
 }
 
 const platformDistributionData = computed(() => {
@@ -153,7 +153,7 @@ onMounted(loadPrograms)
             v-model="search"
             placeholder="Search programs by name, technology..."
             @input="onSearchInput"
-            class="w-full rounded-lg border border-border/60 bg-[#0a0a0a]/60 pl-9 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/50"
+            class="w-full rounded-lg border border-border/60 bg-background/60 pl-9 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/50"
           />
           <button
             v-if="search"
@@ -166,7 +166,7 @@ onMounted(loadPrograms)
         <select
           v-model="platformFilter"
           @change="page = 1; loadPrograms()"
-          class="rounded-lg border border-border/60 bg-[#0a0a0a]/60 px-3 py-2 text-xs text-foreground"
+          class="rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-xs text-foreground"
         >
           <option value="">All Platforms</option>
           <option v-for="p in platforms" :key="p" :value="p">{{ p }}</option>

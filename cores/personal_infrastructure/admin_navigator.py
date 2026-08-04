@@ -249,7 +249,9 @@ class AdministrativeNavigator:
         total_steps = len(process.steps)
         progress = (completed_steps / total_steps * 100) if total_steps > 0 else 0
 
-        current_step = process.steps[process.current_step_index] if process.current_step_index < len(process.steps) else None
+        current_step = (
+            process.steps[process.current_step_index] if process.current_step_index < len(process.steps) else None
+        )
 
         return {
             "process_id": process.process_id,

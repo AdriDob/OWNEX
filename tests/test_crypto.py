@@ -53,12 +53,14 @@ def _clear_sync_history():
 @pytest.fixture
 def mock_vault():
     """Mock IdentityVault so connectors never touch disk."""
-    with patch("cores.crypto.evm.get_identity_vault") as evm_vault, \
-         patch("cores.crypto.exchange.get_identity_vault") as ex_vault, \
-         patch("cores.crypto.btc.get_identity_vault") as btc_vault, \
-         patch("cores.crypto.solana.get_identity_vault") as sol_vault, \
-         patch("cores.crypto.tron.get_identity_vault") as tron_vault, \
-         patch("cores.crypto.sync_manager.get_identity_vault") as sync_vault:
+    with (
+        patch("cores.crypto.evm.get_identity_vault") as evm_vault,
+        patch("cores.crypto.exchange.get_identity_vault") as ex_vault,
+        patch("cores.crypto.btc.get_identity_vault") as btc_vault,
+        patch("cores.crypto.solana.get_identity_vault") as sol_vault,
+        patch("cores.crypto.tron.get_identity_vault") as tron_vault,
+        patch("cores.crypto.sync_manager.get_identity_vault") as sync_vault,
+    ):
         inst = MagicMock()
         inst.get_credentials.return_value = {}
         evm_vault.return_value = inst
@@ -161,8 +163,12 @@ class TestCryptoBase:
 
     def test_withdrawal_is_finalized(self):
         wd = CryptoWithdrawalInfo(
-            tx_hash="0x1", chain="eth", asset="ETH", amount=1.0,
-            confirmations=12, confirmations_required=12,
+            tx_hash="0x1",
+            chain="eth",
+            asset="ETH",
+            amount=1.0,
+            confirmations=12,
+            confirmations_required=12,
         )
         assert wd.is_finalized() is True
         wd.confirmations = 11
@@ -446,13 +452,15 @@ class TestExchangeConnector:
     @patch("urllib.request.urlopen")
     def test_get_balance(self, mock_urlopen):
         resp = MagicMock()
-        resp.read.return_value = json.dumps({
-            "balances": [
-                {"asset": "BTC", "free": "1.0", "locked": "0.5"},
-                {"asset": "ETH", "free": "10.0", "locked": "0.0"},
-                {"asset": "ZERO", "free": "0", "locked": "0"},
-            ],
-        }).encode()
+        resp.read.return_value = json.dumps(
+            {
+                "balances": [
+                    {"asset": "BTC", "free": "1.0", "locked": "0.5"},
+                    {"asset": "ETH", "free": "10.0", "locked": "0.0"},
+                    {"asset": "ZERO", "free": "0", "locked": "0"},
+                ],
+            }
+        ).encode()
         mock_urlopen.return_value.__enter__.return_value = resp
 
         conn = ExchangeConnector("ex_test", "binance")
@@ -476,17 +484,26 @@ class TestExchangeConnector:
         conn._status = ConnectionStatus.CONNECTED
 
         trade_resp = MagicMock()
-        trade_resp.read.return_value = json.dumps([
-            {"id": "trade1", "symbol": "BTCUSDT", "qty": "0.1",
-             "quoteQty": "5000", "commission": "0.001",
-             "time": 1700000000000, "isBuyer": True},
-        ]).encode()
+        trade_resp.read.return_value = json.dumps(
+            [
+                {
+                    "id": "trade1",
+                    "symbol": "BTCUSDT",
+                    "qty": "0.1",
+                    "quoteQty": "5000",
+                    "commission": "0.001",
+                    "time": 1700000000000,
+                    "isBuyer": True,
+                },
+            ]
+        ).encode()
 
         deposit_resp = MagicMock()
-        deposit_resp.read.return_value = json.dumps([
-            {"txId": "dep1", "coin": "ETH", "amount": "2.0",
-             "insertTime": 1700001000000, "status": "1"},
-        ]).encode()
+        deposit_resp.read.return_value = json.dumps(
+            [
+                {"txId": "dep1", "coin": "ETH", "amount": "2.0", "insertTime": 1700001000000, "status": "1"},
+            ]
+        ).encode()
 
         mock_urlopen.return_value.__enter__.side_effect = [trade_resp, deposit_resp]
 
@@ -771,13 +788,15 @@ class TestTronConnector:
         conn._status = ConnectionStatus.CONNECTED
 
         mock_api.return_value = {
-            "data": [{
-                "address": TEST_TRON_ADDR,
-                "balance": 10_000_000,  # 10 TRX
-                "trc20": [
-                    {TRC20_TOKENS["USDT"]: "5000000"},  # 5 USDT
-                ],
-            }],
+            "data": [
+                {
+                    "address": TEST_TRON_ADDR,
+                    "balance": 10_000_000,  # 10 TRX
+                    "trc20": [
+                        {TRC20_TOKENS["USDT"]: "5000000"},  # 5 USDT
+                    ],
+                }
+            ],
         }
 
         balances = conn.get_balance()
@@ -800,25 +819,29 @@ class TestTronConnector:
                 return {"data": [{"address": TEST_TRON_ADDR, "balance": 0}]}
             if path == f"/v1/accounts/{TEST_TRON_ADDR}/transactions":
                 return {
-                    "data": [{
-                        "txID": "trontx1",
-                        "block_timestamp": 1700000000000,
-                        "from": TEST_TRON_ADDR,
-                        "to": "other_tron_addr",
-                        "value": 10_000_000,
-                        "fee": 100_000,
-                        "raw_data": {
-                            "contract": [{
-                                "parameter": {
-                                    "value": {
-                                        "owner_address": TEST_TRON_ADDR,
-                                        "to_address": "other_tron_addr",
-                                        "amount": 10_000_000,
-                                    },
-                                },
-                            }],
-                        },
-                    }],
+                    "data": [
+                        {
+                            "txID": "trontx1",
+                            "block_timestamp": 1700000000000,
+                            "from": TEST_TRON_ADDR,
+                            "to": "other_tron_addr",
+                            "value": 10_000_000,
+                            "fee": 100_000,
+                            "raw_data": {
+                                "contract": [
+                                    {
+                                        "parameter": {
+                                            "value": {
+                                                "owner_address": TEST_TRON_ADDR,
+                                                "to_address": "other_tron_addr",
+                                                "amount": 10_000_000,
+                                            },
+                                        },
+                                    }
+                                ],
+                            },
+                        }
+                    ],
                 }
             return None
 
@@ -853,21 +876,46 @@ class TestCryptoSyncManager:
     @patch("cores.crypto.sync_manager.publish_financial_event")
     def test_discover_wallets(self, mock_publish, mock_vault):
         mock_vault.list_accounts.return_value = [
-            {"provider_name": "evm_ethereum", "email": "",
-             "session_state": "disconnected", "last_checked": None,
-             "health_status": "unknown", "has_credentials": True},
-            {"provider_name": "btc_mainnet", "email": "",
-             "session_state": "disconnected", "last_checked": None,
-             "health_status": "unknown", "has_credentials": True},
-            {"provider_name": "exchange_binance", "email": "",
-             "session_state": "disconnected", "last_checked": None,
-             "health_status": "unknown", "has_credentials": True},
-            {"provider_name": "solana_mainnet", "email": "",
-             "session_state": "disconnected", "last_checked": None,
-             "health_status": "unknown", "has_credentials": True},
-            {"provider_name": "tron_mainnet", "email": "",
-             "session_state": "disconnected", "last_checked": None,
-             "health_status": "unknown", "has_credentials": True},
+            {
+                "provider_name": "evm_ethereum",
+                "email": "",
+                "session_state": "disconnected",
+                "last_checked": None,
+                "health_status": "unknown",
+                "has_credentials": True,
+            },
+            {
+                "provider_name": "btc_mainnet",
+                "email": "",
+                "session_state": "disconnected",
+                "last_checked": None,
+                "health_status": "unknown",
+                "has_credentials": True,
+            },
+            {
+                "provider_name": "exchange_binance",
+                "email": "",
+                "session_state": "disconnected",
+                "last_checked": None,
+                "health_status": "unknown",
+                "has_credentials": True,
+            },
+            {
+                "provider_name": "solana_mainnet",
+                "email": "",
+                "session_state": "disconnected",
+                "last_checked": None,
+                "health_status": "unknown",
+                "has_credentials": True,
+            },
+            {
+                "provider_name": "tron_mainnet",
+                "email": "",
+                "session_state": "disconnected",
+                "last_checked": None,
+                "health_status": "unknown",
+                "has_credentials": True,
+            },
         ]
 
         mgr = CryptoSyncManager()
@@ -917,8 +965,10 @@ class TestCryptoSyncManager:
         c1.wallet_id = "evm:eth"
         c1.chain = ChainType.EVM
         c1.sync.return_value = SyncSnapshot(
-            wallet_id="evm:eth", chain=ChainType.EVM,
-            total_usd=1000.0, connection=ConnectionStatus.CONNECTED,
+            wallet_id="evm:eth",
+            chain=ChainType.EVM,
+            total_usd=1000.0,
+            connection=ConnectionStatus.CONNECTED,
             synced_at="2024-01-01T00:00:00",
         )
 
@@ -926,8 +976,10 @@ class TestCryptoSyncManager:
         c2.wallet_id = "exchange:binance"
         c2.chain = ChainType.EXCHANGE
         c2.sync.return_value = SyncSnapshot(
-            wallet_id="exchange:binance", chain=ChainType.EXCHANGE,
-            total_usd=2000.0, connection=ConnectionStatus.CONNECTED,
+            wallet_id="exchange:binance",
+            chain=ChainType.EXCHANGE,
+            total_usd=2000.0,
+            connection=ConnectionStatus.CONNECTED,
             synced_at="2024-01-01T00:00:00",
         )
 
@@ -935,8 +987,10 @@ class TestCryptoSyncManager:
         c3.wallet_id = "btc:test"
         c3.chain = ChainType.BITCOIN
         c3.sync.return_value = SyncSnapshot(
-            wallet_id="btc:test", chain=ChainType.BITCOIN,
-            total_usd=500.0, connection=ConnectionStatus.ERROR,
+            wallet_id="btc:test",
+            chain=ChainType.BITCOIN,
+            total_usd=500.0,
+            connection=ConnectionStatus.ERROR,
             error="Connection failed",
             synced_at="2024-01-01T00:00:00",
         )
@@ -960,8 +1014,10 @@ class TestCryptoSyncManager:
         c1.wallet_id = "evm:eth"
         c1.chain = ChainType.EVM
         c1.sync.return_value = SyncSnapshot(
-            wallet_id="evm:eth", chain=ChainType.EVM,
-            total_usd=1000.0, connection=ConnectionStatus.CONNECTED,
+            wallet_id="evm:eth",
+            chain=ChainType.EVM,
+            total_usd=1000.0,
+            connection=ConnectionStatus.CONNECTED,
             synced_at="2024-01-01T00:00:01",
         )
 
@@ -969,8 +1025,10 @@ class TestCryptoSyncManager:
         c2.wallet_id = "exchange:binance"
         c2.chain = ChainType.EXCHANGE
         c2.sync.return_value = SyncSnapshot(
-            wallet_id="exchange:binance", chain=ChainType.EXCHANGE,
-            total_usd=2000.0, connection=ConnectionStatus.CONNECTED,
+            wallet_id="exchange:binance",
+            chain=ChainType.EXCHANGE,
+            total_usd=2000.0,
+            connection=ConnectionStatus.CONNECTED,
             synced_at="2024-01-01T00:00:02",
         )
 

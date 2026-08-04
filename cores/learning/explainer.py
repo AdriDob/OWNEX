@@ -34,7 +34,7 @@ class Explainer:
 
         elif item_type == "finding":
             bug_class = item.get("bug_class", "").lower()
-            for c in (profile.favorite_bug_classes or []):
+            for c in profile.favorite_bug_classes or []:
                 if c.get("class", "").lower() == bug_class and c.get("count", 0) > 0:
                     reasons.append(f"You have found {c['count']} {bug_class} issues — expertise match")
                     break
@@ -51,7 +51,7 @@ class Explainer:
             if item.get("technology") in (profile.technologies or []):
                 reasons.append("Technology matches your expertise")
             bug_class = item.get("bug_class", "").lower()
-            for c in (profile.favorite_bug_classes or []):
+            for c in profile.favorite_bug_classes or []:
                 if c.get("class", "").lower() == bug_class and c.get("count", 0) > 0:
                     reasons.append(f"Bug class '{c['class']}' is your specialty")
                     break
@@ -82,11 +82,11 @@ class Explainer:
         if bug_classes:
             lines.append(f"Top bug classes: {', '.join(c['class'] for c in bug_classes)}")
 
-        industries = (profile.industries or [])
+        industries = profile.industries or []
         if industries:
             lines.append(f"Industries: {', '.join(industries)}")
 
-        technologies = (profile.technologies or [])
+        technologies = profile.technologies or []
         if technologies:
             lines.append(f"Technologies: {', '.join(technologies)}")
 

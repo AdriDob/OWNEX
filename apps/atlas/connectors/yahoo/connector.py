@@ -26,6 +26,7 @@ class YahooConnector(AtlasConnector):
     async def connect(self) -> bool:
         try:
             import yfinance as yf
+
             self._yf = yf
             logger.info("Yahoo Finance connector ready (free tier)")
             return True

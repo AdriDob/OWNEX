@@ -121,7 +121,7 @@ try:
     print("✅ Supabase connection successful")
 
     # Test: Obtener lista de tablas
-    response = client.table('tasks').select('*').limit(1).execute()
+    response = client.table("tasks").select("*").limit(1).execute()
     print(f"✅ Can query 'tasks' table")
 
 except Exception as e:

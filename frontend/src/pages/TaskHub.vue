@@ -156,24 +156,24 @@ const platformOptions = [
 
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
-    pending: 'bg-yellow-500',
-    in_progress: 'bg-blue-500',
-    submitted: 'bg-purple-500',
-    approved: 'bg-green-500',
-    rejected: 'bg-red-500',
-    expired: 'bg-gray-500',
+    pending: 'bg-warning',
+    in_progress: 'bg-primary',
+    submitted: 'bg-intigriti',
+    approved: 'bg-success',
+    rejected: 'bg-destructive',
+    expired: 'bg-muted',
   }
-  return colors[status] || 'bg-gray-500'
+  return colors[status] || 'bg-muted'
 }
 
 const getPriorityColor = (priority: string) => {
   const colors: Record<string, string> = {
-    low: 'bg-gray-500',
-    medium: 'bg-blue-500',
-    high: 'bg-orange-500',
-    urgent: 'bg-red-500',
+    low: 'bg-muted',
+    medium: 'bg-warning',
+    high: 'bg-warning',
+    urgent: 'bg-destructive',
   }
-  return colors[priority] || 'bg-gray-500'
+  return colors[priority] || 'bg-muted'
 }
 </script>
 
@@ -182,7 +182,7 @@ const getPriorityColor = (priority: string) => {
     <div class="mb-6 flex items-center justify-between">
       <div>
         <h1 class="text-3xl font-bold text-white mb-2">Task Hub</h1>
-        <p class="text-gray-400">Tareas unificadas de todas las plataformas</p>
+        <p class="text-muted-foreground">Tareas unificadas de todas las plataformas</p>
       </div>
       <Button @click="syncAll">
         <RefreshCw class="w-4 h-4 mr-2" />
@@ -191,7 +191,7 @@ const getPriorityColor = (priority: string) => {
     </div>
 
     <LoadingState v-if="loading" />
-    <div v-else-if="error" class="text-red-400">{{ error }}</div>
+    <div v-else-if="error" class="text-destructive">{{ error }}</div>
 
     <div v-else class="space-y-6">
       <!-- Dashboard Summary -->
@@ -199,25 +199,25 @@ const getPriorityColor = (priority: string) => {
         <Card>
           <CardContent class="p-4">
             <div class="text-2xl font-bold text-white">{{ dashboard?.total_tasks || 0 }}</div>
-            <div class="text-sm text-gray-400">Total Tareas</div>
+            <div class="text-sm text-muted-foreground">Total Tareas</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent class="p-4">
-            <div class="text-2xl font-bold text-yellow-400">{{ dashboard?.pending || 0 }}</div>
-            <div class="text-sm text-gray-400">Pendientes</div>
+            <div class="text-2xl font-bold text-warning">{{ dashboard?.pending || 0 }}</div>
+            <div class="text-sm text-muted-foreground">Pendientes</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent class="p-4">
-            <div class="text-2xl font-bold text-blue-400">{{ dashboard?.in_progress || 0 }}</div>
-            <div class="text-sm text-gray-400">En Progreso</div>
+            <div class="text-2xl font-bold text-primary">{{ dashboard?.in_progress || 0 }}</div>
+            <div class="text-sm text-muted-foreground">En Progreso</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent class="p-4">
-            <div class="text-2xl font-bold text-green-400">${{ dashboard?.total_potential_reward?.toFixed(2) || 0 }}</div>
-            <div class="text-sm text-gray-400">Recompensa Potencial</div>
+            <div class="text-2xl font-bold text-success">${{ dashboard?.total_potential_reward?.toFixed(2) || 0 }}</div>
+            <div class="text-sm text-muted-foreground">Recompensa Potencial</div>
           </CardContent>
         </Card>
       </div>
@@ -232,17 +232,17 @@ const getPriorityColor = (priority: string) => {
             <div
               v-for="(conn, platform) in connections"
               :key="platform"
-              class="bg-gray-900 border border-gray-800 rounded-lg p-4"
+              class="bg-surface border border-border rounded-lg p-4"
             >
               <div class="flex items-center justify-between mb-2">
                 <h3 class="text-lg font-semibold text-white capitalize">{{ platform }}</h3>
-                <div :class="['w-3 h-3 rounded-full', conn.connected ? 'bg-green-500' : 'bg-red-500']" />
+                <div :class="['w-3 h-3 rounded-full', conn.connected ? 'bg-success' : 'bg-destructive']" />
               </div>
-              <div class="text-sm text-gray-400 mb-2">
+              <div class="text-sm text-muted-foreground mb-2">
                 {{ conn.connected ? 'Conectado' : 'No conectado' }}
               </div>
-              <div v-if="conn.error" class="text-sm text-red-400 mb-2">{{ conn.error }}</div>
-              <div class="text-sm text-gray-300">
+              <div v-if="conn.error" class="text-sm text-destructive mb-2">{{ conn.error }}</div>
+              <div class="text-sm text-foreground/80">
                 Tareas: {{ conn.total_tasks }} ({{ conn.pending_tasks }} pendientes)
               </div>
               <Button
@@ -263,7 +263,7 @@ const getPriorityColor = (priority: string) => {
       <div class="flex gap-4">
         <select
           v-model="statusFilter"
-          class="bg-gray-900 border border-gray-800 rounded px-3 py-2 text-white"
+          class="bg-surface border border-border rounded px-3 py-2 text-white"
         >
           <option v-for="opt in statusOptions" :key="opt.value" :value="opt.value">
             {{ opt.label }}
@@ -271,7 +271,7 @@ const getPriorityColor = (priority: string) => {
         </select>
         <select
           v-model="platformFilter"
-          class="bg-gray-900 border border-gray-800 rounded px-3 py-2 text-white"
+          class="bg-surface border border-border rounded px-3 py-2 text-white"
         >
           <option v-for="opt in platformOptions" :key="opt.value" :value="opt.value">
             {{ opt.label }}
@@ -284,7 +284,7 @@ const getPriorityColor = (priority: string) => {
         <div
           v-for="task in filteredTasks"
           :key="task.id"
-          class="bg-gray-900 border border-gray-800 rounded-lg p-4"
+          class="bg-surface border border-border rounded-lg p-4"
         >
           <div class="flex items-start justify-between">
             <div class="flex-1">
@@ -300,8 +300,8 @@ const getPriorityColor = (priority: string) => {
                 </Badge>
               </div>
               <h3 class="text-lg font-semibold text-white mb-2">{{ task.title }}</h3>
-              <p class="text-gray-300 mb-3">{{ task.description }}</p>
-              <div class="flex items-center gap-4 text-sm text-gray-400">
+              <p class="text-foreground/80 mb-3">{{ task.description }}</p>
+              <div class="flex items-center gap-4 text-sm text-muted-foreground">
                 <div class="flex items-center gap-1">
                   <DollarSign class="w-4 h-4" />
                   ${{ task.reward }}

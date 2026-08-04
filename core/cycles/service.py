@@ -209,7 +209,6 @@ class CycleService:
         return cycle
 
 
-
 # Singleton
 _cycle_service: CycleService | None = None
 

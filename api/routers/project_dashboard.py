@@ -23,6 +23,7 @@ PM_DIR = PROJECT_ROOT / "project_management"
 
 # ─── Helpers ─────────────────────────────────────────────────────────────
 
+
 def _run(cmd: list[str]) -> str:
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, cwd=PROJECT_ROOT, timeout=10)
@@ -42,7 +43,10 @@ def _count_tests() -> dict[str, Any]:
     try:
         r = subprocess.run(
             ["python", "-m", "pytest", "tests/", "-q", "--tb=no", "--no-header"],
-            capture_output=True, text=True, cwd=PROJECT_ROOT, timeout=60,
+            capture_output=True,
+            text=True,
+            cwd=PROJECT_ROOT,
+            timeout=60,
         )
         out = r.stdout.strip()
         m = re.search(r"(\d+) passed", out)
@@ -55,6 +59,7 @@ def _count_tests() -> dict[str, Any]:
 
 
 # ─── Endpoints ───────────────────────────────────────────────────────────
+
 
 @router.get("/summary")
 def get_summary() -> dict[str, Any]:
@@ -126,14 +131,16 @@ def get_feature_matrix() -> list[dict[str, str]]:
             continue
         tm = re.match(r"^\| (.+) \| (.+) \| (.+) \| (.+) \| (.+) \|", line)
         if tm and tm.group(1) not in ("Feature", "---------"):
-            rows.append({
-                "feature": tm.group(1).strip(),
-                "status": tm.group(2).strip(),
-                "dependencies": tm.group(3).strip(),
-                "priority": tm.group(4).strip(),
-                "impact": tm.group(5).strip(),
-                "section": current_section,
-            })
+            rows.append(
+                {
+                    "feature": tm.group(1).strip(),
+                    "status": tm.group(2).strip(),
+                    "dependencies": tm.group(3).strip(),
+                    "priority": tm.group(4).strip(),
+                    "impact": tm.group(5).strip(),
+                    "section": current_section,
+                }
+            )
     return rows
 
 
@@ -155,11 +162,13 @@ def get_tech_debt() -> dict[str, Any]:
             continue
         tm = re.match(r"^\| (.+) \| (.+) \| (.+) \|", line)
         if tm and tm.group(1) not in ("Item", "------"):
-            items.setdefault(current_priority, []).append({
-                "item": tm.group(1).strip(),
-                "file": tm.group(2).strip(),
-                "description": tm.group(3).strip(),
-            })
+            items.setdefault(current_priority, []).append(
+                {
+                    "item": tm.group(1).strip(),
+                    "file": tm.group(2).strip(),
+                    "description": tm.group(3).strip(),
+                }
+            )
     return items
 
 
@@ -175,11 +184,13 @@ def get_timeline() -> list[dict[str, str]]:
             icon = vm.group(1)
             current_version = vm.group(2)
             current_state = "done" if "🟢" in icon else "in_progress" if "🔵" in icon else "planned"
-            versions.append({
-                "version": current_version,
-                "title": vm.group(3).strip(),
-                "state": current_state,
-            })
+            versions.append(
+                {
+                    "version": current_version,
+                    "title": vm.group(3).strip(),
+                    "state": current_state,
+                }
+            )
             continue
         sm = re.match(r"^\*\*Estado:\*\* (.+)", line)
         if sm:
@@ -207,20 +218,34 @@ def get_architecture_tree() -> dict[str, Any]:
     """Return summarized project tree for developer mode."""
     return {
         "root": PROJECT_ROOT.name,
-        "directories": sorted([
-            d.name for d in PROJECT_ROOT.iterdir()
-            if d.is_dir() and not d.name.startswith(".") and d.name not in ("__pycache__", "node_modules", ".venv", "dist", ".git")
-        ]),
-        "routers": sorted([
-            f.stem for f in (PROJECT_ROOT / "api" / "routers").iterdir()
-            if f.suffix == ".py" and not f.name.startswith("_")
-        ]),
-        "cores_modules": sorted([
-            d.name for d in (PROJECT_ROOT / "cores").iterdir()
-            if d.is_dir() and not d.name.startswith("_") and d.name != "__pycache__"
-        ]),
-        "frontend_pages": sorted([
-            f.stem for f in (PROJECT_ROOT / "frontend" / "src" / "pages").iterdir()
-            if f.suffix in (".vue", ".ts") and not f.name.startswith("_")
-        ]),
+        "directories": sorted(
+            [
+                d.name
+                for d in PROJECT_ROOT.iterdir()
+                if d.is_dir()
+                and not d.name.startswith(".")
+                and d.name not in ("__pycache__", "node_modules", ".venv", "dist", ".git")
+            ]
+        ),
+        "routers": sorted(
+            [
+                f.stem
+                for f in (PROJECT_ROOT / "api" / "routers").iterdir()
+                if f.suffix == ".py" and not f.name.startswith("_")
+            ]
+        ),
+        "cores_modules": sorted(
+            [
+                d.name
+                for d in (PROJECT_ROOT / "cores").iterdir()
+                if d.is_dir() and not d.name.startswith("_") and d.name != "__pycache__"
+            ]
+        ),
+        "frontend_pages": sorted(
+            [
+                f.stem
+                for f in (PROJECT_ROOT / "frontend" / "src" / "pages").iterdir()
+                if f.suffix in (".vue", ".ts") and not f.name.startswith("_")
+            ]
+        ),
     }

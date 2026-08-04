@@ -84,7 +84,7 @@ const chartData = computed(() => {
     datasets: [{
       label: 'Valor',
       data: [endpoint.value.risk_score * 10, endpoint.value.parameter_count],
-      backgroundColor: ['rgba(239,68,68,0.7)', 'rgba(59,130,246,0.7)'],
+      backgroundColor: ['rgba(232, 33, 39,0.7)', 'rgba(255, 255, 255,0.7)'],
     }],
   }
 })

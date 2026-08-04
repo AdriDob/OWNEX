@@ -21,6 +21,7 @@ from typing import Any
 
 class UserExperienceLevel(StrEnum):
     """Nivel de experiencia del usuario."""
+
     BEGINNER = "beginner"
     INTERMEDIATE = "intermediate"
     ADVANCED = "advanced"
@@ -29,6 +30,7 @@ class UserExperienceLevel(StrEnum):
 
 class WorkMode(StrEnum):
     """Modo de trabajo preferido."""
+
     BUG_BOUNTY = "bug_bounty"
     DEV_BOUNTY = "dev_bounty"
     DATA_ANNOTATION = "data_annotation"
@@ -38,6 +40,7 @@ class WorkMode(StrEnum):
 
 class GuidanceLevel(StrEnum):
     """Nivel de guía requerido."""
+
     HIGH_GUIDANCE = "high_guidance"  # Llevar de la mano
     MEDIUM_GUIDANCE = "medium_guidance"
     LOW_GUIDANCE = "low_guidance"
@@ -47,6 +50,7 @@ class GuidanceLevel(StrEnum):
 @dataclass
 class PersonalProfile:
     """Perfil personal del usuario."""
+
     # Información básica
     name: str = ""
     preferred_name: str = ""
@@ -110,6 +114,7 @@ class PersonalProfile:
 @dataclass
 class OnboardingStep:
     """Paso del onboarding."""
+
     step_id: str
     title: str
     description: str

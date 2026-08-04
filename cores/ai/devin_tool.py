@@ -29,6 +29,7 @@ logger = logging.getLogger("ownex.devin_tool")
 
 class DevinCommandType(Enum):
     """Tipo de comando de Devin."""
+
     RUN = "run"  # Ejecutar tarea de desarrollo
     PLAN = "plan"  # Planificar tarea
     EDIT = "edit"  # Editar archivos
@@ -41,6 +42,7 @@ class DevinCommandType(Enum):
 
 class DevinModel(Enum):
     """Modelos disponibles en Devin."""
+
     CLAUDE_SONNET_4_5 = "anthropic/claude-sonnet-4-5"
     CLAUDE_HAIKU = "anthropic/claude-haiku"
     DEEPSEEK_V4 = "opencode/deepseek-v4-flash-free"
@@ -51,6 +53,7 @@ class DevinModel(Enum):
 @dataclass
 class DevinTask:
     """Tarea de desarrollo para Devin."""
+
     task_id: str
     command_type: DevinCommandType
     prompt: str
@@ -179,7 +182,7 @@ class DevinTool:
             files_arg = " ".join([f'"{f}"' for f in task.files])
 
         # Construir comando completo
-        command = f"{base_command} {model_arg} {files_arg} \"{task.prompt}\""
+        command = f'{base_command} {model_arg} {files_arg} "{task.prompt}"'
 
         return command
 

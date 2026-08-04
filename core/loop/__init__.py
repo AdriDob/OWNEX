@@ -9,6 +9,7 @@ Provides:
   - Pattern registry (YAML-based)
   - OWNEX-specific patterns for Security, Forge, Pulse, Vault, Atlas
 """
+# ruff: noqa: E402
 from core.loop.engine import LoopEngine
 from core.loop.models import (
     LoopPattern,

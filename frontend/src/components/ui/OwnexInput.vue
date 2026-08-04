@@ -159,7 +159,7 @@ const errorMessage = computed(() => 'Valor inválido')
 .ownex-input__field:focus {
   outline: none;
   border-color: var(--ownex-blue);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
 }
 
 .ownex-input__field:disabled {

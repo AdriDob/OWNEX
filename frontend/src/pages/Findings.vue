@@ -120,7 +120,7 @@ function severityColor(sev: string) {
           </div>
           <BarChart
             :labels="['Critical', 'High', 'Medium', 'Low', 'Info']"
-            :datasets="[{ label: 'Hallazgos', data: [severityDistribution.critical, severityDistribution.high, severityDistribution.medium, severityDistribution.low, severityDistribution.info], backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#6b7280'] }]"
+            :datasets="[{ label: 'Hallazgos', data: [severityDistribution.critical, severityDistribution.high, severityDistribution.medium, severityDistribution.low, severityDistribution.info], backgroundColor: ['#E82127', '#D97706', '#A16207', '#16A34A', '#6b7280'] }]"
             :height="180"
             yLabel="Count"
             :showLegend="false"

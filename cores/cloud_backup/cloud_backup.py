@@ -10,6 +10,7 @@ Provides:
 
 from __future__ import annotations
 
+import contextlib
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -129,7 +130,6 @@ class S3BackupProvider(CloudBackupProvider):
             self.connect()
 
         try:
-
             backup_path = Path(backup_path)
 
             # Compress if enabled
@@ -243,13 +243,15 @@ class S3BackupProvider(CloudBackupProvider):
             for obj in response.get("Contents", []):
                 object_key = obj["Key"]
                 backup_name = object_key.replace(f"{self.config.prefix}/", "").replace(".zip", "")
-                backups.append({
-                    "name": backup_name,
-                    "object_key": object_key,
-                    "size": obj["Size"],
-                    "last_modified": obj["LastModified"].isoformat(),
-                    "provider": "s3",
-                })
+                backups.append(
+                    {
+                        "name": backup_name,
+                        "object_key": object_key,
+                        "size": obj["Size"],
+                        "last_modified": obj["LastModified"].isoformat(),
+                        "provider": "s3",
+                    }
+                )
 
             return backups
 
@@ -334,11 +336,8 @@ class GCSBackupProvider(CloudBackupProvider):
                 return False
 
             # Try to list a single object to verify permissions
-            try:
+            with contextlib.suppress(Exception):
                 next(bucket.list_blobs(max_results=1))
-            except Exception:
-                # Bucket exists but may be empty or no read permissions - still connected
-                pass
 
             logger.info(f"[CLOUD BACKUP] Connected to GCS bucket: {self.config.bucket_name}")
             return True
@@ -356,7 +355,6 @@ class GCSBackupProvider(CloudBackupProvider):
             self.connect()
 
         try:
-
             backup_path = Path(backup_path)
 
             # Compress if enabled
@@ -467,13 +465,15 @@ class GCSBackupProvider(CloudBackupProvider):
             for blob in blobs:
                 object_key = blob.name
                 backup_name = object_key.replace(f"{self.config.prefix}/", "").replace(".zip", "")
-                backups.append({
-                    "name": backup_name,
-                    "object_key": object_key,
-                    "size": blob.size,
-                    "last_modified": blob.time_created.isoformat(),
-                    "provider": "gcs",
-                })
+                backups.append(
+                    {
+                        "name": backup_name,
+                        "object_key": object_key,
+                        "size": blob.size,
+                        "last_modified": blob.time_created.isoformat(),
+                        "provider": "gcs",
+                    }
+                )
 
             return backups
 

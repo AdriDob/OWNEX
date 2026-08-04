@@ -69,10 +69,10 @@ const severityChartData = computed(() => {
   if (!finding.value) return { labels: [], data: [] }
   const sev = finding.value.severity.toLowerCase()
   const map: Record<string, { value: number; color: string }> = {
-    critical: { value: 10, color: '#ef4444' },
-    high: { value: 7.5, color: '#f97316' },
-    medium: { value: 5, color: '#eab308' },
-    low: { value: 2.5, color: '#22c55e' },
+    critical: { value: 10, color: '#E82127' },
+    high: { value: 7.5, color: '#D97706' },
+    medium: { value: 5, color: '#A16207' },
+    low: { value: 2.5, color: '#16A34A' },
     info: { value: 1, color: '#6b7280' },
   }
   const entry = map[sev] || { value: 1, color: '#6b7280' }

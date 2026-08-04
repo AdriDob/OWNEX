@@ -37,15 +37,16 @@ _HAS_ICON_FILE = False
 try:
     import pystray
     from PIL import Image, ImageDraw
+
     _HAS_PYSTRAY = True
 except ImportError:
     pass
 
 # CATEYE brand colors
-BG = (10, 11, 15)       # #0a0b0f
-GOLD = (212, 175, 55)    # #d4af37
-BLUE = (59, 130, 246)    # #3b82f6
-TEXT = (248, 250, 252)   # #f8fafc
+BG = (10, 11, 15)  # #0a0b0f
+GOLD = (212, 175, 55)  # #d4af37
+BLUE = (59, 130, 246)  # #3b82f6
+TEXT = (248, 250, 252)  # #f8fafc
 
 
 def _create_icon_image(size: int = 64) -> Image.Image:
@@ -91,6 +92,7 @@ def _try_find_icon() -> Path | None:
 
 def _get_data_dir() -> Path:
     from cores.utils.paths import get_data_path
+
     return get_data_path()
 
 
@@ -108,6 +110,7 @@ def _open_file_explorer(path: Path) -> None:
 
 def _open_logs_dir() -> None:
     from cores.utils.paths import get_log_path
+
     logs_dir = get_log_path()
     if logs_dir.exists():
         _open_file_explorer(logs_dir)
@@ -134,6 +137,7 @@ class TrayController:
         on_open_daily_mode: Callable[[], Any],
         on_restart: Callable[[], Any] | None = None,
         on_stop_service: Callable[[], Any] | None = None,
+        on_start_service: Callable[[], Any] | None = None,
         on_check_status: Callable[[], str] | None = None,
         on_quit: Callable[[], Any] | None = None,
     ) -> None:
@@ -141,6 +145,7 @@ class TrayController:
         self._on_open_daily_mode = on_open_daily_mode
         self._on_restart = on_restart or (lambda: None)
         self._on_stop_service = on_stop_service or (lambda: None)
+        self._on_start_service = on_start_service or (lambda: None)
         self._on_check_status = on_check_status or (lambda: "Running")
         self._on_quit = on_quit or (lambda: None)
         self._icon: Any = None
@@ -156,6 +161,7 @@ class TrayController:
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("Restart Service", lambda: self._on_restart()),
             pystray.MenuItem("Stop Service", lambda: self._on_stop_service()),
+            pystray.MenuItem("Start Service", lambda: self._on_start_service()),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem(
                 "Check Status",
@@ -236,8 +242,10 @@ def run_tray_only(host: str = "127.0.0.1", port: int = 8000) -> None:
 
     def _open_daily():
         open_dashboard(
-            port=port, path="/daily",
-            token=token, device_id=device_id,
+            port=port,
+            path="/daily",
+            token=token,
+            device_id=device_id,
         )
 
     def _check_status() -> str:
@@ -245,27 +253,51 @@ def run_tray_only(host: str = "127.0.0.1", port: int = 8000) -> None:
             return f"Service running on port {port}"
         try:
             import httpx
+
             r = httpx.get(f"http://{host}:{port}/api/health", timeout=3.0)
             return f"OK ({r.status_code})" if r.status_code == 200 else f"HTTP {r.status_code}"
         except Exception as exc:
             return f"Offline ({str(exc)[:40]})"
 
-    def _restart_service():
+    def _restart_service() -> None:
         try:
             if _is_svc_running():
-                subprocess.run(
-                    ["net", "stop", "CATEYE", "&&", "net", "start", "CATEYE"],
-                    shell=True, check=False,
-                )
+                # Windows
+                if sys.platform == "win32":
+                    subprocess.run(
+                        ["net", "stop", "CATEYE", "&&", "net", "start", "CATEYE"],
+                        shell=True,
+                        check=False,
+                    )
+                # Linux systemd
+                else:
+                    subprocess.run(["systemctl", "restart", "ownex"], check=False)
         except Exception as exc:
             logger.warning("Failed to restart service: %s", exc)
 
-    def _stop_service():
+    def _stop_service() -> None:
         try:
             if _is_svc_running():
-                subprocess.run(["net", "stop", "CATEYE"], shell=True, check=False)
+                # Windows
+                if sys.platform == "win32":
+                    subprocess.run(["net", "stop", "CATEYE"], shell=True, check=False)
+                # Linux systemd
+                else:
+                    subprocess.run(["systemctl", "stop", "ownex"], check=False)
         except Exception as exc:
             logger.warning("Failed to stop service: %s", exc)
+
+    def _start_service() -> None:
+        try:
+            if not _is_svc_running():
+                # Windows
+                if sys.platform == "win32":
+                    subprocess.run(["net", "start", "CATEYE"], shell=True, check=False)
+                # Linux systemd
+                else:
+                    subprocess.run(["systemctl", "start", "ownex"], check=False)
+        except Exception as exc:
+            logger.warning("Failed to start service: %s", exc)
 
     def _quit_tray():
         shutdown_event.set()
@@ -275,6 +307,7 @@ def run_tray_only(host: str = "127.0.0.1", port: int = 8000) -> None:
         on_open_daily_mode=_open_daily,
         on_restart=_restart_service,
         on_stop_service=_stop_service,
+        on_start_service=_start_service,
         on_check_status=_check_status,
         on_quit=_quit_tray,
     )
@@ -291,6 +324,7 @@ def run_tray_only(host: str = "127.0.0.1", port: int = 8000) -> None:
 
 
 # ── Legacy compatibility wrapper ────────────────────────────────────
+
 
 def start_tray_thread(
     on_start: Callable[..., Any],

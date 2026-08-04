@@ -15,7 +15,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from cores.revenue_tracker.revenue_potential import generate_revenue_report
-from cores.revenue_tracker.RevenueTracker import (
+from cores.revenue_tracker.revenue_tracker import (
     BarrierType,
     PaymentStatus,
     get_revenue_tracker,
@@ -134,7 +134,7 @@ async def create_zero_barrier_opportunity(request: ZeroBarrierOpportunityRequest
         )
 
     try:
-        from cores.revenue_tracker.RevenueTracker import RevenueOpportunity
+        from cores.revenue_tracker.revenue_tracker import RevenueOpportunity
 
         # Convert barrier strings to BarrierType enums
         barrier_types = []
@@ -287,18 +287,23 @@ async def sync_platform_earnings(platform: str, api_key: str = "") -> dict[str, 
         # Import existing platform connector
         if platform == "hackerone":
             from cores.platforms.hackerone import HackerOne
+
             connector = HackerOne()
         elif platform == "bugcrowd":
             from cores.platforms.bugcrowd import Bugcrowd
+
             connector = Bugcrowd()
         elif platform == "intigriti":
             from cores.platforms.intigriti import Intigriti
+
             connector = Intigriti()
         elif platform == "yeswehack":
             from cores.platforms.yeswehack import YesWeHack
+
             connector = YesWeHack()
         elif platform == "synack":
             from cores.platforms.synack import Synack
+
             connector = Synack()
         else:
             raise HTTPException(status_code=400, detail="Platform not supported")

@@ -79,22 +79,13 @@ from cores.ai.devin_tool import get_devin_tool
 tool = get_devin_tool()
 
 # Refactor código
-task = tool.refactor_code(
-    file_path="path/to/file.py",
-    refactor_prompt="Improve code quality and performance"
-)
+task = tool.refactor_code(file_path="path/to/file.py", refactor_prompt="Improve code quality and performance")
 
 # Implementar feature
-task = tool.implement_feature(
-    feature_description="Add user authentication",
-    files=["src/auth.py", "src/user.py"]
-)
+task = tool.implement_feature(feature_description="Add user authentication", files=["src/auth.py", "src/user.py"])
 
 # Debug código
-task = tool.debug_code(
-    error_description="Fix segmentation fault in data processing",
-    files=["src/processing.py"]
-)
+task = tool.debug_code(error_description="Fix segmentation fault in data processing", files=["src/processing.py"])
 ```
 
 ### Desde API
@@ -125,11 +116,7 @@ from core.ai.model_router import get_model_router
 router = get_model_router()
 
 # El router automáticamente usará Devin para tareas de código
-decision = router.route_task(
-    task_type=TaskType.CODE,
-    prompt="Implement user authentication",
-    privacy_required=False
-)
+decision = router.route_task(task_type=TaskType.CODE, prompt="Implement user authentication", privacy_required=False)
 
 # decision.selected_model será "devin-claude-sonnet"
 ```
@@ -172,10 +159,7 @@ DEVIN_DEFAULT_TIMEOUT=300
 ```python
 tool = get_devin_tool()
 
-task = tool.refactor_code(
-    file_path="src/processing.py",
-    refactor_prompt="Improve performance and add error handling"
-)
+task = tool.refactor_code(file_path="src/processing.py", refactor_prompt="Improve performance and add error handling")
 
 print(f"Task status: {task.status}")
 print(f"Output: {task.output}")
@@ -189,7 +173,7 @@ tool = get_devin_tool()
 task = tool.implement_feature(
     feature_description="Add user authentication with JWT tokens",
     files=["src/auth.py", "src/user.py", "src/middleware.py"],
-    working_dir="/path/to/project"
+    working_dir="/path/to/project",
 )
 ```
 
@@ -199,9 +183,7 @@ task = tool.implement_feature(
 tool = get_devin_tool()
 
 task = tool.debug_code(
-    error_description="Fix infinite loop in data processing",
-    files=["src/processing.py"],
-    model=DevinModel.DEEPSEEK_V4
+    error_description="Fix infinite loop in data processing", files=["src/processing.py"], model=DevinModel.DEEPSEEK_V4
 )
 ```
 
@@ -210,11 +192,7 @@ task = tool.debug_code(
 ```python
 tool = get_devin_tool()
 
-task = tool.generate_tests(
-    file_path="src/auth.py",
-    test_framework="pytest",
-    working_dir="/path/to/project"
-)
+task = tool.generate_tests(file_path="src/auth.py", test_framework="pytest", working_dir="/path/to/project")
 ```
 
 ## Monitoring

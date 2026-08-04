@@ -39,10 +39,12 @@ def init_all_connectors() -> dict[str, OdysseyConnector]:
             inst = cls()
             connected = False
             import asyncio
+
             try:
                 loop = asyncio.get_event_loop()
                 if loop.is_running():
                     import asyncio as _a
+
                     connected = _a.run_coroutine_threadsafe(inst.connect(), loop).result(5)
                 else:
                     connected = asyncio.run(inst.connect())

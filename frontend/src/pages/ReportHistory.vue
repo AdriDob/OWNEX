@@ -140,7 +140,7 @@ const monthlyChartData = computed(() => {
     datasets: [{
       label: 'Reports',
       data: sorted.map(([, c]) => c),
-      backgroundColor: '#3b82f6',
+      backgroundColor: '#ffffff',
     }],
   }
 })

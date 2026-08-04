@@ -7,4 +7,3 @@ Sub-packages:
   intelligence/ — Unification layer (dependency graph, events, cache, anti-drift)
   ... (existing engines remain unchanged)
 """
-

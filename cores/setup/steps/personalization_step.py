@@ -31,9 +31,9 @@ logger = logging.getLogger("ownex.core.setup.personalization")
                     "developer",
                     "researcher",
                     "hobbyist",
-                    "other"
+                    "other",
                 ],
-                "title": "Casos de uso"
+                "title": "Casos de uso",
             },
             "modules": {
                 "type": "array",
@@ -49,37 +49,27 @@ logger = logging.getLogger("ownex.core.setup.personalization")
                         "analytics",
                         "reports",
                         "targets",
-                        "integrations"
-                    ]
+                        "integrations",
+                    ],
                 },
-                "title": "Módulos a habilitar"
+                "title": "Módulos a habilitar",
             },
-            "custom_name": {
-                "type": "string",
-                "title": "Nombre personalizado (opcional)"
-            },
+            "custom_name": {"type": "string", "title": "Nombre personalizado (opcional)"},
             "expertise_level": {
                 "type": "string",
                 "enum": ["beginner", "intermediate", "advanced", "expert"],
-                "title": "Nivel de experiencia"
+                "title": "Nivel de experiencia",
             },
             "primary_platforms": {
                 "type": "array",
                 "items": {
                     "type": "string",
-                    "enum": [
-                        "hackerone",
-                        "bugcrowd",
-                        "intigriti",
-                        "yeswehack",
-                        "synack",
-                        "all"
-                    ]
+                    "enum": ["hackerone", "bugcrowd", "intigriti", "yeswehack", "synack", "all"],
                 },
-                "title": "Plataformas principales"
-            }
-        }
-    }
+                "title": "Plataformas principales",
+            },
+        },
+    },
 )
 def personalization_step(data: dict[str, Any]) -> dict[str, Any]:
     """Personalize OWNEX OMEGA based on user's use case and preferences."""
@@ -104,7 +94,7 @@ def personalization_step(data: dict[str, Any]) -> dict[str, Any]:
         modules=final_modules,
         custom_name=custom_name,
         expertise_level=expertise_level,
-        primary_platforms=primary_platforms
+        primary_platforms=primary_platforms,
     )
 
     return {
@@ -116,8 +106,8 @@ def personalization_step(data: dict[str, Any]) -> dict[str, Any]:
             "custom_name": custom_name,
             "expertise_level": expertise_level,
             "primary_platforms": primary_platforms,
-            "config": config
-        }
+            "config": config,
+        },
     }
 
 
@@ -125,24 +115,40 @@ def _get_default_modules_for_use_case(use_case: str) -> list[str]:
     """Get default modules based on use case."""
     modules_map = {
         "bug_bounty_researcher": ["forge", "pulse", "vault", "security", "copilot", "analytics", "reports", "targets"],
-        "bug_bounty_company": ["forge", "pulse", "vault", "atlas", "security", "copilot", "analytics", "reports", "integrations"],
-        "cybersecurity_consultant": ["forge", "pulse", "vault", "atlas", "security", "copilot", "analytics", "reports", "targets"],
+        "bug_bounty_company": [
+            "forge",
+            "pulse",
+            "vault",
+            "atlas",
+            "security",
+            "copilot",
+            "analytics",
+            "reports",
+            "integrations",
+        ],
+        "cybersecurity_consultant": [
+            "forge",
+            "pulse",
+            "vault",
+            "atlas",
+            "security",
+            "copilot",
+            "analytics",
+            "reports",
+            "targets",
+        ],
         "penetration_tester": ["forge", "pulse", "vault", "security", "copilot", "analytics", "reports", "targets"],
         "security_analyst": ["forge", "pulse", "atlas", "security", "copilot", "analytics", "reports"],
         "developer": ["forge", "security", "copilot", "analytics", "targets"],
         "researcher": ["forge", "pulse", "atlas", "copilot", "analytics", "reports"],
         "hobbyist": ["forge", "pulse", "copilot", "analytics"],
-        "other": ["forge", "pulse", "copilot", "analytics"]
+        "other": ["forge", "pulse", "copilot", "analytics"],
     }
     return modules_map.get(use_case, ["forge", "pulse", "copilot", "analytics"])
 
 
 def _build_personalized_config(
-    use_case: str,
-    modules: list[str],
-    custom_name: str,
-    expertise_level: str,
-    primary_platforms: list[str]
+    use_case: str, modules: list[str], custom_name: str, expertise_level: str, primary_platforms: list[str]
 ) -> dict[str, Any]:
     """Build personalized configuration based on user preferences."""
     config = {
@@ -156,7 +162,7 @@ def _build_personalized_config(
         "automation_level": _get_automation_level(expertise_level),
         "notification_settings": _get_notification_settings(use_case),
         "analytics_settings": _get_analytics_settings(use_case),
-        "report_settings": _get_report_settings(use_case, expertise_level)
+        "report_settings": _get_report_settings(use_case, expertise_level),
     }
 
     return config
@@ -169,7 +175,7 @@ def _get_ui_customization(use_case: str, custom_name: str) -> dict[str, Any]:
         "theme": "dark",
         "accent_color": _get_accent_color_for_use_case(use_case),
         "dashboard_layout": _get_dashboard_layout_for_use_case(use_case),
-        "show_advanced_features": True
+        "show_advanced_features": True,
     }
 
 
@@ -184,7 +190,7 @@ def _get_accent_color_for_use_case(use_case: str) -> str:
         "developer": "#2DD4BF",  # Teal
         "researcher": "#FB923C",  # Orange
         "hobbyist": "#F472B6",  # Pink
-        "other": "#94A3B8"  # Gray
+        "other": "#94A3B8",  # Gray
     }
     return colors.get(use_case, "#60A5FA")
 
@@ -200,7 +206,7 @@ def _get_dashboard_layout_for_use_case(use_case: str) -> str:
         "developer": "developer",
         "researcher": "researcher",
         "hobbyist": "simple",
-        "other": "default"
+        "other": "default",
     }
     return layouts.get(use_case, "default")
 
@@ -220,7 +226,7 @@ def _get_feature_flags(expertise_level: str, modules: list[str]) -> dict[str, bo
         "collaboration": "atlas" in modules,
         "financial_tracking": "vault" in modules,
         "pulse_automation": "pulse" in modules,
-        "forge_automation": "forge" in modules
+        "forge_automation": "forge" in modules,
     }
     return flags
 
@@ -228,12 +234,12 @@ def _get_feature_flags(expertise_level: str, modules: list[str]) -> dict[str, bo
 def _get_platform_config(primary_platforms: list[str]) -> dict[str, Any]:
     """Get platform configuration based on primary platforms."""
     return {
-        "enabled_platforms": primary_platforms if primary_platforms != ["all"] else [
-            "hackerone", "bugcrowd", "intigriti", "yeswehack", "synack"
-        ],
+        "enabled_platforms": primary_platforms
+        if primary_platforms != ["all"]
+        else ["hackerone", "bugcrowd", "intigriti", "yeswehack", "synack"],
         "auto_discovery": True,
         "notification_frequency": "realtime",
-        "sync_interval": 300  # 5 minutes
+        "sync_interval": 300,  # 5 minutes
     }
 
 
@@ -243,7 +249,7 @@ def _get_automation_level(expertise_level: str) -> str:
         "beginner": "manual",
         "intermediate": "assisted",
         "advanced": "semi_automated",
-        "expert": "fully_automated"
+        "expert": "fully_automated",
     }
     return levels.get(expertise_level, "assisted")
 
@@ -255,7 +261,7 @@ def _get_notification_settings(use_case: str) -> dict[str, Any]:
         "push_notifications": True,
         "slack_notifications": use_case in ["bug_bounty_company", "cybersecurity_consultant"],
         "telegram_notifications": use_case in ["bug_bounty_researcher", "penetration_tester"],
-        "notification_types": ["new_target", "finding_accepted", "payout", "vulnerability_report"]
+        "notification_types": ["new_target", "finding_accepted", "payout", "vulnerability_report"],
     }
 
 
@@ -267,7 +273,7 @@ def _get_analytics_settings(use_case: str) -> dict[str, Any]:
         "track_revenue": "vault" in _get_default_modules_for_use_case(use_case),
         "track_productivity": True,
         "track_success_rate": True,
-        "retention_days": 90
+        "retention_days": 90,
     }
 
 
@@ -279,5 +285,5 @@ def _get_report_settings(use_case: str, expertise_level: str) -> dict[str, Any]:
         "include_screenshots": True,
         "include_proof": True,
         "custom_templates": expertise_level == "expert",
-        "report_frequency": "weekly" if expertise_level in ["beginner", "intermediate"] else "daily"
+        "report_frequency": "weekly" if expertise_level in ["beginner", "intermediate"] else "daily",
     }
