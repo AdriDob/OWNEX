@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logos/ownex-lockup.svg" alt="OWNEX" width="300"/>
+  <img src="assets/logos/ownex-lockup.png" alt="OWNEX" width="300"/>
 </p>
 
 <p align="center">
