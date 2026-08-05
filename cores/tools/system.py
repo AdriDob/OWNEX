@@ -10,13 +10,13 @@ import shutil
 import subprocess
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger("ownex.tools")
 
 
-class ToolStatus(str, Enum):
+class ToolStatus(StrEnum):
     AVAILABLE = "available"
     NOT_INSTALLED = "not_installed"
     OUTDATED = "outdated"
@@ -24,7 +24,7 @@ class ToolStatus(str, Enum):
     UNKNOWN = "unknown"
 
 
-class ToolCategory(str, Enum):
+class ToolCategory(StrEnum):
     CLI = "cli"
     PYTHON = "python"
     NODE = "node"

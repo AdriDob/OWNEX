@@ -263,7 +263,6 @@ class FinanceEngine:
         """Calculate financial freedom progress."""
         # Get recent income (last 6 months)
         income_data = self.analyze_income(180)
-        work_data = self.analyze_work_income(180)
 
         monthly_avg = Decimal(income_data["total_income"]) / 6
 

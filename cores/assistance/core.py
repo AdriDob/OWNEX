@@ -19,7 +19,7 @@ import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from cores.ai.runtime import TaskType, get_oar
@@ -35,7 +35,7 @@ from cores.memory.system import (
 logger = logging.getLogger("ownex.assistance")
 
 
-class AssistanceMode(str, Enum):
+class AssistanceMode(StrEnum):
     """Assistance modes for different user experience levels."""
 
     BEGINNER = "beginner"  # Explains everything, asks for confirmation
@@ -43,7 +43,7 @@ class AssistanceMode(str, Enum):
     EXPERT = "expert"  # Shows technical details, minimal handholding
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(StrEnum):
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"

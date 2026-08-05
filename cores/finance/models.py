@@ -5,12 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 from uuid import uuid4
 
 
-class TransactionType(str, Enum):
+class TransactionType(StrEnum):
     """Type of financial transaction."""
 
     INCOME = "income"
@@ -20,7 +20,7 @@ class TransactionType(str, Enum):
     REWARD = "reward"
 
 
-class IncomeCategory(str, Enum):
+class IncomeCategory(StrEnum):
     """Categories for income sources."""
 
     FREELANCE = "freelance"
@@ -34,7 +34,7 @@ class IncomeCategory(str, Enum):
     OTHER = "other"
 
 
-class ExpenseCategory(str, Enum):
+class ExpenseCategory(StrEnum):
     """Categories for expenses."""
 
     HOUSING = "housing"
@@ -55,7 +55,7 @@ class ExpenseCategory(str, Enum):
     OTHER = "other"
 
 
-class OpportunityStatus(str, Enum):
+class OpportunityStatus(StrEnum):
     """Status of a tracked opportunity."""
 
     DISCOVERED = "discovered"
@@ -68,7 +68,7 @@ class OpportunityStatus(str, Enum):
     ABANDONED = "abandoned"
 
 
-class AssetType(str, Enum):
+class AssetType(StrEnum):
     """Type of financial asset."""
 
     CASH = "cash"

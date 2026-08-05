@@ -67,7 +67,7 @@ class AaveAdapter:
 
             async with httpx.AsyncClient(timeout=10) as client:
                 resp = await client.get(
-                    f"https://api.aave.com/data/v2/protocols/protocol-data",
+                    "https://api.aave.com/data/v2/protocols/protocol-data",
                     params={"chain": self._chain, "asset": asset},
                 )
                 if resp.status_code == 200:
@@ -93,7 +93,7 @@ class AaveAdapter:
 
             async with httpx.AsyncClient(timeout=10) as client:
                 resp = await client.get(
-                    f"https://api.aave.com/data/v2/protocols/protocol-data",
+                    "https://api.aave.com/data/v2/protocols/protocol-data",
                     params={"chain": self._chain, "limit": 20},
                 )
                 if resp.status_code == 200:
