@@ -1,9 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- OWNEX icon: square avatar, black field, white O+X, red core. -->
-  <rect width="512" height="512" rx="96" fill="#000000"/>
-  <rect x="120" y="120" width="36" height="272" rx="4" fill="#F5F5F5"/>
-  <rect x="356" y="120" width="36" height="272" rx="4" fill="#F5F5F5"/>
-  <rect x="120" y="238" width="272" height="36" rx="4" fill="#F5F5F5"/>
-  <circle cx="256" cy="256" r="168" fill="none" stroke="#F5F5F5" stroke-width="20"/>
-  <circle cx="256" cy="256" r="30" fill="#E82127"/>
-</svg>
+<svg width="512" height="512" viewBox="0 0 360.0 360.0" xmlns="http://www.w3.org/2000/svg"><rect width="360.0" height="360.0" rx="67.5" fill="#000000"/><rect x="174.0" y="42.0" width="12.0" height="135.0" fill="#F5F5F5" transform="rotate(45 180.0 180.0)"/><rect x="174.0" y="42.0" width="12.0" height="135.0" fill="#F5F5F5" transform="rotate(-45 180.0 180.0)"/><circle cx="180.0" cy="180.0" r="120.0" fill="none" stroke="#F5F5F5" stroke-width="12.0" stroke-linecap="round"/><circle cx="180.0" cy="180.0" r="20.400000000000002" fill="#E82127"/></svg>

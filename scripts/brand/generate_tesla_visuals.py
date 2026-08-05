@@ -8,9 +8,14 @@ Faithful to the real frontend: status bar, cycle sidebar, Next Best Action,
 Opportunity Radar, Cashflow Radar, Agent Fleet, Knowledge Feed.
 """
 
+import sys
 from pathlib import Path
 
 import cairosvg
+
+# import logo system
+sys.path.insert(0, str(Path(__file__).parent))
+from logo_system import mark_svg, lockup_svg
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -82,9 +87,9 @@ def card(x, y, w, h):
     return rect(x, y, w, h, C["surface"], rx=10, stroke=C["border"], sw=1)
 
 
-# ════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════
 # SOCIAL PREVIEW — 1280x640 (GitHub repo card)
-# ════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════
 def social_preview():
     w, h = 1280, 640
     g = [f'<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">']
@@ -94,13 +99,12 @@ def social_preview():
         g.append(f'<line x1="{x}" y1="0" x2="{x}" y2="{h}" stroke="{C["border"]}" stroke-width="1"/>')
     for y in range(0, h + 1, 64):
         g.append(f'<line x1="0" y1="{x}" x2="{w}" y2="{y}" stroke="{C["border"]}" stroke-width="1"/>')
-    # mark (O+X)
-    g.append('<g transform="translate(80,110)">')
-    g.append(rect(0, 0, 26, 140, C["fg"]))
-    g.append(rect(114, 0, 26, 140, C["fg"]))
-    g.append(rect(0, 57, 140, 26, C["fg"]))
-    g.append(f'<circle cx="70" cy="70" r="62" fill="none" stroke="{C["fg"]}" stroke-width="8"/>')
-    g.append(dot(70, 70, 13, C["accent"]))
+    # mark (O+X) — from logo system, scaled to 180px
+    mark_size = 180
+    mark_x = 80
+    mark_y = 110
+    g.append(f'<g transform="translate({mark_x}, {mark_y}) scale({mark_size / 512})">')
+    g.append(mark_svg(size=512, fg=C["fg"], accent=C["accent"], bg="transparent", with_bg=False).replace('<svg', '<g').replace('</svg>', '</g>'))
     g.append("</g>")
     # wordmark
     g.append(txt(80, 340, "OWNEX", 84, C["fg"], 700, ls="-0.02em"))
@@ -160,18 +164,12 @@ def hero_banner():
         g.append(f'<line x1="{x}" y1="0" x2="{x}" y2="{h}" stroke="{C["border"]}" stroke-width="1"/>')
     for y in range(0, h + 1, 60):
         g.append(f'<line x1="0" y1="{y}" x2="{w}" y2="{y}" stroke="{C["border"]}" stroke-width="1"/>')
-    # lockup top-left
-    g.append('<g transform="translate(96,96)">')
-    g.append(rect(0, 0, 24, 128, C["fg"]))
-    g.append(rect(104, 0, 24, 128, C["fg"]))
-    g.append(rect(0, 52, 128, 24, C["fg"]))
-    g.append(f'<circle cx="64" cy="64" r="56" fill="none" stroke="{C["fg"]}" stroke-width="7"/>')
-    g.append(dot(64, 64, 12, C["accent"]))
+    # lockup top-left — from logo system
+    g.append(f'<g transform="translate(96, 96) scale(1.0)">')
+    # Extract the lockup SVG and embed as group
+    lockup = lockup_svg(width=800, height=160)
+    g.append(lockup.replace('<svg', '<g').replace('</svg>', '</g>'))
     g.append("</g>")
-    g.append(txt(96, 300, "OWNEX", 140, C["fg"], 700, ls="-0.02em"))
-    g.append(txt(96, 360, "The personalized autonomous operating system", 34, C["muted_fg"]))
-    g.append(rect(96, 400, 240, 2, C["border_light"]))
-    g.append(txt(96, 450, "mission control · opportunity intelligence · cashflow radar · work cycles", 20, C["muted"], FONT_MONO))
     # main window
     px, py, pw, ph = 480, 96, 1800, 1068
     g.append(rect(px, py, pw, ph, C["surface"], rx=16, stroke=C["border_light"], sw=1))

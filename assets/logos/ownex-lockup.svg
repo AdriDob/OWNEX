@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 240" width="1200" height="240">
-  <!-- OWNEX lockup: mark + wordmark, white on black. -->
-  <rect width="1200" height="240" fill="#000000"/>
-  <g transform="translate(120, 60)">
-    <rect x="0" y="0" width="22" height="120" fill="#F5F5F5"/>
-    <rect x="98" y="0" width="22" height="120" fill="#F5F5F5"/>
-    <rect x="0" y="49" width="120" height="22" fill="#F5F5F5"/>
-    <circle cx="60" cy="60" r="52" fill="none" stroke="#F5F5F5" stroke-width="7"/>
-    <circle cx="60" cy="60" r="11" fill="#E82127"/>
-  </g>
-  <text x="200" y="155" font-family="'Inter Display','Inter',system-ui,sans-serif" font-weight="700" font-size="120" letter-spacing="-0.01em" fill="#F5F5F5">OWNEX</text>
-</svg>
+<svg width="1200" height="240" viewBox="0 0 1200 240" xmlns="http://www.w3.org/2000/svg"><rect width="1200" height="240" fill="#000000"/><g transform="translate(32, 33.60000000000001) scale(0.6352941176470588)"><rect x="130.0" y="-2.0" width="12.0" height="135.0" fill="#F5F5F5" transform="rotate(45 136.0 136.0)"/><rect x="130.0" y="-2.0" width="12.0" height="135.0" fill="#F5F5F5" transform="rotate(-45 136.0 136.0)"/><circle cx="136.0" cy="136.0" r="120.0" fill="none" stroke="#F5F5F5" stroke-width="12.0" stroke-linecap="round"/><circle cx="136.0" cy="136.0" r="20.400000000000002" fill="#E82127"/></g><text x="236.79999999999998" y="148.8" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="100.8" font-weight="700" fill="#F5F5F5" letter-spacing="-0.025em" dominant-baseline="alphabetic">OWNEX</text></svg>
