@@ -198,6 +198,25 @@ class ForexAdapter:
                         "unrealized_pl": float(data.get("unrealizedPL", 0)),
                         "currency": data.get("currency", "USD"),
                     }
-                return {"balance": 0.0}
+                return {
+                    "balance": 0.0,
+                    "nav": 0.0,
+                    "margin_used": 0.0,
+                    "margin_available": 0.0,
+                    "unrealized_pl": 0.0,
+                    "currency": "USD",
+                }
         except Exception:
-            return {"balance": 0.0}
+            return {
+                "balance": 0.0,
+                "nav": 0.0,
+                "margin_used": 0.0,
+                "margin_available": 0.0,
+                "unrealized_pl": 0.0,
+                "currency": "USD",
+            }
+
+
+def build_forex_adapter(config: dict[str, Any] | None = None) -> ForexAdapter:
+    """Factory function to create Forex adapter."""
+    return ForexAdapter(config)

@@ -141,3 +141,8 @@ class MemecoinAdapter:
                 return {"error": "not found"}
         except Exception as exc:
             return {"error": str(exc)}
+
+
+def build_memecoin_adapter(config: dict[str, Any] | None = None) -> MemecoinAdapter:
+    """Build MemecoinAdapter with optional config."""
+    return MemecoinAdapter(config=config)
