@@ -174,16 +174,7 @@ def opportunity_overview():
         engine.discover_all()
     return {
         "metrics": engine.get_metrics(),
-        "providers": [
-            {
-                "name": p.name,
-                "category": p.category,
-                "opportunity_count": p.opportunity_count,
-                "health_status": p.health_status,
-                "last_refresh": p.last_refresh,
-            }
-            for p in engine.get_providers_info()
-        ],
+        "providers": engine.get_providers_info(),
         "recommendations_summary": engine.get_recommendations().summary,
         "last_refresh": engine.get_metrics().get("last_refresh", ""),
     }
@@ -209,15 +200,8 @@ def get_recommendations():
         engine.discover_all()
     recs = engine.get_recommendations()
     return {
-        "top_opportunities": [_opp_to_dict(o) for o in recs.top_opportunities],
-        "top_independent": [_opp_to_dict(o) for o in recs.top_independent],
-        "top_web3": [_opp_to_dict(o) for o in recs.top_web3],
-        "fast_roi": [_opp_to_dict(o) for o in recs.fast_roi],
-        "long_term": [_opp_to_dict(o) for o in recs.long_term],
-        "low_competition": [_opp_to_dict(o) for o in recs.low_competition],
-        "evh_ranked": [_opp_to_dict(o) for o in recs.evh_ranked],
+        "top_opportunities": recs.top_picks,
         "summary": recs.summary,
-        "generated_at": recs.generated_at,
     }
 
 

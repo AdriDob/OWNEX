@@ -73,7 +73,6 @@ from api.routers import (
     intelligence,
     investigations,
     investment,
-    license,
     life_management,
     market_intelligence,
     mercenary_filter,
@@ -102,6 +101,7 @@ from api.routers import (
     pipeline,
     platforms,
     productivity,
+    progressive_scaling,
     project_dashboard,
     pulse_app,
     pulse_cycle,
@@ -147,6 +147,7 @@ from api.routers import (
     ws,
     zap,
     zero_barrier,
+    license,
 )
 from api.routers.investment import register_investment_capabilities as _reg_inv_caps
 from cores.env.config import get_config
@@ -1561,6 +1562,7 @@ app.include_router(platforms.router)
 app.include_router(financial_sync.router)
 app.include_router(financial_truth.router)
 app.include_router(mission.router)
+app.include_router(progressive_scaling.router)
 app.include_router(activity.router)
 app.include_router(crypto.router)
 app.include_router(credentials_rotation.router)

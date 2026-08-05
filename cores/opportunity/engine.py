@@ -649,6 +649,77 @@ class OpportunityEngine:
 
         return "\n".join(lines)
 
+    def get_all(self) -> list[dict[str, Any]]:
+        """Get all stored opportunities from memory."""
+        entries = self.memory.search(query="opportunity", namespaces=[MemoryNamespace.OPPORTUNITIES])
+        return [e.value for e in entries]
+
+    async def discover_all(self, use_layered_scoring: bool = False) -> None:
+        """Discover opportunities from all sources and store in memory."""
+        opportunities = await self.discover()
+        for opp in opportunities:
+            self.memory.set(
+                MemoryNamespace.OPPORTUNITIES,
+                f"opp_{opp.id}",
+                {
+                    "id": opp.id,
+                    "title": opp.title,
+                    "category": opp.category.value,
+                    "source": opp.source.value,
+                    "reward_min": opp.reward_min,
+                    "reward_max": opp.reward_max,
+                    "estimated_hours": opp.estimated_hours,
+                    "difficulty": opp.difficulty,
+                    "skills_required": opp.skills_required,
+                    "url": getattr(opp, "url", ""),
+                },
+                tier=MemoryTier.PERMANENT,
+                tags=["opportunity", "discovered"],
+            )
+
+    def get_metrics(self) -> dict[str, Any]:
+        """Get opportunity metrics."""
+        all_opps = self.get_all()
+        return {
+            "total": len(all_opps),
+            "avg_reward": sum((o.get("reward_min", 0) + o.get("reward_max", 0)) / 2 for o in all_opps)
+            / max(len(all_opps), 1),
+            "categories": len(set(o.get("category", "") for o in all_opps)),
+            "last_refresh": datetime.now(UTC).isoformat(),
+        }
+
+    def get_providers_info(self) -> list[dict[str, Any]]:
+        """Get provider health info."""
+        return [
+            {
+                "name": source.value,
+                "category": source.value,
+                "opportunity_count": len([o for o in self.get_all() if o.get("source") == source.value]),
+                "health_status": "healthy" if source in self._sources else "inactive",
+                "last_refresh": datetime.now(UTC).isoformat(),
+            }
+            for source in OpportunitySource
+        ]
+
+    def get_recommendations(self) -> Any:
+        """Get recommendations."""
+        all_opps = self.get_all()
+        sorted_opps = sorted(
+            all_opps,
+            key=lambda o: (o.get("reward_max", 0) + o.get("reward_min", 0)) / 2,
+            reverse=True,
+        )
+
+        class _Recs:
+            def __init__(self, summary: str, top_picks: list[dict]):
+                self.summary = summary
+                self.top_picks = top_picks
+
+        return _Recs(
+            summary=f"{len(all_opps)} oportunidades descubiertas | Top: {sorted_opps[0]['title'] if sorted_opps else 'N/A'}",
+            top_picks=sorted_opps[:5],
+        )
+
 
 # Pre-seeded opportunities for testing
 SEED_OPPORTUNITIES = [
