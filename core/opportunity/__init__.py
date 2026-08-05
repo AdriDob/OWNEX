@@ -28,20 +28,10 @@ from core.opportunity.executors.opire_executor import OpireExecutor
 # Mercenary filter
 from core.opportunity.mercenary_filter import MercenaryAttributes, get_mercenary_filter
 
-# Legacy Finding-based scoring engine (backward compatibility)
-from core.opportunity.scoring import (
-    OpportunityEngineLegacy,
-    PersonalHistoryTracker as LegacyPersonalHistoryTracker,
-    Top5Engine as LegacyTop5Engine,
-    Top5Entry as LegacyTop5Entry,
-    UnifiedScore as LegacyUnifiedScore,
-    get_legacy_engine,
-)
-
 # Scoring models (for tests) - from core/opportunity/models.py
 from core.opportunity.models import (
-    OWNEX_WORK_CYCLES,
     OWNEX_WORK_CYCLE_ORDER,
+    OWNEX_WORK_CYCLES,
     PersonalHistory,
     ScoredOpportunity,
     Top5Recommendation,
@@ -49,9 +39,27 @@ from core.opportunity.models import (
 )
 from core.opportunity.scorer import score_opportunity
 
+# Legacy Finding-based scoring engine (backward compatibility)
+from core.opportunity.scoring import (
+    OpportunityEngineLegacy,
+    get_legacy_engine,
+)
+from core.opportunity.scoring import (
+    PersonalHistoryTracker as LegacyPersonalHistoryTracker,
+)
+from core.opportunity.scoring import (
+    Top5Engine as LegacyTop5Engine,
+)
+from core.opportunity.scoring import (
+    Top5Entry as LegacyTop5Entry,
+)
+from core.opportunity.scoring import (
+    UnifiedScore as LegacyUnifiedScore,
+)
+from cores.opportunity.personal import PersonalHistoryTracker
+
 # Top5Engine and PersonalHistoryTracker for tests (from cores/opportunity)
 from cores.opportunity.top5 import Top5Engine
-from cores.opportunity.personal import PersonalHistoryTracker
 
 # Export all
 __all__ = [
