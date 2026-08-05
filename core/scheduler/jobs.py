@@ -349,6 +349,7 @@ def get_direct_work_jobs() -> list[JobDefinition]:
     Jobs:
     - work_bank_daily_cycle: discover + prepare zero-barrier jobs every day (06:15)
     - autonomous_discovery: continuous web research for new zero-barrier platforms (every 6h)
+    - market_evolution_daily: analyze platform sources, update market KB, retire stale (daily at 06:30)
     """
     return [
         _cron_job(
@@ -366,6 +367,28 @@ def get_direct_work_jobs() -> list[JobDefinition]:
             cron="0 */6 * * *",
             args=[],
             metadata={"type": "discovery", "desc": "investigación autónoma de nuevas plataformas cero-barrera"},
+        ),
+        _cron_job(
+            job_id="market_evolution_daily",
+            app_id="direct-work",
+            handler="core.cycles.tasks:run_daily_market_evolution",
+            cron="30 6 * * *",
+            args=[],
+            metadata={
+                "type": "market_evolution",
+                "desc": "analiza fuentes de plataformas, actualiza market KB, retira plataformas obsoletas",
+            },
+        ),
+        _cron_job(
+            job_id="daily_delivery_preparation",
+            app_id="direct-work",
+            handler="core.cycles.tasks:run_daily_delivery_preparation",
+            cron="45 6 * * *",
+            args=[],
+            metadata={
+                "type": "delivery",
+                "desc": "prepara paquetes de entrega para trabajos ready_to_deliver del banco",
+            },
         ),
     ]
 
