@@ -1,34 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 384" width="1024" height="384">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  
-  <defs>
-    <linearGradient id="markGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00D5FF"/>
-      <stop offset="100%" stop-color="#1E40FF"/>
-    </linearGradient>
-    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00D5FF"/>
-      <stop offset="100%" stop-color="#1E40FF" stop-opacity="0.6"/>
-    </linearGradient>
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
-  <g transform="scale(2.0)">
-    
-  <g id="ownex-mark" filter="url(#glow)">
-    <path d="M 410.9 101.1 L 384.0 128.0 L 258.8 253.2 L 245.4 239.7 L 239.7 245.4 L 253.2 258.8 L 128.0 384.0 L 101.1 410.9 Z" fill="url(#markGrad)"/>
-    <path d="M 410.9 101.1 L 384.0 128.0 L 258.8 253.2 L 272.3 239.7 L 266.6 245.4 L 253.2 258.8 L 128.0 384.0 L 101.1 410.9 Z" fill="url(#markGrad)"/>
-    <circle cx="256.0" cy="256.0" r="248" fill="none" stroke="#00D5FF" stroke-width="2.5" opacity="0.35"/>
-    <rect x="252.0" y="252.0" width="8" height="8" rx="2" fill="url(#markGrad)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 240" width="1200" height="240">
+  <!-- OWNEX lockup: mark + wordmark, white on black. -->
+  <rect width="1200" height="240" fill="#000000"/>
+  <g transform="translate(120, 60)">
+    <rect x="0" y="0" width="22" height="120" fill="#F5F5F5"/>
+    <rect x="98" y="0" width="22" height="120" fill="#F5F5F5"/>
+    <rect x="0" y="49" width="120" height="22" fill="#F5F5F5"/>
+    <circle cx="60" cy="60" r="52" fill="none" stroke="#F5F5F5" stroke-width="7"/>
+    <circle cx="60" cy="60" r="11" fill="#E82127"/>
   </g>
-  </g>
-</svg>
-  <text x="395.0" y="216" font-family="Space Grotesk, sans-serif" font-weight="700"
-        font-size="120" fill="#F6F8FB" letter-spacing="8">OWNEX</text>
-  
+  <text x="200" y="155" font-family="'Inter Display','Inter',system-ui,sans-serif" font-weight="700" font-size="120" letter-spacing="-0.01em" fill="#F5F5F5">OWNEX</text>
 </svg>

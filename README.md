@@ -1,5 +1,9 @@
 # OWNEX — Autonomous Operating System
 
+<p align="center">
+  <img src="assets/banners/hero-banner.png" alt="OWNEX Mission Control — autonomous operating system" width="100%"/>
+</p>
+
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Vue 3](https://img.shields.io/badge/Vue_3-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org/)
@@ -404,12 +408,19 @@ examples/         Usage examples and documentation
 
 ## Product Screens
 
-Real interface renders generated from the OWNEX brand system (deterministic SVG pipeline):
+Interface renders generated from the deterministic SVG pipeline (`scripts/brand/generate_tesla_visuals.py`) — faithful to the real frontend (tokens from `frontend/src/design/tokens.css`):
 
-| | |
-|---|---|
-| **ALPHA Mission Control** — desktop command center<br/>System health, agent fleet, revenue tracking, live opportunity feed | <img src="assets/concepts/desktop-showcase.png" alt="OWNEX ALPHA Mission Control" width="480"/> |
-| **OMEGA Mobile** — Android companion<br/>Approvals, MERLIN chat, health at a glance | <img src="assets/concepts/mobile-showcase.png" alt="OWNEX OMEGA Mobile" width="160"/> |
+<p align="center">
+  <img src="assets/concepts/desktop-showcase.png" alt="OWNEX Mission Control — desktop" width="720"/>
+  <br/>
+  <em>Mission Control — Next Best Action, Opportunity Radar, Cashflow Radar, Agent Fleet</em>
+</p>
+
+<p align="center">
+  <img src="assets/concepts/mobile-showcase.png" alt="OWNEX Companion — mobile" width="240"/>
+  <br/>
+  <em>OWNEX Companion — health, approvals, radar on the go</em>
+</p>
 
 ## Usage Examples
 
