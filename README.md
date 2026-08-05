@@ -1,16 +1,42 @@
 # OWNEX — Autonomous Operating System
 
-<p align="center">
-  <img src="assets/banners/hero-banner.png" alt="OWNEX Blue brand hero banner" width="100%"/>
+<div align="center">
+
+<img src="assets/logos/ownex-lockup.svg"
+     alt="OWNEX Logo"
+     width="320"
+     style="margin-bottom: 16px"/>
+
+<h1>OWNEX</h1>
+<h3>Autonomous Bug Bounty Operating System</h3>
+
+<p>
+<strong>Automation · Intelligence · Rewards</strong>
 </p>
+
+<p>
+<img src="https://img.shields.io/badge/version-1.0.0-7c3aed?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/tests-122%20passing-22c55e?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/build-0%20errors-22c55e?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-7c3aed?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/license-Proprietary-ef4444?style=for-the-badge"/>
+</p>
+
+<p>
+<em>Sistema operativo privado de investigación para bug bounty y<br/>
+attack surface intelligence. Corre 100% local, sin dependencia cloud.</em>
+</p>
+
+</div>
+
+---
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Vue 3](https://img.shields.io/badge/Vue_3-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescript.org/)
-[![Tests](https://img.shields.io/badge/tests-1400%2B-green)](https://github.com/AdriDob/rastrohunteralpha/actions)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Code Style: Ruff](https://img.shields.io/badge/code%20style-Ruff-D7FF64)](https://github.com/astral-sh/ruff)
+[![Tests](https://img.shields.io/badge/tests-122%20passing-22c55e)](https://github.com/AdriDob/rastrohunteralpha/actions)
+[![License](https://img.shields.io/badge/License-Proprietary-ef4444)](LICENSE)
 
 ## Project Identity
 
