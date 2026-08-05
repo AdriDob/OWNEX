@@ -41,8 +41,8 @@ from cores.direct_work_engine.profile_builder import IntelligentProfileBuilder, 
 from cores.direct_work_engine.recommendation import (
     DEFAULT_RECOMMENDER_CONFIG,
     FAST_INCOME_RECOMMENDER_CONFIG,
-    IntelligentRecommender,
     MAX_SUCCESS_RECOMMENDER_CONFIG,
+    IntelligentRecommender,
     RecommenderConfig,
 )
 from cores.direct_work_engine.scoring import ZeroBarrierScorer, score_opportunities

@@ -157,11 +157,16 @@ class IntelligentRecommender:
         ``mode="max_success"`` swaps the config to the Success Maximizer preset:
         acceptance probability is weighted highest (0.40) and a hard floor is
         enforced so low-success work never surfaces.
+
+        Any other mode (or no mode) restores the balanced preset, so a previous
+        ``fast_income``/``max_success`` call never leaks into later ones.
         """
         if mode == "fast_income":
             self.config = _FAST_INCOME_CONFIG
         elif mode == "max_success":
             self.config = _MAX_SUCCESS_CONFIG
+        else:
+            self.config = DEFAULT_RECOMMENDER_CONFIG
         return self.__recommend(opportunities, profile, limit=limit)
 
     def filter_by_success_floor(
