@@ -15,9 +15,11 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
+
+from cores.financial_intelligence.adaptive_success_rate import get_adaptive_success_rate_system
 
 logger = logging.getLogger("ownex.progressive_scaling")
 
@@ -310,9 +312,7 @@ class ProgressiveScalingManager:
                 recommendation="Maintain current configuration",
             )
 
-        next_config = PHASE_CONFIGS[next_phase]
 
-        # Safety checks
         checks = []
 
         # Check 1: Stability period
@@ -370,17 +370,15 @@ class ProgressiveScalingManager:
         """Evaluate if we should downgrade due to excessive risk."""
         config = self.get_current_config()
 
-        # Check if current drawdown exceeds limit
-        if self._metrics.current_drawdown_pct > config.drawdown_limit_pct:
-            # Downgrade to previous phase
-            if self._current_phase != ScalingPhase.PHASE_1:
-                prev_phase_value = f"phase_{self._current_phase.value.split('_')[1] - 1}"
-                try:
-                    prev_phase = ScalingPhase(prev_phase_value)
-                    logger.warning(f"Downgrading from {self._current_phase} to {prev_phase} due to excessive drawdown")
-                    return prev_phase
-                except ValueError:
-                    pass
+        # Check if current drawdown exceeds limit and downgrade to previous phase
+        if self._metrics.current_drawdown_pct > config.drawdown_limit_pct and self._current_phase != ScalingPhase.PHASE_1:
+            prev_phase_value = f"phase_{self._current_phase.value.split('_')[1] - 1}"
+            try:
+                prev_phase = ScalingPhase(prev_phase_value)
+                logger.warning(f"Downgrading from {self._current_phase} to {prev_phase} due to excessive drawdown")
+                return prev_phase
+            except ValueError:
+                pass
 
         return None
 

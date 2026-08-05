@@ -18,8 +18,6 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-
 logger = logging.getLogger("ownex.adaptive_success_rate")
 
 
@@ -364,12 +362,7 @@ class AdaptiveSuccessRateSystem:
         confidence = self._probabilities.get_confidence(phase)
         baseline = self._probabilities.get_baseline_probability(phase)
 
-        # Use learned probability if confidence is high enough
-        if confidence >= 0.7:
-            effective_prob = learned_prob
-        else:
-            # Weighted average of baseline and learned
-            effective_prob = baseline * 0.7 + learned_prob * 0.3
+        effective_prob = learned_prob if confidence >= 0.7 else baseline * 0.7 + learned_prob * 0.3
 
         return {
             "phase": phase,
