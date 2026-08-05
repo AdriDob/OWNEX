@@ -13,7 +13,7 @@ from dataclasses import fields
 from enum import StrEnum
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from cores.direct_work_engine.discovery import BaseDiscoveryAdapter
@@ -994,6 +994,38 @@ async def direct_work_cashflow_radar(
     radar["daily_digest"] = digest
     radar["weekly_plan"] = weekly
     return radar
+
+
+@router.post("/evolution-report")
+async def direct_work_evolution_report() -> dict[str, Any]:
+    """OWNEX MAXIMUM POTENTIAL ENGINE — Daily Optimization Report.
+
+    Consolida mejoras completadas, ganancias de performance/automatización,
+    nuevas capacidades, problemas detectados, próximas acciones e impacto
+    esperado, todo desde motores existentes (nunca inventa números).
+    """
+    from cores.direct_work_engine.maximum_potential import get_evolution_report
+
+    return get_evolution_report()
+
+
+@router.get("/evolution-report/history")
+async def direct_work_evolution_report_history(
+    limit: int = Query(default=30, ge=1, le=365),
+) -> dict[str, Any]:
+    """Historial de reportes diarios persistidos (tendencias del sistema).
+
+    Snapshots del Daily Optimization Report con métricas clave por día,
+    del más reciente al más antiguo.
+    """
+    from cores.direct_work_engine.maximum_potential import (
+        REPORTS_HISTORY_LIMIT,
+        report_history,
+    )
+
+    return {
+        "history": report_history(limit=min(limit, REPORTS_HISTORY_LIMIT)),
+    }
 
 
 def register_adapter(adapter: BaseDiscoveryAdapter) -> None:
