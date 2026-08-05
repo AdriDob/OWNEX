@@ -1,31 +1,23 @@
-<div align="center">
+<p align="center">
+  <img src="https://raw.githubusercontent.com/AdriDob/rastrohunteralpha/main/assets/logos/ownex-mark.png" alt="OWNEX" width="120"/>
+</p>
 
-# OWNEX
+<h1 align="center">OWNEX</h1>
 
-## The Personalized Autonomous Operating System
+<p align="center">
+  <strong>The Personalized Autonomous Operating System</strong>
+</p>
 
-**Autonomous Intelligence for Technical Work**
+<p align="center">
+  Autonomous Intelligence for Technical Work
+</p>
 
-</div>
-
----
-
-<div align="center">
-
-[![Version 7.0.0](https://img.shields.io/badge/OWNEX-7.0.0-000000?style=for-the-badge)](VERSION.txt)
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
-[![Vue](https://img.shields.io/badge/Vue-3.5-4FC08D?style=for-the-badge&logo=vue.js)](https://vuejs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
-
-</div>
-
----
-
-<div align="center">
-
-*Autonomous bug bounty research · Attack surface intelligence · Technical automation*
-
-</div>
+<p align="center">
+  <img src="https://img.shields.io/badge/version-7.0.0-blue?style=for-the-badge" alt="Version"/>
+  <img src="https://img.shields.io/badge/python-3.11+-yellow?style=for-the-badge&logo=python" alt="Python"/>
+  <img src="https://img.shields.io/badge/vue-3.5-green?style=for-the-badge&logo=vue.js" alt="Vue"/>
+  <img src="https://img.shields.io/badge/fastapi-0.104+-red?style=for-the-badge&logo=fastapi" alt="FastAPI"/>
+</p>
 
 ---
 
