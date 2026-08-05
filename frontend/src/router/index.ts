@@ -231,6 +231,14 @@ export const routes: RouteRecordRaw[] = [
     name: 'capital',
     component: () => import('@/pages/Capital.vue'),
     meta: { title: 'Capital' },
+    children: [
+      {
+        path: 'progressive-scaling',
+        name: 'progressive-scaling',
+        component: () => import('@/pages/ProgressiveScaling.vue'),
+        meta: { title: 'Escalado Progresivo' },
+      },
+    ],
   },
 
   // ── 5.5 SECURITY ──

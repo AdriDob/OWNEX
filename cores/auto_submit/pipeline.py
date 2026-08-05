@@ -90,6 +90,28 @@ def _check_rate_limit(max_per_hour: int = _MAX_SUBMISSIONS_PER_HOUR) -> tuple[bo
             .count()
         )
         if recent_count >= max_per_hour:
+            # Notify user about rate limit
+            try:
+                from cores.notifications.action_required import notify_action_required
+
+                notify_action_required(
+                    title="Submission rate limit reached",
+                    reason=f"Auto-submission rate limit reached ({recent_count}/{max_per_hour} per hour)",
+                    impact="Elite findings queued, waiting for rate limit to reset",
+                    steps=[
+                        "Wait 1 hour for rate limit to reset",
+                        "Or go to Settings > Auto-Submit to increase the limit",
+                        f"Queue has {recent_count} submissions waiting",
+                    ],
+                    ui_path="/operations/scheduler",
+                    category="config",
+                    priority="medium",
+                    channels=["web", "desktop"],
+                    subject_id="rate_limit",
+                    subject_type="system",
+                )
+            except Exception:
+                pass
             return False, f"Rate limit exceeded: {recent_count}/{max_per_hour} submissions in last hour"
         return True, ""
     finally:
@@ -364,6 +386,17 @@ class AutoSubmitPipeline:
         api_key = self._get_api_key(platform)
         if not api_key:
             logger.warning("[AUTO-SUBMIT] No API key for %s, queueing for review", platform)
+            # Notify user about missing API key
+            try:
+                from cores.notifications.action_required import notify_credentials_missing
+
+                notify_credentials_missing(
+                    platform=platform,
+                    credential_name=f"{platform.upper()}_API_KEY",
+                    impact=f"Finding #{finding_id} ready for submission but no API key configured",
+                )
+            except Exception:
+                pass
             return self._queue_for_review(finding, platform, quality_score.score, None)
 
         target_name = ""
