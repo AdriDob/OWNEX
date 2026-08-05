@@ -405,12 +405,24 @@ class OpportunityOrchestrator:
             OutlierAdapter,
             RemotasksAdapter,
         )
+        from core.opportunity.adapters.security_bounty import (
+            BugcrowdAdapter,
+            HackerOneAdapter,
+            IntigritiAdapter,
+            YesWeHackAdapter,
+        )
 
         self.forge_adapters = [
             SuperteamAdapter(),
             OpireAdapter(),
             AlgoraAdapter(),
             IssueHuntAdapter(),
+        ]
+        self.security_adapters = [
+            HackerOneAdapter(),
+            BugcrowdAdapter(),
+            IntigritiAdapter(),
+            YesWeHackAdapter(),
         ]
         self.pulse_adapters = [
             OutlierAdapter(),
