@@ -134,3 +134,8 @@ class SportsBettingAdapter:
                 return {"available": 0.0}
         except Exception:
             return {"available": 0.0}
+
+
+def build_sports_betting_adapter(config: dict[str, Any] | None = None) -> SportsBettingAdapter:
+    """Factory function to create Sports Betting adapter."""
+    return SportsBettingAdapter(config)
