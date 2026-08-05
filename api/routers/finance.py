@@ -322,10 +322,7 @@ async def list_work_income(
 ) -> dict[str, Any]:
     """List completed work income records."""
     store = _get_store()
-    if platform:
-        records = store.get_work_income_by_platform(platform)
-    else:
-        records = store.get_work_income(limit=limit)
+    records = store.get_work_income_by_platform(platform) if platform else store.get_work_income(limit=limit)
     return {
         "total": len(records),
         "records": [r.to_dict() for r in records],

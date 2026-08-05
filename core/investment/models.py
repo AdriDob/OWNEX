@@ -20,6 +20,10 @@ class StrategyType(StrEnum):
     GLOBAL_ARBITRAGE = "global_arbitrage"
     STOCKS = "stocks"
     FOREX = "forex"
+    STOCKS_OPTIONS = "stocks_options"
+    DEFI_LENDING = "defi_lending"
+    DEFI_YIELD = "defi_yield"
+    DEFI_LIQUID_STAKING = "defi_liquid_staking"
 
 
 class RiskLevel(StrEnum):
@@ -337,6 +341,111 @@ STRATEGY_REGISTRY: list[StrategyProfile] = [
         description="Passive market making for Polymarket liquidity rewards. Places limit orders at calculated spreads. Based on polymarket_lp_tool.",
         tags=["polymarket", "lp", "market-making"],
     ),
+    StrategyProfile(
+        id="alpaca_stocks",
+        name="Alpaca Stock Trading",
+        strategy_type=StrategyType.STOCKS,
+        risk_level=RiskLevel.MODERATE,
+        max_allocation_pct=30.0,
+        expected_roi_pct=18.0,
+        max_drawdown_pct=20.0,
+        sharpe_target=1.2,
+        win_rate_target=55.0,
+        requires_api_keys=True,
+        adapter_module="core.investment.adapters.stocks_adapter",
+        description="US equity trading via Alpaca Markets API. Supports market, limit, and bracket orders with SL/TP.",
+        tags=["stocks", "alpaca", "equities", "us"],
+    ),
+    StrategyProfile(
+        id="alpaca_options",
+        name="Alpaca Options Trading",
+        strategy_type=StrategyType.STOCKS_OPTIONS,
+        risk_level=RiskLevel.AGGRESSIVE,
+        max_allocation_pct=15.0,
+        expected_roi_pct=35.0,
+        max_drawdown_pct=40.0,
+        sharpe_target=0.8,
+        win_rate_target=45.0,
+        requires_api_keys=True,
+        adapter_module="core.investment.adapters.stocks_adapter",
+        description="Options trading via Alpaca. Supports covered calls, cash-secured puts, and vertical spreads with automated expiration management.",
+        tags=["stocks", "options", "alpaca", "derivatives"],
+    ),
+    StrategyProfile(
+        id="ibkr_stocks",
+        name="IBKR Stock Trading",
+        strategy_type=StrategyType.STOCKS,
+        risk_level=RiskLevel.MODERATE,
+        max_allocation_pct=30.0,
+        expected_roi_pct=16.0,
+        max_drawdown_pct=18.0,
+        sharpe_target=1.1,
+        win_rate_target=54.0,
+        requires_api_keys=True,
+        adapter_module="core.investment.adapters.stocks_adapter",
+        description="US equity and options trading via Interactive Brokers (IBKR). Supports stocks, options, futures, and forex with full order types.",
+        tags=["stocks", "ibkr", "equities", "derivatives"],
+    ),
+    StrategyProfile(
+        id="aave_lending",
+        name="Aave Lending",
+        strategy_type=StrategyType.DEFI_LENDING,
+        risk_level=RiskLevel.CONSERVATIVE,
+        max_allocation_pct=25.0,
+        expected_roi_pct=8.0,
+        max_drawdown_pct=5.0,
+        sharpe_target=2.0,
+        win_rate_target=95.0,
+        requires_api_keys=False,
+        adapter_module="core.investment.adapters.defi_adapter",
+        description="Supply assets on Aave V3 for lending APY. Supports USDC, USDT, WETH, WBTC, and 50+ assets across Ethereum, Polygon, Arbitrum, and Base.",
+        tags=["defi", "aave", "lending", "yield"],
+    ),
+    StrategyProfile(
+        id="morpho_optimizer",
+        name="Morpho Yield Optimizer",
+        strategy_type=StrategyType.DEFI_YIELD,
+        risk_level=RiskLevel.MODERATE,
+        max_allocation_pct=20.0,
+        expected_roi_pct=12.0,
+        max_drawdown_pct=8.0,
+        sharpe_target=1.5,
+        win_rate_target=90.0,
+        requires_api_keys=False,
+        adapter_module="core.investment.adapters.defi_adapter",
+        description="Morpho optimizes Aave V3 yields through peer-to-peer matching. Delivers 10-30% higher APY than base Aave rates.",
+        tags=["defi", "morpho", "yield", "optimizer"],
+    ),
+    StrategyProfile(
+        id="pendle_yield",
+        name="Pendle Yield Tokenization",
+        strategy_type=StrategyType.DEFI_YIELD,
+        risk_level=RiskLevel.MODERATE,
+        max_allocation_pct=15.0,
+        expected_roi_pct=20.0,
+        max_drawdown_pct=10.0,
+        sharpe_target=1.3,
+        win_rate_target=85.0,
+        requires_api_keys=False,
+        adapter_module="core.investment.adapters.defi_adapter",
+        description="Tokenize future yield as PT/YT tokens on Pendle. Buy PT at discount, sell YT for immediate yield. Cross-chain support.",
+        tags=["defi", "pendle", "yield", "tokenization"],
+    ),
+    StrategyProfile(
+        id="lido_staking",
+        name="Lido Liquid Staking",
+        strategy_type=StrategyType.DEFI_LIQUID_STAKING,
+        risk_level=RiskLevel.CONSERVATIVE,
+        max_allocation_pct=20.0,
+        expected_roi_pct=6.0,
+        max_drawdown_pct=3.0,
+        sharpe_target=1.8,
+        win_rate_target=98.0,
+        requires_api_keys=False,
+        adapter_module="core.investment.adapters.defi_adapter",
+        description="Stake ETH via Lido for liquid staking yield (stETH). No lockup, no minimum, instant liquidity. Also supports MATIC and other assets.",
+        tags=["defi", "lido", "staking", "liquid"],
+    ),
 ]
 
 
@@ -345,3 +454,7 @@ def get_strategy(strategy_id: str) -> StrategyProfile | None:
         if s.id == strategy_id:
             return s
     return None
+
+
+def get_all_strategies() -> dict[str, StrategyProfile]:
+    return {s.id: s for s in STRATEGY_REGISTRY}
