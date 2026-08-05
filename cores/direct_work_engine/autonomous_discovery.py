@@ -990,9 +990,11 @@ class DynamicPlatformAdapter(BaseDiscoveryAdapter):
     async def validate_connection(self) -> bool:
         """Check if the platform URL is reachable."""
         try:
-            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
-                async with session.head(self.platform_url) as resp:
-                    return resp.status < 500
+            async with (
+                aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session,
+                session.head(self.platform_url) as resp,
+            ):
+                return resp.status < 500
         except Exception:
             return False
 

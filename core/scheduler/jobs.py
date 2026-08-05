@@ -308,6 +308,38 @@ def get_security_jobs() -> list[JobDefinition]:
         )
     )
 
+    # Security bounty platform discovery — every 2 hours
+    jobs.append(
+        _cron_job(
+            job_id="security_bounty_discover",
+            app_id="security",
+            handler="core.opportunity.adapters.security_bounty:SecurityBountyFactory.fetch_all_programs",
+            cron="0 */2 * * *",
+            args=[],
+            metadata={
+                "cycle": "security",
+                "type": "discover",
+                "platforms": ["hackerone", "bugcrowd", "intigriti", "yeswehack"],
+            },
+        )
+    )
+
+    # Security bounty submissions sync — every hour
+    jobs.append(
+        _cron_job(
+            job_id="security_bounty_submissions",
+            app_id="security",
+            handler="core.opportunity.adapters.security_bounty:SecurityBountyFactory.fetch_all_submissions",
+            cron="30 * * * *",
+            args=[],
+            metadata={
+                "cycle": "security",
+                "type": "submissions",
+                "platforms": ["hackerone", "bugcrowd", "intigriti", "yeswehack"],
+            },
+        )
+    )
+
     return jobs
 
 
