@@ -240,3 +240,9 @@ class CCXTAdapter:
             return {"error": "ccxt not installed"}
         except Exception as e:
             return {"error": str(e)}
+
+
+def build_ccxt_adapter(config: dict[str, Any] | None = None) -> CCXTAdapter:
+    """Build CCXTAdapter with optional config."""
+    exchange_id = config.get("exchange_id", "binance") if config else "binance"
+    return CCXTAdapter(exchange_id=exchange_id, config=config)

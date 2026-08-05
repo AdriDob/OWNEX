@@ -478,3 +478,9 @@ async def health_check(
 # Include in main
 def get_investment_router() -> APIRouter:
     return router
+
+
+def register_investment_capabilities() -> None:
+    """Register investment capabilities with the system."""
+    # Capabilities are auto-registered via the investment manager and adapters
+    pass
