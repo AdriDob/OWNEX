@@ -64,6 +64,7 @@ class RecommenderConfig:
     min_expected_value: float = 10.0
     min_acceptance_probability: float = 0.1
     min_compatibility: float = 0.3
+    enforce_acceptance_floor: bool = False
 
     # Diversity
     max_per_platform: int = 3
@@ -98,6 +99,24 @@ _FAST_INCOME_CONFIG = RecommenderConfig(
 )
 
 FAST_INCOME_RECOMMENDER_CONFIG = _FAST_INCOME_CONFIG
+
+# Max Success Mode — Success Maximizer. Weights acceptance probability above
+# everything else and enforces a hard floor so low-success work never surfaces.
+# Only recommends work the profile's real outcome history says is likely to win.
+_MAX_SUCCESS_CONFIG = RecommenderConfig(
+    weight_acceptance_probability=0.40,
+    weight_zero_barrier=0.25,
+    weight_expected_value=0.15,
+    weight_compatibility=0.10,
+    weight_reputation=0.10,
+    weight_speed=0.0,
+    min_zero_barrier_score=60.0,
+    min_expected_value=20.0,
+    min_acceptance_probability=0.5,
+    enforce_acceptance_floor=True,
+)
+
+MAX_SUCCESS_RECOMMENDER_CONFIG = _MAX_SUCCESS_CONFIG
 
 
 class IntelligentRecommender:
@@ -134,10 +153,38 @@ class IntelligentRecommender:
         ``mode="fast_income"`` swaps the config to the Fast Income preset
         (Reward x Probability x Speed): it optimizes for short time-to-payment,
         high acceptance probability and reasonable reward over pure reward size.
+
+        ``mode="max_success"`` swaps the config to the Success Maximizer preset:
+        acceptance probability is weighted highest (0.40) and a hard floor is
+        enforced so low-success work never surfaces.
         """
         if mode == "fast_income":
             self.config = _FAST_INCOME_CONFIG
+        elif mode == "max_success":
+            self.config = _MAX_SUCCESS_CONFIG
         return self.__recommend(opportunities, profile, limit=limit)
+
+    def filter_by_success_floor(
+        self,
+        opportunities: list[Opportunity],
+        profile: UserProfile,
+    ) -> list[Opportunity]:
+        """Keep only opportunities whose real acceptance probability meets the floor.
+
+        Uses the same ``_calculate_acceptance_probability`` path as ``__recommend``
+        (profile outcome history, never invented), so the floor is measured on
+        actual success data. Returns only the opportunities that pass.
+        """
+        if not self.config.enforce_acceptance_floor:
+            return opportunities
+        kept: list[Opportunity] = []
+        for opp in opportunities:
+            if opp.zero_barrier_score is None:
+                opp.zero_barrier_score = self.scorer.score(opp)
+            ranked = RankedOpportunity(opportunity=opp, zero_barrier_score=opp.zero_barrier_score)
+            if self._calculate_acceptance_probability(ranked, profile) >= self.config.min_acceptance_probability:
+                kept.append(opp)
+        return kept
 
     def __recommend(
         self,
@@ -159,6 +206,15 @@ class IntelligentRecommender:
         # 2. Calculate acceptance probability per opportunity
         for opp in scored_opps:
             opp.acceptance_probability = self._calculate_acceptance_probability(opp, profile)
+
+        # 2b. Hard success floor (Success Maximizer): drop any opportunity whose
+        #     real acceptance probability is below the configured floor.
+        if self.config.enforce_acceptance_floor:
+            scored_opps = [
+                opp for opp in scored_opps if opp.acceptance_probability >= self.config.min_acceptance_probability
+            ]
+            if not scored_opps:
+                return []
 
         # 3. Calculate compatibility score
         for opp in scored_opps:

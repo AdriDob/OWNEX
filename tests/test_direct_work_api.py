@@ -556,6 +556,98 @@ class TestFastIncomeMode:
         assert resp.json()["ranked"][0]["opportunity"]["id"] == "b-1"
 
 
+class TestMaxSuccessMode:
+    def test_max_success_preset_weights_and_floor(self) -> None:
+        import dataclasses
+
+        from cores.direct_work_engine.recommendation import MAX_SUCCESS_RECOMMENDER_CONFIG
+
+        cfg = MAX_SUCCESS_RECOMMENDER_CONFIG
+        assert cfg.validate()
+        assert cfg.weight_acceptance_probability == 0.40
+        assert cfg.enforce_acceptance_floor is True
+        assert cfg.min_acceptance_probability == 0.5
+
+        relaxed = dataclasses.replace(cfg, enforce_acceptance_floor=False)
+        assert relaxed.enforce_acceptance_floor is False
+
+    def test_max_success_drops_low_acceptance_work(self) -> None:
+        import dataclasses
+
+        from cores.direct_work_engine.recommendation import MAX_SUCCESS_RECOMMENDER_CONFIG
+
+        payload = {
+            "profile": profile_dict(skills=["python"]),
+            "opportunities": [
+                op_dict(
+                    id="ms-high",
+                    payment=500.0,
+                    category="dev_bounty",
+                    specialization=None,
+                    experience_required="junior",
+                ),
+                op_dict(
+                    id="ms-low",
+                    payment=5000.0,
+                    category="dev_bounty",
+                    specialization=None,
+                    experience_required="senior",
+                    portfolio_required=True,
+                    interview_required=True,
+                ),
+            ],
+            "mode": "max_success",
+        }
+        resp = client.post("/direct-work/recommend", json=payload)
+        assert resp.status_code == 200
+        ranked = resp.json()["ranked"]
+        assert len(ranked) == 1
+        assert ranked[0]["opportunity"]["id"] == "ms-high"
+
+        cfg = MAX_SUCCESS_RECOMMENDER_CONFIG
+        relaxed = dataclasses.replace(cfg, enforce_acceptance_floor=False)
+        payload["mode"] = "balanced"
+        from api.routers import direct_work as dw
+        from cores.direct_work_engine.recommendation import IntelligentRecommender
+        from cores.direct_work_engine.scoring import ZeroBarrierScorer
+
+        rec = IntelligentRecommender(config=relaxed, scorer=ZeroBarrierScorer())
+        opps = [Opportunity(**o) for o in payload["opportunities"]]
+        ranked_relaxed = rec.recommend(opps, dw._profile_from_dict(payload["profile"]), limit=10)
+        assert any(o.opportunity.id == "ms-high" for o in ranked_relaxed)
+
+    def test_max_success_ranks_by_acceptance_over_reward(self) -> None:
+        import dataclasses
+
+        from cores.direct_work_engine.recommendation import MAX_SUCCESS_RECOMMENDER_CONFIG
+
+        payload = {
+            "profile": profile_dict(skills=["python"]),
+            "opportunities": [
+                op_dict(
+                    id="high-reward",
+                    payment=5000.0,
+                    category="dev_bounty",
+                    specialization=None,
+                    experience_required="senior",
+                ),
+                op_dict(
+                    id="high-accept",
+                    payment=200.0,
+                    category="dev_bounty",
+                    specialization=None,
+                    experience_required="junior",
+                ),
+            ],
+            "mode": "max_success",
+        }
+        resp = client.post("/direct-work/recommend", json=payload)
+        assert resp.status_code == 200
+        ranked = resp.json()["ranked"]
+        assert len(ranked) == 2
+        assert ranked[0]["opportunity"]["id"] == "high-accept"
+
+
 class TestSourceIntelApi:
     def test_radar_reports_curated_database(self) -> None:
         resp = client.post("/direct-work/source-intel", json={})
