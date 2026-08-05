@@ -688,3 +688,90 @@ export async function prepareDelivery(itemId: string): Promise<DeliveryPackage> 
 export async function approveDelivery(itemId: string): Promise<{ status: string; reward: number }> {
   return api.post<{ status: string; reward: number }>(`/direct-work/workbank/${itemId}/deliver/approve`, {})
 }
+
+// ── Wear OS ──
+
+export interface WearOSStatus {
+  system_online: boolean
+  scheduler_running: boolean
+  active_workflows: number
+  pending_approvals: number
+  findings_total: number
+  findings_confirmed: number
+  targets_active: number
+  health_score: number
+  last_updated: string
+}
+
+export interface WearOSNotification {
+  notification_id: string
+  title: string
+  message: string
+  level: 'critical' | 'high' | 'medium' | 'low'
+  created_at: string
+  read: boolean
+  requires_action: boolean
+  action_type: string | null
+}
+
+export interface WearOSApproval {
+  request_id: string
+  title: string
+  description: string
+  workflow_id: string | null
+  created_at: string
+  responded: boolean
+  approved: boolean | null
+}
+
+export async function fetchWearOSStatus(): Promise<WearOSStatus> {
+  return api.get<WearOSStatus>('/wear-os/status')
+}
+
+export async function fetchWearOSNotifications(
+  options?: { level?: string; unread_only?: boolean; limit?: number },
+): Promise<WearOSNotification[]> {
+  const params = new URLSearchParams()
+  if (options?.level) params.set('level', options.level)
+  if (options?.unread_only) params.set('unread_only', 'true')
+  if (options?.limit) params.set('limit', String(options.limit))
+  const qs = params.toString()
+  return api.get<WearOSNotification[]>(`/wear-os/notifications${qs ? `?${qs}` : ''}`)
+}
+
+export async function markWearOSNotificationRead(notificationId: string): Promise<{ success: boolean }> {
+  return api.put<{ success: boolean }>(`/wear-os/notification/${notificationId}/read`)
+}
+
+export async function sendWearOSNotification(payload: {
+  title: string
+  message: string
+  level?: string
+  requires_action?: boolean
+  action_type?: string
+}): Promise<WearOSNotification> {
+  return api.post<WearOSNotification>('/wear-os/notification', payload)
+}
+
+export async function fetchWearOSPendingApprovals(): Promise<WearOSApproval[]> {
+  return api.get<WearOSApproval[]>('/wear-os/approvals/pending')
+}
+
+export async function requestWearOSApproval(payload: {
+  title: string
+  description: string
+  workflow_id?: string
+}): Promise<WearOSApproval> {
+  return api.post<WearOSApproval>('/wear-os/approval-request', payload)
+}
+
+export async function respondWearOSApproval(
+  requestId: string,
+  approved: boolean,
+): Promise<{ success: boolean; approved: boolean }> {
+  return api.post<{ success: boolean; approved: boolean }>(`/wear-os/approval/${requestId}/respond`, { approved })
+}
+
+export async function clearWearOSNotifications(days = 7): Promise<{ success: boolean; cleared_count: number }> {
+  return api.post<{ success: boolean; cleared_count: number }>('/wear-os/clear-notifications', { days })
+}
