@@ -25,6 +25,10 @@ from cores.direct_work_engine.models import (
     OpportunityCategory,
     UserProfile,
 )
+from cores.direct_work_engine.recommendation import (
+    IntelligentRecommender,
+    MAX_SUCCESS_RECOMMENDER_CONFIG,
+)
 from cores.direct_work_engine.scoring import ZeroBarrierScorer
 
 logger = logging.getLogger("ownex.direct_work_engine.workbank")
@@ -125,6 +129,7 @@ class WorkBank:
         opportunities: list[Opportunity],
         target: int | None = None,
         profile: UserProfile | None = None,
+        success_floor: float = 0.4,
     ) -> dict:
         """Prepare up to ``target`` zero-barrier jobs (default: the daily goal, 10).
 
@@ -133,6 +138,12 @@ class WorkBank:
         reported — never prepared. When a ``profile`` is provided, the same
         preference filters as the recommender apply (excluded categories and the
         minimum reward floor). Quality over quantity.
+
+        ``success_floor`` (Success Maximizer): when a profile is provided, jobs
+        whose real acceptance probability (derived from the profile's outcome
+        history, never invented) falls below the floor are rejected and reported
+        as ``success_floor_rejected`` — OWNEX only accumulates work it is likely
+        to win. Without a profile the floor is a no-op.
         """
         scorer = ZeroBarrierScorer()
         strict_filter = StrictFilter()
@@ -147,6 +158,18 @@ class WorkBank:
 
         eligible: list[tuple[Opportunity, float]] = []
         rejected: dict[str, list[str]] = {}
+        floor_rejected: dict[str, list[str]] = {}
+        scanned_total = len(opportunities)
+        if profile is not None and success_floor > 0.0:
+            success_filter = IntelligentRecommender(config=MAX_SUCCESS_RECOMMENDER_CONFIG)
+            kept = success_filter.filter_by_success_floor(opportunities, profile)
+            passed_ids = {o.id for o in kept}
+            floor_rejected = {
+                opp.id: [f"below_success_floor_{int(success_floor * 100)}%"]
+                for opp in opportunities
+                if opp.id not in passed_ids
+            }
+            opportunities = kept
         for opp in opportunities:
             if opp.category.value in excluded:
                 rejected[opp.id] = ["excluded_category"]
@@ -210,7 +233,13 @@ class WorkBank:
                 new_count += 1
 
         self._save()
-        return self._summary(new_items=new_count, scanned=len(opportunities), eligible=len(eligible), rejected=rejected)
+        return self._summary(
+            new_items=new_count,
+            scanned=scanned_total,
+            eligible=len(eligible),
+            rejected=rejected,
+            success_floor_rejected=floor_rejected,
+        )
 
     # ── Queries ──
     def best_ready(self, limit: int = 1000) -> list[WorkItem]:
@@ -272,22 +301,33 @@ class WorkBank:
         return deliverables
 
     def _summary(
-        self, new_items: int = 0, scanned: int = 0, eligible: int = 0, rejected: dict[str, list[str]] | None = None
+        self,
+        new_items: int = 0,
+        scanned: int = 0,
+        eligible: int = 0,
+        rejected: dict[str, list[str]] | None = None,
+        success_floor_rejected: dict[str, list[str]] | None = None,
     ) -> dict:
         ready = [i for i in self._items.values() if i.ready_to_deliver]
         needs_access = [i for i in self._items.values() if i.status == "needs_access"]
         delivered = [i for i in self._items.values() if i.status == "delivered"]
         rejected = rejected or {}
+        success_floor_rejected = success_floor_rejected or {}
         return {
             "scanned": scanned,
             "eligible_zero_barrier": eligible,
             "strict_rejected": len(rejected),
+            "success_floor_rejected": len(success_floor_rejected),
             "new_items_added": new_items,
             "total_in_bank": len(self._items),
             "ready_to_deliver": len(ready),
             "needs_access": len(needs_access),
             "delivered": len(delivered),
             "rejected": rejected,
+            "rejected_reasons": sorted(
+                {reason for reasons in rejected.values() for reason in reasons}
+                | {reason for reasons in success_floor_rejected.values() for reason in reasons}
+            ),
             "targets": self.progress(),
             "weekly_best": [i.to_dict() for i in self.best_weekly()],
         }

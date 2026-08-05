@@ -42,6 +42,7 @@ from cores.direct_work_engine.recommendation import (
     DEFAULT_RECOMMENDER_CONFIG,
     FAST_INCOME_RECOMMENDER_CONFIG,
     IntelligentRecommender,
+    MAX_SUCCESS_RECOMMENDER_CONFIG,
     RecommenderConfig,
 )
 from cores.direct_work_engine.scoring import ZeroBarrierScorer, score_opportunities
@@ -67,6 +68,7 @@ __all__ = [
     "IntelligentRecommender",
     "LearningRecord",
     "LostOpportunityLesson",
+    "MAX_SUCCESS_RECOMMENDER_CONFIG",
     "Opportunity",
     "OpportunityCategory",
     "PAYMENT_RELIABILITY",

@@ -13,6 +13,7 @@ from cores.direct_work_engine.models import (
     Opportunity,
     OpportunityCategory,
     PaymentMethod,
+    UserProfile,
     WorkPlatform,
 )
 from cores.direct_work_engine.workbank import WorkBank
@@ -77,6 +78,38 @@ class TestWorkBank:
         summary = bank.daily_cycle([gated], target=10)
         assert summary["eligible_zero_barrier"] == 0
         assert bank.get_item("op-hard") is None
+
+    def test_success_floor_drops_low_success_work_with_profile(self, tmp_path) -> None:
+        bank = WorkBank(tmp_path / "workbank.json")
+        low = make_opp(
+            id="op-low",
+            payment=3000.0,
+            experience_required=ExperienceLevel.SENIOR,
+            portfolio_required=True,
+            interview_required=True,
+        )
+        profile = UserProfile(
+            name="Tester",
+            skills={"python"},
+            platform_success_rates={"opire": 0.2},
+            category_success_rates={OpportunityCategory.DEV_BOUNTY: 0.2},
+        )
+        summary = bank.daily_cycle([low], target=10, profile=profile, success_floor=0.4)
+        assert summary["success_floor_rejected"] == 1
+        assert bank.get_item("op-low") is None
+
+    def test_success_floor_is_noop_without_profile(self, tmp_path) -> None:
+        bank = WorkBank(tmp_path / "workbank.json")
+        low = make_opp(
+            id="op-lp",
+            payment=3000.0,
+            experience_required=ExperienceLevel.SENIOR,
+            portfolio_required=True,
+            interview_required=True,
+        )
+        summary = bank.daily_cycle([low], target=10)
+        assert summary["success_floor_rejected"] == 0
+        assert bank.get_item("op-lp") is not None
 
     def test_best_ready_orders_by_reward(self, tmp_path) -> None:
         bank = WorkBank(tmp_path / "workbank.json")

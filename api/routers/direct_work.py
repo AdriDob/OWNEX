@@ -355,6 +355,15 @@ async def direct_work_score(request: ScoreRequest) -> dict[str, Any]:
 async def direct_work_recommend(request: RecommendRequest) -> dict[str, Any]:
     """Rank opportunities for a user profile; returns ordered RankedOpportunities.
 
+    ``mode`` selects the recommendation strategy:
+    - ``balanced`` (default): weights EV, acceptance, barrier, compatibility,
+      speed and reputation.
+    - ``fast_income``: Reward x Probability x Speed — optimizes short
+      time-to-payment and high acceptance over pure reward size.
+    - ``max_success`` (Success Maximizer): acceptance probability weighted
+      highest (0.40) with a hard floor — only work the profile's real outcome
+      history says is likely to win ever surfaces.
+
     When no opportunities are supplied, the engine discovers them from its
     registered real adapters first (Opire, IssueHunt, Freelancer).
     """
@@ -911,6 +920,51 @@ async def direct_work_source_intel(request: SourceIntelRequest) -> dict[str, Any
         query=request.query,
         min_trust=request.min_trust,
     )
+
+
+class SuccessPlanRequest(BaseModel):
+    opportunity: dict[str, Any]
+
+
+class SuccessOutcomeRequest(BaseModel):
+    opportunity_id: str
+    outcome: str
+
+
+@router.post("/success-plan")
+async def direct_work_success_plan(request: SuccessPlanRequest) -> dict[str, Any]:
+    """OWNEX Success Rate Engine — maximize probability of acceptance, delivery and payment.
+
+    For any opportunity produces the complete success plan BEFORE starting work:
+    opportunity intelligence (rules/criteria/hidden requirements), acceptance prediction
+    (probability + factors + verdict), multi-pass engineering (candidate approaches),
+    8-dimension internal review, the 10-item quality checklist, automated verification
+    steps, rule compliance, deliverable optimization, human/automation effort split,
+    reusable assets and full transparency (why, risks, confidence, remaining work).
+    """
+    from cores.direct_work_engine.success_engine import plan_opportunity_success
+
+    return plan_opportunity_success(request.opportunity)
+
+
+@router.post("/success-outcome")
+async def direct_work_success_outcome(request: SuccessOutcomeRequest) -> dict[str, Any]:
+    """Continuous learning: record a real outcome (accepted/rejected/modified/delayed).
+
+    Extracts lessons, persists them (survives restarts) and returns updated stats so
+    the long-term acceptance rate keeps improving and mistakes are never repeated.
+    """
+    from cores.direct_work_engine.success_engine import learn_from_outcome
+
+    return learn_from_outcome(request.opportunity_id, request.outcome)
+
+
+@router.get("/success-stats")
+async def direct_work_success_stats() -> dict[str, Any]:
+    """Read the persisted learning stats of the Success Rate Engine."""
+    from cores.direct_work_engine.success_engine import get_success_stats
+
+    return get_success_stats()
 
 
 def register_adapter(adapter: BaseDiscoveryAdapter) -> None:
