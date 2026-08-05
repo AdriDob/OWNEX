@@ -1,22 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/AdriDob/rastrohunteralpha/main/assets/logos/ownex-mark.png" alt="OWNEX" width="120"/>
-</p>
-
-<h1 align="center">OWNEX</h1>
-
-<p align="center">
-  <strong>The Personalized Autonomous Operating System</strong>
-</p>
-
-<p align="center">
-  Autonomous Intelligence for Technical Work
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/version-7.0.0-blue?style=for-the-badge" alt="Version"/>
-  <img src="https://img.shields.io/badge/python-3.11+-yellow?style=for-the-badge&logo=python" alt="Python"/>
-  <img src="https://img.shields.io/badge/vue-3.5-green?style=for-the-badge&logo=vue.js" alt="Vue"/>
-  <img src="https://img.shields.io/badge/fastapi-0.104+-red?style=for-the-badge&logo=fastapi" alt="FastAPI"/>
+  <img src="https://raw.githubusercontent.com/AdriDob/rastrohunteralpha/main/assets/banners/ownex-hero-banner.png" alt="OWNEX Hero Banner" width="1000"/>
 </p>
 
 ---
