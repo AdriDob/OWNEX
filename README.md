@@ -1,13 +1,13 @@
 # OWNEX — Autonomous Operating System
 
 <p align="center">
-  <img src="assets/banners/hero-banner.png" alt="OWNEX Mission Control — autonomous operating system" width="100%"/>
+  <img src="assets/banners/hero-banner.png" alt="OWNEX Blue brand hero banner" width="100%"/>
 </p>
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Vue 3](https://img.shields.io/badge/Vue_3-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescript.org/)
 [![Tests](https://img.shields.io/badge/tests-1400%2B-green)](https://github.com/AdriDob/rastrohunteralpha/actions)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Code Style: Ruff](https://img.shields.io/badge/code%20style-Ruff-D7FF64)](https://github.com/astral-sh/ruff)
@@ -113,16 +113,16 @@ graph TB
     UM --> IE
 ```
 
-|**Layers & Responsibilities:**|
+||**Layers & Responsibilities:**|
 
-| Layer | Responsibility |
-|-------|----------------|
-| **OWNEX Core** | Event bus, scheduler, unified memory, security layer |
-| **Departments** | Orchestrator · Engineering · Quality · Security · Revenue |
-| **Agents** | Autonomous specialists coordinated per department |
-| **Execution** | Workflows, executors, platform connectors |
-| **Learning** | Feedback loops, knowledge capture, reward models |
-| **Evolution** | Self-improvement, version rollback, recovery |
+|| Layer | Responsibility |
+||-------|----------------|
+|| **OWNEX Core** | Event bus, scheduler, unified memory, security layer |
+|| **Departments** | Orchestrator · Engineering · Quality · Security · Revenue |
+|| **Agents** | Autonomous specialists coordinated per department |
+|| **Execution** | Workflows, executors, platform connectors |
+|| **Learning** | Feedback loops, knowledge capture, reward models |
+|| **Evolution** | Self-improvement, version rollback, recovery |
 
 ## Available Editions
 
@@ -132,7 +132,7 @@ OWNEX ships as two connected identities sharing a single core.
   <table>
     <tr>
       <td width="50%" align="center">
-        <img src="assets/logos/ownex-alpha.png" alt="OWNEX ALPHA" width="320"/>
+        <img src="assets/logos/ownex-alpha.svg" alt="OWNEX ALPHA mark" width="320"/>
         <br/><br/>
         <b>ALPHA — Desktop Operating System</b>
         <br/>
@@ -140,7 +140,7 @@ OWNEX ships as two connected identities sharing a single core.
         evolution engine, and the full mission-control dashboard.
       </td>
       <td width="50%" align="center">
-        <img src="assets/logos/ownex-omega.png" alt="OWNEX OMEGA" width="320"/>
+        <img src="assets/logos/ownex-omega.svg" alt="OWNEX OMEGA mark" width="320"/>
         <br/><br/>
         <b>OMEGA — Android & Wear OS Companion</b>
         <br/>
@@ -153,17 +153,17 @@ OWNEX ships as two connected identities sharing a single core.
 
 ## Core Capabilities
 
-| Capability | Status |
-|------------|--------|
-| 🔍 Autonomous opportunity discovery and execution | Production |
-| 📊 EV/EBITDA scoring and prioritization | Production |
-| 🤖 Autonomous workflows and agent coordination | Production |
-| 🧠 MERLIN assistant with persistent memory | Production |
-| 🔒 Security vulnerability research and validation | Production |
-| 💰 Executive dashboard with revenue tracking | Production |
-| 📱 ALPHA + OMEGA + Wear OS companions | Production |
-| 🔄 Self-update, version backup, recovery engine | Production |
-| 🌍 Multi-language interface (EN, ES, FR, DE, JA, ZH) | Production |
+|| Capability | Status |
+||------------|--------|
+|| 🔍 Autonomous opportunity discovery and execution | Production |
+|| 📊 EV/EBITDA scoring and prioritization | Production |
+|| 🤖 Autonomous workflows and agent coordination | Production |
+|| 🧠 MERLIN assistant with persistent memory | Production |
+|| 🔒 Security vulnerability research and validation | Production |
+|| 💰 Executive dashboard with revenue tracking | Production |
+|| 📱 ALPHA + OMEGA + Wear OS companions | Production |
+|| 🔄 Self-update, version backup, recovery engine | Production |
+|| 🌍 Multi-language interface (EN, ES, FR, DE, JA, ZH) | Production |
 
 ## Quick Start
 
@@ -205,10 +205,10 @@ python run.py --backup
 
 ### System Requirements
 
-- **OS:** Linux, macOS, or Windows 10+
-- **Python:** 3.11+
-- **RAM:** 4GB minimum
-- **Storage:** 10GB free space
+|- **OS:** Linux, macOS, or Windows 10+
+|- **Python:** 3.11+
+|- **RAM:** 4GB minimum
+|- **Storage:** 10GB free space
 
 ### Platform-Specific Notes
 
@@ -286,11 +286,11 @@ npm install
 
 ### Development Server Ports
 
-| Service | Port | Description |
-|---------|------|-------------|
-| Backend | 8000 | OWNEX API server |
-| Frontend | 5173 | Vue.js development server |
-| Database | 5432 (PostgreSQL) | Production database |
+|| Service | Port | Description |
+||---------|------|-------------|
+|| Backend | 8000 | OWNEX API server |
+|| Frontend | 5173 | Vue.js development server |
+|| Database | 5432 (PostgreSQL) | Production database |
 
 ### Service Commands
 
@@ -319,10 +319,10 @@ make help
 ### Desktop (ALPHA)
 
 **System Requirements:**
-- **OS:** Linux, macOS, or Windows 10+
-- **Python:** 3.11+
-- **RAM:** 4GB minimum
-- **Storage:** 10GB free space
+|- **OS:** Linux, macOS, or Windows 10+
+|- **Python:** 3.11+
+|- **RAM:** 4GB minimum
+|- **Storage:** 10GB free space
 
 **Installation Steps:**
 
@@ -373,25 +373,25 @@ OWNEX processes and analyzes data:
 
 ### System Components
 
-- **💻 ALPHA Desktop:** Command center — core operations
-- **📱 OMEGA Mobile:** Android companion — approvals, chat, sync
-- **⌚ Wear OS:** Wrist alerts — critical decisions on the move
-- **🧠 MERLIN:** Intelligent assistant with persistent memory
-- **🤖 Agents:** Autonomous departments working in parallel
-- **💾 Memory:** Persistent knowledge store (SQLite, namespaced)
-- **🔄 Evolution Engine:** Continuous self-improvement with recovery
+|- **💻 ALPHA Desktop:** Command center — core operations
+|- **📱 OMEGA Mobile:** Android companion — approvals, chat, sync
+|- **⌚ Wear OS:** Wrist alerts — critical decisions on the move
+|- **🧠 MERLIN:** Intelligent assistant with persistent memory
+|- **🤖 Agents:** Autonomous departments working in parallel
+|- **💾 Memory:** Persistent knowledge store (SQLite, namespaced)
+|- **🔄 Evolution Engine:** Continuous self-improvement with recovery
 
 ### Technology Stack
 
-| Layer | Technology |
-|-------|------------|
-| **Backend** | Python 3.11+ · FastAPI · SQLAlchemy · Pydantic |
-| **Data** | SQLite (dev) · PostgreSQL (prod) · Unified Memory (SQLite) |
-| **Frontend** | Vue 3 · TypeScript · Tailwind v4 · Vite · ShadCN Vue |
-| **Mobile** | Kotlin · Jetpack Compose · Wear OS 3+ |
-| **AI** | Ollama (local) · OpenRouter · Free providers · MERLIN |
-| **Automation** | Scheduler · EventBus · AgentBus · RecoveryEngine |
-| **Quality** | pytest (1,400+ tests) · Ruff · mypy · Biome · Vitest |
+|| Layer | Technology |
+||-------|------------|
+|| **Backend** | Python 3.11+ · FastAPI · SQLAlchemy · Pydantic |
+|| **Data** | SQLite (dev) · PostgreSQL (prod) · Unified Memory (SQLite) |
+|| **Frontend** | Vue 3 · TypeScript · Tailwind v4 · Vite · ShadCN Vue |
+|| **Mobile** | Kotlin · Jetpack Compose · Wear OS 3+ |
+|| **AI** | Ollama (local) · OpenRouter · Free providers · MERLIN |
+|| **Automation** | Scheduler · EventBus · AgentBus · RecoveryEngine |
+|| **Quality** | pytest (1,400+ tests) · Ruff · mypy · Biome · Vitest |
 
 ## Repository Structure
 
@@ -480,57 +480,45 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed release history.
 
 ## Frequently Asked Questions
 
-**What is OWNEX?**
+|**What is OWNEX?**|
 
-OWNEX is a Personalized Autonomous Operating System: it discovers opportunities, executes technical work, learns from outcomes, and evolves its own operation — across desktop (ALPHA), Android and Wear OS (OMEGA).
+|OWNEX is a Personalized Autonomous Operating System: it discovers opportunities, executes technical work, learns from outcomes, and evolves its own operation — across desktop (ALPHA), Android and Wear OS (OMEGA).
 
-**Is OWNEX open source?**
+|**Is OWNEX open source?|**
 
-Yes. The core is MIT-licensed; brand fonts are SIL OFL 1.1 (Google Fonts).
+|Yes. The core is MIT-licensed; brand fonts are SIL OFL 1.1 (Google Fonts).
 
-**Does OWNEX run fully offline?**
+|**Does OWNEX run fully offline?|**
 
-The core (agents, workflows, memory, evolution engine) runs locally. AI inference prefers local models via Ollama, with optional cloud providers (OpenRouter, free providers) for heavier reasoning.
+|The core (agents, workflows, memory, evolution engine) runs locally. AI inference prefers local models via Ollama, with optional cloud providers (OpenRouter, free providers) for heavier reasoning.
 
-**What AI models does it use?**
+|**What AI models does it use?|**
 
-Any Ollama model locally, plus OpenRouter and free providers through MERLIN — no vendor lock-in, configurable per task.
+|Any Ollama model locally, plus OpenRouter and free providers through MERLIN — no vendor lock-in, configurable per task.
 
-**What platforms are supported?**
+|**What platforms are supported?|**
 
-Linux, macOS and Windows 10+ for ALPHA Desktop; Android 8+ and Wear OS 3+ for OMEGA companions.
+|Linux, macOS and Windows 10+ for ALPHA Desktop; Android 8+ and Wear OS 3+ for OMEGA companions.
 
-**How is my data stored?**
+|**How is my data stored?|**
 
-Local-first: SQLite for state and namespaced unified memory. PostgreSQL is supported for production deployments.
+|Local-first: SQLite for state and namespaced unified memory. PostgreSQL is supported for production deployments.
 
-**Do I need API keys?**
+|**Do I need API keys?|**
 
-Only for optional external integrations (bug bounty platforms, cloud AI providers). The system runs without any key.
+|Only for optional cloud AI inference, platform connectors (HackerOne, Bugcrowd, etc.), and external integrations. The core works offline with local models.
 
-## Contributing
+## Revenue Targets 2026
 
-Contributions are welcome! Please see our contributing guidelines for details.
+- **Minimum:** $25K/month (sustainable operations)
+- **Target:** $100K/month (growth phase)
+- **Optimistic:** $5M/year (full commercialization)
 
-- 📖 Read our [Contributing Guide](CONTRIBUTING.md)
-- 🐛 Report bugs via [GitHub Issues](https://github.com/AdriDob/rastrohunteralpha/issues)
-- 💡 Suggest features via [GitHub Discussions](https://github.com/AdriDob/rastrohunteralpha/discussions)
-- 🔄 Submit pull requests to improve the project
+OWNEX is actively pursuing enterprise partnerships and bug bounty contracts to achieve these revenue milestones through autonomous discovery, execution, and learning systems.
 
-## License
+## Support & Community
 
-MIT — see [LICENSE](LICENSE). Brand fonts: SIL OFL 1.1 (Google Fonts).
-
-## Contact
-
-- 📧 Email: contact@ownex.ai
-- 🐦 Twitter: [@ownex_ai](https://twitter.com/ownex_ai)
-- 💬 Discord: [ownex-community](https://discord.gg/ownex)
-
----
-
-*This README follows Tesla's minimalist design philosophy: clean, professional, engineering-focused.*
-
-*This document is part of the OWNEX professional open source transformation initiative.*
-
-Generated as part of Phase 2: Documentation Intelligence improvement.
+- 🌐 [Official Website](https://ownex.ai)
+- 📧 [Contact](mailto:hello@ownex.ai)
+- 💬 [Discord Community](https://discord.gg/ownex)
+- 🐦 [X/Twitter](https://x.com/ownex_ai)
