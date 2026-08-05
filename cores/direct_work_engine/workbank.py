@@ -26,8 +26,8 @@ from cores.direct_work_engine.models import (
     UserProfile,
 )
 from cores.direct_work_engine.recommendation import (
-    IntelligentRecommender,
     MAX_SUCCESS_RECOMMENDER_CONFIG,
+    IntelligentRecommender,
 )
 from cores.direct_work_engine.scoring import ZeroBarrierScorer
 

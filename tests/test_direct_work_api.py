@@ -571,29 +571,43 @@ class TestMaxSuccessMode:
         relaxed = dataclasses.replace(cfg, enforce_acceptance_floor=False)
         assert relaxed.enforce_acceptance_floor is False
 
+    def _success_max_profile(self, full_history: bool = True) -> dict:
+        rates = {
+            "platform_success_rates": {"freelancer": 0.95, "opire": 0.95},
+            "category_success_rates": {"data_annotation": 0.95, "dev_bounty": 0.95},
+        }
+        if not full_history:
+            rates = {
+                "platform_success_rates": {"freelancer": 0.95},
+                "category_success_rates": {"data_annotation": 0.95},
+            }
+        return profile_dict(skills=["data", "python"], experience_level="junior", **rates)
+
     def test_max_success_drops_low_acceptance_work(self) -> None:
-        import dataclasses
-
-        from cores.direct_work_engine.recommendation import MAX_SUCCESS_RECOMMENDER_CONFIG
-
         payload = {
-            "profile": profile_dict(skills=["python"]),
+            "profile": self._success_max_profile(full_history=False),
             "opportunities": [
                 op_dict(
                     id="ms-high",
                     payment=500.0,
-                    category="dev_bounty",
+                    platform="freelancer",
+                    category="data_annotation",
                     specialization=None,
+                    technology_tags=["data"],
                     experience_required="junior",
                 ),
                 op_dict(
                     id="ms-low",
                     payment=5000.0,
+                    platform="opire",
                     category="dev_bounty",
                     specialization=None,
+                    technology_tags=["python"],
                     experience_required="senior",
                     portfolio_required=True,
                     interview_required=True,
+                    technical_test_required=True,
+                    registration_required=True,
                 ),
             ],
             "mode": "max_success",
@@ -604,38 +618,31 @@ class TestMaxSuccessMode:
         assert len(ranked) == 1
         assert ranked[0]["opportunity"]["id"] == "ms-high"
 
-        cfg = MAX_SUCCESS_RECOMMENDER_CONFIG
-        relaxed = dataclasses.replace(cfg, enforce_acceptance_floor=False)
         payload["mode"] = "balanced"
-        from api.routers import direct_work as dw
-        from cores.direct_work_engine.recommendation import IntelligentRecommender
-        from cores.direct_work_engine.scoring import ZeroBarrierScorer
-
-        rec = IntelligentRecommender(config=relaxed, scorer=ZeroBarrierScorer())
-        opps = [Opportunity(**o) for o in payload["opportunities"]]
-        ranked_relaxed = rec.recommend(opps, dw._profile_from_dict(payload["profile"]), limit=10)
-        assert any(o.opportunity.id == "ms-high" for o in ranked_relaxed)
+        resp = client.post("/direct-work/recommend", json=payload)
+        ranked_balanced = resp.json()["ranked"]
+        assert len(ranked_balanced) == 2
 
     def test_max_success_ranks_by_acceptance_over_reward(self) -> None:
-        import dataclasses
-
-        from cores.direct_work_engine.recommendation import MAX_SUCCESS_RECOMMENDER_CONFIG
-
         payload = {
-            "profile": profile_dict(skills=["python"]),
+            "profile": self._success_max_profile(),
             "opportunities": [
                 op_dict(
                     id="high-reward",
                     payment=5000.0,
+                    platform="opire",
                     category="dev_bounty",
                     specialization=None,
+                    technology_tags=["python"],
                     experience_required="senior",
                 ),
                 op_dict(
                     id="high-accept",
                     payment=200.0,
-                    category="dev_bounty",
+                    platform="freelancer",
+                    category="data_annotation",
                     specialization=None,
+                    technology_tags=["data"],
                     experience_required="junior",
                 ),
             ],

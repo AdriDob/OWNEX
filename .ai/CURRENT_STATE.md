@@ -1,3 +1,34 @@
+## Sesión 2026-08-04 — SUCCESS MAXIMIZER: modo max_success + piso de éxito en la Work Bank
+
+> **QUÉ SE HIZO:** Cerrado el objetivo "Success Maximizer" — el sistema ahora prioriza por probabilidad
+> real de éxito (historial verificado de outcomes) en vez de solo recompensa, y la Work Bank rechaza
+> trabajos de baja probabilidad de aceptación con trazabilidad.
+
+### Modo `max_success` (`cores/direct_work_engine/recommendation.py`)
+- `RecommenderConfig` ganó `enforce_acceptance_floor: bool = False`.
+- Preset `MAX_SUCCESS_RECOMMENDER_CONFIG` (exportado en `cores/direct_work_engine/__init__.py`):
+  pesos `acceptance 0.40 / zero_barrier 0.25 / expected_value 0.15 / compatibility 0.10 /
+  reputation 0.10 / speed 0.0`, umbrales `min_zero_barrier_score=60.0`, `min_expected_value=20.0`,
+  `min_acceptance_probability=0.5`, `enforce_acceptance_floor=True`. Pesos validados (suman 1.0).
+- `recommend(mode="max_success")` conmuta a ese preset. `filter_by_success_floor(opportunities, profile)`
+  descarta ítems cuya `acceptance_probability` (derivada del historial real del perfil, nunca inventada)
+  no alcanza el piso. El enforcement se aplica dentro de `__recommend` cuando el flag está activo.
+- `POST /direct-work/recommend` documenta los 3 modos: `balanced` | `fast_income` | `max_success`.
+
+### Piso de éxito en la Work Bank (`cores/direct_work_engine/workbank.py`)
+- `daily_cycle(success_floor: float = 0.4)`: con perfil disponible, los trabajos bajo el piso se
+  descartan del banco y se anotan `below_success_floor_40%`; sin perfil no se filtra (no inventa tasas).
+- `_summary()` ahora incluye `success_floor_rejected` y `rejected_reasons` (razones únicas de
+  rechazos estrictos + piso); `scanned` cuenta el total real escaneado.
+
+### Verificación
+- **139 tests pasan**: `test_direct_work_api.py` (nuevo `TestMaxSuccessMode`: pesos + floor + ranking
+  por aceptación sobre recompensa), `test_workbank.py` (2 tests success floor con/sin perfil),
+  `test_direct_work_engine.py`, `test_scheduler_jobs.py` (32 jobs), `test_daily_companion.py`.
+  Ruff limpio en todos los archivos tocados, `import api.main` OK.
+
+---
+
 ## Sesión 2026-08-04 — DAILY COMPANION SYSTEM
 
 > **QUÉ SE HIZO:** Implementado el sistema de compañero diario (Daily Companion) que consolida el estado del sistema, estado personal, oportunidades de mercado y recomendaciones de enfoque en una sola llamada. Cierra el gap del spec "OWNEX DAILY COMPANION SYSTEM".
