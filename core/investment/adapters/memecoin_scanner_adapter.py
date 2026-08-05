@@ -217,7 +217,6 @@ class MemecoinScannerAdapter:
             flags.append("WARNING: Low liquidity")
 
         # Check for honeypot
-        buy_tax = pair.get("buyTax", 0)
         sell_tax = pair.get("sellTax", 0)
         if sell_tax > 0.5:
             risk_score += 0.5
