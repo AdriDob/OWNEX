@@ -198,7 +198,7 @@ class TimeSavingsEstimator:
         task_patterns = patterns.get("task_patterns", {})
 
         total_hours = 0.0
-        for task, stats in task_patterns.items():
+        for _task, stats in task_patterns.items():
             total_tasks = stats.get("total", 0)
             avg_duration = stats.get("avg_duration_ms", 0) / 1000 / 60
             success_rate = stats.get("success_rate", 1)

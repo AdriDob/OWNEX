@@ -167,7 +167,7 @@ class VectorBTAdapter:
             results = []
 
             for combo in combinations:
-                params = dict(zip(keys, combo))
+                params = dict(zip(keys, combo, strict=False))
                 try:
                     result = await backtest_func(**params)
                     score = result.get(metric, -np.inf)
