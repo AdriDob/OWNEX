@@ -967,6 +967,35 @@ async def direct_work_success_stats() -> dict[str, Any]:
     return get_success_stats()
 
 
+class CashflowRadarRequest(BaseModel):
+    """Input for the Cashflow Radar. Vacío → usa los items del WorkBank."""
+
+    opportunities: list[dict[str, Any]] = []
+
+
+@router.post("/cashflow-radar")
+async def direct_work_cashflow_radar(
+    request: CashflowRadarRequest | None = None,
+) -> dict[str, Any]:
+    """Rapid Income Engine — Cashflow Radar (Today / Week / Growth).
+
+    Clasifica oportunidades por horizonte de cobro y devuelve el mix
+    recomendado (liquidez rápida vs proyectos estratégicos), el top pick,
+    oportunidades con ventaja de automatización y los formatos del spec
+    (daily digest + weekly plan). Sin oportunidades → usa el WorkBank real.
+    """
+    from cores.direct_work_engine.cashflow_radar import RapidIncomeEngine, get_radar
+
+    engine = RapidIncomeEngine()
+    opportunities = request.opportunities if request and request.opportunities else None
+    radar = get_radar(opportunities)
+    digest = engine.daily_digest(radar)
+    weekly = engine.weekly_plan(radar)
+    radar["daily_digest"] = digest
+    radar["weekly_plan"] = weekly
+    return radar
+
+
 def register_adapter(adapter: BaseDiscoveryAdapter) -> None:
     """Register a real discovery adapter into the engine singleton."""
     get_engine().register_adapter(adapter)
