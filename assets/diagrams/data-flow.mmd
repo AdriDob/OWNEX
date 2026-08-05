@@ -1,0 +1,147 @@
+%% OWNEX Data Flow Through Cycles
+%% How opportunities flow from discovery to learning
+
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#111113',
+      'primaryTextColor': '#F6F8FB',
+      'primaryBorderColor': '#5E6AD2',
+      'lineColor': '#5E6AD2',
+      'secondaryColor': '#1F2023',
+      'tertiaryColor': '#2A2D35',
+      'background': 'transparent',
+      'mainBkg': 'transparent',
+      'fontFamily': 'Inter',
+      'fontSize': '13px',
+      'clusterBkg': '#111113',
+      'clusterBorder': '#5E6AD2'
+    }
+  }
+}%%
+
+flowchart TB
+    %% DISCOVERY PHASE
+    subgraph DISCOVERY ["Discovery Phase"]
+        direction TB
+        D1[Platform APIs<br/>HackerOne, Bugcrowd, GitHub, ...]
+        D2[Adapter Layer<br/>core.opportunity.adapters]
+        D3[Raw Opportunities<br/>Unstructured Data]
+        D4[Normalization<br/>Unified Schema]
+    end
+
+    %% SCORING PHASE
+    subgraph SCORING ["Scoring Phase"]
+        direction TB
+        S1[Opportunity Engine<br/>core.opportunity.engine]
+        S2[7-Dimension Scoring<br/>EV, Time, Success, Automation,<br/>Strategic, Learning, Reusability]
+        S3[Weight Presets<br/>Balanced / Speed / Learning /<br/>Automation / Strategic]
+        S4[Decision Modes<br/>Explanatory / Automatic / Expert]
+        S5[Scored Opportunity<br/>OpportunityScore + Action]
+    end
+
+    %% PREPARATION PHASE
+    subgraph PREPARATION ["Preparation Phase"]
+        direction TB
+        P1[Auto-Prepare Pipeline<br/>8-Step Automated Prep]
+        P2[Fetch Rules & Docs]
+        P3[Analyze Datasets]
+        P4[Generate Structure]
+        P5[Prepare Code / Exploit]
+        P6[Create Drafts]
+        P7[Identify Gaps]
+        P8[Request Minimal Input]
+    end
+
+    %% EXECUTION PHASE
+    subgraph EXECUTION ["Execution Phase"]
+        direction TB
+        E1[Workflow Engine<br/>DAG + State Machine]
+        E2[Executor<br/>Platform Adapter]
+        E3[Platform Connector<br/>Authenticated API Client]
+        E4[Submission / Delivery<br/>PR, Report, Transaction]
+    end
+
+    %% VALIDATION PHASE
+    subgraph VALIDATION ["Validation Phase"]
+        direction TB
+        V1[Outcome Capture<br/>Accepted / Rejected / Modified]
+        V2[Reward Recording<br/>Payout / Bounty / Points]
+        V3[Evidence Package<br/>Screenshots, Logs, Repro]
+    end
+
+    %% LEARNING PHASE
+    subgraph LEARNING ["Learning Phase"]
+        direction TB
+        L1[Feedback Loop<br/>core.learning.feedback]
+        L2[Reward Model Update<br/>EV Calibration]
+        L3[Pattern Extraction<br/>Success Factors]
+        L4[Prompt Optimization<br/>core.learning.prompts]
+        L5[Personal History<br/>core.opportunity.models.PersonalHistory]
+    end
+
+    %% FLOW CONNECTIONS
+    D1 --> D2
+    D2 --> D3
+    D3 --> D4
+    D4 --> S1
+
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+    S4 --> S5
+
+    S5 -->|Action: PROCEED| P1
+    S5 -->|Action: PREPARE| P1
+    S5 -->|Action: DISCARD| END_DISCARD[(Discarded)]
+    S5 -->|Action: ESCALATE| HUMAN[Human Review]
+
+    P1 --> P2
+    P2 --> P3
+    P3 --> P4
+    P4 --> P5
+    P5 --> P6
+    P6 --> P7
+    P7 --> P8
+
+    P8 -->|Ready| E1
+    P8 -->|Needs Input| HUMAN
+
+    E1 --> E2
+    E2 --> E3
+    E3 --> E4
+
+    E4 --> V1
+    V1 --> V2
+    V2 --> V3
+
+    V3 --> L1
+    L1 --> L2
+    L2 --> L3
+    L3 --> L4
+    L4 --> L5
+
+    %% FEEDBACK TO SCORING
+    L2 -.->|Updated Weights| S2
+    L3 -.->|New Patterns| S2
+    L5 -.->|Personal History| S2
+
+    %% STYLING
+    classDef disc fill:#08090A,stroke:#5E6AD2,stroke-width:2px,color:#F6F8FB
+    classDef score fill:#111113,stroke:#00E39A,stroke-width:2px,color:#F6F8FB
+    classDef prep fill:#1F2023,stroke:#FFB020,stroke-width:2px,color:#F6F8FB
+    classDef exec fill:#2A2D35,stroke:#FF5252,stroke-width:2px,color:#F6F8FB
+    classDef valid fill:#111113,stroke:#5E6AD2,stroke-width:2px,color:#F6F8FB
+    classDef learn fill:#1F2023,stroke:#00E39A,stroke-width:2px,color:#F6F8FB
+    classDef human fill:#08090A,stroke:#FF5252,stroke-width:2px,color:#F6F8FB,stroke-dasharray: 5 5
+    classDef end fill:#08090A,stroke:#8B8D98,stroke-width:1px,color:#8B8D98
+
+    class D1,D2,D3,D4 disc
+    class S1,S2,S3,S4,S5 score
+    class P1,P2,P3,P4,P5,P6,P7,P8 prep
+    class E1,E2,E3,E4 exec
+    class V1,V2,V3 valid
+    class L1,L2,L3,L4,L5 learn
+    class HUMAN human
+    class END_DISCARD end

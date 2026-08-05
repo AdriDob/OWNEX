@@ -1,0 +1,97 @@
+%% OWNEX Event Bus Topology
+%% Event-driven architecture communication patterns
+
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#111113',
+      'primaryTextColor': '#F6F8FB',
+      'primaryBorderColor': '#5E6AD2',
+      'lineColor': '#5E6AD2',
+      'secondaryColor': '#1F2023',
+      'tertiaryColor': '#2A2D35',
+      'background': 'transparent',
+      'mainBkg': 'transparent',
+      'fontFamily': 'Inter',
+      'fontSize': '13px',
+      'clusterBkg': '#111113',
+      'clusterBorder': '#5E6AD2'
+    }
+  }
+}%%
+
+graph TB
+    %% EVENT BUS CORE
+    subgraph EBUS ["Event Bus (cores.events.EventBus)"]
+        direction TB
+        EB_CORE[EventBus Core<br/>Pub/Sub + Request/Reply<br/>AsyncIO + Thread-Safe]
+        EB_SUB[Subscription Manager<br/>Topic → Handlers]
+        EB_HIST[Event History<br/>Ring Buffer (10k events)]
+        EB_METRICS[Event Metrics<br/>Throughput, Latency, Errors]
+    end
+
+    %% PRODUCERS
+    subgraph PRODUCERS ["Event Producers"]
+        direction TB
+        P_SC[Scheduler<br/>cron.triggered<br/>job.started<br/>job.completed<br/>job.failed]
+        P_ORCH[Orchestrator<br/>task.planned<br/>task.delegated<br/>task.completed]
+        P_CYCLES[Work Cycles<br/>opportunity.discovered<br/>opportunity.scored<br/>opportunity.prepared<br/>execution.started<br/>execution.completed]
+        P_ADAPTERS[Adapters<br/>platform.webhook<br/>platform.rate_limit<br/>platform.error]
+        P_MERLIN[MERLIN<br/>user.command<br/>assistant.response<br/>action.executed]
+        P_RECOVERY[Recovery Engine<br/>health.check_failed<br/>remediation.started<br/>remediation.completed]
+    end
+
+    %% CONSUMERS
+    subgraph CONSUMERS ["Event Consumers"]
+        direction TB
+        C_MERLIN[MERLIN<br/>Listens: all<br/>Context building]
+        C_EVOL[Evolution Engine<br/>Listens: execution.*<br/>Pattern detection]
+        C_RECOVERY[Recovery Engine<br/>Listens: health.*<br/>job.failed<br/>Auto-remediation]
+        C_SCORE[Scoring Engine<br/>Listens: opportunity.discovered<br/>Auto-score]
+        C_PERSIST[Persistence<br/>Listens: *<br/>Event store]
+        C_METRICS[Metrics Collector<br/>Listens: *<br/>Prometheus/StatsD]
+        C_WEBHOOK[Webhook Dispatcher<br/>Listens: execution.completed<br/>External callbacks]
+    end
+
+    %% EVENT FLOWS
+    P_SC -->|Publish| EB_CORE
+    P_ORCH -->|Publish| EB_CORE
+    P_CYCLES -->|Publish| EB_CORE
+    P_ADAPTERS -->|Publish| EB_CORE
+    P_MERLIN -->|Publish| EB_CORE
+    P_RECOVERY -->|Publish| EB_CORE
+
+    EB_CORE -->|Route| EB_SUB
+    EB_SUB -->|Deliver| C_MERLIN
+    EB_SUB -->|Deliver| C_EVOL
+    EB_SUB -->|Deliver| C_RECOVERY
+    EB_SUB -->|Deliver| C_SCORE
+    EB_SUB -->|Deliver| C_PERSIST
+    EB_SUB -->|Deliver| C_METRICS
+    EB_SUB -->|Deliver| C_WEBHOOK
+
+    EB_CORE -->|Record| EB_HIST
+    EB_CORE -->|Measure| EB_METRICS
+
+    %% REQUEST/REPLY PATTERN
+    subgraph RR ["Request/Reply (Synchronous)"]
+        direction TB
+        RR_CLIENT[Client<br/>e.g., MERLIN → Orchestrator]
+        RR_SERVER[Server<br/>e.g., Orchestrator Handler]
+        RR_CLIENT -->|Request<br/>event.request| EB_CORE
+        EB_CORE -->|Route| RR_SERVER
+        RR_SERVER -->|Reply<br/>event.response| EB_CORE
+        EB_CORE -->|Deliver| RR_CLIENT
+    end
+
+    %% STYLING
+    classDef bus fill:#08090A,stroke:#5E6AD2,stroke-width:3px,color:#F6F8FB
+    classDef prod fill:#111113,stroke:#00E39A,stroke-width:2px,color:#F6F8FB
+    classDef cons fill:#1F2023,stroke:#FFB020,stroke-width:2px,color:#F6F8FB
+    classDef rr fill:#2A2D35,stroke:#FF5252,stroke-width:2px,color:#F6F8FB,stroke-dasharray: 5 5
+
+    class EB_CORE,EB_SUB,EB_HIST,EB_METRICS bus
+    class P_SC,P_ORCH,P_CYCLES,P_ADAPTERS,P_MERLIN,P_RECOVERY prod
+    class C_MERLIN,C_EVOL,C_RECOVERY,C_SCORE,C_PERSIST,C_METRICS,C_WEBHOOK cons
+    class RR_CLIENT,RR_SERVER rr

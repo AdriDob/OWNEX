@@ -1,0 +1,169 @@
+%% OWNEX System Architecture Overview
+%% Rendered in README.md and docs/ARCHITECTURE.md
+
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#111113',
+      'primaryTextColor': '#F6F8FB',
+      'primaryBorderColor': '#5E6AD2',
+      'lineColor': '#5E6AD2',
+      'secondaryColor': '#1F2023',
+      'tertiaryColor': '#2A2D35',
+      'background': 'transparent',
+      'mainBkg': 'transparent',
+      'fontFamily': 'Inter',
+      'fontSize': '14px',
+      'edgeLabelBackground': '#08090A',
+      'clusterBkg': '#111113',
+      'clusterBorder': '#5E6AD2'
+    }
+  }
+}%%
+
+graph TB
+    %% HUMAN LAYER
+    subgraph HUMAN ["Human Operator"]
+        direction TB
+        H_DIR[Strategic Direction]
+        H_APPR[Approval Gates]
+        H_FEED[Feedback / Correction]
+    end
+
+    %% OWNEX CORE
+    subgraph CORE ["OWNEX Core"]
+        direction TB
+        EB[Event Bus<br/>cores.events]
+        SC[Scheduler<br/>core.scheduler]
+        UM[Unified Memory<br/>SQLite Namespaced]
+        SL[Security Layer<br/>IdentityVault / Credentials]
+        CFG[Configuration<br/>Environment / Secrets]
+    end
+
+    %% INTELLIGENCE LAYER
+    subgraph INTEL ["Intelligence Layer"]
+        direction TB
+        MERLIN[MERLIN Assistant<br/>Persistent Memory + Actions]
+        EVOL[Evolution Engine<br/>Self-Improvement / Rollback]
+        RECOVERY[Recovery Engine<br/>Auto-Remediation]
+        KM[Knowledge Capture<br/>Outcome Recording]
+    end
+
+    %% AGENT DEPARTMENTS
+    subgraph DEPTS ["Agent Departments"]
+        direction TB
+        ORCH[Orchestrator<br/>Task Planning / Delegation]
+        ENG[Engineering Agents<br/>Code / Build / Test]
+        QUA[Quality Agents<br/>Review / Validate / Audit]
+        SEC[Security Agents<br/>Recon / Exploit / Report]
+        REV[Revenue Agents<br/>Track / Optimize / Report]
+    end
+
+    %% WORK CYCLES
+    subgraph CYCLES ["Work Cycles"]
+        direction TB
+        FORGE[FORGE<br/>Dev Bounties / Freelance]
+        PULSE[PULSE<br/>Data Annotation / Microtasks]
+        SEC_CYCLE[SECURITY<br/>Bug Bounty / Vuln Research]
+        VAULT[VAULT<br/>Crypto / DeFi / Trading]
+        ATLAS[ATLAS<br/>OSINT / Threat Intel]
+        ODYSSEY[ODYSSEY<br/>Content / Research / Writing]
+    end
+
+    %% EXECUTION LAYER
+    subgraph EXEC ["Execution Layer"]
+        direction TB
+        WF[Workflows<br/>DAG-based Execution]
+        EX[Executors<br/>Platform Adapters]
+        PC[Platform Connectors<br/>HackerOne, Bugcrowd, GitHub, ...]
+    end
+
+    %% LEARNING LAYER
+    subgraph LEARN ["Learning Layer"]
+        direction TB
+        FM[Feedback Loops<br/>Accept / Reject / Modify]
+        RM[Reward Models<br/>EV Calibration]
+        PL[Prompt Library<br/>Optimized Templates]
+    end
+
+    %% CONNECTIONS - HUMAN TO CORE
+    H_DIR -->|Direction| EB
+    H_APPR -->|Approval| ORCH
+    H_FEED -->|Feedback| FM
+
+    %% CONNECTIONS - CORE INTERNAL
+    EB <--> SC
+    EB <--> UM
+    EB <--> SL
+    EB <--> CFG
+
+    %% CONNECTIONS - CORE TO INTELLIGENCE
+    EB --> MERLIN
+    EB --> EVOL
+    EB --> RECOVERY
+    EB --> KM
+
+    UM --> MERLIN
+    UM --> EVOL
+    UM --> KM
+
+    %% CONNECTIONS - INTELLIGENCE TO DEPTS
+    MERLIN --> ORCH
+    EVOL --> ORCH
+    RECOVERY --> ORCH
+
+    %% CONNECTIONS - DEPTS TO CYCLES
+    ORCH --> FORGE
+    ORCH --> PULSE
+    ORCH --> SEC_CYCLE
+    ORCH --> VAULT
+    ORCH --> ATLAS
+    ORCH --> ODYSSEY
+
+    ENG --> FORGE
+    ENG --> ODYSSEY
+    QUA --> FORGE
+    QUA --> PULSE
+    SEC --> SEC_CYCLE
+    SEC --> ATLAS
+    REV --> VAULT
+    REV --> FORGE
+
+    %% CONNECTIONS - CYCLES TO EXECUTION
+    FORGE --> WF
+    PULSE --> WF
+    SEC_CYCLE --> WF
+    VAULT --> WF
+    ATLAS --> WF
+    ODYSSEY --> WF
+
+    WF --> EX
+    EX --> PC
+
+    %% CONNECTIONS - EXECUTION TO LEARNING
+    EX --> KM
+    PC --> KM
+
+    KM --> FM
+    FM --> RM
+    RM --> EVOL
+    EVOL --> PL
+    PL --> MERLIN
+
+    %% STYLING
+    classDef human fill:#08090A,stroke:#5E6AD2,stroke-width:2px,color:#F6F8FB
+    classDef core fill:#111113,stroke:#5E6AD2,stroke-width:2px,color:#F6F8FB
+    classDef intel fill:#1F2023,stroke:#00E39A,stroke-width:2px,color:#F6F8FB
+    classDef dept fill:#1F2023,stroke:#FFB020,stroke-width:2px,color:#F6F8FB
+    classDef cycle fill:#2A2D35,stroke:#5E6AD2,stroke-width:1.5px,color:#F6F8FB
+    classDef exec fill:#111113,stroke:#FF5252,stroke-width:2px,color:#F6F8FB
+    classDef learn fill:#1F2023,stroke:#00E39A,stroke-width:1.5px,color:#F6F8FB
+
+    class H_DIR,H_APPR,H_FEED human
+    class EB,SC,UM,SL,CFG core
+    class MERLIN,EVOL,RECOVERY,KM intel
+    class ORCH,ENG,QUA,SEC,REV dept
+    class FORGE,PULSE,SEC_CYCLE,VAULT,ATLAS,ODYSSEY cycle
+    class WF,EX,PC exec
+    class FM,RM,PL learn
