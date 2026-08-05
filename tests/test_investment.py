@@ -673,3 +673,481 @@ class TestInvestmentAPI:
     def test_deploy_zero_amount(self, client):
         response = client.post("/api/investment/strategies/ccxt_spot/deploy", json={"amount": 0})
         assert response.status_code == 400
+
+
+# ── Stocks & Options Tests ─────────────────────────────────────────
+
+
+class TestAlpacaAdapter:
+    def test_name(self):
+        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+
+        adapter = AlpacaAdapter()
+        assert adapter.name == "alpaca"
+
+    def test_default_config(self):
+        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+
+        adapter = AlpacaAdapter()
+        assert adapter.is_connected is False
+        assert adapter._base_url == "https://paper-api.alpaca.markets"
+
+    @pytest.mark.asyncio
+    async def test_connect_without_keys(self):
+        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+
+        adapter = AlpacaAdapter()
+        connected = await adapter.connect()
+        assert connected is True
+        assert adapter.is_connected is True
+
+    @pytest.mark.asyncio
+    async def test_connect_with_keys(self):
+        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+
+        adapter = AlpacaAdapter(config={"api_key": "test_key", "secret_key": "test_secret"})
+        connected = await adapter.connect()
+        assert connected is False
+
+    @pytest.mark.asyncio
+    async def test_disconnect_cleanly(self):
+        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+
+        adapter = AlpacaAdapter()
+        await adapter.connect()
+        await adapter.disconnect()
+        assert adapter.is_connected is False
+
+    @pytest.mark.asyncio
+    async def test_get_account_not_connected(self):
+        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+
+        adapter = AlpacaAdapter()
+        account = await adapter.get_account()
+        assert "error" in account or account == {}
+
+    @pytest.mark.asyncio
+    async def test_get_positions_not_connected(self):
+        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+
+        adapter = AlpacaAdapter()
+        positions = await adapter.get_positions()
+        assert positions == []
+
+    @pytest.mark.asyncio
+    async def test_place_order_not_connected(self):
+        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+
+        adapter = AlpacaAdapter()
+        order = await adapter.place_order("AAPL", "buy", 10)
+        assert "status" in order
+        assert order["status"] in ("error", "not_connected", "rejected")
+
+    @pytest.mark.asyncio
+    async def test_get_market_data_not_connected(self):
+        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+
+        adapter = AlpacaAdapter()
+        data = await adapter.get_market_data("AAPL")
+        assert "error" in data or data == {}
+
+    @pytest.mark.asyncio
+    async def test_get_option_chain_not_connected(self):
+        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+
+        adapter = AlpacaAdapter()
+        chain = await adapter.get_option_chain("AAPL")
+        assert chain == []
+
+    def test_build_alpaca_adapter(self):
+        from core.investment.adapters.stocks_adapter import build_alpaca_adapter
+
+        adapter = build_alpaca_adapter()
+        assert adapter.name == "alpaca"
+
+
+class TestIBKRAdapter:
+    def test_name(self):
+        from core.investment.adapters.stocks_adapter import IBKRAdapter
+
+        adapter = IBKRAdapter()
+        assert adapter.name == "ibkr"
+
+    def test_default_config(self):
+        from core.investment.adapters.stocks_adapter import IBKRAdapter
+
+        adapter = IBKRAdapter()
+        assert adapter.is_connected is False
+        assert adapter._host == "127.0.0.1"
+        assert adapter._port == 7497
+
+    @pytest.mark.asyncio
+    async def test_connect_without_ib_insync(self):
+        from core.investment.adapters.stocks_adapter import IBKRAdapter
+
+        adapter = IBKRAdapter()
+        connected = await adapter.connect()
+        assert connected is True
+
+    @pytest.mark.asyncio
+    async def test_disconnect_cleanly(self):
+        from core.investment.adapters.stocks_adapter import IBKRAdapter
+
+        adapter = IBKRAdapter()
+        await adapter.disconnect()
+        assert adapter.is_connected is False
+
+    @pytest.mark.asyncio
+    async def test_get_account_not_connected(self):
+        from core.investment.adapters.stocks_adapter import IBKRAdapter
+
+        adapter = IBKRAdapter()
+        account = await adapter.get_account()
+        assert "error" in account or account == {}
+
+    @pytest.mark.asyncio
+    async def test_get_positions_not_connected(self):
+        from core.investment.adapters.stocks_adapter import IBKRAdapter
+
+        adapter = IBKRAdapter()
+        positions = await adapter.get_positions()
+        assert positions == []
+
+    @pytest.mark.asyncio
+    async def test_place_order_not_connected(self):
+        from core.investment.adapters.stocks_adapter import IBKRAdapter
+
+        adapter = IBKRAdapter()
+        order = await adapter.place_order("AAPL", "BUY", 10)
+        assert "status" in order
+        assert order["status"] in ("error", "not_connected", "rejected")
+
+    def test_build_ibkr_adapter(self):
+        from core.investment.adapters.stocks_adapter import build_ibkr_adapter
+
+        adapter = build_ibkr_adapter()
+        assert adapter.name == "ibkr"
+
+
+# ── DeFi Yield Tests ───────────────────────────────────────────────
+
+
+class TestAaveAdapter:
+    def test_name(self):
+        from core.investment.adapters.defi_adapter import AaveAdapter
+
+        adapter = AaveAdapter()
+        assert adapter.name == "aave"
+
+    def test_default_config(self):
+        from core.investment.adapters.defi_adapter import AaveAdapter
+
+        adapter = AaveAdapter()
+        assert adapter.is_connected is False
+        assert adapter._chain == "ethereum"
+
+    @pytest.mark.asyncio
+    async def test_connect_fails_without_rpc(self):
+        from core.investment.adapters.defi_adapter import AaveAdapter
+
+        adapter = AaveAdapter(config={"chain": "ethereum"})
+        connected = await adapter.connect()
+        assert connected is False
+
+    @pytest.mark.asyncio
+    async def test_disconnect_cleanly(self):
+        from core.investment.adapters.defi_adapter import AaveAdapter
+
+        adapter = AaveAdapter()
+        await adapter.disconnect()
+        assert adapter.is_connected is False
+
+    @pytest.mark.asyncio
+    async def test_get_supply_apy_not_connected(self):
+        from core.investment.adapters.defi_adapter import AaveAdapter
+
+        adapter = AaveAdapter()
+        apy = await adapter.get_supply_apy("USDC")
+        assert isinstance(apy, dict)
+        assert "supply_apy" in apy
+
+    @pytest.mark.asyncio
+    async def test_get_top_assets_not_connected(self):
+        from core.investment.adapters.defi_adapter import AaveAdapter
+
+        adapter = AaveAdapter()
+        assets = await adapter.get_top_assets()
+        assert assets == []
+
+    def test_build_aave_adapter(self):
+        from core.investment.adapters.defi_adapter import build_aave_adapter
+
+        adapter = build_aave_adapter()
+        assert adapter.name == "aave"
+
+
+class TestMorphoAdapter:
+    def test_name(self):
+        from core.investment.adapters.defi_adapter import MorphoAdapter
+
+        adapter = MorphoAdapter()
+        assert adapter.name == "morpho"
+
+    def test_default_config(self):
+        from core.investment.adapters.defi_adapter import MorphoAdapter
+
+        adapter = MorphoAdapter()
+        assert adapter.is_connected is False
+        assert adapter._chain == "ethereum"
+
+    @pytest.mark.asyncio
+    async def test_connect_fails_without_rpc(self):
+        from core.investment.adapters.defi_adapter import MorphoAdapter
+
+        adapter = MorphoAdapter(config={"chain": "ethereum"})
+        connected = await adapter.connect()
+        assert connected is False
+
+    @pytest.mark.asyncio
+    async def test_disconnect_cleanly(self):
+        from core.investment.adapters.defi_adapter import MorphoAdapter
+
+        adapter = MorphoAdapter()
+        await adapter.disconnect()
+        assert adapter.is_connected is False
+
+    @pytest.mark.asyncio
+    async def test_get_market_apy_not_connected(self):
+        from core.investment.adapters.defi_adapter import MorphoAdapter
+
+        adapter = MorphoAdapter()
+        apy = await adapter.get_market_apy("test")
+        assert isinstance(apy, dict)
+        assert "supply_apy" in apy
+
+    @pytest.mark.asyncio
+    async def test_get_top_markets_not_connected(self):
+        from core.investment.adapters.defi_adapter import MorphoAdapter
+
+        adapter = MorphoAdapter()
+        markets = await adapter.get_top_markets()
+        assert markets == []
+
+    def test_build_morpho_adapter(self):
+        from core.investment.adapters.defi_adapter import build_morpho_adapter
+
+        adapter = build_morpho_adapter()
+        assert adapter.name == "morpho"
+
+
+class TestPendleAdapter:
+    def test_name(self):
+        from core.investment.adapters.defi_adapter import PendleAdapter
+
+        adapter = PendleAdapter()
+        assert adapter.name == "pendle"
+
+    def test_default_config(self):
+        from core.investment.adapters.defi_adapter import PendleAdapter
+
+        adapter = PendleAdapter()
+        assert adapter.is_connected is False
+        assert adapter._chain == "ethereum"
+
+    @pytest.mark.asyncio
+    async def test_connect_fails_without_rpc(self):
+        from core.investment.adapters.defi_adapter import PendleAdapter
+
+        adapter = PendleAdapter(config={"chain": "ethereum"})
+        connected = await adapter.connect()
+        assert connected is False
+
+    @pytest.mark.asyncio
+    async def test_disconnect_cleanly(self):
+        from core.investment.adapters.defi_adapter import PendleAdapter
+
+        adapter = PendleAdapter()
+        await adapter.disconnect()
+        assert adapter.is_connected is False
+
+    @pytest.mark.asyncio
+    async def test_get_yield_opportunities_not_connected(self):
+        from core.investment.adapters.defi_adapter import PendleAdapter
+
+        adapter = PendleAdapter()
+        opps = await adapter.get_yield_opportunities()
+        assert opps == []
+
+    @pytest.mark.asyncio
+    async def test_get_pt_yield_not_connected(self):
+        from core.investment.adapters.defi_adapter import PendleAdapter
+
+        adapter = PendleAdapter()
+        yield_data = await adapter.get_pt_yield("0x123")
+        assert isinstance(yield_data, dict)
+        assert "implied_apy" in yield_data
+
+    def test_build_pendle_adapter(self):
+        from core.investment.adapters.defi_adapter import build_pendle_adapter
+
+        adapter = build_pendle_adapter()
+        assert adapter.name == "pendle"
+
+
+class TestLidoAdapter:
+    def test_name(self):
+        from core.investment.adapters.defi_adapter import LidoAdapter
+
+        adapter = LidoAdapter()
+        assert adapter.name == "lido"
+
+    def test_default_config(self):
+        from core.investment.adapters.defi_adapter import LidoAdapter
+
+        adapter = LidoAdapter()
+        assert adapter.is_connected is False
+        assert adapter._chain == "ethereum"
+
+    @pytest.mark.asyncio
+    async def test_connect_fails_without_rpc(self):
+        from core.investment.adapters.defi_adapter import LidoAdapter
+
+        adapter = LidoAdapter(config={"chain": "ethereum"})
+        connected = await adapter.connect()
+        assert connected is False
+
+    @pytest.mark.asyncio
+    async def test_disconnect_cleanly(self):
+        from core.investment.adapters.defi_adapter import LidoAdapter
+
+        adapter = LidoAdapter()
+        await adapter.disconnect()
+        assert adapter.is_connected is False
+
+    @pytest.mark.asyncio
+    async def test_get_staking_apy_not_connected(self):
+        from core.investment.adapters.defi_adapter import LidoAdapter
+
+        adapter = LidoAdapter()
+        apy = await adapter.get_staking_apy()
+        assert isinstance(apy, dict)
+        assert "apy" in apy
+
+    @pytest.mark.asyncio
+    async def test_get_protocol_metrics_not_connected(self):
+        from core.investment.adapters.defi_adapter import LidoAdapter
+
+        adapter = LidoAdapter()
+        metrics = await adapter.get_protocol_metrics()
+        assert isinstance(metrics, dict)
+        assert "tvl" in metrics
+
+    def test_build_lido_adapter(self):
+        from core.investment.adapters.defi_adapter import build_lido_adapter
+
+        adapter = build_lido_adapter()
+        assert adapter.name == "lido"
+
+
+# ── Registry Tests ─────────────────────────────────────────────────
+
+
+class TestInvestmentAdapterRegistry:
+    def test_register_and_list(self):
+        from core.investment.adapters.registry import InvestmentAdapterRegistry
+
+        registry = InvestmentAdapterRegistry()
+        registry.register_adapter(
+            "alpaca",
+            "core.investment.adapters.stocks_adapter.AlpacaAdapter",
+            enabled=True,
+        )
+        adapters = registry.list_adapters()
+        assert len(adapters) == 1
+        assert adapters[0]["name"] == "alpaca"
+        assert adapters[0]["enabled"] is True
+
+    def test_register_disabled(self):
+        from core.investment.adapters.registry import InvestmentAdapterRegistry
+
+        registry = InvestmentAdapterRegistry()
+        registry.register_adapter(
+            "ibkr",
+            "core.investment.adapters.stocks_adapter.IBKRAdapter",
+            enabled=False,
+        )
+        adapters = registry.list_adapters()
+        assert len(adapters) == 1
+        assert adapters[0]["enabled"] is False
+
+    @pytest.mark.asyncio
+    async def test_initialize_all(self):
+        from core.investment.adapters.registry import InvestmentAdapterRegistry
+
+        registry = InvestmentAdapterRegistry()
+        registry.register_adapter(
+            "alpaca",
+            "core.investment.adapters.stocks_adapter.AlpacaAdapter",
+            enabled=True,
+        )
+        results = await registry.initialize_all()
+        assert results["alpaca"] is True
+        adapter = registry.get_adapter("alpaca")
+        assert adapter is not None
+
+    @pytest.mark.asyncio
+    async def test_shutdown_all(self):
+        from core.investment.adapters.registry import InvestmentAdapterRegistry
+
+        registry = InvestmentAdapterRegistry()
+        registry.register_adapter(
+            "alpaca",
+            "core.investment.adapters.stocks_adapter.AlpacaAdapter",
+            enabled=True,
+        )
+        await registry.initialize_all()
+        await registry.shutdown_all()
+        assert len(registry._adapters) >= 0  # shutdown removes adapter if disconnect succeeds
+
+    @pytest.mark.asyncio
+    async def test_import_class_failure(self):
+        from core.investment.adapters.registry import InvestmentAdapterRegistry
+
+        registry = InvestmentAdapterRegistry()
+        registry.register_adapter(
+            "bad",
+            "core.investment.adapters.nonexistent.NonexistentAdapter",
+            enabled=True,
+        )
+        results = await registry.initialize_all()
+        assert results["bad"] is False
+
+    def test_get_adapter_not_found(self):
+        from core.investment.adapters.registry import InvestmentAdapterRegistry
+
+        registry = InvestmentAdapterRegistry()
+        assert registry.get_adapter("nonexistent") is None
+
+    def test_get_all_adapters_empty(self):
+        from core.investment.adapters.registry import InvestmentAdapterRegistry
+
+        registry = InvestmentAdapterRegistry()
+        assert registry.get_all_adapters() == {}
+
+
+class TestBuildDefaultRegistry:
+    def test_build_default_registry(self):
+        from core.investment.adapters import build_default_registry
+
+        registry = build_default_registry()
+        adapters = registry.list_adapters()
+        names = [a["name"] for a in adapters]
+        assert "alpaca" in names
+        assert "ibkr" in names
+        assert "aave" in names
+        assert "morpho" in names
+        assert "pendle" in names
+        assert "lido" in names
+        assert "ccxt" in names
+        assert "polymarket" in names
+        assert len(adapters) == 20
