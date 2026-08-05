@@ -1,54 +1,29 @@
 # OWNEX Architecture Diagrams
 
-This directory contains Mermaid source files for all architecture diagrams.
-Rendered versions are included in documentation and README.
+Mermaid source files for the OWNEX system architecture. Rendered versions are
+included in the README and referenced documentation.
 
 ## Diagram Index
 
-| File | Description | Used In |
-|------|-------------|---------|
-| `system-overview.mmd` | Complete system architecture | README.md, docs/ARCHITECTURE.md |
-| `layer-breakdown.mmd` | Detailed layer responsibilities | docs/ARCHITECTURE.md |
-| `data-flow.mmd` | Data flow through cycles | docs/DATA_FLOW.md |
-| `event-bus.mmd` | Event Bus topology | docs/EVENT_BUS.md |
-| `agent-departments.mmd` | Agent department structure | docs/AGENTS.md |
-| `work-cycles.mmd` | Six work cycles pipeline | docs/WORK_CYCLES.md |
-| `merlin-architecture.mmd` | MERLIN assistant internals | docs/OWNEX_MERLIN_SYSTEM.md |
-| `evolution-engine.mmd` | Self-evolution pipeline | docs/EVOLUTION_ENGINE.md |
-| `recovery-engine.mmd` | Auto-recovery flow | docs/RECOVERY_ENGINE.md |
-| `mobile-architecture.mmd` | Android + Wear OS integration | docs/MOBILE.md |
-| `security-cycle.mmd` | Security cycle pipeline | docs/SECURITY_CYCLE.md |
-| `forge-cycle.mmd` | FORGE cycle pipeline | docs/FORGE_CYCLE.md |
-| `pulse-cycle.mmd` | PULSE cycle pipeline | docs/PULSE_CYCLE.md |
-| `vault-cycle.mmd` | VAULT cycle pipeline | docs/VAULT_CYCLE.md |
-| `atlas-cycle.mmd` | ATLAS cycle pipeline | docs/ATLAS_CYCLE.md |
-| `odyssey-cycle.mmd` | ODYSSEY cycle pipeline | docs/ODYSSEY_CYCLE.md |
-| `deployment.mmd` | Deployment architecture | docs/DEPLOYMENT.md |
-| `development.mmd` | Development environment | docs/DEVELOPMENT.md |
+| File | Description |
+|------|-------------|
+| `system-overview.mmd` | Complete system architecture — human, core, intelligence, agent departments, execution and learning layers |
+| `layer-breakdown.mmd` | Detailed layer responsibilities across the stack |
+| `data-flow.mmd` | Data flow through the observe → decide → execute → learn → evolve loop |
+| `event-bus.mmd` | Event Bus topology and event-driven communication |
+| `agent-departments.mmd` | Agent department structure and capabilities |
 
 ## Rendering
 
+Mermaid diagrams render natively on GitHub in `.md` files. To render locally:
+
 ```bash
-# Install mermaid-cli
-npm install -g @mermaid-js/mermaid-cli
-
-# Render all diagrams
-for f in *.mmd; do mmdc -i "$f" -o "${f%.mmd}.svg" -b transparent; done
-
-# Or use the generation script
-python scripts/brand/generate_diagrams.py
+# CLI rendering (requires Node.js)
+npx @mermaid-js/mermaid-cli -i system-overview.mmd -o system-overview.png
 ```
 
-## Style Guidelines
+## Style
 
-All diagrams follow OWNEX brand identity:
-
-- **Background:** Cosmos (#08090A) or transparent
-- **Primary nodes:** Surface (#111113) with Accent (#5E6AD2) borders
-- **Secondary nodes:** Surface-alt (#1F2023) with subtle borders
-- **Text:** Primary (#F6F8FB) on dark, Cosmos (#08090A) on light
-- **Accent connections:** #5E6AD2
-- **Success paths:** #00E39A
-- **Warning paths:** #FFB020
-- **Error paths:** #FF5252
-- **Font:** Inter for labels, JetBrains Mono for technical text
+All diagrams use the OWNEX dark theme: background `#111113`, text `#F6F8FB`,
+accent `#00D4AA` (teal), secondary `#5E6AD2` (indigo), warning `#FF6B35`
+(orange). Diagrams are plain text — edit the `.mmd` source, never generated PNGs.

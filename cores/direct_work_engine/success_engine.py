@@ -46,18 +46,61 @@ SUCCESS_LESSONS_PATH = Path("data/success_lessons.json")
 # ─────────────────────────────────────────────────────────────
 
 # Acceptance probability priors by category (honest baselines, no invented rates).
+# Every category mirrors a real OpportunityCategory from the DWE so no opportunity
+# falls through to "general" (an unused layer is a dead layer).
 CATEGORY_BASE_ACCEPTANCE: dict[str, float] = {
     "bug_bounty": 0.20,
+    "security_research": 0.25,
+    "reverse_engineering": 0.30,
+    "malware_analysis": 0.30,
     "dev_bounty": 0.45,
+    "oss_bounties": 0.45,
+    "open_source": 0.50,
     "game_dev": 0.35,
+    "game_development": 0.35,
+    "software_engineering": 0.45,
+    "backend": 0.45,
+    "frontend": 0.45,
+    "full_stack": 0.45,
+    "devops": 0.45,
+    "cloud": 0.45,
+    "infrastructure": 0.45,
+    "mobile_development": 0.45,
+    "desktop_development": 0.45,
+    "api_development": 0.50,
+    "sdk_development": 0.45,
+    "embedded": 0.35,
+    "iot": 0.35,
+    "ai_engineering": 0.50,
+    "ml_engineering": 0.50,
+    "llm_engineering": 0.50,
+    "prompt_engineering": 0.62,
+    "browser_automation": 0.52,
+    "qa_automation": 0.58,
+    "web_scraping": 0.62,
+    "data_engineering": 0.50,
+    "technical_writing": 0.55,
+    "documentation": 0.55,
+    "code_review": 0.55,
+    "ai_evaluation": 0.78,
     "ai_training": 0.80,
     "data_annotation": 0.85,
+    "synthetic_data": 0.75,
+    "blockchain_development": 0.30,
+    "smart_contracts": 0.30,
     "fiverr": 0.60,
     "digital_product": 0.40,
     "hackathon": 0.25,
-    "open_source": 0.50,
     "competition": 0.15,
+    "competitions": 0.15,
     "general": 0.40,
+}
+
+# Normalize DWE category names to the engine's canonical keys.
+CATEGORY_ALIASES: dict[str, str] = {
+    "game_development": "game_dev",
+    "oss_bounties": "dev_bounty",
+    "competitions": "competition",
 }
 
 # Competition adjustment by category.
@@ -71,23 +114,59 @@ COMPETITION_FACTOR: dict[str, float] = {
 
 # Acceptance uplift from fully executing the success plan: verification steps run,
 # quality checklist satisfied, evidence package delivered, internal review passed.
-# This is the honest premium of a prepared submission vs a raw one.
-QUALITY_EXECUTION_BOOST = 0.18
+# This is the honest premium of a prepared submission vs a raw one. Scaled by the
+# effort invested in the chosen approach (full quality > standard > MVP).
+QUALITY_EXECUTION_BOOST_BASE = 0.10
+QUALITY_EXECUTION_BOOST_PER_APPROACH = 1.0  # adds the approach's acceptance_boost
 
 # Honest ceilings per category — the maximum achievable probability even with a
 # perfect execution. Derived from how the category actually rewards work
 # (bug bounty is capped by duplicity/scope reality, not by effort).
 CATEGORY_MAX_ACCEPTANCE: dict[str, float] = {
     "bug_bounty": 0.45,
-    "dev_bounty": 0.75,
-    "game_dev": 0.68,
-    "ai_training": 0.90,
-    "data_annotation": 0.93,
-    "fiverr": 0.85,
+    "security_research": 0.40,
+    "reverse_engineering": 0.45,
+    "malware_analysis": 0.45,
+    "dev_bounty": 0.78,
+    "oss_bounties": 0.78,
+    "open_source": 0.72,
+    "game_dev": 0.70,
+    "game_development": 0.70,
+    "software_engineering": 0.62,
+    "backend": 0.62,
+    "frontend": 0.62,
+    "full_stack": 0.62,
+    "devops": 0.62,
+    "cloud": 0.62,
+    "infrastructure": 0.62,
+    "mobile_development": 0.62,
+    "desktop_development": 0.62,
+    "api_development": 0.65,
+    "sdk_development": 0.62,
+    "embedded": 0.50,
+    "iot": 0.50,
+    "ai_engineering": 0.68,
+    "ml_engineering": 0.68,
+    "llm_engineering": 0.68,
+    "prompt_engineering": 0.75,
+    "browser_automation": 0.68,
+    "qa_automation": 0.72,
+    "web_scraping": 0.75,
+    "data_engineering": 0.68,
+    "technical_writing": 0.70,
+    "documentation": 0.70,
+    "code_review": 0.70,
+    "ai_evaluation": 0.90,
+    "ai_training": 0.93,
+    "data_annotation": 0.95,
+    "synthetic_data": 0.88,
+    "blockchain_development": 0.45,
+    "smart_contracts": 0.45,
+    "fiverr": 0.88,
     "digital_product": 0.62,
     "hackathon": 0.42,
-    "open_source": 0.72,
     "competition": 0.35,
+    "competitions": 0.35,
     "general": 0.55,
 }
 
@@ -243,12 +322,16 @@ class SuccessRateEngine:
         title = str(opportunity.get("title", "Untitled opportunity"))
         platform = str(opportunity.get("platform", "unknown"))
         category = str(opportunity.get("category", opportunity.get("type", "general"))).lower()
+        category = CATEGORY_ALIASES.get(category, category)
         category = category if category in CATEGORY_BASE_ACCEPTANCE else "general"
 
-        intelligence = self._opportunity_intelligence(opportunity, platform)
+        intelligence = self._opportunity_intelligence(opportunity, platform, category)
         prediction = self._predict_acceptance(opportunity, category)
         approaches = self._multi_pass_engineering(opportunity, category, prediction.probability)
         best = max(approaches, key=lambda a: (a.acceptance_boost, -a.effort_hours))
+        prediction.probability_after_full_plan = self._after_full_plan(
+            category, prediction.probability, best.acceptance_boost
+        )
         review = self._internal_review(opportunity, prediction.probability)
         quality = self._quality_checklist(prediction.probability, review)
         verification = self._verification_steps(opportunity)
@@ -277,9 +360,9 @@ class SuccessRateEngine:
         return plan
 
     # 1 ── Opportunity Intelligence
-    def _opportunity_intelligence(self, opp: dict[str, Any], platform: str) -> OpportunityIntelligence:
+    def _opportunity_intelligence(self, opp: dict[str, Any], platform: str, category: str) -> OpportunityIntelligence:
         desc = f"{opp.get('title', '')} {opp.get('description', '')}".lower()
-        intel = OpportunityIntelligence(platform=platform, category=str(opp.get("category", "general")).lower())
+        intel = OpportunityIntelligence(platform=platform, category=category)
 
         if "scoring" in desc or "criteria" in desc or "evaluation" in desc:
             intel.evaluation_criteria.append("scoring/evaluation criteria mentioned — read the official rubric first")
@@ -347,10 +430,6 @@ class SuccessRateEngine:
             "high" if 8 <= competition <= 20 and completeness > 0.6 else "medium" if completeness > 0.3 else "low"
         )
 
-        # Maximum possible acceptance: base + the honest premium of executing the
-        # full plan, capped by the category's realistic ceiling.
-        after_full_plan = round(min(CATEGORY_MAX_ACCEPTANCE.get(category, 0.6), prob + QUALITY_EXECUTION_BOOST), 3)
-
         improvements: list[str] = []
         if prob < 0.4:
             improvements.append(
@@ -368,8 +447,15 @@ class SuccessRateEngine:
             factors=factors,
             verdict=verdict,
             improvement_before_implementation=improvements,
-            probability_after_full_plan=after_full_plan,
+            probability_after_full_plan=round(prob, 3),
         )
+
+    def _after_full_plan(self, category: str, prob: float, approach_boost: float) -> float:
+        """Maximum possible acceptance: base + the honest premium of executing the
+        full plan at the quality level of the chosen approach, capped by the
+        category's realistic ceiling."""
+        boost = QUALITY_EXECUTION_BOOST_BASE + QUALITY_EXECUTION_BOOST_PER_APPROACH * approach_boost
+        return round(min(CATEGORY_MAX_ACCEPTANCE.get(category, 0.6), prob + boost), 3)
 
     def _completeness_score(self, opp: dict[str, Any]) -> float:
         fields = ["title", "description", "requirements", "reward", "deadline", "url", "platform"]

@@ -1,5 +1,13 @@
 # OWNEX — Autonomous Operating System
 
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Vue 3](https://img.shields.io/badge/Vue_3-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tests](https://img.shields.io/badge/tests-1400%2B-green)](https://github.com/AdriDob/rastrohunteralpha/actions)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Code Style: Ruff](https://img.shields.io/badge/code%20style-Ruff-D7FF64)](https://github.com/astral-sh/ruff)
+
 ## Project Identity
 
 **OWNEX** is the **Personalized Autonomous Operating System** that discovers opportunities, executes technical work, learns from outcomes, and evolves its own operation — from a desktop command center to your phone and wrist.
@@ -101,9 +109,7 @@ graph TB
     UM --> IE
 ```
 
-</div>
-
-|**Layers & Responsibilities:**
+|**Layers & Responsibilities:**|
 
 | Layer | Responsibility |
 |-------|----------------|
@@ -159,8 +165,8 @@ OWNEX ships as two connected identities sharing a single core.
 
 ```bash
 # Clone the repository
-git clone https://github.com/AdriDob/rastro
-df /home/adrie/projects/Rastro
+git clone https://github.com/AdriDob/rastrohunteralpha.git
+cd rastrohunteralpha
 ```
 
 ```bash
@@ -396,6 +402,15 @@ assets/           Brand system, banners, concept art, architecture diagrams
 examples/         Usage examples and documentation
 ```
 
+## Product Screens
+
+Real interface renders generated from the OWNEX brand system (deterministic SVG pipeline):
+
+| | |
+|---|---|
+| **ALPHA Mission Control** — desktop command center<br/>System health, agent fleet, revenue tracking, live opportunity feed | <img src="assets/concepts/desktop-showcase.png" alt="OWNEX ALPHA Mission Control" width="480"/> |
+| **OMEGA Mobile** — Android companion<br/>Approvals, MERLIN chat, health at a glance | <img src="assets/concepts/mobile-showcase.png" alt="OWNEX OMEGA Mobile" width="160"/> |
+
 ## Usage Examples
 
 See [examples/](examples/) directory for practical usage scenarios and code samples.
@@ -429,6 +444,36 @@ See [examples/](examples/) directory for practical usage scenarios and code samp
 - 🎨 Customizable UI themes and layouts
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed release history.
+
+## Frequently Asked Questions
+
+**What is OWNEX?**
+
+OWNEX is a Personalized Autonomous Operating System: it discovers opportunities, executes technical work, learns from outcomes, and evolves its own operation — across desktop (ALPHA), Android and Wear OS (OMEGA).
+
+**Is OWNEX open source?**
+
+Yes. The core is MIT-licensed; brand fonts are SIL OFL 1.1 (Google Fonts).
+
+**Does OWNEX run fully offline?**
+
+The core (agents, workflows, memory, evolution engine) runs locally. AI inference prefers local models via Ollama, with optional cloud providers (OpenRouter, free providers) for heavier reasoning.
+
+**What AI models does it use?**
+
+Any Ollama model locally, plus OpenRouter and free providers through MERLIN — no vendor lock-in, configurable per task.
+
+**What platforms are supported?**
+
+Linux, macOS and Windows 10+ for ALPHA Desktop; Android 8+ and Wear OS 3+ for OMEGA companions.
+
+**How is my data stored?**
+
+Local-first: SQLite for state and namespaced unified memory. PostgreSQL is supported for production deployments.
+
+**Do I need API keys?**
+
+Only for optional external integrations (bug bounty platforms, cloud AI providers). The system runs without any key.
 
 ## Contributing
 
