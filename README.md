@@ -16,10 +16,9 @@
 </p>
 
 <p>
-<img src="https://img.shields.io/badge/version-1.0.0-7c3aed?style=for-the-badge"/>
-<img src="https://img.shields.io/badge/tests-122%20passing-22c55e?style=for-the-badge"/>
-<img src="https://img.shields.io/badge/build-0%20errors-22c55e?style=for-the-badge"/>
-<img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-7c3aed?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/version-7.0.0-7c3aed?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/python-3.11+-3776AB?style=for-the-badge&logo=python"/>
+<img src="https://img.shields.io/badge/vue-3.5-4FC08D?style=for-the-badge&logo=vue.js"/>
 <img src="https://img.shields.io/badge/license-Proprietary-ef4444?style=for-the-badge"/>
 </p>
 
@@ -130,6 +129,15 @@ make test
 # Run quality checks
 make check
 ```
+
+## Documentation
+
+- [Architecture Diagrams](assets/diagrams/) — Technical system architecture
+- [Brand Usage Guide](BRAND_USAGE_GUIDE.md) — Visual identity guidelines
+- [Contributing Guide](CONTRIBUTING.md) — Development contribution guidelines
+- [Security Policy](SECURITY.md) — Security and vulnerability reporting
+- [API Reference](API_REFERENCE.md) — REST API documentation
+- [Full Documentation](docs/) — Complete technical documentation
 
 ## License
 

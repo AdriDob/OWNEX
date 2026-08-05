@@ -107,19 +107,19 @@ class GuidedModeManager:
 
     def should_explain(self, action_type: str) -> bool:
         """Determine if an action should be explained."""
-        if self.config.explain_everything:
-            return True
-        if action_type in ("destructive", "external", "costly"):
-            return True
-        return False
+        return self.config.explain_everything or action_type in (
+            "destructive",
+            "external",
+            "costly",
+        )
 
     def should_confirm(self, action_type: str) -> bool:
         """Determine if confirmation is needed."""
-        if self.config.ask_confirmation:
-            return True
-        if action_type in ("destructive", "external", "irreversible"):
-            return True
-        return False
+        return self.config.ask_confirmation or action_type in (
+            "destructive",
+            "external",
+            "irreversible",
+        )
 
     def should_show_reasoning(self) -> bool:
         return self.config.show_reasoning

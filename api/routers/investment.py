@@ -589,6 +589,8 @@ async def get_investment_events(limit: int = 50) -> dict[str, Any]:
 @router.post("/strategies/{strategy_id}/deploy")
 async def deploy_strategy(strategy_id: str, request: DeployStrategyRequest) -> dict[str, Any]:
     """Deploy capital to a strategy."""
+    if request.amount <= 0:
+        raise HTTPException(status_code=400, detail="amount must be greater than zero")
     if not get_strategy(strategy_id):
         raise HTTPException(status_code=400, detail=f"Strategy {strategy_id} not found")
     manager = get_investment_manager()

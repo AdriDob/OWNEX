@@ -107,9 +107,7 @@ class DiscoveryEngine:
         domain = urlparse(url).netloc.lower()
         if self.config.blocked_domains and any(b in domain for b in self.config.blocked_domains):
             return False
-        if self.config.allowed_domains and not any(a in domain for a in self.config.allowed_domains):
-            return False
-        return True
+        return not (self.config.allowed_domains and not any(a in domain for a in self.config.allowed_domains))
 
     async def _fetch(self, url: str) -> tuple[str, int] | None:
         """Fetch URL content."""

@@ -1,270 +1,194 @@
-# OWNEX System Preview
+# OWNEX Documentation
 
-## 🖥️ Desktop Application Architecture
+Comprehensive technical documentation for the OWNEX Autonomous Operating System.
 
-OWNEX OMEGA runs as a native application with a sophisticated multi-layered architecture:
+## Quick Navigation
 
-```
-OWNEX OMEGA.app / OWNEX OMEGA.exe
-├── **Vue 3 + TypeScript + Tailwind CSS v4**
-│   ├── React-like component system
-│   ├── Modern UI with glassmorphism effects
-│   ├── Real-time dashboard with system health
-│   └── Native shell integration (Tauri v2)
-├── **Rust backend (Tauri v2)**
-│   ├── Native performance (~15MB, low RAM)
-│   ├── System tray integration
-│   ├── Global keyboard shortcuts (⌘K, ⌘Space)
-│   └── Native file system access
-├── **Python sidecar (FastAPI)**
-│   ├── Business logic engine
-│   ├── Agent coordination
-│   ├── Cross-platform APIs
-│   └── Local development environment
-├── **Database Layer**
-│   ├── SQLite (development)
-│   ├── PostgreSQL (production)
-│   └── Local-first data architecture
-├── **Model Integration**
-│   ├── Ollama (local LLMs)
-│   ├── OpenRouter fallback
-│   └── Context-based routing
-└── **System Integration**
-    ├── EventBus architecture
-    ├── Cross-cycle intelligence
-    └── Real-time synchronization
-```
-
-## 🔄 Core Cycles Overview
-
-OWNEX organizes work into **self-contained autonomous cycles**:
-
-### 🏷️ Current Active Cycles (FASE 2-6 Implementation Complete)
-
-| Cycle | Purpose | Status | Key Capabilities |
-|-------|---------|--------|------------------|
-| **Forge** | Dev bounty operations | ✅ Complete | Superteam Earn, TaskBounty, Opire integration |
-| **Wealth** | Wealth management | ✅ Complete | Crypto, DeFi, portfolio tracking |
-| **Pulse** | AI work & microtasks | ✅ Complete | Outlier, DataAnnotation, Microtask processing |
-
-### 🔵 Rastro - Security Research Pipeline
-
-**Complete 7-Stage Security Research Cycle:**
-1. **Recon** - Target discovery and footprint analysis
-2. **Attack Surface** - Port scanning and vulnerability mapping
-3. **Hypothesis** - Structured vulnerability identification
-4. **Validation** - Proof-of-concept verification
-5. **Evidence** - Evidence collection and organization
-6. **Report** - Structured reporting with CVSS scoring
-7. **Learning** - Knowledge extraction and system improvement
-
-## 🔧 System Components
-
-### OWNEX Copilot (Merlin) - Smart Assistant Integration
-
-**Concept:** OWNEX Copilot named "Merlin" - inspired by Windows Office era interface design
-
-**Visual Identity:**
-- **Character Design:** Professional clerical assistant aesthetic
-- **Color Scheme:** Deep blues and golds (OWNEX brand)
-- **Interface Style:** 1990s-2000s Windows Office inspired
-- **Architecture:** Seamless integration with autonomous cycles
-
-**Integration Architecture:**
-```
-┌─────────────────────────────────────────────────────────────┐
-│                OWNEX Copilot (Merlin)                        │
-│                                                             │
-│  • intelligent routing and task allocation                   │
-│  • context awareness across all cycles                     │
-│  • automated decision recommendations                       │
-│  • learning from past executions                            │
-│  • natural language interaction                             │
-│  • cross-cycle intelligence sharing                         │
-└─────────────────────────────────────────────────────────────┘
-         ▲
-         │
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│    Forge Cycle   │    │    Pulse Cycle   │    │    Wealth Cycle   │
-│                 │    │                 │    │                 │
-│  • bounty ops   │    │  • AI microtasks  │    │  • portfolio mgmt│
-│  • target intel │    │  • work allocation│    │  • risk analysis │
-│  • execution    │    │  • attention    │    │  • DeFi strategies│
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-**Merlin Integration Features:**
-
-1. **Intelligent Task Allocation**
-   - Analyzes user attention patterns
-   - Matches tasks to current capacity and preferences
-   - Optimizes for time-of-day productivity
-
-2. **Cross-Cycle Intelligence**
-   - Shares learnings between Forge, Pulse, and Wealth
-   - Accumulates evidence and success patterns
-   - Provides recommendations for optimal work sequencing
-
-3. **Visual Design Philosophy**
-   - Windows Office era professional aesthetics
-   - Clean, functional interface
-   - Merlin as approachable guide figure
-   - Semi-transparent knowledge sharing
-
-## 📊 System Preview Gallery
-
-Due to current tool limitations, this section contains the prepared visual assets that would normally populate this area:
-
-### Placeholder Visual Assets for `/docs/images/`
-
-**1. Core Architecture Diagram**
-```
-OWNEX Architecture Preview
-┌─────────────────────────────────┐
-│         OWNEX OS                │
-│    (Tauri + Python + Vue)       │
-├──────────────┬──────────────────┤
-│    Cycles    │    Copilot (Merlin)│
-│             │                  │
-│  Forge  Pulse│  • Auto-allocation │
-│  Wealth      │  • Cross-intelligence│
-│             │  • Contextual help │
-└──────────────┴──────────────────┘
-```
-
-**2. Component Integration Flow**
-```
-System Integration Flow
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   Data      │    │   Context   │    │  Intelligence│
-│ Collection  │    │ Management  │    │  Engine      │
-└─────────────┘    └─────────────┘    └─────────────┘
-         ▲               ▲               ▲
-         │               │               │
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   Autonomous│    │   Cycle    │    │     OS      │
-│    Execution │    │ Orchestration│    │ Coordination │
-└─────────────┘    └─────────────┘    └─────────────┘
-```
-
-**3. User Interface Mockup**
-```
-Desktop Interface (Merlin-Inspired)
-┌─────────────────────────────────┐
-│  ╔════════════════════════════════╗   ← OWNEX Command Bar
-│  ║  ⌘K                           ║
-│  ╚════════════════════════════════╝
-│                                 
-│  ┌─────────────────────────────┐   ← Active Cycles Panel
-│  │  🔨 Forge (Ready)           │
-│  │  📡 Pulse (Running)        │
-│  │  💰 Wealth (Active)         │
-│  │  🗺️ Rastro (Analyzing)      │
-│  └─────────────────────────────┘
-│
-│  ┌─────────────────────────────┐   ← Merlin Assistant
-│  │  👤 Merlin (Copilot)          │
-│  │  • Today's allocation       │
-│  │  • Key opportunities        │
-│  │  • Efficiency insights      │
-│  └─────────────────────────────┘
-│
-│  ┌─────────────────────────────┐   ← System Status
-│  │  🟢 All Systems Operational  │
-│  │  • 3/3 cycles healthy       │
-│  │  • 98% test coverage        │
-│  │  • 4.2K tasks completed     │
-│  └─────────────────────────────┘
-└─────────────────────────────────┘
-```
-
-## 🚦 Current Technical Status
-
-### System Capabilities
-
-**✅ Fully Operational:**
-- **Cycle Execution:** Forge, Wealth, and Pulse cycles running
-- **Core Architecture:** Tauri + Python + Vue integration complete
-- **Database Layer:** Local-first SQL implementation ready
-- **Testing:** 29/29 opportunity engine tests passing
-- **Integration:** All cycles share common intelligence layer
-
-**🔄 Implementation Timeline:**
-1. **Immediate:** Current systems running and verified
-2. **Short-term:** Image generation API integration
-3. **Medium-term:** Enhanced Merlin visual interface
-4. **Long-term:** Full WINDOWS OFFICE ERA aesthetics implementation
-
-### Development Environment
-
-```
-Development Environment Status:
-├── Backend: Python 3.11.4 (HTTPS GitHub Environment)
-├── Frontend: Vue 3 + TypeScript + Vite
-├── Container: Tauri v2 (native)
-├── Database: SQLite/PostgreSQL
-├── Models: Ollama local integration
-├── Testing: pytest + Vitest
-└── Deployment: GitHub Actions
-
-System Health Metrics:
-• Response Time: < 200ms average
-• Uptime: 99.8%
-• Test Coverage: 98%
-• Architecture: EventBus-based
-• Security: Zero-trust principles
-```
-
-## 🎯 Implementation Notes
-
-### Current Constraints
-
-**Image Generation Block:**
-- Tool: FAL image generation unavailable
-- Status: API configuration needed
-- Impact: Visual development delayed
-- Resolution: Pending external service setup
-
-### Alternative Approaches Implemented
-
-**Design Documentation:**
-- System architecture defined in markdown
-- Component relationships mapped
-- Integration patterns documented
-- Development workflow preserved
-
-**Visual Placeholder Strategy:**
-- ASCII diagram representations
-- Color-coded architecture views
-- Interface mockups in code
-- Component hierarchy models
-
-**Development Progression:**
-- Core functionality: Complete
-- System architecture: Complete
-- Integration testing: Passing
-- Documentation: Comprehensive
-- Visual design: Documented
-
-## 🔄 Next Steps
-
-### Phase 1 - Immediate Actions
-1. ✅ **Configure image generation API** - Enable visual development
-2. ✅ **Deploy existing systems** - Current architecture running
-3. ✅ **Complete integration** - Cross-cycle intelligence active
-
-### Phase 2 - Development Enhancements
-1. 🔄 **Enhance Merlin UI** - Windows Office era interface
-2. 🔄 **Add visual assets** - Prepared imagery deployment
-3. 🔄 **Improve user onboarding** - Professional assistant experience
-4. 🔄 **Expand analytics** - Advanced cycle performance metrics
-
-### Phase 3 - Advanced Features
-1. 🔄 **Enterprise integration** - Cross-platform compatibility
-2. 🔄 **Advanced automation** - AI-powered recommendations
-3. 🔄 **Performance optimization** - System efficiency improvements
-4. 🔄 **Security enhancements** - Advanced threat detection
+- [Getting Started](#getting-started)
+- [Architecture](#architecture)
+- [Development](#development)
+- [Operations](#operations)
+- [Security](#security)
+- [Integrations](#integrations)
+- [Reference](#reference)
 
 ---
 
-**OWNEX System Preview** - Ready for deployment with autonomous cycle execution, integrated Merlin assistant, and production-grade architecture. All development deliverables complete pending external API configuration.
+## Getting Started
+
+### Essential Guides
+- [README](README.md) — Project overview and quick start
+- [API Setup Guide](API_SETUP_GUIDE.md) — Initial API configuration
+- [Known Limitations](KNOWN_LIMITATIONS.md) — Current system constraints
+
+### Installation & Setup
+- [Integration Guide](INTEGRATION_GUIDE.md) — Platform integration setup
+- [Real Data Connection Runbook](REAL_DATA_CONNECTION_RUNBOOK.md) — Production data setup
+
+---
+
+## Architecture
+
+### Core Architecture
+- [Architecture Review](ARCHITECTURE_REVIEW.md) — System architecture analysis
+- [EventBus Documentation](EVENTBUS.md) — Internal event system
+- [OWNEX Design System](OWNEX_DESIGN_SYSTEM.md) — UI/UX design principles
+
+### System Components
+- [ORION Operation Manual](ORION_OPERATION_MANUAL.md) — ORION system guide
+- [OWNEX MERLIN System](OWNEX_MERLIN_SYSTEM.md) — AI assistant system
+- [Attack Pipeline](ATTACK_PIPELINE.md) — Security attack workflows
+
+### Architecture Diagrams
+See [Architecture Diagrams](../assets/diagrams/) for visual system architecture:
+- [Architecture Overview](../assets/diagrams/architecture-overview.md)
+- [Security Cycle Pipeline](../assets/diagrams/security-cycle-pipeline.md)
+- [Execution Layer](../assets/diagrams/execution-layer.md)
+- [Intelligence System](../assets/diagrams/intelligence-system.md)
+- [Work Cycles](../assets/diagrams/work-cycles.md)
+- [Deployment Architecture](../assets/diagrams/deployment-architecture.md)
+
+---
+
+## Development
+
+### Development Guides
+- [Development](development/) — Development workflows and practices
+- [Plugin SDK](PLUGIN_SDK.md) — Extension development
+- [Project](project/) — Project-specific documentation
+
+### API Reference
+- [API Reference](API_REFERENCE.md) — Complete REST API documentation
+- [Direct Software Work Platforms](DIRECT_SOFTWARE_WORK_PLATFORMS.md) — Platform adapters
+
+### Tools & Utilities
+- [Hermes Guide](HERMES_GUIDE.md) — Hermes CLI usage
+- [Hermes/OpenCode Setup](HERMES_OPENCODE_ZEN_SETUP.md) — ORION tooling setup
+
+---
+
+## Operations
+
+### Operational Guides
+- [Operations](operations/) — Operational procedures
+- [Backup and Recovery](BACKUP_AND_RECOVERY.md) — Data backup procedures
+- [Production Audit](PRODUCTION_AUDIT.md) — Production readiness checklist
+
+### Monitoring & Maintenance
+- [Security Baseline](SECURITY_BASELINE.md) — Security standards
+- [Audit](audit/) — Audit procedures and results
+
+---
+
+## Security
+
+### Security Documentation
+- [Security Model](SECURITY_MODEL.md) — Comprehensive security architecture
+- [Security Policy](../SECURITY.md) — Vulnerability reporting
+
+### Security Best Practices
+- See [Security Model](SECURITY_MODEL.md) for authentication, authorization, and data protection guidelines.
+
+---
+
+## Integrations
+
+### Platform Integration
+- [Integration Guide](INTEGRATION_GUIDE.md) — General integration procedures
+- [Providers](providers/) — Third-party service providers
+
+### Data Connections
+- [Real Data Connection Runbook](REAL_DATA_CONNECTION_RUNBOOK.md) — Production data setup
+- [opportunity.env.example](opportunity.env.example) — Environment configuration
+
+---
+
+## Reference
+
+### System Reference
+- [API Reference](API_REFERENCE.md) — Complete API endpoint documentation
+- [EventBus Documentation](EVENTBUS.md) — Event system reference
+- [Plugin SDK](PLUGIN_SDK.md) — Extension API reference
+
+### Planning & Strategy
+- [Personal Intelligence Roadmap](PERSONAL_INTELLIGENCE_ROADMAP.md) — AI development roadmap
+- [Architecture](architecture/) — Detailed architecture documents
+
+### Archives
+- [Archived](archived/) — Historical documentation
+- [Audits](audits/) — Past audit results
+
+---
+
+## Documentation Structure
+
+```
+docs/
+├── README.md                    # This file
+├── API_REFERENCE.md             # Complete API documentation
+├── API_SETUP_GUIDE.md           # API configuration
+├── ARCHITECTURE_REVIEW.md       # Architecture analysis
+├── ATTACK_PIPELINE.md           # Security workflows
+├── BACKUP_AND_RECOVERY.md       # Backup procedures
+├── DIRECT_SOFTWARE_WORK_PLATFORMS.md  # Platform adapters
+├── EVENTBUS.md                  # Event system
+├── HERMES_GUIDE.md              # Hermes CLI
+├── INTEGRATION_GUIDE.md         # Integration setup
+├── KNOWN_LIMITATIONS.md         # System constraints
+├── ORION_OPERATION_MANUAL.md    # ORION system
+├── OWNEX_DESIGN_SYSTEM.md       # UI/UX design
+├── OWNEX_MERLIN_SYSTEM.md       # AI assistant
+├── PLUGIN_SDK.md                # Extension development
+├── PRODUCTION_AUDIT.md          # Production checklist
+├── REAL_DATA_CONNECTION_RUNBOOK.md  # Data setup
+├── SECURITY_BASELINE.md         # Security standards
+├── SECURITY_MODEL.md            # Security architecture
+├── opportunity.env.example      # Environment config
+├── architecture/                # Architecture details
+├── archived/                    # Historical docs
+├── audit/                       # Audit procedures
+├── assets/                      # Documentation assets
+├── audits/                      # Audit results
+├── brand-preview/               # Brand previews
+├── development/                 # Development guides
+├── images/                      # Documentation images
+├── operations/                  # Operational procedures
+├── project/                     # Project-specific docs
+└── providers/                   # Third-party providers
+```
+
+---
+
+## Contributing to Documentation
+
+When adding new documentation:
+
+1. **Place in appropriate directory** — Use existing structure
+2. **Follow naming convention** — UPPERCASE_WITH_UNDERSCORES.md
+3. **Update this README** — Add entry to relevant section
+4. **Link from parent** — Ensure discoverability
+5. **Maintain consistency** — Follow existing format and style
+
+---
+
+## Documentation Standards
+
+- **Markdown format** — All docs in GitHub Flavored Markdown
+- **Code blocks** — Specify language for syntax highlighting
+- **Diagrams** — Use Mermaid for technical diagrams
+- **Version info** — Include applicable OWNEX version
+- **Date stamps** — Update modification dates
+- **Cross-references** — Link to related documentation
+
+---
+
+## Need Help?
+
+- **General Issues**: [GitHub Issues](https://github.com/AdriDob/rastrohunteralpha/issues)
+- **Security**: [security@ownex.ai](mailto:security@ownex.ai)
+- **Documentation Issues**: Create a documentation issue with the `documentation` label
+
+---
+
+*Documentation for OWNEX v7.0.0*
+*Last updated: 2026-08-05*
