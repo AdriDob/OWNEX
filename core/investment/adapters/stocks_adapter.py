@@ -179,7 +179,7 @@ class AlpacaAdapter:
         Supports simple, bracket, and stop orders for equities and options.
         """
         if not self._connected:
-            return {"error": "Not connected"}
+            return {"status": "not_connected"}
         try:
             import httpx
 
@@ -384,7 +384,7 @@ class IBKRAdapter:
     ) -> dict[str, Any]:
         """Place a stock, option, or futures order via IBKR."""
         if not self._connected:
-            return {"error": "Not connected"}
+            return {"status": "not_connected"}
         try:
             from ib_insync import Contract, LimitOrder, MarketOrder
 

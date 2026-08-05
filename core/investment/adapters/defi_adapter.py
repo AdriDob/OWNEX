@@ -397,7 +397,7 @@ class LidoAdapter:
                     return resp.json()
         except Exception as exc:
             logger.error("Lido metrics fetch failed: %s", exc)
-        return {}
+        return {"tvl": 0, "apy": 0, "chain": self._chain, "asset": "stETH"}
 
 
 def build_aave_adapter(config: dict[str, Any] | None = None) -> AaveAdapter:

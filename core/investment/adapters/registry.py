@@ -119,6 +119,8 @@ class InvestmentAdapterRegistry:
                 logger.debug("Shutdown adapter: %s", name)
             except Exception as e:
                 logger.warning("Error shutting down adapter %s: %s", name, e)
+        self._adapters.clear()
+        self._initialized = False
 
     # Convenience methods for common operations
     async def get_market_data(
