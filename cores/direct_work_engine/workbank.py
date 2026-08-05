@@ -33,6 +33,33 @@ from cores.direct_work_engine.scoring import ZeroBarrierScorer
 
 logger = logging.getLogger("ownex.direct_work_engine.workbank")
 
+
+def _build_learned_profile(profile: UserProfile) -> UserProfile:
+    """Augment the base profile with verified outcomes from RevenueTracker.
+
+    Only folds terminal outcomes (accepted/paid or failed/cancelled);
+    pending/reviewing records are never counted. If the tracker is not
+    available or has no history, the profile is returned unchanged so the
+    engine never invents acceptance rates.
+    """
+    try:
+        from cores.revenue_tracker.revenue_tracker import get_revenue_tracker
+
+        tracker = get_revenue_tracker()
+        if tracker is None:
+            return profile
+        # Build learning records only from verified outcomes (non-pending)
+        from cores.direct_work_engine.feedback import apply_learning, build_history_from_revenue_tracker
+
+        records = build_history_from_revenue_tracker(tracker)
+        if records:
+            profile = apply_learning(profile, records)
+            logger.info("Learned from %d verified outcomes", len(records))
+    except Exception as exc:  # pragma: no cover
+        logger.warning("Could not build learned profile from RevenueTracker: %s", exc)
+    return profile
+
+
 # Minimum Zero Barrier score to enter the bank (zero/low barrier only).
 _MIN_BARRIER_SCORE: float = 60.0
 
@@ -411,40 +438,42 @@ def run_daily_cycle(target: int | None = None, opportunities: list[Opportunity] 
         except Exception as exc:
             logger.warning("run_daily_cycle: could not register discovered platforms: %s", exc)
 
-        profile = UserProfile(
-            name="Adriel",
-            country="Argentina",
-            languages={"es", "en"},
-            skills={"python", "go", "unity", "typescript"},
-            experience_level=ExperienceLevel.NONE,
-            remote_only=True,
-            accepts_ai_tools=True,
-            has_portfolio=False,
-            preferred_employment_types=[
-                EmploymentType.BOUNTY,
-                EmploymentType.OPEN_CALL,
-                EmploymentType.MICROTASK,
-                EmploymentType.CHALLENGE,
-                EmploymentType.PRIZE,
-            ],
-            preferred_categories=[
-                OpportunityCategory.BUG_BOUNTY,
-                OpportunityCategory.DEV_BOUNTY,
-                OpportunityCategory.SECURITY_RESEARCH,
-                OpportunityCategory.OSS_BOUNTIES,
-                OpportunityCategory.AI_EVALUATION,
-                OpportunityCategory.DATA_ANNOTATION,
-                OpportunityCategory.SYNTHETIC_DATA,
-                OpportunityCategory.WEB_SCRAPING,
-            ],
-            excluded_categories=[
-                OpportunityCategory.FULL_STACK,
-                OpportunityCategory.FRONTEND,
-                OpportunityCategory.BACKEND,
-                OpportunityCategory.CLOUD,
-                OpportunityCategory.DEVOPS,
-            ],
-            min_payment=10.0,
+        profile = _build_learned_profile(
+            UserProfile(
+                name="Adriel",
+                country="Argentina",
+                languages={"es", "en"},
+                skills={"python", "go", "unity", "typescript"},
+                experience_level=ExperienceLevel.NONE,
+                remote_only=True,
+                accepts_ai_tools=True,
+                has_portfolio=False,
+                preferred_employment_types=[
+                    EmploymentType.BOUNTY,
+                    EmploymentType.OPEN_CALL,
+                    EmploymentType.MICROTASK,
+                    EmploymentType.CHALLENGE,
+                    EmploymentType.PRIZE,
+                ],
+                preferred_categories=[
+                    OpportunityCategory.BUG_BOUNTY,
+                    OpportunityCategory.DEV_BOUNTY,
+                    OpportunityCategory.SECURITY_RESEARCH,
+                    OpportunityCategory.OSS_BOUNTIES,
+                    OpportunityCategory.AI_EVALUATION,
+                    OpportunityCategory.DATA_ANNOTATION,
+                    OpportunityCategory.SYNTHETIC_DATA,
+                    OpportunityCategory.WEB_SCRAPING,
+                ],
+                excluded_categories=[
+                    OpportunityCategory.FULL_STACK,
+                    OpportunityCategory.FRONTEND,
+                    OpportunityCategory.BACKEND,
+                    OpportunityCategory.CLOUD,
+                    OpportunityCategory.DEVOPS,
+                ],
+                min_payment=10.0,
+            )
         )
         return get_workbank().daily_cycle(found, target=target, profile=profile)
 
