@@ -239,6 +239,14 @@ export const routes: RouteRecordRaw[] = [
     name: 'security',
     component: () => import('@/pages/SecurityCycle.vue'),
     meta: { title: 'Security Cycle' },
+    children: [
+      {
+        path: 'executive',
+        name: 'security-executive',
+        component: () => import(/* webpackChunkName: "security" */ '@/pages/ExecutiveDashboard.vue'),
+        meta: { title: 'CEO View' },
+      },
+    ],
   },
 
   // ── 6. OPERATIONS ──
