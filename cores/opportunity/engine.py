@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from cores.ai.runtime import TaskType, get_oar
@@ -18,7 +18,7 @@ from cores.memory.system import MemoryNamespace, MemoryTier, get_memory_store
 logger = logging.getLogger("ownex.opportunity")
 
 
-class OpportunityCategory(str, Enum):
+class OpportunityCategory(StrEnum):
     # 1) Bug Bounty / Security Research
     BUG_BOUNTY = "bug_bounty"
     # 2) Dev Bounty / Desarrollo por recompensa
@@ -43,7 +43,7 @@ class OpportunityCategory(str, Enum):
     TECH_CHALLENGES = "tech_challenges"
 
 
-class OpportunitySource(str, Enum):
+class OpportunitySource(StrEnum):
     # 1) Bug Bounty / Security Research (1-10)
     HACKERONE = "hackerone"
     BUGCROWD = "bugcrowd"

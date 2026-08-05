@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from cores.daily_cycle.system import get_daily_engine
@@ -17,7 +17,7 @@ from cores.memory.system import MemoryNamespace, MemoryTier, get_memory_store
 from cores.opportunity.engine import get_opportunity_engine
 
 
-class TimeHorizon(str, Enum):
+class TimeHorizon(StrEnum):
     DAILY = "daily"
     WEEKLY = "weekly"
     MONTHLY = "monthly"

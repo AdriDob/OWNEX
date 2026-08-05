@@ -220,7 +220,7 @@ class AlpacaAdapter:
                         "side": data.get("side"),
                         "qty": float(data.get("qty", 0)),
                         "type": data.get("type"),
-                        "status": data.get("status"),
+                        "order_status": data.get("status"),
                     }
                 return {"status": "rejected", "error": resp.text}
         except Exception as exc:

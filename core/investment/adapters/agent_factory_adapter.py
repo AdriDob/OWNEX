@@ -10,13 +10,13 @@ import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger("orion.investment.agent_factory")
 
 
-class AgentType(str, Enum):
+class AgentType(StrEnum):
     """Types of specialized agents."""
 
     RESEARCHER = "researcher"
@@ -29,7 +29,7 @@ class AgentType(str, Enum):
     PRODUCT_BUILDER = "product_builder"
 
 
-class AgentStatus(str, Enum):
+class AgentStatus(StrEnum):
     """Agent lifecycle status."""
 
     CREATED = "created"

@@ -15,7 +15,7 @@ import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from cores.ai.runtime import TaskType, get_oar
@@ -25,7 +25,7 @@ from cores.memory.system import MemoryNamespace, MemoryTier, get_memory_store
 logger = logging.getLogger("ownex.remote_bridge")
 
 
-class CommandRisk(str, Enum):
+class CommandRisk(StrEnum):
     SAFE = "safe"
     MODERATE = "moderate"
     RISKY = "risky"
