@@ -5,43 +5,41 @@ Unified interface for all investment, trading, and wealth management adapters.
 
 from __future__ import annotations
 
+# AI Agent Factory
+from core.investment.adapters.agent_factory_adapter import (
+    AgentFactory,
+    AgentInstance,
+    AgentSpec,
+    AgentStatus,
+    AgentType,
+    build_agent_factory,
+)
+
 # Core Exchange Adapters
 from core.investment.adapters.ccxt_adapter import CCXTAdapter, build_ccxt_adapter
 from core.investment.adapters.forex_adapter import ForexAdapter, build_forex_adapter
-from core.investment.adapters.futures_adapter import FuturesAdapter, build_futures_adapter
-
-# Prediction Markets
-from core.investment.adapters.polymarket_adapter import PolymarketAdapter, build_polymarket_adapter
-from core.investment.adapters.polymarket_clob_adapter import PolymarketCLOBAdapter, build_polymarket_clob_adapter
 
 # Quantitative Research & Backtesting
 from core.investment.adapters.freqtrade_adapter import FreqtradeAdapter, build_freqtrade_adapter
+from core.investment.adapters.futures_adapter import FuturesAdapter, build_futures_adapter
+
+# Arbitrage & Specialized
+from core.investment.adapters.global_arbitrage_adapter import GlobalArbitrageAdapter, build_global_arbitrage_adapter
 from core.investment.adapters.hummingbot_adapter import HummingbotAdapter, build_hummingbot_adapter
-from core.investment.adapters.quant_research_adapter import (
-    VectorBTAdapter,
-    BacktraderAdapter,
-    build_vectorbt_adapter,
-    build_backtrader_adapter,
-)
 
 # Scanners & Analytics
 from core.investment.adapters.memecoin_adapter import MemecoinAdapter, build_memecoin_adapter
 from core.investment.adapters.memecoin_scanner_adapter import MemecoinScannerAdapter, build_memecoin_scanner_adapter
 from core.investment.adapters.onchain_analytics_adapter import OnChainAnalyticsAdapter, build_onchain_analytics_adapter
-from core.investment.adapters.sentiment_adapter import SentimentAnalyzerAdapter, build_sentiment_adapter
 
-# Arbitrage & Specialized
-from core.investment.adapters.global_arbitrage_adapter import GlobalArbitrageAdapter, build_global_arbitrage_adapter
-from core.investment.adapters.sports_betting_adapter import SportsBettingAdapter, build_sports_betting_adapter
-
-# AI Agent Factory
-from core.investment.adapters.agent_factory_adapter import (
-    AgentFactory,
-    AgentType,
-    AgentStatus,
-    AgentSpec,
-    AgentInstance,
-    build_agent_factory,
+# Prediction Markets
+from core.investment.adapters.polymarket_adapter import PolymarketAdapter, build_polymarket_adapter
+from core.investment.adapters.polymarket_clob_adapter import PolymarketCLOBAdapter, build_polymarket_clob_adapter
+from core.investment.adapters.quant_research_adapter import (
+    BacktraderAdapter,
+    VectorBTAdapter,
+    build_backtrader_adapter,
+    build_vectorbt_adapter,
 )
 
 # Registry
@@ -49,6 +47,8 @@ from core.investment.adapters.registry import (
     InvestmentAdapterRegistry,
     build_default_registry,
 )
+from core.investment.adapters.sentiment_adapter import SentimentAnalyzerAdapter, build_sentiment_adapter
+from core.investment.adapters.sports_betting_adapter import SportsBettingAdapter, build_sports_betting_adapter
 
 __all__ = [
     # Core Exchange

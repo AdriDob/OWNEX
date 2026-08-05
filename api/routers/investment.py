@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Body
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from core.investment.adapters import (
@@ -523,13 +523,6 @@ async def get_investment_events(limit: int = 50) -> dict[str, Any]:
     return {"success": True, "events": events}
 
 
-@router.get("/strategies")
-async def list_strategies() -> dict[str, Any]:
-    """List all available strategies."""
-    manager = get_investment_manager()
-    return {"success": True, "strategies": manager.list_strategies(), "total": len(manager.list_strategies())}
-
-
 @router.post("/strategies/{strategy_id}/deploy")
 async def deploy_strategy(strategy_id: str, request: DeployStrategyRequest) -> dict[str, Any]:
     """Deploy capital to a strategy."""
@@ -568,22 +561,6 @@ async def update_capital(request: UpdateCapitalRequest) -> dict[str, Any]:
     manager = get_investment_manager()
     manager.update_total_capital(request.total_usd)
     return {"success": True, "total_capital_usd": request.total_usd}
-
-
-@router.post("/pause")
-async def pause_all() -> dict[str, Any]:
-    """Pause all investment strategies."""
-    manager = get_investment_manager()
-    manager.pause_all()
-    return {"success": True, "paused": True}
-
-
-@router.post("/resume")
-async def resume_all() -> dict[str, Any]:
-    """Resume all investment strategies."""
-    manager = get_investment_manager()
-    manager.resume_all()
-    return {"success": True, "paused": False}
 
 
 @router.post("/max-revenue")
