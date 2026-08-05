@@ -182,13 +182,13 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
     # Pulse cycle adapters (AI work / data annotation — speed 1.0, cobro en días)
     try:
         from core.opportunity.adapters.pulse import (
-            OutlierAdapter,
             DataAnnotationAdapter,
-            MindriftAdapter,
-            RemotasksAdapter,
-            OpyreMicrotaskAdapter,
-            LinkedInEasyApplyAdapter,
             FreelancerMicrotaskAdapter,
+            LinkedInEasyApplyAdapter,
+            MindriftAdapter,
+            OpyreMicrotaskAdapter,
+            OutlierAdapter,
+            RemotasksAdapter,
         )
 
         adapters.append(
