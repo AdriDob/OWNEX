@@ -1,24 +1,26 @@
-# OWNEX — Autonomous Operating System
-
 <div align="center">
 
 <img src="assets/logos/ownex-lockup.svg"
-     alt="OWNEX Logo"
-     width="400"
-     style="margin-bottom: 24px"/>
+     alt="OWNEX"
+     width="280"
+     style="margin-bottom: 32px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));"/>
+
+<br>
 
 # OWNEX
 
 ### The Personalized Autonomous Operating System
 
-**Automation · Intelligence · Autonomy**
+**Autonomous Intelligence for Technical Work**
 
-[![Version](https://img.shields.io/badge/version-7.0.0-5E6AD2?style=for-the-badge)](VERSION.txt)
-[![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
-[![Vue](https://img.shields.io/badge/vue-3.5-4FC08D?style=for-the-badge&logo=vue.js)](https://vuejs.org/)
-[![License](https://img.shields.io/badge/license-Proprietary-EF4444?style=for-the-badge)](LICENSE)
+[![Version 7.0.0](https://img.shields.io/badge/version-7.0.0-000000?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIi8+PHBhdGggZD0iTTEyIDZ2MTJNNiAxMmgxMiIvPjwvc3ZnPg==)](VERSION.txt)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![Vue](https://img.shields.io/badge/Vue-3.5-4FC08D?style=flat-square&logo=vue.js&logoColor=white)](https://vuejs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 
-*Autonomous bug bounty research and attack surface intelligence*
+---
+
+*Autonomous bug bounty research · Attack surface intelligence · Technical automation*
 
 </div>
 
