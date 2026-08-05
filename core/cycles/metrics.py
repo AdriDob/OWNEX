@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from core.cycles.models import Cycle
 from core.database.manager import get_db_manager
+from cores.opportunity.engine import SEED_OPPORTUNITIES
 
 logger = logging.getLogger("core.cycles.metrics")
 
@@ -58,10 +59,7 @@ class CycleMetricsEngine:
             )
 
             # Calculate success rate based on opportunity confidence/stage
-            if opportunities_found > 0:
-                success_rate = 0.7  # All seeded opportunities have 70% confidence
-            else:
-                success_rate = 0.0
+            success_rate = 0.7 if opportunities_found > 0 else 0.0
 
             # Get last execution from engine metrics or database
             engine_metrics = engine.get_stats() if hasattr(engine, "get_stats") else {}

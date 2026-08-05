@@ -411,7 +411,7 @@ class InvestmentManager:
                 {
                     "id": s.id,
                     "name": s.name,
-                    "type": s.type.value,
+                    "strategy_type": s.strategy_type.value,
                     "risk_level": s.risk_level.value,
                     "description": s.description,
                     "expected_roi_pct": s.expected_roi_pct,

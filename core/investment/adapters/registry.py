@@ -307,93 +307,48 @@ def build_default_registry(config: dict[str, Any] | None = None) -> InvestmentAd
         enabled=True,
     )
 
-    return registry
+    # Stocks & Options
+    registry.register_adapter(
+        "alpaca",
+        "core.investment.adapters.stocks_adapter.AlpacaAdapter",
+        config=config.get("alpaca", {}) if config else {},
+        enabled=True,
+    )
 
+    registry.register_adapter(
+        "ibkr",
+        "core.investment.adapters.stocks_adapter.IBKRAdapter",
+        config=config.get("ibkr", {}) if config else {},
+        enabled=True,
+    )
 
-def build_default_registry(config: dict[str, Any] | None = None) -> InvestmentAdapterRegistry:
-    """Build a default InvestmentAdapterRegistry with common adapters registered."""
-    registry = InvestmentAdapterRegistry(config=config)
+    # DeFi Yield
+    registry.register_adapter(
+        "aave",
+        "core.investment.adapters.defi_adapter.AaveAdapter",
+        config=config.get("aave", {}) if config else {},
+        enabled=True,
+    )
 
-    # Register core adapters
     registry.register_adapter(
-        "ccxt",
-        "core.investment.adapters.ccxt_adapter.CCXTAdapter",
-        config.get("ccxt", {}) if config else {},
+        "morpho",
+        "core.investment.adapters.defi_adapter.MorphoAdapter",
+        config=config.get("morpho", {}) if config else {},
+        enabled=True,
     )
+
     registry.register_adapter(
-        "forex",
-        "core.investment.adapters.forex_adapter.ForexAdapter",
-        config.get("forex", {}) if config else {},
+        "pendle",
+        "core.investment.adapters.defi_adapter.PendleAdapter",
+        config=config.get("pendle", {}) if config else {},
+        enabled=True,
     )
+
     registry.register_adapter(
-        "futures",
-        "core.investment.adapters.futures_adapter.FuturesAdapter",
-        config.get("futures", {}) if config else {},
-    )
-    registry.register_adapter(
-        "polymarket",
-        "core.investment.adapters.polymarket_adapter.PolymarketAdapter",
-        config.get("polymarket", {}) if config else {},
-    )
-    registry.register_adapter(
-        "polymarket_clob",
-        "core.investment.adapters.polymarket_clob_adapter.PolymarketCLOBAdapter",
-        config.get("polymarket_clob", {}) if config else {},
-    )
-    registry.register_adapter(
-        "freqtrade",
-        "core.investment.adapters.freqtrade_adapter.FreqtradeAdapter",
-        config.get("freqtrade", {}) if config else {},
-    )
-    registry.register_adapter(
-        "hummingbot",
-        "core.investment.adapters.hummingbot_adapter.HummingbotAdapter",
-        config.get("hummingbot", {}) if config else {},
-    )
-    registry.register_adapter(
-        "vectorbt",
-        "core.investment.adapters.quant_research_adapter.VectorBTAdapter",
-        config.get("vectorbt", {}) if config else {},
-    )
-    registry.register_adapter(
-        "backtrader",
-        "core.investment.adapters.quant_research_adapter.BacktraderAdapter",
-        config.get("backtrader", {}) if config else {},
-    )
-    registry.register_adapter(
-        "memecoin",
-        "core.investment.adapters.memecoin_adapter.MemecoinAdapter",
-        config.get("memecoin", {}) if config else {},
-    )
-    registry.register_adapter(
-        "memecoin_scanner",
-        "core.investment.adapters.memecoin_scanner_adapter.MemecoinScannerAdapter",
-        config.get("memecoin_scanner", {}) if config else {},
-    )
-    registry.register_adapter(
-        "onchain_analytics",
-        "core.investment.adapters.onchain_analytics_adapter.OnChainAnalyticsAdapter",
-        config.get("onchain_analytics", {}) if config else {},
-    )
-    registry.register_adapter(
-        "sentiment",
-        "core.investment.adapters.sentiment_adapter.SentimentAnalyzerAdapter",
-        config.get("sentiment", {}) if config else {},
-    )
-    registry.register_adapter(
-        "global_arbitrage",
-        "core.investment.adapters.global_arbitrage_adapter.GlobalArbitrageAdapter",
-        config.get("global_arbitrage", {}) if config else {},
-    )
-    registry.register_adapter(
-        "sports_betting",
-        "core.investment.adapters.sports_betting_adapter.SportsBettingAdapter",
-        config.get("sports_betting", {}) if config else {},
-    )
-    registry.register_adapter(
-        "agent_factory",
-        "core.investment.adapters.agent_factory_adapter.AgentFactory",
-        config.get("agent_factory", {}) if config else {},
+        "lido",
+        "core.investment.adapters.defi_adapter.LidoAdapter",
+        config=config.get("lido", {}) if config else {},
+        enabled=True,
     )
 
     return registry
