@@ -959,6 +959,30 @@ async def direct_work_success_outcome(request: SuccessOutcomeRequest) -> dict[st
     return learn_from_outcome(request.opportunity_id, request.outcome)
 
 
+class MaxDailyIncomeRequest(BaseModel):
+    """Input for the Max Daily Income plan. Vacío → usa los items del WorkBank."""
+
+    opportunities: list[dict[str, Any]] = []
+    daily_target_usd: float = 0.0
+
+
+@router.post("/max-daily-income")
+async def direct_work_max_daily_income(
+    request: MaxDailyIncomeRequest | None = None,
+) -> dict[str, Any]:
+    """OWNEX MAX DAILY INCOME — plan de ejecución para maximizar el ingreso diario.
+
+    Rankea los trabajos por probabilidad real de cobrar HOY (reward × aceptación
+    × velocidad de cobro por categoría), calcula el techo diario realista vs la
+    meta configurada (persistente) y lista las acciones para cerrar el gap.
+    """
+    from cores.direct_work_engine.max_daily_income import get_max_daily_plan
+
+    opportunities = request.opportunities if request is not None else []
+    target = request.daily_target_usd if request is not None else 0.0
+    return get_max_daily_plan(opportunities=opportunities or None, daily_target_usd=target or None)
+
+
 @router.get("/success-stats")
 async def direct_work_success_stats() -> dict[str, Any]:
     """Read the persisted learning stats of the Success Rate Engine."""
