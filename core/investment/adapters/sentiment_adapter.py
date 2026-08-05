@@ -262,7 +262,7 @@ class SentimentAnalyzerAdapter:
     async def get_social_sentiment(
         self,
         symbols: list[str] | None = None,
-        sources: list[str] = None,
+        sources: list[str] | None = None,
     ) -> dict[str, Any]:
         """Get sentiment from social media."""
         sources = sources or ["twitter", "reddit"]
