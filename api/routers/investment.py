@@ -460,6 +460,176 @@ async def resume_all(
 # ─── System ───
 
 
+# ─── Investment Management (Frontend Hub) ───
+
+
+@router.get("/status")
+async def get_investment_status() -> dict[str, Any]:
+    """Get investment system status - capital, deployed, available, P&L, strategies."""
+    manager = get_investment_manager()
+    status = manager.get_status()
+    return {"success": True, "status": status}
+
+
+@router.get("/metrics")
+async def get_investment_metrics() -> dict[str, Any]:
+    """Get consolidated metrics including P&L chart."""
+    manager = get_investment_manager()
+    metrics = manager.get_metrics()
+    pnl_chart = manager.get_pnl_chart()
+    return {"success": True, "metrics": metrics, "pnl_chart": pnl_chart}
+
+
+@router.get("/allocation")
+async def get_allocation() -> dict[str, Any]:
+    """Get current allocation and config."""
+    manager = get_investment_manager()
+    return {
+        "success": True,
+        "allocation": manager.get_allocation(),
+        "config": manager.get_config(),
+    }
+
+
+@router.get("/exposure")
+async def get_exposure() -> dict[str, Any]:
+    """Get exposure and risk limits."""
+    manager = get_investment_manager()
+    return {"success": True, "exposure": manager.get_exposure()}
+
+
+@router.get("/events")
+async def get_investment_events(limit: int = 50) -> dict[str, Any]:
+    """Get recent investment events."""
+    manager = get_investment_manager()
+    events = manager.get_events(limit)
+    return {"success": True, "events": events}
+
+
+@router.get("/strategies")
+async def list_strategies() -> dict[str, Any]:
+    """List all available strategies."""
+    manager = get_investment_manager()
+    return {"success": True, "strategies": manager.list_strategies(), "total": len(manager.list_strategies())}
+
+
+@router.post("/strategies/{strategy_id}/deploy")
+async def deploy_strategy(strategy_id: str, amount: float) -> dict[str, Any]:
+    """Deploy capital to a strategy."""
+    manager = get_investment_manager()
+    result = await manager.deploy_strategy(strategy_id, amount)
+    return {"success": result.get("success", False), "result": result}
+
+
+@router.post("/strategies/{strategy_id}/pause")
+async def pause_strategy(strategy_id: str) -> dict[str, Any]:
+    """Pause a strategy."""
+    manager = get_investment_manager()
+    success = manager.pause_strategy(strategy_id)
+    return {"success": success}
+
+
+@router.post("/strategies/{strategy_id}/resume")
+async def resume_strategy(strategy_id: str) -> dict[str, Any]:
+    """Resume a strategy."""
+    manager = get_investment_manager()
+    success = manager.resume_strategy(strategy_id)
+    return {"success": success}
+
+
+@router.post("/allocation/allocate-payout")
+async def allocate_payout(amount: float, source: str = "") -> dict[str, Any]:
+    """Allocate payout to investment capital."""
+    manager = get_investment_manager()
+    allocation = manager.allocate_payout(amount, source)
+    return {"success": True, "allocation": allocation}
+
+
+@router.post("/allocation/update-capital")
+async def update_capital(total_usd: float) -> dict[str, Any]:
+    """Update total investment capital."""
+    manager = get_investment_manager()
+    manager.update_total_capital(total_usd)
+    return {"success": True}
+
+
+@router.post("/pause")
+async def pause_all() -> dict[str, Any]:
+    """Pause all investment strategies."""
+    manager = get_investment_manager()
+    manager.pause_all()
+    return {"success": True}
+
+
+@router.post("/resume")
+async def resume_all() -> dict[str, Any]:
+    """Resume all investment strategies."""
+    manager = get_investment_manager()
+    manager.resume_all()
+    return {"success": True}
+
+
+@router.post("/max-revenue")
+async def activate_max_revenue() -> dict[str, Any]:
+    """Activate maximum revenue mode."""
+    manager = get_investment_manager()
+    result = await manager.activate_max_revenue()
+    return {"success": True, "result": result}
+
+
+@router.post("/config")
+async def update_config(config: dict[str, Any]) -> dict[str, Any]:
+    """Update investment configuration."""
+    manager = get_investment_manager()
+    manager.update_config(config)
+    return {"success": True, "config": manager.get_config()}
+
+
+@router.get("/ccxt/info")
+async def ccxt_info(exchange: str = "binance") -> dict[str, Any]:
+    """Get exchange info via CCXT."""
+    registry = get_registry()
+    adapter = registry.get_adapter("ccxt")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="CCXT adapter not available")
+    try:
+        info = await adapter.get_exchange_info()
+        return {"success": True, "exchange": exchange, "info": info}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@router.post("/ccxt/connect")
+async def ccxt_connect(exchange: str, api_key: str, api_secret: str) -> dict[str, Any]:
+    """Connect to exchange via CCXT."""
+    registry = get_registry()
+    adapter = registry.get_adapter("ccxt")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="CCXT adapter not available")
+    try:
+        connected = await adapter.connect(exchange, api_key, api_secret)
+        return {"success": connected, "connected": connected}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@router.get("/ccxt/balance")
+async def ccxt_balance(exchange: str = "binance") -> dict[str, Any]:
+    """Get balance from exchange."""
+    registry = get_registry()
+    adapter = registry.get_adapter("ccxt")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="CCXT adapter not available")
+    try:
+        balance = await adapter.get_balance()
+        return {"success": True, "balance": balance}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+# ─── System ───
+
+
 @router.get("/health")
 async def health_check(
     registry: InvestmentAdapterRegistry = Depends(get_registry),
