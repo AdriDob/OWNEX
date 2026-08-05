@@ -215,7 +215,7 @@ class SuccessFramework:
         targets = self._get_targets_for_horizon(horizon)
         # Update with saved current values if available
         if "current_values" in data:
-            for i, metric in enumerate(targets.metrics):
+            for _i, metric in enumerate(targets.metrics):
                 if metric.name in data["current_values"]:
                     metric.current = data["current_values"][metric.name]
         return targets

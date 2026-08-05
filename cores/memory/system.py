@@ -267,9 +267,8 @@ class MemoryStore:
         results = []
         prefix = f"{namespace}:"
         for key, entry in self._cache.items():
-            if key.startswith(prefix):
-                if tag is None or tag in entry.tags:
-                    results.append(entry)
+            if key.startswith(prefix) and (tag is None or tag in entry.tags):
+                results.append(entry)
         return results
 
     def search(self, query: str, namespaces: list[str] | None = None) -> list[MemoryEntry]:
