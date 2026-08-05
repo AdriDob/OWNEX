@@ -280,10 +280,7 @@ class OpportunityFilter:
                 return False
 
         # OWNEX score filter
-        if opp.own_ex_score > 0 and opp.own_ex_score < self.min_own_ex_score:
-            return False
-
-        return True
+        return not (opp.own_ex_score > 0 and opp.own_ex_score < self.min_own_ex_score)
 
 
 class OpportunityRanker:

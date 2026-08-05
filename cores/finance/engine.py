@@ -221,7 +221,6 @@ class FinanceEngine:
 
         # Get opportunity pipeline
         pipeline = self.get_pipeline_summary()
-        total_opps = sum(pipeline.values())
         completed = pipeline.get("completed", 0) + pipeline.get("paid", 0)
         pending = sum(v for k, v in pipeline.items() if k not in ("completed", "paid"))
 
@@ -267,7 +266,6 @@ class FinanceEngine:
         work_data = self.analyze_work_income(180)
 
         monthly_avg = Decimal(income_data["total_income"]) / 6
-        work_monthly = Decimal(work_data["total_reward"]) / 6
 
         # Recurring income = platforms with consistent monthly income
         recurring = monthly_avg * Decimal("0.5")  # Conservative estimate

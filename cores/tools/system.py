@@ -404,9 +404,12 @@ class ToolCompatibilityChecker:
                 "required": spec.required,
             }
 
-            if status.status == ToolStatus.AVAILABLE and status.version:
-                if not self.check_version(name, status.version):
-                    results["warnings"].append(f"{name} version {status.version} may be outdated")
+            if (
+                status.status == ToolStatus.AVAILABLE
+                and status.version
+                and not self.check_version(name, status.version)
+            ):
+                results["warnings"].append(f"{name} version {status.version} may be outdated")
 
             if spec.required and status.status != ToolStatus.AVAILABLE:
                 results["compatible"] = False
