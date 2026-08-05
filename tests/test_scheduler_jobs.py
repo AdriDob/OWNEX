@@ -198,7 +198,7 @@ class TestGetAllJobs:
 
     def test_total_jobs_count(self):
         total = sum(len(jobs) for jobs in get_all_jobs().values())
-        assert total == 34
+        assert total == 35
 
     def test_all_jobs_have_unique_ids(self):
         all_ids = []
@@ -211,3 +211,40 @@ class TestGetAllJobs:
         for jobs in get_all_jobs().values():
             for job in jobs:
                 _check_job_structure(job)
+
+
+class TestDeliveryPreparationJob:
+    def test_delivery_preparation_job_registered(self):
+        from core.scheduler.jobs import get_all_jobs
+
+        all_jobs = get_all_jobs()
+        direct_work_jobs = all_jobs.get("direct_work", [])
+        job_ids = [j.job_id for j in direct_work_jobs]
+        assert "daily_delivery_preparation" in job_ids
+
+    def test_delivery_preparation_handler_callable(self):
+        from core.cycles.tasks import run_daily_delivery_preparation
+        from core.scheduler.jobs import get_all_jobs
+
+        all_jobs = get_all_jobs()
+        direct_work_jobs = all_jobs.get("direct_work", [])
+        job = next(j for j in direct_work_jobs if j.job_id == "daily_delivery_preparation")
+        assert job.handler == "core.cycles.tasks:run_daily_delivery_preparation"
+        assert callable(run_daily_delivery_preparation)
+
+    def test_run_daily_delivery_preparation(self, monkeypatch):
+        from core.cycles.tasks import run_daily_delivery_preparation
+
+        monkeypatch.setattr(
+            "cores.direct_work_engine.workbank.get_workbank",
+            lambda: _FakeWorkBank(),
+            raising=True,
+        )
+        result = run_daily_delivery_preparation()
+        assert result["status"] == "ok"
+        assert "prepared_count" in result
+
+
+class _FakeWorkBank:
+    def best_ready(self, limit: int = 200):
+        return []

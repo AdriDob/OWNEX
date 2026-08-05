@@ -109,3 +109,73 @@ def advance_security_pipeline(*args: Any, **kwargs: Any) -> dict[str, Any]:
     except Exception as e:
         logger.error("Error advancing security pipeline: %s", e)
         return {"status": "error", "message": str(e)}
+
+
+def run_daily_delivery_preparation(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    """Auto-prepare delivery packages for all ready WorkBank items.
+
+    Called daily by the scheduler after the Work Bank cycle: iterates items
+    flagged ready_to_deliver, builds delivery packages (README/proposal/work
+    files), and saves them to disk. The user only needs to review and submit
+    — no manual preparation required.
+    """
+    import asyncio
+
+    try:
+        from core.opportunity.executors.assisted_mode import AssistedExecutor
+        from cores.direct_work_engine.workbank import get_workbank
+
+        max_delivery_items: int = 10
+        wb = get_workbank()
+        ready_items = [i for i in wb.best_ready(limit=200) if i.ready_to_deliver][:max_delivery_items]
+        executor = AssistedExecutor(base_executor=None)
+
+        async def _prepare() -> int:
+            prepared = 0
+            for item in ready_items:
+                opportunity = {
+                    "platform": str(item.platform),
+                    "id": item.id,
+                    "title": item.title,
+                    "description": item.description or " ".join(item.deliverables),
+                    "url": item.url or "",
+                }
+                pkg = await executor.prepare_work(opportunity)
+                await executor.save_work_to_disk(pkg)
+                prepared += 1
+            return prepared
+
+        prepared = asyncio.run(_prepare())
+        return {
+            "status": "ok",
+            "prepared_count": prepared,
+            "total_ready": len(ready_items),
+        }
+    except Exception as e:  # noqa: BLE001
+        logger.warning("Could not auto-prepare delivery: %s", e)
+        return {"status": "error", "message": str(e)}
+
+
+def run_daily_market_evolution(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    """Auto-run the Market Evolution Engine daily.
+
+    Called by the scheduler as part of the Direct Work cycle: analyzes the
+    curated platform sources, computes OVOS scores, updates the persistent
+    MarketKnowledgeBase, retires stale platforms, and persists the report.
+    """
+    try:
+        from cores.direct_work_engine.market_evolution import get_market_evolution_engine
+
+        engine = get_market_evolution_engine()
+        report = engine.analyze()
+        return {
+            "status": "ok",
+            "platforms_analyzed": report.get("platforms_analyzed", 0),
+            "new_ecosystems": report.get("new_ecosystems_discovered", 0),
+            "retired": report.get("rejected_platforms", 0),
+            "best_recommendation": report.get("best_recommendation"),
+            "friction_summary": report.get("friction_summary", {}),
+        }
+    except Exception as e:  # noqa: BLE001
+        logger.warning("Could not auto-run market evolution: %s", e)
+        return {"status": "error", "message": str(e)}
