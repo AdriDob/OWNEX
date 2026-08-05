@@ -22,7 +22,7 @@ from core.investment.manager import get_investment_manager
 
 logger = logging.getLogger("orion.api.investment")
 
-router = APIRouter(prefix="/api/investment", tags=["investment"])
+router = APIRouter(tags=["investment"])
 
 # Global registry instance
 _registry: InvestmentAdapterRegistry | None = None
