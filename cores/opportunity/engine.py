@@ -431,8 +431,14 @@ class OpportunityEngine:
     def __init__(self):
         self.filter = OpportunityFilter()
         self.ranker = OpportunityRanker()
-        self.memory = get_memory_store()
+        self._memory = None
         self._sources: dict[OpportunitySource, Any] = {}
+
+    @property
+    def memory(self):
+        if self._memory is None:
+            self._memory = get_memory_store()
+        return self._memory
 
     def register_source(self, source: OpportunitySource, adapter: Any) -> None:
         """Register a source adapter."""
