@@ -180,7 +180,7 @@ class ImprovementRecommender:
                 return f"Improve {tool} usage (success rate: {stats['success_rate']:.0%})"
 
         task_patterns = patterns.get("task_patterns", {})
-        for _task, stats in task_patterns.items():
+        for task, stats in task_patterns.items():
             if stats.get("total", 0) > 10 and stats.get("success_rate", 1) < 0.8:
                 return f"Optimize {task} workflow (success rate: {stats['success_rate']:.0%})"
 
@@ -198,7 +198,7 @@ class TimeSavingsEstimator:
         task_patterns = patterns.get("task_patterns", {})
 
         total_hours = 0.0
-        for _task, stats in task_patterns.items():
+        for task, stats in task_patterns.items():
             total_tasks = stats.get("total", 0)
             avg_duration = stats.get("avg_duration_ms", 0) / 1000 / 60
             success_rate = stats.get("success_rate", 1)
@@ -239,7 +239,7 @@ class PriorityOrderer:
             score = 0
             base = len(self.PRIORITY_CATEGORIES) - self.PRIORITY_CATEGORIES.index(category)
             score += base * 10
-            for _task, stats in task_patterns.items():
+            for task, stats in task_patterns.items():
                 if category.lower() in task.lower() or task.lower() in category.lower():
                     score += stats.get("total", 0) * 2
             scored.append((category, score))
