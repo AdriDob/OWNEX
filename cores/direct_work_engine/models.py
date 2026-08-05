@@ -101,6 +101,9 @@ class WorkPlatform(StrEnum):
     MINDRIFT = "mindrift"
     DATA_ANNOTATION_PLATFORM = "data_annotation_platform"
     LINKEDIN = "linkedin"
+    REMOTASKS = "remotasks"
+    OPYRE_MICROTASK = "opyre_microtask"
+    FREELANCER_MICROTASK = "freelancer_microtask"
     COMPANY_WEBSITE = "company_website"
     OTHER = "other"
 

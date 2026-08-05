@@ -179,4 +179,96 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
     except Exception as exc:  # pragma: no cover
         logger.warning("Could not build opencollective adapter: %s", exc)
 
+    # Pulse cycle adapters (AI work / data annotation — speed 1.0, cobro en días)
+    try:
+        from core.opportunity.adapters.pulse import (
+            OutlierAdapter,
+            DataAnnotationAdapter,
+            MindriftAdapter,
+            RemotasksAdapter,
+            OpyreMicrotaskAdapter,
+            LinkedInEasyApplyAdapter,
+            FreelancerMicrotaskAdapter,
+        )
+
+        adapters.append(
+            LegacyOpportunityDweAdapter(
+                OutlierAdapter(),
+                name="outlier",
+                platform=WorkPlatform.OUTLIER,
+                category=OpportunityCategory.AI_EVALUATION,
+                employment_type=EmploymentType.MICROTASK,
+                tier=1,
+                analysis_cadence_hours=6,
+            )
+        )
+        adapters.append(
+            LegacyOpportunityDweAdapter(
+                DataAnnotationAdapter(),
+                name="dataannotation",
+                platform=WorkPlatform.DATA_ANNOTATION_PLATFORM,
+                category=OpportunityCategory.DATA_ANNOTATION,
+                employment_type=EmploymentType.MICROTASK,
+                tier=1,
+                analysis_cadence_hours=6,
+            )
+        )
+        adapters.append(
+            LegacyOpportunityDweAdapter(
+                MindriftAdapter(),
+                name="mindrift",
+                platform=WorkPlatform.MINDRIFT,
+                category=OpportunityCategory.AI_EVALUATION,
+                employment_type=EmploymentType.MICROTASK,
+                tier=1,
+                analysis_cadence_hours=6,
+            )
+        )
+        adapters.append(
+            LegacyOpportunityDweAdapter(
+                RemotasksAdapter(),
+                name="remotasks",
+                platform=WorkPlatform.REMOTASKS,
+                category=OpportunityCategory.DATA_ANNOTATION,
+                employment_type=EmploymentType.MICROTASK,
+                tier=1,
+                analysis_cadence_hours=6,
+            )
+        )
+        adapters.append(
+            LegacyOpportunityDweAdapter(
+                OpyreMicrotaskAdapter(),
+                name="opyre_microtask",
+                platform=WorkPlatform.OPYRE_MICROTASK,
+                category=OpportunityCategory.DATA_ANNOTATION,
+                employment_type=EmploymentType.MICROTASK,
+                tier=1,
+                analysis_cadence_hours=6,
+            )
+        )
+        adapters.append(
+            LegacyOpportunityDweAdapter(
+                LinkedInEasyApplyAdapter(),
+                name="linkedin_easyapply",
+                platform=WorkPlatform.LINKEDIN,
+                category=OpportunityCategory.SOFTWARE_ENGINEERING,
+                employment_type=EmploymentType.FULL_TIME,
+                tier=2,
+                analysis_cadence_hours=24,
+            )
+        )
+        adapters.append(
+            LegacyOpportunityDweAdapter(
+                FreelancerMicrotaskAdapter(),
+                name="freelancer_microtask",
+                platform=WorkPlatform.FREELANCER_MICROTASK,
+                category=OpportunityCategory.DEV_BOUNTY,
+                employment_type=EmploymentType.MICROTASK,
+                tier=2,
+                analysis_cadence_hours=24,
+            )
+        )
+    except Exception as exc:  # pragma: no cover
+        logger.warning("Could not build pulse adapters: %s", exc)
+
     return adapters
