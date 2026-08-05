@@ -12,6 +12,7 @@ from core.investment.metrics import InvestmentMetrics, get_investment_metrics
 from core.investment.models import (
     InvestmentSnapshot,
     StrategyProfile,
+    get_all_strategies,
     get_strategy,
 )
 
@@ -349,6 +350,98 @@ class InvestmentManager:
             )
         except Exception as e:
             logger.warning("Failed to save manager state: %s", e)
+
+    # ─── Frontend Hub Endpoints ───
+
+    def get_status(self) -> dict[str, Any]:
+        """Get current investment status."""
+        snap = self._allocation.snapshot()
+        return {
+            "total_capital": snap.total_capital,
+            "deployed": snap.deployed,
+            "available": snap.available,
+            "high_risk_deployed": snap.deployed,
+            "high_risk_limit": self._allocation.config.max_high_risk_amount(),
+            "paused": self._global_paused,
+            "active_strategies": list(self._active_strategies.keys()),
+            "paused_strategies": sorted(self._paused_strategies),
+            "summary": self._metrics.consolidated_metrics(),
+        }
+
+    def get_metrics(self) -> dict[str, Any]:
+        """Get consolidated metrics."""
+        return self._metrics.consolidated_metrics()
+
+    def get_pnl_chart(self) -> list[dict[str, Any]]:
+        """Get P&L chart data."""
+        return self._metrics.pnl_chart_data(days=30)
+
+    def get_allocation(self) -> dict[str, Any]:
+        """Get current allocation."""
+        return {strategy_id: alloc.__dict__ for strategy_id, alloc in self._allocation._strategies.items()}
+
+    def get_config(self) -> dict[str, Any]:
+        """Get current config."""
+        return self._allocation.config.__dict__
+
+    def get_exposure(self) -> dict[str, Any]:
+        """Get exposure and risk limits."""
+        exposure = self._allocation.get_high_risk_exposure()
+        snap = self._allocation.snapshot()
+        return {
+            "high_risk_deployed": exposure["high_risk_deployed"],
+            "max_allowed": exposure["max_allowed_amount"],
+            "within_limit": exposure["within_limit"],
+            "total_capital": snap.total_capital,
+        }
+
+    def get_events(self, limit: int = 50) -> list[dict[str, Any]]:
+        """Get recent events."""
+        return []
+
+    def list_strategies(self) -> list[dict[str, Any]]:
+        """List all available strategies."""
+        strategies = get_all_strategies()
+        result = []
+        for s in strategies.values():
+            active = s.id in self._active_strategies
+            paused = self.is_strategy_paused(s.id)
+            deploy_info = self._active_strategies.get(s.id, {})
+            result.append(
+                {
+                    "id": s.id,
+                    "name": s.name,
+                    "type": s.type.value,
+                    "risk_level": s.risk_level.value,
+                    "description": s.description,
+                    "expected_roi_pct": s.expected_roi_pct,
+                    "max_drawdown_pct": s.max_drawdown_pct,
+                    "sharpe_target": s.sharpe_target,
+                    "active": active,
+                    "paused": paused,
+                    "total_deployed": deploy_info.get("total_deployed", 0.0),
+                }
+            )
+        return result
+
+    def deploy_strategy(self, strategy_id: str, amount: float) -> dict[str, Any]:
+        """Deploy capital to a strategy."""
+        return self.deploy(strategy_id, amount)
+
+    def allocate_payout(self, amount: float, source: str = "") -> dict[str, Any]:
+        """Allocate payout to investment capital."""
+        self._allocation.allocate_payout(amount, source)
+        return {"allocated": amount, "source": source}
+
+    def update_total_capital(self, total_usd: float) -> None:
+        """Update total investment capital."""
+        self._allocation.config.total_capital_usd = total_usd
+        self._allocation._save_config()
+        self._save_state()
+
+    def activate_max_revenue(self) -> dict[str, Any]:
+        """Activate maximum revenue mode."""
+        return self.activate_max_revenue_mode()
 
 
 _INSTANCE: InvestmentManager | None = None

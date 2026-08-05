@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from pydantic import BaseModel
 
 from core.investment.adapters import (
@@ -22,7 +22,7 @@ from core.investment.manager import get_investment_manager
 
 logger = logging.getLogger("orion.api.investment")
 
-router = APIRouter(tags=["investment"])
+router = APIRouter(prefix="/api/investment", tags=["investment"])
 
 # Global registry instance
 _registry: InvestmentAdapterRegistry | None = None
@@ -81,6 +81,23 @@ class AgentCreateRequest(BaseModel):
 
 class AgentRunRequest(BaseModel):
     agent_id: str
+
+
+class UpdateCapitalRequest(BaseModel):
+    total_usd: float
+
+
+class AllocatePayoutRequest(BaseModel):
+    amount: float
+    source: str = ""
+
+
+class DeployStrategyRequest(BaseModel):
+    amount: float
+
+
+class UpdateConfigRequest(BaseModel):
+    config: dict[str, Any]
 
 
 # ─── Adapter Management ───
@@ -514,10 +531,10 @@ async def list_strategies() -> dict[str, Any]:
 
 
 @router.post("/strategies/{strategy_id}/deploy")
-async def deploy_strategy(strategy_id: str, amount: float) -> dict[str, Any]:
+async def deploy_strategy(strategy_id: str, request: DeployStrategyRequest) -> dict[str, Any]:
     """Deploy capital to a strategy."""
     manager = get_investment_manager()
-    result = await manager.deploy_strategy(strategy_id, amount)
+    result = manager.deploy_strategy(strategy_id, request.amount)
     return {"success": result.get("success", False), "result": result}
 
 
@@ -526,7 +543,7 @@ async def pause_strategy(strategy_id: str) -> dict[str, Any]:
     """Pause a strategy."""
     manager = get_investment_manager()
     success = manager.pause_strategy(strategy_id)
-    return {"success": success}
+    return {"success": True, "paused": success}
 
 
 @router.post("/strategies/{strategy_id}/resume")
@@ -534,23 +551,23 @@ async def resume_strategy(strategy_id: str) -> dict[str, Any]:
     """Resume a strategy."""
     manager = get_investment_manager()
     success = manager.resume_strategy(strategy_id)
-    return {"success": success}
+    return {"success": True, "paused": not success}
 
 
 @router.post("/allocation/allocate-payout")
-async def allocate_payout(amount: float, source: str = "") -> dict[str, Any]:
+async def allocate_payout(request: AllocatePayoutRequest) -> dict[str, Any]:
     """Allocate payout to investment capital."""
     manager = get_investment_manager()
-    allocation = manager.allocate_payout(amount, source)
+    allocation = manager.allocate_payout(request.amount, request.source)
     return {"success": True, "allocation": allocation}
 
 
 @router.post("/allocation/update-capital")
-async def update_capital(total_usd: float) -> dict[str, Any]:
+async def update_capital(request: UpdateCapitalRequest) -> dict[str, Any]:
     """Update total investment capital."""
     manager = get_investment_manager()
-    manager.update_total_capital(total_usd)
-    return {"success": True}
+    manager.update_total_capital(request.total_usd)
+    return {"success": True, "total_capital_usd": request.total_usd}
 
 
 @router.post("/pause")
@@ -558,7 +575,7 @@ async def pause_all() -> dict[str, Any]:
     """Pause all investment strategies."""
     manager = get_investment_manager()
     manager.pause_all()
-    return {"success": True}
+    return {"success": True, "paused": True}
 
 
 @router.post("/resume")
@@ -566,22 +583,22 @@ async def resume_all() -> dict[str, Any]:
     """Resume all investment strategies."""
     manager = get_investment_manager()
     manager.resume_all()
-    return {"success": True}
+    return {"success": True, "paused": False}
 
 
 @router.post("/max-revenue")
 async def activate_max_revenue() -> dict[str, Any]:
     """Activate maximum revenue mode."""
     manager = get_investment_manager()
-    result = await manager.activate_max_revenue()
+    result = manager.activate_max_revenue()
     return {"success": True, "result": result}
 
 
 @router.post("/config")
-async def update_config(config: dict[str, Any]) -> dict[str, Any]:
+async def update_config(request: UpdateConfigRequest) -> dict[str, Any]:
     """Update investment configuration."""
     manager = get_investment_manager()
-    manager.update_config(config)
+    manager.update_config(**request.config)
     return {"success": True, "config": manager.get_config()}
 
 
