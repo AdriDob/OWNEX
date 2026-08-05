@@ -727,3 +727,30 @@ class TestBugBountyDweAdapter:
 
         names = [a.source.name for a in build_default_adapters()]
         assert "bugbounty" in names
+
+
+class TestCashflowRadarApi:
+    """Cashflow Radar endpoint: classify by horizon, digest + weekly plan."""
+
+    def test_radar_with_explicit_opportunities(self) -> None:
+        payload = {
+            "opportunities": [
+                op_dict(id="radar-1", payment=40.0, estimated_hours=2),
+                op_dict(id="radar-2", payment=200.0, estimated_hours=30),
+            ]
+        }
+        response = client.post("/direct-work/cashflow-radar", json=payload)
+        assert response.status_code == 200
+        body = response.json()
+        assert body["buckets"]["today"][0]["id"] == "radar-1"
+        assert body["buckets"]["week"][0]["id"] == "radar-2"
+        assert body["top_pick"]["id"] == "radar-1"
+        assert "daily_digest" in body
+        assert "weekly_plan" in body
+
+    def test_radar_empty_request_uses_workbank(self) -> None:
+        response = client.post("/direct-work/cashflow-radar", json={})
+        assert response.status_code == 200
+        body = response.json()
+        assert set(body["buckets"]) == {"today", "week", "growth"}
+        assert set(body["recommended_mix"]) == {"today", "week", "growth"}
