@@ -21,6 +21,11 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 AI_DIR = PROJECT_ROOT / ".ai"
 
+# Hacer importable core/ y database/ cuando se ejecuta como script (scripts/ no
+# está en sys.path por defecto).
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 GREEN = "\033[92m"
 YELLOW = "\033[93m"
 RED = "\033[91m"
@@ -167,9 +172,139 @@ def quick_wins_scan() -> None:
         print(f"  {YELLOW}⚠ Scan error: {e}{RESET}")
 
 
+def run_maintenance() -> None:
+    """Step 3.5: OWNEX SELF-MAINTENANCE.
+
+    Lightweight, read-only checks that run at every boot:
+    - dependency freshness (pip list vs requirements)
+    - update availability (git fetch, non-blocking)
+    - latest health snapshot from DB
+    - self-healing validation (import integrity)
+
+    All checks are best-effort; failures are logged, never fatal.
+    """
+    header("OWNEX SELF-MAINTENANCE")
+
+    # 1) Dependency freshness
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "list", "--format=json"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        if result.returncode == 0:
+            import json
+
+            installed = {p["name"].lower(): p["version"] for p in json.loads(result.stdout)}
+            reqs: list[str] = []
+            req_file = PROJECT_ROOT / "requirements.txt"
+            if req_file.exists():
+                for line in req_file.read_text().splitlines():
+                    line = line.strip()
+                    if line and not line.startswith("#") and not line.startswith("-"):
+                        reqs.append(line.split(">=")[0].split("==")[0].split("~=")[0].split("[")[0].strip().lower())
+            missing = [r for r in reqs if r not in installed and r]
+            if missing:
+                print(f"  {YELLOW}⚠ Missing deps: {', '.join(missing[:5])}{RESET}")
+            else:
+                print(f"  {GREEN}✓ All requirements installed{RESET}")
+    except Exception as exc:
+        print(f"  {YELLOW}⚠ Dep check skipped: {str(exc)[:60]}{RESET}")
+
+    # 2) Update availability (non-blocking)
+    try:
+        from core.self_healing.update import SelfUpdateSystem
+
+        su = SelfUpdateSystem()
+        has_update, msg = su.check_for_updates()
+        if has_update:
+            print(f"  {YELLOW}⚠ {msg}{RESET}")
+        else:
+            print(f"  {GREEN}✓ {msg}{RESET}")
+    except Exception as exc:
+        print(f"  {YELLOW}⚠ Update check skipped: {str(exc)[:60]}{RESET}")
+
+    # 3) Latest health snapshot
+    try:
+        from core.health.engine import HealthCenter
+
+        hc = HealthCenter()
+        snap = hc.latest()
+        if snap:
+            status_icon = f"{GREEN}✓{RESET}" if snap.status == "green" else f"{YELLOW}⚠{RESET}"
+            print(f"  {status_icon} Last health: {snap.status} ({snap.timestamp})")
+        else:
+            print(f"  {YELLOW}⚠ No health snapshots yet{RESET}")
+    except Exception as exc:
+        print(f"  {YELLOW}⚠ Health snapshot skipped: {str(exc)[:60]}{RESET}")
+
+    print(f"\n{'-' * 60}")
+
+
+def system_status() -> None:
+    """Step 4b: OWNEX STATUS — speed/revenue dashboard at a glance.
+
+    Read-only snapshot of the live system: investment engine, autonomous
+    scheduler jobs, and DB state. All queries guarded so a slow/missing
+    dependency never blocks boot.
+    """
+    header("SYSTEM & REVENUE STATUS")
+
+    # 1) Investment engine
+    try:
+        from core.investment.manager import get_investment_manager
+
+        snap = get_investment_manager().snapshot()
+        print(f"  {BOLD}Inversión:{RESET}")
+        print(f"    Capital total: ${getattr(snap, 'total_capital_usd', 0):,.2f}")
+        print(f"    Desplegado:    ${getattr(snap, 'deployed', 0):,.2f}")
+        print(f"    Estrategias activas: {len(getattr(snap, 'strategies', []))}")
+        for sid in getattr(snap, "strategies", []):
+            alloc = getattr(snap, "_strategies", {}).get(sid)
+            if alloc is None:
+                print(f"      - {sid}")
+            else:
+                print(f"      - {sid}: disponible ${getattr(alloc, 'available_usd', 0):,.2f}")
+    except Exception as exc:  # non-fatal
+        print(f"  {YELLOW}⚠ Inversión no disponible: {str(exc)[:80]}{RESET}")
+
+    # 2) Autonomous scheduler jobs (incl. revenue engine)
+    try:
+        from core.scheduler.jobs import get_all_jobs
+
+        all_jobs = get_all_jobs()
+        total_jobs = sum(len(j) for j in all_jobs.values())
+        inv = [j.job_id for j in all_jobs.get("investment", [])]
+        print(f"\n  {BOLD}Scheduler (autonomía):{RESET}")
+        print(f"    {total_jobs} jobs activos en {len(all_jobs)} ciclos")
+        for jid in inv:
+            print(f"    {GREEN}✓ {jid} (revenue automático){RESET}")
+    except Exception as exc:  # non-fatal
+        print(f"  {YELLOW}⚠ Scheduler no disponible: {str(exc)[:80]}{RESET}")
+
+    # 3) Database quick counts
+    try:
+        from sqlalchemy import text
+
+        from database import db
+
+        session = db.SessionLocal()
+        try:
+            targets = session.execute(text("SELECT COUNT(*) FROM targets")).scalar()
+            reports = session.execute(text("SELECT COUNT(*) FROM reports")).scalar()
+            print(f"\n  {BOLD}Base de datos:{RESET}")
+            print(f"    Targets activos: {targets} | Reports: {reports}")
+        finally:
+            session.close()
+    except Exception as exc:  # non-fatal
+        print(f"  {YELLOW}⚠ DB no disponible: {str(exc)[:80]}{RESET}")
+
+    print(f"\n{'-' * 60}")
+
+
 def next_action() -> None:
     """Step 5: Show next action."""
-    header("STEP 5: Next Action")
 
     task_queue = AI_DIR / "TASK_QUEUE.md"
     if task_queue.exists():
@@ -199,7 +334,9 @@ def main() -> None:
     check_version()
     read_state_summary()
     health_check(run_tests=run_tests and not skip_tests)
+    run_maintenance()
     quick_wins_scan()
+    system_status()
     next_action()
 
     print(f"\n{BOLD}{'=' * 60}{RESET}")

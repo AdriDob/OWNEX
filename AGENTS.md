@@ -281,3 +281,47 @@ opencode run "tarea" --model opencode/deepseek-v4-flash-free  # built-in free
 Todo el ecosistema comparte `~/.orion/config.sh`.
 Las variables clave (`ANTHROPIC_API_KEY`, `ANTHROPIC_BASE_URL`) están en `~/.bashrc`.
 
+══════════════════════════════════════════════
+MEMORY (your personal notes) [99% — 2,189/2,200 chars]
+══════════════════════════════════════════════
+User prefers immediate execution — 'dale' means execute immediately, no stopping, no status summaries mid-task. Deliver results directly, not plans or explanations.
+§
+OWNEX Desktop: Tauri v2 + Vue3 xterm.js (TerminalView.vue) + Py FastAPI WS sidecar (terminal_ws.py). WS: CSRF middleware `if scope["type"]=="websocket": return await call_next(request)`. Tailwind4: no @apply w/ opacity modifiers. Vue SFC: one <script setup>.
+§
+Senior bug bounty engineer with autonomous intelligence expertise (CATEYE/ORION), Spanish speaker, immediate execution preference. Works with Hermes, EventBus, multi-platform bug bounty systems.
+§
+WSL developer at /home/adrie/projects/Rastro using Hermes, FCC Proxy, OpenCode, Cline, Aider, Ollama, EventBus systems. Comfortable with git force push after risk assessment.
+§
+Architecture-level thinker (OODA/ROI), verification-first approach, parallel delegation preference. Demands empirical evidence over claims.
+§
+OWNEX Core Philosophy: Freedom First; Zero Barrier Entry (capacidad demostrable > burocracia); Maximum Value Generation (resultados, no actividad); Universal Solutions (multi-industria); Intelligence Before Action (entender→analizar→evaluar→proponer→ejecutar→aprender); Personal Technology Organization; Continuous Evolution (complejidad solo si aumenta libertad/valor/capacidad); Human Control (usuario = autoridad final); Ultimate Goal: 'Freedom through Intelligence'.
+§
+Rastro FastAPI: app.routes returns lazy _IncludedRouter stubs (9 routes only) — resolve real paths via app.openapi()['paths']. Routers use prefix /api/<name>; check app.openapi() for truth.
+§
+Rastro DB: database/db.py exports SessionLocal + engine (default sqlite:///./database/catseye.db); tables targets(id,name,domain,active), scan_runs, reports, verdicts, programs. Query with SessionLocal, not get_session.
+§
+Rastro twin trees core/ + cores/ (near-dups); import de core.investment; editar AMBOS. Runtime scheduler usa SOLO core/scheduler/jobs.py (cores/ es copia vieja). ccxt opcional (dry-run), en venv. `make test` full falla por tests PREEXISTENTES ajenos a revenue: test_desktop_release.py + test_e2e_copilot.py; alcance investment/scheduler verde vía make check.
+══════════════════════════════════════════════
+USER PROFILE (who the user is) [92% — 1,274/1,375 chars]
+══════════════════════════════════════════════
+Senior bug bounty engineer, Spanish, solo contributor. OWNEX/Rastro autonomous work OS.
+§
+"dale" = execute immediately, no stopping, no status summaries mid-task. Deliver the result, not the plan.
+§
+OWNEX is a private competitive advantage asset, NOT a SaaS product. "OWNEX no vende un servicio al cliente. OWNEX trabaja para mí."
+§
+REVENUE RULE: No feature enters roadmap without increasing vulnerability detection, evidence quality, acceptance probability, or system learning. No exceptions.
+§
+OWNEX v7.0.0: Multi-adapter (bug bounty, freelance, dev, data). OMEGA Constitution created. Self-Evolution Engine: DESIGN → PREPARE → VALIDATE → PROPOSE. High-risk changes blocked without approval.
+§
+Deniega repros inline python -c en el repo (exit -1): diagnosticar solo por lectura de código (read_file/search_files/git diff/log -S); pytest sí está permitido.
+§
+Frontend design mandate: NO arbitrary RGB colors — TESLA style (pure black bg, white primary action, Tesla red #e82127 as only saturated accent, desaturated status/platform colors, no color glows or color gradients). Full palette + migration workflow in skill design-system-specification.
+§
+Metas monetarias OWNEX (2026): min $25k/mes, objetivo $100k/mes, optimista $5M/año. Quiere operar a full la semana próxima.
+
+Conversation started: Tuesday, August 04, 2026
+Model: north-mini-code-free
+Provider: opencode-zen
+
+workspace folder: /home/adrie/projects/Rastro

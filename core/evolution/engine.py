@@ -23,6 +23,7 @@ class EvolutionCycleReport:
     health_before: dict[str, Any]
     timestamp: str
     proposals_count: int
+    performance_metrics: dict[str, Any] | None = None
 
 
 class EvolutionEngine:
@@ -349,7 +350,7 @@ class EvolutionEngine:
     def run_cycle(self) -> EvolutionCycleReport:
         """Run a full evolution cycle: observe → analyze → experiment → learn.
 
-        Returns a report with proposals and health_before metrics.
+        Returns a report with proposals, health_before, and performance_metrics.
         """
         # Observe: flush any buffered metrics
         self.flush_metric_buffer()
@@ -363,6 +364,9 @@ class EvolutionEngine:
             "timestamp": datetime.now(UTC).isoformat(),
             "modules": list(set(e.get("module") for e in recent_events if e.get("module"))),
         }
+
+        # Compute performance metrics from recent events
+        performance_metrics = self._compute_performance_metrics(recent_events)
 
         # Experiment: create proposals based on analysis
         proposals = []
@@ -409,7 +413,40 @@ class EvolutionEngine:
             health_before=health_before,
             timestamp=datetime.now(UTC).isoformat(),
             proposals_count=len(proposals),
+            performance_metrics=performance_metrics,
         )
+
+    def _compute_performance_metrics(self, events: list[dict[str, Any]]) -> dict[str, Any]:
+        """Compute performance metrics from a batch of metric events.
+
+        Returns:
+            execution_speed_avg_ms: average duration across all events
+            resource_avg_cpu: average CPU usage
+            resource_avg_memory_mb: average memory usage
+            task_success_rate: fraction of events with status == "success"
+            total_tasks: count of all events
+        """
+        if not events:
+            return {
+                "execution_speed_avg_ms": 0.0,
+                "resource_avg_cpu": 0.0,
+                "resource_avg_memory_mb": 0.0,
+                "task_success_rate": 1.0,
+                "total_tasks": 0,
+            }
+
+        durations = [e.get("duration_ms", 0) for e in events if e.get("duration_ms") is not None]
+        cpus = [e.get("cpu_percent", 0) for e in events if e.get("cpu_percent") is not None]
+        memories = [e.get("memory_mb", 0) for e in events if e.get("memory_mb") is not None]
+        successes = sum(1 for e in events if e.get("status") == "success")
+
+        return {
+            "execution_speed_avg_ms": round(sum(durations) / len(durations), 2) if durations else 0.0,
+            "resource_avg_cpu": round(sum(cpus) / len(cpus), 2) if cpus else 0.0,
+            "resource_avg_memory_mb": round(sum(memories) / len(memories), 2) if memories else 0.0,
+            "task_success_rate": round(successes / len(events), 4),
+            "total_tasks": len(events),
+        }
 
 
 # ── Singleton access ─────────────────────────────────────────

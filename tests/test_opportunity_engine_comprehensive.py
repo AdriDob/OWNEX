@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from core.opportunity.scoring import (
-    OpportunityEngine,
+    OpportunityEngineLegacy,
     PersonalHistoryTracker,
     Top5Engine,
     UnifiedScore,
@@ -366,14 +366,14 @@ class TestOpportunityEngine:
 
     def test_engine_initialization(self):
         """Test that OpportunityEngine initializes sub-components correctly."""
-        engine = OpportunityEngine()
+        engine = OpportunityEngineLegacy()
         assert isinstance(engine.unified_scorer, type)  # Should be the class
         assert isinstance(engine.top5, Top5Engine)
         assert isinstance(engine.tracker, PersonalHistoryTracker)
 
     def test_estimate_reward_with_program_tiers(self):
         """Test reward estimation when program has bounty tiers."""
-        engine = OpportunityEngine()
+        engine = OpportunityEngineLegacy()
 
         # Mock finding with target and program
         mock_finding = Mock(spec=Finding)
@@ -407,7 +407,7 @@ class TestOpportunityEngine:
 
     def test_estimate_reward_fallback_to_base_map(self):
         """Test reward estimation falls back to base map when no program tiers."""
-        engine = OpportunityEngine()
+        engine = OpportunityEngineLegacy()
 
         # Mock finding with no target/program
         mock_finding = Mock(spec=Finding)
@@ -421,7 +421,7 @@ class TestOpportunityEngine:
 
     def test_estimate_reward_edge_cases(self):
         """Test edge cases for reward estimation."""
-        engine = OpportunityEngine()
+        engine = OpportunityEngineLegacy()
 
         # Test unknown severity defaults to info (50) * 0.05 = 2.5
         mock_finding = Mock(spec=Finding)
@@ -439,7 +439,7 @@ class TestOpportunityEngine:
 
     def test_compute_opportunities_empty_database(self):
         """Test computing opportunities when no confirmed findings exist."""
-        engine = OpportunityEngine()
+        engine = OpportunityEngineLegacy()
 
         with patch("core.opportunity.scoring.db.SessionLocal") as mock_session:
             mock_session_instance = Mock()
@@ -451,7 +451,7 @@ class TestOpportunityEngine:
 
     def test_compute_opportunities_with_data(self):
         """Test computing opportunities with sample data."""
-        engine = OpportunityEngine()
+        engine = OpportunityEngineLegacy()
 
         # Create mock findings
         mock_finding1 = Mock(spec=Finding)
@@ -534,7 +534,7 @@ class TestOpportunityEngine:
 
     def test_record_feedback_accept(self):
         """Test recording acceptance feedback."""
-        engine = OpportunityEngine()
+        engine = OpportunityEngineLegacy()
 
         mock_finding = Mock(spec=Finding)
         mock_finding.id = 1
@@ -553,7 +553,7 @@ class TestOpportunityEngine:
 
     def test_record_feedback_reject(self):
         """Test recording rejection feedback."""
-        engine = OpportunityEngine()
+        engine = OpportunityEngineLegacy()
 
         mock_finding = Mock(spec=Finding)
         mock_finding.id = 1
@@ -571,14 +571,14 @@ class TestOpportunityEngine:
 
     def test_record_feedback_invalid_outcome(self):
         """Test that invalid outcome raises appropriate error."""
-        engine = OpportunityEngine()
+        engine = OpportunityEngineLegacy()
 
         with pytest.raises(ValueError, match="Invalid outcome"):
             engine.record_feedback(1, "invalid_outcome")
 
     def test_get_top5_by_domain_integration(self):
         """Test get_top5_by_domain integrates with compute_opportunities."""
-        engine = OpportunityEngine()
+        engine = OpportunityEngineLegacy()
 
         # Mock compute_opportunities to return known data
         mock_opportunities = [
@@ -607,7 +607,7 @@ class TestIntegrationScenarios:
     @pytest.mark.serial
     def test_full_scoring_workflow(self):
         """Test the complete workflow from feedback to score adjustment."""
-        engine = OpportunityEngine()
+        engine = OpportunityEngineLegacy()
         tracker = engine.tracker
 
         # Initial factor
@@ -660,7 +660,7 @@ class TestIntegrationScenarios:
 
     def test_diversification_with_personal_factors(self):
         """Test that personal factors affect diversification correctly."""
-        engine = OpportunityEngine()
+        engine = OpportunityEngineLegacy()
 
         # Create opportunities where personal factor would change ranking
         base_opportunity1 = UnifiedScore(

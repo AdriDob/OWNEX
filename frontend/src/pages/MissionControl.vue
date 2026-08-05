@@ -13,6 +13,7 @@ import AgentFleet from '@/components/mission-control/AgentFleet.vue'
 import OpportunityRadar from '@/components/mission-control/OpportunityRadar.vue'
 import KnowledgeFeed from '@/components/mission-control/KnowledgeFeed.vue'
 import DirectWorkRadar from '@/components/mission-control/DirectWorkRadar.vue'
+import GuidedDashboard from '@/components/guided-mode/GuidedDashboard.vue'
 import GoodMorning from '@/components/mission-control/GoodMorning.vue'
 import ReportPipeline from '@/components/dashboard/ReportPipeline.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
@@ -227,6 +228,9 @@ const feedItems = computed(() =>
 
       <!-- Row 2.7: Direct Work recommendations -->
       <DirectWorkRadar />
+
+      <!-- Row 2.8: Guided Dashboard (Mode Selector + First Day + Income Guidance + Work Bank) -->
+      <GuidedDashboard />
 
       <!-- Row 3: Report Pipeline (Daily/Weekly Top -->
       <ReportPipeline />

@@ -74,7 +74,7 @@ def app_icon_png(out: Path, width: int = 1024) -> Path:
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
     <linearGradient id="iconBg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="{C["surface_1"]}"/>
+      <stop offset="0%" stop-color="{C["surface"]}"/>
       <stop offset="100%" stop-color="{C["space_black"]}"/>
     </linearGradient>
     <linearGradient id="ringG" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -118,7 +118,7 @@ def main() -> None:
     app_icon_svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
     <linearGradient id="iconBg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="{C["surface_1"]}"/>
+      <stop offset="0%" stop-color="{C["surface"]}"/>
       <stop offset="100%" stop-color="{C["space_black"]}"/>
     </linearGradient>
   </defs>

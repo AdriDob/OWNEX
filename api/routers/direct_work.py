@@ -49,12 +49,24 @@ def _ensure_default_adapters(engine: DirectWorkEngine) -> None:
 
     Idempotent and never raises: a broken adapter must not take the engine down.
     """
+    from api.adapters.direct_work_bugbounty import BugBountyDweAdapter
     from api.adapters.legacy import build_default_adapters
 
     for adapter in build_default_adapters():
         if adapter.source.platform not in engine.discovery.adapters:
             engine.register_adapter(adapter)
             logger.info("Registered real discovery adapter: %s", adapter.source.name)
+
+    # Bug bounty adapter covers 4 public program datasets (HackerOne, Bugcrowd,
+    # Intigriti, YesWeHack). Register only if not already present.
+    if not any(hasattr(a, "source") and a.source.name == "bugbounty" for a in engine.discovery.adapters.values()):
+        try:
+            adapter = BugBountyDweAdapter()
+            if adapter.source.platform not in engine.discovery.adapters:
+                engine.register_adapter(adapter)
+                logger.info("Registered bug bounty adapter (4 public datasets)")
+        except Exception as exc:  # pragma: no cover
+            logger.warning("Could not register bug bounty adapter: %s", exc)
 
 
 def get_engine() -> DirectWorkEngine:
@@ -905,3 +917,58 @@ def register_adapter(adapter: BaseDiscoveryAdapter) -> None:
     """Register a real discovery adapter into the engine singleton."""
     get_engine().register_adapter(adapter)
     logger.info("Registered discovery adapter: %s", adapter.source.name)
+
+
+class DiscoveredPlatformResponse(BaseModel):
+    url: str
+    title: str
+    domain: str
+    ev_score: float
+    zero_barrier_signals: int
+    has_zero_barrier_language: bool
+    discovered_at: str
+    source: str = "web"
+
+
+@router.get("/discovered-platforms")
+async def get_discovered_platforms(limit: int = 50, min_ev: float = 0.0) -> dict[str, Any]:
+    """Get platforms discovered by the autonomous research engine, ranked by Expected Value.
+
+    Returns the best zero-barrier platforms discovered from GitHub API, aggregators,
+    and web research. Sorted by EV (payout × success_rate / time_invested) descending.
+    """
+    from cores.direct_work_engine.autonomous_discovery import AutonomousDiscoveryEngine, DiscoveryConfig
+
+    config = DiscoveryConfig(max_platforms_to_research=limit)
+    engine = AutonomousDiscoveryEngine(config)
+
+    try:
+        await engine._research_new_platforms()
+
+        platforms = sorted(engine.discovered_platforms.values(), key=lambda p: p.get("ev_score", 0), reverse=True)
+
+        # Filter by min EV
+        platforms = [p for p in platforms if p.get("ev_score", 0) >= min_ev]
+
+        return {
+            "total_discovered": len(engine.discovered_platforms),
+            "returned": len(platforms[:limit]),
+            "platforms": [
+                {
+                    "url": p.get("url"),
+                    "title": p.get("title"),
+                    "domain": p.get("domain"),
+                    "ev_score": p.get("ev_score", 0),
+                    "zero_barrier_signals": p.get("zero_barrier_signals", 0),
+                    "has_zero_barrier_language": p.get("has_zero_barrier_language", False),
+                    "discovered_at": p.get("discovered_at"),
+                    "source": p.get("source", "web"),
+                }
+                for p in platforms[:limit]
+            ],
+        }
+    except Exception as e:
+        logger.exception("Failed to get discovered platforms: %s", e)
+        return {"total_discovered": 0, "returned": 0, "platforms": [], "error": str(e)}
+    finally:
+        await engine.stop()
