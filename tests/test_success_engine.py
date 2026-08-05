@@ -82,8 +82,8 @@ def test_after_full_plan_respects_category_ceiling() -> None:
     engine = SuccessRateEngine()
     annotation = dict(SAMPLE_OPPORTUNITY, category="data_annotation", platform="labeler")
     pred = engine.analyze(annotation).prediction
-    assert pred.probability_after_full_plan <= 0.93
-    assert pred.probability_after_full_plan >= 0.90
+    assert pred.probability_after_full_plan <= 0.95
+    assert pred.probability_after_full_plan >= 0.92
 
 
 def test_after_full_plan_never_exceeds_honest_cap() -> None:
@@ -95,7 +95,34 @@ def test_after_full_plan_never_exceeds_honest_cap() -> None:
 
 def test_game_dev_after_full_plan() -> None:
     plan = SuccessRateEngine().analyze(SAMPLE_OPPORTUNITY)
-    assert plan.prediction.probability_after_full_plan == pytest.approx(0.68, abs=0.01)
+    assert plan.prediction.probability_after_full_plan == pytest.approx(0.70, abs=0.01)
+
+
+def test_dwe_alias_game_development_maps_to_game_dev() -> None:
+    aliased = dict(SAMPLE_OPPORTUNITY, category="game_development")
+    canonical = dict(SAMPLE_OPPORTUNITY, category="game_dev")
+    a = SuccessRateEngine().analyze(aliased).prediction
+    b = SuccessRateEngine().analyze(canonical).prediction
+    assert a.probability == b.probability
+    assert a.probability_after_full_plan == b.probability_after_full_plan
+
+
+def test_new_high_yield_categories_are_usable() -> None:
+    engine = SuccessRateEngine()
+    for category, min_after in [("ai_evaluation", 0.90), ("synthetic_data", 0.88), ("web_scraping", 0.72)]:
+        pred = engine.analyze(dict(SAMPLE_OPPORTUNITY, category=category, platform="x")).prediction
+        assert pred.probability_after_full_plan >= min_after, category
+
+
+def test_no_dwe_category_falls_to_general() -> None:
+    from cores.direct_work_engine.models import OpportunityCategory
+    from cores.direct_work_engine.success_engine import CATEGORY_BASE_ACCEPTANCE
+
+    engine = SuccessRateEngine()
+    for cat in OpportunityCategory:
+        plan = engine.analyze(dict(SAMPLE_OPPORTUNITY, category=cat.value, platform="x"))
+        assert plan.intelligence.category != "general", cat.value
+        assert cat.value in CATEGORY_BASE_ACCEPTANCE
 
 
 def test_multi_pass_engineering_generates_candidates_and_keeps_best() -> None:
