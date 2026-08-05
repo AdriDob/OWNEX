@@ -151,6 +151,47 @@ class UniversalDiscovery:
         """Register a discovery source (may not have adapter yet)."""
         self.sources[source.name] = source
 
+    def register_discovered_platform(self, platform_info: dict[str, Any]) -> bool:
+        """Register a dynamically discovered platform from the WebResearcher.
+
+        Auto-creates a generic adapter for the discovered URL so the engine
+        can evaluate it on the next discovery cycle. Returns True if a new
+        adapter was registered.
+        """
+        from cores.direct_work_engine.autonomous_discovery import DynamicPlatformAdapter
+        from cores.direct_work_engine.models import (
+            OpportunityCategory,
+        )
+
+        domain = platform_info.get("domain", "")
+        url = platform_info.get("url", "")
+        platform = WorkPlatform.OTHER
+
+        # Try to match by domain to a known WorkPlatform
+        for wp in WorkPlatform:
+            if wp.value and wp.value in domain:
+                platform = wp
+                break
+
+        adapter_name = f"dynamic_{domain}"
+        if adapter_name in self.sources:
+            return False
+
+        adapter = DynamicPlatformAdapter(
+            DiscoverySource(
+                name=adapter_name,
+                platform=platform,
+                categories=[OpportunityCategory.SOFTWARE_ENGINEERING],
+                tier=3,  # manual setup tier
+                analysis_cadence_hours=168,
+            ),
+            platform_url=url,
+            domain=domain,
+            zero_barrier_signals=platform_info.get("zero_barrier_signals", 0),
+        )
+        self.register_adapter(adapter)
+        return True
+
     async def discover_all(
         self,
         categories: list[OpportunityCategory] | None = None,

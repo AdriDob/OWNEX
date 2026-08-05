@@ -5,20 +5,36 @@ Never modifies pipeline data. All outputs are metadata and recommendations.
 Supports advanced layered scoring, EVH, and identity vault integration.
 """
 
-from cores.opportunity.engine import OpportunityEngine, get_engine
+from cores.opportunity.engine import (
+    Opportunity,
+    OpportunityCategory,
+    OpportunityEngine,
+    OpportunityFilter,
+    OpportunityRanker,
+    OpportunitySource,
+    RankedOpportunity,
+    get_engine,
+    get_opportunity_engine,
+)
 from cores.opportunity.history import HistoryManager, get_history_manager
 from cores.opportunity.models import (
     EVHCalculation,
     EVHRating,
     IdentityVaultEntry,
-    Opportunity,
-    OpportunityCategory,
     OpportunityProviderInfo,
     OpportunityRecommendations,
     OpportunityScore,
     OpportunitySnapshot,
-    OpportunitySource,
     ScoreBreakdown,
+)
+from cores.opportunity.models import (
+    Opportunity as LegacyOpportunity,
+)
+from cores.opportunity.models import (
+    OpportunityCategory as LegacyOpportunityCategory,
+)
+from cores.opportunity.models import (
+    OpportunitySource as LegacyOpportunitySource,
 )
 from cores.opportunity.providers import (
     AllSourcesProvider,
@@ -36,19 +52,20 @@ from cores.opportunity.scoring2 import _score_to_priority, compute_evh, compute_
 score_opportunity = compute_layered_score
 
 __all__ = [
-    "Opportunity",
-    "OpportunitySource",
+    "OpportunityEngine",
+    "get_opportunity_engine",
     "OpportunityCategory",
-    "OpportunityScore",
-    "ScoreBreakdown",
-    "OpportunitySnapshot",
-    "OpportunityProviderInfo",
-    "OpportunityRecommendations",
+    "OpportunitySource",
+    "Opportunity",
+    "RankedOpportunity",
+    "OpportunityFilter",
+    "OpportunityRanker",
     "EVHCalculation",
     "EVHRating",
     "IdentityVaultEntry",
-    "OpportunityEngine",
-    "get_engine",
+    "OpportunityRecommendations",
+    "EVHCalculation",
+    "EVHRating",
     "BaseProvider",
     "get_providers",
     "ManualProvider",

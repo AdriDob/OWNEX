@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#08090A"/>
+
+  <!-- Geometric mark (large, subtle) -->
+  <g opacity="0.05">
+    <circle cx="600" cy="315" r="200" stroke="#F6F8FB" stroke-width="30" fill="none"/>
+    <path d="M600 115 L600 215 L820 315 L600 415 L600 515 L380 315 L600 115 Z" fill="#F6F8FB"/>
+    <circle cx="600" cy="315" r="50" fill="#08090A" stroke="#F6F8FB" stroke-width="15"/>
+  </g>
+
+  <!-- Content -->
+  <g transform="translate(600, 315)">
+    <!-- Wordmark -->
+    <text x="0" y="20" text-anchor="middle" font-family="'Inter Display', 'Inter', system-ui, sans-serif" font-weight="700" font-size="80" letter-spacing="-0.02em" fill="#F6F8FB">OWNEX</text>
+
+    <!-- Tagline -->
+    <text x="0" y="70" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-weight="400" font-size="20" letter-spacing="0.02em" fill="#8B8D98">The Personalized Autonomous Operating System</text>
+
+    <!-- Accent line -->
+    <rect x="-80" y="100" width="160" height="2" fill="#5E6AD2"/>
+  </g>
+</svg>

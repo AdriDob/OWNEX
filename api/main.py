@@ -44,6 +44,7 @@ from api.routers import (
     cycles,
     daily,
     daily_mode,
+    decision,
     devin,
     differential_intelligence,
     digest,
@@ -53,12 +54,13 @@ from api.routers import (
     endpoints,
     enhanced_personalization,
     evidence,
-    fiverr,
     evolution,
     execution,
+    finance,
     financial_sync,
     financial_truth,
     findings,
+    fiverr,
     forge_app,
     forge_cycle,
     hunt,
@@ -106,10 +108,12 @@ from api.routers import (
     qa_cycle,
     quick_wins,
     recon,
+    remote_control,
     report_pipeline,
     reports,
     reports_acceptance,
     reports_quality,
+    result_based,
     revenue,
     revenue_app,
     revenue_multiplier,
@@ -1584,11 +1588,15 @@ app.include_router(opensource.router)
 app.include_router(zero_barrier.router)
 app.include_router(direct_work.router)
 app.include_router(fiverr.router)
+app.include_router(decision.router)
+app.include_router(result_based.router)
 app.include_router(career.router)
 app.include_router(oar.router)
+app.include_router(remote_control.router)
 app.include_router(capability_expansion.router)
 app.include_router(capability_expansion.capabilities_router)
 app.include_router(version_backup.router)
+app.include_router(finance.router)  # Personal Finance Command Center
 
 # Setup router
 app.include_router(setup.router)

@@ -179,7 +179,16 @@ class TestSecurityJobs:
 class TestGetAllJobs:
     def test_returns_dict_with_eight_cycles(self):
         all_jobs = get_all_jobs()
-        assert set(all_jobs.keys()) == {"security", "forge", "pulse", "vault", "atlas", "direct_work", "investment", "qa"}
+        assert set(all_jobs.keys()) == {
+            "security",
+            "forge",
+            "pulse",
+            "vault",
+            "atlas",
+            "direct_work",
+            "investment",
+            "qa",
+        }
 
     def test_all_cycles_have_lists(self):
         for _cycle, jobs in get_all_jobs().items():
@@ -188,7 +197,7 @@ class TestGetAllJobs:
 
     def test_total_jobs_count(self):
         total = sum(len(jobs) for jobs in get_all_jobs().values())
-        assert total == 29
+        assert total == 30
 
     def test_all_jobs_have_unique_ids(self):
         all_ids = []

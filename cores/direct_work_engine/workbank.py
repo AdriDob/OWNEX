@@ -44,13 +44,20 @@ PLATFORM_ACCESS: dict[str, tuple[str, str]] = {
     "bugcrowd": ("needs_api_key", "Configurar BUGGROWD_API_KEY en opportunity.env para envío y sync de earnings."),
     "intigriti": ("needs_api_key", "Configurar INTIGRITI_API_KEY en opportunity.env para envío y sync de earnings."),
     "yeswehack": ("needs_api_key", "Configurar YESWEHACK_API_KEY en opportunity.env para envío y sync de earnings."),
-    "immunefi": ("needs_api_key", "Configurar IMMUNEFI_API_KEY en opportunity.env para envío y sync de earnings."),
+    "imunefi": ("needs_api_key", "Configurar IMMUNEFI_API_KEY en opportunity.env para envío y sync de earnings."),
     "opencollective": ("needs_manual_setup", "Presentar una propuesta de financiamiento en cada colectivo."),
     "freelancer": ("needs_manual_setup", "Completar el perfil y verificar el método de pago en Freelancer."),
     "outlier": ("needs_manual_setup", "Crear cuenta y completar la prueba inicial en Outlier."),
     "mindrift": ("needs_manual_setup", "Crear cuenta y completar el onboarding de Mindrift."),
     "upwork": ("needs_manual_setup", "Crear perfil y conectar método de pago en Upwork."),
 }
+
+# Bug bounty platforms require only free registration (open programs). The
+# platform handles program discovery and submission publicly. These are
+# considered "public" access in the work bank.
+# (overrides for platforms whose access_status differs from PLATFORM_ACCESS above)
+_BUG_BOUNTY_PLATFORMS = {"hackerone", "bugcrowd", "intigriti", "yeswehack"}
+_PLATFORM_ACCESS_OVERRIDE: dict[str, tuple[str, str]] = {p: ("public", "") for p in _BUG_BOUNTY_PLATFORMS}
 
 # Single source of truth for discovery tiering: how autonomous a source is.
 # tier 1 = public, fully autonomous   → scan several times a day
@@ -144,7 +151,16 @@ class WorkBank:
             if opp.category.value in excluded:
                 rejected[opp.id] = ["excluded_category"]
                 continue
-            if profile is not None and profile.min_payment > 0.0 and opp.payment < profile.min_payment:
+            if (
+                profile is not None
+                and profile.min_payment > 0.0
+                and opp.payment < profile.min_payment
+                and opp.category != OpportunityCategory.BUG_BOUNTY
+            ):
+                # Bug bounty programs with *unknown* payout (payment == 0) are still
+                # real, open, public programs. Keep them if the zero-barrier score is
+                # high enough — the payout is "to be determined" by the discovery,
+                # not zero.
                 rejected[opp.id] = ["below_min_payment"]
                 continue
             reasons = strict_filter.reject(opp)
@@ -161,8 +177,9 @@ class WorkBank:
         new_count = 0
         for opp, barrier in selected:
             platform_key = opp.platform.value if hasattr(opp.platform, "value") else str(opp.platform)
-            access_status, requirement = PLATFORM_ACCESS.get(
-                platform_key, ("needs_manual_setup", "Configurar el acceso a la plataforma.")
+            access_status, requirement = _PLATFORM_ACCESS_OVERRIDE.get(
+                platform_key,
+                PLATFORM_ACCESS.get(platform_key, ("needs_manual_setup", "Configurar el acceso a la plataforma.")),
             )
 
             item = WorkItem(
@@ -336,6 +353,24 @@ def run_daily_cycle(target: int | None = None, opportunities: list[Opportunity] 
         if found is None:
             found = asyncio.run(engine.discovery.discover_all())
         found = found or []
+
+        # 2. Register the bug bounty adapter so live program data is included.
+        try:
+            from api.adapters.direct_work_bugbounty import BugBountyDweAdapter
+
+            if "bugbounty" not in {a.__class__.__name__ for a in engine.discovery.adapters.values()}:
+                engine.register_adapter(BugBountyDweAdapter())
+        except Exception as exc:  # pragma: no cover
+            logger.warning("run_daily_cycle: could not register bugbounty adapter: %s", exc)
+
+        # 3. Register newly discovered platforms from autonomous engine
+        try:
+            registered = asyncio.run(engine.register_discovered_platforms())
+            if registered > 0:
+                logger.info("Registered %d newly discovered platforms", registered)
+        except Exception as exc:
+            logger.warning("run_daily_cycle: could not register discovered platforms: %s", exc)
+
         profile = UserProfile(
             name="Adriel",
             country="Argentina",

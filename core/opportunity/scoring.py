@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from enum import StrEnum
 
 from database import db
 from database.models import Finding
@@ -163,8 +162,8 @@ _TIER_SEV_MULT = {"critical": 1.0, "high": 0.7, "medium": 0.3, "low": 0.1, "info
 _FALLBACK_SEV_MULT = {"info": 0.05}
 
 
-class OpportunityEngine:
-    """Main orchestrator for scoring and prioritization."""
+class OpportunityEngineLegacy:
+    """Legacy orchestrator for scoring and prioritization (Finding-based)."""
 
     def __init__(self) -> None:
         self.unified_scorer = UnifiedScore
@@ -243,9 +242,8 @@ class OpportunityEngine:
         candidates = self.compute_opportunities(limit)
         return self.top5.compute(candidates)
 
-    def record_feedback(self, finding_id: int, outcome: str | FeedbackOutcome) -> None:
-        outcome_str = outcome.value if isinstance(outcome, FeedbackOutcome) else outcome
-        if outcome_str == "accept":
+    def record_feedback(self, finding_id: int, outcome: str) -> None:
+        if outcome == "accept":
             session = db.SessionLocal()
             try:
                 finding = session.query(Finding).filter(Finding.id == finding_id).first()
@@ -255,7 +253,7 @@ class OpportunityEngine:
                     )
             finally:
                 session.close()
-        elif outcome_str == "reject":
+        elif outcome == "reject":
             session = db.SessionLocal()
             try:
                 finding = session.query(Finding).filter(Finding.id == finding_id).first()
@@ -266,19 +264,14 @@ class OpportunityEngine:
             finally:
                 session.close()
         else:
-            raise ValueError(f"Invalid outcome: {outcome_str}")
+            raise ValueError(f"Invalid outcome: {outcome}")
 
 
-class FeedbackOutcome(StrEnum):
-    ACCEPT = "accept"
-    REJECT = "reject"
+_LEGACY_ENGINE: OpportunityEngineLegacy | None = None
 
 
-_ENGINE: OpportunityEngine | None = None
-
-
-def get_engine() -> OpportunityEngine:
-    global _ENGINE
-    if _ENGINE is None:
-        _ENGINE = OpportunityEngine()
-    return _ENGINE
+def get_legacy_engine() -> OpportunityEngineLegacy:
+    global _LEGACY_ENGINE
+    if _LEGACY_ENGINE is None:
+        _LEGACY_ENGINE = OpportunityEngineLegacy()
+    return _LEGACY_ENGINE
