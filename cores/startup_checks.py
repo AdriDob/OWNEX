@@ -18,7 +18,6 @@ from datetime import UTC, datetime, timedelta
 from cores.notifications.action_required import (
     notify_action_required,
     notify_credentials_missing,
-    notify_funding_needed,
     notify_scope_unverified,
     notify_system_stalled,
 )
