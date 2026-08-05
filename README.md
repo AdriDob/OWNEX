@@ -1,5 +1,6 @@
 # OWNEX — Autonomous Operating System
 
+<!-- HERO BANNER -->
 <div align="center">
 
 <img src="assets/logos/ownex-lockup.svg"
@@ -29,16 +30,9 @@ attack surface intelligence. Corre 100% local, sin dependencia cloud.</em>
 
 </div>
 
----
+<!-- END HERO BANNER -->
 
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Vue 3](https://img.shields.io/badge/Vue_3-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescript.org/)
-[![Tests](https://img.shields.io/badge/tests-122%20passing-22c55e)](https://github.com/AdriDob/rastrohunteralpha/actions)
-[![License](https://img.shields.io/badge/License-Proprietary-ef4444)](LICENSE)
-
-## Project Identity
+## Overview
 
 **OWNEX** is the **Personalized Autonomous Operating System** that discovers opportunities, executes technical work, learns from outcomes, and evolves its own operation — from a desktop command center to your phone and wrist.
 
@@ -533,12 +527,6 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed release history.
 |**Do I need API keys?|**
 
 |Only for optional cloud AI inference, platform connectors (HackerOne, Bugcrowd, etc.), and external integrations. The core works offline with local models.
-
-## Revenue Targets 2026
-
-- **Minimum:** $25K/month (sustainable operations)
-- **Target:** $100K/month (growth phase)
-- **Optimistic:** $5M/year (full commercialization)
 
 OWNEX is actively pursuing enterprise partnerships and bug bounty contracts to achieve these revenue milestones through autonomous discovery, execution, and learning systems.
 
