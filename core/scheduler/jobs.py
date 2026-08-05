@@ -410,6 +410,24 @@ def get_qa_jobs() -> list[JobDefinition]:
     ]
 
 
+def get_evolution_jobs() -> list[JobDefinition]:
+    """EVOLUTION jobs — daily self-audit of the system.
+
+    Jobs:
+    - evolution_report_daily: generate + persist Daily Optimization Report (06:45)
+    """
+    return [
+        _cron_job(
+            job_id="evolution_report_daily",
+            app_id="evolution",
+            handler="core.cycles.tasks:run_daily_evolution_report",
+            cron="45 6 * * *",
+            args=[],
+            metadata={"cycle": "evolution", "type": "audit", "desc": "reporte de optimizacion diario persistido"},
+        ),
+    ]
+
+
 def get_all_jobs() -> dict[str, list[JobDefinition]]:
     """Return all cycle jobs."""
     return {
@@ -421,4 +439,5 @@ def get_all_jobs() -> dict[str, list[JobDefinition]]:
         "direct_work": get_direct_work_jobs(),
         "investment": get_investment_jobs(),
         "qa": get_qa_jobs(),
+        "evolution": get_evolution_jobs(),
     }

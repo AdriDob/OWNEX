@@ -39,6 +39,32 @@ def run_qa_cycle(*args: Any, **kwargs: Any) -> dict[str, Any]:
         return {"status": "error", "message": str(e)}
 
 
+def run_daily_evolution_report(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    """Auto-run the Daily Optimization Report and persist it.
+
+    Called every day by the scheduler after the Work Bank cycle: the system
+    audits itself (improvements, performance, automation, problems, next
+    actions) and stores the snapshot + digest for trend history.
+    """
+    from cores.direct_work_engine.maximum_potential import (
+        get_evolution_report,
+        save_daily_report,
+    )
+
+    try:
+        report = get_evolution_report()
+        path = save_daily_report(report)
+        return {
+            "status": "ok",
+            "report_path": path,
+            "digest": report.get("digest", {}).get("text", ""),
+            "trend": report.get("trend", {}),
+        }
+    except Exception as e:  # noqa: BLE001
+        logger.warning("Could not auto-run evolution report: %s", e)
+        return {"status": "error", "message": str(e)}
+
+
 def auto_start_security_cycle(*args: Any, **kwargs: Any) -> dict[str, Any]:
     """Auto-start the Security Cycle if it is idle/inactive.
 
