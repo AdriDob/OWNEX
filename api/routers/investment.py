@@ -644,6 +644,9 @@ async def ccxt_info(exchange: str = "binance") -> dict[str, Any]:
     registry = get_registry()
     adapter = registry.get_adapter("ccxt")
     if not adapter:
+        await registry.initialize_all()
+        adapter = registry.get_adapter("ccxt")
+    if not adapter:
         raise HTTPException(status_code=404, detail="CCXT adapter not available")
     try:
         info = await adapter.get_exchange_info()
