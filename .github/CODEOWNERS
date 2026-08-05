@@ -1,0 +1,45 @@
+# OWNEX Repository - Code Owners
+# These owners will be automatically requested for review when someone opens a pull request.
+
+# Global owners (required for all PRs)
+* @AdriDob
+
+# Backend
+/api/ @AdriDob
+/core/ @AdriDob
+/cores/ @AdriDob
+/scripts/ @AdriDob
+/run.py @AdriDob
+/requirements*.txt @AdriDob
+/pyproject.toml @AdriDob
+
+# Frontend
+/frontend/ @AdriDob
+/frontend/src/ @AdriDob
+/frontend/package*.json @AdriDob
+/frontend/vite.config.ts @AdriDob
+/frontend/biome.json @AdriDob
+
+# Mobile
+/android/ @AdriDob
+/wearos/ @AdriDob
+
+# Documentation
+/docs/ @AdriDob
+/README.md @AdriDob
+/CHANGELOG.md @AdriDob
+/CONTRIBUTING.md @AdriDob
+
+# Infrastructure
+/.github/ @AdriDob
+/Dockerfile* @AdriDob
+/docker-compose* @AdriDob
+/Makefile @AdriDob
+/scripts/ @AdriDob
+
+# Brand & Assets
+/assets/ @AdriDob
+/scripts/brand/ @AdriDob
+
+# AI & Strategy
+/.ai/ @AdriDob

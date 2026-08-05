@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1260" width="2400" height="1260"><defs>
+    <radialGradient id="glow" cx="50%" cy="38%" r="55%">
+      <stop offset="0%" stop-color="#00D5FF" stop-opacity="0.16"/>
+      <stop offset="45%" stop-color="#00D5FF" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#05060A" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#05060A"/>
+      <stop offset="100%" stop-color="#080B14"/>
+    </linearGradient>
+  </defs>
+  <rect width="2400" height="1260" fill="url(#sky)"/>
+  <rect width="2400" height="1260" fill="url(#glow)"/>
+  <line x1="0" y1="0" x2="0" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="120" y1="0" x2="120" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="240" y1="0" x2="240" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="360" y1="0" x2="360" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="480" y1="0" x2="480" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="600" y1="0" x2="600" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="720" y1="0" x2="720" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="840" y1="0" x2="840" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="960" y1="0" x2="960" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="1080" y1="0" x2="1080" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="1200" y1="0" x2="1200" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="1320" y1="0" x2="1320" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="1440" y1="0" x2="1440" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="1560" y1="0" x2="1560" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="1680" y1="0" x2="1680" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="1800" y1="0" x2="1800" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="1920" y1="0" x2="1920" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="2040" y1="0" x2="2040" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="2160" y1="0" x2="2160" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="2280" y1="0" x2="2280" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="2400" y1="0" x2="2400" y2="1260" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="0" x2="2400" y2="0" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="120" x2="2400" y2="120" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="240" x2="2400" y2="240" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="360" x2="2400" y2="360" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="480" x2="2400" y2="480" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="600" x2="2400" y2="600" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="720" x2="2400" y2="720" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="840" x2="2400" y2="840" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="960" x2="2400" y2="960" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="1080" x2="2400" y2="1080" stroke="#0C1220" stroke-width="1"/><line x1="0" y1="1200" x2="2400" y2="1200" stroke="#0C1220" stroke-width="1"/>
+  <line x1="60" y1="60" x2="106" y2="60" stroke="#1E2A3D" stroke-width="2"/><line x1="60" y1="60" x2="60" y2="106" stroke="#1E2A3D" stroke-width="2"/><line x1="2340" y1="60" x2="2294" y2="60" stroke="#1E2A3D" stroke-width="2"/><line x1="2340" y1="60" x2="2340" y2="106" stroke="#1E2A3D" stroke-width="2"/><line x1="60" y1="1200" x2="106" y2="1200" stroke="#1E2A3D" stroke-width="2"/><line x1="60" y1="1200" x2="60" y2="1154" stroke="#1E2A3D" stroke-width="2"/><line x1="2340" y1="1200" x2="2294" y2="1200" stroke="#1E2A3D" stroke-width="2"/><line x1="2340" y1="1200" x2="2340" y2="1154" stroke="#1E2A3D" stroke-width="2"/>
+  
+  <text x="1200" y="972" text-anchor="middle" font-family="Space Grotesk, sans-serif"
+        font-weight="700" font-size="150" fill="#F6F8FB" letter-spacing="14">OWNEX</text>
+  <text x="1200" y="1040" text-anchor="middle" font-family="Inter, sans-serif"
+        font-size="34" fill="#8A94A6" letter-spacing="10">AUTONOMOUS PERSONAL OPERATING SYSTEM</text>
+  <g>
+    <rect x="950" y="1092" width="210" height="54" rx="27" fill="none" stroke="#00D5FF" stroke-width="2"/>
+    <text x="1055" y="1128" text-anchor="middle" font-family="JetBrains Mono, monospace"
+          font-size="20" fill="#00D5FF" letter-spacing="4">ALPHA</text>
+    <rect x="1190" y="1092" width="210" height="54" rx="27" fill="none" stroke="#00E39A" stroke-width="2"/>
+    <text x="1295" y="1128" text-anchor="middle" font-family="JetBrains Mono, monospace"
+          font-size="20" fill="#00E39A" letter-spacing="4">OMEGA</text>
+  </g>
+  <line x1="260" y1="1176" x2="2140" y2="1176" stroke="#141B2C" stroke-width="1"/>
+  <text x="1200" y="1222" text-anchor="middle" font-family="JetBrains Mono, monospace"
+        font-size="22" fill="#3D4A63" letter-spacing="6">AGENTS · MEMORY · EVOLUTION · WORKFLOWS · TERMINAL</text>
+  <g transform="translate(944, 270) scale(1.0)"><g transform="translate(-256, -256) scale(1.45)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  
+  <defs>
+    <linearGradient id="markGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D5FF"/>
+      <stop offset="100%" stop-color="#1E40FF"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D5FF"/>
+      <stop offset="100%" stop-color="#1E40FF" stop-opacity="0.6"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g transform="scale(1.0)">
+    
+  <g id="ownex-mark" filter="url(#glow)">
+    <path d="M 410.9 101.1 L 384.0 128.0 L 258.8 253.2 L 245.4 239.7 L 239.7 245.4 L 253.2 258.8 L 128.0 384.0 L 101.1 410.9 Z" fill="url(#markGrad)"/>
+    <path d="M 410.9 101.1 L 384.0 128.0 L 258.8 253.2 L 272.3 239.7 L 266.6 245.4 L 253.2 258.8 L 128.0 384.0 L 101.1 410.9 Z" fill="url(#markGrad)"/>
+    <circle cx="256.0" cy="256.0" r="248" fill="none" stroke="#00D5FF" stroke-width="2.5" opacity="0.35"/>
+    <rect x="252.0" y="252.0" width="8" height="8" rx="2" fill="url(#markGrad)"/>
+  </g>
+  </g>
+</svg></g></g>
+</svg>

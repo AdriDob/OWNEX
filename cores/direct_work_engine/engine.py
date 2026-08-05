@@ -55,11 +55,13 @@ class DirectWorkEngine:
         recommender: IntelligentRecommender | None = None,
         recommender_config: RecommenderConfig | None = None,
         profile_builder: IntelligentProfileBuilder | None = None,
+        researcher: Any | None = None,
     ):
         self.discovery = discovery or UniversalDiscovery()
         self.scorer = scorer or ZeroBarrierScorer()
         self.recommender = recommender or IntelligentRecommender(config=recommender_config)
         self.profile_builder = profile_builder or IntelligentProfileBuilder()
+        self.researcher = researcher
         self.stats = EngineStats()
         self._running = False
 
@@ -142,6 +144,33 @@ class DirectWorkEngine:
         Empty history is a no-op — OWNEX never invents success rates.
         """
         return apply_learning(profile, records)
+
+    async def register_discovered_platforms(self) -> int:
+        """Register newly discovered platforms from AutonomousDiscoveryEngine.
+
+        Returns the number of new platforms registered.
+        """
+        if self.researcher is None:
+            return 0
+
+        # Get discovered platforms from the autonomous engine
+        discovered = getattr(self.researcher, "discovered_platforms", {})
+        if not discovered:
+            return 0
+
+        registered = 0
+        for _url, platform_info in discovered.items():
+            # Check if already registered
+            adapter_name = f"dynamic_{platform_info.get('domain', '')}"
+            if adapter_name not in self.discovery.sources:
+                try:
+                    success = self.discovery.register_discovered_platform(platform_info)
+                    if success:
+                        registered += 1
+                except Exception as e:
+                    logger.warning("Failed to register discovered platform %s: %s", adapter_name, e)
+
+        return registered
 
     def get_status(self) -> dict[str, Any]:
         """Return engine status for health/UI."""

@@ -1,9 +1,12 @@
 use std::process::{Command, Stdio};
+use std::thread;
+use std::time::Duration;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
     Manager,
 };
+mod remote_control;
 
 #[tauri::command]
 fn get_platform() -> String {
@@ -18,7 +21,6 @@ fn get_platform() -> String {
 
 #[tauri::command]
 fn start_backend(app_handle: tauri::AppHandle) -> Result<String, String> {
-    // Locate the project root relative to the Tauri binary
     let resource_dir = app_handle
         .path()
         .resource_dir()
@@ -49,9 +51,18 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
-        .invoke_handler(tauri::generate_handler![get_platform, start_backend])
+        .plugin(tauri_plugin_http::init())
+        .invoke_handler(tauri::generate_handler![
+            get_platform,
+            start_backend,
+            remote_control::remote_create_session,
+            remote_control::remote_chat,
+            remote_control::remote_approve,
+            remote_control::remote_get_session,
+            remote_control::remote_get_history,
+            remote_control::remote_health,
+        ])
         .setup(|app| {
-            // Tray icon
             #[cfg(desktop)]
             {
                 use tauri::menu::PredefinedMenuItem;
@@ -81,12 +92,11 @@ pub fn run() {
                     .build(app)?;
             }
 
-            // Auto-start the Python backend on app launch
             #[cfg(not(debug_assertions))]
             {
                 let app_handle = app.handle().clone();
-                std::thread::spawn(move || {
-                    std::thread::sleep(std::time::Duration::from_secs(2));
+                thread::spawn(move || {
+                    thread::sleep(Duration::from_secs(2));
                     let _ = start_backend(app_handle);
                 });
             }
@@ -94,5 +104,5 @@ pub fn run() {
             Ok(())
         })
         .run(tauri::generate_context!())
-        .expect("error while running ORION desktop");
+        .expect("error while running OWNEX desktop");
 }

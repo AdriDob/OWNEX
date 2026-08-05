@@ -1,11 +1,11 @@
 import pytest
 
-from core.opportunity.scoring import OpportunityEngine, UnifiedScore
+from core.opportunity.scoring import OpportunityEngineLegacy, UnifiedScore
 
 
 @pytest.fixture
 def engine():
-    return OpportunityEngine()
+    return OpportunityEngineLegacy()
 
 
 @pytest.fixture

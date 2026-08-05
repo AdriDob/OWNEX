@@ -316,6 +316,7 @@ def get_direct_work_jobs() -> list[JobDefinition]:
 
     Jobs:
     - work_bank_daily_cycle: discover + prepare zero-barrier jobs every day (06:15)
+    - autonomous_discovery: continuous web research for new zero-barrier platforms (every 6h)
     """
     return [
         _cron_job(
@@ -325,6 +326,14 @@ def get_direct_work_jobs() -> list[JobDefinition]:
             cron="15 6 * * *",
             args=[],
             metadata={"type": "work_bank", "desc": "prepara trabajos cero-barrera listos para entregar"},
+        ),
+        _cron_job(
+            job_id="autonomous_discovery_research",
+            app_id="direct-work",
+            handler="cores.direct_work_engine.autonomous_discovery:run_autonomous_research_cycle",
+            cron="0 */6 * * *",
+            args=[],
+            metadata={"type": "discovery", "desc": "investigación autónoma de nuevas plataformas cero-barrera"},
         ),
     ]
 
@@ -342,7 +351,11 @@ def get_investment_jobs() -> list[JobDefinition]:
             handler="core.investment.tasks:run_global_arbitrage_scan",
             cron="23 */4 * * *",
             args=[],
-            metadata={"cycle": "investment", "type": "revenue", "desc": "escaneo automatico de arbitraje cross-exchange"},
+            metadata={
+                "cycle": "investment",
+                "type": "revenue",
+                "desc": "escaneo automatico de arbitraje cross-exchange",
+            },
         ),
     ]
 
