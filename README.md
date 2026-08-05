@@ -1,10 +1,20 @@
 <p align="center">
-  <img src="assets/logos/ownex-lockup.png" alt="OWNEX" width="300"/>
+  <img src="https://raw.githubusercontent.com/AdriDob/rastrohunteralpha/main/assets/logos/ownex-lockup.png" alt="OWNEX" width="280"/>
+</p>
+
+<h1 align="center">OWNEX</h1>
+
+<p align="center">
+  <em>The Personalized Autonomous Operating System</em>
+</p>
+
+<p align="center">
+  <strong>Autonomous Intelligence for Technical Work</strong>
 </p>
 
 <p align="center">
   <a href="https://github.com/AdriDob/rastrohunteralpha/releases">
-    <img src="https://img.shields.io/badge/version-7.0.0-000000?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIi8+PHBhdGggZD0iTTEyIDZ2MTJNNiAxMmgxMiIvPjwvc3ZnPg=="/>
+    <img src="https://img.shields.io/badge/version-7.0.0-000000?style=flat-square"/>
   </a>
   <a href="https://www.python.org/">
     <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white"/>
@@ -18,11 +28,7 @@
 </p>
 
 <p align="center">
-  <strong>Autonomous Intelligence for Technical Work</strong>
-</p>
-
-<p align="center">
-  <em>Autonomous bug bounty research · Attack surface intelligence · Technical automation</em>
+  Autonomous bug bounty research · Attack surface intelligence · Technical automation
 </p>
 
 ---
