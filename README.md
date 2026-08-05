@@ -431,11 +431,33 @@ See [examples/](examples/) directory for practical usage scenarios and code samp
 - 🎨 [Brand identity](assets/branding/OWNEX_BRAND_IDENTITY.md) — marks, colors, type, usage rules
 - 📋 [Brand usage guide](BRAND_USAGE_GUIDE.md) — comprehensive brand guidelines
 - 🔧 [Design tokens](assets/branding/design-tokens.json) — machine-readable brand tokens
-- 🏗️ [Architecture diagram](assets/concepts/architecture.md) — system architecture with Mermaid
+- 🏗️ [Architecture diagrams](assets/diagrams/) — system architecture, data flow, event bus, agent departments (Mermaid source + rendered PNGs)
 - ⚖️ [Agent Charter](.ai/AGENT_CHARTER.md) — constitution and operating rules
 - 📐 [Architecture decisions](.ai/ARCHITECTURE_FINAL.md) — full architectural decisions
 - 🚀 [Quick Start](#quick-start) — get up and running in minutes
 - 💡 [Use Cases](#use-cases) — practical applications and examples
+
+### System Diagrams
+
+Rendered from the Mermaid sources in [`assets/diagrams/`](assets/diagrams/):
+
+<p align="center">
+  <img src="assets/diagrams/system-overview.png" alt="OWNEX system architecture" width="720"/>
+  <br/>
+  <em>System architecture — human layer, OWNEX core, intelligence, agent departments</em>
+</p>
+
+<p align="center">
+  <img src="assets/diagrams/data-flow.png" alt="OWNEX data flow" width="720"/>
+  <br/>
+  <em>Opportunity data flow — discovery → scoring → preparation → execution → learning</em>
+</p>
+
+<p align="center">
+  <img src="assets/diagrams/event-bus.png" alt="OWNEX event bus topology" width="720"/>
+  <br/>
+  <em>Event bus topology — producers, consumers, pub/sub flows</em>
+</p>
 
 ## Roadmap
 

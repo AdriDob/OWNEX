@@ -5,18 +5,18 @@
   init: {
     'theme': 'base',
     'themeVariables': {
-      'primaryColor': '#111113',
-      'primaryTextColor': '#F6F8FB',
-      'primaryBorderColor': '#5E6AD2',
-      'lineColor': '#5E6AD2',
-      'secondaryColor': '#1F2023',
-      'tertiaryColor': '#2A2D35',
+      'primaryColor': '#0a0a0a',
+      'primaryTextColor': '#f5f5f5',
+      'primaryBorderColor': '#2e2e2e',
+      'lineColor': '#2e2e2e',
+      'secondaryColor': '#141414',
+      'tertiaryColor': '#1f1f1f',
       'background': 'transparent',
       'mainBkg': 'transparent',
       'fontFamily': 'Inter',
       'fontSize': '13px',
-      'clusterBkg': '#111113',
-      'clusterBorder': '#5E6AD2'
+      'clusterBkg': '#0a0a0a',
+      'clusterBorder': '#2e2e2e'
     }
   }
 }%%
@@ -151,13 +151,13 @@ graph TB
     REV_OPTIMIZE -.->|VAULT, FORGE| CYCLES
 
     %% STYLING
-    classDef orch fill:#08090A,stroke:#5E6AD2,stroke-width:3px,color:#F6F8FB
-    classDef bus fill:#111113,stroke:#5E6AD2,stroke-width:2px,color:#F6F8FB
-    classDef eng fill:#1F2023,stroke:#00E39A,stroke-width:2px,color:#F6F8FB
-    classDef qua fill:#1F2023,stroke:#FFB020,stroke-width:2px,color:#F6F8FB
-    classDef sec fill:#2A2D35,stroke:#FF5252,stroke-width:2px,color:#F6F8FB
-    classDef rev fill:#1F2023,stroke:#5E6AD2,stroke-width:2px,color:#F6F8FB
-    classDef cycle fill:#08090A,stroke:#8B8D98,stroke-width:1px,color:#8B8D98,stroke-dasharray: 5 5
+    classDef orch fill:#000000,stroke:#2e2e2e,stroke-width:3px,color:#f5f5f5
+    classDef bus fill:#0a0a0a,stroke:#2e2e2e,stroke-width:2px,color:#f5f5f5
+    classDef eng fill:#141414,stroke:#16a34a,stroke-width:2px,color:#f5f5f5
+    classDef qua fill:#141414,stroke:#d97706,stroke-width:2px,color:#f5f5f5
+    classDef sec fill:#1f1f1f,stroke:#e82127,stroke-width:2px,color:#f5f5f5
+    classDef rev fill:#141414,stroke:#2e2e2e,stroke-width:2px,color:#f5f5f5
+    classDef cycle fill:#000000,stroke:#4a4a4a,stroke-width:1px,color:#4a4a4a,stroke-dasharray: 5 5
 
     class ORCH_CORE,ORCH_PLAN,ORCH_DELEGATE,ORCH_MONITOR orch
     class AB_PUB,AB_REQ,AB_REG,AB_HEARTBEAT bus

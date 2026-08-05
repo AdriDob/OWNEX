@@ -1,0 +1,4 @@
+{
+  "executablePath": "/home/adrie/.cache/puppeteer/chrome-headless-shell/linux-149.0.7827.22/chrome-headless-shell-linux64/chrome-headless-shell",
+  "args": ["--no-sandbox", "--disable-setuid-sandbox"]
+}

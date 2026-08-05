@@ -5,18 +5,18 @@
   init: {
     'theme': 'base',
     'themeVariables': {
-      'primaryColor': '#111113',
-      'primaryTextColor': '#F6F8FB',
-      'primaryBorderColor': '#5E6AD2',
-      'lineColor': '#5E6AD2',
-      'secondaryColor': '#1F2023',
-      'tertiaryColor': '#2A2D35',
+      'primaryColor': '#0a0a0a',
+      'primaryTextColor': '#f5f5f5',
+      'primaryBorderColor': '#2e2e2e',
+      'lineColor': '#2e2e2e',
+      'secondaryColor': '#141414',
+      'tertiaryColor': '#1f1f1f',
       'background': 'transparent',
       'mainBkg': 'transparent',
       'fontFamily': 'Inter',
       'fontSize': '13px',
-      'clusterBkg': '#111113',
-      'clusterBorder': '#5E6AD2'
+      'clusterBkg': '#0a0a0a',
+      'clusterBorder': '#2e2e2e'
     }
   }
 }%%
@@ -27,7 +27,7 @@ graph TB
         direction TB
         EB_CORE[EventBus Core<br/>Pub/Sub + Request/Reply<br/>AsyncIO + Thread-Safe]
         EB_SUB[Subscription Manager<br/>Topic → Handlers]
-        EB_HIST[Event History<br/>Ring Buffer (10k events)]
+        EB_HIST["Event History<br/>Ring Buffer (10k events)"]
         EB_METRICS[Event Metrics<br/>Throughput, Latency, Errors]
     end
 
@@ -86,10 +86,10 @@ graph TB
     end
 
     %% STYLING
-    classDef bus fill:#08090A,stroke:#5E6AD2,stroke-width:3px,color:#F6F8FB
-    classDef prod fill:#111113,stroke:#00E39A,stroke-width:2px,color:#F6F8FB
-    classDef cons fill:#1F2023,stroke:#FFB020,stroke-width:2px,color:#F6F8FB
-    classDef rr fill:#2A2D35,stroke:#FF5252,stroke-width:2px,color:#F6F8FB,stroke-dasharray: 5 5
+    classDef bus fill:#000000,stroke:#2e2e2e,stroke-width:3px,color:#f5f5f5
+    classDef prod fill:#0a0a0a,stroke:#16a34a,stroke-width:2px,color:#f5f5f5
+    classDef cons fill:#141414,stroke:#d97706,stroke-width:2px,color:#f5f5f5
+    classDef rr fill:#1f1f1f,stroke:#e82127,stroke-width:2px,color:#f5f5f5,stroke-dasharray: 5 5
 
     class EB_CORE,EB_SUB,EB_HIST,EB_METRICS bus
     class P_SC,P_ORCH,P_CYCLES,P_ADAPTERS,P_MERLIN,P_RECOVERY prod
