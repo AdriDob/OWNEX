@@ -1,0 +1,34 @@
+name: "General Discussion"
+about: "Ask questions, share ideas, discuss OWNEX"
+title: ""
+labels: ["discussion"]
+body:
+  - type: "textarea"
+    id: "topic"
+    attributes:
+      label: "Topic"
+      description: "What would you like to discuss?"
+      placeholder: "Your discussion topic here"
+    validations:
+      required: true
+  - type: "textarea"
+    id: "context"
+    attributes:
+      label: "Context"
+      description: "Any background information, links, or context"
+      placeholder: "Background information..."
+  - type: "dropdown"
+    id: "category"
+    attributes:
+      label: "Category"
+      options:
+        - "General Question"
+        - "Architecture / Design Discussion"
+        - "Feature Idea (pre-RFC)"
+        - "Showcase / What I Built"
+        - "Help Wanted"
+        - "Best Practices"
+        - "Troubleshooting"
+        - "Other"
+    validations:
+      required: true

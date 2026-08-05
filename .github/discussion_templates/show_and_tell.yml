@@ -1,0 +1,41 @@
+name: "Show & Tell"
+about: "Share what you've built with OWNEX"
+title: "Show & Tell: "
+labels: ["showcase", "discussion"]
+body:
+  - type: "textarea"
+    id: "what"
+    attributes:
+      label: "What did you build?"
+      description: "Describe your project, workflow, or integration"
+      placeholder: "I built a custom adapter for..."
+    validations:
+      required: true
+  - type: "textarea"
+    id: "how"
+    attributes:
+      label: "How did OWNEX help?"
+      description: "Which features/cycles did you use? What was the outcome?"
+      placeholder: "Used FORGE cycle to..."
+    validations:
+      required: true
+  - type: "textarea"
+    id: "media"
+    attributes:
+      label: "Screenshots / Links / Demo"
+      description: "Add any visuals, repository links, or demo videos"
+      placeholder: "https://..."
+  - type: "dropdown"
+    id: "cycle"
+    attributes:
+      label: "Primary Cycle Used"
+      options:
+        - "FORGE (Dev Bounties)"
+        - "PULSE (Data/Microtasks)"
+        - "SECURITY (Bug Bounty)"
+        - "VAULT (Crypto/DeFi)"
+        - "ATLAS (OSINT/Threat Intel)"
+        - "ODYSSEY (Content/Research)"
+        - "Multiple / Custom"
+    validations:
+      required: true
