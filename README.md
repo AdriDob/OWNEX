@@ -1,35 +1,26 @@
 # OWNEX — Autonomous Operating System
 
-<!-- HERO BANNER -->
 <div align="center">
 
 <img src="assets/logos/ownex-lockup.svg"
      alt="OWNEX Logo"
-     width="320"
-     style="margin-bottom: 16px"/>
+     width="400"
+     style="margin-bottom: 24px"/>
 
-<h1>OWNEX</h1>
-<h3>Autonomous Bug Bounty Operating System</h3>
+# OWNEX
 
-<p>
-<strong>Automation · Intelligence · Rewards</strong>
-</p>
+### The Personalized Autonomous Operating System
 
-<p>
-<img src="https://img.shields.io/badge/version-7.0.0-7c3aed?style=for-the-badge"/>
-<img src="https://img.shields.io/badge/python-3.11+-3776AB?style=for-the-badge&logo=python"/>
-<img src="https://img.shields.io/badge/vue-3.5-4FC08D?style=for-the-badge&logo=vue.js"/>
-<img src="https://img.shields.io/badge/license-Proprietary-ef4444?style=for-the-badge"/>
-</p>
+**Automation · Intelligence · Autonomy**
 
-<p>
-<em>Sistema operativo privado de investigación para bug bounty y<br/>
-attack surface intelligence. Corre 100% local, sin dependencia cloud.</em>
-</p>
+[![Version](https://img.shields.io/badge/version-7.0.0-5E6AD2?style=for-the-badge)](VERSION.txt)
+[![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
+[![Vue](https://img.shields.io/badge/vue-3.5-4FC08D?style=for-the-badge&logo=vue.js)](https://vuejs.org/)
+[![License](https://img.shields.io/badge/license-Proprietary-EF4444?style=for-the-badge)](LICENSE)
+
+*Autonomous bug bounty research and attack surface intelligence*
 
 </div>
-
-<!-- END HERO BANNER -->
 
 ## Overview
 
