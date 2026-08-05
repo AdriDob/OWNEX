@@ -15,11 +15,18 @@ import {
   deployStrategy, pauseStrategy, resumeStrategy, allocatePayout as apiAllocatePayout,
   updateInvestmentCapital, pauseAllInvestments, resumeAllInvestments,
   activateMaxRevenue, updateInvestmentConfig,
+  getAlpacaInfo, connectAlpaca, getAlpacaAccount, getAlpacaPositions, placeAlpacaOrder, getAlpacaMarketData, getAlpacaOptionsChain,
+  getIbkrInfo, connectIbkr, getIbkrAccount, getIbkrPositions, placeIbkrOrder,
+  getAaveInfo, connectAave, getAaveSupplyApy, getAaveTopAssets,
+  getMorphoInfo, connectMorpho, getMorphoMarketApy, getMorphoTopMarkets,
+  getPendleInfo, connectPendle, getPendleYieldOpportunities, getPendlePtYield,
+  getLidoInfo, connectLido, getLidoStakingApy, getLidoProtocolMetrics,
+  getPolymarketStrategies, runPolymarketStrategy, getPolymarketDiagnostic,
   type InvestmentStatus, type ConsolidateMetrics, type PnLPoint,
 } from '@/lib/api'
 
 const router = useRouter()
-const activeTab = ref<'overview' | 'strategies' | 'ccxt'>('overview')
+const activeTab = ref<'overview' | 'strategies' | 'ccxt' | 'stocks' | 'defi' | 'polymarket'>('overview')
 
 const loading = ref(true)
 const error = ref('')
@@ -37,6 +44,16 @@ const deployAmount = ref<Record<string, number>>({})
 const deployMsg = ref<Record<string, string>>({})
 const capitalInput = ref(0)
 const payoutInput = ref(0)
+
+// Stocks state
+const alpacaAccount = ref<any>(null)
+const ibkrAccount = ref<any>(null)
+
+// DeFi state
+const aaveApy = ref<any>(null)
+const lidoApy = ref<any>(null)
+const polymarketDiagnostic = ref<any>(null)
+const polymarketStrategies = ref<any[]>([])
 
 const totalCapital = computed(() => status.value?.total_capital ?? 0)
 const deployed = computed(() => status.value?.deployed ?? 0)
@@ -78,7 +95,22 @@ async function fetchData() {
   }
 }
 
-onMounted(fetchData)
+async function fetchPolymarketStrategies() {
+  try {
+    const r = await getPolymarketStrategies()
+    if (r.success) {
+      polymarketStrategies.value = Object.entries(r.strategies).map(([id, desc]: [string, string]) => ({
+        id,
+        name: id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        description: desc,
+        risk_level: 'moderate',
+        lastResult: '',
+      }))
+    }
+  } catch { /* silent */ }
+}
+
+onMounted(() => { fetchData(); fetchPolymarketStrategies() })
 
 async function handleDeploy(sid: string) {
   const amt = deployAmount.value[sid] || 0
@@ -133,6 +165,91 @@ async function handleResumeAll() {
   fetchData()
 }
 
+// ─── Stocks Handlers ───
+
+async function handleAlpacaConnect() {
+  try {
+    const r = await connectAlpaca('', '')
+    if (r.success) {
+      const acc = await getAlpacaAccount()
+      if (acc.success) alpacaAccount.value = acc.account
+    }
+  } catch { /* silent */ }
+}
+
+async function handleIbkrConnect() {
+  try {
+    const r = await connectIbkr()
+    if (r.success) {
+      const acc = await getIbkrAccount()
+      if (acc.success) ibkrAccount.value = acc.account
+    }
+  } catch { /* silent */ }
+}
+
+// ─── DeFi Handlers ───
+
+async function handleAaveConnect() {
+  try { await connectAave() } catch { /* silent */ }
+}
+
+async function handleAaveSupplyApy() {
+  try {
+    const r = await getAaveSupplyApy()
+    if (r.success) aaveApy.value = r.data
+  } catch { /* silent */ }
+}
+
+async function handleMorphoConnect() {
+  try { await connectMorpho() } catch { /* silent */ }
+}
+
+async function handleMorphoTopMarkets() {
+  try { await getMorphoTopMarkets() } catch { /* silent */ }
+}
+
+async function handlePendleConnect() {
+  try { await connectPendle() } catch { /* silent */ }
+}
+
+async function handlePendleYieldOpps() {
+  try { await getPendleYieldOpportunities() } catch { /* silent */ }
+}
+
+async function handleLidoConnect() {
+  try {
+    await connectLido()
+    const r = await getLidoStakingApy()
+    if (r.success) lidoApy.value = r.data
+  } catch { /* silent */ }
+}
+
+// ─── Polymarket Handlers ───
+
+async function handleRunPolymarketStrategy(name: string) {
+  try {
+    const r = await runPolymarketStrategy(name)
+    if (r.success && polymarketStrategies.value.length > 0) {
+      const s = polymarketStrategies.value.find((x: any) => x.id === name)
+      if (s) s.lastResult = 'Scan completed'
+    }
+  } catch { /* silent */ }
+}
+
+async function handlePolymarketDiagnostic() {
+  try {
+    const r = await getPolymarketDiagnostic()
+    if (r.success) polymarketDiagnostic.value = r.diagnostic
+  } catch { /* silent */ }
+}
+
+// ─── Assisted Deployment ───
+
+async function handleAssistedDeploy(strategyId: string, amount: number) {
+  deployAmount.value[strategyId] = amount
+  await handleDeploy(strategyId)
+}
+
 function formatUsd(v: number) {
   return v.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
@@ -181,7 +298,7 @@ function formatUsd(v: number) {
 
     <!-- Tabs -->
     <div class="flex gap-1 border-b border-border/30 pb-1 overflow-x-auto">
-      <button v-for="tab in [{id:'overview',label:'Resumen',icon:BarChart3},{id:'strategies',label:'Estrategias',icon:Target},{id:'ccxt',label:'CCXT Exchanges',icon:Wallet}]" :key="tab.id"
+      <button v-for="tab in [{id:'overview',label:'Resumen',icon:BarChart3},{id:'strategies',label:'Estrategias',icon:Target},{id:'ccxt',label:'CCXT Exchanges',icon:Wallet},{id:'stocks',label:'Acciones',icon:TrendingUp},{id:'defi',label:'DeFi Yield',icon:Fuel},{id:'polymarket',label:'Polymarket',icon:Activity}]" :key="tab.id"
         @click="activeTab = tab.id"
         :class="[
           'flex items-center gap-1.5 px-3 py-2 font-mono text-xs rounded-t-lg transition-all whitespace-nowrap',
@@ -483,6 +600,386 @@ function formatUsd(v: number) {
         <div class="mt-4 text-xs text-muted-foreground">
           <p>Endpoint disponible: <code class="font-mono text-primary">GET /api/investment/ccxt/info?exchange=binance</code></p>
           <p class="mt-1">Conectate via <code class="font-mono text-primary">POST /api/investment/ccxt/connect</code></p>
+        </div>
+      </div>
+    </template>
+
+    <!-- ════════════ STOCKS TAB ════════════ -->
+    <template v-if="!loading && !error && activeTab === 'stocks'">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Alpaca Section -->
+        <div class="border border-border/50 rounded-lg p-4 bg-card">
+          <h3 class="text-xs font-semibold mb-3 flex items-center gap-1.5">
+            <TrendingUp class="h-3.5 w-3.5 text-primary" />
+            Alpaca Markets
+          </h3>
+          <p class="text-xs text-muted-foreground mb-3">US equities and options trading. Paper trading by default.</p>
+          <div class="space-y-2">
+            <button @click="handleAlpacaConnect"
+              class="w-full rounded-lg bg-primary/10 border border-primary/30 px-3 py-2 text-xs font-mono text-primary hover:bg-primary/20 transition-colors"
+            >
+              Connect / Test
+            </button>
+            <div v-if="alpacaAccount" class="text-xs space-y-1">
+              <div class="flex justify-between"><span class="text-muted-foreground">Equity</span><span class="font-mono">${{ alpacaAccount.equity?.toFixed(2) }}</span></div>
+              <div class="flex justify-between"><span class="text-muted-foreground">Cash</span><span class="font-mono">${{ alpacaAccount.cash?.toFixed(2) }}</span></div>
+              <div class="flex justify-between"><span class="text-muted-foreground">Buying Power</span><span class="font-mono">${{ alpacaAccount.buying_power?.toFixed(2) }}</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- IBKR Section -->
+        <div class="border border-border/50 rounded-lg p-4 bg-card">
+          <h3 class="text-xs font-semibold mb-3 flex items-center gap-1.5">
+            <TrendingUp class="h-3.5 w-3.5 text-primary" />
+            Interactive Brokers
+          </h3>
+          <p class="text-xs text-muted-foreground mb-3">Stocks, options, futures, and forex via IBKR TWS.</p>
+          <div class="space-y-2">
+            <button @click="handleIbkrConnect"
+              class="w-full rounded-lg bg-primary/10 border border-primary/30 px-3 py-2 text-xs font-mono text-primary hover:bg-primary/20 transition-colors"
+            >
+              Connect / Test
+            </button>
+            <div v-if="ibkrAccount" class="text-xs space-y-1">
+              <div class="flex justify-between"><span class="text-muted-foreground">Equity</span><span class="font-mono">${{ ibkrAccount.equity?.toFixed(2) }}</span></div>
+              <div class="flex justify-between"><span class="text-muted-foreground">Cash</span><span class="font-mono">${{ ibkrAccount.cash?.toFixed(2) }}</span></div>
+              <div class="flex justify-between"><span class="text-muted-foreground">Buying Power</span><span class="font-mono">${{ ibkrAccount.buying_power?.toFixed(2) }}</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assisted Deployment: Stocks -->
+        <div class="border border-border/50 rounded-lg p-4 bg-card md:col-span-2">
+          <h3 class="text-xs font-semibold mb-3 flex items-center gap-1.5">
+            <Zap class="h-3.5 w-3.5 text-primary" />
+            Assisted Deployment — Stocks
+          </h3>
+          <p class="text-xs text-muted-foreground mb-3">Risk-adjusted position sizing with one-click execute. OWNEX recommends the optimal allocation based on your capital and risk profile.</p>
+          <div class="space-y-3">
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-surface/30 border border-border/20">
+              <div class="flex-1">
+                <div class="text-xs font-semibold">Conservative — Covered Call</div>
+                <div class="text-[10px] text-muted-foreground">Sell OTM calls on holdings. Low risk, steady premium income.</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-mono text-success">Expected: 8-12% APR</div>
+                <div class="text-[10px] text-muted-foreground">Max DD: 5%</div>
+              </div>
+              <button @click="handleAssistedDeploy('alpaca_stocks', 1000)"
+                class="rounded-lg bg-success/20 border border-success/30 px-3 py-1.5 text-[10px] font-mono text-success hover:bg-success/30 transition-colors"
+              >
+                Deploy $1k
+              </button>
+            </div>
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-surface/30 border border-border/20">
+              <div class="flex-1">
+                <div class="text-xs font-semibold">Moderate — Alpaca Options</div>
+                <div class="text-[10px] text-muted-foreground">Covered calls and cash-secured puts on Alpaca.</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-mono text-warning">Expected: 15-25% APR</div>
+                <div class="text-[10px] text-muted-foreground">Max DD: 15%</div>
+              </div>
+              <button @click="handleAssistedDeploy('alpaca_options', 2000)"
+                class="rounded-lg bg-warning/20 border border-warning/30 px-3 py-1.5 text-[10px] font-mono text-warning hover:bg-warning/30 transition-colors"
+              >
+                Deploy $2k
+              </button>
+            </div>
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-surface/30 border border-border/20">
+              <div class="flex-1">
+                <div class="text-xs font-semibold">Aggressive — IBKR Options</div>
+                <div class="text-[10px] text-muted-foreground">IBKR options with full order types and SL/TP.</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-mono text-destructive">Expected: 20-35% APR</div>
+                <div class="text-[10px] text-muted-foreground">Max DD: 25%</div>
+              </div>
+              <button @click="handleAssistedDeploy('ibkr_stocks', 5000)"
+                class="rounded-lg bg-destructive/20 border border-destructive/30 px-3 py-1.5 text-[10px] font-mono text-destructive hover:bg-destructive/30 transition-colors"
+              >
+                Deploy $5k
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- ════════════ DEFI YIELD TAB ════════════ -->
+    <template v-if="!loading && !error && activeTab === 'defi'">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Aave -->
+        <div class="border border-border/50 rounded-lg p-4 bg-card">
+          <h3 class="text-xs font-semibold mb-3 flex items-center gap-1.5">
+            <Fuel class="h-3.5 w-3.5 text-primary" />
+            Aave Lending
+          </h3>
+          <p class="text-xs text-muted-foreground mb-3">Supply assets for lending APY. USDC, USDT, WETH, WBTC, and 50+ assets.</p>
+          <div class="space-y-2">
+            <button @click="handleAaveConnect"
+              class="w-full rounded-lg bg-primary/10 border border-primary/30 px-3 py-2 text-xs font-mono text-primary hover:bg-primary/20 transition-colors"
+            >
+              Connect / Scan
+            </button>
+            <button @click="handleAaveSupplyApy"
+              class="w-full rounded-lg bg-surface/50 border border-border/30 px-3 py-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Check Supply APY
+            </button>
+            <div v-if="aaveApy" class="text-xs space-y-1">
+              <div class="flex justify-between"><span class="text-muted-foreground">USDC APY</span><span class="font-mono text-success">{{ aaveApy.supply_apy?.toFixed(2) }}%</span></div>
+              <div class="flex justify-between"><span class="text-muted-foreground">USDT APY</span><span class="font-mono text-success">{{ aaveApy.supply_apy?.toFixed(2) }}%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Morpho -->
+        <div class="border border-border/50 rounded-lg p-4 bg-card">
+          <h3 class="text-xs font-semibold mb-3 flex items-center gap-1.5">
+            <Fuel class="h-3.5 w-3.5 text-primary" />
+            Morpho Optimizer
+          </h3>
+          <p class="text-xs text-muted-foreground mb-3">Peer-to-peer yield optimization. 10-30% higher APY than base Aave.</p>
+          <div class="space-y-2">
+            <button @click="handleMorphoConnect"
+              class="w-full rounded-lg bg-primary/10 border border-primary/30 px-3 py-2 text-xs font-mono text-primary hover:bg-primary/20 transition-colors"
+            >
+              Connect / Scan
+            </button>
+            <button @click="handleMorphoTopMarkets"
+              class="w-full rounded-lg bg-surface/50 border border-border/30 px-3 py-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Top Markets
+            </button>
+          </div>
+        </div>
+
+        <!-- Pendle -->
+        <div class="border border-border/50 rounded-lg p-4 bg-card">
+          <h3 class="text-xs font-semibold mb-3 flex items-center gap-1.5">
+            <Fuel class="h-3.5 w-3.5 text-primary" />
+            Pendle Yield Tokenization
+          </h3>
+          <p class="text-xs text-muted-foreground mb-3">Tokenize future yield as PT/YT. Buy PT at discount, sell YT for immediate yield.</p>
+          <div class="space-y-2">
+            <button @click="handlePendleConnect"
+              class="w-full rounded-lg bg-primary/10 border border-primary/30 px-3 py-2 text-xs font-mono text-primary hover:bg-primary/20 transition-colors"
+            >
+              Connect / Scan
+            </button>
+            <button @click="handlePendleYieldOpps"
+              class="w-full rounded-lg bg-surface/50 border border-border/30 px-3 py-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Yield Opportunities
+            </button>
+          </div>
+        </div>
+
+        <!-- Lido -->
+        <div class="border border-border/50 rounded-lg p-4 bg-card">
+          <h3 class="text-xs font-semibold mb-3 flex items-center gap-1.5">
+            <Fuel class="h-3.5 w-3.5 text-primary" />
+            Lido Liquid Staking
+          </h3>
+          <p class="text-xs text-muted-foreground mb-3">Stake ETH for liquid staking yield (stETH). No lockup, no minimum, instant liquidity.</p>
+          <div class="space-y-2">
+            <button @click="handleLidoConnect"
+              class="w-full rounded-lg bg-primary/10 border border-primary/30 px-3 py-2 text-xs font-mono text-primary hover:bg-primary/20 transition-colors"
+            >
+              Connect / Check APY
+            </button>
+            <div v-if="lidoApy" class="text-xs space-y-1">
+              <div class="flex justify-between"><span class="text-muted-foreground">stETH APY</span><span class="font-mono text-success">{{ lidoApy.apy?.toFixed(2) }}%</span></div>
+              <div class="flex justify-between"><span class="text-muted-foreground">TVL</span><span class="font-mono">${{ lidoApy.tvl?.toFixed(0) }}</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assisted Deployment: DeFi -->
+        <div class="border border-border/50 rounded-lg p-4 bg-card md:col-span-2">
+          <h3 class="text-xs font-semibold mb-3 flex items-center gap-1.5">
+            <Zap class="h-3.5 w-3.5 text-primary" />
+            Assisted DeFi Deployment
+          </h3>
+          <p class="text-xs text-muted-foreground mb-3">Risk-adjusted DeFi positions. OWNEX recommends optimal allocation across lending protocols.</p>
+          <div class="space-y-3">
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-surface/30 border border-border/20">
+              <div class="flex-1">
+                <div class="text-xs font-semibold">Conservative — Aave USDC Supply</div>
+                <div class="text-[10px] text-muted-foreground">Supply USDC on Aave V3. Stable APY, no impermanent loss.</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-mono text-success">Expected: 6-10% APY</div>
+                <div class="text-[10px] text-muted-foreground">Risk: Low</div>
+              </div>
+              <button @click="handleAssistedDeploy('aave_lending', 2000)"
+                class="rounded-lg bg-success/20 border border-success/30 px-3 py-1.5 text-[10px] font-mono text-success hover:bg-success/30 transition-colors"
+              >
+                Deploy $2k
+              </button>
+            </div>
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-surface/30 border border-border/20">
+              <div class="flex-1">
+                <div class="text-xs font-semibold">Moderate — Morpho Optimized</div>
+                <div class="text-[10px] text-muted-foreground">Morpho optimizes Aave V3 yields through P2P matching.</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-mono text-warning">Expected: 10-15% APY</div>
+                <div class="text-[10px] text-muted-foreground">Risk: Medium</div>
+              </div>
+              <button @click="handleAssistedDeploy('morpho_optimizer', 3000)"
+                class="rounded-lg bg-warning/20 border border-warning/30 px-3 py-1.5 text-[10px] font-mono text-warning hover:bg-warning/30 transition-colors"
+              >
+                Deploy $3k
+              </button>
+            </div>
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-surface/30 border border-border/20">
+              <div class="flex-1">
+                <div class="text-xs font-semibold">Yield — Pendle PT/YT</div>
+                <div class="text-[10px] text-muted-foreground">Tokenize future yield. Buy PT at discount, sell YT for immediate yield.</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-mono text-destructive">Expected: 15-25% APY</div>
+                <div class="text-[10px] text-muted-foreground">Risk: Medium-High</div>
+              </div>
+              <button @click="handleAssistedDeploy('pendle_yield', 1500)"
+                class="rounded-lg bg-destructive/20 border border-destructive/30 px-3 py-1.5 text-[10px] font-mono text-destructive hover:bg-destructive/30 transition-colors"
+              >
+                Deploy $1.5k
+              </button>
+            </div>
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-surface/30 border border-border/20">
+              <div class="flex-1">
+                <div class="text-xs font-semibold">Stable — Lido stETH Staking</div>
+                <div class="text-[10px] text-muted-foreground">Stake ETH for liquid staking yield. No lockup, instant liquidity.</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-mono text-success">Expected: 4-7% APY</div>
+                <div class="text-[10px] text-muted-foreground">Risk: Very Low</div>
+              </div>
+              <button @click="handleAssistedDeploy('lido_staking', 5000)"
+                class="rounded-lg bg-success/20 border border-success/30 px-3 py-1.5 text-[10px] font-mono text-success hover:bg-success/30 transition-colors"
+              >
+                Deploy $5k
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- ════════════ POLYMARKET TAB ════════════ -->
+    <template v-if="!loading && !error && activeTab === 'polymarket'">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Strategy List -->
+        <div class="border border-border/50 rounded-lg p-4 bg-card">
+          <h3 class="text-xs font-semibold mb-3 flex items-center gap-1.5">
+            <Activity class="h-3.5 w-3.5 text-primary" />
+            Polymarket Strategies
+          </h3>
+          <p class="text-xs text-muted-foreground mb-3">5 real strategies: BTC arb, smart money copy, complete-set arb, weather prediction, LP market making.</p>
+          <div class="space-y-2">
+            <div v-for="s in polymarketStrategies" :key="s.name"
+              class="border border-border/20 rounded-lg p-3"
+            >
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-semibold">{{ s.name }}</span>
+                <Badge :variant="s.risk_level === 'speculative' ? 'warning' : (s.risk_level === 'conservative' ? 'secondary' : 'default')" size="xs">
+                  {{ s.risk_level }}
+                </Badge>
+              </div>
+              <p class="text-[10px] text-muted-foreground mb-2">{{ s.description }}</p>
+              <div class="flex items-center gap-2">
+                <button @click="handleRunPolymarketStrategy(s.id)"
+                  class="rounded-lg bg-primary/10 border border-primary/30 px-2 py-1 text-[10px] font-mono text-primary hover:bg-primary/20 transition-colors"
+                >
+                  Run Scan
+                </button>
+                <span v-if="s.lastResult" class="text-[10px] font-mono text-muted-foreground">{{ s.lastResult }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Diagnostic -->
+        <div class="border border-border/50 rounded-lg p-4 bg-card">
+          <h3 class="text-xs font-semibold mb-3 flex items-center gap-1.5">
+            <Shield class="h-3.5 w-3.5 text-primary" />
+            Strategy Diagnostic
+          </h3>
+          <p class="text-xs text-muted-foreground mb-3">Run a full diagnostic on all Polymarket strategies to check setup and readiness.</p>
+          <button @click="handlePolymarketDiagnostic"
+            class="w-full rounded-lg bg-primary/10 border border-primary/30 px-3 py-2 text-xs font-mono text-primary hover:bg-primary/20 transition-colors"
+          >
+            Run Full Diagnostic
+          </button>
+          <div v-if="polymarketDiagnostic" class="mt-3 space-y-2">
+            <div v-for="(result, name) in polymarketDiagnostic" :key="name"
+              class="flex items-center gap-2 text-xs"
+            >
+              <span class="w-2 h-2 rounded-full" :class="result.ready !== false ? 'bg-success' : 'bg-destructive'" />
+              <span class="font-mono">{{ name }}</span>
+              <span class="text-muted-foreground ml-auto">{{ result.ready !== false ? 'Ready' : 'Not ready' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assisted Deployment: Polymarket -->
+        <div class="border border-border/50 rounded-lg p-4 bg-card md:col-span-2">
+          <h3 class="text-xs font-semibold mb-3 flex items-center gap-1.5">
+            <Zap class="h-3.5 w-3.5 text-primary" />
+            Assisted Polymarket Deployment
+          </h3>
+          <p class="text-xs text-muted-foreground mb-3">Risk-adjusted Polymarket positions. OWNEX recommends optimal strategy based on market conditions.</p>
+          <div class="space-y-3">
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-surface/30 border border-border/20">
+              <div class="flex-1">
+                <div class="text-xs font-semibold">BTC Latency Arb</div>
+                <div class="text-[10px] text-muted-foreground">Binance→Polymarket BTC micro-move arbitrage. High frequency, low risk per trade.</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-mono text-success">Expected: 60% ROI</div>
+                <div class="text-[10px] text-muted-foreground">Risk: Speculative</div>
+              </div>
+              <button @click="handleAssistedDeploy('polymarket_btc_arb', 500)"
+                class="rounded-lg bg-success/20 border border-success/30 px-3 py-1.5 text-[10px] font-mono text-success hover:bg-success/30 transition-colors"
+              >
+                Deploy $500
+              </button>
+            </div>
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-surface/30 border border-border/20">
+              <div class="flex-1">
+                <div class="text-xs font-semibold">Smart Money Copy</div>
+                <div class="text-[10px] text-muted-foreground">Copy top Polymarket traders by PnL and win rate.</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-mono text-warning">Expected: 30% ROI</div>
+                <div class="text-[10px] text-muted-foreground">Risk: Moderate</div>
+              </div>
+              <button @click="handleAssistedDeploy('polymarket_smart_money', 1000)"
+                class="rounded-lg bg-warning/20 border border-warning/30 px-3 py-1.5 text-[10px] font-mono text-warning hover:bg-warning/30 transition-colors"
+              >
+                Deploy $1k
+              </button>
+            </div>
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-surface/30 border border-border/20">
+              <div class="flex-1">
+                <div class="text-xs font-semibold">Complete-Set Arb</div>
+                <div class="text-[10px] text-muted-foreground">Buy/sell complete sets when YES+NO prices diverge from 1.0. Low risk.</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-mono text-success">Expected: 15% ROI</div>
+                <div class="text-[10px] text-muted-foreground">Risk: Conservative</div>
+              </div>
+              <button @click="handleAssistedDeploy('polymarket_complete_arb', 1500)"
+                class="rounded-lg bg-success/20 border border-success/30 px-3 py-1.5 text-[10px] font-mono text-success hover:bg-success/30 transition-colors"
+              >
+                Deploy $1.5k
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </template>

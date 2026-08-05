@@ -8,8 +8,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, RootModel
 
 from core.investment.adapters import (
     AgentFactory,
@@ -19,6 +19,7 @@ from core.investment.adapters import (
     build_default_registry,
 )
 from core.investment.manager import get_investment_manager
+from core.investment.models import get_strategy
 
 logger = logging.getLogger("orion.api.investment")
 
@@ -100,6 +101,14 @@ class UpdateConfigRequest(BaseModel):
     config: dict[str, Any]
 
 
+class UpdateConfigFlatRequest(RootModel[dict[str, Any]]):
+    pass
+
+
+class SnapshotRequest(BaseModel):
+    pass
+
+
 # ─── Adapter Management ───
 
 
@@ -171,8 +180,8 @@ async def run_backtest(
     return await registry.run_backtest(request.strategy, request.engine, **request.params)
 
 
-@router.get("/strategies")
-async def list_strategies(
+@router.get("/strategies/freqtrade")
+async def list_freqtrade_strategies(
     registry: InvestmentAdapterRegistry = Depends(get_registry),
 ) -> dict[str, Any]:
     """List available strategies (Freqtrade)."""
@@ -448,7 +457,7 @@ async def record_trade(
     )
 
 
-@router.post("/portfolio/max-revenue")
+@router.post("/max-revenue")
 async def activate_max_revenue(
     manager=Depends(get_investment_manager),
 ) -> dict[str, Any]:
@@ -456,22 +465,30 @@ async def activate_max_revenue(
     return manager.activate_max_revenue_mode()
 
 
-@router.post("/portfolio/pause")
+@router.post("/portfolio/max-revenue")
+async def activate_max_revenue_portfolio(
+    manager=Depends(get_investment_manager),
+) -> dict[str, Any]:
+    """Activate maximum revenue mode (portfolio path)."""
+    return manager.activate_max_revenue_mode()
+
+
+@router.post("/pause")
 async def pause_all(
     manager=Depends(get_investment_manager),
 ) -> dict[str, Any]:
     """Pause all investment strategies."""
     manager.pause_all()
-    return {"success": True, "message": "All strategies paused"}
+    return {"success": True, "paused": True}
 
 
-@router.post("/portfolio/resume")
+@router.post("/resume")
 async def resume_all(
     manager=Depends(get_investment_manager),
 ) -> dict[str, Any]:
     """Resume all investment strategies."""
     manager.resume_all()
-    return {"success": True, "message": "All strategies resumed"}
+    return {"success": True, "paused": False}
 
 
 # ─── System ───
@@ -495,6 +512,52 @@ async def get_investment_metrics() -> dict[str, Any]:
     metrics = manager.get_metrics()
     pnl_chart = manager.get_pnl_chart()
     return {"success": True, "metrics": metrics, "pnl_chart": pnl_chart}
+
+
+@router.get("/snapshot")
+async def get_snapshot(
+    manager=Depends(get_investment_manager),
+) -> dict[str, Any]:
+    """Get investment snapshot."""
+    snap = manager.snapshot()
+    return {"success": True, "snapshot": snap.to_dict()}
+
+
+@router.get("/strategies")
+async def list_strategies(
+    manager=Depends(get_investment_manager),
+) -> dict[str, Any]:
+    """List all available strategies."""
+    strategies = manager.list_strategies()
+    return {"success": True, "strategies": strategies}
+
+
+@router.get("/strategies/{strategy_id}")
+async def get_strategy_detail(
+    strategy_id: str,
+    manager=Depends(get_investment_manager),
+) -> dict[str, Any]:
+    """Get strategy detail by ID."""
+    sdef = get_strategy(strategy_id)
+    if not sdef:
+        raise HTTPException(status_code=404, detail=f"Strategy {strategy_id} not found")
+    from core.investment.allocation import get_allocation_controller
+
+    ctrl = get_allocation_controller()
+    alloc = ctrl.get_strategy_allocation(strategy_id)
+    active = strategy_id in manager._active_strategies
+    paused = manager.is_strategy_paused(strategy_id)
+    deploy_info = manager._active_strategies.get(strategy_id, {})
+    return {
+        "success": True,
+        "strategy": {
+            "profile": sdef.__dict__,
+            "active": active,
+            "paused": paused,
+            "allocation": alloc.__dict__ if alloc else {},
+            "total_deployed": deploy_info.get("total_deployed", 0.0),
+        },
+    }
 
 
 @router.get("/allocation")
@@ -526,6 +589,8 @@ async def get_investment_events(limit: int = 50) -> dict[str, Any]:
 @router.post("/strategies/{strategy_id}/deploy")
 async def deploy_strategy(strategy_id: str, request: DeployStrategyRequest) -> dict[str, Any]:
     """Deploy capital to a strategy."""
+    if not get_strategy(strategy_id):
+        raise HTTPException(status_code=400, detail=f"Strategy {strategy_id} not found")
     manager = get_investment_manager()
     result = manager.deploy_strategy(strategy_id, request.amount)
     return {"success": result.get("success", False), "result": result}
@@ -550,6 +615,8 @@ async def resume_strategy(strategy_id: str) -> dict[str, Any]:
 @router.post("/allocation/allocate-payout")
 async def allocate_payout(request: AllocatePayoutRequest) -> dict[str, Any]:
     """Allocate payout to investment capital."""
+    if request.amount <= 0:
+        raise HTTPException(status_code=400, detail="amount must be greater than zero")
     manager = get_investment_manager()
     allocation = manager.allocate_payout(request.amount, request.source)
     return {"success": True, "allocation": allocation}
@@ -563,19 +630,11 @@ async def update_capital(request: UpdateCapitalRequest) -> dict[str, Any]:
     return {"success": True, "total_capital_usd": request.total_usd}
 
 
-@router.post("/max-revenue")
-async def activate_max_revenue() -> dict[str, Any]:
-    """Activate maximum revenue mode."""
-    manager = get_investment_manager()
-    result = manager.activate_max_revenue()
-    return {"success": True, "result": result}
-
-
 @router.post("/config")
-async def update_config(request: UpdateConfigRequest) -> dict[str, Any]:
+async def update_config(request: UpdateConfigFlatRequest) -> dict[str, Any]:
     """Update investment configuration."""
     manager = get_investment_manager()
-    manager.update_config(**request.config)
+    manager.update_config(**request.model_dump())
     return {"success": True, "config": manager.get_config()}
 
 
@@ -621,10 +680,427 @@ async def ccxt_balance(exchange: str = "binance") -> dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-# ─── System ───
+# ─── Stocks & Options ───
 
 
-@router.get("/health")
+@router.get("/stocks/algopaca")
+async def alpaca_info(
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get Alpaca adapter info."""
+    adapter = registry.get_adapter("alpaca")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Alpaca adapter not available")
+    return {"success": True, "adapter": adapter.name, "connected": adapter.is_connected}
+
+
+@router.post("/stocks/algopaca/connect")
+async def alpaca_connect(
+    api_key: str = Query(...),
+    secret_key: str = Query(...),
+    base_url: str = Query("https://paper-api.alpaca.markets"),
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Connect to Alpaca Markets."""
+    adapter = registry.get_adapter("alpaca")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Alpaca adapter not available")
+    adapter._api_key = api_key
+    adapter._secret_key = secret_key
+    adapter._base_url = base_url
+    connected = await adapter.connect()
+    return {"success": connected, "connected": connected}
+
+
+@router.get("/stocks/algopaca/account")
+async def alpaca_account(
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get Alpaca account info."""
+    adapter = registry.get_adapter("alpaca")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Alpaca adapter not available")
+    return {"success": True, "account": await adapter.get_account()}
+
+
+@router.get("/stocks/algopaca/positions")
+async def alpaca_positions(
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get Alpaca positions."""
+    adapter = registry.get_adapter("alpaca")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Alpaca adapter not available")
+    return {"success": True, "positions": await adapter.get_positions()}
+
+
+@router.post("/stocks/algopaca/order")
+async def alpaca_place_order(
+    symbol: str = Query(...),
+    side: str = Query(...),
+    qty: float = Query(...),
+    order_type: str = Query("market"),
+    time_in_force: str = Query("day"),
+    limit_price: float | None = Query(None),
+    stop_price: float | None = Query(None),
+    take_profit: float | None = Query(None),
+    stop_loss: float | None = Query(None),
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Place a stock or options order via Alpaca."""
+    adapter = registry.get_adapter("alpaca")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Alpaca adapter not available")
+    result = await adapter.place_order(
+        symbol=symbol,
+        side=side,
+        qty=qty,
+        order_type=order_type,
+        time_in_force=time_in_force,
+        limit_price=limit_price,
+        stop_price=stop_price,
+        take_profit=take_profit,
+        stop_loss=stop_loss,
+    )
+    return {"success": result.get("status") == "accepted", "result": result}
+
+
+@router.get("/stocks/algopaca/market-data")
+async def alpaca_market_data(
+    symbol: str = Query(...),
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get market data for a symbol via Alpaca."""
+    adapter = registry.get_adapter("alpaca")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Alpaca adapter not available")
+    return {"success": True, "data": await adapter.get_market_data(symbol)}
+
+
+@router.get("/stocks/algopaca/options-chain")
+async def alpaca_options_chain(
+    underlying: str = Query(...),
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get options chain for an underlying equity."""
+    adapter = registry.get_adapter("alpaca")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Alpaca adapter not available")
+    return {"success": True, "options": await adapter.get_option_chain(underlying)}
+
+
+@router.get("/stocks/ibkr")
+async def ibkr_info(
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get IBKR adapter info."""
+    adapter = registry.get_adapter("ibkr")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="IBKR adapter not available")
+    return {"success": True, "adapter": adapter.name, "connected": adapter.is_connected}
+
+
+@router.post("/stocks/ibkr/connect")
+async def ibkr_connect(
+    host: str = Query("127.0.0.1"),
+    port: int = Query(7497),
+    client_id: int = Query(1),
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Connect to IBKR TWS/Gateway."""
+    adapter = registry.get_adapter("ibkr")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="IBKR adapter not available")
+    adapter._host = host
+    adapter._port = port
+    adapter._client_id = client_id
+    connected = await adapter.connect()
+    return {"success": connected, "connected": connected}
+
+
+@router.get("/stocks/ibkr/account")
+async def ibkr_account(
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get IBKR account info."""
+    adapter = registry.get_adapter("ibkr")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="IBKR adapter not available")
+    return {"success": True, "account": await adapter.get_account()}
+
+
+@router.get("/stocks/ibkr/positions")
+async def ibkr_positions(
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get IBKR positions."""
+    adapter = registry.get_adapter("ibkr")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="IBKR adapter not available")
+    return {"success": True, "positions": await adapter.get_positions()}
+
+
+@router.post("/stocks/ibkr/order")
+async def ibkr_place_order(
+    symbol: str = Query(...),
+    side: str = Query(...),
+    qty: float = Query(...),
+    order_type: str = Query("MKT"),
+    sec_type: str = Query("STK"),
+    exchange: str = Query("SMART"),
+    currency: str = Query("USD"),
+    strike: float | None = Query(None),
+    right: str | None = Query(None),
+    last_trade_date_or_contract_month: str | None = Query(None),
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Place a stock/options/futures order via IBKR."""
+    adapter = registry.get_adapter("ibkr")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="IBKR adapter not available")
+    result = await adapter.place_order(
+        symbol=symbol,
+        side=side,
+        qty=qty,
+        order_type=order_type,
+        sec_type=sec_type,
+        exchange=exchange,
+        currency=currency,
+        strike=strike,
+        right=right,
+        last_trade_date_or_contract_month=last_trade_date_or_contract_month,
+    )
+    return {"success": result.get("status") in ("accepted", "placed", "filled"), "result": result}
+
+
+# ─── DeFi Yield ───
+
+
+@router.get("/defi/aave/info")
+async def aave_info(
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get Aave adapter info."""
+    adapter = registry.get_adapter("aave")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Aave adapter not available")
+    return {"success": True, "adapter": adapter.name, "connected": adapter.is_connected}
+
+
+@router.post("/defi/aave/connect")
+async def aave_connect(
+    chain: str = Query("ethereum"),
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Connect to Aave on specified chain."""
+    adapter = registry.get_adapter("aave")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Aave adapter not available")
+    adapter._chain = chain
+    connected = await adapter.connect()
+    return {"success": connected, "connected": connected}
+
+
+@router.get("/defi/aave/supply-apy")
+async def aave_supply_apy(
+    asset: str = Query("USDC"),
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get supply APY for an asset on Aave."""
+    adapter = registry.get_adapter("aave")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Aave adapter not available")
+    return {"success": True, "data": await adapter.get_supply_apy(asset)}
+
+
+@router.get("/defi/aave/top-assets")
+async def aave_top_assets(
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get top supplied/borrowed assets on Aave."""
+    adapter = registry.get_adapter("aave")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Aave adapter not available")
+    return {"success": True, "assets": await adapter.get_top_assets()}
+
+
+@router.get("/defi/morpho/info")
+async def morpho_info(
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get Morpho adapter info."""
+    adapter = registry.get_adapter("morpho")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Morpho adapter not available")
+    return {"success": True, "adapter": adapter.name, "connected": adapter.is_connected}
+
+
+@router.post("/defi/morpho/connect")
+async def morpho_connect(
+    chain: str = Query("ethereum"),
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Connect to Morpho on specified chain."""
+    adapter = registry.get_adapter("morpho")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Morpho adapter not available")
+    adapter._chain = chain
+    connected = await adapter.connect()
+    return {"success": connected, "connected": connected}
+
+
+@router.get("/defi/morpho/market-apy")
+async def morpho_market_apy(
+    market_id: str = Query(...),
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get APY for a specific Morpho market."""
+    adapter = registry.get_adapter("morpho")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Morpho adapter not available")
+    return {"success": True, "data": await adapter.get_market_apy(market_id)}
+
+
+@router.get("/defi/morpho/top-markets")
+async def morpho_top_markets(
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get top Morpho markets by TVL."""
+    adapter = registry.get_adapter("morpho")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Morpho adapter not available")
+    return {"success": True, "markets": await adapter.get_top_markets()}
+
+
+@router.get("/defi/pendle/info")
+async def pendle_info(
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get Pendle adapter info."""
+    adapter = registry.get_adapter("pendle")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Pendle adapter not available")
+    return {"success": True, "adapter": adapter.name, "connected": adapter.is_connected}
+
+
+@router.post("/defi/pendle/connect")
+async def pendle_connect(
+    chain: str = Query("ethereum"),
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Connect to Pendle on specified chain."""
+    adapter = registry.get_adapter("pendle")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Pendle adapter not available")
+    adapter._chain = chain
+    connected = await adapter.connect()
+    return {"success": connected, "connected": connected}
+
+
+@router.get("/defi/pendle/yield-opportunities")
+async def pendle_yield_opportunities(
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get yield opportunities with PT/YT pricing data."""
+    adapter = registry.get_adapter("pendle")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Pendle adapter not available")
+    return {"success": True, "opportunities": await adapter.get_yield_opportunities()}
+
+
+@router.get("/defi/pendle/pt-yield")
+async def pendle_pt_yield(
+    market_id: str = Query(...),
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get PT yield data for a specific Pendle market."""
+    adapter = registry.get_adapter("pendle")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Pendle adapter not available")
+    return {"success": True, "data": await adapter.get_pt_yield(market_id)}
+
+
+@router.get("/defi/lido/info")
+async def lido_info(
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get Lido adapter info."""
+    adapter = registry.get_adapter("lido")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Lido adapter not available")
+    return {"success": True, "adapter": adapter.name, "connected": adapter.is_connected}
+
+
+@router.post("/defi/lido/connect")
+async def lido_connect(
+    chain: str = Query("ethereum"),
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Connect to Lido on specified chain."""
+    adapter = registry.get_adapter("lido")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Lido adapter not available")
+    adapter._chain = chain
+    connected = await adapter.connect()
+    return {"success": connected, "connected": connected}
+
+
+@router.get("/defi/lido/staking-apy")
+async def lido_staking_apy(
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get current staking APY and TVL for Lido."""
+    adapter = registry.get_adapter("lido")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Lido adapter not available")
+    return {"success": True, "data": await adapter.get_staking_apy()}
+
+
+@router.get("/defi/lido/protocol-metrics")
+async def lido_protocol_metrics(
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Get Lido protocol-wide metrics."""
+    adapter = registry.get_adapter("lido")
+    if not adapter:
+        raise HTTPException(status_code=404, detail="Lido adapter not available")
+    return {"success": True, "metrics": await adapter.get_protocol_metrics()}
+
+
+# ─── Polymarket Strategies ───
+
+
+@router.get("/polymarket/strategies")
+async def list_polymarket_strategies() -> dict[str, Any]:
+    """List all available Polymarket strategies."""
+    from core.polymarket.manager import list_strategies
+
+    return {"success": True, "strategies": list_strategies()}
+
+
+@router.post("/polymarket/strategies/{strategy_name}/run")
+async def run_polymarket_strategy(
+    strategy_name: str,
+    registry: InvestmentAdapterRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """Run a Polymarket strategy scan."""
+    from core.polymarket.manager import PolymarketManager
+
+    manager = PolymarketManager()
+    result = await manager.run_scan(strategy_name)
+    return {"success": True, "strategy": strategy_name, "result": result}
+
+
+@router.get("/polymarket/strategies/diagnostic")
+async def polymarket_diagnostic() -> dict[str, Any]:
+    """Run full diagnostic on all Polymarket strategies."""
+    from core.polymarket.manager import PolymarketManager
+
+    manager = PolymarketManager()
+    result = await manager.full_diagnostic()
+    return {"success": True, "diagnostic": result}
+
+
 async def health_check(
     registry: InvestmentAdapterRegistry = Depends(get_registry),
 ) -> dict[str, Any]:

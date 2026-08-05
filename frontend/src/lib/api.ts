@@ -1077,3 +1077,133 @@ export async function getAcceptanceObservations(limit = 50) {
 export async function syncAcceptanceFromDb() {
   return api.post<{ synced: number; summary: any }>('/reports/acceptance/sync')
 }
+
+// ─── Stocks & Options ───
+
+export async function getAlpacaInfo() {
+  return api.get<{ success: boolean; adapter: string; connected: boolean }>('/investment/stocks/algopaca')
+}
+
+export async function connectAlpaca(api_key: string, secret_key: string, base_url?: string) {
+  return api.post<{ success: boolean; connected: boolean }>('/investment/stocks/algopaca/connect', { api_key, secret_key, base_url })
+}
+
+export async function getAlpacaAccount() {
+  return api.get<{ success: boolean; account: any }>('/investment/stocks/algopaca/account')
+}
+
+export async function getAlpacaPositions() {
+  return api.get<{ success: boolean; positions: any[] }>('/investment/stocks/algopaca/positions')
+}
+
+export async function placeAlpacaOrder(symbol: string, side: string, qty: number, order_type?: string, take_profit?: number, stop_loss?: number) {
+  return api.post<{ success: boolean; result: any }>('/investment/stocks/algopaca/order', { symbol, side, qty, order_type, take_profit, stop_loss })
+}
+
+export async function getAlpacaMarketData(symbol: string) {
+  return api.get<{ success: boolean; data: any }>(`/investment/stocks/algopaca/market-data?symbol=${symbol}`)
+}
+
+export async function getAlpacaOptionsChain(underlying: string) {
+  return api.get<{ success: boolean; options: any[] }>(`/investment/stocks/algopaca/options-chain?underlying=${underlying}`)
+}
+
+export async function getIbkrInfo() {
+  return api.get<{ success: boolean; adapter: string; connected: boolean }>('/investment/stocks/ibkr')
+}
+
+export async function connectIbkr(host?: string, port?: number, client_id?: number) {
+  return api.post<{ success: boolean; connected: boolean }>('/investment/stocks/ibkr/connect', { host, port, client_id })
+}
+
+export async function getIbkrAccount() {
+  return api.get<{ success: boolean; account: any }>('/investment/stocks/ibkr/account')
+}
+
+export async function getIbkrPositions() {
+  return api.get<{ success: boolean; positions: any[] }>('/investment/stocks/ibkr/positions')
+}
+
+export async function placeIbkrOrder(symbol: string, side: string, qty: number, order_type?: string, sec_type?: string, strike?: number, right?: string) {
+  return api.post<{ success: boolean; result: any }>('/investment/stocks/ibkr/order', { symbol, side, qty, order_type, sec_type, strike, right })
+}
+
+// ─── DeFi Yield ───
+
+export async function getAaveInfo() {
+  return api.get<{ success: boolean; adapter: string; connected: boolean }>('/investment/defi/aave/info')
+}
+
+export async function connectAave(chain?: string) {
+  return api.post<{ success: boolean; connected: boolean }>('/investment/defi/aave/connect', { chain })
+}
+
+export async function getAaveSupplyApy(asset?: string) {
+  return api.get<{ success: boolean; data: any }>(`/investment/defi/aave/supply-apy?asset=${asset}`)
+}
+
+export async function getAaveTopAssets() {
+  return api.get<{ success: boolean; assets: any[] }>('/investment/defi/aave/top-assets')
+}
+
+export async function getMorphoInfo() {
+  return api.get<{ success: boolean; adapter: string; connected: boolean }>('/investment/defi/morpho/info')
+}
+
+export async function connectMorpho(chain?: string) {
+  return api.post<{ success: boolean; connected: boolean }>('/investment/defi/morpho/connect', { chain })
+}
+
+export async function getMorphoMarketApy(market_id: string) {
+  return api.get<{ success: boolean; data: any }>(`/investment/defi/morpho/market-apy?market_id=${market_id}`)
+}
+
+export async function getMorphoTopMarkets() {
+  return api.get<{ success: boolean; markets: any[] }>('/investment/defi/morpho/top-markets')
+}
+
+export async function getPendleInfo() {
+  return api.get<{ success: boolean; adapter: string; connected: boolean }>('/investment/defi/pendle/info')
+}
+
+export async function connectPendle(chain?: string) {
+  return api.post<{ success: boolean; connected: boolean }>('/investment/defi/pendle/connect', { chain })
+}
+
+export async function getPendleYieldOpportunities() {
+  return api.get<{ success: boolean; opportunities: any[] }>('/investment/defi/pendle/yield-opportunities')
+}
+
+export async function getPendlePtYield(market_id: string) {
+  return api.get<{ success: boolean; data: any }>(`/investment/defi/pendle/pt-yield?market_id=${market_id}`)
+}
+
+export async function getLidoInfo() {
+  return api.get<{ success: boolean; adapter: string; connected: boolean }>('/investment/defi/lido/info')
+}
+
+export async function connectLido(chain?: string) {
+  return api.post<{ success: boolean; connected: boolean }>('/investment/defi/lido/connect', { chain })
+}
+
+export async function getLidoStakingApy() {
+  return api.get<{ success: boolean; data: any }>('/investment/defi/lido/staking-apy')
+}
+
+export async function getLidoProtocolMetrics() {
+  return api.get<{ success: boolean; metrics: any }>('/investment/defi/lido/protocol-metrics')
+}
+
+// ─── Polymarket Strategies ───
+
+export async function getPolymarketStrategies() {
+  return api.get<{ success: boolean; strategies: any }>('/investment/polymarket/strategies')
+}
+
+export async function runPolymarketStrategy(strategy_name: string) {
+  return api.post<{ success: boolean; result: any }>(`/investment/polymarket/strategies/${strategy_name}/run`)
+}
+
+export async function getPolymarketDiagnostic() {
+  return api.get<{ success: boolean; diagnostic: any }>('/investment/polymarket/strategies/diagnostic')
+}

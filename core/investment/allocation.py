@@ -257,6 +257,27 @@ class RevenueAllocationController:
         except Exception as e:
             logger.warning("Failed to save allocation state: %s", e)
 
+    def _save_config(self) -> None:
+        try:
+            _allocation_file().write_text(
+                json.dumps(
+                    {
+                        "total_capital_usd": self._config.total_capital_usd,
+                        "max_high_risk_pct": self._config.max_high_risk_pct,
+                        "max_speculative_pct": self._config.max_speculative_pct,
+                        "emergency_reserve_pct": self._config.emergency_reserve_pct,
+                        "auto_rebalance": self._config.auto_rebalance,
+                        "rebalance_threshold_pct": self._config.rebalance_threshold_pct,
+                        "min_strategy_allocation_usd": self._config.min_strategy_allocation_usd,
+                        "updated_at": datetime.now(UTC).isoformat(),
+                    },
+                    indent=2,
+                    default=str,
+                )
+            )
+        except Exception as e:
+            logger.warning("Failed to save allocation config: %s", e)
+
 
 _INSTANCE: RevenueAllocationController | None = None
 
