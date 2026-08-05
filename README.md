@@ -1,28 +1,31 @@
-<div align="center">
+<p align="center">
+  <img src="assets/logos/ownex-lockup.svg" alt="OWNEX" width="300"/>
+</p>
 
-<img src="assets/logos/ownex-lockup.svg"
-     alt="OWNEX"
-     width="280"
-     style="margin-bottom: 32px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));"/>
+<p align="center">
+  <a href="https://github.com/AdriDob/rastrohunteralpha/releases">
+    <img src="https://img.shields.io/badge/version-7.0.0-000000?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIi8+PHBhdGggZD0iTTEyIDZ2MTJNNiAxMmgxMiIvPjwvc3ZnPg=="/>
+  </a>
+  <a href="https://www.python.org/">
+    <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white"/>
+  </a>
+  <a href="https://vuejs.org/">
+    <img src="https://img.shields.io/badge/Vue-3.5-4FC08D?style=flat-square&logo=vue.js&logoColor=white"/>
+  </a>
+  <a href="https://fastapi.tiangolo.com/">
+    <img src="https://img.shields.io/badge/FastAPI-0.104+-009688?style=flat-square&logo=fastapi&logoColor=white"/>
+  </a>
+</p>
 
-<br>
+<p align="center">
+  <strong>Autonomous Intelligence for Technical Work</strong>
+</p>
 
-# OWNEX
-
-### The Personalized Autonomous Operating System
-
-**Autonomous Intelligence for Technical Work**
-
-[![Version 7.0.0](https://img.shields.io/badge/version-7.0.0-000000?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIi8+PHBhdGggZD0iTTEyIDZ2MTJNNiAxMmgxMiIvPjwvc3ZnPg==)](VERSION.txt)
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Vue](https://img.shields.io/badge/Vue-3.5-4FC08D?style=flat-square&logo=vue.js&logoColor=white)](https://vuejs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+<p align="center">
+  <em>Autonomous bug bounty research · Attack surface intelligence · Technical automation</em>
+</p>
 
 ---
-
-*Autonomous bug bounty research · Attack surface intelligence · Technical automation*
-
-</div>
 
 ## Overview
 
