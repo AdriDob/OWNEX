@@ -29,7 +29,7 @@ import { useToast } from '@/composables/useToast'
 const { toast } = useToast()
 
 // ── Tabs ──
-type Tab = 'overview' | 'targets' | 'programs' | 'pipeline' | 'platforms' | 'settings'
+type Tab = 'overview' | 'progressive-scaling' | 'targets' | 'programs' | 'pipeline' | 'platforms' | 'settings'
 const activeTab = ref<Tab>('overview')
 
 // ── State ──
@@ -290,7 +290,7 @@ function copyToClipboard(text: string) {
     <!-- ═══ TABS ═══ -->
     <div class="flex flex-wrap gap-1 border-b border-border/40 pb-1">
       <button
-        v-for="tab in ['overview', 'targets', 'programs', 'pipeline', 'platforms', 'settings']"
+        v-for="tab in ['overview', 'progressive-scaling', 'targets', 'programs', 'pipeline', 'platforms', 'settings']"
         :key="tab"
         @click="activeTab = tab as Tab"
         class="px-3 py-1.5 text-sm font-medium rounded-t-md transition-colors border-b-2 border-transparent
@@ -299,7 +299,7 @@ function copyToClipboard(text: string) {
           ? 'text-primary border-primary bg-primary/5'
           : 'text-muted-foreground hover:bg-accent/30'"
       >
-        {{ tab.charAt(0).toUpperCase() + tab.slice(1) }}
+        {{ tab.charAt(0).toUpperCase() + tab.slice(1).replace('-', ' ') }}
       </button>
     </div>
 
@@ -640,6 +640,11 @@ function copyToClipboard(text: string) {
             <EmptyState v-else icon="Clock" title="Sin datos de velocidad" description="Registra payouts confirmados con fechas" />
           </CardContent>
         </Card>
+      </div>
+
+      <!-- ═══ PROGRESSIVE SCALING TAB ═══ -->
+      <div v-else-if="activeTab === 'progressive-scaling'" class="space-y-6 animate-fade-in">
+        <router-view />
       </div>
 
       <!-- ═══ SETTINGS TAB ═══ -->

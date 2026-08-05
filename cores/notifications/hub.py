@@ -37,6 +37,7 @@ NOTIFICATION_TYPES = [
     "report_ready",
     "system_health_alert",
     "assistant_recommendation",
+    "action_required",
 ]
 
 DEDUP_WINDOW = 30  # seconds: same dedup_key within this window is skipped
