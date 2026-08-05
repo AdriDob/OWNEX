@@ -425,12 +425,28 @@ class EvidenceComposer:
         bundle = composer.compose(hypothesis)
         if bundle.is_report_ready:
             logger.info(bundle.curl_command)
+
+    With real probe data::
+
+        bundle = composer.compose(hypothesis, probe_analysis=analysis_result)
     """
 
     def compose(
-        self, hypothesis: Hypothesis, host: str = "", params_override: dict[str, str] | None = None
+        self,
+        hypothesis: Hypothesis,
+        host: str = "",
+        params_override: dict[str, str] | None = None,
+        probe_analysis: Any = None,
     ) -> EvidenceBundle:
-        """Transform a hypothesis into a complete evidence bundle."""
+        """Transform a hypothesis into a complete evidence bundle.
+
+        Args:
+            hypothesis: The hypothesis to compose evidence for.
+            host: Override host for PoC generation.
+            params_override: Override parameters for PoC generation.
+            probe_analysis: Optional AnalysisResult from HTTP Probe Engine.
+                When provided, PoC commands use real request/response data.
+        """
         vuln_type = hypothesis.vulnerability_type
         cwe_id, cwe_name = CWE_MAP.get(vuln_type, ("CWE-200", "Information Exposure"))
         capec_id = CAPEC_MAP.get(vuln_type, "")
@@ -443,6 +459,52 @@ class EvidenceComposer:
         # Guess a host for PoC generation
         poc_host = host or hypothesis.endpoint
 
+        # Extract real probe data if available
+        probe_headers: dict[str, str] = {}
+        probe_body: Any = None
+        actual_result_text = "200 OK with sensitive data returned (vulnerability confirmed)"
+        repro_steps: list[str] = []
+
+        if probe_analysis is not None:
+            poc_host = getattr(probe_analysis, "endpoint", poc_host) or poc_host
+            method = getattr(probe_analysis, "method", method) or method
+
+            poc_data = getattr(probe_analysis, "poc_data", {}) or {}
+            best_probe = poc_data.get("best_probe", {})
+            if best_probe:
+                test_value = (
+                    str(best_probe.get("payload", {}).get(hypothesis.parameters_of_interest[0], test_value))
+                    if best_probe.get("payload")
+                    else test_value
+                )
+
+            # Build real reproduction steps from evidence items
+            evidence_items = getattr(probe_analysis, "evidence_items", []) or []
+            rr_pairs = getattr(probe_analysis, "request_response_pairs", []) or []
+
+            if evidence_items:
+                repro_steps.append(f"Send a {method} request to {poc_host}")
+                for ev in evidence_items[:5]:
+                    ev_detail = ev.get("detail", "")
+                    if ev_detail:
+                        repro_steps.append(f"Observe: {ev_detail}")
+                if rr_pairs:
+                    repro_steps.append("Compare probe response with baseline to confirm anomaly")
+            else:
+                repro_steps = self._build_repro_steps(hypothesis, method, poc_host, test_value)
+
+            # Use actual response snippet for impact
+            if rr_pairs:
+                last_pair = rr_pairs[-1]
+                probe_resp = last_pair.get("probe", {})
+                if probe_resp.get("body_snippet"):
+                    actual_result_text = (
+                        f"Response ({probe_resp.get('status', '?')}): {probe_resp['body_snippet'][:300]}"
+                    )
+
+        else:
+            repro_steps = self._build_repro_steps(hypothesis, method, poc_host, test_value)
+
         # Build params dict for PoC generation
         poc_params: dict[str, str] = {}
         if params_override:
@@ -453,24 +515,21 @@ class EvidenceComposer:
 
         # Generate PoC in all formats
         vuln_param = hypothesis.parameters_of_interest[0] if hypothesis.parameters_of_interest else "param"
-        curl = generate_curl(poc_host, method, poc_params, {}, None, vuln_param, test_value)
-        py_code = generate_python(method, poc_host, poc_params, {}, None, vuln_param, test_value)
-        js_code = generate_js_fetch(method, poc_host, poc_params, {}, None)
-        httpie = generate_httpie(method, poc_host, poc_params, {}, None)
+        curl = generate_curl(poc_host, method, poc_params, probe_headers, probe_body, vuln_param, test_value)
+        py_code = generate_python(method, poc_host, poc_params, probe_headers, probe_body, vuln_param, test_value)
+        js_code = generate_js_fetch(method, poc_host, poc_params, probe_headers, probe_body)
+        httpie = generate_httpie(method, poc_host, poc_params, probe_headers, probe_body)
 
         # Generate Nuclei template
         nid, ntemplate = generate_nuclei_template(hypothesis)
 
         # Build reproduction steps from hypothesis
-        repro_steps = list(hypothesis.test_instructions) if hypothesis.test_instructions else []
-        if hypothesis.reproducibility_notes:
-            repro_steps.append(hypothesis.reproducibility_notes)
         if not repro_steps:
-            repro_steps = [
-                f"Send a {method} request to {hypothesis.endpoint}",
-                f"Set the {vuln_param} parameter to '{test_value}'",
-                "Compare the response with a baseline request",
-            ]
+            repro_steps = list(hypothesis.test_instructions) if hypothesis.test_instructions else []
+            if hypothesis.reproducibility_notes:
+                repro_steps.append(hypothesis.reproducibility_notes)
+            if not repro_steps:
+                repro_steps = self._build_repro_steps(hypothesis, method, poc_host, test_value)
 
         preconditions = [hypothesis.scope_check] if hypothesis.scope_check else []
         preconditions.append("Ensure you have an active session/token for the target")
@@ -518,7 +577,7 @@ class EvidenceComposer:
             reproduction_steps=repro_steps,
             preconditions=preconditions,
             expected_result="403 Forbidden or filtered response (baseline)",
-            actual_result="200 OK with sensitive data returned (vulnerability confirmed)",
+            actual_result=actual_result_text,
             business_impact=business_impact,
             risk_factors=risk_factors,
             what_was_tested=hypothesis.signals
@@ -572,6 +631,15 @@ class EvidenceComposer:
             contradictions=[],
         )
         return self.compose(hyp, host=host)
+
+    @staticmethod
+    def _build_repro_steps(hypothesis: Hypothesis, method: str, endpoint: str, test_value: str) -> list[str]:
+        vuln_param = hypothesis.parameters_of_interest[0] if hypothesis.parameters_of_interest else "param"
+        return [
+            f"Send a {method} request to {endpoint}",
+            f"Set the {vuln_param} parameter to '{test_value}'",
+            "Compare the response with a baseline request",
+        ]
 
     @staticmethod
     def _sample_test_value(vuln_type: str) -> str:
