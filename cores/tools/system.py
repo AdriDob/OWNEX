@@ -375,7 +375,7 @@ class ToolCompatibilityChecker:
         nums1 = [int(x) for x in re.findall(r"\d+", v1)]
         nums2 = [int(x) for x in re.findall(r"\d+", v2)]
 
-        for n1, n2 in zip(nums1, nums2):
+        for n1, n2 in zip(nums1, nums2, strict=False):
             if n1 > n2:
                 return 1
             elif n1 < n2:

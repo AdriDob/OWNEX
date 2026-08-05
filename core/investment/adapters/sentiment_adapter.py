@@ -111,10 +111,7 @@ class SentimentAnalyzerAdapter:
         neg_count = sum(1 for kw in self._negative_keywords if kw in text_lower)
 
         total = pos_count + neg_count
-        if total == 0:
-            keyword_score = 0.0
-        else:
-            keyword_score = (pos_count - neg_count) / total
+        keyword_score = 0.0 if total == 0 else (pos_count - neg_count) / total
 
         # Try FinBERT if available
         finbert_score = await self._finbert_score(text)
