@@ -1,0 +1,168 @@
+%% OWNEX Agent Departments Structure
+%% How agents are organized into departments with capabilities
+
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#111113',
+      'primaryTextColor': '#F6F8FB',
+      'primaryBorderColor': '#5E6AD2',
+      'lineColor': '#5E6AD2',
+      'secondaryColor': '#1F2023',
+      'tertiaryColor': '#2A2D35',
+      'background': 'transparent',
+      'mainBkg': 'transparent',
+      'fontFamily': 'Inter',
+      'fontSize': '13px',
+      'clusterBkg': '#111113',
+      'clusterBorder': '#5E6AD2'
+    }
+  }
+}%%
+
+graph TB
+    %% ORCHESTRATOR
+    subgraph ORCH ["Orchestrator"]
+        direction TB
+        ORCH_CORE[Orchestrator Core<br/>Task Planning / Delegation<br/>core.agents.orchestrator.Orchestrator]
+        ORCH_PLAN[Task Planner<br/>DAG Generation<br/>Dependency Resolution]
+        ORCH_DELEGATE[Delegation Engine<br/>Capability Matching<br/>Load Balancing]
+        ORCH_MONITOR[Execution Monitor<br/>Progress Tracking<br/>Timeout / Retry]
+    end
+
+    %% AGENT BUS
+    subgraph ABUS ["AgentBus (cores.agents.bus)"]
+        direction TB
+        AB_PUB[Publish/Subscribe<br/>Inter-Agent Events]
+        AB_REQ[Request/Reply<br/>Synchronous Calls]
+        AB_REG[Capability Registry<br/>Agent Discovery]
+        AB_HEARTBEAT[Health Monitoring<br/>Liveness / Readiness]
+    end
+
+    %% ENGINEERING DEPARTMENT
+    subgraph ENG ["Engineering Department"]
+        direction TB
+        ENG_LEAD[Engineering Lead<br/>Task Decomposition]
+        ENG_CODE[Code Generator<br/>Features / Fixes / Tests]
+        ENG_REFACTOR[Refactoring Agent<br/>Modernize / Optimize]
+        ENG_BUILD[Build Agent<br/>Compile / Package / Release]
+        ENG_TEST[Test Agent<br/>Unit / Integration / E2E]
+        ENG_DOCS[Documentation Agent<br/>API / User / Architecture]
+    end
+
+    %% QUALITY DEPARTMENT
+    subgraph QUA ["Quality Department"]
+        direction TB
+        QUA_LEAD[Quality Lead<br/>Review Coordination]
+        QUA_REVIEW[Code Reviewer<br/>Security / Performance / Style]
+        QUA_LINT[Linter Agent<br/>Ruff / Biome / TypeCheck]
+        QUA_AUDIT[Audit Agent<br/>Architecture / Dependencies]
+        QUA_BENCH[Benchmark Agent<br/>Performance / Regression]
+    end
+
+    %% SECURITY DEPARTMENT
+    subgraph SEC ["Security Department"]
+        direction TB
+        SEC_LEAD[Security Lead<br/>Campaign Planning]
+        SEC_RECON[Recon Agent<br/>Subdomain / Endpoint / Tech Stack]
+        SEC_VULN[Vulnerability Agent<br/>Hypothesis / Exploit / Validate]
+        SEC_REPORT[Report Agent<br/>Evidence / Impact / Remediation]
+        SEC_TRIAGE[Triage Agent<br/>Severity / Priority / Duplicate]
+    end
+
+    %% REVENUE DEPARTMENT
+    subgraph REV ["Revenue Department"]
+        direction TB
+        REV_LEAD[Revenue Lead<br/>Portfolio Optimization]
+        REV_TRACK[Tracking Agent<br/>Payouts / Conversions / Fees]
+        REV_OPTIMIZE[Optimization Agent<br/>EV Maximization / Allocation]
+        REV_REPORT[Reporting Agent<br/>Tax / Compliance / Dashboard]
+    end
+
+    %% CONNECTIONS
+    ORCH_CORE --> ORCH_PLAN
+    ORCH_CORE --> ORCH_DELEGATE
+    ORCH_CORE --> ORCH_MONITOR
+
+    ORCH_DELEGATE --> AB_REG
+    ORCH_MONITOR --> AB_HEARTBEAT
+
+    AB_PUB <--> ENG_LEAD
+    AB_PUB <--> QUA_LEAD
+    AB_PUB <--> SEC_LEAD
+    AB_PUB <--> REV_LEAD
+
+    AB_REQ <--> ENG_CODE
+    AB_REQ <--> ENG_REFACTOR
+    AB_REQ <--> ENG_BUILD
+    AB_REQ <--> ENG_TEST
+    AB_REQ <--> ENG_DOCS
+
+    AB_REQ <--> QUA_REVIEW
+    AB_REQ <--> QUA_LINT
+    AB_REQ <--> QUA_AUDIT
+    AB_REQ <--> QUA_BENCH
+
+    AB_REQ <--> SEC_RECON
+    AB_REQ <--> SEC_VULN
+    AB_REQ <--> SEC_REPORT
+    AB_REQ <--> SEC_TRIAGE
+
+    AB_REQ <--> REV_TRACK
+    AB_REQ <--> REV_OPTIMIZE
+    AB_REQ <--> REV_REPORT
+
+    ENG_LEAD --> ENG_CODE
+    ENG_LEAD --> ENG_REFACTOR
+    ENG_LEAD --> ENG_BUILD
+    ENG_LEAD --> ENG_TEST
+    ENG_LEAD --> ENG_DOCS
+
+    QUA_LEAD --> QUA_REVIEW
+    QUA_LEAD --> QUA_LINT
+    QUA_LEAD --> QUA_AUDIT
+    QUA_LEAD --> QUA_BENCH
+
+    SEC_LEAD --> SEC_RECON
+    SEC_LEAD --> SEC_VULN
+    SEC_LEAD --> SEC_REPORT
+    SEC_LEAD --> SEC_TRIAGE
+
+    REV_LEAD --> REV_TRACK
+    REV_LEAD --> REV_OPTIMIZE
+    REV_LEAD --> REV_REPORT
+
+    %% CYCLE ASSIGNMENTS
+    ENG_CODE -.->|FORGE, ODYSSEY| CYCLES
+    ENG_REFACTOR -.->|FORGE| CYCLES
+    ENG_TEST -.->|FORGE, PULSE| CYCLES
+    ENG_DOCS -.->|ODYSSEY| CYCLES
+
+    QUA_REVIEW -.->|FORGE| CYCLES
+    QUA_LINT -.->|FORGE, PULSE| CYCLES
+    QUA_AUDIT -.->|ALL| CYCLES
+
+    SEC_RECON -.->|SECURITY, ATLAS| CYCLES
+    SEC_VULN -.->|SECURITY| CYCLES
+    SEC_REPORT -.->|SECURITY| CYCLES
+
+    REV_TRACK -.->|ALL| CYCLES
+    REV_OPTIMIZE -.->|VAULT, FORGE| CYCLES
+
+    %% STYLING
+    classDef orch fill:#08090A,stroke:#5E6AD2,stroke-width:3px,color:#F6F8FB
+    classDef bus fill:#111113,stroke:#5E6AD2,stroke-width:2px,color:#F6F8FB
+    classDef eng fill:#1F2023,stroke:#00E39A,stroke-width:2px,color:#F6F8FB
+    classDef qua fill:#1F2023,stroke:#FFB020,stroke-width:2px,color:#F6F8FB
+    classDef sec fill:#2A2D35,stroke:#FF5252,stroke-width:2px,color:#F6F8FB
+    classDef rev fill:#1F2023,stroke:#5E6AD2,stroke-width:2px,color:#F6F8FB
+    classDef cycle fill:#08090A,stroke:#8B8D98,stroke-width:1px,color:#8B8D98,stroke-dasharray: 5 5
+
+    class ORCH_CORE,ORCH_PLAN,ORCH_DELEGATE,ORCH_MONITOR orch
+    class AB_PUB,AB_REQ,AB_REG,AB_HEARTBEAT bus
+    class ENG_LEAD,ENG_CODE,ENG_REFACTOR,ENG_BUILD,ENG_TEST,ENG_DOCS eng
+    class QUA_LEAD,QUA_REVIEW,QUA_LINT,QUA_AUDIT,QUA_BENCH qua
+    class SEC_LEAD,SEC_RECON,SEC_VULN,SEC_REPORT,SEC_TRIAGE sec
+    class REV_LEAD,REV_TRACK,REV_OPTIMIZE,REV_REPORT rev
+    class CYCLES cycle

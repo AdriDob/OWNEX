@@ -1,0 +1,154 @@
+%% OWNEX Layer Breakdown
+%% Detailed view of each architectural layer
+
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#111113',
+      'primaryTextColor': '#F6F8FB',
+      'primaryBorderColor': '#5E6AD2',
+      'lineColor': '#5E6AD2',
+      'secondaryColor': '#1F2023',
+      'tertiaryColor': '#2A2D35',
+      'background': 'transparent',
+      'mainBkg': 'transparent',
+      'fontFamily': 'Inter',
+      'fontSize': '13px',
+      'clusterBkg': '#111113',
+      'clusterBorder': '#5E6AD2'
+    }
+  }
+}%%
+
+graph TB
+    %% LAYER 1: INFRASTRUCTURE
+    subgraph L1 ["Layer 1: Infrastructure"]
+        direction TB
+        L1_EB[Event Bus<br/>Pub/Sub + Request/Reply<br/>cores.events.EventBus]
+        L1_SC[Scheduler<br/>APScheduler + Cron<br/>core.scheduler.jobs]
+        L1_UM[Unified Memory<br/>SQLite Namespaced Tables<br/>core.memory.UnifiedMemory]
+        L1_SL[Security Layer<br/>IdentityVault + Keyring<br/>core.security.IdentityVault]
+        L1_CFG[Configuration<br/>Pydantic Settings<br/>core.config.Settings]
+        L1_LOG[Structured Logging<br/>loguru + JSON<br/>core.logging]
+    end
+
+    %% LAYER 2: INTELLIGENCE
+    subgraph L2 ["Layer 2: Intelligence"]
+        direction TB
+        L2_MERLIN[MERLIN Assistant<br/>Context-Aware + Actions<br/>core.intelligence.merlin]
+        L2_EVOL[Evolution Engine<br/>Design→Prepare→Validate→Propose<br/>core.intelligence.evolution]
+        L2_RECOVERY[Recovery Engine<br/>Health Checks + Auto-Remediation<br/>core.intelligence.recovery]
+        L2_KM[Knowledge Capture<br/>Outcome → Pattern Extraction<br/>core.intelligence.knowledge]
+    end
+
+    %% LAYER 3: AGENT ORCHESTRATION
+    subgraph L3 ["Layer 3: Agent Orchestration"]
+        direction TB
+        L3_ORCH[Orchestrator<br/>Task Graph + Delegation<br/>core.agents.orchestrator]
+        L3_AB[AgentBus<br/>Inter-Agent Communication<br/>core.agents.bus]
+        L3_REG[Agent Registry<br/>Capability Discovery<br/>core.agents.registry]
+    end
+
+    %% LAYER 4: DEPARTMENTS
+    subgraph L4 ["Layer 4: Departments"]
+        direction TB
+        L4_ENG[Engineering<br/>Code Gen / Refactor / Test<br/>core.agents.engineering]
+        L4_QUA[Quality<br/>Review / Lint / Audit<br/>core.agents.quality]
+        L4_SEC[Security<br/>Recon / Exploit / Report<br/>core.agents.security]
+        L4_REV[Revenue<br/>Track / Optimize / Report<br/>core.agents.revenue]
+    end
+
+    %% LAYER 5: WORK CYCLES
+    subgraph L5 ["Layer 5: Work Cycles"]
+        direction TB
+        L5_FORGE[FORGE<br/>core.cycles.forge]
+        L5_PULSE[PULSE<br/>core.cycles.pulse]
+        L5_SEC[SECURITY<br/>core.cycles.security]
+        L5_VAULT[VAULT<br/>core.cycles.vault]
+        L5_ATLAS[ATLAS<br/>core.cycles.atlas]
+        L5_ODYSSEY[ODYSSEY<br/>core.cycles.odyssey]
+    end
+
+    %% LAYER 6: EXECUTION
+    subgraph L6 ["Layer 6: Execution"]
+        direction TB
+        L6_WF[Workflows<br/>DAG + State Machine<br/>core.execution.workflow]
+        L6_EX[Executors<br/>Platform Adapters<br/>core.execution.executor]
+        L6_PC[Platform Connectors<br/>API Clients + Auth<br/>core.opportunity.adapters]
+    end
+
+    %% LAYER 7: LEARNING
+    subgraph L7 ["Layer 7: Learning"]
+        direction TB
+        L7_FM[Feedback Loops<br/>Accept/Reject/Modify<br/>core.learning.feedback]
+        L7_RM[Reward Models<br/>EV Calibration<br/>core.learning.rewards]
+        L7_PL[Prompt Library<br/>Optimized Templates<br/>core.learning.prompts]
+    end
+
+    %% CONNECTIONS BETWEEN LAYERS
+    L1_EB --> L2_MERLIN
+    L1_EB --> L2_EVOL
+    L1_EB --> L2_RECOVERY
+    L1_EB --> L2_KM
+    L1_UM --> L2_MERLIN
+    L1_UM --> L2_EVOL
+    L1_UM --> L2_KM
+
+    L2_MERLIN --> L3_ORCH
+    L2_EVOL --> L3_ORCH
+    L2_RECOVERY --> L3_ORCH
+
+    L3_ORCH --> L4_ENG
+    L3_ORCH --> L4_QUA
+    L3_ORCH --> L4_SEC
+    L3_ORCH --> L4_REV
+
+    L3_AB <--> L4_ENG
+    L3_AB <--> L4_QUA
+    L3_AB <--> L4_SEC
+    L3_AB <--> L4_REV
+
+    L4_ENG --> L5_FORGE
+    L4_ENG --> L5_ODYSSEY
+    L4_QUA --> L5_FORGE
+    L4_QUA --> L5_PULSE
+    L4_SEC --> L5_SEC
+    L4_SEC --> L5_ATLAS
+    L4_REV --> L5_VAULT
+    L4_REV --> L5_FORGE
+
+    L5_FORGE --> L6_WF
+    L5_PULSE --> L6_WF
+    L5_SEC --> L6_WF
+    L5_VAULT --> L6_WF
+    L5_ATLAS --> L6_WF
+    L5_ODYSSEY --> L6_WF
+
+    L6_WF --> L6_EX
+    L6_EX --> L6_PC
+
+    L6_EX --> L7_FM
+    L6_PC --> L2_KM
+
+    L7_FM --> L7_RM
+    L7_RM --> L2_EVOL
+    L2_EVOL --> L7_PL
+    L7_PL --> L2_MERLIN
+
+    %% STYLING
+    classDef l1 fill:#08090A,stroke:#5E6AD2,stroke-width:2px,color:#F6F8FB
+    classDef l2 fill:#111113,stroke:#00E39A,stroke-width:2px,color:#F6F8FB
+    classDef l3 fill:#1F2023,stroke:#FFB020,stroke-width:2px,color:#F6F8FB
+    classDef l4 fill:#1F2023,stroke:#FFB020,stroke-width:1.5px,color:#F6F8FB
+    classDef l5 fill:#2A2D35,stroke:#5E6AD2,stroke-width:1.5px,color:#F6F8FB
+    classDef l6 fill:#111113,stroke:#FF5252,stroke-width:2px,color:#F6F8FB
+    classDef l7 fill:#1F2023,stroke:#00E39A,stroke-width:1.5px,color:#F6F8FB
+
+    class L1_EB,L1_SC,L1_UM,L1_SL,L1_CFG,L1_LOG l1
+    class L2_MERLIN,L2_EVOL,L2_RECOVERY,L2_KM l2
+    class L3_ORCH,L3_AB,L3_REG l3
+    class L4_ENG,L4_QUA,L4_SEC,L4_REV l4
+    class L5_FORGE,L5_PULSE,L5_SEC,L5_VAULT,L5_ATLAS,L5_ODYSSEY l5
+    class L6_WF,L6_EX,L6_PC l6
+    class L7_FM,L7_RM,L7_PL l7
