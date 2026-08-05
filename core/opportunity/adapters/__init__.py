@@ -219,6 +219,22 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
     except ImportError:
         pass
 
+    # Security Bounty adapters (HackerOne, Bugcrowd, Intigriti, YesWeHack)
+    try:
+        from core.opportunity.adapters.security_bounty import (
+            BugcrowdAdapter,
+            HackerOneAdapter,
+            IntigritiAdapter,
+            YesWeHackAdapter,
+        )
+
+        registry.register("hackerone", HackerOneAdapter)
+        registry.register("bugcrowd", BugcrowdAdapter)
+        registry.register("intigriti", IntigritiAdapter)
+        registry.register("yeswehack", YesWeHackAdapter)
+    except ImportError:
+        pass
+
 
 def get_adapters() -> dict[str, OpportunityAdapter]:
     """Get adapter instances for all enabled adapters."""
