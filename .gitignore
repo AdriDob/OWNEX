@@ -94,3 +94,5 @@ data/
 
 # Backup artifacts
 .ownex_backups/
+freqtrade_user/
+hummingbot_user/
