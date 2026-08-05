@@ -101,7 +101,48 @@
             <div class="merlin-message">
               <div class="message-content">
                 <p class="greeting">{{ merlinGreeting }}</p>
-              </div>
+      <!-- Notifications -->
+      <div class="notifications-section" v-if="notifications.length > 0">
+        <h2 class="section-title">Notificaciones ({{ notifications.length }})</h2>
+        <div class="notifications-list">
+          <div
+            v-for="notif in notifications"
+            :key="notif.notification_id"
+            class="notification-item"
+            :class="{ unread: !notif.read, [notif.level]: true }"
+            @click="markNotificationRead(notif.notification_id)"
+          >
+            <div class="notification-content">
+              <span class="notification-title">{{ notif.title }}</span>
+              <span class="notification-message">{{ notif.message }}</span>
+            </div>
+            <span class="notification-level">{{ notif.level }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending Approvals -->
+      <div class="approvals-section" v-if="pendingApprovals.length > 0">
+        <h2 class="section-title">Aprobaciones Pendientes ({{ pendingApprovals.length }})</h2>
+        <div class="approvals-list">
+          <div
+            v-for="approval in pendingApprovals"
+            :key="approval.request_id"
+            class="approval-item"
+          >
+            <div class="approval-content">
+              <span class="approval-title">{{ approval.title }}</span>
+              <span class="approval-description">{{ approval.description }}</span>
+            </div>
+            <div class="approval-actions">
+              <button class="btn-approve" @click="respondApproval(approval.request_id, true)">✓</button>
+              <button class="btn-reject" @click="respondApproval(approval.request_id, false)">✗</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
             </div>
           </div>
           <div class="merlin-input">
@@ -188,23 +229,40 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import VoiceAssistantRecorder from '@/components/voice/VoiceAssistantRecorder.vue'
+import {
+  fetchWearOSStatus,
+  fetchWearOSNotifications,
+  fetchWearOSPendingApprovals,
+  markWearOSNotificationRead,
+  respondWearOSApproval,
+  type WearOSStatus,
+  type WearOSNotification,
+  type WearOSApproval,
+} from '@/services/ownexData'
 
 const router = useRouter()
 
 const companionConnected = ref(true)
-const androidConnected = ref(false)
+const androidConnected = ref(true)
 const watchConnected = ref(false)
 const notificationsEnabled = ref(true)
 const merlinInput = ref('')
 
-const status = ref({
-  findings_total: 42,
-  findings_confirmed: 23,
-  findings_pending: 19,
-  targets_active: 8,
-  scheduler_running: true,
-  next_action: 'Discovery scan in progress'
-})
+const wearStatus = ref<WearOSStatus | null>(null)
+const notifications = ref<WearOSNotification[]>([])
+const pendingApprovals = ref<WearOSApproval[]>([])
+const loading = ref(false)
+
+const status = computed(() => ({
+  findings_total: wearStatus.value?.findings_total ?? 0,
+  findings_confirmed: wearStatus.value?.findings_confirmed ?? 0,
+  findings_pending: wearStatus.value?.pending_approvals ?? 0,
+  targets_active: wearStatus.value?.targets_active ?? 0,
+  scheduler_running: wearStatus.value?.scheduler_running ?? false,
+  next_action: wearStatus.value?.active_workflows
+    ? `${wearStatus.value.active_workflows} workflows activos`
+    : 'Sin actividad',
+}))
 
 const androidStatus = computed(() => androidConnected.value ? 'Conectado' : 'Desconectado')
 const androidStatusClass = computed(() => androidConnected.value ? 'status-ok' : 'status-warning')
@@ -213,16 +271,70 @@ const watchStatusClass = computed(() => watchConnected.value ? 'status-ok' : 'st
 
 const merlinGreeting = ref('¡Hola! Soy MERLIN mini. ¿En qué puedo ayudarte desde tu móvil?')
 
+async function refreshStatus() {
+  loading.value = true
+  try {
+    const [wearNotifs, wearApprovals] = await Promise.all([
+      fetchWearOSNotifications({ unread_only: true, limit: 10 }),
+      fetchWearOSPendingApprovals(),
+    ])
+    notifications.value = wearNotifs
+    pendingApprovals.value = wearApprovals
+  } catch {
+    // API not available yet
+  } finally {
+    loading.value = false
+  }
+}
+
+async function loadWearOSStatus() {
+  try {
+    wearStatus.value = await fetchWearOSStatus()
+  } catch {
+    // Fallback to defaults
+    wearStatus.value = {
+      system_online: true,
+      scheduler_running: false,
+      active_workflows: 0,
+      pending_approvals: 0,
+      findings_total: 0,
+      findings_confirmed: 0,
+      targets_active: 0,
+      health_score: 100,
+      last_updated: new Date().toISOString(),
+    }
+  }
+}
+
+async function markNotificationRead(id: string) {
+  try {
+    await markWearOSNotificationRead(id)
+    notifications.value = notifications.value.map((n) =>
+      n.notification_id === id ? { ...n, read: true } : n,
+    )
+  } catch {
+    // ignore
+  }
+}
+
+async function respondApproval(requestId: string, approved: boolean) {
+  try {
+    await respondWearOSApproval(requestId, approved)
+    pendingApprovals.value = pendingApprovals.value.filter((a) => a.request_id !== requestId)
+  } catch {
+    // ignore
+  }
+}
+
 function connectAndroid() {
   androidConnected.value = !androidConnected.value
 }
 
 function connectWatch() {
   watchConnected.value = !watchConnected.value
-}
-
-function refreshStatus() {
-  // Simular refresh
+  if (watchConnected.value) {
+    loadWearOSStatus()
+  }
 }
 
 function navigateTo(path: string) {
@@ -235,16 +347,15 @@ function toggleNotifications() {
 
 function sendMerlinMessage() {
   if (!merlinInput.value.trim()) return
-
-  // Send message to MERLIN
   merlinInput.value = ''
 }
 
 onMounted(() => {
-  // Initialize polling
+  loadWearOSStatus()
+  refreshStatus()
   const interval = setInterval(() => {
     refreshStatus()
-  }, 120000) // 2 minutes
+  }, 120000)
 
   onUnmounted(() => {
     clearInterval(interval)
