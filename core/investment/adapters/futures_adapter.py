@@ -187,3 +187,8 @@ class FuturesAdapter:
         except Exception as exc:
             logger.error("Failed to fetch balance: %s", exc)
             return {"free": {}, "used": {}, "total": {}}
+
+
+def build_futures_adapter(config: dict[str, Any] | None = None) -> FuturesAdapter:
+    """Factory function to create Futures adapter."""
+    return FuturesAdapter(config)
