@@ -1,8 +1,82 @@
 <template>
   <div class="progressive-scaling">
     <div class="header">
-      <h1>$3M → $10M Annual Progressive Scaling</h1>
-      <p class="subtitle">Risk-minimized path to maximum revenue</p>
+      <h1>Phase 0 → $10M Annual Progressive Scaling</h1>
+      <p class="subtitle">Risk-minimized path from survival to maximum revenue</p>
+    </div>
+
+    <!-- Ultra Fast Mode Section -->
+    <div class="ultra-fast-section">
+      <h2>Ultra Fast Mode — Phase 0 (Survival)</h2>
+      <div class="ultra-fast-status">
+        <div class="status-indicator" :class="{ active: isUltraFastMode }">
+          <div class="indicator-icon">{{ isUltraFastMode ? '⚡' : '🔋' }}</div>
+          <div class="status-text">
+            <div class="mode-label">Current Mode</div>
+            <div class="mode-value">{{ currentMode }}</div>
+          </div>
+        </div>
+        <div class="mode-description">
+          <strong>Ultra Fast Mode:</strong> Solo categorías que pagan en días (data annotation, AI training, Fiverr).
+          <br>
+          <strong>Target:</strong> $5,000/mes ($500/día) — Flujo de caja inmediato para supervivencia.
+        </div>
+      </div>
+      <div class="ultra-fast-actions">
+        <button
+          @click="setMode('ultra_fast')"
+          :class="['mode-btn', { active: currentMode === 'ultra_fast' }]"
+        >
+          ⚡ Activate Ultra Fast
+        </button>
+        <button
+          @click="setMode('balanced')"
+          :class="['mode-btn', { active: currentMode === 'balanced' }]"
+        >
+          ⚖️ Switch to Balanced
+        </button>
+        <button
+          @click="setMode('scaling')"
+          :class="['mode-btn', { active: currentMode === 'scaling' }]"
+        >
+          📈 Switch to Scaling
+        </button>
+      </div>
+      <div class="ultra-fast-plan" v-if="ultraFastPlan">
+        <h3>Today's Ultra Fast Plan</h3>
+        <div class="plan-metrics">
+          <div class="plan-metric">
+            <label>Daily Expected Value</label>
+            <span class="value">${{ formatNumber(ultraFastPlan.daily_expected_value) }}</span>
+          </div>
+          <div class="plan-metric">
+            <label>Weekly Expected Value</label>
+            <span class="value">${{ formatNumber(ultraFastPlan.weekly_expected_value) }}</span>
+          </div>
+          <div class="plan-metric">
+            <label>Daily Hours</label>
+            <span class="value">{{ ultraFastPlan.daily_hours.toFixed(1) }}h</span>
+          </div>
+          <div class="plan-metric">
+            <label>Items Available</label>
+            <span class="value">{{ ultraFastPlan.total_items }}</span>
+          </div>
+        </div>
+        <div class="plan-items" v-if="ultraFastPlan.items.length > 0">
+          <div v-for="item in ultraFastPlan.items" :key="item.title" class="plan-item">
+            <div class="item-category">{{ item.category }}</div>
+            <div class="item-title">{{ item.title }}</div>
+            <div class="item-reward">${{ formatNumber(item.reward) }}</div>
+            <div class="item-ev">${{ formatNumber(item.expected_value_usd) }} EV</div>
+          </div>
+        </div>
+        <div class="plan-recommendations" v-if="ultraFastPlan.recommended_actions.length > 0">
+          <h4>Recommendations</h4>
+          <ul>
+            <li v-for="action in ultraFastPlan.recommended_actions" :key="action">{{ action }}</li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <!-- Current Phase Status -->
@@ -357,6 +431,10 @@ const statistics = ref<any>({
   phase_breakdown: {},
 })
 
+const currentMode = ref<string>('balanced')
+const isUltraFastMode = ref(false)
+const ultraFastPlan = ref<any>(null)
+
 const showMetricsModal = ref(false)
 const metricsForm = ref({
   monthly_revenue: 0,
@@ -517,6 +595,43 @@ const fetchStatistics = async () => {
   }
 }
 
+const fetchUltraFastStatus = async () => {
+  try {
+    const response = await fetch('/api/ultra-fast-income/status')
+    const data = await response.json()
+    currentMode.value = data.current_mode
+    isUltraFastMode.value = data.is_ultra_fast
+  } catch (error) {
+    console.error('Failed to fetch ultra fast status:', error)
+  }
+}
+
+const fetchUltraFastPlan = async () => {
+  try {
+    const response = await fetch('/api/ultra-fast-income/plan')
+    const data = await response.json()
+    ultraFastPlan.value = data
+  } catch (error) {
+    console.error('Failed to fetch ultra fast plan:', error)
+  }
+}
+
+const setMode = async (mode: string) => {
+  try {
+    const response = await fetch('/api/ultra-fast-income/set-mode', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode }),
+    })
+    if (response.ok) {
+      await fetchUltraFastStatus()
+      await fetchUltraFastPlan()
+    }
+  } catch (error) {
+    console.error('Failed to set mode:', error)
+  }
+}
+
 const fetchStatus = async () => {
   try {
     const response = await fetch('/api/progressive-scaling/status')
@@ -614,6 +729,8 @@ onMounted(() => {
   fetchAdaptiveProbabilities()
   fetchTrajectory()
   fetchStatistics()
+  fetchUltraFastStatus()
+  fetchUltraFastPlan()
 })
 </script>
 
@@ -638,6 +755,194 @@ onMounted(() => {
 .subtitle {
   color: #9ca3af;
   font-size: 1.1rem;
+}
+
+.ultra-fast-section {
+  margin-bottom: 2rem;
+}
+
+.ultra-fast-section h2 {
+  margin-bottom: 1rem;
+  color: #fbbf24;
+}
+
+.ultra-fast-status {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.status-indicator {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.status-indicator.active {
+  border-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.indicator-icon {
+  font-size: 2rem;
+}
+
+.status-text {
+  flex: 1;
+}
+
+.mode-label {
+  color: #9ca3af;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+}
+
+.mode-value {
+  color: #f3f4f6;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.mode-description {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 1rem;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.ultra-fast-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 0.75rem;
+  background: #374151;
+  color: #f3f4f6;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.mode-btn:hover {
+  background: #4b5563;
+}
+
+.mode-btn.active {
+  background: #fbbf24;
+  color: black;
+  border-color: #fbbf24;
+}
+
+.ultra-fast-plan {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.ultra-fast-plan h3 {
+  color: #f3f4f6;
+  margin-bottom: 1rem;
+}
+
+.plan-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.plan-metric {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.75rem;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.plan-metric label {
+  display: block;
+  color: #9ca3af;
+  font-size: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.plan-metric .value {
+  color: #f3f4f6;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.plan-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.plan-item {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #374151;
+  border-radius: 6px;
+  padding: 0.75rem;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr 1fr;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.item-category {
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
+
+.item-title {
+  color: #f3f4f6;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.item-reward,
+.item-ev {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.plan-recommendations {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid #fbbf24;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.plan-recommendations h4 {
+  color: #fbbf24;
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.plan-recommendations ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.plan-recommendations li {
+  margin-bottom: 0.25rem;
 }
 
 .phase-card {

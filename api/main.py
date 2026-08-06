@@ -134,6 +134,10 @@ from api.routers import (
     targets,
     telegram_bot,
     terminal_ws,
+    ultra_fast_income,
+    infinite_sources,
+    auto_apply,
+    alerts,
     validation,
     vault_app,
     vault_cycle,
@@ -1563,6 +1567,10 @@ app.include_router(financial_sync.router)
 app.include_router(financial_truth.router)
 app.include_router(mission.router)
 app.include_router(progressive_scaling.router)
+app.include_router(ultra_fast_income.router)
+app.include_router(infinite_sources.router)
+app.include_router(auto_apply.router)
+app.include_router(alerts.router)
 app.include_router(activity.router)
 app.include_router(crypto.router)
 app.include_router(credentials_rotation.router)

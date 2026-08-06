@@ -27,6 +27,7 @@ logger = logging.getLogger("ownex.progressive_scaling")
 class ScalingPhase(StrEnum):
     """Current scaling phase in the progression to $10M annual."""
 
+    PHASE_0 = "phase_0"  # Ultra Fast (survival mode)
     PHASE_1 = "phase_1"  # $3M annual (baseline)
     PHASE_2 = "phase_2"  # $5M annual (moderate)
     PHASE_3 = "phase_3"  # $7M annual (aggressive)
@@ -57,6 +58,24 @@ class PhaseConfig:
 
 # Phase configurations with risk-minimized progression
 PHASE_CONFIGS: dict[ScalingPhase, PhaseConfig] = {
+    ScalingPhase.PHASE_0: PhaseConfig(
+        name="Ultra Fast (Survival Mode)",
+        target_annual=60_000,
+        target_monthly=5_000,
+        multi_agent_concurrent=2,
+        work_bank_jobs=50,
+        acceptance_rate=0.60,
+        categories_count=3,
+        freqtrade_leverage=0,
+        hummingbot_leverage=0,
+        polymarket_sizing=0.0,
+        sports_betting_kelly=0.0,
+        stop_loss_pct=0.0,
+        drawdown_limit_pct=0.05,
+        required_stability_months=3,
+        min_success_probability=0.60,
+        risk_of_ruin=0.01,
+    ),
     ScalingPhase.PHASE_1: PhaseConfig(
         name="$3M Annual (Baseline)",
         target_annual=3_000_000,
@@ -177,7 +196,7 @@ class ProgressiveScalingManager:
     def __init__(self, state_file: Path = Path("data/progressive_scaling_state.json")):
         self.state_file = state_file
         self.state_file.parent.mkdir(parents=True, exist_ok=True)
-        self._current_phase = ScalingPhase.PHASE_1
+        self._current_phase = ScalingPhase.PHASE_0  # Start at Phase 0 (survival mode)
         self._metrics = PhaseMetrics()
         self._adaptive_system = get_adaptive_success_rate_system()
         self._load_state()
