@@ -22,6 +22,7 @@ import SteamBigPictureSplash from '@/components/layout/SteamBigPictureSplash.vue
 import VoiceCommandPanel from '@/components/voice/VoiceCommandPanel.vue'
 import VoiceAssistantListener from '@/components/voice/VoiceAssistantListener.vue'
 import AlertPopup from '@/components/AlertPopup.vue'
+import JarvisBackground from '@/components/JarvisBackground.vue'
 import { useAssistant } from '@/composables/useAssistant'
 
 declare global {
@@ -148,7 +149,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="flex h-screen w-screen overflow-hidden bg-background">
+  <div class="flex h-screen w-screen overflow-hidden bg-background">
+    <!-- Jarvis Background -->
+    <JarvisBackground />
+
     <!-- Splash screen -->
     <SteamBigPictureSplash :visible="splashVisible" @done="splashVisible = false" />
 

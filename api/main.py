@@ -138,6 +138,7 @@ from api.routers import (
     infinite_sources,
     auto_apply,
     alerts,
+    modes,
     validation,
     vault_app,
     vault_cycle,
@@ -1571,6 +1572,7 @@ app.include_router(ultra_fast_income.router)
 app.include_router(infinite_sources.router)
 app.include_router(auto_apply.router)
 app.include_router(alerts.router)
+app.include_router(modes.router)
 app.include_router(activity.router)
 app.include_router(crypto.router)
 app.include_router(credentials_rotation.router)

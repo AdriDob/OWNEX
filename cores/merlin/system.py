@@ -1,11 +1,23 @@
-"""MERLIN System — Office Retro Modernized AI Assistant System."""
+"""MERLIN System — Office Retro Modernized AI Assistant System.
+
+MERLIN is the animated character of OWNEX, providing the same AI capabilities
+as the integrated copilot but with a fun retro office personality.
+
+Uses UnifiedAIProvider to ensure same free models as IDE:
+- OmniRoute (DeepSeek, Qwen, Gemini, Groq, Samba)
+- NVIDIA NIM (Mistral, Llama, Nemotron)
+- Ollama (local models)
+"""
 
 from __future__ import annotations
 
+import json
 import logging
+import random
 from datetime import datetime
 from typing import Any
 
+from cores.ai.unified_provider import get_unified_provider
 from cores.merlin.config import DetailLevel, MerlinConfig, ResponseTone
 from cores.merlin.memory import get_merlin_memory
 from cores.merlin.personality import MerlinPersonality, RetroStyle
@@ -22,6 +34,7 @@ class MerlinSystem:
             style=RetroStyle.MODERN_RETRO if self.config.theme.value == "modern_retro" else RetroStyle.OFFICE_97
         )
         self.memory = get_merlin_memory()
+        self._ai_provider = get_unified_provider()
         self._is_processing = False
 
     async def process_message(
@@ -92,7 +105,49 @@ class MerlinSystem:
             return "general"
 
     async def _generate_response(self, message: str, intent: str) -> str:
-        """Generate a response based on intent."""
+        """Generate a response using the unified AI provider."""
+        # Build system prompt with personality
+        system_prompt = f"""You are MERLIN, an AI assistant with a fun retro office personality.
+
+Your style: {self.personality.style.value}
+Your role: You help with bug bounty, security analysis, automation, and general tasks.
+
+Key personality traits:
+- You speak in a friendly, slightly retro style
+- You occasionally use retro office references (floppy disks, CRT monitors, etc.)
+- You are helpful and professional but with a fun twist
+- You structure your responses clearly
+- You are knowledgeable about security, automation, and AI
+
+Current intent: {intent}
+
+Respond naturally with your personality. Be helpful and informative."""
+
+        # Use AI provider to generate response
+        try:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": message},
+            ]
+
+            result = await self._ai_provider.chat(
+                messages=messages,
+                model="oc/deepseek-v4-flash-free",  # Use same free model as IDE
+                max_tokens=2048,
+                temperature=0.7,
+            )
+
+            if result.get("content"):
+                return result["content"]
+            else:
+                # Fallback to hardcoded responses if AI fails
+                return self._generate_fallback_response(message, intent)
+        except Exception as e:
+            logger.error(f"AI generation failed: {e}")
+            return self._generate_fallback_response(message, intent)
+
+    def _generate_fallback_response(self, message: str, intent: str) -> str:
+        """Generate fallback response if AI provider fails."""
         responses = {
             "target_analysis": self._generate_target_analysis_response(message),
             "report_generation": self._generate_report_generation_response(message),

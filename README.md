@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/AdriDob/rastrohunteralpha/main/assets/logos/ownex-mark.png" alt="OWNEX" width="120"/>
+  <img src="https://raw.githubusercontent.com/AdriDob/rastrohunteralpha/main/assets/logos/ownex-logo.svg" alt="OWNEX" width="140"/>
 </p>
 
 <h1 align="center">OWNEX</h1>
 
 <p align="center">
-  <strong>The Personalized Autonomous Operating System</strong>
+  <strong>Personalized Autonomous Operating System</strong>
 </p>
 
 <p align="center">
@@ -13,126 +13,299 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-7.0.0-blue?style=for-the-badge" alt="Version"/>
-  <img src="https://img.shields.io/badge/python-3.11+-yellow?style=for-the-badge&logo=python" alt="Python"/>
-  <img src="https://img.shields.io/badge/vue-3.5-green?style=for-the-badge&logo=vue.js" alt="Vue"/>
-  <img src="https://img.shields.io/badge/fastapi-0.104+-red?style=for-the-badge&logo=fastapi" alt="FastAPI"/>
+  <img src="https://img.shields.io/badge/version-7.0.0-e82127?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIj48cGF0aCBkPSJNMTIgMmw1IDUgNyA3LTcgNy01IDUtNS01TDQgMTQgOSA5eiIvPjwvc3ZnPg=="/>
+  <img src="https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white"/>
+  <img src="https://img.shields.io/badge/vue-3.5-4FC08D?style=flat-square&logo=vue.js&logoColor=white"/>
+  <img src="https://img.shields.io/badge/fastapi-0.104+-009688?style=flat-square&logo=fastapi&logoColor=white"/>
+  <img src="https://img.shields.io/badge/tests-1400+-00C853?style=flat-square"/>
 </p>
 
 ---
 
-## Overview
+<p align="center">
+  <img src="https://raw.githubusercontent.com/AdriDob/rastrohunteralpha/main/docs/screenshots/01_mission-control.svg" alt="OWNEX Mission Control" width="900"/>
+</p>
 
-**OWNEX** is the **Personalized Autonomous Operating System** that discovers opportunities, executes technical work, learns from outcomes, and evolves its own operation — from a desktop command center to your phone and wrist.
+---
 
-Built around the closed loop: **observe → decide → execute → learn → evolve**. The human stays at the decision gate; the system handles the rest.
+## Mission
 
-## Project Identity
+OWNEX transforms technical workflows through autonomous operation, persistent memory, and continuous self-improvement. It is a **Personalized Autonomous Operating System** that discovers opportunities, executes technical work, learns from outcomes, and evolves its own operation — from a desktop command center to your phone and wrist.
 
-OWNEX transforms technical workflows across security research, development, data analysis, and revenue generation through autonomous agents and persistent memory. Unlike task-specific tools, OWNEX adapts and evolves based on outcomes, creating increasingly efficient workflows over time.
+The human stays at the decision gate. The system handles the rest.
 
-## Problem Solved
+## Why OWNEX
 
-Technical professionals face:
+Technical professionals face a fragmented landscape: disconnected automation tools, lost knowledge between sessions, manual security research, and no persistent learning from past operations.
 
-- **Fragmented automation tools** requiring manual coordination across platforms
-- **Lost knowledge** between project sessions and team members
-- **Manual security research** processes that are slow and error-prone
-- **Disconnected workflow systems** lacking cross-domain intelligence
-- **No persistent learning** from past operations and outcomes
+OWNEX solves this through a **closed-loop architecture**:
 
-OWNEX solves these through autonomous operation, persistent memory, and continuous self-improvement.
+<p align="center">
+  <strong>OBSERVE → DECIDE → EXECUTE → LEARN → EVOLVE</strong>
+</p>
 
-## Technology Stack
+Every operation feeds back into the system. Every outcome improves future performance.
 
-### Backend
-- **Python 3.11+** - Core autonomous systems
-- **FastAPI** - High-performance REST API
-- **SQLAlchemy** - Database ORM
+## Core Philosophy
 
-### Frontend
-- **Vue 3 + TypeScript** - Modern web interface
-- **Tailwind CSS v4** - Professional styling
-- **Vite** - Fast development and production
+| Principle | Meaning |
+|-----------|---------|
+| **Freedom First** | Technology serves the user, not the other way around |
+| **Zero Barrier Entry** | Demonstrable capability over bureaucracy |
+| **Maximum Value Generation** | Results, not activity metrics |
+| **Intelligence Before Action** | Understand → Analyze → Evaluate → Propose → Execute → Learn |
+| **Continuous Evolution** | Complexity only when it increases freedom, value, or capacity |
+| **Human Control** | The user is always the final authority |
 
-### Infrastructure
-- **SQLite** - Development database
-- **PostgreSQL** - Production database
-- **PyInstaller** - Desktop distribution
+---
 
-## Investment Ecosystem
+## What It Does
 
-Complete automated investment platform with 9 adapters:
+### Autonomous Pipeline
 
-- **CCXT Adapter** - Cryptocurrency exchanges
-- **Freqtrade Adapter** - Crypto trading bots
-- **Futures Adapter** - Derivatives trading
-- **Forex Adapter** - Currency markets
-- **Onchain Analytics Adapter** - Blockchain data
-- **Quant Research Adapter** - Algorithmic analysis
-- **Memecoin Scanner** - Solana ecosystem
-- **Polymarket Adapter** - Prediction markets
-- **Sentiment Analysis** - Market psychology
+A 7-stage bug bounty pipeline that runs every 30 minutes:
 
-## Key Features
+<p align="center">
+  <img src="https://raw.githubusercontent.com/AdriDob/rastrohunteralpha/main/docs/screenshots/02_pipeline.svg" alt="Pipeline" width="900"/>
+</p>
 
-- 🔄 **Autonomous Operations** - 24/7 automated execution
-- 🧠 **Persistent Learning** - Self-evolving based on outcomes
-- 🎯 **Revenue Generation** - Multiple income streams
-- 🛡️ **Security Focus** - Bug bounty and vulnerability detection
-- 🔗 **Multi-Platform** - Cross-ecosystem integration
-- 📊 **Real-time Intelligence** - Live market and threat analysis
+| Stage | Function |
+|-------|----------|
+| **1. Recon** | Subdomain enumeration, target discovery |
+| **2. Attack Surface** | Endpoint discovery and cataloging |
+| **3. Hypothesis** | Vulnerability prediction via pattern recognition |
+| **4. Validation** | Proof-of-concept verification |
+| **5. Evidence** | Screenshots, HTTP replay, auto-captured |
+| **6. Report** | Auto-generated markdown with full reproduction steps |
+| **7. Submit** | Auto-submission to HackerOne, Bugcrowd, Intigriti |
 
-## Testing & Quality
+Only elite findings (score > 85) pass the quality gate to auto-submit.
 
-- **1,400+ tests** covering all functionality
-- **Ruff** - Python linting and formatting
-- **Biome** - Frontend linting and formatting
-- **Mypy** - Strict type checking
-- **pytest** - Comprehensive test coverage
+### Intelligence & Memory
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/AdriDob/rastrohunteralpha/main/docs/screenshots/03_intelligence.svg" alt="Intelligence" width="900"/>
+</p>
+
+- **UnifiedMemoryStore** — Persistent memory that survives restarts
+- **KnowledgeCapture** — Patterns recognized across operations
+- **DecisionJournal** — Every system decision logged with reasoning
+- **AdaptiveSuccessRate** — Acceptance rate learning per platform
+
+### Financial Intelligence
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/AdriDob/rastrohunteralpha/main/docs/screenshots/05_financial.svg" alt="Financial Intelligence" width="900"/>
+</p>
+
+**Progressive Scaling** — A 4-phase revenue system:
+
+| Phase | Focus | Target |
+|-------|-------|--------|
+| **0** | Survival (data annotation, quick gigs) | Immediate cash flow |
+| **1** | Bug bounty (HackerOne, Bugcrowd, Intigriti) | $500+/month |
+| **2** | Multi-platform (freelance, dev bounties, auto-apply) | $2k+/month |
+| **3** | Investment + scale (crypto, smart allocation) | $10k+/month |
+
+**Risk Guardian** — Max drawdown protection (15% warning, 25% critical). Kelly criterion position sizing. Auto-rebalance on correlation spikes.
+
+**Smart Allocator** — Auto-assigns payouts to highest-yield strategy based on real performance data.
+
+### Work Cycles
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/AdriDob/rastrohunteralpha/main/docs/screenshots/06_work-cycles.svg" alt="Work Cycles" width="900"/>
+</p>
+
+Six autonomous work cycles, each a complete workflow:
+
+- **SECURITY** — Bug bounty to auto-submit
+- **FORGE** — Dev bounties to PR to merge
+- **PULSE** — AI work and data tasks
+- **WEALTH** — Investment management
+- **ATLAS** — System monitoring and self-healing
+- **DIRECT WORK** — Freelance platform integration
+
+A 26-job scheduler orchestrates all cycles with self-healing capabilities.
+
+---
+
+## Architecture
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/AdriDob/rastrohunteralpha/main/docs/screenshots/04_desktop-arch.svg" alt="Architecture" width="900"/>
+</p>
+
+### Technology Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Backend** | Python 3.11+, FastAPI, SQLAlchemy |
+| **Frontend** | Vue 3 + TypeScript, Tailwind CSS v4, Vite |
+| **Desktop** | Tauri v2 (Rust shell + WebView2) |
+| **Mobile** | Capacitor v6 (Android) |
+| **Database** | SQLite (dev) / PostgreSQL (prod) |
+| **AI** | Multi-provider router (Ollama → FCC Proxy → OpenRouter → OpenAI) |
+| **Build** | PyInstaller (Python), Cargo (Rust), npm (Frontend) |
+
+### Repository Structure
+
+```
+OWNEX/
+├── api/                    # FastAPI REST + WebSocket endpoints
+│   └── routers/            # 15+ API modules
+├── core/                   # Shared platform services
+│   ├── scheduler/          # 26-job async scheduler
+│   ├── events/             # EventBus for inter-module comms
+│   ├── investment/         # Trading adapters (9 platforms)
+│   └── ai_worker/          # Autonomous AI agent system
+├── cores/                  # Intelligence & automation modules
+│   ├── financial_intelligence/  # Progressive scaling, risk, allocation
+│   ├── auto_submit/        # Auto-submission pipeline
+│   ├── evidence/           # Evidence capture & composition
+│   ├── opportunity/        # Opportunity engine
+│   └── merlin/             # AI personality & reasoning
+├── frontend/               # Vue 3 + TypeScript web UI
+│   └── src/
+│       ├── pages/          # 60+ views
+│       └── components/     # 80+ components
+├── android/                # Capacitor Android app
+├── docs/                   # Comprehensive documentation
+└── .ai/                    # Strategic planning & decisions
+```
+
+---
+
+## Desktop Command Center
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/AdriDob/rastrohunteralpha/main/docs/screenshots/07_mobile-companion.svg" alt="Mobile Companion" width="900"/>
+</p>
+
+OWNEX Desktop is a **Tauri v2** application that bundles the Python backend with a native Rust shell and the full Vue 3 frontend:
+
+- Frameless window with Mica/Acrylic effects
+- System tray integration
+- WebSocket real-time updates
+- Single binary distribution (~120MB)
+- Security: CSP, IPC allowlist, token auth, no node integration
+
+---
+
+## Mobile Companion
+
+ORION Companion brings OWNEX to Android:
+
+- Same codebase as desktop (Capacitor wrapper)
+- Real-time WebSocket sync
+- Push notifications for approvals and critical findings
+- One-tap approve/skip for auto-submissions
+- Biometric authentication
+- Revenue tracking and agent fleet status
+
+---
 
 ## Getting Started
 
-### Quick Setup
+### Quick Start
+
 ```bash
 # Clone the repository
-cd /path/to/OWNEX
+git clone https://github.com/AdriDob/rastrohunteralpha.git
+cd rastrohunteralpha
+
+# Setup Python environment
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 
 # Start the autonomous system
 python run.py
 ```
 
-### Key Commands
+### Frontend Development
+
 ```bash
-# View system health
-python run.py --health
-
-# Add new target for research
-python run.py --add-target "example.com" --domain "example.com"
-
-# Backup current state
-python run.py --backup
-
-# Run full test suite
-make test
-
-# Run quality checks
-make check
+cd frontend
+npm install
+npm run run
 ```
 
-## Documentation
+### Key Commands
 
-- [Architecture Diagrams](assets/diagrams/) — Technical system architecture
-- [Brand Usage Guide](BRAND_USAGE_GUIDE.md) — Visual identity guidelines
-- [Contributing Guide](CONTRIBUTING.md) — Development contribution guidelines
-- [Security Policy](SECURITY.md) — Security and vulnerability reporting
-- [API Reference](API_REFERENCE.md) — REST API documentation
-- [Full Documentation](docs/) — Complete technical documentation
+```bash
+# Health check
+python run.py --health
 
-## License
+# Add target for research
+python run.py --add-target "example.com" --domain "example.com"
 
-Proprietary. See LICENSE file for details.
+# Run tests
+make test
+
+# Quality checks (lint + typecheck + fast tests)
+make check
+
+# Backup system state
+python run.py --backup
+```
 
 ---
 
-*Built for autonomous bug bounty research and attack surface intelligence.*
+## Testing & Quality
+
+| Metric | Value |
+|--------|-------|
+| **Tests** | 1,400+ (pytest + Vitest) |
+| **Python Linting** | Ruff |
+| **Frontend Linting** | Biome |
+| **Type Checking** | Mypy (strict mode) |
+| **Test Coverage** | All modules |
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Architecture](docs/architecture/) | System design and ADRs |
+| [API Reference](docs/API_REFERENCE.md) | REST API documentation |
+| [Development Guide](docs/development/) | Setup, workflow, deployment |
+| [Operations](docs/operations/) | Running and monitoring |
+| [Security Model](docs/SECURITY_MODEL.md) | Security architecture |
+| [Changelog](CHANGELOG.md) | Release history |
+
+---
+
+## Status
+
+OWNEX v7.0.0 is in **active development**. Core systems are operational:
+
+- [x] Autonomous pipeline (7 stages)
+- [x] Progressive scaling (4 phases)
+- [x] Risk guardian + smart allocator
+- [x] 6 work cycles
+- [x] Desktop command center (Tauri)
+- [x] Mobile companion (Android)
+- [x] AI Worker foundation
+- [x] Alert system + notifications
+- [x] Infinite sources + auto-apply
+- [ ] Tauri production build
+- ] Android crash fix
+- [ ] Real trading integration (dry-run mode active)
+
+---
+
+## License
+
+Proprietary. All rights reserved.
+
+---
+
+<p align="center">
+  <strong>Built for autonomous technical work.</strong>
+</p>
+
+<p align="center">
+  <sub>OWNEX is a private competitive advantage asset. It does not sell services. It works for its operator.</sub>
+</p>
