@@ -21,6 +21,7 @@ import AssistantHint from '@/components/assistant/AssistantHint.vue'
 import SteamBigPictureSplash from '@/components/layout/SteamBigPictureSplash.vue'
 import VoiceCommandPanel from '@/components/voice/VoiceCommandPanel.vue'
 import VoiceAssistantListener from '@/components/voice/VoiceAssistantListener.vue'
+import AlertPopup from '@/components/AlertPopup.vue'
 import { useAssistant } from '@/composables/useAssistant'
 
 declare global {
@@ -174,6 +175,7 @@ onUnmounted(() => {
     <CompareView />
     <OnboardingWizard :open="showOnboarding" @close="showOnboarding = false" />
     <VoiceCommandPanel />
+    <AlertPopup />
     </template>
 
     <!-- Assistant Layer -->
