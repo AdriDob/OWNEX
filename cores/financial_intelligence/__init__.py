@@ -1,9 +1,15 @@
-"""Financial Intelligence Module — Progressive scaling and risk management with adaptive learning, ultra fast income mode, infinite source discovery, and auto-apply."""
+"""Financial Intelligence Module — Progressive scaling and risk management with adaptive learning, ultra fast income mode, infinite source discovery, auto-apply, and real-time alerts."""
 
 from cores.financial_intelligence.adaptive_success_rate import (
     AdaptiveSuccessRateSystem,
     OutcomeType,
     get_adaptive_success_rate_system,
+)
+from cores.financial_intelligence.alert_system import (
+    AlertCategory,
+    AlertType,
+    RealTimeAlertSystem,
+    get_alert_system,
 )
 from cores.financial_intelligence.auto_apply import (
     AutoApplySystem,
@@ -58,4 +64,8 @@ __all__ = [
     "get_infinite_source_discovery",
     "AutoApplySystem",
     "get_auto_apply_system",
+    "AlertCategory",
+    "AlertType",
+    "RealTimeAlertSystem",
+    "get_alert_system",
 ]
