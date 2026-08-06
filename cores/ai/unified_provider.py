@@ -284,8 +284,9 @@ class UnifiedAIProvider:
         temperature: float,
     ) -> AsyncIterator[str]:
         """Stream via OmniRoute."""
-        async with httpx.AsyncClient(timeout=60) as client:
-            async with client.stream(
+        async with (
+            httpx.AsyncClient(timeout=60) as client,
+            client.stream(
                 "POST",
                 f"{self._omniroute_base_url}/chat/completions",
                 headers={
@@ -299,22 +300,23 @@ class UnifiedAIProvider:
                     "max_tokens": max_tokens,
                     "temperature": temperature,
                 },
-            ) as r:
-                async for line in r.aiter_lines():
-                    if not line.strip() or line.startswith(":"):
+            ) as r,
+        ):
+            async for line in r.aiter_lines():
+                if not line.strip() or line.startswith(":"):
+                    continue
+                if line.startswith("data: [DONE]"):
+                    break
+                if line.startswith("data: "):
+                    try:
+                        data = json.loads(line.removeprefix("data: "))
+                        delta = data.get("choices", [{}])[0].get("delta", {})
+                        if content := delta.get("content"):
+                            yield content
+                        if reasoning := delta.get("reasoning_content"):
+                            yield reasoning
+                    except (json.JSONDecodeError, IndexError, KeyError):
                         continue
-                    if line.startswith("data: [DONE]"):
-                        break
-                    if line.startswith("data: "):
-                        try:
-                            data = json.loads(line.removeprefix("data: "))
-                            delta = data.get("choices", [{}])[0].get("delta", {})
-                            if content := delta.get("content"):
-                                yield content
-                            if reasoning := delta.get("reasoning_content"):
-                                yield reasoning
-                        except (json.JSONDecodeError, IndexError, KeyError):
-                            continue
 
     async def _stream_nvidia(
         self,
@@ -324,8 +326,9 @@ class UnifiedAIProvider:
         temperature: float,
     ) -> AsyncIterator[str]:
         """Stream via NVIDIA."""
-        async with httpx.AsyncClient(timeout=60) as client:
-            async with client.stream(
+        async with (
+            httpx.AsyncClient(timeout=60) as client,
+            client.stream(
                 "POST",
                 f"{self._nvidia_base_url}/chat/completions",
                 headers={
@@ -340,22 +343,23 @@ class UnifiedAIProvider:
                     "max_tokens": max_tokens,
                     "temperature": temperature,
                 },
-            ) as r:
-                async for line in r.aiter_lines():
-                    if not line.strip() or line.startswith(":"):
+            ) as r,
+        ):
+            async for line in r.aiter_lines():
+                if not line.strip() or line.startswith(":"):
+                    continue
+                if line.startswith("data: [DONE]"):
+                    break
+                if line.startswith("data: "):
+                    try:
+                        data = json.loads(line.removeprefix("data: "))
+                        delta = data.get("choices", [{}])[0].get("delta", {})
+                        if content := delta.get("content"):
+                            yield content
+                        if reasoning := delta.get("reasoning_content"):
+                            yield reasoning
+                    except (json.JSONDecodeError, IndexError, KeyError):
                         continue
-                    if line.startswith("data: [DONE]"):
-                        break
-                    if line.startswith("data: "):
-                        try:
-                            data = json.loads(line.removeprefix("data: "))
-                            delta = data.get("choices", [{}])[0].get("delta", {})
-                            if content := delta.get("content"):
-                                yield content
-                            if reasoning := delta.get("reasoning_content"):
-                                yield reasoning
-                        except (json.JSONDecodeError, IndexError, KeyError):
-                            continue
 
     async def _stream_ollama(
         self,
@@ -367,8 +371,9 @@ class UnifiedAIProvider:
         """Stream via Ollama."""
         prompt = "\n\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
 
-        async with httpx.AsyncClient(timeout=60) as client:
-            async with client.stream(
+        async with (
+            httpx.AsyncClient(timeout=60) as client,
+            client.stream(
                 "POST",
                 f"{self._ollama_host}/api/generate",
                 json={
@@ -377,16 +382,17 @@ class UnifiedAIProvider:
                     "stream": True,
                     "options": {"temperature": temperature, "num_predict": max_tokens},
                 },
-            ) as r:
-                async for line in r.aiter_lines():
-                    try:
-                        data = json.loads(line)
-                        if response := data.get("response"):
-                            yield response
-                        if data.get("done"):
-                            break
-                    except json.JSONDecodeError:
-                        continue
+            ) as r,
+        ):
+            async for line in r.aiter_lines():
+                try:
+                    data = json.loads(line)
+                    if response := data.get("response"):
+                        yield response
+                    if data.get("done"):
+                        break
+                except json.JSONDecodeError:
+                    continue
 
     def get_available_models(self) -> list[str]:
         """Get all available models from all providers."""
