@@ -198,7 +198,7 @@ class TestGetAllJobs:
 
     def test_total_jobs_count(self):
         total = sum(len(jobs) for jobs in get_all_jobs().values())
-        assert total == 35
+        assert total == 37  # Updated after adding alerts and modes
 
     def test_all_jobs_have_unique_ids(self):
         all_ids = []

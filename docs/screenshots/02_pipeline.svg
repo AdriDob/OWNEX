@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 700" width="1100" height="700">
+  <rect width="1100" height="700" fill="#0b1120"/>
+  
+  <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+    <path d="M30 0L0 0 0 30" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+  </pattern>
+  <rect width="1100" height="700" fill="url(#grid)"/>
+  
+  <!-- Top bar -->
+  <rect x="0" y="0" width="1100" height="48" fill="rgba(15,23,42,0.8)"/>
+  <text x="24" y="30" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="600">OWNEX — Bug Bounty Pipeline</text>
+  
+  <!-- Pipeline flow -->
+  <text x="80" y="80" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="14" font-weight="600">AUTONOMOUS PIPELINE — 7 STAGES</text>
+  
+  <!-- Stage 1: Recon -->
+  <rect x="80" y="100" width="120" height="100" rx="8" fill="rgba(8,51,68,0.3)" stroke="#22d3ee"/>
+  <text x="140" y="135" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="12" text-anchor="middle" font-weight="600">1. RECON</text>
+  <text x="140" y="155" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">Subdomain</text>
+  <text x="140" y="170" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">enumeration</text>
+  <text x="140" y="185" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="9" text-anchor="middle">12 targets</text>
+  
+  <!-- Stage 2: Attack Surface -->
+  <rect x="220" y="100" width="120" height="100" rx="8" fill="rgba(8,51,68,0.3)" stroke="#22d3ee"/>
+  <text x="280" y="135" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="12" text-anchor="middle" font-weight="600">2. SURFACE</text>
+  <text x="280" y="155" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">Endpoint</text>
+  <text x="280" y="170" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">discovery</text>
+  <text x="280" y="185" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="9" text-anchor="middle">847 found</text>
+  
+  <!-- Stage 3: Hypothesis -->
+  <rect x="360" y="100" width="120" height="100" rx="8" fill="rgba(8,51,68,0.3)" stroke="#22d3ee"/>
+  <text x="420" y="135" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="12" text-anchor="middle" font-weight="600">3. HYPOTHESIS</text>
+  <text x="420" y="155" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">Vulnerability</text>
+  <text x="420" y="170" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">prediction</text>
+  <text x="420" y="185" fill="#fbbf24" font-family="system-ui,-apple-system,sans-serif" font-size="9" text-anchor="middle">34 generated</text>
+  
+  <!-- Stage 4: Validation -->
+  <rect x="500" y="100" width="120" height="100" rx="8" fill="rgba(6,78,59,0.3)" stroke="#34d399"/>
+  <text x="560" y="135" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="12" text-anchor="middle" font-weight="600">4. VALIDATE</text>
+  <text x="560" y="155" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">Proof of</text>
+  <text x="560" y="170" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">concept</text>
+  <text x="560" y="185" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="9" text-anchor="middle">18 confirmed</text>
+  
+  <!-- Stage 5: Evidence -->
+  <rect x="640" y="100" width="120" height="100" rx="8" fill="rgba(6,78,59,0.3)" stroke="#34d399"/>
+  <text x="700" y="135" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="12" text-anchor="middle" font-weight="600">5. EVIDENCE</text>
+  <text x="700" y="155" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">Screenshot +</text>
+  <text x="700" y="170" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">HTTP replay</text>
+  <text x="700" y="185" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="9" text-anchor="middle">Auto-captured</text>
+  
+  <!-- Stage 6: Report -->
+  <rect x="780" y="100" width="120" height="100" rx="8" fill="rgba(76,29,149,0.3)" stroke="#a78bfa"/>
+  <text x="840" y="135" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="12" text-anchor="middle" font-weight="600">6. REPORT</text>
+  <text x="840" y="155" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">Auto-generated</text>
+  <text x="840" y="170" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">markdown</text>
+  <text x="840" y="185" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="9" text-anchor="middle">12 ready</text>
+  
+  <!-- Stage 7: Submit -->
+  <rect x="920" y="100" width="140" height="100" rx="8" fill="rgba(136,19,55,0.3)" stroke="#e82127"/>
+  <text x="990" y="135" fill="#e82127" font-family="system-ui,-apple-system,sans-serif" font-size="12" text-anchor="middle" font-weight="600">7. SUBMIT</text>
+  <text x="990" y="155" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">Auto-submit to</text>
+  <text x="990" y="170" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">platforms</text>
+  <text x="990" y="185" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="9" text-anchor="middle">5/hour limit</text>
+  
+  <!-- Arrows -->
+  <line x1="200" y1="150" x2="218" y2="150" stroke="#22d3ee" stroke-width="1.5"/>
+  <line x1="340" y1="150" x2="358" y2="150" stroke="#22d3ee" stroke-width="1.5"/>
+  <line x1="480" y1="150" x2="498" y2="150" stroke="#22d3ee" stroke-width="1.5"/>
+  <line x1="620" y1="150" x2="638" y2="150" stroke="#34d399" stroke-width="1.5"/>
+  <line x1="760" y1="150" x2="778" y2="150" stroke="#34d399" stroke-width="1.5"/>
+  <line x1="900" y1="150" x2="918" y2="150" stroke="#a78bfa" stroke-width="1.5"/>
+  
+  <!-- Quality Gate -->
+  <rect x="80" y="230" width="980" height="80" rx="8" fill="rgba(15,23,42,0.6)" stroke="#1e293b"/>
+  <text x="100" y="255" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="600">QUALITY GATE</text>
+  <text x="100" y="275" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">Only elite findings (score &gt; 85) pass to auto-submit</text>
+  
+  <rect x="500" y="245" width="120" height="40" rx="6" fill="rgba(6,78,59,0.3)" stroke="#34d399"/>
+  <text x="560" y="270" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">Score &gt; 85</text>
+  
+  <rect x="640" y="245" width="120" height="40" rx="6" fill="rgba(6,78,59,0.3)" stroke="#34d399"/>
+  <text x="700" y="270" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">Confidence &gt; 0.85</text>
+  
+  <rect x="780" y="245" width="120" height="40" rx="6" fill="rgba(6,78,59,0.3)" stroke="#34d399"/>
+  <text x="840" y="270" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">Evidence complete</text>
+  
+  <rect x="920" y="245" width="120" height="40" rx="6" fill="rgba(6,78,59,0.3)" stroke="#34d399"/>
+  <text x="980" y="270" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="middle">Repro steps</text>
+  
+  <!-- Findings table -->
+  <text x="80" y="345" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="600">RECENT FINDINGS</text>
+  
+  <rect x="80" y="360" width="980" height="280" rx="8" fill="rgba(15,23,42,0.6)" stroke="#1e293b"/>
+  
+  <!-- Table header -->
+  <text x="100" y="385" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">ID</text>
+  <text x="160" y="385" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">VULNERABILITY</text>
+  <text x="400" y="385" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">SEVERITY</text>
+  <text x="520" y="385" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">SCORE</text>
+  <text x="620" y="385" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">STATUS</text>
+  <text x="750" y="385" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">PLATFORM</text>
+  <text x="900" y="385" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">SUBMITTED</text>
+  
+  <line x1="100" y1="395" x2="1040" y2="395" stroke="#1e293b" stroke-width="1"/>
+  
+  <!-- Row 1 -->
+  <text x="100" y="420" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">#1247</text>
+  <text x="160" y="420" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="10">SQL Injection — /api/users</text>
+  <text x="400" y="420" fill="#e82127" font-family="system-ui,-apple-system,sans-serif" font-size="10">CRITICAL</text>
+  <text x="520" y="420" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">94.2</text>
+  <text x="620" y="420" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Confirmed</text>
+  <text x="750" y="420" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">HackerOne</text>
+  <text x="900" y="420" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Auto</text>
+  
+  <!-- Row 2 -->
+  <text x="100" y="450" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">#1246</text>
+  <text x="160" y="450" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="10">XSS Stored — comment field</text>
+  <text x="400" y="450" fill="#fbbf24" font-family="system-ui,-apple-system,sans-serif" font-size="10">HIGH</text>
+  <text x="520" y="450" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">88.7</text>
+  <text x="620" y="450" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Confirmed</text>
+  <text x="750" y="450" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">Bugcrowd</text>
+  <text x="900" y="450" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Auto</text>
+  
+  <!-- Row 3 -->
+  <text x="100" y="480" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">#1245</text>
+  <text x="160" y="480" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="10">IDOR — /api/orders/{id}</text>
+  <text x="400" y="480" fill="#fbbf24" font-family="system-ui,-apple-system,sans-serif" font-size="10">HIGH</text>
+  <text x="520" y="480" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">91.3</text>
+  <text x="620" y="480" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Confirmed</text>
+  <text x="750" y="480" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">Intigriti</text>
+  <text x="900" y="480" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Auto</text>
+  
+  <!-- Row 4 -->
+  <text x="100" y="510" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">#1244</text>
+  <text x="160" y="510" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="10">SSRF — /api/webhook</text>
+  <text x="400" y="510" fill="#e82127" font-family="system-ui,-apple-system,sans-serif" font-size="10">CRITICAL</text>
+  <text x="520" y="510" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">96.1</text>
+  <text x="620" y="510" fill="#fbbf24" font-family="system-ui,-apple-system,sans-serif" font-size="10">Queued</text>
+  <text x="750" y="510" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">HackerOne</text>
+  <text x="900" y="510" fill="#fbbf24" font-family="system-ui,-apple-system,sans-serif" font-size="10">Pending</text>
+  
+  <!-- Row 5 -->
+  <text x="100" y="540" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">#1243</text>
+  <text x="160" y="540" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="10">Open Redirect — /login</text>
+  <text x="400" y="540" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">MEDIUM</text>
+  <text x="520" y="540" fill="#fbbf24" font-family="system-ui,-apple-system,sans-serif" font-size="10">72.4</text>
+  <text x="620" y="540" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">Review</text>
+  <text x="750" y="540" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">—</text>
+  <text x="900" y="540" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">Manual</text>
+  
+  <!-- Row 6 -->
+  <text x="100" y="570" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">#1242</text>
+  <text x="160" y="570" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="10">Info Disclosure — /debug</text>
+  <text x="400" y="570" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">LOW</text>
+  <text x="520" y="570" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">45.2</text>
+  <text x="620" y="570" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">Skipped</text>
+  <text x="750" y="570" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">—</text>
+  <text x="900" y="570" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">—</text>
+  
+  <!-- Bottom bar -->
+  <rect x="0" y="670" width="1100" height="30" fill="rgba(15,23,42,0.8)"/>
+  <text x="20" y="690" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">Pipeline runs every 30 min via scheduler • 8 findings today • 5 auto-submitted</text>
+</svg>

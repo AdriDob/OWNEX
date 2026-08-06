@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 700" width="1100" height="700">
+  <rect width="1100" height="700" fill="#0b1120"/>
+  
+  <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+    <path d="M30 0L0 0 0 30" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+  </pattern>
+  <rect width="1100" height="700" fill="url(#grid)"/>
+  
+  <!-- Top bar -->
+  <rect x="0" y="0" width="1100" height="48" fill="rgba(15,23,42,0.8)"/>
+  <text x="24" y="30" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="600">OWNEX — Work Cycles</text>
+  
+  <text x="80" y="80" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="14" font-weight="600">6 ACTIVE WORK CYCLES</text>
+  <text x="80" y="100" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="11">Each cycle is an autonomous workflow that discovers, executes, and learns</text>
+  
+  <!-- Security Cycle -->
+  <rect x="80" y="120" width="300" height="140" rx="8" fill="rgba(8,51,68,0.3)" stroke="#22d3ee"/>
+  <text x="100" y="150" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="600">SECURITY CYCLE</text>
+  <text x="100" y="170" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">Bug bounty → auto-submit</text>
+  <text x="100" y="190" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Status: RUNNING</text>
+  <text x="100" y="210" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">12 targets • 847 endpoints</text>
+  <text x="100" y="230" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">24 findings today</text>
+  <text x="100" y="250" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="10">$1,847 est. this month</text>
+  
+  <!-- Forge Cycle -->
+  <rect x="400" y="120" width="300" height="140" rx="8" fill="rgba(76,29,149,0.2)" stroke="#a78bfa"/>
+  <text x="420" y="150" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="600">FORGE CYCLE</text>
+  <text x="420" y="170" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">Dev bounties → PR → merge</text>
+  <text x="420" y="190" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Status: RUNNING</text>
+  <text x="420" y="210" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">3 PRs open • 8 adapters</text>
+  <text x="420" y="230" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">CoderAgent: analyzing</text>
+  <text x="420" y="250" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="10">$4,200 lifetime</text>
+  
+  <!-- Pulse Cycle -->
+  <rect x="720" y="120" width="300" height="140" rx="8" fill="rgba(6,78,59,0.3)" stroke="#34d399"/>
+  <text x="740" y="150" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="600">PULSE CYCLE</text>
+  <text x="740" y="170" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">AI work → data tasks</text>
+  <text x="740" y="190" fill="#fbbf24" font-family="system-ui,-apple-system,sans-serif" font-size="10">Status: RATE LIMITED</text>
+  <text x="740" y="210" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">Infinite sources scanning</text>
+  <text x="740" y="230" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">Auto-apply: 5 pending</text>
+  <text x="740" y="250" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="10">$890 this month</text>
+  
+  <!-- Wealth Cycle -->
+  <rect x="80" y="280" width="300" height="140" rx="8" fill="rgba(120,53,15,0.15)" stroke="#fbbf24"/>
+  <text x="100" y="310" fill="#fbbf24" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="600">WEALTH CYCLE</text>
+  <text x="100" y="330" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">Investment management</text>
+  <text x="100" y="350" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Status: RUNNING</text>
+  <text x="100" y="370" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">9 adapters (CCXT, Freqtrade)</text>
+  <text x="100" y="390" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">Risk: conservative</text>
+  <text x="100" y="410" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="10">Phase 1 active</text>
+  
+  <!-- Atlas Cycle -->
+  <rect x="400" y="280" width="300" height="140" rx="8" fill="rgba(15,23,42,0.6)" stroke="#1e293b"/>
+  <text x="420" y="310" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="600">ATLAS CYCLE</text>
+  <text x="420" y="330" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">System monitoring</text>
+  <text x="420" y="350" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Status: ACTIVE</text>
+  <text x="420" y="370" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">Health checks every 60s</text>
+  <text x="420" y="390" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">Self-healing enabled</text>
+  <text x="420" y="410" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Score: 98/100</text>
+  
+  <!-- Direct Work -->
+  <rect x="720" y="280" width="300" height="140" rx="8" fill="rgba(15,23,42,0.6)" stroke="#1e293b"/>
+  <text x="740" y="310" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="600">DIRECT WORK</text>
+  <text x="740" y="330" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">Freelance + platforms</text>
+  <text x="740" y="350" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Status: ACTIVE</text>
+  <text x="740" y="370" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">WorkBank: 42 opportunities</text>
+  <text x="740" y="390" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">Success floor: 40%</text>
+  <text x="740" y="410" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="10">$2,340 this month</text>
+  
+  <!-- Scheduler -->
+  <text x="80" y="460" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="600">SCHEDULER — 26 JOBS</text>
+  
+  <rect x="80" y="475" width="940" height="180" rx="8" fill="rgba(15,23,42,0.6)" stroke="#1e293b"/>
+  
+  <!-- Job rows -->
+  <text x="100" y="505" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">JOB</text>
+  <text x="300" y="505" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">INTERVAL</text>
+  <text x="450" y="505" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">LAST RUN</text>
+  <text x="600" y="505" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">NEXT RUN</text>
+  <text x="750" y="505" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" font-weight="600">STATUS</text>
+  
+  <line x1="100" y1="515" x2="1000" y2="515" stroke="#1e293b" stroke-width="1"/>
+  
+  <text x="100" y="535" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="10">security_pipeline</text>
+  <text x="300" y="535" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">30 min</text>
+  <text x="450" y="535" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">14:30</text>
+  <text x="600" y="535" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">15:00</text>
+  <circle cx="760" cy="531" r="5" fill="#34d399"/>
+  <text x="775" y="535" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Running</text>
+  
+  <text x="100" y="560" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="10">forge_execute</text>
+  <text x="300" y="560" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">60 min</text>
+  <text x="450" y="560" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">13:45</text>
+  <text x="600" y="560" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">14:45</text>
+  <circle cx="760" cy="556" r="5" fill="#34d399"/>
+  <text x="775" y="560" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Running</text>
+  
+  <text x="100" y="585" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="10">pulse_scan</text>
+  <text x="300" y="585" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">15 min</text>
+  <text x="450" y="585" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">14:42</text>
+  <text x="600" y="585" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">14:57</text>
+  <circle cx="760" cy="581" r="5" fill="#fbbf24"/>
+  <text x="775" y="585" fill="#fbbf24" font-family="system-ui,-apple-system,sans-serif" font-size="10">Rate limit</text>
+  
+  <text x="100" y="610" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="10">health_check</text>
+  <text x="300" y="610" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">60 sec</text>
+  <text x="450" y="610" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">14:44</text>
+  <text x="600" y="610" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">14:45</text>
+  <circle cx="760" cy="606" r="5" fill="#34d399"/>
+  <text x="775" y="610" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">OK</text>
+  
+  <text x="100" y="635" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="10">auto_submit</text>
+  <text x="300" y="635" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">On event</text>
+  <text x="450" y="635" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">14:32</text>
+  <text x="600" y="635" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">—</text>
+  <circle cx="760" cy="631" r="5" fill="#34d399"/>
+  <text x="775" y="635" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Watching</text>
+  
+  <rect x="0" y="670" width="1100" height="30" fill="rgba(15,23,42,0.8)"/>
+  <text x="20" y="690" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">CoreScheduler • 26 jobs • 6 cycles • EventBus integration • Self-healing</text>
+</svg>

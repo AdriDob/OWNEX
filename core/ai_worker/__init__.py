@@ -11,8 +11,10 @@ Cubre:
 5. Triage: respuestas automáticas a preguntas de triage
 6. Aplicación: postulación automática a jobs/bounties
 
-Cada worker usa el LLM configurado (OpenAI, Anthropic, o local via Ollama)
-para generar respuestas de calidad humana.
+Usa UnifiedAIProvider para asegurar mismos free models que IDE:
+- OmniRoute (DeepSeek, Qwen, Gemini, Groq, Samba)
+- NVIDIA NIM (Mistral, Llama, Nemotron)
+- Ollama (local models)
 """
 
 from __future__ import annotations
@@ -24,6 +26,8 @@ import re
 from datetime import UTC, datetime
 from typing import Any
 
+from cores.ai.unified_provider import get_unified_provider
+
 logger = logging.getLogger("orion.ai_worker")
 
 
@@ -31,11 +35,11 @@ logger = logging.getLogger("orion.ai_worker")
 
 
 class LLMClient:
-    """Unified LLM client — supports OpenAI, Anthropic, and local Ollama."""
+    """Unified LLM client using same free models as IDE."""
 
-    def __init__(self, provider: str = "", model: str = "") -> None:
-        self._provider = provider or os.getenv("AI_WORKER_PROVIDER", "ollama")
-        self._model = model or os.getenv("AI_WORKER_MODEL", "llama3.2")
+    def __init__(self, provider: str = "", model: str = ""):
+        self._provider = get_unified_provider()
+        self._default_model = model or "oc/deepseek-v4-flash-free"
 
     async def generate(
         self,
@@ -44,72 +48,20 @@ class LLMClient:
         max_tokens: int = 1024,
         temperature: float = 0.7,
     ) -> str:
-        """Generate text from LLM."""
-        if self._provider == "openai":
-            return await self._generate_openai(system_prompt, user_prompt, max_tokens, temperature)
-        if self._provider == "anthropic":
-            return await self._generate_anthropic(system_prompt, user_prompt, max_tokens, temperature)
-        return await self._generate_ollama(system_prompt, user_prompt, max_tokens, temperature)
+        """Generate text from LLM using unified provider."""
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ]
 
-    async def _generate_openai(self, system_prompt: str, user_prompt: str, max_tokens: int, temperature: float) -> str:
-        try:
-            from openai import AsyncOpenAI
+        result = await self._provider.chat(
+            messages=messages,
+            model=self._default_model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
 
-            client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY", ""))
-            response = await client.chat.completions.create(
-                model=self._model or "gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                max_tokens=max_tokens,
-                temperature=temperature,
-            )
-            return response.choices[0].message.content or ""
-        except Exception as e:
-            logger.error("OpenAI generation failed: %s", e)
-            return ""
-
-    async def _generate_anthropic(
-        self, system_prompt: str, user_prompt: str, max_tokens: int, temperature: float
-    ) -> str:
-        try:
-            from anthropic import AsyncAnthropic
-
-            client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
-            response = await client.messages.create(
-                model=self._model or "claude-sonnet-4-6",
-                max_tokens=max_tokens,
-                system=system_prompt,
-                messages=[{"role": "user", "content": user_prompt}],
-                temperature=temperature,
-            )
-            return response.content[0].text if response.content else ""
-        except Exception as e:
-            logger.error("Anthropic generation failed: %s", e)
-            return ""
-
-    async def _generate_ollama(self, system_prompt: str, user_prompt: str, max_tokens: int, temperature: float) -> str:
-        try:
-            import httpx
-
-            payload = {
-                "model": self._model,
-                "prompt": f"{system_prompt}\n\n{user_prompt}",
-                "stream": False,
-                "options": {"temperature": temperature, "num_predict": max_tokens},
-            }
-            async with httpx.AsyncClient(timeout=60) as client:
-                resp = await client.post(
-                    os.getenv("OLLAMA_BASE_URL", "http://localhost:11434") + "/api/generate",
-                    json=payload,
-                )
-                if resp.status_code == 200:
-                    data = resp.json()
-                    return data.get("response", "")
-        except Exception as e:
-            logger.error("Ollama generation failed: %s", e)
-        return ""
+        return result.get("content", "")
 
 
 # ── Pulse Worker — AI Training & Microtasks ────────────────────

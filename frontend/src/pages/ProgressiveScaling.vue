@@ -8,7 +8,13 @@
     <!-- Ultra Fast Mode Section -->
     <div class="ultra-fast-section">
       <h2>Ultra Fast Mode — Phase 0 (Survival)</h2>
-      <div class="ultra-fast-status">
+      <div class="mode-manager-toggle">
+        <button @click="showModeManager = !showModeManager" class="toggle-btn">
+          {{ showModeManager ? '📋 Hide Mode Manager' : '📋 Show Mode Manager' }}
+        </button>
+      </div>
+      <ModeManagerPanel v-if="showModeManager" />
+      <div v-else class="ultra-fast-status">
         <div class="status-indicator" :class="{ active: isUltraFastMode }">
           <div class="indicator-icon">{{ isUltraFastMode ? '⚡' : '🔋' }}</div>
           <div class="status-text">
@@ -344,6 +350,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import AlertPopup from '@/components/AlertPopup.vue'
+import ModeManagerPanel from '@/components/ModeManagerPanel.vue'
 
 interface Phase {
   value: string
@@ -434,6 +442,7 @@ const statistics = ref<any>({
 const currentMode = ref<string>('balanced')
 const isUltraFastMode = ref(false)
 const ultraFastPlan = ref<any>(null)
+const showModeManager = ref(false)
 
 const showMetricsModal = ref(false)
 const metricsForm = ref({
@@ -764,6 +773,25 @@ onMounted(() => {
 .ultra-fast-section h2 {
   margin-bottom: 1rem;
   color: #fbbf24;
+}
+
+.mode-manager-toggle {
+  margin-bottom: 1rem;
+}
+
+.toggle-btn {
+  padding: 0.75rem 1.5rem;
+  background: #374151;
+  color: #f3f4f6;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+  background: #4b5563;
 }
 
 .ultra-fast-status {
