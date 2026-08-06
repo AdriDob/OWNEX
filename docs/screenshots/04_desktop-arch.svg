@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 650" width="1100" height="650">
+  <rect width="1100" height="650" fill="#0b1120"/>
+  
+  <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+    <path d="M30 0L0 0 0 30" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+  </pattern>
+  <rect width="1100" height="650" fill="url(#grid)"/>
+  
+  <!-- Top bar -->
+  <rect x="0" y="0" width="1100" height="48" fill="rgba(15,23,42,0.8)"/>
+  <text x="24" y="30" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="600">OWNEX — Desktop Command Center (Tauri v2)</text>
+  
+  <!-- Title -->
+  <text x="80" y="80" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="14" font-weight="600">DESKTOP ARCHITECTURE</text>
+  
+  <!-- Tauri shell -->
+  <rect x="80" y="100" width="940" height="100" rx="12" fill="rgba(120,53,15,0.15)" stroke="#fbbf24" stroke-dasharray="6,3"/>
+  <text x="100" y="130" fill="#fbbf24" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="600">TAURI v2 RUST SHELL</text>
+  <text x="100" y="150" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">Frameless window • Mica/Acrylic • System tray • WebView2 • Native menus</text>
+  <text x="100" y="170" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">Security: CSP • IPC allowlist • Token-based auth • No node integration</text>
+  
+  <!-- Frontend layer -->
+  <rect x="80" y="220" width="450" height="120" rx="8" fill="rgba(8,51,68,0.3)" stroke="#22d3ee"/>
+  <text x="100" y="250" fill="#22d3ee" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="600">FRONTEND — Vue 3 + TypeScript</text>
+  <text x="100" y="270" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">Tailwind CSS v4 • Vite • Pinia stores • Vue Router</text>
+  <text x="100" y="290" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">60+ views • 80+ components • WebSocket real-time</text>
+  <text x="100" y="310" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">Command palette (Ctrl+K) • Dark theme • Responsive</text>
+  <text x="100" y="330" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Production build: dist/ → bundled into Tauri</text>
+  
+  <!-- Python sidecar -->
+  <rect x="560" y="220" width="460" height="120" rx="8" fill="rgba(6,78,59,0.3)" stroke="#34d399"/>
+  <text x="580" y="250" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="600">PYTHON SIDECAR — FastAPI</text>
+  <text x="580" y="270" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">Auto-starts with Tauri • WebSocket bridge • SQLite/PostgreSQL</text>
+  <text x="580" y="290" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">1684 Python files • 80+ Vue components • REST + WS</text>
+  <text x="580" y="310" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">Scheduler • EventBus • AgentBus • Health monitor</text>
+  <text x="580" y="330" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Packaged via PyInstaller → single binary</text>
+  
+  <!-- AI Models layer -->
+  <rect x="80" y="360" width="940" height="80" rx="8" fill="rgba(76,29,149,0.2)" stroke="#a78bfa"/>
+  <text x="100" y="390" fill="#a78bfa" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="600">AI MODELS — Multi-Provider Router</text>
+  <text x="100" y="410" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">Ollama (local) → FCC Proxy (Claude) → OpenRouter → OpenAI • Failover chain</text>
+  <text x="100" y="430" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">AI Worker module • CoderAgent • BrowserAgent • Autonomous reasoning</text>
+  
+  <!-- Data layer -->
+  <rect x="80" y="460" width="300" height="120" rx="8" fill="rgba(15,23,42,0.6)" stroke="#1e293b"/>
+  <text x="100" y="490" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="600">DATABASE</text>
+  <text x="100" y="515" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">SQLite (dev)</text>
+  <text x="100" y="535" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">PostgreSQL (prod)</text>
+  <text x="100" y="555" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">SQLAlchemy ORM</text>
+  <text x="100" y="575" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Auto-backup</text>
+  
+  <!-- UnifiedMemoryStore -->
+  <rect x="400" y="460" width="300" height="120" rx="8" fill="rgba(15,23,42,0.6)" stroke="#1e293b"/>
+  <text x="420" y="490" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="600">MEMORY LAYER</text>
+  <text x="420" y="515" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">UnifiedMemoryStore</text>
+  <text x="420" y="535" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">SQLite persistence</text>
+  <text x="420" y="555" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">Namespace separation</text>
+  <text x="420" y="575" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Survives restart</text>
+  
+  <!-- Cross-cutting -->
+  <rect x="720" y="460" width="300" height="120" rx="8" fill="rgba(15,23,42,0.6)" stroke="#1e293b"/>
+  <text x="740" y="490" fill="#e2e8f0" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="600">CROSS-CUTTING</text>
+  <text x="740" y="515" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">EventBus + AgentBus</text>
+  <text x="740" y="535" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">Scheduler (26 jobs)</text>
+  <text x="740" y="555" fill="#94a3b8" font-family="system-ui,-apple-system,sans-serif" font-size="10">Recovery Engine</text>
+  <text x="740" y="575" fill="#34d399" font-family="system-ui,-apple-system,sans-serif" font-size="10">Self-healing</text>
+  
+  <!-- Bottom bar -->
+  <rect x="0" y="600" width="1100" height="30" fill="rgba(15,23,42,0.8)"/>
+  <text x="20" y="620" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10">Build: PyInstaller (Python) + Cargo (Rust) • Output: single .exe/.appImage/.deb • ~120MB</text>
+  <text x="1080" y="620" fill="#64748b" font-family="system-ui,-apple-system,sans-serif" font-size="10" text-anchor="end">Tauri v2.0</text>
+</svg>

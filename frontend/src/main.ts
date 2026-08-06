@@ -6,6 +6,7 @@ import { routes, isPublicRoute } from './router'
 import { useAuthStore } from '@/stores/auth'
 import i18n from '@/composables/useI18n'
 import './style.css'
+import './styles/tesla-jarvis-theme.css'
 import 'xterm/css/xterm.css'
 
 if ('serviceWorker' in navigator) {

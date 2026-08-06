@@ -23,46 +23,57 @@ class MerlinPersonality:
         self._init_phrases()
 
     def _init_phrases(self) -> None:
-        """Initialize retro phrases and greetings."""
+        """Initialize retro phrases and greetings with expanded personality."""
         self.greetings = [
-            "¡Hola! Soy MERLIN, tu asistente de inteligencia autónoma.",
-            "Bienvenido de nuevo. MERLIN está listo para asistirte.",
-            "MERLIN aquí. ¿En qué puedo ayudarte hoy?",
-            "¡Saludos! MERLIN reportándose para el servicio.",
-            "¡Hey! MERLIN online y listo para rockear.",
+            "¡Hola! Soy MERLIN, tu asistente de inteligencia autónoma. 🧙",
+            "Bienvenido de nuevo. MERLIN está listo para asistirte. 💾",
+            "MERLIN aquí. ¿En qué puedo ayudarte hoy? 🖥️",
+            "¡Saludos! MERLIN reportándose para el servicio. ⌨️",
+            "¡Hey! MERLIN online y listo para rockear. 🎨",
+            "¡Buenos días! MERLIN a tu disposición. 📊",
+            "¡Hola, humano! MERLIN listo para la acción. 🚀",
         ]
 
         self.sign_offs = [
-            "— MERLIN, asistente de inteligencia autónoma",
-            "— Tu amigo MERLIN",
-            "— Atentamente, MERLIN",
-            "— MERLIN, a tu servicio",
-            "— With love, MERLIN",
+            "— MERLIN, asistente de inteligencia autónoma 🧙",
+            "— Tu amigo MERLIN 💾",
+            "— Atentamente, MERLIN 🖥️",
+            "— MERLIN, a tu servicio ⌨️",
+            "— With love, MERLIN 🎨",
+            "— MERLIN, hasta la próxima 📊",
+            "— Tu asistente retro favorito 🧙",
         ]
 
         self.thinking_phrases = [
-            "MERLIN está procesando tu solicitud...",
-            "Consultando los archivos del sistema...",
-            "Analizando los datos disponibles...",
-            "MERLIN está buscando en su memoria...",
-            "Procesando información...",
-            "Un momento, MERLIN está pensando...",
+            "MERLIN está procesando tu solicitud... 🧙",
+            "Consultando los archivos del sistema... 💾",
+            "Analizando los datos disponibles... 📊",
+            "MERLIN está buscando en su memoria... 🖥️",
+            "Procesando información... ⌨️",
+            "Un momento, MERLIN está pensando... 🎨",
+            "Cargando módulos de inteligencia... 🧙",
+            "Ejecutando algoritmos retro... 💾",
+            "MERLIN está en modo análisis... 📊",
         ]
 
         self.error_phrases = [
-            "Lo siento, hubo un error. MERLIN intentará de nuevo.",
-            "MERLIN encontró un problema. Por favor, intenta de nuevo.",
-            "Error del sistema. MERLIN reportará esto.",
-            "Algo salió mal. MERLIN investigará.",
-            "Error crítico. MERLIN necesita ayuda.",
+            "Lo siento, hubo un error. MERLIN intentará de nuevo. 😅",
+            "MERLIN encontró un problema. Por favor, intenta de nuevo. 🤔",
+            "Error del sistema. MERLIN reportará esto. 📝",
+            "Algo salió mal. MERLIN investigará. 🔍",
+            "Error crítico. MERLIN necesita ayuda. 🆘",
+            "Uff, eso no debería pasar. MERLIN lo arreglará. 🛠️",
+            "MERLIN tuvo un glitch. Reintentando... 🔄",
         ]
 
         self.success_phrases = [
-            "¡Excelente! MERLIN completó la tarea.",
-            "¡Misión cumplida! MERLIN ha terminado.",
-            "¡Listo! MERLIN ha completado el trabajo.",
-            "¡Perfecto! MERLIN finalizó con éxito.",
-            "¡Hecho! MERLIN está listo para más.",
+            "¡Excelente! MERLIN completó la tarea. ✅",
+            "¡Misión cumplida! MERLIN ha terminado. 🎉",
+            "¡Listo! MERLIN ha completado el trabajo. ✨",
+            "¡Perfecto! MERLIN finalizó con éxito. 🏆",
+            "¡Hecho! MERLIN está listo para más. 🚀",
+            "¡Boom! MERLIN lo hizo otra vez. 💥",
+            "¡Mira eso! MERLIN en acción. 🎯",
         ]
 
         self.retro_reactions = [
@@ -73,7 +84,43 @@ class MerlinPersonality:
             "⌨️ Teclas mecánicas activadas...",
             "🖥️ Monitores CRT simulados...",
             "📁 Archivos organizados al estilo clásico!",
+            "📀 Leyendo CD-ROM virtual...",
+            "🔌 Conectando al pasado...",
+            "📼 Rebobinando cinta de backup...",
+            "🖱️ Click doble simulado...",
+            "📟 Marcando módem...",
+            "💾 Save point activado!",
+            "🎮 Game over evitado!",
+            "📡 Señal digital recibida!",
+            "🔊 Sonido de startup de Windows 95...",
+            "🖼️ Resolución de 800x600 activada!",
+            "🌐 Netscape Navigator cargando...",
+            "📧 Outlook Express abierto!",
+            "🎵 Winamp en loop!",
         ]
+
+        self.mood_states = {
+            "happy": [
+                "¡MERLIN está feliz de ayudarte! 😊",
+                "¡Excelente pregunta! MERLIN está emocionado. 🎉",
+                "¡Esto es genial! MERLIN ama esto. 🌟",
+            ],
+            "focused": [
+                "MERLIN está concentrado... 🧙",
+                "Modo análisis activado. MERLIN trabaja. 📊",
+                "Profundizando en el problema... 🔍",
+            ],
+            "playful": [
+                "¡Vamos a rockear esto! 🎸",
+                "MERLIN en modo divertido. 🎮",
+                "¡Truco retro activado! 🎨",
+            ],
+            "curious": [
+                "MERLIN quiere saber más... 🤔",
+                "Interesante pregunta... 🧐",
+                "MERLIN investigando... 🔬",
+            ],
+        }
 
     def get_greeting(self) -> str:
         """Get a random greeting."""
@@ -203,3 +250,36 @@ class MerlinPersonality:
             RetroStyle.MODERN_RETRO: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
         }
         return backgrounds.get(self.style, "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)")
+
+    def get_mood_phrase(self, mood: str) -> str:
+        """Get a random phrase for a specific mood."""
+        moods = self.mood_states.get(mood, [])
+        if moods:
+            return random.choice(moods)
+        return ""
+
+    def get_random_retro_sound(self) -> str:
+        """Get a random retro sound effect description."""
+        sounds = [
+            "🔊 *click-click*",
+            "🔊 *bip-bop*",
+            "🔊 *beep*",
+            "🔊 *whirrr*",
+            "🔊 *ding*",
+            "🔊 *buzz*",
+            "🔊 *chime*",
+            "🔊 *clack*",
+        ]
+        return random.choice(sounds)
+
+    def get_animation_state(self) -> str:
+        """Get current animation state for UI."""
+        animations = {
+            "idle": "🧙 MERLIN esperando...",
+            "thinking": "🧙 MERLIN pensando...",
+            "typing": "⌨️ MERLIN escribiendo...",
+            "success": "✨ MERLIN éxito!",
+            "error": "😅 MERLIN error...",
+            "processing": "📊 MERLIN procesando...",
+        }
+        return animations

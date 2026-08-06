@@ -398,6 +398,8 @@ def get_investment_jobs() -> list[JobDefinition]:
 
     - investment_arbitrage_scan: cross-exchange price-gap scan (8 exchanges,
       $500k liquidity floor) every 4h. Paper/dry-run; surfaces real edge.
+    - risk_guardian_check: auto-pause strategies in drawdown every 15min.
+    - startup_checks: detect missing credentials, stalled pipelines every 1h.
     """
     return [
         _cron_job(
@@ -410,6 +412,30 @@ def get_investment_jobs() -> list[JobDefinition]:
                 "cycle": "investment",
                 "type": "revenue",
                 "desc": "escaneo automatico de arbitraje cross-exchange",
+            },
+        ),
+        _cron_job(
+            job_id="risk_guardian_check",
+            app_id="investment",
+            handler="core.investment.risk_guardian:get_risk_guardian",
+            cron="*/15 * * * *",
+            args=[],
+            metadata={
+                "cycle": "investment",
+                "type": "risk",
+                "desc": "verificacion automatica de drawdown y pausa de estrategias",
+            },
+        ),
+        _cron_job(
+            job_id="startup_checks",
+            app_id="system",
+            handler="cores.startup_checks:run_all_checks",
+            cron="0 * * * *",
+            args=[],
+            metadata={
+                "cycle": "system",
+                "type": "health",
+                "desc": "deteccion de credenciales faltantes, pipelines estancados",
             },
         ),
     ]
