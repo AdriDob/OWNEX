@@ -213,6 +213,50 @@ async def get_dedup_config():
     )
 
 
+# ── Action Required ────────────────────────────────────────────────
+
+
+@router.get("/pending-actions")
+async def get_pending_actions():
+    """Get all pending actions that require human intervention."""
+    from cores.notifications.action_required import get_pending_actions as _get_pending
+
+    actions = _get_pending()
+    return ok(
+        {
+            "actions": [
+                {
+                    "action_id": a.action_id,
+                    "title": a.title,
+                    "reason": a.reason,
+                    "impact": a.impact,
+                    "steps": a.steps,
+                    "ui_path": a.ui_path,
+                    "category": a.category,
+                    "priority": a.priority,
+                    "created_at": a.created_at,
+                    "subject_id": a.subject_id,
+                    "subject_type": a.subject_type,
+                    "metadata": a.metadata,
+                }
+                for a in actions
+            ],
+            "total": len(actions),
+        }
+    )
+
+
+@router.post("/actions/{action_id}/resolve")
+async def resolve_action(action_id: str):
+    """Mark an action as resolved."""
+    from cores.notifications.action_required import resolve_action as _resolve
+
+    success = _resolve(action_id)
+    if success:
+        return ok({"status": "resolved", "action_id": action_id})
+    return error(f"Action {action_id} not found", version="1.0")
+
+
 @router.get("/smart")
 async def get_smart_notifications():
     """Get smart notification manager stats and recent history."""
