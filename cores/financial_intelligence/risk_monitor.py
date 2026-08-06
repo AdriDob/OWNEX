@@ -11,11 +11,10 @@ Monitors all risk parameters and triggers automatic responses when limits are ex
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
-from pathlib import Path
-from typing import Callable
 
 logger = logging.getLogger("ownex.risk_monitor")
 
