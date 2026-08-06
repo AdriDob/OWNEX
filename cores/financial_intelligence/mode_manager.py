@@ -135,7 +135,6 @@ MODE_CONFIGS: dict[str, ModeConfig] = {
         requires=["general_automatic"],
         excludes=[],
     ),
-
     # General Mode
     "general_manual": ModeConfig(
         mode_type=ModeType.GENERAL,
@@ -159,7 +158,6 @@ MODE_CONFIGS: dict[str, ModeConfig] = {
         compatible_with=["income_balanced", "income_scaling", "trading_real"],
         excludes=["income_ultra_fast"],
     ),
-
     # Trading Mode
     "trading_real": ModeConfig(
         mode_type=ModeType.TRADING,
@@ -195,7 +193,6 @@ MODE_CONFIGS: dict[str, ModeConfig] = {
         compatible_with=["income_ultra_fast", "income_balanced", "general_manual"],
         excludes=[],
     ),
-
     # Assistance Mode
     "assistance_guided": ModeConfig(
         mode_type=ModeType.ASSISTANCE,
@@ -483,12 +480,14 @@ class ModeManager:
 
         for conflict_key in conflicts:
             conflict_config = MODE_CONFIGS[conflict_key]
-            suggestions.append({
-                "conflict": conflict_key,
-                "conflict_name": conflict_config.name,
-                "action": "deactivate",
-                "reason": f"{mode_key} is mutually exclusive with {conflict_key}",
-            })
+            suggestions.append(
+                {
+                    "conflict": conflict_key,
+                    "conflict_name": conflict_config.name,
+                    "action": "deactivate",
+                    "reason": f"{mode_key} is mutually exclusive with {conflict_key}",
+                }
+            )
 
         return {
             "mode_key": mode_key,

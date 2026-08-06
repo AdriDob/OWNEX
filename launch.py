@@ -147,9 +147,9 @@ def mode_status() -> int:
     try:
         import webview
 
-        print(f"  Desktop (webview): ✅ available")
+        print("  Desktop (webview): ✅ available")
     except ImportError:
-        print(f"  Desktop (webview): ❌ not installed")
+        print("  Desktop (webview): ❌ not installed")
 
     print("\n" + "=" * 50)
     return 0
