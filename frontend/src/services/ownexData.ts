@@ -775,3 +775,111 @@ export async function respondWearOSApproval(
 export async function clearWearOSNotifications(days = 7): Promise<{ success: boolean; cleared_count: number }> {
   return api.post<{ success: boolean; cleared_count: number }>('/wear-os/clear-notifications', { days })
 }
+
+// ── Max Daily Income ──
+
+export interface MaxDailyItem {
+  platform: string
+  title: string
+  category: string
+  reward: number
+  acceptance_probability: number
+  probability_base: number
+  probability_full: number
+  cash_speed: number
+  cash_window: string
+  expected_value_usd: number
+  hours_estimate: number
+  blocked: boolean
+  direct_link: string
+}
+
+export interface MaxDailyIncomePlan {
+  generated_at: string
+  daily_target_usd: number
+  conservative_max_usd: number
+  realistic_max_usd: number
+  optimistic_max_usd: number
+  unlock_potential_usd: number
+  gap_usd: number
+  optimism_arguments: string[]
+  items: MaxDailyItem[]
+  needs_access_count: number
+  actions: string[]
+  notes: string[]
+  digest: { text: string }
+}
+
+export async function fetchMaxDailyIncome(dailyTarget?: number): Promise<MaxDailyIncomePlan> {
+  return api.post<MaxDailyIncomePlan>('/direct-work/max-daily-income', {
+    opportunities: [],
+    daily_target_usd: dailyTarget ?? 0,
+  })
+}
+
+// ── Pending Actions (Notifications) ──
+
+export interface PendingAction {
+  action_id: string
+  title: string
+  reason: string
+  impact: string
+  steps: string[]
+  ui_path: string
+  category: string
+  priority: string
+  created_at: string
+  subject_id: string
+  subject_type: string
+  metadata: Record<string, unknown>
+}
+
+export async function fetchPendingActions(): Promise<PendingAction[]> {
+  return api.get<PendingAction[]>('/api/notifications/pending-actions')
+}
+
+export async function resolveAction(actionId: string): Promise<{ success: boolean }> {
+  return api.post<{ success: boolean }>(`/api/notifications/actions/${actionId}/resolve`, {})
+}
+
+// ── Investment Status ──
+
+export interface InvestmentStatusData {
+  success: boolean
+  status: {
+    total_capital: number
+    deployed: number
+    available: number
+    high_risk_deployed: number
+    high_risk_limit: number
+    paused: boolean
+    active_strategies: string[]
+    paused_strategies: string[]
+    summary: Record<string, unknown>
+  }
+}
+
+export async function fetchInvestmentStatus(): Promise<InvestmentStatusData> {
+  return api.get<InvestmentStatusData>('/api/investment/status')
+}
+
+export async function fetchInvestmentMetrics(): Promise<Record<string, unknown>> {
+  return api.get<Record<string, unknown>>('/api/investment/metrics')
+}
+
+// ── Pending Deliveries ──
+
+export interface PendingDelivery {
+  item_id: string
+  platform: string
+  title: string
+  reward: number
+  ready_to_deliver: boolean
+  package_path: string
+  submission_url: string
+  deliverables: string[]
+}
+
+export async function fetchPendingDeliveries(): Promise<PendingDelivery[]> {
+  return api.get<PendingDelivery[]>('/direct-work/deliver/pending')
+}
