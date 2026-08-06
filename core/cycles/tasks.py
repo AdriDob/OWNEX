@@ -146,6 +146,28 @@ def run_daily_delivery_preparation(*args: Any, **kwargs: Any) -> dict[str, Any]:
             return prepared
 
         prepared = asyncio.run(_prepare())
+
+        # Notify user that packages are ready for submission
+        if prepared:
+            from cores.notifications.action_required import notify_action_required
+
+            notify_action_required(
+                title=f"{prepared} paquetes de entrega listos para submitir",
+                reason="Preparación automática completada. Revisar y submitir.",
+                impact=f"{prepared} trabajos preparados en ~/ownex/submissions/",
+                steps=[
+                    "Revisar los paquetes en ~/ownex/submissions/",
+                    "Submitir cada trabajo en la plataforma correspondiente",
+                    "Marcar como entregado en el dashboard",
+                ],
+                ui_path="/direct-work",
+                category="delivery",
+                priority="medium",
+                channels=["web", "desktop"],
+                subject_id="daily_delivery",
+                subject_type="workflow",
+            )
+
         return {
             "status": "ok",
             "prepared_count": prepared,
