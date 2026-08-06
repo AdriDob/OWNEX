@@ -1630,9 +1630,6 @@ app.include_router(onboarding.router)
 # Wear OS router
 app.include_router(wear_os.router)
 
-# MERLIN router
-app.include_router(merlin.router)
-
 # Security Cycle router
 app.include_router(security_cycle.router)
 app.include_router(forge_cycle.router)
