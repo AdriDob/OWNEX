@@ -15,6 +15,8 @@ import KnowledgeFeed from '@/components/mission-control/KnowledgeFeed.vue'
 import DirectWorkRadar from '@/components/mission-control/DirectWorkRadar.vue'
 import GuidedDashboard from '@/components/guided-mode/GuidedDashboard.vue'
 import GoodMorning from '@/components/mission-control/GoodMorning.vue'
+import DailyIncomePlan from '@/components/mission-control/DailyIncomePlan.vue'
+import NotificationCenter from '@/components/mission-control/NotificationCenter.vue'
 import ReportPipeline from '@/components/dashboard/ReportPipeline.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import ErrorState from '@/components/ui/ErrorState.vue'
@@ -226,7 +228,13 @@ const feedItems = computed(() =>
       <!-- Row 2.5: Daily Operation Mode -->
       <GoodMorning />
 
-      <!-- Row 2.7: Direct Work recommendations -->
+      <!-- Row 2.6: Daily Income Plan -->
+      <DailyIncomePlan />
+
+      <!-- Row 2.7: Notifications -->
+      <NotificationCenter />
+
+      <!-- Row 2.8: Direct Work recommendations -->
       <DirectWorkRadar />
 
       <!-- Row 2.8: Guided Dashboard (Mode Selector + First Day + Income Guidance + Work Bank) -->
