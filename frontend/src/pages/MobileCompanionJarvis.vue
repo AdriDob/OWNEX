@@ -89,7 +89,7 @@
 
       <!-- MERLIN Mini -->
       <div class="merlin-mini-section">
-        <h2 class="section-title">MERLIN Mini</h2>
+        <h2 class="section-title">MERLIN Chat</h2>
         <div class="merlin-mini-interface">
           <div class="merlin-avatar-mini">
             <div class="avatar-ring outer-ring"></div>
@@ -98,9 +98,40 @@
             <div class="avatar-core">🧙</div>
           </div>
           <div class="merlin-messages">
-            <div class="merlin-message">
+            <div class="merlin-message greeting">
               <div class="message-content">
                 <p class="greeting">{{ merlinGreeting }}</p>
+              </div>
+            </div>
+            <div
+              v-for="(msg, i) in merlinMessages"
+              :key="i"
+              class="merlin-message"
+              :class="msg.role"
+            >
+              <div class="message-content">
+                <p>{{ msg.content }}</p>
+              </div>
+            </div>
+            <div v-if="merlinLoading" class="merlin-message assistant">
+              <div class="message-content">
+                <p class="typing">...</p>
+              </div>
+            </div>
+          </div>
+          <div class="merlin-input">
+            <input
+              v-model="merlinInput"
+              @keyup.enter="sendMerlinMessage"
+              type="text"
+              placeholder="Escribe a MERLIN..."
+              class="merlin-textarea"
+            />
+            <button @click="sendMerlinMessage" class="merlin-send">📤</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Notifications -->
       <div class="notifications-section" v-if="notifications.length > 0">
         <h2 class="section-title">Notificaciones ({{ notifications.length }})</h2>
@@ -138,22 +169,6 @@
               <button class="btn-approve" @click="respondApproval(approval.request_id, true)">✓</button>
               <button class="btn-reject" @click="respondApproval(approval.request_id, false)">✗</button>
             </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-            </div>
-          </div>
-          <div class="merlin-input">
-            <input
-              v-model="merlinInput"
-              @keyup.enter="sendMerlinMessage"
-              type="text"
-              placeholder="Escribe a MERLIN..."
-              class="merlin-textarea"
-            />
-            <button @click="sendMerlinMessage" class="merlin-send">📤</button>
           </div>
         </div>
       </div>
@@ -235,9 +250,11 @@ import {
   fetchWearOSPendingApprovals,
   markWearOSNotificationRead,
   respondWearOSApproval,
+  sendChatMessage,
   type WearOSStatus,
   type WearOSNotification,
   type WearOSApproval,
+  type ChatMessage,
 } from '@/services/ownexData'
 
 const router = useRouter()
@@ -247,6 +264,8 @@ const androidConnected = ref(true)
 const watchConnected = ref(false)
 const notificationsEnabled = ref(true)
 const merlinInput = ref('')
+const merlinMessages = ref<Array<{ role: string; content: string }>>([])
+const merlinLoading = ref(false)
 
 const wearStatus = ref<WearOSStatus | null>(null)
 const notifications = ref<WearOSNotification[]>([])
@@ -345,9 +364,28 @@ function toggleNotifications() {
   notificationsEnabled.value = !notificationsEnabled.value
 }
 
-function sendMerlinMessage() {
-  if (!merlinInput.value.trim()) return
+async function sendMerlinMessage() {
+  const text = merlinInput.value.trim()
+  if (!text) return
+
+  merlinMessages.value.push({ role: 'user', content: text })
   merlinInput.value = ''
+  merlinLoading.value = true
+
+  try {
+    const response = await sendChatMessage(text, merlinMessages.value.slice(0, -1))
+    merlinMessages.value.push({
+      role: 'assistant',
+      content: response.response || response.error || 'Sin respuesta',
+    })
+  } catch {
+    merlinMessages.value.push({
+      role: 'assistant',
+      content: 'Error de conexión. Verificá que el backend esté corriendo.',
+    })
+  } finally {
+    merlinLoading.value = false
+  }
 }
 
 onMounted(() => {
@@ -523,14 +561,29 @@ onMounted(() => {
 .avatar-ring.middle-ring { width: 28px; height: 28px; border-color: rgba(0, 213, 255, 0.3); }
 .avatar-ring.inner-ring { width: 22px; height: 22px; border-color: rgba(255, 255, 255, 0.2); }
 .avatar-core { font-size: 16px; }
-.merlin-messages { display: flex; flex-direction: column; gap: 8px; }
+.merlin-messages { display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; }
 .merlin-message { display: flex; }
+.merlin-message.user { justify-content: flex-end; }
+.merlin-message.assistant { justify-content: flex-start; }
+.merlin-message.greeting { justify-content: flex-start; }
 .message-content {
   max-width: 85%;
   background: #13161d;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-  padding: 10px 12px;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.merlin-message.user .message-content {
+  background: #1a2332;
+  border-color: rgba(0, 213, 255, 0.2);
+}
+.typing {
+  animation: blink 1s infinite;
+  color: #888;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
 .greeting { margin: 0; font-size: 13px; line-height: 1.5; color: #d9dbdf; }
 .merlin-input { display: flex; gap: 8px; }

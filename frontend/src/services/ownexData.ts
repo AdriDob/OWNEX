@@ -883,3 +883,62 @@ export interface PendingDelivery {
 export async function fetchPendingDeliveries(): Promise<PendingDelivery[]> {
   return api.get<PendingDelivery[]>('/direct-work/deliver/pending')
 }
+
+// ── Copilot Chat ──
+
+export interface ChatMessage {
+  role: string
+  content: string
+}
+
+export interface CopilotChatResponse {
+  status: string
+  response: string
+  provider: string
+  model: string
+  duration_ms: number
+  error: string | null
+}
+
+export async function sendChatMessage(
+  message: string,
+  history: ChatMessage[] = [],
+  taskType: string = 'chat',
+): Promise<CopilotChatResponse> {
+  return api.post<CopilotChatResponse>('/api/copilot/chat', {
+    message,
+    history,
+    task_type: taskType,
+  })
+}
+
+export async function executeCommand(
+  action: string,
+  params: Record<string, unknown> = {},
+): Promise<{ status: string; result: unknown }> {
+  return api.post<{ status: string; result: unknown }>('/api/copilot/execute', {
+    action,
+    params,
+  })
+}
+
+// ── System Commands ──
+
+export interface CommandInfo {
+  name: string
+  description: string
+  category: string
+  permission: string
+}
+
+export async function listCommands(): Promise<CommandInfo[]> {
+  const res = await api.get<{ commands: CommandInfo[] }>('/api/commands')
+  return res.commands
+}
+
+export async function runCommand(
+  commandName: string,
+  args: Record<string, unknown> = {},
+): Promise<{ status: string; output: string }> {
+  return api.post<{ status: string; output: string }>(`/api/commands/${commandName}/execute`, args)
+}
