@@ -1,0 +1,41 @@
+{
+  "build": {
+    "distDir": "../dist",
+    "devPath": "http://localhost:5173",
+    "withGlobalTauri": false,
+    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "npm run dev"
+  },
+  "package": {
+    "productName": "OWNEX",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": true,
+      "shell": {
+        "all": false,
+        "open": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "targets": "all",
+      "identifier": "com.ownex.app",
+      "icon": ["../logo.png"]
+    },
+    "updater": {
+      "active": false
+    },
+    "windows": [
+      {
+        "url": "index.html",
+        "width": 1440,
+        "height": 960,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true
+      }
+    ]
+  }
+}

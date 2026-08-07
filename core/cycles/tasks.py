@@ -203,6 +203,30 @@ def run_daily_market_evolution(*args: Any, **kwargs: Any) -> dict[str, Any]:
         return {"status": "error", "message": str(e)}
 
 
+def run_daily_task_refresh(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    """Refresh the daily task board and auto-complete resolved milestones.
+
+    Called daily by the scheduler at 07:00: auto-marks tasks as done when their
+    underlying milestone is already achieved in the system state, then refreshes
+    the board so the operator always has an up-to-date action list.
+    """
+    try:
+        from core.daily_tasks import get_daily_task_board
+
+        board = get_daily_task_board()
+        auto_done = board.complete_done_from_state()
+        tasks = board.get_tasks(force_refresh=True)
+        return {
+            "status": "ok",
+            "auto_done": auto_done.get("auto_done", 0),
+            "day": tasks.get("day", 0),
+            "pending": tasks.get("total", 0) - tasks.get("done", 0),
+        }
+    except Exception as e:  # noqa: BLE001
+        logger.warning("Could not refresh daily tasks: %s", e)
+        return {"status": "error", "message": str(e)}
+
+
 def auto_submit_pending_findings(*args: Any, **kwargs: Any) -> dict[str, Any]:
     """Auto-submit confirmed findings that pass the Quality Gate.
 
