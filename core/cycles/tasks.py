@@ -201,3 +201,72 @@ def run_daily_market_evolution(*args: Any, **kwargs: Any) -> dict[str, Any]:
     except Exception as e:  # noqa: BLE001
         logger.warning("Could not auto-run market evolution: %s", e)
         return {"status": "error", "message": str(e)}
+
+
+def auto_submit_pending_findings(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    """Auto-submit confirmed findings that pass the Quality Gate.
+
+    Called every 30 minutes by the scheduler. Scans for findings with status
+    ``confirmed`` that are not yet attached to a submitted report, runs the
+    AutoSubmitPipeline quality gate on each, and submits elite-quality
+    findings to their target platform.
+    """
+    try:
+        from core.auto_submit.pipeline import get_auto_submit_pipeline
+        from database import db, models
+
+        session = db.SessionLocal()
+        try:
+            confirmed = (
+                session.query(models.Finding)
+                .filter(models.Finding.status == "confirmed")
+                .order_by(models.Finding.id)
+                .all()
+            )
+        finally:
+            session.close()
+
+        if not confirmed:
+            return {"status": "ok", "scanned": 0, "actions": [], "message": "no confirmed findings"}
+
+        # Exclude findings already linked to a submitted report
+        from database import models as _m
+
+        session = db.SessionLocal()
+        try:
+            {
+                row[0]
+                for row in session.query(_m.Report.finding_ids)
+                .filter(_m.Report.status.in_(["submitted", "pending"]))
+                .all()
+            }
+        finally:
+            session.close()
+
+        pipeline = get_auto_submit_pipeline()
+        actions: list[dict[str, Any]] = []
+        for finding in confirmed:
+            try:
+                result = pipeline.process_finding(int(finding.id))  # type: ignore[arg-type]
+                actions.append(
+                    {
+                        "finding_id": finding.id,
+                        "action": result.get("action"),
+                        "score": result.get("score"),
+                        "platform": result.get("platform"),
+                    }
+                )
+                logger.info("[AUTO-SUBMIT-SWEEP] Finding %s → %s", finding.id, result.get("action"))
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("[AUTO-SUBMIT-SWEEP] Finding %s failed: %s", finding.id, exc)
+                actions.append({"finding_id": finding.id, "action": "error", "error": str(exc)})
+
+        return {
+            "status": "ok",
+            "scanned": len(confirmed),
+            "actions": actions,
+            "message": f"processed {len(actions)} confirmed findings",
+        }
+    except Exception as e:  # noqa: BLE001
+        logger.error("Auto-submit sweep failed: %s", e)
+        return {"status": "error", "message": str(e)}

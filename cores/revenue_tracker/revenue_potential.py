@@ -66,7 +66,7 @@ def calculate_revenue_potential(tier: RevenueTier, include_market_modules: bool 
             name="Bug Bounty",
             avg_reward=500.0,
             success_rate=0.95,  # 95% realista: AcceptancePredictor baseline 65% + AI automation (PoC auto, scope check, dedup) eleva al techo. Pérdida del 5%: scope violations y duplicates que la IA no previene.
-            daily_capacity=5,
+            daily_capacity=10,  # Aumentado de 5 a 10 por feedback de usuario
             avg_time_per_opportunity=4.0,
         ),
         "dev_bounty": PlatformPotential(

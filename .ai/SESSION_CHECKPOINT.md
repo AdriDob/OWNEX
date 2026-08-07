@@ -1,8 +1,90 @@
 # Session Checkpoint — Agosto 2026
 
-> v7.0.0 STABLE — 6 Work Cycles operativos, lint clean, tests fast 86/87 pasan.
+> v7.0.0 STABLE — 6 Work Cycles operativos, lint clean, tests fast 88/89 pasan.
 
-## Última Sesión: 2026-08-04 — Revenue Maximization Tools Completados ✅
+## Última Sesión: 2026-08-07 — Closed Loop Revenue Implementado ✅
+
+### Qué se hizo
+- **Closed Loop Revenue completo** - Sistema de autonomía y aprendizaje automático
+  - **PaymentTracker** (`core/payment_tracker.py`): Rastreo de pagos vía webhooks/polling, persistencia en JSON
+  - **TrustEngine** (`core/trust_engine.py`): Sistema de confianza por plataforma con métricas (success_rate, payment_rate, trust_level)
+  - **ClosedLoopManager** (`core/closed_loop.py`): Conecta detección de pago → actualización de trust → aprendizaje de perfil
+  - **Auto-approval configurable**: Threshold por monto, nivel de confianza mínimo, plataformas bloqueadas/permitidas
+- **API endpoints** (15 nuevos en `control.py`):
+  - `/api/payment-tracker/*` - status, webhook, config, confirm, pending
+  - `/api/trust-engine/*` - status, platform metrics, config, outcome, can-auto-approve
+  - `/api/closed-loop/*` - status, process-payment, process-rejection, config
+- **Frontend integration**:
+  - Types TypeScript en `controlPanel.ts` (PaymentEvent, TrustMetrics, ClosedLoopStatus)
+  - `AutonomyDashboard.vue` - Dashboard de autonomía con % auto, trust metrics, pagos pendientes
+  - Integrado en MissionControl.vue después de FinanceGuru
+- **Verificación**: `make check` → 88 passed, 1 skipped, typecheck OK. Frontend build OK.
+
+### Estado del Sistema
+- **Lint**: 0 errores
+- **Tests fast**: 88/89 pasan (1 skip, 1 deselect)
+- **Version**: 7.0.0
+- **Ciclos operativos**: 6 (security, forge, pulse, vault, atlas, direct_work)
+- **Scheduler jobs**: 28 definidos
+- **Work Bank**: Recomienda método de cobro automáticamente (visible en frontend)
+- **Closed Loop**: Sistema básico implementado (webhooks → trust → perfil → aprendizaje)
+- **Autonomía**: Dashboard muestra % auto, trust metrics, pagos pendientes
+
+### Próximos pasos para ser insuperable
+1. Integrar webhooks reales de plataformas (HackerOne, Opire, Freelancer)
+2. Auto-submit con auto-approval (integrar con AssistedExecutor)
+3. RL engine para aprender de decisiones
+4. Multi-tenant beta
+
+---
+
+## Sesión 2026-08-07 — Integración Frontend + Backend Completa ✅
+
+### Qué se hizo
+- **Integración Work Bank + PayoutNet (Backend)**: Enriquecimiento automático de oportunidades con método de cobro óptimo
+  - Agregados campos `payout_method` y `payout_method_rationale` a `WorkItem`
+  - Integración de `PayoutNet.recommend_for()` en `daily_cycle` del Work Bank
+  - Exposición de métodos de cobro en endpoints `/direct-work/bank` y `/direct-work/recommend`
+  - Recomendación automática por plataforma (ej: opire → Binance P2P, freelance → DolarApp)
+- **Tests de integración**: 5 tests nuevos en `test_workbank_payout_integration.py`
+  - Verificación de payout fields en items
+  - Persistencia de métodos entre instancias
+  - Robustez ante fallos de PayoutNet
+  - Validación de endpoints
+- **Integración Frontend**: Exposición visual de métodos de cobro
+  - Actualizados tipos TypeScript en `ownexData.ts` (`DirectWorkRanked`, `WorkBankItem`, `DeliverableItem`)
+  - Agregado badge de método de cobro en `DirectWorkRadar.vue` (delivery queue y ranked opportunities)
+  - PayoutNet.vue ya conectado a endpoints `/api/payout-net/*`
+  - Nuevas funciones para endpoints adicionales: `fetchIncomeDashboard`, `projectIncome`, `fetchEvolutionReport`, `fetchSuccessStats`
+- **Verificación**: `make check` → 88 passed, 1 skipped, typecheck OK. Frontend build OK.
+
+### Estado del Sistema
+- **Lint**: 0 errores
+- **Tests fast**: 88/89 pasan (1 skip, 1 deselect)
+- **Version**: 7.0.0
+- **Ciclos operativos**: 6 (security, forge, pulse, vault, atlas, direct_work)
+- **Scheduler jobs**: 28 definidos
+- **Work Bank**: Ahora recomienda método de cobro automáticamente para cada oportunidad (visible en frontend)
+- **Frontend**: Expone métodos de cobro en DirectWorkRadar y conecta todos los endpoints de análisis de ingresos
+
+---
+
+## Sesión 2026-08-07 — Limpieza de lint y reanudación ✅
+
+### Qué se hizo
+- **Limpieza de lint**: 100 errores → 0 errores
+  - Fixed 23 endpoints en `api/routers/control.py` (B006: mutable defaults → `None`)
+  - Fixed ternary operator en `core/daily_tasks.py` (SIM108)
+  - Removed unused variables (`done_count`, `issue`, `state`, `g`)
+  - Replaced % format con f-strings en `core/goal_evaluator.py` (UP031)
+  - Added `strict=True` a `zip()` en `core/master_guide.py` (B905)
+  - Renamed ambiguous variables `l` → `level`/`level_data` en `core/skill_method.py` (E741)
+  - Fixed undefined `ACCOUNTS` → `g.recommend_accounts(purpose)` en control.py
+- **Verificación**: `make check` → 88 passed, 1 skipped, typecheck OK
+
+---
+
+## Sesión 2026-08-04 — Revenue Maximization Tools Completados ✅
 
 ### Todas las 7 herramientas críticas implementadas
 

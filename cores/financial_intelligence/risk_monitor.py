@@ -208,7 +208,9 @@ class RiskMonitor:
             level = RiskLevel.SAFE
 
         # Update global risk level
-        self._current_level = max(self._current_level, level, key=lambda x: ["safe", "caution", "warning", "danger", "critical"].index(x))
+        self._current_level = max(
+            self._current_level, level, key=lambda x: ["safe", "caution", "warning", "danger", "critical"].index(x)
+        )
 
         # Create alert if not safe
         if level != RiskLevel.SAFE:
@@ -216,10 +218,12 @@ class RiskMonitor:
                 risk_type=threshold.risk_type,
                 level=level,
                 current_value=current,
-                limit=threshold.critical_limit if level == RiskLevel.CRITICAL else (
-                    threshold.danger_limit if level == RiskLevel.DANGER else (
-                        threshold.warning_limit if level == RiskLevel.WARNING else threshold.caution_limit
-                    )
+                limit=threshold.critical_limit
+                if level == RiskLevel.CRITICAL
+                else (
+                    threshold.danger_limit
+                    if level == RiskLevel.DANGER
+                    else (threshold.warning_limit if level == RiskLevel.WARNING else threshold.caution_limit)
                 ),
                 message=f"{threshold.risk_type.value} at {current:.1%} - {level.upper()}",
                 action_required=level in [RiskLevel.DANGER, RiskLevel.CRITICAL],

@@ -52,11 +52,11 @@ Test script to verify coordinator functionality.
 
 ### CoordinatorConfig
 ```python
-max_concurrent: int = 3           # Max 3-5 simultaneous bounties
-timeout_minutes: int = 30         # Timeout for individual bounties
-auto_start: bool = False          # Auto-start when bounties are added
-enable_priority_queue: bool = True # Use EVH-based priority
-cleanup_on_failure: bool = True   # Auto-cleanup failed bounties
+max_concurrent: int = 3  # Max 3-5 simultaneous bounties
+timeout_minutes: int = 30  # Timeout for individual bounties
+auto_start: bool = False  # Auto-start when bounties are added
+enable_priority_queue: bool = True  # Use EVH-based priority
+cleanup_on_failure: bool = True  # Auto-cleanup failed bounties
 ```
 
 ## Usage Example

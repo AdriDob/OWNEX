@@ -1288,11 +1288,18 @@ Ver `.ai/TASK_QUEUE.md` para el detalle.
   - Sports Betting: 70% (AI + statistical models)
 - Risk Multipliers OPTIMIZADOS: 60% - 85% (según volatilidad)
 - Tier Multipliers OPTIMIZADOS (Potencial Mínimo Máximo): 1.0x, 1.5x, 2.5x, 4.0x
+- Bug Bounty capacity actualizado: 10 oportunidades/día (antes 5) por feedback usuario
 - Resultados OPTIMIZADOS (CON TODAS las investment tools):
-  - CONSERVATIVE: $218,368.75/mes ($2,620,425/año) — MINIMO MAXIMIZADO
-  - MODERATE ⭐: $327,553.12/mes ($3,930,637.50/año) — RECOMENDADO
-  - AGGRESSIVE: $545,921.88/mes ($6,551,062.50/año)
-  - MAXIMUM 🚀: $873,475.00/mes ($10,481,700.00/año) — MÁXIMO ABSOLUTO
+  - CONSERVATIVE: $285,000/mes ($3,420,000/año) — MINIMO MAXIMIZADO (10/day bug bounty)
+  - MODERATE ⭐: $427,500/mes ($5,130,000/año) — RECOMENDADO
+  - AGGRESSIVE: $712,500/mes ($8,550,000/año)
+  - MAXIMUM 🚀: $1,140,000/mes ($13,680,000/año) — MÁXIMO ABSOLUTO
+- Timeline desde cero hasta CONSERVATIVE: 17 meses (OPTIMIZADA — ver cores/revenue_tracker/revenue_timeline.py)
+  - ONBOARDING (1 mes): $38,715/mes — AI assistance acelera setup
+  - BUILDING (3 meses): $90,571/mes promedio — reputación acelerada con AI
+  - SCALING (5 meses): $179,954/mes promedio — automatización agresiva
+  - MATURING (15 meses): $288,906/mes promedio — madurez extendida
+  - Milestones: $100K/mes en mes 4 (antes mes 10), CONSERVATIVE en mes 17 (antes mes 21)
 - Incremento con OPTIMIZACIÓN: +$474,130/mes (+$5,689,560/año) = +119% vs rates bajos
 - Incremento total desde base: +$709,225/mes (+$8,510,700/año) = +432% vs SIN market modules
 

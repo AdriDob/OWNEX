@@ -1,0 +1,60 @@
+{
+  "id": "quantum-glass",
+  "name": "Quantum Glass",
+  "description": "Modern glass interfaces. Floating translucent layers. Depth. Soft lighting. Fluid motion. Elegant transparency.",
+  "palette": {
+    "bg-deep": "#080A0F",
+    "bg-base": "#0D1018",
+    "bg-surface": "#121822",
+    "bg-glass": "rgba(13, 16, 24, 0.6)",
+    "bg-glass-border": "rgba(255, 255, 255, 0.18)",
+    "primary": "#F8FAFC",
+    "primary-foreground": "#080A0F",
+    "accent": "#00D5FF",
+    "accent-foreground": "#080A0F",
+    "gold": "#FBBF24",
+    "green": "#34D399",
+    "red": "#F87171",
+    "yellow": "#FBBF24",
+    "text-primary": "#F5F8FC",
+    "text-secondary": "#A8B8C8",
+    "text-muted": "#6A7A8A",
+    "text-disabled": "#4A5A6A",
+    "border": "rgba(255, 255, 255, 0.12)",
+    "border-light": "rgba(255, 255, 255, 0.2)",
+    "surface-hover": "rgba(255, 255, 255, 0.05)"
+  },
+  "platforms": {
+    "hackerone": "#34D399",
+    "bugcrowd": "#FBBF24",
+    "intigriti": "#A78BFA",
+    "synack": "#F8FAFC",
+    "yeswehack": "#F87171"
+  },
+  "cycles": {
+    "security": "#F8FAFC",
+    "forge": "#A8B8C8",
+    "pulse": "#34D399",
+    "vault": "#FBBF24",
+    "atlas": "#E8EEF4",
+    "odyssey": "#F87171"
+  },
+  "motion": {
+    "style": "fluid",
+    "duration": { "fast": 100, "normal": 220, "slow": 380 },
+    "spring": { "damping": 16, "stiffness": 100, "mass": 1.1 }
+  },
+  "audio": {
+    "profile": "crystalline",
+    "volume": 0.65,
+    "enabled": ["startup", "shutdown", "success", "error", "hover", "click", "toggle", "agent_thinking", "mission_completed", "new_opportunity", "background_ambience"]
+  },
+  "visualization": {
+    "coreColor": "#00D5FF",
+    "coreGlow": "rgba(0, 213, 255, 0.4)",
+    "orbitColor": "rgba(255, 255, 255, 0.2)",
+    "particleColor": "rgba(255, 255, 255, 0.15)",
+    "trailLength": 35,
+    "refraction": true
+  }
+}

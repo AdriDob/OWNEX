@@ -41,6 +41,7 @@ from api.routers import (
     commands,
     connections,
     contracts,
+    control,
     credentials_rotation,
     crypto,
     cycles,
@@ -58,6 +59,7 @@ from api.routers import (
     evidence,
     evolution,
     execution,
+    files,
     finance,
     financial_sync,
     financial_truth,
@@ -77,6 +79,7 @@ from api.routers import (
     investigations,
     investment,
     license,
+    life,
     life_management,
     market_intelligence,
     mercenary_filter,
@@ -122,6 +125,7 @@ from api.routers import (
     revenue,
     revenue_app,
     revenue_multiplier,
+    revenue_timeline,
     roi,
     scans,
     screenshots,
@@ -1542,6 +1546,10 @@ app.include_router(orchestrator.router)
 app.include_router(identity.router)
 app.include_router(identity_center.router)
 app.include_router(target_identity.router)
+
+app.include_router(files.router)
+app.include_router(life.router)
+app.include_router(control.router)
 app.include_router(execution.router)
 app.include_router(license.router)
 app.include_router(learning_router)
@@ -1599,6 +1607,7 @@ app.include_router(voice_commands.router)
 app.include_router(opensource.router)
 app.include_router(zero_barrier.router)
 app.include_router(direct_work.router)
+app.include_router(revenue_timeline.router)
 app.include_router(fiverr.router)
 app.include_router(decision.router)
 app.include_router(result_based.router)

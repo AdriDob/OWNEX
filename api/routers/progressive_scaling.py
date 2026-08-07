@@ -198,10 +198,7 @@ async def check_triggers() -> dict[str, Any]:
         results = trigger_system.check_triggers()
         return {
             "checked_at": datetime.now(UTC).isoformat(),
-            "results": [
-                {"type": trigger_type.value, "triggered": triggered}
-                for trigger_type, triggered in results
-            ],
+            "results": [{"type": trigger_type.value, "triggered": triggered} for trigger_type, triggered in results],
         }
     except Exception as e:
         logger.error(f"Failed to check triggers: {e}")

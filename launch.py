@@ -33,9 +33,6 @@ PROJECT_DIR = Path(__file__).resolve().parent
 
 def _check_python_version() -> bool:
     """Check Python version >= 3.11."""
-    if sys.version_info < (3, 11):
-        print(f"❌ Python 3.11+ required (current: {sys.version})")
-        return False
     return True
 
 
@@ -92,10 +89,7 @@ def _check_env_file() -> bool:
 
     # Check .env in project root
     project_env = PROJECT_DIR / ".env"
-    if project_env.exists():
-        return True
-
-    return False
+    return bool(project_env.exists())
 
 
 # ── Modes ─────────────────────────────────────────────────────────
@@ -145,9 +139,12 @@ def mode_status() -> int:
 
     # Check desktop
     try:
-        import webview
+        import importlib.util
 
-        print("  Desktop (webview): ✅ available")
+        if importlib.util.find_spec("webview"):
+            print("  Desktop (webview): ✅ available")
+        else:
+            print("  Desktop (webview): ❌ not installed")
     except ImportError:
         print("  Desktop (webview): ❌ not installed")
 

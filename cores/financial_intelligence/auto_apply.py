@@ -22,8 +22,6 @@ from pathlib import Path
 from typing import Any
 
 from cores.financial_intelligence.alert_system import (
-    AlertCategory,
-    AlertType,
     get_alert_system,
 )
 
@@ -54,11 +52,13 @@ class AutoApplyConfig:
     rotate_ip_addresses: bool = False
 
     # Auto-apply enabled platforms
-    enabled_platforms: list[str] = field(default_factory=lambda: [
-        "indeed",
-        "upwork",
-        "fiverr",
-    ])
+    enabled_platforms: list[str] = field(
+        default_factory=lambda: [
+            "indeed",
+            "upwork",
+            "fiverr",
+        ]
+    )
 
     # Profile data (would be loaded from user config)
     profile_data: dict[str, Any] = field(default_factory=dict)

@@ -75,10 +75,10 @@ class AutoOptimizer:
             by_source[source]["revenue"] += r.get("revenue", 0)
 
         # Calculate success rates
-        for platform, data in by_platform.items():
+        for _platform, data in by_platform.items():
             data["success_rate"] = round(data["successes"] / max(data["attempts"], 1) * 100, 1)
 
-        for source, data in by_source.items():
+        for _source, data in by_source.items():
             data["success_rate"] = round(data["successes"] / max(data["attempts"], 1) * 100, 1)
 
         # Find best performing

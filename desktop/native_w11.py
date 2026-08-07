@@ -58,13 +58,12 @@ class Windows11Native:
             import ctypes
 
             # DWMWA_USE_IMMERSIVE_DARK_MODE = 20
-            DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+            dwmwa_use_immersive_dark_mode = 20
             # DWMWA_SYSTEMBACKDROP_TYPE = 38 (Windows 11 22H2+)
-            DWMWA_SYSTEMBACKDROP_TYPE = 38
+            dwmwa_systembackdrop_type = 38
             # DWMSBT_MAINWINDOW = 2 (Mica)
-            DWMSBT_MAINWINDOW = 2
+            dwmsbt_mainwindow = 2
             # DWMSBT_TRANSIENTWINDOW = 3 (Acrylic)
-            DWMSBT_TRANSIENTWINDOW = 3
 
             dwmapi = ctypes.windll.dwmapi
 
@@ -72,16 +71,16 @@ class Windows11Native:
             dark_mode = ctypes.c_int(1)
             dwmapi.DwmSetWindowAttribute(
                 window_handle,
-                DWMWA_USE_IMMERSIVE_DARK_MODE,
+                dwmwa_use_immersive_dark_mode,
                 ctypes.byref(dark_mode),
                 ctypes.sizeof(dark_mode),
             )
 
             # Apply Mica backdrop
-            backdrop_type = ctypes.c_int(DWMSBT_MAINWINDOW)
+            backdrop_type = ctypes.c_int(dwmsbt_mainwindow)
             dwmapi.DwmSetWindowAttribute(
                 window_handle,
-                DWMWA_SYSTEMBACKDROP_TYPE,
+                dwmwa_systembackdrop_type,
                 ctypes.byref(backdrop_type),
                 ctypes.sizeof(backdrop_type),
             )
@@ -102,11 +101,11 @@ class Windows11Native:
         try:
             import ctypes
 
-            DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+            dwmwa_use_immersive_dark_mode = 20
             dark_mode = ctypes.c_int(1 if dark else 0)
             ctypes.windll.dwmapi.DwmSetWindowAttribute(
                 window_handle,
-                DWMWA_USE_IMMERSIVE_DARK_MODE,
+                dwmwa_use_immersive_dark_mode,
                 ctypes.byref(dark_mode),
                 ctypes.sizeof(dark_mode),
             )
@@ -165,15 +164,15 @@ class Windows11Native:
         try:
             import ctypes
 
-            CLSCTX_ALL = 23
-            CLSID_TaskbarList = "{56FDF344-FD6D-11d0-958A-006097C9A09A}"
-            IID_ITaskbarList3 = "{EA1AFB91-9E28-4B86-90E9-9E9F8A5EEFAF}"
+            clsctx_all = 23
+            clsid_taskbar_list = "{56FDF344-FD6D-11d0-958A-006097C9A09A}"
+            iid_itaskbar_list3 = "{EA1AFB91-9E28-4B86-90E9-9E9F8A5EEFAF}"
 
             taskbar = ctypes.windll.ole32.CoCreateInstance(
-                ctypes.create_unicode_string(CLSID_TaskbarList),
+                ctypes.create_unicode_string(clsid_taskbar_list),
                 None,
-                CLSCTX_ALL,
-                ctypes.create_unicode_string(IID_ITaskbarList3),
+                clsctx_all,
+                ctypes.create_unicode_string(iid_itaskbar_list3),
             )
             if taskbar:
                 # Set progress value

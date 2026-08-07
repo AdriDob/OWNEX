@@ -1,0 +1,60 @@
+{
+  "id": "precision-lab",
+  "name": "Precision Lab",
+  "description": "Scientific laboratory aesthetic. Monochrome surfaces. Subtle blue accents. Extremely clean. High-end engineering.",
+  "palette": {
+    "bg-deep": "#050608",
+    "bg-base": "#0A0C10",
+    "bg-surface": "#0F1216",
+    "bg-glass": "rgba(10, 12, 16, 0.85)",
+    "bg-glass-border": "rgba(30, 64, 255, 0.15)",
+    "primary": "#E8EDF5",
+    "primary-foreground": "#050608",
+    "accent": "#1E40FF",
+    "accent-foreground": "#FFFFFF",
+    "gold": "#B45309",
+    "green": "#16A34A",
+    "red": "#E82127",
+    "yellow": "#D97706",
+    "text-primary": "#F0F3F8",
+    "text-secondary": "#8A94A8",
+    "text-muted": "#5A6272",
+    "text-disabled": "#3A4252",
+    "border": "#1A2028",
+    "border-light": "#242C38",
+    "surface-hover": "#12161C"
+  },
+  "platforms": {
+    "hackerone": "#16A34A",
+    "bugcrowd": "#B45309",
+    "intigriti": "#8B7DFF",
+    "synack": "#E8EDF5",
+    "yeswehack": "#E82127"
+  },
+  "cycles": {
+    "security": "#E8EDF5",
+    "forge": "#8A94A8",
+    "pulse": "#16A34A",
+    "vault": "#D97706",
+    "atlas": "#D4D4D8",
+    "odyssey": "#E82127"
+  },
+  "motion": {
+    "style": "clinical",
+    "duration": { "fast": 80, "normal": 160, "slow": 280 },
+    "spring": { "damping": 28, "stiffness": 350, "mass": 0.8 }
+  },
+  "audio": {
+    "profile": "precise",
+    "volume": 0.4,
+    "enabled": ["success", "error", "warning", "click", "mission_completed"]
+  },
+  "visualization": {
+    "coreColor": "#1E40FF",
+    "coreGlow": "rgba(30, 64, 255, 0.35)",
+    "orbitColor": "rgba(30, 64, 255, 0.15)",
+    "particleColor": "rgba(232, 237, 245, 0.08)",
+    "trailLength": 15,
+    "gridOverlay": true
+  }
+}

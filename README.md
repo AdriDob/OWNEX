@@ -69,16 +69,11 @@ No es un chatbot genérico. Es **MERLIN** (antes COPILOT), un mago office-retro 
 ```python
 # cores/merlin/config.py — configuración real
 MerlinConfig(
-    personality=OfficeRetroMode(
-        theme="modern_retro",
-        retro_animations=True,
-        typing_effect=True,
-        avatar="🧙"
-    ),
+    personality=OfficeRetroMode(theme="modern_retro", retro_animations=True, typing_effect=True, avatar="🧙"),
     detail_level="normal",
     response_tone="friendly",
     memory_limit=10000,
-    learning_enabled=True
+    learning_enabled=True,
 )
 ```
 

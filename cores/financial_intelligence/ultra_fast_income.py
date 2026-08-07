@@ -23,8 +23,6 @@ from typing import Any
 
 from cores.financial_intelligence.auto_apply import get_auto_apply_system
 from cores.financial_intelligence.infinite_source_discovery import (
-    InfiniteSourceDiscovery,
-    ZeroBarrierCriteria,
     get_infinite_source_discovery,
 )
 
@@ -47,17 +45,19 @@ class UltraFastConfig:
     min_cash_speed: float = 0.85
 
     # Prioritized categories (highest priority first)
-    priority_categories: list[str] = field(default_factory=lambda: [
-        "data_annotation",
-        "ai_training",
-        "ai_evaluation",
-        "synthetic_data",
-        "fiverr",
-        "web_scraping",
-        "prompt_engineering",
-        "qa_automation",
-        "browser_automation",
-    ])
+    priority_categories: list[str] = field(
+        default_factory=lambda: [
+            "data_annotation",
+            "ai_training",
+            "ai_evaluation",
+            "synthetic_data",
+            "fiverr",
+            "web_scraping",
+            "prompt_engineering",
+            "qa_automation",
+            "browser_automation",
+        ]
+    )
 
     # Maximum daily target for ultra fast mode
     max_daily_target_usd: float = 500.0
@@ -187,15 +187,14 @@ class UltraFastIncomeEngine:
         # Score and rank items
         scored_items = []
         for opp in ultra_fast_items:
-            score = self._score_ultra_fast_item(opp, plan_opportunity_success, plan_execution, _estimate_hours, _to_float)
+            score = self._score_ultra_fast_item(
+                opp, plan_opportunity_success, plan_execution, _estimate_hours, _to_float
+            )
             if score and score["acceptance_probability"] >= self.config.min_acceptance_probability:
                 scored_items.append(score)
 
         # Sort by priority (category order, then expected value)
-        scored_items.sort(key=lambda x: (
-            self._get_priority_rank(x["category"]),
-            -x["expected_value_usd"]
-        ))
+        scored_items.sort(key=lambda x: (self._get_priority_rank(x["category"]), -x["expected_value_usd"]))
 
         # Auto-apply to items with API support
         auto_applied = []
@@ -239,7 +238,7 @@ class UltraFastIncomeEngine:
 
         if len(auto_applied) > 0:
             actions.append(f"Auto-aplicado a {len(auto_applied)} trabajos vía API")
-            notes.append(f"Plataformas con auto-apply: Indeed, Upwork, Fiverr")
+            notes.append("Plataformas con auto-apply: Indeed, Upwork, Fiverr")
 
         if daily_hours < self.config.max_hours_per_day * 0.5:
             actions.append("Aumentar disponibilidad de tiempo para trabajos ultra rápidos")
@@ -306,7 +305,8 @@ class UltraFastIncomeEngine:
             acceptance_prob = success_result.get("probability_after_full_plan", 0.5)
 
             # Get hours estimate
-            hours = hours_fn(opp)
+            human_minutes = float(opp.get("human_work_minutes", 0.0) or 0.0)
+            hours = hours_fn(opp, human_minutes, category)
 
             # Get cash speed
             cash_speed = self._get_cash_speed(opp)

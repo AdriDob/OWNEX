@@ -15,11 +15,9 @@ from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from cores.financial_intelligence.infinite_source_discovery import (
-    InfiniteSourceDiscovery,
-    ZeroBarrierCriteria,
     get_infinite_source_discovery,
 )
 

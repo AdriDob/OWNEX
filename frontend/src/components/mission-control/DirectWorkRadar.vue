@@ -194,6 +194,7 @@ onMounted(loadAll)
           <div class="dw-deliver-main">
             <span class="dw-title">{{ d.title }}</span>
             <span class="dw-sub">{{ d.platform }} · ${{ Math.round(d.reward) }}</span>
+            <span v-if="d.payout_method" class="dw-payout">{{ d.payout_method }}</span>
           </div>
           <div class="dw-deliver-actions">
             <button v-if="!prepared[d.id]" class="dw-btn" :disabled="preparing === d.id" @click="handlePrepare(d.id)">
@@ -222,6 +223,7 @@ onMounted(loadAll)
           <div class="dw-main">
             <span class="dw-title">{{ r.opportunity.title }}</span>
             <span class="dw-sub">{{ r.opportunity.platform }} · {{ r.opportunity.category }}</span>
+            <span v-if="r.payout_method" class="dw-payout">{{ r.payout_method }}</span>
           </div>
           <div class="dw-meta">
             <span class="dw-score">{{ Math.round(r.overall_recommendation_score) }}</span>
@@ -474,5 +476,14 @@ onMounted(loadAll)
 }
 .dw-ok {
   color: #00e39a;
+}
+.dw-payout {
+  font-size: 0.62rem;
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  background: rgba(52, 211, 153, 0.08);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  align-self: flex-start;
 }
 </style>

@@ -20,7 +20,6 @@ from pydantic import BaseModel, Field
 from cores.financial_intelligence.alert_system import (
     AlertCategory,
     AlertType,
-    RealTimeAlertSystem,
     get_alert_system,
 )
 
@@ -130,7 +129,7 @@ async def get_alerts_by_category(category: str) -> dict[str, Any]:
         try:
             cat = AlertCategory(category)
         except ValueError:
-            raise HTTPException(status_code=400, detail=f"Invalid category: {category}")
+            raise HTTPException(status_code=400, detail=f"Invalid category: {category}") from None
 
         alerts = alert_system.get_alerts_by_category(cat)
         return {

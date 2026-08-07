@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useNotificationsStore } from '@/stores/notifications'
 import { ChevronRight, Home, Minus, Square, X } from '@lucide/vue'
 import NotificationPanel from '@/components/notifications/NotificationPanel.vue'
+import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -133,6 +134,9 @@ onMounted(() => {
         :class="['h-1.5 w-1.5 rounded-full shrink-0', notifications.wsConnected ? 'bg-success shadow-[0_0_6px_rgba(22,163,74,0.4)]' : 'bg-destructive shadow-[0_0_6px_rgba(232,33,39,0.4)]']"
         :title="notifications.wsConnected ? 'Conectado' : 'Desconectado'"
       />
+
+      <!-- Theme mode toggle -->
+      <ThemeToggle />
 
       <!-- Window controls (Tauri only) -->
       <div v-if="isTauri" class="flex items-center gap-1 ml-2 -mr-1">
