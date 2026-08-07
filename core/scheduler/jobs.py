@@ -427,6 +427,17 @@ def get_direct_work_jobs() -> list[JobDefinition]:
                 "desc": "prepara paquetes de entrega para trabajos ready_to_deliver del banco",
             },
         ),
+        _cron_job(
+            job_id="daily_task_refresh",
+            app_id="direct-work",
+            handler="core.cycles.tasks:run_daily_task_refresh",
+            cron="0 7 * * *",
+            args=[],
+            metadata={
+                "type": "daily_tasks",
+                "desc": "auto-completa tareas resueltas + refresca el tablero diario",
+            },
+        ),
     ]
 
 

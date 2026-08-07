@@ -1,5 +1,6 @@
 import logging
 import uuid
+from datetime import UTC
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Query, UploadFile
@@ -64,6 +65,40 @@ async def upload_evidence(file: UploadFile, finding_id: int | None = None):
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to save evidence file") from None
     return {"status": "ok", "path": str(dest), "size": len(content), "finding_id": finding_id}
+
+
+@router.post("/claim")
+def save_evidence_claim(
+    finding_id: str,
+    outcome: str = "done",
+    detail: str = "",
+    bounty_id: str | None = None,
+    extra: dict | None = None,
+):
+    """Save a signed evidence claim for reclamos/payment disputes.
+
+    Output: /home/adrie/.rastro/evidence/{finding_id}.claim.json
+    """
+    import hashlib
+    import json
+    from datetime import datetime
+
+    _EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "finding_id": finding_id,
+        "bounty_id": bounty_id,
+        "outcome": outcome,
+        "detail": detail,
+        "extra": extra or {},
+        "timestamp_utc": datetime.now(UTC).isoformat(),
+        "sha256": hashlib.sha256(json.dumps({"detail": detail, "extra": extra}, sort_keys=True).encode()).hexdigest()[
+            :16
+        ],
+        "version": "1.0",
+    }
+    dest = _EVIDENCE_DIR / f"{finding_id}.claim.json"
+    dest.write_text(json.dumps(payload, indent=2))
+    return {"status": "ok", "path": str(dest), **payload}
 
 
 @router.post("/compose")

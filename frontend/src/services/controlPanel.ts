@@ -320,6 +320,31 @@ export async function setDevBountyBeginnerMode(enabled: boolean): Promise<{ succ
   return api.post('/api/dev-bounty/beginner-mode', { enabled }).catch(() => ({ success: false }))
 }
 
+// ── Evidence Claim (for reclamos/payment disputes) ──
+
+export interface EvidenceClaim {
+  finding_id: string
+  bounty_id?: string
+  outcome: string
+  detail: string
+  timestamp_utc: string
+  sha256: string
+  path: string
+}
+
+export async function saveEvidenceClaim(
+  findingId: string,
+  data: { outcome?: string; detail?: string; bountyId?: string; extra?: Record<string, unknown> },
+): Promise<EvidenceClaim> {
+  return api.post<EvidenceClaim>('/api/evidence/claim', {
+    finding_id: findingId,
+    outcome: data.outcome ?? 'done',
+    detail: data.detail ?? '',
+    bounty_id: data.bountyId ?? null,
+    extra: data.extra ?? {},
+  }).catch(() => ({ finding_id: findingId, outcome: data.outcome ?? 'done', detail: data.detail ?? '', timestamp_utc: new Date().toISOString(), sha256: '', path: '' }))
+}
+
 // ── Profile Builder ──
 
 
