@@ -199,8 +199,8 @@ class TestGetAllJobs:
     def test_total_jobs_count(self):
         total = sum(len(jobs) for jobs in get_all_jobs().values())
         assert (
-            total == 38
-        )  # 7 cycles: security(6) + forge(9) + pulse(10) + vault(2) + atlas(2) + direct_work(4) + investment(3) + qa(1) + evolution(1)
+            total == 42
+        )  # 9 cycles: security(10) + forge(9) + pulse(10) + vault(2) + atlas(2) + direct_work(4) + investment(3) + qa(1) + evolution(1)
 
     def test_all_jobs_have_unique_ids(self):
         all_ids = []

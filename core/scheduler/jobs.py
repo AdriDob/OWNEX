@@ -321,35 +321,61 @@ def get_security_jobs() -> list[JobDefinition]:
 
     # Security bounty platform discovery — every 2 hours
     jobs.append(
-        _cron_job(
-            job_id="security_bounty_discover",
+        _discovery_job(
+            job_id="security_hackerone_discover",
             app_id="security",
-            handler="core.opportunity.adapters.security_bounty:SecurityBountyFactory.fetch_all_programs",
-            cron="0 */2 * * *",
-            args=[],
-            metadata={
-                "cycle": "security",
-                "type": "discover",
-                "platforms": ["hackerone", "bugcrowd", "intigriti", "yeswehack"],
-            },
+            handler="core.opportunity.adapters.security.hackerone:HackerOneAdapter.fetch_opportunities",
+            seconds=7200,  # every 2 hours
+            metadata={"cycle": "security", "platform": "hackerone"},
+        )
+    )
+    jobs.append(
+        _discovery_job(
+            job_id="security_bugcrowd_discover",
+            app_id="security",
+            handler="core.opportunity.adapters.security.bugcrowd:BugcrowdAdapter.fetch_opportunities",
+            seconds=7200,
+            metadata={"cycle": "security", "platform": "bugcrowd"},
+        )
+    )
+    jobs.append(
+        _discovery_job(
+            job_id="security_intigriti_discover",
+            app_id="security",
+            handler="core.opportunity.adapters.security.intigriti:IntigritiAdapter.fetch_opportunities",
+            seconds=7200,
+            metadata={"cycle": "security", "platform": "intigriti"},
+        )
+    )
+    jobs.append(
+        _discovery_job(
+            job_id="security_yeswehack_discover",
+            app_id="security",
+            handler="core.opportunity.adapters.security.yeswehack:YesWeHackAdapter.fetch_opportunities",
+            seconds=7200,
+            metadata={"cycle": "security", "platform": "yeswehack"},
+        )
+    )
+    jobs.append(
+        _discovery_job(
+            job_id="security_immunefi_discover",
+            app_id="security",
+            handler="core.opportunity.adapters.security.immunefi:ImmunefiAdapter.fetch_opportunities",
+            seconds=7200,
+            metadata={"cycle": "security", "platform": "immunefi"},
+        )
+    )
+    jobs.append(
+        _discovery_job(
+            job_id="security_synack_discover",
+            app_id="security",
+            handler="core.opportunity.adapters.security.synack:SynackAdapter.fetch_opportunities",
+            seconds=7200,
+            metadata={"cycle": "security", "platform": "synack"},
         )
     )
 
-    # Security bounty submissions sync — every hour
-    jobs.append(
-        _cron_job(
-            job_id="security_bounty_submissions",
-            app_id="security",
-            handler="core.opportunity.adapters.security_bounty:SecurityBountyFactory.fetch_all_submissions",
-            cron="30 * * * *",
-            args=[],
-            metadata={
-                "cycle": "security",
-                "type": "submissions",
-                "platforms": ["hackerone", "bugcrowd", "intigriti", "yeswehack"],
-            },
-        )
-    )
+    # Security bounty submissions sync — every hour (placeholder for future)
 
     return jobs
 
