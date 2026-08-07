@@ -1,6 +1,6 @@
 """Intigriti Adapter — Security Work Cycle.
 
-European bug bounty platform with REST API. Uses community programs endpoint.
+Uses GitHub bounty-targets-data (arkadiyt) as primary source with real payout data.
 """
 
 from __future__ import annotations
@@ -16,11 +16,14 @@ from core.opportunity.adapters import OpportunityAdapter, RawOpportunity
 
 logger = logging.getLogger("ownex.adapters.security.intigriti")
 
-INTIGRITI_API = "https://api.intigriti.com/community"
+BOUNTY_TARGETS_URL = "https://raw.githubusercontent.com/arkadiyt/bounty-targets-data/main/data/intigriti_data.json"
 
 
 class IntigritiAdapter(OpportunityAdapter):
-    """Adapter for Intigriti bug bounty programs."""
+    """Adapter for Intigriti bug bounty programs.
+
+    Uses curated bounty-targets-data from GitHub for program discovery with real payout data.
+    """
 
     platform: str = "intigriti"
     cycle: str = "security"
@@ -31,16 +34,10 @@ class IntigritiAdapter(OpportunityAdapter):
         self._token = creds.get("api_key") or os.environ.get("INTIGRITI_API_KEY", "")
         self._enabled = bool(self._token)
 
-    def _headers(self) -> dict[str, str]:
-        h = {"Accept": "application/json", "Referer": "https://www.intigriti.com/programs"}
-        if self._token:
-            h["Authorization"] = f"Bearer {self._token}"
-        return h
-
     async def fetch_opportunities(self, personal: Any | None = None) -> list[RawOpportunity]:
-        """Fetch Intigriti programs."""
+        """Fetch Intigriti programs with active bounties and real payout data."""
         raw_opps: list[RawOpportunity] = []
-        programs = await self._fetch_programs(max_pages=3)
+        programs = await self._fetch_from_bounty_targets()
 
         for prog in programs:
             if not prog.get("has_rewards"):
@@ -48,7 +45,7 @@ class IntigritiAdapter(OpportunityAdapter):
 
             raw_opps.append(
                 RawOpportunity(
-                    id=f"intigriti_{prog.get('id', prog.get('name', ''))}",
+                    id=f"intigriti_{prog.get('id', prog.get('handle', ''))}",
                     name=prog.get("name", ""),
                     description=prog.get("description", "") or f"Intigriti program: {prog.get('name', '')}",
                     platform="intigriti",
@@ -67,66 +64,71 @@ class IntigritiAdapter(OpportunityAdapter):
         logger.info("IntigritiAdapter: fetched %d opportunities", len(raw_opps))
         return raw_opps
 
-    async def _fetch_programs(self, max_pages: int = 3) -> list[dict[str, Any]]:
+    async def _fetch_from_bounty_targets(self) -> list[dict[str, Any]]:
+        """Fetch curated Intigriti programs from GitHub bounty-targets-data."""
         results: list[dict[str, Any]] = []
 
         async with httpx.AsyncClient() as client:
-            for page in range(max_pages):
-                try:
-                    offset = page * 20
-                    url = f"{INTIGRITI_API}/programs?offset={offset}&limit=20&sort=-date"
-                    resp = await client.get(url, headers=self._headers(), timeout=15)
-                    if resp.status_code != 200:
-                        logger.warning("Intigriti page %d: HTTP %s", page + 1, resp.status_code)
+            try:
+                resp = await client.get(BOUNTY_TARGETS_URL, headers={"Accept": "application/json"}, timeout=20)
+                if resp.status_code != 200:
+                    logger.warning("Intigriti bounty-targets-data: HTTP %s", resp.status_code)
+                    return results
+
+                items = resp.json() if isinstance(resp.json(), list) else []
+
+                for item in items:
+                    name = item.get("name", item.get("programName", item.get("title", "")))
+                    if not name:
                         continue
 
-                    data = resp.json()
-                    items = data if isinstance(data, list) else data.get("records", [])
+                    program_id = item.get("id", item.get("handle", name.lower().replace(" ", "-")))
+                    handle = item.get("handle", program_id)
+                    max_bounty = item.get("max_bounty", {})
+                    max_payout = 0
+                    if isinstance(max_bounty, dict):
+                        max_payout = max_bounty.get("value", 0)
+                    elif isinstance(max_bounty, (int, float)):
+                        max_payout = max_bounty
 
-                    for item in items:
-                        name = item.get("name", item.get("title", item.get("programName", "")))
-                        if not name:
-                            continue
+                    domains: list[str] = []
+                    wildcards: list[str] = []
+                    targets = item.get("targets", {})
+                    for asset in targets.get("in_scope", []):
+                        asset_id = asset.get("target", asset.get("asset_identifier", ""))
+                        if asset_id:
+                            if asset_id.startswith("*."):
+                                wildcards.append(asset_id[2:])
+                            else:
+                                domains.append(asset_id)
 
-                        payout_text = item.get("rewardRange", item.get("maxBounty", ""))
-                        estimated_payout = self._parse_payout(payout_text)
+                    prog = {
+                        "id": program_id,
+                        "name": name,
+                        "handle": handle,
+                        "description": item.get("description", ""),
+                        "platform": "intigriti",
+                        "scope_url": item.get("scopeUrl", item.get("url", "")),
+                        "has_rewards": max_payout > 0,
+                        "program_url": item.get("publicUrl", item.get("url", f"https://www.intigriti.com/programs/{handle}")),
+                        "domains": domains,
+                        "wildcards": wildcards,
+                        "technologies": item.get("technologies", []),
+                        "estimated_payout": float(max_payout) if max_payout else 0.0,
+                        "estimated_effort_hours": self._estimate_effort_from_payout(float(max_payout) if max_payout else 0),
+                        "created_at": item.get("createdAt", item.get("date", "")),
+                    }
+                    results.append(prog)
 
-                        prog = {
-                            "id": item.get("id", item.get("programId", name.lower().replace(" ", "-"))),
-                            "name": name,
-                            "description": item.get("description", ""),
-                            "platform": "intigriti",
-                            "scope_url": item.get("scopeUrl", item.get("url", "")),
-                            "has_rewards": True,
-                            "program_url": item.get("publicUrl", item.get("url", "")),
-                            "technologies": item.get("technologies", []),
-                            "raw_payout_range": payout_text,
-                            "estimated_payout": estimated_payout,
-                            "estimated_effort_hours": self._estimate_effort(estimated_payout),
-                            "created_at": item.get("createdAt", item.get("date", "")),
-                        }
-                        results.append(prog)
+            except (httpx.HTTPError, httpx.TimeoutException) as e:
+                logger.warning("Intigriti bounty-targets-data error: %s", e)
+            except Exception as e:
+                logger.warning("Intigriti unexpected error: %s", e)
 
-                except (httpx.HTTPError, httpx.TimeoutException) as e:
-                    logger.warning("Intigriti page %d error: %s", page + 1, e)
-                    continue
-                except Exception as e:
-                    logger.warning("Intigriti unexpected error: %s", e)
-                    continue
-
-        logger.info("Intigriti: %d programs scraped", len(results))
+        logger.info("Intigriti bounty-targets-data: %d programs scraped", len(results))
         return results
 
-    def _parse_payout(self, text: str) -> float:
-        import re
-
-        if not text:
-            return 0.0
-        amounts = re.findall(r"[\d,]+(?:\.\d+)?", str(text).replace(",", ""))
-        parsed = [float(a) for a in amounts if a.replace(".", "").isdigit()]
-        return max(parsed) if parsed else 0.0
-
-    def _estimate_effort(self, payout: float) -> float:
+    def _estimate_effort_from_payout(self, payout: float) -> float:
         if payout >= 10000:
             return 20.0
         elif payout >= 5000:
