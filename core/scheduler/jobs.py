@@ -324,7 +324,7 @@ def get_security_jobs() -> list[JobDefinition]:
         _discovery_job(
             job_id="security_hackerone_discover",
             app_id="security",
-            handler="core.opportunity.adapters.security.hackerone:HackerOneAdapter.fetch_opportunities",
+            handler="cores.opportunity.adapters.security.hackerone:HackerOneAdapter.fetch_opportunities",
             seconds=7200,  # every 2 hours
             metadata={"cycle": "security", "platform": "hackerone"},
         )
@@ -333,7 +333,7 @@ def get_security_jobs() -> list[JobDefinition]:
         _discovery_job(
             job_id="security_bugcrowd_discover",
             app_id="security",
-            handler="core.opportunity.adapters.security.bugcrowd:BugcrowdAdapter.fetch_opportunities",
+            handler="cores.opportunity.adapters.security.bugcrowd:BugcrowdAdapter.fetch_opportunities",
             seconds=7200,
             metadata={"cycle": "security", "platform": "bugcrowd"},
         )
@@ -342,7 +342,7 @@ def get_security_jobs() -> list[JobDefinition]:
         _discovery_job(
             job_id="security_intigriti_discover",
             app_id="security",
-            handler="core.opportunity.adapters.security.intigriti:IntigritiAdapter.fetch_opportunities",
+            handler="cores.opportunity.adapters.security.intigriti:IntigritiAdapter.fetch_opportunities",
             seconds=7200,
             metadata={"cycle": "security", "platform": "intigriti"},
         )
@@ -351,7 +351,7 @@ def get_security_jobs() -> list[JobDefinition]:
         _discovery_job(
             job_id="security_yeswehack_discover",
             app_id="security",
-            handler="core.opportunity.adapters.security.yeswehack:YesWeHackAdapter.fetch_opportunities",
+            handler="cores.opportunity.adapters.security.yeswehack:YesWeHackAdapter.fetch_opportunities",
             seconds=7200,
             metadata={"cycle": "security", "platform": "yeswehack"},
         )
@@ -360,7 +360,7 @@ def get_security_jobs() -> list[JobDefinition]:
         _discovery_job(
             job_id="security_immunefi_discover",
             app_id="security",
-            handler="core.opportunity.adapters.security.immunefi:ImmunefiAdapter.fetch_opportunities",
+            handler="cores.opportunity.adapters.security.immunefi:ImmunefiAdapter.fetch_opportunities",
             seconds=7200,
             metadata={"cycle": "security", "platform": "immunefi"},
         )
@@ -369,7 +369,7 @@ def get_security_jobs() -> list[JobDefinition]:
         _discovery_job(
             job_id="security_synack_discover",
             app_id="security",
-            handler="core.opportunity.adapters.security.synack:SynackAdapter.fetch_opportunities",
+            handler="cores.opportunity.adapters.security.synack:SynackAdapter.fetch_opportunities",
             seconds=7200,
             metadata={"cycle": "security", "platform": "synack"},
         )
