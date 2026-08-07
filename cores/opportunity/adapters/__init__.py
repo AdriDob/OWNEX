@@ -228,7 +228,7 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
 
     # Security adapters (Bug Bounty platforms)
     try:
-        from core.opportunity.adapters.security import (
+        from cores.opportunity.adapters.security import (
             BugcrowdAdapter,
             HackerOneAdapter,
             ImmunefiAdapter,

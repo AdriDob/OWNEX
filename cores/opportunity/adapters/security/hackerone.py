@@ -1,7 +1,7 @@
 """HackerOne Adapter — Security Work Cycle.
 
-Largest bug bounty platform. Uses public directory API + optional authenticated API.
-Fetches programs with bounties, structured scopes, and hacktivity for reward intelligence.
+Uses GitHub bounty-targets-data (arkadiyt) as primary source with real payout data.
+Optionally enriches with authenticated HackerOne API for hacktivity and scopes.
 """
 
 from __future__ import annotations
@@ -18,15 +18,15 @@ from core.opportunity.adapters import OpportunityAdapter, RawOpportunity
 
 logger = logging.getLogger("ownex.adapters.security.hackerone")
 
-HACKERONE_PUBLIC_API = "https://hackerone.com/programs/search"
 HACKERONE_AUTH_API = "https://api.hackerone.com/v1"
+BOUNTY_TARGETS_URL = "https://raw.githubusercontent.com/arkadiyt/bounty-targets-data/main/data/hackerone_data.json"
 
 
 class HackerOneAdapter(OpportunityAdapter):
     """Adapter for HackerOne bug bounty programs.
 
-    Uses public directory API for program discovery (no auth required).
-    Optionally uses authenticated API for hacktivity and structured scopes if credentials available.
+    Uses curated bounty-targets-data from GitHub for program discovery with real payout data.
+    Optionally uses authenticated HackerOne API for hacktivity and structured scopes if credentials available.
     """
 
     platform: str = "hackerone"
@@ -34,7 +34,6 @@ class HackerOneAdapter(OpportunityAdapter):
 
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
-        # Try to get credentials from vault
         creds = get_platform_credentials("hackerone")
         self._username = creds.get("api_username") or os.environ.get("HACKERONE_API_USERNAME", "")
         self._token = creds.get("api_token") or os.environ.get("HACKERONE_API_TOKEN", "")
@@ -46,17 +45,15 @@ class HackerOneAdapter(OpportunityAdapter):
         return {"Authorization": f"Basic {encoded}"}
 
     async def fetch_opportunities(self, personal: Any | None = None) -> list[RawOpportunity]:
-        """Fetch HackerOne programs with active bounties."""
+        """Fetch HackerOne programs with active bounties and real payout data."""
         raw_opps: list[RawOpportunity] = []
 
-        # 1. Fetch public programs (no auth needed)
-        public_programs = await self._fetch_public_programs(max_pages=3)
+        programs = await self._fetch_from_bounty_targets()
 
-        # 2. If authenticated, enrich with hacktivity and scopes
         if self._enabled:
-            await self._enrich_with_authenticated_data(public_programs)
+            await self._enrich_with_authenticated_data(programs)
 
-        for prog in public_programs:
+        for prog in programs:
             if not prog.get("has_rewards"):
                 continue
 
@@ -81,71 +78,90 @@ class HackerOneAdapter(OpportunityAdapter):
         logger.info("HackerOneAdapter: fetched %d opportunities", len(raw_opps))
         return raw_opps
 
-    async def _fetch_public_programs(self, max_pages: int = 3) -> list[dict[str, Any]]:
-        """Fetch public programs from HackerOne directory API."""
+    async def _fetch_from_bounty_targets(self) -> list[dict[str, Any]]:
+        """Fetch curated HackerOne programs from GitHub bounty-targets-data."""
         results: list[dict[str, Any]] = []
 
         async with httpx.AsyncClient() as client:
-            for page in range(max_pages):
-                try:
-                    url = (
-                        f"{HACKERONE_PUBLIC_API}?"
-                        f"query=sort%3Apublished_at&page%5Bnumber%5D={page + 1}"
-                        f"&page%5Bsize%5D=50"
-                    )
-                    resp = await client.get(url, headers={"Accept": "application/json"}, timeout=15)
-                    if resp.status_code != 200:
-                        logger.warning("HackerOne public page %d: HTTP %s", page + 1, resp.status_code)
+            try:
+                resp = await client.get(BOUNTY_TARGETS_URL, headers={"Accept": "application/json"}, timeout=20)
+                if resp.status_code != 200:
+                    logger.warning("HackerOne bounty-targets-data: HTTP %s", resp.status_code)
+                    return results
+
+                items = resp.json() if isinstance(resp.json(), list) else []
+
+                for item in items:
+                    name = item.get("name", item.get("handle", ""))
+                    if not name:
                         continue
 
-                    data = resp.json()
-                    items = data if isinstance(data, list) else data.get("data", [])
+                    handle = item.get("handle", name.lower().replace(" ", "-"))
+                    offers_bounties = item.get("offers_bounties", False)
+                    max_payout = self._extract_max_payout(item)
 
-                    for item in items:
-                        attrs = item.get("attributes", {})
-                        name = attrs.get("name", attrs.get("handle", ""))
-                        if not name:
+                    # Extract domains from targets.in_scope where eligible_for_bounty is True
+                    domains: list[str] = []
+                    wildcards: list[str] = []
+                    targets = item.get("targets", {})
+                    for asset in targets.get("in_scope", []):
+                        if not asset.get("eligible_for_bounty", False):
                             continue
+                        asset_id = asset.get("asset_identifier", "")
+                        if asset_id:
+                            if asset_id.startswith("*."):
+                                wildcards.append(asset_id[2:])
+                            else:
+                                domains.append(asset_id)
 
-                        # Extract structured scope for domains
-                        domains: list[str] = []
-                        wildcards: list[str] = []
-                        structured_scope = attrs.get("structured_scope", {})
-                        if structured_scope:
-                            for asset in structured_scope.get("assets", []):
-                                asset_id = asset.get("asset_identifier", "")
-                                if asset_id:
-                                    if asset_id.startswith("*."):
-                                        wildcards.append(asset_id[2:])
-                                    else:
-                                        domains.append(asset_id)
+                    prog = {
+                        "name": name,
+                        "handle": handle,
+                        "description": item.get("description", "") or item.get("summary", ""),
+                        "platform": "hackerone",
+                        "scope_url": item.get("url", f"https://hackerone.com/{handle}"),
+                        "has_rewards": bool(offers_bounties) and max_payout > 0,
+                        "program_url": f"https://hackerone.com/{handle}",
+                        "domains": domains,
+                        "wildcards": wildcards,
+                        "technologies": item.get("technologies", []),
+                        "estimated_payout": float(max_payout) if max_payout else 0.0,
+                        "estimated_effort_hours": self._estimate_effort_from_payout(float(max_payout) if max_payout else 0),
+                        "created_at": item.get("published_at", item.get("created_at", "")),
+                    }
+                    results.append(prog)
 
-                        prog = {
-                            "name": name,
-                            "handle": attrs.get("handle", name),
-                            "description": attrs.get("description", ""),
-                            "platform": "hackerone",
-                            "scope_url": f"https://hackerone.com{attrs.get('url', '')}" if attrs.get("url") else None,
-                            "has_rewards": bool(attrs.get("offers_bounties", False)),
-                            "program_url": f"https://hackerone.com/{attrs.get('handle', name)}",
-                            "domains": domains,
-                            "wildcards": wildcards,
-                            "technologies": attrs.get("technologies", []),
-                            "estimated_payout": 0.0,  # Will be enriched if auth available
-                            "estimated_effort_hours": 4.0,
-                            "created_at": attrs.get("published_at", ""),
-                        }
-                        results.append(prog)
+            except (httpx.HTTPError, httpx.TimeoutException) as e:
+                logger.warning("HackerOne bounty-targets-data error: %s", e)
+            except Exception as e:
+                logger.warning("HackerOne unexpected error: %s", e)
 
-                except (httpx.HTTPError, httpx.TimeoutException) as e:
-                    logger.warning("HackerOne page %d error: %s", page + 1, e)
-                    continue
-                except Exception as e:
-                    logger.warning("HackerOne unexpected error on page %d: %s", page + 1, e)
-                    continue
-
-        logger.info("HackerOne public: %d programs scraped", len(results))
+        logger.info("HackerOne bounty-targets-data: %d programs scraped", len(results))
         return results
+
+    def _extract_max_payout(self, item: dict[str, Any]) -> float:
+        """Extract maximum payout from HackerOne item using targets.in_scope."""
+        targets = item.get("targets", {})
+        max_payout = 0.0
+
+        # Try to get max severity and calculate from that
+        for asset in targets.get("in_scope", []):
+            if not asset.get("eligible_for_bounty", False):
+                continue
+            max_severity = asset.get("max_severity", "").lower()
+            # Estimate payout based on max severity
+            severity_payout = {
+                "critical": 10000,
+                "high": 5000,
+                "medium": 1000,
+                "low": 200,
+                "none": 0,
+            }
+            payout = severity_payout.get(max_severity, 0)
+            if payout > max_payout:
+                max_payout = payout
+
+        return max_payout
 
     async def _enrich_with_authenticated_data(self, programs: list[dict[str, Any]]) -> None:
         """Enrich programs with hacktivity data and structured scopes using authenticated API."""
@@ -153,7 +169,6 @@ class HackerOneAdapter(OpportunityAdapter):
             return
 
         async with httpx.AsyncClient() as client:
-            # Fetch recent hacktivity for reward intelligence
             try:
                 resp = await client.get(
                     f"{HACKERONE_AUTH_API}/hackers/hacktivity",
@@ -163,7 +178,6 @@ class HackerOneAdapter(OpportunityAdapter):
                 )
                 if resp.status_code == 200:
                     hacktivity = resp.json().get("data", [])
-                    # Build reward map by program
                     reward_map: dict[str, float] = {}
                     for item in hacktivity:
                         attrs = item.get("attributes", {})
@@ -172,18 +186,16 @@ class HackerOneAdapter(OpportunityAdapter):
                         if program_handle and bounty_amount:
                             reward_map[program_handle] = max(reward_map.get(program_handle, 0), float(bounty_amount))
 
-                    # Enrich programs
                     for prog in programs:
                         handle = prog.get("handle", "")
-                        if handle in reward_map:
+                        if handle in reward_map and reward_map[handle] > prog.get("estimated_payout", 0):
                             prog["estimated_payout"] = reward_map[handle]
                             prog["estimated_effort_hours"] = self._estimate_effort_from_payout(reward_map[handle])
 
             except Exception as e:
                 logger.warning("HackerOne hacktivity enrichment failed: %s", e)
 
-            # Fetch structured scopes for each program (sample)
-            for prog in programs[:10]:  # Limit to avoid rate limits
+            for prog in programs[:10]:
                 handle = prog.get("handle", "")
                 if not handle:
                     continue
@@ -208,7 +220,7 @@ class HackerOneAdapter(OpportunityAdapter):
                         prog["domains"] = domains
                         prog["wildcards"] = wildcards
                 except Exception:
-                    pass  # Silent - not critical
+                    pass
 
     def _estimate_effort_from_payout(self, payout: float) -> float:
         """Estimate effort hours based on bounty amount."""

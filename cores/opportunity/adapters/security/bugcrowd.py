@@ -1,6 +1,6 @@
 """Bugcrowd Adapter — Security Work Cycle.
 
-Second largest bug bounty platform. Uses public programs.json API + optional authenticated API.
+Uses GitHub bounty-targets-data (arkadiyt) as primary source with real payout data.
 """
 
 from __future__ import annotations
@@ -16,15 +16,13 @@ from core.opportunity.adapters import OpportunityAdapter, RawOpportunity
 
 logger = logging.getLogger("ownex.adapters.security.bugcrowd")
 
-BUGCROWD_PUBLIC_API = "https://bugcrowd.com/programs.json"
-BUGCROWD_AUTH_API = "https://api.bugcrowd.com"
+BOUNTY_TARGETS_URL = "https://raw.githubusercontent.com/arkadiyt/bounty-targets-data/main/data/bugcrowd_data.json"
 
 
 class BugcrowdAdapter(OpportunityAdapter):
     """Adapter for Bugcrowd bug bounty programs.
 
-    Uses public directory API for program discovery (no auth required).
-    Optionally uses authenticated API for submissions and payout data if credentials available.
+    Uses curated bounty-targets-data from GitHub for program discovery with real payout data.
     """
 
     platform: str = "bugcrowd"
@@ -36,17 +34,10 @@ class BugcrowdAdapter(OpportunityAdapter):
         self._token = creds.get("api_token") or os.environ.get("BUGCROWD_API_TOKEN", "")
         self._enabled = bool(self._token)
 
-    def _auth_header(self) -> dict[str, str]:
-        return {"Authorization": f"Token {self._token}"} if self._token else {}
-
     async def fetch_opportunities(self, personal: Any | None = None) -> list[RawOpportunity]:
-        """Fetch Bugcrowd programs with active bounties."""
+        """Fetch Bugcrowd programs with active bounties and real payout data."""
         raw_opps: list[RawOpportunity] = []
-
-        programs = await self._fetch_public_programs(max_pages=3)
-
-        if self._enabled:
-            await self._enrich_with_authenticated_data(programs)
+        programs = await self._fetch_from_bounty_targets()
 
         for prog in programs:
             if not prog.get("has_rewards"):
@@ -73,74 +64,67 @@ class BugcrowdAdapter(OpportunityAdapter):
         logger.info("BugcrowdAdapter: fetched %d opportunities", len(raw_opps))
         return raw_opps
 
-    async def _fetch_public_programs(self, max_pages: int = 3) -> list[dict[str, Any]]:
-        """Fetch public programs from Bugcrowd directory."""
+    async def _fetch_from_bounty_targets(self) -> list[dict[str, Any]]:
+        """Fetch curated Bugcrowd programs from GitHub bounty-targets-data."""
         results: list[dict[str, Any]] = []
 
         async with httpx.AsyncClient() as client:
-            for page in range(max_pages):
-                try:
-                    url = f"{BUGCROWD_PUBLIC_API}?page={page + 1}&sort=promoted&order=desc"
-                    resp = await client.get(url, headers={"Accept": "application/json"}, timeout=15)
-                    if resp.status_code != 200:
-                        logger.warning("Bugcrowd public page %d: HTTP %s", page + 1, resp.status_code)
+            try:
+                resp = await client.get(BOUNTY_TARGETS_URL, headers={"Accept": "application/json"}, timeout=20)
+                if resp.status_code != 200:
+                    logger.warning("Bugcrowd bounty-targets-data: HTTP %s", resp.status_code)
+                    return results
+
+                items = resp.json() if isinstance(resp.json(), list) else []
+
+                for item in items:
+                    name = item.get("name", "")
+                    if not name:
                         continue
 
-                    data = resp.json()
-                    programs = data if isinstance(data, list) else data.get("programs", [])
+                    code = item.get("code", item.get("slug", item.get("handle", name.lower().replace(" ", "-"))))
+                    max_payout = item.get("max_payout", 0)
+                    managed = item.get("managed_by_bugcrowd", False)
 
-                    for item in programs:
-                        name = item.get("name", item.get("handle", ""))
-                        if not name:
-                            continue
+                    domains: list[str] = []
+                    wildcards: list[str] = []
+                    targets = item.get("targets", {})
+                    for asset in targets.get("in_scope", []):
+                        asset_id = asset.get("target", asset.get("asset_identifier", ""))
+                        if asset_id:
+                            if asset_id.startswith("*."):
+                                wildcards.append(asset_id[2:])
+                            else:
+                                domains.append(asset_id)
 
-                        code = item.get("code", item.get("slug", ""))
-                        payout_range = item.get("reward_range", "")
-                        estimated_payout = self._parse_payout_range(payout_range)
+                    prog = {
+                        "name": name,
+                        "code": code,
+                        "description": item.get("description", ""),
+                        "platform": "bugcrowd",
+                        "scope_url": f"https://bugcrowd.com/{code}" if code else None,
+                        "has_rewards": max_payout > 0 or managed,
+                        "program_url": item.get("url", f"https://bugcrowd.com/{code}") if code else "",
+                        "domains": domains,
+                        "wildcards": wildcards,
+                        "technologies": item.get("technologies", []),
+                        "estimated_payout": float(max_payout) if max_payout else 0.0,
+                        "estimated_effort_hours": self._estimate_effort_from_payout(
+                            float(max_payout) if max_payout else 0
+                        ),
+                        "created_at": item.get("created_at", ""),
+                    }
+                    results.append(prog)
 
-                        prog = {
-                            "name": name,
-                            "code": code,
-                            "description": item.get("description", ""),
-                            "platform": "bugcrowd",
-                            "scope_url": f"https://bugcrowd.com/{code}" if code else None,
-                            "has_rewards": bool(item.get("payout", False)),
-                            "program_url": f"https://bugcrowd.com/{code}" if code else "",
-                            "technologies": item.get("target_groups", []),
-                            "raw_payout_range": payout_range,
-                            "estimated_payout": estimated_payout,
-                            "estimated_effort_hours": self._estimate_effort_from_payout(estimated_payout),
-                            "created_at": item.get("created_at", item.get("published_at", "")),
-                        }
-                        results.append(prog)
+            except (httpx.HTTPError, httpx.TimeoutException) as e:
+                logger.warning("Bugcrowd bounty-targets-data error: %s", e)
+            except Exception as e:
+                logger.warning("Bugcrowd unexpected error: %s", e)
 
-                except (httpx.HTTPError, httpx.TimeoutException) as e:
-                    logger.warning("Bugcrowd page %d error: %s", page + 1, e)
-                    continue
-                except Exception as e:
-                    logger.warning("Bugcrowd unexpected error on page %d: %s", page + 1, e)
-                    continue
-
-        logger.info("Bugcrowd public: %d programs scraped", len(results))
+        logger.info("Bugcrowd bounty-targets-data: %d programs scraped", len(results))
         return results
 
-    def _parse_payout_range(self, payout_text: str) -> float:
-        """Extract max payout from reward range like '$500 - $10,000'."""
-        import re
-
-        if not payout_text:
-            return 0.0
-        amounts = re.findall(r"\$?([\d,]+(?:\.\d+)?)", str(payout_text).replace(",", ""))
-        parsed = []
-        for a in amounts:
-            try:
-                parsed.append(float(a.replace(",", "")))
-            except ValueError:
-                continue
-        return max(parsed) if parsed else 0.0
-
     def _estimate_effort_from_payout(self, payout: float) -> float:
-        """Estimate effort hours based on bounty amount."""
         if payout >= 10000:
             return 20.0
         elif payout >= 5000:
@@ -150,14 +134,3 @@ class BugcrowdAdapter(OpportunityAdapter):
         elif payout >= 500:
             return 5.0
         return 3.0
-
-    async def _enrich_with_authenticated_data(self, programs: list[dict[str, Any]]) -> None:
-        """Enrich with authenticated API data if available."""
-        if not self._enabled:
-            return
-
-        # Authenticated enrichment placeholder: future code will use the client
-        # to fetch submission data, payouts, etc. from authenticated endpoints.
-        # For now, we rely on public data.
-        async with httpx.AsyncClient() as _client:  # noqa: F841
-            pass
