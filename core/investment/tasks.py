@@ -5,6 +5,7 @@ risking real capital (dry-run/paper by default). The validated global
 cross-exchange arbitrage engine runs periodically so the system finds and
 records real price gaps on its own.
 """
+
 from __future__ import annotations
 
 import logging

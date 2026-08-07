@@ -15,8 +15,27 @@ import KnowledgeFeed from '@/components/mission-control/KnowledgeFeed.vue'
 import DirectWorkRadar from '@/components/mission-control/DirectWorkRadar.vue'
 import GuidedDashboard from '@/components/guided-mode/GuidedDashboard.vue'
 import GoodMorning from '@/components/mission-control/GoodMorning.vue'
+import DailyCompanion from '@/components/mission-control/DailyCompanion.vue'
 import DailyIncomePlan from '@/components/mission-control/DailyIncomePlan.vue'
 import NotificationCenter from '@/components/mission-control/NotificationCenter.vue'
+import ControlPanel from '@/components/mission-control/ControlPanel.vue'
+import MasterGuide from '@/components/mission-control/MasterGuide.vue'
+import MoneyPlan from '@/components/mission-control/MoneyPlan.vue'
+import TaskAssistant from '@/components/mission-control/TaskAssistant.vue'
+import DevBountyAutopilot from '@/components/mission-control/DevBountyAutopilot.vue'
+import ProfileBuilder from '@/components/mission-control/ProfileBuilder.vue'
+import DailyTasks from '@/components/mission-control/DailyTasks.vue'
+import SkillMethod from '@/components/mission-control/SkillMethod.vue'
+import CapitalBar from '@/components/mission-control/CapitalBar.vue'
+import GoalEvaluator from '@/components/mission-control/GoalEvaluator.vue'
+import EvolveMatrix from '@/components/mission-control/EvolveMatrix.vue'
+import PayoutNet from '@/components/mission-control/PayoutNet.vue'
+import FinanceGuru from '@/components/mission-control/FinanceGuru.vue'
+import TaxAR from '@/components/mission-control/TaxAR.vue'
+import InvoicerAR from '@/components/mission-control/InvoicerAR.vue'
+import OfframpExecutor from '@/components/mission-control/OfframpExecutor.vue'
+import PlatformConnectors from '@/components/mission-control/PlatformConnectors.vue'
+import AutonomyDashboard from '@/components/mission-control/AutonomyDashboard.vue'
 import ReportPipeline from '@/components/dashboard/ReportPipeline.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import ErrorState from '@/components/ui/ErrorState.vue'
@@ -187,6 +206,48 @@ const feedItems = computed(() =>
         </button>
       </div>
 
+      <!-- TODO DIARIO: lista de tareas del día propuestas por OWNEX -->
+      <DailyTasks />
+
+      <!-- CONTROL PANEL: modos, ciclo, automación, acciones -->
+      <ControlPanel />
+
+      <!-- GUÍA MAESTRA: checklist guiada de todas las categorías -->
+      <MasterGuide />
+
+      <!-- PLAN DE PLATA: proyección con tus horas -->
+      <MoneyPlan />
+
+      <!-- ASISTENTE DE TAREAS: pega el enunciado, te da material de trabajo -->
+      <TaskAssistant />
+
+      <!-- DEV BOUNTY AUTOPILOT: descubre y propone, vos validás -->
+        <DevBountyAutopilot />
+
+      <!-- GITHUB PROFILE BUILDER: vincula GitHub, construye perfil -->
+        <ProfileBuilder />
+
+      <!-- SKILL METHOD: ruta de estudio del 0,1% con sesiones de evidencia -->
+      <SkillMethod />
+
+      <!-- CAPITAL BAR: acumulación hacia $100K con umbrales pasivos -->
+      <CapitalBar />
+
+      <!-- GOAL EVALUATOR: decile tu meta, OWNEX la evalúa con datos reales -->
+      <GoalEvaluator />
+
+      <!-- MATRIX DE CRECIMIENTO: work, postmortem, accounts, cobro, brand, vault, emergencia -->
+      <EvolveMatrix />
+
+      <!-- PAYOUT NET: red de cobro solo KYC con fallbacks y resolución -->
+      <PayoutNet />
+
+      <!-- FINANCE GURU: preguntá cualquier cosa de cobro/cuentas USA/INTL desde AR -->
+      <FinanceGuru />
+
+      <!-- AUTONOMY DASHBOARD: closed-loop, trust engine, payment tracking -->
+      <AutonomyDashboard />
+
       <!-- Row 1: Throughput + Agent Fleet -->
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <ThroughputCore
@@ -228,6 +289,9 @@ const feedItems = computed(() =>
       <!-- Row 2.5: Daily Operation Mode -->
       <GoodMorning />
 
+      <!-- Row 2.5b: Daily Companion -->
+      <DailyCompanion />
+
       <!-- Row 2.6: Daily Income Plan -->
       <DailyIncomePlan />
 
@@ -252,6 +316,14 @@ const feedItems = computed(() =>
         :items="feedItems"
       />
       <KnowledgeFeed v-else :items="[]" />
-    </template>
+
+      <!-- TAX AR + FACTURACIÓN -->
+      <TaxAR />
+      <InvoicerAR />
+
+      <!-- OFFRAMP + CONNECTORS -->
+      <OfframpExecutor />
+      <PlatformConnectors />
+      </template>
   </div>
 </template>

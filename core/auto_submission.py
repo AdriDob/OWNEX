@@ -11,7 +11,9 @@ Cubre:
 
 from __future__ import annotations
 
+import contextlib
 import logging
+import os
 from datetime import UTC, datetime
 from typing import Any
 
@@ -336,10 +338,8 @@ class FormSubmissionClient:
                 await page.goto(url)
 
                 for field, value in form_data.items():
-                    try:
+                    with contextlib.suppress(Exception):
                         await page.fill(f"[name='{field}']", value)
-                    except Exception:
-                        pass
 
                 await page.click(submit_button_selector)
                 await page.wait_for_load_state("networkidle")
@@ -363,7 +363,6 @@ class FormSubmissionClient:
     ) -> dict[str, Any]:
         """Submit a form using pywebview (for desktop app)."""
         try:
-
             # This would run in the desktop app context
             return {
                 "success": True,
@@ -428,8 +427,6 @@ class SubmissionTracker:
 
 
 # ── Main Orchestrator ───────────────────────────────────────────
-
-import os
 
 
 class AutoSubmissionEngine:

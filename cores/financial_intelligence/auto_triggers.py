@@ -190,16 +190,20 @@ class AutoTriggerSystem:
         for condition, trigger_type, _ in self._triggers:
             try:
                 triggered = condition.check()
-                trigger_statuses.append({
-                    "type": trigger_type.value,
-                    "triggered": triggered,
-                })
+                trigger_statuses.append(
+                    {
+                        "type": trigger_type.value,
+                        "triggered": triggered,
+                    }
+                )
             except Exception as e:
-                trigger_statuses.append({
-                    "type": trigger_type.value,
-                    "triggered": False,
-                    "error": str(e),
-                })
+                trigger_statuses.append(
+                    {
+                        "type": trigger_type.value,
+                        "triggered": False,
+                        "error": str(e),
+                    }
+                )
 
         return {
             "triggers": trigger_statuses,

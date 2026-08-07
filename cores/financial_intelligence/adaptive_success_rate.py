@@ -313,11 +313,13 @@ class AdaptiveSuccessRateSystem:
                     rate = (successes + 0.5 * partials) / len(phase_attempts)
                     phase_success_rates[phase] = rate
 
-            trajectory.append({
-                "month": month,
-                "success_rates": phase_success_rates,
-                "total_attempts": len(month_attempts),
-            })
+            trajectory.append(
+                {
+                    "month": month,
+                    "success_rates": phase_success_rates,
+                    "total_attempts": len(month_attempts),
+                }
+            )
 
         return trajectory
 

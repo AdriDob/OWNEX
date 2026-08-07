@@ -73,7 +73,9 @@ async def run_paper(runs: int, capital: float, min_spread: float, exchanges: lis
     )
 
     print("=== PAPER TRADING — arbitraje global (sin riesgo) ===")
-    print(f"Capital virtual: ${capital:.2f} | Runs: {runs} | Min spread: {min_spread}% | Fee sim: {FEE_PCT}% | Min liq 24h: ${min_qv:,.0f}")
+    print(
+        f"Capital virtual: ${capital:.2f} | Runs: {runs} | Min spread: {min_spread}% | Fee sim: {FEE_PCT}% | Min liq 24h: ${min_qv:,.0f}"
+    )
     print(f"Exchanges: {', '.join(exchanges)}")
     print(f"Estrategia: {STRATEGY} | Fecha: {datetime.now(UTC).isoformat()}\n")
 
@@ -167,11 +169,19 @@ def main() -> int:
     p.add_argument("--runs", type=int, default=5)
     p.add_argument("--capital", type=float, default=1000.0)
     p.add_argument("--min-spread", type=float, default=0.5, dest="min_spread")
-    p.add_argument("--min-quote-volume", type=float, default=500000.0, dest="min_qv",
-                   help="Liquidez mínima 24h (suma ambas puntas) en USD para declarar ejecutable")
-    p.add_argument("--exchanges", type=str,
-                   default="binance,okx,kraken,coinbase,bybit,bitget,mexc,gateio",
-                   help="Exchanges separados por coma a escanear")
+    p.add_argument(
+        "--min-quote-volume",
+        type=float,
+        default=500000.0,
+        dest="min_qv",
+        help="Liquidez mínima 24h (suma ambas puntas) en USD para declarar ejecutable",
+    )
+    p.add_argument(
+        "--exchanges",
+        type=str,
+        default="binance,okx,kraken,coinbase,bybit,bitget,mexc,gateio",
+        help="Exchanges separados por coma a escanear",
+    )
     args = p.parse_args()
     exchanges = [e.strip() for e in args.exchanges.split(",") if e.strip()]
     return asyncio.run(run_paper(args.runs, args.capital, args.min_spread, exchanges, args.min_qv))

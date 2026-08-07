@@ -55,6 +55,10 @@ class AutoSubmitPipeline:
         self.elite_threshold = elite_threshold
         self.review_threshold = review_threshold
 
+    def process_finding(self, finding_id: int, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Alias for on_finding_confirmed — kept for API compatibility."""
+        return self.on_finding_confirmed(finding_id, payload)
+
     def on_finding_confirmed(self, finding_id: int, payload: dict[str, Any] | None = None) -> dict[str, Any]:
         """Handle a confirmed finding. Run quality gate and decide action."""
         session = db.SessionLocal()
@@ -233,3 +237,8 @@ def get_auto_submit_pipeline() -> AutoSubmitPipeline:
     if _PIPELINE is None:
         _PIPELINE = AutoSubmitPipeline()
     return _PIPELINE
+
+
+def process_finding(finding_id: int, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Module-level wrapper — delegates to AutoSubmitPipeline.on_finding_confirmed."""
+    return get_auto_submit_pipeline().on_finding_confirmed(finding_id, payload)

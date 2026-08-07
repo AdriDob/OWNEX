@@ -221,6 +221,23 @@ def _record_from_dict(data: dict[str, Any]) -> LearningRecord:
 
 def _ranked_to_dict(ranked: RankedOpportunity) -> dict[str, Any]:
     zb = ranked.zero_barrier_score
+
+    # Recommend payout method for this platform
+    payout_method = ""
+    payout_method_rationale = ""
+    try:
+        from core.payout_net import get_payout_net
+
+        payout_net = get_payout_net()
+        platform_key = str(ranked.opportunity.platform)
+        rec = payout_net.recommend_for(platform_key)
+        if rec.get("success") and rec.get("recommended"):
+            top_method = rec["recommended"][0]
+            payout_method = top_method.get("name", "")
+            payout_method_rationale = f"Método óptimo para {platform_key}: {top_method.get('costo', '')} costo, {top_method.get('dias', '')} días"
+    except Exception:
+        pass
+
     return {
         "rank": ranked.rank,
         "opportunity": _opportunity_to_dict(ranked.opportunity),
@@ -239,6 +256,8 @@ def _ranked_to_dict(ranked: RankedOpportunity) -> dict[str, Any]:
         "overall_recommendation_score": ranked.overall_recommendation_score,
         "strategy": ranked.strategy,
         "recommendation_reasoning": ranked.recommendation_reasoning,
+        "payout_method": payout_method,
+        "payout_method_rationale": payout_method_rationale,
     }
 
 
@@ -506,6 +525,56 @@ async def direct_work_deliver_approve(item_id: str) -> dict[str, Any]:
     }
 
 
+@router.post("/workbank/{item_id}/auto-submit")
+async def direct_work_auto_submit(item_id: str) -> dict[str, Any]:
+    """Auto-submit a work-bank item if trust engine approves.
+
+    Checks trust engine criteria before auto-submitting. If approved, marks as
+    auto-submitted and prepares delivery package.
+    """
+    from core.opportunity.executors.assisted_mode import AssistedExecutor
+    from core.trust_engine import get_trust_engine
+
+    bank = get_workbank()
+    item = bank.get_item(item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Work-bank item not found")
+
+    # Check trust engine approval
+    trust_engine = get_trust_engine()
+    can_approve, reason = trust_engine.can_auto_approve(str(item.platform), float(item.reward or 0))
+
+    if not can_approve:
+        return {
+            "success": False,
+            "item_id": item.id,
+            "reason": reason,
+            "status": "requires_manual_approval",
+        }
+
+    # Auto-submit via AssistedExecutor
+    executor = AssistedExecutor(base_executor=None)
+    opportunity = {
+        "platform": str(item.platform),
+        "id": item.id,
+        "title": item.title,
+        "description": item.description or " ".join(item.deliverables),
+        "url": item.url or "",
+    }
+
+    prepared = await executor.prepare_work(opportunity)
+    result = await executor.auto_submit(prepared)
+
+    return {
+        "success": True,
+        "item_id": item.id,
+        "status": "auto_submitted",
+        "trust_reason": reason,
+        "next_step": result.get("next_step"),
+        "requires_manual_action": result.get("requires_manual_action", False),
+    }
+
+
 @router.get("/deliver/pending")
 async def direct_work_deliver_pending() -> dict[str, Any]:
     """Items ready to deliver right now (the assisted delivery queue)."""
@@ -521,6 +590,8 @@ async def direct_work_deliver_pending() -> dict[str, Any]:
                 "reward": i.reward,
                 "deliverables": i.deliverables,
                 "url": i.url,
+                "payout_method": i.payout_method,
+                "payout_method_rationale": i.payout_method_rationale,
             }
             for i in ready
         ],

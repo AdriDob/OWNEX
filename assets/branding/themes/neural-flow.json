@@ -1,0 +1,60 @@
+{
+  "id": "neural-flow",
+  "name": "Neural Flow",
+  "description": "Living synaptic networks. Soft flowing connections. Elegant movement. Minimal glowing nodes.",
+  "palette": {
+    "bg-deep": "#0A050A",
+    "bg-base": "#120712",
+    "bg-surface": "#1A0F1A",
+    "bg-glass": "rgba(18, 7, 18, 0.8)",
+    "bg-glass-border": "rgba(156, 100, 255, 0.15)",
+    "primary": "#F5E8FF",
+    "primary-foreground": "#0A050A",
+    "accent": "#9C64FF",
+    "accent-foreground": "#0A050A",
+    "gold": "#FFB800",
+    "green": "#00FFB8",
+    "red": "#FF4488",
+    "yellow": "#FFB800",
+    "text-primary": "#F8F0FF",
+    "text-secondary": "#B8A0C8",
+    "text-muted": "#7A6A8A",
+    "text-disabled": "#4A3A5A",
+    "border": "#2A1A2A",
+    "border-light": "#3A2A3A",
+    "surface-hover": "#1A101A"
+  },
+  "platforms": {
+    "hackerone": "#00FFB8",
+    "bugcrowd": "#FFB800",
+    "intigriti": "#9C64FF",
+    "synack": "#F5E8FF",
+    "yeswehack": "#FF4488"
+  },
+  "cycles": {
+    "security": "#F5E8FF",
+    "forge": "#B8A0C8",
+    "pulse": "#00FFB8",
+    "vault": "#FFB800",
+    "atlas": "#D8D0DD",
+    "odyssey": "#FF4488"
+  },
+  "motion": {
+    "style": "organic",
+    "duration": { "fast": 150, "normal": 300, "slow": 500 },
+    "spring": { "damping": 14, "stiffness": 80, "mass": 1.5 }
+  },
+  "audio": {
+    "profile": "synaptic",
+    "volume": 0.55,
+    "enabled": ["startup", "shutdown", "success", "error", "hover", "click", "agent_thinking", "mission_completed", "new_opportunity"]
+  },
+  "visualization": {
+    "coreColor": "#9C64FF",
+    "coreGlow": "rgba(156, 100, 255, 0.5)",
+    "orbitColor": "rgba(156, 100, 255, 0.25)",
+    "particleColor": "rgba(245, 232, 255, 0.15)",
+    "trailLength": 60,
+    "pulseSync": true
+  }
+}

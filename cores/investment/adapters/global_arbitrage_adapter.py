@@ -88,9 +88,11 @@ class GlobalArbitrageAdapter:
                     continue
                 # liquidez mínima (24h quoteVolume) sumada en ambas puntas: solo
                 # pares de facto ejecutables, evita polvo y señales fantasma
-                if self._min_quote_volume_usd and sum(
-                    tickers[ex][symbol]["qv"] for ex in tickers if symbol in tickers[ex]
-                ) < self._min_quote_volume_usd:
+                if (
+                    self._min_quote_volume_usd
+                    and sum(tickers[ex][symbol]["qv"] for ex in tickers if symbol in tickers[ex])
+                    < self._min_quote_volume_usd
+                ):
                     continue
                 best_bid_ex = max(bids, key=lambda k: bids[k])
                 best_ask_ex = min(asks, key=lambda k: asks[k])

@@ -4,7 +4,7 @@ Instead of auto-submitting, this mode:
 1. Prepares the work in the correct format
 2. Shows the user exactly what will be submitted
 3. Provides step-by-step UI navigation
-4. Waits for user approval
+4. Waits for user approval (unless auto-approved by trust engine)
 5. Offers copy/paste or file download options
 """
 
@@ -279,6 +279,21 @@ $$$
             "status": "approved",
             "message": "Work approved and ready for manual submission",
             "next_step": "Follow the guide in the saved directory",
+        }
+
+    async def auto_submit(self, prepared: PreparedWork) -> dict[str, Any]:
+        """Auto-submit work (when trust engine approves)."""
+        logger.info(f"[ASSISTED] Auto-submitting for {prepared.platform} - {prepared.title}")
+
+        # Check if platform supports auto-submission
+        # For now, mark as auto-submitted but manual action still needed
+        # TODO: Integrate with platform APIs for real auto-submission
+        return {
+            "success": True,
+            "status": "auto_submitted",
+            "message": "Work auto-approved by trust engine",
+            "next_step": "Follow the guide in the saved directory",
+            "requires_manual_action": True,
         }
 
     def get_pending_work(self) -> list[PreparedWork]:

@@ -28,11 +28,7 @@ make dev
 from core.cycles.security import SecurityCycle
 
 cycle = SecurityCycle()
-results = await cycle.execute(
-    target="example.com",
-    scope=["web", "api"],
-    depth="comprehensive"
-)
+results = await cycle.execute(target="example.com", scope=["web", "api"], depth="comprehensive")
 print(f"Found {len(results.findings)} vulnerabilities")
 ```
 
@@ -42,10 +38,7 @@ print(f"Found {len(results.findings)} vulnerabilities")
 from core.opportunity import get_opportunity_engine
 
 engine = get_opportunity_engine()
-opportunities = await engine.discover(
-    categories=["bug_bounty", "freelance", "grants"],
-    min_score=70
-)
+opportunities = await engine.discover(categories=["bug_bounty", "freelance", "grants"], min_score=70)
 for opp in opportunities:
     print(f"{opp.title}: ${opp.estimated_value}")
 ```
@@ -56,9 +49,7 @@ for opp in opportunities:
 from core.ai.merlin import Merlin
 
 merlin = Merlin()
-response = await merlin.chat(
-    "Analyze my current bug bounty targets and suggest priorities"
-)
+response = await merlin.chat("Analyze my current bug bounty targets and suggest priorities")
 print(response)
 ```
 
@@ -67,6 +58,7 @@ print(response)
 # Example: Create a custom autonomous agent
 from core.agents.base import BaseAgent
 from core.events import EventBus
+
 
 class MyCustomAgent(BaseAgent):
     async def execute(self, task):

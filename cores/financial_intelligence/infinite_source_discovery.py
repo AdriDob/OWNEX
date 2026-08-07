@@ -15,18 +15,13 @@ import json
 import logging
 import random
 import time
-from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-import requests
-from bs4 import BeautifulSoup
-
 from cores.financial_intelligence.alert_system import (
-    AlertCategory,
-    AlertType,
     get_alert_system,
 )
 
@@ -125,7 +120,9 @@ class InfiniteSourceDiscovery:
     Auto-apply where possible via APIs.
     """
 
-    def __init__(self, criteria: ZeroBarrierCriteria | None = None, state_file: Path = Path("data/infinite_sources_state.json")):
+    def __init__(
+        self, criteria: ZeroBarrierCriteria | None = None, state_file: Path = Path("data/infinite_sources_state.json")
+    ):
         self.criteria = criteria or ZeroBarrierCriteria()
         self.state_file = state_file
         self.state_file.parent.mkdir(parents=True, exist_ok=True)
@@ -143,7 +140,9 @@ class InfiniteSourceDiscovery:
                 with open(self.state_file) as f:
                     data = json.load(f)
                     self._source_rotation_index = data.get("rotation_index", 0)
-                    self._last_scan_time = datetime.fromisoformat(data.get("last_scan_time", datetime.now(UTC).isoformat()))
+                    self._last_scan_time = datetime.fromisoformat(
+                        data.get("last_scan_time", datetime.now(UTC).isoformat())
+                    )
                     self._blocked_sources = set(data.get("blocked_sources", []))
                 logger.info(f"Loaded infinite sources state: {len(self._blocked_sources)} blocked sources")
             except Exception as e:
@@ -242,14 +241,19 @@ class InfiniteSourceDiscovery:
 
         # Category check (data annotation, AI work, etc.)
         allowed_categories = {
-            "data_annotation", "ai_training", "ai_evaluation", "synthetic_data",
-            "data_entry", "transcription", "translation", "web_scraping",
-            "prompt_engineering", "qa_testing", "content_writing"
+            "data_annotation",
+            "ai_training",
+            "ai_evaluation",
+            "synthetic_data",
+            "data_entry",
+            "transcription",
+            "translation",
+            "web_scraping",
+            "prompt_engineering",
+            "qa_testing",
+            "content_writing",
         }
-        if opp.category.lower() not in allowed_categories:
-            return False
-
-        return True
+        return opp.category.lower() in allowed_categories
 
     def _calculate_zero_barrier_score(self, opp: dict[str, Any]) -> float:
         """Calculate zero-barrier score (0-1)."""

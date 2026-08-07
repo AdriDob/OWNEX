@@ -1,0 +1,60 @@
+{
+  "id": "executive-intelligence",
+  "name": "Executive Intelligence",
+  "description": "Bloomberg, Apple, Stripe, Linear, Notion. Professional executive software. Minimal. Silent. Powerful.",
+  "palette": {
+    "bg-deep": "#08090A",
+    "bg-base": "#0D0F11",
+    "bg-surface": "#121518",
+    "bg-glass": "rgba(13, 15, 17, 0.85)",
+    "bg-glass-border": "rgba(255, 255, 255, 0.08)",
+    "primary": "#FAFAFA",
+    "primary-foreground": "#08090A",
+    "accent": "#0066CC",
+    "accent-foreground": "#FFFFFF",
+    "gold": "#B45309",
+    "green": "#059669",
+    "red": "#DC2626",
+    "yellow": "#D97706",
+    "text-primary": "#F8F8F8",
+    "text-secondary": "#9CA3AF",
+    "text-muted": "#6B7280",
+    "text-disabled": "#4B5563",
+    "border": "#1F2937",
+    "border-light": "#374151",
+    "surface-hover": "#181C20"
+  },
+  "platforms": {
+    "hackerone": "#059669",
+    "bugcrowd": "#B45309",
+    "intigriti": "#6B7280",
+    "synack": "#FAFAFA",
+    "yeswehack": "#DC2626"
+  },
+  "cycles": {
+    "security": "#FAFAFA",
+    "forge": "#9CA3AF",
+    "pulse": "#059669",
+    "vault": "#D97706",
+    "atlas": "#D4D4D8",
+    "odyssey": "#DC2626"
+  },
+  "motion": {
+    "style": "refined",
+    "duration": { "fast": 60, "normal": 120, "slow": 200 },
+    "spring": { "damping": 30, "stiffness": 400, "mass": 0.7 }
+  },
+  "audio": {
+    "profile": "silent",
+    "volume": 0.3,
+    "enabled": ["success", "error", "mission_completed"]
+  },
+  "visualization": {
+    "coreColor": "#0066CC",
+    "coreGlow": "rgba(0, 102, 204, 0.25)",
+    "orbitColor": "rgba(255, 255, 255, 0.1)",
+    "particleColor": "rgba(250, 250, 250, 0.06)",
+    "trailLength": 10,
+    "minimal": true
+  }
+}
