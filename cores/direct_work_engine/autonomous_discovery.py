@@ -670,7 +670,7 @@ class WebResearcher:
             logger.warning(f"GitHub API search failed: {e}")
 
         # 2. DuckDuckGo + multi-engine searches
-        for query in self.DISCOVERY_QUERIES[:15]:
+        for query in self.DISCOVERY_QUERIES[:50]:
             try:
                 results = await self._search_duckduckgo(query)
                 for result in results[:3]:
@@ -909,8 +909,8 @@ class DiscoveryConfig:
     require_zero_barrier: bool = True  # Only zero-barrier opportunities
 
     # Limits
-    max_opportunities_per_cycle: int = 200  # Cap per cycle
-    max_platforms_to_research: int = 20  # New platforms per research cycle
+    max_opportunities_per_cycle: int = 1000  # Cap per cycle (escala a 1000+)
+    max_platforms_to_research: int = 100  # New platforms per research cycle
     max_consecutive_errors: int = 5  # Disable platform after N errors
 
     # Storage
@@ -1397,7 +1397,7 @@ async def run_autonomous_research_cycle() -> dict:
 
     config = DiscoveryConfig(
         research_interval_hours=6,
-        max_platforms_to_research=20,
+        max_platforms_to_research=100,
         persist_state=True,
     )
 
@@ -1407,7 +1407,7 @@ async def run_autonomous_research_cycle() -> dict:
         return {
             "status": "completed",
             "discovered": len(engine.discovered_platforms),
-            "platforms": list(engine.discovered_platforms.keys())[:20],
+            "platforms": list(engine.discovered_platforms.keys())[:100],
         }
     except Exception as e:
         logger.exception("Autonomous research cycle failed: %s", e)

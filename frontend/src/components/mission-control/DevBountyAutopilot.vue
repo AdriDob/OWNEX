@@ -2,9 +2,11 @@
 import { onMounted, ref, computed } from 'vue'
 import {
   getDevBountyStatus, activateDevBounty, deactivateDevBounty, runDevBountyCycle,
-  getDevBountyQueue, validateDevBounty, setDevBountyBeginnerMode,
-  type DevBountyStatus, type DevBountyProposal,
+  getDevBountyQueue, validateDevBounty, setDevBountyBeginnerMode, saveEvidenceClaim,
+  type DevBountyStatus, type DevBountyProposal, type EvidenceClaim,
 } from '@/services/controlPanel'
+
+const claimStatus = ref<EvidenceClaim | null>(null)
 
 const status = ref<DevBountyStatus | null>(null)
 const queue = ref<DevBountyProposal[]>([])
@@ -52,8 +54,24 @@ async function act(key: string, fn: () => Promise<DevBountyStatus>) {
 }
 
 async function resolve(id: string, action: string) {
+  const proposal = queue.value.find(q => q.id === id)
   await validateDevBounty(id, action)
+  if (proposal && action === 'approved') {
+    claimStatus.value = await saveEvidenceClaim(id, {
+      outcome: 'approved',
+      detail: `Bounty "${proposal.title}" validada y lista para submit → ${proposal.repo}`,
+      bountyId: proposal.id,
+    })
+  }
   await load()
+}
+
+async function saveProof(q: DevBountyProposal) {
+  claimStatus.value = await saveEvidenceClaim(q.id, {
+    outcome: 'approved',
+    detail: `Bounty "${q.title}" validada y lista para submit → ${q.repo}`,
+    bountyId: q.id,
+  })
 }
 
 async function toggleBeginner(enabled: boolean) {
@@ -116,6 +134,11 @@ onMounted(load)
 
       <p v-if="note" class="db-note">{{ note }}</p>
 
+      <p v-if="claimStatus" class="db-proof">
+        📁 Prueba guardada: <code>{{ claimStatus.path.split('/').pop() }}</code>
+        · sha256: <code>{{ claimStatus.sha256 }}</code> · {{ claimStatus.timestamp_utc.slice(0,19) }}Z
+      </p>
+
       <!-- Propuestas listas -->
       <div v-if="queue.length" class="db-queue">
         <span class="db-label">Propuestas listas para validar ({{ count }})</span>
@@ -127,6 +150,7 @@ onMounted(load)
           <div class="db-item-actions">
             <button class="db-btn ok small" :disabled="!!busyId" @click="resolve(q.id, 'approved')">Validar</button>
             <button class="db-btn off small" :disabled="!!busyId" @click="resolve(q.id, 'rejected')">Rechazar</button>
+            <button class="db-btn run small" :disabled="!!busyId" @click="saveProof(q)">Guardar prueba manual</button>
           </div>
         </div>
       </div>
@@ -171,6 +195,8 @@ onMounted(load)
 .db-info { font-size: 0.68rem; color: rgba(255, 255, 255, 0.6); margin: 0; }
 .db-info b { color: #4ade80; }
 .db-note { font-size: 0.72rem; color: #93c5fd; margin: 0; }
+.db-proof { font-size: 0.64rem; color: #4ade80; margin: 0; word-break: break-all; }
+.db-proof code { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.25); border-radius: 4px; padding: 0.1rem 0.3rem; font-size: 0.6rem; }
 .db-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255, 255, 255, 0.45); }
 .db-queue { display: flex; flex-direction: column; gap: 0.4rem; }
 .db-item {
