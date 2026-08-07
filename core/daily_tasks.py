@@ -136,7 +136,7 @@ class DailyTaskBoard:
 
         # Recomendaciones del sistema aún no hechas (prioridad alta)
         recs = self._system_recommendations()
-        for r in recs[:2]:
+        for r in recs[:6]:
             order += 1
             tasks.append(
                 {
@@ -282,6 +282,155 @@ class DailyTaskBoard:
                     )
         except Exception:
             pass
+
+        # ── Credential vault ──
+        try:
+            from core.credentials.vault import get_credentials
+
+            creds = get_credentials()
+            if not creds.github_token:
+                recs.append(
+                    {
+                        "action": "Configurar GITHUB_TOKEN en vault",
+                        "why": "Permite auditoría completa del perfil + auto-push de bounties.",
+                        "priority": "alta",
+                        "cat": "config",
+                    }
+                )
+        except Exception:
+            pass
+
+        # ── Platform connectors ──
+        try:
+            from core.platform_connectors import get_platform_manager
+
+            pm = get_platform_manager()
+            status = pm.get_status()
+            not_connected = [
+                p for p, v in status.get("platforms", {}).items() if v.get("enabled") and not v.get("has_creds")
+            ]
+            if not_connected:
+                top = not_connected[:3]
+                recs.append(
+                    {
+                        "action": f"Configurar credenciales para: {', '.join(top)}",
+                        "why": f"{len(not_connected)} plataformas habilitadas sin credentials → no pueden descubrir pagos.",
+                        "priority": "alta",
+                        "cat": "config",
+                    }
+                )
+        except Exception:
+            pass
+
+        # ── Trust engine ──
+        try:
+            from core.trust_engine import get_trust_engine
+
+            t = get_trust_engine()
+            ts = t.get_status()
+            no_trust = [p for p in ts.get("platforms_with_data", []) if p not in ts.get("high_trust_platforms", [])]
+            if no_trust:
+                recs.append(
+                    {
+                        "action": f"Build trust en: {', '.join(no_trust[:3])}",
+                        "why": f"{len(no_trust)} plataformas con datos pero bajo trust → auto-approval bloqueado.",
+                        "priority": "media",
+                        "cat": "config",
+                    }
+                )
+        except Exception:
+            pass
+
+        # ── Payment tracker ──
+        try:
+            from core.payment_tracker import get_payment_tracker
+
+            pt = get_payment_tracker()
+            pending = pt.get_pending_payments()
+            if pending:
+                recs.append(
+                    {
+                        "action": f"Confirmar {len(pending)} pago(s) pendientes",
+                        "why": "Payments sin confirmar bloquean el feedback loop de trust + payout net.",
+                        "priority": "alta",
+                        "cat": "config",
+                    }
+                )
+        except Exception:
+            pass
+
+        # ── Payout net ──
+        try:
+            from core.payout_net import get_payout_net
+
+            pn = get_payout_net()
+            ps = pn.get_status()
+            if ps.get("created", 0) == 0:
+                recs.append(
+                    {
+                        "action": "Configurar método de payout favorito (PayoutNet)",
+                        "why": "Sin payout method configurado, las oportunidades no recomiendan cómo cobrar.",
+                        "priority": "alta",
+                        "cat": "config",
+                    }
+                )
+        except Exception:
+            pass
+
+        # ── Goal evaluator ──
+        try:
+            from core.goal_evaluator import get_goal_evaluator
+
+            ge = get_goal_evaluator()
+            gs = ge.get_status()
+            if gs.get("success") and not gs.get("last_eval"):
+                recs.append(
+                    {
+                        "action": "Definir objetivo mensual de ingresos (Money Plan)",
+                        "why": "Sin goals activos, OWNEX no puede priorizar oportunidades por EV.",
+                        "priority": "alta",
+                        "cat": "config",
+                    }
+                )
+        except Exception:
+            pass
+
+        # ── Work bank ──
+        try:
+            from cores.direct_work_engine.workbank import get_workbank
+
+            wb = get_workbank()
+            items = list(wb._items.values()) if hasattr(wb, "_items") else []
+            ready = len([i for i in items if getattr(i, "status", "") == "ready_to_deliver"])
+            if ready > 0:
+                recs.append(
+                    {
+                        "action": f"Preparar y entregar {ready} trabajo(s) listos",
+                        "why": "Work Bank tiene items ready_to_deliver — cobrar acelera el feedback loop.",
+                        "priority": "alta",
+                        "cat": "config",
+                    }
+                )
+        except Exception:
+            pass
+
+        # ── Money plan ──
+        try:
+            from core.money_plan import get_money_plan
+
+            mp = get_money_plan().get()
+            if not mp.get("target_set", False) and not mp.get("weekly_target"):
+                recs.append(
+                    {
+                        "action": "Setear money plan target ($/semana) en MissionControl",
+                        "why": "OWNEX prioriza oportunidades por EV; sin target no sabe qué es 'suficiente'.",
+                        "priority": "media",
+                        "cat": "config",
+                    }
+                )
+        except Exception:
+            pass
+
         return recs
 
     def _day_context(self, day: int) -> str:
