@@ -118,6 +118,7 @@ class YesWeHackAdapter(OpportunityAdapter):
 
     def _parse_payout(self, text: str) -> float:
         import re
+
         if not text:
             return 0.0
         amounts = re.findall(r"[\d,]+(?:\.\d+)?", str(text).replace(",", ""))

@@ -11,12 +11,12 @@ This module provides adapters for:
 
 from __future__ import annotations
 
-from core.opportunity.adapters.security.bugcrowd import BugcrowdAdapter
-from core.opportunity.adapters.security.hackerone import HackerOneAdapter
-from core.opportunity.adapters.security.immunefi import ImmunefiAdapter
-from core.opportunity.adapters.security.intigriti import IntigritiAdapter
-from core.opportunity.adapters.security.synack import SynackAdapter
-from core.opportunity.adapters.security.yeswehack import YesWeHackAdapter
+from cores.opportunity.adapters.security.bugcrowd import BugcrowdAdapter
+from cores.opportunity.adapters.security.hackerone import HackerOneAdapter
+from cores.opportunity.adapters.security.immunefi import ImmunefiAdapter
+from cores.opportunity.adapters.security.intigriti import IntigritiAdapter
+from cores.opportunity.adapters.security.synack import SynackAdapter
+from cores.opportunity.adapters.security.yeswehack import YesWeHackAdapter
 
 __all__ = [
     "HackerOneAdapter",

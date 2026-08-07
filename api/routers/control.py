@@ -1606,11 +1606,14 @@ async def closed_loop_config(payload: dict[str, Any]) -> dict[str, Any]:
         )
         manager = get_closed_loop_manager()
         manager.config = config
-        return {"success": True, "config": {
-            "auto_learn_from_payments": config.auto_learn_from_payments,
-            "auto_update_trust": config.auto_update_trust,
-            "auto_update_profile": config.auto_update_profile,
-        }}
+        return {
+            "success": True,
+            "config": {
+                "auto_learn_from_payments": config.auto_learn_from_payments,
+                "auto_update_trust": config.auto_update_trust,
+                "auto_update_profile": config.auto_update_profile,
+            },
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from None
 

@@ -183,8 +183,8 @@ class TrustEngine:
                     # Update moving average
                     n = metrics.paid
                     metrics.avg_time_to_payment_days = (
-                        (metrics.avg_time_to_payment_days * (n - 1) + time_to_payment_days) / n
-                    )
+                        metrics.avg_time_to_payment_days * (n - 1) + time_to_payment_days
+                    ) / n
             else:
                 metrics.unpaid += 1
         else:
@@ -216,7 +216,13 @@ class TrustEngine:
             return False, f"Insufficient confirmed payments ({metrics.paid} < {self._config.min_confirmed_payments})"
 
         # Check trust level
-        trust_levels_order = [TrustLevel.UNKNOWN, TrustLevel.LOW, TrustLevel.MEDIUM, TrustLevel.HIGH, TrustLevel.CRITICAL]
+        trust_levels_order = [
+            TrustLevel.UNKNOWN,
+            TrustLevel.LOW,
+            TrustLevel.MEDIUM,
+            TrustLevel.HIGH,
+            TrustLevel.CRITICAL,
+        ]
         current_level_index = trust_levels_order.index(metrics.trust_level)
         required_level_index = trust_levels_order.index(self._config.min_trust_level)
 
