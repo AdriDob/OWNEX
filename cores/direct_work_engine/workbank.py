@@ -137,6 +137,8 @@ class WorkItem:
     ready_to_deliver: bool = False
     description: str = ""
     url: str = ""
+    payout_method: str = ""
+    payout_method_rationale: str = ""
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -232,6 +234,21 @@ class WorkBank:
                 PLATFORM_ACCESS.get(platform_key, ("needs_manual_setup", "Configurar el acceso a la plataforma.")),
             )
 
+            # Recommend payout method for this platform
+            payout_method = ""
+            payout_method_rationale = ""
+            try:
+                from core.payout_net import get_payout_net
+
+                payout_net = get_payout_net()
+                rec = payout_net.recommend_for(platform_key)
+                if rec.get("success") and rec.get("recommended"):
+                    top_method = rec["recommended"][0]
+                    payout_method = top_method.get("name", "")
+                    payout_method_rationale = f"Método óptimo para {platform_key}: {top_method.get('costo', '')} costo, {top_method.get('dias', '')} días"
+            except Exception as exc:
+                logger.debug("Could not recommend payout method for %s: %s", platform_key, exc)
+
             item = WorkItem(
                 id=opp.id,
                 title=opp.title,
@@ -247,6 +264,8 @@ class WorkBank:
                 deliverables=self._prepare_deliverables(opp),
                 description=opp.description or "",
                 url=opp.url or "",
+                payout_method=payout_method,
+                payout_method_rationale=payout_method_rationale,
             )
 
             if access_status == "public" and item.deliverables:

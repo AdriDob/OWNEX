@@ -6,6 +6,7 @@ import { useNotificationsStore } from '@/stores/notifications'
 import { useSettingsStore } from '@/stores/settings'
 import { onLoadingChange } from '@/lib/api'
 import { useGlobalShortcuts } from '@/composables/useGlobalShortcuts'
+import { useThemeEngine } from '@/composables/useThemeEngine'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import CopilotPanel from '@/components/copilot/CopilotPanel.vue'
 import CommandPalette from '@/components/ui/CommandPalette.vue'
@@ -34,6 +35,7 @@ declare global {
 const auth = useAuthStore()
 const notifications = useNotificationsStore()
 const settings = useSettingsStore()
+const { initialize: initThemeEngine, currentTheme } = useThemeEngine()
 const router = useRouter()
 const route = useRoute()
 const assistant = useAssistant()
@@ -60,23 +62,8 @@ const { shortcuts } = useGlobalShortcuts({
 })
 
 function handleContextAction(_actionId: string, entity: any) {
-  // Forwarded from ContextMenu; actual logic handled by action callbacks in composable
   console.debug('Context action:', _actionId, entity)
 }
-
-// Apply theme/colors from settings to DOM
-watch(() => [settings.data.appearance.theme, settings.data.appearance.colors], ([theme, colors]) => {
-  if (typeof document !== 'undefined') {
-    document.documentElement.setAttribute('data-theme', theme || 'cyber')
-    document.documentElement.setAttribute('data-colors', colors || 'default')
-  }
-}, { immediate: true })
-
-watch(() => settings.data.appearance.density, (density) => {
-  if (typeof document !== 'undefined') {
-    document.documentElement.setAttribute('data-density', density || 'normal')
-  }
-}, { immediate: true })
 
 let _unauthHandler: (() => void) | null = null
 let _beforeunloadHandler: (() => void) | null = null
@@ -91,6 +78,15 @@ function toggleSidebar() {
 }
 
 onMounted(async () => {
+  await initThemeEngine()
+
+  // Sync theme engine with settings store
+  watch(() => currentTheme.value?.id, (newThemeId) => {
+    if (newThemeId && settings.data.appearance.theme !== newThemeId) {
+      settings.updateAppearance({ theme: newThemeId })
+    }
+  })
+
   _unauthHandler = () => {
     auth.logout()
     router.push({ name: 'login' })

@@ -16,7 +16,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from cores.financial_intelligence.auto_apply import AutoApplySystem, get_auto_apply_system
+from cores.financial_intelligence.auto_apply import get_auto_apply_system
 
 router = APIRouter(prefix="/api/auto-apply", tags=["auto-apply"])
 logger = logging.getLogger(__name__)

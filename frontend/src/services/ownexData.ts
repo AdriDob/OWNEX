@@ -473,6 +473,8 @@ export interface DirectWorkRanked {
     enablers: string[]
     blockers: string[]
   }
+  payout_method: string
+  payout_method_rationale: string
 }
 
 export interface DirectWorkRecommendResponse {
@@ -525,6 +527,8 @@ export interface WorkBankItem {
   deliverables: string[]
   created_at: string
   ready_to_deliver: boolean
+  payout_method: string
+  payout_method_rationale: string
 }
 
 export interface WorkBankState {
@@ -606,6 +610,8 @@ export interface DeliverableItem {
   reward: number
   deliverables: string[]
   url: string
+  payout_method: string
+  payout_method_rationale: string
 }
 
 export async function fetchDeliveryQueue(): Promise<{ count: number; items: DeliverableItem[] }> {
@@ -679,6 +685,84 @@ export async function fetchSourceIntel(options?: {
   min_trust?: number
 }): Promise<SourceIntelResponse> {
   return api.post<SourceIntelResponse>('/direct-work/source-intel', options ?? {})
+}
+
+// ── Income Dashboard ──
+
+export interface IncomeDashboardData {
+  period: string
+  total_revenue: number
+  breakdown: Record<string, number>
+  projections: {
+    monthly: number
+    quarterly: number
+    annual: number
+  }
+  trends: Array<{ date: string; amount: number }>
+}
+
+export async function fetchIncomeDashboard(): Promise<IncomeDashboardData> {
+  return api.post<IncomeDashboardData>('/direct-work/income-dashboard', {})
+}
+
+// ── Income Projector ──
+
+export interface IncomeProjectionRequest {
+  work_income_usd_per_month: number
+  savings_usd_per_month: number
+  start_capital_usd: number
+  annual_return_rate: number
+  target_monthly_usd: number
+}
+
+export interface IncomeProjectionResult {
+  months_to_target: number
+  final_capital: number
+  monthly_progression: Array<{ month: number; capital: number; income: number }>
+  recommendations: string[]
+}
+
+export async function projectIncome(payload: IncomeProjectionRequest): Promise<IncomeProjectionResult> {
+  return api.post<IncomeProjectionResult>('/direct-work/income-projector', payload)
+}
+
+// ── Evolution Report ──
+
+export interface EvolutionReport {
+  generated_at: string
+  improvements_completed: string[]
+  performance_gains: Array<{ area: string; before: number; after: number; unit: string }>
+  new_capabilities: string[]
+  problems_detected: string[]
+  next_actions: Array<{ action: string; priority: string; impact: string }>
+  expected_impact: string
+}
+
+export async function fetchEvolutionReport(): Promise<EvolutionReport> {
+  return api.post<EvolutionReport>('/direct-work/evolution-report', {})
+}
+
+export interface EvolutionReportHistory {
+  history: EvolutionReport[]
+}
+
+export async function fetchEvolutionReportHistory(limit: number = 30): Promise<EvolutionReportHistory> {
+  return api.get<EvolutionReportHistory>(`/direct-work/evolution-report/history?limit=${limit}`)
+}
+
+// ── Success Stats ──
+
+export interface SuccessStats {
+  total_opportunities: number
+  success_rate: number
+  average_payout: number
+  total_earnings: number
+  best_platform: string
+  by_platform: Record<string, { opportunities: number; success_rate: number; total_earnings: number }>
+}
+
+export async function fetchSuccessStats(): Promise<SuccessStats> {
+  return api.get<SuccessStats>('/direct-work/success-stats')
 }
 
 export async function prepareDelivery(itemId: string): Promise<DeliveryPackage> {
@@ -941,4 +1025,67 @@ export async function runCommand(
   args: Record<string, unknown> = {},
 ): Promise<{ status: string; output: string }> {
   return api.post<{ status: string; output: string }>(`/api/commands/${commandName}/execute`, args)
+}
+
+// ── Daily Companion ──
+
+export interface DailyCompanionState {
+  generated_at: string
+  system: {
+    status: string
+    score: number
+    running: boolean
+    snapshots: number
+  }
+  personal: {
+    pending_tasks: number
+    delivered_today: number
+    learning_goals: string[]
+  }
+  market: {
+    opportunities: number
+    top_sources: Array<{
+      name: string
+      category: string
+      trust_score: number
+      earning_potential: string
+    }>
+    new_ecosystems: number
+    recommendation: string
+  }
+  focus: {
+    stop: string[]
+    automate: string[]
+    delegate: string[]
+    improve: string[]
+  }
+  briefing: {
+    greeting: string
+    system_health: string
+    important_tasks: string
+    recommended_actions: string[]
+    focus_note: string
+  }
+  projection: {
+    crossing_months: number | null
+    months_to_target: number | null
+    monthly_curve: Array<{ month: number; projected_usd: number }>
+    note: string
+  }
+}
+
+export async function fetchDailyCompanion(
+  workIncomeUsdPerMonth = 0,
+  savingsUsdPerMonth = 0,
+  startCapitalUsd = 0,
+  annualReturnRate = 0.10,
+  targetMonthlyUsd = 100000
+): Promise<DailyCompanionState> {
+  return api.post<DailyCompanionState>('/direct-work/daily-companion', {
+    work_income_usd_per_month: workIncomeUsdPerMonth,
+    savings_usd_per_month: savingsUsdPerMonth,
+    start_capital_usd: startCapitalUsd,
+    annual_return_rate: annualReturnRate,
+    target_monthly_usd: targetMonthlyUsd,
+  })
 }

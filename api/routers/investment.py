@@ -8,12 +8,11 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, RootModel
 
 from core.investment.adapters import (
     AgentFactory,
-    AgentType,
     InvestmentAdapterRegistry,
     build_agent_factory,
     build_default_registry,

@@ -3,6 +3,8 @@ package ai.rastro.watch;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -22,11 +24,29 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity {
 
     private static final String API_BASE = "http://10.0.2.2:8000";
+    private static final String PREFS = "ownex_watch_prefs";
+    private static final String KEY_THEME = "theme_index";
+
+    // Acentos disponibles (Emerald, Cyan, Amber, Violet)
+    private static final int[][] THEMES = {
+        {Color.parseColor("#00E39A"), Color.parseColor("#00D5FF"), Color.parseColor("#FF7A1A"), Color.parseColor("#A855F7")},
+    };
+    private static final int[] THEME_COLORS = {
+        Color.parseColor("#00E39A"),
+        Color.parseColor("#00D5FF"),
+        Color.parseColor("#FF7A1A"),
+        Color.parseColor("#A855F7"),
+    };
+    private static final String[] THEME_NAMES = {"Emerald", "Cyan", "Amber", "Violet"};
+
     private TextView statusText;
     private TextView notificationsText;
     private TextView earningsText;
+    private TextView themeLabel;
     private Button refreshButton;
     private Button approveButton;
+    private Button themeButton;
+    private int themeIndex = 0;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -35,16 +55,41 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+        themeIndex = prefs.getInt(KEY_THEME, 0);
+
         statusText = findViewById(R.id.status_text);
         notificationsText = findViewById(R.id.notifications_text);
         earningsText = findViewById(R.id.earnings_text);
+        themeLabel = findViewById(R.id.theme_label);
         refreshButton = findViewById(R.id.btn_refresh);
         approveButton = findViewById(R.id.btn_approve);
+        themeButton = findViewById(R.id.btn_theme);
+
+        applyTheme();
 
         refreshButton.setOnClickListener(v -> refreshStatus());
         approveButton.setOnClickListener(v -> approveLatestAction());
+        themeButton.setOnClickListener(v -> {
+            themeIndex = (themeIndex + 1) % THEME_COLORS.length;
+            prefs.edit().putInt(KEY_THEME, themeIndex).apply();
+            applyTheme();
+        });
 
         refreshStatus();
+    }
+
+    private void applyTheme() {
+        int accent = THEME_COLORS[themeIndex];
+        String name = THEME_NAMES[themeIndex];
+        themeLabel.setText("Tema: " + name);
+        themeLabel.setTextColor(accent);
+        approveButton.setBackgroundColor(accent);
+        themeButton.setBackgroundColor(accent);
+        themeButton.setTextColor(Color.BLACK);
+        statusText.setBackgroundColor(Color.parseColor("#1a1a1a"));
+        notificationsText.setBackgroundColor(Color.parseColor("#1a1a1a"));
+        earningsText.setBackgroundColor(Color.parseColor("#1a1a1a"));
     }
 
     private void refreshStatus() {

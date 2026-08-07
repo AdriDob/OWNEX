@@ -221,7 +221,9 @@ class ProgressiveScalingManager:
                         peak_capital=metrics_data.get("peak_capital", 0.0),
                         current_capital=metrics_data.get("current_capital", 0.0),
                         consecutive_profitable_months=metrics_data.get("consecutive_profitable_months", 0),
-                        phase_start_date=datetime.fromisoformat(metrics_data.get("phase_start_date", datetime.now(UTC).isoformat())),
+                        phase_start_date=datetime.fromisoformat(
+                            metrics_data.get("phase_start_date", datetime.now(UTC).isoformat())
+                        ),
                     )
                 logger.info(f"Loaded scaling state: {self._current_phase}")
             except Exception as e:
@@ -286,7 +288,9 @@ class ProgressiveScalingManager:
 
         # Calculate drawdown
         if self._metrics.peak_capital > 0:
-            self._metrics.current_drawdown_pct = (self._metrics.peak_capital - current_capital) / self._metrics.peak_capital
+            self._metrics.current_drawdown_pct = (
+                self._metrics.peak_capital - current_capital
+            ) / self._metrics.peak_capital
             if self._metrics.current_drawdown_pct > self._metrics.max_drawdown_pct:
                 self._metrics.max_drawdown_pct = self._metrics.current_drawdown_pct
 
@@ -331,12 +335,13 @@ class ProgressiveScalingManager:
                 recommendation="Maintain current configuration",
             )
 
-
         checks = []
 
         # Check 1: Stability period
         stability_met = self._metrics.months_at_current_phase >= config.required_stability_months
-        checks.append(f"Stability: {self._metrics.months_at_current_phase}/{config.required_stability_months} months - {'✓' if stability_met else '✗'}")
+        checks.append(
+            f"Stability: {self._metrics.months_at_current_phase}/{config.required_stability_months} months - {'✓' if stability_met else '✗'}"
+        )
 
         # Check 2: Target revenue
         revenue_met = self._metrics.months_above_target >= 12  # 12 months above target
@@ -344,20 +349,26 @@ class ProgressiveScalingManager:
 
         # Check 3: Drawdown limit
         drawdown_ok = self._metrics.max_drawdown_pct <= config.drawdown_limit_pct
-        checks.append(f"Drawdown limit: {self._metrics.max_drawdown_pct:.1%} <= {config.drawdown_limit_pct:.1%} - {'✓' if drawdown_ok else '✗'}")
+        checks.append(
+            f"Drawdown limit: {self._metrics.max_drawdown_pct:.1%} <= {config.drawdown_limit_pct:.1%} - {'✓' if drawdown_ok else '✗'}"
+        )
 
         # Check 4: Acceptance rate
         if self._metrics.total_submissions > 0:
             acceptance_rate = self._metrics.accepted_submissions / self._metrics.total_submissions
             acceptance_ok = acceptance_rate >= config.acceptance_rate
-            checks.append(f"Acceptance rate: {acceptance_rate:.1%} >= {config.acceptance_rate:.1%} - {'✓' if acceptance_ok else '✗'}")
+            checks.append(
+                f"Acceptance rate: {acceptance_rate:.1%} >= {config.acceptance_rate:.1%} - {'✓' if acceptance_ok else '✗'}"
+            )
         else:
             acceptance_ok = False
             checks.append("Acceptance rate: No data - ✗")
 
         # Check 5: Consecutive profitable months
         profit_ok = self._metrics.consecutive_profitable_months >= 6
-        checks.append(f"Profitable streak: {self._metrics.consecutive_profitable_months}/6 months - {'✓' if profit_ok else '✗'}")
+        checks.append(
+            f"Profitable streak: {self._metrics.consecutive_profitable_months}/6 months - {'✓' if profit_ok else '✗'}"
+        )
 
         # All checks must pass
         can_progress = all([stability_met, revenue_met, drawdown_ok, acceptance_ok, profit_ok])
@@ -390,7 +401,10 @@ class ProgressiveScalingManager:
         config = self.get_current_config()
 
         # Check if current drawdown exceeds limit and downgrade to previous phase
-        if self._metrics.current_drawdown_pct > config.drawdown_limit_pct and self._current_phase != ScalingPhase.PHASE_1:
+        if (
+            self._metrics.current_drawdown_pct > config.drawdown_limit_pct
+            and self._current_phase != ScalingPhase.PHASE_1
+        ):
             prev_phase_value = f"phase_{self._current_phase.value.split('_')[1] - 1}"
             try:
                 prev_phase = ScalingPhase(prev_phase_value)

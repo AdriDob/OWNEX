@@ -26,10 +26,7 @@ logger = logging.getLogger("orion.setup_wizard")
 
 def _input(prompt: str, default: str = "") -> str:
     """Get user input with optional default."""
-    if default:
-        prompt = f"{prompt} [{default}]: "
-    else:
-        prompt = f"{prompt}: "
+    prompt = f"{prompt} [{default}]: " if default else f"{prompt}: "
     value = input(prompt).strip()
     return value or default
 
@@ -107,7 +104,7 @@ def step_bug_bounty_keys() -> dict[str, str]:
         ("YESWEHACK_API_KEY", "YesWeHack", "https://www.yeswehack.com"),
     ]
 
-    for env_key, name, docs in platforms:
+    for env_key, name, _docs in platforms:
         if _input_bool(f"  Configurar {name}?", default=False):
             key = _input(f"    API Key de {name}")
             if key:

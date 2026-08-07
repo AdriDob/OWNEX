@@ -26,10 +26,6 @@ from typing import Any
 
 from cores.notifications.action_required import (
     notify_action_required,
-    notify_credentials_missing,
-    notify_funding_needed,
-    notify_review_required,
-    notify_system_stalled,
 )
 from cores.notifications.hub import Notification, get_hub
 
@@ -355,10 +351,7 @@ class RealTimeAlertSystem:
                     "medium": len(medium),
                     "low": len(low),
                 },
-                "by_category": {
-                    cat.value: len([a for a in active if a.category == cat])
-                    for cat in AlertCategory
-                },
+                "by_category": {cat.value: len([a for a in active if a.category == cat]) for cat in AlertCategory},
             }
 
 

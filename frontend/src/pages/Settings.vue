@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useI18n } from '@/composables/useI18n'
 import type { ToolsSettings } from '@/stores/settings'
+import { useThemeEngine } from '@/composables/useThemeEngine'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
 import Tooltip from '@/components/ui/Tooltip.vue'
@@ -19,6 +20,7 @@ import {
 
 const settings = useSettingsStore()
 const a11y = useAccessibilityStore()
+const { initialize: initThemeEngine, currentTheme, availableThemes, themeNames, setTheme } = useThemeEngine()
 const { setLocale, currentLocale, supportedLocales } = useI18n()
 
 const fontScaleOptions = [75, 85, 100, 115, 130, 150]
@@ -37,6 +39,7 @@ const saveSuccess = ref('')
 const saveError = ref('')
 const showOnboarding = ref(false)
 const toolsLoading = ref(false)
+const themeLoading = ref(false)
 
 const tabs = [
   { id: 'general' as const, label: 'General', icon: Settings },
@@ -198,8 +201,6 @@ const systemItems = [
   { id: 'database', label: 'Base de datos', icon: Database },
 ]
 
-const appearanceThemes = ['cyber', 'dark', 'light', 'ocean', 'sunset']
-const appearanceColors = ['default', 'green', 'blue', 'purple', 'orange']
 const appearanceDensities = ['compact', 'normal', 'comfortable'] as const
 const appearanceLayouts = ['default', 'wide', 'sidebar'] as const
 
@@ -312,9 +313,10 @@ watch(() => settings.data, () => {
   }, 300)
 }, { deep: true })
 
-onMounted(() => {
+onMounted(async () => {
   settings.loadFromBackend()
   loadIntegrations()
+  await initThemeEngine()
 })
 </script>
 
@@ -883,63 +885,57 @@ onMounted(() => {
           <Palette class="h-4 w-4 text-primary" /> Personalización visual
         </h3>
 
-        <div>
-          <label class="mb-2 flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Tema</label>
-          <div class="flex flex-wrap gap-2">
-            <button
-              v-for="t in appearanceThemes" :key="t"
-              @click="settings.updateAppearance({ theme: t })"
-              class="rounded-lg border px-4 py-2 font-mono text-xs capitalize transition-all"
-              :class="settings.data.appearance.theme === t ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border/20 text-muted-foreground hover:text-foreground'"
-            >{{ t }}</button>
-          </div>
+        <div v-if="themeLoading" class="text-center py-8 text-muted-foreground font-mono text-xs">
+          Cargando temas...
         </div>
+        <template v-else>
+          <div>
+            <label class="mb-2 flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Tema</label>
+            <div class="flex flex-wrap gap-2">
+              <button
+                v-for="t in themeNames" :key="t.id"
+                @click="setTheme(t.id)"
+                class="rounded-lg border px-4 py-2 font-mono text-xs capitalize transition-all"
+                :class="currentTheme?.id === t.id ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border/20 text-muted-foreground hover:text-foreground'"
+              >{{ t.name }}</button>
+            </div>
+            <p v-if="currentTheme" class="mt-2 font-mono text-[10px] text-muted-foreground">{{ currentTheme.description }}</p>
+          </div>
 
-        <div>
-          <label class="mb-2 flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Colores</label>
-          <div class="flex flex-wrap gap-2">
-            <button
-              v-for="c in appearanceColors" :key="c"
-              @click="settings.updateAppearance({ colors: c })"
-              class="rounded-lg border px-4 py-2 font-mono text-xs capitalize transition-all"
-              :class="settings.data.appearance.colors === c ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border/20 text-muted-foreground hover:text-foreground'"
-            >{{ c }}</button>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div>
+              <label class="mb-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Densidad</label>
+              <select
+                :value="settings.data.appearance.density"
+                @change="settings.updateAppearance({ density: ($event.target as HTMLSelectElement).value as any })"
+                class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2 font-mono text-sm text-foreground focus:outline-none focus:border-primary/50"
+              >
+                <option v-for="d in appearanceDensities" :key="d" :value="d">{{ d }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Layout</label>
+              <select
+                :value="settings.data.appearance.layout"
+                @change="settings.updateAppearance({ layout: ($event.target as HTMLSelectElement).value as any })"
+                class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2 font-mono text-sm text-foreground focus:outline-none focus:border-primary/50"
+              >
+                <option v-for="l in appearanceLayouts" :key="l" :value="l">{{ l }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Animaciones</label>
+              <label class="flex items-center gap-2 cursor-pointer pt-2">
+                <input
+                  :checked="settings.data.appearance.animations"
+                  @change="settings.updateAppearance({ animations: ($event.target as HTMLInputElement).checked })"
+                  type="checkbox" class="h-4 w-4 rounded border-border/60 accent-primary"
+                />
+                <span class="font-mono text-xs text-muted-foreground">Activadas</span>
+              </label>
+            </div>
           </div>
-        </div>
-
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div>
-            <label class="mb-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Densidad</label>
-            <select
-              :value="settings.data.appearance.density"
-              @change="settings.updateAppearance({ density: ($event.target as HTMLSelectElement).value as any })"
-              class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2 font-mono text-sm text-foreground focus:outline-none focus:border-primary/50"
-            >
-              <option v-for="d in appearanceDensities" :key="d" :value="d">{{ d }}</option>
-            </select>
-          </div>
-          <div>
-            <label class="mb-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Layout</label>
-            <select
-              :value="settings.data.appearance.layout"
-              @change="settings.updateAppearance({ layout: ($event.target as HTMLSelectElement).value as any })"
-              class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2 font-mono text-sm text-foreground focus:outline-none focus:border-primary/50"
-            >
-              <option v-for="l in appearanceLayouts" :key="l" :value="l">{{ l }}</option>
-            </select>
-          </div>
-          <div>
-            <label class="mb-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Animaciones</label>
-            <label class="flex items-center gap-2 cursor-pointer pt-2">
-              <input
-                :checked="settings.data.appearance.animations"
-                @change="settings.updateAppearance({ animations: ($event.target as HTMLInputElement).checked })"
-                type="checkbox" class="h-4 w-4 rounded border-border/60 accent-primary"
-              />
-              <span class="font-mono text-xs text-muted-foreground">Activadas</span>
-            </label>
-          </div>
-        </div>
+        </template>
       </div>
     </div>
 

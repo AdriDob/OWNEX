@@ -172,6 +172,37 @@
       </div>
     </section>
 
+    <!-- ═══ CORE VISUALIZATION ═══ -->
+    <section class="core-viz-section">
+      <h2 class="section-title">OWNEX Core Intelligence</h2>
+      <p class="section-subtitle">Módulos orbitando alrededor de la inteligencia central</p>
+      <CoreVisualization class="core-viz-canvas" />
+    </section>
+
+    <!-- ═══ THEME SHOWCASE ═══ -->
+    <section class="theme-showcase-section">
+      <h2 class="section-title">Temas Visuales</h2>
+      <p class="section-subtitle">Elige la identidad visual que mejor se adapte a tu flujo de trabajo</p>
+      <div class="theme-cards">
+        <div
+          v-for="t in themeNames"
+          :key="t.id"
+          @click="setTheme(t.id)"
+          class="theme-card"
+          :class="{ active: currentTheme?.id === t.id }"
+        >
+          <div class="theme-preview" :style="getThemePreviewStyle(t.id)">
+            <div class="theme-preview-core" :style="getThemeCoreStyle(t.id)" />
+          </div>
+          <div class="theme-info">
+            <h3 class="theme-name">{{ t.name }}</h3>
+            <p class="theme-desc">{{ t.description }}</p>
+            <span v-if="currentTheme?.id === t.id" class="theme-active-badge">Activo</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ═══ FOOTER ═══ -->
     <footer class="welcome-footer">
       <div class="footer-content">
@@ -185,8 +216,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useThemeEngine } from '@/composables/useThemeEngine'
+import CoreVisualization from '@/components/CoreVisualization.vue'
 
 const router = useRouter()
+const { themeNames, currentTheme, setTheme } = useThemeEngine()
 
 const merlinGreeting = ref('¡Hola! Soy MERLIN, tu asistente de inteligencia autónoma. ¿En qué puedo ayudarte hoy?')
 
@@ -271,6 +305,23 @@ onMounted(() => {
     merlinGreeting.value = greetings[Math.floor(Math.random() * greetings.length)]
   }, 10000)
 })
+
+function getThemePreviewStyle(themeId: string) {
+  const theme = themeNames.value.find(t => t.id === themeId)
+  if (!theme) return {}
+  return {
+    background: theme.id === 'tesla' ? '#000000' : '#05060A',
+  }
+}
+
+function getThemeCoreStyle(themeId: string) {
+  const theme = themeNames.value.find(t => t.id === themeId)
+  if (!theme) return {}
+  // We need to get the actual theme definition for colors
+  return {
+    background: theme.id === 'tesla' ? '#E82127' : '#00D5FF',
+  }
+}
 </script>
 
 <style scoped>
@@ -680,6 +731,100 @@ onMounted(() => {
 .stat-label {
   font-size: 0.875rem;
   color: #94A3B8;
+}
+
+/* ═══ CORE VISUALIZATION ═══ */
+.core-viz-section {
+  margin-bottom: 4rem;
+}
+
+.core-viz-canvas {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ═══ THEME SHOWCASE ═══ */
+.theme-showcase-section {
+  margin-bottom: 4rem;
+}
+
+.theme-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.theme-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-card:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.theme-card.active {
+  border-color: rgba(96, 165, 250, 0.5);
+  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.3), 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.theme-preview {
+  width: 100%;
+  height: 120px;
+  border-radius: 0.75rem;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-preview-core {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-shadow: 0 0 30px currentColor;
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
+.theme-info {
+  text-align: center;
+}
+
+.theme-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.theme-desc {
+  font-size: 0.875rem;
+  color: #94A3B8;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.theme-active-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(96, 165, 250, 0.2);
+  color: #60A5FA;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* ═══ FOOTER ═══ */

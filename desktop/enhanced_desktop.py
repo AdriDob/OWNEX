@@ -69,7 +69,7 @@ class EnhancedDesktop:
             scheduler = get_life_scheduler()
             all_jobs = get_all_jobs()
 
-            for cycle, jobs in all_jobs.items():
+            for _cycle, jobs in all_jobs.items():
                 for job in jobs:
                     scheduler.register(job)
 
@@ -112,7 +112,7 @@ class EnhancedDesktop:
             from desktop.native_w11 import get_native
 
             native = get_native()
-            options = native.get_native_css_injection()
+            native.get_native_css_injection()
 
             window = webview.create_window(
                 title="Rastro — Autonomous Income System",
@@ -168,7 +168,7 @@ class EnhancedDesktop:
         try:
             import webview
 
-            window = webview.create_window(
+            webview.create_window(
                 "Rastro — Dashboard",
                 url="http://127.0.0.1:8000",
                 width=1400,

@@ -296,6 +296,17 @@ def get_security_jobs() -> list[JobDefinition]:
         )
     )
 
+    # Auto-submit confirmed findings that pass Quality Gate — every 30 min
+    jobs.append(
+        _cron_job(
+            job_id="security_auto_submit",
+            app_id="security",
+            handler="core.cycles.tasks:auto_submit_pending_findings",
+            cron="45 * * * *",
+            metadata={"cycle": "security", "type": "auto_submit"},
+        )
+    )
+
     # Sync scores and knowledge hourly
     jobs.append(
         _cron_job(
