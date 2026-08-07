@@ -107,7 +107,9 @@ class PaymentTracker:
                     polling_interval_hours=wc_data.get("polling_interval_hours", 24),
                     last_polled_at=wc_data.get("last_polled_at"),
                 )
-            logger.info(f"[PAYMENT_TRACKER] Loaded {len(self._payments)} payments, {len(self._webhook_configs)} webhook configs")
+            logger.info(
+                f"[PAYMENT_TRACKER] Loaded {len(self._payments)} payments, {len(self._webhook_configs)} webhook configs"
+            )
         except Exception as e:
             logger.error(f"[PAYMENT_TRACKER] Failed to load: {e}")
 

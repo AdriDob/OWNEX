@@ -35,6 +35,7 @@ import TaxAR from '@/components/mission-control/TaxAR.vue'
 import InvoicerAR from '@/components/mission-control/InvoicerAR.vue'
 import OfframpExecutor from '@/components/mission-control/OfframpExecutor.vue'
 import PlatformConnectors from '@/components/mission-control/PlatformConnectors.vue'
+import WelcomeGuide from '@/components/mission-control/WelcomeGuide.vue'
 import AutonomyDashboard from '@/components/mission-control/AutonomyDashboard.vue'
 import ReportPipeline from '@/components/dashboard/ReportPipeline.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
@@ -285,6 +286,9 @@ const feedItems = computed(() =>
         />
         <NextBestAction v-else title="Sin acción pendiente" description="Revisar oportunidades o iniciar un ciclo de trabajo" :primary-action="{ label: 'Ejecutar', variant: 'primary' }" />
       </div>
+
+      <!-- Row 0: Welcome Guide (Day 1 hand-holding) -->
+      <WelcomeGuide v-if="!degraded && loading === false && dashboard" class="lg:col-span-3" />
 
       <!-- Row 2.5: Daily Operation Mode -->
       <GoodMorning />

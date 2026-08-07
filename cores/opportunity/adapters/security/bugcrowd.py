@@ -156,7 +156,8 @@ class BugcrowdAdapter(OpportunityAdapter):
         if not self._enabled:
             return
 
-        async with httpx.AsyncClient() as client:
-            # Could fetch submission data, payouts, etc. from authenticated endpoints
-            # For now, we rely on public data
+        # Authenticated enrichment placeholder: future code will use the client
+        # to fetch submission data, payouts, etc. from authenticated endpoints.
+        # For now, we rely on public data.
+        async with httpx.AsyncClient() as _client:  # noqa: F841
             pass

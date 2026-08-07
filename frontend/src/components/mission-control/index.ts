@@ -21,3 +21,4 @@ export { default as FinanceGuru } from './FinanceGuru.vue'export { default as Ta
 export { default as InvoicerAR } from './InvoicerAR.vue'
 export { default as OfframpExecutor } from './OfframpExecutor.vue'
 export { default as PlatformConnectors } from './PlatformConnectors.vue'
+export { default as WelcomeGuide } from './WelcomeGuide.vue'
