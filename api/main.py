@@ -127,6 +127,7 @@ from api.routers import (
     revenue_multiplier,
     revenue_timeline,
     roi,
+    sandbox,
     scans,
     screenshots,
     security_cycle,
@@ -1491,6 +1492,7 @@ app.include_router(targets.router)
 app.include_router(endpoints.router)
 app.include_router(findings.router)
 app.include_router(evidence.router)
+app.include_router(sandbox.router)
 app.include_router(evolution.router)
 app.include_router(opportunities.router)
 app.include_router(attack_surface.router)

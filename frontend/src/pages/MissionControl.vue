@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import {
   Activity, Clock, RefreshCw, Shield,
   DollarSign, FileText, BarChart3, HeartPulse,
-  Zap, AlertTriangle,
+  Zap, AlertTriangle, ClipboardCheck,
 } from '@lucide/vue'
 import ThroughputCore from '@/components/dashboard/ThroughputCore.vue'
 import WorkCyclesGrid from '@/components/dashboard/WorkCyclesGrid.vue'
@@ -36,7 +36,9 @@ import InvoicerAR from '@/components/mission-control/InvoicerAR.vue'
 import OfframpExecutor from '@/components/mission-control/OfframpExecutor.vue'
 import PlatformConnectors from '@/components/mission-control/PlatformConnectors.vue'
 import WelcomeGuide from '@/components/mission-control/WelcomeGuide.vue'
+import SandboxMode from '@/components/mission-control/SandboxMode.vue'
 import AutonomyDashboard from '@/components/mission-control/AutonomyDashboard.vue'
+import ConfigProgressBar from '@/components/mission-control/ConfigProgressBar.vue'
 import ReportPipeline from '@/components/dashboard/ReportPipeline.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import ErrorState from '@/components/ui/ErrorState.vue'
@@ -69,7 +71,54 @@ const quickActions = [
   { id: 'reports', label: 'Reportes', icon: FileText, path: '/reports/center' },
   { id: 'pipeline', label: 'Pipeline', icon: BarChart3, path: '/operations/pipelines' },
   { id: 'health', label: 'Health', icon: HeartPulse, path: '/operations/health' },
+  { id: 'claims', label: 'Mis pruebas', icon: ClipboardCheck, path: null },
 ]
+
+const showClaimsModal = ref(false)
+const claimsList = ref<EvidenceClaim[]>([])
+const claimsLoading = ref(false)
+
+async function loadClaims() {
+  claimsLoading.value = true
+  try {
+    const res = await fetch('/api/evidence/claims').then(r => r.json())
+    claimsList.value = res.items || res || []
+  } catch {
+    claimsList.value = []
+  } finally {
+    claimsLoading.value = false
+  }
+}
+
+function openClaimsModal() {
+  showClaimsModal.value = true
+  loadClaims()
+}
+
+function closeClaimsModal() {
+  showClaimsModal.value = false
+}
+
+async function downloadClaim(claim: EvidenceClaim) {
+  const blob = new Blob([JSON.stringify(claim, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${claim.finding_id}.claim.json`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+interface EvidenceClaim {
+  finding_id: string
+  bounty_id?: string
+  outcome: string
+  detail: string
+  timestamp_utc: string
+  sha256: string
+  path: string
+  version: string
+}
 
 async function load() {
   try {
@@ -199,7 +248,7 @@ const feedItems = computed(() =>
         <span class="font-mono text-[9px] font-bold uppercase tracking-wider text-muted-foreground mr-1">Acciones rápidas</span>
         <button
           v-for="qa in quickActions" :key="qa.id"
-          @click="router.push(qa.path)"
+          @click="qa.path ? router.push(qa.path) : openClaimsModal()"
           class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-foreground/80 hover:text-foreground hover:bg-primary/10 border border-border/30 transition-colors"
         >
           <component :is="qa.icon" class="h-3.5 w-3.5" />
@@ -209,6 +258,9 @@ const feedItems = computed(() =>
 
       <!-- TODO DIARIO: lista de tareas del día propuestas por OWNEX -->
       <DailyTasks />
+
+      <!-- CONFIG PROGRESS BAR: barra de progresión de todos los ajustes -->
+      <ConfigProgressBar />
 
       <!-- CONTROL PANEL: modos, ciclo, automación, acciones -->
       <ControlPanel />
@@ -290,6 +342,9 @@ const feedItems = computed(() =>
       <!-- Row 0: Welcome Guide (Day 1 hand-holding) -->
       <WelcomeGuide v-if="!degraded && loading === false && dashboard" class="lg:col-span-3" />
 
+      <!-- Row 0.5: Sandbox Mode (Learning playground) -->
+      <SandboxMode v-if="!degraded && loading === false && dashboard" class="lg:col-span-3" />
+
       <!-- Row 2.5: Daily Operation Mode -->
       <GoodMorning />
 
@@ -325,9 +380,67 @@ const feedItems = computed(() =>
       <TaxAR />
       <InvoicerAR />
 
-      <!-- OFFRAMP + CONNECTORS -->
+<!-- OFFRAMP + CONNECTORS -->
       <OfframpExecutor />
       <PlatformConnectors />
+
       </template>
-  </div>
+
+      <!-- CLAIMS MODAL -->
+      <div v-if="showClaimsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div class="bg-surface border border-border rounded-xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-border">
+            <h3 class="font-semibold text-foreground flex items-center gap-2">
+              <ClipboardCheck class="h-5 w-5 text-primary" />
+              Mis pruebas guardadas
+            </h3>
+            <button @click="closeClaimsModal" class="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-accent transition-colors">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div class="p-4 overflow-y-auto">
+            <template v-if="claimsLoading">
+              <div class="flex items-center justify-center py-8 text-muted-foreground">Cargando pruebas...</div>
+            </template>
+            <template v-else-if="!claimsList.length">
+              <div class="text-center py-8 text-muted-foreground">
+                <ClipboardCheck class="h-12 w-12 mx-auto mb-3 opacity-30" />
+                <p>No hay pruebas guardadas aún.</p>
+                <p class="text-sm mt-1">Valida una bounty en DevBountyAutopilot para generar una prueba.</p>
+              </div>
+            </template>
+            <template v-else>
+              <div class="space-y-3">
+                <div v-for="c in claimsList" :key="c.finding_id" class="bg-background/50 border border-border/30 rounded-lg p-4">
+                  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-1">
+                        <code class="font-mono text-sm bg-accent px-2 py-0.5 rounded">{{ c.finding_id }}</code>
+                        <span class="text-xs font-medium px-2 py-0.5 rounded"
+                          :class="c.outcome === 'approved' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'">
+                          {{ c.outcome }}
+                        </span>
+                      </div>
+                      <p class="text-sm text-muted-foreground truncate">{{ c.detail }}</p>
+                      <div class="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
+                        <span>{{ new Date(c.timestamp_utc).toLocaleString() }}</span>
+                        <span v-if="c.bounty_id">Bounty: {{ c.bounty_id }}</span>
+                        <span>sha256: {{ c.sha256 }}</span>
+                      </div>
+                    </div>
+                    <button
+                      @click="downloadClaim(c)"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 border border-primary/30 rounded-lg transition-colors flex-shrink-0"
+                    >
+                      <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                      Exportar JSON
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </template>
+</div>
+        </div>
+      </div>
+    </div>
 </template>

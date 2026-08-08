@@ -431,6 +431,239 @@ class DailyTaskBoard:
         except Exception:
             pass
 
+        # ── API KEYS: Bug Bounty Platforms (6) ──
+        try:
+            from core.credentials.vault import get_credentials
+
+            creds = get_credentials()
+            bb_keys = {
+                "HACKERONE_API_KEY": creds.hackerone_api_key,
+                "BUGCROWD_API_KEY": creds.bugcrowd_api_key,
+                "INTIGRITI_API_KEY": creds.intigriti_api_key,
+                "YESWEHACK_API_KEY": creds.yeswehack_api_key,
+                "IMMUNEFI_API_KEY": creds.immunefi_api_key,
+                "SYNACK_API_KEY": creds.synack_api_key,
+            }
+            missing_bb = [k for k, v in bb_keys.items() if not v]
+            if missing_bb:
+                recs.append(
+                    {
+                        "action": f"Configurar {len(missing_bb)} API keys Bug Bounty: {', '.join(missing_bb[:3])}{'...' if len(missing_bb) > 3 else ''}",
+                        "why": "Sin API keys no hay sync de programas, pagos ni trust score en plataformas bug bounty.",
+                        "priority": "alta",
+                        "cat": "api_keys",
+                    }
+                )
+        except Exception:
+            pass
+
+        # ── API KEYS: Dev Bounty / Dev Platforms (7) ──
+        try:
+            from core.credentials.vault import get_credentials
+
+            creds = get_credentials()
+            dev_keys = {
+                "OPIRE_API_KEY": creds.opire_api_key,
+                "FREELANCER_API_KEY": creds.freelancer_api_key,
+                "ALGORA_API_KEY": getattr(creds, "algora_api_key", None),
+                "ISSUEHUNT_API_KEY": getattr(creds, "issuehunt_api_key", None),
+                "OPENCOLLECTIVE_API_KEY": getattr(creds, "opencollective_api_key", None),
+                "SUPERTEAM_API_KEY": getattr(creds, "superteam_api_key", None),
+                "GITHUB_API_KEY": getattr(creds, "github_api_key", creds.github_token),
+            }
+            missing_dev = [k for k, v in dev_keys.items() if not v]
+            if missing_dev:
+                recs.append(
+                    {
+                        "action": f"Configurar {len(missing_dev)} API keys Dev/Platforms: {', '.join(missing_dev[:3])}{'...' if len(missing_dev) > 3 else ''}",
+                        "why": "Sin API keys no hay sync de bounties dev, pagos ni auto-discovery en GitHub/Opire/Algora.",
+                        "priority": "alta",
+                        "cat": "api_keys",
+                    }
+                )
+        except Exception:
+            pass
+
+        # ── API KEYS: AI/Data Platforms (5) ──
+        try:
+            from core.credentials.vault import get_credentials
+
+            creds = get_credentials()
+            ai_keys = {
+                "OUTLIER_API_KEY": creds.outlier_api_key,
+                "MINDRIFT_API_KEY": creds.mindrift_api_key,
+                "DATAANNOTATION_API_KEY": creds.dataannotation_api_key,
+                "REMOTASKS_API_KEY": getattr(creds, "remotasks_api_key", None),
+                "OPYRE_API_KEY": getattr(creds, "opyre_api_key", None),
+            }
+            missing_ai = [k for k, v in ai_keys.items() if not v]
+            if missing_ai:
+                recs.append(
+                    {
+                        "action": f"Configurar {len(missing_ai)} API keys AI/Data: {', '.join(missing_ai[:3])}{'...' if len(missing_ai) > 3 else ''}",
+                        "why": "Sin API keys no hay acceso a microtasks Outlier/Mindrift/DataAnnotation (fuente base recurrente).",
+                        "priority": "alta",
+                        "cat": "api_keys",
+                    }
+                )
+        except Exception:
+            pass
+
+        # ── PLATFORM CONNECTORS: Sync status (10 platforms) ──
+        try:
+            from core.platform_connectors import get_platform_manager
+
+            pm = get_platform_manager()
+            ps = pm.get_status()
+            platforms = ps.get("platforms", {})
+            needs_sync = []
+            for p, v in platforms.items():
+                if v.get("enabled") and v.get("has_creds"):
+                    # Check if last sync is old or missing
+                    last_sync = ps.get("last_sync", {}).get(p)
+                    if not last_sync:
+                        needs_sync.append(f"{p} (never synced)")
+            if needs_sync:
+                recs.append(
+                    {
+                        "action": f"Ejecutar sync inicial: {', '.join(needs_sync[:3])}{'...' if len(needs_sync) > 3 else ''}",
+                        "why": "Platforms con creds pero sin sync → no hay datos de pagos, programas ni trust.",
+                        "priority": "alta",
+                        "cat": "sync",
+                    }
+                )
+            # Also flag enabled platforms without creds
+            no_creds = [p for p, v in platforms.items() if v.get("enabled") and not v.get("has_creds")]
+            if no_creds:
+                recs.append(
+                    {
+                        "action": f"Habilitar credenciales para: {', '.join(no_creds[:3])}{'...' if len(no_creds) > 3 else ''}",
+                        "why": f"{len(no_creds)} platforms habilitadas sin creds → discovery y pagos desactivados.",
+                        "priority": "alta",
+                        "cat": "sync",
+                    }
+                )
+        except Exception:
+            pass
+
+        # ── GITHUB TOKEN (explícito) ──
+        try:
+            from core.credentials.vault import get_credentials
+
+            creds = get_credentials()
+            if not creds.github_token:
+                recs.append(
+                    {
+                        "action": "Configurar GITHUB_TOKEN (scope: repo, user, workflow)",
+                        "why": "Permite auditoría perfil, auto-push bounties, GitHub Issues bounties discovery.",
+                        "priority": "crítica",
+                        "cat": "api_keys",
+                    }
+                )
+        except Exception:
+            pass
+
+        # ── VPN ──
+        try:
+            from core.vpn_assistant import get_vpn_assistant
+
+            vpn = get_vpn_assistant()
+            vr = vpn.readiness_report()
+            if not vr.get("ready", False):
+                for issue in vr.get("issues", [])[:2]:
+                    recs.append(
+                        {
+                            "action": f"VPN: {issue}",
+                            "why": "Requerida para Outlier, DataAnnotation, Mindrift (geo-restringidos).",
+                            "priority": "crítica",
+                            "cat": "sync",
+                        }
+                    )
+        except Exception:
+            pass
+
+        # ── PAYOUT METHODS (PayoutNet) ──
+        try:
+            from core.payout_net import get_payout_net
+
+            pn = get_payout_net()
+            ps = pn.get_status()
+            created = ps.get("created", 0)
+            if created == 0:
+                recs.append(
+                    {
+                        "action": "Crear método de payout en PayoutNet (ej. Binance P2P, DolarApp, Wise, Payoneer)",
+                        "why": "Sin método → Work Bank no recomienda cómo cobrar cada oportunidad.",
+                        "priority": "alta",
+                        "cat": "payout",
+                    }
+                )
+            # Also check if default payout per platform is set
+            methods = ps.get("methods", [])
+            if methods:
+                platforms_without = []
+                for p in [
+                    "hackerone",
+                    "bugcrowd",
+                    "intigriti",
+                    "yeswehack",
+                    "immunefi",
+                    "opire",
+                    "freelancer",
+                    "outlier",
+                    "mindrift",
+                    "dataannotation",
+                ]:
+                    has_method = any(m.get("platform") == p for m in methods)
+                    if not has_method:
+                        platforms_without.append(p)
+                if platforms_without:
+                    recs.append(
+                        {
+                            "action": f"Asignar payout method por plataforma: {', '.join(platforms_without[:3])}{'...' if len(platforms_without) > 3 else ''}",
+                            "why": "Cada plataforma necesita su método de cobro óptimo (ej. HackerOne→Payoneer, Opire→Binance P2P).",
+                            "priority": "media",
+                            "cat": "payout",
+                        }
+                    )
+        except Exception:
+            pass
+
+        # ── MONEY PLAN TARGET ──
+        try:
+            from core.money_plan import get_money_plan
+
+            mp = get_money_plan().get()
+            if not mp.get("target_set", False) and not mp.get("weekly_target"):
+                recs.append(
+                    {
+                        "action": "Setear weekly_target en Money Plan (ej. $500/semana)",
+                        "why": "OWNEX filtra oportunidades por EV ≥ target; sin target no prioriza.",
+                        "priority": "crítica",
+                        "cat": "goals",
+                    }
+                )
+        except Exception:
+            pass
+
+        # ── GOAL EVALUATOR ──
+        try:
+            from core.goal_evaluator import get_goal_evaluator
+
+            ge = get_goal_evaluator()
+            gs = ge.get_status()
+            if gs.get("success") and not gs.get("last_eval"):
+                recs.append(
+                    {
+                        "action": "Ejecutar evaluación de meta en Goal Evaluator",
+                        "why": "OWNEX calcula gaps reales (bounties faltantes, VPN, skill) y te dice qué hacer.",
+                        "priority": "alta",
+                        "cat": "goals",
+                    }
+                )
+        except Exception:
+            pass
+
         return recs
 
     def _day_context(self, day: int) -> str:

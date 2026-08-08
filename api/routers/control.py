@@ -495,7 +495,221 @@ async def daily_tasks_complete_done() -> dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(e)) from None
 
 
-# ── Skill Method ──────────────────────────────────────────────────
+# ── Config Progress ──────────────────────────────────────────────────
+
+
+@router.get("/config/progress")
+async def config_progress() -> dict[str, Any]:
+    """Progreso global de configuración OWNEX (0-100%)."""
+    try:
+        from core.credentials.vault import get_credentials
+        from core.goal_evaluator import get_goal_evaluator
+        from core.money_plan import get_money_plan
+        from core.payout_net import get_payout_net
+        from core.platform_connectors import get_platform_manager
+        from core.profile_builder import get_profile_builder
+        from core.vpn_assistant import get_vpn_assistant
+
+        # Checklist completo
+        checks = []
+
+        # 1. GitHub Token
+        creds = get_credentials()
+        has_github = bool(creds.github_token)
+        checks.append(
+            {"id": "github_token", "name": "GITHUB_TOKEN (scope repo)", "done": has_github, "cat": "api_keys"}
+        )
+
+        # 2. GitHub vinculado
+        pb = get_profile_builder()
+        github_linked = pb.get_status().get("linked", False)
+        checks.append(
+            {"id": "github_linked", "name": "GitHub profile vinculado", "done": github_linked, "cat": "profile"}
+        )
+
+        # 3. API Keys Bug Bounty (6)
+        bb_keys = [
+            "hackerone_api_key",
+            "bugcrowd_api_key",
+            "intigriti_api_key",
+            "yeswehack_api_key",
+            "immunefi_api_key",
+            "synack_api_key",
+        ]
+        creds = get_credentials()
+        bb_done = sum(1 for k in bb_keys if getattr(creds, k, None))
+        checks.append(
+            {"id": "bb_api_keys", "name": "API Keys Bug Bounty (6)", "done": bb_done, "total": 6, "cat": "api_keys"}
+        )
+
+        # 4. API Keys Dev/Platforms (7)
+        dev_keys = [
+            "opire_api_key",
+            "freelancer_api_key",
+            "algora_api_key",
+            "issuehunt_api_key",
+            "opencollective_api_key",
+            "superteam_api_key",
+            "github_api_key",
+        ]
+        dev_done = sum(1 for k in dev_keys if getattr(creds, k, None))
+        checks.append(
+            {
+                "id": "dev_api_keys",
+                "name": "API Keys Dev/Platforms (7)",
+                "done": dev_done,
+                "total": 7,
+                "cat": "api_keys",
+            }
+        )
+
+        # 5. API Keys AI/Data (5)
+        ai_keys = [
+            "outlier_api_key",
+            "mindrift_api_key",
+            "dataannotation_api_key",
+            "remotasks_api_key",
+            "opyre_api_key",
+        ]
+        ai_done = sum(1 for k in ai_keys if getattr(creds, k, None))
+        checks.append(
+            {"id": "ai_api_keys", "name": "API Keys AI/Data (5)", "done": ai_done, "total": 5, "cat": "api_keys"}
+        )
+
+        # 6. VPN
+        vpn = get_vpn_assistant()
+        vpn_ready = vpn.readiness_report().get("ready", False)
+        checks.append({"id": "vpn", "name": "VPN instalada y conectada", "done": vpn_ready, "cat": "sync"})
+
+        # 7. Profile: README
+        pb_status = pb.get_status()
+        audit = pb_status.get("audit", {})
+        has_readme = bool(audit.get("has_readme"))
+        checks.append({"id": "readme", "name": "README perfil creado", "done": has_readme, "cat": "profile"})
+
+        # 8. Profile: Bio
+        has_bio = bool((audit.get("user") or {}).get("bio"))
+        checks.append({"id": "bio", "name": "Bio técnica en GitHub", "done": has_bio, "cat": "profile"})
+
+        # 9. Profile: 3 pinned repos
+        pinned = audit.get("pinned_count", 0)
+        checks.append({"id": "pinned", "name": "3 repos pinned", "done": pinned >= 3, "cat": "profile"})
+
+        # 10. Repo portfolio
+        has_portfolio = bool(pb_status.get("portfolio_repo"))
+        checks.append(
+            {"id": "portfolio_repo", "name": "Repo portfolio (usuario/repo)", "done": has_portfolio, "cat": "profile"}
+        )
+
+        # 11. VPN ready (duplicate check)
+        # 11. PayoutNet methods
+        pn = get_payout_net()
+        pn_created = pn.get_status().get("created", 0)
+        checks.append(
+            {"id": "payout_method", "name": "PayoutNet: al menos 1 método", "done": pn_created > 0, "cat": "payout"}
+        )
+
+        # 12. Payout per platform
+        pn_methods = pn.get_status().get("methods", [])
+        platforms_payout = [
+            "hackerone",
+            "bugcrowd",
+            "intigriti",
+            "yeswehack",
+            "immunefi",
+            "opire",
+            "freelancer",
+            "outlier",
+            "mindrift",
+            "dataannotation",
+        ]
+        payout_assigned = sum(1 for p in platforms_payout if any(m.get("platform") == p for m in pn_methods))
+        checks.append(
+            {
+                "id": "payout_per_platform",
+                "name": "Payout por plataforma (10)",
+                "done": payout_assigned,
+                "total": len(platforms_payout),
+                "cat": "payout",
+            }
+        )
+
+        # 13. VPN installed
+        checks.append({"id": "vpn_installed", "name": "VPN instalada", "done": vpn_ready, "total": 1, "cat": "sync"})
+
+        # 14. Dev Bounty Autopilot active
+        from core.dev_bounty_autopilot import get_dev_bounty_autopilot
+
+        autopilot_active = get_dev_bounty_autopilot().is_active()
+        checks.append(
+            {"id": "autopilot", "name": "Dev Bounty Autopilot activo", "done": autopilot_active, "cat": "sync"}
+        )
+
+        # 15. Money Plan target
+        mp = get_money_plan().get()
+        has_target = mp.get("target_set", False) or bool(mp.get("weekly_target"))
+        checks.append({"id": "money_target", "name": "Money Plan target ($/sem)", "done": has_target, "cat": "goals"})
+
+        # 16. Goal Evaluator eval
+        ge = get_goal_evaluator()
+        gs = ge.get_status()
+        has_eval = gs.get("success") and gs.get("last_eval") is not None
+        checks.append({"id": "goal_eval", "name": "Goal Evaluator ejecutado", "done": has_eval, "cat": "goals"})
+
+        # 17. GitHub profile: repo count > 0
+        repo_count = audit.get("repo_count", 0)
+        checks.append(
+            {"id": "repo_count", "name": "Al menos 1 repo en GitHub", "done": repo_count > 0, "cat": "profile"}
+        )
+
+        # 18. First repo pushed
+        checks.append({"id": "first_repo", "name": "Primer repo subido", "done": repo_count > 0, "cat": "profile"})
+
+        # 19. Platform Connectors sync
+        pm = get_platform_manager()
+        ps = pm.get_status()
+        synced = 0
+        for p, v in ps.get("platforms", {}).items():
+            if v.get("enabled") and v.get("has_creds"):
+                last_sync = ps.get("last_sync", {}).get(p)
+                if last_sync:
+                    synced += 1
+        total_enabled = sum(1 for v in ps.get("platforms", {}).values() if v.get("enabled"))
+        checks.append(
+            {
+                "id": "platform_sync",
+                "name": f"Platform Connectors sync ({total_enabled})",
+                "done": synced,
+                "total": total_enabled,
+                "cat": "sync",
+            }
+        )
+
+        # 20. Dev Bounty Autopilot
+        checks.append(
+            {"id": "dev_bounty_active", "name": "Dev Bounty Autopilot running", "done": autopilot_active, "cat": "sync"}
+        )
+
+        # Calculate progress
+        total = sum(c.get("total", 1) for c in checks)
+        done = sum(c.get("done", 0) if isinstance(c.get("done"), int) else (1 if c.get("done") else 0) for c in checks)
+        pct = round(done / total * 100) if total > 0 else 0
+
+        return {
+            "progress_pct": pct,
+            "done": done,
+            "total": total,
+            "checks": checks,
+            "categories": {
+                "api_keys": [c for c in checks if c["cat"] == "api_keys"],
+                "profile": [c for c in checks if c["cat"] == "profile"],
+                "sync": [c for c in checks if c["cat"] == "sync"],
+                "payout": [c for c in checks if c["cat"] == "payout"],
+                "goals": [c for c in checks if c["cat"] == "goals"],
+            },
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/skill-method")
