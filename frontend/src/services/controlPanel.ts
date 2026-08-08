@@ -345,6 +345,56 @@ export async function saveEvidenceClaim(
   }).catch(() => ({ finding_id: findingId, outcome: data.outcome ?? 'done', detail: data.detail ?? '', timestamp_utc: new Date().toISOString(), sha256: '', path: '' }))
 }
 
+// ── Sandbox Mode ──
+
+export interface SandboxBounty {
+  id: string
+  title: string
+  description: string
+  repo: string
+  platform: string
+  reward_usd: number
+  difficulty: string
+  tags: string[]
+  files_to_edit: string[]
+  solution_template: string
+  test_instructions: string
+  created_at: string
+  status: string
+  submitted_at?: string
+  validated_at?: string
+  payout_tx?: string
+}
+
+export interface SandboxProgress {
+  total_bounties: number
+  completed: number
+  total_reward_usd: number
+  completion_rate: number
+  submissions: number
+}
+
+export interface SandboxState {
+  bounties: SandboxBounty[]
+  progress: SandboxProgress
+}
+
+export async function getSandboxState(): Promise<SandboxState> {
+  return api.get<SandboxState>('/api/sandbox/state').catch(() => ({ bounties: [], progress: { total_bounties: 0, completed: 0, total_reward_usd: 0, completion_rate: 0, submissions: 0 } }))
+}
+
+export async function submitSandboxBounty(
+  bountyId: string,
+  solution: string,
+  files: Record<string, string>,
+): Promise<{ success: boolean; approved: boolean; matches: number; total_parts: number; payout_tx?: string; message: string }> {
+  return api.post('/api/sandbox/submit', { bounty_id: bountyId, solution, files }).catch(() => ({ success: false, approved: false, matches: 0, total_parts: 0, message: 'Error al enviar' }))
+}
+
+export async function resetSandbox(): Promise<{ success: boolean; message: string }> {
+  return api.post('/api/sandbox/reset', {}).catch(() => ({ success: false, message: 'Error al reiniciar' }))
+}
+
 // ── Profile Builder ──
 
 
@@ -1213,4 +1263,32 @@ export async function setPlatformConfig(platform: string, enabled: boolean, cred
 
 export async function syncPlatforms(): Promise<PlatformSyncResult> {
   return api.post<PlatformSyncResult>('/api/platforms/sync', {}).catch(() => ({}))
+}
+
+// ── Config Progress ──────────────────────────────────────────────────
+
+export interface ConfigCheck {
+  id: string
+  name: string
+  done: boolean | number
+  total?: number
+  cat: string
+}
+
+export interface ConfigProgressResult {
+  progress_pct: number
+  done: number
+  total: number
+  checks: ConfigCheck[]
+  categories: Record<string, ConfigCheck[]>
+}
+
+export async function getConfigProgress(): Promise<ConfigProgressResult> {
+  return api.get<ConfigProgressResult>('/api/config/progress').catch(() => ({
+    progress_pct: 0,
+    done: 0,
+    total: 0,
+    checks: [],
+    categories: {}
+  }))
 }

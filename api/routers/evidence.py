@@ -101,6 +101,24 @@ def save_evidence_claim(
     return {"status": "ok", "path": str(dest), **payload}
 
 
+@router.get("/claims", response_model=PaginatedResponse)
+def list_claims():
+    """List all saved evidence claims (.claim.json files)."""
+    import json
+
+    _EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
+    claims = []
+    for f in _EVIDENCE_DIR.glob("*.claim.json"):
+        try:
+            data = json.loads(f.read_text())
+            claims.append(data)
+        except Exception:
+            pass
+    # sort by timestamp descending
+    claims.sort(key=lambda x: x.get("timestamp_utc", ""), reverse=True)
+    return {"items": claims, "total": len(claims), "skip": 0, "limit": len(claims)}
+
+
 @router.post("/compose")
 def compose_evidence(req: ComposeEvidenceRequest):
     """Compose an evidence bundle from hypothesis data.
