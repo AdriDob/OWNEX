@@ -37,6 +37,8 @@ import OfframpExecutor from '@/components/mission-control/OfframpExecutor.vue'
 import PlatformConnectors from '@/components/mission-control/PlatformConnectors.vue'
 import WelcomeGuide from '@/components/mission-control/WelcomeGuide.vue'
 import SandboxMode from '@/components/mission-control/SandboxMode.vue'
+import VPNEmbed from '@/components/mission-control/VPNEmbed.vue'
+import AutoDispute from '@/components/mission-control/AutoDispute.vue'
 import AutonomyDashboard from '@/components/mission-control/AutonomyDashboard.vue'
 import ConfigProgressBar from '@/components/mission-control/ConfigProgressBar.vue'
 import ReportPipeline from '@/components/dashboard/ReportPipeline.vue'
@@ -344,6 +346,15 @@ const feedItems = computed(() =>
 
       <!-- Row 0.5: Sandbox Mode (Learning playground) -->
       <SandboxMode v-if="!degraded && loading === false && dashboard" class="lg:col-span-3" />
+
+      <!-- Row 0.6: VPN Embed (Auto-install + health check) -->
+      <VPNEmbed v-if="!degraded && loading === false && dashboard" class="lg:col-span-3" />
+
+      <!-- Row 0.7: Auto Dispute (Payment claims) -->
+      <AutoDispute v-if="!degraded && loading === false && dashboard" class="lg:col-span-3" />
+
+      <!-- Row 0.8: Obsidian Sync (Real bidirectional) -->
+      <ObsidianSync v-if="!degraded && loading === false && dashboard" class="lg:col-span-3" />
 
       <!-- Row 2.5: Daily Operation Mode -->
       <GoodMorning />

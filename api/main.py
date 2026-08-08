@@ -53,6 +53,7 @@ from api.routers import (
     digest,
     direct_work,
     discovery,
+    dispute,
     economic,
     endpoints,
     enhanced_personalization,
@@ -91,6 +92,7 @@ from api.routers import (
     modes,
     notifications,
     oar,
+    obsidian_sync,
     offensive,
     offensive_web3,
     onboarding,
@@ -1493,6 +1495,8 @@ app.include_router(endpoints.router)
 app.include_router(findings.router)
 app.include_router(evidence.router)
 app.include_router(sandbox.router)
+app.include_router(dispute.router)
+app.include_router(obsidian_sync.router)
 app.include_router(evolution.router)
 app.include_router(opportunities.router)
 app.include_router(attack_surface.router)
