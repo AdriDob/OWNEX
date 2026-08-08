@@ -1292,3 +1292,39 @@ export async function getConfigProgress(): Promise<ConfigProgressResult> {
     categories: {}
   }))
 }
+
+// ── Auto Dispute ──
+
+export interface DisputeItem {
+  local?: {
+    dispute_id: string
+    platform: string
+    finding_id: string
+    status: string
+    created_at: string
+  }
+  remote?: {
+    success: boolean
+    dispute_id?: string
+    error?: string
+  }
+}
+
+export async function openDispute(
+  platform: string,
+  findingId: string,
+  reason: string,
+  evidence: Record<string, unknown>,
+  platformRef?: string,
+): Promise<{ remote: { success: boolean; dispute_id?: string; error?: string }; local: DisputeItem['local'] }> {
+  return api.post('/api/dispute/open', { platform, finding_id: findingId, reason, evidence, platform_ref: platformRef })
+    .catch(() => ({ remote: { success: false, error: 'Error al abrir disputa' }, local: {} }))
+}
+
+export async function listDisputes(): Promise<{ items: DisputeItem[]; total: number }> {
+  return api.get('/api/dispute/list').catch(() => ({ items: [], total: 0 }))
+}
+
+export async function checkH1Report(reportId: string): Promise<{ success: boolean; data: unknown }> {
+  return api.post(`/api/dispute/check-h1/${reportId}`, {}).catch(() => ({ success: false, data: null }))
+}
