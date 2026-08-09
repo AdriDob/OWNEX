@@ -162,6 +162,29 @@ def check_update():
     }
 
 
+@router.post("/restart")
+def restart_api():
+    """Restart the API server via the self-update ProcessManager.
+
+    This is the endpoint the RecoveryEngine calls (action=restart_api_server)
+    when the API becomes unresponsive. It spawns a fresh process with the
+    same entry point (run.py / uvicorn) in a new session.
+    """
+    try:
+        from pathlib import Path
+
+        from core.self_update.system import ProcessManager
+
+        root = Path(__file__).resolve().parent.parent.parent
+        pm = ProcessManager(root)
+        result = pm.restart_application()
+        if result.get("success"):
+            return {"success": True, "message": "API restart requested", "pid": result.get("pid")}
+        return {"success": False, "message": f"Restart failed: {result.get('error')}"}
+    except Exception as exc:
+        return {"success": False, "message": f"Restart error: {exc}"}
+
+
 @router.get("/daemon/status")
 def get_daemon_status():
     """Get daemon status - whether it's running and its state."""

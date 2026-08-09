@@ -263,17 +263,25 @@ class RecoveryEngine:
             return False, str(exc)
 
     def _action_restart_agent(self, component: str, details: dict | None) -> tuple[bool, str]:
-        agent_id = (details or {}).get("agent_id", component)
+        if not isinstance(details, dict):
+            details = {}
+        agent_id = details.get("agent_id", component)
         try:
             from cores.agents import get_all_agents
             from cores.agents.types import AgentId
 
             agents = get_all_agents()
             for agent in agents:
-                if agent.agent_id.value == agent_id or agent.agent_id == AgentId(agent_id):
+                agent_key = agent.agent_id.value if hasattr(agent.agent_id, "value") else str(agent.agent_id)
+                if agent_key == agent_id:
                     agent.stop()
                     agent.start()
                     return True, f"Agent {agent_id} restarted"
+            try:
+                if AgentId(agent_id) in [a.agent_id for a in agents]:
+                    return False, f"Agent {agent_id} already running"
+            except ValueError:
+                pass
             return False, f"Agent {agent_id} not found"
         except Exception as exc:
             return False, str(exc)
@@ -393,16 +401,24 @@ class RecoveryEngine:
             return False, str(exc)
 
     def _action_restart_api(self, component: str, details: dict | None) -> tuple[bool, str]:
-        try:
-            import httpx
+        """Restart the API in-process via the self-update ProcessManager.
 
-            base = (details or {}).get("api_url", "http://127.0.0.1:8000")
-            r = httpx.post(f"{base}/api/system/restart", timeout=5.0)
-            if r.status_code == 200:
-                return True, "API restart requested"
-            return False, f"API restart returned HTTP {r.status_code}"
+        Runs inside the API process, so no HTTP round-trip (and no auth/CSRF
+        gate) is involved. Falls back to the HTTP endpoint only if the local
+        restart is unavailable.
+        """
+        try:
+            from pathlib import Path
+
+            from core.self_update.system import ProcessManager
+
+            root = Path(__file__).resolve().parent.parent.parent
+            result = ProcessManager(root).restart_application()
+            if result.get("success"):
+                return True, f"API restart requested (pid {result.get('pid')})"
+            return False, f"API restart failed: {result.get('error')}"
         except Exception as exc:
-            return False, str(exc)
+            return False, f"API restart unavailable: {exc}"
 
     # ── Event emission ────────────────────────────────────────────────
 
