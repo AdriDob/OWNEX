@@ -110,12 +110,12 @@ class TestProfileKitApi:
         assert "Chile" in texts
         assert "Adriel" not in texts
 
-    def test_empty_profile_uses_defaults(self, client: TestClient) -> None:
+    def test_empty_profile_uses_canonical_seed(self, client: TestClient) -> None:
         resp = client.post("/api/profile-kit/generate", json={})
         assert resp.status_code == 200
         fields = resp.json()["kits"]["es"]["fiverr"]
         title = next(f for f in fields if f["key"] == "fiverr_title")
-        assert "Full-stack" in title["text"]
+        assert "Adriel" in title["text"]
 
     def test_generate_uses_saved_when_no_payload(self, client: TestClient) -> None:
         client.post("/api/profile-kit/", json=SAMPLE_PROFILE)

@@ -332,11 +332,21 @@ class ProfileKitEngine:
             f"En {lang}."
         )
 
+    @staticmethod
+    def _exp_label(profile: UserProfile) -> str:
+        """Label honesto del nivel: el enum no declara años, así que el copy no los inventa."""
+        return {
+            ExperienceLevel.NONE: "nivel entrada",
+            ExperienceLevel.JUNIOR: "nivel junior",
+            ExperienceLevel.MID: "nivel mid",
+            ExperienceLevel.SENIOR: "nivel senior",
+        }[profile.experience_level]
+
     def _fiverr_ask(self, profile: UserProfile, lang: str) -> str:
         return (
             f"¿Cómo iniciar?: enviá un mensaje con tu descripción y stack. "
             f"¿Qué incluye la entrega?: trabajo definido y completado. "
-            f"¿Cuál es tu nivel de experiencia? {profile.experience_level.value} años. "
+            f"¿Cuál es tu nivel de experiencia? {self._exp_label(profile)}. "
             f"¿Te interesa el plan Starter o Standard? (pago por el plan). "
             f"¿Recibís el resultado? → Sí, aceptamos el trabajo y lo entregamos. "
             f"¿Puede darte soporte post-entrega? → Sí. "
@@ -346,19 +356,19 @@ class ProfileKitEngine:
     def _fiverr_faq(self, profile: UserProfile, lang: str) -> str:
         return (
             f"¿Cuánto tiempo toma un gig? → 2-4 horas. "
-            f"¿Qué necesitas para empezar? → Solo describí tu stack y stack. "
-            f"¿Cuál es tu nivel de experiencia? → {profile.experience_level.value} años. "
+            f"¿Qué necesitas para empezar? → Solo describí tu proyecto y tu stack. "
+            f"¿Cuál es tu nivel de experiencia? → {self._exp_label(profile)}. "
             f"¿Puede enviarte el resultado? → Sí. "
             f"¿Puede darte soporte post-entrega? → Sí. "
             f"En {lang}."
         )
 
     def _github_bio(self, profile: UserProfile) -> str:
-        return f"{profile.name or 'Desarrollador'} — {profile.country} — {', '.join(sorted(profile.skills)[:5]) if profile.skills else 'Full-stack'} — {profile.experience_level.value} años de experiencia"
+        return f"{profile.name or 'Desarrollador'} — {profile.country} — {', '.join(sorted(profile.skills)[:5]) if profile.skills else 'Full-stack'} — {self._exp_label(profile)} de experiencia"
 
     def _github_skills(self, profile: UserProfile) -> str:
         skills = ", ".join(sorted(profile.skills)[:10]) if profile.skills else "full-stack, backend, frontend"
-        return f"Stack: {skills} — {profile.experience_level.value} años de experiencia en {profile.country}"
+        return f"Stack: {skills} — {self._exp_label(profile)} de experiencia en {profile.country}"
 
     def _github_projects(self, profile: UserProfile) -> str:
         if profile.projects:
@@ -376,7 +386,7 @@ class ProfileKitEngine:
         return "\n".join(links) if links else "- Sin links configurados"
 
     def _hackerone_bio(self, profile: UserProfile) -> str:
-        return f"Desarrollador {profile.country} con expertise en {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'ciencia de datos'} — {profile.experience_level.value} años de experiencia en bug bounty."
+        return f"Desarrollador {profile.country} con expertise en {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'ciencia de datos'} — {self._exp_label(profile)} de experiencia en bug bounty."
 
     def _hackerone_specialty(self, profile: UserProfile) -> str:
         return f"Especialidad técnica: {', '.join(sorted(profile.skills)[:5]) if profile.skills else 'programación, APIs, seguridad'}"
@@ -388,7 +398,7 @@ class ProfileKitEngine:
         return f"Disponibilidad: {profile.availability_hours}h/semana, bug bounty"
 
     def _bugcrowd_bio(self, profile: UserProfile) -> str:
-        return f"Operador {profile.country} con expertise en {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'programación'} — {profile.experience_level.value} años en bug bounty."
+        return f"Operador {profile.country} con expertise en {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'programación'} — {self._exp_label(profile)} en bug bounty."
 
     def _bugcrowd_specialty(self, profile: UserProfile) -> str:
         return f"Stack: {', '.join(sorted(profile.skills)[:5]) if profile.skills else 'Python, Go, TypeScript'}"
@@ -400,7 +410,7 @@ class ProfileKitEngine:
         return f"Disponibilidad: {profile.availability_hours}h/semana"
 
     def _intigriti_bio(self, profile: UserProfile) -> str:
-        return f"Operador {profile.country} especializado en {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'seguridad'} — {profile.experience_level.value} años."
+        return f"Operador {profile.country} especializado en {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'seguridad'} — {self._exp_label(profile)}."
 
     def _intigriti_specialty(self, profile: UserProfile) -> str:
         return (
@@ -414,7 +424,7 @@ class ProfileKitEngine:
         return f"Disponibilidad: {profile.availability_hours}h/semana, bug bounty"
 
     def _yeswehack_bio(self, profile: UserProfile) -> str:
-        return f"Operador {profile.country} con expertise en {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'seguridad'} — {profile.experience_level.value} años en bug bounty."
+        return f"Operador {profile.country} con expertise en {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'seguridad'} — {self._exp_label(profile)} en bug bounty."
 
     def _yeswehack_specialty(self, profile: UserProfile) -> str:
         return f"Stack: {', '.join(sorted(profile.skills)[:5]) if profile.skills else 'Python, Go, TypeScript'}"
@@ -426,7 +436,7 @@ class ProfileKitEngine:
         return f"Disponibilidad: {profile.availability_hours}h/semana"
 
     def _opire_bio(self, profile: UserProfile) -> str:
-        return f"{profile.name or 'Desarrollador'} — {profile.country} — {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'Desarrollo de software'} — {profile.experience_level.value} años"
+        return f"{profile.name or 'Desarrollador'} — {profile.country} — {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'Desarrollo de software'} — {self._exp_label(profile)}"
 
     def _opire_skills(self, profile: UserProfile) -> str:
         skills = ", ".join(sorted(profile.skills)[:10]) if profile.skills else "full-stack, backend, frontend"
@@ -448,11 +458,11 @@ class ProfileKitEngine:
         return "\n".join(links) if links else "- Sin links configurados"
 
     def _issuehunt_bio(self, profile: UserProfile) -> str:
-        return f"Operador {profile.country} en {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'programación'} — {profile.experience_level.value} años de experiencia en bug bounty."
+        return f"Operador {profile.country} en {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'programación'} — {self._exp_label(profile)} de experiencia en bug bounty."
 
     def _issuehunt_skills(self, profile: UserProfile) -> str:
         skills = ", ".join(sorted(profile.skills)[:10]) if profile.skills else "Python, Go, TypeScript"
-        return f"Stack: {skills} — {profile.experience_level.value} años de experiencia"
+        return f"Stack: {skills} — {self._exp_label(profile)} de experiencia"
 
     def _issuehunt_projects(self, profile: UserProfile) -> str:
         if profile.projects:
@@ -468,11 +478,11 @@ class ProfileKitEngine:
         return "\n".join(links) if links else "- Sin links configurados"
 
     def _algora_bio(self, profile: UserProfile) -> str:
-        return f"{profile.name or 'Desarrollador'} — {profile.country} — {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'Backend'} — {profile.experience_level.value} años"
+        return f"{profile.name or 'Desarrollador'} — {profile.country} — {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'Backend'} — {self._exp_label(profile)}"
 
     def _algora_skills(self, profile: UserProfile) -> str:
         skills = ", ".join(sorted(profile.skills)[:10]) if profile.skills else "backend, APIs, Python"
-        return f"Stack: {skills} — {profile.experience_level.value} años de experiencia"
+        return f"Stack: {skills} — {self._exp_label(profile)} de experiencia"
 
     def _algora_projects(self, profile: UserProfile) -> str:
         if profile.projects:
@@ -490,21 +500,21 @@ class ProfileKitEngine:
         return "\n".join(links) if links else "- Sin links configurados"
 
     def _outlier_bio(self, profile: UserProfile) -> str:
-        return f"{profile.name or 'Desarrollador'} — {profile.country} — {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'Seguridad'} — {profile.experience_level.value} años"
+        return f"{profile.name or 'Desarrollador'} — {profile.country} — {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'Seguridad'} — {self._exp_label(profile)}"
 
     def _outlier_skills(self, profile: UserProfile) -> str:
         skills = ", ".join(sorted(profile.skills)[:10]) if profile.skills else "Python, Go, Seguridad"
-        return f"Stack: {skills} — {profile.experience_level.value} años de experiencia"
+        return f"Stack: {skills} — {self._exp_label(profile)} de experiencia"
 
     def _outlier_availability(self, profile: UserProfile) -> str:
         return f"Disponibilidad: {profile.availability_hours}h/semana — bug bounty"
 
     def _mindrift_bio(self, profile: UserProfile) -> str:
-        return f"{profile.name or 'Desarrollador'} — {profile.country} — {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'API, Backend'} — {profile.experience_level.value} años"
+        return f"{profile.name or 'Desarrollador'} — {profile.country} — {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'API, Backend'} — {self._exp_label(profile)}"
 
     def _mindrift_skills(self, profile: UserProfile) -> str:
         skills = ", ".join(sorted(profile.skills)[:10]) if profile.skills else "Python, Go, APIs"
-        return f"Stack: {skills} — {profile.experience_level.value} años de experiencia"
+        return f"Stack: {skills} — {self._exp_label(profile)} de experiencia"
 
     def _mindrift_availability(self, profile: UserProfile) -> str:
         return f"Disponibilidad: {profile.availability_hours}h/semana — bug bounty"
@@ -514,7 +524,7 @@ class ProfileKitEngine:
 
     def _linkedin_summary(self, profile: UserProfile) -> str:
         return (
-            f"Profesional {profile.country} con {profile.experience_level.value} años de experiencia en "
+            f"Profesional {profile.country} con {self._exp_label(profile)} de experiencia en "
             f"{', '.join(sorted(profile.skills)[:5]) if profile.skills else 'desarrollo full-stack'}. "
             f"Especializado en bug bounty. "
             f"Disponible para {profile.availability_hours}h/semana."
@@ -522,7 +532,7 @@ class ProfileKitEngine:
 
     def _linkedin_skills(self, profile: UserProfile) -> str:
         skills = ", ".join(sorted(profile.skills)[:10]) if profile.skills else "Python, Go, TypeScript"
-        return f"Stack: {skills} — {profile.experience_level.value} años de experiencia"
+        return f"Stack: {skills} — {self._exp_label(profile)} de experiencia"
 
     def _linkedin_projects(self, profile: UserProfile) -> str:
         if profile.projects:
