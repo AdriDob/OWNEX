@@ -96,3 +96,8 @@ data/
 .ownex_backups/
 freqtrade_user/
 hummingbot_user/
+
+# Secrets (regenerado automáticamente por cores/auth/auth.py)
+**/.auth_secret
+/opportunity.env
+/.config/ownex/opportunity.env
