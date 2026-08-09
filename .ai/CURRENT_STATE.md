@@ -1,3 +1,25 @@
+## Sesión 2026-08-09 — PROFILE KIT: autofill real desde el perfil DWE + fix copy "años"
+
+> **QUÉ SE HIZO:** Sobre la base persistente ya commiteada (`aa1b928d`), el Profile Kit terminó los 2
+> pendientes del plan: (1) **autofill real** — `GET /` y `generate` sin guardado siembran desde
+> `_INCOME_MAX_DEFAULT_PROFILE` (perfil de trabajo real del DWE, import directo, cero duplicación),
+> ya no plantilla genérica; (2) **copy honesto** — el enum `ExperienceLevel` se imprimía como
+> "«X» años" (ej: "mid años", inventaba años) en 19 generadores → helper `_exp_label()`
+> (entrada/junior/mid/senior, nunca años); fix "stack y stack"→"tu proyecto y tu stack".
+
+### Cambios
+- `cores/direct_work_engine/profile_kit.py`: nuevo `_exp_label()` estático; 19 reemplazos de
+  `{experience_level.value} años` → label honesto; fix duplicado en `_fiverr_faq`.
+- `api/routers/profile_kit.py`: `_seed_profile()` = guardado → defaults DWE (import de
+  `.direct_work._INCOME_MAX_DEFAULT_PROFILE`, SSOT). `GET /` devuelve ese seed; `generate` sin
+  payload lo usa también.
+- `tests/test_profile_kit.py`: `test_empty_profile_uses_defaults` → `..._canonical_seed`
+  (assert "Adriel" del perfil real, no "Full-stack" genérico).
+
+### Verificación
+- `tests/test_profile_kit.py` **12 passed**; `scripts/dev test-fast` **89 passed, 1 skipped**;
+  ruff global 0 errores. E2E: title fiverr = "Adriel — unity — Argentina" (datos reales).
+
 ## Sesión 2026-08-09 — PROFILE KIT: persistencia real + thin router + gold plating frontend
 
 > **QUÉ SE HIZO:** El Profile Kit (textos listos para copiar por plataforma, bilingüe EN+ES)
