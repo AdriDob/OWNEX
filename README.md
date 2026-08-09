@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="docs/assets/branding/logo/ownex-lockup-white.svg" alt="OWNEX" width="360"/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/branding/logo/ownex-lockup-white.svg"/>
+    <img src="docs/assets/branding/logo/ownex-lockup-black.svg" alt="OWNEX" width="360"/>
+  </picture>
 </p>
 
 <p align="center">
@@ -60,21 +63,21 @@ A modular monolith: one FastAPI process, EventBus-driven, single database. No mi
 ```mermaid
 flowchart TB
     subgraph SURFACE["Presentation"]
-        MC["Mission Control — Vue 3 SPA"]
-        DESK["OWNEX Desktop — Tauri v2"]
-        MERLIN["MERLIN — Copilot"]
+        MC["Mission Control - Vue 3 SPA"]
+        DESK["OWNEX Desktop - Tauri v2"]
+        MERLIN["MERLIN - Copilot"]
     end
 
-    subgraph CORE["Core Platform — FastAPI"]
+    subgraph CORE["Core Platform - FastAPI"]
         EB["EventBus"]
-        SCH["Scheduler — 28 cron-aware jobs"]
-        UM["Unified Memory — SQLite"]
+        SCH["Scheduler - 28 cron jobs"]
+        UM["Unified Memory - SQLite"]
         DJ["Decision Journal"]
-        VAULT["Identity Vault — AES-256-GCM"]
+        VAULT["Identity Vault"]
         HC["Health Center"]
     end
 
-    subgraph CYCLES["Work Cycles — 7"]
+    subgraph CYCLES["Work Cycles"]
         SEC["Security"]
         FORGE["Forge"]
         PULSE["Pulse"]
@@ -84,25 +87,26 @@ flowchart TB
         DW["Direct Work"]
     end
 
-    subgraph ENGINES["Engines — cores/"]
+    subgraph ENGINES["Engines"]
         DWE["Direct Work Engine"]
         REV["Revenue Intelligence"]
-        OPP["Opportunity / Discovery"]
-        VAL["Validation / Evidence"]
-        EVO["Evolution / Learning"]
+        OPP["Opportunity Discovery"]
+        VAL["Validation Evidence"]
+        EVO["Evolution Learning"]
     end
 
     subgraph AI["Multi-Provider AI"]
-        RT["OAR — AI Runtime router"]
-        P1["Ollama — local"]
+        RT["OAR - AI Runtime router"]
+        P1["Ollama local"]
         P2["FCC Proxy"]
         P3["OpenRouter"]
     end
 
-    R[["Results — Findings · Reports · Payouts"]]
-
-    SURFACE --> CORE --> CYCLES --> ENGINES --> AI
-    ENGINES --> R
+    SURFACE --> CORE
+    CORE --> CYCLES
+    CYCLES --> ENGINES
+    ENGINES --> AI
+    CYCLES --> R
     CORE --> R
 ```
 
@@ -300,5 +304,8 @@ docs/assets/branding/
 </p>
 
 <p align="center">
-  <img src="docs/assets/branding/logo/ownex-lockup-white.svg" alt="OWNEX" width="280"/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/branding/logo/ownex-lockup-white.svg"/>
+    <img src="docs/assets/branding/logo/ownex-lockup-black.svg" alt="OWNEX" width="280"/>
+  </picture>
 </p>
