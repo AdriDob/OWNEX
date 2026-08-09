@@ -177,7 +177,9 @@ class EventBus:
             handlers = list(self._handlers.get(event_type, [])) + list(self._handlers.get("*", []))
         for handler in handlers:
             try:
-                handler(event_type=event_type, priority=priority, **payload)
+                kwargs: dict[str, Any] = {"event_type": event_type, **payload}
+                kwargs.setdefault("priority", priority)
+                handler(**kwargs)
             except Exception as exc:
                 logger.warning("Event handler error on %s: %s", event_type, exc)
 
@@ -190,10 +192,9 @@ class EventBus:
             else:
                 for handler in async_handlers:
                     try:
-                        fut = asyncio.run_coroutine_threadsafe(
-                            handler(event_type=event_type, priority=priority, **payload),
-                            loop,
-                        )
+                        kwargs = {"event_type": event_type, **payload}
+                        kwargs.setdefault("priority", priority)
+                        fut = asyncio.run_coroutine_threadsafe(handler(**kwargs), loop)
                         fut.add_done_callback(
                             lambda f: (
                                 logger.warning("Async handler error on %s: %s", event_type, f.exception())

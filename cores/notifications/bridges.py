@@ -362,7 +362,7 @@ def register_event_bridge() -> None:
         )
 
     bus = get_event_bus()
-    bus.subscribe_async("*", _on_event)
+    bus.subscribe("*", _on_event)
     logger.info("Event -> notification bridge started")
 
 
