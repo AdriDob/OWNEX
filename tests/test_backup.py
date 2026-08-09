@@ -52,10 +52,12 @@ class TestCreateBackup:
 
         import zipfile
 
+        from core.version import OWNEX_VERSION
+
         with zipfile.ZipFile(result["backup_path"]) as zf:
             assert "manifest.json" in zf.namelist()
             manifest = json.loads(zf.read("manifest.json"))
-            assert manifest["version"] == "5.0.0"
+            assert manifest["version"] == OWNEX_VERSION
             assert "created_at" in manifest
             assert manifest["total_files"] >= 4
             assert "files" in manifest

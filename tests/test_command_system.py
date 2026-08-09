@@ -265,16 +265,21 @@ class TestCommandDefinition:
 def client():
     reset_command_registry()
     reset_command_dispatcher()
+    import uuid
+
     from api.main import app
     from cores.license.validator import generate_license
 
     c = TestClient(app)
     lic = generate_license(expiry_days=365)
     c.post("/api/license/activate", json={"key": lic})
-    resp = c.post("/api/auth/login", json={"device_id": "pytest-device-commands"})
-    if resp.status_code == 200:
-        token = resp.json()["data"]["token"]
-        c.headers.update({"Authorization": f"Bearer {token}"})
+    resp = c.post(
+        "/api/auth/login",
+        json={"device_id": f"pytest-device-{uuid.uuid4().hex[:12]}"},
+    )
+    assert resp.status_code == 200, f"login failed: {resp.status_code} {resp.text[:300]}"
+    token = resp.json()["data"]["token"]
+    c.headers.update({"Authorization": f"Bearer {token}"})
     return c
 
 

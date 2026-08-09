@@ -335,6 +335,8 @@ class TestAIRouterEngine:
         with (
             patch.object(e, "_check_proxy", return_value=(False, "", 0.0)),
             patch.object(e, "_check_ollama", return_value=(False, [], 0.0)),
+            patch.object(e, "_check_gooseai", return_value=(False, [], 0.0)),
+            patch.object(e, "_check_nvidia_nim", return_value=(False, [], 0.0)),
             patch.object(e, "_estimate_near_limit", return_value=True),
         ):
             h = e.check_health()
@@ -347,6 +349,8 @@ class TestAIRouterEngine:
         with (
             patch.object(e, "_check_proxy", return_value=(False, "", 0.0)),
             patch.object(e, "_check_ollama", return_value=(False, [], 0.0)),
+            patch.object(e, "_check_gooseai", return_value=(False, [], 0.0)),
+            patch.object(e, "_check_nvidia_nim", return_value=(False, [], 0.0)),
         ):
             r = e.recommend_fallback()
             assert r.should_switch is False

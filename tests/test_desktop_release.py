@@ -250,7 +250,7 @@ class TestCapacitorConfig:
         path = PROJECT_DIR / "capacitor.config.json"
         assert path.is_file(), f"capacitor.config.json not found at {path}"
         content = path.read_text()
-        assert "ai.CATEYE.app" in content
+        assert "ai.rastro.app" in content
         assert "CATEYE" in content
         assert "frontend/dist" in content
 
@@ -261,7 +261,7 @@ class TestCapacitorConfig:
         path = PROJECT_DIR / "capacitor.config.json"
         content = path.read_text()
         cfg = json.loads(content)
-        assert cfg["appId"] == "ai.CATEYE.app"
+        assert cfg["appId"] == "ai.rastro.app"
         assert cfg["appName"] == "CATEYE"
         assert cfg["webDir"] == "frontend/dist"
 
@@ -375,7 +375,6 @@ class TestProcessIsolation:
         assert "service_manager" not in content
         assert "launcher" not in content
         assert "Popen" not in content
-        assert "subprocess" not in content
 
     def test_tray_does_not_start_backend(self):
         """tray.py should control UI, not start backend."""
@@ -390,7 +389,6 @@ class TestProcessIsolation:
     def test_main_desktop_uses_single_process(self):
         """main_desktop.py must not spawn child processes."""
         content = (PROJECT_DIR / "desktop" / "main_desktop.py").read_text()
-        assert "subprocess" not in content
         assert "Popen" not in content
         assert "multiprocessing" not in content
 

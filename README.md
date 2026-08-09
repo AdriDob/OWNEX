@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="assets/logos/ownex-alpha-white.svg" alt="OWNEX ALPHA — The Aperture Nexus" width="160"/>
+  <img src="docs/assets/branding/logo/ownex-lockup-white.svg" alt="OWNEX" width="360"/>
 </p>
-
-<h1 align="center">OWNEX</h1>
 
 <p align="center">
   <strong>Personal Autonomous Work Operating System</strong>
@@ -10,9 +8,9 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-7.0.0-e82127?style=flat-square"/>
-  <img src="https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white"/>
+  <img src="https://img.shields.io/badge/python-3.11+-white?style=flat-square&logo=python&logoColor=black"/>
+  <img src="https://img.shields.io/badge/fastapi-009688?style=flat-square&logo=fastapi&logoColor=white"/>
   <img src="https://img.shields.io/badge/vue-3.5-4FC08D?style=flat-square&logo=vue.js&logoColor=white"/>
-  <img src="https://img.shields.io/badge/fastapi-0.104+-009688?style=flat-square&logo=fastapi&logoColor=white"/>
   <img src="https://img.shields.io/badge/tests-1400%2B-00C853?style=flat-square"/>
   <img src="https://img.shields.io/badge/license-Proprietary-e82127?style=flat-square"/>
 </p>
@@ -20,302 +18,281 @@
 ---
 
 <p align="center">
-  <img src="assets/banners/hero-banner-alpha.svg" alt="OWNEX Mission Control" width="900"/>
+  <img src="docs/assets/branding/banners/ownex-hero-banner.png" alt="OWNEX — Personal Autonomous Work OS" width="100%"/>
 </p>
 
 ---
 
-## Qué es OWNEX (de verdad)
+## What is OWNEX
 
-**OWNEX no es una herramienta de bug bounty.**  
-Es un **sistema operativo personal de trabajo autónomo** que descubre oportunidades, ejecuta trabajo técnico, aprende de los resultados y evoluciona su propia operación — desde el escritorio hasta tu muñeca.
+**OWNEX is not a tool. OWNEX is an operating system for work** — a single platform that discovers remote opportunities, prepares them end-to-end, executes technical work, learns from real outcomes, and evolves its own operation.
 
-El humano está en la **puerta de decisión**. El sistema hace el resto.
+Every opportunity is scored against a **zero-barrier spectrum** (0–100): how far is it from *finding* to *getting paid*, with no interview, no portfolio gate, no unpaid trial. The engine rank-orders thousands of candidates and surfaces the ones most likely to become money this week.
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│  GOOD MORNING (06:30) — MERLIN te saluda en modo modern_retro │
-│  ████████████████████████████████████████████████████████████ │
-│  Sistema: Online · Score 94/100                               │
-│  Memoria: 247 entradas · 10 namespaces                        │
-│  Trabajo: 3 listos para entregar · 1 pide acceso              │
-│  Oportunidades: 12 fuentes DISCOVER hoy · Top: HackerOne      │
-│  Enfoque: Detener 2 · Automatizar 3 · Delegar 1 · Mejorar 2   │
-│  ████████████████████████████████████████████████████████████ │
-│  → "Buenos días, Operador. Hoy hay 3 items listos para cobrar."│
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## El norte: **Revenue Rule**
-
-> **Ninguna feature entra al roadmap si no aumenta al menos uno de:**
-> - Detección de vulnerabilidades reales
-> - Calidad de evidencia
-> - Probabilidad de aceptación
-> - Aprendizaje del sistema
->
-> *No hay excepciones.*
-
-Esto no es una frase en un doc. Es un **filtro duro** que elimina ruido antes de que se escriba código.
-
----
-
-## MERLIN — Tu copiloto con personalidad
-
-No es un chatbot genérico. Es **MERLIN** (antes COPILOT), un mago office-retro que vive en tu Mission Control.
-
-```python
-# cores/merlin/config.py — configuración real
-MerlinConfig(
-    personality=OfficeRetroMode(theme="modern_retro", retro_animations=True, typing_effect=True, avatar="🧙"),
-    detail_level="normal",
-    response_tone="friendly",
-    memory_limit=10000,
-    learning_enabled=True,
-)
-```
-
-- **Avatar:** 🧙 con anillos pulsantes (pulseGlow, retroBorder)
-- **Modos:** `classic_97` | `modern_retro` | `cyber_retro`
-- **Memoria persistente:** `MerlinMemory` sobre SQLite (sobrevive reinicios)
-- **Intent analysis:** Detecta si pides análisis de target, generación de reporte, planificación estratégica, asistencia técnica
-- **Habla tu idioma:** Español nativo, tono configurable
+The human sits at the **decision gate**. The system does everything before and after.
 
 <p align="center">
-  <img src="assets/concepts/desktop-showcase.svg" alt="MERLIN Desktop" width="900"/>
+  <sub>The Revenue Rule: no feature enters the roadmap unless it increases vulnerability detection, evidence quality, acceptance probability, or system learning. No exceptions.</sub>
 </p>
 
 ---
 
-## Un día real con OWNEX
+## Capabilities
 
-| Hora | Qué pasa |
-|------|----------|
-| **06:30** | `POST /direct-work/daily-companion` → MERLIN te da el briefing consolidado (sistema + personal + mercado + foco) |
-| **07:00** | `GoodMorning` en Mission Control: 3 items `ready_to_deliver`, 1 `needs_access`, 12 fuentes DISCOVER |
-| **07:15** | `HUNT` button → `POST /direct-work/workbank/cycle` → descubre, filtra cero-barrera, rankea por EV real, prepara paquetes de entrega |
-| **08:00** | `DailyIncomePlan` muestra: Optimistic $2,400 | Realistic $1,100 | Conservative $400 |
-| **09:30** | `DirectWorkRadar`: top pick del día + skill gap + plan de aprendizaje automático |
-| **12:00** | `NotificationCenter`: alerta de approval en Wear OS → one-tap approve desde muñeca |
-| **14:00** | `ReportPipeline`: findings → evidencia → reporte → auto-submit a HackerOne/Intigriti |
-| **18:00** | `ExecutiveDashboard` (CEO view): ¿ganamos plata esta semana? USD/hr real por plataforma |
-| **22:00** | `VersionBackup` snapshot automático + `HealthCenter` persiste snapshot en SQLite |
-
-<p align="center">
-  <img src="assets/concepts/mission-control.svg" alt="Mission Control" width="900"/>
-</p>
+| Capability | What it does | Where |
+|---|---|---|
+| **Security Cycle** | Full bug-bounty pipeline: discover → recon → hypothesis → validate → evidence → report → auto-submit | `core/cycles/stages/` |
+| **Direct Work Engine** | Zero-barrier opportunity discovery, 18-factor scoring, EV-based recommendation, work bank | `cores/direct_work_engine/` |
+| **Work Bank** | Autonomous production of ready-to-deliver jobs (target: 100/day → 1000/month) with honest access requirements | `cores/direct_work_engine/workbank.py` |
+| **Daily Companion** | One call consolidating system health, personal state, market, focus, and projection | `cores/direct_work_engine/daily_companion.py` |
+| **Mission Control** | Single-pane-of-glass dashboard: opportunities, work bank targets, revenue, execution queue | `frontend/src/pages/MissionControl.vue` |
+| **MERLIN Copilot** | Office-retro assistant with persistent memory, intent analysis, and live voice (Web Speech) | `cores/merlin/` |
+| **7 Work Cycles** | Security, Forge, Pulse, Vault, Atlas, QA, Direct Work — 28 cron-aware scheduled jobs | `core/scheduler/jobs.py` |
+| **Evolution layer** | Skill-gap detection, capability proposals, performance analysis, learning from lost opportunities | `cores/direct_work_engine/evolution.py` |
+| **AI Runtime (OAR)** | Multi-provider router: local Ollama → FCC proxy → OpenRouter, with budget, failover, caching | `cores/ai/runtime/` |
 
 ---
 
-## Arquitectura: Monolito modular + EventBus
+## Architecture
 
-```text
-                    ┌─────────────────────┐
-                    │   FastAPI Process   │
-                    │  (single binary)    │
-                    └──────────┬──────────┘
-                               │
-        ┌──────────────────────┼──────────────────────┐
-        ▼                      ▼                      ▼
-┌───────────────┐     ┌───────────────┐     ┌───────────────┐
-│   CORES/      │     │    CORE/      │     │    APPS/      │
-│  (inteligencia)│     │  (plataforma) │     │  (dominios)   │
-│               │     │               │     │               │
-│ financial_    │     │ EventBus      │     │ security/     │
-│ intelligence  │     │ Scheduler     │     │ forge/        │
-│ merlin/       │     │ HealthCenter  │     │ pulse/        │
-│ auto_submit/  │     │ UnifiedMemory │     │ wealth/       │
-│ evidence/     │     │ DecisionJournal│    │ atlas/        │
-│ opportunity/  │     │ WidgetEngine  │     │ direct_work/  │
-│ direct_work/  │     │ IdentityVault │     │               │
-└───────────────┘     └───────────────┘     └───────────────┘
-        │                      │                      │
-        └──────────────────────┼──────────────────────┘
-                               ▼
-                    ┌─────────────────────┐
-                    │   SQLite / Postgres │
-                    │   (single source)   │
-                    └─────────────────────┘
+A modular monolith: one FastAPI process, EventBus-driven, single database. No microservices, no external queue, no lock-in.
+
+```mermaid
+flowchart TB
+    subgraph SURFACE["Presentation"]
+        MC["Mission Control — Vue 3 SPA"]
+        DESK["OWNEX Desktop — Tauri v2"]
+        MERLIN["MERLIN — Copilot"]
+    end
+
+    subgraph CORE["Core Platform — FastAPI"]
+        EB["EventBus"]
+        SCH["Scheduler — 28 cron-aware jobs"]
+        UM["Unified Memory — SQLite"]
+        DJ["Decision Journal"]
+        VAULT["Identity Vault — AES-256-GCM"]
+        HC["Health Center"]
+    end
+
+    subgraph CYCLES["Work Cycles — 7"]
+        SEC["Security"]
+        FORGE["Forge"]
+        PULSE["Pulse"]
+        VAULT_C["Vault"]
+        ATLAS["Atlas"]
+        QA["QA Cycle"]
+        DW["Direct Work"]
+    end
+
+    subgraph ENGINES["Engines — cores/"]
+        DWE["Direct Work Engine"]
+        REV["Revenue Intelligence"]
+        OPP["Opportunity / Discovery"]
+        VAL["Validation / Evidence"]
+        EVO["Evolution / Learning"]
+    end
+
+    subgraph AI["Multi-Provider AI"]
+        RT["OAR — AI Runtime router"]
+        P1["Ollama — local"]
+        P2["FCC Proxy"]
+        P3["OpenRouter"]
+    end
+
+    R[["Results — Findings · Reports · Payouts"]]
+
+    SURFACE --> CORE --> CYCLES --> ENGINES --> AI
+    ENGINES --> R
+    CORE --> R
 ```
 
-**Stack real (sin humo):**
-| Capa | Tech |
-|------|------|
+**Stack (real, no smoke):**
+
+| Layer | Tech |
+|---|---|
 | Backend | Python 3.11+, FastAPI, SQLAlchemy 2.0 |
 | Frontend | Vue 3 + TypeScript, Tailwind CSS v4, Vite |
 | Desktop | Tauri v2 (Rust + WebView2) + PyInstaller sidecar |
-| Mobile | Capacitor v6 (Android) + Expo/React Native (OMEGA) |
-| Smartwatch | Wear OS companion (Kotlin) — **en desarrollo** |
-| AI | Multi-provider router: OmniRoute (free) → FCC Proxy → OpenRouter → Ollama local |
-| DB | SQLite (dev) / PostgreSQL (prod) |
-| Tests | 1,400+ (pytest + Vitest) · Ruff · Biome · Mypy strict |
+| Mobile | Capacitor (Android) + Expo/React Native (OMEGA) |
+| AI | Local-first failover chain: Ollama → FCC proxy → OpenRouter |
+| DB | SQLite (dev) / PostgreSQL (production) |
+| Tests | 1,400+ pytest · Ruff · Biome · Mypy strict |
 
 ---
 
-## El cerebro: `.ai/` — Single Source of Truth
+## Product walkthrough
 
-Todo lo que importa vive en `.ai/`. El código es derivado.
-
-```
-.ai/
-├── AGENT_CHARTER.md         # Constitución, Agent Loop, Regla de Oro
-├── PRODUCTION_RULES.md      # Reglas de producción (NO modificar)
-├── CURRENT_STATE.md         # Estado verificado de cada feature
-├── TASK_QUEUE.md            # Cola priorizada con criterios de done
-├── ROADMAP.md               # Roadmap general
-├── DECISIONS.md             # Decisiones arquitectónicas con evidencia
-├── COMPLETED_FEATURES.json  # Registro de features completadas + evidencia
-├── KNOWN_DEBT.md            # Deuda técnica conocida con evidencia
-├── DO_NOT_TOUCH.md          # Componentes estables (no tocar sin justificación)
-├── STRATEGIC_AUDIT.md       # Marco de auditoría permanente (10 preguntas, 18 dimensiones)
-└── MEMORY.md                # UnifiedMemory spec + MerlinMemory
-```
-
-**Regla:** Si hay conflicto entre código, docs o memoria del agente → gana `.ai/`.
-
----
-
-## Work Cycles (6 ciclos autónomos)
-
-| Ciclo | Dominio | Estado | Jobs |
-|-------|---------|--------|------|
-| **SECURITY** | Bug bounty → auto-submit | ✅ Operativo | 4 |
-| **FORGE** | Dev bounties → PR → merge | ✅ Operativo | 6 |
-| **PULSE** | AI work / data tasks | ✅ Operativo | 5 |
-| **WEALTH** | Investment + allocation | ✅ Operativo | 3 |
-| **ATLAS** | Monitoring + self-healing | ✅ Operativo | 3 |
-| **DIRECT WORK** | Freelance platforms (Opire, IssueHunt, Freelancer, OpenCollective) | ✅ Operativo | 3 |
-
-**Scheduler:** 26 jobs cron-aware con self-healing, cooldown por target, priorización por USD/hr real.
-
----
-
-## Smartwatch (Wear OS) — En desarrollo
-
+### Mission Control
 <p align="center">
-  <img src="assets/concepts/mobile-omega.svg" alt="OMEGA Mobile + Watch" width="900"/>
+  <img src="docs/assets/screenshots/desktop/mission-control.png" alt="Mission Control" width="100%"/>
 </p>
 
-**Objetivo:** Panel táctil sincronizado, no app standalone.
-
-| Feature | Estado |
-|---------|--------|
-| Notificaciones críticas (findings, approvals, system alerts) | 🟡 Protocolo definido |
-| MERLIN Mini (resumen decisiones + approve/skip) | 🟡 Diseño listo |
-| Health check en un vistazo (🟢 ORION Online · N workflows · M approvals) | 🟡 Diseño listo |
-| Transferencia Companion → Watch (Bluetooth/Wear OS) | 🟢 Documentado en `ORION_SETUP_GUIDE.md` |
-| Modo critical-only (batería) | 🟡 Pendiente |
-
-> El desarrollo de smartwatch es **élite y extenso**: requiere sync bidireccional, crypto local, offline-first, battery-aware rendering. No es un "port" — es una extensión nativa del sistema nervioso de OWNEX.
-
----
-
-## Brand: The Aperture Nexus (v3)
-
-Identidad generada por **pipeline determinista** (`scripts/brand/` — Python + cairosvg + PIL + fontTools). Cero IA generativa, 100% reproducible.
-
-| Edición | Uso | Colores |
-|---------|-----|---------|
-| **ALPHA** | Desktop / Tauri | `cyber_cyan` → `deep_blue` |
-| **OMEGA** | Mobile / Wear / Expo | `emerald` → `cyber_cyan` |
-
-**Geometría compartida:** Anillo octagonal + X de rayos cónicos desde nodo cuadrado central + rayo que rompe el anillo (evolución núcleo→edge).
-
+### Intelligence
 <p align="center">
-  <img src="assets/logos/ownex-alpha-white.svg" alt="ALPHA Mark" width="120"/>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="assets/logos/ownex-omega-white.svg" alt="OMEGA Mark" width="120"/>
+  <img src="docs/assets/screenshots/desktop/intelligence.png" alt="Intelligence" width="100%"/>
 </p>
 
-**Assets reales en repo:**
-```
-assets/
-├── logos/           # 37 archivos (mark, lockup, icon, favicon, mono) — SVG + PNG
-├── banners/         # hero-banner (2400×1260), og-cover (1200×630) — ALPHA + OMEGA
-├── concepts/        # 5 conceptos 2400×1350 (product-overview, mission-control, architecture, mobile-omega, boot-sequence)
-├── desktop/         # Wallpaper ALPHA 2560×1440
-├── mobile/          # Splash OMEGA 1080×2400
-└── branding/design-tokens.json  # SSOT (space_black, cyber_cyan, deep_blue, emerald, decision_orange)
-```
+### Targets
+<p align="center">
+  <img src="docs/assets/screenshots/desktop/targets.png" alt="Targets" width="100%"/>
+</p>
+
+### Capital
+<p align="center">
+  <img src="docs/assets/screenshots/desktop/capital-dashboard.png" alt="Capital" width="100%"/>
+</p>
+
+### MERLIN
+<p align="center">
+  <img src="docs/assets/screenshots/desktop/merlin.png" alt="MERLIN" width="100%"/>
+</p>
+
+> More: `Good Morning`, `Executive Dashboard`, `Operations`, `Agent Center` — see `docs/assets/screenshots/desktop/`.
 
 ---
 
-## Quick Start (real)
+## How a day runs
+
+| Time | What happens |
+|---|---|
+| **06:15** | Work Bank daily cycle: discover, filter zero-barrier, rank by EV, prepare packages |
+| **06:30** | `daily-companion` → MERLIN gives the consolidated briefing (system + personal + market + focus) |
+| **07:00** | Mission Control: top pick of the day + skill gap + learning plan |
+| **08:00** | Market report: platforms, friction S/A/B/C, retired sources, emerging categories |
+| **09:00** | Revenue dashboard: earned / pending / ROI per platform, projection to target |
+| **14:00** | Security cycle: findings → evidence → report → auto-submit |
+| **18:00** | Executive view: "did we make money this week?" USD/hour per platform |
+| **22:00** | Version backup + health snapshot persisted |
+
+---
+
+## Quick start
 
 ```bash
-# 1. Clona
+# 1. Clone
 git clone https://github.com/AdriDob/rastrohunteralpha.git
 cd rastrohunteralpha
 
-# 2. Entorno Python
+# 2. Environment
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-# 3. Arranca el sistema autónomo
+# 3. Run the system
 python run.py
-# → FastAPI en http://localhost:8000
-# → Mission Control en http://localhost:5173 (npm run dev en frontend/)
+# → FastAPI on http://localhost:8000
+# → Mission Control on http://localhost:5173 (cd frontend && npm run dev)
 
 # 4. Health check
 curl http://localhost:8000/api/health
-# {"status":"ok","score":94,"version":"7.0.0",...}
 
-# 5. Añade un target
+# 5. Add a target (bug bounty pipeline)
 python run.py --add-target "example" --domain "example.com"
 
-# 6. Tests + quality gate
-make check
-# ruff + mypy + pytest (fast: scoring + opportunity + scheduler-jobs)
+# 6. Quality gate
+make check   # ruff + mypy scoped + fast tests
 ```
 
 ---
 
-## Estado actual (v7.0.0)
+## Configuration & docs
 
-| Sistema | Estado | Evidencia |
-|---------|--------|-----------|
-| Pipeline autónomo (7 stages) | ✅ | `tests/test_e2e_security_pipeline.py` 8 passed |
-| Progressive Scaling (4 fases) | ✅ | `cores/financial_intelligence/` + tests |
-| Risk Guardian + Smart Allocator | ✅ | `cores/financial_intelligence/risk_monitor.py` |
-| 6 Work Cycles operativos | ✅ | `core/cycles/*.py` + `core/scheduler/jobs.py` |
-| Desktop Tauri v2 | ✅ | `src-tauri/` + `cargo check` OK |
-| Mobile Companion (Android) | ✅ | `android/` APK debug compila |
-| OMEGA (Expo/React Native) | 🟡 | `omega/` esqueleto funcional |
-| **Smartwatch (Wear OS)** | 🟡 | **En desarrollo — élite/extenso** |
-| AI Worker (autonomous agents) | ✅ | `core/autonomy/coder_agent.py` 5 componentes |
-| MERLIN (office retro) | ✅ | `cores/merlin/` + `MerlinInterface.vue` |
-| UnifiedMemory + DecisionJournal | ✅ | `core/memory/` + `core/decision_journal/` |
-| Auto-submit (H1/BC/Intigriti) | ✅ | `cores/auto_submit/pipeline.py` |
-| Infinite Sources + Auto-apply | ✅ | `cores/financial_intelligence/infinite_source_discovery.py` |
+The project runs on a **single source of truth**: everything operational lives in `.ai/`.
 
----
+```
+.ai/
+├── AGENT_CHARTER.md         # Constitution, Agent Loop, Golden Rule
+├── PRODUCTION_RULES.md      # Production rules (extend, never break stable)
+├── CURRENT_STATE.md         # Verified per-feature state
+├── TASK_QUEUE.md            # Untracked priorities with completion criteria
+├── ROADMAP.md               # General roadmap
+├── DECISIONS.md             # Architecture decisions with evidence
+├── KNOWN_DEBT.md            # Known debt, documented
+├── DO_NOT_TOUCH.md          # Stable components — do not touch without justification
+└── STRATEGIC_AUDIT.md       # Permanent audit framework (10 questions, 18 dimensions)
+```
 
-## Documentación viva
+**Golden rule:** when code, docs, or agent memory conflict — `.ai/` wins.
 
-| Doc | Qué encontrarás |
-|-----|-----------------|
-| `.ai/AGENT_CHARTER.md` | Constitución + Agent Loop obligatorio |
-| `.ai/PRODUCTION_RULES.md` | Reglas de producción (no refactor estético, solo extender) |
-| `.ai/CURRENT_STATE.md` | Estado verificado sesión a sesión |
-| `.ai/TASK_QUEUE.md` | Próximas tareas con criterios de done |
-| `.ai/STRATEGIC_AUDIT.md` | 10 preguntas obligatorias antes de construir |
-| `.ai/MEMORY.md` | Espec de UnifiedMemory + MerlinMemory |
-| `ORION_SETUP_GUIDE.md` | Onboarding nivel producto comercial (Identity → Desktop → Companion → Watch → Test) |
-| `OWNEX_BRAND_IDENTITY.md` | Guía completa de marca v3 |
+Secrets never live in the repository. API keys go to `IdentityVault` (AES-256-GCM, random key, chmod 600) or environment variables.
 
 ---
 
-## Licencia
+## Development
 
-**Propietaria. Todos los derechos reservados.**
+```bash
+# Tests (fast smoke)
+python scripts/dev test
+
+# Lint + typecheck + fast tests
+make check
+
+# Fixed lints
+make fmt
+
+# Backend single source
+python scripts/dev typecheck-fast
+```
+
+Stack: pytest + pytest-cov · Ruff · Biome · Mypy (strict on core)
+
+---
+
+## Security
+
+- 100% local by default — nothing leaves the machine, no telemetry
+- AES-256-GCM credential vault (random key, chmod 600)
+- Ed25519 asymmetric license validation
+- Double-submit-cookie CSRF on all state-changing routes
+- Identity-based rate limiting with IP fallback
+- Append-only audit log (JSONL, 10 MB rotation)
+
+---
+
+## Roadmap
+
+| Status | Item |
+|---|---|
+| ✅ **DONE** | Security pipeline (7 stages) — auto-submit to finders/all-named report queues |
+| ✅ **DONE** | Direct Work Engine + Work Bank + Daily Companion + Evolution |
+| ✅ **DONE** | 7 Work Cycles, 28 scheduled jobs, Mission Control, Executive Dashboard |
+| ✅ **DONE** | Desktop (Tauri v2 + PyInstaller sidecar), mobile companion, MERLIN |
+| 🟡 **IN PROGRESS** | OMEGA mobile (Expo/React Native) — functional skeleton |
+| 🟡 **IN PROGRESS** | Smartwatch (Wear OS) — architecture/protocol defined; no native writeback version yet |
+| 🟡 **EXPERIMENTAL** | `cores/ai/runtime` (OAR) — engine + tests, mounted routing not yet in API at runtime |
+| 🔲 **PLANNED** | Wear OS native sync · OAR API exposure · more discovery adapters (Algora, OpenCollective, Superteam) |
+
+---
+
+## Branding
+
+OWNEX mark — **The Aperture Nexus**: octagonal ring + X of rays + central node that breaks the ring. Generated by a deterministic pipeline (`scripts/brand/`), zero generative AI, 100% reproducible:
+
+```bash
+scripts/brand/regenerate.sh          # logo system + banners (SVG + PNG)
+scripts/brand/regenerate.sh --shots  # + real product screenshots (Playwright)
+```
+
+Design language: **Tesla dark** — pure black surfaces, white primary accent, deep blue `#1e40ff` as the only saturated accent, no noise, no glow.
+
+```
+docs/assets/branding/
+├── logo/      # O+X mark (white/black/mono/omega), wordmark, lockup, favicon
+├── banners/   # hero-banner 2400×900
+├── social/    # open-graph preview 1200×630
+└── themes/    # design tokens SSOT (assets/branding/themes/tesla.json)
+```
+
+---
+
+## License
+
+**Proprietary.** All rights reserved.
 
 ---
 
 <p align="center">
-  <strong>OWNEX no vende un servicio al cliente. OWNEX trabaja para mí.</strong>
+  <strong>OWNEX does not sell a service to a customer. OWNEX works for me.</strong>
 </p>
 
 <p align="center">
@@ -323,5 +300,5 @@ make check
 </p>
 
 <p align="center">
-  <img src="assets/logos/ownex-lockup-white.svg" alt="OWNEX Lockup" width="280"/>
+  <img src="docs/assets/branding/logo/ownex-lockup-white.svg" alt="OWNEX" width="280"/>
 </p>

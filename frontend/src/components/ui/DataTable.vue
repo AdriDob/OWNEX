@@ -51,7 +51,7 @@ function toggleSort(key: string) {
 }
 
 const filtered = computed(() => {
-  let result = [...props.items]
+  let result = Array.isArray(props.items) ? [...props.items] : []
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
     result = result.filter(item =>

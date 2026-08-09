@@ -112,6 +112,9 @@ class TestGetExecutors:
         for inst in executors.values():
             assert isinstance(inst, BaseExecutor)
 
-    def test_outlier_not_in_default_executors(self):
+    def test_outlier_in_default_executors(self):
         executors = get_executors()
-        assert "outlier" not in executors
+        assert "outlier" in executors
+        assert "remotasks" in executors
+        assert "dataannotation" in executors
+        assert "mindrift_browser" in executors

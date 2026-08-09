@@ -340,8 +340,8 @@ def test_list_capabilities() -> None:
     assert "cap_b" in caps
 
 
-def test_list_by_module() -> None:
-    reg = CapabilityRegistry()
+def test_list_by_module(tmp_path: Path) -> None:
+    reg = CapabilityRegistry(tmp_path / "caps.json")
     reg.register("cap_a", "mod1")
     reg.register("cap_b", "mod1")
     reg.register("cap_c", "mod2")
@@ -351,8 +351,8 @@ def test_list_by_module() -> None:
     assert len(mod2) == 1
 
 
-def test_unregister() -> None:
-    reg = CapabilityRegistry()
+def test_unregister(tmp_path: Path) -> None:
+    reg = CapabilityRegistry(tmp_path / "caps.json")
     reg.register("send_email", "outlook")
     reg.register("send_email", "gmail")
     assert len(reg.find("send_email")) == 2
@@ -361,8 +361,8 @@ def test_unregister() -> None:
     assert reg.find("send_email")[0].module == "gmail"
 
 
-def test_clear() -> None:
-    reg = CapabilityRegistry()
+def test_clear(tmp_path: Path) -> None:
+    reg = CapabilityRegistry(tmp_path / "caps.json")
     reg.register("a", "m1")
     reg.register("b", "m2")
     assert reg.count() == 2
