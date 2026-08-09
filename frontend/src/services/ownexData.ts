@@ -1089,3 +1089,44 @@ export async function fetchDailyCompanion(
     target_monthly_usd: targetMonthlyUsd,
   })
 }
+
+// ── Profile Kit ──
+
+export interface ProfileKitProfile {
+  name: string
+  country: string
+  skills: string[]
+  experience_level: string
+  availability_hours: number
+  github_url: string
+  linkedin_url: string
+  portfolio_url: string
+}
+
+export interface ProfileKitField {
+  key: string
+  label: string
+  text: string
+}
+
+export interface ProfileKitStatus {
+  saved: boolean
+  available_platforms: string[]
+  profile: ProfileKitProfile
+}
+
+export interface ProfileKitResponse {
+  kits: Record<string, Record<string, ProfileKitField[]>>
+}
+
+export async function fetchProfileKitStatus(): Promise<ProfileKitStatus> {
+  return api.get<ProfileKitStatus>('/api/profile-kit/')
+}
+
+export async function saveProfileKit(profile: ProfileKitProfile): Promise<{ success: boolean; saved: ProfileKitProfile }> {
+  return api.post<{ success: boolean; saved: ProfileKitProfile }>('/api/profile-kit/', profile)
+}
+
+export async function generateProfileKit(profile: ProfileKitProfile): Promise<ProfileKitResponse> {
+  return api.post<ProfileKitResponse>('/api/profile-kit/generate', profile)
+}

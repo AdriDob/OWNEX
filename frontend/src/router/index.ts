@@ -558,6 +558,12 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/FaqPage.vue'),
     meta: { title: 'Preguntas Frecuentes' },
   },
+  {
+    path: '/profile-kit',
+    name: 'profile-kit',
+    component: () => import('@/pages/ProfileKit.vue'),
+    meta: { title: 'Profile Kit' },
+  },
 
   // ── MOBILE COMPANION ──
   {
