@@ -1,3 +1,44 @@
+## Sesión 2026-08-09 — GITHUB PRESENTATION: README profesional + branding O+X regenerable
+
+> **QUÉ SE HIZO:** El repo queda presentable como producto profesional en GitHub, fiel al
+> producto real (cero features inventadas), con pipeline 100% reproducible.
+
+### Deliverables
+- **README.md reescrito en inglés profesional**: hero con lockup O+X, capability table,
+  diagrama Mermaid (monolito + EventBus + 7 Work Cycles + OAR AI router), 5 screenshots
+  reales, daily flow, quick start real, config (`.ai/` SSOT), security, roadmap honesto
+  (DONE / IN PROGRESS / EXPERIMENTAL / PLANNED), license Proprietary.
+- **Sistema de logo O+X definitivo** (`scripts/brand/generate_ownex_logo.py`): mark
+  (octagonal O + X de rayos + nodo azul oscuro `#1E40FF` que rompe el anillo), wordmark,
+  lockup, favicon — variantes white/black/mono/omega, SVG + PNG con aspect ratio correcto.
+  Output: `docs/assets/branding/logo/`.
+- **Banner hero + OG social preview** (`scripts/brand/generate_ownex_banners.py`):
+  `docs/assets/branding/banners/` (2400×900) y `docs/assets/branding/social/` (1200×630).
+  `.github/social-preview.{png,svg}` actualizado.
+- **Pipeline integral** (`scripts/brand/regenerate.sh`): logo → banners → sync legacy
+  `assets/logos/` → optimización (paleta, −41% en screenshots) → validación automática
+  (`validate_assets.py`: imágenes, Mermaid, PNGs, sync social-preview, entregables).
+  Verificado end-to-end sin red ni GPU.
+- **Screenshots reales** (sesión previa, `scripts/capture_screenshots.mjs`): 9 rutas del
+  frontend real, autenticación CSRF por API, ya en `docs/assets/screenshots/desktop/`.
+- **Diagramas**: `docs/assets/diagrams/architecture.mmd` + Mermaid embebido en README
+  (GitHub lo renderiza nativo).
+- **Informes**: `docs/audit/INTERNAL_AUDIT.md` (clasificación EXISTENTE/IMPLEMENTADO/
+  PARCIAL/EXPERIMENTAL/DESCARTADO de todo el sistema, con evidencia por módulo/test) +
+  `docs/audit/GITHUB_PRESENTATION_REPORT.md` (entregables, verificación, gaps honestos,
+  regenerate). Indexados en `docs/README.md`. Legacy svg de marca movidos a
+  `docs/assets/branding/legacy/`.
+- **Verificación**: ruff 0 errores en scripts nuevos, PNGs válidos (PIL verify), todas
+  las imágenes referenciadas por el README existen, pipeline regenera sin red ni GPU.
+
+### A validar por el humano (sin visión del agente)
+- Look final: posición del nodo azul del mark, tamaño del ring gap — ajustar constantes
+  en los dos scripts si se quiere más/menos espacio.
+- Commit+push del bloque de presentación (`docs/`, `scripts/brand/`, `README.md`,
+  `.github/social-preview.*`) queda pendiente de validación visual del usuario.
+
+---
+
 ## Sesión 2026-08-04 — SUCCESS MAXIMIZER: modo max_success + piso de éxito en la Work Bank
 
 > **QUÉ SE HIZO:** Cerrado el objetivo "Success Maximizer" — el sistema ahora prioriza por probabilidad

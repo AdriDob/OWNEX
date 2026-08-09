@@ -65,6 +65,7 @@ const fetchAlerts = async () => {
   try {
     const response = await fetch('/api/alerts/active')
     const data = await response.json()
+    if (!data.alerts) return
     activeAlerts.value = data.alerts
 
     // Auto-dismiss alerts with auto_dismiss_after > 0
