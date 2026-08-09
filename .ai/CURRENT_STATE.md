@@ -1,3 +1,39 @@
+## Sesión 2026-08-09 — PROFILE KIT: persistencia real + thin router + gold plating frontend
+
+> **QUÉ SE HIZO:** El Profile Kit (textos listos para copiar por plataforma, bilingüe EN+ES)
+> pasó de stub a feature completa y persistente: el router ahora es un adapter fino sobre el
+> engine (SSOT), el perfil se guarda en `data/profile_kit.json` real, reutiliza el workspace
+> de trabajo del DWE, y el frontend ganó autofill y acciones de copy/export.
+
+### Backend (persistencia real + One Source of Truth)
+- **`ProfileKitEngine`** (`cores/direct_work_engine/profile_kit.py`): corrige `has_profile()`
+  (bool sobre `load()` real, no sobre cache), `get()` devuelve el persistido, expone
+  `platforms()` y `default_profile()`, y agrega `profile_from_dict()` (dict parcial
+  → `UserProfile` con `ExperienceLevel` seguro, sets de skills/languages).
+- **Router** (`api/routers/profile_kit.py`): reescrito como adapter fino (~60 líneas).
+  `GET /api/profile-kit/` → saved + platforms + perfil (guardado o defaults);
+  `POST /api/profile-kit/` → **persistencia real** en `data/profile_kit.json`;
+  `POST /api/profile-kit/generate` → sin payload usa el perfil guardado.
+  **Eliminados ~470 líneas** de generadores duplicados del router (twin trees):
+  el engine es el SSOT de generación.
+- **Tests** (`tests/test_profile_kit.py` → **12 passed**): fixture aísla `_DATA_DIR` a
+  `tmp_path` (cero contaminación del `data/` real — fija además la contaminación que el
+  stub anterior dejaba en disco); nuevos tests: save→status persiste, generate sin payload
+  usa el guardado, `profile_from_dict` parcial, API↔engine mismo output.
+- Ruff limpio, `make check` verde (89 passed, 1 skipped).
+
+### Frontend (goldfish: copiar todo + export)
+- `ProfileKit.vue`: autofill del form desde el perfil guardado al cargar (GET / devuelve el
+  saved); botón **"Copiar todo"** (copia `label: text` de todos los fields del lang+platform
+  activos como bloque), **"Exportar .md"** (descarga `ownex-profile-kit-<lang>.md` con todos
+  los platforms, Blob + descarga), hint de key de campo visible junto al label.
+- Verificado: `vue-tsc --noEmit` 0 errores, `vite build` OK.
+
+### Registrado
+- `.ai/COMPLETED_FEATURES.json` → fase `FASE_31` Profile Kit (engine + API + frontend + tests).
+
+---
+
 ## Sesión 2026-08-09 — GITHUB PRESENTATION: README profesional + branding O+X regenerable
 
 > **QUÉ SE HIZO:** El repo queda presentable como producto profesional en GitHub, fiel al

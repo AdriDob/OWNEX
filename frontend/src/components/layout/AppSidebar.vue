@@ -11,7 +11,7 @@ import {
   Shield, Target, TrendingUp, Unlink,
   Activity, Database, RefreshCw, X, HeartPulse, Zap,
   Wallet, Sparkles, Bot, BarChart3, Brain, Coins,
-  BookOpen, Lightbulb,
+  BookOpen, Lightbulb, UserRound,
 } from '@lucide/vue'
 
 const hunt = useHuntStore()
@@ -80,6 +80,13 @@ const navSections = [
     items: [
       { name: 'MERLIN', path: '/merlin', icon: Bot },
       { name: 'Próximamente', path: '/faqs', icon: Sparkles },
+    ],
+  },
+  {
+    section: 'PERFIL',
+    cycle: 'profile',
+    items: [
+      { name: 'Profile Kit', path: '/profile-kit', icon: UserRound },
     ],
   },
   {
