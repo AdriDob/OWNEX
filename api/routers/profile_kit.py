@@ -7,6 +7,7 @@ from typing import Any
 
 from fastapi import APIRouter
 
+from api.routers.direct_work import _INCOME_MAX_DEFAULT_PROFILE as _DWE_DEFAULTS
 from cores.direct_work_engine.profile_kit import ProfileKitEngine
 
 logger = logging.getLogger("api.profile_kit")
@@ -18,6 +19,14 @@ def _get_engine() -> ProfileKitEngine:
     return ProfileKitEngine()
 
 
+def _seed_profile(engine: ProfileKitEngine) -> dict[str, Any]:
+    """Perfil de arranque: el guardado si existe, sino los defaults reales del DWE."""
+    saved = engine.get()
+    if saved:
+        return saved
+    return {**_DWE_DEFAULTS, "experience_level": "none", "availability_hours": 40}
+
+
 @router.get("/")
 async def profile_kit_status() -> dict[str, Any]:
     """Retorna el estado actual del perfil kit: guardado, plataformas disponibles, perfil."""
@@ -26,7 +35,7 @@ async def profile_kit_status() -> dict[str, Any]:
     return {
         "saved": bool(saved),
         "available_platforms": engine.platforms(),
-        "profile": saved or engine.default_profile(),
+        "profile": saved or _seed_profile(engine),
     }
 
 
@@ -45,6 +54,5 @@ async def profile_kit_generate(profile_data: dict[str, Any] | None = None) -> di
     if profile_data:
         profile = engine.profile_from_dict(profile_data)
     else:
-        saved = engine.get()
-        profile = engine.profile_from_dict(saved) if saved else engine.profile_from_dict(engine.default_profile())
+        profile = engine.profile_from_dict(_seed_profile(engine))
     return {"kits": engine.generate(profile)}

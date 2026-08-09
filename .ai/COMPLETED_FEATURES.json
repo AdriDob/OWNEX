@@ -2180,7 +2180,7 @@
                     "files": [
                         "cores/direct_work_engine/profile_kit.py"
                     ],
-                    "detail": "12 platform kits (fiverr/github/hackerone/bugcrowd/intigriti/yeswehack/opire/issuehunt/algora/outlier/mindrift/linkedin) bilingüe EN+ES; save/load en data/profile_kit.json; profile_from_dict parcial; plataformas expuestas"
+                    "detail": "12 platform kits (fiverr/github/hackerone/bugcrowd/intigriti/yeswehack/opire/issuehunt/algora/outlier/mindrift/linkedin) bilingüe EN+ES; save/load en data/profile_kit.json; profile_from_dict parcial; plataformas expuestas; copy honesto: helper _exp_label (el enum ExperienceLevel no declara años → nunca 'mid años'); fix 'stack y stack'"
                 },
                 {
                     "id": "profile_kit_api",
@@ -2189,7 +2189,7 @@
                     "files": [
                         "api/routers/profile_kit.py"
                     ],
-                    "detail": "GET /api/profile-kit/ (estado+perfil guardado), POST /api/profile-kit/ (persistencia real), POST /api/profile-kit/generate (usa payload o el guardado). Eliminados ~470 líneas de generadores duplicados (SSOT = engine)"
+                    "detail": "GET /api/profile-kit/ (estado+perfil guardado o seed DWE real), POST /api/profile-kit/ (persistencia real), POST /api/profile-kit/generate (usa payload o el guardado o seed DWE). Eliminados ~470 líneas de generadores duplicados (SSOT = engine). Autofill: sin guardado, siembra desde _INCOME_MAX_DEFAULT_PROFILE (perfil de trabajo real del DWE)"
                 },
                 {
                     "id": "profile_kit_frontend",
