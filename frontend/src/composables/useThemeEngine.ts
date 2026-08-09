@@ -201,6 +201,7 @@ function systemPrefersDark(): boolean {
 export function useThemeEngine() {
   const currentTheme = ref<ThemeDefinition | null>(null)
   const availableThemes = ref<ThemeDefinition[]>([])
+  const themeNames = computed(() => availableThemes.value)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const themeMode = ref<ThemeMode>('dark')
@@ -329,8 +330,8 @@ export function useThemeEngine() {
     systemDark,
     initialize,
     setTheme,
-    getTheme,
-    getCurrentThemeId,
+    getTheme: (id: string) => themesCache?.get(id) ?? null,
+    getCurrentThemeId: () => currentTheme.value?.id ?? null,
     setThemeMode,
     initThemeMode,
   }

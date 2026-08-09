@@ -36,6 +36,11 @@ EXEMPT_PATHS = frozenset(
         "/api/auth/login",
         "/api/auth/register",
         "/api/auth/desktop-session",
+        # Local-only auto-recovery: the RecoveryEngine restarts the API via
+        # POST /api/system/restart without a browser session token. The API
+        # binds to 127.0.0.1, so this does not extend CSRF exposure beyond
+        # localhost.
+        "/api/system/restart",
     }
 )
 
