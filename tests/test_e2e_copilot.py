@@ -322,7 +322,7 @@ class TestExecutionLayerE2E:
 
         pr = get_provider_router()
         names = [p.name for p in pr.providers]
-        assert names[0] == "fcc"
+        assert names[0] == "omniroute"
 
 
 # ── 5. BROWSER WORKERS E2E ───────────────────────────────────────────
@@ -392,7 +392,7 @@ class TestCopilotModelRoutingE2E:
 
         pr = get_provider_router()
         names = [p.name for p in pr.providers]
-        assert names[0] == "fcc"
+        assert names[0] == "omniroute"
         assert "ollama" in names
 
     @pytest.mark.asyncio

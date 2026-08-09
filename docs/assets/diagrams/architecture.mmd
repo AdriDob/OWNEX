@@ -1,0 +1,56 @@
+flowchart TB
+    subgraph USER["Operator"]
+        U[Human at the decision gate]
+    end
+
+    subgraph SURFACE["Presentation"]
+        MC["Mission Control - Vue 3 SPA"]
+        DESK["OWNEX Desktop - Tauri v2"]
+        MOB["OWNEX Mobile - Omega"]
+        MERLIN["MERLIN - Copilot interface"]
+    end
+
+    subgraph CORE["Core Platform - FastAPI"]
+        EB["EventBus"]
+        SCH["Scheduler - 28 cron-aware jobs"]
+        HC["Health Center"]
+        UM["Unified Memory - SQLite"]
+        DJ["Decision Journal"]
+        VAULT["Identity Vault - AES-256-GCM"]
+    end
+
+    subgraph CYCLES["Work Cycles - 7"]
+        SEC["Security"]
+        FORGE["Forge"]
+        PULSE["Pulse"]
+        VAULT_C["Vault"]
+        ATLAS["Atlas"]
+        QA["QA Cycle"]
+        DW["Direct Work"]
+    end
+
+    subgraph ENGINES["Engines - cores/"]
+        DWE["Direct Work Engine"]
+        REV["Revenue Intelligence"]
+        OPP["Opportunity / Discovery"]
+        VAL["Validation / Evidence"]
+        SUB["Auto-submit Pipeline"]
+        EVO["Evolution / Learning"]
+    end
+
+    subgraph AI["Multi-Provider AI"]
+        RT["OAR - AI Runtime router"]
+        P1["Ollama local"]
+        P2["FCC Proxy"]
+        P3["OpenRouter"]
+    end
+
+    R[["Results - Findings / Reports / Payouts"]]
+
+    USER --> SURFACE
+    SURFACE --> CORE
+    CORE --> CYCLES
+    CYCLES --> ENGINES
+    ENGINES --> AI
+    ENGINES --> R
+    CORE --> R

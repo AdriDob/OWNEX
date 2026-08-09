@@ -77,6 +77,8 @@ See [Architecture Diagrams](../assets/diagrams/) for visual system architecture:
 ### Monitoring & Maintenance
 - [Security Baseline](SECURITY_BASELINE.md) — Security standards
 - [Audit](audit/) — Audit procedures and results
+  - [Internal System Audit](audit/INTERNAL_AUDIT.md) — Classification of every system (EXISTENTE/IMPLEMENTADO/PARCIAL/EXPERIMENTAL/DESCARTADO), with evidence
+  - [GitHub Presentation Report](audit/GITHUB_PRESENTATION_REPORT.md) — Presentation deliverables, verification, honest gaps, regenerate instructions
 
 ---
 
