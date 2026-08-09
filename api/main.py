@@ -111,6 +111,7 @@ from api.routers import (
     pipeline,
     platforms,
     productivity,
+    profile_kit,
     progressive_scaling,
     project_dashboard,
     pulse_app,
@@ -1652,6 +1653,7 @@ app.include_router(pulse_cycle.router)
 app.include_router(vault_cycle.router)
 app.include_router(atlas_cycle.router)
 app.include_router(qa_cycle.router)
+app.include_router(profile_kit.router)
 
 # ── ORION Platform: core + app routers ──
 try:

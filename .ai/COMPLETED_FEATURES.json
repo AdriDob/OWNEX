@@ -1,6 +1,6 @@
 {
     "version": "7.0.0",
-    "last_updated": "2026-07-23T09:31:08.924582Z",
+    "last_updated": "2026-08-09T00:00:00.000000Z",
     "total_tests": 1391,
     "phases": {
         "FASE_1": {
@@ -33,7 +33,7 @@
                 },
                 {
                     "id": "except_pass_fix",
-                    "name": "32 bare except:pass \u2192 logged",
+                    "name": "32 bare except:pass → logged",
                     "status": "production_ready",
                     "files": [
                         "15 files modified"
@@ -47,7 +47,7 @@
             "features": [
                 {
                     "id": "opportunity_eventbus",
-                    "name": "OpportunityEngine \u2192 EventBus",
+                    "name": "OpportunityEngine → EventBus",
                     "status": "production_ready",
                     "detail": "opportunity:found / opportunity:updated published"
                 },
@@ -61,7 +61,7 @@
                 },
                 {
                     "id": "findings_eventbus",
-                    "name": "Findings \u2192 EventBus",
+                    "name": "Findings → EventBus",
                     "status": "production_ready",
                     "files": [
                         "api/routers/findings.py"
@@ -69,7 +69,7 @@
                 },
                 {
                     "id": "agentbus_eventbus_bridge",
-                    "name": "AgentBus \u2192 EventBus bridge",
+                    "name": "AgentBus → EventBus bridge",
                     "status": "production_ready",
                     "files": [
                         "cores/agents/bus.py",
@@ -78,7 +78,7 @@
                 },
                 {
                     "id": "ghost_events_fixed",
-                    "name": "8 Ghost event types \u2192 all have real publishers",
+                    "name": "8 Ghost event types → all have real publishers",
                     "status": "production_ready"
                 }
             ]
@@ -121,7 +121,7 @@
                     "id": "auto_report",
                     "name": "Auto-report subscriber",
                     "status": "production_ready",
-                    "detail": "EventBus subscriber: finding confirmed \u2192 report draft"
+                    "detail": "EventBus subscriber: finding confirmed → report draft"
                 }
             ]
         },
@@ -212,7 +212,7 @@
                 },
                 {
                     "id": "fix_watchdog_bus",
-                    "name": "Watchdog bus fix (agent\u2192event)",
+                    "name": "Watchdog bus fix (agent→event)",
                     "status": "production_ready"
                 },
                 {
@@ -252,7 +252,7 @@
                 },
                 {
                     "id": "fix_open_context",
-                    "name": "open() \u2192 with open() in auth",
+                    "name": "open() → with open() in auth",
                     "status": "production_ready"
                 },
                 {
@@ -729,7 +729,7 @@
                 },
                 {
                     "id": "kg_copilot_integration",
-                    "name": "COPILOT \u2192 KG integration",
+                    "name": "COPILOT → KG integration",
                     "status": "production_ready",
                     "files": [
                         "core/copilot/agent.py"
@@ -824,7 +824,7 @@
                     "files": [
                         "core/execution/runtime/dispatcher.py"
                     ],
-                    "detail": "Permission\u2192Secrets\u2192RateLimit\u2192Metrics\u2192Execute"
+                    "detail": "Permission→Secrets→RateLimit→Metrics→Execute"
                 },
                 {
                     "id": "worker_engine",
@@ -1084,9 +1084,9 @@
                 },
                 {
                     "id": "journal_eventstore",
-                    "name": "Journal \u2192 EventStore persistence",
+                    "name": "Journal → EventStore persistence",
                     "status": "production_ready",
-                    "detail": "execution:journal:entry published to EventBus \u2192 EventStore. Fallback after restart."
+                    "detail": "execution:journal:entry published to EventBus → EventStore. Fallback after restart."
                 },
                 {
                     "id": "secrets_single_path",
@@ -1205,23 +1205,23 @@
                 },
                 {
                     "id": "ledger",
-                    "name": "Ledger \u2192 SQLite",
+                    "name": "Ledger → SQLite",
                     "status": "production_ready"
                 },
                 {
                     "id": "event_bus",
-                    "name": "Event Bus \u2192 SQLite",
+                    "name": "Event Bus → SQLite",
                     "status": "production_ready"
                 },
                 {
                     "id": "system_state",
-                    "name": "System State \u2192 SQLite",
+                    "name": "System State → SQLite",
                     "status": "production_ready"
                 }
             ]
         },
         "NEW_SESSION": {
-            "name": "Current Session \u2014 Offensive Intelligence + Quality + Evolution",
+            "name": "Current Session — Offensive Intelligence + Quality + Evolution",
             "completed": "July 2026",
             "features": [
                 {
@@ -1245,7 +1245,7 @@
                 },
                 {
                     "id": "evidence_composer",
-                    "name": "Evidence Engine \u2014 EvidenceComposer",
+                    "name": "Evidence Engine — EvidenceComposer",
                     "status": "production_ready",
                     "files": [
                         "core/evidence/composer.py"
@@ -1263,7 +1263,7 @@
                 },
                 {
                     "id": "evolution_engine",
-                    "name": "Evolution Engine \u2014 adaptive learning",
+                    "name": "Evolution Engine — adaptive learning",
                     "status": "production_ready",
                     "files": [
                         "core/evolution/",
@@ -1837,7 +1837,7 @@
                 },
                 {
                     "id": "orphaned_db_cleanup",
-                    "name": "Orphaned test DBs cleanup (1303\u21928)",
+                    "name": "Orphaned test DBs cleanup (1303→8)",
                     "status": "production_ready"
                 },
                 {
@@ -2038,7 +2038,7 @@
                         "api/main.py"
                     ],
                     "tests": 14,
-                    "detail": "FeedbackTuner \u2194 AcceptanceLearner bridge, auto-outcome recording"
+                    "detail": "FeedbackTuner ↔ AcceptanceLearner bridge, auto-outcome recording"
                 }
             ]
         },
@@ -2168,6 +2168,51 @@
                 "integration_level": "production_ready",
                 "date": "2026-08-01"
             }
-        ]
+        ],
+        "FASE_31": {
+            "name": "Profile Kit — Bilingual platform copy engine",
+            "completed": "August 2026",
+            "features": [
+                {
+                    "id": "profile_kit_engine",
+                    "name": "ProfileKitEngine — generation + persistence",
+                    "status": "production_ready",
+                    "files": [
+                        "cores/direct_work_engine/profile_kit.py"
+                    ],
+                    "detail": "12 platform kits (fiverr/github/hackerone/bugcrowd/intigriti/yeswehack/opire/issuehunt/algora/outlier/mindrift/linkedin) bilingüe EN+ES; save/load en data/profile_kit.json; profile_from_dict parcial; plataformas expuestas"
+                },
+                {
+                    "id": "profile_kit_api",
+                    "name": "Profile Kit API — thin router sobre el engine",
+                    "status": "production_ready",
+                    "files": [
+                        "api/routers/profile_kit.py"
+                    ],
+                    "detail": "GET /api/profile-kit/ (estado+perfil guardado), POST /api/profile-kit/ (persistencia real), POST /api/profile-kit/generate (usa payload o el guardado). Eliminados ~470 líneas de generadores duplicados (SSOT = engine)"
+                },
+                {
+                    "id": "profile_kit_frontend",
+                    "name": "Profile Kit UI + sidebar",
+                    "status": "production_ready",
+                    "files": [
+                        "frontend/src/pages/ProfileKit.vue",
+                        "frontend/src/services/ownexData.ts",
+                        "frontend/src/router/index.ts",
+                        "frontend/src/components/layout/AppSidebar.vue"
+                    ],
+                    "detail": "Ruta /profile-kit, grupo PERFIL en sidebar; form + tabs de plataforma + toggle EN/ES; autofill desde perfil guardado; copiar por campo, copiar todo, export .md; hint de key por campo"
+                },
+                {
+                    "id": "profile_kit_tests",
+                    "name": "Profile Kit tests (12) con aislamiento de datos",
+                    "status": "production_ready",
+                    "files": [
+                        "tests/test_profile_kit.py"
+                    ],
+                    "detail": "API (shape/persistencia/langs/plataformas/keys/no-inventado/saved-fallback) + engine (roundtrip, profile_from_dict parcial). Fixture parchea _DATA_DIR a tmp_path → sin contaminar data/ real"
+                }
+            ]
+        }
     }
 }
