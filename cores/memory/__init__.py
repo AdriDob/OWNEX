@@ -7,6 +7,13 @@ from cores.memory.learning_scorer import ConfidenceBooster, LearningScorer, Payo
 from cores.memory.memory import MemoryEngine, MemoryPatternLibrary
 from cores.memory.memory_store import MemoryStore, get_memory_store
 from cores.memory.pattern_extractor import PatternExtractor
+from cores.memory.unified_memory import (
+    UnifiedMemory,
+    get_unified_memory,
+    PersonalMemory,
+    OperationalMemory,
+    StrategicMemory,
+)
 
 __all__ = [
     "MemoryPatternLibrary",
@@ -26,4 +33,9 @@ __all__ = [
     "InsightArchive",
     "get_insight_archive",
     "Insight",
+    "UnifiedMemory",
+    "get_unified_memory",
+    "PersonalMemory",
+    "OperationalMemory",
+    "StrategicMemory",
 ]
