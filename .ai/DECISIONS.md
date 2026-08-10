@@ -1,5 +1,17 @@
 # Decisions — Registro de Decisiones Arquitectónicas
 
+## 2026-08-10: CALM UX — el sistema entero debe sentirse relajante, 0 estresante
+
+- **Problema**: El sistema acumula tonos agresivos/sobre-excitados (exclamaciones, neón, alarmas, métricas de presión, errores duros) que generan estrés en el usuario. Decisión del owner: OWNEX debe sentirse **relajante de usar, 0 estresante** — aplica al sistema en general, no solo a la voz.
+- **Directriz global de diseño** (se aplica incrementalmente a todo acceso de OWNEX):
+  1. **Voz**: tono grave-medio, ~0.95x, pausas, emoción contenida, framing "Resultado, {verdict}." — ya implementado (`calm_operator`, `VoicePersonality`).
+  2. **Textos** (UI, replies, briefs, notificaciones): anunciar resultados con calma, sin exclamaciones ni drama; sin "alerta crítica" innecesaria.
+  3. **Errores**: suaves, accionables, sin pánico ("no se pudo X; esto no afecta el resto" > "ERROR CRÍTICO"). Los niveles de severidad solo para lo que es realmente grave.
+  4. **Métricas**: mostrar progreso y estado, no presión (evitar contadores rojos, deadline agresivos como "¡URGENTE!").
+  5. **UI/animaciones**: movimientos sutiles, sin parpadeos ni efectos de urgencia; densidad visual baja.
+- **Impacto**: Los cambios se hacen incrementalmente (nunca un sweep masivo): cada módulo que se toque debe pasar por este filtro. La voz ya cumple; el resto queda como regla permanente para trabajos futuros.
+- **Condiciones para reabrir**: Nunca — es state de diseño permanente.
+
 ## 2026-08-04: OAR AI Runtime — sistema operativo unificado de providers de IA
 
 - **Problema**: Cada operación de IA se cableaba contra un provider concreto (Ollama local, OpenRouter, Groq, FCC, etc.) de forma ad-hoc. No había un punto único de entrada: rutear por tipo de tarea, presupuesto, failover, caché ni aprendizaje de preferencias. Con 9+ providers disponibles, el routing manual no escala y no respeta el coste (budget diario USD).
