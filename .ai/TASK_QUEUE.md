@@ -72,15 +72,15 @@
 | GamingConsole = MOCK | ✅ COMPLETADO — conecta a 8 endpoints; el bloqueo real era `/api/cycles` 500 (config JSON string vs dict) → fix `field_validator` en `CycleRead` | AUD-7 |
 | Executive Dashboard sin frontend | ✅ COMPLETADO — `ExecutiveDashboard.vue` + ruta `/security/executive` + sidebar "CEO View" | AUD-6 |
 | test_version_backup 13 fallan | ✅ COMPLETADO — 24/24 pasan (era estado residual `.ownex_backups`; `_calculate_checksum` volvió a excluir `manifest.json`) | AUD-5 |
-| Manifests de apps con clases inexistentes | ⚠️ PENDIENTE | FASE 4 |
+| Manifests de apps con clases inexistentes | ✅ COMPLETADO 2026-08-10 — providers corregidos a módulos reales: vault→`core.opportunity.adapters.security_bounty` (HackerOne/Bugcrowd/Intigriti/YesWeHack, se quitaron Synack/Immunefi inexistentes), pulse→paquete `core.opportunity.adapters.pulse` (7 clases), forge→`fetch_opportunities` (8 funciones; quitado `issuehand` inexistente). Verificado: 23 provider strings resuelven todos | FASE 4 |
 | core/ vs cores/ duplicación | ✅ DECIDIDO — `cores/` es SSOT; `core/` se migra gradualmente | AUD-11 |
 | Android crash on launch | ✅ COMPLETADO — namespace unificado `ai.rastro.app` | AUD-12 |
 | WearOS no buildable | ✅ RESUELTO — descartado (ROI negativo, redundante con OMEGA mobile) | AUD-14 |
-| Supabase no configurado | ⚠️ PENDIENTE (solo MobileCompanion depende) | FASE 6 |
+| Supabase no configurado | ✅ RESUELTO 2026-08-10 — decisión: Supabase es **opcional** (solo MobileCompanion); router `/api/supabase/*` montado + `cores/supabase/sync_manager.py` real; frontend degrada graceful a "Disconnected" sin credenciales. No bloquea nada. | FASE 6 |
 | Tauri no compila | ✅ COMPLETADO — `main.rs` corregido `orion_desktop::run()`, cargo check OK | AUD-13 |
 | VaultCycle/AtlasCycle no existen | ✅ COMPLETADO — creados + routers montados; 6 ciclos operativos | AUD-8 |
-| 31+ páginas frontend huérfanas | ⚠️ PENDIENTE (menor, depende de decisión de producto) | — |
-| console.log en frontend móvil | ⚠️ PENDIENTE (menor, limpieza) | — |
+| 31+ páginas frontend huérfanas | ✅ COMPLETADO 2026-08-10 — 23 páginas muertas eliminadas (0 referencias externas: router/sidebar/imports); 61/92 páginas ruteadas. `vue-tsc` 0 errores, `vite build` OK | — |
+| console.log en frontend móvil | ✅ COMPLETADO 2026-08-10 — eliminados 3 `console.log` de approvals WS en `MobileCompanion.vue`; quedan solo `console.error` (correcto) | — |
 | QA cycle no conectado | ⚠️ PENDIENTE (`core/cycles/qa.py` 1100 líneas sin callers) | — |
 | OAR + Career Engine sin API | ✅ COMPLETADO 2026-08-04 — routers `/oar/*` y `/career/*` creados y montados; 14 tests nuevos pasan | `tests/test_oar_api.py` + `test_career_api.py` |
 | QA cycle no conectado | ✅ COMPLETADO 2026-08-04 — router `api/routers/qa_cycle.py` (start/status/stage/cases/run) montado en `api/main.py`; scheduler job `qa_daily_cycle` (cron 08:30, handler `run_qa_cycle`); `get_all_jobs()` → 7 ciclos / 28 jobs; 7 tests nuevos. 71+56 passed, ruff limpio | `tests/test_qa_cycle_api.py` |

@@ -1,3 +1,25 @@
+## Sesión 2026-08-10 — LIMPIEZA DE PENDIENTES: manifests providers reales + 23 páginas muertas + console.log (todo verificado)
+
+> **QUÉ SE HIZO:** Cerradas las 4 pendientes del TASK_QUEUE con evidencia. (1) **Manifests FASE 4**: los
+> provider strings de vault/pulse/forge apuntaban a módulos inexistentes. Corregidos: vault→
+> `core.opportunity.adapters.security_bounty` (HackerOne/Bugcrowd/Intigriti/YesWeHack; Synack/Immunefi
+> no existen → quitados), pulse→paquete `core.opportunity.adapters.pulse` (7 clases existen),
+> forge→`fetch_opportunities` (8 funciones; módulo `issuehand` inexistente → quitado).
+> Verificado: los 23 provider strings resuelven por importlib. (2) **23 páginas frontend muertas
+> eliminadas** (0 referencias en router/sidebar/imports): AISecurity, AccountHealth, ArgentinaPayments,
+> DailyMode, FinanceIntel, FinancialTruth, HistoryView, HotPaths, IntelHub, JarvisWelcome,
+> KnowledgeGraphPage, LifeManagement, PS5Hub, PlatformGuides, ProgramIntel, ProjectDashboard,
+> RevenueDashboard, RevenueMultiplier, ScreenshotCenter, SystemLogsPage, TaskHub, TaskQueue,
+> TruthInspector → 61/92 páginas ruteadas. (3) **MobileCompanion**: eliminados 3 `console.log`
+> (approvals WS); quedan solo `console.error`. (4) **Supabase** re-evaluado: router `/api/supabase/*`
+> ya montado, `cores/supabase/sync_manager.py` real, frontend degrada a "Disconnected" sin
+> credenciales → decisión: opcional, no bloquea. (5) Fix menor ruff B007 en
+> `scripts/brand/generate_ownex_banners.py` (preexistente).
+
+### Verificación
+- `ruff check .` **All checks passed!**; `tests/test_scheduler_jobs.py` **40 passed**;
+  `scripts/dev test-fast` **89 passed, 1 skipped**; `vue-tsc --noEmit` 0 errores; `vite build` OK.
+
 ## Sesión 2026-08-10 — GITHUB SCREENSHOTS light/dark + FIX ThemeEngine (temas 404)
 
 > **QUÉ SE HIZO:** (1) Pipeline de capturas `scripts/capture_screenshots.mjs` (Playwright headless,

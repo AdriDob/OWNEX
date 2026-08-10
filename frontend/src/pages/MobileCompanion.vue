@@ -732,7 +732,6 @@ const connectWebSocket = () => {
   ws = new WebSocket(wsUrl)
 
   ws.onopen = () => {
-    console.log('[Approvals] WebSocket connected')
     // Send ping every 30 seconds to keep connection alive
     setInterval(() => {
       if (ws && ws.readyState === WebSocket.OPEN) {
@@ -744,7 +743,6 @@ const connectWebSocket = () => {
   ws.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data)
-      console.log('[Approvals] Received:', data)
 
       if (data.type === 'approval_requested') {
         loadPendingApprovals()
@@ -761,7 +759,6 @@ const connectWebSocket = () => {
   }
 
   ws.onclose = () => {
-    console.log('[Approvals] WebSocket closed, reconnecting in 5s...')
     setTimeout(connectWebSocket, 5000)
   }
 }

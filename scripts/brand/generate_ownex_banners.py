@@ -54,7 +54,7 @@ def _draw(
     total = sum(widths) + draw.textlength(text[-1], font=f)
     x0 = xy[0] - total / 2 if mid else xy[0]
     y0 = xy[1] - px * 0.72 if mid else xy[1]
-    for i, ch in enumerate(text):
+    for _, ch in enumerate(text):
         draw.text((x0, y0), ch, font=f, fill=fill)
         x0 += draw.textlength(ch, font=f) + spacing
 

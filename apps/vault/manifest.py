@@ -9,12 +9,10 @@ from core.scheduler.jobs import get_vault_jobs
 
 # Adapter provider strings for the adapter registry
 VAULT_ADAPTERS = [
-    "core.opportunity.adapters.vault.hackerone:HackerOneAdapter",
-    "core.opportunity.adapters.vault.bugcrowd:BugcrowdAdapter",
-    "core.opportunity.adapters.vault.intigriti:IntigritiAdapter",
-    "core.opportunity.adapters.vault.synack:SynackAdapter",
-    "core.opportunity.adapters.vault.yeswehack:YesWeHackAdapter",
-    "core.opportunity.adapters.vault.immunefi:ImmunefiAdapter",
+    "core.opportunity.adapters.security_bounty:HackerOneAdapter",
+    "core.opportunity.adapters.security_bounty:BugcrowdAdapter",
+    "core.opportunity.adapters.security_bounty:IntigritiAdapter",
+    "core.opportunity.adapters.security_bounty:YesWeHackAdapter",
 ]
 
 
