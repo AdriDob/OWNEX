@@ -13,9 +13,11 @@ import threading
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import Response
 from pydantic import BaseModel
 
 from cores.voice.opportunity_evaluator import OpportunityEvaluator
+from cores.voice.voice_engine import VoiceProfile, get_tts_manager, personality
 from cores.voice_interface import VoiceCommand, VoiceCommandParser
 from cores.workflow import WorkflowOrchestrator
 
@@ -72,6 +74,26 @@ class AssistantReply(BaseModel):
     reasoning: list[str]
     suggested_action: str
     created_at: str
+    voice: str | None = None
+
+
+class TTSRequest(BaseModel):
+    """Request backend TTS synthesis (OWNEX voice, local-first)."""
+
+    text: str
+
+
+class VoiceConfigUpdate(BaseModel):
+    """Partial update of the persisted voice profile."""
+
+    provider: str | None = None
+    language: str | None = None
+    locale: str | None = None
+    speed: float | None = None
+    pitch: int | None = None
+    volume: float | None = None
+    personality: str | None = None
+    fallback: str | None = None
 
 
 @router.post("/assistant")
@@ -81,7 +103,7 @@ async def process_assistant(request: AssistantRequest) -> AssistantReply:
 
     evaluation = _evaluator.evaluate(request.text)
 
-    response = _compose_response(evaluation)
+    response = _own_voice(_compose_response(evaluation))
 
     global _reply_seq
     with _reply_lock:
@@ -128,6 +150,45 @@ def _compose_response(evaluation) -> str:
         parts.append(f"No es una prioridad. {evaluation.reasoning[0] if evaluation.reasoning else ''}")
     parts.append(f"Sugerencia: {evaluation.suggested_action}")
     return " ".join(parts)
+
+
+def _own_voice(reply_text: str, worth_it: bool | None = None) -> str:
+    """Apply the persisted OWNEX voice personality to a reply."""
+    return personality().apply(reply_text, worth_it=worth_it)
+
+
+@router.post("/tts")
+async def synthesize_tts(request: TTSRequest) -> Response:
+    """Synthesise text with the OWNEX voice (piper local). 415 when unavailable."""
+    text = request.text.strip()
+    if not text:
+        raise HTTPException(status_code=422, detail="empty text")
+    engine = get_tts_manager()
+    wav = engine.synthesize(text)
+    if wav is None:
+        return Response(
+            status_code=415,
+            media_type="application/json",
+            content=b'{"detail": "piper unavailable; use system_tts"}',
+        )
+    return Response(content=wav, media_type="audio/wav")
+
+
+@router.get("/config")
+async def get_voice_config() -> dict[str, Any]:
+    """Return the persisted voice profile."""
+    return get_tts_manager().store.get().to_dict()
+
+
+@router.put("/config")
+async def update_voice_config(update: VoiceConfigUpdate) -> dict[str, Any]:
+    """Persist a partial voice profile update."""
+    store = get_tts_manager().store
+    current = store.get()
+    changes = {k: v for k, v in update.model_dump().items() if v is not None}
+    profile = VoiceProfile.from_dict({**current.to_dict(), **changes})
+    store.save(profile)
+    return profile.to_dict()
 
 
 @router.post("/command", response_model=VoiceCommandResponse)
@@ -342,12 +403,23 @@ async def handle_set_theme(entities: dict[str, Any]) -> dict[str, Any]:
 
 @router.get("/status")
 async def get_voice_status() -> dict[str, Any]:
-    """Get voice interface status."""
+    """Get voice interface status (honest provider report)."""
+    profile = get_tts_manager().store.get()
+    tts = get_tts_manager().provider_status()
     return {
-        "enabled": True,
-        "stt_provider": "browser_webspeech",
-        "tts_provider": "browser_webspeech",
+        "enabled": profile.enabled,
+        "stt_provider": "capacitor_native" if _capacitor_stt_hint() else "browser_webspeech",
+        "tts_provider": tts["active"],
+        "piper_available": tts["piper_available"],
         "assistant_endpoint": "/voice/assistant",
-        "language": "es-ES",
+        "language": f"{profile.language}-{profile.locale}",
+        "locale": profile.locale,
+        "speed": profile.speed,
+        "personality": profile.personality,
         "wake_word": "ownex",
     }
+
+
+def _capacitor_stt_hint() -> bool:
+    """True when the frontend reports Capacitor native STT (Android APK)."""
+    return False
