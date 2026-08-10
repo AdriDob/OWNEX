@@ -38,6 +38,7 @@ class HypothesisSource(StrEnum):
     PATTERN = "pattern"
     LLM = "llm"
     ZAP = "zap"
+    THREAT_INTEL = "threat_intel"
 
 
 @dataclass(frozen=True)

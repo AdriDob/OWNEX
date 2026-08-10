@@ -1,5 +1,20 @@
 # Decisions — Registro de Decisiones Arquitectónicas
 
+## 2026-08-10: Threat Intelligence Layer — hypótesis proactivas desde CISA KEV
+
+- **Problema**: OWNEX generaba hipótesis únicamente de forma **reactiva** (endpoint signals + matches Nuclei + ZAP alerts). La única mención a CVE (generators.py:725) era un string literal "investigar CVE" sin datos reales. No había ingesta de feeds de amenazas: sin CVE/KEV, exploit-DB, ThreatFox, ni correlación de TTPs. Diagnóstico del owner: "falta una capa extra en OWNEX" → confirmado por análisis de evidencia como **Threat Intelligence → Vulnerability Hypotheses**.
+- **Alternativas consideradas**:
+  1. **Ingesta CISA KEV + correlación con tech stack (elegido)** — Feed oficial de vulnerabilidades explotadas en la wild, JSON directo con cache 24h. Correlación por substring vendor/product contra el tech stack del attack_surface. Hipótesis `source=THREAT_INTEL` con likelihood calibrado por recency + ransomware campaign + severity. Cero LLM, determinista, degrade sin red.
+  2. Múltiples feeds (KEV + NVD + ThreatFox + exploit-DB) — Mayor cobertura pero más superficie de red y parsing no homogéneo. No justificado en MVP.
+  3. Solo documentar el gap — No cierra el loop funcional (sin hipótesis proactivas).
+- **Decisión**: Capa `cores/engine/hypothesis/threat_intel.py` — `ThreatIntelFeed` (fetch CISA KEV, cache 24h en `data/threat_intel/kev_cache.json`, error → cache → []), `generate_from_threat_intel()` (correlación tech-stack, source THREAT_INTEL, likelihood 0.5-0.95). Hook en `HypothesisEngine._stage_threat_intel` entre stage_1 y score; **no re-score** (las hipótesis KEV ya vienen calibradas, el scorer de señales las degradaría). Enum `HypothesisSource.THREAT_INTEL` agregado.
+- **Impacto**:
+  - Detección proactiva: CVE explotados en la wild entran al attack queue automáticamente (by_source incluye `threat_intel`)
+  - Evidencia más fuerte: KEV = explotación activa confirmada (mejora aceptación)
+  - Degrade defensivo: sin red → cache → vacío (nunca rompe el pipeline)
+  - 9 tests nuevos (`tests/test_threat_intel.py`), suite fast 89 passed, ruff limpio, `import api.main` OK
+- **Condiciones para reabrir**: Cuando se quiera añadir feeds adicionales (ThreatFox, exploit-DB) o correlación semántica (embeddings) en vez de substring.
+
 ## 2026-08-10: CALM UX — el sistema entero debe sentirse relajante, 0 estresante
 
 - **Problema**: El sistema acumula tonos agresivos/sobre-excitados (exclamaciones, neón, alarmas, métricas de presión, errores duros) que generan estrés en el usuario. Decisión del owner: OWNEX debe sentirse **relajante de usar, 0 estresante** — aplica al sistema en general, no solo a la voz.
