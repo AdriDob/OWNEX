@@ -77,7 +77,7 @@ class DuplicateDetector:
             fp = fingerprint_path(url, method) if url else str(f.get("id", ""))
             if not tracker.seen(fp):
                 deduped.append(f)
-        self._history = deduped
+        self._history.extend(deduped)
 
     def assess(self, finding: dict[str, Any]) -> DuplicateAssessment:
         if not self._history:
