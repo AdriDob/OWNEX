@@ -99,9 +99,12 @@ async function loadThemeDefinitions(): Promise<Map<string, ThemeDefinition>> {
   for (const id of themeIds) {
     try {
       const response = await fetch(`/assets/branding/themes/${id}.json`)
-      if (response.ok) {
+      const contentType = response.headers.get('content-type') ?? ''
+      if (response.ok && contentType.includes('application/json')) {
         const theme = await response.json()
         map.set(id, theme)
+      } else {
+        console.warn(`[ThemeEngine] Theme ${id} not found (${response.status}, ${contentType})`)
       }
     } catch (e) {
       console.warn(`[ThemeEngine] Failed to load theme: ${id}`, e)
