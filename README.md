@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/python-3.11+-white?style=flat-square&logo=python&logoColor=black"/>
   <img src="https://img.shields.io/badge/fastapi-009688?style=flat-square&logo=fastapi&logoColor=white"/>
   <img src="https://img.shields.io/badge/vue-3.5-4FC08D?style=flat-square&logo=vue.js&logoColor=white"/>
-  <img src="https://img.shields.io/badge/tests-3163%2B-00C853?style=flat-square"/>
+  <img src="https://img.shields.io/badge/tests-3179%2B-00C853?style=flat-square"/>
   <img src="https://img.shields.io/badge/license-Proprietary-e82127?style=flat-square"/>
 </p>
 
