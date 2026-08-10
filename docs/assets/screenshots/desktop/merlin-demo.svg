@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0B0B0B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#111115;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="message-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A1A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0B0B0B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg-gradient)"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="1920" height="80" fill="#0B0B0B" stroke="#1A1A1A" stroke-width="1"/>
+  <text x="40" y="50" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#FFFFFF">MERLIN</text>
+  <circle cx="1850" cy="40" r="20" fill="#2D7FF9" opacity="0.3"/>
+  <circle cx="1850" cy="40" r="12" fill="#2D7FF9"/>
+
+  <!-- Chat Area -->
+  <rect x="40" y="120" width="1200" height="880" rx="12" fill="url(#message-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+
+  <!-- User Message -->
+  <g transform="translate(60, 140)">
+    <rect width="400" height="80" rx="12" fill="#2D7FF9" opacity="0.2"/>
+    <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">Show me the top 3 zero-barrier opportunities</text>
+    <text x="20" y="55" font-family="Inter, sans-serif" font-size="12" fill="#888888">2 minutes ago</text>
+  </g>
+
+  <!-- MERLIN Response -->
+  <g transform="translate(60, 250)">
+    <rect width="1000" height="200" rx="12" fill="#1A1A1A" stroke="#2D7FF9" stroke-width="1" opacity="0.3"/>
+    <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#2D7FF9">Based on current analysis, here are the top 3 zero-barrier opportunities:</text>
+    
+    <g transform="translate(20, 50)">
+      <circle cx="10" cy="15" r="6" fill="#00C853"/>
+      <text x="25" y="20" font-family="Inter, sans-serif" font-size="13" fill="#FFFFFF">HackerOne - Tesla Motors</text>
+      <text x="25" y="40" font-family="Inter, sans-serif" font-size="11" fill="#888888">Zero-barrier: 89 · Payout: $50,000 · Ready to submit</text>
+    </g>
+    
+    <g transform="translate(20, 100)">
+      <circle cx="10" cy="15" r="6" fill="#00C853"/>
+      <text x="25" y="20" font-family="Inter, sans-serif" font-size="13" fill="#FFFFFF">Intigriti - Air France</text>
+      <text x="25" y="40" font-family="Inter, sans-serif" font-size="11" fill="#888888">Zero-barrier: 91 · Payout: €25,000 · Evidence ready</text>
+    </g>
+    
+    <g transform="translate(20, 150)">
+      <circle cx="10" cy="15" r="6" fill="#00C853"/>
+      <text x="25" y="20" font-family="Inter, sans-serif" font-size="13" fill="#FFFFFF">YesWeHack - GitLab</text>
+      <text x="25" y="40" font-family="Inter, sans-serif" font-size="11" fill="#888888">Zero-barrier: 78 · Payout: $20,000 · Report generated</text>
+    </g>
+  </g>
+
+  <!-- User Message 2 -->
+  <g transform="translate(60, 480)">
+    <rect width="300" height="60" rx="12" fill="#2D7FF9" opacity="0.2"/>
+    <text x="20" y="35" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">What's the expected value?</text>
+  </g>
+
+  <!-- MERLIN Response 2 -->
+  <g transform="translate(60, 570)">
+    <rect width="800" height="120" rx="12" fill="#1A1A1A" stroke="#2D7FF9" stroke-width="1" opacity="0.3"/>
+    <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#2D7FF9">Expected Value Analysis:</text>
+    <text x="20" y="60" font-family="Inter, sans-serif" font-size="13" fill="#FFFFFF">Tesla: $50,000 × 40% acceptance = $20,000 EV</text>
+    <text x="20" y="85" font-family="Inter, sans-serif" font-size="13" fill="#FFFFFF">Air France: €25,000 × 55% acceptance = €13,750 EV</text>
+    <text x="20" y="110" font-family="Inter, sans-serif" font-size="13" fill="#FFFFFF">GitLab: $20,000 × 35% acceptance = $7,000 EV</text>
+  </g>
+
+  <!-- Side Panel -->
+  <rect x="1280" y="120" width="600" height="880" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+  <text x="1300" y="160" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Memory Context</text>
+
+  <g transform="translate(1300, 200)">
+    <rect width="560" height="60" rx="8" fill="#1A1A1A" stroke="#2D7FF9" stroke-width="1" opacity="0.2"/>
+    <text x="20" y="25" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">Current Focus</text>
+    <text x="20" y="45" font-family="Inter, sans-serif" font-size="12" fill="#888888">HackerOne Tesla analysis</text>
+  </g>
+
+  <g transform="translate(1300, 280)">
+    <rect width="560" height="60" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="25" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">Recent Queries</text>
+    <text x="20" y="45" font-family="Inter, sans-serif" font-size="12" fill="#888888">12 today · 87 this week</text>
+  </g>
+
+  <g transform="translate(1300, 360)">
+    <rect width="560" height="60" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="25" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">Learning Progress</text>
+    <text x="20" y="45" font-family="Inter, sans-serif" font-size="12" fill="#00C853">23 patterns recognized</text>
+  </g>
+
+  <g transform="translate(1300, 440)">
+    <rect width="560" height="60" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="25" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">Voice Mode</text>
+    <text x="20" y="45" font-family="Inter, sans-serif" font-size="12" fill="#00C853">Active · Web Speech API</text>
+  </g>
+</svg>

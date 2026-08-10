@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0B0B0B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#111115;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="card-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A1A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0B0B0B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg-gradient)"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="1920" height="80" fill="#0B0B0B" stroke="#1A1A1A" stroke-width="1"/>
+  <text x="40" y="50" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#FFFFFF">Capital</text>
+  <circle cx="1850" cy="40" r="20" fill="#D4AF37" opacity="0.3"/>
+  <circle cx="1850" cy="40" r="12" fill="#D4AF37"/>
+
+  <!-- Revenue Cards -->
+  <g transform="translate(40, 120)">
+    <rect width="400" height="180" rx="12" fill="url(#card-gradient)" stroke="#D4AF37" stroke-width="1" opacity="0.3"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="14" fill="#888888">Total Revenue (YTD)</text>
+    <text x="20" y="100" font-family="Inter, sans-serif" font-size="48" font-weight="700" fill="#D4AF37">$127,450</text>
+    <text x="20" y="140" font-family="Inter, sans-serif" font-size="12" fill="#00C853">↑ 34% vs last year</text>
+  </g>
+
+  <g transform="translate(480, 120)">
+    <rect width="400" height="180" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="14" fill="#888888">This Month</text>
+    <text x="20" y="100" font-family="Inter, sans-serif" font-size="48" font-weight="700" fill="#2D7FF9">$12,450</text>
+    <text x="20" y="140" font-family="Inter, sans-serif" font-size="12" fill="#00C853">↑ 23% vs last month</text>
+  </g>
+
+  <g transform="translate(920, 120)">
+    <rect width="400" height="180" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="14" fill="#888888">Pending Payouts</text>
+    <text x="20" y="100" font-family="Inter, sans-serif" font-size="48" font-weight="700" fill="#FFAB00">$8,200</text>
+    <text x="20" y="140" font-family="Inter, sans-serif" font-size="12" fill="#888888">3 reports awaiting review</text>
+  </g>
+
+  <g transform="translate(1360, 120)">
+    <rect width="400" height="180" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="14" fill="#888888">Work Bank Value</text>
+    <text x="20" y="100" font-family="Inter, sans-serif" font-size="48" font-weight="700" fill="#2D7FF9">$45,000</text>
+    <text x="20" y="140" font-family="Inter, sans-serif" font-size="12" fill="#00C853">89 ready jobs</text>
+  </g>
+
+  <!-- Revenue Chart -->
+  <rect x="40" y="340" width="1200" height="400" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+  <text x="60" y="380" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Revenue Timeline</text>
+
+  <!-- Bar chart -->
+  <rect x="60" y="420" width="80" height="280" fill="#2D7FF9" opacity="0.8"/>
+  <rect x="160" y="380" width="80" height="320" fill="#2D7FF9" opacity="0.8"/>
+  <rect x="260" y="440" width="80" height="260" fill="#2D7FF9" opacity="0.8"/>
+  <rect x="360" y="400" width="80" height="300" fill="#2D7FF9" opacity="0.8"/>
+  <rect x="460" y="350" width="80" height="350" fill="#2D7FF9" opacity="0.8"/>
+  <rect x="560" y="320" width="80" height="380" fill="#2D7FF9" opacity="0.8"/>
+  <rect x="660" y="380" width="80" height="320" fill="#2D7FF9" opacity="0.8"/>
+  <rect x="760" y="400" width="80" height="300" fill="#2D7FF9" opacity="0.8"/>
+  <rect x="860" y="360" width="80" height="340" fill="#2D7FF9" opacity="0.8"/>
+  <rect x="960" y="420" width="80" height="280" fill="#2D7FF9" opacity="0.8"/>
+  <rect x="1060" y="380" width="80" height="320" fill="#2D7FF9" opacity="0.8"/>
+
+  <text x="60" y="720" font-family="Inter, sans-serif" font-size="10" fill="#888888">Jan</text>
+  <text x="160" y="720" font-family="Inter, sans-serif" font-size="10" fill="#888888">Feb</text>
+  <text x="260" y="720" font-family="Inter, sans-serif" font-size="10" fill="#888888">Mar</text>
+  <text x="360" y="720" font-family="Inter, sans-serif" font-size="10" fill="#888888">Apr</text>
+  <text x="460" y="720" font-family="Inter, sans-serif" font-size="10" fill="#888888">May</text>
+  <text x="560" y="720" font-family="Inter, sans-serif" font-size="10" fill="#888888">Jun</text>
+  <text x="660" y="720" font-family="Inter, sans-serif" font-size="10" fill="#888888">Jul</text>
+  <text x="760" y="720" font-family="Inter, sans-serif" font-size="10" fill="#888888">Aug</text>
+  <text x="860" y="720" font-family="Inter, sans-serif" font-size="10" fill="#888888">Sep</text>
+  <text x="960" y="720" font-family="Inter, sans-serif" font-size="10" fill="#888888">Oct</text>
+  <text x="1060" y="720" font-family="Inter, sans-serif" font-size="10" fill="#888888">Nov</text>
+
+  <!-- Transactions -->
+  <rect x="1280" y="340" width="600" height="400" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+  <text x="1300" y="380" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Recent Transactions</text>
+
+  <g transform="translate(1300, 420)">
+    <rect width="560" height="50" rx="8" fill="#1A1A1A" stroke="#00C853" stroke-width="1" opacity="0.2"/>
+    <text x="20" y="32" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">HackerOne - Tesla · $50,000</text>
+    <text x="400" y="32" font-family="Inter, sans-serif" font-size="12" fill="#00C853">2 days ago</text>
+  </g>
+
+  <g transform="translate(1300, 490)">
+    <rect width="560" height="50" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="32" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">Intigriti - Air France · €25,000</text>
+    <text x="400" y="32" font-family="Inter, sans-serif" font-size="12" fill="#888888">5 days ago</text>
+  </g>
+
+  <g transform="translate(1300, 560)">
+    <rect width="560" height="50" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="32" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">YesWeHack - GitLab · $20,000</text>
+    <text x="400" y="32" font-family="Inter, sans-serif" font-size="12" fill="#888888">1 week ago</text>
+  </g>
+
+  <g transform="translate(1300, 630)">
+    <rect width="560" height="50" rx="8" fill="#1A1A1A" stroke="#FFAB00" stroke-width="1" opacity="0.3"/>
+    <text x="20" y="32" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">Bugcrowd - Shopify · $15,000</text>
+    <text x="400" y="32" font-family="Inter, sans-serif" font-size="12" fill="#FFAB00">Pending</text>
+  </g>
+
+  <g transform="translate(1300, 700)">
+    <rect width="560" height="50" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="32" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">YesWeHack - Mozilla · $30,000</text>
+    <text x="400" y="32" font-family="Inter, sans-serif" font-size="12" fill="#888888">2 weeks ago</text>
+  </g>
+</svg>

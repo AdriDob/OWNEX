@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0B0B0B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#111115;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="card-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A1A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0B0B0B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg-gradient)"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="1920" height="80" fill="#0B0B0B" stroke="#1A1A1A" stroke-width="1"/>
+  <text x="40" y="50" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#FFFFFF">Mission Control</text>
+  <circle cx="1850" cy="40" r="20" fill="#2D7FF9" opacity="0.3"/>
+  <circle cx="1850" cy="40" r="12" fill="#2D7FF9"/>
+
+  <!-- Metric Cards Row 1 -->
+  <g transform="translate(40, 120)">
+    <rect width="400" height="150" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="14" fill="#888888">Active Opportunities</text>
+    <text x="20" y="90" font-family="Inter, sans-serif" font-size="48" font-weight="700" fill="#2D7FF9">247</text>
+    <text x="20" y="120" font-family="Inter, sans-serif" font-size="12" fill="#00C853">↑ 12% this week</text>
+  </g>
+
+  <g transform="translate(480, 120)">
+    <rect width="400" height="150" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="14" fill="#888888">Work Bank Ready</text>
+    <text x="20" y="90" font-family="Inter, sans-serif" font-size="48" font-weight="700" fill="#2D7FF9">89</text>
+    <text x="20" y="120" font-family="Inter, sans-serif" font-size="12" fill="#00C853">Target: 100/day</text>
+  </g>
+
+  <g transform="translate(920, 120)">
+    <rect width="400" height="150" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="14" fill="#888888">Revenue This Month</text>
+    <text x="20" y="90" font-family="Inter, sans-serif" font-size="48" font-weight="700" fill="#D4AF37">$12,450</text>
+    <text x="20" y="120" font-family="Inter, sans-serif" font-size="12" fill="#00C853">↑ 23% vs last month</text>
+  </g>
+
+  <g transform="translate(1360, 120)">
+    <rect width="400" height="150" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="14" fill="#888888">Active Agents</text>
+    <text x="20" y="90" font-family="Inter, sans-serif" font-size="48" font-weight="700" fill="#2D7FF9">6</text>
+    <text x="20" y="120" font-family="Inter, sans-serif" font-size="12" fill="#00C853">All systems operational</text>
+  </g>
+
+  <!-- Main Dashboard Area -->
+  <rect x="40" y="300" width="1200" height="400" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+  <text x="60" y="340" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Opportunity Queue</text>
+
+  <!-- Opportunity List Items -->
+  <g transform="translate(60, 380)">
+    <rect width="1160" height="60" rx="8" fill="#1A1A1A" stroke="#2D7FF9" stroke-width="1" opacity="0.3"/>
+    <circle cx="30" cy="30" r="8" fill="#2D7FF9"/>
+    <text x="50" y="25" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#FFFFFF">HackerOne - SQL Injection</text>
+    <text x="50" y="45" font-family="Inter, sans-serif" font-size="12" fill="#888888">Zero-barrier score: 87 · Priority: HIGH</text>
+    <rect x="1000" y="20" width="100" height="20" rx="4" fill="#00C853"/>
+    <text x="1040" y="35" font-family="Inter, sans-serif" font-size="11" fill="#FFFFFF">READY</text>
+  </g>
+
+  <g transform="translate(60, 460)">
+    <rect width="1160" height="60" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <circle cx="30" cy="30" r="8" fill="#FFAB00"/>
+    <text x="50" y="25" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#FFFFFF">Bugcrowd - XSS</text>
+    <text x="50" y="45" font-family="Inter, sans-serif" font-size="12" fill="#888888">Zero-barrier score: 72 · Priority: MEDIUM</text>
+    <rect x="1000" y="20" width="100" height="20" rx="4" fill="#FFAB00"/>
+    <text x="1020" y="35" font-family="Inter, sans-serif" font-size="11" fill="#FFFFFF">ANALYZING</text>
+  </g>
+
+  <g transform="translate(60, 540)">
+    <rect width="1160" height="60" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <circle cx="30" cy="30" r="8" fill="#2D7FF9"/>
+    <text x="50" y="25" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#FFFFFF">Intigriti - IDOR</text>
+    <text x="50" y="45" font-family="Inter, sans-serif" font-size="12" fill="#888888">Zero-barrier score: 91 · Priority: HIGH</text>
+    <rect x="1000" y="20" width="100" height="20" rx="4" fill="#00C853"/>
+    <text x="1040" y="35" font-family="Inter, sans-serif" font-size="11" fill="#FFFFFF">READY</text>
+  </g>
+
+  <g transform="translate(60, 620)">
+    <rect width="1160" height="60" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <circle cx="30" cy="30" r="8" fill="#2D7FF9"/>
+    <text x="50" y="25" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#FFFFFF">YesWeHack - RCE</text>
+    <text x="50" y="45" font-family="Inter, sans-serif" font-size="12" fill="#888888">Zero-barrier score: 84 · Priority: HIGH</text>
+    <rect x="1000" y="20" width="100" height="20" rx="4" fill="#00C853"/>
+    <text x="1040" y="35" font-family="Inter, sans-serif" font-size="11" fill="#FFFFFF">READY</text>
+  </g>
+
+  <!-- Side Panel -->
+  <rect x="1280" y="300" width="600" height="400" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+  <text x="1300" y="340" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Active Work Cycles</text>
+
+  <g transform="translate(1300, 380)">
+    <rect width="560" height="50" rx="8" fill="#1A1A1A" stroke="#2D7FF9" stroke-width="1" opacity="0.3"/>
+    <text x="20" y="32" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">🔵 Security Cycle</text>
+    <text x="400" y="32" font-family="Inter, sans-serif" font-size="12" fill="#00C853">Running</text>
+  </g>
+
+  <g transform="translate(1300, 450)">
+    <rect width="560" height="50" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="32" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">🛠️ Forge Cycle</text>
+    <text x="400" y="32" font-family="Inter, sans-serif" font-size="12" fill="#888888">Idle</text>
+  </g>
+
+  <g transform="translate(1300, 520)">
+    <rect width="560" height="50" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="32" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">💰 Vault Cycle</text>
+    <text x="400" y="32" font-family="Inter, sans-serif" font-size="12" fill="#00C853">Running</text>
+  </g>
+
+  <g transform="translate(1300, 590)">
+    <rect width="560" height="50" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="32" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">🗺️ Atlas Cycle</text>
+    <text x="400" y="32" font-family="Inter, sans-serif" font-size="12" fill="#00C853">Running</text>
+  </g>
+
+  <!-- Footer Stats -->
+  <rect x="40" y="740" width="1840" height="300" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+  <text x="60" y="780" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">System Health</text>
+
+  <g transform="translate(60, 820)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Backend Status</text>
+    <rect x="0" y="10" width="200" height="8" rx="4" fill="#00C853"/>
+    <text x="210" y="20" font-family="Inter, sans-serif" font-size="12" fill="#00C853">Operational</text>
+  </g>
+
+  <g transform="translate(60, 880)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Frontend Status</text>
+    <rect x="0" y="10" width="200" height="8" rx="4" fill="#00C853"/>
+    <text x="210" y="20" font-family="Inter, sans-serif" font-size="12" fill="#00C853">Operational</text>
+  </g>
+
+  <g transform="translate(60, 940)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Database Status</text>
+    <rect x="0" y="10" width="200" height="8" rx="4" fill="#00C853"/>
+    <text x="210" y="20" font-family="Inter, sans-serif" font-size="12" fill="#00C853">Connected</text>
+  </g>
+
+  <g transform="translate(400, 820)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">AI Runtime</text>
+    <rect x="0" y="10" width="200" height="8" rx="4" fill="#00C853"/>
+    <text x="210" y="20" font-family="Inter, sans-serif" font-size="12" fill="#00C853">Ollama Active</text>
+  </g>
+
+  <g transform="translate(400, 880)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Scheduler</text>
+    <rect x="0" y="10" width="200" height="8" rx="4" fill="#00C853"/>
+    <text x="210" y="20" font-family="Inter, sans-serif" font-size="12" fill="#00C853">28 Jobs Running</text>
+  </g>
+
+  <g transform="translate(400, 940)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">EventBus</text>
+    <rect x="0" y="10" width="200" height="8" rx="4" fill="#00C853"/>
+    <text x="210" y="20" font-family="Inter, sans-serif" font-size="12" fill="#00C853">Connected</text>
+  </g>
+</svg>

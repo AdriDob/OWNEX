@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0B0B0B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#111115;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="card-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A1A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0B0B0B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg-gradient)"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="1920" height="80" fill="#0B0B0B" stroke="#1A1A1A" stroke-width="1"/>
+  <text x="40" y="50" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#FFFFFF">Intelligence</text>
+  <circle cx="1850" cy="40" r="20" fill="#2D7FF9" opacity="0.3"/>
+  <circle cx="1850" cy="40" r="12" fill="#2D7FF9"/>
+
+  <!-- Main Content -->
+  <rect x="40" y="120" width="1200" height="880" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+  <text x="60" y="160" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Opportunity Analysis</text>
+
+  <!-- Analysis Cards -->
+  <g transform="translate(60, 200)">
+    <rect width="1080" height="120" rx="8" fill="#1A1A1A" stroke="#2D7FF9" stroke-width="1" opacity="0.2"/>
+    <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#888888">Top Platform This Week</text>
+    <text x="20" y="70" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#2D7FF9">HackerOne</text>
+    <text x="300" y="70" font-family="Inter, sans-serif" font-size="16" fill="#FFFFFF">45 opportunities · 87 avg score</text>
+    <text x="20" y="100" font-family="Inter, sans-serif" font-size="12" fill="#00C853">↑ 18% increase</text>
+  </g>
+
+  <g transform="translate(60, 340)">
+    <rect width="1080" height="120" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#888888">Zero-Barrier Success Rate</text>
+    <text x="20" y="70" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#D4AF37">34%</text>
+    <text x="150" y="70" font-family="Inter, sans-serif" font-size="16" fill="#FFFFFF">of opportunities bypass gates</text>
+    <text x="20" y="100" font-family="Inter, sans-serif" font-size="12" fill="#00C853">↑ 5% this month</text>
+  </g>
+
+  <g transform="translate(60, 480)">
+    <rect width="1080" height="120" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#888888">Average Response Time</text>
+    <text x="20" y="70" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#2D7FF9">2.4 hours</text>
+    <text x="200" y="70" font-family="Inter, sans-serif" font-size="16" fill="#FFFFFF">from discovery to report</text>
+    <text x="20" y="100" font-family="Inter, sans-serif" font-size="12" fill="#00C853">↓ 18% improvement</text>
+  </g>
+
+  <!-- Chart Area -->
+  <rect x="60" y="620" width="500" height="350" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+  <text x="80" y="660" font-family="Inter, sans-serif" font-size="14" fill="#888888">Weekly Opportunity Flow</text>
+  
+  <!-- Simple bar chart -->
+  <rect x="80" y="720" width="60" height="200" fill="#2D7FF9" opacity="0.8"/>
+  <rect x="160" y="680" width="60" height="240" fill="#2D7FF9" opacity="0.8"/>
+  <rect x="240" y="750" width="60" height="170" fill="#2D7FF9" opacity="0.8"/>
+  <rect x="320" y="700" width="60" height="220" fill="#2D7FF9" opacity="0.8"/>
+  <rect x="400" y="650" width="60" height="270" fill="#2D7FF9" opacity="0.8"/>
+  <rect x="480" y="600" width="60" height="320" fill="#2D7FF9" opacity="0.8"/>
+  
+  <text x="80" y="940" font-family="Inter, sans-serif" font-size="10" fill="#888888">Mon</text>
+  <text x="160" y="940" font-family="Inter, sans-serif" font-size="10" fill="#888888">Tue</text>
+  <text x="240" y="940" font-family="Inter, sans-serif" font-size="10" fill="#888888">Wed</text>
+  <text x="320" y="940" font-family="Inter, sans-serif" font-size="10" fill="#888888">Thu</text>
+  <text x="400" y="940" font-family="Inter, sans-serif" font-size="10" fill="#888888">Fri</text>
+  <text x="480" y="940" font-family="Inter, sans-serif" font-size="10" fill="#888888">Sat</text>
+
+  <!-- Side Panel -->
+  <rect x="1280" y="120" width="600" height="880" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+  <text x="1300" y="160" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Intelligence Insights</text>
+
+  <g transform="translate(1300, 200)">
+    <rect width="560" height="80" rx="8" fill="#1A1A1A" stroke="#2D7FF9" stroke-width="1" opacity="0.2"/>
+    <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#888888">HackerOne</text>
+    <text x="20" y="55" font-family="Inter, sans-serif" font-size="12" fill="#00C853">High success rate, good payouts</text>
+  </g>
+
+  <g transform="translate(1300, 300)">
+    <rect width="560" height="80" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#888888">Bugcrowd</text>
+    <text x="20" y="55" font-family="Inter, sans-serif" font-size="12" fill="#FFAB00">Moderate competition</text>
+  </g>
+
+  <g transform="translate(1300, 400)">
+    <rect width="560" height="80" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#888888">Intigriti</text>
+    <text x="20" y="55" font-family="Inter, sans-serif" font-size="12" fill="#00C853">High-value targets</text>
+  </g>
+
+  <g transform="translate(1300, 500)">
+    <rect width="560" height="80" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#888888">YesWeHack</text>
+    <text x="20" y="55" font-family="Inter, sans-serif" font-size="12" fill="#00C853">Fast response times</text>
+  </g>
+
+  <g transform="translate(1300, 600)">
+    <rect width="560" height="80" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#888888">Synack</text>
+    <text x="20" y="55" font-family="Inter, sans-serif" font-size="12" fill="#FFAB00">Invite-only, slow access</text>
+  </g>
+
+  <g transform="translate(1300, 700)">
+    <rect width="560" height="80" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#888888">Immunefi</text>
+    <text x="20" y="55" font-family="Inter, sans-serif" font-size="12" fill="#FF1744">DeFi focus, low bounty</text>
+  </g>
+
+  <g transform="translate(1300, 800)">
+    <rect width="560" height="80" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#888888">Recommendation</text>
+    <text x="20" y="55" font-family="Inter, sans-serif" font-size="12" fill="#2D7FF9">Focus on HackerOne + Intigriti</text>
+  </g>
+</svg>
