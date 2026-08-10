@@ -1,3 +1,21 @@
+## Sesión 2026-08-10 — GITHUB SCREENSHOTS light/dark + FIX ThemeEngine (temas 404)
+
+> **QUÉ SE HIZO:** (1) Pipeline de capturas `scripts/capture_screenshots.mjs` (Playwright headless,
+> 1600×1000@2x, auth vía token CATEYE en localStorage, espera del splash `.splash-bg` por ruta,
+> `node scripts/capture_screenshots.mjs dark|light`) → 9 rutas + `LIGHT_CSS` inyectado que hizo pasar
+> las páginas de 66%→0-6% de píxeles oscuros. Los brunos reales: `#app > div` transparente,
+> overrides de `.gaming-console` (#05060A literal en GamesConsole.vue:352) y `.welcome-page`
+> (gradiente #0f172a→#1e293b→#0f3460 en WelcomePage.vue:330), `.core-visualization canvas` oculto.
+> Salidas: `docs/assets/screenshots/desktop/` (dark) y `desktop-light/`. (2) README ahora usa
+> `<picture>` con `prefers-color-scheme`. Commits: `5ecd4202`, `e3b54c84`.
+> (3) **FIX ThemeEngine**: los 6 temas (`assets/branding/themes/*.json`) JAMÁS se sirvieron al
+> frontend — el fetch `/assets/branding/themes/{id}.json` caía al SPA fallback (HTML 200) →
+> `SyntaxError: Unexpected token '<'` → `availableThemes=0` y NUNCA se aplicaba paleta ni
+> `data-theme`. Fix: copiar los JSON a `frontend/public/assets/branding/themes/` + guard de
+> `content-type` en `useThemeEngine.loadThemeDefinitions()`. Verificado: `available:6, data-theme:'tesla'`.
+> (4) API `:8000` se había caído — se relanza con `.venv/bin/uvicorn api.main:app --host 127.0.0.1
+> --port 8000` (startup ~35s por scrapings de plataformas en boot).
+
 ## Sesión 2026-08-09 — PROFILE KIT: autofill real desde el perfil DWE + fix copy "años"
 
 > **QUÉ SE HIZO:** Sobre la base persistente ya commiteada (`aa1b928d`), el Profile Kit terminó los 2

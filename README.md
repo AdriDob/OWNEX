@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/python-3.11+-white?style=flat-square&logo=python&logoColor=black"/>
   <img src="https://img.shields.io/badge/fastapi-009688?style=flat-square&logo=fastapi&logoColor=white"/>
   <img src="https://img.shields.io/badge/vue-3.5-4FC08D?style=flat-square&logo=vue.js&logoColor=white"/>
-  <img src="https://img.shields.io/badge/tests-1400%2B-00C853?style=flat-square"/>
+  <img src="https://img.shields.io/badge/tests-3163%2B-00C853?style=flat-square"/>
   <img src="https://img.shields.io/badge/license-Proprietary-e82127?style=flat-square"/>
 </p>
 
@@ -167,6 +167,16 @@ flowchart TB
 </p>
 
 > More: `Good Morning`, `Executive Dashboard`, `Operations`, `Agent Center` — see `docs/assets/screenshots/desktop/` and `docs/assets/screenshots/desktop-light/` (auto-switched by system theme).
+
+### Mobile
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/mobile/mission-control.png"/>
+    <img src="docs/assets/screenshots/mobile/mission-control.png" alt="Mission Control (mobile)" width="45%"/>
+  </picture>
+</p>
+
+> More mobile shots: generate with `node scripts/capture_mobile.mjs` (Playwright, 390×844) — see `docs/assets/screenshots/mobile/`.
 
 ---
 
