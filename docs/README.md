@@ -186,11 +186,11 @@ When adding new documentation:
 
 ## Need Help?
 
-- **General Issues**: [GitHub Issues](https://github.com/AdriDob/rastrohunteralpha/issues)
+- **General Issues**: [GitHub Issues](https://github.com/AdriDob/OWNEX/issues)
 - **Security**: [security@ownex.ai](mailto:security@ownex.ai)
 - **Documentation Issues**: Create a documentation issue with the `documentation` label
 
 ---
 
 *Documentation for OWNEX v7.0.0*
-*Last updated: 2026-08-05*
+*Last updated: 2026-08-10*
