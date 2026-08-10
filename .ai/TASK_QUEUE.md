@@ -179,12 +179,20 @@
 - [ ] Auto-submission pipeline completo
 - [ ] Coordinador multi-agente por ciclo
 
-### FASE 6 — Tauri Desktop + Android Companion ⚠️ Parcial
-- [x] Android APK debug compila
-- [x] MobileCompanion web (UI + Supabase CRUD)
-- [ ] Tauri build válido (fix lib name/versión)
-- [ ] Android crash on launch (namespace)
-- [ ] WearOS real
+### FASE 6 — Tauri Desktop + Android Companion ✅ COMPLETADA (2026-08-10)
+- [x] Android APK debug compila (namespace unificado `ai.rastro.app`, AUD-12)
+- [x] MobileCompanion web (UI + Supabase CRUD opcional)
+- [x] Tauri build válido — **release completo**: `cargo check` + `tauri build` OK →
+  `OWNEX OMEGA_7.0.0` en `src-tauri/target/release/bundle/` (deb 8.3MB / rpm 8.3MB /
+  AppImage 89MB). Fixes: imports `std::thread`/`std::time::Duration` en `lib.rs` +
+  campo muerto `plugins.shell.sidecar` quitado (rompía el bootstrap: `unknown field
+  sidecar` panikeaba al arrancar — smoke test real lo detectó). Sidecar backend:
+  fallback honesto — si `start_backend.py` no está en el bundle, loguea aviso y no
+  crashea (backend corre aparte en :8000; auto-lanzamiento = solo entorno dev).
+  Smoke test: app abre con tray + fallback OK; el render GUI en este host headless
+  (Weston sin GPU) no es validable, requiere sesión gráfica real.
+- [x] Android crash on launch (namespace, AUD-12)
+- [x] WearOS real (descartado AUD-14)
 
 ---
 
