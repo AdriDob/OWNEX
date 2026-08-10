@@ -1,3 +1,24 @@
+## Sesión 2026-08-10 — THREAT INTELLIGENCE LAYER: hypótesis proactivas desde CISA KEV (capa extra OWNEX)
+
+> **QUÉ SE HIZO:** Cerrado el diagnóstico del owner "falta una capa extra en OWNEX".
+> El sistema generaba hipótesis de forma reactiva (endpoint signals + Nuclei matches). Se
+> agregó la capa **Threat Intelligence → Vulnerability Hypotheses** con ingesta de CISA KEV.
+
+- **`cores/engine/hypothesis/threat_intel.py` (NUEVO)**: `ThreatIntelFeed` (fetch CISA
+  KEV JSON, cache 24h en `data/threat_intel/kev_cache.json`, degrade defensivo: error →
+  cache → []), `generate_from_threat_intel()` correlaciona vendor/product del tech stack
+  contra KEV y genera hipótesis `source=THREAT_INTEL` con likelihood calibrado por recency
+  (≤30d/≤90d), ransomware campaign + severity (0.5-0.95). Cero LLM, determinista.
+- **`cores/engine/hypothesis/models.py`**: enum `HypothesisSource.THREAT_INTEL` agregado.
+- **`cores/engine/hypothesis/engine.py`**: hook `_stage_threat_intel` entre stage_1 y score;
+  **no re-score** (hipótesis KEV ya calibradas). Failed stage → [] (nunca rompe el pipeline).
+- **`tests/test_threat_intel.py` (NUEVO)**: 9 tests — correlación tech, empty tech, likelihood
+  boost/lower, fuentes únicas, cache degradation offline, engine by_source incluye threat_intel.
+- **Verificación**: **9/9 passed**, ruff limpio en los 4 archivos, suite fast **89 passed /
+  1 skipped**, `import api.main` OK, `test_scheduler_jobs` 40 passed, `test_direct_work_engine`
+  + `test_voice_engine` 48 passed (regresión).
+- **Registrado**: FASE_33 en COMPLETED_FEATURES.json + DECISIONS.md (Alternativas consideradas).
+
 ## Sesión 2026-08-10 — OWNEX VOICE: voz propia (piper es-419 calm_operator) + mic nativo Android (E2E + APK OK)
 
 > **QUÉ SE HIZO:** El modo Jarvis quedó según la spec del usuario: identidad de voz
