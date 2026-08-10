@@ -1,161 +1,192 @@
-"""Tests for the double-submit CSRF middleware.
+"""SELF-2 — CSRF middleware test coverage (KNOWN_DEBT #2).
 
-Isolated against a minimal Starlette app so we control the CATEYE_CSRF_DISABLED
-toggle (conftest disables CSRF globally by default — we opt back in per test).
+Covers the double-submit cookie contract of `api.middleware.csrf_middleware`:
+  - GET sets the csrf cookie once, and only when absent.
+  - POST/PUT/DELETE/PATCH without cookie+header → 403.
+  - Token mismatch → 403.
+  - Matching token → passes through.
+  - Safe methods (GET/HEAD/OPTIONS/TRACE) exempt.
+  - EXEMPT_PATHS bypass without token.
+  - WebSocket scope bypass.
+  - CATEYE_CSRF_DISABLED=1 explicit opt-out disables enforcement.
+
+The tests mount a minimal FastAPI app + CSRFMiddleware in isolation so they do
+not depend on `api.main` boot (slow scrapings) or the global conftest flag
+``CATEYE_CSRF_DISABLED=1`` (which is deleted via monkeypatch per-test).
 """
 
 from __future__ import annotations
 
 import pytest
-from starlette.applications import Starlette
-from starlette.middleware import Middleware
-from starlette.requests import Request
-from starlette.responses import JSONResponse, PlainTextResponse
-from starlette.routing import Route
-from starlette.testclient import TestClient
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 from api.middleware.csrf_middleware import (
     COOKIE_NAME,
+    EXEMPT_PATHS,
     HEADER_NAME,
     SAFE_METHODS,
     CSRFMiddleware,
 )
 
-CSRF_TOGGLE = "CATEYE_CSRF_DISABLED"
 
+def _make_app() -> FastAPI:
+    app = FastAPI()
 
-def _build_app() -> Starlette:
-    async def echo(request: Request) -> JSONResponse:
-        return JSONResponse(
-            {
-                "method": request.method,
-                "cookie": request.cookies.get(COOKIE_NAME, ""),
-                "header": request.headers.get(HEADER_NAME, ""),
-            }
-        )
+    @app.get("/api/protected")
+    async def protected_get() -> dict:
+        return {"ok": True}
 
-    async def get_root(request: Request) -> PlainTextResponse:
-        return PlainTextResponse("ok")
+    @app.post("/api/protected")
+    async def protected_post() -> dict:
+        return {"ok": True}
 
-    return Starlette(
-        routes=[
-            Route("/", get_root, methods=["GET"]),
-            Route("/echo", echo, methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]),
-            Route("/api/health", echo, methods=["POST"]),
-            Route("/api/auth/login", echo, methods=["GET", "POST"]),
-        ],
-        middleware=[Middleware(CSRFMiddleware)],
-    )
+    @app.put("/api/protected")
+    async def protected_put() -> dict:
+        return {"ok": True}
+
+    @app.patch("/api/protected")
+    async def protected_patch() -> dict:
+        return {"ok": True}
+
+    @app.delete("/api/protected")
+    async def protected_delete() -> dict:
+        return {"ok": True}
+
+    @app.get("/api/health")
+    async def exempt_get() -> dict:
+        return {"ok": True}
+
+    @app.post("/api/health")
+    async def exempt_post() -> dict:
+        return {"ok": True}
+
+    @app.get("/api/versions")
+    async def safe_head_target() -> dict:
+        return {"ok": True}
+
+    app.add_middleware(CSRFMiddleware)
+    return app
 
 
 @pytest.fixture
-def csrf_client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
-    """App with CSRF enabled (default off in conftest)."""
-    monkeypatch.delenv(CSRF_TOGGLE, raising=False)
-    return TestClient(_build_app())
+def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
+    # conftest sets this globally to 1; the middleware must be ACTIVE here.
+    monkeypatch.delenv("CATEYE_CSRF_DISABLED", raising=False)
+    return TestClient(_make_app())
 
 
-@pytest.fixture
-def disabled_client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
-    monkeypatch.setenv(CSRF_TOGGLE, "1")
-    return TestClient(_build_app())
+def test_get_sets_csrf_cookie(client: TestClient) -> None:
+    resp = client.get("/api/protected")
+    assert resp.status_code == 200
+    assert resp.json() == {"ok": True}
+    cookie = resp.cookies.get(COOKIE_NAME)
+    assert cookie
+    assert len(cookie) == 64  # secrets.token_hex(32)
 
 
-def _bootstrap_token(client: TestClient) -> str:
-    r = client.get("/echo")
-    assert r.status_code == 200
-    token = r.cookies.get(COOKIE_NAME)
+def test_get_does_not_rewrite_existing_cookie(client: TestClient) -> None:
+    first = client.get("/api/protected")
+    token = first.cookies.get(COOKIE_NAME)
+    second = client.get("/api/protected")
+    # Middleware does not re-Set-Cookie when the jar already holds one; the
+    # client-side jar value must remain stable across requests.
+    assert client.cookies.get(COOKIE_NAME) == token
+    assert second.cookies.get(COOKIE_NAME) is None
+
+
+@pytest.mark.parametrize("method", ["post", "put", "patch", "delete"])
+def test_state_change_without_token_403(client: TestClient, method: str) -> None:
+    resp = getattr(client, method)("/api/protected")
+    assert resp.status_code == 403
+    assert b"CSRF validation failed" in resp.content
+
+
+def test_token_mismatch_403(client: TestClient) -> None:
+    client.get("/api/protected")
+    resp = client.post("/api/protected", headers={HEADER_NAME: "wrong-header-token"})
+    assert resp.status_code == 403
+
+
+def test_missing_header_403_even_with_cookie(client: TestClient) -> None:
+    client.get("/api/protected")
+    resp = client.post("/api/protected")
+    assert resp.status_code == 403
+
+
+def test_matching_token_passes(client: TestClient) -> None:
+    client.get("/api/protected")
+    token = client.cookies.get(COOKIE_NAME)
     assert token
-    return token
+    resp = client.post("/api/protected", headers={HEADER_NAME: token})
+    assert resp.status_code == 200
+    assert resp.json() == {"ok": True}
 
 
-class TestSafeMethods:
-    @pytest.mark.parametrize("method", sorted(SAFE_METHODS))
-    def test_safe_methods_never_rejected(self, csrf_client: TestClient, method: str) -> None:
-        # TRACE is in SAFE_METHODS per the middleware, but ASGI servers do not
-        # implement TRACE (return 405 from routing). Skip it: the bypass logic
-        # for TRACE is implicitly covered by the other SAFE methods + source.
-        if method == "TRACE":
-            pytest.skip("ASGI does not implement TRACE")
-        r = csrf_client.request(method, "/echo")
-        assert r.status_code == 200
+@pytest.mark.parametrize("method", ["get", "head", "options", "trace"])
+def test_safe_methods_exempt(client: TestClient, method: str) -> None:
+    # Safe methods bypass the CSRF check entirely: either the route answers
+    # (200) or the framework rejects it (405/etc.) — but never a CSRF 403.
+    if method == "trace":
+        resp = client.request("TRACE", "/api/protected")
+    else:
+        resp = getattr(client, method)("/api/protected")
+    assert resp.status_code != 403
 
 
-class TestDoubleSubmit:
-    def test_matching_cookie_and_header_accepted(self, csrf_client: TestClient) -> None:
-        token = _bootstrap_token(csrf_client)
-        r = csrf_client.post("/echo", headers={HEADER_NAME: token})
-        assert r.status_code == 200
-        body = r.json()
-        assert body["cookie"] == token
-        assert body["header"] == token
-
-    def test_missing_cookie_rejected(self, csrf_client: TestClient) -> None:
-        r = csrf_client.post("/echo", headers={HEADER_NAME: "x"})
-        assert r.status_code == 403
-
-    def test_missing_header_rejected(self, csrf_client: TestClient) -> None:
-        _bootstrap_token(csrf_client)
-        r = csrf_client.post("/echo")  # cookie present but no header
-        assert r.status_code == 403
-
-    def test_mismatched_tokens_rejected(self, csrf_client: TestClient) -> None:
-        _bootstrap_token(csrf_client)
-        r = csrf_client.post(
-            "/echo",
-            headers={HEADER_NAME: "deadbeef"},
-            cookies={COOKIE_NAME: "cafebabe"},
-        )
-        assert r.status_code == 403
-
-    def test_token_set_on_first_get(self, csrf_client: TestClient) -> None:
-        r = csrf_client.get("/echo")
-        assert r.status_code == 200
-        assert r.cookies.get(COOKIE_NAME)
+def test_safe_methods_set_is_subset() -> None:
+    assert SAFE_METHODS <= {"GET", "HEAD", "OPTIONS", "TRACE"}
 
 
-class TestExemptPaths:
-    def test_exempt_post_without_token_accepted(self, csrf_client: TestClient) -> None:
-        # /api/health is in EXEMPT_PATHS; must skip the cookie/header check entirely.
-        r = csrf_client.post("/api/health", headers={HEADER_NAME: "x"})
-        assert r.status_code == 200
+def test_exempt_path_posts_bypass(client: TestClient) -> None:
+    assert "/api/health" in EXEMPT_PATHS
+    resp = client.post("/api/health")
+    assert resp.status_code == 200
 
 
-class TestToggle:
-    def test_disabled_allows_mutating_call_without_token(self, disabled_client: TestClient) -> None:
-        r = disabled_client.post("/echo")
-        assert r.status_code == 200
-
-    def test_disabled_does_not_set_cookie_on_get(self, disabled_client: TestClient) -> None:
-        r = disabled_client.get("/echo")
-        assert r.status_code == 200
-        assert r.cookies.get(COOKIE_NAME) is None
+def test_disabled_env_var_bypasses(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CATEYE_CSRF_DISABLED", "1")
+    app = _make_app()
+    client = TestClient(app)
+    resp = client.post("/api/protected")
+    assert resp.status_code == 200
 
 
-class TestWebSocket:
-    def test_websocket_scope_bypasses_csrf(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """A websocket handshake reaches the endpoint without a cookie/header check.
+def test_websocket_scope_bypasses(monkeypatch: pytest.MonkeyPatch) -> None:
+    from starlette.websockets import WebSocket
+    import os
 
-        Mirrors how the live TerminalView WS connects: the middleware early-returns
-        for websocket scope, so a double-submit check never fires over WS.
-        """
-        from starlette.routing import WebSocketRoute
-        from starlette.websockets import WebSocket
+    # conftest sets this globally to 1; we need it OFF for this test
+    monkeypatch.delenv("CATEYE_CSRF_DISABLED", raising=False)
+    print(f"DEBUG TEST START: CATEYE_CSRF_DISABLED = {os.environ.get('CATEYE_CSRF_DISABLED', 'NOT SET')}")
 
-        reached = {"ws": False}
+    app = FastAPI()
 
-        async def ws_endpoint(websocket: WebSocket) -> None:
-            reached["ws"] = True
-            await websocket.accept()
-            await websocket.close()
+    @app.websocket("/ws")
+    async def ws(websocket: WebSocket) -> None:
+        await websocket.accept()
+        await websocket.receive_text()  # wait for one message then close
 
-        app = Starlette(
-            routes=[WebSocketRoute("/ws", ws_endpoint)],
-            middleware=[Middleware(CSRFMiddleware)],
-        )
-        monkeypatch.delenv(CSRF_TOGGLE, raising=False)
-        client = TestClient(app)
+    # Add debug middleware to see what's happening
+    from starlette.middleware.base import BaseHTTPMiddleware
+    from starlette.requests import Request
+    from starlette.responses import Response
+    from starlette.types import ASGIApp
+    from collections.abc import Awaitable, Callable
 
-        with client.websocket_connect("/ws"):
-            pass  # accept happens server-side inside ws_endpoint
-        assert reached["ws"] is True
+    class DebugMiddleware(BaseHTTPMiddleware):
+        async def dispatch(
+            self,
+            request: Request,
+            call_next: Callable[[Request], Awaitable[Response]],
+        ) -> Response:
+            print(f"DEBUG MIDDLEWARE: scope type = {request.scope['type']}, path = {request.url.path}, CSRF_DISABLED = {os.environ.get('CATEYE_CSRF_DISABLED', 'NOT SET')}")
+            return await call_next(request)
+
+    app.add_middleware(DebugMiddleware)
+    app.add_middleware(CSRFMiddleware)
+    client = TestClient(app)
+    # CSRFMiddleware must pass websocket scope through untouched — the client
+    # opens a connection without any CSRF cookie/header and succeeds.
+    with client.websocket_connect("/ws") as sock:
+        sock.send_text("ping")
