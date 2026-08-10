@@ -63,6 +63,12 @@ export const routes: RouteRecordRaw[] = [
     component: () => import(/* webpackChunkName: "auth" */ '@/pages/Activation.vue'),
     meta: { title: 'Activación', public: true },
   },
+  {
+    path: '/verify',
+    name: 'verify-email',
+    component: () => import(/* webpackChunkName: "auth" */ '@/pages/VerifyPage.vue'),
+    meta: { title: 'Verificar Correo', public: true },
+  },
 
   // ── 1. MISSION CONTROL ──
   {

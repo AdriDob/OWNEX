@@ -1,3 +1,29 @@
+## Sesión 2026-08-10 — VERIFICACIÓN DE EMAIL (backend + frontend, E2E ALL PASS)
+
+> **QUÉ SE HIZO:** Implementada la verificación de email opcional para registro. Con
+> `OWNNEX_MAIL_SMTP_HOST` configurado: `register` crea cuenta INACTIVA con token (24h) hasheado en DB
+> (SHA-256) y envía correo SMTP con el token plano; `POST /api/auth/users/verify?token=...` lo activa;
+> `POST /api/auth/users/resend-verification` rota el token; login devuelve 403 "Email not verified"
+> hasta activar; refresh/me exigen `email_verified`. Sin SMTP: comportamiento local intacto (cuentas
+> pre-verificadas). E2E in-process contra SMTP fake (aiosmtpd→reemplazado por servidor asyncio stdlib)
+> en `/tmp/opencode`: 8/8 PASS (register→correo con token→403→resend rota token→verify→login OK).
+> Frontend: nueva `VerifyPage.vue` + ruta pública `/verify` (el enlace del correo ya no cae en
+> NotFound). `vite build` OK, `ruff` OK en los 4 archivos.
+
+### Cambios
+- `database/models.py`: User + `email_verified`, `verification_token`, `verification_expires`.
+- `database/db.py`: migración `_migrate_columns` aplicada (verificada con PRAGMA).
+- `cores/mail/service.py` (NUEVO): SMTP stdlib. Envs: `OWNNEX_MAIL_SMTP_HOST` (obliga el flujo),
+  `OWNNEX_MAIL_SMTP_PORT` (587), `OWNNEX_MAIL_USERNAME`, `OWNNEX_MAIL_PASSWORD`,
+  `OWNNEX_MAIL_SMTP_FROM`, `OWNNEX_MAIL_USE_TLS` (true), `OWNNEX_PUBLIC_URL` (http://localhost:5173).
+- `api/routers/auth_users.py`: register/verify/resend + guardas en login/refresh/me.
+- `frontend/src/pages/VerifyPage.vue` (NUEVO) + ruta `/verify` en `frontend/src/router/index.ts`.
+
+### Verificación
+- E2E in-process `/tmp/opencode/e2e_mail.py`: **ALL PASS** (8 checks: register email_verified=False,
+  db row, correo con token, login 403, resend rota token, verify, db verified, login post-verify).
+- `ruff check` (4 archivos): All checks passed. `vite build`: OK (13s).
+
 ## Sesión 2026-08-10 — LIMPIEZA DE PENDIENTES: manifests providers reales + 23 páginas muertas + console.log (todo verificado)
 
 > **QUÉ SE HIZO:** Cerradas las 4 pendientes del TASK_QUEUE con evidencia. (1) **Manifests FASE 4**: los
