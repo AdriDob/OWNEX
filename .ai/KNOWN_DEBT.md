@@ -9,11 +9,18 @@
 - **Tests**: 25 tests en test_core_health.py (18 originales + 7 nuevos).
 - **Verificación**: Ruff clean, tests verdes.
 
-## 2. Sin tests para CSRF middleware
+## 2. ✅ Sin tests para CSRF middleware — RESUELTO
 
-- **Evidencia**: `api/middleware/csrf_middleware.py` existe pero no hay tests específicos
-- **Problema**: El middleware CSRF no tiene cobertura de tests automatizados
-- **Impacto**: Medio. Cambios futuros podrían romper la protección CSRF sin detección.
+- **Evidencia**: `api/middleware/csrf_middleware.py` existe y ahora tiene cobertura completa
+- **Solución**: `tests/test_csrf_middleware.py` (SELF-2) — 17 tests que cubren los contratos del middleware:
+  - GET setea la cookie de CSRF (doble-envío) y no la reescribe si ya existe
+  - POST/PUT/PATCH/DELETE sin cookie o sin header → 403
+  - Token mismatch → 403; cookie+header matching → 200
+  - Métodos seguros (GET/HEAD/OPTIONS/TRACE) exentos
+  - `EXEMPT_PATHS` (health, license, auth) sin CSRF
+  - `CATEYE_CSRF_DISABLED=1` (opt-out explícito) desactiva
+  - WebSocket scope bypass (probado con Starlette puro, ya que FastAPI 0.141/Starlette 1.3.1 no inyecta el WebSocket en rutas `@app.websocket` de forma compatible)
+- **Verificación**: 17/17 passed, ruff limpio, `import api.main` OK, sin regresiones (e2e_flow + csrf = 29 passed)**
 
 ## 3. Sin tests para scheduler adaptativo
 
