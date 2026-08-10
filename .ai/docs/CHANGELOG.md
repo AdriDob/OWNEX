@@ -4,7 +4,7 @@
 
 ### 🎨 Premium Brand Redesign v2.0
 - Complete brand transformation inspired by Linear, Vercel, Tesla
-- New color palette: Cosmos (#08090A) background, single accent (#5E6AD2)
+- New color palette: Cosmos (#08090A) background, single accent (#1E40FF)
 - Typography: Inter Display/Inter with tight spacing, JetBrains Mono for code
 - 8px grid system with mathematical spacing
 - Extreme restraint: no gradients, no decoration, functional design
