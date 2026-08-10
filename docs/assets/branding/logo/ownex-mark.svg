@@ -6,79 +6,79 @@
       <stop offset="100%" style="stop-color:#1E40FF;stop-opacity:1" />
     </linearGradient>
   </defs>
-  
+
   <!-- Outer orbital ring - represents autonomous navigation -->
-  <circle cx="256" cy="256" r="180" 
-          fill="none" 
-          stroke="url(#ownex-gradient)" 
+  <circle cx="256" cy="256" r="180"
+          fill="none"
+          stroke="url(#ownex-gradient)"
           stroke-width="12"
           opacity="0.9"/>
-  
+
   <!-- Inner orbital ring -->
-  <circle cx="256" cy="256" r="120" 
-          fill="none" 
-          stroke="url(#ownex-gradient)" 
+  <circle cx="256" cy="256" r="120"
+          fill="none"
+          stroke="url(#ownex-gradient)"
           stroke-width="8"
           opacity="0.7"/>
-  
+
   <!-- Central convergence node - the core intelligence -->
-  <circle cx="256" cy="256" r="40" 
+  <circle cx="256" cy="256" r="40"
           fill="url(#ownex-gradient)"/>
-  
+
   <!-- Directional convergence paths - 4 cardinal directions -->
   <!-- Top path -->
-  <path d="M 256 76 L 256 216" 
-        stroke="url(#ownex-gradient)" 
-        stroke-width="10" 
+  <path d="M 256 76 L 256 216"
+        stroke="url(#ownex-gradient)"
+        stroke-width="10"
         stroke-linecap="round"
         opacity="0.8"/>
-  
+
   <!-- Bottom path -->
-  <path d="M 256 296 L 256 436" 
-        stroke="url(#ownex-gradient)" 
-        stroke-width="10" 
+  <path d="M 256 296 L 256 436"
+        stroke="url(#ownex-gradient)"
+        stroke-width="10"
         stroke-linecap="round"
         opacity="0.8"/>
-  
+
   <!-- Left path -->
-  <path d="M 76 256 L 216 256" 
-        stroke="url(#ownex-gradient)" 
-        stroke-width="10" 
+  <path d="M 76 256 L 216 256"
+        stroke="url(#ownex-gradient)"
+        stroke-width="10"
         stroke-linecap="round"
         opacity="0.8"/>
-  
+
   <!-- Right path -->
-  <path d="M 296 256 L 436 256" 
-        stroke="url(#ownex-gradient)" 
-        stroke-width="10" 
+  <path d="M 296 256 L 436 256"
+        stroke="url(#ownex-gradient)"
+        stroke-width="10"
         stroke-linecap="round"
         opacity="0.8"/>
-  
+
   <!-- Opportunity nodes at orbital intersections -->
   <circle cx="256" cy="76" r="16" fill="#2D7FF9"/>
   <circle cx="256" cy="436" r="16" fill="#2D7FF9"/>
   <circle cx="76" cy="256" r="16" fill="#2D7FF9"/>
   <circle cx="436" cy="256" r="16" fill="#2D7FF9"/>
-  
+
   <!-- Diagonal convergence lines - subtle intelligence connections -->
-  <path d="M 130 130 L 216 216" 
-        stroke="#2D7FF9" 
-        stroke-width="4" 
+  <path d="M 130 130 L 216 216"
+        stroke="#2D7FF9"
+        stroke-width="4"
         stroke-linecap="round"
         opacity="0.4"/>
-  <path d="M 382 130 L 296 216" 
-        stroke="#2D7FF9" 
-        stroke-width="4" 
+  <path d="M 382 130 L 296 216"
+        stroke="#2D7FF9"
+        stroke-width="4"
         stroke-linecap="round"
         opacity="0.4"/>
-  <path d="M 130 382 L 216 296" 
-        stroke="#2D7FF9" 
-        stroke-width="4" 
+  <path d="M 130 382 L 216 296"
+        stroke="#2D7FF9"
+        stroke-width="4"
         stroke-linecap="round"
         opacity="0.4"/>
-  <path d="M 382 382 L 296 296" 
-        stroke="#2D7FF9" 
-        stroke-width="4" 
+  <path d="M 382 382 L 296 296"
+        stroke="#2D7FF9"
+        stroke-width="4"
         stroke-linecap="round"
         opacity="0.4"/>
 </svg>
