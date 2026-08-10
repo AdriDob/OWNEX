@@ -72,4 +72,7 @@ class TestVoiceAssistantApi:
     def test_status_reports_open_source_providers(self) -> None:
         body = client.get("/voice/status").json()
         assert body["stt_provider"] == "browser_webspeech"
-        assert body["tts_provider"] == "browser_webspeech"
+        assert body["personality"] == "calm_operator"
+        assert body["locale"] == "es-419"
+        assert body["tts_provider"] in ("piper", "system_tts")
+        assert body["piper_available"] in ("yes", "no")

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { api } from '@/lib/api'
+import { useOwnVoice } from '@/composables/useOwnVoice'
 
 interface AssistantReply {
   id: number
@@ -12,25 +13,8 @@ interface AssistantReply {
   suggested_action: string
 }
 
-interface RecognitionResult {
-  0: { transcript: string }
-}
-interface RecognitionEvent {
-  results: RecognitionResult[] & { length: number }
-}
-interface SpeechRecognitionLike {
-  lang: string
-  interimResults: boolean
-  continuous: boolean
-  onresult: ((e: RecognitionEvent) => void) | null
-  onend: (() => void) | null
-  onerror: (() => void) | null
-  start: () => void
-  stop: () => void
-}
+const { listening, micSupported, provider, init, start, stop, speak, cancelSpeech } = useOwnVoice()
 
-const listening = ref(false)
-const supported = ref(false)
 const transcript = ref('')
 const textInput = ref('')
 const reply = ref<AssistantReply | null>(null)
@@ -38,62 +22,21 @@ const sending = ref(false)
 const speaking = ref(false)
 const usedVoice = ref(false)
 
-let recognition: SpeechRecognitionLike | null = null
-
-function getRecognition(): SpeechRecognitionLike | null {
-  const w = window as unknown as Record<string, unknown>
-  const Ctor = (w.SpeechRecognition || w.webkitSpeechRecognition) as
-    | (new () => SpeechRecognitionLike)
-    | undefined
-  if (!Ctor) return null
-  const rec = new Ctor()
-  rec.lang = 'es-ES'
-  rec.interimResults = true
-  rec.continuous = false
-  return rec
-}
-
-function speak(text: string) {
-  try {
-    const synth = window.speechSynthesis
-    if (!synth) return
-    synth.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'es-ES'
-    const voice = synth.getVoices().find(v => v.lang.startsWith('es'))
-    if (voice) utterance.voice = voice
-    utterance.rate = 1.05
-    speaking.value = true
-    utterance.onend = () => { speaking.value = false }
-    synth.speak(utterance)
-  } catch {
-    speaking.value = false
-  }
-}
-
 function toggle() {
   if (listening.value) {
-    recognition?.stop()
+    stop()
     return
   }
-  recognition = getRecognition()
-  if (!recognition) return
   transcript.value = ''
   reply.value = null
-  listening.value = true
-  recognition.onresult = (e) => {
-    let text = ''
-    for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript
-    transcript.value = text
-  }
-  recognition.onend = () => {
-    listening.value = false
-    if (transcript.value.trim()) send(transcript.value)
-  }
-  recognition.onerror = () => {
-    listening.value = false
-  }
-  recognition.start()
+  let sent = false
+  start((liveTranscript, isFinal) => {
+    transcript.value = liveTranscript
+    if (isFinal && !sent && liveTranscript.trim()) {
+      sent = true
+      send(liveTranscript)
+    }
+  })
 }
 
 async function send(text: string) {
@@ -103,7 +46,9 @@ async function send(text: string) {
   try {
     reply.value = await api.post<AssistantReply>('/voice/assistant', { text: value })
     usedVoice.value = true
-    speak(reply.value.response)
+    speaking.value = true
+    const ok = await speak(reply.value.response)
+    speaking.value = ok
   } catch {
     reply.value = null
   } finally {
@@ -119,17 +64,12 @@ function submitText() {
 }
 
 onMounted(() => {
-  const w = window as unknown as Record<string, unknown>
-  supported.value = Boolean(w.SpeechRecognition || w.webkitSpeechRecognition)
+  init()
 })
 
 onUnmounted(() => {
-  recognition?.stop()
-  try {
-    window.speechSynthesis?.cancel()
-  } catch {
-    // ignore
-  }
+  stop()
+  cancelSpeech()
 })
 </script>
 
@@ -137,14 +77,16 @@ onUnmounted(() => {
   <div class="voice-recorder">
     <div class="vr-header">
       <span class="vr-title">Asistente por Voz</span>
-      <span v-if="supported" class="vr-badge">REALTIME</span>
+      <span v-if="micSupported" class="vr-badge">
+        {{ provider === 'capacitor' ? 'NATIVE MIC' : 'REALTIME' }}
+      </span>
     </div>
 
-    <div v-if="!supported" class="vr-muted">
-      Tu navegador no soporta micrófono — usá el chat de texto.
+    <div v-if="!micSupported" class="vr-muted">
+      Micrófono no disponible en esta vista — usá el chat de texto o Chrome móvil.
     </div>
 
-    <template v-if="supported">
+    <template v-if="micSupported">
       <button
         class="vr-mic"
         :class="{ recording: listening }"
