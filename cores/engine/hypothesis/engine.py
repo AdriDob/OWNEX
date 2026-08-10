@@ -24,6 +24,10 @@ from cores.engine.hypothesis.models import (
     VulnerabilityType,
 )
 from cores.engine.hypothesis.scorer import reorder_attack_queue, score_hypothesis
+from cores.engine.hypothesis.threat_intel import (
+    ThreatIntelFeed,
+    generate_from_threat_intel,
+)
 from cores.engine.hypothesis.zap_generator import generate_from_zap_alerts
 
 LOG = logging.getLogger("ownex.hypothesis")
@@ -41,6 +45,7 @@ class HypothesisEngine:
         self.ollama_host = ollama_host
         self.llm_model = llm_model
         self.enable_llm = enable_llm
+        self._kev_feed: ThreatIntelFeed | None = None
 
     def run(
         self,
@@ -71,6 +76,11 @@ class HypothesisEngine:
 
         hypotheses = self._stage_2_score(hypotheses)
         LOG.info("Stage 2 (score): %d hypotheses scored", len(hypotheses))
+
+        ti = self._stage_threat_intel(target_id, target_name, technologies, endpoints)
+        if ti:
+            hypotheses.extend(ti)
+            LOG.info("Stage TI (threat intel): %d hypotheses from KEV", len(ti))
 
         hypotheses = self._stage_3_memory(hypotheses)
         LOG.info("Stage 3 (memory): %d hypotheses refined", len(hypotheses))
@@ -162,6 +172,33 @@ class HypothesisEngine:
             risk_score = float(h.endpoint.get("risk_score", 0))
             scored.append(score_hypothesis(h, risk_score))
         return scored
+
+    def _stage_threat_intel(
+        self,
+        target_id: int,
+        target_name: str,
+        technologies: list[dict[str, Any]] | None,
+        endpoints: list[dict[str, Any]] | None,
+    ) -> list[Hypothesis]:
+        """Threat Intelligence → Vulnerability Hypotheses (capa extra de OWNEX).
+
+        Correlaciona el tech stack del target contra CISA KEV y genera hipótesis
+        proactivas. Degrada a [] si feed unavailable / sin tech overlap.
+        No requiere LLM ni red en tests (feed cacheable).
+        NO re-scores: threat-intel hypotheses already calibrated from KEV data.
+        """
+        try:
+            ep = endpoints[0] if endpoints else None
+            return generate_from_threat_intel(
+                target_id=target_id,
+                target_name=target_name,
+                technologies=technologies,
+                endpoint=ep,
+                feed=getattr(self, "_kev_feed", None),
+            )
+        except Exception as exc:
+            LOG.warning("threat intel stage failed (non-fatal): %s", exc)
+            return []
 
     def _stage_3_memory(self, hypotheses: list[Hypothesis]) -> list[Hypothesis]:
         return self.memory.refine(hypotheses)
