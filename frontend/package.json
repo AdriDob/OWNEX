@@ -40,7 +40,7 @@
     "@vitejs/plugin-vue": "^5.2.4",
     "@vitest/coverage-v8": "^4.1.9",
     "@vue/test-utils": "^2.4.11",
-    "biome": "^0.3.3",
+    "biome": "^0.2.2",
     "jsdom": "^29.1.1",
     "playwright": "^1.62.1",
     "tailwindcss": "^4.1.6",
