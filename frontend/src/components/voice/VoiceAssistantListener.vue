@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { api } from '@/lib/api'
+import { useOwnVoice } from '@/composables/useOwnVoice'
 
 interface AssistantReply {
   id: number
@@ -14,49 +15,19 @@ interface AssistantReply {
   created_at?: string
 }
 
-interface RecognitionResult {
-  0: { transcript: string }
-}
-interface RecognitionEvent {
-  results: RecognitionResult[] & { length: number }
-}
-interface SpeechRecognitionLike {
-  lang: string
-  interimResults: boolean
-  continuous: boolean
-  onresult: ((e: RecognitionEvent) => void) | null
-  onend: (() => void) | null
-  onerror: (() => void) | null
-  start: () => void
-  stop: () => void
-}
+const { listening, micSupported, provider, init, start, stop, speak, cancelSpeech } = useOwnVoice()
 
 const lastReply = ref<AssistantReply | null>(null)
 const speaking = ref(false)
-const listening = ref(false)
-const micSupported = ref(false)
 const lastError = ref('')
 let since = 0
 let timer: ReturnType<typeof setInterval> | null = null
-let recognition: SpeechRecognitionLike | null = null
 let micTranscript = ''
 
-function speak(text: string) {
-  try {
-    const synth = window.speechSynthesis
-    if (!synth) return
-    synth.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'es-ES'
-    const voice = synth.getVoices().find(v => v.lang.startsWith('es'))
-    if (voice) utterance.voice = voice
-    utterance.rate = 1.05
-    speaking.value = true
-    utterance.onend = () => { speaking.value = false }
-    synth.speak(utterance)
-  } catch {
-    speaking.value = false
-  }
+async function speakOwn(text: string) {
+  speaking.value = true
+  const ok = await speak(text)
+  speaking.value = ok
 }
 
 async function poll() {
@@ -68,7 +39,7 @@ async function poll() {
       if (reply.id > since) {
         since = reply.id
         lastReply.value = reply
-        speak(reply.response)
+        speakOwn(reply.response)
       }
     }
   } catch {
@@ -76,50 +47,28 @@ async function poll() {
   }
 }
 
-function getRecognition(): SpeechRecognitionLike | null {
-  const w = window as unknown as Record<string, unknown>
-  const Ctor = (w.SpeechRecognition || w.webkitSpeechRecognition) as
-    | (new () => SpeechRecognitionLike)
-    | undefined
-  if (!Ctor) return null
-  const rec = new Ctor()
-  rec.lang = 'es-ES'
-  rec.interimResults = true
-  rec.continuous = false
-  return rec
-}
-
 function toggleMic() {
   if (listening.value) {
-    recognition?.stop()
+    stop()
     return
   }
-  recognition = getRecognition()
-  if (!recognition) return
   lastError.value = ''
-  listening.value = true
   micTranscript = ''
-  recognition.onresult = (e) => {
-    let text = ''
-    for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript
+  let sent = false
+  start((text, isFinal) => {
     micTranscript = text
-  }
-  recognition.onend = () => {
-    listening.value = false
-    const text = micTranscript.trim()
-    if (text) askAssistant(text)
-  }
-  recognition.onerror = () => {
-    listening.value = false
-  }
-  recognition.start()
+    if (isFinal && !sent && text.trim()) {
+      sent = true
+      askAssistant(text)
+    }
+  })
 }
 
 async function askAssistant(text: string) {
   try {
     const reply = await api.post<AssistantReply>('/voice/assistant', { text })
     lastReply.value = reply
-    speak(reply.response)
+    speakOwn(reply.response)
   } catch {
     lastError.value = 'No pude hablar con OWNEX (¿backend caído?).'
   }
@@ -128,18 +77,13 @@ async function askAssistant(text: string) {
 onMounted(() => {
   timer = setInterval(poll, 2500)
   poll()
-  const w = window as unknown as Record<string, unknown>
-  micSupported.value = Boolean(w.SpeechRecognition || w.webkitSpeechRecognition)
+  init()
 })
 
 onUnmounted(() => {
   if (timer) clearInterval(timer)
-  recognition?.stop()
-  try {
-    window.speechSynthesis?.cancel()
-  } catch {
-    // ignore
-  }
+  stop()
+  cancelSpeech()
 })
 </script>
 
