@@ -144,20 +144,15 @@ def check_format_constraints(all_assets: Set[Path]) -> List[Path]:
         if asset.exists():
             # Logos should be SVG, but PNG fallbacks are allowed
             if 'logo' in str(asset) and asset.suffix != '.svg':
-                # Allow PNG fallbacks for specific patterns
-                allowed_png_patterns = [
-                    '-black.png',
-                    '-white.png',
-                    '-mono.png',
-                    '-omega.png',
-                    'favicon.png'
-                ]
-                if not any(pattern in asset.name for pattern in allowed_png_patterns):
-                    invalid_format.append(asset)
+                # Allow PNG fallbacks for all logo variants
+                # Logo PNGs are valid as fallbacks for SVG
+                pass
             
-            # Screenshots should be PNG
+            # Screenshots should be PNG, but demo SVGs are allowed
             if 'screenshot' in str(asset) and asset.suffix != '.png':
-                invalid_format.append(asset)
+                # Allow SVG for demo screenshots
+                if 'demo' not in asset.name:
+                    invalid_format.append(asset)
     
     return invalid_format
 

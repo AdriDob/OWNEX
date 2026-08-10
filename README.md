@@ -3,6 +3,13 @@
 </p>
 
 <p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/branding/logo/ownex-symbol-wordmark.svg"/>
+    <img src="docs/assets/branding/logo/ownex-symbol-wordmark.svg" alt="OWNEX" width="400"/>
+  </picture>
+</p>
+
+<p align="center">
   <strong>Autonomous Work Operating System</strong>
 </p>
 

@@ -218,6 +218,16 @@ def init_db():
                 ],
             )
 
+            _migrate_columns(
+                session,
+                "users",
+                [
+                    ("email_verified", "BOOLEAN DEFAULT 0"),
+                    ("verification_token", "VARCHAR"),
+                    ("verification_expires", "DATETIME"),
+                ],
+            )
+
             _migrate_indexes(session)
             session.execute(text("PRAGMA wal_checkpoint(TRUNCATE);"))
             session.commit()
