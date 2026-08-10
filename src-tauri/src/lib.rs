@@ -1,4 +1,6 @@
 use std::process::{Command, Stdio};
+use std::thread;
+use std::time::Duration;
 
 use tauri::{
     menu::{Menu, MenuItem},
@@ -26,6 +28,13 @@ fn start_backend(app_handle: tauri::AppHandle) -> Result<String, String> {
         .map_err(|e| e.to_string())?;
 
     let backend_script = resource_dir.join("binaries").join("start_backend.py");
+    if !backend_script.exists() {
+        eprintln!(
+            "[orion-backend] start_backend.py not found at {} — run the backend manually (uvicorn api.main:app on :8000)",
+            backend_script.display()
+        );
+        return Ok("Backend not bundled — run manually on :8000".into());
+    }
     let python = if cfg!(target_os = "windows") {
         "python.exe"
     } else {

@@ -53,12 +53,7 @@
   },
   "plugins": {
     "shell": {
-      "sidecar": [
-        {
-          "name": "orion-omega-backend",
-          "args": true
-        }
-      ]
+      "open": true
     }
   }
 }

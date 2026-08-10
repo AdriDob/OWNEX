@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0B0B0B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#111115;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="card-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A1A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0B0B0B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg-gradient)"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="1920" height="80" fill="#0B0B0B" stroke="#1A1A1A" stroke-width="1"/>
+  <text x="40" y="50" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#FFFFFF">Settings</text>
+  <circle cx="1850" cy="40" r="20" fill="#2D7FF9" opacity="0.3"/>
+  <circle cx="1850" cy="40" r="12" fill="#2D7FF9"/>
+
+  <!-- Settings Sections -->
+  <g transform="translate(40, 120)">
+    <rect width="840" height="300" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">AI Configuration</text>
+    
+    <g transform="translate(20, 70)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Primary Provider</text>
+      <rect x="0" y="10" width="200" height="30" rx="4" fill="#2D7FF9"/>
+      <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">Ollama (Local)</text>
+    </g>
+    
+    <g transform="translate(20, 130)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Fallback Provider</text>
+      <rect x="0" y="10" width="200" height="30" rx="4" fill="#1A1A1A" stroke="#2D7FF9" stroke-width="1"/>
+      <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">FCC Proxy</text>
+    </g>
+    
+    <g transform="translate(20, 190)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Model</text>
+      <rect x="0" y="10" width="300" height="30" rx="4" fill="#1A1A1A" stroke="#2D7FF9" stroke-width="1"/>
+      <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">qwen3-coder:8b</text>
+    </g>
+    
+    <g transform="translate(20, 250)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Budget Limit</text>
+      <rect x="0" y="10" width="200" height="30" rx="4" fill="#1A1A1A" stroke="#2D7FF9" stroke-width="1"/>
+      <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">$100/month</text>
+    </g>
+  </g>
+
+  <g transform="translate(920, 120)">
+    <rect width="840" height="300" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Platform Configuration</text>
+    
+    <g transform="translate(20, 70)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">HackerOne API Key</text>
+      <rect x="0" y="10" width="300" height="30" rx="4" fill="#00C853"/>
+      <text x="10" y="30" font-family="font-family: Inter, sans-serif" font-size="12" fill="#FFFFFF">✓ Configured</text>
+    </g>
+    
+    <g transform="translate(20, 130)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Bugcrowd API Key</text>
+      <rect x="0" y="10" width="300" height="30" rx="4" fill="#00C853"/>
+      <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">✓ Configured</text>
+    </g>
+    
+    <g transform="translate(20, 190)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Intigriti API Key</text>
+      <rect x="0" y="10" width="300" height="30" rx="4" fill="#00C853"/>
+      <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">✓ Configured</text>
+    </g>
+    
+    <g transform="translate(20, 250)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">YesWeHack API Key</text>
+      <rect x="0" y="10" width="300" height="30" rx="4" fill="#FFAB00"/>
+      <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">Not configured</text>
+    </g>
+  </g>
+
+  <g transform="translate(40, 450)">
+    <rect width="840" height="250" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Scheduler Settings</text>
+    
+    <g transform="translate(20, 70)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Discovery Cycle</text>
+      <rect x="0" y="10" width="200" height="30" rx="4" fill="#00C853"/>
+      <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">Every 2 hours</text>
+    </g>
+    
+    <g transform="translate(20, 130)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Analysis Cycle</text>
+      <rect x="0" y="10" width="200" height="30" rx="4" fill="#00C853"/>
+      <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">Every 4 hours</text>
+    </g>
+    
+    <g transform="translate(20, 190)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Report Generation</text>
+      <rect x="0" y="10" width="200" height="30" rx="4" fill="#00C853"/>
+      <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">Every 6 hours</text>
+    </g>
+  </g>
+
+  <g transform="translate(920, 450)">
+    <rect width="840" height="250" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">System Settings</text>
+    
+    <g transform="translate(20, 70)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Auto-submit Reports</text>
+      <rect x="0" y="10" width="100" height="30" rx="4" fill="#00C853"/>
+      <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">ENABLED</text>
+    </g>
+    
+    <g transform="translate(150, 70)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Auto-discovery</text>
+      <rect x="0" y="10" width="100" height="30" rx="4" fill="#00C853"/>
+      <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">ENABLED</text>
+    </g>
+    
+    <g transform="translate(20, 130)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Auto-optimization</text>
+      <rect x="0" y="10" width="100" height="30" rx="4" fill="#FFAB00"/>
+      <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">DISABLED</text>
+    </g>
+    
+    <g transform="translate(150, 130)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Auto-evolution</text>
+      <rect x="0" y="10" width="100" height="30" rx="4" fill="#00C853"/>
+      <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">ENABLED</text>
+    </g>
+  </g>
+
+  <!-- Danger Zone -->
+  <rect x="40" y="730" width="1840" height="300" rx="12" fill="#1A1A1A" stroke="#FF1744" stroke-width="1" opacity="0.3"/>
+  <text x="60" y="770" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FF1744">Danger Zone</text>
+
+  <g transform="translate(60, 810)">
+    <rect width="800" height="80" rx="8" fill="#FF1744" opacity="0.2"/>
+    <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">Reset All Data</text>
+    <text x="20" y="55" font-family="Inter, sans-serif" font-size="12" fill="#888888">⚠️ This action cannot be undone</text>
+  </g>
+
+  <g transform="translate(900, 810)">
+    <rect width="800" height="80" rx="8" fill="#FF1744" opacity="0.2"/>
+    <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">Clear All Cache</text>
+    <text x="20" y="55" font-family="Inter, sans-serif" font-size="12" fill="#888888">⚠️ Requires restart</text>
+  </g>
+
+  <g transform="translate(60, 910)">
+    <rect width="800" height="80" rx="8" fill="#FF1744" opacity="0.2"/>
+    <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF">Factory Reset</text>
+    <text x="20" y="55" font-family="Inter, sans-serif" font-size="12" fill="#888888">⚠️ Deletes all configuration</text>
+  </g>
+</svg>
