@@ -121,6 +121,7 @@ class SynackAdapter(OpportunityAdapter):
         payout = mission.get("max_payout", mission.get("payout", mission.get("reward", 0)))
         if isinstance(payout, str):
             import re
+
             amounts = re.findall(r"[\d,]+(?:\.\d+)?", payout.replace(",", ""))
             payout = float(max(amounts)) if amounts else 0
 

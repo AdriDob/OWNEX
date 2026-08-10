@@ -110,12 +110,16 @@ class IntigritiAdapter(OpportunityAdapter):
                         "platform": "intigriti",
                         "scope_url": item.get("scopeUrl", item.get("url", "")),
                         "has_rewards": max_payout > 0,
-                        "program_url": item.get("publicUrl", item.get("url", f"https://www.intigriti.com/programs/{handle}")),
+                        "program_url": item.get(
+                            "publicUrl", item.get("url", f"https://www.intigriti.com/programs/{handle}")
+                        ),
                         "domains": domains,
                         "wildcards": wildcards,
                         "technologies": item.get("technologies", []),
                         "estimated_payout": float(max_payout) if max_payout else 0.0,
-                        "estimated_effort_hours": self._estimate_effort_from_payout(float(max_payout) if max_payout else 0),
+                        "estimated_effort_hours": self._estimate_effort_from_payout(
+                            float(max_payout) if max_payout else 0
+                        ),
                         "created_at": item.get("createdAt", item.get("date", "")),
                     }
                     results.append(prog)
