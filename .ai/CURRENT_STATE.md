@@ -1,3 +1,30 @@
+## Sesión 2026-08-10 — OWNEX VOICE: voz propia (piper es-419 calm_operator) + mic nativo Android (E2E + APK OK)
+
+> **QUÉ SE HIZO:** El modo Jarvis quedó según la spec del usuario: identidad de voz
+> OWNEX (Piper TTS local-first, personalidad `calm_operator`, fallback system_tts) y
+> micrófono nativo funcionando en el APK Android. Commit `bc11e35e4` pusheado a main.
+
+- **`cores/voice/voice_engine.py` (NUEVO)**: `VoiceProfile` persistente
+  (`data/voice_profile.json`; spec: piper, es-419, speed 0.95, pitch 0, volume 0.85,
+  calm_operator; corrupción → reset, nunca crash), `VoicePersonality` (framing
+  "Resultado, {verdict}.", sin exclamaciones), `TTSManager` piper CLI → WAV con
+  `provider_status()` honesto (`OWNEX_PIPER_MODEL`, modelo `es_MX-ald-medium`).
+- **`api/routers/voice.py`**: `POST /voice/tts` (WAV; 415 si piper ausente → el
+  cliente cae a system_tts), `GET/PUT /voice/config` (perfil persistido),
+  `/voice/status` con providers reales; replies de `/voice/assistant` con personalidad.
+- **`frontend/src/composables/useOwnVoice.ts` (NUEVO)**: STT chain Capacitor native
+  (APK) → browser Web Speech → fallback texto; TTS chain backend piper →
+  speechSynthesis. `VoiceAssistantRecorder`/`Listener` migrados (auto-send en
+  `isFinal`, badge "NATIVE MIC", fallback texto).
+- **Android**: `@capacitor-community/speech-recognition@7.0.1` (RECORD_AUDIO lo
+  aporta el manifest del plugin), `cap sync` OK, gradle **BUILD SUCCESSFUL** (APK
+  5.2MB).
+- **Verificación**: E2E TestClient (CSRF disabled): config 200, tts 415 (piper no
+  instalado → honesto), status → `system_tts`/`no`/`calm_operator`, assistant 200 +
+  reply con personalidad. Tests: `test_voice_engine.py` (12) + status test al
+  contrato nuevo → **21 passed**; `vue-tsc` 0 errores, `vite build` OK. Suite
+  completa 3187 passed / 4 failed (preexistentes test_desktop_release).
+
 ## Sesión 2026-08-10 — VERIFICACIÓN DE EMAIL (backend + frontend, E2E ALL PASS)
 
 > **QUÉ SE HIZO:** Implementada la verificación de email opcional para registro. Con
