@@ -32,8 +32,11 @@ interface SpeechRecognitionLike {
 const listening = ref(false)
 const supported = ref(false)
 const transcript = ref('')
+const textInput = ref('')
 const reply = ref<AssistantReply | null>(null)
 const sending = ref(false)
+const speaking = ref(false)
+const usedVoice = ref(false)
 
 let recognition: SpeechRecognitionLike | null = null
 
@@ -48,6 +51,24 @@ function getRecognition(): SpeechRecognitionLike | null {
   rec.interimResults = true
   rec.continuous = false
   return rec
+}
+
+function speak(text: string) {
+  try {
+    const synth = window.speechSynthesis
+    if (!synth) return
+    synth.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = 'es-ES'
+    const voice = synth.getVoices().find(v => v.lang.startsWith('es'))
+    if (voice) utterance.voice = voice
+    utterance.rate = 1.05
+    speaking.value = true
+    utterance.onend = () => { speaking.value = false }
+    synth.speak(utterance)
+  } catch {
+    speaking.value = false
+  }
 }
 
 function toggle() {
@@ -67,7 +88,7 @@ function toggle() {
   }
   recognition.onend = () => {
     listening.value = false
-    if (transcript.value.trim()) send()
+    if (transcript.value.trim()) send(transcript.value)
   }
   recognition.onerror = () => {
     listening.value = false
@@ -75,17 +96,26 @@ function toggle() {
   recognition.start()
 }
 
-async function send() {
-  const text = transcript.value.trim()
-  if (!text) return
+async function send(text: string) {
+  const value = text.trim()
+  if (!value) return
   sending.value = true
   try {
-    reply.value = await api.post<AssistantReply>('/voice/assistant', { text })
+    reply.value = await api.post<AssistantReply>('/voice/assistant', { text: value })
+    usedVoice.value = true
+    speak(reply.value.response)
   } catch {
     reply.value = null
   } finally {
     sending.value = false
   }
+}
+
+function submitText() {
+  const value = textInput.value.trim()
+  if (!value) return
+  textInput.value = ''
+  send(value)
 }
 
 onMounted(() => {
@@ -95,6 +125,11 @@ onMounted(() => {
 
 onUnmounted(() => {
   recognition?.stop()
+  try {
+    window.speechSynthesis?.cancel()
+  } catch {
+    // ignore
+  }
 })
 </script>
 
@@ -106,10 +141,10 @@ onUnmounted(() => {
     </div>
 
     <div v-if="!supported" class="vr-muted">
-      La transcripción por voz no está disponible en este navegador.
+      Tu navegador no soporta micrófono — usá el chat de texto.
     </div>
 
-    <template v-else>
+    <template v-if="supported">
       <button
         class="vr-mic"
         :class="{ recording: listening }"
@@ -121,19 +156,33 @@ onUnmounted(() => {
       <p class="vr-hint">{{ listening ? 'Escuchando... hablá ahora' : 'Tocá para hablar con OWNEX' }}</p>
 
       <p v-if="transcript" class="vr-transcript">{{ transcript }}</p>
-      <p v-if="sending" class="vr-muted">Evaluando si vale la pena...</p>
-
-      <div v-if="reply" class="vr-reply">
-        <div class="vr-domain">
-          <span class="vr-worthy" :class="reply.worth_it ? 'ok' : 'no'">
-            {{ reply.worth_it ? 'Vale la pena' : 'No es prioridad' }}
-          </span>
-          <span class="vr-domain-label">{{ reply.domain }}</span>
-        </div>
-        <p class="vr-response">{{ reply.response }}</p>
-        <p class="vr-action">{{ reply.suggested_action }}</p>
-      </div>
     </template>
+
+    <div class="vr-input-row">
+      <input
+        v-model="textInput"
+        class="vr-input"
+        type="text"
+        placeholder="Escribí tu consulta..."
+        @keyup.enter="submitText"
+      />
+      <button class="vr-send" :disabled="!textInput.trim()" @click="submitText">Enviar</button>
+    </div>
+
+    <p v-if="sending" class="vr-muted">Evaluando si vale la pena...</p>
+
+    <div v-if="reply" class="vr-reply">
+      <div class="vr-domain">
+        <span class="vr-worthy" :class="reply.worth_it ? 'ok' : 'no'">
+          {{ reply.worth_it ? 'Vale la pena' : 'No es prioridad' }}
+        </span>
+        <span class="vr-domain-label">{{ reply.domain }}</span>
+        <span v-if="speaking" class="vr-speaking">🔊 hablando...</span>
+      </div>
+      <p class="vr-response">{{ reply.response }}</p>
+      <p class="vr-action">{{ reply.suggested_action }}</p>
+      <button v-if="usedVoice" class="vr-replay" @click="speak(reply.response)">Repetir audio</button>
+    </div>
   </div>
 </template>
 
@@ -196,6 +245,36 @@ onUnmounted(() => {
   margin: 0;
 }
 .vr-muted { font-size: 12px; color: #8b8d98; margin: 0; }
+.vr-input-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.vr-input {
+  flex: 1;
+  background: #0a0c11;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #d9dbdf;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+}
+.vr-input:focus { border-color: rgba(0, 213, 255, 0.5); }
+.vr-send {
+  background: #00d5ff;
+  color: #0a0c11;
+  border: none;
+  border-radius: 10px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.vr-send:disabled { opacity: 0.4; cursor: default; }
 .vr-reply {
   width: 100%;
   background: #0a0c11;
@@ -208,7 +287,7 @@ onUnmounted(() => {
   gap: 8px;
   text-align: left;
 }
-.vr-domain { display: flex; align-items: center; gap: 8px; }
+.vr-domain { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .vr-worthy {
   font-size: 11px;
   font-weight: 600;
@@ -218,8 +297,19 @@ onUnmounted(() => {
 .vr-worthy.ok { color: #00e39a; background: rgba(0, 227, 154, 0.1); }
 .vr-worthy.no { color: #ff7a1a; background: rgba(255, 122, 26, 0.1); }
 .vr-domain-label { font-size: 11px; color: #8b8d98; text-transform: uppercase; letter-spacing: 0.1em; }
+.vr-speaking { font-size: 11px; color: #00e39a; }
 .vr-response { font-size: 13px; color: #d9dbdf; margin: 0; line-height: 1.5; }
 .vr-action { font-size: 12px; color: #00d5ff; margin: 0; }
+.vr-replay {
+  background: transparent;
+  border: 1px solid rgba(0, 213, 255, 0.35);
+  color: #00d5ff;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 11px;
+  cursor: pointer;
+  align-self: flex-start;
+}
 
 @keyframes vr-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(0, 213, 255, 0.25); }
