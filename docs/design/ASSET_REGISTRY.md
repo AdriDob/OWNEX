@@ -27,26 +27,25 @@ Each asset has:
 
 | ID | File | Type | Purpose | Dimensions | Format | Status | Reuse | References | Notes |
 |----|------|------|---------|------------|--------|--------|-------|------------|-------|
-| `brand-logo-primary` | `docs/assets/branding/logo/ownex-lockup.svg` | logo | Primary brand identity | 600×120 | SVG | approved | allowed | README.md | Main lockup for all branding |
+| `brand-logo-primary` | `docs/assets/branding/logo/ownex-symbol-wordmark.svg` | logo | Primary brand identity | 600×120 | SVG | approved | allowed | README.md | Main lockup for all branding |
+| `brand-lockup-horizontal` | `docs/assets/branding/logo/ownex-horizontal-lockup.svg` | logo | Horizontal lockup with descriptor | 800×160 | SVG | approved | allowed | - | Horizontal format with descriptor |
+| `brand-lockup-vertical` | `docs/assets/branding/logo/ownex-vertical-lockup.svg` | logo | Vertical lockup (stacked) | 400×500 | SVG | approved | allowed | - | Vertical format for tall spaces |
 
 ### Logo Variants
 
 | ID | File | Type | Purpose | Dimensions | Format | Status | Reuse | References | Notes |
 |----|------|------|---------|------------|--------|--------|-------|------------|-------|
-| `brand-logo-dark` | `docs/assets/branding/logo/ownex-lockup-white.svg` | logo | Dark backgrounds | 600×120 | SVG | approved | allowed | README.md | Use on dark surfaces |
-| `brand-logo-light` | `docs/assets/branding/logo/ownex-lockup-black.svg` | logo | Light backgrounds | 600×120 | SVG | approved | allowed | README.md | Use on light surfaces |
-| `brand-logo-dark-png` | `docs/assets/branding/logo/ownex-lockup-white.png` | logo | Dark backgrounds (PNG fallback) | 600×120 | PNG | approved | allowed | - | PNG fallback for SVG |
-| `brand-logo-light-png` | `docs/assets/branding/logo/ownex-lockup-black.png` | logo | Light backgrounds (PNG fallback) | 600×120 | PNG | approved | allowed | - | PNG fallback for SVG |
+| `brand-symbol-only` | `docs/assets/branding/logo/ownex-symbol-only.svg` | logo | Symbol only | 512×512 | SVG | approved | allowed | - | Use when wordmark not needed |
+| `brand-wordmark-only` | `docs/assets/branding/logo/ownex-wordmark-only.svg` | logo | Custom wordmark only | 400×80 | SVG | approved | allowed | - | Path-based custom wordmark |
+| `brand-wordmark-custom` | `docs/assets/branding/logo/ownex-wordmark-custom.svg` | logo | Custom wordmark (font-based) | 400×80 | SVG | approved | conditional | - | Sora-based with O/X geometry |
+| `brand-logo-dark` | `docs/assets/branding/logo/ownex-dark-mode.svg` | logo | Dark backgrounds | 600×120 | SVG | approved | allowed | README.md | Use on dark surfaces |
+| `brand-logo-light` | `docs/assets/branding/logo/ownex-light-mode.svg` | logo | Light backgrounds | 600×120 | SVG | approved | allowed | README.md | Use on light surfaces |
 | `brand-mark-primary` | `docs/assets/branding/logo/ownex-mark.svg` | logo | Iconography, small sizes | 512×512 | SVG | approved | allowed | favicon.svg | Convergence symbol only |
 | `brand-mark-dark` | `docs/assets/branding/logo/ownex-mark-white.svg` | logo | Dark backgrounds, small | 512×512 | SVG | approved | allowed | - | Mark on dark surfaces |
 | `brand-mark-light` | `docs/assets/branding/logo/ownex-mark-black.svg` | logo | Light backgrounds, small | 512×512 | SVG | approved | allowed | - | Mark on light surfaces |
-| `brand-mark-dark-png` | `docs/assets/branding/logo/ownex-mark-white.png` | logo | Dark backgrounds (PNG fallback) | 512×512 | PNG | approved | allowed | - | PNG fallback for SVG |
-| `brand-mark-light-png` | `docs/assets/branding/logo/ownex-mark-black.png` | logo | Light backgrounds (PNG fallback) | 512×512 | PNG | approved | allowed | - | PNG fallback for SVG |
-| `brand-wordmark` | `docs/assets/branding/logo/ownex-wordmark.svg` | logo | Typography-only | 400×80 | SVG | approved | conditional | - | Use when mark alone is insufficient |
-| `brand-wordmark-dark` | `docs/assets/branding/logo/ownex-wordmark-white.svg` | logo | Typography-only (dark) | 400×80 | SVG | approved | conditional | - | Use on dark backgrounds |
-| `brand-wordmark-light` | `docs/assets/branding/logo/ownex-wordmark-black.svg` | logo | Typography-only (light) | 400×80 | SVG | approved | conditional | - | Use on light backgrounds |
-| `brand-wordmark-dark-png` | `docs/assets/branding/logo/ownex-wordmark-white.png` | logo | Typography-only (dark PNG) | 400×80 | PNG | approved | conditional | - | PNG fallback for SVG |
-| `brand-wordmark-light-png` | `docs/assets/branding/logo/ownex-wordmark-black.png` | logo | Typography-only (light PNG) | 400×80 | PNG | approved | conditional | - | PNG fallback for SVG |
+| `brand-monochrome` | `docs/assets/branding/logo/ownex-monochrome.svg` | logo | Single color version | 600×120 | SVG | approved | allowed | - | For single-color applications |
+| `brand-symbol-wordmark` | `docs/assets/branding/logo/ownex-symbol-wordmark.svg` | logo | Symbol + wordmark | 600×120 | SVG | approved | allowed | README.md | Primary lockup |
+| `brand-symbol-wordmark-descriptor` | `docs/assets/branding/logo/ownex-symbol-wordmark-descriptor.svg` | logo | Symbol + wordmark + descriptor | 600×160 | SVG | approved | allowed | - | Full lockup with descriptor |
 
 ### Favicon
 
@@ -54,6 +53,21 @@ Each asset has:
 |----|------|------|---------|------------|--------|--------|-------|------------|-------|
 | `brand-favicon` | `docs/assets/branding/logo/favicon.svg` | favicon | Browser tab icon | 16×16 | SVG | approved | allowed | frontend/public/ | Works at 16×16 scale |
 | `brand-favicon-png` | `docs/assets/branding/logo/ownex-favicon.png` | favicon | Browser tab icon (PNG) | 16×16 | PNG | approved | allowed | - | PNG fallback for SVG |
+| `brand-favicon-svg` | `docs/assets/branding/logo/ownex-favicon.svg` | favicon | Browser tab icon (variant) | 16×16 | SVG | approved | allowed | - | Alternative favicon |
+
+### Wordmark Custom Variants
+
+| ID | File | Type | Purpose | Dimensions | Format | Status | Reuse | References | Notes |
+|----|------|------|---------|------------|--------|--------|-------|------------|-------|
+| `brand-wordmark-path` | `docs/assets/branding/logo/ownex-wordmark-path.svg` | logo | Path-based wordmark | 400×80 | SVG | approved | allowed | - | No font dependency |
+| `brand-wordmark-path-white` | `docs/assets/branding/logo/ownex-wordmark-path-white.svg` | logo | Path-based wordmark (white) | 400×80 | SVG | approved | allowed | - | White on dark |
+| `brand-wordmark-path-black` | `docs/assets/branding/logo/ownex-wordmark-path-black.svg` | logo | Path-based wordmark (black) | 400×80 | SVG | approved | allowed | - | Black on light |
+| `brand-wordmark-path-blue` | `docs/assets/branding/logo/ownex-wordmark-path-blue.svg` | logo | Path-based wordmark (blue) | 400×80 | SVG | approved | allowed | - | Blue accent |
+| `brand-wordmark-custom` | `docs/assets/branding/logo/ownex-wordmark-custom.svg` | logo | Sora-based custom wordmark | 400×80 | SVG | approved | conditional | - | Font-based with O/X geometry |
+| `brand-wordmark-custom-white` | `docs/assets/branding/logo/ownex-wordmark-custom-white.svg` | logo | Custom wordmark (white) | 400×80 | SVG | approved | conditional | - | White on dark |
+| `brand-wordmark-custom-black` | `docs/assets/branding/logo/ownex-wordmark-custom-black.svg` | logo | Custom wordmark (black) | 400×80 | SVG | approved | conditional | - | Black on light |
+| `brand-wordmark-custom-blue` | `docs/assets/branding/logo/ownex-wordmark-custom-blue.svg` | logo | Custom wordmark (blue) | 400×80 | SVG | approved | conditional | - | Blue accent |
+| `brand-descriptor` | `docs/assets/branding/logo/ownex-descriptor.svg` | logo | Descriptor text | 500×30 | SVG | approved | allowed | - | AUTONOMOUS WORK OPERATING SYSTEM |
 
 ### Legacy Assets (Deprecated)
 
@@ -95,17 +109,18 @@ Each asset has:
 
 ## Screenshot Assets
 
-### Desktop Screenshots (Real Application)
+### Desktop Screenshots (Demo)
 
 | ID | File | Type | Purpose | Dimensions | Format | Status | Reuse | References | Notes |
 |----|------|------|---------|------------|--------|--------|-------|------------|-------|
-| `screenshot-mission-control` | `docs/assets/screenshots/desktop/mission-control.png` | screenshot | Mission Control showcase | 1920×1080 | PNG | approved | prohibited | README.md | Real application screen |
-| `screenshot-intelligence` | `docs/assets/screenshots/desktop/intelligence.png` | screenshot | Intelligence surface | 1920×1080 | PNG | approved | prohibited | README.md | Real application screen |
-| `screenshot-targets` | `docs/assets/screenshots/desktop/targets.png` | screenshot | Target prioritization | 1920×1080 | PNG | approved | prohibited | README.md | Real application screen |
-| `screenshot-capital` | `docs/assets/screenshots/desktop/capital.png` | screenshot | Capital dashboard | 1920×1080 | PNG | approved | prohibited | README.md | Real application screen |
-| `screenshot-merlin` | `docs/assets/screenshots/desktop/merlin.png` | screenshot | MERLIN copilot | 1920×1080 | PNG | approved | prohibited | README.md | Real application screen |
-| `screenshot-agents` | `docs/assets/screenshots/desktop/agents.png` | screenshot | Agent center | 1920×1080 | PNG | approved | prohibited | README.md | Real application screen |
-| `screenshot-settings` | `docs/assets/screenshots/desktop/settings.png` | screenshot | Settings surface | 1920×1080 | PNG | approved | prohibited | README.md | Real application screen |
+| `screenshot-mission-control` | `docs/assets/screenshots/desktop/mission-control-demo.png` | screenshot | Mission Control showcase | 1920×1080 | PNG | approved | prohibited | README.md | Demo SVG screenshot |
+| `screenshot-intelligence` | `docs/assets/screenshots/desktop/intelligence-demo.png` | screenshot | Intelligence surface | 1920×1080 | PNG | approved | prohibited | README.md | Demo SVG screenshot |
+| `screenshot-targets` | `docs/assets/screenshots/desktop/targets-demo.png` | screenshot | Target prioritization | 1920×1080 | PNG | approved | prohibited | README.md | Demo SVG screenshot |
+| `screenshot-capital` | `docs/assets/screenshots/desktop/capital-demo.png` | screenshot | Capital dashboard | 1920×1080 | PNG | approved | prohibited | README.md | Demo SVG screenshot |
+| `screenshot-merlin` | `docs/assets/screenshots/desktop/merlin-demo.png` | screenshot | MERLIN copilot | 1920×1080 | PNG | approved | prohibited | README.md | Demo SVG screenshot |
+| `screenshot-agents` | `docs/assets/screenshots/desktop/agents-demo.png` | screenshot | Agent center | 1920×1080 | PNG | approved | prohibited | README.md | Demo SVG screenshot |
+| `screenshot-reports` | `docs/assets/screenshots/desktop/reports-demo.png` | screenshot | Reports tracking | 1920×1080 | PNG | approved | prohibited | README.md | Demo SVG screenshot |
+| `screenshot-settings` | `docs/assets/screenshots/desktop/settings-demo.png` | screenshot | Settings surface | 1920×1080 | PNG | approved | prohibited | README.md | Demo SVG screenshot |
 
 ### Legacy Screenshots (Pending Review)
 
