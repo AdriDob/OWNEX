@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 120" width="600" height="120">
+  <!-- Symbol -->
+  <g transform="translate(60, 60) scale(0.1)">
+    <circle cx="0" cy="0" r="180" fill="none" stroke="#000000" stroke-width="12" opacity="0.9"/>
+    <circle cx="0" cy="0" r="120" fill="none" stroke="#000000" stroke-width="8" opacity="0.7"/>
+    <circle cx="0" cy="0" r="40" fill="#000000"/>
+    <path d="M 0 -180 L 0 -40" stroke="#000000" stroke-width="10" stroke-linecap="round" opacity="0.8"/>
+    <path d="M 0 40 L 0 180" stroke="#000000" stroke-width="10" stroke-linecap="round" opacity="0.8"/>
+    <path d="M -180 0 L -40 0" stroke="#000000" stroke-width="10" stroke-linecap="round" opacity="0.8"/>
+    <path d="M 40 0 L 180 0" stroke="#000000" stroke-width="10" stroke-linecap="round" opacity="0.8"/>
+    <circle cx="0" cy="-180" r="16" fill="#000000"/>
+    <circle cx="0" cy="180" r="16" fill="#000000"/>
+    <circle cx="-180" cy="0" r="16" fill="#000000"/>
+    <circle cx="180" cy="0" r="16" fill="#000000"/>
+  </g>
+
+  <!-- Wordmark -->
+  <g transform="translate(160, 40)">
+    <g transform="translate(32, 40)">
+      <circle cx="0" cy="0" r="24" fill="none" stroke="#000000" stroke-width="6"/>
+      <circle cx="0" cy="0" r="4" fill="#000000" opacity="0.6"/>
+    </g>
+    <g transform="translate(96, 40)">
+      <path d="M -24 -20 L -12 20 L 0 -5 L 12 20 L 24 -20" 
+            fill="none" stroke="#000000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(168, 40)">
+      <path d="M -24 -20 L -24 20 L 24 -20 L 24 20" 
+            fill="none" stroke="#000000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(240, 40)">
+      <path d="M -24 -20 L 24 -20 M -24 0 L 16 0 M -24 20 L 24 20" 
+            fill="none" stroke="#000000" stroke-width="6" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(320, 40)">
+      <path d="M -20 -20 L 20 20 M 20 -20 L -20 20" 
+            fill="none" stroke="#000000" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="0" cy="0" r="3" fill="#000000" opacity="0.4"/>
+    </g>
+  </g>
+</svg>
