@@ -35,6 +35,7 @@ EXEMPT_PATHS = frozenset(
         "/api/license/activate",
         "/api/auth/login",
         "/api/auth/register",
+        "/api/auth/users/verify",
         "/api/auth/desktop-session",
         # Local-only auto-recovery: the RecoveryEngine restarts the API via
         # POST /api/system/restart without a browser session token. The API
