@@ -128,30 +128,45 @@ flowchart TB
 
 ### Mission Control
 <p align="center">
-  <img src="docs/assets/screenshots/desktop/mission-control.png" alt="Mission Control" width="100%"/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/desktop/mission-control.png"/>
+    <img src="docs/assets/screenshots/desktop-light/mission-control.png" alt="Mission Control" width="100%"/>
+  </picture>
 </p>
 
 ### Intelligence
 <p align="center">
-  <img src="docs/assets/screenshots/desktop/intelligence.png" alt="Intelligence" width="100%"/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/desktop/intelligence.png"/>
+    <img src="docs/assets/screenshots/desktop-light/intelligence.png" alt="Intelligence" width="100%"/>
+  </picture>
 </p>
 
 ### Targets
 <p align="center">
-  <img src="docs/assets/screenshots/desktop/targets.png" alt="Targets" width="100%"/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/desktop/targets.png"/>
+    <img src="docs/assets/screenshots/desktop-light/targets.png" alt="Targets" width="100%"/>
+  </picture>
 </p>
 
 ### Capital
 <p align="center">
-  <img src="docs/assets/screenshots/desktop/capital-dashboard.png" alt="Capital" width="100%"/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/desktop/capital-dashboard.png"/>
+    <img src="docs/assets/screenshots/desktop-light/capital-dashboard.png" alt="Capital" width="100%"/>
+  </picture>
 </p>
 
 ### MERLIN
 <p align="center">
-  <img src="docs/assets/screenshots/desktop/merlin.png" alt="MERLIN" width="100%"/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/desktop/merlin.png"/>
+    <img src="docs/assets/screenshots/desktop-light/merlin.png" alt="MERLIN" width="100%"/>
+  </picture>
 </p>
 
-> More: `Good Morning`, `Executive Dashboard`, `Operations`, `Agent Center` — see `docs/assets/screenshots/desktop/`.
+> More: `Good Morning`, `Executive Dashboard`, `Operations`, `Agent Center` — see `docs/assets/screenshots/desktop/` and `docs/assets/screenshots/desktop-light/` (auto-switched by system theme).
 
 ---
 
