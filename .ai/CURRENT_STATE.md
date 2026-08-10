@@ -20,6 +20,20 @@
 - `ruff check .` **All checks passed!**; `tests/test_scheduler_jobs.py` **40 passed**;
   `scripts/dev test-fast` **89 passed, 1 skipped**; `vue-tsc --noEmit` 0 errores; `vite build` OK.
 
+## Sesión 2026-08-10 — AUD-12/13 (builds Android/Tauri) + GITHUB SCREENSHOTS light/dark + FIX ThemeEngine
+>
+> **AUD-13 Tauri — RESUELTO**: `cargo check` compila limpio (`orion_desktop v7.0.0`); quitados 2
+> imports muertos en `src-tauri/src/lib.rs`. El "no compila" ya no existe.
+> **AUD-12 Android — RESUELTO**: nombre unificado `ai.rastro.app` (appId/namespace/applicationId/
+> MainActivity/manifest OK, sin restos cateye). Causas encontradas: (1) faltaba
+> `node_modules/@capacitor/android` → `npm install` (8.4.2); (2) el build del frontend fallaba por
+> `import axios` sin dependencia (`PersonalizationWizard.vue`) → instalado; (3) toolchain: SOLO
+> JREs en /usr/lib/jvm, sin javac → Temurin JDK 21 local en `/home/adrie/jdk21` y
+> `android/gradle.properties: org.gradle.java.home=/home/adrie/jdk21`; (4) bundle embebido
+> obsoleto → `cp -r frontend/dist android/app/src/main/assets/public`. `./gradlew assembleDebug`
+> BUILD SUCCESSFUL → `app-debug.apk` 5.1MB, package `ai.rastro.app`, launchable MainActivity.
+> Importante: npm install e instalación del JDK son de entorno (no se commitean salvo gradle.properties).
+
 ## Sesión 2026-08-10 — GITHUB SCREENSHOTS light/dark + FIX ThemeEngine (temas 404)
 
 > **QUÉ SE HIZO:** (1) Pipeline de capturas `scripts/capture_screenshots.mjs` (Playwright headless,
