@@ -35,11 +35,11 @@ def capture_screenshots():
 
         for route, name in routes:
             try:
-                url = f"http://localhost:5173/{route}"
+                url = f"http://localhost:5174/{route}"
                 print(f"Capturing: {name} ({url})")
 
                 page.goto(url, wait_until="networkidle")
-                time.sleep(3)  # Wait for animations to complete
+                time.sleep(5)  # Wait for animations and data to load
 
                 filename = f"{route}.png"
                 filepath = screenshots_dir / filename
