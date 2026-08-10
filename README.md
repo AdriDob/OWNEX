@@ -154,8 +154,6 @@ flowchart TB
     CORE --> CYCLES
     CYCLES --> ENGINES
     ENGINES --> AI
-    CYCLES --> R
-    CORE --> R
 ```
 
 **Stack (real, no smoke):**
@@ -168,7 +166,7 @@ flowchart TB
 | Mobile | Capacitor (Android) + Expo/React Native (OMEGA) |
 | AI | Local-first failover chain: Ollama → FCC proxy → OpenRouter |
 | DB | SQLite (dev) / PostgreSQL (production) |
-| Tests | 1,400+ pytest · Ruff · Biome · Mypy strict |
+| Tests | 3,179+ pytest · Ruff · Biome · Mypy strict |
 
 ---
 
@@ -191,8 +189,8 @@ flowchart TB
 
 ```bash
 # 1. Clone
-git clone https://github.com/AdriDob/rastrohunteralpha.git
-cd rastrohunteralpha
+git clone https://github.com/AdriDob/OWNEX.git
+cd OWNEX
 
 # 2. Environment
 python -m venv .venv
@@ -278,10 +276,10 @@ Stack: pytest + pytest-cov · Ruff · Biome · Mypy (strict on core)
 | ✅ **DONE** | Direct Work Engine + Work Bank + Daily Companion + Evolution |
 | ✅ **DONE** | 7 Work Cycles, 28 scheduled jobs, Mission Control, Executive Dashboard |
 | ✅ **DONE** | Desktop (Tauri v2 + PyInstaller sidecar), mobile companion, MERLIN |
+| ✅ **DONE** | OAR AI Runtime — engine + tests + API mounted (`/oar/*`, `/career/*`) |
 | 🟡 **IN PROGRESS** | OMEGA mobile (Expo/React Native) — functional skeleton |
-| 🟡 **IN PROGRESS** | Smartwatch (Wear OS) — architecture/protocol defined; no native writeback version yet |
-| 🟡 **EXPERIMENTAL** | `cores/ai/runtime` (OAR) — engine + tests, mounted routing not yet in API at runtime |
-| 🔲 **PLANNED** | Wear OS native sync · OAR API exposure · more discovery adapters (Algora, OpenCollective, Superteam) |
+| 🔲 **PLANNED** | OAR smart-routing wired into API decisions · more discovery adapters (Algora, OpenCollective, Superteam) |
+| ❌ **NOT INCLUDED** | Wear OS native — evaluated and discarded (AUD-14, negative ROI) |
 
 ---
 
