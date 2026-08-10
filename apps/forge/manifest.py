@@ -9,15 +9,14 @@ from core.scheduler.jobs import get_forge_jobs
 
 # Adapter provider strings for the adapter registry
 FORGE_ADAPTERS = [
-    "core.opportunity.adapters.forge.opencollective:OpenCollectiveAdapter",
-    "core.opportunity.adapters.forge.opencollective_projects:OpenCollectiveProjectsAdapter",
-    "core.opportunity.adapters.forge.algora:AlgoraAdapter",
-    "core.opportunity.adapters.forge.superteam:SuperteamAdapter",
-    "core.opportunity.adapters.forge.github_sponsors:GitHubSponsorsAdapter",
-    "core.opportunity.adapters.forge.freelancer:FreelancerAdapter",
-    "core.opportunity.adapters.forge.issuehunt:IssueHuntAdapter",
-    "core.opportunity.adapters.forge.issuehand:IssueHandAdapter",
-    "core.opportunity.adapters.forge.opire:OpireAdapter",
+    "core.opportunity.adapters.forge.opencollective:fetch_opportunities",
+    "core.opportunity.adapters.forge.opencollective_projects:fetch_opportunities",
+    "core.opportunity.adapters.forge.algora:fetch_opportunities",
+    "core.opportunity.adapters.forge.superteam:fetch_opportunities",
+    "core.opportunity.adapters.forge.github_sponsors:fetch_opportunities",
+    "core.opportunity.adapters.forge.freelancer:fetch_opportunities",
+    "core.opportunity.adapters.forge.issuehunt:fetch_opportunities",
+    "core.opportunity.adapters.forge.opire:fetch_opportunities",
 ]
 
 

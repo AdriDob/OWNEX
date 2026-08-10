@@ -9,13 +9,13 @@ from core.scheduler.jobs import get_pulse_jobs
 
 # Adapter provider strings for the adapter registry
 PULSE_ADAPTERS = [
-    "core.opportunity.adapters.pulse.outlier:OutlierAdapter",
-    "core.opportunity.adapters.pulse.mindrift:MindriftAdapter",
-    "core.opportunity.adapters.pulse.dataannotation:DataAnnotationAdapter",
-    "core.opportunity.adapters.pulse.remotasks:RemotasksAdapter",
-    "core.opportunity.adapters.pulse.freelancer_micro:FreelancerMicrotaskAdapter",
-    "core.opportunity.adapters.pulse.linkedin_easyapply:LinkedInEasyApplyAdapter",
-    "core.opportunity.adapters.pulse.opyre_microtask:OpyreMicrotaskAdapter",
+    "core.opportunity.adapters.pulse:OutlierAdapter",
+    "core.opportunity.adapters.pulse:MindriftAdapter",
+    "core.opportunity.adapters.pulse:DataAnnotationAdapter",
+    "core.opportunity.adapters.pulse:RemotasksAdapter",
+    "core.opportunity.adapters.pulse:FreelancerMicrotaskAdapter",
+    "core.opportunity.adapters.pulse:LinkedInEasyApplyAdapter",
+    "core.opportunity.adapters.pulse:OpyreMicrotaskAdapter",
 ]
 
 
