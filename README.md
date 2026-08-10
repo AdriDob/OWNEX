@@ -1,44 +1,44 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/branding/logo/ownex-lockup-white.svg"/>
-    <img src="docs/assets/branding/logo/ownex-lockup-black.svg" alt="OWNEX" width="360"/>
+    <img src="docs/assets/branding/logo/ownex-lockup-black.svg" alt="OWNEX" width="400"/>
   </picture>
 </p>
 
 <p align="center">
-  <strong>Personal Autonomous Work Operating System</strong>
+  <strong>Autonomous Work Operating System</strong>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-7.0.0-1E40FF?style=flat-square"/>
+  <img src="https://img.shields.io/badge/version-7.0.0-2D7FF9?style=flat-square"/>
   <img src="https://img.shields.io/badge/python-3.11+-white?style=flat-square&logo=python&logoColor=black"/>
   <img src="https://img.shields.io/badge/fastapi-009688?style=flat-square&logo=fastapi&logoColor=white"/>
   <img src="https://img.shields.io/badge/vue-3.5-4FC08D?style=flat-square&logo=vue.js&logoColor=white"/>
   <img src="https://img.shields.io/badge/tests-3179%2B-00C853?style=flat-square"/>
-  <img src="https://img.shields.io/badge/license-Proprietary-1E40FF?style=flat-square"/>
+  <img src="https://img.shields.io/badge/license-Proprietary-2D7FF9?style=flat-square"/>
 </p>
 
 ---
 
 <p align="center">
-  <img src="docs/assets/branding/banners/ownex-hero-banner.png" alt="OWNEX — Personal Autonomous Work OS" width="100%"/>
+  <img src="docs/assets/branding/banners/ownex-hero-banner.png" alt="OWNEX — Autonomous Work Operating System" width="100%"/>
 </p>
 
 ---
 
-**[What is OWNEX](#what-is-ownex) · [Capabilities](#capabilities) · [Architecture](#architecture) · [Product Walkthrough](#product-walkthrough) · [Quick Start](#quick-start) · [Roadmap](#roadmap)**
+**[Overview](#overview) · [Product](#product) · [Architecture](#architecture) · [Quick Start](#quick-start) · [Roadmap](#roadmap) · [Security](#security)**
 
 ---
 
-## What is OWNEX
+## Overview
 
-**OWNEX is not a tool. OWNEX is an operating system for work.**
+OWNEX is an autonomous work operating system that continuously discovers, understands, evaluates, organizes and prepares digital work opportunities while coordinating tools, agents, models and information.
 
-A single platform that discovers remote opportunities, prepares them end-to-end, executes technical work, learns from real outcomes, and evolves its own operation.
+**The concept:** OWNEX is not merely an AI chatbot, dashboard, or collection of scripts. It is an intelligent operating system that navigates the universe of work opportunities, orchestrates multiple AI providers, and executes complex workflows with minimal human intervention.
 
-Every opportunity is scored against a **zero-barrier spectrum** (0–100): how far is it from *finding* to *getting paid*, with no interview, no portfolio gate, no unpaid trial. The engine rank-orders thousands of candidates and surfaces the ones most likely to become money this week.
+**The approach:** Every opportunity is scored against a **zero-barrier spectrum** (0–100): how far is it from *finding* to *getting paid*, with no interview, no portfolio gate, no unpaid trial. The engine rank-orders thousands of candidates and surfaces the ones most likely to become money this week.
 
-**The human sits at the decision gate. The system does everything before and after.**
+**The human role:** The human sits at the **decision gate**. The system does everything before and after.
 
 <p align="center">
   <sub>The Revenue Rule: no feature enters the roadmap unless it increases vulnerability detection, evidence quality, acceptance probability, or system learning. No exceptions.</sub>
@@ -46,19 +46,42 @@ Every opportunity is scored against a **zero-barrier spectrum** (0–100): how f
 
 ---
 
-## Capabilities
+## Product
 
-| Capability | What it does | Where |
-|---|---|---|
-| **Security Cycle** | Full bug-bounty pipeline: discover → recon → hypothesis → validate → evidence → report → auto-submit | `core/cycles/stages/` |
-| **Direct Work Engine** | Zero-barrier opportunity discovery, 18-factor scoring, EV-based recommendation, work bank | `cores/direct_work_engine/` |
-| **Work Bank** | Autonomous production of ready-to-deliver jobs (target: 100/day → 1000/month) with honest access requirements | `cores/direct_work_engine/workbank.py` |
-| **Daily Companion** | One call consolidating system health, personal state, market, focus, and projection | `cores/direct_work_engine/daily_companion.py` |
-| **Mission Control** | Single-pane-of-glass dashboard: opportunities, work bank targets, revenue, execution queue | `frontend/src/pages/MissionControl.vue` |
-| **MERLIN Copilot** | Office-retro assistant with persistent memory, intent analysis, and live voice (Web Speech) | `cores/merlin/` |
-| **7 Work Cycles** | Security, Forge, Pulse, Vault, Atlas, QA, Direct Work — 28 cron-aware scheduled jobs | `core/scheduler/jobs.py` |
-| **Evolution layer** | Skill-gap detection, capability proposals, performance analysis, learning from lost opportunities | `cores/direct_work_engine/evolution.py` |
-| **AI Runtime (OAR)** | Multi-provider router: local Ollama → FCC proxy → OpenRouter, with budget, failover, caching | `cores/ai/runtime/` |
+### Mission Control
+> Central operational surface for monitoring opportunities, agents and active work.
+
+<p align="center">
+  <img src="docs/assets/screenshots/desktop/mission-control.png" alt="Mission Control" width="100%"/>
+</p>
+
+### Intelligence
+> Information processing and opportunity analysis surfaces.
+
+<p align="center">
+  <img src="docs/assets/screenshots/desktop/intelligence.png" alt="Intelligence" width="100%"/>
+</p>
+
+### Targets
+> Target intelligence and opportunity prioritization.
+
+<p align="center">
+  <img src="docs/assets/screenshots/desktop/targets.png" alt="Targets" width="100%"/>
+</p>
+
+### Capital
+> Revenue tracking and financial intelligence dashboard.
+
+<p align="center">
+  <img src="docs/assets/screenshots/desktop/capital.png" alt="Capital" width="100%"/>
+</p>
+
+### MERLIN
+> AI assistant with persistent memory and intent analysis.
+
+<p align="center">
+  <img src="docs/assets/screenshots/desktop/merlin.png" alt="MERLIN" width="100%"/>
+</p>
 
 ---
 
@@ -127,44 +150,6 @@ flowchart TB
 | AI | Local-first failover chain: Ollama → FCC proxy → OpenRouter |
 | DB | SQLite (dev) / PostgreSQL (production) |
 | Tests | 1,400+ pytest · Ruff · Biome · Mypy strict |
-
----
-
-## Product walkthrough
-
-### Mission Control
-<p align="center">
-  <img src="docs/assets/screenshots/desktop/mission-control.png" alt="Mission Control" width="100%"/>
-</p>
-
-### Intelligence
-<p align="center">
-  <img src="docs/assets/screenshots/desktop/intelligence.png" alt="Intelligence" width="100%"/>
-</p>
-
-### Targets
-<p align="center">
-  <img src="docs/assets/screenshots/desktop/targets.png" alt="Targets" width="100%"/>
-</p>
-
-### Capital
-<p align="center">
-  <img src="docs/assets/screenshots/desktop/capital-dashboard.png" alt="Capital" width="100%"/>
-</p>
-
-### MERLIN
-<p align="center">
-  <img src="docs/assets/screenshots/desktop/merlin.png" alt="MERLIN" width="100%"/>
-</p>
-
-> More: `Good Morning`, `Executive Dashboard`, `Operations`, `Agent Center` — see `docs/assets/screenshots/desktop/`
-
-### Mobile
-<p align="center">
-  <img src="docs/assets/screenshots/mobile/mission-control.png" alt="Mission Control (mobile)" width="45%"/>
-</p>
-
-> More mobile shots: generate with `node scripts/capture_mobile.mjs` (Playwright, 390×844) — see `docs/assets/screenshots/mobile/`.
 
 ---
 

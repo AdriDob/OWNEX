@@ -126,7 +126,9 @@ class HackerOneAdapter(OpportunityAdapter):
                         "wildcards": wildcards,
                         "technologies": item.get("technologies", []),
                         "estimated_payout": float(max_payout) if max_payout else 0.0,
-                        "estimated_effort_hours": self._estimate_effort_from_payout(float(max_payout) if max_payout else 0),
+                        "estimated_effort_hours": self._estimate_effort_from_payout(
+                            float(max_payout) if max_payout else 0
+                        ),
                         "created_at": item.get("published_at", item.get("created_at", "")),
                     }
                     results.append(prog)

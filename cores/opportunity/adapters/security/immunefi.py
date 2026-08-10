@@ -86,6 +86,7 @@ class ImmunefiAdapter(OpportunityAdapter):
                 )
                 if match:
                     import json
+
                     data = json.loads(match.group(1))
                     props = data.get("props", {}).get("pageProps", {})
                     projects = props.get("projects", props.get("bounties", []))
@@ -148,16 +149,18 @@ class ImmunefiAdapter(OpportunityAdapter):
                     name = re.sub(r"<[^>]+>", "", title_html).strip()
                     if not name:
                         continue
-                    results.append({
-                        "name": name,
-                        "slug": href.strip("/").split("/")[-1],
-                        "platform": "immunefi",
-                        "has_rewards": True,
-                        "program_url": f"https://immunefi.com{href}",
-                        "technologies": ["web3", "smart-contracts"],
-                        "estimated_payout": 0,
-                        "estimated_effort_hours": 8.0,
-                    })
+                    results.append(
+                        {
+                            "name": name,
+                            "slug": href.strip("/").split("/")[-1],
+                            "platform": "immunefi",
+                            "has_rewards": True,
+                            "program_url": f"https://immunefi.com{href}",
+                            "technologies": ["web3", "smart-contracts"],
+                            "estimated_payout": 0,
+                            "estimated_effort_hours": 8.0,
+                        }
+                    )
             except Exception:
                 pass
 
