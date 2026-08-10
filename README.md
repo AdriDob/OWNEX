@@ -134,52 +134,34 @@ flowchart TB
 
 ### Mission Control
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/desktop/mission-control.png"/>
-    <img src="docs/assets/screenshots/desktop-light/mission-control.png" alt="Mission Control" width="100%"/>
-  </picture>
+  <img src="docs/assets/screenshots/desktop/mission-control.png" alt="Mission Control" width="100%"/>
 </p>
 
 ### Intelligence
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/desktop/intelligence.png"/>
-    <img src="docs/assets/screenshots/desktop-light/intelligence.png" alt="Intelligence" width="100%"/>
-  </picture>
+  <img src="docs/assets/screenshots/desktop/intelligence.png" alt="Intelligence" width="100%"/>
 </p>
 
 ### Targets
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/desktop/targets.png"/>
-    <img src="docs/assets/screenshots/desktop-light/targets.png" alt="Targets" width="100%"/>
-  </picture>
+  <img src="docs/assets/screenshots/desktop/targets.png" alt="Targets" width="100%"/>
 </p>
 
 ### Capital
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/desktop/capital-dashboard.png"/>
-    <img src="docs/assets/screenshots/desktop-light/capital-dashboard.png" alt="Capital" width="100%"/>
-  </picture>
+  <img src="docs/assets/screenshots/desktop/capital-dashboard.png" alt="Capital" width="100%"/>
 </p>
 
 ### MERLIN
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/desktop/merlin.png"/>
-    <img src="docs/assets/screenshots/desktop-light/merlin.png" alt="MERLIN" width="100%"/>
-  </picture>
+  <img src="docs/assets/screenshots/desktop/merlin.png" alt="MERLIN" width="100%"/>
 </p>
 
-> More: `Good Morning`, `Executive Dashboard`, `Operations`, `Agent Center` — see `docs/assets/screenshots/desktop/` and `docs/assets/screenshots/desktop-light/` (auto-switched by system theme).
+> More: `Good Morning`, `Executive Dashboard`, `Operations`, `Agent Center` — see `docs/assets/screenshots/desktop/`
 
 ### Mobile
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/mobile/mission-control.png"/>
-    <img src="docs/assets/screenshots/mobile/mission-control.png" alt="Mission Control (mobile)" width="45%"/>
-  </picture>
+  <img src="docs/assets/screenshots/mobile/mission-control.png" alt="Mission Control (mobile)" width="45%"/>
 </p>
 
 > More mobile shots: generate with `node scripts/capture_mobile.mjs` (Playwright, 390×844) — see `docs/assets/screenshots/mobile/`.
