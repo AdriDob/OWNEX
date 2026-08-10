@@ -1,0 +1,60 @@
+{
+  "id": "tesla",
+  "name": "Tesla",
+  "description": "Pure monochrome with white accent. Minimal, silent, powerful.",
+  "isDefault": true,
+  "palette": {
+    "bg-deep": "#000000",
+    "bg-base": "#050505",
+    "bg-surface": "#0A0A0A",
+    "bg-glass": "rgba(10, 10, 10, 0.75)",
+    "bg-glass-border": "rgba(255, 255, 255, 0.08)",
+    "primary": "#FFFFFF",
+    "primary-foreground": "#000000",
+    "accent": "#FFFFFF",
+    "accent-foreground": "#000000",
+    "gold": "#B45309",
+    "green": "#16A34A",
+    "red": "#E82127",
+    "yellow": "#D97706",
+    "text-primary": "#F5F5F5",
+    "text-secondary": "#8A8A8A",
+    "text-muted": "#6B6B6B",
+    "text-disabled": "#4A4A4A",
+    "border": "#1F1F1F",
+    "border-light": "#2E2E2E",
+    "surface-hover": "#141414"
+  },
+  "platforms": {
+    "hackerone": "#16A34A",
+    "bugcrowd": "#B45309",
+    "intigriti": "#9CA3AF",
+    "synack": "#FFFFFF",
+    "yeswehack": "#DC2626"
+  },
+  "cycles": {
+    "security": "#F5F5F5",
+    "forge": "#9CA3AF",
+    "pulse": "#16A34A",
+    "vault": "#D97706",
+    "atlas": "#D4D4D8",
+    "odyssey": "#E82127"
+  },
+  "motion": {
+    "style": "stiff",
+    "duration": { "fast": 80, "normal": 150, "slow": 250 },
+    "spring": { "damping": 26, "stiffness": 300, "mass": 1 }
+  },
+  "audio": {
+    "profile": "minimal",
+    "volume": 0.5,
+    "enabled": ["success", "error", "warning", "click", "mission_completed"]
+  },
+  "visualization": {
+    "coreColor": "#FFFFFF",
+    "coreGlow": "rgba(255, 255, 255, 0.4)",
+    "orbitColor": "rgba(255, 255, 255, 0.15)",
+    "particleColor": "rgba(255, 255, 255, 0.08)",
+    "trailLength": 20
+  }
+}
