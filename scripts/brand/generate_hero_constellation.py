@@ -1,4 +1,17 @@
-<?xml version="1.0" encoding="UTF-8"?>
+#!/usr/bin/env python3
+"""
+OWNEX Hero Generator with Module Constellation
+Creates a hero banner with OWNEX at center and connected modules as a constellation
+"""
+
+from pathlib import Path
+
+def generate_hero_constellation():
+    """
+    Create hero banner with OWNEX constellation concept
+    Central OWNEX nexus connected to module nodes (Security, Forge, Vault, Atlas, etc.)
+    """
+    svg = """<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 900" width="2400" height="900">
   <defs>
     <!-- Premium gradient for the hero background -->
@@ -169,4 +182,29 @@
   <line x1="200" y1="80" x2="2200" y2="80" stroke="url(#gold-accent)" stroke-width="1" opacity="0.3"/>
   <circle cx="200" cy="80" r="3" fill="#D4AF37" opacity="0.4"/>
   <circle cx="2200" cy="80" r="3" fill="#D4AF37" opacity="0.4"/>
-</svg>
+</svg>"""
+    return svg
+
+
+def main():
+    """Generate hero banner with constellation"""
+    banners_dir = Path("docs/assets/branding/banners")
+    banners_dir.mkdir(parents=True, exist_ok=True)
+
+    hero_svg = generate_hero_constellation()
+    hero_path = banners_dir / "ownex-hero-banner.svg"
+    hero_path.write_text(hero_svg, encoding="utf-8")
+    print(f"Generated hero: {hero_path}")
+
+    # Generate PNG version
+    try:
+        import cairosvg
+        png_path = banners_dir / "ownex-hero-banner.png"
+        cairosvg.svg2png(url=str(hero_path), write_to=str(png_path), output_width=2400, output_height=900)
+        print(f"Generated PNG: {png_path}")
+    except ImportError:
+        print("cairosvg not available, SVG only")
+
+
+if __name__ == "__main__":
+    main()

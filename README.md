@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/branding/logo/ownex-lockup-white.svg"/>
-    <img src="docs/assets/branding/logo/ownex-lockup-black.svg" alt="OWNEX" width="400"/>
+    <img src="docs/assets/branding/logo/ownex-lockup-black.svg" alt="OWNEX" width="500"/>
   </picture>
 </p>
 
@@ -30,7 +30,7 @@
 
 ---
 
-## Overview
+## Overview 🚀
 
 OWNEX is an autonomous work operating system that continuously discovers, understands, evaluates, organizes and prepares digital work opportunities while coordinating tools, agents, models and information.
 
@@ -46,37 +46,37 @@ OWNEX is an autonomous work operating system that continuously discovers, unders
 
 ---
 
-## Product
+## Product 🎯
 
-### Mission Control
+### Mission Control 🎛️
 > Central operational surface for monitoring opportunities, agents and active work.
 
 <p align="center">
   <img src="docs/assets/screenshots/desktop/mission-control.png" alt="Mission Control" width="100%"/>
 </p>
 
-### Intelligence
+### Intelligence 🧠
 > Information processing and opportunity analysis surfaces.
 
 <p align="center">
   <img src="docs/assets/screenshots/desktop/intelligence.png" alt="Intelligence" width="100%"/>
 </p>
 
-### Targets
+### Targets 📍
 > Target intelligence and opportunity prioritization.
 
 <p align="center">
   <img src="docs/assets/screenshots/desktop/targets.png" alt="Targets" width="100%"/>
 </p>
 
-### Capital
+### Capital 💰
 > Revenue tracking and financial intelligence dashboard.
 
 <p align="center">
   <img src="docs/assets/screenshots/desktop/capital.png" alt="Capital" width="100%"/>
 </p>
 
-### MERLIN
+### MERLIN 🤖
 > AI assistant with persistent memory and intent analysis.
 
 <p align="center">
@@ -298,12 +298,9 @@ docs/assets/branding/
 </p>
 
 <p align="center">
-  <sub>Personal Autonomous Work Operating System · v7.0.0 · The Aperture Nexus</sub>
+  <sub>🔮 Personal Autonomous Work Operating System · v7.0.0 · The Aperture Nexus</sub>
 </p>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/branding/logo/ownex-lockup-white.svg"/>
-    <img src="docs/assets/branding/logo/ownex-lockup-black.svg" alt="OWNEX" width="280"/>
-  </picture>
+  <sub>🚀 Security · 🛠️ Forge · 💰 Vault · 🗺️ Atlas · 🧠 Intelligence · ⚙️ Automation</sub>
 </p>
