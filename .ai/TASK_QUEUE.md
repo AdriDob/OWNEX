@@ -194,6 +194,37 @@
 - [x] Android crash on launch (namespace, AUD-12)
 - [x] WearOS real (descartado AUD-14)
 
+### ⭐ OBJETIVO TRANSVERSAL 2026-08-10 — PROFESSIONAL PRESENCE ACCELERATION PLAN
+> Ver `.ai/PROFESSIONAL_PRESENCE_PLAN.md` (SSOT completo del plan). Construir identidad
+> profesional verificable en GitHub + LinkedIn + Fiverr lo más rápido posible, sin fabricar
+> nada. Portfolio de 11 proyectos: OWNEX flagship (~50% atención), Rastro sustancial, resto
+> tools medianos pulidos extraídos de módulos reales (nunca filler).
+
+| Fase | Item | Estado |
+|------|------|--------|
+| P1 | Repo flagship renombrado `rastrohunteralpha` → **OWNEX** | ✅ HECHO (AdriDob/OWNEX) |
+| P1 | `obsidian-vault` pasado a privado (resta credibilidad) | ✅ HECHO |
+| P1 | GitHub profile README (`AdriDob/AdriDob`) con identidad + OWNEX flagship | ✅ HECHO |
+| P1 | Descripción + topics del repo OWNEX profesionalizados | ✅ HECHO |
+| P1 | Portfolio evidence `docs/portfolio/ownnex/` + `docs/portfolio/rastro/` | ✅ HECHO |
+| P1 | Pinned repos (6): OWNEX primero + próximos | ⏳ pendiente (faltan repos) |
+| P2 | Extraer repo **Rastro** (pipeline security standalone) | ⏳ |
+| P2 | Extraer **ReconForge** (cores/recon + tools) | ⏳ |
+| P2 | Extraer **AgentFlow** (workflow/autonomy) | ⏳ |
+| P2 | Extraer **ReportSmith** (reporting/evidence) | ⏳ |
+| P2 | Extraer **LocalAI-Gateway** (OAR ai/runtime) | ⏳ |
+| P3 | Construir **IDOR-Lab** (educativo) | ⏳ |
+| P3 | Extraer **DevScout** (opportunity discovery) | ⏳ |
+| P3 | Extraer **DataFlow** (data automation) | ⏳ |
+| P3 | Extraer **EvidenceVault** (evidence/hash/export) | ⏳ |
+| P3 | Extraer **TaskPilot** (scheduler/task layer) | ⏳ |
+| P1 | LinkedIn: alinear perfil con evidencia (one-liners + featured OWNEX/GitHub) | ⏳ manual |
+| P1 | Fiverr: gigs solo capacidades reales (AI automation, Python, web automation, bug fixing, API, data) | ⏳ manual |
+
+**Regla de extracción**: cada repo debe quedar standalone (deps incluidas), pasar
+BUILD + TESTS + DOC + SCREENSHOT + LICENSE + README + `.gitignore` + sin secretos/paths
+locales antes de publicarse. Quality gate obligatorio (ver plan sección 26-27).
+
 ---
 
 ## ARCHITECTURE BUDGET ENFORCEMENT
