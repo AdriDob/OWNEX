@@ -292,9 +292,13 @@ class SecurityCycle:
             elif stage == "hypothesis":
                 ctx["hypotheses"] = details.get("hypotheses", ctx.get("hypotheses", []))
             elif stage == "validation":
-                ctx["confirmed_findings"] = details.get("confirmed", ctx.get("confirmed_findings", []))
+                ctx["confirmed_findings"] = details.get(
+                    "confirmed_hypotheses", details.get("confirmed", ctx.get("confirmed_findings", []))
+                )
+                ctx["validated"] = details.get("validated", ctx.get("validated", []))
             elif stage == "evidence":
                 ctx["evidence_packages"] = details.get("evidence_packages", [])
+                ctx["bundles"] = details.get("bundles", ctx.get("evidence_packages", []))
             elif stage == "report":
                 ctx["reports"] = details.get("reports", [])
 

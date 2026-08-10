@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="omega-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2D7FF9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1E40FF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Main orbital ring (omega shape suggestion) -->
+  <path d="M 256 76 C 140 76 76 140 76 256 C 76 372 140 436 256 436 C 372 436 436 372 436 256 C 436 140 372 76 256 76" 
+        fill="none" 
+        stroke="url(#omega-gradient)" 
+        stroke-width="12" 
+        opacity="0.9"/>
+
+  <!-- Inner omega path (suggesting infinity) -->
+  <path d="M 256 156 C 180 156 156 180 156 256 C 156 332 180 356 256 356 C 332 356 356 332 356 256 C 356 180 332 156 256 156" 
+        fill="none" 
+        stroke="url(#omega-gradient)" 
+        stroke-width="8" 
+        opacity="0.7"/>
+
+  <!-- Central nucleus (infinity point) -->
+  <circle cx="256" cy="256" r="30" fill="url(#omega-gradient)"/>
+
+  <!-- Omega arms - extending to cardinal directions -->
+  <path d="M 256 76 L 256 156" stroke="url(#omega-gradient)" stroke-width="8" stroke-linecap="round" opacity="0.8"/>
+  <path d="M 256 356 L 256 436" stroke="url(#omega-gradient)" stroke-width="8" stroke-linecap="round" opacity="0.8"/>
+  <path d="M 76 256 L 156 256" stroke="url(#omega-gradient)" stroke-width="8" stroke-linecap="round" opacity="0.8"/>
+  <path d="M 356 256 L 436 256" stroke="url(#omega-gradient)" stroke-width="8" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- Opportunity nodes at omega terminals -->
+  <circle cx="256" cy="76" r="16" fill="#0B0B0B"/>
+  <circle cx="256" cy="436" r="16" fill="#0B0B0B"/>
+  <circle cx="76" cy="256" r="16" fill="#0B0B0B"/>
+  <circle cx="436" cy="256" r="16" fill="#0B0B0B"/>
+
+  <!-- Diagonal convergence paths (infinity lines) -->
+  <path d="M 156 156 L 256 256" stroke="url(#omega-gradient)" stroke-width="4" stroke-linecap="round" opacity="0.4"/>
+  <path d="M 356 156 L 256 256" stroke="url(#omega-gradient)" stroke-width="4" stroke-linecap="round" opacity="0.4"/>
+  <path d="M 156 356 L 256 256" stroke="url(#omega-gradient)" stroke-width="4" stroke-linecap="round" opacity="0.4"/>
+  <path d="M 356 356 L 256 256" stroke="url(#omega-gradient)" stroke-width="4" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Small omega suggestion at center -->
+  <path d="M 256 226 C 236 226 226 236 226 256 C 226 276 236 286 256 286 C 276 286 286 276 286 256 C 286 236 276 226 256 226" 
+        fill="none" 
+        stroke="#0B0B0B" 
+        stroke-width="3" 
+        opacity="0.5"/>
+</svg>

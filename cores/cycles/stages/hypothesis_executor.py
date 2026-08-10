@@ -76,12 +76,14 @@ class HypothesisExecutor(BaseStageExecutor):
                     "NGINX path traversal or misconfiguration",
                     "medium",
                     ["path_traversal", "misconfiguration"],
+                    "generic",
                 ),
                 (
                     "NGINX Insecure Directives",
                     "Weak NGINX security directives allowing information disclosure",
                     "medium",
                     ["info_disclosure"],
+                    "generic",
                 ),
             ],
             "apache": [
@@ -90,30 +92,69 @@ class HypothesisExecutor(BaseStageExecutor):
                     "Apache server info disclosure via server-status",
                     "medium",
                     ["misconfiguration"],
+                    "generic",
                 ),
-                ("Apache Path Traversal", "Potential path traversal in Apache aliases", "high", ["path_traversal"]),
+                (
+                    "Apache Path Traversal",
+                    "Potential path traversal in Apache aliases",
+                    "high",
+                    ["path_traversal"],
+                    "generic",
+                ),
             ],
             "wordpress": [
-                ("WordPress Plugin Vulnerability", "Outdated or vulnerable WordPress plugin", "high", ["known_vuln"]),
+                (
+                    "WordPress Plugin Vulnerability",
+                    "Outdated or vulnerable WordPress plugin",
+                    "high",
+                    ["known_vuln"],
+                    "generic",
+                ),
                 (
                     "WordPress User Enumeration",
                     "WordPress user enumeration via REST API",
                     "medium",
                     ["info_disclosure"],
+                    "generic",
                 ),
-                ("WordPress Admin Access", "Weak admin credentials or exposed wp-admin", "critical", ["auth_bypass"]),
+                (
+                    "WordPress Admin Access",
+                    "Weak admin credentials or exposed wp-admin",
+                    "critical",
+                    ["auth_bypass"],
+                    "auth_bypass",
+                ),
             ],
             "django": [
-                ("Django Debug Mode", "Django DEBUG=True exposing sensitive config", "critical", ["info_disclosure"]),
-                ("Django Session Hijacking", "Predictable session cookies or CSRF bypass", "high", ["session"]),
+                (
+                    "Django Debug Mode",
+                    "Django DEBUG=True exposing sensitive config",
+                    "critical",
+                    ["info_disclosure"],
+                    "generic",
+                ),
+                (
+                    "Django Session Hijacking",
+                    "Predictable session cookies or CSRF bypass",
+                    "high",
+                    ["session"],
+                    "generic",
+                ),
             ],
             "express": [
-                ("Express Error Handling", "Express stack traces in error responses", "medium", ["info_disclosure"]),
+                (
+                    "Express Error Handling",
+                    "Express stack traces in error responses",
+                    "medium",
+                    ["info_disclosure"],
+                    "generic",
+                ),
                 (
                     "Express CORS Misconfiguration",
                     "Overly permissive CORS on Express endpoints",
                     "high",
                     ["misconfiguration"],
+                    "generic",
                 ),
             ],
             "fastapi": [
@@ -122,8 +163,15 @@ class HypothesisExecutor(BaseStageExecutor):
                     "Exposed /docs or /openapi.json providing attack surface",
                     "medium",
                     ["info_disclosure"],
+                    "generic",
                 ),
-                ("FastAPI Input Validation", "Missing input validation on FastAPI endpoints", "high", ["injection"]),
+                (
+                    "FastAPI Input Validation",
+                    "Missing input validation on FastAPI endpoints",
+                    "high",
+                    ["injection"],
+                    "generic",
+                ),
             ],
             "react": [
                 (
@@ -131,48 +179,94 @@ class HypothesisExecutor(BaseStageExecutor):
                     "API keys or secrets exposed in React bundle",
                     "critical",
                     ["info_disclosure"],
+                    "generic",
                 ),
-                ("React Client-Side Routing", "Client-side access control bypass", "medium", ["auth_bypass"]),
+                (
+                    "React Client-Side Routing",
+                    "Client-side access control bypass",
+                    "medium",
+                    ["auth_bypass"],
+                    "auth_bypass",
+                ),
             ],
             "vue": [
-                ("Vue API Key Exposure", "Sensitive data in Vue store or components", "high", ["info_disclosure"]),
-                ("Vue Insecure Directives", "XSS via v-html or unsafe binding", "high", ["xss"]),
+                (
+                    "Vue API Key Exposure",
+                    "Sensitive data in Vue store or components",
+                    "high",
+                    ["info_disclosure"],
+                    "generic",
+                ),
+                ("Vue Insecure Directives", "XSS via v-html or unsafe binding", "high", ["xss"], "xss"),
             ],
         }
 
         for tech_name in tech_names:
             if tech_name in tech_vulns:
-                for vuln_name, description, severity, tags in tech_vulns[tech_name]:
+                for vuln_name, description, severity, tags, vuln_type in tech_vulns[tech_name]:
                     hypotheses.append(
                         {
+                            "id": f"tech_{tech_name}_{vuln_name.lower().replace(' ', '_')}",
+                            "vulnerability_type": vuln_type,
                             "title": vuln_name,
                             "description": description,
+                            "summary": description,
                             "severity": severity,
                             "tags": tags,
                             "source": f"tech:{tech_name}",
                             "confidence": "medium",
+                            "endpoint": "/",
+                            "method": "GET",
+                            "parameters_of_interest": tags,
                         }
                     )
 
         # ── Service-based hypotheses ──
         service_vulns = {
             "http": [
-                ("Open HTTP Service", "Standard HTTP service may expose internal endpoints", "medium", ["discovery"])
+                (
+                    "Open HTTP Service",
+                    "Standard HTTP service may expose internal endpoints",
+                    "medium",
+                    ["discovery"],
+                    "generic",
+                )
             ],
             "https": [
-                ("HTTPS Service", "Standard HTTPS service, check TLS configuration", "low", ["tls", "discovery"])
+                (
+                    "HTTPS Service",
+                    "Standard HTTPS service, check TLS configuration",
+                    "low",
+                    ["tls", "discovery"],
+                    "generic",
+                )
             ],
-            "ssh": [("SSH Service", "Open SSH port, potential brute-force or weak keys", "medium", ["brute_force"])],
+            "ssh": [
+                (
+                    "SSH Service",
+                    "Open SSH port, potential brute-force or weak keys",
+                    "medium",
+                    ["brute_force"],
+                    "generic",
+                )
+            ],
             "mysql": [
                 (
                     "MySQL Database Exposure",
                     "Open MySQL port, potential SQL injection or weak auth",
                     "critical",
                     ["injection"],
+                    "injection",
                 )
             ],
             "postgresql": [
-                ("PostgreSQL Database Exposure", "Open PostgreSQL port, potential weak auth", "critical", ["injection"])
+                (
+                    "PostgreSQL Database Exposure",
+                    "Open PostgreSQL port, potential weak auth",
+                    "critical",
+                    ["injection"],
+                    "injection",
+                )
             ],
             "redis": [
                 (
@@ -180,65 +274,117 @@ class HypothesisExecutor(BaseStageExecutor):
                     "Open Redis port without auth, potential data exposure",
                     "critical",
                     ["misconfiguration"],
+                    "misconfiguration",
                 )
             ],
             "mongodb": [
-                ("MongoDB Unauthenticated Access", "Open MongoDB port without auth", "critical", ["misconfiguration"])
+                (
+                    "MongoDB Unauthenticated Access",
+                    "Open MongoDB port without auth",
+                    "critical",
+                    ["misconfiguration"],
+                    "misconfiguration",
+                )
             ],
         }
 
         for service_name in service_names:
             if service_name in service_vulns:
-                for vuln_name, description, severity, tags in service_vulns[service_name]:
+                for vuln_name, description, severity, tags, vuln_type in service_vulns[service_name]:
                     hypotheses.append(
                         {
+                            "id": f"service_{service_name}_{vuln_name.lower().replace(' ', '_')}",
+                            "vulnerability_type": vuln_type,
                             "title": vuln_name,
                             "description": description,
+                            "summary": description,
                             "severity": severity,
                             "tags": tags,
                             "source": f"service:{service_name}",
                             "confidence": "medium",
+                            "endpoint": "/",
+                            "method": "GET",
+                            "parameters_of_interest": tags,
                         }
                     )
 
         # ── Generic endpoint hypotheses ──
         generic_hypotheses = [
-            ("Missing Authentication", "Endpoint accessible without authentication", "high", ["auth_bypass", "idora"]),
+            (
+                "Missing Authentication",
+                "Endpoint accessible without authentication",
+                "high",
+                ["auth_bypass", "idora"],
+                "auth_bypass",
+            ),
             (
                 "Insecure Direct Object Reference",
                 "Predictable resource IDs allowing unauthorised access",
                 "high",
                 ["idora", "access_control"],
+                "idor",
             ),
-            ("SQL Injection", "Potential SQL injection in query parameters", "critical", ["injection", "sqli"]),
-            ("Cross-Site Scripting (XSS)", "Reflected or stored XSS in user input", "high", ["xss", "injection"]),
-            ("Server-Side Request Forgery", "Potential SSRF in URL parameters", "critical", ["ssrf", "injection"]),
+            ("SQL Injection", "Potential SQL injection in query parameters", "critical", ["injection", "sqli"], "sqli"),
+            (
+                "Cross-Site Scripting (XSS)",
+                "Reflected or stored XSS in user input",
+                "high",
+                ["xss", "injection"],
+                "xss",
+            ),
+            (
+                "Server-Side Request Forgery",
+                "Potential SSRF in URL parameters",
+                "critical",
+                ["ssrf", "injection"],
+                "ssrf",
+            ),
             (
                 "Rate Limiting Missing",
                 "Endpoint without rate limiting, potential brute-force",
                 "medium",
                 ["misconfiguration"],
+                "generic",
             ),
-            ("Information Disclosure", "Sensitive information in responses or headers", "medium", ["info_disclosure"]),
-            ("Open Redirect", "Unvalidated redirect parameters", "medium", ["redirect"]),
+            (
+                "Information Disclosure",
+                "Sensitive information in responses or headers",
+                "medium",
+                ["info_disclosure"],
+                "generic",
+            ),
+            ("Open Redirect", "Unvalidated redirect parameters", "medium", ["redirect"], "generic"),
             (
                 "Path Traversal",
                 "Path traversal in file or static resource endpoints",
                 "high",
                 ["path_traversal", "injection"],
+                "generic",
             ),
-            ("Mass Assignment", "Unprotected model properties in POST/PUT requests", "high", ["misconfiguration"]),
+            (
+                "Mass Assignment",
+                "Unprotected model properties in POST/PUT requests",
+                "high",
+                ["misconfiguration"],
+                "generic",
+            ),
         ]
 
-        for vuln_name, description, severity, tags in generic_hypotheses:
+        for vuln_name, description, severity, tags, vuln_type in generic_hypotheses:
             hypotheses.append(
                 {
+                    "id": f"generic_{vuln_name.lower().replace(' ', '_')}",
+                    "vulnerability_type": vuln_type,
                     "title": vuln_name,
                     "description": description,
+                    "summary": description,
                     "severity": severity,
                     "tags": tags,
                     "source": "generic",
                     "confidence": "low",
+                    "endpoint": "/",
+                    "method": "GET",
+                    "parameters_of_interest": tags,
                 }
             )
 
