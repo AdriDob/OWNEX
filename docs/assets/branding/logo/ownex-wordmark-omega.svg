@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 80" width="500" height="80">
+  <defs>
+    <linearGradient id="omega-wordmark-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2D7FF9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1E40FF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- O with omega suggestion -->
+  <g transform="translate(40, 40)">
+    <circle cx="0" cy="0" r="24" fill="none" stroke="#FFFFFF" stroke-width="6"/>
+    <circle cx="0" cy="0" r="4" fill="#FFFFFF" opacity="0.6"/>
+    <!-- Small omega in center -->
+    <path d="M 0 -12 C -8 -12 -12 -8 -12 0 C -12 8 -8 12 0 12 C 8 12 12 8 12 0 C 12 -8 8 -12 0 -12" 
+          fill="none" stroke="#FFFFFF" stroke-width="2" opacity="0.5"/>
+  </g>
+
+  <!-- W with standard geometry -->
+  <g transform="translate(104, 40)">
+    <path d="M -24 -20 L -12 20 L 0 -5 L 12 20 L 24 -20" 
+          fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- N with standard geometry -->
+  <g transform="translate(176, 40)">
+    <path d="M -24 -20 L -24 20 L 24 -20 L 24 20" 
+          fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- E with standard geometry -->
+  <g transform="translate(248, 40)">
+    <path d="M -24 -20 L 24 -20 M -24 0 L 16 0 M -24 20 L 24 20" 
+          fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+  </g>
+
+  <!-- X with omega-style convergence -->
+  <g transform="translate(328, 40)">
+    <path d="M -20 -20 L 20 20 M 20 -20 L -20 20" 
+          fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+    <!-- Omega convergence suggestion -->
+    <circle cx="0" cy="0" r="3" fill="#FFFFFF" opacity="0.4"/>
+  </g>
+
+  <!-- OMEGA accent (small omega symbol) -->
+  <g transform="translate(400, 40)">
+    <path d="M 0 -12 C -8 -12 -12 -8 -12 0 C -12 8 -8 12 0 12 C 8 12 12 8 12 0 C 12 -8 8 -12 0 -12" 
+          fill="none" stroke="url(#omega-wordmark-gradient)" stroke-width="3"/>
+  </g>
+</svg>

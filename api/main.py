@@ -1039,7 +1039,7 @@ async def lifespan(app: FastAPI):
             core_bus.publish("scheduler:job_due", job_id=job.job_id, app_id=job.app_id)
             return _run_job(job)
 
-        def _on_scheduler_job_due(event: str, **kwargs: Any) -> None:
+        def _on_scheduler_job_due(**kwargs: Any) -> None:
             logger.info(
                 "[ORION] Job due event dispatched: %s (app=%s)",
                 kwargs.get("job_id"),

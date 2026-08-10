@@ -114,8 +114,10 @@ def register(body: RegisterRequest):
 
         requires_verification = mail_configured()
         verification_token: str | None = None
+        raw_verification_token: str | None = None
         if requires_verification:
-            verification_token = _hash_token(secrets.token_urlsafe(32))
+            raw_verification_token = secrets.token_urlsafe(32)
+            verification_token = _hash_token(raw_verification_token)
 
         user = User(
             username=body.username,
@@ -134,7 +136,7 @@ def register(body: RegisterRequest):
 
         if requires_verification:
             try:
-                send_verification_email(body.email, body.username, verification_token)
+                send_verification_email(body.email, body.username, raw_verification_token)
             except Exception as exc:
                 logger.warning("Verification email failed for %s: %s", body.email, exc)
                 raise HTTPException(503, "Account created but verification email could not be sent") from exc
@@ -166,7 +168,7 @@ def verify_email(token: str = Query(...)):
             raise HTTPException(400, "Invalid or expired verification token")
         if user.email_verified:
             return VerifyResponse(email=user.email, username=user.username)
-        if user.verification_expires and user.verification_expires < datetime.now(UTC):
+        if user.verification_expires and user.verification_expires < datetime.now(UTC).replace(tzinfo=None):
             raise HTTPException(400, "Verification token expired — request a new one")
 
         user.email_verified = True
@@ -192,13 +194,14 @@ def resend_verification(body: ResendRequest):
         if user.email_verified:
             return VerifyResponse(email=user.email, username=user.username)
 
-        new_token = _hash_token(secrets.token_urlsafe(32))
+        new_raw_token = secrets.token_urlsafe(32)
+        new_token = _hash_token(new_raw_token)
         user.verification_token = new_token
         user.verification_expires = datetime.now(UTC) + timedelta(hours=TOKEN_TTL_HOURS)
         session.commit()
 
         try:
-            send_verification_email(user.email, user.username, new_token)
+            send_verification_email(user.email, user.username, new_raw_token)
         except Exception as exc:
             logger.warning("Resend verification email failed for %s: %s", user.email, exc)
             raise HTTPException(503, "Verification email could not be sent") from exc
