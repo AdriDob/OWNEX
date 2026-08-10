@@ -25,6 +25,24 @@ const router = createRouter({
 
 const auth = useAuthStore(pinia)
 
+function ensureDeviceId(): string {
+  const key = 'CATEYE-device-id'
+  try {
+    const existing = localStorage.getItem(key)
+    if (existing) return existing
+    const id = (typeof crypto !== 'undefined' && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`
+    localStorage.setItem(key, id)
+    return id
+  } catch {
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`
+  }
+}
+
+// Establish a device identity up front so autoLogin never needs email/password.
+ensureDeviceId()
+
 router.beforeEach(async (to, from, next) => {
   if (isPublicRoute(to)) {
     return next()
