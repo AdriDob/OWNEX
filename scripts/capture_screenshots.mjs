@@ -111,15 +111,22 @@ const browser = await chromium.launch({
 
 const shots = [
   ['mission-control', '/'],
-  ['good-morning', '/dashboard'],
   ['intelligence', '/intelligence/findings'],
   ['targets', '/targets/list'],
-  ['capital-dashboard', '/capital'],
-  ['executive-dashboard', '/security/executive'],
-  ['operations', '/operations/dashboard'],
+  ['capital', '/capital'],
   ['merlin', '/merlin'],
-  ['agent-center', '/copilot/notifications'],
+  ['agents', '/agents'],
+  ['reports', '/reports'],
+  ['settings', '/operations/settings'],
 ]
+
+// Kill the boot splash overlay immediately: it is a fixed z-200 layer that
+// unmounts on its own after ~16s, but the app renders below it from mount.
+const SPLASH_KILL = `
+const style = document.createElement('style')
+style.textContent = '.splash-bg{display:none!important}'
+document.head.appendChild(style)
+`
 
 async function capture(theme, out) {
   mkdirSync(out, { recursive: true })
@@ -127,15 +134,17 @@ async function capture(theme, out) {
   const page = await ctx.newPage()
   page.on('pageerror', (e) => console.log(`PAGEERROR[${theme}]`, e.message.slice(0, 100)))
   await page.addInitScript((t) => { localStorage.setItem('CATEYE-token', t) }, token)
+  await page.addInitScript(SPLASH_KILL)
 
   for (const [name, path] of shots) {
     try {
       await page.goto(BASE + path, { waitUntil: 'domcontentloaded', timeout: 60000 })
       await page.waitForTimeout(1500)
+      // Wait for the real app (not the splash) to be present
       try {
-        await page.waitForSelector('.splash-bg', { state: 'detached', timeout: 45000 })
+        await page.waitForFunction(() => document.querySelector('#app > div') && !document.querySelector('.splash-bg'), { timeout: 30000 })
       } catch {
-        console.log(`WARN[${theme}/${name}] splash still visible, shooting anyway`)
+        console.log(`WARN[${theme}/${name}] app content not detected, shooting anyway`)
       }
       if (theme === 'light') {
         await page.addStyleTag({ content: LIGHT_CSS })
