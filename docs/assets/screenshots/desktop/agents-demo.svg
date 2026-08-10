@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0B0B0B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#111115;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="card-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A1A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0B0B0B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg-gradient)"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="1920" height="80" fill="#0B0B0B" stroke="#1A1A1A" stroke-width="1"/>
+  <text x="40" y="50" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#FFFFFF">Agents</text>
+  <circle cx="1850" cy="40" r="20" fill="#2D7FF9" opacity="0.3"/>
+  <circle cx="1850" cy="40" r="12" fill="#2D7FF9"/>
+
+  <!-- Agent Cards -->
+  <g transform="translate(40, 120)">
+    <rect width="840" height="200" rx="12" fill="url(#card-gradient)" stroke="#2D7FF9" stroke-width="1" opacity="0.3"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Security Agent</text>
+    <text x="20" y="70" font-family="Inter, sans-serif" font-size="14" fill="#888888">Autonomous vulnerability discovery and validation</text>
+    <rect x="20" y="90" width="120" height="30" rx="4" fill="#00C853"/>
+    <text x="30" y="110" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">RUNNING</text>
+    <text x="20" y="150" font-family="Inter, sans-serif" font-size="12" fill="#888888">Last task: Tesla SQL injection analysis · 5 min ago</text>
+    <text x="20" y="175" font-family="Inter, sans-serif" font-size="12" fill="#00C853">Tasks completed: 234 today</text>
+  </g>
+
+  <g transform="translate(920, 120)">
+    <rect width="840" height="200" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Intelligence Agent</text>
+    <text x="20" y="70" font-family="Inter, sans-serif" font-size="14" fill="#888888">Opportunity analysis and pattern recognition</text>
+    <rect x="20" y="90" width="120" height="30" rx="4" fill="#00C853"/>
+    <text x="30" y="110" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">RUNNING</text>
+    <text x="20" y="150" font-family="Inter, sans-serif" font-size="12" fill="#888888">Last task: Platform ranking update · 2 min ago</text>
+    <text x="20" y="175" font-family="Inter, sans-serif" font-size="12" fill="#00C853">Tasks completed: 156 today</text>
+  </g>
+
+  <g transform="translate(40, 350)">
+    <rect width="840" height="200" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Automation Agent</text>
+    <text x="20" y="70" font-family="Inter, sans-serif" font-size="14" fill="#888888">Workflow execution and task coordination</text>
+    <rect x="20" y="90" width="120" height="30" rx="4" fill="#00C853"/>
+    <text x="30" y="110" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">RUNNING</text>
+    <text x="20" y="150" font-family="Inter, sans-serif" font-size="12" fill="#888888">Last task: Work bank generation · 10 min ago</text>
+    <text x="20" y="175" font-family="Inter, sans-serif" font-size="12" fill="#00C853">Tasks completed: 89 today</text>
+  </g>
+
+  <g transform="translate(920, 350)">
+    <rect width="840" height="200" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">MERLIN Agent</text>
+    <text x="20" y="70" font-family="Inter, sans-serif" font-size="14" fill="#888888">Natural language interface and decision support</text>
+    <rect x="20" y="90" width="120" height="30" rx="4" fill="#00C853"/>
+    <text x="30" y="110" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">RUNNING</text>
+    <text x="20" y="150" font-family="Inter, sans-serif" font-size="12" fill="#888888">Last task: Opportunity query · 1 min ago</text>
+    <text x="20" y="175" font-family="Inter, sans-serif" font-size="12" fill="#00C853">Tasks completed: 67 today</text>
+  </g>
+
+  <g transform="translate(40, 580)">
+    <rect width="840" height="200" rx="12" fill="url(#card-gradient)" stroke="#FFAB00" stroke-width="1" opacity="0.3"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Reporting Agent</text>
+    <text x="20" y="70" font-family="Inter, sans-serif" font-size="14" fill="#888888">Report generation and submission coordination</text>
+    <rect x="20" y="90" width="120" height="30" rx="4" fill="#FFAB00"/>
+    <text x="30" y="110" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">PAUSED</text>
+    <text x="20" y="150" font-family="Inter, sans-serif" font-size="12" fill="#888888">Last task: Report formatting · 1 hour ago</text>
+    <text x="20" y="175" font-family="Inter, sans-serif" font-size="12" fill="#FFAB00">Tasks completed: 45 today</text>
+  </g>
+
+  <g transform="translate(920, 580)">
+    <rect width="840" height="200" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+    <text x="20" y="40" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Evolution Agent</text>
+    <text x="20" y="70" font-family="Inter, sans-serif" font-size="14" fill="#888888">Performance analysis and capability proposals</text>
+    <rect x="20" y="90" width="120" height="30" rx="4" fill="#00C853"/>
+    <text x="30" y="110" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">RUNNING</text>
+    <text x="20" y="150" font-family="Inter, sans-serif" font-size="12" fill="#888888">Last task: Skill gap analysis · 15 min ago</text>
+    <text x="20" y="175" font-family="Inter, sans-serif" font-size="12" fill="#00C853">Tasks completed: 23 today</text>
+  </g>
+
+  <!-- Stats Panel -->
+  <rect x="40" y="810" width="1840" height="230" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
+  <text x="60" y="850" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Agent Performance</text>
+
+  <g transform="translate(60, 880)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Total Tasks Today</text>
+    <text x="0" y="30" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#2D7FF9">614</text>
+  </g>
+
+  <g transform="translate(300, 880)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Success Rate</text>
+    <text x="0" y="30" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#00C853">94%</text>
+  </g>
+
+  <g transform="translate(540, 880)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Avg Task Time</text>
+    <text x="0" y="30" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#2D7FF9">2.3m</text>
+  </g>
+
+  <g transform="translate(780, 880)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">CPU Usage</text>
+    <text x="0" y="30" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#00C853">23%</text>
+  </g>
+
+  <g transform="translate(1020, 880)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Memory Usage</text>
+    <text x="0" y="30" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#00C853">1.2GB</text>
+  </g>
+</svg>

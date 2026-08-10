@@ -16,12 +16,22 @@ def main():
     """Start the OWNEX API server as a subprocess."""
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.abspath(os.path.join(script_dir, "..", ".."))
+    if not os.path.exists(os.path.join(project_root, "api", "main.py")):
+        project_root = os.getcwd()
 
     venv_python = os.path.join(project_root, ".venv", "Scripts" if sys.platform == "win32" else "bin", "python")
     api_entry = os.path.join(project_root, "api", "main.py")
 
     if not os.path.exists(api_entry):
         api_entry = os.path.join(project_root, "_internal", "api", "main.py")
+
+    if not os.path.exists(api_entry):
+        print(
+            f"[orion-backend] api/main.py not found under {project_root} — "
+            "backend must run manually (uvicorn api.main:app on :8000)"
+        )
+        sys.stdout.flush()
+        return 1
 
     python_exe = venv_python if os.path.exists(venv_python) else sys.executable
 

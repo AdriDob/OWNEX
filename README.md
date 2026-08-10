@@ -43,35 +43,56 @@ OWNEX is an autonomous work operating system that continuously discovers, unders
 > Central operational surface for monitoring opportunities, agents and active work.
 
 <p align="center">
-  <img src="docs/assets/screenshots/desktop/mission-control.png" alt="Mission Control" width="100%"/>
+  <img src="docs/assets/screenshots/desktop/mission-control-demo.png" alt="Mission Control" width="100%"/>
 </p>
 
 ### Intelligence 🧠
 > Information processing and opportunity analysis surfaces.
 
 <p align="center">
-  <img src="docs/assets/screenshots/desktop/intelligence.png" alt="Intelligence" width="100%"/>
+  <img src="docs/assets/screenshots/desktop/intelligence-demo.png" alt="Intelligence" width="100%"/>
 </p>
 
 ### Targets 📍
 > Target intelligence and opportunity prioritization.
 
 <p align="center">
-  <img src="docs/assets/screenshots/desktop/targets.png" alt="Targets" width="100%"/>
+  <img src="docs/assets/screenshots/desktop/targets-demo.png" alt="Targets" width="100%"/>
 </p>
 
 ### Capital 💰
 > Revenue tracking and financial intelligence dashboard.
 
 <p align="center">
-  <img src="docs/assets/screenshots/desktop/capital.png" alt="Capital" width="100%"/>
+  <img src="docs/assets/screenshots/desktop/capital-demo.png" alt="Capital" width="100%"/>
 </p>
 
 ### MERLIN 🤖
 > AI assistant with persistent memory and intent analysis.
 
 <p align="center">
-  <img src="docs/assets/screenshots/desktop/merlin.png" alt="MERLIN" width="100%"/>
+  <img src="docs/assets/screenshots/desktop/merlin-demo.png" alt="MERLIN" width="100%"/>
+</p>
+
+### Agents 🤖
+> Autonomous agents for specialized tasks: Security, Intelligence, Automation, MERLIN, Reporting, Evolution.
+
+<p align="center">
+  <img src="docs/assets/screenshots/desktop/agents-demo.png" alt="Agents" width="100%"/>
+</p>
+
+### Reports 📊
+> Report generation, submission tracking, and bounty management.
+
+<p align="center">
+  <img src="docs/assets/screenshots/desktop/reports-demo.png" alt="Reports" width="100%"/>
+</p>
+
+### Settings ⚙️
+> System configuration, AI providers, platform credentials, and scheduler settings.
+
+<p align="center">
+  <img src="docs/assets/screenshots/desktop/settings-demo.png" alt="Settings" width="100%"/>
 </p>
 
 ---
