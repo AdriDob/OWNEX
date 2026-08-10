@@ -358,6 +358,134 @@ def generate_favicon():
     return svg
 
 
+def generate_lockup_white():
+    """Lockup variant for dark backgrounds (includes wordmark)"""
+    svg = f"""<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 120" width="600" height="120">
+  <defs>
+    <linearGradient id="lockup-white-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E0E0E0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Mark (scaled and positioned) -->
+  <g transform="translate(10, 10)">
+    <circle cx="50" cy="50" r="40"
+            fill="none"
+            stroke="url(#lockup-white-gradient)"
+            stroke-width="6"
+            opacity="0.9"/>
+    <circle cx="50" cy="50" r="26"
+            fill="none"
+            stroke="url(#lockup-white-gradient)"
+            stroke-width="4"
+            opacity="0.7"/>
+    <circle cx="50" cy="50" r="10"
+            fill="url(#lockup-white-gradient)"/>
+    <path d="M 50 10 L 50 40"
+          stroke="url(#lockup-white-gradient)"
+          stroke-width="5"
+          stroke-linecap="round"
+          opacity="0.8"/>
+    <path d="M 50 60 L 50 90"
+          stroke="url(#lockup-white-gradient)"
+          stroke-width="5"
+          stroke-linecap="round"
+          opacity="0.8"/>
+    <path d="M 10 50 L 40 50"
+          stroke="url(#lockup-white-gradient)"
+          stroke-width="5"
+          stroke-linecap="round"
+          opacity="0.8"/>
+    <path d="M 60 50 L 90 50"
+          stroke="url(#lockup-white-gradient)"
+          stroke-width="5"
+          stroke-linecap="round"
+          opacity="0.8"/>
+    <circle cx="50" cy="10" r="8" fill="#FFFFFF"/>
+    <circle cx="50" cy="90" r="8" fill="#FFFFFF"/>
+    <circle cx="10" cy="50" r="8" fill="#FFFFFF"/>
+    <circle cx="90" cy="50" r="8" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="120" y="75"
+        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        font-size="56"
+        font-weight="700"
+        letter-spacing="-1.5"
+        fill="url(#lockup-white-gradient)">
+    OWNEX
+  </text>
+</svg>"""
+    return svg
+
+
+def generate_lockup_black():
+    """Lockup variant for light backgrounds (includes wordmark)"""
+    svg = f"""<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 120" width="600" height="120">
+  <defs>
+    <linearGradient id="lockup-black-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0B0B0B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1A1A1A;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Mark (scaled and positioned) -->
+  <g transform="translate(10, 10)">
+    <circle cx="50" cy="50" r="40"
+            fill="none"
+            stroke="url(#lockup-black-gradient)"
+            stroke-width="6"
+            opacity="0.9"/>
+    <circle cx="50" cy="50" r="26"
+            fill="none"
+            stroke="url(#lockup-black-gradient)"
+            stroke-width="4"
+            opacity="0.7"/>
+    <circle cx="50" cy="50" r="10"
+            fill="url(#lockup-black-gradient)"/>
+    <path d="M 50 10 L 50 40"
+          stroke="url(#lockup-black-gradient)"
+          stroke-width="5"
+          stroke-linecap="round"
+          opacity="0.8"/>
+    <path d="M 50 60 L 50 90"
+          stroke="url(#lockup-black-gradient)"
+          stroke-width="5"
+          stroke-linecap="round"
+          opacity="0.8"/>
+    <path d="M 10 50 L 40 50"
+          stroke="url(#lockup-black-gradient)"
+          stroke-width="5"
+          stroke-linecap="round"
+          opacity="0.8"/>
+    <path d="M 60 50 L 90 50"
+          stroke="url(#lockup-black-gradient)"
+          stroke-width="5"
+          stroke-linecap="round"
+          opacity="0.8"/>
+    <circle cx="50" cy="10" r="8" fill="#0B0B0B"/>
+    <circle cx="50" cy="90" r="8" fill="#0B0B0B"/>
+    <circle cx="10" cy="50" r="8" fill="#0B0B0B"/>
+    <circle cx="90" cy="50" r="8" fill="#0B0B0B"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="120" y="75"
+        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        font-size="56"
+        font-weight="700"
+        letter-spacing="-1.5"
+        fill="url(#lockup-black-gradient)">
+    OWNEX
+  </text>
+</svg>"""
+    return svg
+
+
 def main():
     """Generate all logo assets"""
     brand_dir = Path("docs/assets/branding/logo")
@@ -370,8 +498,8 @@ def main():
         "ownex-mark-black.svg": generate_mark_black(),
         "ownex-wordmark.svg": generate_ownex_wordmark(),
         "ownex-lockup.svg": generate_ownex_lockup(),
-        "ownex-lockup-white.svg": generate_mark_white(),  # Reuse for now
-        "ownex-lockup-black.svg": generate_mark_black(),  # Reuse for now
+        "ownex-lockup-white.svg": generate_lockup_white(),
+        "ownex-lockup-black.svg": generate_lockup_black(),
         "favicon.svg": generate_favicon(),
     }
 
