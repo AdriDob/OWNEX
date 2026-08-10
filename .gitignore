@@ -101,3 +101,6 @@ hummingbot_user/
 **/.auth_secret
 /opportunity.env
 /.config/ownex/opportunity.env
+
+# Captura de screenshots — artefactos temporales
+/.capture_work/
