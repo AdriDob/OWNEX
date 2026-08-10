@@ -1,0 +1,60 @@
+{
+  "id": "event-horizon",
+  "name": "Event Horizon",
+  "description": "Deep navy gravitational core. Soft cyan energy. Subtle white particles. Calm intelligent singularity.",
+  "palette": {
+    "bg-deep": "#03050A",
+    "bg-base": "#070A12",
+    "bg-surface": "#0B0F1A",
+    "bg-glass": "rgba(7, 10, 18, 0.8)",
+    "bg-glass-border": "rgba(0, 213, 255, 0.12)",
+    "primary": "#E8F4FD",
+    "primary-foreground": "#03050A",
+    "accent": "#00D5FF",
+    "accent-foreground": "#03050A",
+    "gold": "#FFB800",
+    "green": "#00E39A",
+    "red": "#FF4466",
+    "yellow": "#FFB800",
+    "text-primary": "#F0F8FF",
+    "text-secondary": "#8BA4B8",
+    "text-muted": "#5A6A7A",
+    "text-disabled": "#3A4A5A",
+    "border": "#142030",
+    "border-light": "#1E3048",
+    "surface-hover": "#0D1420"
+  },
+  "platforms": {
+    "hackerone": "#00E39A",
+    "bugcrowd": "#FFB800",
+    "intigriti": "#8B7DFF",
+    "synack": "#E8F4FD",
+    "yeswehack": "#FF4466"
+  },
+  "cycles": {
+    "security": "#E8F4FD",
+    "forge": "#8BA4B8",
+    "pulse": "#00E39A",
+    "vault": "#FFB800",
+    "atlas": "#D4D8DD",
+    "odyssey": "#FF4466"
+  },
+  "motion": {
+    "style": "gravitational",
+    "duration": { "fast": 120, "normal": 250, "slow": 400 },
+    "spring": { "damping": 18, "stiffness": 120, "mass": 1.2 }
+  },
+  "audio": {
+    "profile": "ambient",
+    "volume": 0.6,
+    "enabled": ["startup", "shutdown", "success", "error", "agent_thinking", "mission_completed", "new_opportunity", "background_ambience"]
+  },
+  "visualization": {
+    "coreColor": "#00D5FF",
+    "coreGlow": "rgba(0, 213, 255, 0.5)",
+    "orbitColor": "rgba(0, 213, 255, 0.2)",
+    "particleColor": "rgba(232, 244, 253, 0.12)",
+    "trailLength": 40,
+    "gravityCenter": true
+  }
+}
