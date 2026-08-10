@@ -127,6 +127,27 @@
 
 ---
 
+## BACKLOG AUTÓNOMO — OWNEX lo resuelve solo tras instalación (2026-08-10)
+
+> **Decisión del owner**: los items no urgentes NO se trabajan manualmente. OWNEX los
+> toma del TASK_QUEUE al arrancar (protocolo de arranque) y los va cerrando
+> automáticamente en orden de prioridad, con verificación (ruff + pytest) antes de
+> registrar cada fix. Cada item trae su evidencia de qué hay que arreglar.
+
+| # | Deuda | Evidencia verificada | Prioridad OWNEX | Criterio de DONE |
+|---|-------|---------------------|----------------|------------------|
+| SELF-1 | **11 vulnerabilidades de dependencias** (5 high, 6 moderate) | GitHub Dependabot en AdriDob/OWNEX default branch (aviso del push `8b8e8a775`, 2026-08-10) | 1 | `gh`/Dependabot: 0 vulnerabilidades críticas/high pendientes; audit local `npm audit --omit=dev` + `pip-audit` limpios |
+| SELF-2 | **Sin tests para CSRF middleware** | `api/middleware/csrf_middleware.py` existe sin cobertura (KNOWN_DEBT #2) | 2 | `tests/test_csrf_middleware.py` nuevo: double-submit OK, POST sin token → 403, excepciones públicas intactas |
+| SELF-3 | **Sin tests para scheduler adaptativo** | `api/scheduler.py` reescrito sin cobertura (KNOWN_DEBT #3) | 3 | Tests: cooldown por target, priorización RewardLearner, no re-scan < 1h |
+| SELF-4 | **Sin tests para rate limit mejorado** | `api/middleware/rate_limit_middleware.py` (KNOWN_DEBT #4) | 4 | Tests: identidad por token, fallback a IP |
+| SELF-5 | **Contradiction tests diseñados pero no ejecutados** | `cores/validation/challenger.py` genera contradiction_tests; `loop_engine.py` solo los diseña, nunca corre (KNOWN_DEBT #9) | 5 | Ejecutar contradiction tests con info_gain > umbral dentro del loop; FeedbackLearner conectado |
+| SELF-6 | **Test flaky `test_full_scoring_workflow`** | `tests/test_opportunity_engine_comprehensive.py::TestIntegrationScenarios` — mock `side_effect` provisiona 3 items pero el engine hace 4 lookups (KNOWN_DEBT #10); deseleccionado en `make check` | 6 | Fix del test: provisionar el 4º `query(Finding).first()`; re-verificar `make check` sin `--deselect` |
+| SELF-7 | **DuplicateDetector no conectado al DedupTracker** | `cores/analysis/duplicate_detector.py` usa `_history` propio; `cores/dedup.py` existe sin uso (KNOWN_DEBT #6) | 7 | DuplicateDetector comparte estado con dedup unificado |
+| SELF-8 | **Documentación dispersa** | ~16 .md raíz + 4 docs/ (KNOWN_DEBT #8) | 8 | Consolidar a `.ai/` + `docs/`, mantener README/docs/README como hubs |
+
+> Fuente de la deuda: `.ai/KNOWN_DEBT.md` + Dependabot. Cada item SELF-* se elimina de
+> esta tabla al cerrarse y se registra con evidencia en `.ai/COMPLETED_FEATURES.json`.
+
 ## PLAN ORIGINAL (REFERENCIA — muchas fases ya están hechas)
 
 ### FASE 0 — OWNEX Foundation ✅
