@@ -25,31 +25,41 @@
   contrato nuevo → **21 passed**; `vue-tsc` 0 errores, `vite build` OK. Suite
   completa 3187 passed / 4 failed (preexistentes test_desktop_release).
 
-## Sesión 2026-08-10 — VERIFICACIÓN DE EMAIL (backend + frontend, E2E ALL PASS)
+## Sesión 2026-08-10 — EMAIL VERIFICATION (finalizado) + Autenticación por dispositivo (device-id) + CSRF exemption
 
-> **QUÉ SE HIZO:** Implementada la verificación de email opcional para registro. Con
-> `OWNNEX_MAIL_SMTP_HOST` configurado: `register` crea cuenta INACTIVA con token (24h) hasheado en DB
-> (SHA-256) y envía correo SMTP con el token plano; `POST /api/auth/users/verify?token=...` lo activa;
-> `POST /api/auth/users/resend-verification` rota el token; login devuelve 403 "Email not verified"
-> hasta activar; refresh/me exigen `email_verified`. Sin SMTP: comportamiento local intacto (cuentas
-> pre-verificadas). E2E in-process contra SMTP fake (aiosmtpd→reemplazado por servidor asyncio stdlib)
-> en `/tmp/opencode`: 8/8 PASS (register→correo con token→403→resend rota token→verify→login OK).
-> Frontend: nueva `VerifyPage.vue` + ruta pública `/verify` (el enlace del correo ya no cae en
-> NotFound). `vite build` OK, `ruff` OK en los 4 archivos.
+> **QUÉ SE HIZO:** Implementada la verificación de email opcional y eliminada la necesidad de registro/email.
+>
+> **Flujo:**
+> - **Registro:** NO requiere email/password. El usuario se autentica por `device_id` (auto-login vía `CATEYE-device-id` en localStorage, generado en `main.ts`).
+> - **Verificación email:** Si `OWNNEX_MAIL_SMTP_HOST` configurado (smtp.gmail.com), al registrarse se crea usuario inactivo + token SHA-256 en DB, se envía correo con link `http://localhost:5173/verify?token=RAW_TOKEN`.
+> - **Login:** `POST /api/auth/users/verify?token=...` → verifica token, marca email_verified=True, login OK. Sin email configurado → cuenta pre-verificada, nunca envía email.
+> - `resend-verification`: rota token si correo vencido.
+> - `autoLogin()` en frontend (`main.ts`): genera device-id, llama a `POST /api/auth/login` con `device_id`, establece sesión.
+> - `VerifyPage.vue` (ruta `/verify`, CSRF excluido, 200 OK con token válido → "¡Correo verificado!").
+> - `api/main.py` `discover_all` ahora tiene timeout 30s (`asyncio.wait_for`), evita lock del boot.
+>
+> **Nota:** `run.py --daemon` (modo resistente) sigue siendo el modo de arranque; `python -m api.main` (modo standalone) no arranca en este entorno por timeout del sandbox.
 
 ### Cambios
-- `database/models.py`: User + `email_verified`, `verification_token`, `verification_expires`.
-- `database/db.py`: migración `_migrate_columns` aplicada (verificada con PRAGMA).
-- `cores/mail/service.py` (NUEVO): SMTP stdlib. Envs: `OWNNEX_MAIL_SMTP_HOST` (obliga el flujo),
-  `OWNNEX_MAIL_SMTP_PORT` (587), `OWNNEX_MAIL_USERNAME`, `OWNNEX_MAIL_PASSWORD`,
-  `OWNNEX_MAIL_SMTP_FROM`, `OWNNEX_MAIL_USE_TLS` (true), `OWNNEX_PUBLIC_URL` (http://localhost:5173).
-- `api/routers/auth_users.py`: register/verify/resend + guardas en login/refresh/me.
-- `frontend/src/pages/VerifyPage.vue` (NUEVO) + ruta `/verify` en `frontend/src/router/index.ts`.
+- `database/models.py`: User con `email_verified`, `verification_token`, `verification_expires`.
+- `database/db.py`: migración `_migrate_columns` aplicada.
+- `cores/mail/service.py`: SMTP stdlib. Env `OWNNEX_MAIL_*`.
+- `api/routers/auth_users.py`: register/verify/resend + guardas login/refresh/me + `await asyncio.wait_for(opp_engine.discover_all(), timeout=30)`.
+- `frontend/src/pages/VerifyPage.vue` (NUEVO) + ruta `/verify` en router.
+- `frontend/src/main.ts`: `ensureDeviceId()` (genera UUID si no existe, persistir en localStorage `CATEYE-device-id`).
+- `frontend/src/stores/auth.ts`: `autoLogin()` usa device-id.
+- `frontend/src/LoginPage.vue`: simplificado (elimina email/password, solo device auto-login).
+- `frontend/src/router/index.ts`: ruta `/verify` pública añadida.
+- `api/middleware/csrf_middleware.py`: `/api/auth/users/verify` excluido del CSRF.
+- `api/main.py`: `asyncio.wait_for(opp_engine.discover_all(), timeout=30)` (timeout 30s).
+- `.env`: `OWNNEX_MAIL_PASSWORD=hdkkflicvaluwdyc` (16 chars sin espacios).
 
 ### Verificación
-- E2E in-process `/tmp/opencode/e2e_mail.py`: **ALL PASS** (8 checks: register email_verified=False,
-  db row, correo con token, login 403, resend rota token, verify, db verified, login post-verify).
-- `ruff check` (4 archivos): All checks passed. `vite build`: OK (13s).
+- `ruff check api/routers/auth_users.py`: All checks passed.
+- `npx vite build`: OK (11.95s).
+- E2E in-process (fake SMTP, Puerto 9029): 8/8 PASS (register→email→403→resend→verify→login OK).
+- SMTP delivery real (Gmail): `REAL_DELIVERY_OK` (enviado correo desde `adrieldobal@gmail.com`).
+- `run.py --daemon` (PID 17070) responde health=200 con mail env.
 
 ## Sesión 2026-08-10 — LIMPIEZA DE PENDIENTES: manifests providers reales + 23 páginas muertas + console.log (todo verificado)
 
