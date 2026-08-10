@@ -43,7 +43,7 @@
     "biome": "^0.2.2",
     "jsdom": "^29.1.1",
     "playwright": "^1.62.1",
-    "tailwindcss": "^4.1.6",
+    "tailwindcss": "^4.3.3",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",
     "vitest": "^4.1.9",
