@@ -86,7 +86,7 @@
   "extensions.ignoreRecommendations": true,
   "workbench.startupEditor": "none",
   "workbench.tips.enabled": false,
-  "workbench.colorTheme": "Ubuntu Color VSCode Dark Highlight",
+  "workbench.colorTheme": "Abyss",
   "window.titleBarStyle": "custom",
   "files.autoSave": "afterDelay",
   "files.autoSaveDelay": 2000,
