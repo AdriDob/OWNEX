@@ -317,8 +317,8 @@ async def lifespan(app: FastAPI):
         from cores.opportunity import get_engine
 
         opp_engine = get_engine()
-        opp_count = len(await asyncio.to_thread(opp_engine.discover_all))
-        logger.info("Opportunity engine initialized with %d opportunities", opp_count)
+        await opp_engine.discover_all()
+        logger.info("Opportunity engine initialized")
     except Exception as exc:
         logger.warning("Opportunity engine discovery failed (non-fatal): %s", exc)
 
@@ -1039,6 +1039,14 @@ async def lifespan(app: FastAPI):
             core_bus.publish("scheduler:job_due", job_id=job.job_id, app_id=job.app_id)
             return _run_job(job)
 
+        def _on_scheduler_job_due(event: str, **kwargs: Any) -> None:
+            logger.info(
+                "[ORION] Job due event dispatched: %s (app=%s)",
+                kwargs.get("job_id"),
+                kwargs.get("app_id"),
+            )
+
+        core_bus.subscribe("scheduler:job_due", _on_scheduler_job_due)
         orion_scheduler.set_job_handler(_on_job_due)
         for job_def in registry.get_scheduler_jobs():
             jd = (
