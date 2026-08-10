@@ -7,26 +7,39 @@ interface AssistantReply {
   request_text: string
   domain: string
   worth_it: boolean
+  worth_score: number
   response: string
+  reasoning?: string[]
   suggested_action: string
+  created_at?: string
 }
 
-interface VoiceCommandResult {
-  success: boolean
-  command_type: string
-  raw_text: string
-  message: string
-  voice_feedback: string
-  requires_confirmation: boolean
-  error?: string
+interface RecognitionResult {
+  0: { transcript: string }
+}
+interface RecognitionEvent {
+  results: RecognitionResult[] & { length: number }
+}
+interface SpeechRecognitionLike {
+  lang: string
+  interimResults: boolean
+  continuous: boolean
+  onresult: ((e: RecognitionEvent) => void) | null
+  onend: (() => void) | null
+  onerror: (() => void) | null
+  start: () => void
+  stop: () => void
 }
 
 const lastReply = ref<AssistantReply | null>(null)
-const lastCommand = ref<VoiceCommandResult | null>(null)
 const speaking = ref(false)
-const pendingConfirmation = ref(false)
+const listening = ref(false)
+const micSupported = ref(false)
+const lastError = ref('')
 let since = 0
 let timer: ReturnType<typeof setInterval> | null = null
+let recognition: SpeechRecognitionLike | null = null
+let micTranscript = ''
 
 function speak(text: string) {
   try {
@@ -55,12 +68,7 @@ async function poll() {
       if (reply.id > since) {
         since = reply.id
         lastReply.value = reply
-        // Check if this is an executable command
-        if (reply.is_executable && reply.executor_action) {
-          await executeVoiceCommand(reply.request_text)
-        } else {
-          speak(reply.response)
-        }
+        speak(reply.response)
       }
     }
   } catch {
@@ -68,45 +76,65 @@ async function poll() {
   }
 }
 
-async function executeVoiceCommand(text: string, confirmed = false) {
-  try {
-    const result = await api.post<VoiceCommandResult>('/voice/commands/command', {
-      text,
-      confirmed,
-    })
-    lastCommand.value = result
+function getRecognition(): SpeechRecognitionLike | null {
+  const w = window as unknown as Record<string, unknown>
+  const Ctor = (w.SpeechRecognition || w.webkitSpeechRecognition) as
+    | (new () => SpeechRecognitionLike)
+    | undefined
+  if (!Ctor) return null
+  const rec = new Ctor()
+  rec.lang = 'es-ES'
+  rec.interimResults = true
+  rec.continuous = false
+  return rec
+}
 
-    if (result.requires_confirmation) {
-      pendingConfirmation.value = true
-      speak(result.voice_feedback)
-    } else {
-      speak(result.voice_feedback)
-      pendingConfirmation.value = false
-    }
-  } catch (error) {
-    console.error('Voice command execution failed:', error)
-    speak('Error al ejecutar el comando')
+function toggleMic() {
+  if (listening.value) {
+    recognition?.stop()
+    return
   }
+  recognition = getRecognition()
+  if (!recognition) return
+  lastError.value = ''
+  listening.value = true
+  micTranscript = ''
+  recognition.onresult = (e) => {
+    let text = ''
+    for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript
+    micTranscript = text
+  }
+  recognition.onend = () => {
+    listening.value = false
+    const text = micTranscript.trim()
+    if (text) askAssistant(text)
+  }
+  recognition.onerror = () => {
+    listening.value = false
+  }
+  recognition.start()
 }
 
-async function confirmCommand() {
-  if (!lastCommand.value) return
-  await executeVoiceCommand(lastCommand.value.raw_text, true)
-}
-
-async function cancelCommand() {
-  pendingConfirmation.value = false
-  lastCommand.value = null
-  speak('Comando cancelado')
+async function askAssistant(text: string) {
+  try {
+    const reply = await api.post<AssistantReply>('/voice/assistant', { text })
+    lastReply.value = reply
+    speak(reply.response)
+  } catch {
+    lastError.value = 'No pude hablar con OWNEX (¿backend caído?).'
+  }
 }
 
 onMounted(() => {
   timer = setInterval(poll, 2500)
   poll()
+  const w = window as unknown as Record<string, unknown>
+  micSupported.value = Boolean(w.SpeechRecognition || w.webkitSpeechRecognition)
 })
 
 onUnmounted(() => {
   if (timer) clearInterval(timer)
+  recognition?.stop()
   try {
     window.speechSynthesis?.cancel()
   } catch {
@@ -116,26 +144,18 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="voice-listener" :class="{ active: lastReply || lastCommand }">
-    <div class="vl-dot" :class="{ speaking }"></div>
-    <div v-if="pendingConfirmation" class="vl-content vl-confirmation">
-      <span class="vl-domain">CONFIRMACIÓN</span>
-      <span class="vl-text">{{ lastCommand?.voice_feedback }}</span>
-      <div class="vl-actions">
-        <button @click="confirmCommand" class="vl-btn vl-confirm">Confirmar</button>
-        <button @click="cancelCommand" class="vl-btn vl-cancel">Cancelar</button>
-      </div>
-    </div>
-    <div v-else-if="lastCommand" class="vl-content">
-      <span class="vl-domain">{{ lastCommand.command_type }}</span>
-      <span class="vl-text">{{ lastCommand.voice_feedback }}</span>
-      <span v-if="speaking" class="vl-speaking">hablando...</span>
-    </div>
-    <div v-else-if="lastReply" class="vl-content">
+  <div class="voice-listener" :class="{ active: lastReply || speaking || listening }">
+    <div class="vl-dot" :class="{ speaking, listening }"></div>
+    <button v-if="micSupported" class="vl-mic" :class="{ recording: listening }" @click="toggleMic">
+      {{ listening ? '■' : '🎙' }}
+    </button>
+    <div v-if="lastReply" class="vl-content">
       <span class="vl-domain">{{ lastReply.domain }}</span>
-      <span class="vl-text">{{ lastReply.response }}</span>
+      <span class="vl-text">{{ lastReply.response || lastReply.request_text }}</span>
       <span v-if="speaking" class="vl-speaking">hablando...</span>
+      <span v-else-if="listening" class="vl-speaking">escuchando...</span>
     </div>
+    <span v-else-if="lastError" class="vl-text vl-error">{{ lastError }}</span>
     <span v-else class="vl-idle">Voz ALPHA lista</span>
   </div>
 </template>
@@ -171,14 +191,32 @@ onUnmounted(() => {
   background: #00e39a;
   animation: vl-blink 1s ease-in-out infinite;
 }
+.vl-dot.listening {
+  background: #00d5ff;
+  animation: vl-blink 1s ease-in-out infinite;
+}
+.vl-mic {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #0e1015;
+  color: #d9dbdf;
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.vl-mic.recording {
+  border-color: #00d5ff;
+  background: rgba(0, 213, 255, 0.12);
+}
+.vl-mic:hover { border-color: rgba(0, 213, 255, 0.5); }
 .vl-content {
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-}
-.vl-content.vl-confirmation {
-  gap: 8px;
 }
 .vl-domain {
   font-size: 10px;
@@ -186,45 +224,15 @@ onUnmounted(() => {
   letter-spacing: 0.12em;
   color: #00d5ff;
 }
-.vl-domain[style*="CONFIRMACIÓN"] {
-  color: #f59e0b;
-}
 .vl-text {
   color: #d9dbdf;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.vl-error { color: #ff7a1a; }
 .vl-speaking { font-size: 10px; color: #00e39a; }
 .vl-idle { white-space: nowrap; }
-.vl-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-}
-.vl-btn {
-  padding: 4px 12px;
-  border-radius: 6px;
-  border: none;
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.vl-confirm {
-  background: #00e39a;
-  color: #0a0c11;
-}
-.vl-confirm:hover {
-  background: #00c880;
-}
-.vl-cancel {
-  background: #ef4444;
-  color: white;
-}
-.vl-cancel:hover {
-  background: #dc2626;
-}
 
 @keyframes vl-blink {
   0%, 100% { opacity: 0.3; }
