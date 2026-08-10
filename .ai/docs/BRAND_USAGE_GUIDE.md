@@ -78,9 +78,9 @@ assets/
 --ownex-text-tertiary: #5E6272;  /* Tertiary, disabled */
 
 /* Accent */
---ownex-accent: #5E6AD2;        /* Primary action, links, active states */
---ownex-accent-hover: #7B85E0;   /* Hover state */
---ownex-accent-subtle: rgba(94, 106, 210, 0.15); /* Subtle backgrounds */
+--ownex-accent: #1E40FF;        /* Primary action, links, active states */
+--ownex-accent-hover: #3B5BFF;   /* Hover state */
+--ownex-accent-subtle: rgba(30, 64, 255, 0.15); /* Subtle backgrounds */
 
 /* Functional */
 --ownex-success: #00E39A;      /* Success, validation */

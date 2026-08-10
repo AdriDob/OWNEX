@@ -10,12 +10,12 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-7.0.0-e82127?style=flat-square"/>
+  <img src="https://img.shields.io/badge/version-7.0.0-1E40FF?style=flat-square"/>
   <img src="https://img.shields.io/badge/python-3.11+-white?style=flat-square&logo=python&logoColor=black"/>
   <img src="https://img.shields.io/badge/fastapi-009688?style=flat-square&logo=fastapi&logoColor=white"/>
   <img src="https://img.shields.io/badge/vue-3.5-4FC08D?style=flat-square&logo=vue.js&logoColor=white"/>
   <img src="https://img.shields.io/badge/tests-3179%2B-00C853?style=flat-square"/>
-  <img src="https://img.shields.io/badge/license-Proprietary-e82127?style=flat-square"/>
+  <img src="https://img.shields.io/badge/license-Proprietary-1E40FF?style=flat-square"/>
 </p>
 
 ---
@@ -26,13 +26,19 @@
 
 ---
 
+**[What is OWNEX](#what-is-ownex) · [Capabilities](#capabilities) · [Architecture](#architecture) · [Product Walkthrough](#product-walkthrough) · [Quick Start](#quick-start) · [Roadmap](#roadmap)**
+
+---
+
 ## What is OWNEX
 
-**OWNEX is not a tool. OWNEX is an operating system for work** — a single platform that discovers remote opportunities, prepares them end-to-end, executes technical work, learns from real outcomes, and evolves its own operation.
+**OWNEX is not a tool. OWNEX is an operating system for work.**
+
+A single platform that discovers remote opportunities, prepares them end-to-end, executes technical work, learns from real outcomes, and evolves its own operation.
 
 Every opportunity is scored against a **zero-barrier spectrum** (0–100): how far is it from *finding* to *getting paid*, with no interview, no portfolio gate, no unpaid trial. The engine rank-orders thousands of candidates and surfaces the ones most likely to become money this week.
 
-The human sits at the **decision gate**. The system does everything before and after.
+**The human sits at the decision gate. The system does everything before and after.**
 
 <p align="center">
   <sub>The Revenue Rule: no feature enters the roadmap unless it increases vulnerability detection, evidence quality, acceptance probability, or system learning. No exceptions.</sub>
@@ -302,7 +308,7 @@ scripts/brand/regenerate.sh          # logo system + banners (SVG + PNG)
 scripts/brand/regenerate.sh --shots  # + real product screenshots (Playwright)
 ```
 
-Design language: **Tesla dark** — pure black surfaces, white primary accent, deep blue `#1e40ff` as the only saturated accent, no noise, no glow.
+Design language: **Tesla dark** — pure black surfaces, white primary accent, deep blue `#1E40FF` as the only saturated accent, no noise, no glow.
 
 ```
 docs/assets/branding/
