@@ -1,6 +1,7 @@
 use std::process::{Command, Stdio};
 use std::thread;
 use std::time::Duration;
+
 use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
