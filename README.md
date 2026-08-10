@@ -1,8 +1,5 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/branding/logo/ownex-lockup-white.svg"/>
-    <img src="docs/assets/branding/logo/ownex-lockup-black.svg" alt="OWNEX" width="500"/>
-  </picture>
+  <img src="docs/assets/branding/banners/ownex-hero-banner.png" alt="OWNEX — Autonomous Work Operating System" width="100%"/>
 </p>
 
 <p align="center">
@@ -16,12 +13,6 @@
   <img src="https://img.shields.io/badge/vue-3.5-4FC08D?style=flat-square&logo=vue.js&logoColor=white"/>
   <img src="https://img.shields.io/badge/tests-3179%2B-00C853?style=flat-square"/>
   <img src="https://img.shields.io/badge/license-Proprietary-2D7FF9?style=flat-square"/>
-</p>
-
----
-
-<p align="center">
-  <img src="docs/assets/branding/banners/ownex-hero-banner.png" alt="OWNEX — Autonomous Work Operating System" width="100%"/>
 </p>
 
 ---
