@@ -14,7 +14,7 @@ from PIL import Image, ImageDraw
 def _skip_if_external_api_down(result):
     """Skip when failure is an external outage (quota/network), not a code bug."""
     error = result.get("error", "") if isinstance(result, dict) else ""
-    markers = ("quota", "Quota", "billing", "429", "RESOURCE_EXHAUSTED", "connection", "timed out")
+    markers = ("quota", "Quota", "billing", "429", "RESOURCE_EXHAUSTED", "connection", "timed out", "high demand", "try again later")
     if any(m in error for m in markers):
         pytest.skip(f"External API unavailable: {error[:120]}")
 
