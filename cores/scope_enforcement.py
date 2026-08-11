@@ -23,7 +23,6 @@ from typing import Any
 from urllib.parse import urlparse
 
 from cores.events.event_bus import EventBus, get_event_bus
-from cores.events.types import Events
 
 LOG = logging.getLogger("ownex.scope_enforcement")
 
@@ -74,44 +73,59 @@ class ProgramScopePolicy:
     version: int = 1
 
     def is_asset_in_scope(self, asset_type: AssetType, value: str) -> ScopeDecision:
-        """Verifica si un asset está in-scope, out-of-scope, o unknown."""
+        """Verifica si un asset está in-scope, out-of-scope, o unknown.
+
+        Precedencia: exclusiones (out-of-scope) siempre ganan.
+        """
         for rule in self.rules:
-            if rule.asset_type != asset_type:
-                continue
-            if self._matches(rule, value):
-                return ScopeDecision.IN_SCOPE if rule.is_in_scope else ScopeDecision.OUT_OF_SCOPE
+            if rule.asset_type == asset_type and not rule.is_in_scope and self._matches(rule, value):
+                return ScopeDecision.OUT_OF_SCOPE
+        for rule in self.rules:
+            if rule.asset_type == asset_type and rule.is_in_scope and self._matches(rule, value):
+                return ScopeDecision.IN_SCOPE
         return ScopeDecision.UNKNOWN
 
     def is_endpoint_in_scope(self, url: str) -> ScopeDecision:
-        """Verifica si un endpoint (URL completa) está in-scope."""
+        """Verifica si un endpoint (URL completa) está in-scope.
+
+        Precedencia: cualquier exclusión (out-of-scope) gana sobre inclusiones.
+        """
         parsed = urlparse(url)
         host = parsed.netloc.lower()
-        path = parsed.path
 
-        # 1. Check domain/subdomain exact match
+        # Pass 1 — exclusions always win
         for rule in self.rules:
-            if rule.asset_type in (AssetType.DOMAIN, AssetType.SUBDOMAIN):
-                if self._matches(rule, host):
-                    return ScopeDecision.IN_SCOPE if rule.is_in_scope else ScopeDecision.OUT_OF_SCOPE
+            if rule.is_in_scope:
+                continue
+            matched = (
+                (rule.asset_type in (AssetType.DOMAIN, AssetType.SUBDOMAIN) and self._matches(rule, host))
+                or (rule.asset_type == AssetType.WILDCARD and self._matches_wildcard(rule, host))
+                or (rule.asset_type == AssetType.API_ENDPOINT and self._matches_endpoint(rule, url))
+                or (
+                    rule.asset_type in (AssetType.IP, AssetType.CIDR)
+                    and self._is_ip(host)
+                    and self._matches(rule, host)
+                )
+            )
+            if matched:
+                return ScopeDecision.OUT_OF_SCOPE
 
-        # 2. Check wildcard domain
+        # Pass 2 — inclusions
         for rule in self.rules:
-            if rule.asset_type == AssetType.WILDCARD:
-                if self._matches_wildcard(rule, host):
-                    return ScopeDecision.IN_SCOPE if rule.is_in_scope else ScopeDecision.OUT_OF_SCOPE
-
-        # 3. Check specific endpoint path
-        for rule in self.rules:
-            if rule.asset_type == AssetType.API_ENDPOINT:
-                if self._matches_endpoint(rule, url):
-                    return ScopeDecision.IN_SCOPE if rule.is_in_scope else ScopeDecision.OUT_OF_SCOPE
-
-        # 4. Check IP/CIDR
-        if self._is_ip(host):
-            for rule in self.rules:
-                if rule.asset_type in (AssetType.IP, AssetType.CIDR):
-                    if self._matches(rule, host):
-                        return ScopeDecision.IN_SCOPE if rule.is_in_scope else ScopeDecision.OUT_OF_SCOPE
+            if not rule.is_in_scope:
+                continue
+            matched = (
+                (rule.asset_type in (AssetType.DOMAIN, AssetType.SUBDOMAIN) and self._matches(rule, host))
+                or (rule.asset_type == AssetType.WILDCARD and self._matches_wildcard(rule, host))
+                or (rule.asset_type == AssetType.API_ENDPOINT and self._matches_endpoint(rule, url))
+                or (
+                    rule.asset_type in (AssetType.IP, AssetType.CIDR)
+                    and self._is_ip(host)
+                    and self._matches(rule, host)
+                )
+            )
+            if matched:
+                return ScopeDecision.IN_SCOPE
 
         return ScopeDecision.UNKNOWN
 
@@ -202,17 +216,14 @@ class ScopeEnforcer:
             )
 
     def _emit_event(self, program_id: str, target: str, decision: ScopeDecision, check_type: str) -> None:
-        event = Event(
-            type="scope.check",
-            payload={
-                "program_id": program_id,
-                "target": target,
-                "decision": decision.value,
-                "check_type": check_type,
-                "timestamp": datetime.now(UTC).isoformat(),
-            },
+        self._event_bus.publish(
+            "scope.check",
+            program_id=program_id,
+            target=target,
+            decision=decision.value,
+            check_type=check_type,
+            timestamp=datetime.now(UTC).isoformat(),
         )
-        self._event_bus.publish(event)
 
     @staticmethod
     def parse_from_platform(platform: str, raw_data: dict[str, Any]) -> ProgramScopePolicy:
