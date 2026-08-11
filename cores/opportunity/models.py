@@ -318,7 +318,9 @@ class Top5Engine:
         # Build summary
         if selected:
             best = selected[0]
-            summary = f"Top 1: {best.name} (${best.score.expected_value:.0f} EV)" if best.score else f"Top 1: {best.name}"
+            summary = (
+                f"Top 1: {best.name} (${best.score.expected_value:.0f} EV)" if best.score else f"Top 1: {best.name}"
+            )
         else:
             summary = "No opportunities."
 
@@ -358,7 +360,14 @@ class PersonalHistoryTracker:
             total_submissions=total,
             total_accepted=accepted,
             by_platform=acceptance_rate,
-            by_vuln_type={item["vuln_type"]: {"total_payout": item["total_payout"], "count": item["count"], "avg_payout": item["avg_payout"]} for item in roi_by_vuln},
+            by_vuln_type={
+                item["vuln_type"]: {
+                    "total_payout": item["total_payout"],
+                    "count": item["count"],
+                    "avg_payout": item["avg_payout"],
+                }
+                for item in roi_by_vuln
+            },
         )
 
 

@@ -5,6 +5,18 @@ Never modifies pipeline data. All outputs are metadata and recommendations.
 Supports advanced layered scoring, EVH, and identity vault integration.
 """
 
+# Legacy compatibility layer for tests (from core.opportunity.models)
+from core.opportunity.models import (
+    OWNEX_WORK_CYCLE_ORDER,
+    OWNEX_WORK_CYCLES,
+    PersonalHistory,
+    PersonalHistoryTracker,
+    ScoredOpportunity,
+    Top5Engine,
+    Top5Recommendation,
+    UnifiedScore,
+    score_opportunity,
+)
 from cores.opportunity.engine import (
     Opportunity,
     OpportunityCategory,
@@ -47,19 +59,6 @@ from cores.opportunity.providers import (
 )
 from cores.opportunity.recommendations import generate_recommendations
 from cores.opportunity.scoring2 import _score_to_priority, compute_evh, compute_layered_score
-
-# Legacy compatibility layer for tests (from core.opportunity.models)
-from core.opportunity.models import (
-    OWNEX_WORK_CYCLES,
-    OWNEX_WORK_CYCLE_ORDER,
-    PersonalHistory,
-    PersonalHistoryTracker,
-    ScoredOpportunity,
-    Top5Engine,
-    Top5Recommendation,
-    UnifiedScore,
-    score_opportunity,
-)
 
 __all__ = [
     "OpportunityEngine",
