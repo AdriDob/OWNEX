@@ -10,7 +10,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-from core.priority.ev_engine import EVResult, compute_ev
+from cores.priority.ev_engine import EVResult, compute_ev
 
 logger = logging.getLogger("ownex.target_intelligence.prioritizer")
 
@@ -156,7 +156,7 @@ class TargetPrioritizer:
 
     def _load_metrics(self) -> None:
         if self._revenue_metrics is None:
-            from core.revenue.metrics import RevenueMetrics
+            from cores.revenue.metrics import RevenueMetrics
 
             self._revenue_metrics = RevenueMetrics()
 

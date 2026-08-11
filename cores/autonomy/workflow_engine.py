@@ -8,10 +8,10 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from core.opportunity.adapters import fetch_all_opportunities
-from core.opportunity.executors import BaseExecutor
-from core.opportunity.models import PersonalHistory
-from core.opportunity.scorer import score_opportunity
+from cores.opportunity.adapters import fetch_all_opportunities
+from cores.opportunity.executors import BaseExecutor
+from cores.opportunity.models import PersonalHistory
+from cores.opportunity.scorer import score_opportunity
 
 
 @dataclass

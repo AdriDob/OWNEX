@@ -21,7 +21,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-from core.events.event_bus import get_core_event_bus
+from cores.events.event_bus import get_core_event_bus
 from cores.prometheus_metrics import (
     record_approval_gate,
 )

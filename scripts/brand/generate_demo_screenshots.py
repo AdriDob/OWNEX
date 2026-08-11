@@ -1023,7 +1023,7 @@ def main():
     # Convert to PNG
     try:
         import cairosvg
-        for filename in demos.keys():
+        for filename in demos:
             svg_path = demo_dir / filename
             png_path = demo_dir / filename.replace('.svg', '.png')
             try:

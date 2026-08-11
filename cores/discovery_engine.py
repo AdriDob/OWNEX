@@ -16,15 +16,15 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-from core.events.event_bus import get_core_event_bus
-from core.opportunity.adapters import fetch_all_opportunities
-from core.opportunity.models import ScoredOpportunity
-from core.sensors.observation_engine import ObservationEngine
+from cores.events.event_bus import get_core_event_bus
+from cores.opportunity.adapters import fetch_all_opportunities
+from cores.opportunity.models import ScoredOpportunity
 from cores.prometheus_metrics import (
     OPPORTUNITY_EVH,
     OPPORTUNITY_SCORE,
     record_opportunity_discovered,
 )
+from cores.sensors.observation_engine import ObservationEngine
 
 logger = logging.getLogger("ownex.discovery_engine")
 

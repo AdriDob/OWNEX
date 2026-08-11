@@ -249,7 +249,7 @@ def _import_assets(
 def _record_in_kg(kg: Any, program: Program, program_data: dict[str, Any], assets_created: int) -> None:
     """Record program and its assets in the Knowledge Graph."""
     try:
-        from core.knowledge.graph import NodeTypes
+        from cores.knowledge.graph import NodeTypes
 
         kg.add_node(
             node_id=f"program:{program.platform}:{program.id}",

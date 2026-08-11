@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import smtplib
 from email.mime.text import MIMEText
 from typing import Any
@@ -15,12 +16,14 @@ logger = logging.getLogger("cateye.notifications.email")
 class EmailAdapter:
     def __init__(self) -> None:
         cfg = get_config()
-        self._host = cfg.smtp_host
-        self._port = cfg.smtp_port
-        self._user = cfg.smtp_user
-        self._password = cfg.smtp_password
-        self._from = cfg.smtp_from
-        self._to = cfg.notification_email
+        # Prefer OWNEX_SMTP_*/CATEYE_SMTP_* config, fall back to the OWNNEX_MAIL_*
+        # verification SMTP settings so one `.env` configures both.
+        self._host = cfg.smtp_host or os.environ.get("OWNNEX_MAIL_SMTP_HOST", "")
+        self._port = cfg.smtp_port or int(os.environ.get("OWNNEX_MAIL_SMTP_PORT", "587"))
+        self._user = cfg.smtp_user or os.environ.get("OWNNEX_MAIL_USERNAME", "")
+        self._password = cfg.smtp_password or os.environ.get("OWNNEX_MAIL_PASSWORD", "")
+        self._from = cfg.smtp_from or os.environ.get("OWNNEX_MAIL_FROM", "")
+        self._to = cfg.notification_email or os.environ.get("OWNNEX_NOTIFICATION_EMAIL", self._user)
         self._enabled = bool(self._host and self._to)
 
     @property
