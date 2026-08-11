@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from core.credentials.vault import get_platform_credentials
+from cores.credentials.vault import get_platform_credentials
 
 
 def load_credentials(platform: str, config: dict | None = None) -> dict:

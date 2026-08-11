@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from core.events.event_bus import get_core_event_bus
+from cores.events.event_bus import get_core_event_bus
 
 logger = logging.getLogger("ownex.dashboard")
 

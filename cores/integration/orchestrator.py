@@ -20,8 +20,8 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from core.cycles.knowledge_capture import KnowledgeCapture
-from core.opportunity.scoring import FeedbackOutcome, get_engine
+from cores.cycles.knowledge_capture import KnowledgeCapture
+from cores.opportunity.scoring import FeedbackOutcome, get_engine
 
 logger = logging.getLogger("orion.integration_orchestrator")
 

@@ -8,11 +8,11 @@ from cores.memory.memory import MemoryEngine, MemoryPatternLibrary
 from cores.memory.memory_store import MemoryStore, get_memory_store
 from cores.memory.pattern_extractor import PatternExtractor
 from cores.memory.unified_memory import (
+    OperationalMemory,
+    PersonalMemory,
+    StrategicMemory,
     UnifiedMemory,
     get_unified_memory,
-    PersonalMemory,
-    OperationalMemory,
-    StrategicMemory,
 )
 
 __all__ = [

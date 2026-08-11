@@ -3,10 +3,7 @@
 </p>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/branding/logo/ownex-light-mode.svg"/>
-    <img src="docs/assets/branding/logo/ownex-dark-mode.svg" alt="OWNEX" width="400"/>
-  </picture>
+  <img src="docs/assets/github/logo/lockup-horizontal.png" alt="OWNEX" width="400"/>
 </p>
 
 <p align="center">
@@ -85,10 +82,7 @@ The human sits at the **decision gate**. The system does everything before and a
 > Central operational surface for monitoring opportunities, agents and active work.
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/screenshots/desktop-light/mission-control.png"/>
-    <img src="docs/assets/screenshots/desktop/mission-control.png" alt="Mission Control" width="100%"/>
-  </picture>
+  <img src="docs/assets/github/desktop/desktop.png" alt="Mission Control" width="100%"/>
 </p>
 
 **Endpoints:** [`GET /api/mission/status`](.ai/CURRENT_STATE.md), [`GET /api/activity`](docs/diagrams/architecture.mmd), [`POST /api/hunt/start`](.ai/ROADMAP.md)
@@ -97,40 +91,28 @@ The human sits at the **decision gate**. The system does everything before and a
 > Information processing and opportunity analysis surfaces — findings, hypotheses, evidence, confidence.
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/screenshots/desktop-light/intelligence.png"/>
-    <img src="docs/assets/screenshots/desktop/intelligence.png" alt="Intelligence" width="100%"/>
-  </picture>
+  <img src="docs/assets/github/desktop/desktop.png" alt="Intelligence" width="100%"/>
 </p>
 
 ### Targets 📍
 > Target intelligence and opportunity prioritization — scan queues, attack surface, prioritization.
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/screenshots/desktop-light/targets.png"/>
-    <img src="docs/assets/screenshots/desktop/targets.png" alt="Targets" width="100%"/>
-  </picture>
+  <img src="docs/assets/github/desktop/desktop.png" alt="Targets" width="100%"/>
 </p>
 
 ### Capital 💰
 > Revenue tracking and financial intelligence dashboard — USD/hour per platform, payout timelines, ROI.
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/screenshots/desktop-light/capital.png"/>
-    <img src="docs/assets/screenshots/desktop/capital.png" alt="Capital" width="100%"/>
-  </picture>
+  <img src="docs/assets/github/desktop/desktop.png" alt="Capital" width="100%"/>
 </p>
 
 ### MERLIN 🤖
 > AI assistant with persistent memory, intent analysis, Office Retro personality (`calm_operator`, local-first Piper TTS, native mic).
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/screenshots/desktop-light/merlin.png"/>
-    <img src="docs/assets/screenshots/desktop/merlin.png" alt="MERLIN" width="100%"/>
-  </picture>
+  <img src="docs/assets/github/desktop/desktop.png" alt="MERLIN" width="100%"/>
 </p>
 
 **API:** [`POST /api/voice/assistant`](.ai/CURRENT_STATE.md), `POST /direct-work/daily-companion`
@@ -139,30 +121,21 @@ The human sits at the **decision gate**. The system does everything before and a
 > Twelve departmental specialists — Security, Coding, QA, Debug, Documentation, Research, Product, Revenue, Automation, Infrastructure, Evolution, Orchestrator.
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/screenshots/desktop-light/agents.png"/>
-    <img src="docs/assets/screenshots/desktop/agents.png" alt="Agents" width="100%"/>
-  </picture>
+  <img src="docs/assets/github/desktop/desktop.png" alt="Agents" width="100%"/>
 </p>
 
 ### Reports 📊
 > Report generation, submission tracking, finder queues.
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/screenshots/desktop-light/reports.png"/>
-    <img src="docs/assets/screenshots/desktop/reports.png" alt="Reports" width="100%"/>
-  </picture>
+  <img src="docs/assets/github/desktop/desktop.png" alt="Reports" width="100%"/>
 </p>
 
 ### Settings ⚙️
 > System configuration, AI providers, credentials, scheduler, integrations.
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/screenshots/desktop-light/settings.png"/>
-    <img src="docs/assets/screenshots/desktop/settings.png" alt="Settings" width="100%"/>
-  </picture>
+  <img src="docs/assets/github/desktop/desktop.png" alt="Settings" width="100%"/>
 </p>
 
 ---
