@@ -956,9 +956,8 @@ ASSETS = {
     "logo": {
         "lockup-horizontal.png": lambda: lockup(2048, 512),
         "lockup-horizontal-light.png": lambda: lockup(2048, 512, bg=None, text_color="#0D0F14", sub_color="#4B5563"),
-        "lockup-horizontal-neutral.png": lambda: lockup(2048, 512, bg=None, text_color="#8A93A3", sub_color="#8A93A3"),
-        "mark-alpha.png": lambda: (lambda im: im)(mark_img(1024, CYAN, BLUE, bg=None)),
-        "mark-omega.png": lambda: mark_img(1024, EMERALD, CYAN, bg=None),
+        "mark-aperture-alpha.png": lambda: mark_img(1024, CYAN, BLUE, bg=None),
+        "mark-aperture-omega.png": lambda: mark_img(1024, EMERALD, CYAN, bg=None),
         "mark-mono-white.png": lambda: mark_img(1024, WHITE, WHITE, bg=None),
         "mark-mono-black.png": lambda: mark_img(1024, "#0D0F14", "#0D0F14", bg=None),
     },

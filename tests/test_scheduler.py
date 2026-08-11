@@ -205,3 +205,221 @@ class TestScanSchedulerUnit:
         from cores.engine.hypothesis.generators import generate_hypotheses
 
         assert callable(generate_hypotheses)
+
+
+class _FakeTarget:
+    def __init__(self, tid, name=None, domain=None):
+        self.id = tid
+        self.name = name or f"target-{tid}"
+        self.domain = domain
+
+
+class _FakeQuery:
+    def __init__(self, rows):
+        self._rows = rows
+
+    def all(self):
+        return self._rows
+
+    def filter(self, *args, **kwargs):
+        return self
+
+    def first(self):
+        return None
+
+    def count(self):
+        return 0
+
+
+class _FakeSession:
+    def __init__(self, targets):
+        self._targets = targets
+
+    def query(self, model):
+        return _FakeQuery(self._targets)
+
+    def execute(self, *args, **kwargs):
+        return None
+
+    def close(self):
+        return None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+class _FakePrioritizer:
+    def __init__(self, priorities, results=None):
+        self.priorities = priorities
+        self.results = results or []
+        self.last_adjustments = None
+
+    def prioritize(self, targets, target_intel_map, adjustments):
+        self.last_adjustments = adjustments
+        return self.priorities, self.results
+
+
+class _FakeLearner:
+    def __init__(self, adjustments=None):
+        self.adjustments = adjustments or {}
+
+    def analyze(self):
+        return None
+
+    def get_adjustments(self):
+        return self.adjustments
+
+
+class TestScanSchedulerAdaptive:
+    """SELF-3 — adaptive scheduler behavior (KNOWN_DEBT #3).
+
+    Behavioral coverage for `_stage_recon` on top of the existing unit tests:
+      - per-target cooldown actually skips `_recon_target` (no re-scan < 1h)
+      - targets are scanned in RewardLearner-prioritized order (high first)
+      - a scan stamps the target cooldown so the next cycle skips it
+      - RewardLearner adjustments are passed to TargetPrioritizer
+      - stale cooldown entries are purged at the end of a pipeline cycle
+    """
+
+    def _setup(self, monkeypatch, targets, priorities, adjustments=None):
+
+        from api import scheduler as sched_mod
+
+        sched = sched_mod.ScanScheduler(interval_minutes=30)
+        sched._running = True
+        prioritizer = _FakePrioritizer(priorities)
+
+        monkeypatch.setattr(sched_mod, "RewardLearner", lambda: _FakeLearner(adjustments))
+        monkeypatch.setattr(sched_mod, "TargetPrioritizer", lambda: prioritizer)
+        monkeypatch.setattr(sched_mod, "db", type("DB", (), {"SessionLocal": lambda self: _FakeSession(targets)})())
+        monkeypatch.setattr(sched_mod, "get_config", lambda: type("Cfg", (), {"scan_mode": "passive"})())
+
+        order: list[int] = []
+
+        async def recorder(target, mode, session):
+            order.append(target.id)
+
+        sched._recon_target = recorder
+        return sched, prioritizer, order
+
+    def test_recon_skips_target_in_cooldown(self, monkeypatch):
+        import asyncio
+        import time
+
+        targets = [_FakeTarget(1, "hot", "example.com")]
+        sched, _, order = self._setup(monkeypatch, targets, {1: 5.0})
+        sched._target_cooldowns[1] = time.time()  # scanned just now
+
+        loop = asyncio.new_event_loop()
+        try:
+            loop.run_until_complete(sched._stage_recon())
+        finally:
+            loop.close()
+        assert order == [], "target in cooldown must not be re-scanned"
+
+    def test_recon_scans_when_cooldown_expired(self, monkeypatch):
+        import asyncio
+        import time
+
+        from api import scheduler as sched_mod
+
+        targets = [_FakeTarget(1, "hot", "example.com")]
+        sched, _, order = self._setup(monkeypatch, targets, {1: 5.0})
+        sched._target_cooldowns[1] = time.time() - sched_mod.TARGET_COOLDOWN - 10
+
+        loop = asyncio.new_event_loop()
+        try:
+            loop.run_until_complete(sched._stage_recon())
+        finally:
+            loop.close()
+        assert order == [1]
+
+    def test_recon_priority_order_high_first(self, monkeypatch):
+        import asyncio
+
+        targets = [
+            _FakeTarget(1, "low", "low.example.com"),
+            _FakeTarget(2, "high", "high.example.com"),
+        ]
+        sched, _, order = self._setup(monkeypatch, targets, {1: 1.0, 2: 8.0})
+
+        loop = asyncio.new_event_loop()
+        try:
+            loop.run_until_complete(sched._stage_recon())
+        finally:
+            loop.close()
+        assert order == [2, 1], "highest-priority target must be scanned first"
+
+    def test_scan_stamps_cooldown(self, monkeypatch):
+        import asyncio
+        import time
+
+        targets = [_FakeTarget(1, "hot", "example.com")]
+        sched, _, order = self._setup(monkeypatch, targets, {1: 5.0})
+
+        loop = asyncio.new_event_loop()
+        try:
+            loop.run_until_complete(sched._stage_recon())
+        finally:
+            loop.close()
+        assert order == [1]
+        assert time.time() - sched._target_cooldowns[1] < 30
+
+    def test_no_rescan_within_hour(self, monkeypatch):
+        import asyncio
+
+        targets = [_FakeTarget(1, "hot", "example.com")]
+        sched, _, order = self._setup(monkeypatch, targets, {1: 5.0})
+
+        loop = asyncio.new_event_loop()
+        try:
+            loop.run_until_complete(sched._stage_recon())
+            loop.run_until_complete(sched._stage_recon())
+        finally:
+            loop.close()
+        assert order == [1], "second cycle must skip the just-scanned target"
+
+    def test_reward_learner_adjustments_reach_prioritizer(self, monkeypatch):
+        import asyncio
+
+        targets = [_FakeTarget(1, "hot", "example.com")]
+        sched, prioritizer, _ = self._setup(monkeypatch, targets, {1: 5.0}, adjustments={"idor": 1.5})
+
+        loop = asyncio.new_event_loop()
+        try:
+            loop.run_until_complete(sched._stage_recon())
+        finally:
+            loop.close()
+        assert prioritizer.last_adjustments == {"idor": 1.5}
+
+    def test_cycle_purges_stale_cooldowns(self, monkeypatch):
+        import asyncio
+        import time
+
+        from api import scheduler as sched_mod
+
+        targets = [_FakeTarget(1, "a", "a.example.com"), _FakeTarget(2, "b", "b.example.com")]
+        sched, _, _ = self._setup(monkeypatch, targets, {1: 5.0, 2: 4.0})
+
+        now = time.time()
+        for stage in sched_mod.STAGE_INTERVALS:
+            sched._last_run[stage] = now
+        sched._cycle_started = now
+        sched._target_cooldowns[1] = now  # fresh → kept
+        sched._target_cooldowns[2] = now - sched_mod.TARGET_COOLDOWN * 2 - 10  # stale → purged
+
+        async def noop():
+            return None
+
+        monkeypatch.setattr(sched, "_parallel_recovery", noop)
+
+        loop = asyncio.new_event_loop()
+        try:
+            loop.run_until_complete(sched._run_pipeline())
+        finally:
+            loop.close()
+        assert 1 in sched._target_cooldowns
+        assert 2 not in sched._target_cooldowns

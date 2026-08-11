@@ -4,6 +4,12 @@ from typing import Any
 
 from cores.validation.challenger import HypothesisChallenger
 from cores.validation.confidence import ConfidenceScorer
+from cores.validation.contradiction_runner import (
+    INFO_GAIN_ORDER,
+    MIN_INFO_GAIN,
+    ContradictionResult,
+    ContradictionTestRunner,
+)
 from cores.validation.gate import ReportGate, Verdict
 from cores.validation.llm_analyzer import LLMResponseAnalyzer
 from cores.validation.replayer import AuthContext, RequestReplayer, RequestSpec
@@ -23,6 +29,7 @@ class ValidationLoopEngine:
         gate: ReportGate | None = None,
         llm_analyzer: LLMResponseAnalyzer | None = None,
         challenger: HypothesisChallenger | None = None,
+        contradiction_runner: ContradictionTestRunner | None = None,
     ):
         self._replayer = replayer or RequestReplayer()
         self._rules = rules or ValidationRuleSet()
@@ -33,6 +40,7 @@ class ValidationLoopEngine:
         self._gate = gate or ReportGate()
         self._llm = llm_analyzer or LLMResponseAnalyzer()
         self._challenger = challenger or HypothesisChallenger()
+        self._contradiction_runner = contradiction_runner or ContradictionTestRunner(self._replayer)
 
     def evaluate(
         self,
@@ -151,6 +159,24 @@ class ValidationLoopEngine:
 
         evidence_links = [f"attempt_{r.attempt}" for r in comparison_results if r.consistent]
 
+        contradiction_results: list[dict[str, Any]] = []
+        if status == "confirmed":
+            contradiction_results = self._run_contradiction_tests(
+                vulnerability_type=vulnerability_type,
+                request_spec=request_spec,
+                auth_probe=auth_probe,
+                next_best_test=enriched.next_best_test,
+            )
+            if any(r["executed"] and r["supports_vulnerability"] is False for r in contradiction_results):
+                status = "inconclusive"
+                refuted = next(
+                    r for r in contradiction_results if r["executed"] and r["supports_vulnerability"] is False
+                )
+                reason = (
+                    f"Refuted by contradiction test '{refuted['test_type']}': {refuted['reasoning']}; "
+                    f"confidence={confidence.score:.2f} below 0.6 threshold"
+                )
+
         return Verdict(
             hot_path_id=hot_path_id,
             status=status,
@@ -167,7 +193,63 @@ class ValidationLoopEngine:
             next_best_test=enriched.next_best_test.to_dict() if enriched.next_best_test else None,
             vulnerability_type=vulnerability_type,
             uncertainty_level=enriched.uncertainty_level,
+            contradiction_results=contradiction_results,
         )
+
+    def _run_contradiction_tests(
+        self,
+        vulnerability_type: str,
+        request_spec: RequestSpec,
+        auth_probe: AuthContext,
+        next_best_test: Any,
+    ) -> list[dict[str, Any]]:
+        """Execute the highest-info-gain contradiction test (SELF-5).
+
+        Only tests with info_gain >= MIN_INFO_GAIN are executed; outcomes are
+        recorded into the learning loop (FeedbackLearner consumes those patterns).
+        """
+        if not next_best_test:
+            return []
+        if INFO_GAIN_ORDER.get(next_best_test.info_gain, 0) < INFO_GAIN_ORDER[MIN_INFO_GAIN]:
+            return []
+        try:
+            result: ContradictionResult = self._contradiction_runner.run(
+                test=next_best_test,
+                request_spec=request_spec,
+                auth_probe=auth_probe,
+            )
+        except Exception as exc:  # never break the validation pipeline
+            logger.warning("Contradiction test execution failed: %s", exc)
+            return []
+
+        self._record_contradiction(vulnerability_type, request_spec.url, result)
+        logger.info(
+            "[CONTRADICTION] %s: executed=%s supports=%s observed=%d",
+            result.test_type,
+            result.executed,
+            result.supports_vulnerability,
+            result.observed_status,
+        )
+        return [result.to_dict()]
+
+    @staticmethod
+    def _record_contradiction(
+        vulnerability_type: str,
+        endpoint_url: str,
+        result: ContradictionResult,
+    ) -> None:
+        try:
+            from cores.validation.learning import record_contradiction_outcome
+
+            record_contradiction_outcome(
+                vulnerability_type=vulnerability_type,
+                test_type=result.test_type,
+                info_gain=result.info_gain,
+                supports_vulnerability=result.supports_vulnerability,
+                endpoint_path=endpoint_url,
+            )
+        except Exception as exc:
+            logger.warning("Contradiction learning record failed: %s", exc)
 
     def evaluate_all(
         self,

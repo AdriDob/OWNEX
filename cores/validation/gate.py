@@ -59,6 +59,7 @@ class Verdict:
     missing_verifications: list[str] = field(default_factory=list)
     next_best_test: dict[str, Any] | None = None
     uncertainty_level: str = "unknown"
+    contradiction_results: list[dict[str, Any]] = field(default_factory=list)
 
 
 class ReportGate:

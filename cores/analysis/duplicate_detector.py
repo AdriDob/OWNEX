@@ -66,21 +66,27 @@ class DuplicateDetector:
     def __init__(self) -> None:
         self._history: list[dict[str, Any]] = []
 
+    def fingerprint(self, finding: dict[str, Any]) -> str:
+        """Unified fingerprint for a finding (same contract as cores.dedup)."""
+        url = finding.get("url") or finding.get("endpoint") or ""
+        method = finding.get("method", "")
+        return fingerprint_path(url, method) if url else str(finding.get("id", ""))
+
     def load_history(self, findings: list[dict[str, Any]]) -> None:
         from cores.dedup import get_session_tracker
 
         tracker = get_session_tracker()
         deduped: list[dict[str, Any]] = []
         for f in findings:
-            url = f.get("url") or f.get("endpoint") or ""
-            method = f.get("method", "")
-            fp = fingerprint_path(url, method) if url else str(f.get("id", ""))
-            if not tracker.seen(fp):
+            if not tracker.seen(self.fingerprint(f)):
                 deduped.append(f)
         self._history.extend(deduped)
 
     def assess(self, finding: dict[str, Any]) -> DuplicateAssessment:
+        from cores.dedup import get_session_tracker
+
         if not self._history:
+            get_session_tracker().mark(self.fingerprint(finding))
             return DuplicateAssessment(
                 risk=0.0,
                 verdict="unknown",
