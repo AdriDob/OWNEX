@@ -924,27 +924,14 @@ def render_hero(mode: str = "dark") -> Image.Image:
     for gy in range(0, h, 120):
         d.line((0, gy, w, gy), fill="#0A0C11", width=1)
 
-    draw_mark(d, 250, h // 2, 190, color=CYAN, node=BLUE)
-    text(d, (400, h // 2 - 90), "OWNEX", display_font(130, 700))
-    text(d, (400, h // 2 + 40), "AUTONOMOUS WORK OPERATING SYSTEM", font(30), fill=MUTED)
+    # centered brand lockup
+    cx = w // 2
+    draw_mark(d, cx - 470, h // 2 - 150, 300, color=CYAN, node=BLUE)
+    text(d, (cx + 120, h // 2 - 150), "OWNEX", display_font(150, 700), anchor="lm")
+    text(d, (cx + 122, h // 2 + 60), "AUTONOMOUS WORK OPERATING SYSTEM", font(34), fill=MUTED, anchor="lm")
 
-    # right dashboard mock
-    mx, my = 1050, 130
-    card(d, (mx, my, mx + 1250, my + 640), title="Mission Control", subtitle="health 92 · 7 cycles · 28 jobs")
-    sparkline(d, (mx + 16, my + 130, mx + 600, my + 320), [20, 35, 28, 46, 52, 48, 66, 74], color=CYAN)
-    bars(d, (mx + 650, my + 130, mx + 1230, my + 320), [6, 8, 5, 9, 7, 11], color=BLUE)
-    donut(d, mx + 940, my + 480, 90, 0.78, color=EMERALD)
-    for i, (lab, val) in enumerate([("Health", "92"), ("Findings", "128"), ("USD/h", "$34"), ("Ready", "7")]):
-        x = mx + 16 + i * 300
-        kpi(d, x, my + 400, 280, 100, lab, val, "live")
-    for i, msg in enumerate(
-        ["Security · validation stage", "New opportunity · Opire $150", "Payout received · $1,500"]
-    ):
-        y = my + 520 + i * 36
-        status_dot(d, mx + 16, y + 14, EMERALD)
-        text(d, (mx + 36, y), msg, font(16, 500))
-
-    chip(d, 400, h - 120, "100% local · no cloud · no telemetry", EMERALD, 16)
+    chip(d, cx - 210, h - 150, "100% local · no cloud · no telemetry", EMERALD, 18)
+    chip(d, cx + 40, h - 150, "bug bounty · dev bounty · AI work · wealth", CYAN, 18)
     return img
 
 
