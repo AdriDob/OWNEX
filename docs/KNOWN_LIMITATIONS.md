@@ -58,4 +58,4 @@ El umbral (confidence ≥ 0.6) es fijo para todo tipo de vulnerabilidad. Una IDO
 
 ## Próximos pasos (v3.1+)
 
-Ver `ROADMAP.md` — ORION Reasoning Layer.
+Ver `.ai/ROADMAP.md` — ORION Reasoning Layer.
