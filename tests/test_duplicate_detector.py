@@ -68,3 +68,43 @@ class TestLoadHistoryDedup:
         detector = DuplicateDetector()
         detector.load_history([{"id": 1, "url": "https://x.test/a"}])
         assert fake.seen.called
+
+
+class TestAssessSharedState:
+    def test_assess_marks_fingerprint_in_shared_tracker(self) -> None:
+        from cores.dedup import get_session_tracker
+
+        tracker = get_session_tracker()
+        detector = DuplicateDetector()
+        detector.load_history([{"id": 1, "url": "https://api.example.com/users/123"}])
+
+        detector.assess({"id": 2, "url": "https://api.example.com/users/999"})
+        # Same normalized path -> the assessed candidate is now known session-wide.
+        assert tracker.seen(detector.fingerprint({"id": 2, "url": "https://api.example.com/users/999"})) is True
+
+    def test_assess_marks_even_without_history(self) -> None:
+        from cores.dedup import get_session_tracker
+
+        tracker = get_session_tracker()
+        detector = DuplicateDetector()
+        assessment = detector.assess({"id": 1, "url": "https://x.test/a"})
+        assert assessment.verdict == "unknown"
+        assert tracker.size() == 1
+
+    def test_fingerprint_normalizes_ids_across_urls(self) -> None:
+        detector = DuplicateDetector()
+        a = detector.fingerprint({"url": "https://api.example.com/users/123", "method": "GET"})
+        b = detector.fingerprint({"url": "https://api.example.com/users/999", "method": "GET"})
+        assert a == b
+        assert len(a) == 16
+
+    def test_assessed_finding_skipped_by_other_consumer(self) -> None:
+        from cores.dedup import get_session_tracker
+
+        detector = DuplicateDetector()
+        finding = {"id": 2, "url": "https://api.example.com/users/999"}
+        detector.load_history([{"id": 1, "url": "https://api.example.com/users/123"}])
+        detector.assess(finding)
+
+        # A second consumer using the unified tracker sees the finding as done.
+        assert get_session_tracker().seen(detector.fingerprint(finding)) is True

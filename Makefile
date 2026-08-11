@@ -84,11 +84,11 @@ test: ## Run the pytest suite (excludes security + network-flaky suites)
 coverage: ## Run tests with coverage report for backend modules
 	$(PYTEST) --cov=cores --cov=core --cov-report=term-missing:skip-covered $(TEST_ARGS) tests/
 
-# test_full_scoring_workflow is excluded from the fast smoke: it relies on a
-# mock side_effect sequence (3 items) that cannot satisfy the real
-# on_accept/on_reject DB lookups the engine performs. Run it explicitly to
-# debug: `make test-full-scoring`.
-FLAKY_DESELECT := --deselect tests/test_opportunity_engine_comprehensive.py::TestIntegrationScenarios::test_full_scoring_workflow
+# test_full_scoring_workflow was excluded from the fast smoke while its mock
+# side_effect was undersized (KNOWN_DEBT #10). The side_effect now provisions
+# all 8 DB lookups (commit eade07f87) and the test passes deterministically
+# (SELF-6, 2026-08-11) — no longer deselected.
+FLAKY_DESELECT :=
 
 test-fast: ## Run a smoke subset (scoring + opportunity + scheduler-jobs; no network tests)
 	$(PYTEST) --timeout=30 -q $(FLAKY_DESELECT) \
@@ -99,7 +99,7 @@ test-fast: ## Run a smoke subset (scoring + opportunity + scheduler-jobs; no net
 		tests/test_e2e_security_pipeline.py \
 		tests/test_security_cycle.py
 
-test-full-scoring: ## Diagnose the flaky full-scoring workflow test
+test-full-scoring: ## Run the full-scoring workflow test (formerly flaky, now deterministic)
 	$(PYTEST) --timeout=30 -q tests/test_opportunity_engine_comprehensive.py::TestIntegrationScenarios::test_full_scoring_workflow
 
 check: typecheck-fast test-fast ## Pre-flight: scoped typecheck + fast tests
