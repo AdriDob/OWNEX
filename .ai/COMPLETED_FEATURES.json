@@ -2245,6 +2245,36 @@
      ]
     }
    ]
+  },
+  "SELF-1": {
+   "name": "Dependency vulnerabilities (Dependabot 11 alerts)",
+   "completed": "2026-08-11",
+   "features": [
+    {
+     "id": "npm_audit_clean",
+     "name": "npm workspace lockfile clean (nanoid 3.3.18, postcss 8.5.26, undici 7.29.0, brace-expansion fixed)",
+     "status": "production_ready",
+     "files": [
+      "package-lock.json"
+     ],
+     "detail": "Causa raíz: lockfile duplicado y obsoleto frontend/package-lock.json (artefacto pre-workspaces) que Dependabot escaneaba. El lockfile raíz del workspace ya resolvía versiones corregidas (nanoid 3.3.18, postcss 8.5.26, undici 7.29.0, brace-expansion 2.1.4/5.0.9). Eliminado el duplicado -> un solo lockfile (One Source of Truth). npm audit: 0 vulnerabilities. vue-tsc 0 errores, vite build OK."
+    },
+    {
+     "id": "pip_audit_clean",
+     "name": "Python deps clean (pip-audit)",
+     "status": "production_ready",
+     "detail": ".venv/bin/pip-audit: No known vulnerabilities found. Sin alertas Dependabot en Python."
+    },
+    {
+     "id": "rust_glib_accepted_risk",
+     "name": "glib 0.18.5 accepted risk (no upstream fix)",
+     "status": "accepted_risk",
+     "files": [
+      "src-tauri/Cargo.lock"
+     ],
+     "detail": "GHSA-wrw7-89jp-8q8g (glib VariantStrIter unsoundness, medium): glib 0.18.5 llega transitoriamente vía tauri 2.11.5 -> tray-icon 0.24.2 (latest) -> libappindicator -> gtk 0.18. La cadena gtk-rs 0.20 NO está adoptada por el ecosistema tauri aún. Sin fix disponible upstream (cargo update -p tray-icon: 0 locked). No explotable remotamente (bug de unsafe code en app local desktop single-user). Revisar cuando gtk-rs 0.20 se adopte."
+    }
+   ]
   }
  }
 }

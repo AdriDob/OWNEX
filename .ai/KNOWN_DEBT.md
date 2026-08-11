@@ -49,11 +49,11 @@
 - **Problema**: El detector de duplicados fuzzy no comparte estado con el tracker unificado
 - **Impacto**: Bajo. Cada sistema funciona independientemente.
 
-## 7. Dependencias frontend no auditadas
+## 7. ✅ Dependencias frontend no auditadas — RESUELTO
 
 - **Evidencia**: `frontend/package.json` y `node_modules/` extensos
-- **Problema**: No se ha auditado seguridad de dependencias npm
-- **Impacto**: Potencialmente alto.
+- **Solución (SELF-1, 2026-08-11)**: `npm audit` = 0 vulnerabilities (workspace raíz: nanoid 3.3.18, postcss 8.5.26, undici 7.29.0, brace-expansion corregidos). La causa de las alertas Dependabot era el lockfile duplicado `frontend/package-lock.json` (artefacto pre-workspaces) → eliminado; el lockfile raíz del workspace es el único (One Source of Truth).
+- **Pendiente**: 1 alerta Dependabot open sin fix (glib 0.18.5, medium, GHSA-wrw7-89jp-8q8g) — riesgo aceptado y documentado (app desktop local single-user; gtk-rs 0.20 no adoptado aún por el ecosistema tauri).
 
 ## 8. Documentación dispersa
 
