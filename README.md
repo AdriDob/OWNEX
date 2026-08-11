@@ -251,6 +251,109 @@ OWNEX runs as 7 autonomous work cycles, coordinated by the scheduler:
 
 ---
 
+## FAQ ❓
+
+<details>
+<summary><strong>What is OWNEX exactly?</strong></summary>
+
+**OWNEX** is a personal autonomous work operating system — a private platform that discovers income opportunities (bug bounty, dev bounty, AI work, freelance), analyzes them with economic scoring, prepares deliverables autonomously, and tracks results. It is **not a SaaS product**: it runs on your machine and works for you.
+</details>
+
+<details>
+<summary><strong>Is OWNEX open source? Can I contribute?</strong></summary>
+
+No — the code is **proprietary** and private. OWNEX is a personal competitive-advantage asset, not a community project. The repository is public for presentation, but the license is Proprietary and contributions are not accepted.
+</details>
+
+<details>
+<summary><strong>What can it actually do today?</strong></summary>
+
+Verified working features (not roadmap): discovery from **135 curated sources** (HackerOne, Bugcrowd, Intigriti, YesWeHack, Opire, IssueHunt, Freelancer, OpenCollective…), zero-barrier scoring, Work Bank that prepares jobs to 100% ready-to-deliver, EV ranking, Daily Brief/Companion, market evolution engine (OVOS + friction tiers), career/skill gap engine, revenue tracking + projections, security pipeline (recon → hypothesis → validation → evidence → report), scheduler with 28 cron jobs, 7 work cycles, mobile Android companion (APK), desktop (Tauri + PyInstaller), voice assistant, MERLIN chat, CSRF/rate-limit/auth security layers.
+</details>
+
+<details>
+<summary><strong>Does OWNEX submit reports and work by itself?</strong></summary>
+
+No — by design (**Human Control layer**). OWNEX prepares everything: packages, reports, submissions, and negotiation analysis. The human is the final authority for actions that send data out (submissions, deliveries, payouts). Automations run only for internal preparation, discovery and analysis.
+</details>
+
+<details>
+<summary><strong>Do I need to be a bug bounty expert?</strong></summary>
+
+No. The Direct Work Engine scores opportunities by **entry barrier** and prioritizes zero-barrier public tasks; the career engine detects skill gaps and builds a daily training plan; the guided onboarding covers the fundamentals. You can start from zero and progress by category.
+</details>
+
+<details>
+<summary><strong>Does it require an internet connection or cloud services?</strong></summary>
+
+No. Everything runs **100% local**: FastAPI backend, SQLite, local model via Ollama. Optional integrations (SMTP for email verification, platform APIs, cloud backup) are opt-in and never required. There is no telemetry, no account cloud.
+</details>
+
+<details>
+<summary><strong>Which AI models does it use? Do I need API keys?</strong></summary>
+
+Optional. It works with local models (Ollama), free built-in models (DeepSeek/Nemotron via OpenCode), and optional paid providers (OpenRouter, Groq…) through a failover chain. Zero configuration runs deterministic engines; AI adds analysis and voice on top.
+</details>
+
+<details>
+<summary><strong>Does it really make money?</strong></summary>
+
+The system optimizes **probability × reward × speed** and tracks real outcomes (earnings, acceptance rates, USD/hour per platform) — it never fabricates rates. Revenue figures in the UI come from actual tracked payouts. Results depend on the market and on delivery; OWNEX maximizes the odds and removes the busywork.
+</details>
+
+<details>
+<summary><strong>What platforms does it integrate with?</strong></summary>
+
+Bug bounty: HackerOne, Bugcrowd, Intigriti, YesWeHack. Dev bounty: Opire, IssueHunt, OpenCollective, Algora. Freelance: Fiverr engine (11 gigs), Freelancer. Plus 135 curated discovery sources across 36 categories. Connectors for crypto/wealth (CoinGecko, Polymarket) and data annotation categories.
+</details>
+
+<details>
+<summary><strong>How do I install it?</strong></summary>
+
+```bash
+git clone https://github.com/AdriDob/OWNEX.git && cd OWNEX
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python run.py
+```
+
+Open http://127.0.0.1:8000 — the guided personalization wizard takes you through setup. See [Quick Start](#quick-start).
+</details>
+
+<details>
+<summary><strong>What platforms does it run on?</strong></summary>
+
+- **Desktop:** Linux, Windows, macOS (Python 3.11+; Tauri bundle + PyInstaller sidecar)
+- **Mobile companion:** Android (Capacitor APK, ~5 MB, native mic/voice)
+- The mobile app connects to your local backend; it does not require a cloud server.
+</details>
+
+<details>
+<summary><strong>Is my data safe?</strong></summary>
+
+Security is layered: AES-256-GCM IdentityVault (random key, `chmod 600`), Ed25519 licenses, double-submit CSRF, identity-based rate limiting, session tokens with device binding, audit log (append-only JSONL, rotated), 100% local storage. Details in [.ai/SECURITY_POLICY.md](.ai/SECURITY_POLICY.md).
+</details>
+
+<details>
+<summary><strong>Is there a mobile/desktop app?</strong></summary>
+
+Yes — an Android APK (OMEGA companion: dashboard, agents, opportunities, MERLIN chat, notifications, watch sync) and a Tauri desktop bundle (`OWNEX OMEGA`). Both are build-verified; see [Project Status](#project-status).
+</details>
+
+<details>
+<summary><strong>What is the "Work Bank"?</strong></summary>
+
+The Work Bank is an autonomous production engine: it discovers public zero-barrier jobs, filters and ranks them by EV, **prepares each one to 100% ready-to-deliver** (README, proposal, work package) and accumulates them (target: 10/day, 1000/month). You only review and deliver the best ones.
+</details>
+
+<details>
+<summary><strong>How is OWNEX different from a SaaS bounty tool?</strong></summary>
+
+SaaS tools are multi-tenant dashboards; OWNEX is a **private autonomous operator**. It doesn't just display findings — it discovers opportunities, prepares deliverables, projects income, learns from outcomes and runs a full daily cycle with zero external infrastructure. And your data never leaves your machine.
+</details>
+
+---
+
 ## Table of Contents
 
 <details>
@@ -260,14 +363,15 @@ OWNEX runs as 7 autonomous work cycles, coordinated by the scheduler:
 2. [Product](#product)
 3. [Architecture](#architecture)
 4. [How a day runs](#how-a-day-runs)
-5. [Quick Start](#quick-start)
-6. [Development](#development)
-7. [Security](#security)
-8. [Project Status](#project-status)
-9. [Roadmap](#roadmap)
-10. [Branding](#branding)
-11. [Documentation](#documentation)
-12. [License](#license)
+5. [FAQ](#faq)
+6. [Quick Start](#quick-start)
+7. [Development](#development)
+8. [Security](#security)
+9. [Project Status](#project-status)
+10. [Roadmap](#roadmap)
+11. [Branding](#branding)
+12. [Documentation](#documentation)
+13. [License](#license)
 
 </details>
 
