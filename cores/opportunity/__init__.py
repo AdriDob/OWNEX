@@ -48,8 +48,18 @@ from cores.opportunity.providers import (
 from cores.opportunity.recommendations import generate_recommendations
 from cores.opportunity.scoring2 import _score_to_priority, compute_evh, compute_layered_score
 
-# Backward-compatible alias
-score_opportunity = compute_layered_score
+# Legacy compatibility layer for tests (from core.opportunity.models)
+from core.opportunity.models import (
+    OWNEX_WORK_CYCLES,
+    OWNEX_WORK_CYCLE_ORDER,
+    PersonalHistory,
+    PersonalHistoryTracker,
+    ScoredOpportunity,
+    Top5Engine,
+    Top5Recommendation,
+    UnifiedScore,
+    score_opportunity,
+)
 
 __all__ = [
     "OpportunityEngine",
@@ -64,8 +74,6 @@ __all__ = [
     "EVHRating",
     "IdentityVaultEntry",
     "OpportunityRecommendations",
-    "EVHCalculation",
-    "EVHRating",
     "BaseProvider",
     "get_providers",
     "ManualProvider",
@@ -73,11 +81,20 @@ __all__ = [
     "GitHubAdvisoryProvider",
     "HuntrProvider",
     "AllSourcesProvider",
-    "score_opportunity",
     "compute_layered_score",
     "compute_evh",
     "_score_to_priority",
     "generate_recommendations",
     "HistoryManager",
     "get_history_manager",
+    # Legacy compatibility
+    "OWNEX_WORK_CYCLES",
+    "OWNEX_WORK_CYCLE_ORDER",
+    "PersonalHistory",
+    "PersonalHistoryTracker",
+    "ScoredOpportunity",
+    "Top5Engine",
+    "Top5Recommendation",
+    "UnifiedScore",
+    "score_opportunity",
 ]

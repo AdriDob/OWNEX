@@ -7,21 +7,21 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from core.capabilities.registry import get_capability_registry
-from core.copilot.analyzer import AnalysisResult, FindingAnalyzer
-from core.copilot.auditor import AuditReport, IAuditor, get_all_auditors
-from core.copilot.config import CopilotConfig
-from core.copilot.context import CopilotContext
-from core.copilot.executor import ExecutionReport, PlanExecutor
-from core.copilot.explain import ExplanationEngine
-from core.copilot.permissions import AuthorityLevel, DecisionConfidence, PolicyEngine
-from core.copilot.planner import Plan, Planner
-from core.copilot.publisher import publish_copilot_event
-from core.copilot.recommender import Recommendation, Recommender
-from core.copilot.review import CopilotReview, ReviewItem, ReviewReport
-from core.copilot.system_context import SystemContextBuilder
-from core.evidence_graph.graph import get_evidence_graph
-from core.memory.store import get_memory_store
+from cores.capabilities.registry import get_capability_registry
+from cores.copilot.analyzer import AnalysisResult, FindingAnalyzer
+from cores.copilot.auditor import AuditReport, IAuditor, get_all_auditors
+from cores.copilot.config import CopilotConfig
+from cores.copilot.context import CopilotContext
+from cores.copilot.executor import ExecutionReport, PlanExecutor
+from cores.copilot.explain import ExplanationEngine
+from cores.copilot.permissions import AuthorityLevel, DecisionConfidence, PolicyEngine
+from cores.copilot.planner import Plan, Planner
+from cores.copilot.publisher import publish_copilot_event
+from cores.copilot.recommender import Recommendation, Recommender
+from cores.copilot.review import CopilotReview, ReviewItem, ReviewReport
+from cores.copilot.system_context import SystemContextBuilder
+from cores.evidence_graph.graph import get_evidence_graph
+from cores.memory.store import get_memory_store
 from cores.events.correlation import get_or_create_correlation_id
 from cores.events.types import Decision, Events
 from cores.knowledge_core import get_knowledge_graph
