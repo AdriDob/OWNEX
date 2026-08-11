@@ -38,22 +38,19 @@ def parse_asset_registry() -> dict[str, dict]:
 
     # Find all table rows with asset data
     # Pattern: lines starting with | that contain docs/assets/
-    for line in content.split('\n'):
-        if line.startswith('|') and 'docs/assets/' in line:
+    for line in content.split("\n"):
+        if line.startswith("|") and "docs/assets/" in line:
             # Parse table row
-            cells = [cell.strip() for cell in line.split('|')[1:-1]]
+            cells = [cell.strip() for cell in line.split("|")[1:-1]]
 
             if len(cells) >= 2:
                 # First cell is ID (may have backticks)
-                asset_id = cells[0].strip('`')
-                file_path = cells[1].strip('`')
-                asset_type = cells[2].strip('`') if len(cells) > 2 else None
+                asset_id = cells[0].strip("`")
+                file_path = cells[1].strip("`")
+                asset_type = cells[2].strip("`") if len(cells) > 2 else None
 
-                if file_path and file_path.startswith('docs/assets/'):
-                    assets[asset_id] = {
-                        'file': file_path,
-                        'type': asset_type
-                    }
+                if file_path and file_path.startswith("docs/assets/"):
+                    assets[asset_id] = {"file": file_path, "type": asset_type}
 
     return assets
 
@@ -63,7 +60,7 @@ def find_all_assets() -> set[Path]:
     assets_dir = Path("docs/assets")
     assets = set()
 
-    for ext in ['*.png', '*.svg', '*.jpg', '*.jpeg', '*.webp']:
+    for ext in ["*.png", "*.svg", "*.jpg", "*.jpeg", "*.webp"]:
         assets.update(assets_dir.rglob(ext))
 
     return assets
@@ -74,21 +71,20 @@ def check_registered_assets_exist(registry: dict[str, dict]) -> list[str]:
     missing = []
 
     for asset_id, asset_info in registry.items():
-        file_path = asset_info.get('file')
-        if file_path:
-            if not Path(file_path).exists():
-                missing.append(f"{asset_id}: {file_path}")
+        file_path = asset_info.get("file")
+        if file_path and not Path(file_path).exists():
+            missing.append(f"{asset_id}: {file_path}")
 
     return missing
 
 
 def check_unregistered_assets(registry: dict[str, dict], all_assets: set[Path]) -> list[Path]:
     """Check for assets that exist but are not registered."""
-    registered_files = {asset_info['file'] for asset_info in registry.values() if asset_info.get('file')}
+    registered_files = {asset_info["file"] for asset_info in registry.values() if asset_info.get("file")}
     unregistered = []
 
     for asset in all_assets:
-        relative_path = str(asset.relative_to(Path('.')))
+        relative_path = str(asset.relative_to(Path(".")))
         if relative_path not in registered_files:
             unregistered.append(asset)
 
@@ -107,7 +103,7 @@ def check_duplicate_assets(all_assets: set[Path]) -> list[tuple[Path, Path]]:
             hashes[file_hash].append(asset)
 
     duplicates = []
-    for file_hash, files in hashes.items():
+    for _file_hash, files in hashes.items():
         if len(files) > 1:
             # Pair up duplicates
             for i in range(len(files)):
@@ -126,7 +122,7 @@ def check_file_size_constraints(all_assets: set[Path]) -> list[tuple[Path, int, 
             size_mb = asset.stat().st_size / (1024 * 1024)
 
             # Constraints
-            max_size_mb = 1.0 if 'hero' in str(asset) else 0.5
+            max_size_mb = 1.0 if "hero" in str(asset) else 0.5
 
             if size_mb > max_size_mb:
                 oversized.append((asset, size_mb, max_size_mb))
@@ -141,16 +137,14 @@ def check_format_constraints(all_assets: set[Path]) -> list[Path]:
     for asset in all_assets:
         if asset.exists():
             # Logos should be SVG, but PNG fallbacks are allowed
-            if 'logo' in str(asset) and asset.suffix != '.svg':
+            if "logo" in str(asset) and asset.suffix != ".svg":
                 # Allow PNG fallbacks for all logo variants
                 # Logo PNGs are valid as fallbacks for SVG
                 pass
 
             # Screenshots should be PNG, but demo SVGs are allowed
-            if 'screenshot' in str(asset) and asset.suffix != '.png':
-                # Allow SVG for demo screenshots
-                if 'demo' not in asset.name:
-                    invalid_format.append(asset)
+            if "screenshot" in str(asset) and asset.suffix != ".png" and "demo" not in asset.name:
+                invalid_format.append(asset)
 
     return invalid_format
 
@@ -179,9 +173,8 @@ def check_readme_references(registry: dict[str, dict]) -> list[str]:
 
     broken = []
     for path in referenced_paths:
-        if path and not path.startswith('http'):
-            if not Path(path).exists():
-                broken.append(path)
+        if path and not path.startswith("http") and not Path(path).exists():
+            broken.append(path)
 
     return broken
 
