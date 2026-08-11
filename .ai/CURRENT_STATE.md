@@ -1,3 +1,22 @@
+## Sesión 2026-08-11 — SELF-1 CERRADO: 11 vulnerabilidades de dependencias resueltas (npm + Python; Rust aceptada)
+
+> **QUÉ SE HIZO:** Cerrado el backlog item SELF-1 (Dependabot: 11 alertas — 5 high, 6 medium).
+> (1) **Causa raíz npm (10 alertas)**: `frontend/package-lock.json` era un lockfile duplicado y
+> obsoleto (artefacto pre-workspaces) que Dependabot escaneaba — contenía nanoid 3.3.15,
+> postcss 8.5.16, undici 7.28.0, brace-expansion 2.1.1. El lockfile raíz del workspace ya
+> resolvía versiones corregidas (nanoid 3.3.18, postcss 8.5.26, undici 7.29.0,
+> brace-expansion 2.1.4/5.0.9). **Eliminado el duplicado** → un solo lockfile (One Source of
+> Truth). (2) **Python**: `pip-audit` = No known vulnerabilities found (sin alertas Dependabot).
+> (3) **Rust (1 alerta medium)**: GHSA-wrw7-89jp-8q8g (unsoundness en `glib::VariantStrIter`).
+> glib 0.18.5 llega transitoriamente de tauri 2.11.5 → tray-icon 0.24.2 (latest) →
+> libappindicator → gtk 0.18; la cadena gtk-rs 0.20 aún no está adoptada por el ecosistema.
+> `cargo update -p tray-icon` = 0 locked (no hay fix upstream). **Riesgo aceptado y documentado**
+> (app local desktop single-user, no explotable remotamente; revisar cuando gtk-rs 0.20 se adopte).
+
+- **Verificación**: `npm audit` **0 vulnerabilities** (post-fix), `pip-audit` limpio,
+  `vue-tsc --noEmit` 0 errores, `npx vite build` OK (11.54s), `npm install` raíz sin cambios
+  en el lockfile. Dependabot queda con 1 sola alerta open (glib, sin fix, aceptada).
+
 ## Sesión 2026-08-11 — RESTORE core/ (607 archivos borrados) + SCOPE ENFORCEMENT arreglado (commit b86aca06a, pusheado)
 
 > **QUÉ SE HIZO:** (1) **Catástrofe revertida**: el commit `1e761af63` (09:10, "feat(notifications)")
