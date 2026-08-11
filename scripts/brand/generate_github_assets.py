@@ -132,6 +132,29 @@ def status_dot(draw: ImageDraw.ImageDraw, x, y, color, r=4):
     draw.ellipse((x - r, y - r, x + r, y + r), fill=color)
 
 
+def signal_bars(draw: ImageDraw.ImageDraw, x1, cy, n=4, color=TEXT, w=10, gap=8, maxh=26):
+    """Drawn signal bars (no font glyphs needed), right-aligned at x1."""
+    for i in range(n):
+        h = 10 + int((maxh - 10) * i / max(n - 1, 1))
+        draw.rounded_rectangle(
+            (x1 - (n - i) * (w + gap), cy - h // 2, x1 - (n - 1 - i) * (w + gap) - gap, cy + h // 2),
+            radius=3,
+            fill=color,
+        )
+
+
+def equalizer(draw: ImageDraw.ImageDraw, cx, cy, n=6, color=WHITE, w=10, gap=12, maxh=44, seed=7):
+    """Drawn equalizer bars (no font glyphs needed), centered at cx."""
+    random.seed(seed)
+    total = n * w + (n - 1) * gap
+    x0 = cx - total // 2
+    for i in range(n):
+        h = random.randint(maxh // 4, maxh)
+        draw.rounded_rectangle(
+            (x0 + i * (w + gap), cy - h // 2, x0 + i * (w + gap) + w, cy + h // 2), radius=4, fill=color
+        )
+
+
 # ---------------------------------------------------------------- logos ---
 def draw_mark(draw: ImageDraw.ImageDraw, cx, cy, size, color=CYAN, node=BLUE, w=None):
     """O+X Aperture Nexus: octagonal ring + X rays + central node."""
@@ -668,7 +691,7 @@ MOBILE_SCREENS = {
     "omega-merlin": {
         "title": "MERLIN",
         "subtitle": "Hold to talk · es-419",
-        "top": ("Resultado, IDOR confirmado", "confidence 0.91", "▮▮▮▮▮▮"),
+        "top": ("Resultado, IDOR confirmado", "confidence 0.91", "EQ"),
         "metrics": [("STT", "native", EMERALD), ("TTS", "piper", CYAN), ("Memory", "1.8k", ORANGE)],
         "items": [
             ("“what is my top opportunity today?”", "answered"),
@@ -750,7 +773,7 @@ def render_mobile(name: str, spec: dict) -> Image.Image:
     # dynamic island + status bar
     rr(d, (w // 2 - 110, y0 + 18, w // 2 + 110, y0 + 56), r=20, fill="#000000")
     text(d, (x0 + 12, y0 + 30), "9:41", display_font(26, 600), anchor="lm")
-    text(d, (x1 - 12, y0 + 30), "▮▮▮  ▮", font(22), fill=TEXT, anchor="rm")
+    signal_bars(d, x1 - 12, y0 + 30)
 
     # header
     text(d, (x0 + 12, y0 + 120), spec["title"], display_font(44, 700))
@@ -763,7 +786,10 @@ def render_mobile(name: str, spec: dict) -> Image.Image:
     text(d, (hx0 + 40, hy0 + 44), top_t, display_font(32, 600))
     text(d, (hx0 + 40, hy0 + 104), top_m, font(24), fill=MUTED)
     rr(d, (x1 - 12 - 260, hy0 + 200, x1 - 12 - 40, hy0 + 276), r=38, fill=BLUE)
-    text(d, (x1 - 12 - 150, hy0 + 238), btn, display_font(26, 700), fill=WHITE, anchor="mm")
+    if btn == "EQ":
+        equalizer(d, x1 - 12 - 150, hy0 + 238)
+    else:
+        text(d, (x1 - 12 - 150, hy0 + 238), btn, display_font(26, 700), fill=WHITE, anchor="mm")
 
     # metrics row
     mw = (x1 - x0 - 24 - 2 * 16) / 3
@@ -803,17 +829,21 @@ def render_architecture(name: str) -> Image.Image:
         or d.polygon(((x1, y1), (x1 - 14, y1 - 8), (x1 - 14, y1 + 8)), fill=MUTED)
     )
 
+    def col_title(x: float, y: int, t: str, col: str, dot_r: int = 7) -> None:
+        status_dot(d, x + 14, y + 13, col, r=dot_r)
+        text(d, (x + 36, y), t, display_font(22, 700), fill=col)
+
     if name == "system":
         title = "System Architecture — modular monolith + EventBus"
         cols = [
-            ("📡 Presentation", CYAN, ["Mission Control · Vue 3", "Desktop · Tauri v2", "OMEGA Mobile", "MERLIN"]),
+            ("Presentation", CYAN, ["Mission Control · Vue 3", "Desktop · Tauri v2", "OMEGA Mobile", "MERLIN"]),
             (
-                "🧩 Core Platform",
+                "Core Platform",
                 BLUE,
                 ["EventBus", "Scheduler · 28 jobs", "Unified Memory", "IdentityVault", "Health Center"],
             ),
-            ("🔄 Work Cycles", EMERALD, ["Security", "Forge", "Pulse", "Vault", "Atlas", "QA", "Direct Work"]),
-            ("⚙️ Engines", ORANGE, ["DWE", "Revenue Intel", "Opportunity", "Validation", "Evolution", "OAR AI"]),
+            ("Work Cycles", EMERALD, ["Security", "Forge", "Pulse", "Vault", "Atlas", "QA", "Direct Work"]),
+            ("Engines", ORANGE, ["DWE", "Revenue Intel", "Opportunity", "Validation", "Evolution", "OAR AI"]),
         ]
         y0, boxh = 200, 560
         bw = 300
@@ -821,7 +851,7 @@ def render_architecture(name: str) -> Image.Image:
         for i, (t, col, items) in enumerate(cols):
             x = 40 + i * (bw + gap)
             rr(d, (x, y0, x + bw, y0 + boxh), r=20, fill=SURFACE, outline=HAIRLINE, width=2)
-            text(d, (x + 24, y0 + 26), t, display_font(22, 700), fill=col)
+            col_title(x + 24, y0 + 26, t, col)
             for j, it in enumerate(items):
                 text(d, (x + 24, y0 + 90 + j * 48), it, font(17, 500), fill=TEXT if j < 3 else MUTED)
             if i < 3:
@@ -840,13 +870,13 @@ def render_architecture(name: str) -> Image.Image:
     elif name == "mobile":
         title = "OMEGA Mobile Architecture"
         cols = [
-            ("📱 OMEGA App", CYAN, ["Today View", "Work Bank", "MERLIN Voice", "Agent Fleet", "Settings"]),
+            ("OMEGA App", CYAN, ["Today View", "Work Bank", "MERLIN Voice", "Agent Fleet", "Settings"]),
             (
-                "🔌 API Layer",
+                "API Layer",
                 BLUE,
                 ["/api/direct-work/*", "/api/voice/*", "/api/agents/*", "/api/wear-os/*", "REST + WS"],
             ),
-            ("🧩 Core Platform", EMERALD, ["EventBus", "Scheduler", "Unified Memory", "IdentityVault"]),
+            ("Core Platform", EMERALD, ["EventBus", "Scheduler", "Unified Memory", "IdentityVault"]),
         ]
         y0, boxh = 210, 520
         bw = 340
@@ -854,7 +884,7 @@ def render_architecture(name: str) -> Image.Image:
         for i, (t, col, items) in enumerate(cols):
             x = 40 + i * (bw + gap)
             rr(d, (x, y0, x + bw, y0 + boxh), r=20, fill=SURFACE, outline=HAIRLINE, width=2)
-            text(d, (x + 24, y0 + 26), t, display_font(22, 700), fill=col)
+            col_title(x + 24, y0 + 26, t, col)
             for j, it in enumerate(items):
                 text(d, (x + 24, y0 + 90 + j * 48), it, font(17, 500))
             if i < 2:
