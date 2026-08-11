@@ -3,10 +3,6 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/github/logo/lockup-horizontal.png" alt="OWNEX" width="400"/>
-</p>
-
-<p align="center">
   <strong>Autonomous Work Operating System</strong> 📡
 </p>
 
