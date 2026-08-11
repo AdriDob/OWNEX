@@ -595,17 +595,13 @@ docs/assets/screenshots/
 ### Branded deliverables 🖼️
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/github/logo/lockup-horizontal.png">
-    <img src="docs/assets/github/logo/lockup-horizontal-light.png" alt="OWNEX lockup" width="60%"/>
-  </picture>
+  <img src="docs/assets/github/logo/lockup-horizontal-neutral.png" alt="OWNEX lockup" width="60%"/>
 </p>
 
 <p align="center">
   <img src="docs/assets/github/logo/mark-alpha.png" alt="OWNEX mark (ALPHA)" width="140"/>
   <img src="docs/assets/github/logo/mark-omega.png" alt="OWNEX mark (OMEGA)" width="140"/>
-  <img src="docs/assets/github/logo/mark-mono-black.png" alt="OWNEX mark mono" width="140"/>
-  <img src="docs/assets/github/logo/mark-mono-white.png" alt="OWNEX mark mono white" width="140"/>
+  <img src="docs/assets/github/logo/lockup-horizontal-neutral.png" alt="OWNEX lockup" width="260"/>
 </p>
 
 **Color palette:**
@@ -670,10 +666,7 @@ OWNEX is a private competitive-advantage asset. It does **not** sell a service t
 ---
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/github/logo/lockup-horizontal.png">
-    <img src="docs/assets/github/logo/lockup-horizontal-light.png" alt="OWNEX" width="300"/>
-  </picture>
+  <img src="docs/assets/github/logo/lockup-horizontal-neutral.png" alt="OWNEX" width="300"/>
 </p>
 
 <p align="center">
