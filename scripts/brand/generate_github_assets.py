@@ -174,12 +174,12 @@ def draw_mark(draw: ImageDraw.ImageDraw, cx, cy, size, color=CYAN, node=BLUE, w=
     draw.line((cx - r * 0.62, cy + r * 0.62, cx + r * 0.62, cy - r * 0.62), fill=color + "AA", width=w)
 
 
-def lockup(w, h, color=CYAN, bg=BG):
-    img = Image.new("RGBA", (w, h), bg)
+def lockup(w, h, color=CYAN, bg: str | None = BG, text_color=TEXT, sub_color=MUTED):
+    img = Image.new("RGBA", (w, h), bg or (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     mark_sz = h * 0.62
     draw_mark(d, h * 0.62, h / 2, mark_sz, color=color)
-    text(d, (h * 1.15, h / 2 - 22), "OWNEX", display_font(int(h * 0.34), 700), anchor="lm")
+    text(d, (h * 1.15, h / 2 - 22), "OWNEX", display_font(int(h * 0.34), 700), fill=text_color, anchor="lm")
     f = font(int(h * 0.115))
     t = "AUTONOMOUS WORK OPERATING SYSTEM"
     tw = d.textlength(t, font=f)
@@ -188,7 +188,7 @@ def lockup(w, h, color=CYAN, bg=BG):
         (h * 1.15 + (d.textlength("OWNEX", display_font(int(h * 0.34), 700)) - tw) / 2, h / 2 + 20),
         t,
         f,
-        fill=MUTED,
+        fill=sub_color,
         anchor="lm",
     )
     return img
@@ -955,10 +955,11 @@ ASSETS = {
     },
     "logo": {
         "lockup-horizontal.png": lambda: lockup(2048, 512),
-        "mark-alpha.png": lambda: (lambda im: im)(mark_img(1024, CYAN, BLUE)),
-        "mark-omega.png": lambda: mark_img(1024, EMERALD, CYAN),
-        "mark-mono-white.png": lambda: mark_img(1024, WHITE, WHITE),
-        "mark-mono-black.png": lambda: mark_img(1024, "#0D0F14", "#0D0F14", bg=WHITE),
+        "lockup-horizontal-light.png": lambda: lockup(2048, 512, bg=None, text_color="#0D0F14", sub_color="#4B5563"),
+        "mark-alpha.png": lambda: (lambda im: im)(mark_img(1024, CYAN, BLUE, bg=None)),
+        "mark-omega.png": lambda: mark_img(1024, EMERALD, CYAN, bg=None),
+        "mark-mono-white.png": lambda: mark_img(1024, WHITE, WHITE, bg=None),
+        "mark-mono-black.png": lambda: mark_img(1024, "#0D0F14", "#0D0F14", bg=None),
     },
     "desktop": {f"{name}.png": make_surface_renderer(name, spec) for name, spec in SURFACE_CONTENT.items()},
     "mobile": {f"{name}.png": make_mobile_renderer(name, spec) for name, spec in MOBILE_SCREENS.items()},
@@ -971,8 +972,8 @@ ASSETS = {
 }
 
 
-def mark_img(size: int, color: str, node: str, bg: str = BG) -> Image.Image:
-    img = Image.new("RGBA", (size, size), bg)
+def mark_img(size: int, color: str, node: str, bg: str | None = None) -> Image.Image:
+    img = Image.new("RGBA", (size, size), bg or (0, 0, 0, 0))
     draw_mark(ImageDraw.Draw(img), size / 2, size / 2, size * 0.78, color=color, node=node)
     return img
 
@@ -985,8 +986,10 @@ def main() -> None:
         os.makedirs(outdir, exist_ok=True)
         for fname, render in files.items():
             img = render()
-            img = img.convert("RGB")
-            img.save(outdir / fname, "PNG", optimize=True)
+            if img.mode == "RGBA":
+                img.save(outdir / fname, "PNG", optimize=True)
+            else:
+                img.convert("RGB").save(outdir / fname, "PNG", optimize=True)
             kb = os.path.getsize(outdir / fname) / 1024
             print(f"  ✓ {folder}/{fname}  {img.size[0]}×{img.size[1]}  {kb:.0f}KB")
             total += 1
