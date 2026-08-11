@@ -15,10 +15,10 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-from core.events.event_bus import get_core_event_bus
 from cores.agents.base import BaseAgent
 from cores.agents.types import AgentEvent, AgentId, EventType
 from cores.discovery_engine import DiscoveryEngine, RankedOpportunity
+from cores.events.event_bus import get_core_event_bus
 from cores.platform_connectors.universal_connectors import PlatformConnectorManager
 from cores.thinking_system import DailyPlan, ThinkingSystem
 

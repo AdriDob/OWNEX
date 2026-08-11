@@ -190,6 +190,7 @@ def register_discord_channel() -> None:
 def register_telegram_channel() -> None:
     """Register the Telegram notification handler on the hub."""
     from core.notifications.telegram.bot import get_telegram_bot
+
     from cores.notifications.hub import get_hub
 
     bot = get_telegram_bot()
@@ -324,6 +325,14 @@ def register_event_bridge() -> None:
         channels = ["web"]
         if priority in ("high", "critical"):
             channels.append("desktop")
+        # General system notifications also go to email when SMTP is configured.
+        try:
+            from cores.notifications.email import get_email_adapter
+
+            if get_email_adapter().is_enabled:
+                channels.append("email")
+        except Exception:
+            pass
         discord_events = {
             "finding:created",
             "finding:confirmed",

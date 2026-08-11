@@ -21,10 +21,10 @@ from core.copilot.recommender import Recommendation, Recommender
 from core.copilot.review import CopilotReview, ReviewItem, ReviewReport
 from core.copilot.system_context import SystemContextBuilder
 from core.evidence_graph.graph import get_evidence_graph
-from core.knowledge.graph import get_knowledge_graph
 from core.memory.store import get_memory_store
 from cores.events.correlation import get_or_create_correlation_id
 from cores.events.types import Decision, Events
+from cores.knowledge_core import get_knowledge_graph
 
 logger = logging.getLogger("orion.core.copilot.agent")
 

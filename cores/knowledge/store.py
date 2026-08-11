@@ -16,6 +16,7 @@ logger = logging.getLogger("ownex.knowledge.store")
 
 class KnowledgeSourceModel(Base):
     __tablename__ = "knowledge_sources"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False)
@@ -30,6 +31,7 @@ class KnowledgeSourceModel(Base):
 
 class KnowledgeArtifactModel(Base):
     __tablename__ = "knowledge_artifacts"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(String, primary_key=True, index=True)
     title = Column(String, nullable=False)
@@ -48,6 +50,7 @@ class KnowledgeArtifactModel(Base):
 
 class KnowledgeRelationshipModel(Base):
     __tablename__ = "knowledge_relationships"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(String, primary_key=True, index=True)
     source_artifact_id = Column(String, nullable=False, index=True)
