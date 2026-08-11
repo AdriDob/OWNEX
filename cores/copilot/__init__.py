@@ -6,9 +6,9 @@ through their public interfaces. It never accesses apps directly.
 
 from __future__ import annotations
 
-from core.copilot.agent import CopilotAgent
-from core.copilot.analyzer import AnalysisResult, FindingAnalyzer
-from core.copilot.auditor import (
+from cores.copilot.agent import CopilotAgent
+from cores.copilot.analyzer import AnalysisResult, FindingAnalyzer
+from cores.copilot.auditor import (
     ArchitectureAuditor,
     AuditFinding,
     AuditReport,
@@ -17,14 +17,14 @@ from core.copilot.auditor import (
     IAuditor,
     SecurityAuditor,
 )
-from core.copilot.config import CopilotConfig
-from core.copilot.context import CopilotContext
-from core.copilot.explain import ExplanationEngine
-from core.copilot.permissions import AuthorityLevel, DecisionConfidence, Policy, PolicyEngine
-from core.copilot.planner import Plan, Planner, PlanStep
-from core.copilot.recommender import Recommendation, Recommender
-from core.copilot.review import CopilotReview, ReviewItem, ReviewReport
-from core.copilot.system_context import SystemContextBuilder
+from cores.copilot.config import CopilotConfig
+from cores.copilot.context import CopilotContext
+from cores.copilot.explain import ExplanationEngine
+from cores.copilot.permissions import AuthorityLevel, DecisionConfidence, Policy, PolicyEngine
+from cores.copilot.planner import Plan, Planner, PlanStep
+from cores.copilot.recommender import Recommendation, Recommender
+from cores.copilot.review import CopilotReview, ReviewItem, ReviewReport
+from cores.copilot.system_context import SystemContextBuilder
 
 __all__ = [
     "CopilotAgent",
