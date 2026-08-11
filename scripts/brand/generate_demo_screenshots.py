@@ -227,7 +227,7 @@ def generate_intelligence_demo():
   <!-- Chart Area -->
   <rect x="60" y="620" width="500" height="350" rx="8" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
   <text x="80" y="660" font-family="Inter, sans-serif" font-size="14" fill="#888888">Weekly Opportunity Flow</text>
-  
+
   <!-- Simple bar chart -->
   <rect x="80" y="720" width="60" height="200" fill="#2D7FF9" opacity="0.8"/>
   <rect x="160" y="680" width="60" height="240" fill="#2D7FF9" opacity="0.8"/>
@@ -235,7 +235,7 @@ def generate_intelligence_demo():
   <rect x="320" y="700" width="60" height="220" fill="#2D7FF9" opacity="0.8"/>
   <rect x="400" y="650" width="60" height="270" fill="#2D7FF9" opacity="0.8"/>
   <rect x="480" y="600" width="60" height="320" fill="#2D7FF9" opacity="0.8"/>
-  
+
   <text x="80" y="940" font-family="Inter, sans-serif" font-size="10" fill="#888888">Mon</text>
   <text x="160" y="940" font-family="Inter, sans-serif" font-size="10" fill="#888888">Tue</text>
   <text x="240" y="940" font-family="Inter, sans-serif" font-size="10" fill="#888888">Wed</text>
@@ -551,19 +551,19 @@ def generate_merlin_demo():
   <g transform="translate(60, 250)">
     <rect width="1000" height="200" rx="12" fill="#1A1A1A" stroke="#2D7FF9" stroke-width="1" opacity="0.3"/>
     <text x="20" y="30" font-family="Inter, sans-serif" font-size="14" fill="#2D7FF9">Based on current analysis, here are the top 3 zero-barrier opportunities:</text>
-    
+
     <g transform="translate(20, 50)">
       <circle cx="10" cy="15" r="6" fill="#00C853"/>
       <text x="25" y="20" font-family="Inter, sans-serif" font-size="13" fill="#FFFFFF">HackerOne - Tesla Motors</text>
       <text x="25" y="40" font-family="Inter, sans-serif" font-size="11" fill="#888888">Zero-barrier: 89 · Payout: $50,000 · Ready to submit</text>
     </g>
-    
+
     <g transform="translate(20, 100)">
       <circle cx="10" cy="15" r="6" fill="#00C853"/>
       <text x="25" y="20" font-family="Inter, sans-serif" font-size="13" fill="#FFFFFF">Intigriti - Air France</text>
       <text x="25" y="40" font-family="Inter, sans-serif" font-size="11" fill="#888888">Zero-barrier: 91 · Payout: €25,000 · Evidence ready</text>
     </g>
-    
+
     <g transform="translate(20, 150)">
       <circle cx="10" cy="15" r="6" fill="#00C853"/>
       <text x="25" y="20" font-family="Inter, sans-serif" font-size="13" fill="#FFFFFF">YesWeHack - GitLab</text>
@@ -867,25 +867,25 @@ def generate_settings_demo():
   <g transform="translate(40, 120)">
     <rect width="840" height="300" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
     <text x="20" y="40" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">AI Configuration</text>
-    
+
     <g transform="translate(20, 70)">
       <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Primary Provider</text>
       <rect x="0" y="10" width="200" height="30" rx="4" fill="#2D7FF9"/>
       <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">Ollama (Local)</text>
     </g>
-    
+
     <g transform="translate(20, 130)">
       <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Fallback Provider</text>
       <rect x="0" y="10" width="200" height="30" rx="4" fill="#1A1A1A" stroke="#2D7FF9" stroke-width="1"/>
       <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">FCC Proxy</text>
     </g>
-    
+
     <g transform="translate(20, 190)">
       <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Model</text>
       <rect x="0" y="10" width="300" height="30" rx="4" fill="#1A1A1A" stroke="#2D7FF9" stroke-width="1"/>
       <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">qwen3-coder:8b</text>
     </g>
-    
+
     <g transform="translate(20, 250)">
       <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Budget Limit</text>
       <rect x="0" y="10" width="200" height="30" rx="4" fill="#1A1A1A" stroke="#2D7FF9" stroke-width="1"/>
@@ -896,25 +896,25 @@ def generate_settings_demo():
   <g transform="translate(920, 120)">
     <rect width="840" height="300" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
     <text x="20" y="40" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Platform Configuration</text>
-    
+
     <g transform="translate(20, 70)">
       <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">HackerOne API Key</text>
       <rect x="0" y="10" width="300" height="30" rx="4" fill="#00C853"/>
       <text x="10" y="30" font-family="font-family: Inter, sans-serif" font-size="12" fill="#FFFFFF">✓ Configured</text>
     </g>
-    
+
     <g transform="translate(20, 130)">
       <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Bugcrowd API Key</text>
       <rect x="0" y="10" width="300" height="30" rx="4" fill="#00C853"/>
       <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">✓ Configured</text>
     </g>
-    
+
     <g transform="translate(20, 190)">
       <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Intigriti API Key</text>
       <rect x="0" y="10" width="300" height="30" rx="4" fill="#00C853"/>
       <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">✓ Configured</text>
     </g>
-    
+
     <g transform="translate(20, 250)">
       <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">YesWeHack API Key</text>
       <rect x="0" y="10" width="300" height="30" rx="4" fill="#FFAB00"/>
@@ -925,19 +925,19 @@ def generate_settings_demo():
   <g transform="translate(40, 450)">
     <rect width="840" height="250" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
     <text x="20" y="40" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">Scheduler Settings</text>
-    
+
     <g transform="translate(20, 70)">
       <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Discovery Cycle</text>
       <rect x="0" y="10" width="200" height="30" rx="4" fill="#00C853"/>
       <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">Every 2 hours</text>
     </g>
-    
+
     <g transform="translate(20, 130)">
       <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Analysis Cycle</text>
       <rect x="0" y="10" width="200" height="30" rx="4" fill="#00C853"/>
       <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">Every 4 hours</text>
     </g>
-    
+
     <g transform="translate(20, 190)">
       <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Report Generation</text>
       <rect x="0" y="10" width="200" height="30" rx="4" fill="#00C853"/>
@@ -948,25 +948,25 @@ def generate_settings_demo():
   <g transform="translate(920, 450)">
     <rect width="840" height="250" rx="12" fill="url(#card-gradient)" stroke="#1A1A1A" stroke-width="1"/>
     <text x="20" y="40" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF">System Settings</text>
-    
+
     <g transform="translate(20, 70)">
       <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Auto-submit Reports</text>
       <rect x="0" y="10" width="100" height="30" rx="4" fill="#00C853"/>
       <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">ENABLED</text>
     </g>
-    
+
     <g transform="translate(150, 70)">
       <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Auto-discovery</text>
       <rect x="0" y="10" width="100" height="30" rx="4" fill="#00C853"/>
       <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">ENABLED</text>
     </g>
-    
+
     <g transform="translate(20, 130)">
       <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Auto-optimization</text>
       <rect x="0" y="10" width="100" height="30" rx="4" fill="#FFAB00"/>
       <text x="10" y="30" font-family="Inter, sans-serif" font-size="12" fill="#FFFFFF">DISABLED</text>
     </g>
-    
+
     <g transform="translate(150, 130)">
       <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" fill="#888888">Auto-evolution</text>
       <rect x="0" y="10" width="100" height="30" rx="4" fill="#00C853"/>
@@ -1023,9 +1023,10 @@ def main():
     # Convert to PNG
     try:
         import cairosvg
+
         for filename in demos:
             svg_path = demo_dir / filename
-            png_path = demo_dir / filename.replace('.svg', '.png')
+            png_path = demo_dir / filename.replace(".svg", ".png")
             try:
                 cairosvg.svg2png(url=str(svg_path), write_to=str(png_path), output_width=1920, output_height=1080)
                 print(f"Generated PNG: {png_path}")
