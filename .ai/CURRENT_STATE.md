@@ -1,3 +1,26 @@
+## Sesión 2026-08-11 — RESTORE core/ (607 archivos borrados) + SCOPE ENFORCEMENT arreglado (commit b86aca06a, pusheado)
+
+> **QUÉ SE HIZO:** (1) **Catástrofe revertida**: el commit `1e761af63` (09:10, "feat(notifications)")
+> reemplazó todo `core/` (607 archivos, 113,644 líneas) por un symlink → `cores`. Los árboles
+> twin NO son espejos (`core.scheduler`, `core.interfaces` solo existen en core/) → rompía
+> `import api.main` (boot usa `core.scheduler.scheduler`), 3 manifests (vault/pulse/forge),
+> desktop, scripts y 4 suites de tests (errores de colección). **Restaurado el árbol real**
+> (`git checkout 1e761af63~1 -- core/`) + fix de precedencia en scope.
+> (2) **Scope Enforcement arreglado**: `cores/scope_enforcement.py` importaba `cores.event_bus`
+> (no existe) → corregido a `cores.events.event_bus` + publish con event_type string; **bug
+> real de precedencia**: exclusiones out-of-scope (ej. `/internal/admin` excluido bajo wildcard
+> `*.example.com`) NUNCA disparaban porque la inclusión por wildcard se chequeaba primero →
+> ahora las exclusiones siempre ganan (pass 1 = out-of-scope, pass 2 = in-scope) en
+> `is_endpoint_in_scope` y `is_asset_in_scope`.
+
+- **Verificación**: `scripts/dev test-fast` **89 passed / 1 skipped** (antes: 4 errores de
+  colección), `test_orion_core + test_workbank + DWE` **114 passed**, `test_scope_enforcement.py`
+  **18 passed** (NUEVO: wildcard/dominio/IP/exclusiones/parsers H1-BC-Intigriti/singleton/
+  eventos), `import api.main` OK, `ruff check core/` limpio.
+- **Deuda detectada (preexistente, sin tocar)**: `scripts/brand/generate_demo_screenshots.py`
+  + `scripts/design/validate_assets.py` (nuevos del commit docs 7bd628b45) tienen 24 errores
+  ruff (E402/ETC) → candidato SELF-1.
+
 ## Sesión 2026-08-10 — THREAT INTELLIGENCE LAYER: hypótesis proactivas desde CISA KEV (capa extra OWNEX)
 
 > **QUÉ SE HIZO:** Cerrado el diagnóstico del owner "falta una capa extra en OWNEX".
