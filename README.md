@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/branding/banners/ownex-hero-banner.png" alt="OWNEX — Autonomous Work Operating System" width="100%"/>
+  <img src="docs/assets/github/hero/hero-banner-dark.png" alt="OWNEX — Autonomous Work Operating System" width="100%"/>
 </p>
 
 <p align="center">
@@ -136,6 +136,22 @@ The human sits at the **decision gate**. The system does everything before and a
 
 <p align="center">
   <img src="docs/assets/github/desktop/settings.png" alt="Settings" width="100%"/>
+</p>
+
+### Mobile (OMEGA) 📱
+> Native companion (Capacitor Android): home, agents, opportunities, MERLIN chat, notifications, watch sync.
+
+<p align="center">
+  <img src="docs/assets/github/mobile/omega-home.png" alt="OMEGA home" width="24%"/>
+  <img src="docs/assets/github/mobile/omega-agents.png" alt="OMEGA agents" width="24%"/>
+  <img src="docs/assets/github/mobile/omega-opportunities.png" alt="OMEGA opportunities" width="24%"/>
+  <img src="docs/assets/github/mobile/omega-merlin.png" alt="OMEGA MERLIN" width="24%"/>
+</p>
+<p align="center">
+  <img src="docs/assets/github/mobile/omega-notification.png" alt="OMEGA notifications" width="24%"/>
+  <img src="docs/assets/github/mobile/omega-opportunity-detail.png" alt="OMEGA opportunity detail" width="24%"/>
+  <img src="docs/assets/github/mobile/omega-settings.png" alt="OMEGA settings" width="24%"/>
+  <img src="docs/assets/github/mobile/omega-watch.png" alt="OMEGA watch" width="24%"/>
 </p>
 
 ---
@@ -479,13 +495,14 @@ docs/assets/screenshots/
 ### Branded deliverables 🖼️
 
 <p align="center">
-  <img src="docs/assets/branding/banners/ownex-hero-banner.png" alt="OWNEX hero banner" width="100%"/>
+  <img src="docs/assets/github/logo/lockup-horizontal.png" alt="OWNEX lockup" width="60%"/>
 </p>
 
-<p align="left">
-  <img src="docs/assets/branding/logo/ownex-mark-hero.png" alt="OWNEX mark" width="120"/>
-  <img src="docs/assets/branding/logo/ownex-mark-badge.png" alt="OWNEX badge" width="80">
-  <img src="docs/assets/branding/banners/ownex-footer.png" alt="OWNEX footer" width="100%">
+<p align="center">
+  <img src="docs/assets/github/logo/mark-alpha.png" alt="OWNEX mark (ALPHA)" width="140"/>
+  <img src="docs/assets/github/logo/mark-omega.png" alt="OWNEX mark (OMEGA)" width="140"/>
+  <img src="docs/assets/github/logo/mark-mono-white.png" alt="OWNEX mark mono" width="140"/>
+  <img src="docs/assets/github/social/og-image.png" alt="OWNEX social preview" width="320"/>
 </p>
 
 **Color palette:**
@@ -550,7 +567,7 @@ OWNEX is a private competitive-advantage asset. It does **not** sell a service t
 ---
 
 <p align="center">
-  <img src="docs/assets/branding/banners/ownex-footer.png" alt="OWNEX footer" width="100%"/>
+  <img src="docs/assets/github/logo/lockup-horizontal.png" alt="OWNEX" width="300"/>
 </p>
 
 <p align="center">
