@@ -179,18 +179,16 @@ def lockup(w, h, color=CYAN, bg: str | None = BG, text_color=TEXT, sub_color=MUT
     d = ImageDraw.Draw(img)
     mark_sz = h * 0.62
     draw_mark(d, h * 0.62, h / 2, mark_sz, color=color)
-    text(d, (h * 1.15, h / 2 - 22), "OWNEX", display_font(int(h * 0.34), 700), fill=text_color, anchor="lm")
-    f = font(int(h * 0.115))
+    f_own = display_font(int(h * 0.34), 700)
+    own_x = h * 1.15
+    own_y = h / 2 - 22
+    d.text((own_x, own_y), "OWNEX", font=f_own, fill=text_color, anchor="lm")
+    f_tag = font(int(h * 0.115))
     t = "AUTONOMOUS WORK OPERATING SYSTEM"
-    tw = d.textlength(t, font=f)
-    text(
-        d,
-        (h * 1.15 + (d.textlength("OWNEX", display_font(int(h * 0.34), 700)) - tw) / 2, h / 2 + 20),
-        t,
-        f,
-        fill=sub_color,
-        anchor="lm",
-    )
+    # Position tagline below OWNEX, left-aligned, anchor=lt for precise top
+    own_bbox = d.textbbox((own_x, own_y), "OWNEX", font=f_own, anchor="lm")
+    tag_y = own_bbox[3] + int(h * 0.08)
+    d.text((own_x, tag_y), t, font=f_tag, fill=sub_color, anchor="lt")
     return img
 
 
