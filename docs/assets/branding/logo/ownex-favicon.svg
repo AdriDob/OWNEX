@@ -1,3 +1,26 @@
 <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-<line x1="54.0" y1="32.0" x2="47.6" y2="47.6" stroke="#F6F8FB" stroke-width="5.0" stroke-linecap="round"/><line x1="47.6" y1="47.6" x2="32.0" y2="54.0" stroke="#F6F8FB" stroke-width="5.0" stroke-linecap="round"/><line x1="32.0" y1="54.0" x2="16.4" y2="47.6" stroke="#F6F8FB" stroke-width="5.0" stroke-linecap="round"/><line x1="16.4" y1="47.6" x2="10.0" y2="32.0" stroke="#F6F8FB" stroke-width="5.0" stroke-linecap="round"/><line x1="10.0" y1="32.0" x2="16.4" y2="16.4" stroke="#F6F8FB" stroke-width="5.0" stroke-linecap="round"/><line x1="16.4" y1="16.4" x2="32.0" y2="10.0" stroke="#F6F8FB" stroke-width="5.0" stroke-linecap="round"/><line x1="32.0" y1="10.0" x2="47.6" y2="16.4" stroke="#F6F8FB" stroke-width="5.0" stroke-linecap="round"/><line x1="47.6" y1="16.4" x2="54.0" y2="32.0" stroke="#F6F8FB" stroke-width="5.0" stroke-linecap="round"/><rect x="29.5" y="16.5" width="5.0" height="31" rx="2.5" fill="#F6F8FB" transform="rotate(45 32.0 32.0)"/><rect x="29.5" y="16.5" width="5.0" height="31" rx="2.5" fill="#F6F8FB" transform="rotate(-45 32.0 32.0)"/><circle cx="55.5" cy="8.5" r="4.6" fill="#1E40FF"/><rect x="28.6" y="28.6" width="6.8" height="6.8" fill="#F6F8FB" transform="rotate(45 32.0 32.0)"/>
+<defs>
+  <linearGradient id="favRing" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#F6F8FB"/>
+    <stop offset="0.5" stop-color="#F6F8FB"/>
+    <stop offset="1" stop-color="#F9FAFC"/>
+  </linearGradient>
+  <linearGradient id="favRay" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#F6F8FB"/>
+    <stop offset="1" stop-color="#F9FAFC"/>
+  </linearGradient>
+  <linearGradient id="favNode" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#99A9FF"/>
+    <stop offset="1" stop-color="#1E40FF"/>
+  </linearGradient>
+  <radialGradient id="favNodeHalo" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#1E40FF" stop-opacity="0.45"/>
+    <stop offset="1" stop-color="#1E40FF" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="favCore" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#F9FAFC"/>
+    <stop offset="1" stop-color="#F6F8FB"/>
+  </radialGradient>
+</defs>
+<line x1="54.0" y1="32.0" x2="47.6" y2="47.6" stroke="url(#favRing)" stroke-width="5.0" stroke-linecap="round"/><line x1="47.6" y1="47.6" x2="32.0" y2="54.0" stroke="url(#favRing)" stroke-width="5.0" stroke-linecap="round"/><line x1="32.0" y1="54.0" x2="16.4" y2="47.6" stroke="url(#favRing)" stroke-width="5.0" stroke-linecap="round"/><line x1="16.4" y1="47.6" x2="10.0" y2="32.0" stroke="url(#favRing)" stroke-width="5.0" stroke-linecap="round"/><line x1="10.0" y1="32.0" x2="16.4" y2="16.4" stroke="url(#favRing)" stroke-width="5.0" stroke-linecap="round"/><line x1="16.4" y1="16.4" x2="32.0" y2="10.0" stroke="url(#favRing)" stroke-width="5.0" stroke-linecap="round"/><line x1="32.0" y1="10.0" x2="47.6" y2="16.4" stroke="url(#favRing)" stroke-width="5.0" stroke-linecap="round"/><line x1="47.6" y1="16.4" x2="54.0" y2="32.0" stroke="url(#favRing)" stroke-width="5.0" stroke-linecap="round"/><rect x="29.5" y="16.5" width="5.0" height="31" rx="2.5" fill="url(#favRay)" transform="rotate(45 32.0 32.0)"/><rect x="29.5" y="16.5" width="5.0" height="31" rx="2.5" fill="url(#favRay)" transform="rotate(-45 32.0 32.0)"/><circle cx="55.5" cy="8.5" r="4.6" fill="url(#favNode)"/><circle cx="55.5" cy="8.5" r="7.5" fill="url(#favNodeHalo)"/><rect x="28.6" y="28.6" width="6.8" height="6.8" fill="url(#favCore)" transform="rotate(45 32.0 32.0)"/>
 </svg>

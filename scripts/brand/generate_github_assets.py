@@ -250,6 +250,27 @@ def _hex(h: str) -> tuple[int, int, int]:
     return (int(h[1:3], 16), int(h[3:5], 16), int(h[5:7], 16))
 
 
+def _mix_hex(a: str, b: str, t: float) -> str:
+    """Interpolate between two hex colors (t in 0..1)."""
+    ca, cb = _hex(a), _hex(b)
+    return "#{:02X}{:02X}{:02X}".format(*(int(ca[c] + (cb[c] - ca[c]) * t) for c in range(3)))
+
+
+def _grad_line(d: ImageDraw.ImageDraw, p0, p1, c0: str, c1: str, width: int, steps: int = 24):
+    """Line with a color gradient c0→c1 (drawn as stepped segments)."""
+    x0, y0 = p0
+    x1, y1 = p1
+    for i in range(steps):
+        t0 = i / steps
+        t1 = (i + 1) / steps
+        c = _mix_hex(c0, c1, (t0 + t1) / 2)
+        d.line(
+            (x0 + (x1 - x0) * t0, y0 + (y1 - y0) * t0, x0 + (x1 - x0) * t1, y0 + (y1 - y0) * t1),
+            fill=c,
+            width=width,
+        )
+
+
 def flatten(img: Image.Image, bg: str = BG) -> Image.Image:
     """Composite an RGBA canvas onto an opaque background (alpha-correct)."""
     base = Image.new("RGB", img.size, bg)
@@ -343,7 +364,7 @@ def render_lockup_premium(
     img = Image.new("RGBA", (w, h), bg or (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     mark_sz = h * 0.58
-    draw_mark(d, h * 0.6, h / 2, mark_sz, color=color)
+    draw_mark(d, h * 0.6, h / 2, mark_sz, color=color, img=img)
     f_own = display_font(int(h * 0.36), 700)
     own_x = h * 1.15
     own_y = h / 2 - 24
@@ -367,7 +388,7 @@ def render_mark_card(size: int, color: str, node: str, label: str, accent: str) 
     card_shadow(img, box, r=16, offset=(4, 8), blur=16, alpha=100)
     rr(d, box, r=16, fill=SURFACE, outline=HAIRLINE, width=1)
     mark_sz = card_h * 0.48
-    draw_mark(d, size // 2, size // 2 - 10, mark_sz, color=color, node=node)
+    draw_mark(d, size // 2, size // 2 - 10, mark_sz, color=color, node=node, img=img)
     f_lbl = font(11, 500)
     d.text((size // 2, size - pad - 24), label, font=f_lbl, fill=MUTED, anchor="mm")
     accent_bar_h = 3
@@ -413,7 +434,7 @@ def render_footer_lockup() -> Image.Image:
     d = ImageDraw.Draw(img)
     gradient_line(d, 120, 18, w - 120, ["#00000000", BLUE, CYAN, "#00000000"], width=2)
     mark_sz = 48
-    draw_mark(d, 80, h // 2, mark_sz, color=CYAN, node=BLUE)
+    draw_mark(d, 80, h // 2, mark_sz, color=CYAN, node=BLUE, img=img)
     f_own = display_font(28, 700)
     own_x = 100 + mark_sz
     own_y = h // 2 - 6
@@ -438,7 +459,7 @@ def render_hero_premium() -> Image.Image:
     d.line((0, 0, w, 0), fill="#262B35", width=1)
     corner_ticks(d, w, h)
     eyebrow(d, w, "PERSONAL AUTONOMOUS WORK OPERATING SYSTEM", 160, fs=22)
-    draw_mark(d, 770, 500, 360, color=CYAN, node=BLUE)
+    draw_mark(d, 770, 500, 360, color=CYAN, node=BLUE, img=img)
     gradient_text(img, (1045, 460), "OWNEX", display_font(170, 700), CYAN, EMERALD, tracking=2)
     d = ImageDraw.Draw(img)
     tracked_text(d, (1051, 582), "AUTONOMOUS WORK OPERATING SYSTEM", font(28), MUTED, tracking=16)
@@ -450,29 +471,87 @@ def render_hero_premium() -> Image.Image:
 
 
 # ---------------------------------------------------------------- logos ---
-def draw_mark(draw: ImageDraw.ImageDraw, cx, cy, size, color=CYAN, node=BLUE, w=None):
-    """O+X Aperture Nexus: octagonal ring + X rays + central node."""
+def draw_mark(draw: ImageDraw.ImageDraw, cx, cy, size, color=CYAN, node=BLUE, w=None, img=None):
+    """Premium O+X Aperture Nexus: halo, precision ring + ticks, gradient octagon,
+    X rays, inner fine octagon, core, node with glint (mirrors mark_svg)."""
     cx, cy, size = int(cx), int(cy), int(size)
     w = w or max(2, size // 22)
     r = size / 2
-    pts = []
-    for i in range(8):
+    lo = _mix_hex(color, "#FFFFFF", 0.06)
+    hi = _mix_hex(color, "#FFFFFF", 0.38)
+
+    def vtx(rad, i):
         a = math.radians(22.5 + i * 45)
-        pts.append((cx + r * math.cos(a), cy + r * math.sin(a)))
-    draw.polygon(pts, outline=color, width=w)
-    inner = [(cx + (x - cx) * 0.72, cy + (y - cy) * 0.72) for x, y in pts]
-    draw.polygon(inner, outline=color + "66", width=w)
-    n = size * 0.16
-    rr(draw, (cx - n, cy - n, cx + n, cy + n), r=3, fill=node)
-    draw.line((cx - r * 0.62, cy - r * 0.62, cx + r * 0.62, cy + r * 0.62), fill=color + "AA", width=w)
-    draw.line((cx - r * 0.62, cy + r * 0.62, cx + r * 0.62, cy - r * 0.62), fill=color + "AA", width=w)
+        return (cx + rad * math.cos(a), cy + rad * math.sin(a))
+
+    # halo behind everything
+    if img is not None and img.mode == "RGBA":
+        glow(img, draw, cx, cy, int(r * 1.35), node, peak=8, steps=18)
+
+    # outer precision octagon (thin) + vertex ticks
+    outer = [vtx(r * 1.17, i) for i in range(8)]
+    tw = max(1, w // 5)
+    for i in range(8):
+        draw.line((*outer[i], *outer[(i + 1) % 8]), fill=lo, width=tw)
+    tick = max(2, size * 0.012)
+    for px, py in outer:
+        draw.ellipse((px - tick, py - tick, px + tick, py + tick), fill=hi)
+
+    # main octagonal ring — 8 segments with a gap at the top-right
+    gap_deg = 34.0
+    gap_start = 45.0 - gap_deg / 2
+    ring = [vtx(r, i) for i in range(8)]
+    for i in range(8):
+        a0 = i * 45.0
+        a1 = a0 + 45.0
+        center = (a0 + a1) / 2
+        if abs(((center - gap_start + 180) % 360) - 180) < gap_deg / 2 + 5:
+            continue
+        c = _mix_hex(lo, hi, i / 7)  # angular gradient around the ring
+        x0, y0 = ring[i]
+        x1, y1 = ring[(i + 1) % 8]
+        draw.line((x0, y0, x1, y1), fill=c, width=w)
+        # round caps at both ends (matches SVG stroke-linecap="round")
+        rc = w / 2
+        for ex, ey in ((x0, y0), (x1, y1)):
+            draw.ellipse((ex - rc, ey - rc, ex + rc, ey + rc), fill=c)
+
+    # X rays (gradient along each bar)
+    ray = r * 0.8
+    _grad_line(draw, (cx - ray, cy - ray), (cx + ray, cy + ray), lo, hi, w)
+    _grad_line(draw, (cx - ray, cy + ray), (cx + ray, cy - ray), lo, hi, w)
+
+    # inner fine octagon
+    inner = [vtx(r * 0.66, i) for i in range(8)]
+    iw = max(1, w // 10)
+    for i in range(8):
+        draw.line((*inner[i], *inner[(i + 1) % 8]), fill=lo, width=iw)
+
+    # central core (rotated square, radial-ish gradient)
+    n = size * 0.055
+    core_pts = [(cx, cy - n), (cx + n, cy), (cx, cy + n), (cx - n, cy)]
+    draw.polygon(core_pts, fill=color)
+    for i in range(4):
+        draw.line((*core_pts[i], *core_pts[(i + 1) % 4]), fill=_mix_hex(color, hi, 0.5), width=max(1, w // 6))
+
+    # node breaking the ring (top-right): halo + body + glint
+    nx, ny = cx + r * 1.06 * math.cos(math.radians(45)), cy - r * 1.06 * math.sin(math.radians(45))
+    nr = max(2, int(w * 0.62))
+    if img is not None and img.mode == "RGBA":
+        glow(img, draw, int(nx), int(ny), int(nr * 2.6), node, peak=10, steps=14)
+    draw.ellipse((nx - nr, ny - nr, nx + nr, ny + nr), fill=node)
+    gl = max(1, int(nr * 0.32))
+    draw.ellipse(
+        (nx - nr * 0.25 - gl, ny - nr * 0.25 - gl, nx - nr * 0.25 + gl, ny - nr * 0.25 + gl),
+        fill=_mix_hex(node, "#FFFFFF", 0.6),
+    )
 
 
 def lockup(w, h, color=CYAN, bg: str | None = BG, text_color=TEXT, sub_color=MUTED):
     img = Image.new("RGBA", (w, h), bg or (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     mark_sz = h * 0.62
-    draw_mark(d, h * 0.62, h / 2, mark_sz, color=color)
+    draw_mark(d, h * 0.62, h / 2, mark_sz, color=color, img=img)
     f_own = display_font(int(h * 0.34), 700)
     own_x = h * 1.15
     own_y = h / 2 - 22
@@ -883,7 +962,7 @@ def render_surface(name: str, spec: dict) -> Image.Image:
 
     # sidebar
     rr(d, (0, 0, 220, h), r=0, fill=SURFACE)
-    draw_mark(d, 44, 42, 40, color=CYAN, node=BLUE)
+    draw_mark(d, 44, 42, 40, color=CYAN, node=BLUE, img=img)
     text(d, (70, 42), "OWNEX", display_font(18, 700), anchor="lm")
     for i, (label, _icon) in enumerate(SIDEBAR):
         sel = label.lower() in name or (name == "mission-control" and label == "Mission Control")
@@ -1267,7 +1346,7 @@ def render_hero(mode: str = "dark") -> Image.Image:
 
         eyebrow(d, w, "PERSONAL AUTONOMOUS WORK OPERATING SYSTEM", 175, fs=20, color="#5C6575", hair="#CDD3DE")
 
-        draw_mark(d, 770, 500, 360, color="#0EA5C9", node="#1E40FF")
+        draw_mark(d, 770, 500, 360, color="#0EA5C9", node="#1E40FF", img=img)
         gradient_text(img, (1045, 470), "OWNEX", display_font(170, 700), "#0D0F14", "#1E40FF")
         d = ImageDraw.Draw(img)
         tracked_text(d, (1051, 582), "AUTONOMOUS WORK OPERATING SYSTEM", font(28), "#4B5563", tracking=16)
@@ -1300,7 +1379,7 @@ def render_hero(mode: str = "dark") -> Image.Image:
 
     eyebrow(d, w, "PERSONAL AUTONOMOUS WORK OPERATING SYSTEM", 175, fs=20)
 
-    draw_mark(d, 770, 500, 360, color=CYAN, node=BLUE)
+    draw_mark(d, 770, 500, 360, color=CYAN, node=BLUE, img=img)
     gradient_text(img, (1045, 470), "OWNEX", display_font(170, 700), "#FFFFFF", "#8FD8FF")
     d = ImageDraw.Draw(img)
     tracked_text(d, (1051, 582), "AUTONOMOUS WORK OPERATING SYSTEM", font(28), "#8A93A3", tracking=16)
@@ -1329,7 +1408,7 @@ def render_og() -> Image.Image:
 
     eyebrow(d, w, "AUTONOMOUS WORK OPERATING SYSTEM", 120, fs=14)
 
-    draw_mark(d, 285, 345, 210, color=CYAN, node=BLUE)
+    draw_mark(d, 285, 345, 210, color=CYAN, node=BLUE, img=img)
     gradient_text(img, (445, 325), "OWNEX", display_font(88, 700), "#FFFFFF", "#8FD8FF")
     d = ImageDraw.Draw(img)
     tracked_text(d, (448, 385), "AUTONOMOUS WORK OPERATING SYSTEM", font(17), "#8A93A3", tracking=8)
@@ -1397,44 +1476,104 @@ ASSETS = {
 
 def mark_img(size: int, color: str, node: str, bg: str | None = None) -> Image.Image:
     img = Image.new("RGBA", (size, size), bg or (0, 0, 0, 0))
-    draw_mark(ImageDraw.Draw(img), size / 2, size / 2, size * 0.78, color=color, node=node)
+    draw_mark(ImageDraw.Draw(img), size / 2, size / 2, size * 0.78, color=color, node=node, img=img)
     return img
 
 
 def mark_svg(color: str, node: str = BLUE, size: int = 512) -> str:
-    """O+X Aperture Nexus mark as inline SVG (geometry shared with the logo pipeline)."""
+    """Premium O+X Aperture Nexus as inline SVG (mirror of the logo pipeline)."""
     r = 190.0
     cx = cy = 256.0
     stroke = 26.0
-    x1 = f'<rect x="{cx - stroke / 2}" y="{cy - r * 0.72}" width="{stroke}" height="{r * 1.44}" rx="{stroke / 2}" fill="{color}" transform="rotate(45 {cx} {cy})"/>'
-    x2 = f'<rect x="{cx - stroke / 2}" y="{cy - r * 0.72}" width="{stroke}" height="{r * 1.44}" rx="{stroke / 2}" fill="{color}" transform="rotate(-45 {cx} {cy})"/>'
-    n = 8
+    hi = _mix_hex(color, "#FFFFFF", 0.38)
+    lo = _mix_hex(color, "#FFFFFF", 0.06)
+
+    def vtx(radius: float, i: int) -> tuple[float, float]:
+        a = math.radians(22.5 + i * 45)
+        return (cx + radius * math.cos(a), cy + radius * math.sin(a))
+
+    outer = "".join(
+        f'<line x1="{vtx(r * 1.17, i)[0]:.1f}" y1="{vtx(r * 1.17, i)[1]:.1f}" '
+        f'x2="{vtx(r * 1.17, i + 1)[0]:.1f}" y2="{vtx(r * 1.17, i + 1)[1]:.1f}" '
+        f'stroke="{lo}" stroke-width="3" stroke-linecap="round"/>'
+        for i in range(8)
+    )
+    ticks = "".join(
+        f'<circle cx="{vtx(r * 1.17, i)[0]:.1f}" cy="{vtx(r * 1.17, i)[1]:.1f}" r="4" fill="{hi}" opacity="0.85"/>'
+        for i in range(8)
+    )
     gap_deg = 34.0
-    segments = []
     gap_start = 45.0 - gap_deg / 2
-    for i in range(n):
-        a0 = i * (360.0 / n)
-        a1 = a0 + (360.0 / n)
+    segments = []
+    for i in range(8):
+        a0 = i * (360.0 / 8)
+        a1 = a0 + (360.0 / 8)
         center = (a0 + a1) / 2
         if abs(((center - gap_start + 180) % 360) - 180) < gap_deg / 2 + 5:
             continue
-        x0 = cx + r * math.cos(math.radians(a0))
-        y0 = cy + r * math.sin(math.radians(a0))
-        x1p = cx + r * math.cos(math.radians(a1))
-        y1p = cy + r * math.sin(math.radians(a1))
+        x0, y0 = vtx(r, i)
+        x1p, y1p = vtx(r, i + 1)
         segments.append(
-            f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1p:.1f}" y2="{y1p:.1f}" stroke="{color}" stroke-width="{stroke}" stroke-linecap="round"/>'
+            f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1p:.1f}" y2="{y1p:.1f}" '
+            f'stroke="url(#markRingGrad)" stroke-width="{stroke}" stroke-linecap="round"/>'
         )
-    nx = cx + r * 1.06
-    ny = cy - r * 1.06
-    node_circle = f'<circle cx="{nx:.1f}" cy="{ny:.1f}" r="{stroke * 0.62:.1f}" fill="{node}"/>'
-    core = f'<rect x="{cx - 14}" y="{cy - 14}" width="28" height="28" fill="{color}" transform="rotate(45 {cx} {cy})"/>'
+    ray_len = r * 0.8
+    x1 = f'<rect x="{cx - stroke / 2}" y="{cy - ray_len}" width="{stroke}" height="{ray_len * 2}" rx="{stroke / 2}" fill="url(#markRayGrad)" transform="rotate(45 {cx} {cy})"/>'
+    x2 = f'<rect x="{cx - stroke / 2}" y="{cy - ray_len}" width="{stroke}" height="{ray_len * 2}" rx="{stroke / 2}" fill="url(#markRayGrad)" transform="rotate(-45 {cx} {cy})"/>'
+    inner = "".join(
+        f'<line x1="{vtx(r * 0.66, i)[0]:.1f}" y1="{vtx(r * 0.66, i)[1]:.1f}" '
+        f'x2="{vtx(r * 0.66, i + 1)[0]:.1f}" y2="{vtx(r * 0.66, i + 1)[1]:.1f}" '
+        f'stroke="{lo}" stroke-width="2.5" stroke-linecap="round"/>'
+        for i in range(8)
+    )
+    core = f'<rect x="{cx - 14}" y="{cy - 14}" width="28" height="28" fill="url(#markCoreGrad)" transform="rotate(45 {cx} {cy})"/>'
+    nx = cx + r * 1.06 * math.cos(math.radians(45))
+    ny = cy - r * 1.06 * math.sin(math.radians(45))
+    node_halo = f'<circle cx="{nx:.1f}" cy="{ny:.1f}" r="{stroke * 1.35:.1f}" fill="url(#markNodeHalo)" opacity="0.9"/>'
+    node_circle = f'<circle cx="{nx:.1f}" cy="{ny:.1f}" r="{stroke * 0.62:.1f}" fill="url(#markNodeGrad)"/>'
+    glint = (
+        f'<circle cx="{nx - stroke * 0.18:.1f}" cy="{ny - stroke * 0.18:.1f}" '
+        f'r="{stroke * 0.2:.1f}" fill="{_mix_hex(node, "#FFFFFF", 0.6)}" opacity="0.9"/>'
+    )
     return f"""<svg width="{size}" height="{size}" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <radialGradient id="markHalo" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="{color}" stop-opacity="0.16"/>
+    <stop offset="1" stop-color="{color}" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="markRingGrad" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="{lo}"/>
+    <stop offset="0.5" stop-color="{color}"/>
+    <stop offset="1" stop-color="{hi}"/>
+  </linearGradient>
+  <linearGradient id="markRayGrad" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="{lo}"/>
+    <stop offset="1" stop-color="{hi}"/>
+  </linearGradient>
+  <radialGradient id="markCoreGrad" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="{hi}"/>
+    <stop offset="1" stop-color="{color}"/>
+  </radialGradient>
+  <radialGradient id="markNodeHalo" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="{node}" stop-opacity="0.5"/>
+    <stop offset="1" stop-color="{node}" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="markNodeGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="{_mix_hex(node, "#FFFFFF", 0.55)}"/>
+    <stop offset="1" stop-color="{node}"/>
+  </linearGradient>
+</defs>
+<circle cx="{cx}" cy="{cy}" r="{r * 1.35:.0f}" fill="url(#markHalo)"/>
+{outer}
+{ticks}
 {"".join(segments)}
 {x1}
 {x2}
-{node_circle}
+{inner}
 {core}
+{node_halo}
+{node_circle}
+{glint}
 </svg>"""
 
 
