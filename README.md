@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="docs/assets/github/hero/hero-banner-dark.png?v=4" alt="OWNEX — Autonomous Work Operating System" width="100%"/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/github/hero/hero-banner-dark.png?v=5">
+    <img src="docs/assets/github/hero/hero-banner-light.png?v=5" alt="OWNEX — Autonomous Work Operating System" width="100%"/>
+  </picture>
 </p>
 
 <p align="center">
@@ -78,7 +81,7 @@ The human sits at the **decision gate**. The system does everything before and a
 > Central operational surface for monitoring opportunities, agents and active work.
 
 <p align="center">
-  <img src="docs/assets/github/desktop/mission-control.png" alt="Mission Control" width="100%"/>
+  <img src="docs/assets/github/desktop/mission-control.png?v=5" alt="Mission Control" width="100%"/>
 </p>
 
 **Endpoints:** [`GET /api/mission/status`](.ai/CURRENT_STATE.md), [`GET /api/activity`](docs/diagrams/architecture.mmd), [`POST /api/hunt/start`](.ai/ROADMAP.md)
@@ -87,28 +90,28 @@ The human sits at the **decision gate**. The system does everything before and a
 > Information processing and opportunity analysis surfaces — findings, hypotheses, evidence, confidence.
 
 <p align="center">
-  <img src="docs/assets/github/desktop/intelligence.png" alt="Intelligence" width="100%"/>
+  <img src="docs/assets/github/desktop/intelligence.png?v=5" alt="Intelligence" width="100%"/>
 </p>
 
 ### Targets 📍
 > Target intelligence and opportunity prioritization — scan queues, attack surface, prioritization.
 
 <p align="center">
-  <img src="docs/assets/github/desktop/targets.png" alt="Targets" width="100%"/>
+  <img src="docs/assets/github/desktop/targets.png?v=5" alt="Targets" width="100%"/>
 </p>
 
 ### Capital 💰
 > Revenue tracking and financial intelligence dashboard — USD/hour per platform, payout timelines, ROI.
 
 <p align="center">
-  <img src="docs/assets/github/desktop/capital.png" alt="Capital" width="100%"/>
+  <img src="docs/assets/github/desktop/capital.png?v=5" alt="Capital" width="100%"/>
 </p>
 
 ### MERLIN 🤖
 > AI assistant with persistent memory, intent analysis, Office Retro personality (`calm_operator`, local-first Piper TTS, native mic).
 
 <p align="center">
-  <img src="docs/assets/github/desktop/merlin.png" alt="MERLIN" width="100%"/>
+  <img src="docs/assets/github/desktop/merlin.png?v=5" alt="MERLIN" width="100%"/>
 </p>
 
 **API:** [`POST /api/voice/assistant`](.ai/CURRENT_STATE.md), `POST /direct-work/daily-companion`
@@ -117,37 +120,37 @@ The human sits at the **decision gate**. The system does everything before and a
 > Twelve departmental specialists — Security, Coding, QA, Debug, Documentation, Research, Product, Revenue, Automation, Infrastructure, Evolution, Orchestrator.
 
 <p align="center">
-  <img src="docs/assets/github/desktop/agents.png" alt="Agents" width="100%"/>
+  <img src="docs/assets/github/desktop/agents.png?v=5" alt="Agents" width="100%"/>
 </p>
 
 ### Reports 📊
 > Report generation, submission tracking, finder queues.
 
 <p align="center">
-  <img src="docs/assets/github/desktop/reports.png" alt="Reports" width="100%"/>
+  <img src="docs/assets/github/desktop/reports.png?v=5" alt="Reports" width="100%"/>
 </p>
 
 ### Settings ⚙️
 > System configuration, AI providers, credentials, scheduler, integrations.
 
 <p align="center">
-  <img src="docs/assets/github/desktop/settings.png" alt="Settings" width="100%"/>
+  <img src="docs/assets/github/desktop/settings.png?v=5" alt="Settings" width="100%"/>
 </p>
 
 ### Mobile (OMEGA) 📱
 > Native companion (Capacitor Android): home, agents, opportunities, MERLIN chat, notifications, watch sync.
 
 <p align="center">
-  <img src="docs/assets/github/mobile/omega-home.png" alt="OMEGA home" width="24%"/>
-  <img src="docs/assets/github/mobile/omega-agents.png" alt="OMEGA agents" width="24%"/>
-  <img src="docs/assets/github/mobile/omega-opportunities.png" alt="OMEGA opportunities" width="24%"/>
-  <img src="docs/assets/github/mobile/omega-merlin.png" alt="OMEGA MERLIN" width="24%"/>
+  <img src="docs/assets/github/mobile/omega-home.png?v=5" alt="OMEGA home" width="24%"/>
+  <img src="docs/assets/github/mobile/omega-agents.png?v=5" alt="OMEGA agents" width="24%"/>
+  <img src="docs/assets/github/mobile/omega-opportunities.png?v=5" alt="OMEGA opportunities" width="24%"/>
+  <img src="docs/assets/github/mobile/omega-merlin.png?v=5" alt="OMEGA MERLIN" width="24%"/>
 </p>
 <p align="center">
-  <img src="docs/assets/github/mobile/omega-notification.png" alt="OMEGA notifications" width="24%"/>
-  <img src="docs/assets/github/mobile/omega-opportunity-detail.png" alt="OMEGA opportunity detail" width="24%"/>
-  <img src="docs/assets/github/mobile/omega-settings.png" alt="OMEGA settings" width="24%"/>
-  <img src="docs/assets/github/mobile/omega-watch.png" alt="OMEGA watch" width="24%"/>
+  <img src="docs/assets/github/mobile/omega-notification.png?v=5" alt="OMEGA notifications" width="24%"/>
+  <img src="docs/assets/github/mobile/omega-opportunity-detail.png?v=5" alt="OMEGA opportunity detail" width="24%"/>
+  <img src="docs/assets/github/mobile/omega-settings.png?v=5" alt="OMEGA settings" width="24%"/>
+  <img src="docs/assets/github/mobile/omega-watch.png?v=5" alt="OMEGA watch" width="24%"/>
 </p>
 
 ---

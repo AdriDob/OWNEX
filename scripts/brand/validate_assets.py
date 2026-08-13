@@ -75,9 +75,10 @@ def main() -> None:
     def md5_of(p: Path) -> str:
         return md5(p.read_bytes()).hexdigest()
 
-    src = ROOT / "docs" / "assets" / "branding" / "social" / "ownex-social-preview.png"
+    src = ROOT / "docs" / "assets" / "github" / "social" / "og-image.png"
     dst = ROOT / ".github" / "social-preview.png"
     check(src.exists() and dst.exists() and md5_of(src) == md5_of(dst), "social-preview.png in sync")
+    check((ROOT / ".github" / "social-preview.svg").exists(), "social-preview.svg exists")
 
     print("Screenshots")
     shots = list((ROOT / "docs" / "assets" / "screenshots" / "desktop").glob("*.png"))
