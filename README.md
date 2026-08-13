@@ -599,14 +599,14 @@ docs/assets/screenshots/
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/github/logo/lockup-horizontal.png?v=3">
-    <img src="docs/assets/github/logo/lockup-horizontal-light.png?v=3" alt="OWNEX lockup" width="60%"/>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/github/logo/lockup-horizontal.png?v=4">
+    <img src="docs/assets/github/logo/lockup-horizontal-light.png?v=4" alt="OWNEX lockup" width="60%"/>
   </picture>
 </p>
 
 <p align="center">
-  <img src="docs/assets/github/logo/mark-aperture-alpha.png?v=3" alt="OWNEX mark (ALPHA)" width="140"/>
-  <img src="docs/assets/github/logo/mark-aperture-omega.png?v=3" alt="OWNEX mark (OMEGA)" width="140"/>
+  <img src="docs/assets/github/logo/mark-aperture-alpha.png?v=4" alt="OWNEX mark (ALPHA)" width="140"/>
+  <img src="docs/assets/github/logo/mark-aperture-omega.png?v=4" alt="OWNEX mark (OMEGA)" width="140"/>
 </p>
 
 **Color palette:**
@@ -672,8 +672,8 @@ OWNEX is a private competitive-advantage asset. It does **not** sell a service t
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/github/logo/lockup-horizontal.png?v=3">
-    <img src="docs/assets/github/logo/lockup-horizontal-light.png?v=3" alt="OWNEX" width="300"/>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/github/logo/lockup-horizontal.png?v=4">
+    <img src="docs/assets/github/logo/lockup-horizontal-light.png?v=4" alt="OWNEX" width="300"/>
   </picture>
 </p>
 
