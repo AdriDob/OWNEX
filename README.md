@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/github/hero/hero-banner-dark.png" alt="OWNEX — Autonomous Work Operating System" width="100%"/>
+  <img src="docs/assets/github/hero/hero-banner-dark.png?v=4" alt="OWNEX — Autonomous Work Operating System" width="100%"/>
 </p>
 
 <p align="center">
