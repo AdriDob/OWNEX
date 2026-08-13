@@ -155,6 +155,299 @@ def equalizer(draw: ImageDraw.ImageDraw, cx, cy, n=6, color=WHITE, w=10, gap=12,
         )
 
 
+# ---------------------------------------------------------- premium fx ---
+def gradient_bg(img: Image.Image, top: tuple[int, int, int], bottom: tuple[int, int, int]) -> ImageDraw.ImageDraw:
+    """Vertical gradient background; returns a fresh draw handle."""
+    w, h = img.size
+    d = ImageDraw.Draw(img)
+    for y in range(h):
+        t = y / h
+        d.line((0, y, w, y), fill=tuple(int(top[c] + (bottom[c] - top[c]) * t) for c in range(3)))
+    return ImageDraw.Draw(img)
+
+
+def glow(img: Image.Image, d: ImageDraw.ImageDraw, cx, cy, r, color: str, peak=10, steps=16):
+    """Soft radial glow via concentric alpha rings (no numpy/gpu)."""
+    for i in range(steps, 0, -1):
+        rr_i = r * i / steps
+        a = int(peak * ((1 - i / steps) ** 1.5))
+        if a <= 0:
+            continue
+        d.ellipse((cx - rr_i, cy - rr_i, cx + rr_i, cy + rr_i), fill=color + f"{a:02X}")
+
+
+def grid_faded(img: Image.Image, cx, cy, step=120, base=(13, 16, 22), peak=44):
+    """Grid that fades toward the focal point (premium depth)."""
+    w, h = img.size
+    ov = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    od = ImageDraw.Draw(ov)
+    for gx in range(0, w, step):
+        dist = abs(gx - cx)
+        a = int(peak * min(1.0, 0.22 + 0.78 * dist / (w * 0.5)))
+        od.line((gx, 0, gx, h), fill=base + (a,))
+    for gy in range(0, h, step):
+        dist = abs(gy - cy)
+        a = int(peak * min(1.0, 0.22 + 0.78 * dist / (h * 0.5)))
+        od.line((0, gy, w, gy), fill=base + (a,))
+    img.paste(ov, (0, 0), ov)
+
+
+def grain(img: Image.Image, seed: int, n=16000, alpha=7):
+    """Subtle film grain overlay (deterministic)."""
+    random.seed(seed)
+    w, h = img.size
+    ov = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    od = ImageDraw.Draw(ov)
+    for _ in range(n):
+        x = random.randrange(w)
+        y = random.randrange(h)
+        a = random.randint(max(alpha - 3, 1), alpha + 3)
+        od.point((x, y), fill=(255, 255, 255, a))
+    img.paste(ov, (0, 0), ov)
+
+
+def tracked_text(d: ImageDraw.ImageDraw, xy, s: str, f, fill, tracking=0, anchor="la"):
+    """Letter-spaced text (premium typography)."""
+    x, y = xy
+    if anchor == "mm":
+        total = sum(d.textlength(c, font=f) for c in s) + tracking * (len(s) - 1)
+        x -= total / 2
+    for c in s:
+        d.text((x, y), c, font=f, fill=fill, anchor="la")
+        x += d.textlength(c, font=f) + tracking
+
+
+def gradient_text(img: Image.Image, xy, s: str, f, top: str, bottom: str, anchor="lm", tracking=0):
+    """Text filled with a vertical gradient via luminance mask."""
+    mask = Image.new("L", img.size, 0)
+    md = ImageDraw.Draw(mask)
+    x, y = xy
+    if anchor == "mm":
+        total = sum(md.textlength(c, font=f) for c in s) + tracking * (len(s) - 1)
+        x -= total / 2
+        widths = []
+        for c in s:
+            widths.append(md.textlength(c, font=f))
+        x -= (total - sum(widths) - tracking * (len(s) - 1)) / 2  # keep mm centered exactly
+    for c in s:
+        md.text((x, y), c, font=f, fill=255, anchor="lm")
+        x += md.textlength(c, font=f) + tracking
+    bb = mask.getbbox()
+    if not bb:
+        return
+    x0, y0, x1, y1 = bb
+    grad = Image.new("RGB", img.size, bottom)
+    gd = ImageDraw.Draw(grad)
+    tc, bc = _hex(top), _hex(bottom)
+    for row in range(y0, y1 + 1):
+        t = (row - y0) / max(y1 - y0, 1)
+        gd.line((x0, row, x1, row), fill=tuple(int(tc[c] + (bc[c] - tc[c]) * t) for c in range(3)))
+    img.paste(grad, (0, 0), mask)
+
+
+def _hex(h: str) -> tuple[int, int, int]:
+    return (int(h[1:3], 16), int(h[3:5], 16), int(h[5:7], 16))
+
+
+def flatten(img: Image.Image, bg: str = BG) -> Image.Image:
+    """Composite an RGBA canvas onto an opaque background (alpha-correct)."""
+    base = Image.new("RGB", img.size, bg)
+    base.paste(img, (0, 0), img)
+    return base
+
+
+def corner_ticks(d: ImageDraw.ImageDraw, w, h, length=70, color="#2A2F3A"):
+    for tx, ty, dx, dy in ((0, 0, 1, 1), (w - 1, 0, -1, 1), (0, h - 1, 1, -1), (w - 1, h - 1, -1, -1)):
+        d.line((tx, ty, tx + dx * length, ty), fill=color, width=2)
+        d.line((tx, ty, tx, ty + dy * length), fill=color, width=2)
+
+
+def eyebrow(d: ImageDraw.ImageDraw, w, t: str, y, fs=20, color="#5C6575"):
+    """Centered mono eyebrow with hairline + status dot."""
+    f_ey = mono_font(fs)
+    ew = d.textlength(t, font=f_ey)
+    ex = (w - ew) // 2
+    wing = 300 if fs > 16 else 170
+    d.line((ex - wing, y - fs // 2, ex - 80, y - fs // 2), fill=HAIRLINE, width=1)
+    d.line((ex + ew + 80, y - fs // 2, ex + ew + wing, y - fs // 2), fill=HAIRLINE, width=1)
+    status_dot(d, w // 2, y - fs // 2, EMERALD)
+    d.text((ex, y), t, font=f_ey, fill=color, anchor="la")
+
+
+def hero_pills(d: ImageDraw.ImageDraw, w, pills, y, fs=20):
+    fch = font(fs, 600)
+    ws = [d.textlength(lbl, font=fch) + 52 for lbl, _ in pills]
+    gap = 26
+    total = sum(ws) + gap * (len(pills) - 1)
+    x = (w - total) // 2
+    for (lbl, c), ww in zip(pills, ws, strict=True):
+        rr(d, (x, y, x + ww, y + fs + 26), r=(fs + 26) // 2, fill=SURFACE, outline=HAIRLINE, width=1)
+        status_dot(d, x + 22, y + (fs + 26) // 2, c, 5)
+        d.text((x + 38, y + (fs + 26) // 2), lbl, font=fch, fill=TEXT, anchor="lm")
+        x += ww + gap
+
+
+# ---------------------------------------------------------- premium helpers ---
+def card_shadow(img: Image.Image, box, r=12, offset=(4, 4), blur=12, alpha=80):
+    """Soft shadow for premium cards (no numpy). Draws shadow on img."""
+    x0, y0, x1, y1 = box
+    w, h = x1 - x0, y1 - y0
+    ov = Image.new("RGBA", (w + offset[0] + blur * 2, h + offset[1] + blur * 2), (0, 0, 0, 0))
+    od = ImageDraw.Draw(ov)
+    for i in range(blur, 0, -1):
+        a = int(alpha * (1 - i / blur) ** 1.5)
+        if a <= 0:
+            continue
+        od.rounded_rectangle(
+            (i, i, w + i + offset[0], h + i + offset[1]),
+            radius=r,
+            fill=(0, 0, 0, a),
+        )
+    img.paste(ov, (x0 - blur, y0 - blur), ov)
+
+
+def gradient_line(d: ImageDraw.ImageDraw, x0, y, x1, colors: list[str], width=2):
+    """Horizontal gradient line: list of hex colors."""
+    segs = len(colors) - 1
+    if segs <= 0:
+        d.line((x0, y, x1, y), fill=colors[0], width=width)
+        return
+    step = (x1 - x0) / segs
+    for i in range(segs):
+        c0 = _hex(colors[i])
+        c1 = _hex(colors[i + 1])
+        sx = x0 + i * step
+        ex = x0 + (i + 1) * step
+        for px in range(int(sx), int(ex) + 1):
+            t = (px - sx) / (ex - sx) if ex != sx else 0
+            col = tuple(int(c0[c] + (c1[c] - c0[c]) * t) for c in range(3))
+            d.line((px, y, px, y + width - 1), fill=col)
+
+
+def premium_chip(d: ImageDraw.ImageDraw, x, y, label, color, fs=13):
+    """Premium chip: rgba fill + border + text."""
+    f = font(fs, 600)
+    w = d.textlength(label, font=f) + 24
+    r = (fs + 14) // 2
+    fill_col = color + "1F"
+    outline_col = color + "55"
+    rr(d, (x, y, x + w, y + fs + 14), r=r, fill=fill_col, outline=outline_col, width=1)
+    text(d, (x + 12, y + (fs + 14) // 2), label, f, fill=color, anchor="lm")
+
+
+def render_lockup_premium(
+    w: int, h: int, color=CYAN, bg: str | None = BG, text_color=TEXT, sub_color=MUTED
+) -> Image.Image:
+    """Premium lockup: mark + wordmark + tagline with refined metrics."""
+    img = Image.new("RGBA", (w, h), bg or (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    mark_sz = h * 0.58
+    draw_mark(d, h * 0.6, h / 2, mark_sz, color=color)
+    f_own = display_font(int(h * 0.36), 700)
+    own_x = h * 1.15
+    own_y = h / 2 - 24
+    d.text((own_x, own_y), "OWNEX", font=f_own, fill=text_color, anchor="lm")
+    f_tag = font(int(h * 0.11))
+    t = "AUTONOMOUS WORK OPERATING SYSTEM"
+    own_bbox = d.textbbox((own_x, own_y), "OWNEX", font=f_own, anchor="lm")
+    tag_y = own_bbox[3] + int(h * 0.06)
+    d.text((own_x, tag_y), t, font=f_tag, fill=sub_color, anchor="lt")
+    return img
+
+
+def render_mark_card(size: int, color: str, node: str, label: str, accent: str) -> Image.Image:
+    """Premium mark card: 160x160 surface card with mark, label, shadow."""
+    pad = 16
+    card_w = size - 2 * pad
+    card_h = size - 2 * pad
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    box = (pad, pad, pad + card_w, pad + card_h)
+    card_shadow(img, box, r=16, offset=(4, 8), blur=16, alpha=100)
+    rr(d, box, r=16, fill=SURFACE, outline=HAIRLINE, width=1)
+    mark_sz = card_h * 0.48
+    draw_mark(d, size // 2, size // 2 - 10, mark_sz, color=color, node=node)
+    f_lbl = font(11, 500)
+    d.text((size // 2, size - pad - 24), label, font=f_lbl, fill=MUTED, anchor="mm")
+    accent_bar_h = 3
+    d.rounded_rectangle(
+        (pad + 20, size - pad - 8, size - pad - 20, size - pad - 8 + accent_bar_h), radius=1, fill=accent
+    )
+    return img
+
+
+def render_deliverables_grid() -> Image.Image:
+    """Composite: 3 mark cards + wide lockup card in a grid."""
+    w, h = 1600, 520
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    card_w = 240
+    card_h = 440
+    gap = 40
+    start_x = (w - 3 * card_w - 2 * gap) // 2
+    y0 = (h - card_h) // 2
+    for i, (label, color, node, accent) in enumerate(
+        [
+            ("ALPHA", CYAN, BLUE, CYAN),
+            ("OMEGA", EMERALD, CYAN, EMERALD),
+            ("MONO", WHITE, WHITE, MUTED),
+        ]
+    ):
+        x = start_x + i * (card_w + gap)
+        card_img = render_mark_card(card_h, color, node, label, accent)
+        img.paste(card_img, (x, y0), card_img)
+    lockup_w = w - 2 * start_x
+    lockup_h = 160
+    lockup_img = render_lockup_premium(lockup_w, lockup_h, color=CYAN, bg=SURFACE, text_color=TEXT, sub_color=MUTED)
+    lx = start_x
+    ly = y0 + card_h + 20
+    card_shadow(img, (lx, ly, lx + lockup_w, ly + lockup_h), r=16, offset=(4, 8), blur=16, alpha=100)
+    img.paste(lockup_img, (lx, ly), lockup_img)
+    return img
+
+
+def render_footer_lockup() -> Image.Image:
+    """Footer: gradient separator + compact single-line lockup."""
+    w, h = 1600, 120
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    gradient_line(d, 120, 18, w - 120, ["#00000000", BLUE, CYAN, "#00000000"], width=2)
+    mark_sz = 48
+    draw_mark(d, 80, h // 2, mark_sz, color=CYAN, node=BLUE)
+    f_own = display_font(28, 700)
+    own_x = 100 + mark_sz
+    own_y = h // 2 - 6
+    d.text((own_x, own_y), "OWNEX", font=f_own, fill=TEXT, anchor="lm")
+    f_tag = font(11)
+    t = "AUTONOMOUS WORK OPERATING SYSTEM"
+    d.text((own_x + 180, own_y + 4), t, font=f_tag, fill=MUTED, anchor="lm")
+    return img
+
+
+def render_hero_premium() -> Image.Image:
+    """Premium hero: radial depth, cyan→emerald wordmark, premium chips, decorative line."""
+    w, h = 2400, 900
+    img = Image.new("RGBA", (w, h), _hex(BG) + (255,))
+    d = gradient_bg(img, (5, 6, 10), (10, 13, 19))
+    glow(img, d, w // 2, 200, 950, BLUE, peak=8, steps=24)
+    glow(img, d, 700, 480, 550, CYAN, peak=6, steps=22)
+    glow(img, d, w - 700, 480, 550, EMERALD, peak=5, steps=20)
+    grid_faded(img, w // 2, h // 2)
+    grain(img, seed=20260812, n=20000, alpha=8)
+    d = ImageDraw.Draw(img)
+    d.line((0, 0, w, 0), fill="#262B35", width=1)
+    corner_ticks(d, w, h)
+    eyebrow(d, w, "PERSONAL AUTONOMOUS WORK OPERATING SYSTEM", 160, fs=22)
+    draw_mark(d, 770, 500, 360, color=CYAN, node=BLUE)
+    gradient_text(img, (1045, 460), "OWNEX", display_font(170, 700), CYAN, EMERALD, tracking=2)
+    d = ImageDraw.Draw(img)
+    tracked_text(d, (1051, 582), "AUTONOMOUS WORK OPERATING SYSTEM", font(28), MUTED, tracking=16)
+    gradient_line(d, 1051, 650, 1051 + 760, ["#00000000", BLUE, CYAN, EMERALD, "#00000000"], width=2)
+    premium_chip(d, 1051, 680, "100% LOCAL · NO CLOUD", EMERALD, fs=16)
+    premium_chip(d, 1051 + 280 + 24, 680, "135 CURATED SOURCES", CYAN, fs=16)
+    premium_chip(d, 1051 + 280 + 24 + 300 + 24, 680, "28 CRON JOBS · 7 CYCLES", BLUE, fs=16)
+    return img.convert("RGB")
+
+
 # ---------------------------------------------------------------- logos ---
 def draw_mark(draw: ImageDraw.ImageDraw, cx, cy, size, color=CYAN, node=BLUE, w=None):
     """O+X Aperture Nexus: octagonal ring + X rays + central node."""
@@ -914,28 +1207,61 @@ def render_architecture(name: str) -> Image.Image:
 # --------------------------------------------------------------- hero ---
 def render_hero(mode: str = "dark") -> Image.Image:
     w, h = 2400, 900
-    img = Image.new("RGB", (w, h), BG)
+    img = Image.new("RGBA", (w, h), _hex(BG) + (255,))
+    d = gradient_bg(img, (5, 6, 10), (10, 13, 19))
+    glow(img, d, w // 2, 240, 900, BLUE, peak=40, steps=22)
+    glow(img, d, 780, 500, 500, CYAN, peak=30, steps=20)
+    grid_faded(img, w // 2, h // 2)
+    grain(img, seed=20260812, n=18000, alpha=7)
     d = ImageDraw.Draw(img)
-    # subtle grid
-    for gx in range(0, w, 120):
-        d.line((gx, 0, gx, h), fill="#0A0C11", width=1)
-    for gy in range(0, h, 120):
-        d.line((0, gy, w, gy), fill="#0A0C11", width=1)
+    d.line((0, 0, w, 0), fill="#262B35", width=1)
+    corner_ticks(d, w, h)
 
-    # centered brand lockup
-    cx = w // 2
-    draw_mark(d, cx - 470, h // 2 - 150, 300, color=CYAN, node=BLUE)
-    text(d, (cx + 120, h // 2 - 150), "OWNEX", display_font(150, 700), anchor="lm")
-    text(d, (cx + 122, h // 2 + 60), "AUTONOMOUS WORK OPERATING SYSTEM", font(34), fill=MUTED, anchor="lm")
+    eyebrow(d, w, "PERSONAL AUTONOMOUS WORK OPERATING SYSTEM", 175, fs=20)
 
-    chip(d, cx - 210, h - 150, "100% local · no cloud · no telemetry", EMERALD, 18)
-    chip(d, cx + 40, h - 150, "bug bounty · dev bounty · AI work · wealth", CYAN, 18)
-    return img
+    draw_mark(d, 770, 500, 360, color=CYAN, node=BLUE)
+    gradient_text(img, (1045, 470), "OWNEX", display_font(170, 700), "#FFFFFF", "#8FD8FF")
+    d = ImageDraw.Draw(img)
+    tracked_text(d, (1051, 582), "AUTONOMOUS WORK OPERATING SYSTEM", font(28), "#8A93A3", tracking=16)
+    d.line((1051, 650, 1051 + 760, 650), fill=HAIRLINE, width=1)
+
+    hero_pills(
+        d,
+        w,
+        [("100% LOCAL · NO CLOUD", EMERALD), ("135 CURATED SOURCES", CYAN), ("28 CRON JOBS · 7 CYCLES", BLUE)],
+        h - 120,
+    )
+    return flatten(img)
 
 
 def render_og() -> Image.Image:
-    img = render_hero()
-    return img.resize((1200, 630), Image.Resampling.LANCZOS)
+    w, h = 1200, 630
+    img = Image.new("RGBA", (w, h), _hex(BG) + (255,))
+    d = gradient_bg(img, (5, 6, 10), (10, 13, 19))
+    glow(img, d, w // 2, 165, 480, BLUE, peak=34, steps=18)
+    glow(img, d, 275, 345, 300, CYAN, peak=26, steps=16)
+    grid_faded(img, w // 2, h // 2, step=90)
+    grain(img, seed=20260813, n=9000, alpha=6)
+    d = ImageDraw.Draw(img)
+    d.line((0, 0, w, 0), fill="#262B35", width=1)
+    corner_ticks(d, w, h, length=45, color="#232832")
+
+    eyebrow(d, w, "AUTONOMOUS WORK OPERATING SYSTEM", 120, fs=14)
+
+    draw_mark(d, 285, 345, 210, color=CYAN, node=BLUE)
+    gradient_text(img, (445, 325), "OWNEX", display_font(88, 700), "#FFFFFF", "#8FD8FF")
+    d = ImageDraw.Draw(img)
+    tracked_text(d, (448, 385), "AUTONOMOUS WORK OPERATING SYSTEM", font(17), "#8A93A3", tracking=8)
+    d.line((448, 428, 448 + 430, 428), fill=HAIRLINE, width=1)
+
+    hero_pills(
+        d,
+        w,
+        [("100% LOCAL · NO CLOUD", EMERALD), ("28 JOBS · 7 CYCLES", CYAN)],
+        h - 118,
+        fs=14,
+    )
+    return flatten(img)
 
 
 # ----------------------------------------------------------------- main ---
@@ -950,14 +1276,31 @@ def make_mobile_renderer(name: str, spec: dict) -> Callable[[], Image.Image]:
 ASSETS = {
     "hero": {
         "hero-banner-dark.png": lambda: render_hero("dark"),
+        "hero-premium.png": lambda: render_hero_premium(),
     },
     "logo": {
         "lockup-horizontal.png": lambda: lockup(2048, 512),
         "lockup-horizontal-light.png": lambda: lockup(2048, 512, bg=None, text_color="#0D0F14", sub_color="#4B5563"),
+        "lockup-premium-dark.png": lambda: render_lockup_premium(2048, 512),
+        "lockup-premium-light.png": lambda: render_lockup_premium(
+            2048, 512, bg=None, text_color="#0D0F14", sub_color="#4B5563"
+        ),
         "mark-aperture-alpha.png": lambda: mark_img(1024, CYAN, BLUE, bg=None),
         "mark-aperture-omega.png": lambda: mark_img(1024, EMERALD, CYAN, bg=None),
         "mark-mono-white.png": lambda: mark_img(1024, WHITE, WHITE, bg=None),
         "mark-mono-black.png": lambda: mark_img(1024, "#0D0F14", "#0D0F14", bg=None),
+    },
+    "deliverables": {
+        "mark-card-alpha.png": lambda: render_mark_card(200, CYAN, BLUE, "ALPHA", CYAN),
+        "mark-card-omega.png": lambda: render_mark_card(200, EMERALD, CYAN, "OMEGA", EMERALD),
+        "mark-card-mono.png": lambda: render_mark_card(200, WHITE, WHITE, "MONO", MUTED),
+        "lockup-card.png": lambda: render_lockup_premium(
+            1200, 160, color=CYAN, bg=SURFACE, text_color=TEXT, sub_color=MUTED
+        ),
+        "deliverables-grid.png": lambda: render_deliverables_grid(),
+    },
+    "footer": {
+        "footer-lockup.png": lambda: render_footer_lockup(),
     },
     "desktop": {f"{name}.png": make_surface_renderer(name, spec) for name, spec in SURFACE_CONTENT.items()},
     "mobile": {f"{name}.png": make_mobile_renderer(name, spec) for name, spec in MOBILE_SCREENS.items()},
