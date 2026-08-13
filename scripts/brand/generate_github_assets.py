@@ -16,6 +16,7 @@ from __future__ import annotations
 import math
 import os
 import random
+import shutil
 from collections.abc import Callable
 from pathlib import Path
 
@@ -192,7 +193,7 @@ def grid_faded(img: Image.Image, cx, cy, step=120, base=(13, 16, 22), peak=44):
     img.paste(ov, (0, 0), ov)
 
 
-def grain(img: Image.Image, seed: int, n=16000, alpha=7):
+def grain(img: Image.Image, seed: int, n=16000, alpha=7, color=(255, 255, 255)):
     """Subtle film grain overlay (deterministic)."""
     random.seed(seed)
     w, h = img.size
@@ -202,7 +203,7 @@ def grain(img: Image.Image, seed: int, n=16000, alpha=7):
         x = random.randrange(w)
         y = random.randrange(h)
         a = random.randint(max(alpha - 3, 1), alpha + 3)
-        od.point((x, y), fill=(255, 255, 255, a))
+        od.point((x, y), fill=color + (a,))
     img.paste(ov, (0, 0), ov)
 
 
@@ -262,28 +263,28 @@ def corner_ticks(d: ImageDraw.ImageDraw, w, h, length=70, color="#2A2F3A"):
         d.line((tx, ty, tx, ty + dy * length), fill=color, width=2)
 
 
-def eyebrow(d: ImageDraw.ImageDraw, w, t: str, y, fs=20, color="#5C6575"):
+def eyebrow(d: ImageDraw.ImageDraw, w, t: str, y, fs=20, color="#5C6575", hair=HAIRLINE, dot=EMERALD):
     """Centered mono eyebrow with hairline + status dot."""
     f_ey = mono_font(fs)
     ew = d.textlength(t, font=f_ey)
     ex = (w - ew) // 2
     wing = 300 if fs > 16 else 170
-    d.line((ex - wing, y - fs // 2, ex - 80, y - fs // 2), fill=HAIRLINE, width=1)
-    d.line((ex + ew + 80, y - fs // 2, ex + ew + wing, y - fs // 2), fill=HAIRLINE, width=1)
-    status_dot(d, w // 2, y - fs // 2, EMERALD)
+    d.line((ex - wing, y - fs // 2, ex - 80, y - fs // 2), fill=hair, width=1)
+    d.line((ex + ew + 80, y - fs // 2, ex + ew + wing, y - fs // 2), fill=hair, width=1)
+    status_dot(d, w // 2, y - fs // 2, dot)
     d.text((ex, y), t, font=f_ey, fill=color, anchor="la")
 
 
-def hero_pills(d: ImageDraw.ImageDraw, w, pills, y, fs=20):
+def hero_pills(d: ImageDraw.ImageDraw, w, pills, y, fs=20, fill=SURFACE, outline=HAIRLINE, tcol=TEXT):
     fch = font(fs, 600)
     ws = [d.textlength(lbl, font=fch) + 52 for lbl, _ in pills]
     gap = 26
     total = sum(ws) + gap * (len(pills) - 1)
     x = (w - total) // 2
     for (lbl, c), ww in zip(pills, ws, strict=True):
-        rr(d, (x, y, x + ww, y + fs + 26), r=(fs + 26) // 2, fill=SURFACE, outline=HAIRLINE, width=1)
+        rr(d, (x, y, x + ww, y + fs + 26), r=(fs + 26) // 2, fill=fill, outline=outline, width=1)
         status_dot(d, x + 22, y + (fs + 26) // 2, c, 5)
-        d.text((x + 38, y + (fs + 26) // 2), lbl, font=fch, fill=TEXT, anchor="lm")
+        d.text((x + 38, y + (fs + 26) // 2), lbl, font=fch, fill=tcol, anchor="lm")
         x += ww + gap
 
 
@@ -1205,8 +1206,88 @@ def render_architecture(name: str) -> Image.Image:
 
 
 # --------------------------------------------------------------- hero ---
+def frame_surface(img: Image.Image, pad=56, radius=20) -> Image.Image:
+    """Premium frame for desktop surface renders: backdrop + rounded app window."""
+    w, h = img.size
+    cw, ch = w + pad * 2, h + pad * 2
+    canvas = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
+    d = gradient_bg(canvas, (7, 8, 13), (4, 5, 8))
+    glow(canvas, d, cw // 2, 0, int(cw * 0.55), BLUE, peak=9, steps=20)
+    glow(canvas, d, cw // 2, ch, int(cw * 0.4), CYAN, peak=5, steps=16)
+    grid_faded(canvas, cw // 2, ch // 2, step=140, base=(13, 16, 22), peak=26)
+    grain(canvas, seed=20260814, n=14000, alpha=6)
+
+    box = (pad, pad, pad + w, pad + h)
+    card_shadow(canvas, box, r=radius, offset=(0, 26), blur=46, alpha=160)
+    mask = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, w, h), radius=radius, fill=255)
+    canvas.paste(img, (pad, pad), mask)
+    dd = ImageDraw.Draw(canvas)
+    dd.rounded_rectangle(box, radius=radius, outline=HAIRLINE, width=2)
+    dd.rounded_rectangle(box, radius=radius, outline="#0A0C11", width=1)
+    return canvas
+
+
+def frame_device(img: Image.Image, pad=40, radius=72) -> Image.Image:
+    """Premium device frame: dark bezel + screen inset + soft floor shadow."""
+    w, h = img.size
+    cw = w + pad * 2
+    ch = h + pad * 2
+    canvas = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
+    d = gradient_bg(canvas, (7, 8, 13), (3, 4, 7))
+    glow(canvas, d, cw // 2, 0, int(cw * 0.6), CYAN, peak=6, steps=18)
+    grid_faded(canvas, cw // 2, ch // 2, step=100, base=(13, 16, 22), peak=24)
+    grain(canvas, seed=20260815, n=10000, alpha=5)
+
+    bezel = (pad - 6, pad - 6, pad + w + 6, pad + h + 6)
+    card_shadow(canvas, bezel, r=radius + 6, offset=(0, 30), blur=50, alpha=170)
+    ImageDraw.Draw(canvas).rounded_rectangle(bezel, radius=radius + 6, fill="#000000", outline="#262B35", width=4)
+
+    mask = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, w, h), radius=radius, fill=255)
+    canvas.paste(img, (pad, pad), mask)
+    dd = ImageDraw.Draw(canvas)
+    dd.rounded_rectangle((pad, pad, pad + w, pad + h), radius=radius, outline=HAIRLINE, width=2)
+    return canvas
+
+
 def render_hero(mode: str = "dark") -> Image.Image:
     w, h = 2400, 900
+    if mode == "light":
+        light_bg = "#F4F6F9"
+        img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        d = gradient_bg(img, (250, 251, 253), (227, 232, 240))
+        glow(img, d, w // 2, 240, 900, "#1E40FF", peak=14, steps=22)
+        glow(img, d, 780, 500, 500, "#0EA5C9", peak=10, steps=20)
+        grid_faded(img, w // 2, h // 2, base=(203, 210, 222), peak=38)
+        grain(img, seed=20260813, n=14000, alpha=5, color=(24, 29, 40))
+        d = ImageDraw.Draw(img)
+        d.line((0, 0, w, 0), fill="#D5DAE3", width=1)
+        corner_ticks(d, w, h, color="#C3CAD6")
+
+        eyebrow(d, w, "PERSONAL AUTONOMOUS WORK OPERATING SYSTEM", 175, fs=20, color="#5C6575", hair="#CDD3DE")
+
+        draw_mark(d, 770, 500, 360, color="#0EA5C9", node="#1E40FF")
+        gradient_text(img, (1045, 470), "OWNEX", display_font(170, 700), "#0D0F14", "#1E40FF")
+        d = ImageDraw.Draw(img)
+        tracked_text(d, (1051, 582), "AUTONOMOUS WORK OPERATING SYSTEM", font(28), "#4B5563", tracking=16)
+        d.line((1051, 650, 1051 + 760, 650), fill="#CDD3DE", width=1)
+
+        hero_pills(
+            d,
+            w,
+            [
+                ("100% LOCAL · NO CLOUD", "#00A37A"),
+                ("135 CURATED SOURCES", "#0EA5C9"),
+                ("28 CRON JOBS · 7 CYCLES", "#1E40FF"),
+            ],
+            h - 120,
+            fill="#FFFFFF",
+            outline="#D5DAE3",
+            tcol="#0D0F14",
+        )
+        return flatten(img, bg=light_bg)
+
     img = Image.new("RGBA", (w, h), _hex(BG) + (255,))
     d = gradient_bg(img, (5, 6, 10), (10, 13, 19))
     glow(img, d, w // 2, 240, 900, BLUE, peak=40, steps=22)
@@ -1266,16 +1347,17 @@ def render_og() -> Image.Image:
 
 # ----------------------------------------------------------------- main ---
 def make_surface_renderer(name: str, spec: dict) -> Callable[[], Image.Image]:
-    return lambda: render_surface(name, spec)
+    return lambda: frame_surface(render_surface(name, spec))
 
 
 def make_mobile_renderer(name: str, spec: dict) -> Callable[[], Image.Image]:
-    return lambda: render_mobile(name, spec)
+    return lambda: frame_device(render_mobile(name, spec))
 
 
 ASSETS = {
     "hero": {
         "hero-banner-dark.png": lambda: render_hero("dark"),
+        "hero-banner-light.png": lambda: render_hero("light"),
         "hero-premium.png": lambda: render_hero_premium(),
     },
     "logo": {
@@ -1319,6 +1401,96 @@ def mark_img(size: int, color: str, node: str, bg: str | None = None) -> Image.I
     return img
 
 
+def mark_svg(color: str, node: str = BLUE, size: int = 512) -> str:
+    """O+X Aperture Nexus mark as inline SVG (geometry shared with the logo pipeline)."""
+    r = 190.0
+    cx = cy = 256.0
+    stroke = 26.0
+    x1 = f'<rect x="{cx - stroke / 2}" y="{cy - r * 0.72}" width="{stroke}" height="{r * 1.44}" rx="{stroke / 2}" fill="{color}" transform="rotate(45 {cx} {cy})"/>'
+    x2 = f'<rect x="{cx - stroke / 2}" y="{cy - r * 0.72}" width="{stroke}" height="{r * 1.44}" rx="{stroke / 2}" fill="{color}" transform="rotate(-45 {cx} {cy})"/>'
+    n = 8
+    gap_deg = 34.0
+    segments = []
+    gap_start = 45.0 - gap_deg / 2
+    for i in range(n):
+        a0 = i * (360.0 / n)
+        a1 = a0 + (360.0 / n)
+        center = (a0 + a1) / 2
+        if abs(((center - gap_start + 180) % 360) - 180) < gap_deg / 2 + 5:
+            continue
+        x0 = cx + r * math.cos(math.radians(a0))
+        y0 = cy + r * math.sin(math.radians(a0))
+        x1p = cx + r * math.cos(math.radians(a1))
+        y1p = cy + r * math.sin(math.radians(a1))
+        segments.append(
+            f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1p:.1f}" y2="{y1p:.1f}" stroke="{color}" stroke-width="{stroke}" stroke-linecap="round"/>'
+        )
+    nx = cx + r * 1.06
+    ny = cy - r * 1.06
+    node_circle = f'<circle cx="{nx:.1f}" cy="{ny:.1f}" r="{stroke * 0.62:.1f}" fill="{node}"/>'
+    core = f'<rect x="{cx - 14}" y="{cy - 14}" width="28" height="28" fill="{color}" transform="rotate(45 {cx} {cy})"/>'
+    return f"""<svg width="{size}" height="{size}" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+{"".join(segments)}
+{x1}
+{x2}
+{node_circle}
+{core}
+</svg>"""
+
+
+def social_preview_svg() -> str:
+    """Premium social preview SVG, coherent with the render_og() PNG.
+
+    Same composition: Aperture Nexus mark + OWNEX wordmark + eyebrow + pills
+    on a Tesla-dark gradient with soft glows. Rendered by GitHub when the
+    PNG is unavailable (e.g. some chat clients use the SVG directly).
+    """
+    grid_lines = []
+    for x in range(0, 1201, 80):
+        grid_lines.append(f'<line x1="{x}" y1="0" x2="{x}" y2="630" stroke="rgba(28,32,40,0.45)" stroke-width="1"/>')
+    for y in range(0, 631, 80):
+        grid_lines.append(f'<line x1="0" y1="{y}" x2="1200" y2="{y}" stroke="rgba(28,32,40,0.45)" stroke-width="1"/>')
+
+    mark = mark_svg("#F6F8FB", "#1E40FF", size=512)
+    return f"""<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#05060A"/>
+    <stop offset="1" stop-color="#0C0F1A"/>
+  </linearGradient>
+  <radialGradient id="glowBlue" cx="0.22" cy="0.18" r="0.65">
+    <stop offset="0" stop-color="rgba(30,64,255,0.32)"/>
+    <stop offset="1" stop-color="rgba(30,64,255,0)"/>
+  </radialGradient>
+  <radialGradient id="glowCyan" cx="0.78" cy="0.88" r="0.6">
+    <stop offset="0" stop-color="rgba(0,213,255,0.14)"/>
+    <stop offset="1" stop-color="rgba(0,213,255,0)"/>
+  </radialGradient>
+  <linearGradient id="titleText" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#F6F8FB"/>
+    <stop offset="1" stop-color="#8FD8FF"/>
+  </linearGradient>
+</defs>
+<rect width="1200" height="630" fill="url(#bg)"/>
+<rect width="1200" height="630" fill="url(#glowBlue)"/>
+<rect width="1200" height="630" fill="url(#glowCyan)"/>
+<g opacity="0.5">{"".join(grid_lines)}</g>
+<rect x="72" y="62" width="1056" height="1" fill="#1C2028" opacity="0.7"/>
+<g transform="translate(190, 155) scale(0.62)">{mark}</g>
+<circle cx="560" cy="318" r="3.5" fill="#00E39A"/>
+<text x="576" y="324" font-family="'JetBrains Mono','DejaVu Sans Mono',monospace" font-size="16" font-weight="500" letter-spacing="6" fill="#8A93A3">AUTONOMOUS WORK OPERATING SYSTEM</text>
+<text x="558" y="402" font-family="'Space Grotesk','Inter',sans-serif" font-size="104" font-weight="700" letter-spacing="-4" fill="url(#titleText)">OWNEX</text>
+<text x="560" y="448" font-family="'JetBrains Mono','DejaVu Sans Mono',monospace" font-size="15" letter-spacing="3" fill="#8A93A3">DISCOVER · ANALYZE · VALIDATE · EARN</text>
+<rect x="560" y="470" width="520" height="1" fill="#1C2028"/>
+<g font-family="'JetBrains Mono','DejaVu Sans Mono',monospace" font-size="14" letter-spacing="2">
+  <circle cx="560" cy="508" r="2.5" fill="#00E39A"/>
+  <text x="572" y="513" fill="#00E39A">100% LOCAL · NO CLOUD</text>
+  <circle cx="852" cy="508" r="2.5" fill="#00D5FF"/>
+  <text x="864" y="513" fill="#00D5FF">7 WORK CYCLES · 28 JOBS</text>
+</g>
+</svg>"""
+
+
 def main() -> None:
     os.makedirs(OUT, exist_ok=True)
     total = 0
@@ -1334,6 +1506,13 @@ def main() -> None:
             kb = os.path.getsize(outdir / fname) / 1024
             print(f"  ✓ {folder}/{fname}  {img.size[0]}×{img.size[1]}  {kb:.0f}KB")
             total += 1
+
+    gh = ROOT / ".github"
+    gh.mkdir(exist_ok=True)
+    shutil.copyfile(OUT / "social" / "og-image.png", gh / "social-preview.png")
+    (gh / "social-preview.svg").write_text(social_preview_svg())
+    print("  ✓ .github/social-preview.png (synced to premium OG render)")
+    print("  ✓ .github/social-preview.svg (premium, generated)")
     print(f"\nGenerated {total} assets in {OUT}")
 
 
