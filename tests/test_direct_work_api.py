@@ -97,6 +97,8 @@ class TestDirectWorkApi:
         assert ranked[0]["opportunity"]["id"] == "op-a"
         assert ranked[0]["overall_recommendation_score"] >= ranked[1]["overall_recommendation_score"]
         assert "strategy" in ranked[0]
+        assert "payment_compat_score" in ranked[0]
+        assert "payment_compat_notes" in ranked[0]
 
     def test_learn_folds_outcomes_into_profile(self) -> None:
         payload = {

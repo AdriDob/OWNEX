@@ -256,6 +256,8 @@ def _ranked_to_dict(ranked: RankedOpportunity) -> dict[str, Any]:
         "overall_recommendation_score": ranked.overall_recommendation_score,
         "strategy": ranked.strategy,
         "recommendation_reasoning": ranked.recommendation_reasoning,
+        "payment_compat_score": ranked.payment_compat_score,
+        "payment_compat_notes": ranked.payment_compat_notes,
         "payout_method": payout_method,
         "payout_method_rationale": payout_method_rationale,
     }
