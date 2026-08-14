@@ -365,7 +365,7 @@ ARGENTINA_PAYOUT_METHODS: list[PayoutMethod] = [
         routes=["Plataforma → dLocal → Banco AR"],
         pros=["Soporte LatAm", "Múltiples bancos", "Confiabilidad"],
         cons=["Comisiones altas", "Pocas plataformas"],
-        minimum_withraft=20.0,
+        minimum_withdrawal=20.0,
         maximum_withdrawal=50000.0,
         notes="Buen gateway regional.",
         reliability_score=80,
@@ -937,7 +937,7 @@ ARGENTINA_PAYOUT_METHODS: list[PayoutMethod] = [
         reliability_score=73,
     ),
     PayoutMethod(
-        _id="brubank",
+        id="brubank",
         name="Brubank",
         type=PayoutMethodType.FINTECH,
         kyc_level=KYCLevel.STANDARD,
