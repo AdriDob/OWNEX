@@ -319,3 +319,5 @@ class RankedOpportunity:
     recommendation_reasoning: list[str] = field(default_factory=list)
     strategy: str | None = None
     discovered_at: str = ""
+    payment_compat_score: float = 100.0
+    payment_compat_notes: list[str] = field(default_factory=list)
