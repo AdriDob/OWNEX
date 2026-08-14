@@ -525,6 +525,24 @@ def get_evolution_jobs() -> list[JobDefinition]:
     ]
 
 
+def get_knowledge_jobs() -> list[JobDefinition]:
+    """KNOWLEDGE jobs — Obsidian vault sync.
+
+    Jobs:
+    - knowledge_sync_daily: incremental index + health snapshot + embeddings (06:30)
+    """
+    return [
+        _cron_job(
+            job_id="knowledge_sync_daily",
+            app_id="knowledge",
+            handler="cores.knowledge.tasks:run_knowledge_sync",
+            cron="30 6 * * *",
+            args=[],
+            metadata={"cycle": "knowledge", "type": "sync", "desc": "sincronizacion diaria del vault de conocimiento"},
+        ),
+    ]
+
+
 def get_all_jobs() -> dict[str, list[JobDefinition]]:
     """Return all cycle jobs."""
     return {
@@ -537,4 +555,5 @@ def get_all_jobs() -> dict[str, list[JobDefinition]]:
         "investment": get_investment_jobs(),
         "qa": get_qa_jobs(),
         "evolution": get_evolution_jobs(),
+        "knowledge": get_knowledge_jobs(),
     }
