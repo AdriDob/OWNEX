@@ -170,7 +170,7 @@ onMounted(fetchInsights)
           </div>
           <BarChart
             :labels="confidenceLabels"
-            :datasets="[{ label: 'Explicaciones', data: confidenceData, backgroundColor: '#7c3aed' }]"
+            :datasets="[{ label: 'Explicaciones', data: confidenceData, backgroundColor: '#00d5ff' }]"
             :height="200"
             yLabel="Cantidad"
             :showLegend="false"

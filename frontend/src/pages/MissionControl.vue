@@ -30,6 +30,7 @@ import CapitalBar from '@/components/mission-control/CapitalBar.vue'
 import GoalEvaluator from '@/components/mission-control/GoalEvaluator.vue'
 import EvolveMatrix from '@/components/mission-control/EvolveMatrix.vue'
 import PayoutNet from '@/components/mission-control/PayoutNet.vue'
+import PaymentCompatPanel from '@/components/mission-control/PaymentCompatPanel.vue'
 import FinanceGuru from '@/components/mission-control/FinanceGuru.vue'
 import TaxAR from '@/components/mission-control/TaxAR.vue'
 import InvoicerAR from '@/components/mission-control/InvoicerAR.vue'
@@ -296,6 +297,9 @@ const feedItems = computed(() =>
 
       <!-- PAYOUT NET: red de cobro solo KYC con fallbacks y resolución -->
       <PayoutNet />
+
+      <!-- PAYMENT COMPAT: ¿puedo cobrar este requerimiento? veredicto determinista -->
+      <PaymentCompatPanel />
 
       <!-- FINANCE GURU: preguntá cualquier cosa de cobro/cuentas USA/INTL desde AR -->
       <FinanceGuru />

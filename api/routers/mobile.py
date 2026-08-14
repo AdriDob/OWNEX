@@ -12,16 +12,15 @@ router = APIRouter(prefix="/mobile", tags=["mobile"])
 @router.get("/status")
 async def mobile_status():
     """Quick status snapshot for mobile polling."""
-    from cores.models import Finding, Target
-
     from api.scheduler import get_scheduler_stats
     from database.db import SessionLocal
+    from database.models import Finding, Target
 
     db = SessionLocal()
     try:
         findings_total = db.query(Finding).count()
         findings_confirmed = db.query(Finding).filter(Finding.status == "confirmed").count()
-        targets_active = db.query(Target).filter(Target.status == "active").count()
+        targets_active = db.query(Target).filter(Target.active == True).count()  # noqa: E712
     finally:
         db.close()
 
@@ -40,9 +39,8 @@ async def mobile_status():
 @router.get("/quick-wins")
 async def mobile_quick_wins():
     """Top urgent findings needing attention."""
-    from cores.models import Finding
-
     from database.db import SessionLocal
+    from database.models import Finding
 
     db = SessionLocal()
     try:

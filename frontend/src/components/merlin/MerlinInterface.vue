@@ -561,13 +561,13 @@ onMounted(() => {
     border-color: #4a5568;
   }
   25% {
-    border-color: #99199a;
+    border-color: #00d5ff;
   }
   50% {
     border-color: #4a5568;
   }
   75% {
-    border-color: #99199a;
+    border-color: #00d5ff;
   }
   100% {
     border-color: #4a5568;
@@ -581,7 +581,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #9CA3AF 0%, #9500ff 100%);
+  background: linear-gradient(135deg, #9CA3AF 0%, #00d5ff 100%);
   border-radius: 50%;
 }
 
@@ -699,7 +699,7 @@ onMounted(() => {
 }
 
 .retro-btn:hover {
-  border-color: #99199a;
+  border-color: #00d5ff;
   background: rgba(153, 153, 154, 0.1);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -739,7 +739,7 @@ onMounted(() => {
 }
 
 .chat-scroll-area::-webkit-scrollbar-thumb:hover {
-  background: #99199a;
+  background: #00d5ff;
 }
 
 .messages-container {
@@ -803,7 +803,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #9CA3AF 0%, #9500ff 100%);
+  background: linear-gradient(135deg, #9CA3AF 0%, #00d5ff 100%);
   border-radius: 50%;
   font-size: 1rem;
   z-index: 1;
@@ -1030,7 +1030,7 @@ onMounted(() => {
 }
 
 .sidebar-toggle:hover {
-  border-color: #99199a;
+  border-color: #00d5ff;
   background: rgba(153, 153, 154, 0.1);
 }
 
@@ -1336,7 +1336,7 @@ onMounted(() => {
 }
 
 .retro-secondary:hover {
-  border-color: #99199a;
+  border-color: #00d5ff;
   background: rgba(153, 153, 154, 0.1);
 }
 

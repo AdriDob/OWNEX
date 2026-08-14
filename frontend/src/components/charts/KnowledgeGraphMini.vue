@@ -62,7 +62,7 @@ const colorMap: Record<string, string> = {
   endpoint: '#38bdf8',
   program: '#00ff41',
   cve: '#ff1744',
-  report: '#7c3aed',
+  report: '#00d5ff',
   unknown: '#6b6b80',
 }
 

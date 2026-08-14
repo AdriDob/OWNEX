@@ -40,7 +40,7 @@ const isDark = computed(() => document.documentElement.classList.contains('dark'
 const chartData = computed(() => ({
   labels: props.labels,
   datasets: props.datasets.map((ds, i) => {
-    const colors = ['#7c3aed', '#ffffff', '#16A34A', '#A16207', '#E82127']
+    const colors = ['#00d5ff', '#ffffff', '#16A34A', '#A16207', '#E82127']
     const borderColor = ds.borderColor || colors[i % colors.length]
     return {
       ...ds,

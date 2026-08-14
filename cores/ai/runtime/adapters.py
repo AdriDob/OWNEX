@@ -633,3 +633,163 @@ def create_lmstudio_adapter(
         capabilities={Capability.CHAT, Capability.CODE, Capability.REASONING, Capability.TOOL_CALLING},
         max_context=32768,
     )
+
+
+class FreebuffAdapter(AIProviderProtocol):
+    """Adapter for Freebuff agent provider."""
+
+    def __init__(self, config_path: str | None = None):
+        self._config_path = config_path or os.path.expanduser("~/.orion/freebuff_config.yaml")
+        self._start_time = time.monotonic()
+
+    @property
+    def provider_id(self) -> str:
+        return "freebuff"
+
+    @property
+    def name(self) -> str:
+        return "Freebuff (Free Agent)"
+
+    @property
+    def supported_models(self) -> list[str]:
+        return ["freebuff"]
+
+    def get_model_capabilities(self, model_id: str) -> ModelCapabilities | None:
+        return ModelCapabilities(
+            model_id=model_id,
+            supports={Capability.CHAT, Capability.CODE, Capability.REASONING},
+            max_context_tokens=32768,
+            max_output_tokens=8192,
+        )
+
+    async def check_health(self) -> ProviderHealth:
+        start = time.monotonic()
+        try:
+            # Check if freebuff is installed
+            import subprocess
+
+            result = subprocess.run(
+                ["freebuff", "--version"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            healthy = result.returncode == 0
+            version = result.stdout.strip() if healthy else ""
+
+            latency = (time.monotonic() - start) * 1000
+            return ProviderHealth(
+                provider_id=self.provider_id,
+                status=HealthStatus.HEALTHY if healthy else HealthStatus.UNHEALTHY,
+                latency_ms=latency,
+                uptime_seconds=time.monotonic() - self._start_time,
+                metadata={"version": version} if version else {},
+            )
+        except FileNotFoundError:
+            return ProviderHealth(
+                provider_id=self.provider_id,
+                status=HealthStatus.UNHEALTHY,
+                latency_ms=(time.monotonic() - start) * 1000,
+                last_error="Freebuff not installed",
+                uptime_seconds=time.monotonic() - self._start_time,
+            )
+        except Exception as e:
+            return ProviderHealth(
+                provider_id=self.provider_id,
+                status=HealthStatus.UNHEALTHY,
+                latency_ms=(time.monotonic() - start) * 1000,
+                last_error=str(e),
+                uptime_seconds=time.monotonic() - self._start_time,
+            )
+
+    async def chat(self, request: AIRequest) -> AIResponse:
+        start = time.monotonic()
+
+        # Import Freebuff - try both paths
+        try:
+            from core.ai_providers.freebuff import FreebuffTaskRequest, route_task
+        except ImportError:
+            try:
+                from cores.ai_providers.freebuff import FreebuffTaskRequest, route_task
+            except ImportError:
+                return AIResponse(
+                    content="Freebuff module not available.",
+                    provider_id=self.provider_id,
+                    model_id=request.model or "freebuff",
+                    task_type=request.task_type,
+                    cost_usd=0.0,
+                    latency_ms=(time.monotonic() - start) * 1000,
+                    finish_reason="error",
+                )
+
+        # Extract the task from the user message
+        task_content = ""
+        for msg in request.messages:
+            if msg.get("role") == "user":
+                task_content = msg.get("content", "")
+                break
+
+        if not task_content:
+            return AIResponse(
+                content="No task provided for Freebuff.",
+                provider_id=self.provider_id,
+                model_id=request.model or "freebuff",
+                task_type=request.task_type,
+                cost_usd=0.0,
+                latency_ms=(time.monotonic() - start) * 1000,
+                finish_reason="error",
+            )
+
+        request_obj = FreebuffTaskRequest(
+            task=task_content,
+            workspace=os.path.expanduser("~/projects/Rastro"),
+            task_type="code",
+            complexity="LOW",
+            risk_level="LOW",
+            files_affected=1,
+            requires_review=True,
+            network_allowed=False,
+            secrets_present=False,
+        )
+
+        result = route_task(request_obj)
+
+        latency = (time.monotonic() - start) * 1000
+
+        if result.success:
+            content = f"Freebuff ejecutó la tarea exitosamente. Archivos modificados: {result.files_changed}. Duración: {result.duration_ms}ms."
+        else:
+            content = f"Freebuff falló: {result.stderr}"
+
+        return AIResponse(
+            content=content,
+            provider_id=self.provider_id,
+            model_id=request.model or "freebuff",
+            task_type=request.task_type,
+            cost_usd=0.0,
+            latency_ms=latency,
+            finish_reason="stop" if result.success else "error",
+        )
+
+    async def chat_stream(self, request: AIRequest) -> AsyncGenerator[str, None]:
+        # Freebuff doesn't support streaming, so we yield the full response
+        response = await self.chat(request)
+        yield response.content
+
+    async def embed(self, texts: list[str], model: str | None = None) -> list[list[float]]:
+        # Freebuff doesn't support embeddings
+        return [[] for _ in texts]
+
+    def estimate_cost(self, request: AIRequest) -> float:
+        return 0.0
+
+    def estimate_latency(self, request: AIRequest) -> int:
+        return 240000  # 4 minutes average
+
+    async def close(self) -> None:
+        pass
+
+
+def create_freebuff_adapter(config_path: str | None = None) -> FreebuffAdapter:
+    """Create a Freebuff adapter."""
+    return FreebuffAdapter(config_path=config_path)

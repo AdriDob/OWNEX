@@ -106,7 +106,7 @@ onMounted(fetchAudits)
         <h3 class="text-xs font-semibold text-foreground mb-3">Tendencia de Confianza</h3>
         <LineChart
           :labels="audits.slice(0, 20).map(a => a.item_label.slice(0, 12))"
-          :datasets="[{ label: 'Confidence Score', data: audits.slice(0, 20).map(a => a.overall_score), borderColor: '#7c3aed', tension: 0.3 }]"
+          :datasets="[{ label: 'Confidence Score', data: audits.slice(0, 20).map(a => a.overall_score), borderColor: '#00d5ff', tension: 0.3 }]"
           :height="200"
           :area="true"
         />

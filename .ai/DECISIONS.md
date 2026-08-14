@@ -1,5 +1,67 @@
 # Decisions — Registro de Decisiones Arquitectónicas
 
+## 2026-08-14: HARDENING VERDICTS — twin-tree, dead code, routers sin consumo, eventos, palette, magic values (FASE 5/6/7/12/13/14)
+
+- **Problema**: El hardening pass 2026-08-14 debía decidir qué tocar y qué no en seis áreas con evidencia.
+- **Decisiones (todas con evidencia, ninguna de reemplazo masivo)**:
+  1. **Twin-tree `core/` vs `cores/` (FASE 5)**: NO consolidar. El runtime usa ambos árboles simultáneamente (604 vs 973 archivos, 307 byte-idénticos, ~20 wrappers cruzados). Consolidar = riesgo alto sin beneficio inmediato → deuda registrada. Solo se arreglaron 4 bugs latentes por imports de árbol equivocado (`cores.events.event_types` → `cores.agents.types`, `cores.models` → `database.models` ×2, `Target.status` → `Target.active`, `core.ORION_DIR` → `core.OWNEX_DIR`).
+  2. **Dead code (FASE 6)**: NO borrar. La lista "110 dead" tenía falsos positivos verificados (comentarios/tipos, `core/execution`, `core/f1`, `core/automation.browser_agent` usados en runtime); de 7 broken refs: 2 arreglados, 2 existentes reales, 3 falsos positivos. En FASE 8 se borraron solo ítems con 0 referencias verificadas (7 páginas + 29 componentes/icons + 2 router redirects).
+  3. **Routers sin consumo frontend (FASE 7)**: INVENTARIO, no borrar. 87 prefixes sin consumo (293 paths frontend). Razones: APK Android/WearOS consumen mobile/remote; career/decision/fiverr son API-only con motores de negocio; algunos son secciones incompletas (FASE futuras). Veredicto: 1006 paths openapi totales = el backend es el SSOT del contrato.
+  4. **Eventos huérfanos (FASE 12)**: NO hay. `cores/events/event_bus.py` persiste todo en SQLite (`EventBusEntry`), clasifica prioridad (`classify_event` default "medium", nunca "ignore") y despacha a handlers directos + wildcard `*` (`cores/agents/bus.py`, `universal_api.py`, notification bridge con `EVENT_PUSH_MAP`). Fix único: comentario engañoso en `api/main.py:196` (el `disable_bridge` no existe en el EventBus unificado — `hasattr` defensivo correcto; el bridge legacy solo existe en `core/events/event_bus.py` deprecado).
+  5. **Palette TESLA (FASE 13)**: Reemplazo puntual, no masivo. Se eliminaron los únicos colores saturados arbitrarios: `#7c3aed` (violet, 11 archivos — datasets de charts y paletas de series) y `#99199a`/`#9500ff` (magenta, keyframes de anillo y hover en WelcomePage/ModernNavbar/MerlinInterface) → `#00d5ff` (cyan SSOT). Quedan `#000000`/`#1a1a1a` (negro puro/surfaces, permitidos por mandate). 0 colores arbitrarios restantes.
+  6. **Magic values (FASE 14)**: NO convertir a env vars. Todos los timeouts de red usan config/manifest/parámetros (`self.timeout`, `manifest.timeout_seconds`, `cfg.timeout`); solo 2 literales `timeout=300` documentados por comentario (`cores/autonomy.py:267`, `cores/remote_control/bridge.py:196`).
+- **Impacto**: ruff 0 errores globales (se arreglaron además I001/W293 en `cores/ai/provider.py` + `cores/ai/runtime/adapters.py` y SIM102/F841 en `core|cores/ai_providers/freebuff.py`, twin sync), suite completa 3196 passed / 11 skipped, vue-tsc 0 errores, vite build OK.
+- **Condiciones para reabrir**: Consolidación twin-tree si un futuro refactor demuestra SSOT único; retiro de routers muertos cuando se confirme que ningún cliente (APK/desktop) los usa; paleta si entran colores nuevos al código.
+
+## 2026-08-14: AUTH — cookie httpOnly como segunda vía de sesión (migración incremental, FASE 3)
+
+- **Problema**: El token JWT vive en `localStorage` (`frontend/src/lib/api.ts:7` `CATEYE-token`) y viaja solo por `Authorization: Bearer`. localStorage es exfiltrable por XSS del mismo origen; el frontend además no podía usar el CSRF doble-submit porque su cookie `csrf-token` es httponly (el JS no puede leerla para armar `X-CSRF-Token`). Migrar de golpe a cookie httpOnly rompería el flujo actual (CSRF exige cookie+header que el SPA no envía).
+- **Alternativas consideradas**:
+  1. **Cookie httpOnly como segunda vía + migración incremental (elegido)** — El backend ahora setea `ownex-session` (httpOnly, SameSite=lax, Secure solo sobre https) en login/register/refresh de ambos routers (`api/routers/auth.py` y `auth_users.py`), conservando el token en el body de la respuesta (compat Bearer total). `AuthMiddleware` acepta cookie como fallback cuando no hay header. Logout borra la cookie del servidor. Frontend: `credentials: 'include'` en todos los fetch + `clearSession()` purga la cookie (`POST /api/auth/logout` sin body, exento de CSRF — logout CSRF es solo nuisance). El Bearer sigue funcionando → el frontend no se rompe en ningún modo.
+  2. Migración total inmediata (quitar localStorage del todo) — Rompería auth actual en un paso; riesgo alto sin validar desktop/landing flows.
+  3. Solo documentar — No aporta seguridad.
+- **Decisión**: Migración incremental completa del backend + frontend compatible. El retiro definitivo del `localStorage` (eliminar `getToken`/`setToken`) queda como paso posterior cuando se valide el flujo desktop E2E con cookie (hoy ambos coexisten: header gana en el middleware).
+- **Impacto**:
+  - XSS ya no puede exfiltrar la sesión en flujos que usan la cookie (desktop/same-origin)
+  - `tests/test_auth_cookie.py` 10 tests nuevos (cookie httponly en register/login/device-login, auth vía cookie sola, Bearer compat, 401 sin credenciales/cookie inválida, logout borra cookie, logout sin body no rompe, middleware 401)
+  - Fix a `tests/test_auth_users.py` fixture: limpia cookies del TestClient compartido (el jar conservaba la cookie de sesión → `test_me_unauthenticated` autenticaba por cookie)
+  - 176 passed / 1 skipped suite combinada, ruff limpio, `vue-tsc` 0 errores, `import api.main` OK
+- **Condiciones para reabrir**: Retirar localStorage por completo (validar desktop E2E), o hacer que el SPA use el doble-submit CSRF real (endpoint que exponga el token en un header leíble para JS).
+
+## 2026-08-14: ERROR HANDLING — detail de 5xx nunca al cliente (FASE 2)
+
+- **Problema**: 245 ocurrencias de `detail=str(e)`/`detail=str(exc)` en 26 routers exponían internals (paths, tokens, SQL) al cliente en respuestas 500/400.
+- **Decisión**: Handler global `HTTPException` + `operation_id` en `api/middleware/error_handling.py`, registrado en `api/main.py` tras los middlewares. 5xx → `{"detail": "Internal server error", "operation_id": ...}` + header `X-Operation-Id`; el detail crudo solo va al log `ownex.error` estructurado. 4xx preservan su detail intencional (semántica de contrato). `ErrorHandlingMiddleware` (preexistente) ahora también asigna `operation_id` al request y lo incluye en respuestas.
+- **Impacto**: `tests/test_error_handling.py` 7 tests; suite combinada 176 passed / 1 skipped; ruff limpio. Los routers no se tocaron (mínimo intervención).
+- **Condiciones para reabrir**: Si se quiere limpiar los 245 `detail=str(e)` uno a uno (mejora cosmética, no funcional — la fuga ya está tapada por el handler global).
+
+
+## 2026-08-13: Payment Compatibility Engine — cobrar antes de ejecutar, no acumular billeteras
+
+- **Problema**: El sistema encontraba oportunidades pero no sabía si podría cobrarlas: acumulaba plataformas de pago sin decidir. El catálogo `ARGENTINA_PAYOUT_METHODS` (55 métodos) existía pero estaba invisible (sin router ni conexión con oportunidades), y no distinguía capas (banking/processors/crypto/self-custody/withdrawal) ni función (primary/us_account/global/payout/local/backup/specialized). Spec del owner: "OWNEX no solamente encuentra trabajos, también determina antes de ejecutarlos si va a poder cobrarlos".
+- **Alternativas consideradas**:
+  1. **Catálogo nuevo en `cores/payment_compat/` + engine determinista (elegido)** — 76 cuentas curadas en 5 capas con clasificación funcional; las cuentas que ya existían en `ARGENTINA_PAYOUT_METHODS` se referencian vía `payout_ref` (One Source of Truth, cero duplicación). Cadena `OPPORTUNITY → PAYMENT METHOD → REQUIRED COUNTRY → CURRENCY → AVAILABLE OWNEX ACCOUNTS → COMPATIBLE?` con `PaymentVerdict` (compatible/viable/score 0-100, matches razonados, off_ramp, missing, honest_notes). Cero LLM, determinista.
+  2. Extender `argentina_payout_methods.py` — catálogo AR-centric sin capas USA/self-custody; mezclaría motor y datos.
+  3. Base de datos SQL relacional de cuentas — sobrediseño para un catálogo estático curado.
+- **Decisión**: `cores/payment_compat/` (network.py + engine.py) + router `/api/payment-compat` (status/network/account/evaluate/evaluate-chain). **Regla de honestidad dura**: `required_documentation` = llc/us_entity/us_residency/eu_residency/uk_entity → incompatible con razón explícita (nunca inventar workarounds para esquivar restricciones de plataforma; KYC personal sí pasa). Métodos bancarios (ACH/WIRE/SEPA/PayPal/CVU/CBU) → recibir es viable por sí mismo; la conversión a ARS se marca como manual (no se exige off-ramp crypto).
+- **Impacto**:
+  - El pipeline DWE/bounty puede evaluar cobrabilidad antes de ejecutar (compatible/viable + cuentas exactas + qué falta)
+  - Mejoras 2026-08-14: catch-all de documentación (bloquea cualquier doc no reconocida, `_DOCUMENTATION_BLOCKED`/`_DOCUMENTATION_ACCEPTED` explícitos), persistencia de cuentas configuradas en `~/.config/ownex/payment_network.json` (sobrevive restarts), enriquecimiento `payout_ref` con metadata del catálogo AR (reliability/fees/min-max/notes → boost de score ≤5 + razón enriquecida), bonus en `_score_requirement` para cuentas documentadas
+  - 13 tests nuevos (`tests/test_payment_compat.py`), ruff limpio, `import api.main` OK, suite fast 89 passed / 1 skipped sin regresión
+  - Bugs preexistentes de `argentina_payout_methods.py` corregidos (bloqueaban el import): `minimum_withraft` → `minimum_withdrawal`, `_id="brubank"` → `id="brubank"`
+- **Condiciones para reabrir**: Cuando se quiera integrar el veredicto dentro del `IntelligentRecommender` del DWE (score de cobrabilidad en el ranking), o consumir el network desde Mission Control. La persistencia de cuentas configuradas ya está implementada.
+
+## 2026-08-13: Knowledge Bridge — Obsidian vault como single source of truth del conocimiento
+
+- **Problema**: La memoria documental vivía en `.ai/` (instrucciones) y en JSON/DB propietarios; el usuario mantiene su conocimiento personal en Obsidian (markdown). No había un puente: el contenido del vault era invisible para OWNEX (no indexable, no buscable, no relacionable), y el sistema no podía aprender del conocimiento del usuario.
+- **Alternativas consideradas**:
+  1. **Puente local-first sobre el vault markdown (elegido)** — El vault es la única fuente de verdad; OWNEX solo lee/indexa/busca. Mutaciones (git commit, snapshots restore, overwrite) exigen `authorized=True` explícito → 403 `{"authorization_required": True}`. Cero nuevas dependencias (sqlite FTS5 + hashing local para embeddings).
+  2. Copiar el vault a una DB propietaria — Crea realidad duplicada (viola One Source of Truth) y desincroniza con Obsidian.
+  3. Sincronizar vía Supabase/cloud — Contradice "100% local".
+- **Decisión**: `cores/knowledge/` (index, search, parser, gitops, models, dedup, enrichers, graph, store, trust, pipeline) + router `/api/knowledge` (17 endpoints) montado en main.py + scheduler job `knowledge_sync_daily` (cron 30 6 * * *, 44 jobs totales). Bugs preexistentes del package corregidos: `_upsert_note_locked` (last_insert_rowid capturado antes de inserts de links/tags → IntegrityError), `backlinks()` (faltaba to_path → IndexError), `verify()` rechaza vaults sin markdown.
+- **Impacto**: El conocimiento del usuario entra al pipeline (search 6 vías híbridas, backlinks, duplicados, broken links, secret scan, snapshots con keep=10), la API es consumible desde Mission Control, y el sync diario mantiene el índice fresco. 65 tests verdes (25 nuevos), ruff limpio, `import api.main` OK.
+- **Condiciones para reabrir**: Cuando se quiera semántica real (embeddings OAR en vez de hashing local), sincronización bidirectional, o integración con el pipeline de bug bounty (relacionar findings con notas del vault).
+
 ## 2026-08-10: Threat Intelligence Layer — hypótesis proactivas desde CISA KEV
 
 - **Problema**: OWNEX generaba hipótesis únicamente de forma **reactiva** (endpoint signals + matches Nuclei + ZAP alerts). La única mención a CVE (generators.py:725) era un string literal "investigar CVE" sin datos reales. No había ingesta de feeds de amenazas: sin CVE/KEV, exploit-DB, ThreatFox, ni correlación de TTPs. Diagnóstico del owner: "falta una capa extra en OWNEX" → confirmado por análisis de evidencia como **Threat Intelligence → Vulnerability Hypotheses**.

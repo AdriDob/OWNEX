@@ -726,6 +726,66 @@ export async function projectIncome(payload: IncomeProjectionRequest): Promise<I
   return api.post<IncomeProjectionResult>('/direct-work/income-projector', payload)
 }
 
+// ── Payment Compatibility ──
+
+export interface PaymentAccount {
+  id: string
+  name: string
+  layer: string
+  function: string
+  regions: string[]
+  currencies: string[]
+  methods: string[]
+  networks: string[]
+  kyc_required: boolean
+  withdrawal_available: boolean
+  notes: string[]
+  payout_ref: string | null
+}
+
+export interface PaymentVerdict {
+  compatible: boolean
+  viable: boolean
+  score: number
+  requirement: Record<string, unknown>
+  matches: Array<{ account_id: string; account_name: string; layer: string; function: string; reason: string; score: number }>
+  off_ramp: Array<{ account_id: string; account_name: string; layer: string; function: string; reason: string; score: number }>
+  missing: string[]
+  honest_notes: string[]
+}
+
+export interface PaymentNetworkResponse {
+  summary: {
+    total_accounts: number
+    by_layer: Record<string, string[]>
+    by_function: Record<string, string[]>
+    by_region: Record<string, string[]>
+  }
+  accounts: PaymentAccount[]
+}
+
+export interface PaymentEvaluateRequest {
+  method: string
+  currency: string
+  region: string
+  amount?: number
+  required_documentation?: string
+  platform?: string
+  final_currency?: string
+}
+
+export async function fetchPaymentNetwork(): Promise<PaymentNetworkResponse> {
+  return api.get<PaymentNetworkResponse>('/payment-compat')
+}
+
+export async function evaluatePayment(
+  payload: PaymentEvaluateRequest,
+  chain: boolean = false,
+): Promise<PaymentVerdict> {
+  const path = chain ? '/payment-compat/evaluate/chain' : '/payment-compat/evaluate'
+  return api.post<PaymentVerdict>(path, payload)
+}
+
 // ── Evolution Report ──
 
 export interface EvolutionReport {

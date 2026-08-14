@@ -302,9 +302,9 @@ function sendQuickMessage() {
 
 @keyframes retro-border-mini {
   0% { border-color: #4a5568; }
-  25% { border-color: #99199a; }
+  25% { border-color: #00d5ff; }
   50% { border-color: #4a5568; }
-  75% { border-color: #99199a; }
+  75% { border-color: #00d5ff; }
   100% { border-color: #4a5568; }
 }
 
@@ -315,7 +315,7 @@ function sendQuickMessage() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #9CA3AF 0%, #9500ff 100%);
+  background: linear-gradient(135deg, #9CA3AF 0%, #00d5ff 100%);
   border-radius: 50%;
   font-size: 0.75rem;
   z-index: 1;
@@ -398,7 +398,7 @@ function sendQuickMessage() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #9CA3AF 0%, #9500ff 100%);
+  background: linear-gradient(135deg, #9CA3AF 0%, #00d5ff 100%);
   border-radius: 50%;
   font-size: 0.625rem;
   z-index: 1;
