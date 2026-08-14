@@ -118,6 +118,15 @@ _MAX_SUCCESS_CONFIG = RecommenderConfig(
 
 MAX_SUCCESS_RECOMMENDER_CONFIG = _MAX_SUCCESS_CONFIG
 
+# PaymentMethod (DWE) -> method accepted by the PaymentCompatibilityEngine network.
+# Methods without a curated account in the network stay unevaluated (neutral).
+_PAYMENT_METHOD_MAP: dict[str, str] = {
+    "paypal": "paypal",
+    "bank_wire": "wire",
+    "crypto": "crypto",
+    "stablecoin": "crypto",
+}
+
 
 class IntelligentRecommender:
     """Ranks and recommends opportunities based on multiple factors.
@@ -207,6 +216,10 @@ class IntelligentRecommender:
 
         # 1. Score all opportunities with zero barrier score
         scored_opps = self._score_opportunities(opportunities)
+
+        # 1b. Evaluate payment compatibility (can OWNEX collect the payout?)
+        for opp in scored_opps:
+            self._apply_payment_compatibility(opp)
 
         # 2. Calculate acceptance probability per opportunity
         for opp in scored_opps:
@@ -304,6 +317,46 @@ class IntelligentRecommender:
             )
 
         return ranked
+
+    def _apply_payment_compatibility(self, ranked: RankedOpportunity) -> None:
+        """Evaluate whether OWNEX can actually collect the payout (0-100).
+
+        Uses the deterministic PaymentCompatibilityEngine (cores.payment_compat)
+        with lazy import: if the engine is unavailable the score stays neutral
+        (100.0) so legacy callers keep their exact behavior.
+        """
+        opp = ranked.opportunity
+        try:
+            from cores.payment_compat.engine import PaymentRequirement, get_payment_engine
+
+            method = _PAYMENT_METHOD_MAP.get(opp.payment_method.value)
+            if method is None:
+                ranked.payment_compat_notes.append(
+                    f"Método {opp.payment_method.value}: sin cuenta curada en la red de pagos (no evaluado)."
+                )
+                return
+            verdict = get_payment_engine().evaluate(
+                PaymentRequirement(
+                    method=method,
+                    currency="USDC" if method == "crypto" else "USD",
+                    region="global",
+                    amount=opp.payment,
+                )
+            )
+            ranked.payment_compat_score = verdict.score
+            if verdict.compatible:
+                ranked.payment_compat_notes.append("Pago cobrable con las cuentas configuradas de OWNEX.")
+            elif verdict.matches:
+                ranked.payment_compat_notes.append(
+                    f"Pago parcialmente viable ({verdict.score:.0f}/100): " + "; ".join(verdict.missing[:2])
+                )
+            else:
+                ranked.payment_compat_notes.append(
+                    f"Pago NO cobrable ({verdict.score:.0f}/100): "
+                    + "; ".join(verdict.missing[:2] or verdict.honest_notes[:1])
+                )
+        except Exception:
+            ranked.payment_compat_notes.append("Evaluación de pago no disponible (motor no responde).")
 
     def _calculate_acceptance_probability(self, ranked: RankedOpportunity, profile: UserProfile) -> float:
         """Estimate probability of acceptance based on profile match."""
@@ -489,6 +542,10 @@ class IntelligentRecommender:
         # Risk penalty
         score *= 1.0 - 0.3 * ranked.risk_score
 
+        # Payment compatibility factor: cannot collect -> recommendation drops
+        payment_factor = ranked.payment_compat_score / 100.0 if ranked.payment_compat_score > 0 else 0.3
+        score *= payment_factor
+
         return round(score * 100, 1)  # 0-100 scale
 
     def _generate_strategy(self, ranked: RankedOpportunity, profile: UserProfile) -> str:
@@ -542,6 +599,8 @@ class IntelligentRecommender:
         reasons.append(f"Reputation: {ranked.reputation_score:.0%}")
         reasons.append(f"Risk: {ranked.risk_score:.0%}")
         reasons.append(f"Model: {opportunity_model(ranked.opportunity.employment_type)}")
+        if ranked.payment_compat_notes:
+            reasons.append("💳 " + ranked.payment_compat_notes[0])
 
         if zb:
             if zb.enablers:

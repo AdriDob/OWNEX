@@ -283,6 +283,35 @@ class TestIntelligentRecommender:
         assert "game programming" in ranked[0].strategy.lower()
         assert "concept" not in ranked[0].strategy.lower()
 
+    def test_payment_compat_paypal_is_collectible(self) -> None:
+        ranked = IntelligentRecommender().recommend([make_opportunity()], make_profile(), limit=1)
+        top = ranked[0]
+        assert top.payment_compat_score > 50
+        assert any("cobrable" in note for note in top.payment_compat_notes)
+
+    def test_payment_compat_stablecoin_uses_usdc_network(self) -> None:
+        opp = make_opportunity(payment_method=PaymentMethod.STABLECOIN, title="Stablecoin bounty")
+        ranked = IntelligentRecommender().recommend([opp], make_profile(), limit=1)
+        top = ranked[0]
+        assert top.payment_compat_score > 50
+        assert any("cobrable" in note for note in top.payment_compat_notes)
+
+    def test_payment_compat_unevaluated_method_stays_neutral(self) -> None:
+        opp = make_opportunity(payment_method=PaymentMethod.GIFT_CARD, title="Gift card task")
+        ranked = IntelligentRecommender().recommend([opp], make_profile(), limit=1)
+        top = ranked[0]
+        assert top.payment_compat_score == 100.0
+        assert any("sin cuenta curada" in note for note in top.payment_compat_notes)
+
+    def test_payment_compat_factor_affects_overall_score(self) -> None:
+        paypal = make_opportunity(id="op-pp", title="Paypal task", payment_method=PaymentMethod.PAYPAL, payment=500.0)
+        stable = make_opportunity(
+            id="op-st", title="Stablecoin task", payment_method=PaymentMethod.STABLECOIN, payment=500.0
+        )
+        ranked = IntelligentRecommender().recommend([paypal, stable], make_profile(), limit=2)
+        by_id = {r.opportunity.id: r for r in ranked}
+        assert by_id["op-st"].payment_compat_score > by_id["op-pp"].payment_compat_score
+
 
 class TestUniversalDiscovery:
     def test_register_and_discover(self) -> None:
