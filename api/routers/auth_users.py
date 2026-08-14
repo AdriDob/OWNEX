@@ -14,9 +14,10 @@ import os
 import secrets
 from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 from pydantic import BaseModel
 
+from api.middleware.auth_middleware import SESSION_COOKIE
 from cores.auth.auth import (
     create_refresh_token,
     create_session_token,
@@ -35,6 +36,20 @@ TOKEN_TTL_HOURS = 24
 
 def _hash_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _set_session_cookie(response: Response, token: str, secure: bool) -> None:
+    """Set the httpOnly session cookie. The token stays in the response body
+    so the Bearer flow keeps working (incremental migration: cookie and
+    header coexist, header wins in the middleware)."""
+    response.set_cookie(
+        key=SESSION_COOKIE,
+        value=token,
+        max_age=TOKEN_TTL_HOURS * 60 * 60,
+        httponly=True,
+        samesite="lax",
+        secure=secure,
+    )
 
 
 # ─── Password helpers (PBKDF2-HMAC-SHA256, stdlib only) ───────────────
@@ -101,7 +116,7 @@ class UserProfile(BaseModel):
 
 
 @router.post("/register", response_model=TokenResponse, status_code=201)
-def register(body: RegisterRequest):
+def register(body: RegisterRequest, request: Request, response: Response):
     if len(body.password) < 8:
         raise HTTPException(400, "Password must be at least 8 characters")
     if len(body.username) < 3:
@@ -146,6 +161,7 @@ def register(body: RegisterRequest):
             meta={"username": user.username, "email": user.email},
         )
         refresh_token = create_refresh_token(user_id=str(user.id))
+        _set_session_cookie(response, access_token, request.url.scheme == "https")
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
@@ -211,7 +227,7 @@ def resend_verification(body: ResendRequest):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(body: LoginRequest):
+def login(body: LoginRequest, request: Request, response: Response):
     session = SessionLocal()
     try:
         user = session.query(User).filter(User.username == body.username).first()
@@ -227,13 +243,14 @@ def login(body: LoginRequest):
             meta={"username": user.username, "email": user.email},
         )
         refresh_token = create_refresh_token(user_id=str(user.id))
+        _set_session_cookie(response, access_token, request.url.scheme == "https")
         return TokenResponse(access_token=access_token, refresh_token=refresh_token)
     finally:
         session.close()
 
 
 @router.post("/refresh", response_model=TokenResponse)
-def refresh_token(body: RefreshRequest):
+def refresh_token(body: RefreshRequest, request: Request, response: Response):
     data = verify_token(body.refresh_token)
     if data is None or data.get("type") != "refresh":
         raise HTTPException(401, "Invalid or expired refresh token")
@@ -250,6 +267,7 @@ def refresh_token(body: RefreshRequest):
             meta={"username": user.username, "email": user.email},
         )
         new_refresh = create_refresh_token(user_id=str(user.id))
+        _set_session_cookie(response, new_access, request.url.scheme == "https")
         return TokenResponse(access_token=new_access, refresh_token=new_refresh)
     finally:
         session.close()
@@ -259,6 +277,8 @@ def refresh_token(body: RefreshRequest):
 def get_profile(request: Request):
     auth_header = request.headers.get("Authorization", "")
     token = auth_header.removeprefix("Bearer ").strip()
+    if not token:
+        token = request.cookies.get(SESSION_COOKIE, "")
     if not token:
         raise HTTPException(401, "Not authenticated")
     data = verify_token(token)
@@ -281,3 +301,9 @@ def get_profile(request: Request):
         )
     finally:
         session.close()
+
+
+@router.post("/logout")
+def logout(request: Request, response: Response):
+    response.delete_cookie(SESSION_COOKIE, path="/")
+    return {"status": "logged_out"}

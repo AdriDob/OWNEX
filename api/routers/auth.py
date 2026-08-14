@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Header, Query, Request
+from fastapi import APIRouter, Header, Query, Request, Response
 
+from api.middleware.auth_middleware import SESSION_COOKIE
 from cores.audit_log import log_event
 from cores.auth.auth_manager import get_auth_manager
 from cores.auth.session_validator import get_session_validator
@@ -9,9 +10,26 @@ from cores.gateway.schemas import error, ok
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 limiter = get_rate_limiter()
 
+# Session cookie TTL matches the token TTL (30 days)
+SESSION_COOKIE_MAX_AGE = 30 * 24 * 60 * 60
+
+
+def _set_session_cookie(response: Response, token: str, secure: bool) -> None:
+    """Set the httpOnly session cookie. The token remains available in the
+    response body so the Bearer flow keeps working (incremental migration:
+    cookie and header coexist, header wins in the middleware)."""
+    response.set_cookie(
+        key=SESSION_COOKIE,
+        value=token,
+        max_age=SESSION_COOKIE_MAX_AGE,
+        httponly=True,
+        samesite="lax",
+        secure=secure,
+    )
+
 
 @router.post("/login")
-async def login(request: Request):
+async def login(request: Request, response: Response):
     body = await request.json()
     device_id = body.get("device_id", "unknown")
     device_info = body.get("device_info", {})
@@ -21,12 +39,15 @@ async def login(request: Request):
     manager = get_auth_manager()
     result = manager.authenticate(device_id, device_info)
 
+    if isinstance(result, dict) and result.get("token"):
+        _set_session_cookie(response, result["token"], request.url.scheme == "https")
+
     log_event("login", actor=device_id, detail="Device authenticated")
     return ok(result)
 
 
 @router.post("/refresh")
-async def refresh_token(request: Request):
+async def refresh_token(request: Request, response: Response):
     body = await request.json()
     device_id = body.get("device_id")
     refresh_token = body.get("refresh_token")
@@ -40,21 +61,29 @@ async def refresh_token(request: Request):
     if result is None:
         return error("Invalid or expired refresh token", version="1.0")
 
+    if isinstance(result, dict) and result.get("token"):
+        _set_session_cookie(response, result["token"], request.url.scheme == "https")
+
     return ok(result)
 
 
 @router.post("/logout")
-async def logout(request: Request):
-    body = await request.json()
-    device_id = body.get("device_id")
+async def logout(request: Request, response: Response):
+    device_id = ""
+    try:
+        body = await request.json()
+        if isinstance(body, dict):
+            device_id = body.get("device_id", "")
+    except Exception:
+        device_id = ""
 
-    if not device_id:
-        return error("device_id required", version="1.0")
+    if device_id:
+        manager = get_auth_manager()
+        manager.logout(device_id)
 
-    manager = get_auth_manager()
-    manager.logout(device_id)
+    response.delete_cookie(SESSION_COOKIE, path="/")
 
-    log_event("logout", actor=device_id, detail="Device logged out")
+    log_event("logout", actor=device_id or "unknown", detail="Device logged out")
     return ok({"status": "logged_out", "device_id": device_id})
 
 

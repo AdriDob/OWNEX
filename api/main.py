@@ -6,14 +6,14 @@ from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import PlainTextResponse
 
 from api.middleware.auth_middleware import AuthMiddleware
 from api.middleware.csrf_middleware import CSRFMiddleware
-from api.middleware.error_handling import ErrorHandlingMiddleware, SecurityHeadersMiddleware
+from api.middleware.error_handling import ErrorHandlingMiddleware, SecurityHeadersMiddleware, http_exception_handler
 from api.middleware.rate_limit_middleware import RateLimitMiddleware
 from api.routers import (
     accounts_hub,
@@ -79,6 +79,7 @@ from api.routers import (
     intelligence,
     investigations,
     investment,
+    knowledge_bridge,
     license,
     life,
     life_management,
@@ -107,6 +108,7 @@ from api.routers import (
     orion_cli,
     osint,
     overview,
+    payment_compat,
     personal_infrastructure,
     pipeline,
     platforms,
@@ -191,7 +193,8 @@ async def lifespan(app: FastAPI):
 
     bus = get_event_bus()
 
-    # Legacy bridge: disable for unified EventBus (CoreEventBus is deprecated)
+    # Legacy bridge: CoreEventBus (core/events) is deprecated; the unified
+    # EventBus (cores/events) has no legacy bridge to disable. Defensive no-op.
     if hasattr(bus, "disable_bridge"):
         bus.disable_bridge()
 
@@ -1469,6 +1472,8 @@ app.add_middleware(RateLimitMiddleware)
 app.add_middleware(AuthMiddleware)
 app.add_middleware(ErrorHandlingMiddleware)
 
+app.add_exception_handler(HTTPException, http_exception_handler)
+
 
 def _custom_openapi() -> dict:
     if app.openapi_schema:
@@ -1662,7 +1667,8 @@ app.include_router(vault_cycle.router)
 app.include_router(atlas_cycle.router)
 app.include_router(qa_cycle.router)
 app.include_router(profile_kit.router)
-
+app.include_router(knowledge_bridge.router)
+app.include_router(payment_compat.router)
 # ── ORION Platform: core + app routers ──
 try:
     from core.api.routers import router as core_router

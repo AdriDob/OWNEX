@@ -5,7 +5,7 @@ import tarfile
 import time
 from pathlib import Path
 
-from core import ORION_DIR
+from core import OWNEX_DIR
 
 logger = logging.getLogger("ownex.backup")
 
@@ -19,14 +19,14 @@ BACKUP_PATHS = [
 
 
 def create_backup(output_dir: str | None = None) -> Path | None:
-    dest = Path(output_dir) if output_dir else ORION_DIR
+    dest = Path(output_dir) if output_dir else OWNEX_DIR
     dest.mkdir(parents=True, exist_ok=True)
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     archive = dest / f"cateye_backup_{timestamp}.tar.gz"
 
     with tarfile.open(archive, "w:gz") as tar:
         for rel_path in BACKUP_PATHS:
-            full = ORION_DIR / rel_path
+            full = OWNEX_DIR / rel_path
             if full.exists():
                 tar.add(full, arcname=rel_path)
                 logger.info("Backup: added %s", rel_path)
@@ -40,6 +40,6 @@ def restore_backup(archive_path: str) -> bool:
         logger.error("Backup not found: %s", archive_path)
         return False
     with tarfile.open(archive, "r:gz") as tar:
-        tar.extractall(path=ORION_DIR, filter="data")
+        tar.extractall(path=OWNEX_DIR, filter="data")
     logger.info("Restored from %s", archive_path)
     return True

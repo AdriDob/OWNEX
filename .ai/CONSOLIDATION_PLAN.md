@@ -53,12 +53,12 @@
 class UnifiedMemory:
     # Tier 1: Personal (preferences, goals, constraints)
     personal: PersonalMemory
-    
+
     # Tier 2: Operational (what ran, what worked, what failed)
     operational: OperationalMemory  # wraps DecisionJournal + TaskOutcome
-    
+
     # Tier 3: Strategic (patterns, platform performance, task-type ROI)
-    strategic: StrategicMemory    # wraps KnowledgeGraph + learning_scorer
+    strategic: StrategicMemory  # wraps KnowledgeGraph + learning_scorer
 ```
 
 **Migration**:

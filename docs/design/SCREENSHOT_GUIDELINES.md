@@ -126,10 +126,10 @@ from playwright.sync_api import sync_playwright
 
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
-    page = browser.new_page(viewport={'width': 1920, 'height': 1080})
-    page.goto('http://localhost:5173/mission-control')
-    page.wait_for_load_state('networkidle')
-    page.screenshot(path='docs/assets/screenshots/desktop/mission-control.png')
+    page = browser.new_page(viewport={"width": 1920, "height": 1080})
+    page.goto("http://localhost:5173/mission-control")
+    page.wait_for_load_state("networkidle")
+    page.screenshot(path="docs/assets/screenshots/desktop/mission-control.png")
     browser.close()
 ```
 
@@ -273,10 +273,7 @@ Before finalizing a screenshot:
 **Cause**: Low DPI scaling
 **Fix**: Set device scale factor in Playwright:
 ```python
-page = browser.new_page(
-    viewport={'width': 1920, 'height': 1080},
-    device_scale_factor=1
-)
+page = browser.new_page(viewport={"width": 1920, "height": 1080}, device_scale_factor=1)
 ```
 
 ### Incomplete Loading
@@ -284,7 +281,7 @@ page = browser.new_page(
 **Cause**: Screenshot captured before animations complete
 **Fix**: Add explicit wait:
 ```python
-page.wait_for_load_state('networkidle')
+page.wait_for_load_state("networkidle")
 time.sleep(3)  # Wait for animations
 ```
 

@@ -208,7 +208,7 @@ onMounted(fetchHypotheses)
         </div>
         <BarChart
           :labels="confidenceChartLabels"
-          :datasets="[{ label: 'Confianza', data: confidenceChartData, backgroundColor: '#7c3aed' }]"
+          :datasets="[{ label: 'Confianza', data: confidenceChartData, backgroundColor: '#00d5ff' }]"
           :height="220"
           yLabel="Confianza"
           horizontal

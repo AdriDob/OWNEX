@@ -1,7 +1,7 @@
 {
  "version": "7.0.0",
- "last_updated": "2026-08-10",
- "total_tests": 1391,
+ "last_updated": "2026-08-14",
+ "total_tests": 1417,
  "phases": {
   "FASE_1": {
    "name": "Base Stabilization",
@@ -2275,6 +2275,189 @@
      "detail": "GHSA-wrw7-89jp-8q8g (glib VariantStrIter unsoundness, medium): glib 0.18.5 llega transitoriamente vía tauri 2.11.5 -> tray-icon 0.24.2 (latest) -> libappindicator -> gtk 0.18. La cadena gtk-rs 0.20 NO está adoptada por el ecosistema tauri aún. Sin fix disponible upstream (cargo update -p tray-icon: 0 locked). No explotable remotamente (bug de unsafe code en app local desktop single-user). Revisar cuando gtk-rs 0.20 se adopte."
     }
    ]
+  },
+  "FASE_34": {
+   "name": "Knowledge Bridge — Obsidian vault integration (index, search, git, security scan, snapshots)",
+   "completed": "2026-08-13",
+   "features": [
+    {
+     "id": "knowledge_index",
+     "name": "cores/knowledge package (vault index, hybrid search, parse, dedup, enrichers, trust, graph, pipeline)",
+     "status": "production_ready",
+     "files": [
+      "cores/knowledge/index.py",
+      "cores/knowledge/search.py",
+      "cores/knowledge/parser.py",
+      "cores/knowledge/gitops.py",
+      "cores/knowledge/models.py",
+      "cores/knowledge/__init__.py",
+      "cores/knowledge/tasks.py"
+     ],
+     "detail": "Local-first Obsidian vault: single source of truth markdown, OWNEX only reads/indexes/searches. VaultManager (connect/verify/set), KnowledgeIndex (FTS5 + embeddings, incremental scan, backlinks, broken links, duplicates), KnowledgeSearcher (unified hybrid: exact/title/path/alias/tag/link/FTS/semantic), GitOps (status/diff/commit/push/pull), SecretScanner (api keys/tokens), SnapshotManager (zip backups keep=10). Pre-existing bugs fixed: _upsert_note_locked captured last_insert_rowid after links/tags inserts (FTS rowid collision -> IntegrityError), backlinks() missing to_path (IndexError), verify() now rejects vaults with 0 markdown files."
+    },
+    {
+     "id": "knowledge_bridge_api",
+     "name": "Router /api/knowledge (17 endpoints) mounted in api/main.py",
+     "status": "production_ready",
+     "files": [
+      "api/routers/knowledge_bridge.py",
+      "api/main.py"
+     ],
+     "detail": "GET /, POST connect/disconnect/scan/initialize/sync, GET search/note/context/health/history/git-status/security-scan/snapshots, POST git/commit, POST snapshots (restore). All mutations require explicit authorization -> 403 {'authorization_required': True}. Verified: 25 API+engine tests pass, import api.main OK."
+    },
+    {
+     "id": "knowledge_scheduler",
+     "name": "Scheduler job knowledge_sync_daily (cron 30 6 * * *)",
+     "status": "production_ready",
+     "files": [
+      "core/scheduler/jobs.py",
+      "cores/knowledge/tasks.py"
+     ],
+     "detail": "get_knowledge_jobs() registered in get_all_jobs() (10 cycles, 44 jobs total). Handler cores.knowledge.tasks:run_knowledge_sync: incremental scan + embeddings (<=150) + health snapshot appended to data/knowledge/knowledge_health.jsonl; get_knowledge_snapshot_history(limit=7)."
+    },
+    {
+     "id": "knowledge_tests",
+     "name": "tests/test_knowledge_bridge.py (25 tests) + scheduler jobs test updated",
+     "status": "production_ready",
+     "files": [
+      "tests/test_knowledge_bridge.py",
+      "tests/test_scheduler_jobs.py"
+     ],
+     "detail": "25 tests: connect/disconnect, incremental scan, search variants, context builder, broken links, duplicates, security scan, snapshots rotate (keep=5), sync job, API auth flow (_authed_client with device_id login + CSRF cookie). test_scheduler_jobs updated to 10 cycles / 44 jobs."
+    }
+   ]
+  },
+  "FASE_35": {
+   "name": "Payment Compatibility Engine — OWNEX Payment Network (75 accounts, 5 layers, receive+off-ramp verdicts)",
+   "completed": "2026-08-14",
+   "features": [
+    {
+     "id": "payment_network",
+     "name": "cores/payment_compat/network.py — curated catalog (banking USA/AR/Intl, processors, crypto exchanges/ramps, self-custody EVM/Solana/HW, withdrawal) con clasificación funcional primary/us_account/global/payout/local/backup/specialized",
+     "status": "production_ready",
+     "files": [
+      "cores/payment_compat/network.py",
+      "cores/payment_compat/__init__.py"
+     ],
+     "tests": [
+      "tests/test_payment_compat.py::test_catalog_has_all_layers",
+      "tests/test_payment_compat.py::test_catalog_has_core_nucleus_accounts",
+      "tests/test_payment_compat.py::test_catalog_has_crypto_and_self_custody",
+      "tests/test_payment_compat.py::test_us_account_function_classification",
+      "tests/test_payment_compat.py::test_account_helpers"
+     ],
+     "dependencies": [
+      "core financial intelligence argentina_payout_methods (payout_ref bridge)"
+     ],
+     "integration_level": "integrated"
+    },
+    {
+     "id": "payment_compat_engine",
+     "name": "cores/payment_compat/engine.py — determinista OPPORTUNITY → PAYMENT METHOD → COUNTRY → CURRENCY → OWNEX ACCOUNTS → COMPATIBLE? con PaymentVerdict (compatible/viable/score 0-100), evaluate() y evaluate_chain() (receive + off-ramp a ARS), reglas de honestidad (documentación LLC/residencia no disponible → incompatible, nunca workaround)",
+     "status": "production_ready",
+     "files": [
+      "cores/payment_compat/engine.py"
+     ],
+     "tests": [
+      "tests/test_payment_compat.py::test_usdc_chain_viable",
+      "tests/test_payment_compat.py::test_ach_usa_viable_with_grabrfi",
+      "tests/test_payment_compat.py::test_region_mismatch_incompatible",
+      "tests/test_payment_compat.py::test_documentation_honesty_rule",
+      "tests/test_payment_compat.py::test_kyc_documentation_does_not_block",
+      "tests/test_payment_compat.py::test_local_cvu_payout_viable",
+      "tests/test_payment_compat.py::test_network_summary_shape"
+     ],
+     "dependencies": [
+      "cores/payment_compat/network.py"
+     ],
+     "integration_level": "integrated"
+    },
+     {
+      "id": "payment_compat_api",
+      "name": "api/routers/payment_compat.py — GET /api/payment-compat (resumen+cuentas), GET /network (agrupado por layer/function), GET /account/{id}, POST /evaluate, POST /evaluate/chain; montado en api/main.py",
+      "status": "production_ready",
+      "files": [
+       "api/routers/payment_compat.py",
+       "api/main.py"
+      ],
+      "tests": [
+       "tests/test_payment_compat.py::test_payment_network_api"
+      ],
+      "dependencies": [
+       "cores/payment_compat/engine.py"
+      ],
+      "integration_level": "production"
+     }
+    ]
+   }
+  },
+  "FASE_36": {
+   "name": "Production Hardening: Auth cookie httpOnly (FASE 3) + Error Handling (FASE 2) + Twin-tree SSOT fixes (FASE 4)",
+   "completed": "2026-08-14",
+   "description": "Pasada de endurecimiento de producción en 3 frentes: (1) ERROR HANDLING: handler global HTTPException + operation_id — 5xx nunca expone internals al cliente; (2) AUTH: cookie httpOnly ownex-session como segunda vía de sesión (Bearer sigue ganando, migración incremental, sin romper CSRF ni localStorage); (3) TWIN TREES: inventario completo core/ vs cores/ (SSOT runtime = ambos árboles, sin ganador único) y arreglo de 4 bugs latentes por imports de árbol/módulo equivocado que rompían runtime en silencio.",
+   "features": [
+    {
+     "id": "error_handling_global",
+     "name": "api/middleware/error_handling.py — http_exception_handler global (registrado en api/main.py) + operation_id en ErrorHandlingMiddleware; 5xx → {\"detail\": \"Internal server error\", \"operation_id\": ...} + header X-Operation-Id; detail crudo solo a log ownex.error; 4xx preservan detail intencional",
+     "status": "production_ready",
+     "files": [
+      "api/middleware/error_handling.py",
+      "api/main.py",
+      "tests/test_error_handling.py"
+     ],
+     "tests": [
+      "tests/test_error_handling.py::test_500_returns_generic_detail",
+      "tests/test_error_handling.py::test_500_has_operation_id",
+      "tests/test_error_handling.py::test_404_preserves_detail",
+      "tests/test_error_handling.py::test_handler_registered"
+     ],
+     "dependencies": [],
+     "integration_level": "production"
+    },
+    {
+     "id": "auth_http_only_cookie",
+     "name": "Cookie httpOnly ownex-session como 2ª vía de auth — SESSION_COOKIE en api/middleware/auth_middleware.py; set en login/register/refresh (auth.py + auth_users.py); logout borra cookie; /me acepta cookie; CSRF EXEMPT /api/auth/logout; frontend credentials: 'include' + clearSession() purga cookie; Bearer sigue siendo la vía primaria (header gana) → compat total, migración incremental",
+     "status": "production_ready",
+     "files": [
+      "api/middleware/auth_middleware.py",
+      "api/routers/auth.py",
+      "api/routers/auth_users.py",
+      "api/middleware/csrf_middleware.py",
+      "frontend/src/lib/api.ts",
+      "tests/test_auth_cookie.py",
+      "tests/test_auth_users.py"
+     ],
+     "tests": [
+      "tests/test_auth_cookie.py::test_cookie_set_on_login",
+      "tests/test_auth_cookie.py::test_cookie_httponly_and_samesite",
+      "tests/test_auth_cookie.py::test_auth_via_cookie_alone",
+      "tests/test_auth_cookie.py::test_bearer_still_works",
+      "tests/test_auth_cookie.py::test_unauthorized_without_credentials",
+      "tests/test_auth_cookie.py::test_invalid_cookie_unauthorized",
+      "tests/test_auth_cookie.py::test_logout_clears_cookie",
+      "tests/test_auth_cookie.py::test_logout_without_body"
+     ],
+     "dependencies": [
+      "api/middleware/auth_middleware.py"
+     ],
+     "integration_level": "production"
+    },
+    {
+     "id": "twin_tree_runtime_fixes",
+     "name": "Fixes de runtime por imports de árbol/modulo equivocado (core/ vs cores/): (1) api/scheduler.py:385 cores.events.event_types (no existe) → cores.agents.types.EventType (PIPELINE_*); (2) api/routers/mobile.py cores.models (no existe) → database.models; (3) mobile.py Target.status (columna inexistente) → Target.active; (4) cores/backup.py core.ORION_DIR (no exportado) → core.OWNEX_DIR. /mobile/status y /mobile/quick-wins pasan de 500 a 200 en runtime",
+     "status": "production_ready",
+     "files": [
+      "api/scheduler.py",
+      "api/routers/mobile.py",
+      "cores/backup.py"
+     ],
+     "tests": [
+      "tmp/opencode/test_mobile_smoke.py::test_mobile_status_ok",
+      "tmp/opencode/test_mobile_smoke.py::test_mobile_quick_wins_ok"
+     ],
+     "dependencies": [],
+     "integration_level": "production"
+    }
+   ]
   }
  }
-}

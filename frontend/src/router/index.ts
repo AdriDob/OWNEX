@@ -453,7 +453,6 @@ export const routes: RouteRecordRaw[] = [
 
   // Reports legacy
   { path: '/report-queue', redirect: '/reports/queue' },
-  { path: '/verify', redirect: '/reports/verification' },
 
   // Operations legacy
   { path: '/pipelines', redirect: '/operations/pipelines' },
@@ -476,7 +475,6 @@ export const routes: RouteRecordRaw[] = [
 
   // Copilot legacy
   { path: '/agents', redirect: '/copilot/assistant' },
-  { path: '/intelligence', redirect: '/intelligence' },
   { path: '/insights', redirect: '/copilot/recommendations' },
   { path: '/personal-intelligence', redirect: '/copilot/learning' },
   { path: '/memory-patterns', redirect: '/copilot/memory' },
@@ -569,6 +567,12 @@ export const routes: RouteRecordRaw[] = [
     name: 'profile-kit',
     component: () => import('@/pages/ProfileKit.vue'),
     meta: { title: 'Profile Kit' },
+  },
+  {
+    path: '/knowledge',
+    name: 'knowledge',
+    component: () => import(/* webpackChunkName: "knowledge" */ '@/pages/Knowledge.vue'),
+    meta: { title: 'Knowledge Vault' },
   },
 
   // ── MOBILE COMPANION ──

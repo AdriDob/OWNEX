@@ -102,6 +102,15 @@ PROVIDER_CATALOG: list[ProviderSpec] = [
         default_host="",
         default_model="",
     ),
+    ProviderSpec(
+        id="freebuff",
+        label="Freebuff (Free Agent)",
+        models=["freebuff"],
+        env_host="FREEBUFF_CONFIG_PATH",
+        env_model="FREEBUFF_AUTONOMY_LEVEL",
+        default_host="~/.orion/freebuff_config.yaml",
+        default_model="freebuff",
+    ),
 ]
 
 
@@ -446,6 +455,76 @@ class LocalFallbackProvider(AIProvider):
         return {"provider": self.name, "available": True}
 
 
+class FreebuffProvider(AIProvider):
+    """Freebuff agent provider - free autonomous coding agent."""
+
+    def __init__(self, config_path: str | None = None):
+        try:
+            from core.ai_providers.freebuff import detect_freebuff, load_config
+        except ImportError:
+            from cores.ai_providers.freebuff import detect_freebuff, load_config
+
+        self.config = load_config(config_path)
+        self.detection = detect_freebuff()
+
+    def is_available(self) -> bool:
+        return self.detection.get("installed", False) and self.config.enabled
+
+    @property
+    def name(self) -> str:
+        return f"freebuff/{self.detection.get('version', 'unknown')}"
+
+    def chat(self, messages: list[dict[str, str]], max_tokens: int = 512) -> str:
+        if not self.is_available():
+            return "Freebuff no está disponible. Instala freebuff para usar este proveedor."
+
+        # Extract the task from messages
+        task_content = ""
+        for msg in messages:
+            if msg.get("role") == "user":
+                task_content = msg.get("content", "")
+                break
+
+        if not task_content:
+            return "No se proporcionó ninguna tarea para Freebuff."
+
+        try:
+            from core.ai_providers.freebuff import FreebuffTaskRequest, route_task
+        except ImportError:
+            from cores.ai_providers.freebuff import FreebuffTaskRequest, route_task
+
+        request = FreebuffTaskRequest(
+            task=task_content,
+            workspace=os.path.expanduser("~/projects/Rastro"),
+            task_type="code",
+            complexity="LOW",
+            risk_level="LOW",
+            files_affected=1,
+            requires_review=True,
+            network_allowed=False,
+            secrets_present=False,
+        )
+
+        result = route_task(request)
+
+        if result.success:
+            return f"Freebuff ejecutó la tarea exitosamente. Archivos modificados: {result.files_changed}. Duración: {result.duration_ms}ms."
+        else:
+            return f"Freebuff falló: {result.stderr}"
+
+    def chat_stream(self, messages: list[dict[str, str]], max_tokens: int = 512):
+        result = self.chat(messages, max_tokens)
+        yield result
+
+    def get_config(self) -> dict:
+        return {
+            "provider": self.name,
+            "available": self.is_available(),
+            "version": self.detection.get("version", "unknown"),
+            "config_path": self.config.allowed_paths[0] if self.config.allowed_paths else "",
+        }
+
+
 class ProviderRegistry:
     """Manages provider lifecycle with DB-persisted config and env fallback."""
 
@@ -548,7 +627,15 @@ class ProviderRegistry:
         )
         if p.is_available():
             return p
-        # 6. Final fallback: rule-based
+        # 6. Try Freebuff (free agent)
+        if ptype in ("freebuff",):
+            p = FreebuffProvider(
+                config_path=cfg.get("freebuff_config_path", "~/.orion/freebuff_config.yaml"),
+            )
+            if p.is_available():
+                return p
+            logger.info("Freebuff provider unavailable, trying alternatives")
+        # 7. Final fallback: rule-based
         logger.info("No LLM provider available — using local rule-based fallback")
         return LocalFallbackProvider()
 
@@ -593,6 +680,11 @@ class ProviderRegistry:
                     available = p.is_available()
                 elif spec.id == "openai":
                     available = bool(os.environ.get("OPENAI_API_KEY") or self._load_config().get("api_key"))
+                elif spec.id == "freebuff":
+                    p = FreebuffProvider(
+                        config_path=os.environ.get(spec.env_host, spec.default_host),
+                    )
+                    available = p.is_available()
             result.append(
                 {
                     "id": spec.id,

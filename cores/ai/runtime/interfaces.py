@@ -436,6 +436,7 @@ class OARConfig:
             "deepinfra",
             "cerebras",
             "lmstudio",
+            "freebuff",
         ]
     )
     default_provider: str = "ollama"

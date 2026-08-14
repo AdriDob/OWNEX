@@ -103,6 +103,13 @@ See [Architecture Diagrams](../assets/diagrams/) for visual system architecture:
 - [Real Data Connection Runbook](REAL_DATA_CONNECTION_RUNBOOK.md) — Production data setup
 - [opportunity.env.example](opportunity.env.example) — Environment configuration
 
+### Knowledge Bridge (Obsidian vault)
+- [Knowledge Architecture](knowledge/KNOWLEDGE_ARCHITECTURE.md) — Bridge architecture and components
+- [Obsidian Integration](knowledge/OBSIDIAN_INTEGRATION.md) — Connect your vault to OWNEX
+- [Obsidian Migration](knowledge/OBSIDIAN_MIGRATION.md) — Moving knowledge into the vault
+- [Knowledge Backup & Recovery](knowledge/BACKUP_AND_RECOVERY.md) — Snapshots and restore
+- [Knowledge Security](knowledge/SECURITY.md) — Authorization and secret scanning
+
 ---
 
 ## Reference
@@ -154,6 +161,7 @@ docs/
 ├── brand-preview/               # Brand previews
 ├── development/                 # Development guides
 ├── images/                      # Documentation images
+├── knowledge/                   # Knowledge Bridge (Obsidian vault) docs
 ├── operations/                  # Operational procedures
 ├── project/                     # Project-specific docs
 └── providers/                   # Third-party providers

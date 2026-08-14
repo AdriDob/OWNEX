@@ -105,6 +105,7 @@ const navSections = [
     section: 'ATLAS ● Intelligence',
     cycle: 'atlas',
     items: [
+      { name: 'Knowledge Vault', path: '/knowledge', icon: Database },
       { name: 'Knowledge Graph', path: '/copilot/memory', icon: Database },
       { name: 'Aprendizaje', path: '/copilot/learning', icon: Brain },
       { name: 'Recomendaciones', path: '/copilot/recommendations', icon: Sparkles },

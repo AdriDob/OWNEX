@@ -218,6 +218,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useThemeEngine } from '@/composables/useThemeEngine'
 import CoreVisualization from '@/components/CoreVisualization.vue'
+import ModernNavbar from '@/components/layout/ModernNavbar.vue'
 
 const router = useRouter()
 const { themeNames, currentTheme, setTheme } = useThemeEngine()
@@ -486,9 +487,9 @@ function getThemeCoreStyle(themeId: string) {
 
 @keyframes retro-border {
   0% { border-color: #4a5568; }
-  25% { border-color: #99199a; }
+  25% { border-color: #00d5ff; }
   50% { border-color: #4a5568; }
-  75% { border-color: #99199a; }
+  75% { border-color: #00d5ff; }
   100% { border-color: #4a5568; }
 }
 
@@ -499,7 +500,7 @@ function getThemeCoreStyle(themeId: string) {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #9CA3AF 0%, #9500ff 100%);
+  background: linear-gradient(135deg, #9CA3AF 0%, #00d5ff 100%);
   border-radius: 50%;
   font-size: 1.5rem;
   z-index: 1;
