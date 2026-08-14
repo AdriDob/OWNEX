@@ -1436,7 +1436,7 @@ onMounted(() => {
 }
 
 .action-btn.metrics:hover {
-  background: #7c3aed;
+  background: #00d5ff;
 }
 
 .modal-overlay {

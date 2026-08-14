@@ -1,0 +1,8 @@
+{
+  "folders": [
+    { "name": "Rastro", "path": "." }
+  ],
+  "settings": {
+    "terminal.integrated.defaultProfile.linux": "bash"
+  }
+}

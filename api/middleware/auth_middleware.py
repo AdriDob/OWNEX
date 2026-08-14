@@ -8,6 +8,10 @@ from cores.auth.session_validator import get_session_validator
 
 logger = logging.getLogger("ownex.api.middleware")
 
+# Session cookie set on login/register/refresh (httpOnly). The token is also
+# accepted via Authorization: Bearer for backwards compatibility.
+SESSION_COOKIE = "ownex-session"
+
 # Paths that do NOT require authentication
 PUBLIC_PATHS: set[str] = {
     "/api/health",
@@ -47,6 +51,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         auth_header = request.headers.get("Authorization", "")
         token = auth_header.removeprefix("Bearer ").strip()
+
+        # Fallback: httpOnly session cookie (set on login). The cookie path is
+        # only honored when no Authorization header is present, keeping the
+        # Bearer flow fully backwards compatible.
+        if not token:
+            token = request.cookies.get(SESSION_COOKIE, "").strip()
 
         if not token:
             return JSONResponse(

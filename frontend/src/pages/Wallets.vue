@@ -241,7 +241,7 @@ onMounted(fetchWallets)
           </div>
           <BarChart
             :labels="earningsByPlatformLabels"
-            :datasets="[{ label: 'Earnings', data: earningsByPlatformData, backgroundColor: ['#7c3aed', '#ffffff', '#16A34A', '#A16207', '#E82127'] }]"
+            :datasets="[{ label: 'Earnings', data: earningsByPlatformData, backgroundColor: ['#00d5ff', '#ffffff', '#16A34A', '#A16207', '#E82127'] }]"
             :height="220"
             yLabel="USD"
             horizontal

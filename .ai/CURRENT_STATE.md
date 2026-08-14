@@ -1,3 +1,211 @@
+## Sesión 2026-08-14 — HARDENING PASS CIERRE: FASE 5-14 veredictos + Recovery + Palette TESLA + validación completa
+
+> **QUÉ SE HIZO:** Cierre del hardening pass con 6 veredictos con evidencia (registrados en
+> DECISIONS.md), 2 fases de fix y validación completa. (1) **FASE 5/6**: twin-tree NO se
+> consolida (runtime usa ambos árboles) y dead code NO se borra (falsos positivos
+> verificados). (2) **FASE 7**: 87 prefixes de routers sin consumo frontend → inventario
+> (APK/API-only consumen varios). (3) **FASE 8**: limpieza de código muerto con 0 referencias
+> — 7 páginas (Bounties, FindingDetail, MoneyRadar, NextAction, Onboarding, Opportunities,
+> Pulse), 29 componentes/icons (15 componentes + directorio icons/ completo), 2 redirects
+> rotos del router (`/verify → /reports/verification` dead y `/intelligence →
+> /intelligence` self-redirect) y **fix de bug**: WelcomePage.vue usaba `<ModernNavbar />`
+> sin importar (no se renderizaba). (4) **FASE 10/11**: E2E smoke real (auth + mobile +
+> payment-compat + knowledge + system) y restart test OK con persistencia. (5) **FASE 12**:
+> no hay eventos huérfanos (el EventBus unificado persiste todo + wildcard handlers); solo
+> fix de comentario engañoso en `api/main.py:196`. (6) **FASE 13**: palette TESLA — 0 colores
+> arbitrarios restantes (violet `#7c3aed` y magenta `#99199a`/`#9500ff` → `#00d5ff` en 14
+> archivos). (7) **FASE 14**: magic values OK (timeouts configurados; 2 literales 300s
+> documentados).
+
+- **Frontend FASE 8**: `frontend/src/router/index.ts` — eliminadas redirects muertas (`/verify`
+  y self-redirect `/intelligence`); 7 páginas y 29 componentes/icons con 0 referencias
+  borrados con `git rm`; `WelcomePage.vue` +import `ModernNavbar`. `vue-tsc` EXIT 0,
+  `vite build` OK.
+- **FASE 10 (E2E smoke)**: uvicorn real (PID 57497), login device_id → wrapper
+  `{"version","schema","data":{token}}`; 200 en `/api/health`, `/api/auth/me`,
+  `/api/payment-compat` (76 cuentas), `/mobile/status`, `/mobile/quick-wins`,
+  `/direct-work/status`, `/api/system-state/state`, `/api/system/health`,
+  `/api/knowledge/health`. NOTA: mobile/direct-work se montan SIN prefijo `/api`.
+- **FASE 11 (Recovery)**: restart test OK — tras kill+relanzar, login + todos los endpoints
+  responden igual (persistencia intacta). Health: 11/12 checks (agents_health falla porque
+  los agentes no se auto-inician en boot — preexistente, honesto; scheduler/event_bus
+  verdes).
+- **FASE 13 (Palette)**: 14 archivos → `#00d5ff` (violet de charts de 11 archivos + magenta
+  de anillos/hover de WelcomePage/ModernNavbar/MerlinInterface). Quedan solo negros
+  puros/surfaces permitidos.
+- **FASE 14 (Magic values)**: auditoría de timeouts — todos usan `self.timeout` /
+  `manifest.timeout_seconds` / `cfg.timeout`; solo `cores/autonomy.py:267` y
+  `cores/remote_control/bridge.py:196` tienen `timeout=300` literal con comentario.
+- **Ruff limpio global**: se arreglaron además I001/W293 en `cores/ai/provider.py` +
+  `cores/ai/runtime/adapters.py` (--fix) y SIM102/F841 en `freebuff.py` (ambos árboles
+  sincronizados).
+- **Verificación**: suite completa **3196 passed / 11 skipped** (209 warnings preexistentes),
+  `test-fast` 89 passed / 1 skipped, `ruff check .` All checks passed, `vue-tsc` 0 errores,
+  `vite build` OK. DECISIONS.md actualizado con los 6 veredictos del pass.
+
+## Sesión 2026-08-14 — PRODUCTION HARDENING PASS: Error Handling (FASE 2) + Auth cookie httpOnly (FASE 3) + Twin-tree SSOT fixes (FASE 4)
+
+> **QUÉ SE HIZO:** Pasada de endurecimiento de producción en 3 frentes con evidencia por
+> área. (1) **ERROR HANDLING**: 245 `detail=str(e)` en 26 routers dejaban de exponer internals
+> — handler global `http_exception_handler` + `operation_id`; 5xx → `{"detail": "Internal
+> server error", "operation_id": ...}` + header `X-Operation-Id`, detail crudo solo al log
+> `ownex.error`; 4xx preservan su detail de contrato. (2) **AUTH**: cookie `ownex-session`
+> httpOnly como segunda vía de sesión (Bearer sigue ganando → migración incremental, cero
+> break); set en login/register/refresh de ambos routers, logout la borra, `/me` acepta
+> cookie, `/api/auth/logout` exento de CSRF, frontend `credentials: 'include'` +
+> `clearSession()` purga cookie server-side. (3) **TWIN TREES**: inventario completo core/
+> vs cores/ (604 vs 973 archivos; 307 idénticos, 100 divergidos) — veredicto: **no hay SSOT
+> único, el runtime usa ambos árboles simultáneamente** con ~20 wrappers cruzados; se
+> arreglaron 4 bugs latentes por imports de árbol/módulo equivocado que rompían runtime en
+> silencio: `cores.events.event_types` → `cores.agents.types`, `cores.models` →
+> `database.models` (×2), `Target.status` → `Target.active`, `core.ORION_DIR` →
+> `core.OWNEX_DIR`.
+
+- **`api/middleware/error_handling.py`**: `http_exception_handler` global registrado en
+  `api/main.py` (tras middlewares); 5xx → detalle genérico + `operation_id` en body y header;
+  `ErrorHandlingMiddleware` asigna `operation_id` al request y lo incluye en respuestas.
+  7 tests nuevos; suite combinada **176 passed / 1 skipped**.
+- **Auth cookie httpOnly (FASE 3)**: `SESSION_COOKIE = "ownex-session"` en
+  `api/middleware/auth_middleware.py`; `_set_session_cookie` en `auth.py` (30 días) y
+  `auth_users.py` (24h = TOKEN_TTL); atributos httponly/samesite=lax/secure solo https;
+  `AuthMiddleware` usa cookie como fallback cuando no hay header Bearer (el header gana).
+  `tests/test_auth_cookie.py` **10/10 passed**; fix a fixture de `test_auth_users.py`
+  (limpiar jar de cookies del TestClient module-scoped → `test_me_unauthenticated` 401 real);
+  `vue-tsc` 0 errores; `import api.main` OK.
+- **Inventario twin-tree (FASE 4)**: veredicto del análisis de imports runtime (agente
+  explore, 769 refs): `core/` es la implementación de scheduler/cycles/self-healing/
+  extensiones/knowledge graph/autonomy/investment/offensive/opportunity adapters+executors/
+  copilot core/interfaces/health/recon-router; `cores/` de DWE/validation loop/engine/
+  events legacy/memory/learning/financial/platforms/tools/ai providers/knowledge bridge/
+  license/identity/voice/wear-os. 307 archivos byte-idénticos (doble copia), ~20 paquetes
+  con `__init__` wrapper cruzado. **Consolidación total = riesgo alto sin beneficio
+  inmediato → NO se borra nada; los árboles quedan como están y la deuda se registra.**
+- **4 bugs latentes arreglados (runtime quebrado en silencio)**:
+  - `api/scheduler.py:385` — `from cores.events.event_types import EventType` (módulo NO
+    existe; `EventType` vive en `cores/agents/types.py`) → el `_copilot_hook` siempre
+    lanzaba ImportError en cada stage del pipeline.
+  - `api/routers/mobile.py` — `from cores.models import Finding, Target` (NO existe;
+    modelos en `database/models.py`) → `GET /mobile/status` y `/mobile/quick-wins` → 500.
+  - `mobile.py` — `Target.status` (columna inexistente; es `active`) → 500 en `/mobile/status`.
+  - `cores/backup.py` — `from core import ORION_DIR` (solo existe `OWNEX_DIR`) → ImportError.
+- **Verificación**: smoke `/mobile/status` + `/mobile/quick-wins` con auth real → **200/200**
+  (antes 500); suite auth+error+mobile **89 passed / 8 warnings**; ruff limpio en los 8
+  archivos tocados; `import api.main` OK; `vue-tsc` 0 errores.
+
+## Sesión 2026-08-13 — KNOWLEDGE BRIDGE: el vault de Obsidian entra al pipeline (FASE_34)
+
+> **QUÉ SE HIZO:** Cierre del spec "OWNEX Knowledge Bridge". Integración del vault de
+> Obsidian como single source of truth: markdown es la única fuente de verdad, el sistema lo
+> indexa, busca y relaciona sin duplicar realidad. Cierre del gap "el conocimiento personal
+> es invisible para OWNEX". 5 nuevas piezas implementadas (VaultManager, KnowledgeIndex con
+> FTS5 + embeddings por hashing local, KnowledgeSearcher hybrid, GitOps, SafeWriter con
+> authorized=True → 403). Scheduler job `knowledge_sync_daily` (cron `30 6 * * *`); 10 ciclos /
+> 44 jobs totales. Bugs preexistentes corregidos: `_upsert_note_locked` (rowid FTS corrupto),
+> `backlinks()` (falta to_path → IndexError), `verify()` rechaza vaults con 0 markdown.
+> API `/api/knowledge` con 17 endpoints (connect/disconnect/scan/initialize/sync/search/note/
+> context/health/history/git-status/git-commit/security-scan/snapshots). Tests: 25 passed +
+> 40 scheduler jobs = 65 passed; ruff 0 errores en 7 archivos tocados; `import api.main` OK;
+> suite fast 89 passed / 1 skipped sin regresión. `.ai/` docs registrados: FASE_34 en
+> COMPLETED_FEATURES.json, entrada DECISIONS.md, sesión CURRENT_STATE.md.
+
+- **`cores/knowledge/`**: `VaultManager` (connect/verify/set), `KnowledgeIndex` (SQLite FTS5 +
+  embeddings por hashing local, scan incremental, backlinks, broken links, duplicados fuzzy),
+  `KnowledgeSearcher` (hybrid unificado: exact/title/path/alias/tag/link/FTS/semántico),
+  `GitOps` (status/diff/commit/push/pull), `SecretScanner` (API keys/tokens), `SnapshotManager`
+  (zips con keep=10), `SafeWriter` (**writes exigen `authorized=True` → 403**), tasks con
+  `run_knowledge_sync` (scan + embeddings ≤150 + snapshot de salud en
+  `data/knowledge/knowledge_health.jsonl`) y `get_knowledge_snapshot_history(limit=7)`.
+- **`api/routers/knowledge_bridge.py` (NUEVO, montado en main.py)**: `/api/knowledge` — 17
+  endpoints (connect/disconnect/scan/initialize/sync/search/note/context/health/history/
+  git-status/git-commit/security-scan/snapshots). GETs libres; mutaciones requieren auth →
+  `{"authorization_required": True}`.
+- **Scheduler**: `get_knowledge_jobs()` → `knowledge_sync_daily` (cron `30 6 * * *`); ahora
+  10 ciclos / 44 jobs totales.
+- **Bugs preexistentes del package corregidos**: `_upsert_note_locked` capturaba
+  `last_insert_rowid` DESPUÉS de los inserts de links/tags → rowid de FTS corrupto
+  (`sqlite3.IntegrityError`); `backlinks()` no seleccionaba `to_path` → IndexError;
+  `verify()` rechaza vaults con 0 markdown.
+- **Verificación**: `tests/test_knowledge_bridge.py` **25 passed** + `test_scheduler_jobs.py`
+  40 passed (actualizado: 10 ciclos/44 jobs) = **65 passed**; ruff 0 errores en los 7 archivos
+  tocados; `import api.main` OK; e2e_security_pipeline + scoring + qa_cycle **22 passed** sin
+  regresión. `test_scheduler.py` no se corre (tests de red, excluido por default).
+
+## Sesión 2026-08-13 — PAYMENT COMPATIBILITY ENGINE: OWNEX sabe ANTES de ejecutar si va a poder cobrar (FASE_35)
+
+> **QUÉ SE HIZO:** Cierre del spec "Payment Compatibility Engine" del owner: el sistema ya no
+> acumula plataformas de pago, decide antes de ejecutar un trabajo si el cobro es viable.
+> Determinista, cero LLM, con regla de honestidad dura (documentación de entidad/residencia no
+> disponible → incompatible, nunca se sugiere un workaround).
+
+- **`cores/payment_compat/network.py` (NUEVO)**: catálogo curado de **76 cuentas** en 5 capas
+  (banking USA/AR/internacional, processors, crypto exchanges/rampas AR/stablecoins,
+  self-custody EVM/Solana/hardware, withdrawal USD/ARS) con clasificación funcional
+  (primary/us_account/global/payout/local/backup/specialized). Incluye el núcleo del owner
+  (GrabrFi, Global66, Airtm, Takenos, DolarApp, Belo, Payoneer, Wise, AstroPay, MercadoPago),
+  alternativas internacionales (Revolut, N26, Paysera, ZEN, Deel, Remote, Airwallex,
+  WorldFirst, remesas, **Wallbit**...), bancos AR tradicionales (Galicia, Santander, BBVA, Nación,
+  Provincia, Ciudad, HSBC, ICBC, Macro, Supervielle, Comafi, Credicoop), exchanges (Binance,
+  Kraken, Coinbase, OKX, Bybit, Bitget, Crypto.com), rampas AR (Bitso, Lemon, Belo, Buenbit,
+  Ripio, SatoshiTango, Fiwind, Decrypto), autocustodia (MetaMask, Rabby, Trust, Safe,
+  Phantom, Ledger, Trezor, Exodus, Coinbase/OKX Wallet). Los que ya existen en
+  `ARGENTINA_PAYOUT_METHODS` referencian ese catálogo vía `payout_ref` (One Source of Truth).
+- **`cores/payment_compat/engine.py` (NUEVO)**: `PaymentCompatibilityEngine` — cadena
+  determinista `PAYMENT METHOD → REQUIRED COUNTRY → CURRENCY → AVAILABLE OWNEX ACCOUNTS →
+  COMPATIBLE?`. `evaluate()` (veredicto simple) y `evaluate_chain()` (receive + off-ramp a
+  ARS). `PaymentVerdict`: compatible/viable/score 0-100, matches razonados, off_ramp,
+  missing, honest_notes. **Regla de honestidad**: `required_documentation=llc/us_entity/
+  us_residency/eu_residency/uk_entity` → incompatible con razón explícita (nunca inventar
+  soluciones para esquivar restricciones; KYC personal sí pasa). Métodos bancarios (ACH/WIRE/
+  SEPA/PayPal/CVU/CBU): recibir es viable por sí mismo, conversión marcada como manual.
+  **Mejoras "impecable" (2026-08-14)**: (1) catch-all de documentación — cualquier
+  `required_documentation` no reconocido bloquea con "Exige documentación no reconocida"
+  (`_DOCUMENTATION_BLOCKED`/`_DOCUMENTATION_ACCEPTED` explícitos); (2) persistencia de cuentas
+  configuradas en `~/.config/ownex/payment_network.json` (`set_configured_accounts` /
+  `get_configured_accounts`, sobrevive restarts); (3) enriquecimiento `payout_ref`: cada match
+  consulta `ARGENTINA_PAYOUT_METHODS` vía `_get_payout_meta()` (reliability/fees/min-max/notes)
+  → boost de score ≤5 puntos y notas en el reason; (4) bonus de score en `_score_requirement`
+  para matches con `payout_ref` documentado.
+- **`api/routers/payment_compat.py` (NUEVO, montado en main.py)**: `GET /api/payment-compat`
+  (resumen + 76 cuentas), `GET /network` (agrupado por layer/function), `GET /account/{id}`,
+  `POST /evaluate` y `POST /evaluate/chain` → veredictos serializables.
+- **Bugs corregidos en `cores/financial_intelligence/argentina_payout_methods.py`**
+  (preexistentes, bloqueaban el import del catálogo): `minimum_withraft` → `minimum_withdrawal`
+  (línea 357, entrada dlocal) y `_id="brubank"` → `id="brubank"` (línea 940) →
+  `TypeError: PayoutMethod.__init__() got an unexpected keyword argument '_id'`.
+- **Verificación**: `tests/test_payment_compat.py` **13 passed** (catálogo completo, USDC/Base
+  chain viable con Binance+MetaMask, ACH USA viable con GrabrFi, mismatch de región
+  incompatible, LLC → 0.0 con honest_note, KYC no bloquea, CVU ARS → MercadoPago), ruff 0
+  errores en los 5 archivos, `import api.main` OK, suite fast **89 passed / 1 skipped**
+  (sin regresión).
+
+## Sesión 2026-08-13 — KNOWLEDGE BRIDGE: el vault de Obsidian entra al pipeline (FASE_34)
+
+> **QUÉ SE HIZO:** Implementado el puente local-first entre el vault de Obsidian del usuario y
+> OWNEX: el markdown es la única fuente de verdad; el sistema lo indexa, busca y relaciona sin
+> duplicar realidad. Cierre del gap "el conocimiento personal es invisible para OWNEX".
+
+- **`cores/knowledge/`**: `VaultManager` (connect/verify/set), `KnowledgeIndex` (SQLite FTS5 +
+  embeddings por hashing local, scan incremental, backlinks, broken links, duplicados fuzzy),
+  `KnowledgeSearcher` (hybrid unificado: exact/title/path/alias/tag/link/FTS/semántico),
+  `GitOps` (status/diff/commit/push/pull), `SecretScanner` (API keys/tokens), `SnapshotManager`
+  (zips con keep=10), `SafeWriter` (**writes exigen `authorized=True` → 403**), tasks con
+  `run_knowledge_sync` (scan + embeddings ≤150 + snapshot de salud en
+  `data/knowledge/knowledge_health.jsonl`) y `get_knowledge_snapshot_history(limit=7)`.
+- **`api/routers/knowledge_bridge.py` (NUEVO, montado en main.py)**: `/api/knowledge` — 17
+  endpoints (connect/disconnect/scan/initialize/sync/search/note/context/health/history/
+  git-status/git-commit/security-scan/snapshots). GETs libres; mutaciones requieren auth →
+  `{"authorization_required": True}`.
+- **Scheduler**: `get_knowledge_jobs()` → `knowledge_sync_daily` (cron `30 6 * * *`); ahora
+  10 ciclos / 44 jobs totales.
+- **Bugs preexistentes del package corregidos**: `_upsert_note_locked` capturaba
+  `last_insert_rowid` DESPUÉS de los inserts de links/tags → rowid de FTS corrupto
+  (`sqlite3.IntegrityError`); `backlinks()` no seleccionaba `to_path` → IndexError;
+  `verify()` rechaza vaults con 0 markdown.
+- **Verificación**: `tests/test_knowledge_bridge.py` **25 passed** + `test_scheduler_jobs.py`
+  40 passed (actualizado: 10 ciclos/44 jobs) = **65 passed**; ruff 0 errores en los 7 archivos
+  tocados; `import api.main` OK; e2e_security_pipeline + scoring + qa_cycle **22 passed** sin
+  regresión. `test_scheduler.py` no se corre (tests de red, excluido por default).
+
 ## Sesión 2026-08-11 — SELF-1 CERRADO: 11 vulnerabilidades de dependencias resueltas (npm + Python; Rust aceptada)
 
 > **QUÉ SE HIZO:** Cerrado el backlog item SELF-1 (Dependabot: 11 alertas — 5 high, 6 medium).

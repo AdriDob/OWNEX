@@ -19,12 +19,13 @@ def client():
 
 
 @pytest.fixture(autouse=True)
-def clean_users(monkeypatch):
+def clean_users(client, monkeypatch):
     """Remove test users after each test.
 
     Also force local-first auth (no SMTP verification) so the tests are
     deterministic regardless of whether OWNNEX_MAIL_SMTP_HOST is set.
     """
+    client.cookies.clear()
     monkeypatch.setattr("api.routers.auth_users.mail_configured", lambda: False)
     yield
     from database.db import SessionLocal

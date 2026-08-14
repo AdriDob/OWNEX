@@ -193,7 +193,7 @@ onMounted(loadData)
             <LineChart
               v-if="timelineLabels.length > 0"
               :labels="timelineLabels"
-              :datasets="[{ label: 'Events', data: timelineData, borderColor: '#7c3aed', fill: true }]"
+              :datasets="[{ label: 'Events', data: timelineData, borderColor: '#00d5ff', fill: true }]"
               :height="200"
               :show-legend="false"
               :area="true"
@@ -289,7 +289,7 @@ onMounted(loadData)
           <LineChart
             v-if="timelineLabels.length > 0"
             :labels="timelineLabels"
-            :datasets="[{ label: 'Events', data: timelineData, borderColor: '#7c3aed', fill: true, tension: 0.4 }]"
+            :datasets="[{ label: 'Events', data: timelineData, borderColor: '#00d5ff', fill: true, tension: 0.4 }]"
             :height="200"
             :show-legend="false"
             :area="true"

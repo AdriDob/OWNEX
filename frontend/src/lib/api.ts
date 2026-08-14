@@ -42,6 +42,8 @@ export function clearSessionExpiry() {
 export function clearSession() {
   clearToken()
   clearSessionExpiry()
+  // Purge the httpOnly session cookie server-side (best effort, no await)
+  void fetch(`${BASE}/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => undefined)
 }
 
 export function isSessionExpired(): boolean {
@@ -125,6 +127,7 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
     const res = await fetch(url, {
       method,
       headers,
+      credentials: 'include',
       body: body ? JSON.stringify(body) : undefined,
     })
 

@@ -382,8 +382,7 @@ class ScanScheduler:
             self, stage: str, stage_result: str, pipeline_id: str, error_message: str | None = None
         ) -> None:
             """Emit pipeline stage event to EventBus + COPILOT hook."""
-            from cores.events.event_types import EventType
-
+            from cores.agents.types import EventType
             from cores.events.event_bus import get_event_bus
 
             event_bus = get_event_bus()

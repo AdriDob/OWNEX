@@ -252,8 +252,8 @@ onMounted(loadTargets)
                 :datasets="[{
                   label: 'Progress',
                   data: timelineData,
-                  borderColor: '#7c3aed',
-                  backgroundColor: '#7c3aed30',
+                  borderColor: '#00d5ff',
+                  backgroundColor: '#00d5ff30',
                   fill: true,
                   pointRadius: 4,
                   tension: 0.2,

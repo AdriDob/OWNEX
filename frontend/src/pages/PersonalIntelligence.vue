@@ -108,8 +108,8 @@ const progressChartData = computed(() => {
     datasets: [{
       label: 'Learning Score',
       data: sorted.map(d => d.score),
-      borderColor: '#7c3aed',
-      backgroundColor: '#7c3aed',
+      borderColor: '#00d5ff',
+      backgroundColor: '#00d5ff',
       fill: true,
       tension: 0.3,
       pointRadius: 2,
