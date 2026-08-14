@@ -2386,11 +2386,31 @@
       "dependencies": [
        "cores/payment_compat/engine.py"
       ],
-      "integration_level": "production"
-     }
-    ]
-   }
-  },
+       "integration_level": "production"
+      },
+      {
+       "id": "payment_compat_dwe_integration",
+       "name": "IntelligentRecommender del DWE (cores/direct_work_engine/recommendation.py) ahora evalúa cobrabilidad ANTES de rankear: mapeo PaymentMethod→network (paypal/bank_wire/wire, crypto/stablecoin→crypto con USDC), score 0-100 multiplica el overall (factor de pago, piso 0.3), razonamiento expone nota honesta. RankedOpportunity gana payment_compat_score + payment_compat_notes. Cierra el pendiente DECISIONS.md de FASE_35. Import lazy + degrade defensivo (engine caído → score neutral 100).",
+       "status": "production_ready",
+       "files": [
+        "cores/direct_work_engine/models.py",
+        "cores/direct_work_engine/recommendation.py",
+        "tests/test_direct_work_engine.py"
+       ],
+       "tests": [
+        "tests/test_direct_work_engine.py::TestIntelligentRecommender::test_payment_compat_paypal_is_collectible",
+        "tests/test_direct_work_engine.py::TestIntelligentRecommender::test_payment_compat_stablecoin_uses_usdc_network",
+        "tests/test_direct_work_engine.py::TestIntelligentRecommender::test_payment_compat_unevaluated_method_stays_neutral",
+        "tests/test_direct_work_engine.py::TestIntelligentRecommender::test_payment_compat_factor_affects_overall_score"
+       ],
+       "dependencies": [
+        "cores/payment_compat/engine.py"
+       ],
+       "integration_level": "integrated"
+      }
+     ]
+    }
+   },
   "FASE_36": {
    "name": "Production Hardening: Auth cookie httpOnly (FASE 3) + Error Handling (FASE 2) + Twin-tree SSOT fixes (FASE 4)",
    "completed": "2026-08-14",

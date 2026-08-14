@@ -472,12 +472,14 @@ export interface DirectWorkRanked {
     barrier_level: string
     enablers: string[]
     blockers: string[]
-  }
-  payout_method: string
-  payout_method_rationale: string
-}
-
-export interface DirectWorkRecommendResponse {
+   }
+   payout_method: string
+   payout_method_rationale: string
+   payment_compat_score: number
+   payment_compat_notes: string[]
+ }
+ 
+ export interface DirectWorkRecommendResponse {
   ranked: DirectWorkRanked[]
 }
 
