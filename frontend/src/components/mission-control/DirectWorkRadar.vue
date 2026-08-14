@@ -223,11 +223,17 @@ onMounted(loadAll)
           <div class="dw-main">
             <span class="dw-title">{{ r.opportunity.title }}</span>
             <span class="dw-sub">{{ r.opportunity.platform }} · {{ r.opportunity.category }}</span>
-            <span v-if="r.payout_method" class="dw-payout">{{ r.payout_method }}</span>
           </div>
           <div class="dw-meta">
             <span class="dw-score">{{ Math.round(r.overall_recommendation_score) }}</span>
             <span class="dw-ev">${{ Math.round(r.expected_value) }}</span>
+            <span
+              v-if="r.payment_compat_score < 100 && r.payment_compat_notes.length"
+              class="dw-pay-badge"
+              :class="{ 'dw-pay-ok': r.payment_compat_score > 50, 'dw-pay-warn': r.payment_compat_score <= 20, 'dw-pay-degraded': r.payment_compat_score > 20 && r.payment_compat_score <= 50 }"
+              :title="r.payment_compat_notes[0]"
+            >💳 {{ Math.round(r.payment_compat_score) }}</span>
+            <span v-else-if="r.payout_method" class="dw-payout">{{ r.payout_method }}</span>
           </div>
         </li>
       </ul>
@@ -485,5 +491,27 @@ onMounted(loadAll)
   padding: 0.1rem 0.4rem;
   border-radius: 4px;
   align-self: flex-start;
+}
+.dw-pay-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid;
+}
+.dw-pay-ok {
+  color: #00e39a;
+  border-color: rgba(0, 227, 154, 0.5);
+  background: rgba(0, 227, 154, 0.08);
+}
+.dw-pay-degraded {
+  color: #00d5ff;
+  border-color: rgba(0, 213, 255, 0.4);
+  background: rgba(0, 213, 255, 0.06);
+}
+.dw-pay-warn {
+  color: #e82127;
+  border-color: rgba(232, 33, 39, 0.5);
+  background: rgba(232, 33, 39, 0.08);
 }
 </style>
