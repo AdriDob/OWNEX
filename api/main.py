@@ -149,6 +149,7 @@ from api.routers import (
     targets,
     telegram_bot,
     terminal_ws,
+    trading,
     ultra_fast_income,
     validation,
     vault_app,
@@ -1576,6 +1577,7 @@ app.include_router(learning_router)
 app.include_router(project_dashboard.router)
 app.include_router(ws.router)
 app.include_router(terminal_ws.router)
+app.include_router(trading.router)
 app.include_router(idor.router)
 app.include_router(offensive.router)
 app.include_router(offensive_web3.router)

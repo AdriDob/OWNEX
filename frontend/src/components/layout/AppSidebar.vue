@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Link2, MessageCircle, Search, Settings,
   Shield, Target, TrendingUp, Unlink,
   Activity, Database, RefreshCw, X, HeartPulse, Zap,
-  Wallet, Sparkles, Bot, BarChart3, Brain, Coins,
+  Copy, Wallet, Sparkles, Bot, BarChart3, Brain, Coins,
   BookOpen, Lightbulb, UserRound,
 } from '@lucide/vue'
 
@@ -97,6 +97,7 @@ const navSections = [
       { name: 'Investment Hub', path: '/investments', icon: TrendingUp },
       { name: 'ATLAS Inversiones', path: '/atlas/', icon: Coins },
       { name: 'Trading', path: '/trading', icon: Activity },
+      { name: 'Copy Trading', path: '/trading/intelligence', icon: Copy },
       { name: 'Polymarket', path: '/polymarket', icon: Dices },
       { name: 'Billeteras', path: '/integrations/wallets', icon: Wallet },
     ],

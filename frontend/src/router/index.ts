@@ -542,6 +542,12 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/Trading.vue'),
     meta: { title: 'Trading' },
   },
+  {
+    path: '/trading/intelligence',
+    name: 'trading-intelligence',
+    component: () => import('@/pages/TradingIntelligence.vue'),
+    meta: { title: 'Copy Trading' },
+  },
 
   // ── Special pages ──
   {
