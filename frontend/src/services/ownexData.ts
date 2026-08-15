@@ -1192,3 +1192,101 @@ export async function saveProfileKit(profile: ProfileKitProfile): Promise<{ succ
 export async function generateProfileKit(profile: ProfileKitProfile): Promise<ProfileKitResponse> {
   return api.post<ProfileKitResponse>('/api/profile-kit/generate', profile)
 }
+
+// ── Outlook Calendar + Microsoft To Do Sync ──
+
+export interface OutlookStatus {
+  configured: boolean
+  connected: boolean
+  user: string
+}
+
+export interface OutlookEvent {
+  id: string
+  subject: string
+  start: string
+  end: string
+  location: string
+  organizer: string
+  is_online: boolean
+  body_preview: string
+}
+
+export interface OutlookAgenda {
+  configured: boolean
+  connected: boolean
+  events: OutlookEvent[]
+  unread: number
+}
+
+export interface OutlookSyncTask {
+  id: number
+  title: string
+  status: string
+  priority: string
+  due_date: string
+  calendar_event_id: string | null
+  synced_to_calendar: boolean
+  todo_task_id: string | null
+  synced_to_todo: boolean
+  last_synced_at: string
+}
+
+export interface OutlookTodoList {
+  id: string
+  display_name: string
+  is_owner: boolean
+}
+
+export interface OutlookTodoTask {
+  id: string
+  title: string
+  status: string
+  importance: string
+  due_date: string
+  list_id: string
+  list_name: string
+}
+
+export interface OutlookTodoData {
+  configured: boolean
+  connected: boolean
+  lists: OutlookTodoList[]
+  tasks: OutlookTodoTask[]
+}
+
+export interface OutlookSyncSummary {
+  created: number
+  updated: number
+  deleted: number
+  skipped: number
+  errors: number
+}
+
+export interface OutlookTodoSyncSummary {
+  todo_created: number
+  todo_updated: number
+  todo_deleted: number
+  todo_skipped: number
+  todo_errors: number
+}
+
+export async function getOutlookStatus() {
+  return api.get<{ data: OutlookStatus }>('/outlook/status')
+}
+
+export async function getOutlookAgenda(daysAhead = 14, maxResults = 50) {
+  return api.get<{ data: OutlookAgenda }>('/outlook/agenda', { days_ahead: daysAhead, max_results: maxResults })
+}
+
+export async function getOutlookTodo() {
+  return api.get<{ data: OutlookTodoData }>('/outlook/todo')
+}
+
+export async function syncOutlookCalendar() {
+  return api.post<{ data: { summary: OutlookSyncSummary; todo: OutlookTodoSyncSummary } }>('/outlook/sync')
+}
+
+export async function getOutlookTasks(limit = 100) {
+  return api.get<{ data: { tasks: OutlookSyncTask[] } }>('/outlook/tasks', { limit })
+}

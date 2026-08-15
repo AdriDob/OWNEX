@@ -107,6 +107,7 @@ from api.routers import (
     orion,
     orion_cli,
     osint,
+    outlook,
     overview,
     payment_compat,
     personal_infrastructure,
@@ -427,6 +428,7 @@ async def lifespan(app: FastAPI):
             register_fcm_channel,
             register_gmail_channel,
             register_mobile_channel,
+            register_outlook_channel,
             register_telegram_channel,
             register_whatsapp_channel,
             register_ws_forwarder,
@@ -438,6 +440,7 @@ async def lifespan(app: FastAPI):
         register_email_channel()
         register_fcm_channel()
         register_mobile_channel()
+        register_outlook_channel()
         register_telegram_channel()
         register_whatsapp_channel()
         register_gmail_channel()
@@ -1549,6 +1552,7 @@ app.include_router(auth_users.router)
 app.include_router(auth_user.router)
 app.include_router(sync.router)
 app.include_router(notifications.router)
+app.include_router(outlook.router)
 app.include_router(mobile.router)
 app.include_router(mobile_approvals.router)
 app.include_router(contracts.router)
