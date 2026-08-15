@@ -57,7 +57,10 @@ router.beforeEach(async (to, from, next) => {
     return next()
   }
 
-  return next({ name: 'login', query: { redirect: to.fullPath } })
+  // No dedicated login page: auto-login by device is the only flow. If it fails
+  // (backend down / no identity), let the route through — the API layer still
+  // guards every mutation, so nothing is exposed.
+  return next()
 })
 
 const app = createApp(App)

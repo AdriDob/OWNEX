@@ -89,7 +89,7 @@ onMounted(async () => {
 
   _unauthHandler = () => {
     auth.logout()
-    router.push({ name: 'login' })
+    router.push('/')
   }
   window.addEventListener('auth:unauthorized', _unauthHandler)
 
