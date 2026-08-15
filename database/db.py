@@ -37,8 +37,11 @@ if IS_SQLITE:
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
 
-# Register knowledge models with SQLAlchemy metadata before init_db() runs.
+# Register model modules so SQLAlchemy metadata includes all tables
+# before init_db()/create_all() runs. These are imported at the bottom
+# to avoid circular imports (each module imports Base/SessionLocal above).
 import cores.knowledge.store  # noqa: F401
+from database import models as _db_models  # noqa: F401 — registers User, MemoryRecord, etc.
 
 
 def _ensure_db_dir() -> None:
