@@ -17,7 +17,6 @@ from pydantic import BaseModel, Field
 from cores.opportunity.engine import get_engine
 
 router = APIRouter(prefix="/api/opportunity-feedback", tags=["opportunity-feedback"])
-engine = get_engine()
 logger = getLogger(__name__)
 
 
@@ -54,7 +53,7 @@ def record_feedback(request: FeedbackRequest) -> dict[str, Any]:
                 detail=f"Invalid outcome. Must be one of: {', '.join(valid_outcomes)}",
             )
 
-        engine.record_feedback(
+        get_engine().record_feedback(
             opportunity_id=request.opportunity_id,
             outcome=request.outcome,
             category=request.category,
@@ -81,7 +80,7 @@ def record_feedback(request: FeedbackRequest) -> dict[str, Any]:
 def get_feedback_summary() -> dict[str, Any]:
     """Get summary statistics of all feedback data."""
     try:
-        return engine.get_feedback_summary()
+        return get_engine().get_feedback_summary()
     except Exception as e:
         logger.error("Failed to get feedback summary: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error") from e
@@ -91,7 +90,7 @@ def get_feedback_summary() -> dict[str, Any]:
 def get_feedback_multipliers(request: MultipliersRequest) -> dict[str, float]:
     """Get personalized multipliers for a specific opportunity context."""
     try:
-        return engine.get_feedback_multipliers(
+        return get_engine().get_feedback_multipliers(
             category=request.category,
             platform=request.platform,
             technology_tags=request.technology_tags,

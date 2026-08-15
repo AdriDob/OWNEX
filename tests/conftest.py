@@ -33,6 +33,22 @@ def _cleanup_test_db() -> None:
 
 
 @pytest.fixture(scope="session", autouse=True)
+def _init_test_db() -> None:
+    """Create all tables once for the session.
+
+    TestClient(app) without a `with:` block does not run the lifespan, so
+    db.init_db() never fires and tables like `users`/`memory_records` are missing
+    when tests query the DB directly (e.g. tests/test_learning.py fixture).
+    """
+    from cores.learning import profile as _learning_models  # noqa: F401
+    from cores.targets import models as _targets_models  # noqa: F401
+    from database import models  # noqa: F401 — register metadata
+    from database.db import Base, engine
+
+    Base.metadata.create_all(bind=engine)
+
+
+@pytest.fixture(scope="session", autouse=True)
 def _set_license_key() -> None:
     """Generate a dev Ed25519 key pair at test time for license generation."""
     if "CATEYE_LICENSE_PRIVATE_KEY" not in os.environ:
