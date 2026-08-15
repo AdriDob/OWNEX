@@ -1,3 +1,40 @@
+## Sesión 2026-08-15 — HARDENING DB: tests aislados, recuperación de scans colgados, scraper honesto, guard anti-duplicados (FASES A/B/C/E)
+
+> **QUÉ SE HIZO:** Pasada de endurecimiento de base de datos y scraper con 4 frentes verificados.
+> (1) **AISLAMIENTO DE TESTS**: `tests/conftest.py` fuerza `DATABASE_URL=sqlite:////tmp/cateye_test_<pid>.db`
+> antes de cualquier import de `database.db`, con guard `RuntimeError` si aparece `catseye.db` y fixture
+> de cleanup por sesión — la suite JAMÁS vuelve a escribir en `database/catseye.db`. (2) **STALE SCAN
+> RECOVERY**: `recover_stale_scans(max_age_hours=6.0)` en `cores/orchestrator/scan_service.py` marca
+> scans `running` > 6h como `failed` (process died/server down) con `finished_at` y outputs; hookeada en
+> boot (`api/main.py` lifespan tras `init_db()`) y en cada tick del scheduler (`api/scheduler.py::_loop`).
+> Recuperó los **25 scans reales colgados** (1,2,3,4,12,...276). (3) **SCRAPER HONESTO**: `BountyTargetsData`
+> pasa a fuente primaria (las direct APIs están rotas: HackerOne 400, Bugcrowd 404, Intigriti 404,
+> YesWeHack 404 — se degradan al final, nunca rompen el scrape); `_source_status` por fuente
+> (`ok`/`degraded`/`failed`) expuesto en `GET /api/discovery/stats`; `convert_to_targets` **deja de inventar
+> `{slug}.com`** y skipea programas sin dominio/wildcard real. (4) **DEDUPE GUARDS**: `create_target()` y
+> `run.py --add-target` devuelven el target existente con `"duplicate": True` en vez de insertar duplicados.
+
+- **`tests/conftest.py`**: aislamiento de DB — `DATABASE_URL` temp por PID (`/tmp/cateye_test_<pid>.db`),
+  guard `RuntimeError` si `catseye.db`, fixture session `_cleanup_test_db`. Validado: hash de `catseye.db`
+  idéntico antes/después de la suite (el cambio de hash posterior es solo actividad legítima del server).
+- **`cores/orchestrator/scan_service.py`**: `recover_stale_scans()` (import lazy de `SessionLocal`, filtro
+  SQL `started_at < cutoff`, commit + warnings). Hooks en `api/main.py` (lifespan, tras `db.init_db()`) y
+  en `api/scheduler.py` (`_recover_stale_scans()` al inicio de `_loop`, antes de `_run_pipeline`).
+- **`cores/bounty_scraper/scraper.py`**: `scrape_all` reordenado (BountyTargetsData → Immunefi →
+  HackenProof → OpenBugBounty → WebSearch → GitHub → H1 → Bugcrowd → Intigriti → YesWeHack);
+  `self._source_status` set en cada fuente; `convert_to_targets` skipea sin dominio real;
+  `get_source_status()` nueva. `api/routers/discovery.py` `/stats` incluye `source_status`.
+- **`api/services/data_service.py` + `run.py`**: guards anti-duplicado por nombre.
+- **Coordinación**: el otro proceso opencode (commit trading) ejecutó `git reset --hard HEAD` que revirtió
+  los fixes 2 veces — se re-aplicaron los 8 archivos y se registró en DECISIONS.md. La DB quedó limpia:
+  707 targets / 9367 endpoints / 223 completed / 25 failed recuperados / 28 timeout.
+- **Verificación**: `tests/test_hardening_db_guards.py` (5) + `test_bounty_scraper.py` +
+  `test_scheduler_adaptive.py` = **66 passed** con DB aislada; suite fast **97 passed / 1 skipped**;
+  ruff limpio en los 8 archivos tocados; recovery real contra `catseye.db` marcó los 25 stale;
+  server reiniciado con los fixes (health OK). COMPLETED_FEATURES.json → FASE_37, DECISIONS.md actualizado.
+- **Deuda conocida (sin tocar)**: `setup_logging` solo configura el logger `CATEYE`; los `logger.warning`
+  de `ownex.*` caen al lastResort WARNING+ de Python (no a `logs/ownex_run.log`).
+
 ## Sesión 2026-08-15 — TRADING EVOLUTION: copy trading CEX/on-chain + OWNEX razona su lógica ganadora
 
 > **QUÉ SE HIZO:** OWNEX dejó de solo "operar sobre el mercado" (inversiones/wealth) y ahora también

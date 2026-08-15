@@ -76,11 +76,15 @@ def discovery_stats():
         platforms[p.platform] = platforms.get(p.platform, 0) + 1
         src = getattr(p, "source", p.platform)
         sources[src] = sources.get(src, 0) + 1
+    source_status = {}
+    if hasattr(_scraper, "get_source_status"):
+        source_status = _scraper.get_source_status()
     return {
         "stats": {
             "total_discovered": len(programs),
             "by_platform": platforms,
             "by_source": sources,
+            "source_status": source_status,
         },
         "monitor": monitor.get_status(),
     }
