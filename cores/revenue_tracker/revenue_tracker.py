@@ -168,7 +168,7 @@ class RevenueTracker:
         # Emit event for new opportunity
         self.event_bus.publish(
             "opportunity.created",
-            {
+            **{
                 "opportunity_id": opportunity.id,
                 "title": opportunity.title,
                 "amount": opportunity.amount,
@@ -202,7 +202,7 @@ class RevenueTracker:
         # Emit status change event
         self.event_bus.publish(
             "opportunity.status_changed",
-            {
+            **{
                 "opportunity_id": opportunity_id,
                 "old_status": old_status.value,
                 "new_status": new_status.value,
@@ -267,7 +267,7 @@ class RevenueTracker:
         # Emit payment created event
         self.event_bus.publish(
             "payment.created",
-            {
+            **{
                 "transaction_id": transaction_id,
                 "opportunity_id": opportunity_id,
                 "amount": amount,
@@ -361,7 +361,7 @@ class RevenueTracker:
         # Emit daily metrics event
         self.event_bus.publish(
             "daily.revenue",
-            {
+            **{
                 "date": today,
                 "platform": platform,
                 "amount": amount,
@@ -586,7 +586,7 @@ async def main_revenue_tracker():
         "timestamp": datetime.now(UTC).isoformat(),
     }
 
-    event_bus.publish("revenue.summary", revenue_summary)
+    event_bus.publish("revenue.summary", **revenue_summary)
 
     # Run continuously for 60 seconds (for demo)
     await asyncio.sleep(60)
