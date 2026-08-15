@@ -10,6 +10,27 @@ import pytest
 
 os.environ.setdefault("CATEYE_CSRF_DISABLED", "1")
 
+# Isolate test DB: never touch the real database/catseye.db
+os.environ["DATABASE_URL"] = f"sqlite:////tmp/cateye_test_{os.getpid()}.db"
+
+from database.db import DATABASE_URL as _DB_URL  # noqa: E402
+
+if "catseye.db" in _DB_URL:
+    raise RuntimeError(
+        "Refusing to run tests against the real database "
+        f"(DATABASE_URL={_DB_URL!r}). Set DATABASE_URL to a temp path first."
+    )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _cleanup_test_db() -> None:
+    """Remove the per-PID temp test DB after the session."""
+    yield
+    for suffix in ("", "-shm", "-wal"):
+        p = Path(f"/tmp/cateye_test_{os.getpid()}.db{suffix}")
+        if p.exists():
+            p.unlink()
+
 
 @pytest.fixture(scope="session", autouse=True)
 def _set_license_key() -> None:

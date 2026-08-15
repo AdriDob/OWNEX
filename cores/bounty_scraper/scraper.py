@@ -146,6 +146,7 @@ class BountyScraper:
     def __init__(self):
         self._programs: list[ScrapedProgram] = []
         self._last_refresh: str | None = None
+        self._source_status: dict[str, str] = {}
 
     # ── HackerOne ─────────────────────────────────────────────────────
 
@@ -809,16 +810,18 @@ class BountyScraper:
         seen_names: set[str] = set()
 
         scrapers = [
-            ("HackerOne", lambda: self.scrape_hackerone(max_pages)),
-            ("Bugcrowd", lambda: self.scrape_bugcrowd(max_pages)),
-            ("Intigriti", lambda: self.scrape_intigriti(max(1, max_pages - 1))),
-            ("YesWeHack", lambda: self.scrape_yeswehack(max(1, max_pages - 1))),
-            ("Immunefi", lambda: self.scrape_immunefi()),
+            # Primary source first: reliable raw data (works even if direct APIs are down)
             ("BountyTargetsData", lambda: self.scrape_bounty_targets_data()),
+            ("Immunefi", lambda: self.scrape_immunefi()),
             ("HackenProof", lambda: self.scrape_hackenproof()),
             ("OpenBugBounty", lambda: self.scrape_openbugbounty(max(1, max_pages - 1))),
             ("WebSearch", lambda: self.scrape_web_search() if web_search else []),
             ("GitHub", lambda: self.scrape_github_security() if github_search else []),
+            # Direct platform APIs last (fragile: rate limits, auth, breaking changes)
+            ("HackerOne", lambda: self.scrape_hackerone(max_pages)),
+            ("Bugcrowd", lambda: self.scrape_bugcrowd(max_pages)),
+            ("Intigriti", lambda: self.scrape_intigriti(max(1, max_pages - 1))),
+            ("YesWeHack", lambda: self.scrape_yeswehack(max(1, max_pages - 1))),
         ]
 
         for platform_name, scraper_fn in scrapers:
@@ -831,7 +834,9 @@ class BountyScraper:
                     if dedup_key not in seen_names:
                         seen_names.add(dedup_key)
                         all_programs.append(prog)
+                self._source_status[platform_name] = "ok" if programs else "degraded"
             except Exception as e:
+                self._source_status[platform_name] = "failed"
                 logger.warning("Failed to scrape %s: %s", platform_name, e)
 
         # Web scanner for provided domains
@@ -880,7 +885,11 @@ class BountyScraper:
                 if existing:
                     continue
 
-                domain = prog.domains[0] if prog.domains else (prog.wildcards[0] if prog.wildcards else f"{slug}.com")
+                domain = prog.domains[0] if prog.domains else (prog.wildcards[0] if prog.wildcards else "")
+                if not domain or domain == f"{slug}.com":
+                    # No real domain/wildcard available — skip instead of inventing one
+                    logger.info("Skipping %s (no real domain/wildcard available)", prog.name)
+                    continue
 
                 target = models.Target(
                     name=platform_slug,
@@ -983,6 +992,10 @@ class BountyScraper:
     @property
     def program_count(self) -> int:
         return len(self._programs)
+
+    def get_source_status(self) -> dict[str, str]:
+        """Per-source health: 'ok' (programs found), 'degraded' (empty), 'failed' (error)."""
+        return dict(self._source_status)
 
 
 _SCRAPER: BountyScraper | None = None

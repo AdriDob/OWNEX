@@ -177,3 +177,40 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
         "status": "completed",
         "outputs": outputs,
     }
+
+
+def recover_stale_scans(max_age_hours: float = 6.0, session: Session | None = None) -> list[int]:
+    """Mark scans stuck in 'running' for too long as failed.
+
+    Scans can be left running when the process dies (server down, OOM, kill).
+    Called on boot and on each scheduler tick so the pipeline never waits on ghosts.
+    """
+    import logging
+    from datetime import UTC, datetime, timedelta
+
+    logger = logging.getLogger("ownex.main")
+    owns_session = session is None
+    if owns_session:
+        from database.db import SessionLocal
+
+        session = SessionLocal()
+    try:
+        cutoff = datetime.now(UTC) - timedelta(hours=max_age_hours)
+        stale = (
+            session.query(models.ScanRun)
+            .filter(models.ScanRun.status == "running", models.ScanRun.started_at < cutoff)
+            .all()
+        )
+        recovered: list[int] = []
+        for scan in stale:
+            scan.status = "failed"
+            scan.finished_at = datetime.now(UTC)
+            scan.outputs = "Recovered: scan stalled (process died or server was down)"
+            recovered.append(scan.id)
+        session.commit()
+        if recovered:
+            logger.warning("Recovered %d stale scan(s): %s", len(recovered), recovered)
+        return recovered
+    finally:
+        if owns_session:
+            session.close()
