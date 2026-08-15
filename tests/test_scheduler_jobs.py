@@ -227,6 +227,7 @@ class TestGetAllJobs:
             "evolution",
             "knowledge",
             "trading",
+            "integrations",
         }
 
     def test_all_cycles_have_lists(self):
@@ -237,8 +238,8 @@ class TestGetAllJobs:
     def test_total_jobs_count(self):
         total = sum(len(jobs) for jobs in get_all_jobs().values())
         assert (
-            total == 47
-        )  # 11 cycles: security(10) + forge(9) + pulse(10) + vault(2) + atlas(2) + direct_work(5) + investment(3) + qa(1) + evolution(1) + knowledge(1) + trading(3)
+            total == 48
+        )  # 12 cycles: security(10) + forge(9) + pulse(10) + vault(2) + atlas(2) + direct_work(5) + investment(3) + qa(1) + evolution(1) + knowledge(1) + trading(3) + integrations(1)
 
     def test_all_jobs_have_unique_ids(self):
         all_ids = []

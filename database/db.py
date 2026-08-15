@@ -228,6 +228,19 @@ def init_db():
                 ],
             )
 
+            _migrate_columns(
+                session,
+                "tasks",
+                [
+                    ("due_date", "DATETIME"),
+                    ("calendar_event_id", "VARCHAR"),
+                    ("synced_to_calendar", "VARCHAR DEFAULT 'false'"),
+                    ("todo_task_id", "VARCHAR"),
+                    ("synced_to_todo", "VARCHAR DEFAULT 'false'"),
+                    ("last_synced_at", "DATETIME"),
+                ],
+            )
+
             _migrate_indexes(session)
             session.execute(text("PRAGMA wal_checkpoint(TRUNCATE);"))
             session.commit()
