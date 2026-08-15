@@ -22,7 +22,9 @@
 | Takenos | ✅ Active |
 | Discord webhook | ✅ Active |
 | ARCA | ✅ Active |
-| Outlook | ✅ Active |
+| Outlook | ✅ Active — connector Graph API |
+| Outlook Calendar Sync | ✅ Active — tasks↔calendario bidireccional, job `outlook_calendar_sync` (15 min), canal de notificación `outlook` |
+| Microsoft To Do | ✅ Active — tasks→lista `OWNEX` (autocreada), CRUD completo vía Graph |
 
 ---
 

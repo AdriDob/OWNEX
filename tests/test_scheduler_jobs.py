@@ -213,7 +213,7 @@ class TestTradingJobs:
 
 
 class TestGetAllJobs:
-    def test_returns_dict_with_eleven_cycles(self):
+    def test_returns_dict_with_twelve_cycles(self):
         all_jobs = get_all_jobs()
         assert set(all_jobs.keys()) == {
             "security",
@@ -289,3 +289,27 @@ class TestDeliveryPreparationJob:
 class _FakeWorkBank:
     def best_ready(self, limit: int = 200):
         return []
+
+
+class TestIntegrationJobs:
+    def test_outlook_sync_job_registered(self):
+        from core.scheduler.jobs import get_integration_jobs
+
+        ids = [j.job_id for j in get_integration_jobs()]
+        assert "outlook_calendar_sync" in ids
+
+    def test_outlook_sync_job_config(self):
+        from core.scheduler.jobs import get_integration_jobs
+
+        job = next(j for j in get_integration_jobs() if j.job_id == "outlook_calendar_sync")
+        kws = job.kwargs.get("kwargs", job.kwargs)
+        assert job.handler == "cores.integrations.outlook.sync:run_calendar_sync"
+        assert kws.get("cron") == "*/15 * * * *"
+
+    def test_outlook_sync_handler_callable(self):
+        import inspect
+
+        from cores.integrations.outlook.sync import run_calendar_sync
+
+        assert callable(run_calendar_sync)
+        assert inspect.iscoroutinefunction(run_calendar_sync)
