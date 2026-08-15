@@ -10,6 +10,7 @@ import asyncio
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from decimal import Decimal
 from typing import Any
 
 from cores.identity_vault import get_identity_vault
@@ -88,6 +89,27 @@ class FinancialSyncScheduler:
                         sync_result.total_earned,
                         sync_result.total_pending,
                     )
+                    # Feed real earnings into the RevenueTracker so the Work Bank
+                    # feedback loop (build_history_from_revenue_tracker → apply_learning)
+                    # learns from verified payouts instead of sitting empty.
+                    try:
+                        from cores.revenue_tracker.revenue_tracker import (
+                            get_revenue_tracker,
+                        )
+
+                        tracker = get_revenue_tracker()
+                        if sync_result.total_earned > 0:
+                            tracker.add_daily_revenue(
+                                platform_id,
+                                Decimal(str(sync_result.total_earned)),
+                                "USD",
+                            )
+                    except Exception as feed_exc:  # pragma: no cover
+                        logger.warning(
+                            "[SCHEDULER] %s earnings not fed to RevenueTracker: %s",
+                            platform_id,
+                            feed_exc,
+                        )
                 else:
                     logger.warning("[SCHEDULER] %s sync failed: %s", platform_id, sync_result.error)
             except Exception as exc:
