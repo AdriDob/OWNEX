@@ -627,6 +627,14 @@ def generate_report() -> dict[str, Any]:
 def create_target(name: str, domain: str | None = None) -> dict[str, Any]:
     session = _get_session()
     try:
+        existing = session.query(models.Target).filter(models.Target.name == name).first()
+        if existing:
+            return {
+                "id": existing.id,
+                "name": existing.name,
+                "domain": existing.domain,
+                "duplicate": True,
+            }
         db_target = models.Target(name=name, domain=domain)
         session.add(db_target)
         session.commit()

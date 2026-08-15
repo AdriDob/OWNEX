@@ -1201,6 +1201,10 @@ def main() -> None:
         db.init_db()
         session = db.SessionLocal()
         try:
+            existing = session.query(models.Target).filter(models.Target.name == name).first()
+            if existing:
+                print(f"⚠️ Target already exists (id={existing.id}) — nothing to do")
+                return
             target = models.Target(name=name, domain=domain)
             session.add(target)
             session.commit()

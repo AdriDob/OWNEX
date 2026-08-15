@@ -1,6 +1,6 @@
 {
  "version": "7.0.0",
- "last_updated": "2026-08-14",
+ "last_updated": "2026-08-15",
  "total_tests": 1417,
  "phases": {
   "FASE_1": {
@@ -2372,112 +2372,173 @@
      ],
      "integration_level": "integrated"
     },
-     {
-      "id": "payment_compat_api",
-      "name": "api/routers/payment_compat.py — GET /api/payment-compat (resumen+cuentas), GET /network (agrupado por layer/function), GET /account/{id}, POST /evaluate, POST /evaluate/chain; montado en api/main.py",
-      "status": "production_ready",
-      "files": [
-       "api/routers/payment_compat.py",
-       "api/main.py"
-      ],
-      "tests": [
-       "tests/test_payment_compat.py::test_payment_network_api"
-      ],
-      "dependencies": [
-       "cores/payment_compat/engine.py"
-      ],
-       "integration_level": "production"
-      },
-      {
-       "id": "payment_compat_dwe_integration",
-       "name": "IntelligentRecommender del DWE (cores/direct_work_engine/recommendation.py) ahora evalúa cobrabilidad ANTES de rankear: mapeo PaymentMethod→network (paypal/bank_wire/wire, crypto/stablecoin→crypto con USDC), score 0-100 multiplica el overall (factor de pago, piso 0.3), razonamiento expone nota honesta. RankedOpportunity gana payment_compat_score + payment_compat_notes. Cierra el pendiente DECISIONS.md de FASE_35. Import lazy + degrade defensivo (engine caído → score neutral 100).",
-       "status": "production_ready",
-       "files": [
-        "cores/direct_work_engine/models.py",
-        "cores/direct_work_engine/recommendation.py",
-        "tests/test_direct_work_engine.py"
-       ],
-       "tests": [
-        "tests/test_direct_work_engine.py::TestIntelligentRecommender::test_payment_compat_paypal_is_collectible",
-        "tests/test_direct_work_engine.py::TestIntelligentRecommender::test_payment_compat_stablecoin_uses_usdc_network",
-        "tests/test_direct_work_engine.py::TestIntelligentRecommender::test_payment_compat_unevaluated_method_stays_neutral",
-        "tests/test_direct_work_engine.py::TestIntelligentRecommender::test_payment_compat_factor_affects_overall_score"
-       ],
-       "dependencies": [
-        "cores/payment_compat/engine.py"
-       ],
-       "integration_level": "integrated"
-      }
-     ]
-    }
-   },
-  "FASE_36": {
-   "name": "Production Hardening: Auth cookie httpOnly (FASE 3) + Error Handling (FASE 2) + Twin-tree SSOT fixes (FASE 4)",
-   "completed": "2026-08-14",
-   "description": "Pasada de endurecimiento de producción en 3 frentes: (1) ERROR HANDLING: handler global HTTPException + operation_id — 5xx nunca expone internals al cliente; (2) AUTH: cookie httpOnly ownex-session como segunda vía de sesión (Bearer sigue ganando, migración incremental, sin romper CSRF ni localStorage); (3) TWIN TREES: inventario completo core/ vs cores/ (SSOT runtime = ambos árboles, sin ganador único) y arreglo de 4 bugs latentes por imports de árbol/módulo equivocado que rompían runtime en silencio.",
-   "features": [
     {
-     "id": "error_handling_global",
-     "name": "api/middleware/error_handling.py — http_exception_handler global (registrado en api/main.py) + operation_id en ErrorHandlingMiddleware; 5xx → {\"detail\": \"Internal server error\", \"operation_id\": ...} + header X-Operation-Id; detail crudo solo a log ownex.error; 4xx preservan detail intencional",
+     "id": "payment_compat_api",
+     "name": "api/routers/payment_compat.py — GET /api/payment-compat (resumen+cuentas), GET /network (agrupado por layer/function), GET /account/{id}, POST /evaluate, POST /evaluate/chain; montado en api/main.py",
      "status": "production_ready",
      "files": [
-      "api/middleware/error_handling.py",
-      "api/main.py",
-      "tests/test_error_handling.py"
+      "api/routers/payment_compat.py",
+      "api/main.py"
      ],
      "tests": [
-      "tests/test_error_handling.py::test_500_returns_generic_detail",
-      "tests/test_error_handling.py::test_500_has_operation_id",
-      "tests/test_error_handling.py::test_404_preserves_detail",
-      "tests/test_error_handling.py::test_handler_registered"
-     ],
-     "dependencies": [],
-     "integration_level": "production"
-    },
-    {
-     "id": "auth_http_only_cookie",
-     "name": "Cookie httpOnly ownex-session como 2ª vía de auth — SESSION_COOKIE en api/middleware/auth_middleware.py; set en login/register/refresh (auth.py + auth_users.py); logout borra cookie; /me acepta cookie; CSRF EXEMPT /api/auth/logout; frontend credentials: 'include' + clearSession() purga cookie; Bearer sigue siendo la vía primaria (header gana) → compat total, migración incremental",
-     "status": "production_ready",
-     "files": [
-      "api/middleware/auth_middleware.py",
-      "api/routers/auth.py",
-      "api/routers/auth_users.py",
-      "api/middleware/csrf_middleware.py",
-      "frontend/src/lib/api.ts",
-      "tests/test_auth_cookie.py",
-      "tests/test_auth_users.py"
-     ],
-     "tests": [
-      "tests/test_auth_cookie.py::test_cookie_set_on_login",
-      "tests/test_auth_cookie.py::test_cookie_httponly_and_samesite",
-      "tests/test_auth_cookie.py::test_auth_via_cookie_alone",
-      "tests/test_auth_cookie.py::test_bearer_still_works",
-      "tests/test_auth_cookie.py::test_unauthorized_without_credentials",
-      "tests/test_auth_cookie.py::test_invalid_cookie_unauthorized",
-      "tests/test_auth_cookie.py::test_logout_clears_cookie",
-      "tests/test_auth_cookie.py::test_logout_without_body"
+      "tests/test_payment_compat.py::test_payment_network_api"
      ],
      "dependencies": [
-      "api/middleware/auth_middleware.py"
+      "cores/payment_compat/engine.py"
      ],
      "integration_level": "production"
     },
     {
-     "id": "twin_tree_runtime_fixes",
-     "name": "Fixes de runtime por imports de árbol/modulo equivocado (core/ vs cores/): (1) api/scheduler.py:385 cores.events.event_types (no existe) → cores.agents.types.EventType (PIPELINE_*); (2) api/routers/mobile.py cores.models (no existe) → database.models; (3) mobile.py Target.status (columna inexistente) → Target.active; (4) cores/backup.py core.ORION_DIR (no exportado) → core.OWNEX_DIR. /mobile/status y /mobile/quick-wins pasan de 500 a 200 en runtime",
+     "id": "payment_compat_dwe_integration",
+     "name": "IntelligentRecommender del DWE (cores/direct_work_engine/recommendation.py) ahora evalúa cobrabilidad ANTES de rankear: mapeo PaymentMethod→network (paypal/bank_wire/wire, crypto/stablecoin→crypto con USDC), score 0-100 multiplica el overall (factor de pago, piso 0.3), razonamiento expone nota honesta. RankedOpportunity gana payment_compat_score + payment_compat_notes. Cierra el pendiente DECISIONS.md de FASE_35. Import lazy + degrade defensivo (engine caído → score neutral 100).",
      "status": "production_ready",
      "files": [
-      "api/scheduler.py",
-      "api/routers/mobile.py",
-      "cores/backup.py"
+      "cores/direct_work_engine/models.py",
+      "cores/direct_work_engine/recommendation.py",
+      "tests/test_direct_work_engine.py"
      ],
      "tests": [
-      "tmp/opencode/test_mobile_smoke.py::test_mobile_status_ok",
-      "tmp/opencode/test_mobile_smoke.py::test_mobile_quick_wins_ok"
+      "tests/test_direct_work_engine.py::TestIntelligentRecommender::test_payment_compat_paypal_is_collectible",
+      "tests/test_direct_work_engine.py::TestIntelligentRecommender::test_payment_compat_stablecoin_uses_usdc_network",
+      "tests/test_direct_work_engine.py::TestIntelligentRecommender::test_payment_compat_unevaluated_method_stays_neutral",
+      "tests/test_direct_work_engine.py::TestIntelligentRecommender::test_payment_compat_factor_affects_overall_score"
      ],
-     "dependencies": [],
-     "integration_level": "production"
+     "dependencies": [
+      "cores/payment_compat/engine.py"
+     ],
+     "integration_level": "integrated"
+    }
+   ]
+  },
+  "FASE_37": {
+   "name": "Production Hardening DB — test DB isolation + stale scan recovery + scraper source health + target dedupe guards (FASES A/B/C/E)",
+   "completed": "2026-08-15",
+   "description": "Pasada de endurecimiento de base de datos y scraper: (1) AISLAMIENTO DE TESTS: conftest.py fuerza DATABASE_URL a /tmp/cateye_test_<pid>.db con guard RuntimeError si aparece catseye.db y cleanup post-session — la suite nunca más contamina database/catseye.db; (2) STALE SCAN RECOVERY: recover_stale_scans() marca running>6h como failed (process died/server down), hookeada en boot (api/main.py lifespan) y en cada tick del scheduler — recuperó los 25 scans colgados reales; (3) SCRAPER: BountyTargetsData pasa a fuente primaria (direct APIs rotas: H1 400/BC 404/Intigriti 404/YWH 404), _source_status por fuente (ok/degraded/failed) expuesto en GET /api/discovery/stats, convert_to_targets skipea programas sin dominio real (deja de inventar {slug}.com); (4) DEDUPE GUARDS: create_target() y run.py --add-target devuelven el target existente con duplicate=True en vez de crear duplicados.",
+   "features": [
+    {
+     "id": "test_db_isolation",
+     "name": "tests/conftest.py — DATABASE_URL forzada a /tmp/cateye_test_<pid>.db antes de imports de database.db, guard RuntimeError si catseye.db, fixture session _cleanup_test_db",
+     "status": "production_ready",
+     "files": [
+      "tests/conftest.py"
+     ],
+     "tests": [
+      "tests/test_hardening_db_guards.py",
+      "tests/test_bounty_scraper.py",
+      "tests/test_scheduler_adaptive.py"
+     ],
+     "verified": "66 tests aislados pasan (5 guards + scraper + scheduler adaptive) y md5 de database/catseye.db idéntico antes/después; suite fast 97 passed / 1 skipped"
+    },
+    {
+     "id": "stale_scan_recovery",
+     "name": "cores/orchestrator/scan_service.py recover_stale_scans() + hooks en api/main.py lifespan (tras init_db) y api/scheduler.py _loop",
+     "status": "production_ready",
+     "files": [
+      "cores/orchestrator/scan_service.py",
+      "api/main.py",
+      "api/scheduler.py"
+     ],
+     "tests": [
+      "tests/test_hardening_db_guards.py::TestRecoverStaleScans"
+     ],
+     "verified": "Recuperó los 25 scans running reales (ids 1-276) contra database/catseye.db; test directo + unitario con stale/fresh/idempotencia"
+    },
+    {
+     "id": "scraper_source_health",
+     "name": "cores/bounty_scraper/scraper.py — BountyTargetsData primera, _source_status ok/degraded/failed, skip de programas sin dominio real en convert_to_targets, get_source_status() expuesta en GET /api/discovery/stats",
+     "status": "production_ready",
+     "files": [
+      "cores/bounty_scraper/scraper.py",
+      "api/routers/discovery.py"
+     ],
+     "tests": [
+      "tests/test_bounty_scraper.py"
+     ],
+     "verified": "Scrapers directos rotos verificados (H1 400/BC 404/Intigriti 404/YWH 404); BountyTargetsData funciona y es ahora la fuente primaria"
+    },
+    {
+     "id": "target_dedupe_guards",
+     "name": "api/services/data_service.py create_target() y run.py --add-target devuelven existing + duplicate=True",
+     "status": "production_ready",
+     "files": [
+      "api/services/data_service.py",
+      "run.py"
+     ],
+     "tests": [
+      "tests/test_hardening_db_guards.py::TestTargetDedupe"
+     ],
+     "verified": "Crear el mismo target dos veces devuelve el existente sin insertar; guard idempotente"
     }
    ]
   }
+ },
+ "FASE_36": {
+  "name": "Production Hardening: Auth cookie httpOnly (FASE 3) + Error Handling (FASE 2) + Twin-tree SSOT fixes (FASE 4)",
+  "completed": "2026-08-14",
+  "description": "Pasada de endurecimiento de producción en 3 frentes: (1) ERROR HANDLING: handler global HTTPException + operation_id — 5xx nunca expone internals al cliente; (2) AUTH: cookie httpOnly ownex-session como segunda vía de sesión (Bearer sigue ganando, migración incremental, sin romper CSRF ni localStorage); (3) TWIN TREES: inventario completo core/ vs cores/ (SSOT runtime = ambos árboles, sin ganador único) y arreglo de 4 bugs latentes por imports de árbol/módulo equivocado que rompían runtime en silencio.",
+  "features": [
+   {
+    "id": "error_handling_global",
+    "name": "api/middleware/error_handling.py — http_exception_handler global (registrado en api/main.py) + operation_id en ErrorHandlingMiddleware; 5xx → {\"detail\": \"Internal server error\", \"operation_id\": ...} + header X-Operation-Id; detail crudo solo a log ownex.error; 4xx preservan detail intencional",
+    "status": "production_ready",
+    "files": [
+     "api/middleware/error_handling.py",
+     "api/main.py",
+     "tests/test_error_handling.py"
+    ],
+    "tests": [
+     "tests/test_error_handling.py::test_500_returns_generic_detail",
+     "tests/test_error_handling.py::test_500_has_operation_id",
+     "tests/test_error_handling.py::test_404_preserves_detail",
+     "tests/test_error_handling.py::test_handler_registered"
+    ],
+    "dependencies": [],
+    "integration_level": "production"
+   },
+   {
+    "id": "auth_http_only_cookie",
+    "name": "Cookie httpOnly ownex-session como 2ª vía de auth — SESSION_COOKIE en api/middleware/auth_middleware.py; set en login/register/refresh (auth.py + auth_users.py); logout borra cookie; /me acepta cookie; CSRF EXEMPT /api/auth/logout; frontend credentials: 'include' + clearSession() purga cookie; Bearer sigue siendo la vía primaria (header gana) → compat total, migración incremental",
+    "status": "production_ready",
+    "files": [
+     "api/middleware/auth_middleware.py",
+     "api/routers/auth.py",
+     "api/routers/auth_users.py",
+     "api/middleware/csrf_middleware.py",
+     "frontend/src/lib/api.ts",
+     "tests/test_auth_cookie.py",
+     "tests/test_auth_users.py"
+    ],
+    "tests": [
+     "tests/test_auth_cookie.py::test_cookie_set_on_login",
+     "tests/test_auth_cookie.py::test_cookie_httponly_and_samesite",
+     "tests/test_auth_cookie.py::test_auth_via_cookie_alone",
+     "tests/test_auth_cookie.py::test_bearer_still_works",
+     "tests/test_auth_cookie.py::test_unauthorized_without_credentials",
+     "tests/test_auth_cookie.py::test_invalid_cookie_unauthorized",
+     "tests/test_auth_cookie.py::test_logout_clears_cookie",
+     "tests/test_auth_cookie.py::test_logout_without_body"
+    ],
+    "dependencies": [
+     "api/middleware/auth_middleware.py"
+    ],
+    "integration_level": "production"
+   },
+   {
+    "id": "twin_tree_runtime_fixes",
+    "name": "Fixes de runtime por imports de árbol/modulo equivocado (core/ vs cores/): (1) api/scheduler.py:385 cores.events.event_types (no existe) → cores.agents.types.EventType (PIPELINE_*); (2) api/routers/mobile.py cores.models (no existe) → database.models; (3) mobile.py Target.status (columna inexistente) → Target.active; (4) cores/backup.py core.ORION_DIR (no exportado) → core.OWNEX_DIR. /mobile/status y /mobile/quick-wins pasan de 500 a 200 en runtime",
+    "status": "production_ready",
+    "files": [
+     "api/scheduler.py",
+     "api/routers/mobile.py",
+     "cores/backup.py"
+    ],
+    "tests": [
+     "tmp/opencode/test_mobile_smoke.py::test_mobile_status_ok",
+     "tmp/opencode/test_mobile_smoke.py::test_mobile_quick_wins_ok"
+    ],
+    "dependencies": [],
+    "integration_level": "production"
+   }
+  ]
  }
+}

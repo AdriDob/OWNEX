@@ -176,10 +176,20 @@ class ScanScheduler:
     async def _loop(self):
         while self._running:
             try:
+                self._recover_stale_scans()
                 await self._run_pipeline()
             except Exception as exc:
                 logger.warning("Pipeline cycle error: %s", exc)
             await asyncio.sleep(self.interval)
+
+    def _recover_stale_scans(self) -> None:
+        """Mark scans stuck in 'running' as failed before each cycle."""
+        try:
+            from cores.orchestrator.scan_service import recover_stale_scans
+
+            recover_stale_scans()
+        except Exception as exc:
+            logger.warning("Scan recovery skipped: %s", exc)
 
     async def _run_pipeline(self):
         logger.info("=== Autonomous Pipeline Cycle ===")

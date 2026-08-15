@@ -1,5 +1,22 @@
 # Decisions — Registro de Decisiones Arquitectónicas
 
+## 2026-08-15: HARDENING DB — tests aislados, recuperación de scans colgados, scraper honesto, guard anti-duplicados (FASES A/B/C/E)
+
+- **Problema**: (1) La suite pytest escribía en `database/catseye.db` real (targets `test-target.example.com`, scan_runs) — contaminación verificada y limpiada (con un pytest del pre-commit en vivo llegó a insertar 5 targets con código viejo antes del fix). (2) 25 scan_runs quedaron en `running` para siempre tras caídas del proceso — el scheduler esperaba scans fantasma. (3) Los scrapers directos estaban rotos (HackerOne 400, Bugcrowd 404, Intigriti 404, YesWeHack 404) y `convert_to_targets` inventaba `{slug}.com` cuando no había dominio real. (4) `create_target()`/`--add-target` duplicaban targets.
+- **Alternativas consideradas**:
+  1. **Aislamiento por `DATABASE_URL` en conftest + guards (elegido)** — Antes de cualquier import de `database.db`, conftest fuerza `DATABASE_URL=sqlite:////tmp/cateye_test_<pid>.db` con guard `RuntimeError` si aparece `catseye.db` y fixture de cleanup por sesión. Ningún test puede tocar la DB real.
+  2. Tener una DB de test aparte por fixture — Requeriría refactor de todos los módulos que importan `database.db` en tiempo de import (los tests ya importan el engine global); el env-var guard es mínimamente invasivo y no rompe nada.
+  3. Solo limpiar después de cada corrida — Frágil, no previene la contaminación, no cubre tests que abortan a mitad.
+- **Decisión**: 4 fixes de hardening:
+  - **FASE B (aislamiento)**: conftest con `DATABASE_URL` temp + guard + cleanup. Validado: hash de `catseye.db` idéntico antes/después de correr la suite.
+  - **FASE C (stale scans)**: `recover_stale_scans(max_age_hours=6.0)` en `cores/orchestrator/scan_service.py` marca `running` viejos → `failed` con `finished_at` y outputs; hooks en boot (`api/main.py` lifespan tras `init_db()`) y en cada tick (`api/scheduler.py::_loop`). Recuperó los 25 scans reales (ids 1,2,3,4,12,...276).
+  - **FASE A (scraper)**: `BountyTargetsData` como fuente primaria (las direct APIs están rotas — se mantienen al final de la lista, degrade honesto); `_source_status` por fuente (`ok`/`degraded`/`failed`) expuesto en `GET /api/discovery/stats`; `convert_to_targets` skipea programas sin dominio/wildcard real en vez de inventar `{slug}.com`.
+  - **FASE E (dedupe)**: `create_target()` y `run.py --add-target` devuelven el target existente con `"duplicate": True` en vez de insertar un duplicado.
+- **Detalle técnico**: `ScanRun.started_at` es `DateTime(timezone=True)` con `server_default=func.now()`, pero SQLite guarda strings naive sin offset → al comparar en Python con datetime aware da `TypeError`. El filtro se hace en SQL (`started_at < cutoff`), que matchea correctamente (verificado: 25).
+- **Nota de coordinación**: El otro proceso opencode (commit de trading) ejecutó `git reset --hard HEAD` que revirtió los fixes 2 veces; se re-aplicaron y se dejó constancia. La DB real quedó limpia (707 targets, 223 completed / 25 failed recuperados / 28 timeout).
+- **Impacto**: 66 tests aislados pasan + suite fast 97 passed / 1 skipped; ruff limpio en los 8 archivos tocados; 0 contaminación verificable de `catseye.db`; los 25 scans colgados dejaron de bloquear el pipeline.
+- **Condiciones para reabrir**: Consolidar la DB de test a un conftest con autouse completo, o migrar `ScanRun` a `DateTime` naive explícito (SQLite), o conectar los logs `ownex.*` al handler del logger `CATEYE` (hoy caen al lastResort WARNING+ de Python porque `setup_logging` solo configura el logger `CATEYE`).
+
 ## 2026-08-15: TRADING EVOLUTION — copy trading CEX/on-chain + OWNEX razona su lógica ganadora
 
 - **Problema**: OWNEX operaba sobre el mercado (inversiones, wealth) pero no sobre el trading directo: no había copy trading (seguir masters CEX/on-chain), ni razonamiento sobre la lógica ganadora (dónde, por qué y con qué se gana), ni scoring de traders candidatos. Gap real entre "encontrar oportunidades" y "ejecutar estrategias de trading que ya son ganadoras".
