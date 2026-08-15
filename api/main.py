@@ -185,6 +185,7 @@ async def lifespan(app: FastAPI):
     # Import all models before init_db() so SQLAlchemy metadata registers all tables
     from cores.learning import profile as _learning_models  # noqa: F401 — registers InvestigatorProfile, LearningEvent
     from cores.targets import models as _targets_models  # noqa: F401 — registers TargetIntel, Scope
+    from database import models as _core_models  # noqa: F401 — registers User, MemoryRecord, etc.
 
     db.init_db()
     logger.info("Database initialized")

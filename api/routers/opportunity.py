@@ -15,7 +15,6 @@ from core.opportunity.scoring import FeedbackOutcome, get_engine
 
 router = APIRouter(prefix="/api/opportunities", tags=["opportunities"])
 
-engine = get_engine()
 logger = getLogger(__name__)
 
 
@@ -23,7 +22,7 @@ logger = getLogger(__name__)
 def get_top5():
     """Get top opportunities, diversified by domain."""
     try:
-        results = engine.get_top5_by_domain(limit=100)
+        results = get_engine().get_top5_by_domain(limit=100)
         return {
             row.domain: [{"id": e.opportunity_id, "title": e.title, "score": e.final_score} for e in row.entries]
             for row in results
@@ -42,7 +41,7 @@ def record_feedback(body: dict[str, str]):
         if outcome_str not in {"accept", "reject"}:
             raise HTTPException(status_code=400, detail="Invalid outcome. Use 'accept' or 'reject'.")
         outcome = FeedbackOutcome(outcome_str)
-        engine.record_feedback(finding_id, outcome)
+        get_engine().record_feedback(finding_id, outcome)
         return {"status": "ok", "finding_id": finding_id, "outcome": outcome.value}
     except Exception as e:
         logger.error("Failed to record feedback: %s", e)
