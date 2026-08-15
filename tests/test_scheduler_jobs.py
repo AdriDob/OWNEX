@@ -9,6 +9,7 @@ from core.scheduler.jobs import (
     get_forge_jobs,
     get_pulse_jobs,
     get_security_jobs,
+    get_trading_jobs,
     get_vault_jobs,
 )
 
@@ -176,8 +177,43 @@ class TestSecurityJobs:
         assert "security_cycle_sync" in ids
 
 
+class TestTradingJobs:
+    def test_returns_list(self):
+        jobs = get_trading_jobs()
+        assert isinstance(jobs, list)
+
+    def test_all_have_valid_structure(self):
+        for job in get_trading_jobs():
+            _check_job_structure(job)
+
+    def test_all_have_trading_app_id(self):
+        for job in get_trading_jobs():
+            assert job.app_id == "trading"
+
+    def test_has_risk_check_job(self):
+        ids = [j.job_id for j in get_trading_jobs()]
+        assert "trading_risk_check" in ids
+
+    def test_has_dna_update_job(self):
+        ids = [j.job_id for j in get_trading_jobs()]
+        assert "trading_dna_update" in ids
+
+    def test_has_discovery_job(self):
+        ids = [j.job_id for j in get_trading_jobs()]
+        assert "trading_discovery" in ids
+
+    def test_has_cycle_metadata(self):
+        for job in get_trading_jobs():
+            assert job.metadata.get("cycle") == "trading"
+
+    def test_risk_check_handler_resolves(self):
+        for job in get_trading_jobs():
+            if job.job_id == "trading_risk_check":
+                assert job.handler == "core.trading.copy_trading:run_trading_risk_check"
+
+
 class TestGetAllJobs:
-    def test_returns_dict_with_ten_cycles(self):
+    def test_returns_dict_with_eleven_cycles(self):
         all_jobs = get_all_jobs()
         assert set(all_jobs.keys()) == {
             "security",
@@ -190,6 +226,7 @@ class TestGetAllJobs:
             "qa",
             "evolution",
             "knowledge",
+            "trading",
         }
 
     def test_all_cycles_have_lists(self):
@@ -200,8 +237,8 @@ class TestGetAllJobs:
     def test_total_jobs_count(self):
         total = sum(len(jobs) for jobs in get_all_jobs().values())
         assert (
-            total == 44
-        )  # 10 cycles: security(10) + forge(9) + pulse(10) + vault(2) + atlas(2) + direct_work(5) + investment(3) + qa(1) + evolution(1) + knowledge(1)
+            total == 47
+        )  # 11 cycles: security(10) + forge(9) + pulse(10) + vault(2) + atlas(2) + direct_work(5) + investment(3) + qa(1) + evolution(1) + knowledge(1) + trading(3)
 
     def test_all_jobs_have_unique_ids(self):
         all_ids = []

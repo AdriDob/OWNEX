@@ -543,6 +543,55 @@ def get_knowledge_jobs() -> list[JobDefinition]:
     ]
 
 
+def get_trading_jobs() -> list[JobDefinition]:
+    """TRADING jobs — copy trading + OWNEX reasoning loop.
+
+    Jobs:
+    - trading_risk_check: drawdown check + emergency stop (every 5 min)
+    - trading_dna_update: decision journal → strategy DNA + proposals (03:30)
+    - trading_discovery: discover + score candidate traders (06:30)
+    """
+    return [
+        _cron_job(
+            job_id="trading_risk_check",
+            app_id="trading",
+            handler="core.trading.copy_trading:run_trading_risk_check",
+            cron="*/5 * * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "risk",
+                "desc": "verificacion de drawdown y parada de emergencia del copy trading",
+            },
+        ),
+        _cron_job(
+            job_id="trading_dna_update",
+            app_id="trading",
+            handler="core.trading.reasoning:run_dna_update",
+            cron="30 3 * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "reasoning",
+                "desc": "correlacion del decision journal a strategy DNA y propuestas",
+            },
+        ),
+        _cron_job(
+            job_id="trading_discovery",
+            app_id="trading",
+            handler="core.trading.trader_intelligence:run_discovery",
+            cron="30 6 * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "discovery",
+                "desc": "descubrimiento y scoring de traders candidatos",
+            },
+        ),
+    ]
+
+
+
 def get_all_jobs() -> dict[str, list[JobDefinition]]:
     """Return all cycle jobs."""
     return {
@@ -556,4 +605,5 @@ def get_all_jobs() -> dict[str, list[JobDefinition]]:
         "qa": get_qa_jobs(),
         "evolution": get_evolution_jobs(),
         "knowledge": get_knowledge_jobs(),
+        "trading": get_trading_jobs(),
     }

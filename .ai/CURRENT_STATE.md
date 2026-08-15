@@ -1,3 +1,36 @@
+## Sesión 2026-08-15 — TRADING EVOLUTION: copy trading CEX/on-chain + OWNEX razona su lógica ganadora
+
+> **QUÉ SE HIZO:** OWNEX dejó de solo "operar sobre el mercado" (inversiones/wealth) y ahora también
+> hace trading directo: **copy trading** (seguir masters de CEX y on-chain con cap por equity y
+> control de drawdown, todo en DRY_RUN por defecto) + **razonamiento de la lógica ganadora**
+> (StrategyDNA que detecta qué estrategias ganan, correlación decisiones/outcomes y propuestas de
+> optimización de parámetros aprobables). Cierra el gap "encontrar oportunidades" → "ejecutar
+> estrategias de trading que ya son ganadoras".
+
+- **`core/trading/` + twin `cores/trading/` (byte-idénticos)**: `store.py` (TradingStore JSON atómico,
+  configuración en `~/.config/ownex/trading.json`, masters/copy targets/drawdown settings persistidos),
+  `copy_trading.py` (`CopyTradingEngine`: follow masters, cap por equity %/absoluto, drawdown
+  daily/total que detiene el master, `set_master_enabled`, `replicate` normaliza pares, `DryRunExecutor`,
+  `emergency_stop`/`release`, `run_trading_risk_check`), `trader_intelligence.py` (`TraderScorer`
+  recalibrado: good 73.1 STRONG / elite 91.7 ELITE / bad 10.5 AVOID, `BacktestValidator`,
+  `LiveTraderMonitor`, `TraderDiscovery` con Jupiter DEX), `reasoning.py` (`StrategyDNA` de estrategias
+  ganadoras, `DecisionCorrelator` correlación decisiones/outcomes, `AutoParamOptimizer` con
+  approve/reject y estado persistido).
+- **`api/routers/trading.py` (NUEVO, montado en main.py)**: `/dashboard/summary`, `/copy` CRUD +
+  `toggle` + `ingest` (Decimal(str) + OrderSide enum), `/emergency-stop`/`release`/`status`,
+  `/intelligence/discover`/`score`/`validate`/`alerts`, `/reasoning/dna`/`proposals`/`correlate`/
+  `approve`/`reject`. Degradación defensiva `_safe` (motor caído → defaults, nunca 500).
+- **Scheduler**: `get_trading_jobs()` → `trading_risk_check` (`*/5 * * * *`), `trading_dna_update`
+  (`30 3 * * *`), `trading_discovery` (`30 6 * * *`). `get_all_jobs()` = 12 ciclos / 47 jobs.
+- **Frontend**: `TradingIntelligence.vue` (3 tabs TESLA: Copy Trading / Trader Intelligence /
+  Strategy DNA) + ruta `/trading/intelligence` + ítem "Copy Trading" (icono Copy) en AppSidebar
+  sección Vault. `vue-tsc` 0 errores, `vite build` OK.
+- **Verificación**: `test_trading_intelligence.py` **40 passed** + `test_scheduler_jobs.py` **48 passed**
+  (12 ciclos/47 jobs); ruff global limpio; smoke E2E (TestClient, auth real) `/dashboard/summary`,
+  `/reasoning/correlate`, `/copy/status` **200**. Suite completa (make test, excluye red):
+  **3450 passed / 11 skipped / 2 xfailed**; 2 failed = `test_desktop_release.py` HWID flaky
+  preexistente (pasan 8/8 aislados, archivo no tocado). DECISIONS.md actualizado.
+
 ## Sesión 2026-08-14 — HARDENING PASS CIERRE: FASE 5-14 veredictos + Recovery + Palette TESLA + validación completa
 
 > **QUÉ SE HIZO:** Cierre del hardening pass con 6 veredictos con evidencia (registrados en
