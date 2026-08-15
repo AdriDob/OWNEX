@@ -1,5 +1,21 @@
 # Decisions — Registro de Decisiones Arquitectónicas
 
+## 2026-08-15: TRADING EVOLUTION — copy trading CEX/on-chain + OWNEX razona su lógica ganadora
+
+- **Problema**: OWNEX operaba sobre el mercado (inversiones, wealth) pero no sobre el trading directo: no había copy trading (seguir masters CEX/on-chain), ni razonamiento sobre la lógica ganadora (dónde, por qué y con qué se gana), ni scoring de traders candidatos. Gap real entre "encontrar oportunidades" y "ejecutar estrategias de trading que ya son ganadoras".
+- **Alternativas consideradas**:
+  1. **Copy trading CEX/on-chain + Strategy DNA (elegido)** — Motor desacoplado (`core/trading/`) con tres módulos: `store.py` (persistencia), `copy_trading.py` (engine), `trader_intelligence.py` (scoring/validación/monitoreo/discovery). Plus `reasoning.py` que hace explícita la lógica ganadora con `StrategyDNA` (qué estrategias ganan) y `AutoParamOptimizer` (propuestas paramétricas aprobables). 16 endpoints en `api/routers/trading.py`, 3 jobs scheduler, frontend `TradingIntelligence.vue`.
+  2. Integrar todo en `core/investment/` — Mezclaría gestión de portafolio (larga plazo) con trading táctico; complejidad sin beneficio.
+  3. Solo conector externo (p. ej. una API de copy trading) — Sin scoring propio ni aprendizaje; dependencia de terceros.
+- **Decisión**: Implementar la feature completa. TradingConfig default **DRY_RUN** (nunca mueve fondos reales sin configuración explícita); `DEFAULT_EQUITY_USD = Decimal("1000")` como fallback si la wallet está vacía. **Twins `core/trading/` ↔ `cores/trading/` byte-idénticos** (`diff -rq` OK) por el patrón twin-tree del repo. Scheduler: `get_all_jobs()` = 12 ciclos / 47 jobs (`trading_risk_check` `*/5 * * * *`, `trading_dna_update` `30 3 * * *`, `trading_discovery` `30 6 * * *`). API degradación defensiva `_safe`. `core/decision_journal/journal.py` gana `data_snapshot` en `get_decisions()` (contexto de decisión enriquecido).
+- **Detalles clave**:
+  - `DryRunExecutor.execute_order` hace `pair.split("/")` → `replicate()` normaliza `BASE-QUOTE` → `BASE/QUOTE` (compat con datasets on-chain).
+  - `/copy/ingest` debe pasar `Decimal(str(...))` para quantity/price y `OrderSide` enum (string crashea: `AttributeError: 'str' object has no attribute 'name'`).
+  - TraderScorer recalibrado: good 73.1 STRONG / elite 91.7 ELITE / bad 10.5 AVOID.
+  - "Insight" cambia a "reasoning" (relabel), `TraderDiscovery` con Jupiter DEX.
+- **Impacto**: Copy trading real (seguir masters, cap por equity, drawdown control) + scoring de traders (BacktestValidator, LiveTraderMonitor) + razonamiento de la lógica ganadora (DNA + correlación + optimización aprobable). 40 tests `test_trading_intelligence.py` + 48 `test_scheduler_jobs.py`; ruff limpio; `vue-tsc` 0 errores; `vite build` OK. Suite completa 3450 passed / 11 skipped / 2 xfailed (los 2 failed preexistentes `desktop_release` HWID flaky, pasan aislados).
+- **Condiciones para reabrir**: Conectar exchange real (Binance/Kraken API) bajo modo live autorizado; integrar el scoring con el Work Cycle Vault/Atlas; exponer el DNA en Mission Control.
+
 ## 2026-08-14: HARDENING VERDICTS — twin-tree, dead code, routers sin consumo, eventos, palette, magic values (FASE 5/6/7/12/13/14)
 
 - **Problema**: El hardening pass 2026-08-14 debía decidir qué tocar y qué no en seis áreas con evidencia.
