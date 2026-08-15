@@ -374,6 +374,12 @@ export const routes: RouteRecordRaw[] = [
         meta: { title: 'Sync Center' },
       },
       {
+        path: 'outlook',
+        name: 'integrations-outlook',
+        component: () => import('@/pages/OutlookCalendar.vue'),
+        meta: { title: 'Outlook Calendar' },
+      },
+      {
         path: 'identity',
         name: 'integrations-identity',
         component: () => import('@/pages/Identity.vue'),

@@ -313,6 +313,7 @@ class TaskCreate(BaseModel):
     priority: str = "medium"
     linked_type: str | None = None
     linked_id: int | None = None
+    due_date: str | None = None
 
 
 class TaskUpdate(BaseModel):
@@ -320,6 +321,20 @@ class TaskUpdate(BaseModel):
     description: str | None = None
     status: str | None = None
     priority: str | None = None
+    due_date: str | None = None
+
+
+def _parse_due_date(value: str | None) -> datetime | None:
+    """Parse an ISO datetime string into an aware datetime (UTC)."""
+    if not value:
+        return None
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=UTC)
+        return dt
+    except (ValueError, TypeError):
+        return None
 
 
 @router.get("/tasks")
@@ -344,6 +359,9 @@ def list_tasks(
                     "priority": t.priority,
                     "linked_type": t.linked_type,
                     "linked_id": t.linked_id,
+                    "due_date": t.due_date.isoformat() if t.due_date else "",
+                    "synced_to_calendar": t.synced_to_calendar == "true",
+                    "synced_to_todo": t.synced_to_todo == "true",
                     "created_at": t.created_at.isoformat() if t.created_at else "",
                     "updated_at": t.updated_at.isoformat() if t.updated_at else "",
                 }
@@ -367,6 +385,7 @@ def create_task(body: TaskCreate):
             priority=body.priority,
             linked_type=body.linked_type,
             linked_id=body.linked_id,
+            due_date=_parse_due_date(body.due_date),
         )
         session.add(task)
         session.commit()
@@ -392,6 +411,12 @@ def update_task(task_id: int, body: TaskUpdate):
             task.status = body.status
         if body.priority is not None:
             task.priority = body.priority
+        if body.due_date is not None:
+            task.due_date = _parse_due_date(body.due_date)
+            task.calendar_event_id = None
+            task.synced_to_calendar = "false"
+            task.todo_task_id = None
+            task.synced_to_todo = "false"
         session.commit()
         return {"id": task.id, "status": "updated"}
     finally:

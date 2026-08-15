@@ -591,6 +591,23 @@ def get_trading_jobs() -> list[JobDefinition]:
     ]
 
 
+def get_integration_jobs() -> list[JobDefinition]:
+    """INTEGRATION jobs — external platform syncs (Outlook calendar)."""
+    return [
+        _cron_job(
+            job_id="outlook_calendar_sync",
+            app_id="integrations",
+            handler="cores.integrations.outlook.sync:run_calendar_sync",
+            cron="*/15 * * * *",
+            args=[],
+            metadata={
+                "cycle": "integrations",
+                "type": "calendar",
+                "desc": "sincroniza tasks locales con el calendario de Outlook (push) y refresca agenda (pull)",
+            },
+        ),
+    ]
+
 
 def get_all_jobs() -> dict[str, list[JobDefinition]]:
     """Return all cycle jobs."""
@@ -606,4 +623,5 @@ def get_all_jobs() -> dict[str, list[JobDefinition]]:
         "evolution": get_evolution_jobs(),
         "knowledge": get_knowledge_jobs(),
         "trading": get_trading_jobs(),
+        "integrations": get_integration_jobs(),
     }

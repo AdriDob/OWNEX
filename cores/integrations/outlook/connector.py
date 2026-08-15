@@ -69,6 +69,29 @@ class OutlookContact:
     raw: dict[str, Any] = field(default_factory=dict)
 
 
+@dataclass
+class OutlookTodoList:
+    """Microsoft To Do list (backed by Outlook Tasks API)."""
+
+    id: str
+    display_name: str
+    is_owner: bool = True
+    raw: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class OutlookTodoTask:
+    """Microsoft To Do task item."""
+
+    id: str
+    title: str
+    status: str = "notStarted"  # notStarted | inProgress | completed | waitingOnOthers | deferred
+    importance: str = "normal"  # low | normal | high
+    due_date: str = ""
+    body_preview: str = ""
+    raw: dict[str, Any] = field(default_factory=dict)
+
+
 class OutlookConnector:
     """Microsoft Graph API connector — email, calendar, contacts."""
 
@@ -286,6 +309,226 @@ class OutlookConnector:
             logger.warning("[OUTLOOK] create_calendar_event error: %s", exc)
             return None
 
+    async def update_calendar_event(
+        self,
+        event_id: str,
+        subject: str | None = None,
+        start_time: str | None = None,
+        end_time: str | None = None,
+        body: str | None = None,
+        location: str | None = None,
+    ) -> OutlookCalendarEvent | None:
+        """Update an existing calendar event."""
+        if not self.is_connected():
+            return None
+        patch: dict[str, Any] = {}
+        if subject is not None:
+            patch["subject"] = subject
+        if start_time is not None:
+            patch["start"] = {"dateTime": start_time, "timeZone": "UTC"}
+        if end_time is not None:
+            patch["end"] = {"dateTime": end_time, "timeZone": "UTC"}
+        if body is not None:
+            patch["body"] = {"contentType": "HTML", "content": body}
+        if location is not None:
+            patch["location"] = {"displayName": location}
+        if not patch:
+            return None
+        try:
+            async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as client:
+                r = await client.patch(
+                    f"{MICROSOFT_GRAPH}/me/events/{event_id}",
+                    headers=self._auth_headers(),
+                    json=patch,
+                )
+                if r.status_code == 200:
+                    data = r.json()
+                    logger.info("[OUTLOOK] Event updated: '%s'", data.get("subject", event_id))
+                    return self._parse_event(data)
+                logger.warning("[OUTLOOK] Failed to update event: HTTP %d", r.status_code)
+                return None
+        except Exception as exc:
+            logger.warning("[OUTLOOK] update_calendar_event error: %s", exc)
+            return None
+
+    async def delete_calendar_event(self, event_id: str) -> bool:
+        """Delete a calendar event."""
+        if not self.is_connected():
+            return False
+        try:
+            async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as client:
+                r = await client.delete(
+                    f"{MICROSOFT_GRAPH}/me/events/{event_id}",
+                    headers=self._auth_headers(),
+                )
+                if r.status_code == 204:
+                    logger.info("[OUTLOOK] Event deleted: %s", event_id)
+                    return True
+                logger.warning("[OUTLOOK] Failed to delete event: HTTP %d", r.status_code)
+                return False
+        except Exception as exc:
+            logger.warning("[OUTLOOK] delete_calendar_event error: %s", exc)
+            return False
+
+    # ── Microsoft To Do ───────────────────────────────
+
+    async def list_todo_lists(self, max_results: int = 50) -> list[OutlookTodoList]:
+        """Fetch Microsoft To Do lists (Outlook Tasks API)."""
+        if not self.is_connected():
+            return []
+        try:
+            async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as client:
+                r = await client.get(
+                    f"{MICROSOFT_GRAPH}/me/todo/lists",
+                    headers=self._auth_headers(),
+                    params={"$top": max_results, "$select": "id,displayName,wellknownListName,isOwner"},
+                )
+                if r.status_code != 200:
+                    logger.warning("[OUTLOOK] Failed to list todo lists: HTTP %d", r.status_code)
+                    return []
+                data = r.json()
+                return [self._parse_todo_list(item) for item in data.get("value", [])]
+        except Exception as exc:
+            logger.warning("[OUTLOOK] list_todo_lists error: %s", exc)
+            return []
+
+    async def get_or_create_todo_list(self, display_name: str = "OWNEX") -> OutlookTodoList | None:
+        """Find a To Do list by name; create it if it doesn't exist."""
+        for lst in await self.list_todo_lists():
+            if lst.display_name.strip().lower() == display_name.strip().lower():
+                return lst
+        try:
+            async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as client:
+                r = await client.post(
+                    f"{MICROSOFT_GRAPH}/me/todo/lists",
+                    headers=self._auth_headers(),
+                    json={"displayName": display_name},
+                )
+                if r.status_code in (200, 201):
+                    data = r.json()
+                    logger.info("[OUTLOOK] Created todo list: '%s'", display_name)
+                    return self._parse_todo_list(data)
+                logger.warning("[OUTLOOK] Failed to create todo list: HTTP %d", r.status_code)
+                return None
+        except Exception as exc:
+            logger.warning("[OUTLOOK] get_or_create_todo_list error: %s", exc)
+            return None
+
+    async def list_todo_tasks(self, list_id: str, max_results: int = 50) -> list[OutlookTodoTask]:
+        """Fetch tasks from a To Do list."""
+        if not self.is_connected():
+            return []
+        try:
+            async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as client:
+                r = await client.get(
+                    f"{MICROSOFT_GRAPH}/me/todo/lists/{list_id}/tasks",
+                    headers=self._auth_headers(),
+                    params={
+                        "$top": max_results,
+                        "$select": "id,title,status,importance,dueDateTime,body,lastModifiedDateTime",
+                    },
+                )
+                if r.status_code != 200:
+                    logger.warning("[OUTLOOK] Failed to list todo tasks: HTTP %d", r.status_code)
+                    return []
+                data = r.json()
+                return [self._parse_todo_task(item) for item in data.get("value", [])]
+        except Exception as exc:
+            logger.warning("[OUTLOOK] list_todo_tasks error: %s", exc)
+            return []
+
+    async def create_todo_task(
+        self,
+        list_id: str,
+        title: str,
+        due_date: str = "",
+        importance: str = "normal",
+        body: str = "",
+    ) -> OutlookTodoTask | None:
+        """Create a task in a To Do list."""
+        if not self.is_connected():
+            return None
+        payload: dict[str, Any] = {"title": title, "importance": importance}
+        if due_date:
+            payload["dueDateTime"] = self._iso_datetime_payload(due_date)
+        if body:
+            payload["body"] = {"content": body, "contentType": "text"}
+        try:
+            async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as client:
+                r = await client.post(
+                    f"{MICROSOFT_GRAPH}/me/todo/lists/{list_id}/tasks",
+                    headers=self._auth_headers(),
+                    json=payload,
+                )
+                if r.status_code in (200, 201):
+                    data = r.json()
+                    logger.info("[OUTLOOK] Created todo task: '%s'", title)
+                    return self._parse_todo_task(data)
+                logger.warning("[OUTLOOK] Failed to create todo task: HTTP %d", r.status_code)
+                return None
+        except Exception as exc:
+            logger.warning("[OUTLOOK] create_todo_task error: %s", exc)
+            return None
+
+    async def update_todo_task(
+        self,
+        list_id: str,
+        task_id: str,
+        title: str | None = None,
+        due_date: str | None = None,
+        status: str | None = None,
+        importance: str | None = None,
+    ) -> OutlookTodoTask | None:
+        """Update an existing task in a To Do list."""
+        if not self.is_connected():
+            return None
+        patch: dict[str, Any] = {}
+        if title is not None:
+            patch["title"] = title
+        if due_date is not None:
+            patch["dueDateTime"] = self._iso_datetime_payload(due_date)
+        if status is not None:
+            patch["status"] = status
+        if importance is not None:
+            patch["importance"] = importance
+        if not patch:
+            return None
+        try:
+            async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as client:
+                r = await client.patch(
+                    f"{MICROSOFT_GRAPH}/me/todo/lists/{list_id}/tasks/{task_id}",
+                    headers=self._auth_headers(),
+                    json=patch,
+                )
+                if r.status_code == 200:
+                    data = r.json()
+                    logger.info("[OUTLOOK] Updated todo task: %s", task_id)
+                    return self._parse_todo_task(data)
+                logger.warning("[OUTLOOK] Failed to update todo task: HTTP %d", r.status_code)
+                return None
+        except Exception as exc:
+            logger.warning("[OUTLOOK] update_todo_task error: %s", exc)
+            return None
+
+    async def delete_todo_task(self, list_id: str, task_id: str) -> bool:
+        """Delete a task from a To Do list."""
+        if not self.is_connected():
+            return False
+        try:
+            async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as client:
+                r = await client.delete(
+                    f"{MICROSOFT_GRAPH}/me/todo/lists/{list_id}/tasks/{task_id}",
+                    headers=self._auth_headers(),
+                )
+                if r.status_code == 204:
+                    logger.info("[OUTLOOK] Deleted todo task: %s", task_id)
+                    return True
+                logger.warning("[OUTLOOK] Failed to delete todo task: HTTP %d", r.status_code)
+                return False
+        except Exception as exc:
+            logger.warning("[OUTLOOK] delete_todo_task error: %s", exc)
+            return False
+
     # ── Contacts ─────────────────────────────────────
 
     async def list_contacts(self, max_results: int = 50) -> list[OutlookContact]:
@@ -413,6 +656,39 @@ class OutlookConnector:
             raw=item,
         )
 
+    @staticmethod
+    def _parse_todo_list(item: dict[str, Any]) -> OutlookTodoList:
+        return OutlookTodoList(
+            id=item.get("id", ""),
+            display_name=item.get("displayName", ""),
+            is_owner=item.get("isOwner", True),
+            raw=item,
+        )
+
+    @staticmethod
+    def _parse_todo_task(item: dict[str, Any]) -> OutlookTodoTask:
+        due = item.get("dueDateTime", {}) or {}
+        body = item.get("body", {}) or {}
+        return OutlookTodoTask(
+            id=item.get("id", ""),
+            title=item.get("title", ""),
+            status=item.get("status", "notStarted"),
+            importance=item.get("importance", "normal"),
+            due_date=due.get("dateTime", ""),
+            body_preview=body.get("content", "")[:200] if body.get("content") else "",
+            raw=item,
+        )
+
+    @staticmethod
+    def _iso_datetime_payload(value: str) -> dict[str, str]:
+        """Normalize an ISO datetime into Graph's dueDateTime payload."""
+        dt = value
+        if dt.endswith("Z"):
+            dt = dt.replace("Z", "")
+        elif dt.endswith("+00:00"):
+            dt = dt.replace("+00:00", "")
+        return {"dateTime": dt, "timeZone": "UTC"}
+
     # ── Events ─────────────────────────────────────────
 
     def _publish(self, event_type: str, payload: dict[str, Any]) -> None:
@@ -447,6 +723,42 @@ class OutlookConnector:
             )
             reg.register(
                 "list_calendar_events", "outlook", {"max_days_ahead": 365}, description="Fetch upcoming calendar events"
+            )
+            reg.register(
+                "update_calendar_event",
+                "outlook",
+                {"supports": ["subject", "start", "end", "body", "location"]},
+                description="Update a calendar event in Outlook",
+            )
+            reg.register(
+                "delete_calendar_event",
+                "outlook",
+                {},
+                description="Delete a calendar event from Outlook",
+            )
+            reg.register(
+                "list_todo_lists",
+                "outlook",
+                {"provider": "microsoft_to_do"},
+                description="List Microsoft To Do lists",
+            )
+            reg.register(
+                "create_todo_task",
+                "outlook",
+                {"supports": ["due_date", "importance", "body"]},
+                description="Create a task in Microsoft To Do",
+            )
+            reg.register(
+                "update_todo_task",
+                "outlook",
+                {"supports": ["title", "due_date", "status", "importance"]},
+                description="Update a task in Microsoft To Do",
+            )
+            reg.register(
+                "delete_todo_task",
+                "outlook",
+                {},
+                description="Delete a task from Microsoft To Do",
             )
             reg.register("list_contacts", "outlook", {"max_results": 500}, description="Fetch contacts from Outlook")
         except Exception:

@@ -159,6 +159,61 @@ def register_gmail_channel() -> None:
     logger.info("Gmail channel registered on NotificationHub")
 
 
+def register_outlook_channel() -> None:
+    """Register the Outlook email notification handler on the hub.
+
+    Uses the Microsoft Graph connector (Mail.Send) to deliver notification
+    emails to CATEYE_OUTLOOK_NOTIFICATION_TO. Skipped when Outlook is not
+    configured.
+    """
+    import os
+
+    from cores.notifications.hub import get_hub
+
+    to_address = os.environ.get("CATEYE_OUTLOOK_NOTIFICATION_TO", "")
+    if not to_address:
+        logger.info("Outlook channel skipped — CATEYE_OUTLOOK_NOTIFICATION_TO not set")
+        return
+
+    def _outlook_handler(type_: str, payload: dict[str, Any]) -> None:
+        import asyncio
+
+        from cores.integrations.outlook.connector import get_outlook_connector
+
+        connector = get_outlook_connector()
+        if not connector.is_connected():
+            try:
+                if not asyncio.run(connector.connect()):
+                    logger.warning("[OUTLOOK] Notification dropped — connection failed")
+                    return
+            except Exception as exc:
+                logger.warning("[OUTLOOK] Notification dropped — connect error: %s", exc)
+                return
+
+        subject = payload.get("title", "OWNEX notification")
+        message = payload.get("message", "")
+        priority = payload.get("priority", "medium")
+        try:
+            ok = asyncio.run(
+                connector.send_email(
+                    to=[to_address],
+                    subject=f"[{priority.upper()}] {subject}",
+                    body=f"<p>{message}</p>",
+                )
+            )
+            db_id = payload.get("metadata", {}).get("db_id")
+            if db_id:
+                from cores.notifications.db_bridge import record_delivery
+
+                record_delivery(db_id, "outlook", "sent" if ok else "failed", None if ok else "send_error")
+        except Exception as exc:
+            logger.warning("[OUTLOOK] Notification delivery error: %s", exc)
+
+    hub = get_hub()
+    hub.subscribe("outlook", _outlook_handler)
+    logger.info("Outlook channel registered on NotificationHub")
+
+
 def register_discord_channel() -> None:
     """Register the Discord notification handler on the hub."""
     from cores.notifications.discord import get_discord_adapter

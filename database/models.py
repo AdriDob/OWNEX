@@ -411,6 +411,12 @@ class Task(Base):
     priority = Column(String, nullable=True, default="medium")  # low, medium, high, critical
     linked_type = Column(String, nullable=True, index=True)  # target, evidence, report, quick_win, replay
     linked_id = Column(Integer, nullable=True)
+    due_date = Column(DateTime(timezone=True), nullable=True, index=True)  # when the task is due
+    calendar_event_id = Column(String, nullable=True)  # Outlook Graph event id when synced
+    synced_to_calendar = Column(String, nullable=False, default="false")  # true/false — sync state
+    todo_task_id = Column(String, nullable=True)  # Microsoft To Do task id when synced
+    synced_to_todo = Column(String, nullable=False, default="false")  # true/false — To Do sync state
+    last_synced_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
