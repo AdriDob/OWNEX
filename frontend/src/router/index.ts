@@ -2,7 +2,7 @@ import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
 import { isSessionValid } from '@/lib/api'
 
 // Pages that don't require auth
-const publicPages = ['login', 'activation']
+const publicPages = ['activation']
 
 export function isPublicRoute(to: Pick<RouteLocationNormalized, 'name' | 'meta'>) {
   return !!to.meta?.public || publicPages.includes(to.name as string)
@@ -51,12 +51,6 @@ export const routes: RouteRecordRaw[] = [
   },
 
   // ── AUTH ──
-  {
-    path: '/login',
-    name: 'login',
-    component: () => import(/* webpackChunkName: "auth" */ '@/pages/LoginPage.vue'),
-    meta: { title: 'Iniciar Sesión', public: true },
-  },
   {
     path: '/activation',
     name: 'activation',
