@@ -162,6 +162,31 @@ Requiere OAuth2. Configuración más compleja:
 | Refresh Token | `CATEYE_GMAIL_REFRESH_TOKEN` |
 | From email | `CATEYE_GMAIL_FROM` |
 
+### Outlook / Microsoft Graph (calendar sync + Microsoft To Do + email notifications)
+
+Sincroniza tasks locales con el calendario de Outlook **y** Microsoft To Do, y recibe notificaciones por email.
+
+1. Crear app registration en Azure AD (Microsoft Entra ID)
+2. Permisos Graph API: `Mail.Send`, `Calendars.ReadWrite`, `Mail.Read`, `Tasks.ReadWrite`
+3. Credenciales en `.env`:
+
+| Field | Env var |
+|---|---|
+| Client ID | `CATEYE_OUTLOOK_CLIENT_ID` |
+| Client Secret | `CATEYE_OUTLOOK_CLIENT_SECRET` |
+| Tenant ID | `CATEYE_OUTLOOK_TENANT_ID` |
+| Email destino notificaciones | `CATEYE_OUTLOOK_NOTIFICATION_TO` |
+
+Verificar:
+```bash
+curl http://localhost:8000/api/outlook/status
+curl http://localhost:8000/api/outlook/agenda
+curl http://localhost:8000/api/outlook/todo
+curl -X POST http://localhost:8000/api/outlook/sync
+```
+
+Las tasks con `due_date` se materializan en el calendario como eventos (60 min antes del vencimiento) y en la lista **OWNEX** de Microsoft To Do. Al completarse una task, se borra de ambas superficies.
+
 ### Email (SMTP)
 ```bash
 export CATEYE_SMTP_HOST="smtp.gmail.com"

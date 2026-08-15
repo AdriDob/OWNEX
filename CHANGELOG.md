@@ -2,6 +2,24 @@
 
 All notable changes to OWNEX, tracked from the git history of the default branch.
 
+## [Unreleased]
+
+### Added
+- **Outlook Calendar Sync** — two-way integration with Microsoft Graph:
+  - `update_calendar_event` / `delete_calendar_event` added to `OutlookConnector`
+  - `cores/integrations/outlook/sync.py`: push local tasks (con `due_date`) al calendario, agenda pull (eventos + no leídos)
+  - Canal de notificación `outlook` en `NotificationHub` (email vía Graph, requiere `CATEYE_OUTLOOK_NOTIFICATION_TO`)
+  - API: `GET /api/outlook/status`, `GET /api/outlook/agenda`, `POST /api/outlook/sync`, `GET /api/outlook/tasks`
+  - `Task` model: `due_date`, `calendar_event_id`, `synced_to_calendar`, `last_synced_at` (+ migración automática)
+  - Job de scheduler `outlook_calendar_sync` (cada 15 min, ciclo `integrations`)
+  - Frontend: página `OutlookCalendar.vue` en Integraciones (`/integrations/outlook`)
+- **Microsoft To Do** — tasks locales también se materializan en To Do:
+  - `OutlookConnector`: `list_todo_lists`, `get_or_create_todo_list`, `list_todo_tasks`, `create_todo_task`, `update_todo_task`, `delete_todo_task` (Graph `/me/todo/lists`, permiso `Tasks.ReadWrite`)
+  - `sync_tasks_to_todo()`: crea/actualiza en la lista `OWNEX` (autocreada); borra al completar la task
+  - `pull_todo_lists()`: lists + tasks para la UI; `Task` model: `todo_task_id`, `synced_to_todo`
+  - API: `GET /api/outlook/todo`; `POST /api/outlook/sync` ahora devuelve resumen de calendario + To Do
+  - Frontend: sección Microsoft To Do (lists + tasks) en `OutlookCalendar.vue`
+
 ## [7.0.0] — 2026-08-01
 
 ### Added
