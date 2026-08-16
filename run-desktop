@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+"""
+RASTRRO — Native Desktop Launcher.
+
+Launches the PySide6 native desktop shell (Option B):
+  - QApplication + qasync event loop
+  - Native QSS Tesla theme (no WebView, no HTTP, no browser)
+  - In-process services wrapping cores/ engines
+  - Lazy-loaded section navigation (MISSION/INTELLIGENCE/SURFACE/FINDINGS/
+    REPORTS/OPERATIONS/TERMINAL/SYSTEM)
+"""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+# Ensure repo root on path so `import desktop.native...*` works from anywhere.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from desktop.native.app import create_application  # noqa: E402
+
+
+def main() -> int:
+    """Entry point for `run-desktop`.
+
+    Creates the QApplication, shows the MainWindow with the Tesla-native
+    QSS stylesheet, and starts the qasync event loop.
+
+    Returns the exit code from the Qt application.
+    """
+    app = create_application()
+    window = __import__("desktop.native.ui.main_window", fromlist=["MainWindow"]).MainWindow(theme_name="default")
+    # Apply the native Tesla QSS
+    from desktop.native.ui.main_window import native_qss
+    window.setStyleSheet(native_qss())
+    window.show()
+    # Start the qasync event loop — processEvents is non-blocking;
+    # the loop runs in the caller's context (e.g. via `python -m`)
+    import qasync
+    loop = qasync.QEventLoop(app)
+    with loop:
+        loop.run_forever()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

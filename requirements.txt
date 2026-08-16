@@ -9,6 +9,8 @@ pydantic>=2.2.0
 requests>=2.31.0
 supabase>=2.0.0
 Pillow>=10.0.0
+PySide6>=6.6.0
+qasync>=0.24.0
 
 jinja2>=3.0.0
 cvss>=3.0.0

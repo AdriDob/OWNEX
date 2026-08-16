@@ -1,0 +1,83 @@
+name: OWNEX Alpha Windows Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Create virtual environment
+        run: python -m venv .venv
+
+      - name: Install dependencies
+        run: |
+          .venv\Scripts\python.exe -m pip install --upgrade pip
+          .venv\Scripts\python.exe -m pip install -r requirements.txt
+          .venv\Scripts\python.exe -m pip install pyinstaller pefile
+
+      - name: Build PyInstaller (Windows native)
+        run: |
+          .venv\Scripts\pyinstaller.exe OWNEX-Desktop-Alpha.spec --clean --noconfirm
+
+      - name: Validate Windows bundle exists
+        run: |
+          $exe = "dist\OWNEX-Desktop-Alpha\OWNEX-Desktop-Alpha.exe"
+          if (!(Test-Path $exe)) { throw "Bundle .exe not found: $exe" }
+          Write-Host "Bundle .exe found: $exe"
+
+      - name: Verify Windows PE binary
+        run: |
+          .venv\Scripts\python.exe -c "import pefile; pefile.PE(r'dist\OWNEX-Desktop-Alpha\OWNEX-Desktop-Alpha.exe'); print('Windows PE: PASS')"
+
+      - name: Install NSIS
+        run: |
+          choco install nsis --yes --no-confirm
+
+      - name: Generate NSIS installer
+        run: |
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+          makensis.exe installer\OWNEX-Desktop-Alpha.nsi
+
+      - name: Verify NSIS output
+        run: |
+          if (!(Test-Path "OWNEX-Desktop-Alpha-Setup.exe")) { throw "NSIS output not found" }
+          if ((Get-Item "OWNEX-Desktop-Alpha-Setup.exe").Length -eq 0) { throw "NSIS output is empty" }
+
+      - name: Report Windows bundle stats
+        run: |
+          $files = Get-ChildItem -Path "dist\OWNEX-Desktop-Alpha" -Recurse -File
+          $totalBytes = ($files | Measure-Object -Property Length -Sum).Sum
+          $exeExists = Test-Path "dist\OWNEX-Desktop-Alpha\OWNEX-Desktop-Alpha.exe"
+          Write-Host "Bundle files: $($files.Count)"
+          Write-Host "Bundle size: $([math]::Round($totalBytes / 1MB, 2)) MB"
+          Write-Host "Main exe exists: $exeExists"
+
+      - name: Calculate SHA256 checksum
+        run: |
+          (Get-FileHash "OWNEX-Desktop-Alpha-Setup.exe" -Algorithm SHA256).Hash | Out-File checksums.txt -Encoding ascii
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OWNEX-Alpha-Windows-Installer
+          path: |
+            OWNEX-Desktop-Alpha-Setup.exe
+            dist/OWNEX-Desktop-Alpha/
+            checksums.txt
