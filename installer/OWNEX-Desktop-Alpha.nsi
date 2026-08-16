@@ -1,6 +1,9 @@
 ; OWNEX Desktop Alpha - NSIS Installer Script
 ; Requires NSIS 3.0+ to build
 ; Run with: makensis OWNEX-Desktop-Alpha.nsi
+; Compile from the repo root: makensis resolves relative paths (File/OutFile)
+; against the script directory, so step up to the checkout root.
+!cd ..
 
 !define APPNAME "OWNEX Desktop Alpha"
 !define COMPANYNAME "CATEYE"
