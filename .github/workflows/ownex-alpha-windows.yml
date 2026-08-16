@@ -42,6 +42,9 @@ jobs:
           $exe = "dist\OWNEX-Desktop-Alpha\OWNEX-Desktop-Alpha.exe"
           if (!(Test-Path $exe)) { throw "Bundle .exe not found: $exe" }
           Write-Host "Bundle .exe found: $exe"
+          # Debug: list dist directory
+          Write-Host "dist directory contents:"
+          Get-ChildItem -Path "dist" -Recurse | Select-Object FullName, Length | Format-Table -AutoSize
 
       - name: Verify Windows PE binary
         run: |
@@ -56,6 +59,8 @@ jobs:
           $makensis = Get-ChildItem "C:\Program Files*\NSIS\makensis.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
           if (-not $makensis) { throw "makensis.exe not found after choco install nsis" }
           Write-Host "Using makensis: $($makensis.FullName)"
+          # Verify dist exists before NSIS
+          if (!(Test-Path "dist\OWNEX-Desktop-Alpha")) { throw "dist\OWNEX-Desktop-Alpha not found after PyInstaller" }
           & $makensis.FullName installer\OWNEX-Desktop-Alpha.nsi
 
       - name: Verify NSIS output
