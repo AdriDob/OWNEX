@@ -48,7 +48,7 @@ hiddenimports += tmp_ret[2]
 
 a = Analysis(
     ["desktop/native/app.py"],
-    pathex=[],
+    pathex=[SPECPATH],
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,
