@@ -107,3 +107,6 @@ hummingbot_user/
 # Captura de screenshots — artefactos temporales
 /.capture_work/
 string_refs.txt
+
+# Binarios de instalación (APK/instalador Windows) - nunca commitear
+/ownexinstalador/
