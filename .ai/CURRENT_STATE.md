@@ -1,4 +1,39 @@
-## Sesión 2026-08-17 — COMMIT DEVIN SESSIONS + HOOK DETERMINISTA: trabajo de Devin verificado y commiteado (7236b34c6)
+## Sesión 2026-08-17 — DESKTOP LOCAL MODE: schema init en procesos desktop-only + empty states + Add Target + FASE 2 (datos de usuario en APPDATA) (80058bbce)
+
+> **QUÉ SE HIZO:** Cierre del gap "el desktop era un cliente HTTP que sin backend mostraba `Ops: error`":
+> (1) **CAUSA RAÍZ DE `Ops: error`**: el proceso desktop puro NUNCA llamaba `init_db()` (solo el boot del
+> server lo hacía) → `no such table: targets` → dashboard degradaba a error en instalaciones frescas.
+> FIX: `desktop/native/services/mission.py` — `_ensure_engines()` corre `init_db()` una vez por instancia
+> (idempotente, try/except → warning); `get_status` la llama ANTES de `service_call`; `get_targets`/
+> `get_findings`/`get_activity` la llaman explícitamente. (2) **EMPTY STATES con bug real de
+> QTableWidget**: `setRowCount(0)` + `setItem(0,0)` NO renderiza la fila (setItem no expande) → la fila
+> de mensaje era invisible en findings/surface; fix `setRowCount(1)` en el branch vacío de los 3 views
+> (mission ya lo tenía). Mensajes honestos: "No targets configured yet — use 'Add Target' ..." /
+> "No findings yet — run the pipeline or wait for the scheduler.". (3) **ADD TARGET REAL**: botón
+> "Add Target" en SurfaceView (barra de filtros) → QInputDialog (name + domain opcional) →
+> `api.services.data_service.create_target` (guard anti-duplicado real, QMessageBox de duplicado/error,
+> refresh tras crear) — la capacidad existente queda accesible desde la UI (regla del megaprompt).
+> (4) **FASE 2 — DATOS DE USUARIO FUERA DE LA APP**: `database/db.py` gana `user_data_dir()` +
+> `_default_db_url()` — bundles frozen persisten en `%APPDATA%/OWNEX` (Windows) o `~/.config/OWNEX`
+> (POSIX), sobreviven reinstalaciones del exe; dev mantiene `./database`; `DATABASE_URL` env siempre
+> gana (tests intactos). `desktop/native/services/api_client.py` usa `user_data_dir()` como default del
+> `desktop_device.json` (la identidad del dispositivo viaja con los datos del usuario). (5) Menor:
+> `subtitle` huérfano de IntelligenceView agregado al layout del header (nunca se mostraba).
+> **Deuda leve documentada (NO tocada)**: `cores/direct_work_engine/workbank.py` persiste en
+> `<repo>/data/` vía `parents[3]` — en bundle NSIS default (`$LOCALAPPDATA\Programs`) es escribible;
+> la DB en APPDATA es la fuente principal del desktop. **Nota de entorno**: `cores/platform/` shadowea
+> el stdlib `platform` si `cores/` se inserta en sys.path (lección para repros: importar siempre desde
+> root, nunca insertar subdirs).
+- **Verificación**: ruff limpio en los 8 archivos + tests; `tests/test_desktop_native.py` **27 passed**
+  (22 previos + `test_local_engines_initialize_db_schema` (init una vez por instancia) + 3 empty-state
+  + 2 add-target con monkeypatch de QInputDialog/create_target incl. duplicate notice); suite fast
+  **100 passed / 1 skipped** sin regresión; repro `/tmp/opencode/repro_desktop_local.py` contra DB
+  fresca (`DATABASE_URL=sqlite:////tmp/opencode/desktop_test.db`) → `source: local`, counts reales,
+  `opps: n/a`, 0 errores (`REPRO PASS`). Commit `80058bbce` pusheado a main.
+- **Registrado**: entrada completa en DECISIONS.md (2026-08-17, DESKTOP LOCAL MODE).
+
+
+## Sesión 2026-08-17 — TEST PLACEHOLDER
 
 > **QUÉ SE HIZO:** Cierre del trabajo sin commitear de las sesiones Devin (verificado con ruff +
 > tests antes de commitear): `cores/agents/bounty_coordinator.py` alineado al contrato real
