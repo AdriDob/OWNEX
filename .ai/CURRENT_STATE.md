@@ -1,3 +1,87 @@
+## Sesión 2026-08-17 — DESKTOP STARTUP FIX: cores/memory/system.py stub → store funcional (crash exit 1 a ~9 s)
+
+> **QUÉ SE HIZO:** (1) **DIAGNÓSTICO DEL CRASH DE ESCRITORIO WINDOWS**: la app moría ~9 s después del
+> launch con exit code 1 y ventana invisible. El repro local (`/tmp/opencode/repro_mission.py` con
+> `PYTHONPATH=<repo>`, pasos 1-9) expuso la causa raíz: `get_opportunity_engine()` →
+> `memory.set(...)` → `AttributeError: 'UnifiedMemoryStore' object has no attribute 'set'` —
+> `cores/memory/system.py` era un stub incompleto mientras el twin `core/memory/store.py` tiene la
+> API completa; el desktop importa `cores.*`, la web usa `core.*` → la web nunca se enteró. PyInstaller
+> windowed → stderr=None → traceback perdido; las excepciones Python no generan WER/LocalDump.
+> (2) **FIX**: `cores/memory/system.py` completado con persistencia SQLite en `memory_records`
+> (modelo `database.models.MemoryRecord`, `details=json.dumps(MemoryEntry.to_dict(), default=str)`,
+> upsert por category+key vía `SessionLocal`): `set`/`get`/`search`/`get_stats` + `_is_expired`
+> (TTL con `updated_at` ISO persistido en to_dict/from_dict), `search` matchea substring sobre
+> key+value+namespace+tags (el query `"opportunity"` del engine matchea el tag `["seed","opportunity"]`
+> y el namespace `"opportunities"`), métodos tolerantes a fallos (nunca crashea el bundle aunque falte
+> la tabla/DB). (3) **`MemoryNamespace`** ganó los miembros faltantes `OPPORTUNITIES` y `TASK_OUTCOMES`
+> (callers: opportunity engine, assistance, remote_control bridge, daily_cycle, discovery_engine).
+> (4) **Limpieza del stub**: 15 errores ruff preexistentes (E401/I001/F401/UP017/F841/SIM105/UP045/UP042)
+> + bug latente `NameError` en `initialize()` (`MAX_LOAD_WARNINGS`/`_warning_keys` a nivel módulo).
+
+- **`cores/memory/system.py`**: store funcional (357 líneas) — `_parse_dt`, `set` (upsert DB + cache),
+  `get` (cache → DB, deserializa dict/list via `_deserialize_value`), `search` (filtro namespace + query
+  substring sobre key/value/namespace/tags, limit), `get_stats` (total/namespaces/expired_entries reales).
+- **`tests/test_memory_system.py` (NUEVO)**: **12 passed** — roundtrip dict/str, get missing → None,
+  upsert, search por namespace y por query, value deserializado, TTL expiry (sleep 1.1 s), stats shape,
+  persistencia entre instancias, **seeds del opportunity engine vía `get_opportunity_engine().get_all()`
+  ≥ 3** (el path exacto del arranque del desktop), singleton compartido.
+- **Verificación**: repro 9/9 pasos OK (antes crash en paso 7); ruff limpio en system.py + test;
+  opportunity/memory/assistance 65 passed; suite fast **100 passed / 1 skipped** sin regresión;
+  `MemoryNamespace.OPPORTUNITIES`/`TASK_OUTCOMES` agregados.
+- **Pendiente (despliegue)**: commit+push → rebuild CI → nuevo installer → actualizar checksums
+  (repo+OneDrive), SHA256SUMS.txt, VERIFY-HASHES.ps1, README-INSTALACION.md → reinstall en Windows →
+  relanzar y verificar vivo + MainWindowTitle → `WINDOWS STARTUP: PASS` + reporte 8 líneas.
+- **Registrado**: entrada completa en DECISIONS.md (2026-08-17).
+
+## Sesión 2026-08-16 — OWNEX FULL MIGRATION: export/import PC-a-PC (--migrate-export / --migrate) + desbloqueo de la suite pytest
+
+> **QUÉ SE HIZO:** (1) **MIGRACIÓN COMPLETA**: `core/backup/migrate.py` — `export_migration()`
+> empaqueta los 6 orígenes de datos de OWNEX (orion/ → `~/.orion`, ownex/ → `~/.ownex`,
+> config_ownex/ → `~/.config/ownex`, repo_database/ → `<repo>/database`, repo_data/ →
+> `<repo>/data`, env/.env) en un zip con `manifest.json` (sha256 por archivo), WAL checkpoint
+> (TRUNCATE) antes de leer cada `*.db`, exclusiones (backups/, logs/, vision_cache/,
+> node_modules, .git, .venv, pyc, `-wal`/`-shm`, pid/lock/log, `*.tar.gz`/`*.zip` legacy,
+> dotfiles) y `README_MIGRATION.txt`. `verify_migration()` valida schema + checksums y
+> rechaza formatos legacy (mensaje `--restore`). `import_migration()` restaura con destinos
+> **inyectables** y **guard de seguridad**: destino no vacío exige `force=True`; la clave de
+> IdentityVault existente se preserva como `identity_vault.key.bak` ANTES de escribir.
+> (2) **CLI**: `run.py --migrate-export [dest]` (default `~/.ownex/backups/OWNEX_MIGRATE_<ts>.zip`,
+> `--no-targets` excluye los 4.1G de `~/.orion/targets/`) y `run.py --migrate <zip>` (flujo
+> 4 pasos: verify → restore → `_print_verify()` → guía de licencia por HWID + checklist,
+> `--force` para sobrescribir). (3) **SUITE DESBLOQUEADA**: una modificación SIN commitear de
+> `database/db.py` (49 líneas, sin `init_db()`) rompía la colección de TODOS los tests
+> (conftest autouse → `cores/targets/hunter` → ImportError); el experimento quedó en
+> stash (`stash@{0}`) y HEAD (254 líneas con `init_db()`) restaurado → suite fast **100 passed / 1 skipped**.
+
+- **`core/backup/migrate.py`**: export/verify/import completos con manifest sha256; destinos
+  inyectables (`data_dir`/`ownex_dir`/`config_dir`) — los tests NUNCA tocan el home real
+  (guard: destino no vacío sin `force` → error). B007 fix (`_name`).
+- **`run.py`**: `_check_migrate_export` (línea 712, con `--no-targets`) y `_check_migrate`
+  (línea 742, 4 pasos, `--force`). Errores LSP preexistentes sin tocar.
+- **`tests/test_migrate.py`**: **11 passed** — fixture con máquina fake (src/tgt), export
+  completo, dest por defecto, manifest sections, exclusiones legacy (`*.tar.gz`/`*.zip`),
+  WAL checkpoint, verificación checksum OK, corrupción detectada (import abortado),
+  **guard `test_import_refuses_overwrite_without_force`** (destino no vacío + sin force →
+  error, nada se toca), preservación `.key.bak`, restauración completa (los 5 archivos de
+  `~/.orion` + `config_ownex` + `.env` con permisos y `.bak` correctos).
+- **Verificación**: smoke real de export `--no-targets`: **7762 files / 766.25 MB → zip
+  42.67 MB** con `verify_migration` status `ok` y 0 checksum_errors; el zip contiene los
+  archivos RECUPERADOS (config.sh 64,446 B / identity_vault.json 1,132 B /
+  identity_vault.key 32 B / license.json 254 B); 0 entradas `-wal`/`-shm`/tar.gz/zip en el
+  zip. `ruff check core/backup/migrate.py run.py tests/test_migrate.py` limpio; `make test-fast`
+  **100 passed / 1 skipped**.
+- **⚠️ Incidente de datos (documentado en DECISIONS.md)**: la primera versión de los tests
+  (sin destinos inyectables) sobrescribió archivos reales de `~/.orion` (config.sh,
+  license.json, identity_vault.json, identity_vault.key, database/orion.db) y
+  `~/.config/ownex/trading.json`, y creó basura. **Recuperado**: los 5 de `~/.orion` desde
+  `ORION_BACKUP_2026-07-23_041206748193.zip` (el más nuevo de 195 en `~/.orion/backups/`,
+  cubre solo `~/.orion`); `trading.json` NO tenía copia → quedó el default `{"dry_run": true}`
+  (TradingStore regenera defaults; re-agregar masters si hacían falta). Basura eliminada
+  (orion/targets/hackerone/, ~/.ownex/database/knowledge.db, voice_department/profile.json,
+  identity_vault.key.bak).
+- **Registrado**: FASE_38 en COMPLETED_FEATURES.json, entrada completa en DECISIONS.md
+  (incluye el incidente), tabla de comandos en AGENTS.md.
+
 ## Sesión 2026-08-15 — HARDENING DB: tests aislados, recuperación de scans colgados, scraper honesto, guard anti-duplicados (FASES A/B/C/E)
 
 > **QUÉ SE HIZO:** Pasada de endurecimiento de base de datos y scraper con 4 frentes verificados.
