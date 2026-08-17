@@ -48,7 +48,6 @@ desktop/installer/
 
 # Root node_modules (Capacitor native deps)
 node_modules/
-/package.json
 
 # Coverage
 .coverage
@@ -87,7 +86,6 @@ RUNTIME_GAPS.md
 
 # Runtime / target data
 /targets/
-/package-lock.json
 C:\\Users\\*
 squashfs-root/
 

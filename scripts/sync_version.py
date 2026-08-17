@@ -33,8 +33,8 @@ sync(
 # 2. package.json  —  "version": "7.0.0"
 sync(
     "package.json",
-    r'\$1"7\.0\.0",',
-    '"7.0.0",',
+    r'"version": "\d+\.\d+\.\d+"',
+    f'"version": "{VERSION}"',
 )
 
 # 3. core/__init__.py  —  __version__ = "7.0.0"
@@ -44,11 +44,11 @@ sync(
     f'__version__ = "{VERSION}"',
 )
 
-# 4. .ai/SESSION_CHECKPOINT.md  —  actualizar la línea de version
+# 4. .ai/SESSION_CHECKPOINT.md  —  actualizar el número de versión (sin truncar el resto de la línea)
 sync(
     ".ai/SESSION_CHECKPOINT.md",
-    r"(v\d+\.\d+\.\d+)[^\n]*",
-    f"v{VERSION} STABLE",
+    r"v\d+\.\d+\.\d+",
+    f"v{VERSION}",
 )
 
 if changed:
