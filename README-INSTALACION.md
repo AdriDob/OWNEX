@@ -22,6 +22,9 @@ No necesitas instalar Python, Node ni nada más: **todo viene dentro del instala
 ## 2. Instalación
 
 1. Copiá `OWNEX-Desktop-Alpha-Setup.exe` desde el escritorio/OneDrive a donde quieras guardar el instalador (o ejecutalo directo).
+   - En esta máquina (desarrollo WSL): el instalador está en
+     `\\wsl.localhost\Ubuntu\home\adriel\projects\Rastro\installer\OWNEX-Desktop-Alpha-Setup.exe`
+     (sha256 `f33030e7e3eebc78733f6bad6d0d395f9e5781b77103f834b8d27f9294905967`).
 2. Ejecutalo con doble clic.
    - Si Windows SmartScreen muestra advertencia: el build no está firmado (debug alpha). Clic en **"More info" → "Run anyway"**.
 3. Seguí el asistente de instalación (directorio por defecto: `%LOCALAPPDATA%\Programs\OWNEX\`).
@@ -39,7 +42,8 @@ arranca **dentro del mismo proceso** en segundo plano, en `http://127.0.0.1:8000
 
 1. La ventana aparece **al instante** (~3 s).
 2. Durante los primeros **30-60 s** el backend inicia: crea la base de datos
-   (`database/catseye.db` junto a la app), corre el boot y arranca los servicios.
+   en los datos del usuario (`%APPDATA%\OWNEX\database\catseye.db`), corre el
+   boot y arranca los servicios. Los datos sobreviven reinstalaciones del exe.
    - La vista MISSION Control puede mostrar `Source: local` o valores `--` en
      ese lapso. Es normal: **la vista se refresca sola cada 10 segundos** y
      pasa a `Source: api` con datos reales cuando el backend queda listo.
@@ -68,26 +72,19 @@ Para confirmar que el sistema produce datos:
 
 ## 5. Migrar tus datos desde otra PC (opcional, solo si ya usaste OWNEX antes)
 
-Si ya tenés targets/recon en otra máquina, NO los copies a mano: usá la
-migración oficial (export/import con verificación de integridad).
-
-**En la PC de origen (Linux/desktop):**
+**En la PC de origen (Linux/desktop), usá la migración oficial** (export/import
+con verificación de integridad):
 ```bash
 python run.py --migrate-export ~/OWNEX_MIGRATE.zip
 # Si el archivo queda muy grande (>1 GB): python run.py --migrate-export --no-targets
 ```
 
-**En la PC destino (Windows):** el bundle incluye la herramienta de migración.
-Ubicá el zip, y desde una terminal en la carpeta de la app:
-
-```bash
-# dentro de la carpeta instalada
-OWNEX-Desktop-Alpha.exe --migrate C:\ruta\OWNEX_MIGRATE.zip
-```
-
-La importación verifica checksums, restaura datos y preserva la clave de
-IdentityVault. La licencia queda ligada al hardware (reactivala si el HWID
-cambió — la guía se imprime al final de la migración).
+**En la PC destino (Windows con el bundle desktop)**: el bundle nativo no expone
+el CLI de migración. La vía directa es copiar la carpeta de datos de la PC
+origen (`%APPDATA%\OWNEX` o `~/.config/OWNEX`) a la misma ruta en la PC
+destino, **con la app cerrada**. Incluye `database/catseye.db`, `data/` y la
+identidad del dispositivo (`desktop_device.json`). La licencia queda ligada al
+hardware: reactivala si el HWID cambió.
 
 > **Sin migración, no hay problema:** el sistema arranca con una base vacía
 > y comienza a descubrir targets por sí solo.
@@ -125,7 +122,7 @@ Si algún check no pasa, mirá la sección de troubleshooting abajo.
 ## 8. Notas de seguridad
 
 - **100% local**: la app escucha solo en `127.0.0.1` (loopback). Nada se expone a la red.
-- Los datos viven en la carpeta de instalación (`database/`, `data/`).
+- Los datos del usuario viven en `%APPDATA%\OWNEX` (Windows) o `~/.config/OWNEX` (Linux), fuera de la carpeta de instalación — sobreviven reinstalaciones del exe.
 - Sin telemetría ni cloud: el descubrimiento de targets usa APIs públicas de
   plataformas de bug bounty (HackerOne, Bugcrowd, etc.).
 
