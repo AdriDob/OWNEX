@@ -1,15 +1,14 @@
 """Intelligence — native PySide6 view.
 
-Lays out the OWNEX Intelligence dashboard with:
-- Target intelligence cards (targets + opportunity scores)
-- Threat landscape summary
-- Platform analysis grid
-- Quick action bar
-
-Responsive: single-column on mobile, multi-column on desktop.
+Displays the OWNEX Intelligence dashboard with:
+- Target intelligence KPIs (targets, findings, operations, activity)
+- Threat landscape summary from the mission service
+- Refresh action wired to the mission service
 """
 
 from __future__ import annotations
+
+import logging
 
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
@@ -22,8 +21,11 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from desktop.native.services.mission import get_mission
 from desktop.native.ui.tokens import get_theme
 from desktop.native.ui.views.base import BaseView
+
+logger = logging.getLogger("ownex.native.views.intelligence")
 
 
 class IntelligenceView(BaseView):
@@ -54,24 +56,49 @@ class IntelligenceView(BaseView):
         subtitle.setObjectName("section-subtitle")
         subtitle.setFont(QFont("Inter", 10))
 
+        self._source_label = QLabel("Source: --")
+        self._source_label.setFont(QFont("Inter", 9))
+
         hlay.addWidget(title)
-        hlay.addStretch()
         hlay.addWidget(subtitle)
+        hlay.addStretch()
+        hlay.addWidget(self._source_label)
         main.addWidget(header)
 
-        # --- Grid de cards ---
+        # --- Grid de KPIs (datos reales del service, nunca hardcoded) ---
         self._cards_frame = QFrame()
         self._cards_frame.setObjectName("section-frame")
         glay = QGridLayout(self._cards_frame)
         glay.setHorizontalSpacing(12)
         glay.setVerticalSpacing(12)
         glay.setContentsMargins(8, 8, 8, 8)
-        # Placeholder: 3x2 grid de cards vacías (se poblarán desde el service)
-        for _ in range(6):
+
+        kpi_defs = [
+            ("Targets", "targets"),
+            ("Findings", "findings"),
+            ("Operations", "opps"),
+            ("Activity", "activity"),
+            ("Ready to deliver", "ready_to_deliver"),
+            ("Status", "status"),
+        ]
+        self._kpi_labels: dict[str, QLabel] = {}
+        for i, (label, key) in enumerate(kpi_defs):
             card = QFrame()
             card.setFixedHeight(80)
             card.setStyleSheet("background: #111318; border-radius: 6px; border: 1px solid #2A2E37;")
-            glay.addWidget(card, _ // 2, _ % 2)
+            cl = QVBoxLayout(card)
+            cl.setContentsMargins(8, 8, 8, 8)
+            name = QLabel(label)
+            name.setFont(QFont("Inter", 8))
+            name.setStyleSheet("color: #8B8D98;")
+            value = QLabel("--")
+            value.setFont(QFont("Inter", 14))
+            value.setStyleSheet("color: #00D5FF;")
+            cl.addWidget(name)
+            cl.addStretch()
+            cl.addWidget(value)
+            self._kpi_labels[key] = value
+            glay.addWidget(card, i // 2, i % 2)
         main.addWidget(self._cards_frame, 1)
 
         # --- Barra de acciones ---
@@ -80,20 +107,47 @@ class IntelligenceView(BaseView):
         ablay = QHBoxLayout(action_bar)
         ablay.setContentsMargins(8, 8, 8, 8)
         ablay.setSpacing(8)
-        scan_btn = QPushButton("Scan Targets")
-        scan_btn.setFont(QFont("Inter", 10))
+
+        scan_hint = QLabel("Scheduler runs in the in-process backend; press Refresh to pull the latest state.")
+        scan_hint.setFont(QFont("Inter", 9))
+        scan_hint.setStyleSheet("color: #8B8D98;")
+
         refresh_btn = QPushButton("Refresh")
         refresh_btn.setFont(QFont("Inter", 10))
-        ablay.addWidget(scan_btn)
+        self._refresh_btn = refresh_btn
+        self._refresh_btn.clicked.connect(self.refresh)
+
+        ablay.addWidget(scan_hint)
         ablay.addStretch()
         ablay.addWidget(refresh_btn)
         main.addWidget(action_bar, 0)
 
-        # Conexión lazy al service (se hará desde el shell)
-        self._scan_connected = False
-
         # Aplicar tema
         self.apply_theme()
+
+    # -- Data loading (real data from the mission service) ---------------
+    def refresh(self) -> None:
+        mission = getattr(self, "mission", None) or get_mission()
+        try:
+            data = mission.get_dashboard()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("intelligence refresh failed: %s", exc)
+            self._source_label.setText("Source: error")
+            return
+        source = str(data.get("source", "local"))
+        self._source_label.setText("Source: " + source)
+        counts = data.get("counts", {})
+        status = data.get("status", {})
+        values: dict[str, str] = {
+            "targets": str(counts.get("targets", 0)),
+            "findings": str(counts.get("findings", 0)),
+            "opps": str(counts.get("opps", "n/a")),
+            "activity": str(counts.get("activity", 0)),
+            "ready_to_deliver": str(counts.get("ready_to_deliver", 0)),
+            "status": "running" if status.get("running") else "stopped",
+        }
+        for key, lbl in self._kpi_labels.items():
+            lbl.setText(values.get(key, "--"))
 
     # -- Helpers de estilo (usando get_theme()) --
     def apply_theme(self) -> None:

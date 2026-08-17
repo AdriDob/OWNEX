@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import logging
 
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QFrame,
@@ -93,6 +94,12 @@ class FindingsView(BaseView):
             logger.warning("findings refresh failed: %s", exc)
             findings = []
         self._table.setRowCount(len(findings))
+        if not findings:
+            self._table.setRowCount(1)
+            item = QTableWidgetItem("No findings yet — run the pipeline or wait for the scheduler.")
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            self._table.setItem(0, 0, item)
+            return
         for row, f in enumerate(findings):
             self._table.setItem(row, 0, QTableWidgetItem(str(f.get("id", ""))))
             self._table.setItem(row, 1, QTableWidgetItem(str(f.get("title", ""))))

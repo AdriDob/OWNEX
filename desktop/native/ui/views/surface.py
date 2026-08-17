@@ -10,12 +10,15 @@ from __future__ import annotations
 
 import logging
 
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QHeaderView,
+    QInputDialog,
     QLabel,
+    QMessageBox,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
@@ -65,9 +68,15 @@ class SurfaceView(BaseView):
         self._refresh_btn = refresh_btn
         self._refresh_btn.clicked.connect(self.refresh)
 
+        add_btn = QPushButton("Add Target")
+        add_btn.setFont(QFont("Inter", 10))
+        self._add_btn = add_btn
+        self._add_btn.clicked.connect(self._add_target)
+
         fl.addWidget(self._cat_filter)
         fl.addWidget(self._platform_filter)
         fl.addStretch()
+        fl.addWidget(add_btn)
         fl.addWidget(refresh_btn)
         main.addWidget(filt)
 
@@ -93,12 +102,42 @@ class SurfaceView(BaseView):
             logger.warning("targets refresh failed: %s", exc)
             targets = []
         self._table.setRowCount(len(targets))
+        if not targets:
+            self._table.setRowCount(1)
+            item = QTableWidgetItem("No targets configured yet — use 'Add Target' to start.")
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            self._table.setItem(0, 0, item)
+            return
         for row, t in enumerate(targets):
             self._table.setItem(row, 0, QTableWidgetItem(str(t.get("id", ""))))
             self._table.setItem(row, 1, QTableWidgetItem(str(t.get("name", ""))))
             self._table.setItem(row, 2, QTableWidgetItem(str(t.get("domain", ""))))
             self._table.setItem(row, 3, QTableWidgetItem(str(t.get("endpoint_count", 0))))
             self._table.setItem(row, 4, QTableWidgetItem("Active" if t.get("active") else "Inactive"))
+
+    # -- Add Target (real create via the shared data service) ------------
+    def _add_target(self) -> None:
+        mission = getattr(self, "mission", None) or get_mission()
+        name, ok = QInputDialog.getText(self, "Add Target", "Target name:")
+        if not ok or not name.strip():
+            return
+        domain, ok_d = QInputDialog.getText(self, "Add Target", "Domain (optional):")
+        if not ok_d:
+            return
+        try:
+            mission.get_targets()  # ensures the local schema/engines are ready
+            from api.services.data_service import create_target
+
+            result = create_target(name.strip(), domain.strip() or None)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("add target failed: %s", exc)
+            QMessageBox.warning(self, "Add Target", "Could not add target:\n" + str(exc))
+            return
+        if result.get("duplicate"):
+            QMessageBox.information(
+                self, "Add Target", f"Target '{result.get('name')}' already exists (id={result.get('id')})."
+            )
+        self.refresh()
 
     # -- Helpers de estilo --
     def apply_theme(self) -> None:

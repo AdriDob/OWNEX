@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import logging
 
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QFrame,
@@ -150,6 +151,12 @@ class MissionControlView(BaseView):
         self._source_label.setText("Source: " + source)
 
     def _populate_targets(self, targets: list[dict]) -> None:
+        if not targets:
+            self._table.setRowCount(1)
+            item = QTableWidgetItem("No targets configured yet — use 'Add Target' in Attack Surface to start.")
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            self._table.setItem(0, 0, item)
+            return
         self._table.setRowCount(len(targets))
         for row, t in enumerate(targets):
             self._table.setItem(row, 0, QTableWidgetItem(str(t.get("id", ""))))
