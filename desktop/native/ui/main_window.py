@@ -311,6 +311,9 @@ class MainWindow(QMainWindow):
             current.deleteLater()
         self._view_stack.addWidget(view)
         self._view_stack.setCurrentWidget(view)
+        if hasattr(view, "refresh"):
+            with contextlib.suppress(Exception):
+                view.refresh()
         self.view_switched.emit(section)
         self._status_bar.showMessage("Section: " + section)
 

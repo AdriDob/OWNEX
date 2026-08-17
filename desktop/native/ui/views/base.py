@@ -27,6 +27,9 @@ class BaseView(QWidget):
     TITLE: str = "View"
 
     def __init__(self, mission: MissionControlData | None = None, **kwargs: Any) -> None:
+        kwargs.pop("section", None)
+        kwargs.pop("label", None)
+        kwargs.pop("icon", None)
         super().__init__(**kwargs)
         self._mission = mission or get_mission()
 

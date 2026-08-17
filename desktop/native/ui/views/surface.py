@@ -8,6 +8,8 @@ Displays the current attack surface targets with:
 
 from __future__ import annotations
 
+import logging
+
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QFrame,
@@ -16,12 +18,16 @@ from PySide6.QtWidgets import (
     QLabel,
     QPushButton,
     QTableWidget,
+    QTableWidgetItem,
     QVBoxLayout,
     QWidget,
 )
 
+from desktop.native.services.mission import get_mission
 from desktop.native.ui.tokens import get_theme
 from desktop.native.ui.views.base import BaseView
+
+logger = logging.getLogger("ownex.native.views.surface")
 
 
 class SurfaceView(BaseView):
@@ -56,6 +62,9 @@ class SurfaceView(BaseView):
         refresh_btn = QPushButton("Refresh")
         refresh_btn.setFont(QFont("Inter", 10))
 
+        self._refresh_btn = refresh_btn
+        self._refresh_btn.clicked.connect(self.refresh)
+
         fl.addWidget(self._cat_filter)
         fl.addWidget(self._platform_filter)
         fl.addStretch()
@@ -64,7 +73,7 @@ class SurfaceView(BaseView):
 
         # --- Tabla de targets ---
         self._table = QTableWidget(0, 5)
-        self._table.setHorizontalHeaderLabels(["ID", "Platform", "Category", "Barrier", "Status"])
+        self._table.setHorizontalHeaderLabels(["ID", "Name", "Domain", "Endpoints", "Status"])
         self._table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self._table.setSelectionBehavior(QTableWidget.SelectRows)
         self._table.setAlternatingRowColors(True)
@@ -74,6 +83,22 @@ class SurfaceView(BaseView):
 
         # Aplicar tema base
         self.apply_theme()
+
+    # -- Data loading (real targets from the mission service) ------------
+    def refresh(self) -> None:
+        mission = getattr(self, "mission", None) or get_mission()
+        try:
+            targets = mission.get_targets()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("targets refresh failed: %s", exc)
+            targets = []
+        self._table.setRowCount(len(targets))
+        for row, t in enumerate(targets):
+            self._table.setItem(row, 0, QTableWidgetItem(str(t.get("id", ""))))
+            self._table.setItem(row, 1, QTableWidgetItem(str(t.get("name", ""))))
+            self._table.setItem(row, 2, QTableWidgetItem(str(t.get("domain", ""))))
+            self._table.setItem(row, 3, QTableWidgetItem(str(t.get("endpoint_count", 0))))
+            self._table.setItem(row, 4, QTableWidgetItem("Active" if t.get("active") else "Inactive"))
 
     # -- Helpers de estilo --
     def apply_theme(self) -> None:
