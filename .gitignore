@@ -110,3 +110,8 @@ string_refs.txt
 
 # Binarios de instalación (APK/instalador Windows) - nunca commitear
 /ownexinstalador/
+OWNEX-Alpha-Windows-Installer.zip
+
+# Keystores de firma Android - secretos, regenerables
+android/*.jks
+android/*.keystore

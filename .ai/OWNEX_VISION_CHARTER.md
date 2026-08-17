@@ -133,7 +133,7 @@ Especialistas por categoría:
 
 - **Bug Bounty Agent** — programas, vulnerabilidades, targets, reportes.
 - **Software Development Agent** — proyectos, issues, tareas, APIs.
-- **Game Development Coding Agent** — Unity, Unreal, gameplay programming, herramientas internas, código (nunca arte).
+- **Game Development Coding Agent** — código puro de juegos (Unity C#, Unreal C++, plugins, tools, shaders, mods, server-side logic). Sin assets/art. 0-barrier entry.
 - **AI/Data Agent** — datasets, evaluación IA, anotación, modelos.
 - **Freelance Agent** — marketplaces, proyectos, oportunidades remotas.
 - **Learning Agent** — rutas de estudio, preparación laboral, entrenamiento.

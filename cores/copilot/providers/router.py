@@ -3,13 +3,13 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.copilot.providers.devin_provider import DevinProvider
-
-from core.copilot.providers.base import BaseProvider, ProviderResponse
-from core.copilot.providers.fcc_provider import FCCProvider
-from core.copilot.providers.nvidia_provider import NvidiaProvider  # Nuevo proveedor
-from core.copilot.providers.ollama_provider import OllamaProvider
-from core.copilot.providers.opencode_provider import OpenCodeProvider
+from cores.copilot.providers.base import BaseProvider, ProviderResponse
+from cores.copilot.providers.devin_provider import DevinProvider
+from cores.copilot.providers.fcc_provider import FCCProvider
+from cores.copilot.providers.freebuff_provider import FreebuffProvider
+from cores.copilot.providers.nvidia_provider import NvidiaProvider  # Nuevo proveedor
+from cores.copilot.providers.ollama_provider import OllamaProvider
+from cores.copilot.providers.opencode_provider import OpenCodeProvider
 
 logger = logging.getLogger("orion.copilot.providers.router")
 
@@ -22,8 +22,8 @@ TASK_SYSTEM = "system"
 class ProviderRouter:
     """Routes queries to the best available LLM provider based on task type.
 
-    Priority chain (updated with NVIDIA as first-class provider):
-      code -> Devin (free AI agent) -> OpenCode (CLI) -> FCC (Claude via proxy) -> NVIDIA -> Ollama
+    Priority chain (updated with Freebuff and NVIDIA as first-class providers):
+      code -> Devin (free AI agent) -> Freebuff (GitHub agent) -> OpenCode (CLI) -> FCC (Claude via proxy) -> NVIDIA -> Ollama
       reason -> Devin (free AI agent) -> FCC (Claude via proxy) -> NVIDIA -> Ollama
       chat -> Devin (free AI agent) -> Ollama (local, fast) -> NVIDIA -> FCC
       system -> deterministic (internal)
@@ -32,6 +32,7 @@ class ProviderRouter:
     def __init__(self) -> None:
         self._providers: list[BaseProvider] = [
             DevinProvider(),  # Free AI agent with tools
+            FreebuffProvider(),  # GitHub autonomous coding agent (cloud-friendly)
             OpenCodeProvider(),
             FCCProvider(),
             NvidiaProvider(),
@@ -61,8 +62,8 @@ class ProviderRouter:
 
         # Task-specific routing with proper fallback chain
         if task_type == TASK_CODE:
-            # code -> OpenCode -> FCC -> NVIDIA -> Ollama
-            for provider_name in ["opencode", "fcc", "nvidia", "ollama"]:
+            # code -> Freebuff -> OpenCode -> FCC -> NVIDIA -> Ollama
+            for provider_name in ["freebuff", "opencode", "fcc", "nvidia", "ollama"]:
                 if (provider := self.get_provider(provider_name)) and await provider.check():
                     return await provider.chat(messages, **kwargs)
                 logger.warning("%s unavailable, trying next", provider_name)

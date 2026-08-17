@@ -1,2 +1,1 @@
-16ae6b5c9377265d026b476c7fc9afef6c17d4181fe9ea9f69e80f6d8efb086f  /home/adriel/projects/Rastro/ownexinstalador/android/OWNEX-Alpha-release.apk
-1fc144469ab332efe1665219f6a4c9dc00a7be9f3bab301077ba94050d1a4f67  /home/adriel/projects/Rastro/ownexinstalador/windows/OWNEX-Desktop-Alpha-Setup.exe
+e5344bb668d73d143d9f060b7983a788ed4a8e787ae1af7154e770d600f4d17f  /home/adriel/projects/Rastro/ownexinstalador/windows/OWNEX-Desktop-Alpha-Setup.exe

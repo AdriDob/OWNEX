@@ -14,17 +14,17 @@ manifest = ExtensionManifest(
     icon="Web",
     capabilities=[
         Capability(
-            id="web_sensor",
+            domain="web_sensor",
             name="Web Sensor",
             description="Visit URLs and extract page content",
         ),
         Capability(
-            id="web_screenshot",
+            domain="web_screenshot",
             name="Web Screenshot",
             description="Capture screenshots of web pages",
         ),
         Capability(
-            id="web_task_detection",
+            domain="web_task_detection",
             name="Task Detection",
             description="Understand web pages and detect actionable tasks",
         ),
