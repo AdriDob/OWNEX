@@ -6,6 +6,8 @@ Integrated with UnifiedMemoryStore health checks and EventBus status.
 
 from __future__ import annotations
 
+import logging
+
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QGridLayout,
@@ -15,8 +17,11 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from desktop.native.services.mission import get_mission
 from desktop.native.ui.tokens import get_theme
 from desktop.native.ui.views.base import BaseView
+
+logger = logging.getLogger("ownex.native.views.system")
 
 
 class SystemView(BaseView):
@@ -78,10 +83,10 @@ class SystemView(BaseView):
         svc_grid.setVerticalSpacing(6)
 
         services = [
-            ("Event Bus", "running"),
-            ("Scheduler", "stopped"),
-            ("Direct Work", "stopped"),
-            ("Mission Control", "stopped"),
+            ("Backend API", "offline"),
+            ("Scheduler", "n/a"),
+            ("Direct Work", "n/a"),
+            ("Event Bus", "local"),
         ]
         self._svc_labels: dict[str, QLabel] = {}
         for i, (name, status) in enumerate(services):
@@ -97,10 +102,48 @@ class SystemView(BaseView):
         refresh = QPushButton("Refresh Status")
         refresh.setFont(QFont("Inter", 9))
         refresh.setFixedHeight(30)
+        self._refresh_btn = refresh
+        self._refresh_btn.clicked.connect(self.refresh)
         main.addWidget(refresh, 0)
 
         # Aplicar tema
         self.apply_theme()
+
+    # -- Data loading (real data from the mission service) --------------
+    def refresh(self) -> None:
+        mission = getattr(self, "mission", None) or get_mission()
+        try:
+            data = mission.get_dashboard()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("system refresh failed: %s", exc)
+            return
+        counts = data.get("counts", {})
+        self._targets_kpi.setText("Targets: " + str(counts.get("targets", 0)))
+        self._findings_kpi.setText("Findings: " + str(counts.get("findings", 0)))
+        self._ops_kpi.setText("Ops: " + str(counts.get("opps", "n/a")))
+        self._activity_kpi.setText("Activity: " + str(counts.get("activity", 0)))
+        self._set_services(data)
+
+    def _set_services(self, data: dict) -> None:
+        if data.get("source") == "api":
+            ops = str(data.get("counts", {}).get("opps", "n/a"))
+            statuses = {
+                "Backend API": "online",
+                "Scheduler": "running" if ops == "running" else "stopped",
+                "Direct Work": ops,
+                "Event Bus": "online",
+            }
+        else:
+            statuses = {
+                "Backend API": "offline",
+                "Scheduler": "n/a",
+                "Direct Work": "n/a",
+                "Event Bus": "local",
+            }
+        for name, status in statuses.items():
+            lbl = self._svc_labels.get(name)
+            if lbl is not None:
+                lbl.setText(f"{name}: {status}")
 
     # -- Helpers de estilo --
     def apply_theme(self) -> None:
