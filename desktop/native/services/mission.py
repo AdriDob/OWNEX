@@ -71,8 +71,19 @@ class MissionControlData:
         self._direct_work: DirectWorkEngine | None = None
         self._opportunity: Any = None
         self._api: ApiClient | None = api
+        self._db_ready = False
 
     def _ensure_engines(self) -> None:
+        # A desktop-only process never runs the server boot path, so the schema
+        # is not provisioned. Create tables/migrations once, before any query.
+        if not self._db_ready:
+            self._db_ready = True
+            try:
+                from database.db import init_db
+
+                init_db()
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("local DB schema provisioning failed: %s", exc)
         if self._direct_work is None:
             self._direct_work = DirectWorkEngine()
             self._register_adapters(self._direct_work)
@@ -183,6 +194,7 @@ class MissionControlData:
 
     # -- targets ---------------------------------------------------------
     def get_targets(self, limit: int = 10) -> list[dict[str, Any]]:
+        self._ensure_engines()
         if self.remote_mode():
             return self._map_remote_targets(self._api_client().fetch_targets(limit=limit))
 
@@ -224,6 +236,7 @@ class MissionControlData:
 
     # -- findings --------------------------------------------------------
     def get_findings(self, limit: int = 20, status_filter: str | None = None) -> list[dict[str, Any]]:
+        self._ensure_engines()
         if self.remote_mode():
             items = self._map_remote_findings(self._api_client().fetch_findings(limit=limit))
             if status_filter:
@@ -333,6 +346,7 @@ class MissionControlData:
 
     # -- activity/timeline ----------------------------------------------
     def get_activity(self, limit: int = 30) -> list[dict[str, Any]]:
+        self._ensure_engines()
         if self.remote_mode():
             return self._map_remote_activity(self._api_client().fetch_activity(limit=limit))
 
