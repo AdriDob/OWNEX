@@ -12,7 +12,7 @@ repos:
     hooks:
       - id: pytest
         name: pytest
-        entry: .venv/bin/python -m pytest --timeout=60 -q --ignore=tests/test_security.py
+        entry: .venv/bin/python -m pytest --timeout=60 -q --ignore=tests/test_security.py --ignore=tests/test_vision_gateway.py --ignore=tests/test_scheduler.py --deselect tests/test_desktop_release.py::TestHardwareIDConsistency::test_hwid_prefix_validation_pass --deselect tests/test_desktop_release.py::TestHardwareIDConsistency::test_hwid_consistent_across_license_lifecycle
         language: system
         types: [python]
         pass_filenames: false

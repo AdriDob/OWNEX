@@ -319,6 +319,17 @@ def get_security_jobs() -> list[JobDefinition]:
         )
     )
 
+    # Bounty coordinator — manage parallel bounty execution every 15 minutes
+    jobs.append(
+        _discovery_job(
+            job_id="security_bounty_coordinator",
+            app_id="security",
+            handler="cores.agents.bounty_coordinator:run_coordinator_cycle",
+            seconds=900,  # 15 minutes
+            metadata={"cycle": "security", "type": "coordinator"},
+        )
+    )
+
     # Security bounty platform discovery — every 2 hours
     jobs.append(
         _discovery_job(

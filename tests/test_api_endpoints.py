@@ -47,7 +47,10 @@ class TestTargets:
         assert data["total"] >= 0
 
     def test_target_detail(self, client):
-        resp = client.get("/api/targets/1")
+        create = client.post("/api/targets", json={"name": "detail-test", "domain": "detail.example.com"})
+        assert create.status_code == 200
+        tid = create.json()["id"]
+        resp = client.get(f"/api/targets/{tid}")
         assert resp.status_code == 200
         data = resp.json()
         assert "id" in data

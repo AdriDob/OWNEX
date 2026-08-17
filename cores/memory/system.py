@@ -260,8 +260,8 @@ class UnifiedMemoryStore:
             logger.warning("memory set failed for %s:%s", ns, key)
         self._cache[f"{ns}:{key}"] = entry
 
-    def get(self, namespace: MemoryNamespace | str, key: str) -> Any:
-        """Return the stored value (deserialized) or None."""
+    def get(self, namespace: MemoryNamespace | str, key: str, default: Any = None) -> Any:
+        """Return the stored value (deserialized) or default."""
         ns = self._namespace_value(namespace)
         cached = self._cache.get(f"{ns}:{key}")
         if cached is not None and not self._is_expired(cached):
@@ -277,15 +277,69 @@ class UnifiedMemoryStore:
             finally:
                 session.close()
             if record is None or not record.details:
-                return None
+                return default
             entry = MemoryEntry.from_dict(json.loads(record.details))
             if entry is None or self._is_expired(entry):
-                return None
+                return default
             self._deserialize_value(entry)
             self._cache[f"{ns}:{key}"] = entry
             return entry.value
         except Exception:
-            return None
+            return default
+
+    def list(
+        self,
+        namespace: MemoryNamespace | str,
+        tag: str | None = None,
+    ) -> list[MemoryEntry]:
+        """List entries in a namespace, optionally filtered by tag."""
+        ns = self._namespace_value(namespace)
+        results: list[MemoryEntry] = []
+        try:
+            from database.db import SessionLocal
+            from database.models import MemoryRecord
+
+            session = SessionLocal()
+            try:
+                records: list[Any] = session.query(MemoryRecord).filter_by(category=ns).all()
+            finally:
+                session.close()
+            for record in records:
+                if not record.details:
+                    continue
+                entry = MemoryEntry.from_dict(json.loads(record.details))
+                if entry is None or self._is_expired(entry):
+                    continue
+                if tag and tag not in entry.tags:
+                    continue
+                self._deserialize_value(entry)
+                results.append(entry)
+        except Exception:
+            logger.warning("memory list failed for %s", ns)
+            return []
+        return results
+
+    def delete(self, namespace: MemoryNamespace | str, key: str) -> bool:
+        """Delete an entry, returns True if it existed."""
+        ns = self._namespace_value(namespace)
+        self._cache.pop(f"{ns}:{key}", None)
+        try:
+            from database.db import SessionLocal
+            from database.models import MemoryRecord
+
+            session = SessionLocal()
+            try:
+                record: Any = session.query(MemoryRecord).filter_by(category=ns, key=key).first()
+                if record is None:
+                    return False
+                session.delete(record)
+                session.commit()
+                return True
+            finally:
+                session.close()
+        except Exception:
+            logger.warning("memory delete failed for %s:%s", ns, key)
+            return False
 
     def search(
         self,
@@ -381,3 +435,168 @@ class MemoryNamespace(StrEnum):
     RESEARCH = "research"
     EVIDENCE = "evidence"
     SUCCESS_FRAMEWORK = "success_framework"
+    LEARNINGS = "learnings"
+    TOOL_USAGE = "tool_usage"
+    USER_PATTERNS = "user_patterns"
+
+
+# ── LearningEngine ──────────────────────────────────────────────────
+
+
+class LearningEngine:
+    """Learns from user interactions and task outcomes."""
+
+    def __init__(self, memory: UnifiedMemoryStore):
+        self.memory = memory
+
+    def record_preference(self, category: str, preference: dict[str, Any]) -> None:
+        existing = self.memory.get(MemoryNamespace.PREFERENCES, category, {})
+        if isinstance(existing, dict):
+            existing.update(preference)
+        else:
+            existing = preference
+        self.memory.set(MemoryNamespace.PREFERENCES, category, existing, tier=MemoryTier.PERMANENT)
+
+    def get_preference(self, category: str) -> dict[str, Any]:
+        value = self.memory.get(MemoryNamespace.PREFERENCES, category, {})
+        return value if isinstance(value, dict) else {}
+
+    def record_tool_usage(
+        self, tool_name: str, success: bool, duration_ms: float, context: dict[str, Any] | None = None
+    ) -> None:
+        key = f"tool_{tool_name}"
+        stats = self.memory.get(MemoryNamespace.TOOL_USAGE, key, {})
+        if not isinstance(stats, dict):
+            stats = {}
+        stats.setdefault("total_uses", 0)
+        stats.setdefault("successful_uses", 0)
+        stats.setdefault("total_duration_ms", 0.0)
+        stats.setdefault("last_used", None)
+        stats.setdefault("contexts", [])
+        stats["total_uses"] += 1
+        if success:
+            stats["successful_uses"] += 1
+        stats["total_duration_ms"] += duration_ms
+        stats["last_used"] = datetime.now(UTC).isoformat()
+        if context:
+            stats["contexts"].append(context)
+            stats["contexts"] = stats["contexts"][-10:]
+        self.memory.set(MemoryNamespace.TOOL_USAGE, key, stats, tier=MemoryTier.PERMANENT)
+
+    def get_tool_stats(self, tool_name: str) -> dict[str, Any]:
+        stats = self.memory.get(MemoryNamespace.TOOL_USAGE, f"tool_{tool_name}", {})
+        return stats if isinstance(stats, dict) else {}
+
+    def record_task_outcome(
+        self,
+        task_type: str,
+        success: bool,
+        duration_ms: float,
+        tools_used: list[str],
+        learnings: list[str] | None = None,
+    ) -> None:
+        key = f"task_{task_type}"
+        stats = self.memory.get(MemoryNamespace.TASK_OUTCOMES, key, {})
+        if not isinstance(stats, dict):
+            stats = {}
+        stats.setdefault("total", 0)
+        stats.setdefault("successful", 0)
+        stats.setdefault("avg_duration_ms", 0.0)
+        stats.setdefault("tools_frequency", {})
+        stats.setdefault("learnings", [])
+        stats["total"] += 1
+        if success:
+            stats["successful"] += 1
+        stats["avg_duration_ms"] = (stats["avg_duration_ms"] * (stats["total"] - 1) + duration_ms) / stats["total"]
+        for tool in tools_used:
+            stats["tools_frequency"][tool] = stats["tools_frequency"].get(tool, 0) + 1
+        if learnings:
+            stats["learnings"].extend(learnings)
+            stats["learnings"] = stats["learnings"][-20:]
+        self.memory.set(MemoryNamespace.TASK_OUTCOMES, key, stats, tier=MemoryTier.PERMANENT)
+
+    def record_opportunity_evaluation(self, opportunity_id: str, evaluation: dict[str, Any]) -> None:
+        self.memory.set(
+            MemoryNamespace.OPPORTUNITIES,
+            opportunity_id,
+            evaluation,
+            tier=MemoryTier.PERMANENT,
+            tags=["evaluation", "opportunity"],
+        )
+
+    def infer_user_patterns(self) -> dict[str, Any]:
+        patterns: dict[str, Any] = {}
+
+        tool_stats: dict[str, Any] = {}
+        for entry in self.memory.list(MemoryNamespace.TOOL_USAGE):
+            tool_name = entry.key.replace("tool_", "")
+            stats = entry.value if isinstance(entry.value, dict) else {}
+            if stats.get("total_uses", 0) > 0:
+                tool_stats[tool_name] = {
+                    "uses": stats["total_uses"],
+                    "success_rate": stats["successful_uses"] / stats["total_uses"],
+                    "avg_duration_ms": stats["total_duration_ms"] / stats["total_uses"],
+                }
+        patterns["tool_preferences"] = tool_stats
+
+        task_stats: dict[str, Any] = {}
+        for entry in self.memory.list(MemoryNamespace.TASK_OUTCOMES):
+            task_type = entry.key.replace("task_", "")
+            stats = entry.value if isinstance(entry.value, dict) else {}
+            if stats.get("total", 0) > 0:
+                task_stats[task_type] = {
+                    "total": stats["total"],
+                    "success_rate": stats["successful"] / stats["total"],
+                    "avg_duration_ms": stats["avg_duration_ms"],
+                    "preferred_tools": sorted(
+                        stats.get("tools_frequency", {}).items(), key=lambda x: x[1], reverse=True
+                    )[:3],
+                }
+        patterns["task_patterns"] = task_stats
+
+        return patterns
+
+
+_learning_engine: LearningEngine | None = None
+
+
+def get_learning_engine() -> LearningEngine:
+    global _learning_engine
+    if _learning_engine is None:
+        _learning_engine = LearningEngine(get_memory_store())
+    return _learning_engine
+
+
+# Convenience functions
+def remember(namespace: str, key: str, value: Any, **kwargs: Any) -> None:
+    get_memory_store().set(namespace, key, value, **kwargs)
+
+
+def recall(namespace: str, key: str, default: Any = None) -> Any:
+    return get_memory_store().get(namespace, key, default)
+
+
+def forget(namespace: str, key: str) -> bool:
+    return get_memory_store().delete(namespace, key)
+
+
+def learn_preference(category: str, preference: dict[str, Any]) -> None:
+    get_learning_engine().record_preference(category, preference)
+
+
+def get_preference(category: str) -> dict[str, Any]:
+    return get_learning_engine().get_preference(category)
+
+
+def learn_tool_usage(tool: str, success: bool, duration_ms: float, context: dict | None = None) -> None:
+    get_learning_engine().record_tool_usage(tool, success, duration_ms, context)
+
+
+def learn_task_outcome(
+    task_type: str, success: bool, duration_ms: float, tools_used: list[str], learnings: list[str] | None = None
+) -> None:
+    get_learning_engine().record_task_outcome(task_type, success, duration_ms, tools_used, learnings)
+
+
+def get_user_patterns() -> dict[str, Any]:
+    return get_learning_engine().infer_user_patterns()

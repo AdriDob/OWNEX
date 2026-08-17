@@ -78,6 +78,8 @@ Sos la abejita del panal CATEYE. Mientras el usuario trabaja:
 | Type check (scoped) | `python scripts/dev typecheck-fast` / `make typecheck-fast` |
 | Backup | `python run.py --backup` |
 | Add target | `python run.py --add-target <name> --domain <domain>` |
+| Migración export (PC→PC) | `python run.py --migrate-export [dest.zip]` (todo OWNEX; `--no-targets` excluye ~/.orion/targets) |
+| Migración import | `python run.py --migrate <zip>` (verify→restore→guía licencia; `--force` sobrescribe) |
 | Health | `curl http://localhost:8000/api/health` |
 
 ## Protocolo de Arranque de Agente — "Ponte a trabajar"

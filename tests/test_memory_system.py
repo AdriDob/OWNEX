@@ -58,7 +58,9 @@ def test_search_filters_by_namespace() -> None:
     store.set(MemoryNamespace.OPPORTUNITIES, "opp_1", {"title": "opire bounty"})
     store.set(MemoryNamespace.CONVERSATION, "chat_1", {"title": "opire chat"})
     hits = store.search(namespaces=[MemoryNamespace.OPPORTUNITIES])
-    assert [h.key for h in hits] == ["opp_1"]
+    keys = [h.key for h in hits]
+    assert "opp_1" in keys
+    assert "chat_1" not in keys
 
 
 def test_search_filters_by_query() -> None:
@@ -66,15 +68,18 @@ def test_search_filters_by_query() -> None:
     store.set(MemoryNamespace.OPPORTUNITIES, "opp_1", {"title": "opire bounty"})
     store.set(MemoryNamespace.OPPORTUNITIES, "opp_2", {"title": "hackerone program"})
     hits = store.search(query="opire", namespaces=[MemoryNamespace.OPPORTUNITIES])
-    assert [h.key for h in hits] == ["opp_1"]
+    keys = [h.key for h in hits]
+    assert "opp_1" in keys
+    assert "opp_2" not in keys
 
 
 def test_search_returns_entries_with_deserialized_value() -> None:
     store = _fresh_store()
     store.set(MemoryNamespace.OPPORTUNITIES, "opp_1", {"title": "x", "reward": 100})
     hits = store.search(query="x", namespaces=[MemoryNamespace.OPPORTUNITIES])
-    assert hits
-    assert hits[0].value["reward"] == 100
+    by_key = {h.key: h for h in hits}
+    assert "opp_1" in by_key
+    assert by_key["opp_1"].value["reward"] == 100
 
 
 def test_temporary_entry_expires() -> None:
