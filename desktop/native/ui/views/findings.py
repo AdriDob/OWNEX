@@ -9,6 +9,8 @@ Displays discovered findings/vulnerabilities with:
 
 from __future__ import annotations
 
+import logging
+
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QFrame,
@@ -16,12 +18,16 @@ from PySide6.QtWidgets import (
     QHeaderView,
     QPushButton,
     QTableWidget,
+    QTableWidgetItem,
     QVBoxLayout,
     QWidget,
 )
 
+from desktop.native.services.mission import get_mission
 from desktop.native.ui.tokens import get_theme
 from desktop.native.ui.views.base import BaseView
+
+logger = logging.getLogger("ownex.native.views.findings")
 
 
 class FindingsView(BaseView):
@@ -43,7 +49,7 @@ class FindingsView(BaseView):
 
         # --- Tabla de findings ---
         self._table = QTableWidget(0, 5)
-        self._table.setHorizontalHeaderLabels(["ID", "Type", "Severity", "Description", "Target"])
+        self._table.setHorizontalHeaderLabels(["ID", "Title", "Severity", "Status", "Target"])
         self._table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self._table.setSelectionBehavior(QTableWidget.SelectRows)
         self._table.setAlternatingRowColors(True)
@@ -60,16 +66,39 @@ class FindingsView(BaseView):
         promote_btn = QPushButton("Promote to Report")
         promote_btn.setFont(QFont("Inter", 9))
 
+        refresh_btn = QPushButton("Refresh")
+        refresh_btn.setFont(QFont("Inter", 9))
+
         export_btn = QPushButton("Export")
         export_btn.setFont(QFont("Inter", 9))
 
+        self._refresh_btn = refresh_btn
+        self._refresh_btn.clicked.connect(self.refresh)
+
         al.addWidget(promote_btn)
+        al.addWidget(refresh_btn)
         al.addStretch()
         al.addWidget(export_btn)
         main.addWidget(actions, 0)
 
         # Aplicar tema
         self.apply_theme()
+
+    # -- Data loading (real data from the mission service) --------------
+    def refresh(self) -> None:
+        mission = getattr(self, "mission", None) or get_mission()
+        try:
+            findings = mission.get_findings()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("findings refresh failed: %s", exc)
+            findings = []
+        self._table.setRowCount(len(findings))
+        for row, f in enumerate(findings):
+            self._table.setItem(row, 0, QTableWidgetItem(str(f.get("id", ""))))
+            self._table.setItem(row, 1, QTableWidgetItem(str(f.get("title", ""))))
+            self._table.setItem(row, 2, QTableWidgetItem(str(f.get("severity", "info"))))
+            self._table.setItem(row, 3, QTableWidgetItem(str(f.get("status", "new"))))
+            self._table.setItem(row, 4, QTableWidgetItem(str(f.get("target_id", ""))))
 
     # -- Helpers de estilo --
     def apply_theme(self) -> None:

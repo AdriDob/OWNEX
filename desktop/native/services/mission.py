@@ -20,11 +20,26 @@ from cores.direct_work_engine.engine import DirectWorkEngine
 from cores.opportunity import get_engine as get_opportunity_engine
 from cores.system.hhd_tracker import get_hhd_summary
 
+from .api_client import ApiClient
 from .base import AsyncResult, ServiceError, service_call
 
 logger = logging.getLogger("ownex.native.services.mission")
 
 T = TypeVar("T")
+
+
+def _endpoint_count(target: dict) -> int:
+    """Resolve endpoint count from API field (int) or embedded list."""
+    ep = target.get("endpoint_count")
+    if ep is None:
+        eps = target.get("endpoints")
+        if isinstance(eps, (list, tuple)):
+            return len(eps)
+        ep = eps or 0
+    try:
+        return int(ep)
+    except (TypeError, ValueError):
+        return 0
 
 
 def _iso(dt: datetime | str | float | None) -> str | None:
@@ -52,9 +67,10 @@ def _run_async(result: AsyncResult, ok_fn: Any) -> Any:
 class MissionControlData:
     """Single in-process source for Mission Control views."""
 
-    def __init__(self) -> None:
+    def __init__(self, api: ApiClient | None = None) -> None:
         self._direct_work: DirectWorkEngine | None = None
         self._opportunity: Any = None
+        self._api: ApiClient | None = api
 
     def _ensure_engines(self) -> None:
         if self._direct_work is None:
@@ -73,6 +89,77 @@ class MissionControlData:
                     engine.register_adapter(adapter)
         except Exception as exc:
             logger.warning("Could not register discovery adapters: %s", exc)
+
+    # -- backend API bridge (source of truth) ----------------------------
+    def _api_client(self) -> ApiClient:
+        if self._api is None:
+            self._api = ApiClient()
+        return self._api
+
+    def remote_mode(self) -> bool:
+        """True when the backend API is reachable (source of truth online)."""
+        try:
+            return self._api_client().connected()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("remote mode check failed: %s", exc)
+            return False
+
+    @staticmethod
+    def _map_remote_targets(items: list[dict]) -> list[dict[str, Any]]:
+        out = []
+        for t in items or []:
+            if not isinstance(t, dict):
+                continue
+            out.append(
+                {
+                    "id": t.get("id"),
+                    "name": t.get("name", ""),
+                    "domain": t.get("domain", ""),
+                    "endpoint_count": _endpoint_count(t),
+                    "roi_score": round(float(t.get("roi_score") or 0), 2),
+                    "active": bool(t.get("active", True)),
+                }
+            )
+        return out
+
+    @staticmethod
+    def _map_remote_findings(items: list[dict]) -> list[dict[str, Any]]:
+        out = []
+        for f in items or []:
+            if not isinstance(f, dict):
+                continue
+            out.append(
+                {
+                    "id": f.get("id"),
+                    "title": f.get("title") or f.get("description") or "",
+                    "severity": f.get("severity", "info"),
+                    "status": f.get("status", "new"),
+                    "target_id": f.get("target_id"),
+                    "created_at": _iso(f.get("created_at")),
+                    "updated_at": _iso(f.get("updated_at")),
+                    "cvss": f.get("cvss_score"),
+                    "cwe": f.get("cwe"),
+                }
+            )
+        return out
+
+    @staticmethod
+    def _map_remote_activity(events: list[dict]) -> list[dict[str, Any]]:
+        out = []
+        for e in events or []:
+            if not isinstance(e, dict):
+                continue
+            out.append(
+                {
+                    "id": e.get("id"),
+                    "event_type": e.get("event_type") or e.get("type") or "",
+                    "severity": e.get("severity", "info"),
+                    "title": e.get("title") or e.get("event_type") or "",
+                    "detail": e.get("detail", e.get("data", {})),
+                    "timestamp": _iso(e.get("timestamp")),
+                }
+            )
+        return out
 
     # -- status / health -------------------------------------------------
     def get_status(self) -> dict[str, Any]:
@@ -96,6 +183,9 @@ class MissionControlData:
 
     # -- targets ---------------------------------------------------------
     def get_targets(self, limit: int = 10) -> list[dict[str, Any]]:
+        if self.remote_mode():
+            return self._map_remote_targets(self._api_client().fetch_targets(limit=limit))
+
         def _work() -> list[dict[str, Any]]:
             from cores.engine.unified_scoring import score_target
             from database import db, models
@@ -134,6 +224,12 @@ class MissionControlData:
 
     # -- findings --------------------------------------------------------
     def get_findings(self, limit: int = 20, status_filter: str | None = None) -> list[dict[str, Any]]:
+        if self.remote_mode():
+            items = self._map_remote_findings(self._api_client().fetch_findings(limit=limit))
+            if status_filter:
+                items = [f for f in items if f.get("status") == status_filter]
+            return items
+
         def _work() -> list[dict[str, Any]]:
             from database import db, models
 
@@ -152,9 +248,9 @@ class MissionControlData:
                             "status": f.status,
                             "target_id": f.target_id,
                             "created_at": _iso(f.created_at),  # type: ignore[arg-type]
-                            "updated_at": _iso(f.updated_at),  # type: ignore[arg-type]
-                            "cvss": f.cvss_score,
-                            "cwe": f.cwe,
+                            "updated_at": _iso(getattr(f, "updated_at", None)),  # type: ignore[arg-type]
+                            "cvss": getattr(f, "cvss_score", None),
+                            "cwe": getattr(f, "cwe", None),
                         }
                     )
                 return findings
@@ -237,6 +333,9 @@ class MissionControlData:
 
     # -- activity/timeline ----------------------------------------------
     def get_activity(self, limit: int = 30) -> list[dict[str, Any]]:
+        if self.remote_mode():
+            return self._map_remote_activity(self._api_client().fetch_activity(limit=limit))
+
         def _work() -> list[dict[str, Any]]:
             from cores.events.event_bus import get_event_bus
 
@@ -277,28 +376,76 @@ class MissionControlData:
 
     # -- consolidated dashboard -----------------------------------------
     def get_dashboard(self) -> dict[str, Any]:
+        """Consolidated dashboard: remote API when online, local engines otherwise."""
+        if self.remote_mode():
+            try:
+                dash = self._dashboard_remote()
+                if dash is not None:
+                    return dash
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("remote dashboard failed, falling back to local: %s", exc)
+        return self._dashboard_local()
+
+    def _dashboard_remote(self) -> dict[str, Any]:
+        api = self._api_client()
+        targets = self._map_remote_targets(api.fetch_targets())
+        findings = self._map_remote_findings(api.fetch_findings())
+        activity = self._map_remote_activity(api.fetch_activity())
+        dw = api.fetch_direct_work_status()
+        ops = "n/a"
+        if isinstance(dw, dict):
+            ops = "running" if dw.get("running") else "stopped"
+        return {
+            "generated_at": datetime.now(UTC).isoformat(),
+            "source": "api",
+            "status": {"running": ops == "running", "engine_running": ops == "running", "source": "api"},
+            "targets": targets,
+            "findings": findings,
+            "opportunities": [],
+            "workbank": {},
+            "activity": activity,
+            "hhd": {},
+            "counts": {
+                "targets": len(targets),
+                "findings": len(findings),
+                "confirmed": 0,
+                "opps": ops,
+                "activity": len(activity),
+                "ready_to_deliver": 0,
+            },
+        }
+
+    def _dashboard_local(self) -> dict[str, Any]:
         def _work() -> dict[str, Any]:
             status = self.get_status()
             targets = self.get_targets()
             findings = self.get_findings()
-            opps = self.get_opportunities()
             workbank = self.get_workbank()
             activity = self.get_activity()
+            from database import db, models
+
+            session = db.SessionLocal()
+            try:
+                n_targets = session.query(models.Target).count()
+                n_findings = session.query(models.Finding).count()
+            finally:
+                session.close()
             summary = status.get("stats", {})
             return {
                 "generated_at": datetime.now(UTC).isoformat(),
+                "source": "local",
                 "status": status,
                 "targets": targets,
                 "findings": findings,
-                "opportunities": opps,
+                "opportunities": [],
                 "workbank": workbank,
                 "activity": activity,
                 "hhd": get_hhd_summary(),
                 "counts": {
-                    "targets": len(targets),
-                    "findings": summary.get("total_opportunities_seen", 0),
+                    "targets": n_targets,
+                    "findings": n_findings,
                     "confirmed": summary.get("cycles_completed", 0),
-                    "opps": len(opps),
+                    "opps": "n/a",
                     "ready_to_deliver": workbank.get("ready_to_deliver", 0)
                     if isinstance(workbank.get("ready_to_deliver"), int)
                     else len(workbank.get("ready_to_deliver", [])),
