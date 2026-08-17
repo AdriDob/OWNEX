@@ -326,3 +326,98 @@ def test_nav_triggers_view_refresh(qapp, monkeypatch):
     win._on_nav_clicked("findings")  # noqa: SLF001
     assert len(calls) == 2
     win.close()
+
+
+def test_mainwindow_auto_refresh_timer(qapp, monkeypatch):
+    from PySide6.QtWidgets import QWidget
+
+    from desktop.native.ui.main_window import MainWindow
+
+    monkeypatch.setattr("desktop.native.ui.main_window.load_view", lambda section: QWidget())
+    win = MainWindow()
+    assert win._auto_refresh is not None  # noqa: SLF001
+    assert win._auto_refresh.isActive()
+    assert win._auto_refresh.interval() == 10000
+    win.close()
+
+
+def test_mainwindow_auto_refresh_refreshes_active_view(qapp, monkeypatch):
+    from PySide6.QtWidgets import QWidget
+
+    from desktop.native.ui.main_window import MainWindow
+
+    calls: list[str] = []
+
+    class _FakeView(QWidget):
+        def refresh(self):
+            calls.append("refresh")
+
+    monkeypatch.setattr("desktop.native.ui.main_window.load_view", lambda section: _FakeView())
+    win = MainWindow()
+    win._refresh_active_view()  # noqa: SLF001
+    assert calls, "auto-refresh must refresh the active view"
+    win.close()
+
+
+# ── Backend bootstrap (in-process sidecar) ────────────────────────────
+
+
+def test_backend_alive_false_when_unreachable():
+    from desktop.native.services import backend
+
+    assert backend.backend_alive("http://127.0.0.1:1") is False
+
+
+def test_backend_alive_true_with_server():
+    import http.server
+    import socket
+    import threading
+
+    from desktop.native.services import backend
+
+    class _Handler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):  # noqa: N802
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b'{"status":"ok"}')
+
+        def log_message(self, format, *args):  # noqa: ARG002
+            pass
+
+    sock = socket.socket()
+    sock.bind(("127.0.0.1", 0))
+    port = sock.getsockname()[1]
+    sock.close()
+    server = http.server.HTTPServer(("127.0.0.1", port), _Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        assert backend.backend_alive(f"http://127.0.0.1:{port}") is True
+    finally:
+        server.shutdown()
+
+
+def test_ensure_backend_running_skips_when_alive(monkeypatch):
+    from desktop.native.services import backend
+
+    monkeypatch.setattr(backend, "backend_alive", lambda base_url="": True)
+    monkeypatch.setattr(backend, "_start_server_thread", lambda: pytest.fail("must not start a thread"))
+    assert backend.ensure_backend_running() is True
+
+
+def test_ensure_backend_running_starts_thread(monkeypatch):
+    import threading
+
+    from desktop.native.services import backend
+
+    monkeypatch.setattr(backend, "backend_alive", lambda base_url="": False)
+    started: list[str] = []
+
+    def _fake_start():
+        thread = threading.Thread(target=lambda: started.append("serve"), daemon=True)
+        thread.start()
+        return thread
+
+    monkeypatch.setattr(backend, "_start_server_thread", _fake_start)
+    monkeypatch.setattr(backend, "_wait_alive", lambda base_url, timeout: False)
+    assert backend.ensure_backend_running() is False
+    assert started == ["serve"]
