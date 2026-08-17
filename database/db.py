@@ -16,6 +16,26 @@ _engine_args: dict = {}
 if IS_SQLITE:
     _engine_args["connect_args"] = {"check_same_thread": False, "timeout": 5}
 
+
+def _ensure_db_dir() -> None:
+    """Create the SQLite parent directory before the engine opens the file.
+
+    Required for frozen desktop bundles, where a fresh install has no
+    ``database/`` directory next to the executable. Without this, any
+    import-time ``SessionLocal()`` fails with "unable to open database file".
+    """
+    if not IS_SQLITE:
+        return
+    match = re.match(r"sqlite:///(.+)", DATABASE_URL)
+    if match:
+        db_path = Path(match.group(1))
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+
+
+_ensure_db_dir()
+
+logger = __import__("logging").getLogger("ownex.db")
+
 engine = create_engine(DATABASE_URL, **_engine_args)
 
 if IS_SQLITE:
@@ -42,18 +62,6 @@ Base = declarative_base()
 # to avoid circular imports (each module imports Base/SessionLocal above).
 import cores.knowledge.store  # noqa: F401
 from database import models as _db_models  # noqa: F401 — registers User, MemoryRecord, etc.
-
-
-def _ensure_db_dir() -> None:
-    if not IS_SQLITE:
-        return
-    match = re.match(r"sqlite:///(.+)", DATABASE_URL)
-    if match:
-        db_path = Path(match.group(1))
-        db_path.parent.mkdir(parents=True, exist_ok=True)
-
-
-logger = __import__("logging").getLogger("ownex.db")
 
 
 def _get_existing_columns(session, table_name: str) -> set[str]:
