@@ -19,6 +19,8 @@ from pathlib import Path
 
 import httpx
 
+from database.db import user_data_dir
+
 logger = logging.getLogger("ownex.native.api")
 
 DEFAULT_BASE_URL = "http://127.0.0.1:8000"
@@ -32,7 +34,8 @@ class ApiClient:
 
     def __init__(self, base_url: str = DEFAULT_BASE_URL, data_dir: Path | None = None) -> None:
         self._base_url = base_url.rstrip("/")
-        self._data_dir = data_dir if data_dir is not None else Path("data")
+        # Device identity persists in the user data dir (survives upgrades).
+        self._data_dir = data_dir if data_dir is not None else user_data_dir()
         self._device_id: str | None = None
         self._token: str | None = None
         self._refresh_token: str | None = None

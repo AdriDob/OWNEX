@@ -1,6 +1,7 @@
 import contextlib
 import os
 import re
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -9,7 +10,27 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./database/catseye.db")
+
+def user_data_dir() -> Path:
+    """User-writable data directory (per-user, survives app upgrades).
+
+    Frozen desktop bundles write to %APPDATA%/OWNEX (Windows) or
+    ~/.config/OWNEX (POSIX) so that user data survives reinstalls of the
+    executable. Dev mode keeps the historical repo-relative ``data`` dir.
+    """
+    if getattr(sys, "frozen", False):
+        base = os.getenv("APPDATA") or os.getenv("XDG_CONFIG_HOME") or str(Path.home() / ".config")
+        return Path(base) / "OWNEX"
+    return Path("data")
+
+
+def _default_db_url() -> str:
+    if getattr(sys, "frozen", False):
+        return "sqlite:///" + str((user_data_dir() / "database" / "catseye.db").resolve())
+    return "sqlite:///./database/catseye.db"
+
+
+DATABASE_URL = os.getenv("DATABASE_URL", _default_db_url())
 IS_SQLITE = DATABASE_URL.startswith("sqlite")
 
 _engine_args: dict = {}

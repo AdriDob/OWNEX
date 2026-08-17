@@ -362,6 +362,102 @@ def test_mainwindow_auto_refresh_refreshes_active_view(qapp, monkeypatch):
 # ── Backend bootstrap (in-process sidecar) ────────────────────────────
 
 
+def test_local_engines_initialize_db_schema(monkeypatch):
+    """Desktop-only processes must provision the DB schema exactly once.
+
+    Regression for the `Ops: error` root cause: MissionControlData never ran
+    init_db() (only the server boot does), so local queries on a fresh
+    database failed with 'no such table' and the dashboard degraded to error.
+    """
+    calls: list[str] = []
+
+    def _fake_init_db() -> None:
+        calls.append("init")
+
+    monkeypatch.setattr("database.db.init_db", _fake_init_db)
+    mission = MissionControlData(api=_FakeApi(connected=False))  # type: ignore[arg-type]
+    mission.get_targets()  # first local query triggers schema init
+    mission.get_findings()  # subsequent local queries must not re-init
+    assert calls == ["init"], "schema must be initialized exactly once per instance"
+
+
+def test_mission_view_empty_state_row(qapp):
+    from desktop.native.ui.views.mission import MissionControlView
+
+    mission = _FakeMission(
+        {
+            "source": "local",
+            "counts": {"targets": 0, "findings": 0, "opps": "n/a", "activity": 0},
+            "targets": [],
+        }
+    )
+    view = MissionControlView(mission=mission)  # type: ignore[arg-type]
+    view.refresh()
+    assert view._table.rowCount() == 1  # noqa: SLF001
+    assert "No targets configured yet" in view._table.item(0, 0).text()  # noqa: SLF001
+
+
+def test_findings_view_empty_state_row(qapp):
+    from desktop.native.ui.views.findings import FindingsView
+
+    class _M:
+        def get_findings(self):
+            return []
+
+    view = FindingsView()
+    view._mission = _M()  # type: ignore[assignment]  # noqa: SLF001
+    view.refresh()
+    assert view._table.rowCount() == 1  # noqa: SLF001
+    assert "No findings yet" in view._table.item(0, 0).text()  # noqa: SLF001
+
+
+def test_surface_view_empty_state_and_add_target(qapp, monkeypatch):
+    from desktop.native.ui.views.surface import SurfaceView
+
+    class _M:
+        def get_targets(self):
+            return []
+
+    created: list[tuple[str, str | None]] = []
+
+    def _fake_create(name: str, domain: str | None):
+        created.append((name, domain))
+        return {"id": 1, "name": name, "domain": domain, "duplicate": False}
+
+    monkeypatch.setattr("api.services.data_service.create_target", _fake_create)
+    inputs = iter([("new-target.example.com", True), ("example.com", True)])
+    monkeypatch.setattr("desktop.native.ui.views.surface.QInputDialog.getText", lambda *a: next(inputs))
+    view = SurfaceView()
+    view._mission = _M()  # type: ignore[assignment]  # noqa: SLF001
+    view.refresh()
+    assert view._table.rowCount() == 1  # noqa: SLF001
+    assert "No targets configured yet" in view._table.item(0, 0).text()  # noqa: SLF001
+    view._add_target()  # noqa: SLF001
+    assert created == [("new-target.example.com", "example.com")]
+
+
+def test_surface_view_add_target_duplicate_notice(qapp, monkeypatch):
+    from desktop.native.ui.views.surface import SurfaceView
+
+    class _M:
+        def get_targets(self):
+            return []
+
+    monkeypatch.setattr(
+        "api.services.data_service.create_target",
+        lambda name, domain=None: {"id": 7, "name": name, "domain": domain, "duplicate": True},
+    )
+    monkeypatch.setattr("desktop.native.ui.views.surface.QInputDialog.getText", lambda *a: ("dup.example.com", True))
+    notices: list[str] = []
+    monkeypatch.setattr(
+        "desktop.native.ui.views.surface.QMessageBox.information", lambda *a, **k: notices.append(str(a[2]))
+    )
+    view = SurfaceView()
+    view._mission = _M()  # type: ignore[assignment]  # noqa: SLF001
+    view._add_target()  # noqa: SLF001
+    assert notices and "already exists" in notices[0]
+
+
 def test_backend_alive_false_when_unreachable():
     from desktop.native.services import backend
 
