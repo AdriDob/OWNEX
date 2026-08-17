@@ -2410,6 +2410,52 @@
     }
    ]
   },
+  "FASE_38": {
+   "name": "OWNEX FULL MIGRATION — export/verify/import PC-a-PC de todos los datos (--migrate-export / --migrate)",
+   "completed": "2026-08-16",
+   "description": "Migración completa de OWNEX a una PC nueva en una sola operación. core/backup/migrate.py: export_migration() empaqueta 6 secciones (orion/ → ~/.orion con identity_vault.key+license.json+config.sh+database+targets; ownex/ → ~/.ownex; config_ownex/ → ~/.config/ownex; repo_database/ → <repo>/database; repo_data/ → <repo>/data; env/.env) en un zip con manifest.json (tool/version/created_at/source_hostname/source_hwid/sections/total_files/total_size/files[{path,size,sha256}]) + README_MIGRATION.txt. verify_migration() valida schema + sha256 por archivo y rechaza formatos legacy ('use --restore'). import_migration() restaura con destinos inyectables y guard de seguridad (destino no vacío exige force=True). Exclusiones: backups/, logs/, vision_cache/, __pycache__, node_modules, .git, .venv, venv, *.pyc, *-wal/-shm (tras WAL checkpoint TRUNCATE), *.pid/*.lock/*.log, *.tar.gz/*.zip legacy y dotfiles. Clave de IdentityVault: nunca se reemplaza en silencio — el key existente pasa a identity_vault.key.bak antes de restaurar. run.py: --migrate-export [dest] (dest por defecto ~/.ownex/backups/OWNEX_MIGRATE_<ts>.zip, --no-targets excluye ~/.orion/targets) y --migrate <zip> (flujo 1/4 verify → 2/4 restore → 3/4 _print_verify → 4/4 guía de licencia por HWID + checklist, --force para sobrescribir dirs con datos).",
+   "features": [
+    {
+     "id": "migration_module",
+     "name": "core/backup/migrate.py — export_migration/verify_migration/import_migration con manifest sha256, WAL checkpoint, guard force, destinos inyectables (tests aislados del home real)",
+     "status": "production_ready",
+     "files": [
+      "core/backup/migrate.py"
+     ],
+     "tests": [
+      "tests/test_migrate.py"
+     ],
+     "verified": "Smoke real: export 7762 files / 766 MB → zip 42.67 MB con verify status ok y 0 checksum_errors; 11/11 tests"
+    },
+    {
+     "id": "migration_cli",
+     "name": "run.py — --migrate-export [dest] / --migrate <zip> / --no-targets / --force",
+     "status": "production_ready",
+     "files": [
+      "run.py"
+     ],
+     "tests": [
+      "tests/test_migrate.py::test_export_default_dest_inside_ownex_backups"
+     ],
+     "verified": "Flujo 4 pasos con verificación integrada y guía de licencia (HWID source vs current, CATEYE_PORTABLE=1)"
+    },
+    {
+     "id": "suite_unblock_db_init_db",
+     "name": "Desbloqueo de la suite pytest — database/db.py del working tree (modificación sin commitear) había eliminado init_db, rompiendo la colección de TODOS los tests (conftest autouse → cores/targets/hunter); el cambio se rescató en stash (git stash list) y se restauró HEAD con init_db()",
+     "status": "production_ready",
+     "files": [
+      "database/db.py",
+      "tests/conftest.py",
+      "cores/targets/hunter.py"
+     ],
+     "tests": [
+      "tests/test_migrate.py",
+      "tests/test_hardening_db_guards.py"
+     ],
+     "verified": "make test-fast 100 passed / 1 skipped (antes: errores de colección en TODA la suite); stash@{0} conserva el experimento"
+    }
+   ]
+  },
   "FASE_37": {
    "name": "Production Hardening DB — test DB isolation + stale scan recovery + scraper source health + target dedupe guards (FASES A/B/C/E)",
    "completed": "2026-08-15",

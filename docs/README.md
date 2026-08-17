@@ -56,6 +56,7 @@ See [Architecture Diagrams](../assets/diagrams/) for visual system architecture:
 - [Development](development/) — Development workflows and practices
 - [Plugin SDK](PLUGIN_SDK.md) — Extension development
 - [Project](project/) — Project-specific documentation
+- [Apuntes de Programación](APUNTES_PROGRAMACION.md) — Errores con causa raíz, gotchas por stack, patrones y comandos aprendidos desarrollando OWNEX
 
 ### API Reference
 - [API Reference](API_REFERENCE.md) — Complete REST API documentation

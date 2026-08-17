@@ -39,24 +39,29 @@ class SettingsField:
 
 class TextField(SettingsField):
     def __init__(self, key: str, label: str, **kwargs: Any) -> None:
-        super().__init__(key=key, label=label, field_type="text", **kwargs)
+        _default = kwargs.pop("default") if "default" in kwargs else None
+        super().__init__(key=key, label=label, field_type="text", default=_default, **kwargs)
 
 
 class ApiKeyField(SettingsField):
     def __init__(self, key: str, label: str, **kwargs: Any) -> None:
-        super().__init__(key=key, label=label, field_type="password", **kwargs)
+        _default = kwargs.pop("default") if "default" in kwargs else None
+        super().__init__(key=key, label=label, field_type="password", default=_default, **kwargs)
 
 
 class SwitchField(SettingsField):
     def __init__(self, key: str, label: str, **kwargs: Any) -> None:
-        super().__init__(key=key, label=label, field_type="switch", default=False, **kwargs)
+        _default = kwargs.pop("default") if "default" in kwargs else False
+        super().__init__(key=key, label=label, field_type="switch", default=_default, **kwargs)
 
 
 class NumberField(SettingsField):
     def __init__(self, key: str, label: str, **kwargs: Any) -> None:
-        super().__init__(key=key, label=label, field_type="number", default=0, **kwargs)
+        _default = kwargs.pop("default") if "default" in kwargs else 0
+        super().__init__(key=key, label=label, field_type="number", default=_default, **kwargs)
 
 
 class SelectField(SettingsField):
     def __init__(self, key: str, label: str, options: list[str], **kwargs: Any) -> None:
-        super().__init__(key=key, label=label, field_type="select", options=options, **kwargs)
+        _default = kwargs.pop("default") if "default" in kwargs else None
+        super().__init__(key=key, label=label, field_type="select", options=options, default=_default, **kwargs)

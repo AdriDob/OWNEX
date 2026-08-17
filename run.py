@@ -709,56 +709,104 @@ def _handle_daemon(args: list[str]) -> None:
 # ── Entry point ────────────────────────────────────────────────────────
 
 
-def _check_migrate(args_list: list[str]) -> bool:
-    """Restore a backup on a new machine and verify integrity."""
-    idx = args_list.index("--migrate")
-    if idx + 1 >= len(args_list) or args_list[idx + 1].startswith("--"):
-        print("❌ Usage: --migrate <backup_file.zip>")
+def _check_migrate_export(args_list: list[str]) -> bool:
+    """Export ALL OWNEX data to a single migration archive for a new PC."""
+    print("\n📦 OWNEX Full Migration Export")
+    print("   Capturing: ~/.orion, ~/.ownex, ~/.config/ownex, database/, data/, .env")
+
+    from core.backup.migrate import export_migration
+
+    args_set = set(args_list)
+    dest = None
+    idx = args_list.index("--migrate-export")
+    if idx + 1 < len(args_list) and not args_list[idx + 1].startswith("--"):
+        dest = args_list[idx + 1]
+    include_targets = "--no-targets" not in args_set
+
+    result = export_migration(dest, include_targets=include_targets)
+    if result.get("status") != "ok":
+        print(f"   ❌ Export failed: {result.get('reason')}")
         return True
 
-    backup_file = args_list[idx + 1]
-    print("\n🔁 ORION Migration Tool")
-    print(f"   Restoring from: {backup_file}")
+    print(f"   ✅ Archive: {result['archive_path']}")
+    print(f"   Files: {result['total_files']} | Source: {result['total_size_mb']} MB | Zip: {result['size_mb']} MB")
+    for section, meta in result.get("sections", {}).items():
+        print(f"      {section:<14} {meta['files']:>6} files  {meta['size'] / 1024 / 1024:>9.2f} MB")
+    if not include_targets:
+        print("   (targets/ excluido por --no-targets)")
+    print("\n   En la PC nueva: copiá el zip y corré:")
+    print("      python run.py --migrate <archivo.zip>")
+    return True
 
-    from core.backup.engine import restore_backup, verify_backup
 
-    # 1. Verify backup integrity
-    print("\n1/4 Verifying backup integrity...")
-    verification = verify_backup(backup_file)
+def _check_migrate(args_list: list[str]) -> bool:
+    """Restore a full OWNEX migration archive on a new machine."""
+    idx = args_list.index("--migrate")
+    if idx + 1 >= len(args_list) or args_list[idx + 1].startswith("--"):
+        print("❌ Usage: --migrate <migration_file.zip>")
+        return True
+
+    archive = args_list[idx + 1]
+    force = "--force" in set(args_list)
+    print("\n🔁 OWNEX Migration Tool")
+    print(f"   Restoring from: {archive}")
+    if force:
+        print("   (--force: sobrescribirá datos existentes)")
+
+    from core.backup.migrate import import_migration, verify_migration
+
+    # 1. Verify archive integrity (manifest + sha256 per file)
+    print("\n1/4 Verifying archive integrity...")
+    verification = verify_migration(archive)
     if verification.get("status") == "error":
         print(f"   ❌ {verification.get('reason')}")
         print("   Migration aborted.")
         return True
     if verification.get("status") == "corrupted":
-        print("   ⚠️  Backup has checksum errors — restore at your own risk.")
+        print("   ⚠️  Archive has checksum errors — restore at your own risk.")
         proceed = input("   Continue? [y/N]: ").strip().lower()
         if proceed != "y":
             print("   Migration aborted.")
             return True
-    print("   ✅ Backup integrity verified")
+    manifest = verification.get("manifest", {})
+    print(f"   ✅ Integrity verified — {verification.get('total_files')} files")
+    print(f"      Exportado: {manifest.get('created_at')} (desde {manifest.get('source_hostname')})")
+    print(f"      Versión OWNEX: {manifest.get('version')}")
 
-    # 2. Restore with portable mode
-    print("\n2/4 Restoring data with portable license mode...")
-    import os
-
-    os.environ["CATEYE_PORTABLE"] = "1"
-    result = restore_backup(backup_file)
-    if result.get("status") == "ok":
-        print(f"   ✅ {result['restored_files']} files restored to {result['target']}")
-    else:
+    # 2. Restore all sections
+    print("\n2/4 Restoring data...")
+    result = import_migration(archive, force=force)
+    if result.get("status") != "ok":
         print(f"   ❌ Restore failed: {result.get('reason')}")
+        if result.get("checksum_errors"):
+            for err in result["checksum_errors"]:
+                print(f"      - {err}")
         return True
+    print(f"   ✅ {result['restored_files']} files restored")
+    for label, target in result.get("targets", {}).items():
+        print(f"      {label:<14} → {target}")
+    if result.get("skipped_files"):
+        print(f"   ⚠️  {len(result['skipped_files'])} files skipped")
 
     # 3. Verify restored data
     print("\n3/4 Verifying restored data...")
     _print_verify()
 
-    # 4. Print next steps
+    # 4. License guidance
     print("\n4/4 Migration checklist:")
     print("   ✅ Data restored")
-    print("   ⚠️  Re-activate license on this machine if needed:")
-    print("       → Set CATEYE_PORTABLE=1 for temporary use")
-    print("       → Or enter a new license key in Settings")
+    try:
+        from cores.license.hardware import get_hardware_id
+
+        current_hwid = get_hardware_id()
+        source_hwid = manifest.get("source_hwid") or "unknown"
+        if current_hwid != source_hwid:
+            print("   ⚠️  License: ligada al hardware de la PC vieja (HWID distinto).")
+            print("       → Arrancá con CATEYE_PORTABLE=1 (modo migración):")
+            print("         CATEYE_PORTABLE=1 python run.py --daemon")
+            print("       → O reactivá la licencia en Settings con tu key.")
+    except Exception:
+        print("   ⚠️  Verificá la licencia (reactivá o usá CATEYE_PORTABLE=1 si hace falta).")
     print("   ⚠️  Install system tools if using AEGIS:")
     print("       → Run: bash scripts/setup.sh")
     print("   ⚠️  Build frontend if needed:")
@@ -1128,6 +1176,11 @@ def main() -> None:
     # --migrate: full PC-to-PC migration
     if "--migrate" in args_set:
         _check_migrate(args_list)
+        return
+
+    # --migrate-export: export ALL data for a new PC
+    if "--migrate-export" in args_set:
+        _check_migrate_export(args_list)
         return
 
     # --verify: check system integrity

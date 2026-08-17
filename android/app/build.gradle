@@ -4,8 +4,8 @@ android {
     namespace = "ai.rastro.app"
     compileSdk = rootProject.ext.compileSdkVersion
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility = '17'
+        targetCompatibility = '17'
     }
     defaultConfig {
         applicationId "ai.rastro.app"
@@ -20,10 +20,22 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    
+    signingConfigs {
+        release {
+            // Use environment variables for security
+            storeFile file(System.getenv("OWNEX_KEYSTORE_PATH") ?: "ownex-release.jks")
+            storePassword System.getenv("OWNEX_KEYSTORE_PASSWORD")
+            keyAlias System.getenv("OWNEX_KEY_ALIAS") ?: "ownex"
+            keyPassword System.getenv("OWNEX_KEY_PASSWORD")
+        }
+    }
+    
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 }

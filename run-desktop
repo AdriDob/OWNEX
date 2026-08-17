@@ -35,11 +35,13 @@ def main() -> int:
     window = __import__("desktop.native.ui.main_window", fromlist=["MainWindow"]).MainWindow(theme_name="default")
     # Apply the native Tesla QSS
     from desktop.native.ui.main_window import native_qss
+
     window.setStyleSheet(native_qss())
     window.show()
     # Start the qasync event loop — processEvents is non-blocking;
     # the loop runs in the caller's context (e.g. via `python -m`)
     import qasync
+
     loop = qasync.QEventLoop(app)
     with loop:
         loop.run_forever()

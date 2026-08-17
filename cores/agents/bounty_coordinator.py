@@ -147,6 +147,10 @@ class BountyCoordinator:
 
             return {"status": "stopped", "message": "Coordinator stopped successfully"}
 
+    def is_running(self) -> bool:
+        """Check if the coordinator is currently running."""
+        return self._running
+
     def add_bounty(
         self,
         bounty_id: str,
@@ -158,7 +162,94 @@ class BountyCoordinator:
         evh: float = 0.0,
         opportunity: Opportunity | None = None,
     ) -> dict[str, Any]:
-        """Add a bounty to the queue.
+        """Add a bounty to the priority queue (full signature)."""
+        if opportunity is None:
+            # Create minimal opportunity object if not provided
+            from cores.opportunity.models import Opportunity, OpportunitySource
+
+            opportunity = Opportunity(
+                id=bounty_id,
+                name=title,
+                source=OpportunitySource(
+                    type="platform",
+                    name="algora",
+                    url=issue_url,
+                    confidence=0.8,
+                ),
+                category="oss",
+                public_url=issue_url,
+                metadata={"description": description},
+                estimated_payout=0.0,
+                estimated_effort_hours=1.0,
+            )
+
+        # Calculate EVH if not provided
+        if evh == 0.0 and opportunity.estimated_payout:
+            evh = opportunity.estimated_payout / max(opportunity.estimated_effort_hours, 0.1)
+
+        task = BountyTask(
+            priority=evh,
+            bounty_id=bounty_id,
+            opportunity=opportunity,
+            metadata={
+                "repo": repo,
+                "issue_number": issue_number,
+                "issue_url": issue_url,
+            },
+        )
+
+        self._queue.put(task)
+
+        logger.info(
+            "[BountyCoordinator] Added bounty %s to queue (EVH=%.2f)",
+            bounty_id,
+            evh,
+        )
+
+        return {"status": "queued", "bounty_id": bounty_id, "evh": evh}
+
+    def add_bounty_simple(
+        self,
+        bounty_id: str,
+        opportunity: Opportunity,
+    ) -> dict[str, Any]:
+        """Add a bounty to the priority queue (simplified signature for scheduler)."""
+        # Calculate EVH from opportunity
+        evh = 0.0
+        if opportunity.estimated_payout:
+            evh = opportunity.estimated_payout / max(opportunity.estimated_effort_hours, 0.1)
+
+        task = BountyTask(
+            priority=evh,
+            bounty_id=bounty_id,
+            opportunity=opportunity,
+            metadata={
+                "source": "opportunity_engine",
+            },
+        )
+
+        self._queue.put(task)
+
+        logger.info(
+            "[BountyCoordinator] Added bounty %s to queue (EVH=%.2f)",
+            bounty_id,
+            evh,
+        )
+
+        return {"status": "queued", "bounty_id": bounty_id, "evh": evh}
+
+    def add_bounty_legacy(
+        self,
+        bounty_id: str,
+        repo: str,
+        issue_number: int,
+        issue_url: str,
+        title: str,
+        description: str = "",
+        evh: float = 0.0,
+        opportunity: Opportunity | None = None,
+    ) -> dict[str, Any]:
+        """Add a bounty to the queue (legacy signature for backward compatibility).
 
         Args:
             bounty_id: Bounty ID from platform
@@ -180,14 +271,18 @@ class BountyCoordinator:
                 EVHRating,
                 Opportunity,
                 OpportunityScore,
+                OpportunitySource,
             )
 
             opportunity = Opportunity(
                 id=bounty_id,
                 name=title,
-                source=type(
-                    "Source", (), {"type": "platform", "name": "algora", "url": issue_url, "confidence": 0.8}
-                )(),
+                source=OpportunitySource(
+                    type="platform",
+                    name="algora",
+                    url=issue_url,
+                    confidence=0.8,
+                ),
                 category="oss",
                 public_url=issue_url,
                 estimated_payout=evh * 2,  # Rough estimate
@@ -313,7 +408,7 @@ class BountyCoordinator:
                     }
                     for task in sorted(
                         self._completed_tasks.values(),
-                        key=lambda t: t.completed_at or datetime.min(UTC),
+                        key=lambda t: t.completed_at or datetime.min.replace(tzinfo=UTC),
                         reverse=True,
                     )[:10]
                 ],
@@ -486,7 +581,7 @@ class BountyCoordinator:
                     # Remove oldest entries
                     sorted_tasks = sorted(
                         self._completed_tasks.items(),
-                        key=lambda x: x[1].completed_at or datetime.min(UTC),
+                        key=lambda x: x[1].completed_at or datetime.min.replace(tzinfo=UTC),
                     )
                     for bounty_id, _ in sorted_tasks[: len(self._completed_tasks) - 100]:
                         self._completed_tasks.pop(bounty_id, None)
@@ -498,6 +593,80 @@ class BountyCoordinator:
                 await asyncio.sleep(60)
 
         logger.info("[BountyCoordinator] Cleanup loop stopped")
+
+
+def run_coordinator_cycle() -> dict[str, Any]:
+    """Scheduler job handler — run one coordinator cycle.
+
+    This function:
+    1. Gets the coordinator singleton
+    2. Starts it if not running
+    3. Adds pending opportunities to the queue
+    4. Returns status
+    """
+    logger.info("[BountyCoordinator] Running scheduled cycle")
+
+    try:
+        coordinator = get_bounty_coordinator()
+
+        # Start coordinator if not running
+        if not coordinator.is_running():
+            coordinator.start()
+            logger.info("[BountyCoordinator] Started coordinator")
+
+        # Get pending opportunities from the opportunity engine
+        from cores.opportunity.engine import get_opportunity_engine
+        from cores.opportunity.models import Opportunity, OpportunitySource
+
+        engine = get_opportunity_engine()
+        stored_opportunities = engine.get_all()
+
+        # Add to coordinator queue
+        added_count = 0
+        for opp_dict in stored_opportunities:
+            opp_id = str(opp_dict.get("id", ""))
+            if opp_id and opp_id not in coordinator._active_tasks:
+                opportunity = Opportunity(
+                    id=opp_id,
+                    name=str(opp_dict.get("title", "")),
+                    source=OpportunitySource(
+                        type="platform",
+                        name=str(opp_dict.get("source", "")),
+                        url="",
+                        confidence=0.5,
+                    ),
+                    category=str(opp_dict.get("category", "oss")),
+                    estimated_payout=float(opp_dict.get("reward_max", 0.0) or 0.0),
+                    estimated_effort_hours=float(opp_dict.get("estimated_hours", 1.0) or 1.0),
+                )
+                coordinator.add_bounty_simple(opp_id, opportunity)
+                added_count += 1
+
+        # Get status
+        status = coordinator.get_status()
+
+        logger.info(
+            "[BountyCoordinator] Cycle complete: added=%d, active=%d, queued=%d, completed=%d",
+            added_count,
+            status.get("active_count", 0),
+            status.get("queued_count", 0),
+            status.get("completed_count", 0),
+        )
+
+        return {
+            "success": True,
+            "added_count": added_count,
+            "status": status,
+            "message": f"Added {added_count} bounties to coordinator queue",
+        }
+
+    except Exception as e:
+        logger.error("[BountyCoordinator] Scheduled cycle failed: %s", e)
+        return {
+            "success": False,
+            "error": str(e),
+            "message": "Coordinator cycle failed",
+        }
 
 
 # ── Singleton Pattern ─────────────────────────────────────────────────
