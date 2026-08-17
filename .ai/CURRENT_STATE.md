@@ -1,3 +1,24 @@
+## Sesión 2026-08-17 — DESKTOP STARTUP FIX (cont.): database/ dir faltante en el bundle → WINDOWS STARTUP: PASS
+
+> **QUÉ SE HIZO:** Tras desplegar el fix de memoria (0debff557), la app reinstalada seguía muriendo.
+> El bundle instalado tenía el fix (hash verificado), así que el crash era OTRO punto del arranque.
+> **Captura real del traceback** vía `Start-Process -RedirectStandardError` (CWD local):
+> `app.py:32` → `main_window.py:39` (import `views.base` → `services.mission`) → `db.SessionLocal()`
+> en **import-time** → `sqlite3.OperationalError: unable to open database file` — el bundle PyInstaller
+> no trae el dir `database/` junto al exe, SQLite no puede crear el archivo, y `_ensure_db_dir()`
+> (único caller: `init_db()`) corría DEMASIADO TARDE. Hallazgo extra: lanzada desde WSL interop
+> (CWD = `\\wsl.localhost\...\Rastro`) abría la DB del repo vía 9p → `database is locked` (diálogo
+> modal PySide6 "Unhandled exception in script" mantiene el proceso vivo — diagnóstico por
+> MainWindowTitle + UI Automation). **FIX**: `_ensure_db_dir()` movido a nivel de módulo en
+> `database/db.py`, antes de `create_engine` (commit `eec09c2c9`); `init_db()` conserva su llamada
+> (idempotente). **VERIFICADO**: `rm -rf database/` en el bundle reinstalado → launch → la app CREA
+> `database/catseye.db` sola y sigue viva >90 s (PID 10568, título `OWNEX Desktop - OWNEX`, 143 MB).
+> Rebuild CI `32010777217` success → installer nuevo (sha256 `1fc144469ab332efe1665219f6a4c9dc00a7be9f3bab301077ba94050d1a4f67`)
+> desplegado (repo + OneDrive + SHA256SUMS.txt + VERIFY-HASHES.ps1 + README-INSTALACION.md, commit
+> `28083eb13`) → reinstall silenciosa exit 0 → hash exe instalado == artifact → **WINDOWS STARTUP: PASS**.
+- **Verificación**: ruff limpio, `import database.db` OK, repro cadena desktop OK, 17 passed (memory+db guards), suite fast **100 passed / 1 skipped**.
+- **Registrado**: entrada completa en DECISIONS.md (2026-08-17, cont.).
+
 ## Sesión 2026-08-17 — DESKTOP STARTUP FIX: cores/memory/system.py stub → store funcional (crash exit 1 a ~9 s)
 
 > **QUÉ SE HIZO:** (1) **DIAGNÓSTICO DEL CRASH DE ESCRITORIO WINDOWS**: la app moría ~9 s después del
