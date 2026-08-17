@@ -17,7 +17,7 @@ import contextlib
 from pathlib import Path
 from typing import Any
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QFontDatabase, QIcon
 from PySide6.QtWidgets import (
     QComboBox,
@@ -285,9 +285,22 @@ class MainWindow(QMainWindow):
         self.view_switched.connect(self._on_view_switched)
         self.theme_changed.connect(self._on_theme_changed_internal)
 
+        # --- Auto-refresh: while the in-process backend boots, periodically
+        # refresh the active view so real data appears as soon as it is ready.
+        self._auto_refresh = QTimer(self)
+        self._auto_refresh.setInterval(10000)
+        self._auto_refresh.timeout.connect(self._refresh_active_view)
+        self._auto_refresh.start()
+
         # Initialize
         self._on_nav_clicked(SECTIONS[0][1])
         self.apply_theme()
+
+    def _refresh_active_view(self) -> None:
+        current = self._view_stack.currentWidget()
+        if current is not None and hasattr(current, "refresh"):
+            with contextlib.suppress(Exception):
+                current.refresh()
 
     def apply_theme(self) -> None:
         # Use the native QSS builder that reads from the active ThemeSpec.

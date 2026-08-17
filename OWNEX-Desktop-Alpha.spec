@@ -44,6 +44,14 @@ tmp_ret = collect_all("uvicorn")
 datas += tmp_ret[0]
 binaries += tmp_ret[1]
 hiddenimports += tmp_ret[2]
+# Backend sidecar: the in-process API server (api.main) needs the full project
+# tree available in the bundle so the desktop is self-contained and can
+# produce real data (pipeline, scheduler, scrapers) on Windows.
+for pkg in ("api", "database", "core", "cores", "apps"):
+    tmp_ret = collect_all(pkg)
+    datas += tmp_ret[0]
+    binaries += tmp_ret[1]
+    hiddenimports += tmp_ret[2]
 
 
 a = Analysis(

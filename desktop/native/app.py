@@ -28,6 +28,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
+from desktop.native.services.backend import start_backend_async  # noqa: E402
 from desktop.native.ui.icons import RASTRO_ICON_PATH  # noqa: E402
 from desktop.native.ui.main_window import MainWindow, native_qss  # noqa: E402
 
@@ -72,6 +73,7 @@ def main() -> int:
         level=os.environ.get("RASTRRO_LOG_LEVEL", "INFO"),
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
+    start_backend_async()
     app = create_application()
     window = MainWindow(theme_name=os.environ.get("OWNEX_THEME", DEFAULT_THEME))
     x, y, w, h = DEFAULT_GEOMETRY
