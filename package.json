@@ -1,0 +1,29 @@
+{
+  "name": "ownex-omega",
+  "version": "7.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "desktop"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "uvicorn api.main:app --reload --port 8000",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "test": "cd frontend && npm run test",
+    "test:backend": "pytest tests/ -v",
+    "lint": "ruff check . && cd frontend && npm run lint",
+    "tauri:build": "cd frontend && npm run tauri:build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  },
+  "dependencies": {
+    "@capacitor-community/speech-recognition": "^7.0.1",
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/cli": "^8.4.2",
+    "@capacitor/core": "^8.4.2",
+    "vue-i18n": "^11.4.8"
+  }
+}
