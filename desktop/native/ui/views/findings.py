@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QHeaderView,
+    QMessageBox,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
@@ -76,6 +77,12 @@ class FindingsView(BaseView):
         self._refresh_btn = refresh_btn
         self._refresh_btn.clicked.connect(self.refresh)
 
+        self._promote_btn = promote_btn
+        self._promote_btn.clicked.connect(self._on_promote)
+
+        self._export_btn = export_btn
+        self._export_btn.clicked.connect(self._on_export)
+
         al.addWidget(promote_btn)
         al.addWidget(refresh_btn)
         al.addStretch()
@@ -107,10 +114,55 @@ class FindingsView(BaseView):
             self._table.setItem(row, 3, QTableWidgetItem(str(f.get("status", "new"))))
             self._table.setItem(row, 4, QTableWidgetItem(str(f.get("target_id", ""))))
 
+    def _selected_id(self) -> int | None:
+        row = self._table.currentRow()
+        if row < 0 or row >= self._table.rowCount():
+            return None
+        item = self._table.item(row, 0)
+        if item is None:
+            return None
+        try:
+            return int(item.text())
+        except ValueError:
+            return None
+
+    def _on_promote(self) -> None:
+        finding_id = self._selected_id()
+        if finding_id is None:
+            QMessageBox.information(self, "Promote to Report", "Select a finding row first.")
+            return
+        mission = getattr(self, "mission", None) or get_mission()
+        try:
+            created = mission.create_report([finding_id])
+        except Exception as exc:  # noqa: BLE001
+            QMessageBox.warning(self, "Promote to Report", f"Could not create report: {exc}")
+            return
+        if created is None:
+            QMessageBox.warning(self, "Promote to Report", "The backend did not produce a report.")
+            return
+        self.refresh()
+        QMessageBox.information(self, "Promote to Report", f"Report #{created.get('id')} created.")
+
+    def _on_export(self) -> None:
+        finding_id = self._selected_id()
+        if finding_id is None:
+            QMessageBox.information(self, "Export", "Select a finding row first.")
+            return
+        mission = getattr(self, "mission", None) or get_mission()
+        try:
+            path = mission.export_finding(finding_id, fmt="markdown")
+        except Exception as exc:  # noqa: BLE001
+            QMessageBox.warning(self, "Export", f"Could not export finding: {exc}")
+            return
+        if path is None:
+            QMessageBox.warning(self, "Export", "The backend did not return a file.")
+            return
+        QMessageBox.information(self, "Export", f"Finding exported to:\n{path}")
+
     # -- Helpers de estilo --
     def apply_theme(self) -> None:
         theme = get_theme()
-        ws = "background-color: " + theme.text + ";"
+        ws = "background-color: " + theme.background + ";"
         sf = "background-color: " + theme.surface + ";"
         st = "border: 1px solid " + theme.stroke + ";"
         self.setStyleSheet(

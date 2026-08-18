@@ -20,6 +20,7 @@ from pathlib import Path
 import pytest
 
 from desktop.native.services.api_client import ApiClient
+from desktop.native.services.base import ServiceError
 from desktop.native.services.mission import MissionControlData
 
 # ── QApplication (session-scoped) ─────────────────────────────────────
@@ -45,6 +46,12 @@ class _Resp:
         return self._payload
 
 
+class _BinaryResp:
+    def __init__(self, status_code: int, content: bytes = b""):
+        self.status_code = status_code
+        self.content = content
+
+
 class _FakeTransport:
     """Sequential fake for httpx.get/post (module-level in api_client)."""
 
@@ -64,7 +71,7 @@ class _FakeTransport:
         self.get_calls.append((url, headers))
         return self._next(self.get_responses, url)
 
-    def post(self, url, json=None, headers=None, timeout=None):
+    def post(self, url, params=None, json=None, headers=None, timeout=None):
         self.post_calls.append(url)
         return self._next(self.post_responses, url)
 
@@ -132,6 +139,95 @@ def test_api_client_fetch_targets_items(monkeypatch, tmp_path):
     assert client.fetch_targets() == [{"id": 3, "name": "x.com"}]
 
 
+def test_api_client_post_creates_report(monkeypatch, tmp_path):
+    fake = _FakeTransport()
+    fake.post_responses["http://127.0.0.1:8000/api/reports"] = _Resp(201, {"id": 5})
+    monkeypatch.setattr("desktop.native.services.api_client.httpx.post", fake.post)
+    client = ApiClient(data_dir=Path(tmp_path))
+    result = client.post("/api/reports", {"finding_ids": [1, 2]})
+    assert result == {"id": 5}
+    assert fake.post_calls == ["http://127.0.0.1:8000/api/reports"]
+
+
+def test_api_client_post_relogs_on_401(monkeypatch, tmp_path):
+    fake = _FakeTransport()
+    fake.post_responses["http://127.0.0.1:8000/api/auth/login"] = _Resp(200, {"data": {"token": "tok2"}})
+    fake.post_responses["http://127.0.0.1:8000/api/hunt/start"] = [_Resp(401), _Resp(200, {"started": True})]
+    monkeypatch.setattr("desktop.native.services.api_client.httpx.post", fake.post)
+    client = ApiClient(data_dir=Path(tmp_path))
+    assert client.start_hunt() == {"started": True}
+    assert len(fake.post_calls) == 3  # hunt start + relogin + retry
+
+
+def test_api_client_post_never_raises_on_error(monkeypatch, tmp_path):
+    def _boom(*args, **kwargs):
+        raise ConnectionError("refused")
+
+    monkeypatch.setattr("desktop.native.services.api_client.httpx.post", _boom)
+    client = ApiClient(data_dir=Path(tmp_path))
+    assert client.post("/api/hunt/start") is None
+
+
+def test_api_client_download_writes_file(monkeypatch, tmp_path):
+    fake = _FakeTransport()
+    fake.get_responses["http://127.0.0.1:8000/api/findings/7/export-markdown"] = _BinaryResp(200, b"# Finding report\n")
+    monkeypatch.setattr("desktop.native.services.api_client.httpx.get", fake.get)
+    client = ApiClient(data_dir=Path(tmp_path))
+    dest = client.export_finding(7, fmt="markdown")
+    assert dest is not None and dest.exists()
+    assert dest.read_bytes() == b"# Finding report\n"
+    assert dest.parent == Path(tmp_path) / "exports"
+
+
+def test_api_client_export_report_writes_file(monkeypatch, tmp_path):
+    fake = _FakeTransport()
+    fake.get_responses["http://127.0.0.1:8000/api/reports/5/export?format=markdown"] = _BinaryResp(
+        200, b"# Final report\n"
+    )
+    monkeypatch.setattr("desktop.native.services.api_client.httpx.get", fake.get)
+    client = ApiClient(data_dir=Path(tmp_path))
+    dest = client.export_report(5, fmt="markdown")
+    assert dest is not None and dest.exists()
+    assert dest.name == "report_5.markdown"
+    assert dest.read_bytes() == b"# Final report\n"
+
+
+def test_api_client_fetch_reports_items(monkeypatch, tmp_path):
+    fake = _FakeTransport()
+    fake.get_responses["http://127.0.0.1:8000/api/reports"] = _Resp(
+        200, {"items": [{"id": 1, "title": "R"}], "total": 1}
+    )
+    monkeypatch.setattr("desktop.native.services.api_client.httpx.get", fake.get)
+    client = ApiClient(data_dir=Path(tmp_path))
+    assert client.fetch_reports() == [{"id": 1, "title": "R"}]
+
+
+def test_api_client_fetch_operations_timeline_events(monkeypatch, tmp_path):
+    fake = _FakeTransport()
+    fake.get_responses["http://127.0.0.1:8000/api/operations/timeline"] = _Resp(
+        200, {"events": [{"type": "finding"}], "total": 1}
+    )
+    monkeypatch.setattr("desktop.native.services.api_client.httpx.get", fake.get)
+    client = ApiClient(data_dir=Path(tmp_path))
+    assert client.fetch_operations_timeline() == [{"type": "finding"}]
+
+
+def test_api_client_fetch_intelligence_state(monkeypatch, tmp_path):
+    fake = _FakeTransport()
+    fake.get_responses["http://127.0.0.1:8000/api/intelligence/state"] = _Resp(200, {"snapshots": 3, "findings": 7})
+    monkeypatch.setattr("desktop.native.services.api_client.httpx.get", fake.get)
+    client = ApiClient(data_dir=Path(tmp_path))
+    assert client.fetch_intelligence_state() == {"snapshots": 3, "findings": 7}
+
+
+def test_api_client_fetch_pipeline_stages(monkeypatch, tmp_path):
+    fake = _FakeTransport()
+    fake.get_responses["http://127.0.0.1:8000/api/pipeline/stages"] = _Resp(200, {"stages": [{"id": "recon"}]})
+    monkeypatch.setattr("desktop.native.services.api_client.httpx.get", fake.get)
+    client = ApiClient(data_dir=Path(tmp_path))
+    assert client.fetch_pipeline_stages() == [{"id": "recon"}]
+
+
 # ── MissionControlData ────────────────────────────────────────────────
 
 
@@ -156,6 +252,65 @@ class _FakeApi:
 
     def fetch_direct_work_status(self) -> dict | None:
         return {"running": True}
+
+    def fetch_reports(self, limit: int = 20) -> list[dict] | None:
+        return [
+            {
+                "id": 3,
+                "title": "Report one",
+                "platform": "hackerone",
+                "created_at": "2026-08-17T10:00:00Z",
+                "status": "draft",
+            }
+        ]
+
+    def fetch_report(self, report_id: int) -> dict | None:
+        return {"id": report_id, "title": "Report one", "platform": "hackerone", "status": "draft", "content": "# Body"}
+
+    def create_report(self, finding_ids: list[int]) -> dict | None:
+        return {"id": 3, "status": "draft"}
+
+    def export_report(self, report_id: int, fmt: str = "markdown") -> Path | None:
+        return Path("/tmp/opencode/report_3.md")
+
+    def fetch_finding(self, finding_id: int) -> dict | None:
+        return {"id": finding_id, "title": "IDOR", "severity": "high", "status": "confirmed", "target_id": 1}
+
+    def export_finding(self, finding_id: int, fmt: str = "markdown") -> Path | None:
+        return Path("/tmp/opencode/finding_9.md")
+
+    def generate_report_from_finding(self, finding_id: int) -> dict | None:
+        return {"id": 3, "status": "draft"}
+
+    def fetch_operations_timeline(self, limit: int = 50, hours: int = 72) -> list[dict] | None:
+        return [{"time": "10:00", "event": "scan finished", "status": "ok"}]
+
+    def fetch_operations_metrics(self) -> dict | None:
+        return {"total_tasks": 12, "completed": 8}
+
+    def fetch_intelligence_state(self) -> dict | None:
+        return {"snapshot": {"targets": 2}, "updated_at": "2026-08-17T10:00:00Z"}
+
+    def fetch_system_status(self) -> dict | None:
+        return {"status": "running", "score": 92}
+
+    def fetch_health(self) -> dict | None:
+        return {"status": "ok", "version": "7.0.0"}
+
+    def fetch_pipeline_stages(self) -> list[dict] | None:
+        return [{"stage": "recon", "status": "completed"}]
+
+    def fetch_scan_runs(self, limit: int = 20) -> list[dict] | None:
+        return [{"id": 1, "target_id": 1, "status": "completed"}]
+
+    def fetch_hunt_status(self) -> dict | None:
+        return {"status": "running"}
+
+    def start_hunt(self) -> dict | None:
+        return {"status": "running"}
+
+    def stop_hunt(self) -> dict | None:
+        return {"status": "stopped"}
 
 
 def test_dashboard_remote_source():
@@ -217,6 +372,99 @@ def test_get_activity_remote_mapping():
     events = mission.get_activity()
     assert events[0]["event_type"] == "scan"
     assert events[0]["timestamp"] == "2026-08-17T00:00:00Z"
+
+
+# ── Mission domain bridges (reports / operations / system) ─────────────
+
+
+def test_mission_get_reports_remote():
+    mission = MissionControlData(api=_FakeApi(connected=True))  # type: ignore[arg-type]
+    reports = mission.get_reports()
+    assert reports[0]["id"] == 3
+    assert reports[0]["platform"] == "hackerone"
+    assert reports[0]["created_at"] == "2026-08-17T10:00:00Z"
+
+
+def test_mission_get_reports_local():
+    from database import db, models
+
+    session = db.SessionLocal()
+    try:
+        t = models.Target(name="rep-target", domain="rep.example.com", active=True)
+        session.add(t)
+        session.commit()
+        session.refresh(t)
+        session.add(models.Report(target=t.name, status="draft", content="# Body"))
+        session.commit()
+    finally:
+        session.close()
+
+    mission = MissionControlData(api=_FakeApi(connected=False))  # type: ignore[arg-type]
+    reports = mission.get_reports()
+    assert any(r["status"] == "draft" for r in reports)
+
+
+def test_mission_report_detail_and_export_remote():
+    mission = MissionControlData(api=_FakeApi(connected=True))  # type: ignore[arg-type]
+    detail = mission.get_report(3)
+    assert detail is not None
+    assert detail["content"] == "# Body"
+    path = mission.export_report(3)
+    assert path is not None
+    assert path.name == "report_3.md"
+
+
+def test_mission_report_mutations_raise_offline():
+    mission = MissionControlData(api=_FakeApi(connected=False))  # type: ignore[arg-type]
+    with pytest.raises(ServiceError):
+        mission.create_report([1])
+    with pytest.raises(ServiceError):
+        mission.export_report(1)
+    with pytest.raises(ServiceError):
+        mission.submit_report(1, "hackerone")
+
+
+def test_mission_operations_and_intelligence_remote():
+    mission = MissionControlData(api=_FakeApi(connected=True))  # type: ignore[arg-type]
+    timeline = mission.get_operations_timeline()
+    assert timeline is not None
+    assert timeline[0]["event"] == "scan finished"
+    metrics = mission.get_operations_metrics()
+    assert metrics["total_tasks"] == 12
+    state = mission.get_intelligence_state()
+    assert state["snapshot"]["targets"] == 2
+    assert mission.get_operations_timeline() != []
+
+
+def test_mission_operations_and_intelligence_offline_honest():
+    mission = MissionControlData(api=_FakeApi(connected=False))  # type: ignore[arg-type]
+    assert mission.get_operations_timeline() == []
+    assert mission.get_operations_metrics() == {}
+    assert mission.get_intelligence_state() == {}
+    assert mission.get_system_status() == {"status": "offline"}
+
+
+def test_mission_system_pipeline_scans_hunt_remote():
+    mission = MissionControlData(api=_FakeApi(connected=True))  # type: ignore[arg-type]
+    status = mission.get_system_status()
+    assert status["score"] == 92
+    health = mission.get_health()
+    assert health["version"] == "7.0.0"
+    stages = mission.get_pipeline_stages()
+    assert stages is not None
+    assert stages[0]["stage"] == "recon"
+    runs = mission.get_scan_runs()
+    assert runs is not None
+    assert runs[0]["status"] == "completed"
+    hunt = mission.get_hunt_status()
+    assert hunt is not None
+    assert hunt["status"] == "running"
+    started = mission.start_hunt()
+    assert started is not None
+    assert started["status"] == "running"
+    stopped = mission.stop_hunt()
+    assert stopped is not None
+    assert stopped["status"] == "stopped"
 
 
 # ── Native views ──────────────────────────────────────────────────────
@@ -304,6 +552,38 @@ def test_surface_view_refresh_populates(qapp):
     assert view._table.rowCount() == 2  # noqa: SLF001
     assert view._table.item(0, 2).text() == "a.com"  # noqa: SLF001
     assert view._table.item(0, 3).text() == "0"  # noqa: SLF001
+
+
+def test_terminal_view_defaults(qapp):
+    from desktop.native.ui.views.terminal import TerminalView
+
+    view = TerminalView()
+    assert view._conn_status.text() == "Disconnected"  # noqa: SLF001
+    assert view._connect_btn.text() == "Start Terminal"  # noqa: SLF001
+    assert view._send_btn.isEnabled() is False  # noqa: SLF001
+    assert view._term.isReadOnly() is True  # noqa: SLF001
+    assert view._input is not None  # noqa: SLF001
+    assert not hasattr(view, "_cmd_selector")
+
+
+def test_terminal_view_clear_and_append(qapp):
+    from desktop.native.ui.views.terminal import TerminalView
+
+    view = TerminalView()
+    view._on_text("\x1b[31mred\x1b[0m\n")  # noqa: SLF001
+    assert view._term.toPlainText() == "red\n"  # noqa: SLF001
+    view._on_clear()
+    assert view._term.toPlainText() == ""  # noqa: SLF001
+
+
+def test_terminal_view_send_requires_connection(qapp):
+    from desktop.native.ui.views.terminal import TerminalView
+
+    view = TerminalView()
+    view._input.setText("ls -la")  # noqa: SLF001
+    view._on_send()
+    assert view._term.toPlainText() == ""  # noqa: SLF001
+    assert view._input.text() == "ls -la"  # noqa: SLF001
 
 
 # ── MainWindow navigation ─────────────────────────────────────────────
