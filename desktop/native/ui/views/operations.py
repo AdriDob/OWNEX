@@ -25,7 +25,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from desktop.native.services.mission import get_mission
+from desktop.native.services.mission import MissionControlData, get_mission
 from desktop.native.ui.tokens import get_theme
 from desktop.native.ui.views.base import BaseView
 
@@ -36,8 +36,9 @@ class OperationsView(BaseView):
     SECTION = "operations"
     """Operations dashboard — automation workflow status."""
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, mission: MissionControlData | None = None, parent: QWidget | None = None) -> None:
         super().__init__(
+            mission=mission,
             section="operations",
             label="Operations",
             icon="automation",
@@ -135,7 +136,7 @@ class OperationsView(BaseView):
     # -- Helpers de estilo --
     def apply_theme(self) -> None:
         theme = get_theme()
-        ws = "background-color: " + theme.text + ";"
+        ws = "background-color: " + theme.background + ";"
         sf = "background-color: " + theme.surface + ";"
         st = "border: 1px solid " + theme.stroke + ";"
         self.setStyleSheet(

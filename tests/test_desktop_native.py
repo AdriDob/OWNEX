@@ -661,6 +661,19 @@ def test_local_engines_initialize_db_schema(monkeypatch):
     assert calls == ["init"], "schema must be initialized exactly once per instance"
 
 
+def test_mission_local_data_persists_across_instances():
+    """Desktop-local data must survive app reopen (fresh MissionControlData)."""
+    from api.services.data_service import create_target
+
+    create_target(name="reopen-target", domain="reopen.example.com")
+
+    first = MissionControlData(api=_FakeApi(connected=False))  # type: ignore[arg-type]
+    assert any(t["name"] == "reopen-target" for t in first.get_targets())
+
+    reopened = MissionControlData(api=_FakeApi(connected=False))  # type: ignore[arg-type]
+    assert any(t["name"] == "reopen-target" for t in reopened.get_targets())
+
+
 def test_mission_view_empty_state_row(qapp):
     from desktop.native.ui.views.mission import MissionControlView
 

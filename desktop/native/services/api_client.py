@@ -17,6 +17,7 @@ import logging
 import time
 import uuid
 from pathlib import Path
+from typing import Any
 
 import httpx
 
@@ -328,6 +329,132 @@ class ApiClient:
 
     def refresh_intelligence(self) -> dict | None:
         data = self.post("/api/intelligence/refresh")
+        return data if isinstance(data, dict) else None
+
+    # -- payment compat ------------------------------------------------------
+    def fetch_payment_network(self) -> dict | None:
+        data = self.get("/api/payment-compat")
+        return data if isinstance(data, dict) else None
+
+    def fetch_payment_network_grouped(self) -> dict | None:
+        data = self.get("/api/payment-compat/network")
+        return data if isinstance(data, dict) else None
+
+    def fetch_payment_account(self, account_id: str) -> dict | None:
+        data = self.get(f"/api/payment-compat/account/{account_id}")
+        return data if isinstance(data, dict) else None
+
+    def payment_evaluate(
+        self,
+        method: str = "crypto",
+        currency: str = "USDC",
+        region: str = "global",
+        amount: float = 0.0,
+        required_documentation: str = "",
+        platform: str = "",
+    ) -> dict | None:
+        payload = {
+            "method": method,
+            "currency": currency,
+            "region": region,
+            "amount": amount,
+            "required_documentation": required_documentation,
+            "platform": platform,
+        }
+        data = self.post("/api/payment-compat/evaluate", payload)
+        return data if isinstance(data, dict) else None
+
+    def payment_evaluate_chain(
+        self,
+        method: str = "crypto",
+        currency: str = "USDC",
+        region: str = "global",
+        amount: float = 0.0,
+        required_documentation: str = "",
+        platform: str = "",
+        final_currency: str = "ARS",
+    ) -> dict | None:
+        payload = {
+            "method": method,
+            "currency": currency,
+            "region": region,
+            "amount": amount,
+            "required_documentation": required_documentation,
+            "platform": platform,
+            "final_currency": final_currency,
+        }
+        data = self.post("/api/payment-compat/evaluate/chain", payload)
+        return data if isinstance(data, dict) else None
+
+    # -- knowledge bridge ------------------------------------------------------
+    def fetch_knowledge_status(self) -> dict | None:
+        data = self.get("/api/knowledge")
+        return data if isinstance(data, dict) else None
+
+    def knowledge_connect(self, path: str) -> dict | None:
+        data = self.post("/api/knowledge/connect", {"path": path})
+        return data if isinstance(data, dict) else None
+
+    def knowledge_disconnect(self) -> dict | None:
+        data = self.post("/api/knowledge/disconnect")
+        return data if isinstance(data, dict) else None
+
+    def knowledge_scan(self, full: bool = False) -> dict | None:
+        data = self.post("/api/knowledge/scan", {"full": full})
+        return data if isinstance(data, dict) else None
+
+    def knowledge_search(self, q: str, limit: int = 10) -> dict | None:
+        data = self.get("/api/knowledge/search", {"q": q, "limit": limit})
+        return data if isinstance(data, dict) else None
+
+    def knowledge_note(self, path: str) -> dict | None:
+        data = self.get("/api/knowledge/note", {"path": path})
+        return data if isinstance(data, dict) else None
+
+    def knowledge_context(self, q: str, max_notes: int = 5) -> dict | None:
+        data = self.get("/api/knowledge/context", {"q": q, "max_notes": max_notes})
+        return data if isinstance(data, dict) else None
+
+    def knowledge_health(self) -> dict | None:
+        data = self.get("/api/knowledge/health")
+        return data if isinstance(data, dict) else None
+
+    def knowledge_history(self, limit: int = 7) -> dict | None:
+        data = self.get("/api/knowledge/history", {"limit": limit})
+        return data if isinstance(data, dict) else None
+
+    def knowledge_sync(self) -> dict | None:
+        data = self.post("/api/knowledge/sync")
+        return data if isinstance(data, dict) else None
+
+    # -- voice ------------------------------------------------------
+    def fetch_voice_status(self) -> dict | None:
+        data = self.get("/voice/status")
+        return data if isinstance(data, dict) else None
+
+    def voice_synthesize(self, text: str) -> bytes | None:
+        payload = {"text": text}
+        data = self.post("/voice/tts", payload)
+        if isinstance(data, bytes):
+            return data
+        if isinstance(data, dict) and "detail" in data.get("detail", ""):
+            return None
+        return None
+
+    def voice_get_config(self) -> dict | None:
+        data = self.get("/voice/config")
+        return data if isinstance(data, dict) else None
+
+    def voice_update_config(self, update: dict[str, Any]) -> dict | None:
+        data = self.post("/voice/config", update)
+        return data if isinstance(data, dict) else None
+
+    def voice_process_command(self, text: str) -> dict | None:
+        data = self.post("/voice/command", {"text": text})
+        return data if isinstance(data, dict) else None
+
+    def voice_get_replies(self, since: int = 0) -> dict | None:
+        data = self.get("/voice/assistant/replies", {"since": since})
         return data if isinstance(data, dict) else None
 
     # -- system / pipeline / scans / hunt ----------------------------------

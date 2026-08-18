@@ -1,19 +1,40 @@
 <!doctype html>
 <html lang="es" data-theme-mode="dark" class="dark">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#6D28D9" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="OWNEX" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OWNEX — Autonomous Work OS</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+<meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#6D28D9" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="OWNEX" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OWNEX — Autonomous Work OS</title>
+  <!-- Fonts locales: Orbitron empaquetado para offline -->
+  <style>
+    @font-face {
+      font-family: 'Orbitron';
+      font-style: normal;
+      font-weight: 400;
+      src: local('Orbitron Regular'), url('/Orbitron-Regular.woff2') format('woff2'),
+           url('/Orbitron-Regular.woff') format('woff');
+    }
+    @font-face {
+      font-family: 'Orbitron';
+      font-style: normal;
+      font-weight: 700;
+      src: local('Orbitron Medium'), url('/Orbitron-Medium.woff2') format('woff2'),
+           url('/Orbitron-Medium.woff') format('woff');
+    }
+    @font-face {
+      font-family: 'Orbitron';
+      font-style: normal;
+      font-weight: 900;
+      src: local('Orbitron Bold'), url('/Orbitron-Bold.woff2') format('woff2'),
+           url('/Orbitron-Bold.woff') format('woff');
+    }
+  </style>
   </head>
   <body class="bg-background text-foreground antialiased">
     <div id="app"></div>

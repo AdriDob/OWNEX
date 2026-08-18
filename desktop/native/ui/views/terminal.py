@@ -30,6 +30,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from desktop.native.services.mission import MissionControlData
 from desktop.native.ui.tokens import get_theme
 from desktop.native.ui.views.base import BaseView
 
@@ -49,8 +50,9 @@ class TerminalView(BaseView):
     SECTION = "terminal"
     """Terminal/spawn console — native shell bridge."""
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, mission: MissionControlData | None = None, parent: QWidget | None = None) -> None:
         super().__init__(
+            mission=mission,
             section="terminal",
             label="Terminal",
             icon="terminal",
