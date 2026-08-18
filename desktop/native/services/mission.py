@@ -388,6 +388,211 @@ class MissionControlData:
             logger.warning("event bus history unavailable")
             return []
 
+    # -- domain bridges (reports / findings detail / operations / system) --
+    def api(self) -> ApiClient:
+        """Public accessor to the backend API client (source of truth)."""
+        return self._api_client()
+
+    def get_reports(self, limit: int = 20) -> list[dict[str, Any]]:
+        self._ensure_engines()
+        if self.remote_mode():
+            out = []
+            for r in self._api_client().fetch_reports(limit=limit) or []:
+                if isinstance(r, dict):
+                    out.append(
+                        {
+                            "id": r.get("id"),
+                            "title": r.get("title", ""),
+                            "platform": r.get("platform", ""),
+                            "created_at": _iso(r.get("created_at")),
+                            "status": r.get("status", ""),
+                        }
+                    )
+            return out
+
+        def _work() -> list[dict[str, Any]]:
+            from database import db, models
+
+            session = db.SessionLocal()
+            try:
+                reports = []
+                for r in session.query(models.Report).order_by(models.Report.created_at.desc()).limit(limit).all():
+                    reports.append(
+                        {
+                            "id": r.id,
+                            "title": getattr(r, "title", ""),
+                            "platform": getattr(r, "platform", ""),
+                            "created_at": _iso(getattr(r, "created_at", None)),
+                            "status": getattr(r, "status", ""),
+                        }
+                    )
+                return reports
+            finally:
+                session.close()
+
+        with service_call():
+            return _work()
+
+    def get_report(self, report_id: int) -> dict[str, Any] | None:
+        if self.remote_mode():
+            return self._api_client().fetch_report(report_id)
+
+        def _work() -> dict[str, Any] | None:
+            from database import db, models
+
+            session = db.SessionLocal()
+            try:
+                r = session.query(models.Report).filter(models.Report.id == report_id).first()
+                if r is None:
+                    return None
+                return {
+                    "id": r.id,
+                    "title": getattr(r, "title", ""),
+                    "platform": getattr(r, "platform", ""),
+                    "created_at": _iso(getattr(r, "created_at", None)),
+                    "status": getattr(r, "status", ""),
+                    "content": getattr(r, "content", ""),
+                }
+            finally:
+                session.close()
+
+        with service_call():
+            return _work()
+
+    def create_report(self, finding_ids: list[int]) -> dict[str, Any] | None:
+        if not self.remote_mode():
+            raise ServiceError("report generation requires the backend service (offline)")
+        return self._api_client().create_report(finding_ids)
+
+    def export_report(self, report_id: int, fmt: str = "markdown") -> Any:
+        if not self.remote_mode():
+            raise ServiceError("export requires the backend service (offline)")
+        return self._api_client().export_report(report_id, fmt=fmt)
+
+    def submit_report(self, report_id: int, platform: str) -> dict[str, Any] | None:
+        if not self.remote_mode():
+            raise ServiceError("submission requires the backend service (offline)")
+        return self._api_client().submit_report(report_id, platform)
+
+    def get_report_versions(self, report_id: int) -> list[dict[str, Any]]:
+        if not self.remote_mode():
+            return []
+        return self._api_client().fetch_report_versions(report_id) or []
+
+    def get_finding(self, finding_id: int) -> dict[str, Any] | None:
+        if self.remote_mode():
+            return self._api_client().fetch_finding(finding_id)
+
+        def _work() -> dict[str, Any] | None:
+            from database import db, models
+
+            session = db.SessionLocal()
+            try:
+                f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
+                if f is None:
+                    return None
+                return {
+                    "id": f.id,
+                    "title": f.title,
+                    "severity": f.severity,
+                    "status": f.status,
+                    "target_id": f.target_id,
+                    "description": getattr(f, "description", ""),
+                }
+            finally:
+                session.close()
+
+        with service_call():
+            return _work()
+
+    def export_finding(self, finding_id: int, fmt: str = "markdown") -> Any:
+        if not self.remote_mode():
+            raise ServiceError("export requires the backend service (offline)")
+        return self._api_client().export_finding(finding_id, fmt=fmt)
+
+    def generate_report_from_finding(self, finding_id: int) -> dict[str, Any] | None:
+        if not self.remote_mode():
+            raise ServiceError("report generation requires the backend service (offline)")
+        return self._api_client().generate_report_from_finding(finding_id)
+
+    def get_operations_timeline(self, limit: int = 50, hours: int = 72) -> list[dict[str, Any]]:
+        if not self.remote_mode():
+            return []
+        return self._api_client().fetch_operations_timeline(limit=limit, hours=hours) or []
+
+    def get_operations_metrics(self) -> dict[str, Any]:
+        if not self.remote_mode():
+            return {}
+        return self._api_client().fetch_operations_metrics() or {}
+
+    def get_intelligence_state(self) -> dict[str, Any]:
+        if not self.remote_mode():
+            return {}
+        return self._api_client().fetch_intelligence_state() or {}
+
+    def refresh_intelligence(self) -> dict[str, Any]:
+        if not self.remote_mode():
+            return {}
+        return self._api_client().refresh_intelligence() or {}
+
+    def get_system_status(self) -> dict[str, Any]:
+        if not self.remote_mode():
+            return {"status": "offline"}
+        return self._api_client().fetch_system_status() or {"status": "unknown"}
+
+    def get_health(self) -> dict[str, Any]:
+        if not self.remote_mode():
+            return {"status": "offline"}
+        return self._api_client().fetch_health() or {"status": "unknown"}
+
+    def get_pipeline_stages(self) -> list[dict[str, Any]]:
+        if not self.remote_mode():
+            return []
+        return self._api_client().fetch_pipeline_stages() or []
+
+    def get_scan_runs(self, limit: int = 20) -> list[dict[str, Any]]:
+        self._ensure_engines()
+        if self.remote_mode():
+            return self._api_client().fetch_scan_runs(limit=limit) or []
+
+        def _work() -> list[dict[str, Any]]:
+            from database import db, models
+
+            session = db.SessionLocal()
+            try:
+                runs = []
+                for r in session.query(models.ScanRun).order_by(models.ScanRun.started_at.desc()).limit(limit).all():
+                    runs.append(
+                        {
+                            "id": r.id,
+                            "target_id": r.target_id,
+                            "status": r.status,
+                            "started_at": _iso(getattr(r, "started_at", None)),
+                            "finished_at": _iso(getattr(r, "finished_at", None)),
+                        }
+                    )
+                return runs
+            finally:
+                session.close()
+
+        with service_call():
+            return _work()
+
+    def get_hunt_status(self) -> dict[str, Any]:
+        if not self.remote_mode():
+            return {"status": "offline", "honest": "hunt runs inside the backend scheduler"}
+        return self._api_client().fetch_hunt_status() or {"status": "unknown"}
+
+    def start_hunt(self) -> dict[str, Any] | None:
+        if not self.remote_mode():
+            raise ServiceError("hunt requires the backend service (offline)")
+        return self._api_client().start_hunt()
+
+    def stop_hunt(self) -> dict[str, Any] | None:
+        if not self.remote_mode():
+            raise ServiceError("hunt requires the backend service (offline)")
+        return self._api_client().stop_hunt()
+
     # -- consolidated dashboard -----------------------------------------
     def get_dashboard(self) -> dict[str, Any]:
         """Consolidated dashboard: remote API when online, local engines otherwise."""
