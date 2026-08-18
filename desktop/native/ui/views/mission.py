@@ -26,7 +26,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from desktop.native.services.mission import MissionControlData, get_mission
+from desktop.native.services.api_client import ApiClient
+from desktop.native.services.mission import MissionControlData
 from desktop.native.ui.tokens import get_theme
 from desktop.native.ui.views.base import BaseView
 
@@ -41,6 +42,14 @@ class MissionControlView(BaseView):
 
     def __init__(self, mission: MissionControlData | None = None, parent: QWidget | None = None) -> None:
         super().__init__(mission=mission, parent=parent)
+
+        # Initialize API client
+        self._api = ApiClient()
+
+        # Internal state for API-fetched data (used when no mission data provided)
+        self._api_targets: list[dict] = []
+        self._api_findings_count: int = 0
+        self._api_activity_count: int = 0
 
         # Layout principal: KPI cards en grid + tabla de targets + acciones
         main = QVBoxLayout(self)
@@ -120,17 +129,77 @@ class MissionControlView(BaseView):
         # Aplicar tema
         self.apply_theme()
 
-    # -- Data loading (real data, never hardcoded KPIs) ----------------
-    def refresh(self) -> None:
-        mission = getattr(self, "mission", None) or get_mission()
+        # Initial data load — use mission data if provided, otherwise API
+        self.refresh()
+
+    # -- Data loading (real data from API or mission data) ----------------
+    def _fetch_api_data(self) -> dict | None:
+        """Fetch KPI data and targets from the backend API."""
         try:
-            data = mission.get_dashboard()
+            targets = self._api.fetch_targets(limit=50)
         except Exception as exc:  # noqa: BLE001
-            logger.warning("mission dashboard refresh failed: %s", exc)
+            logger.warning("mission targets fetch failed: %s", exc)
+            targets = []
+
+        try:
+            findings = self._api.fetch_findings(limit=50)
+            findings_count = len(findings) if findings else 0
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("mission findings fetch failed: %s", exc)
+            findings_count = 0
+
+        try:
+            activity = self._api.fetch_activity(hours=24, limit=20)
+            activity_count = len(activity) if activity else 0
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("mission activity fetch failed: %s", exc)
+            activity_count = 0
+
+        return {
+            "source": "api",
+            "counts": {
+                "targets": len(targets),
+                "findings": findings_count,
+                "opps": "n/a",
+                "activity": activity_count,
+            },
+            "targets": targets,
+        }
+
+    def refresh(self) -> None:
+        """Fetch fresh data and update the UI.
+
+        Uses mission data if a mission with get_dashboard() was provided,
+        otherwise falls back to backend API.
+        """
+        # Try mission data first (for test compatibility and offline mode)
+        mission = getattr(self, "mission", None)
+        if mission is not None and hasattr(mission, "get_dashboard"):
+            try:
+                data = mission.get_dashboard()
+                counts = data.get("counts", {})
+                self._set_kpis(
+                    counts.get("targets", 0),
+                    counts.get("findings", 0),
+                    counts.get("opps", "n/a"),
+                    counts.get("activity", 0),
+                )
+                self._set_source(str(data.get("source", "local")))
+                self._populate_targets(data.get("targets", []))
+                return
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("mission dashboard refresh failed: %s", exc)
+
+        # Fall back to API
+        try:
+            data = self._fetch_api_data()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("API dashboard refresh failed: %s", exc)
             self._set_kpis("--", "--", "error", "--")
             self._set_source("error")
             self._table.setRowCount(0)
             return
+
         counts = data.get("counts", {})
         self._set_kpis(
             counts.get("targets", 0),
@@ -138,7 +207,7 @@ class MissionControlView(BaseView):
             counts.get("opps", "n/a"),
             counts.get("activity", 0),
         )
-        self._set_source(str(data.get("source", "local")))
+        self._set_source(str(data.get("source", "api")))
         self._populate_targets(data.get("targets", []))
 
     def _set_kpis(self, targets: object, findings: object, opps: object, activity: object) -> None:
@@ -162,13 +231,14 @@ class MissionControlView(BaseView):
             self._table.setItem(row, 0, QTableWidgetItem(str(t.get("id", ""))))
             self._table.setItem(row, 1, QTableWidgetItem(str(t.get("name", ""))))
             self._table.setItem(row, 2, QTableWidgetItem(str(t.get("domain", ""))))
-            self._table.setItem(row, 3, QTableWidgetItem("Active" if t.get("active") else "Inactive"))
+            status = "Active" if t.get("active") else "Inactive"
+            self._table.setItem(row, 3, QTableWidgetItem(status))
 
     # -- Helpers de estilo — usando get_theme() en lugar de atributos directos --
     def apply_theme(self) -> None:
         theme = get_theme()
 
-        ws = "background-color: " + theme.text + ";"
+        ws = "background-color: " + theme.background + ";"
         fc = "color: " + theme.text + ";"
         sf = "background-color: " + theme.surface + ";"
         st = "border: 1px solid " + theme.stroke + ";"

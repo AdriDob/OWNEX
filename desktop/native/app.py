@@ -13,6 +13,7 @@ Architecture:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import os
 import sys
@@ -23,56 +24,63 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFontDatabase, QIcon
 from PySide6.QtWidgets import QApplication
 
-# Allow `import desktop.native...` from the repo root when run as a script.
-_REPO_ROOT = Path(__file__).resolve().parents[3]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
+logger = logging.getLogger("ownex.native.app")
 
 from desktop.native.services.backend import start_backend_async  # noqa: E402
 from desktop.native.ui.icons import RASTRO_ICON_PATH  # noqa: E402
 from desktop.native.ui.main_window import MainWindow, native_qss  # noqa: E402
 
-logger = logging.getLogger("ownex.native.app")
+# ── Data & Log Directories ──────────────────────────────────────
+# Windows: %APPDATA%/OWNEX/
+# POSIX:  ~/.config/OWNEX/
+if sys.platform.startswith("win"):
+    _DATA_DIR = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming")) / "OWNEX"
+else:
+    _DATA_DIR = Path(os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config"))) / "OWNEX"
+_LOG_DIR = _DATA_DIR / "logs"
+_DATABASE_DIR = _DATA_DIR  # DB lives alongside other data
+_DATABASE_DIR.mkdir(parents=True, exist_ok=True)
+_LOG_DIR.mkdir(parents=True, exist_ok=True)
 
-# Single source of truth for the window title (matches tokens window_title).
+# Configure file logging (Qt windowed apps lose stderr)
+_LOG_FILE = _DATA_DIR / "logs" / "app.log"
+_file_handler = logging.FileHandler(_LOG_FILE, encoding="utf-8")
+_file_handler.setLevel(logging.INFO)
+_file_formatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
+_file_handler.setFormatter(_file_formatter)
+logger.addHandler(_file_handler)
+
 APP_NAME = "OWNEX"
 DEFAULT_THEME = "default"
 DEFAULT_GEOMETRY = (120, 80, 1280, 760)  # x, y, w, h — adaptive-desktop friendly.
 
 
-def _load_fonts() -> None:
+# ── Font Registration ───────────────────────────────────────────
+def _register_vendored_fonts() -> None:
     """Register vendored V3 brand fonts (Inter / Space Grotesk / JetBrains Mono)."""
-    fonts_dir = _REPO_ROOT / "assets/branding/fonts"
+    fonts_dir = Path(__file__).parent.parent / "assets/branding/fonts"
     if not fonts_dir.is_dir():
         return
-    families_added: set[str] = set()
     for f in sorted(fonts_dir.glob("*.ttf")):
-        if f.stem.split("-")[0].lower() in families_added:
-            continue
-        try:
+        with contextlib.suppress(Exception):
             QFontDatabase.addApplicationFont(str(f))
-            families_added.add(f.stem.split("-")[0].lower())
-        except Exception as exc:
-            logger.warning("font load failed %s: %s", f.name, exc)
 
 
+# ── Application Factory ─────────────────────────────────────────
 def create_application() -> QApplication:
-    QApplication.setAttribute(Qt.AA_DontCreateNativeWidgetSiblings, True)
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+    QApplication.setAttribute(Qt.ApplicationAttribute.AA_DontCreateNativeWidgetSiblings, True)
+    QApplication.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
     app.setApplicationDisplayName(APP_NAME)
     if RASTRO_ICON_PATH and Path(RASTRO_ICON_PATH).is_file():
         app.setWindowIcon(QIcon(RASTRO_ICON_PATH))
-    _load_fonts()
+    _register_vendored_fonts()
     return app
 
 
+# ── Main ────────────────────────────────────────────────────────
 def main() -> int:
-    logging.basicConfig(
-        level=os.environ.get("RASTRRO_LOG_LEVEL", "INFO"),
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-    )
     start_backend_async()
     app = create_application()
     window = MainWindow(theme_name=os.environ.get("OWNEX_THEME", DEFAULT_THEME))

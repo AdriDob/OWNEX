@@ -8,6 +8,7 @@ datas = [
     ("assets/branding/themes", "assets/branding/themes"),
     ("assets/branding/design-tokens.json", "assets/branding"),
     ("assets/branding/fonts", "assets/branding/fonts"),
+    ("assets/logos", "assets/logos"),
     ("run-desktop", "."),
 ]
 binaries = []

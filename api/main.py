@@ -588,9 +588,9 @@ async def lifespan(app: FastAPI):
 
         # ── Unified Memory ────────────────────────────────────────────
         try:
-            from core.memory.store import get_memory_store
+            from core.memory.store import get_memory_store as get_unified_memory_store
 
-            _store = get_memory_store()
+            _store = get_unified_memory_store()
             logger.info(
                 "[BOOT] Unified Memory initialized: %d entries across %d namespaces",
                 _store.count(),
@@ -734,7 +734,7 @@ async def lifespan(app: FastAPI):
                 stats["total_edges"],
             )
 
-            def _knowledge_graph_handler(event_type: str, **payload: object) -> None:
+            def _knowledge_graph_handler(event_type: str, **payload: Any) -> None:
                 try:
                     if event_type.startswith("finding:"):
                         finding_id = payload.get("id", "unknown")
@@ -1189,7 +1189,7 @@ async def lifespan(app: FastAPI):
     try:
         from core.evolution.engine import init_evolution_engine
 
-        engine = init_evolution_engine()
+        init_evolution_engine()
         logger.info("[EVOLUTION] Engine ready — Observe layer accepting metrics")
     except Exception as exc:
         logger.warning("[EVOLUTION] Engine init failed (non-fatal): %s", exc)
@@ -1366,8 +1366,8 @@ async def lifespan(app: FastAPI):
 
         monitor = get_health_monitor()
         monitor.stop()
-        engine = get_recovery_engine()
-        engine.stop()
+        recovery_engine = get_recovery_engine()
+        recovery_engine.stop()
         logger.info("[BOOT] Recovery engine and health monitor stopped")
     except Exception as exc:
         logger.warning("Recovery engine stop error: %s", exc)
@@ -1751,7 +1751,7 @@ def _get_db_size_mb() -> float:
 
 
 @app.get("/api/version")
-async def version():
+async def get_version():
     return {"version": APP_VERSION, "app": "OWNEX API", "build": "4.6.0"}
 
 

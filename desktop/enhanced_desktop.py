@@ -14,7 +14,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import sys
 import threading
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from desktop.main_desktop import ServerThread
+    from desktop.tray import TrayController
 
 logger = logging.getLogger("orion.desktop.enhanced")
 
@@ -23,10 +29,10 @@ class EnhancedDesktop:
     """Full native Windows 11 desktop experience."""
 
     def __init__(self) -> None:
-        self._server_thread = None
-        self._scheduler_thread = None
-        self._tray = None
-        self._webview = None
+        self._server_thread: ServerThread | None = None
+        self._scheduler_thread: threading.Thread | None = None
+        self._tray: TrayController | None = None
+        self._webview: Any | None = None
         self._running = False
 
     async def start(self) -> None:
@@ -94,12 +100,14 @@ class EnhancedDesktop:
     def _start_tray(self) -> None:
         """Start the system tray."""
         try:
-            from desktop.tray import start_tray
+            from desktop.tray import TrayController
 
-            self._tray = start_tray(
+            self._tray = TrayController(
                 on_open_dashboard=self._open_dashboard,
+                on_open_daily_mode=self._open_dashboard,
                 on_quit=self.stop,
             )
+            self._tray.start()
             logger.info("[DESKTOP] System tray started")
         except Exception as e:
             logger.warning("[DESKTOP] Tray not available: %s", e)
@@ -149,17 +157,18 @@ class EnhancedDesktop:
             native = get_native()
 
             # Get window handle
-            import ctypes
+            if sys.platform == "win32":
+                import ctypes
 
-            hwnd = ctypes.windll.user32.GetForegroundWindow()
+                hwnd = ctypes.windll.user32.GetForegroundWindow()
 
-            # Apply Mica backdrop
-            native.apply_mica_backdrop(hwnd)
+                # Apply Mica backdrop
+                native.apply_mica_backdrop(hwnd)
 
-            # Set dark titlebar
-            native.set_titlebar_color(hwnd, dark=True)
+                # Set dark titlebar
+                native.set_titlebar_color(hwnd, dark=True)
 
-            logger.info("[DESKTOP] Windows 11 native enhancements applied")
+                logger.info("[DESKTOP] Windows 11 native enhancements applied")
         except Exception as e:
             logger.debug("[DESKTOP] Native enhancements skipped: %s", e)
 
