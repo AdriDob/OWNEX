@@ -16,10 +16,10 @@
 !define ABOUTURL "https://github.com/AdriDob/OWNEX"
 !define INSTALLSIZE 250000
 
-; Use user-level installation to avoid admin requirement
-RequestExecutionLevel user
+; Use admin-level installation for Program Files
+RequestExecutionLevel admin
 
-InstallDir "$LOCALAPPDATA\Programs\${APPNAME}"
+InstallDir "$PROGRAMFILES\OWNEX"
 
 Page directory
 Page instfiles

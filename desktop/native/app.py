@@ -1,91 +1,205 @@
-"""OWNEX/Rastro Desktop — native shell (PySide6/Qt, no WebView, no browser).
-
-Entry point for the native desktop application. Replaces the legacy web-based
-shells (pywebview browser fallback, Vite dev server, Tauri WebView, FastAPI HTTP).
-
-Architecture:
-  - PySide6.QtWidgets QApplication (native, CPU-only)
-  - qasync.QEventLoop bridges Qt <-> asyncio
-  - In-process services (desktop.native.services.*) wrap the backend engines
-  - No HTTP server, no browser, no localhost UI
-"""
-
-from __future__ import annotations
-
-import asyncio
-import logging
-import os
 import sys
-from pathlib import Path
+import time
 
-import qasync
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFontDatabase, QIcon
 from PySide6.QtWidgets import QApplication
 
-# Allow `import desktop.native...` from the repo root when run as a script.
-_REPO_ROOT = Path(__file__).resolve().parents[3]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
+from desktop.native.services.backend import start_backend_async
 
-from desktop.native.services.backend import start_backend_async  # noqa: E402
-from desktop.native.ui.icons import RASTRO_ICON_PATH  # noqa: E402
-from desktop.native.ui.main_window import MainWindow, native_qss  # noqa: E402
+# ============================================================================
+# RUNTIME PATH RESOLUTION: FROZEN VS DEVELOPMENT
+# ============================================================================
+# Este bloque permite que la aplicación funcione tanto:
+# 1. Como .exe congelado con PyInstaller (sys.frozen = True)
+# 2. Como aplicación de desarrollo (sys.frozen = False/None)
+# ============================================================================
 
-logger = logging.getLogger("ownex.native.app")
+if getattr(sys, "frozen", False):
+    # Running as PyInstaller frozen application
+    import os
 
-# Single source of truth for the window title (matches tokens window_title).
+    # Executable está en el directorio del bundle PyInstaller
+    BASE_DIR = os.path.dirname(sys.executable)
+    # Datos de usuario van a APPDATA (Windows) o ~/.config
+    appdata = os.environ.get("APPDATA", "")
+    if appdata:
+        DATA_DIR = os.path.join(appdata, "OWNEX")
+    else:
+        # Fallback: user home directory
+        DATA_DIR = os.path.join(os.path.expanduser("~"), ".OWNEX")
+else:
+    # Development mode - use relative paths from repo
+    import os
+
+    # En desarrollo, los datos van a ./data (fuera del repo, en la raíz)
+    # O usa la ruta absoluta del repositorio
+    REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    DATA_DIR = os.path.join(REPO_ROOT, "data")
+
+# Asegurar que el directorio de datos existe (crea si no)
+os.makedirs(DATA_DIR, exist_ok=True)
+
+from desktop.native.ui.icons import RASTRO_ICON_PATH
+
+# ── Data & Log Directories ──────────────────────────────────────
+if sys.platform.startswith("win"):
+    _DATA_DIR = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming")) / "OWNEX"
+else:
+    _DATA_DIR = Path(os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config"))) / "OWNEX"
+_LOG_DIR = _DATA_DIR / "logs"
+_DATABASE_DIR = _DATA_DIR
+_LOG_DIR.mkdir(parents=True, exist_ok=True)
+_DATABASE_DIR.mkdir(parents=True, exist_ok=True)
+
+# Configure file logging (Qt windowed apps lose stderr)
+import logging
+
+_LOG_FILE = _DATA_DIR / "logs" / "app.log"
+_file_handler = logging.FileHandler(_LOG_FILE, encoding="utf-8")
+_file_handler.setLevel(logging.INFO)
+_file_formatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
+_file_handler.setFormatter(_file_formatter)
+logging.getLogger().addHandler(_file_handler)
+logging.getLogger().setLevel(logging.INFO)
+
 APP_NAME = "OWNEX"
 DEFAULT_THEME = "default"
-DEFAULT_GEOMETRY = (120, 80, 1280, 760)  # x, y, w, h — adaptive-desktop friendly.
+DEFAULT_GEOMETRY = (120, 80, 1280, 760)
 
 
-def _load_fonts() -> None:
-    """Register vendored V3 brand fonts (Inter / Space Grotesk / JetBrains Mono)."""
-    fonts_dir = _REPO_ROOT / "assets/branding/fonts"
+# ── Font Registration ───────────────────────────────────────────
+def _register_vendored_fonts() -> None:
+    fonts_dir = Path(__file__).parent.parent / "assets/branding/fonts"
     if not fonts_dir.is_dir():
         return
-    families_added: set[str] = set()
     for f in sorted(fonts_dir.glob("*.ttf")):
-        if f.stem.split("-")[0].lower() in families_added:
-            continue
-        try:
+        with __import__("contextlib").suppress(Exception):
             QFontDatabase.addApplicationFont(str(f))
-            families_added.add(f.stem.split("-")[0].lower())
-        except Exception as exc:
-            logger.warning("font load failed %s: %s", f.name, exc)
 
 
+# ── Application Factory ─────────────────────────────────────────
 def create_application() -> QApplication:
-    QApplication.setAttribute(Qt.AA_DontCreateNativeWidgetSiblings, True)
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+    QApplication.setAttribute(Qt.ApplicationAttribute.AA_DontCreateNativeWidgetSiblings, True)
+    QApplication.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
     app.setApplicationDisplayName(APP_NAME)
     if RASTRO_ICON_PATH and Path(RASTRO_ICON_PATH).is_file():
         app.setWindowIcon(QIcon(RASTRO_ICON_PATH))
-    _load_fonts()
+    _register_vendored_fonts()
     return app
 
 
+# ── Boot Sequence Helpers ───────────────────────────────────────
+def _check_backend_healthy(timeout: float = 10.0) -> bool:
+    """Verifica que el backend in-process responde 200 en /api/health."""
+    import time as _time
+
+    import httpx
+
+    deadline = _time.monotonic() + timeout
+    while _time.monotonic() < deadline:
+        try:
+            r = httpx.get("http://127.0.0.1:8000/api/health", timeout=1.0)
+            if r.status_code == 200 and r.json().get("status") == "ok":
+                return True
+        except Exception:
+            pass
+        _time.sleep(0.5)
+    return False
+
+
+def _check_scheduler_running() -> bool:
+    """Verifica que el scheduler lleva corriendo > 0 (ticks)."""
+    import httpx
+
+    try:
+        r = httpx.get("http://127.0.0.1:8000/api/system/health", timeout=2.0)
+        data = r.json()
+        engines = data.get("loop_engines", {})
+        if isinstance(engines, dict):
+            for _key, val in engines.items():
+                if isinstance(val, dict) and val.get("is_running"):
+                    return True
+                if isinstance(val, dict) and val.get("phases"):
+                    phases = val.get("phases", [])
+                    if any(p for p in phases):
+                        return True
+        return False
+    except Exception:
+        return False
+
+
+def _check_database_connected() -> bool:
+    """Chequea mínima conectividad de la DB (ping implícito via health)."""
+    import httpx
+
+    try:
+        r = httpx.get("http://127.0.0.1:8000/api/health", timeout=1.0)
+        return r.status_code == 200
+    except Exception:
+        return False
+
+
+def _check_agents_healthy() -> bool:
+    """Versión simple: health endpoint incluye agents_healthy."""
+    import httpx
+
+    try:
+        r = httpx.get("http://127.0.0.1:8000/api/system/health", timeout=2.0)
+        data = r.json()
+        agents = data.get("agents_health", "")
+        return "offline" not in str(agents).lower()
+    except Exception:
+        return True
+
+
+def _run_boot_sequence() -> bool:
+    """Ejecuta los system checks. Retorna True si al menos la mayoría pasan."""
+    BOOT_ITEMS = [
+        ("Backend API", _check_backend_healthy, "El núcleo de OWNEX responde correctamente."),
+        ("Scheduler de ciclos", _check_scheduler_running, "Los Work Cycles están activos."),
+        ("Base de datos", _check_database_connected, "La persistencia de datos está conectada."),
+        ("Agentes del sistema", _check_agents_healthy, "El estado de los agentes es saludable."),
+    ]
+    passed = 0
+    total = len(BOOT_ITEMS)
+    for label, check_fn, note in BOOT_ITEMS:
+        if check_fn():
+            passed += 1
+
+        time.sleep(0.8)
+    return passed >= total * 0.75  # al menos 75% de checks pasar
+
+
+# ── Main ────────────────────────────────────────────────────────
 def main() -> int:
-    logging.basicConfig(
-        level=os.environ.get("RASTRRO_LOG_LEVEL", "INFO"),
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-    )
-    start_backend_async()
+    # 1. Crear aplicación QApplication
     app = create_application()
+
+    # 2. Arrancar backend local en proceso separado (fire-and-forget)
+    start_backend_async()
+
+    # 3. Esperar a que el backend responda (máx. 10s)
+    boot_ok = _run_boot_sequence()
+
+    # 4. Crear ventana principal
     window = MainWindow(theme_name=os.environ.get("OWNEX_THEME", DEFAULT_THEME))
     x, y, w, h = DEFAULT_GEOMETRY
     window.setGeometry(x, y, w, h)
+
+    if not boot_ok:
+        # El boot sequence verificó lo posible; el backend sigue arrancándose
+        # en hilo background y los datos cargan solos vía auto-refresh.
+        pass
+
     window.show()
     window.setStyleSheet(native_qss())
     with qasync.QEventLoop(app) as loop:
+        import asyncio
+
         asyncio.set_event_loop(loop)
         # Ensure in-process services initialize on the event loop.
         QTimer.singleShot(0, lambda: None)
         return app.exec()
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

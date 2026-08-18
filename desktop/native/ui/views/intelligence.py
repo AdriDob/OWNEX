@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from desktop.native.services.mission import get_mission
+from desktop.native.services.mission import MissionControlData, get_mission
 from desktop.native.ui.tokens import get_theme
 from desktop.native.ui.views.base import BaseView
 
@@ -34,8 +34,8 @@ class IntelligenceView(BaseView):
     SECTION = "intelligence"
     TITLE = "Intelligence"
 
-    def __init__(self, parent: QWidget | None = None) -> None:
-        super().__init__(parent=parent)
+    def __init__(self, mission: MissionControlData | None = None, parent: QWidget | None = None) -> None:
+        super().__init__(mission=mission, parent=parent)
 
         # Layout principal: tarjetas en grid + barra de acciones
         main = QVBoxLayout(self)
@@ -153,7 +153,7 @@ class IntelligenceView(BaseView):
     def apply_theme(self) -> None:
         theme = get_theme()
 
-        ws = "background-color: " + theme.text + ";"
+        ws = "background-color: " + theme.background + ";"
         sf = "background-color: " + theme.surface + ";"
         st = "border: 1px solid " + theme.stroke + ";"
 

@@ -8,6 +8,7 @@ datas = [
     ("assets/branding/themes", "assets/branding/themes"),
     ("assets/branding/design-tokens.json", "assets/branding"),
     ("assets/branding/fonts", "assets/branding/fonts"),
+    ("assets/logos", "assets/logos"),
     ("run-desktop", "."),
 ]
 binaries = []
@@ -85,6 +86,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon="assets/logos/ownex-icon-alpha.ico",
 )
 coll = COLLECT(
     exe,

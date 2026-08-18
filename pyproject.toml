@@ -28,7 +28,7 @@ ignore = ["E501", "E731", "B008"]
 "database/db.py" = ["E402"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = false
 warn_unused_configs = true
 warn_redundant_casts = true

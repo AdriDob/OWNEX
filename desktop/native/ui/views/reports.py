@@ -26,7 +26,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from desktop.native.services.mission import get_mission
+from desktop.native.services.mission import MissionControlData, get_mission
 from desktop.native.ui.tokens import get_theme
 from desktop.native.ui.views.base import BaseView
 
@@ -37,8 +37,9 @@ class ReportsView(BaseView):
     SECTION = "reports"
     """Reports dashboard — generated reports list + preview."""
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, mission: MissionControlData | None = None, parent: QWidget | None = None) -> None:
         super().__init__(
+            mission=mission,
             section="reports",
             label="Reports",
             icon="report",
@@ -196,5 +197,5 @@ class ReportsView(BaseView):
         sf = "background-color: " + theme.surface + ";"
         st = "border: 1px solid " + theme.stroke + ";"
         self.setStyleSheet(
-            "QWidget {" + ws + "}QFrame {" + sf + "border-radius: 6px;" + st + "}QLabel {" + theme.text + ";"
+            "QWidget {" + ws + "}QFrame {" + sf + "border-radius: 6px;" + st + "}QLabel {" + theme.text + ";}"
         )

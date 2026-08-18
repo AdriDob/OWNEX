@@ -100,7 +100,7 @@ THEMES: dict[str, ThemeSpec] = {
         text="#F6F8FB",
         muted="#8B8D98",
         stroke="#2A2E37",
-        window_title="RASTRRO",
+        window_title="OWNEX",
         intention="baseline del sistema RASTRO. Contraste equilibrado, acento cian suave, legibilidad óptima.",
         cycles={},
         platforms={},
@@ -283,7 +283,7 @@ def get_registry() -> ThemeRegistry:
 
 def get_theme(name: str = "default") -> ThemeSpec:
     """Convenience wrapper that forwards to the registry."""
-    return get_registry().set_current(name) or get_registry().current()  # py: no cover
+    return get_registry().current()
 
 
 # ---------------------------------------------------------------------------
