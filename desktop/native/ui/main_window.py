@@ -17,7 +17,7 @@ import contextlib
 from pathlib import Path
 from typing import Any
 
-from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtCore import QTimer, Signal
 from PySide6.QtGui import QFontDatabase, QIcon
 from PySide6.QtWidgets import (
     QComboBox,
@@ -26,7 +26,6 @@ from PySide6.QtWidgets import (
     QLabel,
     QMainWindow,
     QPushButton,
-    QSplitter,
     QStackedWidget,
     QStatusBar,
     QVBoxLayout,
@@ -94,7 +93,7 @@ def _qss(theme) -> str:
     # or pure concatenation. Here we use pure concatenation for maximum safety.
     parts = []
     # Widget background
-    parts.append("QWidget {background-color: " + theme.text + ";}")
+    parts.append("QWidget {background-color: " + theme.background + ";}")
     # Frame/surface
     parts.append(
         "QFrame {background-color: " + theme.surface + "; border-radius: 6px; border: 1px solid " + theme.stroke + ";}"
@@ -194,14 +193,6 @@ class MainWindow(QMainWindow):
         self._theme_name = theme_name or get_registry().current().name
         self.theme_changed.emit(self._theme_name)
 
-        # --- Splitter principal ---
-        self._splitter = QSplitter(Qt.Horizontal)
-        self._splitter.setChildrenCollapsible(False)
-        self._splitter.setHandleWidth(4)
-        self._splitter.setStyleSheet(
-            "QSplitter::handle { background-color: #2A2E37; }QSplitter::handle:hover { background-color: #3A3F47; }"
-        )
-
         # --- Sidebar ---
         self._sidebar = QFrame()
         self._sidebar.setFixedWidth(LAYOUT.sidebar_width_default)
@@ -213,7 +204,7 @@ class MainWindow(QMainWindow):
         self._nav_buttons: dict[str, QPushButton] = {}
         self._view_stack = QStackedWidget()
 
-        for section in SECTIONS:
+        for _, section in SECTIONS:
             nav_cfg = next((n for n in NAVIGATION if n.section == section), None)
             if not nav_cfg:
                 continue
@@ -318,10 +309,6 @@ class MainWindow(QMainWindow):
             view = QWidget()
             lay = QVBoxLayout(view)
             lay.addWidget(QLabel("Section: " + section + " (view under construction)"))
-        current = self._view_stack.currentWidget()
-        if current is not None:
-            self._view_stack.removeWidget(current)
-            current.deleteLater()
         self._view_stack.addWidget(view)
         self._view_stack.setCurrentWidget(view)
         if hasattr(view, "refresh"):
