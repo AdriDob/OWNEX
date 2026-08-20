@@ -38,7 +38,7 @@ class FreebuffConfig:
     command: str = "freebuff"
     timeout: int = 300  # seconds
     max_concurrent_tasks: int = 4
-    allowed_paths: list[str] = field(default_factory=lambda: ["/home/adrie/projects/Rastro"])
+    allowed_paths: list[str] = field(default_factory=lambda: [str(Path.home() / "projects" / "Rastro")])
     network_access: bool = False
     require_git_clean: bool = True
     autonomy_level: int = 1  # 0=suggest only, 1=confirm, 2=auto-low-risk, 3=auto+test, 4=full
@@ -712,7 +712,7 @@ def cli_entry():
     # Build request dict and convert to object
     request_dict = {
         "task": "Add type annotations to function",
-        "workspace": "/home/adrie/projects/Rastro",
+        "workspace": str(Path.home() / "projects" / "Rastro"),
         "task_type": "code",
         "complexity": "LOW",
         "risk_level": "LOW",

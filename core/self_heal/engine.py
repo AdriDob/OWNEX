@@ -60,9 +60,10 @@ class SelfHealEngine:
         if not path.exists():
             return
         content = path.read_text(encoding="utf-8")
-        if 'OWNEX_DIR = "/home/adrie/projects/rastro"' in content:
+        hardcoded_dir = f'OWNEX_DIR = "{self.project_dir}"'
+        if hardcoded_dir in content:
             fixed = content.replace(
-                'OWNEX_DIR = "/home/adrie/projects/rastro"',
+                hardcoded_dir,
                 "OWNEX_DIR = os.getcwd()",
             )
             path.write_text(fixed, encoding="utf-8")

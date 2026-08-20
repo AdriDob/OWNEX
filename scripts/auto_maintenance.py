@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-PROJECT_ROOT = Path("/home/adrie/projects/Rastro")
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 class AutoMaintenance:

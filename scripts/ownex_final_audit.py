@@ -6,7 +6,7 @@ Comprehensive audit of OWNEX according to the Final Excellence Protocol.
 import json
 from pathlib import Path
 
-PROJECT_ROOT = Path("/home/adrie/projects/Rastro")
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 def check_backend() -> dict:

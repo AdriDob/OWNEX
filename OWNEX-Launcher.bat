@@ -8,8 +8,12 @@ REM ============================================================================
 setlocal enabledelayedexpansion
 
 set WSL_DISTRO=Ubuntu
-set PROJECT_PATH=/home/adriel/projects/Rastro
-set PYTHON_PATH=/home/adriel/projects/Rastro/.venv/bin/python
+if defined PROJECT_PATH (
+    echo [INFO] Using PROJECT_PATH from environment: %PROJECT_PATH%
+) else (
+    set PROJECT_PATH=/home/adriel/projects/Rastro
+)
+set PYTHON_PATH=%PROJECT_PATH%/.venv/bin/python
 set BACKEND_PORT=8000
 set HEALTH_ENDPOINT=http://127.0.0.1:%BACKEND_PORT%/api/health
 set STARTUP_TIMEOUT=120

@@ -6,6 +6,9 @@ drifted apart, in which case it lists the differing real .py files.
 """
 
 import subprocess
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 CMD = (
     "diff -rq core cores 2>/dev/null "
@@ -19,7 +22,7 @@ CMD = (
 try:
     proc = subprocess.run(
         ["bash", "-c", CMD],
-        cwd="/home/adrie/projects/Rastro",
+        cwd=str(_PROJECT_ROOT),
         capture_output=True,
         text=True,
         timeout=60,

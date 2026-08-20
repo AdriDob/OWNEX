@@ -16,6 +16,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
+from pathlib import Path
 from typing import Any
 
 from cores.ai.runtime import TaskType, get_oar
@@ -190,7 +191,7 @@ class RemoteExecutor:
                 command,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
-                cwd=session.context.get("cwd", "/home/adrie"),
+                cwd=session.context.get("cwd", str(Path.home())),
             )
 
             stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=300)

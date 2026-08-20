@@ -244,7 +244,7 @@ class ApiClient:
         return []
 
     def fetch_direct_work_status(self) -> dict | None:
-        data = self.get("/api/direct-work/status")
+        data = self.get("/direct-work/status")
         return data if isinstance(data, dict) else None
 
     # -- reports -----------------------------------------------------------

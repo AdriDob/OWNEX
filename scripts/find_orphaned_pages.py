@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-PAGES_DIR = Path("/home/adrie/projects/Rastro/frontend/src/pages")
+PAGES_DIR = Path(__file__).resolve().parent.parent / "frontend" / "src" / "pages"
 ROUTED_PAGES = {
     # From router/index.ts
     "AISecurity.vue",
