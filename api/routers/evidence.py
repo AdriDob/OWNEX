@@ -77,7 +77,7 @@ def save_evidence_claim(
 ):
     """Save a signed evidence claim for reclamos/payment disputes.
 
-    Output: /home/adrie/.rastro/evidence/{finding_id}.claim.json
+    Output: ~/.rastro/evidence/{finding_id}.claim.json
     """
     import hashlib
     import json

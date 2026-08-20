@@ -278,7 +278,7 @@ class EnhancedPersonalizationSystem:
                         "id": "obsidian_vault_path",
                         "question": "¿Dónde está tu vault de Obsidian?",
                         "type": "text",
-                        "placeholder": "/home/adrie/Documents/ObsidianVault",
+                        "placeholder": str(Path.home() / "Documents" / "ObsidianVault"),
                         "required": False,
                         "condition": "obsidian_enabled == true",
                     },

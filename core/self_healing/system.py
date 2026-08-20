@@ -436,8 +436,8 @@ pydantic = "^2.5.1"
 class SelfHealingSystem:
     """Main self-healing system orchestrating all repair operations."""
 
-    def __init__(self, project_root: str = "/home/adrie/projects/Rastro"):
-        self.project_root = Path(project_root)
+    def __init__(self, project_root: str | None = None):
+        self.project_root = Path(project_root or str(Path.home() / "projects" / "Rastro"))
         self.import_validator = ImportValidator(self.project_root)
         self.file_integrity_checker = FileIntegrityChecker(self.project_root)
         self.state_validator = StateValidator(self.project_root)

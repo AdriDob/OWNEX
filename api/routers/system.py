@@ -239,9 +239,10 @@ def start_daemon():
             pass
 
     # Start daemon in background
-    venv_python = Path(__file__).resolve().parent.parent.parent.parent / ".venv" / "bin" / "python"
+    repo_root = Path(__file__).resolve().parent.parent.parent
+    venv_python = repo_root / ".venv" / "bin" / "python"
     if not venv_python.exists():
-        venv_python = Path("/home/adrie/projects/Rastro/.venv/bin/python")
+        venv_python = Path.home() / "projects" / "Rastro" / ".venv" / "bin" / "python"
 
     # Use nohup to detach
     env = os.environ.copy()
@@ -249,7 +250,7 @@ def start_daemon():
 
     proc = subprocess.Popen(
         [str(venv_python), "run.py", "--daemon"],
-        cwd="/home/adrie/projects/Rastro",
+        cwd=str(repo_root),
         env=env,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,

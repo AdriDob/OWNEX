@@ -21,8 +21,8 @@ class SelfUpdateError(Exception):
 class SelfUpdateSystem:
     """Self-update system for Rastro."""
 
-    def __init__(self, project_root: str = "/home/adrie/projects/Rastro"):
-        self.project_root = Path(project_root)
+    def __init__(self, project_root: str | None = None):
+        self.project_root = Path(project_root or str(Path.home() / "projects" / "Rastro"))
         self.auto_update_enabled = os.getenv("AUTO_UPDATE_ENABLED", "false").lower() == "true"
         self.update_branch = os.getenv("UPDATE_BRANCH", "main")
         self.venv_path = self.project_root / ".venv"

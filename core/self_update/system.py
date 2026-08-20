@@ -232,8 +232,8 @@ class ProcessManager:
 class SelfUpdateSystem:
     """Main self-update system orchestrating all update operations."""
 
-    def __init__(self, project_root: str = "/home/adrie/projects/Rastro"):
-        self.project_root = Path(project_root)
+    def __init__(self, project_root: str | None = None):
+        self.project_root = Path(project_root or str(Path.home() / "projects" / "Rastro"))
         self.git_updater = GitUpdater(self.project_root)
         self.dependency_installer = DependencyInstaller(self.project_root)
         self.process_manager = ProcessManager(self.project_root)

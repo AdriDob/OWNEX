@@ -14,7 +14,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-ROOT = Path("/home/adrie/projects/Rastro")
+ROOT = Path(__file__).resolve().parent.parent.parent
 F = ROOT / "assets/branding/fonts"
 OUT_L = ROOT / "docs/assets/branding/logo"
 OUT_B = ROOT / "docs/assets/branding/banners"
