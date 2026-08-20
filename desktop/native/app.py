@@ -1,46 +1,17 @@
+import logging
+import os
 import sys
 import time
+from pathlib import Path
 
+import qasync
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFontDatabase, QIcon
 from PySide6.QtWidgets import QApplication
 
 from desktop.native.services.backend import start_backend_async
-
-# ============================================================================
-# RUNTIME PATH RESOLUTION: FROZEN VS DEVELOPMENT
-# ============================================================================
-# Este bloque permite que la aplicación funcione tanto:
-# 1. Como .exe congelado con PyInstaller (sys.frozen = True)
-# 2. Como aplicación de desarrollo (sys.frozen = False/None)
-# ============================================================================
-
-if getattr(sys, "frozen", False):
-    # Running as PyInstaller frozen application
-    import os
-
-    # Executable está en el directorio del bundle PyInstaller
-    BASE_DIR = os.path.dirname(sys.executable)
-    # Datos de usuario van a APPDATA (Windows) o ~/.config
-    appdata = os.environ.get("APPDATA", "")
-    if appdata:
-        DATA_DIR = os.path.join(appdata, "OWNEX")
-    else:
-        # Fallback: user home directory
-        DATA_DIR = os.path.join(os.path.expanduser("~"), ".OWNEX")
-else:
-    # Development mode - use relative paths from repo
-    import os
-
-    # En desarrollo, los datos van a ./data (fuera del repo, en la raíz)
-    # O usa la ruta absoluta del repositorio
-    REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    DATA_DIR = os.path.join(REPO_ROOT, "data")
-
-# Asegurar que el directorio de datos existe (crea si no)
-os.makedirs(DATA_DIR, exist_ok=True)
-
 from desktop.native.ui.icons import RASTRO_ICON_PATH
+from desktop.native.ui.main_window import MainWindow, native_qss
 
 # ── Data & Log Directories ──────────────────────────────────────
 if sys.platform.startswith("win"):
@@ -53,7 +24,6 @@ _LOG_DIR.mkdir(parents=True, exist_ok=True)
 _DATABASE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Configure file logging (Qt windowed apps lose stderr)
-import logging
 
 _LOG_FILE = _DATA_DIR / "logs" / "app.log"
 _file_handler = logging.FileHandler(_LOG_FILE, encoding="utf-8")
@@ -157,20 +127,20 @@ def _check_agents_healthy() -> bool:
 
 def _run_boot_sequence() -> bool:
     """Ejecuta los system checks. Retorna True si al menos la mayoría pasan."""
-    BOOT_ITEMS = [
-        ("Backend API", _check_backend_healthy, "El núcleo de OWNEX responde correctamente."),
-        ("Scheduler de ciclos", _check_scheduler_running, "Los Work Cycles están activos."),
-        ("Base de datos", _check_database_connected, "La persistencia de datos está conectada."),
-        ("Agentes del sistema", _check_agents_healthy, "El estado de los agentes es saludable."),
+    boot_items = [
+        ("Backend API", _check_backend_healthy),
+        ("Scheduler de ciclos", _check_scheduler_running),
+        ("Base de datos", _check_database_connected),
+        ("Agentes del sistema", _check_agents_healthy),
     ]
     passed = 0
-    total = len(BOOT_ITEMS)
-    for label, check_fn, note in BOOT_ITEMS:
+    total = len(boot_items)
+    for _label, check_fn in boot_items:
         if check_fn():
             passed += 1
 
         time.sleep(0.8)
-    return passed >= total * 0.75  # al menos 75% de checks pasar
+    return passed >= total * 0.75
 
 
 # ── Main ────────────────────────────────────────────────────────

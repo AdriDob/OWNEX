@@ -182,7 +182,6 @@ class SystemView(BaseView):
         try:
             data = api.fetch_payment_network()
             if data and isinstance(data, dict):
-                summary = data.get("summary", {})
                 accounts = data.get("accounts", [])
                 n_accounts = len(accounts) if accounts else 0
                 self._payment_kpi.setText("Payment: " + str(n_accounts) + " accounts")
@@ -203,7 +202,6 @@ class SystemView(BaseView):
             data = api.fetch_knowledge_status()
             if data and isinstance(data, dict):
                 connected = data.get("connected", False)
-                n_notes = data.get("status", {}).get("last_scan", 0) if isinstance(data.get("status"), dict) else 0
                 self._knowledge_kpi.setText("Knowledge: " + ("connected" if connected else "disconnected"))
                 if "Knowledge" in self._svc_labels:
                     self._svc_labels["Knowledge"].setText("Knowledge: " + ("online" if connected else "disconnected"))
@@ -222,7 +220,6 @@ class SystemView(BaseView):
             data = api.fetch_voice_status()
             if data and isinstance(data, dict):
                 enabled = data.get("enabled", False)
-                tts = data.get("tts_provider", "unknown")
                 self._voice_kpi.setText("Voice: " + ("enabled" if enabled else "disabled"))
                 if "Voice" in self._svc_labels:
                     self._svc_labels["Voice"].setText("Voice: " + ("online" if enabled else "offline"))
