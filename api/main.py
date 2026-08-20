@@ -137,6 +137,7 @@ from api.routers import (
     scans,
     screenshots,
     security_cycle,
+    self_improvement,
     settings_ai,
     settings_runtime,
     settings_unified,
@@ -1668,6 +1669,7 @@ app.include_router(wear_os.router)
 
 # Security Cycle router
 app.include_router(security_cycle.router)
+app.include_router(self_improvement.router)
 app.include_router(forge_cycle.router)
 app.include_router(pulse_cycle.router)
 app.include_router(vault_cycle.router)
