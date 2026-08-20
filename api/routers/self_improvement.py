@@ -8,6 +8,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from core.self_improvement.engine import get_self_improvement_engine
 from core.self_improvement.plan_generator import get_plan_generator
 from core.self_improvement.reflection import (
     IssueType,
@@ -246,4 +247,140 @@ def get_dashboard():
         }
     except Exception as e:
         logger.error(f"Failed to get dashboard: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+class RunBatchRequest(BaseModel):
+    count: int = 3
+    skill_gaps: list[str] | None = None
+
+
+class GenerateTasksRequest(BaseModel):
+    count: int = 3
+    skill_gaps: list[str] | None = None
+
+
+def _engine():
+    return get_self_improvement_engine()
+
+
+@router.post("/run")
+def run_one():
+    """Run a single self-improvement loop iteration."""
+    try:
+        engine = _engine()
+        result = engine.run_once()
+        return {"success": True, "result": result}
+    except Exception as e:
+        logger.error(f"Failed to run self-improvement loop: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+@router.post("/run/batch")
+def run_batch(request: RunBatchRequest):
+    """Run multiple self-improvement loop iterations."""
+    try:
+        engine = _engine()
+        results = engine.run_batch(count=request.count, skill_gaps=request.skill_gaps)
+        return {"success": True, "results": results}
+    except Exception as e:
+        logger.error(f"Failed to run batch: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+@router.get("/status")
+def engine_status():
+    """Get self-improvement engine status."""
+    try:
+        engine = _engine()
+        status = engine.status()
+        status["recommendations"] = engine.recommendations(limit=5)
+        return {"success": True, "status": status}
+    except Exception as e:
+        logger.error(f"Failed to get engine status: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+@router.get("/experiences")
+def get_experiences(limit: int = 50):
+    """Get recent experiences."""
+    try:
+        engine = _engine()
+        experiences = engine.experiences.all()[-limit:]
+        return {
+            "success": True,
+            "experiences": [e.to_dict() for e in experiences],
+            "total": engine.experiences.count(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to get experiences: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+@router.get("/frontier")
+def get_frontier():
+    """Get difficulty frontier status."""
+    try:
+        engine = _engine()
+        return {"success": True, "frontier": engine.frontier.to_dict()}
+    except Exception as e:
+        logger.error(f"Failed to get frontier: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+@router.get("/capabilities")
+def get_capabilities():
+    """Get capability tracker stats."""
+    try:
+        engine = _engine()
+        return {"success": True, "capabilities": engine.capabilities.stats()}
+    except Exception as e:
+        logger.error(f"Failed to get capabilities: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+@router.get("/recommendations")
+def get_recommendations(limit: int = 5):
+    """Get skill recommendations."""
+    try:
+        engine = _engine()
+        return {"success": True, "recommendations": engine.recommendations(limit=limit)}
+    except Exception as e:
+        logger.error(f"Failed to get recommendations: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+@router.post("/generate")
+def generate_tasks(request: GenerateTasksRequest):
+    """Generate new tasks without running them."""
+    try:
+        engine = _engine()
+        tasks = engine.generator.generate_batch(
+            count=request.count,
+            existing=[e.task for e in engine.experiences.all()],
+            capabilities=engine.capabilities.skills(),
+            skill_gaps=request.skill_gaps or [],
+        )
+        return {
+            "success": True,
+            "tasks": [t.to_dict() for t in tasks],
+        }
+    except Exception as e:
+        logger.error(f"Failed to generate tasks: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+@router.get("/dashboard/engine")
+def get_engine_dashboard():
+    """Consolidated engine dashboard."""
+    try:
+        engine = _engine()
+        return {
+            "success": True,
+            "status": engine.status(),
+            "recommendations": engine.recommendations(limit=10),
+            "recent_experiences": [e.to_dict() for e in engine.experiences.all()[-10:]],
+        }
+    except Exception as e:
+        logger.error(f"Failed to get engine dashboard: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from None
