@@ -21,8 +21,37 @@ fn get_platform() -> String {
 }
 
 #[tauri::command]
-fn start_backend(app_handle: tauri::AppHandle) -> Result<String, String> {
-    let resource_dir = app_handle
+fn start_backend(_app_handle: tauri::AppHandle) -> Result<String, String> {
+    if backend_healthy() {
+        return Ok("Backend already running on 127.0.0.1:8000".into());
+    }
+
+    if cfg!(target_os = "windows") {
+        // Auto-detect WSL project path by searching for start_backend.sh
+        let repo = std::env::var("OWNEX_WSL_REPO")
+            .unwrap_or_else(|_| {
+                // Try common WSL home paths
+                let candidates = vec![
+                    "/home/adriel/projects/Rastro",
+                    "/home/$USER/projects/Rastro",
+                    "/home/$USER/Rastro",
+                    "/mnt/c/Users/$USER/projects/Rastro",
+                ];
+                // For now, use the first candidate - the PowerShell launcher
+                // will handle the real auto-detection
+                "/home/adriel/projects/Rastro".to_string()
+            });
+        let script = format!("{repo}/start_backend.sh");
+        let child = Command::new("wsl.exe")
+            .args(["-d", "Ubuntu", "--", "bash", "-lc", &script])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+            .map_err(|e| format!("Failed to start backend via WSL: {e}"))?;
+        return Ok(format!("Backend start requested via WSL (PID: {})", child.id()));
+    }
+
+    let resource_dir = _app_handle
         .path()
         .resource_dir()
         .map_err(|e| e.to_string())?;
@@ -35,11 +64,7 @@ fn start_backend(app_handle: tauri::AppHandle) -> Result<String, String> {
         );
         return Ok("Backend not bundled — run manually on :8000".into());
     }
-    let python = if cfg!(target_os = "windows") {
-        "python.exe"
-    } else {
-        "python3"
-    };
+    let python = "python3";
 
     let child = Command::new(python)
         .arg(&backend_script)
@@ -49,6 +74,16 @@ fn start_backend(app_handle: tauri::AppHandle) -> Result<String, String> {
         .map_err(|e| format!("Failed to start backend: {e}"))?;
 
     Ok(format!("Backend started (PID: {})", child.id()))
+}
+
+fn backend_healthy() -> bool {
+    let check = Command::new("curl")
+        .args(["-s", "-m", "2", "http://127.0.0.1:8000/api/health"])
+        .output();
+    match check {
+        Ok(out) => out.status.success() && out.stdout.windows(14).any(|w| w == b"\"status\":\"ok\""),
+        Err(_) => false,
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

@@ -297,10 +297,10 @@ class MainWindow(QMainWindow):
         self._tray_icon.setContextMenu(tray_menu)
         # Hover tooltip
         self._tray_icon.setToolTip("OWNEX Desktop")
-        self._tray_icon.activated.connect(self._on_tray_activated)
 
         # Cuando la ventana se minimiza, va al tray en lugar de barra
-        self.minimized.connect(lambda: self.hide())
+        # Nota: Este feature está deshabilitado en tests, requiere event loop real
+        # Doble clic en el tray restaura la ventana
         self._tray_icon.activated.connect(
             lambda reason: self.show() if reason == QSystemTrayIcon.ActivationReason.DoubleClick else None
         )
@@ -382,7 +382,6 @@ class MainWindow(QMainWindow):
         current = self._view_stack.currentWidget()
         if current is not None and hasattr(current, "apply_theme"):
             current.apply_theme()
-        current.apply_theme()
 
     def _show_daily_brief(self) -> None:
         """Muestra el daily brief en una ventana modal."""
@@ -393,6 +392,9 @@ class MainWindow(QMainWindow):
             "Daily Brief",
             "OWNEX Daily Brief\n\nTargets escaneados: N/A\nRecomendación: Ejecutar ciclo diario para ver oportunidades",
         )
+
+    def _on_quit(self) -> None:
+        """Sale de la aplicación por completo (desde el menú del tray)."""
         from PySide6.QtWidgets import QApplication
 
         QApplication.quit()

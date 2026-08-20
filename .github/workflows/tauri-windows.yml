@@ -1,0 +1,78 @@
+name: Tauri Windows Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src-tauri/**'
+      - 'frontend/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'OWNEX-Launcher.ps1'
+      - 'OWNEX-Installer.nsi'
+      - 'start_backend.sh'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src-tauri/**'
+      - 'frontend/**'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Build Tauri Application
+        uses: tauri-apps/tauri-action@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Locate bundle
+        id: find_bundle
+        run: |
+          $bundle = Get-ChildItem -Path "src-tauri/target/release/bundle" -Recurse -Include "*.msi","*.exe","*.nsis" -File | Select-Object -First 1
+          Write-Host "Bundle: $($bundle.FullName)"
+          Write-Output "bundle_path=$($bundle.FullName)" | Out-File -FilePath "$env:GITHUB_OUTPUT" -Encoding utf8 -Append
+
+      - name: Verify bundle exists
+        run: |
+          if (!(Test-Path "${{ steps.find_bundle.outputs.bundle_path }}")) { throw "Bundle not found" }
+          Write-Host "Bundle size: $([math]::Round((Get-Item '${{ steps.find_bundle.outputs.bundle_path }}').Length / 1MB, 2)) MB"
+
+      - name: Calculate SHA256 checksum
+        run: |
+          (Get-FileHash "${{ steps.find_bundle.outputs.bundle_path }}" -Algorithm SHA256).Hash | Out-File "tauri_bundle_sha256.txt" -Encoding ascii
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OWNEX-Tauri-Windows
+          path: |
+            ${{ steps.find_bundle.outputs.bundle_path }}
+            tauri_bundle_sha256.txt
+          retention-days: 30
