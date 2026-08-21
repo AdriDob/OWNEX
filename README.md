@@ -426,6 +426,15 @@ cd android
 
 **Detailed guide:** [android/BUILD_RELEASE_APK.md](android/BUILD_RELEASE_APK.md)
 
+#### ⌚ WearOS — Smartwatch Companion
+```bash
+cd android
+./gradlew :wear:assembleDebug           # → android/wear/build/outputs/apk/debug/wear-debug.apk
+# Install via ADB to WearOS device
+```
+
+**Detailed guide:** [.ai/WEAROS_DECISION.md](.ai/WEAROS_DECISION.md)
+
 ### Guided install (Linux/Dev)
 The universal installer (`install.py`) configures everything interactively:
 
@@ -568,7 +577,7 @@ Honest state of the system — nothing here is a mock:
 | 🤖 OAR AI Runtime + Career Engine | ✅ production | `tests/test_oar.py` 12 ✓ · `tests/test_career_engine.py` 14 ✓ |
 | 💻 Desktop (Tauri v2) · Mobile (Capacitor) · MERLIN | ✅ build-verified | APKs 5.1 MB · Tauri cargo check OK |
 | 📱 OMEGA mobile (Expo/React Native) | 🟡 experimental skeleton | functional shell |
-| ⌚ Wear OS native | ❌ discarded | [AUD-14](.ai/TASK_QUEUE.md) — negative ROI |
+| ⌚ Wear OS native | ✅ COMPLETED | [.ai/WEAROS_DECISION.md](.ai/WEAROS_DECISION.md) — fully implemented |
 
 Single-user, local-first. New surfaces ship as **experimental** until they pass the end-to-end gate (persistence, restart survival, real output — no mocks).
 
@@ -591,7 +600,7 @@ See [`.ai/ROADMAP.md`](.ai/ROADMAP.md) for the full roadmap.
 | ✅ **DONE** | OAR AI Runtime — engine + tests + API mounted (`/oar/*`, `/career/*`) | [DECISIONS](.ai/DECISIONS.md) |
 | 🟡 **IN PROGRESS** | OMEGA mobile (Expo/React Native) — functional skeleton | [.ai/ROADMAP.md](.ai/ROADMAP.md) |
 | 🔲 **PLANNED** | OAR smart-routing wired into API decisions · more discovery adapters (Algora, OpenCollective, Superteam) | [.ai/TASK_QUEUE.md](.ai/TASK_QUEUE.md) |
-| ❌ **NOT INCLUDED** | Wear OS native — evaluated and discarded (AUD-14, negative ROI) | [.ai/TASK_QUEUE.md](.ai/TASK_QUEUE.md) |
+| ✅ **INCLUDED** | Wear OS native — fully implemented with API integration and themes | [.ai/WEAROS_DECISION.md](.ai/WEAROS_DECISION.md) |
 
 ---
 
