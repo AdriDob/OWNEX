@@ -3,11 +3,25 @@
 from __future__ import annotations
 
 import logging
+import os
+import shutil
+from pathlib import Path
 from typing import Any
 
 from cores.tools.nuclei import NucleiTool
 
 logger = logging.getLogger("ownex.cycles.nuclei")
+
+# Resolve paths relative to project root instead of hardcoded developer paths.
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+_DEFAULT_TEMPLATES = os.environ.get(
+    "NUCLEI_TEMPLATES_PATH",
+    str(_PROJECT_ROOT / "nuclei-templates"),
+)
+_DEFAULT_BINARY = os.environ.get(
+    "NUCLEI_BINARY",
+    shutil.which("nuclei") or str(_PROJECT_ROOT / "nuclei"),
+)
 
 
 class NucleiAdapter:
@@ -15,8 +29,8 @@ class NucleiAdapter:
 
     def __init__(
         self,
-        templates_path: str = "/home/adriel/nuclei-templates",
-        nuclei_binary: str = "/tmp/nuclei",
+        templates_path: str = _DEFAULT_TEMPLATES,
+        nuclei_binary: str = _DEFAULT_BINARY,
         severity: str = "medium,high,critical",
         rate_limit: int = 100,
         concurrency: int = 25,

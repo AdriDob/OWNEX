@@ -11,7 +11,32 @@ set WSL_DISTRO=Ubuntu
 if defined PROJECT_PATH (
     echo [INFO] Using PROJECT_PATH from environment: %PROJECT_PATH%
 ) else (
-    set PROJECT_PATH=/home/adriel/projects/Rastro
+    REM Auto-detect WSL user home and project path
+    for /f "tokens=* delims=" %%u in ('wsl.exe -d %WSL_DISTRO% -- bash -c "echo \$HOME"') do set WSL_HOME=%%u
+    if not defined WSL_HOME (
+        echo [ERROR] Could not detect WSL home directory
+        pause
+        exit /b 1
+    )
+    set PROJECT_PATH=!WSL_HOME!/projects/Rastro
+    REM Verify the project directory exists in WSL
+    wsl.exe -d %WSL_DISTRO% -- test -d "!PROJECT_PATH!" >nul 2>&1
+    if %errorlevel% neq 0 (
+        echo [WARN] !PROJECT_PATH! not found, trying common locations...
+        for %%P in (Rastro rastrohunteralpha ownex CATEYE) do (
+            wsl.exe -d %WSL_DISTRO% -- test -d "!WSL_HOME!/projects/%%P" >nul 2>&1
+            if %errorlevel% equ 0 (
+                set PROJECT_PATH=!WSL_HOME!/projects/%%P
+                goto PROJECT_FOUND
+            )
+        )
+        echo [ERROR] Could not find Rastro project in WSL
+        echo Set PROJECT_PATH env var to your project directory
+        pause
+        exit /b 1
+        :PROJECT_FOUND
+    )
+    echo [INFO] Detected project: !PROJECT_PATH!
 )
 set PYTHON_PATH=%PROJECT_PATH%/.venv/bin/python
 set BACKEND_PORT=8000

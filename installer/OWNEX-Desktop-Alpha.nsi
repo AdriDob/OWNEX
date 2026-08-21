@@ -5,21 +5,69 @@
 ; against the script directory, so step up to the checkout root.
 !cd ..
 
+!include "x64.nsh"
+
 !define APPNAME "OWNEX Desktop Alpha"
 !define COMPANYNAME "CATEYE"
 !define DESCRIPTION "Native bug bounty intelligence platform"
 !define VERSIONMAJOR 7
 !define VERSIONMINOR 0
 !define VERSIONBUILD 0
-!define HELPURL "https://github.com/AdriDob/OWNEX" 
+!define HELPURL "https://github.com/AdriDob/OWNEX"
 !define UPDATEURL "https://github.com/AdriDob/OWNEX"
 !define ABOUTURL "https://github.com/AdriDob/OWNEX"
 !define INSTALLSIZE 250000
+
+; VC++ Redistributable download URL (Microsoft Visual C++ 2015-2022 Redist x64)
+!define VCPP_URL "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+!define VCPP_INSTALLER "$TEMP\vc_redist.x64.exe"
 
 ; Use admin-level installation for Program Files
 RequestExecutionLevel admin
 
 InstallDir "$PROGRAMFILES\OWNEX"
+
+; ── VC++ Runtime Detection ─────────────────────────────────────────────
+Var VCPP_Installed
+
+Function .onInit
+    ; Check for Visual C++ 2015-2022 Runtime (x64)
+    ; Qt/PySide6 requires VC++ Runtime to load DLLs
+    ReadRegDWORD $1 HKLM "SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64" "Installed"
+    ${If} $1 == 1
+        StrCpy $VCPP_Installed "1"
+        Goto vcpp_done
+    ${EndIf}
+    ; Also check WOW6432Node for 32-bit systems running 64-bit apps
+    ReadRegDWORD $1 HKLM "SOFTWARE\WOW6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\x64" "Installed"
+    ${If} $1 == 1
+        StrCpy $VCPP_Installed "1"
+        Goto vcpp_done
+    ${EndIf}
+    ; Not found — prompt user
+    StrCpy $VCPP_Installed "0"
+    MessageBox MB_YESNO|MB_ICONQUESTION "Visual C++ Runtime (2015-2022) is required but was not detected on your system.$\n$\nOWNEX uses PySide6/Qt which depends on VC++ Runtime.$\n$\nWould you like to download and install it now?$\n(Requires internet connection, ~25 MB)" IDYES download_vcpp IDNO vcpp_done
+
+    download_vcpp:
+        NSISdl::download /URL "${VCPP_URL}" /TIMEOUT 60000 "${VCPP_INSTALLER}"
+        Pop $0
+        ${If} $0 == "success"
+            DetailPrint "Installing Visual C++ Runtime..."
+            ExecWait '"${VCPP_INSTALLER}" /install /quiet /norestart' $1
+            ${If} $1 == 0
+                DetailPrint "VC++ Runtime installed successfully."
+                StrCpy $VCPP_Installed "1"
+            ${Else}
+                MessageBox MB_OK|MB_ICONEXCLAMATION "VC++ Runtime installation failed (exit code: $1).$\n$\nOWNEX may not start correctly without it.$\nYou can install it manually from: https://aka.ms/vs/17/release/vc_redist.x64.exe"
+            ${EndIf}
+            ; Cleanup installer
+            Delete "${VCPP_INSTALLER}"
+        ${Else}
+            MessageBox MB_OK|MB_ICONEXCLAMATION "Could not download VC++ Runtime ($0).$\n$\nPlease install it manually from:$\nhttps://aka.ms/vs/17/release/vc_redist.x64.exe"
+        ${EndIf}
+
+    vcpp_done:
+FunctionEnd
 
 Page directory
 Page instfiles
