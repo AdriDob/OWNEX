@@ -11,7 +11,7 @@ logger = logging.getLogger("orion.copilot.providers.fcc")
 
 
 class FCCProvider(BaseProvider):
-    """FCC proxy — Claude models via OpenRouter proxy (free tier)."""
+    """OpenRouter free models provider — :free tagged models only."""
 
     def __init__(self, config: ProviderConfig | None = None) -> None:
         super().__init__(
@@ -20,12 +20,14 @@ class FCCProvider(BaseProvider):
                 name="fcc",
                 priority=20,
                 models=[
-                    "claude-sonnet-4-5",
-                    "claude-3.5-sonnet",
-                    "claude-3-haiku",
-                    "openai/gpt-4o-mini",
-                    "google/gemini-flash-1.5",
-                    "meta-llama/llama-3.1-70b-instruct",
+                    "nvidia/nemotron-3-super-120b-a12b:free",
+                    "nvidia/nemotron-3-ultra-550b-a55b:free",
+                    "nvidia/nemotron-3-nano-30b-a3b:free",
+                    "nvidia/nemotron-nano-12b-v2-vl:free",
+                    "google/gemma-4-31b-it:free",
+                    "openai/gpt-oss-20b:free",
+                    "cohere/north-mini-code:free",
+                    "liquid/lfm-2.5-2.6b:free",
                 ],
                 timeout_s=60,
             )
@@ -89,7 +91,7 @@ class FCCProvider(BaseProvider):
                     headers={
                         "Authorization": f"Bearer {self._api_key}",
                         "Content-Type": "application/json",
-                        "HTTP-Referer": "https://github.com/adrie/Rastro",
+                        "HTTP-Referer": "https://github.com/adri/Rastro",
                         "X-Title": "OWNEX",
                     },
                     json={

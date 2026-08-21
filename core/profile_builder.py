@@ -130,7 +130,7 @@ class ProfileBuilder:
         """Configura el repo destino (formato 'usuario/repo') para auto-push de bounties."""
         repo = repo.strip().rstrip("/")
         if not repo or "/" not in repo:
-            return {"success": False, "message": "Formato: usuario/repo (ej. adrie/bounty-portfolio)"}
+            return {"success": False, "message": "Formato: usuario/repo (ej. adri/bounty-portfolio)"}
         state = self._load()
         state["portfolio_repo"] = repo
         self._save(state)
