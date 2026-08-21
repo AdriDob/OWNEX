@@ -101,19 +101,27 @@ class ExtensionRegistry:
         return sorted(self._extensions.values(), key=lambda e: e.name)
 
     def status(self) -> dict[str, dict]:
-        return {
-            ext_id: {
+        result: dict[str, dict] = {}
+        for ext_id, m in self._extensions.items():
+            # Safely format capabilities — handle both Capability objects and strings
+            caps: list[str] = []
+            for c in (m.capabilities or []):
+                if isinstance(c, Capability):
+                    caps.append(f"{c.domain}:{c.name}")
+                elif isinstance(c, str):
+                    caps.append(c)
+                else:
+                    caps.append(str(c))
+
+            result[ext_id] = {
                 "name": m.name,
                 "version": m.version,
                 "loaded": self._loaded.get(ext_id, False),
-                "capabilities": [f"{c.domain}:{c.name}" for c in m.capabilities]
-                if m.capabilities and isinstance(next(iter(m.capabilities), None), Capability)
-                else m.capabilities,
+                "capabilities": caps,
                 "hooks": list(m.hooks.keys()),
                 "settings_count": len(m.settings),
             }
-            for ext_id, m in self._extensions.items()
-        }
+        return result
 
     def _register_capabilities(self, manifest: ExtensionManifest) -> None:
         cap_reg = get_capability_registry()
