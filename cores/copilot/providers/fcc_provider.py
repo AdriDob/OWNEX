@@ -141,7 +141,7 @@ class FCCProvider(BaseProvider):
                     headers={
                         "Authorization": f"Bearer {self._api_key}",
                         "Content-Type": "application/json",
-                        "HTTP-Referer": "https://github.com/adrie/Rastro",
+                        "HTTP-Referer": "https://github.com/adri/Rastro",
                         "X-Title": "OWNEX",
                     },
                     json={

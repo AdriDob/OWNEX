@@ -113,3 +113,7 @@ OWNEX-Alpha-Windows-Installer.zip
 # Keystores de firma Android - secretos, regenerables
 android/*.jks
 android/*.keystore
+
+# Build artifacts (nunca commitear)
+*.exe
+!desktop/**/*.exe

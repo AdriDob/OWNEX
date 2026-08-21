@@ -382,18 +382,24 @@ SaaS tools are multi-tenant dashboards; OWNEX is a **private autonomous operator
 
 ## Quick Start 🚀
 
-### Guided install (recommended)
+### Multi-Platform Installation
 
-The universal installer (`install.py`) configures everything interactively:
+Choose your platform:
 
-```bash
-python install.py
-# → Wizard: use case → modules → experience level → platforms → integrations
-# → sets up .venv, DB, credentials, desktop, notifications
-```
+#### 🪟 Windows 11 (with WSL) — Desktop Installer (Recommended)
+**Auto-contained bundle — no Python/Node required**
 
-### Manual
+1. Download `OWNEX-Desktop-Alpha-Setup.exe` from:
+   - WSL path: `\\wsl.localhost\Ubuntu\home\adri\projects\Rastro\installer\OWNEX-Desktop-Alpha-Setup.exe`
+   - GitHub Releases (when published)
+2. Run the installer (accept SmartScreen warning — debug build)
+3. Launch OWNEX Desktop from Start menu
+4. Backend starts automatically at `http://127.0.0.1:8000`
+5. Data persists in `%APPDATA%\OWNEX` (survives reinstalls)
 
+**Detailed guide:** [README-INSTALACION.md](README-INSTALACION.md)
+
+#### 🐧 Linux — Development Setup
 ```bash
 # 1️⃣ Clone
 git clone https://github.com/AdriDob/OWNEX.git
@@ -409,6 +415,24 @@ cd frontend && npm install               # frontend
 python run.py                              # → FastAPI on http://localhost:8000
 # in another terminal:
 cd frontend && npm run dev                # → Mission Control on http://localhost:5173
+```
+
+#### 📱 Android — Mobile Companion
+```bash
+cd android
+./gradlew assembleDebug                  # → android/app/build/outputs/apk/debug/app-debug.apk
+# Install via ADB or transfer to device
+```
+
+**Detailed guide:** [android/BUILD_RELEASE_APK.md](android/BUILD_RELEASE_APK.md)
+
+### Guided install (Linux/Dev)
+The universal installer (`install.py`) configures everything interactively:
+
+```bash
+python install.py
+# → Wizard: use case → modules → experience level → platforms → integrations
+# → sets up .venv, DB, credentials, desktop, notifications
 ```
 
 ### Next steps

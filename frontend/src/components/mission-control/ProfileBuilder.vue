@@ -183,7 +183,7 @@ onMounted(load)
           <div class="pb-push-row">
             <input
               v-model="portfolioRepo"
-              placeholder="usuario/repo (ej. adrie/bounty-portfolio)"
+              placeholder="usuario/repo (ej. adri/bounty-portfolio)"
               class="pb-input"
               :disabled="!!busyId"
             />
