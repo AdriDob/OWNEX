@@ -64,17 +64,22 @@ if IS_SQLITE:
     @event.listens_for(engine, "connect")
     def _set_sqlite_pragma(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA foreign_keys=ON")
+        # busy_timeout MUST come first — it tells SQLite to wait up to 5s
+        # before returning SQLITE_BUSY, protecting all subsequent PRAGMAs.
+        cursor.execute("PRAGMA busy_timeout=5000")
         cursor.execute("PRAGMA journal_mode=WAL")
         cursor.execute("PRAGMA synchronous=NORMAL")
-        cursor.execute("PRAGMA busy_timeout=5000")
+        cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
-    with engine.connect() as conn:
-        for pragma in ("PRAGMA journal_mode=WAL", "PRAGMA synchronous=NORMAL", "PRAGMA busy_timeout=5000"):
-            with contextlib.suppress(Exception):
-                conn.execute(text(pragma))
-        conn.commit()
+    try:
+        with engine.connect() as conn:
+            for pragma in ("PRAGMA journal_mode=WAL", "PRAGMA synchronous=NORMAL", "PRAGMA busy_timeout=5000"):
+                with contextlib.suppress(Exception):
+                    conn.execute(text(pragma))
+            conn.commit()
+    except Exception as exc:
+        logger.warning("Initial DB pragma setup failed (non-fatal): %s", exc)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
 
