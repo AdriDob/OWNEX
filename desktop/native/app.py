@@ -9,12 +9,14 @@ from pathlib import Path
 _CRASH_LOG = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming")) / "OWNEX" / "logs" / "crash.log"
 _CRASH_LOG.parent.mkdir(parents=True, exist_ok=True)
 
+
 def _log_crash(msg: str) -> None:
     try:
         with open(_CRASH_LOG, "a", encoding="utf-8") as f:
             f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {msg}\n")
     except Exception:
         pass
+
 
 _log_crash("=== OWNEX ENTRY POINT ===")
 _log_crash(f"Python: {sys.version}")
@@ -26,6 +28,7 @@ _log_crash(f"sys.path: {sys.path[:3]}")
 
 try:
     import qasync
+
     _log_crash("qasync imported OK")
 except Exception as e:
     _log_crash(f"qasync IMPORT FAILED: {e}")
@@ -33,6 +36,7 @@ except Exception as e:
 
 try:
     from PySide6.QtCore import Qt, QTimer
+
     _log_crash("PySide6.QtCore imported OK")
 except Exception as e:
     _log_crash(f"PySide6.QtCore IMPORT FAILED: {e}")
@@ -40,6 +44,7 @@ except Exception as e:
 
 try:
     from PySide6.QtGui import QFontDatabase, QIcon
+
     _log_crash("PySide6.QtGui imported OK")
 except Exception as e:
     _log_crash(f"PySide6.QtGui IMPORT FAILED: {e}")
@@ -47,13 +52,15 @@ except Exception as e:
 
 try:
     from PySide6.QtWidgets import QApplication
+
     _log_crash("PySide6.QtWidgets imported OK")
 except Exception as e:
     _log_crash(f"PySide6.QtWidgets IMPORT FAILED: {e}")
     raise
 
 try:
-    from desktop.native.services.backend import start_backend_async
+    from desktop.native.services.backend import open_ui_async, start_backend_async
+
     _log_crash("backend imported OK")
 except Exception as e:
     _log_crash(f"backend IMPORT FAILED: {e}")
@@ -61,6 +68,7 @@ except Exception as e:
 
 try:
     from desktop.native.ui.icons import RASTRO_ICON_PATH
+
     _log_crash(f"icons imported OK, RASTRO_ICON_PATH={RASTRO_ICON_PATH}")
 except Exception as e:
     _log_crash(f"icons IMPORT FAILED: {e}")
@@ -68,6 +76,7 @@ except Exception as e:
 
 try:
     from desktop.native.ui.main_window import MainWindow, native_qss
+
     _log_crash("MainWindow imported OK")
 except Exception as e:
     _log_crash(f"MainWindow IMPORT FAILED: {e}")
@@ -220,6 +229,7 @@ def main() -> int:
     try:
         _log_crash("Starting backend async...")
         start_backend_async()
+        open_ui_async()
         _log_crash("Backend async started")
     except Exception as e:
         _log_crash(f"Backend start FAILED: {e}\n{traceback.format_exc()}")
@@ -269,6 +279,7 @@ def main() -> int:
         _log_crash("Creating qasync event loop...")
         with qasync.QEventLoop(app) as loop:
             import asyncio
+
             asyncio.set_event_loop(loop)
             _log_crash("Event loop created, starting app.exec()...")
             QTimer.singleShot(0, lambda: None)
