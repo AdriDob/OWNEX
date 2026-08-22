@@ -5,6 +5,7 @@ from PyInstaller.utils.hooks import collect_all
 datas = [
     ("desktop/native/ui", "desktop/native/ui"),
     ("desktop/native/services", "desktop/native/services"),
+    ("frontend/dist", "frontend_dist"),
     ("assets/branding/themes", "assets/branding/themes"),
     ("assets/branding/design-tokens.json", "assets/branding"),
     ("assets/branding/fonts", "assets/branding/fonts"),

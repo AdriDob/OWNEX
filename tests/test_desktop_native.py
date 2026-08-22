@@ -810,3 +810,112 @@ def test_ensure_backend_running_starts_thread(monkeypatch):
     monkeypatch.setattr(backend, "_wait_alive", lambda base_url, timeout: False)
     assert backend.ensure_backend_running() is False
     assert started == ["serve"]
+
+
+# ── SPA mount (Plan A1: web UI visible desde el sidecar) ────────────
+
+
+def test_mount_spa_serves_index_assets_and_fallback(tmp_path):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from desktop.native.services import backend
+
+    dist = tmp_path / "dist"
+    (dist / "assets").mkdir(parents=True)
+    (dist / "index.html").write_text("<html>OWNEX SPA</html>", encoding="utf-8")
+    (dist / "assets" / "app.js").write_text("console.log(1)", encoding="utf-8")
+
+    app = FastAPI()
+    assert backend.mount_spa(app, dist_dir=dist) is True
+    client = TestClient(app)
+    assert client.get("/").status_code == 200
+    assert "OWNEX SPA" in client.get("/").text
+    assert client.get("/assets/app.js").status_code == 200
+    # SPA fallback: rutas desconocidas devuelven el shell
+    resp = client.get("/trading/intelligence")
+    assert resp.status_code == 200
+    assert "OWNEX SPA" in resp.text
+
+
+def test_mount_spa_blocks_path_traversal(tmp_path):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from desktop.native.services import backend
+
+    (tmp_path / "secret.txt").write_text("TOPSECRET", encoding="utf-8")
+    dist = tmp_path / "dist"
+    dist.mkdir()
+    (dist / "index.html").write_text("<html>SHELL</html>", encoding="utf-8")
+
+    app = FastAPI()
+    backend.mount_spa(app, dist_dir=dist)
+    client = TestClient(app)
+    resp = client.get("/../secret.txt")
+    assert "TOPSECRET" not in resp.text
+
+
+def test_mount_spa_missing_dist_returns_false():
+    import tempfile
+
+    from fastapi import FastAPI
+
+    from desktop.native.services import backend
+
+    app = FastAPI()
+    missing = Path(tempfile.mkdtemp()) / "no-such-dist"
+    assert backend.mount_spa(app, dist_dir=missing) is False
+
+
+def test_mount_spa_without_index_returns_404_json(tmp_path):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from desktop.native.services import backend
+
+    dist = tmp_path / "dist"
+    dist.mkdir()
+
+    app = FastAPI()
+    backend.mount_spa(app, dist_dir=dist)
+    client = TestClient(app)
+    assert client.get("/").status_code == 404
+
+
+def test_open_ui_when_ready_opens_browser(monkeypatch):
+    from desktop.native.services import backend
+
+    opened: list[str] = []
+    monkeypatch.setattr(backend, "_wait_alive", lambda base_url, timeout: True)
+    monkeypatch.delenv(backend.NO_BROWSER_ENV, raising=False)
+    monkeypatch.setattr(
+        backend.webbrowser,
+        "open",
+        lambda url: opened.append(url) or True,
+    )
+    assert backend.open_ui_when_ready(base_url="http://127.0.0.1:8000") is True
+    assert opened == ["http://127.0.0.1:8000/"]
+
+
+def test_open_ui_when_ready_env_guard_skips(monkeypatch):
+    from desktop.native.services import backend
+
+    monkeypatch.setenv(backend.NO_BROWSER_ENV, "1")
+    called = {"wait": False}
+
+    def _fail_wait(base_url, timeout):  # pragma: no cover - must not run
+        called["wait"] = True
+        return True
+
+    monkeypatch.setattr(backend, "_wait_alive", _fail_wait)
+    assert backend.open_ui_when_ready() is False
+    assert called["wait"] is False
+
+
+def test_open_ui_when_ready_backend_dead_does_not_open(monkeypatch):
+    from desktop.native.services import backend
+
+    monkeypatch.delenv(backend.NO_BROWSER_ENV, raising=False)
+    monkeypatch.setattr(backend, "_wait_alive", lambda base_url, timeout: False)
+    assert backend.open_ui_when_ready() is False
