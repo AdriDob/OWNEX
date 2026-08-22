@@ -278,3 +278,7 @@ def main() -> int:
     except Exception as e:
         _log_crash(f"Event loop FAILED: {e}\n{traceback.format_exc()}")
         raise
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
