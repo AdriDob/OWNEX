@@ -42,9 +42,13 @@ class CycleService:
 
     def _seed_defaults(self, db: Session) -> None:
         """Seed default cycles if database is empty."""
+        import json
 
         for cycle_data in DEFAULT_CYCLES:
-            cycle = Cycle(**cycle_data)
+            data = dict(cycle_data)
+            if isinstance(data.get("config"), dict):
+                data["config"] = json.dumps(data["config"])
+            cycle = Cycle(**data)
             db.add(cycle)
         db.commit()
         logger.info("Seeded %d default cycles", len(DEFAULT_CYCLES))
