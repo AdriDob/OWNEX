@@ -45,6 +45,14 @@ tmp_ret = collect_all("uvicorn")
 datas += tmp_ret[0]
 binaries += tmp_ret[1]
 hiddenimports += tmp_ret[2]
+tmp_ret = collect_all("prometheus_client")
+datas += tmp_ret[0]
+binaries += tmp_ret[1]
+hiddenimports += tmp_ret[2]
+tmp_ret = collect_all("pydantic_settings")
+datas += tmp_ret[0]
+binaries += tmp_ret[1]
+hiddenimports += tmp_ret[2]
 # Backend sidecar: the in-process API server (api.main) needs the full project
 # tree available in the bundle so the desktop is self-contained and can
 # produce real data (pipeline, scheduler, scrapers) on Windows.
