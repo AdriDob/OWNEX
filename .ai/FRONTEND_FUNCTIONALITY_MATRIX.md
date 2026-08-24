@@ -112,6 +112,18 @@
 |---|---|---|
 | wear-os notifications/approvals | FIXED-TODAY | root-mounted resuelto por resolveApiUrl; E2E mobile/status 200 |
 
+## Router + Layout (auditoría estructural 2026-08-24)
+
+| Check | Resultado | Evidencia |
+|---|---|---|
+| Redirects rotos | **0** de 48 (parser AST-like; el único flag era query-string válido `/money-radar→/capital?tab=targets`) | script node walk(routes) |
+| Paths duplicados completos | 0 (120 full paths únicos) | idem |
+| Componentes faltantes | 0 (35 imports dinámicos verificados en disco) | fs.existsSync |
+| 404 catch-all | ✓ `/:pathMatch(.*)*` | router/index.ts:606 |
+| Command palette | ✓ global (App.vue:169) | grep |
+| Breadcrumbs/TitleBar | ✓ vía AppLayout.vue | uso real |
+| Sidebar responsive | ✓ overlay móvil lg:hidden | AppSidebar.vue:188 |
+
 ## Resumen ejecutivo
 
 | Clasificación | Count (features) | Nota |
