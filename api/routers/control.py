@@ -169,6 +169,60 @@ async def vpn_windscribe_connect() -> dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(e)) from None
 
 
+# ── Application Assistant: postulaciones asistidas ───────────────
+
+
+@router.get("/applications/plan")
+async def applications_plan() -> dict[str, Any]:
+    """Plan asistido de postulación a plataformas de ingreso con qué poner en cada campo."""
+    try:
+        from core.application_assistant import get_application_assistant
+
+        return get_application_assistant().get_plan()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+@router.get("/applications/overview")
+async def applications_overview() -> dict[str, Any]:
+    """Resumen de progreso + próxima acción recomendada."""
+    try:
+        from core.application_assistant import get_application_assistant
+
+        return get_application_assistant().overview()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+@router.post("/applications/{platform}/steps/{step_id}/complete")
+async def application_complete_step(platform: str, step_id: str) -> dict[str, Any]:
+    """Marcar un paso de postulación como completado."""
+    try:
+        from core.application_assistant import get_application_assistant
+
+        return get_application_assistant().complete_step(platform, step_id)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from None
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+@router.post("/applications/{platform}/status")
+async def application_set_status(platform: str, payload: dict[str, Any]) -> dict[str, Any]:
+    """Actualizar el estado de una postulación (pending/applied/in_review/accepted/rejected/paused)."""
+    try:
+        from core.application_assistant import get_application_assistant
+
+        status = str(payload.get("status", ""))
+        return get_application_assistant().set_status(platform, status)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from None
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from None
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
 @router.get("/guide/master")
 async def master_guide() -> dict[str, Any]:
     """Guía maestra paso a paso con estado real de todas las categorías."""

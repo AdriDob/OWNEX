@@ -6,6 +6,13 @@ No pide inversión: todo es gratuito.
 NOTA técnica: Outlier y DataAnnotation corriendo en el NAVEGADOR de WINDOWS necesitan
 que la VPN corra a nivel de SISTEMA en Windows (no solo dentro de WSL2). Este módulo
 detecta el escenario real y da el camino correcto.
+
+ACTUALIZACIÓN 2026-08-24 (verificación de mercado): Outlier acepta Argentina DIRECTO
+(ID + móvil del país real, postulación sin VPN); ídem Mercor/Alignerr/Mindrift.
+DataAnnotation sigue limitado a US/UK/CA/AU/NZ/IE. La vía VPN queda ARCHIVADA —
+el flujo activo es core/application_assistant.py (postulación honesta).
+Fuentes: outlier.ai (requisitos ID/país), reviews 2026 (theairankings.com,
+remotestack.in — AR listado entre países aceptados, tarifas region-tiered).
 """
 
 from __future__ import annotations
@@ -20,9 +27,11 @@ from typing import Any
 
 logger = logging.getLogger("core.vpn_assistant")
 
-# Países que Outlier / DataAnnotation aceptan (trabajo remoto).
-# De forma conservadora aceptamos los principales. AR está excluido.
+# Países aceptados por OUTLIER (trabajo remoto, 2026). Argentina verificado
+# aceptado directo — postulación con ID + móvil reales, sin VPN.
 ALLOWED_COUNTRIES: set[str] = {
+    "AR",
+    "MX",
     "US",
     "CA",
     "GB",
@@ -54,7 +63,10 @@ ALLOWED_COUNTRIES: set[str] = {
     "HR",
 }
 
-DISALLOWED_COUNTRIES: set[str] = {"AR", "CN", "RU", "IR", "KP", "CU", "VN", "VE"}
+# DataAnnotation sigue limitado a estos 6 países (2026) — AR NO incluido.
+DATAANNOTATION_ALLOWED_COUNTRIES: set[str] = {"US", "CA", "GB", "AU", "NZ", "IE"}
+
+DISALLOWED_COUNTRIES: set[str] = {"CN", "RU", "IR", "KP", "CU", "VN", "VE"}
 
 
 @dataclass
@@ -171,7 +183,14 @@ class VpnAssistant:
             status.reason = f"País ({code}) no habilitado para Outlier/DataAnnotation"
         elif code in ALLOWED_COUNTRIES:
             status.compatible = True
-            status.reason = f"País ({code}) compatible con Outlier/DataAnnotation"
+            if code in DATAANNOTATION_ALLOWED_COUNTRIES:
+                status.reason = f"País ({code}) compatible con Outlier y DataAnnotation"
+            else:
+                status.reason = (
+                    f"País ({code}) aceptado por Outlier/Mercor/Alignerr/Mindrift — "
+                    "postulá directo sin VPN (core/application_assistant). "
+                    "DataAnnotation sigue limitado a US/UK/CA/AU/NZ/IE."
+                )
         else:
             status.compatible = False
             status.reason = f"País ({code}) no confirmado — verificar manualmente"
@@ -259,6 +278,10 @@ class VpnAssistant:
     def check_outlier(self) -> dict[str, Any]:
         """Chequeo de alcance real: si IP actual permitiría Outlier/DA."""
         status = self.detect()
+        if status.compatible:
+            verdict = "OK — postulá directo (ver /api/applications/plan)"
+        else:
+            verdict = "Sin cobertura directa — revisá /api/applications/plan"
         return {
             "compatible": status.compatible,
             "country": status.country_name,
@@ -266,7 +289,7 @@ class VpnAssistant:
             "ip": status.public_ip,
             "isp": status.isp,
             "reason": status.reason,
-            "verdict": "OK — podés intentar entrar" if status.compatible else "BLOQUEADO — activá VPN",
+            "verdict": verdict,
         }
 
     # ── Auto-instalación (Linux/WSL) ──
