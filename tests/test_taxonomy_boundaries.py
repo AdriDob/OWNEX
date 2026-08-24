@@ -113,3 +113,38 @@ class TestFeedbackValidation:
         )
         assert resp.status_code == 200
         assert calls["multipliers"]["category"] == "testing_qa"
+
+
+class TestSourceFamilyVocabulary:
+    def test_source_categories_iterate_enum_not_literals(self) -> None:
+        from cores.opportunity.auto_scanner import _source_categories
+        from cores.opportunity.global_sources import OpportunityCategory as GlobalFamilies
+
+        assert _source_categories() == list(GlobalFamilies)
+        assert [c.value for c in _source_categories()] == [
+            "bug_bounty",
+            "dev_bounty",
+            "data_entry",
+        ]
+
+    def test_new_family_is_picked_up_automatically(self) -> None:
+        # exhaustiveness by construction: count tracks the live enum
+        from cores.opportunity.auto_scanner import _source_categories
+        from cores.opportunity.global_sources import OpportunityCategory as GlobalFamilies
+
+        assert len(_source_categories()) == len(GlobalFamilies) >= 3
+
+    def test_source_intel_marks_its_vocabulary(self) -> None:
+        from cores.direct_work_engine.source_intel import SourceIntelEngine
+
+        report = SourceIntelEngine().analyze()
+        assert report["vocabulary"] == "global_source_families"
+        families = {s["category"] for s in report["sources"]}
+        assert families <= {"bug_bounty", "dev_bounty", "data_entry"}
+
+    def test_global_families_map_to_canonical(self) -> None:
+        from cores.opportunity.global_sources import OpportunityCategory as GlobalFamilies
+        from cores.work_taxonomy import GLOBAL_SOURCE_TO_CANONICAL, to_canonical
+
+        for member in GlobalFamilies:
+            assert to_canonical(member) is GLOBAL_SOURCE_TO_CANONICAL[member]

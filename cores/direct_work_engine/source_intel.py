@@ -100,6 +100,10 @@ class SourceIntelEngine:
         return {
             "analyzed": len(analyses),
             "total_curated_sources": len(self._curated_sources()),
+            # `sources[].category` carries curated-source-family values
+            # (global_sources taxonomy), NOT canonical DWE categories. Map via
+            # cores.work_taxonomy.GLOBAL_SOURCE_TO_CANONICAL when comparing.
+            "vocabulary": "global_source_families",
             "stats": stats,
             "uncovered_categories": self._uncovered_categories(),
             "sources": [a.to_dict() for a in analyses],
