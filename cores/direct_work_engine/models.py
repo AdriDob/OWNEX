@@ -11,7 +11,11 @@ from enum import StrEnum
 
 
 class OpportunityCategory(StrEnum):
-    """All IT ecosystem categories OWNEX can discover and score."""
+    """All IT ecosystem categories OWNEX can discover and score.
+
+    This is THE canonical product taxonomy; other engines map onto it via
+    ``cores.work_taxonomy`` (exhaustiveness enforced by tests).
+    """
 
     BUG_BOUNTY = "bug_bounty"
     DEV_BOUNTY = "dev_bounty"

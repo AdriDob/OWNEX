@@ -48,7 +48,10 @@ class CategoryPriority(IntEnum):
 
 
 class OpportunityCategory(IntEnum):
-    """11 categories of opportunities with priorities."""
+    """11 categories of opportunities with priorities.
+
+    Local layer taxonomy — canonical mapping in ``cores.work_taxonomy``.
+    """
 
     BUG_BOUNTY = 1
     DEVELOPMENT_TASKS = 2

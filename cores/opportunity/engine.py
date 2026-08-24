@@ -19,6 +19,11 @@ logger = logging.getLogger("ownex.opportunity")
 
 
 class OpportunityCategory(StrEnum):
+    """Engine-layer work categories.
+
+    Local taxonomy — canonical mapping in ``cores.work_taxonomy``.
+    """
+
     # 1) Bug Bounty / Security Research
     BUG_BOUNTY = "bug_bounty"
     # 2) Dev Bounty / Desarrollo por recompensa
