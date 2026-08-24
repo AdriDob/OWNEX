@@ -254,6 +254,30 @@ async function saveAI() {
   saveSuccess.value = ''
   try {
     await settings.syncToBackend()
+    // Aplicar el provider AL VIVO: PUT /settings/ai/config reconstruye el
+    // registry de cores.ai.provider (persistir JSON solo no basta).
+    const ai = settings.data.ai
+    await api.put('/settings/ai/config', {
+      provider_type: ai.provider,
+      host:
+        ai.provider === 'ollama' ? ai.ollamaHost
+        : ai.provider === 'devin' ? ai.devinPath
+        : ai.provider === 'freebuff' ? ai.freebuffConfigPath
+        : '',
+      model:
+        ai.provider === 'ollama' ? ai.ollamaModel
+        : ai.provider === 'openai' ? ai.openaiModel
+        : ai.provider === 'gemini' ? ai.geminiModel
+        : ai.provider === 'openrouter' ? ai.openrouterModel
+        : ai.provider === 'devin' ? ai.devinModel
+        : '',
+      api_key:
+        ai.provider === 'openai' ? ai.openaiKey
+        : ai.provider === 'gemini' ? ai.geminiKey
+        : ai.provider === 'openrouter' ? ai.openrouterKey
+        : '',
+      api_base: ai.provider === 'openai' ? ai.openaiBaseUrl : '',
+    })
     saveSuccess.value = 'Configuración de IA guardada'
     setTimeout(() => saveSuccess.value = '', 3000)
   } catch (e: any) {
@@ -569,6 +593,48 @@ onMounted(async () => {
               :value="settings.data.ai.geminiKey"
               @input="settings.updateAI({ geminiKey: ($event.target as HTMLInputElement).value })"
               type="password" class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2 font-mono text-sm text-foreground focus:outline-none focus:border-primary/50"
+            />
+          </div>
+        </div>
+
+        <!-- Devin config (agent CLI free) -->
+        <div v-if="settings.data.ai.provider === 'devin'" class="space-y-4">
+          <h4 class="font-mono text-[11px] font-semibold text-foreground">Configuración Devin</h4>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-1.5 flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
+                Ruta del binario
+                <Tooltip text="Comando o ruta del CLI de Devin (default: devin)." position="right"><span class="inline-flex h-3 w-3 items-center justify-center rounded-full bg-muted-foreground/20 text-[7px] text-muted-foreground cursor-help">?</span></Tooltip>
+              </label>
+              <input
+                :value="settings.data.ai.devinPath"
+                @input="settings.updateAI({ devinPath: ($event.target as HTMLInputElement).value })"
+                class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2 font-mono text-sm text-foreground focus:outline-none focus:border-primary/50"
+              />
+            </div>
+            <div>
+              <label class="mb-1.5 flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Modelo</label>
+              <input
+                :value="settings.data.ai.devinModel"
+                @input="settings.updateAI({ devinModel: ($event.target as HTMLInputElement).value })"
+                class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2 font-mono text-sm text-foreground focus:outline-none focus:border-primary/50"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Freebuff config -->
+        <div v-if="settings.data.ai.provider === 'freebuff'" class="space-y-4">
+          <h4 class="font-mono text-[11px] font-semibold text-foreground">Configuración Freebuff</h4>
+          <div>
+            <label class="mb-1.5 flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
+              Ruta del config
+              <Tooltip text="Path al yaml de configuración de Freebuff." position="right"><span class="inline-flex h-3 w-3 items-center justify-center rounded-full bg-muted-foreground/20 text-[7px] text-muted-foreground cursor-help">?</span></Tooltip>
+            </label>
+            <input
+              :value="settings.data.ai.freebuffConfigPath"
+              @input="settings.updateAI({ freebuffConfigPath: ($event.target as HTMLInputElement).value })"
+              class="w-full rounded-lg border border-border/40 bg-surface/30 px-3.5 py-2 font-mono text-sm text-foreground focus:outline-none focus:border-primary/50"
             />
           </div>
         </div>

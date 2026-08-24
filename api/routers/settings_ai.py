@@ -50,6 +50,30 @@ def update_config(body: AIConfigUpdate):
         updates["llm_model"] = body.model or "gpt-4o-mini"
         if body.api_key:
             updates["api_key"] = body.api_key
+    elif body.provider_type == "gemini":
+        # build_provider: gemini usa gemini_api_key/gemini_model y cae a Ollama local.
+        if body.api_key:
+            updates["gemini_api_key"] = body.api_key
+        if body.model:
+            updates["gemini_model"] = body.model
+        if body.host:
+            updates["ollama_host"] = body.host
+    elif body.provider_type == "openrouter":
+        updates["openrouter_model"] = body.model or "openai/gpt-4o-mini"
+        if body.api_key:
+            updates["openrouter_api_key"] = body.api_key
+        if body.api_base:
+            updates["api_base"] = body.api_base
+    elif body.provider_type == "devin":
+        # Agent CLI free: path al binario + modelo.
+        if body.host:
+            updates["devin_path"] = body.host
+        if body.model:
+            updates["devin_model"] = body.model
+    elif body.provider_type == "freebuff":
+        # Agente free: ruta al config yaml.
+        if body.host:
+            updates["freebuff_config_path"] = body.host
 
     registry = get_registry()
     provider = registry.set_config(updates)
