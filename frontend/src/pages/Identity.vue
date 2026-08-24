@@ -60,7 +60,7 @@ const platformList = computed(() => definitions.value.platforms.map(p => p.name)
 async function syncAll() {
   syncing.value = true
   try {
-    await api.post('/connections/sync-all', {})
+    await api.post('/platforms/sync', {})
     await loadData()
     lastSyncAll.value = new Date().toISOString()
   } catch { /* ignore */ }
@@ -70,7 +70,8 @@ async function syncAll() {
 async function syncPlatform(provider: string) {
   syncingPlatform.value = provider
   try {
-    await api.post(`/connections/sync/${provider}`, {})
+    // No hay sync por-provider en el backend; el sync es global.
+    await api.post('/platforms/sync', {})
     await loadData()
   } catch { /* ignore */ }
   finally { syncingPlatform.value = null }
@@ -94,13 +95,13 @@ async function loadData() {
   loading.value = true
   error.value = ''
   try {
-    const [accRes, setRes, defRes] = await Promise.allSettled([
+    // identity-center no expone GET de settings: defaults locales + persistencia
+    // granular al guardar (email/wallets/never-submit).
+    const [accRes, defRes] = await Promise.allSettled([
       api.get<{ accounts: PlatformAccount[] }>('/opportunity/identity/accounts'),
-      api.get<IdentitySettings>('/identity-center/settings'),
       api.get<{ platforms: { id: string; name: string }[] }>('/system/definitions'),
     ])
     if (accRes.status === 'fulfilled') accounts.value = accRes.value.accounts || []
-    if (setRes.status === 'fulfilled') settings.value = setRes.value
     if (defRes.status === 'fulfilled') definitions.value = defRes.value
   } catch (e: any) {
     error.value = e.message || 'Failed to load identity data'
@@ -141,7 +142,16 @@ async function saveSettings() {
   settingsError.value = ''
   settingsSuccess.value = ''
   try {
-    await api.post('/identity-center/settings', settings.value)
+    // Persistencia granular contra endpoints reales de identity-center.
+    await Promise.all([
+      settings.value.email
+        ? api.post('/identity-center/email', { primary: settings.value.email })
+        : Promise.resolve(),
+      settings.value.wallet_address
+        ? api.post('/identity-center/wallets', { usdc: settings.value.wallet_address })
+        : Promise.resolve(),
+      api.post('/identity-center/never-submit', { enabled: settings.value.approval_required }),
+    ])
     settingsSuccess.value = 'Settings saved'
     setTimeout(() => { settingsSuccess.value = '' }, 3000)
   } catch (e: any) {

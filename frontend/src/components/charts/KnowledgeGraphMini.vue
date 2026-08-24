@@ -36,25 +36,12 @@ async function fetchGraphData() {
     }))
     data.value = { nodes, links: edges }
   } catch {
-    data.value = generateSampleData()
+    // Sin fuente de grafo disponible: empty honesto, nunca datos de muestra.
+    data.value = { nodes: [], links: [] }
   }
   loading.value = false
 }
 
-function generateSampleData() {
-  const types = ['target', 'finding', 'endpoint', 'program', 'cve', 'report']
-  const nodes = Array.from({ length: 20 }, (_, i) => ({
-    id: `n${i}`,
-    label: `${types[i % types.length]}-${i}`,
-    type: types[i % types.length],
-  }))
-  const links = Array.from({ length: 25 }, (_, i) => ({
-    source: nodes[i % nodes.length].id,
-    target: nodes[(i + 3) % nodes.length].id,
-    type: ['associated', 'found_on', 'reported_to', 'related'][i % 4],
-  }))
-  return { nodes, links }
-}
 
 const colorMap: Record<string, string> = {
   target: '#a855f7',
@@ -166,6 +153,11 @@ onMounted(fetchGraphData)
         <span class="h-1.5 w-1.5 rounded-full bg-primary dot-pulse" />
         <span class="h-1.5 w-1.5 rounded-full bg-primary dot-pulse" />
       </div>
+    </div>
+    <div v-else class="flex items-center justify-center px-4 text-center" :style="{ height: height + 'px' }">
+      <p class="font-mono text-[10px] leading-relaxed text-muted-foreground">
+        Grafo de conocimiento no disponible aún — corre un pipeline para generarlo.
+      </p>
     </div>
   </div>
 </template>
