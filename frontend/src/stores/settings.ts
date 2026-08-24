@@ -73,6 +73,12 @@ export interface AISettings {
   geminiModel: string
   openrouterKey: string
   openrouterModel: string
+  /** Devin CLI: ruta al binario (provider devin). */
+  devinPath: string
+  /** Devin modelo (default | swe-1.6-slow). */
+  devinModel: string
+  /** Freebuff: ruta al config yaml (provider freebuff). */
+  freebuffConfigPath: string
   temperature: number
   maxContext: number
   memory: boolean
