@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicehash/tauri/dev/crates/tauri-config-schema/schema.json",
-  "productName": "OWNEX OMEGA",
+  "productName": "OWNEX Alpha",
   "version": "7.0.0",
   "identifier": "ai.orion.omega.desktop",
   "build": {
@@ -13,8 +13,8 @@
     "windows": [
       {
         "label": "main",
-        "title": "OWNEX OMEGA — Autonomous Work Operating Platform",
-        "url": "http://127.0.0.1:8000",
+        "title": "OWNEX Alpha — Autonomous Work Operating Platform",
+        "url": "index.html",
         "width": 1400,
         "height": 900,
         "minWidth": 900,
@@ -28,7 +28,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; connect-src 'self' http://127.0.0.1:8000 ws://127.0.0.1:8000; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:"
+      "csp": "default-src 'self'; connect-src 'self' http://127.0.0.1:* ws://127.0.0.1:*; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:"
     }
   },
   "bundle": {
@@ -40,6 +40,9 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
+    ],
+    "externalBin": [
+      "binaries/ownex-backend"
     ],
     "windows": {
       "wix": {

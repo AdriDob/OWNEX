@@ -1,6 +1,14 @@
 use serde::{Deserialize, Serialize};
 use tauri::command;
 
+fn backend_url(path: &str) -> String {
+    let port = std::env::var("OWNEX_BACKEND_PORT")
+        .ok()
+        .and_then(|s| s.parse::<u16>().ok())
+        .unwrap_or(8000);
+    format!("http://127.0.0.1:{port}{path}")
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateSessionRequest {
     pub device_id: String,
@@ -71,7 +79,7 @@ pub struct HistoryCommand {
 pub async fn remote_create_session(request: CreateSessionRequest) -> Result<SessionResponse, String> {
     let client = reqwest::Client::new();
     let resp = client
-        .post("http://localhost:8000/remote/session")
+        .post(backend_url("/remote/session"))
         .json(&request)
         .send()
         .await
@@ -89,7 +97,7 @@ pub async fn remote_create_session(request: CreateSessionRequest) -> Result<Sess
 pub async fn remote_chat(request: ChatRequest) -> Result<ChatResponse, String> {
     let client = reqwest::Client::new();
     let resp = client
-        .post("http://localhost:8000/remote/chat")
+        .post(backend_url("/remote/chat"))
         .json(&request)
         .send()
         .await
@@ -107,7 +115,7 @@ pub async fn remote_chat(request: ChatRequest) -> Result<ChatResponse, String> {
 pub async fn remote_approve(request: ApproveRequest) -> Result<ChatResponse, String> {
     let client = reqwest::Client::new();
     let resp = client
-        .post("http://localhost:8000/remote/approve")
+        .post(backend_url("/remote/approve"))
         .json(&request)
         .send()
         .await
@@ -125,7 +133,7 @@ pub async fn remote_approve(request: ApproveRequest) -> Result<ChatResponse, Str
 pub async fn remote_get_session(session_id: String) -> Result<SessionInfo, String> {
     let client = reqwest::Client::new();
     let resp = client
-        .get(format!("http://localhost:8000/remote/session/{}", session_id))
+        .get(backend_url(&format!("/remote/session/{session_id}")))
         .send()
         .await
         .map_err(|e| format!("Request failed: {}", e))?;
@@ -141,7 +149,7 @@ pub async fn remote_get_session(session_id: String) -> Result<SessionInfo, Strin
 #[command]
 pub async fn remote_get_history(session_id: String, limit: Option<i32>) -> Result<HistoryResponse, String> {
     let client = reqwest::Client::new();
-    let url = format!("http://localhost:8000/remote/history/{}?limit={}", session_id, limit.unwrap_or(50));
+    let url = backend_url(&format!("/remote/history/{session_id}?limit={}", limit.unwrap_or(50)));
     let resp = client
         .get(url)
         .send()
@@ -160,7 +168,7 @@ pub async fn remote_get_history(session_id: String, limit: Option<i32>) -> Resul
 pub async fn remote_health() -> Result<serde_json::Value, String> {
     let client = reqwest::Client::new();
     let resp = client
-        .get("http://localhost:8000/api/health")
+        .get(backend_url("/api/health"))
         .send()
         .await
         .map_err(|e| format!("Request failed: {}", e))?;

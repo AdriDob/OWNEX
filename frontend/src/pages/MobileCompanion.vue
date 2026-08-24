@@ -727,8 +727,9 @@ const rejectApproval = async (approvalId: number) => {
   }
 }
 
-const connectWebSocket = () => {
-  const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/mobile/ws/approvals`
+const connectWebSocket = async () => {
+  const { wsUrl: buildWsUrl } = await import('@/lib/backend')
+  const wsUrl = buildWsUrl('/api/mobile/ws/approvals')
   ws = new WebSocket(wsUrl)
 
   ws.onopen = () => {

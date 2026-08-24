@@ -1,5 +1,5 @@
 /**
- * TypeScript Type Definitions for OWNEX OMEGA
+ * TypeScript Type Definitions for OWNEX Alpha
  *
  * Interfaces específicas para respuestas de API y datos del sistema
  * para evitar el uso excesivo de `any`.

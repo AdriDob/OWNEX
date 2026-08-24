@@ -108,7 +108,7 @@ onMounted(async () => {
   // Desktop integration
   if (typeof window.__PYWEBVIEW__ !== 'undefined') {
     try {
-      window.__PYWEBVIEW__.setTitle('OWNEX OMEGA — Autonomous Work Operating Platform')
+      window.__PYWEBVIEW__.setTitle('OWNEX Alpha — Autonomous Work Operating Platform')
     } catch { /* not in pywebview */ }
   }
   _beforeunloadHandler = () => {

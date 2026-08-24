@@ -69,7 +69,7 @@ onMounted(async () => {
       </template>
 
       <p class="mt-6 flex items-center justify-center gap-1 text-[10px] text-muted-foreground/70">
-        <ShieldCheck class="h-3 w-3" /> OWNEX OMEGA · Verificación de cuenta
+        <ShieldCheck class="h-3 w-3" /> OWNEX Alpha · Verificación de cuenta
       </p>
     </div>
   </div>
