@@ -61,7 +61,7 @@
 ### IA / Providers
 | PAGE | STATUS | API | EVIDENCE | REMAINING_ISSUES |
 |---|---|---|---|---|
-| Settings → IA | FIXED-TODAY | GET settings/ai/providers (catálogo real 7 providers) | E2E 200; fallback estático offline | Config fields por provider (base_url/key/model) solo para ollama/openai/gemini; devin/freebuff/local usan env vars — P2 añadir inputs |
+| Settings → IA | COMPLETE (df17ebc9) | GET providers (catálogo real 7) + PUT config mapea TODOS los providers al registry vivo | saveAI aplica provider en vivo (antes solo persistía JSON); inputs devin/freebuff añadidos | local rule-based no requiere campos |
 | Copilot/Merlin chat | PARTIAL | copilot/chat existe (POST /chat bajo /api/copilot) | doble-prefijo normalizado hoy | streaming via assistant/chat/stream fixeado; MerlinJarvis legacy sin ruta |
 
 ### Knowledge
@@ -93,7 +93,7 @@
 | PAGE | STATUS | API | EVIDENCE | REMAINING_ISSUES |
 |---|---|---|---|---|
 | Connections | MOSTLY | connections/payout-accounts·withdrawals·platforms·payout-recommendations (todos existen) | — | sync-all ABSENT (Identity.vue) |
-| Identity | FIXED (cbf69102) | connect/disconnect reales + sync vía POST platforms/sync + settings granulares (email/wallets/never-submit) | persistencia real verificada por contrato | operational_mode global sin endpoint (campo UI pendiente decidir) |
+| Identity | FIXED (cbf69102+df17ebc9-adj) | connect/disconnect reales + sync vía platforms/sync + settings granulares (email/wallets/never-submit) | persistencia real por contrato; modo global deshabilitado honesto (backend solo tiene modo por-plataforma) | — |
 | Wallets | DEGRADED | identity-center/wallets solo POST (GET ABSENT) | — | P3 |
 
 ### Control panel (controlPanel.ts — 100+ funciones)
