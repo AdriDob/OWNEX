@@ -2,7 +2,25 @@
 
 > v7.0.0 STABLE — 6 Work Cycles operativos, lint clean, tests fast 88/89 pasan.
 
-## Última Sesión: 2026-08-07 — Closed Loop Revenue Implementado ✅
+## Última Sesión: 2026-08-24 — Application Assistant (FASE_39) ✅
+
+### Qué se hizo
+- **Plan asistido de postulación a plataformas de ingreso** (`core/application_assistant.py` NUEVO):
+  - Catálogo curado de 5 plataformas priorizadas por caja (Outlier, Mercor, Alignerr, Mindrift, Fiverr) con pay ranges honestos region-tiered
+  - 19 pasos con guía de qué poner en cada campo + respuestas sugeridas pre-rellenadas desde el Profile Kit real
+  - Tracking persistente en `data/applications.json` (sobrevive restarts) + `overview()` con next_action
+  - Endpoints en `api/routers/control.py`: GET `/api/applications/{plan,overview}`, POST `/applications/{platform}/steps/{step_id}/complete` (404), POST `/applications/{platform}/status` (400)
+- **Hallazgo que motivó el módulo**: verificación de mercado 2026 confirmó que Outlier/Mercor/Alignerr/Mindrift aceptan Argentina DIRECTO (ID + móvil del país real, sin VPN). El `vpn_assistant.py` tenía AR en `DISALLOWED_COUNTRIES` como suposición conservadora → **FIX**: AR (+MX) movidos a ALLOWED con fuente citada; `DATAANNOTATION_ALLOWED_COUNTRIES` separado (sigue US/UK/CA/AU/NZ/IE); verdicts ya no empujan VPN (apuntan a `/api/applications/plan`). Módulo VPN archivado.
+- **Coordinación**: proceso concurrente (`c33eb761`) revirtió dos veces cambios unstaged (control.py + COMPLETED_FEATURES.json); re-aplicados y re-verificados.
+
+### Verificación
+- ruff limpio en los 4 archivos; `tests/test_application_assistant.py` **16/16**
+- Suite fast **100 passed / 1 skipped** (baseline exacta); `import api.main` OK; smoke E2E overview+complete OK
+- FASE_39 registrada en COMPLETED_FEATURES.json; entrada completa en CURRENT_STATE.md
+
+---
+
+## Sesión anterior: 2026-08-07 — Closed Loop Revenue Implementado ✅
 
 ### Qué se hizo
 - **Closed Loop Revenue completo** - Sistema de autonomía y aprendizaje automático

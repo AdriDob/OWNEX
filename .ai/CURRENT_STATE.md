@@ -1,3 +1,29 @@
+## Sesión 2026-08-24 — APPLICATION ASSISTANT (FASE_39): plan asistido de postulación a plataformas de ingreso
+
+> **QUÉ SE HIZO:** Plan guiado dentro de OWNEX para postular desde Argentina a las plataformas
+> de AI-training/freelance verificadas en investigación 2026 (Outlier, Mercor, Alignerr, Mindrift,
+> Fiverr). **Hallazgo que motivó el módulo**: el `vpn_assistant.py` tenía AR hardcodeado en
+> `DISALLOWED_COUNTRIES` como suposición conservadora — la verificación de mercado 2026 confirmó
+> que Outlier/Mercor/Alignerr/Mindrift aceptan Argentina DIRECTO (ID + móvil del país real, sin VPN;
+> DataAnnotation sigue siendo US/UK/CA/AU/NZ/IE). El módulo: catálogo curado de 5 plataformas
+> priorizadas por caja con pay ranges honestos region-tiered, 19 pasos con guía de qué poner en
+> cada campo, respuestas sugeridas pre-rellenadas desde el Profile Kit real (`_seed_answers`,
+> defensivo), tracking persistente en `data/applications.json` (store path injectable para tests)
+> y `overview()` con next_action (primera plataforma no-accepted/rejected/paused en orden de
+> prioridad). Endpoints en router control existente: GET `/api/applications/plan`,
+> GET `/api/applications/overview`, POST `/api/applications/{platform}/steps/{step_id}/complete`
+> (404 desconocido), POST `/api/applications/{platform}/status` (400 estado inválido).
+> El módulo VPN NO se tocó (queda archivado; actualizar sus sets de países es FIX pendiente
+> opcional con fuente citada).
+- **Verificación**: ruff limpio en los 3 archivos; `tests/test_application_assistant.py` **16/16**
+  (shape del plan, persistencia cross-instancia con tmp store, KeyError/ValueError de contratos,
+  next_action + skip accepted, progreso % computado del catálogo, singleton, endpoints via
+  TestClient); suite fast **100 passed / 1 skipped** (baseline exacta); `import api.main` OK;
+  4 rutas registradas. FASE_39 registrada en COMPLETED_FEATURES.json.
+- **Nota LSP**: los errores "could not be resolved" de imports lazy `core.*` en control.py son
+  falsos positivos preexistentes del entorno LSP (afectan a TODO el archivo, incluidos imports
+  viejos); validado con import runtime + tests.
+
 ## Sesión 2026-08-17 — CI ROOT CAUSE FIX (lockfile workspace SSOT + YAML inválido en ci.yml) + Windows build nuevo desplegado (449d543af)
 
 > **QUÉ SE HIZO:** (1) **CAUSA RAÍZ DEL CI ROTO (desde SELF-1, 2026-08-11)**: ningún lockfile

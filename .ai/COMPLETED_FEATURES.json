@@ -1,6 +1,6 @@
 {
  "version": "7.0.0",
- "last_updated": "2026-08-15",
+ "last_updated": "2026-08-24",
  "total_tests": 1417,
  "phases": {
   "FASE_1": {
@@ -2515,6 +2515,41 @@
      ],
      "verified": "Crear el mismo target dos veces devuelve el existente sin insertar; guard idempotente"
     }
+   ]
+  },
+  "FASE_39": {
+   "name": "Application Assistant — plan asistido de postulación a plataformas de ingreso",
+   "completed": "2026-08-24",
+   "description": "Plan guiado paso a paso para postular desde Argentina a Outlier, Mercor, Alignerr, Mindrift y Fiverr. Catálogo curado (5 plataformas priorizadas por caja, 19 pasos con qué poner en cada campo), respuestas sugeridas pre-rellenadas desde el Profile Kit real, tracking persistente en data/applications.json (sobrevive restarts) y overview con next_action. Hallazgo clave: AR aceptado directo en las 4 de AI-training en 2026 — postulación sin VPN, ID + móvil del país real. El módulo vpn_assistant queda archivado.",
+   "features": [
+    {
+     "id": "application_assistant_engine",
+     "name": "ApplicationAssistant (catálogo + store JSON injectable + seeds del Profile Kit)",
+     "status": "production_ready",
+     "files": [
+      "core/application_assistant.py"
+     ]
+    },
+    {
+     "id": "application_assistant_api",
+     "name": "Endpoints /api/applications/{plan,overview} + steps/complete + status (router control)",
+     "status": "production_ready",
+     "files": [
+      "api/routers/control.py"
+     ]
+    }
+   ],
+   "tests": {
+    "file": "tests/test_application_assistant.py",
+    "count": 16,
+    "status": "all_passed"
+   },
+   "verification": [
+    "ruff clean en los 3 archivos tocados",
+    "16/16 tests nuevos passed",
+    "suite fast 100 passed / 1 skipped (baseline exacta)",
+    "import api.main OK; 4 rutas registradas; smoke E2E overview+complete OK",
+    "NOTA coordinación: proceso concurrente (c33eb761) revirtió la primera edición de este archivo + control.py; cambios re-aplicados y re-verificados"
    ]
   }
  },
