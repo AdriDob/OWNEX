@@ -69,7 +69,7 @@ HIDDEN_IMPORTS = [
     # Form parsing — MUST be present: FastAPI Form() endpoints fail at
     # runtime without it. As a hiddenimport its absence breaks the BUILD
     # loudly instead of being swallowed by collect_all's try/except.
-    "python_multipart",
+    "python_multipart", "numpy",
     # Database ORM
     "sqlalchemy",
     # Metrics
@@ -96,7 +96,7 @@ for pkg in ("api", "database", "core", "cores"):
 for pkg in (
     "fastapi", "starlette", "pydantic", "pydantic_settings",
     "sqlalchemy", "aiosqlite", "httpx",
-    "prometheus_client", "jinja2", "python_multipart",
+    "prometheus_client", "jinja2", "python_multipart", "numpy",
     "sse_starlette", "websockets",
 ):
     try:
