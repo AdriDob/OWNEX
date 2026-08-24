@@ -69,11 +69,13 @@ jobs:
 
       - name: Validate sidecar exists
         run: |
-          $exe = "dist\ownex-backend\ownex-backend.exe"
-          if (!(Test-Path $exe)) { throw "Sidecar .exe not found: $exe" }
-          Write-Host "Sidecar .exe found: $exe"
+          $exe = "dist\ownex-backend.exe"
+          if (!(Test-Path $exe)) { throw "Sidecar .exe not found: $exe (ONEFILE output)" }
           $size = (Get-Item $exe).Length
           Write-Host "Sidecar size: $([math]::Round($size / 1MB, 2)) MB"
+          # Guard: a self-contained backend must embed the whole runtime.
+          # The broken 2026-08-24 stub was 19.91 MB; real payload is >100 MB.
+          if ($size -lt 50MB) { throw "Sidecar suspiciously small ($([math]::Round($size / 1MB, 2)) MB) — likely missing _internal payload" }
 
       # ── Copy sidecar to Tauri binaries directory ──
       # Tauri expects sidecar at src-tauri/binaries/<name>-<target-triple>.exe
@@ -81,7 +83,7 @@ jobs:
         run: |
           $target = "x86_64-pc-windows-msvc"
           $destDir = "src-tauri\binaries"
-          $src = "dist\ownex-backend\ownex-backend.exe"
+          $src = "dist\ownex-backend.exe"
           $dest = "$destDir\ownex-backend-$target.exe"
           if (!(Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force }
           Copy-Item $src $dest -Force
@@ -142,5 +144,5 @@ jobs:
         with:
           name: OWNEX-Backend-Sidecar
           path: |
-            dist/ownex-backend/
+            dist/ownex-backend.exe
           if-no-files-found: warn

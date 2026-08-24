@@ -84,6 +84,9 @@ watch(() => props.open, async (v) => {
       version: { status: 'checking', message: 'Verificando...' },
       uptime: { status: 'checking', message: 'Verificando...' },
     }
+    // Re-verify on every open: the backend may have become ready since the
+    // wizard first mounted (Tauri sidecar cold start can take ~30 s).
+    await runVerification()
   }
 })
 
@@ -100,7 +103,7 @@ async function runVerification() {
   try {
     const ver: any = await api.get('/version')
     verificationResults.value.version = {
-      status: ver?.version?.startsWith('3.') ? 'ok' : 'warn',
+      status: ver?.version ? 'ok' : 'warn',
       message: `OWNEX ${ver?.version || 'desconocida'}`,
     }
   } catch {
