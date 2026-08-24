@@ -370,22 +370,38 @@ app = FastAPI(
     swagger_ui_parameters={"deepLinking": True, "displayRequestDuration": True},
 )
 
-# Production: restrict to local origins + pywebview app:// protocol.
-# Dev mode (CATEYE_DESKTOP not set) uses * but without credentials per Fetch spec.
-_allow_all = not get_config().desktop
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"]
-    if _allow_all
-    else [
-        "http://127.0.0.1:8000",
-        "http://localhost:8000",
-        "app://",
-    ],
-    allow_credentials=not _allow_all,
-    allow_methods=["*"],
-    allow_headers=["*"],
+# Production: restrict to local origins + Tauri bundle origins.
+# Dev mode (OWNEX_DESKTOP/CATEYE_DESKTOP not set) uses * but without
+# credentials per Fetch spec. The packaged sidecar always sets
+# OWNEX_DESKTOP=1 (start_backend.py), so the restrictive branch below is
+# what the Windows bundle actually runs.
+_TAURI_ORIGINS = (
+    "http://tauri.localhost",  # WebView2 production origin (Windows)
+    "https://tauri.localhost",  # https variant of the same
+    "tauri://localhost",  # custom-scheme variant (non-Windows builds)
+    "app://",  # legacy pywebview protocol (Gen1 launcher)
 )
+
+
+def configure_cors(app: FastAPI) -> None:
+    """Single source of truth for CORS wiring (see tests/test_cors_tauri.py)."""
+    _allow_all = not get_config().desktop
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"]
+        if _allow_all
+        else [
+            "http://127.0.0.1",
+            "http://localhost",
+            *_TAURI_ORIGINS,
+        ],
+        allow_credentials=not _allow_all,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+
+configure_cors(app)
 
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(CSRFMiddleware)
