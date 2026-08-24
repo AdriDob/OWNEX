@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { wsUrl } from '@/lib/backend'
 
 const terminalEl = ref<HTMLDivElement | null>(null)
 const theme = ref<'dark' | 'light'>('dark')
@@ -69,7 +70,7 @@ onMounted(async () => {
 
   // Intentar conectar al backend Python via WebSocket
   try {
-    ws = new WebSocket('ws://127.0.0.1:8000/api/ws/terminal')
+    ws = new WebSocket(wsUrl('/api/ws/terminal'))
     ws.onopen = () => {
       terminal.write('\x1b[32m✓ Backend conectado\x1b[0m\r\n')
     }

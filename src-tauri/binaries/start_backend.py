@@ -41,9 +41,14 @@ def _setup_logging(data_dir: Path, level: str) -> None:
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    fh = logging.FileHandler(log_file, encoding="utf-8")
-    fh.setFormatter(fmt)
-    fh.setLevel(logging.DEBUG)
+    fh = None
+    try:
+        fh = logging.FileHandler(log_file, encoding="utf-8")
+        fh.setFormatter(fmt)
+        fh.setLevel(logging.DEBUG)
+    except OSError:
+        # Data dir may be unwritable in exotic setups — never lose diagnostics.
+        print(f"[ownex-backend] WARNING: cannot write log file {log_file}", file=sys.stderr)
 
     sh = logging.StreamHandler(sys.stderr)
     sh.setFormatter(fmt)
@@ -51,7 +56,8 @@ def _setup_logging(data_dir: Path, level: str) -> None:
 
     root = logging.getLogger()
     root.setLevel(logging.DEBUG)
-    root.addHandler(fh)
+    if fh is not None:
+        root.addHandler(fh)
     root.addHandler(sh)
 
 
@@ -73,6 +79,8 @@ def main() -> int:
     if args.data_dir:
         data_dir = Path(args.data_dir)
     elif sys.platform == "win32":
+        # %LOCALAPPDATA% — matches database.db.user_data_dir() frozen default
+        # (which migrates legacy %APPDATA%/OWNEX data on first run).
         base = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
         data_dir = base / "OWNEX"
     else:
@@ -80,6 +88,8 @@ def main() -> int:
 
     _ensure_data_dirs(data_dir)
     _setup_logging(data_dir, args.log_level)
+
+    import logging
 
     logger = logging.getLogger("ownex.backend")
     logger.info("OWNEX Backend starting...")
@@ -100,6 +110,7 @@ def main() -> int:
     # Validate imports
     try:
         import api.main  # noqa: F401
+
         logger.info("  api.main imported OK")
     except Exception as exc:
         logger.error("  Failed to import api.main: %s", exc)

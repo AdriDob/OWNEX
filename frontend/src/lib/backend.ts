@@ -1,24 +1,42 @@
 /**
  * Backend connection helpers for OWNEX Alpha Desktop.
  *
- * When running inside Tauri, the backend port is dynamic and discovered
- * via a Tauri event emitted after the sidecar health check passes.
- * A polling fallback ensures the port is discovered even if the event
- * fires before the listener is ready (race condition).
+ * Port discovery inside the Tauri webview uses three complementary paths:
+ *   1. Push:   'backend-ready' event emitted by the Rust shell after health OK.
+ *   2. Pull:   invoke('is_backend_ready') + invoke('get_backend_port').
+ *   3. Fallback: HTTP health scan across the full dynamic range (8000-8099).
+ *
+ * getApiBase() is evaluated at REQUEST TIME so late resolution is picked up
+ * by every consumer without reload.
  */
 
+import type { Event } from '@tauri-apps/api/event'
+
 const DEFAULT_PORT = 8000
+/** Must stay aligned with find_available_port() in src-tauri/src/lib.rs. */
+const MAX_PORT_OFFSET = 99
 const BACKEND_HOST = '127.0.0.1'
 
-/** True when running inside a Tauri webview. */
-export const isTauri: boolean =
-  typeof window !== 'undefined' && '__TAURI__' in window
+/** True when running inside a Tauri webview (v2 always injects __TAURI_INTERNALS__). */
+function detectTauri(): boolean {
+  if (typeof window === 'undefined') return false
+  const w = window as unknown as Record<string, unknown>
+  return '__TAURI_INTERNALS__' in w || '__TAURI__' in w
+}
 
-/** Current backend port (updated when backend-ready event fires or via polling). */
+export const isTauri: boolean = detectTauri()
+
 let _backendPort = DEFAULT_PORT
 let _portResolved = false
 
-/** Get the current backend HTTP base URL. */
+function setBackendPort(port: number, via: string): void {
+  if (_portResolved && _backendPort === port) return
+  _backendPort = port
+  _portResolved = true
+  console.info(`[OWNEX] Backend ready on port ${port} (via ${via})`)
+}
+
+/** Current backend HTTP base URL (request-time evaluation). */
 export function getApiBase(): string {
   if (!isTauri) return '/api'
   return `http://${BACKEND_HOST}:${_backendPort}/api`
@@ -40,57 +58,68 @@ export function wsUrl(path: string, token?: string): string {
   return token ? `${url}?token=${encodeURIComponent(token)}` : url
 }
 
-// ── Port discovery: event + polling fallback ──
+// ── Port discovery ──────────────────────────────────────────────────────────
 if (isTauri) {
-  // 1. Listen for Tauri event (primary mechanism)
-  import('@tauri-apps/api/event').then(({ listen }) => {
-    listen<{ port: number }>('backend-ready', (event) => {
-      _backendPort = event.payload.port
-      _portResolved = true
-      console.log(`[OWNEX] Backend ready on port ${_backendPort} (via event)`)
-    })
-    listen<{ message: string }>('backend-error', (event) => {
-      console.error(`[OWNEX] Backend error: ${event.payload.message}`)
-    })
-  }).catch(() => {
-    // Tauri API not available
-  })
+  // 1. Push: Rust emits backend-ready once health passes.
+  import('@tauri-apps/api/event')
+    .then(({ listen }) =>
+      Promise.all([
+        listen<{ port: number }>('backend-ready', (event: Event<{ port: number }>) =>
+          setBackendPort(event.payload.port, 'event'),
+        ),
+        listen<{ message: string }>('backend-error', (event) => {
+          console.error(`[OWNEX] Backend error: ${event.payload.message}`)
+        }),
+      ]),
+    )
+    .catch((e) => console.warn('[OWNEX] Tauri event API unavailable:', e))
 
-  // 2. Polling fallback: try health endpoint every 2s for up to 30s
-  //    This catches cases where the event fires before the listener is ready
+  // 2. Pull: poll the shell commands until readiness flips true.
+  import('@tauri-apps/api/core')
+    .then(async ({ invoke }) => {
+      for (let i = 0; i < 90 && !_portResolved; i++) {
+        try {
+          if (await invoke<boolean>('is_backend_ready')) {
+            const port = await invoke<number | null>('get_backend_port')
+            if (port && port > 0) setBackendPort(port, 'invoke')
+            break
+          }
+        } catch {
+          // command bridge not ready yet this tick
+        }
+        await new Promise((r) => setTimeout(r, 1000))
+      }
+    })
+    .catch((e) => console.warn('[OWNEX] Tauri invoke API unavailable:', e))
+
+  // 3. Fallback: direct health scan over the full dynamic range. Catches any
+  //    case where the IPC bridge itself is degraded but fetch still works.
   let pollAttempts = 0
-  const MAX_POLL_ATTEMPTS = 15
-  const POLL_INTERVAL = 2000
+  const MAX_POLL_ATTEMPTS = 30
+  const POLL_INTERVAL_MS = 2000
 
   async function pollBackend(): Promise<void> {
     if (_portResolved || pollAttempts >= MAX_POLL_ATTEMPTS) return
     pollAttempts++
 
-    for (let port = DEFAULT_PORT; port < DEFAULT_PORT + 10; port++) {
+    for (let offset = 0; offset <= MAX_PORT_OFFSET; offset++) {
+      const port = DEFAULT_PORT + offset
       try {
         const resp = await fetch(`http://${BACKEND_HOST}:${port}/api/health`, {
-          signal: AbortSignal.timeout(1000),
+          signal: AbortSignal.timeout(600),
         })
         if (resp.ok) {
-          _backendPort = port
-          _portResolved = true
-          console.log(`[OWNEX] Backend found on port ${port} (via polling)`)
+          setBackendPort(port, 'polling')
           return
         }
       } catch {
-        // not this port, try next
+        // not this port
       }
     }
 
-    // Schedule next poll
-    if (!_portResolved && pollAttempts < MAX_POLL_ATTEMPTS) {
-      setTimeout(pollBackend, POLL_INTERVAL)
-    }
+    if (!_portResolved) setTimeout(pollBackend, POLL_INTERVAL_MS)
+    else console.warn('[OWNEX] Backend not found on any port 8000-8099 after 30s of polling')
   }
 
-  // Start polling after a short delay (give sidecar time to start)
-  setTimeout(pollBackend, 3000)
+  setTimeout(pollBackend, 2500)
 }
-
-/** API base constant — now just a convenience alias. */
-export const API_BASE = getApiBase()
