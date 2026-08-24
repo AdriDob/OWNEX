@@ -7,9 +7,10 @@
  * accent color and explain what is happening. Real errors render as
  * ERROR / CAUSA / ACCIÓN RECOMENDADA with an optional retry.
  */
+
+import { AlertTriangle, Loader2, RefreshCw, WifiOff } from '@lucide/vue'
 import { computed } from 'vue'
-import { AlertTriangle, Loader2, RefreshCw, WifiOff } from 'lucide-vue-next'
-import { Button } from '@/components/ui/button'
+import Button from '@/components/ui/Button.vue'
 import { backendStatus, retryConnection } from '@/lib/backend'
 
 const props = withDefaults(
@@ -40,8 +41,7 @@ const recommendedAction = computed(() => {
   if (props.action) return props.action
   if (isConnecting.value)
     return 'OWNEX está localizando el backend local (puertos 8000-8099). Se reconecta solo; no necesitás hacer nada.'
-  if (cause.value.includes('Sesión expirada'))
-    return 'Reiniciá OWNEX Alpha para regenerar tu sesión local.'
+  if (cause.value.includes('Sesión expirada')) return 'Reiniciá OWNEX Alpha para regenerar tu sesión local.'
   return 'Verificá tu conexión y probá de nuevo con "Reintentar".'
 })
 
