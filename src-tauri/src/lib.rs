@@ -88,7 +88,8 @@ pub fn run() {
             #[cfg(desktop)]
             {
                 use tauri::menu::PredefinedMenuItem;
-                let show = MenuItem::with_id(app, "show", "Mostrar OWNEX Alpha", true, None::<&str>)?;
+                let show =
+                    MenuItem::with_id(app, "show", "Mostrar OWNEX Alpha", true, None::<&str>)?;
                 let separator = PredefinedMenuItem::separator(app)?;
                 let quit = MenuItem::with_id(app, "quit", "Salir", true, Some("CmdOrCtrl+Q"))?;
                 let menu = Menu::with_items(app, &[&show, &separator, &quit])?;
@@ -119,19 +120,58 @@ pub fn run() {
 
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running OWNEX Alpha");
+        .build(tauri::generate_context!())
+        .expect("error while building OWNEX Alpha")
+        .run(|app, event| {
+            // Kill the sidecar on ANY exit path (window close, tray quit,
+            // Cmd+Q). Without this the spawned backend survives as an
+            // orphan serving a stale build on the chosen port.
+            #[cfg(not(debug_assertions))]
+            if let tauri::RunEvent::Exit = event {
+                kill_backend(app);
+            }
+            #[cfg(debug_assertions)]
+            {
+                let _ = (app, event);
+            }
+        });
+}
+
+/// Terminate the managed sidecar child, if any (release builds).
+#[cfg(not(debug_assertions))]
+fn kill_backend(app: &tauri::AppHandle) {
+    use tauri_plugin_shell::process::CommandChild;
+
+    if let Some(state) = app.try_state::<Arc<Mutex<Option<CommandChild>>>>() {
+        match state.lock() {
+            Ok(mut guard) => {
+                if let Some(child) = guard.take() {
+                    let pid = child.pid();
+                    let _ = child.kill();
+                    eprintln!("[ownex-tauri] Backend sidecar killed on exit (PID: {pid})");
+                }
+            }
+            Err(_) => eprintln!("[ownex-tauri] WARNING: backend mutex poisoned during shutdown"),
+        }
+    }
 }
 
 #[cfg(not(debug_assertions))]
 fn launch_backend(app: tauri::AppHandle) {
     use tauri_plugin_shell::process::CommandChild;
 
-    // 1. Find available port
-    let port = find_available_port(8000).unwrap_or_else(|| {
-        emit_log(&app, "error", "No available port found in 8000-8099");
-        8000
-    });
+    // 1. Find available port — abort terminally if the whole range is taken
+    //    (spawning on an occupied port guarantees failure + wasted wait).
+    let port = match find_available_port(8000) {
+        Some(p) => p,
+        None => {
+            let msg = "No available port found in 8000-8099; aborting backend launch".to_string();
+            eprintln!("[ownex-tauri] ERROR: {msg}");
+            emit_log(&app, "error", &msg);
+            let _ = app.emit("backend-error", serde_json::json!({"message": msg}));
+            return;
+        }
+    };
     std::env::set_var("OWNEX_BACKEND_PORT", port.to_string());
     eprintln!("[ownex-tauri] Selected port: {port}");
 
@@ -158,7 +198,10 @@ fn launch_backend(app: tauri::AppHandle) {
 
     let child: CommandChild = match sidecar.args(["--port", &port.to_string()]).spawn() {
         Ok((mut rx, child)) => {
-            eprintln!("[ownex-tauri] Sidecar spawned (PID: {}), waiting for health on :{port}...", child.pid());
+            eprintln!(
+                "[ownex-tauri] Sidecar spawned (PID: {}), waiting for health on :{port}...",
+                child.pid()
+            );
             // Read sidecar output in background thread (async receiver)
             let app_log = app.clone();
             std::thread::spawn(move || {
@@ -202,36 +245,45 @@ fn launch_backend(app: tauri::AppHandle) {
     let child_for_shutdown = child_arc.clone();
     app.manage(child_arc);
 
-    // 4. Health check loop (max 60s, exponential backoff)
-    let mut delay = 1u64;
-    for i in 0..60 {
-        thread::sleep(Duration::from_secs(delay.min(5)));
+    // 4. Health check loop — real budget: 45 polls x 2s = 90s. Covers
+    //    onefile extraction (~10-30s) plus a cold uvicorn boot (~35s) with
+    //    margin, while keeping the blind window bounded and honest.
+    const MAX_POLLS: u64 = 45;
+    const POLL_SECS: u64 = 2;
+    for i in 0..MAX_POLLS {
+        thread::sleep(Duration::from_secs(POLL_SECS));
         if backend_healthy(port) {
             BACKEND_READY.store(true, Ordering::Relaxed);
-            let msg = format!("Backend ready on :{port} after {i}s");
+            let elapsed = (i + 1) * POLL_SECS;
+            let msg = format!("Backend ready on :{port} after {elapsed}s");
             eprintln!("[ownex-tauri] {msg}");
             emit_log(&app, "info", &msg);
             let _ = app.emit("backend-ready", serde_json::json!({"port": port}));
             return;
         }
-        delay = (delay * 2).min(5);
     }
 
     // 5. Timeout — kill child, emit error
-    let msg = format!("Backend failed to start on :{port} within 60s");
+    let msg = format!(
+        "Backend failed to become healthy on :{port} within {}s",
+        MAX_POLLS * POLL_SECS
+    );
     eprintln!("[ownex-tauri] ERROR: {msg}");
     emit_log(&app, "error", &msg);
     let _ = app.emit("backend-error", serde_json::json!({"message": msg}));
 
     // Attempt to kill the stuck child
-    if let Some(mut c) = child_for_shutdown.lock().ok().and_then(|mut g| g.take()) {
+    if let Some(c) = child_for_shutdown.lock().ok().and_then(|mut g| g.take()) {
         let _ = c.kill();
     }
 }
 
 #[allow(dead_code)]
 fn emit_log(app: &tauri::AppHandle, level: &str, msg: &str) {
-    let _ = app.emit("log-message", serde_json::json!({"level": level, "message": msg}));
+    let _ = app.emit(
+        "log-message",
+        serde_json::json!({"level": level, "message": msg}),
+    );
 }
 
 #[tauri::command]
