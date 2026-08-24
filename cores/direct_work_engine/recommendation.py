@@ -505,18 +505,22 @@ class IntelligentRecommender:
         return opp.risk
 
     def _calculate_expected_value(self, ranked: RankedOpportunity) -> float:
-        """Calculate expected monetary value."""
-        opp = ranked.opportunity
-        acceptance = ranked.acceptance_probability
-        payment = opp.payment
+        """Money expectation via the economics SSOT (FASE 3, P0-3).
 
-        # Adjust for payment reliability
+        Numeric behavior preserved for legacy inputs; task availability is
+        UNKNOWN until adapters provide a live signal (never assumed).
+        """
+        from cores.direct_work_engine.economics import compute_expected_value
         from cores.direct_work_engine.models import PAYMENT_RELIABILITY
 
+        opp = ranked.opportunity
         reliability = PAYMENT_RELIABILITY.get(opp.payment_method, 0.5)
 
-        # Expected value = payment * acceptance_prob * reliability
-        return payment * acceptance * reliability
+        return compute_expected_value(
+            payment=opp.payment,
+            acceptance_probability=ranked.acceptance_probability,
+            payment_reliability=reliability,
+        ).ev_usd
 
     def _calculate_overall_score(self, ranked: RankedOpportunity) -> float:
         """Calculate weighted overall recommendation score."""

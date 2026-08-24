@@ -142,7 +142,8 @@ class EVScore:
 class EVScorer:
     """Ranks opportunities by Expected Value per hour invested."""
 
-    # Base success rates by category (from historical data)
+    # Cold-start priors by category — CURATED ESTIMATES, not measured
+    # history. Labeled in every EVScore.reasoning (FASE 3 honesty contract).
     BASE_SUCCESS_RATES = {
         "bug_bounty": 0.15,  # 15% success rate for valid reports
         "dev_bounty": 0.35,  # 35% for code bounties
@@ -228,8 +229,17 @@ class EVScorer:
         # Estimated hours (with minimum)
         hours = max(opportunity.estimated_time_hours, 0.5)
 
-        # Expected Value
-        total_ev = opportunity.payment * success_prob
+        # Expected Value via the economics SSOT (FASE 3, P0-3).
+        # Availability has no live signal yet -> stays UNKNOWN and is
+        # surfaced in reasoning; never silently assumed to be 1.0.
+        from cores.direct_work_engine.economics import compute_expected_value
+
+        ev_result = compute_expected_value(
+            payment=opportunity.payment,
+            acceptance_probability=success_prob,
+            payment_reliability=1.0,
+        )
+        total_ev = ev_result.ev_usd
         ev_per_hour = total_ev / max(hours, 0.5)
 
         # Confidence based on data quality
@@ -246,6 +256,12 @@ class EVScorer:
 
         is_zero_barrier = self._is_zero_barrier(opportunity)
 
+        reasoning = self._generate_reasoning(opportunity, success_prob, ev_per_hour, is_zero_barrier)
+        reasoning.append(
+            "Cold-start prior: success probability derives from curated category "
+            "estimates (BASE_SUCCESS_RATES), not measured acceptance history."
+        )
+
         return EVScore(
             opportunity_id=opportunity.id,
             platform=platform_key,
@@ -257,7 +273,8 @@ class EVScorer:
             estimated_hours=hours,
             confidence=round(confidence, 2),
             zero_barrier=is_zero_barrier,
-            reasoning=self._generate_reasoning(opportunity, success_prob, ev_per_hour, is_zero_barrier),
+            rank=0,
+            reasoning=reasoning,
         )
 
     def _is_zero_barrier(self, opportunity: Opportunity) -> bool:
