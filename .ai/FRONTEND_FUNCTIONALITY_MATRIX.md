@@ -44,8 +44,7 @@
 | EndpointDetail | COMPLETE | endpoints/{id}, findings?endpoint_id, validation/validate, idor/idor | contratos reales wireados hoy (payloads ValidateHotPathRequest/IDORScanRequest) | idor requiere identity_baseline_id → envía baseline anónima 0; UX de resultado pendiente pulir |
 | Findings (stores/findings) | COMPLETE | findings CRUD, pipeline, reports/{id}/submit | endpoints existen (10 findings paths) | — |
 | HypothesisQueue | FIXED-TODAY | POST hypotheses/{target_id} → attack_queue | flujo real: seleccionar target → generar → poblar cola | Lista inicial sin generación = empty state honesto (antes fetch fantasma 404) |
-| EvidenceCenter | PARTIAL | evidence/upload (fix hoy: getApiBase) | upload existe; listado `/evidence` genérico ABSENT | listar evidencia requiere ruta de listado — usar findings/{id}/evidence si existe |
-| ReportCenter/History/Queue | MOSTLY | reports (+31 paths), reports/stats, revenue/monthly | reports cluster completo | economic/report-queue ABSENT → ReportQueue cae a empty state |
+| EvidenceCenter | PARTIAL | evidence/upload (fix hoy: getApiBase) | upload existe; listado `/evidence` genérico ABSENT | listar evidencia requiere ruta de listado — usar findings/{id}/evidence si existe || ReportCenter/History/Queue | MOSTLY | reports (+31 paths), reports/stats, revenue/monthly | reports cluster completo | economic/report-queue ABSENT → ReportQueue cae a empty state |
 | ZAP integrations | AVAILABLE | zap/health, spider, passive-scan, alerts, technologies, hypotheses | todos existen (zap/alerts era artefacto del scanner) | Requiere ZAP corriendo localmente |
 | Discovery | COMPLETE | discovery/scan, programs, import-all | existen (3 programs paths) | — |
 | BabyMode HUNT | COMPLETE | hunt/start,status,pause,resume,stop + pipeline/stages + capital-dashboard | 6 hunt paths + stages + dashboard existen | — |
@@ -69,7 +68,7 @@
 | PAGE | STATUS | API | EVIDENCE | REMAINING_ISSUES |
 |---|---|---|---|---|
 | Knowledge service (17 eps) | COMPLETE | knowledge/connect·scan·sync·search·note·health·snapshots… | 15 paths existen | — |
-| KnowledgeGraphMini | DEGRADED | /knowledge-graph/nodes·edges ABSENT | componente oculta si falla? verificar catch | P2: mapear a knowledge/graph real o desmontar widget |
+| KnowledgeGraphMini | HONEST-EMPTY (cbf69102) | endpoints ABSENT — mock generateSampleData() ELIMINADO (fabricaba datos) | empty state visible: 'corre un pipeline' | construir source real o retirar widget — decisión producto |
 
 ### Operaciones
 | PAGE | STATUS | API | EVIDENCE | REMAINING_ISSUES |
@@ -80,7 +79,7 @@
 | InsightsView | FIXED-TODAY | canonical/insights, execution/traces | E2E: insights 404→empty-state OK; traces 200 | — |
 | PersonalIntelligence | FIXED-TODAY | learning/profile·events·reset·export | E2E 200 profile | — |
 | ConfidenceDashboard | DEGRADED | confidence/audit ABSENT | empty honesto | P2 |
-| ReplayCenter | DEGRADED | system/replay-targets ABSENT | empty honesto | P3 |
+| ReplayCenter | FIXED (cbf69102) | scans/runs + scans/runs/{id} (fuente real de replays) | lista de runs + timeline con outputs reales | enriquecer steps por-stage cuando scan_runs exponga stages |
 | DifferentialEngine | FIXED-TODAY | differential-intelligence/analyze | E2E 200 | — |
 
 ### Capital / Inversión
@@ -94,7 +93,7 @@
 | PAGE | STATUS | API | EVIDENCE | REMAINING_ISSUES |
 |---|---|---|---|---|
 | Connections | MOSTLY | connections/payout-accounts·withdrawals·platforms·payout-recommendations (todos existen) | — | sync-all ABSENT (Identity.vue) |
-| Identity | PARTIAL | identity-center/platform/{p}/connect·disconnect (existen), opportunity/identity/accounts (existe) | — | connections/sync-all·sync/{p}·identity-center/settings ABSENT → botones sin efecto: ocultar o implementar — P2 |
+| Identity | FIXED (cbf69102) | connect/disconnect reales + sync vía POST platforms/sync + settings granulares (email/wallets/never-submit) | persistencia real verificada por contrato | operational_mode global sin endpoint (campo UI pendiente decidir) |
 | Wallets | DEGRADED | identity-center/wallets solo POST (GET ABSENT) | — | P3 |
 
 ### Control panel (controlPanel.ts — 100+ funciones)
@@ -102,6 +101,11 @@
 |---|---|
 | MOSTLY-COMPLETE | Todos los double-prefix normalizados hoy vía núcleo; cada bloque con `.catch(() => ({}))` degrada a vacío honesto. Clusters verificados existen: mega-fast, first-time, vpn, obsidian, life, daily-tasks, automation, skill-method, capital-bar, goal-evaluator, work-log, postmortem, account-health, payout-planner, brand-writer, vault-lock, emergency-mode, payout-net, payment-tracker, trust-engine, closed-loop, finance-guru, tax-ar, invoicer-ar, offramp, platforms, config/progress, dispute, sandbox, profile-builder, guide/master, money-plan, task-assistant, dev-bounty, evidence/claim, startup-checks |
 | Excepciones ABSENT | files/list, daily-tasks OK(existe), investment/action-required·startup-checks (verificar) |
+
+### Composables
+| PAGE | STATUS | NOTA |
+|---|---|---|
+| useMicroInteractions batch | FIXED (cbf69102) | POST /micro/batch genérico ABSENT → rutas reales batch/{export,sync,delete,tag} con guard de acciones soportadas |
 
 ### Wear OS / Mobile
 | PAGE | STATUS | NOTA |
@@ -114,9 +118,9 @@
 |---|---|---|
 | COMPLETE (E2E verificado) | 18 | flujos principales del producto |
 | MOSTLY (1-2 gaps menores) | 7 | |
-| FIXED-TODAY | 6 | eran BROKEN por bugs sistémicos |
+| FIXED-TODAY | 10 | bugs sistémicos + gaps finales (batch/replay/identity/graph) |
 | PARTIAL | 6 | acciones secundarias sin efecto |
-| DEGRADED-KNOWN | 9 | backend ABSENT — empty/error honesto, decisión producto pendiente |
+| DEGRADED-KNOWN | 7 | backend ABSENT — empty/error honesto, decisión producto pendiente |
 | BROKEN puro | **0** | ninguna página queda llamando endpoints inexistentes sin manejo |
 
 ## Flujos principales E2E verificados (backend vivo)
