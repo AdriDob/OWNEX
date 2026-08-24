@@ -2,7 +2,34 @@
 
 > v7.0.0 STABLE — 6 Work Cycles operativos, lint clean, tests fast 88/89 pasan.
 
-## Última Sesión: 2026-08-24 — Taxonomy refactor Phases 2-6 ✅
+## Última Sesión: 2026-08-24 — FRONTEND FUNCTIONAL PASS ✅
+
+### Qué se hizo
+- **Auditoría funcional completa del frontend** contra el OpenAPI real (1.236 paths):
+  cross-reference de ~500 llamadas `api.*` → matriz viva en `.ai/FRONTEND_FUNCTIONALITY_MATRIX.md`.
+- **3 bugs sistémicos corregidos** (afectaban TODA la app):
+  1. Doble prefijo `/api/api/x` (~150 call sites, 404 silencioso tapado por catches) → normalización central en `lib/api.ts::request()`.
+  2. Namespaces root-mounted (`direct-work/*` 35 rutas, `mobile/*`, `wear-os/*`) → `resolveApiUrl()` + proxies vite.
+  3. Fetch crudos con path hardcodeado (evidence/chat-stream/pdf) → `getApiBase()` request-time.
+- **Discovery endurecido**: reset ante fallo de red + re-scan rápido→lento infinito + `retryConnection()`; `backendStatus` reactivo.
+- **ErrorState.vue** (ERROR/CAUSA/ACCIÓN, connecting calmado — regla CALM UX) reemplaza banners rojos inexplicables.
+- **Rewires a contratos reales**: learning/profile·events·export·reset, canonical/insights (404→empty), execution/traces, differential-intelligence/analyze, POST hypotheses/{target}→attack_queue, endpoints?target_id=, validation/validate+idor/idor (payloads reales), micro/batch/{action}, ReplayCenter→scans/runs, Identity sync→platforms/sync + settings granulares.
+- **Mock eliminado en producción**: KnowledgeGraphMini generateSampleData() → empty state honesto.
+- **AI Settings completo**: PUT /settings/ai/config mapea claves de TODOS los providers al registry vivo; saveAI aplica provider en vivo (antes solo persistía JSON); inputs devin/freebuff; catálogo dinámico GET providers con fallback offline.
+- **Identity**: modo global deshabilitado honesto (backend solo tiene modo por-plataforma).
+- **Docs**: TECHNICAL_DEBT.md reconstruido; FRONTEND_FUNCTIONALITY_MATRIX.md creado.
+
+### Verificación
+- vue-tsc **0 errores** · vitest **226/226** · build OK · ruff clean
+- E2E backend-vivo **11/11** | Commits: bbf5750d, cbf69102, 032975b3, df17ebc9, ab0255da
+
+### Deuda restante
+- P2: noExplicitAny preexistentes en 4 archivos legacy (stash-diff verificado)
+- Decisión producto: investment sub-adapters (~32 llamadas sin backend) — construir o retirar UI
+
+---
+
+## Sesión previa: 2026-08-24 — Taxonomy refactor Phases 2-6 ✅
 
 ### Qué se hizo
 - **Auditoría forense completa** (READ-ONLY): 4 enums OpportunityCategory (38 canónica / 11 engine / 3 global_sources / 11 mercenary IntEnum) + shadow taxonomies por literales (~40 sitios). Informe completo entregado con matrices A-P.
