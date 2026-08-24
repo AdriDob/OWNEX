@@ -45,6 +45,9 @@ class LegacyOpportunityDweAdapter(BaseDiscoveryAdapter):
         self._employment_type = employment_type
         self._payment_method = payment_method
         self._registration_required = registration_required
+        # Curated barrier flags from global sources (FASE 5): stop flattening
+        # interview/portfolio to False for platforms the catalog knows about.
+        self._curated_barriers = _curated_barrier_flags(platform.value)
         source = DiscoverySource(
             name=name,
             platform=platform,
@@ -87,8 +90,8 @@ class LegacyOpportunityDweAdapter(BaseDiscoveryAdapter):
             language_required="english",
             estimated_time_hours=effort,
             experience_required=ExperienceLevel.NONE,
-            portfolio_required=False,
-            interview_required=False,
+            portfolio_required=bool(self._curated_barriers[0]) if self._curated_barriers else False,
+            interview_required=bool(self._curated_barriers[1]) if self._curated_barriers else False,
             technical_test_required=False,
             registration_required=self._registration_required,
             time_to_payout_days=None,
@@ -102,6 +105,26 @@ class LegacyOpportunityDweAdapter(BaseDiscoveryAdapter):
             technology_tags=list(getattr(raw, "tags", []) or []),
             employment_type=self._employment_type,
         )
+
+
+def _curated_barrier_flags(platform_key: str) -> tuple[bool, bool] | None:
+    """(portfolio_required, interview_required) from the curated catalog.
+
+    Matched by exact normalized name or by url domain so entries like
+    ``outlier`` hit ``outlier.ai``. Returns None when the platform has no
+    curated entry — callers keep their defaults instead of the catalog
+    inventing a barrier that nobody verified.
+    """
+    from cores.opportunity.global_sources import get_sources
+
+    key = platform_key.strip().lower().replace("_", "")
+    if not key:
+        return None
+    for src in get_sources():
+        name_norm = src.name.strip().lower().replace(" ", "")
+        url = (getattr(src, "url", "") or "").lower()
+        if key == name_norm or (url and key in url):
+            return (bool(src.requires_portfolio), bool(src.requires_interview))
 
 
 def build_default_adapters() -> list[BaseDiscoveryAdapter]:
