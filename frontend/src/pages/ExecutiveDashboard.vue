@@ -7,13 +7,14 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { api } from '@/lib/api'
 import {
-  Activity, TrendingUp, Target, Clock, RefreshCw, AlertTriangle,
+  Activity, TrendingUp, Target, Clock, RefreshCw,
   ArrowUpRight, Wallet, DollarSign, Gauge, CheckCircle2,
 } from '@lucide/vue'
 import Card from '@/components/ui/Card.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
+import ErrorState from '@/components/shared/ErrorState.vue'
 
 interface CeoView {
   verdict: string
@@ -95,14 +96,13 @@ onUnmounted(() => {
       </Button>
     </div>
 
-    <!-- Error -->
-    <div
+    <!-- Error (structured: ERROR / CAUSA / ACCIÓN, calm during backend wait) -->
+    <ErrorState
       v-if="error"
-      class="flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/30 px-4 py-3 text-sm text-destructive"
-    >
-      <AlertTriangle class="h-4 w-4 shrink-0" />
-      <span>{{ error }}</span>
-    </div>
+      title="No se pudo cargar el dashboard ejecutivo"
+      :error="error"
+      :on-retry="load"
+    />
 
     <LoadingState v-if="loading && !data" />
 

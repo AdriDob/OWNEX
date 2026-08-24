@@ -363,3 +363,36 @@ export interface WizardStep {
   is_required: boolean;
   can_skip: boolean;
 }
+
+/** Shape of GET /orion/context/system (dashboard aggregate). */
+export interface OrionContextCounts {
+  targets: number
+  endpoints?: number
+  findings?: number
+  reports?: number
+}
+
+export interface OrionContextFindings {
+  by_severity: Partial<Record<'critical' | 'high' | 'medium' | 'low', number>>
+  total?: number
+}
+
+export interface OrionContextVerdicts {
+  by_status: Partial<Record<string, number>>
+}
+
+export interface OrionContextOpportunity {
+  id?: number
+  title?: string
+  score?: number
+  platform?: string
+}
+
+export interface OrionContext {
+  counts: OrionContextCounts
+  findings: OrionContextFindings
+  verdicts: OrionContextVerdicts
+  opportunities: { total: number; top: OrionContextOpportunity[] }
+  scans?: Partial<Record<string, number>>
+  _meta?: { version?: string; generated_at?: string }
+}
