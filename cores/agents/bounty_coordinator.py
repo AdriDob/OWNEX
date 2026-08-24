@@ -26,6 +26,26 @@ from cores.opportunity.models import Opportunity
 logger = logging.getLogger("cateye.agents.bounty_coordinator")
 
 
+def _normalize_category(raw: object) -> str:
+    """Normalize a persisted category string to the canonical product taxonomy.
+
+    Stored opportunities carry engine-layer category values (T2). They are
+    mapped through ``cores.work_taxonomy`` so downstream consumers see the
+    canonical vocabulary. Unknown/legacy strings pass through verbatim —
+    never invented, deterministic.
+    """
+    text = str(raw or "").strip()
+    if not text:
+        return "oss"
+    try:
+        from cores.opportunity.engine import OpportunityCategory as EngineCategory
+        from cores.work_taxonomy import to_canonical
+
+        return to_canonical(EngineCategory(text)).value
+    except ValueError:
+        return text
+
+
 class BountyStatus(StrEnum):
     """Status of a bounty execution."""
 
@@ -635,7 +655,7 @@ def run_coordinator_cycle() -> dict[str, Any]:
                         url="",
                         confidence=0.5,
                     ),
-                    category=str(opp_dict.get("category", "oss")),
+                    category=_normalize_category(opp_dict.get("category")),
                     estimated_payout=float(opp_dict.get("reward_max", 0.0) or 0.0),
                     estimated_effort_hours=float(opp_dict.get("estimated_hours", 1.0) or 1.0),
                 )
