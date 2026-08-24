@@ -1,5 +1,5 @@
-import type { OrionContext } from '@/types'
 import { getApiBase, resetBackendDiscovery } from '@/lib/backend'
+import type { OrionContext } from '@/types'
 
 // NOTE: getApiBase() is called at request time, NOT at module load time.
 // This ensures the dynamic port from backend-ready event is used.
@@ -104,7 +104,16 @@ export interface RequestOptions {
 async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, params, skipAuth } = opts
 
-  let url = `${getApiBase()}${path}`
+  // Normalize legacy double-prefixed paths: ~150 call sites pass '/api/...'
+  // while getApiBase() already resolves to '<host>/api'. Produces /api/api/x
+  // (silent 404 otherwise). Safe: paths already correct are untouched.
+  let cleanPath = path
+  const base = getApiBase()
+  if (base.endsWith('/api') && cleanPath.startsWith('/api/')) {
+    cleanPath = cleanPath.slice(4)
+  }
+
+  let url = `${base}${cleanPath}`
   if (params) {
     const search = new URLSearchParams()
     for (const [k, v] of Object.entries(params)) {
@@ -169,36 +178,32 @@ export const api = {
   get: <T>(path: string, params?: Record<string, string | number | boolean | undefined | null>) =>
     request<T>(path, { params }),
 
-  post: <T>(path: string, body?: unknown, skipAuth?: boolean) =>
-    request<T>(path, { method: 'POST', body, skipAuth }),
+  post: <T>(path: string, body?: unknown, skipAuth?: boolean) => request<T>(path, { method: 'POST', body, skipAuth }),
 
-  put: <T>(path: string, body?: unknown) =>
-    request<T>(path, { method: 'PUT', body }),
+  put: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PUT', body }),
 
-  patch: <T>(path: string, body?: unknown) =>
-    request<T>(path, { method: 'PATCH', body }),
+  patch: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PATCH', body }),
 
-  delete: <T>(path: string) =>
-    request<T>(path, { method: 'DELETE' }),
+  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 }
 
-import type { LoginResponse, ErrorResponse } from '@/types'
+import type { ErrorResponse, LoginResponse } from '@/types'
 
 // ── Additional types for API responses ──
 
 interface RevenueSummary {
-  success: boolean;
-  total_payout?: number;
+  success: boolean
+  total_payout?: number
 }
 
 interface SubmissionsResponse {
-  submissions: SubmissionRecord[];
-  total: number;
+  submissions: SubmissionRecord[]
+  total: number
 }
 
 interface FindingsResponse {
-  items: FindingItem[];
-  total: number;
+  items: FindingItem[]
+  total: number
 }
 
 // ── Auth API (no token needed) ──
@@ -314,14 +319,31 @@ export interface RevenueMetricsData {
   }
   monthly_revenue: { month: string; total: number; count: number }[]
   roi_by_program: { program: string; platforms: string[]; total_payout: number; count: number }[]
-  roi_by_vuln_type: { vuln_type: string; total_programs: number; total_payout: number; count: number; avg_payout: number }[]
+  roi_by_vuln_type: {
+    vuln_type: string
+    total_programs: number
+    total_payout: number
+    count: number
+    avg_payout: number
+  }[]
   finding_pipeline: {
     findings: { total: number; confirmed: number; rejected: number; open: number; confirmation_rate: number }
     submissions: { total: number; accepted: number; rejected: number; pending: number; acceptance_rate: number }
   }
-  findings_by_type: { vuln_type: string; total: number; confirmed: number; rejected: number; confirmation_rate: number }[]
+  findings_by_type: {
+    vuln_type: string
+    total: number
+    confirmed: number
+    rejected: number
+    confirmation_rate: number
+  }[]
   acceptance_rate: Record<string, { accepted: number; total: number; acceptance_rate: number }>
-  time_metrics: { avg_days_to_acceptance: number | null; acceptance_samples: number; avg_days_to_payout: number | null; payout_samples: number }
+  time_metrics: {
+    avg_days_to_acceptance: number | null
+    acceptance_samples: number
+    avg_days_to_payout: number | null
+    payout_samples: number
+  }
 }
 
 export async function getRevenueMetrics(): Promise<RevenueMetricsData> {
@@ -332,18 +354,19 @@ export async function getRevenueMetrics(): Promise<RevenueMetricsData> {
     api.get<FindingsResponse>('/findings'),
   ])
   const summary: RevenueSummary = summaryRes.status === 'fulfilled' ? summaryRes.value : { success: false }
-  const subs: SubmissionsResponse = submissionRes.status === 'fulfilled' ? submissionRes.value : { submissions: [], total: 0 }
+  const subs: SubmissionsResponse =
+    submissionRes.status === 'fulfilled' ? submissionRes.value : { submissions: [], total: 0 }
   const finds: FindingsResponse = findingRes.status === 'fulfilled' ? findingRes.value : { items: [], total: 0 }
   const submissions = subs.submissions || []
   const findings = finds.items || []
 
-  const accepted = submissions.filter(s => s.status === 'accepted')
-  const rejected = submissions.filter(s => s.status === 'rejected')
-  const pending = submissions.filter(s => s.status === 'pending' || s.status === 'submitted')
+  const accepted = submissions.filter((s) => s.status === 'accepted')
+  const rejected = submissions.filter((s) => s.status === 'rejected')
+  const pending = submissions.filter((s) => s.status === 'pending' || s.status === 'submitted')
   const totalPayout = summary.total_payout || 0
 
   const byPlatform: Record<string, number> = {}
-  submitted_total: for (const s of submissions) {
+  for (const s of submissions) {
     if (s.reward) {
       byPlatform[s.platform] = (byPlatform[s.platform] || 0) + s.reward
     }
@@ -375,10 +398,11 @@ export async function getRevenueMetrics(): Promise<RevenueMetricsData> {
     finding_pipeline: {
       findings: {
         total: finds.total,
-        confirmed: findings.filter(f => (f as any).status === 'confirmed').length,
-        rejected: findings.filter(f => (f as any).status === 'rejected').length,
-        open: findings.filter(f => (f as any).status === 'open' || (f as any).status === 'pending').length,
-        confirmation_rate: finds.total > 0 ? findings.filter(f => (f as any).status === 'confirmed').length / finds.total : 0,
+        confirmed: findings.filter((f) => (f as any).status === 'confirmed').length,
+        rejected: findings.filter((f) => (f as any).status === 'rejected').length,
+        open: findings.filter((f) => (f as any).status === 'open' || (f as any).status === 'pending').length,
+        confirmation_rate:
+          finds.total > 0 ? findings.filter((f) => (f as any).status === 'confirmed').length / finds.total : 0,
       },
       submissions: {
         total: submissions.length,
@@ -420,7 +444,12 @@ export interface TimelineResponse {
   generated_at: string
 }
 
-export async function getTimeline(params?: { target_id?: number; limit?: number; offset?: number; event_type?: string }) {
+export async function getTimeline(params?: {
+  target_id?: number
+  limit?: number
+  offset?: number
+  event_type?: string
+}) {
   return api.get<TimelineResponse>('/system/timeline', params as any)
 }
 
@@ -479,7 +508,11 @@ export interface TargetItem {
 }
 
 export async function getTargets(params?: {
-  skip?: number; limit?: number; sort_by?: string; sort_order?: string; search?: string
+  skip?: number
+  limit?: number
+  sort_by?: string
+  sort_order?: string
+  search?: string
 }) {
   return api.get<{ items: TargetItem[]; total: number }>('/targets', params as any)
 }
@@ -519,8 +552,13 @@ export interface FindingItem {
 }
 
 export async function getFindings(params?: {
-  target_id?: number; endpoint_id?: number; skip?: number; limit?: number
-  sort_by?: string; sort_order?: string; search?: string
+  target_id?: number
+  endpoint_id?: number
+  skip?: number
+  limit?: number
+  sort_by?: string
+  sort_order?: string
+  search?: string
 }) {
   return api.get<{ items: FindingItem[]; total: number }>('/findings', params as any)
 }
@@ -557,14 +595,24 @@ export interface ReportItem {
 }
 
 export async function getReports(params?: {
-  limit?: number; offset?: number; status?: string; search?: string
-  sort_by?: string; sort_order?: string
+  limit?: number
+  offset?: number
+  status?: string
+  search?: string
+  sort_by?: string
+  sort_order?: string
 }) {
   return api.get<{ items: ReportItem[]; total: number }>('/reports', params as any)
 }
 
 export async function getReportStats() {
-  return api.get<{ total: number; status_counts: Record<string, number>; paid_count: number; total_rewards: number; estimated_rewards: number }>('/reports/stats')
+  return api.get<{
+    total: number
+    status_counts: Record<string, number>
+    paid_count: number
+    total_rewards: number
+    estimated_rewards: number
+  }>('/reports/stats')
 }
 
 // ── Attack / Hot Paths ──
@@ -604,7 +652,12 @@ export interface VerdictItem {
   created_at: string | null
 }
 
-export async function getVerdicts(params?: { status?: string; limit?: number; target_id?: number; confidence_min?: number }) {
+export async function getVerdicts(params?: {
+  status?: string
+  limit?: number
+  target_id?: number
+  confidence_min?: number
+}) {
   return api.get<VerdictItem[]>('/verdicts', params as any)
 }
 
@@ -641,9 +694,7 @@ export async function regenerateNarrative(id: number) {
 // ── Report Submission ──
 
 export async function submitReport(reportId: number, platform: string) {
-  return api.post<{ success: boolean; external_id?: string; url?: string }>(
-    `/reports/${reportId}/submit`, { platform }
-  )
+  return api.post<{ success: boolean; external_id?: string; url?: string }>(`/reports/${reportId}/submit`, { platform })
 }
 
 export async function getRewardLearning() {
@@ -660,7 +711,7 @@ export async function uploadEvidence(findingId: number, file: File) {
   // getApiBase() at request time — never a hardcoded '/api' (breaks inside Tauri).
   const res = await fetch(`${getApiBase()}/evidence/upload`, {
     method: 'POST',
-    headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: form,
   })
   if (!res.ok) throw new ApiError(res.status, 'Error al subir evidencia')
@@ -725,33 +776,34 @@ export async function zapHealth() {
 }
 
 export async function zapSpider(targetUrl: string, maxChildren = 10) {
-  return api.post<{ status: string; urls_found: string[]; url_count: number; scan_id: string }>(
-    '/zap/spider', { target_url: targetUrl, max_children: maxChildren }
-  )
+  return api.post<{ status: string; urls_found: string[]; url_count: number; scan_id: string }>('/zap/spider', {
+    target_url: targetUrl,
+    max_children: maxChildren,
+  })
 }
 
 export async function zapPassiveScan(targetUrl: string) {
   return api.post<{ status: string; target_url: string; alerts: ZapAlertItem[]; alert_count: number }>(
-    '/zap/passive-scan', { target_url: targetUrl }
+    '/zap/passive-scan',
+    { target_url: targetUrl },
   )
 }
 
 export async function zapGetAlerts(targetUrl: string, riskLevel?: string) {
   const params = riskLevel ? `?risk_level=${riskLevel}` : ''
-  return api.post<{ target_url: string; alerts: ZapAlertItem[]; alert_count: number }>(
-    `/zap/alerts${params}`, { target_url: targetUrl }
-  )
+  return api.post<{ target_url: string; alerts: ZapAlertItem[]; alert_count: number }>(`/zap/alerts${params}`, {
+    target_url: targetUrl,
+  })
 }
 
 export async function zapGetTechnologies(targetUrl: string) {
-  return api.post<{ target_url: string; technologies: string[] }>(
-    '/zap/technologies', { target_url: targetUrl }
-  )
+  return api.post<{ target_url: string; technologies: string[] }>('/zap/technologies', { target_url: targetUrl })
 }
 
 export async function zapGenerateHypotheses(targetId: number, targetUrl: string) {
   return api.post<{ status: string; target_url: string; hypotheses: ZapHypothesisItem[]; total: number }>(
-    `/zap/hypotheses/${targetId}`, { target_url: targetUrl }
+    `/zap/hypotheses/${targetId}`,
+    { target_url: targetUrl },
   )
 }
 
@@ -792,7 +844,7 @@ export async function assistantStreamChat(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ message, history, context }),
     signal,
@@ -815,7 +867,9 @@ export async function assistantStreamChat(
         try {
           const parsed = JSON.parse(data)
           if (parsed.token) onToken(parsed.token)
-        } catch { /* ignore partial */ }
+        } catch {
+          /* ignore partial */
+        }
       }
     }
   }
@@ -882,7 +936,9 @@ export async function getIntegrations() {
 }
 
 export async function testIntegration(name: string) {
-  return api.post<{ name: string; status: string; error: string | null; checked_at: string }>(`/core/integrations/${name}/test`)
+  return api.post<{ name: string; status: string; error: string | null; checked_at: string }>(
+    `/core/integrations/${name}/test`,
+  )
 }
 
 export async function getIntegrationStatus(name: string) {
@@ -898,12 +954,15 @@ export interface InvestmentStatus {
   paused: boolean
   drawdown_protection: boolean
   active_strategies: number
-  strategies: Record<string, {
-    id: string
-    paused: boolean
-    total_deployed: number
-    risk_level: string
-  }>
+  strategies: Record<
+    string,
+    {
+      id: string
+      paused: boolean
+      total_deployed: number
+      risk_level: string
+    }
+  >
   summary: {
     total_trades: number
     win_rate: number
@@ -1043,7 +1102,11 @@ export async function getCcxtInfo(exchange = 'binance') {
 }
 
 export async function connectCcxt(exchange: string, api_key: string, api_secret: string) {
-  return api.post<{ success: boolean; connected: boolean }>('/investment/ccxt/connect', { exchange, api_key, api_secret })
+  return api.post<{ success: boolean; connected: boolean }>('/investment/ccxt/connect', {
+    exchange,
+    api_key,
+    api_secret,
+  })
 }
 
 export async function getCcxtBalance(exchange = 'binance') {
@@ -1052,19 +1115,30 @@ export async function getCcxtBalance(exchange = 'binance') {
 
 export async function getAcceptanceSummary() {
   return api.get<{
-    total_observations: number; accepted: number; rejected: number; acceptance_rate: number
-    platforms: string[]; adapted_weights: Record<string, number>; profiles: Record<string, any>
+    total_observations: number
+    accepted: number
+    rejected: number
+    acceptance_rate: number
+    platforms: string[]
+    adapted_weights: Record<string, number>
+    profiles: Record<string, any>
     weight_deltas: Record<string, number>
   }>('/reports/acceptance/summary')
 }
 
 export async function predictAcceptance(findingId: number, platform = 'hackerone') {
   return api.get<{
-    finding_id: number; prediction: {
-      probability: number; platform: string; confidence: string
+    finding_id: number
+    prediction: {
+      probability: number
+      platform: string
+      confidence: string
       weak_dimensions: { dimension: string; current: number; accepted_avg: number; gap: number }[]
-      recommendations: string[]; score: number; min_accepted_score: number
-    }; quality_score: any
+      recommendations: string[]
+      score: number
+      min_accepted_score: number
+    }
+    quality_score: any
   }>(`/reports/acceptance/predict?finding_id=${findingId}&platform=${platform}`)
 }
 
@@ -1095,7 +1169,11 @@ export async function getAlpacaInfo() {
 }
 
 export async function connectAlpaca(api_key: string, secret_key: string, base_url?: string) {
-  return api.post<{ success: boolean; connected: boolean }>('/investment/stocks/algopaca/connect', { api_key, secret_key, base_url })
+  return api.post<{ success: boolean; connected: boolean }>('/investment/stocks/algopaca/connect', {
+    api_key,
+    secret_key,
+    base_url,
+  })
 }
 
 export async function getAlpacaAccount() {
@@ -1106,8 +1184,22 @@ export async function getAlpacaPositions() {
   return api.get<{ success: boolean; positions: any[] }>('/investment/stocks/algopaca/positions')
 }
 
-export async function placeAlpacaOrder(symbol: string, side: string, qty: number, order_type?: string, take_profit?: number, stop_loss?: number) {
-  return api.post<{ success: boolean; result: any }>('/investment/stocks/algopaca/order', { symbol, side, qty, order_type, take_profit, stop_loss })
+export async function placeAlpacaOrder(
+  symbol: string,
+  side: string,
+  qty: number,
+  order_type?: string,
+  take_profit?: number,
+  stop_loss?: number,
+) {
+  return api.post<{ success: boolean; result: any }>('/investment/stocks/algopaca/order', {
+    symbol,
+    side,
+    qty,
+    order_type,
+    take_profit,
+    stop_loss,
+  })
 }
 
 export async function getAlpacaMarketData(symbol: string) {
@@ -1115,7 +1207,9 @@ export async function getAlpacaMarketData(symbol: string) {
 }
 
 export async function getAlpacaOptionsChain(underlying: string) {
-  return api.get<{ success: boolean; options: any[] }>(`/investment/stocks/algopaca/options-chain?underlying=${underlying}`)
+  return api.get<{ success: boolean; options: any[] }>(
+    `/investment/stocks/algopaca/options-chain?underlying=${underlying}`,
+  )
 }
 
 export async function getIbkrInfo() {
@@ -1123,7 +1217,11 @@ export async function getIbkrInfo() {
 }
 
 export async function connectIbkr(host?: string, port?: number, client_id?: number) {
-  return api.post<{ success: boolean; connected: boolean }>('/investment/stocks/ibkr/connect', { host, port, client_id })
+  return api.post<{ success: boolean; connected: boolean }>('/investment/stocks/ibkr/connect', {
+    host,
+    port,
+    client_id,
+  })
 }
 
 export async function getIbkrAccount() {
@@ -1134,8 +1232,24 @@ export async function getIbkrPositions() {
   return api.get<{ success: boolean; positions: any[] }>('/investment/stocks/ibkr/positions')
 }
 
-export async function placeIbkrOrder(symbol: string, side: string, qty: number, order_type?: string, sec_type?: string, strike?: number, right?: string) {
-  return api.post<{ success: boolean; result: any }>('/investment/stocks/ibkr/order', { symbol, side, qty, order_type, sec_type, strike, right })
+export async function placeIbkrOrder(
+  symbol: string,
+  side: string,
+  qty: number,
+  order_type?: string,
+  sec_type?: string,
+  strike?: number,
+  right?: string,
+) {
+  return api.post<{ success: boolean; result: any }>('/investment/stocks/ibkr/order', {
+    symbol,
+    side,
+    qty,
+    order_type,
+    sec_type,
+    strike,
+    right,
+  })
 }
 
 // ─── DeFi Yield ───

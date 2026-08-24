@@ -9,7 +9,7 @@ import {
   DollarSign, ExternalLink, Eye, FileText, Globe,
   LayoutDashboard, Link2, MessageCircle, Search, Settings,
   Shield, Target, TrendingUp, Unlink,
-  Activity, Database, RefreshCw, X, HeartPulse, Zap,
+  Activity, Database, RefreshCw, X, HeartPulse, Zap, Send,
   Copy, Wallet, Sparkles, Bot, BarChart3, Brain, Coins,
   BookOpen, Lightbulb, UserRound,
 } from '@lucide/vue'
@@ -121,6 +121,7 @@ const navSections = [
       { name: 'Scheduler', path: '/operations/scheduler', icon: Zap },
       { name: 'Health Center', path: '/operations/health', icon: HeartPulse },
       { name: 'Configuración', path: '/operations/settings', icon: Settings },
+      { name: 'Postulaciones', path: '/operations/applications', icon: Send },
       { name: 'Workflows', path: '/operations/workflows', icon: RefreshCw },
       { name: 'Conexiones', path: '/integrations/connections', icon: Cable },
       { name: 'Copilot', path: '/copilot/assistant', icon: MessageCircle },

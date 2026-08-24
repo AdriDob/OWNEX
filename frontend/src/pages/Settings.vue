@@ -4,6 +4,7 @@ import { useSettingsStore } from '@/stores/settings'
 import { useI18n } from '@/composables/useI18n'
 import type { ToolsSettings } from '@/stores/settings'
 import { useThemeEngine } from '@/composables/useThemeEngine'
+import { api } from '@/lib/api'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
 import Tooltip from '@/components/ui/Tooltip.vue'
@@ -204,6 +205,49 @@ const systemItems = [
 const appearanceDensities = ['compact', 'normal', 'comfortable'] as const
 const appearanceLayouts = ['default', 'wide', 'sidebar'] as const
 
+// ── AI provider catalog: real backend list (GET /api/settings/ai/providers),
+//    static fallback mirrors cores.ai.provider.PROVIDER_CATALOG ids. ──
+interface ProviderCatalogEntry {
+  id: string
+  label: string
+  desc: string
+  models?: string[]
+  available?: boolean | null
+  active?: boolean
+}
+const FALLBACK_PROVIDERS: ProviderCatalogEntry[] = [
+  { id: 'ollama', label: 'Ollama (Local)', desc: 'Local (gratuito)' },
+  { id: 'openai', label: 'OpenAI Compatible', desc: 'GPT-4o / compatible' },
+  { id: 'gemini', label: 'Google Gemini', desc: 'AI Studio' },
+  { id: 'openrouter', label: 'OpenRouter', desc: 'Multi-modelo premium' },
+  { id: 'devin', label: 'Devin AI Agent', desc: 'Agente free' },
+  { id: 'freebuff', label: 'Freebuff', desc: 'Agente free' },
+  { id: 'local', label: 'Local Rule-Based', desc: 'Sin LLM (fallback)' },
+]
+const providerCatalog = ref<ProviderCatalogEntry[]>(FALLBACK_PROVIDERS)
+const catalogLoaded = ref(false)
+
+async function loadProviderCatalog(): Promise<void> {
+  try {
+    const res = await api.get<{ providers: Array<{
+      id: string; label: string; models?: string[]; available?: boolean | null; active?: boolean
+    }> }>('/settings/ai/providers')
+    if (Array.isArray(res.providers) && res.providers.length > 0) {
+      providerCatalog.value = res.providers.map((p) => ({
+        id: p.id,
+        label: p.label,
+        desc: `${(p.models ?? []).slice(0, 2).join(' · ') || 'sin modelos'}${(p.models?.length ?? 0) > 2 ? ' …' : ''}`,
+        models: p.models,
+        available: p.available,
+        active: p.active,
+      }))
+      catalogLoaded.value = true
+    }
+  } catch {
+    // backend unreachable → keep fallback catalog (UI stays usable offline)
+  }
+}
+
 async function saveAI() {
   saving.value = true
   saveError.value = ''
@@ -316,6 +360,7 @@ watch(() => settings.data, () => {
 onMounted(async () => {
   settings.loadFromBackend()
   loadIntegrations()
+  void loadProviderCatalog()
   await initThemeEngine()
 })
 </script>
@@ -436,24 +481,34 @@ onMounted(async () => {
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <button
-            v-for="p in [
-              { id: 'ollama', label: 'Ollama', desc: 'Local (gratuito)' },
-              { id: 'openai', label: 'OpenAI', desc: 'GPT-4o / GPT-4o-mini' },
-              { id: 'gemini', label: 'Gemini', desc: 'Google Gemini' },
-              { id: 'openrouter', label: 'OpenRouter', desc: 'Multi-modelo' },
-            ]" :key="p.id"
-            @click="settings.updateAI({ provider: p.id as any })"
+            v-for="p in providerCatalog" :key="p.id"
+            @click="settings.updateAI({ provider: p.id as never })"
             class="rounded-xl border p-4 text-left transition-all"
             :class="settings.data.ai.provider === p.id ? 'border-primary/40 bg-primary/5' : 'border-border/20 bg-surface/20 hover:bg-surface/30'"
           >
             <div class="flex items-center justify-between mb-2">
               <Cpu class="h-5 w-5" :class="settings.data.ai.provider === p.id ? 'text-primary' : 'text-muted-foreground'" />
-              <div v-if="settings.data.ai.provider === p.id" class="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+              <div class="flex items-center gap-1.5">
+                <span
+                  v-if="p.available === true || p.available === null"
+                  class="h-1.5 w-1.5 rounded-full bg-success"
+                  :title="p.available === true ? 'Disponible' : ''"
+                />
+                <span
+                  v-else
+                  class="h-1.5 w-1.5 rounded-full bg-muted-foreground/40"
+                  title="No configurado (falta API key / host)"
+                />
+                <div v-if="settings.data.ai.provider === p.id" class="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+              </div>
             </div>
             <p class="font-mono text-sm font-semibold text-foreground">{{ p.label }}</p>
             <p class="font-mono text-[9px] text-muted-foreground mt-0.5">{{ p.desc }}</p>
           </button>
         </div>
+        <p v-if="!catalogLoaded" class="font-mono text-[9px] text-muted-foreground">
+          Catálogo local (sin conexión al backend). Al conectar, OWNEX muestra los providers reales con su disponibilidad.
+        </p>
 
         <Separator />
 

@@ -1,16 +1,12 @@
 import { defineStore } from 'pinia'
-import { ref, watch, computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { api } from '@/lib/api'
 
 const STORAGE_KEY = 'ownex_settings'
 const ENCRYPTION_KEY_STORAGE = 'ownex_crypto_key'
 
 async function generateEncryptionKey(): Promise<CryptoKey> {
-  return await crypto.subtle.generateKey(
-    { name: 'AES-GCM', length: 256 },
-    true,
-    ['encrypt', 'decrypt'],
-  )
+  return await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt'])
 }
 
 async function exportKey(key: CryptoKey): Promise<JsonWebKey> {
@@ -64,8 +60,10 @@ export interface GeneralSettings {
   animations: boolean
 }
 
+export type AIProviderId = 'ollama' | 'openai' | 'gemini' | 'openrouter' | 'devin' | 'freebuff' | 'local'
+
 export interface AISettings {
-  provider: 'ollama' | 'openai' | 'gemini' | 'openrouter'
+  provider: AIProviderId
   ollamaHost: string
   ollamaModel: string
   openaiKey: string
@@ -222,10 +220,23 @@ function defaultSettings(): SettingsState {
       dnsx: { installed: false, version: '' },
     },
     apiKeys: {
-      bugcrowd: '', hackerone: '', intigriti: '', yeswehack: '', synack: '',
-      github: '', gitlab: '', shodan: '', censys: '', securitytrails: '',
-      virustotal: '', openrouter: '', openai: '', anthropic: '', google: '',
-      wallet: '', bank: '',
+      bugcrowd: '',
+      hackerone: '',
+      intigriti: '',
+      yeswehack: '',
+      synack: '',
+      github: '',
+      gitlab: '',
+      shodan: '',
+      censys: '',
+      securitytrails: '',
+      virustotal: '',
+      openrouter: '',
+      openai: '',
+      anthropic: '',
+      google: '',
+      wallet: '',
+      bank: '',
     },
     missionControl: {
       autoMode: false,
@@ -236,8 +247,18 @@ function defaultSettings(): SettingsState {
       allowedTools: ['nuclei', 'subfinder', 'httpx', 'katana', 'ffuf'],
     },
     system: {
-      cpu: '', ram: '', disk: '', wsl: '', docker: '', python: '', node: '',
-      ollama: '', models: '', internet: false, tools: '', database: '',
+      cpu: '',
+      ram: '',
+      disk: '',
+      wsl: '',
+      docker: '',
+      python: '',
+      node: '',
+      ollama: '',
+      models: '',
+      internet: false,
+      tools: '',
+      database: '',
     },
     security: {
       permissions: {},
@@ -265,7 +286,25 @@ function defaultSettings(): SettingsState {
   }
 }
 
-const SENSITIVE_KEYS = new Set(['wallet', 'bank', 'openai', 'openrouter', 'anthropic', 'google', 'bugcrowd', 'hackerone', 'intigriti', 'yeswehack', 'synack', 'github', 'gitlab', 'shodan', 'censys', 'securitytrails', 'virustotal'])
+const SENSITIVE_KEYS = new Set([
+  'wallet',
+  'bank',
+  'openai',
+  'openrouter',
+  'anthropic',
+  'google',
+  'bugcrowd',
+  'hackerone',
+  'intigriti',
+  'yeswehack',
+  'synack',
+  'github',
+  'gitlab',
+  'shodan',
+  'censys',
+  'securitytrails',
+  'virustotal',
+])
 const SENSITIVE_STORAGE_KEY = 'ownex_sensitive'
 
 async function loadFromStorage(): Promise<SettingsState> {
@@ -286,7 +325,9 @@ async function loadFromStorage(): Promise<SettingsState> {
       }
     }
     return { ...defaultSettings(), ...saved }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return defaultSettings()
 }
 
@@ -319,7 +360,9 @@ async function saveToStorage(state: SettingsState) {
     } else {
       sessionStorage.removeItem(SENSITIVE_STORAGE_KEY)
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -354,8 +397,11 @@ export const useSettingsStore = defineStore('settings', () => {
       payload['assistant'] = data.value.assistant
       await api.put('/settings/all', { settings: payload })
       lastSync.value = new Date().toISOString()
-    } catch { /* backend may not be available */ }
-    finally { syncing.value = false }
+    } catch {
+      /* backend may not be available */
+    } finally {
+      syncing.value = false
+    }
   }
 
   async function loadFromBackend() {
@@ -371,7 +417,9 @@ export const useSettingsStore = defineStore('settings', () => {
         if (res.settings.onboarding) Object.assign(data.value.onboarding, res.settings.onboarding)
         persist()
       }
-    } catch { /* backend may not be available */ }
+    } catch {
+      /* backend may not be available */
+    }
   }
 
   function completeOnboarding(skip = false) {
@@ -426,12 +474,14 @@ export const useSettingsStore = defineStore('settings', () => {
       if (res?.tools) {
         for (const [key, info] of Object.entries(res.tools)) {
           if (key in data.value.tools) {
-            (data.value.tools as any)[key] = info
+            ;(data.value.tools as any)[key] = info
           }
         }
         persist()
       }
-    } catch { /* backend endpoint may not exist */ }
+    } catch {
+      /* backend endpoint may not exist */
+    }
   }
 
   function setToolInfo(key: keyof ToolsSettings, info: Partial<ToolInfo>) {
@@ -445,16 +495,30 @@ export const useSettingsStore = defineStore('settings', () => {
       if (health) {
         data.value.system = { ...data.value.system, ...health }
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     persist()
   }
 
   return {
-    data, syncing, lastSync, ready, onboardingNeeded,
-    syncToBackend, loadFromBackend,
-    completeOnboarding, resetOnboarding,
-    updateGeneral, updateAI, updateApiKeys, updateMissionControl,
-    updateAppearance, updateSecurity,
-    checkTools, setToolInfo, updateSystemInfo,
+    data,
+    syncing,
+    lastSync,
+    ready,
+    onboardingNeeded,
+    syncToBackend,
+    loadFromBackend,
+    completeOnboarding,
+    resetOnboarding,
+    updateGeneral,
+    updateAI,
+    updateApiKeys,
+    updateMissionControl,
+    updateAppearance,
+    updateSecurity,
+    checkTools,
+    setToolInfo,
+    updateSystemInfo,
   }
 })

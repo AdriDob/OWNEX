@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { api, ApiError, getToken } from '@/lib/api'
+import { computed, ref } from 'vue'
+import { ApiError, api, getToken } from '@/lib/api'
+import { getApiBase } from '@/lib/backend'
 
 export interface ReportDraft {
   finding_id: number
@@ -54,7 +55,8 @@ export const useReportStore = defineStore('report', () => {
   async function exportPdf(findingId: number): Promise<Blob | null> {
     try {
       const token = getToken()
-      const res = await fetch(`/api/findings/${findingId}/export-pdf`, {
+      // getApiBase() at request time — respects dynamic backend port (Tauri).
+      const res = await fetch(`${getApiBase()}/findings/${findingId}/export-pdf`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
       if (!res.ok) throw new Error()
@@ -70,7 +72,13 @@ export const useReportStore = defineStore('report', () => {
   }
 
   return {
-    draft, generating, error, recentDrafts,
-    generateDraft, exportMarkdown, exportPdf, clearDraft,
+    draft,
+    generating,
+    error,
+    recentDrafts,
+    generateDraft,
+    exportMarkdown,
+    exportPdf,
+    clearDraft,
   }
 })
