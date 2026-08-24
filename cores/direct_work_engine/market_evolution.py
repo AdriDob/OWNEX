@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 from dataclasses import dataclass, field
 from datetime import date
@@ -130,11 +131,19 @@ class EcosystemRecord:
         )
 
 
+def _default_store_path() -> Path:
+    """Data-dir aware default: frozen bundles get OWNEX_DATA_DIR
+    from start_backend.py (%LOCALAPPDATA%/OWNEX); dev keeps repo ./data."""
+    base = os.environ.get("OWNEX_DATA_DIR")
+    root = Path(base) if base else Path(__file__).resolve().parents[3] / "data"
+    return root / "market_kb.json"
+
+
 class MarketKnowledgeBase:
     """Persistent store of per-ecosystem records (survives restarts)."""
 
     def __init__(self, store_path: str | Path | None = None) -> None:
-        self._store_path = Path(store_path or Path(__file__).resolve().parents[3] / "data" / "market_kb.json")
+        self._store_path = store_path or _default_store_path()
         self._records: dict[str, EcosystemRecord] = {}
         self._load()
 
