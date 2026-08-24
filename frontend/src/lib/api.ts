@@ -1,7 +1,8 @@
 import type { OrionContext } from '@/types'
-import { API_BASE } from '@/lib/backend'
+import { getApiBase } from '@/lib/backend'
 
-const BASE = API_BASE
+// NOTE: getApiBase() is called at request time, NOT at module load time.
+// This ensures the dynamic port from backend-ready event is used.
 
 // ── Auth ──
 
@@ -44,7 +45,7 @@ export function clearSession() {
   clearToken()
   clearSessionExpiry()
   // Purge the httpOnly session cookie server-side (best effort, no await)
-  void fetch(`${BASE}/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => undefined)
+  void fetch(`${getApiBase()}/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => undefined)
 }
 
 export function isSessionExpired(): boolean {
@@ -103,7 +104,7 @@ export interface RequestOptions {
 async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, params, skipAuth } = opts
 
-  let url = `${BASE}${path}`
+  let url = `${getApiBase()}${path}`
   if (params) {
     const search = new URLSearchParams()
     for (const [k, v] of Object.entries(params)) {

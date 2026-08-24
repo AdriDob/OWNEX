@@ -154,8 +154,32 @@ fn launch_backend(app: tauri::AppHandle) {
     };
 
     let child: CommandChild = match sidecar.args(["--port", &port.to_string()]).spawn() {
-        Ok((_rx, child)) => {
+        Ok((mut rx, child)) => {
             eprintln!("[ownex-tauri] Sidecar spawned (PID: {}), waiting for health on :{port}...", child.pid());
+            // Read sidecar output in background thread
+            let app_log = app.clone();
+            std::thread::spawn(move || {
+                use tauri_plugin_shell::process::CommandEvent;
+                while let Some(event) = rx.recv() {
+                    match event {
+                        CommandEvent::Stdout(line) => {
+                            let msg = String::from_utf8_lossy(&line).to_string();
+                            eprintln!("[backend stdout] {msg}");
+                            emit_log(&app_log, "info", &msg);
+                        }
+                        CommandEvent::Stderr(line) => {
+                            let msg = String::from_utf8_lossy(&line).to_string();
+                            eprintln!("[backend stderr] {msg}");
+                            emit_log(&app_log, "warn", &msg);
+                        }
+                        CommandEvent::Error(e) => {
+                            eprintln!("[backend error] {e}");
+                            emit_log(&app_log, "error", &e.to_string());
+                        }
+                        _ => {}
+                    }
+                }
+            });
             child
         }
         Err(e) => {
