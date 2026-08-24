@@ -48,7 +48,7 @@ const STATE_LABELS: Record<string, string> = {
 const STATE_COLORS: Record<string, string> = {
   pending: '#6b7280', discovery: '#ffffff', validation: '#9CA3AF', evidence: '#D97706',
   ai_review: '#16A34A', ready: '#16A34A', submitted: '#9CA3AF', triaged: '#D97706',
-  paid: '#9CA3AF', closed: '#16A34A', failed: '#E82127', cancelled: '#6b7280',
+  paid: '#9CA3AF', closed: '#16A34A', failed: '#00d5ff', cancelled: '#6b7280',
 }
 
 async function fetchPipeline() {

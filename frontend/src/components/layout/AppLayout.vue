@@ -31,7 +31,7 @@ const route = useRoute()
     <main
       :class="[
         'flex flex-1 flex-col overflow-y-auto transition-all duration-200',
-        copilotOpen ? 'mr-80' : 'mr-0',
+        copilotOpen ? 'xl:mr-80' : 'mr-0',
         sidebarOpen ? 'lg:ml-0' : '',
       ]"
     >

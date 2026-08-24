@@ -149,8 +149,8 @@ onUnmounted(() => {
 }
 
 .alert-error {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
+  border-color: #00d5ff;
+  background: rgba(148, 163, 184, 0.1);
 }
 
 .alert-warning {
@@ -164,8 +164,8 @@ onUnmounted(() => {
 }
 
 .alert-critical {
-  border-color: #dc2626;
-  background: rgba(220, 38, 38, 0.15);
+  border-color: #64748b;
+  background: rgba(100, 116, 139, 0.15);
   animation: pulse 2s infinite;
 }
 

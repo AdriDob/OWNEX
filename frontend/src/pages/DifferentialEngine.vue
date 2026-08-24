@@ -168,7 +168,7 @@ onMounted(fetchAnalysis)
             :datasets="[{
               label: 'Hallazgos',
               data: riskDistributionData,
-              backgroundColor: ['#E82127', '#D97706', '#A16207', '#16A34A', '#6b7280'],
+              backgroundColor: ['#00d5ff', '#D97706', '#A16207', '#16A34A', '#6b7280'],
             }]"
             :height="200"
             yLabel="Count"

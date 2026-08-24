@@ -46,10 +46,10 @@ const platformColors: Record<string, string> = {
   hackerone: '#16a34a',
   bugcrowd: '#b45309',
   intigriti: '#9CA3AF',
-  yeswehack: '#dc2626',
+  yeswehack: '#9CA3AF',
   synack: '#ffffff',
   immunefi: '#9CA3AF',
-  code4rena: '#e82127',
+  code4rena: '#00d5ff',
 }
 
 const platformDistributionData = computed(() => {

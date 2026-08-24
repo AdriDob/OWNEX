@@ -34,7 +34,7 @@ const getCategoryColor = (cat: string) => {
     profile: 'bg-purple-600',
     sync: 'bg-green-600',
     payout: 'bg-amber-600',
-    goals: 'bg-red-600',
+    goals: 'bg-slate-600',
   }
   return colors[cat] || 'bg-gray-600'
 }
@@ -57,7 +57,7 @@ onMounted(() => {
           v-if="progress"
           :class="[
             'h-full rounded-full transition-all duration-500 ease-out',
-            progress.progress_pct < 30 ? 'bg-red-500' : progress.progress_pct < 60 ? 'bg-amber-500' : progress.progress_pct < 85 ? 'bg-blue-500' : 'bg-green-500'
+            progress.progress_pct < 30 ? 'bg-slate-500' : progress.progress_pct < 60 ? 'bg-amber-500' : progress.progress_pct < 85 ? 'bg-blue-500' : 'bg-green-500'
           ]"
           :style="{ width: progress.progress_pct + '%' }"
         ></div>
@@ -122,7 +122,7 @@ onMounted(() => {
                 check.cat === 'profile' ? 'bg-purple-900/50 text-purple-300' :
                 check.cat === 'sync' ? 'bg-green-900/50 text-green-300' :
                 check.cat === 'payout' ? 'bg-amber-900/50 text-amber-300' :
-                check.cat === 'goals' ? 'bg-red-900/50 text-red-300' :
+                check.cat === 'goals' ? 'bg-zinc-800/60 text-zinc-300' :
                 'bg-gray-700 text-gray-300'
               ]">
                 {{ check.cat }}

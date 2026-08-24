@@ -53,7 +53,7 @@ async function doReset() {
 }
 
 function difficultyColor(d: string) {
-  return { trivial: '#4ade80', easy: '#93c5fd', medium: '#fbbf24', hard: '#f87171' }[d] || '#6b7280'
+  return { trivial: '#4ade80', easy: '#93c5fd', medium: '#fbbf24', hard: '#94a3b8' }[d] || '#6b7280'
 }
 
 onMounted(load)
@@ -187,7 +187,7 @@ onMounted(load)
 .sbx-btn:disabled { opacity: 0.5; cursor: wait; }
 .sbx-result { font-size: 0.7rem; padding: 0.5rem; border-radius: 8px; text-align: center; }
 .sbx-result.success { background: rgba(22,163,74,0.2); border: 1px solid rgba(22,163,74,0.4); color: #4ade80; }
-.sbx-result.fail { background: rgba(232,33,39,0.2); border: 1px solid rgba(232,33,39,0.4); color: #f87171; }
+.sbx-result.fail { background: rgba(0,213,255,0.2); border: 1px solid rgba(0,213,255,0.4); color: #94a3b8; }
 
 .sbx-list { display: flex; flex-direction: column; gap: 0.4rem; }
 .sbx-card { border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.7rem; cursor: pointer; transition: all 0.15s; }

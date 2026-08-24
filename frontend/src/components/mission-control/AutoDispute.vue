@@ -156,7 +156,7 @@ onMounted(load)
 .dsp-btn:disabled { opacity: 0.5; cursor: wait; }
 .dsp-result { font-size: 0.7rem; padding: 0.5rem; border-radius: 8px; text-align: center; }
 .dsp-result.success { background: rgba(22,163,74,0.2); border: 1px solid rgba(22,163,74,0.4); color: #4ade80; }
-.dsp-result.fail { background: rgba(232,33,39,0.2); border: 1px solid rgba(232,33,39,0.4); color: #f87171; }
+.dsp-result.fail { background: rgba(0,213,255,0.2); border: 1px solid rgba(0,213,255,0.4); color: #94a3b8; }
 .dsp-list { display: flex; flex-direction: column; gap: 0.4rem; }
 .dsp-sub { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.45); margin: 0; }
 .dsp-item { border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.6rem; display: flex; flex-direction: column; gap: 0.35rem; }
@@ -167,7 +167,7 @@ onMounted(load)
 .dsp-id { font-family: monospace; font-size: 0.6rem; color: rgba(255,255,255,0.7); }
 .dsp-status { font-size: 0.55rem; font-weight: 700; padding: 0.1rem 0.35rem; border-radius: 4px; }
 .dsp-status.ok { background: rgba(22,163,74,0.2); color: #4ade80; }
-.dsp-status.err { background: rgba(232,33,39,0.2); color: #f87171; }
+.dsp-status.err { background: rgba(0,213,255,0.2); color: #94a3b8; }
 .dsp-item-meta { display: flex; gap: 1rem; font-size: 0.6rem; color: rgba(255,255,255,0.5); }
 .dsp-item-actions { display: flex; gap: 0.35rem; margin-top: 0.2rem; }
 .dsp-config-hint { margin-top: 0.5rem; padding: 0.5rem; background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.2); border-radius: 8px; font-size: 0.6rem; color: #fbbf24; }

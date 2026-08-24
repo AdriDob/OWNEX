@@ -483,8 +483,8 @@ onMounted(() => {
 }
 
 .live-badge {
-  background: rgba(232, 33, 39, 0.2);
-  border: 1px solid rgba(232, 33, 39, 0.3);
+  background: rgba(0, 213, 255, 0.2);
+  border: 1px solid rgba(0, 213, 255, 0.3);
   color: #F87171;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
@@ -605,14 +605,14 @@ onMounted(() => {
 }
 
 .action-red {
-  background: rgba(248, 113, 113, 0.2);
-  border-color: rgba(248, 113, 113, 0.4);
+  background: rgba(148, 163, 184, 0.2);
+  border-color: rgba(148, 163, 184, 0.4);
   color: #F87171;
 }
 
 .action-red:hover:not(:disabled) {
-  background: rgba(248, 113, 113, 0.3);
-  border-color: rgba(248, 113, 113, 0.6);
+  background: rgba(148, 163, 184, 0.3);
+  border-color: rgba(148, 163, 184, 0.6);
 }
 
 .action-warning {
@@ -859,14 +859,14 @@ onMounted(() => {
 }
 
 .mini-danger {
-  background: rgba(248, 113, 113, 0.2);
-  border-color: rgba(248, 113, 113, 0.3);
+  background: rgba(148, 163, 184, 0.2);
+  border-color: rgba(148, 163, 184, 0.3);
   color: #F87171;
 }
 
 .mini-danger:hover:not(:disabled) {
-  background: rgba(248, 113, 113, 0.3);
-  border-color: rgba(248, 113, 113, 0.5);
+  background: rgba(148, 163, 184, 0.3);
+  border-color: rgba(148, 163, 184, 0.5);
 }
 
 /* ═══ MODAL ═══ */

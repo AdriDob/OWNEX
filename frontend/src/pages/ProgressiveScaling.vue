@@ -1011,7 +1011,7 @@ onMounted(() => {
 }
 
 .phase-badge.phase-phase_4 {
-  background: #ef4444;
+  background: #00d5ff;
   color: white;
 }
 
@@ -1229,11 +1229,11 @@ onMounted(() => {
 }
 
 .risk-fill.danger {
-  background: #ef4444;
+  background: #00d5ff;
 }
 
 .risk-fill.critical {
-  background: #dc2626;
+  background: #64748b;
 }
 
 .risk-label {
@@ -1254,11 +1254,11 @@ onMounted(() => {
 }
 
 .risk-label.danger {
-  color: #ef4444;
+  color: #00d5ff;
 }
 
 .risk-label.critical {
-  color: #dc2626;
+  color: #64748b;
 }
 
 .risk-alerts {
@@ -1302,11 +1302,11 @@ onMounted(() => {
 }
 
 .alert-item.danger {
-  border-left: 3px solid #ef4444;
+  border-left: 3px solid #00d5ff;
 }
 
 .alert-item.critical {
-  border-left: 3px solid #dc2626;
+  border-left: 3px solid #64748b;
 }
 
 .alert-icon {
@@ -1348,8 +1348,8 @@ onMounted(() => {
 }
 
 .trigger-item.active {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
+  border-color: #00d5ff;
+  background: rgba(148, 163, 184, 0.1);
 }
 
 .trigger-status {
@@ -1360,7 +1360,7 @@ onMounted(() => {
 }
 
 .trigger-item.active .trigger-status {
-  color: #ef4444;
+  color: #00d5ff;
 }
 
 .trigger-name {
@@ -1630,7 +1630,7 @@ onMounted(() => {
 }
 
 .metric-row .value.negative {
-  color: #ef4444;
+  color: #00d5ff;
 }
 
 .trajectory-section {

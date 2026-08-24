@@ -70,8 +70,8 @@ function animate() {
 
   // Draw orbits and modules
   const orbitColor = theme?.visualization.orbitColor || 'rgba(255, 255, 255, 0.15)'
-  const coreColor = theme?.visualization.coreColor || '#E82127'
-  const coreGlow = theme?.visualization.coreGlow || 'rgba(232, 33, 39, 0.4)'
+  const coreColor = theme?.visualization.coreColor || '#00d5ff'
+  const coreGlow = theme?.visualization.coreGlow || 'rgba(0, 213, 255, 0.4)'
   const trailLength = theme?.visualization.trailLength || 20
   const gravityCenter = theme?.visualization.gravityCenter
 
@@ -193,8 +193,8 @@ onUnmounted(() => {
 const coreStyle = computed(() => {
   const theme = currentTheme.value
   return {
-    '--core-color': theme?.visualization.coreColor || '#E82127',
-    '--core-glow': theme?.visualization.coreGlow || 'rgba(232, 33, 39, 0.4)',
+    '--core-color': theme?.visualization.coreColor || '#00d5ff',
+    '--core-glow': theme?.visualization.coreGlow || 'rgba(0, 213, 255, 0.4)',
   }
 })
 </script>

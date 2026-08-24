@@ -7,7 +7,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const badgeColor = computed(() =>
-  props.required ? 'from-red-500 to-rose-500' : 'from-green-500 to-emerald-500'
+  props.required ? 'from-cyan-500 to-blue-500' : 'from-green-500 to-emerald-500'
 )
 
 const badgeLabel = computed(() =>

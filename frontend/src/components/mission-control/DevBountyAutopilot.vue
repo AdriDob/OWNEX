@@ -188,7 +188,7 @@ onMounted(load)
   font-size: 0.72rem; font-weight: 600; padding: 0.4rem 0.7rem; cursor: pointer;
 }
 .db-btn.ok { border-color: rgba(22, 163, 74, 0.4); color: #4ade80; background: rgba(22, 163, 74, 0.1); }
-.db-btn.off { border-color: rgba(232, 33, 39, 0.4); color: #f87171; background: rgba(232, 33, 39, 0.08); }
+.db-btn.off { border-color: rgba(0, 213, 255, 0.4); color: #94a3b8; background: rgba(0, 213, 255, 0.08); }
 .db-btn.run { border-color: rgba(96, 165, 250, 0.4); color: #93c5fd; background: rgba(96, 165, 250, 0.1); }
 .db-btn.small { padding: 0.25rem 0.5rem; font-size: 0.65rem; }
 .db-btn:disabled { opacity: 0.4; cursor: default; }

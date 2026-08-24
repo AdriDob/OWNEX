@@ -432,7 +432,7 @@ const feedItems = computed(() =>
                       <div class="flex items-center gap-2 mb-1">
                         <code class="font-mono text-sm bg-accent px-2 py-0.5 rounded">{{ c.finding_id }}</code>
                         <span class="text-xs font-medium px-2 py-0.5 rounded"
-                          :class="c.outcome === 'approved' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'">
+                          :class="c.outcome === 'approved' ? 'bg-green-500/20 text-green-400' : 'bg-zinc-500/20 text-zinc-300'">
                           {{ c.outcome }}
                         </span>
                       </div>

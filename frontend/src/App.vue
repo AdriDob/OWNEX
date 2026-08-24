@@ -145,7 +145,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex h-screen w-screen overflow-hidden bg-background">
+  <div class="flex h-screen w-full overflow-hidden bg-background">
     <!-- Jarvis Background -->
     <JarvisBackground />
 

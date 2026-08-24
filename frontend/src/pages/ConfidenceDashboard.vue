@@ -29,7 +29,7 @@ const expanded = ref<Record<string, boolean>>({})
 function getTier(score: number): { label: string; color: string; variant: 'success' | 'warning' | 'destructive' } {
   if (score >= 0.7) return { label: 'HIGH', color: '#16A34A', variant: 'success' }
   if (score >= 0.4) return { label: 'MEDIUM', color: '#A16207', variant: 'warning' }
-  return { label: 'LOW', color: '#E82127', variant: 'destructive' }
+  return { label: 'LOW', color: '#00d5ff', variant: 'destructive' }
 }
 
 const highConf = computed(() => audits.value.filter(a => a.overall_score >= 0.7))

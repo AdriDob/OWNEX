@@ -55,7 +55,7 @@ async function doConnect() {
   }
 }
 
-const statusColor = computed(() => vpn.value?.status?.compatible ? '#16a34a' : '#e82127')
+const statusColor = computed(() => vpn.value?.status?.compatible ? '#16a34a' : '#00d5ff')
 const statusText = computed(() => vpn.value?.status?.compatible ? 'COMPATIBLE ✅' : 'BLOQUEADO ❌')
 const isWSL = computed(() => vpn.value?.is_wsl)
 
@@ -117,7 +117,7 @@ onMounted(load)
           <span class="vpn-dot" :class="{ ok: v.installed }" />
           <span class="vpn-name">{{ v.name }}</span>
           <span class="vpn-free">{{ v.free }}</span>
-          <span class="vpn-state" :style="{ color: v.installed ? '#16a34a' : '#f87171' }">
+          <span class="vpn-state" :style="{ color: v.installed ? '#16a34a' : '#94a3b8' }">
             {{ v.installed ? 'LISTA' : 'FALTA' }}
           </span>
         </div>
@@ -154,7 +154,7 @@ onMounted(load)
 .vpn-os { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; font-size: 0.65rem; }
 .vpn-tag { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.3); border-radius: 6px; padding: 0.15rem 0.45rem; color: #93c5fd; font-weight: 600; }
 .vpn-tag.wsl { background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.3); color: #fbbf24; }
-.vpn-hint { color: #f87171; }
+.vpn-hint { color: #94a3b8; }
 .vpn-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .vpn-btn { border: none; border-radius: 8px; padding: 0.45rem 0.75rem; font-size: 0.68rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
 .vpn-btn.check { background: rgba(96,165,250,0.15); border: 1px solid rgba(96,165,250,0.4); color: #93c5fd; }

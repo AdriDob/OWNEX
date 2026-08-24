@@ -658,8 +658,8 @@ onMounted(() => {
 }
 
 .status-offline {
-  background: #f87171;
-  box-shadow: 0 0 8px #f87171;
+  background: #94a3b8;
+  box-shadow: 0 0 8px #94a3b8;
 }
 
 @keyframes statusPulse {
@@ -1233,8 +1233,8 @@ onMounted(() => {
 }
 
 .retro-close:hover {
-  border-color: #f87171;
-  background: rgba(248, 113, 113, 0.1);
+  border-color: #94a3b8;
+  background: rgba(148, 163, 184, 0.1);
 }
 
 .close-icon {

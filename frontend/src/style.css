@@ -33,9 +33,9 @@
   /* ── Identity ── */
   --color-primary: #ffffff;
   --color-primary-foreground: #000000;
-  --color-accent: #e82127;
+  --color-accent: #00d5ff;
   --color-accent-foreground: #ffffff;
-  --color-destructive: #e82127;
+  --color-destructive: #00d5ff;
   --color-warning: #d97706;
   --color-success: #16a34a;
   --color-gold: #b45309;
@@ -45,7 +45,7 @@
   --color-bugcrowd: #b45309;
   --color-intigriti: #9CA3AF;
   --color-synack: #ffffff;
-  --color-yeswehack: #dc2626;
+  --color-yeswehack: #9CA3AF;
 
   /* ── Cycle Colors (monochrome hierarchy, red = odyssey) ── */
   --color-cycle-security: #f5f5f5;
@@ -53,7 +53,7 @@
   --color-cycle-pulse: #16a34a;
   --color-cycle-vault: #d97706;
   --color-cycle-atlas: #d4d4d8;
-  --color-cycle-odyssey: #e82127;
+  --color-cycle-odyssey: #00d5ff;
 
   /* ── Typography ── */
   --font-sans: 'Inter', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
@@ -118,6 +118,15 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Responsive safety net: embedded media never forces horizontal overflow
+     when the window is resized below a panel's intrinsic size. */
+  img,
+  svg,
+  video,
+  canvas {
+    max-width: 100%;
   }
 
   ::selection {
@@ -226,8 +235,8 @@
     box-shadow: 0 0 6px rgba(217, 119, 6, 0.4);
   }
   .status-dot-red {
-    background: #E82127;
-    box-shadow: 0 0 6px rgba(232, 33, 39, 0.4);
+    background: #00d5ff;
+    box-shadow: 0 0 6px rgba(0, 213, 255, 0.4);
   }
   .status-dot-off {
     background: #27272a;
@@ -343,8 +352,8 @@
     color: #d4d4d8;
   }
   .cycle-badge-odyssey {
-    background: rgba(232, 33, 39, 0.12);
-    color: #E82127;
+    background: rgba(0, 213, 255, 0.12);
+    color: #00d5ff;
   }
 
   /* ── Staggered list ── */
@@ -417,7 +426,7 @@
   }
   .lamp-green { background: #16a34a; box-shadow: 0 0 6px rgba(22, 163, 74, 0.4); }
   .lamp-amber { background: #d97706; box-shadow: 0 0 6px rgba(217, 119, 6, 0.4); }
-  .lamp-red { background: #E82127; box-shadow: 0 0 6px rgba(232, 33, 39, 0.4); }
+  .lamp-red { background: #00d5ff; box-shadow: 0 0 6px rgba(0, 213, 255, 0.4); }
   .lamp-off { background: #27272a; }
 
   /* ── Chart bar enter ── */

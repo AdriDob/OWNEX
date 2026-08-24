@@ -34,13 +34,13 @@ const getDifficultyColor = (difficulty: string) => {
     beginner: 'from-green-500 to-emerald-500',
     intermediate: 'from-blue-500 to-cyan-500',
     advanced: 'from-orange-500 to-amber-500',
-    expert: 'from-red-500 to-rose-500',
+    expert: 'from-cyan-500 to-blue-500',
   }
   return colors[difficulty] || 'from-gray-500 to-gray-400'
 }
 
 const getBadgeColor = (required: boolean) => {
-  return required ? 'from-red-500 to-rose-500' : 'from-green-500 to-emerald-500'
+  return required ? 'from-cyan-500 to-blue-500' : 'from-green-500 to-emerald-500'
 }
 
 const getBadgeLabel = (required: boolean) => {

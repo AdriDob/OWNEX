@@ -19,7 +19,7 @@ const sectionLabels: Record<string, { label: string; icon: string; color: string
   why: { label: 'POR QUÉ', icon: '🎯', color: 'from-green-500 to-emerald-500' },
   how: { label: 'CÓMO', icon: '⚙️', color: 'from-purple-500 to-violet-500' },
   result: { label: 'RESULTADO', icon: '✅', color: 'from-orange-500 to-amber-500' },
-  nextStep: { label: 'PRÓXIMO PASO', icon: '➡️', color: 'from-pink-500 to-rose-500' },
+  nextStep: { label: 'PRÓXIMO PASO', icon: '➡️', color: 'from-cyan-500 to-blue-500' },
 }
 </script>
 

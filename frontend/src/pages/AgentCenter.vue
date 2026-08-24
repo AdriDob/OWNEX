@@ -42,7 +42,7 @@ let healthInterval: ReturnType<typeof setInterval> | null = null
 let pipelineInterval: ReturnType<typeof setInterval> | null = null
 
 const statusColors: Record<string, string> = {
-  idle: '#16A34A', working: '#ffffff', waiting: '#A16207', error: '#E82127', offline: '#6b7280',
+  idle: '#16A34A', working: '#ffffff', waiting: '#A16207', error: '#00d5ff', offline: '#6b7280',
 }
 
 const agentIcons: Record<string, string> = {

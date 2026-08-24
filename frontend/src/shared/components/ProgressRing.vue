@@ -41,7 +41,7 @@ const statusColor = computed(() => {
   if (props.value >= 80) return '#16A34A'  // green
   if (props.value >= 50) return '#D97706'  // amber
   if (props.value >= 25) return '#D97706'  // orange
-  return '#E82127'                         // red
+  return '#00d5ff'                         // red
 })
 
 onMounted(() => {

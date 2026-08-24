@@ -8,7 +8,7 @@ const modes = [
   { value: 'guided', label: 'Guiado', icon: '🧭', color: 'from-blue-500 to-cyan-500' },
   { value: 'assisted', label: 'Asistido', icon: '🤝', color: 'from-green-500 to-emerald-500' },
   { value: 'autonomous', label: 'Autónomo', icon: '🤖', color: 'from-purple-500 to-violet-500' },
-  { value: 'expert', label: 'Experto', icon: '🔧', color: 'from-orange-500 to-red-500' },
+  { value: 'expert', label: 'Experto', icon: '🔧', color: 'from-orange-500 to-amber-600' },
 ] as const
 </script>
 

@@ -24,7 +24,7 @@ const props = withDefaults(defineProps<Props>(), {
 const isDark = computed(() => document.documentElement.classList.contains('dark'))
 
 const defaultColors = computed(() => [
-  '#00d5ff', '#ffffff', '#16A34A', '#A16207', '#E82127',
+  '#00d5ff', '#ffffff', '#16A34A', '#A16207', '#00d5ff',
   '#9CA3AF', '#14b8a6', '#D97706', '#9CA3AF', '#9CA3AF',
   '#84cc16', '#9CA3AF', '#a855f7', '#d946ef', '#0ea5e9',
 ])

@@ -251,7 +251,7 @@ onMounted(load)
               <span
                 v-if="c.push"
                 class="pb-contrib-push"
-                :style="{ color: c.push.success ? '#4ade80' : '#f87171' }"
+                :style="{ color: c.push.success ? '#4ade80' : '#94a3b8' }"
               >
                 {{ c.push.success ? `push ${c.push.commit}` : c.push.message }}
               </span>

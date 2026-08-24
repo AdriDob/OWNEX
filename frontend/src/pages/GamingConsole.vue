@@ -297,7 +297,7 @@ onUnmounted(() => {
         </h2>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-4">
           <div v-for="agent in fleetAgents" :key="agent.name" class="agent-card"
-            :style="{ borderColor: agent.status === 'error' ? 'rgba(248,113,113,0.4)' : 'rgba(255, 255, 255,0.2)' }">
+            :style="{ borderColor: agent.status === 'error' ? 'rgba(148,163,184,0.4)' : 'rgba(255, 255, 255,0.2)' }">
             <div class="flex items-center gap-2 mb-2">
               <span class="w-2 h-2 rounded-full"
                 :class="agent.status === 'error' ? 'bg-destructive' : agent.status === 'working' ? 'bg-success' : 'bg-warning'" />
@@ -398,7 +398,7 @@ onUnmounted(() => {
 .pill-pulse { color: #16A34A; border-color: rgba(22, 163, 74, 0.3); background-color: rgba(22, 163, 74, 0.1); }
 .pill-vault { color: #D97706; border-color: rgba(217, 119, 6, 0.3); background-color: rgba(217, 119, 6, 0.1); }
 .pill-atlas { color: #9CA3AF; border-color: rgba(156, 163, 175, 0.3); background-color: rgba(156, 163, 175, 0.1); }
-.pill-security { color: #F87171; border-color: rgba(232, 33, 39, 0.3); background-color: rgba(232, 33, 39, 0.1); }
+.pill-security { color: #F87171; border-color: rgba(0, 213, 255, 0.3); background-color: rgba(0, 213, 255, 0.1); }
 
 .live-badge {
   padding: 0.25rem 1rem;
@@ -468,7 +468,7 @@ onUnmounted(() => {
 .action-primary { color: #22D3EE; border-color: rgba(6, 182, 212, 0.4); background-color: rgba(6, 182, 212, 0.15); }
 .action-green { color: #16A34A; border-color: rgba(22, 163, 74, 0.4); background-color: rgba(22, 163, 74, 0.15); }
 .action-gold { color: #D97706; border-color: rgba(217, 119, 6, 0.4); background-color: rgba(217, 119, 6, 0.15); }
-.action-red { color: #F87171; border-color: rgba(232, 33, 39, 0.4); background-color: rgba(232, 33, 39, 0.15); }
+.action-red { color: #F87171; border-color: rgba(0, 213, 255, 0.4); background-color: rgba(0, 213, 255, 0.15); }
 
 /* Cards grid */
 .cards-grid {

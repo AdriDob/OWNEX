@@ -510,8 +510,8 @@ onMounted(loadAll)
   background: rgba(0, 213, 255, 0.06);
 }
 .dw-pay-warn {
-  color: #e82127;
-  border-color: rgba(232, 33, 39, 0.5);
-  background: rgba(232, 33, 39, 0.08);
+  color: #00d5ff;
+  border-color: rgba(0, 213, 255, 0.5);
+  background: rgba(0, 213, 255, 0.08);
 }
 </style>
