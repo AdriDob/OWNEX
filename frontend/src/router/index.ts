@@ -308,6 +308,12 @@ export const routes: RouteRecordRaw[] = [
         meta: { title: 'Configuración' },
       },
       {
+        path: 'applications',
+        name: 'operations-applications',
+        component: () => import('@/pages/ApplicationAssistant.vue'),
+        meta: { title: 'Application Assistant' },
+      },
+      {
         path: 'workflows',
         name: 'operations-workflows',
         component: () => import('@/pages/Workflows.vue'),

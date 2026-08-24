@@ -10,8 +10,8 @@
  * by every consumer without reload.
  */
 
-import { ref } from 'vue'
 import type { Event } from '@tauri-apps/api/event'
+import { ref } from 'vue'
 
 const DEFAULT_PORT = 8000
 /** Must stay aligned with find_available_port() in src-tauri/src/lib.rs. */
@@ -20,12 +20,41 @@ const BACKEND_HOST = '127.0.0.1'
 
 export type BackendStatus = 'checking' | 'connecting' | 'ready' | 'unreachable'
 
+/**
+ * Explicit runtime lifecycle (FASE 3 contract):
+ *   STARTING — sidecar spawned, health pending.
+ *   READY    — port resolved and health OK; requests may flow.
+ *   DEGRADED — cold-start budget exhausted; slow keep-alive retry continues.
+ *   FAILED   — the shell reported a terminal backend error; rescan scheduled.
+ *   STOPPING — teardown in progress (window unload / explicit close).
+ */
+export type BackendLifecycle = 'STARTING' | 'READY' | 'DEGRADED' | 'FAILED' | 'STOPPING'
+
 /** Reactive connection state consumed by UI (ErrorState, status pills, etc.). */
 export const backendStatus = ref<BackendStatus>('connecting')
 export const backendPort = ref<number>(DEFAULT_PORT)
+export const backendLifecycle = ref<BackendLifecycle>('STARTING')
+
+let _pollAttempts = 0
+
+function _applyLifecycle(status: BackendStatus): void {
+  if (status === 'ready') backendLifecycle.value = 'READY'
+  else if (status === 'unreachable') backendLifecycle.value = 'FAILED'
+  else backendLifecycle.value = _pollAttempts > FAST_ATTEMPTS ? 'DEGRADED' : 'STARTING'
+}
 
 function setStatus(status: BackendStatus): void {
   if (backendStatus.value !== status) backendStatus.value = status
+  _applyLifecycle(status)
+}
+
+/** Teardown marker (Tauri close flow); no new requests should be issued. */
+export function markStopping(): void {
+  backendLifecycle.value = 'STOPPING'
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', markStopping, { once: true })
 }
 
 /** True when running inside a Tauri webview (v2 always injects __TAURI_INTERNALS__). */
@@ -71,7 +100,6 @@ async function probePort(port: number): Promise<boolean> {
 
 const FAST_ATTEMPTS = 30 // ~60 s at 2 s cadence: cold start budget
 const SLOW_INTERVAL_MS = 10000 // keep-alive poll forever after that
-let _pollAttempts = 0
 
 async function pollBackend(immediate = false): Promise<void> {
   if (!isTauri) return
@@ -131,6 +159,48 @@ export function wsUrl(path: string, token?: string): string {
   return token ? `${url}?token=${encodeURIComponent(token)}` : url
 }
 
+/**
+ * Awaitable readiness gate (FASE 3/4): resolves `true` as soon as the
+ * backend is READY, or `false` after `timeoutMs` without resolution.
+ * Outside Tauri (web/dev server) the backend is same-origin — ready now.
+ * Callers MUST treat `false` as "surface a real error", never as empty data.
+ */
+export function whenBackendReady(timeoutMs = 20000): Promise<boolean> {
+  if (!isTauri) return Promise.resolve(true)
+  if (_portResolved) return Promise.resolve(true)
+  if (backendLifecycle.value === 'STOPPING') return Promise.resolve(false)
+  return new Promise((resolve) => {
+    const started = Date.now()
+    const iv = setInterval(() => {
+      if (_portResolved) {
+        clearInterval(iv)
+        resolve(true)
+      } else if (backendLifecycle.value === 'STOPPING' || Date.now() - started >= timeoutMs) {
+        clearInterval(iv)
+        resolve(false)
+      }
+    }, 100)
+  })
+}
+
+/** Test hooks — not part of the public contract. */
+export const __testHooks = {
+  setResolved(port: number): void {
+    setBackendPort(port, 'test')
+  },
+  setAttempts(n: number): void {
+    _pollAttempts = n
+    if (!_portResolved) setStatus('connecting')
+  },
+  markUnreachable(): void {
+    _portResolved = false
+    setStatus('unreachable')
+  },
+  get internal(): { resolved: () => boolean; port: () => number } {
+    return { resolved: () => _portResolved, port: () => _backendPort }
+  },
+}
+
 // ── Port discovery ──────────────────────────────────────────────────────────
 if (isTauri) {
   setStatus('connecting')
@@ -143,7 +213,17 @@ if (isTauri) {
         ),
         listen<{ message: string }>('backend-error', (event) => {
           console.error(`[OWNEX] Backend error: ${event.payload.message}`)
-          resetBackendDiscovery()
+          // Terminal shell-side failure (spawn/health-timeout): surface FAILED
+          // explicitly, then keep a slow rescan alive in case the user starts
+          // the backend manually or a restart lands on a new port.
+          _portResolved = false
+          setStatus('unreachable')
+          setTimeout(() => {
+            if (!_portResolved) {
+              setStatus('connecting')
+              void pollBackend(true)
+            }
+          }, SLOW_INTERVAL_MS)
         }),
       ]),
     )
