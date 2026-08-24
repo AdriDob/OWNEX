@@ -2,7 +2,20 @@
 
 > v7.0.0 STABLE — 6 Work Cycles operativos, lint clean, tests fast 88/89 pasan.
 
-## Última Sesión: 2026-08-24 — Application Assistant (FASE_39) ✅
+## Última Sesión: 2026-08-24 — Taxonomy refactor Phases 2-6 ✅
+
+### Qué se hizo
+- **Auditoría forense completa** (READ-ONLY): 4 enums OpportunityCategory (38 canónica / 11 engine / 3 global_sources / 11 mercenary IntEnum) + shadow taxonomies por literales (~40 sitios). Informe completo entregado con matrices A-P.
+- **FASE 2** (`ed5eaa5d`): mapper adoptado en boundaries — bounty_coordinator normaliza T2→canónico (desconocidos pasan literales); opportunity_feedback rewired a FeedbackLoop real (bug preexistente: llamaba métodos inexistentes del engine → 500 siempre) + validación fail-closed 400. `tests/test_taxonomy_boundaries.py` NUEVO.
+- **FASE 3** (`afa55bc7`): auto_scanner itera el enum en vez de hardcodear 3 familias; source_intel expone `vocabulary="global_source_families"`.
+- **FASE 4** (`919bc884`): mercenary `/categories` expone slug estable + canonical vía work_taxonomy; ordinal IntEnum deja de ser contrato público.
+- **FASE 5** (`bf97a517`): OpenSourceCategory (10 miembros) mapeado a canónica con rationale inline.
+- **FASE 6**: `cores/work_policy.py` NUEVO — CategoryPolicy separada de la identidad (invariante #10), sembrada SOLO con evidencia: owner-priority-list (8 cats → HIGH) + prioridades curadas del mercenary filter heredadas vía MERCENARY_TO_CANONICAL; resto LOW con rationale explícito. Cero valores económicos inventados.
+- Pendiente: F7 (API higiene direct_work resolve estricto), F8 (tipos TS frontend), F9 (migración shadows a policy con paridad numérica), F10 (dead code).
+
+---
+
+## Sesión anterior: 2026-08-24 — Application Assistant (FASE_39) ✅
 
 ### Qué se hizo
 - **Plan asistido de postulación a plataformas de ingreso** (`core/application_assistant.py` NUEVO):
