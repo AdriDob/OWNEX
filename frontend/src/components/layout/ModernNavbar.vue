@@ -6,7 +6,7 @@
           <div class="o-ring o-ring-mini" />
           <div class="o-dot o-dot-mini" />
         </div>
-        <span class="brand-text">OWNEX OMEGA</span>
+        <span class="brand-text">OWNEX Alpha</span>
       </div>
     </div>
 

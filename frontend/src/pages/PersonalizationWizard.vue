@@ -10,7 +10,7 @@
           <div class="o-core" />
         </div>
         <div>
-          <h1 class="wizard-title">OWNEX OMEGA</h1>
+          <h1 class="wizard-title">OWNEX Alpha</h1>
           <p class="wizard-subtitle">Configura tu sistema según tus necesidades</p>
         </div>
       </div>
@@ -26,7 +26,7 @@
     <div class="wizard-content">
       <!-- Step 1: Use Case -->
       <div v-if="currentStep === 1" class="wizard-step">
-        <h2 class="step-title">¿Para qué quieres usar OWNEX OMEGA?</h2>
+        <h2 class="step-title">¿Para qué quieres usar OWNEX Alpha?</h2>
         <p class="step-description">Selecciona el caso de uso que mejor describe tus necesidades</p>
 
         <div class="use-case-grid">
@@ -150,7 +150,7 @@
               placeholder="Ej: Mi Bug Bounty Hub"
               maxlength="50"
             />
-            <p class="form-hint">Deja vacío para usar el nombre por defecto: OWNEX OMEGA</p>
+            <p class="form-hint">Deja vacío para usar el nombre por defecto: OWNEX Alpha</p>
           </div>
         </div>
       </div>

@@ -1,6 +1,8 @@
+import argparse
 import asyncio
 import logging
 import os
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -171,12 +173,63 @@ from cores.learning.router import router as learning_router
 from cores.log_config import setup_logging
 from database import db
 
+
+# ── CLI Argument Parsing ─────────────────────────────────────────────────
+def parse_args():
+    parser = argparse.ArgumentParser(description="OWNEX Backend - FastAPI Server")
+    parser.add_argument("--port", type=int, default=8000, help="Port to run the server on (default: 8000)")
+    parser.add_argument(
+        "--data-dir",
+        type=str,
+        default=None,
+        help="Data directory for database and logs (default: %%LOCALAPPDATA%%\\OWNEX on Windows, ~/.ownex on Linux)",
+    )
+    parser.add_argument(
+        "--log-level",
+        type=str,
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="Log level (default: INFO)",
+    )
+    parser.add_argument("--host", type=str, default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)")
+    return parser.parse_args()
+
+
+# Parse args immediately on module load
+_ARGS = parse_args()
+
+# Configure data directory BEFORE any imports that might use it
+if _ARGS.data_dir:
+    data_dir = Path(_ARGS.data_dir)
+else:
+    # Platform-specific default
+    if sys.platform == "win32":
+        data_dir = Path(os.path.expandvars(r"%LOCALAPPDATA%\OWNEX"))
+    else:
+        data_dir = Path.home() / ".ownex"
+
+# Set environment variables for downstream code
+os.environ["CATEYE_DATA_DIR"] = str(data_dir)
+_DB_PATH = data_dir / "database" / "cateye.db"
+_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+os.environ["DATABASE_URL"] = f"sqlite:///{_DB_PATH}"
+
+# Configure logging
+logging.basicConfig(
+    level=getattr(logging, _ARGS.log_level),
+    format="[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s",
+    stream=sys.stdout,
+)
+
 setup_logging()
 
 logger = logging.getLogger("ownex.api")
+logger.info(f"[BOOT] Data directory: {data_dir}")
+logger.info(f"[BOOT] Database path: {_DB_PATH}")
 
 # Track background tasks to prevent silent crashes and allow cancellation
 _background_tasks: set[asyncio.Task] = set()
+_shutdown_requested = False
 
 
 @asynccontextmanager
@@ -215,6 +268,11 @@ async def lifespan(app: FastAPI):
         if not task.done():
             task.cancel()
     _background_tasks.clear()
+
+    # Quick exit if shutdown was requested via API (sidecar mode)
+    if _shutdown_requested:
+        logger.info("[SHUTDOWN] Quick exit for sidecar shutdown")
+        return
 
     # Stop RC7 Autonomous Intelligence Layer
     try:
@@ -647,3 +705,39 @@ async def metrics():
     from cores.prometheus_registry import get_registry
 
     return generate_latest(get_registry())
+
+
+@app.post("/api/shutdown")
+async def shutdown():
+    """Graceful shutdown endpoint for sidecar management."""
+    global _shutdown_requested
+    _shutdown_requested = True
+    logger.info("[SHUTDOWN] Shutdown requested via API")
+    # Give lifespan time to cleanup, then exit
+    asyncio.create_task(_delayed_exit())
+    return {"status": "shutting_down"}
+
+
+async def _delayed_exit():
+    """Delay exit to allow response to be sent."""
+    await asyncio.sleep(0.5)
+    logger.info("[SHUTDOWN] Exiting process")
+    sys.exit(0)
+
+
+def main():
+    """Entry point for standalone backend execution."""
+    import uvicorn
+
+    logger.info(f"[BOOT] Starting OWNEX Backend on {_ARGS.host}:{_ARGS.port}")
+    uvicorn.run(
+        "api.main:app",
+        host=_ARGS.host,
+        port=_ARGS.port,
+        log_level=_ARGS.log_level.lower(),
+        access_log=True,
+    )
+
+
+if __name__ == "__main__":
+    main()

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getToken } from '@/lib/api'
+import { wsUrl } from '@/lib/backend'
 
 export interface Notification {
   id: string
@@ -76,10 +77,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
     if (wsConnected.value) return
     try {
       const token = getToken()
-      const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-      const url = token
-        ? `${proto}//${window.location.host}/api/ws?token=${encodeURIComponent(token)}`
-        : `${proto}//${window.location.host}/api/ws`
+      const url = wsUrl('/api/ws', token ?? undefined)
       const ws = new WebSocket(url)
       ws.onopen = () => { wsConnected.value = true }
       ws.onmessage = (event) => {

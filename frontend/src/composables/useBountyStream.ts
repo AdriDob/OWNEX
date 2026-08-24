@@ -1,5 +1,6 @@
 import { ref, onUnmounted } from 'vue'
 import { getToken } from '@/lib/api'
+import { wsUrl } from '@/lib/backend'
 import type { WsConnectionStatus, WsEvent } from '@/types'
 
 type EventHandler = (event: WsEvent) => void
@@ -16,9 +17,7 @@ const lastEvent = ref<WsEvent | null>(null)
 function getWsUrl(): string | null {
   const token = getToken()
   if (!token) return null
-  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const host = window.location.host
-  return `${proto}//${host}/api/ws?token=${encodeURIComponent(token)}`
+  return wsUrl('/api/ws', token)
 }
 
 function scheduleReconnect() {

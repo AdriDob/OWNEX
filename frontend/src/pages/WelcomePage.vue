@@ -13,7 +13,7 @@
           <div class="o-core" />
         </div>
         <div class="hero-text">
-          <h1 class="hero-title">OWNEX OMEGA</h1>
+          <h1 class="hero-title">OWNEX Alpha</h1>
           <p class="hero-subtitle">Sistema de Inteligencia Autónoma para Bug Bounty</p>
           <div class="hero-features">
             <div class="feature-pill">
@@ -98,7 +98,7 @@
         <div class="status-card">
           <div class="status-header">
             <span class="status-icon">🟢</span>
-            <span class="status-label">OWNEX OMEGA</span>
+            <span class="status-label">OWNEX Alpha</span>
           </div>
           <div class="status-value">Online</div>
           <div class="status-detail">Sistema operativo</div>
@@ -206,7 +206,7 @@
     <!-- ═══ FOOTER ═══ -->
     <footer class="welcome-footer">
       <div class="footer-content">
-        <p class="footer-text">OWNEX OMEGA — Sistema de Inteligencia Autónoma para Bug Bounty</p>
+        <p class="footer-text">OWNEX Alpha — Sistema de Inteligencia Autónoma para Bug Bounty</p>
         <p class="footer-sub">Versión 1.0.0 — © 2024</p>
       </div>
     </footer>

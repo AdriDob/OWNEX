@@ -486,7 +486,7 @@ export const routes: RouteRecordRaw[] = [
       path: '/ownex/',
       name: 'ownex-home',
       component: () => import('@/shell/OrionHome.vue'),
-      meta: { title: 'OWNEX OMEGA Platform' },
+      meta: { title: 'OWNEX Alpha Platform' },
     },
   {
     path: '/investments',

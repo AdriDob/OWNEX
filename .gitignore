@@ -117,3 +117,4 @@ android/*.keystore
 # Build artifacts (nunca commitear)
 *.exe
 !desktop/**/*.exe
+src-tauri/binaries/ownex-backend-*

@@ -5,6 +5,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { wsUrl } from '@/lib/backend'
 import type { ServiceCheck, SystemSpecs, ReadinessPhase, PrepareEvent } from '@/shared/types'
 
 export const useReadinessStore = defineStore('readiness', () => {
@@ -53,9 +54,7 @@ export const useReadinessStore = defineStore('readiness', () => {
 
   /** Connect to WebSocket for live readiness updates */
   function connectWS() {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const host = window.location.host
-    ws = new WebSocket(`${protocol}//${host}/api/ws/readiness`)
+    ws = new WebSocket(wsUrl('/api/ws/readiness'))
 
     ws.onmessage = (e) => {
       try {

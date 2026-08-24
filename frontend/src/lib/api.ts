@@ -1,6 +1,7 @@
 import type { OrionContext } from '@/types'
+import { API_BASE } from '@/lib/backend'
 
-const BASE = '/api'
+const BASE = API_BASE
 
 // ── Auth ──
 

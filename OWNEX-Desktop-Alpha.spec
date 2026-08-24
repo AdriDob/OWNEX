@@ -1,4 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
+# ═══════════════════════════════════════════════════════════════
+# LEGACY — PySide6/PyInstaller build spec (SUPERSEDED BY OWNEX-Backend.spec)
+# This spec produces the OLD PySide6 desktop app.
+# The NEW architecture uses Tauri + Vue + FastAPI sidecar.
+# See: OWNEX-Backend.spec for the backend sidecar build.
+# ═══════════════════════════════════════════════════════════════
 # ruff: noqa: UP009, F821 — spec file executed by PyInstaller, not imported.
 from PyInstaller.utils.hooks import collect_all
 

@@ -233,7 +233,7 @@
     <!-- ═══ FOOTER ═══ -->
     <footer class="mobile-footer">
       <div class="footer-content">
-        <p class="footer-text">ORION Companion — Extensión móvil para OWNEX OMEGA</p>
+        <p class="footer-text">ORION Companion — Extensión móvil para OWNEX Alpha</p>
         <p class="footer-sub">Compatible con Android 10+ y Wear OS 3+</p>
       </div>
     </footer>
