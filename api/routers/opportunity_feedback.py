@@ -14,7 +14,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from cores.opportunity.engine import get_engine
+from cores.opportunity.feedback import get_feedback_loop
 
 router = APIRouter(prefix="/api/opportunity-feedback", tags=["opportunity-feedback"])
 logger = getLogger(__name__)
@@ -41,6 +41,31 @@ class MultipliersRequest(BaseModel):
     technology_tags: list[str] = Field(default_factory=list, description="Technology tags")
 
 
+def _validate_engine_category(value: str) -> str:
+    """Validate a client-supplied category against the engine taxonomy (fail-closed).
+
+    Feedback records persist forever; accepting free strings would poison the
+    learning store. Case-insensitive for client convenience.
+    """
+    lowered = value.strip().lower()
+    try:
+        from cores.opportunity.engine import OpportunityCategory as EngineCategory
+
+        return EngineCategory(lowered).value
+    except ValueError:
+        valid = ", ".join(_engine_categories())
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid category '{value}'. Must be one of: {valid}",
+        ) from None
+
+
+def _engine_categories() -> list[str]:
+    from cores.opportunity.engine import OpportunityCategory as EngineCategory
+
+    return [m.value for m in EngineCategory]
+
+
 @router.post("/record")
 def record_feedback(request: FeedbackRequest) -> dict[str, Any]:
     """Record feedback for an opportunity to learn from user decisions."""
@@ -53,10 +78,10 @@ def record_feedback(request: FeedbackRequest) -> dict[str, Any]:
                 detail=f"Invalid outcome. Must be one of: {', '.join(valid_outcomes)}",
             )
 
-        get_engine().record_feedback(
+        get_feedback_loop().record_feedback(
             opportunity_id=request.opportunity_id,
             outcome=request.outcome,
-            category=request.category,
+            category=_validate_engine_category(request.category),
             platform=request.platform,
             technology_tags=request.technology_tags,
             estimated_payout=request.estimated_payout,
@@ -80,7 +105,7 @@ def record_feedback(request: FeedbackRequest) -> dict[str, Any]:
 def get_feedback_summary() -> dict[str, Any]:
     """Get summary statistics of all feedback data."""
     try:
-        return get_engine().get_feedback_summary()
+        return get_feedback_loop().get_feedback_summary()
     except Exception as e:
         logger.error("Failed to get feedback summary: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error") from e
@@ -90,11 +115,13 @@ def get_feedback_summary() -> dict[str, Any]:
 def get_feedback_multipliers(request: MultipliersRequest) -> dict[str, float]:
     """Get personalized multipliers for a specific opportunity context."""
     try:
-        return get_engine().get_feedback_multipliers(
-            category=request.category,
+        return get_feedback_loop().get_personalized_multipliers(
+            category=_validate_engine_category(request.category),
             platform=request.platform,
             technology_tags=request.technology_tags,
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error("Failed to get feedback multipliers: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error") from e
