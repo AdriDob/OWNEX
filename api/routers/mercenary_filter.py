@@ -122,18 +122,25 @@ def score_opportunity(request: MercenaryScoreRequest) -> dict[str, Any]:
 
 @router.get("/categories")
 def list_categories() -> dict[str, Any]:
-    """List all categories with their priorities."""
-    return {
-        "categories": [
-            {
-                "id": cat.value,
-                "name": cat.name,
-                "priority": CATEGORY_PRIORITIES.get(cat, 50).name,
-                "priority_value": int(CATEGORY_PRIORITIES.get(cat, 50)),
-            }
-            for cat in OpportunityCategory
-        ]
-    }
+    """List all categories with their priorities.
+
+    `id` is the legacy IntEnum ordinal (deprecated — do not persist).
+    `slug` is the stable identifier; `canonical` is its product-taxonomy
+    equivalent per cores.work_taxonomy.
+    """
+    from cores.work_taxonomy import to_canonical
+
+    entries = []
+    for cat in OpportunityCategory:
+        entry: dict[str, Any] = {
+            "slug": cat.name.lower(),
+            "name": cat.name,
+            "canonical": to_canonical(cat).value,
+            "priority": CATEGORY_PRIORITIES.get(cat, 50).name,
+            "priority_value": int(CATEGORY_PRIORITIES.get(cat, 50)),
+        }
+        entries.append(entry)
+    return {"categories": entries}
 
 
 @router.post("/toggle")

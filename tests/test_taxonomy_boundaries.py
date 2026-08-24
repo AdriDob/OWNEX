@@ -148,3 +148,29 @@ class TestSourceFamilyVocabulary:
 
         for member in GlobalFamilies:
             assert to_canonical(member) is GLOBAL_SOURCE_TO_CANONICAL[member]
+
+
+class TestMercenaryCategoriesContract:
+    def test_categories_expose_slug_and_canonical_not_ordinals(self) -> None:
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+
+        from api.routers.mercenary_filter import router
+
+        app = FastAPI()
+        app.include_router(router)
+        resp = TestClient(app).get("/api/mercenary-filter/categories")
+        assert resp.status_code == 200
+        cats = resp.json()["categories"]
+        assert len(cats) >= 11
+        first = cats[0]
+        assert {"slug", "name", "canonical", "priority"} <= set(first)
+        assert "id" not in first  # raw IntEnum ordinal ya no es contrato público
+        assert first["slug"] == first["slug"].lower()
+
+    def test_every_mercenary_category_has_canonical_target(self) -> None:
+        from core.opportunity.mercenary_filter import OpportunityCategory as MercCat
+        from cores.work_taxonomy import MERCENARY_TO_CANONICAL, to_canonical
+
+        for member in MercCat:
+            assert to_canonical(member) is MERCENARY_TO_CANONICAL[member]
