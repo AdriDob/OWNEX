@@ -371,13 +371,16 @@ onMounted(loadData)
               </div>
               <div>
                 <p class="text-[10px] text-muted-foreground flex items-center gap-1"><Shield class="h-3 w-3" /> Operational Mode</p>
+                <!-- El backend solo expone modo por-plataforma
+                     (identity-center/platform/{p}/mode); el selector global
+                     se resuelve vía never-submit (aprobación obligatoria). -->
                 <select
                   v-model="settings.operational_mode"
-                  class="mt-1 w-full rounded-lg border border-border/60 bg-background/60 px-3 py-1.5 text-xs text-foreground"
+                  disabled
+                  title="Configurá el modo por plataforma en cada conector"
+                  class="mt-1 w-full cursor-not-allowed rounded-lg border border-border/60 bg-background/60 px-3 py-1.5 text-xs text-muted-foreground"
                 >
-                  <option value="manual">Manual</option>
-                  <option value="prepare">Prepare</option>
-                  <option value="automatic">Automatic</option>
+                  <option value="manual">Manual (por plataforma)</option>
                 </select>
               </div>
               <label class="flex items-center gap-2 text-xs text-muted-foreground">
