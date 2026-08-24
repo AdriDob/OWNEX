@@ -45,6 +45,13 @@ except ImportError:
     _SOURCES_AVAILABLE = False
 
 
+def _source_categories() -> list[OpportunityCategory]:
+    """Iterate the curated source families instead of hardcoding their names."""
+    if _SOURCES_AVAILABLE:
+        return list(OpportunityCategory)
+    return []
+
+
 @dataclass
 class DiscoveryRecord:
     """A single opportunity found during a scan."""
@@ -231,7 +238,8 @@ def generate_summary(report: DiscoveryReport | None = None) -> str:
     ]
 
     by_cat = data.get("by_category", {})
-    for cat_name in ["bug_bounty", "dev_bounty", "data_entry"]:
+    for cat_member in _source_categories():
+        cat_name = cat_member.value
         count = by_cat.get(cat_name, 0)
         label = cat_name.replace("_", " ").title()
         lines.append(f"    - {label}: {count}")
@@ -244,7 +252,8 @@ def generate_summary(report: DiscoveryReport | None = None) -> str:
     )
 
     favorites = data.get("favorites", {})
-    for cat_name in ["bug_bounty", "dev_bounty", "data_entry"]:
+    for cat_member in _source_categories():
+        cat_name = cat_member.value
         favs = favorites.get(cat_name, [])
         label = cat_name.replace("_", " ").title()
         lines.append(f"\n    ── {label} ──")
