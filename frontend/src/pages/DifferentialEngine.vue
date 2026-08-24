@@ -93,7 +93,7 @@ async function fetchAnalysis() {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.get<DifferentialData>('/differential-intelligence/analysis')
+    const res = await api.get<DifferentialData>('/differential-intelligence/analyze')
     data.value = res
   } catch (e: any) {
     error.value = e?.message || 'Error al cargar el análisis diferencial'

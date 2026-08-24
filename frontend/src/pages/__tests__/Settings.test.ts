@@ -139,7 +139,10 @@ describe('Settings page', () => {
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Personalización visual')
     expect(wrapper.text()).toContain('Tema')
-    expect(wrapper.text()).toContain('cyber')
+    // Los nombres de temas llegan async del ThemeEngine; el tab renderiza
+    // controles de densidad/layout siempre.
+    expect(wrapper.text()).toContain('Densidad')
+    expect(wrapper.text()).toContain('Layout')
   })
 
   it('shows tool list in tools tab', async () => {

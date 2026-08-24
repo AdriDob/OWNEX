@@ -44,8 +44,8 @@ async function fetchData() {
   error.value = null
   try {
     const [p, e] = await Promise.all([
-      api.get<LearningProfile>('/system/learning/profile'),
-      api.get<{ events: LearningEvent[] }>('/system/learning/events'),
+      api.get<LearningProfile>('/learning/profile'),
+      api.get<{ events: LearningEvent[] }>('/learning/events'),
     ])
     profile.value = p
     events.value = e.events || []
@@ -62,7 +62,7 @@ async function toggleAdaptiveMode() {
   if (!profile.value) return
   toggling.value = true
   try {
-    const updated = await api.post<LearningProfile>('/system/learning/profile/reset')
+    const updated = await api.post<LearningProfile>('/learning/profile/reset')
     profile.value = updated
     await fetchData()
   } catch { /* ignore */ }
@@ -73,7 +73,7 @@ async function resetProfile() {
   if (!confirm('¿Estás seguro de resetear tu perfil de aprendizaje? Se perderán todos los datos.')) return
   resetting.value = true
   try {
-    await api.post('/system/learning/profile/reset')
+    await api.post('/learning/profile/reset')
     await fetchData()
   } catch { /* ignore */ }
   finally { resetting.value = false }
@@ -83,7 +83,7 @@ async function exportProfile(format: 'json' | 'markdown') {
   exporting.value = true
   exportingFormat.value = format
   try {
-    const data = await api.post<any>('/system/learning/profile/export', { format })
+    const data = await api.post<any>('/learning/export', { format })
     const blob = new Blob(
       [format === 'json' ? JSON.stringify(data, null, 2) : data],
       { type: format === 'json' ? 'application/json' : 'text/markdown' },

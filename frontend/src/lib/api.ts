@@ -1,4 +1,4 @@
-import { getApiBase, resetBackendDiscovery } from '@/lib/backend'
+import { getApiBase, isTauri, resetBackendDiscovery, resolveApiUrl, whenBackendReady } from '@/lib/backend'
 import type { OrionContext } from '@/types'
 
 // NOTE: getApiBase() is called at request time, NOT at module load time.
@@ -104,24 +104,25 @@ export interface RequestOptions {
 async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, params, skipAuth } = opts
 
-  // Normalize legacy double-prefixed paths: ~150 call sites pass '/api/...'
-  // while getApiBase() already resolves to '<host>/api'. Produces /api/api/x
-  // (silent 404 otherwise). Safe: paths already correct are untouched.
-  let cleanPath = path
-  const base = getApiBase()
-  if (base.endsWith('/api') && cleanPath.startsWith('/api/')) {
-    cleanPath = cleanPath.slice(4)
+  // FASE 3 gate: inside Tauri, hold requests until the sidecar port is
+  // discovered (or surface a real error after the grace window) instead of
+  // firing into a dead port and degrading every panel to fake-empty states.
+  if (isTauri && !(await whenBackendReady(20000))) {
+    throw new ApiError(0, 'Backend no disponible — el sistema está iniciando o el sidecar falló. Reintentá en unos segundos.')
   }
 
-  let url = `${base}${cleanPath}`
+  // Normalize legacy double-prefixed paths (~150 call sites pass '/api/...')
+  // and route root-mounted namespaces (direct-work/mobile/wear-os) correctly.
+  let cleanPath = path
   if (params) {
     const search = new URLSearchParams()
     for (const [k, v] of Object.entries(params)) {
       if (v !== undefined && v !== null) search.set(k, String(v))
     }
     const qs = search.toString()
-    if (qs) url += `?${qs}`
+    if (qs) cleanPath += `?${qs}`
   }
+  const url = resolveApiUrl(cleanPath)
 
   const headers: Record<string, string> = {}
   if (body) headers['Content-Type'] = 'application/json'
