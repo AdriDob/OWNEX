@@ -3,7 +3,13 @@
 #
 # OWNEX Backend — PyInstaller build spec for standalone FastAPI sidecar.
 # Entrypoint: src-tauri/binaries/start_backend.py
-# Output: dist/ownex-backend/ownex-backend.exe
+# Output: dist/ownex-backend.exe  (ONEFILE — self-contained)
+#
+# ONEFILE is required by the Tauri externalBin contract: Tauri bundles and
+# spawns exactly one file per target triple. A ONEDIR exe copied without its
+# _internal/ directory cannot import api.main (the failure that shipped in
+# the 2026-08-24 MSI). First launch extracts to %TEMP% (~10-30 s), which fits
+# inside lib.rs's health-poll budget.
 #
 # Build with:
 #   pyinstaller OWNEX-Backend.spec --clean --noconfirm
@@ -141,25 +147,20 @@ pyz = PYZ(a.pure)
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.datas,
     [],
-    exclude_binaries=True,
     name="ownex-backend",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    # UPX off: onefile + UPX is a well-known Windows Defender false-positive
+    # trigger; reliability of first launch beats ~25% size savings.
+    upx=False,
+    upx_exclude=[],
+    runtime_tmpdir=None,
     console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     icon=ICON_PATH,
-)
-
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.datas,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    name="ownex-backend",
 )
