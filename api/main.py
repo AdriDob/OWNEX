@@ -192,11 +192,13 @@ def parse_args():
         help="Log level (default: INFO)",
     )
     parser.add_argument("--host", type=str, default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)")
-    return parser.parse_args()
+    return parser.parse_known_args()
 
 
-# Parse args immediately on module load
-_ARGS = parse_args()
+# Parse args immediately on module load.
+# parse_known_args(): this module is imported by tooling whose argv is NOT
+# ours (pytest, IDE runners) — unknown flags must be ignored, never fatal.
+_ARGS, _UNKNOWN_ARGS = parse_args()
 
 # Configure data directory BEFORE any imports that might use it
 if _ARGS.data_dir:
@@ -359,7 +361,7 @@ _VERSION_FILE = Path(__file__).resolve().parent.parent / "VERSION"
 _APP_VERSION = _VERSION_FILE.read_text().strip() if _VERSION_FILE.is_file() else "0.0.0"
 
 app = FastAPI(
-    title="CATEYE API",
+    title="OWNEX API",
     description="Bug Bounty Intelligence Platform — automated reconnaissance, analysis, and reporting.",
     version=_APP_VERSION,
     lifespan=lifespan,
@@ -610,7 +612,7 @@ APP_VERSION = _APP_VERSION
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "app": "CATEYE API", "version": APP_VERSION}
+    return {"status": "ok", "app": "OWNEX API", "version": APP_VERSION}
 
 
 @app.get("/api/system/status")
@@ -667,7 +669,7 @@ def _get_db_size_mb() -> float:
 
 @app.get("/api/version")
 async def get_version():
-    return {"version": APP_VERSION, "app": "OWNEX API", "build": "4.6.0"}
+    return {"version": APP_VERSION, "app": "OWNEX API", "build": APP_VERSION}
 
 
 @app.get("/api/stats")
