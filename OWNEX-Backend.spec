@@ -66,6 +66,10 @@ HIDDEN_IMPORTS = [
     "httpx", "sniffio", "h11", "anyio",
     # Config / serialization
     "pydantic", "pydantic_settings",
+    # Form parsing — MUST be present: FastAPI Form() endpoints fail at
+    # runtime without it. As a hiddenimport its absence breaks the BUILD
+    # loudly instead of being swallowed by collect_all's try/except.
+    "python_multipart",
     # Database ORM
     "sqlalchemy",
     # Metrics

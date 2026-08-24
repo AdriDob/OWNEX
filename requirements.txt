@@ -33,4 +33,5 @@ pytest-timeout>=2.0.0
 prometheus_client>=0.20.0
 email-validator>=2.0.0
 pydantic-settings>=2.0.0
+python-multipart>=0.0.9
 # taipy>=4.0.0  -- removed: dashboard_taipy/ directory does not exist
