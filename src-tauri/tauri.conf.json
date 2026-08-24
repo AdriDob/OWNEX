@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/nicehash/tauri/dev/crates/tauri-config-schema/schema.json",
   "productName": "OWNEX Alpha",
   "version": "7.0.0",
-  "identifier": "ai.orion.omega.desktop",
+  "identifier": "ai.orion.alpha.desktop",
   "build": {
     "beforeDevCommand": "cd frontend && npm run dev",
     "devUrl": "http://localhost:5173",
@@ -10,6 +10,7 @@
     "frontendDist": "../frontend/dist"
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "label": "main",

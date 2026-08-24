@@ -14,14 +14,61 @@ load_dotenv()
 def user_data_dir() -> Path:
     """User-writable data directory (per-user, survives app upgrades).
 
-    Frozen desktop bundles write to %APPDATA%/OWNEX (Windows) or
-    ~/.config/OWNEX (POSIX) so that user data survives reinstalls of the
-    executable. Dev mode keeps the historical repo-relative ``data`` dir.
+    Resolution order:
+      1. ``OWNEX_DATA_DIR`` env (set by the Tauri sidecar launcher so the DB
+         and the sidecar's logs land in the same directory).
+      2. Frozen desktop bundles write to ``%LOCALAPPDATA%/OWNEX`` (Windows) or
+         ``$XDG_DATA_HOME/OWNEX`` / ``~/.local/share/OWNEX`` (POSIX) so user
+         data survives reinstalls.
+      3. Dev mode keeps the historical repo-relative ``data`` dir.
     """
+    env_dir = os.getenv("OWNEX_DATA_DIR")
+    if env_dir:
+        return Path(env_dir)
     if getattr(sys, "frozen", False):
-        base = os.getenv("APPDATA") or os.getenv("XDG_CONFIG_HOME") or str(Path.home() / ".config")
+        if sys.platform == "win32":
+            base = os.getenv("LOCALAPPDATA") or str(Path.home() / "AppData" / "Local")
+        else:
+            base = os.getenv("XDG_DATA_HOME") or str(Path.home() / ".local" / "share")
         return Path(base) / "OWNEX"
     return Path("data")
+
+
+def _migrate_legacy_roaming_data(target: Path) -> None:
+    """One-time copy of DB files from the legacy ``%APPDATA%/OWNEX`` location.
+
+    Releases prior to the LOCALAPPDATA convention stored the database under
+    the Roaming profile. Copy (never move) those files into the new target
+    on first run so existing users keep their data; the legacy copy stays
+    untouched as a safety net.
+    """
+    if sys.platform != "win32":
+        return
+    roaming = os.getenv("APPDATA")
+    if not roaming:
+        return
+    legacy_db = Path(roaming) / "OWNEX" / "database"
+    if not legacy_db.is_dir():
+        return
+    try:
+        if legacy_db.resolve() == (target / "database").resolve():
+            return
+        target_db = target / "database"
+        if any(target_db.glob("catseye.db*")):
+            return
+        import shutil
+
+        target_db.mkdir(parents=True, exist_ok=True)
+        copied = [f.name for f in legacy_db.glob("catseye.db*") if shutil.copy2(f, target_db / f.name)]
+        if copied:
+            (target / ".migrated_from_roaming").write_text(str(legacy_db), encoding="utf-8")
+    except OSError:
+        pass
+
+
+_default_user_dir = user_data_dir()
+if getattr(sys, "frozen", False):
+    _migrate_legacy_roaming_data(_default_user_dir)
 
 
 def _default_db_url() -> str:

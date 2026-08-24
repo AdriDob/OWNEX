@@ -28,13 +28,16 @@ fn is_backend_ready() -> bool {
 }
 
 /// Tauri command: get the backend port (for frontend dynamic discovery).
+/// Returns None until the shell has selected and verified a port — never a
+/// fabricated default, so the frontend cannot bind to a stale port.
 #[tauri::command]
-fn get_backend_port() -> u16 {
-    // Read from env var set during startup
+fn get_backend_port() -> Option<u16> {
+    if !BACKEND_READY.load(Ordering::Relaxed) {
+        return None;
+    }
     std::env::var("OWNEX_BACKEND_PORT")
         .ok()
         .and_then(|s| s.parse().ok())
-        .unwrap_or(8000)
 }
 
 #[allow(dead_code)]
