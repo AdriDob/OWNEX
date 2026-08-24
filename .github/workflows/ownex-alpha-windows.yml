@@ -1,10 +1,9 @@
-name: OWNEX Alpha Windows Release
+name: OWNEX Alpha Windows Release (PySide6 legacy)
 
+# LEGACY builder (Gen 2 PySide6) — manual only.
+# Canonical Windows release pipeline: .github/workflows/ownex-tauri-windows.yml
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - 'v*'
 
 permissions:
   contents: write
