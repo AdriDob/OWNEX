@@ -1,5 +1,5 @@
 import type { OrionContext } from '@/types'
-import { getApiBase } from '@/lib/backend'
+import { getApiBase, resetBackendDiscovery } from '@/lib/backend'
 
 // NOTE: getApiBase() is called at request time, NOT at module load time.
 // This ensures the dynamic port from backend-ready event is used.
@@ -151,6 +151,9 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   } catch (e) {
     if (e instanceof ApiError) throw e
     if (e instanceof TypeError && (e as Error).message === 'Failed to fetch') {
+      // Network-level failure: backend may have restarted on another port.
+      // Kick a fresh discovery round; getApiBase() picks it up next request.
+      resetBackendDiscovery()
       throw new ApiError(0, 'No se pudo conectar con el servidor')
     }
     throw e
@@ -654,7 +657,8 @@ export async function uploadEvidence(findingId: number, file: File) {
   form.append('file', file)
   form.append('finding_id', String(findingId))
   const token = getToken()
-  const res = await fetch(`/api/evidence/upload`, {
+  // getApiBase() at request time — never a hardcoded '/api' (breaks inside Tauri).
+  const res = await fetch(`${getApiBase()}/evidence/upload`, {
     method: 'POST',
     headers: token ? { 'Authorization': `Bearer ${token}` } : {},
     body: form,
@@ -783,7 +787,8 @@ export async function assistantStreamChat(
   signal?: AbortSignal,
 ): Promise<void> {
   const token = getToken()
-  const res = await fetch('/api/assistant/chat/stream', {
+  // getApiBase() at request time: respects the dynamic backend port inside Tauri.
+  const res = await fetch(`${getApiBase()}/assistant/chat/stream`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

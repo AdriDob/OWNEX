@@ -121,7 +121,7 @@ function formatTime(iso: string | undefined) {
 }
 
 function systemColor(status: string) {
-  return status === 'ok' ? '#16a34a' : status === 'degraded' ? '#d97706' : '#e82127'
+  return status === 'ok' ? '#16a34a' : status === 'degraded' ? '#d97706' : '#00d5ff'
 }
 </script>
 
@@ -252,14 +252,14 @@ function systemColor(status: string) {
 
 .dc-briefing {
   padding: 0.5rem;
-  background: rgba(232, 33, 39, 0.05);
-  border: 1px solid rgba(232, 33, 39, 0.15);
+  background: rgba(0, 213, 255, 0.05);
+  border: 1px solid rgba(0, 213, 255, 0.15);
   border-radius: 8px;
 }
 
 .dc-greeting {
   font-weight: 600;
-  color: #e82127;
+  color: #00d5ff;
   margin: 0 0 0.25rem 0;
 }
 
@@ -273,7 +273,7 @@ function systemColor(status: string) {
 
 .dc-focus-note {
   font-size: 0.7rem;
-  color: #e82127;
+  color: #00d5ff;
   font-style: italic;
   margin: 0.25rem 0 0 0;
 }

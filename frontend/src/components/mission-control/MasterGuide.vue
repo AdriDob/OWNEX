@@ -159,7 +159,7 @@ onMounted(load)
 .mg-step.done .mg-step-action { text-decoration: line-through; }
 .mg-step-badge {
   font-size: 0.55rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 999px;
-  color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); flex-shrink: 0;
+  color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); flex-shrink: 0;
 }
 .mg-step.done .mg-step-badge { color: #4ade80; border-color: rgba(74, 222, 128, 0.3); }
 </style>

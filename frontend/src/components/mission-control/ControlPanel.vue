@@ -103,7 +103,7 @@ async function actResult<T>(key: string, fn: () => Promise<T>): Promise<T | null
 function checkColor(status: string) {
   return status === 'ok' || status === 'passed' || status === 'healthy'
     ? '#16a34a' : status === 'warning' || status === 'degraded'
-      ? '#d97706' : '#e82127'
+      ? '#d97706' : '#00d5ff'
 }
 
 onMounted(refreshAll)
@@ -174,7 +174,7 @@ onMounted(refreshAll)
           <span class="cp-label">VPN GRATIS · OUTLIER/DATAANNOTATION</span>
           <span
             class="cp-badge"
-            :style="{ color: vpn?.status?.compatible ? '#16a34a' : '#e82127' }"
+            :style="{ color: vpn?.status?.compatible ? '#16a34a' : '#00d5ff' }"
           >
             {{ vpn?.status?.compatible ? 'COMPATIBLE' : 'BLOQUEADO' }}
           </span>
@@ -192,7 +192,7 @@ onMounted(refreshAll)
             <li v-for="v in vpn.vpns" :key="v.key">
               <span class="cp-mod-dot" :class="v.installed ? 'ok' : 'off'" />
               <span class="cp-mod-name">{{ v.name }}</span>
-              <span class="cp-mod-status" :style="{ color: v.installed ? '#16a34a' : '#f87171' }">
+              <span class="cp-mod-status" :style="{ color: v.installed ? '#16a34a' : '#94a3b8' }">
                 {{ v.installed ? 'LISTA' : 'FALTA' }}
               </span>
             </li>
@@ -324,9 +324,9 @@ onMounted(refreshAll)
 }
 .cp-btn:hover { opacity: 0.85; }
 .cp-btn.on { border-color: rgba(22, 163, 74, 0.4); color: #4ade80; }
-.cp-btn.off { border-color: rgba(232, 33, 39, 0.4); color: #f87171; }
-.cp-btn.primary { border-color: rgba(232, 33, 39, 0.5); color: #fecaca; background: rgba(232, 33, 39, 0.12); width: 100%; }
-.cp-accent { border-color: rgba(232, 33, 39, 0.25); }
+.cp-btn.off { border-color: rgba(0, 213, 255, 0.4); color: #94a3b8; }
+.cp-btn.primary { border-color: rgba(0, 213, 255, 0.5); color: #fecaca; background: rgba(0, 213, 255, 0.12); width: 100%; }
+.cp-accent { border-color: rgba(0, 213, 255, 0.25); }
 .cp-sub { font-size: 0.68rem; color: rgba(255, 255, 255, 0.55); margin: 0; line-height: 1.4; }
 .cp-mod-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
 .cp-mod-list li { display: flex; align-items: center; gap: 0.45rem; font-size: 0.72rem; }
@@ -343,7 +343,7 @@ onMounted(refreshAll)
 .cp-plan { border: 1px solid rgba(251, 191, 36, 0.25); border-radius: 8px; padding: 0.5rem 0.8rem 0.5rem 1.4rem; background: rgba(251, 191, 36, 0.05); }
 .cp-plan li { color: rgba(255, 255, 255, 0.8); }
 .cp-note.ok { color: #4ade80; }
-.cp-note.error { color: #f87171; }
+.cp-note.error { color: #94a3b8; }
 .cp-btn:disabled { opacity: 0.4; cursor: default; }
 .cp-block { display: flex; flex-direction: column; gap: 0.4rem; }
 .cp-list {

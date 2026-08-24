@@ -23,7 +23,7 @@ const confidenceConfig = {
   },
   low: {
     label: 'BAJA CONFIANZA',
-    color: 'from-red-500 to-rose-500',
+    color: 'from-cyan-500 to-blue-500',
     icon: '🔍',
     text: 'Opción posible, necesita confirmación',
   },

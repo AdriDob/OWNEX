@@ -147,7 +147,7 @@ function skip() {
   }
   settings.completeOnboarding(true)
   close()
-  router.push('/mission-control')
+  router.push({ name: 'mission-control' })
 }
 
 async function finish() {
@@ -170,7 +170,7 @@ async function finish() {
     })
     settings.completeOnboarding(false)
     close()
-    router.push('/mission-control')
+    router.push({ name: 'mission-control' })
   } catch (e: any) {
     errorMsg.value = e?.message || 'Error al guardar configuración'
   } finally {

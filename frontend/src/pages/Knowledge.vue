@@ -549,8 +549,8 @@ async function confirmSnapshot() {
 }
 
 .kv-btn-danger {
-  border-color: rgba(232, 33, 39, 0.5);
-  color: #e82127;
+  border-color: rgba(0, 213, 255, 0.5);
+  color: #00d5ff;
 }
 
 .kv-btn-ghost {
@@ -615,9 +615,9 @@ async function confirmSnapshot() {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #e82127;
-  background: rgba(232, 33, 39, 0.08);
-  border: 1px solid rgba(232, 33, 39, 0.3);
+  color: #00d5ff;
+  background: rgba(0, 213, 255, 0.08);
+  border: 1px solid rgba(0, 213, 255, 0.3);
   border-radius: 10px;
   padding: 12px 16px;
   font-size: 13px;

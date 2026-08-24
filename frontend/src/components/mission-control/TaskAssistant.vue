@@ -118,7 +118,7 @@ function onInput() {
 .ta-btn.on { border-color: rgba(22, 163, 74, 0.4); color: #4ade80; background: rgba(22, 163, 74, 0.1); }
 .ta-btn.ghost { opacity: 0.7; }
 .ta-btn:disabled { opacity: 0.4; cursor: default; }
-.ta-error { font-size: 0.72rem; color: #f87171; margin: 0; }
+.ta-error { font-size: 0.72rem; color: #94a3b8; margin: 0; }
 .ta-result { display: flex; flex-direction: column; gap: 0.5rem; }
 .ta-meta { font-size: 0.65rem; color: rgba(255, 255, 255, 0.5); }
 .ta-section { border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 10px; overflow: hidden; }

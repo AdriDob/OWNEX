@@ -320,7 +320,7 @@ function getThemeCoreStyle(themeId: string) {
   if (!theme) return {}
   // We need to get the actual theme definition for colors
   return {
-    background: theme.id === 'tesla' ? '#E82127' : '#00D5FF',
+    background: theme.id === 'tesla' ? '#00d5ff' : '#00D5FF',
   }
 }
 </script>

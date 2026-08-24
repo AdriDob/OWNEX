@@ -273,7 +273,7 @@ const statusDotStyle = (status: string) => {
 }
 
 .ownex-agent-fleet__agent--error {
-  border-color: rgba(232, 33, 39, 0.3);
+  border-color: rgba(0, 213, 255, 0.3);
 }
 
 /* Avatar */

@@ -88,7 +88,7 @@ onMounted(loadActions)
 }
 
 .badge {
-  background: #e82127;
+  background: #00d5ff;
   color: #fff;
   font-size: 11px;
   font-weight: 700;
@@ -109,7 +109,7 @@ onMounted(loadActions)
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.action-item.high { border-left: 3px solid #e82127; }
+.action-item.high { border-left: 3px solid #00d5ff; }
 .action-item.medium { border-left: 3px solid #ff7a1a; }
 .action-item.low { border-left: 3px solid #00e39a; }
 

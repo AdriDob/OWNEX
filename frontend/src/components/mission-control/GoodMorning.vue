@@ -16,7 +16,7 @@ onMounted(async () => {
 })
 
 function statusColor(status: string) {
-  return status === 'ok' ? '#16a34a' : status === 'degraded' ? '#d97706' : '#e82127'
+  return status === 'ok' ? '#16a34a' : status === 'degraded' ? '#d97706' : '#00d5ff'
 }
 </script>
 
@@ -155,8 +155,8 @@ function statusColor(status: string) {
 }
 .gm-chip {
   font-size: 0.6rem;
-  border: 1px solid rgba(232, 33, 39, 0.3);
-  color: #e82127;
+  border: 1px solid rgba(0, 213, 255, 0.3);
+  color: #00d5ff;
   border-radius: 999px;
   padding: 0.05rem 0.45rem;
   margin-right: 0.35rem;

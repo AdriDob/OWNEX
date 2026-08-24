@@ -205,9 +205,9 @@ watch(currentMode, (mode) => {
 }
 
 .guided-dashboard__error {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
+  background: rgba(148, 163, 184, 0.15);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #94a3b8;
   padding: 16px;
   border-radius: 12px;
   display: flex;
@@ -216,7 +216,7 @@ watch(currentMode, (mode) => {
 }
 
 .guided-dashboard__retry-btn {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: linear-gradient(135deg, #00d5ff, #1e40ff);
   border: none;
   color: white;
   padding: 8px 16px;

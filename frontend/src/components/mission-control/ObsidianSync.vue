@@ -150,10 +150,10 @@ onMounted(load)
 .obsidian-btn { border: none; border-radius: 6px; padding: 0.25rem 0.5rem; font-size: 0.6rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
 .obsidian-btn.sync { background: rgba(22,163,74,0.15); border: 1px solid rgba(22,163,74,0.3); color: #4ade80; }
 .obsidian-btn.sync:hover:not(:disabled) { background: rgba(22,163,74,0.25); }
-.obsidian-btn.del { background: rgba(232,33,39,0.15); border: 1px solid rgba(232,33,39,0.3); color: #f87171; }
-.obsidian-btn.del:hover:not(:disabled) { background: rgba(232,33,39,0.25); }
+.obsidian-btn.del { background: rgba(0,213,255,0.15); border: 1px solid rgba(0,213,255,0.3); color: #94a3b8; }
+.obsidian-btn.del:hover:not(:disabled) { background: rgba(0,213,255,0.25); }
 .obsidian-btn:disabled { opacity: 0.5; cursor: wait; }
-.obsidian-errors { font-size: 0.6rem; color: #f87171; margin-left: 0.5rem; }
+.obsidian-errors { font-size: 0.6rem; color: #94a3b8; margin-left: 0.5rem; }
 .obsidian-actions-row { display: flex; align-items: center; gap: 0.7rem; font-size: 0.6rem; color: rgba(255,255,255,0.4); }
 .obsidian-actions-row .obsidian-btn { font-size: 0.58rem; }
 </style>

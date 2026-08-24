@@ -131,7 +131,7 @@ onMounted(() => {
 
       <!-- WS indicator -->
       <span
-        :class="['h-1.5 w-1.5 rounded-full shrink-0', notifications.wsConnected ? 'bg-success shadow-[0_0_6px_rgba(22,163,74,0.4)]' : 'bg-destructive shadow-[0_0_6px_rgba(232,33,39,0.4)]']"
+        :class="['h-1.5 w-1.5 rounded-full shrink-0', notifications.wsConnected ? 'bg-success shadow-[0_0_6px_rgba(22,163,74,0.4)]' : 'bg-destructive shadow-[0_0_6px_rgba(0,213,255,0.4)]']"
         :title="notifications.wsConnected ? 'Conectado' : 'Desconectado'"
       />
 

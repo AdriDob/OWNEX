@@ -24,7 +24,7 @@ const accent = computed(() => {
     'text-gold': '#f5a623',
     'text-success': '#4ade80',
     'text-warning': '#fb923c',
-    "text-destructive": "#e82127",
+    "text-destructive": "#00d5ff",
   }
   return map[props.character.color] ?? '#a78bfa'
 })
@@ -95,7 +95,7 @@ const c = computed(() => (characters as any)[props.character.id] ?? characters.d
       <template v-if="character.id === 'rover'">
         <!-- Dog tongue -->
         <ellipse :cx="s * 0.5" :cy="mouthY" :rx="s * 0.08" :ry="s * 0.06" :fill="accent" opacity="0.6" />
-        <ellipse :cx="s * 0.5" :cy="mouthY + s * 0.03" :rx="s * 0.04" :ry="s * 0.04" fill="#E82127" opacity="0.5" />
+        <ellipse :cx="s * 0.5" :cy="mouthY + s * 0.03" :rx="s * 0.04" :ry="s * 0.04" fill="#00d5ff" opacity="0.5" />
       </template>
       <template v-else-if="character.id === 'pepe'">
         <!-- Pepe smirk -->
