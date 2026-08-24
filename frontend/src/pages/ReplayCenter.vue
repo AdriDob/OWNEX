@@ -22,6 +22,17 @@ interface ReplayTarget {
   last_replayed?: string
 }
 
+/** ScanRun real (GET /scans/runs) — fuente de replay disponible. */
+interface ScanRunEntry {
+  id: number
+  target_id: number
+  mode: string
+  status: string
+  endpoint_count: number
+  started_at: string | null
+  finished_at: string | null
+}
+
 interface ReplayStep {
   stage: string
   label: string
@@ -102,8 +113,17 @@ async function loadTargets() {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.get<{ targets: ReplayTarget[] }>('/system/replay-targets')
-    targets.value = res.targets || []
+    // Fuente real: GET /scans/runs (ScanRun). Cada run es un replay disponible.
+    const runs = await api.get<ScanRunEntry[]>('/scans/runs', { limit: 50 })
+    targets.value = (Array.isArray(runs) ? runs : []).map((r) => ({
+      id: r.id,
+      name: `Scan #${r.id} · target ${r.target_id} (${r.mode})`,
+      domain: r.status,
+      steps_completed:
+        r.status === 'completed' ? 1 : r.status === 'failed' || r.status === 'timeout' ? 0 : 0,
+      total_steps: 1,
+      last_replayed: r.started_at ?? undefined,
+    }))
   } catch (e: any) {
     error.value = e.message || 'Failed to load replay targets'
   } finally {
@@ -118,8 +138,25 @@ async function selectTarget(targetId: number) {
   timelineError.value = ''
   timeline.value = null
   try {
-    const res = await api.get<ReplayTimeline>(`/system/replay/${targetId}`)
-    timeline.value = res
+    // Detalle real del run: GET /scans/runs/{id} → outputs + timestamps.
+    const res = await api.get<Record<string, any>>(`/scans/runs/${targetId}`)
+    const outputs = (res?.outputs as string) || ''
+    timeline.value = {
+      target_id: targetId,
+      target_name: `Scan #${targetId} (${res?.mode ?? 'n/a'})`,
+      current_step: 0,
+      total_steps: 1,
+      steps: [
+        {
+          stage: 'scan',
+          label: 'Ejecución del scan',
+          description: outputs ? outputs.slice(0, 400) : 'Sin salida registrada para este run.',
+          status: res?.status === 'completed' ? 'completed' : res?.status === 'failed' ? 'skipped' : 'pending',
+          completed_at: res?.finished_at ?? undefined,
+          data: res as Record<string, any>,
+        },
+      ],
+    }
     currentStepIndex.value = 0
   } catch (e: any) {
     timelineError.value = e.message || 'Failed to load replay timeline'

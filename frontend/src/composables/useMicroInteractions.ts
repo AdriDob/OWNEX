@@ -68,8 +68,21 @@ export function useMicroInteractions() {
   async function batchAction(action: string): Promise<void> {
     const ids = getSelection()
     if (ids.length === 0) return
+    // El backend expone batch/{export|sync|delete|tag} (no un /batch genérico).
+    const supported = ['export', 'sync', 'delete', 'tag'] as const
+    type Supported = (typeof supported)[number]
     try {
-      await api.post('/micro/batch', { ids, action })
+      if (!(supported as readonly string[]).includes(action)) {
+        toast.error(`Acción batch no soportada: ${action}`)
+        return
+      }
+      await api.post(`/micro/batch/${action as Supported}`, {
+        ids,
+        // El catálogo micro opera sobre findings; ajustar si se agregan tipos.
+        type: 'finding',
+        ...(action === 'export' ? { format: 'json' } : {}),
+        ...(action === 'tag' ? { tag: '' } : {}),
+      })
       toast.success(`Acción "${action}" ejecutada`)
     } catch (e: any) {
       toast.error(e.message || 'Error en acción batch')
