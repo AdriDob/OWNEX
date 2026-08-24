@@ -77,6 +77,25 @@ jobs:
           # The broken 2026-08-24 stub was 19.91 MB; real payload is >100 MB.
           if ($size -lt 50MB) { throw "Sidecar suspiciously small ($([math]::Round($size / 1MB, 2)) MB) — likely missing _internal payload" }
 
+      - name: Smoke test sidecar runtime (imports + health)
+        run: |
+          $exe = "dist\ownex-backend.exe"
+          $err = "$env:RUNNER_TEMP\sidecar_err.txt"
+          $p = Start-Process $exe -ArgumentList "--port","8199" -PassThru -RedirectStandardError $err
+          $ok = $false
+          for ($i = 0; $i -lt 45; $i++) {
+            Start-Sleep -Seconds 2
+            if ($p.HasExited) { break }
+            try { Invoke-RestMethod "http://127.0.0.1:8199/api/health" -TimeoutSec 3 | Out-Null; $ok = $true; break } catch {}
+          }
+          if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force }
+          if (-not $ok) {
+            Write-Host "=== sidecar stderr ==="
+            Get-Content $err -Tail 20 -ErrorAction SilentlyContinue | ForEach-Object { $_ }
+            throw "Sidecar failed to serve /api/health on :8199 — broken imports or missing modules. Release blocked."
+          }
+          Write-Host "Sidecar runtime smoke: PASS (healthy in $($i*2)s)"
+
       # ── Copy sidecar to Tauri binaries directory ──
       # Tauri expects sidecar at src-tauri/binaries/<name>-<target-triple>.exe
       - name: Prepare Tauri sidecar

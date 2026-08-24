@@ -30,4 +30,7 @@ aiohttp>=3.9.0
 python-whois>=0.9.0
 pytest-xdist>=3.0.0
 pytest-timeout>=2.0.0
+prometheus_client>=0.20.0
+email-validator>=2.0.0
+pydantic-settings>=2.0.0
 # taipy>=4.0.0  -- removed: dashboard_taipy/ directory does not exist
