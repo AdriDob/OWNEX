@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from core.opportunity.mercenary_filter import OpportunityCategory as MercenaryCategory
 from cores.direct_work_engine.models import OpportunityCategory
+from cores.opensource.categories import OpenSourceCategory
 from cores.opportunity.engine import OpportunityCategory as EngineOpportunityCategory
 from cores.opportunity.global_sources import OpportunityCategory as GlobalSourceCategory
 
@@ -26,9 +27,11 @@ __all__ = [
     "EngineOpportunityCategory",
     "GlobalSourceCategory",
     "MercenaryCategory",
+    "OpenSourceCategory",
     "ENGINE_TO_CANONICAL",
     "GLOBAL_SOURCE_TO_CANONICAL",
     "MERCENARY_TO_CANONICAL",
+    "OPEN_SOURCE_TO_CANONICAL",
     "to_canonical",
 ]
 
@@ -80,8 +83,31 @@ MERCENARY_TO_CANONICAL: dict[MercenaryCategory, OpportunityCategory] = {
 }
 
 
+# cores.opensource.categories (10 contribution types) -> canonical
+OPEN_SOURCE_TO_CANONICAL: dict[OpenSourceCategory, OpportunityCategory] = {
+    OpenSourceCategory.BUG_BOUNTY: OpportunityCategory.BUG_BOUNTY,
+    # Security audit work ≈ the security-research family.
+    OpenSourceCategory.SECURITY_AUDIT: OpportunityCategory.SECURITY_RESEARCH,
+    OpenSourceCategory.CODE_REVIEW: OpportunityCategory.CODE_REVIEW,
+    # OSS testing contributions ≈ the QA family (same precedent as TESTING_QA).
+    OpenSourceCategory.TESTING: OpportunityCategory.QA_AUTOMATION,
+    OpenSourceCategory.DOCUMENTATION: OpportunityCategory.DOCUMENTATION,
+    OpenSourceCategory.INFRASTRUCTURE: OpportunityCategory.INFRASTRUCTURE,
+    # Performance work is engineering output on a codebase.
+    OpenSourceCategory.PERFORMANCE: OpportunityCategory.SOFTWARE_ENGINEERING,
+    # Accessibility is predominantly frontend engineering.
+    OpenSourceCategory.ACCESSIBILITY: OpportunityCategory.FRONTEND,
+    # Translation/localization of docs and UI strings ≈ writing family.
+    OpenSourceCategory.LOCALIZATION: OpportunityCategory.TECHNICAL_WRITING,
+    # Tool building ≈ general engineering output.
+    OpenSourceCategory.TOOLING: OpportunityCategory.SOFTWARE_ENGINEERING,
+}
+
+
 def to_canonical(
-    category: (EngineOpportunityCategory | GlobalSourceCategory | MercenaryCategory | OpportunityCategory),
+    category: (
+        EngineOpportunityCategory | GlobalSourceCategory | MercenaryCategory | OpenSourceCategory | OpportunityCategory
+    ),
 ) -> OpportunityCategory:
     """Convert any engine-layer category to its canonical equivalent."""
     if isinstance(category, OpportunityCategory):
@@ -92,4 +118,6 @@ def to_canonical(
         return GLOBAL_SOURCE_TO_CANONICAL[category]
     if isinstance(category, MercenaryCategory):
         return MERCENARY_TO_CANONICAL[category]
+    if isinstance(category, OpenSourceCategory):
+        return OPEN_SOURCE_TO_CANONICAL[category]
     raise ValueError(f"Unknown opportunity category type: {type(category).__name__}")
