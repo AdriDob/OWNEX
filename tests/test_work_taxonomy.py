@@ -81,3 +81,29 @@ class TestContract:
         assert len(ENGINE_TO_CANONICAL) == len(EngineOpportunityCategory) == 11
         assert len(GLOBAL_SOURCE_TO_CANONICAL) == len(GlobalSourceCategory) == 3
         assert len(MERCENARY_TO_CANONICAL) == len(MercenaryCategory) == 11
+
+
+class TestOpenSourceMappings:
+    def test_opensource_mapping_covers_every_member(self) -> None:
+        from cores.opensource.categories import OpenSourceCategory
+        from cores.work_taxonomy import OPEN_SOURCE_TO_CANONICAL
+
+        missing = set(OpenSourceCategory) - set(OPEN_SOURCE_TO_CANONICAL)
+        assert not missing, f"Unmapped opensource categories: {sorted(missing)}"
+
+    def test_opensource_exact_matches(self) -> None:
+        from cores.direct_work_engine.models import OpportunityCategory as Canonical
+        from cores.opensource.categories import OpenSourceCategory as OpenSourceCat
+        from cores.work_taxonomy import to_canonical
+
+        assert to_canonical(OpenSourceCat.BUG_BOUNTY) is Canonical.BUG_BOUNTY
+        assert to_canonical(OpenSourceCat.CODE_REVIEW) is Canonical.CODE_REVIEW
+        assert to_canonical(OpenSourceCat.DOCUMENTATION) is Canonical.DOCUMENTATION
+        assert to_canonical(OpenSourceCat.INFRASTRUCTURE) is Canonical.INFRASTRUCTURE
+        assert to_canonical(OpenSourceCat.TESTING) is Canonical.QA_AUTOMATION
+
+    def test_opensource_totality(self) -> None:
+        from cores.opensource.categories import OpenSourceCategory
+        from cores.work_taxonomy import OPEN_SOURCE_TO_CANONICAL
+
+        assert len(OPEN_SOURCE_TO_CANONICAL) == len(OpenSourceCategory) == 10
