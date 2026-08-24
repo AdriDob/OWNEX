@@ -21,10 +21,12 @@ No necesitas instalar Python, Node ni nada más: **todo viene dentro del instala
 
 ## 2. Instalación
 
-1. Copiá `OWNEX-Desktop-Alpha-Setup.exe` desde el escritorio/OneDrive a donde quieras guardar el instalador (o ejecutalo directo).
-   - En esta máquina (desarrollo WSL): el instalador está en
-     `\\wsl.localhost\Ubuntu\home\adriel\projects\Rastro\installer\OWNEX-Desktop-Alpha-Setup.exe`
-     (sha256 `f33030e7e3eebc78733f6bad6d0d395f9e5781b77103f834b8d27f9294905967`).
+1. Obtené el instalador:
+   - **Canónico (Tauri)**: artefacto `OWNEX-Tauri-Windows` del workflow
+     `.github/workflows/ownex-tauri-windows.yml` → `OWNEX Alpha_7.0.0_x64-setup.exe` o `.msi`.
+   - **Legacy desplegado (PySide6 NSIS)**: `ownexinstalador/windows/OWNEX-Desktop-Alpha-Setup.exe`
+     en esta máquina, o artefacto `OWNEX-Alpha-Windows-Installer` (dispatch manual).
+     sha256 `f33030e7e3eebc78733f6bad6d0d395f9e5781b77103f834b8d27f9294905967`.
 2. Ejecutalo con doble clic.
    - Si Windows SmartScreen muestra advertencia: el build no está firmado (debug alpha). Clic en **"More info" → "Run anyway"**.
 3. Seguí el asistente de instalación (directorio por defecto: `%LOCALAPPDATA%\Programs\OWNEX\`).

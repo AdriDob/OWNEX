@@ -1,9 +1,9 @@
-name: Release
+name: Release (CATEYE legacy)
 
+# LEGACY builder (Gen 1 CATEYE) — manual only.
+# Canonical Windows release pipeline: .github/workflows/ownex-tauri-windows.yml
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write

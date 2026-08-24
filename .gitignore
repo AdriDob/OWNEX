@@ -118,3 +118,9 @@ android/*.keystore
 *.exe
 !desktop/**/*.exe
 src-tauri/binaries/ownex-backend-*
+
+# Artifact stores locales (la fuente de verdad es CI)
+/ownex-installer/
+/ownex-tauri-artifacts/
+/tauri-windows-build/
+/installer/*.msi

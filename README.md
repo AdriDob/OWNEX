@@ -216,7 +216,7 @@ flowchart TB
 |---|---|---|
 | **Backend** 🐍 | Python 3.11+ · FastAPI · SQLAlchemy 2.0 | 3,228+ tests, Ruff clean, mypy strict |
 | **Frontend** 🌐 | Vue 3 + TypeScript · Tailwind CSS v4 · Vite | 92 routed pages, Mission Control SPA |
-| **Desktop** 💻 | Tauri v2 (Rust+WebView2) + PyInstaller sidecar | Native desktop, `OWNEX OMEGA` binary |
+| **Desktop** 💻 | Tauri v2 (Rust+WebView2) + PyInstaller sidecar | Native desktop, `OWNEX Alpha` binary |
 | **Mobile** 📱 | Capacitor (Android) + Expo/React Native (OMEGA) | Native mic, native voice, APK 5.2 MB |
 | **AI Stack** 🤖 | Local-first failover: Ollama → FCC Proxy → OpenRouter | OAR router, 7 adapters, 24+ models |
 | **Database** 📦 | SQLite (dev/desktop) · PostgreSQL (prod) | Single DB, no external queue |
@@ -389,8 +389,9 @@ Choose your platform:
 #### 🪟 Windows 11 (with WSL) — Desktop Installer (Recommended)
 **Auto-contained bundle — no Python/Node required**
 
-1. Download `OWNEX-Desktop-Alpha-Setup.exe` from:
-   - WSL path: `\\wsl.localhost\Ubuntu\home\adri\projects\Rastro\installer\OWNEX-Desktop-Alpha-Setup.exe`
+1. Build or download the installer:
+   - **Canonical (Tauri)**: run `.github/workflows/ownex-tauri-windows.yml` → artifact `OWNEX-Tauri-Windows` (`OWNEX Alpha_7.0.0_x64-setup.exe` / `.msi`)
+   - **Legacy (PySide6 NSIS)**: dispatch `ownex-alpha-windows.yml` (manual) → artifact `OWNEX-Alpha-Windows-Installer`; last deployed build: `ownexinstalador/windows/OWNEX-Desktop-Alpha-Setup.exe`
    - GitHub Releases (when published)
 2. Run the installer (accept SmartScreen warning — debug build)
 3. Launch OWNEX Desktop from Start menu
