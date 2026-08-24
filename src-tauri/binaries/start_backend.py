@@ -103,6 +103,9 @@ def main() -> int:
     # Inject environment variables
     os.environ["OWNEX_DATA_DIR"] = str(data_dir)
     os.environ["OWNEX_DB_DIR"] = str(data_dir / "database")
+    # Packaged bundle always runs in desktop posture: restrictive CORS branch
+    # (Tauri origins + credentials) instead of the wildcard dev default.
+    os.environ["OWNEX_DESKTOP"] = "1"
 
     # Add project root to sys.path
     sys.path.insert(0, str(root))

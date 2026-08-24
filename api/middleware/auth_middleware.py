@@ -39,6 +39,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         path = request.url.path
 
+        # Browser preflights (CORS) never carry an Authorization header by
+        # spec — answering 401 here would kill the handshake before
+        # CORSMiddleware can respond (tests/test_cors_tauri.py).
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         # Desktop mode: non-API paths are frontend assets, never require auth
         if not path.startswith("/api/"):
             return await call_next(request)
