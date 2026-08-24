@@ -130,7 +130,7 @@ jobs:
 
       # ── Upload artifacts ──
       - name: Upload Tauri artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: OWNEX-Tauri-Windows
           path: |
@@ -140,7 +140,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload sidecar (for debugging)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: OWNEX-Backend-Sidecar
           path: |

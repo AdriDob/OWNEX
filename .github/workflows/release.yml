@@ -44,7 +44,7 @@ jobs:
         run: pyinstaller CATEYE.spec -y
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: CATEYE-Windows-${{ github.ref_name }}
           path: dist/CATEYE/
@@ -89,7 +89,7 @@ jobs:
         run: pyinstaller CATEYE.spec -y
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: CATEYE-Linux-${{ github.ref_name }}
           path: dist/CATEYE/
