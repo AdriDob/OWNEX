@@ -1,3 +1,25 @@
+## Sesión 2026-08-24 — WORK TAXONOMY SSOT: 4 enums OpportunityCategory unificados vía mapeo canónico
+
+> **QUÉ SE HIZO:** Cierre de la deuda de taxonomía detectada en la auditoría de convergencia:
+> 4 enums `OpportunityCategory` locales (DWE 38 · opportunity/engine 11 · global_sources 3 ·
+> mercenary_filter 11 IntEnum) sin relación declarada entre sí (One Source of Truth violado a
+> nivel taxonomía). **Fix mínimo**: `cores/work_taxonomy.py` (NUEVO) declara la taxonomía
+> canónica (la del DWE) y 3 tablas de mapeo exhaustivas hacia ella (`ENGINE_TO_CANONICAL`,
+> `GLOBAL_SOURCE_TO_CANONICAL`, `MERCENARY_TO_CANONICAL`) + `to_canonical()` genérico.
+> Política de mapeo: exactos directos; aproximados al family canónico más cercano con rationale
+> inline (ej. freelance_tech→software_engineering, hackathons→competitions,
+> funded_open_source→oss_bounties). Mapeos totales pero NO inyectivos. Los enums locales NO se
+> tocan en su comportamiento (cero breaking); solo docstrings apuntando al SSOT.
+> El dataclass `OpportunityCategory` de `cores/opportunity/models.py` NO es parte de la deuda
+> (clasificación libre de dominio web/api/mobile, no taxonomía de trabajo).
+- **Verificación**: `tests/test_work_taxonomy.py` **16/16** — exhaustividad por enum (agregar un
+  miembro local sin mapear falla CI), sin claves stale, targets válidos, exact-match spot checks,
+  identidad canónica, ValueError tipo desconocido, totales no vacíos; ruff limpio ×6 archivos;
+  mypy scoped limpio; suite fast **100 passed / 1 skipped** (baseline exacta);
+  `import api.main` OK; regresión DWE+opportunity engine **56 passed**.
+- **Nota**: errores LSP "preexistentes" en mercenary_filter.py:143+ son falsos positivos del
+  entorno (tipado del archivo completo, no relacionados al edit de docstring).
+
 ## Sesión 2026-08-24 — APPLICATION ASSISTANT (FASE_39): plan asistido de postulación a plataformas de ingreso
 
 > **QUÉ SE HIZO:** Plan guiado dentro de OWNEX para postular desde Argentina a las plataformas

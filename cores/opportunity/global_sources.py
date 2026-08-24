@@ -20,6 +20,11 @@ from enum import StrEnum
 
 
 class OpportunityCategory(StrEnum):
+    """Curated source families.
+
+    Local taxonomy — canonical mapping in ``cores.work_taxonomy``.
+    """
+
     bug_bounty = "bug_bounty"
     dev_bounty = "dev_bounty"
     data_entry = "data_entry"
