@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -144,11 +145,19 @@ class WorkItem:
         return asdict(self)
 
 
+def _default_store_path() -> Path:
+    """Data-dir aware default: frozen bundles get OWNEX_DATA_DIR
+    from start_backend.py (%LOCALAPPDATA%/OWNEX); dev keeps repo ./data."""
+    base = os.environ.get("OWNEX_DATA_DIR")
+    root = Path(base) if base else Path(__file__).resolve().parents[3] / "data"
+    return root / "workbank.json"
+
+
 class WorkBank:
     """Persistent accumulator of prepared, delivery-ready jobs."""
 
     def __init__(self, store_path: str | Path | None = None) -> None:
-        self._store_path = Path(store_path or Path(__file__).resolve().parents[3] / "data" / "workbank.json")
+        self._store_path = store_path or _default_store_path()
         self._items: dict[str, WorkItem] = {}
         self._load()
 
