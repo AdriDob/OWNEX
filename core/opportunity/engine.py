@@ -482,11 +482,24 @@ class OpportunityOrchestrator:
 
         prioritized = await prioritize_targets(raw_opps, cycle=cycle)
 
-        # 3. Procesar top-N oportunidades con workflow autónomo
+        # 3. Ranking accionable — SIN auto-ejecución.
+        # La orquestación v5.0.0 (claim→resolve→deliver vía _process_opportunity)
+        # se perdió en el churn del árbol core/ y los executors siguen dormidos
+        # sin credenciales (PLATFORM_ACCESS); además toda entrega exige
+        # aprobación humana. El ciclo produce el RANKING; la ejecución fluye
+        # por el Work Bank (prepare → human review).
+        execution_disabled_reason = (
+            "autonomous execution disabled: platform credentials not configured "
+            "(see PLATFORM_ACCESS) and delivery requires human approval"
+        )
         results: list[dict[str, Any]] = []
-        for opp in prioritized[:limit]:
-            opp_result = await self._process_opportunity(opp, cycle)
-            results.append(opp_result)
+        for rank, opp in enumerate(prioritized[:limit], start=1):
+            item = dict(opp)
+            item["cycle"] = cycle
+            item["rank"] = rank
+            item["action_required"] = "human_review"
+            item["execution_disabled_reason"] = execution_disabled_reason
+            results.append(item)
 
         return results
 
