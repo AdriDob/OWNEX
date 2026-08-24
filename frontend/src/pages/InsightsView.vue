@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
+import { api, ApiError } from '@/lib/api'
 import Card from '@/components/ui/Card.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
@@ -93,8 +93,15 @@ async function fetchInsights() {
   error.value = ''
   try {
     const [insightsRes, tracesRes] = await Promise.all([
-      api.get<InsightsData>('/system/insights'),
-      api.get<{ traces: ExecutionTrace[] }>('/system/execution-traces', { limit: 10 }),
+      // 404 = "sin pipeline aún" (artifact no generado): empty state, no error.
+      api.get<InsightsData>('/canonical/insights').catch((e: unknown) => {
+        if (e instanceof ApiError && e.status === 404) return { explanations: [], aggregates: {} }
+        throw e
+      }),
+      api.get<{ traces: ExecutionTrace[] }>('/execution/traces', { limit: 10 }).catch((e: unknown) => {
+        if (e instanceof ApiError && e.status === 404) return { traces: [] }
+        throw e
+      }),
     ])
     data.value = {
       explanations: insightsRes.explanations || [],

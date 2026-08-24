@@ -52,7 +52,8 @@ async function fetchTarget() {
   try {
     const [t, e] = await Promise.all([
       api.get<TargetDetail>(`/targets/${targetId}`),
-      api.get<{ items: EndpointItem[]; total: number }>(`/targets/${targetId}/endpoints`, {
+      api.get<{ items: EndpointItem[]; total: number }>(`/endpoints`, {
+        target_id: targetId,
         skip: (epPage.value - 1) * epLimit,
         limit: epLimit,
       }),
@@ -72,7 +73,8 @@ onMounted(fetchTarget)
 
 async function fetchEndpoints() {
   try {
-    const e = await api.get<{ items: EndpointItem[]; total: number }>(`/targets/${targetId}/endpoints`, {
+    const e = await api.get<{ items: EndpointItem[]; total: number }>(`/endpoints`, {
+      target_id: targetId,
       skip: (epPage.value - 1) * epLimit,
       limit: epLimit,
     })

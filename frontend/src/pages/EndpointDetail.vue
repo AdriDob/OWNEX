@@ -53,17 +53,34 @@ async function fetchData() {
 }
 
 async function handleValidate() {
+  if (!endpoint.value) return
   validating.value = true
   try {
-    await api.post(`/endpoints/${endpointId.value}/validate`)
-  } catch { /* ignore */ }
+    // POST /api/validation/validate (ValidateHotPathRequest)
+    await api.post('/validation/validate', {
+      hot_path_id: `endpoint-${endpoint.value.id}`,
+      endpoint_id: endpoint.value.id,
+      target_id: endpoint.value.target_id,
+      url: endpoint.value.path,
+      method: endpoint.value.method,
+    })
+  } catch { /* surfaced via status polling / toast elsewhere */ }
   finally { validating.value = false }
 }
 
 async function handleIdorScan() {
+  if (!endpoint.value) return
   scanning.value = true
   try {
-    await api.post(`/endpoints/${endpointId.value}/idor-scan`)
+    // POST /api/idor/idor (IDORScanRequest) — identity_baseline_id=0 usa el
+    // resolver sin sesión autenticada (baseline anónima).
+    await api.post('/idor/idor', {
+      target_id: endpoint.value.target_id,
+      endpoint_id: endpoint.value.id,
+      url: endpoint.value.path,
+      method: endpoint.value.method,
+      identity_baseline_id: 0,
+    })
   } catch { /* ignore */ }
   finally { scanning.value = false }
 }

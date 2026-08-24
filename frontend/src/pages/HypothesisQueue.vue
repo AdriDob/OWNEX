@@ -81,8 +81,13 @@ async function fetchHypotheses() {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.get<{ hypotheses: Hypothesis[] }>('/hypotheses')
-    hypotheses.value = res.hypotheses || []
+    // La cola se llena desde la generación real (POST /hypotheses/{target}).
+    // Sin target generado aún → estado vacío honesto, no un fetch fantasma.
+    if (hypotheses.value.length === 0 && !selectedTargetId.value) {
+      hypotheses.value = []
+      return
+    }
+    if (selectedTargetId.value) await generateFor(selectedTargetId.value)
   } catch (e: any) {
     error.value = e?.message || 'Error al cargar hipótesis'
   } finally {
@@ -90,12 +95,21 @@ async function fetchHypotheses() {
   }
 }
 
+async function generateFor(targetId: number): Promise<void> {
+  // POST /api/hypotheses/{target_id} → HypothesisEngineOutputOut
+  const res = await api.post<{
+    attack_queue: Hypothesis[]
+    total_hypotheses: number
+    summary?: string
+  }>(`/hypotheses/${targetId}`)
+  hypotheses.value = res.attack_queue || []
+}
+
 async function runHypotheses() {
   if (!selectedTargetId.value) return
   running.value = true
   try {
-    await api.post(`/hypotheses/run/${selectedTargetId.value}`)
-    await fetchHypotheses()
+    await generateFor(selectedTargetId.value)
   } catch (e: any) {
     error.value = e?.message || 'Error al ejecutar hipótesis'
   } finally {

@@ -65,6 +65,8 @@ function detectTauri(): boolean {
 }
 
 export const isTauri: boolean = detectTauri()
+/** Internal, test-injectable twin of isTauri (drives runtime branching). */
+let _tauri: boolean = isTauri
 
 let _backendPort = DEFAULT_PORT
 let _portResolved = false
@@ -102,7 +104,7 @@ const FAST_ATTEMPTS = 30 // ~60 s at 2 s cadence: cold start budget
 const SLOW_INTERVAL_MS = 10000 // keep-alive poll forever after that
 
 async function pollBackend(immediate = false): Promise<void> {
-  if (!isTauri) return
+  if (!_tauri) return
   if (_portResolved && !immediate) return
   if (!_portResolved) setStatus('connecting')
 
@@ -143,9 +145,36 @@ export function getApiBase(): string {
   return `http://${BACKEND_HOST}:${_backendPort}/api`
 }
 
+/** Backend host origin WITHOUT the /api suffix. */
+export function getHostBase(): string {
+  if (!isTauri) return ''
+  return `http://${BACKEND_HOST}:${_backendPort}`
+}
+
+/**
+ * Routers mounted WITHOUT the /api prefix on the backend
+ * (api/main.py mounts mobile/direct-work/wear-os at root level).
+ * Calls to these namespaces must not be double-prefixed.
+ */
+const ROOT_MOUNTED_PREFIXES = ['/direct-work', '/mobile', '/wear-os']
+
+/** Resolve a frontend API path to the full correct URL. */
+export function resolveApiUrl(path: string): string {
+  if (!isTauri && !path.startsWith('/direct-work') && !path.startsWith('/mobile') && !path.startsWith('/wear-os')) {
+    return `/api${path.startsWith('/api/') ? path.slice(4) : path}`
+  }
+  const base = getHostBase()
+  const clean = path.startsWith('/api/') ? path.slice(4) : path
+  // Root-mounted namespaces hit the host directly; everything else under /api.
+  for (const p of ROOT_MOUNTED_PREFIXES) {
+    if (clean === p || clean.startsWith(`${p}/`)) return `${base}${clean}`
+  }
+  return `${base}/api${clean}`
+}
+
 /** Get the current backend WebSocket base URL. */
 export function getWsBase(): string {
-  if (!isTauri) {
+  if (!_tauri) {
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     return `${proto}//${window.location.host}`
   }
@@ -166,7 +195,7 @@ export function wsUrl(path: string, token?: string): string {
  * Callers MUST treat `false` as "surface a real error", never as empty data.
  */
 export function whenBackendReady(timeoutMs = 20000): Promise<boolean> {
-  if (!isTauri) return Promise.resolve(true)
+  if (!_tauri) return Promise.resolve(true)
   if (_portResolved) return Promise.resolve(true)
   if (backendLifecycle.value === 'STOPPING') return Promise.resolve(false)
   return new Promise((resolve) => {
@@ -185,6 +214,9 @@ export function whenBackendReady(timeoutMs = 20000): Promise<boolean> {
 
 /** Test hooks — not part of the public contract. */
 export const __testHooks = {
+  setTauri(v: boolean): void {
+    _tauri = v
+  },
   setResolved(port: number): void {
     setBackendPort(port, 'test')
   },
@@ -202,7 +234,7 @@ export const __testHooks = {
 }
 
 // ── Port discovery ──────────────────────────────────────────────────────────
-if (isTauri) {
+if (_tauri) {
   setStatus('connecting')
   // 1. Push: Rust emits backend-ready once health passes.
   import('@tauri-apps/api/event')

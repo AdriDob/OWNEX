@@ -1,56 +1,58 @@
 # OWNEX TECHNICAL DEBT — Technical Debt Tracker
 
-> **What is Technical Debt?**
-> Technical debt is the implied cost of additional rework caused by choosing an easy solution now instead of using a better approach that would take longer.
+> **Última actualización**: 2026-08-24 — auditoría funcional completa del frontend.
+> Matriz viva: `.ai/FRONTEND_FUNCTIONALITY_MATRIX.md` (fuente de verdad de estado por página).
 
 ---
 
-## Critical Debt (P0)
+## Frontend Debt (auditoría 2026-08-24)
 
-### Mobile Companion Not Functional
-- **Issue:** Mobile Companion requires Supabase but it's not configured
-- **Impact:** Mobile ecosystem (Alpha/Omega) incomplete
-- **Cost:** User cannot use mobile sync, push notifications, approvals
-- **Plan:** Configure Supabase in frontend/.env
-- **Estimate:** 2 hours
-- **Owner:** User (requires Supabase account)
+### P1
+- **PipelineMonitor/Detail + ActionsView apuntan a namespaces inexistentes** (`agents/pipelines/*`, `execution/actions`) — mapear a scan_runs/scheduler reales del backend. Impacto: monitoreo core sin datos.
 
-### Android Crash on Launch
-- **Issue:** 3 distinct namespaces (rastro/catseye/CATEYE)
-- **Impact:** Android app crashes on launch
-- **Cost:** Mobile experience non-existent
-- **Plan:** Unify namespace to ai.rastro.app
-- **Estimate:** 1 hour
-- **Owner:** Requires Java installation (sudo)
+### P2
+- **Identity.vue**: botones sync-all/sync/{provider}/settings sin backend → ocultar o implementar.
+- **OpportunityPlanner/ProgramCatalog**: llamadas muertas (`opportunity/catalog`, `economic/programs/{id}/plan`) → conectar a opportunity-score/top5 o retirar tabs.
+- **Settings IA**: inputs config para providers que usan env vars (devin/freebuff/local).
+- **OperationsDashboard**: `operations/metrics` ABSENT → mapear a core/health/summary.
+- **KnowledgeGraphMini**: endpoints nodes/edges ABSENT → remapear a knowledge real o retirar widget.
+- **EvidenceCenter**: listado genérico `/evidence` ABSENT → usar evidencia por finding.
 
-### WearOS Not Buildable
-- **Issue:** Only 4 mock files, no build.gradle/manifest
-- **Impact:** WearOS cannot be built or deployed
-- **Cost:** Smartwatch experience non-existent
-- **Plan:** Implement real WearOS or discard
-- **Estimate:** 8 hours (real implementation) or 0.5 hours (discard)
-- **Owner:** User decision needed
+### P3
+- Wallets GET, ReplayCenter targets, ConfidenceDashboard audit — endpoints ABSENT, empty states honestos.
+
+### Decisión producto pendiente (Revenue Rule gate)
+- **Investment sub-adapters** (~32 llamadas): ccxt connect/balance, defi aave/lido/morpho/pendle, stocks algopaca/ibkr, polymarket strategies, backtest — el backend NO los expone. Construir (si aumentan ingresos medibles) o retirar la UI avanzada de Trading/Capital.
 
 ---
 
-## Important Debt (P1)
+## Resuelto (histórico)
 
-### Frontend TypeScript Errors
-- **Issue:** 254 pre-existing tsc errors in unmaintained pages
-- **Impact:** Code quality questionable, type safety compromised
-- **Cost:** Potential runtime errors, difficult debugging
-- **Plan:** Fix tsc errors in pages (Capital.vue, LifeManagement.vue, ReportPipeline.vue, etc.)
-- **Estimate:** 6 hours
-- **Owner:** Dev
-- **Status:** Blocked by vue-tsc dependency issue
+| Item | Fecha | Evidencia |
+|---|---|---|
+| Doble prefijo /api/api (~150 call sites, 404 silencioso) | 2026-08-24 | normalización en lib/api.ts::request() |
+| Namespaces root-mounted (direct-work/mobile/wear-os → 404 total) | 2026-08-24 | resolveApiUrl() + vite proxies; E2E 11/11 |
+| fetch crudos con path hardcodeado (evidence upload, chat stream, pdf export) | 2026-08-24 | getApiBase() request-time |
+| Discovery sin recuperación (puerto cacheado forever, polling abandona) | 2026-08-24 | reset on network-error + rescan infinito |
+| Fondo rojo inexplicable (banners destructivos ante fallos transitorios) | 2026-08-24 | ErrorState.vue ERROR/CAUSA/ACCIÓN + estados connecting calmados |
+| 254 errores tsc preexistentes | 2026-08-24 | vue-tsc --noEmit = 0 errores (verificado) |
+| Biome config rota (schema 1.9 vs CLI 2.5) | 2026-08-24 | biome migrate + overrides .vue (template-blindness: noUnused* off, vue-tsc es autoridad) |
+| Test Settings stale ('cyber' theme inexistente) | 2026-08-24 | aserción alineada a render real |
+| Android namespace (3 distintos) | 2026-08-10 | ai.rastro.app unificado (AUD-12) |
+| WearOS no buildable | 2026-08-01 | descartado AUD-14 (ROI negativo) |
+| console.log frontend móvil | 2026-08-10 | eliminados (quedan console.error legítimos) |
 
-### Console.log in Mobile Frontend
-- **Issue:** Console.log statements in MobileCompanion.vue, MobileCompanionJarvis.vue, ModernNavbar.vue, SteamBigPictureSplash.vue
-- **Impact:** Performance degradation, security risk in production
-- **Cost:** Excess log output, potential information leakage
-- **Plan:** Remove console.log statements
-- **Estimate:** 0.5 hours
-- **Owner:** Dev
+---
+
+## Debt Budget
+
+| Priority | Items | Estado |
+|----------|-------|--------|
+| P1 | PipelineMonitor/ActionsView mapping | abierto |
+| P2 | Identity/OpportunityPlanner/Settings-fields/OpsMetrics/KGMini/EvidenceList | abierto |
+| P3 | Wallets/Replay/ConfidenceAudit | abierto |
+| Producto | investment sub-adapters build-or-remove | decisión owner |
+
 
 ---
 
