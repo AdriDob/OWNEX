@@ -191,10 +191,14 @@ def test_search_returns_nothing_for_garbage(index: KnowledgeIndex) -> None:
 def test_semantic_search_local(vault: Path, index: KnowledgeIndex) -> None:
     from cores.knowledge.search import LocalHashEmbedder
 
-    # embed a concept that does not appear anywhere in the vault text
-    target = LocalHashEmbedder().embed("payout bounty methodology")
+    # Pin the same (deterministic) embedder on both sides of the similarity
+    # check. With the default EmbeddingProvider facade on a host running
+    # Ollama, the query gets embedded with nomic-embed-text while the test
+    # stores a local-hash vector — cosine across vector spaces is noise.
+    embedder = LocalHashEmbedder()
+    target = embedder.embed("payout bounty methodology")
     index.set_embedding("Notes/Bug Bounty.md", "local-hash-v1", target)
-    searcher = KnowledgeSearcher(index)
+    searcher = KnowledgeSearcher(index, provider=embedder)
     hits = searcher.search("payout", limit=5)  # only reachable via semantic path
     assert any("Bug Bounty" in r.path for r in hits)
 
