@@ -1,3 +1,24 @@
+## Sesión 2026-08-25 (cont. 2) — ZERO EXPERIENCE ≠ ZERO BARRIER: modelo de oportunidades corregido + Income Command Center
+
+> **QUÉ SE HIZO:** Ejecución del spec owner de corrección del modelo (audit previo con evidencia
+> línea-a-línea). **P1 Modelos**: `EntryMechanism`/`ExperienceRequirement`/`BarrierLevel.ZERO` +
+> campos opcionales legacy-aware en `Opportunity` (`is_zero_experience`/`is_zero_barrier` como única
+> definición); scorer corrige severidad invertida del assessment (60→20 pasaba a 70; registro+test 50;
+> tier ZERO ≥95); classifier separa funnel→C de assessment→A/B (streams AI-training contract ya no se
+> skippean). **P2 Economía**: `compute_expected_human_value()` ($/h-humana + cash_speed, UNKNOWN-safe)
+> + `EarningScores` inmediato/largo curados extienden economics.py SSOT; modo `max_income`
+> (EV .35) + filtros `zero_experience_only`/`zero_barrier_strict`. **P3 Unificación**: familia
+> `ai_evaluation` curada (Outlier/Mercor/Alignerr/Mindrift AR-directo, rates source=platform → 139
+> fuentes), matcher SSOT `find_curated_entry_model()` alimentando el adapter (Outlier/Mindrift dejan
+> de aplanarse a DIRECT); income_plan v2 rankea por $EV/hora-humana con bootstrap determinista +
+> Command Center HOY/SEM/QUINCENA/MES. **P4 Frontend**: fix contrato roto preexistente en
+> ApplicationAssistant.vue (key/id/detail — por eso no se podían marcar pasos) + card Command Center.
+- **Verificación**: 201 passed en suites afectadas; suite fast 100/1 baseline exacta; ruff limpio;
+  vue-tsc 0 errores; vite build OK; smoke E2E `/api/applications/income-plan` → 200 priorizando
+  entrega real $15k del Work Bank sobre bootstrap (plata-sobre-la-mesa funcionando).
+- **Regla registrada** (DECISIONS.md): Zero Experience ≠ Zero Barrier; assessment = costo amortizado,
+  jamás fricción de contratación; UNKNOWN jamás probabilidad inventada.
+
 ## Sesión 2026-08-25 (cont.) — PROMPT 2 parcial: theme unificado + dashboards honestos + publisher + limpieza 9.6GB
 
 > **QUÉ SE HIZO:** Ejecución del plan del release audit (docs/release/OWNEX_1.0_ALPHA_AUDIT.md).

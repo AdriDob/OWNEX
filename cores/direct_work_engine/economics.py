@@ -108,3 +108,136 @@ def compute_expected_value(
         factors=factors,
         warnings=warnings,
     )
+
+
+# ── Expected Human Value (2026-08-25) ────────────────────────────────────────
+# "Maximizar dinero esperado por hora de intervención humana" — the ranking
+# currency for MAX_INCOME. Same honesty rules as the per-result contract:
+# unknown inputs are surfaced, never silently assumed.
+
+
+@dataclass(frozen=True, slots=True)
+class HumanValueResult:
+    """Expected dollars per human-hour + how fast cash actually arrives.
+
+    ``ev_per_human_hour_usd`` is None when the human hours are unknown or
+    zero — dividing by a guess would be inventing data. Same for
+    ``cash_speed_days`` when no payment-timing signal exists.
+    """
+
+    ev_per_human_hour_usd: float | None
+    cash_speed_days: float | None
+    availability_state: str
+    factors: dict[str, float] = field(default_factory=dict)
+    warnings: tuple[str, ...] = ()
+
+
+_HOURS_WARNING = "human_hours unknown/zero -> $/human-hour not computable; rank by EV only"
+_CASH_WARNING = "time_to_first_payment unknown -> cash speed not computable"
+
+
+def compute_expected_human_value(
+    *,
+    payment: float | None = None,
+    hourly_rate: float | None = None,
+    human_hours: float | None,
+    acceptance_probability: float,
+    task_availability: TaskAvailability = UNKNOWN_AVAILABILITY,
+    payment_reliability: float = 1.0,
+    time_to_first_payment_days: float | None = None,
+) -> HumanValueResult:
+    """Expected income per hour of HUMAN work, plus time-to-cash.
+
+    Income base is ``hourly_rate * human_hours`` when an hourly stream is
+    known, else the one-shot ``payment``. The EV core delegates to
+    :func:`compute_expected_value` so there is exactly ONE money-expectation
+    math in the system.
+    """
+    warnings: list[str] = []
+
+    if hourly_rate is not None and hourly_rate > 0:
+        if human_hours is None or human_hours <= 0:
+            warnings.append(_HOURS_WARNING)
+            income_base = 0.0
+        else:
+            income_base = float(hourly_rate) * float(human_hours)
+    elif payment is not None:
+        income_base = float(payment)
+        if human_hours is not None and human_hours <= 0:
+            warnings.append(_HOURS_WARNING)
+    else:
+        income_base = 0.0
+
+    core = compute_expected_value(
+        payment=income_base,
+        acceptance_probability=acceptance_probability,
+        task_availability=task_availability,
+        payment_reliability=payment_reliability,
+    )
+    warnings.extend(core.warnings)
+
+    ev_per_hour: float | None = None
+    if core.ev_usd > 0 and human_hours is not None and human_hours > 0:
+        ev_per_hour = round(core.ev_usd / float(human_hours), 2)
+    elif core.ev_usd > 0 and _HOURS_WARNING not in warnings:
+        warnings.append(_HOURS_WARNING)
+
+    cash_days: float | None = None
+    if time_to_first_payment_days is not None and time_to_first_payment_days >= 0:
+        cash_days = float(time_to_first_payment_days)
+    else:
+        warnings.append(_CASH_WARNING)
+
+    factors = dict(core.factors)
+    if hourly_rate is not None:
+        factors["hourly_rate"] = float(hourly_rate)
+    factors["human_hours"] = float(human_hours) if human_hours is not None else -1.0
+
+    return HumanValueResult(
+        ev_per_human_hour_usd=ev_per_hour,
+        cash_speed_days=cash_days,
+        availability_state=core.availability_state,
+        factors=factors,
+        warnings=tuple(warnings),
+    )
+
+
+# ── Immediate vs Long-term earning profile ───────────────────────────────────
+# Curated defaults per canonical category (source="curated"): qualitative
+# anchors, NOT measured probabilities. Real OWNEX history overrides via
+# RevenueTracker when it exists. Mirrors PAYMENT_RELIABILITY pattern.
+
+_IMMEDIATE_DEFAULT = 50
+_LONG_TERM_DEFAULT = 50
+
+CATEGORY_EARNING_PROFILE: dict[str, dict[str, int]] = {
+    "data_annotation": {"immediate": 80, "long_term": 40},
+    "ai_evaluation": {"immediate": 60, "long_term": 80},
+    "dev_bounty": {"immediate": 85, "long_term": 85},
+    "bug_bounty": {"immediate": 35, "long_term": 95},
+    "prompt_engineering": {"immediate": 55, "long_term": 75},
+    "technical_writing": {"immediate": 70, "long_term": 70},
+    "code_review": {"immediate": 65, "long_term": 85},
+    "qa_automation": {"immediate": 70, "long_term": 75},
+    "software_engineering": {"immediate": 60, "long_term": 80},
+}
+
+
+@dataclass(frozen=True, slots=True)
+class EarningScores:
+    """Immediate vs long-term earning potential (0-100 each)."""
+
+    immediate: int
+    long_term: int
+    source: str  # curated | ownex_history
+
+    def to_dict(self) -> dict[str, object]:
+        return {"immediate": self.immediate, "long_term": self.long_term, "source": self.source}
+
+    @staticmethod
+    def for_category(category_value: str) -> EarningScores:
+        """Curated default profile; never invents precision beyond the table."""
+        profile = CATEGORY_EARNING_PROFILE.get(category_value)
+        if profile is None:
+            return EarningScores(_IMMEDIATE_DEFAULT, _LONG_TERM_DEFAULT, "curated")
+        return EarningScores(profile["immediate"], profile["long_term"], "curated")

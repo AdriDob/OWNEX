@@ -193,12 +193,21 @@ class ZeroBarrierScorer:
         return max(0.0, 100.0 - 25.0)  # one interview = 75, more = lower
 
     def _score_direct_application(self, opp: Opportunity) -> float:
-        """Score based on application complexity."""
+        """Score based on application complexity.
+
+        A one-time capability assessment (technical test) is NOT a hiring
+        funnel: it amortizes over the whole work stream and proves skill
+        rather than gating on identity/history. It costs some friction
+        (still below a plain registration form), but never the crushing
+        penalty the old model applied.
+        """
         if not opp.registration_required:
+            if opp.technical_test_required:
+                return 70.0  # assessment-only entry: amortizable, not a funnel
             return 100.0
-        # Registration required but simple
+        # Registration required
         if opp.technical_test_required:
-            return 20.0
+            return 50.0  # registration + one-time assessment
         return 60.0
 
     def _score_international_payment(self, opp: Opportunity) -> float:
@@ -285,7 +294,9 @@ class ZeroBarrierScorer:
 
     def _determine_barrier_level(self, total: float) -> BarrierLevel:
         """Map total score to barrier level."""
-        if total >= 80:
+        if total >= 95:
+            return BarrierLevel.ZERO
+        elif total >= 80:
             return BarrierLevel.VERY_LOW
         elif total >= 60:
             return BarrierLevel.LOW
@@ -315,6 +326,12 @@ class ZeroBarrierScorer:
             enablers.append("No interview required")
         elif opp.interview_required:
             blockers.append("Interview required")
+
+        if opp.technical_test_required:
+            if opp.experience_required == ExperienceLevel.NONE:
+                enablers.append("Capability assessment only (one-time; no prior experience needed)")
+            else:
+                blockers.append("Technical test required")
 
         if factors["international_payment"] >= 80:
             enablers.append("International payment supported")

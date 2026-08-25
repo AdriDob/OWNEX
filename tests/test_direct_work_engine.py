@@ -131,7 +131,9 @@ class TestZeroBarrierScorer:
     def test_best_case_scores_very_low_barrier(self) -> None:
         score = ZeroBarrierScorer().score(make_opportunity())
         assert score.total >= 80
-        assert score.barrier_level == BarrierLevel.VERY_LOW
+        # 2026-08-25: el modelo corregido agrega el tier ZERO (≥95) — el caso
+        # ideal sin ningún gate ahora lo alcanza.
+        assert score.barrier_level == BarrierLevel.ZERO
 
     def test_gated_opportunity_scores_lower(self) -> None:
         op = make_opportunity(

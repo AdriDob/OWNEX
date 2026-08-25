@@ -4,6 +4,37 @@ All notable changes to OWNEX, tracked from the git history of the default branch
 
 ## [Unreleased]
 
+### Changed
+- **Zero Experience ≠ Zero Barrier — modelo de entrada corregido (spec owner 2026-08-25)**:
+  - `cores/direct_work_engine/models.py`: enums nuevos `EntryMechanism` (DIRECT…INVITATION) y
+    `ExperienceRequirement` (NONE/OPTIONAL/PREFERRED/REQUIRED); `BarrierLevel.ZERO`; campos opcionales
+    en `Opportunity` (`entry_mechanism`, `experience_requirement`, `hourly_rate_usd`,
+    `time_to_first_work_hours`, `rate_source`) + properties derivadas únicas `is_zero_experience` /
+    `is_zero_barrier` (legacy-aware, backward compatible)
+  - `scoring.py`: un assessment de capacidad ya NO aplasta el factor de aplicación 60→20 (ahora 70;
+    registro+assessment 50; tier ZERO ≥95); reasoning distingue assessment de funnel
+  - `result_based.py`: ejes separados — hiring funnel (entrevista/portfolio) → C; capability
+    assessment NUNCA demota; streams AI-training con entry por assessment clasifican Level A
+  - `economics.py`: `compute_expected_human_value()` ($/hora-humana + cash_speed_days, UNKNOWN-safe)
+    y `EarningScores` inmediato/largo-plazo por categoría curada
+  - `recommendation.py`: modo **max_income** + filtros `zero_experience_only` / `zero_barrier_strict`
+  - `global_sources.py`: familia `ai_evaluation` curada (Outlier/Mercor/Alignerr/Mindrift, AR directo,
+    rates documentadas source=platform) → 139 fuentes; matcher SSOT `find_curated_entry_model()`
+  - `api/adapters/legacy.py`: la conversión aplica el entry model curado (Outlier/Mindrift dejan de
+    aplanarse a DIRECT sin assessment)
+  - `income_plan.py` v2: ranking por $EV/hora-humana + regla bootstrap (primera plataforma de catálogo
+    pendiente con tarifa documentada se desbloquea primero; entrega lista del banco siempre gana) +
+    **Income Command Center** (HOY/SEM/QUINCENA/MES conservative–optimistic con variables explicadas)
+
+### Added
+- Endpoint `GET /api/applications/income-plan` (plan combinado + Command Center)
+- Tests: `tests/test_zero_experience_model.py` (12), `tests/test_max_income_model.py` (13),
+  `tests/test_income_plan.py` actualizado al contrato v2 — 201 passed en suites afectadas,
+  suite fast 100/1 baseline intacta, vue-tsc 0 errores, vite build OK
+- Frontend `ApplicationAssistant.vue`: fix contrato backend (`key/id/detail`, fields dict) que
+  impedía marcar pasos + card Income Command Center con mejor acción ($/h documentado,
+  assessment sí/no, experiencia, cash speed)
+
 ### Added
 - **Outlook Calendar Sync** — two-way integration with Microsoft Graph:
   - `update_calendar_event` / `delete_calendar_event` added to `OutlookConnector`

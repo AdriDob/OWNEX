@@ -194,6 +194,17 @@ async def applications_overview() -> dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(e)) from None
 
 
+@router.get("/applications/income-plan")
+async def applications_income_plan() -> dict[str, Any]:
+    """Plan combinado: vía activa (first-day + work bank) + pasiva (postulaciones)."""
+    try:
+        from cores.direct_work_engine.income_plan import build_unified_income_plan
+
+        return build_unified_income_plan()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
 @router.post("/applications/{platform}/steps/{step_id}/complete")
 async def application_complete_step(platform: str, step_id: str) -> dict[str, Any]:
     """Marcar un paso de postulación como completado."""

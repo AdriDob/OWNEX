@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import StrEnum
+from typing import Any
 
 
 class OpportunityCategory(StrEnum):
@@ -28,6 +29,7 @@ class OpportunityCategory(StrEnum):
     bug_bounty = "bug_bounty"
     dev_bounty = "dev_bounty"
     data_entry = "data_entry"
+    ai_evaluation = "ai_evaluation"
 
 
 @dataclass(frozen=True)
@@ -51,6 +53,11 @@ class SourceDefinition:
     tags: list[str] = field(default_factory=list)
     last_verified: str = "2026-07-30"
     priority: int = 0  # higher = more recommended
+    # ── Entry model (2026-08-25): assessment ≠ experience ≠ funnel ──
+    requires_assessment: bool = False  # one-time capability test to enter
+    typical_hourly_rate_usd: float | None = None  # conservative midpoint of documented range; source="platform"
+    time_to_first_work_hours: float | None = None  # human hours until first paid task (assessment+onboarding)
+    payout_cadence_days: int | None = None  # documented payout frequency
 
 
 # ═══════════════════════════════════════════════
@@ -1705,6 +1712,85 @@ DATA_ENTRY_SOURCES: list[SourceDefinition] = [
 
 
 # ═══════════════════════════════════════════════
+# CATEGORY 4: AI TRAINING / AI EVALUATION — curated 2026-08-25
+# Hourly streams with capability-assessment entry. Zero experience does NOT
+# mean zero barrier: these gate on a one-time assessment, not on history.
+# Rates are documented platform ranges (source="platform"), Argentina direct.
+# ═══════════════════════════════════════════════
+
+AI_TRAINING_SOURCES: list[SourceDefinition] = [
+    SourceDefinition(
+        "Outlier",
+        "https://outlier.ai",
+        OpportunityCategory.ai_evaluation,
+        "Scale AI training network. Coding/generalist tracks, accepts Argentina direct (ID + local phone).",
+        "platform",
+        "profile_only",
+        quality_score=0.90,
+        requires_experience=False,
+        requires_assessment=True,
+        typical_hourly_rate_usd=13.0,  # low bound of documented $8-18/h LatAm coding tier
+        time_to_first_work_hours=2.0,  # coding assessment (60m) + onboarding
+        payout_cadence_days=7,
+        estimated_payout_range="$8-18/h LatAm coding; $35-60/h specialist",
+        tags=["hourly", "assessment", "weekly_payout", "argentina_ok", "spanish_plus"],
+        priority=10,
+    ),
+    SourceDefinition(
+        "Mercor",
+        "https://work.mercor.com/explore",
+        OpportunityCategory.ai_evaluation,
+        "AI-training expert marketplace with the highest ceiling for verified devs.",
+        "platform",
+        "profile_only",
+        quality_score=0.85,
+        requires_experience=False,
+        requires_assessment=True,
+        typical_hourly_rate_usd=25.0,  # low bound of documented $25-53/h skilled
+        time_to_first_work_hours=3.0,  # AI interview + technical screening
+        payout_cadence_days=30,  # per-project; conservative
+        estimated_payout_range="$25-53/h skilled",
+        tags=["hourly", "assessment", "per_project", "slow_match", "argentina_ok"],
+        priority=8,
+    ),
+    SourceDefinition(
+        "Alignerr",
+        "https://www.alignerr.com/jobs",
+        OpportunityCategory.ai_evaluation,
+        "Labelbox labeler network. Simple onboarding, weekly payout from $20.",
+        "platform",
+        "profile_only",
+        quality_score=0.82,
+        requires_experience=False,
+        requires_assessment=True,
+        typical_hourly_rate_usd=8.0,  # low bound of documented $8-30/h
+        time_to_first_work_hours=1.5,  # domain assessment per project
+        payout_cadence_days=7,
+        estimated_payout_range="$8-30/h by expertise",
+        tags=["hourly", "assessment", "weekly_payout", "min_20", "argentina_ok"],
+        priority=8,
+    ),
+    SourceDefinition(
+        "Mindrift",
+        "https://mindrift.ai",
+        OpportunityCategory.ai_evaluation,
+        "Toloka training projects. Native Spanish + technical English pays premium tasks.",
+        "platform",
+        "profile_only",
+        quality_score=0.80,
+        requires_experience=False,
+        requires_assessment=True,
+        typical_hourly_rate_usd=15.0,  # low bound of documented $15-40/h
+        time_to_first_work_hours=1.5,  # writing/rating tests ES+EN
+        payout_cadence_days=14,
+        estimated_payout_range="$15-40/h; ES native premium",
+        tags=["hourly", "assessment", "biweekly_payout", "es_premium", "argentina_ok"],
+        priority=7,
+    ),
+]
+
+
+# ═══════════════════════════════════════════════
 # MASTER INDEX — all 100+ sources combined
 # ═══════════════════════════════════════════════
 
@@ -1712,6 +1798,7 @@ _ALL_CATEGORIES = {
     OpportunityCategory.bug_bounty: BUG_BOUNTY_SOURCES,
     OpportunityCategory.dev_bounty: DEV_BOUNTY_SOURCES,
     OpportunityCategory.data_entry: DATA_ENTRY_SOURCES,
+    OpportunityCategory.ai_evaluation: AI_TRAINING_SOURCES,
 }
 
 
@@ -1738,6 +1825,35 @@ def get_favorites(category: OpportunityCategory, limit: int = 10) -> list[Source
 def get_total_source_count() -> int:
     """Return the total number of sources across all categories."""
     return sum(len(sources) for sources in _ALL_CATEGORIES.values())
+
+
+def find_curated_entry_model(name_or_url_key: str) -> dict[str, Any] | None:
+    """Entry-model facts for a platform from the curated catalog (SSOT).
+
+    Matched by normalized name or url substring so ``outlier`` hits
+    ``Outlier``/``outlier.ai``. Returns None when there is no curated entry
+    or the entry has no capability gate — callers keep their own defaults
+    instead of inventing barriers nobody verified. All numeric values are
+    source="platform" (documented ranges), never runtime guesses.
+    """
+    key = (name_or_url_key or "").strip().lower().replace("_", "")
+    if not key:
+        return None
+    for src in get_sources():
+        name_norm = src.name.strip().lower().replace(" ", "")
+        url = (getattr(src, "url", "") or "").lower()
+        if key == name_norm or (url and key in url):
+            if not src.requires_assessment:
+                return None
+            return {
+                "platform": src.name,
+                "assessment": True,
+                "hourly_rate_usd": src.typical_hourly_rate_usd,
+                "time_to_first_work_hours": src.time_to_first_work_hours,
+                "payout_cadence_days": src.payout_cadence_days,
+                "rate_source": "platform" if src.typical_hourly_rate_usd else "unknown",
+            }
+    return None
 
 
 def get_categorized_counts() -> dict[str, int]:
