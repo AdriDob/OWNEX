@@ -22,7 +22,10 @@
 
   /* ── Estados (SOLO 3, desaturados) ── */
   --ownex-green:        #16A34A;  /* ✅ Activo / Éxito */
-  --ownex-red:          #E82127;  /* ❌ Error / Riesgo — rojo Tesla (único acento saturado) */
+  /* 2026-08-25 DIRECTIVA OWNER (revoca "rojo reservado"): CERO rojo en la UI.
+     Peligro/error = azul fuerte de la familia brand. El nombre `--ownex-danger`
+     se conserva como alias legacy (≈15 consumidores) hasta migración de nombres. */
+  --ownex-danger:          #3B82F6;  /* ❌ Error / Riesgo — azul peligro */
   --ownex-yellow:       #D97706;  /* ⚠️ Atención / Advertencia */
 
   /* ── Texto (grises neutros) ── */
@@ -36,7 +39,7 @@
   --ownex-bugcrowd:   #B45309;
   --ownex-intigriti:  #8B5CF6;
   --ownex-synack:     #5B7D9E;
-  --ownex-yeswehack:  #DC2626;
+  --ownex-yeswehack:  #3B82F6;
 
   /* ── Cycle Colors (monocromo, rojo = odyssey) ── */
   --ownex-cycle-security: #F5F5F5;
@@ -183,10 +186,7 @@
   --ownex-white: #1A1200;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   REDUCED MOTION
-   ═══════════════════════════════════════════════════════════════════ */
-
+:root {
   /* ═══════════════════════════════════════════════════════════════════
      SEMANTIC ALIASES — stable contract for components (F1 design system)
      Components consume THESE; raw --ownex-* stay as implementation detail.
@@ -200,7 +200,7 @@
   --color-primary:          var(--ownex-blue);
   --color-success:          var(--ownex-green);
   --color-warning:          var(--ownex-yellow);
-  --color-danger:           var(--ownex-red);   /* error/destructive ONLY (directiva owner) */
+  --color-danger:           var(--ownex-danger);   /* error/destructive ONLY (directiva owner) */
   --color-info:             var(--ownex-cycle-odyssey);
 
   /* ── Type scale — display/heading/body/label/caption/numeric ── */
