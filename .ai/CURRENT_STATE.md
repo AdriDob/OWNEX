@@ -1,3 +1,23 @@
+## Sesión 2026-08-25 (cont. 3) — DESIGN FASES 0-1 + puerto 8000 API-only
+
+> **QUÉ SE HIZO:** (1) **Puerto 8000 = solo-API** (directiva owner): proceso zombi pre-1.0
+> (`run.py` viejo con StaticFiles) servía el dist Vue en :8000 → la ventana Tauri cargaba UI
+> desde ese origen (fuentes→JSON 404 "invalid sfntVersion", ws://…/api/ws failed, boot-storm
+> 429 "Rate limit exceeded"). Proceso eliminado + guards permanentes
+> (`tests/test_api_pure_backend.py`: introspección runtime sin Mount/catch-all HTML +
+> run.py prohibido de StaticFiles/dist para siempre). Rate limiter intacto (30r/s burst 50 OK).
+> (2) **DESIGN FASE 0**: `.ai/FRONTEND_VISUAL_AUDIT.md` — métricas medibles (1073 hex
+> hardcodeados, 9 radios, 104 hits mock/fake, capa jarvis legacy en 4 páginas, SecurityCycle
+> mock-ruteada, triple-home), inventario DS existente, plan F1-F7 con criterios.
+> (3) **DESIGN FASE 1 núcleo** (`65ab6b69`): alias semánticos --color-* (contrato estable para
+> componentes), escala tipográfica display/heading/body/label/caption, tratamiento numérico
+> .money (mono + tabular-nums) para valores económicos.
+- **Verificación**: 13 guards (theme+packaging) verdes tras cada cambio; ruff limpio;
+  api-pure-backend 14 passed con rate-limit regresión incluida.
+- **Pendiente**: F1b adopción semántica página-a-página (hex→var decreciente), F2 App Shell
+  (sidebar por intención + StatusBadge global), F3 Mission Control NEXT ACTION, clasificación
+  de los 104 mocks, batch dead-code gateado a validación Windows, tag v1.0.0-alpha.
+
 ## Sesión 2026-08-25 (cont. 2) — ZERO EXPERIENCE ≠ ZERO BARRIER: modelo de oportunidades corregido + Income Command Center
 
 > **QUÉ SE HIZO:** Ejecución del spec owner de corrección del modelo (audit previo con evidencia
