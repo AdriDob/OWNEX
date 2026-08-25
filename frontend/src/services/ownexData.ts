@@ -221,32 +221,15 @@ async function fetchMissionStatus(): Promise<{ health: number; status: string; n
 }
 
 async function fetchSystemStatus(): Promise<AgentStatus[]> {
-  try {
-    const data = await api.get<any>('/system/state')
-    const services = data?.services || []
-    if (services.length > 0) {
-      return services.map((s: any) => ({
-        name: s.name || s.id || 'Servicio',
-        status: s.status === 'healthy' ? 'online' : s.status === 'degraded' ? 'limited' : 'offline',
-        description: s.description || s.type || '',
-      }))
-    }
-    return [
-      { name: 'Hermes', status: 'online', description: 'Orquestación' },
-      { name: 'OpenCode', status: 'online', description: 'Implementación' },
-      { name: 'Cline', status: 'online', description: 'Edición IDE' },
-      { name: 'Ollama', status: 'local', description: 'Modelo local' },
-      { name: 'FCC', status: 'limited', description: 'Router IA' },
-    ]
-  } catch {
-    return [
-      { name: 'Hermes', status: 'online', description: 'Orquestación' },
-      { name: 'OpenCode', status: 'online', description: 'Implementación' },
-      { name: 'Cline', status: 'online', description: 'Edición IDE' },
-      { name: 'Ollama', status: 'local', description: 'Modelo local qwen2.5' },
-      { name: 'FCC', status: 'limited', description: 'Router multi-provider' },
-    ]
-  }
+  // Honest mapping: no hardcoded fallback fleet — backend down must be
+  // visible, and an empty service list renders as empty state.
+  const data = await api.get<any>('/system/state')
+  const services = data?.services || []
+  return services.map((s: any) => ({
+    name: s.name || s.id || 'Servicio',
+    status: s.status === 'healthy' ? 'online' : s.status === 'degraded' ? 'limited' : 'offline',
+    description: s.description || s.type || '',
+  }))
 }
 
 async function fetchRevenueSnapshot(): Promise<RevenueSnapshotData | null> {
