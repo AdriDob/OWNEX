@@ -124,11 +124,11 @@ const classes = computed(() => [
 }
 
 .ownex-btn--danger {
-  background: var(--ownex-red);
+  background: var(--ownex-danger);
   color: var(--ownex-white);
 }
 .ownex-btn--danger:hover:not(:disabled) {
-  background: #DC2626;
+  background: #3B82F6;
   box-shadow: 0 0 20px rgba(0, 213, 255, 0.2);
 }
 

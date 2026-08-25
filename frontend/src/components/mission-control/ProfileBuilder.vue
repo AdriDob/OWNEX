@@ -103,7 +103,7 @@ const scoreColor = computed(() => {
   const s = score.value
   if (s >= 70) return '#16a34a'
   if (s >= 40) return '#eab308'
-  return '#e11d48'
+  return '#3B82F6'
 })
 
 function getMax(key: string) {
@@ -112,7 +112,7 @@ function getMax(key: string) {
 }
 
 function priorityStyle(p: string) {
-  const map: Record<string, string> = { alta: 'background:#e11d48', media: 'background:#eab308', baja: 'background:#16a34a' }
+  const map: Record<string, string> = { alta: 'background:#3B82F6', media: 'background:#eab308', baja: 'background:#16a34a' }
   return map[p] || ''
 }
 
@@ -166,7 +166,7 @@ onMounted(load)
           </div>
           <div class="pb-meta">
             <span class="pb-user">@{{ username }}</span>
-            <span class="pb-token" :style="{ color: hasToken ? '#16a34a' : '#e11d48' }">
+            <span class="pb-token" :style="{ color: hasToken ? '#16a34a' : '#3B82F6' }">
               {{ hasToken ? 'Token OK' : 'Sin GITHUB_TOKEN' }}
             </span>
           </div>
@@ -216,7 +216,7 @@ onMounted(load)
               class="pb-breakdown-item"
             >
               <span class="pb-breakdown-name">{{ key }}</span>
-              <span class="pb-breakdown-pts" :style="{ color: detail.points > 0 ? '#16a34a' : '#e11d48' }">
+              <span class="pb-breakdown-pts" :style="{ color: detail.points > 0 ? '#16a34a' : '#3B82F6' }">
                 {{ detail.points }} / {{ getMax(key) }}
               </span>
               <div class="pb-bar">
@@ -224,7 +224,7 @@ onMounted(load)
                   class="pb-bar-fill"
                   :style="{
                     width: Math.min(100, (detail.points / getMax(key)) * 100) + '%',
-                    background: detail.points > 0 ? '#16a34a' : '#e11d48',
+                    background: detail.points > 0 ? '#16a34a' : '#3B82F6',
                   }"
                 ></div>
               </div>

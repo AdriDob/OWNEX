@@ -9,6 +9,7 @@ import {
 import ThroughputCore from '@/components/dashboard/ThroughputCore.vue'
 import WorkCyclesGrid from '@/components/dashboard/WorkCyclesGrid.vue'
 import NextBestAction from '@/components/mission-control/NextBestAction.vue'
+import { fetchIncomePlan, type IncomePlanAction } from '@/services/ownexData'
 import AgentFleet from '@/components/mission-control/AgentFleet.vue'
 import OpportunityRadar from '@/components/mission-control/OpportunityRadar.vue'
 import KnowledgeFeed from '@/components/mission-control/KnowledgeFeed.vue'
@@ -51,6 +52,7 @@ import { useAudio } from '@/composables/useAudio'
 
 const router = useRouter()
 const dashboard = ref<OwnexDashboardData | null>(null)
+const incomeNext = ref<IncomePlanAction | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 const degraded = ref(false)
@@ -124,6 +126,16 @@ interface EvidenceClaim {
 }
 
 async function load() {
+  // Next Action real (Income Plan): fetch propio con degradación silenciosa —
+  // si falla, cae al nextAction de /mission/status (nunca rompe el dashboard).
+  fetchIncomePlan()
+    .then((p) => {
+      incomeNext.value = p.next_action
+      if (p.next_action) audio.play('success')
+    })
+    .catch(() => {
+      incomeNext.value = null
+    })
   try {
     const data = await fetchOwnexDashboard()
     dashboard.value = data
@@ -328,8 +340,23 @@ const feedItems = computed(() =>
           class="lg:col-span-2"
         />
         <OpportunityRadar v-else :opportunities="[]" class="lg:col-span-2" />
+        <!-- Next Action REAL (Income Plan): navega a la plataforma o al plan -->
         <NextBestAction
-          v-if="dashboard && dashboard.nextAction"
+          v-if="incomeNext"
+          :title="incomeNext.title"
+          :description="incomeNext.detail || 'Sigue la guía paso a paso en Postulaciones'"
+          :href="incomeNext.url || '/operations/applications'"
+          :primary-action="{ label: incomeNext.url ? 'Abrir y ejecutar' : 'Ver plan completo', variant: 'primary' }"
+          :secondary-action="{ label: 'Posponer', variant: 'ghost' }"
+          :reasoning="incomeNext.why || 'Elegida por mayor dinero esperado por hora de intervención humana'"
+          :ev-per-hour="incomeNext.ev_per_human_hour_usd ?? null"
+          :payoff-range="incomeNext.payoff_range ?? null"
+          :cash-speed-days="incomeNext.cash_speed_days ?? null"
+          :assessment-required="incomeNext.assessment_required ?? null"
+          :zero-experience="incomeNext.zero_experience ?? null"
+        />
+        <NextBestAction
+          v-else-if="dashboard && dashboard.nextAction"
           :title="dashboard.nextAction.title"
           :description="dashboard.nextAction.reason || 'Revisar prioridades en Mission Control'"
           :primary-action="{ label: 'Ejecutar', variant: 'primary' }"

@@ -29,7 +29,7 @@ const systemHealthColor = computed(() => {
   const score = dashboard.value?.systemHealth ?? 0
   if (score >= 90) return '#34D399'
   if (score >= 70) return '#D97706'
-  return '#F87171'
+  return '#93C5FD'
 })
 
 function handleQuickAction(path: string) {
@@ -58,7 +58,7 @@ const activityIcon = (type: string) => {
 }
 const activityColor = (type: string) => {
   const map: Record<string, string> = {
-    success: '#34D399', finding: '#D97706', warn: '#F87171', info: '#60A5FA'
+    success: '#34D399', finding: '#D97706', warn: '#93C5FD', info: '#60A5FA'
   }
   return map[type] || '#64748B'
 }
@@ -398,7 +398,7 @@ onUnmounted(() => {
 .pill-pulse { color: #16A34A; border-color: rgba(22, 163, 74, 0.3); background-color: rgba(22, 163, 74, 0.1); }
 .pill-vault { color: #D97706; border-color: rgba(217, 119, 6, 0.3); background-color: rgba(217, 119, 6, 0.1); }
 .pill-atlas { color: #9CA3AF; border-color: rgba(156, 163, 175, 0.3); background-color: rgba(156, 163, 175, 0.1); }
-.pill-security { color: #F87171; border-color: rgba(0, 213, 255, 0.3); background-color: rgba(0, 213, 255, 0.1); }
+.pill-security { color: #93C5FD; border-color: rgba(0, 213, 255, 0.3); background-color: rgba(0, 213, 255, 0.1); }
 
 .live-badge {
   padding: 0.25rem 1rem;
@@ -468,7 +468,7 @@ onUnmounted(() => {
 .action-primary { color: #22D3EE; border-color: rgba(6, 182, 212, 0.4); background-color: rgba(6, 182, 212, 0.15); }
 .action-green { color: #16A34A; border-color: rgba(22, 163, 74, 0.4); background-color: rgba(22, 163, 74, 0.15); }
 .action-gold { color: #D97706; border-color: rgba(217, 119, 6, 0.4); background-color: rgba(217, 119, 6, 0.15); }
-.action-red { color: #F87171; border-color: rgba(0, 213, 255, 0.4); background-color: rgba(0, 213, 255, 0.15); }
+.action-red { color: #93C5FD; border-color: rgba(0, 213, 255, 0.4); background-color: rgba(0, 213, 255, 0.15); }
 
 /* Cards grid */
 .cards-grid {

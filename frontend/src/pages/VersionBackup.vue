@@ -485,7 +485,7 @@ onMounted(() => {
 .live-badge {
   background: rgba(0, 213, 255, 0.2);
   border: 1px solid rgba(0, 213, 255, 0.3);
-  color: #F87171;
+  color: #93C5FD;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-size: 0.65rem;
@@ -607,7 +607,7 @@ onMounted(() => {
 .action-red {
   background: rgba(148, 163, 184, 0.2);
   border-color: rgba(148, 163, 184, 0.4);
-  color: #F87171;
+  color: #93C5FD;
 }
 
 .action-red:hover:not(:disabled) {
@@ -861,7 +861,7 @@ onMounted(() => {
 .mini-danger {
   background: rgba(148, 163, 184, 0.2);
   border-color: rgba(148, 163, 184, 0.3);
-  color: #F87171;
+  color: #93C5FD;
 }
 
 .mini-danger:hover:not(:disabled) {
@@ -1010,7 +1010,7 @@ onMounted(() => {
 }
 
 .result-invalid {
-  color: #F87171;
+  color: #93C5FD;
 }
 
 .valid-details {

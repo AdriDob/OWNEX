@@ -36,7 +36,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const severityConfig = computed(() => ({
-  critical: { label: 'CRÍTICO', variant: 'error' as const, color: 'var(--ownex-red)' },
+  critical: { label: 'CRÍTICO', variant: 'error' as const, color: 'var(--ownex-danger)' },
   high: { label: 'ALTO', variant: 'warning' as const, color: 'var(--ownex-yellow)' },
   medium: { label: 'MEDIO', variant: 'default' as const, color: 'var(--ownex-blue)' },
   low: { label: 'BAJO', variant: 'default' as const, color: 'var(--ownex-text-muted)' },
@@ -87,7 +87,7 @@ const formatType = (type: string) => {
 const getConfidenceColor = (score: number) => {
   if (score >= 80) return 'var(--ownex-green)'
   if (score >= 60) return 'var(--ownex-yellow)'
-  return 'var(--ownex-red)'
+  return 'var(--ownex-danger)'
 }
 </script>
 

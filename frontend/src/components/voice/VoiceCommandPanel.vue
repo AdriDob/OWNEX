@@ -93,7 +93,6 @@ async function processCommand(text: string) {
     })
 
     const result = await response.json()
-    // console.log('Voice command result:', result)
   } catch (error) {
     console.error('Error processing voice command:', error)
   } finally {

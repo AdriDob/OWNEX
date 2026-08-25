@@ -226,7 +226,7 @@ const animateNumber = (from: number, to: number, duration: number) => {
 .ownex-kpi--lg .ownex-kpi__trend { font-size: 13px; }
 
 .ownex-kpi__trend--up { color: var(--ownex-green); }
-.ownex-kpi__trend--down { color: var(--ownex-red); }
+.ownex-kpi__trend--down { color: var(--ownex-danger); }
 .ownex-kpi__trend--neutral { color: var(--ownex-text-muted); }
 
 /* Detail slot */

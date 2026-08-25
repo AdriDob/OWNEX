@@ -1,0 +1,63 @@
+/home/adriel/projects/Rastro/api/routers/evolution.py:69: FastAPIDeprecationWarning: `regex` has been deprecated, please use `pattern` instead
+  granularity: str = Query("daily", regex="^(hourly|daily)$"),
+[CATEYE][AUTO] Auto-detecting...
+[CATEYE][AUTO] Starting browser mode
+[CATEYE][MACHINE] State machine start (mode=browser)
+[CATEYE][MACHINE] -> INIT
+[CATEYE][INIT] CATEYE Launcher
+[CATEYE][MACHINE] -> VALIDATING
+[CATEYE][VALIDATE] CATEYE Boot Summary:
+[CATEYE][VALIDATE]   [OK] python       3.14.4
+[CATEYE][VALIDATE]   [OK] platform     linux / wsl_dev
+[CATEYE][VALIDATE]   [OK] frontend     found
+[CATEYE][VALIDATE]   [OK] pystray      available
+[CATEYE][VALIDATE]   [OK] webview      available
+[CATEYE][VALIDATE]   [OK] api          importable
+[CATEYE][VALIDATE]   Mode: wsl_dev / NORMAL
+[CATEYE][MACHINE] -> FULL_MODE
+[CATEYE][FULL] Full mode available for wsl_dev
+[CATEYE][MACHINE] -> BROWSER_MODE
+[CATEYE][BROWSER] Starting backend + browser...
+/home/adriel/projects/Rastro/.venv/lib/python3.14/site-packages/plyer/platforms/linux/notification.py:103: UserWarning: The Python dbus package is not installed.
+Try installing it with your distribution's package manager, it is usually called python-dbus or python3-dbus, but you might have to try dbus-python instead, e.g. when using pip.
+  warnings.warn(msg)
+/home/adriel/projects/Rastro/api/scheduler.py:173: RuntimeWarning: coroutine 'RecoveryEngine._action_restart_scheduler.<locals>._restart' was never awaited
+  self._task = None
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+/home/adriel/projects/Rastro/api/scheduler.py:173: RuntimeWarning: coroutine 'RecoveryEngine._action_restart_scheduler.<locals>._restart' was never awaited
+  self._task = None
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+/home/adriel/projects/Rastro/api/scheduler.py:173: RuntimeWarning: coroutine 'RecoveryEngine._action_restart_scheduler.<locals>._restart' was never awaited
+  self._task = None
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+/home/adriel/projects/Rastro/api/scheduler.py:173: RuntimeWarning: coroutine 'RecoveryEngine._action_restart_scheduler.<locals>._restart' was never awaited
+  self._task = None
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+/home/adriel/projects/Rastro/api/scheduler.py:173: RuntimeWarning: coroutine 'RecoveryEngine._action_restart_scheduler.<locals>._restart' was never awaited
+  self._task = None
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+/home/adriel/projects/Rastro/api/scheduler.py:173: RuntimeWarning: coroutine 'RecoveryEngine._action_restart_scheduler.<locals>._restart' was never awaited
+  self._task = None
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+/home/adriel/projects/Rastro/api/scheduler.py:173: RuntimeWarning: coroutine 'RecoveryEngine._action_restart_scheduler.<locals>._restart' was never awaited
+  self._task = None
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+/home/adriel/projects/Rastro/api/scheduler.py:173: RuntimeWarning: coroutine 'RecoveryEngine._action_restart_scheduler.<locals>._restart' was never awaited
+  self._task = None
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+/home/adriel/projects/Rastro/api/scheduler.py:173: RuntimeWarning: coroutine 'RecoveryEngine._action_restart_scheduler.<locals>._restart' was never awaited
+  self._task = None
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+/home/adriel/projects/Rastro/api/scheduler.py:173: RuntimeWarning: coroutine 'RecoveryEngine._action_restart_scheduler.<locals>._restart' was never awaited
+  self._task = None
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+/home/adriel/projects/Rastro/api/scheduler.py:173: RuntimeWarning: coroutine 'RecoveryEngine._action_restart_scheduler.<locals>._restart' was never awaited
+  self._task = None
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+/home/adriel/projects/Rastro/api/scheduler.py:173: RuntimeWarning: coroutine 'RecoveryEngine._action_restart_scheduler.<locals>._restart' was never awaited
+  self._task = None
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+/home/adriel/projects/Rastro/api/scheduler.py:173: RuntimeWarning: coroutine 'RecoveryEngine._action_restart_scheduler.<locals>._restart' was never awaited
+  self._task = None
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+[CATEYE][READY] CATEYE ready

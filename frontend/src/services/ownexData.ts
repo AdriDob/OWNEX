@@ -202,7 +202,7 @@ async function fetchActivity(): Promise<KnowledgeItem[]> {
     }))
 }
 
-async function fetchMissionStatus(): Promise<{ health: number; status: string; nextAction: NextActionItem | null; timestamp: string }> {
+export async function fetchMissionStatus(): Promise<{ health: number; status: string; nextAction: NextActionItem | null; timestamp: string }> {
     const data = await api.get<any>('/mission/status')
     const nextAction = data.next_action
       ? {
@@ -218,6 +218,41 @@ async function fetchMissionStatus(): Promise<{ health: number; status: string; n
       nextAction,
       timestamp: data.system?.timestamp ?? new Date().toISOString(),
     }
+}
+
+/** Income Plan combinado (backend: cores/direct_work_engine/income_plan.py).
+ *  Fase 2 visual (2026-08-25): alimenta el Next Action real de Mission Control. */
+export interface IncomePayoffRange {
+  low: number
+  high: number
+}
+export interface IncomePlanAction {
+  source: 'workbank' | 'first_day' | 'applications'
+  title: string
+  detail?: string
+  why?: string
+  url?: string | null
+  human_hours?: number | null
+  ev_per_human_hour_usd?: number | null
+  payoff_range?: IncomePayoffRange | null
+  cash_speed_days?: number | null
+  zero_experience?: boolean
+  assessment_required?: boolean
+  access_probability?: string
+}
+export interface IncomePlanState {
+  generated_at?: string
+  philosophy: string
+  next_action: IncomePlanAction | null
+  phases: { now: IncomePlanAction[]; this_week: IncomePlanAction[]; waiting: Array<{ key: string; name: string; status: string }> }
+  tracks: {
+    active: { label: string; first_day_progress_pct: number; workbank_ready_to_deliver: number }
+    passive: { label: string; progress_pct: number; by_status: Record<string, number>; accepted_streams?: string[] }
+  }
+}
+
+export async function fetchIncomePlan(): Promise<IncomePlanState> {
+  return api.get<IncomePlanState>('/applications/income-plan')
 }
 
 async function fetchSystemStatus(): Promise<AgentStatus[]> {

@@ -219,7 +219,7 @@ const errorMessage = computed(() => 'Valor inválido')
 .ownex-input__error {
   font-family: var(--font-body);
   font-size: 11px;
-  color: var(--ownex-red);
+  color: var(--ownex-danger);
 }
 
 .ownex-input__helper {

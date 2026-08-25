@@ -1,3 +1,12 @@
+## 2026-08-25 (noche): DIRECTIVA OWNER — CERO ROJO, solo azules claros/osculos
+
+- **Revoca** la directiva de hoy "rojo reservado a estados": la UI NO usa rojo en absoluto. Peligro/error = azul fuerte `#3B82F6` (familia brand). El nombre `--ownex-red` sobrevive como alias legacy (~15 consumidores) hasta migración a `--ownex-danger`.
+- **Alcance**: token `--ownex-red`→#3B82F6 · 6 themes JSON `palette.red`→#3B82F6 · capa legacy jarvis (`#e31937`→#1E40FF, `#ff3366`→#3B82F6) · barrido de 25 hardcodes residuales en src → **0 rojos**. Guards `test_frontend_theme_consistency.py` actualizados a `DANGER_BLUE`.
+- **Bonus bug latente**: los alias semánticos F1 (`--color-bg/surface/text/danger…`) estaban FUERA de cualquier selector en tokens.css → jamás aplicaron. Ahora dentro de `:root`. También `@font-face` movido después de los `@import` (regla de orden CSS — era lo que activaba el parseo estricto).
+- **Verificación**: vue-tsc 0 · build OK · 18 passed (tema+income) · 0 hexes rojos en src.
+- **Regla permanente actualizada**: prohibido introducir rojo en cualquier capa; todo estado usa la familia azul; nuevos tokens de peligro nacen como `--ownex-danger`.
+
+
 ## 2026-08-25: ZERO EXPERIENCE ≠ ZERO BARRIER — corrección del modelo de oportunidades (spec owner)
 
 - **Problema conceptual**: OWNEX trataba "requiere assessment/prueba técnica" como fricción de contratación. Evidencia auditada: `scoring.py::_score_direct_application` aplastaba el factor 60→20 con test (peor que una entrevista=75, severidad invertida); `result_based.py::_FRICTION_FLAGS` mezclaba capability-assessment con hiring-funnel; un proyecto AI-training publicado como contract caía en `_TRADITIONAL_EMPLOYMENT` → Level C "skip" (el motor descartaba exactamente Outlier/Mercor/Alignerr/Mindrift); y `recommendation._calculate_acceptance_probability` usaba prior cold-start 0.5 sin etiquetar.

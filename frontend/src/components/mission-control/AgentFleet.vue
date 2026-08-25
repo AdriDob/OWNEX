@@ -100,7 +100,7 @@ const statusDotStyle = (status: string) => {
     thinking: { backgroundColor: 'var(--ownex-blue)', boxShadow: '0 0 8px var(--ownex-blue)' },
     working: { backgroundColor: 'var(--ownex-green)', boxShadow: '0 0 8px var(--ownex-green)' },
     complete: { backgroundColor: 'var(--ownex-green)', boxShadow: '0 0 8px var(--ownex-green)' },
-    error: { backgroundColor: 'var(--ownex-red)', boxShadow: '0 0 8px var(--ownex-red)' },
+    error: { backgroundColor: 'var(--ownex-danger)', boxShadow: '0 0 8px var(--ownex-danger)' },
     // Fallback for unknown statuses
     online: { backgroundColor: 'var(--ownex-green)', boxShadow: '0 0 8px var(--ownex-green)' },
     local: { backgroundColor: 'var(--ownex-blue)', boxShadow: '0 0 8px var(--ownex-blue)' },

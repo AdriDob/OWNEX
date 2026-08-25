@@ -66,7 +66,15 @@ export const routes: RouteRecordRaw[] = [
 
   // ── 1. MISSION CONTROL ──
   {
+    // 2026-08-25 (Fase 3): '/' = CEO Home / Income Command Center.
+    // WelcomePage se conserva accesible en /welcome (reversible).
     path: '/',
+    name: 'income-home',
+    component: () => import(/* webpackChunkName: "income-home" */ '@/pages/IncomeHome.vue'),
+    meta: { title: 'Command Center' },
+  },
+  {
+    path: '/welcome',
     name: 'welcome',
     component: () => import(/* webpackChunkName: "welcome" */ '@/pages/WelcomePage.vue'),
     meta: { title: 'Bienvenido' },

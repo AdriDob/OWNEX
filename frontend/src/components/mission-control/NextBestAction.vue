@@ -5,6 +5,7 @@
  */
 
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import OwnexButton from '../ui/OwnexButton.vue'
 import OwnexBadge from '../ui/OwnexBadge.vue'
 import { useAudio } from '@/composables/useAudio'
@@ -23,6 +24,14 @@ interface Props {
   confidence?: number
   reasoning?: string
   meta?: Record<string, string | number>
+  /** Fase 2 (2026-08-25): acción REAL — URL externa o ruta interna. */
+  href?: string | null
+  /** Campos económicos del Income Plan (todos opcionales, nunca inventados). */
+  payoffRange?: { low: number; high: number } | null
+  evPerHour?: number | null
+  cashSpeedDays?: number | null
+  assessmentRequired?: boolean | null
+  zeroExperience?: boolean | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -31,13 +40,40 @@ const props = withDefaults(defineProps<Props>(), {
   confidence: 0,
   reasoning: '',
   meta: () => ({}),
+  href: null,
+  payoffRange: null,
+  evPerHour: null,
+  cashSpeedDays: null,
+  assessmentRequired: null,
+  zeroExperience: null,
+})
+
+const emit = defineEmits<{ (e: 'primary'): void; (e: 'secondary'): void }>()
+
+const usd = (n: number): string => `$${Math.round(n).toLocaleString('es-AR')}`
+
+/** Meta extendida: campos económicos documentados primero, luego meta legacy. */
+const displayMeta = computed<Record<string, string>>(() => {
+  const out: Record<string, string> = {}
+  if (props.evPerHour != null) out['$/h documentado'] = `${usd(props.evPerHour)}/h`
+  if (props.payoffRange) {
+    out['payoff'] =
+      props.payoffRange.low === props.payoffRange.high
+        ? usd(props.payoffRange.low)
+        : `${usd(props.payoffRange.low)}–${usd(props.payoffRange.high)}`
+  }
+  if (props.cashSpeedDays != null) out['1er pago ~'] = `${props.cashSpeedDays} días`
+  if (props.zeroExperience != null) out['experiencia'] = props.zeroExperience ? 'NO requerida' : 'requerida'
+  if (props.assessmentRequired != null) out['assessment'] = props.assessmentRequired ? 'sí (único)' : 'no'
+  for (const [k, v] of Object.entries(props.meta)) out[k] = String(v)
+  return out
 })
 
 const confidenceColor = computed(() => {
   const c = props.confidence
   if (c >= 80) return 'var(--ownex-green)'
   if (c >= 60) return 'var(--ownex-yellow)'
-  return 'var(--ownex-red)'
+  return 'var(--ownex-danger)'
 })
 
 const confidenceLabel = computed(() => {
@@ -48,13 +84,22 @@ const confidenceLabel = computed(() => {
 })
 
 const audio = useAudio()
+const router = useRouter()
 
 function handlePrimaryAction() {
   audio.play('click')
+  emit('primary')
+  if (!props.href) return
+  if (props.href.startsWith('/')) {
+    void router.push(props.href)
+  } else {
+    window.open(props.href, '_blank', 'noopener,noreferrer')
+  }
 }
 
 function handleSecondaryAction() {
   audio.play('toggle')
+  emit('secondary')
 }
 </script>
 
@@ -93,9 +138,9 @@ function handleSecondaryAction() {
       <p class="ownex-next-action__description">{{ description }}</p>
 
       <!-- Meta info -->
-      <div v-if="Object.keys(meta).length" class="ownex-next-action__meta">
+      <div v-if="Object.keys(displayMeta).length" class="ownex-next-action__meta">
         <div
-          v-for="(value, key) in meta"
+          v-for="(value, key) in displayMeta"
           :key="key"
           class="ownex-next-action__meta-item"
         >

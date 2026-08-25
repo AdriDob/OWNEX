@@ -36,17 +36,26 @@ const loading = ref(true)
 
 const navSections = [
   {
-    section: 'MISIÓN',
+    section: 'OPERATE',
     cycle: 'mission',
     items: [
-      { name: 'Bienvenido', path: '/', icon: LayoutDashboard, exact: true },
-      { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+      { name: 'Command Center', path: '/', icon: LayoutDashboard, exact: true },
       { name: 'HUNT', path: '/baby-mode', icon: Zap },
+      { name: 'Oportunidades', path: '/targets/prioritization', icon: Globe },
+      { name: 'Bounties', path: '/integrations/platforms', icon: DollarSign },
+      { name: 'Postulaciones', path: '/operations/applications', icon: Send },
+      { name: 'Profile Kit', path: '/profile-kit', icon: UserRound },
+      { name: 'Capital Dashboard', path: '/capital', icon: DollarSign },
+      { name: 'Investment Hub', path: '/investments', icon: TrendingUp },
+      { name: 'ATLAS Inversiones', path: '/atlas/', icon: Coins },
+      { name: 'Trading', path: '/trading', icon: Activity },
+      { name: 'Copy Trading', path: '/trading/intelligence', icon: Copy },
+      { name: 'Polymarket', path: '/polymarket', icon: Dices },
     ],
   },
   {
-    section: 'SEGURIDAD ● Rastro',
-    cycle: 'security',
+    section: 'INTELLIGENCE',
+    cycle: 'atlas',
     items: [
       { name: 'Targets', path: '/targets', icon: Target },
       { name: 'Findings', path: '/intelligence/findings', icon: Bug },
@@ -54,58 +63,10 @@ const navSections = [
       { name: 'Evidencia', path: '/intelligence/evidence', icon: Shield },
       { name: 'Investigaciones', path: '/intelligence/investigations', icon: Search },
       { name: 'Confianza', path: '/intelligence/confidence', icon: BarChart3 },
-    ],
-  },
-  {
-    section: 'REPORTES',
-    cycle: 'security',
-    items: [
       { name: 'Cola Priorizada', path: '/reports/queue', icon: Database },
       { name: 'Centro de Reportes', path: '/reports/center', icon: FileText },
       { name: 'Historial', path: '/reports/history', icon: BookOpen },
       { name: 'Validación', path: '/reports/verification', icon: Shield },
-    ],
-  },
-  {
-    section: 'FORJA ● Dev Bounty',
-    cycle: 'forge',
-    items: [
-      { name: 'Oportunidades', path: '/targets/prioritization', icon: Globe },
-      { name: 'Bounties', path: '/integrations/platforms', icon: DollarSign },
-    ],
-  },
-  {
-    section: 'PULSO ● AI Work',
-    cycle: 'pulse',
-    items: [
-      { name: 'MERLIN', path: '/merlin', icon: Bot },
-      { name: 'Próximamente', path: '/faqs', icon: Sparkles },
-    ],
-  },
-  {
-    section: 'PERFIL',
-    cycle: 'profile',
-    items: [
-      { name: 'Profile Kit', path: '/profile-kit', icon: UserRound },
-    ],
-  },
-  {
-    section: 'VAULT ● Wealth',
-    cycle: 'vault',
-    items: [
-      { name: 'Capital Dashboard', path: '/capital', icon: DollarSign },
-      { name: 'Investment Hub', path: '/investments', icon: TrendingUp },
-      { name: 'ATLAS Inversiones', path: '/atlas/', icon: Coins },
-      { name: 'Trading', path: '/trading', icon: Activity },
-      { name: 'Copy Trading', path: '/trading/intelligence', icon: Copy },
-      { name: 'Polymarket', path: '/polymarket', icon: Dices },
-      { name: 'Billeteras', path: '/integrations/wallets', icon: Wallet },
-    ],
-  },
-  {
-    section: 'ATLAS ● Intelligence',
-    cycle: 'atlas',
-    items: [
       { name: 'Knowledge Vault', path: '/knowledge', icon: Database },
       { name: 'Knowledge Graph', path: '/copilot/memory', icon: Database },
       { name: 'Aprendizaje', path: '/copilot/learning', icon: Brain },
@@ -113,18 +74,26 @@ const navSections = [
     ],
   },
   {
-    section: 'SISTEMA',
+    section: 'AUTOMATION',
+    cycle: 'forge',
+    items: [
+      { name: 'MERLIN', path: '/merlin', icon: Bot },
+      { name: 'Copilot', path: '/copilot/assistant', icon: MessageCircle },
+      { name: 'Workflows', path: '/operations/workflows', icon: RefreshCw },
+      { name: 'Scheduler', path: '/operations/scheduler', icon: Zap },
+      { name: 'Pipelines', path: '/operations/pipelines', icon: Activity },
+    ],
+  },
+  {
+    section: 'SYSTEM',
     cycle: 'system',
     items: [
       { name: 'Operaciones', path: '/operations/dashboard', icon: Cpu },
-      { name: 'Pipelines', path: '/operations/pipelines', icon: Activity },
-      { name: 'Scheduler', path: '/operations/scheduler', icon: Zap },
       { name: 'Health Center', path: '/operations/health', icon: HeartPulse },
       { name: 'Configuración', path: '/operations/settings', icon: Settings },
-      { name: 'Postulaciones', path: '/operations/applications', icon: Send },
-      { name: 'Workflows', path: '/operations/workflows', icon: RefreshCw },
       { name: 'Conexiones', path: '/integrations/connections', icon: Cable },
-      { name: 'Copilot', path: '/copilot/assistant', icon: MessageCircle },
+      { name: 'Billeteras', path: '/integrations/wallets', icon: Wallet },
+      { name: 'Próximamente', path: '/faqs', icon: Sparkles },
     ],
   },
 ]
