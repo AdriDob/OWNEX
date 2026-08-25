@@ -27,6 +27,56 @@ class PaymentStatus(Enum):
     CANCELLED = "cancelled"
 
 
+class OpportunityStage(Enum):
+    """Full pipeline state machine (Income Multiplier Fase A, spec §10).
+
+    Money is only counted at REWARDED/PAID — earlier stages are pipeline,
+    never earnings (regla de seguridad económica §39).
+    """
+
+    DISCOVERED = "discovered"
+    QUALIFIED = "qualified"
+    IN_PROGRESS = "in_progress"
+    SUBMITTED = "submitted"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+    REWARDED = "rewarded"
+    PAID = "paid"
+
+
+# WorkBank item status → pipeline stage (Fase A mapping).
+# WorkBank states are PRE-submission: 'ready_to_deliver' means prepared,
+# not sent; 'delivered' means the human submitted it.
+_WORKBANK_STAGE_MAP = {
+    "discovered": OpportunityStage.DISCOVERED,
+    "needs_access": OpportunityStage.QUALIFIED,
+    "ready_to_deliver": OpportunityStage.IN_PROGRESS,
+    "delivered": OpportunityStage.SUBMITTED,
+}
+
+
+def stage_from_workbank_status(status: str) -> OpportunityStage:
+    """Map a Work Bank item status to its pipeline stage.
+
+    Unknown statuses map to DISCOVERED (least-committal honest default).
+    """
+    return _WORKBANK_STAGE_MAP.get(str(status).strip().lower(), OpportunityStage.DISCOVERED)
+
+
+def stage_from_payment_status(status: PaymentStatus | str) -> OpportunityStage:
+    """Map a RevenueTracker PaymentStatus to the post-submission stages."""
+    value = getattr(status, "value", status)
+    stage_map = {
+        PaymentStatus.PENDING.value: OpportunityStage.SUBMITTED,
+        PaymentStatus.REVIEWING.value: OpportunityStage.SUBMITTED,
+        PaymentStatus.ACCEPTED.value: OpportunityStage.ACCEPTED,
+        PaymentStatus.PAID.value: OpportunityStage.PAID,
+        PaymentStatus.FAILED.value: OpportunityStage.REJECTED,
+        PaymentStatus.CANCELLED.value: OpportunityStage.REJECTED,
+    }
+    return stage_map.get(str(value).strip().lower(), OpportunityStage.DISCOVERED)
+
+
 class PaymentPlatform(Enum):
     PAYPAL = "paypal"
     PAYONEE = "payoneer"
