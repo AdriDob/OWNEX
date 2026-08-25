@@ -241,3 +241,80 @@ class EarningScores:
         if profile is None:
             return EarningScores(_IMMEDIATE_DEFAULT, _LONG_TERM_DEFAULT, "curated")
         return EarningScores(profile["immediate"], profile["long_term"], "curated")
+
+
+# ── HumanTimeAdjustedROI — Fase C (versioned, spec Income Multiplier §4) ──
+
+HTROI_FORMULA_VERSION = "HTROI-V1"
+
+
+@dataclass(frozen=True, slots=True)
+class HumanTimeAdjustedROI:
+    """Income per HUMAN hour — the metric that actually matters (§38).
+
+    human_hours = execution + qualification + review (human-only time).
+    Automation fields are optional and only populate compression when a
+    measured manual baseline exists — never fabricated (§14 honesty).
+    """
+
+    roi_usd_per_hour: float | None
+    expected_income_usd: float
+    human_hours_total: float
+    confidence_applied: float
+    compression_pct: float | None
+    automation_ratio: float | None
+    formula_version: str
+    warnings: tuple[str, ...] = ()
+
+
+def compute_htroi(
+    *,
+    expected_income_usd: float,
+    human_hours: float,
+    confidence: float = 1.0,
+    automation_hours: float | None = None,
+    manual_baseline_hours: float | None = None,
+) -> HumanTimeAdjustedROI:
+    """Expected income scaled by confidence, divided by HUMAN hours only.
+
+    Automation time is excluded from the denominator by design: it is the
+    machine's cost, not yours. Compression is reported ONLY when a real
+    manual baseline was measured — otherwise None (never invented).
+    """
+    warnings: list[str] = []
+    conf = _clamp01(confidence)
+    hours = float(human_hours)
+
+    if hours <= 0:
+        warnings.append("human_hours<=0 -> ROI indefinido (no hay tiempo humano declarado)")
+        return HumanTimeAdjustedROI(
+            roi_usd_per_hour=None,
+            expected_income_usd=float(expected_income_usd),
+            human_hours_total=hours,
+            confidence_applied=conf,
+            compression_pct=None,
+            automation_ratio=None,
+            formula_version=HTROI_FORMULA_VERSION,
+            warnings=tuple(warnings),
+        )
+
+    compression: float | None = None
+    ratio: float | None = None
+    if automation_hours is not None and manual_baseline_hours:
+        if manual_baseline_hours <= 0:
+            warnings.append("manual_baseline_hours<=0 ignorado")
+        else:
+            compression = round((1 - automation_hours / manual_baseline_hours) * 100, 1)
+            ratio = round(automation_hours / hours, 2) if hours else None
+
+    roi = round(float(expected_income_usd) * conf / hours, 2)
+    return HumanTimeAdjustedROI(
+        roi_usd_per_hour=roi,
+        expected_income_usd=float(expected_income_usd),
+        human_hours_total=hours,
+        confidence_applied=conf,
+        compression_pct=compression,
+        automation_ratio=ratio,
+        formula_version=HTROI_FORMULA_VERSION,
+        warnings=tuple(warnings),
+    )
