@@ -318,3 +318,94 @@ def compute_htroi(
         formula_version=HTROI_FORMULA_VERSION,
         warnings=tuple(warnings),
     )
+
+
+# ── Confidence Engine — Fase E (versioned, spec Income Multiplier §26) ──
+
+CONFIDENCE_FORMULA_VERSION = "CONF-V1"
+
+
+@dataclass(frozen=True, slots=True)
+class ConfidenceResult:
+    score: float  # 0-100
+    band: str  # HIGH | MEDIUM | LOW | UNKNOWN
+    formula_version: str
+    warnings: tuple[str, ...] = ()
+
+
+def compute_confidence(
+    *,
+    source_reliability: float | None = None,  # 0-100 del catálogo/logs
+    data_freshness_days: float | None = None,  # días desde última verificación
+    historical_samples: int = 0,  # outcomes terminales medidos
+    missing_fields: int = 0,  # campos críticos ausentes en la oportunidad
+) -> ConfidenceResult:
+    """Confianza 0-100 de una recomendación, por sustracción documentada.
+
+    V1 (determinista, sin pesos inventados como 'modelo'): cada input
+    desconocido o débil penaliza una cantidad fija y explícita. Inputs
+    todos-desconocidos fuerzan banda UNKNOWN — el sistema admite que no
+    sabe en lugar de fingir certeza media.
+    """
+    warnings: list[str] = []
+    score = 100.0
+
+    known_inputs = 0
+
+    if source_reliability is None:
+        score -= 30
+        warnings.append("source_reliability desconocido (-30)")
+    else:
+        known_inputs += 1
+        rel = max(0.0, min(100.0, float(source_reliability)))
+        delta = (100.0 - rel) * 0.3  # reliability 60 => -12
+        if delta > 0:
+            score -= delta
+            warnings.append(f"source_reliability {rel:.0f} (-{delta:.1f})")
+
+    if data_freshness_days is None:
+        score -= 20
+        warnings.append("data_freshness desconocida (-20)")
+    else:
+        known_inputs += 1
+        days = max(0.0, float(data_freshness_days))
+        if days > 90:
+            score -= 30
+            warnings.append(f"frescura {days:.0f}d > 90 (-30)")
+        elif days > 30:
+            score -= 15
+            warnings.append(f"frescura {days:.0f}d > 30 (-15)")
+
+    known_inputs += 1  # historical_samples siempre tiene valor numérico
+    samples = int(historical_samples)
+    if samples <= 0:
+        score -= 25
+        warnings.append("sin outcomes históricos (-25)")
+    elif samples < 3:
+        score -= 10
+        warnings.append(f"solo {samples} outcomes (-10)")
+
+    missing = max(0, int(missing_fields))
+    if missing:
+        penalty = min(24.0, missing * 8.0)
+        score -= penalty
+        warnings.append(f"{missing} campos críticos ausentes (-{penalty:.0f})")
+
+    final = max(0.0, min(100.0, round(score, 1)))
+
+    if known_inputs <= 1:
+        band = "UNKNOWN"
+        warnings.append("inputs primarios desconocidos -> banda UNKNOWN")
+    elif final >= 70:
+        band = "HIGH"
+    elif final >= 45:
+        band = "MEDIUM"
+    else:
+        band = "LOW"
+
+    return ConfidenceResult(
+        score=final,
+        band=band,
+        formula_version=CONFIDENCE_FORMULA_VERSION,
+        warnings=tuple(warnings),
+    )
