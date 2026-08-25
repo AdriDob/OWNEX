@@ -76,7 +76,9 @@ pub struct HistoryCommand {
 }
 
 #[command]
-pub async fn remote_create_session(request: CreateSessionRequest) -> Result<SessionResponse, String> {
+pub async fn remote_create_session(
+    request: CreateSessionRequest,
+) -> Result<SessionResponse, String> {
     let client = reqwest::Client::new();
     let resp = client
         .post(backend_url("/remote/session"))
@@ -84,11 +86,11 @@ pub async fn remote_create_session(request: CreateSessionRequest) -> Result<Sess
         .send()
         .await
         .map_err(|e| format!("Request failed: {}", e))?;
-    
+
     if !resp.status().is_success() {
         return Err(format!("API error: {}", resp.status()));
     }
-    
+
     let data: SessionResponse = resp.json().await.map_err(|e| e.to_string())?;
     Ok(data)
 }
@@ -102,11 +104,11 @@ pub async fn remote_chat(request: ChatRequest) -> Result<ChatResponse, String> {
         .send()
         .await
         .map_err(|e| format!("Request failed: {}", e))?;
-    
+
     if !resp.status().is_success() {
         return Err(format!("API error: {}", resp.status()));
     }
-    
+
     let data: ChatResponse = resp.json().await.map_err(|e| e.to_string())?;
     Ok(data)
 }
@@ -120,11 +122,11 @@ pub async fn remote_approve(request: ApproveRequest) -> Result<ChatResponse, Str
         .send()
         .await
         .map_err(|e| format!("Request failed: {}", e))?;
-    
+
     if !resp.status().is_success() {
         return Err(format!("API error: {}", resp.status()));
     }
-    
+
     let data: ChatResponse = resp.json().await.map_err(|e| e.to_string())?;
     Ok(data)
 }
@@ -137,29 +139,35 @@ pub async fn remote_get_session(session_id: String) -> Result<SessionInfo, Strin
         .send()
         .await
         .map_err(|e| format!("Request failed: {}", e))?;
-    
+
     if !resp.status().is_success() {
         return Err(format!("API error: {}", resp.status()));
     }
-    
+
     let data: SessionInfo = resp.json().await.map_err(|e| e.to_string())?;
     Ok(data)
 }
 
 #[command]
-pub async fn remote_get_history(session_id: String, limit: Option<i32>) -> Result<HistoryResponse, String> {
+pub async fn remote_get_history(
+    session_id: String,
+    limit: Option<i32>,
+) -> Result<HistoryResponse, String> {
     let client = reqwest::Client::new();
-    let url = backend_url(&format!("/remote/history/{session_id}?limit={}", limit.unwrap_or(50)));
+    let url = backend_url(&format!(
+        "/remote/history/{session_id}?limit={}",
+        limit.unwrap_or(50)
+    ));
     let resp = client
         .get(url)
         .send()
         .await
         .map_err(|e| format!("Request failed: {}", e))?;
-    
+
     if !resp.status().is_success() {
         return Err(format!("API error: {}", resp.status()));
     }
-    
+
     let data: HistoryResponse = resp.json().await.map_err(|e| e.to_string())?;
     Ok(data)
 }
@@ -172,11 +180,11 @@ pub async fn remote_health() -> Result<serde_json::Value, String> {
         .send()
         .await
         .map_err(|e| format!("Request failed: {}", e))?;
-    
+
     if !resp.status().is_success() {
         return Err(format!("API error: {}", resp.status()));
     }
-    
+
     let data: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
     Ok(data)
 }

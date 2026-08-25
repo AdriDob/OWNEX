@@ -121,11 +121,11 @@ class TestSourceFamilyVocabulary:
         from cores.opportunity.global_sources import OpportunityCategory as GlobalFamilies
 
         assert _source_categories() == list(GlobalFamilies)
-        assert [c.value for c in _source_categories()] == [
-            "bug_bounty",
-            "dev_bounty",
-            "data_entry",
-        ]
+        # Vocabulario canónico vivo (SSOT): el set crece con decisiones de
+        # producto (ej. ai_evaluation incorporada 2026-08-25). El test verifica
+        # que _source_categories itera EL ENUM, no una lista hardcodeada.
+        assert {c.value for c in _source_categories()} == {m.value for m in GlobalFamilies}
+        assert len(_source_categories()) >= 4  # base histórica + familias curadas
 
     def test_new_family_is_picked_up_automatically(self) -> None:
         # exhaustiveness by construction: count tracks the live enum
@@ -136,11 +136,14 @@ class TestSourceFamilyVocabulary:
 
     def test_source_intel_marks_its_vocabulary(self) -> None:
         from cores.direct_work_engine.source_intel import SourceIntelEngine
+        from cores.opportunity.global_sources import OpportunityCategory as GlobalFamilies
 
         report = SourceIntelEngine().analyze()
         assert report["vocabulary"] == "global_source_families"
         families = {s["category"] for s in report["sources"]}
-        assert families <= {"bug_bounty", "dev_bounty", "data_entry"}
+        # Deriva del enum vivo, nunca de literales: una familia nueva del SSOT
+        # es válida automáticamente.
+        assert families <= {m.value for m in GlobalFamilies}
 
     def test_global_families_map_to_canonical(self) -> None:
         from cores.opportunity.global_sources import OpportunityCategory as GlobalFamilies

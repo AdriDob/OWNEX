@@ -56,12 +56,15 @@ ENGINE_TO_CANONICAL: dict[EngineOpportunityCategory, OpportunityCategory] = {
     EngineOpportunityCategory.TECH_CHALLENGES: OpportunityCategory.COMPETITIONS,
 }
 
-# cores.opportunity.global_sources (3 curated source families) -> canonical
+# cores.opportunity.global_sources (4 curated source families) -> canonical
 GLOBAL_SOURCE_TO_CANONICAL: dict[GlobalSourceCategory, OpportunityCategory] = {
     GlobalSourceCategory.bug_bounty: OpportunityCategory.BUG_BOUNTY,
     GlobalSourceCategory.dev_bounty: OpportunityCategory.DEV_BOUNTY,
     # Entry-level data work ≈ annotation family.
     GlobalSourceCategory.data_entry: OpportunityCategory.DATA_ANNOTATION,
+    # AI-training platforms (Outlier/Mercor/Alignerr/Mindrift family,
+    # curated 2026-08-25): hourly evaluation streams ≈ ai_evaluation.
+    GlobalSourceCategory.ai_evaluation: OpportunityCategory.AI_EVALUATION,
 }
 
 # core.opportunity.mercenary_filter (11 prioritized categories) -> canonical

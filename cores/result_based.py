@@ -33,8 +33,11 @@ _RESULT_EMPLOYMENT = frozenset({"bounty", "open_call", "microtask", "challenge",
 # Non-result (hiring-funnel) employment types.
 _TRADITIONAL_EMPLOYMENT = frozenset({"full_time", "part_time", "contract", "retainer"})
 
-# Friction flags that push an opportunity toward traditional/deprioritized.
-_FRICTION_FLAGS = ("interview_required", "portfolio_required", "technical_test_required")
+# Hiring-funnel friction: gates on WHO you are. Capability assessments
+# (technical tests) are deliberately NOT here — they gate on WHAT you can
+# do, amortize once, and never demote an opportunity on their own
+# ("Zero Experience does not mean Zero Barrier", 2026-08-25).
+_FUNNEL_FLAGS = ("interview_required", "portfolio_required")
 
 _LEVEL_ORDER = {"S": 0, "A": 1, "B": 2, "C": 3}
 
@@ -70,41 +73,62 @@ class ResultBasedClassifier:
         if has_portfolio:
             friction_flags.append("requiere portfolio")
         if has_test:
-            friction_flags.append("prueba técnica obligatoria")
+            # Capability assessment: one-time, amortizable — surfaced as an
+            # expectation, never as funnel friction.
+            friction_flags.append("assessment de capacidad único")
+
+        is_funnel = has_interview or has_portfolio
+        assessment_only = has_test and not is_funnel
 
         # Level S — direct result: open bounty (public task, defined payout).
-        if (
-            employment in {"bounty", "open_call"}
-            and not has_interview
-            and not has_portfolio
-            and not has_test
-            and remote
-            and intl
-        ):
+        # A capability assessment does NOT disqualify S: proving you can do
+        # the work is the same act as delivering it.
+        if employment in {"bounty", "open_call"} and not has_interview and not has_portfolio and remote and intl:
             score = min(100.0, 60.0 + (payment / 2000.0 * 40.0))
+            reasons = [f"Pago por resultado ({employment}), sin entrevista/portfolio"]
+            expectations = ["Entrega el resultado y la verificación es el pago."]
+            if has_test:
+                reasons.append("Assessment de capacidad único para entrar (no experiencia previa)")
+                expectations.append("Inversión única de tiempo en el assessment antes de cobrar.")
             return LevelAssessment(
                 level="S",
                 label="Direct Result",
                 score=round(score, 1),
-                reasons=[f"Pago por resultado ({employment}), sin entrevista/portfolio/prueba"],
-                expectations=["Entrega el resultado y la verificación es el pago."],
+                reasons=reasons,
+                expectations=expectations,
                 recommendation="compete",
             )
 
-        # Level A — low friction: public, simple registration, pay by work.
-        if employment in {"microtask", "challenge", "prize"} and not has_interview and not has_portfolio:
-            score = min(90.0, 55.0 + (payment / 2000.0 * 35.0))
+        # Level A — low friction: public/simple registration pay-by-work,
+        # INCLUDING capability-assessed hourly streams (AI training family):
+        # entry via assessment with no experience requirement is low
+        # friction by design, not a hiring funnel.
+        assessed_stream = (
+            assessment_only
+            and employment in _TRADITIONAL_EMPLOYMENT
+            and str(opportunity.get("entry_mechanism") or "") in {"assessment", "training", "test"}
+        )
+        if (employment in {"microtask", "challenge", "prize"} and not is_funnel) or assessed_stream:
+            base = 55.0 if not assessed_stream else 50.0
+            score = min(90.0, base + (payment / 2000.0 * 35.0))
+            reasons = [f"Trabajo por unidad/aceptación ({employment}), simple registro"] + friction_flags
+            expectations = ["Calidad aceptada = pago; reputación puede crecer con cada entrega."]
+            if assessed_stream:
+                reasons = [
+                    f"Stream por hora con entry por assessment ({employment}); sin experiencia previa requerida"
+                ] + friction_flags
+                expectations = ["Assessment único al entrar; después ingreso recurrente mientras haya tareas."]
             return LevelAssessment(
                 level="A",
                 label="Low Friction",
                 score=round(score, 1),
-                reasons=[f"Trabajo por unidad/aceptación ({employment}), simple registro"] + friction_flags,
-                expectations=["Calidad aceptada = pago; reputación puede crecer con cada entrega."],
+                reasons=reasons,
+                expectations=expectations,
                 recommendation="compete" if score >= 60 else "consider",
             )
 
         # Level B — skill proof: no interview, but sample/reputation judged.
-        if not has_interview:
+        if not is_funnel:
             score = min(80.0, 40.0 + (payment / 2000.0 * 35.0))
             return LevelAssessment(
                 level="B",
@@ -115,13 +139,14 @@ class ResultBasedClassifier:
                 recommendation="consider",
             )
 
-        # Level C — traditional hiring funnel.
-        score = max(10.0, 30.0 - len(friction_flags) * 8.0)
+        # Level C — traditional hiring funnel (identity/history gates only).
+        funnel_only = [f for f in friction_flags if "assessment" not in f]
+        score = max(10.0, 30.0 - len(funnel_only) * 8.0)
         return LevelAssessment(
             level="C",
             label="Traditional",
             score=round(score, 1),
-            reasons=["Proceso de contratación tradicional (entrevista/etapas)."],
+            reasons=["Proceso de contratación tradicional (entrevista/portfolio/etapas)."] + friction_flags,
             expectations=["Requiere CV, entrevistas y validación previa."],
             recommendation="skip" if score < 25 else "consider",
         )

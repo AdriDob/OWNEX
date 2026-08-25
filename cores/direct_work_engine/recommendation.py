@@ -118,6 +118,42 @@ _MAX_SUCCESS_CONFIG = RecommenderConfig(
 
 MAX_SUCCESS_RECOMMENDER_CONFIG = _MAX_SUCCESS_CONFIG
 
+# Max Income Mode — maximize expected WEEKLY income across all work shapes
+# (hourly streams, per-result bounties, fillers) rather than nominal rate.
+# EV leads; acceptance and speed keep it realistic; barrier still matters
+# because unentered platforms earn nothing this week.
+_MAX_INCOME_CONFIG = RecommenderConfig(
+    weight_expected_value=0.35,
+    weight_acceptance_probability=0.25,
+    weight_speed=0.15,
+    weight_zero_barrier=0.15,
+    weight_compatibility=0.05,
+    weight_reputation=0.05,
+)
+
+MAX_INCOME_RECOMMENDER_CONFIG = _MAX_INCOME_CONFIG
+
+
+def filter_zero_experience(opportunities: list[Opportunity]) -> list[Opportunity]:
+    """Keep only opportunities doable WITHOUT prior experience in the category.
+
+    Capability gates (assessment/training/test) are explicitly ALLOWED here —
+    "Zero Experience does not mean Zero Barrier". Only a hard experience
+    requirement (REQUIRED, incl. legacy MID/SENIOR depth) excludes.
+    """
+    return [o for o in opportunities if o.is_zero_experience]
+
+
+def filter_zero_barrier_strict(opportunities: list[Opportunity]) -> list[Opportunity]:
+    """Strict zero-barrier: nothing at all between you and paid work.
+
+    Excludes any application gate: assessment, training, test, interview,
+    portfolio, approval/invitation. Use when the user wants to start
+    earning immediately even if it pays less.
+    """
+    return [o for o in opportunities if o.is_zero_barrier]
+
+
 # PaymentMethod (DWE) -> method accepted by the PaymentCompatibilityEngine network.
 # Methods without a curated account in the network stay unevaluated (neutral).
 _PAYMENT_METHOD_MAP: dict[str, str] = {
@@ -156,6 +192,8 @@ class IntelligentRecommender:
         profile: UserProfile,
         limit: int = 10,
         mode: str = "balanced",
+        zero_experience_only: bool = False,
+        zero_barrier_strict: bool = False,
     ) -> list[RankedOpportunity]:
         """Generate ranked recommendations for a user profile.
 
@@ -167,15 +205,31 @@ class IntelligentRecommender:
         acceptance probability is weighted highest (0.40) and a hard floor is
         enforced so low-success work never surfaces.
 
+        ``mode="max_income"`` maximizes expected weekly income across ALL work
+        shapes (hourly streams, bounties, fillers) — not just nominal rate.
+
+        Keyword filters (independent of mode):
+
+        ``zero_experience_only`` drops opportunities requiring prior experience
+        in the category, but KEEPS capability-assessed entries (assessment
+        != experience). ``zero_barrier_strict`` keeps only direct-entry work:
+        no assessment/interview/portfolio/approval of any kind.
+
         Any other mode (or no mode) restores the balanced preset, so a previous
-        ``fast_income``/``max_success`` call never leaks into later ones.
+        preset call never leaks into later ones.
         """
         if mode == "fast_income":
             self.config = _FAST_INCOME_CONFIG
         elif mode == "max_success":
             self.config = _MAX_SUCCESS_CONFIG
+        elif mode == "max_income":
+            self.config = _MAX_INCOME_CONFIG
         else:
             self.config = DEFAULT_RECOMMENDER_CONFIG
+        if zero_experience_only:
+            opportunities = filter_zero_experience(opportunities)
+        if zero_barrier_strict:
+            opportunities = filter_zero_barrier_strict(opportunities)
         return self.__recommend(opportunities, profile, limit=limit)
 
     def filter_by_success_floor(

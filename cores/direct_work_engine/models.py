@@ -154,10 +154,66 @@ class ExperienceLevel(StrEnum):
 
 
 class BarrierLevel(StrEnum):
+    ZERO = "zero"
     VERY_LOW = "very_low"
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
+
+
+class EntryMechanism(StrEnum):
+    """How a worker gets from "outside" to "doing paid work".
+
+    Capability mechanisms (ASSESSMENT/TRAINING/TEST) are one-time,
+    amortizable costs that prove skill — they are NOT hiring funnels.
+    Funnel mechanisms (INTERVIEW/PORTFOLIO/EXPERIENCE_REVIEW/INVITATION)
+    gate on who you are, not what you can do.
+
+    "Zero Experience does not mean Zero Barrier": an opportunity can require
+    a capability assessment and still accept workers with no prior job
+    history in the category.
+    """
+
+    DIRECT = "direct"
+    REGISTRATION = "registration"
+    ASSESSMENT = "assessment"
+    TRAINING = "training"
+    TEST = "test"
+    INTERVIEW = "interview"
+    PORTFOLIO = "portfolio"
+    EXPERIENCE_REVIEW = "experience_review"
+    INVITATION = "invitation"
+
+
+# Mechanisms that prove capability once (amortized over a work stream).
+CAPABILITY_MECHANISMS: frozenset[EntryMechanism] = frozenset(
+    {EntryMechanism.ASSESSMENT, EntryMechanism.TRAINING, EntryMechanism.TEST}
+)
+
+# Mechanisms that gate on identity/history (hiring funnel).
+FUNNEL_MECHANISMS: frozenset[EntryMechanism] = frozenset(
+    {
+        EntryMechanism.INTERVIEW,
+        EntryMechanism.PORTFOLIO,
+        EntryMechanism.EXPERIENCE_REVIEW,
+        EntryMechanism.INVITATION,
+    }
+)
+
+
+class ExperienceRequirement(StrEnum):
+    """Whether prior work history in the category is required to enter."""
+
+    NONE = "none"
+    OPTIONAL = "optional"
+    PREFERRED = "preferred"
+    REQUIRED = "required"
+
+
+# Requirement levels compatible with working without prior experience.
+ZERO_EXPERIENCE_REQUIREMENTS: frozenset[ExperienceRequirement] = frozenset(
+    {ExperienceRequirement.NONE, ExperienceRequirement.OPTIONAL}
+)
 
 
 # Payment methods that can receive money internationally from any country.
@@ -258,6 +314,15 @@ class Opportunity:
     technology_tags: list[str] = field(default_factory=list)
     employment_type: EmploymentType = EmploymentType.CONTRACT
 
+    # Entry model (additive, 2026-08-25): distinguishes "no prior experience
+    # needed" from "nothing stands between you and the work". Legacy data
+    # without these fields derives them from the classic barrier flags.
+    entry_mechanism: EntryMechanism = EntryMechanism.DIRECT
+    experience_requirement: ExperienceRequirement | None = None
+    hourly_rate_usd: float | None = None  # for hourly-stream work shapes
+    time_to_first_work_hours: float | None = None
+    rate_source: str = "unknown"  # platform | ownex_history | unknown
+
     # Zero Barrier Score (populated by scorer)
     zero_barrier_score: ZeroBarrierScore | None = None
 
@@ -272,6 +337,44 @@ class Opportunity:
                 )
         if self.international_payment is None:
             self.international_payment = self.payment_method in INTERNATIONAL_PAYMENT_METHODS
+
+    # ── Derived entry-model facts (single definition point) ──
+
+    @property
+    def effective_experience_requirement(self) -> ExperienceRequirement:
+        """Legacy-aware view of the experience gate.
+
+        New data sets ``experience_requirement`` explicitly; legacy records
+        only carry ``experience_required`` (a depth level), which maps as:
+        NONE→NONE (no gate), JUNIOR→OPTIONAL, MID/SENIOR→REQUIRED.
+        """
+        if self.experience_requirement is not None:
+            return self.experience_requirement
+        if self.experience_required == ExperienceLevel.NONE:
+            return ExperienceRequirement.NONE
+        if self.experience_required == ExperienceLevel.JUNIOR:
+            return ExperienceRequirement.OPTIONAL
+        return ExperienceRequirement.REQUIRED
+
+    @property
+    def is_zero_experience(self) -> bool:
+        """No prior work history in the category needed to do this work."""
+        return self.effective_experience_requirement in ZERO_EXPERIENCE_REQUIREMENTS
+
+    @property
+    def is_zero_barrier(self) -> bool:
+        """Nothing at all stands between you and paid work right now.
+
+        Strictly stronger than zero-experience: no application gate of any
+        kind (assessment/training/test/interview/portfolio/approval).
+        """
+        return (
+            self.entry_mechanism == EntryMechanism.DIRECT
+            and not self.technical_test_required
+            and not self.interview_required
+            and not self.portfolio_required
+            and self.effective_experience_requirement in ZERO_EXPERIENCE_REQUIREMENTS
+        )
 
 
 @dataclass(slots=True)

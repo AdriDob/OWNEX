@@ -15,6 +15,7 @@ from cores.direct_work_engine.discovery import BaseDiscoveryAdapter, DiscoverySo
 from cores.direct_work_engine.models import (
     DifficultyLevel,
     EmploymentType,
+    EntryMechanism,
     ExperienceLevel,
     Opportunity,
     OpportunityCategory,
@@ -75,6 +76,16 @@ class LegacyOpportunityDweAdapter(BaseDiscoveryAdapter):
         else:
             difficulty = DifficultyLevel.ADVANCED
 
+        # Entry model from the curated catalog (assessment ≠ funnel ≠ experience).
+        entry = _curated_entry_model(self.source.platform.value)
+        assessment = bool(entry and entry["assessment"])
+        technical_test = assessment
+        entry_mechanism = (
+            EntryMechanism.ASSESSMENT
+            if assessment
+            else (EntryMechanism.REGISTRATION if self._registration_required else EntryMechanism.DIRECT)
+        )
+
         return Opportunity(
             id=str(getattr(raw, "id", "")),
             title=str(getattr(raw, "name", "") or self.source.name),
@@ -92,9 +103,11 @@ class LegacyOpportunityDweAdapter(BaseDiscoveryAdapter):
             experience_required=ExperienceLevel.NONE,
             portfolio_required=bool(self._curated_barriers[0]) if self._curated_barriers else False,
             interview_required=bool(self._curated_barriers[1]) if self._curated_barriers else False,
-            technical_test_required=False,
+            technical_test_required=technical_test,
             registration_required=self._registration_required,
-            time_to_payout_days=None,
+            time_to_payout_days=(
+                float(entry["payout_cadence_days"]) if entry and entry["payout_cadence_days"] else None
+            ),
             payment_proven=False,
             stability=0.5,
             accepts_beginner=True,
@@ -104,6 +117,12 @@ class LegacyOpportunityDweAdapter(BaseDiscoveryAdapter):
             asynchronous=True,
             technology_tags=list(getattr(raw, "tags", []) or []),
             employment_type=self._employment_type,
+            entry_mechanism=entry_mechanism,
+            hourly_rate_usd=(float(entry["hourly_rate_usd"]) if entry and entry["hourly_rate_usd"] else None),
+            time_to_first_work_hours=(
+                float(entry["time_to_first_work_hours"]) if entry and entry["time_to_first_work_hours"] else None
+            ),
+            rate_source="platform" if assessment and entry and entry["hourly_rate_usd"] else "unknown",
         )
 
 
@@ -125,6 +144,13 @@ def _curated_barrier_flags(platform_key: str) -> tuple[bool, bool] | None:
         url = (getattr(src, "url", "") or "").lower()
         if key == name_norm or (url and key in url):
             return (bool(src.requires_portfolio), bool(src.requires_interview))
+
+
+def _curated_entry_model(platform_key: str) -> dict[str, Any] | None:
+    """Entry-model facts from the curated catalog — delegates to the SSOT."""
+    from cores.opportunity.global_sources import find_curated_entry_model
+
+    return find_curated_entry_model(platform_key)
 
 
 def build_default_adapters() -> list[BaseDiscoveryAdapter]:

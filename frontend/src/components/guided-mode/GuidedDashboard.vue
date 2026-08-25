@@ -11,7 +11,6 @@ import type { DailyBrief, GuidedMode } from '@/types/guided'
 
 const { currentMode, initMode, setMode } = useGuidedMode()
 const { fetchFirstDayGuide, fetchFirstDayProgress, completeFirstDayStep } = useFirstDayGuide()
-const { fetchDirectWorkDailyBrief, fetchDirectWorkWorkBank } = useDirectWork()
 
 const dailyBrief = ref<DailyBrief | null>(null)
 const workBank = ref<any>(null)
