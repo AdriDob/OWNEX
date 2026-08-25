@@ -1,6 +1,6 @@
 [project]
 name = "ownex-omega"
-version = "7.0.0"
+version = "1.0.0"
 description = "OWNEX OMEGA — Autonomous Work Operating Platform"
 requires-python = ">=3.11"
 dependencies = [
