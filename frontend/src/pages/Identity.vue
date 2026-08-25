@@ -1,16 +1,32 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import {
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Globe,
+  Info,
+  Key,
+  Link,
+  Loader2,
+  Mail,
+  Plus,
+  RefreshCw,
+  Settings,
+  Shield,
+  ShieldOff,
+  Unlink,
+  Wallet,
+  XCircle,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import DoughnutChart from '@/components/charts/DoughnutChart.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import DoughnutChart from '@/components/charts/DoughnutChart.vue'
-import {
-  Globe, Unlink, Link, CheckCircle2, XCircle, Settings, Mail, Wallet,
-  Shield, ShieldOff, RefreshCw, Loader2, AlertTriangle, Key, Plus,
-  ArrowRight, ChevronDown, ChevronUp, Info,
-} from '@lucide/vue'
+import { api } from '@/lib/api'
 
 interface PlatformAccount {
   provider: string
@@ -55,7 +71,7 @@ const connecting = ref(false)
 const connectError = ref('')
 
 const definitions = ref<{ platforms: { id: string; name: string }[] }>({ platforms: [] })
-const platformList = computed(() => definitions.value.platforms.map(p => p.name))
+const platformList = computed(() => definitions.value.platforms.map((p) => p.name))
 
 async function syncAll() {
   syncing.value = true
@@ -63,8 +79,11 @@ async function syncAll() {
     await api.post('/platforms/sync', {})
     await loadData()
     lastSyncAll.value = new Date().toISOString()
-  } catch { /* ignore */ }
-  finally { syncing.value = false }
+  } catch {
+    /* ignore */
+  } finally {
+    syncing.value = false
+  }
 }
 
 async function syncPlatform(provider: string) {
@@ -73,8 +92,11 @@ async function syncPlatform(provider: string) {
     // No hay sync por-provider en el backend; el sync es global.
     await api.post('/platforms/sync', {})
     await loadData()
-  } catch { /* ignore */ }
-  finally { syncingPlatform.value = null }
+  } catch {
+    /* ignore */
+  } finally {
+    syncingPlatform.value = null
+  }
 }
 
 const platformColors: Record<string, string> = {
@@ -85,8 +107,8 @@ const platformColors: Record<string, string> = {
   synack: 'text-muted-foreground',
 }
 
-const connectedCount = computed(() => accounts.value.filter(a => a.connected).length)
-const disconnectedCount = computed(() => accounts.value.filter(a => !a.connected).length)
+const connectedCount = computed(() => accounts.value.filter((a) => a.connected).length)
+const disconnectedCount = computed(() => accounts.value.filter((a) => !a.connected).length)
 
 const doughnutLabels = computed(() => ['Connected', 'Disconnected'])
 const doughnutData = computed(() => [connectedCount.value, disconnectedCount.value])
@@ -103,8 +125,8 @@ async function loadData() {
     ])
     if (accRes.status === 'fulfilled') accounts.value = accRes.value.accounts || []
     if (defRes.status === 'fulfilled') definitions.value = defRes.value
-  } catch (e: any) {
-    error.value = e.message || 'Failed to load identity data'
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : 'Failed to load identity data'
   } finally {
     loading.value = false
   }
@@ -123,8 +145,8 @@ async function connectPlatform(provider: string) {
     connectEmail.value = ''
     connectToken.value = ''
     await loadData()
-  } catch (e: any) {
-    connectError.value = e.message || 'Failed to connect'
+  } catch (e: unknown) {
+    connectError.value = e instanceof Error ? e.message : 'Failed to connect'
   } finally {
     connecting.value = false
   }
@@ -133,8 +155,10 @@ async function connectPlatform(provider: string) {
 async function disconnectPlatform(provider: string) {
   try {
     await api.post(`/identity-center/platform/${provider}/disconnect`, {})
-    accounts.value = accounts.value.filter(a => a.provider !== provider)
-  } catch { /* ignore */ }
+    accounts.value = accounts.value.filter((a) => a.provider !== provider)
+  } catch {
+    /* ignore */
+  }
 }
 
 async function saveSettings() {
@@ -144,25 +168,25 @@ async function saveSettings() {
   try {
     // Persistencia granular contra endpoints reales de identity-center.
     await Promise.all([
-      settings.value.email
-        ? api.post('/identity-center/email', { primary: settings.value.email })
-        : Promise.resolve(),
+      settings.value.email ? api.post('/identity-center/email', { primary: settings.value.email }) : Promise.resolve(),
       settings.value.wallet_address
         ? api.post('/identity-center/wallets', { usdc: settings.value.wallet_address })
         : Promise.resolve(),
       api.post('/identity-center/never-submit', { enabled: settings.value.approval_required }),
     ])
     settingsSuccess.value = 'Settings saved'
-    setTimeout(() => { settingsSuccess.value = '' }, 3000)
-  } catch (e: any) {
-    settingsError.value = e.message || 'Failed to save settings'
+    setTimeout(() => {
+      settingsSuccess.value = ''
+    }, 3000)
+  } catch (e: unknown) {
+    settingsError.value = e instanceof Error ? e.message : 'Failed to save settings'
   } finally {
     settingsSaving.value = false
   }
 }
 
 function getAccount(provider: string) {
-  return accounts.value.find(a => a.provider.toLowerCase() === provider.toLowerCase())
+  return accounts.value.find((a) => a.provider.toLowerCase() === provider.toLowerCase())
 }
 
 onMounted(loadData)

@@ -61,6 +61,12 @@
           "correctness": {
             "noUnusedImports": "off",
             "noUnusedVariables": "off"
+          },
+          "suspicious": {
+            "noExplicitAny": "warn"
+          },
+          "style": {
+            "useVueMultiWordComponentNames": "off"
           }
         }
       }
