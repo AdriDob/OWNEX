@@ -1,6 +1,6 @@
 # OWNEX 1.0 ALPHA — RELEASE AUDIT (reproducible)
 
-> **Fecha**: 2026-08-25 · **Commit auditado**: tag `v1.0.0` = `58fdbf63` (+ commits docs/test posteriores, sin código de producto)
+> **Fecha**: 2026-08-25 · **Commit auditado**: tag `v1.0.0` = `d50a4c41` (+ commits docs/test posteriores, sin código de producto)
 > **Método**: ejecución real de cada grupo. Nada declarado por inspección.
 
 ## 1. BACKEND
@@ -103,7 +103,7 @@ VERSION/CHANGELOG en OneDrive. Claims obsoletos eliminados (OMEGA branding, path
 
 ## 13. RELEASE ARTIFACT
 
-Generados POR CI desde tag v1.0.0 (58fdbf63). Commits posteriores = solo
+Generados POR CI desde tag v1.0.0 (d50a4c41). Commits posteriores = solo
 docs/tests (sin código de producto). Hashes regenerados y verificados ×2:
 
 ```
