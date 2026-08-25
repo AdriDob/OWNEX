@@ -259,10 +259,34 @@ def _ranked_to_dict(ranked: RankedOpportunity) -> dict[str, Any]:
     except Exception:
         pass
 
+    # Fase C: ingreso por HORA HUMANA (HTROI-V1) — el tiempo de la máquina
+    # no cuenta en el denominador. Degradación defensiva como expected_cash.
+    htroi: dict[str, Any] | None = None
+    try:
+        from cores.direct_work_engine.economics import compute_htroi
+
+        hours = float(getattr(ranked.opportunity, "estimated_time_hours", 0) or 0)
+        proj = compute_htroi(
+            expected_income_usd=float(expected_cash["days_to_cash"] or 0)
+            if False
+            else float(ranked.expected_value),
+            human_hours=hours,
+        )
+        htroi = {
+            "usd_per_hour": proj.roi_usd_per_hour,
+            "human_hours_total": proj.human_hours_total,
+            "formula_version": proj.formula_version,
+        }
+        if proj.warnings:
+            htroi["warnings"] = list(proj.warnings)
+    except Exception:
+        pass
+
     return {
         "rank": ranked.rank,
         "opportunity": _opportunity_to_dict(ranked.opportunity),
         "expected_cash": expected_cash,
+        "htroi": htroi,
         "zero_barrier_score": {
             "total": zb.total if zb else 0.0,
             "barrier_level": zb.barrier_label if zb else "unknown",
@@ -394,6 +418,24 @@ async def direct_work_score(request: ScoreRequest) -> dict[str, Any]:
     return {"scored": [_opportunity_to_dict(o) for o in scored]}
 
 
+def _fallback_payload(ranked: list) -> dict:
+    """Serializa primary+fallbacks; degrade defensivo a vacío."""
+    try:
+        from cores.direct_work_engine.fallbacks import build_fallback_chain
+
+        ranked_list = [_ranked_to_dict(r) for r in ranked]
+        chain = build_fallback_chain(ranked_list)
+        entries = [
+            {"rank": f.rank, "platform": f.platform, "title": f.title,
+             "trigger": f.trigger}
+            for f in chain.as_list()
+        ]
+        return {"primary": entries[0] if entries else None,
+                "fallbacks": entries[1:], "warnings": list(chain.warnings)}
+    except Exception:
+        return {"primary": None, "fallbacks": [], "warnings": []}
+
+
 @router.post("/recommend")
 async def direct_work_recommend(request: RecommendRequest) -> dict[str, Any]:
     """Rank opportunities for a user profile; returns ordered RankedOpportunities.
@@ -415,7 +457,20 @@ async def direct_work_recommend(request: RecommendRequest) -> dict[str, Any]:
     if not opportunities:
         opportunities = await get_engine().discovery.discover_all()
     ranked = get_engine().recommender.recommend(opportunities, profile, limit=request.limit, mode=request.mode)
-    return {"ranked": [_ranked_to_dict(r) for r in ranked]}
+    ranked_list = [_ranked_to_dict(r) for r in ranked]
+    try:
+        from cores.direct_work_engine.fallbacks import build_fallback_chain
+
+        chain = build_fallback_chain(ranked_list)
+        fallbacks = [
+            {"rank": f.rank, "platform": f.platform, "title": f.title,
+             "trigger": f.trigger, "expected_cash_date": f.expected_cash_date}
+            for f in chain.as_list()
+        ]
+        chain_warnings = list(chain.warnings)
+    except Exception:
+        fallbacks, chain_warnings = [], []
+    return {"ranked": ranked_list, "fallbacks": fallbacks[1:], "primary": fallbacks[0] if fallbacks else None, "chain_warnings": chain_warnings}
 
 
 @router.post("/discover")
@@ -944,6 +999,7 @@ async def direct_work_daily_brief(request: DailyBriefRequest) -> dict[str, Any]:
         "summary": summary,
         "top_opportunity": _ranked_to_dict(top) if top else None,
         "ranked": [_ranked_to_dict(r) for r in ranked],
+        "fallbacks": _fallback_payload(ranked),
         "learning": learning,
         "best_sources": best_sources,
     }
