@@ -4,7 +4,22 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from cores.direct_work_engine.cashflow import expected_cash_date
+from cores.direct_work_engine.cashflow import expected_cash_date, rail_for_payment_method
+
+
+def test_rail_mapping_known_methods() -> None:
+    assert rail_for_payment_method("crypto") == "binance_ar"
+    assert rail_for_payment_method("stablecoin") == "binance_ar"
+    assert rail_for_payment_method("paypal") == "paypal_ar"
+    assert rail_for_payment_method("payoneer") == "payoneer_ar"
+    assert rail_for_payment_method("wise") == "wise_ar"
+    assert rail_for_payment_method("bank_wire") == "wise_ar"
+
+
+def test_rail_mapping_unknown_is_none() -> None:
+    assert rail_for_payment_method("gift_card") is None
+    assert rail_for_payment_method(None) is None
+    assert rail_for_payment_method("") is None
 
 
 def _days_for(method_id: str) -> int:
