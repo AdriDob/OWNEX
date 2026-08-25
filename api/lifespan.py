@@ -12,6 +12,7 @@ responsive.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import os
 from collections.abc import Callable
@@ -92,7 +93,7 @@ async def run_background_init(app: Any, bus: Any) -> None:
     await _async_defer("orion_scheduler_start", _start_orion_scheduler, orion_scheduler)
 
     # ── Phase 9: Financial, optimization, last-mile ──
-    fin_scheduler = await _async_defer("financial_scheduler", _init_financial_scheduler)
+    await _async_defer("financial_scheduler", _init_financial_scheduler)
     _defer("agent_bridges", _init_agent_bridges)
     _defer("auto_report", _init_auto_report, bus)
     _defer("feedback_tuner", _init_feedback_tuner, bus)
@@ -479,7 +480,7 @@ def _init_extensions() -> None:
 
     ext_reg = get_extension_registry()
     ext_reg.discover()
-    results = ext_reg.load_all()
+    ext_reg.load_all()
     init_integration_registry(ext_reg)
 
 
@@ -538,10 +539,8 @@ def _init_notification_bridges(bus: Any, app: Any) -> None:
     register_db_bridge()
     register_desktop_channel()
 
-    try:
+    with contextlib.suppress(Exception):
         register_event_bridge()
-    except Exception:
-        pass
 
 
 def _init_copilot_handlers(bus: Any, app: Any) -> None:

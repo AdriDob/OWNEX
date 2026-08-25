@@ -41,6 +41,20 @@ def test_app_has_no_html_serving_routes() -> None:
     assert "not-served-here" in body.get("ui", "")
 
 
+def test_recommend_exposes_expected_cash() -> None:
+    """Regresión: expected_cash calculado pero omitido del payload (F841)."""
+    from pathlib import Path
+
+    src = (Path(__file__).resolve().parent.parent / "api" / "routers" / "direct_work.py").read_text(encoding="utf-8")
+    assert '"expected_cash": expected_cash' in src, (
+        "expected_cash debe incluirse en el dict de salida de _ranked_to_dict"
+    )
+    # y el bloque de cálculo existe antes
+    calc = src.find("expected_cash_date(rail)")
+    use = src.find('"expected_cash": expected_cash')
+    assert 0 < calc < use
+
+
 def test_runpy_never_serves_frontend_again() -> None:
     """Source guard on the historical offender."""
     src = (REPO / "run.py").read_text(encoding="utf-8")
