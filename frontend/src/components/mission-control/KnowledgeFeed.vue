@@ -37,7 +37,7 @@ const typeConfig = computed(() => ({
   insight: { label: 'INSIGHT', icon: 'lightbulb', color: 'var(--ownex-blue)', bg: 'rgba(255, 255, 255, 0.1)' },
   learning: { label: 'APRENDIZAJE', icon: 'brain', color: 'var(--color-cycle-forge)', bg: 'rgba(156, 163, 175, 0.1)' },
   pattern: { label: 'PATRÓN', icon: 'git-branch', color: 'var(--color-cycle-pulse)', bg: 'rgba(22, 163, 74, 0.1)' },
-  alert: { label: 'ALERTA', icon: 'alert-triangle', color: 'var(--ownex-red)', bg: 'rgba(0, 213, 255, 0.1)' },
+  alert: { label: 'ALERTA', icon: 'alert-triangle', color: 'var(--ownex-danger)', bg: 'rgba(0, 213, 255, 0.1)' },
   achievement: { label: 'LOGRO', icon: 'trophy', color: 'var(--ownex-gold)', bg: 'rgba(217, 119, 6, 0.1)' },
   system: { label: 'SISTEMA', icon: 'cpu', color: 'var(--ownex-text-muted)', bg: 'rgba(148, 163, 184, 0.1)' },
 }))
@@ -68,7 +68,7 @@ const getTypeIcon = (type: string) => {
 const getConfidenceColor = (score: number) => {
   if (score >= 80) return 'var(--ownex-green)'
   if (score >= 60) return 'var(--ownex-yellow)'
-  return 'var(--ownex-red)'
+  return 'var(--ownex-danger)'
 }
 
 const displayedItems = computed(() => props.items.slice(0, props.maxItems))
@@ -297,7 +297,7 @@ const KnowledgeFeedItem = defineComponent({
 .ownex-knowledge-feed__item--insight   { border-left: 3px solid var(--ownex-blue); }
 .ownex-knowledge-feed__item--learning  { border-left: 3px solid var(--color-cycle-forge); }
 .ownex-knowledge-feed__item--pattern   { border-left: 3px solid var(--color-cycle-pulse); }
-.ownex-knowledge-feed__item--alert     { border-left: 3px solid var(--ownex-red); }
+.ownex-knowledge-feed__item--alert     { border-left: 3px solid var(--ownex-danger); }
 .ownex-knowledge-feed__item--achievement { border-left: 3px solid var(--ownex-gold); }
 .ownex-knowledge-feed__item--system    { border-left: 3px solid var(--ownex-text-muted); }
 

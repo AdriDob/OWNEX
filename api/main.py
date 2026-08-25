@@ -629,17 +629,16 @@ app.include_router(profile_kit.router)
 app.include_router(knowledge_bridge.router)
 app.include_router(payment_compat.router)
 # ── ORION Platform: core + app routers ──
-try:
-    from core.api.routers import router as core_router
+# NOT fail-fast silencioso: si esto explota, el backend arranca sin sus rutas
+# (404 masivos intermitentes). El error debe ser visible en boot.
+from core.api.routers import router as core_router  # noqa: E402
 
-    app.include_router(core_router)
-    from core.app_registry import get_app_registry
+app.include_router(core_router)
+from core.app_registry import get_app_registry  # noqa: E402
 
-    registry = get_app_registry()
-    registry.mount_routers(app)
-    logger.info("[ORION] Core + app routers mounted")
-except Exception as exc:
-    logger.warning("[ORION] Router mounting failed (non-fatal): %s", exc)
+registry = get_app_registry()
+registry.mount_routers(app)
+logger.info("[ORION] Core + app routers mounted")
 
 
 APP_VERSION = _APP_VERSION

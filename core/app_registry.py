@@ -58,9 +58,23 @@ class AppRegistry:
         return jobs
 
     def mount_routers(self, fastapi_app: FastAPI) -> None:
+        """Mount every registered router.
+
+        Fail-fast per contract: a broken router must be VISIBLE, not silently
+        dropped (silent partial mounts caused intermittent 404 storms — see
+        docs/release/OWNEX_1.0_ALPHA_RELEASE_AUDIT.md). If you need to ship
+        with a broken router, unregister it here explicitly with a comment.
+        """
+        failures: list[str] = []
         for prefix, router in self.get_routers():
-            fastapi_app.include_router(router, prefix=prefix)
-            logger.info("Mounted router: %s", prefix)
+            try:
+                fastapi_app.include_router(router, prefix=prefix)
+                logger.info("Mounted router: %s", prefix)
+            except Exception as exc:
+                failures.append(f"{prefix}: {exc}")
+                logger.error("FAILED to mount router %s: %s", prefix, exc)
+        if failures:
+            raise RuntimeError(f"Router mounting failed for {len(failures)} router(s): " + "; ".join(failures))
 
     def register_database_models(self, db_manager: Any) -> None:
         for app_id, models in self.get_models().items():

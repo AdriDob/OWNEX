@@ -43,7 +43,7 @@ async function advance() {
 }
 
 function catColor(cat: string) {
-  const map: Record<string, string> = { alta: '#e11d48', media: '#eab308', baja: '#16a34a' }
+  const map: Record<string, string> = { alta: '#3B82F6', media: '#eab308', baja: '#16a34a' }
   return map[cat] || '#6b7280'
 }
 

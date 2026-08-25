@@ -110,7 +110,6 @@ function navigateTo(path: string) {
 function handleSearch() {
   if (searchQuery.value.trim()) {
     // Implement search logic
-    // console.log('Searching for:', searchQuery.value)
   }
 }
 
@@ -125,7 +124,6 @@ function closeMerlinChat() {
 function sendQuickMessage() {
   if (quickChatInput.value.trim()) {
     // Send quick message to MERLIN
-    // console.log('Quick message:', quickChatInput.value)
     quickChatInput.value = ''
   }
 }

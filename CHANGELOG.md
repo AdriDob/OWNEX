@@ -5,6 +5,21 @@ All notable changes to OWNEX, tracked from the git history of the default branch
 ## [Unreleased]
 
 ### Changed
+- **`--ownex-red` → `--ownex-danger`** (migración de nombres, 11 archivos): el token de peligro
+  ya no lleva el nombre del color prohibido; valor `#3B82F6` intacto. Guard de tema actualizado.
+
+### Changed
+- **UI Polish "bien pro" (2026-08-25, sesión visual cont.)**:
+  - **JetBrains Mono variable vendida offline** (`public/JetBrainsMono-Variable.woff2`, 40 KB,
+    wght 100-800): los ×636 usos de `font-mono` ahora renderizan la fuente real en vez del
+    fallback del sistema; `@font-face` en `style.css` con `font-display: swap`
+  - **Sidebar reagrupado por intención** (spec §7): MISIÓN/SEGURIDAD/REPORTES/FORJA/PULSO/
+    PERFIL/VAULT/ATLAS/SISTEMA → **OPERATE · INTELLIGENCE · AUTOMATION · SYSTEM**, preservando
+    los 37 ítems/rutas/íconos exactos (0 duplicados, 0 pérdidas) y el acento de ciclo por grupo
+  - Verificación: vue-tsc 0 · vite build OK (12.73s) · woff2 presente en `dist/` + referenciado
+    por el CSS principal
+
+### Changed
 - **Zero Experience ≠ Zero Barrier — modelo de entrada corregido (spec owner 2026-08-25)**:
   - `cores/direct_work_engine/models.py`: enums nuevos `EntryMechanism` (DIRECT…INVITATION) y
     `ExperienceRequirement` (NONE/OPTIONAL/PREFERRED/REQUIRED); `BarrierLevel.ZERO`; campos opcionales

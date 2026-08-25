@@ -1,0 +1,1000 @@
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:21,254 [orion.db] WARNING: Migration skip (reports.severity): (sqlite3.OperationalError) duplicate column name: severity
+[SQL: ALTER TABLE reports ADD COLUMN severity VARCHAR DEFAULT 'medium';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:21,254 [orion.db] WARNING: Migration skip (reports.status): (sqlite3.OperationalError) duplicate column name: status
+[SQL: ALTER TABLE reports ADD COLUMN status VARCHAR DEFAULT 'draft';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:21,254 [orion.db] WARNING: Migration skip (reports.estimated_reward): (sqlite3.OperationalError) duplicate column name: estimated_reward
+[SQL: ALTER TABLE reports ADD COLUMN estimated_reward FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:21,254 [orion.db] WARNING: Migration skip (reports.confirmed_reward): (sqlite3.OperationalError) duplicate column name: confirmed_reward
+[SQL: ALTER TABLE reports ADD COLUMN confirmed_reward FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:21,254 [orion.db] WARNING: Migration skip (reports.currency): (sqlite3.OperationalError) duplicate column name: currency
+[SQL: ALTER TABLE reports ADD COLUMN currency VARCHAR DEFAULT 'USD';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:21,255 [orion.db] WARNING: Migration skip (reports.evidence_count): (sqlite3.OperationalError) duplicate column name: evidence_count
+[SQL: ALTER TABLE reports ADD COLUMN evidence_count INTEGER DEFAULT 0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:21,255 [orion.db] WARNING: Migration skip (reports.notes): (sqlite3.OperationalError) duplicate column name: notes
+[SQL: ALTER TABLE reports ADD COLUMN notes TEXT DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:21,255 [orion.db] WARNING: Migration skip (reports.timeline): (sqlite3.OperationalError) duplicate column name: timeline
+[SQL: ALTER TABLE reports ADD COLUMN timeline TEXT DEFAULT '[]';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:21,255 [orion.db] WARNING: Migration skip (reports.attachments): (sqlite3.OperationalError) duplicate column name: attachments
+[SQL: ALTER TABLE reports ADD COLUMN attachments TEXT DEFAULT '[]';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:21,255 [orion.db] WARNING: Migration skip (reports.updated_at): (sqlite3.OperationalError) duplicate column name: updated_at
+[SQL: ALTER TABLE reports ADD COLUMN updated_at DATETIME;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:21,256 [rastro.api] INFO: Database initialized
+2026-07-01 03:25:21,256 [rastro.events] INFO: Event bus initialized
+2026-07-01 03:25:21,258 [rastro.api] INFO: Event bus and system state initialized
+2026-07-01 03:25:21,264 [rastro.product_rules] WARNING: [ERROR] scorecard-reachable: Scorecard has no data yet (expected on first boot)
+2026-07-01 03:25:21,264 [rastro.api] INFO: Product behavior rules checked
+2026-07-01 03:25:21,265 [rastro.identity] INFO: Restored identity: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-07-01 03:25:21,265 [rastro.api] INFO: Identity system initialized: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-07-01 03:25:21,265 [rastro.orchestrator.assistant] INFO: Suppressed 0 noise items (threshold=0.15)
+2026-07-01 03:25:21,265 [rastro.api] INFO: Assistant orchestrator initialized
+2026-07-01 03:25:21,265 [rastro.api] INFO: Execution tracker initialized
+2026-07-01 03:25:21,265 [rastro.api] INFO: Outcome tracker initialized
+2026-07-01 03:25:21,326 [rastro.api] INFO: System scorecard initialized
+2026-07-01 03:25:21,326 [rastro.api] INFO: Explanation engine initialized
+2026-07-01 03:25:21,326 [rastro.api] INFO: Decision trace collector initialized
+2026-07-01 03:25:21,326 [rastro.api] INFO: Memory store initialized
+2026-07-01 03:25:21,327 [rastro.api] INFO: Decision memory initialized
+2026-07-01 03:25:21,327 [rastro.api] INFO: Insight archive initialized
+2026-07-01 03:25:21,327 [rastro.api] INFO: Priority engine memory consumption: consumed
+2026-07-01 03:25:21,327 [rastro.opportunity.engine] INFO: OpportunityEngine initialised (v2 — layered scoring)
+2026-07-01 03:25:21,327 [rastro.opportunity.engine] INFO: Provider manual discovered 0 opportunities
+2026-07-01 03:25:21,327 [rastro.opportunity.providers] INFO: Discovered 20 public opportunities (paid-first: 17 with rewards)
+2026-07-01 03:25:21,327 [rastro.opportunity.engine] INFO: Provider public_programs discovered 20 opportunities
+2026-07-01 03:25:21,327 [rastro.opportunity.engine] INFO: Provider github_security discovered 2 opportunities
+2026-07-01 03:25:21,327 [rastro.opportunity.engine] INFO: Provider huntr discovered 2 opportunities
+2026-07-01 03:25:21,333 [rastro.opportunity.engine] INFO: Provider all_sources discovered 24 opportunities
+2026-07-01 03:25:21,337 [rastro.api] INFO: Opportunity engine initialized with 48 opportunities
+2026-07-01 03:25:21,337 [rastro.api] INFO: Execution layer fully initialized
+2026-07-01 03:25:21,337 [rastro.api] INFO: Scan scheduler started
+2026-07-01 03:25:21,348 [rastro.operations] INFO: Notification poller thread started
+2026-07-01 03:25:21,348 [rastro.api] INFO: Notification poller started
+2026-07-01 03:25:21,348 [rastro.ws] INFO: WS manager initialized
+2026-07-01 03:25:21,349 [rastro.ws.bridge] INFO: Event bus -> WebSocket bridge started
+2026-07-01 03:25:21,349 [rastro.api] INFO: WS event bridge started
+2026-07-01 03:25:21,349 [rastro.notifications.bridges] INFO: DB bridge registered on NotificationHub
+2026-07-01 03:25:21,349 [rastro.notifications.bridges] INFO: Desktop channel registered on NotificationHub
+2026-07-01 03:25:21,360 [rastro.notifications.bridges] INFO: Email channel skipped — not configured
+2026-07-01 03:25:21,458 [rastro.notifications.bridges] INFO: FCM channel skipped — not configured
+2026-07-01 03:25:21,458 [rastro.notifications.bridges] INFO: WS forwarder registered on NotificationHub
+2026-07-01 03:25:21,458 [rastro.api] INFO: Notification bridges registered
+2026-07-01 03:25:21,458 [rastro.notifications.bridges] INFO: Event -> notification bridge started
+2026-07-01 03:25:21,458 [rastro.api] INFO: Event -> notification bridge started
+2026-07-01 03:25:21,458 [rastro.agents.bus] INFO: [EVENTS] Agent event bus initialized
+2026-07-01 03:25:21,459 [rastro.agents.bus] INFO: [EVENTS] AgentId.COORDINATOR -> *: EventType.AGENT_REGISTERED (corr=54a296de, pri=5)
+2026-07-01 03:25:21,459 [rastro.agents.coordinator] INFO: [COORD] Agent registered: coordinator
+2026-07-01 03:25:21,459 [rastro.agents.base] INFO: [AGENT] coordinator started, subscribed to 10 event types, capabilities: ['orchestrate_pipeline', 'resolve_conflicts', 'retry_failed_stages', 'quality_scoring', 'persist_state']
+2026-07-01 03:25:21,459 [rastro.agents.bus] INFO: [EVENTS] AgentId.RESEARCH -> *: EventType.AGENT_REGISTERED (corr=3e7cdcc7, pri=5)
+2026-07-01 03:25:21,459 [rastro.agents.coordinator] INFO: [COORD] Agent registered: research
+2026-07-01 03:25:21,459 [rastro.agents.base] INFO: [AGENT] research started, subscribed to 1 event types, capabilities: ['handles:research.start']
+2026-07-01 03:25:21,459 [rastro.agents.bus] INFO: [EVENTS] AgentId.VALIDATOR -> *: EventType.AGENT_REGISTERED (corr=ec509cfe, pri=5)
+2026-07-01 03:25:21,459 [rastro.agents.coordinator] INFO: [COORD] Agent registered: validator
+2026-07-01 03:25:21,459 [rastro.agents.base] INFO: [AGENT] validator started, subscribed to 1 event types, capabilities: ['handles:validation.requested']
+2026-07-01 03:25:21,459 [rastro.agents.bus] INFO: [EVENTS] AgentId.EXPLOIT -> *: EventType.AGENT_REGISTERED (corr=8088e252, pri=5)
+2026-07-01 03:25:21,460 [rastro.agents.coordinator] INFO: [COORD] Agent registered: exploit
+2026-07-01 03:25:21,460 [rastro.agents.base] INFO: [AGENT] exploit started, subscribed to 1 event types, capabilities: ['handles:exploit.requested']
+2026-07-01 03:25:21,460 [rastro.agents.bus] INFO: [EVENTS] AgentId.DOCUMENTATION -> *: EventType.AGENT_REGISTERED (corr=0a43a87a, pri=5)
+2026-07-01 03:25:21,460 [rastro.agents.coordinator] INFO: [COORD] Agent registered: documentation
+2026-07-01 03:25:21,460 [rastro.agents.base] INFO: [AGENT] documentation started, subscribed to 1 event types, capabilities: ['handles:documentation.requested']
+2026-07-01 03:25:21,460 [rastro.agents.bus] INFO: [EVENTS] AgentId.STRATEGY -> *: EventType.AGENT_REGISTERED (corr=2cb7116d, pri=5)
+2026-07-01 03:25:21,460 [rastro.agents.coordinator] INFO: [COORD] Agent registered: strategy
+2026-07-01 03:25:21,460 [rastro.agents.base] INFO: [AGENT] strategy started, subscribed to 4 event types, capabilities: ['handles:strategy.recommendation', 'handles:research.completed', 'handles:validation.completed', 'handles:documentation.completed']
+2026-07-01 03:25:21,460 [rastro.agents.bus] INFO: [EVENTS] AgentId.MEMORY -> *: EventType.AGENT_REGISTERED (corr=bfe1ed5f, pri=5)
+2026-07-01 03:25:21,460 [rastro.agents.coordinator] INFO: [COORD] Agent registered: memory
+2026-07-01 03:25:21,460 [rastro.agents.base] INFO: [AGENT] memory started, subscribed to 5 event types, capabilities: ['handles:memory.store', 'handles:memory.retrieved', 'handles:validation.completed', 'handles:exploit.completed', 'handles:documentation.completed']
+2026-07-01 03:25:21,460 [rastro.agents.bus] INFO: [EVENTS] AgentId.FINANCIAL -> *: EventType.AGENT_REGISTERED (corr=2c3116ad, pri=5)
+2026-07-01 03:25:21,460 [rastro.agents.coordinator] INFO: [COORD] Agent registered: financial
+2026-07-01 03:25:21,461 [rastro.agents.base] INFO: [AGENT] financial started, subscribed to 4 event types, capabilities: ['handles:financial.updated', 'handles:financial.payout_recorded', 'handles:financial.goal_updated', 'handles:documentation.completed']
+2026-07-01 03:25:21,461 [rastro.agents] INFO: [AGENTS] All 8 agents started
+2026-07-01 03:25:21,461 [rastro.api] INFO: [BOOT] 8 agents started
+2026-07-01 03:25:21,469 [rastro.recovery.engine] INFO: [RECOVERY] Engine started
+2026-07-01 03:25:21,476 [rastro.recovery.health_monitor] INFO: [HEALTH] Monitor started (interval=8.0s)
+2026-07-01 03:25:21,476 [rastro.api] INFO: [BOOT] Recovery engine and health monitor started
+2026-07-01 03:25:21,492 [rastro.health.engine] INFO: [HEALTH] Engine started (interval=10.0s)
+2026-07-01 03:25:21,492 [rastro.api] INFO: [BOOT] System health engine started
+2026-07-01 03:25:21,494 [rastro.optimization.engine] INFO: [OPTIMIZE] Engine started
+2026-07-01 03:25:21,494 [rastro.api] INFO: [BOOT] Auto-optimization engine started
+2026-07-01 03:25:21,495 [rastro.autonomous.engine] INFO: [AUTO+] Engine started (interval=15.0s, enabled=False)
+2026-07-01 03:25:21,496 [rastro.autonomous.engine] INFO: [AUTO+] AUTONOMOUS+ mode enabled
+2026-07-01 03:25:21,496 [rastro.api] INFO: [BOOT] AUTONOMOUS+ mode engine started and enabled
+2026-07-01 03:25:21,496 [rastro.scheduler] INFO: Autonomous pipeline scheduler started (interval=1800s)
+2026-07-01 03:25:21,496 [rastro.scheduler] INFO: === Autonomous Pipeline Cycle ===
+2026-07-01 03:25:21,496 [rastro.scheduler] INFO: [DISCOVER] Scraping public bug bounty platforms...
+2026-07-01 03:25:21,549 [rastro.health.engine] INFO: [HEALTH] Status changed to recovering (score=0.0, trend=stable)
+2026-07-01 03:25:21,560 [rastro.recovery.engine] WARNING: [RECOVERY] No healing rule for agents/unknown
+2026-07-01 03:25:21,967 [rastro.bounty_scraper] WARNING: HackerOne page 1: HTTP Error 400: Bad Request
+2026-07-01 03:25:22,398 [rastro.bounty_scraper] WARNING: HackerOne page 2: HTTP Error 400: Bad Request
+2026-07-01 03:25:22,399 [rastro.bounty_scraper] INFO: HackerOne: 0 programs scraped
+2026-07-01 03:25:23,011 [rastro.bounty_scraper] WARNING: Bugcrowd page 1: HTTP Error 404: Not Found
+2026-07-01 03:25:23,609 [rastro.bounty_scraper] WARNING: Bugcrowd page 2: HTTP Error 404: Not Found
+2026-07-01 03:25:23,609 [rastro.bounty_scraper] INFO: Bugcrowd: 0 programs scraped
+2026-07-01 03:25:24,606 [rastro.bounty_scraper] WARNING: Intigriti page 1: HTTP Error 404: Not Found
+2026-07-01 03:25:24,607 [rastro.bounty_scraper] INFO: Intigriti: 0 programs scraped
+2026-07-01 03:25:26,030 [rastro.bounty_scraper] WARNING: YesWeHack page 1: HTTP Error 404: Not Found
+2026-07-01 03:25:26,030 [rastro.bounty_scraper] INFO: YesWeHack: 0 programs scraped
+2026-07-01 03:25:26,030 [rastro.bounty_scraper] INFO: Total: 0 unique programs scraped across all platforms
+2026-07-01 03:25:26,030 [rastro.scheduler] INFO: [DISCOVER] 0 programs found, 0 new targets created
+2026-07-01 03:25:26,034 [rastro.scheduler] INFO: === Pipeline Cycle Complete ===
+2026-07-01 03:25:26,295 [orion.desktop] INFO: [API] Server listening on 127.0.0.1:8000
+2026-07-01 03:25:26,334 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+2026-07-01 03:25:26,334 [orion.desktop] INFO: [HEALTHY] Backend healthy on port 8000
+2026-07-01 03:25:26,335 [orion.desktop] INFO: [BOOT] Session — device_id from settings: ADRI-2c502a1e
+2026-07-01 03:25:26,335 [orion.desktop] INFO: [BOOT] Session — calling manager.authenticate (device=ADRI-2c502a1e)
+2026-07-01 03:25:26,347 [orion.desktop] INFO: [BOOT] Session — authenticate result keys: ['token', 'refresh', 'device_id', 'user_id', 'existing']
+2026-07-01 03:25:26,347 [orion.desktop] INFO: [BOOT] Session — token obtained: eyJkYXRhIjp7Im1ldGEi...
+2026-07-01 03:25:26,366 [orion.desktop] INFO: [BOOT] Session — stored token check: OK
+2026-07-01 03:25:26,366 [orion.desktop] INFO: [BOOT] Desktop session created (device=ADRI-2c502a1e)
+2026-07-01 03:25:26,366 [orion.desktop] INFO: [READY] ORION Desktop ready (desktop window)
+2026-07-01 03:25:26,367 [orion.desktop] INFO: [BROWSER] Opening desktop window -> http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktMmM1MDJhMWUifSwiZXhwIjoxNzgyOTYyNzI2LCJpYXQiOjE3ODI4NzYzMjZ9.cce8a30613d807a04ac11849385c1af4d1b8f3a0094d3dff138dfe6b42cbef71&device_id=ADRI-2c502a1e
+2026-07-01 03:25:26,367 [orion.desktop] INFO: [BROWSER] webview.create_window() starting...
+2026-07-01 03:25:26,368 [orion.desktop] INFO: [BROWSER] Desktop window failed ('Window' object has no attribute 'closed'), falling back to browser
+2026-07-01 03:25:26,368 [orion.desktop] INFO: [BOOT] Desktop UI unavailable, browser mode activated.
+2026-07-01 03:25:26,804 [orion.desktop.updater] WARNING: Failed to check for updates: HTTP Error 404: Not Found
+2026-07-01 03:25:28,251 [orion.frontend] INFO: serve_frontend called: full_path=api/hunt/status
+2026-07-01 03:25:28,251 [orion.frontend] INFO:   serving index.html
+2026-07-01 03:25:28,299 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:25:28,567 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:25:29,680 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 200 OK"
+2026-07-01 03:25:34,802 [orion.frontend] INFO: serve_frontend called: full_path=api/hunt/status
+2026-07-01 03:25:34,802 [orion.frontend] INFO:   serving index.html
+2026-07-01 03:25:34,809 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:25:35,100 [rastro.orion.context] INFO: [Orion] get_context called
+2026-07-01 03:25:35,100 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:25:35,101 [rastro.api.orion] ERROR: Failed to get orion context: 'Opportunity' object has no attribute 'title'
+2026-07-01 03:25:36,504 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 10 -> 15.0 (Stable system: reducing health check frequency to 15.0s)
+2026-07-01 03:25:36,504 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 03:25:36,504 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 03:25:36,504 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=c0ac6c34, pri=5)
+2026-07-01 03:25:36,504 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=607309c0, pri=5)
+2026-07-01 03:25:36,504 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-07-01 03:25:36,985 [orion.desktop.browser_opener] INFO: Opened browser: http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktMmM1MDJhMWUifSwiZXhwIjoxNzgyOTYyNzI2LCJpYXQiOjE3ODI4NzYzMjZ9.cce8a30613d807a04ac11849385c1af4d1b8f3a0094d3dff138dfe6b42cbef71&device_id=ADRI-2c502a1e&onboarding=1
+2026-07-01 03:25:36,985 [orion.desktop] INFO: [BROWSER] Dashboard opened in browser
+2026-07-01 03:25:36,986 [orion.desktop.notifications] INFO: [NOTIFICATION] ORION: Dashboard ready — opening browser
+2026-07-01 03:25:37,028 [orion.desktop.tray] INFO: System tray started (persistent)
+2026-07-01 03:25:37,028 [orion.desktop] INFO: [TRAY] System tray initialized
+2026-07-01 03:25:37,029 [orion.desktop] INFO: [READY] ORION Desktop ready (browser fallback)
+2026-07-01 03:25:37,058 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 162, in _update_icon
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-07-01 03:25:37,074 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 143, in _show
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-07-01 03:25:37,715 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 200 OK"
+2026-07-01 03:25:37,904 [orion.frontend] INFO: serve_root called
+2026-07-01 03:25:37,904 [orion.frontend] INFO:   serving index.html
+2026-07-01 03:25:37,942 [orion.frontend] INFO: serve_frontend called: full_path=assets/index-CfDYUENF.js
+2026-07-01 03:25:37,942 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-CfDYUENF.js
+2026-07-01 03:25:37,943 [orion.frontend] INFO: serve_frontend called: full_path=assets/index-CaQHDiPI.css
+2026-07-01 03:25:37,943 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-CaQHDiPI.css
+2026-07-01 03:25:38,022 [orion.frontend] INFO: serve_frontend called: full_path=api/hunt/status
+2026-07-01 03:25:38,022 [orion.frontend] INFO:   serving index.html
+2026-07-01 03:25:38,036 [orion.frontend] INFO: serve_frontend called: full_path=assets/Skeleton.vue_vue_type_script_setup_true_lang-O7Xv960D.js
+2026-07-01 03:25:38,036 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Skeleton.vue_vue_type_script_setup_true_lang-O7Xv960D.js
+2026-07-01 03:25:38,050 [orion.frontend] INFO: serve_frontend called: full_path=assets/trending-up-DQSWT6rP.js
+2026-07-01 03:25:38,050 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/trending-up-DQSWT6rP.js
+2026-07-01 03:25:38,052 [orion.frontend] INFO: serve_frontend called: full_path=assets/EconomicDashboard-BbWCT5kb.js
+2026-07-01 03:25:38,052 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/EconomicDashboard-BbWCT5kb.js
+2026-07-01 03:25:38,052 [orion.frontend] INFO: serve_frontend called: full_path=assets/Badge.vue_vue_type_script_setup_true_lang-CPBndIlC.js
+2026-07-01 03:25:38,053 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Badge.vue_vue_type_script_setup_true_lang-CPBndIlC.js
+2026-07-01 03:25:38,065 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:25:38,072 [orion.frontend] INFO: serve_frontend called: full_path=assets/sparkles-y5pLoDxr.js
+2026-07-01 03:25:38,077 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/sparkles-y5pLoDxr.js
+2026-07-01 03:25:38,078 [orion.frontend] INFO: serve_frontend called: full_path=assets/wallet-BQnISgyA.js
+2026-07-01 03:25:38,078 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/wallet-BQnISgyA.js
+2026-07-01 03:25:38,088 [orion.frontend] INFO: serve_frontend called: full_path=assets/target-CAzszQM-.js
+2026-07-01 03:25:38,089 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/target-CAzszQM-.js
+2026-07-01 03:25:38,089 [orion.frontend] INFO: serve_frontend called: full_path=assets/clock-0GXnxYXl.js
+2026-07-01 03:25:38,089 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/clock-0GXnxYXl.js
+2026-07-01 03:25:38,090 [orion.frontend] INFO: serve_frontend called: full_path=assets/arrow-right-DnNPXpCT.js
+2026-07-01 03:25:38,090 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/arrow-right-DnNPXpCT.js
+2026-07-01 03:25:38,185 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:25:39,789 [orion.frontend] INFO: serve_frontend called: full_path=service-worker.js
+2026-07-01 03:25:39,789 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/service-worker.js
+2026-07-01 03:25:39,972 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:25:45,228 [orion.frontend] INFO: serve_frontend called: full_path=api/hunt/status
+2026-07-01 03:25:45,228 [orion.frontend] INFO:   serving index.html
+2026-07-01 03:25:45,234 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:25:45,353 [orion.db] WARNING: Migration skip (targets_intel.freshness_score): (sqlite3.OperationalError) duplicate column name: freshness_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN freshness_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,353 [orion.db] WARNING: Migration skip (targets_intel.competition_score): (sqlite3.OperationalError) duplicate column name: competition_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN competition_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,353 [orion.db] WARNING: Migration skip (targets_intel.opportunity_score): (sqlite3.OperationalError) duplicate column name: opportunity_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN opportunity_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,353 [orion.db] WARNING: Migration skip (targets_intel.reward_score): (sqlite3.OperationalError) duplicate column name: reward_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN reward_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,354 [orion.db] WARNING: Migration skip (targets_intel.reward_confidence): (sqlite3.OperationalError) duplicate column name: reward_confidence
+[SQL: ALTER TABLE targets_intel ADD COLUMN reward_confidence FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,354 [orion.db] WARNING: Migration skip (targets_intel.attack_surface_score): (sqlite3.OperationalError) duplicate column name: attack_surface_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN attack_surface_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,354 [orion.db] WARNING: Migration skip (targets_intel.evidence_potential_score): (sqlite3.OperationalError) duplicate column name: evidence_potential_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN evidence_potential_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,354 [orion.db] WARNING: Migration skip (targets_intel.technology_tags): (sqlite3.OperationalError) duplicate column name: technology_tags
+[SQL: ALTER TABLE targets_intel ADD COLUMN technology_tags VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,354 [orion.db] WARNING: Migration skip (targets_intel.cms_detected): (sqlite3.OperationalError) duplicate column name: cms_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN cms_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,354 [orion.db] WARNING: Migration skip (targets_intel.framework_detected): (sqlite3.OperationalError) duplicate column name: framework_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN framework_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,354 [orion.db] WARNING: Migration skip (targets_intel.wordpress_plugins_detected): (sqlite3.OperationalError) duplicate column name: wordpress_plugins_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN wordpress_plugins_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,355 [orion.db] WARNING: Migration skip (reports.program): (sqlite3.OperationalError) duplicate column name: program
+[SQL: ALTER TABLE reports ADD COLUMN program VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,355 [orion.db] WARNING: Migration skip (reports.target): (sqlite3.OperationalError) duplicate column name: target
+[SQL: ALTER TABLE reports ADD COLUMN target VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,355 [orion.db] WARNING: Migration skip (reports.vulnerability): (sqlite3.OperationalError) duplicate column name: vulnerability
+[SQL: ALTER TABLE reports ADD COLUMN vulnerability VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,355 [orion.db] WARNING: Migration skip (reports.severity): (sqlite3.OperationalError) duplicate column name: severity
+[SQL: ALTER TABLE reports ADD COLUMN severity VARCHAR DEFAULT 'medium';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,355 [orion.db] WARNING: Migration skip (reports.status): (sqlite3.OperationalError) duplicate column name: status
+[SQL: ALTER TABLE reports ADD COLUMN status VARCHAR DEFAULT 'draft';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,355 [orion.db] WARNING: Migration skip (reports.estimated_reward): (sqlite3.OperationalError) duplicate column name: estimated_reward
+[SQL: ALTER TABLE reports ADD COLUMN estimated_reward FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,355 [orion.db] WARNING: Migration skip (reports.confirmed_reward): (sqlite3.OperationalError) duplicate column name: confirmed_reward
+[SQL: ALTER TABLE reports ADD COLUMN confirmed_reward FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,356 [orion.db] WARNING: Migration skip (reports.currency): (sqlite3.OperationalError) duplicate column name: currency
+[SQL: ALTER TABLE reports ADD COLUMN currency VARCHAR DEFAULT 'USD';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,356 [orion.db] WARNING: Migration skip (reports.evidence_count): (sqlite3.OperationalError) duplicate column name: evidence_count
+[SQL: ALTER TABLE reports ADD COLUMN evidence_count INTEGER DEFAULT 0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,356 [orion.db] WARNING: Migration skip (reports.notes): (sqlite3.OperationalError) duplicate column name: notes
+[SQL: ALTER TABLE reports ADD COLUMN notes TEXT DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,356 [orion.db] WARNING: Migration skip (reports.timeline): (sqlite3.OperationalError) duplicate column name: timeline
+[SQL: ALTER TABLE reports ADD COLUMN timeline TEXT DEFAULT '[]';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,356 [orion.db] WARNING: Migration skip (reports.attachments): (sqlite3.OperationalError) duplicate column name: attachments
+[SQL: ALTER TABLE reports ADD COLUMN attachments TEXT DEFAULT '[]';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,356 [orion.db] WARNING: Migration skip (reports.updated_at): (sqlite3.OperationalError) duplicate column name: updated_at
+[SQL: ALTER TABLE reports ADD COLUMN updated_at DATETIME;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:45,745 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 200 OK"
+2026-07-01 03:25:50,625 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:25:51,509 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 03:25:51,509 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 03:25:51,509 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=eb4184c6, pri=5)
+2026-07-01 03:25:51,509 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=af775ab7, pri=5)
+2026-07-01 03:25:53,782 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 200 OK"
+2026-07-01 03:25:56,020 [orion.frontend] INFO: serve_frontend called: full_path=api/hunt/status
+2026-07-01 03:25:56,020 [orion.frontend] INFO:   serving index.html
+2026-07-01 03:25:56,024 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:25:56,351 [orion.db] WARNING: Migration skip (targets_intel.freshness_score): (sqlite3.OperationalError) duplicate column name: freshness_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN freshness_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,351 [orion.db] WARNING: Migration skip (targets_intel.competition_score): (sqlite3.OperationalError) duplicate column name: competition_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN competition_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,351 [orion.db] WARNING: Migration skip (targets_intel.opportunity_score): (sqlite3.OperationalError) duplicate column name: opportunity_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN opportunity_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,352 [orion.db] WARNING: Migration skip (targets_intel.reward_score): (sqlite3.OperationalError) duplicate column name: reward_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN reward_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,352 [orion.db] WARNING: Migration skip (targets_intel.reward_confidence): (sqlite3.OperationalError) duplicate column name: reward_confidence
+[SQL: ALTER TABLE targets_intel ADD COLUMN reward_confidence FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,352 [orion.db] WARNING: Migration skip (targets_intel.attack_surface_score): (sqlite3.OperationalError) duplicate column name: attack_surface_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN attack_surface_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,354 [orion.db] WARNING: Migration skip (targets_intel.evidence_potential_score): (sqlite3.OperationalError) duplicate column name: evidence_potential_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN evidence_potential_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,354 [orion.db] WARNING: Migration skip (targets_intel.technology_tags): (sqlite3.OperationalError) duplicate column name: technology_tags
+[SQL: ALTER TABLE targets_intel ADD COLUMN technology_tags VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,354 [orion.db] WARNING: Migration skip (targets_intel.cms_detected): (sqlite3.OperationalError) duplicate column name: cms_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN cms_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,354 [orion.db] WARNING: Migration skip (targets_intel.framework_detected): (sqlite3.OperationalError) duplicate column name: framework_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN framework_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,354 [orion.db] WARNING: Migration skip (targets_intel.wordpress_plugins_detected): (sqlite3.OperationalError) duplicate column name: wordpress_plugins_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN wordpress_plugins_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,355 [orion.db] WARNING: Migration skip (reports.program): (sqlite3.OperationalError) duplicate column name: program
+[SQL: ALTER TABLE reports ADD COLUMN program VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,355 [orion.db] WARNING: Migration skip (reports.target): (sqlite3.OperationalError) duplicate column name: target
+[SQL: ALTER TABLE reports ADD COLUMN target VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,355 [orion.db] WARNING: Migration skip (reports.vulnerability): (sqlite3.OperationalError) duplicate column name: vulnerability
+[SQL: ALTER TABLE reports ADD COLUMN vulnerability VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,355 [orion.db] WARNING: Migration skip (reports.severity): (sqlite3.OperationalError) duplicate column name: severity
+[SQL: ALTER TABLE reports ADD COLUMN severity VARCHAR DEFAULT 'medium';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,355 [orion.db] WARNING: Migration skip (reports.status): (sqlite3.OperationalError) duplicate column name: status
+[SQL: ALTER TABLE reports ADD COLUMN status VARCHAR DEFAULT 'draft';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,355 [orion.db] WARNING: Migration skip (reports.estimated_reward): (sqlite3.OperationalError) duplicate column name: estimated_reward
+[SQL: ALTER TABLE reports ADD COLUMN estimated_reward FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,355 [orion.db] WARNING: Migration skip (reports.confirmed_reward): (sqlite3.OperationalError) duplicate column name: confirmed_reward
+[SQL: ALTER TABLE reports ADD COLUMN confirmed_reward FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,356 [orion.db] WARNING: Migration skip (reports.currency): (sqlite3.OperationalError) duplicate column name: currency
+[SQL: ALTER TABLE reports ADD COLUMN currency VARCHAR DEFAULT 'USD';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,356 [orion.db] WARNING: Migration skip (reports.evidence_count): (sqlite3.OperationalError) duplicate column name: evidence_count
+[SQL: ALTER TABLE reports ADD COLUMN evidence_count INTEGER DEFAULT 0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,356 [orion.db] WARNING: Migration skip (reports.notes): (sqlite3.OperationalError) duplicate column name: notes
+[SQL: ALTER TABLE reports ADD COLUMN notes TEXT DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,356 [orion.db] WARNING: Migration skip (reports.timeline): (sqlite3.OperationalError) duplicate column name: timeline
+[SQL: ALTER TABLE reports ADD COLUMN timeline TEXT DEFAULT '[]';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,356 [orion.db] WARNING: Migration skip (reports.attachments): (sqlite3.OperationalError) duplicate column name: attachments
+[SQL: ALTER TABLE reports ADD COLUMN attachments TEXT DEFAULT '[]';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,356 [orion.db] WARNING: Migration skip (reports.updated_at): (sqlite3.OperationalError) duplicate column name: updated_at
+[SQL: ALTER TABLE reports ADD COLUMN updated_at DATETIME;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,368 [orion.db] WARNING: Migration skip (targets_intel.freshness_score): (sqlite3.OperationalError) duplicate column name: freshness_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN freshness_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,369 [orion.db] WARNING: Migration skip (targets_intel.competition_score): (sqlite3.OperationalError) duplicate column name: competition_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN competition_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,369 [orion.db] WARNING: Migration skip (targets_intel.opportunity_score): (sqlite3.OperationalError) duplicate column name: opportunity_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN opportunity_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,369 [orion.db] WARNING: Migration skip (targets_intel.reward_score): (sqlite3.OperationalError) duplicate column name: reward_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN reward_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,374 [orion.db] WARNING: Migration skip (targets_intel.reward_confidence): (sqlite3.OperationalError) duplicate column name: reward_confidence
+[SQL: ALTER TABLE targets_intel ADD COLUMN reward_confidence FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,374 [orion.db] WARNING: Migration skip (targets_intel.attack_surface_score): (sqlite3.OperationalError) duplicate column name: attack_surface_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN attack_surface_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,375 [orion.db] WARNING: Migration skip (targets_intel.evidence_potential_score): (sqlite3.OperationalError) duplicate column name: evidence_potential_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN evidence_potential_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,375 [orion.db] WARNING: Migration skip (targets_intel.technology_tags): (sqlite3.OperationalError) duplicate column name: technology_tags
+[SQL: ALTER TABLE targets_intel ADD COLUMN technology_tags VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,375 [orion.db] WARNING: Migration skip (targets_intel.cms_detected): (sqlite3.OperationalError) duplicate column name: cms_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN cms_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,375 [orion.db] WARNING: Migration skip (targets_intel.framework_detected): (sqlite3.OperationalError) duplicate column name: framework_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN framework_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,375 [orion.db] WARNING: Migration skip (targets_intel.wordpress_plugins_detected): (sqlite3.OperationalError) duplicate column name: wordpress_plugins_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN wordpress_plugins_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,375 [orion.db] WARNING: Migration skip (reports.program): (sqlite3.OperationalError) duplicate column name: program
+[SQL: ALTER TABLE reports ADD COLUMN program VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,375 [orion.db] WARNING: Migration skip (reports.target): (sqlite3.OperationalError) duplicate column name: target
+[SQL: ALTER TABLE reports ADD COLUMN target VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,376 [orion.db] WARNING: Migration skip (reports.vulnerability): (sqlite3.OperationalError) duplicate column name: vulnerability
+[SQL: ALTER TABLE reports ADD COLUMN vulnerability VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,376 [orion.db] WARNING: Migration skip (reports.severity): (sqlite3.OperationalError) duplicate column name: severity
+[SQL: ALTER TABLE reports ADD COLUMN severity VARCHAR DEFAULT 'medium';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,376 [orion.db] WARNING: Migration skip (reports.status): (sqlite3.OperationalError) duplicate column name: status
+[SQL: ALTER TABLE reports ADD COLUMN status VARCHAR DEFAULT 'draft';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,376 [orion.db] WARNING: Migration skip (reports.estimated_reward): (sqlite3.OperationalError) duplicate column name: estimated_reward
+[SQL: ALTER TABLE reports ADD COLUMN estimated_reward FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,376 [orion.db] WARNING: Migration skip (reports.confirmed_reward): (sqlite3.OperationalError) duplicate column name: confirmed_reward
+[SQL: ALTER TABLE reports ADD COLUMN confirmed_reward FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,382 [orion.db] WARNING: Migration skip (reports.currency): (sqlite3.OperationalError) duplicate column name: currency
+[SQL: ALTER TABLE reports ADD COLUMN currency VARCHAR DEFAULT 'USD';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,382 [orion.db] WARNING: Migration skip (reports.evidence_count): (sqlite3.OperationalError) duplicate column name: evidence_count
+[SQL: ALTER TABLE reports ADD COLUMN evidence_count INTEGER DEFAULT 0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,382 [orion.db] WARNING: Migration skip (reports.notes): (sqlite3.OperationalError) duplicate column name: notes
+[SQL: ALTER TABLE reports ADD COLUMN notes TEXT DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,382 [orion.db] WARNING: Migration skip (reports.timeline): (sqlite3.OperationalError) duplicate column name: timeline
+[SQL: ALTER TABLE reports ADD COLUMN timeline TEXT DEFAULT '[]';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,382 [orion.db] WARNING: Migration skip (reports.attachments): (sqlite3.OperationalError) duplicate column name: attachments
+[SQL: ALTER TABLE reports ADD COLUMN attachments TEXT DEFAULT '[]';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:25:56,382 [orion.db] WARNING: Migration skip (reports.updated_at): (sqlite3.OperationalError) duplicate column name: updated_at
+[SQL: ALTER TABLE reports ADD COLUMN updated_at DATETIME;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:01,496 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:26:01,827 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 200 OK"
+2026-07-01 03:26:06,510 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 03:26:06,510 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 03:26:06,510 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=c15ee88f, pri=5)
+2026-07-01 03:26:06,510 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=6ed12523, pri=5)
+2026-07-01 03:26:07,001 [orion.frontend] INFO: serve_frontend called: full_path=api/hunt/status
+2026-07-01 03:26:07,001 [orion.frontend] INFO:   serving index.html
+2026-07-01 03:26:07,004 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:26:09,857 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 200 OK"
+2026-07-01 03:26:11,952 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:26:12,239 [orion.frontend] INFO: serve_frontend called: full_path=api/opportunity_intelligence/identity/accounts
+2026-07-01 03:26:12,239 [orion.frontend] INFO:   serving index.html
+2026-07-01 03:26:17,878 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 200 OK"
+2026-07-01 03:26:17,930 [orion.frontend] INFO: serve_frontend called: full_path=api/hunt/status
+2026-07-01 03:26:17,930 [orion.frontend] INFO:   serving index.html
+2026-07-01 03:26:17,950 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:26:21,511 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 03:26:21,511 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 03:26:21,511 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=362696e2, pri=5)
+2026-07-01 03:26:21,511 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=f61f2632, pri=5)
+2026-07-01 03:26:23,026 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:26:25,894 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 200 OK"
+2026-07-01 03:26:28,254 [orion.frontend] INFO: serve_frontend called: full_path=api/hunt/status
+2026-07-01 03:26:28,254 [orion.frontend] INFO:   serving index.html
+2026-07-01 03:26:28,265 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:26:33,488 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:26:33,594 [orion.db] WARNING: Migration skip (targets_intel.freshness_score): (sqlite3.OperationalError) duplicate column name: freshness_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN freshness_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,594 [orion.db] WARNING: Migration skip (targets_intel.competition_score): (sqlite3.OperationalError) duplicate column name: competition_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN competition_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,594 [orion.db] WARNING: Migration skip (targets_intel.opportunity_score): (sqlite3.OperationalError) duplicate column name: opportunity_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN opportunity_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,595 [orion.db] WARNING: Migration skip (targets_intel.reward_score): (sqlite3.OperationalError) duplicate column name: reward_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN reward_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,595 [orion.db] WARNING: Migration skip (targets_intel.reward_confidence): (sqlite3.OperationalError) duplicate column name: reward_confidence
+[SQL: ALTER TABLE targets_intel ADD COLUMN reward_confidence FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,595 [orion.db] WARNING: Migration skip (targets_intel.attack_surface_score): (sqlite3.OperationalError) duplicate column name: attack_surface_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN attack_surface_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,595 [orion.db] WARNING: Migration skip (targets_intel.evidence_potential_score): (sqlite3.OperationalError) duplicate column name: evidence_potential_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN evidence_potential_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,595 [orion.db] WARNING: Migration skip (targets_intel.technology_tags): (sqlite3.OperationalError) duplicate column name: technology_tags
+[SQL: ALTER TABLE targets_intel ADD COLUMN technology_tags VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,595 [orion.db] WARNING: Migration skip (targets_intel.cms_detected): (sqlite3.OperationalError) duplicate column name: cms_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN cms_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,596 [orion.db] WARNING: Migration skip (targets_intel.framework_detected): (sqlite3.OperationalError) duplicate column name: framework_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN framework_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,596 [orion.db] WARNING: Migration skip (targets_intel.wordpress_plugins_detected): (sqlite3.OperationalError) duplicate column name: wordpress_plugins_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN wordpress_plugins_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,596 [orion.db] WARNING: Migration skip (reports.program): (sqlite3.OperationalError) duplicate column name: program
+[SQL: ALTER TABLE reports ADD COLUMN program VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,596 [orion.db] WARNING: Migration skip (reports.target): (sqlite3.OperationalError) duplicate column name: target
+[SQL: ALTER TABLE reports ADD COLUMN target VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,596 [orion.db] WARNING: Migration skip (reports.vulnerability): (sqlite3.OperationalError) duplicate column name: vulnerability
+[SQL: ALTER TABLE reports ADD COLUMN vulnerability VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,596 [orion.db] WARNING: Migration skip (reports.severity): (sqlite3.OperationalError) duplicate column name: severity
+[SQL: ALTER TABLE reports ADD COLUMN severity VARCHAR DEFAULT 'medium';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,597 [orion.db] WARNING: Migration skip (reports.status): (sqlite3.OperationalError) duplicate column name: status
+[SQL: ALTER TABLE reports ADD COLUMN status VARCHAR DEFAULT 'draft';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,597 [orion.db] WARNING: Migration skip (reports.estimated_reward): (sqlite3.OperationalError) duplicate column name: estimated_reward
+[SQL: ALTER TABLE reports ADD COLUMN estimated_reward FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,597 [orion.db] WARNING: Migration skip (reports.confirmed_reward): (sqlite3.OperationalError) duplicate column name: confirmed_reward
+[SQL: ALTER TABLE reports ADD COLUMN confirmed_reward FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,597 [orion.db] WARNING: Migration skip (reports.currency): (sqlite3.OperationalError) duplicate column name: currency
+[SQL: ALTER TABLE reports ADD COLUMN currency VARCHAR DEFAULT 'USD';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,597 [orion.db] WARNING: Migration skip (reports.evidence_count): (sqlite3.OperationalError) duplicate column name: evidence_count
+[SQL: ALTER TABLE reports ADD COLUMN evidence_count INTEGER DEFAULT 0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,597 [orion.db] WARNING: Migration skip (reports.notes): (sqlite3.OperationalError) duplicate column name: notes
+[SQL: ALTER TABLE reports ADD COLUMN notes TEXT DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,597 [orion.db] WARNING: Migration skip (reports.timeline): (sqlite3.OperationalError) duplicate column name: timeline
+[SQL: ALTER TABLE reports ADD COLUMN timeline TEXT DEFAULT '[]';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,598 [orion.db] WARNING: Migration skip (reports.attachments): (sqlite3.OperationalError) duplicate column name: attachments
+[SQL: ALTER TABLE reports ADD COLUMN attachments TEXT DEFAULT '[]';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,598 [orion.db] WARNING: Migration skip (reports.updated_at): (sqlite3.OperationalError) duplicate column name: updated_at
+[SQL: ALTER TABLE reports ADD COLUMN updated_at DATETIME;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-01 03:26:33,920 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 200 OK"
+2026-07-01 03:26:36,511 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 15 -> 22.5 (Stable system: reducing health check frequency to 22.5s)
+2026-07-01 03:26:36,512 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 03:26:36,512 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 03:26:36,512 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=114715a5, pri=5)
+2026-07-01 03:26:36,512 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=eb3b0ac3, pri=5)
+2026-07-01 03:26:36,512 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-07-01 03:26:38,656 [orion.frontend] INFO: serve_frontend called: full_path=api/hunt/status
+2026-07-01 03:26:38,656 [orion.frontend] INFO:   serving index.html
+2026-07-01 03:26:38,674 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:26:38,816 [orion.frontend] INFO: serve_frontend called: full_path=api/confidence/audit
+2026-07-01 03:26:38,821 [orion.frontend] INFO:   serving index.html
+2026-07-01 03:26:41,944 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 200 OK"
+2026-07-01 03:26:43,912 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:26:43,987 [orion.frontend] INFO: serve_frontend called: full_path=api/system/decisions
+2026-07-01 03:26:43,987 [orion.frontend] INFO:   serving index.html
+2026-07-01 03:26:43,987 [orion.frontend] INFO: serve_frontend called: full_path=api/system/insights
+2026-07-01 03:26:43,987 [orion.frontend] INFO:   serving index.html
+2026-07-01 03:26:43,988 [orion.frontend] INFO: serve_frontend called: full_path=api/system/execution-stats
+2026-07-01 03:26:43,993 [orion.frontend] INFO:   serving index.html
+2026-07-01 03:26:49,214 [rastro.orion.next_action] INFO: [Orion] get_next_action called
+2026-07-01 03:26:49,365 [orion.frontend] INFO: serve_frontend called: full_path=api/system/daily-briefing
+2026-07-01 03:26:49,366 [orion.frontend] INFO:   serving index.html
+2026-07-01 03:26:49,973 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 200 OK"
+2026-07-01 03:26:51,517 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 03:26:51,517 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 03:26:51,517 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=88c818cb, pri=5)
+2026-07-01 03:26:51,518 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=39882434, pri=5)
+2026-07-01 03:26:54,129 [orion.desktop] INFO: [SHUTDOWN] Signal 15 received
+2026-07-01 03:26:54,129 [orion.desktop] INFO: [SHUTDOWN] Stopping server...
+2026-07-01 03:26:54,131 [orion.desktop.tray] INFO: System tray stopped
+2026-07-01 03:26:54,133 [orion.desktop] INFO: [SHUTDOWN] ORION Desktop stopped
+2026-07-01 11:39:14,696 [orion.desktop] INFO: [BOOT] ORION Desktop — PID: 12925
+2026-07-01 11:39:14,707 [orion.desktop] INFO: [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-07-01 11:39:14,707 [rastro.platform.system] INFO: PLATFORM_DIAG: default data_dir=/home/adrie/.orion
+2026-07-01 11:39:14,714 [orion.desktop] INFO: [BOOT] Backend port: 8000
+2026-07-01 11:39:14,714 [orion.desktop] INFO: [API] Starting API server
+2026-07-01 11:39:14,730 [orion.desktop] INFO: [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-07-01 11:39:14,736 [orion.desktop] INFO: [API] Server thread started on 127.0.0.1:8000
+2026-07-01 11:39:15,292 [rastro.api] INFO: Database initialized
+2026-07-01 11:39:15,292 [rastro.events] INFO: Event bus initialized
+2026-07-01 11:39:15,293 [rastro.api] INFO: Event bus and system state initialized
+2026-07-01 11:39:15,299 [rastro.product_rules] WARNING: [ERROR] scorecard-reachable: Scorecard has no data yet (expected on first boot)
+2026-07-01 11:39:15,299 [rastro.api] INFO: Product behavior rules checked
+2026-07-01 11:39:15,310 [rastro.identity] INFO: Restored identity: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-07-01 11:39:15,310 [rastro.api] INFO: Identity system initialized: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-07-01 11:39:15,310 [rastro.orchestrator.assistant] INFO: Suppressed 0 noise items (threshold=0.15)
+2026-07-01 11:39:15,310 [rastro.api] INFO: Assistant orchestrator initialized
+2026-07-01 11:39:15,310 [rastro.api] INFO: Execution tracker initialized
+2026-07-01 11:39:15,310 [rastro.api] INFO: Outcome tracker initialized
+2026-07-01 11:39:15,409 [rastro.api] INFO: System scorecard initialized
+2026-07-01 11:39:15,409 [rastro.api] INFO: Explanation engine initialized
+2026-07-01 11:39:15,410 [rastro.api] INFO: Decision trace collector initialized
+2026-07-01 11:39:15,410 [rastro.api] INFO: Memory store initialized
+2026-07-01 11:39:15,410 [rastro.api] INFO: Decision memory initialized
+2026-07-01 11:39:15,410 [rastro.api] INFO: Insight archive initialized
+2026-07-01 11:39:15,410 [rastro.api] INFO: Priority engine memory consumption: consumed
+2026-07-01 11:39:15,410 [rastro.opportunity.engine] INFO: OpportunityEngine initialised (v2 — layered scoring)
+2026-07-01 11:39:15,410 [rastro.opportunity.engine] INFO: Provider manual discovered 0 opportunities
+2026-07-01 11:39:15,410 [rastro.opportunity.providers] INFO: Discovered 20 public opportunities (paid-first: 17 with rewards)
+2026-07-01 11:39:15,410 [rastro.opportunity.engine] INFO: Provider public_programs discovered 20 opportunities
+2026-07-01 11:39:15,411 [rastro.opportunity.engine] INFO: Provider github_security discovered 2 opportunities
+2026-07-01 11:39:15,411 [rastro.opportunity.engine] INFO: Provider huntr discovered 2 opportunities
+2026-07-01 11:39:15,411 [rastro.opportunity.engine] INFO: Provider all_sources discovered 24 opportunities
+2026-07-01 11:39:15,419 [rastro.api] INFO: Opportunity engine initialized with 48 opportunities
+2026-07-01 11:39:15,420 [rastro.api] INFO: Execution layer fully initialized
+2026-07-01 11:39:15,420 [rastro.api] INFO: Scan scheduler started
+2026-07-01 11:39:15,426 [rastro.operations] INFO: Notification poller thread started
+2026-07-01 11:39:15,426 [rastro.api] INFO: Notification poller started
+2026-07-01 11:39:15,431 [rastro.ws] INFO: WS manager initialized
+2026-07-01 11:39:15,432 [rastro.ws.bridge] INFO: Event bus -> WebSocket bridge started
+2026-07-01 11:39:15,432 [rastro.api] INFO: WS event bridge started
+2026-07-01 11:39:15,445 [rastro.notifications.bridges] INFO: DB bridge registered on NotificationHub
+2026-07-01 11:39:15,445 [rastro.notifications.bridges] INFO: Desktop channel registered on NotificationHub
+2026-07-01 11:39:15,524 [rastro.notifications.bridges] INFO: Email channel skipped — not configured
+2026-07-01 11:39:15,679 [rastro.notifications.bridges] INFO: FCM channel skipped — not configured
+2026-07-01 11:39:15,679 [rastro.notifications.bridges] INFO: WS forwarder registered on NotificationHub
+2026-07-01 11:39:15,679 [rastro.api] INFO: Notification bridges registered
+2026-07-01 11:39:15,679 [rastro.notifications.bridges] INFO: Event -> notification bridge started
+2026-07-01 11:39:15,679 [rastro.api] INFO: Event -> notification bridge started
+2026-07-01 11:39:15,680 [rastro.agents.bus] INFO: [EVENTS] Agent event bus initialized
+2026-07-01 11:39:15,680 [rastro.agents.bus] INFO: [EVENTS] AgentId.COORDINATOR -> *: EventType.AGENT_REGISTERED (corr=c1c270ba, pri=5)
+2026-07-01 11:39:15,680 [rastro.agents.coordinator] INFO: [COORD] Agent registered: coordinator
+2026-07-01 11:39:15,680 [rastro.agents.base] INFO: [AGENT] coordinator started, subscribed to 10 event types, capabilities: ['orchestrate_pipeline', 'resolve_conflicts', 'retry_failed_stages', 'quality_scoring', 'persist_state']
+2026-07-01 11:39:15,685 [rastro.agents.bus] INFO: [EVENTS] AgentId.RESEARCH -> *: EventType.AGENT_REGISTERED (corr=7ffd2b12, pri=5)
+2026-07-01 11:39:15,686 [rastro.agents.coordinator] INFO: [COORD] Agent registered: research
+2026-07-01 11:39:15,686 [rastro.agents.base] INFO: [AGENT] research started, subscribed to 1 event types, capabilities: ['handles:research.start']
+2026-07-01 11:39:15,686 [rastro.agents.bus] INFO: [EVENTS] AgentId.VALIDATOR -> *: EventType.AGENT_REGISTERED (corr=dea202ed, pri=5)
+2026-07-01 11:39:15,686 [rastro.agents.coordinator] INFO: [COORD] Agent registered: validator
+2026-07-01 11:39:15,686 [rastro.agents.base] INFO: [AGENT] validator started, subscribed to 1 event types, capabilities: ['handles:validation.requested']
+2026-07-01 11:39:15,686 [rastro.agents.bus] INFO: [EVENTS] AgentId.EXPLOIT -> *: EventType.AGENT_REGISTERED (corr=d54ac608, pri=5)
+2026-07-01 11:39:15,686 [rastro.agents.coordinator] INFO: [COORD] Agent registered: exploit
+2026-07-01 11:39:15,686 [rastro.agents.base] INFO: [AGENT] exploit started, subscribed to 1 event types, capabilities: ['handles:exploit.requested']
+2026-07-01 11:39:15,686 [rastro.agents.bus] INFO: [EVENTS] AgentId.DOCUMENTATION -> *: EventType.AGENT_REGISTERED (corr=45335df0, pri=5)
+2026-07-01 11:39:15,686 [rastro.agents.coordinator] INFO: [COORD] Agent registered: documentation
+2026-07-01 11:39:15,686 [rastro.agents.base] INFO: [AGENT] documentation started, subscribed to 1 event types, capabilities: ['handles:documentation.requested']
+2026-07-01 11:39:15,686 [rastro.agents.bus] INFO: [EVENTS] AgentId.STRATEGY -> *: EventType.AGENT_REGISTERED (corr=2ae50c86, pri=5)
+2026-07-01 11:39:15,687 [rastro.agents.coordinator] INFO: [COORD] Agent registered: strategy
+2026-07-01 11:39:15,687 [rastro.agents.base] INFO: [AGENT] strategy started, subscribed to 4 event types, capabilities: ['handles:strategy.recommendation', 'handles:research.completed', 'handles:validation.completed', 'handles:documentation.completed']
+2026-07-01 11:39:15,687 [rastro.agents.bus] INFO: [EVENTS] AgentId.MEMORY -> *: EventType.AGENT_REGISTERED (corr=488a5059, pri=5)
+2026-07-01 11:39:15,687 [rastro.agents.coordinator] INFO: [COORD] Agent registered: memory
+2026-07-01 11:39:15,687 [rastro.agents.base] INFO: [AGENT] memory started, subscribed to 5 event types, capabilities: ['handles:memory.store', 'handles:memory.retrieved', 'handles:validation.completed', 'handles:exploit.completed', 'handles:documentation.completed']
+2026-07-01 11:39:15,687 [rastro.agents.bus] INFO: [EVENTS] AgentId.FINANCIAL -> *: EventType.AGENT_REGISTERED (corr=a3e2cd8a, pri=5)
+2026-07-01 11:39:15,687 [rastro.agents.coordinator] INFO: [COORD] Agent registered: financial
+2026-07-01 11:39:15,687 [rastro.agents.base] INFO: [AGENT] financial started, subscribed to 4 event types, capabilities: ['handles:financial.updated', 'handles:financial.payout_recorded', 'handles:financial.goal_updated', 'handles:documentation.completed']
+2026-07-01 11:39:15,687 [rastro.agents] INFO: [AGENTS] All 8 agents started
+2026-07-01 11:39:15,687 [rastro.api] INFO: [BOOT] 8 agents started
+2026-07-01 11:39:15,731 [rastro.recovery.engine] INFO: [RECOVERY] Engine started
+2026-07-01 11:39:15,758 [rastro.recovery.health_monitor] INFO: [HEALTH] Monitor started (interval=8.0s)
+2026-07-01 11:39:15,758 [rastro.api] INFO: [BOOT] Recovery engine and health monitor started
+2026-07-01 11:39:15,797 [rastro.recovery.engine] WARNING: [RECOVERY] No healing rule for agents/unknown
+2026-07-01 11:39:15,825 [rastro.health.engine] INFO: [HEALTH] Engine started (interval=10.0s)
+2026-07-01 11:39:15,826 [rastro.api] INFO: [BOOT] System health engine started
+2026-07-01 11:39:15,838 [rastro.optimization.engine] INFO: [OPTIMIZE] Engine started
+2026-07-01 11:39:15,838 [rastro.api] INFO: [BOOT] Auto-optimization engine started
+2026-07-01 11:39:15,849 [rastro.autonomous.engine] INFO: [AUTO+] Engine started (interval=15.0s, enabled=False)
+2026-07-01 11:39:15,850 [rastro.autonomous.engine] INFO: [AUTO+] AUTONOMOUS+ mode enabled
+2026-07-01 11:39:15,850 [rastro.api] INFO: [BOOT] AUTONOMOUS+ mode engine started and enabled
+2026-07-01 11:39:15,850 [rastro.scheduler] INFO: Autonomous pipeline scheduler started (interval=1800s)
+2026-07-01 11:39:15,850 [rastro.scheduler] INFO: === Autonomous Pipeline Cycle ===
+2026-07-01 11:39:15,850 [rastro.scheduler] INFO: [DISCOVER] Scraping public bug bounty platforms...
+2026-07-01 11:39:15,875 [rastro.health.engine] INFO: [HEALTH] Status changed to recovering (score=0.0, trend=stable)
+2026-07-01 11:39:16,289 [rastro.bounty_scraper] WARNING: HackerOne page 1: HTTP Error 400: Bad Request
+2026-07-01 11:39:16,816 [rastro.bounty_scraper] WARNING: HackerOne page 2: HTTP Error 400: Bad Request
+2026-07-01 11:39:16,816 [rastro.bounty_scraper] INFO: HackerOne: 0 programs scraped
+2026-07-01 11:39:17,512 [rastro.bounty_scraper] WARNING: Bugcrowd page 1: HTTP Error 404: Not Found
+2026-07-01 11:39:18,200 [rastro.bounty_scraper] WARNING: Bugcrowd page 2: HTTP Error 404: Not Found
+2026-07-01 11:39:18,200 [rastro.bounty_scraper] INFO: Bugcrowd: 0 programs scraped
+2026-07-01 11:39:19,020 [rastro.bounty_scraper] WARNING: Intigriti page 1: HTTP Error 404: Not Found
+2026-07-01 11:39:19,021 [rastro.bounty_scraper] INFO: Intigriti: 0 programs scraped
+2026-07-01 11:39:20,375 [rastro.bounty_scraper] WARNING: YesWeHack page 1: HTTP Error 404: Not Found
+2026-07-01 11:39:20,376 [rastro.bounty_scraper] INFO: YesWeHack: 0 programs scraped
+2026-07-01 11:39:20,376 [rastro.bounty_scraper] INFO: Total: 0 unique programs scraped across all platforms
+2026-07-01 11:39:20,376 [rastro.scheduler] INFO: [DISCOVER] 0 programs found, 0 new targets created
+2026-07-01 11:39:20,391 [rastro.scheduler] INFO: === Pipeline Cycle Complete ===
+2026-07-01 11:39:20,547 [orion.desktop] INFO: [API] Server listening on 127.0.0.1:8000
+2026-07-01 11:39:20,590 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+2026-07-01 11:39:20,591 [orion.desktop] INFO: [HEALTHY] Backend healthy on port 8000
+2026-07-01 11:39:20,591 [orion.desktop] INFO: [BOOT] Session — device_id from settings: ADRI-2c502a1e
+2026-07-01 11:39:20,592 [orion.desktop] INFO: [BOOT] Session — calling manager.authenticate (device=ADRI-2c502a1e)
+2026-07-01 11:39:20,601 [orion.desktop] INFO: [BOOT] Session — authenticate result keys: ['token', 'refresh', 'device_id', 'user_id', 'existing']
+2026-07-01 11:39:20,601 [orion.desktop] INFO: [BOOT] Session — token obtained: eyJkYXRhIjp7Im1ldGEi...
+2026-07-01 11:39:20,611 [orion.desktop] INFO: [BOOT] Session — stored token check: OK
+2026-07-01 11:39:20,611 [orion.desktop] INFO: [BOOT] Desktop session created (device=ADRI-2c502a1e)
+2026-07-01 11:39:20,611 [orion.desktop] INFO: [READY] ORION Desktop ready (desktop window)
+2026-07-01 11:39:20,612 [orion.desktop] INFO: [BROWSER] Opening desktop window -> http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktMmM1MDJhMWUifSwiZXhwIjoxNzgyOTkyMzYwLCJpYXQiOjE3ODI5MDU5NjB9.8a9a27c30e8fd7ad0cf1e0dbc9ff5e8580164ce20709d5e47b61cf9fbd2c58f9&device_id=ADRI-2c502a1e
+2026-07-01 11:39:20,612 [orion.desktop] INFO: [BROWSER] webview.create_window() starting...
+2026-07-01 11:39:20,613 [orion.desktop] INFO: [BROWSER] Desktop window failed ('Window' object has no attribute 'closed'), falling back to browser
+2026-07-01 11:39:20,613 [orion.desktop] INFO: [BOOT] Desktop UI unavailable, browser mode activated.
+2026-07-01 11:39:21,035 [orion.desktop.updater] WARNING: Failed to check for updates: HTTP Error 404: Not Found
+2026-07-01 11:39:23,891 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:39:30,868 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 10 -> 15.0 (Stable system: reducing health check frequency to 15.0s)
+2026-07-01 11:39:30,868 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:39:30,868 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:39:30,869 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=84ed3290, pri=5)
+2026-07-01 11:39:30,869 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=aaa3c6a8, pri=5)
+2026-07-01 11:39:30,869 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-07-01 11:39:31,781 [orion.desktop.browser_opener] INFO: Opened browser: http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktMmM1MDJhMWUifSwiZXhwIjoxNzgyOTkyMzYwLCJpYXQiOjE3ODI5MDU5NjB9.8a9a27c30e8fd7ad0cf1e0dbc9ff5e8580164ce20709d5e47b61cf9fbd2c58f9&device_id=ADRI-2c502a1e&onboarding=1
+2026-07-01 11:39:31,782 [orion.desktop] INFO: [BROWSER] Dashboard opened in browser
+2026-07-01 11:39:31,810 [orion.desktop.notifications] INFO: [NOTIFICATION] ORION: Dashboard ready — opening browser
+2026-07-01 11:39:31,848 [orion.desktop.tray] INFO: System tray started (persistent)
+2026-07-01 11:39:31,848 [orion.desktop] INFO: [TRAY] System tray initialized
+2026-07-01 11:39:31,848 [orion.desktop] INFO: [READY] ORION Desktop ready (browser fallback)
+2026-07-01 11:39:31,915 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 162, in _update_icon
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-07-01 11:39:31,916 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 143, in _show
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-07-01 11:39:31,925 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:39:32,705 [orion.frontend] INFO: serve_root called
+2026-07-01 11:39:32,705 [orion.frontend] INFO:   serving index.html
+2026-07-01 11:39:32,757 [orion.frontend] INFO: serve_frontend called: full_path=assets/index-Cx2cf9Us.js
+2026-07-01 11:39:32,757 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-Cx2cf9Us.js
+2026-07-01 11:39:32,761 [orion.frontend] INFO: serve_frontend called: full_path=assets/index-bHBjYUQZ.css
+2026-07-01 11:39:32,761 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-bHBjYUQZ.css
+2026-07-01 11:39:32,866 [orion.frontend] INFO: serve_frontend called: full_path=assets/LoginPage-Cm6NHhIk.js
+2026-07-01 11:39:32,866 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/LoginPage-Cm6NHhIk.js
+2026-07-01 11:39:32,868 [orion.frontend] INFO: serve_frontend called: full_path=assets/LoginPage-B90azwIH.css
+2026-07-01 11:39:32,868 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/LoginPage-B90azwIH.css
+2026-07-01 11:39:32,896 [orion.frontend] INFO: serve_frontend called: full_path=assets/circle-alert-CZqhLJDL.js
+2026-07-01 11:39:32,896 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/circle-alert-CZqhLJDL.js
+2026-07-01 11:39:32,897 [orion.frontend] INFO: serve_frontend called: full_path=assets/eye-CMsvw9aW.js
+2026-07-01 11:39:32,897 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/eye-CMsvw9aW.js
+2026-07-01 11:39:34,562 [orion.frontend] INFO: serve_frontend called: full_path=service-worker.js
+2026-07-01 11:39:34,562 [orion.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/service-worker.js
+2026-07-01 11:39:39,943 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:39:45,869 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:39:45,869 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:39:45,870 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=f6596277, pri=5)
+2026-07-01 11:39:45,870 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=539492c6, pri=5)
+2026-07-01 11:39:47,968 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:39:55,985 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:40:00,879 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:40:00,880 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:40:00,880 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=09543f96, pri=5)
+2026-07-01 11:40:00,880 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=d8351fd7, pri=5)
+2026-07-01 11:40:04,013 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:40:12,033 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:40:15,885 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:40:15,885 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:40:15,885 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=4c0a7155, pri=5)
+2026-07-01 11:40:15,885 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=9c598f26, pri=5)
+2026-07-01 11:40:20,054 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:40:28,074 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:40:30,886 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 15 -> 22.5 (Stable system: reducing health check frequency to 22.5s)
+2026-07-01 11:40:30,886 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:40:30,886 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:40:30,886 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=5345f87e, pri=5)
+2026-07-01 11:40:30,886 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=d88ca2ee, pri=5)
+2026-07-01 11:40:30,886 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-07-01 11:40:36,105 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:40:44,131 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:40:45,894 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:40:45,894 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:40:45,895 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=a390dd32, pri=5)
+2026-07-01 11:40:45,895 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=fb504fe0, pri=5)
+2026-07-01 11:40:52,161 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:41:00,197 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:41:00,895 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:41:00,895 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:41:00,896 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=3b7bc9ed, pri=5)
+2026-07-01 11:41:00,896 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=454ee976, pri=5)
+2026-07-01 11:41:08,211 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:41:15,901 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:41:15,901 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:41:15,901 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=e644f86c, pri=5)
+2026-07-01 11:41:15,901 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=900d19ee, pri=5)
+2026-07-01 11:41:16,234 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:41:24,263 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:41:30,902 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 22 -> 33.0 (Stable system: reducing health check frequency to 33.0s)
+2026-07-01 11:41:30,902 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:41:30,902 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:41:30,902 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=8a8b1d08, pri=5)
+2026-07-01 11:41:30,902 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=f7ca8d11, pri=5)
+2026-07-01 11:41:30,902 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-07-01 11:41:32,293 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:41:40,311 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:41:45,906 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:41:45,906 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:41:45,906 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=2846e540, pri=5)
+2026-07-01 11:41:45,906 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=62e5bf3d, pri=5)
+2026-07-01 11:41:48,338 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:41:56,365 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:42:00,911 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:42:00,911 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:42:00,911 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=4c9acfa9, pri=5)
+2026-07-01 11:42:00,911 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=4e9ad45e, pri=5)
+2026-07-01 11:42:04,388 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:42:12,406 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:42:15,916 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:42:15,916 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:42:15,916 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=32bf382d, pri=5)
+2026-07-01 11:42:15,916 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=7b376beb, pri=5)
+2026-07-01 11:42:20,428 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:42:28,447 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:42:30,923 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 33 -> 49.5 (Stable system: reducing health check frequency to 49.5s)
+2026-07-01 11:42:30,923 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:42:30,923 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:42:30,923 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=266e6552, pri=5)
+2026-07-01 11:42:30,923 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=6d885474, pri=5)
+2026-07-01 11:42:30,923 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-07-01 11:42:36,482 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:42:44,504 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:42:45,931 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:42:45,931 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:42:45,931 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=db45cd1b, pri=5)
+2026-07-01 11:42:45,931 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=38649349, pri=5)
+2026-07-01 11:42:52,535 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:43:00,570 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:43:00,936 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:43:00,937 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:43:00,937 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=9d22cdfe, pri=5)
+2026-07-01 11:43:00,937 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=abac39ac, pri=5)
+2026-07-01 11:43:08,587 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:43:15,939 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:43:15,939 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:43:15,939 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=679e53cb, pri=5)
+2026-07-01 11:43:15,939 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=3024e653, pri=5)
+2026-07-01 11:43:16,608 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:43:24,639 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:43:30,948 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 49 -> 60 (Stable system: reducing health check frequency to 60s)
+2026-07-01 11:43:30,949 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:43:30,949 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:43:30,949 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=05dcd6d9, pri=5)
+2026-07-01 11:43:30,949 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=4d328172, pri=5)
+2026-07-01 11:43:30,949 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-07-01 11:43:32,660 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:43:40,682 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:43:45,953 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:43:45,954 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:43:45,954 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=cd692c6e, pri=5)
+2026-07-01 11:43:45,954 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=5fc70d68, pri=5)
+2026-07-01 11:43:48,701 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:43:56,730 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:44:00,960 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:44:00,960 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:44:00,961 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=116f0d7e, pri=5)
+2026-07-01 11:44:00,961 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=23117aef, pri=5)
+2026-07-01 11:44:04,746 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:44:12,775 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:44:15,961 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:44:15,961 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:44:15,962 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=91329685, pri=5)
+2026-07-01 11:44:15,962 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=5436196b, pri=5)
+2026-07-01 11:44:20,810 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:44:28,837 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:44:30,970 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 60 -> 60 (Stable system: reducing health check frequency to 60s)
+2026-07-01 11:44:30,970 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:44:30,970 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:44:30,970 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=3df4f3e0, pri=5)
+2026-07-01 11:44:30,970 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=5435316d, pri=5)
+2026-07-01 11:44:30,970 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-07-01 11:44:36,858 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:44:44,873 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:44:45,981 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:44:45,981 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:44:45,981 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=681e6cc9, pri=5)
+2026-07-01 11:44:45,982 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=1adf0e97, pri=5)
+2026-07-01 11:44:52,899 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:45:00,920 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:45:00,982 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:45:00,982 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:45:00,982 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=4dc69567, pri=5)
+2026-07-01 11:45:00,982 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=8d0fe2cc, pri=5)
+2026-07-01 11:45:08,943 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:45:15,983 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:45:15,983 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:45:15,983 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=e6cec1b3, pri=5)
+2026-07-01 11:45:15,983 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=5925c4d0, pri=5)
+2026-07-01 11:45:16,970 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:45:24,998 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:45:30,988 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 60 -> 60 (Stable system: reducing health check frequency to 60s)
+2026-07-01 11:45:30,988 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:45:30,988 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:45:30,988 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=dc661e32, pri=5)
+2026-07-01 11:45:30,989 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=c13af856, pri=5)
+2026-07-01 11:45:30,989 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-07-01 11:45:33,023 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:45:41,050 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:45:46,000 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:45:46,000 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:45:46,000 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=99231292, pri=5)
+2026-07-01 11:45:46,000 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=254d898a, pri=5)
+2026-07-01 11:45:49,075 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:45:57,104 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:46:01,010 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:46:01,010 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:46:01,010 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=4f066a08, pri=5)
+2026-07-01 11:46:01,011 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=b130c734, pri=5)
+2026-07-01 11:46:05,130 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:46:13,158 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:46:16,017 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:46:16,017 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:46:16,017 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=6bd32f7d, pri=5)
+2026-07-01 11:46:16,018 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=e0314654, pri=5)
+2026-07-01 11:46:21,215 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:46:29,242 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:46:31,024 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 60 -> 60 (Stable system: reducing health check frequency to 60s)
+2026-07-01 11:46:31,024 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:46:31,024 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:46:31,024 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=5066d166, pri=5)
+2026-07-01 11:46:31,024 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=bf20c4de, pri=5)
+2026-07-01 11:46:31,024 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-07-01 11:46:37,271 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:46:45,303 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:46:46,025 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:46:46,025 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:46:46,025 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=3a65a70f, pri=5)
+2026-07-01 11:46:46,025 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=4a055724, pri=5)
+2026-07-01 11:46:53,334 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:47:01,035 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:47:01,035 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:47:01,035 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=6f862a48, pri=5)
+2026-07-01 11:47:01,035 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=bfb71645, pri=5)
+2026-07-01 11:47:01,380 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:47:09,402 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:47:16,043 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:47:16,043 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:47:16,043 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=5da4c6ed, pri=5)
+2026-07-01 11:47:16,043 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=700c7d20, pri=5)
+2026-07-01 11:47:17,438 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:47:25,459 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:47:31,047 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 60 -> 60 (Stable system: reducing health check frequency to 60s)
+2026-07-01 11:47:31,047 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:47:31,047 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:47:31,047 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=8969dccb, pri=5)
+2026-07-01 11:47:31,047 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=fda8908c, pri=5)
+2026-07-01 11:47:31,048 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-07-01 11:47:33,506 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:47:41,536 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:47:46,057 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:47:46,057 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:47:46,057 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=58cb5010, pri=5)
+2026-07-01 11:47:46,057 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=6c909341, pri=5)
+2026-07-01 11:47:49,560 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:47:57,595 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:48:01,058 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:48:01,058 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:48:01,059 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=6ff83da4, pri=5)
+2026-07-01 11:48:01,059 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=a5c31435, pri=5)
+2026-07-01 11:48:05,621 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:48:13,641 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:48:16,060 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:48:16,061 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:48:16,061 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=3e1d54a8, pri=5)
+2026-07-01 11:48:16,061 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=ad6386bd, pri=5)
+2026-07-01 11:48:21,664 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:48:29,683 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:48:31,062 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 60 -> 60 (Stable system: reducing health check frequency to 60s)
+2026-07-01 11:48:31,062 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:48:31,062 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:48:31,062 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=9bc28a94, pri=5)
+2026-07-01 11:48:31,062 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=e739b816, pri=5)
+2026-07-01 11:48:31,062 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-07-01 11:48:37,698 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:48:45,720 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:48:46,063 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:48:46,063 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:48:46,063 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=08489f39, pri=5)
+2026-07-01 11:48:46,063 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=8b256b46, pri=5)
+2026-07-01 11:48:53,758 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:49:01,065 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:49:01,065 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:49:01,065 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=a32cb489, pri=5)
+2026-07-01 11:49:01,066 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=4dbab871, pri=5)
+2026-07-01 11:49:01,789 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:49:09,824 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:49:16,071 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:49:16,071 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:49:16,071 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=5172ff44, pri=5)
+2026-07-01 11:49:16,071 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=7d687b05, pri=5)
+2026-07-01 11:49:17,845 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:49:25,872 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:49:31,072 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 60 -> 60 (Stable system: reducing health check frequency to 60s)
+2026-07-01 11:49:31,072 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-07-01 11:49:31,072 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-07-01 11:49:31,072 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=62b50792, pri=5)
+2026-07-01 11:49:31,072 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine -> AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=21819ca5, pri=5)
+2026-07-01 11:49:31,072 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-07-01 11:49:33,887 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-07-01 11:49:41,101 [orion.desktop] INFO: [SHUTDOWN] Signal 15 received
+2026-07-01 11:49:41,101 [orion.desktop] INFO: [SHUTDOWN] Stopping server...
+2026-07-01 11:49:41,107 [orion.desktop.tray] INFO: System tray stopped
+2026-07-01 11:49:41,107 [orion.desktop] INFO: [SHUTDOWN] ORION Desktop stopped

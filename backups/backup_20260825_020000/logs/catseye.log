@@ -1,0 +1,1000 @@
+2026-06-28 13:52:33,840 [rastro.license.validator] INFO: [HW] validate_license: verify_license_key result = (True, Valid)
+2026-06-28 13:52:33,840 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 13:52:33,840 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 13:52:33,840 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 13:52:33,841 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 13:52:33,841 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 13:52:33,841 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /etc/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 13:52:33,841 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /var/lib/dbus/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 13:52:33,841 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: raw list = ['9ca1be381cc34a80a4c748cdcc3d7937', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 13:52:33,841 [rastro.license.hardware] INFO: [HW] _get_machine_id: deduped = ['9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 13:52:33,841 [rastro.license.hardware] INFO: [HW] _get_machine_id: result = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 13:52:33,841 [rastro.license.hardware] INFO: [HW] get_hardware_id: hostname = ADRI
+2026-06-28 13:52:33,841 [rastro.license.hardware] INFO: [HW] get_hardware_id: mac = 74:c0:fc:5d:15:00
+2026-06-28 13:52:33,841 [rastro.license.hardware] INFO: [HW] get_hardware_id: machine_id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 13:52:33,841 [rastro.license.hardware] INFO: [HW] get_hardware_id: raw_parts = ['ADRI', '74:c0:fc:5d:15:00', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 13:52:33,842 [rastro.license.hardware] INFO: [HW] get_hardware_id: full_sha256 = ba8e594073dc05f7c545b4df34d651da90d7bec79d105414e740193e421040c7
+2026-06-28 13:52:33,842 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 13:52:33,842 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid[:7] = ba8e594
+2026-06-28 13:52:33,842 [rastro.license.validator] INFO: [HW] validate_license: stored = True
+2026-06-28 13:52:33,842 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 13:52:33,842 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id[:7] = ba8e594
+2026-06-28 13:52:33,842 [rastro.license.validator] INFO: [HW] validate_license: current hw_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 13:52:33,842 [rastro.license.validator] INFO: [HW] validate_license: current hw_id[:7] = ba8e594
+2026-06-28 13:52:33,842 [rastro.license.validator] INFO: [HW] validate_license: parsed.hardware_prefix = BA8E594
+2026-06-28 13:52:33,842 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — stored_hw = ba8e594073dc05f7c545b4df34d651da, current_hw = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 13:52:33,842 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — checking prefix: hw_id[:7]=BA8E594 vs parsed.hardware_prefix=BA8E594
+2026-06-28 13:52:33,842 [rastro.license.validator] INFO: [HW] validate_license: prefix check PASSED
+2026-06-28 13:52:33,842 [rastro.license.validator] INFO: [HW] validate_license: stored_hw == current_hw, no update needed
+2026-06-28 13:52:33,843 [rastro.license.validator] INFO: [HW] validate_license: returning VALID
+2026-06-28 13:52:33,843 [rastro.license.validator] INFO: [HW] is_license_valid: result = (True, Valid)
+2026-06-28 13:52:33,843 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: is_license_valid() = (True, Valid)
+2026-06-28 13:52:33,843 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: license OK, passing request through
+2026-06-28 13:52:33,890 [rastro.db] WARNING: Migration skip (reports.attachments): (sqlite3.OperationalError) duplicate column name: attachments
+[SQL: ALTER TABLE reports ADD COLUMN attachments TEXT DEFAULT '[]';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 13:52:33,969 [rastro.db] WARNING: Migration skip (reports.updated_at): (sqlite3.OperationalError) duplicate column name: updated_at
+[SQL: ALTER TABLE reports ADD COLUMN updated_at DATETIME;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 13:52:34,479 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 10 → 15.0 (Stable system: reducing health check frequency to 15.0s)
+2026-06-28 13:52:34,479 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 13:52:34,480 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 13:52:34,493 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=98a4adc0, pri=5)
+2026-06-28 13:52:34,493 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=7fe40dd1, pri=5)
+2026-06-28 13:52:34,493 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-06-28 13:52:36,136 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 13:52:44,325 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 13:52:49,570 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 13:52:49,572 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 13:52:49,572 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=726db1a9, pri=5)
+2026-06-28 13:52:49,572 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=fb737cc2, pri=5)
+2026-06-28 13:52:52,510 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 13:52:56,327 [rastro.recon] INFO: Tool completed: subfinder
+2026-06-28 13:52:56,327 [rastro.recon] INFO: Starting tool: crtsh
+2026-06-28 13:52:56,328 [rastro.recon] ERROR: Tool crtsh failed: No module named 'aiohttp'
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/core_engines/recon/runner.py", line 62, in _safe_run_tool
+    result = await asyncio.wait_for(
+             ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/usr/lib/python3.14/asyncio/tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/home/adrie/projects/Rastro/core_engines/recon/crtsh_runner.py", line 16, in run_crtsh
+    import aiohttp
+ModuleNotFoundError: No module named 'aiohttp'
+2026-06-28 13:52:56,380 [rastro.recon] INFO: Starting tool: whois
+2026-06-28 13:52:56,380 [rastro.recon] INFO: Tool completed: whois
+2026-06-28 13:52:56,380 [rastro.recon] INFO: Starting tool: wayback
+2026-06-28 13:52:56,781 [rastro.recon] INFO: Starting tool: katana
+2026-06-28 13:53:00,838 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 13:53:04,664 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 13:53:04,664 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 13:53:04,664 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=18a21eb6, pri=5)
+2026-06-28 13:53:04,665 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=a6ca5f82, pri=5)
+2026-06-28 13:53:05,831 [rastro.recon] INFO: Tool completed: wayback
+2026-06-28 13:53:09,378 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 13:53:17,931 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 13:53:18,016 [rastro.recon] INFO: Tool completed: katana
+2026-06-28 13:53:19,728 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 13:53:19,728 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 13:53:19,728 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=79cf1380, pri=5)
+2026-06-28 13:53:19,728 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=57af6bde, pri=5)
+2026-06-28 13:53:25,680 [rastro.recon] INFO: Normalized endpoints: 4686
+2026-06-28 13:53:25,774 [rastro.recon] INFO: Recon pipeline completed for api.airbyte.com
+2026-06-28 13:53:25,776 [rastro.main] INFO: Recon pipeline completed successfully
+2026-06-28 13:53:25,776 [rastro.main] INFO: Parsing normalized endpoints from /home/adrie/.rastro/targets/Airbyte/endpoints/normalized_endpoints.json
+2026-06-28 13:53:26,869 [rastro.main] INFO: Found 4686 endpoint entries to persist
+2026-06-28 13:53:34,465 [rastro.main] INFO: Persisted 126 endpoints to DB
+2026-06-28 13:53:34,557 [rastro.main] INFO: Scan 62 completed: 126 endpoints
+2026-06-28 13:53:34,701 [rastro.main] INFO: Verifying recon tools for mode FAST...
+2026-06-28 13:53:34,739 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 15 → 22.5 (Stable system: reducing health check frequency to 22.5s)
+2026-06-28 13:53:34,739 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 13:53:34,739 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 13:53:34,739 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=9ed8228b, pri=5)
+2026-06-28 13:53:34,739 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=34a14e01, pri=5)
+2026-06-28 13:53:34,739 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-06-28 13:53:35,750 [rastro.recon.tools] INFO: Tool 'subfinder' found at /home/adrie/go/bin/subfinder
+2026-06-28 13:53:35,791 [rastro.recon.tools] INFO: Tool 'katana' found at /home/adrie/.local/bin/katana
+2026-06-28 13:53:35,791 [rastro.recon.tools] INFO: Tool 'httpx' found at /home/adrie/projects/Rastro/.venv/bin/httpx
+2026-06-28 13:53:35,791 [rastro.recon.tools] INFO: Optional tool 'waybackurls' available
+2026-06-28 13:53:36,757 [rastro.recon.tools] INFO: Optional tool 'nuclei' available
+2026-06-28 13:53:38,615 [rastro.recon.tools] INFO: Optional tool 'ffuf' available
+2026-06-28 13:53:39,800 [rastro.main] INFO: Started scan run 63 for target Linear
+2026-06-28 13:53:39,801 [rastro.platform.system] INFO: PLATFORM_DIAG: default data_dir=/home/adrie/.rastro
+2026-06-28 13:53:50,912 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 13:53:51,053 [rastro.main] INFO: Running recon pipeline with timeout 600s...
+2026-06-28 13:53:51,147 [rastro.recon] INFO: Starting recon pipeline for app.linear.app in mode FAST
+2026-06-28 13:53:51,147 [rastro.recon] INFO: Starting tool: subfinder
+2026-06-28 13:53:51,142 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 13:53:51,168 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=56dbe485, pri=5)
+2026-06-28 13:53:51,174 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=94b4f2fd, pri=5)
+2026-06-28 13:53:51,397 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 13:54:01,146 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 13:54:07,333 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 13:54:07,333 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 13:54:07,333 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=0707a903, pri=5)
+2026-06-28 13:54:07,333 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=13e851d0, pri=5)
+2026-06-28 13:54:07,675 [rastro.ws] INFO: WS client disconnected: b8612f116797 (total=0)
+2026-06-28 13:54:10,103 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 13:54:18,585 [rastro.desktop] INFO: [SHUTDOWN] Signal 15 received
+2026-06-28 14:24:15,290 [rastro.desktop] INFO: [BOOT] Rastro Desktop — PID: 90621
+2026-06-28 14:24:15,301 [rastro.desktop] INFO: [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-28 14:24:19,113 [rastro.platform.system] INFO: PLATFORM_DIAG: default data_dir=/home/adrie/.rastro
+2026-06-28 14:24:19,145 [rastro.desktop] INFO: [BOOT] Backend port: 8000
+2026-06-28 14:24:19,146 [rastro.desktop] INFO: [API] Starting API server
+2026-06-28 14:24:24,106 [rastro.desktop] INFO: [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-28 14:24:24,111 [rastro.desktop] INFO: [API] Server thread started on 127.0.0.1:8000
+2026-06-28 14:24:24,858 [rastro.db] WARNING: Migration skip (targets_intel.freshness_score): (sqlite3.OperationalError) duplicate column name: freshness_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN freshness_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,859 [rastro.db] WARNING: Migration skip (targets_intel.competition_score): (sqlite3.OperationalError) duplicate column name: competition_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN competition_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,859 [rastro.db] WARNING: Migration skip (targets_intel.opportunity_score): (sqlite3.OperationalError) duplicate column name: opportunity_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN opportunity_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,859 [rastro.db] WARNING: Migration skip (targets_intel.reward_score): (sqlite3.OperationalError) duplicate column name: reward_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN reward_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,859 [rastro.db] WARNING: Migration skip (targets_intel.reward_confidence): (sqlite3.OperationalError) duplicate column name: reward_confidence
+[SQL: ALTER TABLE targets_intel ADD COLUMN reward_confidence FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,859 [rastro.db] WARNING: Migration skip (targets_intel.attack_surface_score): (sqlite3.OperationalError) duplicate column name: attack_surface_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN attack_surface_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,860 [rastro.db] WARNING: Migration skip (targets_intel.evidence_potential_score): (sqlite3.OperationalError) duplicate column name: evidence_potential_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN evidence_potential_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,860 [rastro.db] WARNING: Migration skip (targets_intel.technology_tags): (sqlite3.OperationalError) duplicate column name: technology_tags
+[SQL: ALTER TABLE targets_intel ADD COLUMN technology_tags VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,860 [rastro.db] WARNING: Migration skip (targets_intel.cms_detected): (sqlite3.OperationalError) duplicate column name: cms_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN cms_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,865 [rastro.db] WARNING: Migration skip (targets_intel.framework_detected): (sqlite3.OperationalError) duplicate column name: framework_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN framework_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,866 [rastro.db] WARNING: Migration skip (targets_intel.wordpress_plugins_detected): (sqlite3.OperationalError) duplicate column name: wordpress_plugins_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN wordpress_plugins_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,866 [rastro.db] WARNING: Migration skip (reports.program): (sqlite3.OperationalError) duplicate column name: program
+[SQL: ALTER TABLE reports ADD COLUMN program VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,866 [rastro.db] WARNING: Migration skip (reports.target): (sqlite3.OperationalError) duplicate column name: target
+[SQL: ALTER TABLE reports ADD COLUMN target VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,866 [rastro.db] WARNING: Migration skip (reports.vulnerability): (sqlite3.OperationalError) duplicate column name: vulnerability
+[SQL: ALTER TABLE reports ADD COLUMN vulnerability VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,867 [rastro.db] WARNING: Migration skip (reports.severity): (sqlite3.OperationalError) duplicate column name: severity
+[SQL: ALTER TABLE reports ADD COLUMN severity VARCHAR DEFAULT 'medium';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,867 [rastro.db] WARNING: Migration skip (reports.status): (sqlite3.OperationalError) duplicate column name: status
+[SQL: ALTER TABLE reports ADD COLUMN status VARCHAR DEFAULT 'draft';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,867 [rastro.db] WARNING: Migration skip (reports.estimated_reward): (sqlite3.OperationalError) duplicate column name: estimated_reward
+[SQL: ALTER TABLE reports ADD COLUMN estimated_reward FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,867 [rastro.db] WARNING: Migration skip (reports.confirmed_reward): (sqlite3.OperationalError) duplicate column name: confirmed_reward
+[SQL: ALTER TABLE reports ADD COLUMN confirmed_reward FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,868 [rastro.db] WARNING: Migration skip (reports.currency): (sqlite3.OperationalError) duplicate column name: currency
+[SQL: ALTER TABLE reports ADD COLUMN currency VARCHAR DEFAULT 'USD';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,868 [rastro.db] WARNING: Migration skip (reports.evidence_count): (sqlite3.OperationalError) duplicate column name: evidence_count
+[SQL: ALTER TABLE reports ADD COLUMN evidence_count INTEGER DEFAULT 0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,868 [rastro.db] WARNING: Migration skip (reports.notes): (sqlite3.OperationalError) duplicate column name: notes
+[SQL: ALTER TABLE reports ADD COLUMN notes TEXT DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,868 [rastro.db] WARNING: Migration skip (reports.timeline): (sqlite3.OperationalError) duplicate column name: timeline
+[SQL: ALTER TABLE reports ADD COLUMN timeline TEXT DEFAULT '[]';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,873 [rastro.db] WARNING: Migration skip (reports.attachments): (sqlite3.OperationalError) duplicate column name: attachments
+[SQL: ALTER TABLE reports ADD COLUMN attachments TEXT DEFAULT '[]';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,874 [rastro.db] WARNING: Migration skip (reports.updated_at): (sqlite3.OperationalError) duplicate column name: updated_at
+[SQL: ALTER TABLE reports ADD COLUMN updated_at DATETIME;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:24,874 [rastro.api] INFO: Database initialized
+2026-06-28 14:24:24,874 [rastro.events] INFO: Event bus initialized
+2026-06-28 14:24:24,881 [rastro.api] INFO: Event bus and system state initialized
+2026-06-28 14:24:24,888 [rastro.product_rules] WARNING: [ERROR] scorecard-reachable: Scorecard has no data yet (expected on first boot)
+2026-06-28 14:24:24,888 [rastro.api] INFO: Product behavior rules checked
+2026-06-28 14:24:24,893 [rastro.identity] INFO: Restored identity: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-28 14:24:24,894 [rastro.api] INFO: Identity system initialized: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-28 14:24:24,894 [rastro.orchestrator.assistant] INFO: Suppressed 0 noise items (threshold=0.15)
+2026-06-28 14:24:24,894 [rastro.api] INFO: Assistant orchestrator initialized
+2026-06-28 14:24:24,894 [rastro.api] INFO: Execution tracker initialized
+2026-06-28 14:24:24,894 [rastro.api] INFO: Outcome tracker initialized
+2026-06-28 14:24:25,248 [rastro.api] INFO: System scorecard initialized
+2026-06-28 14:24:25,248 [rastro.api] INFO: Explanation engine initialized
+2026-06-28 14:24:25,248 [rastro.api] INFO: Decision trace collector initialized
+2026-06-28 14:24:25,248 [rastro.api] INFO: Memory store initialized
+2026-06-28 14:24:25,248 [rastro.api] INFO: Decision memory initialized
+2026-06-28 14:24:25,249 [rastro.api] INFO: Insight archive initialized
+2026-06-28 14:24:25,249 [rastro.api] INFO: Priority engine memory consumption: consumed
+2026-06-28 14:24:25,249 [rastro.opportunity.engine] INFO: OpportunityEngine initialised (v2 — layered scoring)
+2026-06-28 14:24:25,249 [rastro.opportunity.engine] INFO: Provider manual discovered 0 opportunities
+2026-06-28 14:24:25,249 [rastro.opportunity.providers] INFO: Discovered 20 public opportunities (paid-first: 17 with rewards)
+2026-06-28 14:24:25,249 [rastro.opportunity.engine] INFO: Provider public_programs discovered 20 opportunities
+2026-06-28 14:24:25,249 [rastro.opportunity.engine] INFO: Provider github_security discovered 2 opportunities
+2026-06-28 14:24:25,249 [rastro.opportunity.engine] INFO: Provider huntr discovered 2 opportunities
+2026-06-28 14:24:25,250 [rastro.opportunity.engine] INFO: Provider all_sources discovered 24 opportunities
+2026-06-28 14:24:25,253 [rastro.api] INFO: Opportunity engine initialized with 48 opportunities
+2026-06-28 14:24:25,253 [rastro.api] INFO: Execution layer fully initialized
+2026-06-28 14:24:25,259 [rastro.api] INFO: Scan scheduler started
+2026-06-28 14:24:25,264 [rastro.operations] INFO: Notification poller thread started
+2026-06-28 14:24:25,264 [rastro.api] INFO: Notification poller started
+2026-06-28 14:24:25,270 [rastro.ws] INFO: WS manager initialized
+2026-06-28 14:24:25,270 [rastro.ws.bridge] INFO: Event bus -> WebSocket bridge started
+2026-06-28 14:24:25,270 [rastro.api] INFO: WS event bridge started
+2026-06-28 14:24:25,280 [rastro.notifications.bridges] INFO: DB bridge registered on NotificationHub
+2026-06-28 14:24:25,281 [rastro.notifications.bridges] INFO: Desktop channel registered on NotificationHub
+2026-06-28 14:24:25,328 [rastro.notifications.bridges] INFO: Email channel skipped — not configured
+2026-06-28 14:24:26,026 [rastro.notifications.bridges] INFO: FCM channel skipped — not configured
+2026-06-28 14:24:26,026 [rastro.notifications.bridges] INFO: WS forwarder registered on NotificationHub
+2026-06-28 14:24:26,026 [rastro.api] INFO: Notification bridges registered
+2026-06-28 14:24:26,026 [rastro.notifications.bridges] INFO: Event -> notification bridge started
+2026-06-28 14:24:26,026 [rastro.api] INFO: Event -> notification bridge started
+2026-06-28 14:24:26,026 [rastro.agents.bus] INFO: [EVENTS] Agent event bus initialized
+2026-06-28 14:24:26,037 [rastro.agents.bus] INFO: [EVENTS] AgentId.COORDINATOR → *: EventType.AGENT_REGISTERED (corr=a24505b2, pri=5)
+2026-06-28 14:24:26,037 [rastro.agents.coordinator] INFO: [COORD] Agent registered: coordinator
+2026-06-28 14:24:26,038 [rastro.agents.base] INFO: [AGENT] coordinator started, subscribed to 10 event types, capabilities: ['orchestrate_pipeline', 'resolve_conflicts', 'retry_failed_stages', 'quality_scoring', 'persist_state']
+2026-06-28 14:24:26,038 [rastro.agents.bus] INFO: [EVENTS] AgentId.RESEARCH → *: EventType.AGENT_REGISTERED (corr=e25f0977, pri=5)
+2026-06-28 14:24:26,038 [rastro.agents.coordinator] INFO: [COORD] Agent registered: research
+2026-06-28 14:24:26,038 [rastro.agents.base] INFO: [AGENT] research started, subscribed to 1 event types, capabilities: ['handles:research.start']
+2026-06-28 14:24:26,038 [rastro.agents.bus] INFO: [EVENTS] AgentId.VALIDATOR → *: EventType.AGENT_REGISTERED (corr=0b96f0ed, pri=5)
+2026-06-28 14:24:26,038 [rastro.agents.coordinator] INFO: [COORD] Agent registered: validator
+2026-06-28 14:24:26,038 [rastro.agents.base] INFO: [AGENT] validator started, subscribed to 1 event types, capabilities: ['handles:validation.requested']
+2026-06-28 14:24:26,038 [rastro.agents.bus] INFO: [EVENTS] AgentId.EXPLOIT → *: EventType.AGENT_REGISTERED (corr=1f331e6a, pri=5)
+2026-06-28 14:24:26,038 [rastro.agents.coordinator] INFO: [COORD] Agent registered: exploit
+2026-06-28 14:24:26,038 [rastro.agents.base] INFO: [AGENT] exploit started, subscribed to 1 event types, capabilities: ['handles:exploit.requested']
+2026-06-28 14:24:26,038 [rastro.agents.bus] INFO: [EVENTS] AgentId.DOCUMENTATION → *: EventType.AGENT_REGISTERED (corr=0dedfc52, pri=5)
+2026-06-28 14:24:26,038 [rastro.agents.coordinator] INFO: [COORD] Agent registered: documentation
+2026-06-28 14:24:26,038 [rastro.agents.base] INFO: [AGENT] documentation started, subscribed to 1 event types, capabilities: ['handles:documentation.requested']
+2026-06-28 14:24:26,038 [rastro.agents.bus] INFO: [EVENTS] AgentId.STRATEGY → *: EventType.AGENT_REGISTERED (corr=5813c20c, pri=5)
+2026-06-28 14:24:26,039 [rastro.agents.coordinator] INFO: [COORD] Agent registered: strategy
+2026-06-28 14:24:26,039 [rastro.agents.base] INFO: [AGENT] strategy started, subscribed to 4 event types, capabilities: ['handles:strategy.recommendation', 'handles:research.completed', 'handles:validation.completed', 'handles:documentation.completed']
+2026-06-28 14:24:26,039 [rastro.agents.bus] INFO: [EVENTS] AgentId.MEMORY → *: EventType.AGENT_REGISTERED (corr=c9c5c042, pri=5)
+2026-06-28 14:24:26,039 [rastro.agents.coordinator] INFO: [COORD] Agent registered: memory
+2026-06-28 14:24:26,039 [rastro.agents.base] INFO: [AGENT] memory started, subscribed to 5 event types, capabilities: ['handles:memory.store', 'handles:memory.retrieved', 'handles:validation.completed', 'handles:exploit.completed', 'handles:documentation.completed']
+2026-06-28 14:24:26,039 [rastro.agents.bus] INFO: [EVENTS] AgentId.FINANCIAL → *: EventType.AGENT_REGISTERED (corr=5b1774e7, pri=5)
+2026-06-28 14:24:26,039 [rastro.agents.coordinator] INFO: [COORD] Agent registered: financial
+2026-06-28 14:24:26,039 [rastro.agents.base] INFO: [AGENT] financial started, subscribed to 4 event types, capabilities: ['handles:financial.updated', 'handles:financial.payout_recorded', 'handles:financial.goal_updated', 'handles:documentation.completed']
+2026-06-28 14:24:26,039 [rastro.agents] INFO: [AGENTS] All 8 agents started
+2026-06-28 14:24:26,039 [rastro.api] INFO: [BOOT] 8 agents started
+2026-06-28 14:24:26,083 [rastro.recovery.engine] INFO: [RECOVERY] Engine started
+2026-06-28 14:24:26,088 [rastro.recovery.health_monitor] INFO: [HEALTH] Monitor started (interval=8.0s)
+2026-06-28 14:24:26,088 [rastro.api] INFO: [BOOT] Recovery engine and health monitor started
+2026-06-28 14:24:26,129 [rastro.health.engine] INFO: [HEALTH] Engine started (interval=10.0s)
+2026-06-28 14:24:26,129 [rastro.api] INFO: [BOOT] System health engine started
+2026-06-28 14:24:26,152 [rastro.optimization.engine] INFO: [OPTIMIZE] Engine started
+2026-06-28 14:24:26,152 [rastro.api] INFO: [BOOT] Auto-optimization engine started
+2026-06-28 14:24:26,185 [rastro.autonomous.engine] INFO: [AUTO+] Engine started (interval=15.0s, enabled=False)
+2026-06-28 14:24:26,186 [rastro.autonomous.engine] INFO: [AUTO+] AUTONOMOUS+ mode enabled
+2026-06-28 14:24:26,186 [rastro.api] INFO: [BOOT] AUTONOMOUS+ mode engine started and enabled
+2026-06-28 14:24:26,186 [rastro.scheduler] INFO: Scan scheduler started (interval=1800s)
+2026-06-28 14:24:26,213 [rastro.health.engine] INFO: [HEALTH] Status changed to critical (score=30.0, trend=stable)
+2026-06-28 14:24:26,221 [rastro.scheduler] INFO: Scheduler: scanning 311 targets
+2026-06-28 14:24:26,285 [rastro.main] INFO: Verifying recon tools for mode FAST...
+2026-06-28 14:24:26,465 [rastro.recovery.engine] WARNING: [RECOVERY] No healing rule for agents/unknown
+2026-06-28 14:24:26,812 [rastro.recon.tools] INFO: Tool 'subfinder' found at /home/adrie/go/bin/subfinder
+2026-06-28 14:24:26,813 [rastro.recon.tools] INFO: Tool 'katana' found at /home/adrie/.local/bin/katana
+2026-06-28 14:24:26,813 [rastro.recon.tools] INFO: Tool 'httpx' found at /home/adrie/projects/Rastro/.venv/bin/httpx
+2026-06-28 14:24:26,813 [rastro.recon.tools] INFO: Optional tool 'waybackurls' available
+2026-06-28 14:24:27,135 [rastro.recon.tools] INFO: Optional tool 'nuclei' available
+2026-06-28 14:24:27,833 [rastro.recon.tools] INFO: Optional tool 'ffuf' available
+2026-06-28 14:24:28,509 [rastro.main] INFO: Started scan run 64 for target Airbyte
+2026-06-28 14:24:28,509 [rastro.platform.system] INFO: PLATFORM_DIAG: default data_dir=/home/adrie/.rastro
+2026-06-28 14:24:30,660 [rastro.main] INFO: Running recon pipeline with timeout 600s...
+2026-06-28 14:24:30,660 [rastro.recon] INFO: Starting recon pipeline for api.airbyte.com in mode FAST
+2026-06-28 14:24:30,660 [rastro.recon] INFO: Starting tool: subfinder
+2026-06-28 14:24:30,776 [rastro.desktop] INFO: [API] Server listening on 127.0.0.1:8000
+2026-06-28 14:24:30,821 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+2026-06-28 14:24:30,821 [rastro.desktop] INFO: [HEALTHY] Backend healthy on port 8000
+2026-06-28 14:24:30,827 [rastro.desktop] INFO: [BOOT] Session — device_id from settings: ADRI-8f2cb265
+2026-06-28 14:24:30,841 [rastro.desktop] INFO: [BOOT] Session — calling manager.authenticate (device=ADRI-8f2cb265)
+2026-06-28 14:24:30,855 [rastro.desktop] INFO: [BOOT] Session — authenticate result keys: ['token', 'refresh', 'device_id', 'user_id', 'existing']
+2026-06-28 14:24:30,855 [rastro.desktop] INFO: [BOOT] Session — token obtained: eyJkYXRhIjp7Im1ldGEi...
+2026-06-28 14:24:30,859 [rastro.desktop] INFO: [BOOT] Session — stored token check: OK
+2026-06-28 14:24:30,860 [rastro.desktop] INFO: [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-28 14:24:34,563 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:24:36,224 [rastro.health.engine] INFO: [HEALTH] Status changed to recovering (score=20.0, trend=stable)
+2026-06-28 14:24:41,194 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 10 → 15.0 (Stable system: reducing health check frequency to 15.0s)
+2026-06-28 14:24:41,194 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 14:24:41,194 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 14:24:41,194 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=de6c38bc, pri=5)
+2026-06-28 14:24:41,195 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=a31577f0, pri=5)
+2026-06-28 14:24:41,195 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-06-28 14:24:41,486 [rastro.desktop.browser_opener] INFO: Opened browser: http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyNzQzMDcwLCJpYXQiOjE3ODI2NTY2NzB9.0a32fdb4fcad52b1e467e26b90cadbdfebedc1f436c995e730bb711903feb941&device_id=ADRI-8f2cb265&onboarding=1
+2026-06-28 14:24:41,487 [rastro.desktop] INFO: [BROWSER] Dashboard opened in browser
+2026-06-28 14:24:41,511 [rastro.desktop.notifications] INFO: [NOTIFICATION] Rastro: Dashboard ready — opening browser
+2026-06-28 14:24:42,441 [rastro.desktop.tray] INFO: System tray started (persistent)
+2026-06-28 14:24:42,445 [rastro.desktop] INFO: [TRAY] System tray initialized
+2026-06-28 14:24:42,446 [rastro.desktop] INFO: [READY] Rastro Desktop ready (browser mode)
+2026-06-28 14:24:42,493 [rastro.frontend] INFO: serve_root called
+2026-06-28 14:24:42,493 [rastro.frontend] INFO:   serving index.html
+2026-06-28 14:24:42,558 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 162, in _update_icon
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-28 14:24:42,571 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-kwNCd2pF.js
+2026-06-28 14:24:42,576 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-kwNCd2pF.js
+2026-06-28 14:24:42,576 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 143, in _show
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-28 14:24:42,590 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:24:42,601 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-CD4xvlnL.css
+2026-06-28 14:24:42,602 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-CD4xvlnL.css
+2026-06-28 14:24:42,603 [rastro.frontend] INFO: serve_frontend called: full_path=assets/api-CzheMCAu.js
+2026-06-28 14:24:42,603 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/api-CzheMCAu.js
+2026-06-28 14:24:42,604 [rastro.frontend] INFO: serve_frontend called: full_path=manifest.json
+2026-06-28 14:24:42,604 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/manifest.json
+2026-06-28 14:24:42,625 [rastro.frontend] INFO: serve_frontend called: full_path=assets/preload-helper-zJ_50EbN.js
+2026-06-28 14:24:42,626 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/preload-helper-zJ_50EbN.js
+2026-06-28 14:24:42,637 [rastro.frontend] INFO: serve_frontend called: full_path=assets/jsx-runtime-BseJUIpC.js
+2026-06-28 14:24:42,637 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/jsx-runtime-BseJUIpC.js
+2026-06-28 14:24:42,755 [rastro.frontend] INFO: serve_frontend called: full_path=icon-192.png
+2026-06-28 14:24:42,755 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/icon-192.png
+2026-06-28 14:24:44,313 [rastro.frontend] INFO: serve_frontend called: full_path=service-worker.js
+2026-06-28 14:24:44,313 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/service-worker.js
+2026-06-28 14:24:45,317 [rastro.frontend] INFO: serve_frontend called: full_path=assets/MissionControl-CACZtv2V.js
+2026-06-28 14:24:45,318 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/MissionControl-CACZtv2V.js
+2026-06-28 14:24:45,318 [rastro.frontend] INFO: serve_frontend called: full_path=assets/KPICard-hwM5aC38.js
+2026-06-28 14:24:45,318 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/KPICard-hwM5aC38.js
+2026-06-28 14:24:45,319 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Badge-CzoNk_7P.js
+2026-06-28 14:24:45,319 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Badge-CzoNk_7P.js
+2026-06-28 14:24:45,319 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Panel-DIRwhdsd.js
+2026-06-28 14:24:45,319 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Panel-DIRwhdsd.js
+2026-06-28 14:24:45,320 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Skeleton-BBrxNivq.js
+2026-06-28 14:24:45,320 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Skeleton-BBrxNivq.js
+2026-06-28 14:24:45,496 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: checking license for path=/api/targets
+2026-06-28 14:24:45,496 [rastro.license.validator] INFO: [HW] is_license_valid: ENTER
+2026-06-28 14:24:45,496 [rastro.platform.system] INFO: PLATFORM_DIAG: default data_dir=/home/adrie/.rastro
+2026-06-28 14:24:45,497 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,497 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,518 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,518 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,518 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,518 [rastro.license.validator] INFO: [HW] is_license_valid: stored license found, delegating to validate_license
+2026-06-28 14:24:45,518 [rastro.license.validator] INFO: [HW] validate_license: ENTER key (truncated) = 12606-28270-...
+2026-06-28 14:24:45,518 [rastro.license.validator] INFO: [HW] validate_license: verify_license_key result = (True, Valid)
+2026-06-28 14:24:45,518 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,519 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,519 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,519 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,519 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,588 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /etc/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,588 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /var/lib/dbus/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,588 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: raw list = ['9ca1be381cc34a80a4c748cdcc3d7937', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,588 [rastro.license.hardware] INFO: [HW] _get_machine_id: deduped = ['9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,588 [rastro.license.hardware] INFO: [HW] _get_machine_id: result = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,589 [rastro.license.hardware] INFO: [HW] get_hardware_id: hostname = ADRI
+2026-06-28 14:24:45,589 [rastro.license.hardware] INFO: [HW] get_hardware_id: mac = 74:c0:fc:5d:15:00
+2026-06-28 14:24:45,589 [rastro.license.hardware] INFO: [HW] get_hardware_id: machine_id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,589 [rastro.license.hardware] INFO: [HW] get_hardware_id: raw_parts = ['ADRI', '74:c0:fc:5d:15:00', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,589 [rastro.license.hardware] INFO: [HW] get_hardware_id: full_sha256 = ba8e594073dc05f7c545b4df34d651da90d7bec79d105414e740193e421040c7
+2026-06-28 14:24:45,589 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,589 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid[:7] = ba8e594
+2026-06-28 14:24:45,589 [rastro.license.validator] INFO: [HW] validate_license: stored = True
+2026-06-28 14:24:45,589 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,589 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,589 [rastro.license.validator] INFO: [HW] validate_license: current hw_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,589 [rastro.license.validator] INFO: [HW] validate_license: current hw_id[:7] = ba8e594
+2026-06-28 14:24:45,589 [rastro.license.validator] INFO: [HW] validate_license: parsed.hardware_prefix = BA8E594
+2026-06-28 14:24:45,589 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — stored_hw = ba8e594073dc05f7c545b4df34d651da, current_hw = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,589 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — checking prefix: hw_id[:7]=BA8E594 vs parsed.hardware_prefix=BA8E594
+2026-06-28 14:24:45,589 [rastro.license.validator] INFO: [HW] validate_license: prefix check PASSED
+2026-06-28 14:24:45,589 [rastro.license.validator] INFO: [HW] validate_license: stored_hw == current_hw, no update needed
+2026-06-28 14:24:45,589 [rastro.license.validator] INFO: [HW] validate_license: returning VALID
+2026-06-28 14:24:45,589 [rastro.license.validator] INFO: [HW] is_license_valid: result = (True, Valid)
+2026-06-28 14:24:45,589 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: is_license_valid() = (True, Valid)
+2026-06-28 14:24:45,589 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: license OK, passing request through
+2026-06-28 14:24:45,590 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: checking license for path=/api/system/state
+2026-06-28 14:24:45,590 [rastro.license.validator] INFO: [HW] is_license_valid: ENTER
+2026-06-28 14:24:45,590 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,590 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,590 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,590 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,590 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,590 [rastro.license.validator] INFO: [HW] is_license_valid: stored license found, delegating to validate_license
+2026-06-28 14:24:45,590 [rastro.license.validator] INFO: [HW] validate_license: ENTER key (truncated) = 12606-28270-...
+2026-06-28 14:24:45,590 [rastro.license.validator] INFO: [HW] validate_license: verify_license_key result = (True, Valid)
+2026-06-28 14:24:45,590 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,591 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,591 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,591 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,591 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,591 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /etc/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,591 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /var/lib/dbus/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,591 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: raw list = ['9ca1be381cc34a80a4c748cdcc3d7937', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,591 [rastro.license.hardware] INFO: [HW] _get_machine_id: deduped = ['9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,591 [rastro.license.hardware] INFO: [HW] _get_machine_id: result = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,591 [rastro.license.hardware] INFO: [HW] get_hardware_id: hostname = ADRI
+2026-06-28 14:24:45,591 [rastro.license.hardware] INFO: [HW] get_hardware_id: mac = 74:c0:fc:5d:15:00
+2026-06-28 14:24:45,591 [rastro.license.hardware] INFO: [HW] get_hardware_id: machine_id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,591 [rastro.license.hardware] INFO: [HW] get_hardware_id: raw_parts = ['ADRI', '74:c0:fc:5d:15:00', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,591 [rastro.license.hardware] INFO: [HW] get_hardware_id: full_sha256 = ba8e594073dc05f7c545b4df34d651da90d7bec79d105414e740193e421040c7
+2026-06-28 14:24:45,591 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,591 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid[:7] = ba8e594
+2026-06-28 14:24:45,591 [rastro.license.validator] INFO: [HW] validate_license: stored = True
+2026-06-28 14:24:45,591 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,592 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,592 [rastro.license.validator] INFO: [HW] validate_license: current hw_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,592 [rastro.license.validator] INFO: [HW] validate_license: current hw_id[:7] = ba8e594
+2026-06-28 14:24:45,592 [rastro.license.validator] INFO: [HW] validate_license: parsed.hardware_prefix = BA8E594
+2026-06-28 14:24:45,592 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — stored_hw = ba8e594073dc05f7c545b4df34d651da, current_hw = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,592 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — checking prefix: hw_id[:7]=BA8E594 vs parsed.hardware_prefix=BA8E594
+2026-06-28 14:24:45,592 [rastro.license.validator] INFO: [HW] validate_license: prefix check PASSED
+2026-06-28 14:24:45,592 [rastro.license.validator] INFO: [HW] validate_license: stored_hw == current_hw, no update needed
+2026-06-28 14:24:45,592 [rastro.license.validator] INFO: [HW] validate_license: returning VALID
+2026-06-28 14:24:45,592 [rastro.license.validator] INFO: [HW] is_license_valid: result = (True, Valid)
+2026-06-28 14:24:45,592 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: is_license_valid() = (True, Valid)
+2026-06-28 14:24:45,592 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: license OK, passing request through
+2026-06-28 14:24:45,607 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: checking license for path=/api/assistant/insights
+2026-06-28 14:24:45,607 [rastro.license.validator] INFO: [HW] is_license_valid: ENTER
+2026-06-28 14:24:45,607 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,608 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,608 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,608 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,608 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,608 [rastro.license.validator] INFO: [HW] is_license_valid: stored license found, delegating to validate_license
+2026-06-28 14:24:45,608 [rastro.license.validator] INFO: [HW] validate_license: ENTER key (truncated) = 12606-28270-...
+2026-06-28 14:24:45,608 [rastro.license.validator] INFO: [HW] validate_license: verify_license_key result = (True, Valid)
+2026-06-28 14:24:45,608 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,608 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,608 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,608 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,608 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,608 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /etc/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,608 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /var/lib/dbus/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,608 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: raw list = ['9ca1be381cc34a80a4c748cdcc3d7937', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,609 [rastro.license.hardware] INFO: [HW] _get_machine_id: deduped = ['9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,609 [rastro.license.hardware] INFO: [HW] _get_machine_id: result = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,609 [rastro.license.hardware] INFO: [HW] get_hardware_id: hostname = ADRI
+2026-06-28 14:24:45,609 [rastro.license.hardware] INFO: [HW] get_hardware_id: mac = 74:c0:fc:5d:15:00
+2026-06-28 14:24:45,609 [rastro.license.hardware] INFO: [HW] get_hardware_id: machine_id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,609 [rastro.license.hardware] INFO: [HW] get_hardware_id: raw_parts = ['ADRI', '74:c0:fc:5d:15:00', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,609 [rastro.license.hardware] INFO: [HW] get_hardware_id: full_sha256 = ba8e594073dc05f7c545b4df34d651da90d7bec79d105414e740193e421040c7
+2026-06-28 14:24:45,609 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,609 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid[:7] = ba8e594
+2026-06-28 14:24:45,609 [rastro.license.validator] INFO: [HW] validate_license: stored = True
+2026-06-28 14:24:45,609 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,609 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,609 [rastro.license.validator] INFO: [HW] validate_license: current hw_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,609 [rastro.license.validator] INFO: [HW] validate_license: current hw_id[:7] = ba8e594
+2026-06-28 14:24:45,609 [rastro.license.validator] INFO: [HW] validate_license: parsed.hardware_prefix = BA8E594
+2026-06-28 14:24:45,609 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — stored_hw = ba8e594073dc05f7c545b4df34d651da, current_hw = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,609 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — checking prefix: hw_id[:7]=BA8E594 vs parsed.hardware_prefix=BA8E594
+2026-06-28 14:24:45,609 [rastro.license.validator] INFO: [HW] validate_license: prefix check PASSED
+2026-06-28 14:24:45,609 [rastro.license.validator] INFO: [HW] validate_license: stored_hw == current_hw, no update needed
+2026-06-28 14:24:45,609 [rastro.license.validator] INFO: [HW] validate_license: returning VALID
+2026-06-28 14:24:45,609 [rastro.license.validator] INFO: [HW] is_license_valid: result = (True, Valid)
+2026-06-28 14:24:45,609 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: is_license_valid() = (True, Valid)
+2026-06-28 14:24:45,610 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: license OK, passing request through
+2026-06-28 14:24:45,610 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: checking license for path=/api/operations/notifications
+2026-06-28 14:24:45,610 [rastro.license.validator] INFO: [HW] is_license_valid: ENTER
+2026-06-28 14:24:45,610 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,610 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,610 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,610 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,610 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,610 [rastro.license.validator] INFO: [HW] is_license_valid: stored license found, delegating to validate_license
+2026-06-28 14:24:45,610 [rastro.license.validator] INFO: [HW] validate_license: ENTER key (truncated) = 12606-28270-...
+2026-06-28 14:24:45,610 [rastro.license.validator] INFO: [HW] validate_license: verify_license_key result = (True, Valid)
+2026-06-28 14:24:45,610 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,611 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,611 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,611 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,611 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,611 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /etc/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,611 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /var/lib/dbus/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,611 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: raw list = ['9ca1be381cc34a80a4c748cdcc3d7937', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,611 [rastro.license.hardware] INFO: [HW] _get_machine_id: deduped = ['9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,611 [rastro.license.hardware] INFO: [HW] _get_machine_id: result = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,611 [rastro.license.hardware] INFO: [HW] get_hardware_id: hostname = ADRI
+2026-06-28 14:24:45,611 [rastro.license.hardware] INFO: [HW] get_hardware_id: mac = 74:c0:fc:5d:15:00
+2026-06-28 14:24:45,611 [rastro.license.hardware] INFO: [HW] get_hardware_id: machine_id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,611 [rastro.license.hardware] INFO: [HW] get_hardware_id: raw_parts = ['ADRI', '74:c0:fc:5d:15:00', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,612 [rastro.license.hardware] INFO: [HW] get_hardware_id: full_sha256 = ba8e594073dc05f7c545b4df34d651da90d7bec79d105414e740193e421040c7
+2026-06-28 14:24:45,612 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,612 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid[:7] = ba8e594
+2026-06-28 14:24:45,612 [rastro.license.validator] INFO: [HW] validate_license: stored = True
+2026-06-28 14:24:45,612 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,612 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,612 [rastro.license.validator] INFO: [HW] validate_license: current hw_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,612 [rastro.license.validator] INFO: [HW] validate_license: current hw_id[:7] = ba8e594
+2026-06-28 14:24:45,612 [rastro.license.validator] INFO: [HW] validate_license: parsed.hardware_prefix = BA8E594
+2026-06-28 14:24:45,612 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — stored_hw = ba8e594073dc05f7c545b4df34d651da, current_hw = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,612 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — checking prefix: hw_id[:7]=BA8E594 vs parsed.hardware_prefix=BA8E594
+2026-06-28 14:24:45,612 [rastro.license.validator] INFO: [HW] validate_license: prefix check PASSED
+2026-06-28 14:24:45,612 [rastro.license.validator] INFO: [HW] validate_license: stored_hw == current_hw, no update needed
+2026-06-28 14:24:45,612 [rastro.license.validator] INFO: [HW] validate_license: returning VALID
+2026-06-28 14:24:45,612 [rastro.license.validator] INFO: [HW] is_license_valid: result = (True, Valid)
+2026-06-28 14:24:45,612 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: is_license_valid() = (True, Valid)
+2026-06-28 14:24:45,612 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: license OK, passing request through
+2026-06-28 14:24:45,613 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: checking license for path=/api/assistant/summary
+2026-06-28 14:24:45,613 [rastro.license.validator] INFO: [HW] is_license_valid: ENTER
+2026-06-28 14:24:45,613 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,613 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,613 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,613 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,613 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,613 [rastro.license.validator] INFO: [HW] is_license_valid: stored license found, delegating to validate_license
+2026-06-28 14:24:45,613 [rastro.license.validator] INFO: [HW] validate_license: ENTER key (truncated) = 12606-28270-...
+2026-06-28 14:24:45,613 [rastro.license.validator] INFO: [HW] validate_license: verify_license_key result = (True, Valid)
+2026-06-28 14:24:45,613 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,613 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,613 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,613 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,613 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,614 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /etc/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,614 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /var/lib/dbus/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,614 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: raw list = ['9ca1be381cc34a80a4c748cdcc3d7937', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,614 [rastro.license.hardware] INFO: [HW] _get_machine_id: deduped = ['9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,614 [rastro.license.hardware] INFO: [HW] _get_machine_id: result = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,614 [rastro.license.hardware] INFO: [HW] get_hardware_id: hostname = ADRI
+2026-06-28 14:24:45,614 [rastro.license.hardware] INFO: [HW] get_hardware_id: mac = 74:c0:fc:5d:15:00
+2026-06-28 14:24:45,614 [rastro.license.hardware] INFO: [HW] get_hardware_id: machine_id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,614 [rastro.license.hardware] INFO: [HW] get_hardware_id: raw_parts = ['ADRI', '74:c0:fc:5d:15:00', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,614 [rastro.license.hardware] INFO: [HW] get_hardware_id: full_sha256 = ba8e594073dc05f7c545b4df34d651da90d7bec79d105414e740193e421040c7
+2026-06-28 14:24:45,614 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,614 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid[:7] = ba8e594
+2026-06-28 14:24:45,619 [rastro.license.validator] INFO: [HW] validate_license: stored = True
+2026-06-28 14:24:45,619 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,619 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,619 [rastro.license.validator] INFO: [HW] validate_license: current hw_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,619 [rastro.license.validator] INFO: [HW] validate_license: current hw_id[:7] = ba8e594
+2026-06-28 14:24:45,620 [rastro.license.validator] INFO: [HW] validate_license: parsed.hardware_prefix = BA8E594
+2026-06-28 14:24:45,620 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — stored_hw = ba8e594073dc05f7c545b4df34d651da, current_hw = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,620 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — checking prefix: hw_id[:7]=BA8E594 vs parsed.hardware_prefix=BA8E594
+2026-06-28 14:24:45,620 [rastro.license.validator] INFO: [HW] validate_license: prefix check PASSED
+2026-06-28 14:24:45,620 [rastro.license.validator] INFO: [HW] validate_license: stored_hw == current_hw, no update needed
+2026-06-28 14:24:45,620 [rastro.license.validator] INFO: [HW] validate_license: returning VALID
+2026-06-28 14:24:45,620 [rastro.license.validator] INFO: [HW] is_license_valid: result = (True, Valid)
+2026-06-28 14:24:45,620 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: is_license_valid() = (True, Valid)
+2026-06-28 14:24:45,620 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: license OK, passing request through
+2026-06-28 14:24:45,629 [rastro.db] WARNING: Migration skip (targets_intel.freshness_score): (sqlite3.OperationalError) duplicate column name: freshness_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN freshness_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,629 [rastro.db] WARNING: Migration skip (targets_intel.competition_score): (sqlite3.OperationalError) duplicate column name: competition_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN competition_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,629 [rastro.db] WARNING: Migration skip (targets_intel.opportunity_score): (sqlite3.OperationalError) duplicate column name: opportunity_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN opportunity_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,630 [rastro.db] WARNING: Migration skip (targets_intel.reward_score): (sqlite3.OperationalError) duplicate column name: reward_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN reward_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,630 [rastro.db] WARNING: Migration skip (targets_intel.reward_confidence): (sqlite3.OperationalError) duplicate column name: reward_confidence
+[SQL: ALTER TABLE targets_intel ADD COLUMN reward_confidence FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,630 [rastro.db] WARNING: Migration skip (targets_intel.attack_surface_score): (sqlite3.OperationalError) duplicate column name: attack_surface_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN attack_surface_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,630 [rastro.db] WARNING: Migration skip (targets_intel.evidence_potential_score): (sqlite3.OperationalError) duplicate column name: evidence_potential_score
+[SQL: ALTER TABLE targets_intel ADD COLUMN evidence_potential_score FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,636 [rastro.db] WARNING: Migration skip (targets_intel.technology_tags): (sqlite3.OperationalError) duplicate column name: technology_tags
+[SQL: ALTER TABLE targets_intel ADD COLUMN technology_tags VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,637 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: checking license for path=/api/assistant/recommendations
+2026-06-28 14:24:45,642 [rastro.db] WARNING: Migration skip (targets_intel.cms_detected): (sqlite3.OperationalError) duplicate column name: cms_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN cms_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,647 [rastro.db] WARNING: Migration skip (targets_intel.framework_detected): (sqlite3.OperationalError) duplicate column name: framework_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN framework_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,647 [rastro.db] WARNING: Migration skip (targets_intel.wordpress_plugins_detected): (sqlite3.OperationalError) duplicate column name: wordpress_plugins_detected
+[SQL: ALTER TABLE targets_intel ADD COLUMN wordpress_plugins_detected VARCHAR;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,648 [rastro.db] WARNING: Migration skip (reports.program): (sqlite3.OperationalError) duplicate column name: program
+[SQL: ALTER TABLE reports ADD COLUMN program VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,648 [rastro.db] WARNING: Migration skip (reports.target): (sqlite3.OperationalError) duplicate column name: target
+[SQL: ALTER TABLE reports ADD COLUMN target VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,648 [rastro.db] WARNING: Migration skip (reports.vulnerability): (sqlite3.OperationalError) duplicate column name: vulnerability
+[SQL: ALTER TABLE reports ADD COLUMN vulnerability VARCHAR DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,648 [rastro.db] WARNING: Migration skip (reports.severity): (sqlite3.OperationalError) duplicate column name: severity
+[SQL: ALTER TABLE reports ADD COLUMN severity VARCHAR DEFAULT 'medium';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,648 [rastro.db] WARNING: Migration skip (reports.status): (sqlite3.OperationalError) duplicate column name: status
+[SQL: ALTER TABLE reports ADD COLUMN status VARCHAR DEFAULT 'draft';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,649 [rastro.db] WARNING: Migration skip (reports.estimated_reward): (sqlite3.OperationalError) duplicate column name: estimated_reward
+[SQL: ALTER TABLE reports ADD COLUMN estimated_reward FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,649 [rastro.db] WARNING: Migration skip (reports.confirmed_reward): (sqlite3.OperationalError) duplicate column name: confirmed_reward
+[SQL: ALTER TABLE reports ADD COLUMN confirmed_reward FLOAT DEFAULT 0.0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,649 [rastro.db] WARNING: Migration skip (reports.currency): (sqlite3.OperationalError) duplicate column name: currency
+[SQL: ALTER TABLE reports ADD COLUMN currency VARCHAR DEFAULT 'USD';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,649 [rastro.db] WARNING: Migration skip (reports.evidence_count): (sqlite3.OperationalError) duplicate column name: evidence_count
+[SQL: ALTER TABLE reports ADD COLUMN evidence_count INTEGER DEFAULT 0;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,649 [rastro.db] WARNING: Migration skip (reports.notes): (sqlite3.OperationalError) duplicate column name: notes
+[SQL: ALTER TABLE reports ADD COLUMN notes TEXT DEFAULT '';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,649 [rastro.db] WARNING: Migration skip (reports.timeline): (sqlite3.OperationalError) duplicate column name: timeline
+[SQL: ALTER TABLE reports ADD COLUMN timeline TEXT DEFAULT '[]';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,650 [rastro.db] WARNING: Migration skip (reports.attachments): (sqlite3.OperationalError) duplicate column name: attachments
+[SQL: ALTER TABLE reports ADD COLUMN attachments TEXT DEFAULT '[]';]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,650 [rastro.db] WARNING: Migration skip (reports.updated_at): (sqlite3.OperationalError) duplicate column name: updated_at
+[SQL: ALTER TABLE reports ADD COLUMN updated_at DATETIME;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-28 14:24:45,646 [rastro.license.validator] INFO: [HW] is_license_valid: ENTER
+2026-06-28 14:24:45,653 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,653 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,653 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,653 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,653 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,653 [rastro.license.validator] INFO: [HW] is_license_valid: stored license found, delegating to validate_license
+2026-06-28 14:24:45,653 [rastro.license.validator] INFO: [HW] validate_license: ENTER key (truncated) = 12606-28270-...
+2026-06-28 14:24:45,653 [rastro.license.validator] INFO: [HW] validate_license: verify_license_key result = (True, Valid)
+2026-06-28 14:24:45,662 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,662 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,662 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,662 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,662 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,662 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /etc/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,662 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /var/lib/dbus/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,662 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: raw list = ['9ca1be381cc34a80a4c748cdcc3d7937', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,662 [rastro.license.hardware] INFO: [HW] _get_machine_id: deduped = ['9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,662 [rastro.license.hardware] INFO: [HW] _get_machine_id: result = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,662 [rastro.license.hardware] INFO: [HW] get_hardware_id: hostname = ADRI
+2026-06-28 14:24:45,662 [rastro.license.hardware] INFO: [HW] get_hardware_id: mac = 74:c0:fc:5d:15:00
+2026-06-28 14:24:45,663 [rastro.license.hardware] INFO: [HW] get_hardware_id: machine_id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,663 [rastro.license.hardware] INFO: [HW] get_hardware_id: raw_parts = ['ADRI', '74:c0:fc:5d:15:00', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,663 [rastro.license.hardware] INFO: [HW] get_hardware_id: full_sha256 = ba8e594073dc05f7c545b4df34d651da90d7bec79d105414e740193e421040c7
+2026-06-28 14:24:45,663 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,663 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid[:7] = ba8e594
+2026-06-28 14:24:45,663 [rastro.license.validator] INFO: [HW] validate_license: stored = True
+2026-06-28 14:24:45,663 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,663 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,663 [rastro.license.validator] INFO: [HW] validate_license: current hw_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,663 [rastro.license.validator] INFO: [HW] validate_license: current hw_id[:7] = ba8e594
+2026-06-28 14:24:45,663 [rastro.license.validator] INFO: [HW] validate_license: parsed.hardware_prefix = BA8E594
+2026-06-28 14:24:45,663 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — stored_hw = ba8e594073dc05f7c545b4df34d651da, current_hw = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,663 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — checking prefix: hw_id[:7]=BA8E594 vs parsed.hardware_prefix=BA8E594
+2026-06-28 14:24:45,663 [rastro.license.validator] INFO: [HW] validate_license: prefix check PASSED
+2026-06-28 14:24:45,663 [rastro.license.validator] INFO: [HW] validate_license: stored_hw == current_hw, no update needed
+2026-06-28 14:24:45,663 [rastro.license.validator] INFO: [HW] validate_license: returning VALID
+2026-06-28 14:24:45,663 [rastro.license.validator] INFO: [HW] is_license_valid: result = (True, Valid)
+2026-06-28 14:24:45,663 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: is_license_valid() = (True, Valid)
+2026-06-28 14:24:45,663 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: license OK, passing request through
+2026-06-28 14:24:45,667 [rastro.license.validator] INFO: [HW] is_license_valid: ENTER
+2026-06-28 14:24:45,667 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,667 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,667 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,667 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,667 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,667 [rastro.license.validator] INFO: [HW] is_license_valid: stored license found, delegating to validate_license
+2026-06-28 14:24:45,667 [rastro.license.validator] INFO: [HW] validate_license: ENTER key (truncated) = 12606-28270-...
+2026-06-28 14:24:45,667 [rastro.license.validator] INFO: [HW] validate_license: verify_license_key result = (True, Valid)
+2026-06-28 14:24:45,686 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,690 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,690 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,691 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,691 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,691 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /etc/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,691 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /var/lib/dbus/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,691 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: raw list = ['9ca1be381cc34a80a4c748cdcc3d7937', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,691 [rastro.license.hardware] INFO: [HW] _get_machine_id: deduped = ['9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,691 [rastro.license.hardware] INFO: [HW] _get_machine_id: result = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,691 [rastro.license.hardware] INFO: [HW] get_hardware_id: hostname = ADRI
+2026-06-28 14:24:45,691 [rastro.license.hardware] INFO: [HW] get_hardware_id: mac = 74:c0:fc:5d:15:00
+2026-06-28 14:24:45,691 [rastro.license.hardware] INFO: [HW] get_hardware_id: machine_id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,691 [rastro.license.hardware] INFO: [HW] get_hardware_id: raw_parts = ['ADRI', '74:c0:fc:5d:15:00', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,691 [rastro.license.hardware] INFO: [HW] get_hardware_id: full_sha256 = ba8e594073dc05f7c545b4df34d651da90d7bec79d105414e740193e421040c7
+2026-06-28 14:24:45,691 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,691 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid[:7] = ba8e594
+2026-06-28 14:24:45,691 [rastro.license.validator] INFO: [HW] validate_license: stored = True
+2026-06-28 14:24:45,691 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,691 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,691 [rastro.license.validator] INFO: [HW] validate_license: current hw_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,692 [rastro.license.validator] INFO: [HW] validate_license: current hw_id[:7] = ba8e594
+2026-06-28 14:24:45,692 [rastro.license.validator] INFO: [HW] validate_license: parsed.hardware_prefix = BA8E594
+2026-06-28 14:24:45,692 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — stored_hw = ba8e594073dc05f7c545b4df34d651da, current_hw = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,692 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — checking prefix: hw_id[:7]=BA8E594 vs parsed.hardware_prefix=BA8E594
+2026-06-28 14:24:45,692 [rastro.license.validator] INFO: [HW] validate_license: prefix check PASSED
+2026-06-28 14:24:45,692 [rastro.license.validator] INFO: [HW] validate_license: stored_hw == current_hw, no update needed
+2026-06-28 14:24:45,692 [rastro.license.validator] INFO: [HW] validate_license: returning VALID
+2026-06-28 14:24:45,692 [rastro.license.validator] INFO: [HW] is_license_valid: result = (True, Valid)
+2026-06-28 14:24:45,692 [rastro.ws] INFO: WS client connected: 20fcd74c04b1 (user=ADRI-8f2cb265, total=1)
+2026-06-28 14:24:45,699 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: checking license for path=/api/assistant/recommendations/best
+2026-06-28 14:24:45,699 [rastro.license.validator] INFO: [HW] is_license_valid: ENTER
+2026-06-28 14:24:45,700 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,700 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,700 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,700 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,700 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,700 [rastro.license.validator] INFO: [HW] is_license_valid: stored license found, delegating to validate_license
+2026-06-28 14:24:45,700 [rastro.license.validator] INFO: [HW] validate_license: ENTER key (truncated) = 12606-28270-...
+2026-06-28 14:24:45,700 [rastro.license.validator] INFO: [HW] validate_license: verify_license_key result = (True, Valid)
+2026-06-28 14:24:45,700 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,700 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,700 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,700 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,700 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,700 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /etc/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,701 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /var/lib/dbus/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,701 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: raw list = ['9ca1be381cc34a80a4c748cdcc3d7937', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,701 [rastro.license.hardware] INFO: [HW] _get_machine_id: deduped = ['9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,701 [rastro.license.hardware] INFO: [HW] _get_machine_id: result = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,701 [rastro.license.hardware] INFO: [HW] get_hardware_id: hostname = ADRI
+2026-06-28 14:24:45,701 [rastro.license.hardware] INFO: [HW] get_hardware_id: mac = 74:c0:fc:5d:15:00
+2026-06-28 14:24:45,701 [rastro.license.hardware] INFO: [HW] get_hardware_id: machine_id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,701 [rastro.license.hardware] INFO: [HW] get_hardware_id: raw_parts = ['ADRI', '74:c0:fc:5d:15:00', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,701 [rastro.license.hardware] INFO: [HW] get_hardware_id: full_sha256 = ba8e594073dc05f7c545b4df34d651da90d7bec79d105414e740193e421040c7
+2026-06-28 14:24:45,701 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,701 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid[:7] = ba8e594
+2026-06-28 14:24:45,701 [rastro.license.validator] INFO: [HW] validate_license: stored = True
+2026-06-28 14:24:45,701 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,701 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,701 [rastro.license.validator] INFO: [HW] validate_license: current hw_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,701 [rastro.license.validator] INFO: [HW] validate_license: current hw_id[:7] = ba8e594
+2026-06-28 14:24:45,701 [rastro.license.validator] INFO: [HW] validate_license: parsed.hardware_prefix = BA8E594
+2026-06-28 14:24:45,701 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — stored_hw = ba8e594073dc05f7c545b4df34d651da, current_hw = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,701 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — checking prefix: hw_id[:7]=BA8E594 vs parsed.hardware_prefix=BA8E594
+2026-06-28 14:24:45,701 [rastro.license.validator] INFO: [HW] validate_license: prefix check PASSED
+2026-06-28 14:24:45,701 [rastro.license.validator] INFO: [HW] validate_license: stored_hw == current_hw, no update needed
+2026-06-28 14:24:45,702 [rastro.license.validator] INFO: [HW] validate_license: returning VALID
+2026-06-28 14:24:45,702 [rastro.license.validator] INFO: [HW] is_license_valid: result = (True, Valid)
+2026-06-28 14:24:45,702 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: is_license_valid() = (True, Valid)
+2026-06-28 14:24:45,702 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: license OK, passing request through
+2026-06-28 14:24:45,727 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: checking license for path=/api/assistant/briefing
+2026-06-28 14:24:45,727 [rastro.license.validator] INFO: [HW] is_license_valid: ENTER
+2026-06-28 14:24:45,727 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,728 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,728 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,728 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,728 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,728 [rastro.license.validator] INFO: [HW] is_license_valid: stored license found, delegating to validate_license
+2026-06-28 14:24:45,728 [rastro.license.validator] INFO: [HW] validate_license: ENTER key (truncated) = 12606-28270-...
+2026-06-28 14:24:45,728 [rastro.license.validator] INFO: [HW] validate_license: verify_license_key result = (True, Valid)
+2026-06-28 14:24:45,728 [rastro.license.store] INFO: [HW] LicenseStore.load: path = /home/adrie/.rastro/license.json
+2026-06-28 14:24:45,728 [rastro.license.store] INFO: [HW] LicenseStore.load: exists = True
+2026-06-28 14:24:45,728 [rastro.license.store] INFO: [HW] LicenseStore.load: loaded = {'license_key': '12606-28270-628B...', 'hardware_id': 'ba8e594073dc05f7...', 'activated_at': 1782646979.451465}
+2026-06-28 14:24:45,728 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,728 [rastro.license.store] INFO: [HW] LicenseStore.load: stored_hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,728 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /etc/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,729 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: /var/lib/dbus/machine-id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,729 [rastro.license.hardware] INFO: [HW] _get_raw_machine_ids: raw list = ['9ca1be381cc34a80a4c748cdcc3d7937', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,729 [rastro.license.hardware] INFO: [HW] _get_machine_id: deduped = ['9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,729 [rastro.license.hardware] INFO: [HW] _get_machine_id: result = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,729 [rastro.license.hardware] INFO: [HW] get_hardware_id: hostname = ADRI
+2026-06-28 14:24:45,729 [rastro.license.hardware] INFO: [HW] get_hardware_id: mac = 74:c0:fc:5d:15:00
+2026-06-28 14:24:45,729 [rastro.license.hardware] INFO: [HW] get_hardware_id: machine_id = 9ca1be381cc34a80a4c748cdcc3d7937
+2026-06-28 14:24:45,729 [rastro.license.hardware] INFO: [HW] get_hardware_id: raw_parts = ['ADRI', '74:c0:fc:5d:15:00', '9ca1be381cc34a80a4c748cdcc3d7937']
+2026-06-28 14:24:45,729 [rastro.license.hardware] INFO: [HW] get_hardware_id: full_sha256 = ba8e594073dc05f7c545b4df34d651da90d7bec79d105414e740193e421040c7
+2026-06-28 14:24:45,729 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,729 [rastro.license.hardware] INFO: [HW] get_hardware_id: hwid[:7] = ba8e594
+2026-06-28 14:24:45,729 [rastro.license.validator] INFO: [HW] validate_license: stored = True
+2026-06-28 14:24:45,730 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,730 [rastro.license.validator] INFO: [HW] validate_license: stored.hardware_id[:7] = ba8e594
+2026-06-28 14:24:45,730 [rastro.license.validator] INFO: [HW] validate_license: current hw_id = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,730 [rastro.license.validator] INFO: [HW] validate_license: current hw_id[:7] = ba8e594
+2026-06-28 14:24:45,730 [rastro.license.validator] INFO: [HW] validate_license: parsed.hardware_prefix = BA8E594
+2026-06-28 14:24:45,730 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — stored_hw = ba8e594073dc05f7c545b4df34d651da, current_hw = ba8e594073dc05f7c545b4df34d651da
+2026-06-28 14:24:45,730 [rastro.license.validator] INFO: [HW] validate_license: SUBSEQUENT RUN — checking prefix: hw_id[:7]=BA8E594 vs parsed.hardware_prefix=BA8E594
+2026-06-28 14:24:45,730 [rastro.license.validator] INFO: [HW] validate_license: prefix check PASSED
+2026-06-28 14:24:45,730 [rastro.license.validator] INFO: [HW] validate_license: stored_hw == current_hw, no update needed
+2026-06-28 14:24:45,730 [rastro.license.validator] INFO: [HW] validate_license: returning VALID
+2026-06-28 14:24:45,730 [rastro.license.validator] INFO: [HW] is_license_valid: result = (True, Valid)
+2026-06-28 14:24:45,730 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: is_license_valid() = (True, Valid)
+2026-06-28 14:24:45,730 [rastro.api.middleware] INFO: [HW] AuthMiddleware.dispatch: license OK, passing request through
+2026-06-28 14:24:50,655 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:24:56,260 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 14:24:56,260 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 14:24:56,261 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=d9964e40, pri=5)
+2026-06-28 14:24:56,261 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=c66558d0, pri=5)
+2026-06-28 14:24:58,934 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:25:03,957 [rastro.recon] INFO: Tool completed: subfinder
+2026-06-28 14:25:03,957 [rastro.recon] INFO: Starting tool: crtsh
+2026-06-28 14:25:03,957 [rastro.recon] ERROR: Tool crtsh failed: No module named 'aiohttp'
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/core_engines/recon/runner.py", line 62, in _safe_run_tool
+    result = await asyncio.wait_for(
+             ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/usr/lib/python3.14/asyncio/tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/home/adrie/projects/Rastro/core_engines/recon/crtsh_runner.py", line 16, in run_crtsh
+    import aiohttp
+ModuleNotFoundError: No module named 'aiohttp'
+2026-06-28 14:25:04,007 [rastro.recon] INFO: Starting tool: whois
+2026-06-28 14:25:04,008 [rastro.recon] INFO: Tool completed: whois
+2026-06-28 14:25:04,008 [rastro.recon] INFO: Starting tool: wayback
+2026-06-28 14:25:04,543 [rastro.recon] INFO: Starting tool: katana
+2026-06-28 14:25:07,111 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:25:11,368 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 14:25:11,369 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 14:25:11,369 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=2bdd3f21, pri=5)
+2026-06-28 14:25:11,369 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=4b2c9982, pri=5)
+2026-06-28 14:25:15,465 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:25:23,941 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:25:26,421 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 14:25:26,421 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 14:25:26,421 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=97559943, pri=5)
+2026-06-28 14:25:26,421 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=819bee92, pri=5)
+2026-06-28 14:25:28,650 [rastro.recon] INFO: Tool completed: katana
+2026-06-28 14:25:32,223 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:25:40,341 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:25:41,440 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 15 → 22.5 (Stable system: reducing health check frequency to 22.5s)
+2026-06-28 14:25:41,440 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 14:25:41,441 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 14:25:41,441 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=b8dd7d25, pri=5)
+2026-06-28 14:25:41,441 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=4549eb51, pri=5)
+2026-06-28 14:25:41,441 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-06-28 14:25:48,382 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:25:56,596 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 14:25:56,597 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 14:25:56,597 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=206178ae, pri=5)
+2026-06-28 14:25:56,597 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=5c0e40ad, pri=5)
+2026-06-28 14:25:56,598 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:26:04,935 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:26:05,678 [rastro.recon] INFO: Tool completed: wayback
+2026-06-28 14:26:11,673 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 14:26:11,710 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 14:26:11,738 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=f774abae, pri=5)
+2026-06-28 14:26:11,738 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=141cd968, pri=5)
+2026-06-28 14:26:15,321 [rastro.recon] INFO: Normalized endpoints: 4661
+2026-06-28 14:26:15,321 [rastro.recon] INFO: Recon pipeline completed for api.airbyte.com
+2026-06-28 14:26:15,323 [rastro.main] INFO: Recon pipeline completed successfully
+2026-06-28 14:26:15,329 [rastro.main] INFO: Parsing normalized endpoints from /home/adrie/.rastro/targets/Airbyte/endpoints/normalized_endpoints.json
+2026-06-28 14:26:16,378 [rastro.main] INFO: Found 4661 endpoint entries to persist
+2026-06-28 14:26:25,961 [rastro.operations] INFO: Generated 29 notifications
+2026-06-28 14:26:26,891 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 14:26:26,992 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 14:26:26,992 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=a7108da8, pri=5)
+2026-06-28 14:26:26,992 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=c44842c4, pri=5)
+2026-06-28 14:26:28,813 [rastro.main] INFO: Persisted 126 endpoints to DB
+2026-06-28 14:26:28,879 [rastro.main] INFO: Scan 64 completed: 126 endpoints
+2026-06-28 14:26:28,906 [rastro.main] INFO: Verifying recon tools for mode FAST...
+2026-06-28 14:26:29,454 [rastro.recon.tools] INFO: Tool 'subfinder' found at /home/adrie/go/bin/subfinder
+2026-06-28 14:26:29,459 [rastro.recon.tools] INFO: Tool 'katana' found at /home/adrie/.local/bin/katana
+2026-06-28 14:26:29,459 [rastro.recon.tools] INFO: Tool 'httpx' found at /home/adrie/projects/Rastro/.venv/bin/httpx
+2026-06-28 14:26:29,459 [rastro.recon.tools] INFO: Optional tool 'waybackurls' available
+2026-06-28 14:26:30,008 [rastro.recon.tools] INFO: Optional tool 'nuclei' available
+2026-06-28 14:26:31,121 [rastro.recon.tools] INFO: Optional tool 'ffuf' available
+2026-06-28 14:26:31,762 [rastro.main] INFO: Started scan run 65 for target Linear
+2026-06-28 14:26:31,763 [rastro.platform.system] INFO: PLATFORM_DIAG: default data_dir=/home/adrie/.rastro
+2026-06-28 14:26:34,107 [rastro.main] INFO: Running recon pipeline with timeout 600s...
+2026-06-28 14:26:34,107 [rastro.recon] INFO: Starting recon pipeline for app.linear.app in mode FAST
+2026-06-28 14:26:34,107 [rastro.recon] INFO: Starting tool: subfinder
+2026-06-28 14:26:36,546 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:26:41,999 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 22 → 33.0 (Stable system: reducing health check frequency to 33.0s)
+2026-06-28 14:26:41,999 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 14:26:41,999 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 14:26:41,999 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=3a5f4afa, pri=5)
+2026-06-28 14:26:41,999 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=8850b428, pri=5)
+2026-06-28 14:26:41,999 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-06-28 14:26:44,573 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:26:52,596 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:26:57,001 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 14:26:57,001 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 14:26:57,001 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=5fa4574f, pri=5)
+2026-06-28 14:26:57,001 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=ab11c3e1, pri=5)
+2026-06-28 14:27:00,627 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:27:05,767 [rastro.recon] INFO: Tool completed: subfinder
+2026-06-28 14:27:05,767 [rastro.recon] INFO: Starting tool: crtsh
+2026-06-28 14:27:05,767 [rastro.recon] ERROR: Tool crtsh failed: No module named 'aiohttp'
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/core_engines/recon/runner.py", line 62, in _safe_run_tool
+    result = await asyncio.wait_for(
+             ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/usr/lib/python3.14/asyncio/tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/home/adrie/projects/Rastro/core_engines/recon/crtsh_runner.py", line 16, in run_crtsh
+    import aiohttp
+ModuleNotFoundError: No module named 'aiohttp'
+2026-06-28 14:27:05,768 [rastro.recon] INFO: Starting tool: whois
+2026-06-28 14:27:05,789 [rastro.recon] INFO: Tool completed: whois
+2026-06-28 14:27:05,789 [rastro.recon] INFO: Starting tool: wayback
+2026-06-28 14:27:06,312 [rastro.recon] INFO: Starting tool: katana
+2026-06-28 14:27:08,649 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:27:12,013 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 14:27:12,013 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 14:27:12,013 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=4f6a286d, pri=5)
+2026-06-28 14:27:12,013 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=ec81432f, pri=5)
+2026-06-28 14:27:12,686 [rastro.recon] INFO: Tool completed: wayback
+2026-06-28 14:27:16,672 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:27:17,947 [rastro.recon] INFO: Tool completed: katana
+2026-06-28 14:27:18,150 [rastro.recon] INFO: Normalized endpoints: 5
+2026-06-28 14:27:18,161 [rastro.recon] INFO: Recon pipeline completed for app.linear.app
+2026-06-28 14:27:18,161 [rastro.main] INFO: Recon pipeline completed successfully
+2026-06-28 14:27:18,161 [rastro.main] INFO: Parsing normalized endpoints from /home/adrie/.rastro/targets/Linear/endpoints/normalized_endpoints.json
+2026-06-28 14:27:18,161 [rastro.main] INFO: Found 5 endpoint entries to persist
+2026-06-28 14:27:18,212 [rastro.main] INFO: Persisted 0 endpoints to DB
+2026-06-28 14:27:18,219 [rastro.main] INFO: Scan 65 completed: 0 endpoints
+2026-06-28 14:27:18,220 [rastro.main] INFO: Verifying recon tools for mode FAST...
+2026-06-28 14:27:18,781 [rastro.recon.tools] INFO: Tool 'subfinder' found at /home/adrie/go/bin/subfinder
+2026-06-28 14:27:18,781 [rastro.recon.tools] INFO: Tool 'katana' found at /home/adrie/.local/bin/katana
+2026-06-28 14:27:18,781 [rastro.recon.tools] INFO: Tool 'httpx' found at /home/adrie/projects/Rastro/.venv/bin/httpx
+2026-06-28 14:27:18,782 [rastro.recon.tools] INFO: Optional tool 'waybackurls' available
+2026-06-28 14:27:19,297 [rastro.recon.tools] INFO: Optional tool 'nuclei' available
+2026-06-28 14:27:20,268 [rastro.recon.tools] INFO: Optional tool 'ffuf' available
+2026-06-28 14:27:20,769 [rastro.main] INFO: Started scan run 66 for target Uniswap
+2026-06-28 14:27:20,769 [rastro.platform.system] INFO: PLATFORM_DIAG: default data_dir=/home/adrie/.rastro
+2026-06-28 14:27:23,838 [rastro.main] INFO: Running recon pipeline with timeout 600s...
+2026-06-28 14:27:23,839 [rastro.recon] INFO: Starting recon pipeline for app.uniswap.org in mode FAST
+2026-06-28 14:27:23,839 [rastro.recon] INFO: Starting tool: subfinder
+2026-06-28 14:27:24,689 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:27:27,021 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 14:27:27,021 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 14:27:27,021 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=8b36128d, pri=5)
+2026-06-28 14:27:27,022 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=a811ffe9, pri=5)
+2026-06-28 14:27:32,710 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:27:40,733 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:27:42,022 [rastro.optimization.engine] INFO: [OPTIMIZE] health_check_interval: 33 → 49.5 (Stable system: reducing health check frequency to 49.5s)
+2026-06-28 14:27:42,022 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 14:27:42,022 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 14:27:42,022 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=7dc8af4c, pri=5)
+2026-06-28 14:27:42,023 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=2fe2859a, pri=5)
+2026-06-28 14:27:42,023 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: parameter_tuning (confidence=0.80, action=adjust_health_check_interval)
+2026-06-28 14:27:48,975 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:27:55,654 [rastro.recon] INFO: Tool completed: subfinder
+2026-06-28 14:27:55,654 [rastro.recon] INFO: Starting tool: crtsh
+2026-06-28 14:27:55,654 [rastro.recon] ERROR: Tool crtsh failed: No module named 'aiohttp'
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/core_engines/recon/runner.py", line 62, in _safe_run_tool
+    result = await asyncio.wait_for(
+             ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/usr/lib/python3.14/asyncio/tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/home/adrie/projects/Rastro/core_engines/recon/crtsh_runner.py", line 16, in run_crtsh
+    import aiohttp
+ModuleNotFoundError: No module named 'aiohttp'
+2026-06-28 14:27:55,655 [rastro.recon] INFO: Starting tool: whois
+2026-06-28 14:27:55,660 [rastro.recon] INFO: Tool completed: whois
+2026-06-28 14:27:55,661 [rastro.recon] INFO: Starting tool: wayback
+2026-06-28 14:27:56,211 [rastro.recon] INFO: Starting tool: katana
+2026-06-28 14:27:56,994 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:27:57,031 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 14:27:57,031 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 14:27:57,031 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=ae9252cd, pri=5)
+2026-06-28 14:27:57,031 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=058c7060, pri=5)
+2026-06-28 14:28:05,706 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:28:13,775 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 14:28:13,888 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 14:28:13,894 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=1928f324, pri=5)
+2026-06-28 14:28:13,894 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=a1b176be, pri=5)
+2026-06-28 14:28:18,044 [rastro.recon] INFO: Tool completed: katana
+2026-06-28 14:28:25,547 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/agents/health "HTTP/1.1 401 Unauthorized"
+2026-06-28 14:28:26,022 [rastro.operations] INFO: Generated 1 notifications
+2026-06-28 14:28:28,862 [rastro.ws] INFO: WS client disconnected: 20fcd74c04b1 (total=0)
+2026-06-28 14:28:28,898 [rastro.autonomous.engine] INFO: [AUTO+] Executing decision: degrade_load (confidence=0.70, action=degrade_pipeline_throughput)
+2026-06-28 14:28:28,898 [rastro.autonomous.engine] WARNING: [AUTO+] Degrading system load: pausing non-critical pipelines
+2026-06-28 14:28:28,898 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.RESEARCH: EventType.SYSTEM_ALERT (corr=9ff783e5, pri=5)
+2026-06-28 14:28:28,898 [rastro.agents.bus] INFO: [EVENTS] autonomous_engine → AgentId.EXPLOIT: EventType.SYSTEM_ALERT (corr=7c51e28a, pri=5)

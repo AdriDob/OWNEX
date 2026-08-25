@@ -71,12 +71,12 @@ const statusDotStyle = computed(() => ({
   backgroundColor: props.status === 'running' ? 'var(--ownex-blue)' :
     props.status === 'success' ? 'var(--ownex-green)' :
     props.status === 'warning' ? 'var(--ownex-yellow)' :
-    props.status === 'error' ? 'var(--ownex-red)' :
+    props.status === 'error' ? 'var(--ownex-danger)' :
     'var(--ownex-text-muted)',
   boxShadow: props.status === 'running' ? '0 0 8px var(--ownex-blue)' :
     props.status === 'success' ? '0 0 8px var(--ownex-green)' :
     props.status === 'warning' ? '0 0 8px var(--ownex-yellow)' :
-    props.status === 'error' ? '0 0 8px var(--ownex-red)' :
+    props.status === 'error' ? '0 0 8px var(--ownex-danger)' :
     'none',
 }))
 </script>

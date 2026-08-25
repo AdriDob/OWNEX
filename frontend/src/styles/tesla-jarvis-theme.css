@@ -9,11 +9,11 @@
   --bg-hover: #2a2a2a;
 
   /* Accent Colors — Tesla Red/Jarvis Blue */
-  --accent-primary: #e31937; /* Tesla Red */
+  --accent-primary: #1E40FF; /* Tesla Red */
   --accent-secondary: #00d4ff; /* Jarvis Blue */
   --accent-tertiary: #00ff88; /* Success Green */
   --accent-warning: #ffaa00; /* Warning Orange */
-  --accent-error: #ff3366; /* Error Red */
+  --accent-error: #3B82F6; /* Error Red */
 
   /* Text Colors */
   --text-primary: #ffffff;

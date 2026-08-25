@@ -17,7 +17,7 @@ const statusColor = computed(() => {
   if (s === 'on_track') return '#4ade80'
   if (s === 'possible') return '#fbbf24'
   if (s === 'ambitious') return '#fb923c'
-  if (s === 'unrealistic') return '#e11d48'
+  if (s === 'unrealistic') return '#3B82F6'
   return '#6b7280'
 })
 

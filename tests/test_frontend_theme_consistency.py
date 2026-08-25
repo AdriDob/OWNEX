@@ -1,12 +1,12 @@
-"""Theme consistency guards — single red + dark-blue ambient background.
+"""Theme consistency guards — ZERO red, blue-family only (danger incl.).
 
-Owner decision (2026-08-25): the global ambient background layer is DARK
-BLUE; Tesla red (#E82127) is reserved for error/destructive states only.
+Owner decision (2026-08-25, revoca directiva anterior): la UI NO usa rojo en
+absoluto — solo azules claros u oscuros. El peligro/error usa el azul fuerte
+#3B82F6. El nombre `--ownex-red` sobrevive como alias legacy para sus ~15
+consumidores hasta la migración de nombres.
 
-Regression context: --ownex-red was mislabeled as cyan (#00d5ff) in
-tokens.css while themes/tesla.json set it to #E82127 at runtime — every
-error indicator silently flipped color after theme load, and
-JarvisBackground painted a permanent reddish tint over all pages.
+Historial: (a) --ownex-red fue cian por artefacto de-neón; (b) se reservó
+rojo Tesla #E82127 para error; (c) HOY: rojo eliminado por completo.
 """
 
 from __future__ import annotations
@@ -15,14 +15,15 @@ import json
 from pathlib import Path
 
 FRONTEND = Path(__file__).resolve().parent.parent / "frontend"
-TESLA_RED = "#E82127"
+DANGER_BLUE = "#3B82F6"
 
 
-def test_tokens_red_is_tesla_red_not_cyan() -> None:
+def test_tokens_danger_is_blue_not_red() -> None:
     tokens = (FRONTEND / "src" / "design" / "tokens.css").read_text(encoding="utf-8")
-    line = next(ln for ln in tokens.splitlines() if "--ownex-red:" in ln)
-    assert TESLA_RED in line, f"--ownex-red must be {TESLA_RED}, got: {line.strip()}"
-    assert "#00d5ff" not in line, "red token must not be cyan (de-neón artifact)"
+    line = next(ln for ln in tokens.splitlines() if "--ownex-danger:" in ln)
+    assert DANGER_BLUE in line, f"--ownex-danger must be {DANGER_BLUE}, got: {line.strip()}"
+    assert "#E82127" not in line.upper().replace(DANGER_BLUE.upper(), ""), "rojo prohibido"
+    assert "#00d5ff" not in line, "danger no debe ser el cian de accent"
 
 
 def test_default_theme_agrees_with_tokens() -> None:
@@ -30,7 +31,7 @@ def test_default_theme_agrees_with_tokens() -> None:
         (FRONTEND / "public" / "assets" / "branding" / "themes" / "tesla.json").read_text(encoding="utf-8")
     )
     palette = theme.get("palette", {})
-    assert palette.get("red", "").upper() == TESLA_RED
+    assert palette.get("red", "").upper() == DANGER_BLUE
 
 
 def test_ambient_background_has_no_red() -> None:

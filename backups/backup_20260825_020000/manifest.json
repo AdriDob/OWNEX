@@ -1,0 +1,18 @@
+{
+  "id": "backup_20260825_020000",
+  "created_at": "2026-08-25T02:00:00.000175+00:00",
+  "components": [
+    "config",
+    "logs",
+    "logs",
+    "logs",
+    "logs",
+    "logs",
+    "logs",
+    "logs",
+    "logs",
+    "logs",
+    "logs"
+  ],
+  "size_bytes": 588806
+}

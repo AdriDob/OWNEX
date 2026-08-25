@@ -109,7 +109,7 @@ async function unlockVaultPass() {
 async function riskCheck(target = 5000) {
   emergency.value = await analyzeEmergency(target, 'monthly')
   const lvl = emergency.value?.level ?? 'info'
-  emColor.value = { info: '#6b7280', normal: '#4ade80', warning: '#fbbf24', critical: '#e11d48' }[lvl] ?? '#6b7280'
+  emColor.value = { info: '#6b7280', normal: '#4ade80', warning: '#fbbf24', critical: '#3B82F6' }[lvl] ?? '#6b7280'
 }
 
 function fmt(n: number | undefined) {
@@ -231,7 +231,7 @@ onMounted(() => { load(); riskCheck() })
       </div>
       <div v-if="health.accounts?.length" class="ev-list">
         <div v-for="a in health.accounts" :key="a.platform" class="ev-item">
-          <span class="ev-dot" :style="{ background: a.health_score >= 80 ? '#4ade80' : a.health_score >= 50 ? '#fbbf24' : '#e11d48' }"></span>
+          <span class="ev-dot" :style="{ background: a.health_score >= 80 ? '#4ade80' : a.health_score >= 50 ? '#fbbf24' : '#3B82F6' }"></span>
           <div class="ev-it-body">
             <span class="ev-it-title">{{ a.name }}</span>
             <span class="ev-it-meta">{{ a.events?.length ?? 0 }} eventos</span>
@@ -309,7 +309,7 @@ onMounted(() => { load(); riskCheck() })
 .ev-tab { border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); border-radius: 6px; padding: 0.25rem 0.5rem; font-size: 0.58rem; color: rgba(255,255,255,0.6); cursor: pointer; }
 .ev-tab.active { border-color: rgba(96,165,250,0.5); background: rgba(96,165,250,0.12); color: #93c5fd; }
 .ev-note { font-size: 0.68rem; color: #93c5fd; margin: 0; }
-.ev-note.err { color: #e11d48; }
+.ev-note.err { color: #3B82F6; }
 .ev-msg { font-size: 0.7rem; color: rgba(255,255,255,0.8); margin: 0; line-height: 1.5; }
 .ev-card { border: 1px solid; border-radius: 10px; padding: 0.7rem; display: flex; flex-direction: column; gap: 0.5rem; }
 .ev-status { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; }
@@ -335,7 +335,7 @@ onMounted(() => { load(); riskCheck() })
 .ev-item.column { flex-direction: column; align-items: stretch; }
 .ev-it-tag { font-size: 0.55rem; font-weight: 700; text-transform: uppercase; color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); padding: 0.1rem 0.35rem; border-radius: 4px; flex-shrink: 0; }
 .ev-it-tag.approved { color: #4ade80; border-color: rgba(74,222,128,0.3); }
-.ev-it-tag.rejected { color: #e11d48; border-color: rgba(225,29,72,0.3); }
+.ev-it-tag.rejected { color: #3B82F6; border-color: rgba(225,29,72,0.3); }
 .ev-it-body { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .ev-it-title { font-size: 0.7rem; font-weight: 600; color: rgba(255,255,255,0.92); }
 .ev-it-meta { font-size: 0.6rem; color: rgba(255,255,255,0.45); }

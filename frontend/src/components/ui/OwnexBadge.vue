@@ -146,7 +146,7 @@ const handleRemove = (event: MouseEvent) => {
 .ownex-badge--error {
   background: rgba(0, 213, 255, 0.12);
   border-color: rgba(0, 213, 255, 0.25);
-  color: var(--ownex-red);
+  color: var(--ownex-danger);
 }
 
 .ownex-badge--gold {

@@ -272,7 +272,7 @@ const scrollRight = () => {
 
 .ownex-workspace-tabs__tab-badge--error {
   background: rgba(0, 213, 255, 0.15);
-  color: var(--ownex-red);
+  color: var(--ownex-danger);
 }
 
 .ownex-workspace-tabs__tab-badge--gold {
@@ -299,7 +299,7 @@ const scrollRight = () => {
 .ownex-workspace-tabs__tab-close:hover {
   opacity: 1;
   background: rgba(0, 213, 255, 0.15);
-  color: var(--ownex-red);
+  color: var(--ownex-danger);
 }
 
 /* Add tab */
