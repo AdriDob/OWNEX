@@ -22,7 +22,7 @@
 
   /* ── Estados (SOLO 3, desaturados) ── */
   --ownex-green:        #16A34A;  /* ✅ Activo / Éxito */
-  --ownex-red:          #00d5ff;  /* ❌ Error / Riesgo (rojo Tesla) */
+  --ownex-red:          #E82127;  /* ❌ Error / Riesgo — rojo Tesla (único acento saturado) */
   --ownex-yellow:       #D97706;  /* ⚠️ Atención / Advertencia */
 
   /* ── Texto (grises neutros) ── */
