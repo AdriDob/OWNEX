@@ -1,17 +1,31 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import {
+  AlertTriangle,
+  Camera,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Globe,
+  ListChecks,
+  Play,
+  RefreshCw,
+  Route,
+  Search,
+  SkipBack,
+  SkipForward,
+  StepBack,
+  StepForward,
+  Target,
+  TrendingUp,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import LineChart from '@/components/charts/LineChart.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import LineChart from '@/components/charts/LineChart.vue'
-import {
-  Play, StepBack, StepForward, SkipForward, SkipBack,
-  Target, Search, Globe, Route, FileText, CheckCircle2,
-  AlertTriangle, RefreshCw, ChevronRight, ChevronLeft,
-  Camera, TrendingUp, ListChecks,
-} from '@lucide/vue'
+import { api } from '@/lib/api'
 
 interface ReplayTarget {
   id: number
@@ -39,7 +53,19 @@ interface ReplayStep {
   description: string
   status: 'pending' | 'active' | 'completed' | 'skipped'
   completed_at?: string
-  data?: Record<string, any>
+  data?: Record<string, unknown>
+}
+
+/** Detalle real de GET /scans/runs/{id} */
+interface ScanRunDetail {
+  id: number
+  target_id: number
+  mode: string
+  status: string
+  endpoint_count: number
+  outputs: string | null
+  started_at: string | null
+  finished_at: string | null
 }
 
 interface ReplayTimeline {
@@ -50,7 +76,8 @@ interface ReplayTimeline {
   steps: ReplayStep[]
 }
 
-const stageIcons: Record<string, any> = {
+type IconComponent = typeof Search
+const stageIcons: Record<string, IconComponent> = {
   recon: Search,
   endpoints: Globe,
   hot_paths: Route,
@@ -88,12 +115,12 @@ const currentStep = computed(() => {
 
 const timelineLabels = computed(() => {
   if (!timeline.value) return []
-  return timeline.value.steps.map(s => s.label)
+  return timeline.value.steps.map((s) => s.label)
 })
 
 const timelineData = computed(() => {
   if (!timeline.value) return []
-  return timeline.value.steps.map((s, i) => i <= currentStepIndex.value ? 1 : 0)
+  return timeline.value.steps.map((_s, idx) => (idx <= currentStepIndex.value ? 1 : 0))
 })
 
 const progressPercent = computed(() => {
@@ -119,13 +146,12 @@ async function loadTargets() {
       id: r.id,
       name: `Scan #${r.id} · target ${r.target_id} (${r.mode})`,
       domain: r.status,
-      steps_completed:
-        r.status === 'completed' ? 1 : r.status === 'failed' || r.status === 'timeout' ? 0 : 0,
+      steps_completed: r.status === 'completed' ? 1 : r.status === 'failed' || r.status === 'timeout' ? 0 : 0,
       total_steps: 1,
       last_replayed: r.started_at ?? undefined,
     }))
-  } catch (e: any) {
-    error.value = e.message || 'Failed to load replay targets'
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : 'Failed to load replay targets'
   } finally {
     loading.value = false
   }
@@ -139,7 +165,7 @@ async function selectTarget(targetId: number) {
   timeline.value = null
   try {
     // Detalle real del run: GET /scans/runs/{id} → outputs + timestamps.
-    const res = await api.get<Record<string, any>>(`/scans/runs/${targetId}`)
+    const res = await api.get<ScanRunDetail>(`/scans/runs/${targetId}`)
     const outputs = (res?.outputs as string) || ''
     timeline.value = {
       target_id: targetId,
@@ -153,13 +179,13 @@ async function selectTarget(targetId: number) {
           description: outputs ? outputs.slice(0, 400) : 'Sin salida registrada para este run.',
           status: res?.status === 'completed' ? 'completed' : res?.status === 'failed' ? 'skipped' : 'pending',
           completed_at: res?.finished_at ?? undefined,
-          data: res as Record<string, any>,
+          data: res as Record<string, unknown>,
         },
       ],
     }
     currentStepIndex.value = 0
-  } catch (e: any) {
-    timelineError.value = e.message || 'Failed to load replay timeline'
+  } catch (e: unknown) {
+    timelineError.value = e instanceof Error ? e.message : 'Failed to load replay timeline'
   } finally {
     timelineLoading.value = false
   }

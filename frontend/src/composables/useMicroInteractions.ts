@@ -1,7 +1,50 @@
-import { useUIStore, type MicroEntity } from '@/stores/ui'
 import type { EntityType } from '@/composables/useContextMenu'
 import { useToast } from '@/composables/useToast'
-import { api } from '@/lib/api'
+import { ApiError, api } from '@/lib/api'
+import { type MicroEntity, useUIStore } from '@/stores/ui'
+
+/** Respuestas de /micro/* — shapes tolerantes (el backend puede omitir campos). */
+interface MicroOpResult {
+  synced?: number
+  exported?: number
+  deleted?: number
+  tagged?: number
+  status?: string
+  [key: string]: unknown
+}
+interface MicroDashboardState {
+  sources?: Array<Record<string, unknown>>
+  totals?: Record<string, number>
+  [key: string]: unknown
+}
+interface MicroSyncHealth {
+  healthy?: boolean
+  sources?: Array<{ id: string; ok: boolean }>
+  [key: string]: unknown
+}
+interface MicroAnomaly {
+  id: string
+  kind: string
+  detail?: string
+  [key: string]: unknown
+}
+interface MicroPendingAction {
+  id: string
+  label: string
+  action: string
+  [key: string]: unknown
+}
+interface MicroExposure {
+  exposed_endpoints?: number
+  critical?: number
+  [key: string]: unknown
+}
+
+function errMessage(e: unknown, fallback: string): string {
+  if (e instanceof ApiError) return e.message
+  if (e instanceof Error && e.message) return e.message
+  return fallback
+}
 
 export function useMicroInteractions() {
   const store = useUIStore()
@@ -16,10 +59,10 @@ export function useMicroInteractions() {
     try {
       const plural = type.endsWith('s') ? type : `${type}s`
       const path = `/${plural}/${id}`
-      const entity = await api.get<any>(path)
+      const entity = await api.get<Record<string, unknown>>(path)
       store.openInspector(entity as MicroEntity, type)
-    } catch (e: any) {
-      toast.error(e.message || 'Error al cargar entidad')
+    } catch (e: unknown) {
+      toast.error(errMessage(e, 'Error al cargar entidad'))
     } finally {
       store.setLoading('inspect', false)
     }
@@ -38,7 +81,7 @@ export function useMicroInteractions() {
   }
 
   function startCompare(entity: MicroEntity) {
-    store.openCompare(entity, entity.type as EntityType || 'finding')
+    store.openCompare(entity, (entity.type as EntityType) || 'finding')
   }
 
   function addToCompare(entity: MicroEntity) {
@@ -84,8 +127,8 @@ export function useMicroInteractions() {
         ...(action === 'tag' ? { tag: '' } : {}),
       })
       toast.success(`Acción "${action}" ejecutada`)
-    } catch (e: any) {
-      toast.error(e.message || 'Error en acción batch')
+    } catch (e: unknown) {
+      toast.error(errMessage(e, 'Error en acción batch'))
     }
   }
 
@@ -106,7 +149,7 @@ export function useMicroInteractions() {
     }
   }
 
-  async function copyJSON(obj: any): Promise<void> {
+  async function copyJSON(obj: unknown): Promise<void> {
     await copyToClipboard(JSON.stringify(obj, null, 2), 'JSON')
   }
 
@@ -114,63 +157,79 @@ export function useMicroInteractions() {
     await copyToClipboard(String(id), 'ID')
   }
 
-  async function quickSync(): Promise<any> {
+  async function quickSync(): Promise<MicroOpResult> {
     store.setLoading('sync', true)
     try {
-      const result = await api.post<any>('/micro/quick-sync-all')
+      const result = await api.post<MicroOpResult>('/micro/quick-sync-all')
       toast.success('Sincronización completada')
       return result
-    } catch (e: any) {
-      toast.error(e.message || 'Error al sincronizar')
+    } catch (e: unknown) {
+      toast.error(errMessage(e, 'Error al sincronizar'))
       throw e
     } finally {
       store.setLoading('sync', false)
     }
   }
 
-  async function syncSource(sourceId: string): Promise<any> {
+  async function syncSource(sourceId: string): Promise<MicroOpResult> {
     store.setLoading('sync', true)
     try {
-      const result = await api.post<any>(`/micro/sync-source/${sourceId}`)
+      const result = await api.post<MicroOpResult>(`/micro/sync-source/${sourceId}`)
       toast.success('Fuente sincronizada')
       return result
-    } catch (e: any) {
-      toast.error(e.message || 'Error al sincronizar fuente')
+    } catch (e: unknown) {
+      toast.error(errMessage(e, 'Error al sincronizar fuente'))
       throw e
     } finally {
       store.setLoading('sync', false)
     }
   }
 
-  async function getDashboardState(): Promise<any> {
-    return api.get<any>('/micro/dashboard-state')
+  async function getDashboardState(): Promise<MicroDashboardState> {
+    return api.get<MicroDashboardState>('/micro/dashboard-state')
   }
 
-  async function getSyncHealth(): Promise<any> {
-    return api.get<any>('/micro/sync-health')
+  async function getSyncHealth(): Promise<MicroSyncHealth> {
+    return api.get<MicroSyncHealth>('/micro/sync-health')
   }
 
-  async function getAnomalies(): Promise<any> {
-    return api.get<any>('/micro/anomalies')
+  async function getAnomalies(): Promise<MicroAnomaly[]> {
+    return api.get<MicroAnomaly[]>('/micro/anomalies')
   }
 
-  async function getPendingActions(): Promise<any> {
-    return api.get<any>('/micro/pending-actions')
+  async function getPendingActions(): Promise<MicroPendingAction[]> {
+    return api.get<MicroPendingAction[]>('/micro/pending-actions')
   }
 
-  async function getRealExposure(): Promise<any> {
-    return api.get<any>('/micro/real-exposure')
+  async function getRealExposure(): Promise<MicroExposure> {
+    return api.get<MicroExposure>('/micro/real-exposure')
   }
 
   return {
-    inspect, inspectByType,
-    preview, hidePreview,
+    inspect,
+    inspectByType,
+    preview,
+    hidePreview,
     showTimeline,
-    startCompare, addToCompare, clearCompare,
-    toggleSelect, selectAll, clearSelection, getSelection, batchAction,
-    openMoreInfo, closeMoreInfo,
-    copyToClipboard, copyJSON, copyId,
-    quickSync, syncSource,
-    getDashboardState, getSyncHealth, getAnomalies, getPendingActions, getRealExposure,
+    startCompare,
+    addToCompare,
+    clearCompare,
+    toggleSelect,
+    selectAll,
+    clearSelection,
+    getSelection,
+    batchAction,
+    openMoreInfo,
+    closeMoreInfo,
+    copyToClipboard,
+    copyJSON,
+    copyId,
+    quickSync,
+    syncSource,
+    getDashboardState,
+    getSyncHealth,
+    getAnomalies,
+    getPendingActions,
+    getRealExposure,
   }
 }
