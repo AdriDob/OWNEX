@@ -202,4 +202,7 @@ When adding new documentation:
 ---
 
 *Documentation for OWNEX v7.0.0*
-*Last updated: 2026-08-10*
+*Last updated: 2026-08-25*
+
+## Release Audits
+- [OWNEX 1.0 Alpha — Release Audit & Plan](release/OWNEX_1.0_ALPHA_AUDIT.md) — diagnóstico release-ready (2026-08-25): causa raíz del fondo rojo, estados por página, branding, artefactos obsoletos (~9GB), plan Prompt 2.
