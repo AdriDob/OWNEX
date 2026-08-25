@@ -51,13 +51,16 @@
      ═══════════════════════════════════════════════════════════════════ */
 
   /* Display — Solo headlines hero, KPIs grandes */
-  --font-display: 'Space Grotesk', 'Orbitron', ui-sans-serif, system-ui, sans-serif;
+  /* 2026-08-25 (audit P3): cadenas honestas — solo Orbitron está vendida;
+     el resto resuelve a stacks de sistema deliberados (Win11: Segoe/Cascadia).
+     Display cae a Orbitron (identidad tech ya cargada) si Space Grotesk falta. */
+  --font-display: 'Space Grotesk', 'Orbitron', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
 
   /* Body — Todo el resto */
-  --font-body: 'Inter', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Inter', 'Segoe UI Variable Text', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
 
   /* Mono — Código, terminales, hashes, montos, IPs */
-  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', ui-monospace, 'Consolas', monospace;
 
   /* Font weights */
   --font-weight-normal: 400;
@@ -183,6 +186,41 @@
 /* ═══════════════════════════════════════════════════════════════════
    REDUCED MOTION
    ═══════════════════════════════════════════════════════════════════ */
+
+  /* ═══════════════════════════════════════════════════════════════════
+     SEMANTIC ALIASES — stable contract for components (F1 design system)
+     Components consume THESE; raw --ownex-* stay as implementation detail.
+     ═══════════════════════════════════════════════════════════════════ */
+  --color-bg:               var(--ownex-bg-deep);
+  --color-surface:          var(--ownex-bg-base);
+  --color-surface-elevated: var(--ownex-bg-surface);
+  --color-border:           var(--ownex-bg-glass-border);
+  --color-text:             var(--ownex-text-primary);
+  --color-text-muted:       var(--ownex-text-secondary);
+  --color-primary:          var(--ownex-blue);
+  --color-success:          var(--ownex-green);
+  --color-warning:          var(--ownex-yellow);
+  --color-danger:           var(--ownex-red);   /* error/destructive ONLY (directiva owner) */
+  --color-info:             var(--ownex-cycle-odyssey);
+
+  /* ── Type scale — display/heading/body/label/caption/numeric ── */
+  --text-display:   2.5rem;    /* hero KPIs, NEXT ACTION amount */
+  --text-heading:   1.25rem;   /* page/section headers */
+  --text-body:      0.875rem;  /* default UI text */
+  --text-label:     0.75rem;   /* uppercase labels, badges */
+  --text-caption:   0.6875rem; /* meta, timestamps */
+
+  /* Numeric (money/metrics): mono + tabular figures so digits align */
+  --font-numeric: var(--font-mono);
+  --font-numeric-features: 'tnum' 1, 'lnum' 1;
+}
+
+/* Money & metric values — apply with .money or font-numeric token */
+.money {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.01em;
+}
 
 @media (prefers-reduced-motion: reduce) {
   :root {
