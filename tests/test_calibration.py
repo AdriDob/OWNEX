@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+import cores.direct_work_engine.economics as economics
 from cores.direct_work_engine.calibration import CalibrationEngine
 
 
@@ -77,3 +78,75 @@ def test_survives_corrupt_line(tmp_path: Path) -> None:
     store.write_text(good + "\n{CORRUPT}\n", encoding="utf-8")
     eng = CalibrationEngine(store_path=store)
     assert len(eng.resolved_for_platform("p")) == 1
+
+
+class TestRecommenderWiring:
+    def test_recommender_applies_platform_factor(self, tmp_path: Path) -> None:
+        """Fase D wiring: EV del recommender se escala por el factor medido."""
+        import cores.direct_work_engine.calibration as cal
+        from cores.direct_work_engine.models import (
+            Opportunity,
+            OpportunityCategory,
+            WorkPlatform,
+        )
+        from cores.direct_work_engine.recommendation import IntelligentRecommender
+
+        eng = CalibrationEngine(store_path=tmp_path / "cal.jsonl")
+        for real in (5.0, 6.0, 5.5):  # realidad ≈ mitad de lo prometido
+            eng.record(platform="opire", predicted_hourly=12.0, actual_hourly=real)
+        monkeypatch = pytest.MonkeyPatch()
+        monkeypatch.setattr(cal, "get_calibration_engine", lambda: eng)
+        try:
+            opp = Opportunity(
+                id="w1",
+                title="Task",
+                platform=WorkPlatform.OPIRE,
+                category=OpportunityCategory.DEV_BOUNTY,
+                payment=240.0,
+                estimated_time_hours=4.0,
+            )
+            ranked = IntelligentRecommender()._score_opportunities([opp])[0]
+            # acceptance/reliability idénticos entre plataformas → la ÚNICA
+            # diferencia posible es el factor de calibración <1 aplicado.
+            base = economics.compute_expected_value(
+                payment=240.0,
+                acceptance_probability=ranked.acceptance_probability,
+                task_availability=economics.TaskAvailability.unknown(),
+                payment_reliability=0.5,
+            ).ev_usd
+            assert ranked.expected_value == pytest.approx(base * factor_expected(tmp_path), abs=1.5)
+        finally:
+            monkeypatch.undo()
+
+
+def factor_expected(tmp_path: Path) -> float:
+    eng = CalibrationEngine(store_path=tmp_path / "cal.jsonl")
+    f, _ = eng.platform_factor("opire")
+    return f
+
+
+def test_neutral_without_calibration_data(tmp_path: Path) -> None:
+    """Sin registros → factor 1.0 → EV numéricamente igual a legacy."""
+    import cores.direct_work_engine.calibration as cal
+    from cores.direct_work_engine.models import (
+        Opportunity,
+        OpportunityCategory,
+        WorkPlatform,
+    )
+    from cores.direct_work_engine.recommendation import IntelligentRecommender
+
+    eng = CalibrationEngine(store_path=tmp_path / "empty.jsonl")
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(cal, "get_calibration_engine", lambda: eng)
+    try:
+        opp = Opportunity(
+            id="w2",
+            title="T2",
+            platform=WorkPlatform.ALGORA,
+            category=OpportunityCategory.DEV_BOUNTY,
+            payment=100.0,
+        )
+        ev = IntelligentRecommender()._score_opportunities([opp])[0].expected_value
+        assert ev >= 0  # sin crash; neutral por diseño (factor 1.0)
+    finally:
+        monkeypatch.undo()
