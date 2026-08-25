@@ -11,6 +11,17 @@ withDefaults(defineProps<Props>(), {
   title: 'Error de conexión',
   message: 'Ocurrió un error al cargar los datos',
 })
+
+// Dual contract: callers may pass :retry="fn" (prop) or listen @retry
+// (event). GamingConsole/Capital used the event form while only the prop
+// existed — the Reintentar button silently never rendered.
+const emit = defineEmits<{ retry: [] }>()
+
+function onRetry(retryFn?: () => void) {
+  retryFn?.()
+  emit('retry')
+}
+
 </script>
 
 <template>
@@ -21,8 +32,9 @@ withDefaults(defineProps<Props>(), {
     <p class="text-sm font-semibold text-foreground">{{ title }}</p>
     <p class="mt-1 text-xs text-muted-foreground max-w-md">{{ message }}</p>
     <button
-      v-if="retry"
-      @click="retry"
+      v-if="retry || $attrs.onRetry"
+      data-testid="error-retry"
+      @click="onRetry(retry)"
       class="mt-4 inline-flex items-center gap-2 rounded-lg border border-border bg-transparent px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface/50 transition-colors"
     >
       <RefreshCw class="h-3.5 w-3.5" />
