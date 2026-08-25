@@ -1,3 +1,11 @@
+## 2026-08-25: DESIGN DIRECTIVE — fondo ambiental AZUL OSCURO; rojo reservado a estados
+
+- **Decisión del owner**: la capa de fondo ambiental global es **azul oscuro** (#1E40FF deep-blue de marca en bajas opacidades); el rojo Tesla #E82127 queda reservado EXCLUSIVAMENTE para estados de error/destructivo. El rojo deja de ser "único acento saturado" decorativo.
+- **Causa raíz corregida** (audit §FASE 4): tres fuentes contradictorias del rojo (`tokens.css --ownex-red` era CIAN por artefacto de-neón; `themes/tesla.json` lo pisaba a #E82127 en runtime → flip silencioso post-carga y mismatches rojo-sobre-cian; capa legacy `tesla-jarvis-theme.css` con gradientes plenos). JarvisBackground migrado a rgba(30,64,255,*), desacoplado de --accent-primary.
+- **Guards permanentes**: tests/test_frontend_theme_consistency.py (4) — token=tema=#E82127, cero rojo en background, sin dependencia de vars legacy.
+- **Regla permanente**: todo nuevo indicador visual de error usa --ownex-red; toda superficie ambiental usa la familia azul profundo; prohibido introducir una segunda definición del rojo.
+
+
 ## 2026-08-25: REMEDIACIÓN 1.0 ALPHA — 3 P0 + 4 P1 cerrados con disciplina test-first (7 commits)
 
 - **Problema**: El audit forense completo (AUDIT_REPORT, 2026-08-25) halló el bundle Tauri NO funcional pese a compilar verde: (P0-1) CORS bloqueaba TODA llamada autenticada desde `http://tauri.localhost` mientras el health-probe sin credentials daba READY falso; además AuthMiddleware mataba preflights OPTIONS con 401 antes de que CORSMiddleware respondiera (nunca ejercitado: dev usa proxy). (P0-2) `_process_opportunity` inexistente en core/opportunity/engine.py:488 — AttributeError con candidatos reales, `[]` silencioso con red caída (bug auto-enmascarado). (P0-3) Dos fórmulas EV paralelas sin SSOT (recommender vs EVScorer) con tabla de success-rates inventada presentada como "historical data", y p(task_available)=1.0 implícito en todo el sistema. Más P1: sidecar huérfano al cerrar, presupuesto health 287s vs "60s" declarado, puerto agotado spawneaba sobre :8000 ocupado, persistencia parents[3] rota en frozen, adapters aplanaban barreras a False.
