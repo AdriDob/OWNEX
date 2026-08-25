@@ -238,6 +238,27 @@ def _ranked_to_dict(ranked: RankedOpportunity) -> dict[str, Any]:
     except Exception:
         pass
 
+    # Fase A: explicit cash date from curated AR rails — never invented.
+    expected_cash: dict[str, Any] | None = None
+    try:
+        from cores.direct_work_engine.cashflow import (
+            expected_cash_date,
+            rail_for_payment_method,
+        )
+
+        pm = getattr(ranked.opportunity, "payment_method", None)
+        rail = rail_for_payment_method(str(getattr(pm, "value", pm) or ""))
+        if rail:
+            proj = expected_cash_date(rail)
+            expected_cash = {
+                "method": proj.method_id,
+                "days_to_cash": proj.days_to_cash,
+                "expected_date": proj.expected_date,
+                "confidence": proj.confidence,
+            }
+    except Exception:
+        pass
+
     return {
         "rank": ranked.rank,
         "opportunity": _opportunity_to_dict(ranked.opportunity),

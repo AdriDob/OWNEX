@@ -43,6 +43,24 @@ def _confidence(reliability: float) -> str:
     return "low"
 
 
+# DWE PaymentMethod value → curated AR rail id (Fase A wiring).
+_RAIL_FOR_PAYMENT_METHOD = {
+    "crypto": "binance_ar",
+    "stablecoin": "binance_ar",
+    "paypal": "paypal_ar",
+    "payoneer": "payoneer_ar",
+    "wise": "wise_ar",
+    "bank_wire": "wise_ar",
+}
+
+
+def rail_for_payment_method(payment_method: str | None) -> str | None:
+    """Map a DWE PaymentMethod value to its curated AR rail, if any."""
+    if not payment_method:
+        return None
+    return _RAIL_FOR_PAYMENT_METHOD.get(str(payment_method).strip().lower())
+
+
 def expected_cash_date(
     method_id: str | None,
     *,
