@@ -42,6 +42,7 @@ from api.routers import (
     connections,
     contracts,
     control,
+    copilot,
     credentials_rotation,
     crypto,
     cycles,
@@ -527,6 +528,7 @@ app.include_router(target_identity.router)
 app.include_router(files.router)
 app.include_router(life.router)
 app.include_router(control.router)
+app.include_router(copilot.router)
 app.include_router(execution.router)
 app.include_router(license.router)
 app.include_router(learning_router)
