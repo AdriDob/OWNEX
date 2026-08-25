@@ -8,7 +8,7 @@
 !include "x64.nsh"
 
 !define APPNAME "OWNEX Desktop Alpha"
-!define COMPANYNAME "CATEYE"
+!define COMPANYNAME "OWNEX"
 !define DESCRIPTION "Native bug bounty intelligence platform"
 !define VERSIONMAJOR 7
 !define VERSIONMINOR 0
