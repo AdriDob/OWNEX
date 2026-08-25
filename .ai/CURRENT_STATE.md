@@ -1,3 +1,24 @@
+## Sesión 2026-08-25 — REMEDIACIÓN 1.0 ALPHA: 3 P0 + 4 P1 cerrados test-first (7 commits)
+
+> **QUÉ SE HIZO:** Ejecución del plan de remediación derivado del audit forense completo
+> (AUDIT_REPORT 20 secciones, 126 rutas/66 páginas/168 componentes/3693 tests medidos).
+> **P0-1 CORS**: el bundle Tauri mostraba health READY pero ninguna llamada autenticada pasaba
+> (ACAO:* + credentials:include = bloqueo Fetch; preflight OPTIONS moría 401 en AuthMiddleware).
+> Fix: configure_cors() SSOT + orígenes tauri.localhost/tauri:// + OWNEX_DESKTOP=1 forzado en el
+> sidecar + OPTIONS bypass. **P0-2**: execute_cycle crasheaba (método perdido en churn del árbol
+> core/, v5.0.0 lo tenía) o devolvía [] silencioso → ahora ranking honesto human_review.
+> **P0-3 economía**: economics.py único contrato; Unknown nunca ×1.0; priors etiquetados;
+> ambos motores delegan (spy exactly-once). **P1**: kill sidecar en Exit + budget 90s real +
+> abort puerto agotado; OWNEX_DATA_DIR en WorkBank/MarketKB (rompía frozen); flags barrera
+> curados en adapters. Disciplina test-first en cada fix (FAIL documentado antes del patch).
+- **Verificación**: 35 tests nuevos + regresiones (69 CORS-suite, 29 opp-engine, 66 DWE,
+  47 DWE-api) verdes; fast 100/1 baseline exacta; cargo dev+release sin warnings; ruff limpio
+  en todo lo tocado. Preexistentes detectados y NO tocados: F841 lifespan.py, lint polymarket/
+  chroma (proceso concurrente activo: control.py/investment.py/income_plan.py/remote_control.rs).
+- **Handoff**: providers UI (GET /providers ya existe backend-driven), curación Outlier/Mindrift
+  en catálogo, dead-code batch post-validación Windows, tag→MSI→5 escenarios Windows→OneDrive.
+
+
 ## Sesión 2026-08-24 — WORK TAXONOMY SSOT: 4 enums OpportunityCategory unificados vía mapeo canónico
 
 > **QUÉ SE HIZO:** Cierre de la deuda de taxonomía detectada en la auditoría de convergencia:
