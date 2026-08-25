@@ -239,6 +239,10 @@ export interface IncomePlanAction {
   zero_experience?: boolean
   assessment_required?: boolean
   access_probability?: string
+  // New honest-economics fields (backend returns these but UI wasn't rendering)
+  expected_cash?: { date: string | null; confidence: string; note: string } | null
+  htroi?: number | null
+  confidence_band?: string | null
 }
 export interface IncomePlanState {
   generated_at?: string
@@ -624,7 +628,7 @@ export interface GoodMorningState {
   generated_at: string
   summary: string
   system: { status: string; score: number }
-  memory: { healthy: boolean; entries: number; namespaces: Record<string, number> }
+  memory: { healthy: boolean; entries: number; namespaces: Record<string, number>; namespace_count: number }
   important_tasks: Array<{ title: string; platform: string; reward?: number; requirement?: string }>
   opportunities: {
     scanned_sources: number
@@ -637,6 +641,18 @@ export interface GoodMorningState {
   }
   improvements_suggested: Array<{ type: string; name: string; benefit: string; priority: string }>
   pending_approvals: Array<{ id: string; message: string; level?: string }>
+  setup_progress: {
+    complete_pct: number
+    complete: boolean
+    next_task: {
+      id: string
+      phase_label: string
+      title: string
+      why: string
+      est_minutes: number
+      how_to: string
+    } | null
+  }
 }
 
 export async function fetchGoodMorning(): Promise<GoodMorningState> {
@@ -687,23 +703,7 @@ export async function fetchSourceIntel(options?: {
   return api.post<SourceIntelResponse>('/direct-work/source-intel', options ?? {})
 }
 
-// ── Income Dashboard ──
 
-export interface IncomeDashboardData {
-  period: string
-  total_revenue: number
-  breakdown: Record<string, number>
-  projections: {
-    monthly: number
-    quarterly: number
-    annual: number
-  }
-  trends: Array<{ date: string; amount: number }>
-}
-
-export async function fetchIncomeDashboard(): Promise<IncomeDashboardData> {
-  return api.post<IncomeDashboardData>('/direct-work/income-dashboard', {})
-}
 
 // ── Income Projector ──
 
@@ -1287,4 +1287,164 @@ export async function syncOutlookCalendar() {
 
 export async function getOutlookTasks(limit = 100) {
   return api.get<{ data: { tasks: OutlookSyncTask[] } }>('/outlook/tasks', { limit })
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE PARITY LAYER — Execution Queue · Capital · AI Providers ·
+// Revenue Center · Risk/Emergency (spec: FRONTEND FEATURE-PARITY)
+// ════════════════════════════════════════════════════════════════
+
+// ── Execution Queue ──
+
+export type ExecState =
+  | 'discovered'
+  | 'qualified'
+  | 'ready'
+  | 'queued'
+  | 'executing'
+  | 'waiting_human'
+  | 'submitted'
+  | 'verification'
+  | 'paid'
+  | 'rejected'
+  | 'blocked'
+  | 'failed'
+  | 'dead_letter'
+
+export interface ExecutionQueueItem {
+  item_id: string
+  state: ExecState
+  payload: Record<string, unknown>
+  history: string[]
+}
+
+export const EXEC_QUEUE_COLUMNS: Array<{ key: string; states: ExecState[]; label: string }> = [
+  { key: 'now', states: ['queued', 'executing'], label: 'NOW' },
+  { key: 'next', states: ['discovered', 'qualified', 'ready'], label: 'NEXT' },
+  { key: 'waiting', states: ['waiting_human', 'submitted', 'verification'], label: 'WAITING' },
+  { key: 'done', states: ['paid', 'rejected', 'blocked', 'failed', 'dead_letter'], label: 'DONE' },
+]
+
+export async function fetchExecutionQueue(): Promise<ExecutionQueueItem[]> {
+  return api.get<ExecutionQueueItem[]>('/execution-queue')
+}
+
+export async function transitionExecutionItem(itemId: string, targetState: string): Promise<ExecutionQueueItem> {
+  return api.post<ExecutionQueueItem>(`/execution-queue/${itemId}/transition`, { target_state: targetState })
+}
+
+export async function fetchValidTransitions(current: string): Promise<string[]> {
+  return api.get<string[]>('/execution-queue/states/transitions', { current })
+}
+
+// ── Capital Snapshot (SSOT de patrimonio) ──
+
+export interface CapitalSnapshot {
+  generated_at?: string
+  bounty?: { pagado_usd?: number; pendiente_usd?: number }
+  work_income?: { entregado_usd: number; pendiente_usd: number; total_usd: number }
+  investment?: { total_usd: number; estrategias: Array<{ name?: string; value?: number }> }
+  atlas?: { total_usd?: number }
+  crypto?: { total_usd?: number }
+  expected_cash?: Array<{ rail?: string; amount_usd?: number; date?: string }>
+  payment_compat?: { compatible?: number; total?: number }
+  total_usd?: number
+}
+
+export async function fetchCapitalSnapshot(): Promise<CapitalSnapshot> {
+  return api.get<CapitalSnapshot>('/financial/capital/snapshot')
+}
+
+// ── AI Providers (settings/ai + OAR) ──
+
+export interface AiProviderStatus {
+  id: string
+  name: string
+  available: boolean
+  active?: boolean
+  model?: string
+}
+
+export interface AiCenterState {
+  providers: AiProviderStatus[]
+  config: {
+    provider_type: string
+    host: string
+    model: string
+    api_base: string
+    active_provider: string
+    available: boolean
+  } | null
+  oar: { initialized: boolean; providers?: unknown[]; message?: string } | null
+  errors: string[]
+}
+
+export async function fetchAiCenter(): Promise<AiCenterState> {
+  const state: AiCenterState = { providers: [], config: null, oar: null, errors: [] }
+  const [provRes, cfgRes, oarRes] = await Promise.allSettled([
+    api.get<{ providers: AiProviderStatus[] }>('/settings/ai/providers'),
+    api.get<AiCenterState['config']>('/settings/ai/config'),
+    api.get<NonNullable<AiCenterState['oar']>>('/oar/status'),
+  ])
+  if (provRes.status === 'fulfilled') state.providers = provRes.value.providers ?? []
+  else state.errors.push('providers')
+  if (cfgRes.status === 'fulfilled') state.config = cfgRes.value
+  else state.errors.push('config')
+  if (oarRes.status === 'fulfilled') state.oar = oarRes.value
+  else state.errors.push('oar')
+  return state
+}
+
+// ── Revenue Summary (realized vs pending) ──
+
+export interface RevenueSummary {
+  total_earned: number
+  pending_amount: number
+  earnings_30d?: number
+  by_platform?: Array<{ platform: string; earned: number; pending: number }>
+  submissions?: number
+}
+
+export interface RevenueSubmission {
+  id: string
+  platform?: string
+  title?: string
+  status?: string
+  amount?: number
+  submitted_at?: string
+}
+
+export async function fetchRevenueSummary(): Promise<RevenueSummary> {
+  const data = await api.get<Partial<RevenueSummary>>('/revenue/summary')
+  return {
+    total_earned: data.total_earned ?? 0,
+    pending_amount: data.pending_amount ?? 0,
+    earnings_30d: data.earnings_30d ?? 0,
+    by_platform: data.by_platform ?? [],
+    submissions: data.submissions ?? 0,
+  }
+}
+
+export async function fetchRevenueSubmissions(): Promise<RevenueSubmission[]> {
+  const data = await api.get<{ submissions?: RevenueSubmission[] } | RevenueSubmission[]>('/revenue/submissions')
+  if (Array.isArray(data)) return data
+  return data.submissions ?? []
+}
+
+// ── Risk / Emergency Mode ──
+
+export interface EmergencyModeState {
+  active: boolean
+  reason?: string
+  triggered_at?: string
+  analysis?: Record<string, unknown>
+}
+
+export async function fetchEmergencyMode(): Promise<EmergencyModeState> {
+  try {
+    const data = await api.get<Partial<EmergencyModeState>>('/emergency-mode')
+    return { active: !!data.active, reason: data.reason, triggered_at: data.triggered_at }
+  } catch {
+    return { active: false }
+  }
 }

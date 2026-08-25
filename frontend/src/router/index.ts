@@ -280,6 +280,12 @@ export const routes: RouteRecordRaw[] = [
         meta: { title: 'Panel de Operaciones' },
       },
       {
+        path: 'work-queue',
+        name: 'work-queue',
+        component: () => import(/* webpackChunkName: "work-queue" */ '@/pages/WorkQueue.vue'),
+        meta: { title: 'Cola de Trabajo' },
+      },
+      {
         path: 'pipelines',
         name: 'operations-pipelines',
         component: () => import('@/pages/PipelineMonitor.vue'),
@@ -440,6 +446,26 @@ export const routes: RouteRecordRaw[] = [
   // ── LEGACY REDIRECTS (mantener compatibilidad) ──
   // Home redirect
   { path: '/home', redirect: '/dashboard' },
+
+  // ── FEATURE PARITY SURFACES (Command Center satellites) ──
+  {
+    path: '/revenue/center',
+    name: 'revenue-center',
+    component: () => import(/* webpackChunkName: "revenue-center" */ '@/pages/RevenueCenter.vue'),
+    meta: { title: 'Centro de Ingresos', requiresAuth: true },
+  },
+  {
+    path: '/ai',
+    name: 'ai-center',
+    component: () => import(/* webpackChunkName: "ai-center" */ '@/pages/AiCenter.vue'),
+    meta: { title: 'Centro de IA', requiresAuth: true },
+  },
+  {
+    path: '/risk',
+    name: 'risk-center',
+    component: () => import(/* webpackChunkName: "risk-center" */ '@/pages/RiskCenter.vue'),
+    meta: { title: 'Centro de Riesgo', requiresAuth: true },
+  },
 
   // Revenue pages → Capital
   { path: '/revenue', redirect: '/capital' },
@@ -607,6 +633,12 @@ export const routes: RouteRecordRaw[] = [
     name: 'mobile-jarvis',
     component: () => import(/* webpackChunkName: "mobile-jarvis" */ '@/pages/MobileCompanionJarvis.vue'),
     meta: { title: 'ORION Companion — Jarvis Style', requiresAuth: true },
+  },
+  {
+    path: '/watch/approvals',
+    name: 'watch-approvals',
+    component: () => import(/* webpackChunkName: "watch" */ '@/pages/WatchApprovals.vue'),
+    meta: { title: 'Aprobaciones Wear OS', requiresAuth: true },
   },
 
   // ── Catch-all ──
