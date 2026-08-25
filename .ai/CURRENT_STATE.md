@@ -1,3 +1,28 @@
+## Sesión 2026-08-26 — INCOME MULTIPLIER: auditoría + fases A-F implementadas (12 commits)
+
+> **QUÉ SE HIZO:** Ejecución del master prompt Revenue Operating System con disciplina
+> audit-first. **FASE 0**: `.ai/INCOME_MULTIPLIER_AUDIT.md` — matriz de 14 sistemas con SSOT,
+> 10 gaps priorizados (G1-G10), plan A-H. Hallazgo central: las fundaciones ya estaban sanas
+> (EV SSOT, acceptance desde historial real); los gaps reales eran completitud, no fundaciones.
+> **FASE A** (3 slices): `cashflow.py` ExpectedCashDate desde rails AR curados (`66787321`) ·
+> exposición en /recommend (`1cd58de2`) · OpportunityStage 8 estados + mapeos WorkBank/
+> PaymentStatus honestos (`30023347`). **FASE B**: `barrier_profile()` explicativo factor-por-
+> factor + fix trampa bool("none")=True del enum ExperienceLevel (`02817811`+`6c8f2be8`).
+> **FASE C**: `compute_htroi()` HTROI-V1 versionado — ingreso/hora-HUMANA, compresión solo
+> con baseline medido (`40d7c0a5`). **FASE D**: `calibration.py` JSONL predicho-vs-real +
+> platform_factor mediana clampada [0.5,2.0] + wiring al recommender EV (`ea9309b2`+
+> `84df4127`) — círculo §13 completo. **FASE E**: `compute_confidence()` CONF-V1 sustracción
+> documentada, banda UNKNOWN si inputs primarios ausentes (`67fe5d41`). **FASE F**:
+> `fallbacks.py` primary+3 plataformas distintas con triggers (`94d19e77`). **WIRING**:
+> /recommend expone expected_cash + htroi + primary/fallbacks con degrade defensivo
+> (`f9708439`) — gatekeeper atrapó el F841 del payload omitido antes de que llegara a prod.
+- **Verificación**: 76 contratos nuevos acumulados; suites DWE/SSOT/API/revenue 87-98 passed;
+  ruff limpio en scopes; fast suite 100/1 estable.
+- **Incidente resuelto**: índice compartido arrastró backups/ con JWTs al repo público →
+  rm --cached + gitignore (`0b64ae8b`); history-scrub diferido por coordinación.
+- **Pendiente**: G5 curación AI-training subcategorías · G9 wiring fallbacks a UI · G10
+  confidence adoption cuando haya señal real · validación física Windows v1.0.0-alpha (P0).
+
 ## Sesión 2026-08-25 (cierre) — v1.0.1-alpha cortada + auditoría frontend + EXPECTED≠REALIZED
 
 > **QUÉ SE HIZO:** (1) **v1.0.1-alpha** etiquetada y desplegada en OneDrive
