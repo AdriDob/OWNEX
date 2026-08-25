@@ -15,7 +15,9 @@ import argparse
 import os
 import signal
 import sys
+import threading
 from pathlib import Path
+from typing import Any
 
 
 def _resolve_root() -> Path:
@@ -120,16 +122,6 @@ def main() -> int:
         return 1
 
     # Signal handlers (SIGTERM only on Unix; Windows uses SIGBREAK)
-    def _shutdown(sig, _frame):
-        logger.info("Received signal %s, shutting down...", sig)
-        sys.exit(0)
-
-    signal.signal(signal.SIGINT, _shutdown)
-    if hasattr(signal, "SIGTERM"):
-        signal.signal(signal.SIGTERM, _shutdown)
-    if hasattr(signal, "SIGBREAK"):
-        signal.signal(signal.SIGBREAK, _shutdown)
-
     # Run uvicorn
     import uvicorn
 
@@ -140,7 +132,29 @@ def main() -> int:
         log_level=args.log_level.lower(),
         access_log=False,
     )
+    # uvicorn installs its own handlers inside Server.run() and overrides ours,
+    # so we disable that and own the lifecycle: graceful should_exit + a
+    # hard-exit fallback so a desktop close can NEVER leave an orphan backend.
     server = uvicorn.Server(config)
+    server.install_signal_handlers = lambda: None  # type: ignore[method-assign]
+
+    def _shutdown(sig: int, _frame: Any) -> None:
+        logger.info("Received signal %s — graceful shutdown (hard exit in 8s max)", sig)
+        server.should_exit = True
+
+        def _force() -> None:
+            logger.warning("Graceful shutdown timed out — forcing exit")
+            os._exit(0)
+
+        watchdog = threading.Timer(8.0, _force)
+        watchdog.daemon = False
+        watchdog.start()
+
+    signal.signal(signal.SIGINT, _shutdown)
+    if hasattr(signal, "SIGTERM"):
+        signal.signal(signal.SIGTERM, _shutdown)
+    if hasattr(signal, "SIGBREAK"):
+        signal.signal(signal.SIGBREAK, _shutdown)
 
     try:
         server.run()
