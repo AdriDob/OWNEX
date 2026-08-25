@@ -31,14 +31,41 @@ const error = ref<string | null>(null)
 const search = ref('')
 const expanded = ref<Record<number, boolean>>({})
 const total = ref(0)
+/** Filtro server-side por veredicto (GET /evidence?verdict_id=). */
+const verdictFilter = ref<number | null>(null)
+const verdictOptions = ref<Array<{ id: number; label: string }>>([])
 
-onMounted(async () => {
+async function loadEvidence(): Promise<void> {
+  loading.value = true
   try {
-    const res = await api.get<{ items: EvidenceItem[]; total: number }>('/evidence', { limit: 50 })
+    const params: Record<string, string | number> = { limit: 50 }
+    if (verdictFilter.value != null) params.verdict_id = verdictFilter.value
+    const res = await api.get<{ items: EvidenceItem[]; total: number }>('/evidence', params)
     items.value = res.items || []
     total.value = res.total || 0
-  } catch (e: any) { error.value = e?.message || 'Error al cargar evidencia' }
-  finally { loading.value = false }
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : 'Error al cargar evidencia'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function loadVerdictOptions(): Promise<void> {
+  try {
+    const vs = await api.get<Array<{ id: number; status?: string; created_at?: string | null }>>('/verdicts', { limit: 100 })
+    verdictOptions.value = (Array.isArray(vs) ? vs : []).slice(0, 100).map((v) => ({
+      id: v.id,
+      label: `#${v.id}${v.status ? ' · ' + v.status : ''}`,
+    }))
+  } catch { /* selector vacío: el filtro manual por ID sigue disponible */ }
+}
+
+function onVerdictFilterChange(): void {
+  void loadEvidence()
+}
+
+onMounted(async () => {
+  await Promise.allSettled([loadEvidence(), loadVerdictOptions()])
 })
 
 const filtered = computed(() => {
@@ -102,12 +129,25 @@ function diffColor(ratio: number) {
     </template>
 
     <template v-else>
-      <!-- Search -->
-      <div class="relative max-w-xs animate-in">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <input v-model="search" placeholder="Buscar evidencia..."
-          class="w-full rounded-lg border border-border/60 bg-surface/50 pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/30 focus:outline-none focus:ring-1 focus:ring-primary/20"
-        />
+      <!-- Filtros: búsqueda client-side + veredicto server-side -->
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="relative max-w-xs flex-1 min-w-[220px] animate-in">
+          <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input v-model="search" placeholder="Buscar evidencia..."
+            class="w-full rounded-lg border border-border/60 bg-surface/50 pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary/30 focus:outline-none focus:ring-1 focus:ring-primary/20"
+          />
+        </div>
+        <select
+          v-model.number="verdictFilter"
+          class="rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-sm text-foreground focus:border-primary/30 focus:outline-none"
+          @change="onVerdictFilterChange"
+        >
+          <option :value="null">Todos los veredictos</option>
+          <option v-for="v in verdictOptions" :key="v.id" :value="v.id">{{ v.label }}</option>
+          <option v-if="verdictFilter != null && !verdictOptions.some(o => o.id === verdictFilter)" :value="verdictFilter">
+            Veredicto #{{ verdictFilter }}
+          </option>
+        </select>
       </div>
 
       <!-- Evidence Type Chart -->
