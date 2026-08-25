@@ -21,8 +21,8 @@
 ### P3
 - Wallets GET, ReplayCenter targets, ConfidenceDashboard audit — endpoints ABSENT, empty states honestos.
 
-### Decisión producto pendiente (Revenue Rule gate)
-- **Investment sub-adapters** (~32 llamadas): ccxt connect/balance, defi aave/lido/morpho/pendle, stocks algopaca/ibkr, polymarket strategies, backtest — el backend NO los expone. Construir (si aumentan ingresos medibles) o retirar la UI avanzada de Trading/Capital.
+### Decisión producto (RESUELTA por owner: CONSTRUIR)
+- **Investment sub-adapters**: RESUELTO — los adapters ya existían completos en core/investment/adapters/; el gap era solo routing. 34 rutas nuevas en api/routers/investment.py (commit wiring) exponen ccxt/defi×4/stocks/polymarket/backtest. Órdenes reales gated por risk (409 si paused). Tests: tests/test_investment_wiring.py 18/18. Backtest = MA-crossover determinista en pandas puro (vectorbt no instalado — sin dependencia nueva).
 
 ---
 

@@ -86,7 +86,7 @@
 | PAGE | STATUS | API | EVIDENCE | REMAINING_ISSUES |
 |---|---|---|---|---|
 | Capital (core) | MOSTLY | revenue/capital-dashboard, ev-ranking, payment-compat | existen; doble-prefijo normalizado | — |
-| Trading/Capital inversión avanzada | DEGRADED-KNOWN | ccxt, defi/aave·lido·morpho·pendle, stocks/algopaca·ibkr, polymarket strategies, backtest (~32 llamadas) | **backend NO expone esos sub-adapters** | Revenue Rule: solo construir si aumenta ingresos medibles; mientras, UI muestra error estructurado — decisión producto pendiente |
+| Trading/Capital inversión avanzada | COMPLETE (wiring df17ebc9→) | Owner eligió CONSTRUIR: 34 rutas nuevas en investment.py exponen los adapters YA existentes (ccxt 4.5.71, DeFi×4, Alpaca+IBKR, Polymarket+manager, backtest MA-crossover pandas) | E2E live 9/9 rutas read-only 200 · tests 18/18 con adapters fake | Órdenes reales gated por manager.is_paused() (409) + creds nunca persistidas; vectorbt no instalado → backtest determinista pandas puro |
 | TradingIntelligence | PARTIAL | trading/dashboard·copy·reasoning (existen) | trading router montado | toggle masters usa path con trailing id — verificar contrato exacto |
 
 ### Conexiones / Identidad
