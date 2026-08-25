@@ -124,3 +124,6 @@ src-tauri/binaries/ownex-backend-*
 /ownex-tauri-artifacts/
 /tauri-windows-build/
 /installer/*.msi
+
+# runtime backups con logs (nunca commitear)
+backups/
