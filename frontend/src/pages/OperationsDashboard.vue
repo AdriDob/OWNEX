@@ -1,22 +1,36 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api, getTimeline } from '@/lib/api'
-import type { TimelineResponse } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import {
+  Activity,
+  AlertTriangle,
+  BarChart3,
+  ChevronRight,
+  Clock,
+  HeartPulse,
+  LayoutDashboard,
+  ListOrdered,
+  RefreshCw,
+  Shield,
+  Star,
+  Target,
+  TrendingUp,
+  Zap,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import BarChart from '@/components/charts/BarChart.vue'
+import LineChart from '@/components/charts/LineChart.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import LineChart from '@/components/charts/LineChart.vue'
-import BarChart from '@/components/charts/BarChart.vue'
-import {
-  Activity, Clock, HeartPulse, BarChart3, TrendingUp, Target,
-  Zap, Shield, RefreshCw, AlertTriangle, Star, ChevronRight,
-  ListOrdered, LayoutDashboard,
-} from '@lucide/vue'
+import type { TimelineResponse } from '@/lib/api'
+import { api, getTimeline } from '@/lib/api'
 
+/** Compuesto client-side desde endpoints reales (stats/overview/verdicts/timeline).
+ *  El /operations/metrics original nunca existió en el backend. */
 interface SystemMetrics {
-  quick_win_rate: number
-  avg_confidence: number
+  /** findings confirmados / total findings */
+  quick_win_rate: number | null
+  avg_confidence: number | null
   total_active: number
   total_completed: number
   confidence_distribution: { range: string; count: number }[]
@@ -46,11 +60,16 @@ const activeTab = ref<'overview' | 'timeline' | 'metrics'>('overview')
 const timeline = ref<TimelineEvent[]>([])
 const metrics = ref<SystemMetrics | null>(null)
 const health = ref<HealthStatus | null>(null)
-const favorites = ref<any[]>([])
+interface FavoriteItem {
+  id: string | number
+  label: string
+  route?: string
+}
+const favorites = ref<FavoriteItem[]>([])
 
 const timelineLabels = computed(() => {
   const counts: Record<string, number> = {}
-  timeline.value.forEach(e => {
+  timeline.value.forEach((e) => {
     const hour = e.timestamp?.slice(11, 13) || '00'
     counts[`${hour}:00`] = (counts[`${hour}:00`] || 0) + 1
   })
@@ -59,11 +78,11 @@ const timelineLabels = computed(() => {
 
 const timelineData = computed(() => {
   const counts: Record<string, number> = {}
-  timeline.value.forEach(e => {
+  timeline.value.forEach((e) => {
     const hour = e.timestamp?.slice(11, 13) || '00'
     counts[`${hour}:00`] = (counts[`${hour}:00`] || 0) + 1
   })
-  return timelineLabels.value.map(h => counts[h] || 0)
+  return timelineLabels.value.map((h) => counts[h] || 0)
 })
 
 const healthColor = computed(() => {
@@ -85,16 +104,57 @@ async function loadData() {
   loading.value = true
   error.value = ''
   try {
-    const [tlRes, metRes, hlRes] = await Promise.allSettled([
+    const [tlRes, statsRes, ovRes, vdRes, hlRes] = await Promise.allSettled([
       getTimeline({ limit: 48 }),
-      api.get<SystemMetrics>('/operations/metrics'),
+      api.get<{ targets: number; findings: number; verdicts: number; scan_runs: number }>('/stats'),
+      api.get<{ active_scans: number; confirmed: number; avg_risk_score: number }>('/overview'),
+      api.get<Array<{ confidence: number }>>('/verdicts?limit=500'),
       api.get<HealthStatus>('/system/health'),
     ])
     if (tlRes.status === 'fulfilled') timeline.value = tlRes.value.events || []
-    if (metRes.status === 'fulfilled') metrics.value = metRes.value
     if (hlRes.status === 'fulfilled') health.value = hlRes.value
-  } catch (e: any) {
-    error.value = e.message || 'Failed to load operations data'
+
+    // Composición honesta desde datos reales:
+    const stats = statsRes.status === 'fulfilled' ? statsRes.value : null
+    const ov = ovRes.status === 'fulfilled' ? ovRes.value : null
+    const verdicts = vdRes.status === 'fulfilled' ? vdRes.value : []
+
+    const totalFindings = stats?.findings ?? 0
+    const confirmed = ov?.confirmed ?? 0
+    const avgConf =
+      verdicts.length > 0 ? verdicts.reduce((acc, v) => acc + (v.confidence || 0), 0) / verdicts.length : null
+
+    // daily_activity: agregación por día del timeline ya cargado
+    const byDay = new Map<string, number>()
+    for (const ev of timeline.value) {
+      const day = (ev.timestamp || '').slice(0, 10)
+      if (day) byDay.set(day, (byDay.get(day) ?? 0) + 1)
+    }
+    const daily_activity = [...byDay.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, events]) => ({ date, events }))
+
+    // confidence_distribution: buckets 0.2
+    const buckets = [0, 0, 0, 0, 0]
+    for (const v of verdicts) {
+      const idx = Math.min(4, Math.max(0, Math.floor((v.confidence || 0) * 5)))
+      buckets[idx]++
+    }
+    const confidence_distribution = buckets.map((count, i) => ({
+      range: `${i * 20}-${(i + 1) * 20}%`,
+      count,
+    }))
+
+    metrics.value = {
+      quick_win_rate: totalFindings > 0 ? confirmed / totalFindings : null,
+      avg_confidence: avgConf,
+      total_active: ov?.active_scans ?? 0,
+      total_completed: stats?.scan_runs ?? 0,
+      confidence_distribution,
+      daily_activity,
+    }
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : 'Failed to load operations data'
   } finally {
     loading.value = false
   }
