@@ -563,6 +563,9 @@ class IntelligentRecommender:
 
         Numeric behavior preserved for legacy inputs; task availability is
         UNKNOWN until adapters provide a live signal (never assumed).
+        Calibration (Fase D): platforms with measured over/under-promise
+        history get their EV scaled by the recorded factor — neutral 1.0
+        until MIN_SAMPLES resolved outcomes exist.
         """
         from cores.direct_work_engine.economics import compute_expected_value
         from cores.direct_work_engine.models import PAYMENT_RELIABILITY
@@ -570,11 +573,22 @@ class IntelligentRecommender:
         opp = ranked.opportunity
         reliability = PAYMENT_RELIABILITY.get(opp.payment_method, 0.5)
 
-        return compute_expected_value(
+        ev = compute_expected_value(
             payment=opp.payment,
             acceptance_probability=ranked.acceptance_probability,
             payment_reliability=reliability,
         ).ev_usd
+
+        try:
+            from cores.direct_work_engine.calibration import get_calibration_engine
+
+            platform_key = str(getattr(opp.platform, "value", opp.platform))
+            factor, _conf = get_calibration_engine().platform_factor(platform_key)
+            ev = round(ev * factor, 2)
+        except Exception:  # calibration is an enhancement, never a breaker
+            pass
+
+        return ev
 
     def _calculate_overall_score(self, ranked: RankedOpportunity) -> float:
         """Calculate weighted overall recommendation score."""
