@@ -1,3 +1,22 @@
+## Sesión 2026-08-25 (cont.) — PROMPT 2 parcial: theme unificado + dashboards honestos + publisher + limpieza 9.6GB
+
+> **QUÉ SE HIZO:** Ejecución del plan del release audit (docs/release/OWNEX_1.0_ALPHA_AUDIT.md).
+> (1) **Theme**: background ambiental azul oscuro (directiva owner), --ownex-red corregido
+> cian→#E82127 alineando tokens con tesla.json, JarvisBackground desacoplado de vars jarvis
+> (`bfcf799d` + guards). (2) **Dashboards honestos**: los 6 feeders de ownexData propagan
+> ApiError → ErrorState+retry alcanzables; fleet falso de agentes eliminado (`aab28579`,
+> `3c5c07b1`; fix previo contrato dual retry `242c6466`). (3) **Publisher OWNEX** en MSI/NSIS,
+> muere leak CATEYE en Agregar/Quitar (`0e2f2d0a`). (4) **Limpieza 9.6GB** artefactos obsoletos
+> incluidos los MSI pre-fix NO-DEPLOY (riesgo deploy eliminado físicamente). (5) Providers:
+> P1 verificado ya resuelto (Settings consume GET /providers); drift guard fallback==catálogo
+> (`256e8ec0`).
+- **Verificación**: vue-tsc 0 errores; suite fast 100/1; packaging+theme+sync guards 13-14
+  passed; ruff limpio en lo tocado.
+- **Pendiente**: item 4 curación Outlier/Mindrift (proceso concurrente, WIP activo 18 archivos);
+  6b dead-code batch gateado a validación Windows; tag v1.0.0-alpha → MSI CI → 5 escenarios
+  Windows → OneDrive OWNEX-DESKTOP-LAUNCHER-FINAL.
+
+
 ## Sesión 2026-08-25 — REMEDIACIÓN 1.0 ALPHA: 3 P0 + 4 P1 cerrados test-first (7 commits)
 
 > **QUÉ SE HIZO:** Ejecución del plan de remediación derivado del audit forense completo
