@@ -60,6 +60,8 @@
 
 ## 6. Plan de fases (mapeado al spec) — orden ejecutable
 
+> **✅ F1 núcleo CERRADO (2026-08-25)**: tokens semánticos `--color-*` + escala tipográfica + `.money` (`65ab6b69`). **Trío de componentes base completo**: `MoneyValue.vue` (4 semánticas económicas, `f213b01e`) · `StatusBadge.vue` (9 estados sistema, `aa5de3b4`) · `Skeleton.vue`+`LoadingState.vue` (preexistentes, API verificada). **F1b restante = SOLO adopción** en páginas prioritarias: TopBar (StatusBadge reemplaza dot WS), MissionControl/GamingConsole/Capital (MoneyValue en montos), IntelligenceDashboard (LoadingState en secciones). Sin crear más componentes hasta que la adopción demuestre un gap real.
+
 - **F1 Design System**: extender tokens.css con escala completa (color semantic set §prompt-8, spacing 4-64, radius sm/md/lg/xl+pill, shadows sutiles, tipografía display/body/label/numeric-mono); migración incremental hex→var() por página tocada (prohibido big-bang); Skeleton + StatusBadge + MoneyValue + SectionHeader/PageHeader nuevos (verificando no-dup contra ui/*).
 - **F2 App Shell**: AppSidebar agrupado por intención (colapsable), TopBar con StatusBadge global (fuente: /api/system/health ya existente), CommandPalette audit contra router real.
 - **F3 Mission Control**: unificar homes → NEXT ACTION card dominante (fuente real: GET /applications/overview.next_action + workbank best_ready + daily-brief top pick), OpportunityRadar top-3, Activity pipeline (discovery→scoring→filtering→recommendation con counts reales de ownexData), fila inferior earnings/opps/automation/tasks.
