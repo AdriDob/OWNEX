@@ -126,8 +126,7 @@ const DEFAULT_REVENUE: RevenueSnapshotData = {
 // ── Fetchers ──
 
 async function fetchOverview(): Promise<ThroughputStage[]> {
-  try {
-    const data = await api.get<OverviewResponse>('/overview')
+  const data = await api.get<OverviewResponse>('/overview')
     const stages = [...DEFAULT_STAGES]
     if (data.pipeline_stages) {
       stages[0].value = data.pipeline_stages.detected ?? data.target_count ?? 0
@@ -142,10 +141,7 @@ async function fetchOverview(): Promise<ThroughputStage[]> {
       stages[3].value = data.active_scans ?? 0
       stages[4].value = data.confirmed_verdicts ?? 0
     }
-    return stages
-  } catch {
-    return DEFAULT_STAGES
-  }
+  return stages
 }
 
 interface OpportunityScoreItem {
@@ -180,7 +176,6 @@ interface Top5Response {
 }
 
 async function fetchOpportunities(): Promise<OpportunityItem[]> {
-  try {
     const data = await api.get<Top5Response>('/opportunity-score/top5')
     const list = data.top5 || []
     return list.map((item) => ({
@@ -193,13 +188,9 @@ async function fetchOpportunities(): Promise<OpportunityItem[]> {
       effort: item.effort_hours < 2 ? 'Bajo' : item.effort_hours < 5 ? 'Medio' : 'Alto',
       action: item.score.overall > 0.7 ? 'Analizar' : item.score.overall > 0.5 ? 'Evaluar' : 'Revisar',
     }))
-  } catch {
-    return []
-  }
 }
 
 async function fetchActivity(): Promise<KnowledgeItem[]> {
-  try {
     const data = await api.get<any>('/activity', { hours: 24 })
     const events = data?.events || data?.items || []
     return events.slice(0, 5).map((e: any) => ({
@@ -209,13 +200,9 @@ async function fetchActivity(): Promise<KnowledgeItem[]> {
       message: e.title || e.message || `${e.type}: #${e.id}`,
       timestamp: e.timestamp || new Date().toISOString(),
     }))
-  } catch {
-    return []
-  }
 }
 
 async function fetchMissionStatus(): Promise<{ health: number; status: string; nextAction: NextActionItem | null; timestamp: string }> {
-  try {
     const data = await api.get<any>('/mission/status')
     const nextAction = data.next_action
       ? {
@@ -231,9 +218,6 @@ async function fetchMissionStatus(): Promise<{ health: number; status: string; n
       nextAction,
       timestamp: data.system?.timestamp ?? new Date().toISOString(),
     }
-  } catch {
-    return { health: 0, status: 'offline', nextAction: null, timestamp: new Date().toISOString() }
-  }
 }
 
 async function fetchSystemStatus(): Promise<AgentStatus[]> {
@@ -266,7 +250,6 @@ async function fetchSystemStatus(): Promise<AgentStatus[]> {
 }
 
 async function fetchRevenueSnapshot(): Promise<RevenueSnapshotData | null> {
-  try {
     const data = await api.get<RevenueSummaryResponse>('/economic/financial-summary')
     return {
       usdPerHour: data.usd_per_hour ?? 0,
@@ -274,9 +257,6 @@ async function fetchRevenueSnapshot(): Promise<RevenueSnapshotData | null> {
       pendingTotal: data.pending_total ?? 0,
       bestPlatform: data.best_platform ?? '—',
     }
-  } catch {
-    return null
-  }
 }
 
 // ── Cycle fetchers ──
