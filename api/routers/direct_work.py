@@ -262,6 +262,7 @@ def _ranked_to_dict(ranked: RankedOpportunity) -> dict[str, Any]:
     return {
         "rank": ranked.rank,
         "opportunity": _opportunity_to_dict(ranked.opportunity),
+        "expected_cash": expected_cash,
         "zero_barrier_score": {
             "total": zb.total if zb else 0.0,
             "barrier_level": zb.barrier_label if zb else "unknown",
