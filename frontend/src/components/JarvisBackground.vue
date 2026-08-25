@@ -68,8 +68,8 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   background-image:
-    linear-gradient(rgba(227, 25, 55, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(227, 25, 55, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(30, 64, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 64, 255, 0.04) 1px, transparent 1px);
   background-size: 50px 50px;
   animation: gridMove 20s linear infinite;
 }
@@ -93,11 +93,11 @@ onUnmounted(() => {
 
 .particle {
   position: absolute;
-  background: var(--accent-primary);
+  background: rgba(30, 64, 255, 0.55);
   border-radius: 50%;
   animation: floatParticle var(--animationDuration) ease-in-out infinite;
   animation-delay: var(--animationDelay);
-  box-shadow: 0 0 6px var(--accent-primary);
+  box-shadow: 0 0 6px rgba(30, 64, 255, 0.45);
 }
 
 @keyframes floatParticle {
@@ -126,7 +126,7 @@ onUnmounted(() => {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(227, 25, 55, 0.1),
+    rgba(30, 64, 255, 0.12),
     transparent
   );
   animation: scanline 8s linear infinite;
