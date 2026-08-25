@@ -62,7 +62,7 @@
 | PAGE | STATUS | API | EVIDENCE | REMAINING_ISSUES |
 |---|---|---|---|---|
 | Settings → IA | COMPLETE (df17ebc9) | GET providers (catálogo real 7) + PUT config mapea TODOS los providers al registry vivo | saveAI aplica provider en vivo (antes solo persistía JSON); inputs devin/freebuff añadidos | local rule-based no requiere campos |
-| Copilot/Merlin chat | PARTIAL | copilot/chat existe (POST /chat bajo /api/copilot) | doble-prefijo normalizado hoy | streaming via assistant/chat/stream fixeado; MerlinJarvis legacy sin ruta |
+| Copilot/Merlin chat | COMPLETE (375f8c72) | copilot.py 17 rutas MONTADAS (estuvieron huérfanas desde siempre — el 401 del auth enmascaraba el 404) | chat/stream/polymarket/commands vivos; guardian test anti-huérfanos | MerlinJarvis legacy sin ruta (P3) |
 
 ### Knowledge
 | PAGE | STATUS | API | EVIDENCE | REMAINING_ISSUES |
@@ -86,7 +86,7 @@
 | PAGE | STATUS | API | EVIDENCE | REMAINING_ISSUES |
 |---|---|---|---|---|
 | Capital (core) | MOSTLY | revenue/capital-dashboard, ev-ranking, payment-compat | existen; doble-prefijo normalizado | — |
-| Trading/Capital inversión avanzada | COMPLETE (wiring df17ebc9→) | Owner eligió CONSTRUIR: 34 rutas nuevas en investment.py exponen los adapters YA existentes (ccxt 4.5.71, DeFi×4, Alpaca+IBKR, Polymarket+manager, backtest MA-crossover pandas) | E2E live 9/9 rutas read-only 200 · tests 18/18 con adapters fake | Órdenes reales gated por manager.is_paused() (409) + creds nunca persistidas; vectorbt no instalado → backtest determinista pandas puro |
+| Trading/Capital inversión avanzada | COMPLETE (34 rutas + E2E live) | Owner eligió CONSTRUIR: 34 rutas nuevas en investment.py exponen los adapters YA existentes (ccxt 4.5.71, DeFi×4, Alpaca+IBKR, Polymarket+manager, backtest MA-crossover pandas) | E2E live 9/9 rutas read-only 200 · tests 18/18 con adapters fake | Órdenes reales gated por manager.is_paused() (409) + creds nunca persistidas; vectorbt no instalado → backtest determinista pandas puro |
 | TradingIntelligence | PARTIAL | trading/dashboard·copy·reasoning (existen) | trading router montado | toggle masters usa path con trailing id — verificar contrato exacto |
 
 ### Conexiones / Identidad
