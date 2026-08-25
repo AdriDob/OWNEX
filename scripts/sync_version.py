@@ -51,6 +51,34 @@ sync(
     f"v{VERSION}",
 )
 
+# 5. VERSION (raíz) — leído por api/main.py para /api/version y el bundle
+sync(
+    "VERSION",
+    r"\d+\.\d+\.\d+",
+    VERSION,
+)
+
+# 6. frontend/package.json — workspace del frontend
+sync(
+    "frontend/package.json",
+    r'"version": "\d+\.\d+\.\d+"',
+    f'"version": "{VERSION}"',
+)
+
+# 7. src-tauri/tauri.conf.json — versión del bundle MSI/NSIS
+sync(
+    "src-tauri/tauri.conf.json",
+    r'"version": "\d+\.\d+\.\d+"',
+    f'"version": "{VERSION}"',
+)
+
+# 8. src-tauri/Cargo.toml — versión del crate
+sync(
+    "src-tauri/Cargo.toml",
+    r'^version = ["\']\d+\.\d+\.\d+["\']',
+    f'version = "{VERSION}"',
+)
+
 if changed:
     print(f"✅ Version {VERSION} sincronizada en 5 archivos del proyecto.")
 else:
