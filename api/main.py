@@ -403,6 +403,25 @@ def configure_cors(app: FastAPI) -> None:
 
 configure_cors(app)
 
+
+@app.get("/", include_in_schema=False)
+async def root() -> dict:
+    """API-only root (owner directive 2026-08-25).
+
+    The UI never lives here: it ships inside the Tauri bundle
+    (tauri://localhost) or runs via the Vite dev server. This route
+    exists so hitting the bare port returns an unambiguous JSON answer
+    instead of a 404 that could be mistaken for a missing frontend.
+    """
+    return {
+        "service": "OWNEX API",
+        "version": _APP_VERSION,
+        "ui": "not-served-here (desktop bundle / vite dev)",
+        "docs": "/api/docs",
+        "health": "/api/health",
+    }
+
+
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(CSRFMiddleware)
 app.add_middleware(RateLimitMiddleware)

@@ -19,15 +19,26 @@ REPO = Path(__file__).resolve().parent.parent
 
 
 def test_app_has_no_html_serving_routes() -> None:
-    """Runtime truth: no Mount, no catch-all returning HTML at '/'."""
+    """Runtime truth: no Mount, no catch-all; '/' is an explicit JSON route."""
+    from fastapi.testclient import TestClient
+
     import api.main as api_main  # noqa: PLC0415
 
-    forbidden_types = ("Mount",)
     for route in api_main.app.routes:
         name = type(route).__name__
         path = getattr(route, "path", "")
-        assert name not in forbidden_types, f"static mount detected: {path}"
-        assert path not in ("/", "/{path:path}"), f"catch-all route at '{path}'"
+        assert name not in ("Mount",), f"static mount detected: {path}"
+        assert path != "/{path:path}", "catch-all route detected"
+
+    client = TestClient(api_main.app)
+    res = client.get("/")
+    assert res.status_code == 200
+    assert "text/html" not in res.headers.get("content-type", ""), (
+        "GET / must never return the SPA — port is API-only (owner directive)"
+    )
+    body = res.json()
+    assert body.get("service") == "OWNEX API"
+    assert "not-served-here" in body.get("ui", "")
 
 
 def test_runpy_never_serves_frontend_again() -> None:
