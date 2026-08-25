@@ -395,3 +395,53 @@ def score_opportunities(opportunities: list[Opportunity]) -> list[Opportunity]:
     for opp in opportunities:
         opp.zero_barrier_score = scorer.score(opp)
     return sorted(opportunities, key=lambda o: o.zero_barrier_score.total if o.zero_barrier_score else 0, reverse=True)
+
+
+# ── BarrierProfile — explicación factor-por-factor (Fase B, spec §7) ──
+
+_BARRIER_FACTOR_LABELS: tuple[tuple[str, str], ...] = (
+    ("interview_required", "entrevista"),
+    ("portfolio_required", "portfolio"),
+    ("experience_required", "experiencia previa"),
+    ("technical_test_required", "prueba técnica"),
+    ("registration_required", "registro"),
+)
+
+
+def barrier_profile(opportunity) -> dict:
+    """Factor-by-factor barrier checklist + plain-language explanation.
+
+    Contract (spec §7): 'Zero Barrier' must be EXPLAINED, never just a
+    score. Only verified boolean fields on the opportunity are consulted;
+    fields the model does not carry (capital, approval) are reported as
+    assumptions rather than asserted-false.
+    """
+    factors = {label: bool(getattr(opportunity, attr, False)) for attr, label in _BARRIER_FACTOR_LABELS}
+    remote = bool(getattr(opportunity, "remote", True))
+    international = bool(getattr(opportunity, "international_payment", True))
+    geo_restricted = not (remote and international)
+    factors["restricción geográfica"] = geo_restricted
+
+    # Registro gratuito es fricción menor, NO bloqueante del concepto
+    # zero-barrier (Outlier exige cuenta y sigue siendo entrada libre).
+    blocking = sorted(label for attr, label in _BARRIER_FACTOR_LABELS if label != "registro" and factors[label])
+
+    if not blocking and not geo_restricted:
+        note = " Requiere registro gratuito." if factors.get("registro") else ""
+        explanation = (
+            "Zero Barrier: sin entrevista, portfolio, experiencia previa, "
+            "prueba técnica ni restricción geográfica para Argentina." + note
+        )
+        candidate = True
+    else:
+        detail = ", ".join(blocking) if blocking else "restricción geográfica"
+        explanation = f"Barreras detectadas: requiere/implica {detail}."
+        candidate = False
+
+    return {
+        "factors": factors,
+        "blocking": blocking,
+        "geo_restricted": geo_restricted,
+        "is_zero_barrier_candidate": candidate,
+        "explanation": explanation,
+    }
