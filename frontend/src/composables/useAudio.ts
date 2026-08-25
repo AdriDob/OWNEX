@@ -27,9 +27,16 @@ export const AUDIO_CONFIG = {
 // Audio context singleton
 let audioContext: AudioContext | null = null
 
+/** Web Audio no disponible (jsdom, browsers viejos, autoplay policies) → noop. */
+function isAudioSupported(): boolean {
+  return typeof window !== 'undefined' && !!(window.AudioContext || (window as any).webkitAudioContext)
+}
+
 function getAudioContext(): AudioContext {
   if (!audioContext) {
-    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const Ctx = window.AudioContext || (window as any).webkitAudioContext
+    if (!Ctx) throw new Error('Web Audio API not supported')
+    audioContext = new Ctx()
   }
   return audioContext
 }
@@ -292,6 +299,7 @@ export function useAudio() {
 
   const play = (category: keyof typeof soundEffects) => {
     if (!enabled.value) return
+    if (!isAudioSupported()) return
 
     const categoryConfig = AUDIO_CONFIG.categories[category]
     if (!categoryConfig.enabled) return

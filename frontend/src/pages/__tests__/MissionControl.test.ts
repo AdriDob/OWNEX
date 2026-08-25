@@ -1,12 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { createRouter, createMemoryHistory } from 'vue-router'
 import MissionControl from '@/pages/MissionControl.vue'
 import type { OwnexDashboardData } from '@/services/ownexData'
 
 const mockFetchDashboard = vi.hoisted(() => vi.fn())
+const mockFetchIncomePlan = vi.hoisted(() => vi.fn())
 vi.mock('@/services/ownexData', () => ({
-  fetchOwnexDashboard: (...args: any[]) => mockFetchDashboard(...args),
+  // Factory explícito: cualquier export nuevo que consuma MissionControl
+  // debe agregarse acá (o el componente muere en setup con render vacío).
+  fetchOwnexDashboard: (...args: unknown[]) => mockFetchDashboard(...args),
+  fetchIncomePlan: (...args: unknown[]) => mockFetchIncomePlan(...args),
 }))
 
 const mockSettingsStore = vi.hoisted(() => ({
@@ -51,19 +56,29 @@ function makeDashboard(overrides: Partial<OwnexDashboardData> = {}): OwnexDashbo
 beforeEach(() => {
   setActivePinia(createPinia())
   vi.clearAllMocks()
+  // Default: plan resuelto vacío (los tests que lo necesiten lo pisan).
+  mockFetchIncomePlan.mockResolvedValue({ next_action: null, income_command_center: {} })
 })
 
 function createWrapper() {
+  // MissionControl usa useRouter() (acción real de NextBestAction) → el
+  // wrapper necesita un router instalado, no solo stubs de router-link.
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [{ path: '/:pathMatch(.*)*', component: { template: '<div />' } }],
+  })
   return mount(MissionControl, {
     global: {
+      plugins: [router],
       stubs: {
         'router-link': true,
         'router-view': true,
         Transition: false,
         LoadingState: { template: '<div class="mock-loading" />' },
+        // Espeja el contrato real de components/shared/ErrorState.vue
         ErrorState: {
-          props: ['title', 'message'],
-          template: '<div class="mock-error">{{ title }} {{ message }}</div>',
+          props: ['title', 'error', 'action'],
+          template: '<div class="mock-error">{{ title }} {{ error }}</div>',
         },
         ThroughputCore: { template: '<div class="mock-throughput" />' },
         AgentFleet: { template: '<div class="mock-fleet" />' },
