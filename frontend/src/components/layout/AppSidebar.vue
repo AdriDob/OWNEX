@@ -12,6 +12,7 @@ import {
   Activity, Database, RefreshCw, X, HeartPulse, Zap, Send,
   Copy, Wallet, Sparkles, Bot, BarChart3, Brain, Coins,
   BookOpen, Lightbulb, UserRound,
+  ListTodo, Landmark, Bot, ShieldAlert,
 } from '@lucide/vue'
 
 const hunt = useHuntStore()
@@ -46,6 +47,8 @@ const navSections = [
       { name: 'Postulaciones', path: '/operations/applications', icon: Send },
       { name: 'Profile Kit', path: '/profile-kit', icon: UserRound },
       { name: 'Capital Dashboard', path: '/capital', icon: DollarSign },
+      { name: 'Centro de Ingresos', path: '/revenue/center', icon: Landmark },
+      { name: 'Cola de Trabajo', path: '/operations/work-queue', icon: ListTodo },
       { name: 'Investment Hub', path: '/investments', icon: TrendingUp },
       { name: 'ATLAS Inversiones', path: '/atlas/', icon: Coins },
       { name: 'Trading', path: '/trading', icon: Activity },
@@ -89,6 +92,8 @@ const navSections = [
     cycle: 'system',
     items: [
       { name: 'Operaciones', path: '/operations/dashboard', icon: Cpu },
+      { name: 'Centro de IA', path: '/ai', icon: Bot },
+      { name: 'Centro de Riesgo', path: '/risk', icon: ShieldAlert },
       { name: 'Health Center', path: '/operations/health', icon: HeartPulse },
       { name: 'Configuración', path: '/operations/settings', icon: Settings },
       { name: 'Conexiones', path: '/integrations/connections', icon: Cable },
@@ -194,7 +199,7 @@ function formatCompact(n: number) {
             hunt.status === 'running' ? 'bg-success animate-pulse' : hunt.status === 'paused' ? 'bg-warning' : 'bg-muted',
           ]"
         />
-        <span class="font-mono text-[9px] text-muted-foreground">{{ hunt.status === 'running' ? 'ACTIVE' : hunt.status === 'paused' ? 'PAUSED' : 'IDLE' }}</span>
+        <span class="font-mono text-[9px] text-muted-foreground">{{ hunt.status === 'running' ? 'ACTIVO' : hunt.status === 'paused' ? 'PAUSADO' : 'INACTIVO' }}</span>
       </div>
     </div>
 
