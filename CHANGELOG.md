@@ -1,3 +1,19 @@
+# Changelog — OWNEX Alpha Desktop
+
+## 1.0.1-alpha (2026-08-25)
+
+Build desde `ebc7f76d`. Misma arquitectura que 1.0.0 más:
+
+- **Pantalla CEO completa** (IncomeHome `/`): NEXT BEST ACTION dominante con
+  acción real navegable, Income Command Center HOY/SEM/QUINCENA/MES, banda
+  ESPERADO ≠ REALIZADO (payment-tracker + revenue summary), split 🤖OWNEX vs
+  👤acciones humanas, stack activo con tarifas documentadas.
+- **Backend**: motor económico Prompt-2 (income_plan unificado vía activa+pasiva,
+  EV SSOT, ZERO_EXPERIENCE ≠ ZERO_BARRIER, HTROI, calibración de predicciones).
+- **Robustez**: montaje de routers fail-fast (adiós boots parciales silenciosos),
+  copilot.py montado (17 rutas que estaban huérfanas), guardián anti-huérfanos
+  en CI, useAudio sin crash fuera de browsers completos.
+
 # Changelog
 
 All notable changes to OWNEX, tracked from the git history of the default branch.

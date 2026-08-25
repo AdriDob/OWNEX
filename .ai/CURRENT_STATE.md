@@ -1,3 +1,17 @@
+## Sesión 2026-08-25 (cierre) — v1.0.1-alpha cortada + auditoría frontend + EXPECTED≠REALIZED
+
+> **QUÉ SE HIZO:** (1) **v1.0.1-alpha** etiquetada y desplegada en OneDrive
+> (`ebc7f76d`, CI 32813954443 success): incluye motor económico Prompt-2 +
+> pantalla CEO IncomeHome (NEXT BEST ACTION + Command Center) que 1.0.0 no
+> tenía. Hashes MSI `85256fbc…` / NSIS `d171cab6…` verificados ×2.
+> (2) **AUDIT_FRONTEND_ALPHA_1.0.md** — auditoría con metodología corregida:
+> el OpenAPI lazy omite `_IncludedRouter`; ground truth = matching runtime
+> (401/422=viva, 404=muerta). Resultado final: 465 llamadas · 14 ausentes
+> (5 artefactos scanner + 9 documentados). (3) **Banda ESPERADO ≠ REALIZADO**
+> en IncomeHome (payment-tracker + revenue summary, fallo silencioso).
+> (4) **DESIGN_SYSTEM.md** SSOT. (5) Incidente JWT cerrado con guard
+> permanente (0b64ae8b/62f3ee72).
+
 ## Sesión 2026-08-25 (cont. 3) — DESIGN FASES 0-1 + puerto 8000 API-only
 
 > **QUÉ SE HIZO:** (1) **Puerto 8000 = solo-API** (directiva owner): proceso zombi pre-1.0
