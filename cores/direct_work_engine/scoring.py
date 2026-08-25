@@ -416,7 +416,16 @@ def barrier_profile(opportunity) -> dict:
     fields the model does not carry (capital, approval) are reported as
     assumptions rather than asserted-false.
     """
-    factors = {label: bool(getattr(opportunity, attr, False)) for attr, label in _BARRIER_FACTOR_LABELS}
+    # experience_required es un enum (ExperienceLevel): solo bloquea si
+    # exige algo distinto de NONE (bool("none") es truthy — trampa clásica).
+    exp = getattr(opportunity, "experience_required", None)
+    exp_value = str(getattr(exp, "value", exp) or "").strip().lower()
+    factors = {
+        label: (
+            exp_value not in ("", "none") if attr == "experience_required" else bool(getattr(opportunity, attr, False))
+        )
+        for attr, label in _BARRIER_FACTOR_LABELS
+    }
     remote = bool(getattr(opportunity, "remote", True))
     international = bool(getattr(opportunity, "international_payment", True))
     geo_restricted = not (remote and international)
