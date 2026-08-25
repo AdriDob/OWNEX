@@ -14,11 +14,22 @@ import ErrorState from '@/components/shared/ErrorState.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import NextBestAction from '@/components/mission-control/NextBestAction.vue'
 import { fetchIncomePlan, fetchMissionStatus, type IncomePlanAction, type IncomePlanState } from '@/services/ownexData'
+import { api } from '@/lib/api'
+
+/** Dinero REALIZADO (cobrado/pagado) — separado por contrato del esperado.
+ *  Fuentes: /payment-tracker (webhooks/polling) + /revenue/summary (payouts). */
+interface RealizedRevenue {
+  total_earned: number
+  pending_amount: number
+  earnings_30d: number
+  has_any: boolean
+}
 
 const loading = ref(true)
 const error = ref<string | null>(null)
 const income = ref<IncomePlanState | null>(null)
 const system = ref<{ health: number; status: string } | null>(null)
+const realized = ref<RealizedRevenue | null>(null)
 
 const usd = (n: number): string => `$${Math.round(n).toLocaleString('es-AR')}`
 const rangeLabel = (r: { low: number; high: number }): string =>
@@ -78,6 +89,23 @@ async function load(): Promise<void> {
   if (planRes.status === 'fulfilled') income.value = planRes.value
   else error.value = planRes.reason instanceof Error ? planRes.reason.message : String(planRes.reason)
   if (sysRes.status === 'fulfilled') system.value = { health: sysRes.value.health, status: sysRes.value.status }
+
+  // REALIZADO: fallo silencioso → la banda se oculta (no bloquea el plan).
+  try {
+    const [pt, rev] = await Promise.all([
+      api.get<{ total_earnings_30d_usd?: number; confirmed?: number }>('/payment-tracker'),
+      api.get<{ total_earned?: number; pending_amount?: number }>('/revenue/summary'),
+    ])
+    const earned = rev.total_earned ?? 0
+    realized.value = {
+      total_earned: earned,
+      pending_amount: rev.pending_amount ?? 0,
+      earnings_30d: pt.total_earnings_30d_usd ?? 0,
+      has_any: earned > 0 || (rev.pending_amount ?? 0) > 0,
+    }
+  } catch {
+    realized.value = null
+  }
   loading.value = false
 }
 
@@ -132,6 +160,27 @@ onMounted(load)
           {{ income.income_command_center.basis.note }} · {{ income.income_command_center.basis.sources }}
         </p>
       </Card>
+
+        <!-- ESPERADO ≠ REALIZED: el cobrado vive en /payment-tracker+/revenue -->
+        <div v-if="realized" class="grid grid-cols-3 gap-3 rounded-lg border border-gold/25 bg-gold/5 p-3">
+          <div>
+            <p class="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Cobrado (realizado)</p>
+            <p class="font-mono text-base font-semibold tabular-nums" :class="realized.has_any ? 'text-success' : 'text-muted-foreground'">
+              {{ usd(realized.total_earned) }}
+            </p>
+          </div>
+          <div>
+            <p class="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Pendiente de pago</p>
+            <p class="font-mono text-base font-semibold tabular-nums">{{ usd(realized.pending_amount) }}</p>
+          </div>
+          <div>
+            <p class="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Últimos 30 días</p>
+            <p class="font-mono text-base font-semibold tabular-nums">{{ usd(realized.earnings_30d) }}</p>
+          </div>
+          <p v-if="!realized.has_any" class="col-span-3 font-mono text-[10px] leading-relaxed text-muted-foreground/70">
+            Sin cobros registrados todavía — el potencial de arriba se convierte en realizado cuando confirmás cada pago.
+          </p>
+        </div>
 
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <!-- N1b: qué hace OWNEX vs qué hacés vos -->
