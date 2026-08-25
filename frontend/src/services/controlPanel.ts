@@ -119,6 +119,42 @@ export interface ObsidianSyncResult {
   error?: string
 }
 
+/** Archivo del vault Obsidian sincronizado (GET /api/obsidian/files). */
+export interface ObsidianFile {
+  id: string
+  path: string
+  title?: string
+  tags?: string[]
+}
+
+/** Estado de sincronización obsidian (GET /api/obsidian/state). */
+export interface ObsidianSyncState {
+  last_sync?: string
+  total_files?: number
+  synced_files?: number
+  [key: string]: unknown
+}
+
+export async function listObsidianFiles(): Promise<{ files: ObsidianFile[]; state: ObsidianSyncState }> {
+  const [filesRes, stateRes] = await Promise.all([
+    api.get<{ files: ObsidianFile[] }>('/obsidian/files'),
+    api.get<ObsidianSyncState>('/obsidian/state').catch(() => ({}) as ObsidianSyncState),
+  ])
+  return { files: filesRes.files || [], state: stateRes }
+}
+
+export async function syncObsidianFile(path: string, content = '', title = 'File'): Promise<{ success: boolean; result?: unknown; error?: string }> {
+  return api.post('/obsidian/sync', { path, content, title }).catch(() => ({ success: false, error: 'API no disponible' }))
+}
+
+export async function deleteObsidianFile(fileId: string): Promise<{ deleted: boolean }> {
+  return api.post(`/obsidian/delete/${encodeURIComponent(fileId)}`, {}).catch(() => ({ deleted: false }))
+}
+
+export async function syncObsidianFull(): Promise<ObsidianSyncResult & { synced?: number }> {
+  return api.post<ObsidianSyncResult & { synced?: number }>('/obsidian/sync/all', {}).catch(() => ({ success: false, error: 'API no disponible' }))
+}
+
 export async function syncObsidian(): Promise<ObsidianSyncResult> {
   return api.post<ObsidianSyncResult>('/api/obsidian/sync', {}).catch(() => ({ success: false, error: 'API no disponible' }))
 }

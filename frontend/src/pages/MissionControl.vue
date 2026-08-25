@@ -9,6 +9,7 @@ import {
 import ThroughputCore from '@/components/dashboard/ThroughputCore.vue'
 import WorkCyclesGrid from '@/components/dashboard/WorkCyclesGrid.vue'
 import NextBestAction from '@/components/mission-control/NextBestAction.vue'
+import ObsidianSync from '@/components/mission-control/ObsidianSync.vue'
 import { fetchIncomePlan, type IncomePlanAction } from '@/services/ownexData'
 import AgentFleet from '@/components/mission-control/AgentFleet.vue'
 import OpportunityRadar from '@/components/mission-control/OpportunityRadar.vue'
@@ -215,8 +216,8 @@ const feedItems = computed(() =>
     <ErrorState
       v-else-if="error && !dashboard"
       title="Error al cargar Mission Control"
-      :message="error"
-      :retry="load"
+      :error="error"
+      :on-retry="load"
     />
 
     <template v-else>
