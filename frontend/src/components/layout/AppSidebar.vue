@@ -89,6 +89,15 @@ const navSections = [
       { name: 'Trading', path: '/trading', icon: Activity },
       { name: 'Copy Trading', path: '/trading/intelligence', icon: Copy },
       { name: 'Polymarket', path: '/polymarket', icon: Dices },
+      // Reconnect Pass (2026-08-26): superficies construidas que estaban sin navegación.
+      { name: 'Money Radar', path: '/money-radar', icon: Globe },
+      { name: 'Verdad Financiera', path: '/financial-truth', icon: Landmark },
+      { name: 'Revenue Multiplier', path: '/revenue-multiplier', icon: TrendingUp },
+      { name: 'Finance Intel', path: '/finance-intel', icon: BarChart3 },
+      { name: 'Hot Paths', path: '/hot-paths', icon: Zap },
+      { name: 'Truth Inspector', path: '/truth-inspector', icon: Search },
+      { name: 'Agentes', path: '/agents', icon: Bot },
+      { name: 'Insights', path: '/insights', icon: Sparkles },
     ],
   },
   {
