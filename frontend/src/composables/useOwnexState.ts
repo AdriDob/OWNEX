@@ -16,11 +16,13 @@ import {
   fetchDailyDigest,
   fetchCapitalSnapshot,
   fetchAiCenter,
+  fetchAgenda,
   fetchIncomePlan,
   type DailyDigestState,
   type CapitalSnapshot,
   type AiCenterState,
   type IncomePlanState,
+  type UnifiedAgendaState,
 } from '@/services/ownexData'
 
 // ── Module-level singleton refs (shared across ALL component instances) ──
@@ -29,6 +31,7 @@ const digest: Ref<DailyDigestState | null> = ref(null)
 const capital: Ref<CapitalSnapshot | null> = ref(null)
 const ai: Ref<AiCenterState | null> = ref(null)
 const incomePlan: Ref<IncomePlanState | null> = ref(null)
+const agenda: Ref<UnifiedAgendaState | null> = ref(null)
 
 const loading = ref(false)
 const lastFetch = ref(0)
@@ -47,12 +50,14 @@ async function fetchAll(force = false): Promise<void> {
       fetchDailyDigest(),
       fetchCapitalSnapshot(),
       fetchAiCenter(),
+      fetchAgenda(),
       fetchIncomePlan(),
     ])
     if (results[0].status === 'fulfilled') digest.value = results[0].value
     if (results[1].status === 'fulfilled') capital.value = results[1].value
     if (results[2].status === 'fulfilled') ai.value = results[2].value
     if (results[3].status === 'fulfilled') incomePlan.value = results[3].value
+    if (results[4] && results[4].status === 'fulfilled') agenda.value = results[4].value
     lastFetch.value = Date.now()
     loading.value = false
     inflight = null
@@ -75,10 +80,11 @@ export function useOwnexState() {
     capital,
     ai,
     incomePlan,
+    agenda,
     loading,
 
     // Computed shortcuts
-    bestAction: computed(() => digest.value?.best_action ?? null),
+    bestAction: computed(() => agenda.value?.best_action ?? digest.value?.best_action ?? null),
     pendingDecisions: computed(() => digest.value?.decisions ?? []),
     totalPotential: computed(() => digest.value?.money.total_potential_usd ?? 0),
     readyCount: computed(() => digest.value?.money.ready_to_deliver ?? 0),
