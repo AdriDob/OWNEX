@@ -230,9 +230,11 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
     try:
         from cores.opportunity.adapters.security import (
             BugcrowdAdapter,
+            Code4renaAdapter,
             HackerOneAdapter,
             ImmunefiAdapter,
             IntigritiAdapter,
+            SherlockAdapter,
             SynackAdapter,
             YesWeHackAdapter,
         )
@@ -243,6 +245,8 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
         registry.register("yeswehack", YesWeHackAdapter)
         registry.register("immunefi", ImmunefiAdapter)
         registry.register("synack", SynackAdapter)
+        registry.register("sherlock", SherlockAdapter)
+        registry.register("code4rena", Code4renaAdapter)
     except ImportError:
         pass
 
