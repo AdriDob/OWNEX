@@ -71,10 +71,6 @@ function toggleCopilot() {
   copilotOpen.value = !copilotOpen.value
 }
 
-function toggleSidebar() {
-  sidebarOpen.value = !sidebarOpen.value
-}
-
 onMounted(async () => {
   await initThemeEngine()
 
