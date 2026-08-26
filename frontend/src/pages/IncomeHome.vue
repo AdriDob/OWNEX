@@ -13,6 +13,7 @@ import Card from '@/components/ui/Card.vue'
 import ErrorState from '@/components/shared/ErrorState.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import NextBestAction from '@/components/mission-control/NextBestAction.vue'
+import DailyDigest from '@/components/daily/DailyDigest.vue'
 import { fetchIncomePlan, fetchMissionStatus, fetchCapitalSnapshot, fetchAiCenter, fetchPlatformRanking, type IncomePlanAction, type IncomePlanState, type CapitalSnapshot, type PlatformRankingItem } from '@/services/ownexData'
 import { api } from '@/lib/api'
 
@@ -193,6 +194,9 @@ onMounted(load)
     <LoadingState v-else-if="loading && !income" />
 
     <template v-else-if="income">
+      <!-- N0: DAILY DIGEST — qué importa hoy (agrega de todos los sistemas) -->
+      <DailyDigest />
+
       <!-- N1: NEXT ACTION dominante -->
       <NextBestAction
         v-if="income.next_action"
