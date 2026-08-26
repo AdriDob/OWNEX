@@ -286,6 +286,12 @@ export const routes: RouteRecordRaw[] = [
         meta: { title: 'Cola de Trabajo' },
       },
       {
+        path: 'agenda',
+        name: 'agenda',
+        component: () => import(/* webpackChunkName: "agenda" */ '@/pages/AgendaView.vue'),
+        meta: { title: 'Agenda' },
+      },
+      {
         path: 'pipelines',
         name: 'operations-pipelines',
         component: () => import('@/pages/PipelineMonitor.vue'),
