@@ -12,7 +12,6 @@ import Badge from '@/components/ui/Badge.vue'
 import Card from '@/components/ui/Card.vue'
 import ErrorState from '@/components/shared/ErrorState.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
-import NextBestAction from '@/components/mission-control/NextBestAction.vue'
 import DailyDigest from '@/components/daily/DailyDigest.vue'
 import { fetchIncomePlan, fetchMissionStatus, fetchCapitalSnapshot, fetchAiCenter, fetchCareerStatus, fetchZeroBarrierStats, fetchRevenueTimeline, fetchPlatformRanking, type IncomePlanAction, type IncomePlanState, type CapitalSnapshot, type PlatformRankingItem } from '@/services/ownexData'
 import { api } from '@/lib/api'
@@ -255,6 +254,12 @@ onMounted(load)
         </span>
       </div>
 
+      <!-- N3: Platform ranking (progressive disclosure) -->
+      <details class="group">
+        <summary class="cursor-pointer font-mono text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors select-none">
+            🎯 ¿Dónde trabajo hoy? <span class="text-muted-foreground/50 group-open:hidden">▸</span><span class="hidden group-open:inline text-muted-foreground/50">▾</span>
+        </summary>
+        <div class="mt-3">
       <!-- PLATFORM RANKING: ¿dónde trabajo hoy? -->
       <Card v-if="platformRanking.length" class="space-y-3 p-5">
         <p class="font-mono text-xs uppercase tracking-wider text-muted-foreground">🎯 ¿Dónde trabajo hoy?</p>
@@ -287,6 +292,8 @@ onMounted(load)
           Rankeado por $/h efectivo (tarifa documentada × readiness). Completá el onboarding para subir el rate efectivo.
         </p>
       </Card>
+        </div>
+      </details>
 
         <!-- ESPERADO ≠ REALIZED: el cobrado vive en /payment-tracker+/revenue -->
         <div v-if="realized" class="grid grid-cols-3 gap-3 rounded-lg border border-gold/25 bg-gold/5 p-3">
@@ -375,7 +382,12 @@ onMounted(load)
         </Card>
       </div>
 
-      <!-- N2: stack activo -->
+      <!-- N3: Stack activo + career (progressive disclosure) -->
+      <details class="group">
+        <summary class="cursor-pointer font-mono text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors select-none">
+            📈 Stack activo · skills · proyección <span class="text-muted-foreground/50 group-open:hidden">▸</span><span class="hidden group-open:inline text-muted-foreground/50">▾</span>
+        </summary>
+        <div class="mt-3">
       <Card class="space-y-2 p-5">
         <p class="font-mono text-xs uppercase tracking-wider text-muted-foreground">📈 Stack activo (tarifas documentadas)</p>
         <div class="grid grid-cols-2 gap-2 sm:grid-cols-5">
@@ -409,6 +421,8 @@ onMounted(load)
           </div>
         </div>
       </Card>
+        </div>
+      </details>
     </template>
   </div>
 </template>
