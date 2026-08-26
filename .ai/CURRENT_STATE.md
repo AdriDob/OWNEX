@@ -3218,3 +3218,22 @@ Características del Sistema Completo:
   - Text shadows y glow effects
   - Backdrop-filter blur effects
   - Responsive design
+
+## Sesión 2026-08-26 (FINAL) — RELEASE 7.0.0-final-stable: Release Contract ejecutado
+
+> **QUÉ SE HIZO:** Cierre del release contract (§12, §69, §78, §79).
+> (1) **Budget $0 default**: `daily_budget_usd` 10.0→0.0 — tiers pagos requieren config
+> explícita; 12 tests OAR verdes tras el cambio. (2) **Versión consolidada**: `.VERSION.txt`
+> SSOT actualizado a 7.0.0 → sync propagó a pyproject/package.json/tauri/VERSION/checkpoint.
+> (3) **Secret scan limpio** (sk-/AKIA/ghp patterns) en todo el código fuente.
+> (4) **CHANGELOG final-stable** con Added/Changed/Fixed/Security/AI/Verification.
+> (5) **Release gate**: 290 passed (scoring+opportunity+scheduler+DWE+availability+
+> income+payment+resilience+OAR+profile+workbank+E2E income chain) · 99 passed
+> (AI+capital+pipeline) · 82 passed (hardening+compat+market+taxonomy+daily+economics)
+> · 3785 tests coleccionan sin errores de importación · vue-tsc 0 · vite build ✓ 11.2s.
+> (6) Ruff --fix: 48 auto-fixes en archivos del release.
+> - **Archivos**: interfaces.py, __init__.py, resilience.py, observability.py, adapters.py,
+>   CHANGELOG.md, .VERSION.txt, tests ×3, frontend AiCenter/ownexData/offline.ts fix.
+> - **Commits**: cc436a47 (AI resilience), 7983ddda (AiCenter), fb30df08 (release).
+> - **Pendiente no-bloqueante**: validación Windows/WSL/installer en máquina real;
+>   consolidación legacy AI 4→1 gated a esa validación (deuda dirigida en DECISIONS).
