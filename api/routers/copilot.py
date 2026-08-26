@@ -35,6 +35,14 @@ class ExecuteRequest(BaseModel):
     params: dict[str, Any] = {}
 
 
+class IncomeGoalRequest(BaseModel):
+    """Natural-language income goal ("quiero ganar 10k este mes") o valores explícitos."""
+
+    message: str = ""
+    target_usd: float | None = None
+    period: str | None = None  # "weekly" | "monthly"
+
+
 _copilot_instance: Any = None
 
 
@@ -141,6 +149,72 @@ async def copilot_chat_stream(body: ChatRequest):
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
     )
+
+
+@router.post("/income-goal")
+def copilot_income_goal(body: IncomeGoalRequest):
+    """Convert "quiero ganar 10k este mes" into an actionable income plan.
+
+    Accepts natural language (parsed via parse_income_goal) or explicit
+    target_usd/period. Returns required opportunities, hours, sources,
+    probability of success and current progress toward the target.
+    """
+    from cores.direct_work_engine.income_target import (
+        TargetTier,
+        get_income_target_engine,
+        parse_income_goal,
+    )
+
+    amount = body.target_usd
+    period = body.period
+
+    if amount is None or amount <= 0:
+        parsed = parse_income_goal(body.message)
+        if parsed is None:
+            raise HTTPException(
+                status_code=400,
+                detail="No pude extraer un monto del mensaje. Probá: 'quiero ganar 10k este mes'.",
+            )
+        amount, parsed_period = parsed
+        period = period or parsed_period
+
+    period = period if period in ("weekly", "monthly") else "monthly"
+
+    try:
+        engine = get_income_target_engine()
+        target = engine.create_target(
+            TargetTier.CUSTOM,
+            custom_amount=float(amount),
+            custom_period=period,
+        )
+        plan = engine.build_plan(target)
+        progress = engine.track_progress(target)
+    except Exception as exc:
+        logger.warning("[COPILOT] Income goal error: %s", exc)
+        raise HTTPException(status_code=500, detail="No se pudo generar el plan de ingreso") from exc
+
+    return {
+        "status": "ok",
+        "target": {"amount_usd": float(amount), "period": period},
+        "required_opportunities": plan.required_opportunities,
+        "required_hours_per_week": plan.required_hours_per_week,
+        "required_hours_per_day": plan.required_hours_per_day,
+        "recommended_sources": plan.recommended_sources,
+        "probability_of_success": plan.probability_of_success,
+        "risk_factors": plan.risk_factors,
+        "fallback_plan": plan.fallback_plan,
+        "weekly_plan": plan.weekly_plan,
+        "progress": {
+            "earned_this_period": progress.earned_this_period,
+            "pending_amount": progress.pending_amount,
+            "projected_total": progress.projected_total,
+            "progress_pct": progress.progress_pct,
+            "days_remaining": progress.days_remaining,
+            "on_track": progress.on_track,
+            "required_daily_rate": progress.required_daily_rate,
+            "actual_daily_rate": progress.actual_daily_rate,
+        },
+    }
 
 
 @router.post("/execute")
