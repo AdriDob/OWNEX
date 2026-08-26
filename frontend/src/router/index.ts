@@ -622,19 +622,16 @@ export const routes: RouteRecordRaw[] = [
   },
 
   // ── MOBILE COMPANION ──
-  {
-    path: '/mobile',
-    name: 'mobile',
-    // Parte 3 FINAL RELEASE: superficie móvil unificada (tokens Tesla,
-    // contratos reales income-plan/capital/wear-os, offline-first queue).
-    component: () => import(/* webpackChunkName: "mobile" */ '@/pages/MobileApp.vue'),
-    meta: { title: 'OWNEX Móvil', requiresAuth: true },
-  },
-  {
-    path: '/mobile/jarvis',
-    name: 'mobile-jarvis',
-    redirect: { name: 'mobile' },
-  },
+  // 2026-08-26 (decisión owner): desktop-first para 1.0. MobileApp.vue queda
+  // como trabajo congelado en el repo (backlog 1.1); rutas ocultas del acceso.
+  // Para reactivar: restaurar este bloque + entrada de nav.
+  // {
+  //   path: '/mobile',
+  //   name: 'mobile',
+  //   component: () => import(/* webpackChunkName: "mobile" */ '@/pages/MobileApp.vue'),
+  //   meta: { title: 'OWNEX Móvil', requiresAuth: true },
+  // },
+  // { path: '/mobile/jarvis', name: 'mobile-jarvis', redirect: { name: 'mobile' } },
 
   // ── Catch-all ──
   {
