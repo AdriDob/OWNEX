@@ -207,10 +207,9 @@ class CapitalAlertEngine:
         for rule in self._rules.values():
             if not rule.enabled:
                 continue
-            if self._evaluate_condition(rule.condition, context):
-                if self._should_trigger(rule):
-                    alert = self._create_alert(rule, context)
-                    triggered.append(alert)
+            if self._evaluate_condition(rule.condition, context) and self._should_trigger(rule):
+                alert = self._create_alert(rule, context)
+                triggered.append(alert)
         return triggered
 
     def _evaluate_condition(self, condition: str, context: dict[str, Any]) -> bool:

@@ -11,6 +11,7 @@ Mindrift — la postulación es honesta (ID + móvil del país real, sin VPN).
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import os
@@ -543,10 +544,8 @@ class ApplicationAssistant:
         """Onboarding summary for all platforms."""
         results = []
         for meta in _platform_catalog():
-            try:
+            with contextlib.suppress(Exception):
                 results.append(self.get_onboarding(meta["key"]))
-            except Exception:
-                pass
         return results
 
     def get_platform_ranking(self) -> list[dict[str, Any]]:

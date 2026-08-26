@@ -27,6 +27,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+import pytest as _pytest
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 
@@ -118,8 +119,6 @@ class TestServeFrontend:
 # Gen1/Gen2 fueron archivados a docs/archived/installers/. Los tests que
 # referencian desktop.build.* e installer/install_*.{sh,ps1} quedan SKIP
 # hasta que se decida su retiro o restauración (backlog post-release).
-
-import pytest as _pytest
 
 _LEGACY_PACKAGING_SKIP = _pytest.mark.skip(
     reason="Packaging legacy archivado por convergencia 2026-08-24; "

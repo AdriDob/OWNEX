@@ -199,13 +199,9 @@ class RunwayEngine:
         if net_monthly >= 0:
             return {"months": float("inf"), "amount": float("inf")}
         total = available_cash + invested_capital
-        monthly_return = (1 + annual_return_rate) ** (1 / 12) - 1
         # Simple projection: capital * (1 + monthly_return)^months + net_monthly * months >= 0
         # Simplified: runway = total / abs(net_monthly) adjusted for returns
-        if net_monthly >= 0:
-            months = float("inf")
-        else:
-            months = total / abs(net_monthly)
+        months = float("inf") if net_monthly >= 0 else total / abs(net_monthly)
         return {
             "months": round(months, 1) if months != float("inf") else float("inf"),
             "amount": round(available_cash + invested_capital + net_monthly * months, 2)

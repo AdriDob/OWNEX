@@ -112,7 +112,6 @@ class RiskEngine:
     def _assess_concentration(self, exposure: dict[str, float], capital: float) -> tuple[float, str]:
         if not exposure or capital <= 0:
             return 0.0, "Sin exposición significativa"
-        total_exposure = sum(exposure.values())
         max_single = max(exposure.values()) if exposure else 0
         pct = (max_single / capital * 100) if capital > 0 else 0
         if pct > 50:
@@ -140,7 +139,7 @@ class RiskEngine:
         # Risk based on platform types
         risky_platforms = {"crypto_exchange", "defi", "p2p", "unregulated"}
         risk_score = 0.0
-        for platform, amount in exposure.items():
+        for platform, _amount in exposure.items():
             if any(rp in platform.lower() for rp in risky_platforms):
                 risk_score += 20
         risk_score = min(risk_score, 100)

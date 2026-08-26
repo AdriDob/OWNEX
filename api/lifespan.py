@@ -337,7 +337,7 @@ async def _init_orion_platform(app: Any, bus: Any) -> Any:
         pass
 
     try:
-        from core.revenue.engine import RevenueEngine
+        from cores.revenue.revenue_engine import RevenueEngine
 
         RevenueEngine()
     except Exception:

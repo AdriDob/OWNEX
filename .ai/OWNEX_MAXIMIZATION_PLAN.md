@@ -87,68 +87,68 @@
 
 ---
 
-## 2. Software Development Agent — 72% → 85% (P0)
+## 2. Software Development Agent — 72% → 100% (P0 - EXTENDIDO)
+
+> **Plan extendido en `.ai/DEV_BOUNTY_MAXIMIZATION_EXTENDED.md`** - 8-10 días, 5 fases para llegar a 100% éxito.
 
 ### Riesgos Actuales
 - Dependencia externa: Devin CLI (si cambia su API, rompe)
 - OpenCode depende de modelos externos (deepseek, nemotron)
 - No hay evidencia de PRs reales creadas automáticamente
 - Integración con GitHub/GitLab no probada en producción
+- PRBuilder existe pero no está integrado en autopilot
 
-### Plan de Maximización
+### Plan de Maximización Extendido (8-10 días)
 
-#### FASE 1: Integración Real con GitHub/GitLab (3-4 días)
-- [ ] Implementar `GitHubClient` con auth (PAT)
-- [ ] Implementar `GitLabClient` con auth (PAT)
-- [ ] Implementar `PRCreator` que crea PRs con branch/commit/message
-- [ ] Implementar `PRStatusMonitor` que trackea estado (open/merged/closed)
+#### FASE 1: Integración PRBuilder → DevBounty Autopilot (2-3 días)
+- [ ] Integrar `PRBuilder` en `core/dev_bounty_autopilot.py`
+- [ ] Configurar GITLAB_TOKEN y GITHUB_TOKEN en environment
+- [ ] Implementar workflow: Issue → Plan → PRBuilder → PR creation
+- [ ] Agregar health check para tokens de plataformas
+- [ ] Implementar auto-setup de git config
 
-**Archivos a crear/modificar:**
-- `cores/dev/github_client.py` (nuevo)
-- `cores/dev/gitlab_client.py` (nuevo)
-- `cores/dev/pr_creator.py` (nuevo)
-- `cores/dev/pr_monitor.py` (nuevo)
+**ROI:** +10% éxito (72% → 82%)
 
-**Evidencia de éxito:**
-- Tests: `test_github_client.py` (15 tests, mock con GitHub API)
-- Tests: `test_gitlab_client.py` (15 tests, mock con GitLab API)
-- Tests: `test_pr_creator.py` (20 tests)
-- E2E: Crear PR real en repo de test
+#### FASE 2: PR Quality & Code Review Automation (2-3 días)
+- [ ] Implementar `CodeQualityAnalyzer` (linting, type checking, test coverage)
+- [ ] Implementar `PRDescriptionGenerator` con templates
+- [ ] Integrar con COPILOT para review antes de submit
+- [ ] Implementar `TestGenerator` automático
+- [ ] Agregar `CommitMessageConvention` enforcer
 
-#### FASE 2: Integración con COPILOT (2-3 días)
-- [ ] COPILOT aprueba/rechaza cambios antes de crear PR
-- [ ] COPILOT genera commit messages según convenciones
-- [ ] COPILOT revisa code coverage antes de merge
-- [ ] Implementar `PRReviewAgent` especialista
+**ROI:** +8% éxito (82% → 90%)
 
-**Archivos a crear/modificar:**
-- `cores/agents/specialists/pr_reviewer.py` (nuevo)
-- `core/copilot/integrations/pr.py` (nuevo)
+#### FASE 3: Multi-Platform Executor Matrix (2 días)
+- [ ] Implementar executors para: Gitcoin, GitHub Sponsors, Bountysource, CodeFund, IssueHunt
+- [ ] Implementar `PlatformSelector` por tipo de bounty
+- [ ] Agregar `BountyTypeClassifier` (bug fix, feature, docs, test)
+- [ ] Implementar `PriorityScorer` por bounty amount × difficulty × platform reputation
 
-**Evidencia de éxito:**
-- Tests: `test_pr_reviewer.py` (18 tests)
-- Workflow: CoderAgent → PRReviewAgent → COPILOT approval → PR creada
+**ROI:** +5% éxito (90% → 95%)
 
-#### FASE 3: Failover Devin (2 días)
-- [ ] Implementar `DevinFailover` que detecta cuando Devin CLI no responde
-- [ ] Fallback a OpenCode built-in (deepseek/nemotron)
-- [ ] Fallback a Ollama local (qwen3-coder)
-- [ ] Implementar `ModelSelector` por tipo de tarea
+#### FASE 4: Production Failover & Monitoring (1-2 días)
+- [ ] Implementar `DevinFailover` (detecta fallos → switch modelo)
+- [ ] Implementar `ModelSelector` (elige mejor modelo por tarea)
+- [ ] Agregar `PRFailureRecovery` (reintenta con diferente estrategia)
+- [ ] Implementar `ProductionMetrics` (PRs creadas, merged, closed, time-to-merge)
+- [ ] Health check `/api/dev-bounty/health` con todas las métricas
 
-**Archivos a crear/modificar:**
-- `cores/ai/devin_failover.py` (nuevo)
-- `cores/ai/model_selector.py` (nuevo)
+**ROI:** +3% éxito (95% → 98%)
 
-**Evidencia de éxito:**
-- Tests: `test_devin_failover.py` (15 tests)
-- Health check: `/api/ai/status` muestra modelo activo
-- Métrica: 99% uptime de coding tasks
+#### FASE 5: Reputation & Profile Auto-Builder (2 días)
+- [ ] Integrar con `ProfileBuilder` existente
+- [ ] Auto-publicar contribuciones en GitHub profile
+- [ ] Implementar `PortfolioGenerator` (readme.md automático)
+- [ ] Agregar `BadgeTracker` (GitHub badges, GitLab stars)
+- [ ] Implementar `NetworkBuilder` (follow repos, stars relevantes)
+
+**ROI:** +2% éxito (98% → 100%)
 
 ### ROI Esperado
-- **+13% éxito** (72% → 85%)
-- **PRs automáticas** probadas en producción
-- **Integración real** con GitHub/GitLab
-- **Failover robusto** contra cambios en Devin
+- **+28% éxito** (72% → 100%)
+- **+80 PRs/mes** (vs +50 en plan original)
+- **$6,000-$24,000/mes** revenue potencial (conservador-agresivo)
+- **Integración completa** con GitHub/GitLab + 5 plataformas adicionales
 
 ---
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import time
 from dataclasses import dataclass
@@ -233,10 +234,8 @@ class BTCArbRunner:
 
         for task in self._tasks:
             task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await task
-            except asyncio.CancelledError:
-                pass
         self._tasks.clear()
 
         await self._binance_feed.disconnect()
@@ -546,19 +545,18 @@ class BTCArbRunner:
                             logger.info("Stop loss triggered for %s", position.id)
 
                     # Check time-based exit (near settlement)
-                    if self._market_data.time_left_min is not None:
-                        if self._market_data.time_left_min < 1.0:  # Less than 1 min
-                            success, reason, trade = self._paper_engine.execute_paper_sell(position.id, current_price)
-                            if success and trade:
-                                self._trade_history.add_trade(
-                                    {
-                                        "type": "exit",
-                                        "trade": trade.__dict__,
-                                        "reason": "time_exit",
-                                        "timestamp": int(time.time() * 1000),
-                                    }
-                                )
-                                logger.info("Time exit for %s", position.id)
+                    if self._market_data.time_left_min is not None and self._market_data.time_left_min < 1.0:  # Less than 1 min
+                        success, reason, trade = self._paper_engine.execute_paper_sell(position.id, current_price)
+                        if success and trade:
+                            self._trade_history.add_trade(
+                                {
+                                    "type": "exit",
+                                    "trade": trade.__dict__,
+                                    "reason": "time_exit",
+                                    "timestamp": int(time.time() * 1000),
+                                }
+                            )
+                            logger.info("Time exit for %s", position.id)
 
             except Exception as e:
                 logger.warning("Position monitor error: %s", e)

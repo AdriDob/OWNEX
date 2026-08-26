@@ -156,8 +156,6 @@ class AllocationEngine:
 
     def _create_recommendation(self, action: str, priority: str, rationale: str, ctx: dict) -> dict | None:
         """Create a recommendation based on action type."""
-        available = ctx.get("available_cash", 0)
-
         recommendations_map = {
             "build_emergency_reserve": {
                 "action": "Crear reserva de emergencia",
