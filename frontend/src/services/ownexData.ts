@@ -1585,3 +1585,31 @@ export interface RevenueTimelineResult {
 export async function fetchRevenueTimeline(targetMonthly = 3000): Promise<RevenueTimelineResult> {
   return api.post<RevenueTimelineResult>('/revenue-timeline/calculate', { target_monthly: targetMonthly })
 }
+
+// ── Unified Agenda ──
+
+export interface AgendaItem {
+  date: string
+  horizon: string
+  source: string
+  title: string
+  progress_pct: number
+  reward?: number
+  url?: string | null
+  action?: string | null
+}
+
+export interface UnifiedAgendaState {
+  generated_at: string
+  total_items: number
+  today: AgendaItem[]
+  short_term: AgendaItem[]
+  medium_term: AgendaItem[]
+  long_term: AgendaItem[]
+  counts: Record<string, number>
+  best_action: AgendaItem | null
+}
+
+export async function fetchAgenda(): Promise<UnifiedAgendaState> {
+  return api.get<UnifiedAgendaState>('/agenda')
+}

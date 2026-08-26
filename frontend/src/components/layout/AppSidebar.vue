@@ -12,7 +12,7 @@ import {
   Activity, Database, RefreshCw, X, HeartPulse, Zap, Send,
   Copy, Wallet, Sparkles, Bot, BarChart3, Brain, Coins,
   BookOpen, Lightbulb, UserRound,
-  ListTodo, Landmark, ShieldAlert,
+  Calendar, ListTodo, Landmark, ShieldAlert,
 } from '@lucide/vue'
 
 const hunt = useHuntStore()
@@ -84,6 +84,7 @@ const navSections = [
       { name: 'Capital Dashboard', path: '/capital', icon: DollarSign },
       { name: 'Centro de Ingresos', path: '/revenue/center', icon: Landmark },
       { name: 'Cola de Trabajo', path: '/operations/work-queue', icon: ListTodo },
+      { name: 'Agenda', path: '/operations/agenda', icon: Calendar },
       { name: 'Investment Hub', path: '/investments', icon: TrendingUp },
       { name: 'ATLAS Inversiones', path: '/atlas/', icon: Coins },
       { name: 'Trading', path: '/trading', icon: Activity },
