@@ -1554,3 +1554,34 @@ export interface DailyDigestState {
 export async function fetchDailyDigest(): Promise<DailyDigestState> {
   return api.get<DailyDigestState>('/daily-digest')
 }
+
+// ── Career / Zero-Barrier / Revenue Timeline (conexión feature-parity) ──
+
+export interface CareerStatus {
+  status?: string
+  skill_gaps?: Array<{ skill: string; category: string; priority: string }>
+  daily_training?: { tasks?: Array<{ title: string; description?: string }> }
+}
+
+export async function fetchCareerStatus(): Promise<CareerStatus> {
+  return api.get<CareerStatus>('/career/status')
+}
+
+export interface ZeroBarrierStats {
+  total_opportunities?: number
+  platforms?: Array<{ platform: string; count: number; avg_reward?: number }>
+}
+
+export async function fetchZeroBarrierStats(): Promise<ZeroBarrierStats> {
+  return api.get<ZeroBarrierStats>('/zero-barrier/stats')
+}
+
+export interface RevenueTimelineResult {
+  milestones?: Array<{ label: string; months?: number; monthly_income?: number }>
+  current_monthly?: number
+  target_monthly?: number
+}
+
+export async function fetchRevenueTimeline(targetMonthly = 3000): Promise<RevenueTimelineResult> {
+  return api.post<RevenueTimelineResult>('/revenue-timeline/calculate', { target_monthly: targetMonthly })
+}
