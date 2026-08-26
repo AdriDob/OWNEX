@@ -18,11 +18,6 @@ import {
 const hunt = useHuntStore()
 const emit = defineEmits<{
   'toggleCopilot': []
-  'close': []
-}>()
-
-defineProps<{
-  open: boolean
 }>()
 
 const route = useRoute()
@@ -203,7 +198,6 @@ function isActive(path: string) {
 
 function navigate(path: string) {
   router.push(path)
-  emit('close')
 }
 
 onMounted(async () => {
@@ -239,31 +233,13 @@ function formatCompact(n: number) {
 </script>
 
 <template>
-  <!-- Mobile backdrop -->
-  <Transition name="backdrop">
-    <div
-      v-if="open && !collapsed"
-      class="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
-      @click="emit('close')"
-    />
-  </Transition>
-
+<template>
   <aside
     :class="[
-      'flex flex-col border-r border-border/50 bg-background/80 backdrop-blur-xl transition-all duration-200 z-30',
-      'fixed inset-y-0 left-0 lg:relative lg:inset-auto',
+      'flex flex-col border-r border-border/50 bg-background/80 backdrop-blur-xl transition-all duration-200 z-30 relative',
       collapsed ? 'w-16' : 'w-60',
-      open || collapsed ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
     ]"
   >
-    <!-- Mobile close -->
-    <button
-      class="absolute right-2 top-3 z-10 flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-surface/40 hover:text-foreground lg:hidden"
-      @click="emit('close')"
-    >
-      <X class="h-4 w-4" />
-    </button>
-
     <!-- OWNEX Logo -->
     <div class="flex h-14 items-center gap-3 border-b border-border/40 px-4">
       <div class="flex h-7 w-7 shrink-0 items-center justify-center">

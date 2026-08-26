@@ -40,7 +40,6 @@ const router = useRouter()
 const route = useRoute()
 const assistant = useAssistant()
 const copilotOpen = ref(false)
-const sidebarOpen = ref(false)
 const splashVisible = ref(true)
 const showOnboarding = ref(false)
 const globalLoading = ref(false)
@@ -50,7 +49,6 @@ let loadingTimeout: ReturnType<typeof setTimeout> | null = null
 const { shortcuts } = useGlobalShortcuts({
   onCommand: () => window.dispatchEvent(new CustomEvent('toggle-command-palette')),
   onToggleCopilot: () => copilotOpen.value = !copilotOpen.value,
-  onToggleSidebar: () => sidebarOpen.value = !sidebarOpen.value,
   onToggleNotifications: () => window.dispatchEvent(new CustomEvent('toggle-notifications')),
   onCloseModal: () => window.dispatchEvent(new CustomEvent('close-modal')),
   onCloseInspector: () => window.dispatchEvent(new CustomEvent('close-inspector')),
@@ -164,7 +162,7 @@ onUnmounted(() => {
       <router-view />
     </template>
     <template v-else>
-    <AppLayout :copilot-open="copilotOpen" :sidebar-open="sidebarOpen" @toggle-copilot="toggleCopilot" @toggle-sidebar="toggleSidebar" />
+    <AppLayout :copilot-open="copilotOpen" @toggle-copilot="toggleCopilot" />
     <CopilotPanel :open="copilotOpen" @close="copilotOpen = false" />
     <CommandPalette />
     <ContextMenu @action="handleContextAction" />
