@@ -14,12 +14,15 @@ import ErrorState from '@/components/shared/ErrorState.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import NextBestAction from '@/components/mission-control/NextBestAction.vue'
 import DailyDigest from '@/components/daily/DailyDigest.vue'
-import { fetchIncomePlan, fetchMissionStatus, fetchCapitalSnapshot, fetchAiCenter, fetchPlatformRanking, type IncomePlanAction, type IncomePlanState, type CapitalSnapshot, type PlatformRankingItem } from '@/services/ownexData'
+import { fetchIncomePlan, fetchMissionStatus, fetchCapitalSnapshot, fetchAiCenter, fetchCareerStatus, fetchZeroBarrierStats, fetchRevenueTimeline, fetchPlatformRanking, type IncomePlanAction, type IncomePlanState, type CapitalSnapshot, type PlatformRankingItem } from '@/services/ownexData'
 import { api } from '@/lib/api'
 
 /** FEATURE PARITY: snapshot de capital (SSOT patrimonio) + estado IA. */
 const capital = ref<CapitalSnapshot | null>(null)
 const aiOk = ref<boolean | null>(null)
+const career = ref<any>(null)
+const zbStats = ref<any>(null)
+const timeline = ref<any>(null)
 const platformRanking = ref<PlatformRankingItem[]>([])
 
 /** Daily return digest — what changed since last visit. */
@@ -159,6 +162,16 @@ async function load(): Promise<void> {
     ])
     if (cap.status === 'fulfilled') capital.value = cap.status === 'fulfilled' ? cap.value : null
     if (ai.status === 'fulfilled') aiOk.value = !!ai.value.config?.available
+    try {
+      const [c, z, t] = await Promise.allSettled([
+        fetchCareerStatus(),
+        fetchZeroBarrierStats(),
+        fetchRevenueTimeline(3000),
+      ])
+      if (c.status === 'fulfilled') career.value = c.value
+      if (z.status === 'fulfilled') zbStats.value = z.value
+      if (t.status === 'fulfilled') timeline.value = t.value
+    } catch {}
   } catch {
     /* degradación silenciosa */
   }
@@ -375,6 +388,24 @@ onMounted(load)
             <Badge :variant="s.status === 'accepted' ? 'success' : s.status === 'in_review' ? 'info' : 'default'" class="mt-1">
               {{ s.status }}
             </Badge>
+          </div>
+        </div>
+
+        <!-- FEATURE PARITY: career + zero-barrier + revenue timeline -->
+        <div v-if="career || zbStats || timeline" class="grid grid-cols-3 gap-2 rounded-lg border border-border/20 p-3">
+          <div v-if="career?.skill_gaps?.length">
+            <p class="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Skill gaps</p>
+            <p class="font-mono text-sm font-semibold">{{ career.skill_gaps.length }} pendientes</p>
+            <p class="font-mono text-[9px] text-muted-foreground truncate">{{ career.skill_gaps.slice(0,2).map((s:any)=>s.skill).join(', ') }}</p>
+          </div>
+          <div v-if="zbStats?.total_opportunities">
+            <p class="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Zero-barrier</p>
+            <p class="font-mono text-sm font-semibold">{{ zbStats.total_opportunities }} sin barrera</p>
+          </div>
+          <div v-if="timeline?.milestones?.length">
+            <p class="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Próximo hito</p>
+            <p class="font-mono text-sm font-semibold">{{ timeline.milestones[0]?.label || '—' }}</p>
+            <p v-if="timeline.milestones[0]?.months" class="font-mono text-[9px] text-muted-foreground">{{ timeline.milestones[0].months }} meses</p>
           </div>
         </div>
       </Card>
