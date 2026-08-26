@@ -643,6 +643,8 @@ app.include_router(vault_cycle.router)
 app.include_router(atlas_cycle.router)
 app.include_router(qa_cycle.router)
 app.include_router(profile_kit.router)
+from api.routers.daily_digest import router as daily_digest_router
+app.include_router(daily_digest_router)
 app.include_router(knowledge_bridge.router)
 app.include_router(payment_compat.router)
 # ── ORION Platform: core + app routers ──
