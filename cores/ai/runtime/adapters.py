@@ -635,6 +635,57 @@ def create_lmstudio_adapter(
     )
 
 
+def create_ollama_cloud_adapter(
+    api_key: str | None = None,
+    host: str = "https://ollama.com/v1",
+    model: str = "qwen3-coder",
+) -> OpenAICompatibleAdapter:
+    """Ollama Cloud — API OpenAI-compatible hosted por Ollama.
+
+    Spec AI FREE-CLOUD ROUTER §E: tier FREE(2). Límites reales UNKNOWN hasta
+    observar; QuotaTracker los trata como UNKNOWN (factor 0.85), jamás ilimitados.
+    """
+    return OpenAICompatibleAdapter(
+        provider_id="ollama_cloud",
+        name="Ollama Cloud",
+        api_key=api_key,
+        base_url=os.getenv("OLLAMA_CLOUD_BASE_URL", host),
+        model=os.getenv("OLLAMA_CLOUD_MODEL", model),
+        env_key="OLLAMA_CLOUD_API_KEY",
+        pricing=(0.0, 0.0),  # free tier asumido; cost tracker registra 0 hasta evidencia
+        capabilities={Capability.CHAT, Capability.STREAMING, Capability.TOOL_CALLING, Capability.LONG_CONTEXT},
+        max_context=128000,
+    )
+
+
+def create_freecloud_adapter(
+    base_url: str,
+    api_key: str | None = None,
+    model: str = "",
+    provider_id: str = "freecloudmodels",
+) -> OpenAICompatibleAdapter:
+    """Generic Free-Cloud-Models adapter — cualquier agregador OpenAI-compatible.
+
+    Spec §27 (compatibilidad): integración desacoplada. El endpoint debe exponer
+    `GET /models` y `POST /chat/completions` estándar. Descubrimiento de modelos
+    queda a cargo del health/registry; este adapter NO asume catálogo fijo.
+    Límites: UNKNOWN por diseño — sin promesas de disponibilidad.
+    """
+    if not base_url:
+        raise ValueError("create_freecloud_adapter requires base_url")
+    return OpenAICompatibleAdapter(
+        provider_id=provider_id or "freecloudmodels",
+        name="Free Cloud Models",
+        api_key=api_key or "",
+        base_url=base_url.rstrip("/"),
+        model=model,
+        env_key="FREECLOUD_API_KEY",
+        pricing=(0.0, 0.0),
+        capabilities={Capability.CHAT, Capability.REASONING},
+        max_context=32000,  # conservador: ajustable por config del agregador
+    )
+
+
 class FreebuffAdapter(AIProviderProtocol):
     """Adapter for Freebuff agent provider."""
 

@@ -28,7 +28,16 @@ from .interfaces import (
     get_config,
 )
 from .learning import LearningEngine, get_learning_engine
+from .observability import ObservabilitySink, get_observability_sink, record_ai_event
 from .registry import ProviderRegistry, get_registry, initialize_registry
+from .resilience import (
+    DegradedMode,
+    ErrorClassifier,
+    QuotaTracker,
+    get_degraded_mode,
+    get_error_classifier,
+    get_quota_tracker,
+)
 from .router import SmartRouter, create_smart_router
 
 logger = logging.getLogger("oar")
@@ -47,6 +56,9 @@ class OAR:
         self._cache: SemanticCache | None = None
         self._context: ContextManager | None = None
         self._learning: LearningEngine | None = None
+        self._quota: QuotaTracker | None = None
+        self._degraded: DegradedMode | None = None
+        self._observability: ObservabilitySink | None = None
         self._initialized = False
 
     async def initialize(self) -> None:
@@ -68,6 +80,12 @@ class OAR:
         self._cache = get_cache(self._config)
         self._context = get_context_manager(self._config)
         self._learning = get_learning_engine(self._config)
+
+        # Resilience layer (spec AI FREE-CLOUD ROUTER): quota, degraded mode, observability
+        self._quota = get_quota_tracker()
+        self._degraded = get_degraded_mode()
+        self._error_classifier = get_error_classifier()
+        self._observability = get_observability_sink()
 
         # Initialize router with all dependencies
         self._router = create_smart_router(
@@ -193,6 +211,14 @@ class OAR:
         if request.max_tokens > 8000:
             routing_context.required_capabilities.add(Capability.LONG_CONTEXT)
 
+        # Quota awareness (spec §11): excluir providers con cuota observada agotada
+        if self._quota:
+            exhausted = [
+                pid for pid in routing_context.preferred_providers or [] if self._quota.quota_factor(pid) == 0.0
+            ]
+            if exhausted:
+                routing_context.excluded_providers = list(set(routing_context.excluded_providers) | set(exhausted))
+
         decision = await self._router.route(routing_context)
 
         # Execute with failover
@@ -210,6 +236,26 @@ class OAR:
         if self._learning:
             quality = 1.0 if response.content else 0.0
             self._learning.record_routing(decision, bool(response.content), quality)
+
+        # Observability (spec §18): un evento por request, con redacción de secretos
+        if self._observability:
+            from cores.ai.runtime.observability import AIEventRecord
+
+            self._observability.record(
+                AIEventRecord(
+                    timestamp=__import__("datetime").datetime.now(__import__("datetime").UTC).isoformat(),
+                    task=task_type.value,
+                    provider=response.provider_id or "none",
+                    model=response.model_id or "none",
+                    success=bool(response.content),
+                    latency_ms=response.latency_ms,
+                    tokens_in=int((response.metadata or {}).get("tokens_in", 0)),
+                    tokens_out=int((response.metadata or {}).get("tokens_out", 0)),
+                    error=(response.metadata or {}).get("error"),
+                    fallback_used=response.provider_id != decision.provider_id,
+                    cost_usd=float(response.cost_usd or 0.0),
+                )
+            )
 
         return response
 
@@ -242,6 +288,12 @@ class OAR:
                 # Record success
                 if self._failover:
                     self._failover.record_success(provider_id)
+                if self._quota:
+                    self._quota.record_request(
+                        provider_id,
+                        tokens=(response.metadata or {}).get("tokens_in", 0)
+                        + (response.metadata or {}).get("tokens_out", 0),
+                    )
                 if self._router:
                     self._router.record_outcome(
                         decision,
@@ -265,6 +317,14 @@ class OAR:
             except Exception as e:
                 last_error = e
                 logger.warning("Provider %s failed: %s", provider_id, e)
+
+                classification = self._error_classifier.classify(e) if self._error_classifier else None
+                logger.info(
+                    "Provider %s error classified: status=%s policy=%s",
+                    provider_id,
+                    classification.status if classification else "unknown",
+                    classification.policy.value if classification else "unknown",
+                )
 
                 if self._failover:
                     self._failover.record_failure(provider_id, e)
@@ -345,6 +405,18 @@ class OAR:
 
     def status(self) -> dict[str, Any]:
         """Get OAR status."""
+        # Resilience snapshot (spec AI FREE-CLOUD ROUTER §11, §18, §25)
+        resilience: dict[str, Any] = {}
+        if self._degraded:
+            resilience["mode"] = self._degraded.status()
+            resilience["recent_events"] = self._degraded.recent_events(5)
+        if self._quota:
+            providers = list(self._registry.list_providers()) if self._registry else []
+            resilience["quotas"] = {
+                p.get("id", "unknown"): self._quota.snapshot(p.get("id", "unknown"))
+                for p in providers
+                if isinstance(p, dict)
+            }
         return {
             "initialized": self._initialized,
             "providers": self._registry.list_providers() if self._registry else [],
@@ -352,6 +424,7 @@ class OAR:
             "costs": self._cost.get_budget_status() if self._cost else {},
             "cache": self._cache.get_stats() if self._cache else {},
             "learning": self._learning.get_provider_stats() if self._learning else {},
+            "resilience": resilience,
         }
 
     def doctor(self) -> dict[str, Any]:
