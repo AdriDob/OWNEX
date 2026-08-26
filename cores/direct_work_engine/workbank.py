@@ -291,6 +291,27 @@ class WorkBank:
                 new_count += 1
 
         self._save()
+
+        # Espejo canónico al ExecutionQueue (Parte 2 FINAL RELEASE): ítems
+        # ready_to_deliver nacen QUALIFIED→READY en la cola única. Best-effort:
+        # un fallo del espejo jamás rompe el banco. (Re-aplicado tras fb30df08)
+        try:
+            from core.execution_queue.mirror import mirror_workbank_prepared
+
+            for item in self._items.values():
+                if item.ready_to_deliver:
+                    mirror_workbank_prepared(
+                        item.id,
+                        {
+                            "source": "workbank",
+                            "platform": str(item.platform),
+                            "reward": item.reward,
+                            "title": item.title,
+                        },
+                    )
+        except Exception:  # pragma: no cover — espejo defensivo
+            pass
+
         return self._summary(
             new_items=new_count,
             scanned=scanned_total,

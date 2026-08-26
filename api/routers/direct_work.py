@@ -557,6 +557,15 @@ async def direct_work_deliver_prepare(item_id: str) -> dict[str, Any]:
     }
     prepared = await executor.prepare_work(opportunity)
     work_dir = await executor.save_work_to_disk(prepared)
+
+    # Espejo canónico: paquete listo → QUEUED en la cola única (best-effort).
+    try:
+        from core.execution_queue.mirror import mirror_workbank_packaged
+
+        mirror_workbank_packaged(item_id)
+    except Exception:  # el espejo jamás rompe la entrega
+        pass
+
     return {
         "item_id": item.id,
         "platform": str(item.platform),
@@ -583,6 +592,14 @@ async def direct_work_deliver_approve(item_id: str) -> dict[str, Any]:
     if not item:
         raise HTTPException(status_code=404, detail="Work-bank item not found")
     bank.mark_delivered(item_id)
+
+    # Espejo canónico: la aprobación humana (gate) → SUBMITTED en la cola única.
+    try:
+        from core.execution_queue.mirror import mirror_workbank_approved
+
+        mirror_workbank_approved(item_id)
+    except Exception:  # jamás rompe el flujo de entrega
+        pass
 
     profile = UserProfile(
         name="Adriel",
