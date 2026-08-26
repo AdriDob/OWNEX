@@ -205,3 +205,52 @@ class TestRealWorkBankIntegration:
         plan = UnifiedIncomePlan(fresh_assistant, fresh_first_day, reloaded).build()
         assert plan["next_action"]["source"] == "workbank"
         assert plan["tracks"]["active"]["workbank_ready_to_deliver"] == 1
+
+
+class TestMultiStreamHourBudget:
+    def test_two_accepted_streams_do_not_double_count_hours(
+        self, tmp_path, fresh_first_day: FirstDayGuide, monkeypatch
+    ) -> None:
+        """Con 2 streams aceptados el rango NO puede ser la suma de rate×horas.
+
+        Las horas son una sola bolsa: el ingreso/hora está acotado entre el peor
+        y el mejor rate aceptado × disponibilidad (50%–100%).
+        """
+        store = tmp_path / "applications.json"
+        assistant = ApplicationAssistant(store_path=store)
+        assistant.set_status("outlier", "accepted")  # $13/h
+        assistant.set_status("mercor", "accepted")  # $25/h
+
+        availability = 40.0
+        monkeypatch.setattr(
+            "cores.direct_work_engine.income_plan.get_available_hours", lambda _w: availability
+        )
+
+        plan = UnifiedIncomePlan(assistant, fresh_first_day, _StubBank()).build()
+        cc = plan["income_command_center"]
+
+        # Aísla el componente recurrente de streams (today suma acciones puntuales).
+        stream_week_high = cc["week"]["high"] - cc["today"]["high"]
+        stream_month_high = cc["month"]["high"] - cc["today"]["high"]
+        # Suma ingenua sería ($13+$25)×40 = $1,520/semana — prohibido.
+        assert stream_week_high <= 25.0 * availability + 0.01
+        assert stream_month_high <= 25.0 * availability * 4.33 + 0.01
+        # Low usa el peor rate aceptado al 50%.
+        stream_week_low = cc["week"]["low"] - cc["today"]["low"]
+        assert stream_week_low >= 13.0 * availability * 0.5 - 0.01
+
+    def test_single_stream_matches_documented_rate(
+        self, tmp_path, fresh_first_day: FirstDayGuide, monkeypatch
+    ) -> None:
+        store = tmp_path / "applications.json"
+        assistant = ApplicationAssistant(store_path=store)
+        assistant.set_status("mercor", "accepted")
+
+        monkeypatch.setattr(
+            "cores.direct_work_engine.income_plan.get_available_hours", lambda _w: 40.0
+        )
+
+        plan = UnifiedIncomePlan(assistant, fresh_first_day, _StubBank()).build()
+        cc = plan["income_command_center"]
+        stream_week_high = cc["week"]["high"] - cc["today"]["high"]
+        assert stream_week_high == pytest.approx(25.0 * 40.0, abs=0.01)

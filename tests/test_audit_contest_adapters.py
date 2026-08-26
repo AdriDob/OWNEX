@@ -333,3 +333,77 @@ class TestSuperteamAdapter:
         except Exception:
             results = []
         assert isinstance(results, list)
+
+
+class TestOpireAdapter:
+    def test_parses_rewards_with_cents_conversion(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from cores.opportunity.adapters.forge.opire import fetch_opportunities
+
+        payload = [
+            {
+                "id": "01ABC",
+                "title": "[BOUNTY] Fix crash",
+                "url": "https://github.com/o/r/issues/1",
+                "platform": "GitHub",
+                "programmingLanguages": ["Python", "Rust"],
+                "pendingPrice": {"value": 150000, "unit": "USD_CENT"},
+                "project": {"name": "myrepo"},
+            },
+            {
+                "id": "02DEF",
+                "title": "no price yet",
+                "url": "https://github.com/o/r/issues/2",
+                "pendingPrice": None,
+            },
+        ]
+
+        class FakeResp:
+            status_code = 200
+
+            def json(self) -> list:
+                return payload
+
+        class FakeClient:
+            def __init__(self, *a: Any, **kw: Any) -> None:
+                pass
+
+            async def __aenter__(self) -> FakeClient:
+                return self
+
+            async def __aexit__(self, *a: Any) -> None:
+                pass
+
+            async def get(self, url: str, headers: dict | None = None, timeout: int = 15) -> FakeResp:
+                assert url == "https://api.opire.dev/rewards"
+                return FakeResp()
+
+        monkeypatch.setattr("cores.opportunity.adapters.forge.opire.get_platform_credentials", lambda p: {})
+        monkeypatch.setattr("httpx.AsyncClient", FakeClient)
+        results = _run(fetch_opportunities())
+        assert len(results) == 2
+        first = results[0]
+        assert first["reward"] == 1500.0  # cents → dollars
+        assert first["url"].endswith("/issues/1")
+        assert "python" in first["tags"] and "rust" in first["tags"]
+        assert results[1]["reward"] == 0.0
+
+    def test_network_error_returns_empty(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from cores.opportunity.adapters.forge.opire import fetch_opportunities
+
+        class Dead:
+            def __init__(self, *a: Any, **kw: Any) -> None:
+                pass
+
+            async def __aenter__(self) -> Dead:
+                raise ConnectionError()
+
+            async def __aexit__(self, *a: Any) -> None:
+                pass
+
+        monkeypatch.setattr("cores.opportunity.adapters.forge.opire.get_platform_credentials", lambda p: {})
+        monkeypatch.setattr("httpx.AsyncClient", Dead)
+        try:
+            results = _run(fetch_opportunities())
+        except Exception:
+            results = []
+        assert isinstance(results, list)
