@@ -77,6 +77,45 @@ const income = ref<IncomePlanState | null>(null)
 const system = ref<{ health: number; status: string } | null>(null)
 const realized = ref<RealizedRevenue | null>(null)
 
+interface IncomeGoalPlan {
+  status: string
+  target: { amount_usd: number; period: string }
+  required_opportunities: number
+  required_hours_per_week: number
+  required_hours_per_day: number
+  recommended_sources: string[]
+  probability_of_success: number
+  risk_factors: string[]
+  fallback_plan: string | null
+  progress: {
+    earned_this_period: number
+    pending_amount: number
+    progress_pct: number
+    days_remaining: number
+    on_track: boolean
+    required_daily_rate: number
+    actual_daily_rate: number
+  }
+}
+const goalText = ref('quiero ganar 10k este mes')
+const goalPlan = ref<IncomeGoalPlan | null>(null)
+const goalLoading = ref(false)
+const goalError = ref<string | null>(null)
+
+async function askGoal(): Promise<void> {
+  if (!goalText.value.trim() || goalLoading.value) return
+  goalLoading.value = true
+  goalError.value = null
+  try {
+    goalPlan.value = await api.post<IncomeGoalPlan>('/copilot/income-goal', { message: goalText.value })
+  } catch {
+    goalError.value = 'No se pudo generar el plan. Probá: "quiero ganar 10k este mes".'
+    goalPlan.value = null
+  } finally {
+    goalLoading.value = false
+  }
+}
+
 const usd = (n: number): string => `$${Math.round(n).toLocaleString('es-AR')}`
 const rangeLabel = (r: { low: number; high: number }): string =>
   r.low === r.high ? usd(r.low) : `${usd(r.low)}–${usd(r.high)}`
@@ -315,6 +354,67 @@ onMounted(load)
             Sin cobros registrados todavía — el potencial de arriba se convierte en realizado cuando confirmás cada pago.
           </p>
         </div>
+
+        <!-- INCOME GOAL: "quiero ganar 10k este mes" → plan concreto -->
+        <Card class="border-primary/25 bg-primary/5 p-4">
+          <div class="flex items-center gap-2">
+            <Bot class="h-3.5 w-3.5 text-primary" />
+            <h2 class="text-xs font-semibold uppercase tracking-wider">¿Cuánto querés ganar?</h2>
+          </div>
+          <form class="mt-3 flex gap-2" @submit.prevent="askGoal">
+            <input
+              v-model="goalText"
+              type="text"
+              placeholder="quiero ganar 10k este mes"
+              class="flex-1 rounded-md border border-border/40 bg-background/60 px-3 py-1.5 font-mono text-xs outline-none focus:border-primary/60"
+            />
+            <button
+              type="submit"
+              :disabled="goalLoading || !goalText.trim()"
+              class="rounded-md bg-primary px-3 py-1.5 font-mono text-xs font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-40"
+            >
+              {{ goalLoading ? '…' : 'Plan' }}
+            </button>
+          </form>
+          <p v-if="goalError" class="mt-2 font-mono text-[10px] text-destructive">{{ goalError }}</p>
+          <template v-if="goalPlan">
+            <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div class="rounded-md border border-border/20 p-2">
+                <p class="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Objetivo</p>
+                <p class="font-mono text-sm font-semibold tabular-nums">{{ usd(goalPlan.target.amount_usd) }}<span class="text-[9px] font-normal text-muted-foreground">/{{ goalPlan.target.period === 'weekly' ? 'sem' : 'mes' }}</span></p>
+              </div>
+              <div class="rounded-md border border-border/20 p-2">
+                <p class="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Oportunidades</p>
+                <p class="font-mono text-sm font-semibold tabular-nums">{{ goalPlan.required_opportunities }}</p>
+              </div>
+              <div class="rounded-md border border-border/20 p-2">
+                <p class="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Horas/semana</p>
+                <p class="font-mono text-sm font-semibold tabular-nums">{{ goalPlan.required_hours_per_week }}h</p>
+              </div>
+              <div class="rounded-md border border-border/20 p-2">
+                <p class="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Probabilidad</p>
+                <p class="font-mono text-sm font-semibold tabular-nums" :class="goalPlan.probability_of_success >= 0.5 ? 'text-success' : 'text-warning'">
+                  {{ Math.round(goalPlan.probability_of_success * 100) }}%
+                </p>
+              </div>
+            </div>
+            <div v-if="goalPlan.recommended_sources.length" class="mt-2 flex flex-wrap gap-1">
+              <Badge v-for="s in goalPlan.recommended_sources.slice(0, 6)" :key="s" variant="outline" class="font-mono text-[9px]">{{ s }}</Badge>
+            </div>
+            <ul v-if="goalPlan.risk_factors.length" class="mt-2 space-y-0.5">
+              <li v-for="(r, i) in goalPlan.risk_factors" :key="i" class="font-mono text-[10px] text-muted-foreground">· {{ r }}</li>
+            </ul>
+            <div class="mt-2 flex items-center justify-between border-t border-border/20 pt-2">
+              <p class="font-mono text-[10px] text-muted-foreground">
+                Progreso: {{ usd(goalPlan.progress.earned_this_period) }} de {{ usd(goalPlan.target.amount_usd) }} ({{ goalPlan.progress.progress_pct }}%)
+                · {{ goalPlan.progress.days_remaining }}d restantes
+              </p>
+              <span :class="['font-mono text-[9px] font-medium', goalPlan.progress.on_track ? 'text-success' : 'text-warning']">
+                {{ goalPlan.progress.on_track ? 'EN CAMINO' : 'AJUSTAR RITMO' }}
+              </span>
+            </div>
+          </template>
+        </Card>
 
         <!-- FEATURE PARITY §7: snapshot de capital (SSOT patrimonio) -->
         <div v-if="capital" class="grid grid-cols-2 gap-3 rounded-lg border border-border/20 bg-surface/10 p-3 sm:grid-cols-4">

@@ -7,6 +7,7 @@ an actionable plan to reach them based on available opportunities.
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
@@ -451,3 +452,74 @@ def build_target_plan(target: IncomeTarget, profile: UserProfile | None = None) 
 
 def track_target_progress(target: IncomeTarget) -> TargetProgress:
     return get_income_target_engine().track_progress(target)
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Natural-language goal parsing ("quiero ganar 10k este mes")
+# ──────────────────────────────────────────────────────────────────────
+
+_INCOME_KEYWORDS = (
+    "ganar",
+    "ingreso",
+    "ingresos",
+    "generar",
+    "llegar",
+    "objetivo",
+    "earn",
+    "income",
+    "revenue",
+    "make",
+    "target",
+)
+
+_PERIOD_MONTHLY_RE = re.compile(r"\b(mes|mensual|monthly|month|/mes)\b", re.IGNORECASE)
+_PERIOD_WEEKLY_RE = re.compile(r"\b(semana|semanal|weekly|week|/sem)\b", re.IGNORECASE)
+_AMOUNT_RE = re.compile(
+    r"(?:\$|usd\s*)?(\d{1,3}(?:[.,]\d{3})+|\d+(?:[.,]\d+)?)\s*(k\b|mil(?:es)?\b)?",
+    re.IGNORECASE,
+)
+_THOUSANDS_GROUP_RE = re.compile(r"^\d{1,3}([.,]\d{3})+$")
+
+
+def parse_income_goal(text: str) -> tuple[float, str] | None:
+    """Parse a natural-language income goal into ``(amount_usd, period)``.
+
+    Returns ``None`` when the text carries no income signal (keyword de ingreso
+    o período explícito) o cuando no hay monto extraíble.
+
+    Examples:
+        "quiero ganar 10k este mes"  -> (10000.0, "monthly")
+        "ganar $500 por semana"      -> (500.0, "weekly")
+        "income of 2,500/month"      -> (2500.0, "monthly")
+        "10.000 al mes"              -> (10000.0, "monthly")  # período como señal
+        "hoy es lunes"               -> None (sin señal de ingreso)
+    """
+    if not text or not text.strip():
+        return None
+    lowered = text.lower().strip()
+    has_period = bool(_PERIOD_MONTHLY_RE.search(lowered) or _PERIOD_WEEKLY_RE.search(lowered))
+    if not has_period and not any(kw in lowered for kw in _INCOME_KEYWORDS):
+        return None
+
+    match = _AMOUNT_RE.search(lowered)
+    if match is None:
+        return None
+
+    raw_number = match.group(1)
+    suffix = (match.group(2) or "").lower()
+
+    # "10.000" / "10,000" (3-digit groups) = separador de miles; "1.5" / "1,5" = decimal
+    if _THOUSANDS_GROUP_RE.match(raw_number):
+        value = float(re.sub(r"[.,]", "", raw_number))
+    else:
+        value = float(raw_number.replace(",", "."))
+
+    if suffix.startswith("k") or suffix.startswith("mil"):
+        value *= 1000
+
+    if value <= 0:
+        return None
+
+    period = "weekly" if _PERIOD_WEEKLY_RE.search(lowered) else "monthly"
+
+    return (value, period)
