@@ -22,9 +22,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Any
 
-from cores.direct_work_engine.workbank import WorkItem as WorkBankItem
 from core.execution_queue.models import ExecState
 
 logger = logging.getLogger("ownex.payment_pipeline")
@@ -252,48 +250,6 @@ _REVENUE_TO_PAYMENT = {
 }
 
 
-def can_transition(current: str, target: str) -> bool:
-    """Check if transition is valid in canonical pipeline."""
-    return target in _TRANSITIONS.get(current, set())
-
-
-def assert_transition(current: str, target: str) -> None:
-    """Raise if transition is invalid."""
-    if not can_transition(current, target):
-        raise ValueError(f"transición inválida: {current} → {target}")
-
-
-def is_terminal(state: str) -> bool:
-    return state in _TERMINAL
-
-
-def is_terminal_positive(state: str) -> bool:
-    return state in {"PAID"}
-
-
-def is_terminal_negative(state: str) -> bool:
-    return state in {"REJECTED", "BLOCKED", "FAILED", "DEAD_LETTER"}
-
-
-def workbank_status_to_payment(status: str) -> str:
-    """Convert legacy WorkBank status to canonical PaymentState."""
-    return _WORKBANK_TO_PAYMENT.get(status, "DISCOVERED")
-
-
-def execution_state_to_payment(state: str) -> str:
-    """Convert legacy ExecState to canonical PaymentState."""
-    try:
-        return _EXECUTION_TO_PAYMENT[ExecState(state)]
-    except (KeyError, ValueError):
-        return "DISCOVERED"
-
-
-def revenue_status_to_payment(status: str) -> str:
-    """Convert RevenueTracker status to canonical PaymentState."""
-    return _REVENUE_TO_PAYMENT.get(status.lower(), "SUBMITTED")
-
-
-# Valid transitions for the canonical pipeline
 _TRANSITIONS: dict[str, set[str]] = {
     "DISCOVERED": {"QUALIFIED", "REJECTED"},
     "QUALIFIED": {"READY", "REJECTED"},
@@ -370,7 +326,7 @@ class PaymentPipelineStore:
     def add(
         self, item_id: str, source: str, payload: dict | None = None, initial_state: str = "DISCOVERED"
     ) -> PipelineItem:
-        now = datetime.now(UTC).isoformat()
+        datetime.now(UTC).isoformat()
         item = PipelineItem(
             item_id=item_id,
             state=initial_state,
@@ -571,32 +527,13 @@ def pipeline_analytics_job() -> dict:
     return get_pipeline_analytics()
 
 
-def full_pipeline_sync() -> dict:
-    """Run all sync jobs."""
-    results = {}
-    results["workbank"] = sync_workbank_to_pipeline()
-    results["execution"] = sync_execution_to_pipeline()
-    results["revenue"] = sync_revenue_to_pipeline()
-    return results
-
-
-# ──────────────────────────────────────────────────────────────────────
-# Imports
-# ──────────────────────────────────────────────────────────────────────
-
-import json
-import logging
-import os
-from dataclasses import dataclass
-from datetime import UTC, datetime
-from enum import StrEnum
-from pathlib import Path
-from typing import Any
+import logging  # noqa: E402
+from dataclasses import dataclass  # noqa: E402
+from enum import StrEnum  # noqa: E402
 
 logger = logging.getLogger("ownex.payment_pipeline")
 
-from cores.direct_work_engine.workbank import WorkItem as WorkBankItem
-from core.execution_queue.models import ExecState
+from core.execution_queue.models import ExecState  # noqa: E402
 
 # Legacy WorkBank statuses → PaymentState
 _WORKBANK_TO_PAYMENT = {

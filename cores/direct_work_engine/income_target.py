@@ -17,7 +17,6 @@ from cores.direct_work_engine.economic_engine import (
     OpportunityEconomicProfile,
     compute_economic_profile,
     get_economic_engine,
-    rank_opportunities,
 )
 from cores.direct_work_engine.models import UserProfile
 from cores.direct_work_engine.workbank import WorkItem
@@ -211,10 +210,7 @@ class IncomeTargetEngine:
         period = target.period
 
         # Convert to weekly if monthly
-        if period == "monthly":
-            weekly_target = target_amount / 4.33
-        else:
-            weekly_target = target_amount
+        weekly_target = target_amount / 4.33 if period == "monthly" else target_amount
 
         # Filter feasible opportunities (within availability)
         # Use profile's availability_hours if provided, otherwise fall back to global engine
@@ -319,12 +315,7 @@ class IncomeTargetEngine:
                 pass
 
         # Progress calculation
-        if target.period == "weekly":
-            period_amount = target.amount_usd
-            days_in_period = 7
-        else:
-            period_amount = target.amount_usd
-            days_in_period = 30
+        period_amount = target.amount_usd if target.period == "weekly" else target.amount_usd
 
         progress_pct = min(100.0, (earned / period_amount * 100) if period_amount > 0 else 0)
 
@@ -381,7 +372,7 @@ class IncomeTargetEngine:
         for i, profile in enumerate(profiles[:7]):
             day_idx = i % 7
             day = days[day_idx]
-            hours = (profile.human_minutes or 0) / 60
+            (profile.human_minutes or 0) / 60
 
             plan.append(
                 {
@@ -435,10 +426,10 @@ _TIER_CONFIGS: dict[str, dict] = {
 # Convenience
 # ──────────────────────────────────────────────────────────────────────
 
-_income_target_engine: "IncomeTargetEngine | None" = None
+_income_target_engine: IncomeTargetEngine | None = None
 
 
-def get_income_target_engine() -> "IncomeTargetEngine":
+def get_income_target_engine() -> IncomeTargetEngine:
     global _income_target_engine
     if _income_target_engine is None:
         _income_target_engine = IncomeTargetEngine()

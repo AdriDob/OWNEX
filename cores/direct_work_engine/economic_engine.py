@@ -196,7 +196,6 @@ class EconomicEngine:
         This is THE entry point. All economic decisions flow from here.
         """
         opp = inputs.opportunity
-        profile = inputs.profile
 
         # 1. Build base profile from opportunity data
         profile_data = self._extract_base_data(opp, inputs)
