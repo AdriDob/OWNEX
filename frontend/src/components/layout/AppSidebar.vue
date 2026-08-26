@@ -233,7 +233,6 @@ function formatCompact(n: number) {
 </script>
 
 <template>
-<template>
   <aside
     :class="[
       'flex flex-col border-r border-border/50 bg-background/80 backdrop-blur-xl transition-all duration-200 z-30 relative',
