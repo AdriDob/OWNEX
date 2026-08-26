@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/python-3.11+-000000?style=flat-square&logo=python&logoColor=white"/>
   <img src="https://img.shields.io/badge/fastapi-009688?style=flat-square&logo=fastapi&logoColor=white"/>
   <img src="https://img.shields.io/badge/vue-3.5-4FC08D?style=flat-square&logo=vue.js&logoColor=white"/>
-  <img src="https://img.shields.io/badge/tests-3306%2B/>
+  <img src="https://img.shields.io/badge/tests-4000%2B/>
   <img src="https://img.shields.io/badge/license-Proprietary-2D7FF9?style=flat-square"/>
   <img src="https://img.shields.io/github/stars/AdriDob/OWNEX?style=flat-square&logo=github&logoColor=white&label=stars"/>
   <img src="https://img.shields.io/github/last-commit/AdriDob/OWNEX?style=flat-square&label=last%20commit"/>
@@ -218,7 +218,7 @@ flowchart TB
 | **Frontend** 🌐 | Vue 3 + TypeScript · Tailwind CSS v4 · Vite | 92 routed pages, Mission Control SPA |
 | **Desktop** 💻 | Tauri v2 (Rust+WebView2) + PyInstaller sidecar | Native desktop, `OWNEX Alpha` binary |
 | **Mobile** 📱 | Capacitor (Android) + Expo/React Native (OMEGA) | Native mic, native voice, APK 5.2 MB |
-| **AI Stack** 🤖 | Local-first failover: Ollama → FCC Proxy → OpenRouter | OAR router, 7 adapters, 24+ models |
+| **AI Stack** 🤖 | Free-first con fallback y modo degradado: local → free cloud → reglas | OAR runtime: routing, circuit breakers, quota tracking, observability, 13 adapters |
 | **Database** 📦 | SQLite (dev/desktop) · PostgreSQL (prod) | Single DB, no external queue |
 | **Security** 🔐 | Ed25519 licenses · AES-256-GCM vault · CSRF double-submit | IdentityVault, chmod 600 keys |
 | **Testing** ✅ | pytest · pytest-cov · pytest-timeout | `make test`, `make test-fast` |
@@ -295,7 +295,7 @@ No. Everything runs **100% local**: FastAPI backend, SQLite, local model via Oll
 <details>
 <summary><strong>Which AI models does it use? Do I need API keys?</strong></summary>
 
-Optional. It works with local models (Ollama), free built-in models (DeepSeek/Nemotron via OpenCode), and optional paid providers (OpenRouter, Groq…) through a failover chain. Zero configuration runs deterministic engines; AI adds analysis and voice on top.
+No keys required to start. OWNEX prioritizes local (Ollama) and free providers (OpenCode, OmniRoute) with automatic fallback. When a provider fails or hits quotas, the circuit breaker routes to the next in the chain — and if all LLMs are unavailable, deterministic engines keep the system running in degraded mode. Paid providers exist but are disabled by default (`daily_budget = $0`).
 </details>
 
 <details>
@@ -575,7 +575,8 @@ Honest state of the system — nothing here is a mock:
 | 🛡️ Security pipeline (7 stages, auto-submit) | ✅ production-hardened | `tests/test_e2e_security_pipeline.py` — 8 passed |
 | 💼 Direct Work Engine + Work Bank + Daily Companion + Evolution | ✅ production | `cores/direct_work_engine/` (engine + filters + feedback) |
 | 🔄 7 Work Cycles · 28 scheduled jobs · Mission Control · Executive Dashboard | ✅ production | `tests/test_scheduler_jobs.py` — 40 passed |
-| 🤖 OAR AI Runtime + Career Engine | ✅ production | `tests/test_oar.py` 12 ✓ · `tests/test_career_engine.py` 14 ✓ |
+| 🤖 OAR AI Runtime (routing + resilience + observability) + Career Engine | ✅ production | `tests/test_oar.py` · `test_ai_resilience.py` 46 ✓ · [AI Runtime →](docs/AI_RUNTIME.md) |
+| 💰 Income Target Engine + Economic Engine + Payment Pipeline canónico | ✅ production | `tests/test_income_target.py` · `test_payment_pipeline.py` · `test_economics_ssot.py` |
 | 💻 Desktop (Tauri v2) · Mobile (Capacitor) · MERLIN | ✅ build-verified | APKs 5.1 MB · Tauri cargo check OK |
 | 📱 OMEGA mobile (Expo/React Native) | 🟡 experimental skeleton | functional shell |
 | ⌚ Wear OS native | ✅ COMPLETED | [.ai/WEAROS_DECISION.md](.ai/WEAROS_DECISION.md) — fully implemented |
