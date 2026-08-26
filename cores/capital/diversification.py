@@ -71,7 +71,7 @@ class DiversificationEngine:
         top_3_pct = sum(v["pct"] for _, v in sorted_sources[:3])
 
         # Generate recommendations
-        recommendations = self._generate_recommendations(total_income, by_source, top_source_pct, top_3_pct, hhi)
+        recs = self._generate_recommendations(total_income, by_source, top_source_pct, top_3_pct, hhi)
 
         return DiversificationAnalysis(
             total_sources=len(income_sources),

@@ -147,10 +147,10 @@ class BacktestEngine:
         self._trades = []
         self._equity_curve = [(0, capital)]
 
-        for i, data_point in enumerate(historical_data):
+        for _i, data_point in enumerate(historical_data):
             timestamp = data_point.get("timestamp", time.time())
             price = data_point.get("price", 0)
-            volume = data_point.get("volume", 0)
+            data_point.get("volume", 0)
 
             if price <= 0:
                 continue

@@ -100,7 +100,7 @@ class ForecastingEngine:
         for _ in range(self._n_simulations):
             capital = start_capital
             path = []
-            for month in range(horizon_months):
+            for _month in range(horizon_months):
                 # Add monthly income
                 capital += monthly_income
                 # Apply return with volatility

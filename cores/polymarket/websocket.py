@@ -104,9 +104,7 @@ class PolymarketFeed:
 
     def _check_circuit_breaker(self) -> bool:
         """Check if circuit breaker is open."""
-        if time.monotonic() < self._circuit_breaker_until:
-            return True  # Circuit is open, block requests
-        return False
+        return time.monotonic() < self._circuit_breaker_until
 
     def _trip_circuit_breaker(self) -> None:
         """Trip the circuit breaker."""

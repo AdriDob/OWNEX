@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from core.revenue.converter import calculate_fee, net_after_fee, usd_to_ars
-from core.revenue.engine import RevenueEngine
-from core.revenue.models import Payment, RevenueRecord, RevenueStats
-from core.revenue.tracker import PaymentTracker
+from cores.revenue.converter import calculate_fee, net_after_fee, usd_to_ars
+from cores.revenue.models import Payment, RevenueRecord, RevenueStats
+from cores.revenue.tracker import PaymentTracker
+
+from cores.revenue.revenue_engine import RevenueEngine
 
 
 def test_usd_to_ars():

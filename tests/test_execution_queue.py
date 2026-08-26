@@ -19,7 +19,7 @@ def test_happy_path_to_paid() -> None:
         "verification",
         "paid",
     ]
-    for cur, nxt in zip(path, path[1:]):
+    for cur, nxt in zip(path, path[1:], strict=False):
         assert can_transition(cur, nxt)
 
 

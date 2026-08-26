@@ -20,10 +20,7 @@ def compute_heiken_ashi(candles: list[dict[str, Any]]) -> list[dict[str, float]]
         low = c.get("low", 0.0)
         close = c.get("close", 0.0)
 
-        if i == 0:
-            ha_open = (open_p + close) / 2.0
-        else:
-            ha_open = (prev_ha_open + prev_ha_close) / 2.0
+        ha_open = (open_p + close) / 2.0 if i == 0 else (prev_ha_open + prev_ha_close) / 2.0
 
         ha_close = (open_p + high + low + close) / 4.0
         ha_high = max(high, ha_open, ha_close)

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -9,6 +10,8 @@ from typing import Any
 
 from core.autonomy.issue_analyzer import IssueAnalysis
 from core.autonomy.repo_analyzer import BrowserResult, RepoInfo
+
+logger = logging.getLogger("ownex.autonomy.code_generator")
 
 
 @dataclass
@@ -38,10 +41,110 @@ class GenerationPlan:
 class CodeGenerator:
     """Generates code fixes based on issue analysis and repository context."""
 
+    # Marcadores del contrato de salida LLM (Zero Magic: constantes explícitas).
+    _LLM_FILE_START = "<<<FILE_START>>>"
+    _LLM_FILE_END = "<<<FILE_END>>>"
+
     def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
         self.use_llm = self.config.get("use_llm", True)
         self.max_file_size = self.config.get("max_file_size", 50000)  # chars
+        self._llm_timeout = self.config.get("llm_timeout_s", 90)
+
+    async def _llm_complete(self, system_prompt: str, user_prompt: str) -> str | None:
+        """Single completion via the copilot provider router. Returns None on failure.
+
+        Degrade defensivo: sin router/providers disponibles o ante cualquier
+        error, devuelve None y el caller cae a los heurísticos existentes.
+        """
+        try:
+            from core.copilot.providers.router import get_provider_router
+
+            result = await get_provider_router().route(
+                task_type="code",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+            )
+        except Exception as exc:
+            logger.warning("[CodeGenerator] LLM unavailable: %s", exc)
+            return None
+        if getattr(result, "error", None) or not getattr(result, "content", ""):
+            return None
+        return str(result.content)
+
+    def _parse_llm_file_content(self, raw: str) -> str | None:
+        """Extract file content between the contract markers."""
+        start = raw.find(self._LLM_FILE_START)
+        end = raw.find(self._LLM_FILE_END)
+        if start == -1 or end == -1 or end <= start:
+            return None
+        content = raw[start + len(self._LLM_FILE_START) : end].strip("\n")
+        if not content.strip():
+            return None
+        return content + "\n"
+
+    async def _generate_llm_fix(
+        self,
+        plan: GenerationPlan,
+    ) -> list[CodeChange]:
+        """Generate a fix for the top target file via LLM. [] si no hay targets/LLM."""
+        issue = plan.issue_analysis
+        repo = plan.repo_info
+
+        # Un solo archivo por pasada (mínima intervención; multi-file es fase futura)
+        target = self._pick_primary_target(issue, repo)
+        if target is None or not target.exists():
+            return []
+        original = target.read_text(errors="ignore")
+        if len(original) > self.max_file_size:
+            return []
+
+        system_prompt = (
+            "You are a senior software engineer fixing a GitHub issue.\n"
+            f"Return ONLY the complete corrected content of ONE file between "
+            f"{self._LLM_FILE_START} and {self._LLM_FILE_END} markers.\n"
+            "No explanations outside the markers. Preserve style and imports."
+        )
+        repro = "\n".join(f"- {s}" for s in (issue.reproduction_steps or [])[:5])
+        user_prompt = (
+            f"Issue #{issue.issue_id}: {issue.title}\n\n{issue.body[:4000]}\n\n"
+            f"Error messages:\n{'- ' + chr(10).join(map(str, issue.error_messages[:3])) if issue.error_messages else 'N/A'}\n\n"
+            f"Reproduction steps:\n{repro or 'N/A'}\n\n"
+            f"File to fix ({target.relative_to(repo.path)}):\n```{original}```"
+        )
+
+        raw = await self._llm_complete(system_prompt, user_prompt)
+        if raw is None:
+            return []
+        new_content = self._parse_llm_file_content(raw)
+        if new_content is None or new_content == original:
+            return []
+
+        return [
+            CodeChange(
+                file_path=target,
+                original_content=original,
+                new_content=new_content,
+                change_type="fix",
+                description=f"LLM fix for: {issue.title[:100]}",
+                confidence=0.75,
+            )
+        ]
+
+    def _pick_primary_target(self, issue: IssueAnalysis, repo: RepoInfo) -> Path | None:
+        """Best single file to modify: mentioned files first, then entry points."""
+        for f in issue.affected_files:
+            path = Path(f)
+            candidate = path if path.is_absolute() else repo.path / path
+            if candidate.exists():
+                return candidate
+        for entry in repo.entry_points[:3]:
+            candidate = repo.path / entry
+            if candidate.exists():
+                return candidate
+        return repo.test_files[0] if repo.test_files else None
 
     async def generate_fix(
         self,
@@ -123,14 +226,22 @@ class CodeGenerator:
         return list(targets)[:10]  # Max 10 files
 
     async def _generate_changes(self, plan: GenerationPlan) -> list[CodeChange]:
-        """Generate code changes based on plan."""
-        changes = []
-
-        # For now, generate template-based changes
-        # In production, this would use LLM with repo context
-
+        """Generate code changes: LLM-first (real fix), heuristic fallback."""
         issue = plan.issue_analysis
         repo = plan.repo_info
+
+        if self.use_llm:
+            llm_changes = await self._generate_llm_fix(plan)
+            if llm_changes:
+                if issue.issue_type in ["bug", "feature", "security"]:
+                    plan.test_changes = await self._generate_tests(issue, repo, llm_changes)
+                return llm_changes
+            logger.info(
+                "[CodeGenerator] LLM produced no changes for %s — falling back to heuristics",
+                issue.issue_id,
+            )
+
+        changes = []
 
         if issue.issue_type == "bug":
             changes.extend(await self._generate_bug_fix(issue, repo))
@@ -287,6 +398,7 @@ class CodeGenerator:
                     indent = len(line) - len(line.lstrip())
                     new_lines = lines[: i + 1]
                     new_lines.append(" " * (indent + 4) + "try:")
+                    j = len(lines)
                     for j in range(i + 1, len(lines)):
                         if lines[j].strip() and not lines[j].startswith(" " * (indent + 4)):
                             break

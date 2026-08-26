@@ -12,7 +12,7 @@ router = APIRouter(prefix="/api/revenue", tags=["revenue"])
 @router.get("/health")
 async def revenue_health() -> dict[str, Any]:
     try:
-        from core.revenue.engine import RevenueEngine
+        from cores.revenue.revenue_engine import RevenueEngine
 
         engine = RevenueEngine()
         return engine.health()
@@ -24,7 +24,7 @@ async def revenue_health() -> dict[str, Any]:
 @router.get("/methods")
 async def payment_methods() -> dict[str, Any]:
     try:
-        from core.revenue.engine import RevenueEngine
+        from cores.revenue.revenue_engine import RevenueEngine
 
         engine = RevenueEngine()
         return {"methods": engine.available_methods()}
@@ -35,7 +35,7 @@ async def payment_methods() -> dict[str, Any]:
 @router.get("/summary")
 async def revenue_summary() -> dict[str, Any]:
     try:
-        from core.revenue.engine import RevenueEngine
+        from cores.revenue.revenue_engine import RevenueEngine
 
         engine = RevenueEngine()
         return {"summary": engine.summary(), "stats": engine.get_stats().to_dict()}
@@ -46,7 +46,7 @@ async def revenue_summary() -> dict[str, Any]:
 @router.post("/payment")
 async def process_payment(payload: dict[str, Any]) -> dict[str, Any]:
     try:
-        from core.revenue.engine import RevenueEngine
+        from cores.revenue.revenue_engine import RevenueEngine
 
         engine = RevenueEngine()
         record_id = payload.get("record_id", "")

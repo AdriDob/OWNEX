@@ -246,7 +246,7 @@ class ChromaDBWrapper:
 
             # Compute cosine similarities
             results = []
-            for i, (doc_emb, id_, doc, meta) in enumerate(zip(embeddings, ids, documents, metadatas)):
+            for i, (doc_emb, _id_, _doc, _meta) in enumerate(zip(embeddings, ids, documents, metadatas, strict=False)):
                 doc_norm = float(np.linalg.norm(doc_emb))
                 if doc_norm > 0 and query_norm > 0:
                     cosine_sim = float(np.dot(doc_emb, query_emb) / (doc_norm * query_norm))
