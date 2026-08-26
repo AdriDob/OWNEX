@@ -17,7 +17,7 @@
 | **Entrypoint dev** | `run.py` (CLI multipropósito) | raíz | ✅ permanece como dev CLI, NO es "launcher" |
 | **Scheduler** | CoreScheduler (in-process) | core/scheduler/ | ✅ no proceso separado |
 | **Workers** | executors in-process | core/opportunity/executors/ | ✅ no procesos separados |
-| **Updater** | **NOT IMPLEMENTED** | — | ✅ correcto no crearlo (§7) |
+| **Updater** | `OWNEX-Updater.ps1` (semi-automático GitHub Releases: check→descarga→SHA256→msiexec upgrade preservando datos→relanza) | scripts/win/ | ✅ implementado |
 | **Single instance** | health-poll reúso :8000 + `backend_alive()` | lib.rs / backend.py | ✅ doble launch no duplica |
 
 ## 2. Decisiones de nomenclatura (canónicas)
