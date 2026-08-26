@@ -111,8 +111,8 @@ class AvailabilityEngine:
         # Lazy import to avoid hard dependency
         try:
             import icalendar
-        except ImportError:
-            raise RuntimeError("icalendar package required for ICS import: pip install icalendar")
+        except ImportError as e:
+            raise RuntimeError("icalendar package required for ICS import: pip install icalendar") from e
 
         with open(ics_path, "rb") as f:
             cal = icalendar.Calendar.from_ical(f.read())
@@ -130,14 +130,8 @@ class AvailabilityEngine:
             if not isinstance(start, datetime) or not isinstance(end, datetime):
                 continue
             # Ensure UTC
-            if start.tzinfo is None:
-                start = start.replace(tzinfo=UTC)
-            else:
-                start = start.astimezone(UTC)
-            if end.tzinfo is None:
-                end = end.replace(tzinfo=UTC)
-            else:
-                end = end.astimezone(UTC)
+            start = start.replace(tzinfo=UTC) if start.tzinfo is None else start.astimezone(UTC)
+            end = end.replace(tzinfo=UTC) if end.tzinfo is None else end.astimezone(UTC)
             events.append(
                 {
                     "start": start.isoformat(),
@@ -197,14 +191,8 @@ class AvailabilityEngine:
                 end = datetime.fromisoformat(b.end)
             except Exception:
                 continue
-            if start.tzinfo is None:
-                start = start.replace(tzinfo=UTC)
-            else:
-                start = start.astimezone(UTC)
-            if end.tzinfo is None:
-                end = end.replace(tzinfo=UTC)
-            else:
-                end = end.astimezone(UTC)
+            start = start.replace(tzinfo=UTC) if start.tzinfo is None else start.astimezone(UTC)
+            end = end.replace(tzinfo=UTC) if end.tzinfo is None else end.astimezone(UTC)
 
             if start.date() == today:
                 day_end = datetime.combine(today + timedelta(days=1), datetime.min.time(), tzinfo=UTC)

@@ -73,7 +73,7 @@ class ZeroBarrierEngine:
     def evaluate(self, opportunity: Any, profile: Any = None) -> ZeroBarrierResult:
         """Evaluate a single opportunity against zero-barrier criteria."""
         opp = opportunity
-        platform = opp.platform.value if hasattr(opp.platform, "value") else str(opp.platform)
+        opp.platform.value if hasattr(opp.platform, "value") else str(opp.platform)
 
         blockers = []
         enablers = []
@@ -97,7 +97,7 @@ class ZeroBarrierEngine:
         try:
             from cores.payment_compat.engine import PaymentRequirement
 
-            req = PaymentRequirement(
+            PaymentRequirement(
                 method=opportunity.payment_method.value
                 if hasattr(opportunity.payment_method, "value")
                 else str(opportunity.payment_method),

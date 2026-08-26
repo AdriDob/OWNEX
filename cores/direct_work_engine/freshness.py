@@ -84,7 +84,6 @@ class FreshnessTracker:
     def assess(self, discovered_at: datetime | str | None) -> FreshnessSnapshot:
         """Compute complete freshness snapshot."""
         age_hours = self.compute_age_hours(discovered_at)
-        is_critical = age_hours is not None and age_hours >= self.config.critical_age_hours
 
         if age_hours is None:
             action = "Age unknown — verify freshness manually"
@@ -196,11 +195,11 @@ class FreshnessBatchProcessor:
         import math
 
         decay = self.tracker._decay_constant
-        now = datetime.now(UTC)
+        datetime.now(UTC)
         schedule = []
         for h in range(0, hours_ahead + 1, 24):
             future_time = datetime.now(UTC) + timedelta(hours=h)
-            score = math.exp(-decay * h)
+            math.exp(-decay * h)
             schedule.append(
                 {
                     "hours_from_now": h,

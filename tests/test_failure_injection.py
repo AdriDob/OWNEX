@@ -36,8 +36,8 @@ class TestNetworkTimeouts:
             return "success"
 
         try:
-            result = await asyncio.wait_for(operation_with_timeout(), timeout=0.05)
-            assert False, "Should have timed out"
+            await asyncio.wait_for(operation_with_timeout(), timeout=0.05)
+            raise AssertionError("Should have timed out")
         except TimeoutError:
             pass  # Expected
 
@@ -67,8 +67,8 @@ class TestDatabaseFailures:
         """DB connection failure es manejado graceful."""
         with patch("sqlite3.connect", side_effect=sqlite3.OperationalError("Connection failed")):
             try:
-                conn = sqlite3.connect(":memory:")
-                assert False, "Should have raised"
+                sqlite3.connect(":memory:")
+                raise AssertionError("Should have raised")
             except sqlite3.OperationalError:
                 pass  # Expected
 
@@ -79,7 +79,7 @@ class TestDatabaseFailures:
 
         try:
             cursor.execute("SELECT * FROM nonexistent_table")
-            assert False, "Should have raised"
+            raise AssertionError("Should have raised")
         except sqlite3.OperationalError:
             pass  # Expected
         finally:
@@ -117,8 +117,8 @@ class TestExternalAPIFailures:
             return [{"id": 1}]
 
         try:
-            result = await fetch_api()
-            assert False, "Should have raised"
+            await fetch_api()
+            raise AssertionError("Should have raised")
         except Exception as e:
             # Exception debe ser manejada
             assert "Service unavailable" in str(e)
@@ -136,8 +136,8 @@ class TestExternalAPIFailures:
             return [{"id": 1}]
 
         try:
-            result = await fetch_api()
-            assert False, "Should have raised"
+            await fetch_api()
+            raise AssertionError("Should have raised")
         except Exception as e:
             # Exception debe ser manejada
             assert "Rate limited" in str(e)
@@ -179,7 +179,7 @@ class TestDiskIOErrors:
                 try:
                     with open(temp_path, "w") as f:
                         f.write("test")
-                    assert False, "Should have raised"
+                    raise AssertionError("Should have raised")
                 except PermissionError:
                     pass  # Expected
         finally:
@@ -190,7 +190,7 @@ class TestDiskIOErrors:
         with patch("pathlib.Path.read_text", side_effect=FileNotFoundError("Not found")):
             try:
                 Path("/nonexistent/file.txt").read_text()
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except FileNotFoundError:
                 pass  # Expected
 
@@ -391,7 +391,7 @@ class TestStateCorruptionRecovery:
 
                 with open(temp_path) as f:
                     data = json.load(f)
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except json.JSONDecodeError:
                 # Fallback to default
                 data = {}
