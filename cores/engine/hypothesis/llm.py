@@ -98,6 +98,29 @@ def _build_ollama_payload(model: str, prompt: str, max_tokens: int = 512) -> dic
 def _call_ollama(
     prompt: str, host: str = "http://localhost:11434", model: str = "freehuntx/qwen3-coder:8b"
 ) -> str | None:
+    """Migrated to OAR — gains fallback chain, circuit breaker, quota tracking.
+
+    Falls back to direct Ollama call if OAR is not initialized.
+    """
+    try:
+        from cores.ai.runtime import TaskType, get_oar
+
+        oar = get_oar()
+        if oar._initialized:
+            response = oar.chat(prompt, task_type=TaskType.SECURITY_ANALYSIS)
+            if response and response.content:
+                return response.content
+    except Exception as e:
+        LOG.debug("OAR chat failed, falling back to direct Ollama: %s", e)
+
+    # Direct Ollama fallback (original behavior preserved)
+    return _direct_ollama_call(prompt, host=host, model=model)
+
+
+def _direct_ollama_call(
+    prompt: str, host: str = "http://localhost:11434", model: str = "freehuntx/qwen3-coder:8b"
+) -> str | None:
+    """Original direct Ollama call — fallback when OAR unavailable."""
     import urllib.error
     import urllib.request
 
