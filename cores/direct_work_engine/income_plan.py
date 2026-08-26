@@ -331,14 +331,16 @@ class UnifiedIncomePlan:
         today_low, today_high = _sum_range(now_actions)
         availability = get_available_hours("this_week")
 
-        stream_low = stream_high = 0.0
+        # Las horas son UNA sola bolsa: con N streams aceptados el ingreso por
+        # hora está acotado entre el peor y el mejor rate aceptado × disponibilidad.
+        # Sumar rate×disponibilidad por stream contaría las mismas horas N veces.
+        accepted_rates: list[float] = []
         stack: list[dict[str, Any]] = []
         for platform in apps_plan["platforms"]:
             facts = find_curated_entry_model(platform["key"])
             rate = float(facts["hourly_rate_usd"]) if facts and facts.get("hourly_rate_usd") else None
             if platform["key"] in accepted_keys and rate is not None:
-                stream_low += rate * availability * 0.5
-                stream_high += rate * availability
+                accepted_rates.append(rate)
             stack.append(
                 {
                     "key": platform["key"],
@@ -347,6 +349,12 @@ class UnifiedIncomePlan:
                     "status": platform["status"],
                 }
             )
+
+        if accepted_rates:
+            stream_low = min(accepted_rates) * availability * 0.5
+            stream_high = max(accepted_rates) * availability
+        else:
+            stream_low = stream_high = 0.0
 
         def _proj(multiplier: float, utilization_note: str) -> dict[str, Any]:
             weeks = multiplier
@@ -357,8 +365,9 @@ class UnifiedIncomePlan:
 
         note_streams = (
             f"{len(accepted_keys)} stream(s) aprobado(s); supuesto declarado: "
-            "utilización 50%–100% de la disponibilidad configurada"
-            if accepted_keys
+            "horas distribuidas entre streams — ingreso/hora acotado por el mejor "
+            "rate aceptado × disponibilidad configurada (50%–100%)"
+            if accepted_rates
             else "sin streams aprobados aún — el rango viene solo de acciones concretas"
         )
 
