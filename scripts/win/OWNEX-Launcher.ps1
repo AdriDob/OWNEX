@@ -20,8 +20,10 @@ wsl -e true
 if ($LASTEXITCODE -ne 0) { throw "WSL no disponible. Instalar con: wsl --install" }
 
 if (Test-Url $UiUrl) {
-    Write-Host "[OWNEX] Ya corriendo — abriendo UI." -ForegroundColor Green
-    Start-Process $UiUrl
+    Write-Host "[OWNEX] Ya corriendo." -ForegroundColor Green
+    # App nativa Tauri instalada → ventana propia; sino navegador.
+    $tauriExe = "$env:LOCALAPPDATA\OWNEX Alpha\OWNEX Alpha.exe"
+    if (Test-Path $tauriExe) { Start-Process $tauriExe } else { Start-Process $UiUrl }
     exit 0
 }
 
@@ -47,6 +49,14 @@ while ($sw.Elapsed.TotalSeconds -lt ($TimeoutSec * 2) -and -not (Test-Url $UiUrl
     Start-Sleep -Seconds 2
 }
 
-Write-Host "[OWNEX] Abriendo $UiUrl" -ForegroundColor Green
-Start-Process $UiUrl
+Write-Host "[OWNEX] Abriendo..." -ForegroundColor Green
+# Preferencia: app nativa Tauri (ventana propia) → fallback navegador.
+$tauriExe = "$env:LOCALAPPDATA\OWNEX Alpha\OWNEX Alpha.exe"
+if (Test-Path $tauriExe) {
+    Start-Process $tauriExe
+    Write-Host "[OWNEX] App de escritorio abierta." -ForegroundColor Green
+} else {
+    Start-Process $UiUrl
+    Write-Host "[OWNEX] UI abierta en navegador (instalá el MSI para la app nativa)." -ForegroundColor Yellow
+}
 Write-Host "[OWNEX] Listo. Para detener: OWNEX-Stop.ps1" -ForegroundColor Yellow
