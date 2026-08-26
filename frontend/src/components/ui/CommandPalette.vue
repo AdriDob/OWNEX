@@ -79,6 +79,62 @@ const filteredItems = computed(() => {
   )
 })
 
+/** Fetch live context items (top opportunity, pending work, setup) */
+async function loadContextItems() {
+  const api = (await import('@/lib/api')).api
+  const dynamic: CommandItem[] = []
+
+  try {
+    // Top income plan action
+    const plan = await api.get<{ next_action?: { title?: string; url?: string; ev_per_human_hour_usd?: number } }>('/applications/income-plan')
+    if (plan.next_action?.title) {
+      const na = plan.next_action
+      dynamic.push({
+        id: 'ctx-next-action',
+        label: `→ ${na.title}`,
+        description: na.ev_per_human_hour_usd ? `$${na.ev_per_human_hour_usd}/h — Best Next Action` : 'Best Next Action',
+        icon: ExternalLink,
+        section: '⚡ Ahora',
+        action: () => { na.url ? window.open(na.url, '_blank') : router.push('/operations/applications') },
+        keywords: ['next', 'action', 'ahora', 'mejor', 'oportunidad', 'work'],
+      })
+    }
+  } catch { /* silent */ }
+
+  try {
+    const wb = await api.get<{ ready_to_deliver: number }>('/direct-work/workbank')
+    if ((wb.ready_to_deliver || 0) > 0) {
+      dynamic.push({
+        id: 'ctx-workbank',
+        label: `${wb.ready_to_deliver} entregas listas`,
+        description: 'WorkBank — trabajos preparados para enviar',
+        icon: ExternalLink,
+        section: '⚡ Ahora',
+        action: () => router.push('/operations/work-queue'),
+        keywords: ['entregas', 'deliver', 'workbank', 'listas'],
+      })
+    }
+  } catch { /* silent */ }
+
+  try {
+    const setup = await api.get<{ complete_pct: number; next_task?: { title?: string; est_minutes?: number } | null }>('/setup/checklist/status')
+    if (!setup.complete && setup.next_task) {
+      dynamic.push({
+        id: 'ctx-setup',
+        label: `Setup: ${setup.next_task.title ?? 'completar configuración'}`,
+        description: `${setup.complete_pct}% completado`,
+        icon: Search,
+        section: '⚙️ Setup',
+        action: () => router.push('/profile-kit'),
+        keywords: ['setup', 'configurar', 'checklist', 'pendiente'],
+      })
+    }
+  } catch { /* silent */ }
+
+  // Prepend dynamic items so they appear at top
+  items.value = [...dynamic, ...items.value]
+}
+
 const groupedItems = computed(() => {
   const groups: Record<string, CommandItem[]> = {}
   for (const item of filteredItems.value) {
@@ -93,6 +149,7 @@ function openPalette() {
   query.value = ''
   selectedIndex.value = 0
   items.value = [...NAV_ITEMS]
+  loadContextItems()
   nextTick(() => {
     const input = document.getElementById('command-input')
     input?.focus()

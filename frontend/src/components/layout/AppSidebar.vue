@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useHuntStore } from '@/stores/hunt'
 import { api } from '@/lib/api'
 import type { PlatformStatus, BankAccount } from '@/lib/api'
 import {
-  Bug, Cable, ChevronLeft, ChevronRight, Cpu, Dices,
+  Bug, Cable, ChevronLeft, ChevronRight, ChevronDown, Cpu, Dices,
   DollarSign, ExternalLink, Eye, FileText, Globe,
   LayoutDashboard, Link2, MessageCircle, Search, Settings,
   Shield, Target, TrendingUp, Unlink,
@@ -34,6 +34,46 @@ const bank = ref<BankAccount | null>(null)
 const totalEarned = ref(0)
 const totalPending = ref(0)
 const loading = ref(true)
+
+// Dynamic badge counts from backend
+const badgeCounts = ref<Record<string, number>>({})
+const setupIncomplete = ref(false)
+
+async function fetchBadges() {
+  try {
+    const [targets, workbank, findings] = await Promise.allSettled([
+      api.get<{ target_count: number }>('/overview'),
+      api.get<{ ready_to_deliver: number; needs_access: number }>('/direct-work/workbank'),
+      api.get<{ finding_count: number }>('/overview'),
+    ])
+    if (targets.status === 'fulfilled') {
+      badgeCounts.value.targets = targets.value.target_count || 0
+    }
+    if (workbank.status === 'fulfilled') {
+      badgeCounts.value.workQueue = (workbank.value.ready_to_deliver || 0) + (workbank.value.needs_access || 0)
+    }
+    if (findings.status === 'fulfilled') {
+      badgeCounts.value.findings = findings.value.finding_count || 0
+    }
+
+    // Check setup state
+    const setupRes = await api.get<{ next_task: unknown; complete: boolean }>('/setup/checklist/status').catch(() => null)
+    if (setupRes) setupIncomplete.value = !setupRes.complete
+  } catch { /* silent */ }
+}
+
+function getBadge(path: string): number | null {
+  if (path === '/targets') return badgeCounts.value.targets || null
+  if (path === '/operations/work-queue') return badgeCounts.value.workQueue || null
+  if (path === '/intelligence/findings') return badgeCounts.value.findings || null
+  return null
+}
+
+function isSetupPending(path: string): boolean {
+  if (!setupIncomplete.value) return false
+  const setupPaths = ['/profile-kit', '/operations/applications', '/integrations/platforms']
+  return setupPaths.includes(path)
+}
 
 const navSections = [
   {
@@ -113,6 +153,49 @@ const platformColors: Record<string, string> = {
 
 const connectedCount = computed(() => platforms.value.filter(p => p.connected).length)
 
+// Collapsible sections: show first 4 items, rest behind toggle
+const expandedSections = ref<Set<number>>(new Set())
+const VISIBLE_PER_SECTION = 4
+
+function toggleSection(gi: number) {
+  const s = new Set(expandedSections.value)
+  if (s.has(gi)) s.delete(gi)
+  else s.add(gi)
+  expandedSections.value = s
+}
+
+function visibleItems(gi: number) {
+  const items = navSections[gi]?.items ?? []
+  if (expandedSections.value.has(gi)) return items
+  // Always show all if any item is active
+  if (items.some(item => isActive(item.path))) return items
+  return items.slice(0, VISIBLE_PER_SECTION)
+}
+
+function hiddenCount(gi: number): number {
+  const items = navSections[gi]?.items ?? []
+  if (expandedSections.value.has(gi)) return 0
+  if (items.some(item => isActive(item.path))) return 0
+  return Math.max(0, items.length - VISIBLE_PER_SECTION)
+}
+
+// Keyboard shortcuts: g+h → home, g+w → work queue, g+c → capital
+let lastKey = ''
+function handleKeydown(e: KeyboardEvent) {
+  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+  const key = e.key.toLowerCase()
+  if (lastKey === 'g') {
+    if (key === 'h') router.push('/')
+    else if (key === 'w') router.push('/operations/work-queue')
+    else if (key === 'c') router.push('/capital')
+    lastKey = ''
+    return
+  }
+  if (key === 'g' && !e.ctrlKey && !e.metaKey) { lastKey = 'g'; setTimeout(() => { lastKey = '' }, 1000); return }
+}
+onMounted(() => window.addEventListener('keydown', handleKeydown))
+onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
+
 function isActive(path: string) {
   if (path === '/') return route.path === '/'
   return route.path === path || route.path.startsWith(path + '/')
@@ -125,6 +208,7 @@ function navigate(path: string) {
 
 onMounted(async () => {
   hunt.fetchStatus()
+  fetchBadges()
   try {
     const [pRes, bRes, fRes, ctxRes] = await Promise.allSettled([
       api.get<{ platforms: PlatformStatus[] }>('/platforms/status'),
@@ -259,15 +343,23 @@ function formatCompact(n: number) {
 
     <!-- Navigation -->
     <nav class="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin">
-      <div v-for="(group, gi) in navSections" :key="gi" class="mb-3">
-        <Transition name="fade">
-          <div v-if="!collapsed" class="mb-1 flex items-center gap-2 px-2">
-            <span class="font-mono text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground">{{ group.section }}</span>
-            <span class="flex-1 h-px bg-gradient-to-r from-border to-transparent" />
-          </div>
-        </Transition>
+      <div v-for="(group, gi) in navSections" :key="gi" class="mb-1">
         <button
-          v-for="item in group.items"
+          v-if="!collapsed"
+          @click="toggleSection(gi)"
+          class="mb-0.5 flex w-full items-center gap-2 px-2 py-1 text-left group/section"
+        >
+          <span class="font-mono text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground">{{ group.section }}</span>
+          <span class="flex-1 h-px bg-gradient-to-r from-border to-transparent" />
+          <ChevronDown
+            v-if="hiddenCount(gi) > 0"
+            :class="['h-3 w-3 text-muted-foreground transition-transform', expandedSections.has(gi) ? 'rotate-180' : '']"
+          />
+        </button>
+        <!-- Collapsed: just show section label -->
+        <div v-if="collapsed" class="mb-1 h-px bg-border/40 mx-2" />
+        <button
+          v-for="item in visibleItems(gi)"
           :key="item.path"
           @click="navigate(item.path)"
           :title="collapsed ? item.name : undefined"
@@ -275,7 +367,9 @@ function formatCompact(n: number) {
             'group relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200',
             isActive(item.path)
               ? 'text-primary font-semibold'
-              : 'text-muted-foreground hover:bg-surface/30 hover:text-foreground',
+              : isSetupPending(item.path)
+                ? 'text-warning/70 hover:bg-surface/30 hover:text-foreground'
+                : 'text-muted-foreground hover:bg-surface/30 hover:text-foreground',
           ]"
         >
           <span
@@ -284,8 +378,28 @@ function formatCompact(n: number) {
           />
           <component :is="item.icon" :class="['h-4 w-4 shrink-0', isActive(item.path) ? 'scale-110 text-primary' : '']" />
           <Transition name="fade">
-            <span v-if="!collapsed" class="font-mono text-xs">{{ item.name }}</span>
+            <span v-if="!collapsed" class="flex-1 truncate font-mono text-xs">{{ item.name }}</span>
           </Transition>
+          <!-- Dynamic badge count -->
+          <span
+            v-if="!collapsed && getBadge(item.path)"
+            class="shrink-0 rounded-full bg-primary/15 px-1.5 py-0.5 font-mono text-[9px] font-bold tabular-nums text-primary"
+          >
+            {{ getBadge(item.path)! > 99 ? '99+' : getBadge(item.path) }}
+          </span>
+          <!-- Setup pending dot -->
+          <span
+            v-if="!collapsed && isSetupPending(item.path) && !getBadge(item.path)"
+            class="h-1.5 w-1.5 shrink-0 rounded-full bg-warning animate-pulse"
+          />
+        </button>
+        <!-- Show more / less toggle -->
+        <button
+          v-if="!collapsed && hiddenCount(gi) > 0"
+          @click="toggleSection(gi)"
+          class="w-full px-3 py-1 text-left font-mono text-[9px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+        >
+          +{{ hiddenCount(gi) }} más…
         </button>
       </div>
     </nav>
