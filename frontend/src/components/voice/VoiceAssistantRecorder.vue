@@ -21,6 +21,8 @@ const reply = ref<AssistantReply | null>(null)
 const sending = ref(false)
 const speaking = ref(false)
 const usedVoice = ref(false)
+/** Chat mode: sends to copilot LLM instead of quick evaluator */
+const chatMode = ref(false)
 
 function toggle() {
   if (listening.value) {
@@ -44,7 +46,27 @@ async function send(text: string) {
   if (!value) return
   sending.value = true
   try {
-    reply.value = await api.post<AssistantReply>('/voice/assistant', { text: value })
+    if (chatMode.value) {
+      // Free-form conversation via copilot LLM
+      const res = await api.post<{ response: string; error?: string }>('/copilot/chat', {
+        message: value,
+        history: [],
+        task_type: 'chat',
+      })
+      const responseText = res.response || 'No pude procesar eso en este momento.'
+      reply.value = {
+        id: Date.now(),
+        request_text: value,
+        domain: 'conversación',
+        worth_it: true,
+        worth_score: 0.5,
+        response: responseText,
+        suggested_action: '',
+      }
+    } else {
+      // Quick evaluation mode (existing behavior)
+      reply.value = await api.post<AssistantReply>('/voice/assistant', { text: value })
+    }
     usedVoice.value = true
     speaking.value = true
     const ok = await speak(reply.value.response)
@@ -77,10 +99,22 @@ onUnmounted(() => {
   <div class="voice-recorder">
     <div class="vr-header">
       <span class="vr-title">Asistente por Voz</span>
-      <span v-if="micSupported" class="vr-badge">
-        {{ provider === 'capacitor' ? 'NATIVE MIC' : 'REALTIME' }}
-      </span>
+      <div class="flex items-center gap-2">
+        <button
+          class="vr-mode-toggle"
+          :class="{ active: chatMode }"
+          @click="chatMode = !chatMode"
+          :title="chatMode ? 'Conversación libre con IA (copilot)' : 'Evaluación rápida de oportunidades'"
+        >
+          {{ chatMode ? '💬 MERLIN' : '⚡ Quick' }}
+        </button>
+        <span v-if="micSupported" class="vr-badge">
+          {{ provider === 'capacitor' ? 'NATIVE MIC' : 'REALTIME' }}
+        </span>
+      </div>
     </div>
+
+    <p v-if="chatMode" class="vr-chat-hint">Modo conversación — hablá libremente con MERLIN</p>
 
     <div v-if="!micSupported" class="vr-muted">
       Micrófono no disponible en esta vista — usá el chat de texto o Chrome móvil.
@@ -111,9 +145,18 @@ onUnmounted(() => {
       <button class="vr-send" :disabled="!textInput.trim()" @click="submitText">Enviar</button>
     </div>
 
-    <p v-if="sending" class="vr-muted">Evaluando si vale la pena...</p>
+    <p v-if="sending" class="vr-muted">{{ chatMode ? 'MERLIN pensando...' : 'Evaluando si vale la pena...' }}</p>
 
-    <div v-if="reply" class="vr-reply">
+    <div v-if="reply && chatMode" class="vr-reply">
+      <div class="vr-domain">
+        <span class="vr-worthy ok">MERLIN</span>
+        <span v-if="speaking" class="vr-speaking">🔊 hablando...</span>
+      </div>
+      <p class="vr-response">{{ reply.response }}</p>
+      <button v-if="usedVoice" class="vr-replay" @click="speak(reply.response)">Repetir audio</button>
+    </div>
+
+    <div v-if="reply && !chatMode" class="vr-reply">
       <div class="vr-domain">
         <span class="vr-worthy" :class="reply.worth_it ? 'ok' : 'no'">
           {{ reply.worth_it ? 'Vale la pena' : 'No es prioridad' }}
@@ -155,6 +198,27 @@ onUnmounted(() => {
   border: 1px solid rgba(0, 213, 255, 0.35);
   border-radius: 999px;
   padding: 3px 8px;
+}
+.vr-mode-toggle {
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: transparent;
+  color: #8b8d98;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.vr-mode-toggle.active {
+  color: #00e39a;
+  border-color: rgba(0, 227, 154, 0.4);
+  background: rgba(0, 227, 154, 0.08);
+}
+.vr-chat-hint {
+  font-size: 11px;
+  color: #00e39a;
+  margin: -4px 0 0;
 }
 .vr-mic {
   width: 64px;

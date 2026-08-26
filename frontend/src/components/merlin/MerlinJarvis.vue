@@ -190,6 +190,11 @@
         </div>
 
         <div class="sidebar-section">
+          <h4 class="section-title" v-if="!sidebarCollapsed">VOZ</h4>
+          <VoiceAssistantRecorder v-if="!sidebarCollapsed" />
+        </div>
+
+        <div class="sidebar-section">
           <h4 class="section-title" v-if="!sidebarCollapsed">COMMANDS</h4>
           <div class="quick-commands">
             <button @click="executeCommand('analyze')" class="quick-command-btn">
@@ -214,6 +219,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
 import axios from 'axios'
+import VoiceAssistantRecorder from '@/components/voice/VoiceAssistantRecorder.vue'
 
 const isOnline = ref(true)
 const isProcessing = ref(false)
