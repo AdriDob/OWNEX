@@ -772,6 +772,26 @@ async def direct_work_market_report() -> dict[str, Any]:
     return report
 
 
+@router.get("/max-effort-scenarios")
+async def max_effort_scenarios(hours_per_week: float = 60.0) -> dict[str, Any]:
+    """Bandas P10/P50/P90 del año 1 en modo contract_dev_first.
+
+    Basadas en rates curados reales (contract_sources.py). Escenarios
+    probabilísticos — no promesas. La calibración semanal las ajusta.
+    """
+    from cores.direct_work_engine.max_effort_scenarios import (
+        compute_max_effort_scenarios,
+        summarize_for_command_center,
+    )
+
+    scenarios = compute_max_effort_scenarios(hours_per_week=max(5.0, min(80.0, hours_per_week)))
+    return {
+        "generated_at": __import__("datetime").datetime.now(__import__("datetime").UTC).isoformat(),
+        **summarize_for_command_center(scenarios),
+        "scenarios": {k: v.as_dict() for k, v in scenarios.items()},
+    }
+
+
 @router.post("/income-projector")
 async def direct_work_income_projector(request: IncomeProjectionRequest) -> dict[str, Any]:
     """Honest time-to-income projection: work income → capital → portfolio income.
