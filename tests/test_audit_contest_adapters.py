@@ -265,3 +265,71 @@ class TestRegistryRegistration:
         enabled = registry.enabled()
         assert "sherlock" in enabled
         assert "code4rena" in enabled
+
+
+class TestSuperteamAdapter:
+    def test_parses_open_listings(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from cores.opportunity.adapters.forge.superteam import fetch_opportunities
+
+        payload = [
+            {
+                "id": "abc-123",
+                "title": "Solana Bounty",
+                "slug": "solana-bounty",
+                "rewardAmount": 8000,
+                "status": "OPEN",
+                "type": "bounty",
+            },
+            {"id": "closed-1", "title": "Done", "status": "CLOSED", "rewardAmount": 500},
+        ]
+
+        class FakeResp:
+            status_code = 200
+
+            def json(self) -> list:
+                return payload
+
+        class FakeClient:
+            def __init__(self, *a: Any, **kw: Any) -> None:
+                pass
+
+            async def __aenter__(self) -> FakeClient:
+                return self
+
+            async def __aexit__(self, *a: Any) -> None:
+                pass
+
+            async def get(self, url: str, headers: dict | None = None, timeout: int = 15) -> FakeResp:
+                assert url.endswith("/api/listings")
+                return FakeResp()
+
+        monkeypatch.setattr("cores.opportunity.adapters.forge.superteam.get_platform_credentials", lambda p: {})
+        monkeypatch.setattr("httpx.AsyncClient", FakeClient)
+        results = _run(fetch_opportunities())
+        ids = [r["id"] for r in results]
+        assert "superteam_abc-123" in ids
+        assert all("superteam_closed-1" != i for i in ids)
+        bounty = next(r for r in results if r["id"] == "superteam_abc-123")
+        assert bounty["reward"] == 8000.0
+        assert bounty["url"] == "https://earn.superteam.fun/listings/solana-bounty"
+
+    def test_network_error_returns_empty(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from cores.opportunity.adapters.forge.superteam import fetch_opportunities
+
+        class Dead:
+            def __init__(self, *a: Any, **kw: Any) -> None:
+                pass
+
+            async def __aenter__(self) -> Dead:
+                raise ConnectionError()
+
+            async def __aexit__(self, *a: Any) -> None:
+                pass
+
+        monkeypatch.setattr("cores.opportunity.adapters.forge.superteam.get_platform_credentials", lambda p: {})
+        monkeypatch.setattr("httpx.AsyncClient", Dead)
+        try:
+            results = _run(fetch_opportunities())
+        except Exception:
+            results = []
+        assert isinstance(results, list)

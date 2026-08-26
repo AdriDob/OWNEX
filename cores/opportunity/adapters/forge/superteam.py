@@ -22,11 +22,10 @@ async def fetch_opportunities() -> list[dict[str, Any]]:
         if creds.get("api_key"):
             headers["Authorization"] = f"Bearer {creds['api_key']}"
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(follow_redirects=True) as client:
             resp = await client.get(
-                f"{API_BASE}/bounties",
+                f"{API_BASE}/listings",
                 headers=headers,
-                params={"limit": 20, "status": "open"},
                 timeout=15,
             )
             if resp.status_code != 200:
@@ -34,25 +33,28 @@ async def fetch_opportunities() -> list[dict[str, Any]]:
                 return []
 
             data = resp.json()
-            bounties = data.get("bounties", data.get("data", []))
+            bounties = data if isinstance(data, list) else data.get("data", data.get("listings", []))
 
             results = []
             for bounty in bounties[:20]:
+                if str(bounty.get("status", "")).upper() != "OPEN":
+                    continue
+                slug = bounty.get("slug") or bounty.get("id", "")
                 results.append(
                     {
                         "id": f"superteam_{bounty.get('id', bounty.get('slug'))}",
                         "name": bounty.get("title") or bounty.get("name", "Superteam Bounty"),
                         "description": bounty.get("description") or "",
                         "platform": "superteam",
-                        "url": bounty.get("url") or bounty.get("applyUrl", ""),
-                        "reward": float(bounty.get("rewardUsd", bounty.get("reward", 0))),
+                        "url": f"https://earn.superteam.fun/listings/{slug}" if slug else "",
+                        "reward": float(bounty.get("rewardAmount", bounty.get("maxRewardAsk", 0)) or 0),
                         "effort_hours": float(bounty.get("estimatedHours", 8)),
-                        "tags": bounty.get("tags", bounty.get("skills", ["web3", "solana"])),
+                        "tags": bounty.get("skills", ["web3", "solana"]),
                         "cycle": "forge",
                         "source_type": "dev_bounty",
                         "source_name": "superteam",
                         "metadata": {"original": bounty},
-                        "created_at": bounty.get("createdAt", bounty.get("publishedAt", "")),
+                        "created_at": bounty.get("createdAt", bounty.get("deadline", "")),
                     }
                 )
 
