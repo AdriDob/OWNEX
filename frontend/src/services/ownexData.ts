@@ -1523,3 +1523,34 @@ export async function fetchEmergencyMode(): Promise<EmergencyModeState> {
     return { active: false }
   }
 }
+
+// ── Daily Decision Digest ──
+
+export interface DigestDecision {
+  type: string
+  title: string
+  platform?: string
+  reward?: number
+  severity?: string
+  action: string
+  url?: string
+  priority: number
+}
+
+export interface DailyDigestState {
+  generated_at: string
+  decisions: DigestDecision[]
+  money: {
+    ready_to_deliver: number
+    public_ready: number
+    total_potential_usd: number
+    best_target?: { title: string; reward: number }
+  }
+  best_action: DigestDecision | null
+  system_health: { services: Array<{ name: string; status: string }> }
+  counts: { pending_decisions: number }
+}
+
+export async function fetchDailyDigest(): Promise<DailyDigestState> {
+  return api.get<DailyDigestState>('/daily-digest')
+}
