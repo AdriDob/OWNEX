@@ -330,6 +330,17 @@ def get_security_jobs() -> list[JobDefinition]:
         )
     )
 
+    # CoderAgent autopilot — auto-execute dev bounties ≤ $200 every hour
+    jobs.append(
+        _discovery_job(
+            job_id="coder_autopilot",
+            app_id="security",
+            handler="core.cycles.tasks_coder_autopilot:run_coder_autopilot",
+            seconds=3600,
+            metadata={"cycle": "security", "type": "coder_autopilot"},
+        )
+    )
+
     # Security bounty platform discovery — every 2 hours
     jobs.append(
         _discovery_job(
