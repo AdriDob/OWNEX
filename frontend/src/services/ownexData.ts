@@ -259,6 +259,56 @@ export async function fetchIncomePlan(): Promise<IncomePlanState> {
   return api.get<IncomePlanState>('/applications/income-plan')
 }
 
+// ── Platform Operations (onboarding + ranking) ──
+
+export interface OnboardingStep {
+  id: string
+  title: string
+  detail: string
+  done: boolean
+  est_minutes: number
+  human_required: boolean
+}
+
+export interface PlatformOnboarding {
+  platform: string
+  name: string
+  url: string
+  status: string
+  readiness_pct: number
+  total_steps: number
+  completed_steps: number
+  checklist: OnboardingStep[]
+  next_action: { step_id: string; title: string; detail: string; est_minutes: number; url: string } | null
+  payment_ready: boolean
+  pay_range: string
+  payout: string
+  why: string
+}
+
+export interface PlatformRankingItem {
+  platform: string
+  name: string
+  readiness_pct: number
+  documented_rate_usd_h: number | null
+  effective_rate_usd_h: number | null
+  status: string
+  next_action: { step_id: string; title: string; detail: string; est_minutes: number; url: string } | null
+  recommendation: 'WORK_HERE' | 'FINISH_SETUP' | 'START_ONBOARDING' | 'ACTIVE_STREAM'
+}
+
+export async function fetchPlatformOnboarding(platform: string): Promise<PlatformOnboarding> {
+  return api.get<PlatformOnboarding>(`/applications/${platform}/onboarding`)
+}
+
+export async function fetchAllOnboarding(): Promise<{ platforms: PlatformOnboarding[]; count: number }> {
+  return api.get<{ platforms: PlatformOnboarding[]; count: number }>('/applications/onboarding/all')
+}
+
+export async function fetchPlatformRanking(): Promise<{ ranking: PlatformRankingItem[]; top_recommendation: PlatformRankingItem | null; count: number }> {
+  return api.get<{ ranking: PlatformRankingItem[]; top_recommendation: PlatformRankingItem | null; count: number }>('/applications/platform-ranking')
+}
+
 async function fetchSystemStatus(): Promise<AgentStatus[]> {
   // Honest mapping: no hardcoded fallback fleet — backend down must be
   // visible, and an empty service list renders as empty state.
@@ -1355,7 +1405,7 @@ export async function fetchCapitalSnapshot(): Promise<CapitalSnapshot> {
   return api.get<CapitalSnapshot>('/financial/capital/snapshot')
 }
 
-// ── AI Providers (settings/ai + OAR) ──
+// ── AI Providers (settings/ai + OAR + resilience) ──
 
 export interface AiProviderStatus {
   id: string
@@ -1363,6 +1413,31 @@ export interface AiProviderStatus {
   available: boolean
   active?: boolean
   model?: string
+}
+
+export interface AiResilienceMode {
+  mode: 'normal' | 'degraded' | 'offline_ai'
+  since: string
+  reason: string
+}
+
+export interface AiQuotaSnapshot {
+  rpm_observed: number
+  tokens_today: number
+  day: string
+  limits: { rpm?: number | null; rpd?: number | null; tpd?: number | null }
+  limits_known: boolean
+}
+
+export interface OarStatus {
+  initialized: boolean
+  providers?: Array<{ id?: string; [k: string]: unknown }>
+  message?: string
+  resilience?: {
+    mode?: AiResilienceMode | { mode: string; reason: string }
+    recent_events?: Array<{ ts: string; mode: string; reason: string; healthy: string[] }>
+    quotas?: Record<string, AiQuotaSnapshot>
+  }
 }
 
 export interface AiCenterState {
@@ -1375,7 +1450,7 @@ export interface AiCenterState {
     active_provider: string
     available: boolean
   } | null
-  oar: { initialized: boolean; providers?: unknown[]; message?: string } | null
+  oar: OarStatus | null
   errors: string[]
 }
 

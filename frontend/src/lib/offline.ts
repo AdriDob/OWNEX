@@ -243,7 +243,8 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
             window.dispatchEvent(new CustomEvent('sw-update-available'));
           }
         });
-      });
+      }
+    });
 
     // Listen for messages from SW
     navigator.serviceWorker.addEventListener('message', (event) => {
