@@ -35,7 +35,7 @@ class AIBountyEventPublisher:
             logger.debug("EventBus unavailable — dropping event %s", event_type)
             return
         try:
-            bus.publish(event_type, payload)
+            bus.publish(event_type, **payload)
         except Exception as exc:
             logger.warning("Failed to publish %s: %s", event_type, exc)
 
