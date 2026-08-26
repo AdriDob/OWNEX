@@ -75,7 +75,7 @@ class TestFitEvaluation:
 class TestApplicationTracking:
     def test_track_and_retrieve(self, integration):
         eval_result = integration.evaluate_fit(SAMPLE_OPP, SAMPLE_PROFILE)
-        app = integration.track_application(eval_result, url="https://example.com/job")
+        integration.track_application(eval_result, url="https://example.com/job")
 
         pipeline = integration.get_pipeline()
         assert "applied" in pipeline
