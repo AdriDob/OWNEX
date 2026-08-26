@@ -1,0 +1,621 @@
+"""CATEYE Desktop — single executable entry point (Windows primary).
+
+Architecture:
+  - Backend runs IN-PROCESS (no child processes, no multi-processing).
+  - Frontend assets served directly by the backend (no separate server).
+  - No process supervisor, no restart loops.
+  - Optional system tray (never blocks startup).
+  - Primary target: Windows 11. Also works on macOS and Linux (unmaintained).
+
+Startup:
+  BOOT -> Set env vars -> Start API (in-process uvicorn) -> Mount frontend on API
+  -> Wait healthy -> Open browser -> System tray -> Event loop
+
+Shutdown:
+  SIGINT/SIGTERM/tray quit -> Stop uvicorn -> Dispose DB -> Stop tray -> Exit
+
+PyInstaller produces: dist/CATEYE/CATEYE.exe on Windows
+
+Path strategy:
+  dev:    BASE_DIR = Path(__file__).resolve().parent  (project root)
+  frozen: BASE_DIR = sys._MEIPASS (PyInstaller temp extraction)
+  exe:    BASE_DIR = Path(sys.executable).resolve().parent (for data alongside .exe)
+"""
+
+from __future__ import annotations
+
+import asyncio
+import contextlib
+import logging
+import logging.handlers
+import os
+import signal
+import subprocess
+import sys
+import threading
+import time
+from pathlib import Path
+
+import webview
+
+from cores.env.config import get_config
+
+# Reconfigure stdout/stderr for UTF-8 (Windows console defaults to cp1252)
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8")
+        except Exception as exc:
+            logging.getLogger("cateye.desktop").warning("Failed to reconfigure stdout/stderr encoding: %s", exc)
+
+_BOOT = "[BOOT]"
+_API = "[API]"
+_FRONTEND = "[FRONTEND]"
+_HEALTHY = "[HEALTHY]"
+_BROWSER = "[BROWSER]"
+_TRAY = "[TRAY]"
+_READY = "[READY]"
+_SHUTDOWN = "[SHUTDOWN]"
+
+logger = logging.getLogger("cateye.desktop")
+_lifecycle_logger: logging.Logger | None = None
+
+
+# ── Error dialog (visible even without console) ──────────────────────
+
+
+def _show_error(title: str, message: str) -> None:
+    try:
+        import ctypes
+
+        ctypes.windll.user32.MessageBoxW(0, message, title, 0x10)
+    except Exception:
+        try:
+            import tkinter.messagebox as mb
+
+            mb.showerror(title, message)
+        except Exception as exc:
+            _lifecycle("[ERROR]", "Fallback error dialog failed: %s", exc)
+
+
+# ── Logging ──────────────────────────────────────────────────────────
+
+
+def _setup_logging(dev: bool) -> str:
+    if getattr(sys, "frozen", False) and os.name == "nt":
+        from cores.platform.system import get_log_dir as _get_log_dir
+
+        log_dir = _get_log_dir()
+    else:
+        log_dir = Path.cwd() / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    cateye_log = log_dir / "cateye.log"
+    lifecycle_log = log_dir / "lifecycle.log"
+    level = logging.DEBUG if dev else logging.INFO
+
+    root = logging.getLogger()
+    root.setLevel(level)
+    fmt = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
+
+    fh = logging.handlers.RotatingFileHandler(cateye_log, maxBytes=5 * 1024 * 1024, backupCount=3)
+    fh.setFormatter(fmt)
+    root.addHandler(fh)
+
+    if dev:
+        sh = logging.StreamHandler(sys.stdout)
+        sh.setFormatter(logging.Formatter("[CATEYE] %(message)s"))
+        root.addHandler(sh)
+
+    global _lifecycle_logger
+    _lifecycle_logger = logging.getLogger("cateye.desktop.lifecycle")
+    _lifecycle_logger.setLevel(logging.INFO)
+    _lifecycle_logger.propagate = False
+    lh = logging.handlers.RotatingFileHandler(lifecycle_log, maxBytes=2 * 1024 * 1024, backupCount=2)
+    lh.setFormatter(logging.Formatter("%(asctime)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S"))
+    lh.setLevel(logging.INFO)
+    _lifecycle_logger.addHandler(lh)
+
+    return str(lifecycle_log)
+
+
+def _lifecycle(tag: str, msg: str, *args) -> None:
+    text = msg % args if args else msg
+    logger.info("%s %s", tag, text)
+    if _lifecycle_logger:
+        _lifecycle_logger.info("%s %s", tag, text)
+
+
+# ── Server thread ────────────────────────────────────────────────────
+
+
+class ServerThread:
+    """Runs uvicorn in a background daemon thread."""
+
+    def __init__(self, host: str, port: int):
+        self.host = host
+        self.port = port
+        self._server: object | None = None
+        self._thread: threading.Thread | None = None
+
+    def start(self, app) -> None:
+        self._thread = threading.Thread(target=self._run, args=(app,), daemon=True, name="cateye-server")
+        self._thread.start()
+
+    def _run(self, app) -> None:
+        from uvicorn import Config, Server
+
+        config = Config(
+            app,
+            host=self.host,
+            port=self.port,
+            log_level="warning",
+            access_log=False,
+            log_config=None,
+        )
+        self._server = Server(config)
+        asyncio.run(self._server.serve())
+
+    def stop(self) -> None:
+        if self._server is not None:
+            self._server.should_exit = True
+
+
+# ── Health helpers ───────────────────────────────────────────────────
+
+
+def _wait_for_port(host: str, port: int, timeout: float = 15.0) -> bool:
+    import socket
+
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            with socket.create_connection((host, port), timeout=1):
+                return True
+        except (ConnectionRefusedError, OSError):
+            time.sleep(0.3)
+    return False
+
+
+def _wait_for_health(host: str, port: int, timeout: float = 30.0) -> bool:
+    import httpx
+
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            r = httpx.get(f"http://{host}:{port}/api/health", timeout=2.0)
+            if r.status_code == 200:
+                return True
+            elif r.status_code >= 500:
+                _lifecycle(_HEALTHY, "Health check returned %d: %s", r.status_code, r.text[:200])
+        except Exception as exc:
+            _lifecycle(_HEALTHY, "Health check error: %s", exc)
+        time.sleep(0.5)
+    return False
+
+
+# ── Frontend mounting ────────────────────────────────────────────────
+
+
+def _mount_frontend(app) -> bool:
+    import logging
+    import mimetypes
+
+    from fastapi.responses import FileResponse, JSONResponse
+
+    from cores.platform.system import get_frontend_dist_dir
+
+    mimetypes.add_type("application/javascript", ".js")
+    mimetypes.add_type("text/css", ".css")
+    mimetypes.add_type("image/svg+xml", ".svg")
+
+    dist_dir: Path = get_frontend_dist_dir()
+    if not dist_dir.is_dir():
+        _lifecycle(_FRONTEND, "Frontend dist not found at %s", dist_dir)
+        return False
+
+    index_path = dist_dir / "index.html"
+    log = logging.getLogger("cateye.frontend")
+
+    @app.get("/")
+    async def serve_root():
+        log.info("serve_root called")
+        if index_path.is_file():
+            log.info("  serving index.html")
+            return FileResponse(str(index_path))
+        log.info("  404 - index.html not found")
+        return JSONResponse(status_code=404, content={"detail": "Not Found"})
+
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        log.info("serve_frontend called: full_path=%s", full_path)
+        if full_path:
+            file_path = dist_dir / full_path
+            if file_path.is_file():
+                log.info("  serving file: %s", file_path)
+                return FileResponse(str(file_path))
+        if index_path.is_file():
+            log.info("  serving index.html")
+            return FileResponse(str(index_path))
+        log.info("  404 - nothing found")
+        return JSONResponse(status_code=404, content={"detail": "Not Found"})
+
+    # Log the number of routes after adding ours
+    mount_count = sum(1 for r in app.routes if getattr(r, "path", "") in ("/", "/{full_path:path}"))
+    _lifecycle(_FRONTEND, "Frontend mounted from %s (routes: %d)", dist_dir, mount_count)
+    return True
+
+
+# ── Desktop session (auto-auth) ──────────────────────────────────────
+
+
+def _create_desktop_session(port: int) -> None:
+    """Create a desktop session token so the frontend can call private APIs.
+
+    The token is stored in settings (session_token) and is then passed
+    to the frontend via query param in the dashboard URL. This avoids
+    requiring manual login on a local desktop installation.
+    """
+    from cores.auth.auth_manager import get_auth_manager
+    from desktop.settings import get_settings
+
+    settings = get_settings()
+    device_id = settings.get("device_id")
+    _lifecycle(_BOOT, "Session — device_id from settings: %s", device_id)
+    if not device_id:
+        try:
+            device_id = settings.ensure_device_id()
+            _lifecycle(_BOOT, "Session — new device_id created: %s", device_id)
+        except Exception as exc:
+            _lifecycle(_BOOT, "Device ID creation failed (non-critical): %s", exc)
+            return
+
+    try:
+        manager = get_auth_manager()
+        _lifecycle(_BOOT, "Session — calling manager.authenticate (device=%s)", device_id)
+        result = manager.authenticate(
+            device_id,
+            {
+                "desktop": True,
+                "port": port,
+                "frozen": getattr(sys, "frozen", False),
+            },
+        )
+        _lifecycle(_BOOT, "Session — authenticate result keys: %s", list(result.keys()) if result else "NONE")
+        if result and "token" in result:
+            token_preview = result["token"][:20] + "..." if len(result["token"]) > 20 else result["token"]
+            _lifecycle(_BOOT, "Session — token obtained: %s", token_preview)
+            settings.set_auth_tokens(
+                session_token=result["token"],
+                refresh_token=result.get("refresh", ""),
+            )
+            # Verify token was stored
+            stored = settings.get("session_token")
+            _lifecycle(_BOOT, "Session — stored token check: %s", "OK" if stored else "MISSING")
+            _lifecycle(_BOOT, "Desktop session created (device=%s)", device_id)
+        else:
+            _lifecycle(_BOOT, "Session — authenticate returned no token (result=%s)", result)
+    except Exception as exc:
+        _lifecycle(_BOOT, "Session creation failed (non-critical): %s", exc)
+        import traceback
+
+        _lifecycle(_BOOT, "Session — traceback: %s", traceback.format_exc())
+
+
+# ── Settings / first run ─────────────────────────────────────────────
+
+
+def _init_settings() -> int:
+    from desktop.first_run import run_first_time
+    from desktop.settings import get_settings
+
+    settings = get_settings()
+    port = settings.get("backend_port", 8000)
+    if not isinstance(port, int) or not (1024 <= port <= 65535):
+        _lifecycle(_BOOT, "Invalid backend_port %r, resetting to 8000", port)
+        port = 8000
+    run_first_time(settings)
+    settings.record_boot()
+    return port
+
+
+# ── Desktop window ──────────────────────────────────────────────────
+
+
+def _open_desktop_window(host: str, port: int) -> bool:
+    """Try to open a pywebview desktop window.
+
+    Returns True if the window was shown and the user closed it normally.
+    Returns False if the window could not be created (e.g. missing WebView2)
+    or if webview.start() returned without blocking — caller should fall
+    back to browser mode.
+    """
+    from desktop.browser_opener import build_dashboard_url
+    from desktop.settings import get_settings
+
+    settings = get_settings()
+    url = build_dashboard_url(
+        port=port,
+        token=settings.get("session_token"),
+        device_id=settings.get("device_id"),
+    )
+    _lifecycle(_BROWSER, "Opening desktop window -> %s", url)
+    user_closed: threading.Event = threading.Event()
+    start_ts = time.time()
+
+    try:
+        _lifecycle(_BROWSER, "webview.create_window() starting...")
+        window = webview.create_window(
+            "CATEYE",
+            url=url,
+            width=1400,
+            height=900,
+            resizable=True,
+            min_size=(1024, 600),
+        )
+        window.closed += lambda: (user_closed.set(), _lifecycle(_SHUTDOWN, "Desktop window closed"))
+        _lifecycle(_BROWSER, "webview.start() starting...")
+        webview.start(storage_path=None)
+        elapsed = time.time() - start_ts
+        _lifecycle(_BROWSER, "webview.start() returned after %.2fs (user_closed=%s)", elapsed, user_closed.is_set())
+
+        if elapsed < 2.0 and not user_closed.is_set():
+            _lifecycle(
+                _BROWSER,
+                "Desktop window unavailable — "
+                "webview returned in %.2fs without user action "
+                "(likely WebView2 runtime missing)",
+                elapsed,
+            )
+            return False
+
+        return True
+    except Exception as exc:
+        _lifecycle(_BROWSER, "Desktop window failed (%s), falling back to browser", exc)
+        return False
+
+
+def _open_browser(port: int) -> None:
+    from desktop.browser_opener import build_dashboard_url, open_dashboard
+    from desktop.notifications import notify_dashboard_ready
+    from desktop.settings import get_settings
+
+    settings = get_settings()
+    ctx: dict = {
+        "port": port,
+        "token": settings.get("session_token"),
+        "device_id": settings.get("device_id"),
+    }
+    tab = settings.get("last_dashboard_tab")
+    if tab:
+        ctx["tab"] = tab
+    tid = settings.get("last_opened_target")
+    if tid:
+        ctx["target_id"] = int(tid)
+    if settings.get("onboarding_complete") is False:
+        ctx["onboarding"] = True
+    if open_dashboard(**ctx):
+        _lifecycle(_BROWSER, "Dashboard opened in browser")
+        notify_dashboard_ready()
+        return
+    _lifecycle(_BROWSER, "Failed to open browser")
+    _lifecycle(_BROWSER, "Dashboard URL: %s", build_dashboard_url(port=port))
+
+
+# ── Tray (optional, never blocks) ────────────────────────────────────
+
+
+def _start_tray(server: ServerThread, shutdown_event: threading.Event):
+    from desktop.browser_opener import open_dashboard
+    from desktop.settings import get_settings
+    from desktop.tray import TrayController
+
+    settings = get_settings()
+
+    def on_quit():
+        _lifecycle(_SHUTDOWN, "Quit from tray")
+        settings.record_shutdown()
+        shutdown_event.set()
+
+    def on_stop_service():
+        try:
+            if sys.platform == "win32":
+                subprocess.run(["net", "stop", "CATEYE"], shell=True, check=False)
+            else:
+                subprocess.run(["systemctl", "stop", "ownex"], check=False)
+        except Exception as exc:
+            _lifecycle(_TRAY, "Stop service failed: %s", exc)
+
+    def on_start_service():
+        try:
+            if sys.platform == "win32":
+                subprocess.run(["net", "start", "CATEYE"], shell=True, check=False)
+            else:
+                subprocess.run(["systemctl", "start", "ownex"], check=False)
+        except Exception as exc:
+            _lifecycle(_TRAY, "Start service failed: %s", exc)
+
+    api_port = server.port
+    try:
+        tray = TrayController(
+            on_open_dashboard=lambda: open_dashboard(
+                port=api_port,
+                token=settings.get("session_token"),
+                device_id=settings.get("device_id"),
+                tab=settings.get("last_dashboard_tab"),
+                target_id=settings.get("last_opened_target"),
+            ),
+            on_open_daily_mode=lambda: open_dashboard(
+                port=api_port,
+                path="/daily",
+                token=settings.get("session_token"),
+                device_id=settings.get("device_id"),
+            ),
+            on_restart=lambda: _lifecycle(_BOOT, "Restart not supported in single-process mode"),
+            on_stop_service=on_stop_service,
+            on_start_service=on_start_service,
+            on_check_status=lambda: f"Running on port {server.port}",
+            on_quit=on_quit,
+        )
+        tray.start()
+        _lifecycle(_TRAY, "System tray initialized")
+        return tray
+    except Exception as exc:
+        _lifecycle(_TRAY, "Tray init failed (non-fatal): %s", exc)
+        return None
+
+
+# ── Main ─────────────────────────────────────────────────────────────
+
+
+def main() -> None:
+    dev = "--dev" in sys.argv
+    no_tray = "--no-tray" in sys.argv
+    browser_mode = "--browser" in sys.argv
+
+    _setup_logging(dev)
+    _lifecycle(_BOOT, "CATEYE Desktop — PID: %d", os.getpid())
+    _lifecycle(
+        _BOOT, "Frozen: %s, Python: %s, OS: %s", getattr(sys, "frozen", False), sys.version.split()[0], sys.platform
+    )
+
+    # ── Set env before imports that read them ────────────────────────
+    if getattr(sys, "frozen", False):
+        exe_dir = Path(sys.executable).resolve().parent
+        base_dir = str(getattr(sys, "_MEIPASS", exe_dir))
+    else:
+        base_dir = str(Path(__file__).resolve().parent.parent)
+
+    from cores.platform.system import get_db_path
+
+    db_path = get_db_path()
+
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    os.environ["DATABASE_URL"] = f"sqlite:///{db_path}"
+    os.environ["CATEYE_BASE_DIR"] = base_dir
+    os.environ["CATEYE_DESKTOP"] = "1"
+
+    # ── Init settings / first-run ───────────────────────────────────
+    port = _init_settings()
+    host = "127.0.0.1"
+    _lifecycle(_BOOT, "Backend port: %d", port)
+
+    # Set up signal handlers early (before server/threads start)
+    shutdown_event: threading.Event = threading.Event()
+
+    def _handle_signal(signum, frame):
+        if not shutdown_event.is_set():
+            _lifecycle(_SHUTDOWN, "Signal %d received", signum)
+        shutdown_event.set()
+
+    signal.signal(signal.SIGINT, _handle_signal)
+    signal.signal(signal.SIGTERM, _handle_signal)
+
+    # ── Import app (env must be set first) ───────────────────────────
+    _lifecycle(_API, "Starting API server")
+    from api.main import app as api_app
+
+    # ── Check for rollback after failed update ───────────────────────
+    from desktop.updater import check_and_rollback_if_needed, mark_update_success
+
+    if check_and_rollback_if_needed():
+        _lifecycle(_BOOT, "Rolled back to previous version after failed update")
+    # Will be cleared after a successful boot
+    threading.Thread(
+        target=lambda: (time.sleep(15), mark_update_success() if callable(mark_update_success) else None), daemon=True
+    ).start()
+
+    # Mount frontend static assets on the same app
+    _mount_frontend(api_app)
+
+    # ── Start uvicorn in background thread ───────────────────────────
+    server = ServerThread(host=host, port=port)
+    server.start(api_app)
+    _lifecycle(_API, "Server thread started on %s:%d", host, port)
+
+    if not _wait_for_port(host, port):
+        _lifecycle(_API, "Server failed to bind on %s:%d", host, port)
+        _show_error(
+            "CATEYE - Error de inicio",
+            f"El servidor no pudo iniciar en {host}:{port}.\nVerifica que el puerto no esté ocupado por otro proceso.",
+        )
+        sys.exit(1)
+    _lifecycle(_API, "Server listening on %s:%d", host, port)
+
+    if not _wait_for_health(host, port):
+        lifecycle_path = (
+            _lifecycle_logger.handlers[0].baseFilename
+            if _lifecycle_logger and _lifecycle_logger.handlers
+            else "logs/lifecycle.log"
+        )
+        _lifecycle(_HEALTHY, "Health check timed out — revisar lifecycle.log")
+        _show_error(
+            "CATEYE - Error de inicio", f"El servidor backend no responde.\nRevisa los detalles en:\n{lifecycle_path}"
+        )
+        sys.exit(1)
+    _lifecycle(_HEALTHY, "Backend healthy on port %d", port)
+
+    # ── Background update check ──────────────────────────────────────
+    def _background_update_check():
+        try:
+            from desktop.updater import check_for_updates
+
+            release = check_for_updates()
+            if release:
+                _lifecycle(_BOOT, "Update available: v%s (current: v%s)", release.version, "1.0.0")
+        except Exception as exc:
+            _lifecycle(_BOOT, "Update check failed (non-fatal): %s", exc)
+
+    threading.Thread(target=_background_update_check, daemon=True).start()
+
+    # ── Create desktop session (auto-auth for local use) ─────────────
+    _create_desktop_session(port)
+
+    # ── UI mode: desktop window or browser ──────────────────────────
+    tray = None
+
+    if browser_mode:
+        _cfg = get_config()
+        _headless = _cfg.smoke_test or _cfg.portable_test or _cfg.installer_test
+        if not _headless:
+            _open_browser(port)
+        if not no_tray:
+            tray = _start_tray(server, shutdown_event)
+        _lifecycle(_READY, "CATEYE Desktop ready (browser mode)")
+        try:
+            shutdown_event.wait()
+        except KeyboardInterrupt:
+            _lifecycle(_SHUTDOWN, "KeyboardInterrupt")
+    else:
+        _lifecycle(_READY, "CATEYE Desktop ready (desktop window)")
+        if not _open_desktop_window(host, port):
+            _lifecycle(_BOOT, "Desktop UI unavailable, browser mode activated.")
+            _open_browser(port)
+            if not no_tray:
+                tray = _start_tray(server, shutdown_event)
+            _lifecycle(_READY, "CATEYE Desktop ready (browser fallback)")
+            try:
+                shutdown_event.wait()
+            except KeyboardInterrupt:
+                _lifecycle(_SHUTDOWN, "KeyboardInterrupt")
+
+    # ── Graceful shutdown ───────────────────────────────────────────
+    _lifecycle(_SHUTDOWN, "Stopping server...")
+    server.stop()
+
+    if tray is not None:
+        with contextlib.suppress(Exception):
+            tray.stop()
+
+    try:
+        from database.db import engine
+
+        engine.dispose()
+    except Exception as exc:
+        logger.warning("Failed to dispose database engine: %s", exc)
+
+    _lifecycle(_SHUTDOWN, "CATEYE Desktop stopped")
+
+
+if __name__ == "__main__":
+    main()

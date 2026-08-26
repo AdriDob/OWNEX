@@ -1,0 +1,26 @@
+{
+  "name": "@ownex/contracts",
+  "version": "1.0.0-alpha",
+  "description": "OWNEX Shared Contracts - Single Source of Truth for Desktop, Mobile, Watch, Backend",
+  "main": "src/types/index.ts",
+  "types": "src/types/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "ownex",
+    "contracts",
+    "types",
+    "shared"
+  ],
+  "author": "OWNEX Team",
+  "license": "Proprietary",
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  }
+}
