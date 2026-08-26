@@ -21,6 +21,44 @@ const capital = ref<CapitalSnapshot | null>(null)
 const aiOk = ref<boolean | null>(null)
 const platformRanking = ref<PlatformRankingItem[]>([])
 
+/** Daily return digest — what changed since last visit. */
+interface SessionDigest {
+  newOpportunities: number
+  pendingUsd: number
+  aiHealthy: boolean
+  hoursSince: number
+}
+
+const digest = ref<SessionDigest | null>(null)
+
+function computeDigest(): void {
+  const LAST_VISIT_KEY = 'ownex_last_visit'
+  const lastVisit = Number(localStorage.getItem(LAST_VISIT_KEY) || '0')
+  const now = Date.now()
+  const hoursSince = (now - lastVisit) / (1000 * 60 * 60)
+  localStorage.setItem(LAST_VISIT_KEY, String(now))
+
+  // Only show digest if >4h since last visit
+  if (!lastVisit || hoursSince < 4) { digest.value = null; return }
+
+  try {
+    Promise.allSettled([
+      api.get<{ finding_count?: number; target_count?: number }>('/overview'),
+      api.get<{ pending_amount?: number }>('/revenue/summary'),
+    ]).then(([findRes, revRes]) => {
+      const findings = findRes.status === 'fulfilled' ? (findRes.value.finding_count || 0) : 0
+      const pending = revRes.status === 'fulfilled' ? (revRes.value.pending_amount || 0) : 0
+      if (!findings && !pending) { digest.value = null; return }
+      digest.value = {
+        newOpportunities: findings,
+        pendingUsd: pending,
+        aiHealthy: aiOk.value !== false,
+        hoursSince: Math.round(hoursSince),
+      }
+    })
+  } catch { digest.value = null }
+}
+
 /** Dinero REALIZADO (cobrado/pagado) — separado por contrato del esperado.
  *  Fuentes: /payment-tracker (webhooks/polling) + /revenue/summary (payouts). */
 interface RealizedRevenue {
@@ -132,6 +170,7 @@ async function load(): Promise<void> {
     /* degradación silenciosa */
   }
   loading.value = false
+  computeDigest()
 }
 
 onMounted(load)
@@ -188,6 +227,16 @@ onMounted(load)
           {{ income.income_command_center.basis.note }} · {{ income.income_command_center.basis.sources }}
         </p>
       </Card>
+
+      <!-- Daily return digest: what changed since last visit -->
+      <div v-if="digest" class="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-accent/20 bg-accent/5 px-4 py-2.5">
+        <span class="font-mono text-[10px] font-semibold uppercase tracking-wider text-accent">Desde tu última visita (hace {{ digest.hoursSince }}h)</span>
+        <span v-if="digest.newOpportunities" class="font-mono text-xs text-success">+{{ digest.newOpportunities }} oportunidades</span>
+        <span v-if="digest.pendingUsd > 0" class="font-mono text-xs text-warning">${{ Math.round(digest.pendingUsd).toLocaleString() }} pendiente</span>
+        <span class="font-mono text-xs" :class="digest.aiHealthy ? 'text-success' : 'text-muted-foreground'">
+          {{ digest.aiHealthy ? 'IA operativa' : 'IA en fallback' }}
+        </span>
+      </div>
 
       <!-- PLATFORM RANKING: ¿dónde trabajo hoy? -->
       <Card v-if="platformRanking.length" class="space-y-3 p-5">
@@ -260,8 +309,8 @@ onMounted(load)
           <div class="flex items-center justify-between gap-2">
             <div>
               <p class="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">IA</p>
-              <Badge :variant="aiOk === null ? 'default' : aiOk ? 'success' : 'error'" dot>
-                {{ aiOk === null ? '—' : aiOk ? 'OK' : 'CAÍDA' }}
+              <Badge :variant="aiOk === null ? 'default' : aiOk ? 'success' : 'info'" dot>
+                {{ aiOk === null ? '—' : aiOk ? 'OK' : 'Fallback' }}
               </Badge>
             </div>
           </div>
