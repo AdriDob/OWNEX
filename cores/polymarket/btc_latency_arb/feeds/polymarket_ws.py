@@ -9,9 +9,7 @@ import time
 from typing import Any
 
 import websockets
-
 from core.polymarket.btc_latency_arb.feeds.base import (
-    FeedCallback,
     OrderBookUpdate,
     PriceFeed,
 )

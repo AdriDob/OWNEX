@@ -126,19 +126,24 @@ def _get_takenos_detail() -> dict:
 
 def _get_atlas_total() -> float:
     try:
-        from core.app_registry import get_app_registry
-
-        app = get_app_registry().get("atlas")
-        if app is None:
-            logger.debug("Atlas app not registered, skipping portfolio")
-            return 0.0
+        import asyncio
         import importlib
 
         mod = importlib.import_module("apps.atlas.engines.portfolio")
-        engine = mod.PortfolioEngine()
-        portfolio = engine.get_portfolio()
+        engine = mod.get_configured_engine()
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            portfolio = asyncio.run(engine.aggregate())
+        else:
+            # Called from inside a running loop (async route): offload to a
+            # worker thread with its own loop instead of silently failing.
+            import concurrent.futures
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                portfolio = pool.submit(asyncio.run, engine.aggregate()).result(timeout=30)
         if portfolio:
-            return portfolio.total_value
+            return round(float(portfolio.total_value), 2)
         return 0.0
     except ImportError:
         logger.debug("Atlas portfolio engine not available (apps.atlas not loaded)")

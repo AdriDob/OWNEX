@@ -192,7 +192,7 @@
           :key="trigger.type"
           :class="['trigger-item', { active: trigger.triggered }]"
         >
-          <div class="trigger-status">{{ trigger.triggered ? 'ACTIVE' : 'STANDBY' }}</div>
+          <div class="trigger-status">{{ trigger.triggered ? 'ACTIVO' : 'EN ESPERA' }}</div>
           <div class="trigger-name">{{ formatTriggerType(trigger.type) }}</div>
         </div>
       </div>

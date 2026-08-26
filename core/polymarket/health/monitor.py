@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 logger = logging.getLogger("orion.polymarket.health")
@@ -203,7 +203,7 @@ class HealthMonitor:
 
         avg_return = sum(returns) / len(returns)
         variance = sum((r - avg_return) ** 2 for r in returns) / len(returns)
-        std_dev = variance ** 0.5
+        std_dev = variance**0.5
 
         if std_dev == 0:
             return 0.0
@@ -263,11 +263,7 @@ class HealthMonitor:
                 "wins": sum(1 for t in self._trades if t.pnl > 0),
                 "losses": sum(1 for t in self._trades if t.pnl < 0),
                 "win_rate": f"{self.get_win_rate():.1%}",
-                "avg_pnl": round(
-                    sum(t.pnl for t in self._trades) / len(self._trades), 4
-                )
-                if self._trades
-                else 0.0,
+                "avg_pnl": round(sum(t.pnl for t in self._trades) / len(self._trades), 4) if self._trades else 0.0,
             },
             "risk": {
                 "sharpe_ratio": round(self.get_sharpe_ratio(), 2),
@@ -275,9 +271,7 @@ class HealthMonitor:
             },
             "positions": {
                 "open": len(self._positions),
-                "total_exposure": round(
-                    sum(p.size_usd for p in self._positions.values()), 2
-                ),
+                "total_exposure": round(sum(p.size_usd for p in self._positions.values()), 2),
             },
             "alerts": len(self._alerts),
             "recent_alerts": self.get_alerts(5),

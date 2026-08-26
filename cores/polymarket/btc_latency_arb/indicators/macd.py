@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from core.polymarket.btc_latency_arb.indicators.rsi import ema
 
 

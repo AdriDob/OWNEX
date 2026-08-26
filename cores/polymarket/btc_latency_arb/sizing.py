@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.polymarket.btc_latency_arb.config import BTCArbConfig, SizingConfig
+from core.polymarket.btc_latency_arb.config import SizingConfig
 
 logger = logging.getLogger("orion.polymarket.btc_latency_arb.sizing")
 

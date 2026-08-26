@@ -12,7 +12,7 @@ import {
   Activity, Database, RefreshCw, X, HeartPulse, Zap, Send,
   Copy, Wallet, Sparkles, Bot, BarChart3, Brain, Coins,
   BookOpen, Lightbulb, UserRound,
-  ListTodo, Landmark, Bot, ShieldAlert,
+  ListTodo, Landmark, ShieldAlert,
 } from '@lucide/vue'
 
 const hunt = useHuntStore()

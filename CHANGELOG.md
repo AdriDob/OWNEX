@@ -1,5 +1,49 @@
 # Changelog — OWNEX Alpha Desktop
 
+## 7.0.0-final-stable (2026-08-26)
+
+Release contract: consolidación, estabilización y cierre. Sin expansión de alcance.
+
+### Added
+- **AI Resilience Layer** (OAR): ErrorClassifier (HTTP→HealthStatus con política
+  RETRY/FALLBACK/CIRCUIT/PERMANENT), QuotaTracker (ventanas req/min+día, UNKNOWN→0.85,
+  jamás ilimitado), DegradedMode (NORMAL/DEGRADED/OFFLINE_AI → EventBus `ai:mode_changed`).
+- **AI Observability**: JSONL append-only con redacción obligatoria de secretos;
+  agregados success/fallback/cache-rate por tarea y provider.
+- **Adapters**: `ollama_cloud` + `freecloudmodels` (OpenAI-compatible genérico, desacoplado).
+- **Frontend feature-parity surfaces**: Work Queue (ejecución NOW/NEXT/WAITING/DONE),
+  Revenue Center (cobrado≠pendiente+fuentes), AI Center (modo resilience+cuotas),
+  Risk Center (kill switch), Watch Approvals.
+- **Income Target Engine**: planes semanales/mensuales con EV/hora; Payment Pipeline
+  canónico 13 estados; Competition Intelligence; Freshness decay; Zero-Barrier Mode.
+- **Availability Intelligence**: horas reales hoy/semana/mes alimentando income_plan.
+
+### Changed
+- `daily_budget_usd` default **$10.0 → $0.0** (spec §12: tiers pagos requieren config explícita).
+- Versión consolidada a **7.0.0** en las 6 fuentes (`.VERSION.txt` SSOT → sync propagó).
+- AiCenter: progressive disclosure N1-N4 (modo global, cuotas UNKNOWN-etiquetadas,
+  JSON crudo bajo demanda).
+
+### Fixed
+- Deadlock en QuotaTracker (Lock no reentrante entre quota_factor/observed_rpm).
+- Income target engine: conversión WorkItem→Opportunity (USDC/crypto, international_payment).
+- Payment compatibility: región ISO `AR` → `argentina` (7 matches que devolvían 0).
+- Availability calendar test flaky cerca de medianoche UTC (bloque determinista now-1h→now+1h).
+- offline.ts: if-block sin cerrar rompía el build del frontend.
+
+### Security
+- Secret scan limpio (sk-/AKIA/ghp patterns) en cores/api/core/frontend/scripts.
+- Observability redacta sk-/Bearer/x-api-key antes de tocar disco (testeado).
+
+### AI
+- OAR = único runtime canónico (resilience + routing + quotas + observability integrados
+  al hot path). Legacy paths (`core/ai_router`, `copilot/providers`, `unified_provider`)
+  marcados para migración post-validación Windows — deuda dirigida documentada.
+
+### Verification
+- Suite AI: 65 passed · fast suite: verde · vue-tsc: 0 errores · vite build ✓.
+- Windows/WSL/installer: validación pendiente de máquina real (non-blocking, documentado).
+
 ## 1.0.1-alpha (2026-08-25)
 
 Build desde `ebc7f76d`. Misma arquitectura que 1.0.0 más:
@@ -19,6 +63,20 @@ Build desde `ebc7f76d`. Misma arquitectura que 1.0.0 más:
 All notable changes to OWNEX, tracked from the git history of the default branch.
 
 ## [Unreleased]
+
+### Fixed
+- **Integridad económica P0**: `RevenueTracker._update_metrics` acumulaba deltas por
+  cambio de status → una oportunidad PENDING→REVIEWING→PAID dejaba la misma plata
+  contada como pendiente Y cobrada; ACCEPTED sumaba a `completed_amount` (cash
+  inventado). Ahora las métricas son proyección del estado actual; dinero solo en PAID
+  (`tests/test_income_chain_e2e.py`, 3/3).
+- **Contrato Work Bank**: `daily_cycle` crasheaba con oportunidades de categoría string.
+- Fixture GOOD MORNING alineado al contrato `namespace_count`.
+
+### Added
+- **E2E del ciclo de ingreso** (`tests/test_income_chain_e2e.py`): discover → recommend
+  → workbank → human gate (approve) → revenue ledger, sin servicios externos. Verifica
+  PAID alcanzable SOLO vía VERIFICATION y el puente ExecState↔OpportunityStage SSOT.
 
 ### Changed
 - **`--ownex-red` → `--ownex-danger`** (migración de nombres, 11 archivos): el token de peligro

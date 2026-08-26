@@ -1,6 +1,6 @@
 # Session Checkpoint — Agosto 2026
 
-> v1.0.0 STABLE — 6 Work Cycles operativos, lint clean, tests fast 88/89 pasan.
+> v7.0.0 STABLE — 6 Work Cycles operativos, lint clean, tests fast 88/89 pasan.
 
 ## Última Sesión: 2026-08-24 — FRONTEND FUNCTIONAL PASS ✅
 

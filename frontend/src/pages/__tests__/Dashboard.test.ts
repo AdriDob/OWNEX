@@ -89,7 +89,7 @@ describe('Dashboard page', () => {
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Centro de Inteligencia OWNEX')
     expect(wrapper.text()).toContain('DashOp')
-    expect(wrapper.text()).toContain('ACTIVE')
+    expect(wrapper.text()).toContain('ACTIVO')
   })
 
   it('shows intel summary bar', async () => {
@@ -140,6 +140,6 @@ describe('Dashboard page', () => {
     await wrapper.find('.mock-btn').trigger('click')
     await new Promise(resolve => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
-    expect(wrapper.text()).toContain('ACTIVE')
+    expect(wrapper.text()).toContain('ACTIVO')
   })
 })

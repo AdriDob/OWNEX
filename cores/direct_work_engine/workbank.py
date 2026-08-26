@@ -209,7 +209,10 @@ class WorkBank:
             }
             opportunities = kept
         for opp in opportunities:
-            if opp.category.value in excluded:
+            # El modelo tolera category como string (router serializa enums);
+            # normalizar antes de comparar (fix contrato roto, E2E 2026-08-25).
+            opp_category = getattr(opp.category, "value", opp.category)
+            if str(opp_category) in excluded:
                 rejected[opp.id] = ["excluded_category"]
                 continue
             if (

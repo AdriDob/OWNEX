@@ -1,3 +1,33 @@
+## 2026-08-26 (Fase 1 CAPITAL SPINE): Atlas fix, sync→PayoutRecord, unified snapshot, freqtrade 2026.7
+
+- **Problema**: El pipeline de capital tenía 3 fallos críticos: (1) Atlas portfolio siempre $0 porque `_get_atlas_total()` llamaba `get_portfolio()` inexistente y `PortfolioEngine()` nacía sin conectores; (2) sync cada 30 min leía APIs reales pero descargaba resultados en dict in-memory, nunca escribía `PayoutRecord` → capital dashboards estancados en $0; (3) sin endpoint unificado de patrimonio.
+- **Decisión**: (1a) Factory `get_configured_engine()` en `apps/atlas/engines/portfolio.py` registra todos los conectores registrados (Binance/Kraken/Coinbase/Yahoo/CSV + opcional Freqtrade/Hummingbot) con degradación grácil sin keys. Routers usan factory. (1b) `_get_atlas_total()` reescrito usando factory + guard asyncio (sync + running-loop). (2) `FinancialSyncScheduler._persist_earnings()` persiste earnings del sync en `PayoutRecord` con dedupe por `external_id` (platform:id). (3) `GET /api/capital/snapshot` consolida bounty payouts + WorkBank + InvestmentManager + Atlas + crypto + expected_cash + payment_compat.
+- **Evidencia**: fast suite baseline 100/1 intacta · 15 tests nuevos (atlas + scheduler) verdes · 101 tests DWE/workbank verdes · 1128 tests suite amplia sin regresiones · ruff limpio en tocados.
+- **Regla permanente**: todo sync de plataforma debe persistir a `PayoutRecord` con dedupe por external_id; métricas de dinero = proyección del estado actual (no acumulación incremental). Endpoint unificado `/api/capital/snapshot` es SSOT para patrimonio.
+
+## 2026-08-25 (Fase 1 FEATURE COMPLETE): Revenue metrics = proyección del estado actual; E2E del ciclo de ingreso
+
+- **Problema**: el audit de feature completion ejecutó por primera vez un E2E completo
+  discover→recommend→workbank→human gate→revenue (`tests/test_income_chain_e2e.py`) y
+  expuso 2 bugs reales: (P0-económico) `RevenueTracker._update_metrics` acumulaba deltas
+  por cambio de status sin descontar el bucket anterior → una oportunidad
+  PENDING→REVIEWING→PAID dejaba "dinero fantasma" (la misma plata contada como pendiente
+  Y cobrada); además ACCEPTED sumaba a `completed_amount`, inventando cash (contradice
+  stage_from_payment_status: ACCEPTED → Stage.ACCEPTED ≠ PAID). (Contrato)
+  `workbank.daily_cycle` crasheaba con `category` como string — contrato que el propio
+  router DWE serializa.
+- **Decisión**: las métricas de revenue son SIEMPRE una **proyección del estado actual**
+  de las oportunidades (recomputo por plataforma), nunca acumulación incremental. El
+  dinero se cuenta SOLO en PAID; ACCEPTED/CANCELLED son pipeline/pérdida documentada.
+  Fix mínimo en workbank: normalización `getattr(value)` antes de comparar categorías.
+- **Evidencia**: `test_income_chain_e2e.py` 3/3 (cadena completa con adapter fake,
+  PAID alcanzable SOLO vía VERIFICATION, puente ExecState↔Stage SSOT, unknown honesto);
+  regresión workbank + direct_work_api + daily_mode + revenue_engine/pipeline = 90+21
+  passed; fast suite 100/1 baseline exacta; ruff limpio.
+- **Regla permanente**: ninguna métrica de dinero puede derivarse de acumulaciones que
+  sobrevivan al cambio de estado; todo agregado económico debe poder reconstruirse desde
+  los registros actuales. `EXPECTED ≠ PENDING ≠ PAID` verificado por test, no por diseño.
+
 ## 2026-08-25 (noche): DIRECTIVA OWNER — CERO ROJO, solo azules claros/osculos
 
 - **Revoca** la directiva de hoy "rojo reservado a estados": la UI NO usa rojo en absoluto. Peligro/error = azul fuerte `#3B82F6` (familia brand). El nombre `--ownex-red` sobrevive como alias legacy (~15 consumidores) hasta migración a `--ownex-danger`.

@@ -42,10 +42,18 @@ def _memory_stats() -> dict[str, Any]:
     try:
         store = get_memory_store()
         stats = store.get_stats()
-        return {"healthy": True, "entries": stats.get("total_entries", 0), "namespaces": stats.get("namespaces", {})}
+        # El store devuelve "namespaces" como int (distinct count); el panel lo consume como dict.
+        raw_ns = stats.get("namespaces", {})
+        ns = raw_ns if isinstance(raw_ns, dict) else {}
+        return {
+            "healthy": True,
+            "entries": stats.get("total_entries", 0),
+            "namespaces": ns,
+            "namespace_count": raw_ns if isinstance(raw_ns, int) else len(ns),
+        }
     except Exception as exc:  # noqa: BLE001
         logger.warning("Memory stats unavailable: %s", exc)
-        return {"healthy": False, "entries": 0, "namespaces": {}}
+        return {"healthy": False, "entries": 0, "namespaces": {}, "namespace_count": 0}
 
 
 def _unfinished_work() -> dict[str, Any]:
@@ -124,6 +132,22 @@ def _pending_approvals() -> list[dict[str, Any]]:
         return []
 
 
+def _setup_progress() -> dict[str, Any]:
+    """Configuración progresiva: % completo + UNA tarea de config para hoy."""
+    try:
+        from core.setup.checklist import get_setup_checklist
+
+        status = get_setup_checklist().status()
+        return {
+            "complete_pct": status["complete_pct"],
+            "complete": status["complete"],
+            "next_task": status["next_task"],
+        }
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Setup progress unavailable: %s", exc)
+        return {"complete_pct": 0, "complete": False, "next_task": None}
+
+
 @router.get("/good-morning")
 def good_morning() -> dict[str, Any]:
     """GOOD MORNING — the single daily panel (protocol DAILY OPERATION MODE)."""
@@ -137,18 +161,19 @@ def good_morning() -> dict[str, Any]:
 
     status = _safe(stability_status) or {}
     system = status.get("system", {})
-    memory = _safe(_memory_stats) or {"healthy": False, "entries": 0, "namespaces": {}}
+    memory = _safe(_memory_stats) or {"healthy": False, "entries": 0, "namespaces": {}, "namespace_count": 0}
     work = _safe(_unfinished_work) or {"ready_to_deliver": [], "needs_access": [], "targets": {}}
     opps = _safe(_opportunities) or {"scanned_sources": 0, "best_sources": []}
     improvements = _safe(_improvements) or []
     approvals = _safe(_pending_approvals) or []
+    setup = _safe(_setup_progress) or {"complete_pct": 0, "complete": False, "next_task": None}
 
     system_status = system.get("status", "unknown")
     system_score = system.get("score", 0)
     important_tasks = work["ready_to_deliver"] + work["needs_access"]
     summary_lines = [
         f"System: {'Ready' if system_status == 'ok' else system_status.upper()} (score {system_score}/100).",
-        f"Memory: {memory['entries']} entries across {len(memory['namespaces'])} namespaces."
+        f"Memory: {memory['entries']} entries across {memory['namespace_count']} namespaces."
         if memory["healthy"]
         else "Memory: check failed.",
         f"Opportunities: {opps['scanned_sources']} sources scanned, {len(opps['best_sources'])} DISCOVER for today.",
@@ -156,6 +181,11 @@ def good_morning() -> dict[str, Any]:
         f"Improvements suggested: {len(improvements)}.",
         f"Pending approvals: {len(approvals)}.",
     ]
+    next_task = setup.get("next_task")
+    if next_task:
+        summary_lines.append(
+            f"Setup {setup['complete_pct']}% — today's config task: {next_task['title']} ({next_task['est_minutes']} min)."
+        )
 
     return {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
@@ -167,4 +197,5 @@ def good_morning() -> dict[str, Any]:
         "unfinished_work": work,
         "improvements_suggested": improvements,
         "pending_approvals": approvals,
+        "setup_progress": setup,
     }

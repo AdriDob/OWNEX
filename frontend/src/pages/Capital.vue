@@ -8,7 +8,7 @@ import {
   ArrowUpRight, ArrowDownRight, CircleDot, RefreshCw, Filter,
   ChevronDown, ChevronUp, ExternalLink, Shield, Coins, PieChart,
   Zap as ZapIcon, Loader2, RotateCcw, Settings, Search, MoreHorizontal,
-  Star, Flag, TriangleAlert, Crown, Gem, Zap as Zap2
+  Star, Flag, TriangleAlert, Crown, Gem, Zap as Zap2, Gauge, ShieldCheck, Layers
 } from '@lucide/vue'
 import Card from '@/components/ui/Card.vue'
 import CardHeader from '@/components/ui/CardHeader.vue'
@@ -290,7 +290,7 @@ function copyToClipboard(text: string) {
     <!-- ═══ TABS ═══ -->
     <div class="flex flex-wrap gap-1 border-b border-border/40 pb-1">
       <button
-        v-for="tab in ['overview', 'progressive-scaling', 'targets', 'programs', 'pipeline', 'platforms', 'settings']"
+        v-for="tab in ['overview', 'runway', 'risk', 'allocation', 'forecasting', 'diversification', 'progressive-scaling', 'targets', 'programs', 'pipeline', 'platforms', 'settings']"
         :key="tab"
         @click="activeTab = tab as Tab"
         class="px-3 py-1.5 text-sm font-medium rounded-t-md transition-colors border-b-2 border-transparent
@@ -432,6 +432,71 @@ function copyToClipboard(text: string) {
             <EmptyState v-else icon="Clock" title="Sin datos de velocidad" description="Conecta plataformas y registra payouts" />
             </CardContent>
           </Card>
+      </div>
+
+      <!-- ═══ RUNWAY TAB ═══ -->
+      <div v-else-if="activeTab === 'runway'" class="space-y-6 animate-fade-in">
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between">
+            <CardTitle class="flex items-center gap-2"><Gauge class="h-4 w-4 text-warning" /> Runway Engine</CardTitle>
+            <Badge variant="outline">P10 / P50 / P90</Badge>
+          </CardHeader>
+          <CardContent>
+            <p class="text-sm text-muted-foreground">Cargando datos de runway desde /api/capital/runway...</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <!-- ═══ RISK TAB ═══ -->
+      <div v-else-if="activeTab === 'risk'" class="space-y-6 animate-fade-in">
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between">
+            <CardTitle class="flex items-center gap-2"><ShieldCheck class="h-4 w-4 text-destructive" /> Risk Engine</CardTitle>
+            <Badge variant="outline">Score 0-100</Badge>
+          </CardHeader>
+          <CardContent>
+            <p class="text-sm text-muted-foreground">Cargando datos de riesgo desde /api/capital/risk...</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <!-- ═══ ALLOCATION TAB ═══ -->
+      <div v-else-if="activeTab === 'allocation'" class="space-y-6 animate-fade-in">
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between">
+            <CardTitle class="flex items-center gap-2"><PieChart class="h-4 w-4 text-primary" /> Capital Allocation</CardTitle>
+            <Badge variant="outline">Recommendations</Badge>
+          </CardHeader>
+          <CardContent>
+            <p class="text-sm text-muted-foreground">Cargando recomendaciones desde /api/capital/allocation...</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <!-- ═══ FORECASTING TAB ═══ -->
+      <div v-else-if="activeTab === 'forecasting'" class="space-y-6 animate-fade-in">
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between">
+            <CardTitle class="flex items-center gap-2"><BarChart3 class="h-4 w-4 text-primary" /> Capital Forecasting</CardTitle>
+            <Badge variant="outline">Monte Carlo P10/P50/P90</Badge>
+          </CardHeader>
+          <CardContent>
+            <p class="text-sm text-muted-foreground">Cargando proyecciones desde /api/capital/forecasting...</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <!-- ═══ DIVERSIFICATION TAB ═══ -->
+      <div v-else-if="activeTab === 'diversification'" class="space-y-6 animate-fade-in">
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between">
+            <CardTitle class="flex items-center gap-2"><Layers class="h-4 w-4 text-success" /> Income Diversification</CardTitle>
+            <Badge variant="outline">HHI + Top Source %</Badge>
+          </CardHeader>
+          <CardContent>
+            <p class="text-sm text-muted-foreground">Cargando análisis de diversificación desde /api/capital/diversification...</p>
+          </CardContent>
+        </Card>
       </div>
 
       <!-- ═══ TARGETS TAB (EV Ranked) ═══ -->

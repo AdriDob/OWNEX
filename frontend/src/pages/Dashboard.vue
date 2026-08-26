@@ -89,16 +89,16 @@ const verdictData = computed(() => {
 
 const systemStatusText = computed(() => {
   const p = scanInfo.value
-  if (!p) return 'INITIALIZING'
-  if (p.confirmed > 0) return 'ACTIVE'
-  if (p.detected > 0) return 'SCANNING'
+  if (!p) return 'INICIALIZANDO'
+  if (p.confirmed > 0) return 'ACTIVO'
+  if (p.detected > 0) return 'ESCANEANDO'
   return 'MONITORING'
 })
 
 const systemStatusColor = computed(() => {
   const s = systemStatusText.value
-  if (s === 'ACTIVE') return 'text-success'
-  if (s === 'SCANNING') return 'text-warning'
+  if (s === 'ACTIVO') return 'text-success'
+  if (s === 'ESCANEANDO') return 'text-warning'
   return 'text-muted-foreground'
 })
 </script>

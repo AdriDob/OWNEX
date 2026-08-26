@@ -7,7 +7,7 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from core.polymarket.btc_latency_arb.config import BTCArbConfig, LiveTradingConfig
+from core.polymarket.btc_latency_arb.config import LiveTradingConfig
 
 logger = logging.getLogger("orion.polymarket.btc_latency_arb.execution")
 
@@ -197,7 +197,6 @@ class OrderExecutor:
         # Submit to CLOB
         try:
             import httpx
-            import json
 
             url = "https://clob.polymarket.com/order"
 

@@ -408,10 +408,22 @@ class PaymentCompatibilityEngine:
         return min(100.0, best * 0.8 + coverage + documented_bonus)
 
     def _normalize_requirement(self, req: PaymentRequirement) -> PaymentRequirement:
+        region = (req.region or "global").lower()
+        # Map ISO country codes to Region enum values
+        region_map = {
+            "ar": "argentina",
+            "us": "usa",
+            "usa": "usa",
+            "eu": "eu",
+            "europe": "eu",
+            "global": "global",
+            "world": "global",
+        }
+        region = region_map.get(region, region)
         return PaymentRequirement(
             method=(req.method or "crypto").lower(),
             currency=(req.currency or "USD").upper(),
-            region=(req.region or "global").lower(),
+            region=region,
             amount=max(0.0, req.amount or 0.0),
             required_documentation=(req.required_documentation or "").strip(),
             platform=(req.platform or "").strip(),

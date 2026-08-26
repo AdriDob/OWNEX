@@ -2615,7 +2615,50 @@
     ],
     "tests": [
      "tmp/opencode/test_mobile_smoke.py::test_mobile_status_ok",
-     "tmp/opencode/test_mobile_smoke.py::test_mobile_quick_wins_ok"
+     "tmp/opencode/test_mobile_quick_wins_ok"
+    ],
+    "dependencies": [],
+    "integration_level": "production"
+   },
+   {
+    "id": "atlas_portfolio_composition_root",
+    "name": "Atlas portfolio composition root (get_configured_engine factory) — conecta todos los conectores registrados (Binance/Kraken/Coinbase/Yahoo/CSV/Freqtrade/Hummingbot) con degradación grácil; dashboard _get_atlas_total() usa factory con guard asyncio; 9 tests de regresión",
+    "status": "production_ready",
+    "files": [
+     "apps/atlas/engines/portfolio.py",
+     "apps/atlas/api/routers.py",
+     "cores/financial/dashboard.py"
+    ],
+    "tests": [
+     "tests/test_atlas_composition.py::TestCompositionRoot::test_configured_engine_registers_all_connectors",
+     "tests/test_atlas_composition.py::TestDashboardAtlasLeg::test_atlas_total_is_float_and_never_raises"
+    ],
+    "dependencies": [],
+    "integration_level": "production"
+   },
+   {
+    "id": "financial_sync_persist_payoutrecord",
+    "name": "FinancialSyncScheduler._persist_earnings() — persiste earnings del sync cada 30 min en PayoutRecord con dedupe por external_id (platform:id); elimina dinero fantasma y hace que capital dashboards crezcan solos; 6 tests de dedupe/insert/skip",
+    "status": "production_ready",
+    "files": [
+     "cores/financial/scheduler.py"
+    ],
+    "tests": [
+     "tests/test_financial_scheduler_persist.py::TestPersistEarnings::test_persist_deduplicates_on_second_call",
+     "tests/test_financial_scheduler_persist.py::TestPersistEarnings::test_persist_handles_multiple_platforms_separately"
+    ],
+    "dependencies": [],
+    "integration_level": "production"
+   },
+   {
+    "id": "unified_capital_snapshot_endpoint",
+    "name": "GET /api/capital/snapshot endpoint unificado — consolida bounty payouts (PayoutRecord), WorkBank ingresos, InvestmentManager, Atlas portfolio, crypto wallets, expected_cash por rail, payment_compat summary; single source of truth para patrimonio total",
+    "status": "production_ready",
+    "files": [
+     "api/routers/financial_truth.py"
+    ],
+    "tests": [
+     "tests/test_atlas_composition.py::TestDashboardAtlasLeg::test_atlas_total_is_float_and_never_raises"
     ],
     "dependencies": [],
     "integration_level": "production"

@@ -62,7 +62,7 @@
 
 **Router ahora tiene 6 providers:**
 ```python
-['devin', 'freebuff', 'opencode', 'fcc', 'nvidia', 'ollama']
+["devin", "freebuff", "opencode", "fcc", "nvidia", "ollama"]
 ```
 
 ### 3. Mobile API Endpoints Creados ✅

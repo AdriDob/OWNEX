@@ -127,3 +127,6 @@ src-tauri/binaries/ownex-backend-*
 
 # runtime backups con logs (nunca commitear)
 backups/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+graft/

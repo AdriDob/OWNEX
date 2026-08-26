@@ -84,3 +84,26 @@ class PortfolioEngine:
             logger.error("Failed to save portfolio: %s", exc)
         finally:
             db.close()
+
+
+_default_engine: PortfolioEngine | None = None
+
+
+def get_configured_engine() -> PortfolioEngine:
+    """Composition root: engine pre-loaded with every registered AtlasConnector.
+
+    Connectors without credentials degrade gracefully inside aggregate()
+    (each get_portfolio() returning None or raising is skipped), so
+    registering all of them is always safe.
+    """
+    global _default_engine
+    if _default_engine is None:
+        from apps.atlas.connectors import create_connector, get_connector_ids
+
+        engine = PortfolioEngine()
+        for cid in get_connector_ids():
+            connector = create_connector(cid)
+            if connector is not None:
+                engine.register_connector(connector)
+        _default_engine = engine
+    return _default_engine

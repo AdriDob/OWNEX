@@ -48,7 +48,7 @@ async function runSystemChecks() {
     const isHealthy = Math.random() > 0.08
     systemChecks.value[idx].status = isHealthy ? 'complete' : 'error'
     if (!isHealthy) {
-      console.warn(`[BOOT] ${systemChecks.value[idx].name} check failed`)
+      console.warn(`[ARRANQUE] ${systemChecks.value[idx].name} verificación fallida`)
     }
   }
 }
@@ -409,7 +409,7 @@ const progressBarStyle = computed(() => ({
         >
           <div class="flex items-center gap-2 text-xs font-mono" style="color: var(--ownex-muted);">
             <span class="boot-dot"></span>
-            <span class="tracking-[0.2em]">INITIALIZING</span>
+            <span class="tracking-[0.2em]">INICIALIZANDO</span>
             <span>{{ currentTime }}</span>
           </div>
           <div class="relative w-64 h-px overflow-hidden" style="background: var(--ownex-line);">

@@ -105,6 +105,20 @@ test-full-scoring: ## Run the full-scoring workflow test (formerly flaky, now de
 check: typecheck-fast test-fast ## Pre-flight: scoped typecheck + fast tests
 	@echo "✓ dev check passed: scoped typecheck + fast tests"
 
+release-check: ## FINAL RELEASE GATE — backend+frontend+lint+build (Parte 4 megaprompt)
+	@echo "════ OWNEX release-check ════"
+	$(PY) -m ruff check core/execution_queue/ cores/device_identity/ cores/sync/ cores/license/validator.py cores/direct_work_engine/workbank.py api/routers/device.py api/routers/direct_work.py
+	@echo "[1/5] lint touched: OK"
+	$(PYTEST) --timeout=60 -q tests/test_income_chain_e2e.py tests/test_execution_mirror.py tests/test_workbank.py tests/test_daily_mode.py tests/test_revenue_engine.py tests/test_revenue_pipeline.py tests/test_direct_work_api.py tests/test_execution_queue.py tests/test_execution_queue_store.py tests/test_state_convergence.py tests/test_availability_engine.py tests/test_scheduler_jobs.py
+	@echo "[2/5] backend core: OK"
+	cd frontend && npx vue-tsc --noEmit && npx vitest run
+	@echo "[3/5] frontend tsc+tests: OK"
+	cd frontend && npx vite build
+	@echo "[4/5] frontend build: OK"
+	$(PYTEST) --timeout=60 -q tests/test_tauri_packaging.py tests/test_cors_tauri.py tests/test_data_dir_resolution.py tests/test_desktop_release.py tests/test_desktop_native.py
+	@echo "[5/5] packaging+desktop guards: OK"
+	@echo "════ release-check PASS ════"
+
 # ── Operations ────────────────────────────────────────────────────
 prebuild: ## Run pre-build validation
 	$(PY) scripts/prebuild.py

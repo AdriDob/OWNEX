@@ -5,6 +5,7 @@ import { useNotificationsStore } from '@/stores/notifications'
 import { ChevronRight, Home, Minus, Square, X } from '@lucide/vue'
 import NotificationPanel from '@/components/notifications/NotificationPanel.vue'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
+import StatusBadge from '@/components/ui/StatusBadge.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -129,10 +130,11 @@ onMounted(() => {
         </span>
       </div>
 
-      <!-- WS indicator -->
-      <span
-        :class="['h-1.5 w-1.5 rounded-full shrink-0', notifications.wsConnected ? 'bg-success shadow-[0_0_6px_rgba(22,163,74,0.4)]' : 'bg-destructive shadow-[0_0_6px_rgba(0,213,255,0.4)]']"
-        :title="notifications.wsConnected ? 'Conectado' : 'Desconectado'"
+      <!-- WS indicator — StatusBadge semántico (nunca solo color, spec §13) -->
+      <StatusBadge
+        compact
+        :status="notifications.wsConnected ? 'OPERATIVO' : 'FUERA DE LÍNEA'"
+        :reason="notifications.wsConnected ? 'WebSocket conectado' : 'WebSocket desconectado'"
       />
 
       <!-- Theme mode toggle -->

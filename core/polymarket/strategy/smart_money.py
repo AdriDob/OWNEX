@@ -11,15 +11,14 @@ Based on @0x_Punisher's playbook: focus on execution, not prediction.
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
 from typing import Any
 
 from core.polymarket.client import PolymarketClient, get_client
-from core.polymarket.health.monitor import TradeRecord, get_health_monitor
 from core.polymarket.events import get_polymarket_event_bus
+from core.polymarket.health.monitor import get_health_monitor
 
 logger = logging.getLogger("orion.polymarket.strategy.smart_money")
 
@@ -103,11 +102,7 @@ class SmartMoneyCopierV2:
 
     def __init__(self, config: dict[str, Any] | None = None) -> None:
         self._config = SmartMoneyConfig(
-            **{
-                k: v
-                for k, v in (config or {}).items()
-                if k in SmartMoneyConfig.__dataclass_fields__
-            }
+            **{k: v for k, v in (config or {}).items() if k in SmartMoneyConfig.__dataclass_fields__}
         )
         self._client: PolymarketClient | None = None
         self._markets: dict[str, dict[str, Any]] = {}
@@ -158,10 +153,12 @@ class SmartMoneyCopierV2:
                 outcomes = market.get("outcomes", [])
                 tokens = []
                 for i, tid in enumerate(token_ids):
-                    tokens.append({
-                        "token_id": tid,
-                        "outcome": outcomes[i] if i < len(outcomes) else f"token_{i}",
-                    })
+                    tokens.append(
+                        {
+                            "token_id": tid,
+                            "outcome": outcomes[i] if i < len(outcomes) else f"token_{i}",
+                        }
+                    )
 
                 self._markets[market_id] = {
                     "question": market.get("question", ""),
@@ -265,10 +262,7 @@ class SmartMoneyCopierV2:
             return None
 
         # Check price range
-        if (
-            signal.current_price < self._config.min_price
-            or signal.current_price > self._config.max_price
-        ):
+        if signal.current_price < self._config.min_price or signal.current_price > self._config.max_price:
             return None
 
         # Check risk limits
@@ -434,8 +428,7 @@ class SmartMoneyCopierV2:
         """Get strategy summary."""
         total_exposure = sum(p.size_usd for p in self._positions.values())
         total_pnl = sum(
-            (p.current_price - p.entry_price) * (p.size_usd / p.entry_price)
-            for p in self._positions.values()
+            (p.current_price - p.entry_price) * (p.size_usd / p.entry_price) for p in self._positions.values()
         )
 
         return {

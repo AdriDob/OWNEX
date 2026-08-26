@@ -13,8 +13,13 @@ import Card from '@/components/ui/Card.vue'
 import ErrorState from '@/components/shared/ErrorState.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import NextBestAction from '@/components/mission-control/NextBestAction.vue'
-import { fetchIncomePlan, fetchMissionStatus, type IncomePlanAction, type IncomePlanState } from '@/services/ownexData'
+import { fetchIncomePlan, fetchMissionStatus, fetchCapitalSnapshot, fetchAiCenter, fetchPlatformRanking, type IncomePlanAction, type IncomePlanState, type CapitalSnapshot, type PlatformRankingItem } from '@/services/ownexData'
 import { api } from '@/lib/api'
+
+/** FEATURE PARITY: snapshot de capital (SSOT patrimonio) + estado IA. */
+const capital = ref<CapitalSnapshot | null>(null)
+const aiOk = ref<boolean | null>(null)
+const platformRanking = ref<PlatformRankingItem[]>([])
 
 /** Dinero REALIZADO (cobrado/pagado) — separado por contrato del esperado.
  *  Fuentes: /payment-tracker (webhooks/polling) + /revenue/summary (payouts). */
@@ -106,6 +111,26 @@ async function load(): Promise<void> {
   } catch {
     realized.value = null
   }
+
+  // FEATURE PARITY: capital snapshot + estado de IA (fallo silencioso, no bloquea)
+  try {
+    const [cap, ai] = await Promise.allSettled([
+      fetchCapitalSnapshot(),
+      fetchAiCenter(),
+    ])
+    if (cap.status === 'fulfilled') capital.value = cap.status === 'fulfilled' ? cap.value : null
+    if (ai.status === 'fulfilled') aiOk.value = !!ai.value.config?.available
+  } catch {
+    /* degradación silenciosa */
+  }
+
+  // PLATFORM RANKING: ¿dónde trabajo hoy? (fallo silencioso)
+  try {
+    const rankRes = await fetchPlatformRanking()
+    platformRanking.value = rankRes.ranking ?? []
+  } catch {
+    /* degradación silenciosa */
+  }
   loading.value = false
 }
 
@@ -143,6 +168,9 @@ onMounted(load)
         :cash-speed-days="income.next_action.cash_speed_days ?? null"
         :assessment-required="income.next_action.assessment_required ?? null"
         :zero-experience="income.next_action.zero_experience ?? null"
+        :expected-cash="income.next_action.expected_cash ?? null"
+        :htroi="income.next_action.htroi ?? null"
+        :confidence-band="income.next_action.confidence_band ?? null"
       />
 
       <!-- N1: potencial económico -->
@@ -158,6 +186,39 @@ onMounted(load)
         </div>
         <p class="font-mono text-[10px] leading-relaxed text-muted-foreground/70">
           {{ income.income_command_center.basis.note }} · {{ income.income_command_center.basis.sources }}
+        </p>
+      </Card>
+
+      <!-- PLATFORM RANKING: ¿dónde trabajo hoy? -->
+      <Card v-if="platformRanking.length" class="space-y-3 p-5">
+        <p class="font-mono text-xs uppercase tracking-wider text-muted-foreground">🎯 ¿Dónde trabajo hoy?</p>
+        <div class="space-y-2">
+          <div v-for="p in platformRanking.slice(0, 5)" :key="p.platform"
+            class="flex items-center justify-between rounded-lg border border-border/20 bg-surface/20 p-3">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <span class="truncate font-mono text-xs font-medium">{{ p.name }}</span>
+                <Badge :variant="p.recommendation === 'WORK_HERE' ? 'success' : p.recommendation === 'FINISH_SETUP' ? 'info' : p.recommendation === 'ACTIVE_STREAM' ? 'success' : 'default'" class="shrink-0">
+                  {{ p.recommendation === 'WORK_HERE' ? '→ Trabajar acá' : p.recommendation === 'FINISH_SETUP' ? 'Completar setup' : p.recommendation === 'ACTIVE_STREAM' ? 'Stream activo' : 'Empezar onboarding' }}
+                </Badge>
+              </div>
+              <p v-if="p.next_action" class="mt-1 truncate font-mono text-[10px] text-muted-foreground">
+                → {{ p.next_action.title }} (~{{ p.next_action.est_minutes }} min)
+              </p>
+            </div>
+            <div class="ml-3 shrink-0 text-right">
+              <p v-if="p.effective_rate_usd_h != null" class="font-mono text-sm font-semibold tabular-nums text-success">
+                ${{ p.effective_rate_usd_h }}/h
+              </p>
+              <p v-if="p.documented_rate_usd_h != null && p.readiness_pct < 100" class="font-mono text-[9px] text-muted-foreground">
+                (doc: ${{ p.documented_rate_usd_h }}/h)
+              </p>
+              <p class="font-mono text-[9px] text-muted-foreground">{{ p.readiness_pct }}% listo</p>
+            </div>
+          </div>
+        </div>
+        <p class="font-mono text-[10px] leading-relaxed text-muted-foreground/70">
+          Rankeado por $/h efectivo (tarifa documentada × readiness). Completá el onboarding para subir el rate efectivo.
         </p>
       </Card>
 
@@ -180,6 +241,30 @@ onMounted(load)
           <p v-if="!realized.has_any" class="col-span-3 font-mono text-[10px] leading-relaxed text-muted-foreground/70">
             Sin cobros registrados todavía — el potencial de arriba se convierte en realizado cuando confirmás cada pago.
           </p>
+        </div>
+
+        <!-- FEATURE PARITY §7: snapshot de capital (SSOT patrimonio) -->
+        <div v-if="capital" class="grid grid-cols-2 gap-3 rounded-lg border border-border/20 bg-surface/10 p-3 sm:grid-cols-4">
+          <div>
+            <p class="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Capital total</p>
+            <p class="font-mono text-base font-semibold tabular-nums">{{ usd(capital.total_usd ?? 0) }}</p>
+          </div>
+          <div>
+            <p class="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Inversiones</p>
+            <p class="font-mono text-base font-semibold tabular-nums">{{ usd(capital.investment?.total_usd ?? 0) }}</p>
+          </div>
+          <div>
+            <p class="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Crypto</p>
+            <p class="font-mono text-base font-semibold tabular-nums">{{ usd(capital.crypto?.total_usd ?? 0) }}</p>
+          </div>
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <p class="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">IA</p>
+              <Badge :variant="aiOk === null ? 'default' : aiOk ? 'success' : 'error'" dot>
+                {{ aiOk === null ? '—' : aiOk ? 'OK' : 'CAÍDA' }}
+              </Badge>
+            </div>
+          </div>
         </div>
 
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">

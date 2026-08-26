@@ -9,33 +9,33 @@ from dataclasses import dataclass
 from typing import Any
 
 from core.polymarket.btc_latency_arb.config import BTCArbConfig
-from core.polymarket.btc_latency_arb.indicators import (
-    compute_session_vwap,
-    compute_vwap_series,
-    compute_vwap_slope,
-    compute_vwap_distance,
-    count_vwap_crosses,
-    compute_rsi,
-    compute_rsi_series,
-    sma,
-    slope_last,
-    compute_macd,
-    compute_heiken_ashi,
-    count_consecutive,
-)
+from core.polymarket.btc_latency_arb.data import fetch_chainlink_btc_usd, fetch_polymarket_snapshot
 from core.polymarket.btc_latency_arb.engines import (
-    detect_regime,
-    score_direction,
+    Decision,
+    EdgeResult,
+    ScoredDirection,
     apply_time_awareness,
     compute_edge,
     decide,
-    ScoredDirection,
-    EdgeResult,
-    Decision,
+    detect_regime,
+    score_direction,
 )
-from core.polymarket.btc_latency_arb.data import fetch_polymarket_snapshot, fetch_chainlink_btc_usd
-from core.polymarket.btc_latency_arb.paper_engine import PaperTradingEngine, PaperPosition
 from core.polymarket.btc_latency_arb.feeds import BinanceWSFeed, PolymarketWSFeed
+from core.polymarket.btc_latency_arb.indicators import (
+    compute_heiken_ashi,
+    compute_macd,
+    compute_rsi,
+    compute_rsi_series,
+    compute_session_vwap,
+    compute_vwap_distance,
+    compute_vwap_series,
+    compute_vwap_slope,
+    count_consecutive,
+    count_vwap_crosses,
+    slope_last,
+    sma,
+)
+from core.polymarket.btc_latency_arb.paper_engine import PaperTradingEngine
 from core.polymarket.btc_latency_arb.persistence import TradeHistory
 
 logger = logging.getLogger("orion.polymarket.btc_latency_arb.runner")

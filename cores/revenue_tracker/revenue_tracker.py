@@ -77,6 +77,73 @@ def stage_from_payment_status(status: PaymentStatus | str) -> OpportunityStage:
     return stage_map.get(str(value).strip().lower(), OpportunityStage.DISCOVERED)
 
 
+# ── Convergencia SSOT (audit P0-2, 2026-08-25) ──────────────────────────────
+# ExecState (core/execution_queue.py) es el ciclo de EJECUCIÓN canónico
+# (transiciones validadas + dead-letter); OpportunityStage es la proyección
+# económica. La ÚNICA tabla de conversión vive aquí, junto a los mappers legacy.
+
+_STAGE_FROM_EXEC_MAP_CACHE: dict[str, "OpportunityStage"] | None = None
+
+
+def _stage_from_exec_map() -> dict[str, "OpportunityStage"]:
+    global _STAGE_FROM_EXEC_MAP_CACHE
+    if _STAGE_FROM_EXEC_MAP_CACHE is None:
+        from core.execution_queue import ExecState
+
+        _STAGE_FROM_EXEC_MAP_CACHE = {
+            ExecState.DISCOVERED.value: OpportunityStage.DISCOVERED,
+            ExecState.QUALIFIED.value: OpportunityStage.QUALIFIED,
+            # Pre-submission work (prepared/queued/executing/human gate):
+            # pipeline view, nunca dinero.
+            ExecState.READY.value: OpportunityStage.IN_PROGRESS,
+            ExecState.QUEUED.value: OpportunityStage.IN_PROGRESS,
+            ExecState.EXECUTING.value: OpportunityStage.IN_PROGRESS,
+            ExecState.WAITING_HUMAN.value: OpportunityStage.IN_PROGRESS,
+            ExecState.SUBMITTED.value: OpportunityStage.SUBMITTED,
+            ExecState.VERIFICATION.value: OpportunityStage.SUBMITTED,
+            ExecState.PAID.value: OpportunityStage.PAID,
+            ExecState.REJECTED.value: OpportunityStage.REJECTED,
+            # Pérdidas honestas documentadas: ExecState distingue bloqueo/fallo/
+            # dead-letter; la proyección económica solo conoce REJECTED ($0).
+            ExecState.BLOCKED.value: OpportunityStage.REJECTED,
+            ExecState.FAILED.value: OpportunityStage.REJECTED,
+            ExecState.DEAD_LETTER.value: OpportunityStage.REJECTED,
+        }
+    return _STAGE_FROM_EXEC_MAP_CACHE
+
+
+def stage_from_exec_state(state: "str | object") -> OpportunityStage:
+    """Map a canonical ExecState to its economic projection stage.
+
+    Unknown states map to DISCOVERED (least-committal honest default).
+    """
+    value = getattr(state, "value", state)
+    return _stage_from_exec_map().get(str(value).strip().lower(), OpportunityStage.DISCOVERED)
+
+
+def exec_state_for_stage(stage: OpportunityStage | str) -> str:
+    """Reverse projection: economic stage → representative canonical ExecState.
+
+    Lossy by design (IN_PROGRESS collapses to EXECUTING; ACCEPTED/REWARDED map
+    to VERIFICATION because the cash has not landed yet). Returns the raw
+    string value — the caller validates via can_transition() if mutating.
+    """
+    from core.execution_queue import ExecState
+
+    value = getattr(stage, "value", stage)
+    reverse = {
+        OpportunityStage.DISCOVERED.value: ExecState.DISCOVERED.value,
+        OpportunityStage.QUALIFIED.value: ExecState.QUALIFIED.value,
+        OpportunityStage.IN_PROGRESS.value: ExecState.EXECUTING.value,
+        OpportunityStage.SUBMITTED.value: ExecState.SUBMITTED.value,
+        OpportunityStage.ACCEPTED.value: ExecState.VERIFICATION.value,
+        OpportunityStage.REWARDED.value: ExecState.VERIFICATION.value,
+        OpportunityStage.REJECTED.value: ExecState.REJECTED.value,
+        OpportunityStage.PAID.value: ExecState.PAID.value,
+    }
+    return reverse.get(str(value).strip().lower(), ExecState.DISCOVERED.value)
+
+
 class PaymentPlatform(Enum):
     PAYPAL = "paypal"
     PAYONEE = "payoneer"
@@ -357,12 +424,41 @@ class RevenueTracker:
         return not amount < threshold.min_amount
 
     def _update_metrics(self, opportunity: RevenueOpportunity):
-        """Update revenue metrics based on opportunity status change"""
+        """Recompute platform metrics as a PROJECTION of current state.
+
+        Fix de integridad económica (E2E 2026-08-25): el algoritmo anterior
+        acumulaba deltas por cada cambio de status, así que una oportunidad
+        PENDING→REVIEWING→PAID dejaba "dinero fantasma" en pending_amount
+        (la misma plata contada como pendiente Y cobrada). Ahora las métricas
+        siempre reflejan el estado ACTUAL de las oportunidades.
+
+        Regla §39: el dinero solo se cuenta en PAID. ACCEPTED es pipeline
+        (coincide con stage_from_payment_status: ACCEPTED → Stage.ACCEPTED,
+        no REWARDED/PAID). CANCELLED es pérdida documentada, no cash.
+        """
         platform_key = opportunity.platform.lower()
         currency = opportunity.currency
 
-        if platform_key not in self.metrics:
-            self.metrics[platform_key] = RevenueMetrics(
+        pending = Decimal("0")
+        completed = Decimal("0")
+        failed = Decimal("0")
+        total_opps = 0
+        paid_opps = 0
+        for opp in self.opportunities.values():
+            if opp.platform.lower() != platform_key:
+                continue
+            total_opps += 1
+            if opp.status == PaymentStatus.PENDING or opp.status == PaymentStatus.REVIEWING:
+                pending += opp.amount
+            elif opp.status == PaymentStatus.PAID:
+                completed += opp.amount
+                paid_opps += 1
+            elif opp.status == PaymentStatus.FAILED:
+                failed += opp.amount
+
+        metrics = self.metrics.get(platform_key)
+        if metrics is None:
+            metrics = RevenueMetrics(
                 platform=platform_key,
                 currency=currency,
                 total_amount=Decimal("0"),
@@ -373,22 +469,13 @@ class RevenueTracker:
                 success_rate=0.0,
                 last_updated=datetime.now(UTC),
             )
+            self.metrics[platform_key] = metrics
 
-        metrics = self.metrics[platform_key]
-        amount = opportunity.amount
-
-        # Update based on status
-        if opportunity.status == PaymentStatus.PENDING or opportunity.status == PaymentStatus.REVIEWING:
-            metrics.pending_amount += amount
-        elif opportunity.status == PaymentStatus.ACCEPTED:
-            metrics.pending_amount -= amount
-            metrics.completed_amount += amount
-        elif opportunity.status == PaymentStatus.PAID:
-            metrics.completed_amount += amount
-        elif opportunity.status == PaymentStatus.FAILED:
-            metrics.failed_amount += amount
-
-        metrics.total_amount = metrics.pending_amount + metrics.completed_amount + metrics.failed_amount
+        metrics.pending_amount = pending
+        metrics.completed_amount = completed
+        metrics.failed_amount = failed
+        metrics.total_amount = pending + completed + failed
+        metrics.success_rate = (paid_opps / total_opps) if total_opps else 0.0
         metrics.last_updated = datetime.now(UTC)
 
     def get_platform_metrics(self, platform: str) -> RevenueMetrics | None:

@@ -276,6 +276,114 @@ def financial_dashboard() -> dict[str, Any]:
     return get_dashboard()
 
 
+@router.get("/capital/snapshot")
+def capital_snapshot() -> dict[str, Any]:
+    """Unified capital snapshot — single source of truth for all money.
+
+    Consolidates:
+    - Bounty payouts (PayoutRecord via truth layer)
+    - WorkBank income (delivered/paid/pending)
+    - Investment portfolio (InvestmentManager)
+    - Atlas portfolio (exchange balances)
+    - Crypto wallets
+    - Expected cash by payment rail
+    - Payment compatibility summary
+    """
+    from datetime import UTC, datetime
+
+    from cores.financial.dashboard import get_dashboard
+    from cores.financial.truth_layer import get_truth_layer
+
+    # ── Base dashboard (bounty + crypto + takenos + atlas) ───────
+    dash = get_dashboard()
+    truth = get_truth_layer()
+    truth.get_state()
+
+    # ── WorkBank income (direct work) ────────────────────────────
+    work_income = {"entregado_usd": 0.0, "pendiente_usd": 0.0, "total_usd": 0.0}
+    try:
+        from cores.direct_work_engine.workbank import get_work_bank
+
+        wb = get_work_bank()
+        progress = wb.progress()
+        work_income = {
+            "entregado_usd": round(progress.get("delivered_usd", 0.0), 2),
+            "pendiente_usd": round(progress.get("ready_usd", 0.0), 2),
+            "total_usd": round(progress.get("delivered_usd", 0.0) + progress.get("ready_usd", 0.0), 2),
+        }
+    except Exception:
+        pass
+
+    # ── Investment portfolio (InvestmentManager) ──────────────────
+    investment = {"total_usd": 0.0, "estrategias": []}
+    try:
+        from core.investment.manager import get_investment_manager
+
+        im = get_investment_manager()
+        snap = im.get_snapshot()
+        investment = {
+            "total_usd": round(snap.get("total_value", 0.0), 2),
+            "estrategias": snap.get("strategies", []),
+        }
+    except Exception:
+        pass
+
+    # ── Expected cash by payment rail ────────────────────────────
+    expected_cash = {}
+    try:
+        from cores.payment_compat.engine import get_payment_compat_engine
+
+        pce = get_payment_compat_engine()
+        # Sample: check major rails USD→ARS
+        for method in ["usdc_base", "paypal", "wise", "binance_p2p"]:
+            verdict = pce.evaluate(method=method, amount_usd=1000.0)
+            if verdict.compatible:
+                expected_cash[method] = {
+                    "fecha_estimada": verdict.expected_date,
+                    "confianza": verdict.confidence,
+                    "cuentas_disponibles": len(verdict.matches),
+                    "nota": verdict.honest_note,
+                }
+    except Exception:
+        pass
+
+    # ── Payment compatibility summary ───────────────────────────
+    payment_compat_summary = {}
+    try:
+        from cores.payment_compat.engine import get_payment_compat_engine
+
+        pce = get_payment_compat_engine()
+        # Quick aggregate: how many methods per tier
+        tiers = {"primary": 0, "us_account": 0, "global": 0, "payout": 0, "local": 0, "backup": 0, "specialized": 0}
+        for acct in pce.network.accounts.values():
+            if acct.function in tiers:
+                tiers[acct.function] += 1
+        payment_compat_summary = {
+            "total_cuentas": len(pce.network.accounts),
+            "por_funcion": tiers,
+        }
+    except Exception:
+        pass
+
+    return {
+        "patrimonio_total": dash.get("patrimonio_total", 0.0),
+        "breakdown": {
+            "bounty_platforms": dash["breakdown"].get("plataformas_bounty", {}),
+            "crypto": dash["breakdown"].get("crypto", {}),
+            "takenos": dash["breakdown"].get("takenos", {}),
+            "atlas_inversiones": dash["breakdown"].get("atlas_inversiones", {}),
+            "workbank_ingresos": work_income,
+            "inversiones": investment,
+        },
+        "liquidez": dash.get("liquidez", {}),
+        "expected_cash": expected_cash,
+        "payment_compat": payment_compat_summary,
+        "ingresos_mes": dash.get("ingresos", {}),
+        "objetivo_libertad": dash.get("objetivo_libertad", {}),
+        "timestamp": datetime.now(UTC).isoformat(),
+    }
+
+
 @router.post("/refresh")
 def refresh_prices() -> dict[str, Any]:
     """Clear price cache and force fresh data on next request."""

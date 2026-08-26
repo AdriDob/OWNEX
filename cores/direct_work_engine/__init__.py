@@ -8,6 +8,16 @@ everywhere, only finds the opportunities closest to it.
 
 from __future__ import annotations
 
+from cores.direct_work_engine.availability import (
+    AvailabilityEngine,
+    AvailabilitySnapshot,
+    TimeBlock,
+    can_accommodate_task,
+    get_availability_engine,
+    get_availability_snapshot,
+    get_available_hours,
+    recommend_max_task_hours,
+)
 from cores.direct_work_engine.engine import DirectWorkEngine, EngineStats
 from cores.direct_work_engine.evolution import (
     CapabilityExpansionDetector,
@@ -50,6 +60,8 @@ from cores.direct_work_engine.skill_gap import SkillAmplifier, SkillGapReport
 from cores.direct_work_engine.workbank import WorkBank, WorkItem, get_workbank
 
 __all__ = [
+    "AvailabilityEngine",
+    "AvailabilitySnapshot",
     "BarrierLevel",
     "CapabilityExpansionDetector",
     "CapabilityProposal",
@@ -83,6 +95,7 @@ __all__ = [
     "SkillGapReport",
     "TermAnalyzer",
     "TermAssessment",
+    "TimeBlock",
     "UserProfile",
     "WorkBank",
     "WorkItem",
@@ -91,7 +104,12 @@ __all__ = [
     "ZeroBarrierScorer",
     "apply_learning",
     "build_history_from_revenue_tracker",
+    "can_accommodate_task",
     "evolve_analysis",
+    "get_available_hours",
+    "get_availability_engine",
+    "get_availability_snapshot",
     "get_workbank",
+    "recommend_max_task_hours",
     "score_opportunities",
 ]

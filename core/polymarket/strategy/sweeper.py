@@ -12,10 +12,8 @@ Mitigation: Only trade high-volume, high-liquidity markets with clear resolution
 
 from __future__ import annotations
 
-import asyncio
 import logging
-import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from core.polymarket.client import PolymarketClient, get_client
@@ -81,7 +79,9 @@ class SweeperStrategy:
     """
 
     def __init__(self, config: dict[str, Any] | None = None) -> None:
-        self._config = SweeperConfig(**{k: v for k, v in (config or {}).items() if k in SweeperConfig.__dataclass_fields__})
+        self._config = SweeperConfig(
+            **{k: v for k, v in (config or {}).items() if k in SweeperConfig.__dataclass_fields__}
+        )
         self._client: PolymarketClient | None = None
         self._opportunities: list[SweeperOpportunity] = []
         self._positions: dict[str, dict[str, Any]] = {}  # market_id -> position info

@@ -7,6 +7,7 @@ intervals and exposes sync history for monitoring.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -89,6 +90,19 @@ class FinancialSyncScheduler:
                         sync_result.total_earned,
                         sync_result.total_pending,
                     )
+                    # Persist earnings into the canonical store so Capital
+                    # dashboards grow from real platform data (deduped).
+                    try:
+                        persisted = self._persist_earnings(platform_id, sync_result)
+                        if persisted:
+                            logger.info(
+                                "[SCHEDULER] %s → %d payout(s) nuevos persistidos (%d duplicados saltados)",
+                                platform_id,
+                                persisted[0],
+                                persisted[1],
+                            )
+                    except Exception as persist_exc:
+                        logger.warning("[SCHEDULER] %s earnings not persisted: %s", platform_id, persist_exc)
                     # Feed real earnings into the RevenueTracker so the Work Bank
                     # feedback loop (build_history_from_revenue_tracker → apply_learning)
                     # learns from verified payouts instead of sitting empty.
@@ -120,6 +134,65 @@ class FinancialSyncScheduler:
                 }
 
         return results
+
+    def _persist_earnings(self, platform_id: str, sync_result: Any) -> tuple[int, int]:
+        """Persist earnings from a sync result into PayoutRecord with dedupe.
+
+        Returns (inserted_count, skipped_count).
+        """
+        from datetime import datetime
+
+        from database.db import SessionLocal
+        from database.models_economic import PayoutRecord
+
+        db = SessionLocal()
+        inserted = 0
+        skipped = 0
+        try:
+            for earning in getattr(sync_result, "earnings", []):
+                earning_id = str(earning.get("id", "")).strip()
+                if not earning_id:
+                    continue
+                external_id = f"{platform_id}:{earning_id}"
+                exists = (
+                    db.query(PayoutRecord)
+                    .filter(
+                        PayoutRecord.platform == platform_id,
+                        PayoutRecord.external_id == external_id,
+                    )
+                    .first()
+                )
+                if exists:
+                    skipped += 1
+                    continue
+
+                amount = float(earning.get("amount", 0))
+                currency = earning.get("currency", "USD")
+                program = earning.get("program", "")
+                paid_at = None
+                created_at_str = earning.get("created_at", "")
+                if created_at_str:
+                    with contextlib.suppress(Exception):
+                        paid_at = datetime.fromisoformat(created_at_str.replace("Z", "+00:00"))
+
+                payout = PayoutRecord(
+                    platform=platform_id,
+                    amount=amount,
+                    currency=currency,
+                    program=program,
+                    external_id=external_id,
+                    status="confirmed",
+                    paid_at=paid_at,
+                )
+                db.add(payout)
+                inserted += 1
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        finally:
+            db.close()
+        return inserted, skipped
 
     def sync_crypto(self) -> dict[str, dict[str, Any]]:
         from cores.crypto.sync_manager import get_crypto_sync_manager

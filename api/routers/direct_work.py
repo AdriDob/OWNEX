@@ -267,9 +267,7 @@ def _ranked_to_dict(ranked: RankedOpportunity) -> dict[str, Any]:
 
         hours = float(getattr(ranked.opportunity, "estimated_time_hours", 0) or 0)
         proj = compute_htroi(
-            expected_income_usd=float(expected_cash["days_to_cash"] or 0)
-            if False
-            else float(ranked.expected_value),
+            expected_income_usd=float(expected_cash["days_to_cash"] or 0) if False else float(ranked.expected_value),
             human_hours=hours,
         )
         htroi = {
@@ -426,12 +424,9 @@ def _fallback_payload(ranked: list) -> dict:
         ranked_list = [_ranked_to_dict(r) for r in ranked]
         chain = build_fallback_chain(ranked_list)
         entries = [
-            {"rank": f.rank, "platform": f.platform, "title": f.title,
-             "trigger": f.trigger}
-            for f in chain.as_list()
+            {"rank": f.rank, "platform": f.platform, "title": f.title, "trigger": f.trigger} for f in chain.as_list()
         ]
-        return {"primary": entries[0] if entries else None,
-                "fallbacks": entries[1:], "warnings": list(chain.warnings)}
+        return {"primary": entries[0] if entries else None, "fallbacks": entries[1:], "warnings": list(chain.warnings)}
     except Exception:
         return {"primary": None, "fallbacks": [], "warnings": []}
 
@@ -463,14 +458,24 @@ async def direct_work_recommend(request: RecommendRequest) -> dict[str, Any]:
 
         chain = build_fallback_chain(ranked_list)
         fallbacks = [
-            {"rank": f.rank, "platform": f.platform, "title": f.title,
-             "trigger": f.trigger, "expected_cash_date": f.expected_cash_date}
+            {
+                "rank": f.rank,
+                "platform": f.platform,
+                "title": f.title,
+                "trigger": f.trigger,
+                "expected_cash_date": f.expected_cash_date,
+            }
             for f in chain.as_list()
         ]
         chain_warnings = list(chain.warnings)
     except Exception:
         fallbacks, chain_warnings = [], []
-    return {"ranked": ranked_list, "fallbacks": fallbacks[1:], "primary": fallbacks[0] if fallbacks else None, "chain_warnings": chain_warnings}
+    return {
+        "ranked": ranked_list,
+        "fallbacks": fallbacks[1:],
+        "primary": fallbacks[0] if fallbacks else None,
+        "chain_warnings": chain_warnings,
+    }
 
 
 @router.post("/discover")

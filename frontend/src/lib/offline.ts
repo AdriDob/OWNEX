@@ -237,9 +237,7 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
       if (newWorker) {
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            // New version available
             console.log('[SW] New version available');
-            // Could dispatch custom event for UI notification
             window.dispatchEvent(new CustomEvent('sw-update-available'));
           }
         });

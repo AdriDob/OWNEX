@@ -1,17 +1,17 @@
 """Tests for Income Target Engine."""
 
 import pytest
+
 from cores.direct_work_engine.income_target import (
-    IncomeTargetEngine,
-    TargetTier,
-    TargetMode,
     IncomeTarget,
+    IncomeTargetEngine,
+    TargetMode,
     TargetPlan,
     TargetProgress,
+    TargetTier,
     workitem_to_opportunity,
 )
 from cores.direct_work_engine.workbank import WorkItem
-from cores.direct_work_engine.profile_kit import UserProfile
 
 
 class TestIncomeTargetEngine:
@@ -44,14 +44,14 @@ class TestIncomeTargetEngine:
     def test_build_plan_with_public_ready_items(self):
         engine = IncomeTargetEngine()
         target = engine.create_target(TargetTier.WEEKLY_500, TargetMode.FAST_CASH)
-        
+
         from cores.direct_work_engine.profile_kit import ProfileKitEngine
         kit = ProfileKitEngine()
         profile = kit.get() or kit.default_profile()
         profile_obj = ProfileKitEngine.profile_from_dict(profile)
 
         plan = engine.build_plan(target, profile_obj)
-        
+
         assert isinstance(plan, TargetPlan)
         assert plan.target == target
         assert plan.required_opportunities >= 0
@@ -61,7 +61,7 @@ class TestIncomeTargetEngine:
     def test_build_plan_no_feasible_opportunities(self):
         engine = IncomeTargetEngine()
         target = engine.create_target(TargetTier.MONTHLY_10000, TargetMode.MAX_EV)
-        
+
         from cores.direct_work_engine.profile_kit import ProfileKitEngine
         kit = ProfileKitEngine()
         profile = kit.get() or kit.default_profile()
@@ -72,13 +72,13 @@ class TestIncomeTargetEngine:
 
     def test_rank_by_mode_fast_cash(self):
         engine = IncomeTargetEngine()
-        
+
         from cores.direct_work_engine.economic_engine import OpportunityEconomicProfile
-        
+
         p1 = OpportunityEconomicProfile(opportunity_id="1", platform="test", cash_adjusted_value=100.0)
         p2 = OpportunityEconomicProfile(opportunity_id="2", platform="test", cash_adjusted_value=50.0)
         p3 = OpportunityEconomicProfile(opportunity_id="3", platform="test", cash_adjusted_value=200.0)
-        
+
         ranked = engine._rank_by_mode([p1, p2, p3], TargetMode.FAST_CASH)
         assert ranked[0].opportunity_id == "3"
         assert ranked[1].opportunity_id == "1"
@@ -86,13 +86,13 @@ class TestIncomeTargetEngine:
 
     def test_rank_by_mode_max_ev(self):
         engine = IncomeTargetEngine()
-        
+
         from cores.direct_work_engine.economic_engine import OpportunityEconomicProfile
-        
+
         p1 = OpportunityEconomicProfile(opportunity_id="1", platform="test", expected_net_value=100.0)
         p2 = OpportunityEconomicProfile(opportunity_id="2", platform="test", expected_net_value=50.0)
         p3 = OpportunityEconomicProfile(opportunity_id="3", platform="test", expected_net_value=200.0)
-        
+
         ranked = engine._rank_by_mode([p1, p2, p3], TargetMode.MAX_EV)
         assert ranked[0].opportunity_id == "3"
         assert ranked[1].opportunity_id == "1"
@@ -101,9 +101,8 @@ class TestIncomeTargetEngine:
 
 class TestWorkItemToOpportunity:
     def test_converts_workitem_fields(self):
-        from cores.direct_work_engine.workbank import WorkItem
         from cores.direct_work_engine.models import EmploymentType
-        
+
         item = WorkItem(
             id="test-1",
             title="Test Bounty",
@@ -115,9 +114,9 @@ class TestWorkItemToOpportunity:
             status="ready_to_deliver",
             access_status="public",
         )
-        
+
         opp = workitem_to_opportunity(item)
-        
+
         assert opp.id == "test-1"
         assert opp.title == "Test Bounty"
         assert opp.platform == "bugcrowd"
@@ -129,9 +128,8 @@ class TestWorkItemToOpportunity:
         assert opp.employment_type == "bounty"
 
     def test_converts_minimal_workitem(self):
-        from cores.direct_work_engine.workbank import WorkItem
         from cores.direct_work_engine.models import EmploymentType
-        
+
         item = WorkItem(
             id="minimal",
             title="Minimal",
@@ -143,9 +141,9 @@ class TestWorkItemToOpportunity:
             status="preparing",
             access_status="public",
         )
-        
+
         opp = workitem_to_opportunity(item)
-        
+
         assert opp.id == "minimal"
         assert opp.platform == "opire"
         assert opp.category == "dev_bounty"
@@ -154,8 +152,8 @@ class TestWorkItemToOpportunity:
 
 class TestTargetPlan:
     def test_target_plan_creation(self):
-        from cores.direct_work_engine.income_target import TargetPlan, IncomeTarget, TargetTier, TargetMode
-        
+        from cores.direct_work_engine.income_target import TargetPlan, TargetTier
+
         target = IncomeTarget(tier=TargetTier.WEEKLY_500, amount_usd=500.0, period="weekly", mode="fast_cash")
         plan = TargetPlan(
             target=target,
@@ -167,15 +165,15 @@ class TestTargetPlan:
             probability_of_success=0.7,
             risk_factors=["Single platform"],
         )
-        
+
         assert plan.target == target
         assert plan.required_opportunities == 5
 
 
 class TestTargetProgress:
     def test_target_progress_creation(self):
-        from cores.direct_work_engine.income_target import TargetProgress, IncomeTarget, TargetTier, TargetMode
-        
+        from cores.direct_work_engine.income_target import TargetTier
+
         target = IncomeTarget(tier=TargetTier.WEEKLY_500, amount_usd=500.0, period="weekly", mode="fast_cash")
         progress = TargetProgress(
             target=target,
@@ -188,7 +186,7 @@ class TestTargetProgress:
             required_daily_rate=71.4,
             actual_daily_rate=83.3,
         )
-        
+
         assert progress.target == target
         assert progress.earned_this_period == 250.0
         assert progress.progress_pct == 70.0
@@ -197,13 +195,13 @@ class TestTargetProgress:
 class TestIncomeTargetTiers:
     def test_tier_configs_exist(self):
         from cores.direct_work_engine.income_target import _TIER_CONFIGS, TargetTier
-        
+
         assert TargetTier.WEEKLY_100.value in _TIER_CONFIGS
         assert TargetTier.WEEKLY_500.value in _TIER_CONFIGS
         assert TargetTier.WEEKLY_1000.value in _TIER_CONFIGS
         assert TargetTier.MONTHLY_1000.value in _TIER_CONFIGS
         assert TargetTier.MONTHLY_10000.value in _TIER_CONFIGS
-        
+
         for config in _TIER_CONFIGS.values():
             assert "amount" in config
             assert "period" in config
@@ -213,18 +211,18 @@ class TestIncomeTargetTiers:
 
 class TestConvenienceFunctions:
     def test_create_income_target(self):
-        from cores.direct_work_engine.income_target import create_income_target, TargetTier, TargetMode
-        
+        from cores.direct_work_engine.income_target import create_income_target
+
         target = create_income_target("weekly_250", "balanced")
         assert target.amount_usd == 250.0
         assert target.period == "weekly"
 
     def test_build_target_plan(self):
-        from cores.direct_work_engine.income_target import build_target_plan, IncomeTarget, TargetTier, TargetMode
-        
+        from cores.direct_work_engine.income_target import build_target_plan
+
         target = IncomeTarget(tier="weekly_100", amount_usd=100.0, period="weekly", mode="balanced")
         plan = build_target_plan(target)
-        
+
         assert isinstance(plan, TargetPlan)
 
 

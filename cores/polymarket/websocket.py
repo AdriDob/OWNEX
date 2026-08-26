@@ -16,9 +16,10 @@ import json
 import logging
 import time
 from collections import deque
-from dataclasses import dataclass, field
+from collections.abc import Callable, Coroutine
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Coroutine
+from typing import Any
 
 logger = logging.getLogger("orion.polymarket.websocket")
 
@@ -244,7 +245,7 @@ class PolymarketFeed:
                 # Notify subscribers
                 await self._notify_subscribers(msg)
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 # No message received within timeout, check connection
                 if self._state == ConnectionState.CONNECTED:
                     continue  # Normal timeout, keep waiting
@@ -334,8 +335,6 @@ class PolymarketFeed:
             "buffer_size": len(self._message_buffer),
             "subscribers": len(self._subscribers),
             "last_message_age": (
-                time.monotonic() - self._stats.last_message_time
-                if self._stats.last_message_time
-                else None
+                time.monotonic() - self._stats.last_message_time if self._stats.last_message_time else None
             ),
         }
