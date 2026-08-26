@@ -105,7 +105,7 @@ class ExtensionRegistry:
         for ext_id, m in self._extensions.items():
             # Safely format capabilities — handle both Capability objects and strings
             caps: list[str] = []
-            for c in (m.capabilities or []):
+            for c in m.capabilities or []:
                 if isinstance(c, Capability):
                     caps.append(f"{c.domain}:{c.name}")
                 elif isinstance(c, str):

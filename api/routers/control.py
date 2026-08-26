@@ -234,6 +234,44 @@ async def application_set_status(platform: str, payload: dict[str, Any]) -> dict
         raise HTTPException(status_code=500, detail=str(e)) from None
 
 
+@router.get("/applications/{platform}/onboarding")
+async def application_onboarding(platform: str) -> dict[str, Any]:
+    """Onboarding state para una plataforma: readiness %, checklist, next action."""
+    try:
+        from core.application_assistant import get_application_assistant
+
+        return get_application_assistant().get_onboarding(platform)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from None
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+@router.get("/applications/onboarding/all")
+async def all_onboarding() -> dict[str, Any]:
+    """Onboarding summary para todas las plataformas."""
+    try:
+        from core.application_assistant import get_application_assistant
+
+        results = get_application_assistant().get_all_onboarding()
+        return {"platforms": results, "count": len(results)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+@router.get("/applications/platform-ranking")
+async def platform_ranking() -> dict[str, Any]:
+    """¿En qué plataforma me conviene trabajar AHORA? Rankeado por effective $/h."""
+    try:
+        from core.application_assistant import get_application_assistant
+
+        ranked = get_application_assistant().get_platform_ranking()
+        top = ranked[0] if ranked else None
+        return {"ranking": ranked, "top_recommendation": top, "count": len(ranked)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
 @router.get("/guide/master")
 async def master_guide() -> dict[str, Any]:
     """Guía maestra paso a paso con estado real de todas las categorías."""

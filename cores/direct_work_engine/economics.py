@@ -123,11 +123,14 @@ class HumanValueResult:
     ``ev_per_human_hour_usd`` is None when the human hours are unknown or
     zero — dividing by a guess would be inventing data. Same for
     ``cash_speed_days`` when no payment-timing signal exists.
+    ``ev_usd`` exposes the underlying SSOT total so callers never re-derive
+    money math from ``factors`` (convergencia P0-3, audit 2026-08-25).
     """
 
     ev_per_human_hour_usd: float | None
     cash_speed_days: float | None
     availability_state: str
+    ev_usd: float = 0.0
     factors: dict[str, float] = field(default_factory=dict)
     warnings: tuple[str, ...] = ()
 
@@ -197,6 +200,7 @@ def compute_expected_human_value(
         ev_per_human_hour_usd=ev_per_hour,
         cash_speed_days=cash_days,
         availability_state=core.availability_state,
+        ev_usd=core.ev_usd,
         factors=factors,
         warnings=tuple(warnings),
     )

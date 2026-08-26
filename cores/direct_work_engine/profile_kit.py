@@ -197,8 +197,8 @@ class ProfileKitEngine:
                 "field_keys": ["bio", "skills", "availability"],
             },
             "linkedin": {
-                "label_keys": ["headline", "summary", "skills", "projects"],
-                "field_keys": ["headline", "summary", "skills", "projects"],
+                "label_keys": ["headline", "summary", "skills", "projects", "about_full", "experience", "featured"],
+                "field_keys": ["headline", "summary", "skills", "projects", "about_full", "experience", "featured"],
             },
         }
 
@@ -308,6 +308,19 @@ class ProfileKitEngine:
             fields.append({"key": "linkedin_skills", "label": "Stack técnico", "text": self._linkedin_skills(profile)})
             fields.append(
                 {"key": "linkedin_projects", "label": "Proyectos destacados", "text": self._linkedin_projects(profile)}
+            )
+            fields.append(
+                {"key": "linkedin_about_full", "label": "About (completo)", "text": self._linkedin_about_full(profile)}
+            )
+            fields.append(
+                {
+                    "key": "linkedin_experience",
+                    "label": "Experiencia (bullets)",
+                    "text": self._linkedin_experience(profile),
+                }
+            )
+            fields.append(
+                {"key": "linkedin_featured", "label": "Sección Featured", "text": self._linkedin_featured(profile)}
             )
 
         return fields
@@ -538,3 +551,51 @@ class ProfileKitEngine:
         if profile.projects:
             return "\n".join(f"- {p}" for p in profile.projects[:5])
         return "- Sin proyectos publicados aún"
+
+    def _linkedin_about_full(self, profile: UserProfile) -> str:
+        name = profile.name or "Ingeniero de software"
+        skills = ", ".join(sorted(profile.skills)[:6]) if profile.skills else "desarrollo full-stack"
+        lines = [
+            f"{name} — {profile.country} — Remote.",
+            "",
+            (
+                "Construyo sistemas que producen resultados medibles: vulnerabilidades encontradas, "
+                "trabajo entregado, tiempo ahorrado. Especialidad en bug bounty "
+                "(recon → hipótesis → validación → reporte) y automatización con agentes de IA."
+            ),
+            "",
+            f"Stack: {skills}.",
+            "",
+            "Proyectos destacados:",
+            self._linkedin_projects(profile),
+        ]
+        if profile.github_url:
+            lines += ["", f"Código y evidencia: {profile.github_url}"]
+        lines.append(f"Disponibilidad: {profile.availability_hours:g}h/semana.")
+        return "\n".join(lines)
+
+    def _linkedin_experience(self, profile: UserProfile) -> str:
+        skills = ", ".join(sorted(profile.skills)[:3]) if profile.skills else "software engineering"
+        bullets = [
+            (
+                f"Ingeniería de software ({self._exp_label(profile)}): Python, APIs, automatización "
+                f"y pipelines de datos ({skills})."
+            ),
+            "Bug bounty: metodología recon → hipótesis → validación → reporte profesional de vulnerabilidades.",
+            "Sistemas autónomos: orquestación multi-agente, scheduling adaptativo e inferencia local-first.",
+        ]
+        if profile.projects:
+            bullets.insert(0, f"Proyectos propios: {' · '.join(str(p) for p in profile.projects[:2])}.")
+        return "\n".join(f"• {b}" for b in bullets)
+
+    def _linkedin_featured(self, profile: UserProfile) -> str:
+        items: list[str] = []
+        if profile.projects:
+            items.extend(f"⭐ {p}" for p in profile.projects[:3])
+        else:
+            items.append("⭐ Proyecto flagship — agregar al completar el perfil")
+        if profile.github_url:
+            items.append(f"🔗 Código: {profile.github_url}")
+        if profile.portfolio_url:
+            items.append(f"📁 Portfolio: {profile.portfolio_url}")
+        return "\n".join(items)

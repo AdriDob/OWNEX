@@ -24,7 +24,7 @@
           <p class="merlin-subtitle">AI ASSISTANT SYSTEM</p>
           <div class="merlin-status">
             <span class="status-indicator status-online"></span>
-            <span class="status-text">SYSTEM ONLINE</span>
+            <span class="status-text">SISTEMA EN LÍNEA</span>
           </div>
         </div>
       </div>
@@ -73,7 +73,7 @@
               </div>
               <div class="message-body">
                 <p class="greeting">{{ greeting }}</p>
-                <p class="description">INITIALIZING JARVIS INTERFACE...</p>
+                <p class="description">INICIALIZANDO INTERFAZ JARVIS...</p>
                 <p class="description">READY TO ASSIST WITH:</p>
                 <ul class="capabilities-list">
                   <li v-for="capability in capabilities" :key="capability">{{ capability }}</li>
@@ -221,7 +221,7 @@ const userInput = ref('')
 const sidebarCollapsed = ref(false)
 const isBeginnerMode = ref(true)
 
-const greeting = ref('INITIALIZING JARVIS INTERFACE... SYSTEM READY. AWAITING INPUT.')
+const greeting = ref('INICIALIZANDO INTERFAZ JARVIS... SISTEMA LISTO. ESPERANDO ENTRADA.')
 const capabilities = ref([
   'TARGET ANALYSIS',
   'VULNERABILITY DETECTION',

@@ -25,7 +25,8 @@ class FreebuffProvider(BaseProvider):
 
     def __init__(self, config: ProviderConfig | None = None) -> None:
         super().__init__(
-            config or ProviderConfig(
+            config
+            or ProviderConfig(
                 name="freebuff",
                 priority=12,  # Between Devin (15) and OpenCode (10)
                 models=["freebuff"],

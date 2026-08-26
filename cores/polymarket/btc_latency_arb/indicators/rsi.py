@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 
 def clamp(value: float, min_val: float, max_val: float) -> float:
     """Clamp value between min and max."""

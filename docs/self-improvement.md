@@ -63,12 +63,12 @@ from core.self_improvement.config import SelfImprovementConfig
 
 config = SelfImprovementConfig(
     data_dir=Path("./data/self_improvement"),
-    p_target=0.20,              # target success rate
-    frontier_sigma=0.25,        # gaussian spread
-    difficulty_step=0.05,       # difficulty delta per outcome
+    p_target=0.20,  # target success rate
+    frontier_sigma=0.25,  # gaussian spread
+    difficulty_step=0.05,  # difficulty delta per outcome
     rollout_timeout_seconds=60,
     max_retries_per_rollout=1,
-    allow_network=False,        # sandbox isolation
+    allow_network=False,  # sandbox isolation
 )
 ```
 
@@ -110,10 +110,7 @@ from core.self_improvement.engine import SelfImprovementEngine
 from core.self_improvement.rollout import DeterministicSolver
 from core.self_improvement.config import SelfImprovementConfig
 
-engine = SelfImprovementEngine(
-    config=SelfImprovementConfig(data_dir=Path("./my_data")),
-    solver=DeterministicSolver()
-)
+engine = SelfImprovementEngine(config=SelfImprovementConfig(data_dir=Path("./my_data")), solver=DeterministicSolver())
 
 # Single iteration
 result = engine.run_once()

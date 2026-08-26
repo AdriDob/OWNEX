@@ -7,6 +7,7 @@ a ``scheduler:job_due`` event that the target app handles.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import time
 from collections.abc import Callable
@@ -27,6 +28,11 @@ class CoreScheduler(IScheduler):
         self._task: asyncio.Task | None = None
         self._running = False
         self._on_job_due: Callable[[JobDefinition], Any] | None = None
+        # Hardening spec §12: guard anti-solapamiento + run ledger persistente.
+        self._active_runs: set[str] = set()
+        from core.scheduler.runs import SchedulerRunLedger
+
+        self._ledger = SchedulerRunLedger()
 
     def set_job_handler(self, handler: Callable[[JobDefinition], Any]) -> None:
         """Set the callback invoked when a job is due (usually EventBus publish)."""
@@ -45,6 +51,10 @@ class CoreScheduler(IScheduler):
         self._running = False
         if self._task:
             self._task.cancel()
+            # Awaitar la cancelación: sin esto el loop puede seguir vivo
+            # durante la teardown del event loop (audit P1-1).
+            with contextlib.suppress(Exception):
+                await asyncio.gather(self._task, return_exceptions=True)
             self._task = None
         logger.info("Core scheduler stopped")
 
@@ -102,6 +112,50 @@ class CoreScheduler(IScheduler):
         seconds = job.seconds or 3600
         return last_run + seconds
 
+    async def _fire_job(self, job_id: str, job: JobDefinition) -> None:
+        """Ejecuta un job con guard anti-solapamiento + run ledger (spec §12).
+
+        - Si el mismo job ya está corriendo en este proceso → skip.
+        - Si otro proceso sostiene el flock del job → skipped_locked (registrado).
+        - Toda corrida queda en el JSONL con job_id/run_id/attempt/status/error.
+        """
+        from core.scheduler.runs import RunRecord, _default_ledger_path, job_lock
+
+        if job_id in self._active_runs:
+            logger.debug("Job %s aún corriendo — skip overlap", job_id)
+            return
+        self._active_runs.add(job_id)
+        try:
+            lock_dir = _default_ledger_path().parent / "scheduler_locks"
+            with job_lock(job_id, lock_dir) as acquired:
+                record = RunRecord(job_id=job_id)
+                if not acquired:
+                    logger.info("Job %s locked por otro proceso — skipped", job_id)
+                    record.status = "skipped_locked"
+                    self._ledger.append(record)
+                    return
+                record.attempt = self._ledger.next_attempt(job_id)
+                self._ledger.append(record)  # running
+                handler = self._on_job_due
+                if handler is None:
+                    return
+                try:
+                    result = handler(job)
+                    if asyncio.iscoroutine(result):
+                        await result
+                    if record is not None:
+                        record.status = "success"
+                        record.finished_at = time.time()
+                        self._ledger.append(record)
+                except Exception as exc:
+                    logger.exception("Job %s failed (attempt %d)", job_id, record.attempt)
+                    record.status = "failed"
+                    record.finished_at = time.time()
+                    record.error = str(exc)[:500]
+                    self._ledger.append(record)
+        finally:
+            self._active_runs.discard(job_id)
+
     async def _loop(self) -> None:
         last_run: dict[str, float] = {}
 
@@ -117,14 +171,9 @@ class CoreScheduler(IScheduler):
                 next_run = self._job_next_run(job, last, now)
                 if now >= next_run:
                     last_run[job_id] = now
-                    handler = self._on_job_due
-                    if handler is not None:
-                        try:
-                            result = handler(job)
-                            if asyncio.iscoroutine(result):
-                                await result
-                        except Exception:
-                            logger.exception("Job %s handler failed", job_id)
+                    # Fire-and-collect: un job lento ya no bloquea el loop
+                    # entero (audit P1-1); el guard evita solapamiento.
+                    asyncio.ensure_future(self._fire_job(job_id, job))
             await asyncio.sleep(5)
 
     @property

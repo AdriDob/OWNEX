@@ -32,6 +32,10 @@ interface Props {
   cashSpeedDays?: number | null
   assessmentRequired?: boolean | null
   zeroExperience?: boolean | null
+  /** Campos de honestidad económica (backend ya los devuelve; UI los muestra). */
+  expectedCash?: { date: string | null; confidence: string; note: string } | null
+  htroi?: number | null
+  confidenceBand?: string | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -46,6 +50,9 @@ const props = withDefaults(defineProps<Props>(), {
   cashSpeedDays: null,
   assessmentRequired: null,
   zeroExperience: null,
+  expectedCash: null,
+  htroi: null,
+  confidenceBand: null,
 })
 
 const emit = defineEmits<{ (e: 'primary'): void; (e: 'secondary'): void }>()
@@ -63,6 +70,15 @@ const displayMeta = computed<Record<string, string>>(() => {
         : `${usd(props.payoffRange.low)}–${usd(props.payoffRange.high)}`
   }
   if (props.cashSpeedDays != null) out['1er pago ~'] = `${props.cashSpeedDays} días`
+  if (props.zeroExperience != null) out['experiencia'] = props.zeroExperience ? 'NO requerida' : 'requerida'
+  if (props.assessmentRequired != null) out['assessment'] = props.assessmentRequired ? 'sí (único)' : 'no'
+  if (props.expectedCash) {
+    const ec = props.expectedCash
+    if (ec.date) out['esperado p/'] = ec.date
+    if (ec.confidence) out['confianza cash'] = ec.confidence
+  }
+  if (props.htroi != null) out['HTROI'] = `${Math.round(props.htroi)}%`
+  if (props.confidenceBand) out['banda confianza'] = props.confidenceBand
   if (props.zeroExperience != null) out['experiencia'] = props.zeroExperience ? 'NO requerida' : 'requerida'
   if (props.assessmentRequired != null) out['assessment'] = props.assessmentRequired ? 'sí (único)' : 'no'
   for (const [k, v] of Object.entries(props.meta)) out[k] = String(v)

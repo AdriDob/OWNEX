@@ -28,6 +28,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
+from cores.direct_work_engine.availability import get_available_hours
 from cores.opportunity.global_sources import find_curated_entry_model
 from cores.result_based import FirstDayGuide
 
@@ -328,7 +329,7 @@ class UnifiedIncomePlan:
             return low, high
 
         today_low, today_high = _sum_range(now_actions)
-        availability = self._availability_hours()
+        availability = get_available_hours("this_week")
 
         stream_low = stream_high = 0.0
         stack: list[dict[str, Any]] = []
@@ -374,21 +375,6 @@ class UnifiedIncomePlan:
             "active_stack": stack,
             "ready_to_deliver_count": len(ready_items),
         }
-
-    @staticmethod
-    def _availability_hours() -> float:
-        """Horas/semana desde el Profile Kit real; default 40 si no hay perfil."""
-        try:
-            from cores.direct_work_engine.profile_kit import ProfileKitEngine
-
-            kit = ProfileKitEngine()
-            raw = kit.get() or kit.default_profile()
-            profile = ProfileKitEngine.profile_from_dict(raw)
-            if profile.availability_hours and profile.availability_hours > 0:
-                return float(profile.availability_hours)
-        except Exception as exc:  # pragma: no cover - defensivo
-            logger.warning("Profile Kit unavailable for availability: %s", exc)
-        return 40.0
 
 
 def _is_entry_step(action: dict[str, Any]) -> bool:

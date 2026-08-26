@@ -28,11 +28,20 @@ from cores.license.store import get_license_store
 logger = logging.getLogger("cateye.license.validator")
 
 # Ed25519 public key (safe to embed — only used for verification)
-# Override via CATEYE_LICENSE_PUBLIC_KEY env var for custom builds
-_PUBLIC_KEY_B64 = os.environ.get(
-    "CATEYE_LICENSE_PUBLIC_KEY",
-    "r2abXG9wBnkfJCbF8nKK9ElOWXB8UWnUNH2JWYRRo8Y=",
-)
+# Override via CATEYE_LICENSE_PUBLIC_KEY env var for custom builds.
+# Fix 2026-08-25 (P1 order-dependency): la clave se resolvía a nivel de
+# módulo y quedaba congelada en el import; en suite completa el validator
+# era importado durante la COLECCIÓN (antes del fixture autouse de conftest
+# que genera el keypair efímero) → firmaba con priv de conftest pero
+# verificaba contra el default embebido → "Invalid signature" solo en
+# suite completa. Resolución lazy: mismo valor en prod (sin env → embedded),
+# correcto en tests sin importar el orden. Semántica criptográfica intacta.
+_EMBEDDED_PUBLIC_KEY_B64 = "r2abXG9wBnkfJCbF8nKK9ElOWXB8UWnUNH2JWYRRo8Y="
+
+
+def _get_public_key_b64() -> str:
+    return os.environ.get("CATEYE_LICENSE_PUBLIC_KEY", _EMBEDDED_PUBLIC_KEY_B64)
+
 
 KEY_PATTERN = re.compile(r"^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$")
 
@@ -40,7 +49,7 @@ BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
 
 
 def _get_verifier() -> ed25519.Ed25519PublicKey:
-    raw = base64.b64decode(_PUBLIC_KEY_B64)
+    raw = base64.b64decode(_get_public_key_b64())
     return ed25519.Ed25519PublicKey.from_public_bytes(raw)
 
 

@@ -113,7 +113,21 @@ class TestServeFrontend:
 
 # ── Bloque 2: Build scripts ──────────────────────────────────────────
 
+# DECISIÓN ARQUITECTÓNICA 2026-08-24 (DECISIONS.md, ARCHITECTURE CONVERGENCE):
+# el packaging canónico es Tauri (ownex-tauri-windows.yml); los instaladores
+# Gen1/Gen2 fueron archivados a docs/archived/installers/. Los tests que
+# referencian desktop.build.* e installer/install_*.{sh,ps1} quedan SKIP
+# hasta que se decida su retiro o restauración (backlog post-release).
 
+import pytest as _pytest
+
+_LEGACY_PACKAGING_SKIP = _pytest.mark.skip(
+    reason="Packaging legacy archivado por convergencia 2026-08-24; "
+    "canónico = Tauri (guards en test_tauri_packaging.py)"
+)
+
+
+@_LEGACY_PACKAGING_SKIP
 class TestBuildScripts:
     def test_build_desktop_import(self):
         import importlib
@@ -144,6 +158,7 @@ class TestBuildScripts:
 # ── Bloque 7: Build orchestrator ─────────────────────────────────────
 
 
+@_LEGACY_PACKAGING_SKIP
 class TestBuildAll:
     def test_import(self):
         import importlib
@@ -155,6 +170,7 @@ class TestBuildAll:
 # ── Bloque 8: Installer scripts exist ────────────────────────────────
 
 
+@_LEGACY_PACKAGING_SKIP
 class TestInstallerScripts:
     @pytest.mark.parametrize(
         "script",

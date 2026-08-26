@@ -52,6 +52,7 @@ def daily_companion(
     personal = _safe(_personal_state, {"objectives": [], "pending_tasks": 0, "learning_goals": []})
     market = _safe(_market_state, {"opportunities": 0, "top_sources": [], "new_ecosystems": 0})
     focus = _safe(_focus_check, {"stop": [], "automate": [], "delegate": [], "improve": []})
+    setup = _safe(_setup_progress, {"complete_pct": 0, "complete": False, "next_task": None})
     briefing = _daily_briefing(system, personal, market, focus)
     projection = _safe(
         lambda: _projection(
@@ -66,6 +67,7 @@ def daily_companion(
         "personal": personal,
         "market": market,
         "focus": focus,
+        "setup": setup,
         "briefing": briefing,
         "projection": projection,
     }
@@ -148,6 +150,18 @@ def _focus_check() -> dict[str, Any]:
         "delegate": delegate[:5],
         "improve": improve[:5],
         "summary": f"{len(stop)} to stop, {len(automate)} to automate, {len(delegate)} to delegate, {len(improve)} to improve",
+    }
+
+
+def _setup_progress() -> dict[str, Any]:
+    """Configuración total: % completo + la tarea de config de hoy (una sola)."""
+    from core.setup.checklist import get_setup_checklist
+
+    status = get_setup_checklist().status()
+    return {
+        "complete_pct": status["complete_pct"],
+        "complete": status["complete"],
+        "next_task": status["next_task"],
     }
 
 

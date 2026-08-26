@@ -100,3 +100,45 @@ async def get_available_platforms():
         {"id": "synack", "title": "Synack", "description": "Crowdsec elite"},
     ]
     return {"platforms": platforms}
+
+
+# ── Setup Checklist — configuración progresiva como tarea diaria ──
+
+
+@router.get("/checklist/status")
+async def setup_checklist_status():
+    """Progreso de configuración total + la tarea de hoy (una sola)."""
+    from core.setup.checklist import get_setup_checklist
+
+    try:
+        return get_setup_checklist().status()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+@router.post("/checklist/{item_id}/done")
+async def setup_checklist_mark_done(item_id: str):
+    """Marca un ítem manual (onboarding externo) como completado."""
+    from core.setup.checklist import get_setup_checklist
+
+    try:
+        return get_setup_checklist().mark_done(item_id)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from None
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from None
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+@router.post("/checklist/{item_id}/undone")
+async def setup_checklist_mark_undone(item_id: str):
+    """Deshace el marcado manual de un ítem (corrección de error)."""
+    from core.setup.checklist import get_setup_checklist
+
+    try:
+        return get_setup_checklist().mark_undone(item_id)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from None
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from None

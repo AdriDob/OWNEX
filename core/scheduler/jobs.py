@@ -620,6 +620,39 @@ def get_integration_jobs() -> list[JobDefinition]:
     ]
 
 
+def get_execution_queue_jobs() -> list[JobDefinition]:
+    """EXECUTION QUEUE jobs — autonomous processing of the execution queue.
+
+    Jobs:
+    - execution_queue_process: process QUEUED items every minute
+    - execution_queue_retry: retry FAILED items every 15 minutes
+    - execution_queue_dlq: move stale FAILED to DEAD_LETTER hourly
+    """
+    return [
+        _discovery_job(
+            job_id="execution_queue_process",
+            app_id="execution",
+            handler="core.execution_queue.driver:process_queue_scheduler",
+            seconds=60,  # every minute
+            metadata={"cycle": "execution", "type": "process"},
+        ),
+        _cron_job(
+            job_id="execution_queue_retry",
+            app_id="execution",
+            handler="core.execution_queue.driver:retry_failed_scheduler",
+            cron="*/15 * * * *",
+            metadata={"cycle": "execution", "type": "retry"},
+        ),
+        _cron_job(
+            job_id="execution_queue_dlq",
+            app_id="execution",
+            handler="core.execution_queue.driver:move_to_dlq_scheduler",
+            cron="0 * * * *",
+            metadata={"cycle": "execution", "type": "dlq"},
+        ),
+    ]
+
+
 def get_all_jobs() -> dict[str, list[JobDefinition]]:
     """Return all cycle jobs."""
     return {
@@ -635,4 +668,5 @@ def get_all_jobs() -> dict[str, list[JobDefinition]]:
         "knowledge": get_knowledge_jobs(),
         "trading": get_trading_jobs(),
         "integrations": get_integration_jobs(),
+        "execution": get_execution_queue_jobs(),
     }

@@ -4,6 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-__version__ = "1.0.1"
+__version__ = "7.0.0"
 
 OWNEX_DIR = Path.home() / ".ownex"

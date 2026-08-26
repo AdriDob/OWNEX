@@ -1,6 +1,6 @@
 {
   "name": "ownex-omega-frontend",
-  "version": "1.0.1",
+  "version": "7.0.0",
   "private": true,
   "type": "module",
   "scripts": {

@@ -45,7 +45,7 @@
 | Scheduler hardened (anti-overlap, flock, run ledger JSONL, stale-scan recovery boot+tick) | **IMPLEMENTED** | WIP heredado verificado; `test_scheduler_jobs` 49 + `test_scheduler_hooks` |
 | Revenue ledger EXPECTED≠PENDING≠PAID (proyección de estado, dinero solo en PAID) | **IMPLEMENTED** | Fix ghost-money previo + `test_income_chain_e2e::full_chain` |
 | EV SSOT único (economics.py: HTROI-V1, CONF-V1, availability UNKNOWN-safe) | **IMPLEMENTED** | `test_economics_ssot` 6 |
-| Execution Queue v1 (13 estados + store JSON) | **PARTIAL** (por diseño) | State machine + store PRODUCTIVOS y testeables; wiring→executors + scheduler driver = corte siguiente documentado (TASK_QUEUE §EXECUTION LAYER 1a) |
+| Execution Queue v1 (13 estados + store JSON) | **IMPLEMENTED** (cierre Parte 2) | State machine + store + driver (10 executors) + API CRUD + jobs scheduler (process/retry/dlq) + **Execution Mirror**: WorkBank daily_cycle→READY, deliver/prepare→QUEUED, deliver/approve(gate humano)→SUBMITTED, pago confirmado→VERIFICATION→PAID(+evento payout), pago rechazado→FAILED(→Stage.REJECTED $0). Idempotente y best-effort (jamás rompe el banco). Tests: `test_execution_mirror` 8/8 + sweep 158 passed |
 | WorkBank ciclo completo (discover→prepare→human-gate→deliver) | **IMPLEMENTED** | `test_workbank` 21 + E2E chain pasos 3-5 |
 | Application Assistant (19 pasos, 5 plataformas, tracking persistente) | **IMPLEMENTED** | `test_application_assistant` 16 |
 | Income Plan + Command Center ($/h-humana, bootstrap determinista) | **IMPLEMENTED** | `test_income_plan` 14 + smoke 200 |
@@ -64,28 +64,30 @@
 |---|---|---|
 | APK Android Capacitor (`ai.rastro.app`) compila | **IMPLEMENTED** | BUILD SUCCESSFUL previo (5.1-5.2MB); CI android |
 | Superficie web Companion (`MobileCompanion*.vue`) consume `/wear-os/*`, copilot chat, approvals | **IMPLEMENTED** | Código + servicios ownexData.ts tipados |
-| Unificación MobileApp.vue (Tesla tokens, offline-first SW+IndexedDB) | **PARTIAL** — FASE 3 en curso | `offline.ts` creado (queue IndexedDB + SW registration + background sync hooks); fusión de páginas pendiente esta pasada |
-| Offline queue end-to-end | **STUB** | Primitivas listas; wiring UI + flush-on-reconnect pendiente |
+| Superficie móvil web unificada (`MobileApp.vue`) | **IMPLEMENTED** (Parte 3) | Consolida Companion+Jarvis; tokens Tesla únicos (cero neón); tabs Inicio/Trabajo/Reloj; contratos reales income-plan + capital/snapshot + delivery queue + wear-os; NEXT BEST ACTION con EV/h y payoff range; redirects legacy `/mobile/jarvis` |
+| Device identity compartida Desktop↔Mobile | **IMPLEMENTED** | `ownex-device-id` localStorage + POST /device/register (platform=mobile, capabilities) — best-effort no bloqueante |
+| Offline-first mobile | **IMPLEMENTADO (base honesta)** | Cola IndexedDB (`lib/offline.ts`: enqueue/pending/retry/maxAge 7d); acciones sensibles offline → cola explícita NUNCA finge éxito; banner OFFLINE + contador pendientes; SW registration + background-sync hooks. Fix sintaxis detectado SOLO por vite build (tsc no la atrapó) |
+| Watch Preview en Mobile | **IMPLEMENTED** | Tab Reloj = vista en vivo del contrato /wear-os (status online/workflows/approvals, notificaciones mark-read, approvals respond) |
 | Push notifications | **PARTIAL** | SW tiene handler push+notificationclick; backend VAPID no conectado |
 
 ### Watch
 | Capacidad | Estado | Evidencia |
 |---|---|---|
 | Contrato backend completo | **IMPLEMENTED** | Router + integración WearOSIntegration persistente (50 notifs / 20 approvals) |
-| Módulo Android Wear (`android/wear/`, `ai.rastro.watch`) | **PARTIAL** — owner revocó AUD-14: APK SÍ va | build.gradle + deps wearable existen; cliente mínimo por construir |
-| Cliente Wear OS nativo | **PENDIENTE** (decisión owner 2026-08-26 revoca descarte) | Casos: alertas, approvals approve/reject, status, acciones seguras |
+| Módulo Android Wear (`android/wear/`, `ai.rastro.watch`) | **IMPLEMENTED** (verificado Parte 3) | `MainActivity.java` 219 líneas: fetch a API (10.0.2.2:8000 emulador / host real), JSON parsing, temas (Emerald/Cyan/Amber/Violet), botones de acción; layout + manifest + strings; deps wearable en build.gradle |
+| Cliente Wear OS nativo | **IMPLEMENTED** (código; APK = REQUIRES HUMAN VALIDATION) | Casos cubiertos: status, alertas/notificaciones, acciones seguras; compilación release pendiente de validación física (gradle + keystore env) |
 
 ---
 
 ## 4. Deuda NO bloqueante (P2 → backlog 1.1)
 
 1. **Lint global ~2897** (F401/I001/F841/SIM*) — histórico; criterio repo limpio-en-tocados.
-2. **Execution Queue wiring** adapters→executors + scheduler driver — diseñado, corte 1a.
-3. **Sync apply/conflict-resolution** entrante — primitivas listas.
-4. **Mobile unificación + offline E2E** — FASE 3-4 de esta pasada.
-5. **Wear APK cliente mínimo** — FASE post-Parte-3 (decisión owner).
-6. **Push VAPID backend** — handler SW listo, falta emisor.
-7. **Capital OS / Allocation Engine** — `.ai/OWNEX_1_1_BACKLOG.md` registrado.
+2. **Sync apply/conflict-resolution** entrante — primitivas listas (queue/conflicts/process_sync snapshot).
+3. **Mobile unificación + offline E2E** — FASE 3-4 de esta pasada.
+4. **Wear APK cliente mínimo** — FASE post-Parte-3 (decisión owner revoca AUD-14).
+5. **Push VAPID backend** — handler SW listo, falta emisor.
+6. **Capital OS / Allocation Engine** — `.ai/OWNEX_1_1_BACKLOG.md` registrado.
+7. ~~Execution Queue wiring~~ → **CERRADO en Parte 2** (ver §3).
 
 ## 5. REQUIRES HUMAN VALIDATION (no falseable desde WSL)
 

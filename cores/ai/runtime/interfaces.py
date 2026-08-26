@@ -456,7 +456,7 @@ class OARConfig:
     circuit_breaker_timeout_seconds: int = 300
 
     # Cost tracking
-    daily_budget_usd: float | None = 10.0
+    daily_budget_usd: float | None = 0.0  # spec §12: $0 default; paid tiers require explicit config
     track_costs: bool = True
 
     # Caching

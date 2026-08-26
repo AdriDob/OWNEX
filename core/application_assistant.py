@@ -263,6 +263,89 @@ def _steps_catalog() -> dict[str, list[dict[str, Any]]]:
                 "fields": {},
             },
         ],
+        "hackerone": [
+            {
+                "id": "create_account",
+                "title": "Crear cuenta en HackerOne",
+                "detail": "hackerone.com — registrarte con email real. Sin restricciones de país para hunters.",
+                "est_minutes": 5,
+                "fields": {"email": "Tu email principal", "username": "Handle profesional"},
+            },
+            {
+                "id": "configure_payment",
+                "title": "Configurar método de payout",
+                "detail": "Settings → Payouts. PayPal o Payoneer funcionan desde Argentina. Mínimo $300 USD para PayPal.",
+                "est_minutes": 10,
+                "fields": {},
+            },
+            {
+                "id": "api_key",
+                "title": "Generar API key",
+                "detail": "Settings → API token → crear token de solo lectura para sync de earnings.",
+                "est_minutes": 5,
+                "fields": {},
+            },
+            {
+                "id": "first_program",
+                "title": "Seleccionar primer programa público",
+                "detail": "Filtrar por: public + bounty + reports > 50. Evitar programas VDP (sin pago). Empezar con scope amplio.",
+                "est_minutes": 15,
+                "fields": {},
+            },
+        ],
+        "issuehunt": [
+            {
+                "id": "create_account",
+                "title": "Crear cuenta en IssueHunt",
+                "detail": "issuehunt.io — login con GitHub. Vincula tus repos automáticamente.",
+                "est_minutes": 3,
+                "fields": {},
+            },
+            {
+                "id": "connect_github",
+                "title": "Vincular cuenta GitHub",
+                "detail": "Autorizar OAuth. Tu historial de contribuciones es tu reputación acá.",
+                "est_minutes": 2,
+                "fields": {},
+            },
+            {
+                "id": "configure_payout",
+                "title": "Configurar payout",
+                "detail": "PayPal o crypto (USDC). Sin mínimo aparente.",
+                "est_minutes": 5,
+                "fields": {},
+            },
+        ],
+        "freelancer": [
+            {
+                "id": "create_account",
+                "title": "Crear perfil en Freelancer.com",
+                "detail": "freelancer.com — completar perfil con skills del Profile Kit. Los primeros proyectos conviene hacerlos a bajo precio por reviews.",
+                "est_minutes": 20,
+                "fields": {"skills": "Python, Web Scraping, Automation (del Profile Kit)"},
+            },
+            {
+                "id": "verify_identity",
+                "title": "Verificar identidad",
+                "detail": "DNI + selfie. Necesario para retirar fondos.",
+                "est_minutes": 15,
+                "fields": {},
+            },
+            {
+                "id": "configure_payment",
+                "title": "Configurar método de retiro",
+                "detail": "Payoneer o PayPal funcionan desde Argentina. Verificar fees de conversión USD→ARS.",
+                "est_minutes": 10,
+                "fields": {},
+            },
+            {
+                "id": "first_bid",
+                "title": "Primer bid",
+                "detail": "Buscar proyectos pequeños ($30-100) con pocos bids. El Profile Kit genera la propuesta — copiar y ajustar.",
+                "est_minutes": 20,
+                "fields": {},
+            },
+        ],
     }
 
 
@@ -383,6 +466,126 @@ class ApplicationAssistant:
         entry["updated_at"] = _now_iso()
         self._save_state(state)
         return {"success": True, "platform": platform_key, "status": status}
+
+    # ── Platform Onboarding (Platform Operations Engine) ──
+
+    ONBOARDING_STATES = (
+        "NOT_STARTED",
+        "REGISTERED",
+        "EMAIL_VERIFIED",
+        "PROFILE_COMPLETE",
+        "PAYMENT_READY",
+        "QUALIFICATION_PENDING",
+        "QUALIFIED",
+        "ACTIVE",
+        "BLOCKED",
+        "SUSPENDED",
+        "UNKNOWN",
+    )
+
+    def get_onboarding(self, platform_key: str) -> dict[str, Any]:
+        """Onboarding state for a platform: what's done, what's missing, readiness %."""
+        if platform_key not in {m["key"] for m in _platform_catalog()}:
+            raise KeyError(f"plataforma desconocida: {platform_key}")
+        state = self._load_state()
+        entry = self._platform_state(state, platform_key)
+        steps = _steps_catalog().get(platform_key, [])
+        done_ids = set(entry.get("completed_steps") or [])
+
+        checklist = []
+        for step in steps:
+            checklist.append(
+                {
+                    "id": step["id"],
+                    "title": step["title"],
+                    "detail": step.get("detail", ""),
+                    "done": step["id"] in done_ids,
+                    "est_minutes": step.get("est_minutes", 0),
+                    "human_required": True,
+                }
+            )
+
+        total = len(checklist)
+        completed = sum(1 for c in checklist if c["done"])
+        readiness = round(completed / total * 100) if total else 0
+
+        pending = [c for c in checklist if not c["done"]]
+        next_step = pending[0] if pending else None
+
+        meta = next((m for m in _platform_catalog() if m["key"] == platform_key), {})
+
+        return {
+            "platform": platform_key,
+            "name": meta.get("name", platform_key),
+            "url": meta.get("url", ""),
+            "status": entry["status"],
+            "readiness_pct": readiness,
+            "total_steps": total,
+            "completed_steps": completed,
+            "checklist": checklist,
+            "next_action": {
+                "step_id": next_step["id"],
+                "title": next_step["title"],
+                "detail": next_step["detail"],
+                "est_minutes": next_step["est_minutes"],
+                "url": meta.get("url", ""),
+            }
+            if next_step
+            else None,
+            "payment_ready": any(c["id"] == "payment_setup" and c["done"] for c in checklist)
+            or entry["status"] in ("ACTIVE", "QUALIFIED"),
+            "pay_range": meta.get("pay_range", ""),
+            "payout": meta.get("payout", ""),
+            "why": meta.get("why", ""),
+        }
+
+    def get_all_onboarding(self) -> list[dict[str, Any]]:
+        """Onboarding summary for all platforms."""
+        results = []
+        for meta in _platform_catalog():
+            try:
+                results.append(self.get_onboarding(meta["key"]))
+            except Exception:
+                pass
+        return results
+
+    def get_platform_ranking(self) -> list[dict[str, Any]]:
+        """Rank platforms by readiness × pay — where should the user work NOW?"""
+        ranked = []
+        for ob in self.get_all_onboarding():
+            try:
+                from cores.opportunity.global_sources import find_curated_entry_model
+
+                facts = find_curated_entry_model(ob["platform"])
+                rate = float(facts["hourly_rate_usd"]) if facts and facts.get("hourly_rate_usd") else None
+            except Exception:
+                rate = None
+
+            readiness = ob["readiness_pct"] / 100.0
+            effective_rate = round(rate * readiness, 2) if rate else None
+
+            ranked.append(
+                {
+                    "platform": ob["platform"],
+                    "name": ob["name"],
+                    "readiness_pct": ob["readiness_pct"],
+                    "documented_rate_usd_h": rate,
+                    "effective_rate_usd_h": effective_rate,
+                    "status": ob["status"],
+                    "next_action": ob["next_action"],
+                    "recommendation": (
+                        "WORK_HERE"
+                        if readiness >= 0.8 and effective_rate
+                        else "FINISH_SETUP"
+                        if readiness >= 0.3
+                        else "START_ONBOARDING"
+                        if ob["status"] != "accepted"
+                        else "ACTIVE_STREAM"
+                    ),
+                }
+            )
+        ranked.sort(key=lambda r: r.get("effective_rate_usd_h") or 0, reverse=True)
+        return ranked
 
     # ── Resumen ──
 

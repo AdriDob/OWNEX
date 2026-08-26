@@ -625,20 +625,15 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/mobile',
     name: 'mobile',
-    component: () => import(/* webpackChunkName: "mobile" */ '@/pages/MobileCompanion.vue'),
-    meta: { title: 'Companion', requiresAuth: true },
+    // Parte 3 FINAL RELEASE: superficie móvil unificada (tokens Tesla,
+    // contratos reales income-plan/capital/wear-os, offline-first queue).
+    component: () => import(/* webpackChunkName: "mobile" */ '@/pages/MobileApp.vue'),
+    meta: { title: 'OWNEX Móvil', requiresAuth: true },
   },
   {
     path: '/mobile/jarvis',
     name: 'mobile-jarvis',
-    component: () => import(/* webpackChunkName: "mobile-jarvis" */ '@/pages/MobileCompanionJarvis.vue'),
-    meta: { title: 'ORION Companion — Jarvis Style', requiresAuth: true },
-  },
-  {
-    path: '/watch/approvals',
-    name: 'watch-approvals',
-    component: () => import(/* webpackChunkName: "watch" */ '@/pages/WatchApprovals.vue'),
-    meta: { title: 'Aprobaciones Wear OS', requiresAuth: true },
+    redirect: { name: 'mobile' },
   },
 
   // ── Catch-all ──

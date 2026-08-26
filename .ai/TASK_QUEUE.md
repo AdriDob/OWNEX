@@ -266,3 +266,41 @@ Si una feature necesita más → está mal diseñada.
 - `.ai/OWNEX_MISSION_CONTROL_SPEC.md` — Spec detallada Mission Control
 - `.ai/ROADMAP.md` — Roadmap general con fases
 - `.ai/STRATEGIC_AUDIT.md` — Marco de auditoría estratégica
+
+## REVENUE MULTIPLIER v2 — plan revisión externa (2026-08-25)
+| # | Item | Estado |
+|---|------|--------|
+| 1 | Revenue Optimizer $/h humano | ✅ economics.compute_expected_human_value |
+| 2 | Human-Time breakdown manual/auto/review | 🟡 parcial |
+| 3 | Portfolio NOW/WAITING/LONG | ✅ base income_plan.phases |
+| 4 | Adaptive Earnings | ✅ feedback loop existente |
+| 5 | Personal Income Model c/ confidence | 🟡 parcial |
+| 6 | **Availability Intelligence** | 🔴 GAP P0 — próxima sesión |
+| 7 | Execution Automation gate unificado | 🟡 piezas |
+| 8 | Income Experiments KEEP/DROP/SCALE | ❌ nuevo |
+Bloqueantes release previos: TODOS remediados (commits 9f4d3f45…83ac9dc7).
+
+## EXECUTION LAYER v1 — plan revisión externa (2026-08-25)
+Auditar antes: BrowserAgent (EXEC-3) + PlatformBrowserWorkers (EXEC-8) + Evidence
+Composer ya existen → NO reconstruir; el gap real es UNIFICARLOS.
+| # | Pieza | Estado |
+|---|-------|--------|
+| 1 | Execution Queue (DISCOVERED→PAID, retries/idempotency/DLQ) | 🔴 P0 nuevo |
+| 2 | Human Gate unificado (WAITING_HUMAN + approvals) | 🟡 piezas existentes |
+| 3 | Evidence Vault (screenshot+URL+ts+metadata por ejecución) | 🟡 Evidence Composer existe, falta vínculo por-ejecución |
+| 4 | Revenue Ledger (expected→committed→earned→pending→paid→net) | 🟡 RevenueTracker parcial |
+| 5 | Trading Intelligence como MÓDULO EXTERNO (Freqtrade), nunca en núcleo | 🟠 post-queue |
+| 6 | Autonomous Scheduler (score×avail×acceptance→prioridad) | 🟡 income_plan ya calcula; falta drive la queue |
+| 1a | ✅ State machine pura (`core/execution_queue.py`, 13 estados, 6/6 tests) — falta: persistencia, adapters a executors, scheduler driver |
+
+## BACKEND ALPHA 1.0 — spec maestro producción (2026-08-25 noche)
+Spec completo del owner: auditoría total + Revenue Orchestrator + Economic Engine único
++ Zero-Barrier normalizado + Platform Intelligence + Availability Engine + Execution
+Automation levels 0-4 + Revenue Ledger + scheduler idempotente + sidecar lifecycle +
+persistencia %LOCALAPPDATA% + observabilidad estructurada + E2E sin internet.
+**Solapamiento**: CORS/sidecar/EV-único/availability-honesto ya remediados hoy
+(9f4d3f45…83ac9dc7) — verificar contra código antes de re-implementar.
+Base ya construida esta sesión: `core/execution_queue.py` (13 estados, 9/9 tests)
+= esqueleto del flujo canónico DISCOVERED→…→PAID.
+Orden propuesto: (1) AUDIT_BACKEND_ALPHA_1.0.md ← primera acción próxima sesión,
+(2) revenue ledger sobre execution queue, (3) adapters executors, (4) scheduler driver.

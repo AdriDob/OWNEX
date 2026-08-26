@@ -6,7 +6,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from core.polymarket.btc_latency_arb.config import BTCArbConfig, RiskConfig
+from core.polymarket.btc_latency_arb.config import RiskConfig
 
 logger = logging.getLogger("orion.polymarket.btc_latency_arb.risk")
 
@@ -61,7 +61,7 @@ class RiskManager:
         # Check consecutive losses
         if self._consecutive_losses >= self.config.max_consecutive_losses:
             self._pause_bot(f"Max consecutive losses ({self.config.max_consecutive_losses}) reached")
-            return RiskCheck(False, f"Max consecutive losses reached")
+            return RiskCheck(False, "Max consecutive losses reached")
 
         # Check drawdown
         if current_capital > 0:

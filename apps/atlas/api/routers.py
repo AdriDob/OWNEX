@@ -9,7 +9,7 @@ from fastapi import APIRouter
 
 from apps.atlas.engines.analytics import AnalyticsEngine
 from apps.atlas.engines.performance import PerformanceEngine
-from apps.atlas.engines.portfolio import PortfolioEngine
+from apps.atlas.engines.portfolio import get_configured_engine
 from apps.atlas.engines.risk import RiskEngine
 from apps.atlas.engines.strategy import StrategyEngine
 from apps.atlas.models import Asset, Transaction, Wallet
@@ -24,7 +24,7 @@ router = APIRouter(prefix="/api/atlas", tags=["atlas"])
 
 @router.get("/portfolio/value")
 async def portfolio_value():
-    engine = PortfolioEngine()
+    engine = get_configured_engine()
     portfolio = await engine.aggregate()
     if portfolio is None:
         return {"value": 0.0, "positions": 0}
@@ -33,7 +33,7 @@ async def portfolio_value():
 
 @router.get("/portfolio")
 async def get_portfolio():
-    engine = PortfolioEngine()
+    engine = get_configured_engine()
     portfolio = await engine.aggregate()
     if portfolio is None:
         return {"total_value": 0.0, "positions": [], "cash": 0.0}
@@ -144,7 +144,7 @@ async def performance():
 
 @router.get("/risk")
 async def risk_assessment():
-    engine = PortfolioEngine()
+    engine = get_configured_engine()
     portfolio = await engine.aggregate()
     risk_engine = RiskEngine()
     profile = await risk_engine.assess(portfolio)
@@ -164,7 +164,7 @@ async def risk_assessment():
 
 @router.get("/analytics/allocation")
 async def allocation():
-    engine = PortfolioEngine()
+    engine = get_configured_engine()
     portfolio = await engine.aggregate()
     analytics = AnalyticsEngine()
     alloc = await analytics.analyze_allocation(portfolio)
@@ -181,7 +181,7 @@ async def allocation():
 
 @router.get("/strategy/rebalance")
 async def rebalance():
-    engine = PortfolioEngine()
+    engine = get_configured_engine()
     portfolio = await engine.aggregate()
     strategy = StrategyEngine()
     rec = await strategy.recommend_rebalance(portfolio)

@@ -1,3 +1,49 @@
+## Sesión 2026-08-26 (cont. 2) — CAPITAL SPINE + FREQTRADE INTEGRATION: Atlas fix, sync→PayoutRecord, unified snapshot, freqtrade 2026.7
+
+> **QUÉ SE HIZO:** Completadas Fases 1a-1c del plan capital + integración freqtrade.
+> - **Fase 1a (Atlas fix):** `get_configured_engine()` factory en `apps/atlas/engines/portfolio.py` registra todos los conectores (Binance, Kraken, Coinbase, Yahoo, CSV, opcional Freqtrade/Hummingbot) — degradación grácil sin keys. Routers actualizados a usar factory (5 sitios). `_get_atlas_total()` en dashboard reescrito con guard asyncio (sync + running-loop). 9 tests nuevos en `tests/test_atlas_composition.py`.
+> - **Fase 1b (Sync → PayoutRecord):** `FinancialSyncScheduler._persist_earnings()` en `cores/financial/scheduler.py` persiste earnings del sync con dedupe por `external_id` (platform:id). 6 tests en `tests/test_financial_scheduler_persist.py` (insert, dedupe, skip sin id, multi-plataforma, vacío). Sync cada 30 min ahora alimenta `PayoutRecord` canónico — capital dashboards crecen solos.
+> - **Fase 1c (Snapshot unificado):** `GET /api/capital/snapshot` en `api/routers/financial_truth.py` consolida: bounty payouts (PayoutRecord), WorkBank ingresos, inversión (InvestmentManager), Atlas portfolio, crypto wallets, expected_cash por rail, payment_compat summary.
+> - **Freqtrade 2026.7 instalado:** `pip install freqtrade` completado en Python 3.14.4 con TA-Lib. Adapter existente listo para validación dry-run.
+> - **Verificación**: fast suite baseline 100/1 intacta · 15 tests nuevos (atlas + scheduler persist) verdes · 101 tests DWE/workbank verdes · 1128 tests suite amplia sin regresiones · ruff limpio en tocados.
+> - **Archivos**: `apps/atlas/engines/portfolio.py`, `apps/atlas/api/routers.py`, `cores/financial/dashboard.py`, `cores/financial/scheduler.py`, `api/routers/financial_truth.py`, `tests/test_atlas_composition.py`, `tests/test_financial_scheduler_persist.py`.
+
+## Sesión 2026-08-26 — PROFILE OPTIMIZATION: GitHub/LinkedIn/Fiverr/BB packs generados + 3 nuevos campos LinkedIn
+
+> **QUÉ SE HIZO:** Extensión del Profile Kit con 3 campos LinkedIn adicionales (`linkedin_about_full`, `linkedin_experience`, `linkedin_featured`) + template dict actualizado + 4 tests nuevos. Generados 24 packs de contenido bilingüe (12 plataformas × ES/EN) en `/tmp/opencode/profile_packs/`. GitHub bio + homepage listos para aplicar; pinned requiere acción manual (GraphQL mutation no disponible).
+> - **Archivos**: `cores/direct_work_engine/profile_kit.py` (EXTEND), `tests/test_profile_kit.py` (+4 tests)
+> - **Verificación**: ruff limpio, 15 tests passed, fast suite intacta
+> - **Packs generados**: fiverr, github, hackerone, bugcrowd, intigriti, yeswehack, opire, issuehunt, algora, outlier, mindrift, linkedin (ES+EN)
+> - **Manual pendiente**: GitHub bio requiere scope `user` en token (`gh auth refresh -h github.com -s user`), luego PATCH /user; pinned desde UI perfil.
+
+## Sesión 2026-08-26 (cont.) — FASE 1/4 RELEASE: FEATURE COMPLETE audit + 2 bugs P0 corregidos
+
+> **QUÉ SE HIZO:** Ejecución del megaprompt de release Fase 1 (FEATURE COMPLETE).
+> (1) **Snapshot**: WIP heredado verificado coherente (execution_queue + availability +
+> scheduler hardening + setup checklist = 46 tests verdes, baseline fast 100/1 intacta);
+> los diffs del scheduler confirman fixes reales del audit (hook `_copilot_hook` con cuerpo
+> anidado nunca invocado → eventos muertos ahora vivos; format string roto `%.0%%`;
+> stale scans al boot; anti-overlap + flock cross-proceso + run ledger JSONL; cancel
+> awaited en stop). (2) **E2E nuevo del ciclo de ingreso**
+> (`tests/test_income_chain_e2e.py`, 3/3): discover (adapter fake determinista) →
+> recommend API → workbank daily_cycle → deliver/pending → prepare → HUMAN GATE approve
+> → RevenueTracker con separación EXPECTED≠PENDING≠PAID; PAID solo alcanzable vía
+> VERIFICATION (atajo SUBMITTED→PAID prohibido y testeado); puente ExecState↔Stage SSOT.
+> (3) **P0 económico corregido**: `_update_metrics` acumulaba deltas sin descontar buckets
+> → dinero fantasma (la misma plata contada pending Y paid); ACCEPTED sumaba a
+> completed_amount (= cash inventado). Ahora: recomputo como proyección del estado
+> actual, dinero SOLO en PAID (alineado a stage_from_payment_status). (4) **Contrato
+> workbank**: crash con category string normalizado (`getattr(value)`).
+> (5) `.ai/FEATURE_COMPLETION_AUDIT.md` creado — inventario completo con evidencia por
+> fila; core flow 14 etapas verificadas; veredicto: FEATURE COMPLETE alcanzable (única
+> PARTIAL declarada por diseño: Execution Queue wiring hacia executors, corte siguiente
+> documentado en TASK_QUEUE §EXECUTION LAYER 1a). DECISIONS + CHANGELOG actualizados.
+- **Verificación**: fast 100/1 exacta · E2E income chain 3/3 · regresión workbank +
+  DWE api + daily_mode + revenue engine/pipeline = 111 passed · ruff limpio en tocados ·
+  vue-tsc 0 errores · packaging+CORS+data-dir guards 22 passed.
+- **Siguiente**: Fase 2/4 (RELEASE CANDIDATE) — test matrix completa, failure injection,
+  security deep-scan, performance medida.
+
 ## Sesión 2026-08-26 — INCOME MULTIPLIER: auditoría + fases A-F implementadas (12 commits)
 
 > **QUÉ SE HIZO:** Ejecución del master prompt Revenue Operating System con disciplina

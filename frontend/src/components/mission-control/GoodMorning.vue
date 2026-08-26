@@ -41,7 +41,7 @@ function statusColor(status: string) {
         <div class="gm-card">
           <span class="gm-label">Memoria</span>
           <span class="gm-value">{{ state.memory.entries }} entradas</span>
-          <span class="gm-sub">{{ Object.keys(state.memory.namespaces).length }} namespaces</span>
+          <span class="gm-sub">{{ state.memory.namespace_count }} namespaces</span>
         </div>
         <div class="gm-card">
           <span class="gm-label">Fuentes escaneadas</span>
@@ -68,6 +68,24 @@ function statusColor(status: string) {
             {{ imp.name }} — {{ imp.benefit }}
           </li>
         </ul>
+      </div>
+
+      <div class="gm-block">
+        <div class="gm-setup-head">
+          <span class="gm-label">Configuración</span>
+          <span class="gm-sub">
+            {{ state.setup_progress.complete ? 'Configuración completa' : `${state.setup_progress.complete_pct}% completo` }}
+          </span>
+        </div>
+        <div class="gm-bar" role="progressbar" :aria-valuenow="state.setup_progress.complete_pct" aria-valuemin="0" aria-valuemax="100">
+          <div class="gm-bar-fill" :style="{ width: `${state.setup_progress.complete_pct}%` }"></div>
+        </div>
+        <div v-if="state.setup_progress.next_task" class="gm-task">
+          <span class="gm-chip">{{ state.setup_progress.next_task.phase_label }}</span>
+          <strong>{{ state.setup_progress.next_task.title }}</strong>
+          <span class="gm-task-meta">~{{ state.setup_progress.next_task.est_minutes }} min · {{ state.setup_progress.next_task.why }}</span>
+          <code class="gm-how">{{ state.setup_progress.next_task.how_to }}</code>
+        </div>
       </div>
     </template>
   </section>
@@ -160,5 +178,42 @@ function statusColor(status: string) {
   border-radius: 999px;
   padding: 0.05rem 0.45rem;
   margin-right: 0.35rem;
+}
+.gm-setup-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.gm-bar {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.gm-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #00d5ff;
+  transition: width 0.3s ease;
+}
+.gm-task {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.78rem;
+}
+.gm-task-meta {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+.gm-how {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 0.25rem 0.4rem;
+  white-space: normal;
+  word-break: break-word;
 }
 </style>

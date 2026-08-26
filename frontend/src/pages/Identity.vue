@@ -273,7 +273,7 @@ onMounted(loadData)
                   </div>
                   <div class="flex items-center gap-2">
                     <template v-if="getAccount(platform)?.connected">
-                      <Badge variant="success" class="text-[9px]">ACTIVE</Badge>
+                      <Badge variant="success" class="text-[9px]">ACTIVO</Badge>
                       <button
                         @click="disconnectPlatform(platform.toLowerCase())"
                         class="text-muted-foreground hover:text-destructive transition-colors"

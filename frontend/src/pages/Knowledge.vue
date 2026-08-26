@@ -216,7 +216,7 @@ async function confirmSnapshot() {
         <p class="kv-sub">El vault de Obsidian como fuente de verdad. OWNEX lo indexa, busca y protege.</p>
       </div>
       <span class="kv-badge" :class="isConnected ? 'kv-badge-ok' : 'kv-badge-off'">
-        {{ isConnected ? 'CONNECTED' : 'DISCONNECTED' }}
+        {{ isConnected ? 'CONECTADO' : 'DESCONECTADO' }}
       </span>
     </header>
 

@@ -49,6 +49,7 @@ from api.routers import (
     daily,
     daily_mode,
     decision,
+    device,
     devin,
     differential_intelligence,
     digest,
@@ -61,6 +62,7 @@ from api.routers import (
     evidence,
     evolution,
     execution,
+    execution_queue,
     files,
     finance,
     financial_sync,
@@ -244,6 +246,17 @@ async def lifespan(app: FastAPI):
 
     db.init_db()
     logger.info("[BOOT] Database initialized")
+
+    # Stale-scan recovery at boot (audit P1-2): scans 'running' >6h de un
+    # proceso muerto se marcan failed ANTES de que arranque cualquier loop.
+    try:
+        from cores.orchestrator.scan_service import recover_stale_scans
+
+        recovered = recover_stale_scans()
+        if recovered:
+            logger.warning("[BOOT] Recovered %d stale scans (running > 6h)", recovered)
+    except Exception as exc:
+        logger.warning("[BOOT] Stale scan recovery skipped: %s", exc)
 
     # Initialize event bus (required for everything else)
     from cores.events.event_bus import get_event_bus
@@ -530,6 +543,7 @@ app.include_router(life.router)
 app.include_router(control.router)
 app.include_router(copilot.router)
 app.include_router(execution.router)
+app.include_router(execution_queue.router)
 app.include_router(license.router)
 app.include_router(learning_router)
 app.include_router(project_dashboard.router)
@@ -590,6 +604,7 @@ app.include_router(direct_work.router)
 app.include_router(revenue_timeline.router)
 app.include_router(fiverr.router)
 app.include_router(decision.router)
+app.include_router(device.router)
 app.include_router(result_based.router)
 app.include_router(career.router)
 app.include_router(oar.router)

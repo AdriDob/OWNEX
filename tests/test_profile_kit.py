@@ -28,9 +28,25 @@ PLATFORMS = [
 def client(tmp_path, monkeypatch) -> TestClient:
     monkeypatch.setattr(core, "_DATA_DIR", tmp_path / "profile_kit.json")
     client = TestClient(app)
-    resp = client.post("/api/auth/login", json={"device_id": "pytest-profile-kit"})
-    if resp.status_code == 200 and "token" in resp.json().get("data", {}):
-        client.headers.update({"Authorization": f"Bearer {resp.json()['data']['token']}"})
+    # Login con reintentos: en suite completa el bucket no-autenticado del
+    # rate-limiter (compartido por IP entre TODOS los tests que usan
+    # api.main.app) puede estar agotado al llegar aquí → 429 esporádico.
+    # Backoff corto (refill 30/s) hace el orden de suite indeterminista→determinista.
+    import time as _time
+
+    resp = None
+    for attempt in range(4):
+        resp = client.post("/api/auth/login", json={"device_id": "pytest-profile-kit"})
+        if resp.status_code == 200:
+            break
+        if resp.status_code == 429:
+            _time.sleep(0.5 * (attempt + 1))
+            continue
+        break
+    assert resp is not None and resp.status_code == 200, f"login falló en fixture: {resp.status_code} {resp.text[:200]}"
+    token = resp.json().get("data", {}).get("token")
+    if token:
+        client.headers.update({"Authorization": f"Bearer {token}"})
     csrf = resp.cookies.get("csrf-token")
     if csrf:
         client.headers.update({"X-CSRF-Token": csrf})
@@ -102,6 +118,39 @@ class TestProfileKitApi:
         assert "hackerone_availability" in keys
         bio = next(f for f in fields if f["key"] == "hackerone_bio")
         assert "Python" in bio["text"] or "Go" in bio["text"]
+
+    def test_linkedin_extended_fields_present(self, client: TestClient) -> None:
+        resp = client.post("/api/profile-kit/generate", json=SAMPLE_PROFILE)
+        assert resp.status_code == 200
+        fields = resp.json()["kits"]["es"]["linkedin"]
+        keys = [f["key"] for f in fields]
+        for key in (
+            "linkedin_headline",
+            "linkedin_summary",
+            "linkedin_skills",
+            "linkedin_projects",
+            "linkedin_about_full",
+            "linkedin_experience",
+            "linkedin_featured",
+        ):
+            assert key in keys
+
+    def test_linkedin_about_uses_real_data(self, client: TestClient) -> None:
+        resp = client.post("/api/profile-kit/generate", json=SAMPLE_PROFILE)
+        about = next(f for f in resp.json()["kits"]["es"]["linkedin"] if f["key"] == "linkedin_about_full")
+        assert "Python" in about["text"]
+        assert about["text"].count("https://github.com/adriel") == 1
+        experience = next(f for f in resp.json()["kits"]["es"]["linkedin"] if f["key"] == "linkedin_experience")
+        assert "•" in experience["text"]
+        featured = next(f for f in resp.json()["kits"]["es"]["linkedin"] if f["key"] == "linkedin_featured")
+        assert "recon-automation" in featured["text"]
+
+    def test_linkedin_extended_never_fabricates_links(self, client: TestClient) -> None:
+        resp = client.post("/api/profile-kit/generate", json={"country": "Chile"})
+        for key in ("linkedin_featured", "linkedin_about_full"):
+            field = next(f for f in resp.json()["kits"]["es"]["linkedin"] if f["key"] == key)
+            assert "http" not in field["text"]
+            assert "Adriel" not in field["text"]
 
     def test_not_invented_data(self, client: TestClient) -> None:
         resp = client.post("/api/profile-kit/generate", json={"country": "Chile"})

@@ -154,7 +154,7 @@ const formattedDate = computed(() =>
       >
         <span class="ownex-status-bar__connection-dot" aria-hidden="true" />
         <span class="ownex-status-bar__connection-text">
-          {{ isConnected ? 'ONLINE' : 'OFFLINE' }}
+          {{ isConnected ? 'EN LÍNEA' : 'FUERA DE LÍNEA' }}
         </span>
       </div>
     </div>

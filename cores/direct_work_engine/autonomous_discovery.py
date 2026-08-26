@@ -229,18 +229,32 @@ class EVScorer:
         # Estimated hours (with minimum)
         hours = max(opportunity.estimated_time_hours, 0.5)
 
-        # Expected Value via the economics SSOT (FASE 3, P0-3).
-        # Availability has no live signal yet -> stays UNKNOWN and is
-        # surfaced in reasoning; never silently assumed to be 1.0.
-        from cores.direct_work_engine.economics import compute_expected_value
+        # Expected Value via the economics SSOT (FASE 3, P0-3; convergencia
+        # P0-3 audit 2026-08-25: $/hora delega a compute_expected_human_value,
+        # ya no se divide inline). Disponibilidad: señal real del
+        # AvailabilityMonitor cuando exista observación fresca; sin señal ->
+        # UNKNOWN surfaced en warnings; nunca asumido silenciosamente como 1.0.
+        from cores.direct_work_engine.economics import compute_expected_human_value
 
-        ev_result = compute_expected_value(
+        try:
+            from cores.revenue.availability import get_availability_monitor
+
+            task_availability, availability_verdict = get_availability_monitor().task_availability_for(platform_key)
+        except Exception:
+            from cores.direct_work_engine.economics import TaskAvailability
+
+            task_availability = TaskAvailability.unknown()
+        hv = compute_expected_human_value(
             payment=opportunity.payment,
+            human_hours=hours,
             acceptance_probability=success_prob,
-            payment_reliability=1.0,
+            task_availability=task_availability,
+            time_to_first_payment_days=opportunity.time_to_payout_days,
         )
-        total_ev = ev_result.ev_usd
-        ev_per_hour = total_ev / max(hours, 0.5)
+        total_ev = hv.ev_usd
+        ev_per_hour = hv.ev_per_human_hour_usd
+        if ev_per_hour is None:  # horas inválidas: fallback honesto al SSOT core
+            ev_per_hour = round(total_ev / max(hours, 0.5), 2)
 
         # Confidence based on data quality
         confidence = 0.5
@@ -1002,6 +1016,15 @@ class DynamicPlatformAdapter(BaseDiscoveryAdapter):
             self.source.consecutive_errors += 1
             self.source.last_error = str(e)
             self.logger.warning("DynamicPlatformAdapter failed for %s: %s", self.platform_url, e)
+            return opps[:20]
+        # Señal real de disponibilidad (P0-4): un fetch exitoso con N items es
+        # una observación; un error de red NO registra UNAVAILABLE (no es prueba).
+        try:
+            from cores.revenue.availability import get_availability_monitor
+
+            get_availability_monitor().record(self.domain or self.platform_url, len(opps))
+        except Exception:
+            pass  # la señal nunca rompe el pipeline
         return opps[:20]
 
     async def validate_connection(self) -> bool:

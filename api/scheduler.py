@@ -385,74 +385,67 @@ class ScanScheduler:
 
     def _copilot_hook(
         self, stage: str, stage_result: str = "completed", pipeline_id: str | None = None, error_message: str = ""
-    ) -> None:  # MODIFICAR
-        """Log COPILOT recommendations and emit pipeline stage events for a specific pipeline_id."""  # MODIFICAR docstring
+    ) -> None:
+        """Emit pipeline stage event to EventBus + COPILOT hook.
 
-        def _copilot_hook(
-            self, stage: str, stage_result: str, pipeline_id: str, error_message: str | None = None
-        ) -> None:
-            """Emit pipeline stage event to EventBus + COPILOT hook."""
-            from cores.agents.types import EventType
-            from cores.events.event_bus import get_event_bus
+        Best-effort: nunca propaga excepciones al pipeline (P0-1 audit 2026-08-25:
+        el cuerpo estaba anidado en un def interno nunca invocado → eventos muertos).
+        """
+        from cores.agents.types import EventType
+        from cores.events.event_bus import get_event_bus
 
-            event_bus = get_event_bus()
+        event_bus = get_event_bus()
 
-            event_type = EventType.PIPELINE_STAGE_COMPLETED
-            payload = {
-                "stage": stage,
-                "stage_result": stage_result,
-                "pipeline_id": pipeline_id,
-            }
+        event_type = EventType.PIPELINE_STAGE_COMPLETED
+        if error_message:
+            event_type = EventType.PIPELINE_FAILED
+
+        try:
+            event_bus.publish(
+                event_type.value,
+                stage=stage,
+                stage_result=stage_result,
+                pipeline_id=pipeline_id,
+            )
             if error_message:
-                event_type = EventType.PIPELINE_FAILED
-                payload["error"] = error_message
-
-            try:
                 event_bus.publish(
-                    event_type.value,
-                    stage=stage,
-                    stage_result=stage_result,
+                    EventType.PIPELINE_FAILED.value,
+                    error=error_message,
                     pipeline_id=pipeline_id,
                 )
-                if error_message:
-                    event_bus.publish(
-                        EventType.PIPELINE_FAILED.value,
-                        error=error_message,
-                        pipeline_id=pipeline_id,
-                    )
+            logger.info(
+                "[SCHEDULER->EVENTBUS] Emitted %s for pipeline %s, stage %s: %s",
+                event_type.value,
+                (pipeline_id or "")[:8],
+                stage,
+                stage_result,
+            )
+        except Exception:
+            logger.exception("Failed to publish pipeline stage event to EventBus")
+
+        try:
+            copilot = _get_copilot()
+            if copilot is None:
+                logger.debug("[COPILOT] Not available, skipping hook for %s", stage)
+                return
+
+            actions = copilot.recommend_for_system(
+                extra_state={
+                    "stage": stage,
+                    "stage_result": stage_result,
+                    "last_run": self._last_run.get(stage, 0),
+                }
+            )
+            for a in actions[:3]:
                 logger.info(
-                    "[SCHEDULER->EVENTBUS] Emitted %s for pipeline %s, stage %s: %s",
-                    event_type.value,
-                    pipeline_id[:8],
+                    "[COPILOT] After %s: %s (prio=%d) — %s",
                     stage,
-                    stage_result,
+                    a["action"],
+                    a.get("priority", 0),
+                    a.get("reason", ""),
                 )
-            except Exception:
-                logger.exception("Failed to publish pipeline stage event to EventBus")
-
-            try:
-                copilot = _get_copilot()
-                if copilot is None:
-                    logger.debug("[COPILOT] Not available, skipping hook for %s", stage)
-                    return
-
-                actions = copilot.recommend_for_system(
-                    extra_state={
-                        "stage": stage,
-                        "stage_result": stage_result,
-                        "last_run": self._last_run.get(stage, 0),
-                    }
-                )
-                for a in actions[:3]:
-                    logger.info(
-                        "[COPILOT] After %s: %s (prio=%d) — %s",
-                        stage,
-                        a["action"],
-                        a.get("priority", 0),
-                        a.get("reason", ""),
-                    )
-            except Exception as exc:
-                logger.debug("[COPILOT] Hook %s error: %s", stage, exc)
+        except Exception as exc:
+            logger.debug("[COPILOT] Hook %s error: %s", stage, exc)
 
     def _set_stage(self, stage: str) -> None:
         """Track current pipeline stage for frontend progress display."""
@@ -589,7 +582,7 @@ class ScanScheduler:
                     if pr:
                         logger.info(
                             "[ORION] Auto-prioritized %s (EV=$%.2f, priority=%.2f, "
-                            "reward=$%.0f×%.0%%×%.1fx, $%.2f/h, tech=%s, plan=%s, phases=%d)",
+                            "reward=$%.0f×%.0f%%×%.1fx, $%.2f/h, tech=%s, plan=%s, phases=%d)",
                             target.name,
                             pr.expected_value,
                             priority_score,

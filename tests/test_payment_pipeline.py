@@ -1,25 +1,22 @@
 """Tests for Payment Pipeline."""
 
 import pytest
-from cores.direct_work_engine.payment_pipeline import (
-    PaymentState,
-    can_transition,
-    assert_transition,
-    is_terminal,
-    is_terminal_positive,
-    is_terminal_negative,
-    workbank_status_to_payment,
-    execution_state_to_payment,
-    revenue_status_to_payment,
-    PaymentPipelineStore,
-    PipelineItem,
-    sync_workbank_to_pipeline,
-    sync_execution_to_pipeline,
-    full_pipeline_sync,
-    get_pipeline_analytics,
-    _TRANSITIONS,
-)
+
 from core.execution_queue.models import ExecState
+from cores.direct_work_engine.payment_pipeline import (
+    PaymentPipelineStore,
+    PaymentState,
+    PipelineItem,
+    assert_transition,
+    can_transition,
+    execution_state_to_payment,
+    full_pipeline_sync,
+    is_terminal,
+    is_terminal_negative,
+    is_terminal_positive,
+    revenue_status_to_payment,
+    workbank_status_to_payment,
+)
 
 
 class TestPaymentState:
@@ -105,7 +102,6 @@ class TestLegacyAdapters:
         assert workbank_status_to_payment("unknown") == "DISCOVERED"
 
     def test_execution_state_to_payment(self):
-        from core.execution_queue.models import ExecState
 
         assert execution_state_to_payment(ExecState.DISCOVERED.value) == "DISCOVERED"
         assert execution_state_to_payment(ExecState.QUALIFIED.value) == "QUALIFIED"

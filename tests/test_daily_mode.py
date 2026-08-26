@@ -35,7 +35,7 @@ def test_good_morning_complete_panel() -> None:
         patch("api.routers.daily_mode._improvements") as imp,
         patch("api.routers.daily_mode._pending_approvals") as appr,
     ):
-        mem.return_value = {"healthy": True, "entries": 42, "namespaces": {"cateye": 1}}
+        mem.return_value = {"healthy": True, "entries": 42, "namespaces": {"cateye": 1}, "namespace_count": 1}
         work.return_value = {
             "ready_to_deliver": [{"title": "X", "platform": "opire", "reward": 50}],
             "needs_access": [],
@@ -60,6 +60,26 @@ def test_good_morning_complete_panel() -> None:
         assert len(body["improvements_suggested"]) == 1
         assert len(body["pending_approvals"]) == 1
         assert "Ready" in body["summary"]
+
+
+def test_good_morning_memory_stats_int_namespaces() -> None:
+    """Regresión: el store real devuelve namespaces como INT — el panel no debe crashear."""
+    client = _make_client()
+    with (
+        patch("api.routers.daily_mode.stability_status", return_value=_health_ok()),
+        patch("api.routers.daily_mode.get_memory_store") as store,
+        patch("api.routers.daily_mode._unfinished_work", side_effect=RuntimeError("boom")),
+        patch("api.routers.daily_mode._opportunities", side_effect=RuntimeError("boom")),
+        patch("api.routers.daily_mode._improvements", side_effect=RuntimeError("boom")),
+        patch("api.routers.daily_mode._pending_approvals", side_effect=RuntimeError("boom")),
+        patch.dict("sys.modules", {}),
+    ):
+        store.return_value.get_stats.return_value = {"total_entries": 7, "namespaces": 3}
+        resp = client.get("/api/system/good-morning")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["memory"]["namespace_count"] == 3
+        assert "across 3 namespaces" in body["summary"]
 
 
 def test_good_morning_degrades_gracefully() -> None:

@@ -238,7 +238,7 @@ onUnmounted(() => {
 
         <!-- Active Opportunities -->
         <div class="card">
-          <div class="card-label">ACTIVE OPPORTUNITIES</div>
+          <div class="card-label">OPORTUNIDADES ACTIVAS</div>
           <div class="card-value text-primary">{{ dashboard?.opportunities?.length || 0 }}</div>
           <div class="card-detail">Top 5 ranked by expected value</div>
         </div>
