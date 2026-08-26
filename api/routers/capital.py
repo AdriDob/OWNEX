@@ -65,7 +65,7 @@ def get_runway() -> dict[str, Any]:
         return result
     except Exception as e:
         logger.exception("Runway calculation failed")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/runway")
@@ -83,7 +83,7 @@ def calculate_runway(req: RunwayRequest) -> dict[str, Any]:
         return result
     except Exception as e:
         logger.exception("Runway calculation failed")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/risk")
@@ -95,7 +95,7 @@ def get_risk() -> dict[str, Any]:
         return result
     except Exception as e:
         logger.exception("Risk assessment failed")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/risk")
@@ -111,7 +111,7 @@ def assess_risk(req: RiskAssessmentRequest) -> dict[str, Any]:
         return result
     except Exception as e:
         logger.exception("Risk assessment failed")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/allocation")
@@ -123,7 +123,7 @@ def get_allocation() -> dict[str, Any]:
         return result
     except Exception as e:
         logger.exception("Allocation recommendation failed")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/allocation")
@@ -141,7 +141,7 @@ def recommend_allocation(req: AllocationRequest) -> dict[str, Any]:
         return result
     except Exception as e:
         logger.exception("Allocation recommendation failed")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/forecasting")
@@ -153,7 +153,7 @@ def get_forecasting() -> dict[str, Any]:
         return result
     except Exception as e:
         logger.exception("Forecasting failed")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/forecasting")
@@ -172,7 +172,7 @@ def forecast_capital(req: ForecastingRequest) -> dict[str, Any]:
         return result
     except Exception as e:
         logger.exception("Forecasting failed")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/diversification")
@@ -184,7 +184,7 @@ def get_diversification() -> dict[str, Any]:
         return result
     except Exception as e:
         logger.exception("Diversification analysis failed")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/diversification")
@@ -199,7 +199,7 @@ def analyze_diversification(req: DiversificationRequest) -> dict[str, Any]:
         return result
     except Exception as e:
         logger.exception("Diversification analysis failed")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/snapshot")

@@ -60,7 +60,7 @@ def transition_item(item_id: str, req: TransitionRequest) -> QueueItemResponse:
     try:
         assert_transition(item["state"], req.target_state)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     updated = _store.transition(item_id, req.target_state)
     return QueueItemResponse(
         item_id=item_id, state=updated["state"], payload=updated["payload"], history=updated["history"]
@@ -91,5 +91,5 @@ def terminal_states() -> list[str]:
 def valid_transitions(current: str) -> list[str]:
     try:
         return [s.value for s in ExecState if can_transition(current, s)]
-    except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid state: {current}")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid state: {current}") from e
