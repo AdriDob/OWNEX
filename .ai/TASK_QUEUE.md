@@ -304,3 +304,31 @@ Base ya construida esta sesión: `core/execution_queue.py` (13 estados, 9/9 test
 = esqueleto del flujo canónico DISCOVERED→…→PAID.
 Orden propuesto: (1) AUDIT_BACKEND_ALPHA_1.0.md ← primera acción próxima sesión,
 (2) revenue ledger sobre execution queue, (3) adapters executors, (4) scheduler driver.
+
+## PENDIENTE — Unified Agenda & Goals System (desktop app)
+
+> Los módulos existen dispersos pero NO están conectados como agenda unificada.
+> El usuario pidió explícitamente: tareas diarias + objetivos corto/mediano/largo plazo.
+
+**Qué existe (conectar, no reconstruir):**
+- Life Management Tasks (`/life-management/tasks`) — tareas diarias
+- Life Management Goals (`/life-management/goals`) — objetivos genéricos
+- Capital Savings Goals (`cores/capital/allocation`) — objetivos financieros
+- Career Roadmap (`/career/roadmap`) — plan de skills
+- Income Target Engine (`income_target.py`) — planes semanales/mensuales
+- Revenue Timeline (`/revenue-timeline/calculate`) — proyecciones
+- Daily Companion (`daily_companion.py`) — briefing diario
+- Outlook Calendar Sync (`/outlook/*`) — calendario externo
+
+**Qué falta construir:**
+- [ ] Modelo `AgendaItem` unificado: {date, horizon(corto/medio/largo), source(work/capital/career/personal), title, progress}
+- [ ] Vista calendario semanal/mensual/anual en frontend
+- [ ] Conexión: IncomeTarget.milestones → AgendaItems automáticos
+- [ ] Conexión: CareerRoadmap.skills → AgendaItems (learning schedule)
+- [ ] Conexión: CapitalSavings.deadlines → AgendaItems
+- [ ] Notificaciones de deadlines próximos (Watch + Mobile)
+- [ ] Vista timeline: "en X meses deberías estar en $Y"
+
+**Dónde:** nuevo módulo `cores/agenda/` + router `/api/agenda` + página `/agenda`
+**Prioridad:** Media-Alta (mejora retención diaria del usuario)
+**Esfuerzo estimado:** 2-3 días
