@@ -1,5 +1,33 @@
 # Changelog — OWNEX Alpha Desktop
 
+## 1.0.1-alpha-rc2 (2026-08-26)
+
+Megaprompt FINAL DEFINITIVE RELEASE — Partes 1-4. Freeze de alcance; solo cierre, integración y estabilidad.
+
+### Added
+- **Execution Mirror** (`core/execution_queue/mirror.py`): puente idempotente WorkBank↔Queue↔Pago — daily_cycle→READY, prepare→QUEUED, approve(gate humano)→SUBMITTED, pago→VERIFICATION→PAID(+evento payout)/FAILED($0). Best-effort: jamás rompe el banco.
+- **Device Identity** (`cores/device_identity` + `/api/device/*`): identidad única compartida Desktop/Mobile/Watch (register/list/heartbeat/push-token).
+- **Sync Engine v1** (`cores/sync`): mutaciones pendientes + conflict registry + snapshot por dispositivo (apply entrante → corte siguiente, documentado).
+- **MobileApp.vue**: superficie móvil unificada (consolida Companion+Jarvis) con tokens Tesla, tabs Inicio/Trabajo/Reloj, NEXT ACTION real (EV/h + payoff), capital snapshot, offline queue IndexedDB honesta (jamás finge éxito offline), Watch Preview vía /wear-os.
+- **Contratos compartidos** (`packages/ownex-contracts`): enums/estados SSOT tri-superficie.
+- **Launcher Windows 11 + WSL** (`scripts/win/*.ps1` ↔ `scripts/wsl/*.sh`) + comando `make release-check`.
+- `/mobile/jarvis` → redirect a la app unificada.
+
+### Fixed
+- **P0**: árbol `desktop/` restaurado desde HEAD (borrado accidental por proceso concurrente; api/main y run.py lo referencian) → 54 tests.
+- **P1 licencia**: pubkey Ed25519 resuelta lazy en validator (order-dependency: colección precedía al keypair de test) → HWID 105 passed estable.
+- **P1 ruta**: ExecutionQueue escribía a `core/data/` tras refactor a paquete → `parents[2]` = raíz.
+- **P1 exports**: `ExecState/ExecutionQueueStore/assert_transition/can_transition/is_terminal` re-exportados; import muerto eliminado.
+- **P1 rate-limit orden**: fixture profile-kit con backoff (bucket compartido por IP en suite larga).
+- Contrato WorkBank: category string normalizado; fixture GOOD MORNING alineado.
+- Ghost money revenue (Fase 1): métricas = proyección del estado actual.
+
+### Security
+- Scan de secretos limpio (patrones sk-/AKIA/api_key); CSP Tauri loopback-only; OAR budget $0 default verificado (§12).
+
+### Documentation
+- `.ai/FINAL_RELEASE_AUDIT.md`, `.ai/FINAL_RELEASE_CERTIFICATION.md`, `.ai/RELEASE_CHECKLIST.md`, `.ai/OWNEX_1_1_BACKLOG.md`.
+
 ## 7.0.0-final-stable (2026-08-26)
 
 Release contract: consolidación, estabilización y cierre. Sin expansión de alcance.
