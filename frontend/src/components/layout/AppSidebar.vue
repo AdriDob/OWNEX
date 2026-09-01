@@ -1,23 +1,54 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useHuntStore } from '@/stores/hunt'
-import { api } from '@/lib/api'
-import type { PlatformStatus, BankAccount } from '@/lib/api'
 import {
-  Bug, Cable, ChevronLeft, ChevronRight, ChevronDown, Cpu, Dices,
-  DollarSign, ExternalLink, Eye, FileText, Globe,
-  LayoutDashboard, Link2, MessageCircle, Search, Settings,
-  Shield, Target, TrendingUp, Unlink,
-  Activity, Database, RefreshCw, X, HeartPulse, Zap, Send,
-  Copy, Wallet, Sparkles, Bot, BarChart3, Brain, Coins,
-  BookOpen, Lightbulb, UserRound,
-  Calendar, ListTodo, Landmark, ShieldAlert,
+  Activity,
+  BarChart3,
+  Bot,
+  Brain,
+  Bug,
+  Calendar,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Coins,
+  DollarSign,
+  ExternalLink,
+  FileText,
+  GitBranch,
+  Globe,
+  HeartPulse,
+  Landmark,
+  LayoutDashboard,
+  Lightbulb,
+  ListTodo,
+  MessageCircle,
+  MessageSquare,
+  Monitor,
+  RefreshCw,
+  Search,
+  Send,
+  Settings,
+  Shield,
+  ShieldAlert,
+  Sparkles,
+  Target,
+  TrendingUp,
+  UserRound,
+  Wallet,
+  Wrench,
+  Zap,
 } from '@lucide/vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import type { BankAccount, PlatformStatus } from '@/lib/api'
+import { api } from '@/lib/api'
+import { useHuntStore } from '@/stores/hunt'
+import { usePrimaryMode } from '@/composables/usePrimaryMode'
+import PrimaryModeSelector from '@/components/PrimaryModeSelector.vue'
 
 const hunt = useHuntStore()
+const { currentMode, isSectionVisible } = usePrimaryMode()
 const emit = defineEmits<{
-  'toggleCopilot': []
+  toggleCopilot: []
 }>()
 
 const route = useRoute()
@@ -30,7 +61,6 @@ const totalEarned = ref(0)
 const totalPending = ref(0)
 const loading = ref(true)
 
-// Dynamic badge counts from backend
 const badgeCounts = ref<Record<string, number>>({})
 const setupIncomplete = ref(false)
 
@@ -51,10 +81,13 @@ async function fetchBadges() {
       badgeCounts.value.findings = findings.value.finding_count || 0
     }
 
-    // Check setup state
-    const setupRes = await api.get<{ next_task: unknown; complete: boolean }>('/setup/checklist/status').catch(() => null)
+    const setupRes = await api
+      .get<{ next_task: unknown; complete: boolean }>('/setup/checklist/status')
+      .catch(() => null)
     if (setupRes) setupIncomplete.value = !setupRes.complete
-  } catch { /* silent */ }
+  } catch {
+    /* silent */
+  }
 }
 
 function getBadge(path: string): number | null {
@@ -72,78 +105,51 @@ function isSetupPending(path: string): boolean {
 
 const navSections = [
   {
-    section: 'OPERATE',
-    cycle: 'mission',
-    items: [
-      { name: 'Command Center', path: '/', icon: LayoutDashboard, exact: true },
-      { name: 'HUNT', path: '/baby-mode', icon: Zap },
-      { name: 'Oportunidades', path: '/targets/prioritization', icon: Globe },
-      { name: 'Bounties', path: '/integrations/platforms', icon: DollarSign },
-      { name: 'Postulaciones', path: '/operations/applications', icon: Send },
-      { name: 'Profile Kit', path: '/profile-kit', icon: UserRound },
-      { name: 'Capital Dashboard', path: '/capital', icon: DollarSign },
-      { name: 'Centro de Ingresos', path: '/revenue/center', icon: Landmark },
-      { name: 'Cola de Trabajo', path: '/operations/work-queue', icon: ListTodo },
-      { name: 'Agenda', path: '/operations/agenda', icon: Calendar },
-      { name: 'Investment Hub', path: '/investments', icon: TrendingUp },
-      { name: 'ATLAS Inversiones', path: '/atlas/', icon: Coins },
-      { name: 'Trading', path: '/trading', icon: Activity },
-      { name: 'Copy Trading', path: '/trading/intelligence', icon: Copy },
-      { name: 'Polymarket', path: '/polymarket', icon: Dices },
-      // Reconnect Pass (2026-08-26): superficies construidas que estaban sin navegación.
-      { name: 'Money Radar', path: '/money-radar', icon: Globe },
-      { name: 'Verdad Financiera', path: '/financial-truth', icon: Landmark },
-      { name: 'Revenue Multiplier', path: '/revenue-multiplier', icon: TrendingUp },
-      { name: 'Finance Intel', path: '/finance-intel', icon: BarChart3 },
-      { name: 'Hot Paths', path: '/hot-paths', icon: Zap },
-      { name: 'Truth Inspector', path: '/truth-inspector', icon: Search },
-      { name: 'Agentes', path: '/agents', icon: Bot },
-      { name: 'Insights', path: '/insights', icon: Sparkles },
-    ],
-  },
-  {
-    section: 'INTELLIGENCE',
-    cycle: 'atlas',
-    items: [
-      { name: 'Targets', path: '/targets', icon: Target },
-      { name: 'Findings', path: '/intelligence/findings', icon: Bug },
-      { name: 'Hipótesis', path: '/intelligence/hypotheses', icon: Brain },
-      { name: 'Evidencia', path: '/intelligence/evidence', icon: Shield },
-      { name: 'Investigaciones', path: '/intelligence/investigations', icon: Search },
-      { name: 'Confianza', path: '/intelligence/confidence', icon: BarChart3 },
-      { name: 'Cola Priorizada', path: '/reports/queue', icon: Database },
-      { name: 'Centro de Reportes', path: '/reports/center', icon: FileText },
-      { name: 'Historial', path: '/reports/history', icon: BookOpen },
-      { name: 'Validación', path: '/reports/verification', icon: Shield },
-      { name: 'Knowledge Vault', path: '/knowledge', icon: Database },
-      { name: 'Knowledge Graph', path: '/copilot/memory', icon: Database },
-      { name: 'Aprendizaje', path: '/copilot/learning', icon: Brain },
-      { name: 'Recomendaciones', path: '/copilot/recommendations', icon: Sparkles },
-    ],
-  },
-  {
-    section: 'AUTOMATION',
+    section: 'TRABAJANDO',
     cycle: 'forge',
     items: [
-      { name: 'MERLIN', path: '/merlin', icon: Bot },
-      { name: 'Copilot', path: '/copilot/assistant', icon: MessageCircle },
-      { name: 'Workflows', path: '/operations/workflows', icon: RefreshCw },
-      { name: 'Scheduler', path: '/operations/scheduler', icon: Zap },
-      { name: 'Pipelines', path: '/operations/pipelines', icon: Activity },
+      { name: 'Activos', path: '/operations/work-queue', icon: Activity, badge: 'workQueue' },
+      { name: 'Cola de Trabajo', path: '/operations/work-queue', icon: ListTodo, badge: 'workQueue' },
+      { name: 'Oportunidades', path: '/targets/prioritization', icon: Globe, badge: 'targets' },
     ],
   },
   {
-    section: 'SYSTEM',
+    section: 'DINERO',
+    cycle: 'vault',
+    items: [
+      { name: 'Ingresos', path: '/capital', icon: DollarSign },
+      { name: 'Objetivos', path: '/operations/agenda', icon: Target },
+      { name: 'Centro de Ingresos', path: '/revenue/center', icon: Landmark },
+    ],
+  },
+  {
+    section: 'INTELIGENCIA',
+    cycle: 'atlas',
+    items: [
+      { name: 'Insights', path: '/intelligence/confidence', icon: BarChart3 },
+      { name: 'Hallazgos', path: '/intelligence/findings', icon: Bug, badge: 'findings' },
+      { name: 'Memoria', path: '/copilot/memory', icon: Brain },
+      { name: 'Knowledge Vault', path: '/knowledge', icon: Database },
+      { name: 'Knowledge Graph', path: '/knowledge/graph', icon: GitBranch },
+    ],
+  },
+  {
+    section: 'SISTEMA',
     cycle: 'system',
     items: [
-      { name: 'Operaciones', path: '/operations/dashboard', icon: Cpu },
-      { name: 'Centro de IA', path: '/ai', icon: Bot },
-      { name: 'Centro de Riesgo', path: '/risk', icon: ShieldAlert },
-      { name: 'Health Center', path: '/operations/health', icon: HeartPulse },
       { name: 'Configuración', path: '/operations/settings', icon: Settings },
-      { name: 'Conexiones', path: '/integrations/connections', icon: Cable },
-      { name: 'Billeteras', path: '/integrations/wallets', icon: Wallet },
-      { name: 'Próximamente', path: '/faqs', icon: Sparkles },
+      { name: 'Integraciones', path: '/integrations/connections', icon: Cable },
+      { name: 'Health Center', path: '/operations/health', icon: HeartPulse },
+    ],
+  },
+  {
+    section: 'AUTÓNOMO',
+    cycle: 'security',
+    items: [
+      { name: 'MERLIN', path: '/merlin', icon: Bot },
+      { name: 'Computer Use', path: '/copilot/computer-use', icon: Monitor },
+      { name: 'Workflows', path: '/operations/workflows', icon: RefreshCw },
+      { name: 'Scheduler', path: '/operations/scheduler', icon: Zap },
     ],
   },
 ]
@@ -156,11 +162,10 @@ const platformColors: Record<string, string> = {
   yeswehack: 'text-yeswehack',
 }
 
-const connectedCount = computed(() => platforms.value.filter(p => p.connected).length)
+const connectedCount = computed(() => platforms.value.filter((p) => p.connected).length)
 
-// Collapsible sections: show first 4 items, rest behind toggle
 const expandedSections = ref<Set<number>>(new Set())
-const VISIBLE_PER_SECTION = 4
+const VISIBLE_PER_SECTION = 3
 
 function toggleSection(gi: number) {
   const s = new Set(expandedSections.value)
@@ -170,21 +175,22 @@ function toggleSection(gi: number) {
 }
 
 function visibleItems(gi: number) {
-  const items = navSections[gi]?.items ?? []
+  let items = navSections[gi]?.items ?? []
+  if (currentMode.value !== 'full') {
+    items = items.filter((item) => isSectionVisible(item.path))
+  }
   if (expandedSections.value.has(gi)) return items
-  // Always show all if any item is active
-  if (items.some(item => isActive(item.path))) return items
+  if (items.some((item) => isActive(item.path))) return items
   return items.slice(0, VISIBLE_PER_SECTION)
 }
 
 function hiddenCount(gi: number): number {
   const items = navSections[gi]?.items ?? []
   if (expandedSections.value.has(gi)) return 0
-  if (items.some(item => isActive(item.path))) return 0
+  if (items.some((item) => isActive(item.path))) return 0
   return Math.max(0, items.length - VISIBLE_PER_SECTION)
 }
 
-// Keyboard shortcuts: g+h → home, g+w → work queue, g+c → capital
 let lastKey = ''
 function handleKeydown(e: KeyboardEvent) {
   if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
@@ -196,7 +202,13 @@ function handleKeydown(e: KeyboardEvent) {
     lastKey = ''
     return
   }
-  if (key === 'g' && !e.ctrlKey && !e.metaKey) { lastKey = 'g'; setTimeout(() => { lastKey = '' }, 1000); return }
+  if (key === 'g' && !e.ctrlKey && !e.metaKey) {
+    lastKey = 'g'
+    setTimeout(() => {
+      lastKey = ''
+    }, 1000)
+    return
+  }
 }
 onMounted(() => window.addEventListener('keydown', handleKeydown))
 onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
@@ -246,7 +258,7 @@ function formatCompact(n: number) {
   <aside
     :class="[
       'flex flex-col border-r border-border/50 bg-background/80 backdrop-blur-xl transition-all duration-200 z-30 relative',
-      collapsed ? 'w-16' : 'w-60',
+      collapsed ? 'w-16' : 'w-64',
     ]"
   >
     <!-- OWNEX Logo -->
@@ -268,7 +280,7 @@ function formatCompact(n: number) {
             hunt.status === 'running' ? 'bg-success animate-pulse' : hunt.status === 'paused' ? 'bg-warning' : 'bg-muted',
           ]"
         />
-        <span class="font-mono text-[9px] text-muted-foreground">{{ hunt.status === 'running' ? 'ACTIVO' : hunt.status === 'paused' ? 'PAUSADO' : 'INACTIVO' }}</span>
+        <span class="font-mono text-[9px] text-muted-foreground">{{ hunt.status === 'running' ? 'TRABAJANDO' : hunt.status === 'paused' ? 'PAUSADO' : 'INACTIVO' }}</span>
       </div>
     </div>
 
@@ -284,6 +296,13 @@ function formatCompact(n: number) {
             <span class="font-medium text-warning">{{ formatCompact(totalPending) }}</span>
           </div>
         </div>
+      </div>
+    </Transition>
+
+    <!-- Primary Mode Selector -->
+    <Transition name="fade">
+      <div v-if="!collapsed" class="border-b border-border/30 px-3 py-2.5">
+        <PrimaryModeSelector />
       </div>
     </Transition>
 
@@ -341,7 +360,6 @@ function formatCompact(n: number) {
             :class="['h-3 w-3 text-muted-foreground transition-transform', expandedSections.has(gi) ? 'rotate-180' : '']"
           />
         </button>
-        <!-- Collapsed: just show section label -->
         <div v-if="collapsed" class="mb-1 h-px bg-border/40 mx-2" />
         <button
           v-for="item in visibleItems(gi)"
@@ -351,7 +369,7 @@ function formatCompact(n: number) {
           :class="[
             'group relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200',
             isActive(item.path)
-              ? 'text-primary font-semibold'
+              ? 'text-primary font-semibold bg-primary/5'
               : isSetupPending(item.path)
                 ? 'text-warning/70 hover:bg-surface/30 hover:text-foreground'
                 : 'text-muted-foreground hover:bg-surface/30 hover:text-foreground',
@@ -359,26 +377,23 @@ function formatCompact(n: number) {
         >
           <span
             v-if="isActive(item.path)"
-            class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary shadow-[0_0_6px_rgba(255, 255, 255,0.5)]"
+            class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary shadow-[0_0_6px_rgba(255,255,255,0.5)]"
           />
           <component :is="item.icon" :class="['h-4 w-4 shrink-0', isActive(item.path) ? 'scale-110 text-primary' : '']" />
           <Transition name="fade">
             <span v-if="!collapsed" class="flex-1 truncate font-mono text-xs">{{ item.name }}</span>
           </Transition>
-          <!-- Dynamic badge count -->
           <span
-            v-if="!collapsed && getBadge(item.path)"
+            v-if="!collapsed && getBadge(item.badge || item.path)"
             class="shrink-0 rounded-full bg-primary/15 px-1.5 py-0.5 font-mono text-[9px] font-bold tabular-nums text-primary"
           >
-            {{ getBadge(item.path)! > 99 ? '99+' : getBadge(item.path) }}
+            {{ getBadge(item.badge || item.path)! > 99 ? '99+' : getBadge(item.badge || item.path) }}
           </span>
-          <!-- Setup pending dot -->
           <span
-            v-if="!collapsed && isSetupPending(item.path) && !getBadge(item.path)"
+            v-if="!collapsed && isSetupPending(item.path) && !getBadge(item.badge || item.path)"
             class="h-1.5 w-1.5 shrink-0 rounded-full bg-warning animate-pulse"
           />
         </button>
-        <!-- Show more / less toggle -->
         <button
           v-if="!collapsed && hiddenCount(gi) > 0"
           @click="toggleSection(gi)"
@@ -394,11 +409,11 @@ function formatCompact(n: number) {
       <button
         @click="emit('toggleCopilot')"
         class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-all duration-200 hover:bg-surface/30 hover:text-foreground"
-        :title="collapsed ? 'Copilot' : undefined"
+        :title="collapsed ? 'MERLIN' : undefined"
       >
         <MessageCircle class="h-4 w-4 shrink-0" />
         <Transition name="fade">
-          <span v-if="!collapsed" class="font-mono text-xs">Copilot</span>
+          <span v-if="!collapsed" class="font-mono text-xs">MERLIN</span>
         </Transition>
       </button>
       <button
