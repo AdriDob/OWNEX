@@ -6,15 +6,53 @@
  * Datos reales únicamente: /applications/income-plan + /mission/status.
  */
 
+import {
+  AlertTriangle,
+  Bot,
+  CheckCircle,
+  ChevronDown,
+  ChevronRight,
+  CircleUser,
+  Clock,
+  ExternalLink,
+  Target,
+  TrendingUp,
+  Wallet,
+  Zap,
+  DollarSign,
+  Shield,
+  Activity,
+  BarChart3,
+  Users,
+  RotateCcw,
+} from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
-import { Bot, CircleUser, ExternalLink } from '@lucide/vue'
-import Badge from '@/components/ui/Badge.vue'
-import Card from '@/components/ui/Card.vue'
+import OneActionCard from '@/components/autopilot/OneActionCard.vue'
+import DailyDigest from '@/components/daily/DailyDigest.vue'
 import ErrorState from '@/components/shared/ErrorState.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
-import DailyDigest from '@/components/daily/DailyDigest.vue'
-import { fetchIncomePlan, fetchMissionStatus, fetchCapitalSnapshot, fetchAiCenter, fetchCareerStatus, fetchZeroBarrierStats, fetchRevenueTimeline, fetchPlatformRanking, type IncomePlanAction, type IncomePlanState, type CapitalSnapshot, type PlatformRankingItem } from '@/services/ownexData'
+import OwnexBadge from '@/components/ui/OwnexBadge.vue'
+import OwnexButton from '@/components/ui/OwnexButton.vue'
+import OwnexCard from '@/components/ui/OwnexCard.vue'
+import ComputerUseWidget from '@/components/computer-use/ComputerUseWidget.vue'
+import FlightRecorder from '@/components/system/FlightRecorder.vue'
+import { useHuntStore } from '@/stores/hunt'
 import { api } from '@/lib/api'
+import {
+  type CapitalSnapshot,
+  fetchAiCenter,
+  fetchCapitalSnapshot,
+  fetchCareerStatus,
+  fetchIncomePlan,
+  fetchMissionStatus,
+  fetchPlatformRanking,
+  fetchRevenueTimeline,
+  fetchZeroBarrierStats,
+  type IncomePlanAction,
+  type IncomePlanState,
+  type PlatformRankingItem,
+  fetchDirectWorkWorkBank,
+} from '@/services/ownexData'
 
 /** FEATURE PARITY: snapshot de capital (SSOT patrimonio) + estado IA. */
 const capital = ref<CapitalSnapshot | null>(null)
@@ -42,16 +80,22 @@ function computeDigest(): void {
   localStorage.setItem(LAST_VISIT_KEY, String(now))
 
   // Only show digest if >4h since last visit
-  if (!lastVisit || hoursSince < 4) { digest.value = null; return }
+  if (!lastVisit || hoursSince < 4) {
+    digest.value = null
+    return
+  }
 
   try {
     Promise.allSettled([
       api.get<{ finding_count?: number; target_count?: number }>('/overview'),
       api.get<{ pending_amount?: number }>('/revenue/summary'),
     ]).then(([findRes, revRes]) => {
-      const findings = findRes.status === 'fulfilled' ? (findRes.value.finding_count || 0) : 0
-      const pending = revRes.status === 'fulfilled' ? (revRes.value.pending_amount || 0) : 0
-      if (!findings && !pending) { digest.value = null; return }
+      const findings = findRes.status === 'fulfilled' ? findRes.value.finding_count || 0 : 0
+      const pending = revRes.status === 'fulfilled' ? revRes.value.pending_amount || 0 : 0
+      if (!findings && !pending) {
+        digest.value = null
+        return
+      }
       digest.value = {
         newOpportunities: findings,
         pendingUsd: pending,
@@ -59,7 +103,9 @@ function computeDigest(): void {
         hoursSince: Math.round(hoursSince),
       }
     })
-  } catch { digest.value = null }
+  } catch {
+    digest.value = null
+  }
 }
 
 /** Dinero REALIZADO (cobrado/pagado) — separado por contrato del esperado.
@@ -76,6 +122,9 @@ const error = ref<string | null>(null)
 const income = ref<IncomePlanState | null>(null)
 const system = ref<{ health: number; status: string } | null>(null)
 const realized = ref<RealizedRevenue | null>(null)
+
+const hunt = useHuntStore()
+const workBankReady = ref(0)
 
 interface IncomeGoalPlan {
   status: string
@@ -162,9 +211,7 @@ const automation = computed(() => {
 })
 
 /** 👤 Tus acciones humanas concretas (cola this_week del plan). */
-const humanActions = computed<Array<IncomePlanAction>>(
-  () => income.value?.phases.this_week.slice(0, 5) ?? [],
-)
+const humanActions = computed<Array<IncomePlanAction>>(() => income.value?.phases.this_week.slice(0, 5) ?? [])
 
 async function load(): Promise<void> {
   loading.value = true
@@ -194,10 +241,7 @@ async function load(): Promise<void> {
 
   // FEATURE PARITY: capital snapshot + estado de IA (fallo silencioso, no bloquea)
   try {
-    const [cap, ai] = await Promise.allSettled([
-      fetchCapitalSnapshot(),
-      fetchAiCenter(),
-    ])
+    const [cap, ai] = await Promise.allSettled([fetchCapitalSnapshot(), fetchAiCenter()])
     if (cap.status === 'fulfilled') capital.value = cap.status === 'fulfilled' ? cap.value : null
     if (ai.status === 'fulfilled') aiOk.value = !!ai.value.config?.available
     try {
@@ -221,6 +265,15 @@ async function load(): Promise<void> {
   } catch {
     /* degradación silenciosa */
   }
+
+  // WORK BANK READY COUNT
+  try {
+    const wb = await fetchDirectWorkWorkBank()
+    workBankReady.value = wb.ready_to_deliver || 0
+  } catch {
+    /* silencioso */
+  }
+
   loading.value = false
   computeDigest()
 }
@@ -230,16 +283,130 @@ onMounted(load)
 
 <template>
   <div class="mx-auto max-w-7xl space-y-6 p-6 animate-in">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-xl font-semibold tracking-tight">OWNEX Command Center</h1>
-        <p class="text-sm text-muted-foreground">Autonomous Work Operating System</p>
+    <!-- CEO CONSOLE HEADER -->
+    <header class="space-y-4">
+      <!-- Row 1: System Status + Money + OWNEX Status -->
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <!-- System Health -->
+        <Card class="p-4 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Activity class="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p class="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">SISTEMA</p>
+                <p class="font-mono text-sm font-semibold">{{ system?.status.toUpperCase() || 'UNKNOWN' }}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="font-mono text-2xl font-bold tabular-nums" :class="system?.health !== undefined ? (system.health >= 90 ? 'text-success' : system.health >= 70 ? 'text-warning' : 'text-destructive') : 'text-muted-foreground'">
+                {{ system?.health !== undefined ? Math.round(system.health) : '—' }}%
+              </p>
+              <p class="font-mono text-[10px] text-muted-foreground">salud</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 text-xs text-muted-foreground">
+            <span>{{ system?.workers || '—' }} workers</span>
+            <span>{{ system?.queue || '—' }} queue</span>
+            <span>{{ system?.errors || '—' }} errors</span>
+            <span>{{ system?.uptime || '—' }} uptime</span>
+          </div>
+        </Card>
+
+        <!-- Money Snapshot -->
+        <Card class="p-4 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
+                <DollarSign class="h-4 w-4 text-success" />
+              </div>
+              <div>
+                <p class="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">REALIZADO</p>
+                <p class="font-mono text-sm font-semibold">{{ usd(realized?.total_earned || 0) }}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="font-mono text-2xl font-bold tabular-nums text-success">{{ usd(realized?.pending_amount || 0) }}</p>
+              <p class="font-mono text-[10px] text-muted-foreground">pendiente</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-xs">
+            <div class="text-center">
+              <p class="font-mono text-lg font-bold tabular-nums text-success">{{ usd(realized?.earnings_30d || 0) }}</p>
+              <p class="text-muted-foreground">30 días</p>
+            </div>
+            <div class="text-center border-x border-border/30">
+              <p class="font-mono text-lg font-bold tabular-nums">{{ income?.income_command_center?.today || '$0' }}</p>
+              <p class="text-muted-foreground">HOY (potencial)</p>
+            </div>
+            <div class="text-center">
+              <p class="font-mono text-lg font-bold tabular-nums text-warning">{{ income?.income_command_center?.month || '$0' }}</p>
+              <p class="text-muted-foreground">MES (potencial)</p>
+            </div>
+          </div>
+        </Card>
+
+        <!-- OWNEX Status -->
+        <Card class="p-4 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg" :class="hunt.status === 'running' ? 'bg-primary/10' : hunt.status === 'paused' ? 'bg-warning/10' : 'bg-muted/10'">
+                <Bot class="h-4 w-4" :class="hunt.status === 'running' ? 'text-primary' : hunt.status === 'paused' ? 'text-warning' : 'text-muted-foreground'" />
+              </div>
+              <div>
+                <p class="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">OWNEX</p>
+                <p class="font-mono text-sm font-semibold capitalize">{{ hunt.status || 'inactivo' }}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full" :class="hunt.status === 'running' ? 'bg-success animate-pulse' : hunt.status === 'paused' ? 'bg-warning' : 'bg-muted'" />
+            </div>
+          </div>
+          <div class="flex items-center gap-4 text-xs text-muted-foreground">
+            <button @click="router.push('/operations/work-queue')" class="hover:text-foreground transition-colors flex items-center gap-1">
+              <Zap class="h-3 w-3" /> {{ income?.phases?.this_week?.length || 0 }} acciones
+            </button>
+            <button @click="router.push('/operations/work-queue')" class="hover:text-foreground transition-colors flex items-center gap-1">
+              <Users class="h-3 w-3" /> {{ workBankReady || 0 }} listos
+            </button>
+          </div>
+          <div class="flex items-center gap-2 pt-2 border-t border-border/30">
+            <button @click="router.push('/')" class="btn-primary px-3 py-1.5 text-sm flex-1">
+              <Target class="h-3.5 w-3.5 mr-1" /> ¿Qué hago ahora?
+            </button>
+            <button @click="router.push('/operations/work-queue')" class="btn-secondary px-3 py-1.5 text-sm">
+              <ExternalLink class="h-3.5 w-3.5 mr-1" /> Cola trabajo
+            </button>
+          </div>
+        </Card>
       </div>
-      <Badge v-if="system" :variant="statusVariant" dot>
-        {{ system.status.toUpperCase() }} · salud {{ Math.round(system.health) }}%
-      </Badge>
-    </div>
+
+      <!-- Row 2: Quick Actions -->
+      <div class="flex flex-wrap gap-2">
+        <button @click="router.push('/')" class="btn-primary px-4 py-2 flex items-center gap-2">
+          <Target class="h-4 w-4" /> Acción principal
+        </button>
+        <button @click="router.push('/operations/work-queue')" class="btn-secondary px-4 py-2 flex items-center gap-2">
+          <ExternalLink class="h-4 w-4" /> Cola de trabajo
+        </button>
+        <button @click="router.push('/targets/prioritization')" class="btn-secondary px-4 py-2 flex items-center gap-2">
+          <Zap class="h-4 w-4" /> Oportunidades
+        </button>
+        <button @click="router.push('/capital')" class="btn-secondary px-4 py-2 flex items-center gap-2">
+          <DollarSign class="h-4 w-4" /> Ingresos
+        </button>
+        <button @click="router.push('/intelligence/findings')" class="btn-secondary px-4 py-2 flex items-center gap-2">
+          <Shield class="h-4 w-4" /> Hallazgos
+        </button>
+        <button @click="window.dispatchEvent(new CustomEvent('toggle-copilot'))" class="btn-secondary px-4 py-2 flex items-center gap-2">
+          <Bot class="h-4 w-4" /> MERLIN
+        </button>
+        <button @click="router.push('/operations/scheduler')" class="btn-secondary px-4 py-2 flex items-center gap-2">
+          <RotateCcw class="h-4 w-4" /> Scheduler
+        </button>
+      </div>
+    </header>
 
     <ErrorState v-if="error && !income" title="No se pudo cargar el plan de ingresos" :error="error" :on-retry="load" />
     <LoadingState v-else-if="loading && !income" />
@@ -248,24 +415,8 @@ onMounted(load)
       <!-- N0: DAILY DIGEST — qué importa hoy (agrega de todos los sistemas) -->
       <DailyDigest />
 
-      <!-- N1: NEXT ACTION dominante -->
-      <NextBestAction
-        v-if="income.next_action"
-        :title="income.next_action.title"
-        :description="income.next_action.detail || ''"
-        :href="income.next_action.url || '/operations/applications'"
-        :primary-action="{ label: income.next_action.url ? 'Abrir y ejecutar' : 'Ver plan completo', variant: 'primary' }"
-        :secondary-action="{ label: 'Posponer', variant: 'ghost' }"
-        :reasoning="income.next_action.why || income.philosophy"
-        :ev-per-hour="income.next_action.ev_per_human_hour_usd ?? null"
-        :payoff-range="income.next_action.payoff_range ?? null"
-        :cash-speed-days="income.next_action.cash_speed_days ?? null"
-        :assessment-required="income.next_action.assessment_required ?? null"
-        :zero-experience="income.next_action.zero_experience ?? null"
-        :expected-cash="income.next_action.expected_cash ?? null"
-        :htroi="income.next_action.htroi ?? null"
-        :confidence-band="income.next_action.confidence_band ?? null"
-      />
+      <!-- N1: THE ONE ACTION — la única acción que importa ahora -->
+      <OneActionCard :auto-refresh="true" :refresh-interval="300000" />
 
       <!-- N1: potencial económico -->
       <Card class="space-y-3 p-5">
@@ -440,7 +591,7 @@ onMounted(load)
           </div>
         </div>
 
-      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <!-- N1b: qué hace OWNEX vs qué hacés vos -->
         <Card class="space-y-3 p-5">
           <div class="flex items-center gap-2">
@@ -480,6 +631,9 @@ onMounted(load)
             Sin cola pendiente. OWNEX sigue buscando; esta lista se llena sola.
           </p>
         </Card>
+
+        <!-- Computer Use widget -->
+        <ComputerUseWidget />
       </div>
 
       <!-- N3: Stack activo + career (progressive disclosure) -->
@@ -524,5 +678,9 @@ onMounted(load)
         </div>
       </details>
     </template>
+
+    <!-- FLIGHT RECORDER - System Activity Log -->
+    <FlightRecorder class="mt-8 h-96" />
+
   </div>
 </template>

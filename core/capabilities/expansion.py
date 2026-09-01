@@ -127,9 +127,13 @@ KNOWN_CANDIDATES: list[CapabilityCandidate] = [
         category="automation",
         name="Desktop Automation",
         description="Drive the desktop (clicks, typing, screenshots) for repetitive GUI tasks",
-        providers=["pyautogui"],
+        providers=["pyautogui", "computer_use"],
         install_hint="pip install pyautogui",
-        benefits=["repetitive task elimination", "GUI workflows without a browser"],
+        benefits=[
+            "repetitive task elimination",
+            "GUI workflows without a browser",
+            "autonomous desktop control via LLM vision",
+        ],
         requires_approval=True,
     ),
     CapabilityCandidate(

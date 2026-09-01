@@ -92,8 +92,8 @@ REGISTRY: tuple[ExternalAgent, ...] = (
         upstream_repo="https://github.com/bytedance/UI-TARS-desktop",
         autonomy_default=AutonomyLevel.L1_REVERSIBLE,
         surfaces=("desktop_apps", "screenshots", "mouse_keyboard"),
-        integration_status="pending",
-        notes="Capa de ejecución visual multimodal; Apache-2.0.",
+        integration_status="wired",
+        notes="Capa de ejecución visual multimodal; ComputerUseTool implementa el loop perception-action local (pyautogui + Ollama vision).",
     ),
     ExternalAgent(
         agent_id="openhands_code",

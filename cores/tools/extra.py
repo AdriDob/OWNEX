@@ -13,6 +13,7 @@ from typing import Any
 from .amass import AmassTool
 from .base import BaseTool, ToolResult, UnifiedResult
 from .censys import CensysTool
+from .computer_use import ComputerUseTool
 from .httpx import HttpxTool
 from .naabu import NaabuTool
 from .nuclei import NucleiTool
@@ -902,6 +903,7 @@ TOOL_REGISTRY: dict[str, type[BaseTool]] = {
     "gitleaks": GitleaksTool,
     "garak": GarakTool,
     "browser_use": BrowserUseTool,
+    "computer_use": ComputerUseTool,
     "censys": CensysTool,
     "slither": SlitherTool,
 }

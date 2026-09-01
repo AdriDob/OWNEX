@@ -35,6 +35,18 @@ class ExecuteRequest(BaseModel):
     params: dict[str, Any] = {}
 
 
+class ComputerUseRequest(BaseModel):
+    """Request for autonomous desktop control."""
+
+    task: str
+    max_steps: int = 20
+    model: str = "moondream"
+    vision_provider: str = "ollama"  # "ollama" | "openai_compatible"
+    api_url: str = ""
+    api_key: str = ""
+    dry_run: bool = False
+
+
 class IncomeGoalRequest(BaseModel):
     """Natural-language income goal ("quiero ganar 10k este mes") o valores explícitos."""
 
@@ -364,6 +376,154 @@ def copilot_vision_status():
     except Exception:
         pass
     return {"status": "ok", "capabilities": caps}
+
+
+# ── Computer Use (Desktop Automation) ─────────────────────────────
+
+
+@router.get("/computer-use/status")
+def computer_use_status():
+    """Check computer use capabilities."""
+    try:
+        from cores.tools.computer_use import get_computer_use_tool
+
+        tool = get_computer_use_tool()
+        return {"status": "ok", "tool": tool.to_dict()}
+    except Exception as exc:
+        return {"status": "error", "detail": str(exc)}
+
+
+@router.post("/computer-use/execute")
+async def computer_use_execute(body: ComputerUseRequest):
+    """Execute an autonomous desktop task via Computer Use.
+
+    Captures screenshots, analyzes with vision LLM, and executes actions
+    (click, type, scroll, etc.) in a perception-action loop.
+    """
+    try:
+        from cores.tools.computer_use import ComputerUseAgent, ComputerUseConfig
+
+        config = ComputerUseConfig(
+            max_steps=min(body.max_steps, 50),  # hard cap at 50
+            model=body.model,
+            vision_provider=body.vision_provider,
+            api_url=body.api_url,
+            api_key=body.api_key,
+            dry_run=body.dry_run,
+        )
+        agent = ComputerUseAgent(config)
+        result = await agent.run(body.task)
+        return {"status": "ok", "result": result.to_dict()}
+    except Exception as exc:
+        logger.warning("[COMPUTER_USE] Execute error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@router.post("/computer-use/screenshot")
+async def computer_use_screenshot():
+    """Capture and analyze the current screen."""
+    try:
+        from core.copilot.vision import analyze_screenshot
+
+        result = analyze_screenshot()
+        return {"status": "ok" if "error" not in result else "error", "analysis": result}
+    except Exception as exc:
+        return {"status": "error", "detail": str(exc)}
+
+
+# ── Computer Use Learning ─────────────────────────────────────────
+
+
+@router.get("/computer-use/learning/stats")
+def computer_use_learning_stats():
+    """Get learning stats for all platforms."""
+    try:
+        from cores.computer_use.learning import get_computer_use_learner
+
+        learner = get_computer_use_learner()
+        return {"status": "ok", "platforms": learner.get_all_stats()}
+    except Exception as exc:
+        return {"status": "error", "detail": str(exc)}
+
+
+@router.get("/computer-use/learning/{platform}")
+def computer_use_learning_platform(platform: str):
+    """Get learning stats and recommendation for a specific platform."""
+    try:
+        from cores.computer_use.learning import get_computer_use_learner
+
+        learner = get_computer_use_learner()
+        stats = learner.get_platform_stats(platform)
+        recommendation = learner.get_recommendation(platform)
+        positions = learner.get_best_positions(platform)
+        return {
+            "status": "ok",
+            "stats": stats,
+            "recommendation": recommendation,
+            "cached_positions": {k: v.to_dict() for k, v in positions.items()},
+        }
+    except Exception as exc:
+        return {"status": "error", "detail": str(exc)}
+
+
+@router.get("/computer-use/learning/{platform}/records")
+def computer_use_learning_records(platform: str, limit: int = 20):
+    """Get fill records for a platform."""
+    try:
+        from cores.computer_use.learning import get_computer_use_learner
+
+        learner = get_computer_use_learner()
+        records = learner.get_records(platform=platform, limit=limit)
+        return {"status": "ok", "platform": platform, "records": records, "count": len(records)}
+    except Exception as exc:
+        return {"status": "error", "detail": str(exc)}
+
+
+# ── Computer Use Screenshot History ──────────────────────────────
+
+
+@router.get("/computer-use/history")
+def computer_use_history(limit: int = 20, platform: str | None = None):
+    """List recent Computer Use sessions."""
+    try:
+        from cores.computer_use.screenshot_history import get_screenshot_history
+
+        history = get_screenshot_history()
+        sessions = history.list_sessions(limit=limit, platform=platform)
+        stats = history.get_stats()
+        return {"status": "ok", "sessions": sessions, "stats": stats}
+    except Exception as exc:
+        return {"status": "error", "detail": str(exc)}
+
+
+@router.get("/computer-use/history/{session_id}")
+def computer_use_session(session_id: str):
+    """Get a specific session with all screenshots."""
+    try:
+        from cores.computer_use.screenshot_history import get_screenshot_history
+
+        history = get_screenshot_history()
+        session = history.get_session(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+        return {"status": "ok", "session": session}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        return {"status": "error", "detail": str(exc)}
+
+
+@router.get("/computer-use/history/{session_id}/screenshots")
+def computer_use_session_screenshots(session_id: str):
+    """Get all screenshots for a session."""
+    try:
+        from cores.computer_use.screenshot_history import get_screenshot_history
+
+        history = get_screenshot_history()
+        screenshots = history.get_screenshots(session_id)
+        return {"status": "ok", "session_id": session_id, "screenshots": screenshots, "count": len(screenshots)}
+    except Exception as exc:
+        return {"status": "error", "detail": str(exc)}
 
 
 @router.get("/bayesian/summary")

@@ -49,6 +49,12 @@ export const routes: RouteRecordRaw[] = [
     component: () => import(/* webpackChunkName: "merlin" */ '@/components/merlin/MerlinJarvis.vue'),
     meta: { title: 'MERLIN' },
   },
+  {
+    path: '/chat',
+    name: 'ownex-chat',
+    component: () => import(/* webpackChunkName: "ownex-chat" */ '@/components/ownex-chat/OwnexChat.vue'),
+    meta: { title: 'MERLIN Chat' },
+  },
 
   // ── AUTH ──
   {
@@ -64,33 +70,20 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'Verificar Correo', public: true },
   },
 
-  // ── 1. MISSION CONTROL ──
+  // ── 1. COMMAND CENTER ──
   {
-    // 2026-08-25 (Fase 3): '/' = CEO Home / Income Command Center.
-    // WelcomePage se conserva accesible en /welcome (reversible).
+    // 2026-08-30: '/' = OWNEX Command Center (IncomeHome).
+    // Único entry point. Otros dashboards legacy redirigen aquí.
     path: '/',
-    name: 'income-home',
-    component: () => import(/* webpackChunkName: "income-home" */ '@/pages/IncomeHome.vue'),
-    meta: { title: 'Command Center' },
+    name: 'command-center',
+    component: () => import(/* webpackChunkName: "command-center" */ '@/pages/IncomeHome.vue'),
+    meta: { title: 'OWNEX Command Center' },
   },
-  {
-    path: '/welcome',
-    name: 'welcome',
-    component: () => import(/* webpackChunkName: "welcome" */ '@/pages/WelcomePage.vue'),
-    meta: { title: 'Bienvenido' },
-  },
-  {
-    path: '/dashboard',
-    name: 'mission-control',
-    component: () => import(/* webpackChunkName: "mission-control" */ '@/pages/GamingConsole.vue'),
-    meta: { title: 'Control de Misión' },
-  },
-  {
-    path: '/classic',
-    name: 'classic-mission-control',
-    component: () => import(/* webpackChunkName: "mission-control" */ '@/pages/MissionControl.vue'),
-    meta: { title: 'Classic Mission Control' },
-  },
+  // Legacy redirects → Command Center
+  { path: '/welcome', redirect: '/' },
+  { path: '/dashboard', redirect: '/' },
+  { path: '/classic', redirect: '/' },
+  { path: '/home', redirect: '/' },
 
   // ── 2. INTELLIGENCE ──
   {
@@ -286,6 +279,12 @@ export const routes: RouteRecordRaw[] = [
         meta: { title: 'Cola de Trabajo' },
       },
       {
+        path: 'work-room/:id',
+        name: 'work-room',
+        component: () => import(/* webpackChunkName: "work-room" */ '@/components/work/WorkRoom.vue'),
+        meta: { title: 'Work Room' },
+      },
+      {
         path: 'agenda',
         name: 'agenda',
         component: () => import(/* webpackChunkName: "agenda" */ '@/pages/AgendaView.vue'),
@@ -350,6 +349,12 @@ export const routes: RouteRecordRaw[] = [
         name: 'operations-version-backup',
         component: () => import('@/pages/VersionBackup.vue'),
         meta: { title: 'Backup de Versión' },
+      },
+      {
+        path: 'self-healer',
+        name: 'operations-self-healer',
+        component: () => import(/* webpackChunkName: "self-healer" */ '@/pages/SelfHealer.vue'),
+        meta: { title: 'Self-Healer' },
       },
       { path: 'logs', redirect: '/operations/health' },
     ],
@@ -446,6 +451,12 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/pages/NotificationsPage.vue'),
         meta: { title: 'Notificaciones' },
       },
+      {
+        path: 'computer-use',
+        name: 'copilot-computer-use',
+        component: () => import('@/pages/ComputerUse.vue'),
+        meta: { title: 'Computer Use' },
+      },
     ],
   },
 
@@ -528,12 +539,12 @@ export const routes: RouteRecordRaw[] = [
   { path: '/truth-inspector', redirect: '/intelligence/confidence' },
 
   // Apps (mantener separadas - son micro-apps completas)
-    {
-      path: '/ownex/',
-      name: 'ownex-home',
-      component: () => import('@/shell/OrionHome.vue'),
-      meta: { title: 'OWNEX Alpha Platform' },
-    },
+  {
+    path: '/ownex/',
+    name: 'ownex-home',
+    component: () => import('@/shell/OrionHome.vue'),
+    meta: { title: 'OWNEX Alpha Platform' },
+  },
   {
     path: '/investments',
     name: 'investment-hub',
@@ -625,6 +636,18 @@ export const routes: RouteRecordRaw[] = [
     name: 'knowledge',
     component: () => import(/* webpackChunkName: "knowledge" */ '@/pages/Knowledge.vue'),
     meta: { title: 'Knowledge Vault' },
+  },
+  {
+    path: '/knowledge/graph',
+    name: 'knowledge-graph',
+    component: () => import(/* webpackChunkName: "knowledge-graph" */ '@/components/knowledge-graph/KnowledgeGraphExplorer.vue'),
+    meta: { title: 'Knowledge Graph Explorer' },
+  },
+  {
+    path: '/quick-capture',
+    name: 'quick-capture',
+    component: () => import(/* webpackChunkName: "quick-capture" */ '@/pages/QuickCapture.vue'),
+    meta: { title: 'Quick Capture' },
   },
 
   // ── MOBILE COMPANION ──
