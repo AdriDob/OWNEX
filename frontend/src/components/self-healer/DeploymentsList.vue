@@ -172,11 +172,11 @@ async function confirmRollback(deploymentId: string) {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
 }
 
 .active-deployment-card {
-  background: #0e1015;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(0, 213, 255, 0.2);
   border-radius: 12px;
   padding: 20px;
@@ -193,7 +193,7 @@ async function confirmRollback(deploymentId: string) {
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
 }
 
 .deployment-progress {
@@ -208,23 +208,23 @@ async function confirmRollback(deploymentId: string) {
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border-radius: 8px;
   border-left: 3px solid transparent;
   transition: all 0.2s;
 }
 
 .progress-step.current {
-  border-left-color: #00d5ff;
+  border-left-color: var(--ownex-accent);
   background: rgba(0, 213, 255, 0.05);
 }
 
 .progress-step.completed {
-  border-left-color: #34d399;
+  border-left-color: var(--ownex-green);
 }
 
 .progress-step.failed {
-  border-left-color: #f87171;
+  border-left-color: var(--ownex-danger);
 }
 
 .step-icon {
@@ -235,7 +235,7 @@ async function confirmRollback(deploymentId: string) {
   flex: 1;
   font-size: 13px;
   font-weight: 500;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
 }
 
 .step-status {
@@ -246,25 +246,25 @@ async function confirmRollback(deploymentId: string) {
 }
 
 .step-healthy {
-  color: #34d399;
+  color: var(--ownex-green);
 }
 
 .step-unhealthy {
-  color: #f87171;
+  color: var(--ownex-danger);
 }
 
 .step-pending {
-  color: #fbbf24;
+  color: var(--ownex-yellow);
 }
 
 .deployment-meta {
   display: flex;
   gap: 16px;
   font-size: 11px;
-  color: #5e6272;
+  color: var(--ownex-text-muted);
   font-family: 'JetBrains Mono', monospace;
   padding: 12px;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border-radius: 8px;
 }
 
@@ -277,7 +277,7 @@ async function confirmRollback(deploymentId: string) {
   margin: 0 0 12px;
   font-size: 13px;
   font-weight: 600;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -300,8 +300,8 @@ async function confirmRollback(deploymentId: string) {
 }
 
 .deployments-table th {
-  background: #0a0c11;
-  color: #8b8d98;
+  background: var(--ownex-bg-base);
+  color: var(--ownex-text-secondary);
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -316,17 +316,17 @@ async function confirmRollback(deploymentId: string) {
 .deploy-id {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
 
 .patch-ref {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: #00d5ff;
+  color: var(--ownex-accent);
 }
 
 .time-cell {
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
   white-space: nowrap;
@@ -341,7 +341,7 @@ async function confirmRollback(deploymentId: string) {
   border: 1px solid rgba(248, 113, 113, 0.2);
   border-radius: 999px;
   font-size: 11px;
-  color: #f87171;
+  color: var(--ownex-danger);
 }
 
 .actions-cell {
@@ -360,6 +360,6 @@ async function confirmRollback(deploymentId: string) {
 
 .rollback-btn:hover {
   background: rgba(248, 113, 113, 0.1);
-  border-color: #f87171;
+  border-color: var(--ownex-danger);
 }
 </style>

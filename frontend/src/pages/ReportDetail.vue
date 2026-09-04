@@ -248,7 +248,7 @@ onMounted(fetchData)
             :labels="payoutBreakdownData.labels"
             :data="payoutBreakdownData.data"
             :height="200"
-            :colors="['#16A34A', '#ffffff', '#A16207']"
+            :colors="['var(--ownex-green)', 'var(--ownex-text-primary)', 'var(--ownex-gold)']"
           />
         </Card>
       </div>

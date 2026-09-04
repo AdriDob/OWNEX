@@ -315,14 +315,14 @@ watch(status, (newStatus) => {
   margin: 0;
   font-size: 28px;
   font-weight: 700;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
   font-family: 'Space Grotesk', 'Inter', sans-serif;
 }
 
 .page-subtitle {
   margin: 0;
   font-size: 14px;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
 
 .header-actions {
@@ -340,7 +340,7 @@ watch(status, (newStatus) => {
 }
 
 .tabs-container {
-  background: #0e1015;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   overflow: hidden.
@@ -350,7 +350,7 @@ watch(status, (newStatus) => {
   display: flex;
   gap: 4px;
   padding: 8px;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   overflow-x: auto.
 }
@@ -363,7 +363,7 @@ watch(status, (newStatus) => {
   background: transparent;
   border: none;
   border-radius: 8px;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -373,12 +373,12 @@ watch(status, (newStatus) => {
 
 .tab-btn:hover {
   background: rgba(255, 255, 255, 0.04);
-  color: #d9dbdf.
+  color: var(--ownex-text-secondary).
 }
 
 .tab-btn.active {
   background: rgba(0, 213, 255, 0.1);
-  color: #00d5ff.
+  color: var(--ownex-accent).
 }
 
 .tab-count {
@@ -391,7 +391,7 @@ watch(status, (newStatus) => {
 
 .tab-btn.active .tab-count {
   background: rgba(0, 213, 255, 0.3);
-  color: #00d5ff.
+  color: var(--ownex-accent).
 }
 
 .tab-content {

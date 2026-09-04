@@ -79,13 +79,13 @@ const modes = [
 .mode-selector__title {
   font-size: 1rem;
   font-weight: 600;
-  color: #f0f0f0;
+  color: var(--ownex-text-primary);
   margin: 0 0 4px;
 }
 
 .mode-selector__subtitle {
   font-size: 0.875rem;
-  color: #888;
+  color: var(--ownex-text-secondary);
   margin: 0;
 }
 
@@ -146,13 +146,13 @@ const modes = [
 .mode-selector__name {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #f0f0f0;
+  color: var(--ownex-text-primary);
   margin: 0 0 4px;
 }
 
 .mode-selector__desc {
   font-size: 0.75rem;
-  color: #888;
+  color: var(--ownex-text-secondary);
   margin: 0;
   line-height: 1.4;
 }
@@ -197,7 +197,7 @@ const modes = [
 
 .mode-selector__features li {
   font-size: 0.75rem;
-  color: #aaa;
+  color: var(--ownex-text-secondary);
   padding-left: 16px;
   position: relative;
 }

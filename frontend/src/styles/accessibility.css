@@ -17,19 +17,19 @@
 
 /* ── High Contrast Mode ── */
 [data-a11y-mode="high-contrast"] {
-  --color-background: #000000;
-  --color-surface: #0a0a0a;
-  --color-surface-hover: #1a1a1a;
-  --color-border: #ffffff;
+  --color-background: var(--ownex-bg-deep);
+  --color-surface: var(--ownex-bg-surface);
+  --color-surface-hover: var(--ownex-bg-elevated);
+  --color-border: var(--ownex-text-primary);
   --color-border-light: #cccccc;
-  --color-muted: #888888;
-  --color-muted-foreground: #aaaaaa;
-  --color-foreground: #ffffff;
+  --color-muted: var(--ownex-text-secondary);
+  --color-muted-foreground: var(--ownex-text-secondary)aaa;
+  --color-foreground: var(--ownex-text-primary);
   --color-primary: #4d8fff;
-  --color-primary-foreground: #ffffff;
+  --color-primary-foreground: var(--ownex-text-primary);
   --color-accent: #80b3ff;
-  --color-accent-foreground: #000000;
-  --color-destructive: #3b82f6;
+  --color-accent-foreground: var(--ownex-bg-deep);
+  --color-destructive: var(--ownex-danger);
   --color-warning: #ffaa00;
   --color-success: #44ff44;
 }
@@ -47,7 +47,7 @@
 }
 
 [data-a11y-mode="high-contrast"] .splash-layer {
-  background: #000;
+  background: var(--ownex-bg-deep);
 }
 
 /* ── Performance Mode ── */

@@ -145,7 +145,7 @@ const getBadgeLabel = (required: boolean) => {
 .income-guidance__title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #f0f0f0;
+  color: var(--ownex-text-primary);
   margin: 0;
 }
 
@@ -161,7 +161,7 @@ const getBadgeLabel = (required: boolean) => {
 
 .income-guidance__summary {
   font-size: 0.875rem;
-  color: #aaa;
+  color: var(--ownex-text-secondary);
   margin: 0;
   line-height: 1.5;
 }
@@ -169,7 +169,7 @@ const getBadgeLabel = (required: boolean) => {
 .income-guidance__section-title {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #888;
+  color: var(--ownex-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 20px 0 12px;
@@ -191,24 +191,24 @@ const getBadgeLabel = (required: boolean) => {
 
 .income-guidance__prep-fill {
   height: 100%;
-  background: linear-gradient(90deg, #10b981, #34d399);
+  background: linear-gradient(90deg, var(--ownex-green), var(--ownex-green));
   border-radius: 9999px;
   transition: width 0.5s ease;
 }
 
 .income-guidance__prep-text {
   font-size: 0.75rem;
-  color: #aaa;
+  color: var(--ownex-text-secondary);
   margin: 0;
 }
 
 .income-guidance__prep-text strong {
-  color: #10b981;
+  color: var(--ownex-green);
 }
 
 .income-guidance__action-text {
   font-size: 0.875rem;
-  color: #ddd;
+  color: var(--ownex-text-muted);
   margin: 0;
   line-height: 1.6;
 }
@@ -227,18 +227,18 @@ const getBadgeLabel = (required: boolean) => {
 .income-guidance__empty h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: #f0f0f0;
+  color: var(--ownex-text-primary);
   margin: 0 0 8px;
 }
 
 .income-guidance__empty p {
   font-size: 0.875rem;
-  color: #888;
+  color: var(--ownex-text-secondary);
   margin: 0 0 20px;
 }
 
 .income-guidance__run-btn {
-  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  background: linear-gradient(135deg, var(--ownex-danger), var(--ownex-accent));
   border: none;
   color: white;
   font-size: 0.875rem;
@@ -251,7 +251,7 @@ const getBadgeLabel = (required: boolean) => {
 
 .income-guidance__run-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px color-mix(in srgb, #3b82f6 40%, transparent);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--ownex-danger) 40%, transparent);
 }
 
 @media (max-width: 480px) {

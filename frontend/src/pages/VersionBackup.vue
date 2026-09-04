@@ -87,7 +87,7 @@
         <div class="flex items-center gap-6">
           <svg class="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(30,41,59,0.5)" stroke-width="6" />
-            <circle cx="50" cy="50" r="42" fill="none" stroke="#34D399" stroke-width="6"
+            <circle cx="50" cy="50" r="42" fill="none" stroke="var(--ownex-green)" stroke-width="6"
               stroke-dasharray="264" :stroke-dashoffset="264 - (264 * 100 / 100)"
               stroke-linecap="round" />
           </svg>
@@ -479,13 +479,13 @@ onMounted(() => {
 .pill-backup {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #60A5FA;
+  color: var(--ownex-accent);
 }
 
 .live-badge {
   background: rgba(0, 213, 255, 0.2);
   border: 1px solid rgba(0, 213, 255, 0.3);
-  color: #93C5FD;
+  color: var(--ownex-accent);
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-size: 0.65rem;
@@ -526,7 +526,7 @@ onMounted(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #60A5FA;
+  background: var(--ownex-accent);
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
@@ -574,7 +574,7 @@ onMounted(() => {
 .action-primary {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.4);
-  color: #60A5FA;
+  color: var(--ownex-accent);
 }
 
 .action-primary:hover:not(:disabled) {
@@ -585,7 +585,7 @@ onMounted(() => {
 .action-green {
   background: rgba(52, 211, 153, 0.2);
   border-color: rgba(52, 211, 153, 0.4);
-  color: #34D399;
+  color: var(--ownex-green);
 }
 
 .action-green:hover:not(:disabled) {
@@ -596,7 +596,7 @@ onMounted(() => {
 .action-gold {
   background: rgba(251, 191, 36, 0.2);
   border-color: rgba(251, 191, 36, 0.4);
-  color: #D97706;
+  color: var(--ownex-yellow);
 }
 
 .action-gold:hover:not(:disabled) {
@@ -607,7 +607,7 @@ onMounted(() => {
 .action-red {
   background: rgba(148, 163, 184, 0.2);
   border-color: rgba(148, 163, 184, 0.4);
-  color: #93C5FD;
+  color: var(--ownex-accent);
 }
 
 .action-red:hover:not(:disabled) {
@@ -618,7 +618,7 @@ onMounted(() => {
 .action-warning {
   background: rgba(251, 191, 36, 0.2);
   border-color: rgba(251, 191, 36, 0.4);
-  color: #D97706;
+  color: var(--ownex-yellow);
 }
 
 .action-warning:hover:not(:disabled) {
@@ -629,7 +629,7 @@ onMounted(() => {
 .action-secondary {
   background: rgba(100, 116, 139, 0.2);
   border-color: rgba(100, 116, 139, 0.4);
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
 }
 
 .action-secondary:hover:not(:disabled) {
@@ -658,7 +658,7 @@ onMounted(() => {
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   margin-bottom: 0.5rem;
 }
 
@@ -670,7 +670,7 @@ onMounted(() => {
 
 .card-detail {
   font-size: 0.75rem;
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   margin-top: 0.5rem;
 }
 
@@ -690,7 +690,7 @@ onMounted(() => {
 }
 
 .mini-chart .bar.active {
-  background: #34D399;
+  background: var(--ownex-green);
 }
 
 /* ═══ BACKUP HISTORY SECTION ═══ */
@@ -710,13 +710,13 @@ onMounted(() => {
 .loading-state {
   text-align: center;
   padding: 4rem 2rem;
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
 }
 
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
 }
 
 .backups-grid {
@@ -762,7 +762,7 @@ onMounted(() => {
 .version-tag {
   font-weight: 700;
   font-size: 1rem;
-  color: #60A5FA;
+  color: var(--ownex-accent);
 }
 
 .state-badge {
@@ -777,7 +777,7 @@ onMounted(() => {
 .state-badge.active {
   background: rgba(52, 211, 153, 0.2);
   border: 1px solid rgba(52, 211, 153, 0.3);
-  color: #34D399;
+  color: var(--ownex-green);
 }
 
 .state-badge.backup {
@@ -789,11 +789,11 @@ onMounted(() => {
 .state-badge.rollback {
   background: rgba(251, 191, 36, 0.2);
   border: 1px solid rgba(251, 191, 36, 0.3);
-  color: #D97706;
+  color: var(--ownex-yellow);
 }
 
 .backup-date {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 0.75rem;
 }
 
@@ -839,7 +839,7 @@ onMounted(() => {
 .mini-info {
   background: rgba(52, 211, 153, 0.2);
   border-color: rgba(52, 211, 153, 0.3);
-  color: #34D399;
+  color: var(--ownex-green);
 }
 
 .mini-info:hover:not(:disabled) {
@@ -850,7 +850,7 @@ onMounted(() => {
 .mini-warning {
   background: rgba(251, 191, 36, 0.2);
   border-color: rgba(251, 191, 36, 0.3);
-  color: #D97706;
+  color: var(--ownex-yellow);
 }
 
 .mini-warning:hover:not(:disabled) {
@@ -861,7 +861,7 @@ onMounted(() => {
 .mini-danger {
   background: rgba(148, 163, 184, 0.2);
   border-color: rgba(148, 163, 184, 0.3);
-  color: #93C5FD;
+  color: var(--ownex-accent);
 }
 
 .mini-danger:hover:not(:disabled) {
@@ -912,7 +912,7 @@ onMounted(() => {
   background: none;
   border: none;
   cursor: pointer;
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   transition: color 0.2s;
 }
 
@@ -941,7 +941,7 @@ onMounted(() => {
   margin-bottom: 0.5rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -1006,11 +1006,11 @@ onMounted(() => {
 }
 
 .result-valid {
-  color: #34D399;
+  color: var(--ownex-green);
 }
 
 .result-invalid {
-  color: #93C5FD;
+  color: var(--ownex-accent);
 }
 
 .valid-details {

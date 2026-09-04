@@ -161,7 +161,7 @@ const methodChartData = computed(() => {
       {
         label: 'Endpoints',
         data: Object.values(counts),
-        backgroundColor: ['#ffffff', '#16A34A', '#A16207', '#00d5ff', '#9CA3AF', '#9CA3AF'],
+        backgroundColor: ['var(--ownex-text-primary)', 'var(--ownex-green)', 'var(--ownex-gold)', 'var(--ownex-accent)', 'var(--ownex-text-secondary)', 'var(--ownex-text-secondary)'],
       },
     ],
   }

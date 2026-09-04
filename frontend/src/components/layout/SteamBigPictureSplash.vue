@@ -259,12 +259,12 @@ onUnmounted(() => {
 })
 
 const ownexTheme = computed(() => ({
-  '--ownex-bg': '#05060a',
-  '--ownex-surface': '#0a0c11',
-  '--ownex-white': '#ffffff',
-  '--ownex-muted': '#8b8d98',
-  '--ownex-cyan': '#00d5ff',
-  '--ownex-blue': '#1e40ff',
+  '--ownex-bg': 'var(--ownex-bg-base)',
+  '--ownex-surface': 'var(--ownex-bg-base)',
+  '--ownex-white': 'var(--ownex-text-primary)',
+  '--ownex-muted': 'var(--ownex-text-secondary)',
+  '--ownex-cyan': 'var(--ownex-accent)',
+  '--ownex-blue': 'var(--ownex-accent)',
   '--ownex-line': 'rgba(255, 255, 255, 0.08)',
   '--ownex-glow': 'rgba(0, 213, 255, 0.22)',
 }))
@@ -282,7 +282,7 @@ const progressBarStyle = computed(() => ({
       v-if="visible"
       class="splash-bg fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden"
       :style="ownexTheme"
-      style="background: #05060a"
+      style="background: var(--ownex-bg-base)"
     >
       <!-- Subtle white/blue particle field -->
       <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
@@ -333,9 +333,9 @@ const progressBarStyle = computed(() => ({
           >
             <defs>
               <linearGradient id="nexusGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#ffffff" />
-                <stop offset="55%" stop-color="#ffffff" />
-                <stop offset="100%" stop-color="#00d5ff" />
+                <stop offset="0%" stop-color="var(--ownex-text-primary)" />
+                <stop offset="55%" stop-color="var(--ownex-text-primary)" />
+                <stop offset="100%" stop-color="var(--ownex-accent)" />
               </linearGradient>
             </defs>
 
@@ -357,7 +357,7 @@ const progressBarStyle = computed(() => ({
             <polygon
               class="draw-ring slow"
               points="436,256 383.3,128.7 256,76 128.7,128.7 76,256 128.7,383.3 256,436 383.3,383.3"
-              stroke="#1e40ff"
+              stroke="var(--ownex-accent)"
               stroke-width="1.5"
               fill="none"
               stroke-linejoin="round"
@@ -369,19 +369,19 @@ const progressBarStyle = computed(() => ({
             </polygon>
 
             <!-- X of conic rays from the core -->
-            <line class="draw-x" x1="196" y1="196" x2="316" y2="316" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity="0.85" />
-            <line class="draw-x" x1="316" y1="196" x2="196" y2="316" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity="0.85" />
+            <line class="draw-x" x1="196" y1="196" x2="316" y2="316" stroke="var(--ownex-text-primary)" stroke-width="10" stroke-linecap="round" opacity="0.85" />
+            <line class="draw-x" x1="316" y1="196" x2="196" y2="316" stroke="var(--ownex-text-primary)" stroke-width="10" stroke-linecap="round" opacity="0.85" />
 
             <!-- Central square node -->
-            <rect x="244" y="244" width="24" height="24" rx="3" fill="#00d5ff">
+            <rect x="244" y="244" width="24" height="24" rx="3" fill="var(--ownex-accent)">
               <animate attributeName="opacity" values="1;0.45;1" dur="2.2s" repeatCount="indefinite" />
             </rect>
 
             <!-- Ray breaking the ring (top-right) -->
-            <line class="draw-break" x1="383.3" y1="128.7" x2="404" y2="108" stroke="#00d5ff" stroke-width="6" stroke-linecap="round" />
+            <line class="draw-break" x1="383.3" y1="128.7" x2="404" y2="108" stroke="var(--ownex-accent)" stroke-width="6" stroke-linecap="round" />
 
             <!-- Pulse halo -->
-            <circle cx="256" cy="256" r="150" stroke="#00d5ff" stroke-width="1" fill="none" opacity="0.25">
+            <circle cx="256" cy="256" r="150" stroke="var(--ownex-accent)" stroke-width="1" fill="none" opacity="0.25">
               <animate attributeName="r" values="140;172;140" dur="3s" repeatCount="indefinite" />
               <animate attributeName="opacity" values="0.25;0.02;0.25" dur="3s" repeatCount="indefinite" />
             </circle>
@@ -469,7 +469,7 @@ const progressBarStyle = computed(() => ({
 
 <style scoped>
 .splash-bg {
-  background: #05060a;
+  background: var(--ownex-bg-base);
 }
 
 /* ── Logo draw-in animation ── */
@@ -520,7 +520,7 @@ const progressBarStyle = computed(() => ({
   font-family: 'Space Grotesk', 'Inter', sans-serif;
   font-weight: 700;
   letter-spacing: 0.32em;
-  color: #ffffff;
+  color: var(--ownex-text-primary);
   font-size: clamp(2rem, 5vw, 3.4rem);
   opacity: 0;
   transform: translateY(10px);
@@ -537,7 +537,7 @@ const progressBarStyle = computed(() => ({
   font-family: 'JetBrains Mono', monospace;
   font-size: clamp(0.65rem, 1.3vw, 0.85rem);
   letter-spacing: 0.34em;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   opacity: 0;
   transform: translateY(8px);
   transition: opacity 0.7s ease 0.3s, transform 0.7s ease 0.3s;
@@ -551,7 +551,7 @@ const progressBarStyle = computed(() => ({
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #00d5ff;
+  background: var(--ownex-accent);
   animation: boot-pulse 1.4s ease-in-out infinite;
 }
 @keyframes boot-pulse {

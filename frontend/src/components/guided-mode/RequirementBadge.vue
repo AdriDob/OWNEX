@@ -36,7 +36,7 @@ const badgeLabel = computed(() => (props.required ? 'REQUERIDO' : 'NO requerido'
 .requirement-badge__label {
   font-size: 0.75rem;
   font-weight: 500;
-  color: #ddd;
+  color: var(--ownex-text-muted);
 }
 
 .requirement-badge__status {

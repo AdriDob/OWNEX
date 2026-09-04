@@ -224,6 +224,6 @@ onUnmounted(() => {
 .badge-success { background: var(--color-success); color: var(--color-success); opacity: 0.15; }
 .badge-warning { background: var(--color-warning); color: var(--color-warning); opacity: 0.15; }
 .badge-destructive { background: var(--color-destructive); color: var(--color-destructive); opacity: 0.15; }
-.badge-blue { background: #3b82f6; color: #3b82f6; opacity: 0.15; }
+.badge-blue { background: var(--ownex-danger); color: var(--ownex-danger); opacity: 0.15; }
 .badge-muted { background: var(--color-muted); color: var(--color-muted-foreground); }
 </style>

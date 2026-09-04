@@ -83,7 +83,7 @@ const config = computed(() => confidenceConfig[props.level] || confidenceConfig.
 
 .confidence-badge__detail {
   font-size: 0.75rem;
-  color: #aaa;
+  color: var(--ownex-text-secondary);
 }
 
 .confidence-badge__detail-text {
@@ -91,7 +91,7 @@ const config = computed(() => confidenceConfig[props.level] || confidenceConfig.
   padding-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   font-size: 0.75rem;
-  color: #888;
+  color: var(--ownex-text-secondary);
   font-style: italic;
 }
 </style>

@@ -96,14 +96,14 @@ const stepIcon = (step: number) => {
         :class="{ 'first-day-guide__step--complete': isComplete(step.step) }"
       >
         <div class="first-day-guide__step-header">
-          <div class="first-day-guide__step-number" :style="{ background: isComplete(step.step) ? 'linear-gradient(135deg, #10b981, #34d399)' : 'linear-gradient(135deg, #3b82f6, #06b6d4)' }">
+          <div class="first-day-guide__step-number" :style="{ background: isComplete(step.step) ? 'linear-gradient(135deg, var(--ownex-green), var(--ownex-green))' : 'linear-gradient(135deg, var(--ownex-danger), var(--ownex-accent))' }">
             {{ step.step }}
           </div>
           <div class="first-day-guide__step-icon">{{ stepIcon(step.step) }}</div>
           <div class="first-day-guide__step-title">{{ step.title }}</div>
           <span
             class="first-day-guide__step-effort"
-            :style="{ background: isComplete(step.step) ? 'linear-gradient(135deg, #10b981, #34d399)' : 'linear-gradient(135deg, rgba(255,255,255,0.1))' }"
+            :style="{ background: isComplete(step.step) ? 'linear-gradient(135deg, var(--ownex-green), var(--ownex-green))' : 'linear-gradient(135deg, rgba(255,255,255,0.1))' }"
           >
             {{ step.effort_hours }}h
           </span>
@@ -169,13 +169,13 @@ const stepIcon = (step: number) => {
 .first-day-guide__title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #f0f0f0;
+  color: var(--ownex-text-primary);
   margin: 0;
 }
 
 .first-day-guide__philosophy {
   font-size: 0.875rem;
-  color: #888;
+  color: var(--ownex-text-secondary);
   margin: 0 0 8px;
   font-style: italic;
 }
@@ -187,7 +187,7 @@ const stepIcon = (step: number) => {
   padding: 12px;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 8px;
-  border-left: 3px solid #3b82f6;
+  border-left: 3px solid var(--ownex-danger);
 }
 
 .first-day-guide__progress {
@@ -204,7 +204,7 @@ const stepIcon = (step: number) => {
 
 .first-day-guide__progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #06b6d4);
+  background: linear-gradient(90deg, var(--ownex-danger), var(--ownex-accent));
   border-radius: 9999px;
   transition: width 0.5s ease;
 }
@@ -213,7 +213,7 @@ const stepIcon = (step: number) => {
   display: flex;
   justify-content: space-between;
   font-size: 0.75rem;
-  color: #888;
+  color: var(--ownex-text-secondary);
 }
 
 .first-day-guide__effort {
@@ -224,18 +224,18 @@ const stepIcon = (step: number) => {
   padding: 12px;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 8px;
-  border-left: 3px solid #10b981;
+  border-left: 3px solid var(--ownex-green);
 }
 
 .first-day-guide__effort-label {
   font-size: 0.75rem;
-  color: #888;
+  color: var(--ownex-text-secondary);
 }
 
 .first-day-guide__effort-value {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #10b981;
+  color: var(--ownex-green);
 }
 
 .first-day-guide__steps {
@@ -287,7 +287,7 @@ const stepIcon = (step: number) => {
   flex: 1;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #f0f0f0;
+  color: var(--ownex-text-primary);
 }
 
 .first-day-guide__step-effort {
@@ -315,13 +315,13 @@ const stepIcon = (step: number) => {
 }
 
 .first-day-guide__step-toggle:hover {
-  border-color: #3b82f6;
+  border-color: var(--ownex-danger);
   background: rgba(59, 130, 246, 0.1);
 }
 
 .first-day-guide__step--complete .first-day-guide__step-toggle {
-  border-color: #10b981;
-  background: #10b981;
+  border-color: var(--ownex-green);
+  background: var(--ownex-green);
 }
 
 .first-day-guide__check {
@@ -354,7 +354,7 @@ const stepIcon = (step: number) => {
 .first-day-guide__step-label {
   font-size: 0.625rem;
   font-weight: 600;
-  color: #888;
+  color: var(--ownex-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   display: block;
@@ -364,7 +364,7 @@ const stepIcon = (step: number) => {
 .first-day-guide__step-why p,
 .first-day-guide__step-action p {
   font-size: 0.75rem;
-  color: #ddd;
+  color: var(--ownex-text-muted);
   margin: 0;
   line-height: 1.5;
 }
@@ -379,7 +379,7 @@ const stepIcon = (step: number) => {
 
 .first-day-guide__principle-text {
   font-size: 0.75rem;
-  color: #93c5fd;
+  color: var(--ownex-accent);
   margin: 0;
   line-height: 1.5;
   text-align: center;

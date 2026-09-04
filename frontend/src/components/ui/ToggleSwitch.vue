@@ -37,7 +37,7 @@ function toggle() {
   border: 2px solid transparent;
   cursor: pointer;
   transition: all 0.15s ease;
-  background: #1f2229;
+  background: var(--ownex-bg-elevated);
   border-color: rgba(255, 255, 255, 0.15);
   flex-shrink: 0;
 }
@@ -53,8 +53,8 @@ function toggle() {
 }
 
 .toggle-switch.active {
-  background: #00d5ff;
-  border-color: #00d5ff;
+  background: var(--ownex-accent);
+  border-color: var(--ownex-accent);
 }
 
 .toggle-switch.disabled {
@@ -65,14 +65,14 @@ function toggle() {
 .toggle-thumb {
   display: block;
   border-radius: 50%;
-  background: #8b8d98;
+  background: var(--ownex-text-secondary);
   transition: transform 0.15s ease, background 0.15s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .toggle-switch.active .toggle-thumb {
   transform: translateX(100%);
-  background: #05060a;
+  background: var(--ownex-bg-base);
 }
 
 .toggle-switch.sm {

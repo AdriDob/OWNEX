@@ -33,23 +33,23 @@ const failed = computed(() => !completed && !current && healthy === false)
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border-radius: 8px;
   border-left: 3px solid transparent;
   transition: all 0.2s;
 }
 
 .progress-step.current {
-  border-left-color: #00d5ff;
+  border-left-color: var(--ownex-accent);
   background: rgba(0, 213, 255, 0.05);
 }
 
 .progress-step.completed {
-  border-left-color: #34d399;
+  border-left-color: var(--ownex-green);
 }
 
 .progress-step.failed {
-  border-left-color: #f87171;
+  border-left-color: var(--ownex-danger);
 }
 
 .step-icon {
@@ -59,30 +59,30 @@ const failed = computed(() => !completed && !current && healthy === false)
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: #13161d;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 12px;
   font-weight: 600;
-  color: #5e6272;
+  color: var(--ownex-text-muted);
 }
 
 .progress-step.completed .step-icon {
   background: rgba(52, 211, 153, 0.15);
   border-color: rgba(52, 211, 153, 0.3);
-  color: #34d399;
+  color: var(--ownex-green);
 }
 
 .progress-step.current .step-icon {
   background: rgba(0, 213, 255, 0.15);
   border-color: rgba(0, 213, 255, 0.3);
-  color: #00d5ff;
+  color: var(--ownex-accent);
   animation: pulse 1.5s ease-in-out infinite;
 }
 
 .progress-step.failed .step-icon {
   background: rgba(248, 113, 113, 0.15);
   border-color: rgba(248, 113, 113, 0.3);
-  color: #f87171;
+  color: var(--ownex-danger);
 }
 
 @keyframes pulse {
@@ -90,13 +90,13 @@ const failed = computed(() => !completed && !current && healthy === false)
   50% { opacity: 0.5; transform: scale(1.05); }
 }
 
-.icon-done { color: #34d399; }
-.icon-fail { color: #f87171; }
+.icon-done { color: var(--ownex-green); }
+.icon-fail { color: var(--ownex-danger); }
 .icon-spin {
-  color: #00d5ff;
+  color: var(--ownex-accent);
   animation: spin 1s linear infinite;
 }
-.icon-pending { color: #5e6272; }
+.icon-pending { color: var(--ownex-text-muted); }
 
 @keyframes spin {
   from { transform: rotate(0deg); }
@@ -107,7 +107,7 @@ const failed = computed(() => !completed && !current && healthy === false)
   flex: 1;
   font-size: 13px;
   font-weight: 500;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
 }
 
 .step-status {
@@ -118,14 +118,14 @@ const failed = computed(() => !completed && !current && healthy === false)
 }
 
 .step-healthy {
-  color: #34d399;
+  color: var(--ownex-green);
 }
 
 .step-unhealthy {
-  color: #f87171;
+  color: var(--ownex-danger);
 }
 
 .step-pending {
-  color: #fbbf24;
+  color: var(--ownex-yellow);
 }
 </style>

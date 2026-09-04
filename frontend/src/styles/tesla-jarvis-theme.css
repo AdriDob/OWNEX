@@ -2,27 +2,27 @@
 
 :root {
   /* Primary Colors — Tesla/Jarvis Dark */
-  --bg-primary: #0a0a0a;
+  --bg-primary: var(--ownex-bg-surface);
   --bg-secondary: #111111;
-  --bg-tertiary: #1a1a1a;
-  --bg-elevated: #222222;
+  --bg-tertiary: var(--ownex-bg-elevated);
+  --bg-elevated: var(--ownex-bg-elevated);
   --bg-hover: #2a2a2a;
 
   /* Accent Colors — Tesla Red/Jarvis Blue */
-  --accent-primary: #1e40ff; /* Tesla Red */
+  --accent-primary: var(--ownex-accent); /* Tesla Red */
   --accent-secondary: #00d4ff; /* Jarvis Blue */
   --accent-tertiary: #00ff88; /* Success Green */
   --accent-warning: #ffaa00; /* Warning Orange */
-  --accent-error: #3b82f6; /* Error Red */
+  --accent-error: var(--ownex-danger); /* Error Red */
 
   /* Text Colors */
-  --text-primary: #ffffff;
-  --text-secondary: #b0b0b0;
-  --text-tertiary: #707070;
-  --text-muted: #505050;
+  --text-primary: var(--ownex-text-primary);
+  --text-secondary: var(--ownex-text-secondary);
+  --text-tertiary: var(--ownex-text-muted);
+  --text-muted: var(--ownex-text-muted);
 
   /* Border Colors */
-  --border-primary: #333333;
+  --border-primary: var(--ownex-border);
   --border-secondary: #444444;
   --border-accent: var(--accent-primary);
   --border-success: var(--accent-tertiary);

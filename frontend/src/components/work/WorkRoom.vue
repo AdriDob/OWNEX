@@ -23,6 +23,8 @@ import {
   FolderOpen,
   Globe,
   Hash,
+  LayoutDashboard,
+  Lightbulb,
   Loader2,
   MessageSquare,
   MoreHorizontal,
@@ -31,9 +33,11 @@ import {
   Plus,
   Save,
   Search,
+  Send,
   Shield,
   Trash2,
   Upload,
+  UserRound,
   X,
   Zap,
 } from '@lucide/vue'
@@ -41,6 +45,9 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/lib/api'
 import { useNotificationsStore } from '@/stores/notifications'
+import Input from '@/components/ui/Input.vue'
+import Select from '@/components/ui/Select.vue'
+import MetricCard from '@/components/ui/MetricCard.vue'
 
 interface WorkItem {
   id: string
@@ -390,6 +397,19 @@ async function deleteDeliverable(deliverable: DeliverableItem) {
     await load()
   } catch (e: any) {
     notifications.error(e?.message || 'Error eliminando entregable')
+  }
+}
+
+function triggerFileUpload(type: string) {
+  if (fileInputRef.value) {
+    fileInputRef.value.click()
+  }
+}
+
+function handleFileUpload(event: Event, type: string) {
+  const input = event.target as HTMLInputElement
+  if (input.files && input.files[0]) {
+    uploadFile(input.files[0], type as WorkFile['type'])
   }
 }
 </script>
@@ -950,7 +970,7 @@ async function deleteDeliverable(deliverable: DeliverableItem) {
 .badge-success { background: var(--color-success); color: var(--color-success); opacity: 0.15; }
 .badge-warning { background: var(--color-warning); color: var(--color-warning); opacity: 0.15; }
 .badge-destructive { background: var(--color-destructive); color: var(--color-destructive); opacity: 0.15; }
-.badge-info { background: #3b82f6; color: #3b82f6; opacity: 0.15; }
+.badge-info { background: var(--ownex-danger); color: var(--ownex-danger); opacity: 0.15; }
 .badge-muted { background: var(--color-muted); color: var(--color-muted-foreground); }
 .badge-xs { padding: 0.125rem 0.375rem; font-size: 0.5625rem; }
 .btn-primary { border-radius: 0.5rem; background: var(--color-primary); color: var(--color-primary-foreground); font-weight: 500; transition: opacity 0.2s; }

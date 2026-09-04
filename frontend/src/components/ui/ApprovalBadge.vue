@@ -47,24 +47,24 @@ const classes = computed(() => {
 .approval-none {
   background: rgba(139, 141, 152, 0.15);
   border: 1px solid rgba(139, 141, 152, 0.3);
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
 
 .approval-low {
   background: rgba(52, 211, 153, 0.15);
   border: 1px solid rgba(52, 211, 153, 0.3);
-  color: #34d399;
+  color: var(--ownex-green);
 }
 
 .approval-high {
   background: rgba(251, 191, 36, 0.15);
   border: 1px solid rgba(251, 191, 36, 0.3);
-  color: #fbbf24;
+  color: var(--ownex-yellow);
 }
 
 .approval-critical {
   background: rgba(248, 113, 113, 0.15);
   border: 1px solid rgba(248, 113, 113, 0.3);
-  color: #f87171;
+  color: var(--ownex-danger);
 }
 </style>

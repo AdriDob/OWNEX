@@ -128,12 +128,12 @@ const classes = computed(() => [
   color: var(--ownex-white);
 }
 .ownex-btn--danger:hover:not(:disabled) {
-  background: #3B82F6;
+  background: var(--ownex-danger);
   box-shadow: 0 0 20px rgba(0, 213, 255, 0.2);
 }
 
 .ownex-btn--gold {
-  background: linear-gradient(135deg, var(--ownex-gold), #D97706);
+  background: linear-gradient(135deg, var(--ownex-gold), var(--ownex-yellow));
   color: var(--ownex-bg-deep);
   font-weight: var(--font-weight-bold);
 }

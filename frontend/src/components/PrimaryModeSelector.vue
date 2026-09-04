@@ -14,7 +14,7 @@ const modes: Record<string, ModeInfo> = {
     name: 'LITE',
     description: 'Earn More — Minimalista, next best action, maximizar EV/hora',
     icon: '⚡',
-    color: '#10b981',
+    color: 'var(--ownex-green)',
     features: [
       'Next Best Action destacado',
       'Oportunidades rankeadas por EV',
@@ -26,7 +26,7 @@ const modes: Record<string, ModeInfo> = {
     name: 'FULL',
     description: 'Operate Everything — Completo, toda la complejidad visible',
     icon: '🚀',
-    color: '#3b82f6',
+    color: 'var(--ownex-danger)',
     features: [
       'Todas las secciones visibles',
       'Pipelines y automatización',
@@ -38,7 +38,7 @@ const modes: Record<string, ModeInfo> = {
     name: 'CAPITAL',
     description: 'Keep & Compound — Patrimonio, asignación, proyección $1M',
     icon: '💰',
-    color: '#f59e0b',
+    color: 'var(--ownex-yellow)',
     features: [
       'Patrimonial Ladder',
       'Asignación de capital',
@@ -149,13 +149,13 @@ onMounted(() => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
 
 .mode-tabs {
   display: flex;
   gap: 4px;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
   padding: 4px;
@@ -173,14 +173,14 @@ onMounted(() => {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   font-size: 12px;
   font-weight: 500;
 }
 
 .mode-tab:hover:not(.active):not(:disabled) {
   background: rgba(255, 255, 255, 0.04);
-  color: #d1d5db;
+  color: var(--ownex-text-secondary);
 }
 
 .mode-tab.active {
@@ -225,7 +225,7 @@ onMounted(() => {
 }
 
 .tooltip-content {
-  background: #1a1d24;
+  background: var(--ownex-bg-elevated);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 16px;
@@ -247,13 +247,13 @@ onMounted(() => {
 .tooltip-name {
   font-size: 14px;
   font-weight: 700;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
   font-family: 'JetBrains Mono', monospace;
 }
 
 .tooltip-desc {
   font-size: 12px;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   margin: 0 0 12px;
   line-height: 1.5;
 }
@@ -266,7 +266,7 @@ onMounted(() => {
 
 .tooltip-features li {
   font-size: 11px;
-  color: #d1d5db;
+  color: var(--ownex-text-secondary);
   padding: 4px 0;
   padding-left: 16px;
   position: relative;
@@ -276,7 +276,7 @@ onMounted(() => {
   content: '→';
   position: absolute;
   left: 0;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   font-size: 10px;
 }
 </style>

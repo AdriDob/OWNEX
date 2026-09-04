@@ -121,14 +121,14 @@ onMounted(() => {
 <style scoped>
 .qc-shell { max-width: 640px; margin: 2rem auto; padding: 0 1rem; font-family: 'JetBrains Mono', monospace; }
 .qc-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
-.qc-back { display: flex; align-items: center; gap: 0.35rem; background: transparent; border: 1px solid var(--ownex-stroke, #2a2e37); color: var(--ownex-text, #fff); padding: 0.4rem 0.7rem; border-radius: 8px; cursor: pointer; }
+.qc-back { display: flex; align-items: center; gap: 0.35rem; background: transparent; border: 1px solid var(--ownex-stroke, var(--ownex-border)); color: var(--ownex-text, var(--ownex-text-primary)); padding: 0.4rem 0.7rem; border-radius: 8px; cursor: pointer; }
 .qc-title { display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; margin: 0; }
 .qc-hint { font-size: 0.65rem; color: rgba(255,255,255,0.5); }
-.qc-form { display: flex; flex-direction: column; gap: 1rem; background: rgba(255,255,255,0.03); border: 1px solid var(--ownex-stroke, #2a2e37); padding: 1.25rem; border-radius: 12px; }
+.qc-form { display: flex; flex-direction: column; gap: 1rem; background: rgba(255,255,255,0.03); border: 1px solid var(--ownex-stroke, var(--ownex-border)); padding: 1.25rem; border-radius: 12px; }
 .qc-label { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); margin-bottom: 0.3rem; }
-input, select, textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--ownex-stroke, #2a2e37); color: #fff; border-radius: 8px; padding: 0.55rem 0.7rem; font-size: 0.85rem; }
+input, select, textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--ownex-stroke, var(--ownex-border)); color: var(--ownex-text-primary); border-radius: 8px; padding: 0.55rem 0.7rem; font-size: 0.85rem; }
 .qc-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.75rem; }
-.qc-submit { display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: #00d5ff; color: #05060a; border: none; border-radius: 8px; padding: 0.65rem 1rem; font-weight: 600; cursor: pointer; }
+.qc-submit { display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: var(--ownex-accent); color: var(--ownex-bg-base); border: none; border-radius: 8px; padding: 0.65rem 1rem; font-weight: 600; cursor: pointer; }
 .qc-submit:disabled { opacity: 0.5; cursor: default; }
 .qc-error { color: #e82127; font-size: 0.75rem; }
 .qc-result { margin-top: 1.5rem; background: rgba(0,213,255,0.05); border: 1px solid rgba(0,213,255,0.25); border-radius: 12px; padding: 1rem; }

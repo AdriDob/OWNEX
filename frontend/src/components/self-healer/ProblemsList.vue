@@ -125,7 +125,7 @@ function formatTime(isoString: string) {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
 }
 
 .filters {
@@ -135,10 +135,10 @@ function formatTime(isoString: string) {
 
 .filter-select {
   padding: 6px 12px;
-  background: #0e1015;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
   font-size: 13px;
   cursor: pointer;
 }
@@ -150,7 +150,7 @@ function formatTime(isoString: string) {
   justify-content: center;
   padding: 60px 20px;
   text-align: center;
-  background: #0e1015;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
 }
@@ -164,12 +164,12 @@ function formatTime(isoString: string) {
   margin: 0 0 4px;
   font-size: 16px;
   font-weight: 500;
-  color: #34d399;
+  color: var(--ownex-green);
 }
 
 .empty-hint {
   font-size: 13px;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
 
 .problems-table {
@@ -190,8 +190,8 @@ function formatTime(isoString: string) {
 }
 
 .problems-table th {
-  background: #0a0c11;
-  color: #8b8d98;
+  background: var(--ownex-bg-base);
+  color: var(--ownex-text-secondary);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -204,11 +204,11 @@ function formatTime(isoString: string) {
 }
 
 .problems-table tr.severity-critical {
-  border-left: 3px solid #f87171;
+  border-left: 3px solid var(--ownex-danger);
 }
 
 .problems-table tr.severity-high {
-  border-left: 3px solid #fbbf24;
+  border-left: 3px solid var(--ownex-yellow);
 }
 
 .title-cell {
@@ -217,20 +217,20 @@ function formatTime(isoString: string) {
 
 .problem-title {
   font-weight: 500;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
   margin-bottom: 2px;
 }
 
 .problem-desc {
   font-size: 11px;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .time-cell {
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   white-space: nowrap;
@@ -239,7 +239,7 @@ function formatTime(isoString: string) {
 .count-cell {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 600;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
 }
 
 .actions-cell {

@@ -27,7 +27,7 @@ const props = withDefaults(
   {
     size: 120,
     strokeWidth: 8,
-    color: '#ffffff',
+    color: 'var(--ownex-text-primary)',
     showLabel: true,
     labelSize: 'text-2xl',
   },
@@ -42,10 +42,10 @@ const center = computed(() => props.size / 2)
 const offset = ref(circumference.value) // start at full (empty)
 
 const statusColor = computed(() => {
-  if (props.value >= 80) return '#16A34A' // green
-  if (props.value >= 50) return '#D97706' // amber
-  if (props.value >= 25) return '#D97706' // orange
-  return '#00d5ff' // red
+  if (props.value >= 80) return 'var(--ownex-green)' // green
+  if (props.value >= 50) return 'var(--ownex-yellow)' // amber
+  if (props.value >= 25) return 'var(--ownex-yellow)' // orange
+  return 'var(--ownex-accent)' // red
 })
 
 onMounted(() => {

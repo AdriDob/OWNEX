@@ -70,7 +70,7 @@ function animate() {
 
   // Draw orbits and modules
   const orbitColor = theme?.visualization.orbitColor || 'rgba(255, 255, 255, 0.15)'
-  const coreColor = theme?.visualization.coreColor || '#00d5ff'
+  const coreColor = theme?.visualization.coreColor || 'var(--ownex-accent)'
   const coreGlow = theme?.visualization.coreGlow || 'rgba(0, 213, 255, 0.4)'
   const trailLength = theme?.visualization.trailLength || 20
   const gravityCenter = theme?.visualization.gravityCenter
@@ -116,7 +116,7 @@ function animate() {
   ctx.beginPath()
   ctx.arc(centerX, centerY, 24, 0, Math.PI * 2)
   const coreGradient = ctx.createRadialGradient(centerX - 4, centerY - 4, 0, centerX, centerY, 24)
-  coreGradient.addColorStop(0, '#FFFFFF')
+  coreGradient.addColorStop(0, 'var(--ownex-text-primary)')
   coreGradient.addColorStop(0.5, coreColor)
   coreGradient.addColorStop(1, coreColor)
   ctx.fillStyle = coreGradient
@@ -152,7 +152,7 @@ function animate() {
 
     // Module name
     ctx.font = '10px "JetBrains Mono", monospace'
-    ctx.fillStyle = '#F5F5F5'
+    ctx.fillStyle = 'var(--ownex-text-primary)'
     ctx.fillText(m.name, x, y + 22)
   })
 
@@ -193,7 +193,7 @@ onUnmounted(() => {
 const coreStyle = computed(() => {
   const theme = currentTheme.value
   return {
-    '--core-color': theme?.visualization.coreColor || '#00d5ff',
+    '--core-color': theme?.visualization.coreColor || 'var(--ownex-accent)',
     '--core-glow': theme?.visualization.coreGlow || 'rgba(0, 213, 255, 0.4)',
   }
 })

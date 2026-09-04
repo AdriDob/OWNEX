@@ -134,7 +134,7 @@ const tabs = [
 .learning-tabs {
   display: flex;
   gap: 8px;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   padding: 4px;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -146,7 +146,7 @@ const tabs = [
   background: transparent;
   border: none;
   border-radius: 8px;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -155,17 +155,17 @@ const tabs = [
 
 .learning-tab:hover {
   background: rgba(255, 255, 255, 0.04);
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
 }
 
 .learning-tab.active {
-  background: #0e1015;
-  color: #f5f5f4;
+  background: var(--ownex-bg-base);
+  color: var(--ownex-bg-surface);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .tab-panel {
-  background: #0e1015;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 20px;
@@ -184,7 +184,7 @@ const tabs = [
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
 }
 
 .patterns-actions {
@@ -199,7 +199,7 @@ const tabs = [
 }
 
 .pattern-card {
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
   padding: 16px;
@@ -234,7 +234,7 @@ const tabs = [
 .pattern-id {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: #5e6272;
+  color: var(--ownex-text-muted);
 }
 
 .pattern-details {
@@ -254,30 +254,30 @@ const tabs = [
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #5e6272;
+  color: var(--ownex-text-muted);
 }
 
 .detail-row span {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
 }
 
 .detail-row pre {
   margin: 0;
   padding: 8px;
-  background: #05060a;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 6px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   overflow: auto;
   max-height: 150px;
 }
 
 .error-text {
-  color: #f87171;
+  color: var(--ownex-danger);
   font-weight: 500;
 }
 </style>

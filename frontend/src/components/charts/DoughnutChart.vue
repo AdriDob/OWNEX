@@ -24,19 +24,19 @@ const props = withDefaults(defineProps<Props>(), {
 const isDark = computed(() => document.documentElement.classList.contains('dark'))
 
 const defaultColors = computed(() => [
-  '#00d5ff',
-  '#ffffff',
-  '#16A34A',
-  '#A16207',
-  '#00d5ff',
-  '#9CA3AF',
+  'var(--ownex-accent)',
+  'var(--ownex-text-primary)',
+  'var(--ownex-green)',
+  'var(--ownex-gold)',
+  'var(--ownex-accent)',
+  'var(--ownex-text-secondary)',
   '#14b8a6',
-  '#D97706',
-  '#9CA3AF',
-  '#9CA3AF',
+  'var(--ownex-yellow)',
+  'var(--ownex-text-secondary)',
+  'var(--ownex-text-secondary)',
   '#84cc16',
-  '#9CA3AF',
-  '#a855f7',
+  'var(--ownex-text-secondary)',
+  'var(--ownex-accent)',
   '#d946ef',
   '#0ea5e9',
 ])
@@ -47,7 +47,7 @@ const chartData = computed(() => ({
     {
       data: props.data,
       backgroundColor: props.colors || defaultColors.value.slice(0, props.data.length),
-      borderColor: isDark.value ? '#11131f' : '#fff',
+      borderColor: isDark.value ? '#11131f' : 'var(--ownex-text-primary)',
       borderWidth: 2,
       hoverOffset: 8,
     },
@@ -63,7 +63,7 @@ const chartOptions = computed(() => ({
       display: props.showLegend,
       position: 'bottom' as const,
       labels: {
-        color: isDark.value ? '#c4c7d0' : '#374151',
+        color: isDark.value ? 'var(--ownex-text-secondary)' : 'var(--ownex-text-muted)',
         font: { size: 10 },
         padding: 12,
         usePointStyle: true,
@@ -74,16 +74,16 @@ const chartOptions = computed(() => ({
       ? {
           display: true,
           text: props.title,
-          color: isDark.value ? '#e2e4e9' : '#111827',
+          color: isDark.value ? 'var(--ownex-text-secondary)' : 'var(--ownex-bg-base)',
           font: { size: 12 },
           padding: { bottom: 12 },
         }
       : undefined,
     tooltip: {
-      backgroundColor: isDark.value ? '#1e2230' : '#fff',
-      titleColor: isDark.value ? '#e2e4e9' : '#111827',
-      bodyColor: isDark.value ? '#c4c7d0' : '#374151',
-      borderColor: isDark.value ? '#2a2e3d' : '#e5e7eb',
+      backgroundColor: isDark.value ? 'var(--ownex-bg-elevated)' : 'var(--ownex-text-primary)',
+      titleColor: isDark.value ? 'var(--ownex-text-secondary)' : 'var(--ownex-bg-base)',
+      bodyColor: isDark.value ? 'var(--ownex-text-secondary)' : 'var(--ownex-text-muted)',
+      borderColor: isDark.value ? 'var(--ownex-border)' : 'var(--ownex-text-secondary)',
       borderWidth: 1,
       cornerRadius: 8,
       callbacks: {
