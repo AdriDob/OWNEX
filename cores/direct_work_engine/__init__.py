@@ -18,8 +18,9 @@ from cores.direct_work_engine.availability import (
     get_available_hours,
     recommend_max_task_hours,
 )
-from cores.direct_work_engine.evaluation import DirectWorkEvaluationEngine, EvaluationResult, evaluate_work_item
+from cores.direct_work_engine.delivery import DeliveryResult, DirectWorkDeliveryEngine, deliver_work_item
 from cores.direct_work_engine.engine import DirectWorkEngine, EngineStats, get_direct_work_engine
+from cores.direct_work_engine.evaluation import DirectWorkEvaluationEngine, EvaluationResult, evaluate_work_item
 from cores.direct_work_engine.evolution import (
     CapabilityExpansionDetector,
     CapabilityProposal,
@@ -30,16 +31,6 @@ from cores.direct_work_engine.evolution import (
     evolve_analysis,
 )
 from cores.direct_work_engine.execution import DirectWorkExecutionEngine, ExecutionResult, execute_work_item
-from cores.direct_work_engine.delivery import DirectWorkDeliveryEngine, DeliveryResult, deliver_work_item
-from cores.direct_work_engine.evolution import (
-    CapabilityExpansionDetector,
-    CapabilityProposal,
-    LostOpportunityLesson,
-    PerformanceAnalysis,
-    PerformanceAnalyzer,
-    SkillEvolutionEngine,
-    evolve_analysis,
-)
 from cores.direct_work_engine.extension import ExtensionEvaluator, ExtensionProposal
 from cores.direct_work_engine.feedback import LearningRecord, apply_learning, build_history_from_revenue_tracker
 from cores.direct_work_engine.learning import DirectWorkLearningEngine, LearningResult, learn_from_outcome

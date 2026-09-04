@@ -1,8 +1,8 @@
 from core.observability.engine import (
+    EventSeverity,
     ObservabilityEngine,
     ObservabilityEvent,
     ObservabilityEventType,
-    EventSeverity,
     get_obs_engine,
 )
 

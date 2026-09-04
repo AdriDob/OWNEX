@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+
 import pytest
 
-from cores.worker_core import WorkerCore, WorkGoal, WorkerConfig, AutonomyLevel, WorkState, WorkPhase
+from cores.worker_core import AutonomyLevel, WorkerConfig, WorkerCore, WorkGoal, WorkState
 
 
 class TestWorkerCore:

@@ -11,8 +11,8 @@ Provides a unified storage layer for all artifacts with:
 
 from cores.artifact_store.store import (
     Artifact,
-    ArtifactVersion,
     ArtifactStore,
+    ArtifactVersion,
     get_artifact_store,
 )
 

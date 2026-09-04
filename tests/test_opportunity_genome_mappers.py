@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from cores.opportunity_genome import mapper as gmapper
 from cores.opportunity_genome.models import GenomeSource
@@ -11,7 +11,16 @@ class Dummy:
 
 
 def test_map_dwe_opportunity_to_genome_minimal():
-    dwe = Dummy(id="dwe-1", title="Do a thing", payment=123.45, currency="USD", expected_value=12.3, acceptance_probability=0.2, technology_tags=["python", "api"], platform="hackerone")
+    dwe = Dummy(
+        id="dwe-1",
+        title="Do a thing",
+        payment=123.45,
+        currency="USD",
+        expected_value=12.3,
+        acceptance_probability=0.2,
+        technology_tags=["python", "api"],
+        platform="hackerone",
+    )
     genome = gmapper.map_dwe_opportunity_to_genome(dwe)
 
     assert genome.id == "dwe-1"
@@ -33,8 +42,16 @@ def test_map_legacy_opportunity_to_genome_with_score():
 
 
 def test_map_finding_to_genome_and_time_to_payout():
-    now = datetime.now(timezone.utc)
-    finding = Dummy(id=77, title="XSS", description="desc", vulnerability_type="xss", created_at=now - timedelta(days=3), severity="high", status="open")
+    now = datetime.now(UTC)
+    finding = Dummy(
+        id=77,
+        title="XSS",
+        description="desc",
+        vulnerability_type="xss",
+        created_at=now - timedelta(days=3),
+        severity="high",
+        status="open",
+    )
     report = Dummy(id=11, confirmed_reward=500.0, currency="USD", created_at=now)
     target = Dummy(id=5, name="Example Target", domain="example.com")
 

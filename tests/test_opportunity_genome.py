@@ -3,34 +3,33 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 
 from cores.opportunity_genome.mapper import (
-    map_dwe_opportunity_to_genome,
-    map_legacy_opportunity_to_genome,
-    map_finding_to_genome,
-    map_work_item_to_genome,
     _category_to_work_stream,
     _score_to_barrier_level,
+    map_dwe_opportunity_to_genome,
+    map_finding_to_genome,
+    map_legacy_opportunity_to_genome,
+    map_work_item_to_genome,
 )
 from cores.opportunity_genome.models import (
-    OpportunityGenome,
-    ZeroBarrierScore,
+    BarrierLevel,
+    DifficultyLevel,
+    EmploymentType,
+    EntryMechanism,
+    ExperienceLevel,
+    ExperienceRequirement,
     GenomeSource,
     GenomeStatus,
     OpportunityCategory,
-    WorkPlatform,
-    EmploymentType,
+    OpportunityGenome,
     PaymentMethod,
-    DifficultyLevel,
-    ExperienceLevel,
-    ExperienceRequirement,
-    EntryMechanism,
-    BarrierLevel,
+    WorkPlatform,
     WorkStream,
+    ZeroBarrierScore,
 )
 
 
@@ -444,7 +443,6 @@ class TestMapWorkItem:
 
 class TestHelpers:
     def test_score_to_barrier_level(self):
-        from cores.opportunity_genome.mapper import _score_to_barrier_level
 
         assert _score_to_barrier_level(0.95) == BarrierLevel.ZERO
         assert _score_to_barrier_level(0.8) == BarrierLevel.VERY_LOW

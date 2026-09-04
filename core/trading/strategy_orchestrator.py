@@ -17,33 +17,14 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from decimal import Decimal
 from typing import Any
 
-from core.trading.contracts import (
-    EngineCapability,
-    EngineHealth,
-    EngineMetadata,
-    PerformanceMetrics,
-    Strategy,
-    StrategyStatus,
-    ValidationPhase,
-    MarketRegime,
-)
-from core.trading.lifecycle import (
-    StrategyLifecycleManager,
-    start_backtest,
-    complete_backtest,
-    start_paper_trading,
-    complete_paper_trading,
-    start_canary,
-    start_live,
-    retire_strategy,
-    get_lifecycle_manager,
-)
-from core.trading.copy_trading import run_trading_risk_check
-from core.trading.trader_intelligence import run_discovery, TraderMetrics, TraderScorer
 from core.trading.ensemble import EnsembleIntelligence
+from core.trading.lifecycle import (
+    complete_backtest,
+    get_lifecycle_manager,
+    start_backtest,
+)
 from core.trading.optimizer import PortfolioOptimizer
 from cores.events.event_bus import get_event_bus
 
@@ -53,6 +34,7 @@ logger = logging.getLogger("orion.trading.orchestrator")
 @dataclass
 class OrchestrationResult:
     """Result of running one orchestration cycle."""
+
     strategy_id: str
     action: str
     success: bool
@@ -64,6 +46,7 @@ class OrchestrationResult:
 @dataclass
 class OrchestrationState:
     """Current state of the trading orchestration."""
+
     total_strategies: int = 0
     strategies_by_status: dict[str, int] = field(default_factory=dict)
     strategies_ready_for_canary: int = 0
@@ -95,47 +78,53 @@ class StrategyOrchestrator:
         self._regime_analysis_fn = EnsembleIntelligence.get_scores_by_regime
         self._optimizer = PortfolioOptimizer
         # Function references for pipeline steps
-        self._risk_check_fn = lambda: {'status': 'ok', 'daily_dd_pct': 0.0, 'masters': 0}
+        self._risk_check_fn = lambda: {"status": "ok", "daily_dd_pct": 0.0, "masters": 0}
         self._discovery_fn = lambda limit=50: []
         # Ladder gates - simple placeholder object
-        self._ladder_gates = type('LadderGates', (), {'new_level': False, 'current_level': 'LEVEL_0_VALIDATION', 'blocking_reasons': [], 'warnings': []})()
+        self._ladder_gates = type(
+            "LadderGates",
+            (),
+            {"new_level": False, "current_level": "LEVEL_0_VALIDATION", "blocking_reasons": [], "warnings": []},
+        )()
         # EV result placeholder
-        self._ev_result = type('EVResult', (), {'ev_per_human_hour_usd': 0.0})()
+        self._ev_result = type("EVResult", (), {"ev_per_human_hour_usd": 0.0})()
 
     def run_full_cycle(self) -> dict[str, Any]:
         result = {
-            'timestamp': datetime.now(UTC).isoformat(),
-            'actions': [],
-            'strategies_processed': 0,
-            'strategies_succeeded': 0,
-            'strategies_failed': 0,
-            'risk_breaches': 0,
-            'capital_ladder_advances': 0,
-            'revenue_ev_usd': 0.0,
+            "timestamp": datetime.now(UTC).isoformat(),
+            "actions": [],
+            "strategies_processed": 0,
+            "strategies_succeeded": 0,
+            "strategies_failed": 0,
+            "risk_breaches": 0,
+            "capital_ladder_advances": 0,
+            "revenue_ev_usd": 0.0,
         }
 
         discovery_result = self._run_discovery()
-        result['actions'].append(discovery_result)
-        result['strategies_processed'] += discovery_result.get('strategies_processed', 0)
+        result["actions"].append(discovery_result)
+        result["strategies_processed"] += discovery_result.get("strategies_processed", 0)
 
         risk_result = self._run_risk_check()
-        result['actions'].append(risk_result)
-        if risk_result.get('status') == 'stopped':
-            result['risk_breaches'] += 1
+        result["actions"].append(risk_result)
+        if risk_result.get("status") == "stopped":
+            result["risk_breaches"] += 1
 
         rebalance_result = self._run_rebalancing()
-        result['actions'].append(rebalance_result)
+        result["actions"].append(rebalance_result)
 
         ladder_result = self._run_capital_ladder()
-        result['actions'].append(ladder_result)
-        result['capital_ladder_advances'] = ladder_result.get('advances', 0)
+        result["actions"].append(ladder_result)
+        result["capital_ladder_advances"] = ladder_result.get("advances", 0)
 
         revenue_result = self._track_revenue()
-        result['actions'].append(revenue_result)
-        result['revenue_ev_usd'] = revenue_result.get('ev_usd', 0.0) or 0.0
+        result["actions"].append(revenue_result)
+        result["revenue_ev_usd"] = revenue_result.get("ev_usd", 0.0) or 0.0
 
-        result['strategies_succeeded'] = result['strategies_processed'] - result['strategies_failed'] - result['risk_breaches']
-        result['capital_ladder_advances'] = ladder_result.get('advances', 0)
+        result["strategies_succeeded"] = (
+            result["strategies_processed"] - result["strategies_failed"] - result["risk_breaches"]
+        )
+        result["capital_ladder_advances"] = ladder_result.get("advances", 0)
 
         return result
 
@@ -143,83 +132,84 @@ class StrategyOrchestrator:
         try:
             scored = self._discovery_fn(limit=50)
             return {
-                'action': 'discover',
-                'strategies_processed': len(scored),
-                'strategies_validated': 0,
-                'registered': 0,
-                'success': True,
-                'reason': 'Discovery completed',
+                "action": "discover",
+                "strategies_processed": len(scored),
+                "strategies_validated": 0,
+                "registered": 0,
+                "success": True,
+                "reason": "Discovery completed",
             }
         except Exception as e:
-            logger.exception('Discovery failed')
-            return {'action': 'discover', 'success': False, 'reason': str(e)}
+            logger.exception("Discovery failed")
+            return {"action": "discover", "success": False, "reason": str(e)}
 
     def _run_backtest_pipeline(self, strategy) -> dict[str, Any]:
         phases = [
-            ('phase_1_backtest', start_backtest),
-            ('phase_2_oos', lambda s: complete_backtest(s, True)),
-            ('phase_3_walk_forward', lambda s: complete_backtest(s, True)),
-            ('phase_4_monte_carlo', lambda s: complete_backtest(s, True)),
-            ('phase_5_stress_test', lambda s: complete_backtest(s, True)),
-            ('phase_6_paper', lambda s: complete_backtest(s, True)),
+            ("phase_1_backtest", start_backtest),
+            ("phase_2_oos", lambda s: complete_backtest(s, True)),
+            ("phase_3_walk_forward", lambda s: complete_backtest(s, True)),
+            ("phase_4_monte_carlo", lambda s: complete_backtest(s, True)),
+            ("phase_5_stress_test", lambda s: complete_backtest(s, True)),
+            ("phase_6_paper", lambda s: complete_backtest(s, True)),
         ]
         for _name, func in phases:
             try:
                 func(strategy)
-                logger.info(f'Backtest phase completed')
+                logger.info("Backtest phase completed")
             except Exception as e:
-                logger.warning(f'Backtest phase failed: {e}')
+                logger.warning(f"Backtest phase failed: {e}")
                 break
         return {
-            'action': 'backtest_pipeline',
-            'strategy_id': getattr(strategy, 'strategy_id', 'unknown'),
-            'success': True,
-            'reason': '8-phase backtest pipeline executed',
+            "action": "backtest_pipeline",
+            "strategy_id": getattr(strategy, "strategy_id", "unknown"),
+            "success": True,
+            "reason": "8-phase backtest pipeline executed",
         }
 
     def _run_validation_pipeline(self, strategy) -> dict[str, Any]:
         try:
             from core.trading.lifecycle import complete_backtest
+
             checks = {}
-            for c in ['oos', 'martingale', 'slippage', 'survivorship', 'sample']:
+            for c in ["oos", "martingale", "slippage", "survivorship", "sample"]:
                 try:
                     complete_backtest(strategy)
-                    checks[c] = {'completed': True}
+                    checks[c] = {"completed": True}
                 except Exception:
-                    checks[c] = {'completed': False}
+                    checks[c] = {"completed": False}
             return {
-                'action': 'validation_pipeline',
-                'strategy_id': getattr(strategy, 'strategy_id', 'unknown'),
-                'success': True,
-                'reason': 'Validation sigma checks completed',
-                'checks': checks,
+                "action": "validation_pipeline",
+                "strategy_id": getattr(strategy, "strategy_id", "unknown"),
+                "success": True,
+                "reason": "Validation sigma checks completed",
+                "checks": checks,
             }
         except Exception as e:
-            logger.exception('Validation pipeline failed')
+            logger.exception("Validation pipeline failed")
             return {
-                'action': 'validation_pipeline',
-                'strategy_id': getattr(strategy, 'strategy_id', 'unknown'),
-                'success': False,
-                'reason': str(e),
+                "action": "validation_pipeline",
+                "strategy_id": getattr(strategy, "strategy_id", "unknown"),
+                "success": False,
+                "reason": str(e),
             }
 
     def _run_risk_check(self) -> dict[str, Any]:
         try:
             risk_result = self._risk_check_fn()
-            breach = risk_result.get('status') == 'stopped'
+            breach = risk_result.get("status") == "stopped"
             if breach:
-                logger.warning(f'Risk breach: {risk_result.get("reason")}')
+                logger.warning(f"Risk breach: {risk_result.get('reason')}")
             return {
-                'action': 'risk_check',
-                'breach': breach,
-                'daily_dd_pct': risk_result.get('daily_dd_pct', 0.0),
-                'masters': risk_result.get('masters', 0),
-                'success': not breach,
-                'reason': risk_result.get('reason', 'No breach'),
+                "action": "risk_check",
+                "breach": breach,
+                "daily_dd_pct": risk_result.get("daily_dd_pct", 0.0),
+                "masters": risk_result.get("masters", 0),
+                "success": not breach,
+                "reason": risk_result.get("reason", "No breach"),
             }
         except Exception as e:
-            logger.exception('Risk check failed')
-            return {'action': 'risk_check', 'breach': False, 'error': str(e), 'success': True}
+            logger.exception("Risk check failed")
+            return {"action": "risk_check", "breach": False, "error": str(e), "success": True}
 
     def _run_rebalancing(self) -> dict[str, Any]:
         try:
@@ -227,13 +217,13 @@ class StrategyOrchestrator:
             # Simplified optimization check
             success = True  # Placeholder - would call optimizer.optimize() in production
             return {
-                'action': 'rebalancing',
-                'optimization_success': success,
-                'reason': 'Portfolio optimization completed',
+                "action": "rebalancing",
+                "optimization_success": success,
+                "reason": "Portfolio optimization completed",
             }
         except Exception as e:
-            logger.exception('Rebalancing failed')
-            return {'action': 'rebalancing', 'success': False, 'reason': str(e)}
+            logger.exception("Rebalancing failed")
+            return {"action": "rebalancing", "success": False, "reason": str(e)}
 
     def _run_capital_ladder(self) -> dict[str, Any]:
         try:
@@ -243,21 +233,21 @@ class StrategyOrchestrator:
             if gates.new_level:
                 advances = 1
             return {
-                'action': 'capital_ladder',
-                'advances': advances,
-                'success': True,
-                'reason': f'Capital ladder check: {gates.current_level}, advances: {advances}',
+                "action": "capital_ladder",
+                "advances": advances,
+                "success": True,
+                "reason": f"Capital ladder check: {gates.current_level}, advances: {advances}",
             }
         except Exception as e:
-            logger.exception('Capital ladder check failed')
-            return {'action': 'capital_ladder', 'advances': 0, 'success': False, 'reason': str(e)}
+            logger.exception("Capital ladder check failed")
+            return {"action": "capital_ladder", "advances": 0, "success": False, "reason": str(e)}
 
     def _track_revenue(self) -> dict[str, Any]:
         return {
-            'action': 'revenue_tracking',
-            'ev_usd': 0.0,
-            'success': True,
-            'reason': 'Expected revenue tracked hourly',
+            "action": "revenue_tracking",
+            "ev_usd": 0.0,
+            "success": True,
+            "reason": "Expected revenue tracked hourly",
         }
 
 

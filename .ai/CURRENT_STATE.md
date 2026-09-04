@@ -1,3 +1,22 @@
+## Sesión 2026-09-04 — FINAL RELEASE: WorkerCore Control + Vite Build Fix + Page Consolidation
+
+> **QUÉ SE HIZO:** Final release preparation — desktop control panel, build fixes, page cleanup, E2E wiring.
+> - **1. WorkerCore Control Panel**: `frontend/src/pages/WorkerControl.vue` — start/stop/pause/resume, work items with approve/reject, metrics, audit trail, auto-refresh 15s. Route `/operations/worker` + sidebar link.
+> - **2. Vite Build Fixed**: `@lucide/vue` symlinked from root `node_modules/`. Created backward-compatible re-exports: `Button.vue` → `OwnexButton.vue`, `Badge.vue` → `OwnexBadge.vue`, `Card.vue` → `OwnexCard.vue`.
+> - **3. Frontend Page Consolidation**: Removed 31 orphaned pages (83→52). Zero imports from removed pages confirmed.
+> - **4. E2E Operational Loop**: All 5 integration changes from INTEGRATION_PLAN_E2E.md implemented:
+>   - Scheduler → WorkerCore heartbeat (`worker_core_heartbeat` job)
+>   - Delivery → Revenue emission (`delivery:completed` event)
+>   - Learning → Calibration wiring (already connected)
+>   - Quality Gate enforcement (mandatory before delivery)
+>   - Workflow ID propagation (`wf-{uuid}` across all phases)
+> - **5. Daily Brief**: API endpoint + `DailyBriefCard.vue` on home page
+> - **6. CoderAgent LLM**: Already wired via `core.copilot.providers.router` → real LLM completion
+> - **7. README Updated**: Test badge corrected to 4500+
+> - **8. Audit Docs**: `FINAL_RELEASE_AUDIT_2026.md` (5.5/10 overall), `INTEGRATION_PLAN_E2E.md`
+> - **Verificación**: vue-tsc 0 errores, vite build OK (10.77s), 57 tests pass, ruff clean (pre-existing UP042 only)
+> - **Commits**: `62944b4a`, `6c93f56f`, `29c02968`, `84da9ef0`, `50abfd1c`
+
 ## Sesión 2026-08-30 — 11 FEATURES DE PRODUCTIVIDAD/AUTOMATIZACIÓN (FEATURE SET FASE_40)
 
 > **QUÉ SE HIZO:** Implementación completa de las 11 features propuestas con tests, lint y registro.

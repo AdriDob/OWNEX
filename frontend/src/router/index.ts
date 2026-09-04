@@ -249,7 +249,6 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/operations/agenda',
     name: 'agenda',
-    name: 'agenda',
     component: () => import('@/pages/AgendaView.vue'),
     meta: { title: 'Agenda' },
   },

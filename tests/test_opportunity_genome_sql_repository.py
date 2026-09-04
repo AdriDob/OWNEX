@@ -1,11 +1,10 @@
-import os
-import tempfile
-
 from cores.opportunity_genome.models import OpportunityGenome
 from cores.opportunity_genome.sql_repository import SQLiteOpportunityGenomeRepository
 
 
-def _make_genome(id: str, external_id: str, title: str = "t", platform: str = "p", category: str = "dev_bounty") -> OpportunityGenome:
+def _make_genome(
+    id: str, external_id: str, title: str = "t", platform: str = "p", category: str = "dev_bounty"
+) -> OpportunityGenome:
     return OpportunityGenome(
         id=id,
         external_id=external_id,

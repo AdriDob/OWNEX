@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/python-3.11+-000000?style=flat-square&logo=python&logoColor=white"/>
   <img src="https://img.shields.io/badge/fastapi-009688?style=flat-square&logo=fastapi&logoColor=white"/>
   <img src="https://img.shields.io/badge/vue-3.5-4FC08D?style=flat-square&logo=vue.js&logoColor=white"/>
-  <img src="https://img.shields.io/badge/tests-4000%2B/>
+  <img src="https://img.shields.io/badge/tests-4500%2B/>
   <img src="https://img.shields.io/badge/license-Proprietary-2D7FF9?style=flat-square"/>
   <img src="https://img.shields.io/github/stars/AdriDob/OWNEX?style=flat-square&logo=github&logoColor=white&label=stars"/>
   <img src="https://img.shields.io/github/last-commit/AdriDob/OWNEX?style=flat-square&label=last%20commit"/>
