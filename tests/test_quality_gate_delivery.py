@@ -1,7 +1,7 @@
 import asyncio
 
-from cores.worker_core.orchestrator import WorkerCore
 from cores.worker_core.models import WorkGoal
+from cores.worker_core.orchestrator import WorkerCore
 
 
 class FakeDiscovery:

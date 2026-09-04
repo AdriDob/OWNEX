@@ -350,6 +350,7 @@ def get_lifecycle_manager() -> StrategyLifecycleManager:
     """Get a new lifecycle manager instance."""
     return StrategyLifecycleManager()
 
+
 # ── Module-Level Wrappers for Scheduler Handlers ──────────────────────
 # The trading jobs reference handlers like "core.trading.lifecycle:start_backtest"
 # These need to be callable at module level for _resolve_handler to work.
@@ -358,6 +359,7 @@ def get_lifecycle_manager() -> StrategyLifecycleManager:
 def _get_lcm() -> StrategyLifecycleManager:
     """Get a StrategyLifecycleManager instance."""
     from core.trading.lifecycle import get_lifecycle_manager
+
     return get_lifecycle_manager()
 
 
@@ -452,9 +454,11 @@ restart_strategy = restart_strategy_handler
 # The trading jobs reference handlers like "core.trading.lifecycle:start_backtest"
 # These need to be callable at module level for _resolve_handler to work.
 
+
 def _get_lcm() -> StrategyLifecycleManager:
     """Get a StrategyLifecycleManager instance."""
     from core.trading.lifecycle import StrategyLifecycleManager
+
     return StrategyLifecycleManager()
 
 

@@ -423,7 +423,7 @@ class OpportunityGenome:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "OpportunityGenome":
+    def from_dict(cls, data: dict[str, Any]) -> OpportunityGenome:
         """Deserialize from API/storage."""
         # Remove computed properties that shouldn't be passed to constructor
         computed_props = {

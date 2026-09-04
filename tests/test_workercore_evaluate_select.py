@@ -1,7 +1,7 @@
 import asyncio
 
-from cores.worker_core.orchestrator import WorkerCore
 from cores.worker_core.models import WorkGoal
+from cores.worker_core.orchestrator import WorkerCore
 from cores.worker_core.simple_evaluation import SimpleEvaluationEngine
 
 
@@ -14,7 +14,15 @@ class DummyOpp:
 class FakeDiscovery:
     async def discover_all(self, categories=None, platforms=None):
         return [
-            DummyOpp(id="opp-2", title="Eval Opp", reward=200.0, expected_value_usd_per_hour=50.0, estimated_hours=2.0, platform="hackerone", category="bug_bounty")
+            DummyOpp(
+                id="opp-2",
+                title="Eval Opp",
+                reward=200.0,
+                expected_value_usd_per_hour=50.0,
+                estimated_hours=2.0,
+                platform="hackerone",
+                category="bug_bounty",
+            )
         ]
 
 

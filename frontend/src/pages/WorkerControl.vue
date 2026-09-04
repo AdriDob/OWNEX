@@ -18,7 +18,7 @@ import {
   Zap,
   Shield,
   Eye,
-} from 'lucide-vue'
+} from '@lucide/vue'
 import { api } from '@/lib/api'
 
 // ── Types ──

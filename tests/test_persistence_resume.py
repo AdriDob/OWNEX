@@ -1,10 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from database.db import Base
-from cores.worker_core.persistence import save_checkpoint, get_latest_checkpoint, resume_from, get_active_work_items
 from cores.worker_core.orchestrator import WorkerCore
-from cores.worker_core.models import WorkPhase
+from cores.worker_core.persistence import get_latest_checkpoint, resume_from, save_checkpoint
+from database.db import Base
 
 
 def test_checkpoint_resume_and_rehydrate():
@@ -17,7 +16,16 @@ def test_checkpoint_resume_and_rehydrate():
     work_id = "resume-w1"
 
     # Save a checkpoint at 'evaluate' and mark completed -> resume should be 'select'
-    save_checkpoint(work_id, "evaluate", {"estimated_reward_usd": 123.0}, work_item_title="T", work_item_platform="p", work_item_category="c", phase_completed=True, session=session)
+    save_checkpoint(
+        work_id,
+        "evaluate",
+        {"estimated_reward_usd": 123.0},
+        work_item_title="T",
+        work_item_platform="p",
+        work_item_category="c",
+        phase_completed=True,
+        session=session,
+    )
 
     cp = get_latest_checkpoint(work_id, session=session)
     assert cp is not None

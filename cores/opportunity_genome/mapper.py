@@ -11,23 +11,19 @@ from datetime import UTC, datetime
 from typing import Any
 
 from cores.opportunity_genome.models import (
-    OpportunityGenome,
-    ZeroBarrierScore,
+    BarrierLevel,
+    DifficultyLevel,
+    EmploymentType,
+    EntryMechanism,
+    ExperienceLevel,
     GenomeSource,
     GenomeStatus,
     OpportunityCategory,
-    WorkPlatform,
-    EmploymentType,
+    OpportunityGenome,
     PaymentMethod,
-    DifficultyLevel,
-    ExperienceLevel,
-    EntryMechanism,
-    ExperienceRequirement,
+    WorkPlatform,
     WorkStream,
-    BarrierLevel,
-    INTERNATIONAL_PAYMENT_METHODS,
-    CAPABILITY_MECHANISMS,
-    FUNNEL_MECHANISMS,
+    ZeroBarrierScore,
 )
 
 

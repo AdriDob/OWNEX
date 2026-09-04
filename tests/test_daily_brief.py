@@ -5,7 +5,6 @@ from __future__ import annotations
 import pytest
 
 from core.daily.brief import (
-    DailyBriefEngine,
     get_daily_brief_engine,
 )
 
@@ -13,9 +12,10 @@ from core.daily.brief import (
 @pytest.fixture()
 def clean_brief():
     """Provide a clean daily brief engine for each test."""
-    from database.db import Base, engine
     from sqlalchemy import Column, DateTime, Integer, String, Text, func
     from sqlalchemy.orm import declarative_base
+
+    from database.db import engine
 
     TestBase = declarative_base()
 

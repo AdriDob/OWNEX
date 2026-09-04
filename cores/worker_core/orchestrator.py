@@ -181,7 +181,8 @@ class WorkerCore:
             if snap["state"] == "open":
                 logger.error(
                     "[CB] Circuit breaker OPENED for %s after %d failures",
-                    component, snap["failure_count"],
+                    component,
+                    snap["failure_count"],
                 )
                 # Trigger self-repair
                 self._trigger_self_repair(component, error)
@@ -231,7 +232,10 @@ class WorkerCore:
         if current + additional_cost > max_per_workflow:
             logger.warning(
                 "[SPENDING] Workflow %s would exceed limit: $%.2f + $%.2f > $%.2f",
-                workflow_id[:8], current, additional_cost, max_per_workflow,
+                workflow_id[:8],
+                current,
+                additional_cost,
+                max_per_workflow,
             )
             return False
         return True
@@ -243,7 +247,8 @@ class WorkerCore:
         if self._session_cost_usd > self.config.max_cost_per_session_usd:
             logger.error(
                 "[SPENDING] Session cost $%.2f exceeds limit $%.2f",
-                self._session_cost_usd, self.config.max_cost_per_session_usd,
+                self._session_cost_usd,
+                self.config.max_cost_per_session_usd,
             )
             self.state = WorkState.DEGRADED
 
@@ -393,8 +398,12 @@ class WorkerCore:
 
         # Phase 2: EVALUATE
         if not await self._evaluate_work(work_item):
-            self._audit("cycle_end", status="rejected", work_item_id=work_item.id,
-                        details={"reason": work_item.error or "evaluation_failed"})
+            self._audit(
+                "cycle_end",
+                status="rejected",
+                work_item_id=work_item.id,
+                details={"reason": work_item.error or "evaluation_failed"},
+            )
             return
 
         # Phase 3: SELECT (already selected by evaluation)
@@ -422,8 +431,7 @@ class WorkerCore:
         # Phase 8: LEARN
         await self._learn_from_work(work_item)
 
-        self._audit("cycle_complete", work_item_id=work_item.id,
-                    details={"reward": work_item.estimated_reward_usd})
+        self._audit("cycle_complete", work_item_id=work_item.id, details={"reward": work_item.estimated_reward_usd})
 
         # Record metrics
         duration = (datetime.now(UTC) - cycle_start).total_seconds() / 3600
@@ -497,7 +505,7 @@ class WorkerCore:
                     genome = map_work_item_to_genome(work_item)
                     self._genome_repo.save(genome)
                     # attach genome id for traceability
-                    setattr(work_item, "genome_id", genome.id)
+                    work_item.genome_id = genome.id
                     logger.debug("Persisted OpportunityGenome %s for work %s", genome.id, work_item.id)
             except Exception as ge:
                 logger.warning("Failed to persist genome for work %s: %s", work_item.id, ge)
@@ -505,8 +513,12 @@ class WorkerCore:
             work_item.started_at = datetime.now(UTC).isoformat()
             self._persist_one_checkpoint(work_item)
             self._record_engine_success("discovery")
-            self._audit("discover", work_item_id=work_item.id, phase="discover",
-                        details={"title": work_item.title, "ev_hr": work_item.expected_value_usd_per_hour})
+            self._audit(
+                "discover",
+                work_item_id=work_item.id,
+                phase="discover",
+                details={"title": work_item.title, "ev_hr": work_item.expected_value_usd_per_hour},
+            )
 
             logger.info(
                 "Discovered work: %s (%s) - EV: $%.2f/hr",
@@ -531,8 +543,9 @@ class WorkerCore:
 
         # Circuit breaker check
         if not self._check_circuit_breaker("evaluation"):
-            self._audit("evaluate", work_item_id=work_item.id, status="blocked",
-                        details={"reason": "circuit_breaker_open"})
+            self._audit(
+                "evaluate", work_item_id=work_item.id, status="blocked", details={"reason": "circuit_breaker_open"}
+            )
             return False
 
         work_item.phase = WorkPhase.EVALUATE
@@ -559,23 +572,35 @@ class WorkerCore:
                 logger.info("Work %s below EV threshold, rejecting", work_item.id)
                 work_item.state = WorkState.ERROR
                 work_item.error = "Below expected value threshold"
-                self._audit("evaluate", work_item_id=work_item.id, status="rejected",
-                            details={"reason": "below_ev_threshold", "ev_hr": work_item.expected_value_usd_per_hour})
+                self._audit(
+                    "evaluate",
+                    work_item_id=work_item.id,
+                    status="rejected",
+                    details={"reason": "below_ev_threshold", "ev_hr": work_item.expected_value_usd_per_hour},
+                )
                 return False
 
             if work_item.risk_score > goal.max_risk_score:
                 logger.info("Work %s above risk threshold, rejecting", work_item.id)
                 work_item.state = WorkState.ERROR
                 work_item.error = "Above risk threshold"
-                self._audit("evaluate", work_item_id=work_item.id, status="rejected",
-                            details={"reason": "above_risk_threshold", "risk": work_item.risk_score})
+                self._audit(
+                    "evaluate",
+                    work_item_id=work_item.id,
+                    status="rejected",
+                    details={"reason": "above_risk_threshold", "risk": work_item.risk_score},
+                )
                 return False
 
             work_item.add_checkpoint(WorkPhase.EVALUATE, evaluation)
             self._persist_one_checkpoint(work_item)
             self._record_engine_success("evaluation")
-            self._audit("evaluate", work_item_id=work_item.id, phase="evaluate",
-                        details={"score": evaluation.get("score", 0), "ev_hr": work_item.expected_value_usd_per_hour})
+            self._audit(
+                "evaluate",
+                work_item_id=work_item.id,
+                phase="evaluate",
+                details={"score": evaluation.get("score", 0), "ev_hr": work_item.expected_value_usd_per_hour},
+            )
             return True
 
         except Exception as e:
@@ -610,12 +635,17 @@ class WorkerCore:
                     profile = profile_builder.build()
                     skill_result = self._skill_engine.analyze(work_item, profile)
 
-                    work_item.add_checkpoint(WorkPhase.PREPARE, {
-                        "skill_analysis": skill_result.to_dict() if hasattr(skill_result, "to_dict") else str(skill_result),
-                        "readiness_score": getattr(skill_result, "readiness_score", 0.0),
-                        "can_execute": getattr(skill_result, "can_execute", True),
-                        "missing_skills": getattr(skill_result, "missing_critical_skills", []),
-                    })
+                    work_item.add_checkpoint(
+                        WorkPhase.PREPARE,
+                        {
+                            "skill_analysis": skill_result.to_dict()
+                            if hasattr(skill_result, "to_dict")
+                            else str(skill_result),
+                            "readiness_score": getattr(skill_result, "readiness_score", 0.0),
+                            "can_execute": getattr(skill_result, "can_execute", True),
+                            "missing_skills": getattr(skill_result, "missing_critical_skills", []),
+                        },
+                    )
 
                     # Block if critical skills missing
                     if not getattr(skill_result, "can_execute", True):
@@ -732,8 +762,9 @@ class WorkerCore:
         """Execute the work (coding, testing, etc)."""
         # Circuit breaker check
         if not self._check_circuit_breaker("execution"):
-            self._audit("execute", work_item_id=work_item.id, status="blocked",
-                        details={"reason": "circuit_breaker_open"})
+            self._audit(
+                "execute", work_item_id=work_item.id, status="blocked", details={"reason": "circuit_breaker_open"}
+            )
             return False
 
         work_item.phase = WorkPhase.EXECUTE
@@ -753,8 +784,12 @@ class WorkerCore:
                 work_item.add_checkpoint(WorkPhase.EXECUTE, {"executed": True, "basic": True})
             self._persist_one_checkpoint(work_item)
             self._record_engine_success("execution")
-            self._audit("execute", work_item_id=work_item.id, phase="execute",
-                        details={"artifacts": len(work_item.artifacts), "evidence": len(work_item.evidence)})
+            self._audit(
+                "execute",
+                work_item_id=work_item.id,
+                phase="execute",
+                details={"artifacts": len(work_item.artifacts), "evidence": len(work_item.evidence)},
+            )
 
             logger.info("Work %s executed", work_item.id)
             return True
@@ -863,23 +898,27 @@ class WorkerCore:
             work_item.state = WorkState.PAUSED
             logger.info("Work %s requires human approval for delivery", work_item.id)
             self._persist_one_checkpoint(work_item, phase_completed=False)
-            self._audit("deliver", work_item_id=work_item.id, status="pending",
-                        requires_approval=True,
-                        details={"reason": "human_gate", "autonomy": self.config.autonomy_level.value})
+            self._audit(
+                "deliver",
+                work_item_id=work_item.id,
+                status="pending",
+                requires_approval=True,
+                details={"reason": "human_gate", "autonomy": self.config.autonomy_level.value},
+            )
             return True  # Not a failure, just waiting
 
         # Spending limit check
         if not self._check_spending_limit(self._current_workflow_id):
             work_item.state = WorkState.ERROR
             work_item.error = "Blocked: spending limit exceeded"
-            self._audit("deliver", work_item_id=work_item.id, status="blocked",
-                        details={"reason": "spending_limit"})
+            self._audit("deliver", work_item_id=work_item.id, status="blocked", details={"reason": "spending_limit"})
             return False
 
         # Circuit breaker check
         if not self._check_circuit_breaker("delivery"):
-            self._audit("deliver", work_item_id=work_item.id, status="blocked",
-                        details={"reason": "circuit_breaker_open"})
+            self._audit(
+                "deliver", work_item_id=work_item.id, status="blocked", details={"reason": "circuit_breaker_open"}
+            )
             return False
 
         try:
@@ -1107,12 +1146,12 @@ class WorkerCore:
         current_order = self._AUTONOMY_ORDER.get(self.config.autonomy_level.value, 0)
 
         action_requirements = {
-            "discover": 0,   # AutonomyLevel.NONE
-            "evaluate": 1,   # AutonomyLevel.DISCOVER
-            "prepare": 2,    # AutonomyLevel.PREPARE
-            "execute": 3,    # AutonomyLevel.EXECUTE
-            "deliver": 4,    # AutonomyLevel.FULL
-            "learn": 0,      # AutonomyLevel.NONE
+            "discover": 0,  # AutonomyLevel.NONE
+            "evaluate": 1,  # AutonomyLevel.DISCOVER
+            "prepare": 2,  # AutonomyLevel.PREPARE
+            "execute": 3,  # AutonomyLevel.EXECUTE
+            "deliver": 4,  # AutonomyLevel.FULL
+            "learn": 0,  # AutonomyLevel.NONE
         }
 
         required_order = action_requirements.get(action, 4)  # default to FULL

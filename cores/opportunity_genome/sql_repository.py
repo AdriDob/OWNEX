@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from typing import Iterable, Optional
+from collections.abc import Iterable
 
 from cores.opportunity_genome.models import OpportunityGenome
 
@@ -47,7 +47,7 @@ class SQLiteOpportunityGenomeRepository:
             )
         return genome
 
-    def get_by_id(self, id: str) -> Optional[OpportunityGenome]:
+    def get_by_id(self, id: str) -> OpportunityGenome | None:
         with self._conn() as conn:
             row = conn.execute("SELECT data FROM genomes WHERE id = ?", (id,)).fetchone()
             if not row:
@@ -55,7 +55,7 @@ class SQLiteOpportunityGenomeRepository:
             payload = json.loads(row["data"])
             return OpportunityGenome.from_dict(payload)
 
-    def get_by_external_id(self, external_id: str) -> Optional[OpportunityGenome]:
+    def get_by_external_id(self, external_id: str) -> OpportunityGenome | None:
         with self._conn() as conn:
             row = conn.execute("SELECT data FROM genomes WHERE external_id = ?", (external_id,)).fetchone()
             if not row:

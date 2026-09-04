@@ -89,7 +89,11 @@ def create_audit_entry(
         session.expunge(entry)  # Detach so fields are accessible after close
         logger.debug(
             "Audit: %s/%s %s → %s (workflow=%s)",
-            action, phase or "-", status, work_item_id or "-", workflow_id[:8],
+            action,
+            phase or "-",
+            status,
+            work_item_id or "-",
+            workflow_id[:8],
         )
         return entry
     except Exception as exc:
@@ -195,21 +199,19 @@ def get_audit_stats() -> dict[str, Any]:
     try:
         session = SessionLocal()
         total = session.query(WorkerAuditLog).count()
-        blocked = session.query(WorkerAuditLog).filter(
-            WorkerAuditLog.status == "blocked"
-        ).count()
-        failed = session.query(WorkerAuditLog).filter(
-            WorkerAuditLog.status == "failed"
-        ).count()
-        pending_approval = session.query(WorkerAuditLog).filter(
-            WorkerAuditLog.requires_approval == "true",
-            WorkerAuditLog.approved_by.is_(None),
-        ).count()
+        blocked = session.query(WorkerAuditLog).filter(WorkerAuditLog.status == "blocked").count()
+        failed = session.query(WorkerAuditLog).filter(WorkerAuditLog.status == "failed").count()
+        pending_approval = (
+            session.query(WorkerAuditLog)
+            .filter(
+                WorkerAuditLog.requires_approval == "true",
+                WorkerAuditLog.approved_by.is_(None),
+            )
+            .count()
+        )
 
         # Total cost
-        cost_result = session.execute(
-            text("SELECT COALESCE(SUM(cost_usd), 0.0) FROM worker_audit_log")
-        ).scalar()
+        cost_result = session.execute(text("SELECT COALESCE(SUM(cost_usd), 0.0) FROM worker_audit_log")).scalar()
 
         return {
             "total_entries": total,

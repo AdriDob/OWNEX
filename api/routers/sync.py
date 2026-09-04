@@ -1,19 +1,17 @@
 """Sync API Router — Cross-device state synchronization for OWNEX."""
 
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Depends
-from pydantic import BaseModel, Field
-from typing import Any
-import uuid
 import logging
+import uuid
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel, Field
 
 from core.sync.engine import (
-    SyncEngine,
     SyncEvent,
     SyncEventType,
-    DeviceIdentity,
     get_sync_engine,
 )
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Depends
 
 router = APIRouter(prefix="/api/sync", tags=["sync"])
 

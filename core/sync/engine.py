@@ -16,9 +16,8 @@ from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import Column, DateTime, Integer, String, Text, func
-from sqlalchemy.orm import declarative_base, sessionmaker
 
-from database.db import Base, SessionLocal, engine
+from database.db import Base, SessionLocal
 
 logger = logging.getLogger("ownex.sync")
 
@@ -368,9 +367,8 @@ class SyncEngine:
 
 # ── API Router ───────────────────────────────────────────────────
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
-from fastapi import WebSocketDisconnect
 
 router = APIRouter(prefix="/api/sync", tags=["sync"])
 

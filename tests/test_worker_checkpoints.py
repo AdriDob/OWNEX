@@ -1,13 +1,8 @@
 from __future__ import annotations
 
-import asyncio
-
 import pytest
 
-from database.db import SessionLocal
-from database.models import WorkerCheckpoint
-from cores.worker_core import WorkerCore, WorkGoal, WorkerConfig, AutonomyLevel, WorkPhase, WorkItem
-from cores.worker_core.orchestrator import WorkerCore as WC
+from cores.worker_core import AutonomyLevel, WorkerConfig, WorkerCore, WorkGoal, WorkItem, WorkPhase
 from cores.worker_core.persistence import (
     checkpoint_data_dict,
     get_active_work_items,
@@ -15,6 +10,7 @@ from cores.worker_core.persistence import (
     resume_from,
     save_checkpoint,
 )
+from database.models import WorkerCheckpoint
 
 
 class TestCheckpointPersistence:
@@ -97,7 +93,7 @@ class TestWorkerCoreResume:
     @pytest.mark.asyncio
     async def test_rehydrate_work_item_reconstructs_item(self, config, goal):
         """Test that _rehydrate_work_item reconstructs a WorkItem from checkpoint."""
-        from cores.worker_core import WorkerCore, WorkItem
+        from cores.worker_core import WorkerCore
 
         core = WorkerCore(config)
         core.set_goal(goal)

@@ -8,20 +8,17 @@ Uses real engines from the project. Only external services are mocked.
 
 from __future__ import annotations
 
-import asyncio
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import UTC, datetime
 
-from cores.worker_core.orchestrator import WorkerCore
+import pytest
+
 from cores.worker_core.models import (
-    WorkGoal,
-    WorkItem,
-    WorkPhase,
-    WorkState,
-    WorkerConfig,
     AutonomyLevel,
+    WorkerConfig,
+    WorkGoal,
+    WorkState,
 )
+from cores.worker_core.orchestrator import WorkerCore
 
 
 class TestWorkerCoreFullCycleE2E:
@@ -68,62 +65,70 @@ class TestWorkerCoreFullCycleE2E:
     def mock_evaluation(self):
         """Mock evaluation engine that passes quality gate."""
         mock = MagicMock()
-        mock.evaluate = MagicMock(return_value={
-            "passed": True,
-            "score": 0.85,
-            "reasons": ["High EV", "Low risk"],
-            "barrier_score": 15.0,
-            "expected_value_usd_per_hour": 50.0,
-            "acceptance_probability": 0.8,
-            "compatibility_score": 0.9,
-            "speed_score": 0.7,
-            "reputation_score": 0.6,
-            "risk_score": 0.2,
-            "strict_filter_rejected": False,
-            "strict_filter_reasons": [],
-            "quality_gate_result": {"passed": True, "reason": "Evidence present"},
-        })
+        mock.evaluate = MagicMock(
+            return_value={
+                "passed": True,
+                "score": 0.85,
+                "reasons": ["High EV", "Low risk"],
+                "barrier_score": 15.0,
+                "expected_value_usd_per_hour": 50.0,
+                "acceptance_probability": 0.8,
+                "compatibility_score": 0.9,
+                "speed_score": 0.7,
+                "reputation_score": 0.6,
+                "risk_score": 0.2,
+                "strict_filter_rejected": False,
+                "strict_filter_reasons": [],
+                "quality_gate_result": {"passed": True, "reason": "Evidence present"},
+            }
+        )
         return mock
 
     @pytest.fixture
     def mock_execution(self):
         """Mock execution engine."""
         mock = MagicMock()
-        mock.execute = MagicMock(return_value={
-            "success": True,
-            "artifacts": ["fix.py", "test_fix.py"],
-            "evidence": ["Screenshot of fix", "Test output"],
-            "output": "Bug fixed successfully",
-            "error": None,
-            "execution_time_s": 45.0,
-        })
+        mock.execute = MagicMock(
+            return_value={
+                "success": True,
+                "artifacts": ["fix.py", "test_fix.py"],
+                "evidence": ["Screenshot of fix", "Test output"],
+                "output": "Bug fixed successfully",
+                "error": None,
+                "execution_time_s": 45.0,
+            }
+        )
         return mock
 
     @pytest.fixture
     def mock_delivery(self):
         """Mock delivery engine."""
         mock = MagicMock()
-        mock.deliver = MagicMock(return_value={
-            "success": True,
-            "submission_id": "sub_001",
-            "submission_url": "https://opire.com/sub/001",
-            "platform_response": {"status": "submitted"},
-            "error": None,
-        })
+        mock.deliver = MagicMock(
+            return_value={
+                "success": True,
+                "submission_id": "sub_001",
+                "submission_url": "https://opire.com/sub/001",
+                "platform_response": {"status": "submitted"},
+                "error": None,
+            }
+        )
         return mock
 
     @pytest.fixture
     def mock_learning(self):
         """Mock learning engine."""
         mock = MagicMock()
-        mock.learn = MagicMock(return_value={
-            "success": True,
-            "lessons": ["High EV opportunities work well"],
-            "skill_updates": {"python": 0.1},
-            "platform_updates": {"opire": 0.5},
-            "category_updates": {"software_engineering": 0.3},
-            "error": None,
-        })
+        mock.learn = MagicMock(
+            return_value={
+                "success": True,
+                "lessons": ["High EV opportunities work well"],
+                "skill_updates": {"python": 0.1},
+                "platform_updates": {"opire": 0.5},
+                "category_updates": {"software_engineering": 0.3},
+                "error": None,
+            }
+        )
         return mock
 
     @pytest.fixture
@@ -187,12 +192,14 @@ class TestWorkerCoreFullCycleE2E:
     async def test_evaluation_failure_stops_cycle(self, worker, goal):
         """Test that evaluation failure stops the cycle."""
         worker.set_goal(goal)
-        worker._evaluation_engine.evaluate = MagicMock(return_value={
-            "passed": False,
-            "score": 0.1,
-            "reasons": ["Below threshold"],
-            "quality_gate_result": {"passed": False, "reason": "Low score"},
-        })
+        worker._evaluation_engine.evaluate = MagicMock(
+            return_value={
+                "passed": False,
+                "score": 0.1,
+                "reasons": ["Below threshold"],
+                "quality_gate_result": {"passed": False, "reason": "Low score"},
+            }
+        )
 
         await worker._run_cycle()
 
@@ -205,12 +212,14 @@ class TestWorkerCoreFullCycleE2E:
     async def test_quality_gate_blocks_delivery(self, worker, goal):
         """Test that Quality Gate failure blocks delivery."""
         worker.set_goal(goal)
-        worker._evaluation_engine.evaluate = MagicMock(return_value={
-            "passed": True,
-            "score": 0.8,
-            "reasons": [],
-            "quality_gate_result": {"passed": False, "reason": "No evidence"},
-        })
+        worker._evaluation_engine.evaluate = MagicMock(
+            return_value={
+                "passed": True,
+                "score": 0.8,
+                "reasons": [],
+                "quality_gate_result": {"passed": False, "reason": "No evidence"},
+            }
+        )
 
         await worker._run_cycle()
 
@@ -220,7 +229,9 @@ class TestWorkerCoreFullCycleE2E:
         assert "Quality Gate" in (work_item.error or "")
 
     @pytest.mark.asyncio
-    async def test_human_gate_requires_approval(self, config, goal, mock_discovery, mock_evaluation, mock_execution, mock_delivery, mock_learning):
+    async def test_human_gate_requires_approval(
+        self, config, goal, mock_discovery, mock_evaluation, mock_execution, mock_delivery, mock_learning
+    ):
         """Test that human gate blocks delivery when approval required."""
         config.human_approval_required = True
         config.autonomy_level = AutonomyLevel.EXECUTE
@@ -258,14 +269,16 @@ class TestWorkerCoreFullCycleE2E:
     async def test_execution_failure_stops_cycle(self, worker, goal):
         """Test that execution failure stops the cycle."""
         worker.set_goal(goal)
-        worker._execution_engine.execute = MagicMock(return_value={
-            "success": False,
-            "artifacts": [],
-            "evidence": [],
-            "output": "",
-            "error": "Execution failed",
-            "execution_time_s": 0.0,
-        })
+        worker._execution_engine.execute = MagicMock(
+            return_value={
+                "success": False,
+                "artifacts": [],
+                "evidence": [],
+                "output": "",
+                "error": "Execution failed",
+                "execution_time_s": 0.0,
+            }
+        )
 
         await worker._run_cycle()
 
@@ -330,36 +343,36 @@ class TestWorkerCoreContracts:
 
     def test_discovery_engine_protocol_satisfied(self):
         """Test that UniversalDiscovery satisfies DiscoveryEngineProtocol."""
-        from cores.worker_core.contracts import DiscoveryEngineProtocol
         from cores.direct_work_engine.discovery import UniversalDiscovery
+        from cores.worker_core.contracts import DiscoveryEngineProtocol
 
         assert issubclass(UniversalDiscovery, DiscoveryEngineProtocol)
 
     def test_evaluation_engine_protocol_satisfied(self):
         """Test that DirectWorkEvaluationEngine satisfies EvaluationEngineProtocol."""
-        from cores.worker_core.contracts import EvaluationEngineProtocol
         from cores.direct_work_engine.evaluation import DirectWorkEvaluationEngine
+        from cores.worker_core.contracts import EvaluationEngineProtocol
 
         assert issubclass(DirectWorkEvaluationEngine, EvaluationEngineProtocol)
 
     def test_execution_engine_protocol_satisfied(self):
         """Test that DirectWorkExecutionEngine satisfies ExecutionEngineProtocol."""
-        from cores.worker_core.contracts import ExecutionEngineProtocol
         from cores.direct_work_engine.execution import DirectWorkExecutionEngine
+        from cores.worker_core.contracts import ExecutionEngineProtocol
 
         assert issubclass(DirectWorkExecutionEngine, ExecutionEngineProtocol)
 
     def test_delivery_engine_protocol_satisfied(self):
         """Test that DirectWorkDeliveryEngine satisfies DeliveryEngineProtocol."""
-        from cores.worker_core.contracts import DeliveryEngineProtocol
         from cores.direct_work_engine.delivery import DirectWorkDeliveryEngine
+        from cores.worker_core.contracts import DeliveryEngineProtocol
 
         assert issubclass(DirectWorkDeliveryEngine, DeliveryEngineProtocol)
 
     def test_learning_engine_protocol_satisfied(self):
         """Test that DirectWorkLearningEngine satisfies LearningEngineProtocol."""
-        from cores.worker_core.contracts import LearningEngineProtocol
         from cores.direct_work_engine.learning import DirectWorkLearningEngine
+        from cores.worker_core.contracts import LearningEngineProtocol
 
         assert issubclass(DirectWorkLearningEngine, LearningEngineProtocol)
 

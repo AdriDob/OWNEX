@@ -6,7 +6,7 @@ Persistence adapters can be added later to back this with SQLite/Postgres.
 
 from __future__ import annotations
 
-from typing import Iterable, Optional
+from collections.abc import Iterable
 
 from cores.opportunity_genome.models import OpportunityGenome
 
@@ -37,10 +37,10 @@ class InMemoryOpportunityGenomeRepository:
         self._store[genome.id] = genome
         return genome
 
-    def get_by_id(self, id: str) -> Optional[OpportunityGenome]:
+    def get_by_id(self, id: str) -> OpportunityGenome | None:
         return self._store.get(id)
 
-    def get_by_external_id(self, external_id: str) -> Optional[OpportunityGenome]:
+    def get_by_external_id(self, external_id: str) -> OpportunityGenome | None:
         id = self._by_external.get(external_id)
         if not id:
             return None

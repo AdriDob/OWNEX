@@ -1,8 +1,8 @@
 import asyncio
 
-from cores.worker_core.orchestrator import WorkerCore
-from cores.worker_core.models import WorkGoal
 from cores.opportunity_genome.repository import InMemoryOpportunityGenomeRepository
+from cores.worker_core.models import WorkGoal
+from cores.worker_core.orchestrator import WorkerCore
 
 
 class DummyOpp:
@@ -15,7 +15,16 @@ class FakeDiscovery:
     async def discover_all(self, categories=None, platforms=None):
         # return one opportunity with expected_value_usd_per_hour attribute
         return [
-            DummyOpp(id="opp-1", title="Test Opp", description="d", platform="hackerone", category="bug_bounty", reward=100.0, expected_value_usd_per_hour=25.0, estimated_hours=4.0)
+            DummyOpp(
+                id="opp-1",
+                title="Test Opp",
+                description="d",
+                platform="hackerone",
+                category="bug_bounty",
+                reward=100.0,
+                expected_value_usd_per_hour=25.0,
+                estimated_hours=4.0,
+            )
         ]
 
 

@@ -9,15 +9,10 @@ Enables learning from one workflow to be applied to others:
 
 from __future__ import annotations
 
-import json
 import logging
-from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
-
-from cores.learning.memory import get_memory_builder
-from cores.opportunity_genome.models import OpportunityGenome
 
 logger = logging.getLogger("cross_workflow_memory")
 
