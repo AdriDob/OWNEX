@@ -9,6 +9,7 @@ import { useRouter } from 'vue-router'
 import ErrorState from '@/components/shared/ErrorState.vue'
 import OwnexBadge from '@/components/ui/OwnexBadge.vue'
 import OwnexCard from '@/components/ui/OwnexCard.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import {
   EXEC_QUEUE_COLUMNS,
@@ -117,6 +118,13 @@ onMounted(load)
 
     <ErrorState v-if="error && !items.length" title="No se pudo cargar la cola" :error="error" :on-retry="load" />
     <LoadingState v-else-if="loading && !items.length" />
+    <EmptyState v-else-if="!loading && !items.length" title="Sin trabajos en cola" description="WorkerCore descubre y prepara oportunidades automáticamente. Cuando haya trabajo disponible, aparecerá aquí.">
+      <template #action>
+        <button @click="load" class="px-4 py-2 text-sm font-medium rounded-lg bg-[var(--ownex-bg-elevated)] text-[var(--ownex-text-primary)] border border-[var(--ownex-border)] hover:bg-[var(--ownex-border)] transition-colors">
+          Actualizar
+        </button>
+      </template>
+    </EmptyState>
 
     <div v-else class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
       <div v-for="col in EXEC_QUEUE_COLUMNS" :key="col.key" class="space-y-3">
