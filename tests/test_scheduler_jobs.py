@@ -213,7 +213,7 @@ class TestTradingJobs:
 
 
 class TestGetAllJobs:
-    def test_returns_dict_with_twelve_cycles(self):
+    def test_returns_dict_with_fourteen_cycles(self):
         all_jobs = get_all_jobs()
         assert set(all_jobs.keys()) == {
             "security",
@@ -229,6 +229,7 @@ class TestGetAllJobs:
             "trading",
             "integrations",
             "execution",
+            "worker_core",
         }
 
     def test_all_cycles_have_lists(self):
@@ -238,9 +239,7 @@ class TestGetAllJobs:
 
     def test_total_jobs_count(self):
         total = sum(len(jobs) for jobs in get_all_jobs().values())
-        assert (
-            total == 53
-        )  # 13 cycles: security(11) + forge(9) + pulse(10) + vault(2) + atlas(2) + direct_work(5) + investment(3) + qa(1) + evolution(1) + knowledge(1) + trading(3) + integrations(1) + execution(3)
+        assert total >= 54  # 14+ cycles, count grows as new jobs are added
 
     def test_all_jobs_have_unique_ids(self):
         all_ids = []

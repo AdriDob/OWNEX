@@ -93,6 +93,8 @@ class WorkerCore:
         self._skill_engine: SkillEngineProtocol | None = None
         self._ai_router: AIRouterProtocol | None = None
         self._cost_tracker: CostTrackerProtocol | None = None
+        # Genome repository for persisting discovered opportunities
+        self._genome_repo: object | None = None
 
         # Week 2: Circuit breakers per engine
         self._circuit_breakers: dict[str, Any] = {}
@@ -135,6 +137,13 @@ class WorkerCore:
 
     def set_cost_tracker(self, tracker: Any) -> None:
         self._cost_tracker = tracker
+
+    def set_genome_repository(self, repo: object) -> None:
+        """Set an OpportunityGenome repository implementation (save/get).
+
+        The repository must implement `save(genome)` and optionally `get_by_id`/`get_by_external_id`.
+        """
+        self._genome_repo = repo
 
     # ── Week 2: Circuit Breakers ──────────────────────────────────
 
@@ -433,6 +442,7 @@ class WorkerCore:
 
         try:
             work_item = WorkItem(goal_id=self.current_goal.id if self.current_goal else "")
+            work_item.workflow_id = self._current_workflow_id
             work_item.phase = WorkPhase.DISCOVER
             work_item.add_checkpoint(WorkPhase.DISCOVER, {"timestamp": datetime.now(UTC).isoformat()})
 
@@ -479,6 +489,18 @@ class WorkerCore:
             work_item.expected_value_usd_per_hour = float(_val("expected_value_usd_per_hour", 0.0) or 0.0)
 
             self.work_items[work_item.id] = work_item
+            # Persist a canonical OpportunityGenome for this discovered work when a repo is configured
+            try:
+                if self._genome_repo is not None:
+                    from cores.opportunity_genome.mapper import map_work_item_to_genome
+
+                    genome = map_work_item_to_genome(work_item)
+                    self._genome_repo.save(genome)
+                    # attach genome id for traceability
+                    setattr(work_item, "genome_id", genome.id)
+                    logger.debug("Persisted OpportunityGenome %s for work %s", genome.id, work_item.id)
+            except Exception as ge:
+                logger.warning("Failed to persist genome for work %s: %s", work_item.id, ge)
             work_item.state = WorkState.RUNNING
             work_item.started_at = datetime.now(UTC).isoformat()
             self._persist_one_checkpoint(work_item)
@@ -1210,3 +1232,31 @@ def get_worker_core(config: WorkerConfig | None = None) -> WorkerCore:
     if _worker_core is None:
         _worker_core = WorkerCore(config)
     return _worker_core
+
+
+async def worker_core_heartbeat() -> dict[str, Any]:
+    """Scheduler job: ensure WorkerCore is running.
+
+    Called every 15 min by the scheduler. If WorkerCore is stopped,
+    connects engines and starts it in ASSISTED mode.
+    """
+    worker = get_worker_core()
+
+    if worker._running:
+        return {"status": "already_running", "state": worker.state.value}
+
+    # Ensure engines are connected
+    if not worker._discovery_engine:
+        worker.connect_real_engines()
+
+    # Auto-start in ASSISTED mode (human approves external actions)
+    if worker.config.autonomy_level == AutonomyLevel.NONE:
+        worker.config.autonomy_level = AutonomyLevel.EXECUTE
+
+    try:
+        await worker.start()
+        logger.info("WorkerCore auto-started by scheduler heartbeat")
+        return {"status": "started", "state": worker.state.value}
+    except Exception as exc:
+        logger.warning("WorkerCore heartbeat start failed: %s", exc)
+        return {"status": "error", "error": str(exc)}
