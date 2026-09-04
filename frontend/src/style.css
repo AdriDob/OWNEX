@@ -239,7 +239,7 @@
     box-shadow: 0 0 6px rgba(0, 213, 255, 0.4);
   }
   .status-dot-off {
-    background: #27272a;
+    background: var(--ownex-bg-elevated);
   }
 
   /* ── Gradient text (monochrome) ── */
@@ -427,7 +427,7 @@
   .lamp-green { background: var(--ownex-green); box-shadow: 0 0 6px rgba(22, 163, 74, 0.4); }
   .lamp-amber { background: var(--ownex-yellow); box-shadow: 0 0 6px rgba(217, 119, 6, 0.4); }
   .lamp-red { background: var(--ownex-accent); box-shadow: 0 0 6px rgba(0, 213, 255, 0.4); }
-  .lamp-off { background: #27272a; }
+  .lamp-off { background: var(--ownex-bg-elevated); }
 
   /* ── Chart bar enter ── */
   .chart-bar-enter {

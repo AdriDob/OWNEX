@@ -907,7 +907,7 @@ watch(isProcessing, (val) => {
 /* ── Sidebar ── */
 .chat-sidebar {
   width: 280px;
-  background: #08090c;
+  background: var(--ownex-bg-base);
   border-left: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;

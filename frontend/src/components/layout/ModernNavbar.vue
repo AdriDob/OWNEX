@@ -262,7 +262,7 @@ function sendQuickMessage() {
   background: rgba(30, 41, 59, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.5rem;
-  color: #e8e8e8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -431,7 +431,7 @@ function sendQuickMessage() {
   border: 1px solid rgba(99, 102, 241, 0.3);
   border-radius: 0.5rem;
   padding: 0.75rem;
-  color: #e8e8e8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
 }
 

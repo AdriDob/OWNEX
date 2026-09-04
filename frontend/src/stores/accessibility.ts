@@ -71,7 +71,7 @@ export const useAccessibilityStore = defineStore('accessibility', () => {
     }
     if (state.value.highContrast) {
       root.style.setProperty('--color-border', 'var(--ownex-text-primary)')
-      root.style.setProperty('--color-border-light', '#cccccc')
+      root.style.setProperty('--color-border-light', 'var(--ownex-text-secondary)')
     } else {
       root.style.removeProperty('--color-border')
       root.style.removeProperty('--color-border-light')

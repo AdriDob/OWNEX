@@ -43,7 +43,7 @@ function toggle() {
 }
 
 .toggle-switch:not(.disabled):hover {
-  background: #262a33;
+  background: var(--ownex-bg-elevated);
   border-color: rgba(0, 213, 255, 0.3);
 }
 

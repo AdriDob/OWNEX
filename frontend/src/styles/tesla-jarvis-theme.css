@@ -12,7 +12,7 @@
   --accent-primary: var(--ownex-accent); /* Tesla Red */
   --accent-secondary: #00d4ff; /* Jarvis Blue */
   --accent-tertiary: #00ff88; /* Success Green */
-  --accent-warning: #ffaa00; /* Warning Orange */
+  --accent-warning: var(--ownex-yellow); /* Warning Orange */
   --accent-error: var(--ownex-danger); /* Error Red */
 
   /* Text Colors */

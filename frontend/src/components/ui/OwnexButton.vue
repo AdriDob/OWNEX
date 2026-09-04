@@ -99,7 +99,7 @@ const classes = computed(() => [
   color: var(--ownex-white);
 }
 .ownex-btn--primary:hover:not(:disabled) {
-  background: #2563EB;
+  background: var(--ownex-accent);
   box-shadow: var(--shadow-glow);
 }
 

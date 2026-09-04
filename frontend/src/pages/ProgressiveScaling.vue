@@ -1421,7 +1421,7 @@ onMounted(() => {
 }
 
 .action-btn.evaluate:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--ownex-accent);
 }
 
 .action-btn.progress {
@@ -1434,7 +1434,7 @@ onMounted(() => {
 }
 
 .action-btn.metrics {
-  background: #8b5cf6;
+  background: var(--ownex-accent);
   color: white;
 }
 

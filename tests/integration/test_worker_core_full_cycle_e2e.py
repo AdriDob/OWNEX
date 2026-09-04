@@ -21,6 +21,7 @@ from cores.worker_core.models import (
 from cores.worker_core.orchestrator import WorkerCore
 
 
+@pytest.mark.timeout(30)
 class TestWorkerCoreFullCycleE2E:
     """E2E test for WorkerCore full cycle."""
 

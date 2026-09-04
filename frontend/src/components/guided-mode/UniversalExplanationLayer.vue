@@ -143,7 +143,7 @@ const sectionLabels: Record<string, { label: string; icon: string; color: string
 }
 
 .explanation-layer__content--empty {
-  color: #666;
+  color: var(--ownex-text-muted);
   font-style: italic;
   font-size: 0.625rem;
 }

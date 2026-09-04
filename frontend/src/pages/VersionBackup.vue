@@ -446,7 +446,7 @@ onMounted(() => {
 <style scoped>
 /* ═══ STEAM-STYLE THEMING ═══ */
 .version-backup-page {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(135deg, var(--ownex-bg-base) 0%, var(--ownex-bg-elevated) 100%);
   min-height: 100vh;
   padding: 2rem;
   font-family: 'Inter', system-ui, sans-serif;
@@ -783,7 +783,7 @@ onMounted(() => {
 .state-badge.backup {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #60AFA;
+  color: var(--ownex-accent);
 }
 
 .state-badge.rollback {

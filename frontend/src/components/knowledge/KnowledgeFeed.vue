@@ -70,7 +70,7 @@ const handleAction = (entry: KnowledgeEntry) => {
 
 <template>
   <OwnexCard variant="elevated" :padded="!compact">
-    <template #default>
+    <template var(--ownex-accent)ult>
       <div class="ownex-knowledge-feed">
         <!-- Header -->
         <div class="ownex-knowledge-feed__header">

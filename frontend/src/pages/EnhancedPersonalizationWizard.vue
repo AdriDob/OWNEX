@@ -242,7 +242,7 @@ onMounted(() => {
 .wizard-container {
   width: 100%;
   max-width: 620px;
-  background: #0c0e13;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 18px;
   padding: 28px;

@@ -130,7 +130,7 @@ input, select, textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px 
 .qc-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.75rem; }
 .qc-submit { display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: var(--ownex-accent); color: var(--ownex-bg-base); border: none; border-radius: 8px; padding: 0.65rem 1rem; font-weight: 600; cursor: pointer; }
 .qc-submit:disabled { opacity: 0.5; cursor: default; }
-.qc-error { color: #e82127; font-size: 0.75rem; }
+.qc-error { color: var(--ownex-danger); font-size: 0.75rem; }
 .qc-result { margin-top: 1.5rem; background: rgba(0,213,255,0.05); border: 1px solid rgba(0,213,255,0.25); border-radius: 12px; padding: 1rem; }
 .qc-result h2 { display: flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; }
 .qc-result dl { display: grid; grid-template-columns: 130px 1fr; gap: 0.3rem 0.75rem; font-size: 0.8rem; }

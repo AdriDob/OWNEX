@@ -173,7 +173,7 @@ onUnmounted(() => {
 
 <style scoped>
 .voice-recorder {
-  background: #0c0e13;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   padding: 18px;

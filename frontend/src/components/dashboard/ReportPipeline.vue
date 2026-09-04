@@ -319,7 +319,7 @@ const sevBadge = (sev: string) => {
   border: 1px solid rgba(39, 39, 42, 0.8);
 }
 .btn-primary {
-  background: #2563eb;
+  background: var(--ownex-accent);
   color: white;
 }
 .btn-primary:hover {

@@ -316,7 +316,7 @@ const pendingCount = computed(() => props.plans.filter(p => p.awaiting_approval)
   border: 1px solid rgba(248, 113, 113, 0.15);
   border-radius: 8px;
   font-size: 12px;
-  color: #fca5a5;
+  color: var(--ownex-danger);
 }
 
 .plan-actions {

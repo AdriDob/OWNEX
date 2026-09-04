@@ -37,7 +37,18 @@ const emit = defineEmits<{
 
 const route = useRoute()
 const router = useRouter()
-const collapsed = ref(false)
+const collapsed = ref(window.innerWidth < 768)
+const mobileOpen = ref(false)
+
+function handleResize() {
+  if (window.innerWidth < 768) {
+    collapsed.value = true
+    mobileOpen.value = false
+  }
+}
+
+onMounted(() => window.addEventListener('resize', handleResize))
+onUnmounted(() => window.removeEventListener('resize', handleResize))
 
 const platforms = ref<PlatformStatus[]>([])
 const bank = ref<BankAccount | null>(null)
@@ -236,10 +247,13 @@ function formatCompact(n: number) {
 </script>
 
 <template>
+  <!-- Mobile overlay -->
+  <div v-if="mobileOpen" class="fixed inset-0 bg-black/50 z-20 lg:hidden" @click="mobileOpen = false" />
   <aside
     :class="[
       'flex flex-col border-r border-border/50 bg-background/80 backdrop-blur-xl transition-all duration-200 z-30 relative',
-      collapsed ? 'w-16' : 'w-64',
+      collapsed && !mobileOpen ? 'w-16' : 'w-64',
+      mobileOpen ? 'fixed inset-y-0 left-0' : 'hidden lg:flex',
     ]"
   >
     <!-- OWNEX Logo -->

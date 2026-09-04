@@ -591,7 +591,7 @@ onMounted(async () => {
 .metric-value {
   font-size: 13px;
   font-weight: 600;
-  color: #d6d8dd;
+  color: var(--ownex-text-secondary);
 }
 
 /* ── Chat area ── */
@@ -756,7 +756,7 @@ onMounted(async () => {
   right: 0;
   bottom: 0;
   width: 264px;
-  background: #08090c;
+  background: var(--ownex-bg-base);
   border-left: 1px solid rgba(255, 255, 255, 0.06);
   overflow-y: auto;
   transition: width 0.2s ease;
