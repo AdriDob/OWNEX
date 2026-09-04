@@ -323,7 +323,7 @@ const sevBadge = (sev: string) => {
   color: white;
 }
 .btn-primary:hover {
-  background: #ffffff;
+  background: var(--ownex-text-primary);
 }
 .btn-ghost {
   background: transparent;

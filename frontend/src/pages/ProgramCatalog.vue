@@ -56,13 +56,13 @@ const platforms = computed(() => {
 })
 
 const platformColors: Record<string, string> = {
-  hackerone: '#16a34a',
-  bugcrowd: '#b45309',
-  intigriti: '#9CA3AF',
-  yeswehack: '#9CA3AF',
-  synack: '#ffffff',
-  immunefi: '#9CA3AF',
-  code4rena: '#00d5ff',
+  hackerone: 'var(--ownex-green)',
+  bugcrowd: 'var(--ownex-gold)',
+  intigriti: 'var(--ownex-text-secondary)',
+  yeswehack: 'var(--ownex-text-secondary)',
+  synack: 'var(--ownex-text-primary)',
+  immunefi: 'var(--ownex-text-secondary)',
+  code4rena: 'var(--ownex-accent)',
 }
 
 const platformDistributionData = computed(() => {

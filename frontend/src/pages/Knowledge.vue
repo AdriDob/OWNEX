@@ -439,7 +439,7 @@ async function confirmSnapshot() {
 <style scoped>
 .kv {
   padding: 24px;
-  color: #f5f5f5;
+  color: var(--ownex-text-primary);
   font-family: 'Inter', system-ui, sans-serif;
   max-width: 1200px;
   margin: 0 auto;
@@ -461,7 +461,7 @@ async function confirmSnapshot() {
 }
 
 .kv-sub {
-  color: #8a8a8a;
+  color: var(--ownex-text-secondary);
   font-size: 13px;
   margin: 6px 0 0;
 }
@@ -471,22 +471,22 @@ async function confirmSnapshot() {
   letter-spacing: 0.12em;
   padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid #2e2e2e;
+  border: 1px solid var(--ownex-border-light);
   white-space: nowrap;
 }
 
 .kv-badge-ok {
-  color: #16a34a;
+  color: var(--ownex-green);
   border-color: rgba(22, 163, 74, 0.4);
 }
 
 .kv-badge-off {
-  color: #8a8a8a;
+  color: var(--ownex-text-secondary);
 }
 
 .kv-card {
-  background: #0a0a0a;
-  border: 1px solid #1f1f1f;
+  background: var(--ownex-bg-surface);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 16px;
@@ -508,7 +508,7 @@ async function confirmSnapshot() {
   font-weight: 600;
   letter-spacing: 0.08em;
   margin: 0 0 14px;
-  color: #f5f5f5;
+  color: var(--ownex-text-primary);
 }
 
 .kv-connect {
@@ -525,23 +525,23 @@ async function confirmSnapshot() {
 .kv-input {
   flex: 1;
   min-width: 220px;
-  background: #050505;
-  border: 1px solid #2e2e2e;
+  background: var(--ownex-bg-base);
+  border: 1px solid var(--ownex-border-light);
   border-radius: 8px;
-  color: #f5f5f5;
+  color: var(--ownex-text-primary);
   padding: 9px 12px;
   font-size: 13px;
   outline: none;
 }
 
 .kv-input:focus {
-  border-color: #f5f5f5;
+  border-color: var(--ownex-text-primary);
 }
 
 .kv-btn {
   background: transparent;
-  color: #f5f5f5;
-  border: 1px solid #2e2e2e;
+  color: var(--ownex-text-primary);
+  border: 1px solid var(--ownex-border-light);
   border-radius: 8px;
   padding: 9px 16px;
   font-size: 13px;
@@ -551,7 +551,7 @@ async function confirmSnapshot() {
 }
 
 .kv-btn:hover:not(:disabled) {
-  background: #141414;
+  background: var(--ownex-bg-base);
 }
 
 .kv-btn:disabled {
@@ -560,9 +560,9 @@ async function confirmSnapshot() {
 }
 
 .kv-btn-primary {
-  background: #ffffff;
-  color: #000000;
-  border-color: #ffffff;
+  background: var(--ownex-text-primary);
+  color: var(--ownex-bg-deep);
+  border-color: var(--ownex-text-primary);
 }
 
 .kv-btn-primary:hover:not(:disabled) {
@@ -571,14 +571,14 @@ async function confirmSnapshot() {
 
 .kv-btn-danger {
   border-color: rgba(0, 213, 255, 0.5);
-  color: #00d5ff;
+  color: var(--ownex-accent);
 }
 
 .kv-btn-ghost {
   border: none;
   padding: 2px 8px;
   font-size: 12px;
-  color: #8a8a8a;
+  color: var(--ownex-text-secondary);
 }
 
 .kv-grid {
@@ -603,7 +603,7 @@ async function confirmSnapshot() {
 .kv-stat-label {
   font-size: 11px;
   letter-spacing: 0.08em;
-  color: #6b6b6b;
+  color: var(--ownex-text-muted);
   text-transform: uppercase;
 }
 
@@ -614,15 +614,15 @@ async function confirmSnapshot() {
 }
 
 .kv-ok {
-  color: #16a34a;
+  color: var(--ownex-green);
 }
 
 .kv-warn {
-  color: #d97706;
+  color: var(--ownex-yellow);
 }
 
 .kv-muted {
-  color: #6b6b6b;
+  color: var(--ownex-text-muted);
   font-size: 12px;
   margin: 4px 0;
 }
@@ -636,7 +636,7 @@ async function confirmSnapshot() {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #00d5ff;
+  color: var(--ownex-accent);
   background: rgba(0, 213, 255, 0.08);
   border: 1px solid rgba(0, 213, 255, 0.3);
   border-radius: 10px;
@@ -649,7 +649,7 @@ async function confirmSnapshot() {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #16a34a;
+  color: var(--ownex-green);
   background: rgba(22, 163, 74, 0.08);
   border: 1px solid rgba(22, 163, 74, 0.3);
   border-radius: 10px;
@@ -668,7 +668,7 @@ async function confirmSnapshot() {
 }
 
 .kv-result {
-  border: 1px solid #1f1f1f;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 12px 14px;
   cursor: pointer;
@@ -676,7 +676,7 @@ async function confirmSnapshot() {
 }
 
 .kv-result:hover {
-  background: #141414;
+  background: var(--ownex-bg-base);
 }
 
 .kv-result-head {
@@ -693,11 +693,11 @@ async function confirmSnapshot() {
 .kv-result-score {
   margin-left: auto;
   font-size: 12px;
-  color: #8a8a8a;
+  color: var(--ownex-text-secondary);
 }
 
 .kv-result-snippet {
-  color: #8a8a8a;
+  color: var(--ownex-text-secondary);
   font-size: 12px;
   margin: 6px 0;
   line-height: 1.5;
@@ -711,7 +711,7 @@ async function confirmSnapshot() {
 }
 
 .kv-tag {
-  color: #d4d4d8;
+  color: var(--ownex-text-secondary);
   font-size: 11px;
   background: rgba(255, 255, 255, 0.06);
   padding: 2px 8px;
@@ -719,7 +719,7 @@ async function confirmSnapshot() {
 }
 
 .kv-box {
-  border: 1px solid #1f1f1f;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 14px;
 }
@@ -742,7 +742,7 @@ async function confirmSnapshot() {
   margin: 8px 0 0;
   padding: 0;
   font-size: 12px;
-  color: #8a8a8a;
+  color: var(--ownex-text-secondary);
   max-height: 160px;
   overflow-y: auto;
 }
@@ -767,8 +767,8 @@ async function confirmSnapshot() {
 }
 
 .kv-modal-card {
-  background: #0a0a0a;
-  border: 1px solid #2e2e2e;
+  background: var(--ownex-bg-surface);
+  border: 1px solid var(--ownex-border-light);
   border-radius: 12px;
   max-width: 760px;
   width: 100%;
@@ -783,7 +783,7 @@ async function confirmSnapshot() {
   justify-content: space-between;
   align-items: center;
   padding: 14px 18px;
-  border-bottom: 1px solid #1f1f1f;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .kv-note {
@@ -792,13 +792,13 @@ async function confirmSnapshot() {
   overflow-y: auto;
   font-size: 13px;
   line-height: 1.6;
-  color: #d4d4d8;
+  color: var(--ownex-text-secondary);
   white-space: pre-wrap;
   font-family: 'JetBrains Mono', monospace;
 }
 
 code {
-  color: #f5f5f5;
+  color: var(--ownex-text-primary);
   background: rgba(255, 255, 255, 0.06);
   padding: 1px 6px;
   border-radius: 4px;

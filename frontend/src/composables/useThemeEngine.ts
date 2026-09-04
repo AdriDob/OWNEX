@@ -170,29 +170,29 @@ export type ThemeMode = 'auto' | 'light' | 'dark'
 const THEME_MODE_STORAGE_KEY = 'ownex_theme_mode'
 
 export const LIGHT_MODE_VARS: Record<string, string> = {
-  '--ownex-bg': '#f4f5f8',
-  '--ownex-bg-elevated': '#ffffff',
-  '--ownex-bg-card': '#ffffff',
-  '--ownex-bg-surface': '#ffffff',
-  '--ownex-bg-base': '#f4f5f8',
+  '--ownex-bg': 'var(--ownex-bg-surface)',
+  '--ownex-bg-elevated': 'var(--ownex-text-primary)',
+  '--ownex-bg-card': 'var(--ownex-text-primary)',
+  '--ownex-bg-surface': 'var(--ownex-text-primary)',
+  '--ownex-bg-base': 'var(--ownex-bg-surface)',
   '--ownex-bg-deep': '#e9ebf0',
   '--ownex-bg-glass': 'rgba(255,255,255,0.8)',
   '--ownex-bg-glass-border': 'rgba(20,22,28,0.1)',
   '--ownex-border': '#d4d7de',
   '--ownex-border-light': '#b9bec9',
-  '--ownex-text': '#14161c',
+  '--ownex-text': 'var(--ownex-bg-base)',
   '--ownex-text-dim': '#4a4e5a',
   '--ownex-text-muted': '#7a7f8c',
-  '--ownex-text-primary': '#14161c',
+  '--ownex-text-primary': 'var(--ownex-bg-base)',
   '--ownex-text-secondary': '#33363f',
   '--ownex-text-disabled': '#a0a5b1',
-  '--ownex-surface': '#ffffff',
+  '--ownex-surface': 'var(--ownex-text-primary)',
   '--ownex-surface-hover': '#eef0f4',
   '--ownex-stroke': '#d4d7de',
-  '--ownex-blue': '#14161c',
+  '--ownex-blue': 'var(--ownex-bg-base)',
   '--ownex-white': '#1f2328',
   '--ownex-gold': '#9a6700',
-  '--ownex-accent': '#14161c',
+  '--ownex-accent': 'var(--ownex-bg-base)',
   '--ownex-accent-glow': 'rgba(20,22,28,0.25)',
   '--ownex-accent-dim': 'rgba(20,22,28,0.08)',
   '--ownex-info': '#0969da',
@@ -245,7 +245,7 @@ export function useThemeEngine() {
     // Meta theme-color para móvil
     const meta = document.querySelector('meta[name="theme-color"]')
     if (meta) {
-      meta.setAttribute('content', effective === 'dark' ? '#0a0a0f' : '#f4f5f8')
+      meta.setAttribute('content', effective === 'dark' ? 'var(--ownex-bg-deep)' : 'var(--ownex-bg-surface)')
     }
   }
 

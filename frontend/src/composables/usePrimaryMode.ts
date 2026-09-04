@@ -16,7 +16,7 @@ export const MODE_CONFIGS: Record<PrimaryMode, ModeConfig> = {
     name: 'LITE',
     description: 'Earn More — Minimalista, next best action, maximizar EV/hora',
     icon: '⚡',
-    color: '#10b981',
+    color: 'var(--ownex-green)',
     features: [
       'Next Best Action destacado',
       'Oportunidades rankeadas por EV',
@@ -35,7 +35,7 @@ export const MODE_CONFIGS: Record<PrimaryMode, ModeConfig> = {
     name: 'FULL',
     description: 'Operate Everything — Completo, toda la complejidad visible',
     icon: '🚀',
-    color: '#3b82f6',
+    color: 'var(--ownex-danger)',
     features: [
       'Todas las secciones visibles',
       'Pipelines y automatización',
@@ -58,7 +58,7 @@ export const MODE_CONFIGS: Record<PrimaryMode, ModeConfig> = {
     name: 'CAPITAL',
     description: 'Keep & Compound — Patrimonio, asignación, proyección $1M',
     icon: '💰',
-    color: '#f59e0b',
+    color: 'var(--ownex-yellow)',
     features: [
       'Patrimonial Ladder',
       'Asignación de capital',

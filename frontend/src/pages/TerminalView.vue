@@ -28,27 +28,27 @@ onMounted(async () => {
     fontSize: 13,
     fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace",
     theme: {
-      background: '#0a0a0f',
+      background: 'var(--ownex-bg-deep)',
       foreground: '#e0e0e0',
-      cursor: '#0070d1',
-      cursorAccent: '#ffffff',
+      cursor: 'var(--ownex-accent)',
+      cursorAccent: 'var(--ownex-text-primary)',
       selectionBackground: 'rgba(255, 255, 255, 0.4)',
       black: '#1a1a2e',
       red: '#ff5555',
       green: '#50fa7b',
       yellow: '#f1fa8c',
-      blue: '#0070d1',
+      blue: 'var(--ownex-accent)',
       magenta: '#ff79c6',
       cyan: '#8be9fd',
-      white: '#f0f0f0',
+      white: 'var(--ownex-text-primary)',
       brightBlack: '#44475a',
       brightRed: '#ff6e6e',
       brightGreen: '#69ff94',
-      brightYellow: '#ffffa5',
-      brightBlue: '#0070d1',
+      brightYellow: 'var(--ownex-text-primary)fa5',
+      brightBlue: 'var(--ownex-accent)',
       brightMagenta: '#ff92d0',
       brightCyan: '#a4ffff',
-      brightWhite: '#ffffff',
+      brightWhite: 'var(--ownex-text-primary)',
     },
     allowTransparency: true,
     convertEol: true,
@@ -166,13 +166,13 @@ function clearTerminal() {
 }
 .terminal-page .xterm-viewport {
   scrollbar-width: thin;
-  scrollbar-color: #0070d1 transparent;
+  scrollbar-color: var(--ownex-accent) transparent;
 }
 .terminal-page .xterm-viewport::-webkit-scrollbar {
   width: 6px;
 }
 .terminal-page .xterm-viewport::-webkit-scrollbar-thumb {
-  background: #0070d1;
+  background: var(--ownex-accent);
   border-radius: 3px;
 }
 .terminal-page .xterm-viewport::-webkit-scrollbar-track {

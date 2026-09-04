@@ -246,9 +246,9 @@ function formatCompact(n: number) {
     <div class="flex h-14 items-center gap-3 border-b border-border/40 px-4">
       <div class="flex h-7 w-7 shrink-0 items-center justify-center">
         <svg viewBox="0 0 512 512" width="28" height="28" fill="none">
-          <polygon points="256,96 376,156 376,356 256,416 136,356 136,156" stroke="#ffffff" stroke-width="6" fill="rgba(255, 255, 255,0.08)" />
-          <circle cx="256" cy="256" r="24" fill="#ffffff" opacity="0.8" />
-          <circle cx="256" cy="256" r="200" stroke="#ffffff" stroke-width="8" opacity="0.1" />
+          <polygon points="256,96 376,156 376,356 256,416 136,356 136,156" stroke="var(--ownex-text-primary)" stroke-width="6" fill="rgba(255, 255, 255,0.08)" />
+          <circle cx="256" cy="256" r="24" fill="var(--ownex-text-primary)" opacity="0.8" />
+          <circle cx="256" cy="256" r="200" stroke="var(--ownex-text-primary)" stroke-width="8" opacity="0.1" />
         </svg>
       </div>
       <Transition name="fade">

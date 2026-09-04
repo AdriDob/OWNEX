@@ -39,6 +39,6 @@ const label = computed(() => {
   white-space: nowrap;
   background: rgba(0, 213, 255, 0.1);
   border: 1px solid rgba(0, 213, 255, 0.2);
-  color: #00d5ff;
+  color: var(--ownex-accent);
 }
 </style>

@@ -378,6 +378,6 @@ function difficultyColor(diff?: string) {
 
 <style scoped>
 .text-gold {
-  color: #D97706;
+  color: var(--ownex-yellow);
 }
 </style>

@@ -117,7 +117,7 @@ onUnmounted(() => {
   border-radius: 12px;
   background: rgba(10, 12, 17, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 12px;
   max-width: 400px;
@@ -128,15 +128,15 @@ onUnmounted(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #5e6272;
+  background: var(--ownex-text-muted);
   flex-shrink: 0;
 }
 .vl-dot.speaking {
-  background: #00e39a;
+  background: var(--ownex-green);
   animation: vl-blink 1s ease-in-out infinite;
 }
 .vl-dot.listening {
-  background: #00d5ff;
+  background: var(--ownex-accent);
   animation: vl-blink 1s ease-in-out infinite;
 }
 .vl-mic {
@@ -144,15 +144,15 @@ onUnmounted(() => {
   height: 32px;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  background: #0e1015;
-  color: #d9dbdf;
+  background: var(--ownex-bg-base);
+  color: var(--ownex-text-secondary);
   cursor: pointer;
   font-size: 14px;
   flex-shrink: 0;
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 .vl-mic.recording {
-  border-color: #00d5ff;
+  border-color: var(--ownex-accent);
   background: rgba(0, 213, 255, 0.12);
 }
 .vl-mic:hover { border-color: rgba(0, 213, 255, 0.5); }
@@ -166,16 +166,16 @@ onUnmounted(() => {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #00d5ff;
+  color: var(--ownex-accent);
 }
 .vl-text {
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.vl-error { color: #ff7a1a; }
-.vl-speaking { font-size: 10px; color: #00e39a; }
+.vl-error { color: var(--ownex-accent); }
+.vl-speaking { font-size: 10px; color: var(--ownex-green); }
 .vl-idle { white-space: nowrap; }
 
 @keyframes vl-blink {

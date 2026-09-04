@@ -158,12 +158,12 @@ function initCytoscape() {
             'text-halign': 'center',
             'font-size': '10px',
             'font-family': 'JetBrains Mono, monospace',
-            'background-color': 'mapData(confidence, 0, 1, #00d5ff40, #00d5ff)',
+            'background-color': 'mapData(confidence, 0, 1, var(--ownex-accent)40, var(--ownex-accent))',
             'border-width': '1.5px',
-            'border-color': '#00d5ff',
-            'color': '#fff',
+            'border-color': 'var(--ownex-accent)',
+            'color': 'var(--ownex-text-primary)',
             'text-outline-width': '2px',
-            'text-outline-color': '#000',
+            'text-outline-color': 'var(--ownex-bg-deep)',
             'width': 'mapData(confidence, 0, 1, 20, 50)',
             'height': 'mapData(confidence, 0, 1, 20, 50)',
           },
@@ -172,15 +172,15 @@ function initCytoscape() {
           selector: 'edge',
           style: {
             'width': 'mapData(strength, 0, 1, 1, 4)',
-            'line-color': '#00d5ff80',
+            'line-color': 'var(--ownex-accent)80',
             'target-arrow-shape': 'triangle',
-            'target-arrow-color': '#00d5ff80',
+            'target-arrow-color': 'var(--ownex-accent)80',
             'curve-style': 'bezier',
             'label': 'data(label)',
             'font-size': '8px',
-            'color': '#00d5ff',
+            'color': 'var(--ownex-accent)',
             'text-outline-width': '1px',
-            'text-outline-color': '#000',
+            'text-outline-color': 'var(--ownex-bg-deep)',
             'font-family': 'JetBrains Mono, monospace',
           },
         },
@@ -188,33 +188,33 @@ function initCytoscape() {
           selector: 'node:selected',
           style: {
             'border-width': '3px',
-            'border-color': '#ff7a1a',
-            'background-color': '#ff7a1a40',
+            'border-color': 'var(--ownex-accent)',
+            'background-color': 'var(--ownex-accent)40',
           },
         },
         {
           selector: '.node-type-program',
-          style: { 'background-color': '#00d5ff', 'border-color': '#00d5ff' },
+          style: { 'background-color': 'var(--ownex-accent)', 'border-color': 'var(--ownex-accent)' },
         },
         {
           selector: '.node-type-opportunity',
-          style: { 'background-color': '#00e39a', 'border-color': '#00e39a' },
+          style: { 'background-color': 'var(--ownex-green)', 'border-color': 'var(--ownex-green)' },
         },
         {
           selector: '.node-type-finding',
-          style: { 'background-color': '#ff7a1a', 'border-color': '#ff7a1a' },
+          style: { 'background-color': 'var(--ownex-accent)', 'border-color': 'var(--ownex-accent)' },
         },
         {
           selector: '.node-type-tag',
-          style: { 'background-color': '#fbbf24', 'border-color': '#fbbf24' },
+          style: { 'background-color': 'var(--ownex-yellow)', 'border-color': 'var(--ownex-yellow)' },
         },
         {
           selector: '.node-type-capability',
-          style: { 'background-color': '#3b82f6', 'border-color': '#3b82f6' },
+          style: { 'background-color': 'var(--ownex-danger)', 'border-color': 'var(--ownex-danger)' },
         },
         {
           selector: '.node-type-user',
-          style: { 'background-color': '#a855f7', 'border-color': '#a855f7' },
+          style: { 'background-color': 'var(--ownex-accent)', 'border-color': 'var(--ownex-accent)' },
         },
       ],
       layout: {
@@ -572,12 +572,12 @@ function exportPNG() {
 
         <!-- Legend -->
         <div class="absolute bottom-4 left-4 z-10 bg-[var(--ownex-surface)] border border-[var(--ownex-stroke)] rounded-lg p-3 text-xs">
-          <div class="flex items-center gap-1 mb-1"><span class="w-3 h-3 rounded-full bg-[#00d5ff]"></span> Program</div>
-          <div class="flex items-center gap-1 mb-1"><span class="w-3 h-3 rounded-full bg-[#00e39a]"></span> Opportunity</div>
-          <div class="flex items-center gap-1 mb-1"><span class="w-3 h-3 rounded-full bg-[#ff7a1a]"></span> Finding</div>
-          <div class="flex items-center gap-1 mb-1"><span class="w-3 h-3 rounded-full bg-[#fbbf24]"></span> Tag</div>
-          <div class="flex items-center gap-1 mb-1"><span class="w-3 h-3 rounded-full bg-[#3b82f6]"></span> Capability</div>
-          <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-[#a855f7]"></span> User</div>
+          <div class="flex items-center gap-1 mb-1"><span class="w-3 h-3 rounded-full bg-[var(--ownex-accent)]"></span> Program</div>
+          <div class="flex items-center gap-1 mb-1"><span class="w-3 h-3 rounded-full bg-[var(--ownex-green)]"></span> Opportunity</div>
+          <div class="flex items-center gap-1 mb-1"><span class="w-3 h-3 rounded-full bg-[var(--ownex-accent)]"></span> Finding</div>
+          <div class="flex items-center gap-1 mb-1"><span class="w-3 h-3 rounded-full bg-[var(--ownex-yellow)]"></span> Tag</div>
+          <div class="flex items-center gap-1 mb-1"><span class="w-3 h-3 rounded-full bg-[var(--ownex-danger)]"></span> Capability</div>
+          <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-[var(--ownex-accent)]"></span> User</div>
         </div>
       </main>
     </div>

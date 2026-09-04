@@ -360,7 +360,7 @@ onMounted(loadData)
               v-if="accounts.length > 0"
               :labels="doughnutLabels"
               :data="doughnutData"
-              :colors="['#16A34A', '#6b7280']"
+              :colors="['var(--ownex-green)', 'var(--ownex-text-muted)']"
               :height="200"
               :show-legend="true"
               :cutout="'65%'"

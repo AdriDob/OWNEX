@@ -510,7 +510,7 @@ async function completeWizard() {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #60A5FA;
+  background: var(--ownex-accent);
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
@@ -544,7 +544,7 @@ async function completeWizard() {
 }
 
 .wizard-subtitle {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 1rem;
   margin-top: 0.5rem;
 }
@@ -565,13 +565,13 @@ async function completeWizard() {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #60A5FA, #34D399);
+  background: linear-gradient(90deg, var(--ownex-accent), var(--ownex-green));
   border-radius: 9999px;
   transition: width 0.3s ease;
 }
 
 .progress-text {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -599,7 +599,7 @@ async function completeWizard() {
 }
 
 .step-description {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   margin-bottom: 2rem;
 }
 
@@ -627,7 +627,7 @@ async function completeWizard() {
 }
 
 .use-case-card.selected {
-  border-color: #60A5FA;
+  border-color: var(--ownex-accent);
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -644,7 +644,7 @@ async function completeWizard() {
 }
 
 .use-case-desc {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
 }
 
@@ -673,7 +673,7 @@ async function completeWizard() {
 }
 
 .module-card.selected {
-  border-color: #60A5FA;
+  border-color: var(--ownex-accent);
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -690,7 +690,7 @@ async function completeWizard() {
 }
 
 .module-desc {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
 }
 
@@ -701,7 +701,7 @@ async function completeWizard() {
 }
 
 .checkbox-checked {
-  color: #34D399;
+  color: var(--ownex-green);
 }
 
 /* ═══ EXPERTISE GRID ═══ */
@@ -728,7 +728,7 @@ async function completeWizard() {
 }
 
 .expertise-card.selected {
-  border-color: #60A5FA;
+  border-color: var(--ownex-accent);
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -745,7 +745,7 @@ async function completeWizard() {
 }
 
 .expertise-desc {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
   margin-bottom: 1rem;
 }
@@ -762,7 +762,7 @@ async function completeWizard() {
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 9999px;
   font-size: 0.75rem;
-  color: #60A5FA;
+  color: var(--ownex-accent);
 }
 
 /* ═══ PLATFORMS GRID ═══ */
@@ -790,7 +790,7 @@ async function completeWizard() {
 }
 
 .platform-card.selected {
-  border-color: #60A5FA;
+  border-color: var(--ownex-accent);
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -807,7 +807,7 @@ async function completeWizard() {
 }
 
 .platform-desc {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
 }
 
@@ -831,7 +831,7 @@ async function completeWizard() {
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -853,7 +853,7 @@ async function completeWizard() {
 }
 
 .form-hint {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
   margin-top: 0.5rem;
 }
@@ -876,7 +876,7 @@ async function completeWizard() {
 .summary-title {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.5rem;
@@ -889,7 +889,7 @@ async function completeWizard() {
 }
 
 .summary-detail {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
   margin-top: 0.5rem;
 }
@@ -906,7 +906,7 @@ async function completeWizard() {
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 9999px;
   font-size: 0.75rem;
-  color: #60A5FA;
+  color: var(--ownex-accent);
 }
 
 /* ═══ WIZARD FOOTER ═══ */
@@ -947,7 +947,7 @@ async function completeWizard() {
 .btn-primary {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.4);
-  color: #60A5FA;
+  color: var(--ownex-accent);
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -958,7 +958,7 @@ async function completeWizard() {
 .btn-secondary {
   background: rgba(100, 116, 139, 0.2);
   border-color: rgba(100, 116, 139, 0.4);
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
 }
 
 .btn-secondary:hover:not(:disabled) {
@@ -969,7 +969,7 @@ async function completeWizard() {
 .btn-success {
   background: rgba(52, 211, 153, 0.2);
   border-color: rgba(52, 211, 153, 0.4);
-  color: #34D399;
+  color: var(--ownex-green);
 }
 
 .btn-success:hover:not(:disabled) {

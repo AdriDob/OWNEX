@@ -5,33 +5,33 @@
 
 :root {
   /* Core Colors - Tesla-inspired minimal */
-  --ownex-bg: #0a0a0f;
-  --ownex-bg-elevated: #111318;
-  --ownex-bg-card: #161920;
-  --ownex-border: #2a2e37;
+  --ownex-bg: var(--ownex-bg-deep);
+  --ownex-bg-elevated: var(--ownex-bg-base);
+  --ownex-bg-card: var(--ownex-bg-surface);
+  --ownex-border: var(--ownex-border);
   --ownex-border-light: #3a3f4a;
 
   /* Text */
-  --ownex-text: #f0f0f0;
-  --ownex-text-dim: #8b8d98;
+  --ownex-text: var(--ownex-text-primary);
+  --ownex-text-dim: var(--ownex-text-secondary);
   --ownex-text-muted: #5a5d6a;
 
   /* Accent - Tesla Red */
-  --ownex-accent: #00d5ff;
+  --ownex-accent: var(--ownex-accent);
   --ownex-accent-glow: rgba(0, 213, 255, 0.3);
   --ownex-accent-dim: rgba(0, 213, 255, 0.1);
 
   /* Success - Emerald */
-  --ownex-success: #00e39a;
+  --ownex-success: var(--ownex-green);
   --ownex-success-glow: rgba(0, 227, 154, 0.3);
   --ownex-success-dim: rgba(0, 227, 154, 0.1);
 
   /* Warning - Amber */
-  --ownex-warning: #fbbf24;
+  --ownex-warning: var(--ownex-yellow);
   --ownex-warning-glow: rgba(251, 191, 36, 0.3);
 
   /* Info - Cyan */
-  --ownex-info: #00d5ff;
+  --ownex-info: var(--ownex-accent);
   --ownex-info-glow: rgba(0, 213, 255, 0.3);
   --ownex-info-dim: rgba(0, 213, 255, 0.1);
 

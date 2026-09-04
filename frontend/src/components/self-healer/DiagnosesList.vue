@@ -92,15 +92,15 @@ const filteredDiagnoses = computed(() => {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
 }
 
 .search-box {
   padding: 8px 12px;
-  background: #0e1015;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
   font-size: 13px;
   width: 300px;
 }
@@ -112,7 +112,7 @@ const filteredDiagnoses = computed(() => {
 }
 
 .diagnosis-card {
-  background: #0e1015;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 20px;
@@ -148,19 +148,19 @@ const filteredDiagnoses = computed(() => {
   letter-spacing: 0.05em;
 }
 
-.confidence-high { background: rgba(52, 211, 153, 0.2); color: #34d399; }
-.confidence-very_high { background: rgba(52, 211, 153, 0.3); color: #34d399; }
-.confidence-medium { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
-.confidence-low { background: rgba(248, 113, 113, 0.2); color: #f87171; }
+.confidence-high { background: rgba(52, 211, 153, 0.2); color: var(--ownex-green); }
+.confidence-very_high { background: rgba(52, 211, 153, 0.3); color: var(--ownex-green); }
+.confidence-medium { background: rgba(251, 191, 36, 0.2); color: var(--ownex-yellow); }
+.confidence-low { background: rgba(248, 113, 113, 0.2); color: var(--ownex-danger); }
 
-.risk-low { background: rgba(52, 211, 153, 0.2); color: #34d399; }
-.risk-medium { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
-.risk-high { background: rgba(248, 113, 113, 0.2); color: #f87171; }
-.risk-critical { background: rgba(248, 113, 113, 0.3); color: #f87171; }
+.risk-low { background: rgba(52, 211, 153, 0.2); color: var(--ownex-green); }
+.risk-medium { background: rgba(251, 191, 36, 0.2); color: var(--ownex-yellow); }
+.risk-high { background: rgba(248, 113, 113, 0.2); color: var(--ownex-danger); }
+.risk-critical { background: rgba(248, 113, 113, 0.3); color: var(--ownex-danger); }
 
 .strategy-badge {
   background: rgba(0, 213, 255, 0.15);
-  color: #00d5ff;
+  color: var(--ownex-accent);
 }
 
 .diagnosis-body {
@@ -175,13 +175,13 @@ const filteredDiagnoses = computed(() => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #5e6272;
+  color: var(--ownex-text-muted);
   margin-bottom: 6px;
 }
 
 .diagnosis-field p {
   margin: 0;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
   line-height: 1.6;
   font-size: 13px;
 }
@@ -189,7 +189,7 @@ const filteredDiagnoses = computed(() => {
 .diagnosis-field ul {
   margin: 0;
   padding-left: 18px;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
   font-size: 13px;
 }
 
@@ -208,12 +208,12 @@ const filteredDiagnoses = computed(() => {
 .effort {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
 
 .diagnosis-id {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
-  color: #5e6272;
+  color: var(--ownex-text-muted);
 }
 </style>

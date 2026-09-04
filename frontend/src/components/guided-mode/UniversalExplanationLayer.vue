@@ -80,13 +80,13 @@ const sectionLabels: Record<string, { label: string; icon: string; color: string
 .explanation-layer__title {
   font-size: 1rem;
   font-weight: 600;
-  color: #f0f0f0;
+  color: var(--ownex-text-primary);
   margin: 0 0 4px;
 }
 
 .explanation-layer__subtitle {
   font-size: 0.75rem;
-  color: #888;
+  color: var(--ownex-text-secondary);
   margin: 0;
 }
 
@@ -129,14 +129,14 @@ const sectionLabels: Record<string, { label: string; icon: string; color: string
 .explanation-layer__section-label {
   font-size: 0.625rem;
   font-weight: 600;
-  color: #aaa;
+  color: var(--ownex-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .explanation-layer__content {
   font-size: 0.75rem;
-  color: #ddd;
+  color: var(--ownex-text-muted);
   line-height: 1.5;
   margin: 0;
   flex: 1;

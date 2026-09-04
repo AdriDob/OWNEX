@@ -107,7 +107,7 @@ function formatTime(isoString: string) {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
 }
 
 .patches-grid {
@@ -117,7 +117,7 @@ function formatTime(isoString: string) {
 }
 
 .patch-card {
-  background: #0e1015;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   overflow: hidden;
@@ -137,14 +137,14 @@ function formatTime(isoString: string) {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .patch-id {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
 
 .status-badge {
@@ -158,13 +158,13 @@ function formatTime(isoString: string) {
 .status-badge.applied {
   background: rgba(52, 211, 153, 0.15);
   border: 1px solid rgba(52, 211, 153, 0.3);
-  color: #34d399;
+  color: var(--ownex-green);
 }
 
 .status-badge:not(.applied) {
   background: rgba(251, 191, 36, 0.15);
   border: 1px solid rgba(251, 191, 36, 0.3);
-  color: #fbbf24;
+  color: var(--ownex-yellow);
 }
 
 .patch-body {
@@ -180,14 +180,14 @@ function formatTime(isoString: string) {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #5e6272;
+  color: var(--ownex-text-muted);
   margin-bottom: 6px;
 }
 
 .plan-ref {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
-  color: #00d5ff;
+  color: var(--ownex-accent);
 }
 
 .files-list {
@@ -198,25 +198,25 @@ function formatTime(isoString: string) {
 
 .file-tag {
   padding: 2px 8px;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 6px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
 }
 
 .no-files,
 .no-tests {
   font-size: 12px;
-  color: #5e6272;
+  color: var(--ownex-text-muted);
   font-style: italic;
 }
 
 .tests-list {
   margin: 0;
   padding-left: 20px;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
   font-size: 13px;
 }
 
@@ -229,12 +229,12 @@ function formatTime(isoString: string) {
 .diff-preview {
   margin: 0;
   padding: 12px;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
   overflow: auto;
   max-height: 200px;
   white-space: pre-wrap;
@@ -245,10 +245,10 @@ function formatTime(isoString: string) {
   display: flex;
   gap: 16px;
   padding: 12px 16px;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border-top: 1px solid rgba(255, 255, 255, 0.04);
   font-size: 11px;
-  color: #5e6272;
+  color: var(--ownex-text-muted);
 }
 
 .created-at {
@@ -257,6 +257,6 @@ function formatTime(isoString: string) {
 
 .applied-at {
   font-family: 'JetBrains Mono', monospace;
-  color: #34d399;
+  color: var(--ownex-green);
 }
 </style>

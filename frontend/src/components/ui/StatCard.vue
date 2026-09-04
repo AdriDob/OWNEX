@@ -23,7 +23,7 @@ defineProps<{
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: #0e1015;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   transition: border-color 0.15s;
@@ -40,7 +40,7 @@ defineProps<{
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
   flex-shrink: 0;
@@ -57,7 +57,7 @@ defineProps<{
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
 
 .stat-value {
@@ -65,7 +65,7 @@ defineProps<{
   font-size: 22px;
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
   line-height: 1.2;
 }
 
@@ -76,7 +76,7 @@ defineProps<{
 .stat-card.primary .stat-icon {
   background: rgba(0, 213, 255, 0.1);
   border-color: rgba(0, 213, 255, 0.2);
-  color: #00d5ff;
+  color: var(--ownex-accent);
 }
 
 .stat-card.success {
@@ -86,7 +86,7 @@ defineProps<{
 .stat-card.success .stat-icon {
   background: rgba(52, 211, 153, 0.1);
   border-color: rgba(52, 211, 153, 0.2);
-  color: #34d399;
+  color: var(--ownex-green);
 }
 
 .stat-card.warning {
@@ -96,7 +96,7 @@ defineProps<{
 .stat-card.warning .stat-icon {
   background: rgba(251, 191, 36, 0.1);
   border-color: rgba(251, 191, 36, 0.2);
-  color: #fbbf24;
+  color: var(--ownex-yellow);
 }
 
 .stat-card.danger {
@@ -106,7 +106,7 @@ defineProps<{
 .stat-card.danger .stat-icon {
   background: rgba(248, 113, 113, 0.1);
   border-color: rgba(248, 113, 113, 0.2);
-  color: #f87171;
+  color: var(--ownex-danger);
 }
 
 .stat-card.info {
@@ -116,7 +116,7 @@ defineProps<{
 .stat-card.info .stat-icon {
   background: rgba(0, 213, 255, 0.1);
   border-color: rgba(0, 213, 255, 0.2);
-  color: #00d5ff;
+  color: var(--ownex-accent);
 }
 
 .stat-card.muted {
@@ -126,6 +126,6 @@ defineProps<{
 .stat-card.muted .stat-icon {
   background: rgba(139, 141, 152, 0.1);
   border-color: rgba(139, 141, 152, 0.2);
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
 </style>

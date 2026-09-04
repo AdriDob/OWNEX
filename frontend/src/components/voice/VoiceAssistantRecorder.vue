@@ -190,11 +190,11 @@ onUnmounted(() => {
   justify-content: space-between;
   width: 100%;
 }
-.vr-title { font-size: 14px; font-weight: 600; color: #f5f5f4; }
+.vr-title { font-size: 14px; font-weight: 600; color: var(--ownex-bg-surface); }
 .vr-badge {
   font-size: 10px;
   letter-spacing: 0.14em;
-  color: #00d5ff;
+  color: var(--ownex-accent);
   border: 1px solid rgba(0, 213, 255, 0.35);
   border-radius: 999px;
   padding: 3px 8px;
@@ -207,17 +207,17 @@ onUnmounted(() => {
   cursor: pointer;
   transition: all 0.15s ease;
   background: transparent;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .vr-mode-toggle.active {
-  color: #00e39a;
+  color: var(--ownex-green);
   border-color: rgba(0, 227, 154, 0.4);
   background: rgba(0, 227, 154, 0.08);
 }
 .vr-chat-hint {
   font-size: 11px;
-  color: #00e39a;
+  color: var(--ownex-green);
   margin: -4px 0 0;
 }
 .vr-mic {
@@ -225,7 +225,7 @@ onUnmounted(() => {
   height: 64px;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  background: #0e1015;
+  background: var(--ownex-bg-base);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -233,16 +233,16 @@ onUnmounted(() => {
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 .vr-mic.recording {
-  border-color: #00d5ff;
+  border-color: var(--ownex-accent);
   background: rgba(0, 213, 255, 0.1);
   animation: vr-pulse 1.4s ease-in-out infinite;
 }
 .vr-mic-icon { font-size: 22px; }
-.vr-hint { font-size: 12px; color: #8b8d98; margin: 0; }
+.vr-hint { font-size: 12px; color: var(--ownex-text-secondary); margin: 0; }
 .vr-transcript {
   font-size: 13px;
-  color: #d9dbdf;
-  background: #0a0c11;
+  color: var(--ownex-text-secondary);
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
   padding: 10px 12px;
@@ -250,7 +250,7 @@ onUnmounted(() => {
   box-sizing: border-box;
   margin: 0;
 }
-.vr-muted { font-size: 12px; color: #8b8d98; margin: 0; }
+.vr-muted { font-size: 12px; color: var(--ownex-text-secondary); margin: 0; }
 .vr-input-row {
   display: flex;
   gap: 8px;
@@ -259,11 +259,11 @@ onUnmounted(() => {
 }
 .vr-input {
   flex: 1;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   padding: 10px 12px;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
   font-size: 13px;
   font-family: inherit;
   outline: none;
@@ -271,8 +271,8 @@ onUnmounted(() => {
 }
 .vr-input:focus { border-color: rgba(0, 213, 255, 0.5); }
 .vr-send {
-  background: #00d5ff;
-  color: #0a0c11;
+  background: var(--ownex-accent);
+  color: var(--ownex-bg-base);
   border: none;
   border-radius: 10px;
   padding: 0 16px;
@@ -283,7 +283,7 @@ onUnmounted(() => {
 .vr-send:disabled { opacity: 0.4; cursor: default; }
 .vr-reply {
   width: 100%;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
   padding: 12px 14px;
@@ -300,16 +300,16 @@ onUnmounted(() => {
   border-radius: 999px;
   padding: 3px 9px;
 }
-.vr-worthy.ok { color: #00e39a; background: rgba(0, 227, 154, 0.1); }
-.vr-worthy.no { color: #ff7a1a; background: rgba(255, 122, 26, 0.1); }
-.vr-domain-label { font-size: 11px; color: #8b8d98; text-transform: uppercase; letter-spacing: 0.1em; }
-.vr-speaking { font-size: 11px; color: #00e39a; }
-.vr-response { font-size: 13px; color: #d9dbdf; margin: 0; line-height: 1.5; }
-.vr-action { font-size: 12px; color: #00d5ff; margin: 0; }
+.vr-worthy.ok { color: var(--ownex-green); background: rgba(0, 227, 154, 0.1); }
+.vr-worthy.no { color: var(--ownex-accent); background: rgba(255, 122, 26, 0.1); }
+.vr-domain-label { font-size: 11px; color: var(--ownex-text-secondary); text-transform: uppercase; letter-spacing: 0.1em; }
+.vr-speaking { font-size: 11px; color: var(--ownex-green); }
+.vr-response { font-size: 13px; color: var(--ownex-text-secondary); margin: 0; line-height: 1.5; }
+.vr-action { font-size: 12px; color: var(--ownex-accent); margin: 0; }
 .vr-replay {
   background: transparent;
   border: 1px solid rgba(0, 213, 255, 0.35);
-  color: #00d5ff;
+  color: var(--ownex-accent);
   border-radius: 999px;
   padding: 4px 12px;
   font-size: 11px;

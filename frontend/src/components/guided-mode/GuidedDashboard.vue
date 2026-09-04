@@ -216,7 +216,7 @@ watch(currentMode, (mode) => {
 .guided-dashboard__error {
   background: rgba(148, 163, 184, 0.15);
   border: 1px solid rgba(148, 163, 184, 0.3);
-  color: #94a3b8;
+  color: var(--ownex-text-secondary);
   padding: 16px;
   border-radius: 12px;
   display: flex;
@@ -225,7 +225,7 @@ watch(currentMode, (mode) => {
 }
 
 .guided-dashboard__retry-btn {
-  background: linear-gradient(135deg, #00d5ff, #1e40ff);
+  background: linear-gradient(135deg, var(--ownex-accent), var(--ownex-accent));
   border: none;
   color: white;
   padding: 8px 16px;
@@ -240,14 +240,14 @@ watch(currentMode, (mode) => {
   align-items: center;
   gap: 12px;
   padding: 40px;
-  color: #888;
+  color: var(--ownex-text-secondary);
 }
 
 .guided-dashboard__spinner {
   width: 32px;
   height: 32px;
   border: 3px solid rgba(59, 130, 246, 0.3);
-  border-top-color: #3b82f6;
+  border-top-color: var(--ownex-danger);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -277,7 +277,7 @@ watch(currentMode, (mode) => {
 .guided-dashboard__section-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #f0f0f0;
+  color: var(--ownex-text-primary);
   margin: 0 0 16px;
 }
 
@@ -291,7 +291,7 @@ watch(currentMode, (mode) => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  background: linear-gradient(135deg, var(--ownex-danger), var(--ownex-accent));
   border: none;
   color: white;
   font-size: 0.875rem;
@@ -304,7 +304,7 @@ watch(currentMode, (mode) => {
 
 .guided-dashboard__quick-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px color-mix(in srgb, #3b82f6 40%, transparent);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--ownex-danger) 40%, transparent);
 }
 
 .guided-dashboard__quick-btn:disabled {
@@ -338,7 +338,7 @@ watch(currentMode, (mode) => {
 
 .guided-dashboard__bank-label {
   font-size: 0.75rem;
-  color: #888;
+  color: var(--ownex-text-secondary);
   display: block;
   margin-bottom: 4px;
 }
@@ -346,7 +346,7 @@ watch(currentMode, (mode) => {
 .guided-dashboard__bank-value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #f0f0f0;
+  color: var(--ownex-text-primary);
 }
 
 @media (max-width: 768px) {

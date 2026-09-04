@@ -274,13 +274,13 @@ async function triggerScan() {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
 }
 
 .settings-description {
   margin: 0;
   font-size: 13px;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
 
 .settings-sections {
@@ -290,7 +290,7 @@ async function triggerScan() {
 }
 
 .settings-section {
-  background: #0e1015;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 20px;
@@ -300,13 +300,13 @@ async function triggerScan() {
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
 }
 
 .section-hint {
   margin: 0 0 16px;
   font-size: 12px;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
 
 .setting-row {
@@ -333,21 +333,21 @@ async function triggerScan() {
 .setting-info label {
   font-size: 13px;
   font-weight: 500;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
 }
 
 .setting-hint {
   font-size: 11px;
-  color: #5e6272;
+  color: var(--ownex-text-muted);
 }
 
 .setting-input {
   width: 100px;
   padding: 6px 10px;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
   font-size: 13px;
   font-family: 'JetBrains Mono', monospace;
 }
@@ -359,7 +359,7 @@ async function triggerScan() {
 
 .setting-unit {
   font-size: 12px;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   font-family: 'JetBrains Mono', monospace;
 }
 
@@ -374,7 +374,7 @@ async function triggerScan() {
   align-items: flex-start;
   gap: 12px;
   padding: 12px;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
   cursor: pointer;
@@ -390,18 +390,18 @@ async function triggerScan() {
   margin-top: 2px;
   width: 16px;
   height: 16px;
-  accent-color: #00d5ff;
+  accent-color: var(--ownex-accent);
 }
 
 .approval-label {
   font-weight: 500;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
   min-width: 100px;
 }
 
 .approval-desc {
   font-size: 12px;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   flex: 1;
 }
 
@@ -419,10 +419,10 @@ async function triggerScan() {
 .excluded-input {
   flex: 1;
   padding: 8px 12px;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
   font-size: 13px;
   font-family: 'JetBrains Mono', monospace;
 }
@@ -433,7 +433,7 @@ async function triggerScan() {
   border-radius: 8px;
   border: none;
   background: transparent;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   cursor: pointer;
   transition: all 0.12s;
 }
@@ -444,7 +444,7 @@ async function triggerScan() {
 
 .btn-icon.danger:hover {
   background: rgba(248, 113, 113, 0.1);
-  color: #f87171;
+  color: var(--ownex-danger);
 }
 
 .settings-actions {

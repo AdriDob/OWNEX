@@ -64,18 +64,18 @@ const STATE_LABELS: Record<string, string> = {
   closed: 'Closed',
 }
 const STATE_COLORS: Record<string, string> = {
-  pending: '#6b7280',
-  discovery: '#ffffff',
-  validation: '#9CA3AF',
-  evidence: '#D97706',
-  ai_review: '#16A34A',
-  ready: '#16A34A',
-  submitted: '#9CA3AF',
-  triaged: '#D97706',
-  paid: '#9CA3AF',
-  closed: '#16A34A',
-  failed: '#00d5ff',
-  cancelled: '#6b7280',
+  pending: 'var(--ownex-text-muted)',
+  discovery: 'var(--ownex-text-primary)',
+  validation: 'var(--ownex-text-secondary)',
+  evidence: 'var(--ownex-yellow)',
+  ai_review: 'var(--ownex-green)',
+  ready: 'var(--ownex-green)',
+  submitted: 'var(--ownex-text-secondary)',
+  triaged: 'var(--ownex-yellow)',
+  paid: 'var(--ownex-text-secondary)',
+  closed: 'var(--ownex-green)',
+  failed: 'var(--ownex-accent)',
+  cancelled: 'var(--ownex-text-muted)',
 }
 
 async function fetchPipeline() {

@@ -30,10 +30,10 @@ vi.mock('@/stores/settings', () => ({
 function makeDashboard(overrides: Partial<OwnexDashboardData> = {}): OwnexDashboardData {
   return {
     throughputStages: [
-      { label: 'Detectado', value: 4, color: '#ffffff' },
-      { label: 'Validado', value: 2, color: '#9CA3AF' },
-      { label: 'Confirmado', value: 1, color: '#16A34A' },
-      { label: 'Reportado', value: 0, color: '#D97706' },
+      { label: 'Detectado', value: 4, color: 'var(--ownex-text-primary)' },
+      { label: 'Validado', value: 2, color: 'var(--ownex-text-secondary)' },
+      { label: 'Confirmado', value: 1, color: 'var(--ownex-green)' },
+      { label: 'Reportado', value: 0, color: 'var(--ownex-yellow)' },
     ],
     throughputEfficiency: 25,
     agents: [
@@ -122,10 +122,10 @@ describe('MissionControl page', () => {
     mockFetchDashboard.mockResolvedValue(
       makeDashboard({
         throughputStages: [
-          { label: 'Detectado', value: 15, color: '#ffffff' },
-          { label: 'Validado', value: 8, color: '#9CA3AF' },
-          { label: 'Confirmado', value: 3, color: '#16A34A' },
-          { label: 'Reportado', value: 0, color: '#D97706' },
+          { label: 'Detectado', value: 15, color: 'var(--ownex-text-primary)' },
+          { label: 'Validado', value: 8, color: 'var(--ownex-text-secondary)' },
+          { label: 'Confirmado', value: 3, color: 'var(--ownex-green)' },
+          { label: 'Reportado', value: 0, color: 'var(--ownex-yellow)' },
         ],
         opportunities: [
           {

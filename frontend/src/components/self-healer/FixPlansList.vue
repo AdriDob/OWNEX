@@ -116,7 +116,7 @@ const pendingCount = computed(() => props.plans.filter(p => p.awaiting_approval)
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
 }
 
 .pending-badge {
@@ -126,11 +126,11 @@ const pendingCount = computed(() => props.plans.filter(p => p.awaiting_approval)
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-  color: #fbbf24;
+  color: var(--ownex-yellow);
 }
 
 .plan-card {
-  background: #0e1015;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 20px;
@@ -163,7 +163,7 @@ const pendingCount = computed(() => props.plans.filter(p => p.awaiting_approval)
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
   flex: 1;
   min-width: 200px;
 }
@@ -181,7 +181,7 @@ const pendingCount = computed(() => props.plans.filter(p => p.awaiting_approval)
   border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
-  color: #fbbf24;
+  color: var(--ownex-yellow);
 }
 
 .status-badge {
@@ -195,7 +195,7 @@ const pendingCount = computed(() => props.plans.filter(p => p.awaiting_approval)
 .status-badge.completed {
   background: rgba(52, 211, 153, 0.15);
   border: 1px solid rgba(52, 211, 153, 0.3);
-  color: #34d399;
+  color: var(--ownex-green);
 }
 
 .strategy-badge {
@@ -204,7 +204,7 @@ const pendingCount = computed(() => props.plans.filter(p => p.awaiting_approval)
   font-size: 10px;
   font-weight: 600;
   background: rgba(0, 213, 255, 0.15);
-  color: #00d5ff;
+  color: var(--ownex-accent);
   text-transform: uppercase;
 }
 
@@ -215,7 +215,7 @@ const pendingCount = computed(() => props.plans.filter(p => p.awaiting_approval)
   font-size: 12px;
   font-weight: 600;
   background: rgba(0, 213, 255, 0.15);
-  color: #00d5ff;
+  color: var(--ownex-accent);
   text-transform: uppercase;
 }
 
@@ -223,17 +223,17 @@ const pendingCount = computed(() => props.plans.filter(p => p.awaiting_approval)
   display: flex;
   gap: 16px;
   font-size: 12px;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
 
 .plan-id {
   font-family: 'JetBrains Mono', monospace;
-  color: #5e6272;
+  color: var(--ownex-text-muted);
 }
 
 .effort {
   font-family: 'JetBrains Mono', monospace;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
 
 .plan-body {
@@ -253,13 +253,13 @@ const pendingCount = computed(() => props.plans.filter(p => p.awaiting_approval)
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #5e6272;
+  color: var(--ownex-text-muted);
 }
 
 .steps-list {
   margin: 0;
   padding-left: 20px;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
   font-size: 13px;
   line-height: 1.8;
 }
@@ -272,31 +272,31 @@ const pendingCount = computed(() => props.plans.filter(p => p.awaiting_approval)
 
 .file-tag {
   padding: 2px 8px;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 6px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
 }
 
 .no-files,
 .no-changes,
 .no-tests {
   font-size: 12px;
-  color: #5e6272;
+  color: var(--ownex-text-muted);
   font-style: italic;
 }
 
 .config-changes {
   margin: 0;
   padding: 12px;
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
   overflow-x: auto;
   max-height: 200px;
   overflow-y: auto;
@@ -305,7 +305,7 @@ const pendingCount = computed(() => props.plans.filter(p => p.awaiting_approval)
 .tests-list {
   margin: 0;
   padding-left: 20px;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
   font-size: 13px;
 }
 

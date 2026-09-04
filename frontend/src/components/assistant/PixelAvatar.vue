@@ -17,14 +17,14 @@ const offset = 2
 const accent = computed(() => {
   const map: Record<string, string> = {
     'text-intigriti': '#a78bfa',
-    'text-primary': '#60a5fa',
-    'text-warning': '#fbbf24',
+    'text-primary': 'var(--ownex-accent)',
+    'text-warning': 'var(--ownex-yellow)',
     'text-muted-foreground': '#22d3ee',
     'text-foreground': '#f1f5f9',
     'text-gold': '#f5a623',
-    'text-success': '#4ade80',
+    'text-success': 'var(--ownex-green)',
     'text-warning': '#fb923c',
-    'text-destructive': '#00d5ff',
+    'text-destructive': 'var(--ownex-accent)',
   }
   return map[props.character.color] ?? '#a78bfa'
 })
@@ -95,7 +95,7 @@ const c = computed(() => (characters as any)[props.character.id] ?? characters.d
       <template v-if="character.id === 'rover'">
         <!-- Dog tongue -->
         <ellipse :cx="s * 0.5" :cy="mouthY" :rx="s * 0.08" :ry="s * 0.06" :fill="accent" opacity="0.6" />
-        <ellipse :cx="s * 0.5" :cy="mouthY + s * 0.03" :rx="s * 0.04" :ry="s * 0.04" fill="#00d5ff" opacity="0.5" />
+        <ellipse :cx="s * 0.5" :cy="mouthY + s * 0.03" :rx="s * 0.04" :ry="s * 0.04" fill="var(--ownex-accent)" opacity="0.5" />
       </template>
       <template v-else-if="character.id === 'pepe'">
         <!-- Pepe smirk -->
@@ -129,8 +129,8 @@ const c = computed(() => (characters as any)[props.character.id] ?? characters.d
 
       <!-- Pepe cheeks -->
       <template v-if="character.id === 'pepe'">
-        <circle :cx="s * 0.2" :cy="s * 0.55" :r="s * 0.06" fill="#4ade80" opacity="0.2" />
-        <circle :cx="s * 0.8" :cy="s * 0.55" :r="s * 0.06" fill="#4ade80" opacity="0.2" />
+        <circle :cx="s * 0.2" :cy="s * 0.55" :r="s * 0.06" fill="var(--ownex-green)" opacity="0.2" />
+        <circle :cx="s * 0.8" :cy="s * 0.55" :r="s * 0.06" fill="var(--ownex-green)" opacity="0.2" />
       </template>
 
       <!-- Clippy = glasses -->
