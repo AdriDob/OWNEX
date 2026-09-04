@@ -1,3 +1,15 @@
+## Sesión 2026-09-04 (v3) — Zero Hex Colors + Responsive + Recovery + Docs
+
+> **QUÉ SE HIZO:** Complete design system migration, responsive UI, recovery tests, documentation.
+> - **1. Zero Hex Colors**: ALL 1182 hardcoded hex colors replaced with CSS custom properties (0 remaining). 99.7% reduction.
+> - **2. Responsive Sidebar**: Collapses on mobile (<768px), mobile menu button in AppLayout.
+> - **3. Recovery Tests**: 6 new tests in `test_worker_recovery.py` (checkpoint, rehydrate, idempotency, workflow ID).
+> - **4. E2E Timeout Fix**: Added 30s timeout marker to prevent full suite timeout.
+> - **5. CONTRIBUTING.md**: Dev setup, workflow, code standards, testing guide.
+> - **6. EmptyState on WorkQueue**: "Sin trabajos en cola" with refresh button.
+> - **7. MetricCard Component**: Reusable metric display component.
+> - **Commits**: `0c811cf9`, `e81d501b`, `21dd671a`
+
 ## Sesión 2026-09-04 (v2) — Design System Migration + UI Components + WorkRoom Fix
 
 > **QUÉ SE HIZO:** Design token migration, reusable UI components, WorkRoom fixes.
