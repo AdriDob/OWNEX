@@ -1,17 +1,38 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import type { PlatformAccount, PayoutAccount, Withdrawal, SubmissionRecord } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import {
+  AlertTriangle,
+  ArrowRight,
+  Banknote,
+  Building2,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  Coins,
+  CreditCard,
+  DollarSign,
+  ExternalLink,
+  Globe,
+  History,
+  Info,
+  Link,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Scan,
+  Settings,
+  Trash2,
+  Unlink,
+  Wallet,
+  XCircle,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import {
-  Globe, Unlink, Link, Banknote, Wallet, History, CheckCircle2,
-  XCircle, Clock, DollarSign, ExternalLink, RefreshCw, Plus,
-  ArrowRight, Building2, CreditCard, AlertTriangle, Trash2,
-  Coins, ChevronDown, ChevronUp, Loader2, Info, Scan, Settings,
-} from '@lucide/vue'
+import type { PayoutAccount, PlatformAccount, SubmissionRecord, Withdrawal } from '@/lib/api'
+import { api } from '@/lib/api'
 
 const loading = ref(true)
 const error = ref<string | null>(null)
@@ -61,7 +82,9 @@ async function loadPayoutRecommendations() {
   try {
     const res = await api.get<{ methods: any[] }>('/connections/payout-recommendations')
     payoutMethods.value = res.methods || []
-  } catch { /* optional */ }
+  } catch {
+    /* optional */
+  }
 }
 
 async function loadPlatformPayout(platformId: string) {
@@ -69,7 +92,9 @@ async function loadPlatformPayout(platformId: string) {
   try {
     const res = await api.get<any>(`/connections/payout-recommendations/${platformId}`)
     platformPayouts.value[platformId] = res
-  } catch { /* optional */ }
+  } catch {
+    /* optional */
+  }
 }
 
 // ── Payout account wizard ──
@@ -109,10 +134,13 @@ const statusColor = (s: string) => {
   return 'default'
 }
 
-const definitions = ref<{ platforms: { id: string; name: string }[]; osint_services: { id: string; name: string }[] }>({ platforms: [], osint_services: [] })
-const allPlatforms = computed(() => definitions.value.platforms.map(p => p.name))
+const definitions = ref<{ platforms: { id: string; name: string }[]; osint_services: { id: string; name: string }[] }>({
+  platforms: [],
+  osint_services: [],
+})
+const allPlatforms = computed(() => definitions.value.platforms.map((p) => p.name))
 
-const connectedProvs = computed(() => accounts.value.map(a => a.provider.toLowerCase()))
+const connectedProvs = computed(() => accounts.value.map((a) => a.provider.toLowerCase()))
 
 function platformIcon(provider: string) {
   return platformMeta[provider.toLowerCase()]?.color || 'text-muted-foreground'
@@ -127,15 +155,20 @@ async function loadData() {
       api.get<{ accounts: PayoutAccount[] }>('/connections/payout-accounts'),
       api.get<{ submissions: SubmissionRecord[]; total: number }>('/reports/submissions', { limit: 20 }),
       api.get<{ withdrawals: Withdrawal[] }>('/connections/withdrawals'),
-      api.get<{ platforms: { id: string; name: string }[]; osint_services: { id: string; name: string }[] }>('/system/definitions'),
+      api.get<{ platforms: { id: string; name: string }[]; osint_services: { id: string; name: string }[] }>(
+        '/system/definitions',
+      ),
     ])
     if (acctRes.status === 'fulfilled') accounts.value = acctRes.value.accounts || []
     if (payoutRes.status === 'fulfilled') payoutAccounts.value = payoutRes.value.accounts || []
     if (subRes.status === 'fulfilled') submissions.value = subRes.value.submissions || []
     if (wdRes.status === 'fulfilled') withdrawals.value = wdRes.value.withdrawals || []
     if (defRes.status === 'fulfilled') definitions.value = defRes.value
-  } catch (e: any) { error.value = e?.message || 'Error al cargar conexiones' }
-  finally { loading.value = false }
+  } catch (e: any) {
+    error.value = e?.message || 'Error al cargar conexiones'
+  } finally {
+    loading.value = false
+  }
 }
 
 async function syncAll() {
@@ -157,8 +190,11 @@ async function syncPlatform(provider: string) {
   try {
     await api.post(`/connections/sync/${provider}`, {})
     await loadData()
-  } catch { /* per-platform sync error handled silently */ }
-  finally { syncingPlatform.value = null }
+  } catch {
+    /* per-platform sync error handled silently */
+  } finally {
+    syncingPlatform.value = null
+  }
 }
 
 onMounted(() => {
@@ -171,21 +207,27 @@ async function connectPlatform(provider: string) {
   if (!connectEmail.value || !connectToken.value) return
   try {
     await api.post('/opportunity/identity/store', {
-      provider, email: connectEmail.value, token: connectToken.value,
+      provider,
+      email: connectEmail.value,
+      token: connectToken.value,
     })
     showConnectForm.value = null
     connectEmail.value = ''
     connectToken.value = ''
     const res = await api.get<{ accounts: PlatformAccount[] }>('/opportunity/identity/accounts')
     accounts.value = res.accounts || []
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 async function disconnectPlatform(provider: string) {
   try {
     await api.post(`/opportunity/identity/remove/${provider}`, {})
     accounts.value = accounts.value.filter((a: any) => a.provider !== provider)
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 // ── Full platform registration wizard ──
@@ -216,11 +258,15 @@ async function savePlatformRegistration() {
     })
     if (p.token) {
       await api.post('/opportunity/identity/store', {
-        provider: p.provider, email: p.email, token: p.token,
+        provider: p.provider,
+        email: p.email,
+        token: p.token,
       })
     }
     platformSuccess.value = `${p.provider} registrada correctamente`
-    setTimeout(() => { showPlatformWizard.value = false }, 1500)
+    setTimeout(() => {
+      showPlatformWizard.value = false
+    }, 1500)
     await loadData()
   } catch (e: any) {
     platformError.value = e.message || 'Error al registrar plataforma'
@@ -269,7 +315,9 @@ async function savePayoutAccount() {
       is_default: p.is_default,
     })
     payoutSuccess.value = 'Cuenta registrada correctamente'
-    setTimeout(() => { showPayoutWizard.value = false }, 1500)
+    setTimeout(() => {
+      showPayoutWizard.value = false
+    }, 1500)
     await loadData()
   } catch (e: any) {
     payoutError.value = e.message || 'Error al registrar cuenta'
@@ -282,7 +330,9 @@ async function removePayoutAccount(id: string) {
   try {
     await api.delete(`/connections/payout-accounts/${id}`)
     payoutAccounts.value = payoutAccounts.value.filter((a: any) => a.id !== id)
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 function formatMoney(n: number | null | undefined) {

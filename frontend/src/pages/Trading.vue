@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import { TrendingUp, BarChart3, DollarSign, RefreshCw, Play, Shield, Activity, Wallet } from '@lucide/vue'
+import { Activity, BarChart3, DollarSign, Play, RefreshCw, Shield, TrendingUp, Wallet } from '@lucide/vue'
+import { onMounted, ref } from 'vue'
+import Badge from '@/components/ui/Badge.vue'
+import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
 import CardContent from '@/components/ui/CardContent.vue'
-import Button from '@/components/ui/Button.vue'
-import Badge from '@/components/ui/Badge.vue'
-import LoadingState from '@/components/ui/LoadingState.vue'
 import Input from '@/components/ui/Input.vue'
+import LoadingState from '@/components/ui/LoadingState.vue'
+import { api } from '@/lib/api'
 
 const loading = ref(true)
 const backtesting = ref(false)
@@ -26,10 +26,13 @@ onMounted(loadStatus)
 async function loadStatus() {
   loading.value = true
   try {
-    const res = await api.get('/investment/status') as any
+    const res = (await api.get('/investment/status')) as any
     if (res.success) status.value = res.status
-  } catch { /* silent */ }
-  finally { loading.value = false }
+  } catch {
+    /* silent */
+  } finally {
+    loading.value = false
+  }
 }
 
 async function runBacktest() {
@@ -37,12 +40,12 @@ async function runBacktest() {
   backtestResult.value = null
   backtestError.value = ''
   try {
-    const res = await api.post('/investment/backtest', {
+    const res = (await api.post('/investment/backtest', {
       symbol: symbol.value,
       short_ma: shortMa.value,
       long_ma: longMa.value,
       initial_capital: initialCapital.value,
-    }) as any
+    })) as any
     if (res.success) backtestResult.value = res.result
     else backtestError.value = res.error || 'Error en backtest'
   } catch (e: any) {

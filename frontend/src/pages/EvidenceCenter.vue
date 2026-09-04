@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import { AlertTriangle, Check, ChevronDown, ChevronUp, Code, Eye, EyeOff, FileSearch, Search, X } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import BarChart from '@/components/charts/BarChart.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { Search, FileSearch, Eye, EyeOff, Code, Check, X, ChevronDown, ChevronUp, AlertTriangle } from '@lucide/vue'
-import BarChart from '@/components/charts/BarChart.vue'
+import { api } from '@/lib/api'
 
 interface EvidenceItem {
   id: number
@@ -52,12 +52,16 @@ async function loadEvidence(): Promise<void> {
 
 async function loadVerdictOptions(): Promise<void> {
   try {
-    const vs = await api.get<Array<{ id: number; status?: string; created_at?: string | null }>>('/verdicts', { limit: 100 })
+    const vs = await api.get<Array<{ id: number; status?: string; created_at?: string | null }>>('/verdicts', {
+      limit: 100,
+    })
     verdictOptions.value = (Array.isArray(vs) ? vs : []).slice(0, 100).map((v) => ({
       id: v.id,
       label: `#${v.id}${v.status ? ' · ' + v.status : ''}`,
     }))
-  } catch { /* selector vacío: el filtro manual por ID sigue disponible */ }
+  } catch {
+    /* selector vacío: el filtro manual por ID sigue disponible */
+  }
 }
 
 function onVerdictFilterChange(): void {
@@ -71,10 +75,11 @@ onMounted(async () => {
 const filtered = computed(() => {
   if (!search.value) return items.value
   const q = search.value.toLowerCase()
-  return items.value.filter(i =>
-    i.attempt_label?.toLowerCase().includes(q) ||
-    i.request_url?.toLowerCase().includes(q) ||
-    i.request_method?.toLowerCase().includes(q)
+  return items.value.filter(
+    (i) =>
+      i.attempt_label?.toLowerCase().includes(q) ||
+      i.request_url?.toLowerCase().includes(q) ||
+      i.request_method?.toLowerCase().includes(q),
   )
 })
 
@@ -84,8 +89,11 @@ function toggleExpand(id: number) {
 
 function tryFormatJson(raw: string | null): string {
   if (!raw) return '(empty)'
-  try { return JSON.stringify(JSON.parse(raw), null, 2) }
-  catch { return raw }
+  try {
+    return JSON.stringify(JSON.parse(raw), null, 2)
+  } catch {
+    return raw
+  }
 }
 
 function diffColor(ratio: number) {

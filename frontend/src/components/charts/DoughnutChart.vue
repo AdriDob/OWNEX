@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Doughnut } from 'vue-chartjs'
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js'
 import { computed } from 'vue'
+import { Doughnut } from 'vue-chartjs'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -24,20 +24,34 @@ const props = withDefaults(defineProps<Props>(), {
 const isDark = computed(() => document.documentElement.classList.contains('dark'))
 
 const defaultColors = computed(() => [
-  '#00d5ff', '#ffffff', '#16A34A', '#A16207', '#00d5ff',
-  '#9CA3AF', '#14b8a6', '#D97706', '#9CA3AF', '#9CA3AF',
-  '#84cc16', '#9CA3AF', '#a855f7', '#d946ef', '#0ea5e9',
+  '#00d5ff',
+  '#ffffff',
+  '#16A34A',
+  '#A16207',
+  '#00d5ff',
+  '#9CA3AF',
+  '#14b8a6',
+  '#D97706',
+  '#9CA3AF',
+  '#9CA3AF',
+  '#84cc16',
+  '#9CA3AF',
+  '#a855f7',
+  '#d946ef',
+  '#0ea5e9',
 ])
 
 const chartData = computed(() => ({
   labels: props.labels,
-  datasets: [{
-    data: props.data,
-    backgroundColor: props.colors || defaultColors.value.slice(0, props.data.length),
-    borderColor: isDark.value ? '#11131f' : '#fff',
-    borderWidth: 2,
-    hoverOffset: 8,
-  }],
+  datasets: [
+    {
+      data: props.data,
+      backgroundColor: props.colors || defaultColors.value.slice(0, props.data.length),
+      borderColor: isDark.value ? '#11131f' : '#fff',
+      borderWidth: 2,
+      hoverOffset: 8,
+    },
+  ],
 }))
 
 const chartOptions = computed(() => ({
@@ -56,13 +70,15 @@ const chartOptions = computed(() => ({
         pointStyle: 'circle' as const,
       },
     },
-    title: props.title ? {
-      display: true,
-      text: props.title,
-      color: isDark.value ? '#e2e4e9' : '#111827',
-      font: { size: 12 },
-      padding: { bottom: 12 },
-    } : undefined,
+    title: props.title
+      ? {
+          display: true,
+          text: props.title,
+          color: isDark.value ? '#e2e4e9' : '#111827',
+          font: { size: 12 },
+          padding: { bottom: 12 },
+        }
+      : undefined,
     tooltip: {
       backgroundColor: isDark.value ? '#1e2230' : '#fff',
       titleColor: isDark.value ? '#e2e4e9' : '#111827',

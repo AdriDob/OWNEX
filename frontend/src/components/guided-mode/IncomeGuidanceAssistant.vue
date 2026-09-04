@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import UniversalExplanationLayer from './UniversalExplanationLayer.vue'
+import type { IncomeGuidance } from '@/types/guided'
 import ConfidenceBadge from './ConfidenceBadge.vue'
 import RequirementBadge from './RequirementBadge.vue'
-import type { IncomeGuidance } from '@/types/guided'
+import UniversalExplanationLayer from './UniversalExplanationLayer.vue'
 
 interface Props {
   opportunity: IncomeGuidance | null
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits<{
-  (e: 'run-cycle'): void
-}>()
+const emit = defineEmits<(e: 'run-cycle') => void>()
 
 const explanationLayer = computed(() => {
   if (!props.opportunity) return null

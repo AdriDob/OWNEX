@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils'
-import { X, Settings, RefreshCw, GripVertical } from '@lucide/vue'
+import { GripVertical, RefreshCw, Settings, X } from '@lucide/vue'
 import GlassCard from '@/components/ui/GlassCard.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import { cn } from '@/lib/utils'
 
 interface Props {
   widgetId: string

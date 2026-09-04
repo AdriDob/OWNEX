@@ -1,30 +1,62 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
-import { api, getRevenueMetrics, getEVRankedTargets, getPlatformsStatus } from '@/lib/api'
-import type { RevenueMetricsData, EVTarget, PlatformStatus } from '@/lib/api'
 import {
-  DollarSign, TrendingUp, TrendingDown, Target, Wallet, BarChart3,
-  Clock, CheckCircle2, XCircle, AlertCircle, Zap, Activity,
-  ArrowUpRight, ArrowDownRight, CircleDot, RefreshCw, Filter,
-  ChevronDown, ChevronUp, ExternalLink, Shield, Coins, PieChart,
-  Zap as ZapIcon, Loader2, RotateCcw, Settings, Search, MoreHorizontal,
-  Star, Flag, TriangleAlert, Crown, Gem, Zap as Zap2, Gauge, ShieldCheck, Layers
+  Activity,
+  AlertCircle,
+  ArrowDownRight,
+  ArrowUpRight,
+  BarChart3,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  CircleDot,
+  Clock,
+  Coins,
+  Crown,
+  DollarSign,
+  ExternalLink,
+  Filter,
+  Flag,
+  Gauge,
+  Gem,
+  Layers,
+  Loader2,
+  MoreHorizontal,
+  PieChart,
+  RefreshCw,
+  RotateCcw,
+  Search,
+  Settings,
+  Shield,
+  ShieldCheck,
+  Star,
+  Target,
+  TrendingDown,
+  TrendingUp,
+  TriangleAlert,
+  Wallet,
+  XCircle,
+  Zap,
+  Zap as Zap2,
+  Zap as ZapIcon,
 } from '@lucide/vue'
-import Card from '@/components/ui/Card.vue'
-import CardHeader from '@/components/ui/CardHeader.vue'
-import CardTitle from '@/components/ui/CardTitle.vue'
-import CardContent from '@/components/ui/CardContent.vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
-import Input from '@/components/ui/Input.vue'
-import Select from '@/components/ui/Select.vue'
-import LoadingState from '@/components/ui/LoadingState.vue'
-import ErrorState from '@/components/ui/ErrorState.vue'
-import EmptyState from '@/components/ui/EmptyState.vue'
+import Card from '@/components/ui/Card.vue'
+import CardContent from '@/components/ui/CardContent.vue'
+import CardHeader from '@/components/ui/CardHeader.vue'
+import CardTitle from '@/components/ui/CardTitle.vue'
 import DataTable from '@/components/ui/DataTable.vue'
-import Modal from '@/components/ui/Modal.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
+import ErrorState from '@/components/ui/ErrorState.vue'
+import Input from '@/components/ui/Input.vue'
 import KPIBlock from '@/components/ui/KPIBlock.vue'
+import LoadingState from '@/components/ui/LoadingState.vue'
+import Modal from '@/components/ui/Modal.vue'
+import Select from '@/components/ui/Select.vue'
 import { useToast } from '@/composables/useToast'
+import type { EVTarget, PlatformStatus, RevenueMetricsData } from '@/lib/api'
+import { api, getEVRankedTargets, getPlatformsStatus, getRevenueMetrics } from '@/lib/api'
 
 const { toast } = useToast()
 
@@ -100,7 +132,10 @@ async function refreshEVTargets() {
 
 function toggleSort(field: typeof sortField.value) {
   if (sortField.value === field) sortAsc.value = !sortAsc.value
-  else { sortField.value = field; sortAsc.value = false }
+  else {
+    sortField.value = field
+    sortAsc.value = false
+  }
 }
 
 // ── Computed ──
@@ -118,17 +153,16 @@ const filteredTargets = computed(() => {
   let list = [...evTargets.value]
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
-    list = list.filter(t =>
-      t.name.toLowerCase().includes(q) ||
-      t.domain.toLowerCase().includes(q) ||
-      t.platform.toLowerCase().includes(q)
+    list = list.filter(
+      (t) =>
+        t.name.toLowerCase().includes(q) || t.domain.toLowerCase().includes(q) || t.platform.toLowerCase().includes(q),
     )
   }
   if (platformFilter.value) {
-    list = list.filter(t => t.platform === platformFilter.value)
+    list = list.filter((t) => t.platform === platformFilter.value)
   }
   if (minEV.value > 0) {
-    list = list.filter(t => t.ev >= minEV.value)
+    list = list.filter((t) => t.ev >= minEV.value)
   }
   const dir = sortAsc.value ? 1 : -1
   return list.sort((a, b) => {
@@ -138,7 +172,7 @@ const filteredTargets = computed(() => {
   })
 })
 
-const platformsList = computed(() => [...new Set(evTargets.value.map(t => t.platform))].sort())
+const platformsList = computed(() => [...new Set(evTargets.value.map((t) => t.platform))].sort())
 
 const kpiCards = computed(() => {
   if (!capitalData.value) return []
@@ -151,12 +185,66 @@ const kpiCards = computed(() => {
   const platformSpeed = capitalData.value.platform_speed_days || {}
 
   return [
-    { label: 'Capital Total', value: `$${(payout.total_payout || 0).toLocaleString()}`, sub: `Pendiente: $${(payout.pending_total || 0).toLocaleString()}`, icon: DollarSign, color: 'text-success', bg: 'bg-success/10', trend: '+12%', trendIcon: ArrowUpRight },
-    { label: 'USD / Hora', value: `$${usdPerHour.toFixed(2)}`, sub: 'Basado en payouts históricos', icon: ZapIcon, color: 'text-warning', bg: 'bg-warning/10', trend: '+8%', trendIcon: ArrowUpRight },
-    { label: 'Findings Totales', value: String(cap.total_findings || 0), sub: `Críticos: ${cap.critical_count || 0} · High: ${cap.high_count || 0}`, icon: Target, color: 'text-destructive', bg: 'bg-destructive/10', trend: `${cap.recent_30d_findings || 0} (30d)`, trendIcon: Activity },
-    { label: 'Targets Activos', value: String(targets.total || 0), sub: `${targets.scanned_last_7d || 0} escaneados (7d)`, icon: Zap2, color: 'text-muted-foreground', bg: 'bg-muted/10', trend: `${Math.round((targets.scanned_last_7d || 0) / Math.max(targets.total || 1, 1) * 100)}% cobertura`, trendIcon: ArrowUpRight },
-    { label: 'Tasa Aceptación', value: `${((pipeline.submissions?.acceptance_rate || 0) * 100).toFixed(1)}%`, sub: `${pipeline.submissions?.accepted || 0}/${pipeline.submissions?.total || 0} aceptados`, icon: CheckCircle2, color: 'text-success', bg: 'bg-success/10', trend: 'vs mes anterior', trendIcon: ArrowUpRight },
-    { label: 'Programas Rastreados', value: String(econ.total_programs || 0), sub: `USD/h global: $${(econ.overall_usd_per_hour || 0).toFixed(2)}`, icon: Crown, color: 'text-intigriti', bg: 'bg-intigriti/10', trend: `${econ.overall_accepted_rate ? (econ.overall_accepted_rate * 100).toFixed(1) + '% accept' : ''}`, trendIcon: Gem },
+    {
+      label: 'Capital Total',
+      value: `$${(payout.total_payout || 0).toLocaleString()}`,
+      sub: `Pendiente: $${(payout.pending_total || 0).toLocaleString()}`,
+      icon: DollarSign,
+      color: 'text-success',
+      bg: 'bg-success/10',
+      trend: '+12%',
+      trendIcon: ArrowUpRight,
+    },
+    {
+      label: 'USD / Hora',
+      value: `$${usdPerHour.toFixed(2)}`,
+      sub: 'Basado en payouts históricos',
+      icon: ZapIcon,
+      color: 'text-warning',
+      bg: 'bg-warning/10',
+      trend: '+8%',
+      trendIcon: ArrowUpRight,
+    },
+    {
+      label: 'Findings Totales',
+      value: String(cap.total_findings || 0),
+      sub: `Críticos: ${cap.critical_count || 0} · High: ${cap.high_count || 0}`,
+      icon: Target,
+      color: 'text-destructive',
+      bg: 'bg-destructive/10',
+      trend: `${cap.recent_30d_findings || 0} (30d)`,
+      trendIcon: Activity,
+    },
+    {
+      label: 'Targets Activos',
+      value: String(targets.total || 0),
+      sub: `${targets.scanned_last_7d || 0} escaneados (7d)`,
+      icon: Zap2,
+      color: 'text-muted-foreground',
+      bg: 'bg-muted/10',
+      trend: `${Math.round(((targets.scanned_last_7d || 0) / Math.max(targets.total || 1, 1)) * 100)}% cobertura`,
+      trendIcon: ArrowUpRight,
+    },
+    {
+      label: 'Tasa Aceptación',
+      value: `${((pipeline.submissions?.acceptance_rate || 0) * 100).toFixed(1)}%`,
+      sub: `${pipeline.submissions?.accepted || 0}/${pipeline.submissions?.total || 0} aceptados`,
+      icon: CheckCircle2,
+      color: 'text-success',
+      bg: 'bg-success/10',
+      trend: 'vs mes anterior',
+      trendIcon: ArrowUpRight,
+    },
+    {
+      label: 'Programas Rastreados',
+      value: String(econ.total_programs || 0),
+      sub: `USD/h global: $${(econ.overall_usd_per_hour || 0).toFixed(2)}`,
+      icon: Crown,
+      color: 'text-intigriti',
+      bg: 'bg-intigriti/10',
+      trend: `${econ.overall_accepted_rate ? (econ.overall_accepted_rate * 100).toFixed(1) + '% accept' : ''}`,
+      trendIcon: Gem,
+    },
   ]
 })
 
@@ -233,7 +321,7 @@ const platformSpeedColumns = [
 
 const platformSpeedData = computed(() => {
   const speed = capitalData.value?.platform_speed_days || {}
-  return platforms.value.map(p => ({
+  return platforms.value.map((p) => ({
     platform: p.name,
     status: p.connected ? '🟢 Conectado' : '🔴 Desconectado',
     avg_days: speed[p.name] ? speed[p.name].toFixed(1) : '—',

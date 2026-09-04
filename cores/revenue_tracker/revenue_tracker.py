@@ -27,6 +27,25 @@ class PaymentStatus(Enum):
     CANCELLED = "cancelled"
 
 
+class RevenueState(Enum):
+    """Revenue lifecycle states - strict separation per Economic Rule §39.
+
+    EXPECTED: Pipeline projection, not yet committed
+    COMMITTED: Contracted/signed, delivery expected
+    EARNED: Work completed, invoice sent, awaiting payment
+    PENDING: Payment processing (in transit/verification)
+    PAID: Funds received, before fees/taxes
+    NET: After fees/taxes/FX - actual cash in hand
+    """
+
+    EXPECTED = "expected"
+    COMMITTED = "committed"
+    EARNED = "earned"
+    PENDING = "pending"
+    PAID = "paid"
+    NET = "net"
+
+
 class OpportunityStage(Enum):
     """Full pipeline state machine (Income Multiplier Fase A, spec §10).
 
@@ -204,6 +223,11 @@ class RevenueOpportunity:
     skills_required: list[str] = field(default_factory=list)
     url: str = ""
 
+    # Revenue State Tracking (Economic Rule §39)
+    # Expected → Committed → Earned → Pending → Paid → Net
+    revenue_state: str = "expected"  # expected, committed, earned, pending, paid, net
+    revenue_state_history: list[dict] = field(default_factory=list)
+
     def is_zero_barrier(self) -> bool:
         """Check if this opportunity has zero barriers (no interview, portfolio, experience required)"""
         return all(barrier == BarrierType.NONE for barrier in self.barriers)
@@ -211,6 +235,68 @@ class RevenueOpportunity:
     def get_potential_earnings(self) -> Decimal:
         """Get potential earnings (amount * success_rate)"""
         return self.amount * Decimal(str(self.success_rate))
+
+    def transition_revenue_state(self, new_state: str) -> bool:
+        """Transition revenue state with validation.
+
+        Valid transitions:
+        expected → committed → earned → pending → paid → net
+        Any state can go to: cancelled, failed
+        """
+        valid_states = {"expected", "committed", "earned", "pending", "paid", "net", "cancelled", "failed"}
+        if new_state not in valid_states:
+            return False
+
+        # Define valid transitions
+        valid_transitions = {
+            "expected": {"committed", "cancelled", "failed"},
+            "committed": {"earned", "paid", "cancelled", "failed"},
+            "earned": {"pending", "cancelled", "failed"},
+            "pending": {"paid", "failed"},
+            "paid": {"net", "failed"},  # net after fees/taxes
+            "net": {"failed"},  # chargeback/refund
+            "cancelled": set(),  # terminal
+            "failed": set(),  # terminal
+        }
+
+        if self.revenue_state in valid_transitions and new_state not in valid_transitions[self.revenue_state]:
+            return False
+
+        old_state = self.revenue_state
+        self.revenue_state = new_state
+        self.updated_at = datetime.now(UTC)
+        self.revenue_state_history.append(
+            {
+                "from": old_state,
+                "to": new_state,
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
+        )
+        return True
+
+    def get_expected_amount(self) -> Decimal:
+        """Get amount in EXPECTED state (pipeline projection)"""
+        return self.amount if self.revenue_state == "expected" else Decimal("0")
+
+    def get_committed_amount(self) -> Decimal:
+        """Get amount in COMMITTED state (contracted)"""
+        return self.amount if self.revenue_state == "committed" else Decimal("0")
+
+    def get_earned_amount(self) -> Decimal:
+        """Get amount in EARNED state (work completed)"""
+        return self.amount if self.revenue_state == "earned" else Decimal("0")
+
+    def get_pending_amount(self) -> Decimal:
+        """Get amount in PENDING state (payment processing)"""
+        return self.amount if self.revenue_state == "pending" else Decimal("0")
+
+    def get_paid_amount(self) -> Decimal:
+        """Get amount in PAID state (received, before fees)"""
+        return self.amount if self.revenue_state == "paid" else Decimal("0")
+
+    def get_net_amount(self) -> Decimal:
+        """Get amount in NET state (after fees/taxes)"""
+        return self.amount if self.revenue_state == "net" else Decimal("0")
 
 
 @dataclass
@@ -245,6 +331,12 @@ class RevenueMetrics:
     success_rate: float  # 0-1
     last_updated: datetime
     daily_targets: dict[str, Decimal] = field(default_factory=dict)
+    # Revenue state tracking (Economic Rule §39)
+    expected_amount: Decimal = Decimal("0")
+    committed_amount: Decimal = Decimal("0")
+    earned_amount: Decimal = Decimal("0")
+    paid_amount: Decimal = Decimal("0")
+    net_amount: Decimal = Decimal("0")
 
 
 @dataclass
@@ -296,12 +388,20 @@ class RevenueTracker:
         )
 
     def update_opportunity_status(
-        self, opportunity_id: str, new_status: PaymentStatus, transaction_data: dict[str, Any] = None
+        self, opportunity_id: str, new_status: PaymentStatus | str, transaction_data: dict[str, Any] | None = None
     ):
         """Update status of a revenue opportunity"""
         if opportunity_id not in self.opportunities:
             logger.error(f"Opportunity {opportunity_id} not found")
             return False
+
+        # Convert string to PaymentStatus enum if needed
+        if isinstance(new_status, str):
+            try:
+                new_status = PaymentStatus(new_status.lower())
+            except ValueError:
+                logger.error(f"Invalid status: {new_status}")
+                return False
 
         opportunity = self.opportunities[opportunity_id]
         old_status = opportunity.status
@@ -313,6 +413,19 @@ class RevenueTracker:
 
         logger.info(f"Updated opportunity {opportunity_id} status: {old_status} -> {new_status}")
 
+        # Transition revenue state based on payment status
+        if new_status == PaymentStatus.PAID and opportunity.revenue_state != "paid":
+            opportunity.transition_revenue_state("paid")
+        elif new_status == PaymentStatus.REVIEWING and opportunity.revenue_state == "expected":
+            opportunity.transition_revenue_state("committed")
+        elif new_status == PaymentStatus.ACCEPTED and opportunity.revenue_state == "committed":
+            opportunity.transition_revenue_state("earned")
+        elif new_status in (PaymentStatus.FAILED, PaymentStatus.CANCELLED):
+            opportunity.transition_revenue_state(getattr(new_status, "value", new_status).lower())
+        # Allow committed -> paid transition (direct payment after review)
+        elif new_status == PaymentStatus.PAID and opportunity.revenue_state == "committed":
+            opportunity.transition_revenue_state("paid")
+
         # Record metrics change
         self._update_metrics(opportunity)
 
@@ -321,8 +434,8 @@ class RevenueTracker:
             "opportunity.status_changed",
             **{
                 "opportunity_id": opportunity_id,
-                "old_status": old_status.value,
-                "new_status": new_status.value,
+                "old_status": getattr(old_status, "value", old_status),
+                "new_status": getattr(new_status, "value", new_status),
                 "updated_at": opportunity.updated_at.isoformat(),
                 "amount": opportunity.amount,
                 "currency": opportunity.currency,
@@ -478,9 +591,119 @@ class RevenueTracker:
         metrics.success_rate = (paid_opps / total_opps) if total_opps else 0.0
         metrics.last_updated = datetime.now(UTC)
 
+        # Add revenue state tracking
+        self._update_revenue_state_metrics(platform_key, currency)
+
     def get_platform_metrics(self, platform: str) -> RevenueMetrics | None:
         """Get revenue metrics for a specific platform"""
-        return self.metrics.get(platform)
+        return self.metrics.get(platform.lower())
+
+    def _update_revenue_state_metrics(self, platform_key: str, currency: str):
+        """Update revenue state metrics for a platform."""
+        # Get or create metrics
+        if platform_key not in self.metrics:
+            self.metrics[platform_key] = RevenueMetrics(
+                platform=platform_key,
+                currency=currency,
+                total_amount=Decimal("0"),
+                pending_amount=Decimal("0"),
+                completed_amount=Decimal("0"),
+                failed_amount=Decimal("0"),
+                average_processing_time=0.0,
+                success_rate=0.0,
+                last_updated=datetime.now(UTC),
+            )
+        metrics = self.metrics[platform_key]
+
+        # Reset state counters
+        expected_amount = Decimal("0")
+        committed_amount = Decimal("0")
+        earned_amount = Decimal("0")
+        pending_amount = Decimal("0")
+        paid_amount = Decimal("0")
+        net_amount = Decimal("0")
+
+        for opp in self.opportunities.values():
+            if opp.platform.lower() != platform_key:
+                continue
+            if opp.revenue_state == "expected":
+                expected_amount += opp.amount
+            elif opp.revenue_state == "committed":
+                committed_amount += opp.amount
+            elif opp.revenue_state == "earned":
+                earned_amount += opp.amount
+            elif opp.revenue_state == "pending":
+                pending_amount += opp.amount
+            elif opp.revenue_state == "paid":
+                paid_amount += opp.amount
+            elif opp.revenue_state == "net":
+                net_amount += opp.amount
+
+        # Update legacy fields for backward compatibility
+        metrics.pending_amount = expected_amount + committed_amount + earned_amount
+        metrics.completed_amount = paid_amount + net_amount
+        metrics.failed_amount = sum(
+            opp.amount
+            for opp in self.opportunities.values()
+            if opp.platform.lower() == platform_key and opp.revenue_state in {"cancelled", "failed"}
+        ) or Decimal("0")
+        metrics.total_amount = (
+            expected_amount + committed_amount + earned_amount + pending_amount + paid_amount + net_amount
+        )
+
+        # Store new revenue state metrics
+        metrics.expected_amount = getattr(metrics, "expected_amount", Decimal("0"))
+        metrics.committed_amount = getattr(metrics, "committed_amount", Decimal("0"))
+        metrics.earned_amount = getattr(metrics, "earned_amount", Decimal("0"))
+        metrics.pending_amount = pending_amount
+        metrics.paid_amount = getattr(metrics, "paid_amount", Decimal("0"))
+        metrics.net_amount = getattr(metrics, "net_amount", Decimal("0"))
+
+        metrics.last_updated = datetime.now(UTC)
+
+    def get_revenue_state_breakdown(self, platform: str | None = None) -> dict[str, Any]:
+        """Get revenue breakdown by state for a platform or all platforms."""
+        result: dict[str, Any] = {
+            "expected": Decimal("0"),
+            "committed": Decimal("0"),
+            "earned": Decimal("0"),
+            "pending": Decimal("0"),
+            "paid": Decimal("0"),
+            "net": Decimal("0"),
+            "cancelled": Decimal("0"),
+            "failed": Decimal("0"),
+        }
+
+        platforms = (
+            [platform]
+            if platform
+            else [p.lower() for p in set(opp.platform.lower() for opp in self.opportunities.values())]
+        )
+
+        for platform_key in platforms:
+            for opp in self.opportunities.values():
+                if opp.platform.lower() != platform_key:
+                    continue
+                state = opp.revenue_state
+                if state in result:
+                    result[state] += opp.amount
+
+        return result
+
+    def get_revenue_projection(self, platform: str | None = None) -> dict[str, Decimal]:
+        """Get revenue projection by state (expected + committed = pipeline)."""
+        breakdown = self.get_revenue_state_breakdown(platform)
+        pipeline = breakdown["expected"] + breakdown["committed"]
+        earned_not_paid = breakdown["earned"] + breakdown["pending"]
+        realized = breakdown["paid"] + breakdown["net"]
+
+        return {
+            "pipeline": pipeline,  # expected + committed
+            "earned_not_paid": earned_not_paid,  # earned + pending
+            "realized": realized,  # paid + net
+            "total_potential": pipeline + earned_not_paid + realized,
+            "breakdown": breakdown,
+        }
 
     def get_daily_summary(self, date: datetime | None = None) -> dict[str, Decimal]:
         """Get daily revenue summary"""
@@ -542,7 +765,50 @@ class RevenueTracker:
 
     def get_total_potential_earnings(self) -> Decimal:
         """Get total potential earnings from all opportunities"""
-        return sum(op.get_potential_earnings() for op in self.opportunities.values())
+        total = Decimal("0")
+        for op in self.opportunities.values():
+            total += op.get_potential_earnings()
+        return total
+
+    # ========== Missing methods for tests ==========
+
+    def health(self) -> dict[str, Any]:
+        """Health check for RevenueTracker"""
+        return {
+            "status": "healthy",
+            "opportunities_count": len(self.opportunities),
+            "transactions_count": len(self.transactions),
+            "payment_methods": len(self.payment_methods),
+            "platforms": list(self.metrics.keys()),
+        }
+
+    def available_methods(self) -> list[str]:
+        """Return list of available payment method IDs"""
+        return list(self.payment_methods.keys())
+
+    def discover(self, scored_opportunities: list, top_n: int = 5) -> list:
+        """Discover top revenue opportunities from scored list"""
+        sorted_opps = sorted(scored_opportunities, key=lambda x: x.get_potential_earnings(), reverse=True)
+        return sorted_opps[:top_n]
+
+    def process_payment_alias(
+        self,
+        opportunity_id: str,
+        platform: "PaymentPlatform",
+        method_id: str,
+        amount: Decimal,
+        currency: str,
+        exchange_rate: Decimal = Decimal("1.0"),
+    ) -> "PaymentTransaction | None":
+        """Process payment for a revenue opportunity - alias for process_payment with different signature"""
+        return self.process_payment(
+            opportunity_id=opportunity_id,
+            platform=platform,
+            method_id=method_id,
+            amount=amount,
+            currency=currency,
+            exchange_rate=exchange_rate,
+        )
 
 
 class RevenueAnalytics:

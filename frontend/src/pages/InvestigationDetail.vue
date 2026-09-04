@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { Activity, AlertTriangle, ArrowLeft, Calendar, FileText, RotateCw, Target, Trash2 } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import DoughnutChart from '@/components/charts/DoughnutChart.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import DoughnutChart from '@/components/charts/DoughnutChart.vue'
-import { ArrowLeft, AlertTriangle, RotateCw, Trash2, Activity, FileText, Target, Calendar } from '@lucide/vue'
+import { api } from '@/lib/api'
 
 interface StageProgress {
   name: string
@@ -56,8 +56,8 @@ const stageColors: Record<string, string> = {
   failed: 'bg-destructive',
 }
 
-const pipelineChartLabels = computed(() => investigation.value?.pipeline_stats?.map(s => s.stage) || [])
-const pipelineChartData = computed(() => investigation.value?.pipeline_stats?.map(s => s.count) || [])
+const pipelineChartLabels = computed(() => investigation.value?.pipeline_stats?.map((s) => s.stage) || [])
+const pipelineChartData = computed(() => investigation.value?.pipeline_stats?.map((s) => s.count) || [])
 
 const statusVariants: Record<string, 'default' | 'success' | 'warning' | 'destructive'> = {
   active: 'success',

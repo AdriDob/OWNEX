@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { Activity, AlertTriangle, ArrowLeft, CheckCircle2, Clock, Loader2, RefreshCw, User, XCircle } from '@lucide/vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import { BarChart, LineChart } from '@/components/charts'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { BarChart, LineChart } from '@/components/charts'
-import { ArrowLeft, AlertTriangle, RefreshCw, Clock, User, CheckCircle2, XCircle, Loader2, Activity } from '@lucide/vue'
+import { api } from '@/lib/api'
 
 interface StageEntry {
   from_state: string
@@ -39,16 +39,43 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 let interval: ReturnType<typeof setInterval> | null = null
 
-const STATE_ORDER = ['pending', 'discovery', 'validation', 'evidence', 'ai_review', 'ready', 'submitted', 'triaged', 'paid', 'closed']
+const STATE_ORDER = [
+  'pending',
+  'discovery',
+  'validation',
+  'evidence',
+  'ai_review',
+  'ready',
+  'submitted',
+  'triaged',
+  'paid',
+  'closed',
+]
 const STATE_LABELS: Record<string, string> = {
-  pending: 'Pending', discovery: 'Discovery', validation: 'Validation', evidence: 'Evidence',
-  ai_review: 'AI Review', ready: 'Ready', submitted: 'Submitted', triaged: 'Triaged',
-  paid: 'Paid', closed: 'Closed',
+  pending: 'Pending',
+  discovery: 'Discovery',
+  validation: 'Validation',
+  evidence: 'Evidence',
+  ai_review: 'AI Review',
+  ready: 'Ready',
+  submitted: 'Submitted',
+  triaged: 'Triaged',
+  paid: 'Paid',
+  closed: 'Closed',
 }
 const STATE_COLORS: Record<string, string> = {
-  pending: '#6b7280', discovery: '#ffffff', validation: '#9CA3AF', evidence: '#D97706',
-  ai_review: '#16A34A', ready: '#16A34A', submitted: '#9CA3AF', triaged: '#D97706',
-  paid: '#9CA3AF', closed: '#16A34A', failed: '#00d5ff', cancelled: '#6b7280',
+  pending: '#6b7280',
+  discovery: '#ffffff',
+  validation: '#9CA3AF',
+  evidence: '#D97706',
+  ai_review: '#16A34A',
+  ready: '#16A34A',
+  submitted: '#9CA3AF',
+  triaged: '#D97706',
+  paid: '#9CA3AF',
+  closed: '#16A34A',
+  failed: '#00d5ff',
+  cancelled: '#6b7280',
 }
 
 async function fetchPipeline() {
@@ -69,16 +96,18 @@ function stateProgress(state: string) {
 
 const stageProgressionData = computed(() => {
   if (!pipeline.value) return { labels: [], datasets: [] }
-  const labels = STATE_ORDER.map(s => STATE_LABELS[s] || s)
+  const labels = STATE_ORDER.map((s) => STATE_LABELS[s] || s)
   const currentIdx = STATE_ORDER.indexOf(pipeline.value.state)
-  const data = STATE_ORDER.map((_, i) => i <= currentIdx ? 1 : 0)
+  const data = STATE_ORDER.map((_, i) => (i <= currentIdx ? 1 : 0))
   return {
     labels,
-    datasets: [{
-      label: 'Completado',
-      data: data.map(v => v * 100),
-      backgroundColor: data.map(v => v ? 'rgba(22,163,74,0.7)' : 'rgba(107,114,128,0.3)'),
-    }],
+    datasets: [
+      {
+        label: 'Completado',
+        data: data.map((v) => v * 100),
+        backgroundColor: data.map((v) => (v ? 'rgba(22,163,74,0.7)' : 'rgba(107,114,128,0.3)')),
+      },
+    ],
   }
 })
 
@@ -86,15 +115,17 @@ const qualityMetricsData = computed(() => {
   if (!pipeline.value) return { labels: [], datasets: [] }
   return {
     labels: ['Calidad', 'Progreso', 'Retries (inv)'],
-    datasets: [{
-      label: 'Métrica',
-      data: [
-        pipeline.value.quality_score * 100,
-        stateProgress(pipeline.value.state),
-        Math.max(0, 100 - pipeline.value.retries * 20),
-      ],
-      backgroundColor: ['rgba(22,163,74,0.7)', 'rgba(255, 255, 255,0.7)', 'rgba(217, 119, 6,0.7)'],
-    }],
+    datasets: [
+      {
+        label: 'Métrica',
+        data: [
+          pipeline.value.quality_score * 100,
+          stateProgress(pipeline.value.state),
+          Math.max(0, 100 - pipeline.value.retries * 20),
+        ],
+        backgroundColor: ['rgba(22,163,74,0.7)', 'rgba(255, 255, 255,0.7)', 'rgba(217, 119, 6,0.7)'],
+      },
+    ],
   }
 })
 

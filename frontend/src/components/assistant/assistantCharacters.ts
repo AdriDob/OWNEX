@@ -104,18 +104,18 @@ export const assistants: AssistantCharacter[] = [
     messages: [
       '¡This is fine! 🔥 But seriously, set a stop loss. Always. No exceptions.',
       'Bro, I found a memecoin with 420x potential. DYOR, but the chart looks... interesting. 🐸',
-      '50% chance moon, 50% chance -99%. That\'s the Pepe way. You in?',
-      'Stonks only go up! ... Wait, no, that\'s not true. Stonks go up, down, left, right, and sometimes diagonal.',
+      "50% chance moon, 50% chance -99%. That's the Pepe way. You in?",
+      "Stonks only go up! ... Wait, no, that's not true. Stonks go up, down, left, right, and sometimes diagonal.",
       'Pepe says: degen a little, but never more than you can afford to lose. 🐸💚',
-      'I\'ve seen things. Rug pulls that would make you cry. Always check the liquidity pool.',
-      'Today\'s play: 0.1 ETH into that new frog coin. If it hits, lambo. If not, ramen. LFG!',
+      "I've seen things. Rug pulls that would make you cry. Always check the liquidity pool.",
+      "Today's play: 0.1 ETH into that new frog coin. If it hits, lambo. If not, ramen. LFG!",
     ],
     context: ['memecoins', 'trading', 'money-radar', 'high-risk'],
   },
 ]
 
 export function getAssistantForContext(context: string): AssistantCharacter[] {
-  return assistants.filter(a => a.context.includes(context))
+  return assistants.filter((a) => a.context.includes(context))
 }
 
 export function getRandomMessage(assistant: AssistantCharacter): string {
@@ -123,5 +123,5 @@ export function getRandomMessage(assistant: AssistantCharacter): string {
 }
 
 export function getById(id: string): AssistantCharacter | undefined {
-  return assistants.find(a => a.id === id)
+  return assistants.find((a) => a.id === id)
 }

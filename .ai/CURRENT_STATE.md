@@ -1,3 +1,31 @@
+## Sesión 2026-08-30 — 11 FEATURES DE PRODUCTIVIDAD/AUTOMATIZACIÓN (FEATURE SET FASE_40)
+
+> **QUÉ SE HIZO:** Implementación completa de las 11 features propuestas con tests, lint y registro.
+> - **1. Auto-Submission Engine**: `core/opportunity/executors/auto_submit.py` — delivery real por API con idempotency keys, retry con backoff exponencial, DLQ y polling de confirmación. Endpoints `/direct-work/workbank/{id}/submit`, `/submissions`, `/submissions/{id}`. **Fix de path**: los getters de plataformas importaban `core.platforms.*` (inexistente) → `cores.platforms.*`; cola de submissions ahora data-dir aware (`OWNEX_DATA_DIR`/`~/.ownex`, inyectable para tests).
+> - **2. Dev Bounty Automation**: `core/opportunity/executors/dev_bounty_automation.py` — orquesta WorkBank → CoderAgent → AutoSubmit con control de concurrencia y resumen por lote.
+> - **3. Real-time Webhooks**: `api/routers/platform_webhooks.py` — `/webhook/{platform}` con verificación HMAC, normalización de eventos (payout_received/submission_status) → RevenueTracker + AutoSubmit.
+> - **4. Validación siempre-on**: `cores/validation/loop_engine.py` se mantiene con el contradiction-runner integrado en todo finding confirmado (suite original intacta).
+> - **5. Knowledge Graph UI**: router `/api/knowledge-graph/*` sobre el singleton canónico `core.knowledge.graph` + `KnowledgeGraphExplorer.vue` (Cytoscape, layout, filtros, búsqueda, export JSON/PNG).
+> - **6. Training Pipeline**: `cores/learning/training_pipeline.py` + `/api/training/*` — recursos curados + ejercicios verificables (PortSwigger, etc.) + progreso persistido.
+> - **7. Tax/Compliance**: `cores/compliance/tax_automation.py` — W-8BEN, W-9, AFIP Facturas A/B/C, deadlines US/AR, summary anual. Persistencia JSON con dumper recursivo (dataclasses/enums/fechas).
+> - **8. Team/Org Mode**: `cores/team/org.py` + `/api/team/*` — roles, invites, revenue splits (deben sumar 100), approval workflow, recursos compartidos por rol.
+> - **9. Finding Marketplace**: `cores/marketplace/finding_market.py` + `/api/marketplace/*` — listings, offers, counter, escrow/transacciones, reputación.
+> - **10. Predictive Prioritizer**: `cores/learning/predictive_prioritizer.py` + `/api/predictive/*` — pronóstico 7 días con P(accepted) empírica (PAID/ACCEPTED=win, FAILED/CANCELLED=loss) clamped [0.05-0.95], UNKNOWN honesto (0.5 etiquetado), velocidad de pago desde RevenueMetrics.
+> - **11. Quick Capture + Hotkeys**: `cores/intake/quick_capture.py` + `/api/quick-capture/*` + `QuickCapture.vue` + `useGlobalHotkeys.ts` (Ctrl+Shift+O/P). Captura→enriquecimiento del URL→Work Bank (best-effort).
+> - **Verificación**: 60 tests nuevos verdes (auto_submit 7, finding_market 12, team 12, tax 9, training 6, predictive 7, quick_capture 9) sed **144 passed** en la combinada con la suite DWE existente; ruff limpio en 14 archivos; `import api.main` OK; `vue-tsc` 0 errores; `vite build` OK (~14s).
+> - **Bugs reales encontrados y corregidos por los tests**: field ordering en dataclasses de marketplace; `day+7` estalla a fin de mes (→ timedelta) en marketplace y team; roundtrip JSON de dataclasses anidados (tax/team) → dumper recursivo; path `core.platforms.*` inexistente en auto_submit; `_FakeVault({})` con `keys or default` en tests.
+> - **Frontend**: rutas `/knowledge/graph` y `/quick-capture` + entrada "Knowledge Graph" en sidebar INTELIGENCIA; dependencias cytoscape/cose-bilkent/dagre.
+
+## Sesión 2026-08-28 — DEV BOUNTY PIPELINE E2E: pipeline autónomo + API + tests
+
+> **QUÉ SE HIZO:** Pipeline autónomo end-to-end para bounties de desarrollo (freelancer, opire, issuehunt, mindrift, outlier).
+> - **core/autonomy/dev_bounty_pipeline.py**: `DevBountyPipeline` con 6 fases: clone repo → analyze issue → generate fix → run tests → create PR → submit work via platform executor.
+> - **core/autonomy/__init__.py**: exportaciones públicas añadidas (`DevBountyPipeline`, `DevBountyPipelineConfig`, `DevBountyPipelineResult`, `get_dev_bounty_pipeline`).
+> - **api/routers/dev_bounty.py**: 5 endpoints REST (`/execute`, `/config`, `/executors`, `/health`).
+> - **api/main.py**: router `dev_bounty` montado en `/dev-bounty`.
+> - **tests/test_dev_bounty_pipeline.py**: 8 tests (inicialización, singleton, config defaults, custom config, executors, get_executor, result structure).
+> - **Verificación**: 388 tests pasan (8 nuevos), frontend build OK, TypeScript clean, ruff limpio, API health 200 con 5 executors registrados.
+
 ## Sesión 2026-08-26 (cont. 2) — CAPITAL SPINE + FREQTRADE INTEGRATION: Atlas fix, sync→PayoutRecord, unified snapshot, freqtrade 2026.7
 
 > **QUÉ SE HIZO:** Completadas Fases 1a-1c del plan capital + integración freqtrade.

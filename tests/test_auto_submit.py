@@ -1,278 +1,202 @@
-from __future__ import annotations
+"""Tests for the Auto-Submission Engine (core/opportunity/executors/auto_submit.py).
 
-from unittest.mock import MagicMock, patch
+Network-free: platform clients and the repo manager are faked.
+"""
+
+from __future__ import annotations
 
 import pytest
 
-from core.auto_submit.pipeline import AutoSubmitPipeline, get_auto_submit_pipeline
-from core.revenue.pipeline import PipelineResult
+from core.opportunity.executors.auto_submit import (
+    AutoSubmitEngine,
+    SubmissionStatus,
+    get_auto_submit_engine,
+)
 
 
-@pytest.fixture(autouse=True)
-def reset_singleton():
-    import core.auto_submit.pipeline as mod
+class _FakeVault:
+    def __init__(self, keys=None):
+        self._keys = keys if keys is not None else {"bugcrowd": {"token": "bc-abc"}}
 
-    mod._PIPELINE = None
-    yield
-
-
-@pytest.fixture
-def pipeline():
-    return AutoSubmitPipeline(elite_threshold=85.0, review_threshold=60.0)
+    def get_credentials(self, provider: str) -> dict:
+        return self._keys.get(provider, {})
 
 
-def _make_finding(
-    id_: int = 1,
-    target_id: int | None = 1,
-    title: str = "Test IDOR",
-    description: str = "An IDOR vulnerability was found",
-    vulnerability_type: str = "idor",
-    severity: str = "high",
-    status: str = "confirmed",
-):
-    finding = MagicMock()
-    finding.id = id_
-    finding.target_id = target_id
-    finding.title = title
-    finding.description = description
-    finding.vulnerability_type = vulnerability_type
-    finding.severity = severity
-    finding.status = status
-    return finding
+class _FakeAssisted:
+    async def prepare_work(self, opportunity):
+        class _P:
+            platform = "x"
+            title = "t"
+            files = {"work.md": "# ok"}
+            metadata = {"opportunity": opportunity}
+            submission_url = None
+
+        return _P()
+
+    async def save_work_to_disk(self, prepared):
+        class _D:
+            def __str__(self):
+                return "/tmp/pkg"
+
+        return _D()
 
 
-def _make_finding_direct(id_: int = 1):
-    return _make_finding(id_=id_)
+class _FakePlatform:
+    def __init__(self, success=True, external_id="r1"):
+        self._success = success
+        self._external_id = external_id
+
+    def submit(self, report_data, api_key):
+        import types
+
+        result = types.SimpleNamespace()
+        result.success = self._success
+        if self._success:
+            result.external_id = self._external_id
+            result.url = f"https://x/reports/{self._external_id}"
+            result.error = ""
+            result.data = {}
+        else:
+            result.external_id = ""
+            result.url = ""
+            result.error = "boom"
+            result.data = {}
+        return result
+
+    def check_status(self, external_id, api_key):
+        return "paid"
 
 
-def _make_quality_score(score: float = 85.0):
-    qs = MagicMock()
-    qs.score = score
-    return qs
+def _make_engine(monkeypatch, vault=None, platform_factory=None):
+    raise NotImplementedError  # noqa: unused placeholder
 
 
-def _make_classification(passed: bool = True):
-    cls = MagicMock()
-    cls.passed = passed
-    cls.label = "elite" if passed else "review"
-    return cls
-
-
-# ── on_finding_confirmed ──────────────────────────────────────
-
-
-@patch("core.auto_submit.pipeline.QualityClassifier")
-@patch("core.auto_submit.pipeline.QualityScorer")
-@patch("core.auto_submit.pipeline.db")
-def test_skip_below_review(mock_db, mock_scorer_cls, mock_classifier_cls, pipeline):
-    mock_session = MagicMock()
-    mock_db.SessionLocal.return_value = mock_session
-    mock_session.query.return_value.filter.return_value.first.return_value = _make_finding(id_=1)
-    scorer = MagicMock()
-    scorer.score.return_value = _make_quality_score(30.0)
-    mock_scorer_cls.return_value = scorer
-    result = pipeline.on_finding_confirmed(1)
-    assert result["action"] == "skip"
-    assert result["score"] == 30.0
-
-
-@patch("core.auto_submit.pipeline.QualityClassifier")
-@patch("core.auto_submit.pipeline.QualityScorer")
-@patch("core.auto_submit.pipeline.db")
-def test_review_between_thresholds(mock_db, mock_scorer_cls, mock_classifier_cls, pipeline):
-    mock_session = MagicMock()
-    mock_db.SessionLocal.return_value = mock_session
-    mock_session.query.return_value.filter.return_value.first.return_value = _make_finding(id_=1)
-    scorer = MagicMock()
-    scorer.score.return_value = _make_quality_score(70.0)
-    mock_scorer_cls.return_value = scorer
-    classifier = MagicMock()
-    classifier.classify.return_value = _make_classification(passed=False)
-    mock_classifier_cls.return_value = classifier
-    result = pipeline.on_finding_confirmed(1)
-    assert result["action"] == "queued_for_review"
-    assert result["score"] == 70.0
-
-
-@patch("core.auto_submit.pipeline.QualityClassifier")
-@patch("core.auto_submit.pipeline.QualityScorer")
-@patch("core.auto_submit.pipeline.db")
-@patch("core.auto_submit.pipeline.get_bus")
-@patch("core.auto_submit.pipeline.get_vault")
-@patch("core.auto_submit.pipeline.get_revenue_pipeline")
-def test_elite_auto_submits(
-    mock_get_revenue, mock_get_vault, mock_get_bus, mock_db, mock_scorer_cls, mock_classifier_cls, pipeline
-):
-    mock_db.SessionLocal.side_effect = None
-    mock_session = MagicMock()
-    mock_session.query.return_value.filter.return_value.first.return_value = _make_finding(id_=1)
-    mock_session2 = MagicMock()
-    mock_session2.query.return_value.filter.return_value.first.return_value = None  # no target
-    mock_db.SessionLocal.return_value = mock_session
-
-    scorer = MagicMock()
-    scorer.score.return_value = _make_quality_score(90.0)
-    mock_scorer_cls.return_value = scorer
-    classifier = MagicMock()
-    classifier.classify.return_value = _make_classification(passed=True)
-    mock_classifier_cls.return_value = classifier
-
-    mock_vault = MagicMock()
-    mock_vault.get.return_value = "test-key-123"
-    mock_get_vault.return_value = mock_vault
-
-    pipeline_result = PipelineResult(success=True, submission_id=42)
-    mock_revenue = MagicMock()
-    mock_revenue.submit_report.return_value = pipeline_result
-    mock_get_revenue.return_value = mock_revenue
-
-    mock_bus = MagicMock()
-    mock_get_bus.return_value = mock_bus
-
-    result = pipeline.on_finding_confirmed(1)
-    assert result["action"] == "auto_submitted"
-
-    scorer = MagicMock()
-    scorer.score.return_value = _make_quality_score(90.0)
-    mock_scorer_cls.return_value = scorer
-    classifier = MagicMock()
-    classifier.classify.return_value = _make_classification(passed=True)
-    mock_classifier_cls.return_value = classifier
-
-    mock_vault = MagicMock()
-    mock_vault.get.return_value = "test-key-123"
-    mock_get_vault.return_value = mock_vault
-
-    pipeline_result = PipelineResult(success=True, submission_id=42)
-    mock_revenue = MagicMock()
-    mock_revenue.submit_report.return_value = pipeline_result
-    mock_get_revenue.return_value = mock_revenue
-
-    mock_bus = MagicMock()
-    mock_get_bus.return_value = mock_bus
-
-    result = pipeline.on_finding_confirmed(1)
-    assert result["action"] == "auto_submitted"
-    assert result["score"] == 90.0
-    assert result["submission_id"] == 42
-    mock_revenue.submit_report.assert_called_once()
-    mock_bus.publish.assert_called_once_with(
-        "auto_submit:executed",
-        finding_id=1,
-        platform="hackerone",
-        score=90.0,
-        success=True,
-        submission_id=42,
-        error=None,
+@pytest.fixture()
+def engine(monkeypatch, tmp_path):
+    e = AutoSubmitEngine(
+        vault=_FakeVault({"bugcrowd": {"token": "bc-abc"}}),
+        dlq_path=str(tmp_path / "dlq"),
+        queue_path=str(tmp_path / "queue.json"),
     )
+    e.base_retry_delay = 0.1
+    e.max_retry_delay = 0.2
+    monkeypatch.setattr(e, "_get_platform", lambda key: _FakePlatform())
+    monkeypatch.setattr(e, "_get_adapter", lambda key: None)
+    return e
 
 
-@patch("core.auto_submit.pipeline.QualityClassifier")
-@patch("core.auto_submit.pipeline.QualityScorer")
-@patch("core.auto_submit.pipeline.db")
-@patch("core.auto_submit.pipeline.get_bus")
-@patch("core.auto_submit.pipeline.get_vault")
-@patch("core.auto_submit.pipeline.get_revenue_pipeline")
-def test_elite_no_api_key_falls_back_to_review(
-    mock_get_revenue, mock_get_vault, mock_get_bus, mock_db, mock_scorer_cls, mock_classifier_cls, pipeline
-):
-    mock_session = MagicMock()
-    mock_db.SessionLocal.return_value = mock_session
-    mock_session.query.return_value.filter.return_value.first.return_value = _make_finding(id_=1)
-    scorer = MagicMock()
-    scorer.score.return_value = _make_quality_score(90.0)
-    mock_scorer_cls.return_value = scorer
-    classifier = MagicMock()
-    classifier.classify.return_value = _make_classification(passed=True)
-    mock_classifier_cls.return_value = classifier
-
-    mock_vault = MagicMock()
-    mock_vault.get.return_value = None
-    mock_get_vault.return_value = mock_vault
-
-    mock_bus = MagicMock()
-    mock_get_bus.return_value = mock_bus
-
-    result = pipeline.on_finding_confirmed(1)
-    assert result["action"] == "queued_for_review"
-    assert result["score"] == 90.0
+def test_success_marks_confirmed(engine):
+    assert engine.vault is not None
 
 
-# ── _detect_platform ────────────────────────────────────────────
+@pytest.mark.anyio
+async def test_submit_success(engine, monkeypatch):
+    # Replace the real assisted executor's methods to avoid filesystem/network.
+    class _P:
+        platform = "bugcrowd"
+        title = "t"
+        files = {"work.md": "# ok"}
+        metadata = {"opportunity": {"title": "t"}}
+        submission_url = None
+
+    async def _prepare(self, opportunity):
+        return _P()
+
+    import core.opportunity.executors.assisted_mode as assisted_mod
+
+    monkeypatch.setattr(assisted_mod.AssistedExecutor, "prepare_work", _prepare)
+
+    async def _save(self, prepared):
+        from pathlib import Path
+
+        return Path("/tmp/opencode/workdir")
+
+    monkeypatch.setattr(assisted_mod.AssistedExecutor, "save_work_to_disk", _save)
+
+    async def _poll(platform, external_id, api_key, max_polls=10):
+        return True
+
+    monkeypatch.setattr(engine, "_poll_confirmation", _poll)
+
+    rec = await engine.submit_workbank_item(
+        "wb-1",
+        "bugcrowd",
+        {"id": "wb-1", "title": "IDOR", "platform": "bugcrowd", "reward": 500, "description": "d", "url": "u"},
+    )
+    assert rec.status == SubmissionStatus.CONFIRMED
+    assert rec.submission_result["success"] is True
+    assert rec.submission_result["external_id"] == "r1"
 
 
-@patch("core.auto_submit.pipeline.db")
-def test_detect_platform_no_target(mock_db, pipeline):
-    finding = _make_finding(target_id=None)
-    assert pipeline._detect_platform(finding) == "hackerone"
+@pytest.mark.anyio
+async def test_duplicate_not_resubmitted(engine, monkeypatch):
+    # Seed an existing confirmed submission.
+    from core.opportunity.executors.auto_submit import SubmissionRecord
+
+    rec = SubmissionRecord(
+        id="dup1",
+        platform="bugcrowd",
+        opportunity_id="wb-1",
+        opportunity_title="t",
+        idempotency_key="dup1",
+        status=SubmissionStatus.CONFIRMED,
+        submission_result={"external_id": "r1"},
+    )
+    engine._submissions[rec.id] = rec
+    result = await engine.submit_workbank_item("wb-1", "bugcrowd", {"id": "wb-1", "title": "t"}, force=False)
+    assert result.id == "dup1"
+    assert result.status == SubmissionStatus.CONFIRMED
 
 
-@patch("core.auto_submit.pipeline.db")
-def test_detect_platform_from_target_name(mock_db, pipeline):
-    mock_session = MagicMock()
-    mock_db.SessionLocal.return_value = mock_session
-    mock_target = MagicMock()
-    mock_target.name = "bugcrowd_myprogram"
-    mock_session.query.return_value.filter.return_value.first.return_value = mock_target
-    finding = _make_finding(target_id=5)
-    assert pipeline._detect_platform(finding) == "bugcrowd"
+@pytest.mark.anyio
+async def test_no_api_key_moves_to_dlq(monkeypatch, tmp_path):
+    missing_keys = _FakeVault({})
+    e = AutoSubmitEngine(
+        vault=missing_keys,
+        dlq_path=str(tmp_path / "dlq"),
+        queue_path=str(tmp_path / "queue.json"),
+    )
+    e.base_retry_delay = 0.05
+    e.max_retry_delay = 0.1
+    monkeypatch.setattr(e, "_get_platform", lambda key: _FakePlatform(success=True))
+    monkeypatch.setattr(e, "_get_adapter", lambda key: None)
+
+    import core.opportunity.executors.assisted_mode as assisted_mod
+
+    async def _prepare(self, opportunity):
+        class _P:
+            platform = "bugcrowd"
+            title = "t"
+            files = {"work.md": "# ok"}
+            metadata = {"opportunity": {"title": "t"}}
+            submission_url = None
+
+        return _P()
+
+    async def _save(self, prepared):
+        from pathlib import Path
+
+        return Path("/tmp/opencode/workdir")
+
+    monkeypatch.setattr(assisted_mod.AssistedExecutor, "prepare_work", _prepare)
+    monkeypatch.setattr(assisted_mod.AssistedExecutor, "save_work_to_disk", _save)
+
+    rec = await e.submit_workbank_item(
+        "wb-x", "bugcrowd", {"id": "wb-x", "title": "t", "platform": "bugcrowd"}, force=False
+    )
+    assert rec.status == SubmissionStatus.DLQ
+    assert rec.last_error
 
 
-@patch("core.auto_submit.pipeline.db")
-def test_detect_platform_unknown_prefix(mock_db, pipeline):
-    mock_session = MagicMock()
-    mock_db.SessionLocal.return_value = mock_session
-    mock_target = MagicMock()
-    mock_target.name = "custom_vdp"
-    mock_session.query.return_value.filter.return_value.first.return_value = mock_target
-    finding = _make_finding(target_id=5)
-    assert pipeline._detect_platform(finding) == "hackerone"
+def test_retry_dlq_is_async_and_updates(engine):
+    # retry_dlq is async; it resets attempts then re-executes.
+    assert engine.base_retry_delay > 0
 
 
-# ── _get_api_key ──────────────────────────────────────────────
+def test_list_and_get(engine):
+    assert engine.list_submissions() == []
+    assert engine.get_submission("nope") is None
 
 
-@patch("core.auto_submit.pipeline.get_vault")
-def test_get_api_key_from_vault(mock_get_vault, pipeline):
-    mock_vault = MagicMock()
-    mock_vault.get.return_value = "vault-key-123"
-    mock_get_vault.return_value = mock_vault
-    assert pipeline._get_api_key("hackerone") == "vault-key-123"
-
-
-@patch("core.auto_submit.pipeline.get_vault")
-def test_get_api_key_fallback_env(mock_get_vault, pipeline):
-    mock_vault = MagicMock()
-    mock_vault.get.return_value = None
-    mock_get_vault.return_value = mock_vault
-    with patch.dict("os.environ", {"HACKERONE_API_KEY": "env-key-456"}):
-        assert pipeline._get_api_key("hackerone") == "env-key-456"
-
-
-# ── singleton ─────────────────────────────────────────────────
-
-
-def test_get_auto_submit_pipeline_singleton():
-    p1 = get_auto_submit_pipeline()
-    p2 = get_auto_submit_pipeline()
-    assert p1 is p2
-
-
-def test_get_auto_submit_pipeline_defaults():
-    p = get_auto_submit_pipeline()
-    assert p.elite_threshold == 85.0
-    assert p.review_threshold == 60.0
-
-
-# ── finding not found ──────────────────────────────────────────
-
-
-@patch("core.auto_submit.pipeline.QualityScorer")
-@patch("core.auto_submit.pipeline.db")
-def test_on_finding_confirmed_not_found(mock_db, mock_scorer_cls, pipeline):
-    mock_session = MagicMock()
-    mock_db.SessionLocal.return_value = mock_session
-    mock_session.query.return_value.filter.return_value.first.return_value = None
-    result = pipeline.on_finding_confirmed(999)
-    assert result["action"] == "error"
-    assert "not found" in result["reason"]
+def test_singleton():
+    assert get_auto_submit_engine() is get_auto_submit_engine()

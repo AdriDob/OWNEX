@@ -66,7 +66,7 @@ def list_metric_events(
 
 @router.get("/metrics/summary")
 def get_metric_summary(
-    granularity: str = Query("daily", regex="^(hourly|daily)$"),
+    granularity: str = Query("daily", pattern="^(hourly|daily)$"),
     module: str | None = Query(None),
     limit: int = Query(30, ge=1, le=365),
 ):

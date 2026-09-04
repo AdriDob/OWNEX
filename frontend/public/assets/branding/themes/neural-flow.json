@@ -47,7 +47,17 @@
   "audio": {
     "profile": "synaptic",
     "volume": 0.55,
-    "enabled": ["startup", "shutdown", "success", "error", "hover", "click", "agent_thinking", "mission_completed", "new_opportunity"]
+    "enabled": [
+      "startup",
+      "shutdown",
+      "success",
+      "error",
+      "hover",
+      "click",
+      "agent_thinking",
+      "mission_completed",
+      "new_opportunity"
+    ]
   },
   "visualization": {
     "coreColor": "#9C64FF",

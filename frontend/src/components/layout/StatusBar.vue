@@ -38,12 +38,15 @@ onUnmounted(() => {
   clearInterval(intervalId)
 })
 
-const statusConfig = computed(() => ({
-  healthy: { label: 'SISTEMA OPERATIVO', variant: 'success' as const, dot: true },
-  degraded: { label: 'DEGRADADO', variant: 'warning' as const, dot: true },
-  critical: { label: 'CRÍTICO', variant: 'error' as const, dot: true },
-  offline: { label: 'DESCONECTADO', variant: 'default' as const, dot: false },
-})[props.systemStatus])
+const statusConfig = computed(
+  () =>
+    ({
+      healthy: { label: 'SISTEMA OPERATIVO', variant: 'success' as const, dot: true },
+      degraded: { label: 'DEGRADADO', variant: 'warning' as const, dot: true },
+      critical: { label: 'CRÍTICO', variant: 'error' as const, dot: true },
+      offline: { label: 'DESCONECTADO', variant: 'default' as const, dot: false },
+    })[props.systemStatus],
+)
 
 const formattedTime = computed(() =>
   time.value.toLocaleTimeString('es-ES', {
@@ -51,7 +54,7 @@ const formattedTime = computed(() =>
     minute: '2-digit',
     second: '2-digit',
     hour12: false,
-  })
+  }),
 )
 
 const formattedDate = computed(() =>
@@ -59,7 +62,7 @@ const formattedDate = computed(() =>
     weekday: 'short',
     day: 'numeric',
     month: 'short',
-  })
+  }),
 )
 </script>
 

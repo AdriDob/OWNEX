@@ -73,12 +73,14 @@
               </div>
               <div class="message-body">
                 <p class="greeting">{{ greeting }}</p>
-                <p class="description">INICIALIZANDO INTERFAZ JARVIS...</p>
+                <p class="description" v-if="systemHealth > 0">SISTEMA OPERATIVO — Salud: {{ systemHealth }}% · {{ activeTargets }} targets activos · {{ workBankReady }} listos para entregar</p>
+                <p class="description" v-else>INICIALIZANDO INTERFAZ JARVIS...</p>
                 <p class="description">READY TO ASSIST WITH:</p>
                 <ul class="capabilities-list">
                   <li v-for="capability in capabilities" :key="capability">{{ capability }}</li>
                 </ul>
-                <p class="prompt">AWAITING INPUT...</p>
+                <p class="prompt" v-if="topOpportunity">💡 Top oportunidad: {{ topOpportunity.title }} ({{ topOpportunity.platform }}) — ${{ topOpportunity.reward }} · {{ topOpportunity.ev_per_hour.toFixed(0) }}/h</p>
+                <p class="prompt" v-else>AWAITING INPUT...</p>
               </div>
             </div>
           </div>
@@ -217,9 +219,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
 import axios from 'axios'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import VoiceAssistantRecorder from '@/components/voice/VoiceAssistantRecorder.vue'
+import { fetchGoodMorning, fetchDirectWorkWorkBank, fetchOwnexDashboard, fetchDirectWorkDailyBrief } from '@/services/ownexData'
 
 const isOnline = ref(true)
 const isProcessing = ref(false)
@@ -234,7 +237,7 @@ const capabilities = ref([
   'REPORT GENERATION',
   'WORKFLOW OPTIMIZATION',
   'DATA ANALYSIS',
-  'STRATEGIC PLANNING'
+  'STRATEGIC PLANNING',
 ])
 
 const messages = ref([
@@ -243,20 +246,32 @@ const messages = ref([
     role: 'merlin',
     content: greeting.value,
     timestamp: new Date(),
-    isTyping: false
-  }
+    isTyping: false,
+  },
 ])
+
+// Real system state
+const systemHealth = ref(0)
+const systemStatus = ref('unknown')
+const activeTargets = ref(0)
+const totalFindings = ref(0)
+const monthlyReports = ref(0)
+const monthlyRevenue = ref(0)
+const workBankReady = ref(0)
+const workBankNeedsAccess = ref(0)
+const topOpportunity = ref<{ title: string; platform: string; reward: number; ev_per_hour: number } | null>(null)
+const availableHoursToday = ref(0)
 
 const recentLogs = ref([
   { id: 1, title: 'TARGET_ANALYSIS_001', time: '12:45:32' },
   { id: 2, title: 'VULN_DETECTION_XSS', time: '12:44:15' },
-  { id: 3, title: 'REPORT_GENERATION', time: '12:42:00' }
+  { id: 3, title: 'REPORT_GENERATION', time: '12:42:00' },
 ])
 
 const recentMemories = ref([
   { id: 1, title: 'XSS_PATTERN_001', type: 'PATTERN' },
   { id: 2, title: 'WORKFLOW_REPORTING', type: 'WORKFLOW' },
-  { id: 3, title: 'STRATEGY_TARGETS', type: 'STRATEGY' }
+  { id: 3, title: 'STRATEGY_TARGETS', type: 'STRATEGY' },
 ])
 
 const chatScrollArea = ref<HTMLElement | null>(null)
@@ -275,7 +290,7 @@ async function sendMessage() {
     role: 'user',
     content: userMessage,
     timestamp: new Date(),
-    isTyping: false
+    isTyping: false,
   })
 
   userInput.value = ''
@@ -287,7 +302,7 @@ async function sendMessage() {
     role: 'merlin',
     content: '',
     timestamp: new Date(),
-    isTyping: true
+    isTyping: true,
   })
 
   await nextTick()
@@ -300,29 +315,28 @@ async function sendMessage() {
         detail_level: isBeginnerMode.value ? 'beginner' : 'expert',
         response_tone: isBeginnerMode.value ? 'simple' : 'technical',
         enable_analytics: true,
-        enable_learning: true
-      }
+        enable_learning: true,
+      },
     })
 
-    messages.value = messages.value.filter(m => m.id !== typingId)
+    messages.value = messages.value.filter((m) => m.id !== typingId)
 
     messages.value.push({
       id: Date.now(),
       role: 'merlin',
       content: response.data.response,
       timestamp: new Date(),
-      isTyping: false
+      isTyping: false,
     })
-
   } catch (error) {
     console.error('Error sending message:', error)
-    messages.value = messages.value.filter(m => m.id !== typingId)
+    messages.value = messages.value.filter((m) => m.id !== typingId)
     messages.value.push({
       id: Date.now(),
       role: 'merlin',
       content: 'ERROR: COMMAND FAILED. RETRY.',
       timestamp: new Date(),
-      isTyping: false
+      isTyping: false,
     })
   } finally {
     isProcessing.value = false
@@ -351,7 +365,7 @@ function toggleMode() {
       ? 'BEGINNER MODE ACTIVATED. I will explain everything simply, like I would to a 10-year-old.'
       : 'EXPERT MODE ACTIVATED. I will provide detailed technical information and implementation details.',
     timestamp: new Date(),
-    isTyping: false
+    isTyping: false,
   })
 }
 
@@ -369,16 +383,69 @@ function executeCommand(command: string) {
   const commands = {
     analyze: 'ANALYZE TARGET: PRIMARY',
     report: 'GENERATE REPORT: LATEST FINDING',
-    optimize: 'OPTIMIZE WORKFLOW: CURRENT'
+    optimize: 'OPTIMIZE WORKFLOW: CURRENT',
   }
   userInput.value = commands[command]
   sendMessage()
 }
 
-onMounted(() => {
+async function loadSystemState() {
+  try {
+    const [dashboard, workbank, brief, goodmorning] = await Promise.allSettled([
+      fetchOwnexDashboard(),
+      fetchDirectWorkWorkBank(),
+      fetchDirectWorkDailyBrief(),
+      fetchGoodMorning(),
+    ])
+
+    if (dashboard.status === 'fulfilled') {
+      systemHealth.value = dashboard.value?.systemHealth ?? 0
+      systemStatus.value = dashboard.value?.systemStatus ?? 'unknown'
+    }
+
+    if (workbank.status === 'fulfilled') {
+      workBankReady.value = workbank.value?.ready_to_deliver ?? 0
+      workBankNeedsAccess.value = workbank.value?.needs_access ?? 0
+
+      // Get top opportunity from weekly_best
+      const weeklyBest = workbank.value?.weekly_best?.[0]
+      if (weeklyBest) {
+        topOpportunity.value = {
+          title: weeklyBest.title,
+          platform: weeklyBest.platform,
+          reward: weeklyBest.reward,
+          ev_per_hour: weeklyBest.barrier_score ? weeklyBest.reward / weeklyBest.barrier_score : 0,
+        }
+      }
+    }
+
+    if (brief.status === 'fulfilled') {
+      const top = brief.value?.top_opportunity
+      if (top?.opportunity) {
+        topOpportunity.value = {
+          title: top.opportunity.title,
+          platform: top.opportunity.platform,
+          reward: top.expected_value,
+          ev_per_hour: top.ev_per_human_hour_usd ?? 0,
+        }
+      }
+    }
+
+    if (goodmorning.status === 'fulfilled') {
+      availableHoursToday.value = goodmorning.value?.personal?.pending_tasks ?? 0
+    }
+  } catch (e) {
+    console.warn('Failed to load system state for MERLIN:', e)
+  }
+}
+
+onMounted(async () => {
   if (inputRef.value) {
     inputRef.value.focus()
   }
+  await loadSystemState()
+  // Refresh system state every 60 seconds
+  setInterval(loadSystemState, 60000)
 })
 </script>
 

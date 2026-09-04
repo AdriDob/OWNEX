@@ -1,14 +1,21 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import {
+  Activity,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  ExternalLink,
+  Loader2,
+  RefreshCw,
+  RotateCw,
+  XCircle,
+} from '@lucide/vue'
+import { onMounted, ref } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import {
-  Activity, AlertTriangle, CheckCircle2, Clock, ExternalLink,
-  Loader2, RefreshCw, RotateCw, XCircle,
-} from '@lucide/vue'
+import { api } from '@/lib/api'
 
 interface SyncHistoryEntry {
   source: string

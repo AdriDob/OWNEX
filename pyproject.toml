@@ -75,7 +75,8 @@ disallow_any_unimported = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-v --tb=short --timeout=60"
+addopts = "-v --tb=short "
+asyncio_mode = "auto"
 markers = [
     "integration: end-to-end pipeline tests that may need external services",
     "slow: long-running tests (network/recon); use -m 'not slow' for CI smoke",

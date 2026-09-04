@@ -33,7 +33,12 @@ const DEFAULT_SHORTCUTS: ShortcutBinding[] = [
   { key: 'Escape', description: 'Cerrar modales / inspector / preview', action: { type: 'action', action: 'escape' } },
   { key: 's', ctrl: true, shift: true, description: 'Sync rápido', action: { type: 'action', action: 'quick-sync' } },
   { key: 'ArrowLeft', alt: true, description: 'Navegar atrás', action: { type: 'action', action: 'navigate-back' } },
-  { key: 'ArrowRight', alt: true, description: 'Navegar adelante', action: { type: 'action', action: 'navigate-forward' } },
+  {
+    key: 'ArrowRight',
+    alt: true,
+    description: 'Navegar adelante',
+    action: { type: 'action', action: 'navigate-forward' },
+  },
   { key: '/', ctrl: true, description: 'Atajos de teclado', action: { type: 'action', action: 'show-shortcuts' } },
 ]
 
@@ -60,7 +65,7 @@ export function useGlobalShortcuts(callbacks: Callbacks) {
     if (!a11y.state.keyboardNavigation) return
     if (isEditingElement(e.target)) return
 
-    const shortcut = DEFAULT_SHORTCUTS.find(s => {
+    const shortcut = DEFAULT_SHORTCUTS.find((s) => {
       const ctrl = s.ctrl ? e.ctrlKey : !s.ctrl
       const meta = s.meta ? e.metaKey : !s.meta
       const shift = s.shift ? e.shiftKey : !s.shift
@@ -82,9 +87,15 @@ export function useGlobalShortcuts(callbacks: Callbacks) {
         break
       case 'toggle':
         switch (action.target) {
-          case 'copilot': callbacks.onToggleCopilot?.(); break
-          case 'sidebar': callbacks.onToggleSidebar?.(); break
-          case 'notifications': callbacks.onToggleNotifications?.(); break
+          case 'copilot':
+            callbacks.onToggleCopilot?.()
+            break
+          case 'sidebar':
+            callbacks.onToggleSidebar?.()
+            break
+          case 'notifications':
+            callbacks.onToggleNotifications?.()
+            break
         }
         break
       case 'action':

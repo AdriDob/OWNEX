@@ -1,16 +1,29 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import {
-  Activity, Clock, RefreshCw, Shield,
-  DollarSign, FileText, BarChart3, HeartPulse,
-  Zap, AlertTriangle, Target, Sparkles,
-  Cpu, Radio, Layers, TrendingUp, ChevronRight,
+  Activity,
+  AlertTriangle,
+  BarChart3,
+  ChevronRight,
+  Clock,
+  Cpu,
+  DollarSign,
+  FileText,
+  HeartPulse,
+  Layers,
+  Radio,
+  RefreshCw,
+  Shield,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Zap,
 } from '@lucide/vue'
-import LoadingState from '@/components/ui/LoadingState.vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import ErrorState from '@/components/ui/ErrorState.vue'
-import { fetchOwnexDashboard } from '@/services/ownexData'
+import LoadingState from '@/components/ui/LoadingState.vue'
 import type { OwnexDashboardData } from '@/services/ownexData'
+import { fetchOwnexDashboard } from '@/services/ownexData'
 
 const router = useRouter()
 const dashboard = ref<OwnexDashboardData | null>(null)
@@ -41,7 +54,8 @@ const activityLog = computed(() => {
   const feed = dashboard.value?.knowledgeFeed || []
   return feed.map((item) => {
     const t = item.type
-    const type = t === 'alert' ? 'warn' : t === 'decision' || t === 'pattern' ? 'info' : t === 'learning' ? 'success' : 'info'
+    const type =
+      t === 'alert' ? 'warn' : t === 'decision' || t === 'pattern' ? 'info' : t === 'learning' ? 'success' : 'info'
     return {
       time: new Date(item.timestamp).toLocaleTimeString('en-GB', { hour12: false }),
       type,
@@ -52,13 +66,19 @@ const activityLog = computed(() => {
 
 const activityIcon = (type: string) => {
   const map: Record<string, string> = {
-    success: '\u2705', finding: '\u2B50', warn: '\u26A0\uFE0F', info: '\u2139\uFE0F'
+    success: '\u2705',
+    finding: '\u2B50',
+    warn: '\u26A0\uFE0F',
+    info: '\u2139\uFE0F',
   }
   return map[type] || '\u2139\uFE0F'
 }
 const activityColor = (type: string) => {
   const map: Record<string, string> = {
-    success: '#34D399', finding: '#D97706', warn: '#93C5FD', info: '#60A5FA'
+    success: '#34D399',
+    finding: '#D97706',
+    warn: '#93C5FD',
+    info: '#60A5FA',
   }
   return map[type] || '#64748B'
 }

@@ -1,4 +1,4 @@
-import { ref, type Ref } from 'vue'
+import { type Ref, ref } from 'vue'
 import { useToast } from '@/composables/useToast'
 
 const lastCopied = ref<string | null>(null)
@@ -67,8 +67,13 @@ export function useCopyHelper() {
   }
 
   return {
-    copyText, copyJSON, copyId, copyHash,
-    copyWalletAddress, copyApiKeyName, copyError,
+    copyText,
+    copyJSON,
+    copyId,
+    copyHash,
+    copyWalletAddress,
+    copyApiKeyName,
+    copyError,
     lastCopied,
   }
 }

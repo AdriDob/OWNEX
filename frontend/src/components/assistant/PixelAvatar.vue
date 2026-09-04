@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { type AssistantCharacter } from './assistantCharacters'
+import type { AssistantCharacter } from './assistantCharacters'
 
 const props = defineProps<{
   character: AssistantCharacter
@@ -24,7 +24,7 @@ const accent = computed(() => {
     'text-gold': '#f5a623',
     'text-success': '#4ade80',
     'text-warning': '#fb923c',
-    "text-destructive": "#00d5ff",
+    'text-destructive': '#00d5ff',
   }
   return map[props.character.color] ?? '#a78bfa'
 })

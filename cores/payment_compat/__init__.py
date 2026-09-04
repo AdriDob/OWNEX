@@ -9,6 +9,7 @@ from cores.payment_compat.engine import (
 )
 from cores.payment_compat.network import (
     PAYMENT_NETWORK,
+    CardType,
     OwnAccount,
     PaymentFunction,
     PaymentLayer,
@@ -28,6 +29,7 @@ __all__ = [
     "PaymentRequirement",
     "PaymentVerdict",
     "Region",
+    "CardType",
     "accounts_by_function",
     "accounts_by_layer",
     "get_account",

@@ -1,20 +1,32 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { AlertTriangle, Filter, Play, Trash2, XCircle } from '@lucide/vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
-import Badge from '@/components/ui/Badge.vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
-import { Play, XCircle, Trash2, Filter, AlertTriangle } from '@lucide/vue'
 import BarChart from '@/components/charts/BarChart.vue'
+import Badge from '@/components/ui/Badge.vue'
+import Card from '@/components/ui/Card.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { api } from '@/lib/api'
 
 interface StageEntry {
-  from_state: string; to_state: string; agent_id: string; status: string; timestamp: string; metadata?: Record<string, unknown>
+  from_state: string
+  to_state: string
+  agent_id: string
+  status: string
+  timestamp: string
+  metadata?: Record<string, unknown>
 }
 
 interface PipelineInfo {
-  id: string; target_id: number; target_name: string; state: string; retries: number; quality_score: number;
-  stages: StageEntry[]; error: string; created_at: string;
+  id: string
+  target_id: number
+  target_name: string
+  state: string
+  retries: number
+  quality_score: number
+  stages: StageEntry[]
+  error: string
+  created_at: string
 }
 
 const router = useRouter()
@@ -24,10 +36,31 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 let interval: ReturnType<typeof setInterval> | null = null
 
-const STATE_ORDER = ['pending', 'discovery', 'validation', 'evidence', 'ai_review', 'ready', 'submitted', 'triaged', 'paid', 'closed']
+const STATE_ORDER = [
+  'pending',
+  'discovery',
+  'validation',
+  'evidence',
+  'ai_review',
+  'ready',
+  'submitted',
+  'triaged',
+  'paid',
+  'closed',
+]
 const STATE_COLORS: Record<string, string> = {
-  pending: '#6b7280', discovery: '#ffffff', validation: '#9CA3AF', evidence: '#D97706', ai_review: '#16A34A',
-  ready: '#16A34A', submitted: '#9CA3AF', triaged: '#D97706', paid: '#9CA3AF', closed: '#16A34A', failed: '#00d5ff', cancelled: '#6b7280',
+  pending: '#6b7280',
+  discovery: '#ffffff',
+  validation: '#9CA3AF',
+  evidence: '#D97706',
+  ai_review: '#16A34A',
+  ready: '#16A34A',
+  submitted: '#9CA3AF',
+  triaged: '#D97706',
+  paid: '#9CA3AF',
+  closed: '#16A34A',
+  failed: '#00d5ff',
+  cancelled: '#6b7280',
 }
 
 async function fetchPipelines() {
@@ -35,15 +68,28 @@ async function fetchPipelines() {
     const url = filter.value ? `/agents/pipelines?status=${filter.value}` : '/agents/pipelines'
     const res = await api.get<{ pipelines: PipelineInfo[] }>(url)
     pipelines.value = res.pipelines || []
-  } catch (e: any) { error.value = e?.message || 'Error al cargar pipelines' }
-  finally { loading.value = false }
+  } catch (e: any) {
+    error.value = e?.message || 'Error al cargar pipelines'
+  } finally {
+    loading.value = false
+  }
 }
 
 async function handleCancel(id: string) {
-  try { await api.post(`/agents/pipelines/${id}/cancel`); fetchPipelines() } catch { /* ignore */ }
+  try {
+    await api.post(`/agents/pipelines/${id}/cancel`)
+    fetchPipelines()
+  } catch {
+    /* ignore */
+  }
 }
 async function handleDelete(id: string) {
-  try { await api.delete(`/agents/pipelines/${id}`); fetchPipelines() } catch { /* ignore */ }
+  try {
+    await api.delete(`/agents/pipelines/${id}`)
+    fetchPipelines()
+  } catch {
+    /* ignore */
+  }
 }
 async function handleStart() {
   const targetName = prompt('Target name (domain or IP):')
@@ -51,19 +97,30 @@ async function handleStart() {
   try {
     await api.post('/agents/pipeline/start', { target_id: 0, target_name: targetName })
     setTimeout(fetchPipelines, 1000)
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
-const activePipelines = computed(() => pipelines.value.filter(p => !['closed', 'failed', 'cancelled'].includes(p.state)))
-const completedPipelines = computed(() => pipelines.value.filter(p => ['closed', 'failed', 'cancelled'].includes(p.state)))
+const activePipelines = computed(() =>
+  pipelines.value.filter((p) => !['closed', 'failed', 'cancelled'].includes(p.state)),
+)
+const completedPipelines = computed(() =>
+  pipelines.value.filter((p) => ['closed', 'failed', 'cancelled'].includes(p.state)),
+)
 
 function stateProgress(state: string) {
   const idx = STATE_ORDER.indexOf(state)
   return idx >= 0 ? ((idx + 1) / STATE_ORDER.length) * 100 : 0
 }
 
-onMounted(() => { fetchPipelines(); interval = setInterval(fetchPipelines, 5000) })
-onUnmounted(() => { if (interval) clearInterval(interval) })
+onMounted(() => {
+  fetchPipelines()
+  interval = setInterval(fetchPipelines, 5000)
+})
+onUnmounted(() => {
+  if (interval) clearInterval(interval)
+})
 </script>
 
 <template>

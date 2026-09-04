@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { useGuidedMode } from '@/composables/useGuidedMode'
 import { useFirstDayGuide } from '@/composables/useFirstDayGuide'
+import { useGuidedMode } from '@/composables/useGuidedMode'
 import { fetchDirectWorkDailyBrief, fetchDirectWorkWorkBank, runDirectWorkCycle } from '@/services/ownexData'
-import ModeSelector from './ModeSelector.vue'
+import type { DailyBrief, GuidedMode } from '@/types/guided'
 import FirstDayGuide from './FirstDayGuide.vue'
 import IncomeGuidanceAssistant from './IncomeGuidanceAssistant.vue'
+import ModeSelector from './ModeSelector.vue'
 import UniversalExplanationLayer from './UniversalExplanationLayer.vue'
-import type { DailyBrief, GuidedMode } from '@/types/guided'
 
 const { currentMode, initMode, setMode } = useGuidedMode()
 const { fetchFirstDayGuide, fetchFirstDayProgress, completeFirstDayStep } = useFirstDayGuide()
@@ -27,8 +27,12 @@ const incomeGuidance = computed(() => {
   return {
     title: opp.title,
     summary: `Oportunidad ${opp.category} en ${opp.platform} con recompensa de $${opp.payment}`,
-    difficulty: (opp.estimated_time_hours || 0) <= 4 ? 'beginner' :
-                (opp.estimated_time_hours || 0) <= 8 ? 'intermediate' : 'advanced',
+    difficulty:
+      (opp.estimated_time_hours || 0) <= 4
+        ? 'beginner'
+        : (opp.estimated_time_hours || 0) <= 8
+          ? 'intermediate'
+          : 'advanced',
     required: {
       programming: opp.technology_tags && opp.technology_tags.length > 0,
       portfolio: opp.portfolio_required,
@@ -44,14 +48,20 @@ const incomeGuidance = computed(() => {
       nextStep: 'Revisa los detalles, prepara tu entrega y confirma cuando esté listo.',
     },
     confidence: {
-      level: (opp.zero_barrier_score?.total || 0) >= 70 ? 'high' :
-             (opp.zero_barrier_score?.total || 0) >= 40 ? 'medium' : 'low',
+      level:
+        (opp.zero_barrier_score?.total || 0) >= 70
+          ? 'high'
+          : (opp.zero_barrier_score?.total || 0) >= 40
+            ? 'medium'
+            : 'low',
       detail: `Score de barrera: ${opp.zero_barrier_score?.total || 0}/100. Probabilidad: ${Math.round((opp.acceptance_probability || 0) * 100)}%.`,
     },
   }
 })
 
-const showFirstDay = computed(() => firstDayGuide.value && firstDayGuide.value.steps && firstDayGuide.value.steps.length > 0)
+const showFirstDay = computed(
+  () => firstDayGuide.value && firstDayGuide.value.steps && firstDayGuide.value.steps.length > 0,
+)
 
 async function loadAll() {
   loading.value = true

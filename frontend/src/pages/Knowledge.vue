@@ -1,14 +1,35 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
 import {
-  AlertTriangle, Archive, Check, Database, FileText, FolderOpen,
-  GitBranch, RefreshCw, Search, Shield, X,
+  AlertTriangle,
+  Archive,
+  Check,
+  Database,
+  FileText,
+  FolderOpen,
+  GitBranch,
+  RefreshCw,
+  Search,
+  Shield,
+  X,
 } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import {
-  connectVault, disconnectVault, scanVault, initializeVault, searchKnowledge,
-  fetchKnowledgeHealth, fetchKnowledgeStatus, runKnowledgeSync, fetchGitStatus,
-  commitVault, fetchSecurityScan, fetchSnapshots, createSnapshot,
-  type KnowledgeHealth, type KnowledgeStatus, type KnowledgeSearchResult,
+  commitVault,
+  connectVault,
+  createSnapshot,
+  disconnectVault,
+  fetchGitStatus,
+  fetchKnowledgeHealth,
+  fetchKnowledgeStatus,
+  fetchSecurityScan,
+  fetchSnapshots,
+  initializeVault,
+  type KnowledgeHealth,
+  type KnowledgeSearchResult,
+  type KnowledgeStatus,
+  runKnowledgeSync,
+  scanVault,
+  searchKnowledge,
 } from '@/services/knowledge'
 
 const status = ref<KnowledgeStatus | null>(null)
@@ -112,7 +133,7 @@ async function runSync() {
   error.value = ''
   try {
     const res = await runKnowledgeSync()
-    notice.value = res.ok ? 'Sincronización diaria ejecutada.' : res.reason ?? 'Sync fallido.'
+    notice.value = res.ok ? 'Sincronización diaria ejecutada.' : (res.reason ?? 'Sync fallido.')
     await loadHealth()
   } catch (e) {
     showError(e)

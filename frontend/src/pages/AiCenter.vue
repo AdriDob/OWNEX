@@ -11,7 +11,7 @@ import { computed, onMounted, ref } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
 import Card from '@/components/ui/Card.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
-import { fetchAiCenter, type AiCenterState } from '@/services/ownexData'
+import { type AiCenterState, fetchAiCenter } from '@/services/ownexData'
 
 const loading = ref(true)
 const state = ref<AiCenterState | null>(null)
@@ -28,19 +28,27 @@ const modeInfo = computed(() => {
 
 const modeVariant = computed<'success' | 'warning' | 'error' | 'default'>(() => {
   switch (modeInfo.value?.mode) {
-    case 'normal': return 'success'
-    case 'degraded': return 'warning'
-    case 'offline_ai': return 'error'
-    default: return 'default'
+    case 'normal':
+      return 'success'
+    case 'degraded':
+      return 'warning'
+    case 'offline_ai':
+      return 'error'
+    default:
+      return 'default'
   }
 })
 
 const modeLabel = computed(() => {
   switch (modeInfo.value?.mode) {
-    case 'normal': return 'OPERATIVO'
-    case 'degraded': return 'DEGRADADO'
-    case 'offline_ai': return 'IA OFFLINE — modo reglas'
-    default: return '—'
+    case 'normal':
+      return 'OPERATIVO'
+    case 'degraded':
+      return 'DEGRADADO'
+    case 'offline_ai':
+      return 'IA OFFLINE — modo reglas'
+    default:
+      return '—'
   }
 })
 
@@ -51,9 +59,7 @@ const quotaRows = computed(() => {
     limitsKnown: q.limits_known,
     rpm: q.rpm_observed,
     tokensToday: q.tokens_today,
-    limitLabel: q.limits_known
-      ? `rpm:${q.limits.rpm ?? '—'} rpd:${q.limits.rpd ?? '—'}`
-      : 'UNKNOWN',
+    limitLabel: q.limits_known ? `rpm:${q.limits.rpm ?? '—'} rpd:${q.limits.rpd ?? '—'}` : 'UNKNOWN',
   }))
 })
 

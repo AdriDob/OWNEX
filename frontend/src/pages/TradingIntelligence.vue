@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
 import {
   Activity,
   AlertTriangle,
@@ -16,12 +14,14 @@ import {
   XCircle,
   Zap,
 } from '@lucide/vue'
-import Card from '@/components/ui/Card.vue'
-import Button from '@/components/ui/Button.vue'
+import { computed, onMounted, ref } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
-import LoadingState from '@/components/ui/LoadingState.vue'
-import ErrorState from '@/components/ui/ErrorState.vue'
+import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
+import ErrorState from '@/components/ui/ErrorState.vue'
+import LoadingState from '@/components/ui/LoadingState.vue'
+import { api } from '@/lib/api'
 
 const TAB_COPY = 'copy'
 const TAB_INTEL = 'intel'

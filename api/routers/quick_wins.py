@@ -28,15 +28,21 @@ router = APIRouter(prefix="/api/quick-wins", tags=["quick_wins"])
 def _build_snapshot(target_id: int | None = None) -> PipelineSnapshot:
     session = db.SessionLocal()
     try:
-        targets = session.query(models.Target).all()
+        # Optimize: query with limits and filter by target_id when specified
         if target_id is not None:
-            targets = [t for t in targets if t.id == target_id]
+            targets = session.query(models.Target).filter(models.Target.id == target_id).limit(1).all()
             if not targets:
                 raise HTTPException(status_code=404, detail=f"Target {target_id} not found")
+            target_ids = [target_id]
+        else:
+            targets = session.query(models.Target).limit(100).all()
+            target_ids = [t.id for t in targets]
 
-        endpoints = session.query(models.Endpoint).all()
-        verdicts = session.query(models.Verdict).all()
-        findings = session.query(models.Finding).all()
+        # Query only relevant data for the targets
+        endpoints = session.query(models.Endpoint).filter(models.Endpoint.target_id.in_(target_ids)).limit(500).all()
+        endpoint_ids = [ep.id for ep in endpoints]
+        verdicts = session.query(models.Verdict).filter(models.Verdict.endpoint_id.in_(endpoint_ids)).limit(200).all()
+        findings = session.query(models.Finding).filter(models.Finding.target_id.in_(target_ids)).limit(200).all()
 
         first_target = targets[0] if targets else None
         target_eps = [ep for ep in endpoints if ep.target_id == first_target.id] if first_target else []

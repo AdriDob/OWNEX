@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useThemeEngine } from '@/composables/useThemeEngine'
 
 const { currentTheme } = useThemeEngine()
@@ -34,7 +34,7 @@ function initParticles() {
     y: Math.random() * height,
     size: Math.random() * 2 + 0.5,
     opacity: Math.random() * 0.3 + 0.05,
-    speed: Math.random() * 0.3 + 0.1
+    speed: Math.random() * 0.3 + 0.1,
   }))
 }
 
@@ -54,7 +54,7 @@ function animate() {
   const theme = currentTheme.value
   const particleColor = theme?.visualization.particleColor || 'rgba(255, 255, 255, 0.08)'
 
-  particles.value.forEach(p => {
+  particles.value.forEach((p) => {
     p.y -= p.speed
     if (p.y < 0) {
       p.y = height
@@ -76,7 +76,7 @@ function animate() {
   const gravityCenter = theme?.visualization.gravityCenter
 
   // Draw orbit rings
-  modules.forEach(m => {
+  modules.forEach((m) => {
     ctx.beginPath()
     ctx.arc(centerX, centerY, m.distance, 0, Math.PI * 2)
     ctx.strokeStyle = orbitColor
@@ -88,10 +88,10 @@ function animate() {
 
   // Draw trails if enabled
   if (trailLength > 10) {
-    modules.forEach(m => {
+    modules.forEach((m) => {
       const angle = (m.angle * Math.PI) / 180
       for (let i = 1; i <= trailLength; i += 4) {
-        const trailAngle = angle - (i * 0.02)
+        const trailAngle = angle - i * 0.02
         const tx = centerX + Math.cos(trailAngle) * m.distance
         const ty = centerY + Math.sin(trailAngle) * m.distance
         ctx.beginPath()
@@ -130,7 +130,7 @@ function animate() {
   ctx.stroke()
 
   // Draw modules
-  modules.forEach(m => {
+  modules.forEach((m) => {
     const angle = (m.angle * Math.PI) / 180
     const x = centerX + Math.cos(angle) * m.distance
     const y = centerY + Math.sin(angle) * m.distance
@@ -157,7 +157,7 @@ function animate() {
   })
 
   // Rotate modules
-  modules.forEach(m => {
+  modules.forEach((m) => {
     m.angle = (m.angle + rotationSpeed) % 360
   })
 

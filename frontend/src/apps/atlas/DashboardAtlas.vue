@@ -1,16 +1,30 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import {
-  AlertTriangle, DollarSign, TrendingUp, PieChart, RefreshCw, Settings,
-  Shield, Play, Pause, Activity, BarChart3, Target,
+  Activity,
+  AlertTriangle,
+  BarChart3,
+  DollarSign,
+  Pause,
+  PieChart,
+  Play,
+  RefreshCw,
+  Settings,
+  Shield,
+  Target,
+  TrendingUp,
 } from '@lucide/vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
-import EmptyState from '@/components/ui/EmptyState.vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import Badge from '@/components/ui/Badge.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
 import {
-  getInvestmentStatus, getInvestmentMetrics, getExposure, getAllocation,
-  type InvestmentStatus, type ConsolidateMetrics,
+  type ConsolidateMetrics,
+  getAllocation,
+  getExposure,
+  getInvestmentMetrics,
+  getInvestmentStatus,
+  type InvestmentStatus,
 } from '@/lib/api'
 
 const router = useRouter()
@@ -33,7 +47,10 @@ async function fetchData() {
       getAllocation(),
     ])
     if (s.success) status.value = s.status
-    if (m.success) { metrics.value = m.metrics; pnlChart.value = m.pnl_chart }
+    if (m.success) {
+      metrics.value = m.metrics
+      pnlChart.value = m.pnl_chart
+    }
     if (e.success) exposure.value = e.exposure
     if (a.success) allocation.value = a
   } catch (e) {
@@ -48,7 +65,7 @@ onMounted(fetchData)
 const totalCapital = computed(() => status.value?.total_capital ?? 0)
 const deployed = computed(() => status.value?.deployed ?? 0)
 const available = computed(() => status.value?.available ?? 0)
-const utilization = computed(() => totalCapital.value > 0 ? (deployed.value / totalCapital.value * 100) : 0)
+const utilization = computed(() => (totalCapital.value > 0 ? (deployed.value / totalCapital.value) * 100 : 0))
 const totalPnl = computed(() => status.value?.summary?.total_pnl ?? 0)
 const totalPnlPct = computed(() => status.value?.summary?.total_pnl_pct ?? 0)
 const sharpe = computed(() => status.value?.summary?.sharpe ?? 0)

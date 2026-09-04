@@ -13,6 +13,22 @@
 import type { Event } from '@tauri-apps/api/event'
 import { ref } from 'vue'
 
+/** Open a filesystem path in the native file explorer (Tauri shell.open). */
+export async function openPath(path: string): Promise<void> {
+  if (!isTauri) {
+    // Fallback for web: copy to clipboard
+    await navigator.clipboard.writeText(path)
+    return
+  }
+  try {
+    const { open } = await import('@tauri-apps/plugin-shell')
+    await open(path)
+  } catch (e) {
+    console.warn('[OWNEX] Could not open path via Tauri shell:', e)
+    await navigator.clipboard.writeText(path)
+  }
+}
+
 const DEFAULT_PORT = 8000
 /** Must stay aligned with find_available_port() in src-tauri/src/lib.rs. */
 const MAX_PORT_OFFSET = 99

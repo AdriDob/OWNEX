@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import ConfidenceBadge from './ConfidenceBadge.vue'
 import type { ExplanationLayer } from '@/types/guided'
+import ConfidenceBadge from './ConfidenceBadge.vue'
 
 interface Props {
   layer: ExplanationLayer

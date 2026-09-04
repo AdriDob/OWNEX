@@ -1,28 +1,79 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import {
-  AlertTriangle, ArrowDown, ArrowUp, BarChart3, DollarSign, Play, Pause,
-  RefreshCw, Settings, Shield, Target, TrendingUp, Activity, Fuel,
-  List, Zap, Wallet,
+  Activity,
+  AlertTriangle,
+  ArrowDown,
+  ArrowUp,
+  BarChart3,
+  DollarSign,
+  Fuel,
+  List,
+  Pause,
+  Play,
+  RefreshCw,
+  Settings,
+  Shield,
+  Target,
+  TrendingUp,
+  Wallet,
+  Zap,
 } from '@lucide/vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
-import EmptyState from '@/components/ui/EmptyState.vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import Badge from '@/components/ui/Badge.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
 import {
-  getInvestmentStatus, getInvestmentMetrics, getAllocation, getExposure,
-  getInvestmentEvents, getInvestmentStrategies, getCcxtInfo,
-  deployStrategy, pauseStrategy, resumeStrategy, allocatePayout as apiAllocatePayout,
-  updateInvestmentCapital, pauseAllInvestments, resumeAllInvestments,
-  activateMaxRevenue, updateInvestmentConfig,
-  getAlpacaInfo, connectAlpaca, getAlpacaAccount, getAlpacaPositions, placeAlpacaOrder, getAlpacaMarketData, getAlpacaOptionsChain,
-  getIbkrInfo, connectIbkr, getIbkrAccount, getIbkrPositions, placeIbkrOrder,
-  getAaveInfo, connectAave, getAaveSupplyApy, getAaveTopAssets,
-  getMorphoInfo, connectMorpho, getMorphoMarketApy, getMorphoTopMarkets,
-  getPendleInfo, connectPendle, getPendleYieldOpportunities, getPendlePtYield,
-  getLidoInfo, connectLido, getLidoStakingApy, getLidoProtocolMetrics,
-  getPolymarketStrategies, runPolymarketStrategy, getPolymarketDiagnostic,
-  type InvestmentStatus, type ConsolidateMetrics, type PnLPoint,
+  activateMaxRevenue,
+  allocatePayout as apiAllocatePayout,
+  type ConsolidateMetrics,
+  connectAave,
+  connectAlpaca,
+  connectIbkr,
+  connectLido,
+  connectMorpho,
+  connectPendle,
+  deployStrategy,
+  getAaveInfo,
+  getAaveSupplyApy,
+  getAaveTopAssets,
+  getAllocation,
+  getAlpacaAccount,
+  getAlpacaInfo,
+  getAlpacaMarketData,
+  getAlpacaOptionsChain,
+  getAlpacaPositions,
+  getCcxtInfo,
+  getExposure,
+  getIbkrAccount,
+  getIbkrInfo,
+  getIbkrPositions,
+  getInvestmentEvents,
+  getInvestmentMetrics,
+  getInvestmentStatus,
+  getInvestmentStrategies,
+  getLidoInfo,
+  getLidoProtocolMetrics,
+  getLidoStakingApy,
+  getMorphoInfo,
+  getMorphoMarketApy,
+  getMorphoTopMarkets,
+  getPendleInfo,
+  getPendlePtYield,
+  getPendleYieldOpportunities,
+  getPolymarketDiagnostic,
+  getPolymarketStrategies,
+  type InvestmentStatus,
+  type PnLPoint,
+  pauseAllInvestments,
+  pauseStrategy,
+  placeAlpacaOrder,
+  placeIbkrOrder,
+  resumeAllInvestments,
+  resumeStrategy,
+  runPolymarketStrategy,
+  updateInvestmentCapital,
+  updateInvestmentConfig,
 } from '@/lib/api'
 
 const router = useRouter()
@@ -83,7 +134,10 @@ async function fetchData() {
       getInvestmentStrategies(),
     ])
     if (s.success) status.value = s.status
-    if (m.success) { metrics.value = m.metrics; pnlChart.value = m.pnl_chart }
+    if (m.success) {
+      metrics.value = m.metrics
+      pnlChart.value = m.pnl_chart
+    }
     if (a.success) allocation.value = a
     if (e.success) exposure.value = e.exposure
     if (ev.success) events.value = ev.events
@@ -101,16 +155,21 @@ async function fetchPolymarketStrategies() {
     if (r.success) {
       polymarketStrategies.value = Object.entries(r.strategies).map(([id, desc]: [string, string]) => ({
         id,
-        name: id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        name: id.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
         description: desc,
         risk_level: 'moderate',
         lastResult: '',
       }))
     }
-  } catch { /* silent */ }
+  } catch {
+    /* silent */
+  }
 }
 
-onMounted(() => { fetchData(); fetchPolymarketStrategies() })
+onMounted(() => {
+  fetchData()
+  fetchPolymarketStrategies()
+})
 
 async function handleDeploy(sid: string) {
   const amt = deployAmount.value[sid] || 0
@@ -122,7 +181,9 @@ async function handleDeploy(sid: string) {
   } catch {
     deployMsg.value[sid] = '✗ Error de conexión'
   }
-  setTimeout(() => { deployMsg.value[sid] = '' }, 3000)
+  setTimeout(() => {
+    deployMsg.value[sid] = ''
+  }, 3000)
   fetchData()
 }
 
@@ -174,7 +235,9 @@ async function handleAlpacaConnect() {
       const acc = await getAlpacaAccount()
       if (acc.success) alpacaAccount.value = acc.account
     }
-  } catch { /* silent */ }
+  } catch {
+    /* silent */
+  }
 }
 
 async function handleIbkrConnect() {
@@ -184,36 +247,60 @@ async function handleIbkrConnect() {
       const acc = await getIbkrAccount()
       if (acc.success) ibkrAccount.value = acc.account
     }
-  } catch { /* silent */ }
+  } catch {
+    /* silent */
+  }
 }
 
 // ─── DeFi Handlers ───
 
 async function handleAaveConnect() {
-  try { await connectAave() } catch { /* silent */ }
+  try {
+    await connectAave()
+  } catch {
+    /* silent */
+  }
 }
 
 async function handleAaveSupplyApy() {
   try {
     const r = await getAaveSupplyApy()
     if (r.success) aaveApy.value = r.data
-  } catch { /* silent */ }
+  } catch {
+    /* silent */
+  }
 }
 
 async function handleMorphoConnect() {
-  try { await connectMorpho() } catch { /* silent */ }
+  try {
+    await connectMorpho()
+  } catch {
+    /* silent */
+  }
 }
 
 async function handleMorphoTopMarkets() {
-  try { await getMorphoTopMarkets() } catch { /* silent */ }
+  try {
+    await getMorphoTopMarkets()
+  } catch {
+    /* silent */
+  }
 }
 
 async function handlePendleConnect() {
-  try { await connectPendle() } catch { /* silent */ }
+  try {
+    await connectPendle()
+  } catch {
+    /* silent */
+  }
 }
 
 async function handlePendleYieldOpps() {
-  try { await getPendleYieldOpportunities() } catch { /* silent */ }
+  try {
+    await getPendleYieldOpportunities()
+  } catch {
+    /* silent */
+  }
 }
 
 async function handleLidoConnect() {
@@ -221,7 +308,9 @@ async function handleLidoConnect() {
     await connectLido()
     const r = await getLidoStakingApy()
     if (r.success) lidoApy.value = r.data
-  } catch { /* silent */ }
+  } catch {
+    /* silent */
+  }
 }
 
 // ─── Polymarket Handlers ───
@@ -233,14 +322,18 @@ async function handleRunPolymarketStrategy(name: string) {
       const s = polymarketStrategies.value.find((x: any) => x.id === name)
       if (s) s.lastResult = 'Scan completed'
     }
-  } catch { /* silent */ }
+  } catch {
+    /* silent */
+  }
 }
 
 async function handlePolymarketDiagnostic() {
   try {
     const r = await getPolymarketDiagnostic()
     if (r.success) polymarketDiagnostic.value = r.diagnostic
-  } catch { /* silent */ }
+  } catch {
+    /* silent */
+  }
 }
 
 // ─── Assisted Deployment ───

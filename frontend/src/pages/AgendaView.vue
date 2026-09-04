@@ -7,7 +7,7 @@ import { onMounted, ref } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
 import Card from '@/components/ui/Card.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
-import { fetchAgenda, type AgendaItem, type UnifiedAgendaState } from '@/services/ownexData'
+import { type AgendaItem, fetchAgenda, type UnifiedAgendaState } from '@/services/ownexData'
 
 const loading = ref(true)
 const agenda = ref<UnifiedAgendaState | null>(null)
@@ -29,8 +29,7 @@ const sourceIcon = (s: string): string => {
   return map[s] || '📋'
 }
 
-const usd = (n: number | undefined | null): string =>
-  n ? `$${Math.round(n).toLocaleString('es-AR')}` : ''
+const usd = (n: number | undefined | null): string => (n ? `$${Math.round(n).toLocaleString('es-AR')}` : '')
 
 async function load(): Promise<void> {
   loading.value = true

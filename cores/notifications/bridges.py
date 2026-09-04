@@ -379,14 +379,8 @@ def register_event_bridge() -> None:
         channels = ["web"]
         if priority in ("high", "critical"):
             channels.append("desktop")
-        # General system notifications also go to email when SMTP is configured.
-        try:
-            from cores.notifications.email import get_email_adapter
-
-            if get_email_adapter().is_enabled:
-                channels.append("email")
-        except Exception:
-            pass
+        # Email is ONLY for monthly report — operational alerts stay in-app.
+        # Do NOT append "email" here. Monthly report uses its own channel.
         discord_events = {
             "finding:created",
             "finding:confirmed",
@@ -412,6 +406,9 @@ def register_event_bridge() -> None:
             channels.append("discord")
         if priority in ("high", "critical"):
             channels.append("telegram")
+        # Watch gets CRITICAL and HIGH — minimal, critical-only
+        if priority in ("high", "critical"):
+            channels.append("watch")
 
         hub.notify(
             type_=event_type.replace(":", "_"),
@@ -427,6 +424,49 @@ def register_event_bridge() -> None:
     bus = get_event_bus()
     bus.subscribe("*", _on_event)
     logger.info("Event -> notification bridge started")
+
+
+def register_watch_channel() -> None:
+    """Register the Watch OS notification handler on the hub.
+
+    Only forwards CRITICAL and HIGH priority notifications to the watch.
+    The watch is minimal: alerts + next action + status only.
+    """
+    from cores.notifications.hub import get_hub
+
+    def _watch_handler(type_: str, payload: dict[str, Any]) -> None:
+        try:
+            from cores.wear_os.integration import (
+                WatchNotificationLevel,
+                get_wear_os_integration,
+            )
+
+            priority = payload.get("priority", "medium")
+            # Watch only gets CRITICAL and HIGH — minimal, no noise
+            if priority not in ("critical", "high"):
+                return
+
+            level = WatchNotificationLevel.CRITICAL if priority == "critical" else WatchNotificationLevel.HIGH
+
+            watch = get_wear_os_integration()
+            watch.send_notification(
+                title=payload.get("title", "OWNEX"),
+                message=payload.get("message", ""),
+                level=level,
+                requires_action=priority == "critical",
+            )
+
+            db_id = payload.get("metadata", {}).get("db_id")
+            if db_id:
+                from cores.notifications.db_bridge import record_delivery
+
+                record_delivery(db_id, "watch", "sent")
+        except Exception as exc:
+            logger.debug("Watch notification handler error: %s", exc)
+
+    hub = get_hub()
+    hub.subscribe("watch", _watch_handler)
+    logger.info("Watch channel registered on NotificationHub")
 
 
 def register_ws_forwarder() -> None:

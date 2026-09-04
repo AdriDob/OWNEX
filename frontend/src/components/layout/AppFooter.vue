@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { MessageCircle, HelpCircle } from '@lucide/vue'
+import { HelpCircle, MessageCircle } from '@lucide/vue'
 
-const emit = defineEmits<{ 'toggleCopilot': [] }>()
+const emit = defineEmits<{ toggleCopilot: [] }>()
 </script>
 
 <template>

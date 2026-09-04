@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
+import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useHuntStore } from '@/stores/hunt'
 
 const mockApi = vi.hoisted(() => ({
@@ -104,8 +104,10 @@ describe('hunt store', () => {
 
   it('fetchStatus updates all fields', async () => {
     mockApi.get.mockResolvedValue({
-      status: 'running', started_at: '2025-06-01T00:00:00Z',
-      findings_found: 42, targets_scanned: 7,
+      status: 'running',
+      started_at: '2025-06-01T00:00:00Z',
+      findings_found: 42,
+      targets_scanned: 7,
     })
     const store = useHuntStore()
     await store.fetchStatus()

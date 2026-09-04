@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { wsUrl } from '@/lib/backend'
 
 const terminalEl = ref<HTMLDivElement | null>(null)
@@ -8,9 +8,7 @@ let terminal: any = null
 let fitAddon: any = null
 
 // Determinar backend: PowerShell en Windows nativo, bash en Linux/WSL
-const shell = navigator.userAgent.includes('Windows NT')
-  ? ['powershell.exe', '-NoLogo']
-  : ['/bin/bash', '--login']
+const shell = navigator.userAgent.includes('Windows NT') ? ['powershell.exe', '-NoLogo'] : ['/bin/bash', '--login']
 
 let ws: WebSocket | null = null
 let backendProcess: any = null
@@ -110,7 +108,9 @@ function startLocalShell() {
 
 function handleResize() {
   if (fitAddon) {
-    try { fitAddon.fit() } catch {}
+    try {
+      fitAddon.fit()
+    } catch {}
   }
 }
 
@@ -127,7 +127,6 @@ function toggleTheme() {
 function clearTerminal() {
   if (terminal) terminal.clear()
 }
-
 </script>
 
 <template>

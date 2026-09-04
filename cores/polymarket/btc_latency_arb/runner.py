@@ -545,7 +545,9 @@ class BTCArbRunner:
                             logger.info("Stop loss triggered for %s", position.id)
 
                     # Check time-based exit (near settlement)
-                    if self._market_data.time_left_min is not None and self._market_data.time_left_min < 1.0:  # Less than 1 min
+                    if (
+                        self._market_data.time_left_min is not None and self._market_data.time_left_min < 1.0
+                    ):  # Less than 1 min
                         success, reason, trade = self._paper_engine.execute_paper_sell(position.id, current_price)
                         if success and trade:
                             self._trade_history.add_trade(

@@ -177,12 +177,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { Shield, Activity, TrendingUp, AlertTriangle, FileText } from '@lucide/vue'
+import { Activity, AlertTriangle, FileText, Shield, TrendingUp } from '@lucide/vue'
+import { onMounted, ref } from 'vue'
+import Badge from '@/components/ui/Badge.vue'
+import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
 import CardContent from '@/components/ui/CardContent.vue'
-import Button from '@/components/ui/Button.vue'
-import Badge from '@/components/ui/Badge.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 
 // Component state and interfaces
@@ -200,39 +200,41 @@ const initializeSecurityCycle = () => {
       status: 'active',
       target_domains: ['api.ownex.io', 'admin.ownex.io', 'auth.ownex.io'],
       last_check: new Date().toISOString(),
-    }
+    },
   }
-  
+
   currentStage.value = {
     id: 'stage-1',
     name: 'Attack Surface Analysis',
     order: 1,
     status: 'active',
-    description: 'Systematic reconnaissance of exposed attack surfaces, identifying vulnerabilities, open ports, and security misconfigurations.'
+    description:
+      'Systematic reconnaissance of exposed attack surfaces, identifying vulnerabilities, open ports, and security misconfigurations.',
   }
-  
+
   progressPercent.value = 42
 }
 
 const startCycle = () => {
   if (cycleStatus.value?.cycle.status === 'active') return
-  
+
   cycleStatus.value = {
     ...cycleStatus.value,
     cycle: {
       ...cycleStatus.value.cycle,
-      status: 'active'
-    }
+      status: 'active',
+    },
   }
-  
+
   currentStage.value = {
     id: 'stage-1',
     name: 'Attack Surface Analysis',
     order: 1,
     status: 'active',
-    description: 'Systematic reconnaissance of exposed attack surfaces, identifying vulnerabilities, open ports, and security misconfigurations.'
+    description:
+      'Systematic reconnaissance of exposed attack surfaces, identifying vulnerabilities, open ports, and security misconfigurations.',
   }
-  
+
   progressPercent.value = 25
 }
 
@@ -241,28 +243,35 @@ const advanceStage = (stageId: string) => {
   const stages = ['stage-1', 'stage-2', 'stage-3', 'stage-4', 'stage-5', 'stage-6']
   const currentIndex = stages.indexOf(currentStage.value?.id || '')
   const nextIndex = Math.min(currentIndex + 1, stages.length - 1)
-  
+
   if (nextIndex >= stages.length) {
     cycleStatus.value = {
       ...cycleStatus.value,
       cycle: {
         ...cycleStatus.value.cycle,
-        status: 'completed'
-      }
+        status: 'completed',
+      },
     }
     currentStage.value = null
     progressPercent.value = 100
     return
   }
-  
+
   currentStage.value = {
     id: stages[nextIndex],
-    name: ['Attack Surface Analysis', 'Hypothesis Generation', 'Exploitation Testing', 'Validation', 'Evidence Collection', 'Report Generation'][nextIndex],
+    name: [
+      'Attack Surface Analysis',
+      'Hypothesis Generation',
+      'Exploitation Testing',
+      'Validation',
+      'Evidence Collection',
+      'Report Generation',
+    ][nextIndex],
     order: nextIndex + 1,
     status: 'active',
-    description: getStageDescription(nextIndex)
+    description: getStageDescription(nextIndex),
   }
-  
+
   progressPercent.value = (nextIndex + 1) * (100 / stages.length)
 }
 
@@ -273,7 +282,7 @@ const getStageDescription = (stageIndex: number): string => {
     'Execute controlled exploitation attempts to validate identified vulnerabilities in isolated, controlled environments.',
     'Validate exploit findings through multiple verification methods and confirm vulnerability presence.',
     'Collect comprehensive evidence including screenshots, logs, and technical details for each validated vulnerability.',
-    'Generate formal security reports with comprehensive findings, risk assessments, and remediation recommendations.'
+    'Generate formal security reports with comprehensive findings, risk assessments, and remediation recommendations.',
   ]
   return descriptions[stageIndex] || ''
 }
@@ -281,11 +290,11 @@ const getStageDescription = (stageIndex: number): string => {
 const loadSecurityCycle = async () => {
   loading.value = true
   error.value = ''
-  
+
   try {
     // Simulate API call to load security cycle state
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
+    await new Promise((resolve) => setTimeout(resolve, 500))
+
     initializeSecurityCycle()
   } catch (e: any) {
     error.value = e?.message || 'Error al cargar el ciclo de seguridad'

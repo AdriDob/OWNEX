@@ -38,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 
 interface Alert {
   id: string
@@ -88,7 +88,7 @@ const dismissAlert = async (alertId: string) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ alert_id: alertId }),
     })
-    activeAlerts.value = activeAlerts.value.filter(a => a.id !== alertId)
+    activeAlerts.value = activeAlerts.value.filter((a) => a.id !== alertId)
   } catch (error) {
     console.error('Failed to dismiss alert:', error)
   }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { api } from '@/lib/api'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useOwnVoice } from '@/composables/useOwnVoice'
+import { api } from '@/lib/api'
 
 interface AssistantReply {
   id: number

@@ -1,0 +1,70 @@
+{
+  "definitive_answer": {
+    "question": "How much can this system REALISTICALLY earn?",
+    "answers": {
+      "First_7_days": "$0-250 (Net)",
+      "First_30_days": "$100-500",
+      "First_90_days": "$500-2,500",
+      "Month_6": "$1,500-5,000/month",
+      "Month_12": "$3,000-8,000/month",
+      "Best_realistic_monthly_run_rate": "$10,000-25,000/month (Year 2-3)",
+      "Optimistic_monthly_run_rate": "$25,000-50,000/month (Year 3+)",
+      "Extreme_monthly_run_rate": "$50,000-100,000/month (Outlier, <5%)"
+    },
+    "confidence": {
+      "First_7_days": "LOW",
+      "First_30_days": "MEDIUM",
+      "First_90_days": "MEDIUM",
+      "Month_6": "MEDIUM-HIGH",
+      "Month_12": "MEDIUM",
+      "Best_realistic": "MEDIUM",
+      "Optimistic": "LOW-MEDIUM",
+      "Extreme": "VERY LOW (<2%)"
+    }
+  },
+  "what_would_need_to_change": {
+    "for_25k_month": {
+      "gaps": [
+        "Private security program access (6-18 months reputation)",
+        "AI Eval Specialist tier unlock (assessments)",
+        "Consistent dev bounty flow ($2.5k-5k/week)",
+        "Web3 dev bounties ($2k-10k range)"
+      ],
+      "ceiling_shift": "+$15k/mo over base realistic"
+    },
+    "for_50k_month": {
+      "gaps": [
+        "NOT viable solo - requires leverage",
+        "Team (3-5 hunters) + automation",
+        "OR SaaS product ($10k-50k MRR)",
+        "OR capital income ($3-4k/mo passive)"
+      ],
+      "ceiling_shift": "Requires leverage (team/product/capital)"
+    },
+    "for_100k_month": {
+      "gaps": [
+        "IMPOSSIBLE solo - human bottleneck",
+        "Agency (10+ hunters) + automation platform",
+        "OR fund/equity model",
+        "OR elite auditor (Spearbit level) + consulting"
+      ],
+      "ceiling_shift": "Business model change required"
+    },
+    "for_1M_year": {
+      "gaps": [
+        "Team of 5+ + automation + retainers + capital",
+        "OR elite auditor (Spearbit) + consulting + contest wins",
+        "Requires team/leverage"
+      ],
+      "ceiling_shift": "Possible with team/leverage"
+    },
+    "for_10M_year": {
+      "gaps": [
+        "Business-scale leverage required",
+        "Platform equity, fund carry, or exit",
+        "Not labor income - net worth via equity"
+      ],
+      "ceiling_shift": "Requires business-scale leverage (platform/fund/exit)"
+    }
+  }
+}

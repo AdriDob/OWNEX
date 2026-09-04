@@ -1,17 +1,27 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import Card from '@/components/ui/Card.vue'
-import Button from '@/components/ui/Button.vue'
-import Badge from '@/components/ui/Badge.vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
 import {
-  CheckCircle2, XCircle, AlertTriangle, HelpCircle, ChevronRight,
-  ChevronLeft, Shield, ExternalLink, Camera, Terminal, FileText,
-  RotateCcw, Flag,
+  AlertTriangle,
+  Camera,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  FileText,
+  Flag,
+  HelpCircle,
+  RotateCcw,
+  Shield,
+  Terminal,
+  XCircle,
 } from '@lucide/vue'
-import type { ZapHypothesisItem, VerificationStepItem } from '@/lib/api'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import BarChart from '@/components/charts/BarChart.vue'
+import Badge from '@/components/ui/Badge.vue'
+import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import type { VerificationStepItem, ZapHypothesisItem } from '@/lib/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -29,7 +39,7 @@ const currentStep = ref(0)
 const steps = ref<VerificationStepItem[]>([])
 
 const totalSteps = computed(() => steps.value.length)
-const progress = computed(() => totalSteps.value > 0 ? ((currentStep.value + 1) / totalSteps.value) * 100 : 0)
+const progress = computed(() => (totalSteps.value > 0 ? ((currentStep.value + 1) / totalSteps.value) * 100 : 0))
 
 const canGoNext = computed(() => currentStep.value < totalSteps.value - 1)
 const canGoPrev = computed(() => currentStep.value > 0)
@@ -86,12 +96,7 @@ async function finishVerification(finalResult: 'confirmed' | 'rejected' | 'incon
     const { saveVerificationResult } = await import('@/lib/api')
     const stepStatuses: Record<string, string> = {}
     for (const s of steps.value) stepStatuses[s.id] = s.status
-    await saveVerificationResult(
-      hypothesis.value?.id || '',
-      finalResult,
-      notes.value,
-      stepStatuses,
-    )
+    await saveVerificationResult(hypothesis.value?.id || '', finalResult, notes.value, stepStatuses)
   } catch (e) {
     console.error('Failed to save result', e)
   } finally {
@@ -108,17 +113,33 @@ function reset() {
 }
 
 function formatType(type: VerificationStepItem['type']) {
-  const labels: Record<string, string> = { check: 'Verificación', command: 'Comando', screenshot: 'Captura de pantalla', note: 'Anotación' }
+  const labels: Record<string, string> = {
+    check: 'Verificación',
+    command: 'Comando',
+    screenshot: 'Captura de pantalla',
+    note: 'Anotación',
+  }
   return labels[type] || type
 }
 
 function severityVariant(severity?: string) {
-  const map: Record<string, 'destructive' | 'warning' | 'default' | 'info'> = { critical: 'destructive', high: 'destructive', medium: 'warning', low: 'default', info: 'info' }
+  const map: Record<string, 'destructive' | 'warning' | 'default' | 'info'> = {
+    critical: 'destructive',
+    high: 'destructive',
+    medium: 'warning',
+    low: 'default',
+    info: 'info',
+  }
   return map[(severity || '').toLowerCase()] || 'default'
 }
 
 function difficultyColor(diff?: string) {
-  const map: Record<string, string> = { fácil: 'text-success', facil: 'text-success', media: 'text-warning', 'requiere experiencia': 'text-destructive' }
+  const map: Record<string, string> = {
+    fácil: 'text-success',
+    facil: 'text-success',
+    media: 'text-warning',
+    'requiere experiencia': 'text-destructive',
+  }
   return map[(diff || '').toLowerCase()] || 'text-muted-foreground'
 }
 </script>

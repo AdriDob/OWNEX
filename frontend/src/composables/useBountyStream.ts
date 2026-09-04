@@ -1,4 +1,4 @@
-import { ref, onUnmounted } from 'vue'
+import { onUnmounted, ref } from 'vue'
 import { getToken } from '@/lib/api'
 import { wsUrl } from '@/lib/backend'
 import type { WsConnectionStatus, WsEvent } from '@/types'
@@ -32,20 +32,40 @@ function handleMessage(data: string) {
     const event = JSON.parse(data) as WsEvent
     lastEvent.value = event
     for (const [pattern, hs] of handlers) {
-      if (pattern === '*') { for (const h of hs) h(event); continue }
-      if (pattern === event.type) { for (const h of hs) h(event); continue }
-      if (pattern.endsWith(':') && event.type.startsWith(pattern)) { for (const h of hs) h(event) }
+      if (pattern === '*') {
+        for (const h of hs) h(event)
+        continue
+      }
+      if (pattern === event.type) {
+        for (const h of hs) h(event)
+        continue
+      }
+      if (pattern.endsWith(':') && event.type.startsWith(pattern)) {
+        for (const h of hs) h(event)
+      }
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 export function connect() {
   if (_ws?.readyState === WebSocket.OPEN || _ws?.readyState === WebSocket.CONNECTING) return
   const url = getWsUrl()
-  if (!url) { status.value = 'disconnected'; scheduleReconnect(); return }
+  if (!url) {
+    status.value = 'disconnected'
+    scheduleReconnect()
+    return
+  }
 
   status.value = 'connecting'
-  try { _ws = new WebSocket(url) } catch { status.value = 'disconnected'; scheduleReconnect(); return }
+  try {
+    _ws = new WebSocket(url)
+  } catch {
+    status.value = 'disconnected'
+    scheduleReconnect()
+    return
+  }
 
   _ws.onopen = () => {
     status.value = 'connected'
@@ -53,22 +73,35 @@ export function connect() {
     _ws?.send(JSON.stringify({ type: 'subscribe', pattern: '*' }))
   }
   _ws.onmessage = (msg) => handleMessage(msg.data)
-  _ws.onclose = () => { status.value = 'disconnected'; _ws = null; scheduleReconnect() }
+  _ws.onclose = () => {
+    status.value = 'disconnected'
+    _ws = null
+    scheduleReconnect()
+  }
   _ws.onerror = () => {}
 }
 
 export function disconnect() {
-  if (_reconnectTimer) { clearTimeout(_reconnectTimer); _reconnectTimer = null }
+  if (_reconnectTimer) {
+    clearTimeout(_reconnectTimer)
+    _reconnectTimer = null
+  }
   _reconnectAttempts = 0
   handlers.clear()
-  if (_ws) { _ws.onclose = null; _ws.close(); _ws = null }
+  if (_ws) {
+    _ws.onclose = null
+    _ws.close()
+    _ws = null
+  }
   status.value = 'disconnected'
 }
 
 export function onWsEvent(type: string, handler: EventHandler) {
   if (!handlers.has(type)) handlers.set(type, new Set())
   handlers.get(type)!.add(handler)
-  return () => { handlers.get(type)?.delete(handler) }
+  return () => {
+    handlers.get(type)?.delete(handler)
+  }
 }
 
 export function useBountyStream() {

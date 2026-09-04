@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useToast } from '@/composables/useToast'
 import { Activity, AlertTriangle, CheckCircle2, Clock, HeartPulse, RefreshCw, ShieldCheck, XCircle } from '@lucide/vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
-import Button from '@/components/ui/Button.vue'
+import { computed, onMounted, ref } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
+import Button from '@/components/ui/Button.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { useToast } from '@/composables/useToast'
 
 interface HealthSnapshot {
   status: string
@@ -34,14 +34,18 @@ const statusColor = (s: string) => {
 }
 
 const statusBg = (s: string) => {
-  const map: Record<string, string> = { green: 'bg-success/10 border-success/30', yellow: 'bg-warning/10 border-warning/30', red: 'bg-destructive/10 border-destructive/30' }
+  const map: Record<string, string> = {
+    green: 'bg-success/10 border-success/30',
+    yellow: 'bg-warning/10 border-warning/30',
+    red: 'bg-destructive/10 border-destructive/30',
+  }
   return map[s] || 'bg-surface/40 border-border/40'
 }
 
 const healthScore = computed(() => {
   const all = checks.value
   if (!all.length) return 0
-  const ok = all.filter(c => c.last_ok).length
+  const ok = all.filter((c) => c.last_ok).length
   return Math.round((ok / all.length) * 100)
 })
 

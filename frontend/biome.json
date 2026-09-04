@@ -43,19 +43,11 @@
     "useIgnoreFile": false
   },
   "files": {
-    "includes": [
-      "**",
-      "!**/dist/",
-      "!**/node_modules/",
-      "!**/src-tauri/",
-      "!**/*.config.*"
-    ]
+    "includes": ["**", "!**/dist/", "!**/node_modules/", "!**/src-tauri/", "!**/*.config.*"]
   },
   "overrides": [
     {
-      "includes": [
-        "**/*.vue"
-      ],
+      "includes": ["**/*.vue"],
       "linter": {
         "rules": {
           "correctness": {

@@ -5,13 +5,13 @@
  * Acciones destructivas con confirmación explícita.
  */
 import { onMounted, ref } from 'vue'
+import ErrorState from '@/components/shared/ErrorState.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
-import ErrorState from '@/components/shared/ErrorState.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
-import { fetchEmergencyMode } from '@/services/ownexData'
 import { api } from '@/lib/api'
+import { fetchEmergencyMode } from '@/services/ownexData'
 
 const loading = ref(true)
 const error = ref<string | null>(null)

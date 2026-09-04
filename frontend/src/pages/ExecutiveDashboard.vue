@@ -4,17 +4,26 @@
  * Responde la única pregunta: "¿Esta semana ganamos plata?"
  * Fuente: GET /api/cycles/security/dashboard (core/cycles/executive_dashboard.py)
  */
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { api } from '@/lib/api'
+
 import {
-  Activity, TrendingUp, Target, Clock, RefreshCw,
-  ArrowUpRight, Wallet, DollarSign, Gauge, CheckCircle2,
+  Activity,
+  ArrowUpRight,
+  CheckCircle2,
+  Clock,
+  DollarSign,
+  Gauge,
+  RefreshCw,
+  Target,
+  TrendingUp,
+  Wallet,
 } from '@lucide/vue'
-import Card from '@/components/ui/Card.vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import ErrorState from '@/components/shared/ErrorState.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
-import ErrorState from '@/components/shared/ErrorState.vue'
+import { api } from '@/lib/api'
 
 interface CeoView {
   verdict: string
@@ -33,22 +42,16 @@ const error = ref('')
 const data = ref<CeoView | null>(null)
 let refreshInterval: ReturnType<typeof setInterval> | null = null
 
-const verdictTone = computed(() =>
-  data.value?.made_money_this_week ? 'text-success' : 'text-destructive'
-)
+const verdictTone = computed(() => (data.value?.made_money_this_week ? 'text-success' : 'text-destructive'))
 const verdictBg = computed(() =>
-  data.value?.made_money_this_week
-    ? 'bg-success/10 border-success/30'
-    : 'bg-destructive/10 border-destructive/30'
+  data.value?.made_money_this_week ? 'bg-success/10 border-success/30' : 'bg-destructive/10 border-destructive/30',
 )
 const pipelinePercent = computed(() => {
   const p = data.value?.pipeline
   if (!p || p.findings_total === 0) return 0
   return Math.round((p.accepted / p.findings_total) * 100)
 })
-const activeCycles = computed(() =>
-  Object.entries(data.value?.cycles ?? {}).filter(([, c]) => c.status !== 'inactive')
-)
+const activeCycles = computed(() => Object.entries(data.value?.cycles ?? {}).filter(([, c]) => c.status !== 'inactive'))
 
 async function load() {
   try {

@@ -1,0 +1,1135 @@
+{
+  "meta": {
+    "title": "OWNEX FINAL ECONOMIC POTENTIAL REPORT",
+    "date": "2026-08-26",
+    "mode": "PLAN MODE - ANALYSIS ONLY - NO IMPLEMENTATION",
+    "version": "1.0",
+    "source": "OWNEX repository audit + web research + Monte Carlo simulation (5000 runs/scenario)",
+    "methodology": "Evidence-based modeling with Monte Carlo (5000 runs/scenario) + sensitivity analysis"
+  },
+  "executive_summary": {
+    "primary_operating_target": "3,000/month sustained",
+    "growth_target": "10,000/month",
+    "high_performance": "25,000/month",
+    "exceptional": "50,000/month",
+    "outlier": "100,000+/month",
+    "tail_event": "1M+/year",
+    "extreme_theoretical": "10M/year",
+    "confidence": "MEDIUM for -10k, LOW for >5k, VERY LOW for >00k",
+    "key_insight": "OWNEX should optimize risk-adjusted EV/hour, not maximum bounty. The first $3k/month sustained is the primary operating target."
+  },
+  "audit_summary": {
+    "components_audited": 18,
+    "real_components": 14,
+    "partial_components": 3,
+    "mock_components": 0,
+    "placeholder_components": 0,
+    "dead_components": 1,
+    "key_finding": "OWNEX has a REAL, deeply integrated income stack (95% real). The bottleneck is not software - it is conversion rates, platform access, reputation, and human capacity."
+  },
+  "tables": {
+    "table_1_first_days": {
+      "description": "First days income projection (Net USD)",
+      "columns": [
+        "Period",
+        "Floor",
+        "Realistic",
+        "Optimistic",
+        "Extreme"
+      ],
+      "data": [
+        [
+          "Day 1",
+          "/bin/bash",
+          "/bin/bash-50",
+          "0-150",
+          "00+"
+        ],
+        [
+          "Days 2-3",
+          "/bin/bash",
+          "/bin/bash-100",
+          "00-300",
+          ",000+"
+        ],
+        [
+          "Days 4-7",
+          "/bin/bash",
+          "/bin/bash-250",
+          "00-750",
+          ",000+"
+        ],
+        [
+          "Week 1",
+          "/bin/bash",
+          "/bin/bash-250",
+          "50-750",
+          ",000+"
+        ],
+        [
+          "Week 2",
+          "/bin/bash",
+          "00-500",
+          "00-2,000",
+          ",000+"
+        ]
+      ],
+      "notes": "Based on onboarding time, assessment completion, first platform access. Extreme requires immediate high-value opportunity."
+    },
+    "table_2_first_months": {
+      "description": "First months income projection (Monthly Net USD)",
+      "columns": [
+        "Period",
+        "Floor",
+        "Realistic",
+        "Optimistic",
+        "Extreme"
+      ],
+      "data": [
+        [
+          "Month 1",
+          "/bin/bash",
+          "00-500",
+          "00-2,500",
+          ",000-8,000"
+        ],
+        [
+          "Month 2",
+          "0",
+          "00-1,000",
+          ",500-4,000",
+          ",000-15,000"
+        ],
+        [
+          "Month 3",
+          "00",
+          "00-1,500",
+          ",500-7,000",
+          "0,000-30,000"
+        ],
+        [
+          "Months 4-6",
+          "00/mo",
+          ",000-3,000/mo",
+          ",000-10,000/mo",
+          "5k-50k/mo"
+        ],
+        [
+          "Months 7-12",
+          "00/mo",
+          ",000-5,000/mo",
+          ",000-20,000/mo",
+          "0k-100k/mo"
+        ],
+        [
+          "Year 1 Total",
+          "k-8k",
+          "5k-40k",
+          "0k-120k",
+          "50k-1M+"
+        ]
+      ],
+      "notes": "Realistic assumes Normal capacity (4h/day effective 1.3h). Extreme requires reputation + high-value findings."
+    },
+    "table_3_year_1": {
+      "description": "Year 1 summary metrics",
+      "columns": [
+        "Metric",
+        "Realistic",
+        "Optimistic",
+        "Extreme"
+      ],
+      "data": [
+        [
+          "Gross Income",
+          "5,000",
+          "10,000",
+          "50,000"
+        ],
+        [
+          "Fees (15%)",
+          ",250",
+          "6,500",
+          "7,500"
+        ],
+        [
+          "Net Income",
+          "9,750",
+          "3,500",
+          "82,500"
+        ],
+        [
+          "Saved (50%)",
+          "4,875",
+          "6,750",
+          "91,250"
+        ],
+        [
+          "Invested (50%)",
+          "4,875",
+          "6,750",
+          "91,250"
+        ],
+        [
+          "Capital EOY (10%)",
+          "1,225",
+          "01,425",
+          "11,375"
+        ]
+      ],
+      "notes": "Extreme assumes one or more high-value findings (0k+). Realistic assumes diversified portfolio."
+    },
+    "table_4_categories": {
+      "description": "Income categories with barriers and EV/hour",
+      "columns": [
+        "Category",
+        "Barrier",
+        "Typical Payout",
+        "High Payout",
+        "Frequency",
+        "Difficulty",
+        "OWNEX Leverage",
+        "Priority"
+      ],
+      "data": [
+        [
+          "AI Evaluation Generalist",
+          "TRUE_ZERO",
+          "5/hr",
+          "0/hr",
+          "Daily",
+          "Low",
+          "A1 (templates)",
+          "1"
+        ],
+        [
+          "AI Evaluation Coding (AR)",
+          "TRUE_ZERO",
+          "1.50/hr",
+          "4/hr",
+          "Daily",
+          "Med",
+          "A1 (CodeGenerator)",
+          "2"
+        ],
+        [
+          "AI Evaluation Specialist",
+          "LOW",
+          "0/hr",
+          "00/hr",
+          "Weekly",
+          "High",
+          "A1 (templates)",
+          "3"
+        ],
+        [
+          "Data Annotation",
+          "TRUE_ZERO",
+          "0-30/hr",
+          "0-60/hr",
+          "Daily",
+          "Low",
+          "A1",
+          "4"
+        ],
+        [
+          "QA/Testing",
+          "TRUE_ZERO",
+          "5/hr + bugs",
+          "0/hr",
+          "Weekly",
+          "Low",
+          "A1",
+          "5"
+        ],
+        [
+          "OSS Dev Bounties",
+          "TRUE_ZERO",
+          "00",
+          ",000",
+          "Weekly",
+          "Med",
+          "A2 (GitHubCommenter)",
+          "6"
+        ],
+        [
+          "Web3 Dev (Superteam)",
+          "LOW",
+          ",000",
+          "0,000",
+          "Weekly",
+          "High",
+          "A2",
+          "7"
+        ],
+        [
+          "Security Public",
+          "HIGH",
+          ",000",
+          "0,000+",
+          "Daily",
+          "Very High",
+          "A1 (recon)",
+          "8"
+        ],
+        [
+          "Security Private",
+          "HIGH",
+          ",000",
+          "00,000+",
+          "Monthly",
+          "Very High",
+          "A1 + reputation",
+          "8"
+        ],
+        [
+          "Smart Contract Audit",
+          "HIGH",
+          "3,000",
+          "0M+",
+          "Contest",
+          "Extreme",
+          "A2 (OpenHands)",
+          "9"
+        ],
+        [
+          "AI/LLM Security",
+          "HIGH",
+          ",000",
+          "00,000+",
+          "Weekly",
+          "Extreme",
+          "A2 + OAR",
+          "10"
+        ]
+      ],
+      "notes": "Priority 1 = highest leverage. TRUE_ZERO = no interview/portfolio/experience required. LOW = assessment/skill proof. HIGH = reputation/skill/experience."
+    },
+    "table_5_platforms": {
+      "description": "Platforms by priority for OWNEX",
+      "columns": [
+        "Platform",
+        "Entry",
+        "Typical Payout",
+        "High Payout",
+        "AR Availability",
+        "Automation",
+        "Priority"
+      ],
+      "data": [
+        [
+          "Outlier",
+          "Assessment",
+          "1.50/hr (AR)",
+          "4/hr",
+          "DIRECT",
+          "A1",
+          "1"
+        ],
+        [
+          "DataAnnotation",
+          "Assessment",
+          "5/hr",
+          "0/hr",
+          "DIRECT (PayPal)",
+          "A1",
+          "2"
+        ],
+        [
+          "Mercor",
+          "AI Interview",
+          "12/hr",
+          "00/task",
+          "DIRECT (Stripe)",
+          "A1",
+          "3"
+        ],
+        [
+          "Opire",
+          "None",
+          "00",
+          "3k",
+          "DIRECT (Stripe)",
+          "A2",
+          "4"
+        ],
+        [
+          "Superteam Dev",
+          "Wallet",
+          ",000",
+          "0k",
+          "DIRECT (USDC)",
+          "A2",
+          "4"
+        ],
+        [
+          "Algora",
+          "None",
+          "0-,500",
+          ",500",
+          "DIRECT (Stripe)",
+          "A2",
+          "6"
+        ],
+        [
+          "HackerOne",
+          "None",
+          "50/vuln",
+          "00k+",
+          "DIRECT (PayPal/crypto)",
+          "A1",
+          "5"
+        ],
+        [
+          "Bugcrowd",
+          "None",
+          "50/vuln",
+          "M+",
+          "DIRECT (PayPal/wire)",
+          "A1",
+          "6"
+        ],
+        [
+          "Intigriti",
+          "None",
+          "\u20ac440 avg",
+          "\u20ac50k+",
+          "DIRECT (Wire/PayPal)",
+          "A1",
+          "7"
+        ],
+        [
+          "Code4rena",
+          "Wallet",
+          "0k pool",
+          "00k",
+          "DIRECT (USDC)",
+          "A2",
+          "8"
+        ],
+        [
+          "Immunefi",
+          "KYC",
+          "2k avg",
+          "5M",
+          "DIRECT (USDC)",
+          "A0",
+          "9"
+        ],
+        [
+          "Stargate",
+          "KYC",
+          "00k min",
+          "0M",
+          "DIRECT (USDC)",
+          "A0",
+          "10"
+        ],
+        [
+          "Avail",
+          "KYC",
+          "5k-50k",
+          "50k",
+          "DIRECT (USDC)",
+          "A0",
+          "11"
+        ]
+      ],
+      "notes": "Priority 1 = immediate cashflow. AR Availability = Argentina access. A0=A1 fully automated, A2=semi-auto, A3=approval required."
+    },
+    "table_6_500plus": {
+      "description": "How to reach 00+ per opportunity",
+      "columns": [
+        "Category",
+        "How to Reach 00",
+        "Frequency",
+        "Skill",
+        "Probability",
+        "OWNEX Leverage"
+      ],
+      "data": [
+        [
+          "AI Evaluation Coding",
+          "20hr \u00d7 5 = 00",
+          "Weekly",
+          "Assessment + coding",
+          "30%",
+          "CodeGenerator"
+        ],
+        [
+          "AI Evaluation Specialist",
+          "10hr \u00d7 0 = 00",
+          "Weekly",
+          "Degree + assessment",
+          "15%",
+          "Templates"
+        ],
+        [
+          "Dev Bounty Medium",
+          "1\u00d7 00 bounty",
+          "Bi-weekly",
+          "PR + GitHub",
+          "20%",
+          "GitHubCommenter"
+        ],
+        [
+          "Security Private Med",
+          "1\u00d7 ,000 (split)",
+          "Monthly",
+          "Recon + exploit",
+          "5% (private)",
+          "Recon automation"
+        ],
+        [
+          "Web3 Dev",
+          "1\u00d7 ,000 bounty",
+          "Monthly",
+          "Rust/Solana",
+          "8%",
+          "Superteam adapter"
+        ],
+        [
+          "Audit Contest Share",
+          "1% of 0k pool",
+          "Quarterly",
+          "Audit track record",
+          "2%",
+          "OpenHands"
+        ]
+      ],
+      "notes": "Probability = per attempt. OWNEX leverage = automation components that reduce human time."
+    },
+    "table_7_monthly_targets": {
+      "description": "Monthly targets composition",
+      "columns": [
+        "Target",
+        "Required Wins",
+        "Required Hours (eff)",
+        "Best Mix",
+        "Difficulty"
+      ],
+      "data": [
+        [
+          "0k",
+          "3-4",
+          "36 (Normal)",
+          "AI Eval (20hr) + Dev Bounty (2) + Security (1)",
+          "Medium"
+        ],
+        [
+          "5k",
+          "6-8",
+          "56 (High)",
+          "AI Specialist (160hr) + Security Private (2) + Dev (3) + Web3 (1)",
+          "Hard"
+        ],
+        [
+          "0k",
+          "10-12",
+          "78 (Extreme)",
+          "Security Private (4) + Audit Contest (1) + AI (200hr) + Web3 (2)",
+          "Extreme"
+        ],
+        [
+          "00k",
+          "20+",
+          "120+ (Impossible solo)",
+          "Team + Leverage required",
+          "Not solo"
+        ]
+      ],
+      "notes": "Hours = effective human hours after automation. 00k/mo requires team/leverage."
+    },
+    "table_8_annual_targets": {
+      "description": "Annual targets by scenario",
+      "columns": [
+        "Target",
+        "Realistic",
+        "Optimistic",
+        "Extreme"
+      ],
+      "data": [
+        [
+          "50k",
+          "Year 3-4",
+          "Year 2",
+          "Year 1"
+        ],
+        [
+          "50k",
+          "Year 4-5",
+          "Year 3",
+          "Year 2"
+        ],
+        [
+          "00k",
+          "Year 5-6",
+          "Year 4",
+          "Year 3"
+        ],
+        [
+          "M",
+          "Requires leverage",
+          "Year 5+ (agency)",
+          "Year 3 (elite + leverage)"
+        ],
+        [
+          "M",
+          "Business-scale",
+          "Fund/Platform",
+          "Exit/Equity"
+        ],
+        [
+          "0M",
+          "Business-scale",
+          "Fund/Platform",
+          "Exit/Equity"
+        ]
+      ],
+      "notes": "Solo human max realistic: 5-25k/mo (Year 3+). 00k+/mo requires leverage (team/product/capital)."
+    }
+  },
+  "probability_model": {
+    "description": "Per-category success probabilities with ranges (no false precision)",
+    "methodology": "Based on platform statistics, hunter surveys, and OWNEX audit data",
+    "categories": {
+      "AI Evaluation Generalist": {
+        "P(success)": "30-45%",
+        "P(acceptance)": "35-45%",
+        "P(rejection)": "40-50%",
+        "P(duplicate)": "5-15%",
+        "P(disqualification)": "5-15%",
+        "P(platform_selection)": "80-95%"
+      },
+      "AI Evaluation Coding (AR)": {
+        "P(success)": "20-35%",
+        "P(acceptance)": "25-40%",
+        "P(rejection)": "40-55%",
+        "P(duplicate)": "10-20%",
+        "P(disqualification)": "10-20%",
+        "P(platform_selection)": "70-85%"
+      },
+      "AI Evaluation Specialist": {
+        "P(success)": "8-25%",
+        "P(acceptance)": "10-30%",
+        "P(rejection)": "50-70%",
+        "P(duplicate)": "10-20%",
+        "P(disqualification)": "15-25%",
+        "P(platform_selection)": "50-70%"
+      },
+      "Data Annotation": {
+        "P(success)": "25-40%",
+        "P(acceptance)": "30-45%",
+        "P(rejection)": "40-55%",
+        "P(duplicate)": "5-15%",
+        "P(disqualification)": "5-15%",
+        "P(platform_selection)": "80-95%"
+      },
+      "QA/Testing": {
+        "P(success)": "20-35%",
+        "P(acceptance)": "25-40%",
+        "P(rejection)": "45-60%",
+        "P(duplicate)": "10-20%",
+        "P(disqualification)": "10-20%",
+        "P(platform_selection)": "70-85%"
+      },
+      "OSS Dev Bounties": {
+        "P(success)": "3-12%",
+        "P(acceptance)": "5-20%",
+        "P(rejection)": "60-80%",
+        "P(duplicate)": "20-35%",
+        "P(disqualification)": "15-25%",
+        "P(platform_selection)": "60-80%"
+      },
+      "Web3 Dev (Superteam)": {
+        "P(success)": "1-8%",
+        "P(acceptance)": "3-15%",
+        "P(rejection)": "70-90%",
+        "P(duplicate)": "15-25%",
+        "P(disqualification)": "10-20%",
+        "P(platform_selection)": "50-70%"
+      },
+      "Bug Bounty Private": {
+        "P(success)": "1-5%",
+        "P(acceptance)": "3-8%",
+        "P(rejection)": "75-90%",
+        "P(duplicate)": "15-25%",
+        "P(disqualification)": "5-15%",
+        "P(platform_selection)": "30-60% (invite only)"
+      },
+      "Bug Bounty Public": {
+        "P(success)": "0.1-1%",
+        "P(acceptance)": "0.5-2%",
+        "P(rejection)": "95-99%",
+        "P(duplicate)": "50-70%",
+        "P(disqualification)": "20-40%",
+        "P(platform_selection)": "90-100%"
+      },
+      "Smart Contract Audit": {
+        "P(success)": "0.05-1%",
+        "P(acceptance)": "0.1-2%",
+        "P(rejection)": "98-99.9%",
+        "P(duplicate)": "15-30%",
+        "P(disqualification)": "20-35%",
+        "P(platform_selection)": "20-50%"
+      },
+      "AI/LLM Security": {
+        "P(success)": "0.5-3%",
+        "P(acceptance)": "1-5%",
+        "P(rejection)": "95-99%",
+        "P(duplicate)": "20-30%",
+        "P(disqualification)": "15-25%",
+        "P(platform_selection)": "30-60%"
+      }
+    },
+    "notes": "Ranges reflect uncertainty. When data insufficient, use interval NOT false precision. P(success) = P(accepted) \u00d7 P(not duplicate) \u00d7 P(not disqualified)."
+  },
+  "economic_model": {
+    "description": "Expected Value model with human capacity constraints",
+    "formula": "EV = payout \u00d7 P(success) / hours_per_opportunity",
+    "risk_adjusted_EV": "EV \u00d7 (1 - duplicate_rate - disqualification_rate - payment_risk - opportunity_cost)",
+    "human_capacity_scenarios": {
+      "Low": {
+        "hours_per_day": 2,
+        "effective_hours": 0.5,
+        "description": "2h/day, high context switching, learning"
+      },
+      "Normal": {
+        "hours_per_day": 4,
+        "effective_hours": 1.3,
+        "description": "4h/day, moderate context switching"
+      },
+      "High": {
+        "hours_per_day": 6,
+        "effective_hours": 2.0,
+        "description": "6h/day, low context switching"
+      },
+      "Extreme": {
+        "hours_per_day": 9,
+        "effective_hours": 2.8,
+        "description": "8-10h/day, fatigue, diminishing returns"
+      }
+    },
+    "automation_levels": {
+      "A0_Manual": "0% reduction, human does everything",
+      "A1_Assisted": "30% time reduction, templates + guidance",
+      "A2_SemiAutomated": "60% time reduction, auto-prepare + human review",
+      "A3_AutoWithApproval": "80% time reduction, auto-execute + human gate",
+      "A4_Autonomous": "95% time reduction, fully auto in permitted scope"
+    },
+    "ev_per_hour_by_category": {
+      "Data Annotation": 6.84,
+      "AI Evaluation Coding (AR)": 6.6,
+      "AI Evaluation Specialist": 5.1,
+      "AI Evaluation Generalist": 4.28,
+      "QA/Testing": 3.57,
+      "Web3 Dev (Superteam)": 3.4,
+      "Bug Bounty Private": 2.7,
+      "OSS Dev Bounties": 2.1,
+      "AI/LLM Security": 1.0,
+      "Smart Contract Audit": 0.49,
+      "Bug Bounty Public": 0.09
+    },
+    "monthly_income_projection": {
+      "Low (2h/day)": {
+        "mean": 1105,
+        "median": 795,
+        "p95": 3003
+      },
+      "Normal (4h/day)": {
+        "mean": 2198,
+        "median": 1574,
+        "p95": 6054
+      },
+      "High (6h/day)": {
+        "mean": 3231,
+        "median": 2295,
+        "p95": 8790
+      },
+      "Extreme (9h/day)": {
+        "mean": 4718,
+        "median": 3276,
+        "p95": 12754
+      }
+    },
+    "yearly_projection": {
+      "Low (2h/day)": {
+        "mean": 13088,
+        "median": 12616,
+        "p95": 19216
+      },
+      "Normal (4h/day)": {
+        "mean": 26254,
+        "median": 25535,
+        "p95": 38295
+      },
+      "High (6h/day)": {
+        "mean": 39188,
+        "median": 37909,
+        "p95": 57732
+      },
+      "Extreme (9h/day)": {
+        "mean": 56248,
+        "median": 54534,
+        "p95": 81788
+      }
+    }
+  },
+  "monte_carlo": {
+    "description": "Monte Carlo simulation results (5,000 runs per scenario)",
+    "methodology": "Latin Hypercube sampling of category parameters (p_s, payout, hours, frequency) with Beta/Normal/Uniform distributions",
+    "sample_size": 5000,
+    "scenarios": {
+      "Low (2h/day)": {
+        "monthly": {
+          "mean": 1105,
+          "median": 795,
+          "std": 977,
+          "p5": 287,
+          "p25": 476,
+          "p75": 1354,
+          "p95": 3003,
+          "p_gt_1000": 38.2,
+          "p_gt_5000": 1.1,
+          "p_gt_10000": 0.0
+        },
+        "yearly": {
+          "mean": 13088,
+          "median": 12616,
+          "p95": 19216
+        }
+      },
+      "Normal (4h/day)": {
+        "monthly": {
+          "mean": 2198,
+          "median": 1574,
+          "std": 1883,
+          "p5": 554,
+          "p25": 954,
+          "p75": 2737,
+          "p95": 6054,
+          "p_gt_1000": 73.2,
+          "p_gt_5000": 7.8,
+          "p_gt_10000": 0.6
+        },
+        "yearly": {
+          "mean": 26254,
+          "median": 25535,
+          "p95": 38295
+        }
+      },
+      "High (6h/day)": {
+        "monthly": {
+          "mean": 3231,
+          "median": 2295,
+          "std": 2856,
+          "p5": 830,
+          "p25": 1360,
+          "p75": 4047,
+          "p95": 8790,
+          "p_gt_1000": 89.1,
+          "p_gt_5000": 17.7,
+          "p_gt_10000": 3.6
+        },
+        "yearly": {
+          "mean": 39188,
+          "median": 37909,
+          "p95": 57732
+        }
+      },
+      "Extreme (9h/day)": {
+        "monthly": {
+          "mean": 4718,
+          "median": 3276,
+          "std": 4170,
+          "p5": 1240,
+          "p25": 1954,
+          "p75": 6055,
+          "p95": 12754,
+          "p_gt_1000": 98.7,
+          "p_gt_5000": 31.9,
+          "p_gt_10000": 9.6
+        },
+        "yearly": {
+          "mean": 56248,
+          "median": 54534,
+          "p95": 81788
+        }
+      }
+    },
+    "probability_thresholds": {
+      "p_1k_month": {
+        "Low": 38.2,
+        "Normal": 73.2,
+        "High": 89.1,
+        "Extreme": 98.7
+      },
+      "p_5k_month": {
+        "Low": 1.1,
+        "Normal": 7.8,
+        "High": 17.7,
+        "Extreme": 31.9
+      },
+      "p_10k_month": {
+        "Low": 0.0,
+        "Normal": 0.6,
+        "High": 3.6,
+        "Extreme": 9.6
+      },
+      "p_100k_saved_6mo": {
+        "Low": 0.0,
+        "Normal": 0.0,
+        "High": 0.0,
+        "Extreme": 2.1
+      },
+      "p_500k_saved_12mo": {
+        "Low": 0.0,
+        "Normal": 0.0,
+        "High": 0.0,
+        "Extreme": 0.0
+      }
+    },
+    "assumptions": [
+      "Beta distribution for success rates (alpha=20*mean, beta=20*(1-mean))",
+      "Normal distribution for payouts (mean \u00b1 25% std)",
+      "Uniform for hours and frequency ranges",
+      "Automation multiplier applied to effective hours",
+      "Success multiplier applied to acceptance probabilities",
+      "No correlation between categories (independent sampling)",
+      "12 months independent for yearly projection"
+    ]
+  },
+  "sensitivity_analysis": {
+    "description": "Top 10 variables by impact on monthly income",
+    "methodology": "One-at-a-time sensitivity with \u00b120% perturbation around base case (Normal 4h/day)",
+    "base_case": {
+      "monthly_income": 450
+    },
+    "top_10_variables": [
+      {
+        "rank": 1,
+        "variable": "hours_per_day",
+        "elasticity": 1.0,
+        "impact_20pct": "+20.0% / -20.0%",
+        "interpretation": "Direct linear scaling of capacity"
+      },
+      {
+        "rank": 2,
+        "variable": "base_efficiency",
+        "elasticity": 1.0,
+        "impact_20pct": "+20.0% / -20.0%",
+        "interpretation": "Context switching, fatigue, learning directly scale output"
+      },
+      {
+        "rank": 3,
+        "variable": "automation_multiplier",
+        "elasticity": 1.0,
+        "impact_20pct": "+20.0% / -20.0%",
+        "interpretation": "Automation directly scales effective hours"
+      },
+      {
+        "rank": 4,
+        "variable": "success_mult",
+        "elasticity": 1.0,
+        "impact_20pct": "+20.0% / -20.0%",
+        "interpretation": "Reputation, skill, platform access directly scale acceptance"
+      },
+      {
+        "rank": 5,
+        "variable": "p_s_base",
+        "elasticity": 1.0,
+        "impact_20pct": "+20.0% / -20.0%",
+        "interpretation": "Base acceptance probability is fundamental gate"
+      },
+      {
+        "rank": 6,
+        "variable": "payout_base",
+        "elasticity": 1.0,
+        "impact_20pct": "+20.0% / -20.0%",
+        "interpretation": "Platform payout levels directly scale EV"
+      },
+      {
+        "rank": 7,
+        "variable": "hrs_base",
+        "elasticity": 1.04,
+        "impact_20pct": "+25.0% / -25.0%",
+        "interpretation": "Inverse relationship - fewer hours per task = more tasks per hour"
+      },
+      {
+        "rank": 8,
+        "variable": "freq_base",
+        "elasticity": 0.0,
+        "impact_20pct": "+0.0% / -0.0%",
+        "interpretation": "Frequency only matters if task supply is binding (rarely)"
+      },
+      {
+        "rank": 9,
+        "variable": "duplicate_rate",
+        "elasticity": -0.45,
+        "impact_20pct": "-9.0% / +9.0%",
+        "interpretation": "Duplicates waste human time without payout"
+      },
+      {
+        "rank": 10,
+        "variable": "payment_latency_days",
+        "elasticity": -0.12,
+        "impact_20pct": "-2.4% / +2.4%",
+        "interpretation": "Longer latency reduces capital velocity and reinvestment"
+      }
+    ],
+    "key_insight": "Duplicating the success rate (acceptance probability) is worth more than any financial optimization. The top 6 variables have identical elasticity - improving any of them by 20% yields exactly 20% more income. The #1 leverage point is avoiding duplicates (elasticity -0.45)."
+  },
+  "scenarios": {
+    "description": "Four distinct scenarios: Floor, Base (Realistic), Upside (Optimistic), Extreme",
+    "floor": {
+      "description": "Worst functional scenario - not catastrophic but minimal",
+      "assumptions": [
+        "Only AI Eval Generalist works",
+        "1 platform onboards successfully",
+        "50% assessment failure rate",
+        "0 security/dev bounty income",
+        "2h/day effective",
+        "No private invites",
+        "$0 some months"
+      ],
+      "monthly": 0,
+      "yearly": 0
+    },
+    "base_realistic": {
+      "description": "Expected outcome with failures, learning curve, imperfect automation",
+      "assumptions": [
+        "AI Eval (2 platforms) + 1 Dev Bounty platform + 1 Security public",
+        "30% assessment pass rate",
+        "Normal capacity (1.3h/day eff)",
+        "Private invites at month 6",
+        "30% duplicate/reject rate",
+        "Fees/latency included",
+        "Reputation 1.5x by month 12"
+      ],
+      "monthly_range": "$300-5,000 (growing)",
+      "yearly": "$15k-40k"
+    },
+    "upside_optimistic": {
+      "description": "Good performance without jackpots",
+      "assumptions": [
+        "AI Eval (3 platforms, specialist) + 2 Dev Bounty + Security private (M6) + Web3 (M9)",
+        "50% assessment pass",
+        "High capacity (2h/day eff)",
+        "Reputation 2x by month 12",
+        "1-2 high payouts ($5k-20k)",
+        "Automation effective"
+      ],
+      "monthly_range": "$3,000-8,000 (growing)",
+      "yearly": "$50k-120k"
+    },
+    "extreme": {
+      "description": "Outlier events, not baseline",
+      "assumptions": [
+        "All categories firing",
+        "3+ platforms each",
+        "Extreme capacity (2.8h/day)",
+        "Reputation 3x",
+        "Multiple critical bounties ($50k+)",
+        "Audit contest wins ($100k+)",
+        "Web3 bull market 3x payouts",
+        "LOW PROBABILITY (<5%)"
+      ],
+      "monthly_range": "$15,000-100,000",
+      "yearly": "$250k-1M+"
+    },
+    "jackpot_tail": {
+      "description": "Events that change everything",
+      "events": [
+        {
+          "event": "Critical bug bounty $100k+",
+          "probability": "0.5-2%/year",
+          "impact": "Single month +$50k-500k"
+        },
+        {
+          "event": "Critical Web3 $500k+",
+          "probability": "0.1-0.5%/year",
+          "impact": "Single month +$250k-1M"
+        },
+        {
+          "event": "Audit contest $1M+",
+          "probability": "0.05-0.1%/year",
+          "impact": "Single month +$500k-5M"
+        },
+        {
+          "event": "LayerZero $15M",
+          "probability": "<0.01%/year",
+          "impact": "Life-changing single event"
+        }
+      ],
+      "note": "These must NEVER be budgeted as expected income. They are upside options, not forecast."
+    }
+  },
+  "definitive_answer": {
+    "question": "How much can this system REALISTICALLY earn?",
+    "answers": {
+      "First_7_days": "$0-250 (Net)",
+      "First_30_days": "$100-500",
+      "First_90_days": "$500-2,500",
+      "Month_6": "$1,500-5,000/month",
+      "Month_12": "$3,000-8,000/month",
+      "Best_realistic_monthly_run_rate": "$10,000-25,000/month (Year 2-3)",
+      "Optimistic_monthly_run_rate": "$25,000-50,000/month (Year 3+)",
+      "Extreme_monthly_run_rate": "$50,000-100,000/month (Outlier, <5%)"
+    },
+    "confidence": {
+      "First_7_days": "LOW",
+      "First_30_days": "MEDIUM",
+      "First_90_days": "MEDIUM",
+      "Month_6": "MEDIUM-HIGH",
+      "Month_12": "MEDIUM",
+      "Best_realistic": "MEDIUM",
+      "Optimistic": "LOW-MEDIUM",
+      "Extreme": "VERY LOW (<2%)"
+    }
+  },
+  "gap_analysis": {
+    "for_25k_month": {
+      "gaps": [
+        "Private security program access (6-18 months reputation)",
+        "AI Eval Specialist tier unlock (assessments)",
+        "Consistent dev bounty flow ($2.5k-5k/week)",
+        "Web3 dev bounties ($2k-10k range)"
+      ],
+      "ceiling_shift": "+$15k/mo over base realistic"
+    },
+    "for_50k_month": {
+      "gaps": [
+        "NOT viable solo - requires leverage",
+        "Team (3-5 hunters) + automation",
+        "OR SaaS product ($10k-50k MRR)",
+        "OR capital income ($3-4k/mo passive)"
+      ],
+      "ceiling_shift": "Requires leverage (team/product/capital)"
+    },
+    "for_100k_month": {
+      "gaps": [
+        "IMPOSSIBLE solo - human bottleneck",
+        "Agency (10+ hunters) + automation platform",
+        "OR fund/equity model",
+        "OR elite auditor (Spearbit level) + consulting"
+      ],
+      "ceiling_shift": "Business model change required"
+    },
+    "for_1M_year": {
+      "gaps": [
+        "Team of 5+ + automation + retainers + capital",
+        "OR elite auditor (Spearbit) + consulting + contest wins",
+        "Requires team/leverage"
+      ],
+      "ceiling_shift": "Possible with team/leverage"
+    },
+    "for_10M_year": {
+      "gaps": [
+        "Business-scale leverage required",
+        "Platform equity, fund carry, or exit",
+        "Not labor income - net worth via equity"
+      ],
+      "ceiling_shift": "Requires business-scale leverage (platform/fund/exit)"
+    }
+  }
+}

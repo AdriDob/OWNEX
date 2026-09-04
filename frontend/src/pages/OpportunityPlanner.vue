@@ -1,21 +1,42 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Brain,
+  CheckCircle2,
+  Clock,
+  DollarSign,
+  ExternalLink,
+  Lightbulb,
+  ListChecks,
+  Route,
+  Target,
+  TrendingUp,
+  Zap,
+} from '@lucide/vue'
+import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import DoughnutChart from '@/components/charts/DoughnutChart.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { ArrowLeft, Target, Clock, DollarSign, CheckCircle2, Lightbulb, Route, Zap, Brain, ListChecks, TrendingUp, ExternalLink, AlertTriangle } from '@lucide/vue'
-import DoughnutChart from '@/components/charts/DoughnutChart.vue'
+import { api } from '@/lib/api'
 
 interface Plan {
-  program_id: number; program_name: string; platform: string
-  orion_score: number; where_to_start: string
-  endpoints_to_review: string[]; recommended_techniques: string[]
-  best_vuln_types: string[]; estimated_time_hours: number
-  expected_return_min: number; expected_return_max: number
-  expected_value_per_hour: number; checklist: string[]
+  program_id: number
+  program_name: string
+  platform: string
+  orion_score: number
+  where_to_start: string
+  endpoints_to_review: string[]
+  recommended_techniques: string[]
+  best_vuln_types: string[]
+  estimated_time_hours: number
+  expected_return_min: number
+  expected_return_max: number
+  expected_value_per_hour: number
+  checklist: string[]
   generated_at: string
 }
 
@@ -29,8 +50,11 @@ const error = ref<string | null>(null)
 onMounted(async () => {
   try {
     plan.value = await api.get<Plan>(`/economic/programs/${programId}/plan`)
-  } catch (e: any) { error.value = e?.message || 'Error al cargar el plan' }
-  finally { loading.value = false }
+  } catch (e: any) {
+    error.value = e?.message || 'Error al cargar el plan'
+  } finally {
+    loading.value = false
+  }
 })
 
 function formatMoney(n: number) {

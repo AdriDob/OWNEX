@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import { Activity, BarChart3, Brain, Lightbulb, PieChart, Target, TrendingUp } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import { BarChart, DoughnutChart, LineChart } from '@/components/charts'
 import Badge from '@/components/ui/Badge.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { Brain, TrendingUp, Target, Lightbulb, PieChart, BarChart3, Activity } from '@lucide/vue'
-import { DoughnutChart, BarChart, LineChart } from '@/components/charts'
+import { api } from '@/lib/api'
 
 const history = ref<any>(null)
 const trends = ref<any[]>([])
@@ -25,8 +25,11 @@ onMounted(async () => {
     if (tRes.status === 'fulfilled') trends.value = tRes.value.trends || []
     if (rRes.status === 'fulfilled') recommendations.value = rRes.value
     if (sRes.status === 'fulfilled') state.value = sRes.value
-  } catch { /* ignore */ }
-  finally { loading.value = false }
+  } catch {
+    /* ignore */
+  } finally {
+    loading.value = false
+  }
 })
 </script>
 

@@ -13,7 +13,7 @@ por tu perfil/precio, no por un funnel de RRHH.
 
 from __future__ import annotations
 
-from cores.opportunity.global_sources import SourceDefinition, OpportunityCategory
+from cores.opportunity.global_sources import OpportunityCategory, SourceDefinition
 
 
 def get_contract_dev_sources() -> list[SourceDefinition]:

@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
-import Badge from '@/components/ui/Badge.vue'
-import Button from '@/components/ui/Button.vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
+import { Activity, AlertTriangle, Crosshair, GitCompare, Layers, RotateCw, Shield, TrendingUp } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import DoughnutChart from '@/components/charts/DoughnutChart.vue'
-import { GitCompare, AlertTriangle, RotateCw, TrendingUp, Crosshair, Layers, Activity, Shield } from '@lucide/vue'
+import Badge from '@/components/ui/Badge.vue'
+import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { api } from '@/lib/api'
 
 interface AnalysisFinding {
   id: string

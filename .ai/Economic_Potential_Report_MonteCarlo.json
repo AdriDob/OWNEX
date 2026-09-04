@@ -1,0 +1,101 @@
+{
+  "monte_carlo": {
+    "description": "Monte Carlo simulation results (5,000 runs per scenario)",
+    "methodology": "Latin Hypercube sampling of category parameters (p_s, payout, hours, frequency) with Beta/Normal/Uniform distributions",
+    "sample_size": 5000,
+    "scenarios": {
+      "Low (2h/day)": {
+        "monthly": {
+          "mean": 1105,
+          "median": 795,
+          "std": 977,
+          "p5": 287,
+          "p25": 476,
+          "p75": 1354,
+          "p95": 3003,
+          "p_gt_1000": 38.2,
+          "p_gt_5000": 1.1,
+          "p_gt_10000": 0.0
+        },
+        "yearly": {
+          "mean": 13088,
+          "median": 12616,
+          "p95": 19216
+        }
+      },
+      "Normal (4h/day)": {
+        "monthly": {
+          "mean": 2198,
+          "median": 1574,
+          "std": 1883,
+          "p5": 554,
+          "p25": 954,
+          "p75": 2737,
+          "p95": 6054,
+          "p_gt_1000": 73.2,
+          "p_gt_5000": 7.8,
+          "p_gt_10000": 0.6
+        },
+        "yearly": {
+          "mean": 26254,
+          "median": 25535,
+          "p95": 38295
+        }
+      },
+      "High (6h/day)": {
+        "monthly": {
+          "mean": 3231,
+          "median": 2295,
+          "std": 2856,
+          "p5": 830,
+          "p25": 1360,
+          "p75": 4047,
+          "p95": 8790,
+          "p_gt_1000": 89.1,
+          "p_gt_5000": 17.7,
+          "p_gt_10000": 3.6
+        },
+        "yearly": {
+          "mean": 39188,
+          "median": 37909,
+          "p95": 57732
+        }
+      },
+      "Extreme (9h/day)": {
+        "monthly": {
+          "mean": 4718,
+          "median": 3276,
+          "std": 4170,
+          "p5": 1240,
+          "p25": 1954,
+          "p75": 6055,
+          "p95": 12754,
+          "p_gt_1000": 98.7,
+          "p_gt_5000": 31.9,
+          "p_gt_10000": 9.6
+        },
+        "yearly": {
+          "mean": 56248,
+          "median": 54534,
+          "p95": 81788
+        }
+      }
+    },
+    "probability_thresholds": {
+      "p_1k_month": {"Low": 38.2, "Normal": 73.2, "High": 89.1, "Extreme": 98.7},
+      "p_5k_month": {"Low": 1.1, "Normal": 7.8, "High": 17.7, "Extreme": 31.9},
+      "p_10k_month": {"Low": 0.0, "Normal": 0.6, "High": 3.6, "Extreme": 9.6},
+      "p_100k_saved_6mo": {"Low": 0.0, "Normal": 0.0, "High": 0.0, "Extreme": 2.1},
+      "p_500k_saved_12mo": {"Low": 0.0, "Normal": 0.0, "High": 0.0, "Extreme": 0.0}
+    },
+    "assumptions": [
+      "Beta distribution for success rates (alpha=20*mean, beta=20*(1-mean))",
+      "Normal distribution for payouts (mean ± 25% std)",
+      "Uniform for hours and frequency ranges",
+      "Automation multiplier applied to effective hours",
+      "Success multiplier applied to acceptance probabilities",
+      "No correlation between categories (independent sampling)",
+      "12 months independent for yearly projection"
+    ]
+  }
+}

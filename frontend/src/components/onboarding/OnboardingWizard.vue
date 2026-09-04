@@ -1,17 +1,29 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useSettingsStore } from '@/stores/settings'
-import Button from '@/components/ui/Button.vue'
-import Badge from '@/components/ui/Badge.vue'
-import Tooltip from '@/components/ui/Tooltip.vue'
 import {
-  Eye, Globe, Sparkles, Key, CheckCircle2,
-  ArrowRight, ArrowLeft, Cpu, AlertTriangle,
-  Star, SkipForward, Database, Wrench,
-  Server, Shield, Activity,
+  Activity,
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Cpu,
+  Database,
+  Eye,
+  Globe,
+  Key,
+  Server,
+  Shield,
+  SkipForward,
+  Sparkles,
+  Star,
+  Wrench,
 } from '@lucide/vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import Badge from '@/components/ui/Badge.vue'
+import Button from '@/components/ui/Button.vue'
+import Tooltip from '@/components/ui/Tooltip.vue'
 import { api } from '@/lib/api'
+import { useSettingsStore } from '@/stores/settings'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: [] }>()
@@ -60,8 +72,8 @@ const verificationResults = ref<Record<string, { status: 'checking' | 'ok' | 'wa
 
 const overallStatus = computed(() => {
   const vals = Object.values(verificationResults.value)
-  if (vals.some(v => v.status === 'error')) return 'error'
-  if (vals.some(v => v.status === 'checking' || v.status === 'warn')) return 'warning'
+  if (vals.some((v) => v.status === 'error')) return 'error'
+  if (vals.some((v) => v.status === 'checking' || v.status === 'warn')) return 'warning'
   return 'ok'
 })
 
@@ -73,22 +85,25 @@ onMounted(async () => {
   }
 })
 
-watch(() => props.open, async (v) => {
-  if (v) {
-    step.value = 0
-    errorMsg.value = ''
-    // Reset verification state
-    verificationResults.value = {
-      api: { status: 'checking', message: 'Verificando...' },
-      database: { status: 'checking', message: 'Verificando...' },
-      version: { status: 'checking', message: 'Verificando...' },
-      uptime: { status: 'checking', message: 'Verificando...' },
+watch(
+  () => props.open,
+  async (v) => {
+    if (v) {
+      step.value = 0
+      errorMsg.value = ''
+      // Reset verification state
+      verificationResults.value = {
+        api: { status: 'checking', message: 'Verificando...' },
+        database: { status: 'checking', message: 'Verificando...' },
+        version: { status: 'checking', message: 'Verificando...' },
+        uptime: { status: 'checking', message: 'Verificando...' },
+      }
+      // Re-verify on every open: the backend may have become ready since the
+      // wizard first mounted (Tauri sidecar cold start can take ~30 s).
+      await runVerification()
     }
-    // Re-verify on every open: the backend may have become ready since the
-    // wizard first mounted (Tauri sidecar cold start can take ~30 s).
-    await runVerification()
-  }
-})
+  },
+)
 
 async function runVerification() {
   // API health
@@ -142,7 +157,7 @@ function close() {
 function skip() {
   if (!skipConfirm.value) {
     skipConfirm.value = true
-    setTimeout(() => skipConfirm.value = false, 3000)
+    setTimeout(() => (skipConfirm.value = false), 3000)
     return
   }
   settings.completeOnboarding(true)

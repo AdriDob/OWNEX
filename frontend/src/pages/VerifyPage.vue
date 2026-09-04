@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { Loader2, MailCheck, ShieldCheck, XCircle } from '@lucide/vue'
+import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/lib/api'
-import { MailCheck, XCircle, Loader2, ShieldCheck } from '@lucide/vue'
 
 const route = useRoute()
 const router = useRouter()

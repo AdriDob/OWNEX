@@ -1,22 +1,33 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { api } from '@/lib/api'
 import {
-  Target, DollarSign, Sparkles, ArrowRight, RefreshCw,
-  Zap, CheckCircle2, XCircle,
-  Clock, Activity, Shield, FileText, Bug, TrendingUp,
-  Loader2
+  Activity,
+  ArrowRight,
+  Bug,
+  CheckCircle2,
+  Clock,
+  DollarSign,
+  FileText,
+  Loader2,
+  RefreshCw,
+  Shield,
+  Sparkles,
+  Target,
+  TrendingUp,
+  XCircle,
+  Zap,
 } from '@lucide/vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import Badge from '@/components/ui/Badge.vue'
+import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
+import CardContent from '@/components/ui/CardContent.vue'
 import CardHeader from '@/components/ui/CardHeader.vue'
 import CardTitle from '@/components/ui/CardTitle.vue'
-import CardContent from '@/components/ui/CardContent.vue'
-import Button from '@/components/ui/Button.vue'
-import Badge from '@/components/ui/Badge.vue'
-import LoadingState from '@/components/ui/LoadingState.vue'
 import KPIBlock from '@/components/ui/KPIBlock.vue'
+import LoadingState from '@/components/ui/LoadingState.vue'
 import { useToast } from '@/composables/useToast'
+import { api } from '@/lib/api'
 
 const router = useRouter()
 const { toast } = useToast()
@@ -74,8 +85,11 @@ async function loadData() {
     }
     if (findingsRes.status === 'fulfilled') stats.value.findings = findingsRes.value.total
     if (reportsRes.status === 'fulfilled') stats.value.reports = reportsRes.value.total
-  } catch { /* silent */ }
-  finally { loading.value = false }
+  } catch {
+    /* silent */
+  } finally {
+    loading.value = false
+  }
 }
 
 // ── Poll hunt status + pipeline stage ──
@@ -118,7 +132,9 @@ async function checkHuntStatus() {
         currentHuntStage.value = stageInfo.current_stage
       }
     }
-  } catch { /* status poll silent */ }
+  } catch {
+    /* status poll silent */
+  }
 }
 
 function startPolling() {

@@ -4,17 +4,17 @@
  * Fuentes: /revenue/summary + /revenue/submissions + /payment-tracker.
  */
 import { computed, onMounted, ref } from 'vue'
+import ErrorState from '@/components/shared/ErrorState.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Card from '@/components/ui/Card.vue'
-import ErrorState from '@/components/shared/ErrorState.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
+import { api } from '@/lib/api'
 import {
   fetchRevenueSubmissions,
   fetchRevenueSummary,
   type RevenueSubmission,
   type RevenueSummary,
 } from '@/services/ownexData'
-import { api } from '@/lib/api'
 
 const loading = ref(true)
 const error = ref<string | null>(null)

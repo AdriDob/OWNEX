@@ -4,8 +4,8 @@
    Uses framer-motion/dom spring for logo reveal and crossfade.
    ══════════════════════════════════════════════════════════ */
 
-import { ref, type Ref } from 'vue'
 import { animate } from 'motion'
+import { type Ref, ref } from 'vue'
 import { useReducedMotion } from '@/shared/composables/useReducedMotion'
 
 export type StartupPhase = 'loading' | 'splash' | 'transitioning' | 'dashboard'
@@ -48,7 +48,7 @@ export function useStartupSequence() {
     })
 
     // 3. Wait for minimum splash time OR preload complete (whichever is later)
-    const splashTimer = new Promise<void>(resolve => {
+    const splashTimer = new Promise<void>((resolve) => {
       setTimeout(() => {
         progress.value = 50
         resolve()
@@ -56,7 +56,7 @@ export function useStartupSequence() {
     })
 
     // Safety timeout — never splash longer than this
-    const safetyTimer = new Promise<void>(resolve => {
+    const safetyTimer = new Promise<void>((resolve) => {
       setTimeout(() => {
         progress.value = 60
         resolve()

@@ -232,9 +232,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Check, ArrowLeft, ArrowRight, Sparkles, Globe } from '@lucide/vue'
+import { ArrowLeft, ArrowRight, Check, Globe, Sparkles } from '@lucide/vue'
 import axios from 'axios'
+import { computed, ref } from 'vue'
 
 const currentStep = ref(1)
 const totalSteps = 6
@@ -246,15 +246,35 @@ const selectedPlatforms = ref<string[]>([])
 const customName = ref('')
 
 const useCases = [
-  { id: 'bug_bounty_researcher', title: 'Bug Bounty Researcher', description: 'Investigación individual de vulnerabilidades', icon: '🔍' },
-  { id: 'bug_bounty_company', title: 'Bug Bounty Company', description: 'Gestión empresarial de programas', icon: '🏢' },
-  { id: 'cybersecurity_consultant', title: 'Cybersecurity Consultant', description: 'Consultoría y auditoría de seguridad', icon: '🛡️' },
-  { id: 'penetration_tester', title: 'Penetration Tester', description: 'Testing de penetración profesional', icon: '💻' },
+  {
+    id: 'bug_bounty_researcher',
+    title: 'Bug Bounty Researcher',
+    description: 'Investigación individual de vulnerabilidades',
+    icon: '🔍',
+  },
+  {
+    id: 'bug_bounty_company',
+    title: 'Bug Bounty Company',
+    description: 'Gestión empresarial de programas',
+    icon: '🏢',
+  },
+  {
+    id: 'cybersecurity_consultant',
+    title: 'Cybersecurity Consultant',
+    description: 'Consultoría y auditoría de seguridad',
+    icon: '🛡️',
+  },
+  {
+    id: 'penetration_tester',
+    title: 'Penetration Tester',
+    description: 'Testing de penetración profesional',
+    icon: '💻',
+  },
   { id: 'security_analyst', title: 'Security Analyst', description: 'Análisis de seguridad y amenazas', icon: '📊' },
   { id: 'developer', title: 'Developer', description: 'Desarrollo seguro de aplicaciones', icon: '⌨️' },
   { id: 'researcher', title: 'Researcher', description: 'Investigación en ciberseguridad', icon: '🔬' },
   { id: 'hobbyist', title: 'Hobbyist', description: 'Aprendizaje y práctica personal', icon: '🎮' },
-  { id: 'other', title: 'Otro', description: 'Uso personalizado', icon: '⚙️' }
+  { id: 'other', title: 'Otro', description: 'Uso personalizado', icon: '⚙️' },
 ]
 
 const availableModules = [
@@ -267,7 +287,7 @@ const availableModules = [
   { id: 'analytics', title: 'Analytics', description: 'Análisis y métricas', icon: '📈' },
   { id: 'reports', title: 'Reports', description: 'Generación de reportes', icon: '📄' },
   { id: 'targets', title: 'Targets', description: 'Gestión de objetivos', icon: '🎯' },
-  { id: 'integrations', title: 'Integrations', description: 'Integraciones externas', icon: '🔗' }
+  { id: 'integrations', title: 'Integrations', description: 'Integraciones externas', icon: '🔗' },
 ]
 
 const expertiseLevels = [
@@ -276,29 +296,29 @@ const expertiseLevels = [
     title: 'Beginner',
     description: 'Principiante en bug bounty',
     icon: '🌱',
-    features: ['Manual', 'Guided', 'Step-by-step']
+    features: ['Manual', 'Guided', 'Step-by-step'],
   },
   {
     id: 'intermediate',
     title: 'Intermediate',
     description: 'Experiencia moderada',
     icon: '🌿',
-    features: ['Assisted', 'Templates', 'Semi-automated']
+    features: ['Assisted', 'Templates', 'Semi-automated'],
   },
   {
     id: 'advanced',
     title: 'Advanced',
     description: 'Experiencia avanzada',
     icon: '🌳',
-    features: ['Semi-automated', 'Custom workflows', 'Advanced analytics']
+    features: ['Semi-automated', 'Custom workflows', 'Advanced analytics'],
   },
   {
     id: 'expert',
     title: 'Expert',
     description: 'Experto en el campo',
     icon: '🏔️',
-    features: ['Fully automated', 'Custom everything', 'Enterprise features']
-  }
+    features: ['Fully automated', 'Custom everything', 'Enterprise features'],
+  },
 ]
 
 const platforms = [
@@ -306,7 +326,7 @@ const platforms = [
   { id: 'bugcrowd', title: 'Bugcrowd', description: 'Programas diversos', icon: '🐛' },
   { id: 'intigriti', title: 'Intigriti', description: 'Plataforma europea', icon: '🇪🇺' },
   { id: 'yeswehack', title: 'YesWeHack', description: 'Plataforma francesa', icon: '🇫🇷' },
-  { id: 'synack', title: 'Synack', description: 'Crowdsec elite', icon: '🛡️' }
+  { id: 'synack', title: 'Synack', description: 'Crowdsec elite', icon: '🛡️' },
 ]
 
 const progress = computed(() => {
@@ -356,30 +376,50 @@ function togglePlatform(platformId: string) {
 function useRecommendedModules() {
   const recommendedMap: Record<string, string[]> = {
     bug_bounty_researcher: ['forge', 'pulse', 'vault', 'security', 'copilot', 'analytics', 'reports', 'targets'],
-    bug_bounty_company: ['forge', 'pulse', 'vault', 'atlas', 'security', 'copilot', 'analytics', 'reports', 'integrations'],
-    cybersecurity_consultant: ['forge', 'pulse', 'vault', 'atlas', 'security', 'copilot', 'analytics', 'reports', 'targets'],
+    bug_bounty_company: [
+      'forge',
+      'pulse',
+      'vault',
+      'atlas',
+      'security',
+      'copilot',
+      'analytics',
+      'reports',
+      'integrations',
+    ],
+    cybersecurity_consultant: [
+      'forge',
+      'pulse',
+      'vault',
+      'atlas',
+      'security',
+      'copilot',
+      'analytics',
+      'reports',
+      'targets',
+    ],
     penetration_tester: ['forge', 'pulse', 'vault', 'security', 'copilot', 'analytics', 'reports', 'targets'],
     security_analyst: ['forge', 'pulse', 'atlas', 'security', 'copilot', 'analytics', 'reports'],
     developer: ['forge', 'security', 'copilot', 'analytics', 'targets'],
     researcher: ['forge', 'pulse', 'atlas', 'copilot', 'analytics', 'reports'],
     hobbyist: ['forge', 'pulse', 'copilot', 'analytics'],
-    other: ['forge', 'pulse', 'copilot', 'analytics']
+    other: ['forge', 'pulse', 'copilot', 'analytics'],
   }
 
   selectedModules.value = recommendedMap[selectedUseCase.value] || []
 }
 
 function selectAllPlatforms() {
-  selectedPlatforms.value = platforms.map(p => p.id)
+  selectedPlatforms.value = platforms.map((p) => p.id)
 }
 
 function getUseCaseTitle(useCaseId: string) {
-  const useCase = useCases.find(uc => uc.id === useCaseId)
+  const useCase = useCases.find((uc) => uc.id === useCaseId)
   return useCase?.title || useCaseId
 }
 
 function getExpertiseTitle(expertiseId: string) {
-  const expertise = expertiseLevels.find(el => el.id === expertiseId)
+  const expertise = expertiseLevels.find((el) => el.id === expertiseId)
   return expertise?.title || expertiseId
 }
 
@@ -388,7 +428,7 @@ function getAutomationLevel(expertiseId: string) {
     beginner: 'Manual',
     intermediate: 'Asistido',
     advanced: 'Semi-automatizado',
-    expert: 'Completamente automatizado'
+    expert: 'Completamente automatizado',
   }
   return levels[expertiseId] || 'Asistido'
 }
@@ -400,7 +440,7 @@ async function completeWizard() {
       modules: selectedModules.value,
       custom_name: customName.value,
       expertise_level: selectedExpertise.value,
-      primary_platforms: selectedPlatforms.value.length > 0 ? selectedPlatforms.value : ['all']
+      primary_platforms: selectedPlatforms.value.length > 0 ? selectedPlatforms.value : ['all'],
     })
 
     if (response.data.status === 'ok') {

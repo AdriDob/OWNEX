@@ -5,17 +5,20 @@
  * Acciones reales: transition según estados válidos del backend.
  */
 import { computed, onMounted, ref } from 'vue'
-import Badge from '@/components/ui/Badge.vue'
-import Card from '@/components/ui/Card.vue'
+import { useRouter } from 'vue-router'
 import ErrorState from '@/components/shared/ErrorState.vue'
+import OwnexBadge from '@/components/ui/OwnexBadge.vue'
+import OwnexCard from '@/components/ui/OwnexCard.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import {
   EXEC_QUEUE_COLUMNS,
-  fetchExecutionQueue,
-  transitionExecutionItem,
   type ExecState,
   type ExecutionQueueItem,
+  fetchExecutionQueue,
+  transitionExecutionItem,
 } from '@/services/ownexData'
+
+const router = useRouter()
 
 const loading = ref(true)
 const error = ref<string | null>(null)
@@ -109,7 +112,7 @@ onMounted(load)
         <h1 class="text-xl font-semibold tracking-tight">Cola de Trabajo</h1>
         <p class="text-sm text-muted-foreground">Ejecución · DISCOVERED → PAID</p>
       </div>
-      <Badge variant="default">{{ items.length }} ítems</Badge>
+      <OwnexBadge variant="default">{{ items.length }} ítems</OwnexBadge>
     </div>
 
     <ErrorState v-if="error && !items.length" title="No se pudo cargar la cola" :error="error" :on-retry="load" />
@@ -121,14 +124,14 @@ onMounted(load)
           <h2 class="font-mono text-xs uppercase tracking-wider text-muted-foreground">{{ col.label }}</h2>
           <span class="font-mono text-[10px] text-muted-foreground/60">{{ byColumn[col.key].length }}</span>
         </div>
-        <Card
+        <OwnexCard
           v-for="item in byColumn[col.key]"
           :key="item.item_id"
           class="space-y-2 p-4"
         >
           <div class="flex items-start justify-between gap-2">
             <p class="line-clamp-2 text-sm font-medium leading-snug">{{ itemTitle(item) }}</p>
-            <Badge :variant="stateVariant(item.state)">{{ item.state }}</Badge>
+            <OwnexBadge :variant="stateVariant(item.state)">{{ item.state }}</OwnexBadge>
           </div>
           <p v-if="itemReward(item) !== null" class="font-mono text-sm font-semibold tabular-nums text-success">
             ${{ itemReward(item)!.toLocaleString('es-AR') }}
@@ -151,7 +154,13 @@ onMounted(load)
               Rechazar
             </button>
           </div>
-        </Card>
+          <button
+            class="w-full rounded-md border border-border/30 px-2 py-1 font-mono text-[10px] uppercase tracking-wide text-muted-foreground hover:bg-surface/40"
+            @click="router.push(`/operations/work-room/${item.item_id}`)"
+          >
+            Ver detalles
+          </button>
+        </OwnexCard>
         <p
           v-if="!byColumn[col.key].length"
           class="rounded-lg border border-dashed border-border/20 p-6 text-center font-mono text-[10px] uppercase tracking-wider text-muted-foreground/50"

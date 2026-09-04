@@ -153,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 interface Mode {
   mode_key: string
@@ -193,7 +193,7 @@ const detailsMode = ref<Mode | null>(null)
 const activeCount = computed(() => Object.keys(activeModes.value).length)
 const conflictCount = computed(() => {
   let count = 0
-  Object.values(availableModes.value).forEach(mode => {
+  Object.values(availableModes.value).forEach((mode) => {
     if (hasConflict(mode)) count++
   })
   return count
@@ -202,7 +202,7 @@ const hasConflicts = computed(() => conflictCount.value > 0)
 
 const modesByCategory = computed(() => {
   const grouped: Record<string, Mode[]> = {}
-  Object.values(availableModes.value).forEach(mode => {
+  Object.values(availableModes.value).forEach((mode) => {
     if (!grouped[mode.category]) {
       grouped[mode.category] = []
     }
@@ -277,7 +277,7 @@ async function toggleMode(mode: Mode) {
     if (conflicts.length > 0) {
       conflictModalMode.value = mode
       conflictModalConflicts.value = conflicts
-      conflictModalSuggestions.value = conflicts.map(key => ({
+      conflictModalSuggestions.value = conflicts.map((key) => ({
         conflict: key,
         conflict_name: availableModes.value[key].name,
         action: 'deactivate',

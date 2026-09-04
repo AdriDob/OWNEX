@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
-import { FileText, Download, Edit, ExternalLink, Clock, AlertTriangle, DollarSign, TrendingUp } from '@lucide/vue'
+import { AlertTriangle, Clock, DollarSign, Download, Edit, ExternalLink, FileText, TrendingUp } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import { api } from '@/lib/api'
 
 interface ReportCandidate {
