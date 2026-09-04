@@ -62,12 +62,12 @@ async function fetchGraphData() {
 
 const colorMap: Record<string, string> = {
   target: 'var(--ownex-accent)',
-  finding: '#f5a623',
-  endpoint: '#38bdf8',
-  program: '#00ff41',
-  cve: '#ff1744',
+  finding: 'var(--ownex-yellow)',
+  endpoint: 'var(--ownex-accent)',
+  program: 'var(--ownex-green)',
+  cve: 'var(--ownex-danger)',
   report: 'var(--ownex-accent)',
-  unknown: '#6b6b80',
+  unknown: 'var(--ownex-text-muted)',
 }
 
 watch(

@@ -16,17 +16,17 @@ const offset = 2
 
 const accent = computed(() => {
   const map: Record<string, string> = {
-    'text-intigriti': '#a78bfa',
+    'text-intigriti': 'var(--ownex-accent)',
     'text-primary': 'var(--ownex-accent)',
     'text-warning': 'var(--ownex-yellow)',
-    'text-muted-foreground': '#22d3ee',
-    'text-foreground': '#f1f5f9',
-    'text-gold': '#f5a623',
+    'text-muted-foreground': 'var(--ownex-accent)',
+    'text-foreground': 'var(--ownex-bg-surface)',
+    'text-gold': 'var(--ownex-yellow)',
     'text-success': 'var(--ownex-green)',
-    'text-warning': '#fb923c',
+    'text-warning': 'var(--ownex-yellow)',
     'text-destructive': 'var(--ownex-accent)',
   }
-  return map[props.character.color] ?? '#a78bfa'
+  return map[props.character.color] ?? 'var(--ownex-accent)'
 })
 
 const bg = computed(() => accent.value + '22')

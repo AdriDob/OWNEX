@@ -103,8 +103,8 @@ onMounted(() => {
           <ellipse cx="32" cy="32" rx="20" ry="7" stroke="url(#orbital)" stroke-width="1" opacity="0.4" transform="rotate(30 32 32)"/>
           <circle cx="32" cy="32" r="3" fill="url(#core)" />
           <defs>
-            <radialGradient id="core" cx="50%" cy="50%"><stop offset="0%" stop-color="var(--ownex-accent)"/><stop offset="100%" stop-color="#7C3AED"/></radialGradient>
-            <linearGradient id="orbital" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7C3AED"/><stop offset="100%" stop-color="var(--ownex-accent)"/></linearGradient>
+            <radialGradient id="core" cx="50%" cy="50%"><stop offset="0%" stop-color="var(--ownex-accent)"/><stop offset="100%" stop-color="var(--ownex-accent)"/></radialGradient>
+            <linearGradient id="orbital" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="var(--ownex-accent)"/><stop offset="100%" stop-color="var(--ownex-accent)"/></linearGradient>
           </defs>
         </svg>
         <span class="font-display text-[11px] font-semibold tracking-widest text-orion-text-secondary uppercase">OWNEX</span>

@@ -69,7 +69,7 @@ const getAgentIcon = (name: string, customIcon?: string) => {
 
 <template>
   <OwnexCard variant="elevated" :padded="!compact">
-    <template #default>
+    <template var(--ownex-accent)ult>
       <div class="ownex-agent-fleet">
         <!-- Header -->
         <div v-if="showHeader" class="ownex-agent-fleet__header">

@@ -566,7 +566,7 @@ async function confirmSnapshot() {
 }
 
 .kv-btn-primary:hover:not(:disabled) {
-  background: #e5e5e5;
+  background: var(--ownex-text-secondary);
 }
 
 .kv-btn-danger {

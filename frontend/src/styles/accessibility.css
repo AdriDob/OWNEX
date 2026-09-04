@@ -21,7 +21,7 @@
   --color-surface: var(--ownex-bg-surface);
   --color-surface-hover: var(--ownex-bg-elevated);
   --color-border: var(--ownex-text-primary);
-  --color-border-light: #cccccc;
+  --color-border-light: var(--ownex-text-secondary);
   --color-muted: var(--ownex-text-secondary);
   --color-muted-foreground: var(--ownex-text-secondary)aaa;
   --color-foreground: var(--ownex-text-primary);
@@ -30,7 +30,7 @@
   --color-accent: #80b3ff;
   --color-accent-foreground: var(--ownex-bg-deep);
   --color-destructive: var(--ownex-danger);
-  --color-warning: #ffaa00;
+  --color-warning: var(--ownex-yellow);
   --color-success: #44ff44;
 }
 

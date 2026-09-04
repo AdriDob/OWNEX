@@ -4,6 +4,7 @@ import ErrorBoundary from '@/components/ErrorBoundary.vue'
 import NotificationPanel from '@/components/notifications/NotificationPanel.vue'
 import AutonomyBadge from '@/components/ui/AutonomyBadge.vue'
 import { useNotificationsStore } from '@/stores/notifications'
+import { Menu } from '@lucide/vue'
 import { ref } from 'vue'
 import AppFooter from './AppFooter.vue'
 import AppSidebar from './AppSidebar.vue'
@@ -36,7 +37,11 @@ const emit = defineEmits<{
       <TitleBar />
 
       <!-- Toolbar: notifications always accessible -->
-      <div v-if="!$route.meta?.public" class="sticky top-0 z-20 flex items-center justify-end gap-2 border-b border-border/20 bg-background/80 px-4 py-1.5 backdrop-blur-xl">
+      <div v-if="!$route.meta?.public" class="sticky top-0 z-20 flex items-center justify-between gap-2 border-b border-border/20 bg-background/80 px-4 py-1.5 backdrop-blur-xl">
+        <!-- Mobile menu button -->
+        <button @click="sidebarMobileOpen = !sidebarMobileOpen" class="lg:hidden p-1.5 rounded-lg hover:bg-surface/30">
+          <Menu class="h-5 w-5" />
+        </button>
         <AutonomyBadge />
         <span :class="['h-1.5 w-1.5 rounded-full', notifications.wsConnected ? 'bg-success' : 'bg-destructive']" />
         <NotificationPanel />

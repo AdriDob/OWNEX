@@ -30,15 +30,15 @@ const defaultColors = computed(() => [
   'var(--ownex-gold)',
   'var(--ownex-accent)',
   'var(--ownex-text-secondary)',
-  '#14b8a6',
+  'var(--ownex-green)',
   'var(--ownex-yellow)',
   'var(--ownex-text-secondary)',
   'var(--ownex-text-secondary)',
-  '#84cc16',
+  'var(--ownex-green)',
   'var(--ownex-text-secondary)',
   'var(--ownex-accent)',
-  '#d946ef',
-  '#0ea5e9',
+  'var(--ownex-accent)',
+  'var(--ownex-accent)',
 ])
 
 const chartData = computed(() => ({
@@ -47,7 +47,7 @@ const chartData = computed(() => ({
     {
       data: props.data,
       backgroundColor: props.colors || defaultColors.value.slice(0, props.data.length),
-      borderColor: isDark.value ? '#11131f' : 'var(--ownex-text-primary)',
+      borderColor: isDark.value ? 'var(--ownex-bg-base)' : 'var(--ownex-text-primary)',
       borderWidth: 2,
       hoverOffset: 8,
     },

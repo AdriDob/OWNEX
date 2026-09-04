@@ -182,7 +182,7 @@ const stepIcon = (step: number) => {
 
 .first-day-guide__principle {
   font-size: 0.75rem;
-  color: #666;
+  color: var(--ownex-text-muted);
   margin: 0;
   padding: 12px;
   background: rgba(255, 255, 255, 0.03);
