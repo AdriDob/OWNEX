@@ -11,16 +11,22 @@ from __future__ import annotations
 import logging
 from dataclasses import fields
 from enum import StrEnum
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 
+from core.opportunity.executors.auto_submit import SubmissionStatus
 from cores.direct_work_engine.discovery import BaseDiscoveryAdapter
 from cores.direct_work_engine.engine import DirectWorkEngine
 from cores.direct_work_engine.extension import ExtensionEvaluator
 from cores.direct_work_engine.feedback import LearningRecord, apply_learning
 from cores.direct_work_engine.models import (
+    CATEGORY_TO_STREAM,
+    PLATFORM_PRIMARY_STREAM,
+    STREAM_UI_CONFIG,
     DifficultyLevel,
     EmploymentType,
     ExperienceLevel,
@@ -31,6 +37,8 @@ from cores.direct_work_engine.models import (
     RankedOpportunity,
     UserProfile,
     WorkPlatform,
+    WorkStream,
+    get_stream_for_category,
 )
 from cores.direct_work_engine.negotiation import TermAnalyzer
 from cores.direct_work_engine.scoring import ZeroBarrierScorer
@@ -533,6 +541,69 @@ async def direct_work_workbank() -> dict[str, Any]:
     return get_workbank().to_dict()
 
 
+@router.get("/workbank/{item_id}/file/{filename}")
+async def direct_work_get_delivery_file(item_id: str, filename: str) -> PlainTextResponse:
+    """Get the content of a file in a delivery package."""
+    import os
+
+    bank = get_workbank()
+    item = bank.get_item(item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Work-bank item not found")
+    # Find the package directory
+    base_dir = Path(os.environ.get("OWNEX_DATA_DIR", Path.home() / "ownex")) / "submissions" / item.platform
+    if not base_dir.exists():
+        # Try the default location
+        base_dir = Path.home() / "ownex" / "submissions" / item.platform
+    if not base_dir.exists():
+        raise HTTPException(status_code=404, detail="Package directory not found")
+    # Find the most recent timestamped directory for this item
+    dirs = sorted([d for d in base_dir.iterdir() if d.is_dir() and d.name.startswith(item_id)], reverse=True)
+    if not dirs:
+        raise HTTPException(status_code=404, detail="Package not found")
+    work_dir = dirs[0]
+    file_path = work_dir / filename
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+    # Security: ensure file is within work_dir
+    try:
+        file_path.resolve().relative_to(work_dir.resolve())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid file path")
+    content = file_path.read_text(encoding="utf-8")
+    return PlainTextResponse(content, media_type="text/plain; charset=utf-8")
+
+
+@router.put("/workbank/{item_id}/file/{filename}")
+async def direct_work_put_delivery_file(item_id: str, filename: str, payload: dict[str, Any]) -> dict[str, Any]:
+    """Update the content of a file in a delivery package."""
+    import os
+
+    content = payload.get("content", "")
+    bank = get_workbank()
+    item = bank.get_item(item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Work-bank item not found")
+    base_dir = Path(os.environ.get("OWNEX_DATA_DIR", Path.home() / "ownex")) / "submissions" / item.platform
+    if not base_dir.exists():
+        base_dir = Path.home() / "ownex" / "submissions" / item.platform
+    if not base_dir.exists():
+        raise HTTPException(status_code=404, detail="Package directory not found")
+    dirs = sorted([d for d in base_dir.iterdir() if d.is_dir() and d.name.startswith(item_id)], reverse=True)
+    if not dirs:
+        raise HTTPException(status_code=404, detail="Package not found")
+    work_dir = dirs[0]
+    file_path = work_dir / filename
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+    try:
+        file_path.resolve().relative_to(work_dir.resolve())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid file path")
+    file_path.write_text(content, encoding="utf-8")
+    return {"success": True, "file": filename, "path": str(file_path)}
+
+
 @router.post("/workbank/{item_id}/deliver/prepare")
 async def direct_work_deliver_prepare(item_id: str) -> dict[str, Any]:
     """Prepare a delivery package for a work-bank item (files ready to submit on disk).
@@ -674,6 +745,109 @@ async def direct_work_auto_submit(item_id: str) -> dict[str, Any]:
         "next_step": result.get("next_step"),
         "requires_manual_action": result.get("requires_manual_action", False),
     }
+
+
+@router.post("/workbank/{item_id}/submit")
+async def direct_work_submit(item_id: str, force: bool = False) -> dict[str, Any]:
+    """Real API submission of a WorkBank item to its platform.
+
+    Uses AutoSubmitEngine with:
+    - Platform-specific API clients (HackerOne, Bugcrowd, Opire, IssueHunt, etc.)
+    - Idempotency keys for safe retries
+    - Exponential backoff retry logic
+    - DLQ for failed submissions
+    - Confirmation polling
+    """
+    from core.opportunity.executors.auto_submit import get_auto_submit_engine
+
+    bank = get_workbank()
+    item = bank.get_item(item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Work-bank item not found")
+
+    if not item.ready_to_deliver:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Item {item_id} is not ready_to_deliver (status: {item.status})",
+        )
+
+    # Build opportunity dict from WorkItem
+    opportunity = {
+        "id": item.id,
+        "title": item.title,
+        "platform": item.platform,
+        "category": item.category,
+        "reward": item.reward,
+        "description": item.description,
+        "url": item.url,
+        "severity": "medium",  # default for bug bounty
+        "program": item.metadata.get("program", "") if hasattr(item, "metadata") else "",
+    }
+
+    engine = get_auto_submit_engine()
+    record = await engine.submit_workbank_item(
+        item_id=item.id,
+        platform=str(item.platform),
+        opportunity=opportunity,
+        force=force,
+    )
+
+    return {
+        "success": record.status in (SubmissionStatus.SUBMITTED, SubmissionStatus.CONFIRMED),
+        "submission_id": record.id,
+        "status": record.status.value,
+        "attempts": record.attempts,
+        "external_id": record.submission_result.get("external_id") if record.submission_result else None,
+        "url": record.submission_result.get("url") if record.submission_result else None,
+        "last_error": record.last_error,
+        "message": (
+            "Submitted successfully"
+            if record.status == SubmissionStatus.CONFIRMED
+            else "Submitted, awaiting review"
+            if record.status == SubmissionStatus.SUBMITTED
+            else f"Failed: {record.last_error}"
+        ),
+    }
+
+
+@router.get("/submissions")
+async def direct_work_list_submissions(status: str | None = None, platform: str | None = None) -> dict[str, Any]:
+    """List all submission records with optional filters."""
+    from core.opportunity.executors.auto_submit import SubmissionStatus, get_auto_submit_engine
+
+    engine = get_auto_submit_engine()
+    status_enum = SubmissionStatus(status) if status else None
+    platform_filter = platform.lower() if platform else None
+
+    submissions = engine.list_submissions(status=status_enum, platform=platform_filter)
+    return {
+        "total": len(submissions),
+        "submissions": [s.to_dict() for s in submissions],
+    }
+
+
+@router.get("/submissions/{submission_id}")
+async def direct_work_get_submission(submission_id: str) -> dict[str, Any]:
+    """Get a specific submission record by ID."""
+    from core.opportunity.executors.auto_submit import get_auto_submit_engine
+
+    engine = get_auto_submit_engine()
+    record = engine.get_submission(submission_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    return record.to_dict()
+
+
+@router.post("/submissions/{submission_id}/retry")
+async def direct_work_retry_submission(submission_id: str) -> dict[str, Any]:
+    """Retry a failed/DLQ submission."""
+    from core.opportunity.executors.auto_submit import get_auto_submit_engine
+
+    engine = get_auto_submit_engine()
+    record = engine.retry_dlq(submission_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Submission not found or not in DLQ")
+    return record.to_dict()
 
 
 @router.get("/deliver/pending")
@@ -1304,3 +1478,185 @@ async def get_discovered_platforms(limit: int = 50, min_ev: float = 0.0) -> dict
         return {"total_discovered": 0, "returned": 0, "platforms": [], "error": str(e)}
     finally:
         await engine.stop()
+
+
+# ── Work Streams (Category-aware UI) ──
+
+
+@router.get("/streams")
+async def direct_work_streams() -> dict[str, Any]:
+    """Get all work streams with UI config (what to show/do per stream)."""
+    return {
+        "streams": [
+            {
+                "key": stream.value,
+                "label": config["label"],
+                "icon": config["icon"],
+                "description": config["description"],
+                "platforms": config["platforms"],
+                "access_type": config["access_type"],
+                "deliverables": config["deliverables"],
+                "quick_actions": config["quick_actions"],
+                "automation": config["automation"],
+                "user_decides": config["user_decides"],
+            }
+            for stream, config in STREAM_UI_CONFIG.items()
+        ],
+        "category_to_stream": {cat.value: stream.value for cat, stream in CATEGORY_TO_STREAM.items()},
+        "platform_to_stream": PLATFORM_PRIMARY_STREAM,
+    }
+
+
+@router.get("/streams/{stream_key}/opportunities")
+async def direct_work_stream_opportunities(
+    stream_key: str,
+    limit: int = Query(20, ge=1, le=100),
+    profile: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Get ranked opportunities filtered by work stream."""
+    try:
+        stream = WorkStream(stream_key)
+    except ValueError:
+        raise HTTPException(status_code=404, detail=f"Unknown stream: {stream_key}")
+
+    engine = get_engine()
+    opportunities = await engine.discovery.discover_all() or []
+
+    # Filter by stream
+    stream_categories = [cat for cat, s in CATEGORY_TO_STREAM.items() if s == stream]
+    filtered = [
+        opp
+        for opp in opportunities
+        if (opp.category.value if hasattr(opp.category, "value") else str(opp.category))
+        in [c.value for c in stream_categories]
+    ]
+
+    # Score and rank
+    profile_obj = _income_max_profile(profile)
+    ranked = engine.recommender.recommend(filtered, profile_obj, limit=limit, mode="max_income")
+
+    return {
+        "stream": stream.value,
+        "stream_config": STREAM_UI_CONFIG.get(stream, {}),
+        "total_found": len(opportunities),
+        "filtered": len(filtered),
+        "ranked": [
+            {
+                "rank": r.rank,
+                "opportunity": {
+                    "id": r.opportunity.id,
+                    "title": r.opportunity.title,
+                    "platform": r.opportunity.platform.value
+                    if hasattr(r.opportunity.platform, "value")
+                    else str(r.opportunity.platform),
+                    "category": (
+                        r.opportunity.category.value
+                        if hasattr(r.opportunity.category, "value")
+                        else str(r.opportunity.category)
+                    ),
+                    "stream": get_stream_for_category(r.opportunity.category).value,
+                    "payment": r.opportunity.payment,
+                    "reward": r.opportunity.payment,
+                },
+                "overall_recommendation_score": r.overall_recommendation_score,
+                "expected_value": r.expected_value,
+                "barrier_score": getattr(
+                    r, "zero_barrier_score", r.barrier_score if hasattr(r, "barrier_score") else 0
+                ),
+                "payment_compat_score": getattr(r, "payment_compat_score", 100),
+                "payout_method": getattr(r, "payout_method", ""),
+            }
+            for r in ranked
+        ],
+    }
+
+
+@router.get("/streams/{stream_key}/workbank")
+async def direct_work_stream_workbank(stream_key: str) -> dict[str, Any]:
+    """Get work bank items filtered by work stream."""
+    try:
+        stream = WorkStream(stream_key)
+    except ValueError:
+        raise HTTPException(status_code=404, detail=f"Unknown stream: {stream_key}")
+
+    bank = get_workbank()
+    items = list(bank._items.values())
+
+    # Filter by stream
+    stream_categories = [c.value for c, s in CATEGORY_TO_STREAM.items() if s == stream]
+    filtered = [i for i in items if i.category in stream_categories]
+
+    ready = [i for i in filtered if i.ready_to_deliver]
+    needs_access = [i for i in filtered if i.status == "needs_access"]
+    delivered = [i for i in filtered if i.status == "delivered"]
+
+    return {
+        "stream": stream.value,
+        "stream_config": STREAM_UI_CONFIG.get(stream, {}),
+        "total": len(filtered),
+        "ready_to_deliver": len(ready),
+        "needs_access": len(needs_access),
+        "delivered": len(delivered),
+        "items": {
+            "ready": [i.to_dict() for i in ready],
+            "needs_access": [i.to_dict() for i in needs_access],
+            "delivered": [i.to_dict() for i in delivered],
+        },
+        "targets": {h: bank.progress()[h] for h in ["daily", "weekly", "monthly"]},
+    }
+
+
+@router.post("/streams/{stream_key}/cycle")
+async def direct_work_stream_cycle(
+    stream_key: str,
+    target: int | None = None,
+    profile: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run a work bank cycle for a specific stream only."""
+    try:
+        stream = WorkStream(stream_key)
+    except ValueError:
+        raise HTTPException(status_code=404, detail=f"Unknown stream: {stream_key}")
+
+    engine = get_engine()
+    stream_categories = [cat for cat, s in CATEGORY_TO_STREAM.items() if s == stream]
+
+    # Discover only for this stream's platforms
+    all_opportunities = await engine.discovery.discover_all() or []
+    filtered = [
+        opp
+        for opp in all_opportunities
+        if (opp.category.value if hasattr(opp.category, "value") else str(opp.category))
+        in [c.value for c in stream_categories]
+    ]
+
+    profile_obj = _income_max_profile(profile)
+    return get_workbank().daily_cycle(filtered, target=target, profile=profile_obj)
+
+
+# ── One Best Action ──
+
+
+@router.get("/one-best-action")
+async def get_one_best_action() -> dict[str, Any]:
+    """Get the single best action the user should take RIGHT NOW.
+
+    Returns a prioritized, actionable next step based on:
+    - Work Bank state (ready to deliver, needs access)
+    - Ranked opportunities (max-income mode)
+    - User availability (Profile Kit + calendar)
+    - Platform onboarding requirements
+    - Skill gaps for top opportunities
+
+    Priority order:
+    1. DELIVER_NOW → work completed, ready to submit
+    2. PREPARE_DELIVERY → work ready, package needs generation
+    3. CLAIM_OPPORTUNITY → high-value bounty/microtask claimable now
+    4. COMPLETE_ONBOARDING → platform setup blocking work
+    5. LEARN_SKILL → skill gap for top opportunity
+    6. RUN_WORKBANK_CYCLE → refresh opportunities
+    """
+    from cores.direct_work_engine.one_best_action import get_one_best_action
+
+    action = get_one_best_action()
+    return action.to_dict()

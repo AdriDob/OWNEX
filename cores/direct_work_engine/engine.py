@@ -219,3 +219,13 @@ def register_capabilities() -> None:
         logger.info("Direct Work Engine registered in CapabilityRegistry")
     except Exception as exc:  # pragma: no cover
         logger.warning("Could not register Direct Work Engine in CapabilityRegistry: %s", exc)
+
+
+_direct_work_engine: DirectWorkEngine | None = None
+
+
+def get_direct_work_engine() -> DirectWorkEngine:
+    global _direct_work_engine
+    if _direct_work_engine is None:
+        _direct_work_engine = DirectWorkEngine()
+    return _direct_work_engine

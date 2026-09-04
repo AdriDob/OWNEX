@@ -1,19 +1,23 @@
 <script setup lang="ts">
-import AppSidebar from './AppSidebar.vue'
-import AppFooter from './AppFooter.vue'
-import TitleBar from './TitleBar.vue'
-import NotificationPanel from '@/components/notifications/NotificationPanel.vue'
+import CommandPalette from '@/components/ui/CommandPalette.vue'
 import ErrorBoundary from '@/components/ErrorBoundary.vue'
+import NotificationPanel from '@/components/notifications/NotificationPanel.vue'
+import AutonomyBadge from '@/components/ui/AutonomyBadge.vue'
 import { useNotificationsStore } from '@/stores/notifications'
+import { ref } from 'vue'
+import AppFooter from './AppFooter.vue'
+import AppSidebar from './AppSidebar.vue'
+import TitleBar from './TitleBar.vue'
 
 const notifications = useNotificationsStore()
+const commandPalette = ref<InstanceType<typeof CommandPalette>>()
 
 defineProps<{
   copilotOpen: boolean
 }>()
 
 const emit = defineEmits<{
-  'toggleCopilot': []
+  toggleCopilot: []
 }>()
 </script>
 
@@ -33,6 +37,7 @@ const emit = defineEmits<{
 
       <!-- Toolbar: notifications always accessible -->
       <div v-if="!$route.meta?.public" class="sticky top-0 z-20 flex items-center justify-end gap-2 border-b border-border/20 bg-background/80 px-4 py-1.5 backdrop-blur-xl">
+        <AutonomyBadge />
         <span :class="['h-1.5 w-1.5 rounded-full', notifications.wsConnected ? 'bg-success' : 'bg-destructive']" />
         <NotificationPanel />
       </div>
@@ -49,6 +54,9 @@ const emit = defineEmits<{
       </div>
       <AppFooter @toggle-copilot="emit('toggleCopilot')" />
     </main>
+
+    <!-- Command Palette (Cmd+K) -->
+    <CommandPalette ref="commandPalette" />
   </div>
 </template>
 

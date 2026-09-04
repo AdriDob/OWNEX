@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import Card from '@/components/ui/Card.vue'
+import { AlertTriangle, CalendarDays, CheckCircle2, Clock, ListTodo, Mail, RefreshCw, XCircle } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { RefreshCw, CalendarDays, Mail, CheckCircle2, XCircle, Clock, AlertTriangle, ListTodo } from '@lucide/vue'
 import {
-  getOutlookStatus,
   getOutlookAgenda,
-  getOutlookTodo,
+  getOutlookStatus,
   getOutlookTasks,
-  syncOutlookCalendar,
-  type OutlookStatus,
+  getOutlookTodo,
   type OutlookAgenda,
   type OutlookEvent,
-  type OutlookTodoData,
-  type OutlookSyncTask,
+  type OutlookStatus,
   type OutlookSyncSummary,
+  type OutlookSyncTask,
+  type OutlookTodoData,
   type OutlookTodoSyncSummary,
+  syncOutlookCalendar,
 } from '@/services/ownexData'
 
 const loading = ref(true)
@@ -39,8 +39,11 @@ function formatDate(iso: string): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
   return d.toLocaleString('es-AR', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   })
 }
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
+from typing import Any
 
 from cores.direct_work_engine.models import DifficultyLevel, Opportunity, UserProfile
 
@@ -33,6 +34,16 @@ class SkillGapReport:
     missing_skills: list[str] = field(default_factory=list)
     readiness: float = 0.0
     learning_plan: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "opportunity_id": self.opportunity_id,
+            "required_skills": self.required_skills,
+            "user_skills": self.user_skills,
+            "missing_skills": self.missing_skills,
+            "readiness": self.readiness,
+            "learning_plan": self.learning_plan,
+        }
 
 
 class SkillAmplifier:

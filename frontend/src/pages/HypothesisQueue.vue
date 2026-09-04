@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import { AlertTriangle, BarChart3, Brain, ChevronRight, Play, RotateCw, Search, Shield, Target, Zap } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import BarChart from '@/components/charts/BarChart.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import BarChart from '@/components/charts/BarChart.vue'
-import { AlertTriangle, BarChart3, Brain, ChevronRight, Play, RotateCw, Search, Shield, Target, Zap } from '@lucide/vue'
+import { api } from '@/lib/api'
 
 interface Hypothesis {
   id: string
@@ -71,11 +71,13 @@ const sortedByConfidence = computed(() => {
   return [...hypotheses.value].sort((a, b) => b.confidence - a.confidence)
 })
 
-const confidenceChartLabels = computed(() => sortedByConfidence.value.slice(0, 10).map(h => {
-  const label = typeLabel(h.vulnerability_type)
-  return `${label} (${h.target_name.slice(0, 12)})`
-}))
-const confidenceChartData = computed(() => sortedByConfidence.value.slice(0, 10).map(h => h.confidence))
+const confidenceChartLabels = computed(() =>
+  sortedByConfidence.value.slice(0, 10).map((h) => {
+    const label = typeLabel(h.vulnerability_type)
+    return `${label} (${h.target_name.slice(0, 12)})`
+  }),
+)
+const confidenceChartData = computed(() => sortedByConfidence.value.slice(0, 10).map((h) => h.confidence))
 
 async function fetchHypotheses() {
   loading.value = true

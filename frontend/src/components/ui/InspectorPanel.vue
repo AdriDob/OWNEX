@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, watch, onUnmounted, type Component } from 'vue'
+import { Activity, Code, ExternalLink, FileText, Grid3X3, History, Link, List, Terminal, X } from '@lucide/vue'
+import { type Component, computed, onUnmounted, watch } from 'vue'
 import { useUIStore } from '@/stores/ui'
-import { X, FileText, Activity, Code, List, History, Grid3X3, Link, Terminal, ExternalLink } from '@lucide/vue'
 import Badge from './Badge.vue'
 import ScrollArea from './ScrollArea.vue'
 
@@ -27,10 +27,14 @@ function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') close()
 }
 
-watch(() => store.inspectorOpen, (v) => {
-  if (v) document.addEventListener('keydown', handleKeydown)
-  else document.removeEventListener('keydown', handleKeydown)
-}, { immediate: true })
+watch(
+  () => store.inspectorOpen,
+  (v) => {
+    if (v) document.addEventListener('keydown', handleKeydown)
+    else document.removeEventListener('keydown', handleKeydown)
+  },
+  { immediate: true },
+)
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)

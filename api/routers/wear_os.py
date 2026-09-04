@@ -1,133 +1,165 @@
-"""API Router for Wear OS Integration."""
+"""Wear OS Router — minimal endpoints for watch companion.
 
+Endpoints:
+- GET  /wear-os/notifications     — Get watch notifications
+- POST /wear-os/notification      — Send notification to watch
+- PUT  /wear-os/notification/:id/read — Mark as read
+- GET  /wear-os/approvals         — Get pending approvals
+- POST /wear-os/approval/:id      — Respond to approval
+- GET  /wear-os/status            — System status for watch
+- POST /wear-os/clear-notifications — Clear old notifications
+"""
+
+from __future__ import annotations
+
+import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
 
 from cores.wear_os.integration import (
     WatchNotificationLevel,
     get_wear_os_integration,
 )
 
-router = APIRouter(prefix="/wear-os", tags=["wear-os"])
+logger = logging.getLogger("ownex.api.wear_os")
+
+router = APIRouter(prefix="/wear-os", tags=["wear_os"])
 
 
-@router.get("/status")
-async def get_watch_status():
-    """Get watch status."""
-    integration = get_wear_os_integration()
-    status = integration.get_status()
-    return status.__dict__
+# ── Request Models ────────────────────────────────────────────────────────
 
 
-@router.post("/notification")
-async def send_notification(payload: dict[str, Any]):
-    """Send notification to watch."""
-    integration = get_wear_os_integration()
+class SendNotificationRequest(BaseModel):
+    title: str
+    message: str
+    level: str = "medium"
+    requires_action: bool = False
+    action_type: str | None = None
 
-    title = payload.get("title")
-    message = payload.get("message")
-    level = WatchNotificationLevel(payload.get("level", "medium"))
-    requires_action = payload.get("requires_action", False)
-    action_type = payload.get("action_type")
 
-    if not title or not message:
-        raise HTTPException(status_code=400, detail="title and message are required")
+class ApprovalResponseRequest(BaseModel):
+    approved: bool
 
-    notification = integration.send_notification(
-        title=title,
-        message=message,
-        level=level,
-        requires_action=requires_action,
-        action_type=action_type,
-    )
 
-    return notification.__dict__
+# ── Endpoints ─────────────────────────────────────────────────────────────
 
 
 @router.get("/notifications")
-async def get_notifications(
-    level: str | None = None,
-    unread_only: bool = False,
-    limit: int = 20,
-):
+def get_notifications(
+    level: str | None = Query(None, description="Filter by level"),
+    unread_only: bool = Query(False, description="Only unread"),
+    limit: int = Query(20, ge=1, le=50),
+) -> list[dict[str, Any]]:
     """Get watch notifications."""
     integration = get_wear_os_integration()
 
-    notification_level = WatchNotificationLevel(level) if level else None
-    notifications = integration.get_notifications(
-        level=notification_level,
-        unread_only=unread_only,
-        limit=limit,
+    watch_level = None
+    if level:
+        try:
+            watch_level = WatchNotificationLevel(level)
+        except ValueError:
+            pass
+
+    notifications = integration.get_notifications(level=watch_level, unread_only=unread_only, limit=limit)
+    return [
+        {
+            "notification_id": n.notification_id,
+            "title": n.title,
+            "message": n.message,
+            "level": n.level,
+            "created_at": n.created_at,
+            "read": n.read,
+            "requires_action": n.requires_action,
+            "action_type": n.action_type,
+        }
+        for n in notifications
+    ]
+
+
+@router.post("/notification")
+def send_notification(body: SendNotificationRequest) -> dict[str, Any]:
+    """Send a notification to the watch."""
+    integration = get_wear_os_integration()
+
+    try:
+        level = WatchNotificationLevel(body.level)
+    except ValueError:
+        level = WatchNotificationLevel.MEDIUM
+
+    notification = integration.send_notification(
+        title=body.title,
+        message=body.message,
+        level=level,
+        requires_action=body.requires_action,
+        action_type=body.action_type,
     )
 
-    return [n.__dict__ for n in notifications]
+    return {
+        "success": True,
+        "notification_id": notification.notification_id,
+    }
 
 
 @router.put("/notification/{notification_id}/read")
-async def mark_notification_read(notification_id: str):
-    """Mark notification as read."""
+def mark_notification_read(notification_id: str) -> dict[str, str]:
+    """Mark a watch notification as read."""
     integration = get_wear_os_integration()
-    success = integration.mark_notification_read(notification_id)
-
-    if not success:
-        raise HTTPException(status_code=404, detail="Notification not found")
-
-    return {"success": True}
+    if not integration.mark_notification_read(notification_id):
+        raise HTTPException(404, "Notification not found")
+    return {"status": "ok"}
 
 
-@router.post("/approval-request")
-async def request_approval(payload: dict[str, Any]):
-    """Request approval from watch."""
-    integration = get_wear_os_integration()
-
-    title = payload.get("title")
-    description = payload.get("description")
-    workflow_id = payload.get("workflow_id")
-
-    if not title or not description:
-        raise HTTPException(status_code=400, detail="title and description are required")
-
-    request = integration.request_approval(
-        title=title,
-        description=description,
-        workflow_id=workflow_id,
-    )
-
-    return request.__dict__
-
-
-@router.get("/approvals/pending")
-async def get_pending_approvals():
-    """Get pending approvals."""
+@router.get("/approvals")
+def get_pending_approvals() -> list[dict[str, Any]]:
+    """Get pending approval requests."""
     integration = get_wear_os_integration()
     approvals = integration.get_pending_approvals()
-    return [a.__dict__ for a in approvals]
+    return [
+        {
+            "request_id": a.request_id,
+            "title": a.title,
+            "description": a.description,
+            "workflow_id": a.workflow_id,
+            "created_at": a.created_at,
+            "responded": a.responded,
+            "approved": a.approved,
+        }
+        for a in approvals
+    ]
 
 
-@router.post("/approval/{request_id}/respond")
-async def respond_approval(request_id: str, payload: dict[str, Any]):
-    """Respond to approval request."""
+@router.post("/approval/{request_id}")
+def respond_approval(request_id: str, body: ApprovalResponseRequest) -> dict[str, str]:
+    """Respond to an approval request."""
     integration = get_wear_os_integration()
+    if not integration.respond_approval(request_id, body.approved):
+        raise HTTPException(404, "Approval request not found")
+    return {"status": "ok"}
 
-    approved = payload.get("approved")
-    if approved is None:
-        raise HTTPException(status_code=400, detail="approved is required")
 
-    success = integration.respond_approval(request_id, approved)
-
-    if not success:
-        raise HTTPException(status_code=404, detail="Approval request not found")
-
-    return {"success": True, "approved": approved}
+@router.get("/status")
+def get_status() -> dict[str, Any]:
+    """Get system status for watch display."""
+    integration = get_wear_os_integration()
+    status = integration.get_status()
+    return {
+        "system_online": status.system_online,
+        "scheduler_running": status.scheduler_running,
+        "active_workflows": status.active_workflows,
+        "pending_approvals": status.pending_approvals,
+        "findings_total": status.findings_total,
+        "findings_confirmed": status.findings_confirmed,
+        "targets_active": status.targets_active,
+        "health_score": status.health_score,
+        "last_updated": status.last_updated,
+    }
 
 
 @router.post("/clear-notifications")
-async def clear_old_notifications(payload: dict[str, Any]):
-    """Clear old notifications."""
+def clear_notifications(days: int = Query(7, ge=1, le=30)) -> dict[str, Any]:
+    """Clear old watch notifications."""
     integration = get_wear_os_integration()
-
-    days = payload.get("days", 7)
-    cleared = integration.clear_old_notifications(days)
-
+    cleared = integration.clear_old_notifications(days=days)
     return {"success": True, "cleared_count": cleared}

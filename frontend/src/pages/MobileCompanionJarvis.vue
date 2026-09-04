@@ -241,20 +241,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import VoiceAssistantRecorder from '@/components/voice/VoiceAssistantRecorder.vue'
 import {
-  fetchWearOSStatus,
+  type ChatMessage,
   fetchWearOSNotifications,
   fetchWearOSPendingApprovals,
+  fetchWearOSStatus,
   markWearOSNotificationRead,
   respondWearOSApproval,
   sendChatMessage,
-  type WearOSStatus,
-  type WearOSNotification,
   type WearOSApproval,
-  type ChatMessage,
+  type WearOSNotification,
+  type WearOSStatus,
 } from '@/services/ownexData'
 
 const router = useRouter()
@@ -283,10 +283,10 @@ const status = computed(() => ({
     : 'Sin actividad',
 }))
 
-const androidStatus = computed(() => androidConnected.value ? 'Conectado' : 'Desconectado')
-const androidStatusClass = computed(() => androidConnected.value ? 'status-ok' : 'status-warning')
-const watchStatus = computed(() => watchConnected.value ? 'Conectado' : 'Desconectado')
-const watchStatusClass = computed(() => watchConnected.value ? 'status-ok' : 'status-warning')
+const androidStatus = computed(() => (androidConnected.value ? 'Conectado' : 'Desconectado'))
+const androidStatusClass = computed(() => (androidConnected.value ? 'status-ok' : 'status-warning'))
+const watchStatus = computed(() => (watchConnected.value ? 'Conectado' : 'Desconectado'))
+const watchStatusClass = computed(() => (watchConnected.value ? 'status-ok' : 'status-warning'))
 
 const merlinGreeting = ref('¡Hola! Soy MERLIN mini. ¿En qué puedo ayudarte desde tu móvil?')
 
@@ -328,9 +328,7 @@ async function loadWearOSStatus() {
 async function markNotificationRead(id: string) {
   try {
     await markWearOSNotificationRead(id)
-    notifications.value = notifications.value.map((n) =>
-      n.notification_id === id ? { ...n, read: true } : n,
-    )
+    notifications.value = notifications.value.map((n) => (n.notification_id === id ? { ...n, read: true } : n))
   } catch {
     // ignore
   }

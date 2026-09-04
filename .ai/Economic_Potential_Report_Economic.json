@@ -1,0 +1,45 @@
+{
+  "economic_model": {
+    "description": "Expected Value model with human capacity constraints",
+    "formula": "EV = payout × P(success) / hours_per_opportunity",
+    "risk_adjusted_EV": "EV × (1 - duplicate_rate - disqualification_rate - payment_risk - opportunity_cost)",
+    "human_capacity_scenarios": {
+      "Low": {"hours_per_day": 2, "effective_hours": 0.5, "description": "2h/day, high context switching, learning"},
+      "Normal": {"hours_per_day": 4, "effective_hours": 1.3, "description": "4h/day, moderate context switching"},
+      "High": {"hours_per_day": 6, "effective_hours": 2.0, "description": "6h/day, low context switching"},
+      "Extreme": {"hours_per_day": 9, "effective_hours": 2.8, "description": "8-10h/day, fatigue, diminishing returns"}
+    },
+    "automation_levels": {
+      "A0_Manual": "0% reduction, human does everything",
+      "A1_Assisted": "30% time reduction, templates + guidance",
+      "A2_SemiAutomated": "60% time reduction, auto-prepare + human review",
+      "A3_AutoWithApproval": "80% time reduction, auto-execute + human gate",
+      "A4_Autonomous": "95% time reduction, fully auto in permitted scope"
+    },
+    "ev_per_hour_by_category": {
+      "Data Annotation": 6.84,
+      "AI Evaluation Coding (AR)": 6.60,
+      "AI Evaluation Specialist": 5.10,
+      "AI Evaluation Generalist": 4.28,
+      "QA/Testing": 3.57,
+      "Web3 Dev (Superteam)": 3.40,
+      "Bug Bounty Private": 2.70,
+      "OSS Dev Bounties": 2.10,
+      "AI/LLM Security": 1.00,
+      "Smart Contract Audit": 0.49,
+      "Bug Bounty Public": 0.09
+    },
+    "monthly_income_projection": {
+      "Low (2h/day)": {"mean": 1105, "median": 795, "p95": 3003},
+      "Normal (4h/day)": {"mean": 2198, "median": 1574, "p95": 6054},
+      "High (6h/day)": {"mean": 3231, "median": 2295, "p95": 8790},
+      "Extreme (9h/day)": {"mean": 4718, "median": 3276, "p95": 12754}
+    },
+    "yearly_projection": {
+      "Low (2h/day)": {"mean": 13088, "median": 12616, "p95": 19216},
+      "Normal (4h/day)": {"mean": 26254, "median": 25535, "p95": 38295},
+      "High (6h/day)": {"mean": 39188, "median": 37909, "p95": 57732},
+      "Extreme (9h/day)": {"mean": 56248, "median": 54534, "p95": 81788}
+    }
+  }
+}

@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { Copy, Check, RefreshCw, UserRound, Globe, Loader2, Download } from '@lucide/vue'
+import { Check, Copy, Download, Globe, Loader2, RefreshCw, UserRound } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import Button from '@/components/ui/Button.vue'
 import {
   fetchProfileKitStatus,
-  saveProfileKit,
   generateProfileKit,
+  type ProfileKitField,
   type ProfileKitProfile,
   type ProfileKitStatus,
-  type ProfileKitField,
+  saveProfileKit,
 } from '@/services/ownexData'
 
 const profile = ref<ProfileKitProfile>({
@@ -34,7 +34,10 @@ const copying = ref<string | null>(null)
 const error = ref('')
 
 const skillList = computed(() =>
-  skillsInput.value.split(',').map(s => s.trim()).filter(Boolean),
+  skillsInput.value
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
 )
 
 const currentFields = computed<ProfileKitField[]>(() => {
@@ -124,20 +127,16 @@ async function copyField(key: string, text: string) {
 
 function copyAll() {
   if (!currentFields.value.length) return
-  const block = currentFields.value
-    .map(f => `${f.label}: ${f.text}`)
-    .join('\n\n')
+  const block = currentFields.value.map((f) => `${f.label}: ${f.text}`).join('\n\n')
   copying.value = 'all'
-  navigator.clipboard
-    ?.writeText(block)
-    .catch(() => {
-      const ta = document.createElement('textarea')
-      ta.value = block
-      document.body.appendChild(ta)
-      ta.select()
-      document.execCommand('copy')
-      document.body.removeChild(ta)
-    })
+  navigator.clipboard?.writeText(block).catch(() => {
+    const ta = document.createElement('textarea')
+    ta.value = block
+    document.body.appendChild(ta)
+    ta.select()
+    document.execCommand('copy')
+    document.body.removeChild(ta)
+  })
   setTimeout(() => (copying.value = null), 1500)
 }
 
@@ -149,13 +148,13 @@ function exportMarkdown() {
     '',
     `> Generado ${new Date().toISOString()} · Perfil de ${profile.value.name || 'Desarrollador'} (${profile.value.country})`,
     '',
-    ...availablePlatforms.value.flatMap(platform => {
+    ...availablePlatforms.value.flatMap((platform) => {
       const fields = langKit[platform] ?? []
       if (!fields.length) return []
       return [
         `## ${PLATFORM_LABELS[platform] ?? platform}`,
         '',
-        ...fields.flatMap(f => ['### ' + f.label, '', f.text, '']),
+        ...fields.flatMap((f) => ['### ' + f.label, '', f.text, '']),
       ]
     }),
   ].join('\n')

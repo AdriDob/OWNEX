@@ -15,6 +15,7 @@ import os
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 from cores.direct_work_engine.profile_kit import ProfileKitEngine, UserProfile
 
@@ -31,6 +32,16 @@ class AvailabilitySnapshot:
     hours_this_month: float
     source: str  # "profile_kit" | "calendar" | "fallback"
     note: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "generated_at": self.generated_at,
+            "hours_today": self.hours_today,
+            "hours_this_week": self.hours_this_week,
+            "hours_this_month": self.hours_this_month,
+            "source": self.source,
+            "note": self.note,
+        }
 
 
 @dataclass(slots=True)

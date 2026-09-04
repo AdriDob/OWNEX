@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { Bot, Compass, DollarSign, Globe, Shield } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Shield, Globe, Bot, DollarSign, Compass } from '@lucide/vue'
 import { fetchCycles } from '@/services/ownexData'
 
 interface WorkCycle {

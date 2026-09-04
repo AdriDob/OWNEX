@@ -203,10 +203,11 @@ class ValidationLoopEngine:
         auth_probe: AuthContext,
         next_best_test: Any,
     ) -> list[dict[str, Any]]:
-        """Execute the highest-info-gain contradiction test (SELF-5).
+        """Execute the highest-info-gain contradiction test (always-on for confirmed findings).
 
-        Only tests with info_gain >= MIN_INFO_GAIN are executed; outcomes are
-        recorded into the learning loop (FeedbackLearner consumes those patterns).
+        Runs on EVERY confirmed finding (always-on). Only the highest-info-gain
+        test is executed to avoid false refutations from lower-quality tests.
+        Outcomes are recorded into the learning loop.
         """
         if not next_best_test:
             return []

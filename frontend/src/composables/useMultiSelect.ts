@@ -1,7 +1,7 @@
-import { computed, type Ref, type ComputedRef } from 'vue'
-import { useUIStore, type MicroEntity } from '@/stores/ui'
-import { api } from '@/lib/api'
+import { type ComputedRef, computed, type Ref } from 'vue'
 import { useToast } from '@/composables/useToast'
+import { api } from '@/lib/api'
+import { type MicroEntity, useUIStore } from '@/stores/ui'
 
 export function useMultiSelect() {
   const store = useUIStore()
@@ -70,8 +70,16 @@ export function useMultiSelect() {
   }
 
   return {
-    selected, isSelected, toggle, selectAll, clear,
-    count, isEmpty,
-    batchExport, batchSync, batchDelete, batchTag,
+    selected,
+    isSelected,
+    toggle,
+    selectAll,
+    clear,
+    count,
+    isEmpty,
+    batchExport,
+    batchSync,
+    batchDelete,
+    batchTag,
   }
 }

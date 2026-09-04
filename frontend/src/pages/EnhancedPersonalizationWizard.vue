@@ -135,10 +135,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import axios from 'axios'
-import type { WizardStep, WizardQuestion } from '@/types'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import type { WizardQuestion, WizardStep } from '@/types'
 
 const router = useRouter()
 

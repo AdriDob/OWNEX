@@ -1,18 +1,34 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import {
+  AlertTriangle,
+  Brain,
+  CheckCircle2,
+  Lightbulb,
+  Plus,
+  Search,
+  Star,
+  Target,
+  Trash2,
+  TrendingUp,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import DoughnutChart from '@/components/charts/DoughnutChart.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Input from '@/components/ui/Input.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { Brain, Search, Lightbulb, TrendingUp, Plus, Trash2, Star, CheckCircle2, Target, AlertTriangle } from '@lucide/vue'
-import DoughnutChart from '@/components/charts/DoughnutChart.vue'
+import { api } from '@/lib/api'
 
 interface Pattern {
-  id: number; category: string; observation: string
-  context: string | null; confidence: number; evidence_count: number
-  tags: string | null; source_program_id: number | null
+  id: number
+  category: string
+  observation: string
+  context: string | null
+  confidence: number
+  evidence_count: number
+  tags: string | null
+  source_program_id: number | null
   created_at: string | null
 }
 
@@ -29,7 +45,9 @@ const creating = ref(false)
 
 const categories = ['tech', 'platform', 'vuln_type', 'company_type', 'general']
 
-onMounted(async () => { await fetchPatterns() })
+onMounted(async () => {
+  await fetchPatterns()
+})
 
 async function fetchPatterns() {
   loading.value = true
@@ -39,15 +57,19 @@ async function fetchPatterns() {
     if (search.value) params.search = search.value
     const res = await api.get<{ items: Pattern[]; total: number }>('/economic/patterns', params)
     items.value = res.items || []
-  } catch (e: any) { error.value = e?.message || 'Error al cargar patrones'; items.value = [] }
-  finally { loading.value = false }
+  } catch (e: any) {
+    error.value = e?.message || 'Error al cargar patrones'
+    items.value = []
+  } finally {
+    loading.value = false
+  }
 }
 
 const filtered = computed(() => {
   let list = items.value
   if (search.value) {
     const q = search.value.toLowerCase()
-    list = list.filter(p => p.observation.toLowerCase().includes(q))
+    list = list.filter((p) => p.observation.toLowerCase().includes(q))
   }
   return list.sort((a, b) => b.confidence - a.confidence)
 })
@@ -65,21 +87,29 @@ async function createPattern() {
     newTags.value = ''
     showCreate.value = false
     await fetchPatterns()
-  } catch { /* ignore */ }
-  finally { creating.value = false }
+  } catch {
+    /* ignore */
+  } finally {
+    creating.value = false
+  }
 }
 
 async function deletePattern(id: number) {
   try {
     await api.delete(`/economic/patterns/${id}`)
-    items.value = items.value.filter(p => p.id !== id)
-  } catch { /* ignore */ }
+    items.value = items.value.filter((p) => p.id !== id)
+  } catch {
+    /* ignore */
+  }
 }
 
 function categoryLabel(cat: string) {
   const map: Record<string, string> = {
-    tech: 'Tecnología', platform: 'Plataforma', vuln_type: 'Vulnerabilidad',
-    company_type: 'Tipo de empresa', general: 'General',
+    tech: 'Tecnología',
+    platform: 'Plataforma',
+    vuln_type: 'Vulnerabilidad',
+    company_type: 'Tipo de empresa',
+    general: 'General',
   }
   return map[cat] || cat
 }

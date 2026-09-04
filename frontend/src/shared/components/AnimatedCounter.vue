@@ -7,35 +7,38 @@ import { ref, toRef } from 'vue'
 import { useAnimatedCounter } from '../composables/useAnimatedCounter'
 import { useInViewport } from '../composables/useInViewport'
 
-const props = withDefaults(defineProps<{
-  /** The target numeric value */
-  value: number
-  /** Start value (default: 0) */
-  from?: number
-  /** Decimal places */
-  decimals?: number
-  /** Suffix text (e.g. "%", " GB") */
-  suffix?: string
-  /** Prefix text (e.g. "$") */
-  prefix?: string
-  /** Duration in seconds (default: 0.6) */
-  duration?: number
-  /** Use spring physics (default: true) */
-  spring?: boolean
-  /** Delay animation until element is in viewport */
-  lazy?: boolean
-  /** Font size class */
-  size?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl'
-}>(), {
-  from: 0,
-  decimals: 0,
-  suffix: '',
-  prefix: '',
-  duration: 0.6,
-  spring: true,
-  lazy: false,
-  size: '2xl',
-})
+const props = withDefaults(
+  defineProps<{
+    /** The target numeric value */
+    value: number
+    /** Start value (default: 0) */
+    from?: number
+    /** Decimal places */
+    decimals?: number
+    /** Suffix text (e.g. "%", " GB") */
+    suffix?: string
+    /** Prefix text (e.g. "$") */
+    prefix?: string
+    /** Duration in seconds (default: 0.6) */
+    duration?: number
+    /** Use spring physics (default: true) */
+    spring?: boolean
+    /** Delay animation until element is in viewport */
+    lazy?: boolean
+    /** Font size class */
+    size?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl'
+  }>(),
+  {
+    from: 0,
+    decimals: 0,
+    suffix: '',
+    prefix: '',
+    duration: 0.6,
+    spring: true,
+    lazy: false,
+    size: '2xl',
+  },
+)
 
 const displayRef = ref<HTMLElement | null>(null)
 const valueRef = toRef(props, 'value')

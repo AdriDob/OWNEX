@@ -1,15 +1,22 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import {
+  Activity,
+  AlertTriangle,
+  CheckCircle2,
+  PauseCircle,
+  Plus,
+  RefreshCw,
+  Search,
+  Trash2,
+  XCircle,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import { DoughnutChart } from '@/components/charts'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { DoughnutChart } from '@/components/charts'
-import {
-  Search, AlertTriangle, RefreshCw, Plus, Trash2,
-  Activity, PauseCircle, CheckCircle2, XCircle,
-} from '@lucide/vue'
+import { api } from '@/lib/api'
 
 interface Investigation {
   id: number
@@ -58,8 +65,9 @@ async function fetchData() {
     investigations.value = res.items || []
   } catch (e: any) {
     error.value = e?.message || 'Error al cargar investigaciones'
+  } finally {
+    loading.value = false
   }
-  finally { loading.value = false }
 }
 
 async function createInvestigation() {
@@ -71,15 +79,20 @@ async function createInvestigation() {
     newTargetId.value = null
     showCreate.value = false
     await fetchData()
-  } catch { /* ignore */ }
-  finally { creating.value = false }
+  } catch {
+    /* ignore */
+  } finally {
+    creating.value = false
+  }
 }
 
 async function deleteInvestigation(id: number) {
   try {
     await api.delete(`/investigations/${id}`)
-    investigations.value = investigations.value.filter(i => i.id !== id)
-  } catch { /* ignore */ }
+    investigations.value = investigations.value.filter((i) => i.id !== id)
+  } catch {
+    /* ignore */
+  }
 }
 
 function tabChanged(tab: StatusTab) {
@@ -93,10 +106,7 @@ const filtered = computed(() => {
   let result = investigations.value
   const q = search.value.toLowerCase()
   if (q) {
-    result = result.filter(i =>
-      i.name.toLowerCase().includes(q) ||
-      i.target_name?.toLowerCase().includes(q)
-    )
+    result = result.filter((i) => i.name.toLowerCase().includes(q) || i.target_name?.toLowerCase().includes(q))
   }
   return result
 })

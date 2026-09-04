@@ -3,7 +3,7 @@
    Returns boolean flags for reduced-motion and performance mode.
    ══════════════════════════════════════════════════════════ */
 
-import { ref, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 
 export function useReducedMotion() {
   const prefersReducedMotion = ref(false)
@@ -38,6 +38,6 @@ export function useReducedMotion() {
     /** True when animations should be disabled entirely */
     shouldReduce: () => prefersReducedMotion.value || performanceMode.value === 'low',
     /** Returns a duration-friendly value: 0 if reduce, original if not */
-    safeDuration: (ms: number) => prefersReducedMotion.value ? 0 : ms,
+    safeDuration: (ms: number) => (prefersReducedMotion.value ? 0 : ms),
   }
 }

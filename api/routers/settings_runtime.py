@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
+from cores.financial_intelligence.mode_manager import ModeType, get_mode_manager
 from cores.settings.service import (
     OWNEXMode as CATEYEMode,
 )
@@ -37,6 +38,33 @@ def set_mode_setting(body: dict[str, str]) -> dict[str, str]:
         validated = CATEYEMode.MANUAL
     set_mode(validated)
     return {"mode": validated.value, "status": "ok"}
+
+
+@router.get("/mode/primary")
+def get_primary_mode() -> dict[str, str]:
+    """Get the primary operational mode (LITE/FULL/CAPITAL)."""
+    mm = get_mode_manager()
+    primary = mm.get_mode(ModeType.PRIMARY)
+    return {"mode": primary or "lite"}
+
+
+@router.put("/mode/primary")
+def set_primary_mode(body: dict[str, str]) -> dict[str, Any]:
+    """Set the primary operational mode (LITE/FULL/CAPITAL)."""
+    mm = get_mode_manager()
+    mode = body.get("mode", "lite")
+    valid_modes = ["lite", "full", "capital"]
+    if mode not in valid_modes:
+        raise HTTPException(status_code=400, detail=f"Invalid primary mode. Must be one of: {valid_modes}")
+    result = mm.set_mode(f"primary_{mode}")
+    return result
+
+
+@router.get("/mode/all")
+def get_all_modes() -> dict[str, Any]:
+    """Get all active modes."""
+    mm = get_mode_manager()
+    return {"active_modes": mm.get_active_modes(), "available": mm.get_available_modes()}
 
 
 @router.get("/platforms")

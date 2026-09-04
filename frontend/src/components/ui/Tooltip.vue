@@ -1,21 +1,26 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 
-const props = withDefaults(defineProps<{
-  text: string
-  position?: 'top' | 'bottom' | 'left' | 'right'
-  delay?: number
-}>(), {
-  position: 'top',
-  delay: 400,
-})
+const props = withDefaults(
+  defineProps<{
+    text: string
+    position?: 'top' | 'bottom' | 'left' | 'right'
+    delay?: number
+  }>(),
+  {
+    position: 'top',
+    delay: 400,
+  },
+)
 
 const visible = ref(false)
 let timeout: ReturnType<typeof setTimeout> | null = null
 const el = ref<HTMLElement | null>(null)
 
 function show() {
-  timeout = setTimeout(() => { visible.value = true }, props.delay)
+  timeout = setTimeout(() => {
+    visible.value = true
+  }, props.delay)
 }
 function hide() {
   if (timeout) clearTimeout(timeout)

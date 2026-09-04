@@ -219,18 +219,22 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
     except ImportError:
         pass
 
-    # Security Bounty adapters (HackerOne, Bugcrowd, Intigriti, YesWeHack)
+    # Security Bounty adapters (HackerOne, Bugcrowd, Intigriti, YesWeHack, Immunefi, Synack)
     try:
         from core.opportunity.adapters.security_bounty import (
             BugcrowdAdapter,
             HackerOneAdapter,
+            ImmunefiAdapter,
             IntigritiAdapter,
+            SynackAdapter,
             YesWeHackAdapter,
         )
 
         registry.register("hackerone", HackerOneAdapter)
         registry.register("bugcrowd", BugcrowdAdapter)
+        registry.register("immunefi", ImmunefiAdapter)
         registry.register("intigriti", IntigritiAdapter)
+        registry.register("synack", SynackAdapter)
         registry.register("yeswehack", YesWeHackAdapter)
     except ImportError:
         pass

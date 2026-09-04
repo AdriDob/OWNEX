@@ -1,14 +1,25 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import {
+  AlertTriangle,
+  BarChart3,
+  Bug,
+  CheckCircle2,
+  Clock,
+  FileText,
+  ListFilter,
+  PieChart,
+  Search,
+  X,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import { BarChart, DoughnutChart } from '@/components/charts'
+import FindingDetailDrawer from '@/components/findings/FindingDetailDrawer.vue'
+import Badge from '@/components/ui/Badge.vue'
+import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
 import { useFindingsStore } from '@/stores/findings'
 import type { Finding } from '@/types'
-import FindingDetailDrawer from '@/components/findings/FindingDetailDrawer.vue'
-import Card from '@/components/ui/Card.vue'
-import Badge from '@/components/ui/Badge.vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
-import Button from '@/components/ui/Button.vue'
-import { Bug, AlertTriangle, CheckCircle2, Clock, FileText, ListFilter, Search, X, PieChart, BarChart3 } from '@lucide/vue'
-import { DoughnutChart, BarChart } from '@/components/charts'
 
 const store = useFindingsStore()
 const activeTab = ref<'pipeline' | 'all'>('pipeline')
@@ -31,24 +42,42 @@ const pipelineStages = computed(() => {
 })
 
 const severityDistribution = computed(() => {
-  const all = store.findings.length ? store.findings : (store.pipeline ? [...store.pipeline.detected, ...store.pipeline.validated, ...store.pipeline.confirmed, ...store.pipeline.reported] : [])
+  const all = store.findings.length
+    ? store.findings
+    : store.pipeline
+      ? [
+          ...store.pipeline.detected,
+          ...store.pipeline.validated,
+          ...store.pipeline.confirmed,
+          ...store.pipeline.reported,
+        ]
+      : []
   const map: Record<string, number> = { critical: 0, high: 0, medium: 0, low: 0, info: 0 }
-  all.forEach(f => { const s = f.severity?.toLowerCase() || 'info'; map[s] = (map[s] || 0) + 1 })
+  all.forEach((f) => {
+    const s = f.severity?.toLowerCase() || 'info'
+    map[s] = (map[s] || 0) + 1
+  })
   return map
 })
 
 const pipelineStageCounts = computed(() => {
   if (!store.pipeline) return [0, 0, 0, 0]
-  return [store.pipeline.detected.length, store.pipeline.validated.length, store.pipeline.confirmed.length, store.pipeline.reported.length]
+  return [
+    store.pipeline.detected.length,
+    store.pipeline.validated.length,
+    store.pipeline.confirmed.length,
+    store.pipeline.reported.length,
+  ]
 })
 
 const filteredFindings = computed(() => {
   const q = searchQuery.value.toLowerCase()
   if (!q) return store.findings
-  return store.findings.filter(f =>
-    f.title?.toLowerCase().includes(q) ||
-    f.target_name?.toLowerCase().includes(q) ||
-    f.endpoint_path?.toLowerCase().includes(q)
+  return store.findings.filter(
+    (f) =>
+      f.title?.toLowerCase().includes(q) ||
+      f.target_name?.toLowerCase().includes(q) ||
+      f.endpoint_path?.toLowerCase().includes(q),
   )
 })
 
@@ -68,7 +97,11 @@ function onStatusUpdated() {
 
 function severityVariant(sev: string) {
   const map: Record<string, 'destructive' | 'warning' | 'info' | 'success' | 'default'> = {
-    critical: 'destructive', high: 'warning', medium: 'info', low: 'success', info: 'default',
+    critical: 'destructive',
+    high: 'warning',
+    medium: 'info',
+    low: 'success',
+    info: 'default',
   }
   return map[sev.toLowerCase()] || 'default'
 }

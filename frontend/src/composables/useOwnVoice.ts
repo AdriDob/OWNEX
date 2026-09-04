@@ -1,4 +1,4 @@
-import { ref, readonly } from 'vue'
+import { readonly, ref } from 'vue'
 import { api } from '@/lib/api'
 
 /**
@@ -40,7 +40,11 @@ interface SpeechRecognitionLike {
 interface CapacitorSpeechRecognition {
   available: () => Promise<{ available: boolean }>
   requestPermissions: () => Promise<{ permissionStatus: unknown }>
-  start: (options: { language?: string; partialResults?: boolean; maxResults?: number }) => Promise<{ matches: string[] | undefined; partialResults?: Array<{ matches: string[] }> }>
+  start: (options: {
+    language?: string
+    partialResults?: boolean
+    maxResults?: number
+  }) => Promise<{ matches: string[] | undefined; partialResults?: Array<{ matches: string[] }> }>
   stop: () => Promise<void>
 }
 
@@ -61,9 +65,7 @@ let finalText = ''
 
 function getBrowserRecognition(): SpeechRecognitionLike | null {
   const w = window as unknown as Record<string, unknown>
-  const Ctor = (w.SpeechRecognition || w.webkitSpeechRecognition) as
-    | (new () => SpeechRecognitionLike)
-    | undefined
+  const Ctor = (w.SpeechRecognition || w.webkitSpeechRecognition) as (new () => SpeechRecognitionLike) | undefined
   if (!Ctor) return null
   const rec = new Ctor()
   rec.lang = 'es-ES'
@@ -205,7 +207,9 @@ async function speak(text: string): Promise<boolean> {
         audioEl = new Audio(url)
         speakingNow = true
         await audioEl.play()
-        audioEl.onended = () => { speakingNow = false }
+        audioEl.onended = () => {
+          speakingNow = false
+        }
         return true
       }
     }
@@ -223,7 +227,7 @@ function speakSystem(text: string): boolean {
     synth.cancel()
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.lang = 'es-ES'
-    const voice = synth.getVoices().find(v => v.lang.startsWith('es'))
+    const voice = synth.getVoices().find((v) => v.lang.startsWith('es'))
     if (voice) utterance.voice = voice
     utterance.rate = p?.speed ?? 1.05
     utterance.pitch = (p?.pitch ?? 0) / 2 + 1

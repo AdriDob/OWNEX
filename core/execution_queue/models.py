@@ -10,8 +10,10 @@ from __future__ import annotations
 
 import json
 import os
+from collections.abc import Callable
 from enum import StrEnum
 from pathlib import Path
+from typing import Any
 
 
 class ExecState(StrEnum):
@@ -75,9 +77,14 @@ def _default_store_path() -> Path:
 class ExecutionQueueStore:
     """Cola persistente por item_id con transiciones validadas."""
 
-    def __init__(self, store_path: str | Path | None = None) -> None:
+    def __init__(
+        self,
+        store_path: str | Path | None = None,
+        on_transition: Callable[[str, str, str, dict], Any] | None = None,
+    ) -> None:
         self._path = Path(store_path or _default_store_path())
         self._items: dict[str, dict] = {}
+        self._on_transition = on_transition
         self._load()
 
     def _load(self) -> None:
@@ -91,6 +98,14 @@ class ExecutionQueueStore:
         self._path.parent.mkdir(parents=True, exist_ok=True)
         self._path.write_text(json.dumps(self._items, indent=2))
 
+    def _emit_transition(self, item_id: str, old_state: str, new_state: str, payload: dict) -> None:
+        """Emit transition event if callback is registered."""
+        if self._on_transition:
+            try:
+                self._on_transition(item_id, old_state, new_state, payload)
+            except Exception:
+                pass  # Never let event emission break the transition
+
     def add(self, item_id: str, payload: dict | None = None) -> dict:
         self._items[item_id] = {
             "state": ExecState.DISCOVERED.value,
@@ -98,6 +113,7 @@ class ExecutionQueueStore:
             "history": [ExecState.DISCOVERED.value],
         }
         self._save()
+        self._emit_transition(item_id, "none", ExecState.DISCOVERED.value, payload or {})
         return self._items[item_id]
 
     def get(self, item_id: str) -> dict | None:
@@ -108,9 +124,11 @@ class ExecutionQueueStore:
         cur = ExecState(item["state"])
         tgt = ExecState(target)
         assert_transition(cur, tgt)
+        old_state = cur.value
         item["state"] = tgt.value
         item["history"].append(tgt.value)
         self._save()
+        self._emit_transition(item_id, old_state, tgt.value, item.get("payload", {}))
         return item
 
     def pending_by_state(self, *states: str) -> list[str]:

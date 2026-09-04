@@ -6,13 +6,12 @@
 import { computed, onMounted, ref } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
 import Card from '@/components/ui/Card.vue'
-import { fetchDailyDigest, type DailyDigestState } from '@/services/ownexData'
+import { type DailyDigestState, fetchDailyDigest } from '@/services/ownexData'
 
 const digest = ref<DailyDigestState | null>(null)
 const loading = ref(true)
 
-const usd = (n: number | undefined | null): string =>
-  `$${Math.round(n ?? 0).toLocaleString('es-AR')}`
+const usd = (n: number | undefined | null): string => `$${Math.round(n ?? 0).toLocaleString('es-AR')}`
 
 const typeIcon = computed(() => ({
   opportunity: '🎯',

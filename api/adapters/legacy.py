@@ -169,6 +169,21 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
     except Exception as exc:  # pragma: no cover
         logger.warning("Could not build opire adapter: %s", exc)
 
+    # Web3 / Blockchain Bug Bounty Adapters
+    try:
+        from api.adapters.direct_work_immunefi import build_immunefi_adapter
+
+        adapters.append(build_immunefi_adapter())
+    except Exception as exc:  # pragma: no cover
+        logger.warning("Could not build immunefi adapter: %s", exc)
+
+    try:
+        from api.adapters.direct_work_code4rena import build_code4rena_adapter
+
+        adapters.append(build_code4rena_adapter())
+    except Exception as exc:  # pragma: no cover
+        logger.warning("Could not build code4rena adapter: %s", exc)
+
     try:
         from api.adapters.direct_work_bugbounty import build_bugbounty_adapters
 

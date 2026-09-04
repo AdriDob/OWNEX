@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps<{
   visible: boolean
@@ -43,7 +43,7 @@ async function runSystemChecks() {
 
   for (const idx of checkOrder) {
     systemChecks.value[idx].status = 'checking'
-    await new Promise(resolve => setTimeout(resolve, 260 + Math.random() * 360))
+    await new Promise((resolve) => setTimeout(resolve, 260 + Math.random() * 360))
 
     const isHealthy = Math.random() > 0.08
     systemChecks.value[idx].status = isHealthy ? 'complete' : 'error'
@@ -88,7 +88,7 @@ function initParticles() {
 
 function startParticleAnimation() {
   const animate = () => {
-    particles.value.forEach(particle => {
+    particles.value.forEach((particle) => {
       particle.x += particle.vx
       particle.y += particle.vy
       particle.life--
@@ -172,7 +172,7 @@ function updateTime() {
       hour12: false,
       hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit'
+      second: '2-digit',
     })
   }
   update()
@@ -180,23 +180,23 @@ function updateTime() {
 }
 
 async function startSequence() {
-  await new Promise(resolve => setTimeout(resolve, 1200))
+  await new Promise((resolve) => setTimeout(resolve, 1200))
 
   phase.value = 'logo'
-  await new Promise(resolve => setTimeout(resolve, 700))
+  await new Promise((resolve) => setTimeout(resolve, 700))
 
   logoScale.value = 1
   logoOpacity.value = 1
 
-  await new Promise(resolve => setTimeout(resolve, 1600))
+  await new Promise((resolve) => setTimeout(resolve, 1600))
 
   startVideoPlayback()
 
-  await new Promise(resolve => setTimeout(resolve, 2600))
+  await new Promise((resolve) => setTimeout(resolve, 2600))
 
   initParticles()
 
-  await new Promise(resolve => setTimeout(resolve, 1800))
+  await new Promise((resolve) => setTimeout(resolve, 1800))
 
   await runSystemChecks()
 
@@ -234,15 +234,18 @@ function reset() {
   isPlayingVideo.value = true
   loadingDots.value = ''
   videoCurrentTime = 0
-  systemChecks.value.forEach(check => check.status = 'pending')
+  systemChecks.value.forEach((check) => (check.status = 'pending'))
   stopParticles()
   pauseVideo()
 }
 
-watch(() => props.visible, (visible) => {
-  if (visible) startSequence()
-  else reset()
-})
+watch(
+  () => props.visible,
+  (visible) => {
+    if (visible) startSequence()
+    else reset()
+  },
+)
 
 onMounted(() => {
   if (props.visible) startSequence()

@@ -308,6 +308,10 @@ class IntelligentRecommender:
         for opp in scored_opps:
             opp.expected_value = self._calculate_expected_value(opp)
 
+        # 7b. Calculate HTROI (Human-Time Adjusted ROI) — Fase C
+        for opp in scored_opps:
+            opp.htroi = self._calculate_htroi(opp)
+
         # 8. Calculate overall recommendation score
         for opp in scored_opps:
             opp.overall_recommendation_score = self._calculate_overall_score(opp)
@@ -589,6 +593,37 @@ class IntelligentRecommender:
             pass
 
         return ev
+
+    def _calculate_htroi(self, ranked: RankedOpportunity) -> HumanTimeAdjustedROI | None:
+        """Compute Human-Time Adjusted ROI for an opportunity (Fase C, Income Multiplier).
+
+        Uses the economics SSOT: expected_income / human_hours, with confidence
+        adjustment and optional automation compression. Returns None when
+        human_hours is unknown or zero (honest signaling).
+        """
+        from cores.direct_work_engine.economics import compute_htroi
+
+        opp = ranked.opportunity
+
+        # Determine income base: hourly stream or one-shot payment
+        hourly_rate = opp.hourly_rate_usd if opp.hourly_rate_usd and opp.hourly_rate_usd > 0 else None
+        human_hours = opp.estimated_time_hours if opp.estimated_time_hours and opp.estimated_time_hours > 0 else None
+
+        # Confidence = acceptance probability * payment compatibility
+        confidence = ranked.acceptance_probability * (ranked.payment_compat_score / 100.0)
+
+        # Automation hours from execution planner if available
+        automation_hours = getattr(opp, "automation_hours", None)
+
+        try:
+            return compute_htroi(
+                expected_income_usd=opp.payment,
+                human_hours=human_hours or 0,
+                confidence=confidence,
+                automation_hours=automation_hours,
+            )
+        except Exception:
+            return None
 
     def _calculate_overall_score(self, ranked: RankedOpportunity) -> float:
         """Calculate weighted overall recommendation score."""

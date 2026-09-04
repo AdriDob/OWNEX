@@ -1,3 +1,11 @@
+## 2026-08-30: FEATURE SET FASE_40 — 11 features de productividad/automatización (ciclo diario completo)
+
+- **Problema**: El sistema preparaba paquetes pero no entregaba por API, no sincronizaba pagos en vivo, no visualizaba el conocimiento acumulado, y el hunter carecía de caminos de entrenamiento, cumplimiento, equipo y captura rápida.
+- **Decisión**: 11 adiciones con foco en cerrar loops y automatizar el máximo trabajo posible, manteniendo honestidad económica (probabilidades empíricas o UNKNOWN, nunca inventadas) y el patrón usuario-supervisor (gates humanos intactos).
+- **Implementación** (ver CURRENT_STATE): Auto-Submission (idempotency + retry + DLQ + polling), Dev Bounty Automation (WorkBank→CoderAgent→AutoSubmit), Webhooks con firma HMAC, validación siempre-on, Knowledge Graph UI sobre `core.knowledge.graph` canónico, Training con progreso, Tax/Compliance (W-8BEN/W-9/AFIP + deadlines), Team/Org (roles + revenue splits + approvals), Finding Marketplace (escrow + reputación), Predictive Prioritizer (empírico clampado, 7 días), Quick Capture + hotkeys.
+- **Evidencia**: 60 tests nuevos verdes; 144 passed combinado; ruff limpio en 14 archivos; `import api.main` OK; `vue-tsc` 0 errores; `vite build` OK. Tests destaparon y corregieron bugs reales: ordering de dataclasses, `day+7`→timedelta (fin de mes), roundtrip JSON anidado, `core.platforms.*` inexistente, cola no aislable, `keys or {}` en utilidades de test.
+- **Reglas permanentes**: (1) toda probabilidad predictiva es empírica clampada [0.05-0.95] o UNKNOWN etiquetado, jamás inventada; (2) cualquier cola/estado persistente debe ser data-dir aware (`OWNEX_DATA_DIR`) e inyectable en tests; (3) las fechas se computan con timedelta, nunca `replace(day=+N)`; (4) la persistencia JSON de dataclasses anidados usa dumper recursivo (dataclass/enum/date→dict/value/ISO).
+
 ## 2026-08-26 (Fase 1 CAPITAL SPINE): Atlas fix, sync→PayoutRecord, unified snapshot, freqtrade 2026.7
 
 - **Problema**: El pipeline de capital tenía 3 fallos críticos: (1) Atlas portfolio siempre $0 porque `_get_atlas_total()` llamaba `get_portfolio()` inexistente y `PortfolioEngine()` nacía sin conectores; (2) sync cada 30 min leía APIs reales pero descargaba resultados en dict in-memory, nunca escribía `PayoutRecord` → capital dashboards estancados en $0; (3) sin endpoint unificado de patrimonio.

@@ -293,9 +293,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { Shield, RefreshCw, Activity, Archive, AlertTriangle, X, Trash2 } from '@lucide/vue'
+import { Activity, AlertTriangle, Archive, RefreshCw, Shield, Trash2, X } from '@lucide/vue'
 import axios from 'axios'
+import { computed, onMounted, ref } from 'vue'
 
 const loading = ref(false)
 const backups = ref<any[]>([])
@@ -337,7 +337,7 @@ const createBackup = async () => {
   loading.value = true
   try {
     const response = await axios.post('/api/version-backup/backup', {
-      notes: backupNotes.value
+      notes: backupNotes.value,
     })
 
     if (response.data.success) {
@@ -377,7 +377,7 @@ const rollbackToVersion = async () => {
   try {
     const response = await axios.post('/api/version-backup/rollback', {
       version: selectedBackup.value?.version,
-      git_commit: selectedBackup.value?.git_commit
+      git_commit: selectedBackup.value?.git_commit,
     })
 
     if (response.data.success) {
@@ -434,7 +434,7 @@ const formatSize = (bytes: number) => {
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+  return Math.round((bytes / k ** i) * 100) / 100 + ' ' + sizes[i]
 }
 
 onMounted(() => {

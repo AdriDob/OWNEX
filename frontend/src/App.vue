@@ -1,30 +1,30 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { useNotificationsStore } from '@/stores/notifications'
-import { useSettingsStore } from '@/stores/settings'
-import { onLoadingChange } from '@/lib/api'
-import { useGlobalShortcuts } from '@/composables/useGlobalShortcuts'
-import { useThemeEngine } from '@/composables/useThemeEngine'
-import AppLayout from '@/components/layout/AppLayout.vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import AlertPopup from '@/components/AlertPopup.vue'
+import AssistantBubble from '@/components/assistant/AssistantBubble.vue'
+import AssistantHint from '@/components/assistant/AssistantHint.vue'
 import CopilotPanel from '@/components/copilot/CopilotPanel.vue'
-import CommandPalette from '@/components/ui/CommandPalette.vue'
-import ContextMenu from '@/components/ui/ContextMenu.vue'
+import JarvisBackground from '@/components/JarvisBackground.vue'
+import AppLayout from '@/components/layout/AppLayout.vue'
+import SteamBigPictureSplash from '@/components/layout/SteamBigPictureSplash.vue'
+import OnboardingWizard from '@/components/onboarding/OnboardingWizard.vue'
 import ToastContainer from '@/components/ToastContainer.vue'
+import CommandPalette from '@/components/ui/CommandPalette.vue'
+import CompareView from '@/components/ui/CompareView.vue'
+import ContextMenu from '@/components/ui/ContextMenu.vue'
 import InspectorPanel from '@/components/ui/InspectorPanel.vue'
 import MiniPreview from '@/components/ui/MiniPreview.vue'
 import MultiSelectHandler from '@/components/ui/MultiSelectHandler.vue'
-import CompareView from '@/components/ui/CompareView.vue'
-import OnboardingWizard from '@/components/onboarding/OnboardingWizard.vue'
-import AssistantBubble from '@/components/assistant/AssistantBubble.vue'
-import AssistantHint from '@/components/assistant/AssistantHint.vue'
-import SteamBigPictureSplash from '@/components/layout/SteamBigPictureSplash.vue'
-import VoiceCommandPanel from '@/components/voice/VoiceCommandPanel.vue'
 import VoiceAssistantListener from '@/components/voice/VoiceAssistantListener.vue'
-import AlertPopup from '@/components/AlertPopup.vue'
-import JarvisBackground from '@/components/JarvisBackground.vue'
+import VoiceCommandPanel from '@/components/voice/VoiceCommandPanel.vue'
 import { useAssistant } from '@/composables/useAssistant'
+import { useGlobalShortcuts } from '@/composables/useGlobalShortcuts'
+import { useThemeEngine } from '@/composables/useThemeEngine'
+import { onLoadingChange } from '@/lib/api'
+import { useAuthStore } from '@/stores/auth'
+import { useNotificationsStore } from '@/stores/notifications'
+import { useSettingsStore } from '@/stores/settings'
 
 declare global {
   interface Window {
@@ -48,7 +48,7 @@ let loadingTimeout: ReturnType<typeof setTimeout> | null = null
 
 const { shortcuts } = useGlobalShortcuts({
   onCommand: () => window.dispatchEvent(new CustomEvent('toggle-command-palette')),
-  onToggleCopilot: () => copilotOpen.value = !copilotOpen.value,
+  onToggleCopilot: () => (copilotOpen.value = !copilotOpen.value),
   onToggleNotifications: () => window.dispatchEvent(new CustomEvent('toggle-notifications')),
   onCloseModal: () => window.dispatchEvent(new CustomEvent('close-modal')),
   onCloseInspector: () => window.dispatchEvent(new CustomEvent('close-inspector')),
@@ -75,11 +75,14 @@ onMounted(async () => {
   await initThemeEngine()
 
   // Sync theme engine with settings store
-  watch(() => currentTheme.value?.id, (newThemeId) => {
-    if (newThemeId && settings.data.appearance.theme !== newThemeId) {
-      settings.updateAppearance({ theme: newThemeId })
-    }
-  })
+  watch(
+    () => currentTheme.value?.id,
+    (newThemeId) => {
+      if (newThemeId && settings.data.appearance.theme !== newThemeId) {
+        settings.updateAppearance({ theme: newThemeId })
+      }
+    },
+  )
 
   _unauthHandler = () => {
     auth.logout()
@@ -89,7 +92,9 @@ onMounted(async () => {
 
   onLoadingChange((loading) => {
     if (loading) {
-      loadingTimeout = setTimeout(() => { showGlobalLoading.value = true }, 500)
+      loadingTimeout = setTimeout(() => {
+        showGlobalLoading.value = true
+      }, 500)
     } else {
       if (loadingTimeout) clearTimeout(loadingTimeout)
       showGlobalLoading.value = false
@@ -103,11 +108,17 @@ onMounted(async () => {
   if (typeof window.__PYWEBVIEW__ !== 'undefined') {
     try {
       window.__PYWEBVIEW__.setTitle('OWNEX Alpha — Autonomous Work Operating Platform')
-    } catch { /* not in pywebview */ }
+    } catch {
+      /* not in pywebview */
+    }
   }
   _beforeunloadHandler = () => {
     if (typeof window.__PYWEBVIEW__ !== 'undefined') {
-      try { window.__PYWEBVIEW__.minimize() } catch { /* */ }
+      try {
+        window.__PYWEBVIEW__.minimize()
+      } catch {
+        /* */
+      }
     }
   }
   window.addEventListener('beforeunload', _beforeunloadHandler)
@@ -127,7 +138,7 @@ onMounted(async () => {
 })
 
 const pageHints = computed(() => {
-  return assistant.getHintsForPage(route.name as string || '')
+  return assistant.getHintsForPage((route.name as string) || '')
 })
 
 onUnmounted(() => {

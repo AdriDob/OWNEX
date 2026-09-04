@@ -1,13 +1,25 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
-import Badge from '@/components/ui/Badge.vue'
-import Button from '@/components/ui/Button.vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
+import {
+  AlertTriangle,
+  BarChart3,
+  CreditCard,
+  DollarSign,
+  PiggyBank,
+  Plus,
+  RefreshCw,
+  RotateCw,
+  Save,
+  TrendingUp,
+  Wallet,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import DoughnutChart from '@/components/charts/DoughnutChart.vue'
-import { AlertTriangle, BarChart3, CreditCard, DollarSign, PiggyBank, Plus, RotateCw, RefreshCw, Save, TrendingUp, Wallet } from '@lucide/vue'
+import Badge from '@/components/ui/Badge.vue'
+import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { api } from '@/lib/api'
 
 interface PlatformWithEarnings {
   provider: string
@@ -56,10 +68,10 @@ const payoutStatusData = computed(() => {
 })
 
 const earningsByPlatformLabels = computed(() => {
-  return data.value?.platformEarnings?.map(p => p.provider) || []
+  return data.value?.platformEarnings?.map((p) => p.provider) || []
 })
 const earningsByPlatformData = computed(() => {
-  return data.value?.platformEarnings?.map(p => p.earned) || []
+  return data.value?.platformEarnings?.map((p) => p.earned) || []
 })
 
 function platformIcon(platform: string) {
@@ -85,7 +97,7 @@ async function saveAddress(walletId: string) {
   try {
     await api.put(`/identity-center/wallets/${walletId}`, { address: editAddress.value })
     if (data.value) {
-      const w = data.value.wallets.find(w => w.id === walletId)
+      const w = data.value.wallets.find((w) => w.id === walletId)
       if (w) w.address = editAddress.value
     }
     editingWallet.value = null
@@ -108,11 +120,14 @@ async function fetchWallets() {
     data.value = {
       wallets: walletsRes.wallets || [],
       stats: statsRes,
-      platformEarnings: platformsRes?.accounts?.filter(a => a.earned)?.map(a => ({
-        provider: a.provider,
-        earned: a.earned || 0,
-        pending: a.pending || 0,
-      })) || [],
+      platformEarnings:
+        platformsRes?.accounts
+          ?.filter((a) => a.earned)
+          ?.map((a) => ({
+            provider: a.provider,
+            earned: a.earned || 0,
+            pending: a.pending || 0,
+          })) || [],
     }
   } catch (e: any) {
     error.value = e?.message || 'Error al cargar billeteras'

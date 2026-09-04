@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { api, getToken, setToken, clearSession, isSessionValid, setSessionExpiry } from '@/lib/api'
+import { computed, ref } from 'vue'
+import { api, clearSession, getToken, isSessionValid, setSessionExpiry, setToken } from '@/lib/api'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<any>(null)
@@ -15,7 +15,9 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     try {
       const res = await api.post<{ session: { token: string; expires_at?: string }; user: any }>(
-        '/auth/users/login', { email, password }, true
+        '/auth/users/login',
+        { email, password },
+        true,
       )
       if (res?.session?.token) {
         setToken(res.session.token)
@@ -38,7 +40,9 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     try {
       const res = await api.post<{ session: { token: string; expires_at?: string }; user: any }>(
-        '/auth/users/register', { email, password, display_name: displayName || email.split('@')[0] }, true
+        '/auth/users/register',
+        { email, password, display_name: displayName || email.split('@')[0] },
+        true,
       )
       if (res?.session?.token) {
         setToken(res.session.token)
@@ -62,7 +66,9 @@ export const useAuthStore = defineStore('auth', () => {
     if (!deviceId) return false
     try {
       const res = await api.post<{ session: { token: string; expires_at?: string }; user?: any }>(
-        '/auth/login', { device_id: deviceId, device_info: 'vue-frontend' }, true
+        '/auth/login',
+        { device_id: deviceId, device_info: 'vue-frontend' },
+        true,
       )
       if (res?.session?.token) {
         setToken(res.session.token)
@@ -73,7 +79,9 @@ export const useAuthStore = defineStore('auth', () => {
         if (res.user) user.value = res.user
         return true
       }
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
     return false
   }
 
@@ -84,7 +92,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function tryGetDeviceId(): string | null {
-    try { return localStorage.getItem('CATEYE-device-id') } catch { return null }
+    try {
+      return localStorage.getItem('CATEYE-device-id')
+    } catch {
+      return null
+    }
   }
 
   return { user, token, loading, error, isAuthenticated, loginWithCredentials, register, autoLogin, logout }

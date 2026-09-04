@@ -39,9 +39,7 @@ class FCCProvider(BaseProvider):
             "api_key",
             os.getenv(
                 "ANTHROPIC_API_KEY",
-                os.getenv(
-                    "OPENROUTER_API_KEY", "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"
-                ),
+                os.getenv("OPENROUTER_API_KEY", ""),
             ),
         )
         self._default_model = self._config.models[0]

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { api } from '@/lib/api'
 import {
   Activity,
   BarChart3,
@@ -16,36 +14,42 @@ import {
   Settings2,
   Sparkles,
   Thermometer,
-  TrendingUp,
   TrendingDown,
+  TrendingUp,
   Wifi,
   Zap,
 } from '@lucide/vue'
-import Card from '@/components/ui/Card.vue'
-import Button from '@/components/ui/Button.vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
-import LoadingState from '@/components/ui/LoadingState.vue'
+import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import ErrorState from '@/components/ui/ErrorState.vue'
+import LoadingState from '@/components/ui/LoadingState.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import { api } from '@/lib/api'
 
-const STRATEGY_DEFS: Record<string, {
-  label: string
-  icon: any
-  accent: string
-  bgGlow: string
-  description: string
-  whatItDoes: string
-  needsKeys: boolean
-  setupGuide: string
-  repo: string
-}> = {
+const STRATEGY_DEFS: Record<
+  string,
+  {
+    label: string
+    icon: any
+    accent: string
+    bgGlow: string
+    description: string
+    whatItDoes: string
+    needsKeys: boolean
+    setupGuide: string
+    repo: string
+  }
+> = {
   btc_arb: {
     label: 'BTC Latency Arbitrage',
     icon: Zap,
     accent: 'text-warning',
     bgGlow: 'bg-warning/5',
     description: 'Detecta micro-movimientos de BTC en Binance y entra en Polymarket antes de que el mercado reaccione',
-    whatItDoes: 'Monitorea velas de 1s en Binance. Si BTC se mueve >$70 en 1 minuto, genera señal de compra/venta en el mercado 5m de Polymarket.',
+    whatItDoes:
+      'Monitorea velas de 1s en Binance. Si BTC se mueve >$70 en 1 minuto, genera señal de compra/venta en el mercado 5m de Polymarket.',
     needsKeys: false,
     setupGuide: 'No requiere API keys. Usa APIs públicas de Binance + Polymarket.',
     repo: 'github.com/alsk1992/CloddsBot',
@@ -54,9 +58,10 @@ const STRATEGY_DEFS: Record<string, {
     label: 'Smart Money Copy Trading',
     icon: Copy,
     accent: 'text-muted-foreground',
-    bgGlow: "bg-primary/5",
+    bgGlow: 'bg-primary/5',
     description: 'Escanea y copia las posiciones de los traders más rentables de Polymarket',
-    whatItDoes: 'Consulta el leaderboard de Polymarket, filtra traders por win rate >60%, y genera señales de copy trade basadas en sus posiciones abiertas.',
+    whatItDoes:
+      'Consulta el leaderboard de Polymarket, filtra traders por win rate >60%, y genera señales de copy trade basadas en sus posiciones abiertas.',
     needsKeys: false,
     setupGuide: 'Sin API keys. Datos del leaderboard público de Polymarket Gamma API.',
     repo: 'github.com/MrFadiAi/Polymarket-bot',
@@ -67,7 +72,8 @@ const STRATEGY_DEFS: Record<string, {
     accent: 'text-success',
     bgGlow: 'bg-success/5',
     description: 'Explota diferencias de precio cuando YES+NO no suman 1.0',
-    whatItDoes: 'Escanea mercados buscando donde YES + NO != 1. Compra el lado barato, vende el caro. Riesgo mínimo, ganancia por spread.',
+    whatItDoes:
+      'Escanea mercados buscando donde YES + NO != 1. Compra el lado barato, vende el caro. Riesgo mínimo, ganancia por spread.',
     needsKeys: false,
     setupGuide: 'Sin API keys. Usa CLOB prices públicos. Para ejecutar trades necesitás clave privada Polymarket.',
     repo: 'github.com/ent0n29/polybot',
@@ -76,9 +82,10 @@ const STRATEGY_DEFS: Record<string, {
     label: 'Weather Prediction Markets',
     icon: Thermometer,
     accent: 'text-muted-foreground',
-    bgGlow: "bg-primary/5",
+    bgGlow: 'bg-primary/5',
     description: 'Predice temperaturas de liquidación en mercados climáticos de Polymarket',
-    whatItDoes: 'Obtiene datos de Open-Meteo (gratis, sin API key). Estima si la temperatura superará un umbral. Ideal para mercados "Hace más de 30°C en Buenos Aires".',
+    whatItDoes:
+      'Obtiene datos de Open-Meteo (gratis, sin API key). Estima si la temperatura superará un umbral. Ideal para mercados "Hace más de 30°C en Buenos Aires".',
     needsKeys: false,
     setupGuide: 'Sin API keys. Datos de Open-Meteo (free, no requiere registro).',
     repo: 'github.com/yangyuan-zhen/PolyWeather',
@@ -87,9 +94,10 @@ const STRATEGY_DEFS: Record<string, {
     label: 'LP Market Making',
     icon: Activity,
     accent: 'text-intigriti',
-    bgGlow: "bg-primary/5",
+    bgGlow: 'bg-primary/5',
     description: 'Coloca órdenes límite para ganar rewards de liquidez en Polymarket',
-    whatItDoes: 'Calcula spreads óptimos (coarse tick + fine tick) para órdenes de compra/venta. Gana incentives del programa de liquidez de Polymarket CLOB.',
+    whatItDoes:
+      'Calcula spreads óptimos (coarse tick + fine tick) para órdenes de compra/venta. Gana incentives del programa de liquidez de Polymarket CLOB.',
     needsKeys: true,
     setupGuide: 'Requiere: POLY_API_KEY, POLY_SECRET, POLY_PASSPHRASE, private key de wallet.',
     repo: 'github.com/lihanyu81/polymarket_lp_tool',
@@ -193,9 +201,12 @@ function statusForStrategy(key: string): { lamp: string; label: string; text: st
   if (!data) return { lamp: 'lamp-off', label: 'Sin datos', text: 'text-muted-foreground' }
   if (data.error) return { lamp: 'lamp-red', label: 'Error', text: 'text-destructive' }
   if (key === 'btc_arb' && data.signal) return { lamp: 'lamp-green', label: '🔵 SEÑAL ACTIVA', text: 'text-success' }
-  if (key === 'complete_arb' && data.opportunities?.length) return { lamp: 'lamp-green', label: `${data.opportunities.length} ops`, text: 'text-success' }
-  if (key === 'smart_money' && data.traders?.length) return { lamp: 'lamp-amber', label: `${data.traders.length} traders`, text: 'text-warning' }
-  if (key === 'weather' && data.data?.current_temp != null) return { lamp: 'lamp-green', label: `${data.data.current_temp}°C`, text: 'text-success' }
+  if (key === 'complete_arb' && data.opportunities?.length)
+    return { lamp: 'lamp-green', label: `${data.opportunities.length} ops`, text: 'text-success' }
+  if (key === 'smart_money' && data.traders?.length)
+    return { lamp: 'lamp-amber', label: `${data.traders.length} traders`, text: 'text-warning' }
+  if (key === 'weather' && data.data?.current_temp != null)
+    return { lamp: 'lamp-green', label: `${data.data.current_temp}°C`, text: 'text-success' }
   if (key === 'lp_mm') return { lamp: 'lamp-amber', label: 'Configurar', text: 'text-warning' }
   return { lamp: 'lamp-off', label: 'Esperando...', text: 'text-muted-foreground' }
 }

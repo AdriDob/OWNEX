@@ -11,14 +11,14 @@
  *   - WebSocket live updates
  */
 import { onMounted, onUnmounted } from 'vue'
-import { useReadinessStore } from './stores/readinessStore'
-import { useReducedMotion } from '@/shared/composables/useReducedMotion'
-import { useSpringAnimation } from '@/shared/composables/useSpringAnimation'
-import ReadinessMeter from './components/ReadinessMeter.vue'
-import PrepareButton from './components/PrepareButton.vue'
-import ServiceGrid from './components/ServiceGrid.vue'
 import GlassPanel from '@/shared/components/GlassPanel.vue'
 import SkeletonCard from '@/shared/components/SkeletonCard.vue'
+import { useReducedMotion } from '@/shared/composables/useReducedMotion'
+import { useSpringAnimation } from '@/shared/composables/useSpringAnimation'
+import PrepareButton from './components/PrepareButton.vue'
+import ReadinessMeter from './components/ReadinessMeter.vue'
+import ServiceGrid from './components/ServiceGrid.vue'
+import { useReadinessStore } from './stores/readinessStore'
 
 const readiness = useReadinessStore()
 const { shouldReduce } = useReducedMotion()
@@ -31,7 +31,11 @@ onMounted(() => {
 
   // Animate page title entrance
   if (!shouldReduce()) {
-    animateSpring('#mc-title', { opacity: [0, 1], transform: ['translateY(-12px)', 'translateY(0)'] }, { duration: 0.5 })
+    animateSpring(
+      '#mc-title',
+      { opacity: [0, 1], transform: ['translateY(-12px)', 'translateY(0)'] },
+      { duration: 0.5 },
+    )
   }
 })
 

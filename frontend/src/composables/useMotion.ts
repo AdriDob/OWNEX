@@ -1,4 +1,4 @@
-import { ref, computed, type Ref } from 'vue'
+import { computed, type Ref, ref } from 'vue'
 
 // Motion configuration - integrated with motion.css
 export const MOTION_CONFIG = {
@@ -212,13 +212,15 @@ export function usePulseAnimation() {
 
 export function useShimmer() {
   const getShimmerStyle = () => ({
-    background: 'linear-gradient(90deg, var(--color-background) 25%, var(--color-surface) 50%, var(--color-background) 75%)',
+    background:
+      'linear-gradient(90deg, var(--color-background) 25%, var(--color-surface) 50%, var(--color-background) 75%)',
     backgroundSize: '200% 100%',
     animation: 'ownex-shimmer 1.5s ease-in-out infinite',
   })
 
   const getSkeletonStyle = () => ({
-    background: 'linear-gradient(90deg, var(--color-background) 25%, var(--color-surface) 50%, var(--color-background) 75%)',
+    background:
+      'linear-gradient(90deg, var(--color-background) 25%, var(--color-surface) 50%, var(--color-background) 75%)',
     backgroundSize: '200% 100%',
     animation: 'ownex-shimmer 1.5s ease-in-out infinite',
     borderRadius: '0.375rem',

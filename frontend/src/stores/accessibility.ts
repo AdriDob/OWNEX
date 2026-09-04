@@ -25,12 +25,18 @@ function load(): AccessibilityState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) return { ...DEFAULT_ACCESSIBILITY, ...JSON.parse(raw) }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return { ...DEFAULT_ACCESSIBILITY }
 }
 
 function save(state: AccessibilityState) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) } catch { /* ignore */ }
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  } catch {
+    /* ignore */
+  }
 }
 
 export const useAccessibilityStore = defineStore('accessibility', () => {

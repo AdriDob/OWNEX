@@ -47,7 +47,19 @@
   "audio": {
     "profile": "crystalline",
     "volume": 0.65,
-    "enabled": ["startup", "shutdown", "success", "error", "hover", "click", "toggle", "agent_thinking", "mission_completed", "new_opportunity", "background_ambience"]
+    "enabled": [
+      "startup",
+      "shutdown",
+      "success",
+      "error",
+      "hover",
+      "click",
+      "toggle",
+      "agent_thinking",
+      "mission_completed",
+      "new_opportunity",
+      "background_ambience"
+    ]
   },
   "visualization": {
     "coreColor": "#00D5FF",

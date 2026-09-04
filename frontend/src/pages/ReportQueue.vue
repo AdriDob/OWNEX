@@ -1,20 +1,39 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import {
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  DollarSign,
+  FileText,
+  RefreshCw,
+  TrendingUp,
+  Zap,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import DoughnutChart from '@/components/charts/DoughnutChart.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { FileText, DollarSign, TrendingUp, Clock, RefreshCw, ArrowRight, AlertTriangle, CheckCircle2, Zap } from '@lucide/vue'
-import DoughnutChart from '@/components/charts/DoughnutChart.vue'
+import { api } from '@/lib/api'
 
 interface QueueItem {
-  id: number; report_id: number; report_title: string; report_status: string
-  program: string; vulnerability: string; estimated_reward: number
-  confidence_score: number; acceptance_probability: number
-  expected_value: number; priority_score: number; priority_rank: number | null
-  time_to_submit: string | null; reasoning: string | null
+  id: number
+  report_id: number
+  report_title: string
+  report_status: string
+  program: string
+  vulnerability: string
+  estimated_reward: number
+  confidence_score: number
+  acceptance_probability: number
+  expected_value: number
+  priority_score: number
+  priority_rank: number | null
+  time_to_submit: string | null
+  reasoning: string | null
 }
 
 const router = useRouter()
@@ -24,7 +43,9 @@ const error = ref<string | null>(null)
 const recomputing = ref(false)
 const filterTime = ref<string>('')
 
-onMounted(async () => { await fetchQueue() })
+onMounted(async () => {
+  await fetchQueue()
+})
 
 async function fetchQueue() {
   loading.value = true
@@ -33,8 +54,11 @@ async function fetchQueue() {
     if (filterTime.value) params.time_filter = filterTime.value
     const res = await api.get<{ items: QueueItem[]; total: number }>('/economic/report-queue', params)
     items.value = res.items || []
-  } catch (e: any) { error.value = e?.message || 'Error al cargar la cola de reportes' }
-  finally { loading.value = false }
+  } catch (e: any) {
+    error.value = e?.message || 'Error al cargar la cola de reportes'
+  } finally {
+    loading.value = false
+  }
 }
 
 async function recompute() {
@@ -42,8 +66,11 @@ async function recompute() {
   try {
     await api.post('/economic/report-queue/recompute')
     await fetchQueue()
-  } catch { /* ignore */ }
-  finally { recomputing.value = false }
+  } catch {
+    /* ignore */
+  } finally {
+    recomputing.value = false
+  }
 }
 
 const totalExpected = computed(() => items.value.reduce((s, i) => s + i.expected_value, 0))

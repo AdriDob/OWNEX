@@ -1,55 +1,63 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import {
-  Activity, Clock, RefreshCw, Shield,
-  DollarSign, FileText, BarChart3, HeartPulse,
-  Zap, AlertTriangle, ClipboardCheck,
+  Activity,
+  AlertTriangle,
+  BarChart3,
+  ClipboardCheck,
+  Clock,
+  DollarSign,
+  FileText,
+  HeartPulse,
+  RefreshCw,
+  Shield,
+  Zap,
 } from '@lucide/vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import ReportPipeline from '@/components/dashboard/ReportPipeline.vue'
 import ThroughputCore from '@/components/dashboard/ThroughputCore.vue'
 import WorkCyclesGrid from '@/components/dashboard/WorkCyclesGrid.vue'
-import NextBestAction from '@/components/mission-control/NextBestAction.vue'
-import ObsidianSync from '@/components/mission-control/ObsidianSync.vue'
-import { fetchIncomePlan, type IncomePlanAction } from '@/services/ownexData'
-import AgentFleet from '@/components/mission-control/AgentFleet.vue'
-import OpportunityRadar from '@/components/mission-control/OpportunityRadar.vue'
-import KnowledgeFeed from '@/components/mission-control/KnowledgeFeed.vue'
-import DirectWorkRadar from '@/components/mission-control/DirectWorkRadar.vue'
 import GuidedDashboard from '@/components/guided-mode/GuidedDashboard.vue'
-import GoodMorning from '@/components/mission-control/GoodMorning.vue'
-import DailyCompanion from '@/components/mission-control/DailyCompanion.vue'
-import DailyIncomePlan from '@/components/mission-control/DailyIncomePlan.vue'
-import NotificationCenter from '@/components/mission-control/NotificationCenter.vue'
-import ControlPanel from '@/components/mission-control/ControlPanel.vue'
-import MasterGuide from '@/components/mission-control/MasterGuide.vue'
-import MoneyPlan from '@/components/mission-control/MoneyPlan.vue'
-import TaskAssistant from '@/components/mission-control/TaskAssistant.vue'
-import DevBountyAutopilot from '@/components/mission-control/DevBountyAutopilot.vue'
-import ProfileBuilder from '@/components/mission-control/ProfileBuilder.vue'
-import DailyTasks from '@/components/mission-control/DailyTasks.vue'
-import SkillMethod from '@/components/mission-control/SkillMethod.vue'
-import CapitalBar from '@/components/mission-control/CapitalBar.vue'
-import GoalEvaluator from '@/components/mission-control/GoalEvaluator.vue'
-import EvolveMatrix from '@/components/mission-control/EvolveMatrix.vue'
-import PayoutNet from '@/components/mission-control/PayoutNet.vue'
-import PaymentCompatPanel from '@/components/mission-control/PaymentCompatPanel.vue'
-import FinanceGuru from '@/components/mission-control/FinanceGuru.vue'
-import TaxAR from '@/components/mission-control/TaxAR.vue'
-import InvoicerAR from '@/components/mission-control/InvoicerAR.vue'
-import OfframpExecutor from '@/components/mission-control/OfframpExecutor.vue'
-import PlatformConnectors from '@/components/mission-control/PlatformConnectors.vue'
-import WelcomeGuide from '@/components/mission-control/WelcomeGuide.vue'
-import SandboxMode from '@/components/mission-control/SandboxMode.vue'
-import VPNEmbed from '@/components/mission-control/VPNEmbed.vue'
+import AgentFleet from '@/components/mission-control/AgentFleet.vue'
 import AutoDispute from '@/components/mission-control/AutoDispute.vue'
 import AutonomyDashboard from '@/components/mission-control/AutonomyDashboard.vue'
+import CapitalBar from '@/components/mission-control/CapitalBar.vue'
 import ConfigProgressBar from '@/components/mission-control/ConfigProgressBar.vue'
-import ReportPipeline from '@/components/dashboard/ReportPipeline.vue'
-import LoadingState from '@/components/ui/LoadingState.vue'
+import ControlPanel from '@/components/mission-control/ControlPanel.vue'
+import DailyCompanion from '@/components/mission-control/DailyCompanion.vue'
+import DailyIncomePlan from '@/components/mission-control/DailyIncomePlan.vue'
+import DailyTasks from '@/components/mission-control/DailyTasks.vue'
+import DevBountyAutopilot from '@/components/mission-control/DevBountyAutopilot.vue'
+import DirectWorkRadar from '@/components/mission-control/DirectWorkRadar.vue'
+import EvolveMatrix from '@/components/mission-control/EvolveMatrix.vue'
+import FinanceGuru from '@/components/mission-control/FinanceGuru.vue'
+import GoalEvaluator from '@/components/mission-control/GoalEvaluator.vue'
+import GoodMorning from '@/components/mission-control/GoodMorning.vue'
+import InvoicerAR from '@/components/mission-control/InvoicerAR.vue'
+import KnowledgeFeed from '@/components/mission-control/KnowledgeFeed.vue'
+import MasterGuide from '@/components/mission-control/MasterGuide.vue'
+import MoneyPlan from '@/components/mission-control/MoneyPlan.vue'
+import NextBestAction from '@/components/mission-control/NextBestAction.vue'
+import NotificationCenter from '@/components/mission-control/NotificationCenter.vue'
+import ObsidianSync from '@/components/mission-control/ObsidianSync.vue'
+import OfframpExecutor from '@/components/mission-control/OfframpExecutor.vue'
+import OpportunityRadar from '@/components/mission-control/OpportunityRadar.vue'
+import PaymentCompatPanel from '@/components/mission-control/PaymentCompatPanel.vue'
+import PayoutNet from '@/components/mission-control/PayoutNet.vue'
+import PlatformConnectors from '@/components/mission-control/PlatformConnectors.vue'
+import ProfileBuilder from '@/components/mission-control/ProfileBuilder.vue'
+import SandboxMode from '@/components/mission-control/SandboxMode.vue'
+import SkillMethod from '@/components/mission-control/SkillMethod.vue'
+import TaskAssistant from '@/components/mission-control/TaskAssistant.vue'
+import TaxAR from '@/components/mission-control/TaxAR.vue'
+import VPNEmbed from '@/components/mission-control/VPNEmbed.vue'
+import WelcomeGuide from '@/components/mission-control/WelcomeGuide.vue'
+import CommandCenter from '@/components/mission-control/CommandCenter.vue'
 import ErrorState from '@/components/ui/ErrorState.vue'
-import { fetchOwnexDashboard } from '@/services/ownexData'
-import type { OwnexDashboardData } from '@/services/ownexData'
+import LoadingState from '@/components/ui/LoadingState.vue'
 import { useAudio } from '@/composables/useAudio'
+import type { OwnexDashboardData } from '@/services/ownexData'
+import { fetchIncomePlan, fetchOwnexDashboard, type IncomePlanAction } from '@/services/ownexData'
 
 const router = useRouter()
 const dashboard = ref<OwnexDashboardData | null>(null)
@@ -87,7 +95,7 @@ const claimsLoading = ref(false)
 async function loadClaims() {
   claimsLoading.value = true
   try {
-    const res = await fetch('/api/evidence/claims').then(r => r.json())
+    const res = await fetch('/api/evidence/claims').then((r) => r.json())
     claimsList.value = res.items || res || []
   } catch {
     claimsList.value = []
@@ -185,8 +193,13 @@ const radarOpportunities = computed(() =>
     id: o.id,
     title: o.title,
     platform: 'custom' as const,
-    type: (o.type === 'bug-bounty' || o.type === 'vdp' || o.type === 'ctf' || o.type === 'freelance' || o.type === 'research'
-      ? o.type : 'research') as 'bug-bounty' | 'vdp' | 'ctf' | 'freelance' | 'research',
+    type: (o.type === 'bug-bounty' ||
+    o.type === 'vdp' ||
+    o.type === 'ctf' ||
+    o.type === 'freelance' ||
+    o.type === 'research'
+      ? o.type
+      : 'research') as 'bug-bounty' | 'vdp' | 'ctf' | 'freelance' | 'research',
     severity: 'info' as const,
     reward: o.reward ? `$${o.reward.toLocaleString()}` : undefined,
     confidence: o.confidence,
@@ -199,7 +212,13 @@ const feedItems = computed(() =>
   (dashboard.value?.knowledgeFeed || []).map((k) => ({
     id: k.id,
     type: (k.type === 'alert' || k.type === 'pattern' || k.type === 'learning' || k.type === 'decision'
-      ? (k.type === 'alert' ? 'alert' : k.type === 'pattern' ? 'pattern' : k.type === 'learning' ? 'learning' : 'insight')
+      ? k.type === 'alert'
+        ? 'alert'
+        : k.type === 'pattern'
+          ? 'pattern'
+          : k.type === 'learning'
+            ? 'learning'
+            : 'insight'
       : 'system') as 'insight' | 'learning' | 'pattern' | 'alert' | 'achievement' | 'system',
     title: k.message,
     description: k.typeLabel,
@@ -372,6 +391,9 @@ const feedItems = computed(() =>
         />
         <NextBestAction v-else title="Sin acción pendiente" description="Revisar oportunidades o iniciar un ciclo de trabajo" :primary-action="{ label: 'Ejecutar', variant: 'primary' }" />
       </div>
+
+      <!-- Row 2.4: Command Center — ONE BEST ACTION -->
+      <CommandCenter v-if="!degraded && loading === false && dashboard" class="lg:col-span-3" />
 
       <!-- Row 0: Welcome Guide (Day 1 hand-holding) -->
       <WelcomeGuide v-if="!degraded && loading === false && dashboard" class="lg:col-span-3" />

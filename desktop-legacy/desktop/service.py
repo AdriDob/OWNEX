@@ -69,12 +69,12 @@ if _HAS_PYWIN32:
             self._watchdog = None
             self._running = False
 
-        def SvcDoRun(self):
+        def SvcDoRun(self):  # noqa: N802
             logger.info("[SERVICE] Starting CATEYE Service...")
             self._running = True
             self._run_backend()
 
-        def SvcStop(self):
+        def SvcStop(self):  # noqa: N802
             logger.info("[SERVICE] Stop requested")
             self._running = False
             self.ReportServiceStatus(_pywin32["service"].SERVICE_STOP_PENDING)
@@ -145,10 +145,10 @@ else:
         def __init__(self, args):
             raise RuntimeError("pywin32 not available — cannot run service")
 
-        def SvcDoRun(self):
+        def SvcDoRun(self):  # noqa: N802
             raise RuntimeError("pywin32 not available — cannot run service")
 
-        def SvcStop(self):
+        def SvcStop(self):  # noqa: N802
             raise RuntimeError("pywin32 not available — cannot run service")
 
 

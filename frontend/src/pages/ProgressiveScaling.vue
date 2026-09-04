@@ -349,7 +349,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import AlertPopup from '@/components/AlertPopup.vue'
 import ModeManagerPanel from '@/components/ModeManagerPanel.vue'
 
@@ -538,7 +538,10 @@ const formatTime = (timestamp: string): string => {
 }
 
 const formatTriggerType = (type: string): string => {
-  return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+  return type
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
 }
 
 const getPhaseIcon = (phase: string): string => {

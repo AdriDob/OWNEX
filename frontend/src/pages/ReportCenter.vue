@@ -1,19 +1,41 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api, getReports, getReportStats, getRewardLearning, getFindings, getAcceptanceSummary } from '@/lib/api'
-import type { ReportItem, FindingItem } from '@/lib/api'
-import { useReportStore } from '@/stores/report'
-import Card from '@/components/ui/Card.vue'
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  DollarSign,
+  Download,
+  Eye,
+  FileDown,
+  FileText,
+  Loader2,
+  Plus,
+  Search,
+  Sparkles,
+  TrendingUp,
+  Wallet,
+  X,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import DoughnutChart from '@/components/charts/DoughnutChart.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Input from '@/components/ui/Input.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { FileText, Download, Eye, AlertTriangle, Plus, DollarSign, TrendingUp, Clock, Wallet, Search, X, Sparkles, Loader2, CheckCircle2, FileDown } from '@lucide/vue'
-import DoughnutChart from '@/components/charts/DoughnutChart.vue'
+import type { FindingItem, ReportItem } from '@/lib/api'
+import { api, getAcceptanceSummary, getFindings, getReportStats, getReports, getRewardLearning } from '@/lib/api'
+import { useReportStore } from '@/stores/report'
 
 const reportStore = useReportStore()
 const reports = ref<ReportItem[]>([])
-const stats = ref<{ total: number; estimated_rewards: number; paid_count: number; status_counts: Record<string, number>; total_rewards: number } | null>(null)
+const stats = ref<{
+  total: number
+  estimated_rewards: number
+  paid_count: number
+  status_counts: Record<string, number>
+  total_rewards: number
+} | null>(null)
 const rewardLearning = ref<any>(null)
 const acceptanceSummary = ref<any>(null)
 const loading = ref(true)
@@ -109,8 +131,12 @@ async function downloadPdf() {
 
 function statusVariant(status: string) {
   const map: Record<string, 'success' | 'warning' | 'destructive' | 'info' | 'default'> = {
-    paid: 'success', submitted: 'info', ready: 'info', pending: 'warning',
-    draft: 'default', rejected: 'destructive',
+    paid: 'success',
+    submitted: 'info',
+    ready: 'info',
+    pending: 'warning',
+    draft: 'default',
+    rejected: 'destructive',
   }
   return map[status.toLowerCase()] || 'default'
 }
@@ -130,10 +156,15 @@ const financialStats = computed(() => {
         else hoursTracked += (Date.now() - s.start) / 3600000
       }
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   const valuePerHour = hoursTracked > 0 ? totalRewards / hoursTracked : 0
   return {
-    totalPaid, totalRewards, estimated, pending,
+    totalPaid,
+    totalRewards,
+    estimated,
+    pending,
     hoursTracked: Math.round(hoursTracked * 10) / 10,
     valuePerHour: Math.round(valuePerHour * 100) / 100,
     paidRatio: estimated > 0 ? totalRewards / estimated : 0,
@@ -157,9 +188,8 @@ async function fetchMonthlyRevenue() {
 
 const maxMonthlyAmount = computed(() => {
   if (monthlyRevenue.value.length === 0) return 1
-  return Math.max(...monthlyRevenue.value.map(d => d.amount), 1)
+  return Math.max(...monthlyRevenue.value.map((d) => d.amount), 1)
 })
-
 </script>
 
 <template>

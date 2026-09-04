@@ -1,4 +1,4 @@
-import { ref, computed, watch, onMounted, type Ref } from 'vue'
+import { computed, onMounted, type Ref, ref, watch } from 'vue'
 
 export interface ThemePalette {
   'bg-deep': string
@@ -85,14 +85,7 @@ let themesCache: Map<string, ThemeDefinition> | null = null
 async function loadThemeDefinitions(): Promise<Map<string, ThemeDefinition>> {
   if (themesCache) return themesCache
 
-  const themeIds = [
-    'tesla',
-    'event-horizon',
-    'neural-flow',
-    'precision-lab',
-    'quantum-glass',
-    'executive-intelligence'
-  ]
+  const themeIds = ['tesla', 'event-horizon', 'neural-flow', 'precision-lab', 'quantum-glass', 'executive-intelligence']
 
   const map = new Map<string, ThemeDefinition>()
 
@@ -165,7 +158,7 @@ function applyAudioConfig(audio: ThemeAudio) {
   if (typeof window === 'undefined') return
 
   const event = new CustomEvent('ownex:theme-audio-change', {
-    detail: { profile: audio.profile, volume: audio.volume, enabled: audio.enabled }
+    detail: { profile: audio.profile, volume: audio.volume, enabled: audio.enabled },
   })
   window.dispatchEvent(event)
 }
@@ -230,9 +223,7 @@ export function useThemeEngine() {
   function applyThemeMode() {
     if (typeof document === 'undefined') return
     const root = document.documentElement
-    const effective = themeMode.value === 'auto'
-      ? (systemDark.value ? 'dark' : 'light')
-      : themeMode.value
+    const effective = themeMode.value === 'auto' ? (systemDark.value ? 'dark' : 'light') : themeMode.value
 
     root.setAttribute('data-theme-mode', effective)
     root.classList.toggle('dark', effective === 'dark')
@@ -247,7 +238,7 @@ export function useThemeEngine() {
       if (currentTheme.value) {
         applyThemeToDOM(currentTheme.value)
       } else {
-        Object.keys(LIGHT_MODE_VARS).forEach(key => root.style.removeProperty(key))
+        Object.keys(LIGHT_MODE_VARS).forEach((key) => root.style.removeProperty(key))
       }
     }
 

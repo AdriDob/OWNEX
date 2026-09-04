@@ -1,35 +1,35 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
-import Badge from '@/components/ui/Badge.vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
-import { Activity, Cpu, Play, AlertTriangle } from '@lucide/vue'
+import { Activity, AlertTriangle, Cpu, Play } from '@lucide/vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import DoughnutChart from '@/components/charts/DoughnutChart.vue'
+import Badge from '@/components/ui/Badge.vue'
+import Card from '@/components/ui/Card.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { api } from '@/lib/api'
 
 interface AgentHealth {
-  agent_id: string;
-  name: string;
-  capabilities: string[];
-  status: string;
-  tasks_completed: number;
-  tasks_failed: number;
-  avg_time_ms: number;
-  total_time_ms: number;
-  last_event: string | null;
-  last_error: string | null;
-  running: boolean;
+  agent_id: string
+  name: string
+  capabilities: string[]
+  status: string
+  tasks_completed: number
+  tasks_failed: number
+  avg_time_ms: number
+  total_time_ms: number
+  last_event: string | null
+  last_error: string | null
+  running: boolean
 }
 
 interface BusEvent {
-  event_id: string;
-  event_type: string;
-  source: string;
-  target: string | null;
-  correlation_id: string;
-  priority: number;
-  timestamp: string;
-  payload: Record<string, unknown>;
+  event_id: string
+  event_type: string
+  source: string
+  target: string | null
+  correlation_id: string
+  priority: number
+  timestamp: string
+  payload: Record<string, unknown>
 }
 
 const agents = ref<AgentHealth[]>([])
@@ -42,27 +42,42 @@ let healthInterval: ReturnType<typeof setInterval> | null = null
 let pipelineInterval: ReturnType<typeof setInterval> | null = null
 
 const statusColors: Record<string, string> = {
-  idle: '#16A34A', working: '#ffffff', waiting: '#A16207', error: '#00d5ff', offline: '#6b7280',
+  idle: '#16A34A',
+  working: '#ffffff',
+  waiting: '#A16207',
+  error: '#00d5ff',
+  offline: '#6b7280',
 }
 
 const agentIcons: Record<string, string> = {
-  coordinator: '🎯', research: '🔍', validator: '✅', exploit: '⚡',
-  documentation: '📝', strategy: '🧠', memory: '💾', financial: '💰',
+  coordinator: '🎯',
+  research: '🔍',
+  validator: '✅',
+  exploit: '⚡',
+  documentation: '📝',
+  strategy: '🧠',
+  memory: '💾',
+  financial: '💰',
 }
 
 async function fetchHealth() {
   try {
     const res = await api.get<{ agents: Record<string, AgentHealth> }>('/agents/health')
     agents.value = Object.values(res.agents || {})
-  } catch (e: any) { error.value = e?.message || 'Error al cargar agentes' }
-  finally { loading.value = false }
+  } catch (e: any) {
+    error.value = e?.message || 'Error al cargar agentes'
+  } finally {
+    loading.value = false
+  }
 }
 
 async function fetchPipelines() {
   try {
     const res = await api.get<{ pipelines: Record<string, any> }>('/agents/coordinator/pipelines')
     pipelines.value = res.pipelines || {}
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 function setupEventStream() {
@@ -73,13 +88,17 @@ function setupEventStream() {
       try {
         const ev = JSON.parse(msg.data) as BusEvent
         events.value = [ev, ...events.value].slice(0, 100)
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return () => es?.close()
 }
 
-const onlineCount = () => agents.value.filter(a => a.running).length
+const onlineCount = () => agents.value.filter((a) => a.running).length
 
 onMounted(() => {
   fetchHealth()

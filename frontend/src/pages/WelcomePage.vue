@@ -214,11 +214,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useThemeEngine } from '@/composables/useThemeEngine'
 import CoreVisualization from '@/components/CoreVisualization.vue'
 import ModernNavbar from '@/components/layout/ModernNavbar.vue'
+import { useThemeEngine } from '@/composables/useThemeEngine'
 
 const router = useRouter()
 const { themeNames, currentTheme, setTheme } = useThemeEngine()
@@ -229,13 +229,13 @@ const systemStatus = ref({
   scheduler: {
     icon: '🟢',
     status: 'Running',
-    detail: '4 workflows activos'
+    detail: '4 workflows activos',
   },
   database: {
     icon: '🟢',
     status: 'Connected',
-    detail: 'SQLite local'
-  }
+    detail: 'SQLite local',
+  },
 })
 
 const recentActivities = ref([
@@ -244,36 +244,36 @@ const recentActivities = ref([
     icon: '🎯',
     title: 'Nuevo target descubierto',
     description: 'example.com agregado al sistema',
-    timestamp: new Date(Date.now() - 3600000)
+    timestamp: new Date(Date.now() - 3600000),
   },
   {
     id: 2,
     icon: '🔍',
     title: 'Vulnerabilidad encontrada',
     description: 'XSS en /search endpoint',
-    timestamp: new Date(Date.now() - 7200000)
+    timestamp: new Date(Date.now() - 7200000),
   },
   {
     id: 3,
     icon: '📊',
     title: 'Reporte generado',
     description: 'Reporte #1234 enviado a HackerOne',
-    timestamp: new Date(Date.now() - 86400000)
+    timestamp: new Date(Date.now() - 86400000),
   },
   {
     id: 4,
     icon: '💰',
     title: 'Pago recibido',
     description: '$500 por validación de reporte',
-    timestamp: new Date(Date.now() - 172800000)
-  }
+    timestamp: new Date(Date.now() - 172800000),
+  },
 ])
 
 const stats = ref({
   targets: 42,
   findings: 156,
   reports: 23,
-  revenue: 4500
+  revenue: 4500,
 })
 
 function formatTime(date: Date) {
@@ -299,7 +299,7 @@ onMounted(() => {
     '¡Bienvenido de nuevo! MERLIN está listo para asistirte.',
     'MERLIN aquí. ¿En qué puedo ayudarte hoy?',
     '¡Saludos! MERLIN reportándose para el servicio.',
-    '¡Hey! MERLIN online y listo para rockear.'
+    '¡Hey! MERLIN online y listo para rockear.',
   ]
 
   setInterval(() => {
@@ -308,7 +308,7 @@ onMounted(() => {
 })
 
 function getThemePreviewStyle(themeId: string) {
-  const theme = themeNames.value.find(t => t.id === themeId)
+  const theme = themeNames.value.find((t) => t.id === themeId)
   if (!theme) return {}
   return {
     background: theme.id === 'tesla' ? '#000000' : '#05060A',
@@ -316,7 +316,7 @@ function getThemePreviewStyle(themeId: string) {
 }
 
 function getThemeCoreStyle(themeId: string) {
-  const theme = themeNames.value.find(t => t.id === themeId)
+  const theme = themeNames.value.find((t) => t.id === themeId)
   if (!theme) return {}
   // We need to get the actual theme definition for colors
   return {

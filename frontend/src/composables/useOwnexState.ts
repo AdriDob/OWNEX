@@ -11,16 +11,16 @@
  * Refresh strategy: stale-while-revalidate with 60s TTL per domain.
  */
 
-import { ref, computed, type Ref } from 'vue'
+import { computed, type Ref, ref } from 'vue'
 import {
-  fetchDailyDigest,
-  fetchCapitalSnapshot,
-  fetchAiCenter,
-  fetchAgenda,
-  fetchIncomePlan,
-  type DailyDigestState,
-  type CapitalSnapshot,
   type AiCenterState,
+  type CapitalSnapshot,
+  type DailyDigestState,
+  fetchAgenda,
+  fetchAiCenter,
+  fetchCapitalSnapshot,
+  fetchDailyDigest,
+  fetchIncomePlan,
   type IncomePlanState,
   type UnifiedAgendaState,
 } from '@/services/ownexData'

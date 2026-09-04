@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 
 export type GuidedMode = 'guided' | 'assisted' | 'autonomous' | 'expert'
 

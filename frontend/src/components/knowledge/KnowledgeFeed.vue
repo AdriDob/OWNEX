@@ -6,9 +6,9 @@
  */
 
 import { computed } from 'vue'
-import OwnexCard from '@/components/ui/OwnexCard.vue'
 import OwnexBadge from '@/components/ui/OwnexBadge.vue'
 import OwnexButton from '@/components/ui/OwnexButton.vue'
+import OwnexCard from '@/components/ui/OwnexCard.vue'
 
 interface KnowledgeEntry {
   id: string

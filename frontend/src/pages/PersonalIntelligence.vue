@@ -1,12 +1,24 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import {
+  Activity,
+  AlertTriangle,
+  Brain,
+  Download,
+  FileJson,
+  FileText,
+  History,
+  RefreshCw,
+  Target,
+  ToggleLeft,
+  ToggleRight,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import { LineChart } from '@/components/charts'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { LineChart } from '@/components/charts'
-import { Brain, RefreshCw, Download, ToggleLeft, ToggleRight, AlertTriangle, FileJson, FileText, History, Activity, Target } from '@lucide/vue'
+import { api } from '@/lib/api'
 
 interface LearningProfile {
   exists: boolean
@@ -65,8 +77,11 @@ async function toggleAdaptiveMode() {
     const updated = await api.post<LearningProfile>('/learning/profile/reset')
     profile.value = updated
     await fetchData()
-  } catch { /* ignore */ }
-  finally { toggling.value = false }
+  } catch {
+    /* ignore */
+  } finally {
+    toggling.value = false
+  }
 }
 
 async function resetProfile() {
@@ -75,8 +90,11 @@ async function resetProfile() {
   try {
     await api.post('/learning/profile/reset')
     await fetchData()
-  } catch { /* ignore */ }
-  finally { resetting.value = false }
+  } catch {
+    /* ignore */
+  } finally {
+    resetting.value = false
+  }
 }
 
 async function exportProfile(format: 'json' | 'markdown') {
@@ -84,18 +102,20 @@ async function exportProfile(format: 'json' | 'markdown') {
   exportingFormat.value = format
   try {
     const data = await api.post<any>('/learning/export', { format })
-    const blob = new Blob(
-      [format === 'json' ? JSON.stringify(data, null, 2) : data],
-      { type: format === 'json' ? 'application/json' : 'text/markdown' },
-    )
+    const blob = new Blob([format === 'json' ? JSON.stringify(data, null, 2) : data], {
+      type: format === 'json' ? 'application/json' : 'text/markdown',
+    })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
     a.download = `learning-profile.${format}`
     a.click()
     URL.revokeObjectURL(url)
-  } catch { /* ignore */ }
-  finally { exporting.value = false }
+  } catch {
+    /* ignore */
+  } finally {
+    exporting.value = false
+  }
 }
 
 const progressChartData = computed(() => {
@@ -104,16 +124,18 @@ const progressChartData = computed(() => {
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   )
   return {
-    labels: sorted.map(d => new Date(d.date).toLocaleDateString()),
-    datasets: [{
-      label: 'Learning Score',
-      data: sorted.map(d => d.score),
-      borderColor: '#00d5ff',
-      backgroundColor: '#00d5ff',
-      fill: true,
-      tension: 0.3,
-      pointRadius: 2,
-    }],
+    labels: sorted.map((d) => new Date(d.date).toLocaleDateString()),
+    datasets: [
+      {
+        label: 'Learning Score',
+        data: sorted.map((d) => d.score),
+        borderColor: '#00d5ff',
+        backgroundColor: '#00d5ff',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 2,
+      },
+    ],
   }
 })
 

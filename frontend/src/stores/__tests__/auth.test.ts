@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
+import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAuthStore } from '@/stores/auth'
 
 const mockPost = vi.hoisted(() => vi.fn())
@@ -7,7 +7,10 @@ vi.mock('@/lib/api', () => ({
   api: { post: mockPost },
   getToken: vi.fn(() => localStorage.getItem('CATEYE-token')),
   setToken: vi.fn((t: string) => localStorage.setItem('CATEYE-token', t)),
-  clearSession: vi.fn(() => { localStorage.removeItem('CATEYE-token'); localStorage.removeItem('CATEYE-session-expires') }),
+  clearSession: vi.fn(() => {
+    localStorage.removeItem('CATEYE-token')
+    localStorage.removeItem('CATEYE-session-expires')
+  }),
   isSessionValid: vi.fn(() => !!localStorage.getItem('CATEYE-token')),
   setSessionExpiry: vi.fn((e: string) => localStorage.setItem('CATEYE-session-expires', e)),
 }))

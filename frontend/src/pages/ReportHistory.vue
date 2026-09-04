@@ -1,13 +1,24 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import type { ReportItem } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import {
+  AlertTriangle,
+  ArrowUpDown,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  DollarSign,
+  FileText,
+  Filter,
+  RefreshCw,
+  Search,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import { BarChart, DoughnutChart } from '@/components/charts'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { DoughnutChart, BarChart } from '@/components/charts'
-import { Search, AlertTriangle, RefreshCw, FileText, DollarSign, ChevronLeft, ChevronRight, ArrowUpDown, CalendarDays, Filter } from '@lucide/vue'
+import type { ReportItem } from '@/lib/api'
+import { api } from '@/lib/api'
 
 interface ReportStats {
   total: number
@@ -83,22 +94,39 @@ function toggleSort(field: string) {
   fetchReports()
 }
 
-function prevPage() { if (page.value > 1) { page.value--; fetchReports() } }
-function nextPage() { if (page.value * limit < total.value) { page.value++; fetchReports() } }
+function prevPage() {
+  if (page.value > 1) {
+    page.value--
+    fetchReports()
+  }
+}
+function nextPage() {
+  if (page.value * limit < total.value) {
+    page.value++
+    fetchReports()
+  }
+}
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / limit)))
 
 function statusVariant(status: string) {
   const map: Record<string, 'success' | 'info' | 'warning' | 'destructive' | 'default'> = {
-    paid: 'success', submitted: 'info', triaged: 'info', ready: 'info',
-    draft: 'default', rejected: 'destructive',
+    paid: 'success',
+    submitted: 'info',
+    triaged: 'info',
+    ready: 'info',
+    draft: 'default',
+    rejected: 'destructive',
   }
   return map[status.toLowerCase()] || 'default'
 }
 
 function severityVariant(sev: string) {
   const map: Record<string, 'destructive' | 'warning' | 'info' | 'success'> = {
-    critical: 'destructive', high: 'warning', medium: 'info', low: 'success',
+    critical: 'destructive',
+    high: 'warning',
+    medium: 'info',
+    low: 'success',
   }
   return map[sev?.toLowerCase()] || 'default'
 }
@@ -113,8 +141,7 @@ function elapsedDays(date: string | null): string {
 
 const statusChartData = computed(() => {
   if (!stats.value?.status_counts) return { labels: [], data: [] }
-  const entries = Object.entries(stats.value.status_counts)
-    .sort((a, b) => b[1] - a[1])
+  const entries = Object.entries(stats.value.status_counts).sort((a, b) => b[1] - a[1])
   return {
     labels: entries.map(([k]) => k.charAt(0).toUpperCase() + k.slice(1)),
     data: entries.map(([, v]) => v),
@@ -133,15 +160,17 @@ const monthlyChartData = computed(() => {
     const [ma, ya] = a[0].split(' ')
     const [mb, yb] = b[0].split(' ')
     const months = 'JanFebMarAprMayJunJulAugSepOctNovDec'
-    return (months.indexOf(mb) + parseInt(yb) * 12) - (months.indexOf(ma) + parseInt(ya) * 12)
+    return months.indexOf(mb) + parseInt(yb) * 12 - (months.indexOf(ma) + parseInt(ya) * 12)
   })
   return {
     labels: sorted.map(([m]) => m),
-    datasets: [{
-      label: 'Reports',
-      data: sorted.map(([, c]) => c),
-      backgroundColor: '#ffffff',
-    }],
+    datasets: [
+      {
+        label: 'Reports',
+        data: sorted.map(([, c]) => c),
+        backgroundColor: '#ffffff',
+      },
+    ],
   }
 })
 

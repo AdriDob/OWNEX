@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { useToast } from '@/composables/useToast'
-import {
-  AlertTriangle, Cable, CheckCircle2, Dices, KeyRound, Percent, Save, Shield, Sliders,
-} from '@lucide/vue'
+import { AlertTriangle, Cable, CheckCircle2, Dices, KeyRound, Percent, Save, Shield, Sliders } from '@lucide/vue'
+import { onMounted, reactive, ref } from 'vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import { useToast } from '@/composables/useToast'
 
 const { toast } = useToast()
 const saveSuccess = ref('')
@@ -71,11 +69,18 @@ async function saveSettings() {
   saveError.value = ''
   try {
     const existing = JSON.parse(localStorage.getItem('orion_odyssey_settings') || '{}')
-    const updated = { ...existing, ...formValues, kellyConfig: { ...kellyConfig }, bankrollConfig: { ...bankrollConfig } }
+    const updated = {
+      ...existing,
+      ...formValues,
+      kellyConfig: { ...kellyConfig },
+      bankrollConfig: { ...bankrollConfig },
+    }
     localStorage.setItem('orion_odyssey_settings', JSON.stringify(updated))
     saveSuccess.value = 'Configuración guardada correctamente'
     toast.success('Guardado', 'La configuración de ODYSSEY se actualizó')
-    setTimeout(() => { saveSuccess.value = '' }, 3000)
+    setTimeout(() => {
+      saveSuccess.value = ''
+    }, 3000)
   } catch (e) {
     saveError.value = 'Error al guardar la configuración'
     toast.error('Error', 'No se pudo guardar la configuración')

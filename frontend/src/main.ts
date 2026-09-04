@@ -1,10 +1,10 @@
+import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
-import { createPinia } from 'pinia'
-import App from './App.vue'
-import { routes, isPublicRoute } from './router'
-import { useAuthStore } from '@/stores/auth'
 import i18n from '@/composables/useI18n'
+import { useAuthStore } from '@/stores/auth'
+import App from './App.vue'
+import { isPublicRoute, routes } from './router'
 import './style.css'
 import './styles/tesla-jarvis-theme.css'
 import 'xterm/css/xterm.css'
@@ -30,9 +30,10 @@ function ensureDeviceId(): string {
   try {
     const existing = localStorage.getItem(key)
     if (existing) return existing
-    const id = (typeof crypto !== 'undefined' && crypto.randomUUID)
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`
+    const id =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`
     localStorage.setItem(key, id)
     return id
   } catch {

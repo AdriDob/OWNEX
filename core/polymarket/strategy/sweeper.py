@@ -38,6 +38,9 @@ class SweeperConfig:
 
     # Position sizing
     max_position_usd: float = 100.0  # Max $100 per position
+    daily_capital_limit: float = 500.0  # Max total deployed per day
+    stop_loss_pct: float = 10.0  # Stop if down >10%
+    autopilot: bool = False  # When True, executes trades automatically
     max_total_exposure: float = 500.0  # Max $500 total exposure
 
     # Risk management

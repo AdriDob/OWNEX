@@ -1,21 +1,30 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
-import Badge from '@/components/ui/Badge.vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
-import { BarChart3, AlertTriangle } from '@lucide/vue'
+import { AlertTriangle, BarChart3 } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import LineChart from '@/components/charts/LineChart.vue'
+import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { api } from '@/lib/api'
 
 interface ConfidenceFactor {
-  name: string; value: number; weight: number; description: string
+  name: string
+  value: number
+  weight: number
+  description: string
 }
 
 interface ConfidenceAudit {
-  item_id: string; item_label: string; item_type: string; overall_score: number;
-  historical_influence: number; evidence_influence: number; roi_influence: number;
-  factors: ConfidenceFactor[]; reasoning_summary: string | null;
+  item_id: string
+  item_label: string
+  item_type: string
+  overall_score: number
+  historical_influence: number
+  evidence_influence: number
+  roi_influence: number
+  factors: ConfidenceFactor[]
+  reasoning_summary: string | null
 }
 
 const audits = ref<ConfidenceAudit[]>([])
@@ -32,24 +41,30 @@ function getTier(score: number): { label: string; color: string; variant: 'succe
   return { label: 'LOW', color: '#00d5ff', variant: 'destructive' }
 }
 
-const highConf = computed(() => audits.value.filter(a => a.overall_score >= 0.7))
-const medConf = computed(() => audits.value.filter(a => a.overall_score >= 0.4 && a.overall_score < 0.7))
-const lowConf = computed(() => audits.value.filter(a => a.overall_score < 0.4))
+const highConf = computed(() => audits.value.filter((a) => a.overall_score >= 0.7))
+const medConf = computed(() => audits.value.filter((a) => a.overall_score >= 0.4 && a.overall_score < 0.7))
+const lowConf = computed(() => audits.value.filter((a) => a.overall_score < 0.4))
 
 async function fetchAudits() {
   loading.value = true
   try {
     const res = await api.get<{ audits: ConfidenceAudit[]; total_audited: number; average_confidence: number }>(
-      '/confidence/audit', { item_type: itemType.value, limit: 50 }
+      '/confidence/audit',
+      { item_type: itemType.value, limit: 50 },
     )
     audits.value = res.audits || []
     totalAudited.value = res.total_audited || 0
     averageConfidence.value = res.average_confidence || 0
-  } catch (e: any) { error.value = e?.message || 'Error al cargar datos de confianza' }
-  finally { loading.value = false }
+  } catch (e: any) {
+    error.value = e?.message || 'Error al cargar datos de confianza'
+  } finally {
+    loading.value = false
+  }
 }
 
-function toggleExpand(id: string) { expanded.value[id] = !expanded.value[id] }
+function toggleExpand(id: string) {
+  expanded.value[id] = !expanded.value[id]
+}
 
 onMounted(fetchAudits)
 </script>

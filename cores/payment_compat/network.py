@@ -59,6 +59,15 @@ class Network(Enum):
     ARBITRUM = "arbitrum"
 
 
+class CardType(Enum):
+    """Type of debit/credit card issued."""
+
+    PHYSICAL = "physical"
+    VIRTUAL = "virtual"
+    BOTH = "both"
+    NONE = "none"
+
+
 @dataclass
 class OwnAccount:
     """An account OWNEX can use to receive, hold or withdraw funds."""
@@ -75,6 +84,10 @@ class OwnAccount:
     withdrawal_available: bool = True
     notes: str = ""
     payout_ref: str = ""  # id in ARGENTINA_PAYOUT_METHODS when available
+    card_type: CardType = CardType.NONE
+    monthly_fee_usd: float = 0.0
+    supports_cvu_out: bool = False
+    requires_contractor_status: bool = False
 
     def matches_method(self, method: str) -> bool:
         return method.lower() in {m.lower() for m in self.methods}
@@ -99,6 +112,10 @@ def _ac(
     withdrawal: bool = True,
     notes: str = "",
     payout_ref: str = "",
+    card_type: CardType = CardType.NONE,
+    monthly_fee_usd: float = 0.0,
+    supports_cvu_out: bool = False,
+    requires_contractor_status: bool = False,
 ) -> OwnAccount:
     """Compact constructor for the curated catalog."""
     return OwnAccount(
@@ -114,6 +131,10 @@ def _ac(
         withdrawal_available=withdrawal,
         notes=notes,
         payout_ref=payout_ref,
+        card_type=card_type,
+        monthly_fee_usd=monthly_fee_usd,
+        supports_cvu_out=supports_cvu_out,
+        requires_contractor_status=requires_contractor_status,
     )
 
 
@@ -805,16 +826,97 @@ PAYMENT_NETWORK: list[OwnAccount] = [
         payout_ref="tikeknos",
     ),
     _ac(
-        "dolarapp",
-        "DolarApp",
+        "arq",
+        "Arq (DolarApp/Arq)",
         PaymentLayer.CRYPTO,
         PaymentFunction.GLOBAL,
         [Region.ARGENTINA, Region.GLOBAL],
         ["USD", "USDC"],
         ["wallet", "cvu", "local_transfer"],
         networks=[Network.POLYGON],
-        notes="Gestión de dólares digitales; stablecoins.",
+        notes="Gestión de dólares digitales; stablecoins USDC nativo. Tarjeta para gastos.",
         payout_ref="arq",
+    ),
+    # ---- PROCESSORS: international accounts with debit card (Argentina KYC) ----
+    _ac(
+        "grey",
+        "Grey",
+        PaymentLayer.PROCESSORS,
+        PaymentFunction.GLOBAL,
+        [Region.ARGENTINA, Region.USA, Region.EU, Region.GLOBAL],
+        ["USD", "EUR", "GBP"],
+        ["ach", "wire", "sepa", "fps", "card"],
+        kyc=True,
+        withdrawal=True,
+        notes="Cuenta USD global + Visa virtual y física. KYC personal Argentina (DNI + selfie). Recibe ACH, Wire, SEPA, FPS. Fees <1%. Sin banco requerido. Tarjeta física y virtual.",
+        payout_ref="",
+        card_type=CardType.BOTH,
+        monthly_fee_usd=0.0,
+        supports_cvu_out=False,
+    ),
+    _ac(
+        "chipper_cash",
+        "Chipper Cash",
+        PaymentLayer.PROCESSORS,
+        PaymentFunction.GLOBAL,
+        [Region.ARGENTINA, Region.USA, Region.EU, Region.GLOBAL],
+        ["USD", "NGN", "KES", "GHS", "UGX", "RWF"],
+        ["ach", "bank_transfer", "card"],
+        kyc=True,
+        withdrawal=True,
+        notes="Cuenta USD virtual + Visa virtual. KYC personal Argentina. Recibe ACH (US), transferencias UK/EU. Focus emerging markets. Fees bajos. Tarjeta virtual.",
+        payout_ref="",
+        card_type=CardType.VIRTUAL,
+        monthly_fee_usd=0.0,
+        supports_cvu_out=False,
+    ),
+    _ac(
+        "geegpay",
+        "Geegpay",
+        PaymentLayer.PROCESSORS,
+        PaymentFunction.GLOBAL,
+        [Region.ARGENTINA, Region.USA, Region.EU, Region.GLOBAL],
+        ["USD", "EUR", "GBP"],
+        ["ach", "wire", "sepa", "card"],
+        kyc=True,
+        withdrawal=True,
+        notes="Cuenta USD + Visa virtual y física. KYC personal Argentina. Recibe ACH, Wire, SEPA. Freelancer-focused. Fees bajos. Tarjeta física y virtual.",
+        payout_ref="",
+        card_type=CardType.BOTH,
+        monthly_fee_usd=0.0,
+        supports_cvu_out=False,
+    ),
+    _ac(
+        "paysend",
+        "Paysend",
+        PaymentLayer.PROCESSORS,
+        PaymentFunction.GLOBAL,
+        [Region.ARGENTINA, Region.USA, Region.EU, Region.GLOBAL],
+        ["USD", "EUR", "GBP", "ARS"],
+        ["ach", "sepa", "fps", "swift", "card"],
+        kyc=True,
+        withdrawal=True,
+        notes="Mastercard virtual y física. KYC personal Argentina. Recibe ACH, SEPA, FPS, SWIFT. Fees bajos. Tarjeta física y virtual. Retiro a CVU/ARS via partner.",
+        payout_ref="",
+        card_type=CardType.BOTH,
+        monthly_fee_usd=0.0,
+        supports_cvu_out=True,
+    ),
+    _ac(
+        "currencyfair",
+        "CurrencyFair",
+        PaymentLayer.PROCESSORS,
+        PaymentFunction.GLOBAL,
+        [Region.ARGENTINA, Region.EU, Region.USA, Region.GLOBAL],
+        ["USD", "EUR", "GBP", "AUD", "CAD", "CHF"],
+        ["wire", "sepa", "ach", "card"],
+        kyc=True,
+        withdrawal=True,
+        notes="Mastercard física. KYC personal Argentina. Recibe Wire, SEPA, ACH (via partner). FX peer-to-peer competitivo. Tarjeta física. Retiro a banco local.",
+        payout_ref="",
+        card_type=CardType.PHYSICAL,
+        monthly_fee_usd=0.0,
+        supports_cvu_out=False,
     ),
     # ---- SELF CUSTODY: EVM ----
     _ac(
@@ -938,6 +1040,51 @@ PAYMENT_NETWORK: list[OwnAccount] = [
         networks=[Network.ETHEREUM, Network.SOLANA],
         kyc=False,
         notes="Wallet software multi-asset.",
+    ),
+    # ---- INVESTMENT: Brokers Argentina ----
+    _ac(
+        "iol",
+        "InvertirOnline (IOL)",
+        PaymentLayer.BANKING,
+        PaymentFunction.GLOBAL,
+        [Region.ARGENTINA, Region.GLOBAL],
+        ["ARS", "USD"],
+        ["wire", "cbu", "local_transfer"],
+        notes="Broker CNV Argentina: MEP, CEDEARs, acciones, bonos, letras, FCI, opciones. Regulado CNV.",
+    ),
+    _ac(
+        "bull_market",
+        "Bull Market Brokers",
+        PaymentLayer.BANKING,
+        PaymentFunction.GLOBAL,
+        [Region.ARGENTINA, Region.GLOBAL],
+        ["ARS", "USD"],
+        ["wire", "cbu", "local_transfer"],
+        notes="Broker CNV Argentina: CEDEARs, acciones, bonos, ON, fondos, opciones, futuros. Diversificación de broker.",
+    ),
+    # ---- INVESTMENT: Brokers Globales ----
+    _ac(
+        "interactive_brokers",
+        "Interactive Brokers",
+        PaymentLayer.BANKING,
+        PaymentFunction.GLOBAL,
+        [Region.USA, Region.GLOBAL],
+        ["USD", "EUR", "GBP"],
+        ["wire", "ach", "sepa"],
+        notes="Acceso directo mercados globales: acciones US, ETFs, bonos, futuros, opciones. Para capital considerable.",
+    ),
+    # ---- CRYPTO: Dólares digitales Argentina ----
+    _ac(
+        "arq",
+        "Arq (DolarApp/Arq)",
+        PaymentLayer.CRYPTO,
+        PaymentFunction.GLOBAL,
+        [Region.ARGENTINA, Region.GLOBAL],
+        ["USD", "USDC"],
+        ["wallet", "cvu", "local_transfer"],
+        networks=[Network.POLYGON],
+        notes="Gestión de dólares digitales; stablecoins USDC nativo. Tarjeta para gastos.",
+        payout_ref="arq",
     ),
     # ---- WITHDRAWAL: USD ----
     _ac(
