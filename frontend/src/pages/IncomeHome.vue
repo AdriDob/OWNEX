@@ -28,6 +28,7 @@ import {
 } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
 import OneActionCard from '@/components/autopilot/OneActionCard.vue'
+import DailyBriefCard from '@/components/daily/DailyBriefCard.vue'
 import DailyDigest from '@/components/daily/DailyDigest.vue'
 import ErrorState from '@/components/shared/ErrorState.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
@@ -412,7 +413,10 @@ onMounted(load)
     <LoadingState v-else-if="loading && !income" />
 
     <template v-else-if="income">
-      <!-- N0: DAILY DIGEST — qué importa hoy (agrega de todos los sistemas) -->
+      <!-- N0: DAILY BRIEF — ¿Qué hago ahora? -->
+      <DailyBriefCard />
+
+      <!-- N0.1: DAILY DIGEST — qué importa hoy (agrega de todos los sistemas) -->
       <DailyDigest />
 
       <!-- N1: THE ONE ACTION — la única acción que importa ahora -->
