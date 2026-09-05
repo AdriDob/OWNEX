@@ -29,3 +29,9 @@ Fecha: 2026-09-05
 
 ---
 Generado por el agente de desarrollo — si quieres, procedo a: (A) ejecutar la suite completa en local (`make test`), (B) preparar commits y push del `FINAL_RELEASE_REPORT.md` y artefactos, o (C) generar un informe más detallado por secciones.
+
+## Pull request y reviewers sugeridos
+- Pull request: https://github.com/AdriDob/OWNEX/pull/37
+- Revisores sugeridos: @AdriDob (owner), QA team (please assign the QA reviewers).
+
+He añadido checklist de validación Tauri en `docs/tauri_windows_validation.md` y los artefactos de evidencia en `artifacts/release/`.
