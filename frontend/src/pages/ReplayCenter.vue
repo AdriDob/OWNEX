@@ -213,7 +213,7 @@ onMounted(loadTargets)
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <template v-if="loading">
       <div class="space-y-4">
         <Skeleton class="h-6 w-56" />

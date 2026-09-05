@@ -145,7 +145,7 @@ onMounted(fetchWallets)
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <!-- ═══ HEADER ═══ -->
     <div class="flex items-start justify-between gap-4 animate-in">
       <div class="space-y-1 min-w-0">

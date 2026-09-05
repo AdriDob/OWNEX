@@ -104,7 +104,7 @@ function diffColor(ratio: number) {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <div class="animate-in space-y-1">
       <p class="text-xs font-bold uppercase tracking-widest text-primary">Technical Evidence</p>
       <h1 class="font-display text-2xl font-bold text-foreground">Evidence Center</h1>
