@@ -436,6 +436,12 @@ class WorkerCore:
         # Record metrics
         duration = (datetime.now(UTC) - cycle_start).total_seconds() / 3600
         self.metrics.record_completion(work_item.estimated_reward_usd, duration)
+        # Count this cycle as completed (increment even when _run_cycle called directly)
+        try:
+            self.metrics.cycles_completed += 1
+            self.metrics.last_cycle_at = datetime.now(UTC).isoformat()
+        except Exception:
+            pass
 
     async def _discover_work(self) -> WorkItem | None:
         """Discover new work opportunities."""
@@ -780,6 +786,15 @@ class WorkerCore:
                     work_item.artifacts.extend(result.get("artifacts", []))
                     work_item.evidence.extend(result.get("evidence", []))
                     work_item.add_checkpoint(WorkPhase.EXECUTE, result)
+                    # If execution engine reports success flag, honor it.
+                    if result.get("success") is False:
+                        err = result.get("error") or "Execution engine reported failure"
+                        work_item.error = f"Execution failed: {err}"
+                        work_item.state = WorkState.ERROR
+                        self._record_engine_failure("execution", work_item.error)
+                        self.metrics.record_failure(f"Execution: {err}")
+                        self._audit("execute", work_item_id=work_item.id, status="failed", error=err)
+                        return False
             else:
                 work_item.add_checkpoint(WorkPhase.EXECUTE, {"executed": True, "basic": True})
             self._persist_one_checkpoint(work_item)
@@ -1036,7 +1051,7 @@ class WorkerCore:
             if cp is None:
                 continue
             resume_phase = resume_from(cp)
-            if resume_phase:
+            if resume_phase is not None:
                 results.append((work_id, resume_phase))
         return results
 
@@ -1060,6 +1075,11 @@ class WorkerCore:
             platform=str(getattr(cp, "work_item_platform", "") or ""),
             category=str(getattr(cp, "work_item_category", "") or ""),
         )
+        # Restore workflow_id from checkpoint if available.
+        wf_id = getattr(cp, "workflow_id", None) or data.get("workflow_id")
+        if wf_id:
+            item.workflow_id = str(wf_id)
+
         # Re-apply scalar fields that were persisted in the checkpoint payload.
         for key in [
             "estimated_reward_usd",
@@ -1146,12 +1166,12 @@ class WorkerCore:
         current_order = self._AUTONOMY_ORDER.get(self.config.autonomy_level.value, 0)
 
         action_requirements = {
-            "discover": 0,  # AutonomyLevel.NONE
-            "evaluate": 1,  # AutonomyLevel.DISCOVER
-            "prepare": 2,  # AutonomyLevel.PREPARE
-            "execute": 3,  # AutonomyLevel.EXECUTE
-            "deliver": 4,  # AutonomyLevel.FULL
-            "learn": 0,  # AutonomyLevel.NONE
+            "discover": 1,
+            "evaluate": 2,
+            "prepare": 2,
+            "execute": 3,
+            "deliver": 4,
+            "learn": 1,
         }
 
         required_order = action_requirements.get(action, 4)  # default to FULL
