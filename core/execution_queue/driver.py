@@ -163,11 +163,73 @@ class ExecutionQueueDriver:
                 return v
         return None
 
+    def _calculate_priority(self, item: dict) -> float:
+        """Calculate priority score: score × avail × acceptance.
+
+        - score: barrier_score from WorkBank (0-100, higher = lower barrier)
+        - avail: platform availability (1.0 = public, 0.5 = needs_api_key, 0.2 = needs_manual_setup)
+        - acceptance: acceptance probability from Revenue Tracker historical data
+        """
+        payload = item.get("payload", {})
+
+        # Score: barrier_score from WorkBank (0-100), default 50
+        score = payload.get("barrier_score", payload.get("reward", 50))
+        if score > 100:  # reward might be in dollars, normalize
+            score = min(100, score / 10)
+        score_norm = score / 100.0
+
+        # Availability: based on platform access tier
+        platform = payload.get("platform", "").lower()
+        avail_map = {
+            "public": 1.0,
+            "opire": 1.0,
+            "issuehunt": 1.0,
+            "algora": 1.0,
+            "needs_api_key": 0.5,
+            "hackerone": 0.5,
+            "bugcrowd": 0.5,
+            "intigriti": 0.5,
+            "yeswehack": 0.5,
+            "immunefi": 0.5,
+            "needs_manual_setup": 0.2,
+            "opencollective": 0.2,
+            "freelancer": 0.2,
+            "outlier": 0.2,
+            "mindrift": 0.2,
+            "upwork": 0.2,
+        }
+        avail = avail_map.get(platform, 0.2)
+
+        # Acceptance: from Revenue Tracker platform success rate
+        acceptance = 0.5  # default
+        try:
+            from cores.revenue_tracker import get_revenue_tracker
+
+            tracker = get_revenue_tracker()
+            if tracker:
+                metrics = tracker.get_platform_metrics(platform)
+                if metrics and metrics.success_rate > 0:
+                    acceptance = metrics.success_rate
+        except Exception:
+            pass
+
+        # Combined priority: score × avail × acceptance (0-1 range)
+        return score_norm * avail * acceptance
+
     async def process_queue_scheduler(self) -> dict[str, Any]:
-        """Scheduler job: process all QUEUED items."""
+        """Scheduler job: process all QUEUED items ordered by priority (score×avail×acceptance)."""
         results = {"processed": 0, "succeeded": 0, "failed": 0, "waiting_human": 0}
 
         queued_items = self.store.pending_by_state(ExecState.QUEUED.value)
+
+        # Sort by priority (highest first)
+        def item_priority(item_id: str) -> float:
+            item = self.store.get(item_id)
+            if not item:
+                return 0.0
+            return self._calculate_priority(item)
+
+        queued_items.sort(key=item_priority, reverse=True)
 
         for item_id in queued_items:
             try:
@@ -366,7 +428,11 @@ class ExecutionQueueDriver:
         return results
 
     async def process_waiting_human(self, item_id: str, approved: bool) -> ExecutionResult:
-        """Process human approval for WAITING_HUMAN item."""
+        """Process human approval for WAITING_HUMAN item.
+
+        If approved: transition to SUBMITTED and trigger auto-submission.
+        If rejected: transition to REJECTED.
+        """
         item = self.store.get(item_id)
         if not item:
             return ExecutionResult(False, f"Item {item_id} not found")
@@ -377,11 +443,56 @@ class ExecutionQueueDriver:
         if approved:
             # Transition to SUBMITTED
             self.store.transition(item_id, ExecState.SUBMITTED)
-            return ExecutionResult(True, "Approved by human - ready for submission")
+
+            # Trigger auto-submission for approved items
+            try:
+                from core.opportunity.executors.auto_submit import get_auto_submit_engine
+
+                engine = get_auto_submit_engine()
+                payload = item.get("payload", {})
+                opportunity = {
+                    "id": item_id,
+                    "title": payload.get("title", ""),
+                    "platform": payload.get("platform", ""),
+                    "description": payload.get("description", ""),
+                    "reward": payload.get("reward", 0),
+                    "url": payload.get("url", ""),
+                }
+
+                # Submit in background (fire and forget)
+                import asyncio
+
+                asyncio.create_task(self._auto_submit_work(item_id, payload))
+                logger.info(f"Auto-submission triggered for {item_id}")
+            except Exception as e:
+                logger.warning(f"Failed to trigger auto-submission for {item_id}: {e}")
+
+            return ExecutionResult(True, "Approved by human - auto-submission triggered")
         else:
             # Transition to REJECTED
             self.store.transition(item_id, ExecState.REJECTED)
             return ExecutionResult(False, "Rejected by human")
+
+    async def _auto_submit_work(self, item_id: str, payload: dict) -> None:
+        """Background task: submit approved work via AutoSubmitEngine."""
+        try:
+            from core.opportunity.executors.auto_submit import get_auto_submit_engine
+
+            engine = get_auto_submit_engine()
+            platform = payload.get("platform", "")
+            opportunity = {
+                "id": item_id,
+                "title": payload.get("title", ""),
+                "platform": payload.get("platform", ""),
+                "description": payload.get("description", ""),
+                "reward": payload.get("reward", 0),
+                "url": payload.get("url", ""),
+            }
+
+            await engine.submit_workbank_item(item_id, platform, opportunity)
+            logger.info(f"Auto-submission completed for {item_id}")
+        except Exception as e:
+            logger.error(f"Auto-submission failed for {item_id}: {e}")
 
 
 # Singleton instance

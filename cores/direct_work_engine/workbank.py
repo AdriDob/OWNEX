@@ -307,6 +307,7 @@ class WorkBank:
                             "platform": str(item.platform),
                             "reward": item.reward,
                             "title": item.title,
+                            "barrier_score": round(item.barrier_score, 1),
                         },
                     )
         except Exception:  # pragma: no cover — espejo defensivo
@@ -326,7 +327,7 @@ class WorkBank:
                     deliverables = item.deliverables or [
                         f"submission_draft: {item.title[:80]}",
                         "terms_check: cumple los términos públicos de la plataforma",
-                        f"reward_verified: \${float(item.reward):.2f}" if item.reward > 0 else "",
+                        f"reward_verified: ${float(item.reward):.2f}" if item.reward > 0 else "",
                     ]
                     package_path = f"deliveries/{item.id}_{item.platform}"
                     asyncio.run(
